@@ -64,7 +64,7 @@ open class Texture2D(
     }
 
     fun ensurePointer() {
-        if (isDestroyed) throw RuntimeException("Destroyed")
+        if (isDestroyed) throw RuntimeException("Texture was destroyed")
         if (pointer < 0) {
             GFX.check()
             pointer = createTexture()
@@ -73,7 +73,7 @@ open class Texture2D(
             // maybe we should use allocation free versions there xD
             GFX.check()
         }
-        if (pointer <= 0) throw RuntimeException()
+        if (pointer <= 0) throw RuntimeException("Could not allocate texture pointer")
     }
 
     // todo is BGRA really faster than RGBA? we should try that and maybe use it...
@@ -90,45 +90,27 @@ open class Texture2D(
     }
 
     fun create() {
-        ensurePointer()
-        bindBeforeUpload()
-        locallyAllocated = allocate(locallyAllocated, w * h * 4L)
+        beforeUpload(0, 0)
         if (withMultisampling) {
             glTexImage2DMultisample(tex2D, samples, GL_RGBA8, w, h, false)
         } else texImage2D(w, h, TargetType.UByteTarget4, null)
-        filtering(filtering)
-        clamping(clamping)
-        isCreated = true
-        if (isDestroyed) destroy()
+        afterUpload(4 * samples)
     }
 
     fun create(type: TargetType) {
-        ensurePointer()
-        bindBeforeUpload()
-        locallyAllocated = allocate(locallyAllocated, w * h * type.bytesPerPixel.toLong())
+        beforeUpload(0, 0)
         if (withMultisampling) {
             glTexImage2DMultisample(tex2D, samples, type.type0, w, h, false)
         } else texImage2D(w, h, type, null)
-        filtering(filtering)
-        clamping(clamping)
-        isCreated = true
-        GFX.check()
+        afterUpload(type.bytesPerPixel)
     }
 
     fun createFP32() {
-        GFX.check()
-        ensurePointer()
-        bindBeforeUpload()
-        GFX.check()
-        locallyAllocated = allocate(locallyAllocated, w * h * 32L)
+        beforeUpload(0, 0)
         if (withMultisampling) {
             glTexImage2DMultisample(tex2D, samples, GL_RGBA32F, w, h, false)
         } else texImage2D(w, h, TargetType.FloatTarget4, null)
-        GFX.check()
-        filtering(filtering)
-        clamping(clamping)
-        isCreated = true
-        GFX.check()
+        afterUpload(4 * 4 * samples)
     }
 
     fun create(name: String, createImage: () -> BufferedImage, forceSync: Boolean) {
@@ -272,21 +254,15 @@ open class Texture2D(
     }
 
     fun uploadData(buffer: ByteBuffer) {
-        GFX.check()
+        beforeUpload(4, buffer.remaining())
         val t0 = System.nanoTime()
-        ensurePointer()
-        bindBeforeUpload()
-        locallyAllocated = allocate(locallyAllocated, w * h * 4L)
         texImage2D(w, h, TargetType.UByteTarget4, buffer)
         // glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
         byteBufferPool.returnBuffer(buffer)
         val t1 = System.nanoTime() // 0.02s for a single 4k texture
-        isCreated = true
-        filtering(filtering)
-        clamping(clamping)
+        afterUpload(4)
         val t2 = System.nanoTime() // 1e-6
         if (w * h > 1e4 && (t2 - t0) * 1e-9f > 0.01f) LOGGER.info("Used ${(t1 - t0) * 1e-9f}s + ${(t2 - t1) * 1e-9f}s to upload ${(w * h) / 1e6f} MPixel image to GPU")
-        GFX.check()
     }
 
     /*fun uploadData2(data: ByteBuffer, callback: () -> Unit) {
@@ -327,60 +303,48 @@ open class Texture2D(
 
     fun uploadData(ints: IntArray) {
         // if(h > 20) println("using ints: $w $h ${ints.size}")
+        beforeUpload(1, ints.size)
+        locallyAllocated = allocate(locallyAllocated, w * h * 4L)
+        glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, ints)
+        //uploadData2(toByteBuffer(ints)) { GFX.check() }
+        afterUpload(4)
+    }
+
+    private fun beforeUpload(channels: Int, size: Int) {
+        if(isDestroyed) throw RuntimeException("Texture is already destroyed, call reset() if you want to stream it")
+        checkSize(channels, size)
         GFX.check()
         ensurePointer()
         bindBeforeUpload()
-        locallyAllocated = allocate(locallyAllocated, w * h * 4L)
-        glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, ints)
-        /*uploadData2(toByteBuffer(ints)) {
-            GFX.check()
-        }*/
+    }
+
+    private fun afterUpload(bytesPerPixel: Int) {
+        locallyAllocated = allocate(locallyAllocated, w * h * bytesPerPixel.toLong())
         isCreated = true
         filtering(filtering)
         clamping(clamping)
         GFX.check()
+        if (isDestroyed) destroy()
     }
 
     fun createRGBA(ints: IntBuffer) {
-        checkSize(1, ints.capacity())
-        GFX.check()
-        ensurePointer()
-        bindBeforeUpload()
-        locallyAllocated = allocate(locallyAllocated, w * h * 4L)
+        beforeUpload(1, ints.remaining())
         glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, ints)
-        isCreated = true
-        filtering(filtering)
-        clamping(clamping)
-        GFX.check()
+        afterUpload(4)
     }
 
     fun createRGB(ints: IntBuffer) {
-        checkSize(1, ints.capacity())
-        GFX.check()
-        ensurePointer()
-        bindBeforeUpload()
-        locallyAllocated = allocate(locallyAllocated, w * h * 3L)
+        beforeUpload(1, ints.remaining())
         glTexImage2D(tex2D, 0, GL_RGB8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, ints)
-        isCreated = true
-        filtering(filtering)
-        clamping(clamping)
-        GFX.check()
+        afterUpload(3)
     }
 
     fun createMonochrome(data: ByteBuffer) {
-        checkSize(1, data)
-        GFX.check()
-        ensurePointer()
-        bindBeforeUpload()
-        GFX.check()
-        locallyAllocated = allocate(locallyAllocated, w * h.toLong())
+        beforeUpload(1, data.remaining())
         texImage2D(w, h, TargetType.UByteTarget1, data)
         // glTexImage2D(tex2D, 0, GL_RED, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, data)
         byteBufferPool.returnBuffer(data)
-        isCreated = true
-        filtering(filtering)
-        clamping(clamping)
-        GFX.check()
+        afterUpload(1)
     }
 
     /**
@@ -388,37 +352,21 @@ open class Texture2D(
      * used by SDF
      * */
     fun createMonochrome(data: FloatBuffer) {
-        checkSize(1, data)
-        GFX.check()
-        ensurePointer()
-        bindBeforeUpload()
-        GFX.check()
-        locallyAllocated = allocate(locallyAllocated, w * h * 4L)
+        beforeUpload(1, data.remaining())
         glTexImage2D(tex2D, 0, GL_R32F, w, h, 0, GL_RED, GL_FLOAT, data)
-        isCreated = true
-        filtering(filtering)
-        clamping(clamping)
-        GFX.check()
+        afterUpload(4)
     }
 
     fun createMonochrome(data: ByteArray) {
-        checkSize(1, data.size)
-        GFX.check()
-        ensurePointer()
-        bindBeforeUpload()
-        GFX.check()
+        beforeUpload(1, data.size)
         val byteBuffer = byteBufferPool[data.size, false]
         byteBuffer.position(0)
         byteBuffer.put(data)
         byteBuffer.position(0)
-        locallyAllocated = allocate(locallyAllocated, w * h.toLong())
         texImage2D(w, h, TargetType.UByteTarget1, byteBuffer)
         // glTexImage2D(tex2D, 0, GL_RED, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, byteBuffer)
         byteBufferPool.returnBuffer(byteBuffer)
-        isCreated = true
-        filtering(filtering)
-        clamping(clamping)
-        GFX.check()
+        afterUpload(1)
     }
 
     fun create(data: FloatArray) {
@@ -456,33 +404,19 @@ open class Texture2D(
     }
 
     fun createRGBA(buffer: ByteBuffer) {
-        checkSize(4, buffer)
-        ensurePointer()
-        bindBeforeUpload()
-        GFX.check()
-        locallyAllocated = allocate(locallyAllocated, w * h * 4L)
+        beforeUpload(4, buffer.remaining())
         texImage2D(w, h, TargetType.UByteTarget4, buffer)
         // glTexImage2D(tex2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
         byteBufferPool.returnBuffer(buffer)
-        isCreated = true
-        filtering(filtering)
-        clamping(clamping)
-        GFX.check()
+        afterUpload(4)
     }
 
     fun createRGB(buffer: ByteBuffer) {
-        checkSize(4, buffer)
-        ensurePointer()
-        bindBeforeUpload()
-        GFX.check()
-        locallyAllocated = allocate(locallyAllocated, w * h * 4L)
+        beforeUpload(4, buffer.remaining())
         texImage2D(w, h, TargetType.UByteTarget3, buffer)
         // glTexImage2D(tex2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
         byteBufferPool.returnBuffer(buffer)
-        isCreated = true
-        filtering(filtering)
-        clamping(clamping)
-        GFX.check()
+        afterUpload(4)
     }
 
     fun ensureFilterAndClamping(nearest: GPUFiltering, clamping: Clamping) {
@@ -524,7 +458,7 @@ open class Texture2D(
     var hasMipmap = false
 
     private fun bindBeforeUpload() {
-        if (pointer == -1) throw RuntimeException()
+        if (pointer == -1) throw RuntimeException("Pointer must be defined")
         bindTexture(tex2D, pointer)
     }
 
@@ -587,6 +521,10 @@ open class Texture2D(
 
     private fun checkSize(channels: Int, size: Int) {
         if (size < w * h * channels) throw IllegalArgumentException("Incorrect size, ${w * h * channels} vs ${size}!")
+    }
+
+    fun reset(){
+        isDestroyed = false
     }
 
     companion object {

@@ -8,7 +8,8 @@ data class TextCacheKey(
     val text: String,
     val fontName: String,
     val properties: Int,
-    val widthLimit: Int
+    val widthLimit: Int,
+    val heightLimit: Int
 ) {
 
     fun fontSizeIndex() = properties.shr(3)

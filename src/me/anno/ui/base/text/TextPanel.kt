@@ -77,21 +77,23 @@ open class TextPanel(text: String, style: Style) : Panel(style) {
     fun drawText(dx: Int, dy: Int, text: String, color: Int): Int {
         return DrawTexts.drawText(
             this.x + dx + padding.left, this.y + dy + padding.top, font,
-            text, color, backgroundColor, widthLimit
+            text, color, backgroundColor, widthLimit, heightLimit
         )
     }
 
     var minW2 = 0
     var minH2 = 0
 
-    val widthLimit get() = if (breaksIntoMultiline) w - padding.width else -1
+    open val widthLimit get() = if (breaksIntoMultiline) w - padding.width else -1
+    open val heightLimit get() = -1
 
     fun calculateSize(w: Int, h: Int, text: String) {
         val inst = instantTextLoading
         if (inst) loadTexturesSync.push(true)
         super.calculateSize(w, h)
-        val limit = if (breaksIntoMultiline) w - padding.width else -1
-        val size = getTextSize(font, text, limit)
+        val widthLimit = if (breaksIntoMultiline) w - padding.width else -1
+        val heightLimit = -1
+        val size = getTextSize(font, text, widthLimit, heightLimit)
         minW = max(1, getSizeX(size) + padding.width)
         minH = max(1, getSizeY(size) + padding.height)
         minW2 = minW
@@ -104,7 +106,7 @@ open class TextPanel(text: String, style: Style) : Panel(style) {
         calculateSize(w, h, text)
     }
 
-    fun getMaxWidth() = getTextSizeX(font, text, -1) + padding.width
+    fun getMaxWidth() = getTextSizeX(font, text, -1, -1) + padding.width
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val inst = instantTextLoading

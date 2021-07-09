@@ -117,7 +117,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent), SplittableEle
         if (text.isEmpty()) return null
         val awtFont = FontManager.getFont(font)
         val absoluteLineBreakWidth = lineBreakWidth * font.size * 2f / DEFAULT_LINE_HEIGHT
-        return awtFont.splitParts(text, font.size, relativeTabSize, relativeCharSpacing, absoluteLineBreakWidth)
+        return awtFont.splitParts(text, font.size, relativeTabSize, relativeCharSpacing, absoluteLineBreakWidth, -1f)
     }
 
     fun getVisualState(text: String): Any = Pair(
@@ -168,7 +168,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent), SplittableEle
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
         TextRenderer.draw(this, stack, time, color) {
-            super.draw(stack, time, color)
+            super.onDraw(stack, time, color)
         }
     }
 

@@ -51,7 +51,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
         val inst = instantTextLoading
         if (inst) loadTexturesSync.push(true)
         super.calculateSize(w, h)
-        val size = getTextSize(font, text, widthLimit)
+        val size = getTextSize(font, text, widthLimit, heightLimit)
         val w2 = getSizeX(size)
         val h2 = getSizeY(size)
         minW = max(1, w2 + padding.width)
@@ -125,10 +125,10 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
             // to do cache sizes... (low priority, because it has to be in focus for this calculation, so this calculation is rather rare)
             val cursorX1 =
                 if (cursor1 == 0) -1
-                else getTextSizeX(font, characters.subList(0, cursor1).joinChars(), -1) - 1
+                else getTextSizeX(font, characters.subList(0, cursor1).joinChars(), -1, -1) - 1
             if (cursor1 != cursor2) {
                 val cursorX2 = if (cursor2 == 0) -1
-                else getTextSizeX(font, characters.subList(0, cursor2).joinChars(), -1) - 1
+                else getTextSizeX(font, characters.subList(0, cursor2).joinChars(), -1, -1) - 1
                 val min = min(cursorX1, cursorX2)
                 val max = max(cursorX1, cursorX2)
                 drawRect(

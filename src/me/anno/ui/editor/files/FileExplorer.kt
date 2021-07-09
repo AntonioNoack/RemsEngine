@@ -153,38 +153,38 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
 
                 val parent = folder.getParent()
                 if (parent != null) {
-                    val fe = FileExplorerEntry(this, true, parent, style)
-                    GFX.addGPUTask(1) { removeOldFiles(); content += fe }
+                    GFX.addGPUTask(1) {
+                        val fe = FileExplorerEntry(this, true, parent, style)
+                        removeOldFiles(); content += fe
+                    }
                 } else {
                     GFX.addGPUTask(1) { removeOldFiles() }
                 }
 
                 val tmpCount = 64
-                var tmpList = ArrayList<FileExplorerEntry>(tmpCount)
+                var tmpList = ArrayList<FileReference>(tmpCount)
 
                 fun put() {
                     if (tmpList.isNotEmpty()) {
                         val list = tmpList
+                        tmpList = ArrayList(tmpCount)
                         addEvent {
-                            for (it in list) {
-                                content += it
+                            for (file in list) {
+                                content += FileExplorerEntry(this, false, file, style)
                             }
                             // force layout update
                             Input.invalidateLayout()
                         }
-                        tmpList = ArrayList(tmpCount)
                     }
                 }
 
                 for (file in level0.filter { it.isDirectory }) {
-                    val fe = FileExplorerEntry(this, false, file, style)
-                    tmpList.add(fe)
+                    tmpList.add(file)
                     if (tmpList.size >= tmpCount) put()
                 }
 
                 for (file in level0.filter { !it.isDirectory }) {
-                    val fe = FileExplorerEntry(this, false, file, style)
-                    tmpList.add(fe)
+                    tmpList.add(file)
                     if (tmpList.size >= tmpCount) put()
                 }
 

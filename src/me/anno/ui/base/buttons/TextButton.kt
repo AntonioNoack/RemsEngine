@@ -73,12 +73,12 @@ open class TextButton(title: String, val isSquare: Boolean, style: Style) : Text
 
         drawBackground()
 
-        val limit = if (breaksIntoMultiline) this.w else -1
-        val size = getTextSize(font, text, limit)
+        val widthLimit = if (breaksIntoMultiline) this.w else -1
+        val size = getTextSize(font, text, widthLimit, heightLimit)
         DrawTexts.drawText(
             x + (w - getSizeX(size)) / 2,
             y + (h - getSizeY(size)) / 2,
-            font, text, textColor, backgroundColor, limit
+            font, text, textColor, backgroundColor, widthLimit, heightLimit
         )
 
         drawRect(

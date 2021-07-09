@@ -4,11 +4,13 @@ import me.anno.cache.CacheData
 import me.anno.cache.instances.TextCache
 import me.anno.fonts.keys.FontKey
 import me.anno.fonts.keys.TextCacheKey
+import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
-import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.TextureLib
+import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.texture.ITexture2D
 import me.anno.utils.Clock
+import me.anno.utils.Maths.ceilDiv
 import me.anno.utils.Threads.threadWithName
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.isBlank2
@@ -32,9 +34,9 @@ object FontManager {
     fun requestFontList(callback: (List<String>) -> Unit) {
         if (hasFonts) callback(awtFontList)
         else {
+            hasFonts = true
             threadWithName("FontManager") {
                 synchronized(awtFontList) {
-                    hasFonts = true
                     val tick = Clock()
                     val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
                     val fontNames = ge.availableFontFamilyNames
@@ -54,33 +56,70 @@ object FontManager {
     fun getFontSizeIndex(fontSize: Float): Int = max(0, round(100.0 * ln(fontSize)).toInt())
     fun getAvgFontSize(fontSizeIndex: Int): Float = exp(fontSizeIndex * 0.01f)
 
+    fun limitWidth(
+        font: me.anno.ui.base.Font,
+        text: String,
+        widthLimit: Int,
+        heightLimit: Int
+    ): Int {
+        return if (widthLimit < 0) -1 else {
+            loadTexturesSync.push(true)
+            val size0 = getSize(font, text, -1, heightLimit)
+            val w = GFXx2D.getSizeX(size0)
+            if (w <= widthLimit) return size0
+            loadTexturesSync.pop()
+            val step = font.size.toInt()
+            min(w, (widthLimit + step / 2) / step * step)
+        }
+    }
+
+    fun limitHeight(font: me.anno.ui.base.Font, heightLimit: Int): Int {
+        val fontHeight = font.size // roughly, not exact!
+        val spaceBetweenLines = getFont(font).spaceBetweenLines(fontHeight)
+        // val height = (fontHeight + spaceBetweenLines) * lineCount - spaceBetweenLines
+        // val lineCount = ceil((heightLimit - spaceBetweenLines) / (fontHeight + spaceBetweenLines)).toInt()
+        val effLineHeight = font.sizeInt + spaceBetweenLines
+        return ceilDiv(heightLimit, effLineHeight)
+    }
+
+    fun limitHeight(
+        font: me.anno.ui.base.Font,
+        text: String,
+        widthLimit2: Int,
+        heightLimit: Int
+    ): Int {
+        return if (heightLimit < 0) -1 else {
+            loadTexturesSync.push(true)
+            val size0 = getSize(font, text, widthLimit2, -1)
+            val h = GFXx2D.getSizeY(size0)
+            loadTexturesSync.pop()
+            limitHeight(font, min(h, heightLimit))
+        }
+    }
+
     fun getSize(
         font: me.anno.ui.base.Font,
         text: String,
-        widthLimit: Int
+        widthLimit: Int,
+        heightLimit: Int
     ): Int {
 
-        val fontSize = font.size
+        GFX.checkIsGFXThread()
+
         if (text.isEmpty()) return GFXx2D.getSize(0, font.sizeInt)
 
         val fontSizeIndex = font.sizeIndex
         val properties = TextCacheKey.getProperties(fontSizeIndex, font, true)
-        val widthLimit2 = if (widthLimit < 0) -1 else {
-            loadTexturesSync.push(true)
-            val size0 = getSize(font, text, -1)
-            val w = GFXx2D.getSizeX(size0)
-            if (w <= widthLimit) return size0
-            loadTexturesSync.pop()
-            val step = fontSize.toInt()
-            min(w, widthLimit / step * step)
-        }
+
+        val widthLimit2 = limitWidth(font, text, widthLimit, heightLimit)
+        val lineCountLimit = limitHeight(font, text, widthLimit2, heightLimit)
 
         val fontName = font.name
-        val key = TextCacheKey(text, fontName, properties, widthLimit2)
+        val key = TextCacheKey(text, fontName, properties, widthLimit2, lineCountLimit)
         val data = TextCache.getEntry(key, 100_000, false) {
             val awtFont = getFont(it)
             val averageFontSize = getAvgFontSize(it.fontSizeIndex())
-            CacheData(awtFont.calculateSize(text, averageFontSize, it.widthLimit))
+            CacheData(awtFont.calculateSize(text, averageFontSize, it.widthLimit, it.heightLimit))
         } as CacheData<*>
 
         return data.value as Int
@@ -90,34 +129,29 @@ object FontManager {
     fun getTextCacheKey(
         font: me.anno.ui.base.Font,
         text: String,
-        widthLimit: Int
+        widthLimit: Int,
+        heightLimit: Int
     ): TextCacheKey? {
 
         if (text.isBlank2()) return null
         val fontSize = font.size
         val fontSizeIndex = getFontSizeIndex(fontSize)
         val sub = fontSizeIndex * 8 + font.isItalic.toInt(4) + font.isBold.toInt(2)
-        val widthLimit2 = if (widthLimit < 0) -1 else {
-            loadTexturesSync.push(true)
-            val size0 = getSize(font, text, -1)
-            val w = GFXx2D.getSizeX(size0)
-            if (w <= widthLimit) return getTextCacheKey(font, text, -1)
-            loadTexturesSync.pop()
-            val step = fontSize.toInt()
-            min(w, widthLimit / step * step)
-        }
+        val widthLimit2 = limitWidth(font, text, widthLimit, heightLimit)
+        val lineCountLimit = limitHeight(font, text, widthLimit2, heightLimit)
 
         val fontName = font.name
-        return TextCacheKey(text, fontName, sub, widthLimit2)
+        return TextCacheKey(text, fontName, sub, widthLimit2, lineCountLimit)
 
     }
 
     fun getString(
         font: me.anno.ui.base.Font,
         text: String,
-        widthLimit: Int
+        widthLimit: Int,
+        heightLimit: Int
     ): ITexture2D? {
-        val key = getTextCacheKey(font, text, widthLimit) ?: return null
+        val key = getTextCacheKey(font, text, widthLimit, heightLimit) ?: return null
         return getString(key)
     }
 
@@ -130,8 +164,8 @@ object FontManager {
         return TextCache.getEntry(cacheKey, textureTimeout, false) { key ->
             val font2 = getFont(key)
             val averageFontSize = getAvgFontSize(key.fontSizeIndex())
-            val texture = font2.generateTexture(key.text, averageFontSize, key.widthLimit)
-            if(texture == null) LOGGER.warn("Texture for '$key' was null")
+            val texture = font2.generateTexture(key.text, averageFontSize, key.widthLimit, key.heightLimit)
+            if (texture == null) LOGGER.warn("Texture for '$key' was null")
             texture ?: TextureLib.nullTexture
         } as? ITexture2D
     }

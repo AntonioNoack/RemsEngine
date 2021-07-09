@@ -26,6 +26,8 @@ import me.anno.ui.editor.sceneView.ISceneView
 import me.anno.studio.rems.ui.TransformTreeView
 import me.anno.utils.OS
 
+// todo ist die Textgenerierung threadsicher? nicht, dass daher die verschwundenen Texturen kommen
+
 
 // todo somehow the editor is lagging, when stuff is moved: is it an AI issue?
 

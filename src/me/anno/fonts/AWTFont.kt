@@ -92,13 +92,13 @@ class AWTFont(val font: Font) {
         }
     }
 
-    private fun spaceBetweenLines(fontSize: Float) = (0.5f * fontSize).roundToInt()
+    fun spaceBetweenLines(fontSize: Float) = (0.5f * fontSize).roundToInt()
 
-    fun calculateSize(text: String, fontSize: Float, widthLimit: Int): Int {
+    fun calculateSize(text: String, fontSize: Float, widthLimit: Int, heightLimit: Int): Int {
 
         if (text.isEmpty()) return GFXx2D.getSize(0, fontSize.toInt())
         if (text.containsSpecialChar() || widthLimit > 0) {
-            return generateSizeV3(text, fontSize, widthLimit.toFloat())
+            return generateSizeV3(text, fontSize, widthLimit.toFloat(), heightLimit.toFloat())
         }
 
         val lines = text.split('\n')
@@ -107,16 +107,16 @@ class AWTFont(val font: Font) {
         val fontHeight = fontMetrics.height
         val height = fontHeight * lineCount + (lineCount - 1) * spaceBetweenLines
 
-        val width = max(0, lines.map { getStringWidth(getGroup(it)) }.maxOrNull()!!.roundToInt() + 1)
+        val width = max(0, lines.maxOf { getStringWidth(getGroup(it)) }.roundToInt() + 1)
         return GFXx2D.getSize(width, height)
 
     }
 
-    fun generateTexture(text: String, fontSize: Float, widthLimit: Int): ITexture2D? {
+    fun generateTexture(text: String, fontSize: Float, widthLimit: Int, heightLimit: Int): ITexture2D? {
 
         if (text.isEmpty()) return null
         if (text.containsSpecialChar() || widthLimit > 0) {
-            return generateTextureV3(text, fontSize, widthLimit.toFloat())
+            return generateTextureV3(text, fontSize, widthLimit.toFloat(), heightLimit.toFloat())
         }
 
         val group = getGroup(text)
@@ -165,8 +165,8 @@ class AWTFont(val font: Font) {
     }
 
     fun debug(image: BufferedImage) {
-        OS.desktop.getChild("img")?.mkdirs()
-        use(OS.desktop.getChild("img/${ctr++}.png")!!.outputStream()) {
+        OS.desktop.getChild("img").mkdirs()
+        use(OS.desktop.getChild("img/${ctr++}.png").outputStream()) {
             ImageIO.write(image, "png", it)
         }
     }
@@ -190,7 +190,8 @@ class AWTFont(val font: Font) {
         fontSize: Float,
         relativeTabSize: Float,
         relativeCharSpacing: Float,
-        lineBreakWidth: Float
+        lineBreakWidth: Float,
+        textBreakHeight: Float
     ): PartResult {
 
         val fallback = getFallback(fontSize)
@@ -199,11 +200,17 @@ class AWTFont(val font: Font) {
         fonts += font
         fonts += fallback
 
-        val lines = text.split('\n')
+        val lineCountLimit = if (textBreakHeight < 0f) Int.MAX_VALUE
+        else (textBreakHeight / (fontSize + spaceBetweenLines(fontSize))).roundToInt()
+
+        var lines = text.split('\n')
+        if (lines.size > lineCountLimit) lines = lines.subList(0, lineCountLimit)
+
         val splitLines = lines.map {
             if (it.isBlank2()) null
             else splitLine(fonts, it, fontSize, relativeTabSize, relativeCharSpacing, lineBreakWidth)
         }
+
         val width = splitLines.maxByOrNull { it?.width ?: 0f }?.width ?: 0f
         var lineCount = 0
         val parts = splitLines.mapNotNull { partResult ->
@@ -211,6 +218,7 @@ class AWTFont(val font: Font) {
             lineCount += partResult?.lineCount ?: 1
             val offset = Vector2f(0f, offsetY)
             partResult?.parts?.map { it + offset }
+            // todo break, if the line limit has been reached
         }.join()
         val height = lineCount * actualFontSize
         return PartResult(parts, width, height, lineCount, exampleLayout)
@@ -366,9 +374,9 @@ class AWTFont(val font: Font) {
 
     }
 
-    private fun generateSizeV3(text: String, fontSize: Float, lineBreakWidth: Float): Int {
+    private fun generateSizeV3(text: String, fontSize: Float, lineBreakWidth: Float, textBreakHeight: Float): Int {
 
-        val parts = splitParts(text, fontSize, 4f, 0f, lineBreakWidth)
+        val parts = splitParts(text, fontSize, 4f, 0f, lineBreakWidth, textBreakHeight)
 
         val width = ceil(parts.width).toInt()
         val height = ceil(parts.height).toInt()
@@ -377,9 +385,14 @@ class AWTFont(val font: Font) {
 
     }
 
-    private fun generateTextureV3(text: String, fontSize: Float, lineBreakWidth: Float): ITexture2D? {
+    private fun generateTextureV3(
+        text: String,
+        fontSize: Float,
+        lineBreakWidth: Float,
+        textBreakHeight: Float
+    ): ITexture2D {
 
-        val parts = splitParts(text, fontSize, 4f, 0f, lineBreakWidth)
+        val parts = splitParts(text, fontSize, 4f, 0f, lineBreakWidth, textBreakHeight)
         val result = parts.parts
         val exampleLayout = parts.exampleLayout
 

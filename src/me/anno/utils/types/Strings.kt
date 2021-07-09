@@ -28,7 +28,7 @@ object Strings {
         else {
             loadTexturesSync.push(true)
             val stringValue = line.subList(0, min(endIndex, line.size)).joinChars()
-            val width = getTextSizeX(font, stringValue, -1)
+            val width = getTextSizeX(font, stringValue, -1, -1)
             loadTexturesSync.pop()
             width.toFloat()
         }

@@ -12,7 +12,6 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.ui.base.Font
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.debug.FrameTimes
-import me.anno.utils.LOGGER
 import me.anno.utils.Maths
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
@@ -25,7 +24,7 @@ object DrawTexts {
     val simpleChars = Array('z'.code + 1) { it.toChar().toString() }
     var monospaceFont = lazy { Font("Consolas", DefaultConfig.style.getSize("fontSize", 12), false, false) }
     val monospaceKeys =
-        lazy { Array(simpleChars.size) { FontManager.getTextCacheKey(monospaceFont.value, simpleChars[it], -1) } }
+        lazy { Array(simpleChars.size) { FontManager.getTextCacheKey(monospaceFont.value, simpleChars[it], -1, -1) } }
 
     fun drawSimpleTextCharByChar(
         x0: Int, y0: Int,
@@ -107,6 +106,7 @@ object DrawTexts {
         color: Int,
         backgroundColor: Int,
         widthLimit: Int,
+        heightLimit: Int,
         alignment: AxisAlignment,
         equalSpaced: Boolean
     ): Int {
@@ -122,14 +122,14 @@ object DrawTexts {
                 val size = drawTextCharByChar(
                     x, y + index * lineOffset, font, s,
                     color, backgroundColor,
-                    widthLimit, alignment, equalSpaced
+                    widthLimit, heightLimit, alignment, equalSpaced
                 )
                 sizeX = Maths.max(GFXx2D.getSizeX(size), sizeX)
             }
             return GFXx2D.getSize(sizeX, (split.size - 1) * lineOffset + font.sizeInt)
         }
 
-        val charWidth = if (equalSpaced) getTextSizeX(font, "x", widthLimit) else 0
+        val charWidth = if (equalSpaced) getTextSizeX(font, "x", widthLimit, heightLimit) else 0
 
         val offset = when (alignment) {
             AxisAlignment.MIN -> 0
@@ -141,7 +141,7 @@ object DrawTexts {
             drawTextCharByChar(
                 x + offset, y,
                 font, text, color, backgroundColor,
-                widthLimit, AxisAlignment.MIN, equalSpaced
+                widthLimit, heightLimit, AxisAlignment.MIN, equalSpaced
             )
         }
 
@@ -158,13 +158,13 @@ object DrawTexts {
         var h = font.sizeInt
         for (char in text) {
             val txt = char.toString()
-            val size = FontManager.getSize(font, txt, -1)
+            val size = FontManager.getSize(font, txt, -1, -1)
             val sizeFirst = GFXx2D.getSizeX(size)
             val sizeSecond = GFXx2D.getSizeY(size)
             h = sizeSecond
             val w = if (equalSpaced) charWidth else sizeFirst
             if (!txt.isBlank2()) {
-                val texture = FontManager.getString(font, txt, -1)
+                val texture = FontManager.getString(font, txt, -1, -1)
                 if (texture != null && (texture !is Texture2D || texture.isCreated)) {
                     texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                     val x2 = fx + (w - sizeFirst) / 2
@@ -177,11 +177,13 @@ object DrawTexts {
                     GFX.flat01.draw(shader)
                     GFX.check()
                 } else {
-                    LOGGER.warn("Texture for '$txt' is ${
-                        if(texture == null) "null" 
-                        else if(texture is Texture2D && texture.isDestroyed) "destroyed"
-                        else "not created"
-                    }, $texture")
+                    LOGGER.warn(
+                        "Texture for '$txt' is ${
+                            if (texture == null) "null"
+                            else if (texture is Texture2D && texture.isDestroyed) "destroyed"
+                            else "not created"
+                        }, $texture"
+                    )
                 }
             }
             fx += w
@@ -198,18 +200,19 @@ object DrawTexts {
         font: Font, text: String,
         color: Int, backgroundColor: Int,
         widthLimit: Int,
+        heightLimit: Int,
         alignment: AxisAlignment = AxisAlignment.MIN
     ): Int {
 
-        GFX.check()
-        val tex0 = FontManager.getString(font, text, widthLimit)
-        val charByChar = (tex0 == null || tex0 !is Texture2D || !tex0.isCreated) && text.length > 1
-        if (charByChar) {
-            return drawTextCharByChar(x, y, font, text, color, backgroundColor, widthLimit, alignment, false)
-        }
+        if (text.isEmpty()) return GFXx2D.getSize(0, font.sizeInt)
 
-        val texture = tex0 ?: return GFXx2D.getSize(0, font.sizeInt)
-        return drawText(x, y, color, backgroundColor, texture, alignment)
+        GFX.check()
+        val tex0 = FontManager.getString(font, text, widthLimit, heightLimit)
+
+        val charByChar = (tex0 == null || tex0 !is Texture2D || !tex0.isCreated || tex0.isDestroyed) && text.length > 1
+        return if (charByChar) {
+            drawTextCharByChar(x, y, font, text, color, backgroundColor, widthLimit, heightLimit, alignment, false)
+        } else drawText(x, y, color, backgroundColor, tex0!!, alignment)
 
     }
 
@@ -260,7 +263,7 @@ object DrawTexts {
         val tex0 = FontManager.getString(key)
         val charByChar = tex0 == null || tex0 !is Texture2D || !tex0.isCreated
         if (charByChar) {
-            return drawTextCharByChar(x, y, font, key.text, color, backgroundColor, key.widthLimit, alignment, false)
+            return drawTextCharByChar(x, y, font, key.text, color, backgroundColor, key.widthLimit, key.heightLimit, alignment, false)
         }
 
         val texture = tex0 ?: return GFXx2D.getSize(0, font.sizeInt)
@@ -283,7 +286,7 @@ object DrawTexts {
         if (charByChar) {
             return drawTextCharByChar(
                 x, y, key.createFont(), key.text, color,
-                backgroundColor, key.widthLimit, alignment, false
+                backgroundColor, key.widthLimit, key.heightLimit, alignment, false
             )
         }
 
@@ -292,13 +295,13 @@ object DrawTexts {
 
     }
 
-    fun getTextSizeX(font: Font, text: String, widthLimit: Int) =
-        GFXx2D.getSizeX(getTextSize(font, text, widthLimit))
+    fun getTextSizeX(font: Font, text: String, widthLimit: Int, heightLimit: Int) =
+        GFXx2D.getSizeX(getTextSize(font, text, widthLimit, heightLimit))
 
-    fun getTextSizeY(font: Font, text: String, widthLimit: Int) =
-        GFXx2D.getSizeY(getTextSize(font, text, widthLimit))
+    fun getTextSizeY(font: Font, text: String, widthLimit: Int, heightLimit: Int) =
+        GFXx2D.getSizeY(getTextSize(font, text, widthLimit, heightLimit))
 
-    fun getTextSize(font: Font, text: String, widthLimit: Int) =
-        FontManager.getSize(font, text, widthLimit)
+    fun getTextSize(font: Font, text: String, widthLimit: Int, heightLimit: Int) =
+        FontManager.getSize(font, text, widthLimit, heightLimit)
 
 }

@@ -59,6 +59,7 @@ object DrawTextures {
         shader.use()
         GFXTransform.uploadAttractors0(shader)
         GFXx3D.shader3DUniforms(shader, null, -1)
+
         /*shader.v1("filtering", Filtering.LINEAR.id)
         shader.v2("textureDeltaUV", 1f / texture.w, 1f / texture.h)
         shader.m4x4("transform", null)

@@ -12,6 +12,7 @@ import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx3D
+import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
@@ -248,7 +249,10 @@ class FileExplorerEntry(
         val image = Thumbs.getThumbnail(file, w) ?: getDefaultIcon() ?: whiteTexture
         val tex2D = image as? Texture2D
         val rot = tex2D?.rotation
-        tex2D?.ensureFilterAndClamping(GPUFiltering.LINEAR, Clamping.CLAMP)
+        if(tex2D != null){
+            tex2D.bind(0) // texture must be bound!!
+            tex2D.ensureFilterAndClamping(GPUFiltering.LINEAR, Clamping.CLAMP)
+        }
         if (rot == null) {
             drawTexture(x0, y0, x1, y1, image)
         } else {

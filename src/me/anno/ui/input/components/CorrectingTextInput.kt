@@ -100,7 +100,7 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
     }
 
     private fun getX(charIndex: Int) = x + padding.left + drawingOffset + if (charIndex <= 0) -1 else
-        getTextSizeX(font, text.substring(0, min(charIndex, text.length)), -1) - 1
+        getTextSizeX(font, text.substring(0, min(charIndex, text.length)), -1, -1) - 1
 
     // todo automatically show hints, when the user is typing
     private fun applySuggestion(suggestion: Suggestion, choice: String) {

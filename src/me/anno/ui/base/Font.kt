@@ -13,7 +13,7 @@ data class Font(val name: String, val size: Float, val isBold: Boolean, val isIt
     val sizeInt = size.roundToInt()
     val sizeIndex = FontManager.getFontSizeIndex(size)
 
-    val sampleSize = DrawTexts.getTextSize(this, "w", -1)
+    val sampleSize = DrawTexts.getTextSize(this, "w", -1, -1)
     val sampleWidth = GFXx2D.getSizeX(sampleSize)
     val sampleHeight = GFXx2D.getSizeY(sampleSize)
 

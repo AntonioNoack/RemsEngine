@@ -10,7 +10,7 @@ object Maths {
 
     val GoldenRatio = (1f + sqrt(5f)) * 0.5f
 
-    fun sq(x: Int) = x*x
+    fun sq(x: Int) = x * x
 
     fun sq(x: Float) = x * x
     fun sq(x: Float, y: Float) = x * x + y * y
@@ -28,7 +28,7 @@ object Maths {
     fun smoothStep(x: Float): Float {
         return when {
             x <= 0f -> 0f
-            x < 1f -> x*x*(3f-2f*x)
+            x < 1f -> x * x * (3f - 2f * x)
             else -> 1f
         }
     }
@@ -65,78 +65,78 @@ object Maths {
     }
 
     fun max(a: Int, b: Int): Int {
-        return if(a > b) a else b
+        return if (a > b) a else b
     }
 
     fun max(a: Float, b: Float): Float {
-        return if(a > b) a else b
+        return if (a > b) a else b
     }
 
     fun max(a: Float, b: Float, c: Float): Float {
-        var value = if(a > b) a else b
-        value = if(value > c) value else c
+        var value = if (a > b) a else b
+        value = if (value > c) value else c
         return value
     }
 
     fun max(a: Float, b: Float, c: Float, d: Float): Float {
-        var value = if(a > b) a else b
-        value = if(value > c) value else c
-        value = if(value > d) value else d
+        var value = if (a > b) a else b
+        value = if (value > c) value else c
+        value = if (value > d) value else d
         return value
     }
 
     fun max(a: Float, b: Float, c: Float, d: Float, e: Float): Float {
-        var value = if(a > b) a else b
-        value = if(value > c) value else c
-        value = if(value > d) value else d
-        value = if(value > e) value else e
+        var value = if (a > b) a else b
+        value = if (value > c) value else c
+        value = if (value > d) value else d
+        value = if (value > e) value else e
         return value
     }
 
     fun max(a: Float, b: Float, c: Float, d: Float, e: Float, f: Float): Float {
-        var value = if(a > b) a else b
-        value = if(value > c) value else c
-        value = if(value > d) value else d
-        value = if(value > e) value else e
-        value = if(value > f) value else f
+        var value = if (a > b) a else b
+        value = if (value > c) value else c
+        value = if (value > d) value else d
+        value = if (value > e) value else e
+        value = if (value > f) value else f
         return value
     }
 
     fun min(a: Int, b: Int): Int {
-        return if(a < b) a else b
+        return if (a < b) a else b
     }
 
     fun min(a: Float, b: Float): Float {
-        return if(a < b) a else b
+        return if (a < b) a else b
     }
 
     fun min(a: Float, b: Float, c: Float): Float {
-        var value = if(a < b) a else b
-        value = if(value < c) value else c
+        var value = if (a < b) a else b
+        value = if (value < c) value else c
         return value
     }
 
     fun min(a: Float, b: Float, c: Float, d: Float): Float {
-        var value = if(a < b) a else b
-        value = if(value < c) value else c
-        value = if(value < d) value else d
+        var value = if (a < b) a else b
+        value = if (value < c) value else c
+        value = if (value < d) value else d
         return value
     }
 
     fun min(a: Float, b: Float, c: Float, d: Float, e: Float): Float {
-        var value = if(a < b) a else b
-        value = if(value < c) value else c
-        value = if(value < d) value else d
-        value = if(value < e) value else e
+        var value = if (a < b) a else b
+        value = if (value < c) value else c
+        value = if (value < d) value else d
+        value = if (value < e) value else e
         return value
     }
 
     fun min(a: Float, b: Float, c: Float, d: Float, e: Float, f: Float): Float {
-        var value = if(a < b) a else b
-        value = if(value < c) value else c
-        value = if(value < d) value else d
-        value = if(value < e) value else e
-        value = if(value < f) value else f
+        var value = if (a < b) a else b
+        value = if (value < c) value else c
+        value = if (value < d) value else d
+        value = if (value < e) value else e
+        value = if (value < f) value else f
         return value
     }
 
@@ -191,5 +191,7 @@ object Maths {
         if (y < 0) y += div
         return y
     }
+
+    fun ceilDiv(a: Int, b: Int): Int = (a + b - 1) / b
 
 }
