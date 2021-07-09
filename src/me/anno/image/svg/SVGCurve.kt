@@ -2,15 +2,14 @@ package me.anno.image.svg
 
 import me.anno.fonts.mesh.Triangulation
 import me.anno.image.svg.gradient.Gradient1D
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS
+import me.anno.utils.files.Files.use
 import me.anno.utils.types.Vectors.plus
 import org.joml.Vector2d
 import org.joml.Vector2dc
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
-import java.io.File
 import javax.imageio.ImageIO
 import kotlin.math.abs
 import kotlin.math.max
@@ -204,8 +203,9 @@ class SVGCurve(Vector2ds: List<Vector2d>, closed: Boolean, val depth: Double, va
         }
 
         val fileName = "svg/${Vector2ds.first().hashCode() xor Vector2ds[1].hashCode()}.png"
-        ImageIO.write(img, "png", OS.desktop.getChild(fileName)!!.outputStream())
-
+        use(OS.desktop.getChild(fileName).outputStream()) {
+            ImageIO.write(img, "png", it)
+        }
     }
 
 }

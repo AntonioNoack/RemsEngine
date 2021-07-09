@@ -1,6 +1,7 @@
 package me.anno.video
 
 import me.anno.animation.AnimatedProperty
+import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.RenderState.blendMode
 import me.anno.gpu.RenderState.depthMode
@@ -147,7 +148,7 @@ class VideoBackgroundTask(
                     if (!needsMoreSources) {
                         partialFrame.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                         blendMode.use(BlendMode.PURE_ADD){
-                            depthMode.use(false){
+                            depthMode.use(DepthMode.ALWAYS){
                                 // write with alpha 1/motionBlurSteps
                                 GFX.copy(1f / motionBlurSteps)
                             }

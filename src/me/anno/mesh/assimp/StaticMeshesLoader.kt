@@ -46,6 +46,7 @@ open class StaticMeshesLoader {
         } ?: throw Exception("Error loading model, ${aiGetErrorString()}")
     }
 
+    fun load(file: FileReference) = load(file, file.getParent() ?: InvalidRef, defaultFlags)
     open fun load(file: FileReference, resources: FileReference, flags: Int = defaultFlags): AnimGameItem {
         val aiScene = loadFile(file, flags or aiProcess_PreTransformVertices)
         val materials = loadMaterials(aiScene, resources)

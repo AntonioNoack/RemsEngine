@@ -7,6 +7,7 @@ import org.apache.commons.compress.archivers.sevenz.SevenZFile
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
 import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
+import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.IOException
 import java.util.zip.ZipEntry
@@ -14,6 +15,8 @@ import java.util.zip.ZipException
 import java.util.zip.ZipInputStream
 
 object ZipCache : CacheSection("ZipCache") {
+
+    private val LOGGER = LogManager.getLogger(ZipCache::class)
 
     // todo cache the whole content? if less than a certain file size
     // todo cache the whole hierarchy? only less than a certain depth level
@@ -124,7 +127,10 @@ object ZipCache : CacheSection("ZipCache") {
         registry: HashMap<String, ZipFileV2>
     ): ZipFileV2 {
         val (parent, path) = splitParent(entry.name)
-        val file = ZipFileV2("$zipFileLocation/$path", getStream, path, entry.isDirectory, registry[parent]!!)
+        val file = registry[path] ?: ZipFileV2(
+            "$zipFileLocation/$path", getStream, path, entry.isDirectory,
+            registry.getOrPut(parent) { createFolderEntryV2(zipFileLocation, parent, getStream, registry) }
+        )
         file.lastModified = entry.lastModifiedDate?.time ?: 0L
         val parent2 = file._parent as? ZipFileV2
         if (parent2 != null && parent2.isDirectory) {
@@ -135,6 +141,28 @@ object ZipCache : CacheSection("ZipCache") {
             val bytes = zis.getInputStream(entry).readBytes()
             bytes
         } else null
+        registry[file.relativePath] = file
+        return file
+    }
+
+    fun createFolderEntryV2(
+        zipFileLocation: String,
+        entry: String,
+        getStream: () -> ZipFile,
+        registry: HashMap<String, ZipFileV2>
+    ): ZipFileV2 {
+        val (parent, path) = splitParent(entry)
+        val file = registry[path] ?: ZipFileV2(
+            "$zipFileLocation/$path", getStream, path, true,
+            registry.getOrPut(parent) { createFolderEntryV2(zipFileLocation, parent, getStream, registry) }
+        )
+        file.lastModified = 0L
+        val parent2 = file._parent as? ZipFileV2
+        if (parent2 != null && parent2.isDirectory) {
+            parent2.children!![file.lcName] = file
+        }
+        file.size = 0
+        file.data = null
         registry[file.relativePath] = file
         return file
     }

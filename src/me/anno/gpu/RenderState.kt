@@ -38,14 +38,27 @@ object RenderState {
         }
     }
 
-    val depthMode = object : SecureStack<Boolean>(false) {
-        override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
-            if (newValue) {
+
+
+    val depthMode = object : SecureStack<DepthMode>(DepthMode.ALWAYS) {
+        override fun onChangeValue(newValue: DepthMode, oldValue: DepthMode) {
+            if (newValue != DepthMode.ALWAYS) {
                 glEnable(GL_DEPTH_TEST)
+                glDepthFunc(newValue.func)
             } else {
                 glDisable(GL_DEPTH_TEST)
             }
         }
+    }
+
+    inline fun withEqualDepth(func: () -> Unit) {
+        val current = depthMode.currentValue
+        depthMode.use(DepthMode.values().first { it.func == current.withEqual }, func)
+    }
+
+    inline fun withoutEqualDepth(func: () -> Unit) {
+        val current = depthMode.currentValue
+        depthMode.use(DepthMode.values().first { it.func == current.withoutEqual }, func)
     }
 
     val cullMode = object : SecureStack<Int>(0) {
@@ -68,13 +81,13 @@ object RenderState {
 
     inline fun renderPurely(render: () -> Unit) {
         blendMode.use(null) {
-            depthMode.use(false, render)
+            depthMode.use(DepthMode.ALWAYS, render)
         }
     }
 
     inline fun renderDefault(render: () -> Unit) {
         blendMode.use(BlendMode.DEFAULT) {
-            depthMode.use(false, render)
+            depthMode.use(DepthMode.ALWAYS, render)
         }
     }
 

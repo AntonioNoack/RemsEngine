@@ -62,6 +62,7 @@ import me.anno.utils.Maths.length
 import me.anno.utils.Maths.pow
 import me.anno.utils.OS
 import me.anno.utils.bugs.SumOf.sumOf
+import me.anno.utils.files.Files.use
 import me.anno.utils.types.Vectors.plus
 import me.anno.utils.types.Vectors.times
 import me.anno.utils.types.Vectors.toVec3f
@@ -353,8 +354,8 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
                 }
 
                 // todo actions for console messages, e.g. opening a file
-                val file = folder.getChild(name)!!
-                ImageIO.write(image, "png", file.outputStream())
+                val file = folder.getChild(name)
+                use(file.outputStream()){ ImageIO.write(image, "png", it) }
                 LOGGER.info(
                     Dict["Saved screenshot to %1", "ui.sceneView.savedScreenshot"].replace(
                         "%1",

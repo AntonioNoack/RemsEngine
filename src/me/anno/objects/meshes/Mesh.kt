@@ -51,6 +51,23 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
             LogManager.disableLogger("DefaultRenderedGltfModel")
         }
 
+        fun loadModel(file: FileReference, key: String, instance: Transform?, load: (MeshData) -> Unit, getData: (MeshData) -> Any?): MeshData? {
+            val meshData1 = getMesh(file, key, 1000, true) {
+                val meshData = MeshData()
+                try {
+                    load(meshData)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    meshData.lastWarning = e.message ?: e.javaClass.name
+                }
+                meshData
+            } as? MeshData
+            if (isFinalRendering && meshData1 == null) throw MissingFrameException(file)
+            val renderData = if (meshData1 != null) getData(meshData1) else null
+            instance?.lastWarning = if (renderData == null) meshData1?.lastWarning ?: "Loading" else null
+            return if (renderData == null) null else meshData1
+        }
+
     }
 
     val animationIndex = AnimatedProperty.int()
@@ -63,22 +80,7 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
     var extension = ""
     var powerOf10Correction = 0
 
-    fun loadModel(file: FileReference, key: String, load: (MeshData) -> Unit, getData: (MeshData) -> Any?): MeshData? {
-        val meshData1 = getMesh(file, key, 1000, true) {
-            val meshData = MeshData()
-            try {
-                load(meshData)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                meshData.lastWarning = e.message ?: e.javaClass.name
-            }
-            meshData
-        } as? MeshData
-        if (isFinalRendering && meshData1 == null) throw MissingFrameException(file)
-        val renderData = if (meshData1 != null) getData(meshData1) else null
-        lastWarning = if (renderData == null) meshData1?.lastWarning ?: "Loading" else null
-        return if (renderData == null) null else meshData1
-    }
+
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
@@ -209,7 +211,7 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
                 else -> {
 
                     // load the 3D model
-                    val data = loadModel(file, "Assimp", { meshData ->
+                    val data = loadModel(file, "Assimp", this, { meshData ->
                         val reader = AnimatedMeshesLoader
                         val meshes = reader.load(file)
                         meshData.assimpModel = meshes
@@ -219,7 +221,7 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
                         stack.next {
                             if (powerOf10Correction != 0)
                                 stack.scale(pow(10f, powerOf10Correction.toFloat()))
-                            data.drawAssimp(this, stack, time, color, animationIndex[time])
+                            data.drawAssimp(this, stack, time, color, animationIndex[time], true)
                         }
                     } else super.onDraw(stack, time, color)
 

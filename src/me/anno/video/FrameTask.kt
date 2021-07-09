@@ -1,6 +1,8 @@
 package me.anno.video
 
+import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
+import me.anno.gpu.RenderState
 import me.anno.gpu.RenderState.blendMode
 import me.anno.gpu.RenderState.depthMode
 import me.anno.gpu.RenderState.useFrame
@@ -91,12 +93,14 @@ class FrameTask(
             }
             // c1.stop("wrote to buffered image"), 0.025s on R5 2600, 1080p
             if (dst.exists) dst.delete()
-            if (!ImageIO.write(image, dst.extension, dst.outputStream())) {
+            val out = dst.outputStream()
+            if (!ImageIO.write(image, dst.extension, out)) {
                 LOGGER.warn("Could not find writer for image format ${dst.extension}!")
             } else {
                 // c1.stop("saved to file"), 0.07s on NVME SSD
                 LOGGER.info("Wrote frame to $dst")
             }
+            out.close()
         }
 
     }
@@ -153,7 +157,7 @@ class FrameTask(
                     if (!needsMoreSources) {
                         partialFrame.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                         blendMode.use(BlendMode.PURE_ADD) {
-                            depthMode.use(false) {
+                            depthMode.use(DepthMode.ALWAYS) {
                                 // write with alpha 1/motionBlurSteps
                                 GFX.copy(1f / motionBlurSteps)
                             }

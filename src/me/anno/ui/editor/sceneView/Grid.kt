@@ -2,8 +2,11 @@ package me.anno.ui.editor.sceneView
 
 import me.anno.config.DefaultConfig.style
 import me.anno.config.DefaultStyle.black
+import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.toRadians
+import me.anno.gpu.RenderState
+import me.anno.gpu.RenderState.depthMode
 import me.anno.gpu.ShaderLib.shader3D
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.buffer.Attribute
@@ -13,6 +16,7 @@ import me.anno.objects.GFXTransform
 import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.Transform.Companion.yAxis
 import me.anno.objects.Transform.Companion.zAxis
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.Maths.distance
 import me.anno.utils.Maths.pow
 import me.anno.utils.Maths.sq
@@ -44,6 +48,7 @@ object Grid {
 
         lineBuffer.put(1f, 0f, 0f, 0f, 0f)
         lineBuffer.put(-1f, 0f, 0f, 0f, 0f)
+        lineBuffer.drawMode = GL_LINES
 
         for (i in -100..100) {
             val v = 0.01f * i
@@ -52,6 +57,7 @@ object Grid {
             gridBuffer.put(1f, v, 0f, 0f, 0f)
             gridBuffer.put(-1f, v, 0f, 0f, 0f)
         }
+        gridBuffer.drawMode = GL_LINES
 
     }
 
@@ -106,13 +112,11 @@ object Grid {
     }
 
     private fun defaultUniforms(shader: Shader, color: Vector4fc) {
-        shader.v4("tint", color)
-        shader.v1("drawMode", GFX.drawMode.id)
+        GFX.shaderColor(shader, "tint", color)
     }
 
     private fun defaultUniforms(shader: Shader, color: Int, alpha: Float) {
-        shader.v4("tint", color, alpha)
-        shader.v1("drawMode", GFX.drawMode.id)
+        GFX.shaderColor(shader, "tint", color.withAlpha(alpha))
     }
 
     private val stack = Matrix4f()
@@ -132,7 +136,7 @@ object Grid {
         shader.m4x4("transform", stack)
         defaultUniforms(shader, color, alpha)
         bindWhite(0)
-        lineBuffer.draw(shader, GL_LINES)
+        lineBuffer.draw(shader)
     }
 
     fun drawLine(stack: Matrix4fArrayList, color: Vector4fc, p0: Vector3fc, p1: Vector3f) {
@@ -153,7 +157,7 @@ object Grid {
             shader.m4x4("transform", stack)
             defaultUniforms(shader, color)
             bindWhite(0)
-            lineBuffer.draw(shader, GL_LINES)
+            lineBuffer.draw(shader)
         }
 
     }
@@ -166,41 +170,46 @@ object Grid {
         shader.m4x4("transform", stack)
         defaultUniforms(shader, color, alpha)
         bindWhite(0)
-        lineBuffer.draw(shader, GL_LINES)
+        lineBuffer.draw(shader)
 
     }
 
     // allow more/full grid customization?
     fun draw(stack: Matrix4fArrayList, cameraTransform: Matrix4f) {
 
-        val distance = cameraTransform.transformProject(Vector4f(0f, 0f, 0f, 1f)).toVec3f().length()
-        val log = log10(distance)
-        val f = log - floor(log)
-        val cameraDistance = 10f * pow(10f, floor(log))
+        // to avoid flickering
+        depthMode.use(DepthMode.ALWAYS) {
 
-        stack.scale(cameraDistance)
+            val distance = cameraTransform.transformProject(Vector4f(0f, 0f, 0f, 1f)).toVec3f().length()
+            val log = log10(distance)
+            val f = log - floor(log)
+            val cameraDistance = 10f * pow(10f, floor(log))
 
-        stack.rotate(toRadians(90f), xAxis)
+            stack.scale(cameraDistance)
 
-        val gridAlpha = 0.05f
+            stack.rotate(toRadians(90f), xAxis)
 
-        drawGrid(stack, gridAlpha * (1f - f))
+            val gridAlpha = 0.05f
 
-        stack.scale(10f)
+            drawGrid(stack, gridAlpha * (1f - f))
 
-        drawGrid(stack, gridAlpha)
+            stack.scale(10f)
 
-        stack.scale(10f)
+            drawGrid(stack, gridAlpha)
 
-        drawGrid(stack, gridAlpha * f)
+            stack.scale(10f)
 
-        drawLine(stack, xAxisColor, 0.15f) // x
+            drawGrid(stack, gridAlpha * f)
 
-        stack.rotate(toRadians(90f), yAxis)
-        drawLine(stack, yAxisColor, 0.15f) // y
+            drawLine(stack, xAxisColor, 0.15f) // x
 
-        stack.rotate(toRadians(90f), zAxis)
-        drawLine(stack, zAxisColor, 0.15f) // z
+            stack.rotate(toRadians(90f), yAxis)
+            drawLine(stack, yAxisColor, 0.15f) // y
+
+            stack.rotate(toRadians(90f), zAxis)
+            drawLine(stack, zAxisColor, 0.15f) // z
+
+        }
 
     }
 
@@ -214,7 +223,7 @@ object Grid {
         shader.m4x4("transform", stack)
         defaultUniforms(shader, color)
         bindWhite(0)
-        buffer.draw(shader, GL_LINES)
+        buffer.draw(shader)
 
     }
 
@@ -228,7 +237,7 @@ object Grid {
         shader.m4x4("transform", stack)
         defaultUniforms(shader, -1, alpha)
         bindWhite(0)
-        gridBuffer.draw(shader, GL_LINES)
+        gridBuffer.draw(shader)
 
     }
 

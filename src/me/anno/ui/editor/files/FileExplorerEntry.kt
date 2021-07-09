@@ -238,7 +238,7 @@ class FileExplorerEntry(
                     } else getDefaultIcon()
                 } else getDefaultIcon()
             }
-            "Image", "PDF" -> getImage()
+            "Image", "PDF", "Mesh" -> getImage()
             else -> getDefaultIcon()
         }
     }
@@ -334,7 +334,7 @@ class FileExplorerEntry(
                         }
                     } else drawDefaultIcon(x0, y0, x1, y1)
                 }
-                "Image", "PDF" -> drawImageOrThumb(x0, y0, x1, y1)
+                "Image", "PDF", "Mesh" -> drawImageOrThumb(x0, y0, x1, y1)
                 else -> drawDefaultIcon(x0, y0, x1, y1)
             }
         }

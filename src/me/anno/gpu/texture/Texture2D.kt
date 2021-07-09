@@ -114,6 +114,7 @@ open class Texture2D(
     }
 
     fun create(name: String, createImage: () -> BufferedImage, forceSync: Boolean) {
+        if(isDestroyed) throw RuntimeException("Texture $name must be reset first")
         val requiredBudget = textureBudgetUsed + w * h
         if ((requiredBudget > textureBudgetTotal && !loadTexturesSync.peek()) || Thread.currentThread() != glThread) {
             if (forceSync) {
@@ -131,7 +132,6 @@ open class Texture2D(
         }
     }
 
-    // todo this function is ok, but a later function is broken (@Text)
     fun create(img: BufferedImage, sync: Boolean) {
         w = img.width
         h = img.height
@@ -419,7 +419,11 @@ open class Texture2D(
         afterUpload(4)
     }
 
+    /**
+     * texture must be bound!
+     * */
     fun ensureFilterAndClamping(nearest: GPUFiltering, clamping: Clamping) {
+        // ensure being bound?
         if (nearest != this.filtering) filtering(nearest)
         if (clamping != this.clamping) clamping(clamping)
     }

@@ -48,7 +48,8 @@ open class MeshData : ICacheData {
         stack: Matrix4fArrayList,
         time: Double,
         color: Vector4fc,
-        animationIndex: Int
+        animationIndex: Int,
+        useMaterials: Boolean
     ) {
 
         val shader = shaderAssimp.value
@@ -94,7 +95,7 @@ open class MeshData : ICacheData {
         transformUniform(shader, stack)
 
         val localStack = Matrix4x3fArrayList()
-        drawHierarchy(shader, localStack, color, model0, model0.hierarchy)
+        drawHierarchy(shader, localStack, color, model0, model0.hierarchy, useMaterials)
 
         // draw skeleton for debugging purposes
         // makes sense for the working skeletons, but is broken for the incorrect ones...
@@ -117,7 +118,8 @@ open class MeshData : ICacheData {
         stack: Matrix4x3fArrayList,
         color: Vector4fc,
         model0: AnimGameItem,
-        entity: Entity
+        entity: Entity,
+        useMaterials: Boolean
     ) {
         stack.pushMatrix()
 
@@ -137,26 +139,34 @@ open class MeshData : ICacheData {
         )
 
         val assimpModel = entity.getComponent<AssimpModel>()
-        if (assimpModel != null) {
+        if (assimpModel != null && assimpModel.meshes.isNotEmpty()) {
 
             shader.m4x3("localTransform", stack)
 
-            val diffuse = Vector4f()
-            for (mesh in assimpModel.meshes) {
-                val material = mesh.material
-                val texturePath = material?.diffuseMap
-                val textureOrNull = if (texturePath == null) null else getImage(texturePath, 1000, true)
-                val texture = textureOrNull ?: whiteTexture
-                texture.bind(0, Filtering.LINEAR, Clamping.REPEAT)
-                diffuse.set(color)
-                if (material != null) diffuse.mul(material.diffuseBase)
-                GFX.shaderColor(shader, "tint", diffuse)
-                mesh.draw(shader, 0)
+            if (useMaterials) {
+                val diffuse = Vector4f()
+                for (mesh in assimpModel.meshes) {
+                    val material = mesh.material
+                    val texturePath = material?.diffuseMap
+                    val textureOrNull = if (texturePath == null) null else getImage(texturePath, 1000, true)
+                    val texture = textureOrNull ?: whiteTexture
+                    texture.bind(0, Filtering.LINEAR, Clamping.REPEAT)
+                    diffuse.set(color)
+                    if (material != null) diffuse.mul(material.diffuseBase)
+                    GFX.shaderColor(shader, "tint", diffuse)
+                    mesh.draw(shader, 0)
+                }
+            } else {
+                whiteTexture.bind(0)
+                for (mesh in assimpModel.meshes) {
+                    GFX.shaderColor(shader, "tint", -1)
+                    mesh.draw(shader, 0)
+                }
             }
         }
 
         for (child in entity.children) {
-            drawHierarchy(shader, stack, color, model0, child)
+            drawHierarchy(shader, stack, color, model0, child, useMaterials)
         }
 
         stack.popMatrix()

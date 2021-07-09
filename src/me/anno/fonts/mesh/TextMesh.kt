@@ -252,7 +252,9 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         if (wasChanged) {
             gfx?.apply {
                 gfx.dispose()
-                ImageIO.write(img, "png", OS.desktop.getChild("text2.png")!!.outputStream())
+                use(OS.desktop.getChild("text2.png").outputStream()){
+                    ImageIO.write(img, "png", it)
+                }
             }
         }
 

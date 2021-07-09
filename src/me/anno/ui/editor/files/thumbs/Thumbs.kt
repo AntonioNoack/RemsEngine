@@ -5,7 +5,11 @@ import me.anno.cache.instances.LastModifiedCache
 import me.anno.cache.instances.MeshCache
 import me.anno.cache.instances.TextureCache.getLateinitTexture
 import me.anno.cache.instances.VideoCache.getVideoFrame
+import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
+import me.anno.gpu.RenderState.depthMode
 import me.anno.gpu.RenderState.renderPurely
 import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.SVGxGFX
@@ -20,8 +24,11 @@ import me.anno.image.HDRImage
 import me.anno.image.tar.TGAImage
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
+import me.anno.mesh.assimp.AssimpModel
+import me.anno.mesh.assimp.StaticMeshesLoader
 import me.anno.objects.Video
 import me.anno.objects.documents.pdf.PDFCache
+import me.anno.objects.meshes.Mesh.Companion.loadModel
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
@@ -30,16 +37,16 @@ import me.anno.utils.Color.rgba
 import me.anno.utils.LOGGER
 import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.Threads.threadWithName
+import me.anno.utils.files.Files.use
 import me.anno.utils.input.readNBytes2
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import net.boeckling.crc.CRC64
 import org.apache.commons.imaging.Imaging
-import org.joml.Matrix4fArrayList
-import org.joml.Vector4f
+import org.joml.*
+import org.joml.Math.toRadians
 import org.lwjgl.opengl.GL11.*
 import java.awt.image.BufferedImage
-import java.util.*
 import javax.imageio.ImageIO
 import kotlin.concurrent.thread
 import kotlin.math.floor
@@ -91,7 +98,9 @@ object Thumbs {
         val size = getSize(neededSize)
         val key = ThumbnailKey(file, size)
         return getLateinitTexture(key, timeout) { callback ->
-            thread { generate(file, size, callback) }
+            thread(name = key.file.nameWithoutExtension) {
+                generate(file, size, callback)
+            }
         }.texture
     }
 
@@ -111,7 +120,7 @@ object Thumbs {
         callback: (Texture2D) -> Unit
     ) {
         dstFile.getParent()!!.mkdirs()
-        ImageIO.write(dst, destinationFormat, dstFile.outputStream())
+        use(dstFile.outputStream()) { ImageIO.write(dst, destinationFormat, it) }
         upload(srcFile, dst, callback)
     }
 
@@ -148,6 +157,7 @@ object Thumbs {
     private fun renderToBufferedImage(
         srcFile: FileReference,
         dstFile: FileReference,
+        withDepth: Boolean,
         callback: (Texture2D) -> Unit,
         w: Int, h: Int, render: () -> Unit
     ) {
@@ -167,24 +177,33 @@ object Thumbs {
                     Frame.bind()
 
                     glClearColor(0f, 0f, 0f, 1f)
-                    glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+                    glClear(GL_COLOR_BUFFER_BIT)
 
+                    // todo why is no tiling visible when rendering 3d models???
                     drawTexture(
                         0, 0, w, h,
                         TextureLib.colorShowTexture,
                         -1, Vector4f(4f, 4f, 0f, 0f)
                     )
 
-                    render()
+                    if (withDepth) glClear(GL_DEPTH_BUFFER_BIT)
+
+                    if (withDepth) {
+                        depthMode.use(DepthMode.LESS_EQUAL) {
+                            render()
+                        }
+                    } else {
+                        render()
+                    }
 
                 }
 
-                // todo this was incorrect and returned the other side
-                // todo now the result is just empty... why??
                 // cannot read from separate framebuffer, only from null... why ever...
                 useFrame(0, 0, w, h, false, null, Renderer.colorRenderer) {
 
                     fb2.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+
+                    Frame.bind()
                     GFX.copy()
 
                     // draw only the clicked area?
@@ -254,7 +273,7 @@ object Thumbs {
 
         // LOGGER.info("loaded frame for $srcFile")
 
-        renderToBufferedImage(srcFile, dstFile, callback, w, h) {
+        renderToBufferedImage(srcFile, dstFile, false, callback, w, h) {
             renderPurely {
                 drawTexture(src)
             }
@@ -281,13 +300,108 @@ object Thumbs {
 
         val transform = Matrix4fArrayList()
         transform.scale(2f / (buffer.maxX / buffer.maxY).toFloat(), -2f, 2f)
-        renderToBufferedImage(srcFile, dstFile, callback, w, h) {
+        renderToBufferedImage(srcFile, dstFile, false, callback, w, h) {
             SVGxGFX.draw3DSVG(
                 null, 0.0,
                 transform, buffer, whiteTexture,
                 Vector4f(1f), Filtering.NEAREST,
                 whiteTexture.clamping, null
             )
+        }
+
+    }
+
+    private fun updateTransforms(entity: Entity) {
+        entity.transform.update(entity.parent?.transform)
+        for (child in entity.children) updateTransforms(child)
+    }
+
+    private fun AABBf.toDouble(): AABBd {
+        return AABBd(
+            minX.toDouble(), minY.toDouble(), minZ.toDouble(),
+            maxX.toDouble(), maxY.toDouble(), maxZ.toDouble()
+        )
+    }
+
+    private fun calculateAABB(root: Entity): AABBd {
+        val joint = AABBd()
+        root.simpleTraversal(true) { entity ->
+            // todo rendering all points is only a good idea, if there are no meshes
+            // because animated clothing may be too small to see
+            val local = AABBd()
+            val meshes0 = entity.getComponents<MeshComponent>()
+            for (mesh in meshes0) {
+                mesh.ensureBuffer()
+                local.union(mesh.aabb.toDouble())
+            }
+            val assimpModel = entity.getComponent<AssimpModel>()
+            val meshes1 = assimpModel?.meshes
+            if (meshes1 != null) {
+                for (mesh in meshes1) {
+                    mesh.ensureBuffer()
+                    local.union(
+                        AABBf(mesh.aabb)
+                            .transform(assimpModel.transform)
+                            .toDouble()
+                    )
+                }
+            }
+            local.transform(Matrix4d(entity.transform.worldTransform))
+            joint.union(local)
+            false
+        }
+        return joint
+    }
+
+    // just render it using the simplest shader
+    private fun generateMeshFrame(
+        srcFile: FileReference,
+        dstFile: FileReference,
+        size: Int,
+        callback: (Texture2D) -> Unit
+    ) {
+
+        if (size < 3) return
+
+        val data = waitUntilDefined(true) {
+            loadModel(srcFile, "Assimp-Static", null, { meshData ->
+                val reader = StaticMeshesLoader()
+                val meshes = reader.load(srcFile)
+                meshData.assimpModel = meshes
+            }) { it.assimpModel }
+        }
+
+        val model = data.assimpModel!!
+
+        // render the whole model
+        val rootEntity = model.hierarchy
+        updateTransforms(rootEntity)
+
+        // calculate/get the size
+        val aabb = calculateAABB(rootEntity)
+
+        val stack = Matrix4fArrayList()
+        stack.perspective(0.7f, 1f, 0.001f, 5f)
+        stack.translate(0f, 0f, -1f)// move the camera back a bit
+        stack.rotateX(toRadians(-15f))// rotate it into a nice viewing angle
+        stack.rotateY(toRadians(-25f))
+
+        // calculate the scale, such that everything can be visible
+        val delta = max(aabb.maxX - aabb.minX, max(aabb.maxY - aabb.minY, aabb.maxZ - aabb.minZ))
+        // half, because it's half the size, 1.05f for a small border
+        val scale = 0.5f * 1.05f / delta.toFloat()
+        stack.scale(scale, -scale, scale)
+
+        // apply the required offset for centering
+        stack.translate(
+            -(aabb.minX + aabb.maxX).toFloat() / 2,
+            -(aabb.minY + aabb.maxY).toFloat() / 2,
+            -(aabb.minZ + aabb.maxZ).toFloat() / 2
+        )
+
+        // render everything without color
+        renderToBufferedImage(srcFile, dstFile, true, callback, size, size) {
+            data.drawAssimp(null, stack, 0.0, Vector4f(1f), -1, false)
         }
 
     }
@@ -319,7 +433,17 @@ object Thumbs {
             // save the file
 
             try {
-                when (val ext = srcFile.extension.lowercase(Locale.getDefault())) {
+                when (val ext = srcFile.extension.lowercase()) {
+
+                    // todo thumbnails for meshes, and components
+                    // todo thumbnails for scripts?
+                    // todo thumbnails for Rem's Studio transforms
+                    "obj", "fbx", "gltf", "glb", "dae", "md2", "md5mesh" -> {
+                        // todo list all mesh extensions...
+                        // preview for mtl file? idk...
+                        generateMeshFrame(srcFile, dstFile, size, callback)
+                    }
+
                     "hdr" -> {
                         val src = HDRImage(srcFile, true)
                         val sw = src.width
@@ -331,7 +455,7 @@ object Thumbs {
                         saveNUpload(srcFile, dstFile, dst, callback)
                     }
                     "tga" -> {
-                        val src = TGAImage.read(srcFile.inputStream(), false)
+                        val src = use(srcFile.inputStream()) { TGAImage.read(it, false) }
                         val sw = src.width
                         val sh = src.height
                         if (max(sw, sh) < size) return generate(srcFile, size / 2, callback)

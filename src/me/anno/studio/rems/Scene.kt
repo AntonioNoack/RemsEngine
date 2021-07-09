@@ -3,6 +3,7 @@ package me.anno.studio.rems
 import me.anno.cache.instances.ImageCache.getLUT
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
+import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFX.isFinalRendering
@@ -392,8 +393,9 @@ object Scene {
         val x = if (needsTemporaryBuffer) 0 else x0
         val y = if (needsTemporaryBuffer) 0 else y0// GFX.height - (y0 + h)
 
+
         blendMode.use(if (isFakeColorRendering) null else BlendMode.DEFAULT) {
-            depthMode.use(camera.useDepth) {
+            depthMode.use(if(camera.useDepth) DepthMode.LESS else DepthMode.ALWAYS) {
 
                 useFrame(x, y, w, h, false, buffer) {
 

@@ -56,7 +56,7 @@ object ImageWriter {
                 }
             }
         }
-        use(OS.desktop.getChild(name)!!.outputStream()){
+        use(OS.desktop.getChild(name).outputStream()){
             ImageIO.write(img, if (name.endsWith(".jpg")) "jpg" else "png", it)
         }
     }
@@ -92,7 +92,7 @@ object ImageWriter {
                 }
             }
         }
-        use(OS.desktop.getChild(name)!!.outputStream()){
+        use(OS.desktop.getChild(name).outputStream()){
             ImageIO.write(img, if (name.endsWith(".jpg")) "jpg" else "png", it)
         }
     }

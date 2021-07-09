@@ -2,6 +2,7 @@ package me.anno.mesh.gltf
 
 import de.javagl.jgltf.model.io.GltfModelReader
 import me.anno.config.DefaultConfig.style
+import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.windowStack
 import me.anno.gpu.RenderState.blendMode
@@ -75,7 +76,7 @@ fun main() {
                     extCamera.update(transform)
 
                     blendMode.use(BlendMode.DEFAULT) {
-                        depthMode.use(true) {
+                        depthMode.use(DepthMode.LESS_EQUAL) {
                             viewer.glRender()
                         }
                     }

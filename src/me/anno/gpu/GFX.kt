@@ -285,7 +285,7 @@ object GFX : GFXBase1() {
     fun copyNoAlpha() {
         check()
         blendMode.use(BlendMode.DST_ALPHA) {
-            depthMode.use(false) {
+            depthMode.use(DepthMode.ALWAYS) {
                 val shader = copyShader.value
                 shader.use()
                 shader.v1("am1", 0f)

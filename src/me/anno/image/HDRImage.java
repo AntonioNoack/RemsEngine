@@ -4,14 +4,7 @@ import me.anno.io.files.FileReference;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInput;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -29,6 +22,7 @@ public class HDRImage extends Image {
     public float[] getPixelArray() {
         return pixels;
     }
+
     public FloatBuffer getPixelBuffer() {
         return nioPixels;
     }
@@ -46,6 +40,7 @@ public class HDRImage extends Image {
     public HDRImage(FileReference file, boolean useNioBuffer) throws IOException {
         try (InputStream in = new BufferedInputStream(file.inputStream())) {
             read(in, useNioBuffer);
+            in.close();
         }
     }
 
@@ -60,7 +55,7 @@ public class HDRImage extends Image {
         return createBufferedImage(width, height);
     }
 
-    private static int rgb(int r, int g, int b){
+    private static int rgb(int r, int g, int b) {
         return 0xff000000 | (r << 16) | (g << 8) | b;
     }
 
@@ -68,10 +63,10 @@ public class HDRImage extends Image {
     public BufferedImage createBufferedImage(int w, int h) {
         BufferedImage img = new BufferedImage(w, h, 1);
         DataBuffer buffer = img.getRaster().getDataBuffer();
-        if(width == w && height == h){
-            for(int y=0,index=0;y<h;y++){
-                for(int x=0;x<w;x++,index++){
-                    int i0 = index*4;
+        if (width == w && height == h) {
+            for (int y = 0, index = 0; y < h; y++) {
+                for (int x = 0; x < w; x++, index++) {
+                    int i0 = index * 4;
                     float r = pixels[i0++];
                     float g = pixels[i0++];
                     float b = pixels[i0];
@@ -84,11 +79,11 @@ public class HDRImage extends Image {
                 }
             }
         } else {
-            for(int y=0,index=0;y<h;y++){
-                int iy = y*height/h;
+            for (int y = 0, index = 0; y < h; y++) {
+                int iy = y * height / h;
                 int iyw = iy * w;
-                for(int x=0;x<w;x++,index++){
-                    int ix = x*width/w;
+                for (int x = 0; x < w; x++, index++) {
+                    int ix = x * width / w;
                     int i0 = (ix + iyw) * 4;
                     float r = pixels[i0++];
                     float g = pixels[i0++];
@@ -147,7 +142,7 @@ public class HDRImage extends Image {
 
         DataInput din = new DataInputStream(in);
 
-        if(useNioBuffer){
+        if (useNioBuffer) {
             ByteBuffer bytes = nioBytes = ByteBuffer.allocateDirect(width * height * 4 * 4);
             bytes.order(ByteOrder.nativeOrder());
             bytes.position(0);
@@ -188,17 +183,17 @@ public class HDRImage extends Image {
             for (int channel = 0; channel < 4; channel++) { // This loop controls the four channel. R,G,B and Exp.
                 int x4 = channel;
                 int w4 = width * 4 + channel;
-                while(x4 < w4) {// alternative for x
+                while (x4 < w4) {// alternative for x
                     int sequenceLength = din.readUnsignedByte();
                     if (sequenceLength > 128) {// copy-paste data; always the same
                         sequenceLength -= 128;
                         byte value = (byte) din.readUnsignedByte();
-                        while(sequenceLength-- > 0) {
+                        while (sequenceLength-- > 0) {
                             lineBuffer[x4] = value;
                             x4 += 4;
                         }
                     } else {// unique data for sequence length positions
-                        while(sequenceLength-- > 0) {
+                        while (sequenceLength-- > 0) {
                             lineBuffer[x4] = (byte) din.readUnsignedByte();
                             x4 += 4;
                         }
@@ -206,40 +201,43 @@ public class HDRImage extends Image {
                 }
             }
 
-            if(useNioBuffer){
+            if (useNioBuffer) {
                 for (int x = 0; x < width; x++) {
                     int i2 = x * 4;
-                    int exp = lineBuffer[i2+3] & 255;
+                    int exp = lineBuffer[i2 + 3] & 255;
                     if (exp == 0) {
                         nioPixels.put(0f);
                         nioPixels.put(0f);
                         nioPixels.put(0f);
                     } else {
                         float exponent = (float) Math.pow(2, exp - 128 - 8);
-                        nioPixels.put((lineBuffer[i2  ] & 255) * exponent);
-                        nioPixels.put((lineBuffer[i2+1] & 255) * exponent);
-                        nioPixels.put((lineBuffer[i2+2] & 255) * exponent);
+                        nioPixels.put((lineBuffer[i2] & 255) * exponent);
+                        nioPixels.put((lineBuffer[i2 + 1] & 255) * exponent);
+                        nioPixels.put((lineBuffer[i2 + 2] & 255) * exponent);
                     }
                     nioPixels.put(1f);
                 }
             } else {
                 for (int x = 0; x < width; x++) {
-                    int i2 = x*4;
-                    int exp = lineBuffer[i2+3] & 255;
+                    int i2 = x * 4;
+                    int exp = lineBuffer[i2 + 3] & 255;
                     if (exp == 0) {
                         index += 3;// 0 is default
                     } else {
                         float exponent = (float) Math.pow(2, exp - 128 - 8);
-                        pixels[index] = (lineBuffer[i2  ] & 255) * exponent;index++;
-                        pixels[index] = (lineBuffer[i2+1] & 255) * exponent;index++;
-                        pixels[index] = (lineBuffer[i2+2] & 255) * exponent;index++;
+                        pixels[index] = (lineBuffer[i2] & 255) * exponent;
+                        index++;
+                        pixels[index] = (lineBuffer[i2 + 1] & 255) * exponent;
+                        index++;
+                        pixels[index] = (lineBuffer[i2 + 2] & 255) * exponent;
+                        index++;
                     }
                     pixels[index++] = 1;
                 }
             }
         }
 
-        if(useNioBuffer){
+        if (useNioBuffer) {
             nioPixels.position(0);
         }
 

@@ -5,6 +5,7 @@ import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.IndexedStaticBuffer
 import me.anno.gpu.shader.Shader
+import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.lwjgl.opengl.GL11.GL_TRIANGLES
 import kotlin.math.max
@@ -90,6 +91,7 @@ class MeshComponent : Component() {
                 aabb.union(x, y, z)
             }
         }
+        LOGGER.info("Collected aabb $aabb from ${positions?.size}/${indices?.size} points")
     }
 
     fun invalidate() {}
@@ -120,7 +122,7 @@ class MeshComponent : Component() {
     var needsMeshUpdate = true
     var buffer: IndexedStaticBuffer? = null
 
-    fun updateMesh() {
+    private fun updateMesh() {
 
         needsMeshUpdate = false
 
@@ -196,10 +198,14 @@ class MeshComponent : Component() {
 
     }
 
+    fun ensureBuffer(){
+        if (needsMeshUpdate) updateMesh()
+    }
+
     fun draw(shader: Shader, materialIndex: Int) {
         // todo respect the material index
         // upload the data to the gpu, if it has changed
-        if (needsMeshUpdate) updateMesh()
+        ensureBuffer()
         buffer?.draw(shader)
     }
 
@@ -209,6 +215,8 @@ class MeshComponent : Component() {
     }
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(MeshComponent::class)
 
         // custom attributes for shaders? idk...
         const val MAX_WEIGHTS = 4

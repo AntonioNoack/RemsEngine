@@ -20,6 +20,7 @@ import me.anno.objects.modes.RotateJPEG
 import me.anno.utils.Nullable.tryOrException
 import me.anno.utils.Nullable.tryOrNull
 import me.anno.utils.Sleep.waitUntilDefined
+import me.anno.utils.files.Files.use
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.VFrame
 import org.apache.commons.imaging.Imaging
@@ -117,8 +118,10 @@ class ImageData(file: FileReference) : ICacheData {
                 }
             }
             "tga" -> {
-                val img = TGAImage.read(file.inputStream(), false)
-                    .createBufferedImage()
+                val img = use(file.inputStream()) { stream ->
+                    TGAImage.read(stream, false)
+                        .createBufferedImage()
+                }
                 texture.create(img, false)
             }
             // ImageIO says it can do webp, however it doesn't understand most pics...

@@ -13,6 +13,7 @@ import me.anno.io.xml.XMLElement
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.length
 import me.anno.utils.OS
+import me.anno.utils.files.Files.use
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.awt.Color
@@ -197,7 +198,9 @@ class SVGMesh {
                 gfx.drawLine(ix(c), iy(c), ix(a), iy(a))
             }
         }
-        ImageIO.write(img, "png", OS.desktop.getChild("svg/tiger.png")!!.outputStream())
+        use(OS.desktop.getChild("svg/tiger.png").outputStream()){
+            ImageIO.write(img, "png", it)
+        }
     }
 
     fun createMesh(x0: Double, y0: Double, w: Double, h: Double) {

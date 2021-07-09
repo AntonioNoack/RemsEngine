@@ -15,6 +15,7 @@ object Color {
     fun Int.b() = this and 255
     fun Int.a() = shr(24) and 255
 
+    fun Int.withAlpha(alpha: Float): Int = rgba(r(), g(), b(), (255 * alpha).roundToInt())
     fun Int.mulAlpha(alpha: Float): Int = rgba(r(), g(), b(), (a() * alpha).roundToInt())
     fun Int.mulARGB(other: Int): Int =
         rgba(r() * other.r() / 255, g() * other.g() / 255, b() * other.b() / 255, a() * other.a() / 255)

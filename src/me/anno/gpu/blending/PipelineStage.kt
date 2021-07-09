@@ -3,11 +3,14 @@ package me.anno.gpu.blending
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX.shaderColor
 import me.anno.gpu.RenderState
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
-import org.joml.*
+import org.joml.Matrix4fc
+import org.joml.Matrix4x3d
+import org.joml.Vector3d
 import org.lwjgl.opengl.GL21.glUniformMatrix4x3fv
 import org.lwjgl.system.MemoryUtil
 
@@ -21,9 +24,18 @@ class PipelineStage(
     val sorting: Sorting,
     val blendMode: BlendMode,
     val useDepth: Boolean,
+    val inversedDepth: Boolean,
     val cullMode: Int, // 0 = both, gl_front, gl_back
     val defaultShader: BaseShader
 ) {
+
+    val depthMode = if (useDepth) {
+        if (inversedDepth) {
+            DepthMode.GREATER
+        } else {
+            DepthMode.LESS
+        }
+    } else DepthMode.ALWAYS
 
     companion object {
         val matrixBuffer = MemoryUtil.memAllocFloat(16)
@@ -38,10 +50,10 @@ class PipelineStage(
 
     class DrawRequest(var mesh: MeshComponent, var transform: Transform, var materialIndex: Int)
 
-    fun bindDraw(cameraMatrix: Matrix4fc, cameraPosition: Vector3d){
-        RenderState.blendMode.use(blendMode){
-            RenderState.depthMode.use(useDepth){
-                RenderState.cullMode.use(cullMode){
+    fun bindDraw(cameraMatrix: Matrix4fc, cameraPosition: Vector3d) {
+        RenderState.blendMode.use(blendMode) {
+            RenderState.depthMode.use(depthMode) {
+                RenderState.cullMode.use(cullMode) {
                     draw(cameraMatrix, cameraPosition)
                 }
             }

@@ -61,7 +61,6 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         }
     }
 
-    fun load(file: FileReference) = load(file, file.getParent() ?: InvalidRef, defaultFlags)
     override fun load(file: FileReference, resources: FileReference, flags: Int): AnimGameItem {
         // val store = aiCreatePropertyStore()!!
         // aiSetImportPropertyFloat(store, AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, 1f)

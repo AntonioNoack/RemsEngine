@@ -61,7 +61,7 @@ fun main() {
     gfx.translate(0, fs.toInt())
 
     gfx.dispose()
-    use(OS.desktop.getChild("font2.png")!!.outputStream()){
+    use(OS.desktop.getChild("font2.png").outputStream()){
         ImageIO.write(img, "png", it)
     }
 
