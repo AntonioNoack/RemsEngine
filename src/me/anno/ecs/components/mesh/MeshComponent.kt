@@ -91,7 +91,7 @@ class MeshComponent : Component() {
                 aabb.union(x, y, z)
             }
         }
-        LOGGER.info("Collected aabb $aabb from ${positions?.size}/${indices?.size} points")
+        // LOGGER.info("Collected aabb $aabb from ${positions?.size}/${indices?.size} points")
     }
 
     fun invalidate() {}

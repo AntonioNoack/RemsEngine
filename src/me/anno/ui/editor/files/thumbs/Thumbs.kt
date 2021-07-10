@@ -327,6 +327,7 @@ object Thumbs {
         val joint = AABBd()
         root.simpleTraversal(true) { entity ->
             // todo rendering all points is only a good idea, if there are no meshes
+            // todo render all them points, and use them for the bbx calculation (only if no meshes present)
             // because animated clothing may be too small to see
             val local = AABBd()
             val meshes0 = entity.getComponents<MeshComponent>()

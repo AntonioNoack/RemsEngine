@@ -3,9 +3,9 @@ package me.anno.mesh.assimp
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.MeshComponent.Companion.MAX_WEIGHTS
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.io.files.InvalidRef
 import me.anno.mesh.assimp.AnimGameItem.Companion.maxBones
 import me.anno.mesh.assimp.AnimatedMeshesLoader2.boneTransform2
 import me.anno.mesh.assimp.AnimatedMeshesLoader2.getDuration
@@ -352,7 +352,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                     )
                     var vertexWeightList = weightSet[vw.vertexId]
                     if (vertexWeightList == null) {
-                        vertexWeightList = ArrayList(4)
+                        vertexWeightList = ArrayList(MAX_WEIGHTS)
                         weightSet[vw.vertexId] = vertexWeightList
                     }
                     vertexWeightList.add(vw)
@@ -367,18 +367,15 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
             val vertexWeightList = weightSet[i]
             if (vertexWeightList != null) {
                 vertexWeightList.sortByDescending { it.weight }
-                val size = vertexWeightList.size
-                val i4 = i * 4
-                weights[i4] = 1f
+                val size = min(vertexWeightList.size, MAX_WEIGHTS)
+                val startIndex = i * MAX_WEIGHTS
+                weights[startIndex] = 1f
                 for (j in 0 until size) {
                     val vw = vertexWeightList[j]
-                    weights[i4 + j] = vw.weight
-                    boneIds[i4 + j] = min(vw.boneId, maxBoneId).toByte()
+                    weights[startIndex + j] = vw.weight
+                    boneIds[startIndex + j] = min(vw.boneId, maxBoneId).toByte()
                 }
-            } else {
-                val i4 = i * 4
-                weights[i4] = 1f
-            }
+            } else weights[i * MAX_WEIGHTS] = 1f
         }
 
     }
@@ -394,8 +391,8 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         val vertices = FloatArray(vertexCount * 3)
         val uvs = FloatArray(vertexCount * 2)
         val normals = FloatArray(vertexCount * 3)
-        val boneIds = ByteArray(vertexCount * 4)
-        val weights = FloatArray(vertexCount * 4)
+        val boneIds = ByteArray(vertexCount * MAX_WEIGHTS)
+        val boneWeights = FloatArray(vertexCount * MAX_WEIGHTS)
         val colors = FloatArray(vertexCount * 4)
 
         // todo directly use an array
@@ -407,7 +404,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         processUVs(aiMesh, uvs)
         processIndices(aiMesh, indices)
         processVertexColors(aiMesh, colors)
-        processBones(aiMesh, boneList, boneMap, boneIds, weights)
+        processBones(aiMesh, boneList, boneMap, boneIds, boneWeights)
 
         val mesh = MeshComponent()
         mesh.positions = vertices
@@ -416,7 +413,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         mesh.color0 = colors
         mesh.indices = indices.toIntArray()
         mesh.boneIndices = boneIds
-        mesh.boneWeights = weights
+        mesh.boneWeights = boneWeights
         /*
         AssimpMesh( vertices, uvs,
             normals, colors,
