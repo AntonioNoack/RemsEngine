@@ -4,6 +4,7 @@ import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.scrolling.ScrollableY
 import me.anno.ui.base.scrolling.ScrollbarY
 import me.anno.ui.style.Style
@@ -11,12 +12,14 @@ import me.anno.utils.Maths.clamp
 import me.anno.utils.structures.tuples.Quad
 import kotlin.math.max
 
-// todo space between entries instead of towards the end
 class PanelListMultiline(style: Style) : PanelGroup(style), ScrollableY {
 
     override val children = ArrayList<Panel>(256)
     override val child: Panel
         get() = this
+
+    // different modes for left/right alignment
+    var childAlignmentX = AxisAlignment.CENTER
 
     var scaleChildren = false
     var childWidth: Int
@@ -78,13 +81,21 @@ class PanelListMultiline(style: Style) : PanelGroup(style), ScrollableY {
         invalidateLayout()
     }
 
-    fun updateSize(w: Int, h: Int) {
-        val childrenSize = children.count { it.visibility == Visibility.VISIBLE }
+    private fun updateCount() {
+        val childCount = children.count { it.visibility == Visibility.VISIBLE }
         columns = max(1, (w + spacing) / (childWidth + spacing))
-        rows = max(1, (childrenSize + columns - 1) / columns)
+        rows = max(1, (childCount + columns - 1) / columns)
+    }
+
+    private fun updateScale() {
         val childScale = if (scaleChildren) max(1f, ((w + spacing) / columns - spacing) * 1f / childWidth) else 1f
         calcChildWidth = if (scaleChildren) (childWidth * childScale).toInt() else childWidth
         calcChildHeight = if (scaleChildren) (childHeight * childScale).toInt() else childHeight
+    }
+
+    private fun updateSize(w: Int, h: Int) {
+        updateCount()
+        updateScale()
         minW = max(w, calcChildWidth)
         minH = max((calcChildHeight + spacing) * rows - spacing, h)
         minH += childHeight / 6 /* Reserve, because somehow it's not enough... */
@@ -99,13 +110,20 @@ class PanelListMultiline(style: Style) : PanelGroup(style), ScrollableY {
     override fun placeInParent(x: Int, y: Int) {
         super.placeInParent(x, y)
 
+        val w = w - scrollbarWidth
+        val contentW = columns * childWidth
+
         val scroll = scrollPosition.toInt()
         var i = 0
         for (child in children) {
             if (child.visibility == Visibility.VISIBLE) {
                 val ix = i % columns
                 val iy = i / columns
-                val cx = x + ix * (calcChildWidth + spacing) + spacing
+                val cx = x + when (childAlignmentX) {
+                    AxisAlignment.MIN -> ix * (calcChildWidth + spacing) + spacing
+                    AxisAlignment.CENTER -> ix * calcChildWidth + max(0, w - contentW) * (ix + 1) / (columns + 1)
+                    AxisAlignment.MAX -> w - (columns - ix) * (calcChildWidth + spacing)
+                }
                 val cy = y + iy * (calcChildHeight + spacing) + spacing - scroll
                 child.placeInParent(cx, cy)
                 i++

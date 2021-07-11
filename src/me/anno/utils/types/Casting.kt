@@ -78,6 +78,16 @@ object Casting {
         else -> null
     }
 
+    fun castToVector2db(it: Any?) = castToVector2d(it ?: Unit) ?: Vector2d()
+    fun castToVector2d(it: Any): Vector2d? = when (it) {
+        is Int -> Vector2d(it.toDouble())
+        is Long -> Vector2d(it.toDouble())
+        is Float -> Vector2d(it.toDouble())
+        is Double -> Vector2d(it)
+        is Vector2d -> it
+        else -> null
+    }
+
     fun castToVector3fb(it: Any?) = castToVector3f(it ?: Unit) ?: Vector3f()
     fun castToVector3f(it: Any): Vector3f? = when (it) {
         is Int -> Vector3f(it.toFloat())
@@ -89,6 +99,16 @@ object Casting {
         is Vector4d -> Vector3f(it.x.toFloat(), it.y.toFloat(), it.z.toFloat())
         is Vector4f -> Vector3f(it.x, it.y, it.z)
         is Quaternionf -> Vector3f(it.x, it.y, it.z)
+        else -> null
+    }
+
+    fun castToVector3db(it: Any?) = castToVector3d(it ?: Unit) ?: Vector3d()
+    fun castToVector3d(it: Any): Vector3d? = when (it) {
+        is Int -> Vector3d(it.toDouble())
+        is Long -> Vector3d(it.toDouble())
+        is Float -> Vector3d(it.toDouble())
+        is Double -> Vector3d(it)
+        is Vector3d -> it
         else -> null
     }
 

@@ -316,27 +316,28 @@ class FileExplorerEntry(
     }
 
     private fun drawThumb(x0: Int, y0: Int, x1: Int, y1: Int) {
-        if (file.extension.equals("svg", true)) {
+        /*if (file.extension.equals("svg", true)) {
             drawDefaultIcon(x0, y0, x1, y1)
         } else {
-            when (importType) {
-                // todo audio preview???
-                "Video", "Audio" -> {
-                    val meta = meta
-                    if (meta != null) {
-                        if (meta.videoWidth > 0) {
-                            if (time == 0.0) { // not playing
-                                drawImageOrThumb(x0, y0, x1, y1)
-                            } else drawVideo(x0, y0, x1, y1)
-                        } else {
-                            drawDefaultIcon(x0, y0, x1, y1)
-                            drawCircle(x0, y0, x1, y1)
-                        }
-                    } else drawDefaultIcon(x0, y0, x1, y1)
-                }
-                "Image", "PDF", "Mesh" -> drawImageOrThumb(x0, y0, x1, y1)
-                else -> drawDefaultIcon(x0, y0, x1, y1)
+
+        }*/
+        when (importType) {
+            // todo audio preview???
+            "Video", "Audio" -> {
+                val meta = meta
+                if (meta != null) {
+                    if (meta.videoWidth > 0) {
+                        if (time == 0.0) { // not playing
+                            drawImageOrThumb(x0, y0, x1, y1)
+                        } else drawVideo(x0, y0, x1, y1)
+                    } else {
+                        drawDefaultIcon(x0, y0, x1, y1)
+                        drawCircle(x0, y0, x1, y1)
+                    }
+                } else drawDefaultIcon(x0, y0, x1, y1)
             }
+            "Image", "PDF", "Mesh" -> drawImageOrThumb(x0, y0, x1, y1)
+            else -> drawDefaultIcon(x0, y0, x1, y1)
         }
     }
 

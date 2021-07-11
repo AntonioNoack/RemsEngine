@@ -115,6 +115,9 @@ object Menu {
 
         val list = ArrayList<Panel>()
 
+        // todo search the options using a search field,
+        // todo automatically enter the search field, when this menu shows up
+
         val padding = 4
         for ((index, element) in options.withIndex()) {
             val name = element.title

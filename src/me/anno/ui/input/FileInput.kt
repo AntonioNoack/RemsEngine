@@ -53,7 +53,7 @@ class FileInput(title: String, style: Style, f0: FileReference, val isDirectory:
                     FileExplorerSelectWrapper.selectFileOrFolder(file3, isDirectory) { file ->
                         if (file != null) {
                             changeListener(getReference(file))
-                            base.setText(file.toString2(), false)
+                            base.setValue(file.toString2(), false)
                         }
                     }
                 }
@@ -82,7 +82,7 @@ class FileInput(title: String, style: Style, f0: FileReference, val isDirectory:
     }
 
     fun setText(text: String, notify: Boolean) {
-        base.setText(text.replace('\\', '/'), notify)
+        base.setValue(text.replace('\\', '/'), notify)
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {

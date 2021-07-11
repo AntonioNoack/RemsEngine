@@ -31,7 +31,7 @@ class ContentCreator(
         val pad = title.font.sizeInt
         when (val value = map[fullName]!!) {
             is Boolean -> {
-                list += BooleanInput(shortName, value, style)
+                list += BooleanInput(shortName, value, false, style)
                     .setChangeListener { map[fullName] = it }
                     .withPadding(pad, 0, 0, 0)
             }
@@ -51,7 +51,7 @@ class ContentCreator(
                             }
                             else -> {
                                 val panel = TextInput(shortName, false, style)
-                                panel.setText(value, false)
+                                panel.setValue(value, false)
                                 panel.setChangeListener { map[fullName] = it }
                                 panel
                             }

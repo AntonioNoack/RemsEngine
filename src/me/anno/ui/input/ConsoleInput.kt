@@ -49,7 +49,7 @@ class ConsoleInput(title: String, enableSuggestions: Boolean, style: Style) :
 
     fun showHistoryEntry() {
         if (indexFromTop in 0 until history.size) {
-            setText(history[history.lastIndex - indexFromTop], false)
+            setValue(history[history.lastIndex - indexFromTop], false)
         }
     }
 

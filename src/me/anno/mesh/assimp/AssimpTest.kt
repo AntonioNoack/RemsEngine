@@ -3,7 +3,6 @@ package me.anno.mesh.assimp
 import de.javagl.jgltf.model.GltfConstants.GL_ARRAY_BUFFER
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
@@ -42,7 +41,7 @@ fun main() {
         val meshes = scene.mMeshes()!!
         for (i in 0 until scene.mNumMeshes()) {
             val mesh = AIMesh.create(meshes[i])
-            processMesh(mesh)
+            createMeshComponent(mesh)
         }
 
         println("${scene.mNumMaterials()} materials + ${scene.mNumMeshes()} meshes")
@@ -51,7 +50,7 @@ fun main() {
 
 }
 
-fun processMesh(mesh: AIMesh) {
+fun createMeshComponent(mesh: AIMesh) {
 
     processBuffer(mesh.mVertices())
 

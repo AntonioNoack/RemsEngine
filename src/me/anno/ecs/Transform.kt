@@ -1,10 +1,12 @@
 package me.anno.ecs
 
+import me.anno.io.Saveable
+import me.anno.io.base.BaseWriter
 import org.joml.*
 
-class Transform {
+class Transform : Saveable() {
 
-    val worldTransform = Matrix4x3d()
+    val globalTransform = Matrix4x3d()
     val localTransform = Matrix4x3d()
 
     private val pos = Vector3d()
@@ -67,13 +69,21 @@ class Transform {
         localTransform.scale(localScale)*/
 
         if (parent == null) {
-            worldTransform.identity()
+            globalTransform.identity()
         } else {
-            worldTransform.set(parent.worldTransform)
+            globalTransform.set(parent.globalTransform)
         }
 
-        worldTransform.mul(localTransform)
+        globalTransform.mul(localTransform)
 
+    }
+
+    fun setLocal(values: Matrix4x3d) {
+        localTransform.set(values)
+        pos.set(values.m30(), values.m31(), values.m32())
+        values.getUnnormalizedRotation(rot)
+        values.getScale(sca)
+        invalidateGlobal()
     }
 
     fun setLocal(values: Matrix4f) {
@@ -83,30 +93,14 @@ class Transform {
             values.m20().toDouble(), values.m21().toDouble(), values.m22().toDouble(),
             values.m30().toDouble(), values.m31().toDouble(), values.m32().toDouble(),
         )
-        // updateLocal()
-        // invalidate()
-        // todo this is 99% correct, now update the matrix
-        // todo where is the ghost rotation coming from?
         pos.set(values.m30().toDouble(), values.m31().toDouble(), values.m32().toDouble())
         values.getUnnormalizedRotation(rot)
         sca.set(values.getScale(Vector3f()))
-
-        /*synchronized(Unit) {
-            println("comparison:")
-            println(values)
-            println(localTransform)
-            println(
-                Matrix4d()
-                    .translate(pos)
-                    .rotate(rot)
-                    .scale(sca)
-            )
-        }*/
-
+        invalidateGlobal()
     }
 
     fun distanceSquaredGlobally(v: Vector3d): Double {
-        val w = worldTransform
+        val w = globalTransform
         val x = w.m30() - v.x
         val y = w.m31() - v.y
         val z = w.m32() - v.z
@@ -114,7 +108,7 @@ class Transform {
     }
 
     fun dotViewDir(pos2: Vector3d, dir: Vector3d): Double {
-        val w = worldTransform
+        val w = globalTransform
         val x = w.m30() - pos2.x
         val y = w.m31() - pos2.y
         val z = w.m32() - pos2.z
@@ -131,5 +125,22 @@ class Transform {
     fun invalidateLocal() {
         needsLocalUpdate = true
     }
+
+    override fun readMatrix4x3d(name: String, value: Matrix4x3d) {
+        when (name) {
+            "local" -> setLocal(value)
+        }
+    }
+
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        // global doesn't need to be saved, as it can be reconstructed
+        writer.writeMatrix4x3d("local", localTransform)
+    }
+
+    override val className = "ECSTransform"
+    override val approxSize: Int = 1
+
+    override fun isDefaultValue(): Boolean = localTransform.properties() == 28 // the value assigned for a unit matrix
 
 }

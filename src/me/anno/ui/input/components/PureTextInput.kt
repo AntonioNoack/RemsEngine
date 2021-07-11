@@ -30,6 +30,10 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
         instantTextLoading = true
     }
 
+    private var changeListener: (text: String) -> Unit = { _ -> }
+    private var resetListener: () -> String = { "" }
+    private var enterListener: ((text: String) -> Unit)? = null
+
     fun setCursorToEnd() {
         cursor1 = characters.size
         cursor2 = cursor1
@@ -249,13 +253,16 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
         insert(data)
     }
 
-    private var changeListener: (text: String) -> Unit = { _ -> }
     fun setChangeListener(listener: (String) -> Unit): PureTextInput {
         changeListener = listener
         return this
     }
 
-    private var enterListener: ((text: String) -> Unit)? = null
+    fun setResetListener(listener: () -> String): PureTextInput {
+        resetListener = listener
+        return this
+    }
+
     fun setEnterListener(listener: (String) -> Unit): PureTextInput {
         enterListener = listener
         return this
@@ -324,10 +331,10 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
 
     fun clear() {
         lastChange = GFX.gameTime
-        text = ""
-        characters.clear()
-        cursor1 = 0
-        cursor2 = 0
+        text = resetListener()
+        updateChars(false)
+        cursor1 = characters.size
+        cursor2 = cursor1
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {

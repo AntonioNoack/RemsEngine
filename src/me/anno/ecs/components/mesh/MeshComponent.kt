@@ -4,11 +4,14 @@ import me.anno.ecs.Component
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.IndexedStaticBuffer
+import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.Shader
+import me.anno.io.serialization.NotSerializedProperty
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.lwjgl.opengl.GL11.GL_TRIANGLES
 import kotlin.math.max
+import kotlin.math.min
 
 
 // todo MeshComponent + MeshRenderComponent (+ AnimatableComponent) = animated skeleton
@@ -27,15 +30,14 @@ import kotlin.math.max
 
 class MeshComponent : Component() {
 
-    // todo morph targets
-    // normals? maybe
-    // positions? yes
-
     // use buffers instead, so they can be uploaded directly? no, I like the strided thing...
     // but it may be more flexible... still in Java, FloatArrays are more comfortable
     // -> just use multiple setters for convenience
 
+    // todo also we need a renderer, which can handle morphing
     var positions: FloatArray? = null
+    var morphTargets = ArrayList<MorphTarget>()
+
     var normals: FloatArray? = null
     var tangents: FloatArray? = null
     var uvs: FloatArray? = null
@@ -97,30 +99,62 @@ class MeshComponent : Component() {
     fun invalidate() {}
 
     fun calculateNormals(smooth: Boolean) {
-        if (smooth) {
-            // todo vertex interpolation: keep track of how many faces were used
-        } else {
-            // todo use the cross product to calculate the normals
-            // todo what if it's indexed, and the indexing contradicts the smooth shading? rebuild the index buffer
-        }
+        if (smooth && indices == null) LOGGER.warn("Meshes without indices cannot be rendered smoothly (for now)!")
+        normals = FloatArray(positions!!.size)
+        NormalCalculator.checkNormals(positions!!, normals!!, indices)
     }
 
     fun calculateTangents() {
         // todo calculate them somehow...
     }
 
+    /**
+     * throws an IllegalStateException, if anything is incorrectly set up
+     * if this succeeds, then the drawing routine should not crash
+     * */
     fun check() {
-        // todo check whether all variables are set correctly
+        // check whether all variables are set correctly
+        val positions = positions
+        val normals = normals
+        val uvs = uvs
+        if (positions == null) throw IllegalStateException("Missing positions")
+        if (positions.size % 3 != 0) throw IllegalStateException("Positions must be a vector of vec3, but ${positions.size} % 3 != 0, it's ${positions.size % 3}")
+        if (normals != null && normals.size != positions.size) throw IllegalStateException("Size of normals doesn't match size of positions")
+        if (uvs != null) {
+            if (uvs.size * 3 != positions.size * 2) throw IllegalStateException("Size of UVs does not match size of positions: ${positions.size}*2 vs ${uvs.size}*3")
+        }
+        val boneWeights = boneWeights
+        val boneIndices = boneIndices
+        if ((boneIndices == null) != (boneWeights == null)) throw IllegalStateException("Needs both or neither bone weights and indices")
+        if (boneWeights != null && boneIndices != null) {
+            if (boneWeights.size != boneIndices.size) throw IllegalStateException("Size of bone weights must match size of bone indices")
+            if (boneWeights.size * 3 != positions.size * MAX_WEIGHTS) throw IllegalStateException("Size of weights does not match positions, there must be $MAX_WEIGHTS weights per vertex")
+        }
+        val color0 = color0
+        if (color0 != null && color0.size * 3 != positions.size * 4) throw IllegalStateException("Every vertex needs an RGBA color value")
+        val indices = indices
+        if (indices != null) {
+            // check all indices for correctness
+            val vertexCount = positions.size / 3
+            for (i in indices) {
+                if (i !in 0 until vertexCount) {
+                    throw IllegalStateException("Vertex Index is out of bounds: $i !in 0 until $vertexCount")
+                }
+            }
+        }
     }
 
     override val className get() = "MeshComponent"
 
     // far into the future:
-    // todo instanced animations for hundrets of humans:
+    // todo instanced animations for hundreds of humans:
     // todo bake animations into textures, and use indices + weights
 
-    var needsMeshUpdate = true
-    var buffer: IndexedStaticBuffer? = null
+    @NotSerializedProperty
+    private var needsMeshUpdate = true
+
+    @NotSerializedProperty
+    private var buffer: StaticBuffer? = null
 
     private fun updateMesh() {
 
@@ -128,52 +162,66 @@ class MeshComponent : Component() {
 
         calculateAABB()
 
-        // todo if normals are null, calculate them
-
         val positions = positions!!
+        if (normals == null)
+            normals = FloatArray(positions.size)
+
+        // if normals are null or have length 0, calculate them
+        NormalCalculator.checkNormals(positions, normals!!, indices)
+
         val normals = normals!!
         val uvs = uvs
         val colors = color0
-        val weights = boneWeights
-        val jointIndices = boneIndices
-
-        val indices = indices!!
+        val boneWeights = boneWeights
+        val boneIndices = boneIndices
 
         val pointCount = positions.size / 3
-        val buffer = IndexedStaticBuffer(attributes, pointCount, indices)
+        val indices = indices
+        val buffer =
+            if (indices == null) StaticBuffer(attributes, pointCount)
+            else IndexedStaticBuffer(attributes, pointCount, indices)
+
+        val hasBones = boneWeights != null && boneIndices != null
+        val boneCount = if (hasBones) min(boneWeights!!.size, boneIndices!!.size) else 0
+
         for (i in 0 until pointCount) {
 
             // upload all data of one vertex
 
-            buffer.put(positions[i * 3])
-            buffer.put(positions[i * 3 + 1])
-            buffer.put(positions[i * 3 + 2])
+            val i2 = i * 2
+            val i3 = i * 3
+            val i4 = i * 4
 
-            if (uvs != null && uvs.size > i * 2 + 1) {
-                buffer.put(uvs[i * 2])
-                buffer.put(uvs[i * 2 + 1])
+            buffer.put(positions[i3])
+            buffer.put(positions[i3 + 1])
+            buffer.put(positions[i3 + 2])
+
+            if (uvs != null && uvs.size > i2 + 1) {
+                buffer.put(uvs[i2])
+                buffer.put(uvs[i2 + 1])
             } else {
                 buffer.put(0f, 0f)
             }
 
-            buffer.put(normals[i * 3])
-            buffer.put(normals[i * 3 + 1])
-            buffer.put(normals[i * 3 + 2])
+            buffer.put(normals[i3])
+            buffer.put(normals[i3 + 1])
+            buffer.put(normals[i3 + 2])
 
-            if (colors != null && colors.size > i * 4 + 3) {
-                buffer.put(colors[i * 4])
-                buffer.put(colors[i * 4 + 1])
-                buffer.put(colors[i * 4 + 2])
-                buffer.put(colors[i * 4 + 3])
+            if (colors != null && colors.size > i4 + 3) {
+                buffer.put(colors[i4])
+                buffer.put(colors[i4 + 1])
+                buffer.put(colors[i4 + 2])
+                buffer.put(colors[i4 + 3])
             } else {
                 buffer.put(1f, 1f, 1f, 1f)
             }
 
-            if (weights != null && weights.isNotEmpty()) {
-                val w0 = max(weights[i * 4], 1e-5f)
-                val w1 = weights[i * 4 + 1]
-                val w2 = weights[i * 4 + 2]
-                val w3 = weights[i * 4 + 3]
+            // only works if MAX_WEIGHTS is four
+            if (boneWeights != null && boneWeights.isNotEmpty()) {
+                val w0 = max(boneWeights[i4], 1e-5f)
+                val w1 = boneWeights[i4 + 1]
+                val w2 = boneWeights[i4 + 2]
+                val w3 = boneWeights[i4 + 3]
                 val normalisation = 1f / (w0 + w1 + w2 + w3)
                 buffer.put(w0 * normalisation)
                 buffer.put(w1 * normalisation)
@@ -183,22 +231,23 @@ class MeshComponent : Component() {
                 buffer.put(1f, 0f, 0f, 0f)
             }
 
-            if (jointIndices != null && jointIndices.isNotEmpty()) {
-                buffer.putByte(jointIndices[i * 4])
-                buffer.putByte(jointIndices[i * 4 + 1])
-                buffer.putByte(jointIndices[i * 4 + 2])
-                buffer.putByte(jointIndices[i * 4 + 3])
+            if (boneIndices != null && boneIndices.isNotEmpty()) {
+                buffer.putByte(boneIndices[i4])
+                buffer.putByte(boneIndices[i4 + 1])
+                buffer.putByte(boneIndices[i4 + 2])
+                buffer.putByte(boneIndices[i4 + 3])
             } else {
                 buffer.putInt(0)
             }
 
         }
 
+        this.buffer?.destroy()
         this.buffer = buffer
 
     }
 
-    fun ensureBuffer(){
+    fun ensureBuffer() {
         if (needsMeshUpdate) updateMesh()
     }
 
@@ -219,6 +268,7 @@ class MeshComponent : Component() {
         private val LOGGER = LogManager.getLogger(MeshComponent::class)
 
         // custom attributes for shaders? idk...
+        // will always be 4, so bone indices can be aligned
         const val MAX_WEIGHTS = 4
         val attributes = listOf(
             Attribute("coords", 3),

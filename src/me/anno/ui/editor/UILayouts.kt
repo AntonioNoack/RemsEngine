@@ -386,7 +386,7 @@ object UILayouts {
         quickSettings += BooleanInput(
             "Enable Vsync",
             "Recommended; false for debugging", "ui.settings.vSync",
-            GFXBase0.enableVsync, style
+            GFXBase0.enableVsync, true, style
         ).setChangeListener {
             DefaultConfig["debug.ui.enableVsync"] = it
             GFXBase0.setVsyncEnabled(it)
@@ -395,7 +395,7 @@ object UILayouts {
         quickSettings += BooleanInput(
             "Show FPS",
             "Shows how many frames were rendered per second, for monitoring stutters", "ui.settings.showFPS",
-            RemsStudio.showFPS,
+            RemsStudio.showFPS, false,
             style
         ).setChangeListener { DefaultConfig["debug.ui.showFPS"] = it }
 

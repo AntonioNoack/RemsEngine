@@ -299,7 +299,7 @@ object Thumbs {
         if (w < 2 || h < 2) return
 
         val transform = Matrix4fArrayList()
-        transform.scale(2f / (buffer.maxX / buffer.maxY).toFloat(), -2f, 2f)
+        transform.scale(1f / (buffer.maxX / buffer.maxY).toFloat(), -1f, 1f)
         renderToBufferedImage(srcFile, dstFile, false, callback, w, h) {
             SVGxGFX.draw3DSVG(
                 null, 0.0,
@@ -347,7 +347,7 @@ object Thumbs {
                     )
                 }
             }
-            local.transform(Matrix4d(entity.transform.worldTransform))
+            local.transform(Matrix4d(entity.transform.globalTransform))
             joint.union(local)
             false
         }
@@ -355,7 +355,7 @@ object Thumbs {
     }
 
     // just render it using the simplest shader
-    private fun generateMeshFrame(
+    private fun generateAssimpMeshFrame(
         srcFile: FileReference,
         dstFile: FileReference,
         size: Int,
@@ -436,13 +436,15 @@ object Thumbs {
             try {
                 when (val ext = srcFile.extension.lowercase()) {
 
+                    // todo thumbnails and import for .vox files (MagicaVoxel voxel meshes)
+
                     // todo thumbnails for meshes, and components
                     // todo thumbnails for scripts?
                     // todo thumbnails for Rem's Studio transforms
                     "obj", "fbx", "gltf", "glb", "dae", "md2", "md5mesh" -> {
-                        // todo list all mesh extensions...
+                        // todo list all mesh extensions, which are supported by assimp
                         // preview for mtl file? idk...
-                        generateMeshFrame(srcFile, dstFile, size, callback)
+                        generateAssimpMeshFrame(srcFile, dstFile, size, callback)
                     }
 
                     "hdr" -> {

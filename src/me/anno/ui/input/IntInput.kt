@@ -1,12 +1,15 @@
 package me.anno.ui.input
 
-import me.anno.gpu.GFX
 import me.anno.animation.AnimatedProperty
 import me.anno.animation.Type
+import me.anno.gpu.GFX
 import me.anno.parser.SimpleExpressionParser
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.pow
+import org.joml.Vector2i
+import org.joml.Vector3i
+import org.joml.Vector4i
 import kotlin.math.max
 import kotlin.math.round
 import kotlin.math.roundToLong
@@ -93,9 +96,11 @@ open class IntInput(
             delta * if (type.hasLinear) 1f else 3f
         )).roundToLong()
         when (val clamped = type.clamp(if (type.defaultValue is Int) value.toInt() else value)) {
+            is Byte -> setValue(clamped.toLong(), true)
+            is Short -> setValue(clamped.toLong(), true)
             is Int -> setValue(clamped.toLong(), true)
             is Long -> setValue(clamped, true)
-            else -> throw RuntimeException("Unknown type $clamped for ${javaClass.simpleName}")
+            else -> throw RuntimeException("Unknown type ${clamped::class} for ${javaClass.simpleName}")
         }
     }
 
@@ -104,6 +109,9 @@ open class IntInput(
             when (type.defaultValue) {
                 is Float -> value.toFloat()
                 is Double -> value.toDouble()
+                is Byte -> value.toInt()
+                is Short -> value.toInt()
+                is Char -> value.toInt()
                 is Int -> value.toInt()
                 is Long -> value
                 else -> throw RuntimeException("Unknown type ${type.defaultValue}")
@@ -119,10 +127,17 @@ open class IntInput(
 
     fun getValue(value: Any): Long {
         return when (value) {
+            is Boolean -> if (value) 1L else 0L
+            is Byte -> value.toLong()
+            is Short -> value.toLong()
+            is Char -> value.code.toLong()
             is Int -> value.toLong()
             is Long -> value
-            is Double -> value.toLong()
             is Float -> value.toLong()
+            is Double -> value.toLong()
+            is Vector2i -> value[indexInProperty].toLong()
+            is Vector3i -> value[indexInProperty].toLong()
+            is Vector4i -> value[indexInProperty].toLong()
             else -> throw RuntimeException("Unknown type $value for ${javaClass.simpleName}")
         }
     }
@@ -152,8 +167,7 @@ open class IntInput(
             hasValue = true
             lastValue = v
             if (notify) changeListener(v)
-            inputPanel.text = stringify(v)
-            inputPanel.updateChars(false)
+            setText(stringify(v))
         }
     }
 
@@ -166,6 +180,12 @@ open class IntInput(
             setValue(value, true)
             wasInFocus = false
         }
+    }
+
+    override fun onEnterKey(x: Float, y: Float) {
+        // evaluate the value, and write it back into the text field, e.g. for calculations
+        hasValue = false
+        setValue(lastValue, true)
     }
 
 }

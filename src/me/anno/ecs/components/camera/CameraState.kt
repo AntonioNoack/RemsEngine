@@ -6,8 +6,8 @@ import me.anno.utils.Maths.clamp
 
 class CameraState: Component() {
 
-    var currentCamera: Camera? = null
-    var previousCamera: Camera? = null
+    var currentCamera: CameraComponent? = null
+    var previousCamera: CameraComponent? = null
     var cameraBlendingTime = 0.0
     var cameraBlendingProgress = 0.0
 

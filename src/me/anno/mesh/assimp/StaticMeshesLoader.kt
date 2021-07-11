@@ -118,14 +118,35 @@ open class StaticMeshesLoader {
         }
     }
 
-    fun processIndices(aiMesh: AIMesh, indices: MutableList<Int>) {
+    fun processIndices(aiMesh: AIMesh, indices: IntArray) {
         val numFaces = aiMesh.mNumFaces()
         val aiFaces = aiMesh.mFaces()
-        for (i in 0 until numFaces) {
-            val aiFace = aiFaces[i]
+        for (j in 0 until numFaces) {
+            val aiFace = aiFaces[j]
             val buffer = aiFace.mIndices()
-            while (buffer.remaining() > 0) {
-                indices.add(buffer.get())
+            val i = j * 3
+            when (val remaining = buffer.remaining()) {
+                1 -> {
+                    // a point
+                    indices[i + 0] = buffer.get()
+                    indices[i + 1] = indices[i + 0]
+                    indices[i + 2] = indices[i + 0]
+                }
+                2 -> {
+                    // a line
+                    indices[i + 0] = buffer.get()
+                    indices[i + 1] = buffer.get()
+                    indices[i + 2] = indices[i + 0]
+                }
+                3 -> {
+                    // a triangle, as it should be by the triangulate flag
+                    indices[i + 0] = buffer.get()
+                    indices[i + 1] = buffer.get()
+                    indices[i + 2] = buffer.get()
+                }
+                else -> {
+                    LOGGER.warn("Remaining number of vertices is awkward: $remaining")
+                }
             }
         }
     }
@@ -191,28 +212,21 @@ open class StaticMeshesLoader {
         val vertices = FloatArray(vertexCount * 3)
         val uvs = FloatArray(vertexCount * 2)
         val normals = FloatArray(vertexCount * 3)
-        val indices = ArrayList<Int>()
+        val indices = IntArray(aiMesh.mNumFaces() * 3)
         val colors = FloatArray(vertexCount * 4)
 
-        processVertices(aiMesh, vertices)
+        processPositions(aiMesh, vertices)
         processNormals(aiMesh, normals)
         processUVs(aiMesh, uvs)
         processIndices(aiMesh, indices)
         processVertexColors(aiMesh, colors)
-
-        /*val mesh = AssimpMesh(
-            vertices, textures,
-            normals, colors,
-            indices.toIntArray(),
-            null, null
-        )*/
 
         val mesh = MeshComponent()
         mesh.positions = vertices
         mesh.normals = normals
         mesh.uvs = uvs
         mesh.color0 = colors
-        mesh.indices = indices.toIntArray()
+        mesh.indices = indices
 
         val materialIdx = aiMesh.mMaterialIndex()
         if (materialIdx >= 0 && materialIdx < materials.size) {
@@ -223,56 +237,81 @@ open class StaticMeshesLoader {
 
     }
 
-    fun processNormals(aiMesh: AIMesh, buffer: FloatArray) {
-        var j = 0
-        val aiNormals = aiMesh.mNormals()
-        if (aiNormals != null) {
-            while (aiNormals.remaining() > 0) {
-                val aiNormal = aiNormals.get()
-                buffer[j++] = aiNormal.x()
-                buffer[j++] = aiNormal.y()
-                buffer[j++] = aiNormal.z()
-            }
-        }
-    }
-
-    fun processUVs(aiMesh: AIMesh, buffer: FloatArray) {
-        val textCoords = aiMesh.mTextureCoords(0)
-        if (textCoords != null) {
-            var j = 0
-            while (textCoords.remaining() > 0) {
-                val textCoord = textCoords.get()
-                buffer[j++] = textCoord.x()
-                buffer[j++] = 1 - textCoord.y()
-            }
-        }
-    }
-
-    fun processVertices(aiMesh: AIMesh, buffer: FloatArray) {
-        var j = 0
-        val aiVertices = aiMesh.mVertices()
-        while (aiVertices.hasRemaining()) {
-            val aiVertex = aiVertices.get()
-            buffer[j++] = aiVertex.x()
-            buffer[j++] = aiVertex.y()
-            buffer[j++] = aiVertex.z()
-        }
-    }
-
     // todo we may have tangent information as well <3
-    fun processVertexColors(aiMesh: AIMesh, buffer: FloatArray) {
-        val colors = aiMesh.mColors(0)
-        if (colors != null) {
+
+    fun processTangents(aiMesh: AIMesh, dst: FloatArray) {
+        val src = aiMesh.mTangents()
+        if (src != null) {
             var j = 0
-            while (colors.remaining() > 0) {
-                val aiVertex = colors.get()
-                buffer[j++] = aiVertex.r()
-                buffer[j++] = aiVertex.g()
-                buffer[j++] = aiVertex.b()
-                buffer[j++] = aiVertex.a()
+            while (src.remaining() > 0) {
+                val value = src.get()
+                dst[j++] = value.x()
+                dst[j++] = value.y()
+                dst[j++] = value.z()
+            }
+        }
+    }
+
+    fun processNormals(aiMesh: AIMesh, dst: FloatArray) {
+        val src = aiMesh.mNormals()
+        if (src != null) {
+            var j = 0
+            while (src.remaining() > 0) {
+                val value = src.get()
+                dst[j++] = value.x()
+                dst[j++] = value.y()
+                dst[j++] = value.z()
+            }
+        }
+    }
+
+    fun processUVs(aiMesh: AIMesh, dst: FloatArray) {
+        val src = aiMesh.mTextureCoords(0)
+        if (src != null) {
+            var j = 0
+            while (src.remaining() > 0) {
+                val value = src.get()
+                dst[j++] = value.x()
+                dst[j++] = 1 - value.y()
+            }
+        }
+    }
+
+    fun processPositions(aiMesh: AIMesh, dst: FloatArray) {
+        var j = 0
+        val src = aiMesh.mVertices()
+        while (src.hasRemaining()) {
+            val value = src.get()
+            dst[j++] = value.x()
+            dst[j++] = value.y()
+            dst[j++] = value.z()
+        }
+    }
+
+    fun processPositions(aiMesh: AIAnimMesh, dst: FloatArray) {
+        var j = 0
+        val src = aiMesh.mVertices()!!
+        while (src.hasRemaining()) {
+            val value = src.get()
+            dst[j++] = value.x()
+            dst[j++] = value.y()
+            dst[j++] = value.z()
+        }
+    }
+
+    fun processVertexColors(aiMesh: AIMesh, dst: FloatArray) {
+        val src = aiMesh.mColors(0)
+        if (src != null) {
+            var j = 0
+            while (src.remaining() > 0) {
+                val value = src.get()
+                dst[j++] = value.r()
+                dst[j++] = value.g()
+                dst[j++] = value.b()
+                dst[j++] = value.a()
             }
         } else {
-            buffer.fill(1f)
+            dst.fill(1f)
         }
     }
 

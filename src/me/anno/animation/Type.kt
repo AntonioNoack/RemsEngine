@@ -9,7 +9,9 @@ import me.anno.utils.types.Casting.castToInt
 import me.anno.utils.types.Casting.castToInt2
 import me.anno.utils.types.Casting.castToLong
 import me.anno.utils.types.Casting.castToString
+import me.anno.utils.types.Casting.castToVector2d
 import me.anno.utils.types.Casting.castToVector2f
+import me.anno.utils.types.Casting.castToVector3d
 import me.anno.utils.types.Casting.castToVector3f
 import me.anno.utils.types.Casting.castToVector4d
 import me.anno.utils.types.Casting.castToVector4f
@@ -26,6 +28,12 @@ class Type(
     val clampFunc: ((Any?) -> Any)?,
     val acceptOrNull: (Any) -> Any?
 ) {
+
+    constructor(defaultValue: Any, clampFunc: ((Any?) -> Any)?, acceptOrNull: (Any) -> Any?) :
+            this(defaultValue, 1, 1f, true, true, clampFunc, acceptOrNull)
+
+    constructor(defaultValue: Any, components: Int) :
+            this(defaultValue, components, 1f, true, true, { it!! }, { it })
 
     val defaultValue = acceptOrNull(clamp(defaultValue).apply {
         if (this != defaultValue)
@@ -114,6 +122,8 @@ class Type(
          * */
         val VIDEO_QUALITY_CRF = Type(23, 1, 1f, true, false, { clamp(it as Int, 0, 51) }, ::castToInt)
 
+        val VEC2D = Type(Vector2d(), 2, 1f, true, true, null, ::castToVector2d)
+        val VEC3D = Type(Vector3d(), 3, 1f, true, true, null, ::castToVector3d)
         val VEC4D = Type(Vector4d(), 4, 1f, true, true, null, ::castToVector4d)
 
         val STRING = Type("", 1, 1f, false, false, { castToString(it).replace("\r", "") }, ::castToString)

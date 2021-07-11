@@ -1,23 +1,20 @@
 package me.anno.ecs.components.camera
 
 import me.anno.ecs.Component
-import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.player.LocalPlayer.Companion.currentLocalPlayer
 import org.joml.Vector4f
 
 // todo like the studio camera,
 // todo function to blend to the next one
-class Camera : Component() {
+class CameraComponent : Component() {
 
     // todo different settings for orthographic and non-orthographic
     // todo different classes? maybe...
 
     var isPerspective = false
 
-    @Range(1e-308, 1e308)
     var near = 0.01
 
-    @Range(1e-308, 1e308)
     var far = 5000.0
 
     var postProcessingEffects = ArrayList<PPE>()

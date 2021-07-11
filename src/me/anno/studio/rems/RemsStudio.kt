@@ -18,22 +18,20 @@ import me.anno.studio.StudioBase
 import me.anno.studio.cli.RemsCLI
 import me.anno.studio.project.Project
 import me.anno.studio.rems.CheckVersion.checkVersion
+import me.anno.studio.rems.ui.TransformTreeView
 import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.UILayouts
 import me.anno.ui.editor.sceneTabs.SceneTabs.currentTab
 import me.anno.ui.editor.sceneView.ISceneView
-import me.anno.studio.rems.ui.TransformTreeView
 import me.anno.utils.OS
-
-// todo ist die Textgenerierung threadsicher? nicht, dass daher die verschwundenen Texturen kommen
-
-
-// todo somehow the editor is lagging, when stuff is moved: is it an AI issue?
-
 
 // todo print list of time-points for sites like YouTube
 // todo we could set markers in the editor :)
+
+// todo use YouTube videos as a video source?
+
+// todo when rendering low-res images: for nearest-interpolated textures use interpolation on the edges of pixels
 
 // todo mesh preview, primarily for other projects
 // todo 3d model gltf support
@@ -66,13 +64,10 @@ import me.anno.utils.OS
 //          creating personal levels or bases with that
 
 
-
-
 // Launch4j
 
 // todo configurable background color (render settings)
 // todo scene settings: render duration & size and such should be inside there as well
-
 
 
 // todo when mixing strings, \n and spaces have a special role:

@@ -1,5 +1,7 @@
 package me.anno.ecs.components.collider
 
+import com.bulletphysics.collision.shapes.BoxShape
+import com.bulletphysics.collision.shapes.CollisionShape
 import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.Maths.length
 import org.joml.Vector3d
@@ -16,6 +18,7 @@ class BoxCollider : Collider() {
 
     override val className get() = "BoxCollider"
 
+    // we could use this for our own physics engine...
     override fun getSignedDistance(deltaPosition: Vector3d, movement: Vector3d): Double {
         // todo corner roundness
         deltaPosition.absolute()
@@ -24,6 +27,14 @@ class BoxCollider : Collider() {
         val outside = length(max(deltaPosition.x, 0.0), max(deltaPosition.y, 0.0), max(deltaPosition.z, 0.0))
         val inside = min(max(deltaPosition.x, max(deltaPosition.y, deltaPosition.z)), 0.0)
         return outside + inside - cornerRoundness
+    }
+
+    override fun createBulletShape(): CollisionShape {
+        return BoxShape(javax.vecmath.Vector3d(halfExtends.x, halfExtends.y, halfExtends.z))
+    }
+
+    override fun drawShape() {
+        // todo draw box
     }
 
 }

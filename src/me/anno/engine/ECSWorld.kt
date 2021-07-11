@@ -1,5 +1,6 @@
 package me.anno.engine
 
+import com.bulletphysics.collision.dispatch.CollisionWorld
 import me.anno.ecs.Entity
 
 class ECSWorld : Entity() {
@@ -8,19 +9,31 @@ class ECSWorld : Entity() {
     // should be written only to by the server, or for particle effects
     val globallyShared = Entity("Globally Shared")
 
-    // only enabled in scene editor
+    /**
+     * only enabled in scene editor
+     * the base for all players
+     * */
     val playerPrefab = Entity("Player Prefab")
 
-    // can be created using the prefab
-    val localPlayers = Entity("Local Players")//ArrayList<LocalPlayer>()
+    /**
+     * a list of players,
+     * can be created using the playerPrefab
+     * players on this computer
+     * */
+    val localPlayers = Entity("Local Players")
 
-    // e.g. for custom ui layouts,
-    // will not be shared with the server
+    /**
+     * e.g. for custom ui layouts,
+     * will not be shared with the server
+     * */
     val locallyShared = Entity("Locally Shared")
 
-    // remote players, will be controlled by the server connection
-    // if the server is local, it may be controlled by the remotely playing
-    val remotePlayers = Entity("Remote Players")//ArrayList<RemotePlayer>()
+    /**
+     * a list of players,
+     * remote players, will be controlled by the server connection
+     * if the server is local, it may be controlled by the remotely playing
+     * */
+    val remotePlayers = Entity("Remote Players")
 
     init {
         addChild(globallyShared)
@@ -30,17 +43,17 @@ class ECSWorld : Entity() {
         addChild(remotePlayers)
     }
 
-    fun createLocalPlayer(info: Any): Entity {
-        // todo set info ...
+    fun createLocalPlayer(name: String): Entity {
         val instance = playerPrefab.clone()
+        instance.name = name
         instance.isEnabled = true
         localPlayers.add(instance)
         return instance
     }
 
-    fun createRemotePlayer(info: Any): Entity {
-        // todo set info ...
+    fun createRemotePlayer(name: String): Entity {
         val instance = playerPrefab.clone()
+        instance.name = name
         instance.isEnabled = true
         remotePlayers.add(instance)
         return instance
@@ -48,8 +61,10 @@ class ECSWorld : Entity() {
 
     fun removePlayer(player: Entity) {
         localPlayers.remove(player)
-
+        remotePlayers.remove(player)
     }
+
+    var physics: CollisionWorld? = null
 
     override val className get() = "RootEntity"
 

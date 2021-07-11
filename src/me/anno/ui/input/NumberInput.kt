@@ -1,9 +1,9 @@
 package me.anno.ui.input
 
-import me.anno.gpu.Cursor
-import me.anno.input.MouseButton
 import me.anno.animation.AnimatedProperty
 import me.anno.animation.Type
+import me.anno.gpu.Cursor
+import me.anno.input.MouseButton
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.components.NumberInputComponent
@@ -26,8 +26,10 @@ abstract class NumberInput(
     }
 
     var hasValue = false
+    var mouseIsDown = false
 
     val titleView = TitlePanel(title, this, style)
+    var isSelectedListener: (() -> Unit)? = null
 
     val inputPanel = object : NumberInputComponent(
         owningProperty, indexInProperty, this@NumberInput, style
@@ -36,6 +38,9 @@ abstract class NumberInput(
         override var visibility: Visibility
             get() = InputVisibility[title]
             set(_) {}
+        override fun onEnterKey(x: Float, y: Float) {
+            this@NumberInput.onEnterKey(x, y)
+        }
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -68,9 +73,13 @@ abstract class NumberInput(
         inputPanel.hide()
     }
 
-    var isSelectedListener: (() -> Unit)? = null
     fun setIsSelectedListener(listener: () -> Unit): NumberInput {
         isSelectedListener = listener
+        return this
+    }
+
+    fun setResetListener(listener: () -> String): NumberInput {
+        inputPanel.setResetListener(listener)
         return this
     }
 
@@ -79,7 +88,6 @@ abstract class NumberInput(
         mouseIsDown = true
     }
 
-    var mouseIsDown = false
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         super.onMouseMoved(x, y, dx, dy)
         if (mouseIsDown) {
@@ -92,6 +100,15 @@ abstract class NumberInput(
     override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
         super.onMouseUp(x, y, button)
         mouseIsDown = false
+    }
+
+    fun setText(newText: String){
+        val oldText = inputPanel.text
+        inputPanel.text = newText
+        inputPanel.updateChars(false)
+        if(oldText.length != newText.length){
+            inputPanel.setCursorToEnd()
+        }
     }
 
     override fun getCursor(): Long = Cursor.drag

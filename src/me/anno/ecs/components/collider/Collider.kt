@@ -1,7 +1,10 @@
 package me.anno.ecs.components.collider
 
+import com.bulletphysics.collision.shapes.CollisionShape
+import com.bulletphysics.linearmath.Transform
 import me.anno.ecs.Component
-import me.anno.io.serialization.SerializedProperty
+import me.anno.ecs.Entity
+import me.anno.engine.BulletPhysics.Companion.convertMatrix
 import org.joml.Vector3d
 
 // todo collision-effect mappings:
@@ -12,11 +15,23 @@ import org.joml.Vector3d
 
 abstract class Collider : Component() {
 
-    // todo aabb
-
-    @SerializedProperty
-    val position = Vector3d()
-
     abstract fun getSignedDistance(deltaPosition: Vector3d, movement: Vector3d): Double
+
+    fun createBulletCollider(base: Entity): Pair<Transform, CollisionShape> {
+        val shape = createBulletShape()
+        val transform = Transform(convertMatrix(entity!!.fromLocalToOtherLocal(base)))
+        return transform to shape
+    }
+
+    abstract fun createBulletShape(): CollisionShape
+
+    // a collider needs to be drawn
+    override fun onDrawGUI() {
+        // draw shape
+        drawShape()
+        // todo draw transformation gizmos for easy transforms
+    }
+
+    abstract fun drawShape()
 
 }

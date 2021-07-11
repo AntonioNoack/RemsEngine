@@ -20,6 +20,9 @@ object Maths {
     fun sq(x: Double, y: Double) = x * x + y * y
     fun sq(x: Double, y: Double, z: Double) = x * x + y * y + z * z
 
+    fun clamp(x: Byte, min: Byte, max: Byte) = if (x < min) min else if (x < max) x else max
+    fun clamp(x: Char, min: Char, max: Char) = if (x < min) min else if (x < max) x else max
+    fun clamp(x: Short, min: Short, max: Short) = if (x < min) min else if (x < max) x else max
     fun clamp(x: Int, min: Int, max: Int) = if (x < min) min else if (x < max) x else max
     fun clamp(x: Long, min: Long, max: Long) = if (x < min) min else if (x < max) x else max
     fun clamp(x: Float, min: Float, max: Float) = if (x < min) min else if (x < max) x else max

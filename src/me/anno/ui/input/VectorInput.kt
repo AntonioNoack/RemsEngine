@@ -122,6 +122,9 @@ class VectorInput(
         override var visibility: Visibility
             get() = InputVisibility[title]
             set(_) {}
+        override fun onEnterKey(x: Float, y: Float) {
+            this@VectorInput.onEnterKey(x, y)
+        }
     }
 
     init {
@@ -397,7 +400,7 @@ class VectorInput(
     override fun onEmpty(x: Float, y: Float) {
         val defaultValue = owningProperty?.defaultValue ?: type.defaultValue
         valueFields.forEachIndexed { index, pureTextInput ->
-            pureTextInput.text = getFloat(defaultValue, index).toString()
+            pureTextInput.text = getDouble(defaultValue, index).toString()
         }
         changeListener(
             getDouble(defaultValue, 0),

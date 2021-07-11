@@ -31,4 +31,8 @@ class TitlePanel(title: String, var owner: Panel, style: Style) : TextPanel(titl
         return owner.onCopyRequested(x, y)
     }
 
+    override fun onEnterKey(x: Float, y: Float) {
+        return owner.onEnterKey(x, y)
+    }
+
 }

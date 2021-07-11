@@ -1,5 +1,7 @@
 package me.anno.ui.editor.components
 
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Type
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.blending.blendModes
 import me.anno.gpu.texture.Clamping
@@ -8,15 +10,9 @@ import me.anno.io.files.FileReference
 import me.anno.language.Language
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
-import me.anno.animation.AnimatedProperty
-import me.anno.animation.Type
 import me.anno.objects.effects.MaskType
 import me.anno.objects.effects.ToneMappers
-import me.anno.objects.modes.ArraySelectionMode
-import me.anno.objects.modes.LoopingState
-import me.anno.objects.modes.TransformVisibility
-import me.anno.objects.modes.UVProjection
-import me.anno.objects.modes.TextRenderMode
+import me.anno.objects.modes.*
 import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.Panel
 import me.anno.ui.input.*
@@ -24,8 +20,10 @@ import me.anno.ui.style.Style
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.structures.ValueWithDefault
 import me.anno.utils.structures.ValueWithDefaultFunc
-import org.joml.*
-import java.lang.IllegalArgumentException
+import org.joml.Quaternionf
+import org.joml.Vector2f
+import org.joml.Vector3f
+import org.joml.Vector4f
 
 object ComponentUI {
 
@@ -42,7 +40,7 @@ object ComponentUI {
         style: Style, setValue: (V) -> Unit
     ): Panel {
         return when (value) {
-            is Boolean -> BooleanInput(title, value, style)
+            is Boolean -> BooleanInput(title, value, type?.defaultValue as? Boolean ?: false, style)
                 .setChangeListener {
                     RemsStudio.largeChange("Set $title to $it") {
                         setValue(it as V)
@@ -223,7 +221,8 @@ object ComponentUI {
      * */
     fun vi(
         self: Transform,
-        title: String, ttt: String, values: AnimatedProperty<*>, style: Style): Panel {
+        title: String, ttt: String, values: AnimatedProperty<*>, style: Style
+    ): Panel {
         val time = self.lastLocalTime
         val sl = { self.show(values) }
         return when (val value = values[time]) {
@@ -301,7 +300,11 @@ object ComponentUI {
                     VectorInput(title, values, time, style)
                         .setChangeListener { x, y, z, w ->
                             RemsStudio.incrementalChange("Set $title to ($x,$y,$z,$w)", title) {
-                                self.putValue(values, Vector4f(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()), false)
+                                self.putValue(
+                                    values,
+                                    Vector4f(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()),
+                                    false
+                                )
                             }
                         }
                         .setIsSelectedListener(sl)

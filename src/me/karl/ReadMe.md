@@ -5,3 +5,5 @@ It is updated to use my classes and the newer version of LWJGL.
 
 Karl = ThinMatrix
 
+When every dae file works with assimp, I'll remove this part of the engine
+

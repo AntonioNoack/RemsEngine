@@ -1,6 +1,7 @@
 package me.anno.gpu
 
 import me.anno.config.DefaultConfig
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.texture.Filtering
 import me.anno.mesh.assimp.AnimGameItem
@@ -802,9 +803,9 @@ object ShaderLib {
                     "   if(hasAnimation > 0.5){\n" +
                     "       mat4x3 jointMat;\n" +
                     "       jointMat  = jointTransforms[indices.x] * weights.x;\n" +
-                    "       if(weights.y > 0){ jointMat += jointTransforms[indices.y] * weights.y;\n" +
-                    "       if(weights.z > 0){ jointMat += jointTransforms[indices.z] * weights.z;\n" +
-                    "       if(weights.w > 0){ jointMat += jointTransforms[indices.w] * weights.w; }}}\n" +
+                    "       jointMat += jointTransforms[indices.y] * weights.y;\n" +
+                    "       jointMat += jointTransforms[indices.z] * weights.z;\n" +
+                    "       jointMat += jointTransforms[indices.w] * weights.w;\n" +
                     "       localPosition = jointMat * vec4(localPosition, 1.0);\n" +
                     "       normal = jointMat * vec4(normal, 0.0);\n" +
                     "   }" +

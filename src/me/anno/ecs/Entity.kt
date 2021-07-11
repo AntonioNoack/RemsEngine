@@ -1,7 +1,6 @@
 package me.anno.ecs
 
 import me.anno.animation.Type
-import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
@@ -17,9 +16,11 @@ import me.anno.ui.editor.stacked.StackPanel
 import me.anno.ui.input.TextInput
 import me.anno.ui.input.VectorInput
 import me.anno.ui.style.Style
+import me.anno.utils.strings.StringHelper.splitCamelCase
 import me.anno.utils.structures.Hierarchical
 import me.anno.utils.structures.lists.UpdatingList
 import me.anno.utils.types.Floats.f2s
+import org.joml.Matrix4x3d
 
 // entities would be an idea to make effects more modular
 // it could apply new effects to both the camera and image sources
@@ -227,8 +228,15 @@ open class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
     }
 
     fun getComponentOptions(): List<Option> {
-        // todo registry over all options... / search the raw files + search all scripts
-        return UpdatingList { listOf(Option("MeshComponent", "") { MeshComponent() }) }
+        // registry over all options... / todo search the raw files + search all scripts
+        val knownComponents = ISaveable.objectTypeRegistry.filterValues { it.sampleInstance is Component }
+        return UpdatingList {
+            knownComponents.map {
+                Option(splitCamelCase(it.key), "") {
+                    it.value.generator() as Component
+                }
+            }.sortedBy { it.title }
+        }
     }
 
     override fun toString(): String {
@@ -281,6 +289,21 @@ open class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
     }
 
     val sizeOfHierarchy get(): Int = components.size + children.sumOf { 1 + it.sizeOfHierarchy }
+    val depthInHierarchy
+        get(): Int {
+            val parent = parent ?: return 0
+            return parent.depthInHierarchy + 1
+        }
+
+    fun fromOtherLocalToLocal(other: Entity): Matrix4x3d {
+        // converts the point from the local coordinates of the other one to our local coordinates
+        return Matrix4x3d(transform.globalTransform).invert().mul(other.transform.globalTransform)
+    }
+
+    fun fromLocalToOtherLocal(other: Entity): Matrix4x3d {
+        // converts the point from our local coordinates of the local coordinates of the other one
+        return Matrix4x3d(other.transform.globalTransform).invert().mul(transform.globalTransform)
+    }
 
     fun clone() = TextReader.fromText(TextWriter.toText(this, false))[0] as Entity
 

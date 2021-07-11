@@ -1,14 +1,14 @@
 package me.anno.objects
 
+import me.anno.animation.AnimatedProperty
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.white4
 import me.anno.gpu.GFX
-import me.anno.io.files.FileReference
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.language.translation.Dict
-import me.anno.animation.AnimatedProperty
+import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.language.translation.Dict
 import me.anno.objects.effects.ToneMappers
 import me.anno.objects.models.CameraModel.drawCamera
 import me.anno.studio.rems.RemsStudio
@@ -17,9 +17,12 @@ import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.Maths.pow
-import org.joml.*
+import me.anno.utils.files.LocalFile.toGlobalFile
+import org.joml.Matrix4fArrayList
+import org.joml.Vector2f
+import org.joml.Vector3f
+import org.joml.Vector4fc
 
 class Camera(parent: Transform? = null) : Transform(parent) {
 
@@ -125,7 +128,17 @@ class Camera(parent: Transform? = null) : Transform(parent) {
             lut = it
         }
 
-        ColorGrading.createInspector(this, cgPower, cgSaturation, cgSlope, cgOffsetAdd, cgOffsetSub, { it }, getGroup, style)
+        ColorGrading.createInspector(
+            this,
+            cgPower,
+            cgSaturation,
+            cgSlope,
+            cgOffsetAdd,
+            cgOffsetSub,
+            { it },
+            getGroup,
+            style
+        )
 
         val editor = getGroup("Editor", "Settings, which only effect editing", "editor")
         editor += vi(
@@ -167,6 +180,8 @@ class Camera(parent: Transform? = null) : Transform(parent) {
             putValue(skew, Vector2f(0f, 0f), false)
             putValue(rotationYXZ, Vector3f(), false)
             putValue(orbitRadius, 1f, false)
+            putValue(nearZ, 0.001f, false)
+            putValue(farZ, 1000f, false)
         }
     }
 
@@ -178,6 +193,8 @@ class Camera(parent: Transform? = null) : Transform(parent) {
         if (src is Camera) {
             putValue(fovYDegrees, src.fovYDegrees[srcTime], false)
             putValue(orbitRadius, src.orbitRadius[srcTime], false)
+            putValue(nearZ, src.nearZ[srcTime], false)
+            putValue(farZ, src.farZ[srcTime], false)
         }
     }
 

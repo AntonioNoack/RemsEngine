@@ -21,26 +21,26 @@ class CuboidDistribution(center: Vector4f, size: Vector4f, rotation: Vector4f = 
 
     override fun nextV2(): Vector2f {
         return Vector2f(
-            random.nextFloat()*2f,
-            random.nextFloat()*2f
-        ).sub(1f,1f).transform()
+            random.nextFloat() * 2f,
+            random.nextFloat() * 2f
+        ).sub(1f, 1f).transform()
     }
 
     override fun nextV3(): Vector3f {
         return Vector3f(
-            random.nextFloat()*2f,
-            random.nextFloat()*2f,
-            random.nextFloat()*2f
-        ).sub(1f,1f,1f).transform()
+            random.nextFloat() * 2f,
+            random.nextFloat() * 2f,
+            random.nextFloat() * 2f
+        ).sub(1f, 1f, 1f).transform()
     }
 
     override fun nextV4(): Vector4f {
         return Vector4f(
-            random.nextFloat()*2f,
-            random.nextFloat()*2f,
-            random.nextFloat()*2f,
-            random.nextFloat()*2f
-        ).sub(1f,1f,1f,1f).transform()
+            random.nextFloat() * 2f,
+            random.nextFloat() * 2f,
+            random.nextFloat() * 2f,
+            random.nextFloat() * 2f
+        ).sub(1f, 1f, 1f, 1f).transform()
     }
 
     override fun drawTransformed(stack: Matrix4fArrayList, color: Vector4fc) {

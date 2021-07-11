@@ -112,7 +112,7 @@ class PipelineStage(
                 // todo local transform could be used for procedural shaders as well
             }
 
-            val wt = transform.worldTransform
+            val wt = transform.globalTransform
             shader.m4x3delta("localTransform", wt, cameraPosition)
 
             if (previousMaterial != material) {

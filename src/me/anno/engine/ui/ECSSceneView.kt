@@ -2,7 +2,7 @@ package me.anno.engine.ui
 
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
-import me.anno.ecs.components.camera.Camera
+import me.anno.ecs.components.camera.CameraComponent
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.mesh.MeshRenderer
 import me.anno.engine.ECSWorld
@@ -37,7 +37,7 @@ class ECSSceneView(val world: ECSWorld) : Panel(style) {
     // todo in the editor it becomes the prefab for a local player -> ui shall always be placed in the local player
     var localPlayer: LocalPlayer? = null
 
-    var editorCamera = Camera()
+    var editorCamera = CameraComponent()
     val editorCameraNode = Entity(editorCamera)
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -77,8 +77,8 @@ class ECSSceneView(val world: ECSWorld) : Panel(style) {
         centerY: Float,
         w: Int,
         h: Int,
-        camera: Camera,
-        previousCamera: Camera,
+        camera: CameraComponent,
+        previousCamera: CameraComponent,
         blending: Float,
         dst: Framebuffer
     ) {
@@ -102,8 +102,8 @@ class ECSSceneView(val world: ECSWorld) : Panel(style) {
 
         // lerp the world transforms
         val camTransform = camTransformTmp
-        camTransform.set(previousCamera.entity!!.transform.worldTransform)
-        camTransform.lerp(camera.entity!!.transform.worldTransform, blend)
+        camTransform.set(previousCamera.entity!!.transform.globalTransform)
+        camTransform.lerp(camera.entity!!.transform.globalTransform, blend)
 
         val cameraPosition = camTransform.transformPosition(tmp3.set(0.0))
         val camInverse = camInverseTmp.set(camTransform).invert()

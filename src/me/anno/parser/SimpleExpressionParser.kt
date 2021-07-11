@@ -32,6 +32,8 @@ import kotlin.math.max
  * */
 object SimpleExpressionParser {
 
+    // todo make 0.5 + .1 work, .1 is not understood
+
     // todo give drivers access to global time and parent time?
     // todo give them access to the keyframes
     // todo node editor...

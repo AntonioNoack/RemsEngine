@@ -5,6 +5,7 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.input.components.Checkbox
+import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.style.Style
 
 /**
@@ -12,18 +13,18 @@ import me.anno.ui.style.Style
  * in a Transform child class, all inputs should be created using the VI function, if possible,
  * because it forces the programmer to set a tool tip text
  * */
-class BooleanInput(val title: String, startValue: Boolean, style: Style) : PanelListX(style) {
+class BooleanInput(val title: String, startValue: Boolean, defaultValue: Boolean, style: Style) : PanelListX(style) {
 
-    constructor(title: String, description: String, dictPath: String, startValue: Boolean, style: Style) :
-            this(Dict[title, dictPath], Dict[description, "$dictPath.desc"], startValue, style)
+    constructor(title: String, description: String, dictPath: String, startValue: Boolean, defaultValue: Boolean, style: Style) :
+            this(Dict[title, dictPath], Dict[description, "$dictPath.desc"], startValue, defaultValue, style)
 
-    constructor(title: String, description: String, startValue: Boolean, style: Style) :
-            this(title, startValue, style) {
+    constructor(title: String, description: String, startValue: Boolean, defaultValue: Boolean, style: Style) :
+            this(title, startValue, defaultValue, style) {
         setTooltip(description)
     }
 
     private val titleView = TextPanel("$title:", style)
-    private val checkView = Checkbox(startValue, style.getSize("fontSize", 10), style)
+    private val checkView = Checkbox(startValue, defaultValue, style.getSize("fontSize", 10), style)
 
     init {
         this += titleView
@@ -48,6 +49,15 @@ class BooleanInput(val title: String, startValue: Boolean, style: Style) : Panel
     fun setIsSelectedListener(listener: () -> Unit): BooleanInput {
         isSelectedListener = listener
         return this
+    }
+
+    fun setResetListener(listener: () -> Boolean): BooleanInput {
+        checkView.setResetListener(listener)
+        return this
+    }
+
+    fun setValue(value: Boolean, notify: Boolean){
+        checkView.setValue(value, notify)
     }
 
     override fun onCopyRequested(x: Float, y: Float) = checkView.isChecked.toString()

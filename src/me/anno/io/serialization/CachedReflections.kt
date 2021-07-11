@@ -1,5 +1,6 @@
 package me.anno.io.serialization
 
+import me.anno.ecs.annotations.ExecuteInEditMode
 import me.anno.io.ISaveable
 import me.anno.utils.LOGGER
 import kotlin.reflect.KClass
@@ -9,11 +10,16 @@ import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.jvm.isAccessible
 
-class CachedReflections(val properties: Map<String, CachedProperty>) {
+class CachedReflections(val clazz: KClass<*>, val properties: Map<String, CachedProperty>) {
 
-    constructor(instance: Any) : this(instance::class)
+    constructor(instance: Any) : this(instance, instance::class)
 
-    constructor(clazz: KClass<*>) : this(extractProperties(clazz))
+    constructor(instance: Any, clazz: KClass<*>) : this(clazz, extractProperties(instance, clazz))
+
+    val annotations = clazz.annotations
+
+    val executeInEditMode = annotations.any { it is ExecuteInEditMode }
+
 
     /**
      * updates the property in the instance
@@ -31,7 +37,7 @@ class CachedReflections(val properties: Map<String, CachedProperty>) {
     }
 
     companion object {
-        fun extractProperties(clazz: KClass<*>): Map<String, CachedProperty> {
+        fun extractProperties(instance: Any, clazz: KClass<*>): Map<String, CachedProperty> {
             val properties = clazz.declaredMemberProperties.filterIsInstance<KMutableProperty1<*, *>>()
             val map = HashMap<String, CachedProperty>()
             properties.map { field ->
@@ -49,9 +55,9 @@ class CachedReflections(val properties: Map<String, CachedProperty>) {
                         setter.isAccessible = true
                         val getter = field.getter
                         getter.isAccessible = true
-                        val value = getter.call(this)
+                        val value = getter.call(instance)
                         val forceSaving = serial?.forceSaving ?: value is Boolean
-                        val property = CachedProperty(forceSaving, getter, setter)
+                        val property = CachedProperty(name, clazz, forceSaving, field.annotations, getter, setter)
                         if (name in map) LOGGER.warn("Property $name appears twice in $clazz")
                         map[name] = property
                     } catch (e: Exception) {

@@ -33,11 +33,11 @@
     <orderEntry type="library" name="PDFBox" level="project" />
     <orderEntry type="library" name="Other" level="project" />
     <orderEntry type="library" name="jGLTF" level="project" />
-    <orderEntry type="library" name="JBullet2" level="project" />
     <orderEntry type="library" name="lwjgl-assimp-javadoc" level="project" />
     <orderEntry type="library" name="LWJGL-Assimp" level="project" />
     <orderEntry type="library" name="common-image-3.7.0" level="project" />
     <orderEntry type="library" name="commons-compress-1.20" level="project" />
     <orderEntry type="library" name="Apache Compress 4 Zips" level="project" />
+    <orderEntry type="library" name="JBullet2x64" level="project" />
   </component>
 </module>

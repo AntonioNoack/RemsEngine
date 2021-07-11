@@ -76,7 +76,7 @@ object TextInspector {
                 sortFavourites()
             }
             .setIsSelectedListener { show(null) }
-        fontGroup += BooleanInput("Italic", font.isItalic, style)
+        fontGroup += BooleanInput("Italic", font.isItalic, false, style)
             .setChangeListener {
                 RemsStudio.largeChange("Italic: $it") {
                     getSelfWithShadows().forEach { c -> c.font = c.font.withItalic(it) }
@@ -84,7 +84,7 @@ object TextInspector {
                 invalidate()
             }
             .setIsSelectedListener { show(null) }
-        fontGroup += BooleanInput("Bold", font.isBold, style)
+        fontGroup += BooleanInput("Bold", font.isBold, false, style)
             .setChangeListener {
                 RemsStudio.largeChange("Bold: $it") {
                     getSelfWithShadows().forEach { c -> c.font = c.font.withBold(it) }

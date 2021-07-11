@@ -19,10 +19,11 @@ open class TextInput(title: String, val enableSuggestions: Boolean, style: Style
         enableSuggestions,
         style
     ) {
-        setText(v0 ?: "", false)
+        setValue(v0 ?: "", false)
     }
 
     val base = child as PureTextInput
+    private var isSelectedListener: (() -> Unit)? = null
 
     init {
         base.placeholder = title
@@ -57,7 +58,7 @@ open class TextInput(title: String, val enableSuggestions: Boolean, style: Style
 
     val text get() = base.text
 
-    fun setText(text: String, notify: Boolean): TextInput {
+    fun setValue(text: String, notify: Boolean): TextInput {
         base.text = text
         updateChars(notify)
         return this
@@ -70,15 +71,19 @@ open class TextInput(title: String, val enableSuggestions: Boolean, style: Style
         }
     }
 
-    private var isSelectedListener: (() -> Unit)? = null
     fun setIsSelectedListener(listener: () -> Unit): TextInput {
         isSelectedListener = listener
         return this
     }
 
+    fun setResetListener(listener: () -> String): TextInput {
+        base.setResetListener(listener)
+        return this
+    }
+
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         val keyFile = files.firstOrNull() ?: return
-        setText(keyFile.toString(), true)
+        setValue(keyFile.toString(), true)
     }
 
     override fun requestFocus() {

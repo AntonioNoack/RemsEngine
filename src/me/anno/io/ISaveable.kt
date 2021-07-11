@@ -105,31 +105,68 @@ interface ISaveable {
      * returns true on success
      * */
     fun readSerializableProperty(name: String, value: Any?): Boolean {
-        val clazz = this::class
-        val reflections = reflectionCache.getOrPut(clazz) { CachedReflections(clazz) }
+        val reflections = getReflections()
         return reflections.set(this, name, value)
     }
 
     fun saveSerializableProperties(writer: BaseWriter) {
-        val clazz = this::class
-        val reflections = reflectionCache.getOrPut(clazz) { CachedReflections(clazz) }
+        val reflections = getReflections()
         for ((name, field) in reflections.properties) {
-            val value = field.getter.call(name)
+            val value = field.getter.call(this)
             // todo if the type is explicitely given, however not deductable (empty array), and the saving is forced,
             // todo use the field.type
             writer.writeSomething(this, name, value, field.forceSaving ?: value is Boolean)
         }
     }
 
+    fun getReflections(): CachedReflections {
+        val clazz = this::class
+        return reflectionCache.getOrPut(clazz) { CachedReflections(this, clazz) }
+    }
+
     companion object {
 
-        val reflectionCache = ConcurrentHashMap<KClass<*>, CachedReflections>()
+        private val reflectionCache = ConcurrentHashMap<KClass<*>, CachedReflections>()
 
-        val objectTypeRegistry = HashMap<String, () -> ISaveable>()
+        class RegistryEntry(val sampleInstance: ISaveable, val generator: () -> ISaveable) {
+            constructor(generator: () -> ISaveable) : this(generator(), generator)
+
+            fun generate() = generator()
+        }
+
+        val objectTypeRegistry = HashMap<String, RegistryEntry>()
 
         @JvmStatic
         fun registerCustomClass(className: String, constructor: () -> ISaveable) {
-            objectTypeRegistry[className] = constructor
+            objectTypeRegistry[className] = RegistryEntry(constructor)
+        }
+
+        @JvmStatic
+        fun registerCustomClass(instance0: ISaveable) {
+            val className = instance0.className
+            val constructor = instance0.javaClass
+            objectTypeRegistry[className] = RegistryEntry(instance0) { constructor.newInstance() }
+        }
+
+        @JvmStatic
+        fun registerCustomClass(constructor: () -> ISaveable) {
+            val instance0 = constructor()
+            val className = instance0.className
+            objectTypeRegistry[className] = RegistryEntry(instance0, constructor)
+        }
+
+        @JvmStatic
+        fun registerCustomClass(clazz: Class<ISaveable>) {
+            val constructor = clazz.getConstructor()
+            val instance0 = constructor.newInstance()
+            val className = instance0.className
+            objectTypeRegistry[className] = RegistryEntry(instance0) { constructor.newInstance() }
+        }
+
+        @JvmStatic
+        fun registerCustomClass(className: String, clazz: Class<ISaveable>) {
+            val constructor = clazz.getConstructor()
+            objectTypeRegistry[className] = RegistryEntry { constructor.newInstance() }
         }
 
     }

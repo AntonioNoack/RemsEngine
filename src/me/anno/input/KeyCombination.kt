@@ -78,6 +78,7 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type) {
             put(GLFW_KEY_KP_MULTIPLY, "*")
             put(GLFW_KEY_KP_DIVIDE, "/")
             put(GLFW_KEY_KP_DECIMAL, ".")
+            put(GLFW_KEY_KP_ENTER, "r-enter", "kp-enter")
             put(GLFW_MOUSE_BUTTON_LEFT, "left")
             put(GLFW_MOUSE_BUTTON_RIGHT, "right")
             put(GLFW_MOUSE_BUTTON_MIDDLE, "middle")
@@ -100,9 +101,9 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type) {
         }
 
         fun getButton(button: String): Int {
-            val asKey = keyMapping[button] ?: keyMapping[button.lowercase(Locale.getDefault())]
+            val asKey = keyMapping[button] ?: keyMapping[button.lowercase()]
             if (asKey != null) return asKey
-            return when (button.lowercase(Locale.getDefault())) {
+            return when (button.lowercase()) {
                 // kp = key pad = num pad probably
                 "kp," -> GLFW_KEY_KP_DECIMAL
                 "kp/" -> GLFW_KEY_KP_DIVIDE
@@ -123,7 +124,7 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type) {
         fun parse(button: String, event: String, modifiers: String): KeyCombination? {
             val key = getButton(button)
             if (key < 0) return null
-            val type = when (event.lowercase(Locale.getDefault())) {
+            val type = when (event.lowercase()) {
                 "down", "d" -> Type.DOWN
                 "press" -> Type.PRESS
                 "typed", "t" -> Type.TYPED

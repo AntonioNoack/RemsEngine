@@ -1,13 +1,14 @@
 package me.anno.ui.input
 
-import me.anno.gpu.GFX
 import me.anno.animation.AnimatedProperty
 import me.anno.animation.Type
+import me.anno.gpu.GFX
 import me.anno.parser.SimpleExpressionParser
 import me.anno.parser.SimpleExpressionParser.toDouble
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.style.Style
-import me.anno.utils.types.AnyToFloat.get
+import me.anno.utils.types.AnyToDouble.getDouble
+import me.anno.utils.types.AnyToFloat.getFloat
 import org.joml.*
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -124,7 +125,9 @@ open class FloatInput(
             is Int -> value.toDouble()
             is Long -> value.toDouble()
             is Vector2fc, is Vector3fc, is Vector4fc,
-            is Quaternionf -> value[indexInProperty].toDouble()
+            is Quaternionf -> getFloat(value, indexInProperty).toDouble()
+            is Vector2dc, is Vector3dc, is Vector4dc,
+            is Quaterniond -> getDouble(value, indexInProperty)
             else -> throw RuntimeException("Unknown type $value for ${value.javaClass.simpleName}")
         }
     }
@@ -146,8 +149,7 @@ open class FloatInput(
             hasValue = true
             lastValue = v
             if (notify) changeListener(v)
-            inputPanel.text = stringify(v)
-            inputPanel.updateChars(false)
+            setText(stringify(v))
         }
     }
 
@@ -160,6 +162,12 @@ open class FloatInput(
             setValue(value, true)
             wasInFocus = false
         }
+    }
+
+    override fun onEnterKey(x: Float, y: Float) {
+        // evaluate the value, and write it back into the text field, e.g. for calculations
+        hasValue = false
+        setValue(lastValue, true)
     }
 
 }

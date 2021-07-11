@@ -1,17 +1,19 @@
 package me.anno.ui.input.components
 
 import me.anno.cache.instances.ImageCache.getInternalTexture
-import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.TextureLib.whiteTexture
+import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.MouseButton
 import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.Panel
+import me.anno.ui.input.BooleanInput
 import me.anno.ui.style.Style
 import org.lwjgl.glfw.GLFW
 import kotlin.math.min
 
-open class Checkbox(startValue: Boolean, val size: Int, style: Style) : Panel(style.getChild("checkbox")) {
+open class Checkbox(startValue: Boolean, val defaultValue: Boolean, val size: Int, style: Style) :
+    Panel(style.getChild("checkbox")) {
 
     // todo hover/toggle/focus color change
 
@@ -22,6 +24,8 @@ open class Checkbox(startValue: Boolean, val size: Int, style: Style) : Panel(st
 
     var isChecked = startValue
 
+    private var resetListener: () -> Boolean = { defaultValue }
+
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
         minW = size + 2
@@ -30,6 +34,11 @@ open class Checkbox(startValue: Boolean, val size: Int, style: Style) : Panel(st
 
     override fun getVisualState(): Any? {
         return Triple(super.getVisualState(), getImage(isChecked)?.state, isHovered)
+    }
+
+    fun setValue(value: Boolean, notify: Boolean): Checkbox {
+        if (isChecked != value) toggle(notify)
+        return this
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -42,11 +51,9 @@ open class Checkbox(startValue: Boolean, val size: Int, style: Style) : Panel(st
             drawTexture(
                 x0 + (w - size) / 2,
                 y0 + (h - size) / 2,
-                size,
-                size,
+                size, size,
                 getImage(isChecked) ?: whiteTexture,
-                color,
-                null
+                color, null
             )
         }
 
@@ -59,30 +66,40 @@ open class Checkbox(startValue: Boolean, val size: Int, style: Style) : Panel(st
         return this
     }
 
-    fun toggle() {
-        // todo show undo somehow...
-        RemsStudio.largeChange("Toggled to ${!isChecked}") {
-            isChecked = !isChecked
-            onCheckedChanged?.invoke(isChecked)
-        }
+    fun toggle(notify: Boolean) {
+        if (notify) {
+            RemsStudio.largeChange("Toggled to ${!isChecked}") {
+                isChecked = !isChecked
+                onCheckedChanged?.invoke(isChecked)
+            }
+        } else isChecked = !isChecked
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-        toggle()
+        toggle(true)
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
-        toggle()
+        toggle(true)
     }
 
     override fun onEnterKey(x: Float, y: Float) {
-        toggle()
+        toggle(true)
     }
 
     override fun onKeyTyped(x: Float, y: Float, key: Int) {
         when (key) {
-            GLFW.GLFW_KEY_DOWN, GLFW.GLFW_KEY_UP -> toggle()
+            GLFW.GLFW_KEY_DOWN, GLFW.GLFW_KEY_UP -> toggle(true)
         }
+    }
+
+    override fun onEmpty(x: Float, y: Float) {
+        if (resetListener() != isChecked) toggle(true)
+    }
+
+    fun setResetListener(listener: () -> Boolean): Checkbox {
+        resetListener = listener
+        return this
     }
 
     override fun acceptsChar(char: Int) = false // ^^

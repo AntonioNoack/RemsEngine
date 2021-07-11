@@ -370,7 +370,7 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
         // general += vi("Fade In", "Time from spawning to the max. opacity", fadeIn, style)
         // general += vi("Fade Out", "Time before death, from which is starts to fade away", fadeOut, style)
 
-        general += BooleanInput("Show Children", showChildren, style)
+        general += BooleanInput("Show Children", showChildren, false, style)
             .setChangeListener { showChildren = it }
             .setIsSelectedListener { show(null) }
 

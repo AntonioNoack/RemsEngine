@@ -1,5 +1,10 @@
 package me.anno.io.base
 
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Keyframe
+import me.anno.animation.drivers.FunctionDriver
+import me.anno.animation.drivers.HarmonicDriver
+import me.anno.animation.drivers.PerlinNoiseDriver
 import me.anno.audio.effects.SoundPipeline
 import me.anno.audio.effects.falloff.ExponentialFalloff
 import me.anno.audio.effects.falloff.LinearFalloff
@@ -12,23 +17,18 @@ import me.anno.io.ISaveable
 import me.anno.io.InvalidFormatException
 import me.anno.io.utils.StringMap
 import me.anno.objects.*
-import me.anno.animation.AnimatedProperty
-import me.anno.animation.Keyframe
-import me.anno.animation.drivers.FunctionDriver
-import me.anno.animation.drivers.HarmonicDriver
-import me.anno.animation.drivers.PerlinNoiseDriver
 import me.anno.objects.attractors.EffectColoring
 import me.anno.objects.attractors.EffectMorphing
 import me.anno.objects.distributions.*
+import me.anno.objects.documents.pdf.PDFDocument
 import me.anno.objects.effects.MaskLayer
 import me.anno.objects.forces.impl.*
 import me.anno.objects.geometric.Circle
+import me.anno.objects.geometric.LinePolygon
 import me.anno.objects.geometric.Polygon
 import me.anno.objects.meshes.Mesh
 import me.anno.objects.particles.ParticleSystem
 import me.anno.objects.particles.TextParticles
-import me.anno.objects.documents.pdf.PDFDocument
-import me.anno.objects.geometric.LinePolygon
 import me.anno.objects.text.Text
 import me.anno.objects.text.Timer
 import me.anno.studio.history.History
@@ -163,7 +163,7 @@ abstract class BaseReader {
                 else -> {
                     // just for old stuff; AnimatedProperties must not be loaded directly; always just copied into
                     if (clazz.startsWith("AnimatedProperty<")) AnimatedProperty.any()
-                    else ISaveable.objectTypeRegistry[clazz]?.invoke() ?: throw UnknownClassException(clazz)
+                    else ISaveable.objectTypeRegistry[clazz]?.generate() ?: throw UnknownClassException(clazz)
                 }
             }
         }

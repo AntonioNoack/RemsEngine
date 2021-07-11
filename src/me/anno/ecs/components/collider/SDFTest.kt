@@ -14,7 +14,7 @@ fun main() {
         SphereCollider(),
         CapsuleCollider().apply {
             radius = 0.8
-            halfExtends = 0.8
+            height = 0.8
         }
     )
 

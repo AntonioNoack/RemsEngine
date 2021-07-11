@@ -313,7 +313,6 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             // java-serializable
             is Serializable -> {
                 // implement it?...
-
                 // if it is an enum, write its value
                 // enums always are Serializable
                 val clazz = value::class.java
@@ -328,7 +327,6 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                 } catch (e: Exception){
                     e.printStackTrace()
                 }
-
                 throw RuntimeException("Could not serialize field $name with value $value of class ${value.javaClass}, Serializable")
             }
             else -> {
