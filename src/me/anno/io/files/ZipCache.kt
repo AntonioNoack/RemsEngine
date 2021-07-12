@@ -25,10 +25,15 @@ object ZipCache : CacheSection("ZipCache") {
 
     fun getMeta2(file: FileReference, async: Boolean): FileReference? {
         val data = getEntry(file.absolutePath, timeout, async) {
-            CacheData(if (file.extension.equals("7z", true)) {
-                createZipRegistry7z(file) { fileFromStream7z(file) }
-            } else {
-                createZipRegistryV2(file) { fileFromStreamV2(file) }
+            CacheData(try {
+                if (file.extension.equals("7z", true)) {
+                    createZipRegistry7z(file) { fileFromStream7z(file) }
+                } else {
+                    createZipRegistryV2(file) { fileFromStreamV2(file) }
+                }
+            } catch (e: Exception) {
+                // e.printStackTrace()
+                null
             })
         } as? CacheData<*>
         return data?.value as? FileReference
@@ -67,9 +72,9 @@ object ZipCache : CacheSection("ZipCache") {
             }
             zis.close()
         } catch (e: IOException) {
-            e.printStackTrace()
+            // e.printStackTrace()
         } catch (e: ZipException) {
-            e.printStackTrace()
+            // e.printStackTrace()
         }
         return file
     }
@@ -92,9 +97,9 @@ object ZipCache : CacheSection("ZipCache") {
             }
             zis.close()
         } catch (e: IOException) {
-            e.printStackTrace()
+            // e.printStackTrace()
         } catch (e: ZipException) {
-            e.printStackTrace()
+            // e.printStackTrace()
         }
         return file
     }

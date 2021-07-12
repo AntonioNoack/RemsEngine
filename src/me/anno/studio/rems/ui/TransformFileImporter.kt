@@ -160,7 +160,15 @@ object TransformFileImporter : FileContentImporter<Transform>() {
                 // I see few use-cases
                 LOGGER.warn("todo markdeep")
             }
-            else -> LOGGER.warn("Unknown file type: ${file.extension}")
+            else -> {
+                LOGGER.warn("Unknown file type: ${file.extension}")
+                try {
+                    addText(name, parent, file.readText(), doSelect, callback)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    return
+                }
+            }
         }
     }
 

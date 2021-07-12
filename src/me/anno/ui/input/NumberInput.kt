@@ -9,26 +9,21 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.components.NumberInputComponent
 import me.anno.ui.input.components.TitlePanel
 import me.anno.ui.style.Style
+import me.anno.utils.types.Strings.isBlank2
 
 abstract class NumberInput(
     style: Style,
     val title: String,
+    val visibilityKey: String,
     val type: Type = Type.FLOAT,
     val owningProperty: AnimatedProperty<*>?,
     val indexInProperty: Int
 ) : PanelListY(style) {
 
-    fun noTitle(): NumberInput {
-        titleView.hide()
-        inputPanel.show()
-        InputVisibility.show(title, null)
-        return this
-    }
-
     var hasValue = false
     var mouseIsDown = false
 
-    val titleView = TitlePanel(title, this, style)
+    val titleView = if(title.isBlank2()) null else TitlePanel(title, this, style)
     var isSelectedListener: (() -> Unit)? = null
 
     val inputPanel = object : NumberInputComponent(
@@ -36,15 +31,16 @@ abstract class NumberInput(
     ) {
         override val needsSuggestions: Boolean get() = false
         override var visibility: Visibility
-            get() = InputVisibility[title]
+            get() = InputVisibility[visibilityKey]
             set(_) {}
+
         override fun onEnterKey(x: Float, y: Float) {
             this@NumberInput.onEnterKey(x, y)
         }
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val focused1 = titleView.isInFocus || inputPanel.isInFocus
+        val focused1 = titleView?.isInFocus == true || inputPanel.isInFocus
         if (focused1) isSelectedListener?.invoke()
         /*if(RemsStudio.hideUnusedProperties){
             val focused2 = focused1 || (owningProperty != null && owningProperty == selectedProperty)
@@ -63,11 +59,13 @@ abstract class NumberInput(
     }
 
     init {
-        this += titleView
-        titleView.enableHoverColor = true
-        titleView.focusTextColor = titleView.textColor
-        titleView.setSimpleClickListener { InputVisibility.toggle(title, this) }
-        this += inputPanel
+        if(titleView != null){
+            add(titleView)
+            titleView.enableHoverColor = true
+            titleView.focusTextColor = titleView.textColor
+            titleView.setSimpleClickListener { InputVisibility.toggle(visibilityKey, this) }
+        }
+        add(inputPanel)
         inputPanel.setCursorToEnd()
         inputPanel.placeholder = title
         inputPanel.hide()
@@ -102,11 +100,11 @@ abstract class NumberInput(
         mouseIsDown = false
     }
 
-    fun setText(newText: String){
+    fun setText(newText: String) {
         val oldText = inputPanel.text
         inputPanel.text = newText
         inputPanel.updateChars(false)
-        if(oldText.length != newText.length){
+        if (oldText.length != newText.length) {
             inputPanel.setCursorToEnd()
         }
     }

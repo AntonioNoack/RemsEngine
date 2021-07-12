@@ -20,10 +20,12 @@ import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.files.LocalFile.toLocalPath
 import java.io.File
 
-class FileInput(title: String, style: Style, f0: FileReference, val isDirectory: Boolean = false) : PanelListX(style) {
+class FileInput(
+    title: String, style: Style, f0: FileReference, val isDirectory: Boolean = false
+) : PanelListX(style) {
 
     val button = TextButton(DefaultConfig["ui.symbol.folder", "\uD83D\uDCC1"], true, style)
-    val base = TextInput(title, false, style, f0.toString2())
+    val base = TextInput(title, "", false, style, f0.toString2())
     val base2 = base.base
 
     // val text get() = base.text

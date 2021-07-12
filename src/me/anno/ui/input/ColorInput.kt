@@ -24,6 +24,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.Color.toARGB
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.pow
+import me.anno.utils.types.Strings.isBlank2
 import org.joml.Vector4f
 import org.joml.Vector4fc
 import kotlin.math.max
@@ -37,6 +38,7 @@ import kotlin.math.max
 class ColorInput(
     style: Style,
     val title: String,
+    visibilityKey: String,
     oldValue: Vector4fc,
     withAlpha: Boolean,
     private val owningProperty: AnimatedProperty<*>? = null
@@ -133,11 +135,6 @@ class ColorInput(
                 }
             }
         }
-    }
-
-    fun noTitle(): ColorInput {
-        titleView.text = ""
-        return this
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {

@@ -1,5 +1,6 @@
 package me.anno.io.files
 
+import me.anno.io.windows.WindowsShortcut
 import me.anno.studio.StudioBase
 import me.anno.utils.files.Files.openInExplorer
 import me.anno.utils.files.LocalFile.toLocalPath
@@ -34,7 +35,7 @@ abstract class FileReference(val absolutePath: String) {
         private val LOGGER = LogManager.getLogger(FileReference::class)
 
         fun getReference(str: String): FileReference {
-            if (str.isBlank2()) return EmptyRef
+            if (str.isBlank2()) return InvalidRef
             if (str == "null") return FileRootRef
             return FileFileRef(File(str))
         }
@@ -42,7 +43,7 @@ abstract class FileReference(val absolutePath: String) {
         fun getReference(file: File?): FileReference {
             if (file == null) return FileRootRef
             val str = file.toString()
-            if (str.isBlank2()) return EmptyRef
+            if (str.isBlank2()) return InvalidRef
             if (str == "null") return FileRootRef
             return FileFileRef(file)
         }
@@ -150,8 +151,6 @@ abstract class FileReference(val absolutePath: String) {
     abstract fun delete(): Boolean
     abstract fun mkdirs(): Boolean
 
-    abstract fun listChildren(): List<FileReference>?
-
     val zipFileForDirectory
         get(): FileReference? {
             var zipFile = zipFile ?: return null
@@ -169,11 +168,6 @@ abstract class FileReference(val absolutePath: String) {
     abstract fun renameTo(newName: FileReference): Boolean
 
     abstract val isDirectory: Boolean
-
-    val isDirectoryOrPacked get() = isDirectory || isPacked.value
-    val isPacked = lazy {
-        !isDirectory && isZipFile()
-    }
 
     private fun isZipFile(): Boolean {
         // todo only read the first bytes...
@@ -193,7 +187,7 @@ abstract class FileReference(val absolutePath: String) {
         } else {
             return try {
                 val zis = if (this is FileFileRef) ZipFile(file) else
-                ZipFile(SeekableInMemoryByteChannel(inputStream().readBytes()))
+                    ZipFile(SeekableInMemoryByteChannel(inputStream().readBytes()))
                 val result = zis.entries.hasMoreElements()
                 LOGGER.info("Checking $absolutePath for zip file, success")
                 result
@@ -226,6 +220,7 @@ abstract class FileReference(val absolutePath: String) {
         "This function only is defined, if the reference is an actual file",
         ReplaceWith("inputStream(),outputStream()")
     )
+
     val unsafeFile
         get() = (this as FileFileRef).file
 
@@ -233,7 +228,37 @@ abstract class FileReference(val absolutePath: String) {
         return absolutePath.toLocalPath(workspace)
     }
 
-    // todo support for ffmpeg to read all zip files
+    val windowsLnk: Lazy<WindowsShortcut?> = lazy {
+        if (extension.equals("lnk", true) && WindowsShortcut.isPotentialValidLink(this)) {
+            try {
+                WindowsShortcut(this)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
+        } else null
+    }
 
+    val isSomeKindOfDirectory get() = isDirectory || windowsLnk.value != null || isPacked.value
+
+    val isPacked = lazy {
+        !isDirectory && isZipFile()
+    }
+
+    open fun listChildren(): List<FileReference>? {
+        // println("listing children of $this, lnk: ${windowsLnk.value}")
+        val link = windowsLnk.value ?: return null
+        // if the file is not a directory, then list the parent?
+        // todo mark this child somehow?...
+        val str = link.realFilename.replace('\\', '/')
+        val ref = getReference(str)
+        return listOf(
+            if (link.isDirectory) {
+                ref.getParent() ?: ref
+            } else ref
+        )
+    }
+
+    // todo support for ffmpeg to read all zip files
 
 }

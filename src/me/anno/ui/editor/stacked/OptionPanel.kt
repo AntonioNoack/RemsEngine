@@ -11,6 +11,7 @@ import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.SettingCategory
+import me.anno.utils.types.Strings.isBlank2
 
 class OptionPanel(
     private val stackPanel: StackPanel,
@@ -67,6 +68,7 @@ class OptionPanel(
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
+        if (data.isBlank2()) return
         try {
             val index = indexInParent
             val values = TextReader.fromText(data)

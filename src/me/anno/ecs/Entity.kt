@@ -194,13 +194,13 @@ open class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
     ) {
         // todo implement the properties and stuff
         // todo add history support (undoing stuff)
-        list.add(TextInput("Name", style, name).setChangeListener { name = it })
-        list.add(TextInput("Description", style, description).setChangeListener { description = it })
-        list.add(VectorInput(style, "Position", transform.localPosition, Type.POSITION)
+        list.add(TextInput("Name", "name", style, name).setChangeListener { name = it })
+        list.add(TextInput("Description", "desc", style, description).setChangeListener { description = it })
+        list.add(VectorInput(style, "Position", "pos", transform.localPosition, Type.POSITION)
             .setChangeListener { x, y, z, _ -> transform.localPosition.set(x, y, z) })
-        list.add(VectorInput(style, "Rotation", transform.localRotation, Type.ROT_YXZ)
+        list.add(VectorInput(style, "Rotation", "rot", transform.localRotation, Type.ROT_YXZ)
             .setChangeListener { x, y, z, _ -> transform.setLocalEulerAngle(x, y, z) })
-        list.add(VectorInput(style, "Scale", transform.localScale, Type.SCALE)
+        list.add(VectorInput(style, "Scale", "scale", transform.localScale, Type.SCALE)
             .setChangeListener { x, y, z, _ -> transform.localScale.set(x, y, z) })
         list.add(
             object : StackPanel(

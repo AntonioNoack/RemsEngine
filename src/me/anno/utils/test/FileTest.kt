@@ -31,7 +31,7 @@ fun main() {
 
 fun printHierarchy(file: FileReference, depth: Int) {
     println(Tabs.tabs(depth) + file.absolutePath)
-    if (file.isDirectoryOrPacked) {
+    if (file.isSomeKindOfDirectory) {
         val children = file.listChildren() ?: emptyList()
         if (children.isNotEmpty()) {
             for (child in children)

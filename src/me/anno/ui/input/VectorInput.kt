@@ -29,17 +29,20 @@ import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.pow
 import me.anno.utils.types.AnyToDouble.getDouble
 import me.anno.utils.types.AnyToFloat.getFloat
+import me.anno.utils.types.Strings.isBlank2
 import org.joml.*
 import kotlin.math.max
 
 class VectorInput(
-    style: Style, var title: String,
+    style: Style,
+    val title: String,
+    val visibilityKey: String,
     val type: Type,
     private val owningProperty: AnimatedProperty<*>? = null
 ) : PanelListY(style) {
 
     constructor(title: String, property: AnimatedProperty<*>, time: Double, style: Style) :
-            this(style, title, property.type, property) {
+            this(style, title, title, property.type, property) {
         when (val value = property[time]) {
             is Vector2f -> setValue(value, false)
             is Vector3f -> setValue(value, false)
@@ -50,58 +53,58 @@ class VectorInput(
     }
 
     constructor(
-        style: Style, title: String, value: Vector2fc, type: Type,
+        style: Style, title: String, visibilityKey: String, value: Vector2fc, type: Type,
         owningProperty: AnimatedProperty<*>? = null
-    ) : this(style, title, type, owningProperty) {
+    ) : this(style, title, visibilityKey, type, owningProperty) {
         setValue(value, false)
     }
 
     constructor(
-        style: Style, title: String, value: Vector3fc, type: Type,
+        style: Style, title: String, visibilityKey: String, value: Vector3fc, type: Type,
         owningProperty: AnimatedProperty<*>? = null
-    ) : this(style, title, type, owningProperty) {
+    ) : this(style, title, visibilityKey, type, owningProperty) {
         setValue(value, false)
     }
 
     constructor(
-        style: Style, title: String, value: Vector4fc, type: Type,
+        style: Style, title: String, visibilityKey: String, value: Vector4fc, type: Type,
         owningProperty: AnimatedProperty<*>? = null
-    ) : this(style, title, type, owningProperty) {
+    ) : this(style, title, visibilityKey, type, owningProperty) {
         setValue(value, false)
     }
 
     constructor(
-        style: Style, title: String, value: Quaternionf,
+        style: Style, title: String, visibilityKey: String, value: Quaternionf,
         type: Type = Type.QUATERNION
-    ) : this(style, title, type) {
+    ) : this(style, title, visibilityKey, type) {
         setValue(value, false)
     }
 
     constructor(
-        style: Style, title: String, value: Vector2dc, type: Type,
+        style: Style, title: String, visibilityKey: String, value: Vector2dc, type: Type,
         owningProperty: AnimatedProperty<*>? = null
-    ) : this(style, title, type, owningProperty) {
+    ) : this(style, title, visibilityKey, type, owningProperty) {
         setValue(value, false)
     }
 
     constructor(
-        style: Style, title: String, value: Vector3dc, type: Type,
+        style: Style, title: String, visibilityKey: String, value: Vector3dc, type: Type,
         owningProperty: AnimatedProperty<*>? = null
-    ) : this(style, title, type, owningProperty) {
+    ) : this(style, title, visibilityKey, type, owningProperty) {
         setValue(value, false)
     }
 
     constructor(
-        style: Style, title: String, value: Vector4dc, type: Type,
+        style: Style, title: String, visibilityKey: String, value: Vector4dc, type: Type,
         owningProperty: AnimatedProperty<*>? = null
-    ) : this(style, title, type, owningProperty) {
+    ) : this(style, title, visibilityKey, type, owningProperty) {
         setValue(value, false)
     }
 
     constructor(
-        style: Style, title: String, value: Quaterniond,
+        style: Style, title: String, visibilityKey: String, value: Quaterniond,
         type: Type = Type.QUATERNION
-    ) : this(style, title, type) {
+    ) : this(style, title, visibilityKey, type) {
         setValue(value, false)
     }
 
@@ -109,7 +112,7 @@ class VectorInput(
     private val valueFields = ArrayList<PureTextInput>(components)
 
     private fun addComponent(i: Int, title: String): FloatInput {
-        val pseudo = VectorInputComponent(this.title, type, owningProperty, i, this, style)
+        val pseudo = VectorInputComponent(this.title, visibilityKey, type, owningProperty, i, this, style)
         val input = pseudo.inputPanel
         pseudo.inputPanel.tooltip = title
         valueList += input.setWeight(1f)
@@ -120,8 +123,9 @@ class VectorInput(
     // val titleList = PanelListX(style)
     private val valueList = object : PanelListX(style) {
         override var visibility: Visibility
-            get() = InputVisibility[title]
+            get() = InputVisibility[visibilityKey]
             set(_) {}
+
         override fun onEnterKey(x: Float, y: Float) {
             this@VectorInput.onEnterKey(x, y)
         }
@@ -131,7 +135,7 @@ class VectorInput(
         valueList.disableConstantSpaceForWeightedChildren = true
     }
 
-    private val titleView = TitlePanel(title, this, style)
+    private val titleView = if (!title.isBlank2()) TitlePanel(title, this, style) else null
 
     init {
 
@@ -140,17 +144,18 @@ class VectorInput(
         // titleList += WrapAlign.Top
         valueList += WrapAlign.TopFill
 
-        this += titleView
-        titleView.enableHoverColor = true
-        titleView.setWeight(1f)
-        titleView.focusTextColor = titleView.textColor
-        titleView.setSimpleClickListener {
-            InputVisibility.toggle(title, this)
-            valueList.children.forEach { it.show() }
+        if (titleView != null) {
+            this += titleView
+            titleView.enableHoverColor = true
+            titleView.setWeight(1f)
+            titleView.focusTextColor = titleView.textColor
+            titleView.setSimpleClickListener {
+                InputVisibility.toggle(visibilityKey, this)
+            }
         }
 
         this += valueList
-        valueList.hide()
+        if (titleView != null) valueList.hide()
 
     }
 
@@ -233,7 +238,7 @@ class VectorInput(
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
-        val focused1 = titleView.isInFocus || valueList.children.any { it.isInFocus }
+        val focused1 = titleView?.isInFocus == true || valueList.children.any { it.isInFocus }
         if (focused1) isSelectedListener?.invoke()
         if (RemsStudio.hideUnusedProperties) {
             val focused2 = focused1 || owningProperty == selectedProperty

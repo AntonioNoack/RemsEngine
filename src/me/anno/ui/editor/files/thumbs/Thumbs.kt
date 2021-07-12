@@ -34,15 +34,16 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
-import me.anno.utils.LOGGER
 import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.Threads.threadWithName
 import me.anno.utils.files.Files.use
+import me.anno.utils.image.ImageScale.scale
 import me.anno.utils.input.readNBytes2
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import net.boeckling.crc.CRC64
 import org.apache.commons.imaging.Imaging
+import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.joml.Math.toRadians
 import org.lwjgl.opengl.GL11.*
@@ -147,6 +148,7 @@ object Thumbs {
                 if (src.colorModel.hasAlpha()) BufferedImage.TYPE_INT_ARGB
                 else BufferedImage.TYPE_INT_RGB
             )
+            // todo better, custom interpolation? would be required in TGA & HDR as well
             val gfx = dst.createGraphics()
             gfx.drawImage(src, 0, 0, w, h, null)
             gfx.dispose()
@@ -436,6 +438,9 @@ object Thumbs {
             try {
                 when (val ext = srcFile.extension.lowercase()) {
 
+                    // todo start exe files from explorer
+                    // todo preview icon for exe files / links
+
                     // todo thumbnails and import for .vox files (MagicaVoxel voxel meshes)
 
                     // todo thumbnails for meshes, and components
@@ -468,8 +473,6 @@ object Thumbs {
                         saveNUpload(srcFile, dstFile, dst, callback)
                     }
                     "svg" -> generateSVGFrame(srcFile, dstFile, size, callback)
-                    // "png", "jpg", "jpeg" -> transformNSaveNUpload(ImageIO.read(srcFile))
-                    // "ico" -> transformNSaveNUpload(Imaging.getBufferedImage(srcFile))
                     "pdf" -> {
                         val doc = PDFCache.getDocument(srcFile, false) ?: return
                         transformNSaveNUpload(
@@ -477,9 +480,26 @@ object Thumbs {
                             dstFile, size, callback
                         )
                     }
+                    "url" -> {
+                        // try to read the url, and redirect to the icon
+                        val text = srcFile.readText()
+                        val lines = text.split('\n')
+                        val iconFileLine = lines.firstOrNull { it.startsWith("IconFile=", true) }
+                        if (iconFileLine != null) {
+                            val iconFile = iconFileLine
+                                .substring(9)
+                                .trim() // against \r
+                                .replace('\\', '/')
+                            println("'$iconFile'")
+                            generate(FileReference.getReference(iconFile), size, callback)
+                        }
+                    }
                     // ImageIO says it can do webp, however it doesn't understand most pics...
                     "webp" -> generateVideoFrame(srcFile, dstFile, size, callback, 0.0)
-                    else -> {
+                    "lnk", "desktop" -> {
+                        // not images, and I don't know yet how to get the image from them
+                    }
+                    else -> { // png, jpg, jpeg, ico
                         val image = try {
                             ImageIO.read(srcFile.inputStream())!!
                         } catch (e: Exception) {
@@ -488,7 +508,7 @@ object Thumbs {
                             } catch (e: Exception) {
                                 when (val importType = ext.getImportType()) {
                                     "Video" -> {
-                                        LOGGER.info("generating frame for $srcFile")
+                                        LOGGER.info("Generating frame for $srcFile")
                                         generateVideoFrame(srcFile, dstFile, size, callback, 1.0)
                                         null
                                     }
@@ -507,18 +527,12 @@ object Thumbs {
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                LOGGER.warn("${e.message}: $srcFile")
+                LOGGER.warn("Could not load image from $srcFile: ${e.message}")
             }
 
         }
     }
 
-    fun scale(w: Int, h: Int, size: Int): Pair<Int, Int> {
-        return if (w > h) {
-            Pair(size, h * size / w)
-        } else {
-            Pair(w * size / h, size)
-        }
-    }
+    private val LOGGER = LogManager.getLogger(Thumbs::class)
 
 }

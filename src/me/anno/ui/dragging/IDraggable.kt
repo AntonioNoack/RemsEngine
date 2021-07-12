@@ -5,5 +5,5 @@ interface IDraggable {
     fun getSize(w: Int, h: Int): Pair<Int, Int>
     fun getContent(): String
     fun getContentType(): String
-    fun getOriginal(): Any
+    fun getOriginal(): Any?
 }

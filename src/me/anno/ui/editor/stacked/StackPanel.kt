@@ -3,15 +3,15 @@ package me.anno.ui.editor.stacked
 import me.anno.input.MouseButton
 import me.anno.language.translation.NameDesc
 import me.anno.objects.inspectable.Inspectable
+import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
+import me.anno.ui.dragging.Draggable
 import me.anno.ui.style.Style
-
-// todo is glTexture2D a bottleneck for playback?
 
 /**
  * done allow the user to add fields
@@ -97,10 +97,41 @@ abstract class StackPanel(
         invalidateLayout()
     }
 
+    override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
+        return when (action) {
+            "DragStart" -> {
+                // todo start dragging the item
+                // val content: Any = "" // todo find the correct entry at that location
+                // dragged = Draggable(content.toString(), "CopyPaste", content, TextPanel("Drop to paste", style))
+                true
+            }
+            else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
+        }
+    }
+
+    override fun onPaste(x: Float, y: Float, data: String, type: String) {
+        // todo convert the value into something parsable, e.g. from a dragged value
+        // todo insert it at the correct spot / override the thing there
+        // todo like for tree view: show the spot, where it will be placed
+
+        // todo drag and drop customizable windows (like ImGUI, Hazel engine)
+
+        when (type) {
+            "CopyPaste" -> {
+                val dragged = dragged!!
+                val content = dragged.getContent()
+                // todo find the correct spot
+                // todo place/insert it there
+            }
+            else -> super.onPaste(x, y, data, type)
+        }
+    }
 
     abstract fun onAddComponent(component: Inspectable, index: Int)
     abstract fun onRemoveComponent(component: Inspectable)
     abstract fun getOptionFromInspectable(inspectable: Inspectable): Option?
+
+    override val className: String = "StackPanel"
 
 
 }

@@ -10,12 +10,13 @@ import me.anno.ui.style.Style
 import me.anno.utils.types.Floats.anyToDouble
 
 fun VectorInputComponent(
-    title: String, type: Type, owningProperty: AnimatedProperty<*>?,
+    title: String, visibilityKey: String,
+    type: Type, owningProperty: AnimatedProperty<*>?,
     indexInProperty: Int,
     owner: VectorInput,
     style: Style
 ): FloatInput {
-    val base = FloatInput(style, title, type, owningProperty, indexInProperty)
+    val base = FloatInput(style, title, visibilityKey, type, owningProperty, indexInProperty)
     base.setChangeListener {
         owner.changeListener(
             owner.compX.lastValue.anyToDouble(),
@@ -28,12 +29,13 @@ fun VectorInputComponent(
 }
 
 fun VectorInputIntComponent(
-    title: String, type: Type, owningProperty: AnimatedProperty<*>?,
+    title: String, visibilityKey: String,
+    type: Type, owningProperty: AnimatedProperty<*>?,
     indexInProperty: Int,
     owner: VectorIntInput,
     style: Style
 ): IntInput {
-    val base = IntInput(style, title, type, owningProperty, indexInProperty)
+    val base = IntInput(style, title, visibilityKey, type, owningProperty, indexInProperty)
     base.setChangeListener {
         owner.changeListener(
             owner.compX.lastValue.toInt(),

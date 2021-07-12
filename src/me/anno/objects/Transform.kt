@@ -206,7 +206,7 @@ open class Transform() : Saveable(),
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
 
-        list += TextInput("Name ($className)", style, name)
+        list += TextInput("Name ($className)", "name", style, name)
             .setChangeListener { name = if (it.isEmpty()) "-" else it }
             .setIsSelectedListener { show(null) }
         list += TextInputML("Comment", style, comment)
@@ -229,7 +229,7 @@ open class Transform() : Saveable(),
         // - crosses to remove tags
         // - sort them?
         // - a field to add new ones
-        list += TextInput("Tags", style, tags)
+        list += TextInput("Tags", "tags", style, tags)
             .setChangeListener { tags = it }
             .setIsSelectedListener { show(null) }
             .setTooltip("For Search | Not implemented yet")

@@ -34,10 +34,10 @@ object Files {
     }
 
     fun File.listFiles2(includeHiddenFiles: Boolean = OS.isWindows) = listFiles()?.filter {
-        !it.name.equals("desktop.ini", true) && (!name.startsWith('.') || !includeHiddenFiles) } ?: emptyList()
+        !it.name.equals("desktop.ini", true) && (!name.startsWith('.') || includeHiddenFiles) } ?: emptyList()
 
     fun FileReference.listFiles2(includeHiddenFiles: Boolean = OS.isWindows) = listChildren()?.filter {
-        !it.name.equals("desktop.ini", true) && (!name.startsWith('.') || !includeHiddenFiles) } ?: emptyList()
+        !it.name.equals("desktop.ini", true) && (!name.startsWith('.') || includeHiddenFiles) } ?: emptyList()
 
     fun File.openInExplorer(){
         if(!exists()){

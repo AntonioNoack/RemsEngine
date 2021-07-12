@@ -16,10 +16,11 @@ import kotlin.math.roundToLong
 
 open class FloatInput(
     style: Style, title: String,
+    visibilityKey: String,
     type: Type = Type.FLOAT,
     owningProperty: AnimatedProperty<*>?,
     indexInProperty: Int
-) : NumberInput(style, title, type, owningProperty, indexInProperty) {
+) : NumberInput(style, title, visibilityKey, type, owningProperty, indexInProperty) {
 
     var lastValue: Double = getValue(type.defaultValue)
     var changeListener: (value: Double) -> Unit = { }
@@ -36,11 +37,12 @@ open class FloatInput(
 
     constructor(
         title: String,
+        visibilityKey: String,
         owningProperty: AnimatedProperty<*>,
         indexInProperty: Int,
         time: Double,
         style: Style
-    ) : this(style, title, owningProperty.type, owningProperty, indexInProperty) {
+    ) : this(style, title, visibilityKey, owningProperty.type, owningProperty, indexInProperty) {
         when (val value = owningProperty[time]) {
             is Float -> setValue(value, false)
             is Double -> setValue(value, false)
@@ -48,11 +50,13 @@ open class FloatInput(
         }
     }
 
-    constructor(title: String, value0: Float, type: Type, style: Style) : this(style, title, type, null, 0) {
+    constructor(title: String, visibilityKey: String, value0: Float, type: Type, style: Style) :
+            this(style, title, visibilityKey, type, null, 0) {
         setValue(value0, false)
     }
 
-    constructor(title: String, value0: Double, type: Type, style: Style) : this(style, title, type, null, 0) {
+    constructor(title: String, visibilityKey: String, value0: Double, type: Type, style: Style) :
+            this(style, title, visibilityKey, type, null, 0) {
         setValue(value0, false)
     }
 

@@ -73,6 +73,7 @@ class FFMPEGVideo(
                     // bw
                     "Y4" -> Y4Frame(w, h)
                     // todo y800
+                    // todo PAL
                     else -> throw RuntimeException("Unsupported Codec $codec for $file")
                 }
                 frame.load(input)

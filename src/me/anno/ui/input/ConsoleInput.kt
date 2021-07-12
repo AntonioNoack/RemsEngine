@@ -4,7 +4,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
 
 class ConsoleInput(title: String, enableSuggestions: Boolean, style: Style) :
-    TextInput(title, enableSuggestions, style) {
+    TextInput(title, "", enableSuggestions, style) {
 
     var actionListener: (String) -> Unit = {}
 

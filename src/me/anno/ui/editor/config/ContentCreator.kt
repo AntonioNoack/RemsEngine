@@ -1,13 +1,13 @@
 package me.anno.ui.editor.config
 
+import me.anno.animation.Type
 import me.anno.config.DefaultConfig.style
 import me.anno.config.DefaultStyle.black
 import me.anno.io.utils.StringMap
-import me.anno.animation.Type
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.ui.base.Panel
-import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.groups.PanelList
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.*
 import me.anno.utils.Color.rgba
 import me.anno.utils.Color.toHexColor
@@ -43,14 +43,15 @@ class ContentCreator(
                 list += title.setTooltip(fullName).withPadding(pad, 0, 0, 0)
                 val body: Panel = when (value) {
                     is String -> {
-                        when(shortName){
+                        when (shortName) {
                             "background", "color", "textColor" -> {
-                                ColorInput(style, shortName, (parseColor(value) ?: black).toVecRGBA(), true)
-                                    .setChangeListener { r, g, b, a -> map[fullName] = Vector4f(r,g,b,a).toHexColor() }
-                                    .noTitle()
+                                ColorInput(style, "", shortName, (parseColor(value) ?: black).toVecRGBA(), true)
+                                    .setChangeListener { r, g, b, a ->
+                                        map[fullName] = Vector4f(r, g, b, a).toHexColor()
+                                    }
                             }
                             else -> {
-                                val panel = TextInput(shortName, false, style)
+                                val panel = TextInput(shortName, shortName, false, style)
                                 panel.setValue(value, false)
                                 panel.setChangeListener { map[fullName] = it }
                                 panel
@@ -60,24 +61,19 @@ class ContentCreator(
                     is Int -> {
                         if (value.shr(24).and(255) > 100) {
                             // a color
-                            ColorInput(style, shortName, value.toVecRGBA(), true)
+                            ColorInput(style, "", shortName, value.toVecRGBA(), true)
                                 .setChangeListener { r, g, b, a -> map[fullName] = rgba(r, g, b, a) }
-                                .noTitle()
                         } else {
-                            IntInput(shortName, value, style)
+                            IntInput("", shortName, value, style)
                                 .setChangeListener { map[fullName] = it.toInt() }
-                                .noTitle()
                         }
                     }
-                    is Long -> IntInput(shortName, value, style)
+                    is Long -> IntInput("", shortName, value, style)
                         .setChangeListener { map[fullName] = it }
-                        .noTitle()
-                    is Float -> FloatInput(shortName, value, Type.FLOAT, style)
+                    is Float -> FloatInput("", shortName, value, Type.FLOAT, style)
                         .setChangeListener { map[fullName] = it.toFloat() }
-                        .noTitle()
-                    is Double -> FloatInput(shortName, value, Type.DOUBLE, style)
+                    is Double -> FloatInput("", shortName, value, Type.DOUBLE, style)
                         .setChangeListener { map[fullName] = it }
-                        .noTitle()
                     else -> {
                         LOGGER.warn("Missing type implementation ${value.javaClass.simpleName}")
                         root.vi(shortName, fullName, null, value, style) { map[fullName] = value }

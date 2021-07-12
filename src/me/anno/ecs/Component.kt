@@ -1,6 +1,6 @@
 package me.anno.ecs
 
-import me.anno.engine.ComponentUI
+import me.anno.engine.ui.ComponentUI
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
@@ -8,13 +8,9 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.io.text.TextWriter
-import me.anno.language.translation.NameDesc
 import me.anno.objects.inspectable.Inspectable
-import me.anno.ui.base.Panel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.base.menu.Menu.openMenu
-import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.TextInput
@@ -90,8 +86,8 @@ abstract class Component : NamedSaveable(), Inspectable {
             "Is Enabled", "When a component is disabled, its functions won't be called.",
             isEnabled, true, style
         ).setChangeListener { isEnabled = it })
-        list.add(TextInput("Name", style, name).setChangeListener { name = it })
-        list.add(TextInput("Description", style, name).setChangeListener { description = it })
+        list.add(TextInput("Name", "name", style, name).setChangeListener { name = it })
+        list.add(TextInput("Description", "desc", style, name).setChangeListener { description = it })
 
         list.add(TextButton("Copy", false, style).setSimpleClickListener {
             LOGGER.info("Copy: ${TextWriter.toText(this, true)}")

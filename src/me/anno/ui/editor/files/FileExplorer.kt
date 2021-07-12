@@ -49,7 +49,7 @@ import kotlin.math.max
 
 class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
 
-    val searchBar = TextInput("Search Term", false, style)
+    val searchBar = TextInput("Search Term", "", false, style)
         .setChangeListener {
             searchTerm = it
             invalidate()
@@ -324,7 +324,7 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
 
     fun switchTo(folder: FileReference?) {
         folder ?: return
-        if (!folder.isDirectoryOrPacked) {
+        if (!folder.isSomeKindOfDirectory) {
             switchTo(folder.getParent())
         } else {
             while (history.lastIndex > historyIndex) history.removeAt(history.lastIndex)

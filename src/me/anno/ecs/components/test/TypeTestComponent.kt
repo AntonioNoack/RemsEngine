@@ -7,6 +7,8 @@ import org.joml.*
 
 class TypeTestComponent : Component() {
 
+    var someBoolean = true
+
     @Range(0.0, 15.0)
     var someByte: Byte = 0
 

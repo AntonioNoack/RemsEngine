@@ -22,8 +22,8 @@ class FrameSizeInput(title: String, value0: String, style: Style) : PanelListY(s
 
     private val deepStyle = style.getChild("deep")
     private val customInput = PanelListX(deepStyle)
-    private val customX = IntInput("X", 0, deepStyle).apply { noTitle() }
-    private val customY = IntInput("Y", 0, deepStyle).apply { noTitle() }
+    private val customX = IntInput("","X", 0, deepStyle)
+    private val customY = IntInput("","Y", 0, deepStyle)
 
     init {
         this += typeInput
@@ -79,7 +79,7 @@ class FrameSizeInput(title: String, value0: String, style: Style) : PanelListY(s
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
-        if(isInFocus) isSelectedListener()
+        if (isInFocus) isSelectedListener()
     }
 
     companion object {

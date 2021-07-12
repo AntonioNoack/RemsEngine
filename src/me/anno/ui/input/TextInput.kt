@@ -2,23 +2,27 @@ package me.anno.ui.input
 
 import me.anno.gpu.Cursor
 import me.anno.io.files.FileReference
+import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.style.Style
 
-open class TextInput(title: String, val enableSuggestions: Boolean, style: Style) : PanelContainer(
+open class TextInput(
+    title: String,
+    val visibilityKey: String,
+    val enableSuggestions: Boolean, style: Style
+) : PanelContainer(
     object : PureTextInput(style) {
         override val needsSuggestions = enableSuggestions
     }, Padding(), style
 ) {
 
-    constructor(title: String, style: Style, v0: String?) : this(title, true, style, v0)
-    constructor(title: String, enableSuggestions: Boolean, style: Style, v0: String?) : this(
-        title,
-        enableSuggestions,
-        style
-    ) {
+    constructor(title: String, visibilityKey: String, style: Style, v0: String?) :
+            this(title, visibilityKey, true, style, v0)
+
+    constructor(title: String, visibilityKey: String, enableSuggestions: Boolean, style: Style, v0: String?) :
+            this(title, visibilityKey, enableSuggestions, style) {
         setValue(v0 ?: "", false)
     }
 
@@ -29,6 +33,10 @@ open class TextInput(title: String, val enableSuggestions: Boolean, style: Style
         base.placeholder = title
         base.backgroundColor = backgroundColor
     }
+
+    override var visibility: Visibility
+        get() = InputVisibility[visibilityKey]
+        set(value) {}
 
     fun setCursorToEnd() = base.setCursorToEnd()
     fun updateChars(notify: Boolean) = base.updateChars(notify)

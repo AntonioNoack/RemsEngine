@@ -2,6 +2,7 @@ package me.anno.io.serialization
 
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Range
+import me.anno.engine.IProperty
 import org.apache.logging.log4j.LogManager
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
@@ -25,6 +26,16 @@ class CachedProperty(
         } catch (e: Exception) {
             LOGGER.warn("Setting $name of ${instance::class}, but the properties class is $clazz")
             e.printStackTrace()
+        }
+    }
+
+    fun get(instance: Any): Any? {
+        return try {
+            getter.call(instance)
+        } catch (e: Exception) {
+            LOGGER.warn("Setting $name of ${instance::class}, but the properties class is $clazz")
+            e.printStackTrace()
+            null
         }
     }
 

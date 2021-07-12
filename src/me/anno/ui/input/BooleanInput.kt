@@ -7,6 +7,7 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.input.components.Checkbox
 import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.style.Style
+import me.anno.utils.types.Strings.isBlank2
 
 /**
  * Checkbox with title
@@ -23,14 +24,16 @@ class BooleanInput(val title: String, startValue: Boolean, defaultValue: Boolean
         setTooltip(description)
     }
 
-    private val titleView = TextPanel("$title:", style)
+    private val titleView = if(title.isBlank2()) null else TextPanel("$title:", style)
     private val checkView = Checkbox(startValue, defaultValue, style.getSize("fontSize", 10), style)
 
     init {
-        this += titleView
-        titleView.enableHoverColor = true
-        titleView.padding.right = 5
-        titleView.focusTextColor = titleView.textColor
+        if(titleView != null){
+            this += titleView
+            titleView.enableHoverColor = true
+            titleView.padding.right = 5
+            titleView.focusTextColor = titleView.textColor
+        }
         this += checkView
         this += WrapAlign.LeftTop
     }

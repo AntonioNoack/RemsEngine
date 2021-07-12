@@ -302,7 +302,7 @@ object UILayouts {
             base.focusTextColor = base.textColor
         }
 
-        nameInput = TextInput("Title", style, Dict["New Project", "ui.newProject.defaultName"])
+        nameInput = TextInput("Title", "title", style, Dict["New Project", "ui.newProject.defaultName"])
         nameInput.setEnterListener { loadNewProject(usableFile, nameInput) }
 
         var lastName = nameInput.text

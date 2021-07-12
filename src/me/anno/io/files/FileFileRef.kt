@@ -6,8 +6,7 @@ import java.net.URI
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
 
-class FileFileRef(val file: File) :
-    FileReference(beautifyPath(file.absolutePath)) {
+class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath)) {
 
     companion object {
 
@@ -36,13 +35,13 @@ class FileFileRef(val file: File) :
     override fun mkdirs(): Boolean = file.mkdirs()
 
     override fun listChildren(): List<FileReference>? {
-        return if (exists) {
+        return (if (exists) {
             if (isDirectory) {
                 file.listFiles()?.map { FileFileRef(it) }
             } else {
                 zipFileForDirectory?.listChildren()
             }
-        } else null
+        } else null) ?: super.listChildren()
     }
 
     override fun getParent() = getReference(file.parentFile)

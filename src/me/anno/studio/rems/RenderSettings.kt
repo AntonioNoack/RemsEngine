@@ -91,7 +91,7 @@ object RenderSettings : Transform() {
             }
             .setTooltip("The fps of the video, or how many frame are shown per second")
 
-        list += IntInput("Video Quality", project.targetVideoQuality, Type.VIDEO_QUALITY_CRF, style)
+        list += IntInput("Video Quality", "VideoQuality", project.targetVideoQuality, Type.VIDEO_QUALITY_CRF, style)
             .setChangeListener {
                 project.targetVideoQuality = it.toInt()
                 save()

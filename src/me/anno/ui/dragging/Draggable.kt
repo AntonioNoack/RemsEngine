@@ -7,7 +7,7 @@ import me.anno.ui.base.constraints.WrapAlign
 class Draggable(
     private val content: String,
     private val contentType: String,
-    private val original: Any,
+    private val original: Any?,
     val ui: Panel
 ): IDraggable {
 
@@ -31,6 +31,6 @@ class Draggable(
 
     override fun getContent(): String = content
     override fun getContentType(): String = contentType
-    override fun getOriginal(): Any = original
+    override fun getOriginal(): Any? = original
 
 }

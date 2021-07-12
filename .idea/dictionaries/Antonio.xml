@@ -199,6 +199,8 @@
       <w>premade</w>
       <w>premultiplied</w>
       <w>quat</w>
+      <w>quaterniond</w>
+      <w>quaternionf</w>
       <w>radialgradient</w>
       <w>rasterization</w>
       <w>rawvideo</w>

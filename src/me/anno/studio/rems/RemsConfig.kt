@@ -1,7 +1,6 @@
 package me.anno.studio.rems
 
 import me.anno.config.DefaultConfig
-import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS
 
@@ -49,6 +48,7 @@ object RemsConfig {
                 // not yet supported
                 // addImportMappings("Markdown", "md")
                 addImportMappings("Audio", "mp3", "wav", "m4a", "ogg")
+                addImportMappings("URL", "url", "lnk", "desktop")
 
                 this["import.mapping.*"] = "Text"
 

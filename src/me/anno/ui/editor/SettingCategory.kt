@@ -17,19 +17,20 @@ import kotlin.math.max
 
 open class SettingCategory(
     val title: String,
+    val visibilityKey: String,
     withScrollbar: Boolean,
     val canCopyTitleText: Boolean,
     style: Style
 ) : PanelGroup(style) {
 
     constructor(title: String, style: Style) :
-            this(title, false, false, style)
+            this(title, title, false, false, style)
 
     constructor(title: String, description: String, dictPath: String, style: Style) :
             this(title, description, dictPath, false, style)
 
     constructor(title: String, description: String, dictPath: String, withScrollbar: Boolean, style: Style) :
-            this(Dict[title, dictPath], withScrollbar, false, style) {
+            this(Dict[title, dictPath], title, withScrollbar, false, style) {
         setTooltip(Dict[description, "$dictPath.desc"])
     }
 
@@ -52,8 +53,8 @@ open class SettingCategory(
     }
 
     val scrollbar: ScrollPanelY? =
-        if (withScrollbar){
-            object: ScrollPanelY(content, Padding.Zero, style){
+        if (withScrollbar) {
+            object : ScrollPanelY(content, Padding.Zero, style) {
                 override var visibility: Visibility
                     get() = InputVisibility[title]
                     set(_) {}
@@ -71,11 +72,11 @@ open class SettingCategory(
     }
 
     fun show2() {
-        InputVisibility.show(title, null)
+        InputVisibility.show(visibilityKey, null)
     }
 
     fun toggle() {
-        InputVisibility.toggle(title, this)
+        InputVisibility.toggle(visibilityKey, this)
     }
 
     override fun onKeyTyped(x: Float, y: Float, key: Int) {

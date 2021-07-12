@@ -172,6 +172,7 @@ object StudioActions {
         keyMap["FileExplorer.mouseForward.down"] = "Forward"
         keyMap["FileExplorerEntry.left.double"] = "Enter"
         keyMap["TreeViewPanel.left.press"] = "DragStart"
+        keyMap["StackPanel.left.press"] = "DragStart"
 
         keyMap["HSVBox.left.down"] = "selectColor"
         keyMap["HSVBox.left.press-unsafe"] = "selectColor"

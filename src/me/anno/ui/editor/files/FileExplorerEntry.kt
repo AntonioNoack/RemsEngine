@@ -12,7 +12,6 @@ import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx3D
-import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
@@ -45,6 +44,7 @@ import me.anno.utils.Maths.sq
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.files.Files.listFiles2
+import me.anno.utils.image.ImageScale.scale
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.VFrame
@@ -54,7 +54,6 @@ import java.util.*
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 class FileExplorerEntry(
     private val explorer: FileExplorer,
@@ -110,6 +109,7 @@ class FileExplorerEntry(
             "Image", "Cubemap" -> "file/image.png"
             "Text" -> "file/text.png"
             "Audio", "Video" -> "file/music.png"
+            // todo link icon for .lnk and .url, and maybe .desktop
             else -> "file/document.png"
         }
     }
@@ -212,11 +212,7 @@ class FileExplorerEntry(
     private fun drawTexture(x0: Int, y0: Int, x1: Int, y1: Int, image: ITexture2D) {
         val w = x1 - x0
         val h = y1 - y0
-        var iw = image.w
-        var ih = image.h
-        val scale = min(w.toFloat() / iw, h.toFloat() / ih)
-        iw = (iw * scale).roundToInt()
-        ih = (ih * scale).roundToInt()
+        val (iw, ih) = scale(image.w, image.h, w, h)
         drawTexture(x0 + (w - iw) / 2, y0 + (h - ih) / 2, iw, ih, image, -1, null)
     }
 
@@ -238,7 +234,7 @@ class FileExplorerEntry(
                     } else getDefaultIcon()
                 } else getDefaultIcon()
             }
-            "Image", "PDF", "Mesh" -> getImage()
+            "Image", "PDF", "Mesh", "URL" -> getImage()
             else -> getDefaultIcon()
         }
     }
@@ -249,7 +245,7 @@ class FileExplorerEntry(
         val image = Thumbs.getThumbnail(file, w) ?: getDefaultIcon() ?: whiteTexture
         val tex2D = image as? Texture2D
         val rot = tex2D?.rotation
-        if(tex2D != null){
+        if (tex2D != null) {
             tex2D.bind(0) // texture must be bound!!
             tex2D.ensureFilterAndClamping(GPUFiltering.LINEAR, Clamping.CLAMP)
         }
@@ -336,7 +332,7 @@ class FileExplorerEntry(
                     }
                 } else drawDefaultIcon(x0, y0, x1, y1)
             }
-            "Image", "PDF", "Mesh" -> drawImageOrThumb(x0, y0, x1, y1)
+            "Image", "PDF", "Mesh", "URL" -> drawImageOrThumb(x0, y0, x1, y1)
             else -> drawDefaultIcon(x0, y0, x1, y1)
         }
     }
@@ -426,7 +422,7 @@ class FileExplorerEntry(
                 }
             }
             "Enter" -> {
-                if (file.isDirectoryOrPacked) {
+                if (file.isSomeKindOfDirectory) {
                     explorer.switchTo(file)
                 } else {// todo check if it's a compressed thing we can enter
                     return false
@@ -482,8 +478,8 @@ class FileExplorerEntry(
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
-        if(button.isLeft){
-            if (file.isDirectoryOrPacked) {
+        if (button.isLeft) {
+            if (file.isSomeKindOfDirectory) {
                 explorer.switchTo(file)
                 // super.onDoubleClick(x, y, button)
             } else {

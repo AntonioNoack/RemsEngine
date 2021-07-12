@@ -15,11 +15,13 @@ import kotlin.math.round
 import kotlin.math.roundToLong
 
 open class IntInput(
-    style: Style, title: String,
+    style: Style,
+    title: String,
+    visibilityKey: String,
     type: Type = Type.FLOAT,
     owningProperty: AnimatedProperty<*>?,
     indexInProperty: Int
-) : NumberInput(style, title, type, owningProperty, indexInProperty) {
+) : NumberInput(style, title, visibilityKey, type, owningProperty, indexInProperty) {
 
     var lastValue: Long = getValue(type.defaultValue)
     var changeListener: (value: Long) -> Unit = { }
@@ -35,12 +37,9 @@ open class IntInput(
     }
 
     constructor(
-        title: String,
-        owningProperty: AnimatedProperty<*>,
-        indexInProperty: Int,
-        time: Double,
-        style: Style
-    ) : this(style, title, owningProperty.type, owningProperty, indexInProperty) {
+        title: String, visibilityKey: String,
+        owningProperty: AnimatedProperty<*>, indexInProperty: Int, time: Double, style: Style
+    ) : this(style, title, visibilityKey, owningProperty.type, owningProperty, indexInProperty) {
         when (val value = owningProperty[time]) {
             is Int -> setValue(value, false)
             is Long -> setValue(value, false)
@@ -48,19 +47,23 @@ open class IntInput(
         }
     }
 
-    constructor(title: String, value0: Int, type: Type, style: Style) : this(style, title, type, null, 0) {
+    constructor(title: String, visibilityKey: String, value0: Int, type: Type, style: Style) :
+            this(style, title, visibilityKey, type, null, 0) {
         setValue(value0, false)
     }
 
-    constructor(title: String, value0: Long, type: Type, style: Style) : this(style, title, type, null, 0) {
+    constructor(title: String, visibilityKey: String, value0: Long, type: Type, style: Style) :
+            this(style, title, visibilityKey, type, null, 0) {
         setValue(value0, false)
     }
 
-    constructor(title: String, value0: Int, style: Style) : this(style, title, Type.FLOAT, null, 0) {
+    constructor(title: String, visibilityKey: String, value0: Int, style: Style) :
+            this(style, title, visibilityKey, Type.FLOAT, null, 0) {
         setValue(value0, false)
     }
 
-    constructor(title: String, value0: Long, style: Style) : this(style, title, Type.DOUBLE, null, 0) {
+    constructor(title: String, visibilityKey: String, value0: Long, style: Style) :
+            this(style, title, visibilityKey, Type.DOUBLE, null, 0) {
         setValue(value0, false)
     }
 
