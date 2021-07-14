@@ -23,7 +23,8 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.files.FileReference
 import me.anno.mesh.assimp.AnimGameItem
-import me.anno.mesh.assimp.AnimGameItem.Companion.matrixBuffer
+import me.anno.mesh.assimp.AnimGameItem.Companion.centerStackFromAABB
+import me.anno.mesh.assimp.AnimGameItem.Companion.getScaleFromAABB
 import me.anno.mesh.fbx.model.FBXGeometry
 import me.anno.mesh.fbx.model.FBXModel
 import me.anno.mesh.gltf.CustomGlContext
@@ -52,7 +53,9 @@ open class MeshData : ICacheData {
         time: Double,
         color: Vector4fc,
         animationName: String,
-        useMaterials: Boolean
+        useMaterials: Boolean,
+        centerMesh: Boolean,
+        normalizeScale: Boolean
     ) {
 
         val shader = shaderAssimp.value
@@ -99,15 +102,26 @@ open class MeshData : ICacheData {
         transformUniform(shader, stack)
 
         val localStack = Matrix4x3fArrayList()
+
+        if (normalizeScale) {
+            val scale = getScaleFromAABB(model0.staticAABB.value)
+            localStack.scale(scale)
+        }
+
+        if (centerMesh) {
+            centerStackFromAABB(localStack, model0.staticAABB.value)
+        }
+
         drawHierarchy(shader, localStack, color, model0, model0.hierarchy, useMaterials)
 
         // draw skeleton for debugging purposes
         // makes sense for the working skeletons, but is broken for the incorrect ones...
         // so at least that seems to be correct...
-        RenderState.geometryShader.use(null){
+        RenderState.geometryShader.use(null) {
             for (boneIndex in model0.bones.indices) {
                 val bone = model0.bones[boneIndex]
                 stack.next {
+                    stack.mul(localStack)
                     // val skinning = Matrix4x3f().get(matrixBuffer.apply { position(12 * boneIndex) })
                     // val m = Matrix4f(bone.tmpTransform).mul(Matrix4f(skinning))
                     stack.translate(Vector3f(bone.tmpOffset.m30(), bone.tmpOffset.m31(), bone.tmpOffset.m32()))
@@ -186,7 +200,7 @@ open class MeshData : ICacheData {
         stack.popMatrix()
     }
 
-    fun drawObj(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
+    /*fun drawObj(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
         val objData = objData!!
         if (objData.isEmpty()) return
         val shader = shaderObjMtl.value
@@ -197,13 +211,13 @@ open class MeshData : ICacheData {
             buffer.draw(shader)
             GFX.check()
         }
-    }
+    }*/
 
     /**
      * todo looping modes for the animation...
      * see also {@link de.javagl.jgltf.model.animation.AnimationManager#performStep(long)}
      * */
-    fun drawGlTF(stack: Matrix4fArrayList, time: Double, color: Vector4fc, animationIndex: Int) {
+    /*fun drawGlTF(stack: Matrix4fArrayList, time: Double, color: Vector4fc, animationIndex: Int) {
 
         // todo make textures and material properties customizable (maybe...)
 
@@ -230,9 +244,9 @@ open class MeshData : ICacheData {
 
         viewer.glRender()
 
-    }
+    }*/
 
-    fun drawDae(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
+    /*fun drawDae(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
         GFX.check()
         val scene = daeScene!!
         val renderer = Mesh.daeRenderer!!
@@ -241,10 +255,10 @@ open class MeshData : ICacheData {
         scene.animatedModel.update(time)
         renderer.render(scene.animatedModel, scene.camera, scene.lightDirection)
         GFX.check()
-    }
+    }*/
 
     // doesn't work :/
-    fun drawFBX(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
+    /*fun drawFBX(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
         val data = fbxData ?: return
 
@@ -274,7 +288,7 @@ open class MeshData : ICacheData {
 
             }
         }
-    }
+    }*/
 
     fun Matrix4f.rot(v: Vector3f) {
         rotateX(v.x)

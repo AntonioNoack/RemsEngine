@@ -2,15 +2,17 @@ package me.anno.mesh.assimp
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.Shader
+import me.anno.ui.editor.files.thumbs.Thumbs
 import me.anno.utils.Maths
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix4f
-import org.joml.Matrix4x3f
+import org.joml.*
 import org.lwjgl.opengl.GL21
 import org.lwjgl.system.MemoryUtil
 import java.nio.FloatBuffer
+import kotlin.math.max
 import kotlin.math.min
 
 class AnimGameItem(
@@ -19,6 +21,13 @@ class AnimGameItem(
     val bones: List<Bone>,
     val animations: Map<String, Animation>
 ) {
+
+    val staticAABB = lazy {
+        val rootEntity = hierarchy
+        updateTransforms(rootEntity)
+        // calculate/get the size
+        calculateAABB(rootEntity)
+    }
 
     fun uploadJointMatrices(shader: Shader, animation: Animation, time: Double) {
         val location = shader.getUniformLocation("jointTransforms")
@@ -83,11 +92,62 @@ class AnimGameItem(
     }
 
     companion object {
+
         val matrixSize = 12
         val maxBones = Maths.clamp((GFX.maxVertexUniforms - (matrixSize * 3)) / matrixSize, 4, 256)
         val matrixBuffer = MemoryUtil.memAllocFloat(matrixSize * maxBones)
         val tmpBuffer = MemoryUtil.memAllocFloat(matrixSize)
+
+
+
+        fun getScaleFromAABB(aabb: AABBd): Float {
+            // calculate the scale, such that everything can be visible
+            val delta = max(aabb.maxX - aabb.minX, max(aabb.maxY - aabb.minY, aabb.maxZ - aabb.minZ))
+            // half, because it's half the size
+            return 0.5f / delta.toFloat()
+        }
+
+        fun centerStackFromAABB(stack: Matrix4x3f, aabb: AABBd) {
+            stack.translate(
+                -(aabb.minX + aabb.maxX).toFloat() / 2,
+                -(aabb.minY + aabb.maxY).toFloat() / 2,
+                -(aabb.minZ + aabb.maxZ).toFloat() / 2
+            )
+        }
+
+        private fun updateTransforms(entity: Entity) {
+            entity.transform.update(entity.parent?.transform)
+            for (child in entity.children) updateTransforms(child)
+        }
+
+        private fun AABBf.toDouble(): AABBd {
+            return AABBd(
+                minX.toDouble(), minY.toDouble(), minZ.toDouble(),
+                maxX.toDouble(), maxY.toDouble(), maxZ.toDouble()
+            )
+        }
+
+        private fun calculateAABB(root: Entity): AABBd {
+            val joint = AABBd()
+            root.simpleTraversal(true) { entity ->
+                // todo rendering all points is only a good idea, if there are no meshes
+                // todo render all them points, and use them for the bbx calculation (only if no meshes present)
+                // because animated clothing may be too small to see
+                val local = AABBd()
+                val meshes = entity.getComponents<MeshComponent>(false).mapNotNull { it.mesh }
+                for (mesh in meshes) {
+                    mesh.ensureBuffer()
+                    local.union(mesh.aabb.toDouble())
+                }
+                local.transform(Matrix4d(entity.transform.globalTransform))
+                joint.union(local)
+                false
+            }
+            return joint
+        }
+
         private val LOGGER = LogManager.getLogger(AnimGameItem::class)
+
     }
 
     // todo number input: cannot enter 0.01 from left to right, because the 0 is removed instantly

@@ -5,8 +5,6 @@ import me.anno.cache.instances.LastModifiedCache
 import me.anno.cache.instances.MeshCache
 import me.anno.cache.instances.TextureCache.getLateinitTexture
 import me.anno.cache.instances.VideoCache.getVideoFrame
-import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.RenderState.depthMode
@@ -24,6 +22,8 @@ import me.anno.image.HDRImage
 import me.anno.image.tar.TGAImage
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
+import me.anno.mesh.assimp.AnimGameItem.Companion.centerStackFromAABB
+import me.anno.mesh.assimp.AnimGameItem.Companion.getScaleFromAABB
 import me.anno.mesh.assimp.StaticMeshesLoader
 import me.anno.objects.Video
 import me.anno.objects.documents.pdf.PDFCache
@@ -43,8 +43,9 @@ import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import net.boeckling.crc.CRC64
 import org.apache.commons.imaging.Imaging
 import org.apache.logging.log4j.LogManager
-import org.joml.*
 import org.joml.Math.toRadians
+import org.joml.Matrix4fArrayList
+import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
@@ -312,37 +313,6 @@ object Thumbs {
 
     }
 
-    private fun updateTransforms(entity: Entity) {
-        entity.transform.update(entity.parent?.transform)
-        for (child in entity.children) updateTransforms(child)
-    }
-
-    private fun AABBf.toDouble(): AABBd {
-        return AABBd(
-            minX.toDouble(), minY.toDouble(), minZ.toDouble(),
-            maxX.toDouble(), maxY.toDouble(), maxZ.toDouble()
-        )
-    }
-
-    private fun calculateAABB(root: Entity): AABBd {
-        val joint = AABBd()
-        root.simpleTraversal(true) { entity ->
-            // todo rendering all points is only a good idea, if there are no meshes
-            // todo render all them points, and use them for the bbx calculation (only if no meshes present)
-            // because animated clothing may be too small to see
-            val local = AABBd()
-            val meshes = entity.getComponents<MeshComponent>(false).mapNotNull { it.mesh }
-            for (mesh in meshes) {
-                mesh.ensureBuffer()
-                local.union(mesh.aabb.toDouble())
-            }
-            local.transform(Matrix4d(entity.transform.globalTransform))
-            joint.union(local)
-            false
-        }
-        return joint
-    }
-
     // just render it using the simplest shader
     private fun generateAssimpMeshFrame(
         srcFile: FileReference,
@@ -363,13 +333,6 @@ object Thumbs {
 
         val model = data.assimpModel!!
 
-        // render the whole model
-        val rootEntity = model.hierarchy
-        updateTransforms(rootEntity)
-
-        // calculate/get the size
-        val aabb = calculateAABB(rootEntity)
-
         val stack = Matrix4fArrayList()
         stack.perspective(0.7f, 1f, 0.001f, 5f)
         stack.translate(0f, 0f, -1f)// move the camera back a bit
@@ -377,21 +340,16 @@ object Thumbs {
         stack.rotateY(toRadians(-25f))
 
         // calculate the scale, such that everything can be visible
-        val delta = max(aabb.maxX - aabb.minX, max(aabb.maxY - aabb.minY, aabb.maxZ - aabb.minZ))
-        // half, because it's half the size, 1.05f for a small border
-        val scale = 0.5f * 1.05f / delta.toFloat()
+        // 1.05f for a small border
+        val scale = 1.05f
         stack.scale(scale, -scale, scale)
-
-        // apply the required offset for centering
-        stack.translate(
-            -(aabb.minX + aabb.maxX).toFloat() / 2,
-            -(aabb.minY + aabb.maxY).toFloat() / 2,
-            -(aabb.minZ + aabb.maxZ).toFloat() / 2
-        )
 
         // render everything without color
         renderToBufferedImage(srcFile, dstFile, true, callback, size, size) {
-            data.drawAssimp(null, stack, 0.0, Vector4f(1f), "", false)
+            data.drawAssimp(
+                null, stack, 0.0, Vector4f(1f), "",
+                useMaterials = false, centerMesh = true, normalizeScale = true
+            )
         }
 
     }

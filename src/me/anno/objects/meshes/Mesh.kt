@@ -49,7 +49,7 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
     companion object {
 
         // var daeEngine: RenderEngine? = null
-        val gltfReader = GltfModelReader()
+        // val gltfReader = GltfModelReader()
         var daeRenderer: AnimatedModelRenderer? = null
 
         init {
@@ -87,6 +87,9 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
     }
 
     val animation = AnimatedProperty.string()
+
+    var centerMesh = true
+    var normalizeScale = true
 
     // for the start it is nice to be able to import meshes like a torus into the engine :)
 
@@ -243,18 +246,30 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
                             // (see thumbnail generator)
 
                             when {
-                                isFinalRendering -> data.drawAssimp(this, stack, time, color, animation[time], true)
+                                isFinalRendering -> data.drawAssimp(
+                                    this, stack, time, color,
+                                    animation[time], true, centerMesh, normalizeScale
+                                )
                                 Input.isKeyDown('l') -> {// line debugging
                                     RenderState.geometryShader.use(lineGeometry) {
-                                        data.drawAssimp(this, stack, time, color, animation[time], true)
+                                        data.drawAssimp(
+                                            this, stack, time, color,
+                                            animation[time], true, centerMesh, normalizeScale
+                                        )
                                     }
                                 }
                                 Input.isKeyDown('n') -> {// normal debugging
                                     RenderState.geometryShader.use(normalGeometry) {
-                                        data.drawAssimp(this, stack, time, color, animation[time], true)
+                                        data.drawAssimp(
+                                            this, stack, time, color,
+                                            animation[time], true, centerMesh, normalizeScale
+                                        )
                                     }
                                 }
-                                else -> data.drawAssimp(this, stack, time, color, animation[time], true)
+                                else -> data.drawAssimp(
+                                    this, stack, time, color,
+                                    animation[time], true, centerMesh, normalizeScale
+                                )
                             }
 
                         }
@@ -292,6 +307,15 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
             Type.INT, powerOf10Correction, style
         ) { powerOf10Correction = it }
 
+        list += vi(
+            "Normalize Scale", "A quicker fix than manually finding the correct scale",
+            null, normalizeScale, style
+        ) { normalizeScale = it }
+        list += vi(
+            "Center Mesh", "If your mesh is off-center, this corrects it",
+            null, centerMesh, style
+        ) { centerMesh = it }
+
         // the list of available animations depends on the model
         // but still, it's like an enum: only a certain set of animations is available
         // and the user wouldn't know perfectly which
@@ -325,6 +349,16 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
         writer.writeFile("file", file)
         writer.writeInt("powerOf10", powerOf10Correction)
         writer.writeObject(this, "animation", animation)
+        writer.writeBoolean("normalizeScale", normalizeScale, true)
+        writer.writeBoolean("centerMesh", centerMesh, true)
+    }
+
+    override fun readBoolean(name: String, value: Boolean) {
+        when (name) {
+            "normalizeScale" -> normalizeScale = value
+            "centerMesh" -> centerMesh = value
+            else -> super.readBoolean(name, value)
+        }
     }
 
     override fun readObject(name: String, value: ISaveable?) {
