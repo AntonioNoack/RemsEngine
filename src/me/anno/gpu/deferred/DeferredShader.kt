@@ -10,7 +10,7 @@ open class DeferredShader(
     y3D: String,
     f3D: String,
     textures: List<String>?
-) : Shader(shaderName, v3D, y3D, settings.f3D + f3D) {
+) : Shader(shaderName, null, v3D, y3D, settings.f3D + f3D) {
 
     init {
         glslVersion = 330

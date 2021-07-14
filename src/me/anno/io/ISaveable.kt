@@ -68,22 +68,29 @@ interface ISaveable {
     fun readObjectArray2D(name: String, values: Array<Array<ISaveable?>>)
 
     fun readVector2f(name: String, value: Vector2f)
-    fun readVector2fArray(name: String, values: Array<Vector2f>)
-
     fun readVector3f(name: String, value: Vector3f)
-    fun readVector3fArray(name: String, values: Array<Vector3f>)
-
     fun readVector4f(name: String, value: Vector4f)
+
+    fun readVector2fArray(name: String, values: Array<Vector2f>)
+    fun readVector3fArray(name: String, values: Array<Vector3f>)
     fun readVector4fArray(name: String, values: Array<Vector4f>)
 
     fun readVector2d(name: String, value: Vector2d)
-    fun readVector2dArray(name: String, values: Array<Vector2d>)
-
     fun readVector3d(name: String, value: Vector3d)
-    fun readVector3dArray(name: String, values: Array<Vector3d>)
-
     fun readVector4d(name: String, value: Vector4d)
+
+    fun readVector2dArray(name: String, values: Array<Vector2d>)
+    fun readVector3dArray(name: String, values: Array<Vector3d>)
     fun readVector4dArray(name: String, values: Array<Vector4d>)
+
+    fun readVector2i(name: String, value: Vector2i)
+    fun readVector3i(name: String, value: Vector3i)
+    fun readVector4i(name: String, value: Vector4i)
+
+    fun readVector2iArray(name: String, values: Array<Vector2i>)
+    fun readVector3iArray(name: String, values: Array<Vector3i>)
+    fun readVector4iArray(name: String, values: Array<Vector4i>)
+
 
     // read matrices
     // array versions? idk...
@@ -94,6 +101,9 @@ interface ISaveable {
     fun readMatrix3x3d(name: String, value: Matrix3d)
     fun readMatrix4x3d(name: String, value: Matrix4x3d)
     fun readMatrix4x4d(name: String, value: Matrix4d)
+
+    fun readQuaternionf(name: String, value: Quaternionf)
+    fun readQuaterniond(name: String, value: Quaterniond)
 
     /**
      * can saving be ignored?, because this is default anyways?

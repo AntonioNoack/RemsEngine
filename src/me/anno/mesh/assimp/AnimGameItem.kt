@@ -1,16 +1,21 @@
 package me.anno.mesh.assimp
 
 import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.Shader
 import me.anno.utils.Maths
 import org.apache.logging.log4j.LogManager
+import org.joml.Matrix4f
+import org.joml.Matrix4x3f
 import org.lwjgl.opengl.GL21
 import org.lwjgl.system.MemoryUtil
+import java.nio.FloatBuffer
 import kotlin.math.min
 
 class AnimGameItem(
     val hierarchy: Entity,
+    val meshes: List<Mesh>,
     val bones: List<Bone>,
     val animations: Map<String, Animation>
 ) {
@@ -40,8 +45,8 @@ class AnimGameItem(
             tmpBuffer.position(0)
             val offset = index * matrixSize
             matrixBuffer.position(offset)
-            matrix0.get(matrixBuffer)
-            matrix1.get(tmpBuffer)
+            get(matrix0, matrixBuffer)
+            get(matrix1, tmpBuffer)
             // matrix interpolation
             for (i in 0 until matrixSize) {
                 val j = offset + i
@@ -50,6 +55,31 @@ class AnimGameItem(
         }
         matrixBuffer.position(0)
         GL21.glUniformMatrix4x3fv(location, false, matrixBuffer)
+    }
+
+    fun get(src: Matrix4x3f, dst: FloatBuffer) {
+        src.get(dst)
+    }
+
+
+    fun get(src: Matrix4f, dst: FloatBuffer) {
+
+        dst.put(src.m00())
+        dst.put(src.m01())
+        dst.put(src.m02())
+
+        dst.put(src.m10())
+        dst.put(src.m11())
+        dst.put(src.m12())
+
+        dst.put(src.m20())
+        dst.put(src.m21())
+        dst.put(src.m22())
+
+        dst.put(src.m30())
+        dst.put(src.m31())
+        dst.put(src.m32())
+
     }
 
     companion object {

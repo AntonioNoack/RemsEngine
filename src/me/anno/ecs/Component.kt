@@ -53,6 +53,10 @@ abstract class Component : NamedSaveable(), Inspectable {
     @SerializedProperty
     val changedPropertiesInInstance = HashSet<String>()
 
+    @NotSerializedProperty
+    val components
+        get() = entity!!.components
+
     override fun toString(): String {
         return "$className('$name')"
     }
@@ -86,11 +90,11 @@ abstract class Component : NamedSaveable(), Inspectable {
             "Is Enabled", "When a component is disabled, its functions won't be called.",
             isEnabled, true, style
         ).setChangeListener { isEnabled = it })
-        list.add(TextInput("Name", "name", style, name).setChangeListener { name = it })
-        list.add(TextInput("Description", "desc", style, name).setChangeListener { description = it })
+        list.add(TextInput("Name", "", style, name).setChangeListener { name = it })
+        list.add(TextInput("Description", "", style, name).setChangeListener { description = it })
 
         list.add(TextButton("Copy", false, style).setSimpleClickListener {
-            LOGGER.info("Copy: ${TextWriter.toText(this, true)}")
+            LOGGER.info("Copy: ${TextWriter.toText(this, false)}")
         })
 
         val reflections = getReflections()

@@ -3,6 +3,7 @@ package me.anno.ui.editor.config
 import me.anno.animation.Type
 import me.anno.config.DefaultConfig.style
 import me.anno.config.DefaultStyle.black
+import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.ui.base.Panel
@@ -51,12 +52,15 @@ class ContentCreator(
                                     }
                             }
                             else -> {
-                                val panel = TextInput(shortName, shortName, false, style)
-                                panel.setValue(value, false)
-                                panel.setChangeListener { map[fullName] = it }
-                                panel
+                                TextInput(shortName, "", false, style)
+                                    .setValue(value, false)
+                                    .setChangeListener { map[fullName] = it }
                             }
                         }
+                    }
+                    is FileReference -> {
+                        FileInput(shortName, style, value)
+                            .setChangeListener { map[fullName] = it }
                     }
                     is Int -> {
                         if (value.shr(24).and(255) > 100) {

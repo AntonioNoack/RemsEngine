@@ -403,6 +403,65 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
+    override fun writeVector2i(name: String, value: Vector2ic, force: Boolean) {
+        if (force || (value.x() != 0 || value.y() != 0)) {
+            writeAttributeStart(name, VECTOR2I)
+            output.writeInt(value.x())
+            output.writeInt(value.y())
+        }
+    }
+
+    override fun writeVector3i(name: String, value: Vector3ic, force: Boolean) {
+        if (force || (value.x() != 0 || value.y() != 0 || value.z() != 0)) {
+            writeAttributeStart(name, VECTOR3I)
+            output.writeInt(value.x())
+            output.writeInt(value.y())
+            output.writeInt(value.z())
+        }
+    }
+
+    override fun writeVector4i(name: String, value: Vector4ic, force: Boolean) {
+        if (force || (value.x() != 0 || value.y() != 0 || value.z() != 0 || value.w() != 0)) {
+            writeAttributeStart(name, VECTOR4I)
+            output.writeInt(value.x())
+            output.writeInt(value.y())
+            output.writeInt(value.z())
+            output.writeInt(value.w())
+        }
+    }
+
+    override fun writeVector2iArray(name: String, values: Array<Vector2ic>, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeVector3iArray(name: String, values: Array<Vector3ic>, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeVector4iArray(name: String, values: Array<Vector4ic>, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeQuaternionf(name: String, value: Quaternionf, force: Boolean) {
+        if (force || (value.x() != 0f || value.y() != 0f || value.z() != 0f || value.w() != 1f)) {
+            writeAttributeStart(name, QUATERNION32)
+            output.writeFloat(value.x())
+            output.writeFloat(value.y())
+            output.writeFloat(value.z())
+            output.writeFloat(value.w())
+        }
+    }
+
+    override fun writeQuaterniond(name: String, value: Quaterniond, force: Boolean) {
+        if (force || (value.x() != 0.0 || value.y() != 0.0 || value.z() != 0.0 || value.w() != 1.0)) {
+            writeAttributeStart(name, QUATERNION64)
+            output.writeDouble(value.x())
+            output.writeDouble(value.y())
+            output.writeDouble(value.z())
+            output.writeDouble(value.w())
+        }
+    }
+
     override fun writeMatrix3x3f(name: String, value: Matrix3fc, force: Boolean) {
         TODO("Not yet implemented")
     }

@@ -3,6 +3,7 @@ package me.anno.gpu
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.shader.GeoShader
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.colorRenderer
 import me.anno.utils.structures.SecureStack
@@ -38,8 +39,6 @@ object RenderState {
         }
     }
 
-
-
     val depthMode = object : SecureStack<DepthMode>(DepthMode.ALWAYS) {
         override fun onChangeValue(newValue: DepthMode, oldValue: DepthMode) {
             if (newValue != DepthMode.ALWAYS) {
@@ -50,6 +49,8 @@ object RenderState {
             }
         }
     }
+
+    val geometryShader = SecureStack<GeoShader?>(null)
 
     inline fun withEqualDepth(func: () -> Unit) {
         val current = depthMode.currentValue

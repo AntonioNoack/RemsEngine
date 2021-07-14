@@ -1,7 +1,7 @@
 package me.karl.renderEngine;
 
 import me.karl.renderer.AnimatedModelRenderer;
-import me.karl.scene.Scene;
+import me.karl.scene.DAEScene;
 import me.karl.skybox.SkyboxRenderer;
 import me.karl.utils.DisplayManager;
 
@@ -32,7 +32,7 @@ public class RenderEngine {
 	 * @param scene
 	 *            - the game scene.
 	 */
-	public void renderScene(Scene scene) {
+	public void renderScene(DAEScene scene) {
 		renderer.renderScene(scene);
 	}
 

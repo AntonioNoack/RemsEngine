@@ -1,5 +1,6 @@
 package me.anno.engine
 
+import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.ui.DefaultLayout
 import me.anno.gpu.GFX.windowStack
@@ -12,6 +13,9 @@ import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.editor.OptionBar
+import me.anno.ui.editor.UILayouts
+import me.anno.ui.editor.UILayouts.createReloadWindow
+import me.anno.ui.editor.config.ConfigPanel
 import org.apache.logging.log4j.LogManager
 
 class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
@@ -41,13 +45,13 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         val style = style
 
         val list = PanelListY(style)
-        val controls = OptionBar(style)
+        val options = OptionBar(style)
 
         val editUI = DefaultLayout.createDefaultMainUI(editScene, false, style)
         val gameUI = DefaultLayout.createDefaultMainUI(gameScene, true, style)
         gameUI.visibility = Visibility.GONE
 
-        controls.addMajor("Play/Stop") {
+        options.addMajor("Play/Stop") {
             val goStart = editUI.visibility == Visibility.VISIBLE
             if (goStart) {
                 // todo reset second scene
@@ -60,7 +64,23 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
             list.invalidateLayout()
             list.invalidateDrawing()
         }
-        list.add(controls)
+
+        val configTitle = Dict["Config", "ui.top.config"]
+        options.addAction(configTitle, Dict["Settings", "ui.top.config.settings"]) {
+            val panel = ConfigPanel(DefaultConfig, false, style)
+            val window = createReloadWindow(panel, true)
+            panel.create()
+            windowStack.push(window)
+        }
+
+        options.addAction(configTitle, Dict["Style", "ui.top.config.style"]) {
+            val panel = ConfigPanel(DefaultConfig.style.values, true, style)
+            val window = createReloadWindow(panel, true)
+            panel.create()
+            windowStack.push(window)
+        }
+
+        list.add(options)
         // todo different controls
 
         list += editUI

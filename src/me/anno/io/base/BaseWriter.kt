@@ -1,14 +1,16 @@
 package me.anno.io.base
 
-import me.anno.io.files.FileReference
 import me.anno.io.ISaveable
+import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.studio.StudioBase
 import me.anno.utils.files.LocalFile.toLocalPath
+import org.apache.logging.log4j.LogManager
 import org.joml.*
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.ObjectOutputStream
 import java.io.Serializable
-import java.lang.Exception
 
 abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
 
@@ -73,6 +75,14 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     abstract fun writeVector3dArray(name: String, values: Array<Vector3dc>, force: Boolean = false)
     abstract fun writeVector4dArray(name: String, values: Array<Vector4dc>, force: Boolean = false)
 
+    abstract fun writeVector2i(name: String, value: Vector2ic, force: Boolean = false)
+    abstract fun writeVector3i(name: String, value: Vector3ic, force: Boolean = false)
+    abstract fun writeVector4i(name: String, value: Vector4ic, force: Boolean = false)
+
+    abstract fun writeVector2iArray(name: String, values: Array<Vector2ic>, force: Boolean = false)
+    abstract fun writeVector3iArray(name: String, values: Array<Vector3ic>, force: Boolean = false)
+    abstract fun writeVector4iArray(name: String, values: Array<Vector4ic>, force: Boolean = false)
+
     // matrices, which are commonly used in game development
     // todo array types, as they could be useful for saving animations maybe
     abstract fun writeMatrix3x3f(name: String, value: Matrix3fc, force: Boolean = false)
@@ -83,8 +93,11 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     abstract fun writeMatrix4x3d(name: String, value: Matrix4x3dc, force: Boolean = false)
     abstract fun writeMatrix4x4d(name: String, value: Matrix4dc, force: Boolean = false)
 
+    abstract fun writeQuaternionf(name: String, value: Quaternionf, force: Boolean = false)
+    abstract fun writeQuaterniond(name: String, value: Quaterniond, force: Boolean = false)
+
     fun writeFile(name: String, file: FileReference?, workspace: FileReference? = StudioBase.workspace) {
-        if(file == null || file == InvalidRef || file == InvalidRef){
+        if (file == null || file == InvalidRef || file == InvalidRef) {
             writeString(name, null)
         } else {
             writeString(name, file.toLocalPath(workspace))
@@ -265,6 +278,9 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                         is Vector2d -> writeVector2dArray(name, cast(value), forceSaving)
                         is Vector3d -> writeVector3dArray(name, cast(value), forceSaving)
                         is Vector4d -> writeVector4dArray(name, cast(value), forceSaving)
+                        is Vector2i -> writeVector2iArray(name, cast(value), forceSaving)
+                        is Vector3i -> writeVector3iArray(name, cast(value), forceSaving)
+                        is Vector4i -> writeVector4iArray(name, cast(value), forceSaving)
 
                         is BooleanArray -> writeBooleanArray2D(name, cast(value), forceSaving)
                         is CharArray -> writeCharArray2D(name, cast(value), forceSaving)
@@ -299,12 +315,17 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             is Vector2dc -> writeVector2d(name, value, forceSaving)
             is Vector3dc -> writeVector3d(name, value, forceSaving)
             is Vector4dc -> writeVector4d(name, value, forceSaving)
+            is Vector2ic -> writeVector2i(name, value, forceSaving)
+            is Vector3ic -> writeVector3i(name, value, forceSaving)
+            is Vector4ic -> writeVector4i(name, value, forceSaving)
             is Matrix3fc -> writeMatrix3x3f(name, value, forceSaving)
             is Matrix4x3fc -> writeMatrix4x3f(name, value, forceSaving)
             is Matrix4fc -> writeMatrix4x4f(name, value, forceSaving)
             is Matrix3dc -> writeMatrix3x3d(name, value, forceSaving)
             is Matrix4x3dc -> writeMatrix4x3d(name, value, forceSaving)
             is Matrix4dc -> writeMatrix4x4d(name, value, forceSaving)
+            is Quaternionf -> writeQuaternionf(name, value, forceSaving)
+            is Quaterniond -> writeQuaterniond(name, value, forceSaving)
             // files
             is File -> writeString(name, value.toString(), forceSaving)
             is FileReference -> writeString(name, value.toString(), forceSaving)
@@ -319,15 +340,22 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                 try {
                     val getId = clazz.getMethod("getId")
                     val id = getId.invoke(value)
-                    if(id is Int){
+                    if (id is Int) {
                         // all good :)
                         writeInt(name, id, forceSaving)
                         return
                     }
-                } catch (e: Exception){
-                    e.printStackTrace()
+                } catch (e: NoSuchMethodException) {
+                    // e.printStackTrace()
                 }
-                throw RuntimeException("Could not serialize field $name with value $value of class ${value.javaClass}, Serializable")
+                // todo write lists and maps with our tools
+                // todo write default serializables...
+                val bytes0 = ByteArrayOutputStream()
+                val bytes = ObjectOutputStream(bytes0)
+                bytes.writeObject(value)
+                bytes.close()
+                writeByteArray(name, bytes0.toByteArray())
+                LOGGER.warn("Could not serialize field $name with value $value of class ${value.javaClass}, Serializable")
             }
             else -> {
                 throw RuntimeException("todo implement saving an $value of class ${value.javaClass}, maybe it needs to be me.anno.io.[I]Saveable?")
@@ -342,6 +370,10 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
 
     inline fun <reified V> toArray(value: List<Any?>): Array<V> {
         return value.filterIsInstance<V>().toTypedArray()
+    }
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(BaseWriter::class)
     }
 
 }

@@ -3,8 +3,10 @@ package me.anno.engine.ui
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.CameraComponent
-import me.anno.ecs.components.player.LocalPlayer
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshRenderer
+import me.anno.ecs.components.mesh.RendererComponent
+import me.anno.ecs.components.player.LocalPlayer
 import me.anno.engine.ECSWorld
 import me.anno.gpu.RenderState.renderDefault
 import me.anno.gpu.RenderState.useFrame
@@ -127,12 +129,12 @@ class ECSSceneView(val world: ECSWorld) : Panel(style) {
             transform.update(parent?.transform)
         }
 
-        val renderer = entity.getComponent<MeshRenderer>()
+        val renderer = entity.getComponent<RendererComponent>(false)
         if (renderer != null) {
             // todo render the mesh
-            val meshes = renderer.meshes
+            val meshes = entity.getComponents<MeshComponent>(true).mapNotNull { it.mesh }
             for (mesh in meshes) {
-
+                // mesh.draw(shader, 0)
             }
         }
 

@@ -279,6 +279,22 @@ class TextReader(val data: String) : BaseReader() {
         return Vector4f(rawX, rawY, rawZ, rawW)
     }
 
+    private fun readQuaternionf(): Quaternionf {
+        assert(skipSpace(), '[', "Start of Vector")
+        val rawX = readFloat()
+        val sep0 = skipSpace()
+        assert(sep0, ',', "Separator of Vector")
+        val rawY = readFloat()
+        val sep1 = skipSpace()
+        assert(sep1, ',', "Separator of Vector")
+        val rawZ = readFloat()
+        val sep2 = skipSpace()
+        assert(sep2, ',', "Separator of Vector")
+        val rawW = readFloat()
+        assert(skipSpace(), ']', "End of Vector")
+        return Quaternionf(rawX, rawY, rawZ, rawW)
+    }
+
     private fun readVector2d(): Vector2d {
         assert(skipSpace(), '[', "Start of Vector")
         val rawX = readDouble()
@@ -320,6 +336,22 @@ class TextReader(val data: String) : BaseReader() {
         val rawW = readDouble()
         assert(skipSpace(), ']', "End of Vector")
         return Vector4d(rawX, rawY, rawZ, rawW)
+    }
+
+    private fun readQuaterniond(): Quaterniond {
+        assert(skipSpace(), '[', "Start of Vector")
+        val rawX = readDouble()
+        val sep0 = skipSpace()
+        assert(sep0, ',', "Separator of Vector")
+        val rawY = readDouble()
+        val sep1 = skipSpace()
+        assert(sep1, ',', "Separator of Vector")
+        val rawZ = readDouble()
+        val sep2 = skipSpace()
+        assert(sep2, ',', "Separator of Vector")
+        val rawW = readDouble()
+        assert(skipSpace(), ']', "End of Vector")
+        return Quaterniond(rawX, rawY, rawZ, rawW)
     }
 
     fun readProperty(obj: ISaveable): ISaveable {
@@ -437,9 +469,11 @@ class TextReader(val data: String) : BaseReader() {
             "v2" -> obj.readVector2f(name, readVector2f())
             "v3" -> obj.readVector3f(name, readVector3f())
             "v4" -> obj.readVector4f(name, readVector4f())
+            "q4" -> obj.readQuaternionf(name, readQuaternionf())
             "v2d" -> obj.readVector2d(name, readVector2d())
             "v3d" -> obj.readVector3d(name, readVector3d())
             "v4d" -> obj.readVector4d(name, readVector4d())
+            "q4d" -> obj.readQuaterniond(name, readQuaterniond())
             "v2[]" -> {
                 val v0 = Vector2f()
                 obj.readVector2fArray(
@@ -501,12 +535,18 @@ class TextReader(val data: String) : BaseReader() {
                 )
             }
             "m3x3" -> obj.readMatrix3x3f(name, Matrix3f(readVector3f(), readVector3f(), readVector3f()))
-            "m4x3" -> obj.readMatrix4x3f(name, Matrix4x3f(readVector3f(), readVector3f(), readVector3f(), readVector3f()))
+            "m4x3" -> obj.readMatrix4x3f(
+                name,
+                Matrix4x3f(readVector3f(), readVector3f(), readVector3f(), readVector3f())
+            )
             "m4x4" -> obj.readMatrix4x4f(name, Matrix4f(readVector4f(), readVector4f(), readVector4f(), readVector4f()))
             "m3x3d" -> obj.readMatrix3x3d(name, Matrix3d(readVector3d(), readVector3d(), readVector3d()))
             // todo constructor is missing...
             // "m4x3d" -> obj.readMatrix4x3d(name, Matrix4x3d(readVector3d(), readVector3d(), readVector3d(), readVector3d()))
-            "m4x4d" -> obj.readMatrix4x4d(name, Matrix4d(readVector4d(), readVector4d(), readVector4d(), readVector4d()))
+            "m4x4d" -> obj.readMatrix4x4d(
+                name,
+                Matrix4d(readVector4d(), readVector4d(), readVector4d(), readVector4d())
+            )
             "S" -> obj.readString(name, readStringValue())
             "S[]" -> obj.readStringArray(
                 name,

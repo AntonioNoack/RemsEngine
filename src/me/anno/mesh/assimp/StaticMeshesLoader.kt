@@ -2,6 +2,7 @@ package me.anno.mesh.assimp
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshRenderer
 import me.anno.io.files.FileFileRef
@@ -51,11 +52,12 @@ open class StaticMeshesLoader {
         val aiScene = loadFile(file, flags or aiProcess_PreTransformVertices)
         val materials = loadMaterials(aiScene, resources)
         val meshes = loadMeshes(aiScene, materials)
-        return AnimGameItem(meshes, emptyList(), emptyMap())
+        val hierarchy = buildScene(aiScene, meshes)
+        return AnimGameItem(hierarchy, meshes.toList(), emptyList(), emptyMap())
     }
 
     // todo convert assimp mesh such that it's a normal mesh; because all meshes should be the same to create :)
-    fun buildScene(aiScene: AIScene, sceneMeshes: Array<MeshComponent>, aiNode: AINode): Entity {
+    fun buildScene(aiScene: AIScene, sceneMeshes: Array<Mesh>, aiNode: AINode): Entity {
 
         val entity = Entity()
         entity.name = aiNode.mName().dataString()
@@ -69,16 +71,13 @@ open class StaticMeshesLoader {
             val renderer = MeshRenderer()
             entity.addComponent(renderer)
 
-            val model = AssimpModel()
             // model.name = aiNode.mName().dataString()
             // model.transform.set(convert(aiNode.mTransformation()))
             val meshIndices = aiNode.mMeshes()!!
             for (i in 0 until meshCount) {
                 val mesh = sceneMeshes[meshIndices[i]]
-                model.meshes.add(mesh)
+                entity.components.add(MeshComponent(mesh))
             }
-
-            entity.addComponent(model)
 
         }
 
@@ -95,18 +94,17 @@ open class StaticMeshesLoader {
 
     }
 
-    fun buildScene(aiScene: AIScene, sceneMeshes: Array<MeshComponent>): Entity {
+    fun buildScene(aiScene: AIScene, sceneMeshes: Array<Mesh>): Entity {
         return buildScene(aiScene, sceneMeshes, aiScene.mRootNode()!!)
     }
 
-    fun loadMeshes(aiScene: AIScene, materials: Array<Material>): Entity {
+    fun loadMeshes(aiScene: AIScene, materials: Array<Material>): Array<Mesh> {
         val numMeshes = aiScene.mNumMeshes()
         val aiMeshes = aiScene.mMeshes()
-        val meshes = Array(numMeshes) { i ->
+        return Array(numMeshes) { i ->
             val aiMesh = AIMesh.create(aiMeshes!![i])
-            processMesh(aiMesh, materials)
+            createMesh(aiMesh, materials)
         }
-        return buildScene(aiScene, meshes)
     }
 
     fun loadMaterials(aiScene: AIScene, texturesDir: FileReference): Array<Material> {
@@ -206,7 +204,7 @@ open class StaticMeshesLoader {
         } else null
     }
 
-    fun processMesh(aiMesh: AIMesh, materials: Array<Material>): MeshComponent {
+    fun createMesh(aiMesh: AIMesh, materials: Array<Material>): Mesh {
 
         val vertexCount = aiMesh.mNumVertices()
         val vertices = FloatArray(vertexCount * 3)
@@ -221,7 +219,7 @@ open class StaticMeshesLoader {
         processIndices(aiMesh, indices)
         processVertexColors(aiMesh, colors)
 
-        val mesh = MeshComponent()
+        val mesh = Mesh()
         mesh.positions = vertices
         mesh.normals = normals
         mesh.uvs = uvs

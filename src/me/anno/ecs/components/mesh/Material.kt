@@ -1,6 +1,6 @@
 package me.anno.ecs.components.mesh
 
-import me.anno.gpu.blending.PipelineStage
+import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference

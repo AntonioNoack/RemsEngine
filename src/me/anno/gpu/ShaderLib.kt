@@ -1,7 +1,6 @@
 package me.anno.gpu
 
 import me.anno.config.DefaultConfig
-import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.texture.Filtering
 import me.anno.mesh.assimp.AnimGameItem
@@ -131,7 +130,7 @@ object ShaderLib {
             "       dot(yuv, vec3( 1.164,  0.000,  1.596))," +
             "       dot(yuv, vec3( 1.164, -0.392, -0.813))," +
             "       dot(yuv, vec3( 1.164,  2.017,  0.000)));\n" +
-            "}"
+            "}\n"
 
     val maxColorForceFields = DefaultConfig["objects.attractors.color.maxCount", 12]
     val getColorForceFieldLib = "" +
@@ -260,6 +259,9 @@ object ShaderLib {
     val v3DBase = "" +
             "u4x4 transform;\n"
 
+    val flatNormal = "" +
+            "   normal = vec3(0,0,1);\n"
+
     val v3D = v3DBase +
             "a3 attr0;\n" +
             "a2 attr1;\n" +
@@ -270,13 +272,15 @@ object ShaderLib {
             positionPostProcessing +
             "   uv = (attr1-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
             "   uvw = attr0;\n" +
+            flatNormal +
             "}"
 
     val y3D = "" +
-            "varying v2 uv;\n" +
-            "varying v3 uvw;\n" +
-            "varying v3 localPosition;\n" +
-            "varying float zDistance;\n"
+            "varying vec2 uv;\n" +
+            "varying vec3 uvw;\n" +
+            "varying vec3 localPosition;\n" +
+            "varying float zDistance;\n" +
+            "varying vec3 normal;\n"
 
     val f3D = "" +
             "uniform sampler2D tex;\n" +
@@ -335,17 +339,18 @@ object ShaderLib {
                     "a2 attr0;\n" +
                     "u2 pos, size;\n" +
                     "u4 uvs;\n" +
+                    yuv2rgb +
                     "u4 lColor, rColor;\n" +
                     "void main(){\n" +
                     "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
                     "   color = attr0.x < 0.5 ? lColor : rColor;\n" +
                     "   uv = mix(uvs.xy, uvs.zw, attr0);\n" +
-                    "}", "" + // mixing is done by varying
-                    yuv2rgb +
+                    "}", "" +
                     "varying vec4 color;\n" +
                     "varying vec2 uv;\n", "" +
                     "uniform int code;\n" +
                     "uniform sampler2D tex0,tex1,tex2;\n" +
+                    yuv2rgb +
                     "void main(){\n" +
                     "   vec4 texColor;\n" +
                     "   if(uv.x >= 0.0 && uv.x <= 1.0){\n" +
@@ -441,6 +446,7 @@ object ShaderLib {
                     "   vec2 pseudoUV2 = getForceFieldUVs(localPos0.xy*.5+.5);\n" +
                     "   localPosition = $hasForceFieldUVs ? vec3(pseudoUV2*2.0-1.0, attr0.z + offset.z) : localPos0;\n" +
                     "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
+                    flatNormal +
                     positionPostProcessing +
                     "   vertexId = gl_VertexID;\n" +
                     "}", y3D + "" +
@@ -520,6 +526,7 @@ object ShaderLib {
                 "   betterUV *= mix(1.0, attr1.r, inset);\n" +
                 "   localPosition = vec3(betterUV, attr0.z);\n" +
                 "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
+                flatNormal +
                 positionPostProcessing +
                 "   uv = attr1.yx;\n" +
                 "}"
@@ -532,12 +539,13 @@ object ShaderLib {
                 "   localPosition = vec3(attr0*2.0-1.0, 0.0);\n" +
                 "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
                 "   uv = gl_Position.xyw;\n" +
+                flatNormal +
                 positionPostProcessing +
                 "}"
 
         val y3DMasked = "" +
-                "varying v3 uv;\n" +
-                "varying v3 localPosition;\n" +
+                "varying vec3 uv;\n" +
+                "varying vec3 localPosition;\n" +
                 "varying float zDistance;\n"
 
         val f3DMasked = "" +
@@ -657,6 +665,7 @@ object ShaderLib {
                 "void main(){\n" +
                 "   localPosition = aLocalPosition;\n" +
                 "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
+                flatNormal +
                 positionPostProcessing +
                 "   color0 = aColor0;\n" +
                 "   color1 = aColor1;\n" +
@@ -737,6 +746,7 @@ object ShaderLib {
                 "   vec2 betterUV = vec2(cos(angle), -sin(angle)) * (1.0 - circleParams.x * attr0.y);\n" +
                 "   localPosition = vec3(betterUV, 0.0);\n" +
                 "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
+                flatNormal +
                 positionPostProcessing +
                 "}"
 
@@ -815,17 +825,17 @@ object ShaderLib {
                     "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
                     "   uv = uvs;\n" +
                     "   weight = weights;\n" +
-                    "   vColor = colors;\n" +
+                    "   vertexColor = colors;\n" +
                     positionPostProcessing +
                     "}", y3D + "" +
-                    "varying vec3 normal;\n" +
+                    // "varying vec3 normal;\n" + // by default, in y3D, included
                     "varying vec4 weight;\n" +
-                    "varying vec4 vColor;\n", "" +
+                    "varying vec4 vertexColor;\n", "" +
                     "uniform sampler2D tex;\n" +
                     getTextureLib +
                     getColorForceFieldLib +
                     "void main(){\n" +
-                    "   vec4 color = vColor * getTexture(tex, uv);\n" +
+                    "   vec4 color = vec4(vertexColor.rgb,1) * getTexture(tex, uv);\n" +
                     "   color.rgb *= 0.5 + 0.5 * dot(vec3(-1.0, 0.0, 0.0), normal);\n" +
                     "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                     "   vec3 finalColor = color.rgb;\n" +

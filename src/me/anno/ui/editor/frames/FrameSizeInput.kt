@@ -22,8 +22,8 @@ class FrameSizeInput(title: String, value0: String, style: Style) : PanelListY(s
 
     private val deepStyle = style.getChild("deep")
     private val customInput = PanelListX(deepStyle)
-    private val customX = IntInput("","X", 0, deepStyle)
-    private val customY = IntInput("","Y", 0, deepStyle)
+    private val customX = IntInput("Width","", 0, deepStyle)
+    private val customY = IntInput("Height","", 0, deepStyle)
 
     init {
         this += typeInput

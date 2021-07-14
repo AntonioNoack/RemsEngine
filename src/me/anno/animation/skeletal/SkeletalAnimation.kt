@@ -14,7 +14,7 @@ import org.lwjgl.system.MemoryUtil
 import java.nio.FloatBuffer
 import kotlin.math.max
 
-// finally working with http://rodolphe-vaillant.fr/?e=77
+// finally working with the help of http://rodolphe-vaillant.fr/?e=77
 // not 100% correctly though...
 
 open class SkeletalAnimation(val skeleton: Skeleton, usesPositionForBindPoses: Boolean) {

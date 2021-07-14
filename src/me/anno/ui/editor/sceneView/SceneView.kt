@@ -19,6 +19,7 @@ import me.anno.gpu.framebuffer.StableWindowSize
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
+import me.anno.input.Input
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseKeysDown
@@ -198,7 +199,8 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
     }
 
     override fun getVisualState(): Any? =
-        Triple(editorTime, stableSize.stableWidth, stableSize.stableHeight)
+        Triple(editorTime, stableSize.stableWidth, stableSize.stableHeight) to
+                Pair(Input.isKeyDown('l'), Input.isKeyDown('n'))
 
     override fun tickUpdate() {
         super.tickUpdate()
@@ -355,7 +357,7 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
 
                 // todo actions for console messages, e.g. opening a file
                 val file = folder.getChild(name)
-                use(file.outputStream()){ ImageIO.write(image, "png", it) }
+                use(file.outputStream()) { ImageIO.write(image, "png", it) }
                 LOGGER.info(
                     Dict["Saved screenshot to %1", "ui.sceneView.savedScreenshot"].replace(
                         "%1",

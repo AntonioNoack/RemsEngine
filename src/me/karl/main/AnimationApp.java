@@ -2,7 +2,7 @@ package me.karl.main;
 
 import org.lwjgl.glfw.GLFW;
 import me.karl.renderEngine.RenderEngine;
-import me.karl.scene.Scene;
+import me.karl.scene.DAEScene;
 
 public class AnimationApp {
 
@@ -20,7 +20,7 @@ public class AnimationApp {
 
 		RenderEngine engine = RenderEngine.init();
 
-		Scene scene = SceneLoader.loadScene(GeneralSettings.RES_FOLDER);
+		DAEScene scene = SceneLoader.loadScene(GeneralSettings.RES_FOLDER);
 
 		while (!GLFW.glfwWindowShouldClose(window)) {
 			scene.getCamera().move();

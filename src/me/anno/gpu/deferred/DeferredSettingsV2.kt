@@ -67,6 +67,7 @@ class DeferredSettingsV2(
 
     fun createShader(
         shaderName: String,
+        geometrySource: String?,
         vertexSource: String,
         varyingSource: String,
         fragmentSource: String,
@@ -122,13 +123,14 @@ class DeferredSettingsV2(
         }
         fragment.append(glslFragmentShaderEnd)
         fragment.append("}")
-        val shader = Shader(shaderName, vertex, varying, fragment.toString())
+        val shader = Shader(shaderName, geometrySource, vertex, varying, fragment.toString())
         shader.setTextureIndices(textures)
         return shader
     }
 
     fun createPostProcessingShader(
         shaderName: String,
+        geometrySource: String?,
         vertexSource: String,
         varyingSource: String,
         fragmentSource: String,
@@ -141,7 +143,7 @@ class DeferredSettingsV2(
         val fragment = fragmentSource.substring(0, index2) +
                 glslFragmentShaderEnd +
                 fragmentSource.substring(index2)
-        val shader = Shader(shaderName, vertex, varying, fragment)
+        val shader = Shader(shaderName, geometrySource, vertex, varying, fragment)
         shader.setTextureIndices(textures)
         return shader
     }

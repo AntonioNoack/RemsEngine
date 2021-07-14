@@ -69,6 +69,17 @@ abstract class PartialWriter(respectsDefaultValues: Boolean) : BaseWriter(respec
     override fun writeMatrix4x3d(name: String, value: Matrix4x3dc, force: Boolean) {}
     override fun writeMatrix4x4d(name: String, value: Matrix4dc, force: Boolean) {}
 
+    override fun writeQuaternionf(name: String, value: Quaternionf, force: Boolean) {}
+    override fun writeQuaterniond(name: String, value: Quaterniond, force: Boolean) {}
+
+    override fun writeVector2i(name: String, value: Vector2ic, force: Boolean) {}
+    override fun writeVector3i(name: String, value: Vector3ic, force: Boolean) {}
+    override fun writeVector4i(name: String, value: Vector4ic, force: Boolean) {}
+
+    override fun writeVector2iArray(name: String, values: Array<Vector2ic>, force: Boolean) {}
+    override fun writeVector3iArray(name: String, values: Array<Vector3ic>, force: Boolean) {}
+    override fun writeVector4iArray(name: String, values: Array<Vector4ic>, force: Boolean) {}
+
     override fun writeNull(name: String?) {}
     override fun writePointer(name: String?, className: String, ptr: Int) {}
 

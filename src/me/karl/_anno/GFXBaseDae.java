@@ -11,7 +11,7 @@ import me.anno.gpu.TextureLib;
 import me.karl.main.GeneralSettings;
 import me.karl.main.SceneLoader;
 import me.karl.renderEngine.RenderEngine;
-import me.karl.scene.Scene;
+import me.karl.scene.DAEScene;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.glfw.GLFWMouseButtonCallback;
 
@@ -29,7 +29,7 @@ public class GFXBaseDae extends GFXBase0 {
     }
 
     RenderEngine engine;
-    Scene scene;
+    DAEScene scene;
 
     @Override
     public void addCallbacks() {

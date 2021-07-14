@@ -1,13 +1,16 @@
-package me.anno.gpu.blending
+package me.anno.gpu.pipeline
 
-import me.anno.ecs.Transform
+import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.RendererComponent
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX.shaderColor
 import me.anno.gpu.RenderState
+import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
+import me.anno.io.Saveable
 import org.joml.Matrix4fc
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
@@ -27,7 +30,7 @@ class PipelineStage(
     val inversedDepth: Boolean,
     val cullMode: Int, // 0 = both, gl_front, gl_back
     val defaultShader: BaseShader
-) {
+) : Saveable() {
 
     val depthMode = if (useDepth) {
         if (inversedDepth) {
@@ -48,7 +51,12 @@ class PipelineStage(
         BACK_TO_FRONT
     }
 
-    class DrawRequest(var mesh: MeshComponent, var transform: Transform, var materialIndex: Int)
+    class DrawRequest(
+        var mesh: Mesh,
+        var renderer: RendererComponent,
+        var entity: Entity,
+        var materialIndex: Int
+    )
 
     fun bindDraw(cameraMatrix: Matrix4fc, cameraPosition: Vector3d) {
         RenderState.blendMode.use(blendMode) {
@@ -75,12 +83,12 @@ class PipelineStage(
             }
             Sorting.FRONT_TO_BACK -> {
                 drawRequests.sortBy {
-                    it.transform.distanceSquaredGlobally(cameraPosition)
+                    it.entity.transform.distanceSquaredGlobally(cameraPosition)
                 }
             }
             Sorting.BACK_TO_FRONT -> {
                 drawRequests.sortBy {
-                    it.transform.distanceSquaredGlobally(cameraPosition)
+                    it.entity.transform.distanceSquaredGlobally(cameraPosition)
                 }
             }
         }
@@ -93,10 +101,12 @@ class PipelineStage(
 
             val request = drawRequests[index]
             val mesh = request.mesh
-            val transform = request.transform
+            val entity = request.entity
+            val transform = entity.transform
             val materialIndex = request.materialIndex
             val material = mesh.materials[materialIndex]
             val baseShader = material.shader ?: defaultShader
+            val renderer = request.renderer
 
             // mesh.draw(shader, material)
             val shader = baseShader.value
@@ -124,6 +134,9 @@ class PipelineStage(
             }
 
             shaderColor(shader, "tint", -1)
+
+            // todo only if the entity has changed (?), also if the mesh has changed?
+            renderer.defineVertexTransform(shader, entity, mesh)
 
             mesh.draw(shader, materialIndex)
 
@@ -193,17 +206,22 @@ class PipelineStage(
         writeIndex = 0
     }
 
-    fun add(mesh: MeshComponent, transform: Transform, materialIndex: Int) {
+    fun add(renderer: RendererComponent, mesh: Mesh, entity: Entity, materialIndex: Int) {
         if (writeIndex < drawRequests.size) {
-            val request = DrawRequest(mesh, transform, materialIndex)
+            val request = DrawRequest(mesh, renderer, entity, materialIndex)
             drawRequests.add(request)
             writeIndex++
         } else {
             val request = drawRequests[writeIndex]
             request.mesh = mesh
-            request.transform = transform
+            request.renderer = renderer
+            request.entity = entity
             request.materialIndex = materialIndex
         }
     }
+
+    override val className: String = "PipelineStage"
+    override val approxSize: Int = 5
+    override fun isDefaultValue(): Boolean = false
 
 }

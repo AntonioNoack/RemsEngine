@@ -1,7 +1,7 @@
 package me.karl.renderEngine;
 
 import me.karl.renderer.AnimatedModelRenderer;
-import me.karl.scene.Scene;
+import me.karl.scene.DAEScene;
 import me.karl.skybox.SkyboxRenderer;
 import org.lwjgl.opengl.GL11;
 
@@ -23,7 +23,7 @@ public class MasterRenderer {
     /**
      * Renders the scene to the screen.
      */
-    protected void renderScene(Scene scene) {
+    protected void renderScene(DAEScene scene) {
         prepare();
         skyRenderer.render(scene.getCamera());
         entityRenderer.render(scene.getAnimatedModel(), scene.getCamera(), scene.getLightDirection());

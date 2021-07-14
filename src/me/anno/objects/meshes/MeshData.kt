@@ -4,14 +4,17 @@ import me.anno.animation.skeletal.SkeletalAnimation
 import me.anno.cache.data.ICacheData
 import me.anno.cache.instances.ImageCache.getImage
 import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.matrixBufferFBX
+import me.anno.gpu.RenderState
 import me.anno.gpu.ShaderLib.shaderAssimp
 import me.anno.gpu.ShaderLib.shaderFBX
 import me.anno.gpu.ShaderLib.shaderObjMtl
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.drawing.GFXx3D.shader3DUniforms
 import me.anno.gpu.drawing.GFXx3D.transformUniform
 import me.anno.gpu.shader.Shader
@@ -20,7 +23,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.files.FileReference
 import me.anno.mesh.assimp.AnimGameItem
-import me.anno.mesh.assimp.AssimpModel
+import me.anno.mesh.assimp.AnimGameItem.Companion.matrixBuffer
 import me.anno.mesh.fbx.model.FBXGeometry
 import me.anno.mesh.fbx.model.FBXModel
 import me.anno.mesh.gltf.CustomGlContext
@@ -29,7 +32,7 @@ import me.anno.objects.GFXTransform
 import me.anno.objects.GFXTransform.Companion.uploadAttractors
 import me.anno.video.MissingFrameException
 import me.karl.main.Camera
-import me.karl.scene.Scene
+import me.karl.scene.DAEScene
 import org.joml.*
 import kotlin.math.sin
 
@@ -40,7 +43,7 @@ open class MeshData : ICacheData {
     var objData: Map<Material, StaticBuffer>? = null
     var fbxData: List<FBXData>? = null
     var gltfData: GlTFData? = null
-    var daeScene: Scene? = null
+    var daeScene: DAEScene? = null
     var assimpModel: AnimGameItem? = null
 
     fun drawAssimp(
@@ -48,7 +51,7 @@ open class MeshData : ICacheData {
         stack: Matrix4fArrayList,
         time: Double,
         color: Vector4fc,
-        animationIndex: Int,
+        animationName: String,
         useMaterials: Boolean
     ) {
 
@@ -65,11 +68,12 @@ open class MeshData : ICacheData {
         // todo other material properties
         // todo play animation
         val model0 = assimpModel!!
-        val animation = model0.animations.toSortedMap().values.toList().getOrNull(animationIndex)
+        val animation = model0.animations[animationName]
         shader.v1("hasAnimation", if (animation == null) 0f else 1f)
         if (animation != null) {
             model0.uploadJointMatrices(shader, animation, time)
         }
+
 
         /*val diffuse = Vector4f()
         for (model in model0.hierarchy) {
@@ -100,13 +104,23 @@ open class MeshData : ICacheData {
         // draw skeleton for debugging purposes
         // makes sense for the working skeletons, but is broken for the incorrect ones...
         // so at least that seems to be correct...
-        /*for(bone in model0.bones){
-            stack.next {
-                stack.mul(Matrix4f(bone.offsetMatrix).invert())
-                GFXx3D.draw3DCircle(null, 0.0, stack, 0.7f, 0f, 360f, color)
+        RenderState.geometryShader.use(null){
+            for (boneIndex in model0.bones.indices) {
+                val bone = model0.bones[boneIndex]
+                stack.next {
+                    // val skinning = Matrix4x3f().get(matrixBuffer.apply { position(12 * boneIndex) })
+                    // val m = Matrix4f(bone.tmpTransform).mul(Matrix4f(skinning))
+                    stack.translate(Vector3f(bone.tmpOffset.m30(), bone.tmpOffset.m31(), bone.tmpOffset.m32()))
+                    // stack.translate(bone.offsetVector)
+                    stack.scale(0.1f)
+                    GFXx3D.draw3DCircle(null, 0.0, stack, 0.7f, 0f, 360f, color)
+                }
             }
-        }*/
+        }
 
+        // todo line mode: draw every mesh as lines
+        // todo draw non-indexed as lines: use an index buffer
+        // todo draw indexed as lines: use a geometry shader, which converts 3 vertices into 3 lines
 
     }
 
@@ -138,14 +152,14 @@ open class MeshData : ICacheData {
             )
         )
 
-        val assimpModel = entity.getComponent<AssimpModel>()
-        if (assimpModel != null && assimpModel.meshes.isNotEmpty()) {
+        val meshes = entity.getComponents<MeshComponent>(false).mapNotNull { it.mesh }
+        if (meshes.isNotEmpty()) {
 
             shader.m4x3("localTransform", stack)
 
             if (useMaterials) {
                 val diffuse = Vector4f()
-                for (mesh in assimpModel.meshes) {
+                for (mesh in meshes) {
                     val material = mesh.material
                     val texturePath = material?.diffuseMap
                     val textureOrNull = if (texturePath == null) null else getImage(texturePath, 1000, true)
@@ -158,7 +172,7 @@ open class MeshData : ICacheData {
                 }
             } else {
                 whiteTexture.bind(0)
-                for (mesh in assimpModel.meshes) {
+                for (mesh in meshes) {
                     GFX.shaderColor(shader, "tint", -1)
                     mesh.draw(shader, 0)
                 }

@@ -69,12 +69,23 @@ abstract class Saveable : ISaveable {
     override fun readVector3dArray(name: String, values: Array<Vector3d>) = readSomething(name, values)
     override fun readVector4dArray(name: String, values: Array<Vector4d>) = readSomething(name, values)
 
+    override fun readVector2i(name: String, value: Vector2i) = readSomething(name, value)
+    override fun readVector3i(name: String, value: Vector3i) = readSomething(name, value)
+    override fun readVector4i(name: String, value: Vector4i) = readSomething(name, value)
+
+    override fun readVector2iArray(name: String, values: Array<Vector2i>) = readSomething(name, values)
+    override fun readVector3iArray(name: String, values: Array<Vector3i>) = readSomething(name, values)
+    override fun readVector4iArray(name: String, values: Array<Vector4i>) = readSomething(name, values)
+
     override fun readMatrix3x3f(name: String, value: Matrix3f) = readSomething(name, value)
     override fun readMatrix4x3f(name: String, value: Matrix4x3f) = readSomething(name, value)
     override fun readMatrix4x4f(name: String, value: Matrix4f) = readSomething(name, value)
     override fun readMatrix3x3d(name: String, value: Matrix3d) = readSomething(name, value)
     override fun readMatrix4x3d(name: String, value: Matrix4x3d) = readSomething(name, value)
     override fun readMatrix4x4d(name: String, value: Matrix4d) = readSomething(name, value)
+
+    override fun readQuaternionf(name: String, value: Quaternionf) = readSomething(name, value)
+    override fun readQuaterniond(name: String, value: Quaterniond) = readSomething(name, value)
 
     open fun readSomething(name: String, value: Any?) = warnMissingParam(name)
 

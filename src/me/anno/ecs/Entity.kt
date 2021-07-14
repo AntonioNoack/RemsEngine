@@ -163,26 +163,34 @@ open class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
         }
     }
 
-    inline fun <reified V> getComponent(): V? {
-        return components.firstOrNull { it is V } as V?
+    inline fun <reified V : Component> getComponent(includingDisabled: Boolean): V? {
+        return components.firstOrNull { it is V && (includingDisabled || it.isEnabled) } as V?
     }
 
-    inline fun <reified V> getComponentInChildren(): V? {
-        return simpleTraversal(true) { getComponent<V>() != null }?.getComponent<V>()
+    inline fun <reified V : Component> getComponentInChildren(includingDisabled: Boolean): V? {
+        return simpleTraversal(true) { getComponent<V>(includingDisabled) != null }?.getComponent<V>(includingDisabled)
     }
 
-    inline fun <reified V> getComponents(): List<V> {
-        return components.filterIsInstance<V>()
+    inline fun <reified V : Component> getComponents(includingDisabled: Boolean): List<V> {
+        return if (includingDisabled) {
+            components.filterIsInstance<V>()
+        } else {
+            components.filterIsInstance<V>().filter { it.isEnabled }
+        }
     }
 
-    inline fun <reified V> getComponentsInChildren(): List<V> {
+    inline fun <reified V : Component> getComponentsInChildren(includingDisabled: Boolean): List<V> {
         val result = ArrayList<V>()
         val todo = ArrayList<Entity>()
         todo.add(this)
         while (todo.isNotEmpty()) {
             val entity = todo.removeAt(todo.lastIndex)
-            result.addAll(entity.getComponents())
-            todo.addAll(entity.children)
+            result.addAll(entity.getComponents(includingDisabled))
+            if (includingDisabled) {
+                todo.addAll(entity.children)
+            } else {
+                todo.addAll(entity.children.filter { it.isEnabled })
+            }
         }
         return result
     }
@@ -194,8 +202,8 @@ open class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
     ) {
         // todo implement the properties and stuff
         // todo add history support (undoing stuff)
-        list.add(TextInput("Name", "name", style, name).setChangeListener { name = it })
-        list.add(TextInput("Description", "desc", style, description).setChangeListener { description = it })
+        list.add(TextInput("Name", "", style, name).setChangeListener { name = it })
+        list.add(TextInput("Description", "", style, description).setChangeListener { description = it })
         list.add(VectorInput(style, "Position", "pos", transform.localPosition, Type.POSITION)
             .setChangeListener { x, y, z, _ -> transform.localPosition.set(x, y, z) })
         list.add(VectorInput(style, "Rotation", "rot", transform.localRotation, Type.ROT_YXZ)

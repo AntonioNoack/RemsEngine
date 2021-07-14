@@ -12,10 +12,12 @@ import org.joml.*
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL21.glUniformMatrix4x3fv
+import org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER
 import java.nio.FloatBuffer
 
 open class Shader(
     val shaderName: String,
+    val geometry: String? = null,
     val vertex: String,
     val varying: String,
     val fragment: String,
@@ -50,35 +52,127 @@ open class Shader(
     val pointer get() = program
     private val ignoredNames = HashSet<String>()
 
+    class Varying(val modifiers: String, val type: String, val name: String) {
+        var vShaderName = name
+        var fShaderName = name
+        fun makeDifferent() {
+            vShaderName = "v_$name"
+            fShaderName = "f_$name"
+        }
+    }
+
+    fun decodeVaryings(): List<Varying> {
+        val result = ArrayList<Varying>()
+        // todo remove comments (if they ever appear)
+        for (line in varying.replaceShortCuts().split(';').map { it.trim() }) {
+            // varying vec3 out
+            val index0 = line.indexOf("varying")
+            if (index0 >= 0) {
+                // for flat varyings
+                val modifiers = line.substring(0, index0)
+                // out type name,name2,name3
+                val line2 = line.substring(index0 + "varying".length).trim()
+                val typeIndex = line2.indexOf(' ')
+                if (typeIndex < 0) throw RuntimeException("Varying type must be followed by space")
+                val type = line2.substring(0, typeIndex)
+                val names = line2.substring(typeIndex + 1).split(',').filter { !it.isBlank2() }.map { it.trim() }
+                for (name in names) {
+                    result.add(Varying(modifiers, type, name))
+                }
+            } else if (!line.isBlank2()) {
+                LOGGER.warn("Awkward line: $line")
+            }
+        }
+        return result
+    }
+
     // shader compile time doesn't really matter... -> move it to the start to preserve ram use?
     // isn't that much either...
     fun init() {
 
-        // LOGGER.debug("$shaderName\nVERTEX:\n$vertex\nVARYING:\n$varying\nFRAGMENT:\n$fragment")
+        // LOGGER.debug("$shaderName\nGEOMETRY:\n$geometry\nVERTEX:\n$vertex\nVARYING:\n$varying\nFRAGMENT:\n$fragment")
+
+        val varyings = decodeVaryings()
 
         program = glCreateProgram()
-        // the shaders are like a C compilation process, .o-files: after linking, they can be removed
-        val vertexSource = ("" +
-                "#version $glslVersion\n" +
-                "${varying.replace("varying", "out")} $vertex").replaceShortCuts()
-        val vertexShader = compile(GL_VERTEX_SHADER, vertexSource)
-        val fragmentSource = ("" +
-                "#version $glslVersion\n" +
-                "precision mediump float; ${varying.replace("varying", "in")} ${
-                    if (fragment.contains("gl_FragColor") && glslVersion == DefaultGLSLVersion) {
-                        "out vec4 glFragColor;" +
-                                fragment.replace("gl_FragColor", "glFragColor")
-                    } else fragment
-                }").replaceShortCuts()
+        val geometryShader = if (geometry != null) {
+            for (v in varyings) v.makeDifferent()
+            var geo: String = "#version $glslVersion\n" + geometry
+            while (true) {
+                // copy over all varyings for the shaders
+                val copyIndex = geo.indexOf("#copy")
+                if (copyIndex < 0) break
+                val indexVar = geo[copyIndex + "#copy[".length]
+                // frag.name = vertices[indexVar].name
+                geo = geo.substring(0, copyIndex) + varyings.joinToString("\n") {
+                    "\t${it.fShaderName} = ${it.vShaderName}[$indexVar];"
+                } + geo.substring(copyIndex + "#copy[i]".length)
+            }
+            geo = geo.replace("#varying", varyings.joinToString("\n") { "\t${it.type} ${it.name};" })
+            geo = geo.replace("#inOutVarying", varyings.joinToString("") {
+                "" +
+                        "${it.modifiers} in  ${it.type} ${it.vShaderName}[];\n" +
+                        "${it.modifiers} out ${it.type} ${it.fShaderName};\n"
+            })
+            compile(GL_GEOMETRY_SHADER, geo)
+        } else -1
 
+        // the shaders are like a C compilation process, .o-files: after linking, they can be removed
+        val vertexSource = (
+                "" +
+                        "#version $glslVersion\n" +
+                        varyings.joinToString("\n") { "${it.modifiers} out ${it.type} ${it.vShaderName};" } +
+                        "\n" +
+                        vertex.replaceVaryingNames(true, varyings)
+                ).replaceShortCuts()
+        val vertexShader = compile(GL_VERTEX_SHADER, vertexSource)
+
+        val fragmentSource = (
+                "" +
+                        "#version $glslVersion\n" +
+                        "precision mediump float;\n" +
+                        varyings.joinToString("\n") { "${it.modifiers} in  ${it.type} ${it.fShaderName};" } +
+                        "\n" +
+                        (if (fragment.contains("gl_FragColor") && glslVersion == DefaultGLSLVersion) {
+                            "" +
+                                    "out vec4 glFragColor;" +
+                                    fragment.replace("gl_FragColor", "glFragColor")
+                        } else fragment).replaceVaryingNames(false, varyings)
+                ).replaceShortCuts()
         val fragmentShader = compile(GL_FRAGMENT_SHADER, fragmentSource)
+
         glLinkProgram(program)
         glDeleteShader(vertexShader)
         glDeleteShader(fragmentShader)
+        if (geometryShader >= 0) glDeleteShader(geometryShader)
         logShader(vertexSource, fragmentSource)
 
         GFX.check()
 
+    }
+
+    fun String.replaceVaryingNames(isVertex: Boolean, varyings: List<Varying>): String {
+        var str = this
+        if (varyings.isNotEmpty() && varyings.first().run { vShaderName != fShaderName })
+            for (v in varyings) {
+                // regex to really only replace these words
+                val target = if (isVertex) v.vShaderName else v.fShaderName
+                val anything = "[ .,\\n;(){}\\[\\]]"
+                val regex = Regex(anything + v.name + anything)
+                val result = StringBuilder()
+                var i0 = 0
+                while (true) {
+                    val match = regex.find(str, i0) ?: break
+                    val startIndex = match.range.first + 1
+                    result.append(str.substring(i0, startIndex))
+                    result.append(target)
+                    i0 = startIndex + v.name.length
+                }
+                result.append(str.substring(i0))
+                // str = str.replace(v.name, target)
+                str = result.toString()
+            }
+        return str
     }
 
     fun setTextureIndices(textures: List<String>?) {
@@ -92,7 +186,7 @@ open class Shader(
 
     fun logShader(vertex: String, fragment: String) {
         if (logShaders) {
-            val folder = OS.desktop.getChild("shaders")!!
+            val folder = OS.desktop.getChild("shaders")
             folder.mkdirs()
             fun print(ext: String, data: String) {
                 val name = "$shaderName.$ext".toAllowedFilename() ?: return

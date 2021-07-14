@@ -1,15 +1,30 @@
 package me.anno.ecs.components.anim
 
-import org.lwjgl.BufferUtils
+import me.anno.io.ISaveable
+import me.anno.io.NamedSaveable
+import me.anno.io.base.BaseWriter
+import me.anno.mesh.assimp.Bone
 
-class Skeleton(val joints: Array<Joint>) {
+class Skeleton() : NamedSaveable() {
 
-    class Joint {
+    var bones: Array<Bone>? = null
 
+    override val className: String = "Skeleton"
+    override val approxSize: Int = 10
+
+    override fun readObjectArray(name: String, values: Array<ISaveable?>) {
+        when (name) {
+            "bones" -> bones = values.filterIsInstance<Bone>().toTypedArray()
+            else -> super.readObjectArray(name, values)
+        }
     }
 
-    companion object {
-        val gpuBuffer = BufferUtils.createFloatBuffer(12 * 256)
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        val bones = bones
+        if (bones != null) {
+            writer.writeObjectArray(this, "bones", bones)
+        }
     }
 
 }

@@ -302,7 +302,7 @@ object UILayouts {
             base.focusTextColor = base.textColor
         }
 
-        nameInput = TextInput("Title", "title", style, Dict["New Project", "ui.newProject.defaultName"])
+        nameInput = TextInput("Title", "", style, Dict["New Project", "ui.newProject.defaultName"])
         nameInput.setEnterListener { loadNewProject(usableFile, nameInput) }
 
         var lastName = nameInput.text
@@ -437,6 +437,18 @@ object UILayouts {
 
     }
 
+    fun createReloadWindow(panel: Panel, fullscreen: Boolean): Window {
+        return object : Window(
+            panel, fullscreen,
+            if (fullscreen) 0 else mouseX.toInt(),
+            if (fullscreen) 0 else mouseY.toInt()
+        ) {
+            override fun destroy() {
+                createEditorUI()
+            }
+        }
+    }
+
     fun createEditorUI(loadUI: Boolean = true) {
 
         val style = DefaultConfig.style
@@ -444,18 +456,6 @@ object UILayouts {
         val ui = PanelListY(style)
 
         val options = OptionBar(style)
-
-        fun createReloadWindow(panel: Panel, fullscreen: Boolean): Window {
-            return object : Window(
-                panel, fullscreen,
-                if (fullscreen) 0 else mouseX.toInt(),
-                if (fullscreen) 0 else mouseY.toInt()
-            ) {
-                override fun destroy() {
-                    createEditorUI()
-                }
-            }
-        }
 
         val configTitle = Dict["Config", "ui.top.config"]
         val projectTitle = Dict["Project", "ui.top.project"]

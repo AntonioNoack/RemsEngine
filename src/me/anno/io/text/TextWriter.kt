@@ -428,6 +428,23 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         data.append(']')
     }
 
+    override fun writeQuaternionf(name: String, value: Quaternionf, force: Boolean) {
+        writeAttributeStart("q4", name)
+        data.append('[')
+        val x = value.x()
+        val y = value.y()
+        val z = value.z()
+        val w = value.w()
+        append(x)
+        data.append(separator)
+        append(y)
+        data.append(separator)
+        append(z)
+        data.append(separator)
+        append(w)
+        data.append(']')
+    }
+
     private fun writeVector2d(value: Vector2dc) {
         data.append('[')
         val x = value.x()
@@ -476,6 +493,86 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
             append(w)
         }
         data.append(']')
+    }
+
+    override fun writeQuaterniond(name: String, value: Quaterniond, force: Boolean) {
+        writeAttributeStart("q4d", name)
+        data.append('[')
+        val x = value.x()
+        val y = value.y()
+        val z = value.z()
+        val w = value.w()
+        append(x)
+        data.append(separator)
+        append(y)
+        data.append(separator)
+        append(z)
+        data.append(separator)
+        append(w)
+        data.append(']')
+    }
+
+    private fun writeVector2i(value: Vector2ic) {
+        data.append('[')
+        data.append(value.x())
+        data.append(separator)
+        data.append(value.y())
+        data.append(']')
+    }
+
+    private fun writeVector3i(value: Vector3ic) {
+        data.append('[')
+        data.append(value.x())
+        data.append(separator)
+        data.append(value.y())
+        data.append(separator)
+        data.append(value.z())
+        data.append(']')
+    }
+
+    private fun writeVector4i(value: Vector4ic) {
+        data.append('[')
+        data.append(value.x())
+        data.append(separator)
+        data.append(value.y())
+        data.append(separator)
+        data.append(value.z())
+        data.append(separator)
+        data.append(value.w())
+        data.append(']')
+    }
+
+    override fun writeVector2i(name: String, value: Vector2ic, force: Boolean) {
+        if (force || value.x() != 0 || value.y() != 0) {
+            writeAttributeStart(name, "v2i")
+            writeVector2i(value)
+        }
+    }
+
+    override fun writeVector2iArray(name: String, values: Array<Vector2ic>, force: Boolean) {
+        writeArray(name, values, force, "v2i[]") { writeVector2i(it) }
+    }
+
+    override fun writeVector3i(name: String, value: Vector3ic, force: Boolean) {
+        if (force || value.x() != 0 || value.y() != 0 || value.z() != 0) {
+            writeAttributeStart(name, "v3i")
+            writeVector3i(value)
+        }
+    }
+
+    override fun writeVector3iArray(name: String, values: Array<Vector3ic>, force: Boolean) {
+        writeArray(name, values, force, "v3i[]") { writeVector3i(it) }
+    }
+
+    override fun writeVector4i(name: String, value: Vector4ic, force: Boolean) {
+        if (force || value.x() != 0 || value.y() != 0) {
+            writeAttributeStart(name, "v3i")
+            writeVector4i(value)
+        }
+    }
+
+    override fun writeVector4iArray(name: String, values: Array<Vector4ic>, force: Boolean) {
+        writeArray(name, values, force, "v4i[]") { writeVector4i(it) }
     }
 
     override fun writeVector2f(name: String, value: Vector2fc, force: Boolean) {
@@ -564,27 +661,74 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     override fun writeMatrix3x3f(name: String, value: Matrix3fc, force: Boolean) {
-        TODO("Not yet implemented")
+        writeAttributeStart("M3x3", name)
+        data.append('[')
+        val tmp = FloatArray(9)
+        value.get(tmp)
+        for (i in tmp.indices) {
+            if (i > 0) data.append(',')
+            append(tmp[i])
+        }
+        data.append(']')
     }
 
     override fun writeMatrix4x3f(name: String, value: Matrix4x3fc, force: Boolean) {
-        TODO("Not yet implemented")
+        writeAttributeStart("M4x3", name)
+        data.append('[')
+        val tmp = FloatArray(12)
+        value.get(tmp)
+        for (i in tmp.indices) {
+            if (i > 0) data.append(',')
+            append(tmp[i])
+        }
+        data.append(']')
     }
 
     override fun writeMatrix4x4f(name: String, value: Matrix4fc, force: Boolean) {
-        TODO("Not yet implemented")
+        writeAttributeStart("M4x4", name)
+        data.append('[')
+        val tmp = FloatArray(16)
+        for (i in tmp.indices) {
+            if (i > 0) data.append(',')
+            append(tmp[i])
+        }
+        data.append(']')
     }
 
     override fun writeMatrix3x3d(name: String, value: Matrix3dc, force: Boolean) {
-        TODO("Not yet implemented")
+        writeAttributeStart("M3x3d", name)
+        data.append('[')
+        val tmp = DoubleArray(9)
+        value.get(tmp)
+        for (i in tmp.indices) {
+            if (i > 0) data.append(',')
+            append(tmp[i])
+        }
+        data.append(']')
     }
 
     override fun writeMatrix4x3d(name: String, value: Matrix4x3dc, force: Boolean) {
-        TODO("Not yet implemented")
+        writeAttributeStart("M4x3d", name)
+        data.append('[')
+        val tmp = DoubleArray(12)
+        value.get(tmp)
+        for (i in tmp.indices) {
+            if (i > 0) data.append(',')
+            append(tmp[i])
+        }
+        data.append(']')
     }
 
     override fun writeMatrix4x4d(name: String, value: Matrix4dc, force: Boolean) {
-        TODO("Not yet implemented")
+        writeAttributeStart("M4x4d", name)
+        data.append('[')
+        val tmp = DoubleArray(16)
+        value.get(tmp)
+        for (i in tmp.indices) {
+            if (i > 0) data.append(',')
+            append(tmp[i])
+        }
+        data.append(']')
     }
 
     override fun writeNull(name: String?) {
@@ -634,7 +778,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
                     writeAttributeStart("$firstType[]", name)
                     open(true)
                     data.append(values.size)
-                    for(obj in values) {
+                    for (obj in values) {
                         data.append(',')
                         // self is null, because later init is not allowed
                         writeObject(null, "", obj, true)
@@ -647,11 +791,11 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         }
     }
 
-    private fun <V: ISaveable> writeHeterogeneousArray(name: String, values: Array<V>){
+    private fun <V : ISaveable> writeHeterogeneousArray(name: String, values: Array<V>) {
         writeAttributeStart("*[]", name)
         open(true)
         data.append(values.size)
-        for(obj in values) {
+        for (obj in values) {
             data.append(',')
             // self is null, because later init is not allowed
             writeObject(null, null, obj, true)

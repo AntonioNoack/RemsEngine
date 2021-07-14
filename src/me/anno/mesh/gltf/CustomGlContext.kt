@@ -41,7 +41,7 @@ object CustomGlContext : GlContextLwjgl() {
                 positionPostProcessing +
                 "}"
         val plusFragmentShader = ShaderPlus.makeFragmentShaderUniversal("", fragmentShaderSource)
-        val shader = Shader("Gltf", plusVertexShader, "varying float zDistance;\n", plusFragmentShader, true)
+        val shader = Shader("Gltf", null, plusVertexShader, "varying float zDistance;\n", plusFragmentShader, true)
         shaders.add(shader)
         useGlProgram(index)
         return index

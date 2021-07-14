@@ -209,6 +209,7 @@
       <w>renderbuffer</w>
       <w>renderbuffers</w>
       <w>renderdoc</w>
+      <w>retargetings</w>
       <w>rigidbody</w>
       <w>rosybrown</w>
       <w>royalblue</w>
@@ -218,6 +219,7 @@
       <w>saveable</w>
       <w>seagreen</w>
       <w>segoe</w>
+      <w>serializables</w>
       <w>shaders</w>
       <w>sinh</w>
       <w>skewx</w>
@@ -245,6 +247,7 @@
       <w>usemtl</w>
       <w>uvec</w>
       <w>valencian</w>
+      <w>varyings</w>
       <w>vecmath</w>
       <w>vertice</w>
       <w>veryfast</w>

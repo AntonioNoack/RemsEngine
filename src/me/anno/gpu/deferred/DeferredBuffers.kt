@@ -35,12 +35,19 @@ object DeferredBuffers {
 
     fun createDeferredShader(
         settings: DeferredSettingsV1,
-        shaderName: String, v3D: String, y3D: String, f3D: String, textures: List<String>
+        shaderName: String, g3D: String?, v3D: String, y3D: String, f3D: String, textures: List<String>
     ): Shader {
-        val shader = Shader(shaderName, v3D, y3D, settings.f3D + f3D, true)
+        val shader = Shader(shaderName, g3D, v3D, y3D, settings.f3D + f3D, true)
         shader.glslVersion = 330
         shader.setTextureIndices(textures)
         return shader
+    }
+
+    fun createDeferredShader(
+        settings: DeferredSettingsV1,
+        shaderName: String, v3D: String, y3D: String, f3D: String, textures: List<String>
+    ): Shader {
+        return createDeferredShader(settings, shaderName, null, v3D, y3D, f3D, textures)
     }
 
 }

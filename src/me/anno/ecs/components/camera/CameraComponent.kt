@@ -2,6 +2,7 @@ package me.anno.ecs.components.camera
 
 import me.anno.ecs.Component
 import me.anno.ecs.components.player.LocalPlayer.Companion.currentLocalPlayer
+import me.anno.gpu.pipeline.Pipeline
 import org.joml.Vector4f
 
 // todo like the studio camera,
@@ -17,11 +18,12 @@ class CameraComponent : Component() {
 
     var far = 5000.0
 
-    var postProcessingEffects = ArrayList<PPE>()
+    val pipeline = Pipeline()
+
+    val postProcessingEffects get() = components
+        .filterIsInstance<PostProcessingEffectComponent>()
 
     val clearColor = Vector4f(0f, 0f, 0f, 1f)
-
-    class PPE
 
     fun use(blendingTime: Double) {
         val player = currentLocalPlayer!!

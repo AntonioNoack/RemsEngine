@@ -24,7 +24,6 @@ import me.anno.image.HDRImage
 import me.anno.image.tar.TGAImage
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
-import me.anno.mesh.assimp.AssimpModel
 import me.anno.mesh.assimp.StaticMeshesLoader
 import me.anno.objects.Video
 import me.anno.objects.documents.pdf.PDFCache
@@ -332,22 +331,10 @@ object Thumbs {
             // todo render all them points, and use them for the bbx calculation (only if no meshes present)
             // because animated clothing may be too small to see
             val local = AABBd()
-            val meshes0 = entity.getComponents<MeshComponent>()
-            for (mesh in meshes0) {
+            val meshes = entity.getComponents<MeshComponent>(false).mapNotNull { it.mesh }
+            for (mesh in meshes) {
                 mesh.ensureBuffer()
                 local.union(mesh.aabb.toDouble())
-            }
-            val assimpModel = entity.getComponent<AssimpModel>()
-            val meshes1 = assimpModel?.meshes
-            if (meshes1 != null) {
-                for (mesh in meshes1) {
-                    mesh.ensureBuffer()
-                    local.union(
-                        AABBf(mesh.aabb)
-                            .transform(assimpModel.transform)
-                            .toDouble()
-                    )
-                }
             }
             local.transform(Matrix4d(entity.transform.globalTransform))
             joint.union(local)
@@ -404,7 +391,7 @@ object Thumbs {
 
         // render everything without color
         renderToBufferedImage(srcFile, dstFile, true, callback, size, size) {
-            data.drawAssimp(null, stack, 0.0, Vector4f(1f), -1, false)
+            data.drawAssimp(null, stack, 0.0, Vector4f(1f), "", false)
         }
 
     }

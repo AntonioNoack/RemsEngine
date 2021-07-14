@@ -3,7 +3,11 @@ package me.anno.gpu.shader
 object ShaderPlus {
 
     fun create(name: String, vertex: String, varying: String, fragment: String): Shader {
-        return Shader(name, vertex, varying, makeFragmentShaderUniversal(varying, fragment))
+        return Shader(name, null, vertex, varying, makeFragmentShaderUniversal(varying, fragment))
+    }
+
+    fun create(name: String, geometry: String?, vertex: String, varying: String, fragment: String): Shader {
+        return Shader(name, geometry, vertex, varying, makeFragmentShaderUniversal(varying, fragment))
     }
 
     fun makeFragmentShaderUniversal(varyingSource: String, fragmentSource: String): String {

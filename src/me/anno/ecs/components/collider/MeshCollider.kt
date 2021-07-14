@@ -2,6 +2,7 @@ package me.anno.ecs.components.collider
 
 import com.bulletphysics.collision.shapes.*
 import com.bulletphysics.util.ObjectArrayList
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.io.serialization.SerializedProperty
 import org.joml.Vector3d
@@ -12,7 +13,7 @@ class MeshCollider : Collider() {
     @SerializedProperty
     var isConvex = true
 
-    var mesh: MeshComponent? = null
+    var mesh: Mesh? = null
 
     override fun getSignedDistance(deltaPosition: Vector3d, movement: Vector3d): Double {
         TODO("Not yet implemented")

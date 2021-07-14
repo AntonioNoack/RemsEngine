@@ -47,12 +47,11 @@ class BulletPhysics {
     fun add(entity: Entity) {
         // todo add including constraints and such...
         // todo colliders in children?
-        val base = entity.getComponent<Rigidbody>() ?: return
+        val base = entity.getComponent<Rigidbody>(false) ?: return
         if (base.isEnabled) {
             // todo only collect colliders, which are appropriate for this: stop at any other rigidbody
             // todo also only collect physics colliders, not click-colliders
-            val colliders = entity.getComponentsInChildren<Collider>()
-                .filter { it.isEnabled }
+            val colliders = entity.getComponentsInChildren<Collider>(false)
             if (colliders.isNotEmpty()) {
 
                 // copy all knowledge from ecs to bullet

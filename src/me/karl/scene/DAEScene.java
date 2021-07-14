@@ -11,7 +11,7 @@ import me.karl.animatedModel.AnimatedModel;
  * @author Karl
  *
  */
-public class Scene {
+public class DAEScene {
 
 	private final ICamera camera;
 
@@ -19,7 +19,7 @@ public class Scene {
 
 	private Vector3f lightDirection = new Vector3f(0, -1, 0);
 
-	public Scene(AnimatedModel model, ICamera cam) {
+	public DAEScene(AnimatedModel model, ICamera cam) {
 		this.animatedModel = model;
 		this.camera = cam;
 	}

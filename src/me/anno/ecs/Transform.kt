@@ -6,6 +6,9 @@ import org.joml.*
 
 class Transform : Saveable() {
 
+    // two transforms could be used to interpolate between draw calls
+    var time = 0.0
+
     val globalTransform = Matrix4x3d()
     val localTransform = Matrix4x3d()
 
@@ -129,6 +132,14 @@ class Transform : Saveable() {
     override fun readMatrix4x3d(name: String, value: Matrix4x3d) {
         when (name) {
             "local" -> setLocal(value)
+            else -> super.readMatrix4x3d(name, value)
+        }
+    }
+
+    override fun readDouble(name: String, value: Double) {
+        when (name) {
+            "time" -> time = value
+            else -> super.readDouble(name, value)
         }
     }
 
@@ -136,6 +147,7 @@ class Transform : Saveable() {
         super.save(writer)
         // global doesn't need to be saved, as it can be reconstructed
         writer.writeMatrix4x3d("local", localTransform)
+        writer.writeDouble("time", time)
     }
 
     override val className = "ECSTransform"

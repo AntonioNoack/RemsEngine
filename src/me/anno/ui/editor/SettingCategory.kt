@@ -48,7 +48,7 @@ open class SettingCategory(
 
     val content = object : PanelListY(style) {
         override var visibility: Visibility
-            get() = InputVisibility[title]
+            get() = InputVisibility[visibilityKey]
             set(_) {}
     }
 
@@ -56,7 +56,7 @@ open class SettingCategory(
         if (withScrollbar) {
             object : ScrollPanelY(content, Padding.Zero, style) {
                 override var visibility: Visibility
-                    get() = InputVisibility[title]
+                    get() = InputVisibility[visibilityKey]
                     set(_) {}
             }
         } else null

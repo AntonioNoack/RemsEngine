@@ -5,7 +5,6 @@ import me.anno.language.translation.NameDesc
 import me.anno.ui.editor.color.ColorChooser.Companion.CircleBarRatio
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.ui.editor.color.spaces.HSV
-import me.anno.ui.editor.color.spaces.LinearHSI
 import org.joml.Vector3f
 import org.joml.Vector3fc
 import org.joml.Vector4f
@@ -106,6 +105,7 @@ abstract class ColorSpace(
         }
         val newShader = Shader(
             "$naming-${type.naming}",
+            null,
             vertexShader,
             varyingShader,
             fragmentShader,

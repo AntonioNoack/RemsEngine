@@ -3,6 +3,7 @@ package me.anno.engine.ui
 import me.anno.animation.Type
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.ListType
+import me.anno.ecs.annotations.MapType
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Range.Companion.maxByte
 import me.anno.ecs.annotations.Range.Companion.maxDouble
@@ -20,11 +21,14 @@ import me.anno.engine.IProperty
 import me.anno.io.ISaveable
 import me.anno.io.serialization.CachedProperty
 import me.anno.language.translation.NameDesc
+import me.anno.objects.inspectable.Inspectable
 import me.anno.ui.base.Panel
+import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.groups.TitledListY
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
+import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
 import me.anno.utils.Maths
@@ -45,6 +49,9 @@ object ComponentUI {
      * */
     fun createUI(name: String, property: CachedProperty, c: Component, style: Style): Panel? {
         if (property.hideInInspector) return null
+
+        // todo mesh input, skeleton selection, animation selection, ...
+
         return createUI2(name, name, object : IProperty<Any?> {
 
             override fun getDefault(): Any? {
@@ -83,7 +90,8 @@ object ComponentUI {
 
         val title = if (name == null) "" else StringHelper.splitCamelCase(name.titlecase())
 
-        val type0 = when (val value = property.get()) {// todo better, not sample-depending check for the type
+        val type0 = property.annotations.filterIsInstance<me.anno.ecs.annotations.Type>().firstOrNull()?.type
+        val type1 = type0 ?: when (val value = property.get()) {// todo better, not sample-depending check for the type
 
             // native types
             is Boolean, is Byte, is Short,
@@ -109,6 +117,8 @@ object ComponentUI {
             is IntArray, is LongArray,
             is FloatArray, is DoubleArray,
             -> value.javaClass.simpleName
+
+            is Inspectable -> "Inspectable"
 
             // todo edit native arrays (byte/short/int/float/...) as images
 
@@ -142,19 +152,15 @@ object ComponentUI {
             }
 
             is Map<*, *> -> {
-                val keyType = getArrayType(property, value.keys.iterator(), name) ?: return null
-                val valueType = getArrayType(property, value.values.iterator(), name) ?: return null
+                val annotation = property.annotations.filterIsInstance<MapType>().firstOrNull()
+                val keyType = annotation?.keyType ?: getType(value.keys.iterator(), name) ?: return null
+                val valueType = annotation?.valueType ?: getType(value.values.iterator(), name) ?: return null
                 return object : AnyMapPanel(title, visibilityKey, keyType, valueType, style) {
                     override fun onChange() {
                         property.set(content.associate { it.first to it.first }.toMutableMap())
                     }
                 }.apply {
-                    setValues(value.entries.map {
-                        AnyMapPanel.MutablePair(
-                            it.key,
-                            it.value
-                        )
-                    })
+                    setValues(value.map { AnyMapPanel.MutablePair(it.key, it.value) })
                 }
             }
 
@@ -172,7 +178,7 @@ object ComponentUI {
             }
         }
 
-        return createUI3(name, visibilityKey, property, type0, range, style)
+        return createUI3(name, visibilityKey, property, type1, range, style)
 
     }
 
@@ -187,13 +193,11 @@ object ComponentUI {
         type0: String,
         range: Range?,
         style: Style
-    ): Panel? {
+    ): Panel {
 
         val title = if (name == null) "" else StringHelper.splitCamelCase(name.titlecase())
         val ttt = "" // we could use annotations for that :)
         val value = property.get()
-
-        println("$name, $title, $visibilityKey")
 
         when (type0) {// todo better, not sample-depending check for the type
             // native types
@@ -526,6 +530,18 @@ object ComponentUI {
                 }.apply { setValues((value as DoubleArray).toList()) }
             }
 
+            "Inspectable" -> {
+                value as Inspectable
+                val list = PanelListY(style)
+                val groups = HashMap<String, SettingCategory>()
+                value.createInspector(list, style) { title2, description, path ->
+                    groups.getOrPut(path.ifEmpty { title2 }) {
+                        SettingCategory(title2, description, path, style)
+                    }
+                }
+                return list
+            }
+
             // todo nice ui inputs for array types and maps
 
             /*is Map<*, *> -> {
@@ -571,11 +587,21 @@ object ComponentUI {
                             value as Set<*>
                             return object : AnyArrayPanel(title, visibilityKey, generics, style) {
                                 override fun onChange() {
-                                    property.set(value.toHashSet())
+                                    property.set(content.toHashSet())
                                 }
                             }.apply { setValues(value.toList()) }
                         }
-                        // todo map, and split generics for that
+                        "Map" -> {
+                            val (genericKey, genericValue) = generics.split(',')
+                            // types must not be generic themselfes for this to work... we should fix that...
+                            value as Map<*, *>
+                            return object : AnyMapPanel(title, visibilityKey, genericKey, genericValue, style) {
+                                override fun onChange() {
+                                    property.set(content.associate { it.first to it.second }.toMutableMap())
+                                }
+                            }.apply { setValues(value.map { AnyMapPanel.MutablePair(it.key, it.value) }) }
+                        }
+                        // other generic types? stacks, queues, ...
                     }
                 }
 
@@ -588,6 +614,12 @@ object ComponentUI {
 
     }
 
+    fun getType(value: Iterator<Any?>, warnName: String? = null): String? {
+        var type: String? = null
+        while (type == null && value.hasNext()) type = getTypeFromSample(value.next())
+        if (warnName != null && type == null) warnDetectionIssue(warnName)
+        return type
+    }
 
     // get what type it is
     // if we were using a language, which doesn't discard type information at runtime, we would not have this

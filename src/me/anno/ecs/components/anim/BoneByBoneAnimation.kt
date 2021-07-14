@@ -1,6 +1,8 @@
 package me.anno.ecs.components.anim
 
+import me.anno.ecs.Entity
 import org.joml.Matrix4f
+import org.joml.Matrix4x3f
 
 class BoneByBoneAnimation : Animation() {
 
@@ -11,5 +13,11 @@ class BoneByBoneAnimation : Animation() {
         val matrices = ArrayList<Matrix4f>()
 
     }
+
+    override fun getMatrices(entity: Entity, time: Float, dst: Array<Matrix4x3f>): Array<Matrix4x3f>? {
+        TODO("Not yet implemented")
+    }
+
+    override val className: String = "BoneByBoneAnimation"
 
 }
