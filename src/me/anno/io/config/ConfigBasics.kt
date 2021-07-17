@@ -68,7 +68,7 @@ object ConfigBasics {
             LOGGER.info("Didn't find $file, using default values")
             TextWriter.toText(defaultValue, beautify)
         }
-        val readData = TextReader.fromText(read)
+        val readData = TextReader.read(read)
         val map = readData.firstOrNull { it is StringMap } as? StringMap
         return if (map == null) {
             LOGGER.info("Config was corrupted, didn't find a config, in $file, got $readData")
@@ -88,7 +88,7 @@ object ConfigBasics {
 
         val data = load(localFileName, saveIfMissing) { TextWriter.toText(defaultValue, beautify) }
 
-        val loaded = TextReader.fromText(data)
+        val loaded = TextReader.read(data)
         val newestEntries = HashMap<String, ConfigEntry>(loaded.size + 10)
 
         fun addIfNewest(entry: ConfigEntry): Boolean {

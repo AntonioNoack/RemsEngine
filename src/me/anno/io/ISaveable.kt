@@ -134,6 +134,14 @@ interface ISaveable {
         return reflectionCache.getOrPut(clazz) { CachedReflections(this, clazz) }
     }
 
+    operator fun get(propertyName: String): Any? {
+        return getReflections()[this, propertyName]
+    }
+
+    operator fun set(propertyName: String, value: Any?) {
+        getReflections()[this, propertyName] = value
+    }
+
     companion object {
 
         private val reflectionCache = ConcurrentHashMap<KClass<*>, CachedReflections>()

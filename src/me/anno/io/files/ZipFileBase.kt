@@ -1,7 +1,5 @@
 package me.anno.io.files
 
-import org.apache.commons.compress.archivers.sevenz.SevenZFile
-import java.io.FileNotFoundException
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.URI
@@ -15,6 +13,8 @@ abstract class ZipFileBase(
 
     val children = if (isDirectory) HashMap<String, ZipFileBase>() else null
     val lcName = name.lowercase()
+
+    init { (_parent as? ZipFileBase)?.children?.put(lcName, this) }
 
     override var lastModified = 0L
     override var lastAccessed = 0L

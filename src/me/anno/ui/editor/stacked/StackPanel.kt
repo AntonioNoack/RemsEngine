@@ -10,7 +10,6 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.dragging.Draggable
 import me.anno.ui.style.Style
 
 /**
@@ -52,7 +51,7 @@ abstract class StackPanel(
     init {
         add(this.title)
         add(PanelContainer(content, Padding(10, 0, 0, 0), style))
-        values.forEachIndexed { index, it ->
+        for ((index, it) in values.withIndex()) {
             addComponent(getOptionFromInspectable(it)!!, index, false)
         }
         setTooltip(tooltipText)

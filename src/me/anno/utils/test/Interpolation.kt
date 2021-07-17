@@ -16,7 +16,7 @@ fun main(){
             "{\"d:time\":0.50,\"v4:value\":[0.9852581,0.49354506,0.81277037,1]}," +
             "{\"d:time\":1.00,\"v4:value\":[0.9852581,0.49354506,0.81277037,0]}]}}]"
     // val data = "[{\"class\":\"Text\",\"i:*ptr\":1,\"AnimatedProperty:startCursor\":{\"b:isAnimated\":true,\"Keyframe[]:vs\":[2,{\"d:time\":0,\"i:value\":-1},{\"d:time\":1,\"i:value\":74}]}}]"
-    val element = TextReader.fromText(data).first() as Text
+    val element = TextReader.read(data).first() as Text
 
     val animation = element.color
 

@@ -153,7 +153,7 @@ object DefaultConfig : StringMap() {
                             val configFile = getReference(folder, "config.json")
                             if (configFile.exists) {
                                 try {
-                                    val config = TextReader.fromText(configFile.readText()).firstOrNull() as? StringMap
+                                    val config = TextReader.read(configFile).firstOrNull() as? StringMap
                                     if (config != null) {
                                         projects += ProjectHeader(config["general.name", folder.name], folder)
                                         usedFiles += folder

@@ -35,15 +35,18 @@ object DefaultLayout {
         treeFiles += CustomContainer(FileExplorer(style), library, style)
         animationWindow.add(CustomContainer(treeFiles, library, style), 0.5f)
         animationWindow.add(CustomContainer(SceneView(style), library, style), 2f)
+        animationWindow.add(CustomContainer(ECSSceneView(world, style), library, style), 2f)
         animationWindow.add(CustomContainer(PropertyInspector({ libraryBase.selection }, style), library, style), 0.5f)
         animationWindow.setWeight(1f)
 
         if (!isGaming) {
+
             val timeline = GraphEditor(style)
             customUI.add(CustomContainer(timeline, library, style), 0.25f)
 
             val linear = CuttingView(style)
             customUI.add(CustomContainer(linear, library, style), 0.25f)
+
         }
 
         return customUI

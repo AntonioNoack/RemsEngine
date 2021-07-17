@@ -97,7 +97,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     abstract fun writeQuaterniond(name: String, value: Quaterniond, force: Boolean = false)
 
     fun writeFile(name: String, file: FileReference?, workspace: FileReference? = StudioBase.workspace) {
-        if (file == null || file == InvalidRef || file == InvalidRef) {
+        if (file == null || file == InvalidRef) {
             writeString(name, null)
         } else {
             writeString(name, file.toLocalPath(workspace))

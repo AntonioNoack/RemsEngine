@@ -25,16 +25,18 @@ class CachedReflections(val clazz: KClass<*>, val properties: Map<String, Cached
      * updates the property in the instance
      * returns true on success
      * */
-    fun set(self: ISaveable, name: String, value: Any?): Boolean {
+    operator fun set(self: ISaveable, name: String, value: Any?): Boolean {
         val property = properties[name] ?: return false
-        property.setter.call(self, value)
+        property.set(self, value)
         return true
     }
 
-    fun get(self: ISaveable, name: String): Any? {
+    operator fun get(self: ISaveable, name: String): Any? {
         val property = properties[name] ?: return null
-        return property.getter.call(self)
+        return property.get(self)
     }
+
+    operator fun get(name: String) = properties[name]
 
     companion object {
         fun extractProperties(instance: Any, clazz: KClass<*>): Map<String, CachedProperty> {

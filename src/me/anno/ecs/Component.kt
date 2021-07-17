@@ -1,6 +1,8 @@
 package me.anno.ecs
 
+import me.anno.ecs.prefab.PrefabComponent1
 import me.anno.engine.ui.ComponentUI
+import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
@@ -12,10 +14,13 @@ import me.anno.objects.inspectable.Inspectable
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
+import me.anno.ui.editor.stacked.Option
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.utils.LOGGER
+import me.anno.utils.strings.StringHelper
+import me.anno.utils.structures.lists.UpdatingList
 
 abstract class Component : NamedSaveable(), Inspectable {
 
@@ -38,7 +43,6 @@ abstract class Component : NamedSaveable(), Inspectable {
 
     open fun onPhysicsUpdate() {}
 
-    override val approxSize get() = 1000
     override fun isDefaultValue(): Boolean = false
 
     open fun onDrawGUI() {}
@@ -47,8 +51,9 @@ abstract class Component : NamedSaveable(), Inspectable {
 
     open fun onChangeProperty(name: String, value: Any?) {}
 
-    // todo automatic property inspector by reflection
-    // todo property inspector annotations, e.g. Range, ExecuteInEditMode, HideInInspector, GraphicalValueTracker...
+    // automatic property inspector by reflection
+    // property inspector annotations, e.g. Range, ExecuteInEditMode, HideInInspector,
+    // todo GraphicalValueTracker
 
     @SerializedProperty
     val changedPropertiesInInstance = HashSet<String>()
@@ -76,7 +81,7 @@ abstract class Component : NamedSaveable(), Inspectable {
         return builder
     }
 
-    // todo stack-panel with enable/disable buttons
+    // todo stack-panel class with enable/disable buttons
 
     override fun createInspector(
         list: PanelListY,
@@ -93,6 +98,7 @@ abstract class Component : NamedSaveable(), Inspectable {
         list.add(TextInput("Name", "", style, name).setChangeListener { name = it })
         list.add(TextInput("Description", "", style, name).setChangeListener { description = it })
 
+        // for debugging
         list.add(TextButton("Copy", false, style).setSimpleClickListener {
             LOGGER.info("Copy: ${TextWriter.toText(this, false)}")
         })
@@ -110,17 +116,15 @@ abstract class Component : NamedSaveable(), Inspectable {
     }
 
     fun getDefaultValue(name: String): Any? {
-        // how do we find the default value, if the root is null? -> create an empty copy
-        val reflections = getReflections()
-        return reflections.get(getSuperParent(), name)
+        return getSuperParent()[name]
     }
 
     fun resetProperty(name: String): Any? {
         // how do we find the default value, if the root is null? -> create an empty copy
         val parent = ComponentCache.get(superComponent) ?: this::class.java.getConstructor().newInstance()
         val reflections = getReflections()
-        val defaultValue = reflections.get(parent, name)
-        reflections.set(this, name, defaultValue)
+        val defaultValue = reflections[parent, name]
+        reflections[this, name] = defaultValue
         changedPropertiesInInstance.remove(name)
         LOGGER.info("Reset $className/$name to $defaultValue")
         return defaultValue
@@ -131,5 +135,35 @@ abstract class Component : NamedSaveable(), Inspectable {
     // todo system to quickly load the scene from multiple files:
     //  - use zipping for a shipped game -> faster file load speed and only a single file access
     //  - just do it serially, it's not that much data
+
+    companion object {
+
+        fun create(type: String) = ISaveable.objectTypeRegistry[type]!!.generator() as Component
+
+        fun getComponentOptions(): List<Option> {
+            // registry over all options... / todo search the raw files + search all scripts
+            val knownComponents = ISaveable.objectTypeRegistry.filterValues { it.sampleInstance is Component }
+            return UpdatingList {
+                knownComponents.map {
+                    Option(StringHelper.splitCamelCase(it.key), "") {
+                        it.value.generator() as Component
+                    }
+                }.sortedBy { it.title }
+            }
+        }
+
+        fun getPrefabComponentOptions(): List<Option> {
+            // registry over all options... / todo search the raw files + search all scripts
+            val knownComponents = ISaveable.objectTypeRegistry.filterValues { it.sampleInstance is Component }
+            return UpdatingList {
+                knownComponents.map {
+                    Option(StringHelper.splitCamelCase(it.key), "") {
+                        PrefabComponent1(it.value.generator() as Component)
+                    }
+                }.sortedBy { it.title }
+            }
+        }
+
+    }
 
 }

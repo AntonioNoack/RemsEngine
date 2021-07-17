@@ -29,7 +29,9 @@ import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.pow
 import me.anno.utils.types.AnyToDouble.getDouble
 import me.anno.utils.types.AnyToFloat.getFloat
+import me.anno.utils.types.Quaternions.toEulerAnglesDegrees
 import me.anno.utils.types.Strings.isBlank2
+import org.apache.logging.log4j.LogManager
 import org.joml.*
 import kotlin.math.max
 
@@ -77,7 +79,13 @@ class VectorInput(
         style: Style, title: String, visibilityKey: String, value: Quaternionf,
         type: Type = Type.QUATERNION
     ) : this(style, title, visibilityKey, type) {
-        setValue(value, false)
+        if (type.components == 3) {
+            // if type is Type.ROT_YXZ, we need to transform the value to angles, and to degrees
+            val value2 = value.toEulerAnglesDegrees()
+            setValue(value2, false)
+        } else {
+            setValue(value, false)
+        }
     }
 
     constructor(
@@ -103,13 +111,25 @@ class VectorInput(
 
     constructor(
         style: Style, title: String, visibilityKey: String, value: Quaterniond,
-        type: Type = Type.QUATERNION
+        type: Type = Type.QUATERNIOND
     ) : this(style, title, visibilityKey, type) {
-        setValue(value, false)
+        if (type.components == 3) {
+            // if type is Type.ROT_YXZ, we need to transform the value to angles, and to degrees
+            val value2 = value.toEulerAnglesDegrees()
+            setValue(value2, false)
+        } else {
+            setValue(value, false)
+        }
     }
 
     private val components: Int = type.components
     private val valueFields = ArrayList<PureTextInput>(components)
+
+    private var resetListener: (() -> Any?)? = null
+
+    fun setResetListener(listener: (() -> Any?)?) {
+        resetListener = listener
+    }
 
     private fun addComponent(i: Int, title: String): FloatInput {
         val pseudo = VectorInputComponent(this.title, visibilityKey, type, owningProperty, i, this, style)
@@ -129,6 +149,11 @@ class VectorInput(
         override fun onEnterKey(x: Float, y: Float) {
             this@VectorInput.onEnterKey(x, y)
         }
+
+        override fun onEmpty(x: Float, y: Float) {
+            this@VectorInput.onEmpty(x, y)
+        }
+
     }
 
     init {
@@ -205,7 +230,7 @@ class VectorInput(
     private fun pasteAnimated(data: String): Unit? {
         return try {
             val editorTime = editorTime
-            val animProperty = TextReader.fromText(data).firstOrNull() as? AnimatedProperty<*>
+            val animProperty = TextReader.read(data).firstOrNull() as? AnimatedProperty<*>
             if (animProperty != null) {
                 if (owningProperty != null) {
                     owningProperty.copyFrom(animProperty)
@@ -403,7 +428,53 @@ class VectorInput(
     }
 
     override fun onEmpty(x: Float, y: Float) {
-        val defaultValue = owningProperty?.defaultValue ?: type.defaultValue
+        val resetListener = resetListener
+        if (owningProperty != null || resetListener == null) {
+            onEmpty2(owningProperty?.defaultValue ?: type.defaultValue)
+        } else {
+            when (val value = resetListener()) {
+                is Quaternionfc -> {
+                    if (type.components == 3) {
+                        val comp = value.toEulerAnglesDegrees()
+                        valueFields[0].text = comp.x.toString()
+                        valueFields[1].text = comp.y.toString()
+                        valueFields[2].text = comp.z.toString()
+                        changeListener(comp.x.toDouble(), comp.y.toDouble(), comp.z.toDouble(), 0.0)
+                    } else {
+                        valueFields[0].text = value.x().toString()
+                        valueFields[1].text = value.y().toString()
+                        valueFields[2].text = value.z().toString()
+                        valueFields[3].text = value.w().toString()
+                        changeListener(
+                            value.x().toDouble(),
+                            value.y().toDouble(),
+                            value.z().toDouble(),
+                            value.w().toDouble()
+                        )
+                    }
+                }
+                is Quaterniondc -> {
+                    if (type.components == 3) {
+                        val comp = value.toEulerAnglesDegrees()
+                        valueFields[0].text = comp.x.toString()
+                        valueFields[1].text = comp.y.toString()
+                        valueFields[2].text = comp.z.toString()
+                        changeListener(comp.x, comp.y, comp.z, 0.0)
+                    } else {
+                        valueFields[0].text = value.x().toString()
+                        valueFields[1].text = value.y().toString()
+                        valueFields[2].text = value.z().toString()
+                        valueFields[3].text = value.w().toString()
+                        changeListener(value.x(), value.y(), value.z(), value.w())
+                    }
+                }
+                else -> onEmpty2(value ?: type.defaultValue)
+            }
+        }
+
+    }
+
+    private fun onEmpty2(defaultValue: Any) {
         valueFields.forEachIndexed { index, pureTextInput ->
             pureTextInput.text = getDouble(defaultValue, index).toString()
         }
@@ -416,5 +487,11 @@ class VectorInput(
     }
 
     override fun getCursor(): Long = Cursor.drag
+
+    companion object {
+
+        private val LOGGER = LogManager.getLogger(VectorInput::class)
+
+    }
 
 }

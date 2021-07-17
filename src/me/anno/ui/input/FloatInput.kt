@@ -9,6 +9,7 @@ import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.style.Style
 import me.anno.utils.types.AnyToDouble.getDouble
 import me.anno.utils.types.AnyToFloat.getFloat
+import me.anno.utils.types.Strings.isBlank2
 import org.joml.*
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -26,6 +27,7 @@ open class FloatInput(
     var changeListener: (value: Double) -> Unit = { }
 
     init {
+        // todo only override text, if the users presses enter
         inputPanel.setChangeListener {
             val newValue = parseValue(it)
             if (newValue != null) {
@@ -63,9 +65,9 @@ open class FloatInput(
     var allowInfinity = false
 
     fun parseValue(text: String): Double? {
+        if (text.isBlank2()) return 0.0
         val trimmed = text.trim()
-        val newValue =
-            if (trimmed.isEmpty()) 0.0 else trimmed.toDoubleOrNull() ?: SimpleExpressionParser.parseDouble(trimmed)
+        val newValue = trimmed.toDoubleOrNull() ?: SimpleExpressionParser.parseDouble(trimmed)
         if (newValue == null || !((allowInfinity && !newValue.isNaN()) || newValue.isFinite())) return null
         return newValue
     }
@@ -74,9 +76,18 @@ open class FloatInput(
     fun setValue(v: Long, notify: Boolean) = setValue(v.toDouble(), notify)
     fun setValue(v: Float, notify: Boolean) = setValue(v.toDouble(), notify)
 
-    fun stringify(v: Double): String =
-        if (type.defaultValue is Double) v.toString()
+    // todo prefer the default notation over the scientific one
+    // todo especially, if the user input is that way
+    // todo match the user input?
+    fun stringify(v: Double): String {
+        // if it was not in focus, the value may have been from the system, and the user may not prefer it
+        // we could also use a setting :)
+        /*val userWasScientific = isInFocus && inputPanel.text.run {
+            contains("e+", true) || contains("e-", true)
+        }*/
+        return if (type.defaultValue is Double) v.toString()
         else v.toFloat().toString()
+    }
 
     override fun changeValue(dx: Float, dy: Float) {
         val scale = 20f * shiftSlowdown

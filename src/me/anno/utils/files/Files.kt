@@ -14,33 +14,37 @@ object Files {
 
     fun Long.formatFileSize(): String {
         val endings = "kMGTPEZY"
-        val divider = if(DefaultConfig["ui.file.showGiB", true]) 1024 else 1000
-        val suffix = if(divider == 1024) "i" else ""
-        val halfDivider = divider/2
+        val divider = if (DefaultConfig["ui.file.showGiB", true]) 1024 else 1000
+        val suffix = if (divider == 1024) "i" else ""
+        val halfDivider = divider / 2
         var v = this
-        if(v < halfDivider) return "$v Bytes"
-        for(prefix in endings){
+        if (v < halfDivider) return "$v Bytes"
+        for (prefix in endings) {
             val vSaved = v
-            v = (v + halfDivider)/divider
-            if(v < divider){
-                return "${when(v){
-                    in 0 .. 9 -> "%.2f".format(Locale.ENGLISH, (vSaved.toFloat() / divider))
-                    in 10 .. 99 -> "%.1f".format(Locale.ENGLISH, (vSaved.toFloat() / divider))
-                    else -> v.toString()
-                }} ${prefix}B$suffix"
+            v = (v + halfDivider) / divider
+            if (v < divider) {
+                return "${
+                    when (v) {
+                        in 0..9 -> "%.2f".format(Locale.ENGLISH, (vSaved.toFloat() / divider))
+                        in 10..99 -> "%.1f".format(Locale.ENGLISH, (vSaved.toFloat() / divider))
+                        else -> v.toString()
+                    }
+                } ${prefix}B$suffix"
             }
         }
         return "$v ${endings.last()}B$suffix"
     }
 
     fun File.listFiles2(includeHiddenFiles: Boolean = OS.isWindows) = listFiles()?.filter {
-        !it.name.equals("desktop.ini", true) && (!name.startsWith('.') || includeHiddenFiles) } ?: emptyList()
+        !it.name.equals("desktop.ini", true) && (!name.startsWith('.') || includeHiddenFiles)
+    } ?: emptyList()
 
     fun FileReference.listFiles2(includeHiddenFiles: Boolean = OS.isWindows) = listChildren()?.filter {
-        !it.name.equals("desktop.ini", true) && (!name.startsWith('.') || includeHiddenFiles) } ?: emptyList()
+        !it.name.equals("desktop.ini", true) && (!name.startsWith('.') || includeHiddenFiles)
+    } ?: emptyList()
 
-    fun File.openInExplorer(){
-        if(!exists()){
+    fun File.openInExplorer() {
+        if (!exists()) {
             parentFile?.openInExplorer() ?: LOGGER.warn("Cannot open file $this, as it does not exist!")
         } else {
             when {
@@ -48,10 +52,10 @@ object Files {
                     OS.startProcess("explorer.exe", "/select,", absolutePath)
                 }
                 else -> {
-                    if(Desktop.isDesktopSupported()){
+                    if (Desktop.isDesktopSupported()) {
                         val desktop = Desktop.getDesktop()
-                        desktop.open(if(isDirectory) this else this.parentFile ?: this)
-                    } else if(OS.isLinux){// https://askubuntu.com/questions/31069/how-to-open-a-file-manager-of-the-current-directory-in-the-terminal
+                        desktop.open(if (isDirectory) this else this.parentFile ?: this)
+                    } else if (OS.isLinux) {// https://askubuntu.com/questions/31069/how-to-open-a-file-manager-of-the-current-directory-in-the-terminal
                         OS.startProcess("xdg-open", absolutePath)
                     }
                 }
@@ -60,9 +64,9 @@ object Files {
     }
 
     inline fun <I : Closeable, V> use(closeable: I, run: (I) -> V): V {
-        val result = run(closeable)
-        closeable.close()
-        return result
+        return closeable.use {
+            run(it)
+        }
     }
 
     fun File.zippedOutput() = outputStream().zipped()

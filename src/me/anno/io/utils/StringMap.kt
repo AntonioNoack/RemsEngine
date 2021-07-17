@@ -76,7 +76,7 @@ open class StringMap(
     }
 
     override operator fun get(key: String): Any? = synchronized(this) { map[key] }
-    operator fun set(key: String, value: Any?) {
+    override operator fun set(key: String, value: Any?) {
         synchronized(this) {
             wasChanged = true
             map[key] = value

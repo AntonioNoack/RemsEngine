@@ -103,8 +103,7 @@ class AnimGameItem(
         fun getScaleFromAABB(aabb: AABBd): Float {
             // calculate the scale, such that everything can be visible
             val delta = max(aabb.maxX - aabb.minX, max(aabb.maxY - aabb.minY, aabb.maxZ - aabb.minZ))
-            // half, because it's half the size
-            return 0.5f / delta.toFloat()
+            return 1f / delta.toFloat()
         }
 
         fun centerStackFromAABB(stack: Matrix4x3f, aabb: AABBd) {

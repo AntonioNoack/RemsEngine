@@ -3,6 +3,7 @@ package me.anno.io.files
 import me.anno.io.windows.WindowsShortcut
 import me.anno.studio.StudioBase
 import me.anno.utils.files.Files.openInExplorer
+import me.anno.utils.files.Files.use
 import me.anno.utils.files.LocalFile.toLocalPath
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.commons.compress.archivers.sevenz.SevenZFile
@@ -192,10 +193,26 @@ abstract class FileReference(val absolutePath: String) {
                 LOGGER.info("Checking $absolutePath for zip file, success")
                 result
             } catch (e: IOException) {
+                // test the file of being gzipped
+                if(testFileIsGzip()){
+                    LOGGER.info("Checking $absolutePath for zip file, is GZip")
+                    return true
+                }
                 LOGGER.info("Checking $absolutePath for zip file, ${e.message}")
                 false
             }
         }
+    }
+
+    fun testFileIsGzip(): Boolean {
+        // test the file of being gzipped
+        use(inputStream()) {
+            if (it.read() == 0x1f && it.read() == 0x8b) {
+                // it probably is gzip
+                return true
+            }
+        }
+        return false
     }
 
     abstract val exists: Boolean

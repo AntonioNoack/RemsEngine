@@ -14,7 +14,7 @@ fun main(){
     prop.keyframes.forEach { it.interpolation = Interpolation.EASE_IN }
 
     val asString = prop.toString()
-    val fromString = TextReader.fromText(asString).filterIsInstance<AnimatedProperty<*>>().first()
+    val fromString = TextReader.read(asString).filterIsInstance<AnimatedProperty<*>>().first()
 
     println(asString)
     println(fromString)

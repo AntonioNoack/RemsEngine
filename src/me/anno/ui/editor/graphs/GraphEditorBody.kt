@@ -3,7 +3,6 @@ package me.anno.ui.editor.graphs
 import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.white
 import me.anno.gpu.GFX
-import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx2D.drawBorder
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTextures.drawTexture
@@ -678,7 +677,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
             val time0 = getTimeAt(x)
             val target = selectedProperty ?: return super.onPaste(x, y, data, type)
             val targetType = target.type
-            val parsedKeyframes = TextReader.fromText(data).filterIsInstance<Keyframe<*>>()
+            val parsedKeyframes = TextReader.read(data).filterIsInstance<Keyframe<*>>()
             if (parsedKeyframes.isNotEmpty()) {
                 RemsStudio.largeChange("Pasted Keyframes") {
                     parsedKeyframes.forEach { sth ->

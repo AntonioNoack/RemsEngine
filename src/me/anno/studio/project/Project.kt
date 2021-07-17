@@ -94,7 +94,7 @@ class Project(var name: String, val file: FileReference) : Saveable() {
         try {
             if (tabsFile.exists) {
                 val loadedUIData = TextReader
-                    .fromText(tabsFile.readText())
+                    .read(tabsFile)
                 val sceneTabs = loadedUIData
                     .filterIsInstance<SceneTabData>()
                 if (sceneTabs.isEmpty()) {

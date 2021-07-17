@@ -50,7 +50,7 @@ fun main() {
     println(text)
 
     ISaveable.registerCustomClass("Test") { TestClass() }
-    val copiedInstance = TextReader.fromText(text)
+    val copiedInstance = TextReader.read(text)
     println(copiedInstance)
 
 }

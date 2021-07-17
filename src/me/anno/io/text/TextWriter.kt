@@ -661,7 +661,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     override fun writeMatrix3x3f(name: String, value: Matrix3fc, force: Boolean) {
-        writeAttributeStart("M3x3", name)
+        writeAttributeStart("m3x3", name)
         data.append('[')
         val tmp = FloatArray(9)
         value.get(tmp)
@@ -673,7 +673,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     override fun writeMatrix4x3f(name: String, value: Matrix4x3fc, force: Boolean) {
-        writeAttributeStart("M4x3", name)
+        writeAttributeStart("m4x3", name)
         data.append('[')
         val tmp = FloatArray(12)
         value.get(tmp)
@@ -685,7 +685,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     override fun writeMatrix4x4f(name: String, value: Matrix4fc, force: Boolean) {
-        writeAttributeStart("M4x4", name)
+        writeAttributeStart("m4x4", name)
         data.append('[')
         val tmp = FloatArray(16)
         for (i in tmp.indices) {
@@ -696,7 +696,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     override fun writeMatrix3x3d(name: String, value: Matrix3dc, force: Boolean) {
-        writeAttributeStart("M3x3d", name)
+        writeAttributeStart("m3x3d", name)
         data.append('[')
         val tmp = DoubleArray(9)
         value.get(tmp)
@@ -708,7 +708,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     override fun writeMatrix4x3d(name: String, value: Matrix4x3dc, force: Boolean) {
-        writeAttributeStart("M4x3d", name)
+        writeAttributeStart("m4x3d", name)
         data.append('[')
         val tmp = DoubleArray(12)
         value.get(tmp)
@@ -720,7 +720,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     override fun writeMatrix4x4d(name: String, value: Matrix4dc, force: Boolean) {
-        writeAttributeStart("M4x4d", name)
+        writeAttributeStart("m4x4d", name)
         data.append('[')
         val tmp = DoubleArray(16)
         value.get(tmp)

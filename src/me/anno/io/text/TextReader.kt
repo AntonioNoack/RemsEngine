@@ -4,14 +4,17 @@ import me.anno.io.ISaveable
 import me.anno.io.InvalidFormatException
 import me.anno.io.base.BaseReader
 import me.anno.io.base.UnknownClassException
+import me.anno.io.files.FileReference
+import me.anno.utils.structures.arrays.IntArrayList
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.io.EOFException
+import java.io.InputStream
 
 /**
  * reads a JSON-similar format from a text file
  * */
-class TextReader(val data: String) : BaseReader() {
+class TextReader(val data: CharSequence) : BaseReader() {
 
     val length = data.length
     var index = 0
@@ -541,8 +544,12 @@ class TextReader(val data: String) : BaseReader() {
             )
             "m4x4" -> obj.readMatrix4x4f(name, Matrix4f(readVector4f(), readVector4f(), readVector4f(), readVector4f()))
             "m3x3d" -> obj.readMatrix3x3d(name, Matrix3d(readVector3d(), readVector3d(), readVector3d()))
-            // todo constructor is missing...
-            // "m4x3d" -> obj.readMatrix4x3d(name, Matrix4x3d(readVector3d(), readVector3d(), readVector3d(), readVector3d()))
+            "m4x3d" -> obj.readMatrix4x3d(name, Matrix4x3d(
+                readDouble(), readDouble(), readDouble(),
+                readDouble(), readDouble(), readDouble(),
+                readDouble(), readDouble(), readDouble(),
+                readDouble(), readDouble(), readDouble()
+            ))
             "m4x4d" -> obj.readMatrix4x4d(
                 name,
                 Matrix4d(readVector4d(), readVector4d(), readVector4d(), readVector4d())
@@ -684,12 +691,54 @@ class TextReader(val data: String) : BaseReader() {
 
     companion object {
         private val LOGGER = LogManager.getLogger(TextReader::class.java)
-        fun fromText(data: String): List<ISaveable> {
+        fun read(data: CharSequence): List<ISaveable> {
             val reader = TextReader(data)
             reader.readAllInList()
             // sorting is very important
             return reader.sortedContent
         }
+
+        fun read(input: FileReference): List<ISaveable> {
+            return input.inputStream().use { read(it, input.length().toInt()) }
+        }
+
+        fun read(input: InputStream, length: Int = -1): List<ISaveable> {
+            return read(InputStreamCharSequence(input, length))
+        }
+
+    }
+
+    class InputStreamCharSequence(val input: InputStream, length: Int) : CharSequence {
+
+        // probably we could only memorize the last n bytes, since more won't be needed
+        // or the TextReader could give the signal, that we're allowed to forget
+
+        private val memory = IntArrayList(512)
+        override var length: Int = if (length < 0) Int.MAX_VALUE else length
+
+        private fun ensureIndex(index: Int) {
+            while (memory.size <= kotlin.math.min(index, length)) {
+                val read = input.read()
+                this.length = kotlin.math.min(this.length, memory.size)
+                memory.add(read)
+            }
+            while (memory.size <= index) {
+                memory.add(0)
+            }
+        }
+
+        override fun get(index: Int): Char {
+            ensureIndex(index)
+            return memory[index].toChar()
+        }
+
+        override fun subSequence(startIndex: Int, endIndex: Int): CharSequence {
+            ensureIndex(endIndex - 1)
+            return String(CharArray(endIndex - startIndex) {
+                memory[startIndex + it].toChar()
+            })
+        }
+
     }
 
 }

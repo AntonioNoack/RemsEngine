@@ -31,7 +31,7 @@ class VectorIntInput(
     private val owningProperty: AnimatedProperty<*>? = null
 ) : TitledListY(title, visibilityKey, style) {
 
-    constructor(title: String, visibilityKey: String,property: AnimatedProperty<*>, time: Double, style: Style) :
+    constructor(title: String, visibilityKey: String, property: AnimatedProperty<*>, time: Double, style: Style) :
             this(style, title, visibilityKey, property.type, property) {
         when (val value = property[time]) {
             is Vector2i -> setValue(value, false)
@@ -42,21 +42,21 @@ class VectorIntInput(
     }
 
     constructor(
-        style: Style, title: String, visibilityKey: String,value: Vector2ic, type: Type,
+        style: Style, title: String, visibilityKey: String, value: Vector2ic, type: Type,
         owningProperty: AnimatedProperty<*>? = null
     ) : this(style, title, visibilityKey, type, owningProperty) {
         setValue(value, false)
     }
 
     constructor(
-        style: Style, title: String, visibilityKey: String,value: Vector3ic, type: Type,
+        style: Style, title: String, visibilityKey: String, value: Vector3ic, type: Type,
         owningProperty: AnimatedProperty<*>? = null
     ) : this(style, title, visibilityKey, type, owningProperty) {
         setValue(value, false)
     }
 
     constructor(
-        style: Style, title: String, visibilityKey: String,value: Vector4ic, type: Type,
+        style: Style, title: String, visibilityKey: String, value: Vector4ic, type: Type,
         owningProperty: AnimatedProperty<*>? = null
     ) : this(style, title, visibilityKey, type, owningProperty) {
         setValue(value, false)
@@ -64,6 +64,12 @@ class VectorIntInput(
 
     private val components: Int = type.components
     private val valueFields = ArrayList<PureTextInput>(components)
+
+    private var resetListener: (() -> Any?)? = null
+
+    fun setResetListener(listener: (() -> Any?)?) {
+        resetListener = listener
+    }
 
     private fun addComponent(i: Int, title: String): IntInput {
         val pseudo = VectorInputIntComponent(this.title, visibilityKey, type, owningProperty, i, this, style)
@@ -136,7 +142,7 @@ class VectorIntInput(
     private fun pasteAnimated(data: String): Unit? {
         return try {
             val editorTime = editorTime
-            val animProperty = TextReader.fromText(data).firstOrNull() as? AnimatedProperty<*>
+            val animProperty = TextReader.read(data).firstOrNull() as? AnimatedProperty<*>
             if (animProperty != null) {
                 if (owningProperty != null) {
                     owningProperty.copyFrom(animProperty)
@@ -265,8 +271,15 @@ class VectorIntInput(
     }*/
 
     override fun onEmpty(x: Float, y: Float) {
-        // todo get int...
-        val defaultValue = owningProperty?.defaultValue ?: type.defaultValue
+        val resetListener = resetListener
+        if (owningProperty != null || resetListener == null) {
+            onEmpty2(owningProperty?.defaultValue ?: type.defaultValue)
+        } else {
+            onEmpty2(resetListener() ?: 0)
+        }
+    }
+
+    private fun onEmpty2(defaultValue: Any) {
         valueFields.forEachIndexed { index, pureTextInput ->
             pureTextInput.text = getInt(defaultValue, index).toString()
         }

@@ -6,7 +6,9 @@ import me.anno.ecs.components.camera.CameraState
 // a special component, which can be added to one entity only? idk...
 // multiple roots? this sounds like a kind-of-solution :)
 
-open class LocalPlayer : Entity() {
+open class LocalPlayer {
+
+    val entity = Entity()
 
     val camera = CameraState()
 

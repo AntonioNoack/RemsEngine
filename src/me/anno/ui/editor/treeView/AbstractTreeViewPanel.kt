@@ -180,7 +180,7 @@ class AbstractTreeViewPanel<V : Hierarchical<V>>(
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         try {
-            val child0 = TextReader.fromText(data).first()
+            val child0 = TextReader.read(data).first()
             val child = child0 as? V ?: return super.onPaste(x, y, data, type)
             val original = (dragged as? Draggable)?.getOriginal() as? V
             val relativeY = (y - this.y) / this.h

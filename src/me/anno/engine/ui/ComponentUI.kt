@@ -17,6 +17,8 @@ import me.anno.ecs.annotations.Range.Companion.minFloat
 import me.anno.ecs.annotations.Range.Companion.minInt
 import me.anno.ecs.annotations.Range.Companion.minLong
 import me.anno.ecs.annotations.Range.Companion.minShort
+import me.anno.ecs.prefab.Change0
+import me.anno.ecs.prefab.PrefabComponent1
 import me.anno.engine.IProperty
 import me.anno.io.ISaveable
 import me.anno.io.serialization.CachedProperty
@@ -34,10 +36,10 @@ import me.anno.ui.style.Style
 import me.anno.utils.Maths
 import me.anno.utils.strings.StringHelper
 import me.anno.utils.strings.StringHelper.titlecase
+import me.anno.utils.types.Quaternions.toEulerAnglesDegrees
+import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import org.apache.logging.log4j.LogManager
 import org.joml.*
-import org.joml.Math.toDegrees
-import org.joml.Math.toRadians
 import java.io.Serializable
 
 object ComponentUI {
@@ -59,19 +61,52 @@ object ComponentUI {
             }
 
             override fun set(value: Any?) {
-                property.set(c, value)
+                property[c] = value
                 c.changedPropertiesInInstance.add(name)
             }
 
             override fun get(): Any? {
-                return property.get(c)
+                return property[c]
             }
 
             override fun reset(): Any? {
                 c.changedPropertiesInInstance.remove(name)
                 val value = getDefault()
-                property.set(c, value)
+                property[c] = value
                 return value
+            }
+
+            override val annotations: List<Annotation>
+                get() = property.annotations
+
+        }, property.range, style)
+    }
+
+    fun createUI(name: String, property: CachedProperty, c: PrefabComponent1, cSample: Component, style: Style): Panel? {
+
+        if (property.hideInInspector) return null
+
+        // todo mesh input, skeleton selection, animation selection, ...
+
+        return createUI2(name, name, object : IProperty<Any?> {
+
+            override fun getDefault(): Any? {
+                // this may be difficult
+                return cSample.getDefaultValue(name)
+            }
+
+            override fun set(value: Any?) {
+                c.changes[name] = Change0(value)
+            }
+
+            override fun get(): Any? {
+                // use the changes
+                return c.changes[name]?.value ?: getDefault()
+            }
+
+            override fun reset(): Any? {
+                c.changes.remove(name)
+                return getDefault()
             }
 
             override val annotations: List<Annotation>
@@ -199,7 +234,7 @@ object ComponentUI {
         val ttt = "" // we could use annotations for that :)
         val value = property.get()
 
-        when (type0) {// todo better, not sample-depending check for the type
+        when (type0) {
             // native types
             "Bool", "Boolean" -> return BooleanInput(title, ttt, value as Boolean, false, style)
                 // reset listener / option to reset it
@@ -310,7 +345,7 @@ object ComponentUI {
             "Vector2f" -> {
                 return VectorInput(style, title, visibilityKey, value as Vector2f, Type.VEC2)
                     .apply {
-                        // todo reset listener
+                        setResetListener { property.reset() }
                         askForReset(property) { setValue(it as Vector2f, false) }
                         setChangeListener { x, y, _, _ ->
                             value.set(x, y)
@@ -320,7 +355,7 @@ object ComponentUI {
             "Vector3f" -> {
                 return VectorInput(style, title, visibilityKey, value as Vector3f, Type.VEC3)
                     .apply {
-                        // todo reset listener
+                        setResetListener { property.reset() }
                         askForReset(property) { setValue(it as Vector3f, false) }
                         setChangeListener { x, y, z, _ ->
                             value.set(x, y, z)
@@ -330,7 +365,7 @@ object ComponentUI {
             "Vector4f" -> {
                 return VectorInput(style, title, visibilityKey, value as Vector4f, Type.VEC4)
                     .apply {
-                        // todo reset listener
+                        setResetListener { property.reset() }
                         askForReset(property) { setValue(it as Vector4f, false) }
                         setChangeListener { x, y, z, w ->
                             value.set(x, y, z, w)
@@ -340,7 +375,7 @@ object ComponentUI {
             "Vector2d" -> {
                 return VectorInput(style, title, visibilityKey, value as Vector2d, Type.VEC2D)
                     .apply {
-                        // todo reset listener
+                        setResetListener { property.reset() }
                         askForReset(property) { setValue(it as Vector2d, false) }
                         setChangeListener { x, y, _, _ ->
                             value.set(x, y)
@@ -350,7 +385,7 @@ object ComponentUI {
             "Vector3d" -> {
                 return VectorInput(style, title, visibilityKey, value as Vector3d, Type.VEC3D)
                     .apply {
-                        // todo reset listener
+                        setResetListener { property.reset() }
                         askForReset(property) { setValue(it as Vector3d, false) }
                         setChangeListener { x, y, z, _ ->
                             value.set(x, y, z)
@@ -360,7 +395,7 @@ object ComponentUI {
             "Vector4d" -> {
                 return VectorInput(style, title, visibilityKey, value as Vector4d, Type.VEC4D)
                     .apply {
-                        // todo reset listener
+                        setResetListener { property.reset() }
                         askForReset(property) { setValue(it as Vector4d, false) }
                         setChangeListener { x, y, z, w ->
                             value.set(x, y, z, w)
@@ -370,11 +405,10 @@ object ComponentUI {
 
             // int vectors
             "Vector2i" -> {
-                // todo correct types
                 val type = Type(Vector2i(), 2)
                 return VectorIntInput(style, title, visibilityKey, value as Vector2i, type)
                     .apply {
-                        // todo reset listener
+                        setResetListener { property.reset() }
                         askForReset(property) { setValue(it as Vector2i, false) }
                         setChangeListener { x, y, _, _ ->
                             value.set(x, y)
@@ -385,7 +419,7 @@ object ComponentUI {
                 val type = Type(Vector3i(), 3)
                 return VectorIntInput(style, title, visibilityKey, value as Vector3i, type)
                     .apply {
-                        // todo reset listener
+                        setResetListener { property.reset() }
                         askForReset(property) { setValue(it as Vector3i, false) }
                         setChangeListener { x, y, z, _ ->
                             value.set(x, y, z)
@@ -396,7 +430,7 @@ object ComponentUI {
                 val type = Type(Vector4i(), 4)
                 return VectorIntInput(style, title, visibilityKey, value as Vector4i, type)
                     .apply {
-                        // todo reset listener
+                        setResetListener { property.reset() }
                         askForReset(property) { setValue(it as Vector4i, false) }
                         setChangeListener { x, y, z, w ->
                             value.set(x, y, z, w)
@@ -404,57 +438,27 @@ object ComponentUI {
                     }
             }
 
-            // todo quaternions
-            // todo annotation/switch for edit mode: raw input, or via euler angles?
+            // quaternions
+            // entered using yxz angle, because that's much more intuitive
             "Quaternionf" -> {
                 value as Quaternionf
-                val d2 = toDegrees(1.0).toFloat()
-                return VectorInput(
-                    style,
-                    title,
-                    visibilityKey,
-                    value.getEulerAnglesXYZ(Vector3f()).mul(d2),
-                    Type.ROT_YXZ
-                )
-                    .apply {
-                        // todo reset listener
-                        askForReset(property) {
-                            it as Quaternionf
-                            val vec = it.getEulerAnglesXYZ(Vector3f()).mul(d2)
-                            setValue(vec, false)
-                        }
-                        setChangeListener { x, y, z, _ ->
-                            value.set(
-                                Quaternionf().rotateYXZ(
-                                    toRadians(y).toFloat(),
-                                    toRadians(x).toFloat(),
-                                    toRadians(z).toFloat()
-                                )
-                            )
-                        }
+                return VectorInput(style, title, visibilityKey, value.toEulerAnglesDegrees(), Type.ROT_YXZ).apply {
+                    askForReset(property) { setValue((it as Quaternionf).toEulerAnglesDegrees(), false) }
+                    setResetListener { property.reset() }
+                    setChangeListener { x, y, z, _ ->
+                        value.set(Vector3f(x.toFloat(), y.toFloat(), z.toFloat()).toQuaternionDegrees())
                     }
+                }
             }
             "Quaterniond" -> {
                 value as Quaterniond
-                val d2 = toDegrees(1.0)
-                return VectorInput(
-                    style,
-                    title,
-                    visibilityKey,
-                    value.getEulerAnglesXYZ(Vector3d()).mul(d2),
-                    Type.ROT_YXZ
-                )
-                    .apply {
-                        // todo reset listener
-                        askForReset(property) {
-                            it as Quaterniond
-                            val vec = it.getEulerAnglesXYZ(Vector3d()).mul(d2)
-                            setValue(vec, false)
-                        }
-                        setChangeListener { x, y, z, _ ->
-                            value.set(Quaterniond().rotateYXZ(toRadians(y), toRadians(x), toRadians(z)))
-                        }
+                return VectorInput(style, title, visibilityKey, value.toEulerAnglesDegrees(), Type.ROT_YXZ).apply {
+                    setResetListener { property.reset() }
+                    askForReset(property) { setValue((it as Quaterniondc).toEulerAnglesDegrees(), false) }
+                    setChangeListener { x, y, z, _ ->
+                        value.set(Vector3d(x, y, z).toQuaternionDegrees())
                     }
+                }
             }
 
             // matrices
@@ -551,10 +555,9 @@ object ComponentUI {
             }*/
 
             // todo sort list/map by key or property of the users choice
-            // todo array & list inputs of any kind
             // todo map inputs: a list of pairs of key & value
             // todo tables for structs?
-            // todo show changed values with bold font
+            // todo show changed values with bold font or a different text color
             // todo ISaveable-s
 
 
@@ -593,7 +596,7 @@ object ComponentUI {
                         }
                         "Map" -> {
                             val (genericKey, genericValue) = generics.split(',')
-                            // types must not be generic themselfes for this to work... we should fix that...
+                            // types must not be generic themselves for this to work... we should fix that...
                             value as Map<*, *>
                             return object : AnyMapPanel(title, visibilityKey, genericKey, genericValue, style) {
                                 override fun onChange() {
@@ -601,6 +604,7 @@ object ComponentUI {
                                 }
                             }.apply { setValues(value.map { AnyMapPanel.MutablePair(it.key, it.value) }) }
                         }
+                        // todo pair and triple
                         // other generic types? stacks, queues, ...
                     }
                 }

@@ -4,10 +4,11 @@ import me.anno.io.base.BaseWriter
 
 abstract class NamedSaveable : Saveable() {
 
-    var name = ""
-    var description = ""
+    open var name = ""
+    open var description = ""
 
     override fun isDefaultValue(): Boolean = false
+    override val approxSize: Int = 10
 
     override fun save(writer: BaseWriter) {
         super.save(writer)

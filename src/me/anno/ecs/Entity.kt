@@ -1,9 +1,13 @@
 package me.anno.ecs
 
 import me.anno.animation.Type
+import me.anno.ecs.Component.Companion.getComponentOptions
+import me.anno.ecs.prefab.PrefabCache
 import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.io.text.TextReader
@@ -16,11 +20,12 @@ import me.anno.ui.editor.stacked.StackPanel
 import me.anno.ui.input.TextInput
 import me.anno.ui.input.VectorInput
 import me.anno.ui.style.Style
-import me.anno.utils.strings.StringHelper.splitCamelCase
+import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.Hierarchical
-import me.anno.utils.structures.lists.UpdatingList
 import me.anno.utils.types.Floats.f2s
 import org.joml.Matrix4x3d
+import org.joml.Quaterniond
+import org.joml.Vector3d
 
 // entities would be an idea to make effects more modular
 // it could apply new effects to both the camera and image sources
@@ -33,7 +38,7 @@ import org.joml.Matrix4x3d
 
 // todo delta settings & control: only saves as values, what was changed from the prefab
 
-open class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
+class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
 
     constructor(parent: Entity?) : this() {
         parent?.add(this)
@@ -78,6 +83,10 @@ open class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
         // todo if rigidbody, calculate interpolated transform
     }
 
+    fun invalidate() {
+
+    }
+
     fun physicsUpdate() {
         for (component in components) component.onPhysicsUpdate()
         for (child in children) child.physicsUpdate()
@@ -91,8 +100,6 @@ open class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
     * */
 
     override val className get() = "Entity"
-
-    override val approxSize get() = 1000
 
     override fun isDefaultValue(): Boolean = false
 
@@ -119,49 +126,11 @@ open class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
         component.entity = this
     }
 
-    override fun addChild(entity: Entity) {
-        entity.setParent(this, false)
+    override fun addChild(child: Entity) {
+        child.setParent(this, false)
     }
 
     fun removeComponent(component: Component) = components.remove(component)
-
-    override fun save(writer: BaseWriter) {
-        super.save(writer)
-        saveSerializableProperties(writer)
-        // writer.writeObjectList(this, "children", children)
-        // writer.writeObjectList(this, "components", components)
-    }
-
-    override fun readObject(name: String, value: ISaveable?) {
-        when (name) {
-            "children" -> {
-                if (value is Entity) {
-                    addChild(value)
-                }
-            }
-            "components" -> {
-                if (value is Component) {
-                    components.add(value)
-                }
-            }
-            else -> super.readObject(name, value)
-        }
-    }
-
-    override fun readObjectArray(name: String, values: Array<ISaveable?>) {
-        when (name) {
-            "children" -> {
-                children.clear()
-                val entities = values.filterIsInstance<Entity>()
-                children.addAll(entities)
-                entities.forEach { it.parent = this }
-            }
-            "components" -> {
-                components.clear()
-                components.addAll(values.filterIsInstance<Component>())
-            }
-        }
-    }
 
     inline fun <reified V : Component> getComponent(includingDisabled: Boolean): V? {
         return components.firstOrNull { it is V && (includingDisabled || it.isEnabled) } as V?
@@ -193,58 +162,6 @@ open class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
             }
         }
         return result
-    }
-
-    override fun createInspector(
-        list: PanelListY,
-        style: Style,
-        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
-    ) {
-        // todo implement the properties and stuff
-        // todo add history support (undoing stuff)
-        list.add(TextInput("Name", "", style, name).setChangeListener { name = it })
-        list.add(TextInput("Description", "", style, description).setChangeListener { description = it })
-        list.add(VectorInput(style, "Position", "pos", transform.localPosition, Type.POSITION)
-            .setChangeListener { x, y, z, _ -> transform.localPosition.set(x, y, z) })
-        list.add(VectorInput(style, "Rotation", "rot", transform.localRotation, Type.ROT_YXZ)
-            .setChangeListener { x, y, z, _ -> transform.setLocalEulerAngle(x, y, z) })
-        list.add(VectorInput(style, "Scale", "scale", transform.localScale, Type.SCALE)
-            .setChangeListener { x, y, z, _ -> transform.localScale.set(x, y, z) })
-        list.add(
-            object : StackPanel(
-                "Components",
-                "Customize properties and behaviours",
-                getComponentOptions(),
-                components,
-                style
-            ) {
-                override fun onAddComponent(component: Inspectable, index: Int) {
-                    components.add(index, component as Component)
-                }
-
-                override fun onRemoveComponent(component: Inspectable) {
-                    components.remove(component)
-                }
-
-                override fun getOptionFromInspectable(inspectable: Inspectable): Option {
-                    inspectable as Component
-                    return Option(inspectable.className, "") { inspectable }
-                }
-
-            }
-        )
-    }
-
-    fun getComponentOptions(): List<Option> {
-        // registry over all options... / todo search the raw files + search all scripts
-        val knownComponents = ISaveable.objectTypeRegistry.filterValues { it.sampleInstance is Component }
-        return UpdatingList {
-            knownComponents.map {
-                Option(splitCamelCase(it.key), "") {
-                    it.value.generator() as Component
-                }
-            }.sortedBy { it.title }
-        }
     }
 
     override fun toString(): String {
@@ -313,7 +230,7 @@ open class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
         return Matrix4x3d(other.transform.globalTransform).invert().mul(transform.globalTransform)
     }
 
-    fun clone() = TextReader.fromText(TextWriter.toText(this, false))[0] as Entity
+    fun clone() = TextReader.read(TextWriter.toText(this, false))[0] as Entity
 
     override fun onDestroy() {}
 
@@ -322,5 +239,91 @@ open class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
 
     override val defaultDisplayName: String
         get() = "Entity"
+
+    // which properties were changed
+    // options:
+    // - child/index, child/name
+    // - component/index, component/name
+    // - position, rotation, scale
+    // - name, description,
+    // - isEnabled
+
+    var changes = HashSet<String>()
+    var prefabPath: FileReference = InvalidRef
+    var prefab: Entity? = null
+
+    override fun createInspector(
+        list: PanelListY,
+        style: Style,
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
+    ) {
+        // todo implement the properties and stuff
+        // todo add history support (undoing stuff)
+        list.add(TextInput("Name", "", style, name).apply {
+            setChangeListener { name = it; changes += "name" }
+            setResetListener { changes -= "name"; prefab?.name ?: "" }
+        })
+        list.add(TextInput("Description", "", style, description).apply {
+            setChangeListener { description = it; changes += "desc" }
+            setResetListener { changes -= "desc"; prefab?.description ?: "" }
+        })
+        list.add(VectorInput(style, "Position", "pos", transform.localPosition, Type.POSITION).apply {
+            setChangeListener { x, y, z, _ -> transform.localPosition.set(x, y, z); changes += "pos" }
+            setResetListener { changes -= "pos"; prefab?.transform?.localPosition ?: Vector3d() }
+        })
+        list.add(VectorInput(style, "Rotation", "rot", transform.localRotation, Type.ROT_YXZ).apply {
+            setChangeListener { x, y, z, _ -> transform.setLocalEulerAngle(x, y, z); changes += "rot" }
+            setResetListener { changes -= "rot"; prefab?.transform?.localRotation ?: Quaterniond() }
+        })
+        list.add(VectorInput(style, "Scale", "scale", transform.localScale, Type.SCALE).apply {
+            setChangeListener { x, y, z, _ -> transform.localScale.set(x, y, z); changes += "sca" }
+            setResetListener { changes -= "sca"; prefab?.transform?.localScale ?: Vector3d(1.0) }
+        })
+        list.add(
+            object : StackPanel(
+                "Components",
+                "Customize properties and behaviours",
+                getComponentOptions(),
+                components,
+                style
+            ) {
+
+                override fun onAddComponent(component: Inspectable, index: Int) {
+                    components.add(index, component as Component)
+                }
+
+                override fun onRemoveComponent(component: Inspectable) {
+                    components.remove(component)
+                }
+
+                override fun getOptionFromInspectable(inspectable: Inspectable): Option {
+                    inspectable as Component
+                    return Option(inspectable.className, "") { inspectable }
+                }
+
+            }
+        )
+    }
+
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        writer.writeObjectList(this, "children", children)
+        writer.writeObjectList(this, "components", components)
+    }
+
+    override fun readObjectArray(name: String, values: Array<ISaveable?>) {
+        when (name) {
+            "children" -> {
+                children.clear()
+                val entities = values.filterIsInstance<Entity>()
+                children.addAll(entities)
+                entities.forEach { it.parent = this }
+            }
+            "components" -> {
+                components.clear()
+                components.addAll(values.filterIsInstance<Component>())
+            }
+        }
+    }
 
 }

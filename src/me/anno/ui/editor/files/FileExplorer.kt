@@ -137,7 +137,8 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
                             if (file.name.startsWith('.')) continue
                             if (file.isDirectory || when (file.extension.lowercase()) {
                                     "zip", "rar", "7z", "s7z", "jar", "tar", "gz", "xz",
-                                    "bz2", "lz", "lz4", "lzma", "lzo", "z", "zst" -> file.isPacked.value
+                                    "bz2", "lz", "lz4", "lzma", "lzo", "z", "zst",
+                                    "unitypackage" -> file.isPacked.value
                                     else -> false
                                 }
                             ) {

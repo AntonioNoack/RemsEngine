@@ -20,7 +20,7 @@ class CachedProperty(
     val range = annotations.filterIsInstance<Range>().firstOrNull()
     val hideInInspector = annotations.any { it is HideInInspector }
 
-    fun set(instance: Any, value: Any?) {
+    operator fun set(instance: Any, value: Any?) {
         try {
             setter.call(instance, value)
         } catch (e: Exception) {
@@ -29,7 +29,7 @@ class CachedProperty(
         }
     }
 
-    fun get(instance: Any): Any? {
+    operator fun get(instance: Any): Any? {
         return try {
             getter.call(instance)
         } catch (e: Exception) {

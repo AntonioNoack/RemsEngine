@@ -71,7 +71,7 @@ class OptionPanel(
         if (data.isBlank2()) return
         try {
             val index = indexInParent
-            val values = TextReader.fromText(data)
+            val values = TextReader.read(data)
             for (it in values) {
                 it as? Inspectable ?: continue
                 val option = stackPanel.getOptionFromInspectable(it) ?: continue

@@ -22,12 +22,10 @@ class BaseShader(
     var textures: List<String>? = null
     var ignoredUniforms = HashSet<String>()
 
-    // todo flat shader vs lines shader
-
     fun createFlatShader(geoShader: GeoShader?): Shader {
-        // todo if it does not have tint, then add it?
-        // todo what do we do if it writes glFragColor?
-        // todo option to use flat shading independent of rendering mode (?)
+        // if it does not have tint, then add it?
+        // what do we do if it writes glFragColor?
+        // option to use flat shading independent of rendering mode (?)
         var fragment = if ("gl_FragColor" !in fragmentSource) {
             fragmentSource.substring(0, fragmentSource.lastIndexOf('}')) +
                     "gl_FragColor = vec4(finalColor, finalAlpha);\n"
@@ -99,9 +97,6 @@ class BaseShader(
         // deferredShaders.clear()
     }
 
-    // todo we can also visualize normals using the geometry shaders <3
-    // we would need to delay the camera transform for that
-
     companion object {
 
         // is used to draw indexed geometry optionally as lines (for debugging purposes)
@@ -161,7 +156,7 @@ class BaseShader(
                     "}\n"
         )*/
 
-        val normalGeometry = GeoShader(
+        val cullFaceColoringGeometry = GeoShader(
             "layout(triangles) in;\n" +
                     "layout(triangle_strip, max_vertices = 3) out;\n" +
                     "#inOutVarying\n" +

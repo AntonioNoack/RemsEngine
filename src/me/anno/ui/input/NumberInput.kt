@@ -23,7 +23,7 @@ abstract class NumberInput(
     var hasValue = false
     var mouseIsDown = false
 
-    val titleView = if(title.isBlank2()) null else TitlePanel(title, this, style)
+    val titleView = if (title.isBlank2()) null else TitlePanel(title, this, style)
     var isSelectedListener: (() -> Unit)? = null
 
     val inputPanel = object : NumberInputComponent(
@@ -59,7 +59,7 @@ abstract class NumberInput(
     }
 
     init {
-        if(titleView != null){
+        if (titleView != null) {
             add(titleView)
             titleView.enableHoverColor = true
             titleView.focusTextColor = titleView.textColor
@@ -102,6 +102,7 @@ abstract class NumberInput(
 
     fun setText(newText: String) {
         val oldText = inputPanel.text
+        if (oldText == newText) return
         inputPanel.text = newText
         inputPanel.updateChars(false)
         if (oldText.length != newText.length) {

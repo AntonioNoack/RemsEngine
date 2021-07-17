@@ -1,6 +1,7 @@
 package me.anno.objects
 
 import me.anno.animation.AnimatedProperty
+import me.anno.animation.Type
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.white4
 import me.anno.gpu.GFX
@@ -17,8 +18,10 @@ import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
+import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.pow
 import me.anno.utils.files.LocalFile.toGlobalFile
+import me.anno.utils.types.Casting.castToFloat2
 import org.joml.Matrix4fArrayList
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -35,7 +38,7 @@ class Camera(parent: Transform? = null) : Transform(parent) {
     var lut: FileReference = InvalidRef
     val nearZ = AnimatedProperty.floatPlus(0.001f)
     val farZ = AnimatedProperty.floatPlus(1000f)
-    val fovYDegrees = AnimatedProperty.float(90f)
+    val fovYDegrees = AnimatedProperty(fovType, 90f)
     val chromaticAberration = AnimatedProperty.floatPlus()
     val chromaticOffset = AnimatedProperty.vec2()
     val chromaticAngle = AnimatedProperty.float()
@@ -277,6 +280,10 @@ class Camera(parent: Transform? = null) : Transform(parent) {
     override val symbol = DefaultConfig["ui.symbol.camera", "\uD83C\uDFA5"]
 
     companion object {
+
+        // linear and exponential aren't really the correct types...
+        // around 0f and 180f should have exponential speed decay
+        val fovType = Type(90f, 1, 1f, true, true, { clamp(castToFloat2(it), 0.001f, 179.999f) }, { it })
 
         const val DEFAULT_VIGNETTE_STRENGTH = 5f
 

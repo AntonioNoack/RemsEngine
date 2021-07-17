@@ -22,8 +22,6 @@ import me.anno.image.HDRImage
 import me.anno.image.tar.TGAImage
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
-import me.anno.mesh.assimp.AnimGameItem.Companion.centerStackFromAABB
-import me.anno.mesh.assimp.AnimGameItem.Companion.getScaleFromAABB
 import me.anno.mesh.assimp.StaticMeshesLoader
 import me.anno.objects.Video
 import me.anno.objects.documents.pdf.PDFCache
@@ -331,8 +329,6 @@ object Thumbs {
             }) { it.assimpModel }
         }
 
-        val model = data.assimpModel!!
-
         val stack = Matrix4fArrayList()
         stack.perspective(0.7f, 1f, 0.001f, 5f)
         stack.translate(0f, 0f, -1f)// move the camera back a bit
@@ -340,8 +336,8 @@ object Thumbs {
         stack.rotateY(toRadians(-25f))
 
         // calculate the scale, such that everything can be visible
-        // 1.05f for a small border
-        val scale = 1.05f
+        // half, because it's half the size, 1.05f for a small border
+        val scale = 1.05f * 0.5f
         stack.scale(scale, -scale, scale)
 
         // render everything without color

@@ -2,6 +2,8 @@ package me.anno.engine.ui
 
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.prefab.PrefabCache.convertEntityToPrefab1
+import me.anno.ecs.prefab.PrefabEntity1
 import me.anno.io.files.FileReference
 import me.anno.io.text.TextReader
 import me.anno.objects.Transform
@@ -9,17 +11,17 @@ import me.anno.ui.editor.files.FileContentImporter
 import me.anno.utils.types.Strings.getImportType
 import org.apache.logging.log4j.LogManager
 
-object ECSFileImporter : FileContentImporter<Entity>() {
+object ECSPrefabFileImporter : FileContentImporter<PrefabEntity1>() {
 
-    private val LOGGER = LogManager.getLogger(ECSFileImporter::class)
+    private val LOGGER = LogManager.getLogger(ECSPrefabFileImporter::class)
 
     override fun import(
-        parent: Entity?,
+        parent: PrefabEntity1?,
         file: FileReference,
         useSoftLink: SoftLinkMode,
         doSelect: Boolean,
         depth: Int,
-        callback: (Entity) -> Unit
+        callback: (PrefabEntity1) -> Unit
     ) {
 
         parent!!
@@ -41,13 +43,9 @@ object ECSFileImporter : FileContentImporter<Entity>() {
             "Transform", "Entity" -> {
                 // try to parse as an entity
                 // (or an transform)
-                when (val content = TextReader.read(file).first()) {
-                    is Component -> {
-                        parent.add(content)
-                    }
-                    is Entity -> {
-                        parent.add(content)
-                    }
+                when (val content = TextReader.read(file.readText()).first()) {
+                    is Component -> parent.add(content)
+                    is Entity -> parent.add(convertEntityToPrefab1(content))
                     is Transform -> {
                         // todo convert it somehow...
                         LOGGER.warn("Converting Rem's Studio to Rem's Engine objects not yet implemented")
@@ -86,8 +84,10 @@ object ECSFileImporter : FileContentImporter<Entity>() {
         }
     }
 
-    override fun createNode(parent: Entity?): Entity {
-        return Entity(parent)
+    override fun createNode(parent: PrefabEntity1?): PrefabEntity1 {
+        val node = PrefabEntity1()
+        parent?.add(node)
+        return node
     }
 
 }

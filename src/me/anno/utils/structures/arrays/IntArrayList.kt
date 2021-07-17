@@ -10,4 +10,7 @@ class IntArrayList(val capacity: Int){
         buffers.last()[index] = value
         size++
     }
+    fun add(value: Int){
+        plusAssign(value)
+    }
 }

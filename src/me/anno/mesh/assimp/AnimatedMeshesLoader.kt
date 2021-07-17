@@ -25,7 +25,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
 
     private val LOGGER = LogManager.getLogger(AnimatedMeshesLoader::class)
 
-    var debugTransforms = true
+    var debugTransforms = false
 
     fun matrixFix(metadata: Map<String, Any>): Matrix3f {
 

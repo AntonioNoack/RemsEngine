@@ -12,7 +12,7 @@ object ComponentCache : CacheSection("Components") {
         return if (reference != InvalidRef) {
             val cacheData = getEntry(reference, 1000, false) {
                 // load the component from source
-                CacheData(TextReader.fromText(it.readText()) as Component)
+                CacheData(TextReader.read(it) as Component)
             } as? CacheData<*>
             cacheData?.value as? Component
         } else null

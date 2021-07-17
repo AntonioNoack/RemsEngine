@@ -1,6 +1,5 @@
 package me.anno.objects.meshes
 
-import de.javagl.jgltf.model.io.GltfModelReader
 import me.anno.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.cache.instances.LastModifiedCache
@@ -9,7 +8,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.RenderState
 import me.anno.gpu.shader.BaseShader.Companion.lineGeometry
-import me.anno.gpu.shader.BaseShader.Companion.normalGeometry
+import me.anno.gpu.shader.BaseShader.Companion.cullFaceColoringGeometry
 import me.anno.input.Input
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -50,16 +49,16 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
 
         // var daeEngine: RenderEngine? = null
         // val gltfReader = GltfModelReader()
-        var daeRenderer: AnimatedModelRenderer? = null
+        // var daeRenderer: AnimatedModelRenderer? = null
 
-        init {
+        /*init {
             GltfLogger.setup()
             LogManager.disableLogger("MatrixOps")
             LogManager.disableLogger("RenderCommandUtils")
             LogManager.disableLogger("GlContextLwjgl")
             LogManager.disableLogger("GltfRenderData")
             LogManager.disableLogger("DefaultRenderedGltfModel")
-        }
+        }*/
 
         fun loadModel(
             file: FileReference,
@@ -98,7 +97,6 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
     var lastFile: FileReference? = null
     var extension = ""
     var powerOf10Correction = 0
-
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
@@ -259,7 +257,7 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
                                     }
                                 }
                                 Input.isKeyDown('n') -> {// normal debugging
-                                    RenderState.geometryShader.use(normalGeometry) {
+                                    RenderState.geometryShader.use(cullFaceColoringGeometry) {
                                         data.drawAssimp(
                                             this, stack, time, color,
                                             animation[time], true, centerMesh, normalizeScale

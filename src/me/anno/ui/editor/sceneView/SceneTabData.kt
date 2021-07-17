@@ -24,7 +24,7 @@ class SceneTabData() : Saveable() {
 
     fun apply(tab: SceneTab) {
         tab.file = file
-        val read by lazy { TextReader.fromText(file!!.readText()) }
+        val read by lazy { TextReader.read(file!!) }
         tab.root = transform ?: read.filterIsInstance<Transform>().firstOrNull() ?: Transform().run {
             // todo translate
             name = "Root"

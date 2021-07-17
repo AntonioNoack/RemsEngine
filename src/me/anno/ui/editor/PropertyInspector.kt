@@ -55,6 +55,10 @@ class PropertyInspector(val getInspectable: () -> Inspectable?, style: Style) :
             while (src.hasNext() && dst.hasNext()) {
                 val s = src.next()
                 val d = dst.next()
+                // don't change the value while the user is editing it
+                // this would cause bad user experience:
+                // e.g. 0.0001 would be replaced with 1e-4
+                if(d.listOfAll.any { it.isInFocus }) continue
                 when (s) {
                     is FloatInput -> {
                         (d as? FloatInput)?.apply {

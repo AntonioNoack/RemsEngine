@@ -16,7 +16,7 @@ import me.anno.ui.editor.sceneView.SceneView
 
 class ECSTypeLibrary(val world: ECSWorld, val isGaming: Boolean) {
 
-    var selection: Inspectable? = world
+    var selection: Inspectable? = world.world
 
     val typeList = listOf<Pair<String, () -> Panel>>(
         // todo not all stuff here makes sense

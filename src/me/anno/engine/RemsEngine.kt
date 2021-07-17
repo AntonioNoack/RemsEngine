@@ -18,6 +18,16 @@ import me.anno.ui.editor.UILayouts.createReloadWindow
 import me.anno.ui.editor.config.ConfigPanel
 import org.apache.logging.log4j.LogManager
 
+// todo make rendering working
+// todo drop in meshes
+// todo drop in ui maybe...
+// todo key listeners (?)...
+
+
+
+
+// todo bug: long text field is broken...
+
 class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
     override fun createUI() {

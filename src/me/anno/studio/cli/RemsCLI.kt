@@ -9,7 +9,6 @@ import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.bindTexture
 import me.anno.installer.Installer.checkInstall
-import me.anno.io.files.FileReference
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.text.TextReader
@@ -84,7 +83,7 @@ object RemsCLI {
         init()
 
         val scene = try {
-            TextReader.fromText(sceneSource)
+            TextReader.read(sceneSource)
                 .filterIsInstance<Transform>()
                 .firstOrNull() ?: return error("Could not find scene")
         } catch (e: RuntimeException) {

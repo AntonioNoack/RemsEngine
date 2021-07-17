@@ -25,7 +25,7 @@ class SceneLoader {
         // todo load the basic values, json
         // todo load all children: either json or a reference
         // todo or just load all, and then replace the references? yes :)
-        val entity = TextReader.fromText(file.readText()).first() as Entity
+        val entity = TextReader.read(file.readText()).first() as Entity
         entity.depthFirstTraversal(true) {
             val components = it.components
             for (index in components.indices) {

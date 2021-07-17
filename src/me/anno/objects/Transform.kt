@@ -238,7 +238,7 @@ open class Transform() : Saveable(),
         val transform = getGroup("Transform", "Translation Scale, Rotation, Skewing", "transform")
         transform += vi("Position", "Location of this object", position, style)
         transform += vi("Scale", "Makes it bigger/smaller", scale, style)
-        transform += vi("Rotation (YXZ)", "", rotationYXZ, style)
+        transform += vi("Rotation", "Pitch,Yaw,Roll", rotationYXZ, style)
         transform += vi("Skew", "Transform it similar to a shear", skew, style)
         transform += vi(
             "Alignment with Camera", "0 = in 3D, 1 = looking towards the camera; billboards",
@@ -845,7 +845,7 @@ open class Transform() : Saveable(),
         val yAxis: Vector3fc = Vector3f(0f, 1f, 0f)
         val zAxis: Vector3fc = Vector3f(0f, 0f, 1f)
         val nextClickId = AtomicInteger()
-        fun String.toTransform() = TextReader.fromText(this).first() as? Transform
+        fun String.toTransform() = TextReader.read(this).first() as? Transform
         const val minAlpha = 0.5f / 255f
         private val LOGGER = LogManager.getLogger(Transform::class)
         val dilationType = Type(1.0, 1, 1f, true, true, ::castToDouble2, ::castToDouble)

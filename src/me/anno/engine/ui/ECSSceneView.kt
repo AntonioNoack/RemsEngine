@@ -1,10 +1,8 @@
 package me.anno.engine.ui
 
-import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.CameraComponent
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.MeshRenderer
 import me.anno.ecs.components.mesh.RendererComponent
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.engine.ECSWorld
@@ -14,6 +12,7 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.ui.base.Panel
+import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.mix
 import org.joml.*
@@ -31,7 +30,7 @@ import org.lwjgl.opengl.GL11.glClearColor
 // todo easily allow for multiple players in the same instance, with just player key mapping
 // -> camera cannot be global, or todo it must be switched whenever the player changes
 
-class ECSSceneView(val world: ECSWorld) : Panel(style) {
+class ECSSceneView(val world: ECSWorld, style: Style) : Panel(style) {
 
     // todo a custom state, which stores all related rendering information
 
@@ -116,7 +115,7 @@ class ECSSceneView(val world: ECSWorld) : Panel(style) {
                 Frame.bind()
                 tmp4f.set(previousCamera.clearColor).lerp(camera.clearColor, blend.toFloat())
                 glClearColor(tmp4f.x, tmp4f.y, tmp4f.z, 1f)
-                drawScene(viewTransform, camInverse, world, null)
+                drawScene(viewTransform, camInverse, world.world, null)
             }
         }
 

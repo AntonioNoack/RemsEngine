@@ -3,7 +3,9 @@ package me.anno.engine
 import com.bulletphysics.collision.dispatch.CollisionWorld
 import me.anno.ecs.Entity
 
-class ECSWorld : Entity() {
+class ECSWorld {
+
+    val world = Entity()
 
     // will be shared over the network, and available to all clients
     // should be written only to by the server, or for particle effects
@@ -36,11 +38,11 @@ class ECSWorld : Entity() {
     val remotePlayers = Entity("Remote Players")
 
     init {
-        addChild(globallyShared)
-        addChild(playerPrefab)
-        addChild(locallyShared)
-        addChild(localPlayers)
-        addChild(remotePlayers)
+        world.addChild(globallyShared)
+        world.addChild(playerPrefab)
+        world.addChild(locallyShared)
+        world.addChild(localPlayers)
+        world.addChild(remotePlayers)
     }
 
     fun createLocalPlayer(name: String): Entity {
@@ -64,8 +66,6 @@ class ECSWorld : Entity() {
         remotePlayers.remove(player)
     }
 
-    var physics: CollisionWorld? = null
-
-    override val className get() = "RootEntity"
+    var physics = BulletPhysics()
 
 }
