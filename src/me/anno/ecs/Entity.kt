@@ -1,8 +1,6 @@
 package me.anno.ecs
 
-import me.anno.animation.Type
-import me.anno.ecs.Component.Companion.getComponentOptions
-import me.anno.ecs.prefab.PrefabCache
+import me.anno.ecs.prefab.PrefabInspector
 import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
@@ -15,17 +13,10 @@ import me.anno.io.text.TextWriter
 import me.anno.objects.inspectable.Inspectable
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
-import me.anno.ui.editor.stacked.Option
-import me.anno.ui.editor.stacked.StackPanel
-import me.anno.ui.input.TextInput
-import me.anno.ui.input.VectorInput
 import me.anno.ui.style.Style
-import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.Hierarchical
 import me.anno.utils.types.Floats.f2s
 import org.joml.Matrix4x3d
-import org.joml.Quaterniond
-import org.joml.Vector3d
 
 // entities would be an idea to make effects more modular
 // it could apply new effects to both the camera and image sources
@@ -230,7 +221,7 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
         return Matrix4x3d(other.transform.globalTransform).invert().mul(transform.globalTransform)
     }
 
-    fun clone() = TextReader.read(TextWriter.toText(this, false))[0] as Entity
+    fun clone() = TextReader.clone(this) as Entity
 
     override fun onDestroy() {}
 
@@ -248,61 +239,43 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
     // - name, description,
     // - isEnabled
 
-    var changes = HashSet<String>()
     var prefabPath: FileReference = InvalidRef
     var prefab: Entity? = null
+    var ownPath: FileReference = InvalidRef // where our file is located
+
+    // get root somehow? how can we detect it?
+    // not possible in the whole scene for sub-scenes
+    // however, when we are only editing prefabs, it would be possible :)
+
+    val root: Entity get() = parent?.root ?: this
+
+    fun pathInRoot(root: Entity): ArrayList<Int> {
+        if(this == root) return arrayListOf()
+        val parent = parent
+        return if (parent != null) {
+            val ownIndex = parent.children.indexOf(this@Entity)
+            parent.pathInRoot().apply {
+                add(ownIndex)
+            }
+        } else arrayListOf()
+    }
+
+    fun pathInRoot(): ArrayList<Int> {
+        val parent = parent
+        return if (parent != null) {
+            val ownIndex = parent.children.indexOf(this@Entity)
+            parent.pathInRoot().apply {
+                add(ownIndex)
+            }
+        } else arrayListOf()
+    }
 
     override fun createInspector(
         list: PanelListY,
         style: Style,
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
-        // todo implement the properties and stuff
-        // todo add history support (undoing stuff)
-        list.add(TextInput("Name", "", style, name).apply {
-            setChangeListener { name = it; changes += "name" }
-            setResetListener { changes -= "name"; prefab?.name ?: "" }
-        })
-        list.add(TextInput("Description", "", style, description).apply {
-            setChangeListener { description = it; changes += "desc" }
-            setResetListener { changes -= "desc"; prefab?.description ?: "" }
-        })
-        list.add(VectorInput(style, "Position", "pos", transform.localPosition, Type.POSITION).apply {
-            setChangeListener { x, y, z, _ -> transform.localPosition.set(x, y, z); changes += "pos" }
-            setResetListener { changes -= "pos"; prefab?.transform?.localPosition ?: Vector3d() }
-        })
-        list.add(VectorInput(style, "Rotation", "rot", transform.localRotation, Type.ROT_YXZ).apply {
-            setChangeListener { x, y, z, _ -> transform.setLocalEulerAngle(x, y, z); changes += "rot" }
-            setResetListener { changes -= "rot"; prefab?.transform?.localRotation ?: Quaterniond() }
-        })
-        list.add(VectorInput(style, "Scale", "scale", transform.localScale, Type.SCALE).apply {
-            setChangeListener { x, y, z, _ -> transform.localScale.set(x, y, z); changes += "sca" }
-            setResetListener { changes -= "sca"; prefab?.transform?.localScale ?: Vector3d(1.0) }
-        })
-        list.add(
-            object : StackPanel(
-                "Components",
-                "Customize properties and behaviours",
-                getComponentOptions(),
-                components,
-                style
-            ) {
-
-                override fun onAddComponent(component: Inspectable, index: Int) {
-                    components.add(index, component as Component)
-                }
-
-                override fun onRemoveComponent(component: Inspectable) {
-                    components.remove(component)
-                }
-
-                override fun getOptionFromInspectable(inspectable: Inspectable): Option {
-                    inspectable as Component
-                    return Option(inspectable.className, "") { inspectable }
-                }
-
-            }
-        )
+        PrefabInspector.currentInspector!!.inspectEntity(this, list, style)
     }
 
     override fun save(writer: BaseWriter) {

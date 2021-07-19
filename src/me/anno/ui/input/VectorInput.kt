@@ -19,7 +19,7 @@ import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.input.components.PureTextInput
+import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.TitlePanel
 import me.anno.ui.input.components.VectorInputComponent
 import me.anno.ui.style.Style
@@ -29,6 +29,7 @@ import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.pow
 import me.anno.utils.types.AnyToDouble.getDouble
 import me.anno.utils.types.AnyToFloat.getFloat
+import me.anno.utils.types.Floats.anyToDouble
 import me.anno.utils.types.Quaternions.toEulerAnglesDegrees
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
@@ -36,15 +37,15 @@ import org.joml.*
 import kotlin.math.max
 
 class VectorInput(
-    style: Style,
     val title: String,
     val visibilityKey: String,
     val type: Type,
-    private val owningProperty: AnimatedProperty<*>? = null
-) : PanelListY(style) {
+    private val owningProperty: AnimatedProperty<*>? = null,
+    style: Style
+) : PanelListY(style), TextStyleable {
 
     constructor(title: String, property: AnimatedProperty<*>, time: Double, style: Style) :
-            this(style, title, title, property.type, property) {
+            this(title, title, property.type, property, style) {
         when (val value = property[time]) {
             is Vector2f -> setValue(value, false)
             is Vector3f -> setValue(value, false)
@@ -55,30 +56,42 @@ class VectorInput(
     }
 
     constructor(
-        style: Style, title: String, visibilityKey: String, value: Vector2fc, type: Type,
-        owningProperty: AnimatedProperty<*>? = null
-    ) : this(style, title, visibilityKey, type, owningProperty) {
+        title: String, visibilityKey: String, value: Vector2fc, type: Type,
+        owningProperty: AnimatedProperty<*>?, style: Style
+    ) : this(title, visibilityKey, type, owningProperty, style) {
         setValue(value, false)
     }
 
     constructor(
-        style: Style, title: String, visibilityKey: String, value: Vector3fc, type: Type,
-        owningProperty: AnimatedProperty<*>? = null
-    ) : this(style, title, visibilityKey, type, owningProperty) {
+        title: String, visibilityKey: String, value: Vector2fc, type: Type, style: Style
+    ) : this(title, visibilityKey, value, type, null, style)
+
+    constructor(
+        title: String, visibilityKey: String, value: Vector3fc, type: Type,
+        owningProperty: AnimatedProperty<*>?, style: Style
+    ) : this(title, visibilityKey, type, owningProperty, style) {
         setValue(value, false)
     }
 
     constructor(
-        style: Style, title: String, visibilityKey: String, value: Vector4fc, type: Type,
-        owningProperty: AnimatedProperty<*>? = null
-    ) : this(style, title, visibilityKey, type, owningProperty) {
+        title: String, visibilityKey: String, value: Vector3fc, type: Type, style: Style
+    ) : this(title, visibilityKey, value, type, null, style)
+
+    constructor(
+        title: String, visibilityKey: String, value: Vector4fc, type: Type,
+        owningProperty: AnimatedProperty<*>? = null, style: Style
+    ) : this(title, visibilityKey, type, owningProperty, style) {
         setValue(value, false)
     }
 
     constructor(
-        style: Style, title: String, visibilityKey: String, value: Quaternionf,
-        type: Type = Type.QUATERNION
-    ) : this(style, title, visibilityKey, type) {
+        title: String, visibilityKey: String, value: Vector4fc, type: Type, style: Style
+    ) : this(title, visibilityKey, value, type, null, style)
+
+    constructor(
+        title: String, visibilityKey: String, value: Quaternionf,
+        type: Type = Type.QUATERNION, style: Style
+    ) : this(title, visibilityKey, type, null, style) {
         if (type.components == 3) {
             // if type is Type.ROT_YXZ, we need to transform the value to angles, and to degrees
             val value2 = value.toEulerAnglesDegrees()
@@ -89,30 +102,42 @@ class VectorInput(
     }
 
     constructor(
-        style: Style, title: String, visibilityKey: String, value: Vector2dc, type: Type,
-        owningProperty: AnimatedProperty<*>? = null
-    ) : this(style, title, visibilityKey, type, owningProperty) {
+        title: String, visibilityKey: String, value: Vector2dc, type: Type,
+        owningProperty: AnimatedProperty<*>?, style: Style
+    ) : this(title, visibilityKey, type, owningProperty, style) {
         setValue(value, false)
     }
 
     constructor(
-        style: Style, title: String, visibilityKey: String, value: Vector3dc, type: Type,
-        owningProperty: AnimatedProperty<*>? = null
-    ) : this(style, title, visibilityKey, type, owningProperty) {
+        title: String, visibilityKey: String, value: Vector2dc, type: Type, style: Style
+    ) : this(title, visibilityKey, value, type, null, style)
+
+    constructor(
+        title: String, visibilityKey: String, value: Vector3dc, type: Type,
+        owningProperty: AnimatedProperty<*>?, style: Style
+    ) : this(title, visibilityKey, type, owningProperty, style) {
         setValue(value, false)
     }
 
     constructor(
-        style: Style, title: String, visibilityKey: String, value: Vector4dc, type: Type,
-        owningProperty: AnimatedProperty<*>? = null
-    ) : this(style, title, visibilityKey, type, owningProperty) {
+        title: String, visibilityKey: String, value: Vector3dc, type: Type, style: Style
+    ) : this(title, visibilityKey, value, type, null, style)
+
+    constructor(
+        title: String, visibilityKey: String, value: Vector4dc, type: Type,
+        owningProperty: AnimatedProperty<*>?, style: Style
+    ) : this(title, visibilityKey, type, owningProperty, style) {
         setValue(value, false)
     }
 
     constructor(
-        style: Style, title: String, visibilityKey: String, value: Quaterniond,
-        type: Type = Type.QUATERNIOND
-    ) : this(style, title, visibilityKey, type) {
+        title: String, visibilityKey: String, value: Vector4dc, type: Type, style: Style
+    ) : this(title, visibilityKey, value, type, null, style)
+
+    constructor(
+        title: String, visibilityKey: String, value: Quaterniond,
+        type: Type = Type.QUATERNIOND, style: Style
+    ) : this(title, visibilityKey, type, null, style) {
         if (type.components == 3) {
             // if type is Type.ROT_YXZ, we need to transform the value to angles, and to degrees
             val value2 = value.toEulerAnglesDegrees()
@@ -123,22 +148,9 @@ class VectorInput(
     }
 
     private val components: Int = type.components
-    private val valueFields = ArrayList<PureTextInput>(components)
+    private val valueFields = ArrayList<FloatInput>(components)
 
     private var resetListener: (() -> Any?)? = null
-
-    fun setResetListener(listener: (() -> Any?)?) {
-        resetListener = listener
-    }
-
-    private fun addComponent(i: Int, title: String): FloatInput {
-        val pseudo = VectorInputComponent(this.title, visibilityKey, type, owningProperty, i, this, style)
-        val input = pseudo.inputPanel
-        pseudo.inputPanel.tooltip = title
-        valueList += input.setWeight(1f)
-        valueFields += input
-        return pseudo
-    }
 
     // val titleList = PanelListX(style)
     private val valueList = object : PanelListX(style) {
@@ -182,6 +194,27 @@ class VectorInput(
         this += valueList
         if (titleView != null) valueList.hide()
 
+    }
+
+    override fun setBold(bold: Boolean) {
+        titleView?.setBold(bold)
+    }
+
+    override fun setItalic(italic: Boolean) {
+        titleView?.setItalic(italic)
+    }
+
+    private fun addComponent(i: Int, title: String): FloatInput {
+        val pseudo = VectorInputComponent("", visibilityKey, type, owningProperty, i, this, style)
+        // val input = pseudo.inputPanel
+        pseudo.inputPanel.tooltip = title
+        valueList += pseudo.setWeight(1f)
+        valueFields += pseudo
+        return pseudo
+    }
+
+    fun setResetListener(listener: (() -> Any?)?) {
+        resetListener = listener
     }
 
     override fun onCopyRequested(x: Float, y: Float): String? =
@@ -346,6 +379,15 @@ class VectorInput(
     var changeListener: (x: Double, y: Double, z: Double, w: Double) -> Unit = { _, _, _, _ ->
     }
 
+    fun onChange() {
+        changeListener(
+            compX.lastValue.anyToDouble(),
+            compY.lastValue.anyToDouble(),
+            compZ?.lastValue?.anyToDouble() ?: 0.0,
+            compW?.lastValue?.anyToDouble() ?: 0.0
+        )
+    }
+
     fun setChangeListener(listener: (x: Double, y: Double, z: Double, w: Double) -> Unit): VectorInput {
         changeListener = listener
         return this
@@ -432,40 +474,33 @@ class VectorInput(
         if (owningProperty != null || resetListener == null) {
             onEmpty2(owningProperty?.defaultValue ?: type.defaultValue)
         } else {
+            // onChange is not required, and wrong, because we set a listener, so we need to handle this ourselves
+            // also we decided the value ourselves, so we know the value
             when (val value = resetListener()) {
                 is Quaternionfc -> {
                     if (type.components == 3) {
                         val comp = value.toEulerAnglesDegrees()
-                        valueFields[0].text = comp.x.toString()
-                        valueFields[1].text = comp.y.toString()
-                        valueFields[2].text = comp.z.toString()
-                        changeListener(comp.x.toDouble(), comp.y.toDouble(), comp.z.toDouble(), 0.0)
+                        valueFields[0].setValue(comp.x, false)
+                        valueFields[1].setValue(comp.y, false)
+                        valueFields[2].setValue(comp.z, false)
                     } else {
-                        valueFields[0].text = value.x().toString()
-                        valueFields[1].text = value.y().toString()
-                        valueFields[2].text = value.z().toString()
-                        valueFields[3].text = value.w().toString()
-                        changeListener(
-                            value.x().toDouble(),
-                            value.y().toDouble(),
-                            value.z().toDouble(),
-                            value.w().toDouble()
-                        )
+                        valueFields[0].setValue(value.x(), false)
+                        valueFields[1].setValue(value.y(), false)
+                        valueFields[2].setValue(value.z(), false)
+                        valueFields[3].setValue(value.w(), false)
                     }
                 }
                 is Quaterniondc -> {
                     if (type.components == 3) {
                         val comp = value.toEulerAnglesDegrees()
-                        valueFields[0].text = comp.x.toString()
-                        valueFields[1].text = comp.y.toString()
-                        valueFields[2].text = comp.z.toString()
-                        changeListener(comp.x, comp.y, comp.z, 0.0)
+                        valueFields[0].setValue(comp.x, false)
+                        valueFields[1].setValue(comp.y, false)
+                        valueFields[2].setValue(comp.z, false)
                     } else {
-                        valueFields[0].text = value.x().toString()
-                        valueFields[1].text = value.y().toString()
-                        valueFields[2].text = value.z().toString()
-                        valueFields[3].text = value.w().toString()
-                        changeListener(value.x(), value.y(), value.z(), value.w())
+                        valueFields[0].setValue(value.x(), false)
+                        valueFields[1].setValue(value.y(), false)
+                        valueFields[2].setValue(value.z(), false)
+                        valueFields[3].setValue(value.w(), false)
                     }
                 }
                 else -> onEmpty2(value ?: type.defaultValue)
@@ -476,14 +511,14 @@ class VectorInput(
 
     private fun onEmpty2(defaultValue: Any) {
         valueFields.forEachIndexed { index, pureTextInput ->
-            pureTextInput.text = getDouble(defaultValue, index).toString()
+            val double = getDouble(defaultValue, index)
+            pureTextInput.setValue(double, false)// = double.toString()
         }
-        changeListener(
-            getDouble(defaultValue, 0),
-            getDouble(defaultValue, 1),
-            getDouble(defaultValue, 2),
-            getDouble(defaultValue, 3)
-        )
+        if (resetListener == null) {
+            onChange()
+        }// else:
+        // onChange is not required, and wrong, because we set a listener, so we need to handle this ourselves
+        // also we decided the value ourselves, so we know the value
     }
 
     override fun getCursor(): Long = Cursor.drag

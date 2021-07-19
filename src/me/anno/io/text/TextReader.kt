@@ -1,5 +1,6 @@
 package me.anno.io.text
 
+import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.ISaveable
 import me.anno.io.InvalidFormatException
 import me.anno.io.base.BaseReader
@@ -18,7 +19,7 @@ class TextReader(val data: CharSequence) : BaseReader() {
 
     val length = data.length
     var index = 0
-    var tmpChar = 0.toChar()
+    var tmpChar = 0
 
     private var unusedPointer = Int.MAX_VALUE
     private fun getUnusedPointer(): Int {
@@ -64,7 +65,7 @@ class TextReader(val data: CharSequence) : BaseReader() {
                     ',' -> Unit // nothing to do
                     '{' -> readObject()
                     ']' -> return
-                    else -> throw InvalidFormatException("Unexpected char $next")
+                    else -> throw InvalidFormatException("Unexpected char $next, ${next.code}")
                 }
             }
         } catch (e: Exception) {
@@ -73,10 +74,10 @@ class TextReader(val data: CharSequence) : BaseReader() {
     }
 
     private fun next(): Char {
-        if (tmpChar != 0.toChar()) {
+        if (tmpChar != 0) {
             val v = tmpChar
-            tmpChar = 0.toChar()
-            return v
+            tmpChar = 0
+            return v.toChar()
         }
         return if (index < length) {
             data[index++]
@@ -170,7 +171,7 @@ class TextReader(val data: CharSequence) : BaseReader() {
                     else throw InvalidFormatException("Unexpected symbol \" inside number!")
                 }
                 else -> {
-                    tmpChar = next
+                    tmpChar = next.code
                     return str.toString()
                 }
             }
@@ -365,27 +366,27 @@ class TextReader(val data: CharSequence) : BaseReader() {
     }
 
     private fun readByte() = readNumber().run {
-        toIntOrNull()?.toByte() ?: error("Invalid byte", this)
+        toInt().toByte()// ?: error("Invalid byte", this)
     }
 
     private fun readShort() = readNumber().run {
-        toIntOrNull()?.toShort() ?: error("Invalid short", this)
+        toInt().toShort()// ?: error("Invalid short", this)
     }
 
     private fun readInt() = readNumber().run {
-        toIntOrNull() ?: error("Invalid int", this)
+        toInt()// ?: error("Invalid int", this)
     }
 
     private fun readLong() = readNumber().run {
-        toLongOrNull() ?: error("Invalid long", this)
+        toLong()// ?: error("Invalid long", this)
     }
 
     private fun readFloat() = readNumber().run {
-        toFloatOrNull() ?: error("Invalid float", this)
+        toFloat()// ?: error("Invalid float", this)
     }
 
     private fun readDouble() = readNumber().run {
-        toDoubleOrNull() ?: error("Invalid double", this)
+        toDouble()// ?: error("Invalid double", this)
     }
 
     private fun readFloatArray() = readTypedArray(
@@ -544,12 +545,14 @@ class TextReader(val data: CharSequence) : BaseReader() {
             )
             "m4x4" -> obj.readMatrix4x4f(name, Matrix4f(readVector4f(), readVector4f(), readVector4f(), readVector4f()))
             "m3x3d" -> obj.readMatrix3x3d(name, Matrix3d(readVector3d(), readVector3d(), readVector3d()))
-            "m4x3d" -> obj.readMatrix4x3d(name, Matrix4x3d(
-                readDouble(), readDouble(), readDouble(),
-                readDouble(), readDouble(), readDouble(),
-                readDouble(), readDouble(), readDouble(),
-                readDouble(), readDouble(), readDouble()
-            ))
+            "m4x3d" -> obj.readMatrix4x3d(
+                name, Matrix4x3d(
+                    readDouble(), readDouble(), readDouble(),
+                    readDouble(), readDouble(), readDouble(),
+                    readDouble(), readDouble(), readDouble(),
+                    readDouble(), readDouble(), readDouble()
+                )
+            )
             "m4x4d" -> obj.readMatrix4x4d(
                 name,
                 Matrix4d(readVector4d(), readVector4d(), readVector4d(), readVector4d())
@@ -589,7 +592,7 @@ class TextReader(val data: CharSequence) : BaseReader() {
                         'n' -> obj.readObject(name, readNull())
                         '{' -> obj.readObject(name, readObjectAndRegister(type))
                         in '0'..'9' -> {
-                            tmpChar = next
+                            tmpChar = next.code
                             val rawPtr = readNumber()
                             val ptr = rawPtr.toIntOrNull() ?: error("Invalid pointer: $rawPtr")
                             if (ptr > 0) {
@@ -610,7 +613,7 @@ class TextReader(val data: CharSequence) : BaseReader() {
     }
 
     private fun readPtr(next: Char): ISaveable? {
-        tmpChar = next
+        tmpChar = next.code
         val rawPtr = readNumber()
         val ptr = rawPtr.toIntOrNull() ?: error("Invalid pointer: $rawPtr")
         return if (ptr > 0) {
@@ -671,7 +674,7 @@ class TextReader(val data: CharSequence) : BaseReader() {
                     if (n == ',') n = skipSpace()
                     if (n != '}') {
                         assert(n, '"')
-                        tmpChar = '"'
+                        tmpChar = '"'.code
                         child = readProperty(child)
                         child = propertyLoop(child)
                     }
@@ -690,7 +693,9 @@ class TextReader(val data: CharSequence) : BaseReader() {
     }
 
     companion object {
+
         private val LOGGER = LogManager.getLogger(TextReader::class.java)
+
         fun read(data: CharSequence): List<ISaveable> {
             val reader = TextReader(data)
             reader.readAllInList()
@@ -699,11 +704,16 @@ class TextReader(val data: CharSequence) : BaseReader() {
         }
 
         fun read(input: FileReference): List<ISaveable> {
-            return input.inputStream().use { read(it, input.length().toInt()) }
+            // buffered is very important and delivers an improvement of 5x
+            return input.inputStream().useBuffered().use { read(it, input.length().toInt()) }
         }
 
         fun read(input: InputStream, length: Int = -1): List<ISaveable> {
-            return read(InputStreamCharSequence(input, length))
+            return read(InputStreamCharSequence(input.useBuffered(), length))
+        }
+
+        fun clone(element: ISaveable): ISaveable? {
+            return read(TextWriter.toText(element, false)).getOrNull(0)
         }
 
     }
@@ -714,12 +724,17 @@ class TextReader(val data: CharSequence) : BaseReader() {
         // or the TextReader could give the signal, that we're allowed to forget
 
         private val memory = IntArrayList(512)
-        override var length: Int = if (length < 0) Int.MAX_VALUE else length
+        override var length: Int = if (length <= 0) Int.MAX_VALUE else length
 
         private fun ensureIndex(index: Int) {
             while (memory.size <= kotlin.math.min(index, length)) {
                 val read = input.read()
-                this.length = kotlin.math.min(this.length, memory.size)
+                if (read < 0) {
+                    this.length = kotlin.math.min(
+                        this.length,
+                        memory.size
+                    )
+                }
                 memory.add(read)
             }
             while (memory.size <= index) {
@@ -742,3 +757,15 @@ class TextReader(val data: CharSequence) : BaseReader() {
     }
 
 }
+
+/*fun main() { // a test, because I had a bug
+    val readTest = OS.desktop.getChild("fbx.yaml")
+    val fakeString = TextReader.InputStreamCharSequence(readTest.inputStream(), readTest.length().toInt())
+    var i = 0
+    while (i < fakeString.length) {
+        val char = fakeString[i++]
+        print(char)
+    }
+    println()
+    println("characters: $i")
+}*/

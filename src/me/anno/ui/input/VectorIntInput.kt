@@ -12,7 +12,6 @@ import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.TitledListY
-import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.input.components.VectorInputIntComponent
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
@@ -63,7 +62,7 @@ class VectorIntInput(
     }
 
     private val components: Int = type.components
-    private val valueFields = ArrayList<PureTextInput>(components)
+    private val valueFields = ArrayList<IntInput>(components)
 
     private var resetListener: (() -> Any?)? = null
 
@@ -73,10 +72,9 @@ class VectorIntInput(
 
     private fun addComponent(i: Int, title: String): IntInput {
         val pseudo = VectorInputIntComponent(this.title, visibilityKey, type, owningProperty, i, this, style)
-        val input = pseudo.inputPanel
         pseudo.inputPanel.tooltip = title
-        valueList += input.setWeight(1f)
-        valueFields += input
+        valueList += pseudo.setWeight(1f)
+        valueFields += pseudo
         return pseudo
     }
 
@@ -279,16 +277,22 @@ class VectorIntInput(
         }
     }
 
+    fun onChange() {
+        changeListener(
+            compX.lastValue.toInt(),
+            compY.lastValue.toInt(),
+            compZ?.lastValue?.toInt() ?: 0,
+            compW?.lastValue?.toInt() ?: 0
+        )
+    }
+
     private fun onEmpty2(defaultValue: Any) {
         valueFields.forEachIndexed { index, pureTextInput ->
-            pureTextInput.text = getInt(defaultValue, index).toString()
+            pureTextInput.setValue(getInt(defaultValue, index), false)
         }
-        changeListener(
-            getInt(defaultValue, 0),
-            getInt(defaultValue, 1),
-            getInt(defaultValue, 2),
-            getInt(defaultValue, 3)
-        )
+        if (resetListener == null) {
+            onChange()
+        }
     }
 
     override fun getCursor(): Long = Cursor.drag

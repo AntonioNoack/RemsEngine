@@ -7,7 +7,6 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.input.MouseButton
 import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.Panel
-import me.anno.ui.input.BooleanInput
 import me.anno.ui.style.Style
 import org.lwjgl.glfw.GLFW
 import kotlin.math.min
@@ -24,7 +23,7 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, val size: In
 
     var isChecked = startValue
 
-    private var resetListener: () -> Boolean = { defaultValue }
+    private var resetListener: () -> Boolean? = { defaultValue }
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
@@ -94,10 +93,11 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, val size: In
     }
 
     override fun onEmpty(x: Float, y: Float) {
-        if (resetListener() != isChecked) toggle(true)
+        val resetValue = resetListener() ?: defaultValue
+        if (resetValue != isChecked) toggle(true)
     }
 
-    fun setResetListener(listener: () -> Boolean): Checkbox {
+    fun setResetListener(listener: () -> Boolean?): Checkbox {
         resetListener = listener
         return this
     }

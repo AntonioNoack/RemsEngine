@@ -20,9 +20,9 @@ import me.anno.gpu.drawing.GFXx3D.draw3DVideo
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
-import me.anno.io.files.FileReference
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
@@ -265,7 +265,7 @@ class Video(file: FileReference = InvalidRef, parent: Transform? = null) : Audio
                 val localTime = isLooping[time, duration]
 
                 val frame = ImageCache.getImage(meta.getImage(localTime), 5L, true)
-                if (frame == null || !frame.isCreated) onMissingImageOrFrame()
+                if (frame == null || !frame.isCreated) onMissingImageOrFrame((localTime * 1000).toInt())
                 else {
                     lastW = frame.w
                     lastH = frame.h
@@ -291,8 +291,8 @@ class Video(file: FileReference = InvalidRef, parent: Transform? = null) : Audio
 
     }
 
-    private fun onMissingImageOrFrame() {
-        if (isFinalRendering) throw MissingFrameException(file)
+    private fun onMissingImageOrFrame(frame: Int) {
+        if (isFinalRendering) throw MissingFrameException("$file, $frame/${meta?.videoFrameCount}")
         else needsImageUpdate = true
         // println("missing frame")
     }
@@ -374,7 +374,9 @@ class Video(file: FileReference = InvalidRef, parent: Transform? = null) : Audio
                 // at this time, we chose the center frame only.
                 val videoFPS = if (isFinalRendering) sourceFPS else min(sourceFPS, editorVideoFPS.value.toDouble())
 
-                val frameCount = max(1, (duration * videoFPS).roundToInt())
+                val frameCount = max(1, min(meta.videoFrameCount, (duration * videoFPS).roundToInt()))
+                // I had a file, where the fps was incorrect
+                // ("chose $frameCount from $duration * $videoFPS (max: ${meta.videoFPS}), max is ${meta.videoFrameCount}")
 
                 // draw the current texture
                 val localTime = isLooping[time, duration]
@@ -436,10 +438,15 @@ class Video(file: FileReference = InvalidRef, parent: Transform? = null) : Audio
         val fpc = framesPerContainer
         val vft = videoFrameTimeout
 
+        if (frameIndex0 < 0 || frameIndex0 >= max(1, meta.videoFrameCount)) {
+            // a programming error probably
+            throw IllegalArgumentException("Frame index must be within bounds!")
+        }
+
         var frame0 = getVideoFrame(file, zl, frameIndex0, fpc, videoFPS, vft, true)
 
         if (frame0 == null || !frame0.isCreated || frame0.isDestroyed) {
-            onMissingImageOrFrame()
+            onMissingImageOrFrame(frameIndex0)
             frame0 = getVideoFrameWithoutGenerator(meta, frameIndex0, fpc, videoFPS)
             if (frame0 == null || !frame0.isCreated || frame0.isDestroyed) frame0 = lastFrame
         }
@@ -468,7 +475,7 @@ class Video(file: FileReference = InvalidRef, parent: Transform? = null) : Audio
         when {
             ext.equals("svg", true) -> {
                 val bufferData = MeshCache.getSVG(file, imageTimeout, true)
-                if (bufferData == null) onMissingImageOrFrame()
+                if (bufferData == null) onMissingImageOrFrame(0)
                 else {
                     SVGxGFX.draw3DSVG(
                         this, time,
@@ -481,7 +488,7 @@ class Video(file: FileReference = InvalidRef, parent: Transform? = null) : Audio
                 val tiling = tiling[time]
                 // calculate required scale? no, without animation, we don't need to scale it down ;)
                 val texture = getVideoFrame(file, 1, 0, 1, 1.0, imageTimeout, true)
-                if (texture == null || !texture.isCreated) onMissingImageOrFrame()
+                if (texture == null || !texture.isCreated) onMissingImageOrFrame(0)
                 else {
                     draw3DVideo(
                         this, time, stack, texture, color,
@@ -492,7 +499,7 @@ class Video(file: FileReference = InvalidRef, parent: Transform? = null) : Audio
             else -> {// some image
                 val tiling = tiling[time]
                 val texture = ImageCache.getImage(file, imageTimeout, true)
-                if (texture == null || !texture.isCreated) onMissingImageOrFrame()
+                if (texture == null || !texture.isCreated) onMissingImageOrFrame(0)
                 else {
                     texture.rotation?.apply(stack)
                     lastW = texture.w

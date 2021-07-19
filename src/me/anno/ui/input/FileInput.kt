@@ -25,7 +25,7 @@ class FileInput(
 ) : PanelListX(style) {
 
     val button = TextButton(DefaultConfig["ui.symbol.folder", "\uD83D\uDCC1"], true, style)
-    val base = TextInput(title, "", false, style, f0.toString2())
+    val base = TextInput(title, "", false, f0.toString2(), style)
     val base2 = base.base
 
     // val text get() = base.text

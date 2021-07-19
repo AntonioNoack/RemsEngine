@@ -22,7 +22,7 @@ class FunctionDriver : AnimationDriver() {
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
         super.createInspector(list, style, getGroup)
-        list += TextInputML(Dict["Function f(time)", "driver.function"], style, formula)
+        list += TextInputML(Dict["Function f(time)", "driver.function"], formula, style)
             .setChangeListener { formula = it; updateFormula() }
             .setIsSelectedListener { show(null) }
             .setTooltip(Dict["Example: sin(time*pi)", "driver.function.desc"])

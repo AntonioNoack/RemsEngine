@@ -77,6 +77,8 @@ interface Hierarchical<V : Hierarchical<V>> {
             }
         }
 
+    val indexInParent get() = parent?.children?.indexOf(this)
+
     fun simpleTraversal(processDisabled: Boolean, func: (V) -> Boolean): V? {
         return depthFirstTraversal(processDisabled, func)
     }

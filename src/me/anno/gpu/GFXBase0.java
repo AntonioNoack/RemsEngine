@@ -16,7 +16,10 @@ import me.anno.utils.Clock;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.Version;
-import org.lwjgl.glfw.*;
+import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
+import org.lwjgl.glfw.GLFWKeyCallback;
+import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL43;
 import org.lwjgl.opengl.GLCapabilities;
@@ -194,7 +197,12 @@ public class GFXBase0 {
         glfwSetWindowTitle(window, title);
     }
 
-    boolean isInFocus = false;
+    public boolean isInFocus = false;
+    public boolean isMinimized = false;
+    public boolean needsRefresh = true;
+
+    public float contentScaleX = 1f;
+    public float contentScaleY = 1f;
 
     public void addCallbacks() {
         glfwSetKeyCallback(window, keyCallback = new GLFWKeyCallback() {
@@ -215,15 +223,53 @@ public class GFXBase0 {
                 }
             }
         });
-        glfwSetWindowFocusCallback(window, new GLFWWindowFocusCallback() {
-            @Override
-            public void invoke(long window, boolean isInFocus0) {
-                isInFocus = isInFocus0;
-            }
+
+        glfwSetWindowFocusCallback(window, (long window, boolean isInFocus0) -> isInFocus = isInFocus0);
+        glfwSetWindowIconifyCallback(window, (long window, boolean isMinimized0) -> {
+            isMinimized = isMinimized0;
+            // just be sure in case the OS/glfw don't send it
+            if (isMinimized0) needsRefresh = true;
         });
+        glfwSetWindowRefreshCallback(window, (long window) -> needsRefresh = true);
+
+        // can we use that?
+        // glfwSetWindowMaximizeCallback()
+
+
+        float[] x = {1f};
+        float[] y = {1f};
+        glfwGetWindowContentScale(window, x, y);
+        contentScaleX = x[0];
+        contentScaleY = y[0];
+
+        // todo when the content scale changes, we probably should scale our text automatically as well
+        // this happens, when the user moved the window from a display with dpi1 to a display with different dpi
+        glfwSetWindowContentScaleCallback(window, (long window, float xScale, float yScale) -> {
+            LOGGER.info("Window Content Scale changed: " + xScale + " x " + yScale);
+            contentScaleX = xScale;
+            contentScaleY = yScale;
+        });
+
+
     }
 
     GLCapabilities capabilities;
+
+    public void requestAttention() {
+        glfwRequestWindowAttention(window);
+    }
+
+    public void requestAttentionMaybe() {
+        if (!isInFocus) {
+            requestAttention();
+        }
+    }
+
+    protected void forceUpdateVsync() {
+        int targetInterval = isInFocus ? enableVsync ? 1 : 0 : 2;
+        glfwSwapInterval(targetInterval);
+        lastVsyncInterval = targetInterval;
+    }
 
     private void updateVsync() {
         int targetInterval = isInFocus ? enableVsync ? 1 : 0 : 2;
@@ -255,6 +301,7 @@ public class GFXBase0 {
 
         while (!destroyed) {
             synchronized (lock2) {
+
                 renderStep();
 
                 synchronized (lock) {
@@ -265,7 +312,7 @@ public class GFXBase0 {
 
                 updateVsync();
 
-                if (!isInFocus) {
+                if (!isInFocus || isMinimized) {
 
                     // enforce 30 fps, because we don't need more
                     // and don't want to waste energy
@@ -408,7 +455,7 @@ public class GFXBase0 {
 
     }
 
-    public static String projectName = "Rem's Studio";
+    public static String projectName = "Rems Studio";
     private String newTitle = null;
     boolean shouldClose = false;
 
@@ -478,6 +525,38 @@ public class GFXBase0 {
 
     public void requestExit() {
         glfwSetWindowShouldClose(window, true);
+    }
+
+
+    public boolean isFramebufferTransparent() {
+        return glfwGetWindowAttrib(window, GLFW_TRANSPARENT_FRAMEBUFFER) != GLFW_FALSE;
+    }
+
+    /**
+     * transparency of the whole window including decoration (buttons, icon and title)
+     * window transparency is incompatible with transparent framebuffers!
+     * may not succeed, test with getWindowTransparency()
+     */
+    public void setWindowOpacity(float opacity) {
+        glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_FALSE);
+        glfwSetWindowOpacity(window, opacity);
+    }
+
+    /**
+     * rendering special window shapes, e.g. a cloud
+     * window transparency is incompatible with transparent framebuffers!
+     * may not succeed, test with isFramebufferTransparent()
+     */
+    public void makeFramebufferTransparent() {
+        glfwSetWindowOpacity(window, 1f);
+        glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
+    }
+
+    /**
+     * transparency of the whole window including decoration (buttons, icon and title)
+     */
+    public float getWindowTransparency() {
+        return glfwGetWindowOpacity(window);
     }
 
     public void cleanUp() {

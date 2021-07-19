@@ -3,9 +3,9 @@ package me.anno.studio.rems
 import me.anno.animation.Type
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
+import me.anno.gpu.GFX
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
-import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.RemsStudio.targetDuration
@@ -27,10 +27,9 @@ import me.anno.ui.input.FloatInput
 import me.anno.ui.input.IntInput
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.mixARGB
-import me.anno.utils.Threads.threadWithName
+import me.anno.utils.process.DelayedTask
 import me.anno.video.FFMPEGEncodingBalance
 import me.anno.video.FFMPEGEncodingType
-import kotlin.math.abs
 import kotlin.math.max
 
 object RenderSettings : Transform() {
@@ -163,51 +162,37 @@ object RenderSettings : Transform() {
         }
         list += fileInput
 
+        val callback = { GFX.requestAttentionMaybe() }
+
         list += TextButton("Render at 100%", false, style)
-            .setSimpleClickListener { renderPart(1, true) {} }
+            .setSimpleClickListener { renderPart(1, true, callback) }
             .setTooltip("Create video at full resolution")
         list += TextButton("Render at 50%", false, style)
-            .setSimpleClickListener { renderPart(2, true) {} }
+            .setSimpleClickListener { renderPart(2, true, callback) }
             .setTooltip("Create video at half resolution")
         list += TextButton("Render at 25%", false, style)
-            .setSimpleClickListener { renderPart(4, true) {} }
+            .setSimpleClickListener { renderPart(4, true, callback) }
             .setTooltip("Create video at quarter resolution")
         list += TextButton("Render at Set%", false, style)
-            .setSimpleClickListener { renderSetPercent(true) {} }
+            .setSimpleClickListener { renderSetPercent(true, callback) }
             .setTooltip("Create video at your custom set relative resolution")
         list += TextButton("Render Audio only", false, style)
-            .setSimpleClickListener { renderAudio(true) {} }
+            .setSimpleClickListener { renderAudio(true, callback) }
             .setTooltip("Only creates an audio file; no video is rendered nor saved.")
         list += TextButton("Render Current Frame", false, style)
-            .setSimpleClickListener { renderFrame(targetWidth, targetHeight, editorTime, true) {} }
+            .setSimpleClickListener { renderFrame(targetWidth, targetHeight, editorTime, true, callback) }
             .setTooltip("Only creates an audio file; no video is rendered nor saved.")
 
     }
 
-    var lastSavePoint = 0L
-    var wasChanged = false
+    private val savingTask = DelayedTask { actuallySave() }
+
     fun save() {
-        // todo class to only execute stuff every x ms
-        val time = System.nanoTime()
-        if (abs(time - lastSavePoint) > 500_000_000L) {// 500ms, saving 2/s
-            actuallySave()
-        } else {
-            wasChanged = true
-            threadWithName("RenderSettings::save()") {
-                Thread.sleep(500) // save
-                if (wasChanged) {
-                    addEvent {
-                        if (wasChanged) {// yes, checking twice makes sense
-                            actuallySave()
-                        }
-                    }
-                }
-            }
-        }
+        savingTask.update()
     }
 
-    fun actuallySave() {
-        wasChanged = false
+    private fun actuallySave() {
+        save()
         project!!.saveConfig()
     }
 

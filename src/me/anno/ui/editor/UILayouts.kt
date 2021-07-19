@@ -302,7 +302,7 @@ object UILayouts {
             base.focusTextColor = base.textColor
         }
 
-        nameInput = TextInput("Title", "", style, Dict["New Project", "ui.newProject.defaultName"])
+        nameInput = TextInput("Title", "", Dict["New Project", "ui.newProject.defaultName"], style)
         nameInput.setEnterListener { loadNewProject(usableFile, nameInput) }
 
         var lastName = nameInput.text
@@ -540,12 +540,13 @@ object UILayouts {
 
         // todo shortcuts, which can be set for all actions??...
 
+        val callback = { GFX.requestAttentionMaybe() }
         options.addAction(renderTitle, "Settings") { selectTransform(RenderSettings) }
-        options.addAction(renderTitle, "Set%") { renderSetPercent(true) {} }
-        options.addAction(renderTitle, "Full") { renderPart(1, true) {} }
-        options.addAction(renderTitle, "Half") { renderPart(2, true) {} }
-        options.addAction(renderTitle, "Quarter") { renderPart(4, true) {} }
-        options.addAction(renderTitle, "Audio") { renderAudio(true) {} }
+        options.addAction(renderTitle, "Set%") { renderSetPercent(true, callback) }
+        options.addAction(renderTitle, "Full") { renderPart(1, true, callback) }
+        options.addAction(renderTitle, "Half") { renderPart(2, true, callback) }
+        options.addAction(renderTitle, "Quarter") { renderPart(4, true, callback) }
+        options.addAction(renderTitle, "Audio") { renderAudio(true, callback) }
 
         options.addAction(helpTitle, "Tutorials") {
             URL("https://remsstudio.phychi.com/?s=learn").openInBrowser()

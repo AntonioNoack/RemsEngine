@@ -183,7 +183,7 @@ object ExtensionLoader {
     }
 
     fun loadInfo(file: FileReference): ExtensionInfo? {
-        ZipInputStream(file.inputStream().buffered()).use { zis ->
+        ZipInputStream(file.inputStream()).use { zis ->
             while (true) {
                 val entry = zis.nextEntry ?: break
                 if (entry.name == "extension.info") {

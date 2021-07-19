@@ -429,20 +429,22 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     override fun writeQuaternionf(name: String, value: Quaternionf, force: Boolean) {
-        writeAttributeStart("q4", name)
-        data.append('[')
-        val x = value.x()
-        val y = value.y()
-        val z = value.z()
-        val w = value.w()
-        append(x)
-        data.append(separator)
-        append(y)
-        data.append(separator)
-        append(z)
-        data.append(separator)
-        append(w)
-        data.append(']')
+        if (force || value.x != 0f || value.y != 0f || value.z != 0f || value.w != 1f) {
+            writeAttributeStart("q4", name)
+            data.append('[')
+            val x = value.x()
+            val y = value.y()
+            val z = value.z()
+            val w = value.w()
+            append(x)
+            data.append(separator)
+            append(y)
+            data.append(separator)
+            append(z)
+            data.append(separator)
+            append(w)
+            data.append(']')
+        }
     }
 
     private fun writeVector2d(value: Vector2dc) {
@@ -496,20 +498,22 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     override fun writeQuaterniond(name: String, value: Quaterniond, force: Boolean) {
-        writeAttributeStart("q4d", name)
-        data.append('[')
-        val x = value.x()
-        val y = value.y()
-        val z = value.z()
-        val w = value.w()
-        append(x)
-        data.append(separator)
-        append(y)
-        data.append(separator)
-        append(z)
-        data.append(separator)
-        append(w)
-        data.append(']')
+        if (force || value.x != 0.0 || value.y != 0.0 || value.z != 0.0 || value.w != 1.0) {
+            writeAttributeStart("q4d", name)
+            data.append('[')
+            val x = value.x()
+            val y = value.y()
+            val z = value.z()
+            val w = value.w()
+            append(x)
+            data.append(separator)
+            append(y)
+            data.append(separator)
+            append(z)
+            data.append(separator)
+            append(w)
+            data.append(']')
+        }
     }
 
     private fun writeVector2i(value: Vector2ic) {

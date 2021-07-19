@@ -32,6 +32,16 @@ class TransformTreeView(style: Style) :
         TransformFileImporter, true, style
     ) {
 
+    // todo change it such that it respects whether an element can be modified (#softLink)
+    override fun canBeInserted(parent: Transform, element: Transform, index: Int): Boolean {
+        return true
+    }
+
+    // todo change it such that it respects whether an element can be modified (#softLink)
+    override fun canBeRemoved(element: Transform): Boolean {
+        return false
+    }
+
     override val selectedElement: Transform?
         get() = Selection.selectedTransform
 

@@ -6,6 +6,7 @@ import me.anno.gpu.Cursor
 import me.anno.input.MouseButton
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.NumberInputComponent
 import me.anno.ui.input.components.TitlePanel
 import me.anno.ui.style.Style
@@ -18,7 +19,7 @@ abstract class NumberInput(
     val type: Type = Type.FLOAT,
     val owningProperty: AnimatedProperty<*>?,
     val indexInProperty: Int
-) : PanelListY(style) {
+) : PanelListY(style), TextStyleable {
 
     var hasValue = false
     var mouseIsDown = false
@@ -39,9 +40,19 @@ abstract class NumberInput(
         }
     }
 
+    override fun setBold(bold: Boolean) {
+        titleView?.setBold(bold)
+    }
+
+    override fun setItalic(italic: Boolean) {
+        titleView?.setItalic(italic)
+    }
+
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val focused1 = titleView?.isInFocus == true || inputPanel.isInFocus
-        if (focused1) isSelectedListener?.invoke()
+        val focused1 = titleView?.isInFocus == true || isInFocus || inputPanel.isInFocus
+        if (focused1) {
+            isSelectedListener?.invoke()
+        }
         /*if(RemsStudio.hideUnusedProperties){
             val focused2 = focused1 || (owningProperty != null && owningProperty == selectedProperty)
             inputPanel.visibility = if (focused2) Visibility.VISIBLE else Visibility.GONE

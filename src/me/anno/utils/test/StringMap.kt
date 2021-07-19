@@ -11,8 +11,7 @@ fun main() {
     map["debug.ui.enableVsync"] = false
     println(map["debug.ui.enableVsync", true]) // false, correct
 
-    val asText = map.toString()
-    val asMap = TextReader.read(asText)[0] as StringMap
+    val asMap = TextReader.clone(map) as StringMap
     println(asMap["debug.ui.enableVsync"]) // null, incorrect
 
 }

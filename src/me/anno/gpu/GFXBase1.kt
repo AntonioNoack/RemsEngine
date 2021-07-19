@@ -8,14 +8,13 @@ import org.lwjgl.glfw.GLFW.glfwSetWindowIcon
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.system.MemoryUtil
 import java.awt.image.BufferedImage
-import java.lang.Exception
 import javax.imageio.ImageIO
 
-open class GFXBase1: GFXBase0() {
+open class GFXBase1 : GFXBase0() {
 
     companion object {
 
-        fun setIcon(window: Long){
+        fun setIcon(window: Long) {
 
             try {
 
@@ -40,7 +39,7 @@ open class GFXBase1: GFXBase0() {
                 buffer.put(0, image)
                 glfwSetWindowIcon(window, buffer)
 
-            } catch (e: Exception){
+            } catch (e: Exception) {
                 e.printStackTrace()
             }
 
@@ -54,21 +53,22 @@ open class GFXBase1: GFXBase0() {
     fun Int.g() = shr(8).and(255)
     fun Int.b() = shr(0).and(255)
     fun Int.a() = shr(24).and(255)
-    fun Int.v4() = Vector4f(r()/255f, g()/255f, b()/255f, a()/255f)
+    fun Int.v4() = Vector4f(r() / 255f, g() / 255f, b() / 255f, a() / 255f)
 
     var savedWidth = 300
     var savedHeight = 300
     var savedX = 10
     var savedY = 10
-    fun toggleFullscreen(){
+
+    fun toggleFullscreen() {
         // a little glitchy ^^, but it works :D
         val usedMonitor = GLFW.glfwGetWindowMonitor(GFX.window)
-        if(usedMonitor == 0L){
+        if (usedMonitor == 0L) {
             savedWidth = GFX.width
             savedHeight = GFX.height
             val monitor = GLFW.glfwGetPrimaryMonitor()
             val mode = GLFW.glfwGetVideoMode(monitor)
-            if(mode != null){
+            if (mode != null) {
                 val windowX = intArrayOf(0)
                 val windowY = intArrayOf(0)
                 GLFW.glfwGetWindowPos(GFX.window, windowX, windowY)
@@ -77,8 +77,14 @@ open class GFXBase1: GFXBase0() {
                 GLFW.glfwSetWindowMonitor(GFX.window, monitor, 0, 0, mode.width(), mode.height(), mode.refreshRate())
             }
         } else {
-            GLFW.glfwSetWindowMonitor(GFX.window, MemoryUtil.NULL, savedX, savedY, savedWidth, savedHeight, GLFW.GLFW_DONT_CARE)
+            GLFW.glfwSetWindowMonitor(
+                GFX.window, MemoryUtil.NULL,
+                savedX, savedY, savedWidth, savedHeight,
+                GLFW.GLFW_DONT_CARE
+            )
         }
+        // this information gets lost otherwise...
+        forceUpdateVsync()
     }
 
 }

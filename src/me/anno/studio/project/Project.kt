@@ -3,9 +3,9 @@ package me.anno.studio.project
 import me.anno.animation.Type
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
-import me.anno.io.files.FileReference
 import me.anno.io.Saveable
 import me.anno.io.config.ConfigBasics
+import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.json.JsonArray
 import me.anno.io.json.JsonReader
@@ -72,15 +72,15 @@ class Project(var name: String, val file: FileReference) : Saveable() {
     fun loadUI() {
 
         fun tabsDefault() {
-            val tab =
-                SceneTab(
-                    getReference(scenes, "Root.json"),
-                    Transform().run {
-                        name = "Root"
-                        Camera(this)
-                        this
-                    }, History()
-                )
+            val ref = getReference(scenes, "Root.json")
+            val tab = SceneTab(
+                ref,
+                Transform().run {
+                    name = "Root"
+                    Camera(this)
+                    this
+                }, History()
+            )
             tab.save {}
             GFX.addGPUTask(1) {
                 SceneTabs.closeAll()
@@ -190,8 +190,8 @@ class Project(var name: String, val file: FileReference) : Saveable() {
                     return write(c.child, w)
                 }
                 writer.open(true)
-                if(c is CustomList){
-                    writer.write(if(c.isY) "CustomListY" else "CustomListX")
+                if (c is CustomList) {
+                    writer.write(if (c.isY) "CustomListY" else "CustomListX")
                 } else {
                     writer.write(c.className)
                 }

@@ -11,6 +11,7 @@ import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.types.Strings.parseTime
 import org.apache.logging.log4j.LogManager
 import kotlin.math.ceil
+import kotlin.math.roundToInt
 
 class FFMPEGMetadata(val file: FileReference) : ICacheData {
 
@@ -25,8 +26,8 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
     val audioSampleCount: Long // 24h * 3600s/h * 48k = 4B -> Long
 
     val videoStartTime: Double
-    val videoFPS: Double
-    val videoDuration: Double
+    var videoFPS: Double
+    var videoDuration: Double
     val videoWidth: Int
     val videoHeight: Int
     var videoFrameCount: Int
@@ -118,9 +119,19 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
 
         if (videoFrameCount == 0) {
             videoFrameCount = ceil(videoDuration * videoFPS).toInt()
+            LOGGER.info("Frame count was 0, corrected it to $videoFrameCount = $videoDuration * $videoFPS")
+        } else {
+            val expectedFrameCount = (videoDuration * videoFPS).roundToInt()
+            if (expectedFrameCount * 10 !in videoFrameCount * 9..videoFrameCount * 11) {
+                // something is wrong
+                // nb_frames is probably correct
+                LOGGER.warn("$file: Frame Count / Frame Rate / Video Duration incorrect! $videoDuration s * $videoFPS fps is not $videoFrameCount frames")
+                videoDuration = duration // could be incorrect
+                videoFPS = videoFrameCount / videoDuration
+                LOGGER.warn("$file: Corrected by setting duration to $duration s and fps to $videoFPS")
+            }
         }
-
-        LOGGER.info("Loaded info about $file: $duration * $videoFPS / $audioDuration * $audioSampleRate")
+        LOGGER.info("Loaded info about $file: $duration * $videoFPS = $videoFrameCount frames / $audioDuration * $audioSampleRate = $audioSampleCount samples")
 
     }
 

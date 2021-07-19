@@ -46,10 +46,11 @@ open class AnyMapPanel(
     ) :
         IProperty<Any?> {
         override val annotations: List<Annotation> get() = emptyList()
+        override fun init(panel: Panel?) {}
         override fun get(): Any? = value
         override fun getDefault(): Any? = ComponentUI.getDefault(type)
-        override fun reset(): Any? = getDefault().apply { set(this) }
-        override fun set(value: Any?) {
+        override fun reset(panel: Panel?): Any? = getDefault().apply { set(panel, this) }
+        override fun set(panel: Panel?, value: Any?) {
             this.setFunc(value)
         }
     }

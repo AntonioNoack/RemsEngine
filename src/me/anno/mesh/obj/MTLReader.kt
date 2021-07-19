@@ -6,7 +6,7 @@ import org.apache.logging.log4j.LogManager
 import java.io.EOFException
 import java.io.File
 
-class MTLReader(val file: FileReference) : OBJMTLReader(file.inputStream().buffered()) {
+class MTLReader(val file: FileReference) : OBJMTLReader(file.inputStream()) {
 
     constructor(file: File) : this(getReference(file))
 

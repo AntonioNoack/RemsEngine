@@ -207,6 +207,10 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
         parseKeyInput()
         parseTouchInput()
         claimResources()
+        updateStableSize()
+    }
+
+    fun updateStableSize(){
         stableSize.updateSize(w - 2 * borderThickness, h - 2 * borderThickness, camera.onlyShowTarget)
     }
 
@@ -260,6 +264,8 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
 
         val bt = borderThickness
         val bth = bt / 2
+
+        updateStableSize()
 
         val dx = stableSize.dx + borderThickness
         val dy = stableSize.dy + borderThickness

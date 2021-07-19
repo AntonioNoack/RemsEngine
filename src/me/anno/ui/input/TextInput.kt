@@ -5,6 +5,7 @@ import me.anno.io.files.FileReference
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
+import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.style.Style
 
@@ -16,12 +17,12 @@ open class TextInput(
     object : PureTextInput(style) {
         override val needsSuggestions = enableSuggestions
     }, Padding(), style
-) {
+), TextStyleable {
 
-    constructor(title: String, visibilityKey: String, style: Style, v0: String?) :
-            this(title, visibilityKey, true, style, v0)
+    constructor(title: String, visibilityKey: String, v0: String?, style: Style) :
+            this(title, visibilityKey, true, v0, style)
 
-    constructor(title: String, visibilityKey: String, enableSuggestions: Boolean, style: Style, v0: String?) :
+    constructor(title: String, visibilityKey: String, enableSuggestions: Boolean, v0: String?, style: Style) :
             this(title, visibilityKey, enableSuggestions, style) {
         setValue(v0 ?: "", false)
     }
@@ -45,6 +46,14 @@ open class TextInput(
     fun setPlaceholder(text: String): TextInput {
         base.placeholder = text
         return this
+    }
+
+    override fun setBold(bold: Boolean) {
+        base.setBold(bold)
+    }
+
+    override fun setItalic(italic: Boolean) {
+        base.setItalic(italic)
     }
 
     fun deleteKeys() = base.deleteSelection()
@@ -84,7 +93,7 @@ open class TextInput(
         return this
     }
 
-    fun setResetListener(listener: () -> String): TextInput {
+    fun setResetListener(listener: () -> String?): TextInput {
         base.setResetListener(listener)
         return this
     }

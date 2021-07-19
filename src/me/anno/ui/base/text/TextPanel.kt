@@ -10,6 +10,7 @@ import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.getTextSize
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.input.MouseButton
+import me.anno.ui.base.Font
 import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.AxisAlignment
@@ -21,7 +22,7 @@ import me.anno.utils.types.Strings.isBlank2
 import kotlin.math.max
 import kotlin.math.min
 
-open class TextPanel(text: String, style: Style) : Panel(style) {
+open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
 
     var instantTextLoading = false
     var padding = style.getPadding("textPadding", 2)
@@ -47,6 +48,18 @@ open class TextPanel(text: String, style: Style) : Panel(style) {
                 invalidateDrawing()
             }
         }
+
+    override fun setBold(bold: Boolean) {
+        font = font.withBold(bold)
+        invalidateDrawing()
+        invalidateLayout()
+    }
+
+    override fun setItalic(italic: Boolean) {
+        font = font.withItalic(italic)
+        invalidateDrawing()
+        invalidateLayout()
+    }
 
     // make this panel work without states, as states accumulate to 13% of the idle-allocations at runtime
     // it seems to work...

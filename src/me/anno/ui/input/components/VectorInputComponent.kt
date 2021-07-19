@@ -17,14 +17,7 @@ fun VectorInputComponent(
     style: Style
 ): FloatInput {
     val base = FloatInput(style, title, visibilityKey, type, owningProperty, indexInProperty)
-    base.setChangeListener {
-        owner.changeListener(
-            owner.compX.lastValue.anyToDouble(),
-            owner.compY.lastValue.anyToDouble(),
-            owner.compZ?.lastValue?.anyToDouble() ?: 0.0,
-            owner.compW?.lastValue?.anyToDouble() ?: 0.0
-        )
-    }
+    base.setChangeListener { owner.onChange() }
     return base
 }
 
@@ -36,13 +29,6 @@ fun VectorInputIntComponent(
     style: Style
 ): IntInput {
     val base = IntInput(style, title, visibilityKey, type, owningProperty, indexInProperty)
-    base.setChangeListener {
-        owner.changeListener(
-            owner.compX.lastValue.toInt(),
-            owner.compY.lastValue.toInt(),
-            owner.compZ?.lastValue?.toInt() ?: 0,
-            owner.compW?.lastValue?.toInt() ?: 0
-        )
-    }
+    base.setChangeListener { owner.onChange() }
     return base
 }

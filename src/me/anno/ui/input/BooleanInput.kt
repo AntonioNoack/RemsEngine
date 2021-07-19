@@ -1,11 +1,11 @@
 package me.anno.ui.input
 
 import me.anno.language.translation.Dict
-import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
+import me.anno.ui.base.text.TextPanel
+import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.Checkbox
-import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.style.Style
 import me.anno.utils.types.Strings.isBlank2
 
@@ -14,21 +14,26 @@ import me.anno.utils.types.Strings.isBlank2
  * in a Transform child class, all inputs should be created using the VI function, if possible,
  * because it forces the programmer to set a tool tip text
  * */
-class BooleanInput(val title: String, startValue: Boolean, defaultValue: Boolean, style: Style) : PanelListX(style) {
+class BooleanInput(val title: String, startValue: Boolean, defaultValue: Boolean, style: Style) : PanelListX(style),
+    TextStyleable {
 
-    constructor(title: String, description: String, dictPath: String, startValue: Boolean, defaultValue: Boolean, style: Style) :
-            this(Dict[title, dictPath], Dict[description, "$dictPath.desc"], startValue, defaultValue, style)
+    constructor(
+        title: String, description: String, dictPath: String,
+        startValue: Boolean, defaultValue: Boolean, style: Style
+    ) : this(Dict[title, dictPath], Dict[description, "$dictPath.desc"], startValue, defaultValue, style)
 
-    constructor(title: String, description: String, startValue: Boolean, defaultValue: Boolean, style: Style) :
-            this(title, startValue, defaultValue, style) {
+    constructor(
+        title: String, description: String,
+        startValue: Boolean, defaultValue: Boolean, style: Style
+    ) : this(title, startValue, defaultValue, style) {
         setTooltip(description)
     }
 
-    private val titleView = if(title.isBlank2()) null else TextPanel("$title:", style)
+    private val titleView = if (title.isBlank2()) null else TextPanel("$title:", style)
     private val checkView = Checkbox(startValue, defaultValue, style.getSize("fontSize", 10), style)
 
     init {
-        if(titleView != null){
+        if (titleView != null) {
             this += titleView
             titleView.enableHoverColor = true
             titleView.padding.right = 5
@@ -36,6 +41,14 @@ class BooleanInput(val title: String, startValue: Boolean, defaultValue: Boolean
         }
         this += checkView
         this += WrapAlign.LeftTop
+    }
+
+    override fun setBold(bold: Boolean) {
+        titleView?.setBold(bold)
+    }
+
+    override fun setItalic(italic: Boolean) {
+        titleView?.setItalic(italic)
     }
 
     fun setChangeListener(listener: (value: Boolean) -> Unit): BooleanInput {
@@ -54,12 +67,12 @@ class BooleanInput(val title: String, startValue: Boolean, defaultValue: Boolean
         return this
     }
 
-    fun setResetListener(listener: () -> Boolean): BooleanInput {
+    fun setResetListener(listener: () -> Boolean?): BooleanInput {
         checkView.setResetListener(listener)
         return this
     }
 
-    fun setValue(value: Boolean, notify: Boolean){
+    fun setValue(value: Boolean, notify: Boolean) {
         checkView.setValue(value, notify)
     }
 

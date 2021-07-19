@@ -1,5 +1,8 @@
 package me.anno.io.files
 
+import me.anno.io.BufferedIO.useBuffered
+import me.anno.io.EmptyInputStream
+import java.io.BufferedInputStream
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.URI
@@ -14,7 +17,9 @@ abstract class ZipFileBase(
     val children = if (isDirectory) HashMap<String, ZipFileBase>() else null
     val lcName = name.lowercase()
 
-    init { (_parent as? ZipFileBase)?.children?.put(lcName, this) }
+    init {
+        (_parent as? ZipFileBase)?.children?.put(lcName, this)
+    }
 
     override var lastModified = 0L
     override var lastAccessed = 0L
@@ -28,8 +33,8 @@ abstract class ZipFileBase(
     override fun inputStream(): InputStream {
         val data = data
         return if (size <= 0) {
-            ByteArray(0).inputStream()
-        } else data?.inputStream() ?: return getInputStream()
+            EmptyInputStream
+        } else data?.inputStream() ?: return getInputStream().useBuffered()
     }
 
     abstract fun getInputStream(): InputStream

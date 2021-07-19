@@ -13,9 +13,9 @@ import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.editor.OptionBar
-import me.anno.ui.editor.UILayouts
 import me.anno.ui.editor.UILayouts.createReloadWindow
 import me.anno.ui.editor.config.ConfigPanel
+import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 
 // todo make rendering working
@@ -24,15 +24,18 @@ import org.apache.logging.log4j.LogManager
 // todo key listeners (?)...
 
 
-
-
 // todo bug: long text field is broken...
 
 class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
+    lateinit var currentProject: GameEngineProject
+
     override fun createUI() {
 
         ECSRegistry.init()
+
+        currentProject = GameEngineProject.readOrCreate(OS.documents.getChild("RemsEngine").getChild("SampleProject"))!!
+        currentProject.init()
 
         Dict.loadDefault()
 

@@ -47,7 +47,7 @@ object SceneTabs : ScrollPanelX(DefaultConfig.style) {
         }
     }
 
-    fun open(transform: Transform) {
+    /*fun open(transform: Transform) {
         synchronized(this) {
             val opened = children3.firstOrNull { it.root === transform }
             if (opened != null) {
@@ -58,7 +58,7 @@ object SceneTabs : ScrollPanelX(DefaultConfig.style) {
                 open(tab)
             }
         }
-    }
+    }*/
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         when (type) {

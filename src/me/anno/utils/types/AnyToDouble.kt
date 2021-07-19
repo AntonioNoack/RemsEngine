@@ -1,9 +1,7 @@
 package me.anno.utils.types
 
-import org.joml.Quaternionf
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import me.anno.utils.LOGGER
+import org.joml.*
 
 object AnyToDouble {
 
@@ -29,32 +27,78 @@ object AnyToDouble {
                 0 -> this
                 else -> defaultValue
             }
-            is Vector2f -> when (index) {
-                0 -> x.toDouble()
-                1 -> y.toDouble()
+            is Vector2fc -> when (index) {
+                0 -> x().toDouble()
+                1 -> y().toDouble()
                 else -> defaultValue
             }
-            is Vector3f -> when (index) {
-                0 -> x.toDouble()
-                1 -> y.toDouble()
-                2 -> z.toDouble()
+            is Vector3fc -> when (index) {
+                0 -> x().toDouble()
+                1 -> y().toDouble()
+                2 -> z().toDouble()
                 else -> defaultValue
             }
-            is Vector4f -> when (index) {
-                0 -> x.toDouble()
-                1 -> y.toDouble()
-                2 -> z.toDouble()
-                3 -> w.toDouble()
+            is Vector4fc -> when (index) {
+                0 -> x().toDouble()
+                1 -> y().toDouble()
+                2 -> z().toDouble()
+                3 -> w().toDouble()
                 else -> defaultValue
             }
-            is Quaternionf -> when (index) {
-                0 -> x.toDouble()
-                1 -> y.toDouble()
-                2 -> z.toDouble()
-                3 -> w.toDouble()
+            is Quaternionfc -> when (index) {
+                0 -> x().toDouble()
+                1 -> y().toDouble()
+                2 -> z().toDouble()
+                3 -> w().toDouble()
                 else -> defaultValue
             }
-            else -> defaultValue
+            is Vector2dc -> when (index) {
+                0 -> x()
+                1 -> y()
+                else -> defaultValue
+            }
+            is Vector3dc -> when (index) {
+                0 -> x()
+                1 -> y()
+                2 -> z()
+                else -> defaultValue
+            }
+            is Vector4dc -> when (index) {
+                0 -> x()
+                1 -> y()
+                2 -> z()
+                3 -> w()
+                else -> defaultValue
+            }
+            is Quaterniondc -> when (index) {
+                0 -> x()
+                1 -> y()
+                2 -> z()
+                3 -> w()
+                else -> defaultValue
+            }
+            is Vector2ic -> when (index) {
+                0 -> x().toDouble()
+                1 -> y().toDouble()
+                else -> defaultValue
+            }
+            is Vector3ic -> when (index) {
+                0 -> x().toDouble()
+                1 -> y().toDouble()
+                2 -> z().toDouble()
+                else -> defaultValue
+            }
+            is Vector4ic -> when (index) {
+                0 -> x().toDouble()
+                1 -> y().toDouble()
+                2 -> z().toDouble()
+                3 -> w().toDouble()
+                else -> defaultValue
+            }
+            else -> {
+                LOGGER.info("Unknown ${javaClass.simpleName}[$index] to Double")
+                defaultValue
+            }
         }
     }
 }

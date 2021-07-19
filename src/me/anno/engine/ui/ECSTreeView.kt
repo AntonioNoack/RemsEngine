@@ -25,7 +25,7 @@ import me.anno.ui.style.Style
 
 class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) :
     AbstractTreeView<Entity>(
-        listOfVisible(library.world, isGaming),
+        listOf(library.world.world),//listOfVisible(library.world, isGaming),
         {
             // todo open add menu for often created entities: camera, light, nodes, ...
             // we could use which prefabs were most often created :)
@@ -36,6 +36,17 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
         false,
         style
     ) {
+
+    override fun canBeInserted(parent: Entity, element: Entity, index: Int): Boolean {
+        return parent.prefab.run { this == null || index >= children.size }
+    }
+
+    override fun canBeRemoved(element: Entity): Boolean {
+        val indexInParent = element.indexInParent!!
+        val parent = element.parent!!
+        val parentPrefab = parent.prefab
+        return parentPrefab == null || indexInParent >= parentPrefab.children.size
+    }
 
     override val selectedElement: Entity? = library.selection as? Entity
 

@@ -3,6 +3,8 @@ package me.anno.ui.editor.sceneTabs
 import me.anno.config.DefaultConfig
 import me.anno.input.ActionManager
 import me.anno.input.MouseButton
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.language.translation.NameDesc
@@ -23,8 +25,6 @@ import me.anno.ui.editor.sceneTabs.SceneTabs.open
 import me.anno.ui.editor.sceneView.SceneTabData
 import me.anno.utils.Maths.mixARGB
 import me.anno.utils.Threads.threadWithName
-import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 
 class SceneTab(var file: FileReference?, var root: Transform, history: History?) : TextPanel("", DefaultConfig.style) {
 
@@ -95,6 +95,7 @@ class SceneTab(var file: FileReference?, var root: Transform, history: History?)
 
     fun save(dst: FileReference, onSuccess: () -> Unit) {
         if (dst.isDirectory) dst.deleteRecursively()
+        println("saving $dst, ${root.listOfAll.joinToString { it.name }}")
         threadWithName("SaveScene") {
             try {
                 synchronized(root) {
@@ -135,7 +136,7 @@ class SceneTab(var file: FileReference?, var root: Transform, history: History?)
                 } else {
                     file = dst
                     save(file!!, onSuccess)
-                    rootPanel.listOfAll { if(it is FileExplorer) it.invalidate() }
+                    rootPanel.listOfAll { if (it is FileExplorer) it.invalidate() }
                 }
             } else {
                 msg(

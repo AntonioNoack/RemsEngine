@@ -9,8 +9,7 @@ import me.anno.ecs.components.collider.*
 import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.components.test.TypeTestComponent
-import me.anno.ecs.prefab.PrefabComponent1
-import me.anno.ecs.prefab.PrefabEntity1
+import me.anno.ecs.prefab.*
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.mesh.assimp.Bone
 import me.anno.studio.Build
@@ -44,6 +43,12 @@ object ECSRegistry {
         registerCustomClass(MorphTarget())
         registerCustomClass(Skeleton())
         registerCustomClass(Bone())
+
+        registerCustomClass(ChangeHistory())
+        registerCustomClass(ChangeSetEntityAttribute())
+        registerCustomClass(ChangeSetComponentAttribute())
+        registerCustomClass(ChangeAddEntity())
+        registerCustomClass(ChangeAddComponent())
 
         if (Build.isDebug) {
             // test classes

@@ -12,6 +12,7 @@ import me.anno.gpu.Cursor
 import me.anno.gpu.Cursor.useCursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.inFocus
+import me.anno.gpu.GFX.isMinimized
 import me.anno.gpu.GFXBase0
 import me.anno.gpu.RenderState.renderDefault
 import me.anno.gpu.RenderState.useFrame
@@ -160,24 +161,32 @@ abstract class StudioBase(
 
         if (isFirstFrame) tick("before window drawing")
 
-        var didSomething = false
-        val sparseRedraw = DefaultConfig["ui.sparseRedraw", true]
+        // be sure that always something is drawn
+        var didSomething = GFX.needsRefresh
+        GFX.needsRefresh = false
 
-        val windowStack = GFX.windowStack
-        val lastFullscreenIndex = windowStack.indexOfLast { it.isFullscreen }
-        for (index in windowStack.indices) {
-            val window = windowStack[index]
-            if (index >= lastFullscreenIndex) {
-                didSomething = drawWindow(w, h, window, needsRedraw, sparseRedraw, didSomething)
+        // when the frame is minimized, nothing needs to be drawn
+        if (!isMinimized) {
+
+            val sparseRedraw = DefaultConfig["ui.sparseRedraw", true]
+
+            val windowStack = GFX.windowStack
+            val lastFullscreenIndex = windowStack.indexOfLast { it.isFullscreen }
+            for (index in windowStack.indices) {
+                val window = windowStack[index]
+                if (index >= lastFullscreenIndex) {
+                    didSomething = drawWindow(w, h, window, needsRedraw, sparseRedraw, didSomething)
+                }
             }
-        }
 
-        Input.framesSinceLastInteraction++
+            Input.framesSinceLastInteraction++
 
-        if (isFirstFrame) tick("window drawing")
+            if (isFirstFrame) tick("window drawing")
 
-        useFrame(0, 0, w, h, false, null, Renderer.colorRenderer) {
-            if (drawUIOverlay(w, h)) didSomething = true
+            useFrame(0, 0, w, h, false, null, Renderer.colorRenderer) {
+                if (drawUIOverlay(w, h)) didSomething = true
+            }
+
         }
 
         if (didSomething) didNothingCounter = 0

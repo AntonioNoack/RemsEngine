@@ -16,8 +16,7 @@ import java.io.InputStream
 
 class OBJReader(input: InputStream, val file: File?) : OBJMTLReader(input) {
 
-    constructor(file: File) : this(file.inputStream().buffered(), null)
-    constructor(file: FileReference) : this(file.inputStream().buffered(), null)
+    constructor(file: FileReference) : this(file.inputStream(), null)
 
     companion object {
         private val LOGGER = LogManager.getLogger(OBJReader::class)

@@ -111,8 +111,16 @@ abstract class FileReference(val absolutePath: String) {
     val hasValidName = !absolutePath.isBlank2()
     fun hasValidName() = hasValidName
 
+    /**
+     * give an access to an input stream
+     * should be buffered for better performance
+     * */
     abstract fun inputStream(): InputStream
 
+    /**
+     * give an access to an output stream
+     * should be buffered for better performance
+     * */
     abstract fun outputStream(): OutputStream
 
     fun readText() = String(readBytes())

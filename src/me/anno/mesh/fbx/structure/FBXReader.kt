@@ -1,5 +1,6 @@
 package me.anno.mesh.fbx.structure
 
+import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.binary.LittleEndianDataInputStream
 import me.anno.mesh.fbx.model.*
 import me.anno.utils.OS
@@ -12,7 +13,7 @@ import java.util.zip.InflaterInputStream
 // todo create a fbx reader to transform this Video Studio into our own game engine? :)
 // todo this data is only a decoded representation -> get the data out of it, including animations <3
 
-class FBXReader(input: InputStream) : LittleEndianDataInputStream(input.buffered()) {
+class FBXReader(input: InputStream) : LittleEndianDataInputStream(input.useBuffered()) {
 
     val fbxObjects = ArrayList<FBXObject>()
     private val objectById = HashMap<Long, FBXObject>()
@@ -79,7 +80,7 @@ class FBXReader(input: InputStream) : LittleEndianDataInputStream(input.buffered
     }
 
     private fun saveMajorSections(majorSections: List<FBXNode>) {
-        val out = OS.desktop.getChild("fbx.yaml")!!.outputStream().buffered()
+        val out = OS.desktop.getChild("fbx.yaml").outputStream()
         debug { "${majorSections.size} major sections" }
         for (section in majorSections) {
             out.write(section.toString().toByteArray())

@@ -13,7 +13,7 @@ open class TextInputML(title: String, style: Style): PanelContainer(
         style.getChild("deep")
     ), Padding(2), style.getChild("deep")) {
 
-    constructor(title: String, style: Style, v0: String): this(title, style){
+    constructor(title: String, v0: String, style: Style): this(title, style){
         setText(v0, false)
     }
 

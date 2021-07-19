@@ -31,7 +31,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
     }
 
     private var changeListener: (text: String) -> Unit = { _ -> }
-    private var resetListener: () -> String = { "" }
+    private var resetListener: () -> String? = { null }
     private var enterListener: ((text: String) -> Unit)? = null
 
     fun setCursorToEnd() {
@@ -122,7 +122,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
         val textColor = if (usePlaceholder) placeholderColor else effectiveTextColor
         val drawnText = if (usePlaceholder) placeholder else text
         val wh = drawText(drawingOffset, 0, drawnText, textColor)
-        if (isInFocus && (showBars || cursor1 != cursor2)) {
+        if (isInFocus && (showBars || isSomethingSelected())) {
             ensureCursorBounds()
             val textSize = font.sizeInt
             val padding = textSize / 4
@@ -245,7 +245,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
     }
 
     override fun onCopyRequested(x: Float, y: Float): String? {
-        if (cursor1 == cursor2) return text
+        if (isNothingSelected() || isEverythingSelected()) return text
         return characters.subList(min(cursor1, cursor2), max(cursor1, cursor2)).joinChars()
     }
 
@@ -258,7 +258,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
         return this
     }
 
-    fun setResetListener(listener: () -> String): PureTextInput {
+    fun setResetListener(listener: () -> String?): PureTextInput {
         resetListener = listener
         return this
     }
@@ -321,17 +321,21 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
         cursor2 = characters.size
     }
 
+    fun isNothingSelected() = cursor1 == cursor2
+    fun isEverythingSelected() = cursor1 == 0 && cursor2 == characters.size
+    fun isSomethingSelected() = cursor1 != cursor2
+
     override fun onEmpty(x: Float, y: Float) {
-        if (text != "") {
-            if (cursor1 == cursor2) {
-                clear()
-            } else deleteSelection()
+        if (isNothingSelected() || isEverythingSelected()) {
+            clear()
+        } else {
+            deleteSelection()
         }
     }
 
     fun clear() {
         lastChange = GFX.gameTime
-        text = resetListener()
+        text = resetListener() ?: ""
         updateChars(false)
         cursor1 = characters.size
         cursor2 = cursor1

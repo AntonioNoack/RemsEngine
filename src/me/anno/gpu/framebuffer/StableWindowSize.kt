@@ -24,7 +24,8 @@ class StableWindowSize {
         // check if the size stayed the same;
         // because resizing all framebuffers is expensive (causes lag)
         val matchesSize = lastW == width && lastH == height
-        val wasNotRecentlyUpdated = lastSizeUpdate + 1e8 < GFX.gameTime
+        // 100ms delay
+        val wasNotRecentlyUpdated = lastSizeUpdate + 100_000_000 < GFX.gameTime
         if (matchesSize) {
             if (wasNotRecentlyUpdated) {
                 stableWidth = width
@@ -36,7 +37,10 @@ class StableWindowSize {
             lastH = height
         }
 
-        if (stableWidth == 0 || stableHeight == 0) {
+        if (stableWidth == 0 || stableHeight == 0 || // not initialized yet
+            // the window has changed its size -> we have to update nonetheless
+            stableWidth > GFX.windowWidth || stableHeight > GFX.windowHeight
+        ) {
             stableWidth = width
             stableHeight = height
         }

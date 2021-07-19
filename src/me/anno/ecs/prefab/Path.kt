@@ -1,9 +1,22 @@
 package me.anno.ecs.prefab
 
-class Path(val hierarchy: IntArray, val name: String) {
+class Path(val hierarchy: IntArray, val name: String?) {
+
+    constructor(hierarchy: IntArray) : this(hierarchy, null)
+    constructor(name: String) : this(intArrayOf(), name)
+
+    override fun hashCode(): Int = hierarchy.hashCode() * 31 + name.hashCode()
+
+    override fun equals(other: Any?): Boolean {
+        return other is Path && other.name == name && other.hierarchy.contentEquals(hierarchy)
+    }
 
     override fun toString(): String {
-        return hierarchy.joinToString("/", "", "/$name")
+        return if (hierarchy.isEmpty()) {
+            name ?: ""
+        } else {
+            hierarchy.joinToString("/", "", "/${name ?: ""}")
+        }
     }
 
     companion object {
@@ -14,7 +27,7 @@ class Path(val hierarchy: IntArray, val name: String) {
             val indices = IntArray(parts.size - 1) {
                 parts[it].toInt()
             }
-            return Path(indices, name)
+            return Path(indices, name.ifEmpty { null })
         }
 
     }

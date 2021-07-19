@@ -7,10 +7,10 @@
 package me.anno.image.tar;
 
 import me.anno.image.Image;
+import me.anno.io.BufferedIO;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
-import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -98,7 +98,7 @@ public class TGAImage extends Image {
         boolean flipH = false;
 
         // open a stream to the file
-        DataInputStream dis = new DataInputStream(new BufferedInputStream(in));
+        DataInputStream dis = new DataInputStream(BufferedIO.INSTANCE.useBuffered(in));
 
         // ---------- Start Reading the TGA header ---------- //
         // length of the image id (1 byte)

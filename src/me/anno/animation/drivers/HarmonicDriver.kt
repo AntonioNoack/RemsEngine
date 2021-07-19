@@ -33,7 +33,7 @@ class HarmonicDriver : AnimationDriver() {
     ) {
         super.createInspector(list, transform, style, getGroup)
         val name = getDisplayName()
-        list += TextInput(name, "", style.getChild("deep"), harmonicsFormula)
+        list += TextInput(name, "", harmonicsFormula, style.getChild("deep"))
             .setChangeListener { harmonicsFormula = it; updateHarmonics() }
             .setIsSelectedListener { show(null) }
             .setTooltip(Dict["Default value is 1/n, try [2,0,1][n-1]", "driver.harmonic.desc"])

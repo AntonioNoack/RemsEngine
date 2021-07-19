@@ -48,6 +48,8 @@ class Type(
         clampFunc, acceptOrNull
     )
 
+    fun withDefault(defaultValue: Any) = withDefaultValue(defaultValue)
+
     fun <V> clamp(value: V): V = if (clampFunc != null) clampFunc.invoke(value) as V else value
 
     companion object {

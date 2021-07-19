@@ -1,14 +1,14 @@
 package me.anno.ui.base.groups
 
 import me.anno.ui.base.Panel
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.text.TextPanel
+import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.InputVisibility
 import me.anno.ui.style.Style
 import me.anno.utils.types.Strings.isBlank2
 
 open class TitledListY(val title: String, val visibilityKey: String, sorter: Comparator<Panel>?, style: Style) :
-    PanelListY(sorter, style) {
+    PanelListY(sorter, style), TextStyleable {
 
     constructor(title: String, visibilityKey: String, style: Style) : this(title, visibilityKey, null, style)
 
@@ -24,6 +24,14 @@ open class TitledListY(val title: String, val visibilityKey: String, sorter: Com
             }
         }
         disableConstantSpaceForWeightedChildren = true
+    }
+
+    override fun setBold(bold: Boolean) {
+        titleView?.setBold(bold)
+    }
+
+    override fun setItalic(italic: Boolean) {
+        titleView?.setItalic(italic)
     }
 
     override fun clear() {

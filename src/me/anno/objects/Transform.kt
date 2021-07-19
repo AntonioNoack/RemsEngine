@@ -104,8 +104,8 @@ open class Transform() : Saveable(),
 
     var timeAnimated = AnimatedProperty.double()
 
-    // todo update this value before drawing everything...
-    var indexInParent = 0
+    // update this value before drawing everything
+    override var indexInParent = 0
     var drawnChildCount = 0
 
     var nameI = ValueWithDefaultFunc { defaultDisplayName }
@@ -206,10 +206,10 @@ open class Transform() : Saveable(),
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
 
-        list += TextInput("Name ($className)", "", style, name)
+        list += TextInput("Name ($className)", "", name, style)
             .setChangeListener { name = if (it.isEmpty()) "-" else it }
             .setIsSelectedListener { show(null) }
-        list += TextInputML("Comment", style, comment)
+        list += TextInputML("Comment", comment, style)
             .setChangeListener { comment = it }
             .setIsSelectedListener { show(null) }
 
@@ -229,7 +229,7 @@ open class Transform() : Saveable(),
         // - crosses to remove tags
         // - sort them?
         // - a field to add new ones
-        list += TextInput("Tags", "", style, tags)
+        list += TextInput("Tags", "", tags, style)
             .setChangeListener { tags = it }
             .setIsSelectedListener { show(null) }
             .setTooltip("For Search | Not implemented yet")

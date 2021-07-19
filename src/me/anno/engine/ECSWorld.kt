@@ -1,11 +1,10 @@
 package me.anno.engine
 
-import com.bulletphysics.collision.dispatch.CollisionWorld
 import me.anno.ecs.Entity
 
 class ECSWorld {
 
-    val world = Entity()
+    val world = Entity("Game World")
 
     // will be shared over the network, and available to all clients
     // should be written only to by the server, or for particle effects
