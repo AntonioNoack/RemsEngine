@@ -1,6 +1,7 @@
 package me.anno.engine.ui
 
 import me.anno.engine.ECSWorld
+import me.anno.io.files.FileReference
 import me.anno.ui.base.Panel
 import me.anno.ui.custom.CustomContainer
 import me.anno.ui.custom.CustomList
@@ -16,7 +17,7 @@ import me.anno.ui.style.Style
 
 object DefaultLayout {
 
-    fun createDefaultMainUI(world: ECSWorld, isGaming: Boolean, style: Style): Panel {
+    fun createDefaultMainUI(projectFile: FileReference, world: ECSWorld, isGaming: Boolean, style: Style): Panel {
 
         // val pseudoProject = Project("pseudo", File.createTempFile("sth",""))
         // project = pseudoProject
@@ -27,16 +28,16 @@ object DefaultLayout {
         val animationWindow = CustomList(false, style)
         customUI.add(animationWindow, 2f)
 
-        val libraryBase = ECSTypeLibrary(world, isGaming)
+        val libraryBase = ECSTypeLibrary(projectFile, world, isGaming)
         val library = libraryBase.library
 
         val treeFiles = CustomList(true, style)
         treeFiles += CustomContainer(ECSTreeView(libraryBase, isGaming, style), library, style)
-        treeFiles += CustomContainer(FileExplorer(style), library, style)
-        animationWindow.add(CustomContainer(treeFiles, library, style), 0.5f)
-        animationWindow.add(CustomContainer(SceneView(style), library, style), 2f)
-        animationWindow.add(CustomContainer(ECSSceneView(world, style), library, style), 2f)
-        animationWindow.add(CustomContainer(PropertyInspector({ libraryBase.selection }, style), library, style), 0.5f)
+        treeFiles += CustomContainer(FileExplorer(projectFile, style), library, style)
+        animationWindow.add(CustomContainer(treeFiles, library, style), 1f)
+        animationWindow.add(CustomContainer(SceneView(style), library, style), 1f)
+        animationWindow.add(CustomContainer(ECSSceneView(world, style), library, style), 1f)
+        animationWindow.add(CustomContainer(PropertyInspector({ libraryBase.selection }, style), library, style), 1f)
         animationWindow.setWeight(1f)
 
         if (!isGaming) {

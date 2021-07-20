@@ -28,7 +28,6 @@ import java.util.*
 class TransformTreeView(style: Style) :
     AbstractTreeView<Transform>(
         UpdatingList { listOf(nullCamera!!, root) },
-        Companion::openAddMenu,
         TransformFileImporter, true, style
     ) {
 
@@ -51,6 +50,10 @@ class TransformTreeView(style: Style) :
 
     override fun focusOnElement(element: Transform) {
         zoomToObject(element)
+    }
+
+    override fun openAddMenu(parent: Transform) {
+        Companion.openAddMenu(parent)
     }
 
     companion object {

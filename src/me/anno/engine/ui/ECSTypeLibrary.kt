@@ -2,6 +2,7 @@ package me.anno.engine.ui
 
 import me.anno.config.DefaultConfig
 import me.anno.engine.ECSWorld
+import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
 import me.anno.objects.inspectable.Inspectable
 import me.anno.ui.base.Panel
@@ -14,7 +15,7 @@ import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.graphs.GraphEditor
 import me.anno.ui.editor.sceneView.SceneView
 
-class ECSTypeLibrary(val world: ECSWorld, val isGaming: Boolean) {
+class ECSTypeLibrary(val projectFile: FileReference, val world: ECSWorld, val isGaming: Boolean) {
 
     var selection: Inspectable? = world.world
 
@@ -27,7 +28,7 @@ class ECSTypeLibrary(val world: ECSWorld, val isGaming: Boolean) {
         Dict["Cutting Panel", "ui.customize.cuttingPanel"] to { CuttingView(DefaultConfig.style) },
         Dict["Timeline", "ui.customize.timeline"] to { TimelinePanel(DefaultConfig.style) },
         Dict["Animations", "ui.customize.graphEditor"] to { GraphEditor(DefaultConfig.style) },
-        Dict["Files", "ui.customize.fileExplorer"] to { FileExplorer(DefaultConfig.style) }
+        Dict["Files", "ui.customize.fileExplorer"] to { FileExplorer(projectFile, DefaultConfig.style) }
     ).map { Type(it.first, it.second) }.toMutableList()
 
     val library = UITypeLibrary(typeList)

@@ -4,6 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.engine.ECSWorld
 import me.anno.ui.editor.treeView.AbstractTreeView
 import me.anno.ui.style.Style
+import me.anno.utils.structures.lists.UpdatingList
 
 // todo runtime and pre-runtime view
 // todo unity oriented
@@ -25,17 +26,18 @@ import me.anno.ui.style.Style
 
 class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) :
     AbstractTreeView<Entity>(
-        listOf(library.world.world),//listOfVisible(library.world, isGaming),
-        {
-            // todo open add menu for often created entities: camera, light, nodes, ...
-            // we could use which prefabs were most often created :)
-            // temporary solution:
-            it.add(Entity())
-        },
+        UpdatingList { listOf(library.world.world) },
         ECSFileImporter,
         false,
         style
     ) {
+
+    override fun openAddMenu(parent: Entity) {
+        // todo open add menu for often created entities: camera, light, nodes, ...
+        // we could use which prefabs were most often created :)
+        // temporary solution:
+        parent.add(Entity())
+    }
 
     override fun canBeInserted(parent: Entity, element: Entity, index: Int): Boolean {
         return parent.prefab.run { this == null || index >= children.size }

@@ -33,7 +33,7 @@ class VideoAudioCreator(
             LOGGER.info("No audio found, saved result to $output.")
             onFinished()
         } else {
-            createOrAppendAudio(output, videoCreator)
+            createOrAppendAudio(output, videoCreator.output, true)
         }
     }
 

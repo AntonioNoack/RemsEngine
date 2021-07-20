@@ -17,6 +17,8 @@ import org.apache.logging.log4j.LogManager
 // todo extra tab to play -> opens the main scene as a game
 // todo save tabs...
 
+// todo show the current scene with a different background color
+// todo the same for Rems Studio
 object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
 
     private val LOGGER = LogManager.getLogger(ECSSceneTabs::class)

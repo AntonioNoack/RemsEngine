@@ -2,9 +2,12 @@ package me.anno.studio.rems
 
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.InvalidRef
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Audio
 import me.anno.objects.Transform
+import me.anno.objects.Video
+import me.anno.objects.modes.VideoType
 import me.anno.studio.rems.RemsStudio.motionBlurSteps
 import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.RemsStudio.root
@@ -12,15 +15,20 @@ import me.anno.studio.rems.RemsStudio.shutterPercentage
 import me.anno.studio.rems.RemsStudio.targetOutputFile
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.msg
+import me.anno.ui.base.menu.Menu.openMenu
+import me.anno.ui.base.menu.MenuOption
 import me.anno.utils.Threads.threadWithName
 import me.anno.utils.types.Strings.defaultImportType
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.*
+import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import kotlin.math.max
 import kotlin.math.roundToInt
 
+// todo f2 to rename something in the tree view
+// todo test-playback button not working?
 object Rendering {
 
     var isRendering = false
@@ -135,6 +143,78 @@ object Rendering {
 
     }
 
+    fun overrideAudio(video: FileReference, ask: Boolean, callback: () -> Unit) {
+
+        if (isRendering) return onAlreadyRendering()
+
+        val targetOutputFile = findTargetOutputFile(RenderType.VIDEO)
+        if (targetOutputFile.exists && ask) {
+            return askOverridingIsAllowed(targetOutputFile) {
+                overrideAudio(video, false, callback)
+            }
+        }
+
+        if (video == InvalidRef || !video.exists || video == targetOutputFile) {
+            // ask which video should be selected
+            val videos = root.listOfAll.filterIsInstance<Video>()
+                .filter {
+                    it.file != InvalidRef && it.file.exists &&
+                            it.type == VideoType.VIDEO && it.file != video &&
+                            it.file != targetOutputFile
+                }.toList()
+            when (videos.size) {
+                0 -> {
+                    // warning / file selector
+                    LOGGER.warn("Could not find video in scene!")
+                }
+                // ok :)
+                1 -> overrideAudio(videos[0].file, ask, callback)
+                // we need to ask
+                else -> {
+                    // todo ask which video is the right one
+                    openMenu(
+                        NameDesc(
+                            "Select the target video",
+                            "Where the video part is defined; will also decide the length",
+                            "ui.rendering.selectTargetVideo"
+                        ),
+                        videos.map {
+                            MenuOption(NameDesc(it.name.ifEmpty { it.file.name }, it.file.absolutePath, "")) {
+                                overrideAudio(it.file, ask, callback)
+                            }
+                        }
+                    )
+                }
+            }
+        } else {
+
+            val meta = getMeta(video, false)!!
+
+            isRendering = true
+            LOGGER.info("Rendering audio onto video")
+
+            val duration = meta.duration
+            val sampleRate = max(1, RemsStudio.targetSampleRate)
+
+            val scene = root.clone()
+            val audioSources = filterAudio(scene)
+
+            // if empty, skip?
+            LOGGER.info("Found ${audioSources.size} audio sources")
+
+            AudioCreator(scene, duration, sampleRate, audioSources).apply {
+                onFinished = {
+                    isRendering = false
+                    callback()
+                }
+                threadWithName("Rendering::renderAudio()") {
+                    createOrAppendAudio(targetOutputFile, video, false)
+                }
+            }
+
+        }
+    }
+
     fun renderAudio(ask: Boolean, callback: () -> Unit) {
 
         if (isRendering) return onAlreadyRendering()
@@ -163,7 +243,7 @@ object Rendering {
                 callback()
             }
             threadWithName("Rendering::renderAudio()") {
-                createOrAppendAudio(targetOutputFile, null)
+                createOrAppendAudio(targetOutputFile, null, false)
             }
         }
 

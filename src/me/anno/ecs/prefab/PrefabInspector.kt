@@ -25,6 +25,7 @@ import me.anno.utils.LOGGER
 import me.anno.utils.process.DelayedTask
 import me.anno.utils.structures.StartsWith.startsWith
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
 
 // todo this can be like a scene (/scene tab)
@@ -201,6 +202,8 @@ class PrefabInspector(val reference: FileReference) {
         val path = entity.pathInRoot(root).toIntArray()
         val prefab = entity.prefab
 
+        println("inspecting entity ${entity.name}, hierarchy: ${entity.listOfAll.joinToString { it.name }} -> path [${path.joinToString()}]")
+
         fun getPath(name: String) = Path(path, name)
 
         list.add(BooleanInput("Is Enabled", entity.isEnabled, prefab?.isEnabled ?: true, style).apply {
@@ -252,8 +255,8 @@ class PrefabInspector(val reference: FileReference) {
 
         list.add(TextButton("Copy", false, style).apply {
             setSimpleClickListener {
-                changes.forEach { change ->
-                    println(TextWriter.toText(change, false))
+                for((index, change) in changes.withIndex()){
+                    println("[$index] ${TextWriter.toText(change, false)}")
                 }
             }
         })
@@ -262,6 +265,7 @@ class PrefabInspector(val reference: FileReference) {
             save()
         })
 
+        println("creating stack panel from ${entity.components.size} components inside ${entity.name}")
         list.add(object : StackPanel(
             "Components", "Behaviours and properties",
             Component.getComponentOptions(entity), entity.components, style
@@ -272,15 +276,18 @@ class PrefabInspector(val reference: FileReference) {
              * */
             fun renumber(from: Int, delta: Int) {
                 val targetSize = path.size
+                val changedArrays = HashSet<IntArray>()
                 for (change in changes) {
                     val path2 = change.path!!
                     val hierarchy = path2.hierarchy
                     if (change is ChangeSetComponentAttribute &&
                         hierarchy.size == targetSize &&
-                        hierarchy.startsWith(path) &&
-                        hierarchy[targetSize - 1] >= from
+                        hierarchy[targetSize - 1] >= from &&
+                        hierarchy !in changedArrays &&
+                        hierarchy.startsWith(path)
                     ) {
                         hierarchy[targetSize - 1] += delta
+                        changedArrays.add(hierarchy)
                     }
                 }
             }
@@ -300,10 +307,11 @@ class PrefabInspector(val reference: FileReference) {
                 changes.add(ChangeAddComponent(Path(path), component.className))
                 // if it contains any changes, we need to apply them
                 val base = Component.create(component.className)
+                val compPath = path + index
                 for ((name, property) in component.getReflections().properties) {
                     val value = property[component]
                     if (value != property[base]) {
-                        changes.add(ChangeSetComponentAttribute(Path(path + index, name), value))
+                        changes.add(ChangeSetComponentAttribute(Path(compPath, name), value))
                     }
                 }
             }
@@ -358,6 +366,10 @@ class PrefabInspector(val reference: FileReference) {
 
     companion object {
 
+        init {
+            LogManager.disableLogger("FBStack")
+        }
+
         fun loadChanges(resource: FileReference): Pair<List<Change>, ChangeHistory> {
             val loaded = if (resource != InvalidRef && resource.exists && !resource.isDirectory) {
                 // todo if is not a .json file, we need to read it e.g. as a mesh, and such
@@ -386,11 +398,13 @@ class PrefabInspector(val reference: FileReference) {
         }
 
         fun createInstance(changes: List<Change>): Entity {
-            val instance = Entity()
+            val entity = Entity()
+            println("creating entity instance from ${changes.size} changes, ${changes.groupBy { it.className }.map { "${it.value.size}x ${it.key}" }}")
             for (change in changes) {
-                change.apply(instance)
+                change.apply(entity)
             }
-            return instance
+            println("created instance '${entity.name}' has ${entity.children.size} children and ${entity.components.size} components")
+            return entity
         }
 
         var currentInspector: PrefabInspector? = null

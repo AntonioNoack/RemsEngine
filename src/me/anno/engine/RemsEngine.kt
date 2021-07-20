@@ -2,7 +2,10 @@ package me.anno.engine
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
+import me.anno.ecs.Entity
 import me.anno.engine.ui.DefaultLayout
+import me.anno.engine.ui.scenetabs.ECSSceneTabs
+import me.anno.engine.ui.scenetabs.SceneTab
 import me.anno.gpu.GFX.windowStack
 import me.anno.gpu.Window
 import me.anno.input.ActionManager
@@ -34,7 +37,8 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
         ECSRegistry.init()
 
-        currentProject = GameEngineProject.readOrCreate(OS.documents.getChild("RemsEngine").getChild("SampleProject"))!!
+        val projectFile = OS.documents.getChild("RemsEngine").getChild("SampleProject")
+        currentProject = GameEngineProject.readOrCreate(projectFile)!!
         currentProject.init()
 
         Dict.loadDefault()
@@ -52,17 +56,24 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         // todo base shaders, which can be easily made touch-able
 
         // for testing directly jump in the editor
-        val editScene = ECSWorld()
-        val gameScene = ECSWorld()
+
+        val editScene = ECSWorld(Entity())
+        // val gameScene = ECSWorld()
 
         val style = style
 
         val list = PanelListY(style)
+
+        ECSSceneTabs.open(projectFile.getChild("2ndScene.json"))
+        ECSSceneTabs.open(projectFile.getChild("Scene.json"))
+
+        list.add(ECSSceneTabs)
+
         val options = OptionBar(style)
 
-        val editUI = DefaultLayout.createDefaultMainUI(editScene, false, style)
-        val gameUI = DefaultLayout.createDefaultMainUI(gameScene, true, style)
-        gameUI.visibility = Visibility.GONE
+        val editUI = DefaultLayout.createDefaultMainUI(projectFile, editScene, false, style)
+        // val gameUI = DefaultLayout.createDefaultMainUI(projectFile, gameScene, true, style)
+        /*gameUI.visibility = Visibility.GONE
 
         options.addMajor("Play/Stop") {
             val goStart = editUI.visibility == Visibility.VISIBLE
@@ -76,7 +87,7 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
             gameUI.visibility = Visibility[goStart]
             list.invalidateLayout()
             list.invalidateDrawing()
-        }
+        }*/
 
         val configTitle = Dict["Config", "ui.top.config"]
         options.addAction(configTitle, Dict["Settings", "ui.top.config.settings"]) {
@@ -94,10 +105,9 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         }
 
         list.add(options)
-        // todo different controls
 
         list += editUI
-        list += gameUI
+        // list += gameUI
 
         list += ConsoleOutputPanel(style)
         windowStack.add(Window(list))

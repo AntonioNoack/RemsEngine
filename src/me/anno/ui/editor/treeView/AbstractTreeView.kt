@@ -27,7 +27,6 @@ import org.joml.Vector4f
 
 abstract class AbstractTreeView<V : Hierarchical<V>>(
     val sources: List<V>,
-    val openAddMenu: (parent: V) -> Unit,
     val fileContentImporter: FileContentImporter<V>,
     val showSymbols: Boolean,
     style: Style
@@ -48,6 +47,8 @@ abstract class AbstractTreeView<V : Hierarchical<V>>(
 
     // zoomToObject
     abstract fun focusOnElement(element: V)
+
+    abstract fun openAddMenu(parent: V)
 
     // todo define these functions
     // todo use these functions to show indicator colors
@@ -174,7 +175,7 @@ abstract class AbstractTreeView<V : Hierarchical<V>>(
         }
         elementByIndex += element
         val child = AbstractTreeViewPanel(
-            { elementByIndex[index] }, openAddMenu,
+            { elementByIndex[index] }, { it.name }, { it, name -> it.name = name }, this::openAddMenu,
             fileContentImporter, showSymbols, this, style
         )
         child.padding.left = 4

@@ -37,7 +37,10 @@ abstract class Change(val priority: Int) : Saveable() {
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeString("path", path.toString(), true)
+        val path = path
+        if (path != null) {
+            writer.writeString("path", path.toString(), true)
+        }
     }
 
     override fun readString(name: String, value: String) {

@@ -46,6 +46,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
             if (field != value) {
                 field = value
                 invalidateDrawing()
+                invalidateLayout()
             }
         }
 

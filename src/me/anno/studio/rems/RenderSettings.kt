@@ -4,6 +4,7 @@ import me.anno.animation.Type
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
+import me.anno.io.files.InvalidRef
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
 import me.anno.studio.rems.RemsStudio.editorTime
@@ -12,6 +13,7 @@ import me.anno.studio.rems.RemsStudio.targetDuration
 import me.anno.studio.rems.RemsStudio.targetHeight
 import me.anno.studio.rems.RemsStudio.targetOutputFile
 import me.anno.studio.rems.RemsStudio.targetWidth
+import me.anno.studio.rems.Rendering.overrideAudio
 import me.anno.studio.rems.Rendering.renderAudio
 import me.anno.studio.rems.Rendering.renderFrame
 import me.anno.studio.rems.Rendering.renderPart
@@ -178,6 +180,9 @@ object RenderSettings : Transform() {
             .setTooltip("Create video at your custom set relative resolution")
         list += TextButton("Render Audio only", false, style)
             .setSimpleClickListener { renderAudio(true, callback) }
+            .setTooltip("Only creates an audio file; no video is rendered nor saved.")
+        list += TextButton("Override Audio", false, style)
+            .setSimpleClickListener { overrideAudio(InvalidRef, true, callback) }
             .setTooltip("Only creates an audio file; no video is rendered nor saved.")
         list += TextButton("Render Current Frame", false, style)
             .setSimpleClickListener { renderFrame(targetWidth, targetHeight, editorTime, true, callback) }

@@ -36,7 +36,7 @@ open class AudioCreator(
         camera = cameras.firstOrNull() ?: RemsStudio.nullCamera ?: Camera()
     }
 
-    fun createOrAppendAudio(output: FileReference, videoCreator: VideoCreator?) {
+    fun createOrAppendAudio(output: FileReference, videoCreatorOutput: FileReference?, deleteVCO: Boolean) {
 
         output.delete()
 
@@ -50,15 +50,17 @@ open class AudioCreator(
         // add -shortest to use shortest...
         val rawFormat = "s16be"// signed, 16 bit, big endian
         val channels = "2" // stereo
-        val audioEncodingArguments = if (videoCreator != null) {
+        val audioEncodingArguments = if (videoCreatorOutput != null) {
             arrayListOf(
-                "-i", videoCreator.output.absolutePath,
+                "-i", videoCreatorOutput.absolutePath,
                 "-f", rawFormat,
                 "-ar", sampleRate.toString(),
                 "-ac", channels,
                 "-i", "pipe:0", // output stream
                 "-c:v", "copy", // video is just copied 1:1
                 "-c:a", audioCodec,
+                "-map", "0:v:0", // map first video stream to output
+                "-map", "1:a:0", // map second audio stream to output
                 "-shortest", // audio may be 0.999 buffers longer
                 output.absolutePath
             )
@@ -85,14 +87,14 @@ open class AudioCreator(
         val audioOutput = DataOutputStream(process.outputStream.buffered())
         createAudio(audioOutput)
 
-        LOGGER.info(if (videoCreator != null) "Saved video with audio to $output" else "Saved audio to $output")
+        LOGGER.info(if (videoCreatorOutput != null) "Saved video with audio to $output" else "Saved audio to $output")
 
         // delete the temporary file
-        if(videoCreator != null){
-            val tmp = videoCreator.output
+        //
+        if(videoCreatorOutput != null && deleteVCO){
             // temporary file survives sometimes
             // -> kill it at the end at the very least
-            if(!tmp.delete()) tmp.deleteOnExit()
+            if (!videoCreatorOutput.delete()) videoCreatorOutput.deleteOnExit()
         }
         onFinished()
 

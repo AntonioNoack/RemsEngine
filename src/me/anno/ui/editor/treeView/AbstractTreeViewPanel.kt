@@ -12,11 +12,12 @@ import me.anno.input.Input.mouseDownY
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
-import me.anno.io.files.FileReference
 import me.anno.io.ISaveable
+import me.anno.io.files.FileReference
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.language.translation.Dict
+import me.anno.language.translation.NameDesc
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.studio.StudioBase.Companion.dragged
@@ -24,6 +25,7 @@ import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
+import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.FileContentImporter
@@ -39,6 +41,8 @@ import org.joml.Vector4f
 
 class AbstractTreeViewPanel<V : Hierarchical<V>>(
     val getElement: () -> V,
+    val getName: (V) -> String,
+    val setName: (V, String) -> Unit,
     val openAddMenu: (parent: V) -> Unit,
     val fileContentImporter: FileContentImporter<V>,
     val showSymbol: Boolean,
@@ -47,7 +51,7 @@ class AbstractTreeViewPanel<V : Hierarchical<V>>(
 
     private val accentColor = style.getColor("accentColor", black or 0xff0000)
 
-    val symbol: TextPanel? = if(showSymbol){
+    val symbol: TextPanel? = if (showSymbol) {
         object : TextPanel("", style) {
             init {
                 textAlignment = AxisAlignment.CENTER
@@ -66,7 +70,7 @@ class AbstractTreeViewPanel<V : Hierarchical<V>>(
     }
 
     init {
-        if(symbol != null){
+        if (symbol != null) {
             symbol.enableHoverColor = true
             this += symbol
         }
@@ -247,6 +251,12 @@ class AbstractTreeViewPanel<V : Hierarchical<V>>(
                         )
                     }
                 }
+            }
+            "Rename" -> {
+                val e = getElement()
+                askName(x.toInt(), y.toInt(), NameDesc("Name"), getName(e), getColor = { -1 }, callback = { newName ->
+                    setName(e, newName)
+                }, actionName = NameDesc("Change Name"))
             }
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }

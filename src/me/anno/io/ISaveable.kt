@@ -152,6 +152,10 @@ interface ISaveable {
             fun generate() = generator()
         }
 
+        fun instantiate(type: String): ISaveable? {
+            return objectTypeRegistry[type]?.generate()
+        }
+
         val objectTypeRegistry = HashMap<String, RegistryEntry>()
 
         @JvmStatic

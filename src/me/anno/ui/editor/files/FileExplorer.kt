@@ -47,7 +47,7 @@ import kotlin.math.max
 // done a stack or history to know where we were
 // todo left list of relevant places? todo drag stuff in there
 
-class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
+class FileExplorer(file0: FileReference?, style: Style) : PanelListY(style.getChild("fileExplorer")) {
 
     val searchBar = TextInput("Search Term", "", false, style)
         .setChangeListener {
@@ -57,7 +57,7 @@ class FileExplorer(style: Style) : PanelListY(style.getChild("fileExplorer")) {
         .setWeight(1f)
 
     var historyIndex = 0
-    val history = arrayListOf(project?.scenes ?: OS.documents)
+    val history = arrayListOf(file0 ?: OS.documents)
 
     val folder get() = history[historyIndex]
 

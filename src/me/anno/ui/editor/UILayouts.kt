@@ -33,6 +33,7 @@ import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.studio.rems.RemsStudio.versionName
 import me.anno.studio.rems.RenderSettings
+import me.anno.studio.rems.Rendering.overrideAudio
 import me.anno.studio.rems.Rendering.renderAudio
 import me.anno.studio.rems.Rendering.renderPart
 import me.anno.studio.rems.Rendering.renderSetPercent
@@ -546,6 +547,7 @@ object UILayouts {
         options.addAction(renderTitle, "Full") { renderPart(1, true, callback) }
         options.addAction(renderTitle, "Half") { renderPart(2, true, callback) }
         options.addAction(renderTitle, "Quarter") { renderPart(4, true, callback) }
+        options.addAction(renderTitle, "Override Audio") { overrideAudio(InvalidRef, true, callback) }
         options.addAction(renderTitle, "Audio") { renderAudio(true, callback) }
 
         options.addAction(helpTitle, "Tutorials") {
@@ -592,7 +594,7 @@ object UILayouts {
 
         val treeFiles = CustomList(true, style)
         treeFiles += CustomContainer(TransformTreeView(style), library, style)
-        treeFiles += CustomContainer(FileExplorer(style), library, style)
+        treeFiles += CustomContainer(FileExplorer(project?.scenes, style), library, style)
         animationWindow.add(CustomContainer(treeFiles, library, style), 0.5f)
         animationWindow.add(CustomContainer(SceneView(style), library, style), 2f)
         animationWindow.add(
