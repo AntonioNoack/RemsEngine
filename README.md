@@ -33,6 +33,7 @@ It is additionally developed with Java, so it works with Windows and Linux.
 * [JAI ImageIO Core](https://github.com/jai-imageio/jai-imageio-core) (More image formats for PDFs)
 * [JAI ImageIO JPEG2000](https://github.com/jai-imageio/jai-imageio-jpeg2000) (JPEG 2000 support for PDFs)
 * [jGLTF](https://github.com/AntonioNoack/jGLTF) (jGLTF for glTF files, modified)
+* [jUnRAR](https://github.com/edmund-wagner/junrar), [Apache VFS](https://search.maven.org/artifact/org.apache.commons/commons-vfs2/2.8.0/jar) (reading RAR files)
 <!-- * Assimp is in work -->
 <!-- * [Caliko](https://github.com/FedUni/caliko) (FABRIK IK) -->
 

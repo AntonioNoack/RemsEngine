@@ -1,6 +1,7 @@
 package me.anno.engine.ui.scenetabs
 
 import me.anno.config.DefaultConfig
+import me.anno.ecs.prefab.EntityPrefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.gpu.GFX
 import me.anno.io.base.BaseWriter
@@ -28,6 +29,19 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
     val children3 get() = children2.filterIsInstance<SceneTab>()
 
     var currentTab: SceneTab? = null
+
+    fun open(prefab: EntityPrefab) {
+        val opened = children3.firstOrNull { it.file == prefab.ownFile }
+        if (opened != null) {
+            open(opened)
+        } else {
+            GFX.addGPUTask(1) {
+                val tab = SceneTab(prefab)
+                content += tab
+                open(tab)
+            }
+        }
+    }
 
     fun open(file: FileReference) {
         val opened = children3.firstOrNull { it.file == file }

@@ -26,26 +26,18 @@ import me.anno.ui.editor.sceneTabs.SceneTabs.currentTab
 import me.anno.ui.editor.sceneView.ISceneView
 import me.anno.utils.OS
 
-// todo print list of time-points for sites like YouTube
-// todo we could set markers in the editor :)
+
+// todo triangle pixelation instead of quad pixelation, looks nicer (e.g. hex pattern)
 
 // todo use YouTube videos as a video source?
 
 // todo when rendering low-res images: for nearest-interpolated textures use interpolation on the edges of pixels
 
-// todo mesh preview, primarily for other projects
-// todo 3d model gltf support
-// todo fbx skeletal animations
 // todo scripting?...
 // todo gizmos
 
-// todo scene, where we can drag meshes and stuff into
-// todo tree view for ecs
-
 // todo for game engines: easy way to call C/C++, maybe other languages as well, like JavaScript or Lua (as a game engine)
 // todo text file editor with syntax highlighting??..
-
-// todo usable entity component system? our current way is probably to limited to Rem's Studio only
 
 // todo shared code and mesh base, and the engine/compiler collects all required resources for the exported scenes?
 // could be a really nice system :)

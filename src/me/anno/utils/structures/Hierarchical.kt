@@ -62,6 +62,8 @@ interface Hierarchical<V : Hierarchical<V>> {
         parent = null
     }
 
+    val root: Hierarchical<V> get() = parent?.root ?: this
+
     fun onDestroy()
 
     fun destroy() {

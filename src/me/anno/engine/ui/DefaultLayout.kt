@@ -1,6 +1,6 @@
 package me.anno.engine.ui
 
-import me.anno.engine.ECSWorld
+import me.anno.ecs.Entity
 import me.anno.io.files.FileReference
 import me.anno.ui.base.Panel
 import me.anno.ui.custom.CustomContainer
@@ -17,7 +17,7 @@ import me.anno.ui.style.Style
 
 object DefaultLayout {
 
-    fun createDefaultMainUI(projectFile: FileReference, world: ECSWorld, isGaming: Boolean, style: Style): Panel {
+    fun createDefaultMainUI(projectFile: FileReference, world: Entity, isGaming: Boolean, style: Style): Panel {
 
         // val pseudoProject = Project("pseudo", File.createTempFile("sth",""))
         // project = pseudoProject

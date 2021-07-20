@@ -247,8 +247,6 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
     // not possible in the whole scene for sub-scenes
     // however, when we are only editing prefabs, it would be possible :)
 
-    val root: Entity get() = parent?.root ?: this
-
     fun pathInRoot(root: Entity): ArrayList<Int> {
         if(this == root) return arrayListOf()
         val parent = parent

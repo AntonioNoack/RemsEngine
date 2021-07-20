@@ -11,6 +11,7 @@ import com.bulletphysics.dynamics.RigidBodyConstructionInfo
 import com.bulletphysics.dynamics.constraintsolver.SequentialImpulseConstraintSolver
 import com.bulletphysics.linearmath.DefaultMotionState
 import com.bulletphysics.linearmath.Transform
+import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.physics.Rigidbody
@@ -20,7 +21,7 @@ import javax.vecmath.Quat4d
 import javax.vecmath.Vector3d
 import kotlin.math.max
 
-class BulletPhysics {
+class BulletPhysics: Component() {
 
     companion object {
         fun convertMatrix(ourTransform: Matrix4x3d): Matrix4d {
@@ -129,5 +130,7 @@ class BulletPhysics {
         world.addRigidBody(body)
 
     }
+
+    override val className: String = "BulletPhysics"
 
 }

@@ -10,13 +10,17 @@ import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.components.test.TypeTestComponent
 import me.anno.ecs.prefab.*
+import me.anno.engine.scene.ScenePrefab
 import me.anno.io.ISaveable.Companion.registerCustomClass
+import me.anno.io.files.FileReference
 import me.anno.mesh.assimp.Bone
 import me.anno.studio.Build
 
 object ECSRegistry {
 
     fun init() {
+
+        FileReference.register(ScenePrefab)
 
         registerCustomClass(Entity())
         registerCustomClass(Transform())
@@ -49,6 +53,10 @@ object ECSRegistry {
         registerCustomClass(ChangeSetComponentAttribute())
         registerCustomClass(ChangeAddEntity())
         registerCustomClass(ChangeAddComponent())
+
+        registerCustomClass(EntityPrefab())
+
+        registerCustomClass(BulletPhysics())
 
         if (Build.isDebug) {
             // test classes

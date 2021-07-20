@@ -90,7 +90,7 @@ abstract class Component : NamedSaveable(), Inspectable {
 
         // todo create title bar, where you can change the script
         // todo save values to history
-        PrefabInspector.currentInspector!!.inspectComponent(this,list,style)
+        PrefabInspector.currentInspector!!.inspectComponent(this, list, style)
 
     }
 
@@ -121,7 +121,12 @@ abstract class Component : NamedSaveable(), Inspectable {
 
     companion object {
 
-        fun create(type: String) = ISaveable.objectTypeRegistry[type]!!.generator() as Component
+        fun create(type: String): Component {
+            return (ISaveable.instantiate(type) ?: throw TypeNotPresentException(
+                type,
+                NullPointerException()
+            )) as Component
+        }
 
         fun getComponentOptions(entity: Entity?): List<Option> {
             // registry over all options... / todo search the raw files + search all scripts

@@ -1,7 +1,6 @@
 package me.anno.engine.ui
 
 import me.anno.ecs.Entity
-import me.anno.engine.ECSWorld
 import me.anno.ui.editor.treeView.AbstractTreeView
 import me.anno.ui.style.Style
 import me.anno.utils.structures.lists.UpdatingList
@@ -26,7 +25,7 @@ import me.anno.utils.structures.lists.UpdatingList
 
 class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) :
     AbstractTreeView<Entity>(
-        UpdatingList { listOf(library.world.world) },
+        UpdatingList { listOf(library.world) },
         ECSFileImporter,
         false,
         style
@@ -64,7 +63,7 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
     override val className get() = "ECSTreeView"
 
     companion object {
-        fun listOfVisible(root: ECSWorld, isGaming: Boolean): List<Entity> {
+        /*fun listOfVisible(root: ECSWorld, isGaming: Boolean): List<Entity> {
             return if (isGaming) listOf(
                 root.globallyShared,
                 root.playerPrefab,
@@ -73,7 +72,7 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
                 root.remotePlayers
             )
             else listOf(root.globallyShared, root.playerPrefab, root.locallyShared)
-        }
+        }*/
     }
 
 }

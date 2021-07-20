@@ -168,11 +168,12 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     open fun <V : ISaveable> writeObjectList(
         self: ISaveable?,
         name: String,
-        values: List<V>,
+        values: List<V>?,
         force: Boolean = false
     ) {
-        if (force || values.isNotEmpty()) {
-            writeObjectArray(self, name, Array<ISaveable>(values.size) { values[it] } as Array<V>, force)
+        if (force || values?.isNotEmpty() == true) {
+            writeObjectArray(self, name, if (values == null) emptyArray<Any?>() as Array<V> else
+                Array<ISaveable>(values.size) { values[it] } as Array<V>, force)
         }
     }
 
@@ -182,7 +183,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     abstract fun <V : ISaveable> writeObjectArray(
         self: ISaveable?,
         name: String,
-        values: Array<V>,
+        values: Array<V>?,
         force: Boolean = false
     )
 

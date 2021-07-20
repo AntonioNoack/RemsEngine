@@ -418,7 +418,7 @@ object Input {
         inFocus0?.onEmpty(mouseX, mouseY)
     }
 
-    fun import(){
+    fun import() {
         threadWithName("Ctrl+I") {
             if (lastFile == null) lastFile = project?.file
             FileExplorerSelectWrapper.selectFile(lastFile?.unsafeFile) { file ->
@@ -440,19 +440,17 @@ object Input {
 
     fun copy() {
         // todo combine all selected values into an array?
-        val copied = inFocus0?.onCopyRequested(mouseX, mouseY)
-        if (copied != null) {
-            val selection = StringSelection(copied)
-            Toolkit.getDefaultToolkit().systemClipboard.setContents(selection, selection)
-        }
+        setClipboardContent(inFocus0?.onCopyRequested(mouseX, mouseY))
     }
 
     fun copy(panel: Panel) {
-        val copied = panel.onCopyRequested(mouseX, mouseY)
-        if (copied != null) {
-            val selection = StringSelection(copied)
-            Toolkit.getDefaultToolkit().systemClipboard.setContents(selection, selection)
-        }
+        setClipboardContent(panel.onCopyRequested(mouseX, mouseY))
+    }
+
+    fun setClipboardContent(copied: String?) {
+        copied ?: return
+        val selection = StringSelection(copied)
+        Toolkit.getDefaultToolkit().systemClipboard.setContents(selection, selection)
     }
 
     fun paste(panel: Panel? = inFocus0) {

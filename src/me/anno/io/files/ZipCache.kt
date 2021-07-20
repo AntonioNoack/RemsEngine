@@ -5,6 +5,8 @@ import me.anno.cache.CacheSection
 import me.anno.io.files.ZipFile7z.Companion.createZipRegistry7z
 import me.anno.io.files.ZipFile7z.Companion.fileFromStream7z
 import me.anno.io.files.ZipFileArchive.Companion.readAsGZip
+import me.anno.io.files.ZipFileRAR.Companion.createZipRegistryRAR
+import me.anno.io.files.ZipFileRAR.Companion.fileFromStreamRAR
 import me.anno.io.files.ZipFileV1.Companion.createZipRegistry
 import me.anno.io.files.ZipFileV2.Companion.createZipRegistryV2
 import me.anno.io.files.ZipFileV2.Companion.fileFromStreamV2
@@ -29,10 +31,17 @@ object ZipCache : CacheSection("ZipCache") {
         val data = getEntry(file.absolutePath, timeout, async) {
             LOGGER.info("Unzipping $file")
             CacheData(try {
-                if (file.extension.equals("7z", true)) {
-                    createZipRegistry7z(file) { fileFromStream7z(file) }
-                } else {
-                    createZipRegistryV2(file) { fileFromStreamV2(file) }
+                val extension = file.extension
+                when {
+                    extension.equals("7z", true) -> {
+                        createZipRegistry7z(file) { fileFromStream7z(file) }
+                    }
+                    extension.equals("rar",true) -> {
+                        createZipRegistryRAR(file){ fileFromStreamRAR(file) }
+                    }
+                    else -> {
+                        createZipRegistryV2(file) { fileFromStreamV2(file) }
+                    }
                 }
             } catch (e: Exception) {
                 // check whether it's a GZip, and if so, decode it

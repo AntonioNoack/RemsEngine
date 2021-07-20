@@ -4,7 +4,6 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.texture.Filtering
 import me.anno.mesh.assimp.AnimGameItem
-import me.anno.mesh.fbx.model.FBXShader
 import me.anno.objects.effects.MaskType
 import me.anno.objects.effects.types.GLSLLib
 import me.anno.objects.modes.UVProjection
@@ -38,7 +37,7 @@ object ShaderLib {
     lateinit var shader3DBoxBlur: BaseShader
     lateinit var shaderObjMtl: BaseShader
     lateinit var shaderAssimp: BaseShader
-    lateinit var shaderFBX: BaseShader
+    // lateinit var shaderFBX: BaseShader
     lateinit var copyShader: BaseShader
 
     /**
@@ -845,7 +844,7 @@ object ShaderLib {
         shaderAssimp.glslVersion = 330
 
         // create the fbx shader
-        shaderFBX = FBXShader.getShader(v3DBase, positionPostProcessing, y3D, getTextureLib)
+        // shaderFBX = FBXShader.getShader(v3DBase, positionPostProcessing, y3D, getTextureLib)
 
         shader3DYUV = createShaderPlus(
             "3d-yuv",

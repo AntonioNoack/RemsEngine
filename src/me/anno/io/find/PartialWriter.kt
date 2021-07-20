@@ -87,7 +87,8 @@ abstract class PartialWriter(respectsDefaultValues: Boolean) : BaseWriter(respec
         value.save(this)
     }
 
-    override fun <V : ISaveable> writeObjectArray(self: ISaveable?, name: String, values: Array<V>, force: Boolean) {
+    override fun <V : ISaveable> writeObjectArray(self: ISaveable?, name: String, values: Array<V>?, force: Boolean) {
+        values ?: return
         for(obj in values) obj.save(this)
     }
 

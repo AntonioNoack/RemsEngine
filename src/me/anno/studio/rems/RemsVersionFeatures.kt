@@ -6,6 +6,7 @@ import me.anno.objects.FourierTransform
 import me.anno.objects.Transform
 import me.anno.objects.documents.pdf.PDFDocument
 import me.anno.objects.geometric.LinePolygon
+import me.anno.objects.text.Chapter
 import me.anno.studio.StudioBase
 
 class RemsVersionFeatures(oldVersion: Int) : VersionFeatures(oldVersion) {
@@ -36,8 +37,12 @@ class RemsVersionFeatures(oldVersion: Int) : VersionFeatures(oldVersion) {
             addInstance(config, "Line", LinePolygon())
         }
 
-        addVersion(10104){
+        addVersion(10104) {
             addInstance(config, "Fourier Transform", FourierTransform())
+        }
+
+        addVersion(10106) {
+            addInstance(config, "Chapter", Chapter())
         }
 
         config["version"] = StudioBase.instance.versionNumber

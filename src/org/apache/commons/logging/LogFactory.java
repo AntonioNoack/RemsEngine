@@ -8,6 +8,10 @@ import me.anno.logging.LoggerImpl;
  * */
 public class LogFactory {
 
+    public static Log getLog(String clazz) throws LogConfigurationException {
+        return (LoggerImpl) LogManager.getLogger(clazz);
+    }
+
     public static Log getLog(Class<?> clazz) throws LogConfigurationException {
         return (LoggerImpl) LogManager.getLogger(clazz);
     }

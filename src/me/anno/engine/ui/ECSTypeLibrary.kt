@@ -1,7 +1,7 @@
 package me.anno.engine.ui
 
 import me.anno.config.DefaultConfig
-import me.anno.engine.ECSWorld
+import me.anno.ecs.Entity
 import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
 import me.anno.objects.inspectable.Inspectable
@@ -15,9 +15,9 @@ import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.graphs.GraphEditor
 import me.anno.ui.editor.sceneView.SceneView
 
-class ECSTypeLibrary(val projectFile: FileReference, val world: ECSWorld, val isGaming: Boolean) {
+class ECSTypeLibrary(val projectFile: FileReference, val world: Entity, val isGaming: Boolean) {
 
-    var selection: Inspectable? = world.world
+    var selection: Inspectable? = world
 
     val typeList = listOf<Pair<String, () -> Panel>>(
         // todo not all stuff here makes sense

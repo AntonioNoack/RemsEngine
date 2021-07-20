@@ -32,22 +32,28 @@ import org.joml.Vector3d
 
 // todo show changed values in bold
 
-class PrefabInspector(val reference: FileReference) {
+class PrefabInspector(val reference: FileReference, val prefab: EntityPrefab) {
 
-    val changes: MutableList<Change>
-    val history: ChangeHistory
+    constructor(prefab: EntityPrefab) : this(prefab.ownFile, prefab)
+
+    constructor(reference: FileReference) : this(reference, loadChanges(reference) ?: EntityPrefab())
+
+    val history: ChangeHistory = prefab.history ?: ChangeHistory()
+    val changes: MutableList<Change> = ArrayList(prefab.changes ?: emptyList())
 
     init {
-        val (c, h) = loadChanges(reference)
-        changes = c.toMutableList()
-        history = h
+
         if (history.isEmpty()) {
             history.put("[]")
         }
+
+        prefab.history = history
+        prefab.changes = changes
+
     }
 
     // val changes = ArrayList()
-    var root = createInstance(changes)
+    var root = createInstance(prefab)
 
     private val savingTask = DelayedTask {
         addEvent {
@@ -255,7 +261,7 @@ class PrefabInspector(val reference: FileReference) {
 
         list.add(TextButton("Copy", false, style).apply {
             setSimpleClickListener {
-                for((index, change) in changes.withIndex()){
+                for ((index, change) in changes.withIndex()) {
                     println("[$index] ${TextWriter.toText(change, false)}")
                 }
             }
@@ -370,23 +376,17 @@ class PrefabInspector(val reference: FileReference) {
             LogManager.disableLogger("FBStack")
         }
 
-        fun loadChanges(resource: FileReference): Pair<List<Change>, ChangeHistory> {
-            val loaded = if (resource != InvalidRef && resource.exists && !resource.isDirectory) {
+        fun loadChanges(resource: FileReference?): EntityPrefab? {
+            resource ?: return null
+            return if (resource != InvalidRef && resource.exists && !resource.isDirectory) {
                 // todo if is not a .json file, we need to read it e.g. as a mesh, and such
                 try {
-                    val read = TextReader.read(resource)
-                    val changes = read.filterIsInstance<Change>()
-                    for (change in changes) {
-                        if (change.path == null) throw RuntimeException("Path of change $change is null, from $resource")
-                    }
-                    val history = read.filterIsInstance<ChangeHistory>().firstOrNull() ?: ChangeHistory()
-                    changes to history
+                    TextReader.read(resource).firstOrNull() as? EntityPrefab
                 } catch (e: Exception) {
                     e.printStackTrace()
                     null
                 }
             } else null
-            return loaded ?: emptyList<Change>() to ChangeHistory()
         }
 
         fun saveChanges(resource: FileReference, changes: List<Change>, history: ChangeHistory) {
@@ -394,12 +394,14 @@ class PrefabInspector(val reference: FileReference) {
         }
 
         fun createInstance(resource: FileReference): Entity {
-            return createInstance(loadChanges(resource).first)
+            return createInstance(loadChanges(resource))
         }
 
-        fun createInstance(changes: List<Change>): Entity {
-            val entity = Entity()
-            println("creating entity instance from ${changes.size} changes, ${changes.groupBy { it.className }.map { "${it.value.size}x ${it.key}" }}")
+        fun createInstance(prefab: EntityPrefab?): Entity {
+            val entity = loadChanges(prefab?.prefab)?.run { createInstance(this) } ?: Entity()
+            val changes = prefab?.changes ?: emptyList()
+            val changes2 = changes.groupBy { it.className }.map { "${it.value.size}x ${it.key}" }
+            println("creating entity instance from ${changes.size} changes, $changes2")
             for (change in changes) {
                 change.apply(entity)
             }

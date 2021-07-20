@@ -3,16 +3,20 @@ package me.anno.engine
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
+import me.anno.ecs.prefab.EntityPrefab
+import me.anno.ecs.prefab.EntityPrefab.Companion.createOrLoadScene
+import me.anno.ecs.prefab.PrefabInspector.Companion.loadChanges
+import me.anno.engine.scene.ScenePrefab
 import me.anno.engine.ui.DefaultLayout
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.engine.ui.scenetabs.SceneTab
 import me.anno.gpu.GFX.windowStack
 import me.anno.gpu.Window
 import me.anno.input.ActionManager
+import me.anno.io.files.FileReference
+import me.anno.io.text.TextWriter
 import me.anno.language.translation.Dict
 import me.anno.studio.StudioBase
 import me.anno.studio.rems.StudioActions
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.editor.OptionBar
@@ -20,6 +24,7 @@ import me.anno.ui.editor.UILayouts.createReloadWindow
 import me.anno.ui.editor.config.ConfigPanel
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
+
 
 // todo make rendering working
 // todo drop in meshes
@@ -33,15 +38,21 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
     lateinit var currentProject: GameEngineProject
 
-    override fun createUI() {
+    override fun onGameInit() {
+        super.onGameInit()
 
         ECSRegistry.init()
+
+        Dict.loadDefault()
+
+    }
+
+    override fun createUI() {
 
         val projectFile = OS.documents.getChild("RemsEngine").getChild("SampleProject")
         currentProject = GameEngineProject.readOrCreate(projectFile)!!
         currentProject.init()
 
-        Dict.loadDefault()
 
         // todo select project view, like Rem's Studio
         // todo select scene
@@ -57,8 +68,7 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
         // for testing directly jump in the editor
 
-        val editScene = ECSWorld(Entity())
-        // val gameScene = ECSWorld()
+        val editScene = createOrLoadScene(projectFile.getChild("Scene.json"))
 
         val style = style
 
@@ -71,7 +81,7 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
         val options = OptionBar(style)
 
-        val editUI = DefaultLayout.createDefaultMainUI(projectFile, editScene, false, style)
+        val editUI = DefaultLayout.createDefaultMainUI(projectFile, editScene.createInstance(), false, style)
         // val gameUI = DefaultLayout.createDefaultMainUI(projectFile, gameScene, true, style)
         /*gameUI.visibility = Visibility.GONE
 

@@ -10,8 +10,6 @@ import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.matrixBufferFBX
 import me.anno.gpu.RenderState
 import me.anno.gpu.ShaderLib.shaderAssimp
-import me.anno.gpu.ShaderLib.shaderFBX
-import me.anno.gpu.ShaderLib.shaderObjMtl
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.drawing.GFXx3D
@@ -26,13 +24,10 @@ import me.anno.mesh.assimp.AnimGameItem
 import me.anno.mesh.assimp.AnimGameItem.Companion.centerStackFromAABB
 import me.anno.mesh.assimp.AnimGameItem.Companion.getScaleFromAABB
 import me.anno.mesh.fbx.model.FBXGeometry
-import me.anno.mesh.fbx.model.FBXModel
-import me.anno.mesh.gltf.CustomGlContext
 import me.anno.mesh.obj.Material
 import me.anno.objects.GFXTransform
 import me.anno.objects.GFXTransform.Companion.uploadAttractors
 import me.anno.video.MissingFrameException
-import me.karl.main.Camera
 import me.karl.scene.DAEScene
 import org.joml.*
 import kotlin.math.sin

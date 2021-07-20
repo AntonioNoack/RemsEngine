@@ -3,6 +3,7 @@ package me.anno.ecs.prefab
 import me.anno.ecs.Entity
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import java.lang.NullPointerException
 
 // todo how do we reference (as variables) to other Entities? probably a path would be correct...
 // todo the same for components
@@ -16,7 +17,7 @@ abstract class Change(val priority: Int) : Saveable() {
     }
 
     fun apply(entity: Entity, pathIndex: Int) {
-        val path = path!!
+        val path = path ?: throw NullPointerException("Path is null inside $this")
         val delta = pathIndex - path.hierarchy.size
         if (delta < 0) {
             val childIndex = path.hierarchy[pathIndex]

@@ -2,8 +2,11 @@ package me.anno.ecs.prefab
 
 class Path(val hierarchy: IntArray, val name: String?) {
 
+    constructor(): this(null)
     constructor(hierarchy: IntArray) : this(hierarchy, null)
-    constructor(name: String) : this(intArrayOf(), name)
+    constructor(name: String?) : this(intArrayOf(), name)
+    constructor(path0: Int, name: String) : this(intArrayOf(path0), name)
+    constructor(path0: Int) : this(intArrayOf(path0), null)
 
     override fun hashCode(): Int = hierarchy.hashCode() * 31 + name.hashCode()
 

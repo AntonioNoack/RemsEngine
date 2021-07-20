@@ -530,22 +530,22 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
 
     private inline fun <V> writeGenericList(
         name: String,
-        elements: List<V>,
+        elements: List<V>?,
         force: Boolean,
         writeInstance: (V) -> Unit
     ) {
-        if (force || elements.isNotEmpty()) {
+        if (force || elements?.isNotEmpty() == true) {
             writeAttributeStart(name, OBJECT_ARRAY)
-            output.writeInt(elements.size)
-            elements.forEach { element ->
+            output.writeInt(elements?.size ?: 0)
+            elements?.forEach { element ->
                 writeInstance(element)
             }
         }
     }
 
-    override fun <V : ISaveable> writeObjectArray(self: ISaveable?, name: String, values: Array<V>, force: Boolean) {
-        if (force || values.isNotEmpty()) {
-            if (values.isNotEmpty()) {
+    override fun <V : ISaveable> writeObjectArray(self: ISaveable?, name: String, values: Array<V>?, force: Boolean) {
+        if (force || values?.isNotEmpty() == true) {
+            if (values != null && values.isNotEmpty()) {
                 val firstType = values.first().className
                 val allSameType = values.all { it.className == firstType }
                 if (allSameType) {
@@ -571,7 +571,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         TODO("Not yet implemented")
     }
 
-    override fun <V : ISaveable> writeObjectList(self: ISaveable?, name: String, values: List<V>, force: Boolean) {
+    override fun <V : ISaveable> writeObjectList(self: ISaveable?, name: String, values: List<V>?, force: Boolean) {
         writeGenericList(name, values, force) {
             writeObject(null, null, it, true)
         }

@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="jUnRAR">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/unrar/jUnRAR.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/commons-vfs2-2.8.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

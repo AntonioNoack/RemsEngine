@@ -35,18 +35,22 @@ abstract class FileReference(val absolutePath: String) {
 
         private val LOGGER = LogManager.getLogger(FileReference::class)
 
-        fun getReference(str: String): FileReference {
-            if (str.isBlank2()) return InvalidRef
+        private val staticReferences = HashMap<String, StaticRef>()
+
+        fun register(ref: StaticRef) {
+            staticReferences[ref.absolutePath] = ref
+        }
+
+        fun getReference(str: String?): FileReference {
+            if (str == null || str.isBlank2()) return InvalidRef
+            val static = staticReferences[str]
+            if (static != null) return static
             if (str == "null") return FileRootRef
             return FileFileRef(File(str))
         }
 
         fun getReference(file: File?): FileReference {
-            if (file == null) return FileRootRef
-            val str = file.toString()
-            if (str.isBlank2()) return InvalidRef
-            if (str == "null") return FileRootRef
-            return FileFileRef(file)
+            return getReference(file?.toString())
         }
 
         fun getReference(parent: File, name: String): FileReference {
@@ -180,34 +184,48 @@ abstract class FileReference(val absolutePath: String) {
 
     private fun isZipFile(): Boolean {
         // todo only read the first bytes...
-        if (extension.equals("7z", true)) {
-            val zis = if (this is FileFileRef) SevenZFile(file) else
-                SevenZFile(SeekableInMemoryByteChannel(inputStream().readBytes()))
-            return try {
-                val result = zis.nextEntry != null
-                LOGGER.info("Checking $absolutePath for zip file, success")
-                result
-            } catch (e: IOException) {
-                LOGGER.info("Checking $absolutePath for zip file, ${e.message}")
-                false
-            } finally {
-                zis.close()
-            }
-        } else {
-            return try {
-                val zis = if (this is FileFileRef) ZipFile(file) else
-                    ZipFile(SeekableInMemoryByteChannel(inputStream().readBytes()))
-                val result = zis.entries.hasMoreElements()
-                LOGGER.info("Checking $absolutePath for zip file, success")
-                result
-            } catch (e: IOException) {
-                // test the file of being gzipped
-                if(testFileIsGzip()){
-                    LOGGER.info("Checking $absolutePath for zip file, is GZip")
-                    return true
+        when {
+            extension.equals("7z", true) -> {
+                val zis = if (this is FileFileRef) SevenZFile(file) else
+                    SevenZFile(SeekableInMemoryByteChannel(inputStream().readBytes()))
+                return try {
+                    zis.nextEntry!!
+                    LOGGER.info("Checking $absolutePath for 7z file, success")
+                    true
+                } catch (e: IOException) {
+                    LOGGER.info("Checking $absolutePath for 7z file, ${e.message}")
+                    false
+                } finally {
+                    zis.close()
                 }
-                LOGGER.info("Checking $absolutePath for zip file, ${e.message}")
-                false
+            }
+            extension.equals("rar", true) -> {
+                return try {
+                    val zis = ZipFileRAR.fileFromStreamRAR(this)
+                    zis.nextFileHeader()!!
+                    LOGGER.info("Checking $absolutePath for rar file, success")
+                    true
+                } catch (e: IOException) {
+                    LOGGER.info("Checking $absolutePath for rar file, ${e.message}")
+                    false
+                }
+            }
+            else -> {
+                return try {
+                    val zis = if (this is FileFileRef) ZipFile(file) else
+                        ZipFile(SeekableInMemoryByteChannel(inputStream().readBytes()))
+                    val result = zis.entries.hasMoreElements()
+                    LOGGER.info("Checking $absolutePath for zip file, success")
+                    result
+                } catch (e: IOException) {
+                    // test the file of being gzipped
+                    if (testFileIsGzip()) {
+                        LOGGER.info("Checking $absolutePath for zip file, is GZip")
+                        return true
+                    }
+                    LOGGER.info("Checking $absolutePath for zip file, ${e.message}")
+                    false
+                }
             }
         }
     }

@@ -39,4 +39,5 @@ class ChangeAddComponent() : Change(2) {
     override val className: String = "ChangeAddComponent"
     override val approxSize: Int = 10
     override fun isDefaultValue(): Boolean = false
+
 }

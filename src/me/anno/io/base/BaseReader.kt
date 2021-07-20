@@ -29,6 +29,7 @@ import me.anno.objects.geometric.Polygon
 import me.anno.objects.meshes.Mesh
 import me.anno.objects.particles.ParticleSystem
 import me.anno.objects.particles.TextParticles
+import me.anno.objects.text.Chapter
 import me.anno.objects.text.Text
 import me.anno.objects.text.Timer
 import me.anno.studio.history.History
@@ -107,6 +108,7 @@ abstract class BaseReader {
         fun error(msg: String, appended: Any?): Nothing = throw InvalidFormatException("[BaseReader] $msg $appended")
 
         fun getNewClassInstance(clazz: String): ISaveable {
+            // the Rem's Studio specific stuff best should be moved in a separate class
             return when (clazz) {
                 "SMap" -> StringMap()
                 "Transform" -> Transform()
@@ -160,6 +162,7 @@ abstract class BaseReader {
                 "PDFDocument" -> PDFDocument()
                 "LinePolygon" -> LinePolygon()
                 "FourierTransform" -> FourierTransform()
+                "Chapter" -> Chapter()
                 else -> {
                     // just for old stuff; AnimatedProperties must not be loaded directly; always just copied into
                     if (clazz.startsWith("AnimatedProperty<")) AnimatedProperty.any()

@@ -8,6 +8,10 @@ import me.anno.utils.files.LocalFile.toGlobalFile
 
 class ChangeAddEntity(var source: FileReference) : Change(0) {
 
+    constructor(path: Path, source: FileReference) : this(source) {
+        this.path = path
+    }
+
     constructor() : this(InvalidRef)
 
     // doesn't need the name...
@@ -26,11 +30,10 @@ class ChangeAddEntity(var source: FileReference) : Change(0) {
 
     override fun applyChange(element: Any?, name: String?) {
         element as Entity
-        if (source == InvalidRef) {
-            element.add(Entity())
-        } else {
-            TODO("create entity from $source")
-        }
+        val child = if (source != InvalidRef) {
+            EntityPrefab.createOrLoadScene(source).createInstance()
+        } else Entity()
+        element.add(child)
     }
 
     override val className: String = "ChangeAddEntity"

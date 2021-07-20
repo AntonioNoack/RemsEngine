@@ -5,7 +5,6 @@ import me.anno.ecs.components.camera.CameraComponent
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.RendererComponent
 import me.anno.ecs.components.player.LocalPlayer
-import me.anno.engine.ECSWorld
 import me.anno.gpu.RenderState.renderDefault
 import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.framebuffer.FBStack
@@ -30,7 +29,7 @@ import org.lwjgl.opengl.GL11.glClearColor
 // todo easily allow for multiple players in the same instance, with just player key mapping
 // -> camera cannot be global, or todo it must be switched whenever the player changes
 
-class ECSSceneView(val world: ECSWorld, style: Style) : Panel(style) {
+class ECSSceneView(val world: Entity, style: Style) : Panel(style) {
 
     // todo a custom state, which stores all related rendering information
 
@@ -51,7 +50,7 @@ class ECSSceneView(val world: ECSWorld, style: Style) : Panel(style) {
         // todo more important players can have a larger field
         // todo slope of these partial windows can be customized for nicer looks
 
-        localPlayer = world.localPlayers.children.firstOrNull() as? LocalPlayer
+        // localPlayer = world.localPlayers.children.firstOrNull() as? LocalPlayer
 
         // todo find which sections shall be rendered for what camera
         val camera = localPlayer?.camera?.currentCamera ?: editorCamera
@@ -115,7 +114,7 @@ class ECSSceneView(val world: ECSWorld, style: Style) : Panel(style) {
                 Frame.bind()
                 tmp4f.set(previousCamera.clearColor).lerp(camera.clearColor, blend.toFloat())
                 glClearColor(tmp4f.x, tmp4f.y, tmp4f.z, 1f)
-                drawScene(viewTransform, camInverse, world.world, null)
+                drawScene(viewTransform, camInverse, world, null)
             }
         }
 

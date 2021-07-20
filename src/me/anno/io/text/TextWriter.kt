@@ -770,9 +770,9 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         close(false)
     }
 
-    override fun <V : ISaveable> writeObjectArray(self: ISaveable?, name: String, values: Array<V>, force: Boolean) {
-        if (force || values.isNotEmpty()) {
-            if (values.isEmpty()) {
+    override fun <V : ISaveable> writeObjectArray(self: ISaveable?, name: String, values: Array<V>?, force: Boolean) {
+        if (force || values?.isNotEmpty() == true) {
+            if (values == null || values.isEmpty()) {
                 writeAttributeStart("*[]", name)
                 data.append("[0]")
             } else {
