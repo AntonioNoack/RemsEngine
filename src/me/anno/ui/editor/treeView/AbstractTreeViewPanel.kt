@@ -245,7 +245,7 @@ class AbstractTreeViewPanel<V : Hierarchical<V>>(
                     val element = getElement()
                     if (dragged?.getOriginal() != element) {
                         dragged = Draggable(
-                            // todo content type...
+                            // todo content type may not be transform
                             stringify(element), "Transform", element,
                             TextPanel(element.name, style)
                         )

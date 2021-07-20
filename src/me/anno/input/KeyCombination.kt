@@ -3,7 +3,6 @@ package me.anno.input
 import me.anno.utils.structures.maps.BiMap
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW.*
-import java.util.*
 
 class KeyCombination(val key: Int, val modifiers: Int, val type: Type) {
 
@@ -16,12 +15,12 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type) {
     val isWritingKey = !isControl && !isAlt && !(key == GLFW_KEY_SPACE && isShift)
 
     enum class Type(val hash: Int) {
-        DOWN(0),
-        PRESS(1),
-        PRESS_UNSAFE(2),
-        UP(3),
-        TYPED(4),
-        DOUBLE(5)
+        DOWN(0), // once when down
+        PRESS(1), // while pressing, but only after a delay of 0.5s
+        PRESS_UNSAFE(2), // while pressing
+        UP(3), // once when up
+        TYPED(4), // once when down, then repeatedly after a delay
+        DOUBLE(5) // double click required
     }
 
     override fun hashCode() = hash
@@ -46,8 +45,8 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type) {
         fun put(key: Int, vararg buttons: String) {
             buttons.forEach {
                 keyMapping[it] = key
-                keyMapping[it.lowercase(Locale.getDefault())] = key
-                keyMapping[it.uppercase(Locale.getDefault())] = key
+                keyMapping[it.lowercase()] = key
+                keyMapping[it.uppercase()] = key
             }
         }
 

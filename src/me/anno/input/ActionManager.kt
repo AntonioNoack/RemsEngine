@@ -5,8 +5,6 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.GFX.inFocus
 import me.anno.io.utils.StringMap
-import me.anno.studio.StudioBase
-import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.Panel
 import org.apache.logging.log4j.LogManager
 
@@ -23,11 +21,16 @@ object ActionManager {
 
     private lateinit var keyMap: StringMap
 
-    fun init(){
+    fun init() {
 
-        keyMap = DefaultConfig["ui.keyMap", {
-            createDefaultKeymap()
-        }]
+        keyMap = DefaultConfig["ui.keyMap", { StringMap() }]
+        // this should be fine
+        // if an action is supposed to do nothing, then it should be set to ""
+        for ((key, value) in createDefaultKeymap()) {
+            if (key !in keyMap) {
+                keyMap[key] = value
+            }
+        }
         parseConfig(keyMap)
 
     }
@@ -37,82 +40,91 @@ object ActionManager {
         StringMap()
     }
 
-    fun parseConfig(config: StringMap){
+    fun parseConfig(config: StringMap) {
 
-        for((key, value) in config.entries){
+        for ((key, value) in config.entries) {
+            if (value == "") continue // skip it
             val keys = key.split('.')
             val namespace = keys[0]
             val button = keys.getOrNull(1)
-            if(button == null){
+            if (button == null) {
                 LOGGER.warn("KeyCombination $key needs button!")
                 continue
             }
             val buttonEvent = keys.getOrNull(2)
-            if(buttonEvent == null){
+            if (buttonEvent == null) {
                 LOGGER.warn("[WARN] KeyCombination $key needs type!")
                 continue
             }
-            val modifiers = keys.getOrElse(3){ "" }
+            val modifiers = keys.getOrElse(3) { "" }
             val keyComb = KeyCombination.parse(button, buttonEvent, modifiers)
-            if(keyComb != null){
+            if (keyComb != null) {
                 val values = value.toString().split('|')
-                if(namespace.equals("global", true)){
+                if (namespace.equals("global", true)) {
+                    // LOGGER.debug("$value -> global $keyComb")
                     globalKeyCombinations[keyComb] = values
                 } else {
+                    // LOGGER.debug("$value -> $namespace $keyComb")
                     localActions[namespace to keyComb] = values
                 }
+            } else {
+                LOGGER.warn("Could not parse combination $value")
             }
         }
 
     }
 
-    fun onKeyTyped(key: Int){
+    fun onKeyTyped(key: Int) {
         onEvent(0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.TYPED), false)
     }
 
-    fun onKeyUp(key: Int){
+    fun onKeyUp(key: Int) {
         onEvent(0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.UP), false)
     }
 
-    fun onKeyDown(key: Int){
+    fun onKeyDown(key: Int) {
         onEvent(0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.DOWN), false)
     }
 
-    fun onKeyDoubleClick(key: Int){
+    fun onKeyDoubleClick(key: Int) {
         onEvent(0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.DOUBLE), false)
     }
 
-    fun onKeyHoldDown(dx: Float, dy: Float, key: Int, save: Boolean){
-        onEvent(dx, dy, KeyCombination(key, Input.keyModState, if(save) KeyCombination.Type.PRESS else KeyCombination.Type.PRESS_UNSAFE), true)
+    fun onKeyHoldDown(dx: Float, dy: Float, key: Int, save: Boolean) {
+        val type = if (save) KeyCombination.Type.PRESS else KeyCombination.Type.PRESS_UNSAFE
+        onEvent(dx, dy, KeyCombination(key, Input.keyModState, type), true)
     }
 
     fun onMouseIdle() = onMouseMoved(0f, 0f)
 
-    fun onMouseMoved(dx: Float, dy: Float){
+    fun onMouseMoved(dx: Float, dy: Float) {
         Input.keysDown.forEach { (key, downTime) ->
             onKeyHoldDown(dx, dy, key, false)
             val deltaTime = (gameTime - downTime) * 1e-9f
-            if(deltaTime >= keyDragDelay){
+            if (deltaTime >= keyDragDelay) {
                 onKeyHoldDown(dx, dy, key, true)
             }
         }
     }
 
-    fun onEvent(dx: Float, dy: Float, combination: KeyCombination, isContinuous: Boolean){
+    fun onEvent(dx: Float, dy: Float, combination: KeyCombination, isContinuous: Boolean) {
         var panel = inFocus.firstOrNull()
         // filter action keys, if they are typing keys and a typing field is in focus
         val isWriting = combination.isWritingKey && (panel?.isKeyInput() == true)
-        if(!isWriting){
+        // LOGGER.debug("is writing: $isWriting, combination: $combination, has value? ${combination in globalKeyCombinations}")
+        if (!isWriting) {
             executeGlobally(0f, 0f, false, globalKeyCombinations[combination])
         }
         val x = Input.mouseX
         val y = Input.mouseY
-        targetSearch@ while(panel != null){
+        val universally = localActions["*" to combination]
+        targetSearch@ while (panel != null) {
             val clazz = panel.className
-            val actions = localActions[clazz to combination] ?: localActions["*" to combination]
-            if(actions != null){
-                for(action in actions){
-                    if(panel.onGotAction(x, y, dx, dy, action, isContinuous)){
+            val actions = localActions[clazz to combination] ?: universally
+            // LOGGER.debug("searching $clazz, found $actions")
+            if (actions != null) {
+                for (action in actions) {
+                    if (panel.onGotAction(x, y, dx, dy, action, isContinuous)) {
                         break@targetSearch
                     }
                 }
@@ -121,31 +133,33 @@ object ActionManager {
         }
     }
 
-    fun executeLocally(dx: Float, dy: Float, isContinuous: Boolean,
-                       panel: Panel, actions: List<String>?){
-        if(actions == null) return
-        for(action in actions){
-            if(panel.onGotAction(Input.mouseX, Input.mouseY, dx, dy, action, isContinuous)){
+    fun executeLocally(
+        dx: Float, dy: Float, isContinuous: Boolean,
+        panel: Panel, actions: List<String>?
+    ) {
+        if (actions == null) return
+        for (action in actions) {
+            if (panel.onGotAction(Input.mouseX, Input.mouseY, dx, dy, action, isContinuous)) {
                 break
             }
         }
     }
 
-    fun executeGlobally(dx: Float, dy: Float, isContinuous: Boolean, actions: List<String>?){
-        if(actions == null) return
-        for(action in actions){
-            if(globalActions[action]?.invoke() == true){
+    fun executeGlobally(dx: Float, dy: Float, isContinuous: Boolean, actions: List<String>?) {
+        if (actions == null) return
+        for (action in actions) {
+            if (globalActions[action]?.invoke() == true) {
                 return
             }
         }
-        for(window in GFX.windowStack){
+        for (window in GFX.windowStack) {
             window.panel.listOfAll { panel ->
                 executeLocally(dx, dy, isContinuous, panel, actions)
             }
         }
     }
 
-    fun registerGlobalAction(name:String, action: () -> Boolean){
+    fun registerGlobalAction(name: String, action: () -> Boolean) {
         globalActions[name] = action
     }
 
