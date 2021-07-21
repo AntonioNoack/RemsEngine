@@ -69,7 +69,7 @@ class MeshComponent() : Component() {
             Attribute("coords", 3),
             Attribute("uvs", 2),
             Attribute("normals", 3),
-            Attribute("colors", 4),
+            Attribute("colors", AttributeType.UINT8_NORM, 4),
             Attribute("weights", MAX_WEIGHTS),
             Attribute("indices", AttributeType.UINT8, MAX_WEIGHTS, true)
         )

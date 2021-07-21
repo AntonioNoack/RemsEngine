@@ -4,15 +4,12 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.io.files.ZipFile7z.Companion.createZipRegistry7z
 import me.anno.io.files.ZipFile7z.Companion.fileFromStream7z
-import me.anno.io.files.ZipFileArchive.Companion.readAsGZip
-import me.anno.io.files.ZipFileRAR.Companion.createZipRegistryRAR
-import me.anno.io.files.ZipFileRAR.Companion.fileFromStreamRAR
-import me.anno.io.files.ZipFileV1.Companion.createZipRegistry
+import me.anno.io.files.ZipFileRar.Companion.createZipRegistryRar
+import me.anno.io.files.ZipFileRar.Companion.fileFromStreamRar
+import me.anno.io.files.ZipFileTar.Companion.readAsGZip
 import me.anno.io.files.ZipFileV2.Companion.createZipRegistryV2
 import me.anno.io.files.ZipFileV2.Companion.fileFromStreamV2
 import org.apache.logging.log4j.LogManager
-import java.io.File
-import java.util.zip.ZipInputStream
 
 object ZipCache : CacheSection("ZipCache") {
 
@@ -27,49 +24,47 @@ object ZipCache : CacheSection("ZipCache") {
     // todo display unity packages differently: display them as their usual file structure
     // it kind of is a new format, that is based on another decompression
 
-    fun getMeta2(file: FileReference, async: Boolean): FileReference? {
+    fun getMeta(file: FileReference, async: Boolean): FileReference? {
         val data = getEntry(file.absolutePath, timeout, async) {
-            LOGGER.info("Unzipping $file")
             CacheData(try {
-                val extension = file.extension
-                when {
-                    extension.equals("7z", true) -> {
-                        createZipRegistry7z(file) { fileFromStream7z(file) }
-                    }
-                    extension.equals("rar",true) -> {
-                        createZipRegistryRAR(file){ fileFromStreamRAR(file) }
-                    }
-                    else -> {
-                        createZipRegistryV2(file) { fileFromStreamV2(file) }
-                    }
+                val signature = Signature.find(file)
+                when (signature?.name) {
+                    "7z" -> createZipRegistry7z(file) { fileFromStream7z(file) }
+                    "rar" -> createZipRegistryRar(file) { fileFromStreamRar(file) }
+                    "gzip", "tar" -> readAsGZip(file)
+                    else -> createZipRegistryV2(file) { fileFromStreamV2(file) }
                 }
             } catch (e: Exception) {
-                // check whether it's a GZip, and if so, decode it
-                try {
-                    readAsGZip(file)
-                } catch (e2: Exception) {
-                    LOGGER.warn("Error happened")
-                    e.printStackTrace()
-                    e2.printStackTrace()
-                    null
-                }
+                e.printStackTrace()
+                null
             })
+            /* LOGGER.info("Unzipping $file")
+             CacheData(try {
+                 val extension = file.extension
+                 when {
+                     extension.equals("7z", true) -> {
+                         createZipRegistry7z(file) { fileFromStream7z(file) }
+                     }
+                     extension.equals("rar", true) -> {
+                         createZipRegistryRar(file) { fileFromStreamRar(file) }
+                     }
+                     else -> {
+                         createZipRegistryV2(file) { fileFromStreamV2(file) }
+                     }
+                 }
+             } catch (e: Exception) {
+                 // check whether it's a GZip, and if so, decode it
+                 try {
+                     readAsGZip(file)
+                 } catch (e2: Exception) {
+                     LOGGER.warn("Error happened")
+                     e.printStackTrace()
+                     e2.printStackTrace()
+                     null
+                 }
+             })*/
         } as? CacheData<*>
         return data?.value as? FileReference
-    }
-
-    fun getMeta(file: File, async: Boolean): ZipFileV1? {
-        val data = getEntry(file.absolutePath, timeout, async) {
-            CacheData(createZipRegistry(FileReference.getReference(file)) { ZipInputStream(file.inputStream()) })
-        } as? CacheData<*>
-        return data?.value as? ZipFileV1
-    }
-
-    fun getMeta(file: FileReference, async: Boolean): ZipFileV1? {
-        val data = getEntry(file.absolutePath, timeout, async) {
-            CacheData(createZipRegistry(file) { ZipInputStream(file.inputStream()) })
-        } as? CacheData<*>
-        return data?.value as? ZipFileV1
     }
 
     fun splitParent(name: String): Pair<String, String> {

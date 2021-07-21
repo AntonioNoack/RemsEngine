@@ -9,6 +9,7 @@ import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.mesh.assimp.AssimpTree.convert
+import me.anno.utils.Color.rgba
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
@@ -211,7 +212,7 @@ open class StaticMeshesLoader {
         val uvs = FloatArray(vertexCount * 2)
         val normals = FloatArray(vertexCount * 3)
         val indices = IntArray(aiMesh.mNumFaces() * 3)
-        val colors = FloatArray(vertexCount * 4)
+        val colors = IntArray(vertexCount)
 
         processPositions(aiMesh, vertices)
         processNormals(aiMesh, normals)
@@ -297,19 +298,17 @@ open class StaticMeshesLoader {
         }
     }
 
-    fun processVertexColors(aiMesh: AIMesh, dst: FloatArray) {
+    fun processVertexColors(aiMesh: AIMesh, dst: IntArray) {
         val src = aiMesh.mColors(0)
         if (src != null) {
             var j = 0
             while (src.remaining() > 0) {
                 val value = src.get()
-                dst[j++] = value.r()
-                dst[j++] = value.g()
-                dst[j++] = value.b()
-                dst[j++] = value.a()
+                val rgba = rgba(value.r(), value.g(), value.b(), value.a())
+                dst[j++] = rgba
             }
         } else {
-            dst.fill(1f)
+            dst.fill(-1)
         }
     }
 

@@ -9,13 +9,14 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import java.nio.ByteBuffer
 import kotlin.math.max
+import kotlin.math.min
 
 class FloatArrayList(val capacity: Int, val defaultValue: Float = 0f) {
 
     private val buffers = ArrayList<FloatArray>()
     var size = 0
 
-    fun clear(){
+    fun clear() {
         size = 0
         buffers.clear()
     }
@@ -102,6 +103,16 @@ class FloatArrayList(val capacity: Int, val defaultValue: Float = 0f) {
             dst0.position(pos0 + size * 4)
             // dst0.position(dst.position()*4)
         }
+    }
+
+    fun toFloatArray(): FloatArray {
+        val dst = FloatArray(size)
+        for (i in 0 until (size + capacity - 1) / capacity) {
+            val src = buffers[i]
+            val offset = i * capacity
+            System.arraycopy(src, 0, dst, offset, min(capacity, size - offset))
+        }
+        return dst
     }
 
 }

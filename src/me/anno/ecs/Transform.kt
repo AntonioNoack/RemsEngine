@@ -60,24 +60,17 @@ class Transform : Saveable() {
     // todo only update if changed to save resources
     fun update(parent: Transform?) {
 
-        /*localTransform.identity()
+        if (needsGlobalUpdate) {
 
-        localTransform.translate(localPosition)
+            if (parent == null) {
+                globalTransform.identity()
+            } else {
+                globalTransform.set(parent.globalTransform)
+            }
 
-        localTransform.rotate(localRotation)
-        // localTransform.rotateY(relativeRotation.y)
-        // localTransform.rotateX(relativeRotation.x)
-        // localTransform.rotateZ(relativeRotation.z)
+            globalTransform.mul(localTransform)
 
-        localTransform.scale(localScale)*/
-
-        if (parent == null) {
-            globalTransform.identity()
-        } else {
-            globalTransform.set(parent.globalTransform)
         }
-
-        globalTransform.mul(localTransform)
 
     }
 

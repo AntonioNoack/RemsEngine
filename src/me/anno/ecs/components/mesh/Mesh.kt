@@ -12,7 +12,7 @@ import org.lwjgl.opengl.GL11
 import kotlin.math.max
 import kotlin.math.min
 
-class Mesh: NamedSaveable() {
+class Mesh : NamedSaveable() {
 
     // use buffers instead, so they can be uploaded directly? no, I like the strided thing...
     // but it may be more flexible... still in Java, FloatArrays are more comfortable
@@ -30,7 +30,8 @@ class Mesh: NamedSaveable() {
     var uvs: FloatArray? = null
 
     // multiple colors? idk...
-    var color0: FloatArray? = null
+    // force RGBA? typically that would be the use for it -> yes
+    var color0: IntArray? = null
 
     var boneWeights: FloatArray? = null
     var boneIndices: ByteArray? = null
@@ -120,7 +121,7 @@ class Mesh: NamedSaveable() {
             if (boneWeights.size * 3 != positions.size * MeshComponent.MAX_WEIGHTS) throw IllegalStateException("Size of weights does not match positions, there must be ${MeshComponent.MAX_WEIGHTS} weights per vertex")
         }
         val color0 = color0
-        if (color0 != null && color0.size * 3 != positions.size * 4) throw IllegalStateException("Every vertex needs an RGBA color value")
+        if (color0 != null && color0.size * 3 != positions.size) throw IllegalStateException("Every vertex needs an ARGB color value")
         val indices = indices
         if (indices != null) {
             // check all indices for correctness
@@ -187,13 +188,10 @@ class Mesh: NamedSaveable() {
             buffer.put(normals[i3 + 1])
             buffer.put(normals[i3 + 2])
 
-            if (colors != null && colors.size > i4 + 3) {
-                buffer.put(colors[i4])
-                buffer.put(colors[i4 + 1])
-                buffer.put(colors[i4 + 2])
-                buffer.put(colors[i4 + 3])
+            if (colors != null && colors.size > i) {
+                buffer.putInt(colors[i])
             } else {
-                buffer.put(1f, 1f, 1f, 1f)
+                buffer.putInt(-1)
             }
 
             // only works if MAX_WEIGHTS is four

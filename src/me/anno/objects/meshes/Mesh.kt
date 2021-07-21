@@ -7,8 +7,8 @@ import me.anno.cache.instances.MeshCache.getMesh
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.RenderState
-import me.anno.gpu.shader.BaseShader.Companion.lineGeometry
 import me.anno.gpu.shader.BaseShader.Companion.cullFaceColoringGeometry
+import me.anno.gpu.shader.BaseShader.Companion.lineGeometry
 import me.anno.input.Input
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -18,7 +18,7 @@ import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.mesh.assimp.AnimatedMeshesLoader
-import me.anno.mesh.gltf.GltfLogger
+import me.anno.mesh.vox.VOXReader
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.ui.base.Panel
@@ -31,8 +31,6 @@ import me.anno.ui.style.Style
 import me.anno.utils.Maths.pow
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.video.MissingFrameException
-import me.karl.renderer.AnimatedModelRenderer
-import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4fc
 import java.util.*
@@ -44,6 +42,8 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
     // todo types of lights
     // todo shadows, ...
     // todo types of shading/rendering?
+
+    // todo info field with the amount of vertices, triangles, and such :)
 
     companion object {
 
@@ -224,6 +224,23 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
                     } else super.onDraw(stack, time, color)
 
                 }*/
+                "vox" -> {
+
+                    // vox is not supported by assimp -> custom loader
+                    val data = loadModel(file, "vox", this, { meshData ->
+                        val reader = VOXReader()
+                        reader.read(file)
+                        meshData.assimpModel = AnimGameItem(
+                            reader.toEntity(), reader.meshes,
+                            emptyList(), emptyMap()
+                        )
+                    }) { it.assimpModel }
+
+                    drawAssimp(data, stack, time, color)
+
+                    lastModel = data?.assimpModel
+
+                }
                 else -> {
 
                     // load the 3D model
@@ -233,45 +250,7 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
                         meshData.assimpModel = meshes
                     }) { it.assimpModel }
 
-                    if (data?.assimpModel != null) {
-                        stack.next {
-
-                            if (powerOf10Correction != 0)
-                                stack.scale(pow(10f, powerOf10Correction.toFloat()))
-
-                            // todo option to center the mesh
-                            // todo option to normalize its size
-                            // (see thumbnail generator)
-
-                            when {
-                                isFinalRendering -> data.drawAssimp(
-                                    this, stack, time, color,
-                                    animation[time], true, centerMesh, normalizeScale
-                                )
-                                Input.isKeyDown('l') -> {// line debugging
-                                    RenderState.geometryShader.use(lineGeometry) {
-                                        data.drawAssimp(
-                                            this, stack, time, color,
-                                            animation[time], true, centerMesh, normalizeScale
-                                        )
-                                    }
-                                }
-                                Input.isKeyDown('n') -> {// normal debugging
-                                    RenderState.geometryShader.use(cullFaceColoringGeometry) {
-                                        data.drawAssimp(
-                                            this, stack, time, color,
-                                            animation[time], true, centerMesh, normalizeScale
-                                        )
-                                    }
-                                }
-                                else -> data.drawAssimp(
-                                    this, stack, time, color,
-                                    animation[time], true, centerMesh, normalizeScale
-                                )
-                            }
-
-                        }
-                    } else super.onDraw(stack, time, color)
+                    drawAssimp(data, stack, time, color)
 
                     lastModel = data?.assimpModel
 
@@ -286,6 +265,48 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
             super.onDraw(stack, time, color)
         }
 
+    }
+
+    fun drawAssimp(data: MeshData?, stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
+        if (data?.assimpModel != null) {
+            stack.next {
+
+                if (powerOf10Correction != 0)
+                    stack.scale(pow(10f, powerOf10Correction.toFloat()))
+
+                // todo option to center the mesh
+                // todo option to normalize its size
+                // (see thumbnail generator)
+
+                when {
+                    isFinalRendering -> data.drawAssimp(
+                        this, stack, time, color,
+                        animation[time], true, centerMesh, normalizeScale
+                    )
+                    Input.isKeyDown('l') -> {// line debugging
+                        RenderState.geometryShader.use(lineGeometry) {
+                            data.drawAssimp(
+                                this, stack, time, color,
+                                animation[time], true, centerMesh, normalizeScale
+                            )
+                        }
+                    }
+                    Input.isKeyDown('n') -> {// normal debugging
+                        RenderState.geometryShader.use(cullFaceColoringGeometry) {
+                            data.drawAssimp(
+                                this, stack, time, color,
+                                animation[time], true, centerMesh, normalizeScale
+                            )
+                        }
+                    }
+                    else -> data.drawAssimp(
+                        this, stack, time, color,
+                        animation[time], true, centerMesh, normalizeScale
+                    )
+                }
+
+            }
+        } else super.onDraw(stack, time, color)
     }
 
     var lastModel: AnimGameItem? = null

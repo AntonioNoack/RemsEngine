@@ -50,7 +50,6 @@ import me.anno.video.FFMPEGMetadata
 import me.anno.video.VFrame
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
-import java.util.*
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
@@ -96,7 +95,7 @@ class FileExplorerEntry(
         if (isParent) {
             "file/folder.png"
         } else {
-            when (file.name.lowercase(Locale.getDefault())) {
+            when (file.name.lowercase()) {
                 "music", "musik", "videos", "movies" -> "file/music.png"
                 "documents", "dokumente", "downloads" -> "file/text.png"
                 "images", "pictures", "bilder" -> "file/image.png"
@@ -105,14 +104,18 @@ class FileExplorerEntry(
             }
         }
     } else {
+        // actually checking the type would need to be done async, because it's slow to ready many, many files
         when (importType) {
+            "Container" -> "file/compressed.png"
             "Image", "Cubemap" -> "file/image.png"
             "Text" -> "file/text.png"
             "Audio", "Video" -> "file/music.png"
             // todo link icon for .lnk and .url, and maybe .desktop
             else -> "file/document.png"
         }
+
     }
+
 
     private val titlePanel = TextPanel(
         if (isParent) ".." else if (file.name.isEmpty()) file.toString() else file.name,
@@ -245,10 +248,7 @@ class FileExplorerEntry(
         val image = Thumbs.getThumbnail(file, w) ?: getDefaultIcon() ?: whiteTexture
         val tex2D = image as? Texture2D
         val rot = tex2D?.rotation
-        if (tex2D != null) {
-            tex2D.bind(0) // texture must be bound!!
-            tex2D.ensureFilterAndClamping(GPUFiltering.LINEAR, Clamping.CLAMP)
-        }
+        image.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
         if (rot == null) {
             drawTexture(x0, y0, x1, y1, image)
         } else {

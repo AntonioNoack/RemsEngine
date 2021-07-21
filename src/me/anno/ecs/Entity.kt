@@ -74,6 +74,11 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
         // todo if rigidbody, calculate interpolated transform
     }
 
+    fun updateTransform(){
+        transform.update(parent?.transform)
+        children.forEach { it.updateTransform() }
+    }
+
     fun invalidate() {
 
     }

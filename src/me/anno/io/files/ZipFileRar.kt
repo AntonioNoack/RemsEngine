@@ -10,7 +10,7 @@ import java.io.IOException
 import java.io.InputStream
 import javax.naming.OperationNotSupportedException
 
-class ZipFileRAR(
+class ZipFileRar(
     absolutePath: String,
     relativePath: String,
     isDirectory: Boolean,
@@ -65,26 +65,27 @@ class ZipFileRAR(
 
     companion object {
 
-        fun fileFromStreamRAR(file: FileReference): Archive {
+        fun fileFromStreamRar(file: FileReference): Archive {
             return if (file is FileFileRef) {
                 Archive(file.file)
             } else {
-                // mmmh, probably for loading a set of files
-                // which joined result in a large file
+                // probably for loading a set of files
+                // which will/would be combined into a single one
                 Archive { a, v ->
+                    // see FileArchive as an example
                     if (v == null) {
                         ZipVolume(a, file)
-                    } else TODO()
+                    } else TODO("joined rar-s not yet supported")
                 }
             }
         }
 
-        fun createZipRegistryRAR(
+        fun createZipRegistryRar(
             zipFileLocation: FileReference,
             getStream: () -> Archive
-        ): ZipFileRAR {
-            val registry = HashMap<String, ZipFileRAR>()
-            val file = ZipFileRAR(
+        ): ZipFileRar {
+            val registry = HashMap<String, ZipFileRar>()
+            val file = ZipFileRar(
                 zipFileLocation.absolutePath, "", true,
                 zipFileLocation.getParent() ?: zipFileLocation
             )
@@ -93,11 +94,14 @@ class ZipFileRAR(
             var e: Exception? = null
             try {
                 val zis = getStream()
-                if (zis.isEncrypted) throw IOException("RAR is encrypted")
+                if (zis.isEncrypted) {
+                    file.isEncrypted = true
+                    throw IOException("RAR is encrypted")
+                }
                 while (true) {
                     val entry = zis.nextFileHeader() ?: break
                     hasReadEntry = true
-                    createEntryRAR(zipFileLocation.absolutePath, zis, entry, registry)
+                    createEntryRar(zipFileLocation.absolutePath, zis, entry, registry)
                 }
                 zis.close()
             } catch (e2: IOException) {
@@ -110,24 +114,25 @@ class ZipFileRAR(
             return if (hasReadEntry) file else throw e ?: IOException("Zip was empty")
         }
 
-        fun createEntryRAR(
+        fun createEntryRar(
             zipFileLocation: String,
             archive: Archive,
             header: FileHeader,
-            registry: HashMap<String, ZipFileRAR>
-        ): ZipFileRAR {
+            registry: HashMap<String, ZipFileRar>
+        ): ZipFileRar {
             val (parent, path) = ZipCache.splitParent(header.fileNameString)
             val file = registry.getOrPut(path) {
-                ZipFileRAR("$zipFileLocation/$path", path, header.isDirectory,
-                    registry.getOrPut(parent) { createFolderEntryRAR(zipFileLocation, parent, registry) }
+                ZipFileRar("$zipFileLocation/$path", path, header.isDirectory,
+                    registry.getOrPut(parent) { createFolderEntryRar(zipFileLocation, parent, registry) }
                 )
             }
             file.lastModified = header.mTime?.time ?: 0L
             file.lastAccessed = header.aTime?.time ?: 0L
             file.compressedSize = header.fullPackSize
             file.size = header.fullUnpackSize
+            file.isEncrypted = header.isEncrypted
             if (!file.isDirectory) {
-                if (header.isEncrypted) {
+                if (file.isEncrypted) {
                     file.data = "This file is encrypted :/".toByteArray()
                 } else {
                     val bos = ByteArrayOutputStream()
@@ -139,16 +144,16 @@ class ZipFileRAR(
             return file
         }
 
-        fun createFolderEntryRAR(
+        fun createFolderEntryRar(
             zipFileLocation: String,
             entry: String,
-            registry: HashMap<String, ZipFileRAR>
-        ): ZipFileRAR {
+            registry: HashMap<String, ZipFileRar>
+        ): ZipFileRar {
             val (parent, path) = ZipCache.splitParent(entry)
             val file = registry.getOrPut(path) {
-                ZipFileRAR(
+                ZipFileRar(
                     "$zipFileLocation/$path", path, true,
-                    registry.getOrPut(parent) { createFolderEntryRAR(zipFileLocation, parent, registry) }
+                    registry.getOrPut(parent) { createFolderEntryRar(zipFileLocation, parent, registry) }
                 )
             }
             file.lastModified = 0L

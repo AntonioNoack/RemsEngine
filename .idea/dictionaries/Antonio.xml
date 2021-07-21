@@ -121,6 +121,7 @@
       <w>lateinit</w>
       <w>lavenderblush</w>
       <w>lawngreen</w>
+      <w>layr</w>
       <w>lemonchiffon</w>
       <w>lerp</w>
       <w>lerped</w>
@@ -151,8 +152,10 @@
       <w>limegreen</w>
       <w>lineargradient</w>
       <w>lwjgl</w>
+      <w>magica</w>
       <w>markdeep</w>
       <w>matkey</w>
+      <w>matl</w>
       <w>mediumaquamarine</w>
       <w>mediumblue</w>
       <w>mediumorchid</w>
@@ -261,6 +264,7 @@
       <w>wmav</w>
       <w>xxyy</w>
       <w>xyxy</w>
+      <w>xyzi</w>
       <w>yellowgreen</w>
       <w>zerolatency</w>
     </words>

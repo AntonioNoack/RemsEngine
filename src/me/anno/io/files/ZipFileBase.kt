@@ -2,7 +2,6 @@ package me.anno.io.files
 
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.EmptyInputStream
-import java.io.BufferedInputStream
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.URI
@@ -27,6 +26,7 @@ abstract class ZipFileBase(
     var compressedSize = 0L
     var size = 0L
     var data: ByteArray? = null
+    var isEncrypted = false
 
     override fun length(): Long = size
 
@@ -49,9 +49,9 @@ abstract class ZipFileBase(
     fun get(path: String) = getLc(path.replace('\\', '/').lowercase())
     private fun getLc(path: String): FileReference? {
         if (path.isEmpty() && !isDirectory)
-            return ZipCache.getMeta2(this, false)
+            return ZipCache.getMeta(this, false)
         if (!isDirectory) {
-            val m = ZipCache.getMeta2(this, false) as? ZipFileBase
+            val m = ZipCache.getMeta(this, false) as? ZipFileBase
             return m?.getLc(path)
         }
         val index = path.indexOf('/')

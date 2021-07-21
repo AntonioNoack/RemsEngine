@@ -16,6 +16,10 @@ import org.joml.Vector3fc
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.GL_LINES
 
+/**
+ * old, non-ecs mesh
+ * was used for a few mesh conversions into our own custom format
+ * */
 class Mesh(val material: String, val points: List<Point>?, val lines: List<Line>?) {
 
     fun flipV() = points?.forEach { it.flipV() }

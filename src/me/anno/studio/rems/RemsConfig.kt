@@ -44,11 +44,12 @@ object RemsConfig {
                     "mov", "qt", "mts", "m2ts", "ts", "rm", "rmvb", "viv", "asf", "amv"
                 )
                 addImportMappings("Text", "txt")
-                addImportMappings("Mesh", "obj", "fbx", "dae", "gltf", "glb", "md2", "md5mesh")
+                addImportMappings("Mesh", "obj", "fbx", "dae", "gltf", "glb", "md2", "md5mesh", "vox")
                 // not yet supported
                 // addImportMappings("Markdown", "md")
                 addImportMappings("Audio", "mp3", "wav", "m4a", "ogg")
                 addImportMappings("URL", "url", "lnk", "desktop")
+                addImportMappings("Container", "unitypackage", "zip", "7z", "tar", "gz", "xz", "rar", "bz2", "xar", "oar")
 
                 this["import.mapping.*"] = "Text"
 

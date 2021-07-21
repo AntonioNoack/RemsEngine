@@ -2,6 +2,7 @@ package me.anno.utils.types
 
 import me.anno.utils.types.Floats.f2s
 import org.joml.*
+import kotlin.math.roundToInt
 
 object Vectors {
 
@@ -230,5 +231,39 @@ object Vectors {
     val Vector3f.zxy get() = Vector3f(z, x, y)
 
     fun DoubleArray.toVec3() = Vector3f(this[0].toFloat(), this[1].toFloat(), this[2].toFloat())
+
+
+
+    fun Vector3i.cross(v: Vector3ic): Vector3i {
+        val rx = (this.y* v.z() -this.z * v.y())
+        val ry = (this.z* v.x() -this.x * v.z())
+        val rz = (this.x* v.y() -this.y * v.x())
+        this.x = rx
+        this.y = ry
+        this.z = rz
+        return this
+    }
+
+    fun Vector3i.normalize(): Vector3i {
+        val length = length()
+        return Vector3i((x/length).roundToInt(), (y/length).roundToInt(), (z/length).roundToInt())
+    }
+
+    operator fun Vector3i.plus(second: Vector3f): Vector3f {
+        return Vector3f(this).add(second)
+    }
+
+    fun findTangent(normal: Vector3d): Vector3d {
+        val cross = Vector3d(normal).cross(0.0, 1.0, 0.0)
+        if(cross.lengthSquared() < 0.1){
+            cross.set(normal).cross(1.0, 0.0, 0.0)
+        }
+        return cross.normalize()
+    }
+
+    fun Vector3f.roundToInt() = Vector3i(x.roundToInt(), y.roundToInt(), z.roundToInt())
+    fun Vector3d.roundToInt() = Vector3i(x.roundToInt(), y.roundToInt(), z.roundToInt())
+    fun Vector3d.floorToInt() = Vector3i(kotlin.math.floor(x).toInt(), kotlin.math.floor(y).toInt(), kotlin.math.floor(z).toInt())
+
 
 }

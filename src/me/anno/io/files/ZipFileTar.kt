@@ -9,7 +9,7 @@ import java.io.OutputStream
 import java.util.zip.GZIPInputStream
 import java.util.zip.ZipException
 
-class ZipFileArchive(
+class ZipFileTar(
     absolutePath: String,
     val getZipStream: () -> ArchiveInputStream,
     relativePath: String,
@@ -45,9 +45,9 @@ class ZipFileArchive(
         fun createZipRegistryArchive(
             zipFileLocation: FileReference,
             getStream: () -> ArchiveInputStream
-        ): ZipFileArchive {
-            val registry = HashMap<String, ZipFileArchive>()
-            val file = ZipFileArchive(
+        ): ZipFileTar {
+            val registry = HashMap<String, ZipFileTar>()
+            val file = ZipFileTar(
                 zipFileLocation.absolutePath, getStream, "", true,
                 zipFileLocation.getParent() ?: zipFileLocation
             )
@@ -75,14 +75,14 @@ class ZipFileArchive(
             entry: ArchiveEntry,
             zis: ArchiveInputStream,
             getStream: () -> ArchiveInputStream,
-            registry: HashMap<String, ZipFileArchive>
-        ): ZipFileArchive {
+            registry: HashMap<String, ZipFileTar>
+        ): ZipFileTar {
             val (parent, path) = ZipCache.splitParent(entry.name)
             val file = registry.getOrPut(path) {
-                ZipFileArchive(
+                ZipFileTar(
                     "$zipFileLocation/$path", getStream, path, entry.isDirectory,
                     registry.getOrPut(parent) {
-                        createFolderEntryArchive(zipFileLocation, parent, getStream, registry)
+                        createFolderEntryTar(zipFileLocation, parent, getStream, registry)
                     }
                 )
             }
@@ -94,17 +94,17 @@ class ZipFileArchive(
             return file
         }
 
-        fun createFolderEntryArchive(
+        fun createFolderEntryTar(
             zipFileLocation: String,
             entry: String,
             getStream: () -> ArchiveInputStream,
-            registry: HashMap<String, ZipFileArchive>
-        ): ZipFileArchive {
+            registry: HashMap<String, ZipFileTar>
+        ): ZipFileTar {
             val (parent, path) = ZipCache.splitParent(entry)
             val file = registry.getOrPut(path) {
-                ZipFileArchive(
+                ZipFileTar(
                     "$zipFileLocation/$path", getStream, path, true,
-                    registry.getOrPut(parent) { createFolderEntryArchive(zipFileLocation, parent, getStream, registry) }
+                    registry.getOrPut(parent) { createFolderEntryTar(zipFileLocation, parent, getStream, registry) }
                 )
             }
             file.lastModified = 0L

@@ -6,7 +6,6 @@ import me.anno.utils.files.Files.openInExplorer
 import me.anno.utils.files.Files.use
 import me.anno.utils.files.LocalFile.toLocalPath
 import me.anno.utils.types.Strings.isBlank2
-import org.apache.commons.compress.archivers.sevenz.SevenZFile
 import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
 import org.apache.logging.log4j.LogManager
@@ -168,12 +167,12 @@ abstract class FileReference(val absolutePath: String) {
         get(): FileReference? {
             var zipFile = zipFile ?: return null
             if (!zipFile.isDirectory) {
-                zipFile = ZipCache.getMeta2(zipFile, false) ?: return null
+                zipFile = ZipCache.getMeta(zipFile, false) ?: return null
             }
             return zipFile
         }
 
-    private val zipFile get() = ZipCache.getMeta2(this, false)
+    private val zipFile get() = ZipCache.getMeta(this, false)
 
     abstract fun getParent(): FileReference?
 
@@ -183,62 +182,25 @@ abstract class FileReference(val absolutePath: String) {
     abstract val isDirectory: Boolean
 
     private fun isZipFile(): Boolean {
-        // todo only read the first bytes...
-        when {
-            extension.equals("7z", true) -> {
-                val zis = if (this is FileFileRef) SevenZFile(file) else
-                    SevenZFile(SeekableInMemoryByteChannel(inputStream().readBytes()))
-                return try {
-                    zis.nextEntry!!
-                    LOGGER.info("Checking $absolutePath for 7z file, success")
-                    true
-                } catch (e: IOException) {
-                    LOGGER.info("Checking $absolutePath for 7z file, ${e.message}")
-                    false
-                } finally {
-                    zis.close()
-                }
+        // only read the first bytes
+        val signature = Signature.find(this)
+        return when (signature?.name) {
+            "zip", "rar", "7z", "bz2", "lz4", "xar", "oar" -> {
+                LOGGER.info("Checking $absolutePath for zip file, matches signature")
+                true
             }
-            extension.equals("rar", true) -> {
-                return try {
-                    val zis = ZipFileRAR.fileFromStreamRAR(this)
-                    zis.nextFileHeader()!!
-                    LOGGER.info("Checking $absolutePath for rar file, success")
-                    true
-                } catch (e: IOException) {
-                    LOGGER.info("Checking $absolutePath for rar file, ${e.message}")
-                    false
-                }
+            null -> return try {// maybe something unknown, that we understand anyways
+                val zis = if (this is FileFileRef) ZipFile(file) else
+                    ZipFile(SeekableInMemoryByteChannel(inputStream().readBytes()))
+                val result = zis.entries.hasMoreElements()
+                LOGGER.info("Checking $absolutePath for zip file, success")
+                result
+            } catch (e: IOException) {
+                LOGGER.info("Checking $absolutePath for zip file, ${e.message}")
+                false
             }
-            else -> {
-                return try {
-                    val zis = if (this is FileFileRef) ZipFile(file) else
-                        ZipFile(SeekableInMemoryByteChannel(inputStream().readBytes()))
-                    val result = zis.entries.hasMoreElements()
-                    LOGGER.info("Checking $absolutePath for zip file, success")
-                    result
-                } catch (e: IOException) {
-                    // test the file of being gzipped
-                    if (testFileIsGzip()) {
-                        LOGGER.info("Checking $absolutePath for zip file, is GZip")
-                        return true
-                    }
-                    LOGGER.info("Checking $absolutePath for zip file, ${e.message}")
-                    false
-                }
-            }
+            else -> false
         }
-    }
-
-    fun testFileIsGzip(): Boolean {
-        // test the file of being gzipped
-        use(inputStream()) {
-            if (it.read() == 0x1f && it.read() == 0x8b) {
-                // it probably is gzip
-                return true
-            }
-        }
-        return false
     }
 
     abstract val exists: Boolean

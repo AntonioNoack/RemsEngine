@@ -519,7 +519,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         val normals = FloatArray(vertexCount * 3)
         val boneIds = ByteArray(vertexCount * MAX_WEIGHTS)
         val boneWeights = FloatArray(vertexCount * MAX_WEIGHTS)
-        val color0 = FloatArray(vertexCount * 4)
+        val color0 = IntArray(vertexCount)
         val indices = IntArray(aiMesh.mNumFaces() * 3)
 
         processPositions(aiMesh, vertices)
