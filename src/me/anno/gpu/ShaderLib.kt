@@ -37,6 +37,8 @@ object ShaderLib {
     lateinit var shader3DBoxBlur: BaseShader
     lateinit var shaderObjMtl: BaseShader
     lateinit var shaderAssimp: BaseShader
+    lateinit var pbrModelShader: BaseShader
+
     // lateinit var shaderFBX: BaseShader
     lateinit var copyShader: BaseShader
 
@@ -381,8 +383,12 @@ object ShaderLib {
                     "varying vec2 uv;\n", "" +
                     "uniform sampler2D tex;\n" +
                     "u4 color;\n" +
+                    "uniform bool ignoreTexAlpha;\n" +
                     "void main(){\n" +
-                    "   gl_FragColor = color * texture(tex, uv);\n" +
+                    "   vec4 col = color;\n" +
+                    "   if(ignoreTexAlpha) col.rgb *= texture(tex, uv).rgb;\n" +
+                    "   else col *= texture(tex, uv);\n" +
+                    "   gl_FragColor = col;\n" +
                     "}"
         )
 
@@ -794,39 +800,40 @@ object ShaderLib {
         )
 
         val maxBones = AnimGameItem.maxBones
+        val assimpVertex = v3DBase +
+                "a3 coords;\n" +
+                "a2 uvs;\n" +
+                "a3 normals;\n" +
+                "a4 colors;\n" +
+                "a4 weights;\n" +
+                "ai4 indices;\n" +
+                "uniform float hasAnimation;\n" +
+                "uniform mat4x3 localTransform;\n" +
+                "uniform mat4x3 jointTransforms[$maxBones];\n" +
+                "void main(){\n" +
+                "   localPosition = coords;\n" +
+                "   normal = normals;\n" +
+                "   if(hasAnimation > 0.5){\n" +
+                "       mat4x3 jointMat;\n" +
+                "       jointMat  = jointTransforms[indices.x] * weights.x;\n" +
+                "       jointMat += jointTransforms[indices.y] * weights.y;\n" +
+                "       jointMat += jointTransforms[indices.z] * weights.z;\n" +
+                "       jointMat += jointTransforms[indices.w] * weights.w;\n" +
+                "       localPosition = jointMat * vec4(localPosition, 1.0);\n" +
+                "       normal = jointMat * vec4(normal, 0.0);\n" +
+                "   }" +
+                "   normal = localTransform * vec4(normal, 0.0);\n" +
+                "   normal = normalize(normal);\n" +
+                "   localPosition = localTransform * vec4(localPosition, 1.0);\n" +
+                "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
+                "   uv = uvs;\n" +
+                "   weight = weights;\n" +
+                "   vertexColor = colors;\n" +
+                positionPostProcessing +
+                "}"
         shaderAssimp = createShaderPlus(
             "assimp",
-            v3DBase +
-                    "a3 coords;\n" +
-                    "a2 uvs;\n" +
-                    "a3 normals;\n" +
-                    "a4 colors;\n" +
-                    "a4 weights;\n" +
-                    "ai4 indices;\n" +
-                    "uniform float hasAnimation;\n" +
-                    "uniform mat4x3 localTransform;\n" +
-                    "uniform mat4x3 jointTransforms[$maxBones];\n" +
-                    "void main(){\n" +
-                    "   localPosition = coords;\n" +
-                    "   normal = normals;\n" +
-                    "   if(hasAnimation > 0.5){\n" +
-                    "       mat4x3 jointMat;\n" +
-                    "       jointMat  = jointTransforms[indices.x] * weights.x;\n" +
-                    "       jointMat += jointTransforms[indices.y] * weights.y;\n" +
-                    "       jointMat += jointTransforms[indices.z] * weights.z;\n" +
-                    "       jointMat += jointTransforms[indices.w] * weights.w;\n" +
-                    "       localPosition = jointMat * vec4(localPosition, 1.0);\n" +
-                    "       normal = jointMat * vec4(normal, 0.0);\n" +
-                    "   }" +
-                    "   normal = localTransform * vec4(normal, 0.0);\n" +
-                    "   normal = normalize(normal);\n" +
-                    "   localPosition = localTransform * vec4(localPosition, 1.0);\n" +
-                    "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
-                    "   uv = uvs;\n" +
-                    "   weight = weights;\n" +
-                    "   vertexColor = colors;\n" +
-                    positionPostProcessing +
-                    "}", y3D + "" +
+            assimpVertex, y3D + "" +
                     // "varying vec3 normal;\n" + // by default, in y3D, included
                     "varying vec4 weight;\n" +
                     "varying vec4 vertexColor;\n", "" +
@@ -835,13 +842,33 @@ object ShaderLib {
                     getColorForceFieldLib +
                     "void main(){\n" +
                     "   vec4 color = vec4(vertexColor.rgb,1) * getTexture(tex, uv);\n" +
-                    "   color.rgb *= 0.5 + 0.5 * dot(vec3(-1.0, 0.0, 0.0), normal);\n" +
+                    "   color.rgb *= 0.6 + 0.4 * dot(vec3(-1.0, 0.0, 0.0), normal);\n" +
                     "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                     "   vec3 finalColor = color.rgb;\n" +
                     "   float finalAlpha = color.a;\n" +
+                    "   vec3 finalPosition = localPosition;\n" +
+                    "   vec3 finalNormal = normal;\n" +
                     "}", listOf("tex")
         )
         shaderAssimp.glslVersion = 330
+
+        // todo just like the gltf shader define all material properties
+        pbrModelShader = createShaderPlus(
+            "model",
+            assimpVertex, y3D + "" +
+                    // "varying vec3 normal;\n" + // by default, in y3D, included
+                    "varying vec4 weight;\n" +
+                    "varying vec4 vertexColor;\n", "" +
+                    "uniform sampler2D tex;\n" +
+                    "void main(){\n" +
+                    "   vec4 color = vec4(vertexColor.rgb,1) * texture(tex, uv);\n" +
+                    "   vec3 finalColor = color.rgb;\n" +
+                    "   float finalAlpha = color.a;\n" +
+                    "   vec3 finalPosition = localPosition;\n" +
+                    "   vec3 finalNormal = normal;\n" +
+                    "}", listOf("tex")
+        )
+        pbrModelShader.glslVersion = 330
 
         // create the fbx shader
         // shaderFBX = FBXShader.getShader(v3DBase, positionPostProcessing, y3D, getTextureLib)

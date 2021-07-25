@@ -4,12 +4,13 @@ import org.joml.*
 
 object AnyToFloat {
 
-    fun getFloat(any: Any, index: Int, defaultValue: Float = 0f): Float {
+    fun getFloat(any: Any?, index: Int, defaultValue: Float = 0f): Float {
         return any[index, defaultValue]
     }
 
-    operator fun Any.get(index: Int, defaultValue: Float = 0f): Float {
+    operator fun Any?.get(index: Int, defaultValue: Float = 0f): Float {
         return when (this) {
+            null -> defaultValue
             is Int -> when (index) {
                 0 -> this.toFloat()
                 else -> defaultValue

@@ -47,7 +47,7 @@ class Material {
 
         fun bind(shader: Shader, uniformName: String) {
             val location = shader[uniformName]
-            if (location >= 0) bind(shader, uniformName)
+            if (location >= 0) bind(shader, location)
         }
 
         fun bind(shader: Shader, location: Int) {

@@ -2,23 +2,17 @@ package me.anno.engine
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
-import me.anno.ecs.Entity
-import me.anno.ecs.prefab.EntityPrefab
-import me.anno.ecs.prefab.EntityPrefab.Companion.createOrLoadScene
-import me.anno.ecs.prefab.PrefabInspector.Companion.loadChanges
-import me.anno.engine.scene.ScenePrefab
+import me.anno.ecs.prefab.EntityPrefab.Companion.loadScenePrefab
 import me.anno.engine.ui.DefaultLayout
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX.windowStack
+import me.anno.gpu.ShaderLib
 import me.anno.gpu.Window
 import me.anno.input.ActionManager
-import me.anno.io.files.FileReference
-import me.anno.io.text.TextWriter
 import me.anno.language.translation.Dict
 import me.anno.studio.StudioBase
 import me.anno.studio.rems.StudioActions
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.editor.OptionBar
 import me.anno.ui.editor.UILayouts.createReloadWindow
 import me.anno.ui.editor.config.ConfigPanel
@@ -41,6 +35,8 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
     override fun onGameInit() {
         super.onGameInit()
 
+        // CommandLineReader.start()
+
         ECSRegistry.init()
 
         Dict.loadDefault()
@@ -53,6 +49,7 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         currentProject = GameEngineProject.readOrCreate(projectFile)!!
         currentProject.init()
 
+        ShaderLib.init()
 
         // todo select project view, like Rem's Studio
         // todo select scene
@@ -68,20 +65,20 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
         // for testing directly jump in the editor
 
-        val editScene = createOrLoadScene(projectFile.getChild("Scene.json"))
+        val editScene = loadScenePrefab(projectFile.getChild("Scene.json"))
 
         val style = style
 
         val list = PanelListY(style)
 
-        ECSSceneTabs.open(projectFile.getChild("2ndScene.json"))
-        ECSSceneTabs.open(projectFile.getChild("Scene.json"))
+        val tab = ECSSceneTabs.open(loadScenePrefab(projectFile.getChild("Scene.json")))
+        // ECSSceneTabs.add(projectFile.getChild("2ndScene.json"))
 
         list.add(ECSSceneTabs)
 
         val options = OptionBar(style)
 
-        val editUI = DefaultLayout.createDefaultMainUI(projectFile, editScene.createInstance(), false, style)
+        val editUI = DefaultLayout.createDefaultMainUI(projectFile, tab.inspector.root, false, style)
         // val gameUI = DefaultLayout.createDefaultMainUI(projectFile, gameScene, true, style)
         /*gameUI.visibility = Visibility.GONE
 
@@ -102,14 +99,14 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         val configTitle = Dict["Config", "ui.top.config"]
         options.addAction(configTitle, Dict["Settings", "ui.top.config.settings"]) {
             val panel = ConfigPanel(DefaultConfig, false, style)
-            val window = createReloadWindow(panel, true)
+            val window = createReloadWindow(panel, true) { createUI() }
             panel.create()
             windowStack.push(window)
         }
 
         options.addAction(configTitle, Dict["Style", "ui.top.config.style"]) {
             val panel = ConfigPanel(DefaultConfig.style.values, true, style)
-            val window = createReloadWindow(panel, true)
+            val window = createReloadWindow(panel, true) { createUI() }
             panel.create()
             windowStack.push(window)
         }
@@ -119,7 +116,7 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         list += editUI
         // list += gameUI
 
-        list += ConsoleOutputPanel(style)
+        list += createConsole(style)
         windowStack.add(Window(list))
 
         StudioActions.register()

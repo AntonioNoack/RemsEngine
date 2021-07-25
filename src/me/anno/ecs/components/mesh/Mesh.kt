@@ -230,7 +230,8 @@ class Mesh : NamedSaveable() {
     }
 
     fun draw(shader: Shader, materialIndex: Int) {
-        // todo respect the material index
+        // todo respect the material index: only draw what belongs to the material
+        // todo use the shader from the material
         // upload the data to the gpu, if it has changed
         ensureBuffer()
         buffer?.draw(shader)

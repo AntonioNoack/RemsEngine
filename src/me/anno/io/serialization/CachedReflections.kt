@@ -2,7 +2,7 @@ package me.anno.io.serialization
 
 import me.anno.ecs.annotations.ExecuteInEditMode
 import me.anno.io.ISaveable
-import me.anno.utils.LOGGER
+import org.apache.logging.log4j.LogManager
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KVisibility
@@ -27,18 +27,21 @@ class CachedReflections(val clazz: KClass<*>, val properties: Map<String, Cached
      * */
     operator fun set(self: ISaveable, name: String, value: Any?): Boolean {
         val property = properties[name] ?: return false
-        property.set(self, value)
+        property[self] = value
         return true
     }
 
     operator fun get(self: ISaveable, name: String): Any? {
         val property = properties[name] ?: return null
-        return property.get(self)
+        return property[self]
     }
 
     operator fun get(name: String) = properties[name]
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(CachedProperty::class)
+
         fun extractProperties(instance: Any, clazz: KClass<*>): Map<String, CachedProperty> {
             val properties = clazz.declaredMemberProperties.filterIsInstance<KMutableProperty1<*, *>>()
             val map = HashMap<String, CachedProperty>()

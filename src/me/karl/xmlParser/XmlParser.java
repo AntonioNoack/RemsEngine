@@ -29,7 +29,7 @@ public class XmlParser {
 	 * @return The root node of the XML structure.
 	 */
 	public static XmlNode loadXmlFile(URI file) {
-		BufferedReader reader = null;
+		BufferedReader reader;
 		try {
 			reader = file.getReader();
 		} catch (Exception e) {
@@ -63,7 +63,7 @@ public class XmlParser {
 		if (CLOSED.matcher(line).find()) {
 			return node;
 		}
-		XmlNode child = null;
+		XmlNode child;
 		while ((child = loadNode(reader)) != null) {
 			node.addChild(child);
 		}

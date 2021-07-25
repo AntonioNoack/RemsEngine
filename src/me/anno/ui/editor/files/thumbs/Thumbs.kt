@@ -201,10 +201,7 @@ object Thumbs {
                 // cannot read from separate framebuffer, only from null... why ever...
                 useFrame(0, 0, w, h, false, null, Renderer.colorRenderer) {
 
-                    fb2.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-
-                    Frame.bind()
-                    GFX.copy()
+                    GFX.copy(fb2)
 
                     // draw only the clicked area?
                     glFlush(); glFinish() // wait for everything to be drawn

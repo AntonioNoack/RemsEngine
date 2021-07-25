@@ -6,6 +6,8 @@ import me.anno.engine.BulletPhysics
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.StaticRef
 import me.anno.io.text.TextWriter
+import me.anno.utils.OS
+import org.joml.Vector3d
 
 object ScenePrefab : StaticRef("Scene.prefab", lazy {
     TextWriter.toText(EntityPrefab().apply {
@@ -27,6 +29,18 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
             changes.add(ChangeSetEntityAttribute(Path(i, "desc"), descs[i]))
         }
         changes.add(ChangeAddComponent(Path(0), "BulletPhysics"))
+        // todo just add stuff for debugging :)
+        // todo for example positions
+        // todo I'd also like to add a mesh
+        changes.add(ChangeAddEntity(Path(0), OS.downloads.getChild("MagicaVoxel/vox/truck.vox")))
+        changes.add(ChangeSetEntityAttribute(Path(intArrayOf(0, 0), "name"), "VOX/Truck"))
+        // changes.add(ChangeSetEntityAttribute(Path(intArrayOf(0, 0), "position"), Vector3d(0.0)))
+        // changes.add(ChangeSetEntityAttribute(Path(intArrayOf(0, 0), "scale"), Vector3d(1.0)))
+        changes.add(ChangeAddEntity(Path(0)))
+        changes.add(ChangeSetEntityAttribute(Path(intArrayOf(0, 1), "name"), "Point Light"))
+        changes.add(ChangeSetEntityAttribute(Path(intArrayOf(0, 1), "position"), Vector3d()))
+        changes.add(ChangeSetEntityAttribute(Path(intArrayOf(0, 1), "scale"), Vector3d(50.0)))
+        changes.add(ChangeAddComponent(Path(intArrayOf(0, 1)), "PointLight"))
     }, false).toByteArray()
 }) {
 

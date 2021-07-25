@@ -1,11 +1,24 @@
 package me.anno.graph
 
 import me.anno.io.ISaveable
-import me.anno.io.Saveable
+import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import org.joml.Vector3d
 
-class NodeConnector : Saveable() {
+abstract class NodeConnector : NamedSaveable {
+
+    constructor() : super()
+    constructor(type: String) : super() {
+        this.type = type
+    }
+
+    constructor(type: String, node: Node) : this(type) {
+        this.node = node
+    }
+
+    var type = "Any?"
+
+    var value: Any? = null
 
     // todo instead we could define a type, and let the graph ui render them
     // todo we could have a start and end color
@@ -29,18 +42,24 @@ class NodeConnector : Saveable() {
     // todo knots for better routing layouts
 
     var node: Node? = null
-    var targetNode: Node? = null
+    var others: List<NodeConnector> = emptyList()
+
+    open fun invalidate(){
+
+    }
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeObject(this, "node", node)
-        writer.writeInt("color", color)
+        writer.writeObjectList(this, "others", others)
+        if (color != -1) writer.writeInt("color", color, true)
+        writer.writeString("type", type)
+        writer.writeSomething(this, "value", value, true)
     }
 
-    override fun readObject(name: String, value: ISaveable?) {
+    override fun readObjectArray(name: String, values: Array<ISaveable?>) {
         when (name) {
-            "node" -> node = value as? Node
-            else -> super.readObject(name, value)
+            "others" -> others = values.filterIsInstance<NodeConnector>()
+            else -> super.readObjectArray(name, values)
         }
     }
 
@@ -51,7 +70,6 @@ class NodeConnector : Saveable() {
         }
     }
 
-    override val className: String = "NodeConnector"
     override val approxSize: Int = 10
     override fun isDefaultValue(): Boolean = false
 

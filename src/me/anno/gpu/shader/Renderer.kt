@@ -16,11 +16,14 @@ open class Renderer(
     // todo the render engine decides how it is rendered...
     // todo this could include multiple passes as well...
 
+    open fun getPostProcessing(): String = ""
+
     companion object {
         val colorRenderer = Renderer(false, ShaderPlus.DrawMode.COLOR, null)
         val colorSqRenderer = Renderer(false, ShaderPlus.DrawMode.COLOR_SQUARED, null)
         val idRenderer = Renderer(true, ShaderPlus.DrawMode.ID, null)
-        val depthRenderer = Renderer(true, ShaderPlus.DrawMode.DEPTH, null)
+        val depthRenderer01 = Renderer(true, ShaderPlus.DrawMode.DEPTH_LOG2_01, null)
+        val depthRenderer = Renderer(true, ShaderPlus.DrawMode.DEPTH_LOG2, null)
         val copyRenderer = Renderer(false, ShaderPlus.DrawMode.COPY, null)
     }
 

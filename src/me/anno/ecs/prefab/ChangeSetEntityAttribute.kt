@@ -15,6 +15,7 @@ class ChangeSetEntityAttribute : ChangeSetAttribute {
 
     override fun applyChange(element: Any?, name: String?) {
         element as Entity
+        // println("${element.name}, $name, $value, ${value?.javaClass}")
         when (name) {
             "name" -> element.name = value.toString()
             "description", "desc" -> element.description = value.toString()

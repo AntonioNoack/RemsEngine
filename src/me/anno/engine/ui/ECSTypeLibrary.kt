@@ -13,7 +13,6 @@ import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.cutting.CuttingView
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.graphs.GraphEditor
-import me.anno.ui.editor.sceneView.SceneView
 
 class ECSTypeLibrary(val projectFile: FileReference, val world: Entity, val isGaming: Boolean) {
 
@@ -22,7 +21,7 @@ class ECSTypeLibrary(val projectFile: FileReference, val world: Entity, val isGa
     val typeList = listOf<Pair<String, () -> Panel>>(
         // todo not all stuff here makes sense
         // todo some stuff is (maybe) missing, e.g. animation panels, particle system editors, ...
-        Dict["Scene View", "ui.customize.sceneView"] to { SceneView(DefaultConfig.style) },
+        Dict["Scene View", "ui.customize.sceneView"] to { RenderView(world, DefaultConfig.style) },
         Dict["Tree View", "ui.customize.treeView"] to { ECSTreeView(this, isGaming, DefaultConfig.style) },
         Dict["Properties", "ui.customize.inspector"] to { PropertyInspector({ selection }, DefaultConfig.style) },
         Dict["Cutting Panel", "ui.customize.cuttingPanel"] to { CuttingView(DefaultConfig.style) },

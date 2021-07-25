@@ -3,11 +3,10 @@ package me.anno.ecs.prefab
 import me.anno.animation.Type
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.prefab.EntityPrefab.Companion.loadPrefab
 import me.anno.engine.IProperty
 import me.anno.engine.ui.ComponentUI
 import me.anno.io.files.FileReference
-import me.anno.io.files.InvalidRef
-import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.objects.inspectable.Inspectable
 import me.anno.studio.StudioBase.Companion.addEvent
@@ -21,22 +20,21 @@ import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.TextInput
 import me.anno.ui.input.VectorInput
 import me.anno.ui.style.Style
-import me.anno.utils.LOGGER
 import me.anno.utils.process.DelayedTask
 import me.anno.utils.structures.StartsWith.startsWith
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import org.apache.logging.log4j.LogManager
+import org.joml.Quaterniond
 import org.joml.Vector3d
 
-// todo this can be like a scene (/scene tab)
-
-// todo show changed values in bold
+// this can be like a scene (/scene tab)
+// show changed values in bold
 
 class PrefabInspector(val reference: FileReference, val prefab: EntityPrefab) {
 
     constructor(prefab: EntityPrefab) : this(prefab.ownFile, prefab)
 
-    constructor(reference: FileReference) : this(reference, loadChanges(reference) ?: EntityPrefab())
+    constructor(reference: FileReference) : this(reference, loadPrefab(reference) ?: EntityPrefab())
 
     val history: ChangeHistory = prefab.history ?: ChangeHistory()
     val changes: MutableList<Change> = ArrayList(prefab.changes ?: emptyList())
@@ -53,16 +51,13 @@ class PrefabInspector(val reference: FileReference, val prefab: EntityPrefab) {
     }
 
     // val changes = ArrayList()
-    var root = createInstance(prefab)
+    var root = prefab.createInstance()
 
     private val savingTask = DelayedTask {
         addEvent {
             history.put(TextWriter.toText(changes, false))
         }
     }
-
-    // keeps track of an entity
-    // todo can save and load entities from prefabs
 
     fun onChange() {
         savingTask.update()
@@ -129,23 +124,32 @@ class PrefabInspector(val reference: FileReference, val prefab: EntityPrefab) {
 
         val prefab = component.prefab
 
-        // todo create the ui for the component, and also keep track of the changes :)
+        // create the ui for the component, and also keep track of the changes :)
         list.add(BooleanInput(
             "Is Enabled", "When a component is disabled, its functions won't be called.",
             component.isEnabled, true, style
         ).apply {
             setBold(isComponentChanged(getPath("isEnabled")))
             setChangeListener { setBold(); changeComponent(getPath("isEnabled"), it); component.isEnabled = it }
-            setResetListener { unsetBold(); resetComponent(getPath("isEnabled")); prefab?.isEnabled ?: true }
+            setResetListener {
+                unsetBold(); resetComponent(getPath("isEnabled"))
+                component.isEnabled = prefab?.isEnabled ?: true; component.isEnabled
+            }
         })
         list.add(TextInput("Name", "", component.name, style).apply {
             setBold(isComponentChanged(getPath("name")))
             setChangeListener { setBold(); changeComponent(getPath("name"), it); component.name = it }
-            setResetListener { unsetBold(); resetComponent(getPath("name")); prefab?.name ?: "" }
+            setResetListener {
+                unsetBold(); resetComponent(getPath("name"))
+                component.name = prefab?.name ?: ""; component.name
+            }
         })
         list.add(TextInput("Description", "", component.description, style).apply {
             setChangeListener { setBold(); changeComponent(getPath("description"), it); component.description = it }
-            setResetListener { unsetBold(); resetComponent(getPath("description")); prefab?.description ?: "" }
+            setResetListener {
+                unsetBold(); resetComponent(getPath("description"))
+                component.description = prefab?.description ?: ""; component.description
+            }
         })
 
         // for debugging
@@ -153,7 +157,7 @@ class PrefabInspector(val reference: FileReference, val prefab: EntityPrefab) {
             LOGGER.info("Copy: ${TextWriter.toText(component, false)}")
         })
 
-        // todo bold/non bold for other properties
+        // bold/non bold for other properties
 
         val reflections = component.getReflections()
         for ((name, property) in reflections.properties) {
@@ -208,45 +212,67 @@ class PrefabInspector(val reference: FileReference, val prefab: EntityPrefab) {
         val path = entity.pathInRoot(root).toIntArray()
         val prefab = entity.prefab
 
-        println("inspecting entity ${entity.name}, hierarchy: ${entity.listOfAll.joinToString { it.name }} -> path [${path.joinToString()}]")
+        // LOGGER.info("inspecting entity ${entity.name}, hierarchy: ${entity.listOfAll.joinToString { it.name }} -> path [${path.joinToString()}]")
 
         fun getPath(name: String) = Path(path, name)
 
         list.add(BooleanInput("Is Enabled", entity.isEnabled, prefab?.isEnabled ?: true, style).apply {
             setBold(isEntityChanged(getPath("isEnabled")))
-            setResetListener { unsetBold(); resetEntity(getPath("isEnabled")); prefab?.isEnabled }
-            setChangeListener { setBold(); changeEntity(getPath("isEnabled"), it) }
+            setChangeListener { setBold(); changeEntity(getPath("isEnabled"), it); entity.isEnabled = it }
+            setResetListener {
+                unsetBold(); resetEntity(getPath("isEnabled"))
+                entity.isEnabled = prefab?.isEnabled ?: true; entity.isEnabled
+            }
         })
 
         list.add(TextInput("Name", "", true, entity.name, style).apply {
             setBold(isEntityChanged(getPath("name")))
-            setResetListener { unsetBold(); resetEntity(getPath("name")); prefab?.name }
-            setChangeListener { setBold(); changeEntity(getPath("name"), it) }
+            setChangeListener { setBold(); changeEntity(getPath("name"), it); entity.name = it }
+            setResetListener {
+                unsetBold(); resetEntity(getPath("name"))
+                entity.name = prefab?.name ?: ""; entity.name
+            }
         })
 
         list.add(TextInput("Description", "", true, entity.description, style).apply {
             setBold(isEntityChanged(getPath("description")))
-            setResetListener { unsetBold(); resetEntity(getPath("description")); prefab?.description }
-            setChangeListener { setBold(); changeEntity(getPath("description"), it) }
+            setChangeListener { setBold(); changeEntity(getPath("description"), it); entity.description = it }
+            setResetListener {
+                unsetBold(); resetEntity(getPath("description"))
+                entity.description = prefab?.description ?: ""; entity.description
+            }
         })
 
+        val transform = entity.transform
         list.add(VectorInput(
             "Position", "Where it's located relative to its parent",
-            entity.transform.localPosition, Type.POSITION, style
+            transform.localPosition, Type.POSITION, style
         ).apply {
             setBold(isEntityChanged(getPath("position")))
-            setResetListener { unsetBold(); resetEntity(getPath("position")); prefab?.transform?.localPosition }
-            setChangeListener { x, y, z, _ -> setBold(); changeEntity(getPath("position"), Vector3d(x, y, z)) }
+            setChangeListener { x, y, z, _ ->
+                setBold(); changeEntity(getPath("position"), Vector3d(x, y, z))
+                transform.localPosition = Vector3d(x, y, z)
+            }
+            setResetListener {
+                unsetBold(); resetEntity(getPath("position"));
+                transform.localPosition = prefab?.transform?.localPosition ?: Vector3d()
+                transform.localPosition
+            }
         })
 
         list.add(VectorInput(
             "Rotation", "How its rotated relative to its parent",
-            entity.transform.localRotation, Type.ROT_YXZ, style
+            transform.localRotation, Type.ROT_YXZ, style
         ).apply {
             setBold(isEntityChanged(getPath("rotation")))
-            setResetListener { unsetBold(); resetEntity(getPath("rotation")); prefab?.transform?.localRotation }
             setChangeListener { x, y, z, _ ->
                 setBold(); changeEntity(getPath("rotation"), Vector3d(x, y, z).toQuaternionDegrees())
+                transform.localRotation = Vector3d(x, y, z).toQuaternionDegrees()
+            }
+            setResetListener {
+                unsetBold(); resetEntity(getPath("rotation"))
+                transform.localRotation = prefab?.transform?.localRotation ?: Quaterniond()
+                transform.localRotation
             }
         })
 
@@ -255,8 +281,15 @@ class PrefabInspector(val reference: FileReference, val prefab: EntityPrefab) {
             entity.transform.localScale, Type.SCALE, style
         ).apply {
             setBold(isEntityChanged(getPath("scale")))
-            setResetListener { unsetBold(); resetEntity(getPath("scale")); prefab?.transform?.localScale }
-            setChangeListener { x, y, z, _ -> setBold(); changeEntity(getPath("scale"), Vector3d(x, y, z)) }
+            setChangeListener { x, y, z, _ ->
+                setBold(); changeEntity(getPath("scale"), Vector3d(x, y, z))
+                transform.localScale = Vector3d(x, y, z)
+            }
+            setResetListener {
+                unsetBold(); resetEntity(getPath("scale"))
+                transform.localScale = prefab?.transform?.localScale ?: Vector3d(1.0)
+                transform.localScale
+            }
         })
 
         list.add(TextButton("Copy", false, style).apply {
@@ -271,90 +304,20 @@ class PrefabInspector(val reference: FileReference, val prefab: EntityPrefab) {
             save()
         })
 
-        println("creating stack panel from ${entity.components.size} components inside ${entity.name}")
+        // ("creating stack panel from ${entity.components.size} components inside ${entity.name}")
         list.add(object : StackPanel(
             "Components", "Behaviours and properties",
             Component.getComponentOptions(entity), entity.components, style
         ) {
 
-            /**
-             * renumber all changes, which are relevant to the components
-             * */
-            fun renumber(from: Int, delta: Int) {
-                val targetSize = path.size
-                val changedArrays = HashSet<IntArray>()
-                for (change in changes) {
-                    val path2 = change.path!!
-                    val hierarchy = path2.hierarchy
-                    if (change is ChangeSetComponentAttribute &&
-                        hierarchy.size == targetSize &&
-                        hierarchy[targetSize - 1] >= from &&
-                        hierarchy !in changedArrays &&
-                        hierarchy.startsWith(path)
-                    ) {
-                        hierarchy[targetSize - 1] += delta
-                        changedArrays.add(hierarchy)
-                    }
-                }
-            }
-
             override fun onAddComponent(component: Inspectable, index: Int) {
                 component as Component
-                component.entity = entity
-                if (prefab != null && index < prefab.components.size) {
-                    // if index < prefab.size, then disallow
-                    throw RuntimeException("Cannot insert between prefab components!")
-                }
-                if (index < entity.components.size) {
-                    renumber(index, +1)
-                }
-                entity.components.add(index, component)
-                // just append it :)
-                changes.add(ChangeAddComponent(Path(path), component.className))
-                // if it contains any changes, we need to apply them
-                val base = Component.create(component.className)
-                val compPath = path + index
-                for ((name, property) in component.getReflections().properties) {
-                    val value = property[component]
-                    if (value != property[base]) {
-                        changes.add(ChangeSetComponentAttribute(Path(compPath, name), value))
-                    }
-                }
+                addComponent(entity, component, index)
             }
 
             override fun onRemoveComponent(component: Inspectable) {
                 component as Component
-                if (component !in entity.components) return
-                // done :)
-                val index = component.components.indexOf(component)
-                if (prefab != null && index < prefab.components.size) {
-
-                    // original component, cannot be removed
-                    component.isEnabled = false
-
-                } else {
-
-                    // when a component is deleted, its changes need to be deleted as well
-                    val compPath = path + index
-                    changes.removeIf { it is ChangeSetComponentAttribute && it.path!!.hierarchy.contentEquals(compPath) }
-
-                    if (index + 1 < entity.components.size) {
-                        // not the last one
-                        renumber(index + 1, -1)
-                    }
-
-                    // it's ok, and fine
-                    // remove the respective change
-                    entity.components.removeAt(index)
-                    // not very elegant, but should work...
-                    // correct?
-                    changes.removeIf { it.path!!.hierarchy.size == path.size && it is ChangeAddComponent }
-                    val i0 = (prefab?.components?.size ?: 0)
-                    for (i in i0 until entity.components.size) {
-                        changes.add(i - i0, ChangeAddComponent(Path(path), entity.components[i].className))
-                    }
-
-                }
+                removeComponent(entity, component)
             }
 
             override fun getOptionFromInspectable(inspectable: Inspectable): Option {
@@ -366,50 +329,110 @@ class PrefabInspector(val reference: FileReference, val prefab: EntityPrefab) {
 
     }
 
+
+    /**
+     * renumber all changes, which are relevant to the components
+     * */
+    private fun renumber(from: Int, delta: Int, path: IntArray) {
+        val targetSize = path.size
+        val changedArrays = HashSet<IntArray>()
+        for (change in changes) {
+            val path2 = change.path!!
+            val hierarchy = path2.hierarchy
+            if (change is ChangeSetComponentAttribute &&
+                hierarchy.size == targetSize &&
+                hierarchy[targetSize - 1] >= from &&
+                hierarchy !in changedArrays &&
+                hierarchy.startsWith(path)
+            ) {
+                hierarchy[targetSize - 1] += delta
+                changedArrays.add(hierarchy)
+            }
+        }
+    }
+
+    fun addComponent(entity: Entity, component: Component, index: Int){
+
+        val path = entity.pathInRoot(root).toIntArray()
+        val prefab = entity.prefab
+
+        component.entity = entity
+
+        if (prefab != null && index < prefab.components.size) {
+            // if index < prefab.size, then disallow
+            throw RuntimeException("Cannot insert between prefab components!")
+        }
+        if (index < entity.components.size) {
+            renumber(index, +1, path)
+        }
+        entity.components.add(index, component)
+        // just append it :)
+        changes.add(ChangeAddComponent(Path(path), component.className))
+        // if it contains any changes, we need to apply them
+        val base = Component.create(component.className)
+        val compPath = path + index
+        for ((name, property) in component.getReflections().properties) {
+            val value = property[component]
+            if (value != property[base]) {
+                changes.add(ChangeSetComponentAttribute(Path(compPath, name), value))
+            }
+        }
+
+    }
+
+    fun removeComponent(entity: Entity, component: Component){
+
+        val path = entity.pathInRoot(root).toIntArray()
+        val prefab = entity.prefab
+
+        if (component !in entity.components) return
+        // done :)
+        val index = component.components.indexOf(component)
+        if (prefab != null && index < prefab.components.size) {
+
+            // original component, cannot be removed
+            component.isEnabled = false
+
+        } else {
+
+            // when a component is deleted, its changes need to be deleted as well
+            val compPath = path + index
+            changes.removeIf { it is ChangeSetComponentAttribute && it.path!!.hierarchy.contentEquals(compPath) }
+
+            if (index + 1 < entity.components.size) {
+                // not the last one
+                renumber(index + 1, -1, path)
+            }
+
+            // it's ok, and fine
+            // remove the respective change
+            entity.components.removeAt(index)
+            // not very elegant, but should work...
+            // correct?
+            changes.removeIf { it.path!!.hierarchy.size == path.size && it is ChangeAddComponent }
+            val i0 = (prefab?.components?.size ?: 0)
+            for (i in i0 until entity.components.size) {
+                changes.add(i - i0, ChangeAddComponent(Path(path), entity.components[i].className))
+            }
+
+        }
+
+    }
+
     fun save() {
-        saveChanges(reference, changes, history)
+        TextWriter.save(prefab, false, reference)
     }
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(PrefabInspector::class)
 
         init {
             LogManager.disableLogger("FBStack")
         }
 
-        fun loadChanges(resource: FileReference?): EntityPrefab? {
-            resource ?: return null
-            return if (resource != InvalidRef && resource.exists && !resource.isDirectory) {
-                // todo if is not a .json file, we need to read it e.g. as a mesh, and such
-                try {
-                    TextReader.read(resource).firstOrNull() as? EntityPrefab
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    null
-                }
-            } else null
-        }
-
-        fun saveChanges(resource: FileReference, changes: List<Change>, history: ChangeHistory) {
-            resource.writeText(TextWriter.toText(changes + history, false))
-        }
-
-        fun createInstance(resource: FileReference): Entity {
-            return createInstance(loadChanges(resource))
-        }
-
-        fun createInstance(prefab: EntityPrefab?): Entity {
-            val entity = loadChanges(prefab?.prefab)?.run { createInstance(this) } ?: Entity()
-            val changes = prefab?.changes ?: emptyList()
-            val changes2 = changes.groupBy { it.className }.map { "${it.value.size}x ${it.key}" }
-            println("creating entity instance from ${changes.size} changes, $changes2")
-            for (change in changes) {
-                change.apply(entity)
-            }
-            println("created instance '${entity.name}' has ${entity.children.size} children and ${entity.components.size} components")
-            return entity
-        }
-
         var currentInspector: PrefabInspector? = null
+
     }
 
 }

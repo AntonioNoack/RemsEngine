@@ -2,7 +2,9 @@ package me.anno.gpu.shader
 
 import me.anno.gpu.GFX
 import me.anno.gpu.RenderState
+import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.utils.types.Strings.isBlank2
 import kotlin.math.max
 
 /**
@@ -22,19 +24,48 @@ class BaseShader(
     var textures: List<String>? = null
     var ignoredUniforms = HashSet<String>()
 
-    fun createFlatShader(geoShader: GeoShader?): Shader {
+    fun createFlatShader(postProcessing: String, geoShader: GeoShader?): Shader {
         // if it does not have tint, then add it?
         // what do we do if it writes glFragColor?
         // option to use flat shading independent of rendering mode (?)
-        var fragment = if ("gl_FragColor" !in fragmentSource) {
-            fragmentSource.substring(0, fragmentSource.lastIndexOf('}')) +
-                    "gl_FragColor = vec4(finalColor, finalAlpha);\n"
-        } else {
-            fragmentSource.substring(0, fragmentSource.lastIndexOf('}'))
+        val fragment = StringBuilder()
+        val postMainIndex = postProcessing.indexOf("void main")
+        if (postMainIndex > 0) {
+            // add the code before main
+            fragment.append(postProcessing.substring(0, postMainIndex))
         }
-        fragment += "}"
+        if ("gl_FragColor" !in fragmentSource) {
+            fragment.append(fragmentSource.substring(0, fragmentSource.lastIndexOf('}')))
+            // finalColor, finalAlpha were properly defined
+        } else {
+            fragment.append(fragmentSource.substring(0, fragmentSource.lastIndexOf('}')))
+            // finalColor, finalAlpha are missing
+            fragment.append(
+                "" +
+                        "vec3 finalColor = gl_FragColor.rgb;\n" +
+                        "float finalAlpha = gl_FragColor.a;\n"
+            )
+        }
+        if (postMainIndex >= 0 || !postProcessing.isBlank2()) {
+            val pmi2 = if (postMainIndex < 0) -1 else postProcessing.indexOf('{', postMainIndex + 9)
+            // define all variables with prefix "final", which are missing
+            for (type in DeferredLayerType.values()) {
+                if (type.glslName in postProcessing && type.glslName !in fragment) {
+                    type.appendDefinition(fragment)
+                    fragment.append(" = ")
+                    type.appendDefaultValue(fragment)
+                    fragment.append(";\n")
+                }
+            }
+            fragment.append(postProcessing.substring(pmi2 + 1))
+        } else {
+            fragment.append("gl_FragColor = vec4(finalColor, finalAlpha);\n")
+        }
+        if (postMainIndex < 0) {
+            fragment.append('}')
+        }
         GFX.check()
-        val shader = ShaderPlus.create(name, geoShader?.code, vertexSource, varyingSource, fragment)
+        val shader = ShaderPlus.create(name, geoShader?.code, vertexSource, varyingSource, fragment.toString())
         shader.glslVersion = glslVersion
         shader.setTextureIndices(textures)
         shader.ignoreUniformWarnings(ignoredUniforms)
@@ -44,22 +75,24 @@ class BaseShader(
         return shader
     }
 
-    private val flatShader = HashMap<GeoShader?, Shader>()
+    private val flatShader = HashMap<Pair<GeoShader?, String>, Shader>()
 
     val value: Shader
         get() {
             val renderer = RenderState.currentRenderer
-            return when (renderer.deferredSettings) {
+            val postProcessing = renderer.getPostProcessing()
+            return when (val deferred = renderer.deferredSettings) {
                 null -> {
                     val geoMode = RenderState.geometryShader.currentValue
-                    val shader = flatShader.getOrPut(geoMode) {
-                        createFlatShader(geoMode)
+                    val key = geoMode to postProcessing
+                    val shader = flatShader.getOrPut(key) {
+                        createFlatShader(postProcessing, geoMode)
                     }
                     shader.use()
                     shader.v1("drawMode", renderer.drawMode.id)
                     shader
                 }
-                else -> get(renderer.deferredSettings, RenderState.geometryShader.currentValue)
+                else -> get(deferred, RenderState.geometryShader.currentValue)
             }
         }
 
@@ -67,7 +100,7 @@ class BaseShader(
         ignoredUniforms += warnings
     }
 
-    fun setTextureIndices(textures: List<String>) {
+    fun setTextureIndices(textures: List<String>?) {
         this.textures = textures
     }
 

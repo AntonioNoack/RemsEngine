@@ -12,18 +12,21 @@ class CameraComponent : Component() {
     // todo different settings for orthographic and non-orthographic
     // todo different classes? maybe...
 
-    var isPerspective = false
+    var isPerspective = true
 
     var near = 0.01
 
     var far = 5000.0
 
+    var fov = 90f
+
     val pipeline = Pipeline()
 
-    val postProcessingEffects get() = components
-        .filterIsInstance<PostProcessingEffectComponent>()
+    val postProcessingEffects
+        get() = components
+            .filterIsInstance<PostProcessingEffectComponent>()
 
-    val clearColor = Vector4f(0f, 0f, 0f, 1f)
+    val clearColor = Vector4f(0.1f, 0.2f, 0.3f, 1f)
 
     fun use(blendingTime: Double) {
         val player = currentLocalPlayer!!

@@ -5,7 +5,6 @@ import me.anno.config.DefaultStyle.black
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.toRadians
-import me.anno.gpu.RenderState
 import me.anno.gpu.RenderState.depthMode
 import me.anno.gpu.ShaderLib.shader3D
 import me.anno.gpu.TextureLib.whiteTexture
@@ -18,17 +17,14 @@ import me.anno.objects.Transform.Companion.yAxis
 import me.anno.objects.Transform.Companion.zAxis
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.Maths.distance
+import me.anno.utils.Maths.length
 import me.anno.utils.Maths.pow
 import me.anno.utils.Maths.sq
 import me.anno.utils.types.Vectors.avg
 import me.anno.utils.types.Vectors.minus
-import me.anno.utils.types.Vectors.toVec3f
 import org.joml.*
 import org.lwjgl.opengl.GL20.GL_LINES
-import kotlin.math.atan2
-import kotlin.math.floor
-import kotlin.math.log10
-import kotlin.math.sqrt
+import kotlin.math.*
 
 
 // todo grid add mode is broken
@@ -180,7 +176,11 @@ object Grid {
         // to avoid flickering
         depthMode.use(DepthMode.ALWAYS) {
 
-            val distance = cameraTransform.transformProject(Vector4f(0f, 0f, 0f, 1f)).toVec3f().length()
+            val camPos = cameraTransform.transform(Vector4f(0f, 0f, 0f, 1f))
+            if (abs(camPos.w) > 1e-16f) camPos.div(camPos.w)
+            else return@use
+
+            val distance = length(camPos.x, camPos.y, camPos.z)
             val log = log10(distance)
             val f = log - floor(log)
             val cameraDistance = 10f * pow(10f, floor(log))

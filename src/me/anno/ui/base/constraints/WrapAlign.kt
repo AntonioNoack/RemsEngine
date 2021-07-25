@@ -5,8 +5,8 @@ import kotlin.math.max
 import kotlin.math.min
 
 class WrapAlign(
-    private val alignX: AxisAlignment?,
-    private val alignY: AxisAlignment?
+    val alignX: AxisAlignment?,
+    val alignY: AxisAlignment?
 ): Constraint(10){
     
     override fun apply(panel: Panel) {

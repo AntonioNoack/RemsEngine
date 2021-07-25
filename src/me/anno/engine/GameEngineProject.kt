@@ -1,11 +1,11 @@
 package me.anno.engine
 
-import me.anno.ecs.prefab.PrefabInspector
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextReader
+import me.anno.io.text.TextWriter
 import me.anno.studio.StudioBase
 import me.anno.utils.files.LocalFile.toGlobalFile
 
@@ -20,7 +20,11 @@ class GameEngineProject() : NamedSaveable() {
                     val configFile = location.getChild("config.json")
                     if (configFile.exists) {
                         TextReader.read(configFile).filterIsInstance<GameEngineProject>().firstOrNull()
-                    } else GameEngineProject(location)
+                    } else {
+                        val project = GameEngineProject(location)
+                        configFile.writeText(TextWriter.toText(project, false))
+                        project
+                    }
                 } else {
                     // probably the config file
                     readOrCreate(location.getParent())
@@ -45,8 +49,6 @@ class GameEngineProject() : NamedSaveable() {
         if (lastScene == InvalidRef) {
             lastScene = location.getChild("Scene.json")
         }
-        // create inspector
-        PrefabInspector.currentInspector = PrefabInspector(lastScene)
     }
 
     override fun save(writer: BaseWriter) {

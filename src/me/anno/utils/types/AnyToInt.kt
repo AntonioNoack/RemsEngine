@@ -4,12 +4,13 @@ import org.joml.*
 
 object AnyToInt {
 
-    fun getInt(any: Any, index: Int, defaultValue: Int = 0): Int {
+    fun getInt(any: Any?, index: Int, defaultValue: Int = 0): Int {
         return any[index, defaultValue]
     }
 
-    operator fun Any.get(index: Int, defaultValue: Int = 0): Int {
+    operator fun Any?.get(index: Int, defaultValue: Int = 0): Int {
         return when (this) {
+            null -> defaultValue
             is Int -> when (index) {
                 0 -> this.toInt()
                 else -> defaultValue

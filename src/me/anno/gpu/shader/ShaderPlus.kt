@@ -34,10 +34,14 @@ object ShaderPlus {
                 "           if(finalAlpha < 0.01) discard;\n" +
                 "           gl_FragColor.rgb = tint.rgb;\n" +
                 "           break;\n" +
-                "       case ${DrawMode.DEPTH.id}:\n" +
+                "       case ${DrawMode.DEPTH_LOG2_01.id}:\n" +
                 "           if(finalAlpha < 0.01) discard;\n" +
-                "           float depth = 0.5 + 0.04 * log2(zDistance);\n" +
-                "           gl_FragColor = vec4(vec3(depth), finalAlpha);\n" +
+                "           float depth01 = 0.5 + 0.04 * log2(zDistance);\n" +
+                "           gl_FragColor = vec4(depth01, depth01, depth01*depth01, finalAlpha);\n" +
+                "           break;\n" +
+                "       case ${DrawMode.DEPTH_LOG2.id}:\n" +
+                "           if(finalAlpha < 0.01) discard;\n" +
+                "           gl_FragColor = vec4(zDistance, 0.0, zDistance * zDistance, finalAlpha);\n" +
                 "           break;\n" +
                 "       case ${DrawMode.COPY.id}:\n" +
                 "           gl_FragColor = vec4(finalColor, finalAlpha);\n" +
@@ -54,9 +58,10 @@ object ShaderPlus {
         COLOR_SQUARED(0),
         COLOR(1),
         ID(2),
-        DEPTH(3),
-        COPY(4),
-        TINT(5)
+        DEPTH_LOG2_01(3), // does not need a float buffer
+        DEPTH_LOG2(4), // needs a float buffer
+        COPY(5),
+        TINT(6)
     }
 
 }

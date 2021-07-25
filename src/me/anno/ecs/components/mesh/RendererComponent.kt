@@ -6,6 +6,8 @@ import me.anno.gpu.shader.Shader
 
 abstract class RendererComponent: Component() {
 
-    abstract fun defineVertexTransform(shader: Shader, entity: Entity, mesh: Mesh)
+    open fun defineVertexTransform(shader: Shader, entity: Entity, mesh: Mesh) {
+        shader.v1("hasAnimation", 0f)
+    }
 
 }

@@ -5,7 +5,7 @@ import org.apache.commons.imaging.Imaging
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 
-val progress = OS.documents.getChild("IdeaProjects/VideoStudio/progress")!!
+val progress = OS.documents.getChild("IdeaProjects/VideoStudio/progress")
 
 fun main() {
     // this works, but does it work everywhere??...
@@ -17,7 +17,7 @@ fun main() {
         "fav128.ico" // Imaging
     )
     fileNames.forEach {
-        val file = progress.getChild(it)!!
+        val file = progress.getChild(it)
         test(file, ::imageIOTest)
         test(file, ::imagingTest)
     }

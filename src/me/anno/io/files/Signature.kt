@@ -39,6 +39,8 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
         return true
     }
 
+    override fun toString(): String = name
+
     companion object {
 
         fun find(fileReference: FileReference): Signature? {

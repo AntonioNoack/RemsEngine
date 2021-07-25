@@ -401,7 +401,7 @@ object UILayouts {
         ).setChangeListener { DefaultConfig["debug.ui.showFPS"] = it }
 
         val fontSize = style.getSize("fontSize", 15)
-        val spx = ScrollPanelX(createConsole(), Padding.Zero, style, AxisAlignment.MIN)
+        val spx = ScrollPanelX(createConsole(style), Padding.Zero, style, AxisAlignment.MIN)
         val slc = SizeLimitingContainer(spx, fontSize * 25, -1, style)
         slc.padding.top = fontSize / 2
         welcome += slc
@@ -438,14 +438,14 @@ object UILayouts {
 
     }
 
-    fun createReloadWindow(panel: Panel, fullscreen: Boolean): Window {
+    fun createReloadWindow(panel: Panel, fullscreen: Boolean, reload: () -> Unit): Window {
         return object : Window(
             panel, fullscreen,
             if (fullscreen) 0 else mouseX.toInt(),
             if (fullscreen) 0 else mouseY.toInt()
         ) {
             override fun destroy() {
-                createEditorUI()
+                reload()
             }
         }
     }
@@ -473,14 +473,14 @@ object UILayouts {
         // todo option to save/load/restore layout
         options.addAction(configTitle, Dict["Settings", "ui.top.config.settings"]) {
             val panel = ConfigPanel(DefaultConfig, false, style)
-            val window = createReloadWindow(panel, true)
+            val window = createReloadWindow(panel, true) { createEditorUI() }
             panel.create()
             windowStack.push(window)
         }
 
         options.addAction(configTitle, Dict["Style", "ui.top.config.style"]) {
             val panel = ConfigPanel(DefaultConfig.style.values, true, style)
-            val window = createReloadWindow(panel, true)
+            val window = createReloadWindow(panel, true) { createEditorUI() }
             panel.create()
             windowStack.push(window)
         }
@@ -573,7 +573,7 @@ object UILayouts {
         ui += SpacePanel(0, 1, style)
 
         val bottom2 = PanelFrame(style)
-        bottom2 += RemsStudio.createConsole()
+        bottom2 += RemsStudio.createConsole(style)
         bottom2 += RuntimeInfoPanel(style).apply { alignment = AxisAlignment.MAX }.setWeight(1f)
         ui += bottom2
 

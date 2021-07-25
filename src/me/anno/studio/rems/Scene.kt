@@ -30,6 +30,7 @@ import me.anno.gpu.texture.Texture3D
 import me.anno.objects.Camera
 import me.anno.objects.Camera.Companion.DEFAULT_VIGNETTE_STRENGTH
 import me.anno.objects.Transform
+import me.anno.objects.Transform.Companion.drawUICircle
 import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.effects.GaussianBlur
 import me.anno.objects.effects.ToneMappers

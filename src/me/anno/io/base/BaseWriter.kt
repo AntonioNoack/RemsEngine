@@ -172,10 +172,32 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
         force: Boolean = false
     ) {
         if (force || values?.isNotEmpty() == true) {
-            writeObjectArray(self, name, if (values == null) emptyArray<Any?>() as Array<V> else
+            writeObjectArray(self, name, if (values == null) emptyArray<Any>() as Array<V> else
                 Array<ISaveable>(values.size) { values[it] } as Array<V>, force)
         }
     }
+
+    open fun <V : ISaveable> writeNullableObjectList(
+        self: ISaveable?,
+        name: String,
+        values: List<V?>?,
+        force: Boolean = false
+    ) {
+        if (force || values?.isNotEmpty() == true) {
+            writeNullableObjectArray(self, name, if (values == null) emptyArray<Any>() as Array<V> else
+                Array<ISaveable?>(values.size) { values[it] }, force)
+        }
+    }
+
+    /**
+     * saves an array of objects of different classes
+     * */
+    abstract fun <V : ISaveable?> writeNullableObjectArray(
+        self: ISaveable?,
+        name: String,
+        values: Array<V>?,
+        force: Boolean = false
+    )
 
     /**
      * saves an array of objects of different classes
@@ -201,7 +223,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
      * saves an array of objects of one single class
      * all elements are guaranteed to be of the exact same getClassName()
      * */
-    abstract fun <V : ISaveable> writeHomogenousObjectArray(
+    abstract fun <V : ISaveable?> writeHomogenousObjectArray(
         self: ISaveable?,
         name: String,
         values: Array<V>,
@@ -292,7 +314,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                         is FloatArray -> writeFloatArray2D(name, cast(value), forceSaving)
                         is DoubleArray -> writeDoubleArray2D(name, cast(value), forceSaving)
 
-                        is ISaveable -> writeObjectArray(self, name, value as Array<ISaveable>, forceSaving)
+                        is ISaveable -> writeNullableObjectArray(self, name, value as Array<ISaveable?>, forceSaving)
 
                         is Array<*> -> TODO("implement reading 2d array, of string or objects")
 

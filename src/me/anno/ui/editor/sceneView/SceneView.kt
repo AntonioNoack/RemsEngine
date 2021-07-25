@@ -422,7 +422,7 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
         val localY = GFX.height - clickY.toInt()
 
         val idBuffer = getPixels(camera, diameter, localX, localY, width, height, fb, Renderer.idRenderer)
-        val depthBuffer = getPixels(camera, diameter, localX, localY, width, height, fb, Renderer.depthRenderer)
+        val depthBuffer = getPixels(camera, diameter, localX, localY, width, height, fb, Renderer.depthRenderer01)
 
         val depthImportance = 10
         var bestDistance = 256 * depthImportance + diameter * diameter

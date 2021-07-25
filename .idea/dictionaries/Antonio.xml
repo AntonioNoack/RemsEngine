@@ -23,6 +23,7 @@
       <w>blanchedalmond</w>
       <w>blueviolet</w>
       <w>bokeh</w>
+      <w>brdf</w>
       <w>burlywood</w>
       <w>cacheable</w>
       <w>cadetblue</w>
@@ -98,6 +99,7 @@
       <w>glsl</w>
       <w>greenscreen</w>
       <w>greenyellow</w>
+      <w>hdot</w>
       <w>highp</w>
       <w>himmelblau</w>
       <w>homepath</w>
@@ -169,6 +171,8 @@
       <w>memcpy</w>
       <w>memset</w>
       <w>mgtpezy</w>
+      <w>microfacet</w>
+      <w>microfacets</w>
       <w>midnightblue</w>
       <w>mids</w>
       <w>mintcream</w>
@@ -180,6 +184,7 @@
       <w>multisample</w>
       <w>musik</w>
       <w>navajowhite</w>
+      <w>ndot</w>
       <w>ness</w>
       <w>nglfw</w>
       <w>noack</w>
@@ -233,6 +238,7 @@
       <w>slategray</w>
       <w>slategrey</w>
       <w>smoothstep</w>
+      <w>specularly</w>
       <w>springgreen</w>
       <w>starness</w>
       <w>steelblue</w>

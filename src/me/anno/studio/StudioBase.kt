@@ -21,8 +21,6 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.shader.Renderer
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
 import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.input.ShowKeys
@@ -35,6 +33,7 @@ import me.anno.ui.base.Tooltips
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.debug.FPSPanel
 import me.anno.ui.dragging.IDraggable
+import me.anno.ui.style.Style
 import me.anno.utils.Clock
 import me.anno.utils.Maths.clamp
 import me.anno.utils.OS
@@ -70,7 +69,6 @@ abstract class StudioBase(
     open fun onGameLoopEnd() {}
 
     open fun onGameInit() {
-        DefaultConfig.init()
     }
 
     open fun onGameClose() {}
@@ -430,8 +428,7 @@ abstract class StudioBase(
         useFrame(panel0.x, panel0.y, panel0.w, panel0.h, false, null) {
             renderDefault {
 
-                window.buffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                GFX.copy()
+                GFX.copy(window.buffer)
 
                 if (showRedraws) {
                     showRedraws(wasRedrawn)
@@ -508,7 +505,7 @@ abstract class StudioBase(
 
     fun check() = GFX.check()
 
-    fun createConsole(): ConsoleOutputPanel {
+    fun createConsole(style: Style): ConsoleOutputPanel {
         val console = ConsoleOutputPanel(style.getChild("small"))
         // console.fontName = "Segoe UI"
         Logging.console = console

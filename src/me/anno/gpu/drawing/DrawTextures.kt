@@ -2,8 +2,6 @@ package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib
-import me.anno.gpu.ShaderLib.shader3D
-import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.*
 import me.anno.objects.GFXTransform
 import me.anno.objects.modes.UVProjection
@@ -13,12 +11,17 @@ import org.joml.Vector4fc
 
 object DrawTextures {
 
-    fun drawTexture(x: Int, y: Int, w: Int, h: Int, texture: ITexture2D, color: Int, tiling: Vector4fc?) {
+    fun drawTexture(
+        x: Int, y: Int, w: Int, h: Int,
+        texture: ITexture2D, ignoreAlpha: Boolean, color: Int, tiling: Vector4fc?
+    ) {
+        if (w == 0 || h == 0) return
         GFX.check()
         val shader = ShaderLib.flatShaderTexture.value
         shader.use()
         GFXx2D.posSize(shader, x, y, w, h)
         shader.v4("color", color)
+        shader.v1("ignoreTexAlpha", if (ignoreAlpha) 1 else 0)
         if (tiling != null) shader.v4("tiling", tiling)
         else shader.v4("tiling", 1f, 1f, 0f, 0f)
         val tex = texture as? Texture2D
@@ -29,6 +32,10 @@ object DrawTextures {
         )
         GFX.flat01.draw(shader)
         GFX.check()
+    }
+
+    fun drawTexture(x: Int, y: Int, w: Int, h: Int, texture: ITexture2D, color: Int, tiling: Vector4fc?) {
+        drawTexture(x, y, w, h, texture, false, color, tiling)
     }
 
     fun drawTexture(matrix: Matrix4fArrayList, w: Int, h: Int, texture: Texture2D, color: Int, tiling: Vector4fc?) {

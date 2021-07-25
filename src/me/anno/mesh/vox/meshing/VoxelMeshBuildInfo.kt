@@ -10,8 +10,8 @@ class VoxelMeshBuildInfo(
     val palette: IntArray,
     // output
     val vertices: FloatArrayList,
-    val colors: IntArrayList,
-    val normals: FloatArrayList
+    val colors: IntArrayList?,
+    val normals: FloatArrayList?
 ) {
 
     var nx = 0
@@ -24,7 +24,7 @@ class VoxelMeshBuildInfo(
     var oy = 0f
     var oz = 0f
 
-    fun setOffset(x: Float, y: Float, z: Float){
+    fun setOffset(x: Float, y: Float, z: Float) {
         ox = x
         oy = y
         oz = z
@@ -44,30 +44,36 @@ class VoxelMeshBuildInfo(
         vertices += ox + v.x
         vertices += oy + v.y
         vertices += oz + v.z
-        normals += nx
-        normals += ny
-        normals += ny
-        colors.add(color)
+        if (normals != null) {
+            normals += nx
+            normals += ny
+            normals += ny
+        }
+        colors?.add(color)
     }
 
     fun add(v: Vector3f) {
         vertices += ox + v.x
         vertices += oy + v.y
         vertices += oz + v.z
-        normals += nx
-        normals += ny
-        normals += ny
-        colors.add(color)
+        if (normals != null) {
+            normals += nx
+            normals += ny
+            normals += ny
+        }
+        colors?.add(color)
     }
 
     fun add(x: Float, y: Float, z: Float) {
         vertices += ox + x
         vertices += oy + y
         vertices += oz + z
-        normals += nx
-        normals += ny
-        normals += ny
-        colors.add(color)
+        if (normals != null) {
+            normals += nx
+            normals += ny
+            normals += ny
+        }
+        colors?.add(color)
     }
 
 

@@ -30,30 +30,39 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
 
     var currentTab: SceneTab? = null
 
-    fun open(prefab: EntityPrefab) {
+    fun open(prefab: EntityPrefab): SceneTab {
         val opened = children3.firstOrNull { it.file == prefab.ownFile }
-        if (opened != null) {
+        return if (opened != null) {
             open(opened)
+            opened
         } else {
-            GFX.addGPUTask(1) {
-                val tab = SceneTab(prefab)
-                content += tab
-                open(tab)
-            }
+            val tab = SceneTab(prefab)
+            content += tab
+            open(tab)
+            tab
         }
     }
 
-    fun open(file: FileReference) {
+    fun open(file: FileReference): SceneTab {
         val opened = children3.firstOrNull { it.file == file }
-        if (opened != null) {
+        return if (opened != null) {
             open(opened)
+            opened
         } else {
-            GFX.addGPUTask(1) {
-                val tab = SceneTab(file)
-                content += tab
-                open(tab)
-            }
+            val tab = SceneTab(file)
+            content += tab
+            open(tab)
+            tab
         }
+    }
+
+    fun add(file: FileReference): SceneTab {
+        val opened = children3.firstOrNull { it.file == file }
+        return if (opened == null) {
+            val tab = SceneTab(file)
+            content += tab
+            tab
+        } else opened
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {

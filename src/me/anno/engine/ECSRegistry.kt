@@ -6,6 +6,7 @@ import me.anno.ecs.components.ScriptComponent
 import me.anno.ecs.components.anim.Skeleton
 import me.anno.ecs.components.camera.CameraComponent
 import me.anno.ecs.components.collider.*
+import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.components.test.TypeTestComponent
@@ -27,15 +28,19 @@ object ECSRegistry {
 
         registerCustomClass(CameraComponent())
 
+        // meshes and rendering
         registerCustomClass(Mesh())
         registerCustomClass(MeshComponent())
         registerCustomClass(MeshRenderer())
         registerCustomClass(AnimRenderer())
 
-        registerCustomClass(Rigidbody())
+        // lights
+        registerCustomClass(PointLight())
 
+        // others
         registerCustomClass(ScriptComponent())
 
+        // colliders
         registerCustomClass(BoxCollider())
         registerCustomClass(CapsuleCollider())
         registerCustomClass(ConeCollider())
@@ -44,10 +49,12 @@ object ECSRegistry {
         registerCustomClass(MeshCollider())
         registerCustomClass(SphereCollider())
 
+        // skeletons and such
         registerCustomClass(MorphTarget())
         registerCustomClass(Skeleton())
         registerCustomClass(Bone())
 
+        // prefab system
         registerCustomClass(ChangeHistory())
         registerCustomClass(ChangeSetEntityAttribute())
         registerCustomClass(ChangeSetComponentAttribute())
@@ -56,7 +63,12 @@ object ECSRegistry {
 
         registerCustomClass(EntityPrefab())
 
+        // project
+        registerCustomClass(GameEngineProject())
+
+        // physics
         registerCustomClass(BulletPhysics())
+        registerCustomClass(Rigidbody())
 
         if (Build.isDebug) {
             // test classes

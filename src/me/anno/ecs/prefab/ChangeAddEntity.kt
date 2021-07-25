@@ -8,6 +8,8 @@ import me.anno.utils.files.LocalFile.toGlobalFile
 
 class ChangeAddEntity(var source: FileReference) : Change(0) {
 
+    constructor(path: Path) : this(path, InvalidRef)
+
     constructor(path: Path, source: FileReference) : this(source) {
         this.path = path
     }
@@ -30,9 +32,7 @@ class ChangeAddEntity(var source: FileReference) : Change(0) {
 
     override fun applyChange(element: Any?, name: String?) {
         element as Entity
-        val child = if (source != InvalidRef) {
-            EntityPrefab.createOrLoadScene(source).createInstance()
-        } else Entity()
+        val child = EntityPrefab.loadPrefab(source)?.createInstance() ?: Entity()
         element.add(child)
     }
 

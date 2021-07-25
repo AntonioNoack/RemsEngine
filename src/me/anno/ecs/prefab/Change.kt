@@ -3,7 +3,6 @@ package me.anno.ecs.prefab
 import me.anno.ecs.Entity
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
-import java.lang.NullPointerException
 
 // todo how do we reference (as variables) to other Entities? probably a path would be correct...
 // todo the same for components
@@ -24,9 +23,13 @@ abstract class Change(val priority: Int) : Saveable() {
             // we can go deeper :)
             if (delta == -1 && this is ChangeSetComponentAttribute) {
                 // decide based on type
+                if (childIndex !in entity.components.indices)
+                    throw IndexOutOfBoundsException("Missing path in $this, only ${entity.components.size} children available")
                 applyChange(entity.components[childIndex], path.name)
             } else {
                 // just go deeper
+                if (childIndex !in entity.children.indices)
+                    throw IndexOutOfBoundsException("Missing path in $this, only ${entity.children.size} children available")
                 apply(entity.children[childIndex], pathIndex + 1)
             }
         } else {

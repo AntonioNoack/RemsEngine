@@ -446,21 +446,6 @@ open class Transform() : Saveable(),
         }
     }
 
-    fun drawUICircle(stack: Matrix4fArrayList, scale: Float, inner: Float, color: Vector4fc) {
-        // draw a small symbol to indicate pivot
-        if (!isFinalRendering) {
-            stack.next {
-                /*val w = GFX.windowWidth
-                val h = GFX.windowHeight
-                stack.m00(scale*h/w);stack.m01(0f);stack.m02(0f)
-                stack.m10(0f);stack.m11(scale);stack.m12(0f)
-                stack.m20(0f);stack.m21(0f);stack.m22(scale)*/
-                stack.scale(scale)
-                draw3DCircle(null, 0.0, stack, inner, 0f, 360f, color)
-            }
-        }
-    }
-
     open fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
         drawUICircle(stack, 0.02f, 0.7f, color)
     }
@@ -838,6 +823,22 @@ open class Transform() : Saveable(),
     open fun getRelativeSize() = Vector3f(1f)
 
     companion object {
+
+        fun drawUICircle(stack: Matrix4fArrayList, scale: Float = 0.02f, inner: Float = 0.7f, color: Vector4fc) {
+            // draw a small symbol to indicate pivot
+            if (!isFinalRendering) {
+                stack.next {
+                    /*val w = GFX.windowWidth
+                    val h = GFX.windowHeight
+                    stack.m00(scale*h/w);stack.m01(0f);stack.m02(0f)
+                    stack.m10(0f);stack.m11(scale);stack.m12(0f)
+                    stack.m20(0f);stack.m21(0f);stack.m22(scale)*/
+                    stack.scale(scale)
+                    draw3DCircle(null, 0.0, stack, inner, 0f, 360f, color)
+                }
+            }
+        }
+
         // these values MUST NOT be changed
         // they are universal constants, and are used
         // within shaders, too

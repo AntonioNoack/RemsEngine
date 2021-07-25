@@ -562,6 +562,30 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
+    override fun <V : ISaveable?> writeNullableObjectArray(
+        self: ISaveable?,
+        name: String,
+        values: Array<V>?,
+        force: Boolean
+    ) {
+        if (force || values?.isNotEmpty() == true) {
+            if (values != null && values.isNotEmpty()) {
+                val firstType = values.first()?.className
+                val allSameType = values.all { it?.className == firstType }
+                if (firstType != null && allSameType) {
+                    writeHomogenousObjectArray(self, name, values, force)
+                } else {
+                    writeGenericArray(name, values, force, OBJECT_ARRAY) {
+                        writeObject(null, null, it, true)
+                    }
+                }
+            } else {
+                writeAttributeStart(name, OBJECT_ARRAY)
+                output.writeInt(0)
+            }
+        }
+    }
+
     override fun <V : ISaveable> writeObjectArray2D(
         self: ISaveable?,
         name: String,
@@ -577,7 +601,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun <V : ISaveable> writeHomogenousObjectArray(
+    override fun <V : ISaveable?> writeHomogenousObjectArray(
         self: ISaveable?,
         name: String,
         values: Array<V>,
@@ -588,7 +612,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
             writeTypeString(values.firstOrNull()?.className ?: "")
             output.writeInt(values.size)
             for (element in values) {
-                element.save(this)
+                element!!.save(this)
                 writeObjectEnd()
             }
         }

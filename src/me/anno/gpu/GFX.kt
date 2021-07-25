@@ -7,8 +7,12 @@ import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.ShaderLib.copyShader
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.SimpleBuffer
+import me.anno.gpu.framebuffer.Frame
+import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.objects.Camera
@@ -263,6 +267,12 @@ object GFX : GFXBase1() {
 
     fun toRadians(f: Float) = Math.toRadians(f.toDouble()).toFloat()
     fun toRadians(f: Double) = Math.toRadians(f)
+
+    fun copy(buffer: Framebuffer) {
+        Frame.bind()
+        buffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+        copy()
+    }
 
     fun copy(alpha: Float) {
         check()

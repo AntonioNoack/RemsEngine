@@ -89,7 +89,7 @@ abstract class PartialWriter(respectsDefaultValues: Boolean) : BaseWriter(respec
 
     override fun <V : ISaveable> writeObjectArray(self: ISaveable?, name: String, values: Array<V>?, force: Boolean) {
         values ?: return
-        for(obj in values) obj.save(this)
+        for (obj in values) obj.save(this)
     }
 
     override fun <V : ISaveable> writeObjectArray2D(
@@ -98,20 +98,29 @@ abstract class PartialWriter(respectsDefaultValues: Boolean) : BaseWriter(respec
         values: Array<Array<V>>,
         force: Boolean
     ) {
-        for(objects in values){
-            for(obj in objects){
+        for (objects in values) {
+            for (obj in objects) {
                 obj.save(this)
             }
         }
     }
 
-    override fun <V : ISaveable> writeHomogenousObjectArray(
+    override fun <V : ISaveable?> writeNullableObjectArray(
+        self: ISaveable?,
+        name: String,
+        values: Array<V>?,
+        force: Boolean
+    ) {
+        values?.forEach { it?.save(this) }
+    }
+
+    override fun <V : ISaveable?> writeHomogenousObjectArray(
         self: ISaveable?,
         name: String,
         values: Array<V>,
         force: Boolean
     ) {
-        values.forEach { it.save(this) }
+        values.forEach { it?.save(this) }
     }
 
     override fun writeListStart() {}

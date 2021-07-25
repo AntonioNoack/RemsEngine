@@ -133,7 +133,7 @@ open class Shader(
                         "precision mediump float;\n" +
                         varyings.joinToString("\n") { "${it.modifiers} in  ${it.type} ${it.fShaderName};" } +
                         "\n" +
-                        (if (fragment.contains("gl_FragColor") && glslVersion == DefaultGLSLVersion) {
+                        (if (!fragment.contains("out ") && glslVersion == DefaultGLSLVersion) {
                             "" +
                                     "out vec4 glFragColor;" +
                                     fragment.replace("gl_FragColor", "glFragColor")

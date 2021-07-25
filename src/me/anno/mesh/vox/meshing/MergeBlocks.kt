@@ -1,13 +1,13 @@
 package me.anno.mesh.vox.meshing
 
-import me.anno.mesh.vox.VoxelModel
+import me.anno.mesh.vox.model.VoxelModel
 import me.anno.mesh.vox.meshing.BakeMesh.getSizeInfo
 
 object MergeBlocks {
 
     fun mergeBlocks(
         blocks: IntArray,
-        colors: ByteArray,
+        colors: IntArray,
         model: VoxelModel
     ) {
 

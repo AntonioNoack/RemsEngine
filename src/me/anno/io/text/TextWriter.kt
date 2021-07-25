@@ -2,6 +2,7 @@ package me.anno.io.text
 
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.FileReference
 import me.anno.utils.types.Strings
 import me.anno.utils.types.Strings.isBlank2
 import org.joml.*
@@ -614,7 +615,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
 
     override fun writeVector2d(name: String, value: Vector2dc, force: Boolean) {
         if (force || value.x() != 0.0 || value.y() != 0.0) {
-            writeAttributeStart("v2", name)
+            writeAttributeStart("v2d", name)
             writeVector2d(value)
         }
     }
@@ -625,7 +626,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
 
     override fun writeVector3d(name: String, value: Vector3dc, force: Boolean) {
         if (force || value.x() != 0.0 || value.y() != 0.0 || value.z() != 0.0) {
-            writeAttributeStart("v3", name)
+            writeAttributeStart("v3d", name)
             writeVector3d(value)
         }
     }
@@ -636,7 +637,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
 
     override fun writeVector4d(name: String, value: Vector4dc, force: Boolean) {
         if (force || value.x() != 0.0 || value.y() != 0.0 || value.z() != 0.0 || value.w() != 0.0) {
-            writeAttributeStart("v4", name)
+            writeAttributeStart("vd4", name)
             writeVector4d(value)
         }
     }
@@ -795,7 +796,37 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         }
     }
 
-    private fun <V : ISaveable> writeHeterogeneousArray(name: String, values: Array<V>) {
+    override fun <V : ISaveable?> writeNullableObjectArray(
+        self: ISaveable?,
+        name: String,
+        values: Array<V>?,
+        force: Boolean
+    ) {
+        if (force || values?.isNotEmpty() == true) {
+            if (values == null || values.isEmpty()) {
+                writeAttributeStart("*[]", name)
+                data.append("[0]")
+            } else {
+                val firstType = values.first()?.className
+                val allHaveSameType = values.all { it?.className == firstType }
+                if (firstType != null && allHaveSameType) {
+                    writeAttributeStart("$firstType[]", name)
+                    open(true)
+                    data.append(values.size)
+                    for (obj in values) {
+                        data.append(',')
+                        // self is null, because later init is not allowed
+                        writeObject(null, "", obj, true)
+                    }
+                    close(true)
+                } else {
+                    writeHeterogeneousArray(name, values)
+                }
+            }
+        }
+    }
+
+    private fun <V : ISaveable?> writeHeterogeneousArray(name: String, values: Array<V>) {
         writeAttributeStart("*[]", name)
         open(true)
         data.append(values.size)
@@ -816,12 +847,12 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         TODO("Not yet implemented")
     }
 
-    override fun <V : ISaveable> writeHomogenousObjectArray(
+    override fun <V : ISaveable?> writeHomogenousObjectArray(
         self: ISaveable?,
         name: String,
         values: Array<V>,
         force: Boolean
-    ) = writeObjectArray(self, name, values, force)
+    ) = writeNullableObjectArray(self, name, values, force)
 
     override fun writePointer(name: String?, className: String, ptr: Int) {
         writeAttributeStart(className, name)
@@ -854,6 +885,14 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
             writer.add(data)
             writer.writeAllInList()
             return writer.toString()
+        }
+
+        fun save(data: ISaveable, beautify: Boolean, file: FileReference) {
+            file.writeText(toText(data, beautify))
+        }
+
+        fun save(data: List<ISaveable>, beautify: Boolean, file: FileReference) {
+            file.writeText(toText(data, beautify))
         }
 
         /*fun toBuilder(data: ISaveable, beautify: Boolean): StringBuilder2 {

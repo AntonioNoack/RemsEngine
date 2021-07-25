@@ -15,7 +15,7 @@ import java.util.Map;
  */
 public class XmlNode {
 
-	private String name;
+	private final String name;
 	private Map<String, String> attributes;
 	private String data;
 	private Map<String, List<XmlNode>> childNodes;
@@ -144,13 +144,9 @@ public class XmlNode {
 	 */
 	protected void addChild(XmlNode child) {
 		if (childNodes == null) {
-			childNodes = new HashMap<String, List<XmlNode>>();
+			childNodes = new HashMap<>();
 		}
-		List<XmlNode> list = childNodes.get(child.name);
-		if (list == null) {
-			list = new ArrayList<XmlNode>();
-			childNodes.put(child.name, list);
-		}
+		List<XmlNode> list = childNodes.computeIfAbsent(child.name, k -> new ArrayList<>());
 		list.add(child);
 	}
 

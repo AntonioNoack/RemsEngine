@@ -1,4 +1,4 @@
-package me.anno.mesh.vox
+package me.anno.mesh.vox.model
 
 // a different implementation could use oct-trees
 class DenseVoxelModel(sizeX: Int, sizeY: Int, sizeZ: Int, val data: ByteArray) : VoxelModel(sizeX, sizeY, sizeZ) {

@@ -9,7 +9,6 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.io.text.TextReader
-import me.anno.io.text.TextWriter
 import me.anno.objects.inspectable.Inspectable
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
@@ -68,13 +67,16 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
     // for the UI
     override var isCollapsed = false
 
+    // assigned and tested for click checks
+    var clickId = 0
+
     fun update() {
         for (component in components) component.onUpdate()
         for (child in children) child.update()
         // todo if rigidbody, calculate interpolated transform
     }
 
-    fun updateTransform(){
+    fun updateTransform() {
         transform.update(parent?.transform)
         children.forEach { it.updateTransform() }
     }
@@ -253,7 +255,7 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
     // however, when we are only editing prefabs, it would be possible :)
 
     fun pathInRoot(root: Entity): ArrayList<Int> {
-        if(this == root) return arrayListOf()
+        if (this == root) return arrayListOf()
         val parent = parent
         return if (parent != null) {
             val ownIndex = parent.children.indexOf(this@Entity)

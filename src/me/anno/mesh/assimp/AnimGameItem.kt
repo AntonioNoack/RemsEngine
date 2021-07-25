@@ -66,30 +66,7 @@ class AnimGameItem(
         GL21.glUniformMatrix4x3fv(location, false, matrixBuffer)
     }
 
-    fun get(src: Matrix4x3f, dst: FloatBuffer) {
-        src.get(dst)
-    }
 
-
-    fun get(src: Matrix4f, dst: FloatBuffer) {
-
-        dst.put(src.m00())
-        dst.put(src.m01())
-        dst.put(src.m02())
-
-        dst.put(src.m10())
-        dst.put(src.m11())
-        dst.put(src.m12())
-
-        dst.put(src.m20())
-        dst.put(src.m21())
-        dst.put(src.m22())
-
-        dst.put(src.m30())
-        dst.put(src.m31())
-        dst.put(src.m32())
-
-    }
 
     companion object {
 
@@ -98,7 +75,29 @@ class AnimGameItem(
         val matrixBuffer = MemoryUtil.memAllocFloat(matrixSize * maxBones)
         val tmpBuffer = MemoryUtil.memAllocFloat(matrixSize)
 
+        fun get(src: Matrix4x3f, dst: FloatBuffer) {
+            src.get(dst)
+        }
 
+        fun get(src: Matrix4f, dst: FloatBuffer) {
+
+            dst.put(src.m00())
+            dst.put(src.m01())
+            dst.put(src.m02())
+
+            dst.put(src.m10())
+            dst.put(src.m11())
+            dst.put(src.m12())
+
+            dst.put(src.m20())
+            dst.put(src.m21())
+            dst.put(src.m22())
+
+            dst.put(src.m30())
+            dst.put(src.m31())
+            dst.put(src.m32())
+
+        }
 
         fun getScaleFromAABB(aabb: AABBd): Float {
             // calculate the scale, such that everything can be visible

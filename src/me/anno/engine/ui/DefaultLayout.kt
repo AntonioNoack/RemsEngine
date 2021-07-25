@@ -9,7 +9,6 @@ import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.cutting.CuttingView
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.graphs.GraphEditor
-import me.anno.ui.editor.sceneView.SceneView
 import me.anno.ui.style.Style
 
 // todo offer to clip to a certain aspect ratio
@@ -35,8 +34,7 @@ object DefaultLayout {
         treeFiles += CustomContainer(ECSTreeView(libraryBase, isGaming, style), library, style)
         treeFiles += CustomContainer(FileExplorer(projectFile, style), library, style)
         animationWindow.add(CustomContainer(treeFiles, library, style), 1f)
-        animationWindow.add(CustomContainer(SceneView(style), library, style), 1f)
-        animationWindow.add(CustomContainer(ECSSceneView(world, style), library, style), 1f)
+        animationWindow.add(CustomContainer(RenderView(world, style), library, style), 3f)
         animationWindow.add(CustomContainer(PropertyInspector({ libraryBase.selection }, style), library, style), 1f)
         animationWindow.setWeight(1f)
 

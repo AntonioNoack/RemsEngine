@@ -13,6 +13,7 @@ import org.apache.logging.log4j.LogManager
 import org.lwjgl.openal.AL
 import org.lwjgl.openal.ALC
 import org.lwjgl.openal.ALC10.*
+import org.lwjgl.openal.ALCCapabilities
 import org.lwjgl.openal.EXTDisconnect.ALC_CONNECTED
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
@@ -145,17 +146,39 @@ object AudioManager {
     }
 
     fun init() {
+
         openALSession++ // new session
-        // gibt nur "OpenAL Soft" auf Windows zurück -> relativ nutzlos
+
+        // only returns "OpenAL Soft" on Windows -> relatively useless
         // LOGGER.info(alcGetString(0L, ALC_DEFAULT_DEVICE_SPECIFIER))
-        device = alcOpenDevice(null as ByteBuffer?)
-        if (device == 0L) throw IllegalStateException("Failed to open default OpenAL device")
-        val deviceCaps = ALC.createCapabilities(device)
-        context = alcCreateContext(device, null as IntBuffer?)
-        if (context == 0L) throw IllegalStateException("Failed to create OpenAL context")
+        var deviceCaps: ALCCapabilities
+
+        var hasWarned = false
+        while (true) {
+            device = alcOpenDevice(null as ByteBuffer?)
+            if (device != 0L) {
+                deviceCaps = ALC.createCapabilities(device)
+                context = alcCreateContext(device, null as IntBuffer?)
+                if (context != 0L) break
+            }
+            if (!hasWarned) {
+                LOGGER.warn(
+                    if (device == 0L) "Failed to open default OpenAL device"
+                    else "Failed to create OpenAL context"
+                )
+                hasWarned = true
+            }
+            Thread.sleep(500)
+        }
+
         alcMakeContextCurrent(context)
         AL.createCapabilities(deviceCaps)
         ALBase.check()
+
+        if (hasWarned) {
+            LOGGER.info("Succeeded creating audio context")
+        }
+
     }
 
     fun destroy() {

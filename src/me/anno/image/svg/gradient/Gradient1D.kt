@@ -6,11 +6,10 @@ import me.anno.io.xml.XMLElement
 import me.anno.utils.Color.mulAlpha
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing.parseColor
-import me.anno.utils.LOGGER
 import me.anno.utils.types.Vectors.print
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
 import java.util.*
-import kotlin.collections.ArrayList
 
 // todo sub-tesselation and per-vertex colors?
 // todo a + bx + cy, and color0 - color1? looks sensible :)
@@ -21,6 +20,10 @@ import kotlin.collections.ArrayList
 // vec4 c0, c1, c2, c3
 
 open class Gradient1D {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(Gradient1D::class)
+    }
 
     constructor()
 
@@ -154,7 +157,7 @@ open class Gradient1D {
     fun parseColor(stopColor: String?, stopOpacity: String?): Int? {
         var color = if (stopColor != null) {
             val parsed = parseColor(stopColor)
-            if(parsed == null) LOGGER.warn("Could not parse color $parsed")
+            if (parsed == null) LOGGER.warn("Could not parse color $parsed")
             parsed ?: return null
         } else return null
         if (stopOpacity != null) {

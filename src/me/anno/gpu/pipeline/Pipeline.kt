@@ -1,15 +1,20 @@
 package me.anno.gpu.pipeline
 
 import me.anno.ecs.Entity
-import me.anno.ecs.Transform
+import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.MeshRenderer
 import me.anno.ecs.components.mesh.RendererComponent
+import me.anno.gpu.DepthMode
+import me.anno.gpu.ShaderLib.pbrModelShader
+import me.anno.gpu.blending.BlendMode
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import org.joml.Matrix4f
 import org.joml.Vector3d
+import org.lwjgl.opengl.GL11.GL_FRONT
 
 // todo idea: the scene rarely changes -> we can reuse it, and just update the uniforms
 // and the graph may be deep, however meshes may be only in parts of the tree
@@ -25,14 +30,33 @@ class Pipeline : Saveable() {
     // todo or by distance...
 
     val stages = ArrayList<PipelineStage>()
+
+    val lightPseudoStage = PipelineStage(
+        "lights", PipelineStage.Sorting.NO_SORTING, BlendMode.PURE_ADD,
+        DepthMode.LESS, false, GL_FRONT, pbrModelShader
+    )
+    private val lightPseudoRenderer = MeshRenderer()
+
     lateinit var defaultStage: PipelineStage
 
-    fun add(mesh: Mesh?, renderer: RendererComponent, entity: Entity) {
+    fun addMesh(mesh: Mesh?, renderer: RendererComponent, entity: Entity) {
         mesh ?: return
-        for ((index, material) in mesh.materials.withIndex()) {
-            val stage = material.pipelineStage ?: defaultStage
-            stage.add(renderer, mesh, entity, index)
+        val materials = mesh.materials
+        if (materials.isEmpty()) {
+            val stage = defaultStage
+            stage.add(renderer, mesh, entity, 0)
+        } else {
+            for ((index, material) in mesh.materials.withIndex()) {
+                val stage = material.pipelineStage ?: defaultStage
+                stage.add(renderer, mesh, entity, index)
+            }
         }
+    }
+
+    fun addLight(mesh: Mesh?, entity: Entity) {
+        mesh ?: return
+        val stage = lightPseudoStage
+        stage.add(lightPseudoRenderer, mesh, entity, 0)
     }
 
     // todo collect all buffers + materials, which need to be drawn at a certain stage, and then draw them together
@@ -43,6 +67,7 @@ class Pipeline : Saveable() {
     }
 
     fun reset() {
+        lightPseudoStage.reset()
         for (stage in stages) {
             stage.reset()
         }
@@ -54,8 +79,12 @@ class Pipeline : Saveable() {
             if (renderer != null) {
                 val meshComponents = entity.getComponents<MeshComponent>(false)
                 for (meshComponent in meshComponents) {
-                    add(meshComponent.mesh, renderer, entity)
+                    addMesh(meshComponent.mesh, renderer, entity)
                 }
+            }
+            val lights = entity.getComponents<LightComponent>(false)
+            for (light in lights) {
+                addLight(light.getLightPrimitive(), entity)
             }
             false
         }

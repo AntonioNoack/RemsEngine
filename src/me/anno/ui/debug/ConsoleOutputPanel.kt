@@ -13,7 +13,6 @@ import me.anno.ui.debug.console.COLine
 import me.anno.ui.debug.console.ConsoleLogFullscreen
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.mixARGB
-import java.util.logging.Level
 import kotlin.math.min
 
 // todo second console output panel, which has the default font?
@@ -33,22 +32,16 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
                 windowStack.pop().destroy()
             }
             Logging.lastConsoleLines.reversed().forEach { msg ->
-                val level = if (msg.startsWith('[')) {
+                val color = if (msg.startsWith('[')) {
                     when (msg.substring(0, min(4, msg.length))) {
-                        "[INF" -> Level.INFO
-                        "[WAR" -> Level.WARNING
-                        "[ERR" -> Level.SEVERE
-                        "[DEB", "[FIN" -> Level.FINE
-                        else -> Level.INFO
-                    }
-                } else Level.INFO
-                val color = when (level) {
-                    Level.FINE -> 0x77ff77
-                    Level.SEVERE -> 0xff0000
-                    Level.WARNING -> 0xffff00
-                    Level.INFO -> 0xffffff
-                    else -> -1
-                } or DefaultStyle.black
+                        "[INF" -> 0xffffff
+                        "[WAR" -> 0xffff00
+                        "[ERR" -> 0xff0000
+                        "[DEB",
+                        "[FIN" -> 0x77ff77
+                        else -> -1
+                    } or DefaultStyle.black
+                } else -1
                 val panel = COLine(list, msg, style)
                 panel.focusTextColor = color
                 panel.textColor = mixARGB(panel.textColor, color, 0.5f)

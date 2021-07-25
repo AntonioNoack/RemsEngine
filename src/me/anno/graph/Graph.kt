@@ -4,25 +4,30 @@ import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 
+
+// todo for editing just copy them
+// todo for the final shader graph, maybe just use versions, e.g. v01, v02, and the user can select the base for their graph
+
+
 // todo graph panel: connect different types of nodes
 // todo edit properties inside the nodes
 // todo move the nodes around
 
 
-// todo shader graph
-// todo render pipeline graph
-// todo scripting graphs
-// todo animations graphs
+// todo shader graph = dependency & processing graph
+// todo render pipeline graph = dependency & processing graph
+// todo scripting graphs = flow graph
+// todo animations graphs = state graphs
 // todo play graphs/story-graphs, e.g. with Q&As
 
-class Graph : NamedSaveable() {
+open class Graph : NamedSaveable() {
 
     var inputs = ArrayList<Node>()
     var outputs = ArrayList<Node>()
 
     // nodes without connections
     // could be all nodes as well, wouldn't really hurt space, because we save pointers anyways
-    var tanglingNodes = ArrayList<Node>()
+    var nodes = ArrayList<Node>()
 
     // todo we need a graph ui to display these
 
@@ -34,14 +39,14 @@ class Graph : NamedSaveable() {
         super.save(writer)
         writer.writeObjectList(this, "inputs", inputs)
         writer.writeObjectList(this, "outputs", outputs)
-        writer.writeObjectList(this, "tangling", tanglingNodes)
+        writer.writeObjectList(this, "nodes", nodes)
     }
 
     override fun readObjectArray(name: String, values: Array<ISaveable?>) {
         when (name) {
             "inputs" -> inputs = ArrayList(values.filterIsInstance<Node>())
             "outputs" -> outputs = ArrayList(values.filterIsInstance<Node>())
-            "tangling" -> tanglingNodes = ArrayList(values.filterIsInstance<Node>())
+            "nodes" -> nodes = ArrayList(values.filterIsInstance<Node>())
             else -> super.readObjectArray(name, values)
         }
     }

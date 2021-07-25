@@ -230,8 +230,13 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
                     val data = loadModel(file, "vox", this, { meshData ->
                         val reader = VOXReader()
                         reader.read(file)
+                        // reader.toEntity()
+                        // alternatively for testing:
+                        // reader.toEntityPrefab().createInstance()
+                        // works :)
+                        val entity = reader.toEntity()
                         meshData.assimpModel = AnimGameItem(
-                            reader.toEntity(), reader.meshes,
+                            entity, reader.meshes,
                             emptyList(), emptyMap()
                         )
                     }) { it.assimpModel }

@@ -50,6 +50,12 @@ object RenderState {
         }
     }
 
+    val depthMask = object : SecureStack<Boolean>(true) {
+        override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
+            glDepthMask(newValue)
+        }
+    }
+
     val geometryShader = SecureStack<GeoShader?>(null)
 
     inline fun withEqualDepth(func: () -> Unit) {
@@ -148,6 +154,19 @@ object RenderState {
 
     inline fun useFrame(buffer: Framebuffer?, render: () -> Unit) =
         useFrame(buffer, currentRenderer, render)
+
+    inline fun useFrame(w: Int, h: Int, changeSize: Boolean, buffer: Framebuffer?, render: () -> Unit) =
+        useFrame(0, 0, w, h, changeSize, buffer, currentRenderer, render)
+
+    inline fun useFrame(
+        w: Int,
+        h: Int,
+        changeSize: Boolean,
+        buffer: Framebuffer?,
+        renderer: Renderer,
+        render: () -> Unit
+    ) =
+        useFrame(0, 0, w, h, changeSize, buffer, renderer, render)
 
     inline fun useFrame(x: Int, y: Int, w: Int, h: Int, changeSize: Boolean, render: () -> Unit) =
         useFrame(x, y, w, h, changeSize, currentBuffer, currentRenderer, render)

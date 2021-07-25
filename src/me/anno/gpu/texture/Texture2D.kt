@@ -12,6 +12,7 @@ import me.anno.objects.modes.RotateJPEG
 import me.anno.utils.Threads.threadWithName
 import me.anno.utils.pooling.ByteArrayPool
 import me.anno.utils.pooling.ByteBufferPool
+import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
@@ -21,7 +22,10 @@ import org.lwjgl.opengl.GL32.glTexImage2DMultisample
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferByte
 import java.awt.image.DataBufferInt
-import java.nio.*
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import java.nio.FloatBuffer
+import java.nio.IntBuffer
 
 open class Texture2D(
     val name: String,
@@ -40,7 +44,7 @@ open class Texture2D(
     private val withMultisampling get() = samples > 1
 
     private val tex2D = if (withMultisampling) GL_TEXTURE_2D_MULTISAMPLE else GL_TEXTURE_2D
-    var state: Triple<Texture2D, Int, Boolean>? = null
+    val state get(): Int = pointer * 4 + isDestroyed.toInt(2) + isCreated.toInt(1)
 
     var pointer = -1
 
@@ -68,7 +72,6 @@ open class Texture2D(
         if (pointer < 0) {
             GFX.check()
             pointer = createTexture()
-            state = Triple(this, pointer, isCreated)
             // many textures can be created by the console log and the fps viewer constantly xD
             // maybe we should use allocation free versions there xD
             GFX.check()
@@ -114,7 +117,7 @@ open class Texture2D(
     }
 
     fun create(name: String, createImage: () -> BufferedImage, forceSync: Boolean) {
-        if(isDestroyed) throw RuntimeException("Texture $name must be reset first")
+        if (isDestroyed) throw RuntimeException("Texture $name must be reset first")
         val requiredBudget = textureBudgetUsed + w * h
         if ((requiredBudget > textureBudgetTotal && !loadTexturesSync.peek()) || Thread.currentThread() != glThread) {
             if (forceSync) {
@@ -311,7 +314,7 @@ open class Texture2D(
     }
 
     private fun beforeUpload(channels: Int, size: Int) {
-        if(isDestroyed) throw RuntimeException("Texture is already destroyed, call reset() if you want to stream it")
+        if (isDestroyed) throw RuntimeException("Texture is already destroyed, call reset() if you want to stream it")
         checkSize(channels, size)
         GFX.check()
         ensurePointer()
@@ -519,15 +522,11 @@ open class Texture2D(
         GFX.check()
     }
 
-    private fun checkSize(channels: Int, buffer: Buffer) {
-        checkSize(channels, buffer.remaining())
-    }
-
     private fun checkSize(channels: Int, size: Int) {
         if (size < w * h * channels) throw IllegalArgumentException("Incorrect size, ${w * h * channels} vs ${size}!")
     }
 
-    fun reset(){
+    fun reset() {
         isDestroyed = false
     }
 
@@ -577,7 +576,7 @@ open class Texture2D(
         private var creationIndex = 0
         private val creationIndices = IntArray(16)
 
-        private fun createTexture(): Int {
+        fun createTexture(): Int {
             GFX.checkIsGFXThread()
             if (creationIndex == 0 || creationIndex == creationIndices.size) {
                 creationIndex = 0

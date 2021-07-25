@@ -294,8 +294,11 @@ public class GFXBase0 {
 
         setupDebugging();
 
-        GFX.gameInit.invoke();
+        DefaultConfig.INSTANCE.init();
+
         renderStep0();
+
+        GFX.gameInit.invoke();
 
         long lastTime = System.nanoTime();
 

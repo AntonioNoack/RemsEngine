@@ -12,7 +12,6 @@ import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
-import me.anno.utils.LOGGER
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.mix
 import org.joml.AABBf
@@ -49,7 +48,8 @@ object SignedDistanceField {
 
     private fun vec2d(x: Float, y: Float) = Vector2f(x, y)
 
-    fun createTexture(font: me.anno.ui.base.Font, text: String, round: Boolean) = createTexture(getFont(font), text, round)
+    fun createTexture(font: me.anno.ui.base.Font, text: String, round: Boolean) =
+        createTexture(getFont(font), text, round)
 
     fun createTexture(font: AWTFont, text: String, round: Boolean) = createTexture(font.font, text, round)
 
@@ -218,14 +218,14 @@ object SignedDistanceField {
 
     fun createBuffer(font: Font, text: String, roundEdges: Boolean): FloatBuffer? {
 
-        val contours = calculateContours(font,  text)
+        val contours = calculateContours(font, text)
 
         if (contours.sumOf { it.segments.size } < 1) {
             return null
         }
 
         val bounds = AABBf()
-        for(contour in contours){
+        for (contour in contours) {
             contour.updateBounds()
             bounds.union(contour.bounds)
         }
@@ -250,14 +250,14 @@ object SignedDistanceField {
 
     fun createTexture(font: Font, text: String, roundEdges: Boolean): TextSDF {
 
-        val contours = calculateContours(font,  text)
+        val contours = calculateContours(font, text)
 
         if (contours.sumOf { it.segments.size } < 1) {
             return TextSDF.empty
         }
 
         val bounds = AABBf()
-        for(contour in contours){
+        for (contour in contours) {
             contour.updateBounds()
             bounds.union(contour.bounds)
         }

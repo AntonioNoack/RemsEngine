@@ -11,9 +11,9 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
-import me.anno.utils.LOGGER
 import me.anno.utils.strings.StringHelper
 import me.anno.utils.structures.lists.UpdatingList
+import org.apache.logging.log4j.LogManager
 
 abstract class Component : NamedSaveable(), Inspectable {
 
@@ -120,6 +120,8 @@ abstract class Component : NamedSaveable(), Inspectable {
     //  - just do it serially, it's not that much data
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(Component::class)
 
         fun create(type: String): Component {
             return (ISaveable.instantiate(type) ?: throw TypeNotPresentException(

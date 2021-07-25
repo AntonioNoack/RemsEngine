@@ -1,4 +1,4 @@
-package me.anno.mesh.vox
+package me.anno.mesh.vox.model
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.mesh.vox.meshing.BakeMesh
@@ -20,6 +20,17 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
     // if outside the model, must return 0
     abstract fun getBlock(x: Int, y: Int, z: Int): Byte
 
+    open fun fill(palette: IntArray, dst: IntArray) {
+        var i = 0
+        for (x in 0 until sizeX) {
+            for (y in 0 until sizeY) {
+                for (z in 0 until sizeZ) {
+                    dst[i++] = palette[getBlock(x, y, z).toInt() and 255]
+                }
+            }
+        }
+    }
+
     open fun fill(dst: ByteArray) {
         var i = 0
         for (x in 0 until sizeX) {
@@ -33,9 +44,13 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
 
     fun createMesh(palette: IntArray): Mesh {
 
-        // todo create a mesh
-        // todo merge all materials of the same type
-        // todo merge voxels of the same color
+        // create a mesh
+        // merge voxels of the same color
+        // todo only create for a certain material (e.g. same glossiness, different color, same reflectivity, ...)
+
+        // idea: create textures for large, flat sections
+        // could increase performance massively
+        // probably complicated to implement -> skip for now
 
         val mesh = Mesh()
         val vertices = FloatArrayList(512)
