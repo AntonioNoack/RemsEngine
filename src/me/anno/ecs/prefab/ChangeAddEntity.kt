@@ -8,6 +8,10 @@ import me.anno.utils.files.LocalFile.toGlobalFile
 
 class ChangeAddEntity(var source: FileReference) : Change(0) {
 
+    constructor(path: IntArray) : this(Path(path))
+
+    constructor(path: IntArray, source: FileReference) : this(Path(path), source)
+
     constructor(path: Path) : this(path, InvalidRef)
 
     constructor(path: Path, source: FileReference) : this(source) {

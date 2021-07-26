@@ -5,6 +5,7 @@ import me.anno.ecs.Component
 class ChangeSetComponentAttribute : ChangeSetAttribute {
     constructor(value: Any?) : super(value, 4)
     constructor() : super(null, 4)
+    constructor(path: IntArray, name: String, value: Any?) : this(Path(path, name), value)
     constructor(path: Path, value: Any?) : this(value) {
         this.path = path
     }

@@ -20,4 +20,10 @@ class CameraState: Component() {
 
     override val className get() = "CameraStateComponent"
 
+    companion object {
+
+
+
+    }
+
 }

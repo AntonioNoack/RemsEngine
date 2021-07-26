@@ -33,10 +33,23 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
 
     fun matches(bytes: ByteArray): Boolean {
         if (offset >= bytes.size) return false
-        for (i in 0 until min(bytes.size - offset, signature.size)) {
-            if (bytes[i + offset] != signature[i]) return false
+        if (offset < 0) {
+            // search the signature instead of requiring it
+            search@ for (offset in 0 until bytes.size - signature.size) {
+                for (i in 0 until min(bytes.size - offset, signature.size)) {
+                    if (bytes[i + offset] != signature[i]) {
+                        continue@search
+                    }
+                }
+                return true
+            }
+            return false
+        } else {
+            for (i in 0 until min(bytes.size - offset, signature.size)) {
+                if (bytes[i + offset] != signature[i]) return false
+            }
+            return true
         }
-        return true
     }
 
     override fun toString(): String = name
@@ -46,7 +59,10 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
         fun find(fileReference: FileReference): Signature? {
             val input = fileReference.inputStream()
             // reads the bytes, or 255 if at end of file
-            val bytes = ByteArray(16) { input.read().toByte() }
+            // how much do we read? 🤔
+            // some formats are easy, others require more effort
+            // maybe we could read them piece by piece...
+            val bytes = ByteArray(128) { input.read().toByte() }
             input.close()
             for (signature in signatures) {
                 if (signature.matches(bytes)) {
@@ -85,11 +101,9 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             Signature("text", 0, listOf(0x0E, 0xFE, 0xFF)), // SOSU compressed text
             Signature("pdf", 0, "%PDF"),
             Signature("wasm", 0, byteArrayOf(0), "asm"),
-            Signature("blend", 0, "BLENDER"),
             Signature("ttf", 0, listOf(0, 1, 0, 0, 0)),// true type font
             Signature("woff1", 0, "wOFF"),
             Signature("woff2", 0, "wOF2"),
-            Signature("mesh-draco", 0, "DRACO"),
             Signature("lua-bytecode", 0, byteArrayOf(0x1B), "Lua"),
             Signature("shell", 0, "#!"),
             Signature("png", 0, byteArrayOf(0x89.toByte()), "PNG", byteArrayOf(0xd, 0xa, 0x1a, 0x0a)),
@@ -112,7 +126,14 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             Signature("media", 0, listOf(0x00, 0x00, 0x01, 0xBA)), // m2p, vob, mpg, mpeg
             Signature("media", 0, listOf(0x00, 0x00, 0x01, 0xB3)),// mpg, mpeg
             Signature("media", 4, "ftypisom"), // mp4
-            Signature("vox", 0, "VOX ")
+            // meshes
+            Signature("vox", 0, "VOX "),
+            Signature("fbx", 0, "Kaydara FBX Binary"),
+            Signature("fbx", 0, "; FBX "), // text fbx, is followed by a version
+            Signature("obj", -1, "\nmtllib "),
+            Signature("obj", -1, "OBJ File"),
+            Signature("blend", 0, "BLENDER"),
+            Signature("mesh-draco", 0, "DRACO"),
         ).apply {
             // first long ones, then short ones; to be more specific first
             sortByDescending { it.signature.size }

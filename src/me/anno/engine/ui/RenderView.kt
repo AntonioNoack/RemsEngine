@@ -1,9 +1,11 @@
 package me.anno.engine.ui
 
+import me.anno.config.DefaultStyle.white4
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.CameraComponent
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.engine.pbr.DeferredRenderer
+import me.anno.engine.ui.ECSTypeLibrary.Companion.lastSelection
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.RenderState
@@ -54,11 +56,22 @@ import org.lwjgl.opengl.GL11.*
 // todo easily allow for multiple players in the same instance, with just player key mapping
 // -> camera cannot be global, or todo it must be switched whenever the player changes
 
-class RenderView(val world: Entity, style: Style) : Panel(style) {
+class RenderView(val world: Entity, val mode: Mode, style: Style) : Panel(style) {
+
+    enum class Mode {
+        EDITING,
+        PLAY_TESTING,
+        PLAYING
+    }
+
+    // todo buttons:
+    // todo start game -> always in new tab, so we can make changes while playing
+    // todo stop game
+    // todo restart game (just re-instantiate the whole scene)
+
 
     // todo create the different pipeline stages: opaque, transparent, post-processing, ...
 
-    // todo a custom state, which stores all related rendering information
 
     // can exist (game/game mode), but does not need to (editor)
     // todo in the editor it becomes the prefab for a local player -> ui shall always be placed in the local player
@@ -75,7 +88,7 @@ class RenderView(val world: Entity, style: Style) : Panel(style) {
     val lightBuffer = deferred.createLightBuffer()
     val baseBuffer = deferred.createBaseBuffer()
 
-    val baseRenderer = object : Renderer(false, ShaderPlus.DrawMode.COPY) {
+    val baseRenderer = object : Renderer(false, ShaderPlus.DrawMode.COLOR) {
         override fun getPostProcessing(): String {
             return "" +
                     // todo define all light positions, radii, types, and colors
@@ -96,10 +109,8 @@ class RenderView(val world: Entity, style: Style) : Panel(style) {
 
     override fun tickUpdate() {
         super.tickUpdate()
+        // we could optimize that: if not has updated in some time, don't redraw
         invalidateDrawing()
-        /*if (movement.lengthSquared() > 0.0001 * radius * radius) {
-            invalidateDrawing()
-        }*/
     }
 
     fun checkMovement() {
@@ -154,7 +165,10 @@ class RenderView(val world: Entity, style: Style) : Panel(style) {
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
-        radius *= pow(0.5f, (dx + dy) / 16f)
+        val factor = pow(0.5f, (dx + dy) / 16f)
+        radius *= factor
+        editorCamera.far *= factor
+        editorCamera.near *= factor
         invalidateDrawing()
     }
 
@@ -255,15 +269,7 @@ class RenderView(val world: Entity, style: Style) : Panel(style) {
 
         }
 
-
     }
-
-    val stack = Matrix4dArrayList()
-    val viewTransform = Matrix4f()
-
-    val camTransformTmp = Matrix4x3d()
-    val camInverse = Matrix4d()
-    val camPosition = Vector3d()
 
     val tmp4f = Vector4f()
 
@@ -300,8 +306,6 @@ class RenderView(val world: Entity, style: Style) : Panel(style) {
         val rot1 = camera.entity!!.transform.globalTransform.getUnnormalizedRotation(Quaternionf())
         val rot = rot0.slerp(rot1, blendFloat).conjugate() // conjugate is quickly inverting, when already normalized
 
-        stack.clear()
-
         // this needs to be separate from the stack
         // (for normal calculations and such)
         viewTransform.identity().perspective(
@@ -312,7 +316,7 @@ class RenderView(val world: Entity, style: Style) : Panel(style) {
         viewTransform.rotate(rot)
 
         // lerp the world transforms
-        val camTransform = camTransformTmp
+        val camTransform = camTransform
         camTransform.set(previousCamera.entity!!.transform.globalTransform)
         camTransform.lerp(camera.entity!!.transform.globalTransform, blend)
 
@@ -388,6 +392,8 @@ class RenderView(val world: Entity, style: Style) : Panel(style) {
 
     }
 
+    val selectedColor = Vector4f(1f, 1f, 0.7f, 1f)
+
     fun drawGizmos(camPosition: Vector3d) {
 
         // draw UI
@@ -396,38 +402,56 @@ class RenderView(val world: Entity, style: Style) : Panel(style) {
             RenderState.blendMode.use(BlendMode.DEFAULT) {
                 RenderState.depthMode.use(DepthMode.LESS) {
 
-                    val m = Matrix4fArrayList()
-                    m.set(viewTransform)
+                    stack.set(viewTransform)
 
                     world.simpleTraversal(false) { entity ->
 
                         val transform = entity.transform
 
-                        m.pushMatrix()
-                        m.mul4x3delta(transform.globalTransform, camPosition)
+                        stack.pushMatrix()
+                        stack.mul4x3delta(transform.globalTransform, camPosition)
 
-                        Transform.drawUICircle(m, 0.02f, 0.7f, Vector4f(1f))
+                        scale = transform.globalTransform.getScale(Vector3d()).dot(0.3, 0.3, 0.3)
+                        val ringColor = if (entity == lastSelection) selectedColor else white4
+                        Transform.drawUICircle(stack, 0.2f / scale.toFloat(), 0.7f, ringColor)
 
                         for (component in entity.components) {
                             component.onDrawGUI()
                         }
 
-                        m.popMatrix()
+                        stack.popMatrix()
 
                         false
                     }
 
-                    m.pushMatrix()
-                    m.mul4x3delta(Matrix4x3d(), camPosition)
+                    stack.pushMatrix()
+                    stack.mul4x3delta(Matrix4x3d(), camPosition)
 
-                    // draw grid
-                    Grid.draw(m, m)
+                    // todo move the grid
+                    RenderState.blendMode.use(BlendMode.ADD) {
+                        // draw grid
+                        // scale it based on the radius (movement speed)
+                        Grid.draw(stack, radius.toFloat())
+                    }
 
-                    m.popMatrix()
+                    stack.popMatrix()
 
                 }
             }
         }
+    }
+
+    companion object {
+
+        var scale = 1.0
+        val stack = Matrix4fArrayList()
+
+        val viewTransform = Matrix4f()
+
+        val camTransform = Matrix4x3d()
+        val camInverse = Matrix4d()
+        val camPosition = Vector3d()
+
     }
 
 }

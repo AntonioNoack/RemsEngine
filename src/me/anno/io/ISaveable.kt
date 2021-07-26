@@ -121,7 +121,7 @@ interface ISaveable {
 
     fun saveSerializableProperties(writer: BaseWriter) {
         val reflections = getReflections()
-        for ((name, field) in reflections.properties) {
+        for ((name, field) in reflections.declaredProperties) {
             val value = field.getter.call(this)
             // todo if the type is explicitely given, however not deductable (empty array), and the saving is forced,
             // todo use the field.type

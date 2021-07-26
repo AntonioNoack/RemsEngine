@@ -2,7 +2,11 @@ package me.anno.engine.scene
 
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.*
-import me.anno.engine.BulletPhysics
+import me.anno.engine.physics.BulletPhysics
+import me.anno.engine.scene.PrefabHelper.addC
+import me.anno.engine.scene.PrefabHelper.addE
+import me.anno.engine.scene.PrefabHelper.setC
+import me.anno.engine.scene.PrefabHelper.setE
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.StaticRef
 import me.anno.io.text.TextWriter
@@ -28,19 +32,68 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
             changes.add(ChangeSetEntityAttribute(Path(i, "name"), names[i]))
             changes.add(ChangeSetEntityAttribute(Path(i, "desc"), descs[i]))
         }
-        changes.add(ChangeAddComponent(Path(0), "BulletPhysics"))
-        // todo just add stuff for debugging :)
-        // todo for example positions
-        // todo I'd also like to add a mesh
-        changes.add(ChangeAddEntity(Path(0), OS.downloads.getChild("MagicaVoxel/vox/truck.vox")))
-        changes.add(ChangeSetEntityAttribute(Path(intArrayOf(0, 0), "name"), "VOX/Truck"))
-        // changes.add(ChangeSetEntityAttribute(Path(intArrayOf(0, 0), "position"), Vector3d(0.0)))
-        // changes.add(ChangeSetEntityAttribute(Path(intArrayOf(0, 0), "scale"), Vector3d(1.0)))
-        changes.add(ChangeAddEntity(Path(0)))
-        changes.add(ChangeSetEntityAttribute(Path(intArrayOf(0, 1), "name"), "Point Light"))
-        changes.add(ChangeSetEntityAttribute(Path(intArrayOf(0, 1), "position"), Vector3d()))
-        changes.add(ChangeSetEntityAttribute(Path(intArrayOf(0, 1), "scale"), Vector3d(50.0)))
-        changes.add(ChangeAddComponent(Path(intArrayOf(0, 1)), "PointLight"))
+
+        // root has bullet physics, because the players need physics as well
+        changes.add(ChangeAddComponent(Path(), "BulletPhysics"))
+
+
+        // just add stuff for debugging :)
+        //////////////////
+        // sample mesh //
+        ////////////////
+        val world = intArrayOf(0)
+        addE(changes, world, "VOX/Truck", OS.downloads.getChild("MagicaVoxel/vox/truck.vox"))
+
+        /////////////////////////
+        // sample point light //
+        ///////////////////////
+        val light = addE(changes, world, "Point Light")
+        setE(changes, light, "position", Vector3d(0.0, 50.0, 0.0))
+        setE(changes, light, "scale", Vector3d(80.0))
+        addC(changes, light, "PointLight")
+
+        ////////////////////
+        // physics tests //
+        //////////////////
+        val physics = addE(changes, world, "Physics")
+
+        // vehicle
+        val vehicle = addE(changes, physics, "Vehicle")
+        val vehicleComp = addC(changes, vehicle, "Vehicle")
+        setC(changes, vehicleComp, "centerOfMass", Vector3d(0.0, -1.0, 0.0))
+        val vehicleCollider = addC(changes, vehicle, "BoxCollider", "Box Collider")
+        setC(changes, vehicleCollider, "halfExtends", Vector3d(1.0, 0.5, 2.0))
+        // changes.add(ChangeAddEntity(Path(intArrayOf(0, physics, 0))))
+        // add all wheels
+        var ci = 1
+        for (x in -1..1 step 2) {
+            for (z in -1..1 step 2) {
+                val wheel = addE(changes, vehicle, "Wheel[$x,$z]")
+                setE(changes, wheel, "position", Vector3d(x * 1.1, 0.0, z * 2.0))
+                val wheelComp = addC(changes, wheel, "VehicleWheel", null)
+                // todo set forward and such
+                setC(changes, wheelComp, "isFront", z > 0)
+                ci++
+            }
+        }
+        // todo add script for driving
+
+        // add a floor for testing
+        val floor = addE(changes, physics, "Floor")
+        setE(changes, floor, "position", Vector3d(0.0, -10.0, 0.0))
+        val floorBody = addC(changes, floor, "Rigidbody")
+        setC(changes, floorBody, "mass", 0.0) // static
+        val floorCollider = addC(changes, floor, "BoxCollider")
+        setC(changes, floorCollider, "halfExtends", Vector3d(100.0, 10.0, 100.0))
+
+        // add spheres for testing
+        for (i in 0 until 10) {
+            val sphere = addE(changes, physics, "Sphere[$i]")
+            setE(changes, sphere, "position", Vector3d(0.0, (i + 2) * 2.1, 0.0))
+            addC(changes, sphere, "Rigidbody")
+            addC(changes, sphere, "SphereCollider")
+        }
+
     }, false).toByteArray()
 }) {
 
@@ -103,7 +156,7 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
 
     fun removePlayer(entity: Entity, player: Entity) {
         for (child in entity.children) {
-            child.children.remove(entity)
+            child.remove(entity)
         }
     }
 

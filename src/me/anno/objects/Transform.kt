@@ -134,6 +134,20 @@ open class Transform() : Saveable(),
     val bottomPointingTriangle = "▼"
     val folder = "\uD83D\uDCC1"
 
+    override fun add(child: Transform) {
+        children.add(child)
+        child.parent = this
+    }
+
+    override fun add(index: Int, child: Transform) {
+        children.add(index, child)
+        child.parent = this
+    }
+
+    override fun remove(child: Transform) {
+        children.remove(child)
+    }
+
     override val children = ArrayList<Transform>()
 
     val isCollapsedI = ValueWithDefault(false)

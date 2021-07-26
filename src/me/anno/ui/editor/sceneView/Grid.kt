@@ -171,16 +171,11 @@ object Grid {
     }
 
     // allow more/full grid customization?
-    fun draw(stack: Matrix4fArrayList, cameraTransform: Matrix4f) {
+    fun draw(stack: Matrix4fArrayList, distance: Float) {
 
         // to avoid flickering
         depthMode.use(DepthMode.ALWAYS) {
 
-            val camPos = cameraTransform.transform(Vector4f(0f, 0f, 0f, 1f))
-            if (abs(camPos.w) > 1e-16f) camPos.div(camPos.w)
-            else return@use
-
-            val distance = length(camPos.x, camPos.y, camPos.z)
             val log = log10(distance)
             val f = log - floor(log)
             val cameraDistance = 10f * pow(10f, floor(log))
@@ -210,6 +205,18 @@ object Grid {
             drawLine(stack, zAxisColor, 0.15f) // z
 
         }
+
+    }
+
+    // allow more/full grid customization?
+    fun draw(stack: Matrix4fArrayList, cameraTransform: Matrix4f) {
+
+        val camPos = cameraTransform.transform(Vector4f(0f, 0f, 0f, 1f))
+        if (abs(camPos.w) > 1e-16f) camPos.div(camPos.w)
+        else return
+
+        val distance = length(camPos.x, camPos.y, camPos.z)
+        draw(stack, distance)
 
     }
 

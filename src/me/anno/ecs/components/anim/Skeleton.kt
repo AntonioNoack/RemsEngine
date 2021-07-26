@@ -9,6 +9,8 @@ class Skeleton() : NamedSaveable() {
 
     var bones: Array<Bone>? = null
 
+    val animations = HashMap<String, Animation>()
+
     override val className: String = "Skeleton"
     override val approxSize: Int = 10
 

@@ -1,11 +1,12 @@
 package me.anno.mesh.assimp
 
 import me.anno.ecs.Entity
+import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.prefab.EntityPrefab
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.Shader
-import me.anno.ui.editor.files.thumbs.Thumbs
 import me.anno.utils.Maths
 import org.apache.logging.log4j.LogManager
 import org.joml.*
@@ -17,9 +18,10 @@ import kotlin.math.min
 
 class AnimGameItem(
     val hierarchy: Entity,
+    val hierarchyPrefab: EntityPrefab,
     val meshes: List<Mesh>,
     val bones: List<Bone>,
-    val animations: Map<String, Animation>
+    val animations: Map<String, me.anno.ecs.components.anim.Animation>
 ) {
 
     val staticAABB = lazy {
@@ -29,10 +31,11 @@ class AnimGameItem(
         calculateAABB(rootEntity)
     }
 
-    fun uploadJointMatrices(shader: Shader, animation: Animation, time: Double) {
+    fun uploadJointMatrices(shader: Shader, animation: me.anno.ecs.components.anim.Animation, time: Double) {
         val location = shader.getUniformLocation("jointTransforms")
         if (location < 0) return
         // most times the duration is specified in milli seconds
+        animation as ImportedAnimation
         val frames = animation.frames
         val frameCount = frames.size
         var frameIndexFloat = ((time * frameCount / animation.duration) % frameCount).toFloat()
@@ -43,14 +46,12 @@ class AnimGameItem(
         val frame1 = frames[frameIndex1]
         val fraction = frameIndexFloat - frameIndex0
         val invFraction = 1f - fraction
-        val matrices0 = frame0.matrices
-        val matrices1 = frame1.matrices
         shader.use()
-        val boneCount = min(matrices0.size, maxBones)
+        val boneCount = min(frame0.size, maxBones)
         matrixBuffer.limit(matrixSize * boneCount)
         for (index in 0 until boneCount) {
-            val matrix0 = matrices0[index]
-            val matrix1 = matrices1[index]
+            val matrix0 = frame0[index]
+            val matrix1 = frame1[index]
             tmpBuffer.position(0)
             val offset = index * matrixSize
             matrixBuffer.position(offset)
@@ -65,7 +66,6 @@ class AnimGameItem(
         matrixBuffer.position(0)
         GL21.glUniformMatrix4x3fv(location, false, matrixBuffer)
     }
-
 
 
     companion object {

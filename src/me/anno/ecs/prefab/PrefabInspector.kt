@@ -6,6 +6,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.prefab.EntityPrefab.Companion.loadPrefab
 import me.anno.engine.IProperty
 import me.anno.engine.ui.ComponentUI
+import me.anno.io.NamedSaveable
 import me.anno.io.files.FileReference
 import me.anno.io.text.TextWriter
 import me.anno.objects.inspectable.Inspectable
@@ -13,6 +14,7 @@ import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.base.Panel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.editor.stacked.StackPanel
@@ -125,7 +127,7 @@ class PrefabInspector(val reference: FileReference, val prefab: EntityPrefab) {
         val prefab = component.prefab
 
         // create the ui for the component, and also keep track of the changes :)
-        list.add(BooleanInput(
+        /*list.add(BooleanInput(
             "Is Enabled", "When a component is disabled, its functions won't be called.",
             component.isEnabled, true, style
         ).apply {
@@ -135,7 +137,7 @@ class PrefabInspector(val reference: FileReference, val prefab: EntityPrefab) {
                 unsetBold(); resetComponent(getPath("isEnabled"))
                 component.isEnabled = prefab?.isEnabled ?: true; component.isEnabled
             }
-        })
+        })*/
         list.add(TextInput("Name", "", component.name, style).apply {
             setBold(isComponentChanged(getPath("name")))
             setChangeListener { setBold(); changeComponent(getPath("name"), it); component.name = it }
@@ -160,51 +162,73 @@ class PrefabInspector(val reference: FileReference, val prefab: EntityPrefab) {
         // bold/non bold for other properties
 
         val reflections = component.getReflections()
-        for ((name, property) in reflections.properties) {
+        for ((clazz, propertyNames) in reflections.propertiesByClass.value.reversed()) {
 
-            if (property.hideInInspector) continue
+            if (clazz == NamedSaveable::class) continue
 
-            // todo mesh input, skeleton selection, animation selection, ...
+            val className = clazz.simpleName
+            list.add(TextPanel(className ?: "Anonymous", style).apply {
+                textColor = textColor and 0x7fffffff
+                focusTextColor = textColor
+                setItalic()
+            })
 
-            val panel = ComponentUI.createUI2(name, name, object : IProperty<Any?> {
+            for (name in propertyNames) {
 
-                override fun init(panel: Panel?) {
-                    (panel as? TextStyleable)?.setBold(isComponentChanged(getPath(name)))
+                val property = reflections.allProperties[name]!!
+                if (property.hideInInspector) continue
+
+                // todo mesh input, skeleton selection, animation selection, ...
+
+                // todo more indentation?
+
+                try {
+
+                    val panel = ComponentUI.createUI2(name, name, object : IProperty<Any?> {
+
+                        override fun init(panel: Panel?) {
+                            (panel as? TextStyleable)?.setBold(isComponentChanged(getPath(name)))
+                        }
+
+                        override fun getDefault(): Any? {
+                            // println("default of $name: ${component.getDefaultValue(name)}")
+                            return component.getDefaultValue(name)
+                        }
+
+                        override fun set(panel: Panel?, value: Any?) {
+                            (panel as? TextStyleable)?.setBold()
+                            // println("setting value of $name, ${panel is TextStyleable}")
+                            property[component] = value
+                            changeComponent(getPath(name), value)
+                        }
+
+                        override fun get(): Any? {
+                            return property[component]
+                        }
+
+                        override fun reset(panel: Panel?): Any? {
+                            (panel as? TextStyleable)?.unsetBold()
+                            // println("reset $name")
+                            resetComponent(getPath(name))
+                            val value = getDefault()
+                            property[component] = value
+                            return value
+                        }
+
+                        override val annotations: List<Annotation>
+                            get() = property.annotations
+
+                    }, property.range, style) ?: continue
+                    list.add(panel)
+
+                } catch (e: Exception) {
+                    LOGGER.error("Error $e from ${reflections.clazz}/$name")
+                    e.printStackTrace()
                 }
 
-                override fun getDefault(): Any? {
-                    println("default of $name: ${component.getDefaultValue(name)}")
-                    return component.getDefaultValue(name)
-                }
-
-                override fun set(panel: Panel?, value: Any?) {
-                    (panel as? TextStyleable)?.setBold()
-                    println("setting value of $name, ${panel is TextStyleable}")
-                    property[component] = value
-                    changeComponent(getPath(name), value)
-                }
-
-                override fun get(): Any? {
-                    return property[component]
-                }
-
-                override fun reset(panel: Panel?): Any? {
-                    (panel as? TextStyleable)?.unsetBold()
-                    println("reset $name")
-                    resetComponent(getPath(name))
-                    val value = getDefault()
-                    property[component] = value
-                    return value
-                }
-
-                override val annotations: List<Annotation>
-                    get() = property.annotations
-
-            }, property.range, style) ?: continue
-            list.add(panel)
+            }
 
         }
-
     }
 
     fun inspectEntity(entity: Entity, list: PanelListY, style: Style) {
@@ -351,7 +375,7 @@ class PrefabInspector(val reference: FileReference, val prefab: EntityPrefab) {
         }
     }
 
-    fun addComponent(entity: Entity, component: Component, index: Int){
+    fun addComponent(entity: Entity, component: Component, index: Int) {
 
         val path = entity.pathInRoot(root).toIntArray()
         val prefab = entity.prefab
@@ -365,28 +389,42 @@ class PrefabInspector(val reference: FileReference, val prefab: EntityPrefab) {
         if (index < entity.components.size) {
             renumber(index, +1, path)
         }
-        entity.components.add(index, component)
+        entity.addComponent(index, component)
         // just append it :)
         changes.add(ChangeAddComponent(Path(path), component.className))
         // if it contains any changes, we need to apply them
         val base = Component.create(component.className)
         val compPath = path + index
-        for ((name, property) in component.getReflections().properties) {
-            val value = property[component]
-            if (value != property[base]) {
+
+        /*var clazz: KClass<*> = component::class
+        while (true) {
+            val reflections = ISaveable.getReflections(clazz)
+            for (name in reflections.declaredProperties.keys) {
+                val value = component[name]
+                if (value != base[name]) {
+                    changes.add(ChangeSetComponentAttribute(Path(compPath, name), value))
+                }
+            }
+            clazz = clazz.superclasses.firstOrNull() ?: break
+        }*/
+
+        for (name in component.getReflections().allProperties.keys) {
+            val value = component[name]
+            if (value != base[name]) {
                 changes.add(ChangeSetComponentAttribute(Path(compPath, name), value))
             }
         }
 
     }
 
-    fun removeComponent(entity: Entity, component: Component){
+    fun removeComponent(entity: Entity, component: Component) {
 
         val path = entity.pathInRoot(root).toIntArray()
         val prefab = entity.prefab
 
         if (component !in entity.components) return
         // done :)
+
         val index = component.components.indexOf(component)
         if (prefab != null && index < prefab.components.size) {
 
@@ -406,7 +444,7 @@ class PrefabInspector(val reference: FileReference, val prefab: EntityPrefab) {
 
             // it's ok, and fine
             // remove the respective change
-            entity.components.removeAt(index)
+            entity.remove(component)
             // not very elegant, but should work...
             // correct?
             changes.removeIf { it.path!!.hierarchy.size == path.size && it is ChangeAddComponent }

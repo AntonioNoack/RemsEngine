@@ -1,17 +1,22 @@
 package me.anno.engine.ui
 
-import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.prefab.ChangeAddEntity
+import me.anno.ecs.prefab.EntityPrefab.Companion.loadPrefab
+import me.anno.ecs.prefab.Path
+import me.anno.ecs.prefab.PrefabInspector
 import me.anno.io.files.FileReference
-import me.anno.io.text.TextReader
-import me.anno.objects.Transform
 import me.anno.ui.editor.files.FileContentImporter
-import me.anno.utils.types.Strings.getImportType
 import org.apache.logging.log4j.LogManager
 
 object ECSFileImporter : FileContentImporter<Entity>() {
 
     private val LOGGER = LogManager.getLogger(ECSFileImporter::class)
+
+    override fun setName(element: Entity, name: String) {
+        element.name = name
+        // todo if there is a prefab, then add the change as well
+    }
 
     override fun import(
         parent: Entity?,
@@ -24,66 +29,24 @@ object ECSFileImporter : FileContentImporter<Entity>() {
 
         parent!!
 
-        // todo undo history, just like for Rem's Studio
+        val inspector = PrefabInspector.currentInspector!!
+        val path = parent.pathInRoot(inspector.root).toIntArray()
 
-        // todo an entity needs to know whether it's environment is 2D or 3D
+        val prefab = loadPrefab(file)
 
-        // todo depending on the filetype, import the structure
-        // todo double mapping for customization? mod-ability?
-        when (file.extension.getImportType()) {
-            /*"Image", "Video" -> {
-                // todo create an image
-                // todo 2D or 3D? (ui vs world)
+        if (prefab != null) {
+
+            val instance = prefab.createInstance()
+            parent.add(instance)
+            inspector.changes.add(ChangeAddEntity(Path(path), file))
+            callback(instance)
+            if(doSelect){
+                // todo select it
+
             }
-            "Audio" -> {
-                // todo place audio source
-            }*/
-            "Transform", "Entity" -> {
-                // try to parse as an entity
-                // (or an transform)
-                when (val content = TextReader.read(file).first()) {
-                    is Component -> {
-                        parent.add(content)
-                    }
-                    is Entity -> {
-                        parent.add(content)
-                    }
-                    is Transform -> {
-                        // todo convert it somehow...
-                        LOGGER.warn("Converting Rem's Studio to Rem's Engine objects not yet implemented")
-                    }
-                    else -> {
-                        LOGGER.warn("Could not understand element... $content")
-                    }
-                }
-            }
-            /*
-            "Cubemap-Equ" -> {
-                 // todo add cubemap
-             }
-             "Cubemap-Tiles" -> {
-                 // todo add cubemap
-             }
-             "Mesh" -> {
 
-             }
-             "PDF" -> {
+        } else LOGGER.warn("Failed to import $file")
 
-             }
-             "HTML" -> {
-
-             }
-             "Markdown", "Markdeep" -> {
-
-             }
-            "Text" -> {
-                // todo import text, 2D or 3D
-            }*/
-            else -> {
-                // todo import as text
-                // todo 2D or 3D? (ui vs world)
-            }
-        }
     }
 
     override fun createNode(parent: Entity?): Entity {

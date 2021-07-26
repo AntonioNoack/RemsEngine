@@ -10,6 +10,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
+import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.mesh.vox.VOXReader
 import me.anno.utils.files.LocalFile.toGlobalFile
 import org.apache.logging.log4j.LogManager
@@ -25,6 +26,11 @@ class EntityPrefab() : Saveable() {
     // (we don't need to override twice or more times)
 
     var history: ChangeHistory? = null
+
+    fun add(change: Change) {
+        if (changes == null) changes = ArrayList()
+        (changes as MutableList<Change>).add(change)
+    }
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
@@ -96,6 +102,17 @@ class EntityPrefab() : Saveable() {
             return entity
         }
 
+        private fun loadAssimpModel(resource: FileReference): EntityPrefab? {
+            return try {
+                val reader = AnimatedMeshesLoader
+                val meshes = reader.load(resource)
+                meshes.hierarchyPrefab
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
+        }
+
         private fun loadVOXModel(resource: FileReference): EntityPrefab? {
             return try {
                 VOXReader().read(resource).toEntityPrefab()
@@ -109,7 +126,7 @@ class EntityPrefab() : Saveable() {
             return try {
                 val read = TextReader.read(resource)
                 val prefab = read.firstOrNull() as? EntityPrefab
-                if(prefab == null) LOGGER.warn("No EntityPrefab found in $resource! $read")
+                if (prefab == null) LOGGER.warn("No EntityPrefab found in $resource! $read")
                 else LOGGER.info("Read ${prefab.changes?.size} changes from $resource")
                 prefab
             } catch (e: Exception) {
@@ -124,10 +141,11 @@ class EntityPrefab() : Saveable() {
                 // LOGGER.info("resource $resource has signature $signature")
                 when (signature?.name) {
                     "vox" -> loadVOXModel(resource)
-                    // todo obj, other 3d formats
+                    "fbx", "obj" -> loadAssimpModel(resource)
                     else -> {
                         when (resource.extension.lowercase()) {
                             "vox" -> loadVOXModel(resource)
+                            "fbx", "dae", "obj" -> loadAssimpModel(resource)
                             else -> loadJson(resource)
                         }
                     }

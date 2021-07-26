@@ -1,6 +1,7 @@
 package me.anno.engine.ui
 
 import me.anno.ecs.Entity
+import me.anno.engine.ui.ECSTypeLibrary.Companion.lastSelection
 import me.anno.ui.editor.treeView.AbstractTreeView
 import me.anno.ui.style.Style
 import me.anno.utils.structures.lists.UpdatingList
@@ -31,6 +32,58 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
         style
     ) {
 
+    override fun destroy(element: Entity) {
+        element.onDestroy()
+    }
+
+    override fun getChildren(element: Entity): List<Entity> {
+        return element.children
+    }
+
+    override fun isCollapsed(element: Entity): Boolean {
+        return element.isCollapsed
+    }
+
+    override fun setCollapsed(element: Entity, collapsed: Boolean) {
+        element.isCollapsed = collapsed
+    }
+
+    override fun addAfter(self: Entity, sibling: Entity) {
+        self.addAfter(sibling)
+        // todo notify the inspector
+    }
+
+    override fun addBefore(self: Entity, sibling: Entity) {
+        self.addBefore(sibling)
+        // todo notify the inspector
+    }
+
+    override fun addChild(element: Entity, child: Entity) {
+        element.add(child)
+        // todo notify the inspector
+    }
+
+    override fun removeChild(element: Entity, child: Entity) {
+        element.remove(child)
+        // todo notify the inspector
+    }
+
+    override fun getSymbol(element: Entity): String {
+        return ""
+    }
+
+    override fun getParent(element: Entity): Entity? {
+        return element.parent
+    }
+
+    override fun getName(element: Entity): String {
+        return element.name.ifBlank { "Entity" }
+    }
+
+    override fun setName(element: Entity, name: String) {
+        element.name = name
+    }
+
     override fun openAddMenu(parent: Entity) {
         // todo open add menu for often created entities: camera, light, nodes, ...
         // we could use which prefabs were most often created :)
@@ -53,6 +106,7 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
 
     override fun selectElement(element: Entity?) {
         library.selection = element
+        lastSelection = element
     }
 
     override fun focusOnElement(element: Entity) {

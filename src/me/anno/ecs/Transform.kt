@@ -111,15 +111,10 @@ class Transform : Saveable() {
         return dir.dot(x, y, z)
     }
 
-    var needsLocalUpdate = false
     var needsGlobalUpdate = true
 
     fun invalidateGlobal() {
         needsGlobalUpdate = true
-    }
-
-    fun invalidateLocal() {
-        needsLocalUpdate = true
     }
 
     override fun readMatrix4x3d(name: String, value: Matrix4x3d) {
@@ -134,6 +129,29 @@ class Transform : Saveable() {
             "time" -> time = value
             else -> super.readDouble(name, value)
         }
+    }
+
+    fun calculateLocalTransform(parent: Transform?) {
+        if (parent == null) {
+            localTransform.set(globalTransform)
+        } else {
+            // parent.global * self.local * point = self.global * point
+            // parent.global * self.local = self.global
+            // self.local = inv(parent.global) * self.global
+            // correct???
+            localTransform.set(parent.globalTransform).invert().mul(globalTransform)
+        }
+    }
+
+    fun clone(): Transform {
+        val t = Transform()
+        t.globalTransform.set(globalTransform)
+        t.localTransform.set(localTransform)
+        t.pos.set(pos)
+        t.rot.set(rot)
+        t.sca.set(sca)
+        t.time = time
+        return t
     }
 
     override fun save(writer: BaseWriter) {

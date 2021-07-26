@@ -14,20 +14,25 @@ interface Hierarchical<V : Hierarchical<V>> {
 
     var parent: V?
 
-    val children: MutableList<V>
+    val children: List<V>
 
-    fun addBefore(child: V) {
+    fun add(child: V)
+    fun add(index: Int, child: V)
+
+    fun remove(child: V)
+
+    fun addBefore(sibling: V) {
         val p = parent!!
         val index = p.children.indexOf(this)
-        p.children.add(index, child)
-        child.parent = p
+        p.add(index, sibling)
+        sibling.parent = p
     }
 
-    fun addAfter(child: V) {
+    fun addAfter(sibling: V) {
         val p = parent!!
         val index = p.children.indexOf(this)
-        p.children.add(index + 1, child)
-        child.parent = p
+        p.add(index + 1, sibling)
+        sibling.parent = p
     }
 
     fun addChild(child: V) {
@@ -39,12 +44,12 @@ interface Hierarchical<V : Hierarchical<V>> {
         if (child.contains(this as V)) throw RuntimeException("this cannot contain its parent!")
         child.parent?.removeChild(child)
         child.parent = this
-        children += child
+        add(child)
     }
 
     fun removeChild(child: V) {
         child.parent = null
-        children.remove(child)
+        remove(child)
     }
 
     fun contains(t: V): Boolean {
@@ -62,7 +67,7 @@ interface Hierarchical<V : Hierarchical<V>> {
         parent = null
     }
 
-    val root: Hierarchical<V> get() = parent?.root ?: this
+    val root: V get() = parent?.root ?: this as V
 
     fun onDestroy()
 
@@ -70,6 +75,22 @@ interface Hierarchical<V : Hierarchical<V>> {
         // removeFromParent()
         onDestroy()
     }
+
+    fun listOfHierarchy(callback: (V) -> Unit) {
+        parent?.listOfHierarchy(callback)
+        callback(this as V)
+    }
+
+    val listOfHierarchy: Sequence<V>
+        get() {
+            val self = this
+            return sequence {
+                parent?.apply {
+                    yieldAll(listOfHierarchy)
+                }
+                yield(self as V)
+            }
+        }
 
     val listOfAll: Sequence<V>
         get() = sequence {
@@ -121,5 +142,21 @@ interface Hierarchical<V : Hierarchical<V>> {
         }
         return null
     }
+
+    /*companion object {
+
+        fun <V> addBefore(self: V, parentChildren: MutableList<V>, child: V) {
+            val index = parentChildren.indexOf(self)
+            parentChildren.add(index, child)
+            // child.parent = p
+        }
+
+        fun <V> addAfter(self: V, parentChildren: MutableList<V>, child: V) {
+            val index = parentChildren.indexOf(self)
+            parentChildren.add(index + 1, child)
+            // child.parent = p
+        }
+
+    }*/
 
 }

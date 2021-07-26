@@ -212,6 +212,8 @@
       <w>radialgradient</w>
       <w>rasterization</w>
       <w>rawvideo</w>
+      <w>raycast</w>
+      <w>raycaster</w>
       <w>remsstudio</w>
       <w>renderable</w>
       <w>renderbuffer</w>

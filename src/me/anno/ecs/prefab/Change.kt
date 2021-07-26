@@ -24,12 +24,12 @@ abstract class Change(val priority: Int) : Saveable() {
             if (delta == -1 && this is ChangeSetComponentAttribute) {
                 // decide based on type
                 if (childIndex !in entity.components.indices)
-                    throw IndexOutOfBoundsException("Missing path in $this, only ${entity.components.size} children available")
+                    throw IndexOutOfBoundsException("Missing path in $this, only ${entity.components.size} children available ${entity.components.map { it.name }}")
                 applyChange(entity.components[childIndex], path.name)
             } else {
                 // just go deeper
                 if (childIndex !in entity.children.indices)
-                    throw IndexOutOfBoundsException("Missing path in $this, only ${entity.children.size} children available")
+                    throw IndexOutOfBoundsException("Missing path in $this, only ${entity.children.size} children available ${entity.children.map { it.name }}")
                 apply(entity.children[childIndex], pathIndex + 1)
             }
         } else {

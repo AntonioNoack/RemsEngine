@@ -8,42 +8,108 @@ import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KVisibility
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.superclasses
 import kotlin.reflect.jvm.isAccessible
 
-class CachedReflections(val clazz: KClass<*>, val properties: Map<String, CachedProperty>) {
+class CachedReflections(
+    val clazz: KClass<*>,
+    val allProperties: Map<String, CachedProperty>,
+    val declaredProperties: Map<String, CachedProperty>
+) {
 
     constructor(instance: Any) : this(instance, instance::class)
 
-    constructor(instance: Any, clazz: KClass<*>) : this(clazz, extractProperties(instance, clazz))
+    constructor(instance: Any, clazz: KClass<*>) : this(
+        clazz,
+        getMemberProperties(instance, clazz),
+        getDeclaredMemberProperties(instance, clazz)
+    )
 
     val annotations = clazz.annotations
 
-    val executeInEditMode = annotations.any { it is ExecuteInEditMode }
+    val propertiesByClass = lazy {
+        getPropertiesByDeclaringClass(clazz, allProperties)
+    }
 
+    val executeInEditMode = annotations.any { it is ExecuteInEditMode }
 
     /**
      * updates the property in the instance
      * returns true on success
      * */
     operator fun set(self: ISaveable, name: String, value: Any?): Boolean {
-        val property = properties[name] ?: return false
+        val property = allProperties[name] ?: return false
         property[self] = value
         return true
     }
 
     operator fun get(self: ISaveable, name: String): Any? {
-        val property = properties[name] ?: return null
+        val property = allProperties[name] ?: return null
         return property[self]
     }
 
-    operator fun get(name: String) = properties[name]
+    operator fun get(name: String) = allProperties[name]
+
 
     companion object {
 
         private val LOGGER = LogManager.getLogger(CachedProperty::class)
 
-        fun extractProperties(instance: Any, clazz: KClass<*>): Map<String, CachedProperty> {
-            val properties = clazz.declaredMemberProperties.filterIsInstance<KMutableProperty1<*, *>>()
+        fun getMemberProperties(instance: Any, clazz: KClass<*>): Map<String, CachedProperty> {
+            return findProperties(instance, clazz, clazz.memberProperties.filterIsInstance<KMutableProperty1<*, *>>())
+        }
+
+        fun getDeclaredMemberProperties(instance: Any, clazz: KClass<*>): Map<String, CachedProperty> {
+            return findProperties(
+                instance,
+                clazz,
+                clazz.declaredMemberProperties.filterIsInstance<KMutableProperty1<*, *>>()
+            )
+        }
+
+        fun getPropertiesByDeclaringClass(
+            clazz: KClass<*>, allProperties: Map<String, CachedProperty>
+        ): List<Pair<KClass<*>, List<String>>> {
+            val classes = ArrayList<KClass<*>>()
+            classes.add(clazz)
+            while (true) {
+                val lastClass = classes.last()
+                val superClasses = lastClass.superclasses
+                if (superClasses.isEmpty()) break
+                classes.addAll(superClasses)
+            }
+            val classesWithIndex = classes.withIndex().toList()
+            val reflections = classes.map { clazz2 ->
+                clazz2.declaredMemberProperties.filterIsInstance<KMutableProperty1<*, *>>()
+            }
+            // the earlier something is found, the better
+            val doneNames = HashSet<String>()
+            val result = ArrayList<Pair<KClass<*>, List<String>>>(classes.size)
+            val targetSize = allProperties.size
+            for (classWithIndex in classesWithIndex) {
+                val partialResult = ArrayList<String>()
+                val index = classWithIndex.index
+                for (property in reflections[index]) {
+                    val name = property.name
+                    if (name !in allProperties) continue // not serialized
+                    if (name !in doneNames) {
+                        partialResult.add(name)
+                    }
+                }
+                doneNames.addAll(partialResult)
+                result.add(classWithIndex.value to partialResult)
+                if (doneNames.size >= targetSize) break // done :)
+            }
+            return result
+        }
+
+        fun findProperties(
+            instance: Any,
+            clazz: KClass<*>,
+            properties: List<KMutableProperty1<*, *>>
+        ): Map<String, CachedProperty> {
+            // todo this is great: declaredMemberProperties in only what was changes, so we can really create listener lists :)
             val map = HashMap<String, CachedProperty>()
             properties.map { field ->
                 val isPublic = field.visibility == KVisibility.PUBLIC

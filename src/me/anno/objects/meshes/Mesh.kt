@@ -5,6 +5,7 @@ import me.anno.animation.Type
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.cache.instances.MeshCache.getMesh
 import me.anno.config.DefaultConfig
+import me.anno.ecs.prefab.EntityPrefab
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.RenderState
 import me.anno.gpu.shader.BaseShader.Companion.cullFaceColoringGeometry
@@ -236,7 +237,7 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
                         // works :)
                         val entity = reader.toEntity()
                         meshData.assimpModel = AnimGameItem(
-                            entity, reader.meshes,
+                            entity, EntityPrefab(), reader.meshes,
                             emptyList(), emptyMap()
                         )
                     }) { it.assimpModel }

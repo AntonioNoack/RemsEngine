@@ -25,7 +25,7 @@ import org.joml.Vector4f
 
 // todo select multiple elements, filter for common properties, and apply them all together :)
 
-abstract class AbstractTreeView<V : Hierarchical<V>>(
+abstract class AbstractTreeView<V>(
     val sources: List<V>,
     val fileContentImporter: FileContentImporter<V>,
     val showSymbols: Boolean,
@@ -50,6 +50,37 @@ abstract class AbstractTreeView<V : Hierarchical<V>>(
 
     abstract fun openAddMenu(parent: V)
 
+    abstract fun getChildren(element: V): List<V>
+
+    abstract fun isCollapsed(element: V): Boolean
+
+    abstract fun setCollapsed(element: V, collapsed: Boolean)
+
+    abstract fun addChild(element: V, child: V)
+
+    abstract fun removeChild(element: V, child: V)
+
+    abstract fun getSymbol(element: V): String
+
+    abstract fun getParent(element: V): V?
+
+    abstract fun destroy(element: V)
+
+    // element.name.ifBlank { element.defaultDisplayName })
+    abstract fun getName(element: V): String
+
+    abstract fun setName(element: V, name: String)
+
+    // val index = parentChildren.indexOf(self)
+    // parentChildren.add(index, child)
+    // child.parent = p
+    abstract fun addBefore(self: V, sibling: V)
+
+    // val index = parentChildren.indexOf(self)
+    // parentChildren.add(index + 1, child)
+    // child.parent = p
+    abstract fun addAfter(self: V, sibling: V)
+
     // todo define these functions
     // todo use these functions to show indicator colors
     // todo use these functions to actually forbid the action
@@ -73,21 +104,22 @@ abstract class AbstractTreeView<V : Hierarchical<V>>(
     private fun addToTreeList(element: V, depth: Int, index0: Int): Int {
         var index = index0
         val panel = getOrCreateChildPanel(index++, element)
+        val isCollapsed = isCollapsed(element)
         //(panel.parent!!.children[0] as SpacePanel).minW = inset * depth + panel.padding.right
-        val symbol = if (element.isCollapsed) collapsedSymbol else element.symbol
-        panel.setText(symbol.trim(), element.name.ifBlank { element.defaultDisplayName })
+        val symbol = if (isCollapsed) collapsedSymbol else getSymbol(element)
+        panel.setText(symbol.trim(), getName(element))
         val padding = panel.padding
         val left = inset * depth + padding.right
         if (padding.left != left) {
             padding.left = left
             invalidateLayout()
         }
-        if (!element.isCollapsed) {
-            val children = element.children
+        if (!isCollapsed) {
+            val children = getChildren(element)
             for (child in children) {
                 index = addToTreeList(child, depth + 1, index)
             }
-        }
+        }// todo else show that it's collapsed, if there is no symbol
         // invalidateLayout()
         return index
     }
@@ -175,7 +207,7 @@ abstract class AbstractTreeView<V : Hierarchical<V>>(
         }
         elementByIndex += element
         val child = AbstractTreeViewPanel(
-            { elementByIndex[index] }, { it.name }, { it, name -> it.name = name }, this::openAddMenu,
+            { elementByIndex[index] }, ::getName, ::setName, this::openAddMenu,
             fileContentImporter, showSymbols, this, style
         )
         child.padding.left = 4
@@ -188,6 +220,7 @@ abstract class AbstractTreeView<V : Hierarchical<V>>(
     // done between vs at the end vs at the start
     // todo we'd need a selection mode with the arrow keys, too...
 
+    // todo this is not ok for abstract tree view
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         if (!tryPasteTransform(data)) {
             super.onPaste(x, y, data, type)

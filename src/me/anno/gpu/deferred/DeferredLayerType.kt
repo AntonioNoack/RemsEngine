@@ -26,7 +26,7 @@ enum class DeferredLayerType(
     POSITION("finalPosition", 3, true, 0, "", ""),
 
     METALLIC("finalMetallic", 1, false, 0, "", ""),
-    ROUGHNESS("finalRoughness", 1, false, 0x33, "", ""), // roughness = 1-reflectivity
+    ROUGHNESS("finalRoughness", 1, false, 0x77, "", ""), // roughness = 1-reflectivity
     OCCLUSION("finalOcclusion", 1, false, 0, "", ""), // from an occlusion texture, cavity
 
     // transparency? is a little late... finalAlpha, needs to be handled differently

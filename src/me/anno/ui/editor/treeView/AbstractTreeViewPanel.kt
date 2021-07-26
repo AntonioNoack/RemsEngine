@@ -36,17 +36,16 @@ import me.anno.utils.Color.r
 import me.anno.utils.Color.toARGB
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.sq
-import me.anno.utils.structures.Hierarchical
 import org.joml.Vector4f
 
-class AbstractTreeViewPanel<V : Hierarchical<V>>(
+class AbstractTreeViewPanel<V>(
     val getElement: () -> V,
     val getName: (V) -> String,
     val setName: (V, String) -> Unit,
     val openAddMenu: (parent: V) -> Unit,
     val fileContentImporter: FileContentImporter<V>,
     val showSymbol: Boolean,
-    val castedParent: AbstractTreeView<V>, style: Style
+    val treeView: AbstractTreeView<V>, style: Style
 ) : PanelListX(style) {
 
     private val accentColor = style.getColor("accentColor", black or 0xff0000)
@@ -102,7 +101,7 @@ class AbstractTreeViewPanel<V : Hierarchical<V>>(
         val transform = getElement()
         val dragged = dragged
         var backgroundColor = originalBGColor
-        val textColor0 = castedParent.getLocalColor(transform, tmp0)
+        val textColor0 = treeView.getLocalColor(transform, tmp0)
         var textColor = black or (textColor0.toARGB(180))
         val showAddIndex = if (
             mouseX.toInt() in lx0..lx1 &&
@@ -148,31 +147,33 @@ class AbstractTreeViewPanel<V : Hierarchical<V>>(
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
 
-        val transform = getElement()
+        val element = getElement()
         when {
             button.isLeft -> {
                 if (Input.isShiftDown && inFocus.size < 2) {
-                    RemsStudio.largeChange(if (transform.isCollapsed) "Expanded ${transform.name}" else "Collapsed ${transform.name}") {
-                        val target = !transform.isCollapsed
+                    val name = treeView.getName(element)
+                    val isCollapsed = treeView.isCollapsed(element)
+                    RemsStudio.largeChange(if (isCollapsed) "Expanded $name" else "Collapsed $name") {
+                        val target = !isCollapsed
                         // remove children from the selection???...
                         inFocus.filterIsInstance<AbstractTreeViewPanel<*>>().forEach {
-                            val transform2 = it.getElement()
-                            transform2.isCollapsed = target
+                            val element2 = it.getElement() as V
+                            treeView.setCollapsed(element2, target)
                         }
-                        transform.isCollapsed = target
+                        treeView.setCollapsed(element, target)
                     }
                 } else {
-                    castedParent.selectElementMaybe(transform)
+                    treeView.selectElementMaybe(element)
                 }
             }
-            button.isRight -> openAddMenu(transform)
+            button.isRight -> openAddMenu(element)
         }
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
         when {
             button.isLeft -> {
-                castedParent.focusOnElement(getElement())
+                treeView.focusOnElement(getElement())
             }
             else -> super.onDoubleClick(x, y, button)
         }
@@ -193,7 +194,7 @@ class AbstractTreeViewPanel<V : Hierarchical<V>>(
                 if (relativeY < 0.33f) {
                     // paste on top
                     if (element.parent != null) {
-                        element.addBefore(child)
+                        treeView.addBefore(element, child)
                     } else {
                         element.addChild(child)
                     }
@@ -213,7 +214,7 @@ class AbstractTreeViewPanel<V : Hierarchical<V>>(
                 } else {
                     // paste below
                     if (element.parent != null) {
-                        element.addAfter(child)
+                        treeView.addAfter(element, child)
                     } else {
                         element.addChild(child)
                     }
@@ -222,13 +223,31 @@ class AbstractTreeViewPanel<V : Hierarchical<V>>(
                         original?.removeFromParent()
                     }
                 }
-                castedParent.selectElement(child)
+                treeView.selectElement(child)
                 // selectTransform(child)
             }
         } catch (e: Exception) {
             e.printStackTrace()
             super.onPaste(x, y, data, type)
         }
+    }
+
+    fun V.addChild(child: V) {
+        treeView.addChild(this, child)
+    }
+
+    val V.parent: V? get() = treeView.getParent(this)
+
+    val V.listOfAll: Sequence<V>
+        get() {
+            return sequence {
+                yield(this@listOfAll)
+                treeView.getChildren(this@listOfAll).forEach { yieldAll(it.listOfAll) }
+            }
+        }
+
+    fun V.removeFromParent() {
+        treeView.removeChild(treeView.getParent(this) ?: return, this)
     }
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
@@ -247,7 +266,7 @@ class AbstractTreeViewPanel<V : Hierarchical<V>>(
                         dragged = Draggable(
                             // todo content type may not be transform
                             stringify(element), "Transform", element,
-                            TextPanel(element.name, style)
+                            TextPanel(treeView.getName(element), style)
                         )
                     }
                 }
@@ -268,10 +287,13 @@ class AbstractTreeViewPanel<V : Hierarchical<V>>(
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
-        RemsStudio.largeChange("Deleted Component ${getElement().name}") {
-            val element = getElement()
-            element.removeFromParent()
-            for (it in element.listOfAll.toList()) it.destroy()
+        val element = getElement()
+        val parent = treeView.getParent(element)
+        if (parent != null) {
+            RemsStudio.largeChange("Deleted Component ${treeView.getName(getElement())}") {
+                treeView.removeChild(parent, element)
+                for (it in element.listOfAll.toList()) treeView.destroy(it)
+            }
         }
     }
 
@@ -282,7 +304,7 @@ class AbstractTreeViewPanel<V : Hierarchical<V>>(
         val element = getElement()
         return if (element is Camera) {
             element.defaultDisplayName + Dict[", drag onto scene to view", "ui.treeView.dragCameraToView"]
-        } else element.defaultDisplayName
+        } else element!!::class.simpleName
     }
 
     // multiple values can be selected

@@ -12,6 +12,8 @@ class ChangeAddComponent() : Change(2) {
         this.type = type
     }
 
+    constructor(path: IntArray, type: String) : this(Path(path), type)
+
     constructor(path: Path, type: String) : this() {
         this.type = type
         this.path = path

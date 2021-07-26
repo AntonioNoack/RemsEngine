@@ -5,8 +5,8 @@ import me.anno.ecs.components.player.LocalPlayer.Companion.currentLocalPlayer
 import me.anno.gpu.pipeline.Pipeline
 import org.joml.Vector4f
 
-// todo like the studio camera,
-// todo function to blend to the next one
+// like the studio camera,
+// a custom state, which stores all related rendering information
 class CameraComponent : Component() {
 
     // todo different settings for orthographic and non-orthographic
@@ -28,6 +28,7 @@ class CameraComponent : Component() {
 
     val clearColor = Vector4f(0.1f, 0.2f, 0.3f, 1f)
 
+    // function to blend to the next one
     fun use(blendingTime: Double) {
         val player = currentLocalPlayer!!
         val state = player.camera
@@ -41,13 +42,5 @@ class CameraComponent : Component() {
     }
 
     override val className get() = "CameraComponent"
-
-    companion object {
-
-        // todo these are instance depending values
-        var blendingTime = 0.0
-        var blendingProgress = 0.0
-
-    }
 
 }

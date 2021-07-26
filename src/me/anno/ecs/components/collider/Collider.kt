@@ -4,7 +4,7 @@ import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.linearmath.Transform
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.engine.BulletPhysics.Companion.convertMatrix
+import me.anno.engine.physics.BulletPhysics.Companion.convertMatrix
 import org.joml.Vector3d
 
 // todo collision-effect mappings:

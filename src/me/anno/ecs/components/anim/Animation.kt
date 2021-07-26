@@ -8,7 +8,14 @@ import org.joml.Matrix4x3f
 
 // todo blend animations...
 // todo allow procedural animations; for that we'd need more knowledge about the model...
-abstract class Animation : NamedSaveable() {
+abstract class Animation : NamedSaveable {
+
+    constructor(): super()
+
+    constructor(name: String, duration: Double) : super() {
+        this.name = name
+        this.duration = duration
+    }
 
     // todo an animation should have a skeleton, so we can compare, whether we need to map the animations
 

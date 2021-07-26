@@ -1,6 +1,9 @@
 package me.anno.ecs
 
+import me.anno.ecs.components.collider.Collider
+import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.prefab.PrefabInspector
+import me.anno.engine.physics.BulletPhysics
 import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
@@ -16,6 +19,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.structures.Hierarchical
 import me.anno.utils.types.Floats.f2s
 import org.joml.Matrix4x3d
+import kotlin.reflect.KClass
 
 // entities would be an idea to make effects more modular
 // it could apply new effects to both the camera and image sources
@@ -50,19 +54,41 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
         }
     }
 
+    @NotSerializedProperty
+    private val internalComponents = ArrayList<Component>()
+
     @SerializedProperty
-    val components = ArrayList<Component>()
+    val components: List<Component>
+        get() = internalComponents
 
     @SerializedProperty
     override var parent: Entity? = null
 
     @NotSerializedProperty
-    override val children = ArrayList<Entity>()
+    private val internalChildren = ArrayList<Entity>()
+
+    @NotSerializedProperty
+    override val children: List<Entity>
+        get() = internalChildren
 
     @SerializedProperty
     override var isEnabled = true
+        set(value) {
+            field = value
+            val physics = physics
+            if (physics != null) {
+                // todo when switching "isEnabled", all bodies need to be enabled/disabled as well
+                /* if (hasComponentInChildren(true, Rigidbody::class) || hasComponentInChildren(true, Collider::class)) {
+                     physics.invalidate(this)
+                 }*/
+                // todo also check inheritance
+            }
+        }
 
-    val transform = Transform()
+    // set by rigidbody
+    // allows interpolation
+    var nextTransform: Transform? = null
+    var transform = Transform()
 
     // for the UI
     override var isCollapsed = false
@@ -73,12 +99,13 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
     fun update() {
         for (component in components) component.onUpdate()
         for (child in children) child.update()
-        // todo if rigidbody, calculate interpolated transform
     }
 
     fun updateTransform() {
         transform.update(parent?.transform)
         children.forEach { it.updateTransform() }
+        // todo if rigidbody, calculate interpolated transform
+        // todo separate function for drawing them?
     }
 
     fun invalidate() {
@@ -101,26 +128,101 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
 
     override fun isDefaultValue(): Boolean = false
 
-    fun setParent(parent: Entity, keepWorldPosition: Boolean) {
-        if (parent == this.parent) return
-        this.parent?.children?.remove(this)
-        if (keepWorldPosition) {
-            // todo update transform
-
+    private fun transformUpdate(parent: Entity, keepWorldTransform: Boolean) {
+        if (keepWorldTransform) {
+            transform.calculateLocalTransform(parent.transform)
+            // global transform theoretically stays the same
+            // it will not, if there is an anomaly, e.g. scale 0
+            transform.invalidateGlobal()
+        } else {
+            transform.invalidateGlobal()
         }
-        parent.children.add(this)
+    }
+
+    override fun add(index: Int, child: Entity) {
+        if (parent === this.parent) return
+
+    }
+
+    // todo don't directly update, rather invalidate this, because there may be more to come
+    fun setParent(parent: Entity, index: Int, keepWorldTransform: Boolean) {
+
+        if (parent === this.parent) return
+
+        // formalities
+        this.parent?.remove(this)
+        parent.internalChildren.add(index, this)
         this.parent = parent
+
+        // transform
+        transformUpdate(parent, keepWorldTransform)
+
+        checkNeedsPhysics()
+
+    }
+
+    // todo don't directly update, rather invalidate this, because there may be more to come
+    fun setParent(parent: Entity, keepWorldTransform: Boolean) {
+        return setParent(parent, parent.children.size, keepWorldTransform)
+    }
+
+    private fun checkNeedsPhysics() {
+        // physics
+        if (listOfHierarchy.all { isEnabled }) {
+            // something can change
+            val physics = physics
+            if (physics != null) {
+                println("world has physics")
+                // if there is a rigidbody in the hierarchy, update it
+                val parentRigidbody = rigidbody
+                if (parentRigidbody != null) {
+                    println("parent has rigidbody")
+                    // invalidate it
+                    physics.invalidate(parentRigidbody)
+                } else {
+                    // if has collider without rigidbody, add it for click-tests
+                    if (hasComponent(false, Collider::class)) {
+                        // todo add it for click tests
+                    }
+                }
+            } else println("world has no physics")
+        } else println("someone in the hierarchy is disabled")
+    }
+
+    val physics get() = root.getComponent<BulletPhysics>(false)
+    val rigidbody get() = listOfHierarchy.lastOrNull { it.hasComponent(false, Rigidbody::class) }
+
+    fun invalidateRigidbody() {
+        physics?.invalidate(rigidbody ?: return)
     }
 
     override fun destroy() {
-        // todo call onDestroy of all components
-
+        for (component in components) {
+            component.onDestroy()
+        }
         // todo some event based system? or just callable functions? idk...
-        this.parent?.children?.remove(this)
+        this.parent?.remove(this)
     }
 
     fun addComponent(component: Component) {
-        components.add(component)
+        internalComponents.add(component)
+        onAddComponent(component)
+    }
+
+    fun addComponent(index: Int, component: Component) {
+        internalComponents.add(index, component)
+        onAddComponent(component)
+    }
+
+    private fun onAddComponent(component: Component) {
+        // if component is Collider or Rigidbody, update the physics
+        // todo isEnabled for Colliders and Rigidbody needs to have listeners as well
+        if (component.isEnabled) {
+            when (component) {
+                is Collider -> invalidateRigidbody()
+                is Rigidbody -> physics?.invalidate(this)
+            }
+        }
         component.entity = this
     }
 
@@ -128,14 +230,51 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
         child.setParent(this, false)
     }
 
-    fun removeComponent(component: Component) = components.remove(component)
+    fun remove(component: Component) {
+        removeComponent(component)
+    }
+
+    fun removeComponent(component: Component) {
+        internalComponents.remove(component)
+        if (component.isEnabled) {// valuable states, which need to be updated
+            when (component) {
+                is Collider -> invalidateRigidbody()
+                is Rigidbody -> physics?.invalidate(this)
+            }
+        }
+    }
+
+    inline fun <reified V : Component> hasComponent(includingDisabled: Boolean): Boolean {
+        return components.any { it is V && (includingDisabled || it.isEnabled) }
+    }
+
+    fun <V : Component> hasComponent(includingDisabled: Boolean, clazz: KClass<V>): Boolean {
+        return components.any { clazz.isInstance(it) && (includingDisabled || it.isEnabled) }
+    }
+
+    fun <V : Component> hasComponentInChildren(includingDisabled: Boolean, clazz: KClass<V>): Boolean {
+        return components.any { clazz.isInstance(it) && (includingDisabled || it.isEnabled) } || children.filter {
+            includingDisabled || it.isEnabled
+        }.any { hasComponentInChildren(includingDisabled, clazz) }
+    }
 
     inline fun <reified V : Component> getComponent(includingDisabled: Boolean): V? {
         return components.firstOrNull { it is V && (includingDisabled || it.isEnabled) } as V?
     }
 
+    fun <V : Component> getComponent(includingDisabled: Boolean, clazz: KClass<V>): V? {
+        return components.firstOrNull { clazz.isInstance(it) && (includingDisabled || it.isEnabled) } as V?
+    }
+
     inline fun <reified V : Component> getComponentInChildren(includingDisabled: Boolean): V? {
-        return simpleTraversal(true) { getComponent<V>(includingDisabled) != null }?.getComponent<V>(includingDisabled)
+        return simpleTraversal(true) { getComponent<V>(includingDisabled) != null }?.getComponent(includingDisabled)
+    }
+
+    fun <V : Component> getComponentInChildren(includingDisabled: Boolean, clazz: KClass<V>): V? {
+        return simpleTraversal(true) { getComponent(includingDisabled, clazz) != null }?.getComponent(
+            includingDisabled,
+            clazz
+        )
     }
 
     inline fun <reified V : Component> getComponents(includingDisabled: Boolean): List<V> {
@@ -197,18 +336,16 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
         return text
     }
 
-    fun add(entity: Entity) = addChild(entity)
+    override fun add(child: Entity) = addChild(child)
     fun add(component: Component) = addComponent(component)
 
-    fun remove(entity: Entity) {
-        children.remove(entity)
-        if (entity.parent == this) {
-            entity.parent = null
+    override fun remove(child: Entity) {
+        if (child.parent !== this) return
+        // todo invalidate physics
+        internalChildren.remove(child)
+        if (child.parent == this) {
+            child.parent = null
         }
-    }
-
-    fun remove(component: Component) {
-        components.remove(component)
     }
 
     val sizeOfHierarchy get(): Int = components.size + children.sumOf { 1 + it.sizeOfHierarchy }
@@ -292,14 +429,22 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
     override fun readObjectArray(name: String, values: Array<ISaveable?>) {
         when (name) {
             "children" -> {
-                children.clear()
-                val entities = values.filterIsInstance<Entity>()
-                children.addAll(entities)
-                entities.forEach { it.parent = this }
+                internalChildren.clear()
+                internalChildren.ensureCapacity(values.size)
+                for (value in values) {
+                    if (value is Entity) {
+                        addChild(value)
+                    }
+                }
             }
             "components" -> {
-                components.clear()
-                components.addAll(values.filterIsInstance<Component>())
+                internalComponents.clear()
+                internalComponents.ensureCapacity(values.size)
+                for (value in values) {
+                    if (value is Component) {
+                        addComponent(value)
+                    }
+                }
             }
         }
     }

@@ -9,6 +9,7 @@ import org.joml.Vector3d
 class ChangeSetEntityAttribute : ChangeSetAttribute {
     constructor(value: Any?) : super(value, 3)
     constructor() : super(null, 3)
+    constructor(path: IntArray, name: String, value: Any?) : this(Path(path, name), value)
     constructor(path: Path, value: Any?) : this(value) {
         this.path = path
     }

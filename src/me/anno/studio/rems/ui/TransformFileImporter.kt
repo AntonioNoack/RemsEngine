@@ -25,6 +25,10 @@ import org.joml.Vector3f
 
 object TransformFileImporter : FileContentImporter<Transform>() {
 
+    override fun setName(element: Transform, name: String) {
+        element.nameI.value = name
+    }
+
     override fun createNode(parent: Transform?): Transform {
         return Transform(parent)
     }

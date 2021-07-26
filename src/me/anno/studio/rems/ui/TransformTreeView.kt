@@ -31,14 +31,63 @@ class TransformTreeView(style: Style) :
         TransformFileImporter, true, style
     ) {
 
-    // todo change it such that it respects whether an element can be modified (#softLink)
-    override fun canBeInserted(parent: Transform, element: Transform, index: Int): Boolean {
-        return true
+    override fun getSymbol(element: Transform): String {
+        return element.symbol
     }
 
-    // todo change it such that it respects whether an element can be modified (#softLink)
+    override fun removeChild(element: Transform, child: Transform) {
+        element.removeChild(child)
+    }
+
+    override fun addBefore(self: Transform, sibling: Transform) {
+        self.addBefore(sibling)
+    }
+
+    override fun addAfter(self: Transform, sibling: Transform) {
+        self.addAfter(sibling)
+    }
+
+    override fun addChild(element: Transform, child: Transform) {
+        element.addChild(child)
+    }
+
+    override fun setCollapsed(element: Transform, collapsed: Boolean) {
+        element.isCollapsedI.value = collapsed
+    }
+
+    override fun isCollapsed(element: Transform): Boolean {
+        return element.isCollapsed
+    }
+
+    override fun setName(element: Transform, name: String) {
+        element.nameI.value = name
+    }
+
+    override fun getName(element: Transform): String {
+        return element.name.ifBlank { element.defaultDisplayName }
+    }
+
+    override fun getParent(element: Transform): Transform? {
+        return element.parent
+    }
+
+    override fun getChildren(element: Transform): List<Transform> {
+        return element.children
+    }
+
+    override fun destroy(element: Transform) {
+        element.onDestroy()
+    }
+
+    override fun canBeInserted(parent: Transform, element: Transform, index: Int): Boolean {
+        val immutable = parent.listOfInheritance.any { it.areChildrenImmutable }
+        return !immutable
+    }
+
     override fun canBeRemoved(element: Transform): Boolean {
-        return false
+        val parent = element.parent ?: return false // root cannot be removed
+        val immutable = parent.listOfInheritance.any { it.areChildrenImmutable }
+        return !immutable
     }
 
     override val selectedElement: Transform?
