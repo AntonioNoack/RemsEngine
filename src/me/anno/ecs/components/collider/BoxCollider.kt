@@ -20,7 +20,6 @@ class BoxCollider : Collider() {
 
     // we could use this for our own physics engine...
     override fun getSignedDistance(deltaPosition: Vector3d, movement: Vector3d): Double {
-        // todo corner roundness
         deltaPosition.absolute()
         deltaPosition.sub(halfExtends)
         deltaPosition.add(cornerRoundness, cornerRoundness, cornerRoundness)
@@ -29,8 +28,14 @@ class BoxCollider : Collider() {
         return outside + inside - cornerRoundness
     }
 
-    override fun createBulletShape(): CollisionShape {
-        return BoxShape(javax.vecmath.Vector3d(halfExtends.x, halfExtends.y, halfExtends.z))
+    override fun createBulletShape(scale: Vector3d): CollisionShape {
+        return BoxShape(
+            javax.vecmath.Vector3d(
+                halfExtends.x * scale.x,
+                halfExtends.y * scale.y,
+                halfExtends.z * scale.z
+            )
+        )
     }
 
     override fun drawShape() {

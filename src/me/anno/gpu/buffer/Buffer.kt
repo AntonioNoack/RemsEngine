@@ -45,13 +45,18 @@ abstract class Buffer(val attributes: List<Attribute>, val stride: Int, val usag
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, buffer)
         if (nioBuffer == null) {
             createNioBuffer()
-            LOGGER.info("called create nio buffer")
         }
         val nio = nioBuffer!!
         drawLength = nio.position() / stride
         nio.position(0)
-        locallyAllocated = allocate(locallyAllocated, nio.capacity().toLong())
-        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, nio, usage)
+        val newLimit = nio.limit().toLong()
+        if (locallyAllocated > 0 && newLimit in (locallyAllocated / 2)..locallyAllocated) {
+            // just keep the buffer
+            GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, 0, nio)
+        } else {
+            locallyAllocated = allocate(locallyAllocated, newLimit)
+            GL15.glBufferData(GL15.GL_ARRAY_BUFFER, nio, usage)
+        }
         GFX.check()
         isUpToDate = true
     }

@@ -27,7 +27,9 @@ object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
     }
 
     fun putValue(value: Float, color: Int){
-        for(container in containers){
+        val containers = containers
+        for(i in containers.indices){
+            val container = containers[i]
             if(container.color == color){
                 container.putValue(value)
                 return

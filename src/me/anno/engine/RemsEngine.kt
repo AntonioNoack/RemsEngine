@@ -1,5 +1,6 @@
 package me.anno.engine
 
+import cz.advel.stack.Stack
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.prefab.EntityPrefab.Companion.loadScenePrefab
@@ -17,6 +18,7 @@ import me.anno.ui.editor.OptionBar
 import me.anno.ui.editor.UILayouts.createReloadWindow
 import me.anno.ui.editor.config.ConfigPanel
 import me.anno.utils.OS
+import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
 
 
@@ -31,6 +33,8 @@ import org.apache.logging.log4j.LogManager
 class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
     lateinit var currentProject: GameEngineProject
+
+    val syncMaster = SyncMaster()
 
     override fun onGameInit() {
         super.onGameInit()
@@ -71,30 +75,14 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
         val list = PanelListY(style)
 
-        val tab = ECSSceneTabs.open(loadScenePrefab(projectFile.getChild("Scene.json")))
-        // ECSSceneTabs.add(projectFile.getChild("2ndScene.json"))
+        val tab = ECSSceneTabs.open(syncMaster, editScene)
+        // ECSSceneTabs.add(syncMaster, projectFile.getChild("2ndScene.json"))
 
         list.add(ECSSceneTabs)
 
         val options = OptionBar(style)
 
         val editUI = DefaultLayout.createDefaultMainUI(projectFile, tab.inspector.root, false, style)
-        // val gameUI = DefaultLayout.createDefaultMainUI(projectFile, gameScene, true, style)
-        /*gameUI.visibility = Visibility.GONE
-
-        options.addMajor("Play/Stop") {
-            val goStart = editUI.visibility == Visibility.VISIBLE
-            if (goStart) {
-                // todo reset second scene
-
-            } else {
-
-            }
-            editUI.visibility = Visibility[!goStart]
-            gameUI.visibility = Visibility[goStart]
-            list.invalidateLayout()
-            list.invalidateDrawing()
-        }*/
 
         val configTitle = Dict["Config", "ui.top.config"]
         options.addAction(configTitle, Dict["Settings", "ui.top.config.settings"]) {

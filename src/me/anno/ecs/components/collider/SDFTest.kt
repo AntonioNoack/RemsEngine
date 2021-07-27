@@ -1,9 +1,14 @@
 package me.anno.ecs.components.collider
 
 import me.anno.utils.image.ImageWriter
+import org.joml.Matrix4f
 import org.joml.Vector3d
 
 fun main() {
+
+    println(Matrix4f()
+        .rotateAffineXYZ(1.0f, 0.5f, 1.3f)
+        .scale(1f, 20f, 300f))
 
     val shapes = listOf(
         BoxCollider(),

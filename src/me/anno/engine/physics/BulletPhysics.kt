@@ -17,11 +17,10 @@ import com.bulletphysics.dynamics.vehicle.VehicleTuning
 import com.bulletphysics.dynamics.vehicle.WheelInfo
 import com.bulletphysics.linearmath.DefaultMotionState
 import com.bulletphysics.linearmath.Transform
+import cz.advel.stack.Stack
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.collider.Collider
-import me.anno.ecs.components.collider.SphereCollider
 import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.components.physics.Vehicle
 import me.anno.ecs.components.physics.VehicleWheel
@@ -29,6 +28,10 @@ import me.anno.engine.ui.RenderView.Companion.camPosition
 import me.anno.engine.ui.RenderView.Companion.viewTransform
 import me.anno.gpu.GFX
 import me.anno.input.Input
+import me.anno.io.serialization.NotSerializedProperty
+import me.anno.io.serialization.SerializedProperty
+import me.anno.utils.Clock
+import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3d
 import org.lwjgl.glfw.GLFW
@@ -45,15 +48,22 @@ class BulletPhysics : Component() {
 
     companion object {
         private val LOGGER = LogManager.getLogger(BulletPhysics::class)
-        fun convertMatrix(ourTransform: Matrix4x3d): Matrix4d {
+        fun convertMatrix(ourTransform: Matrix4x3d, scale: org.joml.Vector3d): Matrix4d {
+            // bullet does not support scale -> we always need to correct it
+            val sx = 1.0 / scale.x
+            val sy = 1.0 / scale.y
+            val sz = 1.0 / scale.z
             return Matrix4d(// we have to transpose the matrix, because joml uses Axy and vecmath uses Ayx
-                ourTransform.m00(), ourTransform.m10(), ourTransform.m20(), ourTransform.m30(),
-                ourTransform.m01(), ourTransform.m11(), ourTransform.m21(), ourTransform.m31(),
-                ourTransform.m02(), ourTransform.m12(), ourTransform.m22(), ourTransform.m32(),
+                ourTransform.m00() * sx, ourTransform.m10() * sy, ourTransform.m20() * sz, ourTransform.m30(),
+                ourTransform.m01() * sx, ourTransform.m11() * sy, ourTransform.m21() * sz, ourTransform.m31(),
+                ourTransform.m02() * sx, ourTransform.m12() * sy, ourTransform.m22() * sz, ourTransform.m32(),
                 0.0, 0.0, 0.0, 1.0
             )
         }
     }
+
+    @SerializedProperty
+    var automaticDeathHeight = -100.0
 
     // todo a play button
 
@@ -61,19 +71,41 @@ class BulletPhysics : Component() {
     // this may be bad for performance, but it also allows our engine to run much larger worlds
     // if we need top-notch-performance, I just should switch to a native implementation
 
+    @NotSerializedProperty
     private val sampleWheels = ArrayList<WheelInfo>()
 
-    val entitiesNeedingUpdate = HashSet<Entity>()
+    @NotSerializedProperty
+    private var enu1 = HashSet<Entity>()
+    private var enu2 = HashSet<Entity>()
 
     fun invalidate(entity: Entity) {
-        println("invalidating ${entity.name}")
-        entitiesNeedingUpdate.add(entity)
+        synchronized(enu1) {
+            enu1.add(entity)
+        }
     }
 
-    val world = createBulletWorldWithGroundNGravity()
+    private fun validate() {
+        synchronized(enu1) {
+            val tmp = enu1
+            enu1 = enu2
+            enu2 = tmp
+        }
+        for (entity in enu2) {
+            update(entity)
+        }
+        enu2.clear()
+    }
 
-    val rigidBodies = HashMap<Entity, RigidBody>()
-    val raycastVehicles = HashMap<Entity, RaycastVehicle>()
+    @NotSerializedProperty
+    private val world = createBulletWorldWithGroundNGravity()
+
+    @NotSerializedProperty
+    private val rigidBodies = HashMap<Entity, Pair<org.joml.Vector3d, RigidBody>>()
+
+    private val nonStaticRigidBodies = HashMap<Entity, Pair<org.joml.Vector3d, RigidBody>>()
+
+    @NotSerializedProperty
+    private val raycastVehicles = HashMap<Entity, RaycastVehicle>()
 
     // todo ideally for bullet, we would need a non-symmetric matrix:
     //  --- types ---
@@ -109,20 +141,24 @@ class BulletPhysics : Component() {
         }
     }
 
-    private fun createRigidbody(entity: Entity, base: Rigidbody): RigidBody? {
+    private fun createRigidbody(entity: Entity, base: Rigidbody): Pair<org.joml.Vector3d, RigidBody>? {
 
         val colliders = getValidComponents(entity, Collider::class).toList()
         return if (colliders.isNotEmpty()) {
+
+            // bullet does not work correctly with scale changes: create larger shapes directly
+            val globalTransform = entity.transform.globalTransform
+            val scale = globalTransform.getScale(org.joml.Vector3d())
 
             // copy all knowledge from ecs to bullet
             val firstCollider = colliders.first()
             val jointCollider: CollisionShape = if (colliders.size == 1 && firstCollider.entity === entity) {
                 // there is only one, and no transform needs to be applied -> use it directly
-                firstCollider.createBulletShape()
+                firstCollider.createBulletShape(scale)
             } else {
                 val jointCollider = CompoundShape()
                 for (collider in colliders) {
-                    val (transform, subCollider) = collider.createBulletCollider(entity)
+                    val (transform, subCollider) = collider.createBulletCollider(entity, scale)
                     jointCollider.addChildShape(transform, subCollider)
                 }
                 jointCollider
@@ -132,7 +168,7 @@ class BulletPhysics : Component() {
             val inertia = Vector3d()
             if (mass > 0) jointCollider.calculateLocalInertia(mass, inertia)
 
-            val bulletTransform = Transform(convertMatrix(entity.transform.globalTransform))
+            val bulletTransform = Transform(convertMatrix(globalTransform, scale))
 
             // convert the center of mass to a usable transform
             val com0 = base.centerOfMass
@@ -142,18 +178,21 @@ class BulletPhysics : Component() {
             // create the motion state
             val motionState = DefaultMotionState(bulletTransform, com2)
             val rbInfo = RigidBodyConstructionInfo(mass, motionState, jointCollider, inertia)
-            RigidBody(rbInfo)
+            scale to RigidBody(rbInfo)
 
         } else null
 
     }
 
-    fun add(entity: Entity) {
+    fun add(entity: Entity): RigidBody? {
         // todo add including constraints and such
-        val rigidbody = entity.getComponent<Rigidbody>(false) ?: return
+        val rigidbody = entity.getComponent(false, Rigidbody::class) ?: return null
         if (rigidbody.isEnabled) {
 
-            val body = createRigidbody(entity, rigidbody) ?: return
+            val bodyWithScale = createRigidbody(entity, rigidbody) ?: return null
+            val (scale, body) = bodyWithScale
+
+            // todo correctly create vehicle, if the body is scaled
 
             // if vehicle, add vehicle
             if (rigidbody is Vehicle) {
@@ -180,89 +219,197 @@ class BulletPhysics : Component() {
             }
 
             world.addRigidBody(body) // todo what is the mask option, and the group?
-            rigidBodies[entity] = body
+            rigidBodies[entity] = bodyWithScale
+
+            if (!rigidbody.isStatic) {
+                nonStaticRigidBodies[entity] = bodyWithScale
+            }
+
+            return body
 
         }
+
+        return null
+
     }
 
     fun remove(entity: Entity) {
         val rigid = rigidBodies.remove(entity) ?: return
-        world.removeRigidBody(rigid)
+        nonStaticRigidBodies.remove(entity)
+        world.removeRigidBody(rigid.second)
         val vehicle = raycastVehicles.remove(entity) ?: return
         world.removeVehicle(vehicle)
+        entity.isPhysicsControlled = false
     }
 
-    fun update(entity: Entity) {
+    private fun update(entity: Entity) {
         remove(entity)
-        add(entity)
+        entity.isPhysicsControlled = add(entity) != null
     }
 
-    var time = 0.0
-    fun step(dt: Double) {
+    @SerializedProperty
+    var targetUpdatesPerSecond = 30.0
 
-        // simple but effective
-        for (entity in entitiesNeedingUpdate) {
-            remove(entity)
-            add(entity)
-        }
-        entitiesNeedingUpdate.clear()
+    val clock = Clock()
 
-        // better for shooters
-        // if non-stable dt-s are used, it will not be deterministic
-        val immediateChanges = false
-        world.stepSimulation(dt)
-        time += dt
+    var time = 0L
+
+    fun step(dt: Long) {
+
+        clock.start()
+
+        // just in case
+        Stack.reset();
+
+        val oldSize = rigidBodies.size
+        validate()
+        val newSize = rigidBodies.size
+        clock.stop("added ${newSize - oldSize} entities")
+
+        val step = dt * 1e-9
+        world.stepSimulation(step, 1, step)
+
+        clock.stop("calculated changes, step ${dt * 1e-9}", 0.1)
+
+        val time = time + dt
+        this.time = time
+
         val tmpTransform = Transform()
-        for ((entity, rigidbody) in rigidBodies) {
-            val dst: me.anno.ecs.Transform = if (immediateChanges) {
-                entity.nextTransform = null // not needed / available
-                entity.transform
-            } else {
-                val tmp = entity.nextTransform ?: entity.transform.clone()
-                entity.nextTransform = entity.transform
-                entity.transform = tmp
-                entity.nextTransform!!
-            }
+        val deadEntities = ArrayList<Entity>()
+        val deadRigidBodies = ArrayList<RigidBody>()
+
+        for ((entity, rigidbodyWithScale) in nonStaticRigidBodies) {
+
+            val (scale, rigidbody) = rigidbodyWithScale
+            // if (rigidbody.isStaticObject) continue
+
             // set the global transform
             rigidbody.getWorldTransform(tmpTransform)
+            if (tmpTransform.origin.y < automaticDeathHeight) {
+                // delete the entity
+                deadEntities.add(entity)
+                deadRigidBodies.add(rigidbody)
+                continue
+            }
+
+            val dst = entity.transform
             val basis = tmpTransform.basis
             val origin = tmpTransform.origin
             // bullet/javax uses normal ij indexing, while joml uses ji indexing
+            val sx = scale.x
+            val sy = scale.y
+            val sz = scale.z
+
             dst.globalTransform.set(
-                basis.m00, basis.m10, basis.m20,
-                basis.m01, basis.m11, basis.m21,
-                basis.m02, basis.m12, basis.m22,
+                basis.m00 * sx, basis.m10 * sy, basis.m20 * sz,
+                basis.m01 * sx, basis.m11 * sy, basis.m21 * sz,
+                basis.m02 * sx, basis.m12 * sy, basis.m22 * sz,
                 origin.x, origin.y, origin.z
             )
-            dst.time = time
+
+            dst.update(time, entity, true)
+
         }
+
+        for (i in deadEntities.indices) {
+            remove(deadEntities[i])
+            world.removeRigidBody(deadRigidBodies[i])
+        }
+
+        if (deadEntities.isNotEmpty()) {
+            LOGGER.info("${deadEntities.size} entities have fallen out of the world")
+        }
+
         // update the local transforms last, so all global transforms have been completely updated
-        for (entity in rigidBodies.keys) {
-            val dst = if (immediateChanges) entity.transform
-            else entity.nextTransform!!
-            dst.calculateLocalTransform(entity.parent?.run { nextTransform ?: transform })
+        for (entity in nonStaticRigidBodies.keys) {
+            val dst = entity.transform
+            dst.calculateLocalTransform(entity.parent?.transform)
+            entity.invalidateAABBsCompletely()
+            /*val children = entity.children
+            for (i in children.indices) {
+                calcTransform(children[i])
+            }*/
         }
-        // todo update all transforms, where needed
+
+        clock.total("physics step", 0.1)
+
     }
+
+    fun calcTransform(entity: Entity) {
+        if (entity in rigidBodies.keys) return
+        val transform = entity.transform
+        transform.calculateLocalTransform(entity.parent?.transform)
+        val children = entity.children
+        for (i in children.indices) {
+            calcTransform(children[i])
+        }
+    }
+
+    fun drawDebug() {
+
+        val debugDraw = debugDraw ?: return
+
+        // define camera transform
+        debugDraw.stack.set(viewTransform)
+        debugDraw.cam.set(camPosition)
+
+        // draw the debug world
+        // re-enable
+        world.debugDrawWorld()
+        debugDraw.finish()
+
+    }
+
+    var syncMaster: SyncMaster? = null
+    fun startWork(syncMaster: SyncMaster) {
+        this.syncMaster = syncMaster
+        var first = true
+        syncMaster.addThread("Physics", {
+
+            if (first) {
+                Thread.sleep(2000)
+                this.time = GFX.gameTime
+                first = false
+                LOGGER.warn("starting physics")
+            }
+
+            val targetUPS = targetUpdatesPerSecond
+            val targetStep = 1.0 / targetUPS
+            val targetStepNanos = (targetStep * 1e9).toLong()
+
+            //  todo if too far back in time, just simulate that we are good
+
+            val targetTime = GFX.gameTime
+            val absMinimumTime = targetTime - targetStepNanos * 2
+
+            if (this.time < absMinimumTime) {
+                // todo report this value somehow...
+                // todo there may be lots and lots of warnings, if the calculations are too slow
+                // val delta = absMinimumTime - this.time
+                this.time = absMinimumTime
+                // LOGGER.warn("Physics skipped ${(delta * 1e-9)}s")
+            }
+
+            if (this.time > targetTime) {
+                // done :), sleep
+                (this.time - targetTime) / 2
+            } else {
+                // there is still work to do
+                step(targetStepNanos)
+                0
+            }
+
+        }, { null })
+    }
+
 
     private var debugDraw: BulletDebugDraw? = null
     override fun onDrawGUI() {
         super.onDrawGUI()
 
-        val debugDraw = debugDraw ?: return
-
-        // if this works, the world is magical <3
-
-        // define camera transform
-        val stack = debugDraw.stack
-        stack.clear()
-        stack.set(viewTransform)
-        debugDraw.cam.set(camPosition)
-
-        // draw the debug world
-        stack.pushMatrix()
-        world.debugDrawWorld()
-        stack.popMatrix()
+        /*syncMaster?.execute({
+            drawDebug()
+        }) { debugDraw }*/
 
         var steering = 0.0
         var engineForce = 0.0
@@ -291,13 +438,13 @@ class BulletPhysics : Component() {
 
         // println("$engineForce x $steering x $brakeForce")
 
-        if (!Input.isShiftDown) {
+        /*if (!Input.isShiftDown) {
             step(GFX.deltaTime.toDouble())
-        }
+        }*/
 
     }
 
-    private fun addSampleVehicle() {
+    /*private fun addSampleVehicle() {
         val entity = Entity()
         entity.transform.globalTransform.translate(0.0, 1.0, 0.0)
         entity.add(Vehicle().apply { centerOfMass.set(0.0, -0.5, 0.0) })
@@ -314,19 +461,18 @@ class BulletPhysics : Component() {
                 })
             }
         }
-        // todo add debug controls for vehicle testing
         add(entity)
-    }
+    }*/
 
-    private fun addSampleSphere(x: Double, y: Double, z: Double) {
+    /*private fun addSampleSphere(x: Double, y: Double, z: Double) {
         val entity = Entity()
         entity.transform.localPosition = org.joml.Vector3d(x, y, z)
         entity.transform.invalidateGlobal()
-        entity.updateTransform()
+        entity.validateTransforms()
         entity.add(Rigidbody())
         entity.add(SphereCollider())
         add(entity)
-    }
+    }*/
 
     private fun createBulletWorld(): DiscreteDynamicsWorld {
         val collisionConfig = DefaultCollisionConfiguration()

@@ -2,8 +2,8 @@ package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib
-import me.anno.gpu.drawing.GFXx3D.draw3DCircle
 import me.anno.gpu.drawing.DrawRectangles.drawRect
+import me.anno.gpu.drawing.GFXx3D.draw3DCircle
 import me.anno.gpu.shader.Shader
 import me.anno.utils.Maths.clamp
 import org.joml.Matrix4fArrayList
@@ -56,10 +56,10 @@ object GFXx2D {
         color.w /= 25f
         for (dx in 0 until 5) {
             for (dy in 0 until 5) {
-                stack.next {
-                    stack.translate((dx - 2f) / (2.5f * GFX.windowWidth), (dy - 2f) / (2.5f * GFX.windowHeight), 0f)
-                    draw3DCircle(null, 0.0, stack, innerRadius, startDegrees, endDegrees, color)
-                }
+                stack.pushMatrix()
+                stack.translate((dx - 2f) / (2.5f * GFX.windowWidth), (dy - 2f) / (2.5f * GFX.windowHeight), 0f)
+                draw3DCircle(null, 0.0, stack, innerRadius, startDegrees, endDegrees, color)
+                stack.popMatrix()
             }
         }
 
@@ -91,7 +91,6 @@ object GFXx2D {
         shader.v3("cgPower", 1f)
         shader.v1("cgSaturation", 1f)
     }
-
 
 
 }

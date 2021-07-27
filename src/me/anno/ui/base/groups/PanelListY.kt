@@ -24,12 +24,16 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
         val availableW = w - padding.width
         val availableH = h - padding.height
 
-        for (child in children.filter { it.visibility != Visibility.GONE }) {
-            child.calculateSize(availableW, availableH)
-            // apply constraints?
-            constantSum += child.minH
-            maxX = max(maxX, child.x + child.minW)
-            weightSum += max(0f, child.weight)
+        val children = children
+        for (i in children.indices) {
+            val child = children[i]
+            if (child.visibility != Visibility.GONE) {
+                child.calculateSize(availableW, availableH)
+                // apply constraints?
+                constantSum += child.minH
+                maxX = max(maxX, child.x + child.minW)
+                weightSum += max(0f, child.weight)
+            }
         }
 
         val spaceCount = children.size - 1
@@ -59,15 +63,19 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
         var currentY = y + padding.top
         val childX = x + padding.left
 
-        for (child in children.filter { it.visibility != Visibility.GONE }) {
-            var childH = (perConst * child.minH + perWeight * max(0f, child.weight)).roundToInt()
-            val currentH = currentY - y
-            val remainingH = availableH - currentH
-            childH = min(childH, remainingH)
-            child.calculateSize(availableW, childH)
-            child.placeInParent(childX, currentY)
-            child.applyPlacement(availableW, childH)
-            currentY += childH + spacing
+        val children = children
+        for (i in children.indices) {
+            val child = children[i]
+            if (child.visibility != Visibility.GONE) {
+                var childH = (perConst * child.minH + perWeight * max(0f, child.weight)).roundToInt()
+                val currentH = currentY - y
+                val remainingH = availableH - currentH
+                childH = min(childH, remainingH)
+                child.calculateSize(availableW, childH)
+                child.placeInParent(childX, currentY)
+                child.applyPlacement(availableW, childH)
+                currentY += childH + spacing
+            }
         }
 
     }

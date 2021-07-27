@@ -41,10 +41,10 @@ open class Rigidbody : Component() {
     override fun onDrawGUI() {
         super.onDrawGUI()
         val stack = RenderView.stack
-        stack.next {
-            stack.translate(centerOfMass.x.toFloat(), centerOfMass.y.toFloat(), centerOfMass.z.toFloat())
-            Transform.drawUICircle(stack, 0.2f / scale.toFloat(), 0.7f, centerOfMassColor)
-        }
+        stack.pushMatrix()
+        stack.translate(centerOfMass.x.toFloat(), centerOfMass.y.toFloat(), centerOfMass.z.toFloat())
+        Transform.drawUICircle(stack, 0.2f / scale.toFloat(), 0.7f, centerOfMassColor)
+        stack.popMatrix()
     }
 
     override val className get() = "Rigidbody"

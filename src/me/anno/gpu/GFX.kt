@@ -121,7 +121,7 @@ object GFX : GFXBase1() {
 
     var currentEditorFPS = 60f
 
-    private val startTime = System.nanoTime()
+    val startTime = System.nanoTime()
     private var lastTime = startTime
 
     val startDateTime = System.currentTimeMillis()
@@ -196,7 +196,9 @@ object GFX : GFXBase1() {
 
     fun getPanelAt(x: Float, y: Float) = getPanelAt(x.toInt(), y.toInt())
     fun getPanelAt(x: Int, y: Int): Panel? {
-        for (root in windowStack.reversed()) {
+        val windowStack = windowStack
+        for (i in windowStack.size - 1 downTo 0) {
+            val root = windowStack[i]
             val panel = getPanelAt(root.panel, x, y)
             if (panel != null) return panel
         }
@@ -206,7 +208,9 @@ object GFX : GFXBase1() {
     fun getPanelAt(panel: Panel, x: Int, y: Int): Panel? {
         return if (panel.canBeSeen && (x - panel.x) in 0 until panel.w && (y - panel.y) in 0 until panel.h) {
             if (panel is PanelGroup) {
-                for (child in panel.children.reversed()) {
+                val children = panel.children
+                for (i in children.size - 1 downTo 0) {
+                    val child = children[i]
                     val clickedByChild = getPanelAt(child, x, y)
                     if (clickedByChild != null) {
                         return clickedByChild
@@ -433,7 +437,9 @@ object GFX : GFXBase1() {
     fun updateLastLocalTime(parent: Transform, time: Double) {
         val localTime = parent.getLocalTime(time)
         parent.lastLocalTime = localTime
-        parent.children.forEach { child ->
+        val children = parent.children
+        for (i in children.indices) {
+            val child = children[i]
             updateLastLocalTime(child, localTime)
         }
     }

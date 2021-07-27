@@ -18,9 +18,9 @@ class ConvexCollider : Collider() {
         TODO("Not yet implemented")
     }
 
-    override fun createBulletShape(): CollisionShape {
+    override fun createBulletShape(scale: Vector3d): CollisionShape {
         val pointList = ObjectArrayList<javax.vecmath.Vector3d>(points.size)
-        pointList.addAll(points.map { javax.vecmath.Vector3d(it.x, it.y, it.z) })
+        pointList.addAll(points.map { javax.vecmath.Vector3d(it.x * scale.x, it.y * scale.y, it.z * scale.z) })
         return ConvexHullShape(pointList)
     }
 

@@ -19,7 +19,6 @@ import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.lwjgl.assimp.*
-import org.lwjgl.assimp.Assimp.*
 import java.nio.charset.StandardCharsets
 import kotlin.math.max
 import kotlin.math.min
@@ -78,9 +77,9 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         val boneMap = HashMap<String, Bone>()
         val meshes = loadMeshes(aiScene, materials, boneList, boneMap)
         val (hierarchy, hierarchyPrefab) = buildScene(aiScene, meshes)
-        val skeleton = addSkeleton(hierarchy, hierarchyPrefab, boneList)
-        val animations = loadAnimations(aiScene, boneList, boneMap)
-        skeleton.animations.putAll(animations)
+        val skeleton = if (boneList.isEmpty()) null else addSkeleton(hierarchy, hierarchyPrefab, boneList)
+        val animations = if (boneList.isEmpty()) null else loadAnimations(aiScene, boneList, boneMap)
+        skeleton?.animations?.putAll(animations!!)
         // todo save all animations and the skeleton into the hierarchy prefab
         if (debugTransforms) {
             var name = file.name
@@ -96,7 +95,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         }
         // LOGGER.info("Found ${meshes.size} meshes and ${animations.size} animations on ${boneList.size} bones, in $resourcePath")
         // println(animations)
-        return AnimGameItem(hierarchy, hierarchyPrefab, meshes.toList(), boneList, animations)
+        return AnimGameItem(hierarchy, hierarchyPrefab, meshes.toList(), boneList, animations ?: emptyMap())
     }
 
     private fun addSkeleton(hierarchy: Entity, hierarchyPrefab: EntityPrefab, boneList: List<Bone>): Skeleton {
@@ -239,7 +238,8 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                 var tps = aiAnimation.mTicksPerSecond()
                 if (tps < 1e-16) tps = 1000.0
                 val duration = aiAnimation.mDuration() / tps
-                val animation = ImportedAnimation(aiAnimation.mName().dataString().ifBlank { "Anim[$i]" }, frames, duration)
+                val animation =
+                    ImportedAnimation(aiAnimation.mName().dataString().ifBlank { "Anim[$i]" }, frames, duration)
                 animations[animation.name] = animation
             }
         }

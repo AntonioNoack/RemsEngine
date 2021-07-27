@@ -6,7 +6,6 @@ import me.anno.audio.openal.AudioManager
 import me.anno.audio.openal.AudioTasks
 import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultConfig.style
 import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.Cursor
 import me.anno.gpu.Cursor.useCursor
@@ -391,7 +390,9 @@ abstract class StudioBase(
                             ) { panel.redraw() }
                         }
                         wasRedrawn += panel
-                        panel.listOfAll { needsRedraw.remove(it) }
+                        panel.listOfAll {
+                            needsRedraw.remove(it)
+                        }
                     }
 
                 }

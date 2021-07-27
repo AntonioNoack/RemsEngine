@@ -5,12 +5,15 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.RendererComponent
 import me.anno.gpu.DepthMode
+import me.anno.gpu.GFX
 import me.anno.gpu.GFX.shaderColor
 import me.anno.gpu.RenderState
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
 import me.anno.io.Saveable
+import me.anno.utils.Maths.clamp
+import me.anno.utils.Maths.mix
 import org.joml.*
 import org.lwjgl.opengl.GL21.glUniformMatrix4x3fv
 import org.lwjgl.system.MemoryUtil
@@ -49,6 +52,42 @@ class PipelineStage(
             if (uniformIndex >= 0) {
                 v3(uniformIndex, (a.x - b.x).toFloat(), (a.y - b.y).toFloat(), (a.z - b.z).toFloat())
             }
+        }
+
+        /**
+         * uploads the transform, minus some offset, to the GPU uniform <location>
+         * the delta ensures, that we don't have to calculate high-precision numbers on the GPU
+         * */
+        fun Shader.m4x3delta(location: String, a: Matrix4x3d, b: Matrix4x3d, f: Double, cam: Vector3d) {
+            val uniformIndex = this[location]
+            if (uniformIndex >= 0) {
+
+                // false = column major, however the labelling of these things is awkward
+                // A_ji, as far, as I can see
+                matrixBuffer.limit(12)
+                matrixBuffer.position(0)
+                matrixBuffer.put(mix(a.m00(), b.m00(), f).toFloat())
+                matrixBuffer.put(mix(a.m01(), b.m01(), f).toFloat())
+                matrixBuffer.put(mix(a.m02(), b.m02(), f).toFloat())
+
+                matrixBuffer.put(mix(a.m10(), b.m10(), f).toFloat())
+                matrixBuffer.put(mix(a.m11(), b.m11(), f).toFloat())
+                matrixBuffer.put(mix(a.m12(), b.m12(), f).toFloat())
+
+                matrixBuffer.put(mix(a.m20(), b.m20(), f).toFloat())
+                matrixBuffer.put(mix(a.m21(), b.m21(), f).toFloat())
+                matrixBuffer.put(mix(a.m22(), b.m22(), f).toFloat())
+
+                matrixBuffer.put((mix(a.m30(), b.m30(), f) - cam.x).toFloat())
+                matrixBuffer.put((mix(a.m31(), b.m31(), f) - cam.y).toFloat())
+                matrixBuffer.put((mix(a.m32(), b.m32(), f) - cam.z).toFloat())
+
+                matrixBuffer.position(0)
+
+                glUniformMatrix4x3fv(uniformIndex, false, matrixBuffer)
+
+            }
+
         }
 
         /**
@@ -176,14 +215,18 @@ class PipelineStage(
         var lastMesh: Mesh? = null
         var lastShader: Shader? = null
 
-        for (index in 0 until writeIndex) {
+        val time = GFX.gameTime
+
+        for (index in 0 until nextInsertIndex) {
 
             // gl_Position = cameraMatrix * v4(localTransform * v4(pos,1),1)
 
             val request = drawRequests[index]
             val mesh = request.mesh
             val entity = request.entity
+
             val transform = entity.transform
+
             val materialIndex = request.materialIndex
             val material = mesh.materials.getOrNull(materialIndex) ?: defaultMaterial
             val baseShader = material.shader ?: defaultShader
@@ -204,15 +247,29 @@ class PipelineStage(
                 // todo local transform could be used for procedural shaders as well
             }
 
-            val wt = transform.globalTransform
-            shader.m4x3delta("localTransform", wt, cameraPosition)
+            val drawTransform = transform.drawTransform
+            val factor = transform.updateDrawingLerpFactor(time)
+            if (factor > 0.0) {
+                val extrapolatedTime = (GFX.gameTime - transform.lastUpdateTime).toDouble() / transform.lastUpdateDt
+                // [-1,0]
+                // needs to be changed, if the extrapolated time changes...
+                val et2 = extrapolatedTime + 1 // [0,1]
+                val fac2 = factor / (clamp(1 - et2, 0.001, 1.0))
+                if (fac2 < 1.0) {
+                    drawTransform.lerp(transform.globalTransform, fac2)
+                } else {
+                    drawTransform.set(transform.globalTransform)
+                }
+            }
+
+            shader.m4x3delta("localTransform", drawTransform, cameraPosition)
 
             val invLocalUniform = shader["invLocalTransform"]
             if (invLocalUniform >= 0) {
                 val invLocal = tmp3x3.set(
-                    wt.m00().toFloat(), wt.m01().toFloat(), wt.m02().toFloat(),
-                    wt.m10().toFloat(), wt.m11().toFloat(), wt.m12().toFloat(),
-                    wt.m20().toFloat(), wt.m21().toFloat(), wt.m22().toFloat(),
+                    drawTransform.m00().toFloat(), drawTransform.m01().toFloat(), drawTransform.m02().toFloat(),
+                    drawTransform.m10().toFloat(), drawTransform.m11().toFloat(), drawTransform.m12().toFloat(),
+                    drawTransform.m20().toFloat(), drawTransform.m21().toFloat(), drawTransform.m22().toFloat(),
                 ).invert()
                 shader.m3x3(invLocalUniform, invLocal)
             }
@@ -245,29 +302,29 @@ class PipelineStage(
 
     }
 
-    var writeIndex = 0
+    var nextInsertIndex = 0
     val drawRequests = ArrayList<DrawRequest>()
 
     fun reset() {
         // there is too much space
-        if (writeIndex < drawRequests.size / 2) {
+        if (nextInsertIndex < drawRequests.size / 2) {
             drawRequests.clear()
         }
-        writeIndex = 0
+        nextInsertIndex = 0
     }
 
     fun add(renderer: RendererComponent, mesh: Mesh, entity: Entity, materialIndex: Int) {
-        if (writeIndex >= drawRequests.size) {
+        if (nextInsertIndex >= drawRequests.size) {
             val request = DrawRequest(mesh, renderer, entity, materialIndex)
             drawRequests.add(request)
         } else {
-            val request = drawRequests[writeIndex]
+            val request = drawRequests[nextInsertIndex]
             request.mesh = mesh
             request.renderer = renderer
             request.entity = entity
             request.materialIndex = materialIndex
         }
-        writeIndex++
+        nextInsertIndex++
     }
 
     override val className: String = "PipelineStage"

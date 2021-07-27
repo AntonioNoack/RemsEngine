@@ -17,13 +17,18 @@ abstract class Collider : Component() {
 
     abstract fun getSignedDistance(deltaPosition: Vector3d, movement: Vector3d): Double
 
-    fun createBulletCollider(base: Entity): Pair<Transform, CollisionShape> {
-        val shape = createBulletShape()
-        val transform = Transform(convertMatrix(entity!!.fromLocalToOtherLocal(base)))
+    // todo test that
+    fun createBulletCollider(base: Entity, scale: Vector3d): Pair<Transform, CollisionShape> {
+        val transform0 = entity!!.fromLocalToOtherLocal(base)
+        // there may be extra scale hidden in there
+        val extraScale = transform0.getScale(Vector3d())
+        val totalScale = Vector3d(scale).mul(extraScale)
+        val shape = createBulletShape(totalScale)
+        val transform = Transform(convertMatrix(transform0, extraScale))
         return transform to shape
     }
 
-    abstract fun createBulletShape(): CollisionShape
+    abstract fun createBulletShape(scale: Vector3d): CollisionShape
 
     // a collider needs to be drawn
     override fun onDrawGUI() {

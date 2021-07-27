@@ -16,8 +16,8 @@ class SphereCollider : Collider() {
         return deltaPosition.length() - radius
     }
 
-    override fun createBulletShape(): CollisionShape {
-        return SphereShape(radius)
+    override fun createBulletShape(scale: Vector3d): CollisionShape {
+        return SphereShape(radius * scale.dot(0.33, 0.34, 0.33))
     }
 
     override fun drawShape() {

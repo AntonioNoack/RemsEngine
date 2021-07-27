@@ -225,7 +225,8 @@ class AWTFont(val font: Font) {
     }
 
     fun getSupportLevel(fonts: List<Font>, char: Int, lastSupportLevel: Int): Int {
-        fonts.forEachIndexed { index, font ->
+        for (index in fonts.indices) {
+            val font = fonts[index]
             if (font.canDisplay(char)) return index
         }
         return lastSupportLevel

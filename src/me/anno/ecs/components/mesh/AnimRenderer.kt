@@ -27,6 +27,12 @@ class AnimRenderer : RendererComponent() {
 
     override fun defineVertexTransform(shader: Shader, entity: Entity, mesh: Mesh) {
 
+        val skeleton = skeleton
+        if (skeleton == null) {
+            shader.v1("hasAnimation", 0f)
+            return
+        }
+
         shader.use()
 
         val location = shader["jointTransforms"]
@@ -35,8 +41,8 @@ class AnimRenderer : RendererComponent() {
         animationWeights.removeIf { it.second <= 0f }
 
         // todo remove that; just for debugging
-        if (animationWeights.isEmpty()) {
-            animationWeights.add(skeleton!!.animations.entries.first().value to 1f)
+        if (animationWeights.isEmpty() && skeleton.animations.isNotEmpty()) {
+            animationWeights.add(skeleton.animations.entries.first().value to 1f)
         }
 
         if (animationWeights.isEmpty() || location <= 0) {

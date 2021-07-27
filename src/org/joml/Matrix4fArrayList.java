@@ -140,8 +140,8 @@ public class Matrix4fArrayList extends Matrix4f {
 
 
     /**
-     * reduces errors, because neither push nor pop can be forgotten,
-     * even if errors happen
+     * + reduces errors, because neither push nor pop can be forgotten, even if errors happen
+     * - allocated a lambda
      */
     public <V> V next(Function0<V> run) {
         pushMatrix();

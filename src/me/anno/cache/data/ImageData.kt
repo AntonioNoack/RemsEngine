@@ -104,7 +104,7 @@ class ImageData(file: FileReference) : ICacheData {
         // get all tags:
         /*for (directory in metadata.directories) {
             for (tag in directory.tags) {
-                println(tag)
+                (tag)
             }
         }*/
         when (fileExtension.lowercase(Locale.getDefault())) {

@@ -6,6 +6,7 @@ import com.bulletphysics.collision.shapes.CapsuleShapeZ
 import com.bulletphysics.collision.shapes.CollisionShape
 import me.anno.io.serialization.SerializedProperty
 import org.joml.Vector3d
+import java.lang.RuntimeException
 import kotlin.math.max
 
 class CapsuleCollider : Collider() {
@@ -27,11 +28,12 @@ class CapsuleCollider : Collider() {
         return deltaPosition.length() - radius
     }
 
-    override fun createBulletShape(): CollisionShape {
+    override fun createBulletShape(scale: Vector3d): CollisionShape {
         return when (axis) {
-            0 -> CapsuleShapeX(radius, height)
-            1 -> CapsuleShape(radius, height, axis)
-            else -> CapsuleShapeZ(radius, height)
+            0 -> CapsuleShape(radius * scale.y, height * scale.x, axis) // x
+            1 -> CapsuleShape(radius * scale.x, height * scale.y, axis) // y
+            2 -> CapsuleShape(radius * scale.x, height * scale.z, axis) // z
+            else -> throw RuntimeException()
         }
     }
 

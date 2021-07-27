@@ -114,7 +114,7 @@ class AnimGameItem(
         }
 
         private fun updateTransforms(entity: Entity) {
-            entity.transform.update(entity.parent?.transform)
+            entity.transform.update(entity.parent?.transform, 0)
             for (child in entity.children) updateTransforms(child)
         }
 

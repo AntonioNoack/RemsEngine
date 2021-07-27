@@ -841,15 +841,15 @@ open class Transform() : Saveable(),
         fun drawUICircle(stack: Matrix4fArrayList, scale: Float = 0.02f, inner: Float = 0.7f, color: Vector4fc) {
             // draw a small symbol to indicate pivot
             if (!isFinalRendering) {
-                stack.next {
-                    /*val w = GFX.windowWidth
-                    val h = GFX.windowHeight
-                    stack.m00(scale*h/w);stack.m01(0f);stack.m02(0f)
-                    stack.m10(0f);stack.m11(scale);stack.m12(0f)
-                    stack.m20(0f);stack.m21(0f);stack.m22(scale)*/
-                    stack.scale(scale)
-                    draw3DCircle(null, 0.0, stack, inner, 0f, 360f, color)
-                }
+                stack.pushMatrix()
+                /*val w = GFX.windowWidth
+                val h = GFX.windowHeight
+                stack.m00(scale*h/w);stack.m01(0f);stack.m02(0f)
+                stack.m10(0f);stack.m11(scale);stack.m12(0f)
+                stack.m20(0f);stack.m21(0f);stack.m22(scale)*/
+                stack.scale(scale)
+                draw3DCircle(null, 0.0, stack, inner, 0f, 360f, color)
+                stack.popMatrix()
             }
         }
 

@@ -19,7 +19,12 @@ class MeshCollider : Collider() {
         TODO("Not yet implemented")
     }
 
-    override fun createBulletShape(): CollisionShape {
+    override fun createBulletShape(scale: Vector3d): CollisionShape {
+
+        if (mesh == null) {
+            mesh = entity?.getComponent(false, MeshComponent::class)?.mesh
+            me.anno.utils.LOGGER.warn("searched for mesh, found $mesh")
+        }
 
         val mesh = mesh ?: return SphereShape(0.5)
 
@@ -35,9 +40,9 @@ class MeshCollider : Collider() {
             for (i in positions.indices step 3) {
                 points.add(
                     javax.vecmath.Vector3d(
-                        positions[i + 0].toDouble(),
-                        positions[i + 1].toDouble(),
-                        positions[i + 2].toDouble()
+                        positions[i + 0] * scale.x,
+                        positions[i + 1] * scale.y,
+                        positions[i + 2] * scale.z
                     )
                 )
             }
@@ -62,7 +67,20 @@ class MeshCollider : Collider() {
             indices3.flip()
 
             val vertexBase = MemoryUtil.memAlloc(4 * positions.size)
-            vertexBase.asFloatBuffer().put(positions)
+            vertexBase.asFloatBuffer().apply {
+                if (scale.x == 1.0 && scale.y == 1.0 && scale.z == 1.0) {
+                    put(positions)
+                } else {
+                    val sx = scale.x.toFloat()
+                    val sy = scale.y.toFloat()
+                    val sz = scale.z.toFloat()
+                    for (i in positions.indices step 3) {
+                        put(positions[i + 0] * sx)
+                        put(positions[i + 1] * sy)
+                        put(positions[i + 2] * sz)
+                    }
+                }
+            }
             vertexBase.flip()
 
             // int numTriangles, ByteBuffer triangleIndexBase, int triangleIndexStride, int numVertices, ByteBuffer vertexBase, int vertexStride

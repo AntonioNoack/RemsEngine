@@ -1,11 +1,10 @@
 package me.anno.engine.physics
 
 import com.bulletphysics.linearmath.IDebugDraw
-import me.anno.config.DefaultStyle.white4
-import me.anno.objects.text.Text
-import me.anno.ui.editor.sceneView.Grid
+import me.anno.gpu.buffer.LineBuffer
+import me.anno.gpu.buffer.LineBuffer.putRelativeLine
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix4fArrayList
+import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.joml.Vector4f
 import javax.vecmath.Vector3d
@@ -16,7 +15,11 @@ class BulletDebugDraw : IDebugDraw() {
         private val LOGGER = LogManager.getLogger(BulletDebugDraw::class)
     }
 
-    var stack = Matrix4fArrayList()
+    fun finish() {
+        LineBuffer.finish(stack)
+    }
+
+    var stack = Matrix4f()
     var cam = org.joml.Vector3d()
 
     /**
@@ -37,7 +40,7 @@ class BulletDebugDraw : IDebugDraw() {
 
     var mode = 1 or 2 or 4 or 8 or 64 or 128 or 256 or 1024 or 1025
 
-    private val textInstance = Text()
+    // private val textInstance = Text()
 
     override fun getDebugMode(): Int = mode
 
@@ -50,7 +53,8 @@ class BulletDebugDraw : IDebugDraw() {
     }
 
     override fun draw3dText(location: Vector3d, textString: String) {
-        val localPosition = toLocal(location)
+        // is not being used by discrete dynamics world
+        /*val localPosition = toLocal(location)
         textInstance.position.set(localPosition)
         // set scale based on distance
         val distance = localPosition.length()
@@ -58,7 +62,7 @@ class BulletDebugDraw : IDebugDraw() {
         textInstance.scale.set(Vector3f(defaultScale / distance))
         textInstance.alignWithCamera.set(1f)
         textInstance.text.set(textString)
-        textInstance.draw(stack, 1.0, white4)
+        textInstance.draw(stack, 1.0, white4)*/
     }
 
     private fun toLocal(global: Vector3d): Vector3f {
@@ -82,7 +86,8 @@ class BulletDebugDraw : IDebugDraw() {
     }
 
     override fun drawLine(from: Vector3d, to: Vector3d, color: Vector3d) {
-        Grid.drawLine(stack, toColor(color), toLocal(from), toLocal(to))
+        putRelativeLine(from, to, cam, color.x, color.y, color.z)
+        // Grid.drawLine(stack, toColor(color), toLocal(from), toLocal(to))
     }
 
 }

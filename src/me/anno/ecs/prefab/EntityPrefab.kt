@@ -1,5 +1,7 @@
 package me.anno.ecs.prefab
 
+import me.anno.cache.CacheData
+import me.anno.cache.CacheSection
 import me.anno.ecs.Entity
 import me.anno.engine.scene.ScenePrefab
 import me.anno.io.ISaveable
@@ -77,6 +79,8 @@ class EntityPrefab() : Saveable() {
 
     companion object {
 
+        val cache = CacheSection("EntityPrefab")
+
         private val LOGGER = LogManager.getLogger(EntityPrefab::class)
 
         private fun createInstance(
@@ -137,19 +141,24 @@ class EntityPrefab() : Saveable() {
 
         fun loadPrefab(resource: FileReference): EntityPrefab? {
             return if (resource != InvalidRef && resource.exists && !resource.isDirectory) {
-                val signature = Signature.find(resource)
-                // LOGGER.info("resource $resource has signature $signature")
-                when (signature?.name) {
-                    "vox" -> loadVOXModel(resource)
-                    "fbx", "obj" -> loadAssimpModel(resource)
-                    else -> {
-                        when (resource.extension.lowercase()) {
+                val data = cache.getEntry(resource, 1000, false){
+                    CacheData(if( resource.exists && !resource.isDirectory){
+                        val signature = Signature.find(resource)
+                        // LOGGER.info("resource $resource has signature $signature")
+                        when (signature?.name) {
                             "vox" -> loadVOXModel(resource)
-                            "fbx", "dae", "obj" -> loadAssimpModel(resource)
-                            else -> loadJson(resource)
+                            "fbx", "obj" -> loadAssimpModel(resource)
+                            else -> {
+                                when (resource.extension.lowercase()) {
+                                    "vox" -> loadVOXModel(resource)
+                                    "fbx", "dae", "obj" -> loadAssimpModel(resource)
+                                    else -> loadJson(resource)
+                                }
+                            }
                         }
-                    }
-                }
+                    } else null)
+                } as CacheData<*>
+                return data.value as? EntityPrefab
             } else null
         }
 

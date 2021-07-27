@@ -1,9 +1,12 @@
 package me.anno.ecs
 
 import me.anno.ecs.components.collider.Collider
+import me.anno.ecs.components.light.LightComponent
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.engine.physics.BulletPhysics
+import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
@@ -14,10 +17,15 @@ import me.anno.io.serialization.SerializedProperty
 import me.anno.io.text.TextReader
 import me.anno.objects.inspectable.Inspectable
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 import me.anno.utils.structures.Hierarchical
+import me.anno.utils.types.AABBs.reset
+import me.anno.utils.types.AABBs.transformUnion
 import me.anno.utils.types.Floats.f2s
+import me.anno.utils.types.Floats.f3
+import org.joml.AABBd
 import org.joml.Matrix4x3d
 import kotlin.reflect.KClass
 
@@ -71,6 +79,79 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
     override val children: List<Entity>
         get() = internalChildren
 
+    @NotSerializedProperty
+    var hasValidAABB = false
+
+    @NotSerializedProperty
+    val aabb = AABBd()
+
+    @NotSerializedProperty
+    var hasRenderables = false
+
+    fun invalidateAABBsCompletely() {
+        invalidateOwnAABB()
+        invalidateChildAABBs()
+    }
+
+    private fun invalidateOwnAABB() {
+        if (hasValidAABB) {
+            hasValidAABB = false
+            parent?.invalidateOwnAABB()
+        }
+    }
+
+    private fun invalidateChildAABBs() {
+        hasValidAABB = false
+        val children = children
+        for (i in children.indices) {
+            children[i].invalidateChildAABBs()
+        }
+    }
+
+    fun validateAABBs() {
+        if (hasValidAABB) {
+            // to check if all invalidations were applied correctly
+            /*val oldAABB = AABBd(aabb)
+            hasValidAABB = false
+            validateAABBs()
+            if (oldAABB != aabb) LOGGER.warn("AABBs differed: $aabb vs $oldAABB, $name")*/
+            return
+        }
+        hasValidAABB = true
+        val children = children
+        for (i in children.indices) {
+            children[i].validateAABBs()
+        }
+        aabb.reset()
+        if (hasRenderables) {
+            // todo if has particle system, include
+            val globalTransform = transform.globalTransform
+            val components = components
+            for (i in components.indices) {
+                val component = components[i]
+                if (component.isEnabled) {
+                    when (component) {
+                        is MeshComponent -> {
+                            // add aabb of that mesh with the transform
+                            val mesh = component.mesh ?: continue
+                            mesh.ensureBuffer()
+                            mesh.aabb.transformUnion(globalTransform, aabb)
+                        }
+                        is LightComponent -> {
+                            val mesh = component.getLightPrimitive()
+                            mesh.ensureBuffer()
+                            mesh.aabb.transformUnion(globalTransform, aabb)
+                        }
+                        // todo drawing colliders for GUI -> would need to be included?
+                    }
+                }
+            }
+        }
+        for (i in children.indices) {
+            aabb.union(children[i].aabb)
+        }
+    }
+
     @SerializedProperty
     override var isEnabled = true
         set(value) {
@@ -85,10 +166,7 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
             }
         }
 
-    // set by rigidbody
-    // allows interpolation
-    var nextTransform: Transform? = null
-    var transform = Transform()
+    val transform = Transform()
 
     // for the UI
     override var isCollapsed = false
@@ -101,11 +179,16 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
         for (child in children) child.update()
     }
 
-    fun updateTransform() {
-        transform.update(parent?.transform)
-        children.forEach { it.updateTransform() }
-        // todo if rigidbody, calculate interpolated transform
-        // todo separate function for drawing them?
+    var isPhysicsControlled = false
+
+    fun validateTransforms(time: Long = GFX.gameTime) {
+        if (!isPhysicsControlled) {
+            transform.update(parent?.transform, time)
+            val children = children
+            for (i in children.indices) {
+                children[i].validateTransforms(time)
+            }
+        }
     }
 
     fun invalidate() {
@@ -133,10 +216,9 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
             transform.calculateLocalTransform(parent.transform)
             // global transform theoretically stays the same
             // it will not, if there is an anomaly, e.g. scale 0
-            transform.invalidateGlobal()
-        } else {
-            transform.invalidateGlobal()
         }
+        transform.invalidateGlobal()
+        invalidateAABBsCompletely()
     }
 
     override fun add(index: Int, child: Entity) {
@@ -147,10 +229,15 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
     // todo don't directly update, rather invalidate this, because there may be more to come
     fun setParent(parent: Entity, index: Int, keepWorldTransform: Boolean) {
 
-        if (parent === this.parent) return
+        val oldParent = this.parent
+        if (parent === oldParent) return
 
         // formalities
-        this.parent?.remove(this)
+        if (oldParent != null) {
+            oldParent.remove(this)
+            oldParent.invalidateOwnAABB()
+        }
+
         parent.internalChildren.add(index, this)
         this.parent = parent
 
@@ -172,11 +259,9 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
             // something can change
             val physics = physics
             if (physics != null) {
-                println("world has physics")
                 // if there is a rigidbody in the hierarchy, update it
                 val parentRigidbody = rigidbody
                 if (parentRigidbody != null) {
-                    println("parent has rigidbody")
                     // invalidate it
                     physics.invalidate(parentRigidbody)
                 } else {
@@ -185,11 +270,11 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
                         // todo add it for click tests
                     }
                 }
-            } else println("world has no physics")
-        } else println("someone in the hierarchy is disabled")
+            }
+        }
     }
 
-    val physics get() = root.getComponent<BulletPhysics>(false)
+    val physics get() = root.getComponent(false, BulletPhysics::class)
     val rigidbody get() = listOfHierarchy.lastOrNull { it.hasComponent(false, Rigidbody::class) }
 
     fun invalidateRigidbody() {
@@ -217,13 +302,21 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
     private fun onAddComponent(component: Component) {
         // if component is Collider or Rigidbody, update the physics
         // todo isEnabled for Colliders and Rigidbody needs to have listeners as well
+        onChangeComponent(component)
+        component.entity = this
+    }
+
+    private fun onChangeComponent(component: Component) {
         if (component.isEnabled) {
             when (component) {
                 is Collider -> invalidateRigidbody()
                 is Rigidbody -> physics?.invalidate(this)
+                is MeshComponent -> invalidateOwnAABB()
+                is LightComponent -> invalidateOwnAABB()
             }
         }
-        component.entity = this
+        hasRenderables = hasComponent<MeshComponent>(false)
+        invalidateOwnAABB()
     }
 
     override fun addChild(child: Entity) {
@@ -236,12 +329,7 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
 
     fun removeComponent(component: Component) {
         internalComponents.remove(component)
-        if (component.isEnabled) {// valuable states, which need to be updated
-            when (component) {
-                is Collider -> invalidateRigidbody()
-                is Rigidbody -> physics?.invalidate(this)
-            }
-        }
+        onChangeComponent(component)
     }
 
     inline fun <reified V : Component> hasComponent(includingDisabled: Boolean): Boolean {
@@ -249,11 +337,11 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
     }
 
     fun <V : Component> hasComponent(includingDisabled: Boolean, clazz: KClass<V>): Boolean {
-        return components.any { clazz.isInstance(it) && (includingDisabled || it.isEnabled) }
+        return getComponent(includingDisabled, clazz) != null
     }
 
     fun <V : Component> hasComponentInChildren(includingDisabled: Boolean, clazz: KClass<V>): Boolean {
-        return components.any { clazz.isInstance(it) && (includingDisabled || it.isEnabled) } || children.filter {
+        return hasComponent(includingDisabled, clazz) || children.filter {
             includingDisabled || it.isEnabled
         }.any { hasComponentInChildren(includingDisabled, clazz) }
     }
@@ -263,7 +351,17 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
     }
 
     fun <V : Component> getComponent(includingDisabled: Boolean, clazz: KClass<V>): V? {
-        return components.firstOrNull { clazz.isInstance(it) && (includingDisabled || it.isEnabled) } as V?
+        // elegant:
+        // return components.firstOrNull { clazz.isInstance(it) && (includingDisabled || it.isEnabled) } as V?
+        // without damn iterator:
+        val components = components
+        for (i in components.indices) {
+            val component = components[i]
+            if ((includingDisabled || component.isEnabled) && clazz.isInstance(component)) {
+                return component as V
+            }
+        }
+        return null
     }
 
     inline fun <reified V : Component> getComponentInChildren(includingDisabled: Boolean): V? {
@@ -348,7 +446,16 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
         }
     }
 
-    val sizeOfHierarchy get(): Int = components.size + children.sumOf { 1 + it.sizeOfHierarchy }
+    val sizeOfHierarchy
+        get(): Int {
+            val children = children
+            var sum = children.size + components.size
+            for (i in children.indices) {
+                sum += children[i].sizeOfHierarchy
+            }
+            return sum
+        }
+
     val depthInHierarchy
         get(): Int {
             val parent = parent ?: return 0
@@ -417,6 +524,10 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
         style: Style,
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
+        list += UpdatingTextPanel(50, style) {
+            val t = transform
+            "1x/${(t.lastUpdateDt * 1e-9).f3()}s, ${((GFX.gameTime - t.lastUpdateTime) * 1e-9).f3()}s ago"
+        }
         PrefabInspector.currentInspector!!.inspectEntity(this, list, style)
     }
 

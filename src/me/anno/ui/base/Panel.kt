@@ -1,10 +1,9 @@
 package me.anno.ui.base
 
 import me.anno.gpu.GFX
-import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.Window
+import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.MouseButton
-import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.ui.base.components.Corner.drawRoundedRect
 import me.anno.ui.base.components.Padding
@@ -199,8 +198,9 @@ open class Panel(val style: Style) {
                 lx1 > lx0 && ly1 > ly0
         isHovered = mx in lx0 until lx1 && my in ly0 until ly1
         if (this is PanelGroup) {
-            for (child in children) {
-                child.updateVisibility(mx, my)
+            val children = children
+            for (i in children.indices) {
+                children[i].updateVisibility(mx, my)
             }
         }
     }
@@ -208,8 +208,9 @@ open class Panel(val style: Style) {
     fun findMissingParents(parent: PanelGroup? = null) {
         if (parent != null) this.parent = parent
         if (this is PanelGroup) {
-            for (child in children) {
-                child.findMissingParents(this)
+            val children = children
+            for (i in children.indices) {
+                children[i].findMissingParents(this)
             }
         }
     }
@@ -274,7 +275,9 @@ open class Panel(val style: Style) {
     open fun applyPlacement(w: Int, h: Int) {
         this.w = w
         this.h = h
-        for (c in layoutConstraints) {
+        val constraints = layoutConstraints
+        for(i in constraints.indices){
+            val c = constraints[i]
             c.apply(this)
             if (this.w > w || this.h > h) throw RuntimeException("${c.javaClass} isn't working properly: $w -> ${this.w}, $h -> ${this.h}")
         }
@@ -471,8 +474,9 @@ open class Panel(val style: Style) {
     fun listOfAll(callback: (Panel) -> Unit) {
         callback(this)
         if (this is PanelGroup) {
-            for (child in children) {
-                child.listOfAll(callback)
+            val children = children
+            for (i in children.indices) {
+                children[i].listOfAll(callback)
             }
         }
     }

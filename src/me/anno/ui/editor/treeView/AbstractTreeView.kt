@@ -20,7 +20,6 @@ import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.fract
-import me.anno.utils.structures.Hierarchical
 import org.joml.Vector4f
 
 // todo select multiple elements, filter for common properties, and apply them all together :)
@@ -124,25 +123,41 @@ abstract class AbstractTreeView<V>(
         return index
     }
 
+    // if the size of the tree is large, this can use up
+    // quite a lot of time -> only update when necessary
     private fun updateTree() {
+        needsTreeUpdate = false
         var index = 0
-        for (element in sources) {
+        val sources = sources
+        for(i in sources.indices){
+            val element = sources[i]
             index = addToTreeList(element, 0, index)
         }
         // make the rest invisible (instead of deleting them)
-        for (i in index until list.children.size) {
-            val child = list.children[i]
+        val children = list.children
+        for (i in index until children.size) {
+            val child = children[i]
             child.visibility = Visibility.GONE
         }
     }
 
+    var needsTreeUpdate = true
+
+    override fun invalidateLayout() {
+        super.invalidateLayout()
+        needsTreeUpdate = true
+    }
+
     override fun tickUpdate() {
         super.tickUpdate()
-        updateTree()
+        if (needsTreeUpdate) {
+            updateTree()
+        }
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
+        updateTree()
         drawLineOfTakenElement(x0, y0, x1, y1)
     }
 
@@ -239,7 +254,9 @@ abstract class AbstractTreeView<V>(
     }
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
-        files.forEach { addChildFromFile(root, it, FileContentImporter.SoftLinkMode.ASK, true) {} }
+        for(file in files){
+            addChildFromFile(root, file, FileContentImporter.SoftLinkMode.ASK, true) {}
+        }
     }
 
 }

@@ -12,6 +12,7 @@ import me.anno.gpu.RenderState
 import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.ShaderLib.pbrModelShader
 import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
@@ -32,10 +33,13 @@ import me.anno.studio.Build
 import me.anno.ui.base.Panel
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.ui.style.Style
+import me.anno.utils.Clock
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.max
 import me.anno.utils.Maths.mix
 import me.anno.utils.Maths.pow
+import me.anno.utils.Maths.sq
+import me.anno.utils.types.AABBs.isEmpty
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import org.joml.*
 import org.joml.Math.toRadians
@@ -95,7 +99,7 @@ class RenderView(val world: Entity, val mode: Mode, style: Style) : Panel(style)
                     // todo use the lights to illuminate the model
                     // todo maybe apply color map as a final step...
                     "void main(){\n" +
-                    "   finalColor *= 0.6 - 0.4 * finalNormal.x;\n" +
+                    "   finalColor *= 0.6 - 0.4 * normalize(finalNormal).x;\n" +
                     "}"
         }
     }
@@ -172,9 +176,15 @@ class RenderView(val world: Entity, val mode: Mode, style: Style) : Panel(style)
         invalidateDrawing()
     }
 
+    val clock = Clock()
+
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
+        clock.start()
+
         checkMovement()
+
+        clock.stop("movement", 0.01)
 
         // todo go through the rendering pipeline, and render everything
 
@@ -193,7 +203,7 @@ class RenderView(val world: Entity, val mode: Mode, style: Style) : Panel(style)
             val rotation = editorCameraNode.transform.localRotation
             editorCameraNode.transform.localPosition =
                 Vector3d(position).add(rotation.transform(Vector3d(0.0, 0.0, radius)))
-            editorCameraNode.updateTransform()
+            editorCameraNode.validateTransforms()
         }
 
         val useDeferredRendering = Input.isKeyDown('k')
@@ -221,8 +231,15 @@ class RenderView(val world: Entity, val mode: Mode, style: Style) : Panel(style)
 
         stage0.cullMode = if (isFinalRendering) GL_BACK else 0
 
+        clock.stop("initialization", 0.05)
+
         prepareDrawScene(w / 2f, h / 2f, w, h, aspect, camera, camera, 1f)
+
+        clock.stop("preparing", 0.05)
+
         drawScene(camera, camera, 1f, renderer, buffer)
+
+        clock.stop("drawing scene", 0.05)
 
         if (useDeferredRendering) {
 
@@ -233,6 +250,8 @@ class RenderView(val world: Entity, val mode: Mode, style: Style) : Panel(style)
             // todo for the scene, the environment map and shadow cascades need to be updated,
             // todo and used in the calculation
             drawSceneLights(camera, camera, 1f, Renderer.copyRenderer, lightBuffer)
+
+            clock.stop("drawing lights")
 
             // todo calculate the colors via post processing
             // todo this would also allow us to easier visualize all the layers
@@ -262,12 +281,16 @@ class RenderView(val world: Entity, val mode: Mode, style: Style) : Panel(style)
 
             }
 
+            clock.stop("presenting deferred buffers", 0.1)
+
 
         } else {
 
             GFX.copy(buffer)
 
         }
+
+        clock.total("drawing the scene", 0.1)
 
     }
 
@@ -290,7 +313,7 @@ class RenderView(val world: Entity, val mode: Mode, style: Style) : Panel(style)
         centerY: Float,
         w: Int,
         h: Int,
-        aspect: Float,
+        aspectRatio: Float,
         camera: CameraComponent,
         previousCamera: CameraComponent,
         blending: Float,
@@ -304,13 +327,16 @@ class RenderView(val world: Entity, val mode: Mode, style: Style) : Panel(style)
         val fov = mix(previousCamera.fov, camera.fov, blending)
         val rot0 = previousCamera.entity!!.transform.globalTransform.getUnnormalizedRotation(Quaternionf())
         val rot1 = camera.entity!!.transform.globalTransform.getUnnormalizedRotation(Quaternionf())
-        val rot = rot0.slerp(rot1, blendFloat).conjugate() // conjugate is quickly inverting, when already normalized
+        val rot2 = rot0.slerp(rot1, blendFloat)
+        val rot = Quaternionf(rot2).conjugate() // conjugate is quickly inverting, when already normalized
+
+        val fovYRadians = toRadians(fov)
 
         // this needs to be separate from the stack
         // (for normal calculations and such)
         viewTransform.identity().perspective(
-            toRadians(fov),
-            aspect,
+            fovYRadians,
+            aspectRatio,
             near.toFloat(), far.toFloat()
         )
         viewTransform.rotate(rot)
@@ -323,9 +349,14 @@ class RenderView(val world: Entity, val mode: Mode, style: Style) : Panel(style)
         camTransform.transformPosition(camPosition.set(0.0))
         camInverse.set(camTransform).invert()
 
-        world.updateTransform()
-
         pipeline.reset()
+        pipeline.calculatePlanes(
+            near, far,
+            fovYRadians.toDouble(),
+            aspectRatio.toDouble(),
+            Quaterniond(rot2), //
+            camPosition // camPosition
+        )
         pipeline.fill(world)
 
     }
@@ -399,27 +430,91 @@ class RenderView(val world: Entity, val mode: Mode, style: Style) : Panel(style)
         // draw UI
         if (!isFinalRendering) {
 
+            // sadly doesn't work that simply
+            // once toggled off, it no longer works :/
+            // at least it can help us with debugging :)
+            val drawAABBs = false // Input.isKeyDown('o')
+
             RenderState.blendMode.use(BlendMode.DEFAULT) {
                 RenderState.depthMode.use(DepthMode.LESS) {
 
                     stack.set(viewTransform)
 
+                    val maximumCircleDistance = 50f
+                    val maxCircleLenSq = sq(maximumCircleDistance).toDouble()
+
                     world.simpleTraversal(false) { entity ->
 
                         val transform = entity.transform
+                        val globalTransform = transform.globalTransform
 
-                        stack.pushMatrix()
-                        stack.mul4x3delta(transform.globalTransform, camPosition)
+                        // only draw the circle, if its size is larger than ~ a single pixel
+                        if (camPosition.distanceSquared(
+                                globalTransform.m30(),
+                                globalTransform.m31(),
+                                globalTransform.m32()
+                            ) < maxCircleLenSq
+                        ) {
 
-                        scale = transform.globalTransform.getScale(Vector3d()).dot(0.3, 0.3, 0.3)
-                        val ringColor = if (entity == lastSelection) selectedColor else white4
-                        Transform.drawUICircle(stack, 0.2f / scale.toFloat(), 0.7f, ringColor)
+                            stack.pushMatrix()
+                            stack.mul4x3delta(globalTransform, camPosition)
 
-                        for (component in entity.components) {
-                            component.onDrawGUI()
+                            scale = globalTransform.getScale(Vector3d()).dot(0.3, 0.3, 0.3)
+                            val ringColor = if (entity == lastSelection) selectedColor else white4
+                            Transform.drawUICircle(stack, 0.2f / scale.toFloat(), 0.7f, ringColor)
+
+                            val components = entity.components
+                            for (i in components.indices) {
+                                components[i].onDrawGUI()
+                            }
+
+                            stack.popMatrix()
+
                         }
 
-                        stack.popMatrix()
+                        // todo draw the aabb
+                        val aabb = entity.aabb
+                        if (drawAABBs && !aabb.isEmpty()) {
+
+                            val x = (aabb.minX - camPosition.x).toFloat()
+                            val y = (aabb.minY - camPosition.y).toFloat()
+                            val z = (aabb.minZ - camPosition.z).toFloat()
+
+                            val dx = (aabb.maxX - aabb.minX).toFloat()
+                            val dy = (aabb.maxY - aabb.minY).toFloat()
+                            val dz = (aabb.maxZ - aabb.minZ).toFloat()
+
+                            for (i in 0 until 4) {
+                                val a = ((i shr 0) and 1).toFloat() * dx
+                                val b = ((i shr 1) and 1).toFloat() * dy
+                                LineBuffer.addLine(
+                                    Vector3f(x + a, y + b, z + 0f),
+                                    Vector3f(x + a, y + b, z + dz),
+                                    1.0, 0.0, 0.0
+                                )
+                            }
+
+                            for (i in 0 until 4) {
+                                val a = ((i shr 0) and 1).toFloat() * dx
+                                val b = ((i shr 1) and 1).toFloat() * dz
+                                LineBuffer.addLine(
+                                    Vector3f(x + a, y + 0f, z + b),
+                                    Vector3f(x + a, y + dy, z + b),
+                                    1.0, 0.0, 0.0
+                                )
+                            }
+
+                            for (i in 0 until 4) {
+                                val a = ((i shr 0) and 1).toFloat() * dy
+                                val b = ((i shr 1) and 1).toFloat() * dz
+                                LineBuffer.addLine(
+                                    Vector3f(x + 0f, y + a, z + b),
+                                    Vector3f(x + dx, y + a, z + b),
+                                    1.0, 0.0, 0.0
+                                )
+                            }
+
+                        }
 
                         false
                     }
@@ -436,9 +531,12 @@ class RenderView(val world: Entity, val mode: Mode, style: Style) : Panel(style)
 
                     stack.popMatrix()
 
+                    if (drawAABBs) LineBuffer.finish(stack)
+
                 }
             }
         }
+
     }
 
     companion object {

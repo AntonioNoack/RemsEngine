@@ -7,8 +7,8 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-open class PanelListX(sorter: Comparator<Panel>?, style: Style): PanelList(sorter, style){
-    constructor(style: Style): this(null, style)
+open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, style) {
+    constructor(style: Style) : this(null, style)
 
     var sumConst = 0
     var sumWeight = 0f
@@ -24,12 +24,16 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style): PanelList(sorte
         val availableW = w - padding.width
         val availableH = h - padding.height
 
-        for (child in children.filter { it.visibility != Visibility.GONE }) {
-            child.calculateSize(availableW, availableH)
-            // apply constraints?
-            constantSum += child.minW
-            maxY = max(maxY, child.y + child.minH)
-            weightSum += max(0f, child.weight)
+        val children = children
+        for (i in children.indices) {
+            val child = children[i]
+            if (child.visibility != Visibility.GONE) {
+                child.calculateSize(availableW, availableH)
+                // apply constraints?
+                constantSum += child.minW
+                maxY = max(maxY, child.y + child.minH)
+                weightSum += max(0f, child.weight)
+            }
         }
 
         val spaceCount = children.size - 1
@@ -58,16 +62,19 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style): PanelList(sorte
 
         var currentX = x + padding.left
         val childY = y + padding.top
-
-        for (child in children.filter { it.visibility != Visibility.GONE }) {
-            var childW = (perConst * child.minW + perWeight * max(0f, child.weight)).roundToInt()
-            val currentW = currentX - x
-            val remainingW = availableW - currentW
-            childW = min(childW, remainingW)
-            child.calculateSize(childW, availableH)
-            child.placeInParent(currentX, childY)
-            child.applyPlacement(childW, availableH)
-            currentX += childW + spacing
+        val children = children
+        for (i in children.indices) {
+            val child = children[i]
+            if (child.visibility != Visibility.GONE) {
+                var childW = (perConst * child.minW + perWeight * max(0f, child.weight)).roundToInt()
+                val currentW = currentX - x
+                val remainingW = availableW - currentW
+                childW = min(childW, remainingW)
+                child.calculateSize(childW, availableH)
+                child.placeInParent(currentX, childY)
+                child.applyPlacement(childW, availableH)
+                currentX += childW + spacing
+            }
         }
 
     }

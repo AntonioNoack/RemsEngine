@@ -108,7 +108,7 @@ class VOXReader {
         for ((index, layer) in layers.withIndex()) {
             entity.add(layer.toEntity(meshes, index))
         }
-        entity.updateTransform()
+        entity.validateTransforms()
         return entity
     }
 

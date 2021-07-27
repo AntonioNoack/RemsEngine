@@ -1,0 +1,154 @@
+package me.anno.gpu.buffer
+
+import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.Shader
+import org.apache.logging.log4j.LogManager
+import org.joml.Matrix4f
+import org.joml.Vector3f
+import org.lwjgl.opengl.GL15
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import javax.vecmath.Vector3d
+import kotlin.math.roundToInt
+
+/**
+ * a buffer for rapidly drawing thousands of lines,
+ * which change every frame their position without easy pattern
+ *
+ * this method is much faster than calling Grid.drawLine 1000 times
+ * */
+object LineBuffer {
+
+    private val LOGGER = LogManager.getLogger(LineBuffer::class)
+
+    val shader = BaseShader(
+        "DebugLines", "" +
+                "attribute vec3 position;\n" +
+                "attribute vec4 color;\n" +
+                "uniform mat4 transform;\n" +
+                "void main(){" +
+                "   gl_Position = transform * vec4(position, 1);\n" +
+                "   vColor = color;\n" +
+                "}", "varying vec4 vColor;\n", "" +
+                "void main(){\n" +
+                "   vec3 finalColor = vColor.rgb;\n" +
+                "   float finalAlpha = vColor.a;\n" +
+                "}\n"
+    )
+
+    //  drawing all these lines is horribly slow -> speed it up by caching them
+    // we also could calculate their position in 2D on the CPU and just upload them xD
+    val attributes = listOf(
+        Attribute("position", 3),
+        Attribute("color", AttributeType.UINT8_NORM, 4)
+    )
+
+    var bytes = ByteBuffer.allocateDirect(1024 * attributes.sumOf { it.byteSize })
+        .order(ByteOrder.nativeOrder())
+        .apply { position(0) }
+
+    val buffer = object : Buffer(attributes, GL15.GL_DYNAMIC_DRAW) {
+        init {
+            drawMode = GL15.GL_LINES
+        }
+
+        override fun createNioBuffer() {
+            nioBuffer = bytes
+        }
+    }
+
+
+    fun ensureSize(extraSize: Int) {
+        val position = bytes.position()
+        val newSize = extraSize + position
+        val size = bytes.capacity()
+        if (newSize > size) {
+            val newBytes = ByteBuffer.allocateDirect(size * 2)
+                .order(ByteOrder.nativeOrder())
+            // copy over
+            LOGGER.info("Increased size of buffer $size*2")
+            bytes.position(0)
+            newBytes.position(0)
+            newBytes.put(bytes)
+            newBytes.position(position)
+            bytes = newBytes
+        }
+    }
+
+    fun addLine(
+        v0: Vector3f, v1: Vector3f,
+        r: Double, g: Double, b: Double
+    ) {
+        ensureSize(2 * (3 * 4 + 4))
+        val r0 = (r * 255).roundToInt().toByte()
+        val g0 = (g * 255).roundToInt().toByte()
+        val b0 = (b * 255).roundToInt().toByte()
+        val bytes = bytes
+        bytes.putFloat(v0.x)
+        bytes.putFloat(v0.y)
+        bytes.putFloat(v0.z)
+        bytes.put(r0)
+        bytes.put(g0)
+        bytes.put(b0)
+        bytes.put(-1)
+        bytes.putFloat(v1.x)
+        bytes.putFloat(v1.y)
+        bytes.putFloat(v1.z)
+        bytes.put(r0)
+        bytes.put(g0)
+        bytes.put(b0)
+        bytes.put(-1)
+    }
+
+    fun putRelativeLine(
+        v0: Vector3d, v1: Vector3d,
+        cam: org.joml.Vector3d,
+        r: Double, g: Double, b: Double
+    ) {
+        ensureSize(2 * (3 * 4 + 4))
+        val r0 = (r * 255).roundToInt().toByte()
+        val g0 = (g * 255).roundToInt().toByte()
+        val b0 = (b * 255).roundToInt().toByte()
+        val bytes = bytes
+        bytes.putFloat((v0.x - cam.x).toFloat())
+        bytes.putFloat((v0.y - cam.y).toFloat())
+        bytes.putFloat((v0.z - cam.z).toFloat())
+        bytes.put(r0)
+        bytes.put(g0)
+        bytes.put(b0)
+        bytes.put(-1)
+        bytes.putFloat((v1.x - cam.x).toFloat())
+        bytes.putFloat((v1.y - cam.y).toFloat())
+        bytes.putFloat((v1.z - cam.z).toFloat())
+        bytes.put(r0)
+        bytes.put(g0)
+        bytes.put(b0)
+        bytes.put(-1)
+    }
+
+    fun finish(stack: Matrix4f) {
+        val shader = shader.value
+        shader.use()
+        finish(stack, shader)
+    }
+
+    private fun finish(stack: Matrix4f, shader: Shader) {
+
+        // prepare for upload
+        val limit = bytes.position()
+        if (limit <= 0) return
+        bytes.limit(limit) // we only need so many lines
+
+        buffer.upload()
+        buffer.isUpToDate = true
+        shader.m4x4("transform", stack)
+        buffer.draw(shader)
+        // println("${buffer.drawLength} for limit $limit")
+
+        // reset the buffer
+        bytes.position(0)
+        bytes.limit(bytes.capacity())
+
+    }
+
+}

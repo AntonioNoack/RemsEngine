@@ -43,23 +43,23 @@ object GFXx3D {
         uvProjection: UVProjection?
     ) {
 
-        stack.next {
+        stack.pushMatrix()
 
-            val doScale2 = (uvProjection?.doScale ?: true) && w != h
-            if (doScale2) {
-                val scale = getScale(w, h)
-                val sx = w * scale
-                val sy = h * scale
-                stack.scale(sx, -sy, 1f)
-            } else {
-                stack.scale(1f, -1f, 1f)
-            }
-
-            transformUniform(shader, stack)
-            shader.v1("filtering", filtering.id)
-            shader.v2("textureDeltaUV", 1f / w, 1f / h)
-
+        val doScale2 = (uvProjection?.doScale ?: true) && w != h
+        if (doScale2) {
+            val scale = getScale(w, h)
+            val sx = w * scale
+            val sy = h * scale
+            stack.scale(sx, -sy, 1f)
+        } else {
+            stack.scale(1f, -1f, 1f)
         }
+
+        transformUniform(shader, stack)
+        shader.v1("filtering", filtering.id)
+        shader.v2("textureDeltaUV", 1f / w, 1f / h)
+
+        stack.popMatrix()
 
         if (tiling != null) shader.v4("tiling", tiling)
         else shader.v4("tiling", 1f, 1f, 0f, 0f)

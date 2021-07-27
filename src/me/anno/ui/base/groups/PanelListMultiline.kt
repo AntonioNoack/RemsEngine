@@ -59,9 +59,9 @@ class PanelListMultiline(style: Style) : PanelGroup(style), ScrollableY {
         val children = children
 
         updateSize(w, h)
-
-        for (child in children) {
-            if (child.visibility == Visibility.VISIBLE) {
+        for (i in children.indices) {
+            val child = children[i]
+            if (child.visibility != Visibility.GONE) {
                 child.calculateSize(calcChildWidth, calcChildHeight)
                 // child.applyConstraints()
             }
@@ -115,8 +115,9 @@ class PanelListMultiline(style: Style) : PanelGroup(style), ScrollableY {
 
         val scroll = scrollPosition.toInt()
         var i = 0
-        for (child in children) {
-            if (child.visibility == Visibility.VISIBLE) {
+        for (j in children.indices) {
+            val child = children[j]
+            if (child.visibility != Visibility.GONE) {
                 val ix = i % columns
                 val iy = i / columns
                 val cx = x + when (childAlignmentX) {

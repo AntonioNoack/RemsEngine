@@ -25,11 +25,12 @@ class ConeCollider : Collider() {
         TODO()
     }
 
-    override fun createBulletShape(): CollisionShape {
+    override fun createBulletShape(scale: Vector3d): CollisionShape {
         return when (axis) {
-            0 -> ConeShapeX(radius, height)
-            1 -> ConeShape(radius, height)
-            else -> ConeShapeZ(radius, height)
+            0 -> ConeShapeX(radius * scale.y, height * scale.x)
+            1 -> ConeShape(radius * scale.x, height * scale.y)
+            2 -> ConeShapeZ(radius * scale.x, height * scale.z)
+            else -> throw RuntimeException()
         }
     }
 

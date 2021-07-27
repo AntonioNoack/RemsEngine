@@ -5,6 +5,7 @@ import com.bulletphysics.dynamics.vehicle.VehicleTuning
 import com.bulletphysics.dynamics.vehicle.WheelInfo
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import javax.vecmath.Vector3d
 import kotlin.math.abs
@@ -51,24 +52,28 @@ class VehicleWheel : Component() {
     @SerializedProperty
     var frictionSlip = 10.5
 
+    @SerializedProperty
     var steering = 0.0
         set(value) {
             field = value
             bulletInstance?.steering = steering
         }
 
+    @SerializedProperty
     var brakeForce = 0.0
         set(value) {
             field = value
             bulletInstance?.brake = value
         }
 
+    @SerializedProperty
     var engineForce = 0.0
         set(value) {
             field = value
             bulletInstance?.engineForce = value
         }
 
+    @SerializedProperty
     var rollInfluence = 0.1
         set(value) {
             field = value
@@ -82,12 +87,12 @@ class VehicleWheel : Component() {
 
     }
 
+    @NotSerializedProperty
     var bulletInstance: WheelInfo? = null
 
     fun createBulletInstance(entity: Entity, vehicle: RaycastVehicle): WheelInfo {
         val transform = this.entity!!.fromLocalToOtherLocal(entity)
         val position = Vector3d(transform.m30(), transform.m31(), transform.m32())
-        println(position)
         val wheelDirection1 = Vector3d(wheelDirection.x, wheelDirection.y, wheelDirection.z)
         val scale0 = transform.getScale(org.joml.Vector3d())
             .dot(wheelDirection.x, wheelDirection.y, wheelDirection.z)

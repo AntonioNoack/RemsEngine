@@ -55,6 +55,11 @@ class PrefabInspector(val reference: FileReference, val prefab: EntityPrefab) {
     // val changes = ArrayList()
     var root = prefab.createInstance()
 
+    // todo if there is a physics components, start it
+    // todo only execute it, if the scene is visible/selected
+    // todo later: only execute it, if in game mode
+    // todo later: control it's speed, and step size
+
     private val savingTask = DelayedTask {
         addEvent {
             history.put(TextWriter.toText(changes, false))
@@ -191,13 +196,13 @@ class PrefabInspector(val reference: FileReference, val prefab: EntityPrefab) {
                         }
 
                         override fun getDefault(): Any? {
-                            // println("default of $name: ${component.getDefaultValue(name)}")
+                            // info("default of $name: ${component.getDefaultValue(name)}")
                             return component.getDefaultValue(name)
                         }
 
                         override fun set(panel: Panel?, value: Any?) {
                             (panel as? TextStyleable)?.setBold()
-                            // println("setting value of $name, ${panel is TextStyleable}")
+                            // info("setting value of $name, ${panel is TextStyleable}")
                             property[component] = value
                             changeComponent(getPath(name), value)
                         }
@@ -208,7 +213,7 @@ class PrefabInspector(val reference: FileReference, val prefab: EntityPrefab) {
 
                         override fun reset(panel: Panel?): Any? {
                             (panel as? TextStyleable)?.unsetBold()
-                            // println("reset $name")
+                            // info("reset $name")
                             resetComponent(getPath(name))
                             val value = getDefault()
                             property[component] = value

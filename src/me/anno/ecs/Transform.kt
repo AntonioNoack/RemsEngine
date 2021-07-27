@@ -1,5 +1,6 @@
 package me.anno.ecs
 
+import me.anno.gpu.GFX
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import org.joml.*
@@ -7,9 +8,56 @@ import org.joml.*
 class Transform : Saveable() {
 
     // two transforms could be used to interpolate between draw calls
-    var time = 0.0
+    var lastUpdateTime = 0L
+    var lastDrawTime = 0L
+    var lastUpdateDt = 0L
+
+    fun teleportUpdate(time: Long) {
+        lastUpdateTime = time
+        lastUpdateDt = 1_000_000_000
+        drawTransform.set(globalTransform)
+    }
+
+    fun update(time: Long = GFX.gameTime) {
+        val dt = time - lastUpdateTime
+        if (dt > 0) {
+            lastUpdateTime = time
+            lastUpdateDt = dt
+        }
+    }
+
+    fun update(time: Long, entity: Entity, calculateMatrices: Boolean) {
+        update(time)
+        val children = entity.children
+        for (i in children.indices) {
+            val child = children[i]
+            if (!child.isPhysicsControlled) {
+                if (calculateMatrices) child.transform.calculateGlobalTransform(this)
+                child.transform.update(time, child, calculateMatrices)
+            }
+        }
+    }
+
+    fun updateDrawingLerpFactor(time: Long = GFX.gameTime): Double {
+        val v = drawDrawingLerpFactor(time)
+        lastDrawTime = time
+        return v
+    }
+
+    fun drawDrawingLerpFactor(time: Long = GFX.gameTime): Double {
+        return if (lastUpdateDt <= 0) {
+            // hasn't happened -> no interpolation
+            drawTransform.set(globalTransform)
+            0.0
+        } else {
+            val drawingDt = (time - lastDrawTime)
+            drawingDt.toDouble() / lastUpdateDt
+        }
+    }
 
     val globalTransform = Matrix4x3d()
+    val drawTransform = Matrix4x3d()
+
     val localTransform = Matrix4x3d()
 
     private val pos = Vector3d()
@@ -58,20 +106,11 @@ class Transform : Saveable() {
     }
 
     // todo only update if changed to save resources
-    fun update(parent: Transform?) {
-
+    fun update(parent: Transform?, time: Long = GFX.gameTime) {
         if (needsGlobalUpdate) {
-
-            if (parent == null) {
-                globalTransform.identity()
-            } else {
-                globalTransform.set(parent.globalTransform)
-            }
-
-            globalTransform.mul(localTransform)
-
+            update(time)
+            calculateGlobalTransform(parent)
         }
-
     }
 
     fun setLocal(values: Matrix4x3d) {
@@ -124,10 +163,12 @@ class Transform : Saveable() {
         }
     }
 
-    override fun readDouble(name: String, value: Double) {
-        when (name) {
-            "time" -> time = value
-            else -> super.readDouble(name, value)
+    fun calculateGlobalTransform(parent: Transform?) {
+        if (parent == null) {
+            globalTransform.set(localTransform)
+        } else {
+            globalTransform.set(parent.globalTransform)
+                .mul(localTransform)
         }
     }
 
@@ -150,7 +191,6 @@ class Transform : Saveable() {
         t.pos.set(pos)
         t.rot.set(rot)
         t.sca.set(sca)
-        t.time = time
         return t
     }
 
@@ -158,7 +198,6 @@ class Transform : Saveable() {
         super.save(writer)
         // global doesn't need to be saved, as it can be reconstructed
         writer.writeMatrix4x3d("local", localTransform)
-        writer.writeDouble("time", time)
     }
 
     override val className = "ECSTransform"

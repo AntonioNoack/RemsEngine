@@ -10,6 +10,7 @@ import me.anno.language.translation.Dict
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
+import me.anno.utils.hpc.SyncMaster
 import me.anno.utils.types.Lists.getOrPrevious
 import org.apache.logging.log4j.LogManager
 
@@ -29,37 +30,44 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
     val children3 get() = children2.filterIsInstance<SceneTab>()
 
     var currentTab: SceneTab? = null
+        set(value) {
+            if(field != value){
+                field?.onStop()
+                value?.onStart()
+                field = value
+            }
+        }
 
-    fun open(prefab: EntityPrefab): SceneTab {
+    fun open(syncMaster: SyncMaster, prefab: EntityPrefab): SceneTab {
         val opened = children3.firstOrNull { it.file == prefab.ownFile }
         return if (opened != null) {
             open(opened)
             opened
         } else {
-            val tab = SceneTab(prefab)
+            val tab = SceneTab(syncMaster, prefab)
             content += tab
             open(tab)
             tab
         }
     }
 
-    fun open(file: FileReference): SceneTab {
+    fun open(syncMaster: SyncMaster, file: FileReference): SceneTab {
         val opened = children3.firstOrNull { it.file == file }
         return if (opened != null) {
             open(opened)
             opened
         } else {
-            val tab = SceneTab(file)
+            val tab = SceneTab(syncMaster, file)
             content += tab
             open(tab)
             tab
         }
     }
 
-    fun add(file: FileReference): SceneTab {
+    fun add(syncMaster: SyncMaster, file: FileReference): SceneTab {
         val opened = children3.firstOrNull { it.file == file }
         return if (opened == null) {
-            val tab = SceneTab(file)
+            val tab = SceneTab(syncMaster, file)
             content += tab
             tab
         } else opened

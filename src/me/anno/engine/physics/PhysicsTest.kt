@@ -31,7 +31,7 @@ fun main() {
     physics.add(sphere2)
 
     val steps = (duration * 60.0).toInt()
-    for (i in 0 until steps) physics.step(duration / steps)
+    for (i in 0 until steps) physics.step((duration / steps * 1e9).toLong())
 
     println(sphere.transform.globalTransform.m30())
     println(y0 - sphere.transform.globalTransform.m31())

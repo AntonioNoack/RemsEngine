@@ -2,7 +2,6 @@ package me.anno.engine.scene
 
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.*
-import me.anno.engine.physics.BulletPhysics
 import me.anno.engine.scene.PrefabHelper.addC
 import me.anno.engine.scene.PrefabHelper.addE
 import me.anno.engine.scene.PrefabHelper.setC
@@ -11,6 +10,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.StaticRef
 import me.anno.io.text.TextWriter
 import me.anno.utils.OS
+import org.joml.Quaterniond
 import org.joml.Vector3d
 
 object ScenePrefab : StaticRef("Scene.prefab", lazy {
@@ -42,7 +42,10 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         // sample mesh //
         ////////////////
         val world = intArrayOf(0)
-        addE(changes, world, "VOX/Truck", OS.downloads.getChild("MagicaVoxel/vox/truck.vox"))
+        val truck = addE(changes, world, "VOX/Truck", OS.downloads.getChild("MagicaVoxel/vox/truck.vox"))
+        addC(changes, truck + 0, "MeshCollider")
+        val truckBody = addC(changes, truck + 0, "Rigidbody")
+        setC(changes, truckBody, "mass", 100.0)
 
         /////////////////////////
         // sample point light //
@@ -79,19 +82,45 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         // todo add script for driving
 
         // add a floor for testing
-        val floor = addE(changes, physics, "Floor")
-        setE(changes, floor, "position", Vector3d(0.0, -10.0, 0.0))
+        val cubePath = OS.documents.getChild("cube.obj")
+        val floor = addE(changes, physics, "Floor", cubePath)
+        setE(changes, floor, "position", Vector3d(0.0, -50.0, 0.0))
+        setE(changes, floor, "scale", Vector3d(200.0, 50.0, 200.0))
+        // setE(changes, floor, "scale", Vector3d(5.0))
         val floorBody = addC(changes, floor, "Rigidbody")
         setC(changes, floorBody, "mass", 0.0) // static
         val floorCollider = addC(changes, floor, "BoxCollider")
-        setC(changes, floorCollider, "halfExtends", Vector3d(100.0, 10.0, 100.0))
+        setC(changes, floorCollider, "halfExtends", Vector3d(1.0))
 
         // add spheres for testing
-        for (i in 0 until 10) {
-            val sphere = addE(changes, physics, "Sphere[$i]")
+        val sphereMesh = OS.documents.getChild("sphere.obj")
+        for (i in 0 until 20) {
+            val sphere = addE(changes, physics, "Sphere[$i]", sphereMesh)
             setE(changes, sphere, "position", Vector3d(0.0, (i + 2) * 2.1, 0.0))
             addC(changes, sphere, "Rigidbody")
             addC(changes, sphere, "SphereCollider")
+        }
+
+        // add a wall of spheres for frustum testing
+        val frustum = addE(changes, world, "Frustum Testing")
+        for (x in -5..5) {
+            for (y in -5..25) {
+                for (z in -5..5) {
+                    // meshes
+                    val cube = addE(changes, frustum, "Cube[$x,$y,$z]", cubePath)
+                    setE(changes, cube, "position", Vector3d(x * 5.0, y * 5.0 + 30.0, z * 5.0))
+                    // a little random rotation
+                    setE(
+                        changes,
+                        cube,
+                        "rotation",
+                        Quaterniond(Math.random(), Math.random(), Math.random(), Math.random()).normalize()
+                    )
+                    // physics test
+                    addC(changes, cube, "BoxCollider")
+                    addC(changes, cube, "Rigidbody")
+                }
+            }
         }
 
     }, false).toByteArray()
@@ -135,8 +164,7 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
      * */
     fun getRemotePlayers(scene: Entity) = scene.children[remotePlayersIndex]
 
-    fun getPhysics(scene: Entity) = getWorld(scene).getComponent<BulletPhysics>(true)
-
+    fun getPhysics(scene: Entity) = scene.physics
 
     fun createLocalPlayer(entity: Entity, name: String): Entity {
         val instance = getPlayerPrefab(entity).clone()

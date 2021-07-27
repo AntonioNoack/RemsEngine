@@ -110,7 +110,9 @@ interface Hierarchical<V : Hierarchical<V>> {
         this as V
         if (processDisabled || isEnabled) {
             if (func(this)) return this
-            for (child in children) {
+            val children = children
+            for (i in children.indices) {
+                val child = children[i]
                 if (processDisabled || child.isEnabled) {
                     val result = child.depthFirstTraversal(processDisabled, func)
                     if (result != null) return result
@@ -130,7 +132,9 @@ interface Hierarchical<V : Hierarchical<V>> {
             while (readIndex < queue.size) {
                 val v = queue[readIndex++]
                 if (func(v)) return v
-                for (child in children) {
+                val children = children
+                for (i in children.indices) {
+                    val child = children[i]
                     if (processDisabled || child.isEnabled) {
                         if (child !in wasExplored) {
                             wasExplored.add(child)
