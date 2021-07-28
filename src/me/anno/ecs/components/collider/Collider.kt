@@ -15,6 +15,14 @@ import org.joml.Vector3d
 
 abstract class Collider : Component() {
 
+    override var isEnabled: Boolean = true
+        set(value) {
+            if(field != value){
+                field = value
+                entity?.rigidbody?.invalidateRigidbody()
+            }
+        }
+
     abstract fun getSignedDistance(deltaPosition: Vector3d, movement: Vector3d): Double
 
     // todo test that

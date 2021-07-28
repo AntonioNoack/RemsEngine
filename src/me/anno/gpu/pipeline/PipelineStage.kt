@@ -251,10 +251,10 @@ class PipelineStage(
             val factor = transform.updateDrawingLerpFactor(time)
             if (factor > 0.0) {
                 val extrapolatedTime = (GFX.gameTime - transform.lastUpdateTime).toDouble() / transform.lastUpdateDt
-                // [-1,0]
-                // needs to be changed, if the extrapolated time changes...
-                val et2 = extrapolatedTime + 1 // [0,1]
-                val fac2 = factor / (clamp(1 - et2, 0.001, 1.0))
+                // needs to be changed, if the extrapolated time changes -> it changes if the phyisics engine is behind
+                // its target -> in the physics engine, we send the game time instead of the physics time,
+                // and this way, it's relatively guaranteed to be roughly within [0,1]
+                val fac2 = factor / (clamp(1.0 - extrapolatedTime, 0.001, 1.0))
                 if (fac2 < 1.0) {
                     drawTransform.lerp(transform.globalTransform, fac2)
                 } else {

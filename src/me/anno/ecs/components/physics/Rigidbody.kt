@@ -1,6 +1,7 @@
 package me.anno.ecs.components.physics
 
 import com.bulletphysics.dynamics.RigidBody
+import cz.advel.stack.Stack
 import me.anno.ecs.Component
 import me.anno.engine.ui.RenderView
 import me.anno.engine.ui.RenderView.Companion.scale
@@ -29,7 +30,54 @@ open class Rigidbody : Component() {
         // bulletInstance?.setSleepingThresholds()
     }
 
-    // todo set when creating the instance
+    override var isEnabled: Boolean = true
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidatePhysics()
+            }
+        }
+
+    /**
+     * friction when moving through air / water
+     * */
+    var linearDamping = 0.1
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidatePhysics()
+            }
+        }
+
+    /**
+     * friction when moving through air / water
+     * */
+    var angularDamping = 0.1
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidatePhysics()
+            }
+        }
+
+    /**
+     * how much energy is absorbed in a collision; relative,
+     * 0 = perfectly bouncy, 1 = all energy absorbed (knead)
+     * */
+    var restitution = 0.1
+        set(value) {
+            field = value
+            bulletInstance?.restitution = value
+        }
+
+    fun invalidatePhysics() {
+        val entity = entity
+        entity?.physics?.invalidate(entity)
+    }
+
+    /**
+     * slowing down on contact
+     * */
     var friction = 0.1
         set(value) {
             field = value
@@ -57,10 +105,113 @@ open class Rigidbody : Component() {
             }
         }
 
-    fun updatePhysics() {
-        // todo remove old physics
-        // todo create new bullet body
+    /**
+     * applies "rotation force"
+     * must be called onPhysicsUpdate()
+     * */
+    fun applyTorque(x: Double, y: Double, z: Double) {
+        val v = Stack.borrowVec()
+        v.set(x, y, z)
+        bulletInstance?.applyTorque(v)
+    }
 
+    fun applyTorque(v: Vector3d) = applyTorque(v.x, v.y, v.z)
+
+    /**
+     * applies a force centrally, so it won't rotate the object
+     * must be called onPhysicsUpdate()
+     * */
+    fun applyForce(x: Double, y: Double, z: Double) {
+        val v = Stack.borrowVec()
+        v.set(x, y, z)
+        bulletInstance?.applyCentralForce(v)
+    }
+
+    /**
+     * applies a force centrally, so it won't rotate the object
+     * must be called on physics update
+     * */
+    fun applyForce(force: Vector3d) = applyForce(force.x, force.y, force.z)
+
+    /**
+     * applies a force and torque
+     * must be called onPhysicsUpdate()
+     * */
+    fun applyForce(px: Double, py: Double, pz: Double, x: Double, y: Double, z: Double) {
+        val relPos = Stack.newVec()
+        relPos.set(px, py, pz)
+        val force = Stack.newVec()
+        force.set(x, y, z)
+        bulletInstance?.applyForce(force, relPos)
+        Stack.subVec(2)
+    }
+
+    /**
+     * applies a force and torque
+     * must be called onPhysicsUpdate()
+     * */
+    fun applyForce(relativePosition: Vector3d, force: Vector3d) =
+        applyForce(relativePosition.x, relativePosition.y, relativePosition.z, force.x, force.y, force.z)
+
+    /**
+     * applies an impulse, like a hit
+     * must be called onPhysicsUpdate()
+     * */
+    fun applyImpulse(x: Double, y: Double, z: Double) {
+        val impulse = Stack.borrowVec()
+        impulse.set(x, y, z)
+        bulletInstance?.applyCentralImpulse(impulse)
+    }
+
+    /**
+     * applies an impulse, like a hit
+     * must be called onPhysicsUpdate()
+     * */
+    fun applyImpulse(impulse: Vector3d) = applyImpulse(impulse.x, impulse.y, impulse.z)
+
+    /**
+     * applies an impulse, and a bit of torque
+     * must be called onPhysicsUpdate()
+     * */
+    fun applyImpulse(px: Double, py: Double, pz: Double, x: Double, y: Double, z: Double) {
+        val relPos = Stack.newVec()
+        relPos.set(px, py, pz)
+        val impulse = Stack.newVec()
+        impulse.set(x, y, z)
+        bulletInstance?.applyImpulse(impulse, relPos)
+        Stack.subVec(2)
+    }
+
+    /**
+     * applies an impulse, and a bit of torque
+     * must be called onPhysicsUpdate()
+     * */
+    fun applyImpulse(relativePosition: Vector3d, impulse: Vector3d) =
+        applyImpulse(relativePosition.x, relativePosition.y, relativePosition.z, impulse.x, impulse.y, impulse.z)
+
+    /**
+     * applies an impulse of torque, e.g. rotating something with a hit
+     * must be called onPhysicsUpdate()
+     * */
+    fun applyTorqueImpulse(x: Double, y: Double, z: Double) {
+        val impulse = Stack.newVec()
+        impulse.set(x, y, z)
+        bulletInstance?.applyTorqueImpulse(impulse)
+        Stack.subVec(1)
+    }
+
+    /**
+     * applies an impulse of torque, e.g. rotating something with a hit
+     * must be called onPhysicsUpdate()
+     * */
+    fun applyTorqueImpulse(impulse: Vector3d) = applyTorqueImpulse(impulse.x, impulse.y, impulse.z)
+
+    /**
+     * should be called automatically by bullet, so idk why it's here
+     * must be called onPhysicsUpdate()
+     * */
+    fun applyGravity() {
+        bulletInstance?.applyGravity()
     }
 
     @NotSerializedProperty

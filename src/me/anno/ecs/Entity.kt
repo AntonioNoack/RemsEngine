@@ -10,13 +10,12 @@ import me.anno.engine.physics.BulletPhysics
 import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.io.files.FileReference
-import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.io.text.TextReader
 import me.anno.objects.inspectable.Inspectable
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
@@ -24,6 +23,7 @@ import me.anno.utils.structures.Hierarchical
 import me.anno.utils.types.AABBs.reset
 import me.anno.utils.types.AABBs.transformUnion
 import me.anno.utils.types.Floats.f2s
+import me.anno.utils.types.Floats.f3
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Quaterniond
@@ -246,9 +246,10 @@ class Entity() : PrefabSaveable(), Hierarchical<PrefabSaveable>, Inspectable {
     }
 
     fun physicsUpdate() {
+        // called by physics thread
+        // only called for rigidbodies
+        // not called for static objects (?), since they should not move
         for (component in components) component.onPhysicsUpdate()
-        for (child in children) child.physicsUpdate()
-        // todo if rigidbody, calculate physics (?)
     }
 
     /*
@@ -563,10 +564,10 @@ class Entity() : PrefabSaveable(), Hierarchical<PrefabSaveable>, Inspectable {
     // - name, description,
     // - isEnabled
 
-    var prefabPath: FileReference = InvalidRef
+    // var prefabPath: FileReference = InvalidRef
 
     // var prefab: Entity? = null
-    var ownPath: FileReference = InvalidRef // where our file is located
+    // var ownPath: FileReference = InvalidRef // where our file is located
 
     // get root somehow? how can we detect it?
     // not possible in the whole scene for sub-scenes

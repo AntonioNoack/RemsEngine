@@ -43,10 +43,10 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         ////////////////
         val world = Path(0, 'e')
         val truck = addE(changes, world, "VOX/Truck", OS.downloads.getChild("MagicaVoxel/vox/truck.vox"))
-        /*val truckBody0 = truck + (0 to 'e')
+        val truckBody0 = truck + (0 to 'e')
         addC(changes, truckBody0, "MeshCollider")
         val truckRigidbody = addC(changes, truckBody0, "Rigidbody")
-        setC(changes, truckRigidbody, "mass", 100.0)*/
+        setC(changes, truckRigidbody, "mass", 100.0)
 
         /////////////////////////
         // sample point light //
@@ -110,7 +110,7 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         // add a cube of cubes for frustum testing
         val frustum = addE(changes, world, "Frustum Testing")
         for (x in -5..5) {
-            for (y in -5..1) {
+            for (y in -5..25) {
                 for (z in -5..5) {
                     // meshes
                     val cube = addE(changes, frustum, "Cube[$x,$y,$z]", cubePath)
@@ -119,7 +119,7 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
                     val q = Quaterniond(Math.random(), Math.random(), Math.random(), Math.random()).normalize()
                     setE(changes, cube, "rotation", q)
                     // physics test
-                    addC(changes, cube, "BoxCollider")
+                    addC(changes, cube, "CylinderCollider")
                     addC(changes, cube, "Rigidbody")
                 }
             }

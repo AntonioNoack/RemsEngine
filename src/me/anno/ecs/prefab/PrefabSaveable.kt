@@ -76,9 +76,13 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     // index + 256 * type
     abstract fun indexOf(child: PrefabSaveable): Int
 
+    @NotSerializedProperty
     override val symbol: String = ""
+
+    @NotSerializedProperty
     override val defaultDisplayName: String get() = name
 
+    @NotSerializedProperty
     override val children: List<PrefabSaveable>
         get() = getChildListByType(listChildTypes()[0])
 

@@ -33,6 +33,7 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.ui.debug.FrameTimes
 import me.anno.utils.Clock
+import me.anno.utils.Maths.sq
 import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3d
@@ -180,6 +181,12 @@ class BulletPhysics : Component() {
             // create the motion state
             val motionState = DefaultMotionState(bulletTransform, com2)
             val rbInfo = RigidBodyConstructionInfo(mass, motionState, jointCollider, inertia)
+
+            rbInfo.friction = base.friction
+            rbInfo.restitution = base.restitution
+            rbInfo.linearDamping = base.linearDamping
+            rbInfo.angularDamping = base.angularDamping
+
             scale to RigidBody(rbInfo)
 
         } else null
@@ -257,6 +264,19 @@ class BulletPhysics : Component() {
 
     var time = 0L
 
+    fun callUpdates() {
+        val tmp = Stack.borrowTrans()
+        for ((body, scaledBody) in rigidBodies) {
+            // val physics = scaledBody.second
+            // physics.clearForces() // needed???...
+            // testing force: tornado
+            // physics.getWorldTransform(tmp)
+            // val f = 1.0 + 0.01 * sq(tmp.origin.x, tmp.origin.z)
+            // physics.applyCentralForce(Vector3d(tmp.origin.z / f, 0.0, -tmp.origin.x / f))
+            body.physicsUpdate()
+        }
+    }
+
     fun step(dt: Long) {
 
         // clock.start()
@@ -264,18 +284,22 @@ class BulletPhysics : Component() {
         // just in case
         Stack.reset();
 
-        val oldSize = rigidBodies.size
+        // val oldSize = rigidBodies.size
         validate()
-        val newSize = rigidBodies.size
+        // val newSize = rigidBodies.size
         // clock.stop("added ${newSize - oldSize} entities")
+
+        callUpdates()
 
         val step = dt * 1e-9
         world.stepSimulation(step, 1, step)
 
         // clock.stop("calculated changes, step ${dt * 1e-9}", 0.1)
 
-        val time = time + dt
-        this.time = time
+        this.time += dt
+
+        // is not correct for the physics, but we use it for gfx only anyways
+        val time = GFX.gameTime
 
         val tmpTransform = Transform()
         val deadEntities = ArrayList<Entity>()

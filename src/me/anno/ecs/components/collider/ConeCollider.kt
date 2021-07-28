@@ -11,7 +11,7 @@ class ConeCollider : Collider() {
 
     // which axis the height is for, x = 0, y = 1, z = 2
     @SerializedProperty
-    var axis = 0
+    var axis = 1
 
     @SerializedProperty
     var height = 1.0
@@ -19,7 +19,7 @@ class ConeCollider : Collider() {
     @SerializedProperty
     var radius = 1.0
 
-    override val className get() = "CylinderCollider"
+    override val className get() = "ConeCollider"
 
     override fun getSignedDistance(deltaPosition: Vector3d, movement: Vector3d): Double {
         TODO()
