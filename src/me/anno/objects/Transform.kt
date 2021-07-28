@@ -859,11 +859,16 @@ open class Transform() : Saveable(),
         val xAxis: Vector3fc = Vector3f(1f, 0f, 0f)
         val yAxis: Vector3fc = Vector3f(0f, 1f, 0f)
         val zAxis: Vector3fc = Vector3f(0f, 0f, 1f)
+
         val nextClickId = AtomicInteger()
+
         fun String.toTransform() = TextReader.read(this).first() as? Transform
+
         const val minAlpha = 0.5f / 255f
         private val LOGGER = LogManager.getLogger(Transform::class)
+
         val dilationType = Type(1.0, 1, 1f, true, true, ::castToDouble2, ::castToDouble)
+
     }
 
 

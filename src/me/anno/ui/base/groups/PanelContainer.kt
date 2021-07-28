@@ -3,14 +3,17 @@ package me.anno.ui.base.groups
 import me.anno.ui.base.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.style.Style
+import me.anno.utils.structures.lists.UpdatingSingletonList
 
-open class PanelContainer(onlyChild: Panel, val padding: Padding, style: Style): PanelGroup(style) {
+open class PanelContainer(onlyChild: Panel, val padding: Padding, style: Style) : PanelGroup(style) {
 
-    init { onlyChild.parent = this }
+    init {
+        onlyChild.parent = this
+    }
 
     var child: Panel = onlyChild
         set(value) {
-            if(field != value){
+            if (field != value) {
                 child.parent = null
                 value.parent?.remove(value)
                 value.parent = this
@@ -19,7 +22,7 @@ open class PanelContainer(onlyChild: Panel, val padding: Padding, style: Style):
             }
         }
 
-    override val children: List<Panel> get() = listOf(child)
+    override val children: List<Panel> = UpdatingSingletonList { child }
 
     override fun remove(child: Panel) {
         this.child = Panel(style)

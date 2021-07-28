@@ -2,7 +2,6 @@ package me.anno.ecs.prefab
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
-import me.anno.ecs.Entity
 import me.anno.engine.scene.ScenePrefab
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
@@ -17,7 +16,13 @@ import me.anno.mesh.vox.VOXReader
 import me.anno.utils.files.LocalFile.toGlobalFile
 import org.apache.logging.log4j.LogManager
 
-class EntityPrefab() : Saveable() {
+class Prefab() : Saveable() {
+
+    constructor(clazzName: String) : this(){
+        this.clazzName = clazzName
+    }
+
+    var clazzName: String? = null
 
     var changes: List<Change>? = null
     var prefab: FileReference = InvalidRef
@@ -37,6 +42,7 @@ class EntityPrefab() : Saveable() {
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeFile("prefab", prefab)
+        writer.writeString("className", clazzName)
         writer.writeObjectList(null, "changes", changes ?: emptyList())
         writer.writeObject(null, "history", history)
     }
@@ -44,6 +50,7 @@ class EntityPrefab() : Saveable() {
     override fun readString(name: String, value: String) {
         when (name) {
             "prefab" -> prefab = value.toGlobalFile()
+            "className" -> clazzName = value
             else -> super.readString(name, value)
         }
     }
@@ -62,40 +69,43 @@ class EntityPrefab() : Saveable() {
         }
     }
 
-    fun createInstance(): Entity {
+    fun createInstance(): PrefabSaveable {
         // LOGGER.info("Requesting instance $ownFile: $prefab")
-        return createInstance(prefab, changes, HashSet())
+        return createInstance(prefab, changes, HashSet(), clazzName!!)
     }
 
-    fun createInstance(chain: MutableSet<FileReference>?): Entity {
+    fun createInstance(chain: MutableSet<FileReference>?): PrefabSaveable {
         // LOGGER.info("Requesting instance $ownFile: $prefab")
-        return createInstance(prefab, changes, chain)
+        // LOGGER.info("$prefab/${changes?.size}/$clazzName")
+        return createInstance(prefab, changes, chain, clazzName!!)
     }
 
-    override val className: String = "EntityPrefab"
+    override val className: String = "Prefab"
     override val approxSize: Int = 100_000_000
+
     override fun isDefaultValue(): Boolean =
         (changes == null || changes!!.isEmpty()) && prefab == InvalidRef && history == null
 
     companion object {
 
-        val cache = CacheSection("EntityPrefab")
+        val cache = CacheSection("Prefab")
 
-        private val LOGGER = LogManager.getLogger(EntityPrefab::class)
+        private val LOGGER = LogManager.getLogger(Prefab::class)
 
         private fun createInstance(
             superPrefab: FileReference,
-            changes0: List<Change>?,
-            chain: MutableSet<FileReference>?
-        ): Entity {
+            changes: List<Change>?,
+            chain: MutableSet<FileReference>?,
+            clazz: String
+        ): PrefabSaveable {
             // LOGGER.info("creating instance from $superPrefab")
-            val entity = createSuperInstance(superPrefab, chain)
+            val instance = createSuperInstance(superPrefab, chain, clazz)
             // val changes2 = (changes0 ?: emptyList()).groupBy { it.className }.map { "${it.value.size}x ${it.key}" }
             // LOGGER.info("  creating entity instance from ${changes0?.size ?: 0} changes, $changes2")
-            if (changes0 != null) {
-                for ((index, change) in changes0.withIndex()) {
+            if (changes != null) {
+                for ((index, change) in changes.withIndex()) {
                     try {
-                        change.apply(entity)
+                        change.apply(instance)
                     } catch (e: Exception) {
                         LOGGER.warn("Change $index, $change failed")
                         throw e
@@ -103,10 +113,10 @@ class EntityPrefab() : Saveable() {
                 }
             }
             // LOGGER.info("  created instance '${entity.name}' has ${entity.children.size} children and ${entity.components.size} components")
-            return entity
+            return instance
         }
 
-        private fun loadAssimpModel(resource: FileReference): EntityPrefab? {
+        private fun loadAssimpModel(resource: FileReference): Prefab? {
             return try {
                 val reader = AnimatedMeshesLoader
                 val meshes = reader.load(resource)
@@ -117,7 +127,7 @@ class EntityPrefab() : Saveable() {
             }
         }
 
-        private fun loadVOXModel(resource: FileReference): EntityPrefab? {
+        private fun loadVOXModel(resource: FileReference): Prefab? {
             return try {
                 VOXReader().read(resource).toEntityPrefab()
             } catch (e: Exception) {
@@ -126,11 +136,11 @@ class EntityPrefab() : Saveable() {
             }
         }
 
-        private fun loadJson(resource: FileReference): EntityPrefab? {
+        private fun loadJson(resource: FileReference): Prefab? {
             return try {
                 val read = TextReader.read(resource)
-                val prefab = read.firstOrNull() as? EntityPrefab
-                if (prefab == null) LOGGER.warn("No EntityPrefab found in $resource! $read")
+                val prefab = read.firstOrNull() as? Prefab
+                if (prefab == null) LOGGER.warn("No Prefab found in $resource! $read")
                 else LOGGER.info("Read ${prefab.changes?.size} changes from $resource")
                 prefab
             } catch (e: Exception) {
@@ -139,41 +149,48 @@ class EntityPrefab() : Saveable() {
             }
         }
 
-        fun loadPrefab(resource: FileReference): EntityPrefab? {
+        fun loadPrefab(resource: FileReference): Prefab? {
             return if (resource != InvalidRef && resource.exists && !resource.isDirectory) {
-                val data = cache.getEntry(resource, 1000, false){
-                    CacheData(if( resource.exists && !resource.isDirectory){
-                        val signature = Signature.find(resource)
-                        // LOGGER.info("resource $resource has signature $signature")
-                        when (signature?.name) {
-                            "vox" -> loadVOXModel(resource)
-                            "fbx", "obj" -> loadAssimpModel(resource)
-                            else -> {
-                                when (resource.extension.lowercase()) {
-                                    "vox" -> loadVOXModel(resource)
-                                    "fbx", "dae", "obj" -> loadAssimpModel(resource)
-                                    else -> loadJson(resource)
+                val data = cache.getEntry(resource, 1000, false) {
+                    CacheData(
+                        if (resource.exists && !resource.isDirectory) {
+                            val signature = Signature.find(resource)
+                            // LOGGER.info("resource $resource has signature $signature")
+                            when (signature?.name) {
+                                "vox" -> loadVOXModel(resource)
+                                "fbx", "obj" -> loadAssimpModel(resource)
+                                else -> {
+                                    when (resource.extension.lowercase()) {
+                                        "vox" -> loadVOXModel(resource)
+                                        "fbx", "dae", "obj" -> loadAssimpModel(resource)
+                                        // todo define file extensions for materials, skeletons, components
+                                        else -> loadJson(resource)
+                                    }
                                 }
                             }
-                        }
-                    } else null)
+                        } else null
+                    )
                 } as CacheData<*>
-                return data.value as? EntityPrefab
+                return data.value as? Prefab
             } else null
         }
 
-        private fun createSuperInstance(prefab: FileReference, chain: MutableSet<FileReference>?): Entity {
+        private fun createSuperInstance(
+            prefab: FileReference,
+            chain: MutableSet<FileReference>?,
+            clazz: String
+        ): PrefabSaveable {
             if (chain != null) {
                 if (prefab in chain) throw RuntimeException()
                 chain.add(prefab)
             }
             // LOGGER.info("chain: $chain")
-            return loadPrefab(prefab)?.createInstance(chain) ?: return Entity()
+            return loadPrefab(prefab)?.createInstance(chain) ?: ISaveable.create(clazz) as PrefabSaveable
         }
 
-        fun loadScenePrefab(file: FileReference): EntityPrefab {
+        fun loadScenePrefab(file: FileReference): Prefab {
             // LOGGER.info("loading scene")
-            val prefab = loadPrefab(file) ?: EntityPrefab()
+            val prefab = loadPrefab(file) ?: Prefab("Entity")
             prefab.prefab = ScenePrefab
             prefab.ownFile = file
             if (!file.exists) file.writeText(TextWriter.toText(prefab, false))

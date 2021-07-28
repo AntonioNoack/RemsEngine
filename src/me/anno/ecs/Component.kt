@@ -1,45 +1,68 @@
 package me.anno.ecs
 
-import me.anno.ecs.prefab.PrefabInspector
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.ISaveable
-import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
-import me.anno.io.serialization.SerializedProperty
 import me.anno.objects.inspectable.Inspectable
-import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
-import me.anno.ui.style.Style
 import me.anno.utils.strings.StringHelper
 import me.anno.utils.structures.lists.UpdatingList
 import org.apache.logging.log4j.LogManager
 
-abstract class Component : NamedSaveable(), Inspectable {
+abstract class Component : PrefabSaveable(), Inspectable {
 
     @NotSerializedProperty
-    open var entity: Entity? = null
+    open var entity: Entity?
+        get() = parent as? Entity
+        set(value) {
+            parent = value
+        }
 
-    @NotSerializedProperty
+    /*@NotSerializedProperty
     val prefab: Component?
         get() {
             val entity = entity ?: return null
             val prefab = entity.prefab ?: return null
             val index = entity.components.indexOf(this)
             return prefab.components.getOrNull(index)
-        }
+        }*/
 
-    @SerializedProperty
-    open var isEnabled = true
+    // can be overridden, e.g. for materials
+    override fun listChildTypes(): String = ""
+    override fun getChildListByType(type: Char): List<PrefabSaveable> = emptyList()
+    override fun getChildListNiceName(type: Char): String = ""
+    override fun indexOf(child: PrefabSaveable): Int = -1
+
+    override fun addChildByType(index: Int, type: Char, instance: PrefabSaveable) {
+        TODO("Not yet implemented")
+    }
+
+    override fun add(index: Int, child: PrefabSaveable) {
+        TODO("Not yet implemented")
+    }
+
+    override fun add(child: PrefabSaveable) {
+        TODO("Not yet implemented")
+    }
+
+    override fun remove(child: PrefabSaveable) {}
 
     open fun onCreate() {}
 
-    open fun onDestroy() {}
+    override fun onDestroy() {}
 
     open fun onBeginPlay() {}
 
+    // todo setting for that? (offset/-1 for idc, and 1/frequency)
+    // todo just listeners for different update frequencies? :)
+    // called every x frames
     open fun onUpdate() {}
 
+    // is called every frame, when the entity was visible
+    open fun onVisibleUpdate() {}
+
+    // called on rigidbodies, when the physics engine does a simulation step; async
     open fun onPhysicsUpdate() {}
 
     override fun isDefaultValue(): Boolean = false
@@ -53,9 +76,6 @@ abstract class Component : NamedSaveable(), Inspectable {
     // automatic property inspector by reflection
     // property inspector annotations, e.g. Range, ExecuteInEditMode, HideInInspector,
     // todo GraphicalValueTracker
-
-    @SerializedProperty
-    val changedPropertiesInInstance = HashSet<String>()
 
     @NotSerializedProperty
     val components
@@ -82,36 +102,8 @@ abstract class Component : NamedSaveable(), Inspectable {
 
     // todo stack-panel class with enable/disable buttons
 
-    override fun createInspector(
-        list: PanelListY,
-        style: Style,
-        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
-    ) {
-
-        // todo create title bar, where you can change the script
-        // todo save values to history
-        PrefabInspector.currentInspector!!.inspectComponent(this, list, style)
-
-    }
-
-    private fun getSuperParent(): Component {
-        return prefab ?: this::class.java.getConstructor().newInstance()
-    }
-
-    fun getDefaultValue(name: String): Any? {
-        return getSuperParent()[name]
-    }
-
-    fun resetProperty(name: String): Any? {
-        // how do we find the default value, if the root is null? -> create an empty copy
-        val parent = getSuperParent()
-        val reflections = getReflections()
-        val defaultValue = reflections[parent, name]
-        reflections[this, name] = defaultValue
-        changedPropertiesInInstance.remove(name)
-        LOGGER.info("Reset $className/$name to $defaultValue")
-        return defaultValue
-    }
+    // todo create title bar, where you can change the script
+    // todo save values to history
 
     // todo instead of using reflection on all properties, we just need to save the prefab and all changed properties
 
@@ -124,7 +116,7 @@ abstract class Component : NamedSaveable(), Inspectable {
         private val LOGGER = LogManager.getLogger(Component::class)
 
         fun create(type: String): Component {
-            return (ISaveable.instantiate(type) ?: throw TypeNotPresentException(
+            return (ISaveable.createOrNull(type) ?: throw TypeNotPresentException(
                 type,
                 NullPointerException()
             )) as Component

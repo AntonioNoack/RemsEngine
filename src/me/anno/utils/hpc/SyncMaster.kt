@@ -32,7 +32,7 @@ class SyncMaster {
                     Thread.sleep(min(sleepNanos / millisInNano, 100), (sleepNanos % millisInNano).toInt())
                 }
             }
-            LOGGER.info("thread $name finished")
+            LOGGER.info("Thread $name finished")
         }
     }
 

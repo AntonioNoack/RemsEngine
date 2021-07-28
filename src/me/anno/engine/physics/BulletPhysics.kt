@@ -18,6 +18,7 @@ import com.bulletphysics.dynamics.vehicle.WheelInfo
 import com.bulletphysics.linearmath.DefaultMotionState
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
+import me.anno.config.DefaultStyle.black
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.Collider
@@ -30,6 +31,7 @@ import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
+import me.anno.ui.debug.FrameTimes
 import me.anno.utils.Clock
 import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
@@ -220,6 +222,7 @@ class BulletPhysics : Component() {
 
             world.addRigidBody(body) // todo what is the mask option, and the group?
             rigidBodies[entity] = bodyWithScale
+            rigidbody.bulletInstance = body
 
             if (!rigidbody.isStatic) {
                 nonStaticRigidBodies[entity] = bodyWithScale
@@ -256,7 +259,7 @@ class BulletPhysics : Component() {
 
     fun step(dt: Long) {
 
-        clock.start()
+        // clock.start()
 
         // just in case
         Stack.reset();
@@ -264,12 +267,12 @@ class BulletPhysics : Component() {
         val oldSize = rigidBodies.size
         validate()
         val newSize = rigidBodies.size
-        clock.stop("added ${newSize - oldSize} entities")
+        // clock.stop("added ${newSize - oldSize} entities")
 
         val step = dt * 1e-9
         world.stepSimulation(step, 1, step)
 
-        clock.stop("calculated changes, step ${dt * 1e-9}", 0.1)
+        // clock.stop("calculated changes, step ${dt * 1e-9}", 0.1)
 
         val time = time + dt
         this.time = time
@@ -323,26 +326,12 @@ class BulletPhysics : Component() {
         // update the local transforms last, so all global transforms have been completely updated
         for (entity in nonStaticRigidBodies.keys) {
             val dst = entity.transform
-            dst.calculateLocalTransform(entity.parent?.transform)
+            dst.calculateLocalTransform((entity.parent as? Entity)?.transform)
             entity.invalidateAABBsCompletely()
-            /*val children = entity.children
-            for (i in children.indices) {
-                calcTransform(children[i])
-            }*/
         }
 
-        clock.total("physics step", 0.1)
+        // clock.total("physics step", 0.1)
 
-    }
-
-    fun calcTransform(entity: Entity) {
-        if (entity in rigidBodies.keys) return
-        val transform = entity.transform
-        transform.calculateLocalTransform(entity.parent?.transform)
-        val children = entity.children
-        for (i in children.indices) {
-            calcTransform(children[i])
-        }
     }
 
     fun drawDebug() {
@@ -370,7 +359,7 @@ class BulletPhysics : Component() {
                 Thread.sleep(2000)
                 this.time = GFX.gameTime
                 first = false
-                LOGGER.warn("starting physics")
+                LOGGER.warn("Starting physics")
             }
 
             val targetUPS = targetUpdatesPerSecond
@@ -395,7 +384,10 @@ class BulletPhysics : Component() {
                 (this.time - targetTime) / 2
             } else {
                 // there is still work to do
+                val t0 = System.nanoTime()
                 step(targetStepNanos)
+                val t1 = System.nanoTime()
+                FrameTimes.putValue((t1 - t0) * 1e-9f, 0xffff99 or black)
                 0
             }
 

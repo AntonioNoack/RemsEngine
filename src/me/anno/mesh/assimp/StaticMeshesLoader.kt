@@ -5,7 +5,10 @@ import me.anno.ecs.components.mesh.AnimRenderer
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.prefab.*
+import me.anno.ecs.prefab.CAdd
+import me.anno.ecs.prefab.CSet
+import me.anno.ecs.prefab.Path
+import me.anno.ecs.prefab.Prefab
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -28,6 +31,7 @@ open class StaticMeshesLoader {
 
         val defaultFlags = aiProcess_GenSmoothNormals or aiProcess_JoinIdenticalVertices or aiProcess_Triangulate or
                 aiProcess_FixInfacingNormals or aiProcess_GlobalScale
+
         // or aiProcess_PreTransformVertices // <- disables animations
         private val LOGGER = LogManager.getLogger(StaticMeshesLoader::class)
 
@@ -60,12 +64,12 @@ open class StaticMeshesLoader {
     }
 
     // todo convert assimp mesh such that it's a normal mesh; because all meshes should be the same to create :)
-    private fun buildScene(aiScene: AIScene, sceneMeshes: Array<Mesh>, aiNode: AINode): Pair<Entity, EntityPrefab> {
+    private fun buildScene(aiScene: AIScene, sceneMeshes: Array<Mesh>, aiNode: AINode): Pair<Entity, Prefab> {
 
         val entity = Entity()
-        val prefab = EntityPrefab()
+        val prefab = Prefab("Entity")
 
-        buildScene(aiScene, sceneMeshes, aiNode, entity, prefab, IntArray(0))
+        buildScene(aiScene, sceneMeshes, aiNode, entity, prefab, Path())
 
         return Pair(entity, prefab)
 
@@ -76,22 +80,22 @@ open class StaticMeshesLoader {
         sceneMeshes: Array<Mesh>,
         aiNode: AINode,
         entity: Entity,
-        prefab: EntityPrefab,
-        path: IntArray
+        prefab: Prefab,
+        path: Path
     ) {
 
         entity.name = aiNode.mName().dataString()
         if (!entity.name.isBlank2())
-            prefab.add(ChangeSetEntityAttribute(Path(path, "name"), entity.name))
+            prefab.add(CSet(path, "name", entity.name))
 
         val transform = entity.transform
         transform.setLocal(convert(aiNode.mTransformation()))
         if (transform.localPosition.length() != 0.0)
-            prefab.add(ChangeSetEntityAttribute(Path(path, "position"), transform.localPosition))
+            prefab.add(CSet(path, "position", transform.localPosition))
         if (transform.localRotation.w != 1.0)
-            prefab.add(ChangeSetEntityAttribute(Path(path, "rotation"), transform.localRotation))
+            prefab.add(CSet(path, "rotation", transform.localRotation))
         if (Vector3d(1.0).sub(transform.localScale).length() != 0.0)
-            prefab.add(ChangeSetEntityAttribute(Path(path, "scale"), transform.localScale))
+            prefab.add(CSet(path, "scale", transform.localScale))
 
         val meshCount = aiNode.mNumMeshes()
         if (meshCount > 0) {
@@ -102,13 +106,13 @@ open class StaticMeshesLoader {
             for (i in 0 until meshCount) {
                 val mesh = sceneMeshes[meshIndices[i]]
                 entity.add(MeshComponent(mesh))
-                prefab.add(ChangeAddComponent(Path(path), "MeshComponent"))
-                prefab.add(ChangeSetComponentAttribute(Path(path + i, "mesh"), mesh))
+                prefab.add(CAdd(path, 'c', "MeshComponent"))
+                prefab.add(CSet(path + (i to 'c'), "mesh", mesh))
             }
 
             val renderer = AnimRenderer()
             entity.addComponent(renderer)
-            prefab.add(ChangeAddComponent(Path(path), "AnimRenderer"))
+            prefab.add(CAdd(path, 'c', "AnimRenderer"))
 
         }
 
@@ -121,8 +125,8 @@ open class StaticMeshesLoader {
                 val childEntity = Entity()
                 entity.addChild(childEntity)
 
-                val childPath = path + i
-                prefab.add(ChangeAddEntity(Path(path)))
+                val childPath = path.add(i, 'e')
+                prefab.add(CAdd(path, 'e', "Entity"))
                 buildScene(aiScene, sceneMeshes, childNode, entity, prefab, childPath)
 
             }
@@ -130,7 +134,7 @@ open class StaticMeshesLoader {
 
     }
 
-    fun buildScene(aiScene: AIScene, sceneMeshes: Array<Mesh>): Pair<Entity, EntityPrefab> {
+    fun buildScene(aiScene: AIScene, sceneMeshes: Array<Mesh>): Pair<Entity, Prefab> {
         return buildScene(aiScene, sceneMeshes, aiScene.mRootNode()!!)
     }
 

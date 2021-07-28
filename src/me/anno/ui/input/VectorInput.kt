@@ -295,8 +295,16 @@ class VectorInput(
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.onDraw(x0, y0, x1, y1)
-        val focused1 = titleView?.isInFocus == true || valueList.children.any { it.isInFocus }
+        var focused1 = titleView?.isInFocus == true
+        if(!focused1){// removing the need for an iterator
+            val children = valueList.children
+            for(i in children.indices){
+                if(children[i].isInFocus){
+                    focused1 = true
+                    break
+                }
+            }
+        }
         if (focused1) isSelectedListener?.invoke()
         if (RemsStudio.hideUnusedProperties) {
             val focused2 = focused1 || owningProperty == selectedProperty

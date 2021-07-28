@@ -491,7 +491,7 @@ object ComponentUI {
             }
             "Quaterniond" -> {
                 value as Quaterniond
-                val type = Type.ROT_YXZ.withDefault((default as Quaterniond).toEulerAnglesDegrees())
+                val type = Type.ROT_YXZ64.withDefault((default as Quaterniond).toEulerAnglesDegrees())
                 return VectorInput(title, visibilityKey, value.toEulerAnglesDegrees(), type, style).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }

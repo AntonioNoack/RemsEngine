@@ -1,9 +1,11 @@
 package me.anno.engine
 
-import cz.advel.stack.Stack
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
-import me.anno.ecs.prefab.EntityPrefab.Companion.loadScenePrefab
+import me.anno.ecs.Entity
+import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.Prefab.Companion.loadScenePrefab
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.DefaultLayout
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX.windowStack
@@ -82,7 +84,7 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
         val options = OptionBar(style)
 
-        val editUI = DefaultLayout.createDefaultMainUI(projectFile, tab.inspector.root, false, style)
+        val editUI = DefaultLayout.createDefaultMainUI(projectFile, tab.inspector.root as Entity, false, style)
 
         val configTitle = Dict["Config", "ui.top.config"]
         options.addAction(configTitle, Dict["Settings", "ui.top.config.settings"]) {

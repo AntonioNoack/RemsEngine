@@ -77,6 +77,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         val boneMap = HashMap<String, Bone>()
         val meshes = loadMeshes(aiScene, materials, boneList, boneMap)
         val (hierarchy, hierarchyPrefab) = buildScene(aiScene, meshes)
+        hierarchyPrefab.createInstance()
         val skeleton = if (boneList.isEmpty()) null else addSkeleton(hierarchy, hierarchyPrefab, boneList)
         val animations = if (boneList.isEmpty()) null else loadAnimations(aiScene, boneList, boneMap)
         skeleton?.animations?.putAll(animations!!)
@@ -98,18 +99,15 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         return AnimGameItem(hierarchy, hierarchyPrefab, meshes.toList(), boneList, animations ?: emptyMap())
     }
 
-    private fun addSkeleton(hierarchy: Entity, hierarchyPrefab: EntityPrefab, boneList: List<Bone>): Skeleton {
+    private fun addSkeleton(hierarchy: Entity, hierarchyPrefab: Prefab, boneList: List<Bone>): Skeleton {
         val skeleton = Skeleton()
         skeleton.bones = boneList.toTypedArray()
         val changes = hierarchyPrefab.changes!!
         val skeletonAssignments = changes.mapNotNull { change ->
-            if (change is ChangeAddComponent && change.type == "AnimRenderer") {
-                val indexInEntity = changes.filter { it is ChangeAddComponent && it.path == change.path }
+            if (change is CAdd && change.clazzName == "AnimRenderer") {
+                val indexInEntity = changes.filter { it is CAdd && it.path == change.path }
                     .indexOfFirst { it === change }
-                ChangeSetComponentAttribute(
-                    Path(change.path!!.hierarchy + indexInEntity, "skeleton"),
-                    skeleton
-                )
+                CSet(change.path!!.add(indexInEntity, 'c'), "skeleton", skeleton)
             } else null
         }
         changes as MutableList<Change>

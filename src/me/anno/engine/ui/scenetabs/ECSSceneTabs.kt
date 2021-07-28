@@ -1,9 +1,7 @@
 package me.anno.engine.ui.scenetabs
 
 import me.anno.config.DefaultConfig
-import me.anno.ecs.prefab.EntityPrefab
-import me.anno.ecs.prefab.PrefabInspector
-import me.anno.gpu.GFX
+import me.anno.ecs.prefab.*
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
@@ -38,7 +36,7 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
             }
         }
 
-    fun open(syncMaster: SyncMaster, prefab: EntityPrefab): SceneTab {
+    fun open(syncMaster: SyncMaster, prefab: Prefab): SceneTab {
         val opened = children3.firstOrNull { it.file == prefab.ownFile }
         return if (opened != null) {
             open(opened)
@@ -51,23 +49,16 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
         }
     }
 
-    fun open(syncMaster: SyncMaster, file: FileReference): SceneTab {
-        val opened = children3.firstOrNull { it.file == file }
-        return if (opened != null) {
-            open(opened)
-            opened
-        } else {
-            val tab = SceneTab(syncMaster, file)
-            content += tab
-            open(tab)
-            tab
-        }
+    fun open(syncMaster: SyncMaster, file: FileReference, classNameIfNull: String): SceneTab {
+        val tab = add(syncMaster, file, classNameIfNull)
+        open(tab)
+        return tab
     }
 
-    fun add(syncMaster: SyncMaster, file: FileReference): SceneTab {
+    fun add(syncMaster: SyncMaster, file: FileReference, classNameIfNull: String): SceneTab {
         val opened = children3.firstOrNull { it.file == file }
         return if (opened == null) {
-            val tab = SceneTab(syncMaster, file)
+            val tab = SceneTab(syncMaster, file, classNameIfNull)
             content += tab
             tab
         } else opened

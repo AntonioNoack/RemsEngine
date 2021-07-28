@@ -85,6 +85,7 @@ class Type(
         val POSITION_2D = Type(Vector2f(), 2, 1f, true, true, null, ::castToVector2f)
         val SCALE = Type(Vector3f(1f, 1f, 1f), 3, 1f, true, true, null, ::castToVector3f)
         val ROT_YXZ = Type(Vector3f(), 3, 90f, true, true, null, ::castToVector3f)
+        val ROT_YXZ64 = Type(Vector3d(), 3, 90f, true, true, null, ::castToVector3d)
         val ROT_Y = Type(0f, 1, 90f, true, true, null, ::castToFloat)
         val ROT_XZ = Type(Vector3f(), 2, 90f, true, true, null, ::castToVector2f)
         val SKEW_2D = Type(Vector2f(), 2, 1f, true, true, null, ::castToVector2f)

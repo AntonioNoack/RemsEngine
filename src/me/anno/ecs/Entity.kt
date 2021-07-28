@@ -5,10 +5,10 @@ import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.prefab.PrefabInspector
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.physics.BulletPhysics
 import me.anno.gpu.GFX
 import me.anno.io.ISaveable
-import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -17,16 +17,17 @@ import me.anno.io.serialization.SerializedProperty
 import me.anno.io.text.TextReader
 import me.anno.objects.inspectable.Inspectable
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.editor.SettingCategory
+import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
 import me.anno.utils.structures.Hierarchical
 import me.anno.utils.types.AABBs.reset
 import me.anno.utils.types.AABBs.transformUnion
 import me.anno.utils.types.Floats.f2s
-import me.anno.utils.types.Floats.f3
 import org.joml.AABBd
 import org.joml.Matrix4x3d
+import org.joml.Quaterniond
+import org.joml.Vector3d
 import kotlin.reflect.KClass
 
 // entities would be an idea to make effects more modular
@@ -40,7 +41,7 @@ import kotlin.reflect.KClass
 
 // todo delta settings & control: only saves as values, what was changed from the prefab
 
-class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
+class Entity() : PrefabSaveable(), Hierarchical<PrefabSaveable>, Inspectable {
 
     constructor(parent: Entity?) : this() {
         parent?.add(this)
@@ -69,8 +70,8 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
     val components: List<Component>
         get() = internalComponents
 
-    @SerializedProperty
-    override var parent: Entity? = null
+    // @SerializedProperty
+    // override var parent: Entity? = null
 
     @NotSerializedProperty
     private val internalChildren = ArrayList<Entity>()
@@ -79,8 +80,55 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
     override val children: List<Entity>
         get() = internalChildren
 
+    override fun listChildTypes(): String = "ec" // entity children, components
+
+    override fun getChildListByType(type: Char): List<PrefabSaveable> {
+        return if (type == 'c') components else children
+    }
+
+    override fun addChildByType(index: Int, type: Char, instance: PrefabSaveable) {
+        if (type == 'c') addComponent(index, instance as Component)
+        else addChild(index, instance as Entity)
+    }
+
+    override fun getChildListNiceName(type: Char): String {
+        return if (type == 'c') "components" else "children"
+    }
+
+    override fun indexOf(child: PrefabSaveable): Int {
+        return if (child is Component) {
+            components.indexOf(child)
+        } else children.indexOf(child)
+    }
+
+    override fun getOptionsByType(type: Char): List<Option>? {
+        return if (type == 'c') Component.getComponentOptions(this)
+        else null
+    }
+
     @NotSerializedProperty
     var hasValidAABB = false
+
+    @SerializedProperty
+    var position: Vector3d
+        get() = transform.localPosition
+        set(value) {
+            transform.localPosition = value
+        }
+
+    @SerializedProperty
+    var rotation: Quaterniond
+        get() = transform.localRotation
+        set(value) {
+            transform.localRotation = value
+        }
+
+    @SerializedProperty
+    var scale: Vector3d
+        get() = transform.localScale
+        set(value) {
+            transform.localScale = value
+        }
 
     @NotSerializedProperty
     val aabb = AABBd()
@@ -96,6 +144,7 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
     private fun invalidateOwnAABB() {
         if (hasValidAABB) {
             hasValidAABB = false
+            val parent = parent as? Entity
             parent?.invalidateOwnAABB()
         }
     }
@@ -183,6 +232,7 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
 
     fun validateTransforms(time: Long = GFX.gameTime) {
         if (!isPhysicsControlled) {
+            val parent = parent as? Entity
             transform.update(parent?.transform, time)
             val children = children
             for (i in children.indices) {
@@ -221,15 +271,29 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
         invalidateAABBsCompletely()
     }
 
-    override fun add(index: Int, child: Entity) {
-        if (parent === this.parent) return
+    override fun add(child: PrefabSaveable) {
+        TODO("Not yet implemented")
+    }
 
+    override fun add(index: Int, child: PrefabSaveable) {
+        TODO("Not yet implemented")
+    }
+
+    override fun remove(child: PrefabSaveable) {
+        when (child) {
+            is Entity -> removeChild(child)
+            is Component -> removeComponent(child)
+        }
+    }
+
+    fun add(index: Int, child: Entity) {
+        addChild(index, child)
     }
 
     // todo don't directly update, rather invalidate this, because there may be more to come
     fun setParent(parent: Entity, index: Int, keepWorldTransform: Boolean) {
 
-        val oldParent = this.parent
+        val oldParent = this.parent as? Entity
         if (parent === oldParent) return
 
         // formalities
@@ -274,8 +338,14 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
         }
     }
 
-    val physics get() = root.getComponent(false, BulletPhysics::class)
-    val rigidbody get() = listOfHierarchy.lastOrNull { it.hasComponent(false, Rigidbody::class) }
+    val physics get() = getRoot(Entity::class).getComponent(false, BulletPhysics::class)
+    val rigidbody
+        get() = listOfHierarchy.lastOrNull {
+            it is Entity && it.hasComponent(
+                false,
+                Rigidbody::class
+            )
+        } as? Entity
 
     fun invalidateRigidbody() {
         physics?.invalidate(rigidbody ?: return)
@@ -319,8 +389,12 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
         invalidateOwnAABB()
     }
 
-    override fun addChild(child: Entity) {
-        child.setParent(this, false)
+    fun addChild(child: Entity) {
+        child.setParent(this, children.size, false)
+    }
+
+    fun addChild(index: Int, child: Entity) {
+        child.setParent(this, index, false)
     }
 
     fun remove(component: Component) {
@@ -365,14 +439,13 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
     }
 
     inline fun <reified V : Component> getComponentInChildren(includingDisabled: Boolean): V? {
-        return simpleTraversal(true) { getComponent<V>(includingDisabled) != null }?.getComponent(includingDisabled)
+        val e = simpleTraversal(true) { getComponent<V>(includingDisabled) != null }
+        return (e as? Entity)?.getComponent(includingDisabled)
     }
 
     fun <V : Component> getComponentInChildren(includingDisabled: Boolean, clazz: KClass<V>): V? {
-        return simpleTraversal(true) { getComponent(includingDisabled, clazz) != null }?.getComponent(
-            includingDisabled,
-            clazz
-        )
+        val e = simpleTraversal(true) { getComponent(includingDisabled, clazz) != null }
+        return (e as? Entity)?.getComponent(includingDisabled, clazz)
     }
 
     inline fun <reified V : Component> getComponents(includingDisabled: Boolean): List<V> {
@@ -434,10 +507,10 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
         return text
     }
 
-    override fun add(child: Entity) = addChild(child)
+    fun add(child: Entity) = addChild(child)
     fun add(component: Component) = addComponent(component)
 
-    override fun remove(child: Entity) {
+    fun remove(child: Entity) {
         if (child.parent !== this) return
         // todo invalidate physics
         internalChildren.remove(child)
@@ -458,7 +531,7 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
 
     val depthInHierarchy
         get(): Int {
-            val parent = parent ?: return 0
+            val parent = parent as? Entity ?: return 0
             return parent.depthInHierarchy + 1
         }
 
@@ -491,14 +564,15 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
     // - isEnabled
 
     var prefabPath: FileReference = InvalidRef
-    var prefab: Entity? = null
+
+    // var prefab: Entity? = null
     var ownPath: FileReference = InvalidRef // where our file is located
 
     // get root somehow? how can we detect it?
     // not possible in the whole scene for sub-scenes
     // however, when we are only editing prefabs, it would be possible :)
 
-    fun pathInRoot(root: Entity): ArrayList<Int> {
+    /*fun pathInRoot(root: Entity): ArrayList<Int> {
         if (this == root) return arrayListOf()
         val parent = parent
         return if (parent != null) {
@@ -517,18 +591,19 @@ class Entity() : NamedSaveable(), Hierarchical<Entity>, Inspectable {
                 add(ownIndex)
             }
         } else arrayListOf()
-    }
+    }*/
 
     override fun createInspector(
         list: PanelListY,
         style: Style,
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
-        list += UpdatingTextPanel(50, style) {
+        // interpolation tests
+        /*list += UpdatingTextPanel(50, style) {
             val t = transform
             "1x/${(t.lastUpdateDt * 1e-9).f3()}s, ${((GFX.gameTime - t.lastUpdateTime) * 1e-9).f3()}s ago"
-        }
-        PrefabInspector.currentInspector!!.inspectEntity(this, list, style)
+        }*/
+        PrefabInspector.currentInspector!!.inspect(this, list, style)
     }
 
     override fun save(writer: BaseWriter) {

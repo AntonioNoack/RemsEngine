@@ -22,15 +22,15 @@ object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
     val timeContainer = TimeContainer(width, textColor)
     val containers = arrayListOf(timeContainer)
 
-    fun putTime(value: Float){
+    fun putTime(value: Float) {
         putValue(value, textColor)
     }
 
-    fun putValue(value: Float, color: Int){
+    fun putValue(value: Float, color: Int) {
         val containers = containers
-        for(i in containers.indices){
+        for (i in containers.indices) {
             val container = containers[i]
-            if(container.color == color){
+            if (container.color == color) {
                 container.putValue(value)
                 return
             }
@@ -48,12 +48,14 @@ object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         drawBackground()
 
-        if(containers.isEmpty()) return
+        val containers = containers
+        if (containers.isEmpty()) return
 
-        val maxValue = containers.maxOf { it.maxValue }
+        containers.sortDescending()
+        val maxValue = containers[0].maxValue
 
-        containers.sortByDescending { it.maxValue }
-        for(container in containers){
+        for (j in containers.indices) {
+            val container = containers[j]
             val nextIndex = container.nextIndex
             val values = container.values
             val barColor = container.color

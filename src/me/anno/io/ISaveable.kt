@@ -3,6 +3,7 @@ package me.anno.io
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.CachedReflections
 import org.joml.*
+import java.lang.RuntimeException
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -38,6 +39,8 @@ interface ISaveable {
     fun readByte(name: String, value: Byte)
     fun readByteArray(name: String, values: ByteArray)
     fun readByteArray2D(name: String, values: Array<ByteArray>)
+
+    fun readChar(name: String, value: Char)
 
     fun readShort(name: String, value: Short)
     fun readShortArray(name: String, values: ShortArray)
@@ -152,8 +155,12 @@ interface ISaveable {
             fun generate() = generator()
         }
 
-        fun instantiate(type: String): ISaveable? {
+        fun createOrNull(type: String): ISaveable? {
             return objectTypeRegistry[type]?.generate()
+        }
+
+        fun create(type: String): ISaveable {
+            return objectTypeRegistry[type]?.generate() ?: throw RuntimeException("Type $type unknown!")
         }
 
         val objectTypeRegistry = HashMap<String, RegistryEntry>()

@@ -4,7 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.prefab.EntityPrefab
+import me.anno.ecs.prefab.Prefab
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.Shader
 import me.anno.utils.Maths
@@ -18,7 +18,7 @@ import kotlin.math.min
 
 class AnimGameItem(
     val hierarchy: Entity,
-    val hierarchyPrefab: EntityPrefab,
+    val hierarchyPrefab: Prefab,
     val meshes: List<Mesh>,
     val bones: List<Bone>,
     val animations: Map<String, me.anno.ecs.components.anim.Animation>
@@ -114,7 +114,7 @@ class AnimGameItem(
         }
 
         private fun updateTransforms(entity: Entity) {
-            entity.transform.update(entity.parent?.transform, 0)
+            entity.transform.update((entity.parent as? Entity)?.transform, 0)
             for (child in entity.children) updateTransforms(child)
         }
 
@@ -128,6 +128,7 @@ class AnimGameItem(
         private fun calculateAABB(root: Entity): AABBd {
             val joint = AABBd()
             root.simpleTraversal(true) { entity ->
+                entity as Entity
                 // todo rendering all points is only a good idea, if there are no meshes
                 // todo render all them points, and use them for the bbx calculation (only if no meshes present)
                 // because animated clothing may be too small to see

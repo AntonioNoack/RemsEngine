@@ -1,5 +1,6 @@
 package me.anno.ecs.components.physics
 
+import com.bulletphysics.dynamics.RigidBody
 import me.anno.ecs.Component
 import me.anno.engine.ui.RenderView
 import me.anno.engine.ui.RenderView.Companion.scale
@@ -15,8 +16,32 @@ open class Rigidbody : Component() {
     @SerializedProperty
     var mass = 1.0
 
+    // todo lock an axis of the object
+
+    // todo extra gravity settings
+
+    // todo getters for all information like velocity and such
+
+    // todo functions to add impulses and forces
+
+    init {
+        // todo for getting things to rest
+        // bulletInstance?.setSleepingThresholds()
+    }
+
+    // todo set when creating the instance
+    var friction = 0.1
+        set(value) {
+            field = value
+            bulletInstance?.friction = friction
+        }
+
     @SerializedProperty
     var centerOfMass = Vector3d()
+    /*set(value) {// todo
+        field = value
+        bulletInstance?.setCenterOfMassTransform(com.bulletphysics.linearmath.Transform())
+    }*/
 
     @NotSerializedProperty
     var isStatic
@@ -37,6 +62,9 @@ open class Rigidbody : Component() {
         // todo create new bullet body
 
     }
+
+    @NotSerializedProperty
+    var bulletInstance: RigidBody? = null
 
     override fun onDrawGUI() {
         super.onDrawGUI()

@@ -1,9 +1,7 @@
 package me.anno.ecs.prefab
 
-import me.anno.animation.Type
 import me.anno.ecs.Component
-import me.anno.ecs.Entity
-import me.anno.ecs.prefab.EntityPrefab.Companion.loadPrefab
+import me.anno.ecs.prefab.Prefab.Companion.loadPrefab
 import me.anno.engine.IProperty
 import me.anno.engine.ui.ComponentUI
 import me.anno.io.NamedSaveable
@@ -18,25 +16,22 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.editor.stacked.StackPanel
-import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.TextInput
-import me.anno.ui.input.VectorInput
 import me.anno.ui.style.Style
 import me.anno.utils.process.DelayedTask
+import me.anno.utils.strings.StringHelper
+import me.anno.utils.strings.StringHelper.titlecase
 import me.anno.utils.structures.StartsWith.startsWith
-import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import org.apache.logging.log4j.LogManager
-import org.joml.Quaterniond
-import org.joml.Vector3d
 
 // this can be like a scene (/scene tab)
 // show changed values in bold
 
-class PrefabInspector(val reference: FileReference, val prefab: EntityPrefab) {
+class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
 
-    constructor(prefab: EntityPrefab) : this(prefab.ownFile, prefab)
+    constructor(prefab: Prefab) : this(prefab.ownFile, prefab)
 
-    constructor(reference: FileReference) : this(reference, loadPrefab(reference) ?: EntityPrefab())
+    constructor(reference: FileReference, classNameIfNull: String) : this(reference, loadPrefab(reference) ?: Prefab(classNameIfNull))
 
     val history: ChangeHistory = prefab.history ?: ChangeHistory()
     val changes: MutableList<Change> = ArrayList(prefab.changes ?: emptyList())
@@ -70,66 +65,54 @@ class PrefabInspector(val reference: FileReference, val prefab: EntityPrefab) {
         savingTask.update()
     }
 
-    fun resetEntity(path: Path) {
-        if (changes.removeIf { it is ChangeSetEntityAttribute && it.path == path }) {
+    fun reset(path: Path) {
+        if (changes.removeIf { it is CSet && it.path == path }) {
             onChange()
         }
     }
 
-    fun resetComponent(path: Path) {
-        if (changes.removeIf { it is ChangeSetComponentAttribute && it.path == path }) {
+    fun reset(path: Path, name: String) {
+        if (changes.removeIf { it is CSet && it.path == path && it.name == name }) {
             onChange()
         }
     }
 
-    fun isEntityChanged(path: Path): Boolean {
-        val oldChange = changes.firstOrNull { it is ChangeSetEntityAttribute && it.path == path }
+    fun isChanged(path: Path): Boolean {
+        val oldChange = changes.firstOrNull { it is CSet && it.path == path }
         return oldChange != null
     }
 
-    fun changeEntity(path: Path, value: Any?) {
-        val oldChange = changes.firstOrNull { it is ChangeSetEntityAttribute && it.path == path }
+    fun isChanged(path: Path, name: String): Boolean {
+        val oldChange = changes.firstOrNull { it is CSet && it.path == path && it.name == name }
+        return oldChange != null
+    }
+
+    fun change(path: Path, name: String, value: Any?) {
+        val oldChange = changes.firstOrNull { it is CSet && it.path == path && it.name == name }
         if (oldChange == null) {
-            changes.add(ChangeSetEntityAttribute(path, value))
+            changes.add(CSet(path, name, value))
         } else {
-            oldChange as ChangeSetAttribute
+            oldChange as CSet
             oldChange.value = value
         }
         onChange()
     }
 
-    fun isComponentChanged(path: Path): Boolean {
-        val oldChange = changes.firstOrNull { it is ChangeSetComponentAttribute && it.path == path }
-        return oldChange != null
-    }
+    fun inspect(instance: PrefabSaveable, list: PanelListY, style: Style) {
 
-    fun changeComponent(path: Path, value: Any?) {
-        val oldChange = changes.firstOrNull { it is ChangeSetComponentAttribute && it.path == path }
-        if (oldChange == null) {
-            changes.add(ChangeSetComponentAttribute(path, value))
-        } else {
-            oldChange as ChangeSetAttribute
-            oldChange.value = value
-        }
-        onChange()
-    }
-
-    fun inspectComponent(component: Component, list: PanelListY, style: Style) {
-
-        val entity = component.entity!!
-
-        val path0 = entity.pathInRoot(root); path0.add(-1)
-        val path = path0.toIntArray()
+        val (pathIndices, pathTypes) = instance.pathInRoot2(root, withExtra = false)
+        val path = Path(pathIndices, pathTypes)
 
         // the index may not be set in the beginning
-        fun getPath(name: String): Path {
-            if (path[path.lastIndex] < 0) {
-                path[path.lastIndex] = entity.components.indexOf(component)
+        fun getPath(): Path {
+            val li = pathIndices.lastIndex
+            if (li >= 0 && pathIndices[li] < 0) {
+                pathIndices[li] = instance.parent!!.indexOf(instance)
             }
-            return Path(path, name)
+            return path
         }
 
-        val prefab = component.prefab
+        val prefab = instance.prefab
 
         // create the ui for the component, and also keep track of the changes :)
         /*list.add(BooleanInput(
@@ -143,30 +126,30 @@ class PrefabInspector(val reference: FileReference, val prefab: EntityPrefab) {
                 component.isEnabled = prefab?.isEnabled ?: true; component.isEnabled
             }
         })*/
-        list.add(TextInput("Name", "", component.name, style).apply {
-            setBold(isComponentChanged(getPath("name")))
-            setChangeListener { setBold(); changeComponent(getPath("name"), it); component.name = it }
+        list.add(TextInput("Name", "", instance.name, style).apply {
+            setBold(isChanged(getPath(), "name"))
+            setChangeListener { setBold(); change(getPath(), "name", it); instance.name = it }
             setResetListener {
-                unsetBold(); resetComponent(getPath("name"))
-                component.name = prefab?.name ?: ""; component.name
+                unsetBold(); reset(getPath(), "name")
+                instance.name = prefab?.name ?: ""; instance.name
             }
         })
-        list.add(TextInput("Description", "", component.description, style).apply {
-            setChangeListener { setBold(); changeComponent(getPath("description"), it); component.description = it }
+        list.add(TextInput("Description", "", instance.description, style).apply {
+            setChangeListener { setBold(); change(getPath(), "description", it); instance.description = it }
             setResetListener {
-                unsetBold(); resetComponent(getPath("description"))
-                component.description = prefab?.description ?: ""; component.description
+                unsetBold(); reset(getPath(), "description")
+                instance.description = prefab?.description ?: ""; instance.description
             }
         })
 
         // for debugging
         list.add(TextButton("Copy", false, style).setSimpleClickListener {
-            LOGGER.info("Copy: ${TextWriter.toText(component, false)}")
+            LOGGER.info("Copy: ${TextWriter.toText(instance, false)}")
         })
 
         // bold/non bold for other properties
 
-        val reflections = component.getReflections()
+        val reflections = instance.getReflections()
         for ((clazz, propertyNames) in reflections.propertiesByClass.value.reversed()) {
 
             if (clazz == NamedSaveable::class) continue
@@ -192,31 +175,31 @@ class PrefabInspector(val reference: FileReference, val prefab: EntityPrefab) {
                     val panel = ComponentUI.createUI2(name, name, object : IProperty<Any?> {
 
                         override fun init(panel: Panel?) {
-                            (panel as? TextStyleable)?.setBold(isComponentChanged(getPath(name)))
+                            (panel as? TextStyleable)?.setBold(isChanged(getPath(), name))
                         }
 
                         override fun getDefault(): Any? {
                             // info("default of $name: ${component.getDefaultValue(name)}")
-                            return component.getDefaultValue(name)
+                            return instance.getDefaultValue(name)
                         }
 
                         override fun set(panel: Panel?, value: Any?) {
                             (panel as? TextStyleable)?.setBold()
                             // info("setting value of $name, ${panel is TextStyleable}")
-                            property[component] = value
-                            changeComponent(getPath(name), value)
+                            property[instance] = value
+                            change(getPath(), name, value)
                         }
 
                         override fun get(): Any? {
-                            return property[component]
+                            return property[instance]
                         }
 
                         override fun reset(panel: Panel?): Any? {
                             (panel as? TextStyleable)?.unsetBold()
                             // info("reset $name")
-                            resetComponent(getPath(name))
+                            reset(getPath(), name)
                             val value = getDefault()
-                            property[component] = value
+                            property[instance] = value
                             return value
                         }
 
@@ -234,172 +217,98 @@ class PrefabInspector(val reference: FileReference, val prefab: EntityPrefab) {
             }
 
         }
-    }
 
-    fun inspectEntity(entity: Entity, list: PanelListY, style: Style) {
+        val types = instance.listChildTypes()
+        for (i in types.indices) {
+            val type = types[i]
 
-        val path = entity.pathInRoot(root).toIntArray()
-        val prefab = entity.prefab
+            val options = instance.getOptionsByType(type) ?: continue
+            val niceName = instance.getChildListNiceName(type)
+            val children = instance.getChildListByType(type)
 
-        // LOGGER.info("inspecting entity ${entity.name}, hierarchy: ${entity.listOfAll.joinToString { it.name }} -> path [${path.joinToString()}]")
+            // todo all list properties, e.g. children, properties and such
+            // todo ofc, children should be hidden, but other material may be important
 
-        fun getPath(name: String) = Path(path, name)
+            // todo get options of any type...
 
-        list.add(BooleanInput("Is Enabled", entity.isEnabled, prefab?.isEnabled ?: true, style).apply {
-            setBold(isEntityChanged(getPath("isEnabled")))
-            setChangeListener { setBold(); changeEntity(getPath("isEnabled"), it); entity.isEnabled = it }
-            setResetListener {
-                unsetBold(); resetEntity(getPath("isEnabled"))
-                entity.isEnabled = prefab?.isEnabled ?: true; entity.isEnabled
-            }
-        })
+            val nicerName = StringHelper.splitCamelCase(niceName.titlecase())
+            list.add(object : StackPanel(
+                nicerName, "",
+                options, children, style
+            ) {
 
-        list.add(TextInput("Name", "", true, entity.name, style).apply {
-            setBold(isEntityChanged(getPath("name")))
-            setChangeListener { setBold(); changeEntity(getPath("name"), it); entity.name = it }
-            setResetListener {
-                unsetBold(); resetEntity(getPath("name"))
-                entity.name = prefab?.name ?: ""; entity.name
-            }
-        })
-
-        list.add(TextInput("Description", "", true, entity.description, style).apply {
-            setBold(isEntityChanged(getPath("description")))
-            setChangeListener { setBold(); changeEntity(getPath("description"), it); entity.description = it }
-            setResetListener {
-                unsetBold(); resetEntity(getPath("description"))
-                entity.description = prefab?.description ?: ""; entity.description
-            }
-        })
-
-        val transform = entity.transform
-        list.add(VectorInput(
-            "Position", "Where it's located relative to its parent",
-            transform.localPosition, Type.POSITION, style
-        ).apply {
-            setBold(isEntityChanged(getPath("position")))
-            setChangeListener { x, y, z, _ ->
-                setBold(); changeEntity(getPath("position"), Vector3d(x, y, z))
-                transform.localPosition = Vector3d(x, y, z)
-            }
-            setResetListener {
-                unsetBold(); resetEntity(getPath("position"));
-                transform.localPosition = prefab?.transform?.localPosition ?: Vector3d()
-                transform.localPosition
-            }
-        })
-
-        list.add(VectorInput(
-            "Rotation", "How its rotated relative to its parent",
-            transform.localRotation, Type.ROT_YXZ, style
-        ).apply {
-            setBold(isEntityChanged(getPath("rotation")))
-            setChangeListener { x, y, z, _ ->
-                setBold(); changeEntity(getPath("rotation"), Vector3d(x, y, z).toQuaternionDegrees())
-                transform.localRotation = Vector3d(x, y, z).toQuaternionDegrees()
-            }
-            setResetListener {
-                unsetBold(); resetEntity(getPath("rotation"))
-                transform.localRotation = prefab?.transform?.localRotation ?: Quaterniond()
-                transform.localRotation
-            }
-        })
-
-        list.add(VectorInput(
-            "Scale", "How large the entity is relative to its parent",
-            entity.transform.localScale, Type.SCALE, style
-        ).apply {
-            setBold(isEntityChanged(getPath("scale")))
-            setChangeListener { x, y, z, _ ->
-                setBold(); changeEntity(getPath("scale"), Vector3d(x, y, z))
-                transform.localScale = Vector3d(x, y, z)
-            }
-            setResetListener {
-                unsetBold(); resetEntity(getPath("scale"))
-                transform.localScale = prefab?.transform?.localScale ?: Vector3d(1.0)
-                transform.localScale
-            }
-        })
-
-        list.add(TextButton("Copy", false, style).apply {
-            setSimpleClickListener {
-                for ((index, change) in changes.withIndex()) {
-                    println("[$index] ${TextWriter.toText(change, false)}")
+                override fun onAddComponent(component: Inspectable, index: Int) {
+                    component as PrefabSaveable
+                    addComponent(instance, component, index, type)
                 }
-            }
-        })
 
-        list.add(TextButton("Save", false, style).setSimpleClickListener {
-            save()
-        })
+                override fun onRemoveComponent(component: Inspectable) {
+                    component as PrefabSaveable
+                    removeComponent(instance, component, type)
+                }
 
-        // ("creating stack panel from ${entity.components.size} components inside ${entity.name}")
-        list.add(object : StackPanel(
-            "Components", "Behaviours and properties",
-            Component.getComponentOptions(entity), entity.components, style
-        ) {
+                override fun getOptionFromInspectable(inspectable: Inspectable): Option {
+                    inspectable as Component
+                    return Option(inspectable.className, "") { inspectable }
+                }
 
-            override fun onAddComponent(component: Inspectable, index: Int) {
-                component as Component
-                addComponent(entity, component, index)
-            }
+            })
 
-            override fun onRemoveComponent(component: Inspectable) {
-                component as Component
-                removeComponent(entity, component)
-            }
+        }
 
-            override fun getOptionFromInspectable(inspectable: Inspectable): Option {
-                inspectable as Component
-                return Option(inspectable.className, "") { inspectable }
-            }
-
-        })
 
     }
-
 
     /**
      * renumber all changes, which are relevant to the components
      * */
-    private fun renumber(from: Int, delta: Int, path: IntArray) {
-        val targetSize = path.size
+    private fun renumber(from: Int, delta: Int, path: Path) {
+        val targetSize = path.indices.size
         val changedArrays = HashSet<IntArray>()
         for (change in changes) {
             val path2 = change.path!!
-            val hierarchy = path2.hierarchy
-            if (change is ChangeSetComponentAttribute &&
-                hierarchy.size == targetSize &&
-                hierarchy[targetSize - 1] >= from &&
-                hierarchy !in changedArrays &&
-                hierarchy.startsWith(path)
+            val indices = path2.indices
+            val types = path2.types
+            if (change is CSet &&
+                indices.size == targetSize &&
+                indices[targetSize - 1] >= from &&
+                indices !in changedArrays &&
+                indices.startsWith(path.indices) &&
+                types.startsWith(path.types)
             ) {
-                hierarchy[targetSize - 1] += delta
-                changedArrays.add(hierarchy)
+                indices[targetSize - 1] += delta
+                changedArrays.add(indices)
             }
         }
     }
 
-    fun addComponent(entity: Entity, component: Component, index: Int) {
+    fun addComponent(parent: PrefabSaveable, component: PrefabSaveable, index: Int, type: Char) {
 
-        val path = entity.pathInRoot(root).toIntArray()
-        val prefab = entity.prefab
+        val path0 = parent.pathInRoot2(root, false)
+        val path = Path(path0)
 
-        component.entity = entity
+        val prefab = parent.prefab
 
-        if (prefab != null && index < prefab.components.size) {
+        component.parent = parent
+
+        val prefabComponents = prefab?.getChildListByType(type)
+        if (prefab != null && index < prefabComponents!!.size) {
             // if index < prefab.size, then disallow
             throw RuntimeException("Cannot insert between prefab components!")
         }
-        if (index < entity.components.size) {
+
+        val parentComponents = parent.getChildListByType(type)
+        if (index < parentComponents.size) {
             renumber(index, +1, path)
         }
-        entity.addComponent(index, component)
+
+        parent.addChildByType(index, type, component)
+
         // just append it :)
-        changes.add(ChangeAddComponent(Path(path), component.className))
+        changes.add(CAdd(path, 'c', component.className))
         // if it contains any changes, we need to apply them
         val base = Component.create(component.className)
-        val compPath = path + index
+        val compPath = path + (index to type)
 
         /*var clazz: KClass<*> = component::class
         while (true) {
@@ -416,22 +325,26 @@ class PrefabInspector(val reference: FileReference, val prefab: EntityPrefab) {
         for (name in component.getReflections().allProperties.keys) {
             val value = component[name]
             if (value != base[name]) {
-                changes.add(ChangeSetComponentAttribute(Path(compPath, name), value))
+                changes.add(CSet(compPath, name, value))
             }
         }
 
     }
 
-    fun removeComponent(entity: Entity, component: Component) {
+    fun removeComponent(parent: PrefabSaveable, component: PrefabSaveable, type: Char) {
 
-        val path = entity.pathInRoot(root).toIntArray()
-        val prefab = entity.prefab
+        val path0 = parent.pathInRoot2(root, false)
+        val path = Path(path0.first, path0.second)
 
-        if (component !in entity.components) return
+        val prefab = parent.prefab
+
+        val components = parent.getChildListByType(type)
+        if (component !in components) return
         // done :)
 
-        val index = component.components.indexOf(component)
-        if (prefab != null && index < prefab.components.size) {
+        val index = components.indexOf(component)
+        val prefabComponents = prefab?.getChildListByType(type)
+        if (prefab != null && index < prefabComponents!!.size) {
 
             // original component, cannot be removed
             component.isEnabled = false
@@ -439,24 +352,26 @@ class PrefabInspector(val reference: FileReference, val prefab: EntityPrefab) {
         } else {
 
             // when a component is deleted, its changes need to be deleted as well
-            val compPath = path + index
-            changes.removeIf { it is ChangeSetComponentAttribute && it.path!!.hierarchy.contentEquals(compPath) }
+            val compPath = path + (index to type)
+            changes.removeIf { it is CSet && it.path == compPath }
 
-            if (index + 1 < entity.components.size) {
+            if (index + 1 < components.size) {
                 // not the last one
                 renumber(index + 1, -1, path)
             }
 
             // it's ok, and fine
             // remove the respective change
-            entity.remove(component)
+            parent.remove(component)
             // not very elegant, but should work...
             // correct?
-            changes.removeIf { it.path!!.hierarchy.size == path.size && it is ChangeAddComponent }
+
+            TODO()
+            /*changes.removeIf { it.path!!.hierarchy.size == path.size && it is CAdd }
             val i0 = (prefab?.components?.size ?: 0)
-            for (i in i0 until entity.components.size) {
-                changes.add(i - i0, ChangeAddComponent(Path(path), entity.components[i].className))
-            }
+            for (i in i0 until components.size) {
+                changes.add(i - i0, CAdd(path, components[i].className))
+            }*/
 
         }
 

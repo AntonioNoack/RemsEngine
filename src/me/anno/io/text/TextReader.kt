@@ -412,6 +412,7 @@ class TextReader(val data: CharSequence) : BaseReader() {
         var (type, name) = splitTypeName(typeName)
         when (type) {
             "i1", "b" -> obj.readBoolean(name, readBool())
+            "c" -> obj.readChar(name, readInt().toChar())
             "i8", "B" -> obj.readByte(name, readByte())
             "i16", "s" -> obj.readShort(name, readShort())
             "i32", "i" -> obj.readInt(name, readInt())

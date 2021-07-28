@@ -119,8 +119,9 @@ class RenderView(val world: Entity, val mode: Mode, style: Style) : Panel(style)
 
     fun checkMovement() {
         val dt = GFX.deltaTime
-        movement.mul(clamp(1.0 - 20.0 * dt, 0.0, 1.0))
-        val s = dt * 0.5
+        val factor = clamp(1.0 - 20.0 * dt, 0.0, 1.0)
+        movement.mul(factor)
+        val s = (1.0 - factor) * 0.035
         if (isInFocus) {
             if (Input.isKeyDown('a')) movement.x -= s
             if (Input.isKeyDown('d')) movement.x += s
@@ -430,10 +431,9 @@ class RenderView(val world: Entity, val mode: Mode, style: Style) : Panel(style)
         // draw UI
         if (!isFinalRendering) {
 
-            // sadly doesn't work that simply
-            // once toggled off, it no longer works :/
-            // at least it can help us with debugging :)
-            val drawAABBs = false // Input.isKeyDown('o')
+            // now works, after making the physics async :)
+            // maybe it just doesn't work with the physics debugging together
+            val drawAABBs = Input.isKeyDown('o')
 
             RenderState.blendMode.use(BlendMode.DEFAULT) {
                 RenderState.depthMode.use(DepthMode.LESS) {
@@ -444,6 +444,8 @@ class RenderView(val world: Entity, val mode: Mode, style: Style) : Panel(style)
                     val maxCircleLenSq = sq(maximumCircleDistance).toDouble()
 
                     world.simpleTraversal(false) { entity ->
+
+                        entity as Entity
 
                         val transform = entity.transform
                         val globalTransform = transform.globalTransform
@@ -472,49 +474,7 @@ class RenderView(val world: Entity, val mode: Mode, style: Style) : Panel(style)
 
                         }
 
-                        // todo draw the aabb
-                        val aabb = entity.aabb
-                        if (drawAABBs && !aabb.isEmpty()) {
-
-                            val x = (aabb.minX - camPosition.x).toFloat()
-                            val y = (aabb.minY - camPosition.y).toFloat()
-                            val z = (aabb.minZ - camPosition.z).toFloat()
-
-                            val dx = (aabb.maxX - aabb.minX).toFloat()
-                            val dy = (aabb.maxY - aabb.minY).toFloat()
-                            val dz = (aabb.maxZ - aabb.minZ).toFloat()
-
-                            for (i in 0 until 4) {
-                                val a = ((i shr 0) and 1).toFloat() * dx
-                                val b = ((i shr 1) and 1).toFloat() * dy
-                                LineBuffer.addLine(
-                                    Vector3f(x + a, y + b, z + 0f),
-                                    Vector3f(x + a, y + b, z + dz),
-                                    1.0, 0.0, 0.0
-                                )
-                            }
-
-                            for (i in 0 until 4) {
-                                val a = ((i shr 0) and 1).toFloat() * dx
-                                val b = ((i shr 1) and 1).toFloat() * dz
-                                LineBuffer.addLine(
-                                    Vector3f(x + a, y + 0f, z + b),
-                                    Vector3f(x + a, y + dy, z + b),
-                                    1.0, 0.0, 0.0
-                                )
-                            }
-
-                            for (i in 0 until 4) {
-                                val a = ((i shr 0) and 1).toFloat() * dy
-                                val b = ((i shr 1) and 1).toFloat() * dz
-                                LineBuffer.addLine(
-                                    Vector3f(x + 0f, y + a, z + b),
-                                    Vector3f(x + dx, y + a, z + b),
-                                    1.0, 0.0, 0.0
-                                )
-                            }
-
-                        }
+                        if (drawAABBs) drawAABB(entity)
 
                         false
                     }
@@ -535,6 +495,54 @@ class RenderView(val world: Entity, val mode: Mode, style: Style) : Panel(style)
 
                 }
             }
+        }
+
+    }
+
+    fun drawAABB(entity: Entity) {
+
+        // draw the aabb
+        val aabb = entity.aabb
+        if (aabb.isEmpty()) return
+
+        // to do draw 3 main axis like bullet?
+
+        val x = (aabb.minX - camPosition.x).toFloat()
+        val y = (aabb.minY - camPosition.y).toFloat()
+        val z = (aabb.minZ - camPosition.z).toFloat()
+
+        val dx = (aabb.maxX - aabb.minX).toFloat()
+        val dy = (aabb.maxY - aabb.minY).toFloat()
+        val dz = (aabb.maxZ - aabb.minZ).toFloat()
+
+        for (i in 0 until 4) {
+            val a = ((i shr 0) and 1).toFloat() * dx
+            val b = ((i shr 1) and 1).toFloat() * dy
+            LineBuffer.addLine(
+                Vector3f(x + a, y + b, z + 0f),
+                Vector3f(x + a, y + b, z + dz),
+                1.0, 0.0, 0.0
+            )
+        }
+
+        for (i in 0 until 4) {
+            val a = ((i shr 0) and 1).toFloat() * dx
+            val b = ((i shr 1) and 1).toFloat() * dz
+            LineBuffer.addLine(
+                Vector3f(x + a, y + 0f, z + b),
+                Vector3f(x + a, y + dy, z + b),
+                1.0, 0.0, 0.0
+            )
+        }
+
+        for (i in 0 until 4) {
+            val a = ((i shr 0) and 1).toFloat() * dy
+            val b = ((i shr 1) and 1).toFloat() * dz
+            LineBuffer.addLine(
+                Vector3f(x + 0f, y + a, z + b),
+                Vector3f(x + dx, y + a, z + b),
+                1.0, 0.0, 0.0
+            )
         }
 
     }

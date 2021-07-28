@@ -1,5 +1,7 @@
 package me.anno.utils.structures
 
+import kotlin.reflect.KClass
+
 interface Hierarchical<V : Hierarchical<V>> {
 
     var isCollapsed: Boolean
@@ -65,6 +67,12 @@ interface Hierarchical<V : Hierarchical<V>> {
     fun removeFromParent() {
         parent?.removeChild(this as V)
         parent = null
+    }
+
+    fun <V : Any> getRoot(type: KClass<V>): V {
+        val parent = parent ?: return this as V
+        return if (type.isInstance(parent)) parent.getRoot(type)
+        else this as V
     }
 
     val root: V get() = parent?.root ?: this as V

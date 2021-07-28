@@ -2,9 +2,9 @@ package me.anno.mesh.vox.format
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.prefab.CAdd
+import me.anno.ecs.prefab.CSet
 import me.anno.ecs.prefab.Change
-import me.anno.ecs.prefab.ChangeAddEntity
-import me.anno.ecs.prefab.ChangeSetEntityAttribute
 import me.anno.ecs.prefab.Path
 
 class Layer(var name: String) {
@@ -23,10 +23,13 @@ class Layer(var name: String) {
     }
 
     fun toEntityPrefab(changes: MutableList<Change>, meshes: List<Mesh>, index: Int) {
-        changes.add(ChangeAddEntity(Path()))
-        changes.add(ChangeSetEntityAttribute(Path(index, "name"), name.ifEmpty { "Layer $index" }))
+        changes.add(CAdd(Path(), 'e', "Entity"))
+        changes.add(CSet(Path(index, 'e'), "name", name.ifEmpty { "Layer $index" }))
         for ((childIndex, node) in nodes.withIndex()) {
-            node.toEntityPrefab(changes, meshes, intArrayOf(index), intArrayOf(index, childIndex))
+            node.toEntityPrefab(
+                changes, meshes, Path(index, 'e'),
+                Path(intArrayOf(index, childIndex), charArrayOf('e', 'e'))
+            )
         }
     }
 

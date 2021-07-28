@@ -14,11 +14,11 @@ import org.joml.Quaterniond
 import org.joml.Vector3d
 
 object ScenePrefab : StaticRef("Scene.prefab", lazy {
-    TextWriter.toText(EntityPrefab().apply {
+    TextWriter.toText(Prefab("Entity").apply {
         val changes = ArrayList<Change>()
         this.changes = changes
-        changes.add(ChangeSetEntityAttribute(Path("name"), "Root"))
-        changes.add(ChangeSetEntityAttribute(Path("desc"), "Contains the major components"))
+        changes.add(CSet(Path(), "name", "Root"))
+        changes.add(CSet(Path(), "desc", "Contains the major components"))
         val names = listOf("Globally Shared", "Player Prefab", "Locally Shared", "Local Players", "Remote Players")
         val descs = listOf(
             "The world, which is shared",
@@ -28,24 +28,25 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
             "Populated at runtime with players from different PCs, states, continents; may not be trusted"
         )
         for (i in names.indices) {
-            changes.add(ChangeAddEntity(Path(), InvalidRef))
-            changes.add(ChangeSetEntityAttribute(Path(i, "name"), names[i]))
-            changes.add(ChangeSetEntityAttribute(Path(i, "desc"), descs[i]))
+            changes.add(CAdd(Path(), 'e', "Entity", InvalidRef))
+            changes.add(CSet(Path(i), "name", names[i]))
+            changes.add(CSet(Path(i), "desc", descs[i]))
         }
 
         // root has bullet physics, because the players need physics as well
-        changes.add(ChangeAddComponent(Path(), "BulletPhysics"))
+        changes.add(CAdd(Path(), 'c', "BulletPhysics"))
 
 
         // just add stuff for debugging :)
         //////////////////
         // sample mesh //
         ////////////////
-        val world = intArrayOf(0)
+        val world = Path(0, 'e')
         val truck = addE(changes, world, "VOX/Truck", OS.downloads.getChild("MagicaVoxel/vox/truck.vox"))
-        addC(changes, truck + 0, "MeshCollider")
-        val truckBody = addC(changes, truck + 0, "Rigidbody")
-        setC(changes, truckBody, "mass", 100.0)
+        /*val truckBody0 = truck + (0 to 'e')
+        addC(changes, truckBody0, "MeshCollider")
+        val truckRigidbody = addC(changes, truckBody0, "Rigidbody")
+        setC(changes, truckRigidbody, "mass", 100.0)*/
 
         /////////////////////////
         // sample point light //
@@ -81,6 +82,11 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         }
         // todo add script for driving
 
+        /*var testChain = addE(changes, world,"chain-0")
+        for(i in 1 until 7){
+            testChain = addE(changes, testChain, "chain-$i")
+        }*/
+
         // add a floor for testing
         val cubePath = OS.documents.getChild("cube.obj")
         val floor = addE(changes, physics, "Floor", cubePath)
@@ -94,28 +100,24 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
 
         // add spheres for testing
         val sphereMesh = OS.documents.getChild("sphere.obj")
-        for (i in 0 until 20) {
+        for (i in 0 until 4) {
             val sphere = addE(changes, physics, "Sphere[$i]", sphereMesh)
             setE(changes, sphere, "position", Vector3d(0.0, (i + 2) * 2.1, 0.0))
             addC(changes, sphere, "Rigidbody")
             addC(changes, sphere, "SphereCollider")
         }
 
-        // add a wall of spheres for frustum testing
+        // add a cube of cubes for frustum testing
         val frustum = addE(changes, world, "Frustum Testing")
         for (x in -5..5) {
-            for (y in -5..25) {
+            for (y in -5..1) {
                 for (z in -5..5) {
                     // meshes
                     val cube = addE(changes, frustum, "Cube[$x,$y,$z]", cubePath)
                     setE(changes, cube, "position", Vector3d(x * 5.0, y * 5.0 + 30.0, z * 5.0))
                     // a little random rotation
-                    setE(
-                        changes,
-                        cube,
-                        "rotation",
-                        Quaterniond(Math.random(), Math.random(), Math.random(), Math.random()).normalize()
-                    )
+                    val q = Quaterniond(Math.random(), Math.random(), Math.random(), Math.random()).normalize()
+                    setE(changes, cube, "rotation", q)
                     // physics test
                     addC(changes, cube, "BoxCollider")
                     addC(changes, cube, "Rigidbody")
@@ -187,6 +189,5 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
             child.remove(entity)
         }
     }
-
 
 }

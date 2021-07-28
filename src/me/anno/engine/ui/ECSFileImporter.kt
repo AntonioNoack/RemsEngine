@@ -1,36 +1,37 @@
 package me.anno.engine.ui
 
 import me.anno.ecs.Entity
-import me.anno.ecs.prefab.ChangeAddEntity
-import me.anno.ecs.prefab.EntityPrefab.Companion.loadPrefab
+import me.anno.ecs.prefab.CAdd
 import me.anno.ecs.prefab.Path
+import me.anno.ecs.prefab.Prefab.Companion.loadPrefab
 import me.anno.ecs.prefab.PrefabInspector
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.files.FileReference
 import me.anno.ui.editor.files.FileContentImporter
 import org.apache.logging.log4j.LogManager
 
-object ECSFileImporter : FileContentImporter<Entity>() {
+object ECSFileImporter : FileContentImporter<PrefabSaveable>() {
 
     private val LOGGER = LogManager.getLogger(ECSFileImporter::class)
 
-    override fun setName(element: Entity, name: String) {
+    override fun setName(element: PrefabSaveable, name: String) {
         element.name = name
         // todo if there is a prefab, then add the change as well
     }
 
     override fun import(
-        parent: Entity?,
+        parent: PrefabSaveable?,
         file: FileReference,
         useSoftLink: SoftLinkMode,
         doSelect: Boolean,
         depth: Int,
-        callback: (Entity) -> Unit
+        callback: (PrefabSaveable) -> Unit
     ) {
 
         parent!!
 
         val inspector = PrefabInspector.currentInspector!!
-        val path = parent.pathInRoot(inspector.root).toIntArray()
+        val path = Path(parent.pathInRoot2(inspector.root, false))
 
         val prefab = loadPrefab(file)
 
@@ -38,9 +39,9 @@ object ECSFileImporter : FileContentImporter<Entity>() {
 
             val instance = prefab.createInstance()
             parent.add(instance)
-            inspector.changes.add(ChangeAddEntity(Path(path), file))
-            callback(instance)
-            if(doSelect){
+            inspector.changes.add(CAdd(path, 'e', "Entity", file))
+            callback(instance as Entity)
+            if (doSelect) {
                 // todo select it
 
             }
@@ -49,8 +50,8 @@ object ECSFileImporter : FileContentImporter<Entity>() {
 
     }
 
-    override fun createNode(parent: Entity?): Entity {
-        return Entity(parent)
+    override fun createNode(parent: PrefabSaveable?): PrefabSaveable {
+        return Entity(parent as? Entity)
     }
 
 }

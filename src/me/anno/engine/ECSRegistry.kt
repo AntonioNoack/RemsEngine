@@ -59,12 +59,9 @@ object ECSRegistry {
 
         // prefab system
         registerCustomClass(ChangeHistory())
-        registerCustomClass(ChangeSetEntityAttribute())
-        registerCustomClass(ChangeSetComponentAttribute())
-        registerCustomClass(ChangeAddEntity())
-        registerCustomClass(ChangeAddComponent())
-
-        registerCustomClass(EntityPrefab())
+        registerCustomClass(CAdd())
+        registerCustomClass(CSet())
+        registerCustomClass(Prefab())
 
         // project
         registerCustomClass(GameEngineProject())

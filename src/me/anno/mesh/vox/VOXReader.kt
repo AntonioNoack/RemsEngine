@@ -3,10 +3,10 @@ package me.anno.mesh.vox
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.prefab.CSet
 import me.anno.ecs.prefab.Change
-import me.anno.ecs.prefab.ChangeSetEntityAttribute
-import me.anno.ecs.prefab.EntityPrefab
 import me.anno.ecs.prefab.Path
+import me.anno.ecs.prefab.Prefab
 import me.anno.io.files.FileReference
 import me.anno.mesh.vox.format.Layer
 import me.anno.mesh.vox.format.Node
@@ -77,11 +77,11 @@ class VOXReader {
         } else this.indexMap = null // done and pseudo-applied
     }
 
-    fun toEntityPrefab(): EntityPrefab {
-        val prefab = EntityPrefab()
+    fun toEntityPrefab(): Prefab {
+        val prefab = Prefab("Entity")
         val changes = ArrayList<Change>()
         prefab.changes = changes
-        changes.add(ChangeSetEntityAttribute(Path("name"), "Root"))
+        changes.add(CSet(Path(), "name", "Root"))
         val availableLayers = (listOf(layerNegative) + layers).filter { it.containsModel() }
         when (availableLayers.size) {
             0 -> {// awkward
@@ -90,7 +90,7 @@ class VOXReader {
                 // don't create a layer node, when there only is a single layer
                 val layer = availableLayers.first()
                 for ((childIndex, node) in layer.nodes.withIndex()) {
-                    node.toEntityPrefab(changes, meshes, intArrayOf(), intArrayOf(childIndex))
+                    node.toEntityPrefab(changes, meshes, Path(), Path(childIndex, 'e'))
                 }
             }
             else -> {

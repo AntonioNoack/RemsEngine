@@ -115,7 +115,8 @@ abstract class AbstractTreeView<V>(
         }
         if (!isCollapsed) {
             val children = getChildren(element)
-            for (child in children) {
+            for(i in children.indices){
+                val child = children[i]
                 index = addToTreeList(child, depth + 1, index)
             }
         }// todo else show that it's collapsed, if there is no symbol

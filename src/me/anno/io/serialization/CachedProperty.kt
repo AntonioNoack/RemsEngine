@@ -24,7 +24,7 @@ class CachedProperty(
         try {
             setter.call(instance, value)
         } catch (e: Exception) {
-            LOGGER.warn("Setting $name of ${instance::class}, but the properties class is $clazz")
+            LOGGER.warn("Setting $name with value ${value?.javaClass} of ${instance::class}, but the properties class is $clazz")
             e.printStackTrace()
         }
     }

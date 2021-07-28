@@ -10,6 +10,7 @@ class ChangeHistory : History2<String>() {
     }
 
     override fun apply(v: String) {
+        // todo change/change0
         val changes = TextReader.read(v).filterIsInstance<Change>()
         TODO("apply these changes")
     }
