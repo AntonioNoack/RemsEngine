@@ -14,7 +14,8 @@ class ZipFileTar(
     val getZipStream: () -> ArchiveInputStream,
     relativePath: String,
     isDirectory: Boolean,
-    _parent: FileReference
+    _parent: FileReference,
+    val readingPath: String = relativePath
 ) : ZipFileBase(absolutePath, relativePath, isDirectory, _parent) {
 
     override fun length(): Long = size
@@ -23,7 +24,7 @@ class ZipFileTar(
         val zis = getZipStream()
         while (true) {
             val entry = zis.nextEntry ?: break
-            if (entry.name == relativePath) {
+            if (entry.name == readingPath) {
                 return zis
             }
         }
@@ -38,8 +39,33 @@ class ZipFileTar(
 
         // assumes tar.gz format
         fun readAsGZip(parent: FileReference): ZipFileBase {
-            // only check if valid, later decode it, when required? may be expensive...
-            return createZipRegistryArchive(parent) { TarArchiveInputStream(GZIPInputStream(parent.inputStream())) }
+            if (parent.extension.equals("unitypackage", true)) {
+                val getStream = { TarArchiveInputStream(GZIPInputStream(parent.inputStream())) }
+                val rawArchive = createZipRegistryArchive(parent, getStream)
+                val absolutePath = parent.absolutePath
+                val newZip = ZipFileTar(absolutePath, getStream, "", true, parent.getParent() ?: parent)
+                val registry = HashMap<String, ZipFileTar>()
+                registry[""] = newZip
+                for ((_, value) in rawArchive.children ?: emptyMap()) {
+                    // the name of the file is the guid (unique unity resource id)
+                    val pathname0 = value.getChild("pathname")
+                    if (pathname0 != InvalidRef && pathname0.length() < 1024) {
+                        val name = String(pathname0.readBytes())
+                        val meta = value.getChild("asset.meta")
+                        if(meta is ZipFileTar){
+                            createEntryArchive(absolutePath, "$name.meta", meta, registry)
+                        }
+                        val asset = value.getChild("asset")
+                        if(asset is ZipFileTar){
+                            createEntryArchive(absolutePath, name, asset, registry)
+                        }
+                    }
+                }
+                return newZip
+            } else {
+                // only check if valid, later decode it, when required? may be expensive...
+                return createZipRegistryArchive(parent) { TarArchiveInputStream(GZIPInputStream(parent.inputStream())) }
+            }
         }
 
         fun createZipRegistryArchive(
@@ -68,6 +94,29 @@ class ZipFileTar(
                 e = e2
             }
             return if (hasReadEntry) file else throw e ?: IOException("Zip was empty")
+        }
+
+        fun createEntryArchive(
+            zipFileLocation: String,
+            name: String,
+            original: ZipFileTar,
+            registry: HashMap<String, ZipFileTar>
+        ): ZipFileTar {
+            val (parent, path) = ZipCache.splitParent(name)
+            val getStream = original.getZipStream
+            val file = registry.getOrPut(path) {
+                ZipFileTar(
+                    "$zipFileLocation/$path", getStream, path, false,
+                    registry.getOrPut(parent) {
+                        createFolderEntryTar(zipFileLocation, parent, getStream, registry)
+                    }, readingPath = original.readingPath
+                )
+            }
+            file.lastModified = original.lastModified
+            file.size = original.size
+            file.compressedSize = original.compressedSize
+            file.data = original.data
+            return file
         }
 
         fun createEntryArchive(
