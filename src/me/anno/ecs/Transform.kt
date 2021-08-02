@@ -12,7 +12,7 @@ class Transform : Saveable() {
     var lastDrawTime = 0L
     var lastUpdateDt = 0L
 
-    fun teleportUpdate(time: Long) {
+    fun teleportUpdate(time: Long = GFX.gameTime) {
         lastUpdateTime = time
         lastUpdateDt = 1_000_000_000
         drawTransform.set(globalTransform)
@@ -110,6 +110,7 @@ class Transform : Saveable() {
         if (needsGlobalUpdate) {
             update(time)
             calculateGlobalTransform(parent)
+            needsGlobalUpdate = false
         }
     }
 
@@ -191,6 +192,7 @@ class Transform : Saveable() {
         t.pos.set(pos)
         t.rot.set(rot)
         t.sca.set(sca)
+        t.invalidateGlobal()
         return t
     }
 

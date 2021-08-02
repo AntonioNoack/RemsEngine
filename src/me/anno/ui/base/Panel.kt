@@ -426,7 +426,7 @@ open class Panel(val style: Style) {
     // first or null would be correct, however our overlays are all the same
     // (the small cross, which should be part of the ui instead)
     //, so we can use the last one
-    open fun getOverlayParent() = listOfHierarchy.lastOrNull { it.drawsOverlaysOverChildren(lx0, ly0, lx1, ly1) }
+    open fun getOverlayParent() = listOfHierarchyReversed.firstOrNull { it.drawsOverlaysOverChildren(lx0, ly0, lx1, ly1) }
 
     /**
      * if this element is in focus,
@@ -440,12 +440,25 @@ open class Panel(val style: Style) {
         callback(this)
     }
 
+    fun listOfHierarchyReversed(callback: (Panel) -> Unit) {
+        callback(this)
+        parent?.listOfHierarchy(callback)
+    }
+
     val listOfHierarchy: Sequence<Panel>
         get() = sequence {
             parent?.apply {
                 yieldAll(listOfHierarchy)
             }
             yield(this@Panel)
+        }
+
+    val listOfHierarchyReversed: Sequence<Panel>
+        get() = sequence {
+            yield(this@Panel)
+            parent?.apply {
+                yieldAll(listOfHierarchy)
+            }
         }
 
     fun listOfVisible(callback: (Panel) -> Unit) {

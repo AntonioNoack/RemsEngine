@@ -14,10 +14,6 @@ class ConvexCollider : Collider() {
     @SerializedProperty
     val points = ArrayList<Vector3d>()
 
-    override fun getSignedDistance(deltaPosition: Vector3d, movement: Vector3d): Double {
-        TODO("Not yet implemented")
-    }
-
     override fun createBulletShape(scale: Vector3d): CollisionShape {
         val pointList = ObjectArrayList<javax.vecmath.Vector3d>(points.size)
         pointList.addAll(points.map { javax.vecmath.Vector3d(it.x * scale.x, it.y * scale.y, it.z * scale.z) })

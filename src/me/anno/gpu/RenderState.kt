@@ -165,8 +165,7 @@ object RenderState {
         buffer: Framebuffer?,
         renderer: Renderer,
         render: () -> Unit
-    ) =
-        useFrame(0, 0, w, h, changeSize, buffer, renderer, render)
+    ) = useFrame(0, 0, w, h, changeSize, buffer, renderer, render)
 
     inline fun useFrame(x: Int, y: Int, w: Int, h: Int, changeSize: Boolean, render: () -> Unit) =
         useFrame(x, y, w, h, changeSize, currentBuffer, currentRenderer, render)

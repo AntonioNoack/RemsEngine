@@ -44,7 +44,7 @@ class AbstractTreeViewPanel<V>(
     val setName: (V, String) -> Unit,
     val openAddMenu: (parent: V) -> Unit,
     val fileContentImporter: FileContentImporter<V>,
-    val showSymbol: Boolean,
+    showSymbol: Boolean,
     val treeView: AbstractTreeView<V>, style: Style
 ) : PanelListX(style) {
 
@@ -102,7 +102,7 @@ class AbstractTreeViewPanel<V>(
         val dragged = dragged
         var backgroundColor = originalBGColor
         val textColor0 = treeView.getLocalColor(transform, tmp0)
-        var textColor = black or (textColor0.toARGB(180))
+        var textColor = textColor0.toARGB(180)
         val showAddIndex = if (
             mouseX.toInt() in lx0..lx1 &&
             mouseY.toInt() in ly0..ly1 &&
@@ -156,11 +156,14 @@ class AbstractTreeViewPanel<V>(
                     RemsStudio.largeChange(if (isCollapsed) "Expanded $name" else "Collapsed $name") {
                         val target = !isCollapsed
                         // remove children from the selection???...
-                        inFocus.filterIsInstance<AbstractTreeViewPanel<*>>().forEach {
+                        val targets = inFocus.filterIsInstance<AbstractTreeViewPanel<*>>()
+                        for (it in targets) {
                             val element2 = it.getElement() as V
                             treeView.setCollapsed(element2, target)
                         }
-                        treeView.setCollapsed(element, target)
+                        if (targets.isEmpty()) {
+                            treeView.setCollapsed(element, target)
+                        }
                     }
                 } else {
                     treeView.selectElementMaybe(element)

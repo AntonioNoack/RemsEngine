@@ -223,7 +223,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                     }
                 }
             } else entry.data = generateSafely(key, generator)
-        }else ifNotGenerating?.invoke()
+        } else ifNotGenerating?.invoke()
 
         if (queue == null) entry.waitForValue()
         return if (entry.hasBeenDestroyed) {
@@ -276,7 +276,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             caches.forEach {
                 it.clear()
             }
-            root.listOfAll.forEach { it.clearCache() }
+            root.listOfAll { it.clearCache(); false }
             LastModifiedCache.clear()
         }
 

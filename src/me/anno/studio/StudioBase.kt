@@ -25,6 +25,7 @@ import me.anno.input.Input
 import me.anno.input.ShowKeys
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.InvalidRef
 import me.anno.studio.project.Project
 import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.Panel
@@ -71,6 +72,24 @@ abstract class StudioBase(
     }
 
     open fun onGameClose() {}
+
+    open fun openHistory() {}
+
+    open fun save() {}
+
+    open fun supportsFileImport(): Boolean {
+        return true
+    }
+
+    open fun getDefaultFileLocation(): FileReference = InvalidRef
+
+    open fun importFile(file: FileReference) {
+        LOGGER.warn("Ignored $file")
+    }
+
+    open fun getPersistentStorage(): FileReference {
+        return OS.documents
+    }
 
     val startClock = Clock()
     fun tick(name: String) {

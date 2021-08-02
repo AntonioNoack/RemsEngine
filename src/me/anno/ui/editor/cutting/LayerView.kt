@@ -33,7 +33,7 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.files.FileContentImporter
-import me.anno.studio.rems.ui.TransformFileImporter.addChildFromFile
+import me.anno.studio.rems.ui.StudioFileImporter.addChildFromFile
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.mix

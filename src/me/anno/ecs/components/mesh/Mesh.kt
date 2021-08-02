@@ -1,18 +1,21 @@
 package me.anno.ecs.components.mesh
 
+import me.anno.ecs.annotations.HideInInspector
+import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.MeshComponent.Companion.clear
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.buffer.IndexedStaticBuffer
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.Shader
-import me.anno.io.NamedSaveable
+import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.lwjgl.opengl.GL11
 import kotlin.math.max
-import kotlin.math.min
+import kotlin.math.roundToInt
 
-class Mesh : NamedSaveable() {
+class Mesh : PrefabSaveable() {
 
     // use buffers instead, so they can be uploaded directly? no, I like the strided thing...
     // but it may be more flexible... still in Java, FloatArrays are more comfortable
@@ -22,22 +25,37 @@ class Mesh : NamedSaveable() {
     private var needsMeshUpdate = true
 
     // todo also we need a renderer, which can handle morphing
+    @HideInInspector
     var positions: FloatArray? = null
+
+    @Type("List<MorphTarget>")
     var morphTargets = ArrayList<MorphTarget>()
 
+    @HideInInspector
     var normals: FloatArray? = null
+
+    @HideInInspector
     var tangents: FloatArray? = null
+
+    @HideInInspector
     var uvs: FloatArray? = null
 
     // multiple colors? idk...
     // force RGBA? typically that would be the use for it -> yes
+    @HideInInspector
     var color0: IntArray? = null
 
+    @HideInInspector
     var boneWeights: FloatArray? = null
+
+    @HideInInspector
     var boneIndices: ByteArray? = null
 
     // todo allow multiple materials? should make our life easier :), we just need to split the indices...
+    @Type("List<Material>")
     var materials = ArrayList<Material>()
+
+    @Type("Material")
     var material: Material?
         get() = materials.getOrNull(0)
         set(value) {
@@ -51,6 +69,7 @@ class Mesh : NamedSaveable() {
     var materialIndices = IntArray(0)
 
     // todo sort them by material/shader, and create multiple buffers (or sub-buffers) for them
+    @HideInInspector
     var indices: IntArray? = null
 
     // to allow for quads, and strips and such
@@ -60,6 +79,17 @@ class Mesh : NamedSaveable() {
     val aabb = AABBf()
 
     var ignoreStrayPointsInAABB = false
+
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        saveSerializableProperties(writer)
+    }
+
+    override fun readSomething(name: String, value: Any?) {
+        if (!readSerializableProperty(name, value)) {
+            super.readSomething(name, value)
+        }
+    }
 
     override val className: String = "Mesh"
     override val approxSize: Int = 1
@@ -92,10 +122,6 @@ class Mesh : NamedSaveable() {
         if (smooth && indices == null) LOGGER.warn("Meshes without indices cannot be rendered smoothly (for now)!")
         normals = FloatArray(positions!!.size)
         NormalCalculator.checkNormals(positions!!, normals!!, indices)
-    }
-
-    fun calculateTangents() {
-        // todo calculate them somehow...
     }
 
     /**
@@ -147,10 +173,15 @@ class Mesh : NamedSaveable() {
         if (normals == null)
             normals = FloatArray(positions.size)
 
-        // if normals are null or have length 0, calculate them
-        NormalCalculator.checkNormals(positions, normals!!, indices)
+        if (tangents == null && uvs != null)
+            tangents = FloatArray(positions.size)
 
+        // if normals are null or have length 0, calculate them
         val normals = normals!!
+        val tangents = tangents
+        NormalCalculator.checkNormals(positions, normals, indices)
+        TangentCalculator.checkTangents(positions, normals, tangents, uvs, indices)
+
         val uvs = uvs
         val colors = color0
         val boneWeights = boneWeights
@@ -162,8 +193,11 @@ class Mesh : NamedSaveable() {
             if (indices == null) StaticBuffer(MeshComponent.attributes, pointCount)
             else IndexedStaticBuffer(MeshComponent.attributes, pointCount, indices)
 
-        val hasBones = boneWeights != null && boneIndices != null
-        val boneCount = if (hasBones) min(boneWeights!!.size, boneIndices!!.size) else 0
+        // val hasBones = boneWeights != null && boneIndices != null
+        // val boneCount = if (hasBones) min(boneWeights!!.size, boneIndices!!.size) else 0
+
+        // to do only put the attributes, which are really available, and push only them
+        // our shader ofc would need to cope with missing attributes
 
         for (i in 0 until pointCount) {
 
@@ -178,21 +212,28 @@ class Mesh : NamedSaveable() {
             buffer.put(positions[i3 + 2])
 
             if (uvs != null && uvs.size > i2 + 1) {
-                buffer.put(uvs[i2])
-                buffer.put(uvs[i2 + 1])
-            } else {
-                buffer.put(0f, 0f)
-            }
+                buffer.put(uvs[i2], uvs[i2 + 1])
+            } else buffer.put(0f, 0f)
 
-            buffer.put(normals[i3])
-            buffer.put(normals[i3 + 1])
-            buffer.put(normals[i3 + 2])
+
+            buffer.putByte(normals[i3])
+            buffer.putByte(normals[i3 + 1])
+            buffer.putByte(normals[i3 + 2])
+            buffer.putByte(0) // alignment
+
+
+            if (tangents != null) {
+                buffer.putByte(tangents[i3])
+                buffer.putByte(tangents[i3 + 1])
+                buffer.putByte(tangents[i3 + 2])
+                buffer.putByte(0) // alignment
+            } else buffer.putInt(0)
+
 
             if (colors != null && colors.size > i) {
                 buffer.putInt(colors[i])
-            } else {
-                buffer.putInt(-1)
-            }
+            } else buffer.putInt(-1)
+
 
             // only works if MAX_WEIGHTS is four
             if (boneWeights != null && boneWeights.isNotEmpty()) {
@@ -200,13 +241,21 @@ class Mesh : NamedSaveable() {
                 val w1 = boneWeights[i4 + 1]
                 val w2 = boneWeights[i4 + 2]
                 val w3 = boneWeights[i4 + 3]
-                val normalisation = 1f / (w0 + w1 + w2 + w3)
-                buffer.put(w0 * normalisation)
-                buffer.put(w1 * normalisation)
-                buffer.put(w2 * normalisation)
-                buffer.put(w3 * normalisation)
+                val normalisation = 255f / (w0 + w1 + w2 + w3)
+                // var w0b = (w0 * normalisation).roundToInt()
+                val w1b = (w1 * normalisation).roundToInt()
+                val w2b = (w2 * normalisation).roundToInt()
+                val w3b = (w3 * normalisation).roundToInt()
+                val w0b = 255 - (w1b + w2b + w3b) // should be positive
+                buffer.putByte(w0b.toByte())
+                buffer.putByte(w1b.toByte())
+                buffer.putByte(w2b.toByte())
+                buffer.putByte(w3b.toByte())
             } else {
-                buffer.put(1f, 0f, 0f, 0f)
+                buffer.putByte(-1)
+                buffer.putByte(0)
+                buffer.putByte(0)
+                buffer.putByte(0)
             }
 
             if (boneIndices != null && boneIndices.isNotEmpty()) {

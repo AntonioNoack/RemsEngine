@@ -100,6 +100,17 @@ interface Hierarchical<V : Hierarchical<V>> {
             }
         }
 
+    val listOfHierarchyReversed: Sequence<V>
+        get() {
+            val self = this
+            return sequence {
+                yield(self as V)
+                parent?.apply {
+                    yieldAll(listOfHierarchy)
+                }
+            }
+        }
+
     val listOfAll: Sequence<V>
         get() = sequence {
             yield(this@Hierarchical as V)
@@ -107,6 +118,17 @@ interface Hierarchical<V : Hierarchical<V>> {
                 yieldAll(child.listOfAll)
             }
         }
+
+    fun listOfAll(callback: (element: V) -> Boolean): Boolean {
+        if (!callback(this as V)) {
+            val children = children
+            for (index in children.indices) {
+                if (children[index].listOfAll(callback))
+                    return true
+            }
+        }
+        return false
+    }
 
     val indexInParent get() = parent?.children?.indexOf(this)
 

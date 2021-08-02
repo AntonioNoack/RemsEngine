@@ -23,6 +23,8 @@ object OS {// the os is important for some things, e.g. the allowed file names, 
     val videos = getReference(home, "Videos")
     val music = getReference(home, "Music")
 
+    val screenshots = getReference(pictures, "Screenshots")
+
     fun startProcess(vararg args: String) {
         thread {
             val builder = BetterProcessBuilder(null, args.size, true)

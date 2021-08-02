@@ -1,7 +1,10 @@
 package me.anno.gpu.buffer
 
+import me.anno.gpu.RenderState
 import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
+import me.anno.input.Input.isKeyDown
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import org.joml.Vector3f
@@ -126,9 +129,46 @@ object LineBuffer {
         bytes.put(-1)
     }
 
+    fun putRelativeLine(
+        v0: Vector3d, v1: Vector3d,
+        cam: org.joml.Vector3d,
+        worldScale: Double,
+        r: Double, g: Double, b: Double
+    ) {
+        ensureSize(2 * (3 * 4 + 4))
+        val r0 = (r * 255).roundToInt().toByte()
+        val g0 = (g * 255).roundToInt().toByte()
+        val b0 = (b * 255).roundToInt().toByte()
+        val bytes = bytes
+        bytes.putFloat(((v0.x - cam.x) * worldScale).toFloat())
+        bytes.putFloat(((v0.y - cam.y) * worldScale).toFloat())
+        bytes.putFloat(((v0.z - cam.z) * worldScale).toFloat())
+        bytes.put(r0)
+        bytes.put(g0)
+        bytes.put(b0)
+        bytes.put(-1)
+        bytes.putFloat(((v1.x - cam.x) * worldScale).toFloat())
+        bytes.putFloat(((v1.y - cam.y) * worldScale).toFloat())
+        bytes.putFloat(((v1.z - cam.z) * worldScale).toFloat())
+        bytes.put(r0)
+        bytes.put(g0)
+        bytes.put(b0)
+        bytes.put(-1)
+    }
+
     fun finish(stack: Matrix4f) {
         val shader = shader.value
         shader.use()
+        /*if (isKeyDown('x')) {
+            shader.printLocationsAndValues()
+            shader.invalidateCacheForTests()
+            println(RenderState.blendMode.currentValue)
+            println(RenderState.depthMode.currentValue)
+            println(RenderState.cullMode.currentValue)
+            println(RenderState.depthMask.currentValue)
+            println(RenderState.scissorTest.currentValue)
+        }*/
+        shader.v4("tint", -1)
         finish(stack, shader)
     }
 

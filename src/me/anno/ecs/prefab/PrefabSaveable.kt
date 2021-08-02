@@ -47,7 +47,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         if (this == root) return ArrayList()
         val parent = parent
         return if (parent != null) {
-            val index = parent.indexOf(this)
+            val index = parent.getIndexOf(this)
             val list = parent.pathInRoot()
             list.add(index)
             return list
@@ -67,20 +67,38 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     }
 
     // e.g. "ec" for child entities + child components
-    abstract fun listChildTypes(): String
-    abstract fun getChildListByType(type: Char): List<PrefabSaveable>
-    abstract fun getChildListNiceName(type: Char): String
-    abstract fun addChildByType(index: Int, type: Char, instance: PrefabSaveable)
+    open fun listChildTypes(): String = ""
+    open fun getChildListByType(type: Char): List<PrefabSaveable> = emptyList()
+    open fun getChildListNiceName(type: Char): String = ""
+    open fun addChildByType(index: Int, type: Char, instance: PrefabSaveable) {}
     open fun getOptionsByType(type: Char): List<Option>? = null
 
-    // index + 256 * type
-    abstract fun indexOf(child: PrefabSaveable): Int
+    override fun add(child: PrefabSaveable) {
+        val type = getTypeOf(child)
+        val length = getChildListByType(type).size
+        addChildByType(length, type, child)
+    }
+
+    override fun add(index: Int, child: PrefabSaveable) = addChildByType(index, getTypeOf(child), child)
+    override fun remove(child: PrefabSaveable) {
+        val list = getChildListByType(getTypeOf(child))
+        val index = list.indexOf(child)
+        if(index < 0) return
+        list as MutableList<*>
+        list.remove(child)
+    }
+
+    open fun getIndexOf(child: PrefabSaveable): Int = getChildListByType(getTypeOf(child)).indexOf(child)
+    open fun getTypeOf(child: PrefabSaveable): Char = 0.toChar()
+
+    override fun onDestroy() {}
 
     @NotSerializedProperty
     override val symbol: String = ""
 
     @NotSerializedProperty
-    override val defaultDisplayName: String get() = name
+    override val defaultDisplayName: String
+        get() = name
 
     @NotSerializedProperty
     override val children: List<PrefabSaveable>

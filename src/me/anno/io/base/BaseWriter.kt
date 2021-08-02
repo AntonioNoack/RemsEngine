@@ -1,5 +1,6 @@
 package me.anno.io.base
 
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -184,8 +185,10 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
         force: Boolean = false
     ) {
         if (force || values?.isNotEmpty() == true) {
-            writeNullableObjectArray(self, name, if (values == null) emptyArray<Any>() as Array<V> else
-                Array<ISaveable?>(values.size) { values[it] }, force)
+            writeNullableObjectArray(
+                self, name, if (values == null) emptyArray<Any>() as Array<V> else
+                    Array<ISaveable?>(values.size) { values[it] }, force
+            )
         }
     }
 
@@ -285,6 +288,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                         is Vector2d -> writeVector2dArray(name, toArray(value), forceSaving)
                         is Vector3d -> writeVector3dArray(name, toArray(value), forceSaving)
                         is Vector4d -> writeVector4dArray(name, toArray(value), forceSaving)
+                        is PrefabSaveable -> writeObjectArray(self, name, toArray(value), forceSaving)
                         else -> throw RuntimeException("Not yet implemented: saving a list of ${sample?.javaClass}")
                     }
                 } // else if is force saving, then this won't work, because of the weak generics in Java :/
@@ -314,6 +318,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                         is FloatArray -> writeFloatArray2D(name, cast(value), forceSaving)
                         is DoubleArray -> writeDoubleArray2D(name, cast(value), forceSaving)
 
+                        is PrefabSaveable -> writeNullableObjectArray(self, name, value as Array<ISaveable?>, forceSaving)
                         is ISaveable -> writeNullableObjectArray(self, name, value as Array<ISaveable?>, forceSaving)
 
                         is Array<*> -> TODO("implement reading 2d array, of string or objects")

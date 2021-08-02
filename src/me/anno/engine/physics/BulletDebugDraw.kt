@@ -15,12 +15,9 @@ class BulletDebugDraw : IDebugDraw() {
         private val LOGGER = LogManager.getLogger(BulletDebugDraw::class)
     }
 
-    fun finish() {
-        LineBuffer.finish(stack)
-    }
-
     var stack = Matrix4f()
     var cam = org.joml.Vector3d()
+    var worldScale = 1.0
 
     /**
     public static final int NO_DEBUG              = 0;
@@ -65,13 +62,17 @@ class BulletDebugDraw : IDebugDraw() {
         textInstance.draw(stack, 1.0, white4)*/
     }
 
-    private fun toLocal(global: Vector3d): Vector3f {
-        return Vector3f((global.x - cam.x).toFloat(), (global.y - cam.y).toFloat(), (global.z - cam.z).toFloat())
+    /*private fun toLocal(global: Vector3d): Vector3f {
+        return Vector3f(
+            ((global.x - cam.x) * worldScale).toFloat(),
+            ((global.y - cam.y) * worldScale).toFloat(),
+            ((global.z - cam.z) * worldScale).toFloat()
+        )
     }
 
     private fun toColor(color: Vector3d, alpha: Float = 1f): Vector4f {
         return Vector4f(color.x.toFloat(), color.y.toFloat(), color.z.toFloat(), alpha)
-    }
+    }*/
 
     override fun drawContactPoint(
         position: Vector3d,
@@ -86,7 +87,7 @@ class BulletDebugDraw : IDebugDraw() {
     }
 
     override fun drawLine(from: Vector3d, to: Vector3d, color: Vector3d) {
-        putRelativeLine(from, to, cam, color.x, color.y, color.z)
+        putRelativeLine(from, to, cam, worldScale, color.x, color.y, color.z)
         // Grid.drawLine(stack, toColor(color), toLocal(from), toLocal(to))
     }
 

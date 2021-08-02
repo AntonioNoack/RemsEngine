@@ -23,10 +23,6 @@ class CylinderCollider : Collider() {
 
     override val className get() = "CylinderCollider"
 
-    override fun getSignedDistance(deltaPosition: Vector3d, movement: Vector3d): Double {
-        TODO()
-    }
-
     override fun createBulletShape(scale: Vector3d): CollisionShape {
         return when (axis) {
             0 -> CylinderShapeX(javax.vecmath.Vector3d(height * 0.5 * scale.x, radius * scale.y, radius * scale.z))

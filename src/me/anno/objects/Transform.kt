@@ -415,7 +415,7 @@ open class Transform() : Saveable(),
 
     fun drawDirectly(stack: Matrix4fArrayList, time: Double, parentColor: Vector4fc, color: Vector4fc) {
 
-        GFX.drawnTransform = this
+        GFX.drawnId = clickId
         val doBlending = when (GFX.drawMode) {
             ShaderPlus.DrawMode.COLOR_SQUARED, ShaderPlus.DrawMode.COLOR -> true
             else -> false

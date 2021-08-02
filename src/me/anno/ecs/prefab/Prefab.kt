@@ -22,6 +22,10 @@ class Prefab() : Saveable() {
         this.clazzName = clazzName
     }
 
+    constructor(clazzName: String, prefab: FileReference): this(clazzName){
+        this.prefab = prefab
+    }
+
     var clazzName: String? = null
 
     var changes: List<Change>? = null
@@ -158,11 +162,11 @@ class Prefab() : Saveable() {
                             // LOGGER.info("resource $resource has signature $signature")
                             when (signature?.name) {
                                 "vox" -> loadVOXModel(resource)
-                                "fbx", "obj" -> loadAssimpModel(resource)
+                                "fbx", "obj", "gltf" -> loadAssimpModel(resource)
                                 else -> {
                                     when (resource.extension.lowercase()) {
                                         "vox" -> loadVOXModel(resource)
-                                        "fbx", "dae", "obj" -> loadAssimpModel(resource)
+                                        "fbx", "dae", "obj", "gltf", "glb" -> loadAssimpModel(resource)
                                         // todo define file extensions for materials, skeletons, components
                                         else -> loadJson(resource)
                                     }

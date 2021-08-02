@@ -23,7 +23,7 @@ import me.anno.studio.rems.Scene
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.FileContentImporter
-import me.anno.studio.rems.ui.TransformFileImporter.addChildFromFile
+import me.anno.studio.rems.ui.StudioFileImporter.addChildFromFile
 import me.anno.ui.editor.frames.FrameSizeInput
 import me.anno.ui.style.Style
 import me.anno.utils.files.LocalFile.toGlobalFile

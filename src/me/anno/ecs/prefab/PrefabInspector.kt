@@ -107,7 +107,7 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
         fun getPath(): Path {
             val li = pathIndices.lastIndex
             if (li >= 0 && pathIndices[li] < 0) {
-                pathIndices[li] = instance.parent!!.indexOf(instance)
+                pathIndices[li] = instance.parent!!.getIndexOf(instance)
             }
             return path
         }
@@ -366,12 +366,12 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
             // not very elegant, but should work...
             // correct?
 
-            TODO()
-            /*changes.removeIf { it.path!!.hierarchy.size == path.size && it is CAdd }
-            val i0 = (prefab?.components?.size ?: 0)
+            changes.removeIf { it.path == path && it is CAdd }
+            val prefabList = prefab?.getChildListByType(type)
+            val i0 = (prefabList?.size ?: 0)
             for (i in i0 until components.size) {
-                changes.add(i - i0, CAdd(path, components[i].className))
-            }*/
+                changes.add(i - i0, CAdd(path, type, components[i].className))
+            }
 
         }
 

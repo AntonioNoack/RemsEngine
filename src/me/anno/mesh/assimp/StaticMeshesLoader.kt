@@ -9,14 +9,17 @@ import me.anno.ecs.prefab.CAdd
 import me.anno.ecs.prefab.CSet
 import me.anno.ecs.prefab.Path
 import me.anno.ecs.prefab.Prefab
+import me.anno.image.bmp.BMPWriter.createBMP
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.StaticRef
 import me.anno.mesh.assimp.AssimpTree.convert
 import me.anno.utils.Color.rgba
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
+import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.assimp.*
 import org.lwjgl.assimp.Assimp.*
@@ -150,9 +153,10 @@ open class StaticMeshesLoader {
     fun loadMaterials(aiScene: AIScene, texturesDir: FileReference): Array<Material> {
         val numMaterials = aiScene.mNumMaterials()
         val aiMaterials = aiScene.mMaterials()
+        val loadedTextures = HashMap<Int, FileReference>()
         return Array(numMaterials) {
             val aiMaterial = AIMaterial.create(aiMaterials!![it])
-            processMaterial(aiMaterial, texturesDir)
+            processMaterial(aiScene, aiMaterial, loadedTextures, texturesDir)
         }
     }
 
@@ -190,7 +194,9 @@ open class StaticMeshesLoader {
     }
 
     fun processMaterial(
+        aiScene: AIScene,
         aiMaterial: AIMaterial,
+        loadedTextures: HashMap<Int, FileReference>,
         texturesDir: FileReference
     ): Material {
 
@@ -203,28 +209,49 @@ open class StaticMeshesLoader {
         // diffuse
         val diffuse = getColor(aiMaterial, color, AI_MATKEY_COLOR_DIFFUSE)
         if (diffuse != null) material.diffuseBase.set(diffuse)
-        material.diffuseMap = getPath(aiMaterial, aiTextureType_DIFFUSE, texturesDir)
+        material.diffuseMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_DIFFUSE, texturesDir)
 
         // emissive
         val emissive = getColor(aiMaterial, color, AI_MATKEY_COLOR_EMISSIVE)
-        if (emissive != null) material.emissiveBase = emissive
-        material.emissiveMap = getPath(aiMaterial, aiTextureType_EMISSIVE, texturesDir)
+        if (emissive != null) material.emissiveBase = Vector3f(emissive.x, emissive.y, emissive.z)
+        material.emissiveMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_EMISSIVE, texturesDir)
 
         // normal
-        material.normalTex = getPath(aiMaterial, aiTextureType_NORMALS, texturesDir)
+        material.normalMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_NORMALS, texturesDir)
+
+        // roughness
+        // AI_MATKEY_SHININESS as color, .r: 360, 500, so the exponent?
+        val roughness = getFloat(aiMaterial, AI_MATKEY_SHININESS)
+        val roughness2 = getFloat(aiMaterial, AI_MATKEY_SHININESS_STRENGTH)
+        println("roughness: $roughness x $roughness2")
+
+        val metallic0 = getColor(aiMaterial, color, AI_MATKEY_COLOR_REFLECTIVE) // always null
+        val metallic = getFloat(aiMaterial, AI_MATKEY_REFLECTIVITY) // 0.0
+        println("metallic: $metallic0 x $metallic")
+
 
         // other stuff
-        material.displacementMap = getPath(aiMaterial, aiTextureType_DISPLACEMENT, texturesDir)
-        material.occlusionMap = getPath(aiMaterial, aiTextureType_LIGHTMAP, texturesDir)
+        material.displacementMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_DISPLACEMENT, texturesDir)
+        material.occlusionMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_LIGHTMAP, texturesDir)
 
         // todo metallic & roughness
-
 
         return material
 
     }
 
-    fun getPath(aiMaterial: AIMaterial, type: Int, parentFolder: FileReference): FileReference {
+    fun getFloat(aiMaterial: AIMaterial, key: String): Float {
+        val a = FloatArray(1)
+        aiGetMaterialFloatArray(aiMaterial, key, aiTextureType_NONE, 0, a, IntArray(1) { 1 })
+        return a[0]
+    }
+
+    fun getPath(
+        aiScene: AIScene,
+        aiMaterial: AIMaterial,
+        loadedTextures: HashMap<Int, FileReference>,
+        type: Int, parentFolder: FileReference
+    ): FileReference {
         if (parentFolder == InvalidRef) return InvalidRef
         val path = AIString.calloc()
         aiGetMaterialTexture(
@@ -233,8 +260,64 @@ open class StaticMeshesLoader {
         )
         val path0 = path.dataString() ?: return InvalidRef
         if (path0.isBlank2()) return InvalidRef
+        if (path0.startsWith('*')) {
+            val index = path0.substring(1).toIntOrNull() ?: return InvalidRef
+            if (index !in 0 until aiScene.mNumTextures()) return InvalidRef
+            return loadedTextures.getOrPut(index) {
+                val texture = AITexture.create(aiScene.mTextures()!![index])
+                // ("file name: ${texture.mFilename().dataString()}")
+                // val hintBuffer = texture.achFormatHint()
+                // ("format hints: ${hintBuffer.toByteArray().joinToString()}, ${texture.achFormatHintString()}")
+                // ("${texture.mWidth()} x ${texture.mHeight()}")
+                val width = texture.mWidth()
+                val height = texture.mHeight()
+                val isCompressed = height == 0
+                val data = if (isCompressed) {
+                    LOGGER.info("Loading compressed texture: $index, $width bytes")
+                    // width is the buffer size in bytes
+                    // the last bytes will be filled automatically with zeros :)
+                    bufferToBytes(texture, width)
+                } else {
+                    LOGGER.info("Loading raw texture: $index, $width x $height")
+                    // if not compressed, get data as raw, and save it to bmp or sth like that
+                    //  - it would be nice, if we could read the image directly as raw into the gpu
+                    //  - bmp shouldn't be that bad... also we could try to join these functions into one to be more efficient
+                    // ARGB8888
+                    createBMP(width, height, bufferToBytes(texture, width * height * 4))
+                }
+                // works for png :)
+                // raw data still needs to be tested...
+                // OS.desktop.getChild("normals.png").writeBytes(data)
+                // theoretically we would need to create a temporary file or something like that...
+                // or a temporary static reference :)
+                FileReference.register(StaticRef("${System.nanoTime()}-${Math.random()}.png", lazy { data }))
+            }
+        }
         val path1 = path0.replace("//", "/")
         return parentFolder.getChild(path1)
+    }
+
+    fun ByteBuffer.toByteArray(): ByteArray {
+        return ByteArray(limit()) { get(it) }
+    }
+
+
+    fun bufferToBytes(texture: AITexture, size: Int): ByteArray {
+        val buffer = texture.pcData(size / 4)
+        return bufferToBytes(buffer, size)
+    }
+
+    fun bufferToBytes(buffer: AITexel.Buffer, size: Int): ByteArray {
+        val bytes = ByteArray(size)
+        var j = 0
+        for (i in 0 until size / 4) {
+            bytes[j++] = buffer.b()
+            bytes[j++] = buffer.g()
+            bytes[j++] = buffer.r()
+            bytes[j++] = buffer.a()
+            buffer.get()
+        }
+        return bytes
     }
 
     fun getColor(aiMaterial: AIMaterial, color: AIColor4D, flag: String): Vector4f? {
@@ -247,24 +330,19 @@ open class StaticMeshesLoader {
     fun createMesh(aiMesh: AIMesh, materials: Array<Material>): Mesh {
 
         val vertexCount = aiMesh.mNumVertices()
-        val vertices = FloatArray(vertexCount * 3)
-        val uvs = FloatArray(vertexCount * 2)
-        val normals = FloatArray(vertexCount * 3)
-        val indices = IntArray(aiMesh.mNumFaces() * 3)
-        val colors = IntArray(vertexCount)
 
+        val vertices = FloatArray(vertexCount * 3)
+        val indices = IntArray(aiMesh.mNumFaces() * 3)
         processPositions(aiMesh, vertices)
-        processNormals(aiMesh, normals)
-        processUVs(aiMesh, uvs)
         processIndices(aiMesh, indices)
-        processVertexColors(aiMesh, colors)
 
         val mesh = Mesh()
         mesh.positions = vertices
-        mesh.normals = normals
-        mesh.uvs = uvs
-        mesh.color0 = colors
         mesh.indices = indices
+
+        mesh.normals = processNormals(aiMesh, vertexCount)
+        mesh.uvs = processUVs(aiMesh, vertexCount)
+        mesh.color0 = processVertexColors(aiMesh, vertexCount)
 
         val materialIdx = aiMesh.mMaterialIndex()
         if (materialIdx >= 0 && materialIdx < materials.size) {
@@ -290,9 +368,10 @@ open class StaticMeshesLoader {
         }
     }
 
-    fun processNormals(aiMesh: AIMesh, dst: FloatArray) {
+    fun processNormals(aiMesh: AIMesh, vertexCount: Int): FloatArray? {
         val src = aiMesh.mNormals()
-        if (src != null) {
+        return if (src != null) {
+            val dst = FloatArray(vertexCount * 3)
             var j = 0
             while (src.remaining() > 0) {
                 val value = src.get()
@@ -300,19 +379,22 @@ open class StaticMeshesLoader {
                 dst[j++] = value.y()
                 dst[j++] = value.z()
             }
-        }
+            dst
+        } else null
     }
 
-    fun processUVs(aiMesh: AIMesh, dst: FloatArray) {
+    fun processUVs(aiMesh: AIMesh, vertexCount: Int): FloatArray? {
         val src = aiMesh.mTextureCoords(0)
-        if (src != null) {
+        return if (src != null) {
+            val dst = FloatArray(vertexCount * 2)
             var j = 0
             while (src.remaining() > 0) {
                 val value = src.get()
                 dst[j++] = value.x()
                 dst[j++] = 1 - value.y()
             }
-        }
+            dst
+        } else null
     }
 
     fun processPositions(aiMesh: AIMesh, dst: FloatArray) {
@@ -337,18 +419,18 @@ open class StaticMeshesLoader {
         }
     }
 
-    fun processVertexColors(aiMesh: AIMesh, dst: IntArray) {
+    fun processVertexColors(aiMesh: AIMesh, vertexCount: Int): IntArray? {
         val src = aiMesh.mColors(0)
-        if (src != null) {
+        return if (src != null) {
+            val dst = IntArray(vertexCount)
             var j = 0
             while (src.remaining() > 0) {
                 val value = src.get()
                 val rgba = rgba(value.r(), value.g(), value.b(), value.a())
                 dst[j++] = rgba
             }
-        } else {
-            dst.fill(-1)
-        }
+            dst
+        } else null
     }
 
 }

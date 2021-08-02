@@ -38,6 +38,7 @@ object ShaderLib {
     lateinit var shaderObjMtl: BaseShader
     lateinit var shaderAssimp: BaseShader
     lateinit var pbrModelShader: BaseShader
+    lateinit var monochromeModelShader: BaseShader
 
     // lateinit var shaderFBX: BaseShader
     lateinit var copyShader: BaseShader
@@ -55,6 +56,11 @@ object ShaderLib {
             "   return sqrt(0.299*color.r*color.r + 0.587*color.g*color.g + 0.114*color.b*color.b);\n" +
             "}\n"
 
+    // https://community.khronos.org/t/quaternion-functions-for-glsl/50140/3
+    const val quaternionTransform = "" +
+            "vec3 quaternionTransform(vec4 q, vec3 v){\n" +
+            "   return v + 2.0*cross(cross(v, q.xyz) + q.w*v, q.xyz);\n" +
+            "}\n"
 
     // from http://www.java-gaming.org/index.php?topic=35123.0
     // https://stackoverflow.com/questions/13501081/efficient-bicubic-filtering-code-in-glsl
@@ -98,7 +104,7 @@ object ShaderLib {
             "}"
 
     const val bicubicInterpolation = "" +
-            // keine Artifakte mehr, aber deutlich weicher...
+            // no more artifacts, but much smoother
             foreignBicubicInterpolation +
             "vec4 bicubicInterpolation(sampler2D tex, vec2 uv, vec2 duv){\n" +
             "   return textureBicubic(tex, uv);\n" +
@@ -484,7 +490,6 @@ object ShaderLib {
                     noiseFunc +
                     getTextureLib +
                     getColorForceFieldLib +
-                    "uniform vec4 tint;\n" +
                     "uniform sampler2D tex;\n" +
                     "uniform vec4[$maxOutlineColors] colors;\n" +
                     "uniform vec2[$maxOutlineColors] distSmoothness;\n" +
@@ -544,7 +549,6 @@ object ShaderLib {
                 "   localPosition = vec3(attr0*2.0-1.0, 0.0);\n" +
                 "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
                 "   uv = gl_Position.xyw;\n" +
-                flatNormal +
                 positionPostProcessing +
                 "}"
 
@@ -804,6 +808,7 @@ object ShaderLib {
                 "a3 coords;\n" +
                 "a2 uvs;\n" +
                 "a3 normals;\n" +
+                "a3 tangents;\n" +
                 "a4 colors;\n" +
                 "a4 weights;\n" +
                 "ai4 indices;\n" +
@@ -811,37 +816,45 @@ object ShaderLib {
                 "uniform mat4x3 localTransform;\n" +
                 "uniform mat4x3 jointTransforms[$maxBones];\n" +
                 "void main(){\n" +
-                "   localPosition = coords;\n" +
-                "   normal = normals;\n" +
                 "   if(hasAnimation > 0.5){\n" +
                 "       mat4x3 jointMat;\n" +
                 "       jointMat  = jointTransforms[indices.x] * weights.x;\n" +
                 "       jointMat += jointTransforms[indices.y] * weights.y;\n" +
                 "       jointMat += jointTransforms[indices.z] * weights.z;\n" +
                 "       jointMat += jointTransforms[indices.w] * weights.w;\n" +
-                "       localPosition = jointMat * vec4(localPosition, 1.0);\n" +
-                "       normal = jointMat * vec4(normal, 0.0);\n" +
-                "   }" +
+                "       localPosition = jointMat * vec4(coords, 1.0);\n" +
+                "       normal = jointMat * vec4(normals, 0.0);\n" +
+                "       tangent = jointMat * vec4(tangents, 0.0);\n" +
+                "   } else {\n" +
+                "       localPosition = coords;\n" +
+                "       normal = normals;\n" +
+                "       tangent = tangents;\n" +
+                "   }\n" +
                 "   normal = localTransform * vec4(normal, 0.0);\n" +
-                "   normal = normalize(normal);\n" +
+                "   tangent = localTransform * vec4(tangent, 0.0);\n" +
                 "   localPosition = localTransform * vec4(localPosition, 1.0);\n" +
+                // normal only needs to be normalized, if we show the normal
+                // todo only activate on viewing it...
+                "   normal = normalize(normal);\n" + // here? nah ^^
                 "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
                 "   uv = uvs;\n" +
                 "   weight = weights;\n" +
                 "   vertexColor = colors;\n" +
                 positionPostProcessing +
                 "}"
+        val assimpVarying = y3D + "" +
+                // "varying vec3 normal;\n" + // by default, in y3D, included
+                "varying vec3 tangent;\n" +
+                "varying vec4 weight;\n" +
+                "varying vec4 vertexColor;\n"
         shaderAssimp = createShaderPlus(
             "assimp",
-            assimpVertex, y3D + "" +
-                    // "varying vec3 normal;\n" + // by default, in y3D, included
-                    "varying vec4 weight;\n" +
-                    "varying vec4 vertexColor;\n", "" +
-                    "uniform sampler2D tex;\n" +
+            assimpVertex, assimpVarying, "" +
+                    "uniform sampler2D albedoTex;\n" +
                     getTextureLib +
                     getColorForceFieldLib +
                     "void main(){\n" +
-                    "   vec4 color = vec4(vertexColor.rgb,1) * getTexture(tex, uv);\n" +
+                    "   vec4 color = vec4(vertexColor.rgb,1) * getTexture(albedoTex, uv);\n" +
                     "   color.rgb *= 0.6 + 0.4 * dot(vec3(-1.0, 0.0, 0.0), normal);\n" +
                     "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                     "   vec3 finalColor = color.rgb;\n" +
@@ -855,20 +868,44 @@ object ShaderLib {
         // todo just like the gltf shader define all material properties
         pbrModelShader = createShaderPlus(
             "model",
-            assimpVertex, y3D + "" +
-                    // "varying vec3 normal;\n" + // by default, in y3D, included
-                    "varying vec4 weight;\n" +
-                    "varying vec4 vertexColor;\n", "" +
-                    "uniform sampler2D tex;\n" +
+            assimpVertex, assimpVarying, "" +
+                    "uniform sampler2D albedoTex, normalTex, emissiveTex;\n" +
+                    "uniform float normalStrength;\n" +
                     "void main(){\n" +
-                    "   vec4 color = vec4(vertexColor.rgb,1) * texture(tex, uv);\n" +
+                    "   vec4 color = vec4(vertexColor.rgb,1) * texture(albedoTex, uv);\n" +
                     "   vec3 finalColor = color.rgb;\n" +
                     "   float finalAlpha = color.a;\n" +
                     "   vec3 finalPosition = localPosition;\n" +
-                    "   vec3 finalNormal = normal;\n" +
-                    "}", listOf("tex")
+                    // "   vec3 finalNormal = normal;\n" +
+                    "   vec3 finalTangent = normalize(tangent);\n" + // for debugging
+                    "   vec3 finalNormal = normalize(normal);\n" +
+                    // checked, correct transform
+                    // can be checked with a lot of rotated objects in all orientations,
+                    // and a shader with light from top/bottom
+                    "   vec3 bitangent = normalize(cross(finalNormal, finalTangent));\n" +
+                    "   mat3 tbn = mat3(finalTangent, bitangent, finalNormal);\n" +
+                    "   vec3 normalMap = texture(normalTex, uv).rgb*2.0-1.0;\n" +
+                    "   vec3 normalFromTex = tbn * normalMap;\n" +
+                    "   finalNormal = mix(finalNormal, normalFromTex, normalStrength);\n" +
+                    "   vec3 finalEmissive = texture(emissiveTex, uv).rgb;\n" +
+                    "}", listOf("albedoTex", "normalTex", "emissiveTex")
         )
         pbrModelShader.glslVersion = 330
+        monochromeModelShader = createShaderPlus(
+            "model",
+            assimpVertex, assimpVarying, "" +
+                    "uniform vec4 tint;\n" +
+                    "uniform sampler2D tex;\n" +
+                    "void main(){\n" +
+                    "   vec4 color = texture(tex, uv);\n" +
+                    "   vec3 finalColor = vec3(0);\n" +
+                    "   float finalAlpha = color.a;\n" +
+                    "   vec3 finalPosition = localPosition;\n" +
+                    "   vec3 finalNormal = normal;\n" +
+                    "   vec3 finalEmissive = tint.rgb;\n" +
+                    "}", listOf("tex")
+        )
+        monochromeModelShader.glslVersion = 330
 
         // create the fbx shader
         // shaderFBX = FBXShader.getShader(v3DBase, positionPostProcessing, y3D, getTextureLib)

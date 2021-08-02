@@ -7,7 +7,7 @@ import kotlin.math.abs
 
 object NormalCalculator {
 
-    private fun needsNormalsComputation(normals: FloatArray): Boolean {
+    fun needsNormalsComputation(normals: FloatArray): Boolean {
         for (j in 0 until normals.size / 3) {
             val i = j * 3
             if (abs(normals[i]) + abs(normals[i + 1]) + abs(normals[i + 2]) < 0.001) {
@@ -17,7 +17,7 @@ object NormalCalculator {
         return false
     }
 
-    private fun normalIsInvalid(normals: FloatArray, offset: Int): Boolean {
+    fun normalIsInvalid(normals: FloatArray, offset: Int): Boolean {
         // the smallest possible values:
         // 1 for 1,0,0
         // 1.73 for sqrt(1/3),sqrt(1/3),sqrt(1/3)
@@ -77,7 +77,7 @@ object NormalCalculator {
             // = 1: we don't need to further normalize it, as its weight is already 1
             // > 1: we need to normalize it
             if (weight > 1) {
-                val i = j + 3
+                val i = j * 3
                 // dividing by the weight count is no enough, since the normal needs to be normalized,
                 // and avg(normals) will not have length 1, if there are different input normals
                 val weightInv = 1f / max(0.1f, length(normals[i + 0], normals[i + 1], normals[i + 2]))

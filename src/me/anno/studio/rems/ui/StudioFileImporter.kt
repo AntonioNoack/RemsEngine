@@ -23,7 +23,7 @@ import me.anno.utils.types.Strings.getImportType
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 
-object TransformFileImporter : FileContentImporter<Transform>() {
+object StudioFileImporter : FileContentImporter<Transform>() {
 
     override fun setName(element: Transform, name: String) {
         element.nameI.value = name
@@ -205,6 +205,6 @@ object TransformFileImporter : FileContentImporter<Transform>() {
         }
     }
 
-    private val LOGGER = LogManager.getLogger(TransformFileImporter::class)
+    private val LOGGER = LogManager.getLogger(StudioFileImporter::class)
 
 }

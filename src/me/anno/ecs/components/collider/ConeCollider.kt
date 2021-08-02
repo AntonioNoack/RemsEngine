@@ -21,10 +21,6 @@ class ConeCollider : Collider() {
 
     override val className get() = "ConeCollider"
 
-    override fun getSignedDistance(deltaPosition: Vector3d, movement: Vector3d): Double {
-        TODO()
-    }
-
     override fun createBulletShape(scale: Vector3d): CollisionShape {
         return when (axis) {
             0 -> ConeShapeX(radius * scale.y, height * scale.x)

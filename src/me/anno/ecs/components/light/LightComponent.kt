@@ -8,9 +8,21 @@ import me.anno.gpu.ShaderLib
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.shader.BaseShader
 import me.anno.io.serialization.SerializedProperty
+import org.joml.Matrix4x3d
+import org.joml.Matrix4x3f
 import org.joml.Vector3f
 
 abstract class LightComponent : Component() {
+
+    // todo instead of using the matrix directly, define a matrix
+    // todo this matrix then can include the perspective transform if required
+
+    // todo how do we get the normal then?
+    // todo just divide by z?
+
+
+    // todo for shadow mapping, we need this information...
+
 
     enum class ShadowMapType {
         CUBEMAP,
@@ -24,18 +36,16 @@ abstract class LightComponent : Component() {
     @SerializedProperty
     var color: Vector3f = Vector3f(1f)
 
-    @Range(1e-300, 1e300)
-    @SerializedProperty
-    var radius = 1f
-
     abstract fun getLightPrimitive(): Mesh
 
     // todo glsl?
     // todo AES lights, and their textures?
     // todo shadow map type
-    abstract fun getFalloffFunction(): String
 
     // todo update/calculate shadow maps
+
+    // is set by the pipeline
+    val invWorldMatrix = Matrix4x3f()
 
     companion object {
 
@@ -44,8 +54,7 @@ abstract class LightComponent : Component() {
 
         val lightShaders = HashMap<String, BaseShader>()
         fun getShader(sample: LightComponent): BaseShader {
-            val falloff = sample.getFalloffFunction()
-            return lightShaders.getOrPut(falloff) {
+            return lightShaders.getOrPut(sample.className) {
                 val deferred = DeferredRenderer.deferredSettings!!
                 ShaderLib.createShaderPlus(
                     "PointLight",
@@ -62,7 +71,9 @@ abstract class LightComponent : Component() {
                             "}", ShaderLib.y3D + "" +
                             "varying vec3 center;\n", "" +
                             "float getIntensity(vec3 dir){\n" +
-                            "" + sample.getFalloffFunction() +
+                            "   return 1.0;\n" +
+                            // todo fix
+                            //"" + sample.getFalloffFunction() +
                             "}\n" +
                             "uniform vec3 uColor;\n" +
                             "uniform mat3 invLocalTransform;\n" +

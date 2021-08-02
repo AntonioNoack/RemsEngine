@@ -15,8 +15,8 @@ object ZipCache : CacheSection("ZipCache") {
 
     private val LOGGER = LogManager.getLogger(ZipCache::class)
 
-    // todo cache the whole content? if less than a certain file size
-    // todo cache the whole hierarchy? only less than a certain depth level
+    // done cache the whole content? if less than a certain file size
+    // done cache the whole hierarchy [? only less than a certain depth level - not done]
 
     // todo read compressed exe files?
 
@@ -38,31 +38,6 @@ object ZipCache : CacheSection("ZipCache") {
                 e.printStackTrace()
                 null
             })
-            /* LOGGER.info("Unzipping $file")
-             CacheData(try {
-                 val extension = file.extension
-                 when {
-                     extension.equals("7z", true) -> {
-                         createZipRegistry7z(file) { fileFromStream7z(file) }
-                     }
-                     extension.equals("rar", true) -> {
-                         createZipRegistryRar(file) { fileFromStreamRar(file) }
-                     }
-                     else -> {
-                         createZipRegistryV2(file) { fileFromStreamV2(file) }
-                     }
-                 }
-             } catch (e: Exception) {
-                 // check whether it's a GZip, and if so, decode it
-                 try {
-                     readAsGZip(file)
-                 } catch (e2: Exception) {
-                     LOGGER.warn("Error happened")
-                     e.printStackTrace()
-                     e2.printStackTrace()
-                     null
-                 }
-             })*/
         } as? CacheData<*>
         return data?.value as? FileReference
     }

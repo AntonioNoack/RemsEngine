@@ -5,6 +5,7 @@ import com.bulletphysics.dynamics.vehicle.VehicleTuning
 import com.bulletphysics.dynamics.vehicle.WheelInfo
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.engine.ui.render.RenderView
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import javax.vecmath.Vector3d
@@ -80,8 +81,8 @@ class VehicleWheel : Component() {
             bulletInstance?.rollInfluence = value
         }
 
-    override fun onDrawGUI() {
-        super.onDrawGUI()
+    override fun onDrawGUI(view: RenderView) {
+        super.onDrawGUI(view)
 
         // todo draw a circle for the radius, and wheel movement and such
 

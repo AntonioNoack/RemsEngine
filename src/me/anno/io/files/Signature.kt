@@ -133,6 +133,7 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             Signature("obj", -1, "\nmtllib "),
             Signature("obj", -1, "OBJ File"),
             Signature("blend", 0, "BLENDER"),
+            Signature("gltf", 0, "glTF"),
             Signature("mesh-draco", 0, "DRACO"),
         ).apply {
             // first long ones, then short ones; to be more specific first

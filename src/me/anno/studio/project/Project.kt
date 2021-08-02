@@ -17,9 +17,11 @@ import me.anno.language.Language
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.studio.history.History
+import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.editorTime
-import me.anno.studio.rems.ui.RemsStudioUITypeLibrary
-import me.anno.studio.rems.ui.TransformTreeView
+import me.anno.studio.rems.ui.StudioFileExplorer
+import me.anno.studio.rems.ui.StudioUITypeLibrary
+import me.anno.studio.rems.ui.StudioTreeView
 import me.anno.ui.base.Panel
 import me.anno.ui.custom.CustomContainer
 import me.anno.ui.custom.CustomList
@@ -143,7 +145,7 @@ class Project(var name: String, val file: FileReference) : Saveable() {
 
     fun loadUI2(): Panel? {
         return use(uiFile.inputStream()) { fis ->
-            val library = RemsStudioUITypeLibrary()
+            val library = StudioUITypeLibrary()
             val types = library.types
             val notFound = HashSet<String>()
             val style = style
@@ -154,7 +156,8 @@ class Project(var name: String, val file: FileReference) : Saveable() {
                     val obj = when (type) {
                         "CustomListX" -> CustomList(false, style)
                         "CustomListY" -> CustomList(true, style)
-                        "TreeView" -> TransformTreeView(style)
+                        "TreeView" -> StudioTreeView(style)
+                        "FileExplorer" -> StudioFileExplorer(RemsStudio.project?.scenes, style)
                         else -> types[type]?.constructor?.invoke()
                     }
                     if (obj == null) {

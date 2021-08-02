@@ -12,8 +12,11 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
 
     var text = ""
         set(value) {
-            field = value.trim()
-            invalidateDrawing()
+            val value2 = value.trim()
+            if(field != value2){
+                field = value2
+                invalidateDrawing()
+            }
         }
 
     var alignment = AxisAlignment.MIN
@@ -23,7 +26,7 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
 
     override fun calculateSize(w: Int, h: Int) {
         val font = DrawTexts.monospaceFont.value
-        val text = if (text.isEmpty()) "." else text
+        val text = text.ifEmpty { "." }
         super.calculateSize(w, h)
         val w2 = font.sampleWidth * text.length + 4
         val h2 = font.sampleHeight + 4

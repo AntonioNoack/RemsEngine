@@ -6,7 +6,10 @@ import me.anno.ecs.components.ScriptComponent
 import me.anno.ecs.components.anim.Skeleton
 import me.anno.ecs.components.camera.CameraComponent
 import me.anno.ecs.components.collider.*
+import me.anno.ecs.components.light.AmbientLight
+import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.PointLight
+import me.anno.ecs.components.light.SpotLight
 import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.components.physics.Vehicle
@@ -33,12 +36,16 @@ object ECSRegistry {
 
         // meshes and rendering
         registerCustomClass(Mesh())
+        registerCustomClass(Material())
         registerCustomClass(MeshComponent())
         registerCustomClass(MeshRenderer())
         registerCustomClass(AnimRenderer())
 
         // lights
+        registerCustomClass(SpotLight())
         registerCustomClass(PointLight())
+        registerCustomClass(DirectionalLight())
+        registerCustomClass(AmbientLight())
 
         // others
         registerCustomClass(ScriptComponent())

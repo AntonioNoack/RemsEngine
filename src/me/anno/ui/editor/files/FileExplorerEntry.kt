@@ -37,7 +37,6 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.thumbs.Thumbs
-import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.mixARGB
 import me.anno.utils.Maths.sq
@@ -267,27 +266,6 @@ class FileExplorerEntry(
         }
     }
 
-    companion object {
-
-        fun drawLoadingCircle(relativeTime: Float, x0: Int, x1: Int, y0: Int, y1: Int) {
-            val r = 1f - sq(relativeTime * 2 - 1)
-            val radius = min(y1 - y0, x1 - x0) / 2f
-            GFXx2D.drawCircle(
-                (x0 + x1) / 2, (y0 + y1) / 2, radius, radius, 0f, relativeTime * 360f * 4 / 3, relativeTime * 360f * 2,
-                Vector4f(1f, 1f, 1f, r * 0.2f)
-            )
-        }
-
-        fun drawLoadingCircle(stack: Matrix4fArrayList, relativeTime: Float) {
-            GFXx3D.draw3DCircle(
-                null, 0.0, stack, 0f,
-                relativeTime * 360f * 4 / 3,
-                relativeTime * 360f * 2,
-                Vector4f(1f, 1f, 1f, 0.2f)
-            )
-        }
-
-    }
 
     private fun drawVideo(x0: Int, y0: Int, x1: Int, y1: Int) {
 
@@ -424,34 +402,15 @@ class FileExplorerEntry(
             "Enter" -> {
                 if (file.isSomeKindOfDirectory) {
                     explorer.switchTo(file)
-                } else {// todo check if it's a compressed thing we can enter
-                    return false
-                }
+                } else return false
             }
             "Rename" -> {
                 val title = NameDesc("Rename To...", "", "ui.file.rename2")
                 askName(x.toInt(), y.toInt(), title, file.name, NameDesc("Rename"), { -1 }, ::renameTo)
             }
             "OpenInExplorer" -> file.openInExplorer()
-            "Delete" -> deleteFileMaybe()
-            "OpenOptions" -> {
-                // todo add option to open json in specialized json editor...
-                val rename = MenuOption(NameDesc("Rename", "Change the name of this file", "ui.file.rename")) {
-                    onGotAction(x, y, dx, dy, "Rename", false)
-                }
-                val openInExplorer = MenuOption(
-                    NameDesc(
-                        "Open in Explorer",
-                        "Open the file in your default file explorer",
-                        "ui.file.openInExplorer"
-                    ), ::openInExplorer
-                )
-                val delete = MenuOption(
-                    NameDesc("Delete", "Delete this file", "ui.file.delete"),
-                    ::deleteFileMaybe
-                )
-                openMenu(listOf(rename, openInExplorer, delete))
-            }
+            "Delete" -> deleteFileMaybe(file)
+            "OpenOptions" -> explorer.openOptions(file)
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
         return true
@@ -483,51 +442,17 @@ class FileExplorerEntry(
                 explorer.switchTo(file)
                 // super.onDoubleClick(x, y, button)
             } else {
-                SceneTabs.open(file)
+                explorer.onDoubleClick(file)
             }
         } else super.onDoubleClick(x, y, button)
     }
 
-    private fun deleteFileMaybe() {
-        val title = NameDesc(
-            "Delete this file? (${file.length().formatFileSize()})",
-            "",
-            "ui.file.delete.ask"
-        )
-        val moveToTrash = MenuOption(
-            NameDesc(
-                "Yes",
-                "Move the file to the trash",
-                "ui.file.delete.yes"
-            )
-        ) {
-            moveToTrash(file.unsafeFile)
-            explorer.invalidate()
-        }
-        val deletePermanently = MenuOption(
-            NameDesc(
-                "Yes, permanently",
-                "Deletes the file; file cannot be recovered",
-                "ui.file.delete.permanent"
-            )
-        ) {
-            file.deleteRecursively()
-            explorer.invalidate()
-        }
-        openMenu(
-            title, listOf(
-                moveToTrash,
-                dontDelete,
-                deletePermanently
-            )
-        )
-    }
-
     override fun onDeleteKey(x: Float, y: Float) {
+        // todo in Rem's Engine, we first should check, whether there are prefabs, which depend on this file
         val files = inFocus.mapNotNull { (it as? FileExplorerEntry)?.file }
         if (files.size <= 1) {
             // ask, then delete (or cancel)
-            deleteFileMaybe()
+            deleteFileMaybe(file)
         } else if (files.first() === file) {
             // ask, then delete all (or cancel)
             val title = NameDesc(
@@ -559,15 +484,6 @@ class FileExplorerEntry(
         }
     }
 
-    private val dontDelete
-        get() = MenuOption(
-            NameDesc(
-                "No",
-                "Deletes none of the selected file; keeps them all",
-                "ui.file.delete.many.no"
-            )
-        ) {}
-
     override fun onCopyRequested(x: Float, y: Float): String? {
         if (this in inFocus) {// multiple files maybe
             Input.copyFiles(inFocus.filterIsInstance<FileExplorerEntry>().map { it.file })
@@ -577,11 +493,78 @@ class FileExplorerEntry(
 
     override fun getMultiSelectablePanel() = this
 
-    override val className get() = "FileEntry"
-
     override fun printLayout(tabDepth: Int) {
         super.printLayout(tabDepth)
         println("${Tabs.spaces(tabDepth * 2 + 2)} ${file.name}")
     }
+
+    override val className get() = "FileEntry"
+
+    companion object {
+
+        val dontDelete
+            get() = MenuOption(
+                NameDesc(
+                    "No",
+                    "Deletes none of the selected file; keeps them all",
+                    "ui.file.delete.many.no"
+                )
+            ) {}
+
+        fun deleteFileMaybe(file: FileReference) {
+            val title = NameDesc(
+                "Delete this file? (${file.length().formatFileSize()})",
+                "",
+                "ui.file.delete.ask"
+            )
+            val moveToTrash = MenuOption(
+                NameDesc(
+                    "Yes",
+                    "Move the file to the trash",
+                    "ui.file.delete.yes"
+                )
+            ) {
+                moveToTrash(file.unsafeFile)
+                FileExplorer.invalidateFileExplorers()
+            }
+            val deletePermanently = MenuOption(
+                NameDesc(
+                    "Yes, permanently",
+                    "Deletes the file; file cannot be recovered",
+                    "ui.file.delete.permanent"
+                )
+            ) {
+                file.deleteRecursively()
+                FileExplorer.invalidateFileExplorers()
+            }
+            openMenu(
+                title, listOf(
+                    moveToTrash,
+                    dontDelete,
+                    deletePermanently
+                )
+            )
+        }
+
+        fun drawLoadingCircle(relativeTime: Float, x0: Int, x1: Int, y0: Int, y1: Int) {
+            val r = 1f - sq(relativeTime * 2 - 1)
+            val radius = min(y1 - y0, x1 - x0) / 2f
+            GFXx2D.drawCircle(
+                (x0 + x1) / 2, (y0 + y1) / 2, radius, radius, 0f, relativeTime * 360f * 4 / 3, relativeTime * 360f * 2,
+                Vector4f(1f, 1f, 1f, r * 0.2f)
+            )
+        }
+
+        fun drawLoadingCircle(stack: Matrix4fArrayList, relativeTime: Float) {
+            GFXx3D.draw3DCircle(
+                null, 0.0, stack, 0f,
+                relativeTime * 360f * 4 / 3,
+                relativeTime * 360f * 2,
+                Vector4f(1f, 1f, 1f, 0.2f)
+            )
+        }
+
+    }
+
 
 }

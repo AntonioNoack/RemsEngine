@@ -512,10 +512,11 @@ open class Texture2D(
         ensurePointer()
         bindBeforeUpload()
         locallyAllocated = allocate(locallyAllocated, w * h * 4L)
+        val format = GL_DEPTH_COMPONENT32F
         if (withMultisampling) {
-            glTexImage2DMultisample(tex2D, samples, GL_DEPTH_COMPONENT32, w, h, false)
+            glTexImage2DMultisample(tex2D, samples, format, w, h, false)
         } else {
-            glTexImage2D(tex2D, 0, GL_DEPTH_COMPONENT, w, h, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0)
+            glTexImage2D(tex2D, 0, format, w, h, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0)
         }
         filtering(filtering)
         clamping(Clamping.CLAMP)

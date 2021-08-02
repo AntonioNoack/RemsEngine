@@ -1,6 +1,7 @@
 package me.anno.ecs
 
 import me.anno.ecs.components.collider.Collider
+import me.anno.ecs.components.light.AmbientLight
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.physics.Rigidbody
@@ -15,15 +16,12 @@ import me.anno.io.serialization.SerializedProperty
 import me.anno.io.text.TextReader
 import me.anno.objects.inspectable.Inspectable
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
-import me.anno.utils.structures.Hierarchical
 import me.anno.utils.types.AABBs.reset
 import me.anno.utils.types.AABBs.transformUnion
 import me.anno.utils.types.Floats.f2s
-import me.anno.utils.types.Floats.f3
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Quaterniond
@@ -33,6 +31,9 @@ import kotlin.reflect.KClass
 // entities would be an idea to make effects more modular
 // it could apply new effects to both the camera and image sources
 
+// todo buttons via annotation, which can be triggered from the editor for debugging
+// e.g. @Action
+
 // hide the mutable children list, -> not possible with the general approach
 // todo keep track of size of hierarchy
 
@@ -41,7 +42,7 @@ import kotlin.reflect.KClass
 
 // todo delta settings & control: only saves as values, what was changed from the prefab
 
-class Entity() : PrefabSaveable(), Hierarchical<PrefabSaveable>, Inspectable {
+class Entity() : PrefabSaveable(), Inspectable {
 
     constructor(parent: Entity?) : this() {
         parent?.add(this)
@@ -95,7 +96,7 @@ class Entity() : PrefabSaveable(), Hierarchical<PrefabSaveable>, Inspectable {
         return if (type == 'c') "components" else "children"
     }
 
-    override fun indexOf(child: PrefabSaveable): Int {
+    override fun getIndexOf(child: PrefabSaveable): Int {
         return if (child is Component) {
             components.indexOf(child)
         } else children.indexOf(child)
@@ -114,6 +115,8 @@ class Entity() : PrefabSaveable(), Hierarchical<PrefabSaveable>, Inspectable {
         get() = transform.localPosition
         set(value) {
             transform.localPosition = value
+            invalidateAABBsCompletely()
+            invalidatePhysics(false)
         }
 
     @SerializedProperty
@@ -121,6 +124,8 @@ class Entity() : PrefabSaveable(), Hierarchical<PrefabSaveable>, Inspectable {
         get() = transform.localRotation
         set(value) {
             transform.localRotation = value
+            invalidateAABBsCompletely()
+            invalidatePhysics(false)
         }
 
     @SerializedProperty
@@ -128,13 +133,51 @@ class Entity() : PrefabSaveable(), Hierarchical<PrefabSaveable>, Inspectable {
         get() = transform.localScale
         set(value) {
             transform.localScale = value
+            invalidateAABBsCompletely()
+            invalidatePhysics(false)
         }
+
+    @NotSerializedProperty
+    val parentEntity
+        get() = parent as? Entity
+
+    /**
+     * smoothly transitions to the next position
+     * */
+    fun moveTo(position: Vector3d) {
+        transform.globalTransform.m30(position.x)
+        transform.globalTransform.m30(position.y)
+        transform.globalTransform.m30(position.z)
+        transform.calculateLocalTransform(parentEntity?.transform)
+        transform.update()
+        invalidateAABBsCompletely()
+        invalidatePhysics(false)
+    }
+
+    /**
+     * teleports to the new position without interpolation
+     * */
+    fun teleportTo(position: Vector3d) {
+        transform.globalTransform.m30(position.x)
+        transform.globalTransform.m30(position.y)
+        transform.globalTransform.m30(position.z)
+        transform.calculateLocalTransform(parentEntity?.transform)
+        transform.teleportUpdate()
+        invalidateAABBsCompletely()
+        invalidatePhysics(false)
+    }
 
     @NotSerializedProperty
     val aabb = AABBd()
 
     @NotSerializedProperty
     var hasRenderables = false
+
+    fun invalidatePhysics(force: Boolean) {
+        if (force || hasPhysicsInfluence()) {
+            physics?.invalidate(rigidbody ?: return)
+        }
+    }
 
     fun invalidateAABBsCompletely() {
         invalidateOwnAABB()
@@ -144,8 +187,7 @@ class Entity() : PrefabSaveable(), Hierarchical<PrefabSaveable>, Inspectable {
     private fun invalidateOwnAABB() {
         if (hasValidAABB) {
             hasValidAABB = false
-            val parent = parent as? Entity
-            parent?.invalidateOwnAABB()
+            parentEntity?.invalidateOwnAABB()
         }
     }
 
@@ -191,6 +233,13 @@ class Entity() : PrefabSaveable(), Hierarchical<PrefabSaveable>, Inspectable {
                             mesh.ensureBuffer()
                             mesh.aabb.transformUnion(globalTransform, aabb)
                         }
+                        is AmbientLight -> {
+                            // ambient light has influence on everything
+                            val n = Double.NEGATIVE_INFINITY
+                            val p = Double.POSITIVE_INFINITY
+                            aabb.setMin(n, n, n)
+                            aabb.setMax(p, p, p)
+                        }
                         // todo drawing colliders for GUI -> would need to be included?
                     }
                 }
@@ -205,20 +254,16 @@ class Entity() : PrefabSaveable(), Hierarchical<PrefabSaveable>, Inspectable {
     override var isEnabled = true
         set(value) {
             field = value
-            val physics = physics
-            if (physics != null) {
-                // todo when switching "isEnabled", all bodies need to be enabled/disabled as well
-                /* if (hasComponentInChildren(true, Rigidbody::class) || hasComponentInChildren(true, Collider::class)) {
-                     physics.invalidate(this)
-                 }*/
-                // todo also check inheritance
-            }
+            invalidatePhysics(false)
         }
 
-    val transform = Transform()
+    fun hasPhysicsInfluence(): Boolean {
+        return isPhysicsControlled || parentEntity?.hasPhysicsInfluence() == true
+        // return hasComponent(false, Rigidbody::class) ||
+        //        hasComponentInChildren(false, Collider::class)
+    }
 
-    // for the UI
-    override var isCollapsed = false
+    val transform = Transform()
 
     // assigned and tested for click checks
     var clickId = 0
@@ -228,12 +273,13 @@ class Entity() : PrefabSaveable(), Hierarchical<PrefabSaveable>, Inspectable {
         for (child in children) child.update()
     }
 
+    // is set by the engine
+    @NotSerializedProperty
     var isPhysicsControlled = false
 
     fun validateTransforms(time: Long = GFX.gameTime) {
         if (!isPhysicsControlled) {
-            val parent = parent as? Entity
-            transform.update(parent?.transform, time)
+            transform.update(parentEntity?.transform, time)
             val children = children
             for (i in children.indices) {
                 children[i].validateTransforms(time)
@@ -294,7 +340,7 @@ class Entity() : PrefabSaveable(), Hierarchical<PrefabSaveable>, Inspectable {
     // todo don't directly update, rather invalidate this, because there may be more to come
     fun setParent(parent: Entity, index: Int, keepWorldTransform: Boolean) {
 
-        val oldParent = this.parent as? Entity
+        val oldParent = parentEntity
         if (parent === oldParent) return
 
         // formalities
@@ -331,7 +377,7 @@ class Entity() : PrefabSaveable(), Hierarchical<PrefabSaveable>, Inspectable {
                     physics.invalidate(parentRigidbody)
                 } else {
                     // if has collider without rigidbody, add it for click-tests
-                    if (hasComponent(false, Collider::class)) {
+                    if (hasComponent(Collider::class, false)) {
                         // todo add it for click tests
                     }
                 }
@@ -339,14 +385,21 @@ class Entity() : PrefabSaveable(), Hierarchical<PrefabSaveable>, Inspectable {
         }
     }
 
-    val physics get() = getRoot(Entity::class).getComponent(false, BulletPhysics::class)
+    val physics get() = getRoot(Entity::class).getComponent(BulletPhysics::class, false)
     val rigidbody
-        get() = listOfHierarchy.lastOrNull {
-            it is Entity && it.hasComponent(
-                false,
-                Rigidbody::class
-            )
+        get() = listOfHierarchyReversed.firstOrNull {
+            it is Entity && it.hasComponent(Rigidbody::class, false)
         } as? Entity
+
+    val rigidbodyComponent: Rigidbody?
+        get() {
+            for (entry in listOfHierarchyReversed) {
+                if (entry is Entity) {
+                    return entry.getComponent(Rigidbody::class, false) ?: continue
+                }
+            }
+            return null
+        }
 
     fun invalidateRigidbody() {
         physics?.invalidate(rigidbody ?: return)
@@ -386,7 +439,8 @@ class Entity() : PrefabSaveable(), Hierarchical<PrefabSaveable>, Inspectable {
                 is LightComponent -> invalidateOwnAABB()
             }
         }
-        hasRenderables = hasComponent<MeshComponent>(false)
+        hasRenderables = hasComponent(MeshComponent::class, false) ||
+                hasComponent(LightComponent::class, false)
         invalidateOwnAABB()
     }
 
@@ -407,25 +461,25 @@ class Entity() : PrefabSaveable(), Hierarchical<PrefabSaveable>, Inspectable {
         onChangeComponent(component)
     }
 
-    inline fun <reified V : Component> hasComponent(includingDisabled: Boolean): Boolean {
-        return components.any { it is V && (includingDisabled || it.isEnabled) }
+    fun <V : Component> hasComponent(clazz: KClass<V>, includingDisabled: Boolean): Boolean {
+        return getComponent(clazz, includingDisabled) != null
     }
 
-    fun <V : Component> hasComponent(includingDisabled: Boolean, clazz: KClass<V>): Boolean {
-        return getComponent(includingDisabled, clazz) != null
+    fun <V : Component> hasComponentInChildren(clazz: KClass<V>, includingDisabled: Boolean): Boolean {
+        if (hasComponent(clazz, includingDisabled)) return true
+        val children = children
+        for (index in children.indices) {
+            val child = children[index]
+            if (includingDisabled || child.isEnabled) {
+                if (child.hasComponent(clazz, includingDisabled)) {
+                    return true
+                }
+            }
+        }
+        return false
     }
 
-    fun <V : Component> hasComponentInChildren(includingDisabled: Boolean, clazz: KClass<V>): Boolean {
-        return hasComponent(includingDisabled, clazz) || children.filter {
-            includingDisabled || it.isEnabled
-        }.any { hasComponentInChildren(includingDisabled, clazz) }
-    }
-
-    inline fun <reified V : Component> getComponent(includingDisabled: Boolean): V? {
-        return components.firstOrNull { it is V && (includingDisabled || it.isEnabled) } as V?
-    }
-
-    fun <V : Component> getComponent(includingDisabled: Boolean, clazz: KClass<V>): V? {
+    fun <V : Component> getComponent(clazz: KClass<V>, includingDisabled: Boolean): V? {
         // elegant:
         // return components.firstOrNull { clazz.isInstance(it) && (includingDisabled || it.isEnabled) } as V?
         // without damn iterator:
@@ -439,36 +493,24 @@ class Entity() : PrefabSaveable(), Hierarchical<PrefabSaveable>, Inspectable {
         return null
     }
 
-    inline fun <reified V : Component> getComponentInChildren(includingDisabled: Boolean): V? {
-        val e = simpleTraversal(true) { getComponent<V>(includingDisabled) != null }
-        return (e as? Entity)?.getComponent(includingDisabled)
+    fun <V : Component> getComponentInChildren(clazz: KClass<V>, includingDisabled: Boolean): V? {
+        val e = simpleTraversal(true) { getComponent(clazz, includingDisabled) != null }
+        return (e as? Entity)?.getComponent(clazz, includingDisabled)
     }
 
-    fun <V : Component> getComponentInChildren(includingDisabled: Boolean, clazz: KClass<V>): V? {
-        val e = simpleTraversal(true) { getComponent(includingDisabled, clazz) != null }
-        return (e as? Entity)?.getComponent(includingDisabled, clazz)
+    fun <V : Component> getComponents(clazz: KClass<V>, includingDisabled: Boolean): List<V> {
+        return components.filter { (includingDisabled || it.isEnabled) && clazz.isInstance(it) } as List<V>
     }
 
-    inline fun <reified V : Component> getComponents(includingDisabled: Boolean): List<V> {
-        return if (includingDisabled) {
-            components.filterIsInstance<V>()
-        } else {
-            components.filterIsInstance<V>().filter { it.isEnabled }
-        }
-    }
-
-    inline fun <reified V : Component> getComponentsInChildren(includingDisabled: Boolean): List<V> {
+    fun <V : Component> getComponentsInChildren(clazz: KClass<V>, includingDisabled: Boolean): List<V> {
         val result = ArrayList<V>()
         val todo = ArrayList<Entity>()
         todo.add(this)
         while (todo.isNotEmpty()) {
             val entity = todo.removeAt(todo.lastIndex)
-            result.addAll(entity.getComponents(includingDisabled))
-            if (includingDisabled) {
-                todo.addAll(entity.children)
-            } else {
-                todo.addAll(entity.children.filter { it.isEnabled })
-            }
+            result.addAll(entity.getComponents(clazz, includingDisabled))
+            todo.addAll(if (includingDisabled) entity.children
+            else entity.children.filter { it.isEnabled })
         }
         return result
     }
@@ -532,7 +574,7 @@ class Entity() : PrefabSaveable(), Hierarchical<PrefabSaveable>, Inspectable {
 
     val depthInHierarchy
         get(): Int {
-            val parent = parent as? Entity ?: return 0
+            val parent = parentEntity ?: return 0
             return parent.depthInHierarchy + 1
         }
 

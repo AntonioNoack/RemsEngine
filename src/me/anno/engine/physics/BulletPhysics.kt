@@ -1,10 +1,11 @@
 package me.anno.engine.physics
 
+import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.broadphase.DbvtBroadphase
 import com.bulletphysics.collision.dispatch.CollisionDispatcher
+import com.bulletphysics.collision.dispatch.CollisionObject
 import com.bulletphysics.collision.dispatch.CollisionObject.DISABLE_DEACTIVATION
 import com.bulletphysics.collision.dispatch.DefaultCollisionConfiguration
-import com.bulletphysics.collision.shapes.BoxShape
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.CompoundShape
 import com.bulletphysics.dynamics.DiscreteDynamicsWorld
@@ -21,21 +22,25 @@ import cz.advel.stack.Stack
 import me.anno.config.DefaultStyle.black
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.components.physics.Vehicle
 import me.anno.ecs.components.physics.VehicleWheel
-import me.anno.engine.ui.RenderView.Companion.camPosition
-import me.anno.engine.ui.RenderView.Companion.viewTransform
+import me.anno.engine.ui.render.DrawAABB
+import me.anno.engine.ui.render.RenderView
+import me.anno.engine.ui.render.RenderView.Companion.camPosition
+import me.anno.engine.ui.render.RenderView.Companion.viewTransform
 import me.anno.gpu.GFX
+import me.anno.gpu.buffer.LineBuffer
 import me.anno.input.Input
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.ui.debug.FrameTimes
 import me.anno.utils.Clock
-import me.anno.utils.Maths.sq
 import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
+import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.lwjgl.glfw.GLFW
 import javax.vecmath.Matrix4d
@@ -137,7 +142,7 @@ class BulletPhysics : Component() {
             // todo also only collect physics colliders, not click-colliders
             yieldAll(entity.components.filter { it.isEnabled && clazz.isInstance(it) } as List<V>)
             for (child in entity.children) {
-                if (child.isEnabled && !child.hasComponent<Rigidbody>(false)) {
+                if (child.isEnabled && !child.hasComponent(Rigidbody::class, false)) {
                     yieldAll(getValidComponents(child, clazz))
                 }
             }
@@ -181,13 +186,38 @@ class BulletPhysics : Component() {
             // create the motion state
             val motionState = DefaultMotionState(bulletTransform, com2)
             val rbInfo = RigidBodyConstructionInfo(mass, motionState, jointCollider, inertia)
-
             rbInfo.friction = base.friction
             rbInfo.restitution = base.restitution
             rbInfo.linearDamping = base.linearDamping
             rbInfo.angularDamping = base.angularDamping
+            rbInfo.linearSleepingThreshold = base.linearSleepingThreshold
+            rbInfo.angularSleepingThreshold = base.angularSleepingThreshold
 
-            scale to RigidBody(rbInfo)
+            val rb = RigidBody(rbInfo)
+            // rb.deactivationTime = base.sleepingTimeThreshold
+            BulletGlobals.setDeactivationTime(1.0)
+            /*
+            *  if (getActivationState() == DISABLE_DEACTIVATION) {
+            return false;
+        }
+
+        // disable deactivation
+        if (BulletGlobals.isDeactivationDisabled() || (BulletGlobals.getDeactivationTime() == 0f)) {
+            return false;
+        }
+
+        if ((getActivationState() == ISLAND_SLEEPING) || (getActivationState() == WANTS_DEACTIVATION)) {
+            return true;
+        }
+
+        if (deactivationTime > BulletGlobals.getDeactivationTime()) {
+            return true;
+        }
+        return false;
+            * */
+            // println("state: ${rb.activationState}, ${rb.deactivationTime}")
+
+            scale to rb
 
         } else null
 
@@ -195,7 +225,7 @@ class BulletPhysics : Component() {
 
     fun add(entity: Entity): RigidBody? {
         // todo add including constraints and such
-        val rigidbody = entity.getComponent(false, Rigidbody::class) ?: return null
+        val rigidbody = entity.getComponent(Rigidbody::class, false) ?: return null
         if (rigidbody.isEnabled) {
 
             val bodyWithScale = createRigidbody(entity, rigidbody) ?: return null
@@ -277,12 +307,12 @@ class BulletPhysics : Component() {
         }
     }
 
-    fun step(dt: Long) {
+    fun step(dt: Long, printSlack: Boolean) {
 
         // clock.start()
 
         // just in case
-        Stack.reset();
+        Stack.reset(printSlack)
 
         // val oldSize = rigidBodies.size
         validate()
@@ -341,10 +371,7 @@ class BulletPhysics : Component() {
         for (i in deadEntities.indices) {
             remove(deadEntities[i])
             world.removeRigidBody(deadRigidBodies[i])
-        }
-
-        if (deadEntities.isNotEmpty()) {
-            LOGGER.info("${deadEntities.size} entities have fallen out of the world")
+            // todo kill or disable?
         }
 
         // update the local transforms last, so all global transforms have been completely updated
@@ -358,21 +385,127 @@ class BulletPhysics : Component() {
 
     }
 
-    fun drawDebug() {
+    fun drawDebug(view: RenderView, worldScale: Double) {
 
         val debugDraw = debugDraw ?: return
 
         // define camera transform
         debugDraw.stack.set(viewTransform)
+        debugDraw.worldScale = worldScale
         debugDraw.cam.set(camPosition)
 
-        // draw the debug world
-        // re-enable
-        world.debugDrawWorld()
-        debugDraw.finish()
+        if (Input.isKeyDown('y')) {
+            drawContactPoints(view)
+            drawAABBs(view)
+            drawVehicles(view)
+            LineBuffer.finish(viewTransform)
+        }
 
     }
 
+    private fun drawContactPoints(view: RenderView) {
+        val dispatcher = world.dispatcher
+        val numManifolds: Int = dispatcher.numManifolds
+        for (i in 0 until numManifolds) {
+            val contactManifold = dispatcher.getManifoldByIndexInternal(i) ?: break
+            val numContacts = contactManifold.numContacts
+            for (j in 0 until numContacts) {
+                val cp = contactManifold.getContactPoint(j)
+                DrawAABB.drawLine(
+                    cp.positionWorldOnB,
+                    Vector3d(cp.positionWorldOnB).apply { add(cp.normalWorldOnB) },
+                    view.worldScale, 0.5, 0.5, 0.5
+                )
+            }
+        }
+    }
+
+    private fun drawAABBs(view: RenderView) {
+
+        val tmpTrans = Stack.newTrans()
+        val minAabb = Vector3d()
+        val maxAabb = Vector3d()
+
+        val collisionObjects = world.collisionObjectArray
+
+        val worldScale = view.worldScale
+        val color = Vector3d()
+
+        for (i in 0 until collisionObjects.size) {
+
+            val colObj = collisionObjects.getQuick(i) ?: break
+            when (colObj.activationState) {
+                CollisionObject.ACTIVE_TAG -> color.set(1.0, 1.0, 1.0)
+                CollisionObject.ISLAND_SLEEPING -> color.set(0.0, 1.0, 0.0)
+                CollisionObject.WANTS_DEACTIVATION -> color.set(0.0, 1.0, 1.0)
+                CollisionObject.DISABLE_DEACTIVATION -> color.set(1.0, 0.0, 0.0)
+                CollisionObject.DISABLE_SIMULATION -> color.set(1.0, 1.0, 0.0)
+                else -> color.set(1.0, 0.0, 0.0)
+            }
+
+            // todo draw the local coordinate arrows
+            // debugDrawObject(colObj.getWorldTransform(tmpTrans), colObj.collisionShape, color)
+
+            colObj.collisionShape.getAabb(colObj.getWorldTransform(tmpTrans), minAabb, maxAabb)
+
+            DrawAABB.drawAABB(
+                AABBd()
+                    .setMin(minAabb.x, minAabb.y, minAabb.z)
+                    .setMax(maxAabb.x, maxAabb.y, maxAabb.z),
+                worldScale,
+                color.x, color.y, color.z
+            )
+        }
+
+    }
+
+    private fun drawVehicles(view: RenderView) {
+
+        val wheelColor = Vector3d()
+        val wheelPosWS = Vector3d()
+        val axle = Vector3d()
+        val tmp = Stack.newVec()
+
+        val worldScale = view.worldScale
+
+        val vehicles = world.vehicles
+        for (i in 0 until vehicles.size) {
+            val vehicle = vehicles.getQuick(i) ?: break
+            for (v in 0 until vehicle.numWheels) {
+
+                if (vehicle.getWheelInfo(v).raycastInfo.isInContact) {
+                    wheelColor.set(0.0, 0.0, 1.0)
+                } else {
+                    wheelColor.set(1.0, 0.0, 0.0)
+                }
+
+                wheelPosWS.set(vehicle.getWheelInfo(v).worldTransform.origin)
+                axle.set(
+                    vehicle.getWheelInfo(v).worldTransform.basis.getElement(0, vehicle.rightAxis),
+                    vehicle.getWheelInfo(v).worldTransform.basis.getElement(1, vehicle.rightAxis),
+                    vehicle.getWheelInfo(v).worldTransform.basis.getElement(2, vehicle.rightAxis)
+                )
+
+                tmp.add(wheelPosWS, axle)
+                DrawAABB.drawLine(wheelPosWS, tmp, worldScale, wheelColor.x, wheelColor.y, wheelColor.z)
+                DrawAABB.drawLine(
+                    wheelPosWS, vehicle.getWheelInfo(v).raycastInfo.contactPointWS,
+                    worldScale, wheelColor.x, wheelColor.y, wheelColor.z
+                )
+
+            }
+        }
+
+        val actions = world.actions
+        for (i in 0 until actions.size) {
+            val action = actions.getQuick(i) ?: break
+            action.debugDraw(debugDraw)
+        }
+
+    }
+
+    @HideInInspector
+    @NotSerializedProperty
     var syncMaster: SyncMaster? = null
     fun startWork(syncMaster: SyncMaster) {
         this.syncMaster = syncMaster
@@ -409,23 +542,26 @@ class BulletPhysics : Component() {
             } else {
                 // there is still work to do
                 val t0 = System.nanoTime()
-                step(targetStepNanos)
+                val debug = false// GFX.gameTime > 10e9 // wait 10s
+                /* if (debug) {
+                     Stack.printSizes()
+                     Stack.printClassUsage()
+                 } */
+                step(targetStepNanos, debug)
                 val t1 = System.nanoTime()
                 FrameTimes.putValue((t1 - t0) * 1e-9f, 0xffff99 or black)
                 0
             }
 
-        }, { null })
+        }, { debugDraw })
     }
 
 
     private var debugDraw: BulletDebugDraw? = null
-    override fun onDrawGUI() {
-        super.onDrawGUI()
+    override fun onDrawGUI(view: RenderView) {
+        super.onDrawGUI(view)
 
-        /*syncMaster?.execute({
-            drawDebug()
-        }) { debugDraw }*/
+        drawDebug(view, view.worldScale)
 
         var steering = 0.0
         var engineForce = 0.0
@@ -446,17 +582,15 @@ class BulletPhysics : Component() {
             steering -= 0.5
         }
 
-        for (wheel in sampleWheels) {
-            wheel.engineForce = if (wheel.bIsFrontWheel) 0.0 else engineForce
-            wheel.steering = if (wheel.bIsFrontWheel) steering else 0.0
-            wheel.brake = brakeForce
+        try {
+            for (wheel in sampleWheels) {
+                wheel.engineForce = if (wheel.bIsFrontWheel) 0.0 else engineForce
+                wheel.steering = if (wheel.bIsFrontWheel) steering else 0.0
+                wheel.brake = brakeForce
+            }
+        } catch (e: ConcurrentModificationException) {
+            // will flicker a little, when cars are spawned/de-spawned
         }
-
-        // println("$engineForce x $steering x $brakeForce")
-
-        /*if (!Input.isShiftDown) {
-            step(GFX.deltaTime.toDouble())
-        }*/
 
     }
 
@@ -504,25 +638,7 @@ class BulletPhysics : Component() {
     private fun createBulletWorldWithGroundNGravity(): DiscreteDynamicsWorld {
         val world = createBulletWorld()
         world.setGravity(Vector3d(0.0, -9.81, 0.0))
-        // addGround(world)
         return world
-    }
-
-    private fun addGround(world: DiscreteDynamicsWorld) {
-
-        val ground = BoxShape(Vector3d(2000.0, 100.0, 2000.0))
-
-        val groundTransform = Transform()
-        groundTransform.setIdentity()
-        groundTransform.origin.set(0.0, -100.0, 0.0)
-
-        // mass = 0f = static
-        val motionState = DefaultMotionState(groundTransform)
-        val rbInfo = RigidBodyConstructionInfo(0.0, motionState, ground, Vector3d())
-        val body = RigidBody(rbInfo)
-
-        world.addRigidBody(body)
-
     }
 
     override val className: String = "BulletPhysics"

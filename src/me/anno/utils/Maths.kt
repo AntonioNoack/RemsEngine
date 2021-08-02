@@ -39,6 +39,8 @@ object Maths {
 
     fun clamp01(x: Float) = clamp(x, 0f, 1f)
 
+    fun pow(base: Double, power: Double) = StrictMath.pow(base, power)
+    fun log(base: Double) = StrictMath.log(base)
     fun pow(base: Float, power: Float) = StrictMath.pow(base.toDouble(), power.toDouble()).toFloat()
     fun log(base: Float) = StrictMath.log(base.toDouble()).toFloat()
 
@@ -189,6 +191,16 @@ object Maths {
 
     fun fract(f: Float) = f - floor(f)
     fun fract(d: Double) = d - floor(d)
+
+    // fract, but in [-0.5, +0.5]
+    fun roundFract(d: Float): Float {
+        return fract(d + 0.5f) - 0.5f
+    }
+
+    // fract, but in [-0.5, +0.5]
+    fun roundFract(d: Double): Double {
+        return fract(d + 0.5) - 0.5
+    }
 
     fun nonNegativeModulo(x: Int, div: Int): Int {
         var y = x % div

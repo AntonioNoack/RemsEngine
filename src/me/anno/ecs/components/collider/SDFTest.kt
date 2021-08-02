@@ -44,7 +44,7 @@ fun renderSDF(collider: Collider, name: String) {
         val pos = Vector3d(x.toDouble(), y.toDouble(), 0.0)
         pos.mul(scale)
         pos.sub(offset)
-        collider.getSignedDistance(pos, dir).toFloat()
+        0f // collider.getSignedDistance(pos, dir).toFloat()
     }
 
 }

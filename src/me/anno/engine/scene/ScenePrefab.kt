@@ -9,9 +9,14 @@ import me.anno.engine.scene.PrefabHelper.setE
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.StaticRef
 import me.anno.io.text.TextWriter
+import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.utils.OS
 import org.joml.Quaterniond
 import org.joml.Vector3d
+import org.joml.Vector3f
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.sin
 
 object ScenePrefab : StaticRef("Scene.prefab", lazy {
     TextWriter.toText(Prefab("Entity").apply {
@@ -45,16 +50,41 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         val truck = addE(changes, world, "VOX/Truck", OS.downloads.getChild("MagicaVoxel/vox/truck.vox"))
         val truckBody0 = truck + (0 to 'e')
         addC(changes, truckBody0, "MeshCollider")
-        val truckRigidbody = addC(changes, truckBody0, "Rigidbody")
-        setC(changes, truckRigidbody, "mass", 100.0)
+        //val truckRigidbody = addC(changes, truckBody0, "Rigidbody")
+        //setC(changes, truckRigidbody, "mass", 100.0)
 
         /////////////////////////
         // sample point light //
         ///////////////////////
-        val light = addE(changes, world, "Point Light")
-        setE(changes, light, "position", Vector3d(0.0, 50.0, 0.0))
-        setE(changes, light, "scale", Vector3d(80.0))
-        addC(changes, light, "PointLight")
+
+        val lights = addE(changes, world, "Lights")
+        addC(changes, lights, "AmbientLight")
+
+        val pointLight = addE(changes, lights, "Point Light")
+        setE(changes, pointLight, "position", Vector3d(0.0, 50.0, 0.0))
+        setE(changes, pointLight, "scale", Vector3d(80.0))
+        addC(changes, pointLight, "PointLight")
+
+        val sun = addE(changes, lights, "Sun")
+        setE(changes, sun, "scale", Vector3d(1000.0))
+        setE(changes, sun, "position", Vector3d(0.0, 50.0, 0.0))
+        addC(changes, sun, "DirectionalLight")
+
+        val spotLight = addE(changes, lights, "Spot Light")
+        setE(changes, spotLight, "scale", Vector3d(100.0))
+        addC(changes, spotLight, "SpotLight")
+
+        val ringOfLights = addE(changes, lights, "Ring Of Lights")
+        val rol = 50
+        for(i in 0 until rol){
+            val angle = 6.2830 * i / rol
+            val radius = 50.0
+            val light = addE(changes, ringOfLights, "Light[$i]")
+            setE(changes, light, "position", Vector3d(radius * cos(angle), 20.0, radius * sin(angle)))
+            setE(changes, light, "scale", Vector3d(100.0))
+            val c = addC(changes, light, "PointLight")
+            setC(changes, c, "color", HSLuv.toRGB(Vector3f(angle.toFloat(), 0.7f, 0.7f)).mul(20f))
+        }
 
         ////////////////////
         // physics tests //
@@ -89,6 +119,7 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
 
         // add a floor for testing
         val cubePath = OS.documents.getChild("cube.obj")
+        val cubePathNormals = OS.documents.getChild("cube shield.glb")
         val floor = addE(changes, physics, "Floor", cubePath)
         setE(changes, floor, "position", Vector3d(0.0, -50.0, 0.0))
         setE(changes, floor, "scale", Vector3d(200.0, 50.0, 200.0))
@@ -99,30 +130,57 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         setC(changes, floorCollider, "halfExtends", Vector3d(1.0))
 
         // add spheres for testing
-        val sphereMesh = OS.documents.getChild("sphere.obj")
+        /*val sphereMesh = OS.documents.getChild("sphere.obj")
         for (i in 0 until 4) {
             val sphere = addE(changes, physics, "Sphere[$i]", sphereMesh)
             setE(changes, sphere, "position", Vector3d(0.0, (i + 2) * 2.1, 0.0))
             addC(changes, sphere, "Rigidbody")
             addC(changes, sphere, "SphereCollider")
         }
-
+        */
         // add a cube of cubes for frustum testing
-        val frustum = addE(changes, world, "Frustum Testing")
+        /*val frustum = addE(changes, world, "Frustum Testing")
         for (x in -5..5) {
-            for (y in -5..25) {
+            // for testing bounding boxes more
+            val xGroup = addE(changes, frustum, "Group-$x")
+            for (y in -5..5) {
                 for (z in -5..5) {
                     // meshes
-                    val cube = addE(changes, frustum, "Cube[$x,$y,$z]", cubePath)
+                    val cube = addE(changes, xGroup, "Cube[$x,$y,$z]", cubePathNormals)
                     setE(changes, cube, "position", Vector3d(x * 5.0, y * 5.0 + 30.0, z * 5.0))
                     // a little random rotation
                     val q = Quaterniond(Math.random(), Math.random(), Math.random(), Math.random()).normalize()
                     setE(changes, cube, "rotation", q)
                     // physics test
-                    addC(changes, cube, "CylinderCollider")
-                    addC(changes, cube, "Rigidbody")
+                    addC(changes, cube, "BoxCollider")
+                    val rigid = addC(changes, cube, "Rigidbody")
+                    setC(changes, rigid, "friction", 0.0)
+                    setC(changes, rigid, "restitution", 0.0)
                 }
             }
+        }*/
+
+        // normal testing
+        val normalTesting = addE(changes, world, "Normal Testing")
+        val l = 100
+        for (i in 0 until l) {
+            for (j in 0 until 2) {
+                val cube = addE(changes, normalTesting, "Cube[$i]", cubePathNormals)
+                val angle = (i + (j.and(1) * 0.5)) * 6.2830 / l
+                setE(changes, cube, "position", Vector3d(cos(angle) * l / 2, 1.0 + 2 * j, sin(angle) * l / 2))
+                setE(changes, cube, "rotation", Quaterniond().rotateY(-angle).rotateX(j * 6.2830 / 8))
+            }
+        }
+
+
+        // todo row of planets
+        val spherePath = OS.documents.getChild("sphere.obj")
+        val planets = addE(changes, world, "Planets")
+        for (i in -50..50) {
+            val size = 10.0.pow(i.toDouble())
+            val sphere = addE(changes, planets, "Sphere $size", spherePath)
+            setE(changes, sphere, "position", Vector3d(0.0, 0.0, 3.0 * size))
+            setE(changes, sphere, "scale", Vector3d(size))
         }
 
     }, false).toByteArray()

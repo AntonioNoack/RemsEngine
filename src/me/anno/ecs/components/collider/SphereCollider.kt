@@ -12,9 +12,9 @@ class SphereCollider : Collider() {
 
     override val className get() = "SphereCollider"
 
-    override fun getSignedDistance(deltaPosition: Vector3d, movement: Vector3d): Double {
+    /*override fun getSignedDistance(deltaPosition: Vector3d, movement: Vector3d): Double {
         return deltaPosition.length() - radius
-    }
+    }*/
 
     override fun createBulletShape(scale: Vector3d): CollisionShape {
         return SphereShape(radius * scale.dot(0.33, 0.34, 0.33))

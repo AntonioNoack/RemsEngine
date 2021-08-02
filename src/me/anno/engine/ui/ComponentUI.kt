@@ -24,6 +24,7 @@ import me.anno.ecs.annotations.Range.Companion.minUByte
 import me.anno.ecs.annotations.Range.Companion.minUInt
 import me.anno.ecs.annotations.Range.Companion.minULong
 import me.anno.ecs.annotations.Range.Companion.minUShort
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.IProperty
 import me.anno.io.ISaveable
 import me.anno.language.translation.NameDesc
@@ -127,6 +128,7 @@ object ComponentUI {
             -> value.javaClass.simpleName
 
             is Inspectable -> "Inspectable"
+            is PrefabSaveable -> "PrefabSaveable"
 
             // todo edit native arrays (byte/short/int/float/...) as images
 
@@ -182,7 +184,7 @@ object ComponentUI {
 
             // is ISaveable -> { list all child properties }
             else -> {
-                return TextPanel("?? $title", style)
+                return TextPanel("?? $title, ${value?.javaClass}", style)
             }
         }
 
@@ -380,7 +382,7 @@ object ComponentUI {
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector2f, false) }
                     setChangeListener { x, y, _, _ ->
-                        value.set(x, y)
+                        property.set(this, Vector2f(x.toFloat(), y.toFloat()))
                     }
                 }
             }
@@ -391,7 +393,7 @@ object ComponentUI {
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector3f, false) }
                     setChangeListener { x, y, z, _ ->
-                        value.set(x, y, z)
+                        property.set(this, Vector3f(x.toFloat(), y.toFloat(), z.toFloat()))
                     }
                 }
             }
@@ -402,7 +404,7 @@ object ComponentUI {
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector4f, false) }
                     setChangeListener { x, y, z, w ->
-                        value.set(x, y, z, w)
+                        property.set(this, Vector4f(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()))
                     }
                 }
             }
@@ -413,7 +415,7 @@ object ComponentUI {
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector2d, false) }
                     setChangeListener { x, y, _, _ ->
-                        value.set(x, y)
+                        property.set(this, Vector2d(x, y))
                     }
                 }
             }
@@ -424,7 +426,7 @@ object ComponentUI {
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector3d, false) }
                     setChangeListener { x, y, z, _ ->
-                        value.set(x, y, z)
+                        property.set(this, Vector3d(x, y, z))
                     }
                 }
             }
@@ -435,7 +437,7 @@ object ComponentUI {
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector4d, false) }
                     setChangeListener { x, y, z, w ->
-                        value.set(x, y, z, w)
+                        property.set(this, Vector4d(x, y, z, w))
                     }
                 }
             }
@@ -448,7 +450,7 @@ object ComponentUI {
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector2i, false) }
                     setChangeListener { x, y, _, _ ->
-                        value.set(x, y)
+                        property.set(this, Vector2i(x, y))
                     }
                 }
             }
@@ -459,7 +461,7 @@ object ComponentUI {
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector3i, false) }
                     setChangeListener { x, y, z, _ ->
-                        value.set(x, y, z)
+                        property.set(this, Vector3i(x, y, z))
                     }
                 }
             }
@@ -470,7 +472,7 @@ object ComponentUI {
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector4i, false) }
                     setChangeListener { x, y, z, w ->
-                        value.set(x, y, z, w)
+                        property.set(this, Vector4i(x, y, z, w))
                     }
                 }
             }
@@ -485,7 +487,8 @@ object ComponentUI {
                     askForReset(property) { setValue((it as Quaternionf).toEulerAnglesDegrees(), false) }
                     setResetListener { property.reset(this) }
                     setChangeListener { x, y, z, _ ->
-                        value.set(Vector3f(x.toFloat(), y.toFloat(), z.toFloat()).toQuaternionDegrees())
+                        val q = Vector3f(x.toFloat(), y.toFloat(), z.toFloat()).toQuaternionDegrees()
+                        property.set(this, q)
                     }
                 }
             }
@@ -497,7 +500,7 @@ object ComponentUI {
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue((it as Quaterniondc).toEulerAnglesDegrees(), false) }
                     setChangeListener { x, y, z, _ ->
-                        value.set(Vector3d(x, y, z).toQuaternionDegrees())
+                        property.set(this, Vector3d(x, y, z).toQuaternionDegrees())
                     }
                 }
             }
@@ -512,6 +515,7 @@ object ComponentUI {
                 for (i in 0 until 4) {
                     panel.add(VectorInput("", visibilityKey, value.getRow(i, Vector4f()), Type.VEC4, style)
                         .apply {
+                            // todo correct change listener
                             setChangeListener { x, y, z, w ->
                                 value.setRow(i, Vector4f(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()))
                             }
@@ -608,6 +612,11 @@ object ComponentUI {
                 return list
             }
 
+            "PrefabSaveable", "Material", "Mesh", "MorphTarget" -> {
+                value as? PrefabSaveable
+                return TextPanel("todo: prefab saveable, ${value?.javaClass?.name}", style)
+            }
+
             // todo nice ui inputs for array types and maps
 
             /*is Map<*, *> -> {
@@ -629,7 +638,7 @@ object ComponentUI {
                 if ('<' in type0) {
                     val index0 = type0.indexOf('<')
                     val index1 = type0.lastIndexOf('>')
-                    val mainType = type0.substring(index0).trim()
+                    val mainType = type0.substring(0, index0).trim()
                     val generics = type0.substring(index0 + 1, index1).trim()
                     when (mainType) {
                         "Array" -> {
@@ -680,12 +689,15 @@ object ComponentUI {
                         }
                         // todo pair and triple
                         // other generic types? stacks, queues, ...
+                        else -> {
+                            LOGGER.warn("Unknown generic type: $mainType<$generics>")
+                        }
                     }
                 }
 
                 LOGGER.warn("Missing knowledge to edit $type0, $title")
 
-                return TextPanel("?? $title", style)
+                return TextPanel("?? $title : ${value?.javaClass?.simpleName}", style)
 
             }
         }

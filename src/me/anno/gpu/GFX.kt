@@ -138,7 +138,7 @@ object GFX : GFXBase1() {
     var smoothSin = 0.0
     var smoothCos = 0.0
 
-    var drawnTransform: Transform? = null
+    var drawnId = 0
 
     val inFocus = HashSet<Panel>()
     val inFocus0 get() = inFocus.firstOrNull()
@@ -250,23 +250,23 @@ object GFX : GFXBase1() {
     }
 
     fun shaderColor(shader: Shader, name: String, color: Int) {
-        if (drawMode == ShaderPlus.DrawMode.ID) {
-            val id = drawnTransform!!.clickId
-            shader.v4(name, id.b() / 255f, id.g() / 255f, id.r() / 255f, 1f)
-        } else {
-            shader.v4(name, color)
+        when (drawMode) {
+            ShaderPlus.DrawMode.ID -> shaderId(shader, name)
+            else -> shader.v4(name, color)
         }
     }
 
     fun shaderColor(shader: Shader, name: String, color: Vector4fc?) {
-        if (drawMode == ShaderPlus.DrawMode.ID) {
-            val id = drawnTransform!!.clickId
-            shader.v4(name, id.b() / 255f, id.g() / 255f, id.r() / 255f, 1f)
-        } else if (color != null) {
-            shader.v4(name, color)
-        } else {
-            shader.v4(name, 1f)
+        when {
+            drawMode == ShaderPlus.DrawMode.ID -> shaderId(shader, name)
+            color != null -> shader.v4(name, color)
+            else -> shader.v4(name, 1f)
         }
+    }
+
+    fun shaderId(shader: Shader, name: String) {
+        val id = drawnId
+        shader.v4(name, id.b() / 255f, id.g() / 255f, id.r() / 255f, 1f)
     }
 
     fun toRadians(f: Float) = Math.toRadians(f.toDouble()).toFloat()

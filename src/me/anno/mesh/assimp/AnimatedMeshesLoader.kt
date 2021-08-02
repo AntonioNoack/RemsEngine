@@ -8,7 +8,10 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent.Companion.MAX_WEIGHTS
 import me.anno.ecs.components.mesh.MorphTarget
-import me.anno.ecs.prefab.*
+import me.anno.ecs.prefab.CAdd
+import me.anno.ecs.prefab.CSet
+import me.anno.ecs.prefab.Change
+import me.anno.ecs.prefab.Prefab
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.mesh.assimp.AnimGameItem.Companion.maxBones
@@ -77,7 +80,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         val boneMap = HashMap<String, Bone>()
         val meshes = loadMeshes(aiScene, materials, boneList, boneMap)
         val (hierarchy, hierarchyPrefab) = buildScene(aiScene, meshes)
-        hierarchyPrefab.createInstance()
+        // hierarchyPrefab.createInstance()
         val skeleton = if (boneList.isEmpty()) null else addSkeleton(hierarchy, hierarchyPrefab, boneList)
         val animations = if (boneList.isEmpty()) null else loadAnimations(aiScene, boneList, boneMap)
         skeleton?.animations?.putAll(animations!!)
@@ -112,7 +115,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         }
         changes as MutableList<Change>
         changes.addAll(skeletonAssignments)
-        for (renderer in hierarchy.getComponentsInChildren<AnimRenderer>(true)) {
+        for (renderer in hierarchy.getComponentsInChildren(AnimRenderer::class, true)) {
             renderer.skeleton = skeleton
         }
         return skeleton
@@ -467,13 +470,16 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         aiMesh: AIMesh,
         boneList: ArrayList<Bone>,
         boneMap: HashMap<String, Bone>,
-        boneIds: ByteArray, weights: FloatArray
-    ) {
+        vertexCount: Int
+    ): Pair<ByteArray, FloatArray>? {
 
         val weightSet: MutableMap<Int, MutableList<VertexWeight>> = HashMap()
         val numBones = aiMesh.mNumBones()
 
         if (numBones > 0) {
+
+            val boneIds = ByteArray(vertexCount * MAX_WEIGHTS)
+            val boneWeights = FloatArray(vertexCount * MAX_WEIGHTS)
 
             val aiBones = aiMesh.mBones()!!
             boneList.ensureCapacity(boneList.size + numBones)
@@ -508,66 +514,50 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                 }
 
             }
+
+            val numVertices = aiMesh.mNumVertices()
+            val maxBoneId = maxBones - 1
+            for (i in 0 until numVertices) {
+                val vertexWeightList = weightSet[i]
+                if (vertexWeightList != null) {
+                    vertexWeightList.sortByDescending { it.weight }
+                    val size = min(vertexWeightList.size, MAX_WEIGHTS)
+                    val startIndex = i * MAX_WEIGHTS
+                    boneWeights[startIndex] = 1f
+                    for (j in 0 until size) {
+                        val vw = vertexWeightList[j]
+                        boneWeights[startIndex + j] = vw.weight
+                        boneIds[startIndex + j] = min(vw.boneId, maxBoneId).toByte()
+                    }
+                } else boneWeights[i * MAX_WEIGHTS] = 1f
+            }
+
+            return boneIds to boneWeights
+
         }
 
-        val numVertices = aiMesh.mNumVertices()
-        val maxBoneId = maxBones - 1
-        for (i in 0 until numVertices) {
-            val vertexWeightList = weightSet[i]
-            if (vertexWeightList != null) {
-                vertexWeightList.sortByDescending { it.weight }
-                val size = min(vertexWeightList.size, MAX_WEIGHTS)
-                val startIndex = i * MAX_WEIGHTS
-                weights[startIndex] = 1f
-                for (j in 0 until size) {
-                    val vw = vertexWeightList[j]
-                    weights[startIndex + j] = vw.weight
-                    boneIds[startIndex + j] = min(vw.boneId, maxBoneId).toByte()
-                }
-            } else weights[i * MAX_WEIGHTS] = 1f
-        }
+        return null
 
     }
 
-    private fun createMesh(
+    fun createMesh(
         aiMesh: AIMesh,
         materials: Array<Material>,
         boneList: ArrayList<Bone>,
         boneMap: HashMap<String, Bone>
     ): Mesh {
 
+        val mesh = createMesh(aiMesh, materials)
+
         val vertexCount = aiMesh.mNumVertices()
-        val vertices = FloatArray(vertexCount * 3)
-        val uvs = FloatArray(vertexCount * 2)
-        val normals = FloatArray(vertexCount * 3)
-        val boneIds = ByteArray(vertexCount * MAX_WEIGHTS)
-        val boneWeights = FloatArray(vertexCount * MAX_WEIGHTS)
-        val color0 = IntArray(vertexCount)
-        val indices = IntArray(aiMesh.mNumFaces() * 3)
-
-        processPositions(aiMesh, vertices)
-        processNormals(aiMesh, normals)
-        processUVs(aiMesh, uvs)
-        processIndices(aiMesh, indices)
-        processVertexColors(aiMesh, color0)
-        processBones(aiMesh, boneList, boneMap, boneIds, boneWeights)
-
-        val mesh = Mesh()
-        mesh.positions = vertices
-        mesh.normals = normals
-        mesh.uvs = uvs
-        mesh.color0 = color0
-        mesh.indices = indices
-        mesh.boneIndices = boneIds
-        mesh.boneWeights = boneWeights
+        val boneData = processBones(aiMesh, boneList, boneMap, vertexCount)
+        if (boneData != null) {
+            mesh.boneIndices = boneData.first
+            mesh.boneWeights = boneData.second
+        }
 
         val morphTargets = loadMorphTargets(aiMesh)
         mesh.morphTargets.addAll(morphTargets)
-
-        val materialIdx = aiMesh.mMaterialIndex()
-        if (materialIdx in materials.indices) {
-            mesh.material = materials[materialIdx]
-        }
 
         return mesh
 

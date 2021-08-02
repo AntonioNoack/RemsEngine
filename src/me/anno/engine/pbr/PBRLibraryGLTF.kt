@@ -63,8 +63,8 @@ object PBRLibraryGLTF {
      * */
     val specularAttenuation = "" +
             "float computeSpecularAttenuation(float roughness, vec3 V, vec3 N, vec3 L, vec3 H){\n" +
-            "    float NdotL = clamp(dot(N, L), 0.0, 1.0);\n" +
-            "    float NdotV = clamp(dot(N, V), 0.0, 1.0);\n" +
+            "    float NdotL = dot(N, L);\n" + // guaranteed to be > 0
+            "    float NdotV = abs(dot(N, V));\n" + // back face gets same shading (if < 0)
             "    float k = (roughness + 1.0) * (roughness + 1.0) * 0.125;\n" +
             "    \n" +
             "    float GL = NdotL / (NdotL * (1.0 - k) + k);\n" +
@@ -81,29 +81,24 @@ object PBRLibraryGLTF {
      * to the viewer V, the vector from the surface to the light L,
      * and the half vector H
      * */
-    val specularBRDF = "" +
-            "vec3 computeSpecularBRDF(vec4 baseColor, float metallic, float roughness, vec3 V, vec3 N, vec3 L, vec3 H){\n" +
+    val specularBRDFv2 = "" +
+            "vec3 computeSpecularBRDF(vec3 specularInputColor, float roughness, vec3 V, vec3 N, vec3 L, float NdotL, vec3 H){\n" +
             // Compute the microfacet distribution (D)
             "    float microfacetDistribution = computeMicrofacetDistribution(H, N, roughness);\n" +
             "    \n" +
             // Compute the specularly reflected color (F)\n
-            "    vec3 specularInputColor = (baseColor.rgb * metallic);\n" +
             "    vec3 specularReflectance = computeSpecularReflectance(specularInputColor, V, H);\n" +
             "    \n" +
             // Compute the geometric specular attenuation (G)
             "    float specularAttenuation = computeSpecularAttenuation(roughness, V, N, L, H);\n" +
             "    \n" +
             // The seemingly arbitrary clamping to avoid divide-by-zero was inspired by [6].
-            "    float NdotV = dot(N, V);\n" +
-            "    float NdotL = dot(N, L);\n" +
+            "    float NdotV = abs(dot(N, V));\n" +
             "    vec3 specularBRDF = vec3(0.0);\n" +
-            "    if (NdotV > 0.0001 && NdotL > 0.0001){\n" +
-            "        float d = microfacetDistribution;\n" +
-            "        vec3 f = specularReflectance;\n" +
-            "        float g = specularAttenuation;\n" +
-            "        specularBRDF = (d * f * g) / (4.0 * NdotL * NdotV);\n" +
-            "    }\n" +
-            "    return specularBRDF;\n" +
+            "    float d = microfacetDistribution;\n" +
+            "    vec3 f = specularReflectance;\n" +
+            "    float g = specularAttenuation;\n" +
+            "    return (d * f * g) / (4.0 * NdotL * NdotV);\n" +
             "}\n"
 
     /**
@@ -116,7 +111,7 @@ object PBRLibraryGLTF {
             microfacetDistribution +
             specularReflectance +
             specularAttenuation +
-            specularBRDF +
+            specularBRDFv2 +
             "vec3 combineMainColor(vec3 baseColor, vec3 normal, float metallic, float roughness, vec3 emissive, float occlusionFactor, vec3 lightDir){\n" +
             "    \n" +
             // if the light and the normal are in opposite directions, won't be light
@@ -129,8 +124,8 @@ object PBRLibraryGLTF {
             "    vec3 diffuseColor = baseColor.rgb * (1.0 - metallic);\n" + // diffuse part (lerped influence)
             "    vec3 diffuse = diffuseColor * NdotL;\n" +
             "    \n" +
-            "    vec3 specularInputColor = (baseColor.rgb * metallic);\n" + // specular part (lerped influence)
-            "    vec3 specularBRDF = computeSpecularBRDF(baseColor, metallic, roughness, V, normal, lightDir, H);\n" +
+            "    vec3 specularInputColor = baseColor.rgb * metallic;\n" + // specular part (lerped influence)
+            "    vec3 specularBRDF = computeSpecularBRDF(specularInputColor, roughness, V, normal, lightDir, H);\n" +
             "    vec3 specular = specularInputColor * specularBRDF;\n" +
             "    \n" +
             "    return diffuse + specular;\n" + // we could accumulate this in the light buffer

@@ -11,7 +11,7 @@ import me.anno.objects.Transform.Companion.toTransform
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.studio.rems.Selection
-import me.anno.studio.rems.ui.TransformFileImporter.addChildFromFile
+import me.anno.studio.rems.ui.StudioFileImporter.addChildFromFile
 import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding

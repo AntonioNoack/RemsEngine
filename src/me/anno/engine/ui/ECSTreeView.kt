@@ -6,6 +6,7 @@ import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.treeView.AbstractTreeView
 import me.anno.ui.style.Style
 import me.anno.utils.structures.lists.UpdatingList
+import org.joml.Vector4f
 
 // todo runtime and pre-runtime view
 // todo unity oriented
@@ -37,6 +38,12 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
         element.onDestroy()
     }
 
+    override fun getLocalColor(element: Entity, dst: Vector4f): Vector4f {
+        val c = if (element.listOfHierarchy.all { it.isEnabled }) 1f else 0.5f
+        dst.set(1f, 1f, 1f, c)
+        return dst
+    }
+
     override fun getChildren(element: Entity): List<Entity> {
         return element.children
     }
@@ -47,6 +54,8 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
 
     override fun setCollapsed(element: Entity, collapsed: Boolean) {
         element.isCollapsed = collapsed
+        needsTreeUpdate = true
+        invalidateLayout()
     }
 
     override fun addAfter(self: Entity, sibling: Entity) {
@@ -106,7 +115,7 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
     override val selectedElement: Entity? = library.selection as? Entity
 
     override fun selectElement(element: Entity?) {
-        library.selection = element
+        library.select(element)
         lastSelection = element
     }
 

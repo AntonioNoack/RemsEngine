@@ -2,15 +2,14 @@ package me.anno.ui.editor.files
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.windowStack
 import me.anno.input.Input
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.FileRootRef
 import me.anno.language.translation.NameDesc
-import me.anno.objects.Transform
 import me.anno.objects.Transform.Companion.toTransform
 import me.anno.studio.StudioBase.Companion.addEvent
-import me.anno.studio.rems.RemsStudio.project
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
@@ -21,6 +20,7 @@ import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.scrolling.ScrollPanelY
+import me.anno.ui.editor.files.FileExplorerEntry.Companion.deleteFileMaybe
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
@@ -47,7 +47,41 @@ import kotlin.math.max
 // done a stack or history to know where we were
 // todo left list of relevant places? todo drag stuff in there
 
-class FileExplorer(file0: FileReference?, style: Style) : PanelListY(style.getChild("fileExplorer")) {
+abstract class FileExplorer(
+    initialLocation: FileReference?,
+    style: Style
+) : PanelListY(style.getChild("fileExplorer")) {
+
+    abstract fun getRightClickOptions(): List<FileExplorerOption>
+
+    open fun openOptions(file: FileReference) {
+        openMenu(getFileOptions().map {
+            MenuOption(it.nameDesc) {
+                it.onClick(file)
+            }
+        })
+    }
+
+    open fun getFileOptions(): List<FileExplorerOption> {
+        // todo additional options for the game engine, e.g. create prefab, open as scene
+        // todo add option to open json in specialized json editor...
+        val rename = FileExplorerOption(NameDesc("Rename", "Change the name of this file", "ui.file.rename")) {
+            onGotAction(0f, 0f, 0f, 0f, "Rename", false)
+        }
+        val openInExplorer = FileExplorerOption(
+            NameDesc(
+                "Open in Explorer",
+                "Open the file in your default file explorer",
+                "ui.file.openInExplorer"
+            )
+        ) { it.openInExplorer() }
+        val delete = FileExplorerOption(
+            NameDesc("Delete", "Delete this file", "ui.file.delete"),
+        ) { deleteFileMaybe(it) }
+        return listOf(rename, openInExplorer, delete)
+    }
+
+    abstract fun onDoubleClick(file: FileReference)
 
     val searchBar = TextInput("Search Term", "", false, style)
         .setChangeListener {
@@ -57,7 +91,7 @@ class FileExplorer(file0: FileReference?, style: Style) : PanelListY(style.getCh
         .setWeight(1f)
 
     var historyIndex = 0
-    val history = arrayListOf(file0 ?: OS.documents)
+    val history = arrayListOf(initialLocation ?: OS.documents)
 
     val folder get() = history[historyIndex]
 
@@ -66,11 +100,6 @@ class FileExplorer(file0: FileReference?, style: Style) : PanelListY(style.getCh
 
     var entrySize = 64f
     val minEntrySize = 32f
-
-    fun invalidate() {
-        isValid = 0f
-        invalidateLayout()
-    }
 
     val uContent = PanelListX(style)
     val content = PanelListMultiline(style)
@@ -101,6 +130,11 @@ class FileExplorer(file0: FileReference?, style: Style) : PanelListY(style.getCh
             AxisAlignment.MIN
         ).setWeight(1f)
         uContent += content.setWeight(3f)
+    }
+
+    fun invalidate() {
+        isValid = 0f
+        invalidateLayout()
     }
 
     fun removeOldFiles() {
@@ -253,8 +287,6 @@ class FileExplorer(file0: FileReference?, style: Style) : PanelListY(style.getCh
                     listOf(
                         MenuOption(NameDesc("Create Folder", "Creates a new directory", "ui.newFolder")) {
                             askName(
-                                x.toInt(),
-                                y.toInt(),
                                 NameDesc("Name", "", "ui.newFolder.askName"),
                                 "",
                                 NameDesc("Create"),
@@ -262,23 +294,6 @@ class FileExplorer(file0: FileReference?, style: Style) : PanelListY(style.getCh
                                 val validName = it.toAllowedFilename()
                                 if (validName != null) {
                                     getReference(home, validName).mkdirs()
-                                    invalidate()
-                                }
-                            }
-                        },
-                        MenuOption(NameDesc("Create Component", "Create a new folder component", "ui.newComponent")) {
-                            askName(
-                                x.toInt(),
-                                y.toInt(),
-                                NameDesc("Name", "", "ui.newComponent.askName"),
-                                "",
-                                NameDesc("Create"),
-                                { -1 }) {
-                                val validName = it.toAllowedFilename()
-                                if (validName != null) {
-                                    getReference(home, "${validName}.json").writeText(Transform()
-                                        .apply { name = it }
-                                        .toString())
                                     invalidate()
                                 }
                             }
@@ -292,7 +307,11 @@ class FileExplorer(file0: FileReference?, style: Style) : PanelListY(style.getCh
                         ) {
                             folder.openInExplorer()
                         }
-                    ))
+                    ) + getRightClickOptions().map {
+                        MenuOption(it.nameDesc) {
+                            it.onClick(folder)
+                        }
+                    })
             }
             "Back", "Backward" -> back()
             "Forward" -> forward()
@@ -354,6 +373,17 @@ class FileExplorer(file0: FileReference?, style: Style) : PanelListY(style.getCh
         private val forbiddenConfig =
             DefaultConfig["files.forbiddenCharacters", "<>:\"/\\|?*"] + String(CharArray(32) { it.toChar() })
         val forbiddenCharacters = forbiddenConfig.toHashSet()
+
+        fun invalidateFileExplorers() {
+            windowStack.forEach { window ->
+                window.panel.listOfAll {
+                    if (it is FileExplorer) {
+                        it.invalidate()
+                    }
+                }
+            }
+        }
+
     }
 
 }

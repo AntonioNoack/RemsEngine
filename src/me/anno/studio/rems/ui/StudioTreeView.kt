@@ -18,17 +18,19 @@ import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.treeView.AbstractTreeView
 import me.anno.ui.style.Style
+import me.anno.utils.Maths.clamp
 import me.anno.utils.structures.lists.UpdatingList
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
+import org.joml.Vector4f
 import java.util.*
 
 // todo select multiple elements, filter for common properties, and apply them all together :)
 
-class TransformTreeView(style: Style) :
+class StudioTreeView(style: Style) :
     AbstractTreeView<Transform>(
         UpdatingList { listOf(nullCamera!!, root) },
-        TransformFileImporter, true, style
+        StudioFileImporter, true, style
     ) {
 
     override fun getSymbol(element: Transform): String {
@@ -105,6 +107,12 @@ class TransformTreeView(style: Style) :
         Companion.openAddMenu(parent)
     }
 
+    override fun getLocalColor(element: Transform, dst: Vector4f): Vector4f {
+        element.getLocalColor(dst.set(1f))
+        dst.w = 0.5f + 0.5f * clamp(dst.w, 0f, 1f)
+        return dst
+    }
+
     companion object {
 
         fun zoomToObject(obj: Transform) {
@@ -129,7 +137,7 @@ class TransformTreeView(style: Style) :
              }*/
         }
 
-        private val LOGGER = LogManager.getLogger(TransformTreeView::class)
+        private val LOGGER = LogManager.getLogger(StudioTreeView::class)
         fun openAddMenu(baseTransform: Transform) {
             fun add(action: (Transform) -> Transform): () -> Unit = { Selection.selectTransform(action(baseTransform)) }
             val options = DefaultConfig["createNewInstancesList"] as? StringMap

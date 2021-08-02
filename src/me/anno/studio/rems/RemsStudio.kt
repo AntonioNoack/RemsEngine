@@ -11,6 +11,7 @@ import me.anno.input.Input.keyUpCtr
 import me.anno.installer.Installer.checkInstall
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.InvalidRef
 import me.anno.language.translation.Dict
 import me.anno.objects.Camera
 import me.anno.objects.Transform
@@ -19,10 +20,13 @@ import me.anno.studio.StudioBase
 import me.anno.studio.cli.RemsCLI
 import me.anno.studio.project.Project
 import me.anno.studio.rems.CheckVersion.checkVersion
-import me.anno.studio.rems.ui.TransformTreeView
+import me.anno.studio.rems.ui.StudioFileExplorer
+import me.anno.studio.rems.ui.StudioFileImporter
+import me.anno.studio.rems.ui.StudioTreeView
 import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.UILayouts
+import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.sceneTabs.SceneTabs.currentTab
 import me.anno.ui.editor.sceneView.ISceneView
 import me.anno.utils.OS
@@ -143,6 +147,33 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
             DefaultConfig.putAll(value.data)
         }
 
+    override fun openHistory() {
+        history?.display()
+    }
+
+    override fun save() {
+        project?.save()
+    }
+
+    override fun getDefaultFileLocation(): FileReference {
+        return project?.file ?: InvalidRef
+    }
+
+    override fun getPersistentStorage(): FileReference {
+        return project?.file ?: super.getPersistentStorage()
+    }
+
+    override fun importFile(file: FileReference) {
+        addEvent {
+            StudioFileImporter.addChildFromFile(
+                root,
+                file,
+                FileContentImporter.SoftLinkMode.ASK,
+                true
+            ) {}
+        }
+    }
+
     var project: Project? = null
 
     var editorTime = 0.5
@@ -231,7 +262,7 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
         for (window in GFX.windowStack) {
             for (panel in window.panel.listOfVisible) {
                 when (panel) {
-                    is TransformTreeView, is ISceneView, is TimelinePanel -> {
+                    is StudioTreeView, is ISceneView, is TimelinePanel -> {
                         panel.invalidateDrawing()
                     }
                     is PropertyInspector -> {

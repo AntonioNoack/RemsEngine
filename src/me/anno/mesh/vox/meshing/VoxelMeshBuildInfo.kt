@@ -47,7 +47,7 @@ class VoxelMeshBuildInfo(
         if (normals != null) {
             normals += nx
             normals += ny
-            normals += ny
+            normals += nz
         }
         colors?.add(color)
     }
@@ -59,7 +59,7 @@ class VoxelMeshBuildInfo(
         if (normals != null) {
             normals += nx
             normals += ny
-            normals += ny
+            normals += nz
         }
         colors?.add(color)
     }
@@ -71,7 +71,7 @@ class VoxelMeshBuildInfo(
         if (normals != null) {
             normals += nx
             normals += ny
-            normals += ny
+            normals += nz
         }
         colors?.add(color)
     }

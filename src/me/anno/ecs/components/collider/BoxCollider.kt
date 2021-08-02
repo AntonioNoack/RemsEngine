@@ -19,14 +19,14 @@ class BoxCollider : Collider() {
     override val className get() = "BoxCollider"
 
     // we could use this for our own physics engine...
-    override fun getSignedDistance(deltaPosition: Vector3d, movement: Vector3d): Double {
+    /*override fun getSignedDistance(deltaPosition: Vector3d, movement: Vector3d): Double {
         deltaPosition.absolute()
         deltaPosition.sub(halfExtends)
         deltaPosition.add(cornerRoundness, cornerRoundness, cornerRoundness)
         val outside = length(max(deltaPosition.x, 0.0), max(deltaPosition.y, 0.0), max(deltaPosition.z, 0.0))
         val inside = min(max(deltaPosition.x, max(deltaPosition.y, deltaPosition.z)), 0.0)
         return outside + inside - cornerRoundness
-    }
+    }*/
 
     override fun createBulletShape(scale: Vector3d): CollisionShape {
         return BoxShape(

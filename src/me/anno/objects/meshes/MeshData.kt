@@ -161,7 +161,7 @@ open class MeshData : ICacheData {
             )
         )
 
-        val meshes = entity.getComponents<MeshComponent>(false).mapNotNull { it.mesh }
+        val meshes = entity.getComponents(MeshComponent::class, false).mapNotNull { it.mesh }
         if (meshes.isNotEmpty()) {
 
             shader.m4x3("localTransform", stack)

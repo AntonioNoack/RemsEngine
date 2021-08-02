@@ -15,29 +15,31 @@ import me.anno.ui.input.components.Checkbox
 import me.anno.ui.style.Style
 import me.anno.utils.types.Strings.isBlank2
 
-class PropertyInspector(val getInspectable: () -> Inspectable?, style: Style) :
+class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Style) :
     ScrollPanelY(Padding(3), AxisAlignment.MIN, style.getChild("propertyInspector")) {
+
+    constructor(getInspectable: () -> Inspectable?, style: Style, ignored: Unit) :
+            this({ getInspectable().run { if (this == null) emptyList() else listOf(this) } }, style)
 
     val list = child as PanelListY
     val secondaryList = PanelListY(style)
-    var lastSelected: Inspectable? = null
+    var lastSelected: List<Inspectable> = emptyList()
     private var needsUpdate = false
 
     fun invalidate() {
-        // println("updating property inspector")
         needsUpdate = true
     }
 
-    override fun getLayoutState(): Any? = getInspectable()
+    override fun getLayoutState(): List<Inspectable> = getInspectables()
 
     override fun tickUpdate() {
         super.tickUpdate()
-        val selected = getInspectable()
+        val selected = getInspectables()
         if (selected != lastSelected) {
             lastSelected = selected
             needsUpdate = false
             list.clear()
-            if (selected != null) {
+            if (selected.isNotEmpty()) {
                 createInspector(selected, list, style)
             }
         } else if (needsUpdate) {
@@ -45,7 +47,7 @@ class PropertyInspector(val getInspectable: () -> Inspectable?, style: Style) :
             lastSelected = selected
             needsUpdate = false
             secondaryList.clear()
-            if (selected != null) {
+            if (selected.isNotEmpty()) {
                 createInspector(selected, secondaryList, style)
             }
             // is matching required? not really
@@ -58,7 +60,7 @@ class PropertyInspector(val getInspectable: () -> Inspectable?, style: Style) :
                 // don't change the value while the user is editing it
                 // this would cause bad user experience:
                 // e.g. 0.0001 would be replaced with 1e-4
-                if(d.listOfAll.any { it.isInFocus }) continue
+                if (d.listOfAll.any { it.isInFocus }) continue
                 when (s) {
                     is FloatInput -> {
                         (d as? FloatInput)?.apply {
@@ -87,9 +89,9 @@ class PropertyInspector(val getInspectable: () -> Inspectable?, style: Style) :
                     }
                 }
             }
-            if (src.hasNext() != dst.hasNext() && selected != null) {
+            if (src.hasNext() != dst.hasNext() && selected.isNotEmpty()) {
                 // we need to update the structure...
-                lastSelected = null
+                lastSelected = emptyList()
                 tickUpdate()
             }
         }
@@ -100,6 +102,22 @@ class PropertyInspector(val getInspectable: () -> Inspectable?, style: Style) :
     }
 
     companion object {
+
+        fun createInspector(ins: List<Inspectable>, list: PanelListY, style: Style) {
+            val groups = HashMap<String, SettingCategory>()
+            ins[0].createInspector(ins, list, style) { title, description, dictSubPath ->
+                groups.getOrPut(dictSubPath) {
+                    val group = SettingCategory(Dict[title, "obj.$dictSubPath"], style)
+                    list += group
+                    group
+                }.apply {
+                    if (tooltip?.isBlank2() != false) {
+                        tooltip = Dict[description, "obj.$dictSubPath.desc"]
+                    }
+                }
+            }
+        }
+
         fun createInspector(ins: Inspectable, list: PanelListY, style: Style) {
             val groups = HashMap<String, SettingCategory>()
             ins.createInspector(list, style) { title, description, dictSubPath ->
@@ -114,6 +132,7 @@ class PropertyInspector(val getInspectable: () -> Inspectable?, style: Style) :
                 }
             }
         }
+
     }
 
 }

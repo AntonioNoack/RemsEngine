@@ -1,13 +1,18 @@
 package me.anno.engine.ui.scenetabs
 
 import me.anno.config.DefaultConfig
-import me.anno.ecs.prefab.*
+import me.anno.ecs.Entity
+import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.PrefabInspector
+import me.anno.engine.ui.render.RenderView
+import me.anno.gpu.GFX.windowStack
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
+import me.anno.ui.custom.CustomContainer
 import me.anno.utils.hpc.SyncMaster
 import me.anno.utils.types.Lists.getOrPrevious
 import org.apache.logging.log4j.LogManager
@@ -25,40 +30,40 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
 
     val content = child as PanelList
     val children2 = content.children
-    val children3 get() = children2.filterIsInstance<SceneTab>()
+    val children3 get() = children2.filterIsInstance<ECSSceneTab>()
 
-    var currentTab: SceneTab? = null
+    var currentTab: ECSSceneTab? = null
         set(value) {
-            if(field != value){
+            if (field != value) {
                 field?.onStop()
                 value?.onStart()
                 field = value
             }
         }
 
-    fun open(syncMaster: SyncMaster, prefab: Prefab): SceneTab {
+    fun open(syncMaster: SyncMaster, prefab: Prefab): ECSSceneTab {
         val opened = children3.firstOrNull { it.file == prefab.ownFile }
         return if (opened != null) {
             open(opened)
             opened
         } else {
-            val tab = SceneTab(syncMaster, prefab)
+            val tab = ECSSceneTab(syncMaster, prefab)
             content += tab
             open(tab)
             tab
         }
     }
 
-    fun open(syncMaster: SyncMaster, file: FileReference, classNameIfNull: String): SceneTab {
+    fun open(syncMaster: SyncMaster, file: FileReference, classNameIfNull: String): ECSSceneTab {
         val tab = add(syncMaster, file, classNameIfNull)
         open(tab)
         return tab
     }
 
-    fun add(syncMaster: SyncMaster, file: FileReference, classNameIfNull: String): SceneTab {
+    fun add(syncMaster: SyncMaster, file: FileReference, classNameIfNull: String): ECSSceneTab {
         val opened = children3.firstOrNull { it.file == file }
         return if (opened == null) {
-            val tab = SceneTab(syncMaster, file, classNameIfNull)
+            val tab = ECSSceneTab(syncMaster, file, classNameIfNull)
             content += tab
             tab
         } else opened
@@ -67,7 +72,7 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         when (type) {
             "SceneTab" -> {
-                val tab = dragged!!.getOriginal() as SceneTab
+                val tab = dragged!!.getOriginal() as ECSSceneTab
                 if (!tab.contains(x, y)) {
                     val oldIndex = tab.indexInParent
                     val newIndex = children2.map { it.x + it.w / 2 }.count { it < x }
@@ -87,26 +92,39 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
         }
     }
 
-    fun open(sceneTab: SceneTab) {
+    fun open(sceneTab: ECSSceneTab) {
         if (currentTab == sceneTab) return
         synchronized(this) {
             currentTab = sceneTab
             PrefabInspector.currentInspector = sceneTab.inspector
             // root = sceneTab.root
+            val prefabInstance = sceneTab.inspector.prefab.createInstance() as Entity
+            for (window in windowStack) {
+                window.panel.listOfAll {
+                    if (it is CustomContainer && it.child is RenderView) {
+                        val oldView = it.child
+                        if (oldView is RenderView) {
+                            val library = oldView.library
+                            library.world = prefabInstance
+                            library.select(prefabInstance)
+                        }
+                    }
+                }
+            }
             if (sceneTab !in children3) {
                 content += sceneTab
             }
         }
     }
 
-    fun close(sceneTab: SceneTab) {
+    fun close(sceneTab: ECSSceneTab) {
         if (currentTab === sceneTab) {
             if (children2.size == 1) {
                 LOGGER.warn(Dict["Cannot close last element", "ui.sceneTabs.cannotCloseLast"])
             } else {
                 val index = sceneTab.indexInParent
                 sceneTab.removeFromParent()
-                open(children2.getOrPrevious(index) as SceneTab)
+                open(children2.getOrPrevious(index) as ECSSceneTab)
             }
         } else sceneTab.removeFromParent()
     }

@@ -5,6 +5,7 @@ import com.bulletphysics.linearmath.Transform
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.engine.physics.BulletPhysics.Companion.convertMatrix
+import me.anno.engine.ui.render.RenderView
 import org.joml.Vector3d
 
 // todo collision-effect mappings:
@@ -23,8 +24,6 @@ abstract class Collider : Component() {
             }
         }
 
-    abstract fun getSignedDistance(deltaPosition: Vector3d, movement: Vector3d): Double
-
     // todo test that
     fun createBulletCollider(base: Entity, scale: Vector3d): Pair<Transform, CollisionShape> {
         val transform0 = entity!!.fromLocalToOtherLocal(base)
@@ -39,7 +38,7 @@ abstract class Collider : Component() {
     abstract fun createBulletShape(scale: Vector3d): CollisionShape
 
     // a collider needs to be drawn
-    override fun onDrawGUI() {
+    override fun onDrawGUI(view: RenderView) {
         // draw shape
         drawShape()
         // todo draw transformation gizmos for easy transforms

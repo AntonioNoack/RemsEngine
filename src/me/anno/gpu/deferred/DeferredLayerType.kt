@@ -15,18 +15,19 @@ enum class DeferredLayerType(
 ) {
 
     COLOR("finalColor", 3, false, 0xffffff, "", ""),
-    EMISSIVE("finalEmissive", 4, false, 0, "", ""), // 4th component for additional exponent?
+    EMISSIVE("finalEmissive", 3, false, 0, "", ""),
 
     // todo 12 bits per component? or sth like that?
     NORMAL("finalNormal", 3, false, 0x77ff77, "*0.5+0.5", "*2.0-1.0"),
-    TANGENT("finalTangent", 3, false, 0x7777ff, "", ""),
+    // todo do we need the tangent? it is calculated from uvs, so maybe for anisotropy...
+    TANGENT("finalTangent", 3, false, 0x7777ff, "*0.5+0.5", "*2.0-1.0"),
 
     // may be in camera space, player space, or world space
     // the best probably would be player space: relative to the player, same rotation, scale, etc as world
     POSITION("finalPosition", 3, true, 0, "", ""),
 
-    METALLIC("finalMetallic", 1, false, 0, "", ""),
-    ROUGHNESS("finalRoughness", 1, false, 0x77, "", ""), // roughness = 1-reflectivity
+    METALLIC("finalMetallic", 1, false, 0xff, "", ""),
+    ROUGHNESS("finalRoughness", 1, false, 0x11, "", ""), // roughness = 1-reflectivity
     OCCLUSION("finalOcclusion", 1, false, 0, "", ""), // from an occlusion texture, cavity
 
     // transparency? is a little late... finalAlpha, needs to be handled differently

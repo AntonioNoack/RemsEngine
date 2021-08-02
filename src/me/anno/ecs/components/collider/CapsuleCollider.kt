@@ -21,12 +21,12 @@ class CapsuleCollider : Collider() {
     @SerializedProperty
     var radius = 1.0
 
-    override fun getSignedDistance(deltaPosition: Vector3d, movement: Vector3d): Double {
+    /*override fun getSignedDistance(deltaPosition: Vector3d, movement: Vector3d): Double {
         deltaPosition.absolute()
         val halfExtends = height * 0.5
         deltaPosition[axis] = max(deltaPosition[axis] - halfExtends, 0.0)
         return deltaPosition.length() - radius
-    }
+    }*/
 
     override fun createBulletShape(scale: Vector3d): CollisionShape {
         return when (axis) {

@@ -7,18 +7,15 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFX.deltaTime
 import me.anno.gpu.GFX.windowStack
-import me.anno.gpu.RenderState
 import me.anno.gpu.RenderState.renderDefault
-import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.Window
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.Screenshots
 import me.anno.gpu.framebuffer.StableWindowSize
 import me.anno.gpu.shader.Renderer
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.shader.Renderer.Companion.colorRenderer
 import me.anno.input.Input
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
@@ -28,7 +25,6 @@ import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
 import me.anno.input.Touch.Companion.touches
 import me.anno.io.files.FileReference
-import me.anno.language.translation.Dict
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.objects.effects.ToneMappers
@@ -45,25 +41,18 @@ import me.anno.studio.rems.Scene
 import me.anno.studio.rems.Selection
 import me.anno.studio.rems.Selection.selectTransform
 import me.anno.studio.rems.Selection.selectedTransform
-import me.anno.studio.rems.ui.TransformFileImporter.addChildFromFile
-import me.anno.studio.rems.ui.TransformTreeView.Companion.zoomToObject
+import me.anno.studio.rems.ui.StudioFileImporter.addChildFromFile
+import me.anno.studio.rems.ui.StudioTreeView.Companion.zoomToObject
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.custom.CustomContainer
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.simple.SimplePanel
 import me.anno.ui.style.Style
-import me.anno.utils.Color.a
-import me.anno.utils.Color.b
-import me.anno.utils.Color.g
-import me.anno.utils.Color.r
-import me.anno.utils.Color.rgba
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.length
 import me.anno.utils.Maths.pow
-import me.anno.utils.OS
 import me.anno.utils.bugs.SumOf.sumOf
-import me.anno.utils.files.Files.use
 import me.anno.utils.types.Vectors.plus
 import me.anno.utils.types.Vectors.times
 import me.anno.utils.types.Vectors.toVec3f
@@ -72,13 +61,7 @@ import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL11.*
-import java.awt.image.BufferedImage
 import java.lang.Math.toDegrees
-import java.text.SimpleDateFormat
-import java.util.*
-import javax.imageio.ImageIO
-import kotlin.concurrent.thread
 import kotlin.math.atan2
 import kotlin.math.max
 import kotlin.math.min
@@ -184,7 +167,10 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
             pad * 3 + iconSize * (3 + 1), pad,
             iconSize
         ).setOnClickListener {
-            takeScreenshot()
+            val renderer = colorRenderer
+            Screenshots.takeScreenshot(stableSize.stableWidth, stableSize.stableHeight, renderer) {
+                Scene.draw(camera, root, 0, 0, w, h, editorTime, true, renderer, this)
+            }
         }
     }
 
@@ -210,7 +196,7 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
         updateStableSize()
     }
 
-    fun updateStableSize(){
+    fun updateStableSize() {
         stableSize.updateSize(w - 2 * borderThickness, h - 2 * borderThickness, camera.onlyShowTarget)
     }
 
@@ -308,148 +294,34 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
 
     }
 
-    fun takeScreenshot() {
-
-        val folder = OS.pictures.getChild("Screenshots")!!
-        folder.mkdirs()
-
-        val format = SimpleDateFormat("yyyy-MM-dd_HH.mm.ss")
-        var name = format.format(Date())
-        if (folder.getChild("$name.png")!!.exists) name += "_${System.nanoTime()}"
-        name += ".png"
-        if (folder.getChild(name)!!.exists) return // image already exists somehow...
-
-        val w = stableSize.stableWidth
-        val h = stableSize.stableHeight
-
-        addGPUTask(w, h) {
-
-            GFX.check()
-
-            val fb: Framebuffer = FBStack["screenshot", w, h, 4, false, 8]
-
-            GFX.check()
-
-            fun getPixels(renderer: Renderer): IntArray {
-                // draw only the clicked area?
-                val buffer = IntArray(w * h)
-                useFrame(fb, renderer) {
-                    GFX.check()
-                    Scene.draw(camera, root, 0, 0, w, h, editorTime, true, renderer, this)
-                    fb.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                    useFrame(fb.msBuffer) {
-                        Frame.bind()
-                        glFlush(); glFinish() // wait for everything to be drawn
-                        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-                        glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
-                        GFX.check()
-                    }
-                }
-                return buffer
-            }
-
-            GFX.check()
-
-            val data = getPixels(Renderer.colorRenderer)
-            thread {
-
-                val image = BufferedImage(w, h, 1)
-
-                for (i in data.indices) {
-                    val abgr = data[i] // rgba, but little endian
-                    val argb = rgba(abgr.b(), abgr.g(), abgr.r(), abgr.a())
-                    image.raster.dataBuffer.setElem(i, argb)
-                }
-
-                // todo actions for console messages, e.g. opening a file
-                val file = folder.getChild(name)
-                use(file.outputStream()) { ImageIO.write(image, "png", it) }
-                LOGGER.info(
-                    Dict["Saved screenshot to %1", "ui.sceneView.savedScreenshot"].replace(
-                        "%1",
-                        file.toString()
-                    )
-                )
-
-            }
-        }
-
-    }
-
-    fun getPixels(
-        camera: Camera,
-        diameter: Int,
-        localX: Int,
-        localY: Int,
-        width: Int,
-        height: Int,
-        fb: Framebuffer,
-        renderer: Renderer
-    ): IntArray {
-        val buffer = IntArray(diameter * diameter)
-        val dx = x + stableSize.dx
-        val dy = y + stableSize.dy
-        useFrame(dx, dy, fb.w, fb.h, false, fb, renderer) {
-            val radius = diameter / 2
-            val x0 = max(localX - radius, 0)
-            val y0 = max(localY - radius, 0)
-            val x1 = min(localX + radius + 1, fb.w)
-            val y1 = min(localY + radius + 1, fb.h)
-            Frame.bind()
-            // draw only the clicked area
-            RenderState.scissorTest.use(true) {
-                glScissor(x0, y0, x1 - x0, y1 - y0)
-                Scene.draw(camera, root, dx, dy, width, height, editorTime, false, renderer, this)
-                glFlush(); glFinish() // wait for everything to be drawn
-                glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-                glReadPixels(x0, y0, x1 - x0, y1 - y0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
-            }
-        }
-        return buffer
-    }
-
     fun resolveClick(clickX: Float, clickY: Float, width: Int, height: Int, callback: (Transform?) -> Unit) {
 
         val camera = camera
         GFX.check()
 
-        val fb: Framebuffer = FBStack["resolveClick", GFX.width, GFX.height, 4, false, 1]
+        val buffer: Framebuffer = FBStack["resolveClick", GFX.width, GFX.height, 4, false, 1]
 
-        val radius = 2
-        val diameter = radius * 2 + 1
+        val diameter = 5
 
-        val localX = clickX.toInt()
-        val localY = GFX.height - clickY.toInt()
+        val dx = x + stableSize.dx
+        val dy = y + stableSize.dy
 
-        val idBuffer = getPixels(camera, diameter, localX, localY, width, height, fb, Renderer.idRenderer)
-        val depthBuffer = getPixels(camera, diameter, localX, localY, width, height, fb, Renderer.depthRenderer01)
+        val cXInt = clickX.toInt()
+        val cYInt = clickY.toInt()
 
-        val depthImportance = 10
-        var bestDistance = 256 * depthImportance + diameter * diameter
-        var bestResult = 0
-
-        // sometimes the depth buffer seems to contain copies of the idBuffer -.-
-        // still, in my few tests, it seemed to have worked :)
-        // (clicking on the camera line in front of a cubemap)
-        // LOGGER.info(idBuffer.joinToString { it.toUInt().toString(16) })
-        // LOGGER.info(depthBuffer.joinToString { it.toUInt().toString(16) })
-
-        // convert that color to an id
-        for ((index, value) in idBuffer.withIndex()) {
-            val depth = depthBuffer[index] and 255
-            val result = value.and(0xffffff)
-            val x = (index % diameter) - radius
-            val y = (index / diameter) - radius
-            val distance = depth * depthImportance + x * x + y * y
-            val isValid = result > 0
-            if (isValid && distance <= bestDistance) {
-                bestDistance = distance
-                bestResult = result
-            }
+        val idBuffer = Screenshots.getPixels(diameter, dx, dy, cXInt, cYInt, buffer, Renderer.idRenderer) {
+            Scene.draw(camera, root, dx, dy, width, height, editorTime, false, Renderer.idRenderer, this)
         }
+
+        val depthBuffer = Screenshots.getPixels(diameter, dx, dy, cXInt, cYInt, buffer, Renderer.depthRenderer01) {
+            Scene.draw(camera, root, dx, dy, width, height, editorTime, false, Renderer.depthRenderer01, this)
+        }
+
+        val bestResult = Screenshots.getClosestId(diameter, idBuffer, depthBuffer)
 
         // find the transform with the id to select it
         if (bestResult > 0) {
+
             var transform = root.listOfAll.firstOrNull { it.clickId == bestResult }
             if (transform == null) {// transformed, so it works without project as well
                 val nullCamera = project?.nullCamera
@@ -458,11 +330,9 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
                 }
             }
             callback(transform)
-            // selectTransform(transform)
-        } else {
-            callback(null)
-            // selectTransform(null)
-        }
+
+        } else callback(null)
+
         GFX.check()
 
     }

@@ -1,7 +1,6 @@
 package me.anno.gpu.pipeline
 
-import me.anno.gpu.ShaderLib.pbrModelShader
-import me.anno.gpu.shader.BaseShader
+import me.anno.engine.ui.render.Frustum
 import me.anno.utils.image.ImageWriter.writeImageInt
 import org.joml.AABBd
 import org.joml.Math.toRadians
@@ -9,24 +8,20 @@ import org.joml.Quaterniond
 import org.joml.Vector3d
 
 fun main() {
-
-    pbrModelShader = BaseShader("", "", "", "")
-
-    val pipeline = Pipeline()
-    imageTest(pipeline)
-    simpleTest(pipeline)
-
+    val frustum = Frustum()
+    imageTest(frustum)
+    simpleTest(frustum)
 }
 
-fun imageTest(pipeline: Pipeline) {
+fun imageTest(frustum: Frustum) {
 
     val w = 256
     val h = 256
 
-    pipeline.calculatePlanes(
-        0.001, 100.0, toRadians(20.0), 1.0,
-        Quaterniond().rotateX(0.3),
-        Vector3d(0.0, 0.0, 0.0)
+    frustum.define(
+        0.001, 100.0, toRadians(20.0), 1.0, 1.0, 1.0,
+        Vector3d(0.0, 0.0, 0.0),
+        Quaterniond().rotateX(0.3)
     )
 
     for (z in -5 until 0) {
@@ -38,15 +33,15 @@ fun imageTest(pipeline: Pipeline) {
             aabb.union(Vector3d(xf, yf, zf))
             val d = 0.5
             aabb.union(Vector3d(xf + d, yf + d, zf + d))
-            if (pipeline.contains(aabb)) 0 else 0xffffff
+            if (frustum.contains(aabb)) 0 else 0xffffff
         }
     }
 
 }
 
-fun simpleTest(pipeline: Pipeline) {
+fun simpleTest(frustum: Frustum) {
 
-    pipeline.calculatePlanes(0.001, 100.0, toRadians(90.0), 1.0, Quaterniond(), Vector3d(0.0, 0.0, -1.0))
+    frustum.define(0.001, 100.0, toRadians(90.0), 1.0, 1.0, 1.0, Vector3d(0.0, 0.0, -1.0), Quaterniond())
 
     val aabb1 = AABBd()
     aabb1.union(0.0, 0.0, 0.0)
@@ -54,14 +49,14 @@ fun simpleTest(pipeline: Pipeline) {
     val aabb2 = AABBd()
     aabb2.union(0.0, 0.0, 0.9)
 
-    println("shall be false: ${pipeline.contains(aabb1)}")
+    println("shall be false: ${aabb1 in frustum}")
 
-    println("shall be false: ${pipeline.contains(aabb2)}")
+    println("shall be false: ${aabb2 in frustum}")
 
-    pipeline.calculatePlanes(0.001, 100.0, toRadians(90.0), 1.0, Quaterniond(), Vector3d(0.0, 0.0, 1.0))
+    frustum.define(0.001, 100.0, toRadians(90.0), 1.0, 1.0, 1.0, Vector3d(0.0, 0.0, 1.0), Quaterniond())
 
-    println("shall be true: ${pipeline.contains(aabb1)}")
+    println("shall be true: ${aabb1 in frustum}")
 
-    println("shall be true: ${pipeline.contains(aabb2)}")
+    println("shall be true: ${aabb2 in frustum}")
 
 }

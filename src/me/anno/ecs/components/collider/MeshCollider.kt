@@ -2,6 +2,7 @@ package me.anno.ecs.components.collider
 
 import com.bulletphysics.collision.shapes.*
 import com.bulletphysics.util.ObjectArrayList
+import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.io.serialization.SerializedProperty
@@ -13,16 +14,13 @@ class MeshCollider : Collider() {
     @SerializedProperty
     var isConvex = true
 
+    @Type("Mesh")
     var mesh: Mesh? = null
-
-    override fun getSignedDistance(deltaPosition: Vector3d, movement: Vector3d): Double {
-        TODO("Not yet implemented")
-    }
 
     override fun createBulletShape(scale: Vector3d): CollisionShape {
 
         if (mesh == null) {
-            mesh = entity?.getComponent(false, MeshComponent::class)?.mesh
+            mesh = entity?.getComponent(MeshComponent::class, false)?.mesh
             me.anno.utils.LOGGER.warn("searched for mesh, found $mesh")
         }
 

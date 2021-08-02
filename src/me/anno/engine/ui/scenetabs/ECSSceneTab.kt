@@ -5,15 +5,14 @@ import me.anno.ecs.Entity
 import me.anno.ecs.prefab.Change
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
+import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.ui.base.text.TextPanel
+import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.utils.hpc.SyncMaster
 
-class SceneTab : TextPanel {
-
-    val syncMaster: SyncMaster
-    val inspector: PrefabInspector
-    val file: FileReference
+class ECSSceneTab(val syncMaster: SyncMaster, val inspector: PrefabInspector, val file: FileReference) :
+    TextPanel(inspector.reference.nameWithoutExtension, DefaultConfig.style) {
 
     constructor(syncMaster: SyncMaster, fileReference: FileReference, classNameIfNull: String) : this(
         syncMaster,
@@ -23,11 +22,7 @@ class SceneTab : TextPanel {
     constructor(syncMaster: SyncMaster, prefab: Prefab) : this(syncMaster, PrefabInspector(prefab))
 
     constructor(syncMaster: SyncMaster, inspector: PrefabInspector) :
-            super(inspector.reference.nameWithoutExtension, DefaultConfig.style) {
-        this.inspector = inspector
-        this.file = inspector.reference
-        this.syncMaster = syncMaster
-    }
+            this(syncMaster, inspector, inspector.reference)
 
     fun onStart() {
         syncMaster.nextSession()
@@ -37,6 +32,19 @@ class SceneTab : TextPanel {
 
     fun onStop() {
         syncMaster.nextSession()
+    }
+
+    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+        if(button.isLeft){
+            ECSSceneTabs.open(this)
+        } else {
+            super.onMouseClicked(x, y, button, long)
+        }
+    }
+
+    override fun tickUpdate() {
+        super.tickUpdate()
+        backgroundColor = if(ECSSceneTabs.currentTab == this) originalBGColor else originalBGColor.and(0x77ffffff)
     }
 
     companion object {

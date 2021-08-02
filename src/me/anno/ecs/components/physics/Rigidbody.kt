@@ -3,8 +3,8 @@ package me.anno.ecs.components.physics
 import com.bulletphysics.dynamics.RigidBody
 import cz.advel.stack.Stack
 import me.anno.ecs.Component
-import me.anno.engine.ui.RenderView
-import me.anno.engine.ui.RenderView.Companion.scale
+import me.anno.engine.ui.render.RenderView
+import me.anno.engine.ui.render.RenderView.Companion.scale
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.objects.Transform
@@ -13,9 +13,6 @@ import org.joml.Vector4f
 import kotlin.math.abs
 
 open class Rigidbody : Component() {
-
-    @SerializedProperty
-    var mass = 1.0
 
     // todo lock an axis of the object
 
@@ -35,6 +32,24 @@ open class Rigidbody : Component() {
             if (field != value) {
                 field = value
                 invalidatePhysics()
+            }
+        }
+
+    @SerializedProperty
+    var mass = 1.0
+        set(value) {
+            if (field != value) {
+                if ((field > 0.0) != (value > 0.0)) {
+                    invalidatePhysics()
+                } else {
+                    val bulletInstance = bulletInstance
+                    if (bulletInstance != null) {
+                        val inertia = javax.vecmath.Vector3d()
+                        bulletInstance.collisionShape.calculateLocalInertia(value, inertia)
+                        bulletInstance.setMassProps(mass, inertia)
+                    }
+                }
+                field = value
             }
         }
 
@@ -70,9 +85,27 @@ open class Rigidbody : Component() {
             bulletInstance?.restitution = value
         }
 
+    var linearSleepingThreshold = 1.0
+        set(value) {
+            field = value
+            bulletInstance?.setSleepingThresholds(value, angularSleepingThreshold)
+        }
+
+    var angularSleepingThreshold = 0.8
+        set(value) {
+            field = value
+            bulletInstance?.setSleepingThresholds(linearSleepingThreshold, value)
+        }
+
+    var sleepingTimeThreshold = 40.0
+        set(value) {
+            field = value
+            bulletInstance?.deactivationTime = value
+        }
+
     fun invalidatePhysics() {
-        val entity = entity
-        entity?.physics?.invalidate(entity)
+        val entity = entity ?: return
+        entity.physics?.invalidate(entity)
     }
 
     /**
@@ -217,8 +250,8 @@ open class Rigidbody : Component() {
     @NotSerializedProperty
     var bulletInstance: RigidBody? = null
 
-    override fun onDrawGUI() {
-        super.onDrawGUI()
+    override fun onDrawGUI(view: RenderView) {// center of mass circle
+        super.onDrawGUI(view)
         val stack = RenderView.stack
         stack.pushMatrix()
         stack.translate(centerOfMass.x.toFloat(), centerOfMass.y.toFloat(), centerOfMass.z.toFloat())

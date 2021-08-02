@@ -23,6 +23,7 @@ import me.anno.objects.Camera
 import me.anno.objects.text.Text
 import me.anno.studio.GFXSettings
 import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.studio.StudioBase.Companion.instance
 import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.studio.rems.ProjectSettings
 import me.anno.studio.rems.RemsStudio
@@ -40,9 +41,10 @@ import me.anno.studio.rems.Rendering.renderSetPercent
 import me.anno.studio.rems.Selection
 import me.anno.studio.rems.Selection.selectTransform
 import me.anno.studio.rems.Selection.selectedTransform
-import me.anno.studio.rems.ui.RemsStudioUITypeLibrary
-import me.anno.studio.rems.ui.TransformTreeView
-import me.anno.studio.rems.ui.TransformTreeView.Companion.openAddMenu
+import me.anno.studio.rems.ui.StudioUITypeLibrary
+import me.anno.studio.rems.ui.StudioFileExplorer
+import me.anno.studio.rems.ui.StudioTreeView
+import me.anno.studio.rems.ui.StudioTreeView.Companion.openAddMenu
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.Visibility
@@ -51,7 +53,7 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.SizeLimitingContainer
 import me.anno.ui.base.constraints.WrapAlign
-import me.anno.ui.base.groups.PanelFrame
+import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu.ask
@@ -67,7 +69,6 @@ import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.RuntimeInfoPanel
 import me.anno.ui.editor.config.ConfigPanel
 import me.anno.ui.editor.cutting.CuttingView
-import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.ui.editor.graphs.GraphEditor
 import me.anno.ui.editor.sceneTabs.SceneTabs
@@ -504,7 +505,7 @@ object UILayouts {
         }
 
         options.addAction(projectTitle, Dict["Save", "ui.top.project.save"]) {
-            Input.save()
+            instance.save()
             LOGGER.info("Saved the project")
         }
 
@@ -572,7 +573,7 @@ object UILayouts {
 
         ui += SpacePanel(0, 1, style)
 
-        val bottom2 = PanelFrame(style)
+        val bottom2 = PanelStack(style)
         bottom2 += RemsStudio.createConsole(style)
         bottom2 += RuntimeInfoPanel(style).apply { alignment = AxisAlignment.MAX }.setWeight(1f)
         ui += bottom2
@@ -590,16 +591,16 @@ object UILayouts {
         val animationWindow = CustomList(false, style)
         customUI.add(animationWindow, 2f)
 
-        val library = RemsStudioUITypeLibrary()
+        val library = StudioUITypeLibrary()
 
         val treeFiles = CustomList(true, style)
-        treeFiles += CustomContainer(TransformTreeView(style), library, style)
-        treeFiles += CustomContainer(FileExplorer(project?.scenes, style), library, style)
+        treeFiles += CustomContainer(StudioTreeView(style), library, style)
+        treeFiles += CustomContainer(StudioFileExplorer(project?.scenes, style), library, style)
         animationWindow.add(CustomContainer(treeFiles, library, style), 0.5f)
         animationWindow.add(CustomContainer(SceneView(style), library, style), 2f)
         animationWindow.add(
             CustomContainer(
-                PropertyInspector({ Selection.selectedInspectable }, style),
+                PropertyInspector({ Selection.selectedInspectable }, style, Unit),
                 library, style
             ), 0.5f
         )

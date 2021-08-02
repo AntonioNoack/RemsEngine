@@ -2,7 +2,6 @@ package me.anno.ui.base.menu
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.Window
 import me.anno.input.Input
 import me.anno.input.MouseButton
@@ -19,7 +18,6 @@ import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.components.PureTextInput
 import me.anno.utils.Maths
-import java.util.*
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -47,6 +45,19 @@ object Menu {
                 MenuOption(NameDesc("Yes", "", "ui.yes"), onYes),
                 MenuOption(NameDesc("No", "", "ui.no"), onNo)
             )
+        )
+    }
+
+    fun askName(
+        title: NameDesc,
+        value0: String,
+        actionName: NameDesc,
+        getColor: (String) -> Int,
+        callback: (String) -> Unit
+    ){
+        askName(
+            Input.mouseX.toInt(), Input.mouseY.toInt(),
+            title, value0, actionName, getColor, callback
         )
     }
 
@@ -170,26 +181,26 @@ object Menu {
         if (titleValue.isNotEmpty()) {
             // make this window draggable
             // todo make it resizable somehow...
-            val titlePanel = object: TextPanel(titleValue, style){
+            val titlePanel = object : TextPanel(titleValue, style) {
                 var leftDown = false
                 var rightDown = false
                 override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
-                    if(button.isLeft) leftDown = true
-                    if(button.isRight) rightDown = true
+                    if (button.isLeft) leftDown = true
+                    if (button.isRight) rightDown = true
                 }
 
                 override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
-                    if(button.isLeft) leftDown = false
-                    if(button.isRight) rightDown = false
+                    if (button.isLeft) leftDown = false
+                    if (button.isRight) rightDown = false
                 }
 
                 override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-                    if(leftDown){
+                    if (leftDown) {
                         // move the window
                         window.x += dx.roundToInt()
                         window.y += dy.roundToInt()
                         invalidateLayout()
-                    } else if(rightDown){
+                    } else if (rightDown) {
                         // todo scale somehow...
 
                     }

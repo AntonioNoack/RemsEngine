@@ -14,6 +14,7 @@ import me.anno.language.translation.Dict
 import me.anno.studio.rems.RemsStudio.project
 import me.anno.utils.Color.hex8
 import me.anno.utils.OS
+import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.sleepABit10
 import me.anno.utils.Sleep.sleepShortly
 import me.anno.utils.Threads.threadWithName
@@ -22,7 +23,6 @@ import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.strings.StringHelper.titlecase
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
-import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.streams.toList
 
@@ -152,55 +152,58 @@ object Spellchecking : CacheSection("Spellchecking") {
                 process.errorStream.listen("Spellchecking-Listener ${language.code}") { msg -> LOGGER.warn(msg) }
                 val output = process.outputStream.bufferedWriter()
                 LOGGER.info(input.readLine())
-                while (!shutdown) {
-                    if (queue.isEmpty()) sleepShortly(true)
-                    else {
-                        val nextTask: Request
-                        synchronized(this) {
-                            val key = queue.keys().nextElement()
-                            nextTask = queue.remove(key)!!
-                        }
-                        var lines = nextTask.sentence
-                            .replace("\\", "\\\\")
-                            .replace("\n", "\\n")
-                        val limitChar = 127.toChar()
-                        if (lines.any { it > limitChar }) {
-                            lines = lines.codePoints()
-                                .toList().joinToString("") { it.escapeCodepoint() }
-                        }
-                        output.write(lines)
-                        output.write('\n'.code)
-                        output.flush()
-                        var suggestionsString = ""
-                        while ((suggestionsString.isEmpty() || !suggestionsString.startsWith("[")) && !shutdown) {
-                            suggestionsString = input.readLine()
-                            // a random, awkward case, when "Program" or "Transform" is requested in German
-                            if (suggestionsString.startsWith("[COMPOUND")) {
-                                suggestionsString = "[" + input.readLine()
+                try {
+                    while (!shutdown) {
+                        if (queue.isEmpty()) sleepShortly(true)
+                        else {
+                            val nextTask: Request
+                            synchronized(this) {
+                                val key = queue.keys().nextElement()
+                                nextTask = queue.remove(key)!!
                             }
-                        }
-                        try {
-                            val suggestionsJson = JsonReader(suggestionsString).readArray()
-                            val suggestionsList = suggestionsJson.map { suggestion ->
-                                suggestion as JsonObject
-                                val start = suggestion["start"]!!.asText().toInt()
-                                val end = suggestion["end"]!!.asText().toInt()
-                                val message = suggestion["message"]!!.asText()
-                                val shortMessage = suggestion["shortMessage"]!!.asText()
-                                val improvements = suggestion["suggestions"] as JsonArray
-                                val result =
-                                    Suggestion(start, end, message, shortMessage, improvements.map { it as String })
-                                result
+                            var lines = nextTask.sentence
+                                .replace("\\", "\\\\")
+                                .replace("\n", "\\n")
+                            val limitChar = 127.toChar()
+                            if (lines.any { it > limitChar }) {
+                                lines = lines.codePoints()
+                                    .toList().joinToString("") { it.escapeCodepoint() }
                             }
-                            nextTask.callback(suggestionsList)
-                        } catch (e: Exception) {
-                            OS.desktop
-                                .getChild("${System.currentTimeMillis()}.txt")!!
-                                .writeText("$lines\n$suggestionsString")
-                            LOGGER.error(suggestionsString)
-                            e.printStackTrace()
+                            output.write(lines)
+                            output.write('\n'.code)
+                            output.flush()
+                            var suggestionsString = ""
+                            while ((suggestionsString.isEmpty() || !suggestionsString.startsWith("[")) && !shutdown) {
+                                suggestionsString = input.readLine()
+                                // a random, awkward case, when "Program" or "Transform" is requested in German
+                                if (suggestionsString.startsWith("[COMPOUND")) {
+                                    suggestionsString = "[" + input.readLine()
+                                }
+                            }
+                            try {
+                                val suggestionsJson = JsonReader(suggestionsString).readArray()
+                                val suggestionsList = suggestionsJson.map { suggestion ->
+                                    suggestion as JsonObject
+                                    val start = suggestion["start"]!!.asText().toInt()
+                                    val end = suggestion["end"]!!.asText().toInt()
+                                    val message = suggestion["message"]!!.asText()
+                                    val shortMessage = suggestion["shortMessage"]!!.asText()
+                                    val improvements = suggestion["suggestions"] as JsonArray
+                                    val result =
+                                        Suggestion(start, end, message, shortMessage, improvements.map { it as String })
+                                    result
+                                }
+                                nextTask.callback(suggestionsList)
+                            } catch (e: Exception) {
+                                OS.desktop
+                                    .getChild("${System.currentTimeMillis()}.txt")
+                                    .writeText("$lines\n$suggestionsString")
+                                LOGGER.error(suggestionsString)
+                                e.printStackTrace()
+                            }
                         }
                     }
+                } catch (ignored: ShutdownException) {
                 }
                 process.destroy()
             }

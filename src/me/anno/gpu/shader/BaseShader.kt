@@ -20,6 +20,8 @@ class BaseShader(
     val fragmentSource: String
 ) {
 
+    constructor() : this("", "", "", "")
+
     var glslVersion = Shader.DefaultGLSLVersion
     var textures: List<String>? = null
     var ignoredUniforms = HashSet<String>()

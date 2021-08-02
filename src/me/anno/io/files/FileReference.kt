@@ -12,6 +12,7 @@ import org.apache.logging.log4j.LogManager
 import java.io.*
 import java.net.URI
 import java.nio.charset.Charset
+import kotlin.math.sign
 
 /**
  * doesn't call toLowerCase() for each comparison,
@@ -36,8 +37,9 @@ abstract class FileReference(val absolutePath: String) {
 
         private val staticReferences = HashMap<String, StaticRef>()
 
-        fun register(ref: StaticRef) {
+        fun register(ref: StaticRef): StaticRef {
             staticReferences[ref.absolutePath] = ref
+            return ref
         }
 
         fun getReference(str: String?): FileReference {
@@ -185,7 +187,7 @@ abstract class FileReference(val absolutePath: String) {
         // only read the first bytes
         val signature = Signature.find(this)
         return when (signature?.name) {
-            "zip", "rar", "7z", "bz2", "lz4", "xar", "oar" -> {
+            "zip", "rar", "7z", "bz2", "lz4", "xar", "oar", "gzip", "tar" -> {
                 LOGGER.info("Checking $absolutePath for zip file, matches signature")
                 true
             }
@@ -199,7 +201,10 @@ abstract class FileReference(val absolutePath: String) {
                 LOGGER.info("Checking $absolutePath for zip file, ${e.message}")
                 false
             }
-            else -> false
+            else -> {
+                LOGGER.info("Checking $absolutePath for zip file, other signature: ${signature.name}")
+                false
+            }
         }
     }
 

@@ -20,6 +20,7 @@
       <w>atanh</w>
       <w>bgra</w>
       <w>bilder</w>
+      <w>bitangent</w>
       <w>blanchedalmond</w>
       <w>blueviolet</w>
       <w>bokeh</w>
@@ -112,6 +113,7 @@
       <w>indianred</w>
       <w>infos</w>
       <w>inspectable</w>
+      <w>inspectables</w>
       <w>iter</w>
       <w>ivec</w>
       <w>jacobian</w>
@@ -192,6 +194,7 @@
       <w>oldlace</w>
       <w>olivedrab</w>
       <w>orangered</w>
+      <w>orthogonalize</w>
       <w>orthographicness</w>
       <w>palegoldenrod</w>
       <w>palegreen</w>

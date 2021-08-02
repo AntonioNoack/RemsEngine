@@ -1,22 +1,27 @@
 package me.anno.gpu.pipeline
 
 import me.anno.ecs.Entity
+import me.anno.ecs.components.light.AmbientLight
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshRenderer
 import me.anno.ecs.components.mesh.RendererComponent
+import me.anno.engine.ui.render.Frustum
 import me.anno.gpu.DepthMode
+import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib.pbrModelShader
 import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.pipeline.M4x3Delta.set4x3delta
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
-import me.anno.utils.types.AABBs.isEmpty
-import org.joml.*
+import org.joml.AABBd
+import org.joml.Matrix4f
+import org.joml.Vector3d
+import org.joml.Vector3f
 import org.lwjgl.opengl.GL11.GL_FRONT
-import kotlin.math.cos
-import kotlin.math.sin
+import kotlin.math.min
 
 // todo idea: the scene rarely changes -> we can reuse it, and just update the uniforms
 // and the graph may be deep, however meshes may be only in parts of the tree
@@ -34,38 +39,54 @@ class Pipeline : Saveable() {
     val stages = ArrayList<PipelineStage>()
 
     val lightPseudoStage = PipelineStage(
-        "lights", PipelineStage.Sorting.NO_SORTING, BlendMode.PURE_ADD,
+        "lights", Sorting.NO_SORTING, 0, BlendMode.PURE_ADD,
         DepthMode.LESS, false, GL_FRONT, pbrModelShader
     )
     private val lightPseudoRenderer = MeshRenderer()
 
     lateinit var defaultStage: PipelineStage
 
-    fun addMesh(mesh: Mesh?, renderer: RendererComponent, entity: Entity) {
+    var contained = 0
+    var nonContained = 0
+    var lastClickId = 0
+
+    val frustum = Frustum()
+
+    val ambient = Vector3f()
+
+    private fun addMesh(mesh: Mesh?, renderer: RendererComponent, entity: Entity, clickId: Int) {
         mesh ?: return
         val materials = mesh.materials
         if (materials.isEmpty()) {
             val stage = defaultStage
-            stage.add(renderer, mesh, entity, 0)
+            stage.add(renderer, mesh, entity, 0, clickId)
         } else {
             for (index in materials.indices) {
                 val material = materials[index]
                 val stage = material.pipelineStage ?: defaultStage
-                stage.add(renderer, mesh, entity, index)
+                stage.add(renderer, mesh, entity, index, clickId)
             }
         }
     }
 
-    fun addLight(mesh: Mesh?, entity: Entity) {
-        mesh ?: return
+    private fun addLight(light: LightComponent, entity: Entity, cameraPosition: Vector3d, worldScale: Double) {
+        val mesh = light.getLightPrimitive()
         val stage = lightPseudoStage
-        stage.add(lightPseudoRenderer, mesh, entity, 0)
+        // update light transform
+        // its drawn position probably should be smoothed -> we probably should use the drawnMatrix instead of the global one
+        // we may want to set a timestamp, so we don't update it twice? no, we fill the pipeline only once
+        val invWorldTransform = light.invWorldMatrix
+        val drawTransform = stage.getDrawMatrix(entity.transform, GFX.gameTime)
+        invWorldTransform.identity()
+            .set4x3delta(drawTransform, cameraPosition, worldScale)
+            .invert()
+        stage.add(light, mesh, entity, 0, 0)
     }
 
     // todo collect all buffers + materials, which need to be drawn at a certain stage, and then draw them together
-    fun draw(cameraMatrix: Matrix4f, cameraPosition: Vector3d) {
+    fun draw(cameraMatrix: Matrix4f, cameraPosition: Vector3d, worldScale: Double) {
         for (stage in stages) {
-            stage.bindDraw(cameraMatrix, cameraPosition)
+            stage.bindDraw(this, cameraMatrix, cameraPosition, worldScale)
         }
 
         // todo test the culling by drawing 1000 spheres, and using a non-moving frustum
@@ -79,10 +100,7 @@ class Pipeline : Saveable() {
         }
     }
 
-    var contained = 0
-    var nonContained = 0
-
-    fun fill(rootElement: Entity) {
+    fun fill(rootElement: Entity, cameraPosition: Vector3d, worldScale: Double) {
         contained = 0
         nonContained = 0
         // todo more complex traversal:
@@ -94,21 +112,56 @@ class Pipeline : Saveable() {
         //  - partially populate the pipeline?
         rootElement.validateTransforms()
         rootElement.validateAABBs()
-        subFill(rootElement)
-        // println("$contained/$nonContained")
+        ambient.set(0f)
+        lastClickId = subFill(rootElement, 1, cameraPosition, worldScale)
+        // LOGGER.debug("$contained/$nonContained")
     }
 
-    private fun subFill(entity: Entity) {
-        val renderer = entity.getComponent(false, RendererComponent::class)
+    // 256 = absolute max number of lights
+    // we could make this higher for testing...
+    val lights = arrayOfNulls<DrawRequest>(256)
+
+    // todo don't always create a list, just fill the data...
+    /**
+     * creates a list of relevant lights for a forward-rendering draw call of a mesh or region
+     * */
+    fun getClosestRelevantNLights(region: AABBd, numberOfLights: Int, lights: Array<DrawRequest?>): Int {
+        val stage = lightPseudoStage
+        if (numberOfLights <= 0) return 0
+        // todo if there are more than N lights, create a 3D or 4D lookup array: (x/size,y/size,z/size,log2(size)|0)
+        if (stage.size < numberOfLights) {
+            // todo always clear the lights array
+            // check if already filled:
+            if (lights[0] == null) {
+                for (i in 0 until stage.size) {
+                    lights[i] = stage.drawRequests[i]
+                }
+            }// else done
+            return min(numberOfLights, stage.size)
+        } else {
+            // todo find the closest / most relevant lights (large ones)
+
+        }
+        return 0
+    }
+
+    private fun subFill(entity: Entity, clickId0: Int, cameraPosition: Vector3d, worldScale: Double): Int {
+        var clickId = clickId0
+        val renderer = entity.getComponent(RendererComponent::class, false)
         val components = entity.components
         for (i in components.indices) {
-            val c = components[i]
-            if (c.isEnabled) {
-                if (renderer != null && c is MeshComponent) {
-                    addMesh(c.mesh, renderer, entity)
+            val component = components[i]
+            if (component.isEnabled) {
+                if (renderer != null && component is MeshComponent) {
+                    component.clickId = clickId
+                    addMesh(component.mesh, renderer, entity, clickId)
+                    clickId++
                 }
-                if (c is LightComponent) {
-                    addLight(c.getLightPrimitive(), entity)
+                if (component is LightComponent) {
+                    addLight(component, entity, cameraPosition, worldScale)
+                }
+                if (component is AmbientLight) {
+                    ambient.add(component.color)
                 }
             }
         }
@@ -116,97 +169,39 @@ class Pipeline : Saveable() {
         for (i in children.indices) {
             val child = children[i]
             if (child.isEnabled) {
-                val needsDrawing = contains(child.aabb)
-                if (needsDrawing) subFill(child)
+                val needsDrawing = frustum.isVisible(child.aabb)
+                if (needsDrawing) clickId = subFill(child, clickId, cameraPosition, worldScale)
                 if (needsDrawing) contained++
                 else nonContained += child.sizeOfHierarchy
             }
         }
+        return clickId
     }
 
-    val planes = Array(6) { Vector4d() }
-    val normals = Array(6) { Vector3d() }
-    val positions = Array(6) { Vector3d() }
-
-    fun calculatePlanes(
-        near: Double,
-        far: Double,
-        fovYRadians: Double,
-        aspectRatio: Double, // w/h
-        rotation: Quaterniond,
-        cameraPosition: Vector3d
-    ) {
-
-        // todo not completely correct yet, fix that!
-        // todo debug the view cone by drawing lines...
-
-        // calculate all planes
-        // all positions and normals of the planes
-
-        // near
-        positions[0].set(0.0, 0.0, -near)
-        normals[0].set(0.0, 0.0, +1.0)
-
-        // far
-        positions[1].set(0.0, 0.0, -far)
-        normals[1].set(0.0, 0.0, -1.0)
-
-        // the other positions need no rotation
-        val pos0 = positions[0]
-        val pos1 = positions[1]
-        rotation.transform(pos0)
-        rotation.transform(pos1)
-        pos0.add(cameraPosition)
-        pos1.add(cameraPosition)
-
-        // calculate the position of the sideways planes: 0, because they go trough the center
-        // then comes the rotation: rotate 0 = 0
-        // then add the camera position ->
-        // in summary just use the camera position
-        for (i in 2 until 6) {
-            // assignment is faster than copying :D
-            // just the camera position must not change (largely)
-            positions[i] = cameraPosition
+    fun findDrawnSubject(searchedId: Int, entity: Entity): Any? {
+        val renderer = entity.getComponent(RendererComponent::class, false)
+        if (renderer != null) {
+            val components = entity.components
+            for (i in components.indices) {
+                val c = components[i]
+                if (c.isEnabled && c is MeshComponent) {
+                    if (c.clickId == searchedId) return c
+                }
+            }
         }
-
-        // more complicated: calculate the normals of the sideways planes
-        val angleY = fovYRadians * 0.5// * borderFixFactor
-        val cosY = cos(angleY)
-        val sinY = sin(angleY)
-        normals[2].set(0.0, +cosY, +sinY)
-        normals[3].set(0.0, -cosY, +sinY)
-
-        val angleX = angleY * aspectRatio
-        val cosX = cos(angleX)
-        val sinX = sin(angleX)
-        normals[4].set(+cosX, 0.0, +sinX)
-        normals[5].set(-cosX, 0.0, +sinX)
-
-        for (i in 0 until 6) {
-            rotation.transform(normals[i])
-            val position = positions[i]
-            val normal = normals[i]
-            val distance = position.dot(normal)
-            planes[i].set(normal, -distance)
+        val children = entity.children
+        for (i in children.indices) {
+            val child = children[i]
+            if (child.isEnabled) {
+                val aabb = child.aabb
+                val needsDrawing = frustum.isVisible(aabb)
+                if (needsDrawing) {
+                    val found = findDrawnSubject(searchedId, child)
+                    if (found != null) return found
+                }
+            }
         }
-
-    }
-
-    // not perfect: the border seems to have issues...
-    // -> we just add a small border of 10% and hope it works in all cases
-    fun contains(aabb: AABBd): Boolean {
-        if (aabb.isEmpty()) return false
-        // https://www.gamedev.net/forums/topic/512123-fast--and-correct-frustum---aabb-intersection/
-        for (i in 0 until 6) {
-            val plane = planes[i]
-            val minX = if (plane.x > 0) aabb.minX else aabb.maxX
-            val minY = if (plane.y > 0) aabb.minY else aabb.maxY
-            val minZ = if (plane.z > 0) aabb.minZ else aabb.maxZ
-            // outside
-            val dot0 = plane.dot(minX, minY, minZ, 1.0)
-            if (dot0 >= 0.0) return false
-        }
-        return true
+        return null
     }
 
     override fun save(writer: BaseWriter) {

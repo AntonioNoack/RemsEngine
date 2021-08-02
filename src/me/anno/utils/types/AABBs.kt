@@ -135,7 +135,6 @@ object AABBs {
         return dst
     }
 
-
     /**
      * transforms this matrix, then unions it with base, and places the result in dst
      * */
@@ -146,6 +145,46 @@ object AABBs {
         val dx = this.maxX - mx
         val dy = this.maxY - my
         val dz = this.maxZ - mz
+        var minx = base.minX
+        var miny = base.minY
+        var minz = base.minZ
+        var maxx = base.maxX
+        var maxy = base.maxY
+        var maxz = base.maxZ
+        for (i in 0..7) {
+            val x = mx + (i and 1).toDouble() * dx
+            val y = my + ((i shr 1) and 1).toDouble() * dy
+            val z = mz + ((i shr 2) and 1).toDouble() * dz
+            val tx = m.m00() * x + m.m10() * y + m.m20() * z + m.m30()
+            val ty = m.m01() * x + m.m11() * y + m.m21() * z + m.m31()
+            val tz = m.m02() * x + m.m12() * y + m.m22() * z + m.m32()
+            minx = Math.min(tx, minx)
+            miny = Math.min(ty, miny)
+            minz = Math.min(tz, minz)
+            maxx = Math.max(tx, maxx)
+            maxy = Math.max(ty, maxy)
+            maxz = Math.max(tz, maxz)
+        }
+        dst.minX = minx
+        dst.minY = miny
+        dst.minZ = minz
+        dst.maxX = maxx
+        dst.maxY = maxy
+        dst.maxZ = maxz
+        return dst
+    }
+
+
+    /**
+     * transforms this matrix, then unions it with base, and places the result in dst
+     * */
+    fun AABBf.transformUnion(m: Matrix4x3d, base: AABBd, scale: Double, dst: AABBd = base): AABBd {
+        val mx = minX.toDouble() * scale
+        val my = minY.toDouble() * scale
+        val mz = minZ.toDouble() * scale
+        val dx = this.maxX * scale - mx
+        val dy = this.maxY * scale - my
+        val dz = this.maxZ * scale - mz
         var minx = base.minX
         var miny = base.minY
         var minz = base.minZ

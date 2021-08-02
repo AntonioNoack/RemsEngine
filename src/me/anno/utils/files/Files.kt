@@ -2,6 +2,7 @@ package me.anno.utils.files
 
 import me.anno.config.DefaultConfig
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 import java.awt.Desktop
@@ -11,6 +12,34 @@ import java.util.zip.DeflaterOutputStream
 import java.util.zip.InflaterInputStream
 
 object Files {
+
+    fun findNextFileName(reference: FileReference, digitsLength: Int, colonSymbol: Char, startingNumber: Long = 1): FileReference {
+        // format: name-1.json
+        // -, because the usual name may contain numbers itself
+        // find all files matching the description, and then use the max+1
+        val parent = reference.getParent() ?: return InvalidRef
+        val name = reference.nameWithoutExtension
+        val extension = reference.extension
+        val siblings = parent.listChildren() ?: return InvalidRef
+        val prefix = if(colonSymbol.code == 0) name else "$name$colonSymbol"
+        val nameLength = prefix.length + digitsLength
+        val relatedFiles = siblings.filter {
+            it.extension == extension &&
+                    it.nameWithoutExtension.startsWith(prefix) &&
+                    it.nameWithoutExtension.length == nameLength
+        }.mapNotNull {
+            val name2 = it.nameWithoutExtension
+            var i = prefix.length
+            while (i + 1 < prefix.length && name2[i] == '0') {
+                i++
+            }
+            name2.substring(i).toLongOrNull() // ^^, long for large names
+        }
+        val maxNumber = relatedFiles.maxOrNull() ?: startingNumber
+        val nextNumber = maxNumber + 1
+        val newName = "$prefix$nextNumber.$extension"
+        return parent.getChild(newName)
+    }
 
     fun Long.formatFileSize(): String {
         val endings = "kMGTPEZY"

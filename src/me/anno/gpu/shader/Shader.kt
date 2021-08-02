@@ -61,6 +61,21 @@ open class Shader(
         }
     }
 
+    fun printLocationsAndValues() {
+        for ((key, value) in attributeLocations.entries.sortedBy { it.value }) {
+            println("attribute $key = $value")
+        }
+        for ((key, value) in uniformLocations.entries.sortedBy { it.value }) {
+            println("uniform $key[$value] = (${uniformCache[value * 4]},${uniformCache[value * 4 + 1]},${uniformCache[value * 4 + 2]},${uniformCache[value * 4 + 3]})")
+        }
+    }
+
+    fun invalidateCacheForTests(){
+        attributeLocations.clear()
+        uniformLocations.clear()
+        uniformCache.fill(Float.NaN)
+    }
+
     fun decodeVaryings(): List<Varying> {
         val result = ArrayList<Varying>()
         // todo remove comments (if they ever appear)

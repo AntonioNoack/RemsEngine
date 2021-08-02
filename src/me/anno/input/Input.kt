@@ -15,28 +15,28 @@ import me.anno.input.MouseButton.Companion.toMouseButton
 import me.anno.input.Touch.Companion.onTouchDown
 import me.anno.input.Touch.Companion.onTouchMove
 import me.anno.input.Touch.Companion.onTouchUp
+import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.InvalidRef
 import me.anno.studio.StudioBase.Companion.addEvent
-import me.anno.studio.rems.RemsStudio.history
-import me.anno.studio.rems.RemsStudio.project
-import me.anno.studio.rems.RemsStudio.root
-import me.anno.studio.rems.ui.TransformFileImporter.addChildFromFile
+import me.anno.studio.StudioBase.Companion.instance
 import me.anno.ui.base.Panel
-import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.treeView.AbstractTreeViewPanel
 import me.anno.utils.Maths.length
 import me.anno.utils.Threads.threadWithName
 import me.anno.utils.files.FileExplorerSelectWrapper
+import me.anno.utils.files.Files.findNextFileName
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWDropCallback
 import java.awt.Toolkit
-import java.awt.datatransfer.DataFlavor.javaFileListFlavor
-import java.awt.datatransfer.DataFlavor.stringFlavor
+import java.awt.datatransfer.DataFlavor.*
 import java.awt.datatransfer.StringSelection
 import java.awt.datatransfer.UnsupportedFlavorException
+import java.awt.image.RenderedImage
 import java.io.File
+import javax.imageio.ImageIO
 import kotlin.collections.set
 import kotlin.math.abs
 import kotlin.math.max
@@ -51,7 +51,7 @@ object Input {
     var mouseX = 0f
     var mouseY = 0f
 
-    var lastFile: FileReference? = null
+    var lastFile: FileReference = InvalidRef
 
     var mouseDownX = 0f
     var mouseDownY = 0f
@@ -248,7 +248,7 @@ object Input {
                                 if (isControlDown) {
                                     if (action == GLFW.GLFW_PRESS) {
                                         when (key) {
-                                            GLFW.GLFW_KEY_S -> save()
+                                            GLFW.GLFW_KEY_S -> instance.save()
                                             GLFW.GLFW_KEY_V -> paste()
                                             GLFW.GLFW_KEY_C -> copy()
                                             GLFW.GLFW_KEY_D -> {// duplicate selection
@@ -260,7 +260,7 @@ object Input {
                                                 empty()
                                             }
                                             GLFW.GLFW_KEY_I -> import()
-                                            GLFW.GLFW_KEY_H -> history?.display()
+                                            GLFW.GLFW_KEY_H -> instance.openHistory()
                                             GLFW.GLFW_KEY_A -> inFocus0?.onSelectAll(mouseX, mouseY)
                                         }
                                     }
@@ -420,19 +420,12 @@ object Input {
 
     fun import() {
         threadWithName("Ctrl+I") {
-            if (lastFile == null) lastFile = project?.file
-            FileExplorerSelectWrapper.selectFile(lastFile?.unsafeFile) { file ->
+            if (lastFile == InvalidRef) lastFile = instance.getDefaultFileLocation()
+            FileExplorerSelectWrapper.selectFile((lastFile as? FileFileRef)?.file) { file ->
                 if (file != null) {
-                    val lastFileLocal = getReference(file)
-                    lastFile = lastFileLocal
-                    addEvent {
-                        addChildFromFile(
-                            root,
-                            lastFileLocal,
-                            FileContentImporter.SoftLinkMode.ASK,
-                            true
-                        ) {}
-                    }
+                    val fileRef = getReference(file)
+                    lastFile = fileRef
+                    instance.importFile(fileRef)
                 }
             }
         }
@@ -494,9 +487,24 @@ object Input {
             if (data2 != null && data2.isNotEmpty()) {
                 // println(data2)
                 panel.onPasteFiles(mouseX, mouseY, data2.map { getReference(it) })
+                return
                 // return
             }
         } catch (e: UnsupportedFlavorException) {
+        }
+        try {
+            val data = clipboard.getData(imageFlavor) as RenderedImage
+            val folder = instance.getPersistentStorage()
+            val file0 = folder.getChild("PastedImage.png")
+            val file1 = findNextFileName(file0, 3, '-', 1)
+            file1.outputStream().use { ImageIO.write(data, "png", it) }
+            LOGGER.info("Pasted image of size ${data.width} x ${data.height}, placed into $file1")
+            panel.onPasteFiles(mouseX, mouseY, listOf(file1))
+            return
+        } catch (e: UnsupportedFlavorException) {
+
+        } catch (e: ClassNotFoundException) {
+            e.printStackTrace()
         }
         /*try {
             val data = clipboard.getData(DataFlavor.getTextPlainUnicodeFlavor())
@@ -519,10 +527,6 @@ object Input {
             .systemClipboard
             .setContents(FileTransferable(files), null)
     }*/
-
-    fun save() {
-        project?.save()
-    }
 
     fun isKeyDown(key: Char): Boolean {
         return key.uppercaseChar().code in keysDown

@@ -84,7 +84,7 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
         val options = OptionBar(style)
 
-        val editUI = DefaultLayout.createDefaultMainUI(projectFile, tab.inspector.root as Entity, false, style)
+        val editUI = DefaultLayout.createDefaultMainUI(projectFile, tab.inspector.root as Entity, syncMaster, false, style)
 
         val configTitle = Dict["Config", "ui.top.config"]
         options.addAction(configTitle, Dict["Settings", "ui.top.config.settings"]) {

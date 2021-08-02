@@ -33,27 +33,50 @@ import kotlin.math.*
 
 object Grid {
 
-    private val xAxisColor = style.getColor("grid.axis.x.color", 0xff7777 or black)
-    private val yAxisColor = style.getColor("grid.axis.y.color", 0x77ff77 or black)
-    private val zAxisColor = style.getColor("grid.axis.z.color", 0x7777ff or black)
+    val xAxisColor = style.getColor("grid.axis.x.color", 0xff7777 or black)
+    val yAxisColor = style.getColor("grid.axis.y.color", 0x77ff77 or black)
+    val zAxisColor = style.getColor("grid.axis.z.color", 0x7777ff or black)
 
-    private val gridBuffer = StaticBuffer(listOf(Attribute("attr0", 3), Attribute("attr1", 2)), 201 * 4)
-    private val lineBuffer = StaticBuffer(listOf(Attribute("attr0", 3), Attribute("attr1", 2)), 2)
+    private val attr = listOf(Attribute("attr0", 3))
+    val gridBuffer = StaticBuffer(attr, 201 * 4)
+    val lineBuffer = StaticBuffer(attr, 2)
+    val sphereBuffer = StaticBuffer(attr, 3 * 64 * 2)
 
     init {
 
-        lineBuffer.put(1f, 0f, 0f, 0f, 0f)
-        lineBuffer.put(-1f, 0f, 0f, 0f, 0f)
+        lineBuffer.put(+1f, 0f, 0f)
+        lineBuffer.put(-1f, 0f, 0f)
         lineBuffer.drawMode = GL_LINES
 
         for (i in -100..100) {
             val v = 0.01f * i
-            gridBuffer.put(v, 1f, 0f, 0f, 0f)
-            gridBuffer.put(v, -1f, 0f, 0f, 0f)
-            gridBuffer.put(1f, v, 0f, 0f, 0f)
-            gridBuffer.put(-1f, v, 0f, 0f, 0f)
+            gridBuffer.put(v, 0f, +1f)
+            gridBuffer.put(v, 0f, -1f)
+            gridBuffer.put(+1f, 0f, v)
+            gridBuffer.put(-1f, 0f, v)
         }
         gridBuffer.drawMode = GL_LINES
+
+        val x = sphereBuffer.vertexCount / 6
+        for (i in 0 until x) {
+            val a0 = i * 6.2830f / x
+            sphereBuffer.put(0f, cos(a0), sin(a0))
+            val a1 = (i + 1) * 6.2830f / x
+            sphereBuffer.put(0f, cos(a1), sin(a1))
+        }
+        for (i in 0 until x) {
+            val a0 = i * 6.2830f / x
+            sphereBuffer.put(cos(a0), 0f, sin(a0))
+            val a1 = (i + 1) * 6.2830f / x
+            sphereBuffer.put(cos(a1), 0f, sin(a1))
+        }
+        for (i in 0 until x) {
+            val a0 = i * 6.2830f / x
+            sphereBuffer.put(cos(a0), sin(a0), 0f)
+            val a1 = (i + 1) * 6.2830f / x
+            sphereBuffer.put(cos(a1), sin(a1), 0f)
+        }
+        sphereBuffer.drawMode = GL_LINES
 
     }
 
@@ -158,7 +181,7 @@ object Grid {
 
     }
 
-    private fun drawLine(stack: Matrix4fArrayList, color: Int, alpha: Float) {
+    fun drawLine(stack: Matrix4fArrayList, color: Int, alpha: Float) {
 
         val shader = shader3D.value
         shader.use()
@@ -171,18 +194,16 @@ object Grid {
     }
 
     // allow more/full grid customization?
-    fun draw(stack: Matrix4fArrayList, distance: Float) {
+    fun draw(stack: Matrix4fArrayList, distance: Double) {
 
         // to avoid flickering
         depthMode.use(DepthMode.ALWAYS) {
 
             val log = log10(distance)
-            val f = log - floor(log)
-            val cameraDistance = 10f * pow(10f, floor(log))
+            val f = (log - floor(log)).toFloat()
+            val cameraDistance = (10.0 * pow(10.0, floor(log))).toFloat()
 
             stack.scale(cameraDistance)
-
-            stack.rotate(toRadians(90f), xAxis)
 
             val gridAlpha = 0.05f
 
@@ -196,6 +217,7 @@ object Grid {
 
             drawGrid(stack, gridAlpha * f)
 
+            stack.rotate(toRadians(90f), xAxis)
             drawLine(stack, xAxisColor, 0.15f) // x
 
             stack.rotate(toRadians(90f), yAxis)
@@ -216,7 +238,7 @@ object Grid {
         else return
 
         val distance = length(camPos.x, camPos.y, camPos.z)
-        draw(stack, distance)
+        draw(stack, distance.toDouble())
 
     }
 

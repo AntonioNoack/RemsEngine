@@ -7,9 +7,10 @@ import me.anno.gpu.GFXBase1
 import me.anno.gpu.TextureLib
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
-import me.anno.studio.StudioBase.Companion.warn
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.InvalidRef
+import me.anno.studio.StudioBase.Companion.warn
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.FileNotFoundException
@@ -21,6 +22,7 @@ object ImageCache : CacheSection("Images") {
     private val LOGGER = LogManager.getLogger(ImageCache::class)
 
     fun getImage(file: FileReference, timeout: Long, asyncGenerator: Boolean): Texture2D? {
+        if (file == InvalidRef) return null
         val meta = LastModifiedCache[file]
         if (meta.isDirectory || !meta.exists) return null
         val texture = (getEntry(file, timeout, asyncGenerator, ::generateImageData) as? ImageData)?.texture

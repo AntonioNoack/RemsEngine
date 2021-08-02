@@ -67,11 +67,12 @@ class MeshComponent() : Component() {
         const val MAX_WEIGHTS = 4
         val attributes = listOf(
             Attribute("coords", 3),
-            Attribute("uvs", 2),
-            Attribute("normals", 3),
-            Attribute("colors", AttributeType.UINT8_NORM, 4),
-            Attribute("weights", MAX_WEIGHTS),
-            Attribute("indices", AttributeType.UINT8, MAX_WEIGHTS, true)
+            Attribute("uvs", 2), // 20 bytes
+            Attribute("normals", AttributeType.SINT8_NORM, 4),
+            Attribute("tangents", AttributeType.SINT8_NORM, 4),
+            Attribute("colors", AttributeType.UINT8_NORM, 4), // 28 + 4 bytes
+            Attribute("weights", AttributeType.UINT8_NORM, MAX_WEIGHTS),
+            Attribute("indices", AttributeType.UINT8, MAX_WEIGHTS, true) // 32 + 8 bytes
         )
 
         fun AABBf.clear() {

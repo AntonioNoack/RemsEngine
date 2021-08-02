@@ -1,12 +1,14 @@
 package me.anno.gpu.buffer
 
 import me.anno.image.svg.SVGMesh
+import me.anno.utils.Maths.clamp
 import org.joml.Vector2fc
 import org.joml.Vector3fc
 import org.joml.Vector4fc
 import org.lwjgl.opengl.GL15.GL_STATIC_DRAW
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import kotlin.math.roundToInt
 
 open class StaticBuffer(attributes: List<Attribute>, val vertexCount: Int, usage: Int = GL_STATIC_DRAW) :
     Buffer(attributes, usage) {
@@ -104,6 +106,11 @@ open class StaticBuffer(attributes: List<Attribute>, val vertexCount: Int, usage
         isUpToDate = false
     }
 
+    fun putByte(f: Float) {
+        val asInt = clamp(f * 127f, -127f, +127f).roundToInt()
+        putByte(asInt.toByte())
+    }
+
     fun putUByte(b: Int) {
         nioBuffer!!.put(b.toByte())
         isUpToDate = false
@@ -149,7 +156,7 @@ open class StaticBuffer(attributes: List<Attribute>, val vertexCount: Int, usage
 
     companion object {
         fun join(buffers: List<StaticBuffer>): StaticBuffer? {
-            if(buffers.isEmpty()) return null
+            if (buffers.isEmpty()) return null
             val vertexCount = buffers.sumOf { it.vertexCount }
             val sample = buffers.first()
             val joint = StaticBuffer(sample.attributes, vertexCount)

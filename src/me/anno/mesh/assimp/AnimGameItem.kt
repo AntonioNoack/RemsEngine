@@ -133,7 +133,7 @@ class AnimGameItem(
                 // todo render all them points, and use them for the bbx calculation (only if no meshes present)
                 // because animated clothing may be too small to see
                 val local = AABBd()
-                val meshes = entity.getComponents<MeshComponent>(false).mapNotNull { it.mesh }
+                val meshes = entity.getComponents(MeshComponent::class,false).mapNotNull { it.mesh }
                 for (mesh in meshes) {
                     mesh.ensureBuffer()
                     local.union(mesh.aabb.toDouble())
