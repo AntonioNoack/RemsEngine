@@ -3,7 +3,6 @@ package me.anno.io.files
 import me.anno.io.windows.WindowsShortcut
 import me.anno.studio.StudioBase
 import me.anno.utils.files.Files.openInExplorer
-import me.anno.utils.files.Files.use
 import me.anno.utils.files.LocalFile.toLocalPath
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.commons.compress.archivers.zip.ZipFile
@@ -12,7 +11,6 @@ import org.apache.logging.log4j.LogManager
 import java.io.*
 import java.net.URI
 import java.nio.charset.Charset
-import kotlin.math.sign
 
 /**
  * doesn't call toLowerCase() for each comparison,
@@ -77,6 +75,11 @@ abstract class FileReference(val absolutePath: String) {
                 }
                 result
             } ?: InvalidRef
+        }
+
+        fun createZipFile(file: FileReference): ZipFile {
+            return if (file is FileFileRef) ZipFile(file.file) else
+                ZipFile(SeekableInMemoryByteChannel(file.inputStream().readBytes()))
         }
 
     }
@@ -192,8 +195,7 @@ abstract class FileReference(val absolutePath: String) {
                 true
             }
             null -> return try {// maybe something unknown, that we understand anyways
-                val zis = if (this is FileFileRef) ZipFile(file) else
-                    ZipFile(SeekableInMemoryByteChannel(inputStream().readBytes()))
+                val zis = createZipFile(this)
                 val result = zis.entries.hasMoreElements()
                 LOGGER.info("Checking $absolutePath for zip file, success")
                 result

@@ -5,15 +5,14 @@ import me.anno.cache.CacheSection
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.gpu.GFX.startDateTime
 import me.anno.io.config.ConfigBasics
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.utils.StringMap
 import me.anno.studio.rems.RemsConfig
 import me.anno.studio.rems.RemsStudio
 import me.anno.utils.OS
-import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.files.Files.formatFileSize
 import org.apache.logging.log4j.LogManager
-import java.io.File
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -90,7 +89,13 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
     /**
      * scales video down 4x
      * */
-    private fun createProxy(src: FileReference, dst: FileReference, uuid: String, tmp: FileReference, callback: () -> Unit) {
+    private fun createProxy(
+        src: FileReference,
+        dst: FileReference,
+        uuid: String,
+        tmp: FileReference,
+        callback: () -> Unit
+    ) {
         init()
         val meta = FFMPEGMetadata.getMeta(src, false) ?: return // error
         val w = (meta.videoWidth / scale.toFloat()).roundToInt() and (1.inv())
