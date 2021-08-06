@@ -16,6 +16,15 @@ class Transform : Saveable() {
         lastUpdateTime = time
         lastUpdateDt = 1_000_000_000
         drawTransform.set(globalTransform)
+        checkDrawTransform()
+    }
+
+    fun checkDrawTransform() {
+        checkTransform(drawTransform)
+    }
+
+    fun checkTransform(drawTransform: Matrix4x3d) {
+        if (drawTransform.get(FloatArray(16)).any { it.isNaN() }) throw RuntimeException()
     }
 
     fun update(time: Long = GFX.gameTime) {
@@ -48,6 +57,7 @@ class Transform : Saveable() {
         return if (lastUpdateDt <= 0) {
             // hasn't happened -> no interpolation
             drawTransform.set(globalTransform)
+            checkDrawTransform()
             0.0
         } else {
             val drawingDt = (time - lastDrawTime)
@@ -116,6 +126,7 @@ class Transform : Saveable() {
 
     fun setLocal(values: Matrix4x3d) {
         localTransform.set(values)
+        checkTransform(localTransform)
         pos.set(values.m30(), values.m31(), values.m32())
         values.getUnnormalizedRotation(rot)
         values.getScale(sca)
@@ -171,6 +182,7 @@ class Transform : Saveable() {
             globalTransform.set(parent.globalTransform)
                 .mul(localTransform)
         }
+        checkTransform(globalTransform)
     }
 
     fun calculateLocalTransform(parent: Transform?) {
@@ -182,6 +194,7 @@ class Transform : Saveable() {
             // self.local = inv(parent.global) * self.global
             // correct???
             localTransform.set(parent.globalTransform).invert().mul(globalTransform)
+            checkTransform(localTransform)
         }
     }
 
@@ -205,6 +218,6 @@ class Transform : Saveable() {
     override val className = "ECSTransform"
     override val approxSize: Int = 1
 
-    override fun isDefaultValue(): Boolean = localTransform.properties() == 28 // the value assigned for a unit matrix
+    override fun isDefaultValue() = false
 
 }

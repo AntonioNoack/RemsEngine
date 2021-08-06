@@ -3,6 +3,7 @@ package me.anno.io.text
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.utils.types.Strings
 import me.anno.utils.types.Strings.isBlank2
 import org.joml.*
@@ -343,6 +344,20 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
                 writeString(v)
             }
             data.append(']')
+        }
+    }
+
+    override fun writeFile(name: String, value: FileReference?, force: Boolean, workspace: FileReference?) {
+        if (force || (value != null && value != InvalidRef)) {
+            writeAttributeStart("R", name)
+            if (value == null || value == InvalidRef) data.append("null")
+            else writeString(value.toLocalPath(workspace))
+        }
+    }
+
+    override fun writeFileArray(name: String, values: Array<FileReference>, force: Boolean, workspace: FileReference?) {
+        writeArray(name, values, force, "R[]") {
+            writeString(it.toLocalPath(workspace))
         }
     }
 

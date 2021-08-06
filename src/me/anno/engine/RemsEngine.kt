@@ -3,11 +3,10 @@ package me.anno.engine
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
-import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.Prefab.Companion.loadScenePrefab
-import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.DefaultLayout
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
+import me.anno.gpu.GFX
 import me.anno.gpu.GFX.windowStack
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.Window
@@ -43,10 +42,23 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
         // CommandLineReader.start()
 
+        DefaultConfig.defineDefaultFileAssociations()
+
         ECSRegistry.init()
 
         Dict.loadDefault()
 
+    }
+
+    override fun onGameLoopStart() {
+        super.onGameLoopStart()
+        GameEngine.scaledDeltaTime = GFX.deltaTime * GameEngine.timeFactor
+        GameEngine.scaledNanos += (GameEngine.scaledDeltaTime * 1e9).toLong()
+        GameEngine.scaledTime = GameEngine.scaledNanos * 1e-9
+    }
+
+    override fun save() {
+        ECSSceneTabs.currentTab?.save()
     }
 
     override fun createUI() {
@@ -84,7 +96,8 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
         val options = OptionBar(style)
 
-        val editUI = DefaultLayout.createDefaultMainUI(projectFile, tab.inspector.root as Entity, syncMaster, false, style)
+        val editUI =
+            DefaultLayout.createDefaultMainUI(projectFile, tab.inspector.root as Entity, syncMaster, false, style)
 
         val configTitle = Dict["Config", "ui.top.config"]
         options.addAction(configTitle, Dict["Settings", "ui.top.config.settings"]) {

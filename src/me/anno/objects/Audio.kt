@@ -1,17 +1,17 @@
 package me.anno.objects
 
+import me.anno.animation.AnimatedProperty
+import me.anno.audio.effects.SoundPipeline
 import me.anno.audio.openal.AudioStreamOpenAL
 import me.anno.audio.openal.AudioTasks
-import me.anno.audio.effects.SoundPipeline
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.animation.AnimatedProperty
+import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.objects.modes.LoopingState
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import me.anno.io.files.FileReference
-import me.anno.io.files.InvalidRef
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
 import me.anno.utils.structures.ValueWithDefaultFunc
@@ -115,10 +115,17 @@ abstract class Audio(var file: FileReference = InvalidRef, parent: Transform? = 
         }
     }
 
-    override fun readString(name: String, value: String) {
+    override fun readString(name: String, value: String?) {
         when (name) {
-            "src", "file", "path" -> file = value.toGlobalFile()
+            "src", "file", "path" -> file = value?.toGlobalFile() ?: InvalidRef
             else -> super.readString(name, value)
+        }
+    }
+
+    override fun readFile(name: String, value: FileReference) {
+        when (name) {
+            "src", "file", "path" -> file = value
+            else -> super.readFile(name, value)
         }
     }
 

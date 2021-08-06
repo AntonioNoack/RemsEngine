@@ -98,7 +98,7 @@ abstract class NumberInput(
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        super.onMouseMoved(x, y, dx, dy)
+        // super.onMouseMoved(x, y, dx, dy)
         if (mouseIsDown) {
             changeValue(dx, dy)
         }

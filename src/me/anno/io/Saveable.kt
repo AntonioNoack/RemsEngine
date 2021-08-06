@@ -1,6 +1,7 @@
 package me.anno.io
 
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.FileReference
 import me.anno.io.text.TextWriter
 import org.apache.logging.log4j.LogManager
 import org.joml.*
@@ -47,9 +48,12 @@ abstract class Saveable : ISaveable {
     override fun readDoubleArray(name: String, values: DoubleArray) = readSomething(name, values)
     override fun readDoubleArray2D(name: String, values: Array<DoubleArray>) = readSomething(name, values)
 
-    override fun readString(name: String, value: String) = readSomething(name, value)
+    override fun readString(name: String, value: String?) = readSomething(name, value)
     override fun readStringArray(name: String, values: Array<String>) = readSomething(name, values)
     override fun readStringArray2D(name: String, values: Array<Array<String>>) = readSomething(name, values)
+
+    override fun readFile(name: String, value: FileReference) = readSomething(name, value)
+    override fun readFileArray(name: String, value: Array<FileReference>) = readSomething(name, value)
 
     override fun readObject(name: String, value: ISaveable?) = readSomething(name, value)
     override fun readObjectArray(name: String, values: Array<ISaveable?>) = readSomething(name, values)

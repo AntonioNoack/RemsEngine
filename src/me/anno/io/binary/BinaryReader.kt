@@ -3,6 +3,8 @@ package me.anno.io.binary
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseReader
 import me.anno.io.binary.BinaryTypes.*
+import me.anno.io.files.InvalidRef
+import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.input.readNBytes2
 import org.joml.*
 import java.io.DataInputStream
@@ -80,6 +82,7 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
     private fun readFloatArray() = FloatArray(input.readInt()) { input.readFloat() }
     private fun readDoubleArray() = DoubleArray(input.readInt()) { input.readDouble() }
     private fun readStringArray() = Array(input.readInt()) { readEfficientString()!! }
+    private fun readFileArray() = Array(input.readInt()) { readEfficientString()?.toGlobalFile() ?: InvalidRef }
     private fun readObjectOrNull(): ISaveable? {
         return when (val subType = input.read().toChar()) {
             OBJECT_IMPL -> readObject()
@@ -145,6 +148,9 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
                     STRING_ARRAY -> obj.readStringArray(name, readStringArray())
                     STRING_ARRAY_2D -> obj.readStringArray2D(name, Array(input.readInt()) { readStringArray() })
 
+                    FILE -> obj.readFile(name, readEfficientString()?.toGlobalFile() ?: InvalidRef)
+                    FILE_ARRAY -> obj.readFileArray(name, readFileArray())
+
                     OBJECT_IMPL -> obj.readObject(name, readObject())
                     OBJECT_PTR -> {
                         val ptr2 = input.readInt()
@@ -197,12 +203,16 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
     private fun readVector2f() = Vector2f(input.readFloat(), input.readFloat())
     private fun readVector3f() = Vector3f(input.readFloat(), input.readFloat(), input.readFloat())
     private fun readVector4f() = Vector4f(input.readFloat(), input.readFloat(), input.readFloat(), input.readFloat())
-    private fun readQuaternionf() = Quaternionf(input.readFloat(), input.readFloat(), input.readFloat(), input.readFloat())
+    private fun readQuaternionf() =
+        Quaternionf(input.readFloat(), input.readFloat(), input.readFloat(), input.readFloat())
 
     private fun readVector2d() = Vector2d(input.readDouble(), input.readDouble())
     private fun readVector3d() = Vector3d(input.readDouble(), input.readDouble(), input.readDouble())
-    private fun readVector4d() = Vector4d(input.readDouble(), input.readDouble(), input.readDouble(), input.readDouble())
-    private fun readQuaterniond() = Quaterniond(input.readDouble(), input.readDouble(), input.readDouble(), input.readDouble())
+    private fun readVector4d() =
+        Vector4d(input.readDouble(), input.readDouble(), input.readDouble(), input.readDouble())
+
+    private fun readQuaterniond() =
+        Quaterniond(input.readDouble(), input.readDouble(), input.readDouble(), input.readDouble())
 
     override fun readAllInList() {
         val nameType = readTypeName()

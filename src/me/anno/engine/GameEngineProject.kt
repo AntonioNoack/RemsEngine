@@ -57,10 +57,17 @@ class GameEngineProject() : NamedSaveable() {
         // location doesn't really need to be saved
     }
 
-    override fun readString(name: String, value: String) {
+    override fun readString(name: String, value: String?) {
         when (name) {
-            "lastScene" -> lastScene = value.toGlobalFile()
+            "lastScene" -> lastScene = value?.toGlobalFile() ?: InvalidRef
             else -> super.readString(name, value)
+        }
+    }
+
+    override fun readFile(name: String, value: FileReference) {
+        when (name) {
+            "lastScene" -> lastScene = value
+            else -> super.readFile(name, value)
         }
     }
 

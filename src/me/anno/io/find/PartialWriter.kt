@@ -2,6 +2,7 @@ package me.anno.io.find
 
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.FileReference
 import org.joml.*
 
 /**
@@ -44,6 +45,10 @@ abstract class PartialWriter(respectsDefaultValues: Boolean) : BaseWriter(respec
     override fun writeString(name: String, value: String?, force: Boolean) {}
     override fun writeStringArray(name: String, values: Array<String>, force: Boolean) {}
     override fun writeStringArray2D(name: String, values: Array<Array<String>>, force: Boolean) {}
+
+    override fun writeFile(name: String, value: FileReference?, force: Boolean, workspace: FileReference?) {}
+    override fun writeFileArray(name: String, values: Array<FileReference>, force: Boolean, workspace: FileReference?) {
+    }
 
     override fun writeVector2f(name: String, value: Vector2fc, force: Boolean) {}
     override fun writeVector3f(name: String, value: Vector3fc, force: Boolean) {}

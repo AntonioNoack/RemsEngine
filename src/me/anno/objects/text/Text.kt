@@ -242,10 +242,10 @@ open class Text(parent: Transform? = null) : GFXTransform(parent), SplittableEle
         }
     }
 
-    override fun readString(name: String, value: String) {
+    override fun readString(name: String, value: String?) {
         when (name) {
-            "text" -> text.set(value)
-            "font" -> font = font.withName(value)
+            "text" -> text.set(value ?: "")
+            "font" -> font = font.withName(value ?: "")
             else -> super.readString(name, value)
         }
         invalidate()

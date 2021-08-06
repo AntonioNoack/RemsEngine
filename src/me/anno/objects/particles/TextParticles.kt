@@ -160,10 +160,9 @@ class TextParticles : ParticleSystem() {
         }
     }
 
-    override fun readString(name: String, value: String) {
+    override fun readString(name: String, value: String?) {
         when (name) {
-            "text", "font" ->
-                text.readString(name, value)
+            "text", "font" -> text.readString(name, value)
             else -> super.readString(name, value)
         }
     }

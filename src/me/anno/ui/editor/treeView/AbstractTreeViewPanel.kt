@@ -52,6 +52,7 @@ class AbstractTreeViewPanel<V>(
 
     val symbol: TextPanel? = if (showSymbol) {
         object : TextPanel("", style) {
+
             init {
                 textAlignment = AxisAlignment.CENTER
             }
@@ -60,12 +61,14 @@ class AbstractTreeViewPanel<V>(
                 calculateSize(w, h, "xx")
             }
 
-            override fun onCopyRequested(x: Float, y: Float): String? = parent?.onCopyRequested(x, y)
+            override fun onCopyRequested(x: Float, y: Float) =
+                this@AbstractTreeViewPanel.onCopyRequested(x, y)
         }
     } else null
 
     val text = object : TextPanel("", style) {
-        override fun onCopyRequested(x: Float, y: Float): String? = parent?.onCopyRequested(x, y)
+        override fun onCopyRequested(x: Float, y: Float) =
+            this@AbstractTreeViewPanel.onCopyRequested(x, y)
     }
 
     init {

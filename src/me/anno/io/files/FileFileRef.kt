@@ -79,7 +79,7 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
         }
 
     override fun toUri(): URI {
-        return URI("file://$absolutePath")
+        return URI("file:/${absolutePath.replace(" ", "%20")}")
     }
 
     override val isDirectory: Boolean

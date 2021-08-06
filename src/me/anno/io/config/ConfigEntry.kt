@@ -3,7 +3,7 @@ package me.anno.io.config
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 
-abstract class ConfigEntry: Saveable(){
+abstract class ConfigEntry : Saveable() {
 
     var version = 0
     var id: String? = null
@@ -23,14 +23,14 @@ abstract class ConfigEntry: Saveable(){
     }
 
     override fun readInt(name: String, value: Int) {
-        when(name){
+        when (name) {
             "version" -> version = value
             else -> super.readInt(name, value)
         }
     }
 
-    override fun readString(name: String, value: String) {
-        when(name){
+    override fun readString(name: String, value: String?) {
+        when (name) {
             "id" -> id = value
             "name" -> this.name = value
             "description" -> description = value

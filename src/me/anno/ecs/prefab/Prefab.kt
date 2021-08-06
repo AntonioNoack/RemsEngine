@@ -18,11 +18,11 @@ import org.apache.logging.log4j.LogManager
 
 class Prefab() : Saveable() {
 
-    constructor(clazzName: String) : this(){
+    constructor(clazzName: String) : this() {
         this.clazzName = clazzName
     }
 
-    constructor(clazzName: String, prefab: FileReference): this(clazzName){
+    constructor(clazzName: String, prefab: FileReference) : this(clazzName) {
         this.prefab = prefab
     }
 
@@ -51,11 +51,18 @@ class Prefab() : Saveable() {
         writer.writeObject(null, "history", history)
     }
 
-    override fun readString(name: String, value: String) {
+    override fun readString(name: String, value: String?) {
         when (name) {
-            "prefab" -> prefab = value.toGlobalFile()
+            "prefab" -> prefab = value?.toGlobalFile() ?: InvalidRef
             "className" -> clazzName = value
             else -> super.readString(name, value)
+        }
+    }
+
+    override fun readFile(name: String, value: FileReference) {
+        when (name) {
+            "prefab" -> prefab = value
+            else -> super.readFile(name, value)
         }
     }
 

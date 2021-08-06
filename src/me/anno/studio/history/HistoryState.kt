@@ -6,7 +6,6 @@ import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Camera
 import me.anno.objects.Transform
-import me.anno.studio.StudioBase
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.studio.rems.Selection
@@ -62,7 +61,7 @@ class HistoryState() : Saveable() {
         windowStack.map { window ->
             var index = 0
             window.panel.listOfAll {
-                if(it is SceneView){
+                if (it is SceneView) {
                     it.camera = if (index in usedCameras.indices) {
                         val cameraIndex = usedCameras[index]
                         listOfAll.firstOrNull { camera -> camera.getUUID() == cameraIndex } as? Camera ?: nullCamera!!
@@ -114,9 +113,9 @@ class HistoryState() : Saveable() {
         writer.writeDouble("editorTime", editorTime)
     }
 
-    override fun readString(name: String, value: String) {
+    override fun readString(name: String, value: String?) {
         when (name) {
-            "title" -> title = value
+            "title" -> title = value ?: ""
             else -> super.readString(name, value)
         }
     }

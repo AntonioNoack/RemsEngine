@@ -55,5 +55,7 @@ public class BinaryTypes {
     public static final char VECTOR2I = 50;
     public static final char VECTOR3I = 51;
     public static final char VECTOR4I = 52;
+    public static final char FILE = 53;
+    public static final char FILE_ARRAY = 54;
     // todo matrix types...
 }

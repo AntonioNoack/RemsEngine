@@ -61,7 +61,7 @@ object Outlines {
         scaledMax.sub(scaledMin)
 
         if (scaledMax.x.isNaN()) {
-            println("Outlines issue: $scaledMax from ${RenderView.viewTransform} from $joinedTransform")
+            println("Outlines issue: $scaledMax from ${RenderView.viewTransform} * translate($camPosition) * $transform")
         }
 
         val scale = 1f + 0.01f / ((scaledMax.x + scaledMax.y).toFloat() * 0.5f)

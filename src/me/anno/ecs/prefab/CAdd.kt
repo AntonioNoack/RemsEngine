@@ -1,11 +1,9 @@
 package me.anno.ecs.prefab
 
-import me.anno.ecs.Entity
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.utils.LOGGER
 import me.anno.utils.files.LocalFile.toGlobalFile
 
 class CAdd() : Change(2) {
@@ -52,11 +50,18 @@ class CAdd() : Change(2) {
         }
     }
 
-    override fun readString(name: String, value: String) {
+    override fun readString(name: String, value: String?) {
         when (name) {
             "className" -> clazzName = value
-            "prefab" -> prefab = value.toGlobalFile()
+            "prefab" -> prefab = value?.toGlobalFile() ?: InvalidRef
             else -> super.readString(name, value)
+        }
+    }
+
+    override fun readFile(name: String, value: FileReference) {
+        when (name) {
+            "prefab" -> prefab = value
+            else -> super.readFile(name, value)
         }
     }
 

@@ -1,5 +1,7 @@
 package me.anno.objects
 
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Type
 import me.anno.audio.AudioFXCache
 import me.anno.audio.effects.Domain
 import me.anno.audio.effects.Time
@@ -7,11 +9,9 @@ import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.drawing.GFXx2D.getSize
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
-import me.anno.io.files.FileReference
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.animation.AnimatedProperty
-import me.anno.animation.Type
+import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.objects.modes.LoopingState
 import me.anno.ui.base.groups.PanelListY
@@ -259,8 +259,11 @@ class FourierTransform : Transform() {
             ) { sampleRate = max(64, it) })
         fourier.add(
             vi(
-                "Buffer Size", "Should be at least twice the buffer size, 'Resolution' of the fourier transform, and length of samples per batch",
-                bufferSizeType, bufferSize, style
+                "Buffer Size",
+                "Should be at least twice the buffer size, 'Resolution' of the fourier transform, and length of samples per batch",
+                bufferSizeType,
+                bufferSize,
+                style
             ) { bufferSize = max(64, it) })
         fourier.add(
             vi(
@@ -301,7 +304,7 @@ class FourierTransform : Transform() {
     }
 
     override fun readObject(name: String, value: ISaveable?) {
-        when(name){
+        when (name) {
             "posLin" -> posLin.copyFrom(value)
             "posLog" -> posLog.copyFrom(value)
             "rotLin" -> rotLin.copyFrom(value)
@@ -313,10 +316,17 @@ class FourierTransform : Transform() {
         }
     }
 
-    override fun readString(name: String, value: String) {
+    override fun readString(name: String, value: String?) {
         when (name) {
-            "file" -> file = value.toGlobalFile()
+            "file" -> file = value?.toGlobalFile() ?: InvalidRef
             else -> super.readString(name, value)
+        }
+    }
+
+    override fun readFile(name: String, value: FileReference) {
+        when (name) {
+            "file" -> file = value
+            else -> super.readFile(name, value)
         }
     }
 

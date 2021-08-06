@@ -49,7 +49,7 @@ open class StaticRef(path: String, val content: Lazy<ByteArray>) : FileReference
     override val lastAccessed: Long = 0L
 
     override fun toUri(): URI {
-        return URI("file://$absolutePath")
+        return URI("file:/$absolutePath")
     }
 
 

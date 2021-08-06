@@ -25,11 +25,13 @@ import me.anno.ui.editor.sceneTabs.SceneTabs.open
 import me.anno.ui.editor.sceneView.SceneTabData
 import me.anno.utils.Maths.mixARGB
 import me.anno.utils.Threads.threadWithName
+import org.apache.logging.log4j.LogManager
 
 class SceneTab(var file: FileReference?, var root: Transform, history: History?) : TextPanel("", DefaultConfig.style) {
 
     companion object {
         const val maxDisplayNameLength = 15
+        private val LOGGER = LogManager.getLogger(SceneTab::class)
     }
 
     var history = history ?: try {
@@ -95,7 +97,7 @@ class SceneTab(var file: FileReference?, var root: Transform, history: History?)
 
     fun save(dst: FileReference, onSuccess: () -> Unit) {
         if (dst.isDirectory) dst.deleteRecursively()
-        println("saving $dst, ${root.listOfAll.joinToString { it.name }}")
+        LOGGER.info("Saving $dst, ${root.listOfAll.joinToString { it.name }}")
         threadWithName("SaveScene") {
             try {
                 synchronized(root) {

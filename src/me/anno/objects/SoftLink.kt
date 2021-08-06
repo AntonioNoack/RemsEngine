@@ -1,29 +1,29 @@
 package me.anno.objects
 
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Type
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX.isFinalRendering
+import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.drawing.GFXx3D.draw3DVideo
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
+import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
-import me.anno.io.files.FileReference
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.language.translation.Dict
-import me.anno.animation.AnimatedProperty
-import me.anno.animation.Type
-import me.anno.gpu.RenderState.useFrame
-import me.anno.gpu.shader.Renderer
+import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.language.translation.Dict
 import me.anno.objects.modes.UVProjection
 import me.anno.objects.text.Text
 import me.anno.studio.rems.Scene
+import me.anno.studio.rems.ui.StudioFileImporter.addChildFromFile
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.FileContentImporter
-import me.anno.studio.rems.ui.StudioFileImporter.addChildFromFile
 import me.anno.ui.editor.frames.FrameSizeInput
 import me.anno.ui.style.Style
 import me.anno.utils.files.LocalFile.toGlobalFile
@@ -40,7 +40,9 @@ class SoftLink(var file: FileReference) : GFXTransform(null) {
 
     constructor() : this(InvalidRef)
 
-    init { timelineSlot.setDefault(0) }
+    init {
+        timelineSlot.setDefault(0)
+    }
 
     var softChild = Transform()
 
@@ -145,7 +147,12 @@ class SoftLink(var file: FileReference) : GFXTransform(null) {
                 if (file.isDirectory) {
                     softChild = Text("Use scene files!")
                 } else {
-                    addChildFromFile(Transform(), file, FileContentImporter.SoftLinkMode.COPY_CONTENT, false) { transform ->
+                    addChildFromFile(
+                        Transform(),
+                        file,
+                        FileContentImporter.SoftLinkMode.COPY_CONTENT,
+                        false
+                    ) { transform ->
                         softChild = transform
                         lastCamera = transform.listOfAll
                             .filterIsInstance<Camera>()
@@ -237,10 +244,17 @@ class SoftLink(var file: FileReference) : GFXTransform(null) {
         }
     }
 
-    override fun readString(name: String, value: String) {
+    override fun readString(name: String, value: String?) {
         when (name) {
-            "file" -> file = value.toGlobalFile()
+            "file" -> file = value?.toGlobalFile() ?: InvalidRef
             else -> super.readString(name, value)
+        }
+    }
+
+    override fun readFile(name: String, value: FileReference) {
+        when (name) {
+            "file" -> file = value
+            else -> super.readFile(name, value)
         }
     }
 

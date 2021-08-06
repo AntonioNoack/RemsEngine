@@ -73,6 +73,20 @@ object PBRLibraryGLTF {
             "    return GL * GV;\n" +
             "}\n"
 
+
+    val specularAttenuationNoDiv = "" + // without times NdotV, because we divide by it in the result
+            "float computeSpecularAttenuation(float roughness, vec3 V, vec3 N, vec3 L, vec3 H){\n" +
+            "    float NdotL = dot(N, L);\n" + // guaranteed to be > 0
+            "    float NdotV = abs(dot(N, V));\n" + // back face gets same shading (if < 0)
+            "    float k = (roughness + 1.0) * (roughness + 1.0) * 0.125;\n" +
+            "    \n" +
+            "    float invK = 1.0 - k;\n" +
+            "    float t0 = NdotL * invK + k;\n" +
+            "    float t1 = NdotV * invK + k;\n" +
+            "    \n" +
+            "    return NdotL / (t0 * t1);\n" +
+            "}\n"
+
     /**
      * Compute the BRDF, as it is described in [1], with a reference
      * to [5], although the formula does not seem to appear there.
@@ -99,6 +113,20 @@ object PBRLibraryGLTF {
             "    vec3 f = specularReflectance;\n" +
             "    float g = specularAttenuation;\n" +
             "    return (d * f * g) / (4.0 * NdotL * NdotV);\n" +
+            "}\n"
+
+    val specularBRDFv2NoDiv = "" +
+            microfacetDistribution +
+            specularReflectance +
+            specularAttenuationNoDiv +
+            "vec3 computeSpecularBRDF(vec3 specularInputColor, float roughness, vec3 V, vec3 N, vec3 L, float NdotL, vec3 H){\n" +
+            // Compute the microfacet distribution (D)
+            "    float D = computeMicrofacetDistribution(H, N, roughness);\n" +
+            // Compute the specularly reflected color (F)\n
+            "    vec3  F = computeSpecularReflectance(specularInputColor, V, H);\n" +
+            // Compute the geometric specular attenuation (G)
+            "    float G = computeSpecularAttenuation(roughness, V, N, L, H);\n" +
+            "    return (D * F * G) * 0.25;\n" + // NdotL is already in the light equation, NdotV is in G
             "}\n"
 
     /**

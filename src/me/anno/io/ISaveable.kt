@@ -1,6 +1,7 @@
 package me.anno.io
 
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.FileReference
 import me.anno.io.serialization.CachedReflections
 import org.joml.*
 import java.lang.RuntimeException
@@ -62,9 +63,12 @@ interface ISaveable {
     fun readDoubleArray(name: String, values: DoubleArray)
     fun readDoubleArray2D(name: String, values: Array<DoubleArray>)
 
-    fun readString(name: String, value: String)
+    fun readString(name: String, value: String?)
     fun readStringArray(name: String, values: Array<String>)
     fun readStringArray2D(name: String, values: Array<Array<String>>)
+
+    fun readFile(name: String, value: FileReference)
+    fun readFileArray(name: String, value: Array<FileReference>)
 
     fun readObject(name: String, value: ISaveable?)
     fun readObjectArray(name: String, values: Array<ISaveable?>)

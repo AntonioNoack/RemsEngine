@@ -99,7 +99,7 @@ class ZipFileTar(
             } catch (e2: ZipException) {
                 e = e2
             }
-            return if (hasReadEntry) file else throw e ?: IOException("Zip was empty")
+            return if (hasReadEntry) file else throw e ?: IOException("Zip $zipFileLocation was empty")
         }
 
         fun createEntryArchive(

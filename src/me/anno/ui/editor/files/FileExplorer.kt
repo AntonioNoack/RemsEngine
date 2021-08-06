@@ -26,8 +26,9 @@ import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.pow
 import me.anno.utils.OS
-import me.anno.utils.Threads.threadWithName
 import me.anno.utils.files.Files.listFiles2
+import me.anno.utils.hpc.UpdatingTask
+import me.anno.utils.structures.Compare.ifDifferent
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 
@@ -102,7 +103,22 @@ abstract class FileExplorer(
     val minEntrySize = 32f
 
     val uContent = PanelListX(style)
-    val content = PanelListMultiline(style)
+    val content = PanelListMultiline({ a, b ->
+        // define the order for the file entries:
+        // first .., then folders, then files
+        // first a, then z, ...
+        // not all folders may be sorted
+        a as FileExplorerEntry
+        b as FileExplorerEntry
+        (b.isParent.compareTo(a.isParent)).ifDifferent {
+            val af = a.file
+            val bf = b.file
+            bf.isDirectory.compareTo(af.isDirectory).ifDifferent {
+                a.file.name.compareTo(b.file.name, true)
+            }
+        }
+    }, style)
+
     var lastFiles = emptyList<String>()
     var lastSearch = true
 
@@ -142,11 +158,14 @@ abstract class FileExplorer(
         content.clear()
     }
 
-    var isWorking = false
+    // todo when searching, use a thread for that
+    // todo regularly sleep 0ms inside of it:
+    // todo when the search term changes, kill the thread
+
+    val searchTask = UpdatingTask("FileExplorer-Query") {}
+
     fun createResults() {
-        if (isWorking) return
-        isWorking = true
-        threadWithName("FileExplorer-Query") {
+        searchTask.compute {
 
             val search = Search(searchTerm)
 
@@ -178,22 +197,29 @@ abstract class FileExplorer(
                             ) {
                                 nextLevel.addAll(file.listChildren() ?: continue)
                             }
+                            Thread.sleep(0)
                         }
                         level0 = level0 + nextLevel
                         if (level0.size > fileLimit) break
                         lastLevel = nextLevel
                         nextLevel = ArrayList()
+                        Thread.sleep(0)
                     }
+                }
+
+                Thread.sleep(0)
+
+                GFX.addGPUTask(1) {
+                    removeOldFiles()
                 }
 
                 val parent = folder.getParent()
                 if (parent != null) {
                     GFX.addGPUTask(1) {
+                        // option to go up a folder
                         val fe = FileExplorerEntry(this, true, parent, style)
-                        removeOldFiles(); content += fe
+                        content += fe
                     }
-                } else {
-                    GFX.addGPUTask(1) { removeOldFiles() }
                 }
 
                 val tmpCount = 64
@@ -215,23 +241,32 @@ abstract class FileExplorer(
 
                 for (file in level0.filter { it.isDirectory }) {
                     tmpList.add(file)
-                    if (tmpList.size >= tmpCount) put()
+                    if (tmpList.size >= tmpCount) {
+                        put()
+                        Thread.sleep(0)
+                    }
                 }
 
                 for (file in level0.filter { !it.isDirectory }) {
                     tmpList.add(file)
-                    if (tmpList.size >= tmpCount) put()
+                    if (tmpList.size >= tmpCount) {
+                        put()
+                        Thread.sleep(0)
+                    }
                 }
 
                 put()
 
+                Thread.sleep(0)
+
             } else {
+
                 val fe = content.children.filterIsInstance<FileExplorerEntry>()
                 for (it in fe) {
                     it.visibility = Visibility[search.matches(it.file.name)]
                 }
+
             }
-            isWorking = false
         }
     }
 
@@ -249,7 +284,6 @@ abstract class FileExplorer(
         // todo create links? or truly copy them?
         // todo or just switch?
         switchTo(files.first())
-        invalidate()
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
@@ -259,7 +293,12 @@ abstract class FileExplorer(
             }
             else -> {
                 if (!pasteTransform(data)) {
-                    super.onPaste(x, y, data, type)
+                    if (data.length < 2048) {
+                        val ref = getReference(data)
+                        if (ref.exists) {
+                            switchTo(ref)
+                        } else super.onPaste(x, y, data, type)
+                    } else super.onPaste(x, y, data, type)
                 }
             }
         }
@@ -279,7 +318,14 @@ abstract class FileExplorer(
         return true
     }
 
-    override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
+    override fun onGotAction(
+        x: Float,
+        y: Float,
+        dx: Float,
+        dy: Float,
+        action: String,
+        isContinuous: Boolean
+    ): Boolean {
         when (action) {
             "OpenOptions" -> {
                 val home = folder

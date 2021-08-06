@@ -114,6 +114,7 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
             if (sceneTab !in children3) {
                 content += sceneTab
             }
+            for(panel in children) panel.tickUpdate() // to assign the colors without delay
         }
     }
 

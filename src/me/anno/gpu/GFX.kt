@@ -2,6 +2,7 @@ package me.anno.gpu
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.RenderState.blendMode
+import me.anno.gpu.RenderState.currentRenderer
 import me.anno.gpu.RenderState.depthMode
 import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.ShaderLib.copyShader
@@ -9,6 +10,7 @@ import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.shader.Renderer.Companion.idRenderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.Clamping
@@ -250,15 +252,15 @@ object GFX : GFXBase1() {
     }
 
     fun shaderColor(shader: Shader, name: String, color: Int) {
-        when (drawMode) {
-            ShaderPlus.DrawMode.ID -> shaderId(shader, name)
+        when (currentRenderer) {
+            idRenderer -> shaderId(shader, name)
             else -> shader.v4(name, color)
         }
     }
 
     fun shaderColor(shader: Shader, name: String, color: Vector4fc?) {
         when {
-            drawMode == ShaderPlus.DrawMode.ID -> shaderId(shader, name)
+            currentRenderer == idRenderer -> shaderId(shader, name)
             color != null -> shader.v4(name, color)
             else -> shader.v4(name, 1f)
         }
@@ -294,6 +296,13 @@ object GFX : GFXBase1() {
         shader.v1("am1", 0f)
         flat01.draw(shader)
         check()
+    }
+
+
+    fun copyNoAlpha(buffer: Framebuffer) {
+        Frame.bind()
+        buffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+        copyNoAlpha()
     }
 
     fun copyNoAlpha() {

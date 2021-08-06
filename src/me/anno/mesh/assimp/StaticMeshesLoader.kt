@@ -221,14 +221,14 @@ open class StaticMeshesLoader {
 
         // roughness
         // AI_MATKEY_SHININESS as color, .r: 360, 500, so the exponent?
-        val roughness = getFloat(aiMaterial, AI_MATKEY_SHININESS)
-        val roughness2 = getFloat(aiMaterial, AI_MATKEY_SHININESS_STRENGTH)
-        println("roughness: $roughness x $roughness2")
+        val shininessExponent = getFloat(aiMaterial, AI_MATKEY_SHININESS)
+        // val shininessStrength = getFloat(aiMaterial, AI_MATKEY_SHININESS_STRENGTH) // always 0.0
+        // LOGGER.info("roughness: $shininess x $shininessStrength")
+        material.roughnessBase = shininessToRoughness(shininessExponent)
 
         val metallic0 = getColor(aiMaterial, color, AI_MATKEY_COLOR_REFLECTIVE) // always null
         val metallic = getFloat(aiMaterial, AI_MATKEY_REFLECTIVITY) // 0.0
-        println("metallic: $metallic0 x $metallic")
-
+        LOGGER.info("metallic: $metallic0 x $metallic")
 
         // other stuff
         material.displacementMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_DISPLACEMENT, texturesDir)
@@ -238,6 +238,18 @@ open class StaticMeshesLoader {
 
         return material
 
+    }
+
+    fun shininessToRoughness(shininessExponent: Float): Float {
+        // an approximation, which maps the exponent to roughness;
+        // just roughly...
+        //   0: 1.00
+        // 100: 0.50
+        // 200: 0.34
+        // 600: 0.14
+        // 900: 0.10
+        // 1e3: 0.09
+        return 1f / (shininessExponent * 0.01f + 1f)
     }
 
     fun getFloat(aiMaterial: AIMaterial, key: String): Float {

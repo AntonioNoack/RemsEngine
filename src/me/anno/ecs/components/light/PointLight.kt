@@ -1,18 +1,21 @@
 package me.anno.ecs.components.light
 
-import me.anno.config.DefaultStyle.white4
+import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.engine.ui.render.RenderView
-import me.anno.engine.ui.render.RenderView.Companion.stack
 import me.anno.mesh.vox.meshing.BlockBuffer
 import me.anno.mesh.vox.meshing.BlockSide
 import me.anno.mesh.vox.meshing.VoxelMeshBuildInfo
-import me.anno.ui.editor.sceneView.Grid
 import me.anno.utils.structures.arrays.FloatArrayList
 import org.joml.Vector3f
 
+// todo size of point light: probably either distance or direction needs to be adjusted
+// todo - in proximity, the appearance must not stay as a point, but rather be a sphere
+
 class PointLight : LightComponent() {
+
+    @Range(0.0, 5.0)
+    var lightSize = 0.0
 
     override fun getLightPrimitive(): Mesh = cubeMesh
 

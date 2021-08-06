@@ -56,7 +56,7 @@ object InvalidRef : FileReference("") {
         get() = 0L
 
     override fun toUri(): URI {
-        return URI("file://invalid")
+        return URI("file:/invalid")
     }
 
     override fun toString(): String {

@@ -531,12 +531,12 @@ open class Transform() : Saveable(),
         }
     }
 
-    override fun readString(name: String, value: String) {
+    override fun readString(name: String, value: String?) {
         when (name) {
-            "name" -> this.name = value
-            "comment" -> comment = value
-            "tags" -> tags = value
-            "blendMode" -> blendMode = BlendMode[value]
+            "name" -> this.name = value ?: ""
+            "comment" -> comment = value ?: ""
+            "tags" -> tags = value ?: ""
+            "blendMode" -> blendMode = BlendMode[value ?: ""]
             else -> super.readString(name, value)
         }
     }

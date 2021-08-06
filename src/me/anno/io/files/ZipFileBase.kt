@@ -75,7 +75,7 @@ abstract class ZipFileBase(
     // override fun toString(): String = relativePath
 
     override fun toUri(): URI {
-        return URI("zip://$absolutePath")
+        return URI("zip://${absolutePath.replace(" ", "%20")}")
     }
 
     override fun deleteRecursively(): Boolean {

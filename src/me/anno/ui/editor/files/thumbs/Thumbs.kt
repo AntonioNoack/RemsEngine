@@ -17,7 +17,9 @@ import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.shader.Renderer
-import me.anno.gpu.texture.*
+import me.anno.gpu.texture.Filtering
+import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.Texture2D
 import me.anno.image.HDRImage
 import me.anno.image.tar.TGAImage
 import me.anno.io.config.ConfigBasics
@@ -44,7 +46,13 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Math.toRadians
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
+import org.lwjgl.opengl.ARBFramebufferObject.GL_DRAW_FRAMEBUFFER
+import org.lwjgl.opengl.ARBFramebufferObject.glBindFramebuffer
 import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL20
+import org.lwjgl.opengl.GL30.GL_READ_FRAMEBUFFER
+import org.lwjgl.opengl.GL45
+import org.lwjgl.opengl.GL45.glClipControl
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 import kotlin.concurrent.thread
@@ -57,6 +65,10 @@ import kotlin.math.roundToInt
  * creates and caches small versions of image and video resources
  * */
 object Thumbs {
+
+    init {
+        LogManager.disableLogger("GlyphRenderer")
+    }
 
     private val folder = ConfigBasics.cacheFolder.getChild("thumbs")
     private val sizes = intArrayOf(32, 64, 128, 256, 512)
@@ -176,7 +188,13 @@ object Thumbs {
 
                     Frame.bind()
 
-                    glClearColor(0f, 0f, 0f, 1f)
+                    if(withDepth){
+                        glClearColor(0f, 0f, 0f, 1f)
+                        glClearDepth(1.0)
+                        // in case we have reset this for reverse rendering
+                        glClipControl(GL20.GL_LOWER_LEFT, GL45.GL_NEGATIVE_ONE_TO_ONE)
+                    }
+
                     glClear(GL_COLOR_BUFFER_BIT)
 
                     // todo why is no tiling visible when rendering 3d models???
@@ -203,9 +221,10 @@ object Thumbs {
 
                     GFX.copy(fb2)
 
-                    // draw only the clicked area?
                     glFlush(); glFinish() // wait for everything to be drawn
                     glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+
+                    GFX.check()
 
                     glReadPixels(0, GFX.height - h, w, h, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
 
@@ -309,7 +328,7 @@ object Thumbs {
     }
 
     // just render it using the simplest shader
-    private fun generateAssimpMeshFrame(
+    fun generateAssimpMeshFrame(
         srcFile: FileReference,
         dstFile: FileReference,
         size: Int,

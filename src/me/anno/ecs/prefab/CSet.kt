@@ -20,7 +20,7 @@ class CSet() : Change(5) {
         writer.writeSomething(null, "value", value, true)
     }
 
-    override fun readString(name: String, value: String) {
+    override fun readString(name: String, value: String?) {
         when (name) {
             "name" -> this.name = value
             else -> super.readString(name, value)

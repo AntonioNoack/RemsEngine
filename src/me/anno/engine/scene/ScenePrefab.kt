@@ -6,6 +6,7 @@ import me.anno.engine.scene.PrefabHelper.addC
 import me.anno.engine.scene.PrefabHelper.addE
 import me.anno.engine.scene.PrefabHelper.setC
 import me.anno.engine.scene.PrefabHelper.setE
+import me.anno.engine.ui.render.RenderView
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.StaticRef
 import me.anno.io.text.TextWriter
@@ -65,19 +66,19 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         setE(changes, pointLight, "scale", Vector3d(80.0))
         addC(changes, pointLight, "PointLight")
 
-        val sun = addE(changes, lights, "Sun")
+        /*val sun = addE(changes, lights, "Sun")
         setE(changes, sun, "scale", Vector3d(1000.0))
         setE(changes, sun, "position", Vector3d(0.0, 50.0, 0.0))
         addC(changes, sun, "DirectionalLight")
 
         val spotLight = addE(changes, lights, "Spot Light")
         setE(changes, spotLight, "scale", Vector3d(100.0))
-        addC(changes, spotLight, "SpotLight")
+        addC(changes, spotLight, "SpotLight")*/
 
         val ringOfLights = addE(changes, lights, "Ring Of Lights")
-        val rol = 50
-        for(i in 0 until rol){
-            val angle = 6.2830 * i / rol
+        val ringLightCount = RenderView.MAX_LIGHTS - 4
+        for (i in 0 until ringLightCount) {
+            val angle = 6.2830 * i / ringLightCount
             val radius = 50.0
             val light = addE(changes, ringOfLights, "Light[$i]")
             setE(changes, light, "position", Vector3d(radius * cos(angle), 20.0, radius * sin(angle)))

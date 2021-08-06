@@ -1,34 +1,33 @@
 package me.anno.objects.geometric
 
+import me.anno.animation.AnimatedProperty
 import me.anno.cache.instances.ImageCache.getImage
 import me.anno.cache.instances.MeshCache
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.toRadians
-import me.anno.gpu.drawing.GFXx3D.draw3DPolygon
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.gpu.drawing.GFXx3D.draw3DPolygon
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.language.translation.Dict
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
-import me.anno.animation.AnimatedProperty
-import me.anno.io.files.InvalidRef
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.Maths.clamp
-import me.anno.io.files.FileReference
+import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.video.MissingFrameException
 import org.joml.*
 import java.lang.Math
 import java.net.URL
-import javax.annotation.processing.Filer
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
@@ -122,10 +121,17 @@ open class Polygon(parent: Transform? = null) : GFXTransform(parent) {
         writer.writeFile("texture", texture)
     }
 
-    override fun readString(name: String, value: String) {
+    override fun readString(name: String, value: String?) {
         when (name) {
-            "texture" -> texture = value.toGlobalFile()
+            "texture" -> texture = value?.toGlobalFile() ?: InvalidRef
             else -> super.readString(name, value)
+        }
+    }
+
+    override fun readFile(name: String, value: FileReference) {
+        when (name) {
+            "texture" -> texture = value
+            else -> super.readFile(name, value)
         }
     }
 
@@ -154,16 +160,17 @@ open class Polygon(parent: Transform? = null) : GFXTransform(parent) {
 
     override val className get() = "Polygon"
     override val defaultDisplayName = Dict["Polygon", "obj.polygon"]
-    override val symbol get() =
-        if (vertexCount.isAnimated) DefaultConfig["ui.symbol.polygon.any", "⭐"]
-        else when (vertexCount[0.0]) {
-            3 -> DefaultConfig["ui.symbol.polygon.3", "△"]
-            4 -> DefaultConfig["ui.symbol.polygon.4", "⬜"]
-            5 -> DefaultConfig["ui.symbol.polygon.5", "⭐"]
-            6 -> DefaultConfig["ui.symbol.polygon.6", "⬡"]
-            in 30 until Integer.MAX_VALUE -> DefaultConfig["ui.symbol.polygon.circle", "◯"]
-            else -> DefaultConfig["ui.symbol.polygon.any", "⭐"]
-        }
+    override val symbol
+        get() =
+            if (vertexCount.isAnimated) DefaultConfig["ui.symbol.polygon.any", "⭐"]
+            else when (vertexCount[0.0]) {
+                3 -> DefaultConfig["ui.symbol.polygon.3", "△"]
+                4 -> DefaultConfig["ui.symbol.polygon.4", "⬜"]
+                5 -> DefaultConfig["ui.symbol.polygon.5", "⭐"]
+                6 -> DefaultConfig["ui.symbol.polygon.6", "⬡"]
+                in 30 until Integer.MAX_VALUE -> DefaultConfig["ui.symbol.polygon.circle", "◯"]
+                else -> DefaultConfig["ui.symbol.polygon.any", "⭐"]
+            }
 
     companion object {
 

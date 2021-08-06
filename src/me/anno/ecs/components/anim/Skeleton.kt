@@ -1,14 +1,19 @@
 package me.anno.ecs.components.anim
 
+import me.anno.ecs.annotations.Type
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.ISaveable
-import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.serialization.SerializedProperty
 import me.anno.mesh.assimp.Bone
 
-class Skeleton() : NamedSaveable() {
+class Skeleton() : PrefabSaveable() {
 
+    @SerializedProperty
     var bones: Array<Bone>? = null
 
+    @Type("Map<String, Animation>")
+    @SerializedProperty
     val animations = HashMap<String, Animation>()
 
     override val className: String = "Skeleton"

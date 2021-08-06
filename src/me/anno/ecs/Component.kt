@@ -1,5 +1,6 @@
 package me.anno.ecs
 
+import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderView
 import me.anno.io.ISaveable
@@ -23,12 +24,18 @@ abstract class Component : PrefabSaveable(), Inspectable {
             parent = value
         }
 
+    @NotSerializedProperty
+    val transform
+        get() = entity?.transform
+
     // can be overridden, e.g. for materials
     override fun listChildTypes(): String = ""
     override fun getChildListByType(type: Char): List<PrefabSaveable> = emptyList()
     override fun getChildListNiceName(type: Char): String = ""
     override fun getIndexOf(child: PrefabSaveable): Int = -1
 
+    @HideInInspector
+    @NotSerializedProperty
     var clickId = 0
 
     override fun addChildByType(index: Int, type: Char, instance: PrefabSaveable) {
@@ -93,6 +100,12 @@ abstract class Component : PrefabSaveable(), Inspectable {
     override fun save(writer: BaseWriter) {
         super.save(writer)
         saveSerializableProperties(writer)
+    }
+
+    override fun readSomething(name: String, value: Any?) {
+        if (!readSerializableProperty(name, value)) {
+            super.readSomething(name, value)
+        }
     }
 
     fun toString(depth: Int): StringBuilder {

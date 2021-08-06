@@ -9,6 +9,7 @@ import me.anno.studio.rems.RemsStudio.root
 import me.anno.utils.ShutdownException
 import me.anno.utils.Threads.threadWithName
 import me.anno.utils.hpc.ProcessingQueue
+import me.anno.utils.test.showValue
 import org.apache.logging.log4j.LogManager
 import java.io.FileNotFoundException
 import java.util.concurrent.ConcurrentSkipListSet
@@ -89,7 +90,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         oldValue?.destroy()
     }
 
-    private fun <V> generateSafely(key: V, generator: (V) -> ICacheData?): ICacheData? {
+    private fun <V> generateSafely(key: V, generator: (V) -> ICacheData?): Any? {
         var data: ICacheData? = null
         try {
             data = generator(key)
@@ -97,7 +98,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             LOGGER.warn("FileNotFoundException: ${e.message}")
         } catch (e: Exception) {
             if (e is ShutdownException) throw e
-            else e.printStackTrace()
+            else return e
         }
         return data
     }
@@ -122,7 +123,8 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             getEntryWithCallback(key, timeout, asyncGenerator, {
                 val value = generateSafely(key, generator)
                 limiter.decrementAndGet()
-                value
+                if(value is Exception) throw value
+                value as? ICacheData
             }) { limiter.decrementAndGet() }
         } else {
             limiter.decrementAndGet()
@@ -145,7 +147,8 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             getEntryWithCallback(key, timeout, queue, {
                 val value = generateSafely(key, generator)
                 limiter.decrementAndGet()
-                value
+                if(value is Exception) throw value
+                value as? ICacheData
             }) { limiter.decrementAndGet() }
         } else {
             limiter.decrementAndGet()
@@ -178,13 +181,20 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         if (needsGenerator) {
             if (asyncGenerator) {
                 threadWithName("$name<$key>") {
-                    entry.data = generateSafely(key, generator)
+                    val value = generateSafely(key, generator)
+                    if(value is Exception) throw value
+                    value as? ICacheData
+                    entry.data = value as? ICacheData
                     if (entry.hasBeenDestroyed) {
                         LOGGER.warn("Value for $name<$key> was directly destroyed")
                         entry.data?.destroy()
                     }
                 }
-            } else entry.data = generateSafely(key, generator)
+            } else {
+                val value = generateSafely(key, generator)
+                if(value is Exception) throw value
+                entry.data = value as? ICacheData
+            }
         } else ifNotGenerating?.invoke()
 
         if (!asyncGenerator) entry.waitForValue()
@@ -216,13 +226,19 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         if (needsGenerator) {
             if (queue != null) {
                 queue += {
-                    entry.data = generateSafely(key, generator)
+                    val value = generateSafely(key, generator)
+                    if(value is Exception) throw value
+                    entry.data = value as? ICacheData
                     if (entry.hasBeenDestroyed) {
                         LOGGER.warn("Value for $name<$key> was directly destroyed")
                         entry.data?.destroy()
                     }
                 }
-            } else entry.data = generateSafely(key, generator)
+            } else {
+                val value = generateSafely(key, generator)
+                if(value is Exception) throw value
+                entry.data = value as? ICacheData
+            }
         } else ifNotGenerating?.invoke()
 
         if (queue == null) entry.waitForValue()

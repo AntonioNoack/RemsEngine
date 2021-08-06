@@ -3,6 +3,8 @@ package me.anno.io.binary
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.binary.BinaryTypes.*
+import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.utils.types.Booleans.toInt
 import org.joml.*
 import java.io.DataOutputStream
@@ -298,6 +300,21 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
                 output.writeInt(vs.size)
                 for (v in vs) writeEfficientString(v)
             }
+        }
+    }
+
+    override fun writeFile(name: String, value: FileReference?, force: Boolean, workspace: FileReference?) {
+        if (force || (value != null && value != InvalidRef)) {
+            writeAttributeStart(name, FILE)
+            writeEfficientString(value?.toLocalPath(workspace))
+        }
+    }
+
+    override fun writeFileArray(name: String, values: Array<FileReference>, force: Boolean, workspace: FileReference?) {
+        if (force || values.isNotEmpty()) {
+            writeAttributeStart(name, FILE_ARRAY)
+            output.writeInt(values.size)
+            for (v in values) writeEfficientString(v.toLocalPath(workspace))
         }
     }
 

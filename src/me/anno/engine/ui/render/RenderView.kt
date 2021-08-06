@@ -12,7 +12,6 @@ import me.anno.engine.pbr.DeferredRenderer
 import me.anno.engine.pbr.PBRLibraryGLTF
 import me.anno.engine.ui.ECSTypeLibrary
 import me.anno.engine.ui.ECSTypeLibrary.Companion.lastSelection
-import me.anno.engine.ui.control.BlenderControls
 import me.anno.engine.ui.render.DrawAABB.drawAABB
 import me.anno.engine.ui.render.MovingGrid.drawGrid
 import me.anno.engine.ui.render.Outlines.drawOutline
@@ -26,6 +25,7 @@ import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTextures
+import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
@@ -37,12 +37,14 @@ import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.BaseShader.Companion.cullFaceColoringGeometry
 import me.anno.gpu.shader.BaseShader.Companion.lineGeometry
 import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.Renderer.Companion.depthRenderer
+import me.anno.gpu.shader.Renderer.Companion.idRenderer
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.input.Input
-import me.anno.input.Input.mouseKeysDown
-import me.anno.input.MouseButton
+import me.anno.input.Input.isControlDown
+import me.anno.input.Input.isShiftDown
 import me.anno.objects.Transform
 import me.anno.studio.Build
 import me.anno.studio.rems.Scene
@@ -50,13 +52,10 @@ import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
 import me.anno.utils.Clock
 import me.anno.utils.Maths.clamp
-import me.anno.utils.Maths.max
 import me.anno.utils.Maths.mix
-import me.anno.utils.Maths.pow
 import me.anno.utils.Maths.sq
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import org.joml.*
-import org.joml.Math.tan
 import org.joml.Math.toRadians
 import org.lwjgl.opengl.GL20.GL_LOWER_LEFT
 import org.lwjgl.opengl.GL45.*
@@ -138,8 +137,18 @@ class RenderView(
     val lightBuffer = deferred.createLightBuffer()
     val baseBuffer = deferred.createBaseBuffer()
 
+    val showOverdraw get() = Input.isKeyDown('n')
+
+    val overdrawRenderer = object : Renderer(true, ShaderPlus.DrawMode.COLOR) {
+        override fun getPostProcessing(): String {
+            return "void main(){\n" +
+                    "   finalColor = vec3(0.125);\n" +
+                    "   finalAlpha = 1.0;\n" +
+                    "}\n"
+        }
+    }
+
     val baseRenderer = object : Renderer(false, ShaderPlus.DrawMode.COLOR) {
-        val maxLights = 64
         override fun getPostProcessing(): String {
             return "" +
                     // define all light positions, radii, types, and colors
@@ -147,16 +156,14 @@ class RenderView(
                     // light data
                     "uniform vec3 ambientLight;\n" +
                     "uniform int numberOfLights;\n" +
-                    "uniform mat4x3 invLightMatrices[$maxLights];\n" +
-                    "uniform vec4 lightData0[$maxLights];\n" +
-                    "uniform vec4 lightData1[$maxLights];\n" +
+                    "uniform mat4x3 invLightMatrices[$MAX_LIGHTS];\n" +
+                    "uniform vec4 lightData0[$MAX_LIGHTS];\n" +
+                    "uniform vec4 lightData1[$MAX_LIGHTS];\n" +
                     "uniform int visualizeLightCount;\n" +
                     "#define M_PI 3.141592653589793\n" +
-                    PBRLibraryGLTF.microfacetDistribution +
-                    PBRLibraryGLTF.specularReflectance +
-                    PBRLibraryGLTF.specularAttenuation +
-                    PBRLibraryGLTF.specularBRDFv2 +
+                    PBRLibraryGLTF.specularBRDFv2NoDiv +
                     Scene.reinhardToneMapping +
+                    Scene.noiseFunc +
                     "void main(){\n" +
                     // shared pbr data
                     "   vec3 V = normalize(-finalPosition);\n" +
@@ -165,7 +172,7 @@ class RenderView(
                     "   vec3 specularBRDF = ambientLight, diffuseLight = ambientLight;\n" +
                     "   vec3 diffuseColor = finalColor * (1.0 - finalMetallic);\n" +
                     "   vec3 specularColor = finalColor * finalMetallic;\n" +
-                    "   int lightCount = 0;\n" +
+                    "   float lightCount = 0;\n" +
                     "   bool hasSpecular = dot(specularColor,vec3(1.0)) > 0.001;\n" +
                     "   bool hasDiffuse = dot(diffuseColor,vec3(1.0)) > 0.001;\n" +
                     "   if(hasDiffuse || hasSpecular) for(int i=0;i<numberOfLights;i++){\n" +
@@ -176,7 +183,6 @@ class RenderView(
                     "       vec4 data1 = lightData1[i];\n" +
                     "       vec3 lightColor = data0.rgb;\n" +
                     "       int lightType = int(data0.a);\n" +
-                    "       float coneAngle = data1.a;\n" +
                     "       vec3 lightPosition, lightDirWS, localNormal, effectiveLightColor, effectiveSpecular, effectiveDiffuse;\n" +
                     "       localNormal = normalize(WStoLightSpace * vec4(finalNormal,0.0));\n" +
                     "       float NdotL;\n" + // normal dot light
@@ -184,45 +190,67 @@ class RenderView(
                     "       switch(lightType){\n" +
                     LightType.values().joinToString("") {
                         "case ${it.id}:\n" +
-                                "" +
-                                (if (it == LightType.DIRECTIONAL) "" +
-                                        "NdotL = localNormal.z;\n" + // dot(lightDirWS, globalNormal) = dot(lightDirLS, localNormal)
-                                        // inv(W->L) * vec4(0,0,1,0) =
-                                        // transpose(m3x3(W->L)) * vec3(0,0,1)
-                                        "lightDirWS = normalize(vec3(WStoLightSpace[0][2],WStoLightSpace[1][2],WStoLightSpace[2][2]));\n" +
-                                        "effectiveLightColor = lightColor * NdotL;\n" +
-                                        "effectiveDiffuse = effectiveLightColor;\n" +
-                                        "effectiveSpecular = effectiveLightColor;\n"
-                                else "" +
-                                        "lightPosition = data1.rgb;\n" +
-                                        "lightDirWS = normalize(lightPosition - finalPosition);\n" +
-                                        "NdotL = dot(lightDirWS, finalNormal);\n" +
-                                        "effectiveLightColor = lightColor * NdotL;\n" +
-                                        "effectiveDiffuse = effectiveLightColor * ${it.falloff};\n" +
-                                        "dir *= 0.2;\n" + // less falloff by a factor of 5,
-                                        // because specular light is more directed and therefore reached farther
-                                        "effectiveSpecular = effectiveLightColor * ${it.falloff};\n" +
-                                        "") +
+                                when (it) {
+                                    LightType.DIRECTIONAL -> {
+                                        "" +
+                                                "NdotL = localNormal.z;\n" + // dot(lightDirWS, globalNormal) = dot(lightDirLS, localNormal)
+                                                // inv(W->L) * vec4(0,0,1,0) =
+                                                // transpose(m3x3(W->L)) * vec3(0,0,1)
+                                                "lightDirWS = normalize(vec3(WStoLightSpace[0][2],WStoLightSpace[1][2],WStoLightSpace[2][2]));\n" +
+                                                "effectiveDiffuse = lightColor * NdotL;\n" +
+                                                "effectiveSpecular = lightColor;\n"
+                                    }
+                                    LightType.POINT_LIGHT -> {
+                                        "" +
+                                                "float lightRadius = data1.a;\n" +
+                                                "lightPosition = data1.rgb;\n" +
+                                                // when light radius > 0, then adjust the light direction such that it looks as if the light was a sphere
+                                                "lightDirWS = normalize(lightPosition - finalPosition);\n" +
+                                                "if(lightRadius > 0.0){\n" +
+                                                // todo effect is much more visible in the diffuse part
+                                                // it's fine for small increased, but we wouldn't really use them...
+                                                // should be more visible in the specular case...
+                                                // in the ideal case, we move the light such that it best aligns the sphere...
+                                                "   vec3 idealLightDirWS = normalize(reflect(finalPosition, finalNormal));\n" +
+                                                "   lightDirWS = normalize(mix(lightDirWS, idealLightDirWS, clamp(lightRadius/(length(lightPosition-finalPosition)),0,1)));\n" +
+                                                "}\n" +
+                                                "NdotL = dot(lightDirWS, finalNormal);\n" +
+                                                "effectiveDiffuse = lightColor * NdotL * ${it.falloff};\n" +
+                                                "dir *= 0.2;\n" + // less falloff by a factor of 5,
+                                                // because specular light is more directed and therefore reached farther
+                                                "effectiveSpecular = lightColor * ${it.falloff};\n"
+                                    }
+                                    LightType.SPOT_LIGHT -> {
+                                        "" +
+                                                "lightPosition = data1.rgb;\n" +
+                                                "lightDirWS = normalize(lightPosition - finalPosition);\n" +
+                                                "NdotL = dot(lightDirWS, finalNormal);\n" +
+                                                "float coneAngle = data1.a;\n" +
+                                                "effectiveDiffuse = lightColor * NdotL * ${it.falloff};\n" +
+                                                "dir *= 0.2;\n" + // less falloff by a factor of 5,
+                                                // because specular light is more directed and therefore reached farther
+                                                "effectiveSpecular = lightColor * ${it.falloff};\n"
+                                    }
+                                } +
                                 "break;\n"
                     } +
                     "       }\n" +
-                    "       if(dot(effectiveLightColor,vec3(1.0)) > ${0.5 / 255.0}){\n" +
+                    "       if(dot(effectiveSpecular, vec3(NdotL)) > ${0.5 / 255.0}){\n" +
                     "           if(hasSpecular){\n" +
                     "               vec3 H = normalize(V + lightDirWS);\n" +
                     "               specularBRDF += effectiveSpecular * computeSpecularBRDF(specularColor, finalRoughness, V, finalNormal, lightDirWS, NdotL, H);" +
                     "           }\n" +
                     "           diffuseLight += effectiveDiffuse;\n" +
                     "           lightCount++;\n" +
-                    // "   lightSum += effectiveLightColor;\n" +
                     "       }\n" +
                     "   }\n" +
-                    // todo more beautiful colors for light count
-                    "   finalColor = visualizeLightCount > 0 ? vec3(float(lightCount)/8.0) :" +
-                    "       reinhard(diffuseColor * diffuseLight + specularColor * specularBRDF);\n" +
+                    "   finalColor = reinhard(visualizeLightCount > 0 ? vec3(lightCount * 0.125) :" +
+                    "       diffuseColor * diffuseLight + specularColor * specularBRDF);\n" +
                     "   " +
-                    //"   finalColor *= lightSum;\n" +
-                    // "   finalColor *= 0.6 - 0.4 * normalize(finalNormal).x;\n" +
                     "   finalColor += finalEmissive;\n" +
+                    // banding prevention
+                    // -0.5, so we don't destroy blacks on OLEDs
+                    "   finalColor -= random(uv) * ${1.0 / 255.0};\n" +
                     "}"
         }
     }
@@ -267,7 +295,7 @@ class RenderView(
         val factor = clamp(1.0 - 20.0 * dt, 0.0, 1.0)
         movement.mul(factor)
         val s = (1.0 - factor) * 0.035
-        if (isInFocus) {
+        if (parent!!.children.any { it.isInFocus }) {// todo check if "in focus"
             if (Input.isKeyDown('a')) movement.x -= s
             if (Input.isKeyDown('d')) movement.x += s
             if (Input.isKeyDown('w')) movement.z -= s
@@ -324,12 +352,19 @@ class RenderView(
         }
 
         val showIds = Input.isKeyDown('g')
-        val showSpecialBuffer = showIds || Input.isKeyDown('j')
+        val showOverdraw = showOverdraw
+        val showSpecialBuffer = showIds || showOverdraw || Input.isKeyDown('j')
         val useDeferredRendering = !showSpecialBuffer && Input.isKeyDown('k')
         val samples = if (Input.isKeyDown('p')) 8 else 1
         val buffer = if (useDeferredRendering) baseBuffer else FBStack["scene", w, h, 4, false, samples]
 
+        stage0.blendMode = if (showOverdraw) BlendMode.ADD else null
+        stage0.sorting = if (isShiftDown) Sorting.FRONT_TO_BACK
+        else if (isControlDown) Sorting.BACK_TO_FRONT
+        else Sorting.NO_SORTING
+
         val renderer = when {
+            showOverdraw -> overdrawRenderer
             showIds -> Renderer.idRenderer
             showSpecialBuffer -> attributeRenderers[selectedAttribute]
             useDeferredRendering -> renderer
@@ -410,6 +445,7 @@ class RenderView(
         } else {
 
             GFX.copy(buffer)
+            // DrawRectangles.drawRect(x, y, 10, 10, 0xff0000 or black)
 
         }
 
@@ -439,16 +475,18 @@ class RenderView(
         val px2 = px.toInt() - x
         val py2 = py.toInt() - y
 
-        val ids = Screenshots.getPixels(diameter, 0, 0, px2, py2, buffer, Renderer.idRenderer) {
-            drawScene(w, h, camera, camera, 0f, Renderer.idRenderer, buffer, false)
+        val ids = Screenshots.getPixels(diameter, 0, 0, px2, py2, buffer, idRenderer) {
+            drawScene(w, h, camera, camera, 0f, idRenderer, buffer, false)
+            drawGizmos(camPosition, false)
         }
 
-        val depths = Screenshots.getPixels(diameter, 0, 0, px2, py2, buffer, Renderer.depthRenderer) {
-            drawScene(w, h, camera, camera, 0f, Renderer.depthRenderer, buffer, false)
+        val depths = Screenshots.getPixels(diameter, 0, 0, px2, py2, buffer, depthRenderer) {
+            drawScene(w, h, camera, camera, 0f, depthRenderer, buffer, false)
+            drawGizmos(camPosition, false)
         }
 
         val clickedId = Screenshots.getClosestId(diameter, ids, depths, if (reverseDepth) -10 else +10)
-        val clicked = pipeline.findDrawnSubject(clickedId, getWorld())
+        val clicked = if (clickedId == 0) null else pipeline.findDrawnSubject(clickedId, getWorld())
         // println("$clickedId -> $clicked")
         // val ids2 = world.getComponentsInChildren(MeshComponent::class, false).map { it.clickId }
         // println(ids2.joinToString())
@@ -499,13 +537,15 @@ class RenderView(
 
         // this needs to be separate from the stack
         // (for normal calculations and such)
-        setPerspective(
+        Perspective.setPerspective(
+            viewTransform,
             fovYRadians,
             aspectRatio,
             (near * worldScale).toFloat(),
             (far * worldScale).toFloat()
         )
         viewTransform.rotate(rot)
+        if (viewTransform.get(FloatArray(16)).any { it.isNaN() }) throw RuntimeException()
 
         // lerp the world transforms
         val camTransform = camTransform
@@ -531,27 +571,7 @@ class RenderView(
 
     }
 
-
     val reverseDepth get() = !Input.isKeyDown('r')
-
-    fun setPerspective(fovYRadians: Float, aspectRatio: Float, near: Float, far: Float) {
-        viewTransform.identity()
-        if (reverseDepth) {
-            val f = 1f / tan(fovYRadians * 0.5f)
-            viewTransform.set(
-                f / aspectRatio, 0f, 0f, 0f,
-                0f, f, 0f, 0f,
-                0f, 0f, 0f, -1f,
-                0f, 0f, near, 0f
-            )
-        } else {
-            viewTransform.perspective(
-                fovYRadians,
-                aspectRatio,
-                near, far
-            )
-        }
-    }
 
     fun setClearDepth() {
         val reverseDepth = reverseDepth
@@ -593,9 +613,11 @@ class RenderView(
 
             if (!renderer.isFakeColor && !isFinalRendering) {
                 useFrame(w, h, changeSize, dst, uiRenderer) {
-                    drawGizmos(camPosition)
+                    drawGizmos(camPosition, true)
                     drawSelected()
                 }
+            } else if (renderer == idRenderer) {
+                drawGizmos(camPosition, false)
             }
 
             val canRenderDebug = Build.isDebug
@@ -661,7 +683,7 @@ class RenderView(
 
     val selectedColor = Vector4f(1f, 1f, 0.7f, 1f)
 
-    fun drawGizmos(camPosition: Vector3d) {
+    fun drawGizmos(camPosition: Vector3d, drawGridLines: Boolean) {
 
         // draw UI
 
@@ -690,7 +712,7 @@ class RenderView(
                     val transform = entity.transform
                     val globalTransform = transform.globalTransform
 
-                    val drawCircle = camPosition.distanceSquared(
+                    val doDrawCircle = camPosition.distanceSquared(
                         globalTransform.m30(),
                         globalTransform.m31(),
                         globalTransform.m32()
@@ -698,14 +720,14 @@ class RenderView(
 
                     val nextClickId = clickId++
                     GFX.drawnId = nextClickId
-                    entity.clickId = clickId
+                    entity.clickId = nextClickId
 
                     val stack = stack
                     stack.pushMatrix()
                     stack.mul4x3delta(globalTransform, camPosition, worldScale)
 
                     // only draw the circle, if its size is larger than ~ a single pixel
-                    if (drawCircle) {
+                    if (doDrawCircle) {
                         scale = globalTransform.getScale(scaleV).dot(0.3, 0.3, 0.3)
                         val ringColor = if (entity == lastSelection) selectedColor else white4
                         Transform.drawUICircle(stack, 0.5f / scale.toFloat(), 0.7f, ringColor)
@@ -730,7 +752,9 @@ class RenderView(
                     false
                 }
 
-                drawGrid(radius, worldScale)
+                if (drawGridLines) {
+                    drawGrid(radius, worldScale)
+                }
 
                 LineBuffer.finish(viewTransform)
 
@@ -740,6 +764,8 @@ class RenderView(
     }
 
     companion object {
+
+        val MAX_LIGHTS = 64
 
         var scale = 1.0
         var worldScale = 1.0

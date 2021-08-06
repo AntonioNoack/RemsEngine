@@ -43,9 +43,9 @@ abstract class Change(val priority: Int) : Saveable() {
         }
     }
 
-    override fun readString(name: String, value: String) {
+    override fun readString(name: String, value: String?) {
         when (name) {
-            "path" -> path = Path.parse(value)
+            "path" -> path = Path.parse(value ?: "")
             else -> super.readString(name, value)
         }
     }

@@ -13,7 +13,6 @@ import me.anno.utils.Threads.threadWithName
 import me.anno.utils.hpc.HeavyProcessing.processStage
 import org.apache.logging.log4j.LogManager
 import java.io.BufferedReader
-import java.io.File
 import java.net.URLClassLoader
 import java.util.*
 import java.util.zip.ZipInputStream
@@ -68,8 +67,8 @@ object ExtensionLoader {
         ModManager.disable()
     }
 
-    private fun add(folder: FileReference?, threads: MutableList<Thread>, extInfos0: MutableList<ExtensionInfo>) {
-        for (it in folder?.listChildren() ?: emptyList()) {
+    private fun add(folder: FileReference, threads: MutableList<Thread>, extInfos0: MutableList<ExtensionInfo>) {
+        for (it in folder.listChildren() ?: return) {
             if (!it.isDirectory) {
                 val name = it.name
                 if (!name.startsWith(".") && name.endsWith(".jar")) {
@@ -147,15 +146,21 @@ object ExtensionLoader {
     }
 
     fun load(ex: ExtensionInfo): Extension? {
-        // create the main extension instance
-        // load the classes
-        val child = URLClassLoader(arrayOf(ex.file.toUri().toURL()), javaClass.classLoader)
-        val classToLoad = Class.forName(ex.mainClass, true, child)
-        // call with arguments??..., e.g. config or StudioBase or sth...
-        val ext = classToLoad.newInstance() as? Extension
-        ext?.setInfo(ex)
-        ext?.isRunning = true
-        return ext
+        try {
+            // create the main extension instance
+            // load the classes
+            val urlClassLoader = URLClassLoader(arrayOf(ex.file.toUri().toURL()), javaClass.classLoader)
+            Thread.currentThread().contextClassLoader = urlClassLoader
+            val classToLoad = Class.forName(ex.mainClass, true, urlClassLoader)
+            // call with arguments??..., e.g. config or StudioBase or sth...
+            val ext = classToLoad.newInstance() as? Extension
+            ext?.setInfo(ex)
+            ext?.isRunning = true
+            return ext
+        } catch (e: Exception){
+            LOGGER.error("Error while loading ${ex.file}", e)
+        }
+        return null
     }
 
     /**
@@ -183,6 +188,7 @@ object ExtensionLoader {
     }
 
     fun loadInfo(file: FileReference): ExtensionInfo? {
+        LOGGER.info("Loading info about $file")
         ZipInputStream(file.inputStream()).use { zis ->
             while (true) {
                 val entry = zis.nextEntry ?: break
@@ -204,7 +210,7 @@ object ExtensionLoader {
                         if (index > 0) {
                             val key = line.substring(0, index).trim()
                             val value = line.substring(index + 1).trim()
-                            when (key.lowercase(Locale.getDefault())) {
+                            when (key.lowercase()) {
                                 "plugin-name", "pluginname", "name" -> {
                                     name = value
                                     isPluginNotMod = true
@@ -241,10 +247,10 @@ object ExtensionLoader {
                     }
                     uuid = uuid.trim()
                     if (uuid.isEmpty()) uuid = name.trim()
-                    uuid = uuid.lowercase(Locale.getDefault())
+                    uuid = uuid.lowercase()
                     if (name.isNotEmpty()) {
                         val dependencyList =
-                            dependencies.lowercase(Locale.getDefault()).split(',')
+                            dependencies.lowercase().split(',')
                                 .map { it.trim() }.filter { it.isNotEmpty() }
                         return ExtensionInfo(
                             uuid, file,

@@ -68,11 +68,7 @@
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/pdfbox-2.0.22-with-libs.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/pdfbox-jai-imageio-core-1.4.0.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/pdfbox-jai-imageio-jpeg2000-1.4.0.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/../jGLTF/out/artifacts/jGLTF_jar/jGLTF.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/fasterxml/jackson-annotations-2.9.9.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/fasterxml/jackson-core-2.10.0.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/fasterxml/jackson-databind-2.9.9.3.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/fasterxml/jackson-dataformat-cbor-2.10.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../jBullet2x64/out/artifacts/JBullet2x64_jar/JBullet2x64.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>

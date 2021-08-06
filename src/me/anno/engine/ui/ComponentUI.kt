@@ -612,8 +612,10 @@ object ComponentUI {
                 return list
             }
 
-            "PrefabSaveable", "Material", "Mesh", "MorphTarget" -> {
+            "PrefabSaveable", "Material", "Mesh", "MorphTarget", "Skeleton" -> {
                 value as? PrefabSaveable
+                // todo just a reference with a type limiter
+                
                 return TextPanel("todo: prefab saveable, ${value?.javaClass?.name}", style)
             }
 

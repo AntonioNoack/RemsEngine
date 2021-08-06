@@ -57,10 +57,10 @@ class HarmonicDriver : AnimationDriver() {
         writer.writeString("harmonics", harmonicsFormula)
     }
 
-    override fun readString(name: String, value: String) {
+    override fun readString(name: String, value: String?) {
         when (name) {
             "harmonics" -> {
-                harmonicsFormula = value
+                harmonicsFormula = value ?: ""
                 updateHarmonics()
             }
             else -> super.readString(name, value)

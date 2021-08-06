@@ -3,11 +3,12 @@ package me.anno.ui.editor.sceneView
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextReader
 import me.anno.objects.Transform
 import me.anno.studio.history.History
 import me.anno.ui.editor.sceneTabs.SceneTab
-import me.anno.io.files.FileReference
 import me.anno.utils.files.LocalFile.toGlobalFile
 
 class SceneTabData() : Saveable() {
@@ -42,10 +43,17 @@ class SceneTabData() : Saveable() {
         }
     }
 
-    override fun readString(name: String, value: String) {
+    override fun readString(name: String, value: String?) {
         when (name) {
-            "file" -> file = value.toGlobalFile()
+            "file" -> file = value?.toGlobalFile() ?: InvalidRef
             else -> super.readString(name, value)
+        }
+    }
+
+    override fun readFile(name: String, value: FileReference) {
+        when (name) {
+            "file" -> file = value
+            else -> super.readFile(name, value)
         }
     }
 

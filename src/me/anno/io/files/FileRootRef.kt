@@ -50,7 +50,7 @@ object FileRootRef : FileReference("null") {
         get() = 0L
 
     override fun toUri(): URI {
-        return URI("file://")
+        return URI("file:/")
     }
 
 }

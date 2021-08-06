@@ -55,7 +55,7 @@ import kotlin.math.min
 
 class FileExplorerEntry(
     private val explorer: FileExplorer,
-    isParent: Boolean, val file: FileReference, style: Style
+    val isParent: Boolean, val file: FileReference, style: Style
 ) : PanelGroup(style.getChild("fileEntry")) {
 
     // todo .lnk files for windows

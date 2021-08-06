@@ -21,6 +21,8 @@ open class ControlScheme(val camera: CameraComponent, val library: ECSTypeLibrar
     val selectedEntities get() = library.selection.filterIsInstance<Entity>()
     val selectedTransforms get() = selectedEntities.map { it.transform }
 
+    val isSelected get() = parent!!.children.any { it.isInFocus }
+
     override fun onKeyDown(x: Float, y: Float, key: Int) {
         super.onKeyDown(x, y, key)
         invalidateDrawing()
@@ -32,7 +34,7 @@ open class ControlScheme(val camera: CameraComponent, val library: ECSTypeLibrar
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        if (1 in Input.mouseKeysDown) {
+        if (isSelected && 1 in Input.mouseKeysDown) {
             // right mouse key down -> move the camera
             val speed = -500f / Maths.max(GFX.height, h)
             val rotation = view.rotation
@@ -44,18 +46,22 @@ open class ControlScheme(val camera: CameraComponent, val library: ECSTypeLibrar
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
-        val factor = Maths.pow(0.5f, (dx + dy) / 16f)
-        view.radius *= factor
-        val radius = view.radius
-        camera.far = radius * 1e100
-        camera.near = if (Input.isKeyDown('r')) radius * 1e-2 else radius * 1e-10
-        invalidateDrawing()
+        if(isSelected){
+            val factor = Maths.pow(0.5f, (dx + dy) / 16f)
+            view.radius *= factor
+            val radius = view.radius
+            camera.far = 1e300
+            camera.near = if (Input.isKeyDown('r')) radius * 1e-2 else radius * 1e-10
+            invalidateDrawing()
+        }
     }
 
     override fun onKeyTyped(x: Float, y: Float, key: Int) {
-        super.onKeyTyped(x, y, key)
-        if (key in '1'.code..'9'.code) {
-            view.selectedAttribute = key - '1'.code
+        if(isSelected){
+            super.onKeyTyped(x, y, key)
+            if (key in '1'.code..'9'.code) {
+                view.selectedAttribute = key - '1'.code
+            }
         }
     }
 
@@ -65,6 +71,10 @@ open class ControlScheme(val camera: CameraComponent, val library: ECSTypeLibrar
             // but highlight the specific mesh
             library.select(e ?: c?.entity, e ?: c)
         }
+    }
+
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        // no background
     }
 
 }

@@ -38,10 +38,10 @@ class FunctionDriver : AnimationDriver() {
         writer.writeString("formula", formula)
     }
 
-    override fun readString(name: String, value: String) {
+    override fun readString(name: String, value: String?) {
         when (name) {
             "formula" -> {
-                formula = value
+                formula = value ?: ""
                 updateFormula()
             }
             else -> super.readString(name, value)

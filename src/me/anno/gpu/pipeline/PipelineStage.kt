@@ -1,6 +1,5 @@
 package me.anno.gpu.pipeline
 
-import me.anno.cache.instances.ImageCache
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
@@ -8,21 +7,16 @@ import me.anno.ecs.components.light.*
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshRenderer
+import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.shaderColor
 import me.anno.gpu.RenderState
-import me.anno.gpu.TextureLib.blackTexture
-import me.anno.gpu.TextureLib.normalTexture
-import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.pipeline.M4x3Delta.buffer16x256
 import me.anno.gpu.pipeline.M4x3Delta.m4x3delta
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
-import me.anno.input.Input
 import me.anno.input.Input.isKeyDown
 import me.anno.io.Saveable
 import me.anno.utils.Maths.clamp
@@ -85,8 +79,10 @@ class PipelineStage(
             val fac2 = factor / (clamp(1.0 - extrapolatedTime, 0.001, 1.0))
             if (fac2 < 1.0) {
                 drawTransform.lerp(transform.globalTransform, fac2)
+                transform.checkDrawTransform()
             } else {
                 drawTransform.set(transform.globalTransform)
+                transform.checkDrawTransform()
             }
         }
         return drawTransform
@@ -126,7 +122,7 @@ class PipelineStage(
         val numberOfLightsPtr = shader["numberOfLights"]
         // println("#0: $numberOfLightsPtr")
         if (numberOfLightsPtr < 0) return
-        val maxNumberOfLights = 64
+        val maxNumberOfLights = RenderView.MAX_LIGHTS
         val lights = pipeline.lights
         val numberOfLights = pipeline.getClosestRelevantNLights(request.entity.aabb, maxNumberOfLights, lights)
         shader.v1(numberOfLightsPtr, numberOfLights)
@@ -184,7 +180,15 @@ class PipelineStage(
                     buffer.put(((m.m32() - cameraPosition.z) * worldScale).toFloat())
 
                     when (light) {
+                        is PointLight -> {
+                            // put light size * world scale
+                            // avg, and then /3
+                            // but the center really is much smaller -> *0.01
+                            val lightSize = m.getScale(Vector3d()).dot(1.0, 1.0, 1.0) * light.lightSize / 9.0
+                            buffer.put((lightSize * worldScale).toFloat())
+                        }
                         is SpotLight -> {
+                            // todo third buffer, because here the light size would be useful as well...
                             buffer.put(light.coneAngle.toFloat())
                         }
                         // other light types could write their data here
@@ -207,17 +211,19 @@ class PipelineStage(
         // todo sorting function, that also uses the materials, so we need to switch seldom?
         // todo and light groups, so we don't need to update lights that often
 
-        // todo only sort the stuff once, not for every stage...
+        // val viewDir = pipeline.frustum.cameraRotation.transform(Vector3d(0.0, 0.0, 1.0))
         when (sorting) {
             Sorting.NO_SORTING -> {
             }
             Sorting.FRONT_TO_BACK -> {
                 drawRequests.sortBy {
+                    // - it.entity.transform.dotViewDir(cameraPosition, viewDir)
                     it.entity.transform.distanceSquaredGlobally(cameraPosition)
                 }
             }
             Sorting.BACK_TO_FRONT -> {
-                drawRequests.sortBy {
+                drawRequests.sortByDescending {
+                    // - it.entity.transform.dotViewDir(cameraPosition, viewDir)
                     it.entity.transform.distanceSquaredGlobally(cameraPosition)
                 }
             }
@@ -265,7 +271,7 @@ class PipelineStage(
                 // (for the cheap shaders, which are not deferred)
                 shader.m4x4("transform", cameraMatrix)
                 shader.v3("ambientLight", pipeline.ambient)
-                shader.v1("visualizeLightCount", if(isKeyDown('t')) 1 else 0)
+                shader.v1("visualizeLightCount", if (isKeyDown('t')) 1 else 0)
                 // shader.m4x4("cameraMatrix", cameraMatrix)
                 // shader.m4x3("worldTransform", ) // todo world transform could be used for procedural shaders...
                 // todo local transform could be used for procedural shaders as well

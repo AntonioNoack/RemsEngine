@@ -1,14 +1,13 @@
 package me.anno.engine.ui.scenetabs
 
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultStyle.black
 import me.anno.ecs.Entity
-import me.anno.ecs.prefab.Change
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.utils.hpc.SyncMaster
 
 class ECSSceneTab(val syncMaster: SyncMaster, val inspector: PrefabInspector, val file: FileReference) :
@@ -35,7 +34,7 @@ class ECSSceneTab(val syncMaster: SyncMaster, val inspector: PrefabInspector, va
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-        if(button.isLeft){
+        if (button.isLeft) {
             ECSSceneTabs.open(this)
         } else {
             super.onMouseClicked(x, y, button, long)
@@ -44,15 +43,12 @@ class ECSSceneTab(val syncMaster: SyncMaster, val inspector: PrefabInspector, va
 
     override fun tickUpdate() {
         super.tickUpdate()
-        backgroundColor = if(ECSSceneTabs.currentTab == this) originalBGColor else originalBGColor.and(0x77ffffff)
+        backgroundColor = if (ECSSceneTabs.currentTab == this) 0xff777777.toInt()
+        else originalBGColor
     }
 
-    companion object {
-
-        fun extractChanges(scene: Entity): List<Change> {
-            TODO()
-        }
-
+    fun save() {
+        inspector.save()
     }
 
 }

@@ -6,6 +6,8 @@ import me.anno.io.InvalidFormatException
 import me.anno.io.base.BaseReader
 import me.anno.io.base.UnknownClassException
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
+import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.arrays.IntArrayList
 import org.apache.logging.log4j.LogManager
 import org.joml.*
@@ -401,6 +403,11 @@ class TextReader(val data: CharSequence) : BaseReader() {
         { array, index, value -> array[index] = value }
     )
 
+    private fun readStringArray() = readTypedArray("String",
+        { Array(it) { "" } }, { readStringValue() },
+        { array, index, value -> array[index] = value }
+    )
+
     private fun readProperty(obj: ISaveable, typeName: String): ISaveable {
         if (typeName == "class") {
             assert(skipSpace(), '"')
@@ -484,8 +491,7 @@ class TextReader(val data: CharSequence) : BaseReader() {
                 obj.readVector2fArray(
                     name,
                     readTypedArray("vector2f",
-                        { Array(it) { v0 } },
-                        { readVector2f() },
+                        { Array(it) { v0 } }, { readVector2f() },
                         { array, index, value -> array[index] = value })
                 )
             }
@@ -494,8 +500,7 @@ class TextReader(val data: CharSequence) : BaseReader() {
                 obj.readVector3fArray(
                     name,
                     readTypedArray("vector3f",
-                        { Array(it) { v0 } },
-                        { readVector3f() },
+                        { Array(it) { v0 } }, { readVector3f() },
                         { array, index, value -> array[index] = value })
                 )
             }
@@ -504,8 +509,7 @@ class TextReader(val data: CharSequence) : BaseReader() {
                 obj.readVector4fArray(
                     name,
                     readTypedArray("vector4f",
-                        { Array(it) { v0 } },
-                        { readVector4f() },
+                        { Array(it) { v0 } }, { readVector4f() },
                         { array, index, value -> array[index] = value })
                 )
             }
@@ -514,8 +518,7 @@ class TextReader(val data: CharSequence) : BaseReader() {
                 obj.readVector2dArray(
                     name,
                     readTypedArray("vector2d",
-                        { Array(it) { v0 } },
-                        { readVector2d() },
+                        { Array(it) { v0 } }, { readVector2d() },
                         { array, index, value -> array[index] = value })
                 )
             }
@@ -524,8 +527,7 @@ class TextReader(val data: CharSequence) : BaseReader() {
                 obj.readVector3dArray(
                     name,
                     readTypedArray("vector3d",
-                        { Array(it) { v0 } },
-                        { readVector3d() },
+                        { Array(it) { v0 } }, { readVector3d() },
                         { array, index, value -> array[index] = value })
                 )
             }
@@ -534,8 +536,7 @@ class TextReader(val data: CharSequence) : BaseReader() {
                 obj.readVector4dArray(
                     name,
                     readTypedArray("vector4d",
-                        { Array(it) { v0 } },
-                        { readVector4d() },
+                        { Array(it) { v0 } }, { readVector4d() },
                         { array, index, value -> array[index] = value })
                 )
             }
@@ -559,10 +560,18 @@ class TextReader(val data: CharSequence) : BaseReader() {
                 Matrix4d(readVector4d(), readVector4d(), readVector4d(), readVector4d())
             )
             "S" -> obj.readString(name, readStringValue())
-            "S[]" -> obj.readStringArray(
-                name,
-                readTypedArray("String",
-                    { Array(it) { "" } }, { readStringValue() },
+            "S[]" -> obj.readStringArray(name, readStringArray())
+            "S[][]" -> {
+                val a0 = Array(0) { "" }
+                obj.readStringArray2D(name, readTypedArray("String[]",
+                    { Array(it) { a0 } }, { readStringArray() },
+                    { array, index, value -> array[index] = value })
+                )
+            }
+            "R" -> obj.readFile(name, readStringValue().toGlobalFile())
+            "R[]" -> obj.readFileArray(
+                name, readTypedArray("FileReference",
+                    { Array(it) { InvalidRef } }, { readStringValue().toGlobalFile() },
                     { array, index, value -> array[index] = value })
             )
             "*[]", "[]" -> {// array of mixed types

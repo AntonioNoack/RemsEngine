@@ -12,7 +12,7 @@ import me.anno.utils.Maths.clamp
 import me.anno.utils.structures.tuples.Quad
 import kotlin.math.max
 
-class PanelListMultiline(style: Style) : PanelGroup(style), ScrollableY {
+class PanelListMultiline(val sorter: Comparator<Panel>?, style: Style) : PanelGroup(style), ScrollableY {
 
     override val children = ArrayList<Panel>(256)
     override val child: Panel
@@ -57,6 +57,9 @@ class PanelListMultiline(style: Style) : PanelGroup(style), ScrollableY {
     override fun calculateSize(w: Int, h: Int) {
 
         val children = children
+        if(sorter != null){
+            children.sortWith(sorter)
+        }
 
         updateSize(w, h)
         for (i in children.indices) {

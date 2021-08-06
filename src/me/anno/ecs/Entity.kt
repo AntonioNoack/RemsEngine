@@ -1,5 +1,6 @@
 package me.anno.ecs
 
+import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.light.AmbientLight
 import me.anno.ecs.components.light.LightComponent
@@ -32,6 +33,7 @@ import kotlin.reflect.KClass
 // it could apply new effects to both the camera and image sources
 
 // todo buttons via annotation, which can be triggered from the editor for debugging
+// todo we also could set fields for the params in the editor...
 // e.g. @Action
 
 // hide the mutable children list, -> not possible with the general approach
@@ -266,6 +268,8 @@ class Entity() : PrefabSaveable(), Inspectable {
     val transform = Transform()
 
     // assigned and tested for click checks
+    @HideInInspector
+    @NotSerializedProperty
     var clickId = 0
 
     fun update() {
@@ -386,20 +390,8 @@ class Entity() : PrefabSaveable(), Inspectable {
     }
 
     val physics get() = getRoot(Entity::class).getComponent(BulletPhysics::class, false)
-    val rigidbody
-        get() = listOfHierarchyReversed.firstOrNull {
-            it is Entity && it.hasComponent(Rigidbody::class, false)
-        } as? Entity
-
-    val rigidbodyComponent: Rigidbody?
-        get() {
-            for (entry in listOfHierarchyReversed) {
-                if (entry is Entity) {
-                    return entry.getComponent(Rigidbody::class, false) ?: continue
-                }
-            }
-            return null
-        }
+    val rigidbody: Entity? get() = getComponent(Rigidbody::class, false)?.entity
+    val rigidbodyComponent: Rigidbody? get() = getComponent(Rigidbody::class, false)
 
     fun invalidateRigidbody() {
         physics?.invalidate(rigidbody ?: return)
@@ -496,6 +488,10 @@ class Entity() : PrefabSaveable(), Inspectable {
     fun <V : Component> getComponentInChildren(clazz: KClass<V>, includingDisabled: Boolean): V? {
         val e = simpleTraversal(true) { getComponent(clazz, includingDisabled) != null }
         return (e as? Entity)?.getComponent(clazz, includingDisabled)
+    }
+
+    fun <V:Component> getComponentInHierarchy(clazz: KClass<V>, includingDisabled: Boolean): V? {
+        return getComponent(clazz, includingDisabled) ?: parentEntity?.getComponentInHierarchy(clazz, includingDisabled)
     }
 
     fun <V : Component> getComponents(clazz: KClass<V>, includingDisabled: Boolean): List<V> {

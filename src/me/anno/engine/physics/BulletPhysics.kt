@@ -36,6 +36,7 @@ import me.anno.gpu.buffer.LineBuffer
 import me.anno.input.Input
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
+import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.debug.FrameTimes
 import me.anno.utils.Clock
 import me.anno.utils.hpc.SyncMaster
@@ -549,7 +550,7 @@ class BulletPhysics : Component() {
                  } */
                 step(targetStepNanos, debug)
                 val t1 = System.nanoTime()
-                FrameTimes.putValue((t1 - t0) * 1e-9f, 0xffff99 or black)
+                addEvent { FrameTimes.putValue((t1 - t0) * 1e-9f, 0xffff99 or black) }
                 0
             }
 

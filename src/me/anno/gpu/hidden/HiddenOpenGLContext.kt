@@ -25,6 +25,11 @@ object HiddenOpenGLContext {
 
     var capabilities: GLCapabilities? = null
 
+    fun setSize(w: Int, h: Int){
+        width = w
+        height = h
+    }
+
     fun createOpenGL() {
 
         LOGGER.info("Using LWJGL Version " + Version.getVersion())

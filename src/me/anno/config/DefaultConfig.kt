@@ -65,6 +65,32 @@ object DefaultConfig : StringMap() {
 
     }
 
+    fun defineDefaultFileAssociations(){
+
+        addImportMappings(
+            "Image",
+            "png", "jpg", "jpeg", "tiff", "webp", "svg", "ico", "psd", "bmp", "jp2", "tga"
+        )
+        addImportMappings("PDF", "pdf")
+        addImportMappings("Cubemap-Equ", "hdr")
+        addImportMappings(
+            "Video",
+            "mp4", "m4p", "m4v", "gif", "webm",
+            "mpeg", "mp2", "mpg", "mpe", "mpv", "svi", "3gp", "3g2", "roq",
+            "nsv", "f4v", "f4p", "f4a", "f4b",
+            "avi", "flv", "vob", "wmv", "mkv", "ogg", "ogv", "drc",
+            "mov", "qt", "mts", "m2ts", "ts", "rm", "rmvb", "viv", "asf", "amv"
+        )
+        addImportMappings("Text", "txt")
+        addImportMappings("Mesh", "obj", "fbx", "dae", "gltf", "glb", "md2", "md5mesh", "vox")
+        // not yet supported
+        // addImportMappings("Markdown", "md")
+        addImportMappings("Audio", "mp3", "wav", "m4a", "ogg")
+        addImportMappings("URL", "url", "lnk", "desktop")
+        addImportMappings("Container", "unitypackage", "zip", "7z", "tar", "gz", "xz", "rar", "bz2", "xar", "oar")
+
+    }
+
     override fun get(key: String): Any? {
         if (!hasInit) Warning.warn("Too early access of DefaultConfig[$key]")
         return super.get(key)

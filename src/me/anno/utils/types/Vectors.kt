@@ -233,11 +233,10 @@ object Vectors {
     fun DoubleArray.toVec3() = Vector3f(this[0].toFloat(), this[1].toFloat(), this[2].toFloat())
 
 
-
     fun Vector3i.cross(v: Vector3ic): Vector3i {
-        val rx = (this.y* v.z() -this.z * v.y())
-        val ry = (this.z* v.x() -this.x * v.z())
-        val rz = (this.x* v.y() -this.y * v.x())
+        val rx = (this.y * v.z() - this.z * v.y())
+        val ry = (this.z * v.x() - this.x * v.z())
+        val rz = (this.x * v.y() - this.y * v.x())
         this.x = rx
         this.y = ry
         this.z = rz
@@ -246,7 +245,7 @@ object Vectors {
 
     fun Vector3i.normalize(): Vector3i {
         val length = length()
-        return Vector3i((x/length).roundToInt(), (y/length).roundToInt(), (z/length).roundToInt())
+        return Vector3i((x / length).roundToInt(), (y / length).roundToInt(), (z / length).roundToInt())
     }
 
     operator fun Vector3i.plus(second: Vector3f): Vector3f {
@@ -255,7 +254,7 @@ object Vectors {
 
     fun findTangent(normal: Vector3d): Vector3d {
         val cross = Vector3d(normal).cross(0.0, 1.0, 0.0)
-        if(cross.lengthSquared() < 0.1){
+        if (cross.lengthSquared() < 0.1) {
             cross.set(normal).cross(1.0, 0.0, 0.0)
         }
         return cross.normalize()
@@ -263,7 +262,28 @@ object Vectors {
 
     fun Vector3f.roundToInt() = Vector3i(x.roundToInt(), y.roundToInt(), z.roundToInt())
     fun Vector3d.roundToInt() = Vector3i(x.roundToInt(), y.roundToInt(), z.roundToInt())
-    fun Vector3d.floorToInt() = Vector3i(kotlin.math.floor(x).toInt(), kotlin.math.floor(y).toInt(), kotlin.math.floor(z).toInt())
+    fun Vector3d.floorToInt() =
+        Vector3i(kotlin.math.floor(x).toInt(), kotlin.math.floor(y).toInt(), kotlin.math.floor(z).toInt())
+
+    fun Vector3f.safeNormalize(length: Float): Vector3f {
+        val f = length / length()
+        if (!f.isFinite() || f == 0f) {
+            set(0.0)
+        } else {
+            mul(f)
+        }
+        return this
+    }
+
+    fun Vector3d.safeNormalize(length: Double): Vector3d {
+        val f = length / length()
+        if (f.isNaN() || f == 0.0) {
+            set(0.0)
+        } else {
+            mul(f)
+        }
+        return this
+    }
 
 
 }

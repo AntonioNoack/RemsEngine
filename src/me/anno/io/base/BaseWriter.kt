@@ -3,9 +3,7 @@ package me.anno.io.base
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
-import me.anno.io.files.InvalidRef
 import me.anno.studio.StudioBase
-import me.anno.utils.files.LocalFile.toLocalPath
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.io.ByteArrayOutputStream
@@ -97,18 +95,33 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     abstract fun writeQuaternionf(name: String, value: Quaternionf, force: Boolean = false)
     abstract fun writeQuaterniond(name: String, value: Quaterniond, force: Boolean = false)
 
-    fun writeFile(name: String, file: FileReference?, workspace: FileReference? = StudioBase.workspace) {
+    abstract fun writeFile(
+        name: String, value: FileReference?, force: Boolean = false,
+        workspace: FileReference? = StudioBase.workspace
+    )
+    abstract fun writeFileArray(
+        name: String, values: Array<FileReference>, force: Boolean = false,
+        workspace: FileReference? = StudioBase.workspace
+    )
+
+    /*fun writeFile(name: String, file: FileReference?, workspace: FileReference? = StudioBase.workspace) {
         if (file == null || file == InvalidRef) {
             writeString(name, null)
         } else {
             writeString(name, file.toLocalPath(workspace))
         }
-    }
+    }*/
 
-    fun writeFile(name: String, file: File?, workspace: FileReference? = StudioBase.workspace) {
-        if (file != null) {
-            writeString(name, file.toLocalPath(workspace))
-        } else {
+    fun writeFile(
+        name: String,
+        value: File?,
+        force: Boolean = false,
+        workspace: FileReference? = StudioBase.workspace
+    ) {
+        if (value != null) {
+            writeFile(name, FileReference.getReference(value), false, workspace)
+            // writeString(name, file.toLocalPath(workspace))
+        } else if (force) {
             writeString(name, null)
         }
     }
@@ -318,7 +331,12 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                         is FloatArray -> writeFloatArray2D(name, cast(value), forceSaving)
                         is DoubleArray -> writeDoubleArray2D(name, cast(value), forceSaving)
 
-                        is PrefabSaveable -> writeNullableObjectArray(self, name, value as Array<ISaveable?>, forceSaving)
+                        is PrefabSaveable -> writeNullableObjectArray(
+                            self,
+                            name,
+                            value as Array<ISaveable?>,
+                            forceSaving
+                        )
                         is ISaveable -> writeNullableObjectArray(self, name, value as Array<ISaveable?>, forceSaving)
 
                         is Array<*> -> TODO("implement reading 2d array, of string or objects")
@@ -355,8 +373,8 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             is Quaternionf -> writeQuaternionf(name, value, forceSaving)
             is Quaterniond -> writeQuaterniond(name, value, forceSaving)
             // files
-            is File -> writeString(name, value.toString(), forceSaving)
-            is FileReference -> writeString(name, value.toString(), forceSaving)
+            is File -> writeFile(name, FileReference.getReference(value), forceSaving)
+            is FileReference -> writeFile(name, value, forceSaving)
             // null
             null -> writeObject(self, name, null, forceSaving)
             // java-serializable

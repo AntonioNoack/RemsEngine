@@ -327,6 +327,11 @@ class VectorInput(
     val vz get() = compZ?.lastValue?.toFloat() ?: 0f
     val vw get() = compW?.lastValue?.toFloat() ?: 0f
 
+    val vxd get() = compX.lastValue
+    val vyd get() = compY.lastValue
+    val vzd get() = compZ?.lastValue ?: 0.0
+    val vwd get() = compW?.lastValue ?: 0.0
+
     fun setValue(v: Vector2fc, notify: Boolean) {
         compX.setValue(v.x(), notify)
         compY.setValue(v.y(), notify)
@@ -425,6 +430,14 @@ class VectorInput(
                     val scaleFactor = 0.2f
                     setValue(Vector3f(vx + dx0 * scaleFactor, vy - dy0 * scaleFactor, vz), true)
                 }
+                Type.VEC3 -> {
+                    val scaleFactor = 0.2f
+                    setValue(Vector3f(vx + dx0 * scaleFactor, vy - dy0 * scaleFactor, vz), true)
+                }
+                Type.VEC3D -> {
+                    val scaleFactor = 0.2
+                    setValue(Vector3d(vxd + dx0 * scaleFactor, vyd - dy0 * scaleFactor, vzd), true)
+                }
                 Type.POSITION_2D -> {
                     val scaleFactor = 0.2f
                     setValue(Vector2f(vx + dx0 * scaleFactor, vy - dy0 * scaleFactor), true)
@@ -435,6 +448,14 @@ class VectorInput(
                         setValue(Vector3f(vx, vy, vz + delta * scaleFactor), true)
                     } else {
                         setValue(Vector3f(vx + dy0 * scaleFactor, vy + dx0 * scaleFactor, vz), true)
+                    }
+                }
+                Type.ROT_YXZ64 -> {
+                    val scaleFactor = 20.0
+                    if (isControlDown) {
+                        setValue(Vector3d(vxd, vyd, vzd + delta * scaleFactor), true)
+                    } else {
+                        setValue(Vector3d(vxd + dy0 * scaleFactor, vyd + dx0 * scaleFactor, vzd), true)
                     }
                 }
                 /*Type.SCALE -> {

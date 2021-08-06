@@ -8,6 +8,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshRenderer
 import me.anno.ecs.components.mesh.RendererComponent
 import me.anno.engine.ui.render.Frustum
+import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib.pbrModelShader
@@ -119,7 +120,7 @@ class Pipeline : Saveable() {
 
     // 256 = absolute max number of lights
     // we could make this higher for testing...
-    val lights = arrayOfNulls<DrawRequest>(256)
+    val lights = arrayOfNulls<DrawRequest>(RenderView.MAX_LIGHTS)
 
     // todo don't always create a list, just fill the data...
     /**
@@ -152,6 +153,7 @@ class Pipeline : Saveable() {
         for (i in components.indices) {
             val component = components[i]
             if (component.isEnabled) {
+                component.onVisibleUpdate()
                 if (renderer != null && component is MeshComponent) {
                     component.clickId = clickId
                     addMesh(component.mesh, renderer, entity, clickId)
@@ -179,6 +181,7 @@ class Pipeline : Saveable() {
     }
 
     fun findDrawnSubject(searchedId: Int, entity: Entity): Any? {
+        if (entity.clickId == searchedId) return entity
         val renderer = entity.getComponent(RendererComponent::class, false)
         if (renderer != null) {
             val components = entity.components

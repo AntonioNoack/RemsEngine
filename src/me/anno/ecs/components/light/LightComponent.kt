@@ -7,6 +7,7 @@ import me.anno.engine.pbr.DeferredRenderer
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.shader.BaseShader
+import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
@@ -45,6 +46,7 @@ abstract class LightComponent : Component() {
     // todo update/calculate shadow maps
 
     // is set by the pipeline
+    @NotSerializedProperty
     val invWorldMatrix = Matrix4x3f()
 
     companion object {

@@ -7,8 +7,10 @@ import me.anno.input.Input.isShiftDown
 import me.anno.input.MouseButton
 import me.anno.parser.SimpleExpressionParser
 import me.anno.utils.Maths.length
+import me.anno.utils.types.Vectors.safeNormalize
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
+import java.lang.RuntimeException
 import kotlin.math.atan2
 import kotlin.math.ln
 
@@ -124,7 +126,7 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
             )
 
             if (mode == Mode.SCALING) {
-                direction.normalize(length(deltaX, deltaY).toDouble() / h)
+                direction.safeNormalize(length(deltaX, deltaY).toDouble() / h)
             }
 
             when (axis) {
@@ -165,6 +167,7 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
     }
 
     fun applyTransform(direction: Vector3d) {
+        if(direction.dot(1.0, 1.0, 1.0).isNaN()) throw RuntimeException("$direction")
         when (mode) {
             Mode.TRANSLATING -> {
                 applyTransform { selfGlobal, distance ->
@@ -201,11 +204,15 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
             val transform = entity.transform
             val parentTransform = entity.parentEntity?.transform
             val parentGlobal = parentTransform?.globalTransform?.run { Matrix4x3d(this) } ?: Matrix4x3d()
+            transform.checkTransform(parentGlobal)
             val selfGlobal = parentGlobal.mul(base)
+            transform.checkTransform(selfGlobal)
             val distance = selfGlobal.transformPosition(Vector3d()).distance(cameraNode.position)
             transformFunction(selfGlobal, distance)
+            transform.checkTransform(selfGlobal)
             transform.globalTransform.set(selfGlobal)
             transform.calculateLocalTransform(parentTransform)
+            transform.checkTransform(transform.localTransform)
             transform.teleportUpdate(GFX.gameTime)
         }
     }
@@ -278,21 +285,21 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
                 isLocking = isShiftDown
                 showChange()
             }
-            'r' -> {
+            'b' -> {
                 if (mode == Mode.NOTHING) reset()
                 mode = Mode.TRANSLATING
                 old = selectedTransforms
                     .map { Matrix4x3d(it.localTransform) }
                 showChange()
             }
-            't' -> {
+            'n' -> {
                 if (mode == Mode.NOTHING) reset()
                 mode = Mode.ROTATING
                 old = selectedTransforms
                     .map { Matrix4x3d(it.localTransform) }
                 showChange()
             }
-            'g' -> {
+            'm' -> {
                 if (mode == Mode.NOTHING) reset()
                 mode = Mode.SCALING
                 old = selectedTransforms
