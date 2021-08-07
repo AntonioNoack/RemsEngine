@@ -178,15 +178,13 @@ class AbstractTreeViewPanel<V>(
 
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
         when {
-            button.isLeft -> {
-                treeView.focusOnElement(getElement())
-            }
+            button.isLeft -> treeView.focusOnElement(getElement())
             else -> super.onDoubleClick(x, y, button)
         }
     }
 
     override fun onCopyRequested(x: Float, y: Float): String {
-        return stringify(getElement())
+        return treeView.stringifyForCopy(getElement())
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
@@ -270,8 +268,7 @@ class AbstractTreeViewPanel<V>(
                     val element = getElement()
                     if (dragged?.getOriginal() != element) {
                         dragged = Draggable(
-                            // todo content type may not be transform
-                            stringify(element), "Transform", element,
+                            treeView.stringifyForCopy(element), treeView.getDragType(element), element,
                             TextPanel(treeView.getName(element), style)
                         )
                     }
@@ -317,15 +314,5 @@ class AbstractTreeViewPanel<V>(
     override fun getMultiSelectablePanel() = this
 
     override val className get() = "TreeViewPanel"
-
-    companion object {
-
-        fun stringify(element: Any?): String {
-            return if (element is ISaveable) {
-                TextWriter.toText(element, false)
-            } else element.toString()
-        }
-
-    }
 
 }

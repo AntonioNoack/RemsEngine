@@ -543,11 +543,11 @@ class BulletPhysics : Component() {
             } else {
                 // there is still work to do
                 val t0 = System.nanoTime()
-                val debug = false// GFX.gameTime > 10e9 // wait 10s
-                /* if (debug) {
-                     Stack.printSizes()
-                     Stack.printClassUsage()
-                 } */
+                val debug = false //GFX.gameTime > 10e9 // wait 10s
+                if (debug) {
+                    Stack.printClassUsage()
+                    Stack.printSizes()
+                }
                 step(targetStepNanos, debug)
                 val t1 = System.nanoTime()
                 addEvent { FrameTimes.putValue((t1 - t0) * 1e-9f, 0xffff99 or black) }
@@ -577,16 +577,16 @@ class BulletPhysics : Component() {
             engineForce--
         }
         if (GLFW.GLFW_KEY_LEFT in Input.keysDown) {
-            steering += 0.5
+            steering++
         }
         if (GLFW.GLFW_KEY_RIGHT in Input.keysDown) {
-            steering -= 0.5
+            steering--
         }
 
         try {
             for (wheel in sampleWheels) {
                 wheel.engineForce = if (wheel.bIsFrontWheel) 0.0 else engineForce
-                wheel.steering = if (wheel.bIsFrontWheel) steering else 0.0
+                wheel.steering = if (wheel.bIsFrontWheel) steering * 0.5 else 0.0
                 wheel.brake = brakeForce
             }
         } catch (e: ConcurrentModificationException) {

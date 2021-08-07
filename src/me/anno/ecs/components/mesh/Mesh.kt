@@ -11,6 +11,8 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
+import org.joml.Vector3d
+import org.joml.Vector3f
 import org.lwjgl.opengl.GL11
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -162,6 +164,68 @@ class Mesh : PrefabSaveable() {
 
     @NotSerializedProperty
     private var buffer: StaticBuffer? = null
+
+    fun forEachTriangle(callback: (a: Vector3f, b: Vector3f, c: Vector3f) -> Unit) {
+        forEachTriangle(Vector3f(), Vector3f(), Vector3f(), callback)
+    }
+
+    fun forEachTriangle(
+        a: Vector3f,
+        b: Vector3f,
+        c: Vector3f,
+        callback: (a: Vector3f, b: Vector3f, c: Vector3f) -> Unit
+    ) {
+        val positions = positions ?: return
+        val indices = indices
+        if (indices != null) {
+            for (i in indices.indices step 3) {
+                val ai = indices[i] * 3
+                val bi = indices[i + 1] * 3
+                val ci = indices[i + 2] * 3
+                a.set(positions[ai], positions[ai + 1], positions[ai + 2])
+                b.set(positions[bi], positions[bi + 1], positions[bi + 2])
+                c.set(positions[ci], positions[ci + 1], positions[ci + 2])
+                callback(a, b, c)
+            }
+        } else {
+            var i = 0
+            while (i + 8 < positions.size) {
+                a.set(positions[i++], positions[i++], positions[i++])
+                b.set(positions[i++], positions[i++], positions[i++])
+                c.set(positions[i++], positions[i++], positions[i++])
+                callback(a, b, c)
+            }
+        }
+    }
+
+    fun forEachTriangle(
+        a: Vector3d,
+        b: Vector3d,
+        c: Vector3d,
+        callback: (a: Vector3d, b: Vector3d, c: Vector3d) -> Unit
+    ) {
+        val positions = positions ?: return
+        val indices = indices
+        if (indices != null) {
+            for (i in indices.indices step 3) {
+                val ai = indices[i] * 3
+                val bi = indices[i + 1] * 3
+                val ci = indices[i + 2] * 3
+                a.set(positions[ai].toDouble(), positions[ai + 1].toDouble(), positions[ai + 2].toDouble())
+                b.set(positions[bi].toDouble(), positions[bi + 1].toDouble(), positions[bi + 2].toDouble())
+                c.set(positions[ci].toDouble(), positions[ci + 1].toDouble(), positions[ci + 2].toDouble())
+                callback(a, b, c)
+            }
+        } else {
+            var i = 0
+            while (i + 8 < positions.size) {
+                a.set(positions[i++].toDouble(), positions[i++].toDouble(), positions[i++].toDouble())
+                b.set(positions[i++].toDouble(), positions[i++].toDouble(), positions[i++].toDouble())
+                c.set(positions[i++].toDouble(), positions[i++].toDouble(), positions[i++].toDouble())
+                callback(a, b, c)
+            }
+        }
+    }
 
     private fun updateMesh() {
 

@@ -131,16 +131,16 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         setC(changes, floorCollider, "halfExtends", Vector3d(1.0))
 
         // add spheres for testing
-        /*val sphereMesh = OS.documents.getChild("sphere.obj")
-        for (i in 0 until 4) {
+        val sphereMesh = OS.documents.getChild("sphere.obj")
+        for (i in 0 until 100) {
             val sphere = addE(changes, physics, "Sphere[$i]", sphereMesh)
             setE(changes, sphere, "position", Vector3d(0.0, (i + 2) * 2.1, 0.0))
             addC(changes, sphere, "Rigidbody")
             addC(changes, sphere, "SphereCollider")
         }
-        */
+
         // add a cube of cubes for frustum testing
-        /*val frustum = addE(changes, world, "Frustum Testing")
+        val frustum = addE(changes, world, "Frustum Testing")
         for (x in -5..5) {
             // for testing bounding boxes more
             val xGroup = addE(changes, frustum, "Group-$x")
@@ -159,7 +159,7 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
                     setC(changes, rigid, "restitution", 0.0)
                 }
             }
-        }*/
+        }
 
         // normal testing
         val normalTesting = addE(changes, world, "Normal Testing")
@@ -179,7 +179,7 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         val planets = addE(changes, world, "Planets")
         for (i in -50..50) {
             val size = 10.0.pow(i.toDouble())
-            val sphere = addE(changes, planets, "Sphere $size", spherePath)
+            val sphere = addE(changes, planets, "Sphere 1e$i", spherePath)
             setE(changes, sphere, "position", Vector3d(0.0, 0.0, 3.0 * size))
             setE(changes, sphere, "scale", Vector3d(size))
         }

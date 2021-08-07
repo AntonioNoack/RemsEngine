@@ -8,6 +8,10 @@ import me.anno.ecs.components.light.LightType
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.RendererComponent
 import me.anno.ecs.components.player.LocalPlayer
+import me.anno.engine.debug.DebugPoint
+import me.anno.engine.debug.DebugShapes.debugLines
+import me.anno.engine.debug.DebugShapes.debugPoints
+import me.anno.engine.debug.DebugShapes.debugRays
 import me.anno.engine.pbr.DeferredRenderer
 import me.anno.engine.pbr.PBRLibraryGLTF
 import me.anno.engine.ui.ECSTypeLibrary
@@ -397,7 +401,7 @@ class RenderView(
 
         drawScene(w, h, camera, camera, 1f, renderer, buffer, true)
 
-        clock.stop("drawing scene", 0.05)
+        // clock.stop("drawing scene", 0.05)
 
         if (useDeferredRendering) {
 
@@ -456,7 +460,7 @@ class RenderView(
             )
         }
 
-        clock.total("drawing the scene", 0.1)
+        // clock.total("drawing the scene", 0.1)
 
     }
 
@@ -565,6 +569,9 @@ class RenderView(
             camPosition,
             camRotation.set(rot2),
         )
+
+        camRotation.transform(camDirection.set(0.0, 0.0, -1.0))
+        debugPoints.add(DebugPoint(Vector3d(camDirection).mul(20.0).add(camPosition), 0xff0000, -1))
 
         pipeline.fill(getWorld(), camPosition, worldScale)
         entityBaseClickId = pipeline.lastClickId
@@ -756,11 +763,52 @@ class RenderView(
                     drawGrid(radius, worldScale)
                 }
 
+                drawDebug()
+
                 LineBuffer.finish(viewTransform)
 
             }
         }
 
+    }
+
+    fun drawDebug() {
+        val worldScale = worldScale
+        val debugPoints = debugPoints
+        val debugLines = debugLines
+        val debugRays = debugRays
+        for (point in debugPoints) {
+            // visualize a point
+            val delta = point.position.distance(camPosition) * 0.05
+            LineBuffer.putRelativeLine(
+                point.position, Vector3d(point.position).add(delta, 0.0, 0.0),
+                camPosition, worldScale, point.color
+            )
+            LineBuffer.putRelativeLine(
+                point.position, Vector3d(point.position).add(0.0, delta, 0.0),
+                camPosition, worldScale, point.color
+            )
+            LineBuffer.putRelativeLine(
+                point.position, Vector3d(point.position).add(0.0, 0.0, delta),
+                camPosition, worldScale, point.color
+            )
+        }
+        for (line in debugLines) {
+            LineBuffer.putRelativeLine(
+                line.p0, line.p1, camPosition, worldScale,
+                line.color
+            )
+        }
+        for (ray in debugRays) {
+            LineBuffer.putRelativeLine(
+                ray.start, Vector3d(ray.direction).mul(radius * 100.0).add(ray.start), camPosition, worldScale,
+                ray.color
+            )
+        }
+        val time = GFX.gameTime
+        debugPoints.removeIf { it.timeOfDeath < time }
+        debugLines.removeIf { it.timeOfDeath < time }
+        debugRays.removeIf { it.timeOfDeath < time }
     }
 
     companion object {
@@ -776,6 +824,7 @@ class RenderView(
         val camTransform = Matrix4x3d()
         val camInverse = Matrix4d()
         val camPosition = Vector3d()
+        val camDirection = Vector3d()
         val camRotation = Quaterniond()
 
         val scaledMin = Vector4d()

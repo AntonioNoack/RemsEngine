@@ -80,11 +80,15 @@ abstract class AbstractTreeView<V>(
     // child.parent = p
     abstract fun addAfter(self: V, sibling: V)
 
+    abstract fun stringifyForCopy(element: V): String
+
     // todo define these functions
     // todo use these functions to show indicator colors
     // todo use these functions to actually forbid the action
     abstract fun canBeRemoved(element: V): Boolean
     abstract fun canBeInserted(parent: V, element: V, index: Int): Boolean
+
+    abstract fun getDragType(element: V): String
 
     fun selectElementMaybe(element: V?) {
         // if already selected, don't inspect that property/driver

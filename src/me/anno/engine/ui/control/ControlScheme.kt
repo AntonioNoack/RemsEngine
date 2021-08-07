@@ -3,18 +3,27 @@ package me.anno.engine.ui.control
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.CameraComponent
+import me.anno.engine.debug.DebugLine
+import me.anno.engine.debug.DebugPoint
+import me.anno.engine.debug.DebugShapes.debugLines
+import me.anno.engine.debug.DebugShapes.debugPoints
+import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.ECSTypeLibrary
 import me.anno.engine.ui.render.RenderView
+import me.anno.engine.ui.render.RenderView.Companion.camDirection
+import me.anno.engine.ui.render.RenderView.Companion.camPosition
 import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
 import me.anno.utils.Maths
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
+import org.joml.Vector3d
 
-open class ControlScheme(val camera: CameraComponent, val library: ECSTypeLibrary, val view: RenderView): Panel(style) {
+open class ControlScheme(val camera: CameraComponent, val library: ECSTypeLibrary, val view: RenderView) :
+    Panel(style) {
 
-    constructor(view: RenderView): this(view.editorCamera, view.library, view)
+    constructor(view: RenderView) : this(view.editorCamera, view.library, view)
 
     val cameraNode = camera.entity!!
 
@@ -46,7 +55,7 @@ open class ControlScheme(val camera: CameraComponent, val library: ECSTypeLibrar
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
-        if(isSelected){
+        if (isSelected) {
             val factor = Maths.pow(0.5f, (dx + dy) / 16f)
             view.radius *= factor
             val radius = view.radius
@@ -57,7 +66,7 @@ open class ControlScheme(val camera: CameraComponent, val library: ECSTypeLibrar
     }
 
     override fun onKeyTyped(x: Float, y: Float, key: Int) {
-        if(isSelected){
+        if (isSelected) {
             super.onKeyTyped(x, y, key)
             if (key in '1'.code..'9'.code) {
                 view.selectedAttribute = key - '1'.code
@@ -70,6 +79,17 @@ open class ControlScheme(val camera: CameraComponent, val library: ECSTypeLibrar
             // show the entity in the property editor
             // but highlight the specific mesh
             library.select(e ?: c?.entity, e ?: c)
+        }
+        val world = library.world
+        val hit = Raycast.raycastTriangles(world, camPosition, camDirection, 1e100)
+        if (hit == null) {
+            // draw red point in front of the camera
+            debugPoints.add(DebugPoint(Vector3d(camDirection).mul(20.0).add(camPosition), 0xff0000))
+        } else {
+            // draw collision point
+            debugPoints.add(DebugPoint(Vector3d(hit.positionWS), -1))
+            // draw collision normal
+            debugLines.add(DebugLine(hit.positionWS, Vector3d(hit.positionWS).add(hit.normalWS), 0x00ff00))
         }
     }
 

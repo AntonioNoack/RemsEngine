@@ -31,7 +31,10 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
 
     constructor(prefab: Prefab) : this(prefab.ownFile, prefab)
 
-    constructor(reference: FileReference, classNameIfNull: String) : this(reference, loadPrefab(reference) ?: Prefab(classNameIfNull))
+    constructor(reference: FileReference, classNameIfNull: String) : this(
+        reference,
+        loadPrefab(reference) ?: Prefab(classNameIfNull)
+    )
 
     val history: ChangeHistory = prefab.history ?: ChangeHistory()
     val changes: MutableList<Change> = ArrayList(prefab.changes ?: emptyList())
@@ -380,6 +383,8 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
     fun save() {
         TextWriter.save(prefab, false, reference)
     }
+
+    override fun toString(): String = TextWriter.toText(prefab, false)
 
     companion object {
 

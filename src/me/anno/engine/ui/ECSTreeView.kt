@@ -1,7 +1,12 @@
 package me.anno.engine.ui
 
 import me.anno.ecs.Entity
+import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.ECSTypeLibrary.Companion.lastSelection
+import me.anno.engine.ui.scenetabs.ECSSceneTabs
+import me.anno.io.files.InvalidRef
+import me.anno.io.text.TextWriter
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.treeView.AbstractTreeView
 import me.anno.ui.style.Style
@@ -58,24 +63,54 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
         invalidateLayout()
     }
 
+    override fun getDragType(element: Entity): String {
+        return "PrefabSaveable"
+    }
+
+    override fun stringifyForCopy(element: Entity): String {
+        val tab = ECSSceneTabs.currentTab ?: return ""
+        val root = tab.inspector.root
+        if (element == root) {
+            return tab.inspector.toString()
+        } else {
+            /*val path0 = element.pathInRoot2(root, false)
+            var allApplicableChanges = tab.inspector.changes
+            var rootInInheritance: PrefabSaveable? = root.prefab
+            while (rootInInheritance != null) {
+                // todo only if the element is not inheriting from a mesh or texture file
+                allApplicableChanges = rootInInheritance.changes + allApplicableChanges
+                rootInInheritance = rootInInheritance.prefab
+            }
+            val prefab = Prefab(element.className)
+            // find what is the inheritance of that element
+            prefab.prefab = element.prefab2?.prefab ?: InvalidRef
+            val relatedChanges = allApplicableChanges.filter {
+                it.path!!.startsWith(path0.first, path0.second)
+            }
+            prefab.changes = relatedChanges
+            return TextWriter.toText(prefab, false)*/
+            TODO()
+        }
+    }
+
     override fun addAfter(self: Entity, sibling: Entity) {
         self.addAfter(sibling)
-        // todo notify the inspector
+        // todo add the changes for this
     }
 
     override fun addBefore(self: Entity, sibling: Entity) {
         self.addBefore(sibling)
-        // todo notify the inspector
+        // todo add the changes for this
     }
 
     override fun addChild(element: Entity, child: Entity) {
         element.add(child)
-        // todo notify the inspector
+        // todo add the changes for this
     }
 
     override fun removeChild(element: Entity, child: Entity) {
         element.remove(child)
-        // todo notify the inspector
+        // todo add the changes for this
     }
 
     override fun getSymbol(element: Entity): String {

@@ -1,6 +1,7 @@
 package me.anno.ecs.prefab
 
 import me.anno.utils.LOGGER
+import me.anno.utils.structures.StartsWith.startsWith
 
 class Path(
     val indices: IntArray,
@@ -19,6 +20,10 @@ class Path(
         val type = types[index]
         return if (type.code == 0) default
         else type
+    }
+
+    fun startsWith(indices: IntArray, types: CharArray): Boolean {
+        return this.indices.startsWith(indices) && this.types.startsWith(types)
     }
 
     override fun hashCode(): Int = indices.hashCode() * 31 + types.hashCode()
@@ -54,8 +59,8 @@ class Path(
     companion object {
 
         @JvmStatic
-        fun main(array: Array<String>){
-            val path = Path(intArrayOf(1,2,3), charArrayOf('a','b','c'))
+        fun main(array: Array<String>) {
+            val path = Path(intArrayOf(1, 2, 3), charArrayOf('a', 'b', 'c'))
             val groundTruth = path.toString()
             val copy = parse(groundTruth)
             val copied = copy.toString()

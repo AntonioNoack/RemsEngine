@@ -1,6 +1,7 @@
 package me.anno.ecs.prefab
 
 import me.anno.io.NamedSaveable
+import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.objects.inspectable.Inspectable
@@ -21,6 +22,9 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
 
     @NotSerializedProperty
     var prefab: PrefabSaveable? = null
+
+    @NotSerializedProperty
+    var prefab2: Prefab? = null
 
     @NotSerializedProperty
     override var parent: PrefabSaveable? = null

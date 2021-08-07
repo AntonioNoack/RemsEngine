@@ -13,15 +13,21 @@ import java.util.zip.InflaterInputStream
 
 object Files {
 
-    fun findNextFileName(reference: FileReference, digitsLength: Int, colonSymbol: Char, startingNumber: Long = 1): FileReference {
+    fun findNextFileName(
+        reference: FileReference,
+        digitsLength: Int,
+        colonSymbol: Char,
+        startingNumber: Long = 1
+    ): FileReference {
         // format: name-1.json
         // -, because the usual name may contain numbers itself
         // find all files matching the description, and then use the max+1
+        if (!reference.exists) return reference
         val parent = reference.getParent() ?: return InvalidRef
         val name = reference.nameWithoutExtension
         val extension = reference.extension
         val siblings = parent.listChildren() ?: return InvalidRef
-        val prefix = if(colonSymbol.code == 0) name else "$name$colonSymbol"
+        val prefix = if (colonSymbol.code == 0) name else "$name$colonSymbol"
         val nameLength = prefix.length + digitsLength
         val relatedFiles = siblings.filter {
             it.extension == extension &&

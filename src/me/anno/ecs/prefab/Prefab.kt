@@ -30,6 +30,7 @@ class Prefab() : Saveable() {
 
     var changes: List<Change>? = null
     var prefab: FileReference = InvalidRef
+    var wasCreatedFromJson = false
     var ownFile: FileReference = InvalidRef
 
     // for the game runtime, we could save the prefab instance here
@@ -153,6 +154,7 @@ class Prefab() : Saveable() {
                 val prefab = read.firstOrNull() as? Prefab
                 if (prefab == null) LOGGER.warn("No Prefab found in $resource! $read")
                 else LOGGER.info("Read ${prefab.changes?.size} changes from $resource")
+                prefab?.wasCreatedFromJson = true
                 prefab
             } catch (e: Exception) {
                 e.printStackTrace()

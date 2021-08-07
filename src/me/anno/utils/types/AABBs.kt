@@ -9,22 +9,28 @@ object AABBs {
 
     fun AABBd.isEmpty() = minX > maxX
 
-    fun AABBd.reset() {
+    fun AABBd.reset(): AABBd {
         minX = Double.POSITIVE_INFINITY
         minY = Double.POSITIVE_INFINITY
         minZ = Double.POSITIVE_INFINITY
         maxX = Double.NEGATIVE_INFINITY
         maxY = Double.NEGATIVE_INFINITY
         maxZ = Double.NEGATIVE_INFINITY
+        return this
     }
 
-    fun AABBd.set(src: AABBf) {
+    fun AABBd.set(src: AABBf): AABBd {
         minX = src.minX.toDouble()
         minY = src.minY.toDouble()
         minZ = src.minZ.toDouble()
         maxX = src.maxX.toDouble()
         maxY = src.maxY.toDouble()
         maxZ = src.maxZ.toDouble()
+        return this
+    }
+
+    fun transformAABB(that: AABBd, m: Matrix4x3d, dst: AABBd = that): AABBd {
+        return that.transform(m, dst)
     }
 
     fun AABBd.transform(m: Matrix4x3d, dst: AABBd): AABBd {

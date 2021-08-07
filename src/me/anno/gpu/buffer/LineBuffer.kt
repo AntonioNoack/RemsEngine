@@ -1,10 +1,10 @@
 package me.anno.gpu.buffer
 
-import me.anno.gpu.RenderState
 import me.anno.gpu.shader.BaseShader
-import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
-import me.anno.input.Input.isKeyDown
+import me.anno.utils.Color.b
+import me.anno.utils.Color.g
+import me.anno.utils.Color.r
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import org.joml.Vector3f
@@ -46,11 +46,12 @@ object LineBuffer {
         Attribute("color", AttributeType.UINT8_NORM, 4)
     )
 
-    var bytes = ByteBuffer.allocateDirect(1024 * attributes.sumOf { it.byteSize })
+    // whenever this is updated, nioBuffer in buffer needs to be updated as well
+    private var bytes = ByteBuffer.allocateDirect(1024 * attributes.sumOf { it.byteSize })
         .order(ByteOrder.nativeOrder())
         .apply { position(0) }
 
-    val buffer = object : Buffer(attributes, GL15.GL_DYNAMIC_DRAW) {
+    private val buffer = object : Buffer(attributes, GL15.GL_DYNAMIC_DRAW) {
         init {
             drawMode = GL15.GL_LINES
         }
@@ -59,7 +60,6 @@ object LineBuffer {
             nioBuffer = bytes
         }
     }
-
 
     fun ensureSize(extraSize: Int) {
         val position = bytes.position()
@@ -75,6 +75,7 @@ object LineBuffer {
             newBytes.put(bytes)
             newBytes.position(position)
             bytes = newBytes
+            buffer.nioBuffer = bytes
         }
     }
 
@@ -156,6 +157,52 @@ object LineBuffer {
         bytes.put(-1)
     }
 
+    fun putRelativeLine(
+        v0: Vector3d, v1: Vector3d,
+        cam: org.joml.Vector3d,
+        worldScale: Double,
+        color: Int
+    ) {
+        putRelativeLine(v0, v1, cam, worldScale, color.r() / 255.0, color.g() / 255.0, color.b() / 255.0)
+    }
+
+
+    fun putRelativeLine(
+        v0: org.joml.Vector3d, v1: org.joml.Vector3d,
+        cam: org.joml.Vector3d,
+        worldScale: Double,
+        r: Double, g: Double, b: Double
+    ) {
+        ensureSize(2 * (3 * 4 + 4))
+        val r0 = (r * 255).roundToInt().toByte()
+        val g0 = (g * 255).roundToInt().toByte()
+        val b0 = (b * 255).roundToInt().toByte()
+        val bytes = bytes
+        bytes.putFloat(((v0.x - cam.x) * worldScale).toFloat())
+        bytes.putFloat(((v0.y - cam.y) * worldScale).toFloat())
+        bytes.putFloat(((v0.z - cam.z) * worldScale).toFloat())
+        bytes.put(r0)
+        bytes.put(g0)
+        bytes.put(b0)
+        bytes.put(-1)
+        bytes.putFloat(((v1.x - cam.x) * worldScale).toFloat())
+        bytes.putFloat(((v1.y - cam.y) * worldScale).toFloat())
+        bytes.putFloat(((v1.z - cam.z) * worldScale).toFloat())
+        bytes.put(r0)
+        bytes.put(g0)
+        bytes.put(b0)
+        bytes.put(-1)
+    }
+
+    fun putRelativeLine(
+        v0: org.joml.Vector3d, v1: org.joml.Vector3d,
+        cam: org.joml.Vector3d,
+        worldScale: Double,
+        color: Int
+    ) {
+        putRelativeLine(v0, v1, cam, worldScale, color.r() / 255.0, color.g() / 255.0, color.b() / 255.0)
+    }
+
     fun finish(stack: Matrix4f) {
         val shader = shader.value
         shader.use()
@@ -175,10 +222,12 @@ object LineBuffer {
     private fun finish(stack: Matrix4f, shader: Shader) {
 
         // prepare for upload
+        val bytes = bytes
         val limit = bytes.position()
         if (limit <= 0) return
         bytes.limit(limit) // we only need so many lines
 
+        val buffer = buffer
         buffer.upload()
         buffer.isUpToDate = true
         shader.m4x4("transform", stack)

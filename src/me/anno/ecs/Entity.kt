@@ -218,6 +218,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         aabb.reset()
         if (hasRenderables) {
             // todo if has particle system, include
+            // todo include colliders?
             val globalTransform = transform.globalTransform
             val components = components
             for (i in components.indices) {
@@ -490,7 +491,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         return (e as? Entity)?.getComponent(clazz, includingDisabled)
     }
 
-    fun <V:Component> getComponentInHierarchy(clazz: KClass<V>, includingDisabled: Boolean): V? {
+    fun <V : Component> getComponentInHierarchy(clazz: KClass<V>, includingDisabled: Boolean): V? {
         return getComponent(clazz, includingDisabled) ?: parentEntity?.getComponentInHierarchy(clazz, includingDisabled)
     }
 

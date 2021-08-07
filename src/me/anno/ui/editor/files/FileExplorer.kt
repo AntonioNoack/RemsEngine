@@ -1,12 +1,14 @@
 package me.anno.ui.editor.files
 
 import me.anno.config.DefaultConfig
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.windowStack
 import me.anno.input.Input
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.FileRootRef
+import me.anno.io.text.TextReader
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform.Companion.toTransform
 import me.anno.studio.StudioBase.Companion.addEvent
@@ -26,6 +28,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
 import me.anno.utils.Maths.pow
 import me.anno.utils.OS
+import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.files.Files.listFiles2
 import me.anno.utils.hpc.UpdatingTask
 import me.anno.utils.structures.Compare.ifDifferent
@@ -288,9 +291,8 @@ abstract class FileExplorer(
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         when (type) {
-            "Transform" -> {
-                pasteTransform(data)
-            }
+            "Transform" -> pasteTransform(data)
+            "PrefabSaveable" -> pastePrefab(data)
             else -> {
                 if (!pasteTransform(data)) {
                     if (data.length < 2048) {
@@ -304,6 +306,23 @@ abstract class FileExplorer(
         }
     }
 
+    fun pastePrefab(data: String): Boolean {
+        val saveable = TextReader.read(data)[0] as? PrefabSaveable ?: return false
+        var name = saveable.name.toAllowedFilename()
+        name = name ?: saveable.defaultDisplayName.toAllowedFilename()
+        name = name ?: saveable.className
+        name = name.toAllowedFilename() ?: "Something"
+        // make .json lowercase
+        if (name.endsWith(".json", true)) {
+            name = name.substring(0, name.length - 5)
+        }
+        name += ".json"
+        val file = findNextFileName(folder.getChild(name), 1, '-')
+        file.writeText(data)
+        invalidate()
+        return true
+    }
+
     fun pasteTransform(data: String): Boolean {
         val transform = data.toTransform() ?: return false
         var name = transform.name.toAllowedFilename() ?: transform.defaultDisplayName
@@ -312,8 +331,7 @@ abstract class FileExplorer(
             name = name.substring(0, name.length - 5)
         }
         name += ".json"
-        // todo replace vs add new?
-        folder.getChild(name).writeText(data)
+        findNextFileName(folder.getChild(name), 1, '-').writeText(data)
         invalidate()
         return true
     }

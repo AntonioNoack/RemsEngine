@@ -3,6 +3,7 @@ package me.anno.studio.rems.ui
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.input.Input
+import me.anno.io.text.TextWriter
 import me.anno.io.utils.StringMap
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
@@ -32,6 +33,10 @@ class StudioTreeView(style: Style) :
         UpdatingList { listOf(nullCamera!!, root) },
         StudioFileImporter, true, style
     ) {
+
+    override fun getDragType(element: Transform): String = "Transform"
+
+    override fun stringifyForCopy(element: Transform): String = TextWriter.toText(element, false)
 
     override fun getSymbol(element: Transform): String {
         return element.symbol
