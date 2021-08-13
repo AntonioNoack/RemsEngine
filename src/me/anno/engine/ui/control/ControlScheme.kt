@@ -7,6 +7,7 @@ import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugPoint
 import me.anno.engine.debug.DebugShapes.debugLines
 import me.anno.engine.debug.DebugShapes.debugPoints
+import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.ECSTypeLibrary
 import me.anno.engine.ui.render.RenderView
@@ -18,6 +19,7 @@ import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
 import me.anno.utils.Maths
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
+import org.joml.AABBd
 import org.joml.Vector3d
 
 open class ControlScheme(val camera: CameraComponent, val library: ECSTypeLibrary, val view: RenderView) :
@@ -80,8 +82,14 @@ open class ControlScheme(val camera: CameraComponent, val library: ECSTypeLibrar
             // but highlight the specific mesh
             library.select(e ?: c?.entity, e ?: c)
         }
+        testHits()
+    }
+
+    fun testHits() {
         val world = library.world
-        val hit = Raycast.raycastTriangles(world, camPosition, camDirection, 1e100)
+        world.validateMasks()
+        world.validateAABBs()
+        val hit = Raycast.raycast(world, camPosition, camDirection, 1e6, Raycast.TypeMask.BOTH, -1, false, tmpAABB, hit)
         if (hit == null) {
             // draw red point in front of the camera
             debugPoints.add(DebugPoint(Vector3d(camDirection).mul(20.0).add(camPosition), 0xff0000))
@@ -89,12 +97,22 @@ open class ControlScheme(val camera: CameraComponent, val library: ECSTypeLibrar
             // draw collision point
             debugPoints.add(DebugPoint(Vector3d(hit.positionWS), -1))
             // draw collision normal
-            debugLines.add(DebugLine(hit.positionWS, Vector3d(hit.positionWS).add(hit.normalWS), 0x00ff00))
+            debugLines.add(
+                DebugLine(
+                    Vector3d(hit.positionWS),
+                    Vector3d(hit.positionWS).add(hit.normalWS.normalize()),
+                    0x00ff00
+                )
+            )
         }
     }
 
+    private val tmpAABB = AABBd()
+    private val hit = RayHit()
+
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         // no background
+        // testHits()
     }
 
 }

@@ -73,6 +73,10 @@ object Input {
     var mouseMovementSinceMouseDown = 0f
     val maxClickDistance = 5f
 
+    var isLeftDown = false
+    var isMiddleDown = false
+    var isRightDown = false
+
     val isControlDown get() = (keyModState and GLFW.GLFW_MOD_CONTROL) != 0
 
     // 30ms shift lag for numpad, because shift disables it on Windows
@@ -316,6 +320,12 @@ object Input {
         mouseDownY = mouseY
         mouseMovementSinceMouseDown = 0f
 
+        when (button) {
+            0 -> isLeftDown = true
+            1 -> isRightDown = true
+            2 -> isMiddleDown = true
+        }
+
         windowWasClosed = false
         val panelWindow = getPanelAndWindowAt(mouseX, mouseY)
         onClickIntoWindow(button, panelWindow)
@@ -344,7 +354,6 @@ object Input {
                         inFocus += joinedParent!!.children[index]
                     }
                 }
-                // LOGGER.info(inFocus)
                 false
             } else {
                 if (mouseTarget in inFocus) {
@@ -370,6 +379,12 @@ object Input {
     fun onMouseRelease(button: Int) {
 
         keyUpCtr++
+
+        when (button) {
+            0 -> isLeftDown = false
+            1 -> isRightDown = false
+            2 -> isMiddleDown = false
+        }
 
         inFocus0?.onMouseUp(mouseX, mouseY, button.toMouseButton())
 

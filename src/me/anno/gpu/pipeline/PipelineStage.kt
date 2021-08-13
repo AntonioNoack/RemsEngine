@@ -278,6 +278,7 @@ class PipelineStage(
             }
 
             if (hasLights) {
+                // todo or if shader has changed
                 if (previousMaterial == null || needsLightUpdateForEveryMesh) {
                     // upload all light data
                     setupLights(pipeline, shader, cameraPosition, worldScale, request)

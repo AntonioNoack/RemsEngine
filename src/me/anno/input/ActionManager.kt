@@ -6,6 +6,7 @@ import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.GFX.inFocus
 import me.anno.io.utils.StringMap
 import me.anno.ui.base.Panel
+import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
 
 object ActionManager {
@@ -14,7 +15,7 @@ object ActionManager {
 
     private val keyDragDelay = DefaultConfig["ui.keyDragDelay", 0.5f]
 
-    private val localActions = HashMap<Pair<String, KeyCombination>, List<String>>()
+    private val localActions = KeyPairMap<String, KeyCombination, List<String>>(512)
 
     private val globalKeyCombinations = HashMap<KeyCombination, List<String>>()
     private val globalActions = HashMap<String, () -> Boolean>()
@@ -65,7 +66,7 @@ object ActionManager {
                     globalKeyCombinations[keyComb] = values
                 } else {
                     // LOGGER.debug("$value -> $namespace $keyComb")
-                    localActions[namespace to keyComb] = values
+                    localActions[namespace, keyComb] = values
                 }
             } else {
                 LOGGER.warn("Could not parse combination $value")
@@ -117,10 +118,10 @@ object ActionManager {
         }
         val x = Input.mouseX
         val y = Input.mouseY
-        val universally = localActions["*" to combination]
+        val universally = localActions["*", combination]
         targetSearch@ while (panel != null) {
             val clazz = panel.className
-            val actions = localActions[clazz to combination] ?: universally
+            val actions = localActions[clazz, combination] ?: universally
             // LOGGER.debug("searching $clazz, found $actions")
             if (actions != null) {
                 for (action in actions) {

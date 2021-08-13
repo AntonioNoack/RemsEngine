@@ -2,6 +2,7 @@ package me.anno.fonts
 
 import me.anno.cache.CacheData
 import me.anno.cache.instances.TextCache
+import me.anno.cache.instances.TextSizeCache
 import me.anno.fonts.keys.FontKey
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX
@@ -98,31 +99,35 @@ object FontManager {
     }
 
     fun getSize(
+        key: TextCacheKey
+    ): Int {
+        GFX.checkIsGFXThread()
+        val data = TextSizeCache.getEntry(key, 100_000, false) {
+            val awtFont = getFont(it)
+            val averageFontSize = getAvgFontSize(it.fontSizeIndex())
+            CacheData(awtFont.calculateSize(it.text, averageFontSize, it.widthLimit, it.heightLimit))
+        } as CacheData<*>
+        return data.value as Int
+    }
+
+    fun getSize(
         font: me.anno.ui.base.Font,
         text: String,
         widthLimit: Int,
         heightLimit: Int
     ): Int {
 
-        GFX.checkIsGFXThread()
-
         if (text.isEmpty()) return GFXx2D.getSize(0, font.sizeInt)
 
         val fontSizeIndex = font.sizeIndex
-        val properties = TextCacheKey.getProperties(fontSizeIndex, font, true)
+        val properties = TextCacheKey.getProperties(fontSizeIndex, font)
 
         val widthLimit2 = limitWidth(font, text, widthLimit, heightLimit)
         val lineCountLimit = limitHeight(font, text, widthLimit2, heightLimit)
 
         val fontName = font.name
         val key = TextCacheKey(text, fontName, properties, widthLimit2, lineCountLimit)
-        val data = TextCache.getEntry(key, 100_000, false) {
-            val awtFont = getFont(it)
-            val averageFontSize = getAvgFontSize(it.fontSizeIndex())
-            CacheData(awtFont.calculateSize(text, averageFontSize, it.widthLimit, it.heightLimit))
-        } as CacheData<*>
-
-        return data.value as Int
+        return getSize(key)
 
     }
 

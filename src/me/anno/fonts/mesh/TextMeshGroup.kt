@@ -3,6 +3,7 @@ package me.anno.fonts.mesh
 import me.anno.fonts.TextGroup
 import me.anno.fonts.signeddistfields.TextSDF
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.utils.structures.maps.KeyPairMap
 import java.awt.Font
 import kotlin.math.min
 
@@ -102,7 +103,7 @@ class TextMeshGroup(
         fun getAlignments(font: Font): AlignmentGroup {
             var alignment = alignments[font]
             if (alignment != null) return alignment
-            alignment = AlignmentGroup(HashMap(), HashMap(), HashMap())
+            alignment = AlignmentGroup(KeyPairMap(), HashMap(), HashMap())
             alignments[font] = alignment
             return alignment
         }

@@ -113,6 +113,52 @@ class Material : PrefabSaveable() {
         }
     }
 
+    override fun hashCode(): Int {
+        var result = shaderOverrides.hashCode()
+        result = 31 * result + (pipelineStage?.hashCode() ?: 0)
+        result = 31 * result + (shader?.hashCode() ?: 0)
+        result = 31 * result + diffuseBase.hashCode()
+        result = 31 * result + diffuseMap.hashCode()
+        result = 31 * result + normalMap.hashCode()
+        result = 31 * result + normalStrength.hashCode()
+        result = 31 * result + emissiveBase.hashCode()
+        result = 31 * result + emissiveMap.hashCode()
+        result = 31 * result + roughnessBase.hashCode()
+        result = 31 * result + roughnessMap.hashCode()
+        result = 31 * result + metallicBase.hashCode()
+        result = 31 * result + metallicMap.hashCode()
+        result = 31 * result + displacementMap.hashCode()
+        result = 31 * result + occlusionMap.hashCode()
+        result = 31 * result + className.hashCode()
+        return result
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Material
+
+        if (shaderOverrides != other.shaderOverrides) return false
+        if (pipelineStage != other.pipelineStage) return false
+        if (shader != other.shader) return false
+        if (diffuseBase != other.diffuseBase) return false
+        if (diffuseMap != other.diffuseMap) return false
+        if (normalMap != other.normalMap) return false
+        if (normalStrength != other.normalStrength) return false
+        if (emissiveBase != other.emissiveBase) return false
+        if (emissiveMap != other.emissiveMap) return false
+        if (roughnessBase != other.roughnessBase) return false
+        if (roughnessMap != other.roughnessMap) return false
+        if (metallicBase != other.metallicBase) return false
+        if (metallicMap != other.metallicMap) return false
+        if (displacementMap != other.displacementMap) return false
+        if (occlusionMap != other.occlusionMap) return false
+        if (className != other.className) return false
+
+        return true
+    }
+
     class TypeValue(val type: GLSLType, val value: Any) {
 
         fun bind(shader: Shader, uniformName: String) {

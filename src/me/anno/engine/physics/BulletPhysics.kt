@@ -4,6 +4,7 @@ import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.broadphase.DbvtBroadphase
 import com.bulletphysics.collision.dispatch.CollisionDispatcher
 import com.bulletphysics.collision.dispatch.CollisionObject
+import com.bulletphysics.collision.dispatch.CollisionObject.ACTIVE_TAG
 import com.bulletphysics.collision.dispatch.CollisionObject.DISABLE_DEACTIVATION
 import com.bulletphysics.collision.dispatch.DefaultCollisionConfiguration
 import com.bulletphysics.collision.shapes.CollisionShape
@@ -30,7 +31,7 @@ import me.anno.ecs.components.physics.VehicleWheel
 import me.anno.engine.ui.render.DrawAABB
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.camPosition
-import me.anno.engine.ui.render.RenderView.Companion.viewTransform
+import me.anno.engine.ui.render.RenderView.Companion.cameraMatrix
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.input.Input
@@ -111,6 +112,7 @@ class BulletPhysics : Component() {
     @NotSerializedProperty
     private val rigidBodies = HashMap<Entity, Pair<org.joml.Vector3d, RigidBody>>()
 
+    @NotSerializedProperty
     private val nonStaticRigidBodies = HashMap<Entity, Pair<org.joml.Vector3d, RigidBody>>()
 
     @NotSerializedProperty
@@ -195,7 +197,7 @@ class BulletPhysics : Component() {
             rbInfo.angularSleepingThreshold = base.angularSleepingThreshold
 
             val rb = RigidBody(rbInfo)
-            // rb.deactivationTime = base.sleepingTimeThreshold
+            rb.deactivationTime = base.sleepingTimeThreshold
             BulletGlobals.setDeactivationTime(1.0)
             /*
             *  if (getActivationState() == DISABLE_DEACTIVATION) {
@@ -256,6 +258,8 @@ class BulletPhysics : Component() {
                 world.addVehicle(vehicle)
                 body.activationState = DISABLE_DEACTIVATION
                 raycastVehicles[entity] = vehicle
+            } else {
+                if (rigidbody.activeByDefault) body.activationState = ACTIVE_TAG
             }
 
             world.addRigidBody(body) // todo what is the mask option, and the group?
@@ -339,7 +343,7 @@ class BulletPhysics : Component() {
         for ((entity, rigidbodyWithScale) in nonStaticRigidBodies) {
 
             val (scale, rigidbody) = rigidbodyWithScale
-            // if (rigidbody.isStaticObject) continue
+            if (!rigidbody.isActive) continue
 
             // set the global transform
             rigidbody.getWorldTransform(tmpTransform)
@@ -376,7 +380,8 @@ class BulletPhysics : Component() {
         }
 
         // update the local transforms last, so all global transforms have been completely updated
-        for (entity in nonStaticRigidBodies.keys) {
+        for ((entity, bodyWithScale) in nonStaticRigidBodies) {
+            if (!bodyWithScale.second.isActive) continue
             val dst = entity.transform
             dst.calculateLocalTransform((entity.parent as? Entity)?.transform)
             entity.invalidateAABBsCompletely()
@@ -391,7 +396,7 @@ class BulletPhysics : Component() {
         val debugDraw = debugDraw ?: return
 
         // define camera transform
-        debugDraw.stack.set(viewTransform)
+        debugDraw.stack.set(cameraMatrix)
         debugDraw.worldScale = worldScale
         debugDraw.cam.set(camPosition)
 
@@ -399,7 +404,7 @@ class BulletPhysics : Component() {
             drawContactPoints(view)
             drawAABBs(view)
             drawVehicles(view)
-            LineBuffer.finish(viewTransform)
+            LineBuffer.finish(cameraMatrix)
         }
 
     }

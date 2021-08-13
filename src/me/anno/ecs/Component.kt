@@ -17,6 +17,15 @@ abstract class Component : PrefabSaveable(), Inspectable {
     // todo call onEnable, onDisable
     // todo event listener lists
 
+    override var isEnabled: Boolean = true
+        get() = super.isEnabled
+        set(value) {
+            if (field != value) {
+                field = value
+                entity?.onChangeComponent(this)
+            }
+        }
+
     @NotSerializedProperty
     open var entity: Entity?
         get() = parent as? Entity

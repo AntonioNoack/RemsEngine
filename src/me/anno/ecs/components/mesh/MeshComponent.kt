@@ -41,6 +41,12 @@ class MeshComponent() : Component() {
 
     var mesh: Mesh? = null
 
+    var collisionMask: Int = 1
+
+    fun canCollide(collisionMask: Int): Boolean {
+        return this.collisionMask.and(collisionMask) != 0
+    }
+
     fun invalidate() {}
 
     // far into the future:
@@ -51,10 +57,8 @@ class MeshComponent() : Component() {
         mesh?.draw(shader, materialIndex)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        // buffer?.destroy()
-    }
+    // on destroy we should maybe destroy the mesh:
+    // only if it is unique, and owned by ourselves
 
     override val className get() = "MeshComponent"
 

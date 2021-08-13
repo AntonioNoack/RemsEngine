@@ -20,6 +20,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AABBs.reset
 import me.anno.utils.types.AABBs.transformUnion
 import me.anno.utils.types.Floats.f2s
@@ -109,8 +110,27 @@ class Entity() : PrefabSaveable(), Inspectable {
         else null
     }
 
+
+    // aabb cache for faster rendering and collision checks
+    @NotSerializedProperty
+    val aabb = AABBd()
+
     @NotSerializedProperty
     var hasValidAABB = false
+
+    // collision mask for faster collision checks
+    @NotSerializedProperty
+    var collisionMask = 0
+
+    @NotSerializedProperty
+    var hasValidCollisionMask = false
+
+    @NotSerializedProperty
+    var hasSpaceFillingComponents = false
+
+    // renderable-cache for faster rendering
+    @NotSerializedProperty
+    var hasRenderables = false
 
     @SerializedProperty
     var position: Vector3d
@@ -169,11 +189,9 @@ class Entity() : PrefabSaveable(), Inspectable {
         invalidatePhysics(false)
     }
 
-    @NotSerializedProperty
-    val aabb = AABBd()
-
-    @NotSerializedProperty
-    var hasRenderables = false
+    fun canCollide(collisionMask: Int): Boolean {
+        return this.collisionMask.and(collisionMask) != 0
+    }
 
     fun invalidatePhysics(force: Boolean) {
         if (force || hasPhysicsInfluence()) {
@@ -201,6 +219,37 @@ class Entity() : PrefabSaveable(), Inspectable {
         }
     }
 
+    fun invalidateCollisionMask() {
+        parentEntity?.invalidateCollisionMask()
+        hasValidCollisionMask = false
+    }
+
+    fun validateMasks() {
+        if (hasValidCollisionMask) return
+        var collisionMask = 0
+        val components = components
+        for (i in components.indices) {
+            when (val component = components[i]) {
+                is MeshComponent -> {
+                    collisionMask = collisionMask or component.collisionMask
+                    if (collisionMask == -1) break
+                }
+                is Collider -> {
+                    collisionMask = collisionMask or component.collisionMask
+                    if (collisionMask == -1) break
+                }
+            }
+        }
+        val children = children
+        for (i in children.indices) {
+            val child = children[i]
+            child.validateMasks()
+            collisionMask = collisionMask or child.collisionMask
+        }
+        this.collisionMask = collisionMask
+        hasValidCollisionMask = true
+    }
+
     fun validateAABBs() {
         if (hasValidAABB) {
             // to check if all invalidations were applied correctly
@@ -216,9 +265,8 @@ class Entity() : PrefabSaveable(), Inspectable {
             children[i].validateAABBs()
         }
         aabb.reset()
-        if (hasRenderables) {
+        if (hasSpaceFillingComponents) {
             // todo if has particle system, include
-            // todo include colliders?
             val globalTransform = transform.globalTransform
             val components = components
             for (i in components.indices) {
@@ -243,7 +291,11 @@ class Entity() : PrefabSaveable(), Inspectable {
                             aabb.setMin(n, n, n)
                             aabb.setMax(p, p, p)
                         }
-                        // todo drawing colliders for GUI -> would need to be included?
+                        is Collider -> {
+                            val tmp = JomlPools.vector3d.create()
+                            component.union(globalTransform, aabb, tmp, false)
+                            JomlPools.vector3d.sub(1)
+                        }
                     }
                 }
             }
@@ -352,6 +404,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         if (oldParent != null) {
             oldParent.remove(this)
             oldParent.invalidateOwnAABB()
+            oldParent.invalidateCollisionMask()
         }
 
         parent.internalChildren.add(index, this)
@@ -359,6 +412,8 @@ class Entity() : PrefabSaveable(), Inspectable {
 
         // transform
         transformUpdate(parent, keepWorldTransform)
+        // collision mask
+        parent.invalidateCollisionMask()
 
         checkNeedsPhysics()
 
@@ -423,18 +478,23 @@ class Entity() : PrefabSaveable(), Inspectable {
         component.entity = this
     }
 
-    private fun onChangeComponent(component: Component) {
-        if (component.isEnabled) {
-            when (component) {
-                is Collider -> invalidateRigidbody()
-                is Rigidbody -> physics?.invalidate(this)
-                is MeshComponent -> invalidateOwnAABB()
-                is LightComponent -> invalidateOwnAABB()
+    fun onChangeComponent(component: Component) {
+        when (component) {
+            is Collider -> {
+                invalidateRigidbody()
+                invalidateCollisionMask()
             }
+            is Rigidbody -> physics?.invalidate(this)
+            is MeshComponent -> {
+                invalidateOwnAABB()
+                invalidateCollisionMask()
+            }
+            is LightComponent -> invalidateOwnAABB()
         }
         hasRenderables = hasComponent(MeshComponent::class, false) ||
                 hasComponent(LightComponent::class, false)
-        invalidateOwnAABB()
+        hasSpaceFillingComponents = hasRenderables ||
+                hasComponent(Collider::class, false)
     }
 
     fun addChild(child: Entity) {

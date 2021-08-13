@@ -14,6 +14,7 @@ import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.components.physics.Vehicle
 import me.anno.ecs.components.physics.VehicleWheel
+import me.anno.ecs.components.test.RaycastTestComponent
 import me.anno.ecs.components.test.TypeTestComponent
 import me.anno.ecs.prefab.*
 import me.anno.engine.physics.BulletPhysics
@@ -82,6 +83,7 @@ object ECSRegistry {
         if (Build.isDebug) {
             // test classes
             registerCustomClass(TypeTestComponent())
+            registerCustomClass(RaycastTestComponent())
         }
     }
 

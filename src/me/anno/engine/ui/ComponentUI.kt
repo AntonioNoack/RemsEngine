@@ -41,6 +41,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.Maths
 import me.anno.utils.strings.StringHelper
 import me.anno.utils.strings.StringHelper.titlecase
+import me.anno.utils.structures.tuples.MutablePair
 import me.anno.utils.types.Quaternions.toEulerAnglesDegrees
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import org.apache.logging.log4j.LogManager
@@ -170,7 +171,7 @@ object ComponentUI {
                         property.set(this, content.associate { it.first to it.first }.toMutableMap())
                     }
                 }.apply {
-                    setValues(value.map { AnyMapPanel.MutablePair(it.key, it.value) })
+                    setValues(value.map { MutablePair(it.key, it.value) })
                 }
             }
 
@@ -686,7 +687,7 @@ object ComponentUI {
                                 }
                             }.apply {
                                 property.init(this)
-                                setValues(value.map { AnyMapPanel.MutablePair(it.key, it.value) })
+                                setValues(value.map { MutablePair(it.key, it.value) })
                             }
                         }
                         // todo pair and triple

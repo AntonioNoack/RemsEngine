@@ -1,23 +1,18 @@
 package me.anno.engine.scene
 
 import me.anno.ecs.Entity
-import me.anno.ecs.prefab.*
+import me.anno.ecs.prefab.CSet
+import me.anno.ecs.prefab.Change
+import me.anno.ecs.prefab.Path
+import me.anno.ecs.prefab.Prefab
 import me.anno.engine.scene.PrefabHelper.addC
 import me.anno.engine.scene.PrefabHelper.addE
 import me.anno.engine.scene.PrefabHelper.setC
 import me.anno.engine.scene.PrefabHelper.setE
-import me.anno.engine.ui.render.RenderView
-import me.anno.io.files.InvalidRef
 import me.anno.io.files.StaticRef
 import me.anno.io.text.TextWriter
-import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.utils.OS
-import org.joml.Quaterniond
 import org.joml.Vector3d
-import org.joml.Vector3f
-import kotlin.math.cos
-import kotlin.math.pow
-import kotlin.math.sin
 
 object ScenePrefab : StaticRef("Scene.prefab", lazy {
     TextWriter.toText(Prefab("Entity").apply {
@@ -33,23 +28,22 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
             "Populated at runtime with the players on this PC; can be trusted",
             "Populated at runtime with players from different PCs, states, continents; may not be trusted"
         )
+        val root = Path()
         for (i in names.indices) {
-            changes.add(CAdd(Path(), 'e', "Entity", InvalidRef))
-            changes.add(CSet(Path(i), "name", names[i]))
-            changes.add(CSet(Path(i), "desc", descs[i]))
+            val e = addE(changes, root, names[i])
+            setC(changes, e, "desc", descs[i])
         }
 
         // root has bullet physics, because the players need physics as well
-        changes.add(CAdd(Path(), 'c', "BulletPhysics"))
-
+        addC(changes, root, "BulletPhysics", "Physics")
 
         // just add stuff for debugging :)
         //////////////////
         // sample mesh //
         ////////////////
-        val world = Path(0, 'e')
+        val world = root.added(names[0], 0, 'e')
         val truck = addE(changes, world, "VOX/Truck", OS.downloads.getChild("MagicaVoxel/vox/truck.vox"))
-        val truckBody0 = truck + (0 to 'e')
+        val truckBody0 = truck.added("", 0, 'e')
         addC(changes, truckBody0, "MeshCollider")
         //val truckRigidbody = addC(changes, truckBody0, "Rigidbody")
         //setC(changes, truckRigidbody, "mass", 100.0)
@@ -61,10 +55,10 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         val lights = addE(changes, world, "Lights")
         addC(changes, lights, "AmbientLight")
 
-        val pointLight = addE(changes, lights, "Point Light")
+        /*val pointLight = addE(changes, lights, "Point Light")
         setE(changes, pointLight, "position", Vector3d(0.0, 50.0, 0.0))
         setE(changes, pointLight, "scale", Vector3d(80.0))
-        addC(changes, pointLight, "PointLight")
+        addC(changes, pointLight, "PointLight")*/
 
         /*val sun = addE(changes, lights, "Sun")
         setE(changes, sun, "scale", Vector3d(1000.0))
@@ -75,8 +69,9 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         setE(changes, spotLight, "scale", Vector3d(100.0))
         addC(changes, spotLight, "SpotLight")*/
 
-        val ringOfLights = addE(changes, lights, "Ring Of Lights")
+        /*val ringOfLights = addE(changes, lights, "Ring Of Lights")
         val ringLightCount = RenderView.MAX_LIGHTS - 4
+        val lightLevel = 20f / max(3, ringLightCount)
         for (i in 0 until ringLightCount) {
             val angle = 6.2830 * i / ringLightCount
             val radius = 50.0
@@ -84,8 +79,8 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
             setE(changes, light, "position", Vector3d(radius * cos(angle), 20.0, radius * sin(angle)))
             setE(changes, light, "scale", Vector3d(100.0))
             val c = addC(changes, light, "PointLight")
-            setC(changes, c, "color", HSLuv.toRGB(Vector3f(angle.toFloat(), 0.7f, 0.7f)).mul(20f))
-        }
+            setC(changes, c, "color", HSLuv.toRGB(Vector3f(angle.toFloat(), 0.7f, 0.7f)).mul(lightLevel))
+        }*/
 
         ////////////////////
         // physics tests //
@@ -93,7 +88,7 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         val physics = addE(changes, world, "Physics")
 
         // vehicle
-        val vehicle = addE(changes, physics, "Vehicle")
+        /*val vehicle = addE(changes, physics, "Vehicle")
         val vehicleComp = addC(changes, vehicle, "Vehicle")
         setC(changes, vehicleComp, "centerOfMass", Vector3d(0.0, -1.0, 0.0))
         val vehicleCollider = addC(changes, vehicle, "BoxCollider", "Box Collider")
@@ -112,6 +107,7 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
             }
         }
         // todo add script for driving
+        */
 
         /*var testChain = addE(changes, world,"chain-0")
         for(i in 1 until 7){
@@ -131,13 +127,13 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         setC(changes, floorCollider, "halfExtends", Vector3d(1.0))
 
         // add spheres for testing
-        val sphereMesh = OS.documents.getChild("sphere.obj")
+        /*val sphereMesh = OS.documents.getChild("sphere.obj")
         for (i in 0 until 100) {
             val sphere = addE(changes, physics, "Sphere[$i]", sphereMesh)
             setE(changes, sphere, "position", Vector3d(0.0, (i + 2) * 2.1, 0.0))
-            addC(changes, sphere, "Rigidbody")
+            // addC(changes, sphere, "Rigidbody")
             addC(changes, sphere, "SphereCollider")
-        }
+        }*/
 
         // add a cube of cubes for frustum testing
         val frustum = addE(changes, world, "Frustum Testing")
@@ -150,19 +146,17 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
                     val cube = addE(changes, xGroup, "Cube[$x,$y,$z]", cubePathNormals)
                     setE(changes, cube, "position", Vector3d(x * 5.0, y * 5.0 + 30.0, z * 5.0))
                     // a little random rotation
-                    val q = Quaterniond(Math.random(), Math.random(), Math.random(), Math.random()).normalize()
-                    setE(changes, cube, "rotation", q)
+                    // val q = Quaterniond(Math.random(), Math.random(), Math.random(), Math.random()).normalize()
+                    // setE(changes, cube, "rotation", q)
                     // physics test
-                    addC(changes, cube, "BoxCollider")
-                    val rigid = addC(changes, cube, "Rigidbody")
-                    setC(changes, rigid, "friction", 0.0)
-                    setC(changes, rigid, "restitution", 0.0)
+                    // addC(changes, cube, "BoxCollider")
+                    // addC(changes, cube, "Rigidbody")
                 }
             }
         }
 
         // normal testing
-        val normalTesting = addE(changes, world, "Normal Testing")
+        /*val normalTesting = addE(changes, world, "Normal Testing")
         val l = 100
         for (i in 0 until l) {
             for (j in 0 until 2) {
@@ -171,18 +165,18 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
                 setE(changes, cube, "position", Vector3d(cos(angle) * l / 2, 1.0 + 2 * j, sin(angle) * l / 2))
                 setE(changes, cube, "rotation", Quaterniond().rotateY(-angle).rotateX(j * 6.2830 / 8))
             }
-        }
+        }*/
 
 
-        // todo row of planets
-        val spherePath = OS.documents.getChild("sphere.obj")
+        // row of planets
+        /*val spherePath = OS.documents.getChild("sphere.obj")
         val planets = addE(changes, world, "Planets")
         for (i in -50..50) {
             val size = 10.0.pow(i.toDouble())
             val sphere = addE(changes, planets, "Sphere 1e$i", spherePath)
             setE(changes, sphere, "position", Vector3d(0.0, 0.0, 3.0 * size))
             setE(changes, sphere, "scale", Vector3d(size))
-        }
+        }*/
 
     }, false).toByteArray()
 }) {

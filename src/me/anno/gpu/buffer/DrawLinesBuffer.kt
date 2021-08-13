@@ -27,7 +27,7 @@ object DrawLinesBuffer {
     private var lineBuffer = -1
     private fun ensureLineBuffer() {
         if (lineBuffer < 0) {
-            GFX.check()
+            // GFX.check()
             lineBuffer = GL20.glGenBuffers()
             GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, lineBuffer)
             val nioBuffer = ByteBuffer.allocateDirect(4 * lineBufferLength)
@@ -46,7 +46,7 @@ object DrawLinesBuffer {
             }
             nioBuffer.position(0)
             GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, nioBuffer, GL15.GL_STATIC_DRAW)
-            GFX.check()
+            // GFX.check()
         } else GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, lineBuffer)
     }
     

@@ -276,7 +276,7 @@ open class Panel(val style: Style) {
         this.w = w
         this.h = h
         val constraints = layoutConstraints
-        for(i in constraints.indices){
+        for (i in constraints.indices) {
             val c = constraints[i]
             c.apply(this)
             if (this.w > w || this.h > h) throw RuntimeException("${c.javaClass} isn't working properly: $w -> ${this.w}, $h -> ${this.h}")
@@ -426,7 +426,10 @@ open class Panel(val style: Style) {
     // first or null would be correct, however our overlays are all the same
     // (the small cross, which should be part of the ui instead)
     //, so we can use the last one
-    open fun getOverlayParent() = listOfHierarchyReversed.firstOrNull { it.drawsOverlaysOverChildren(lx0, ly0, lx1, ly1) }
+    open fun getOverlayParent(): Panel? {
+        if (drawsOverlaysOverChildren(lx0, ly0, lx1, ly1)) return this
+        return parent?.getOverlayParent()
+    }
 
     /**
      * if this element is in focus,
@@ -554,7 +557,7 @@ open class Panel(val style: Style) {
     val indexInParent get() = parent?.children?.indexOf(this) ?: -1
     val isRootElement get() = parent == null
 
-    open val className: String = javaClass.simpleName
+    open val className: String get() = javaClass.simpleName
 
     companion object {
         private val LOGGER = LogManager.getLogger(Panel::class)

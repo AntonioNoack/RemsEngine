@@ -1,13 +1,14 @@
 package me.anno.utils.types
 
-import org.joml.AABBd
-import org.joml.AABBf
-import org.joml.Math
-import org.joml.Matrix4x3d
+import me.anno.utils.Maths
+import org.joml.*
+import kotlin.math.abs
+import kotlin.math.max
 
 object AABBs {
 
     fun AABBd.isEmpty() = minX > maxX
+    fun AABBf.isEmpty() = minX > maxX
 
     fun AABBd.reset(): AABBd {
         minX = Double.POSITIVE_INFINITY
@@ -29,11 +30,11 @@ object AABBs {
         return this
     }
 
-    fun transformAABB(that: AABBd, m: Matrix4x3d, dst: AABBd = that): AABBd {
-        return that.transform(m, dst)
+    fun transformAABB(that: AABBd, transform: Matrix4x3d, dst: AABBd = that): AABBd {
+        return that.transform(transform, dst)
     }
 
-    fun AABBd.transform(m: Matrix4x3d, dst: AABBd): AABBd {
+    fun AABBd.transform(trans: Matrix4x3d, dst: AABBd): AABBd {
         val dx: Double = this.maxX - this.minX
         val dy: Double = this.maxY - this.minY
         val dz: Double = this.maxZ - this.minZ
@@ -45,11 +46,11 @@ object AABBs {
         var maxz = Double.NEGATIVE_INFINITY
         for (i in 0..7) {
             val x: Double = this.minX + (i and 1).toDouble() * dx
-            val y: Double = this.minY + (i shr 1 and 1).toDouble() * dy
-            val z: Double = this.minZ + (i shr 2 and 1).toDouble() * dz
-            val tx = m.m00() * x + m.m10() * y + m.m20() * z + m.m30()
-            val ty = m.m01() * x + m.m11() * y + m.m21() * z + m.m31()
-            val tz = m.m02() * x + m.m12() * y + m.m22() * z + m.m32()
+            val y: Double = this.minY + ((i shr 1) and 1).toDouble() * dy
+            val z: Double = this.minZ + ((i shr 2) and 1).toDouble() * dz
+            val tx = trans.m00() * x + trans.m10() * y + trans.m20() * z + trans.m30()
+            val ty = trans.m01() * x + trans.m11() * y + trans.m21() * z + trans.m31()
+            val tz = trans.m02() * x + trans.m12() * y + trans.m22() * z + trans.m32()
             minx = Math.min(tx, minx)
             miny = Math.min(ty, miny)
             minz = Math.min(tz, minz)
@@ -219,5 +220,62 @@ object AABBs {
         dst.maxZ = maxz
         return dst
     }
+
+
+    /**
+     * a test whether the line start-end crosses the aabb
+     * end may be far away, and it still works
+     * start should not be far away -> order matters!
+     * can deliver a few false-positives (in favor of not delivering false-negatives)
+     * */
+    fun testLineAABB(aabb: AABBd, start: Vector3d, end: Vector3d): Boolean {
+        if (aabb.isEmpty()) return false
+        // this didn't work because of the end
+        // the end typically won't be reached anyways
+        // test the end just by distance: distance(aabb,start) must be <= distance(start,end)
+        return aabb.testRay(start.x, start.y, start.z, end.x - start.x, end.y - start.y, end.z - start.z) &&
+                distanceSquared(aabb, start) <= start.distanceSquared(end)
+    }
+
+    // pseudo-distance from aabb to v
+    fun distanceSquared(aabb: AABBd, v: Vector3d): Double {
+        if (aabb.testPoint(v)) return 0.0
+        val cx = (aabb.minX + aabb.maxX) * 0.5
+        val cy = (aabb.minY + aabb.maxY) * 0.5
+        val cz = (aabb.minZ + aabb.maxZ) * 0.5
+        val ex = (aabb.maxX - aabb.minX) * 0.5
+        val ey = (aabb.maxY - aabb.minY) * 0.5
+        val ez = (aabb.maxZ - aabb.minZ) * 0.5
+        return if (ex.isFinite() && ey.isFinite() && ez.isFinite()) {
+            val dx = max(abs(cx - v.x) - ex, 0.0)
+            val dy = max(abs(cy - v.y) - ey, 0.0)
+            val dz = max(abs(cz - v.z) - ez, 0.0)
+            Maths.sq(dx, dy, dz)
+        } else 0.0
+    }
+
+    // pseudo-distance from aabb to v
+    fun distanceSquared(aabb: AABBf, v: Vector3f): Float {
+        if (aabb.testPoint(v)) return 0f
+        val cx = (aabb.minX + aabb.maxX) * 0.5f
+        val cy = (aabb.minY + aabb.maxY) * 0.5f
+        val cz = (aabb.minZ + aabb.maxZ) * 0.5f
+        val ex = (aabb.maxX - aabb.minX) * 0.5f
+        val ey = (aabb.maxY - aabb.minY) * 0.5f
+        val ez = (aabb.maxZ - aabb.minZ) * 0.5f
+        return if (ex.isFinite() && ey.isFinite() && ez.isFinite()) {
+            val dx = max(abs(cx - v.x) - ex, 0f)
+            val dy = max(abs(cy - v.y) - ey, 0f)
+            val dz = max(abs(cz - v.z) - ez, 0f)
+            Maths.sq(dx, dy, dz)
+        } else 0f
+    }
+
+    fun testLineAABB(aabb: AABBf, start: Vector3f, end: Vector3f): Boolean {
+        if (aabb.isEmpty()) return false
+        return aabb.testRay(start.x, start.y, start.z, end.x - start.x, end.y - start.y, end.z - start.z) &&
+                distanceSquared(aabb, start) <= start.distanceSquared(end)
+    }
+
 
 }

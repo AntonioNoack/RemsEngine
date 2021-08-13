@@ -378,7 +378,7 @@ class FileExplorerEntry(
         titlePanel.w = x1 - x0
         titlePanel.minW = x1 - x0
         titlePanel.h = y1 - y0
-        titlePanel.drawText(0, 0, titlePanel.text, titlePanel.textColor)
+        titlePanel.drawText(0, 0, titlePanel.textColor)
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {

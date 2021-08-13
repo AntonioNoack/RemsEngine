@@ -13,8 +13,15 @@ import me.anno.gpu.Window
 import me.anno.input.ActionManager
 import me.anno.language.translation.Dict
 import me.anno.studio.StudioBase
+import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.StudioActions
+import me.anno.ui.base.Panel
+import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.groups.PanelStack
+import me.anno.ui.debug.FrameTimes
+import me.anno.ui.debug.RuntimeInfoPanel
 import me.anno.ui.editor.OptionBar
 import me.anno.ui.editor.UILayouts.createReloadWindow
 import me.anno.ui.editor.config.ConfigPanel
@@ -119,7 +126,19 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         list += editUI
         // list += gameUI
 
-        list += createConsole(style)
+
+        val bottom2 = PanelStack(style)
+        bottom2 += RemsStudio.createConsole(style)
+        val right = PanelListX(style)
+        right += RuntimeInfoPanel(style).apply { alignment = AxisAlignment.MAX }.setWeight(1f)
+        right += object : Panel(style) {
+            override fun calculateSize(w: Int, h: Int) {
+                minW = if (showFPS) FrameTimes.width else 0
+                minH = 1
+            }
+        }
+        bottom2 += right
+        list += bottom2
         windowStack.add(Window(list))
 
         StudioActions.register()

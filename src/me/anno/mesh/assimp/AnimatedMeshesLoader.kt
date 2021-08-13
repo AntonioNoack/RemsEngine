@@ -110,7 +110,8 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
             if (change is CAdd && change.clazzName == "AnimRenderer") {
                 val indexInEntity = changes.filter { it is CAdd && it.path == change.path }
                     .indexOfFirst { it === change }
-                CSet(change.path!!.add(indexInEntity, 'c'), "skeleton", skeleton)
+                val name = "skeleton"
+                CSet(change.path!!.added(name, indexInEntity, 'c'), name, skeleton)
             } else null
         }
         changes as MutableList<Change>

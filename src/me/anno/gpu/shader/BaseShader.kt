@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.RenderState
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.types.Strings.isBlank2
 import kotlin.math.max
 
@@ -25,6 +26,9 @@ class BaseShader(
     var glslVersion = Shader.DefaultGLSLVersion
     var textures: List<String>? = null
     var ignoredUniforms = HashSet<String>()
+
+    private val flatShader = KeyPairMap<Renderer, GeoShader?, Shader>()
+    private val deferredShaders = KeyPairMap<DeferredSettingsV2, GeoShader?, Shader>()
 
     fun createFlatShader(postProcessing: String, geoShader: GeoShader?): Shader {
         // if it does not have tint, then add it?
@@ -77,18 +81,14 @@ class BaseShader(
         return shader
     }
 
-    private val flatShader = HashMap<Pair<GeoShader?, String>, Shader>()
-
     val value: Shader
         get() {
             val renderer = RenderState.currentRenderer
-            val postProcessing = renderer.getPostProcessing()
             return when (val deferred = renderer.deferredSettings) {
                 null -> {
                     val geoMode = RenderState.geometryShader.currentValue
-                    val key = geoMode to postProcessing
-                    val shader = flatShader.getOrPut(key) {
-                        createFlatShader(postProcessing, geoMode)
+                    val shader = flatShader.getOrPut(renderer, geoMode) { r, g ->
+                        createFlatShader(r.getPostProcessing(), g)
                     }
                     shader.use()
                     shader.v1("drawMode", renderer.drawMode.id)
@@ -106,12 +106,11 @@ class BaseShader(
         this.textures = textures
     }
 
-    private val deferredShaders = HashMap<Pair<DeferredSettingsV2, GeoShader?>, Shader>()
     operator fun get(settings: DeferredSettingsV2, geoShader: GeoShader?): Shader {
-        return deferredShaders.getOrPut(settings to geoShader) {
-            val shader = settings.createShader(
+        return deferredShaders.getOrPut(settings, geoShader) { s, g ->
+            val shader = s.createShader(
                 name,
-                geoShader?.code,
+                g?.code,
                 vertexSource,
                 varyingSource,
                 fragmentSource,
@@ -127,9 +126,16 @@ class BaseShader(
     }
 
     fun destroy() {
-        for (shader in flatShader) shader.value.destroy()
-        for (shader in deferredShaders) shader.value.destroy()
-        // deferredShaders.clear()
+        for (list in flatShader) {
+            for ((_, shader) in list) {
+                shader.destroy()
+            }
+        }
+        for (list in deferredShaders) {
+            for ((_, shader) in list) {
+                shader.destroy()
+            }
+        }
     }
 
     companion object {

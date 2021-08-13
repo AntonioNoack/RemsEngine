@@ -44,14 +44,14 @@ class IndexedStaticBuffer(
     override fun createVAO(shader: Shader, instanced: Boolean) {
         super.createVAO(shader, instanced)
 
-        GFX.check()
+        // GFX.check()
 
         // extra: element buffer
         if (elementVBO < 0) elementVBO = glGenBuffers()
         GL30.glBindBuffer(GL30.GL_ELEMENT_ARRAY_BUFFER, elementVBO)
         GL30.glBufferData(GL30.GL_ELEMENT_ARRAY_BUFFER, indices, usage)
 
-        GFX.check()
+        // GFX.check()
 
     }
 

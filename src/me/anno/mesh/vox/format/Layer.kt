@@ -23,12 +23,15 @@ class Layer(var name: String) {
     }
 
     fun toEntityPrefab(changes: MutableList<Change>, meshes: List<Mesh>, index: Int) {
-        changes.add(CAdd(Path(), 'e', "Entity"))
-        changes.add(CSet(Path(index, 'e'), "name", name.ifEmpty { "Layer $index" }))
+        val name = name.ifEmpty { "Layer $index" }
+        val entity = CAdd(Path(), 'e', "Entity", name)
+        changes.add(entity)
+        val path = entity.getChildPath(index)
+        changes.add(CSet(path, "name", name))
         for ((childIndex, node) in nodes.withIndex()) {
             node.toEntityPrefab(
-                changes, meshes, Path(index, 'e'),
-                Path(intArrayOf(index, childIndex), charArrayOf('e', 'e'))
+                changes, meshes, path,
+                childIndex
             )
         }
     }

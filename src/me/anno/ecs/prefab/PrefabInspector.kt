@@ -4,6 +4,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.prefab.Prefab.Companion.loadPrefab
 import me.anno.engine.IProperty
 import me.anno.engine.ui.ComponentUI
+import me.anno.engine.ui.DefaultLayout
 import me.anno.io.NamedSaveable
 import me.anno.io.files.FileReference
 import me.anno.io.text.TextWriter
@@ -103,8 +104,9 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
 
     fun inspect(instance: PrefabSaveable, list: PanelListY, style: Style) {
 
-        val (pathIndices, pathTypes) = instance.pathInRoot2(root, withExtra = false)
-        val path = Path(pathIndices, pathTypes)
+        val path = instance.pathInRoot2(root, withExtra = false)
+        val pathIndices = path.ids
+
 
         // the index may not be set in the beginning
         fun getPath(): Path {
@@ -129,6 +131,11 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
                 component.isEnabled = prefab?.isEnabled ?: true; component.isEnabled
             }
         })*/
+
+        list.add(TextButton("Select Parent", false, style).setSimpleClickListener {
+            DefaultLayout.library.select(instance.parent)
+        })
+
         list.add(TextInput("Name", "", instance.name, style).apply {
             setBold(isChanged(getPath(), "name"))
             setChangeListener { setBold(); change(getPath(), "name", it); instance.name = it }
@@ -266,17 +273,17 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
      * renumber all changes, which are relevant to the components
      * */
     private fun renumber(from: Int, delta: Int, path: Path) {
-        val targetSize = path.indices.size
+        val targetSize = path.ids.size
         val changedArrays = HashSet<IntArray>()
         for (change in changes) {
             val path2 = change.path!!
-            val indices = path2.indices
+            val indices = path2.ids
             val types = path2.types
             if (change is CSet &&
                 indices.size == targetSize &&
                 indices[targetSize - 1] >= from &&
                 indices !in changedArrays &&
-                indices.startsWith(path.indices) &&
+                indices.startsWith(path.ids) &&
                 types.startsWith(path.types)
             ) {
                 indices[targetSize - 1] += delta
@@ -287,8 +294,7 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
 
     fun addComponent(parent: PrefabSaveable, component: PrefabSaveable, index: Int, type: Char) {
 
-        val path0 = parent.pathInRoot2(root, false)
-        val path = Path(path0)
+        val path = parent.pathInRoot2(root, false)
 
         val prefab = parent.prefab
 
@@ -308,10 +314,10 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
         parent.addChildByType(index, type, component)
 
         // just append it :)
-        changes.add(CAdd(path, 'c', component.className))
+        changes.add(CAdd(path, 'c', component.className, component.name))
         // if it contains any changes, we need to apply them
         val base = Component.create(component.className)
-        val compPath = path + (index to type)
+        val compPath = path.added(component.name, index, type)
 
         /*var clazz: KClass<*> = component::class
         while (true) {
@@ -336,8 +342,7 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
 
     fun removeComponent(parent: PrefabSaveable, component: PrefabSaveable, type: Char) {
 
-        val path0 = parent.pathInRoot2(root, false)
-        val path = Path(path0.first, path0.second)
+        val path = parent.pathInRoot2(root, false)
 
         val prefab = parent.prefab
 
@@ -355,7 +360,7 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
         } else {
 
             // when a component is deleted, its changes need to be deleted as well
-            val compPath = path + (index to type)
+            val compPath = path.added(component.name, index, type)
             changes.removeIf { it is CSet && it.path == compPath }
 
             if (index + 1 < components.size) {
@@ -373,7 +378,8 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
             val prefabList = prefab?.getChildListByType(type)
             val i0 = (prefabList?.size ?: 0)
             for (i in i0 until components.size) {
-                changes.add(i - i0, CAdd(path, type, components[i].className))
+                val componentI = components[i]
+                changes.add(i - i0, CAdd(path, type, componentI.className, componentI.name))
             }
 
         }

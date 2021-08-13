@@ -22,7 +22,7 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
     var drawingOffset = 0
     var allowFirstLowercase = true
 
-    override fun getVisualState(): Any? = Pair(super.getVisualState(), suggestions)
+    override fun getVisualState(): Any? = suggestions
 
     open val needsSuggestions = true
     private val suggestions get() =

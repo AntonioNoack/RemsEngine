@@ -23,8 +23,7 @@ object DrawTexts {
 
     val simpleChars = Array('z'.code + 1) { it.toChar().toString() }
     var monospaceFont = lazy { Font("Consolas", DefaultConfig.style.getSize("fontSize", 12), false, false) }
-    val monospaceKeys =
-        lazy { Array(simpleChars.size) { FontManager.getTextCacheKey(monospaceFont.value, simpleChars[it], -1, -1) } }
+    val monospaceKeys = lazy { Array(simpleChars.size) { FontManager.getTextCacheKey(monospaceFont.value, simpleChars[it], -1, -1) } }
 
     fun drawSimpleTextCharByChar(
         x0: Int, y0: Int,
@@ -303,5 +302,8 @@ object DrawTexts {
 
     fun getTextSize(font: Font, text: String, widthLimit: Int, heightLimit: Int) =
         FontManager.getSize(font, text, widthLimit, heightLimit)
+
+    fun getTextSize(key: TextCacheKey) =
+        FontManager.getSize(key)
 
 }

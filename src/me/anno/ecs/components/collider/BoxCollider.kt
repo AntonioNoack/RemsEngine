@@ -3,15 +3,12 @@ package me.anno.ecs.components.collider
 import com.bulletphysics.collision.shapes.BoxShape
 import com.bulletphysics.collision.shapes.CollisionShape
 import me.anno.io.serialization.SerializedProperty
-import me.anno.utils.Maths.length
+import org.joml.AABBd
+import org.joml.Matrix4x3d
 import org.joml.Vector3d
-import kotlin.math.max
-import kotlin.math.min
+import org.joml.Vector3f
 
 class BoxCollider : Collider() {
-
-    @SerializedProperty
-    var cornerRoundness = 0.0
 
     @SerializedProperty
     var halfExtends = Vector3d(1.0)
@@ -27,6 +24,18 @@ class BoxCollider : Collider() {
         val inside = min(max(deltaPosition.x, max(deltaPosition.y, deltaPosition.z)), 0.0)
         return outside + inside - cornerRoundness
     }*/
+
+    override fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
+        val halfExtends = halfExtends
+        unionCube(globalTransform, aabb, tmp, halfExtends.x, halfExtends.y, halfExtends.z)
+    }
+
+    override fun getSignedDistance(deltaPos: Vector3f): Float {
+        val halfExtends = halfExtends
+        deltaPos.absolute()
+        deltaPos.sub(halfExtends.x.toFloat(), halfExtends.y.toFloat(), halfExtends.z.toFloat())
+        return and3SDFs(deltaPos)
+    }
 
     override fun createBulletShape(scale: Vector3d): CollisionShape {
         return BoxShape(

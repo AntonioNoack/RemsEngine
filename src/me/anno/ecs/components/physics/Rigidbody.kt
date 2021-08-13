@@ -15,17 +15,16 @@ import kotlin.math.abs
 open class Rigidbody : Component() {
 
     // todo lock an axis of the object
+    // todo other constraints, e.g. chains
 
     // todo extra gravity settings
 
     // todo getters for all information like velocity and such
 
-    // todo functions to add impulses and forces
+    // done functions to add impulses and forces
 
-    init {
-        // todo for getting things to rest
-        // bulletInstance?.setSleepingThresholds()
-    }
+    @SerializedProperty
+    var activeByDefault = true
 
     override var isEnabled: Boolean = true
         set(value) {
@@ -97,7 +96,7 @@ open class Rigidbody : Component() {
             bulletInstance?.setSleepingThresholds(linearSleepingThreshold, value)
         }
 
-    var sleepingTimeThreshold = 40.0
+    var sleepingTimeThreshold = 4.0
         set(value) {
             field = value
             bulletInstance?.deactivationTime = value

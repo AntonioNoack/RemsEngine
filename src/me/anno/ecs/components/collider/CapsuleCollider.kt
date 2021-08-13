@@ -1,12 +1,13 @@
 package me.anno.ecs.components.collider
 
 import com.bulletphysics.collision.shapes.CapsuleShape
-import com.bulletphysics.collision.shapes.CapsuleShapeX
-import com.bulletphysics.collision.shapes.CapsuleShapeZ
 import com.bulletphysics.collision.shapes.CollisionShape
 import me.anno.io.serialization.SerializedProperty
+import me.anno.utils.types.Vectors.setAxis
+import org.joml.AABBd
+import org.joml.Matrix4x3d
 import org.joml.Vector3d
-import java.lang.RuntimeException
+import org.joml.Vector3f
 import kotlin.math.max
 
 class CapsuleCollider : Collider() {
@@ -21,12 +22,24 @@ class CapsuleCollider : Collider() {
     @SerializedProperty
     var radius = 1.0
 
-    /*override fun getSignedDistance(deltaPosition: Vector3d, movement: Vector3d): Double {
-        deltaPosition.absolute()
-        val halfExtends = height * 0.5
-        deltaPosition[axis] = max(deltaPosition[axis] - halfExtends, 0.0)
-        return deltaPosition.length() - radius
-    }*/
+    override fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
+        // union the two rings and the top and bottom peak
+        val r = radius
+        val h = height * 0.5
+        unionRing(globalTransform, aabb, tmp, axis, r, +h, preferExact)
+        unionRing(globalTransform, aabb, tmp, axis, r, -h, preferExact)
+        val s = h + r
+        aabb.union(globalTransform.transformPosition(tmp.set(0.0).setAxis(axis, +s)))
+        aabb.union(globalTransform.transformPosition(tmp.set(0.0).setAxis(axis, -s)))
+    }
+
+    override fun getSignedDistance(deltaPos: Vector3f): Float {
+        // roundness is ignored, because a capsule is already perfectly round
+        val halfExtends = (height * 0.5).toFloat()
+        deltaPos.absolute()
+        deltaPos.setAxis(axis, max(deltaPos[axis] - halfExtends, 0f))
+        return deltaPos.length() - radius.toFloat()
+    }
 
     override fun createBulletShape(scale: Vector3d): CollisionShape {
         return when (axis) {
@@ -42,15 +55,5 @@ class CapsuleCollider : Collider() {
     }
 
     override val className get() = "CapsuleCollider"
-
-    companion object {
-        private operator fun Vector3d.set(axis: Int, value: Double) {
-            when (axis) {
-                0 -> x = value
-                1 -> y = value
-                2 -> z = value
-            }
-        }
-    }
 
 }

@@ -26,7 +26,7 @@ enum class DeferredLayerType(
     // the best probably would be player space: relative to the player, same rotation, scale, etc as world
     POSITION("finalPosition", 3, true, 0, "", ""),
 
-    METALLIC("finalMetallic", 1, false, 0xff, "", ""),
+    METALLIC("finalMetallic", 1, false, 0x0, "", ""),
     ROUGHNESS("finalRoughness", 1, false, 0x11, "", ""), // roughness = 1-reflectivity
     OCCLUSION("finalOcclusion", 1, false, 0, "", ""), // from an occlusion texture, cavity
 

@@ -36,7 +36,7 @@ object Outlines {
         val camPosition = RenderView.camPosition
 
         // scale based on visual scale, or use a geometry shader for that
-        val joinedTransform = tmpMat4d.set(RenderView.viewTransform)
+        val joinedTransform = tmpMat4d.set(RenderView.cameraMatrix)
             .translate(-camPosition.x, -camPosition.y, -camPosition.z)
             .mul(transform)
         // = tmpMat4d.set(viewTransform).mul4x3delta(transform, camPosition, 1.0)
@@ -61,7 +61,7 @@ object Outlines {
         scaledMax.sub(scaledMin)
 
         if (scaledMax.x.isNaN()) {
-            println("Outlines issue: $scaledMax from ${RenderView.viewTransform} * translate($camPosition) * $transform")
+            println("Outlines issue: $scaledMax from ${RenderView.cameraMatrix} * translate($camPosition) * $transform")
         }
 
         val scale = 1f + 0.01f / ((scaledMax.x + scaledMax.y).toFloat() * 0.5f)
@@ -73,7 +73,7 @@ object Outlines {
             val baseShader = ShaderLib.monochromeModelShader
             val shader = baseShader.value
             shader.use()
-            shader.m4x4("transform", RenderView.viewTransform)
+            shader.m4x4("transform", RenderView.cameraMatrix)
 
             shader.m4x3delta("localTransform", transform, camPosition, worldScale, scale)
             shader.v4("tint", -1)

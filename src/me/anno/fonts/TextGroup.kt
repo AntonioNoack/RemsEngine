@@ -46,7 +46,6 @@ abstract class TextGroup(
     private fun getOffset(ctx: FontRenderContext, previous: Int, current: Int): Double {
 
         val map = alignment.charDistance
-        val key = previous to current
         val characterLengthCache = alignment.charSize
 
         fun getLength(str: String): Double {
@@ -72,12 +71,12 @@ abstract class TextGroup(
         }
 
         synchronized(alignment) {
-            var offset = map[key]
+            var offset = map[previous, current]
             if (offset != null) return offset
             val bLength = getCharLength(current)
             val abLength = getLength(String(Character.toChars(previous) + Character.toChars(current)))
             offset = abLength - bLength
-            map[key] = offset
+            map[previous, current] = offset
             return offset
         }
 

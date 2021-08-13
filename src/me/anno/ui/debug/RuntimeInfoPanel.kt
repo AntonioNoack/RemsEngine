@@ -31,13 +31,14 @@ class RuntimeInfoPanel(style: Style) : SimpleTextPanel(style) {
         val memory = runtime.totalMemory() - runtime.freeMemory()
         val videoMemory = Texture2D.allocated + Buffer.allocated
         return Dict["RAM/VRAM: %1/%2 MB", "ui.debug.ramUsage2"]
-            .replace("%1", (memory.toFloat()/(1 shl 20)).f1())
-            .replace("%2", (videoMemory.toFloat()/(1 shl 20)).f1())
+            .replace("%1", (memory.toFloat() / (1 shl 20)).f1())
+            .replace("%2", (videoMemory.toFloat() / (1 shl 20)).f1())
     }
 
     init {
         text = getDebugText()
         textColor = textColor and 0x7fffffff
+        backgroundColor = backgroundColor and 0xffffff
         add(WrapAlign.RightBottom)
     }
 

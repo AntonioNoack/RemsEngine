@@ -16,8 +16,10 @@ object Perspective {
         viewTransform.identity()
         if (reverseDepth) {
             val f = 1f / Math.tan(fovYRadians * 0.5f)
+            val x = f / aspectRatio
             viewTransform.set(
-                f / aspectRatio, 0f, 0f, 0f,
+                // column major, so this is transposed-ly written
+                x, 0f, 0f, 0f,
                 0f, f, 0f, 0f,
                 0f, 0f, 0f, -1f,
                 0f, 0f, near, 0f

@@ -1,7 +1,6 @@
 package me.anno.ecs.prefab
 
 import me.anno.io.NamedSaveable
-import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.objects.inspectable.Inspectable
@@ -47,27 +46,31 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         return defaultValue
     }
 
-    fun pathInRoot(root: PrefabSaveable? = null): ArrayList<Int> {
+    fun pathInRoot(root: PrefabSaveable? = null): ArrayList<Any> {
         if (this == root) return ArrayList()
         val parent = parent
         return if (parent != null) {
             val index = parent.getIndexOf(this)
             val list = parent.pathInRoot()
+            list.add(name)
             list.add(index)
+            list.add(parent.getTypeOf(this))
             return list
         } else ArrayList()
     }
 
-    fun pathInRoot2(root: PrefabSaveable? = null, withExtra: Boolean): Pair<IntArray, CharArray> {
+    fun pathInRoot2(root: PrefabSaveable? = null, withExtra: Boolean): Path {
         val path = pathInRoot(root)
         if (withExtra) {
+            path.add("")
             path.add(-1)
-            path.add(0)
+            path.add(0.toChar())
         }
-        val size = path.size / 2
-        val ia = IntArray(size) { path[it * 2] }
-        val ta = CharArray(size) { path[it * 2 + 1].toChar() }
-        return ia to ta
+        val size = path.size / 3
+        val names = Array(size) { path[it * 3] as String }
+        val ids = IntArray(size) { path[it * 3 + 1] as Int }
+        val types = CharArray(size) { path[it * 3 + 2] as Char }
+        return Path(names, ids, types)
     }
 
     // e.g. "ec" for child entities + child components
@@ -87,7 +90,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     override fun remove(child: PrefabSaveable) {
         val list = getChildListByType(getTypeOf(child))
         val index = list.indexOf(child)
-        if(index < 0) return
+        if (index < 0) return
         list as MutableList<*>
         list.remove(child)
     }

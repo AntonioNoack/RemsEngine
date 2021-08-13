@@ -8,11 +8,12 @@ import me.anno.utils.files.LocalFile.toGlobalFile
 
 class CAdd() : Change(2) {
 
-    constructor(path: Path, type: Char, className: String, prefab: FileReference = InvalidRef) : this() {
+    constructor(path: Path, type: Char, className: String, uuid: String, prefab: FileReference = InvalidRef) : this() {
         this.path = path
         this.type = type
         this.clazzName = className
         this.prefab = prefab
+        this.uuid = uuid
     }
 
     /*constructor(type: String, prefab: FileReference) : this(type) {
@@ -30,8 +31,13 @@ class CAdd() : Change(2) {
         this.path = path
     }*/
 
+    fun getChildPath(index: Int): Path {
+        return path!!.added(uuid!!, index, type)
+    }
+
     var type: Char = 0.toChar()
     var clazzName: String? = null
+    var uuid: String? = null
     var prefab: FileReference = InvalidRef
 
     // name is not used -> could be used as type...
@@ -69,6 +75,8 @@ class CAdd() : Change(2) {
         // LOGGER.info("adding $clazzName with type $type")
         val loadedInstance = Prefab.loadPrefab(prefab)?.createInstance()
         val newInstance = loadedInstance ?: ISaveable.createOrNull(clazzName ?: return) as PrefabSaveable
+        val uuid = uuid
+        if (uuid != null) newInstance.name = uuid
         instance.addChildByType(instance.getChildListByType(type).size, type, newInstance)
     }
 

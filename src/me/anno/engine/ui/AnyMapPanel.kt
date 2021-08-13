@@ -6,6 +6,7 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.editor.stacked.ArrayPanel
 import me.anno.ui.style.Style
+import me.anno.utils.structures.tuples.MutablePair
 
 open class AnyMapPanel(
     title: String,
@@ -13,11 +14,9 @@ open class AnyMapPanel(
     val keyType: String,
     val valueType: String,
     style: Style
-) : ArrayPanel<AnyMapPanel.MutablePair<Any?, Any?>, Panel>(title, visibilityKey, {
+) : ArrayPanel<MutablePair<Any?, Any?>, Panel>(title, visibilityKey, {
     MutablePair(ComponentUI.getDefault(keyType), ComponentUI.getDefault(valueType))
 }, style) {
-
-    class MutablePair<K, V>(var first: K, var second: V)
 
     override fun createPanel(value: MutablePair<Any?, Any?>): Panel {
 

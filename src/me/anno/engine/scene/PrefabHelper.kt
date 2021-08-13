@@ -10,29 +10,33 @@ import me.anno.io.files.InvalidRef
 object PrefabHelper {
 
     fun addE(changes: MutableList<Change>, parentPath: Path, name: String, ref: FileReference = InvalidRef): Path {
-        val index = changes.count { it is CAdd && it.clazzName == "Entity" && it.path == parentPath }
-        // println("found entity index $index for $name/$ref")
-        changes.add(CAdd(parentPath, 'e', "Entity", ref))
-        val path = parentPath + (index to 'e')
-        changes.add(CSet(path, "name", name))
-        return path
+        return add(changes, parentPath, 'e', "Entity", name, ref)
     }
 
-    fun addC(changes: MutableList<Change>, parentPath: Path, type: String, name: String? = null): Path {
-        // todo need to check className for all components
-        val index = changes.count { it is CAdd && it.clazzName != "Entity" && it.path == parentPath }
-        // println("found component index $index for $type/$name")
-        changes.add(CAdd(parentPath, 'c', type))
-        val path = parentPath.add(index, 'c')
-        if (name != null) changes.add(CSet(path, "name", name))
+    fun addC(changes: MutableList<Change>, parentPath: Path, type: String, name: String = type): Path {
+        return add(changes, parentPath, 'c', type, name, InvalidRef)
+    }
+
+    fun add(
+        changes: MutableList<Change>, parentPath: Path,
+        typeChar: Char, type: String, name: String, ref: FileReference
+    ): Path {
+        val index = changes.count { it is CAdd && it.type == typeChar && it.path == parentPath }
+        changes.add(CAdd(parentPath, typeChar, type, name, ref))
+        val path = parentPath.added(name, index, typeChar)
+        if (type != name) changes.add(CSet(path, "name", name))
         return path
     }
 
     fun setE(changes: MutableList<Change>, path: Path, name: String, value: Any?) {
-        changes.add(CSet(path, name, value))
+        set(changes, path, name, value)
     }
 
     fun setC(changes: MutableList<Change>, path: Path, name: String, value: Any?) {
+        set(changes, path, name, value)
+    }
+
+    fun set(changes: MutableList<Change>, path: Path, name: String, value: Any?) {
         changes.add(CSet(path, name, value))
     }
 

@@ -13,7 +13,6 @@ import me.anno.input.Input.mouseKeysDown
 import me.anno.input.MouseButton
 import me.anno.ui.style.Style
 import me.anno.utils.Maths.clamp
-import me.anno.utils.structures.tuples.Quad
 import me.anno.utils.types.Strings.getIndexFromText
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
@@ -34,20 +33,31 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
     private var resetListener: () -> String? = { null }
     private var enterListener: ((text: String) -> Unit)? = null
 
+    var showBars = false
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateDrawing()
+            }
+        }
+
     fun setCursorToEnd() {
         cursor1 = characters.size
         cursor2 = cursor1
+        invalidateLayout()
     }
 
     override fun updateChars(notify: Boolean) {
         characters.clear()
         characters.addAll(text.codePoints().toList())
         if (notify) changeListener(text)
+        invalidateLayout()
     }
 
     fun updateText(notify: Boolean) {
         text = characters.joinChars()
         if (notify) changeListener(text)
+        invalidateLayout()
     }
 
     override fun calculateSize(w: Int, h: Int) {
@@ -95,14 +105,6 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
         // clamp left/right
         drawingOffset = if (isDragging) 0 else -clamp(cursor - w / 3, 0, max(0, required - w))
     }
-
-    var showBars = false
-    override fun getVisualState(): Any? = Quad(
-        super.getVisualState(),
-        Pair(showBars, drawingOffset),
-        cursor1,
-        cursor2
-    )
 
     override fun tickUpdate() {
         super.tickUpdate()

@@ -285,5 +285,22 @@ object Vectors {
         return this
     }
 
+    fun Vector3f.setAxis(axis: Int, value: Float) {
+        when (axis) {
+            0 -> x = value
+            1 -> y = value
+            2 -> z = value
+        }
+    }
+
+    fun Vector3d.setAxis(axis: Int, value: Double): Vector3d {
+        when (axis) {
+            0 -> x = value
+            1 -> y = value
+            2 -> z = value
+        }
+        return this
+    }
+
 
 }

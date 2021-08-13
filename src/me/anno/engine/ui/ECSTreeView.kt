@@ -1,12 +1,8 @@
 package me.anno.engine.ui
 
 import me.anno.ecs.Entity
-import me.anno.ecs.prefab.Prefab
-import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.ECSTypeLibrary.Companion.lastSelection
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.io.files.InvalidRef
-import me.anno.io.text.TextWriter
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.treeView.AbstractTreeView
 import me.anno.ui.style.Style
@@ -44,7 +40,7 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
     }
 
     override fun getLocalColor(element: Entity, dst: Vector4f): Vector4f {
-        val c = if (element.listOfHierarchy.all { it.isEnabled }) 1f else 0.5f
+        val c = if (element.allInHierarchy { it.isEnabled }) 1f else 0.5f
         dst.set(1f, 1f, 1f, c)
         return dst
     }

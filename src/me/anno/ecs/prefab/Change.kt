@@ -16,18 +16,24 @@ abstract class Change(val priority: Int) : Saveable() {
 
     fun apply(instance: PrefabSaveable, pathIndex: Int) {
         val path = path ?: throw NullPointerException("Path is null inside $this")
-        if (pathIndex < path.indices.size) {
+        if (pathIndex < path.size) {
 
             // we can go deeper :)
             val chars = instance.listChildTypes()
+            val childName = path.getName(pathIndex)
             val childIndex = path.getIndex(pathIndex)
             val childType = path.getType(pathIndex, chars[0])
 
             val components = instance.getChildListByType(childType)
-            if (childIndex !in components.indices)
-                throw IndexOutOfBoundsException("Missing path $pathIndex in $this, only ${components.size} $childType available ${components.joinToString { "'${it["name"]}'" }}")
+            val matchesName = components.firstOrNull { it.name == childName }
 
-            apply(components[childIndex], pathIndex + 1)
+            when {
+                matchesName != null -> apply(matchesName, pathIndex + 1)
+                childIndex in components.indices -> apply(components[childIndex], pathIndex + 1)
+                else -> throw IndexOutOfBoundsException("Missing path $pathIndex in $this, " +
+                        "only ${components.size} $childType available ${components.joinToString { "'${it["name"]}'" }}"
+                )
+            }
 
         } else applyChange(instance)
 

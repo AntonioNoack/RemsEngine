@@ -90,7 +90,7 @@ class VOXReader {
                 // don't create a layer node, when there only is a single layer
                 val layer = availableLayers.first()
                 for ((childIndex, node) in layer.nodes.withIndex()) {
-                    node.toEntityPrefab(changes, meshes, Path(), Path(childIndex, 'e'))
+                    node.toEntityPrefab(changes, meshes, Path(), childIndex)
                 }
             }
             else -> {

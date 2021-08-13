@@ -23,7 +23,7 @@ object Sleep {
     }
 
     @Throws(ShutdownException::class)
-    fun waitUntil(canBeKilled: Boolean, condition: () -> Boolean) {
+    inline fun waitUntil(canBeKilled: Boolean, condition: () -> Boolean) {
         while (!condition()) {
             if (canBeKilled && shutdown) throw ShutdownException
             sleepABit(canBeKilled)
@@ -31,7 +31,7 @@ object Sleep {
     }
 
     @Throws(ShutdownException::class)
-    fun <V> waitUntilDefined(canBeKilled: Boolean, getValue: () -> V?): V {
+    inline fun <V> waitUntilDefined(canBeKilled: Boolean, getValue: () -> V?): V {
         while (true) {
             val value = getValue()
             if (value != null) return value

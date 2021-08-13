@@ -2,15 +2,15 @@ package me.anno.ui.base.text
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.iconGray
+import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.loadTexturesSync
-import me.anno.gpu.drawing.GFXx2D.getSizeX
-import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.getTextSize
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
+import me.anno.gpu.drawing.GFXx2D.getSizeX
+import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.input.MouseButton
-import me.anno.ui.base.Font
 import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.AxisAlignment
@@ -30,7 +30,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
 
     var textColor = style.getColor("textColor", iconGray)
         set(value) {
-            if(field != value){
+            if (field != value) {
                 invalidateDrawing()
                 field = value
             }
@@ -40,6 +40,8 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     val hoverColor get() = mixARGB(textColor, focusTextColor, 0.5f)
 
     var textAlignment = AxisAlignment.MIN
+
+    var textCacheKey: TextCacheKey = TextCacheKey(text, font, 0, 0)
 
     open var text: String = text
         set(value) {
@@ -95,6 +97,13 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         )
     }
 
+    fun drawText(dx: Int, dy: Int, color: Int): Int {
+        return DrawTexts.drawText(
+            this.x + dx + padding.left, this.y + dy + padding.top, font,
+            textCacheKey, color, backgroundColor
+        )
+    }
+
     var minW2 = 0
     var minH2 = 0
 
@@ -107,7 +116,13 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         super.calculateSize(w, h)
         val widthLimit = if (breaksIntoMultiline) w - padding.width else -1
         val heightLimit = -1
-        val size = getTextSize(font, text, widthLimit, heightLimit)
+        if (widthLimit != textCacheKey.widthLimit || heightLimit != textCacheKey.heightLimit ||
+            text != textCacheKey.text ||
+            font.isBold != textCacheKey.isBold() || font.isItalic != textCacheKey.isItalic()
+        ) {
+            textCacheKey = TextCacheKey(text, font, widthLimit, heightLimit)
+        }
+        val size = getTextSize(textCacheKey)
         minW = max(1, getSizeX(size) + padding.width)
         minH = max(1, getSizeY(size) + padding.height)
         minW2 = minW
@@ -128,7 +143,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         super.onDraw(x0, y0, x1, y1)
         val offset = if (textAlignment == AxisAlignment.MIN) 0
         else textAlignment.getOffset(w, getMaxWidth())
-        drawText(offset, 0, text, effectiveTextColor)
+        drawText(offset, 0, effectiveTextColor)
         if (inst) loadTexturesSync.pop()
     }
 

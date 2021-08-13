@@ -55,26 +55,30 @@ class Node {
         return entity
     }
 
-    fun toEntityPrefab(changes: MutableList<Change>, meshes: List<Mesh>, parentPath: Path, path: Path) {
-        changes.add(CAdd(parentPath, 'e', "Entity"))
-        if (name != "") changes.add(CSet(path, "name", name))
+    fun toEntityPrefab(changes: MutableList<Change>, meshes: List<Mesh>, parentPath: Path, entityIndex: Int) {
+        val entity = CAdd(parentPath, 'e', "Entity", name)
+        changes.add(entity)
+        val path = entity.getChildPath(entityIndex)
         val models = models ?: child?.models
         if (models != null) {
             // add these models as components
             for ((compIndex, modelIndex) in models.withIndex()) {
                 val mesh = meshes[modelIndex]
-                changes.add(CAdd(path, 'c', "MeshComponent"))
-                val compPath = path + (compIndex to 'c')
-                changes.add(CSet(compPath, "mesh", mesh))
+                val component = CAdd(path, 'c', "MeshComponent", "")
+                changes.add(component)
+                changes.add(CSet(component.getChildPath(compIndex), "mesh", mesh))
             }
-            changes.add(CAdd(path, 'c', "MeshRenderer"))
+            changes.add(CAdd(path, 'c', "MeshRenderer", "MeshRenderer"))
         }
         if (px != 0.0 || py != 0.0 || pz != 0.0) {
             changes.add(CSet(path, "position", Vector3d(px, py, pz)))
             // rotation is found, but looks wrong in the price of persia sample
         }
-        children?.forEachIndexed { childIndex, childNode ->
-            childNode.toEntityPrefab(changes, meshes, path + (childIndex to 'e'), path)
+        val children = children
+        if (children != null) {
+            for (childIndex in children.indices) {
+                children[childIndex].toEntityPrefab(changes, meshes, path, childIndex)
+            }
         }
     }
 

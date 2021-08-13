@@ -16,6 +16,8 @@ import me.anno.utils.hpc.SyncMaster
 
 object DefaultLayout {
 
+    lateinit var library: ECSTypeLibrary
+
     fun createDefaultMainUI(
         projectFile: FileReference,
         world: Entity,
@@ -34,6 +36,8 @@ object DefaultLayout {
         customUI.add(animationWindow, 2f)
 
         val libraryBase = ECSTypeLibrary(projectFile, world, syncMaster, isGaming)
+        this.library = libraryBase
+
         val library = libraryBase.uiLibrary
 
         val treeFiles = CustomList(true, style)
@@ -58,5 +62,7 @@ object DefaultLayout {
         return customUI
 
     }
+
+
 
 }

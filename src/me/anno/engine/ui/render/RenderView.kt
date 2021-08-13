@@ -152,6 +152,14 @@ class RenderView(
         }
     }
 
+    val cheapRenderer = object : Renderer(false, ShaderPlus.DrawMode.COLOR) {
+        override fun getPostProcessing(): String {
+            return "void main(){\n" +
+                    "   finalColor = vec3(0.0);\n" +
+                    "}"
+        }
+    }
+
     val baseRenderer = object : Renderer(false, ShaderPlus.DrawMode.COLOR) {
         override fun getPostProcessing(): String {
             return "" +
@@ -169,6 +177,8 @@ class RenderView(
                     Scene.reinhardToneMapping +
                     Scene.noiseFunc +
                     "void main(){\n" +
+                    // a try of depth dithering, which can be used for plants, but is really expensive...
+                    // "   gl_FragDepth = 1.0/(1.0+zDistance) * (1.0 + 0.001 * random(finalPosition.xy));\n" +
                     // shared pbr data
                     "   vec3 V = normalize(-finalPosition);\n" +
                     // light calculations
@@ -307,7 +317,7 @@ class RenderView(
             if (Input.isKeyDown('q')) movement.y -= s
             if (Input.isKeyDown('e')) movement.y += s
         }
-        val normXZ = !Input.isShiftDown // todo use UI toggle instead
+        val normXZ = !isShiftDown // todo use UI toggle instead
         val rotQuad = rotation.toQuaternionDegrees()
         val right = rotQuad.transform(Vector3d(1.0, 0.0, 0.0))
         val forward = rotQuad.transform(Vector3d(0.0, 0.0, 1.0))
@@ -503,7 +513,7 @@ class RenderView(
 
     val pipeline = Pipeline()
     val stage0 = PipelineStage(
-        "default", Sorting.NO_SORTING, 8,
+        "default", Sorting.NO_SORTING, MAX_LIGHTS,
         null, DepthMode.LESS, true, GL_BACK,
         pbrModelShader
     )
@@ -542,14 +552,14 @@ class RenderView(
         // this needs to be separate from the stack
         // (for normal calculations and such)
         Perspective.setPerspective(
-            viewTransform,
+            cameraMatrix,
             fovYRadians,
             aspectRatio,
             (near * worldScale).toFloat(),
             (far * worldScale).toFloat()
         )
-        viewTransform.rotate(rot)
-        if (viewTransform.get(FloatArray(16)).any { it.isNaN() }) throw RuntimeException()
+        cameraMatrix.rotate(rot)
+        if (cameraMatrix.get(FloatArray(16)).any { it.isNaN() }) throw RuntimeException()
 
         // lerp the world transforms
         val camTransform = camTransform
@@ -604,19 +614,52 @@ class RenderView(
         changeSize: Boolean
     ) {
 
+        val preDrawDepth = Input.isKeyDown('b')
+
+        if (preDrawDepth) {
+            useFrame(w, h, changeSize, dst, cheapRenderer) {
+
+                Frame.bind()
+
+                if (renderer.isFakeColor) {
+                    glClearColor(0f, 0f, 0f, 0f)
+                } else {
+                    tmp4f.set(previousCamera.clearColor).lerp(camera.clearColor, blending)
+                    glClearColor(tmp4f.x, tmp4f.y, tmp4f.z, 1f)
+                }
+
+                setClearDepth()
+                glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+
+                RenderState.depthMode.use(DepthMode.GREATER) {
+                    RenderState.cullMode.use(GL_BACK) {
+                        RenderState.blendMode.use(null) {
+                            stage0.draw(pipeline, cameraMatrix, camPosition, worldScale)
+                        }
+                    }
+                }
+                stage0.depthMode = DepthMode.EQUALS
+
+            }
+        }
+
         useFrame(w, h, changeSize, dst, renderer) {
 
-            Frame.bind()
+            if (!preDrawDepth) {
 
-            if (renderer.isFakeColor) {
-                glClearColor(0f, 0f, 0f, 0f)
-            } else {
-                tmp4f.set(previousCamera.clearColor).lerp(camera.clearColor, blending)
-                glClearColor(tmp4f.x, tmp4f.y, tmp4f.z, 1f)
+                Frame.bind()
+
+                if (renderer.isFakeColor) {
+                    glClearColor(0f, 0f, 0f, 0f)
+                } else {
+                    tmp4f.set(previousCamera.clearColor).lerp(camera.clearColor, blending)
+                    glClearColor(tmp4f.x, tmp4f.y, tmp4f.z, 1f)
+                }
+
+                setClearDepth()
+                glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+
             }
-
-            setClearDepth()
-            glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
             if (!renderer.isFakeColor && !isFinalRendering) {
                 useFrame(w, h, changeSize, dst, uiRenderer) {
@@ -635,10 +678,10 @@ class RenderView(
 
                 val shader = if (renderLines) lineGeometry else cullFaceColoringGeometry
                 RenderState.geometryShader.use(shader) {
-                    pipeline.draw(viewTransform, camPosition, worldScale)
+                    pipeline.draw(cameraMatrix, camPosition, worldScale)
                 }
 
-            } else pipeline.draw(viewTransform, camPosition, worldScale)
+            } else pipeline.draw(cameraMatrix, camPosition, worldScale)
 
             // Thread.sleep(500)
 
@@ -682,7 +725,7 @@ class RenderView(
             glClearDepth(1.0)
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
-            pipeline.lightPseudoStage.bindDraw(pipeline, viewTransform, camPosition, worldScale)
+            pipeline.lightPseudoStage.bindDraw(pipeline, cameraMatrix, camPosition, worldScale)
 
         }
 
@@ -701,7 +744,7 @@ class RenderView(
         RenderState.blendMode.use(BlendMode.DEFAULT) {
             RenderState.depthMode.use(depthMode) {
 
-                stack.set(viewTransform)
+                stack.set(cameraMatrix)
 
                 Companion.worldScale = worldScale
 
@@ -765,7 +808,7 @@ class RenderView(
 
                 drawDebug()
 
-                LineBuffer.finish(viewTransform)
+                LineBuffer.finish(cameraMatrix)
 
             }
         }
@@ -813,13 +856,13 @@ class RenderView(
 
     companion object {
 
-        val MAX_LIGHTS = 64
+        val MAX_LIGHTS = 32
 
         var scale = 1.0
         var worldScale = 1.0
         val stack = Matrix4fArrayList()
 
-        val viewTransform = Matrix4f()
+        val cameraMatrix = Matrix4f()
 
         val camTransform = Matrix4x3d()
         val camInverse = Matrix4d()
