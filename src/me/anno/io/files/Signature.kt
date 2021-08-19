@@ -106,6 +106,7 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             Signature("woff2", 0, "wOF2"),
             Signature("lua-bytecode", 0, byteArrayOf(0x1B), "Lua"),
             Signature("shell", 0, "#!"),
+            // images
             Signature("png", 0, byteArrayOf(0x89.toByte()), "PNG", byteArrayOf(0xd, 0xa, 0x1a, 0x0a)),
             Signature("jpg", 0, listOf(0xFF, 0xD8, 0xFF, 0xDB)),
             Signature("jpg", 0, listOf(0xFF, 0xD8, 0xFF, 0xE0)),
@@ -113,7 +114,10 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             Signature("jpg", 0, listOf(0xFF, 0xD8, 0xFF, 0xE1)),
             Signature("bmp", 0, "BM"),
             Signature("psd", 0, "8BPS"), // photoshop image format
+            Signature("hdr", 0, "#?RADIANCE"), // high dynamic range
+            // other
             Signature("xml", 0, "<?xml"), // plus other variations with UTF16, UTF32, ...
+            // media (video/audio)
             Signature("media", 0, listOf(0x1A, 0x45, 0xDF, 0xA3)), // mkv, mka, mks, mk3d, webm
             Signature("media", 0, "ID3"),// mp3 container
             Signature("media", 0, listOf(0xFF, 0xFB)),// mp3
@@ -135,6 +139,11 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             Signature("blend", 0, "BLENDER"),
             Signature("gltf", 0, "glTF"),
             Signature("mesh-draco", 0, "DRACO"),
+            // unity support
+            Signature("yaml", 0, "%YAML"),
+            // json, kind of
+            Signature("json", 0, "["),
+            Signature("json", 0, "{")
         ).apply {
             // first long ones, then short ones; to be more specific first
             sortByDescending { it.signature.size }

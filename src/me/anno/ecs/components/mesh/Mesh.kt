@@ -1,23 +1,30 @@
 package me.anno.ecs.components.mesh
 
+import me.anno.ecs.Component
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.MeshComponent.Companion.clear
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.ui.render.ECSShaderLib
+import me.anno.gpu.GFX
+import me.anno.gpu.TextureLib
 import me.anno.gpu.buffer.IndexedStaticBuffer
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.shader.Shader
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
+import me.anno.mesh.assimp.AnimGameItem
+import me.anno.objects.GFXTransform
+import me.anno.utils.types.AABBs.set
+import me.anno.utils.types.Lists.asMutableList
 import org.apache.logging.log4j.LogManager
-import org.joml.AABBf
-import org.joml.Vector3d
-import org.joml.Vector3f
+import org.joml.*
 import org.lwjgl.opengl.GL11
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-class Mesh : PrefabSaveable() {
+class Mesh : Component(), Cloneable {
 
     // use buffers instead, so they can be uploaded directly? no, I like the strided thing...
     // but it may be more flexible... still in Java, FloatArrays are more comfortable
@@ -55,16 +62,14 @@ class Mesh : PrefabSaveable() {
 
     // todo allow multiple materials? should make our life easier :), we just need to split the indices...
     @Type("List<Material>")
-    var materials = ArrayList<Material>()
+    var materials: List<Material> = defaultMaterials
 
     @Type("Material")
     var material: Material?
         get() = materials.getOrNull(0)
         set(value) {
-            materials.clear()
-            if (value != null) {
-                materials.add(value)
-            }
+            materials = if (value != null) listOf(value)
+            else emptyList()
         }
 
     // one per triangle
@@ -81,6 +86,26 @@ class Mesh : PrefabSaveable() {
     val aabb = AABBf()
 
     var ignoreStrayPointsInAABB = false
+
+    public override fun clone(): Mesh {
+        val clone = Mesh()
+        clone.buffer = buffer
+        clone.materials = materials
+        clone.positions = positions
+        clone.normals = normals
+        clone.aabb.set(aabb)
+        clone.uvs = uvs
+        clone.color0 = color0
+        clone.tangents = tangents
+        clone.indices = indices
+        clone.boneWeights = boneWeights
+        clone.boneIndices = boneIndices
+        clone.morphTargets = morphTargets
+        clone.ignoreStrayPointsInAABB = ignoreStrayPointsInAABB
+        clone.drawMode = drawMode
+        clone.materialIndices = materialIndices
+        return clone
+    }
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
@@ -130,7 +155,7 @@ class Mesh : PrefabSaveable() {
      * throws an IllegalStateException, if anything is incorrectly set up
      * if this succeeds, then the drawing routine should not crash
      * */
-    fun check() {
+    fun checkCompleteness() {
         // check whether all variables are set correctly
         val positions = positions
         val normals = normals
@@ -338,19 +363,97 @@ class Mesh : PrefabSaveable() {
 
     }
 
+    /**
+     * upload the data to the gpu, if it has changed
+     * */
     fun ensureBuffer() {
         if (needsMeshUpdate) updateMesh()
     }
 
     fun draw(shader: Shader, materialIndex: Int) {
         // todo respect the material index: only draw what belongs to the material
-        // todo use the shader from the material
-        // upload the data to the gpu, if it has changed
         ensureBuffer()
         buffer?.draw(shader)
     }
 
+    fun drawInstanced(shader: Shader, materialIndex: Int, instanceData: StaticBuffer) {
+        // todo respect the material index: only draw what belongs to the material
+        ensureBuffer()
+        val meshBuffer = buffer
+        if (meshBuffer != null) {
+            instanceData.drawInstanced(shader, meshBuffer)
+        }
+    }
+
+    fun drawAssimp(
+        stack: Matrix4f,
+        useMaterials: Boolean,
+        centerMesh: Boolean,
+        normalizeScale: Boolean
+    ) {
+
+        val shader = ECSShaderLib.pbrModelShader.value
+        shader.use()
+        GFXx3D.shader3DUniforms(shader, stack, -1)
+        GFXTransform.uploadAttractors(null, shader, 0.0)
+
+        val localStack = if (normalizeScale || centerMesh) {
+            val localStack = Matrix4x3f()
+            if (normalizeScale) {
+                val scale = AnimGameItem.getScaleFromAABB(aabb)
+                localStack.scale(scale)
+            }
+            if (centerMesh) {
+                AnimGameItem.centerStackFromAABB(localStack, aabb)
+            }
+            localStack
+        } else null
+
+        shader.v1("hasAnimation", 0f)
+        shader.m4x4("transform", stack)
+        shader.m4x3("localTransform", localStack)
+
+        val mesh = this
+        val materials = materials
+
+        GFX.shaderColor(shader, "tint", -1)
+
+        if (useMaterials && materials.isNotEmpty()) {
+            for (i in materials.indices) {
+                val material = materials[i]
+                material.defineShader(shader)
+                mesh.draw(shader, i)
+            }
+        } else {
+            TextureLib.whiteTexture.bind(0)
+            mesh.draw(shader, 0)
+        }
+
+    }
+
+    override fun getChildListNiceName(type: Char): String = "Materials"
+    override fun listChildTypes(): String = "m"
+    override fun getChildListByType(type: Char): List<PrefabSaveable> = materials
+    override fun addChildByType(index: Int, type: Char, instance: PrefabSaveable) {
+        if (instance !is Material) return
+        val ms = materials.asMutableList()
+        ms.add(instance)
+        materials = ms
+    }
+
+    override fun removeChild(child: PrefabSaveable) {
+        if (child !is Material) return
+        if (materials.size <= 1) {
+            materials = emptyList()
+        } else if (child in materials) {
+            val ms = materials.asMutableList()
+            ms.remove(child)
+            materials = ms
+        }
+    }
+
     companion object {
+        private val defaultMaterials = listOf(Material())
         private val LOGGER = LogManager.getLogger(Mesh::class)
     }
 

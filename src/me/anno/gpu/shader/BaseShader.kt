@@ -4,7 +4,8 @@ import me.anno.gpu.GFX
 import me.anno.gpu.RenderState
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
-import me.anno.utils.structures.maps.KeyPairMap
+import me.anno.gpu.shader.builder.ShaderStage
+import me.anno.utils.structures.maps.KeyTripleMap
 import me.anno.utils.types.Strings.isBlank2
 import kotlin.math.max
 
@@ -14,7 +15,7 @@ import kotlin.math.max
  *  b) a flat color shader
  *  c) a deferred shader
  * */
-class BaseShader(
+open class BaseShader(
     val name: String,
     val vertexSource: String,
     val varyingSource: String,
@@ -27,14 +28,21 @@ class BaseShader(
     var textures: List<String>? = null
     var ignoredUniforms = HashSet<String>()
 
-    private val flatShader = KeyPairMap<Renderer, GeoShader?, Shader>()
-    private val deferredShaders = KeyPairMap<DeferredSettingsV2, GeoShader?, Shader>()
+    private val flatShader = KeyTripleMap<Renderer, Boolean, GeoShader?, Shader>()
+    private val deferredShaders = KeyTripleMap<DeferredSettingsV2, Boolean, GeoShader?, Shader>()
 
-    fun createFlatShader(postProcessing: String, geoShader: GeoShader?): Shader {
+    open fun createFlatShader(postProcessing: ShaderStage?, instanced: Boolean, geoShader: GeoShader?): Shader {
+
+        val varying = varyingSource
+        val vertex = if (instanced) "#define INSTANCED\n$vertexSource" else vertexSource
+
+        val postProcessing = postProcessing?.functions?.firstOrNull { it.name == "main" }?.body ?: ""
+
         // if it does not have tint, then add it?
         // what do we do if it writes glFragColor?
         // option to use flat shading independent of rendering mode (?)
         val fragment = StringBuilder()
+        if (instanced) fragment.append("#define INSTANCED\n")
         val postMainIndex = postProcessing.indexOf("void main")
         if (postMainIndex > 0) {
             // add the code before main
@@ -71,7 +79,7 @@ class BaseShader(
             fragment.append('}')
         }
         GFX.check()
-        val shader = ShaderPlus.create(name, geoShader?.code, vertexSource, varyingSource, fragment.toString())
+        val shader = ShaderPlus.create(name, geoShader?.code, vertex, varying, fragment.toString())
         shader.glslVersion = glslVersion
         shader.setTextureIndices(textures)
         shader.ignoreUniformWarnings(ignoredUniforms)
@@ -84,17 +92,21 @@ class BaseShader(
     val value: Shader
         get() {
             val renderer = RenderState.currentRenderer
+            val instanced = RenderState.instanced.currentValue
             return when (val deferred = renderer.deferredSettings) {
                 null -> {
                     val geoMode = RenderState.geometryShader.currentValue
-                    val shader = flatShader.getOrPut(renderer, geoMode) { r, g ->
-                        createFlatShader(r.getPostProcessing(), g)
+                    val shader = flatShader.getOrPut(renderer, instanced, geoMode) { r, i, g ->
+                        val shader = createFlatShader(r.getPostProcessing(), i, g)
+                        r.uploadDefaultUniforms(shader)
+                        // println(shader.fragmentSource)
+                        shader
                     }
                     shader.use()
                     shader.v1("drawMode", renderer.drawMode.id)
                     shader
                 }
-                else -> get(deferred, RenderState.geometryShader.currentValue)
+                else -> get(deferred, instanced, RenderState.geometryShader.currentValue)
             }
         }
 
@@ -106,17 +118,18 @@ class BaseShader(
         this.textures = textures
     }
 
-    operator fun get(settings: DeferredSettingsV2, geoShader: GeoShader?): Shader {
-        return deferredShaders.getOrPut(settings, geoShader) { s, g ->
+    operator fun get(settings: DeferredSettingsV2, instanced: Boolean, geoShader: GeoShader?): Shader {
+        return deferredShaders.getOrPut(settings, instanced, geoShader) { s, i, g ->
             val shader = s.createShader(
                 name,
-                g?.code,
+                g?.code, i,
                 vertexSource,
                 varyingSource,
                 fragmentSource,
                 textures
             )
             shader.glslVersion = max(shader.glslVersion, glslVersion)
+            shader.use()
             shader.setTextureIndices(textures)
             shader.ignoreUniformWarnings(ignoredUniforms)
             shader.v1("drawMode", ShaderPlus.DrawMode.COLOR.id)
@@ -127,12 +140,12 @@ class BaseShader(
 
     fun destroy() {
         for (list in flatShader) {
-            for ((_, shader) in list) {
+            for ((_, _, shader) in list) {
                 shader.destroy()
             }
         }
         for (list in deferredShaders) {
-            for ((_, shader) in list) {
+            for ((_, _, shader) in list) {
                 shader.destroy()
             }
         }

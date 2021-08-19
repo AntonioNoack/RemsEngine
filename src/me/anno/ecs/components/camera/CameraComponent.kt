@@ -20,7 +20,7 @@ class CameraComponent : Component() {
 
     var fov = 90f
 
-    val pipeline = Pipeline()
+    // val pipeline = lazy { Pipeline() }
 
     val postProcessingEffects
         get() = components

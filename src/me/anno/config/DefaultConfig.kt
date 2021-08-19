@@ -1,7 +1,10 @@
 package me.anno.config
 
 import me.anno.config.DefaultStyle.baseTheme
+import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.config.ConfigBasics
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.text.TextReader
 import me.anno.io.utils.StringMap
 import me.anno.objects.*
@@ -23,8 +26,6 @@ import me.anno.ui.style.Style
 import me.anno.utils.Clock
 import me.anno.utils.OS
 import me.anno.utils.Warning
-import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 import java.io.File
@@ -44,6 +45,9 @@ object DefaultConfig : StringMap() {
         hasInit = true
 
         val tick = Clock()
+
+        // in case it wasn't registered yet
+        registerCustomClass(StringMap())
 
         this["style"] = "dark"
 
@@ -65,7 +69,7 @@ object DefaultConfig : StringMap() {
 
     }
 
-    fun defineDefaultFileAssociations(){
+    fun defineDefaultFileAssociations() {
 
         addImportMappings(
             "Image",
@@ -88,6 +92,7 @@ object DefaultConfig : StringMap() {
         addImportMappings("Audio", "mp3", "wav", "m4a", "ogg")
         addImportMappings("URL", "url", "lnk", "desktop")
         addImportMappings("Container", "unitypackage", "zip", "7z", "tar", "gz", "xz", "rar", "bz2", "xar", "oar")
+        addImportMappings("Asset", "json", "mat", "prefab", "unity", "controller")
 
     }
 
@@ -154,8 +159,8 @@ object DefaultConfig : StringMap() {
 
     }
 
-    data class ProjectHeader(val name: String, val file: FileReference){
-        constructor(name: String, file: File): this(name, getReference(file))
+    data class ProjectHeader(val name: String, val file: FileReference) {
+        constructor(name: String, file: File) : this(name, getReference(file))
     }
 
     private val recentProjectCount = 10

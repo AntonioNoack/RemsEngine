@@ -1,5 +1,7 @@
-package me.anno.io.files
+package me.anno.io.zip
 
+import me.anno.io.files.FileFileRef
+import me.anno.io.files.FileReference
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
 import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
@@ -8,13 +10,12 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.util.zip.ZipException
 
-class ZipFileV2(
+class InnerZipFile(
     absolutePath: String,
     val getZipStream: () -> ZipFile,
     relativePath: String,
-    isDirectory: Boolean,
     _parent: FileReference
-) : ZipFileBase(absolutePath, relativePath, isDirectory, _parent) {
+) : InnerFile(absolutePath, relativePath, false, _parent) {
 
     override fun length(): Long = size
 
@@ -32,20 +33,14 @@ class ZipFileV2(
         fun createFolderEntryV2(
             zipFileLocation: String,
             entry: String,
-            getStream: () -> ZipFile,
-            registry: HashMap<String, ZipFileV2>
-        ): ZipFileV2 {
+            registry: HashMap<String, InnerFile>
+        ): InnerFile {
             val (parent, path) = ZipCache.splitParent(entry)
-            val file = registry.getOrPut(path){
-                ZipFileV2(
-                    "$zipFileLocation/$path", getStream, path, true,
-                    registry.getOrPut(parent) { createFolderEntryV2(zipFileLocation, parent, getStream, registry) }
-                )
+            return registry.getOrPut(path) {
+                val absolutePath = "$zipFileLocation/$path"
+                val parent2 = registry.getOrPut(parent) { createFolderEntryV2(zipFileLocation, parent, registry) }
+                InnerFolder(absolutePath, path, parent2)
             }
-            file.lastModified = 0L
-            file.size = 0
-            file.data = null
-            return file
         }
 
         fun createEntryV2(
@@ -53,14 +48,14 @@ class ZipFileV2(
             entry: ZipArchiveEntry,
             zis: ZipFile,
             getStream: () -> ZipFile,
-            registry: HashMap<String, ZipFileV2>
-        ): ZipFileV2 {
+            registry: HashMap<String, InnerFile>
+        ): InnerFile {
             val (parent, path) = ZipCache.splitParent(entry.name)
-            val file = registry.getOrPut(path){
-                ZipFileV2(
-                    "$zipFileLocation/$path", getStream, path, entry.isDirectory,
-                    registry.getOrPut(parent) { createFolderEntryV2(zipFileLocation, parent, getStream, registry) }
-                )
+            val file = registry.getOrPut(path) {
+                val absolutePath = "$zipFileLocation/$path"
+                val parent2 = registry.getOrPut(parent) { createFolderEntryV2(zipFileLocation, parent, registry) }
+                if (entry.isDirectory) InnerFolder(absolutePath, path, parent2)
+                else InnerZipFile(absolutePath, getStream, path, parent2)
             }
             file.lastModified = entry.lastModifiedDate?.time ?: 0L
             file.size = entry.size
@@ -79,13 +74,8 @@ class ZipFileV2(
         fun createZipRegistryV2(
             zipFileLocation: FileReference,
             getStream: () -> ZipFile
-        ): ZipFileV2 {
-            val registry = HashMap<String, ZipFileV2>()
-            val file = ZipFileV2(
-                zipFileLocation.absolutePath, getStream, "", true,
-                zipFileLocation.getParent() ?: zipFileLocation
-            )
-            registry[""] = file
+        ): InnerFolder {
+            val (file, registry) = createMainFolder(zipFileLocation)
             var hasReadEntry = false
             var e: Exception? = null
             try {

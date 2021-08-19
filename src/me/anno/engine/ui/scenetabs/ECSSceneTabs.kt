@@ -1,11 +1,17 @@
 package me.anno.engine.ui.scenetabs
 
 import me.anno.config.DefaultConfig
+import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.MeshRenderer
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX.windowStack
+import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
@@ -13,6 +19,7 @@ import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.custom.CustomContainer
+import me.anno.ui.editor.files.thumbs.Thumbs
 import me.anno.utils.hpc.SyncMaster
 import me.anno.utils.types.Lists.getOrPrevious
 import org.apache.logging.log4j.LogManager
@@ -42,7 +49,7 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
         }
 
     fun open(syncMaster: SyncMaster, prefab: Prefab): ECSSceneTab {
-        val opened = children3.firstOrNull { it.file == prefab.ownFile }
+        val opened = children3.firstOrNull { it.file == prefab.src }
         return if (opened != null) {
             open(opened)
             opened
@@ -98,14 +105,14 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
             currentTab = sceneTab
             PrefabInspector.currentInspector = sceneTab.inspector
             // root = sceneTab.root
-            val prefabInstance = sceneTab.inspector.prefab.createInstance() as Entity
+            val prefabInstance = sceneTab.inspector.prefab.createInstance()
             for (window in windowStack) {
                 window.panel.listOfAll {
                     if (it is CustomContainer && it.child is RenderView) {
                         val oldView = it.child
                         if (oldView is RenderView) {
                             val library = oldView.library
-                            library.world = prefabInstance
+                            library.world = createWorld(prefabInstance)
                             library.select(prefabInstance)
                         }
                     }
@@ -114,7 +121,35 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
             if (sceneTab !in children3) {
                 content += sceneTab
             }
-            for(panel in children) panel.tickUpdate() // to assign the colors without delay
+            for (panel in children) panel.tickUpdate() // to assign the colors without delay
+        }
+    }
+
+    fun createWorld(item: ISaveable): Entity {
+        return when (item) {
+            is Entity -> item
+            is Mesh -> {
+                val entity = Entity()
+                entity.add(MeshComponent(item))
+                entity.add(MeshRenderer())
+                entity
+            }
+            is Material -> {
+                val entity = Entity()
+                val mesh = Thumbs.sphereMesh.clone()
+                mesh.materials = listOf(item)
+                entity.add(MeshComponent(mesh))
+                entity.add(MeshRenderer())
+                entity
+            }
+            // todo if light, also add some objects for visualization
+            is Component -> {
+                val entity = item.entity ?: Entity()
+                entity.add(item)
+                entity
+            }
+            // todo display skeleton, animations, lights and such
+            else -> throw RuntimeException("Cannot open ${item.className} in scene")
         }
     }
 

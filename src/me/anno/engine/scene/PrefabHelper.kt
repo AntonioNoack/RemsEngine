@@ -23,9 +23,7 @@ object PrefabHelper {
     ): Path {
         val index = changes.count { it is CAdd && it.type == typeChar && it.path == parentPath }
         changes.add(CAdd(parentPath, typeChar, type, name, ref))
-        val path = parentPath.added(name, index, typeChar)
-        if (type != name) changes.add(CSet(path, "name", name))
-        return path
+        return parentPath.added(name, index, typeChar)
     }
 
     fun setE(changes: MutableList<Change>, path: Path, name: String, value: Any?) {

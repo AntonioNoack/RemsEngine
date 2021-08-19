@@ -1,10 +1,7 @@
 package me.anno.utils
 
 import org.joml.*
-import kotlin.math.exp
-import kotlin.math.floor
-import kotlin.math.roundToInt
-import kotlin.math.sqrt
+import kotlin.math.*
 
 object Maths {
 
@@ -149,6 +146,14 @@ object Maths {
         value = if (value < f) value else f
         return value
     }
+
+    fun absMax(a: Float, b: Float) = max(abs(a), abs(b))
+    fun absMax(a: Float, b: Float, c: Float) = max(abs(a), abs(b), abs(c))
+    fun absMax(a: Float, b: Float, c: Float, d: Float) = max(max(abs(a), abs(b)), max(abs(c), abs(d)))
+
+    fun absMax(a: Double, b: Double) = max(abs(a), abs(b))
+    fun absMax(a: Double, b: Double, c: Double) = max(max(abs(a), abs(b)), abs(c))
+    fun absMax(a: Double, b: Double, c: Double, d: Double) = max(max(abs(a), abs(b)), max(abs(c), abs(d)))
 
     fun mixChannel(a: Int, b: Int, shift: Int, f: Float): Int {
         return clamp(mix((a shr shift) and 0xff, (b shr shift) and 0xff, f), 0, 255) shl shift

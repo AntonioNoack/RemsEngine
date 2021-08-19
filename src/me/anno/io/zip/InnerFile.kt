@@ -1,23 +1,28 @@
-package me.anno.io.files
+package me.anno.io.zip
 
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.EmptyInputStream
+import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.URI
 
-abstract class ZipFileBase(
+/**
+ * a file, which is inside another file,
+ * e.g. inside a zip file, or inside a mesh
+ * */
+abstract class InnerFile(
     absolutePath: String,
     val relativePath: String,
-    override val isDirectory: Boolean,
+    final override val isDirectory: Boolean,
     val _parent: FileReference
 ) : FileReference(absolutePath) {
 
-    val children = if (isDirectory) HashMap<String, ZipFileBase>() else null
     val lcName = name.lowercase()
 
     init {
-        (_parent as? ZipFileBase)?.children?.put(lcName, this)
+        (_parent as? InnerFolder)?.children?.put(lcName, this)
     }
 
     override var lastModified = 0L
@@ -32,45 +37,36 @@ abstract class ZipFileBase(
 
     override fun inputStream(): InputStream {
         val data = data
-        return if (size <= 0) {
-            EmptyInputStream
-        } else data?.inputStream() ?: return getInputStream().useBuffered()
+        return when {
+            size <= 0 -> EmptyInputStream
+            data != null -> data.inputStream()
+            else -> getInputStream().useBuffered()
+        }
     }
 
     abstract fun getInputStream(): InputStream
+
+    override fun readBytes(): ByteArray {
+        return this.data ?: inputStream().readBytes()
+    }
 
     override fun outputStream(): OutputStream {
         throw RuntimeException("Writing into zip files is not yet supported")
     }
 
-    fun list() = children?.values?.map { it.name }
-    fun listFiles() = children?.values
-
     fun get(path: String) = getLc(path.replace('\\', '/').lowercase())
-    private fun getLc(path: String): FileReference? {
-        if (path.isEmpty() && !isDirectory)
-            return ZipCache.getMeta(this, false)
-        if (!isDirectory) {
-            val m = ZipCache.getMeta(this, false) as? ZipFileBase
-            return m?.getLc(path)
-        }
-        val index = path.indexOf('/')
-        return if (index < 0) {
-            children!![path]
-        } else {
-            val parent = path.substring(0, index)
-            val name = path.substring(index + 1)
-            children!![parent]?.getLc(name)
-        }
+
+    open fun getLc(path: String): FileReference? {
+        if (path.isEmpty()) return ZipCache.getMeta(this, false)
+        val m = ZipCache.getMeta(this, false) as? InnerFile
+        return m?.getLc(path)
     }
 
     override fun getChild(name: String): FileReference {
-        if (children == null) return InvalidRef
-        val c0 = children.values.filter { it.name.equals(name, true) }
-        return c0.firstOrNull { it.name == name } ?: c0.firstOrNull() ?: InvalidRef
+        return InvalidRef
     }
 
-    override val exists: Boolean get() = true
+    override val exists: Boolean = true
 
     // override fun toString(): String = relativePath
 
@@ -95,11 +91,7 @@ abstract class ZipFileBase(
     }
 
     override fun listChildren(): List<FileReference>? {
-        return if (isDirectory) {
-            children?.values?.toList()
-        } else {
-            zipFileForDirectory?.listChildren()
-        }
+        return zipFileForDirectory?.listChildren()
     }
 
     override fun getParent(): FileReference {
@@ -108,6 +100,21 @@ abstract class ZipFileBase(
 
     override fun renameTo(newName: FileReference): Boolean {
         throw RuntimeException("Writing into zip files is not yet supported")
+    }
+
+    companion object {
+
+        fun createMainFolder(zipFileLocation: FileReference): Pair<InnerFolder, HashMap<String, InnerFile>> {
+            val file = InnerFolder(zipFileLocation)
+            return file to createRegistry(file)
+        }
+
+        fun createRegistry(file: InnerFile): HashMap<String, InnerFile> {
+            val registry = HashMap<String, InnerFile>()
+            registry[""] = file
+            return registry
+        }
+
     }
 
 }

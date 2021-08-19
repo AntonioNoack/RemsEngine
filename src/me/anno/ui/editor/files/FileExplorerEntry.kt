@@ -20,6 +20,7 @@ import me.anno.input.Input
 import me.anno.input.Input.mouseDownX
 import me.anno.input.Input.mouseDownY
 import me.anno.input.MouseButton
+import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.trash.TrashManager.moveToTrash
 import me.anno.language.translation.NameDesc
@@ -44,11 +45,14 @@ import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.files.Files.listFiles2
 import me.anno.utils.image.ImageScale.scale
+import me.anno.utils.io.Streams.copy
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.VFrame
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
+import java.io.File
+import java.nio.file.Files
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
@@ -110,9 +114,9 @@ class FileExplorerEntry(
             "Text" -> "file/text.png"
             "Audio", "Video" -> "file/music.png"
             // todo link icon for .lnk and .url, and maybe .desktop
+            // todo icon for asset
             else -> "file/document.png"
         }
-
     }
 
 
@@ -148,14 +152,14 @@ class FileExplorerEntry(
     }
 
     override fun getLayoutState(): Any? = titlePanel.getLayoutState()
-    override fun getVisualState(): Any? {
+    override fun getVisualState(): Any {
         val tex = when (val tex = getTexKey()) {
             is VFrame -> if (tex.isCreated) tex else null
             is Texture2D -> tex.state
             else -> tex
         }
         titlePanel.canBeSeen = canBeSeen
-        return Triple(titlePanel.getVisualState(), tex, meta)
+        return Pair(tex, meta)
     }
 
     override fun tickUpdate() {
@@ -236,7 +240,7 @@ class FileExplorerEntry(
                     } else getDefaultIcon()
                 } else getDefaultIcon()
             }
-            "Image", "PDF", "Mesh", "URL" -> getImage()
+            "Image", "PDF", "Mesh", "URL", "Asset" -> getImage()
             else -> getDefaultIcon()
         }
     }
@@ -295,6 +299,9 @@ class FileExplorerEntry(
         } else {
 
         }*/
+        if (file.isDirectory) {
+            return drawDefaultIcon(x0, y0, x1, y1)
+        }
         when (importType) {
             // todo audio preview???
             "Video", "Audio" -> {
@@ -310,7 +317,7 @@ class FileExplorerEntry(
                     }
                 } else drawDefaultIcon(x0, y0, x1, y1)
             }
-            "Image", "PDF", "Mesh", "URL" -> drawImageOrThumb(x0, y0, x1, y1)
+            "Image", "PDF", "Mesh", "URL", "Asset" -> drawImageOrThumb(x0, y0, x1, y1)
             else -> drawDefaultIcon(x0, y0, x1, y1)
         }
     }
@@ -485,10 +492,35 @@ class FileExplorerEntry(
     }
 
     override fun onCopyRequested(x: Float, y: Float): String? {
-        if (this in inFocus) {// multiple files maybe
-            Input.copyFiles(inFocus.filterIsInstance<FileExplorerEntry>().map { it.file })
-        } else Input.copyFiles(listOf(file))
+        val rawFiles = if (this in inFocus) {// multiple files maybe
+            inFocus.filterIsInstance<FileExplorerEntry>().map { it.file }
+        } else listOf(file)
+        // we need this folder, when we have temporary copies,
+        // because just File.createTempFile() changes the name,
+        // and we need the original file name
+        val tmpFolder = lazy { Files.createTempDirectory("tmp").toFile() }
+        val tmpFiles = rawFiles.map {
+            if (it is FileFileRef) it.file
+            else {
+                // create a temporary copy, that the OS understands
+                val tmp = File(tmpFolder.value, it.name)
+                copyHierarchy(it, tmp)
+                tmp
+            }
+        }
+        Input.copyFiles2(tmpFiles)
         return null
+    }
+
+    fun copyHierarchy(src: FileReference, dst: File) {
+        if (src.isDirectory) {
+            dst.mkdirs()
+            for (child in src.listChildren() ?: emptyList()) {
+                copyHierarchy(child, File(dst, child.name))
+            }
+        } else {
+            src.inputStream().copy(dst.outputStream())
+        }
     }
 
     override fun getMultiSelectablePanel() = this

@@ -17,7 +17,7 @@ class VideoAudioCreator(
 ) : AudioCreator(scene, durationSeconds, sampleRate, audioSources) {
 
     fun start() {
-        thread { run() }
+        thread(name = "VideoAudioCreator") { run() }
     }
 
     fun run() {

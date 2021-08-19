@@ -2,7 +2,7 @@ package me.anno.io.packer
 
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.createZipFile
-import me.anno.io.files.ZipFileV2
+import me.anno.io.zip.InnerZipFile
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Floats.f2
@@ -57,8 +57,10 @@ object Packer {
         val deltaTime = endTime - startTime
         val readingBandwidth = size * 1e9 / deltaTime
         val writingBandwidth = compressedSize * 1e9 / deltaTime
-        LOGGER.warn("Reading Bandwidth: ${readingBandwidth.toLong().formatFileSize()}/s, " +
-                "Writing Bandwidth: ${writingBandwidth.toLong().formatFileSize()}/s")
+        LOGGER.warn(
+            "Reading Bandwidth: ${readingBandwidth.toLong().formatFileSize()}/s, " +
+                    "Writing Bandwidth: ${writingBandwidth.toLong().formatFileSize()}/s"
+        )
         val compressionRatio = size.toDouble() / compressedSize
         LOGGER.info("Done packing $dst, ${compressedSize.formatFileSize()}/${size.formatFileSize()}, ${resources.size} files, compression ratio: ${compressionRatio.f2()}:1")
         return map
@@ -122,7 +124,7 @@ object Packer {
                 e.printStackTrace()
             }
             zos.closeEntry()
-            if (createMap) map!![resource] = ZipFileV2("$absolute/$name", getStream, name, false, dst)
+            if (createMap) map!![resource] = InnerZipFile("$absolute/$name", getStream, name, dst)
         }
         zos.close()
         return map ?: emptyMap()

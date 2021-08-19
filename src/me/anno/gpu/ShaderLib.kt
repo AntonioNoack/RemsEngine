@@ -37,7 +37,6 @@ object ShaderLib {
     lateinit var shader3DBoxBlur: BaseShader
     lateinit var shaderObjMtl: BaseShader
     lateinit var shaderAssimp: BaseShader
-    lateinit var pbrModelShader: BaseShader
     lateinit var monochromeModelShader: BaseShader
 
     // lateinit var shaderFBX: BaseShader
@@ -152,7 +151,7 @@ object ShaderLib {
             "   vec4 sumColor = sumWeight * forceFieldBaseColor;\n" +
             "   for(int i=0;i<forceFieldColorCount;i++){\n" +
             "       vec4 positionNWeight = forceFieldPositionsNWeights[i];\n" +
-            "       vec3 positionDelta = localPosition - positionNWeight.xyz;\n" +
+            "       vec3 positionDelta = finalPosition - positionNWeight.xyz;\n" +
             "       vec4 powerSize = forceFieldColorPowerSizes[i];\n" +
             "       float weight = positionNWeight.w / (1.0 + pow(dot(powerSize.xyz * positionDelta, positionDelta), powerSize.w));\n" +
             "       sumWeight += weight;\n" +
@@ -274,8 +273,8 @@ object ShaderLib {
             "a2 attr1;\n" +
             "u4 tiling;\n" +
             "void main(){\n" +
-            "   localPosition = attr0;\n" +
-            "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
+            "   finalPosition = attr0;\n" +
+            "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
             positionPostProcessing +
             "   uv = (attr1-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
             "   uvw = attr0;\n" +
@@ -285,7 +284,7 @@ object ShaderLib {
     val y3D = "" +
             "varying vec2 uv;\n" +
             "varying vec3 uvw;\n" +
-            "varying vec3 localPosition;\n" +
+            "varying vec3 finalPosition;\n" +
             "varying float zDistance;\n" +
             "varying vec3 normal;\n"
 
@@ -455,8 +454,8 @@ object ShaderLib {
                     "void main(){\n" +
                     "   vec3 localPos0 = attr0 + offset;\n" +
                     "   vec2 pseudoUV2 = getForceFieldUVs(localPos0.xy*.5+.5);\n" +
-                    "   localPosition = $hasForceFieldUVs ? vec3(pseudoUV2*2.0-1.0, attr0.z + offset.z) : localPos0;\n" +
-                    "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
+                    "   finalPosition = $hasForceFieldUVs ? vec3(pseudoUV2*2.0-1.0, attr0.z + offset.z) : localPos0;\n" +
+                    "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
                     flatNormal +
                     positionPostProcessing +
                     "   vertexId = gl_VertexID;\n" +
@@ -483,8 +482,8 @@ object ShaderLib {
                     "   uv = attr0.xy * 0.5 + 0.5;\n" +
                     "   vec2 localPos0 = attr0.xy * scale + offset;\n" +
                     "   vec2 pseudoUV2 = getForceFieldUVs(localPos0*.5+.5);\n" +
-                    "   localPosition = vec3($hasForceFieldUVs ? pseudoUV2*2.0-1.0 : localPos0, 0);\n" +
-                    "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
+                    "   finalPosition = vec3($hasForceFieldUVs ? pseudoUV2*2.0-1.0 : localPos0, 0);\n" +
+                    "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
                     positionPostProcessing +
                     "}", y3D, "" +
                     noiseFunc +
@@ -534,8 +533,8 @@ object ShaderLib {
                 "void main(){\n" +
                 "   vec2 betterUV = attr0.xy;\n" +
                 "   betterUV *= mix(1.0, attr1.r, inset);\n" +
-                "   localPosition = vec3(betterUV, attr0.z);\n" +
-                "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
+                "   finalPosition = vec3(betterUV, attr0.z);\n" +
+                "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
                 flatNormal +
                 positionPostProcessing +
                 "   uv = attr1.yx;\n" +
@@ -546,15 +545,15 @@ object ShaderLib {
         val v3DMasked = v3DBase +
                 "a2 attr0;\n" +
                 "void main(){\n" +
-                "   localPosition = vec3(attr0*2.0-1.0, 0.0);\n" +
-                "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
+                "   finalPosition = vec3(attr0*2.0-1.0, 0.0);\n" +
+                "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
                 "   uv = gl_Position.xyw;\n" +
                 positionPostProcessing +
                 "}"
 
         val y3DMasked = "" +
                 "varying vec3 uv;\n" +
-                "varying vec3 localPosition;\n" +
+                "varying vec3 finalPosition;\n" +
                 "varying float zDistance;\n"
 
         val f3DMasked = "" +
@@ -664,7 +663,7 @@ object ShaderLib {
         )
 
         val vSVG = v3DBase +
-                "a3 aLocalPosition;\n" +
+                "a3 afinalPosition;\n" +
                 "a2 aLocalPos2;\n" +
                 "a4 aFormula0;\n" +
                 "a1 aFormula1;\n" +
@@ -672,8 +671,8 @@ object ShaderLib {
                 "a4 aStops;\n" +
                 "a1 aPadding;\n" +
                 "void main(){\n" +
-                "   localPosition = aLocalPosition;\n" +
-                "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
+                "   finalPosition = afinalPosition;\n" +
+                "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
                 flatNormal +
                 positionPostProcessing +
                 "   color0 = aColor0;\n" +
@@ -753,8 +752,8 @@ object ShaderLib {
                 "void main(){\n" +
                 "   float angle = mix(circleParams.y, circleParams.z, attr0.x);\n" +
                 "   vec2 betterUV = vec2(cos(angle), -sin(angle)) * (1.0 - circleParams.x * attr0.y);\n" +
-                "   localPosition = vec3(betterUV, 0.0);\n" +
-                "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
+                "   finalPosition = vec3(betterUV, 0.0);\n" +
+                "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
                 flatNormal +
                 positionPostProcessing +
                 "}"
@@ -784,7 +783,7 @@ object ShaderLib {
                     "a2 uvs;\n" +
                     "a3 normals;\n" +
                     "void main(){\n" +
-                    "   localPosition = coords;\n" +
+                    "   finalPosition = coords;\n" +
                     "   gl_Position = transform * vec4(coords, 1.0);\n" +
                     "   uv = uvs;\n" +
                     "   normal = normals;\n" +
@@ -822,21 +821,21 @@ object ShaderLib {
                 "       jointMat += jointTransforms[indices.y] * weights.y;\n" +
                 "       jointMat += jointTransforms[indices.z] * weights.z;\n" +
                 "       jointMat += jointTransforms[indices.w] * weights.w;\n" +
-                "       localPosition = jointMat * vec4(coords, 1.0);\n" +
+                "       finalPosition = jointMat * vec4(coords, 1.0);\n" +
                 "       normal = jointMat * vec4(normals, 0.0);\n" +
                 "       tangent = jointMat * vec4(tangents, 0.0);\n" +
                 "   } else {\n" +
-                "       localPosition = coords;\n" +
+                "       finalPosition = coords;\n" +
                 "       normal = normals;\n" +
                 "       tangent = tangents;\n" +
                 "   }\n" +
                 "   normal = localTransform * vec4(normal, 0.0);\n" +
                 "   tangent = localTransform * vec4(tangent, 0.0);\n" +
-                "   localPosition = localTransform * vec4(localPosition, 1.0);\n" +
+                "   finalPosition = localTransform * vec4(finalPosition, 1.0);\n" +
                 // normal only needs to be normalized, if we show the normal
                 // todo only activate on viewing it...
                 "   normal = normalize(normal);\n" + // here? nah ^^
-                "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
+                "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
                 "   uv = uvs;\n" +
                 "   weight = weights;\n" +
                 "   vertexColor = colors;\n" +
@@ -859,38 +858,12 @@ object ShaderLib {
                     "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                     "   vec3 finalColor = color.rgb;\n" +
                     "   float finalAlpha = color.a;\n" +
-                    "   vec3 finalPosition = localPosition;\n" +
+                    "   vec3 finalPosition = finalPosition;\n" +
                     "   vec3 finalNormal = normal;\n" +
                     "}", listOf("tex")
         )
         shaderAssimp.glslVersion = 330
 
-        // todo just like the gltf shader define all material properties
-        pbrModelShader = createShaderPlus(
-            "model",
-            assimpVertex, assimpVarying, "" +
-                    "uniform sampler2D albedoTex, normalTex, emissiveTex;\n" +
-                    "uniform float normalStrength;\n" +
-                    "void main(){\n" +
-                    "   vec4 color = vec4(vertexColor.rgb,1) * texture(albedoTex, uv);\n" +
-                    "   vec3 finalColor = color.rgb;\n" +
-                    "   float finalAlpha = color.a;\n" +
-                    "   vec3 finalPosition = localPosition;\n" +
-                    // "   vec3 finalNormal = normal;\n" +
-                    "   vec3 finalTangent = normalize(tangent);\n" + // for debugging
-                    "   vec3 finalNormal = normalize(normal);\n" +
-                    // checked, correct transform
-                    // can be checked with a lot of rotated objects in all orientations,
-                    // and a shader with light from top/bottom
-                    "   vec3 bitangent = normalize(cross(finalNormal, finalTangent));\n" +
-                    "   mat3 tbn = mat3(finalTangent, bitangent, finalNormal);\n" +
-                    "   vec3 normalMap = texture(normalTex, uv).rgb*2.0-1.0;\n" +
-                    "   vec3 normalFromTex = tbn * normalMap;\n" +
-                    "   finalNormal = mix(finalNormal, normalFromTex, normalStrength);\n" +
-                    "   vec3 finalEmissive = texture(emissiveTex, uv).rgb;\n" +
-                    "}", listOf("albedoTex", "normalTex", "emissiveTex")
-        )
-        pbrModelShader.glslVersion = 330
         monochromeModelShader = createShaderPlus(
             "model",
             assimpVertex, assimpVarying, "" +
@@ -898,11 +871,14 @@ object ShaderLib {
                     "uniform sampler2D tex;\n" +
                     "void main(){\n" +
                     "   vec4 color = texture(tex, uv);\n" +
-                    "   vec3 finalColor = vec3(0);\n" +
+                    "   vec3 finalColor = color.rgb;\n" +
                     "   float finalAlpha = color.a;\n" +
-                    "   vec3 finalPosition = localPosition;\n" +
+                    "   vec3 finalPosition = finalPosition;\n" +
                     "   vec3 finalNormal = normal;\n" +
                     "   vec3 finalEmissive = tint.rgb;\n" +
+                    "   float finalRoughness = 1.0;" +
+                    "   float finalMetallic = 0.0;\n" +
+                    "   float finalOcclusion = 1.0;\n" +
                     "}", listOf("tex")
         )
         monochromeModelShader.glslVersion = 330

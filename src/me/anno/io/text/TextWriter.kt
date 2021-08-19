@@ -4,9 +4,11 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.utils.Maths.absMax
 import me.anno.utils.types.Strings
 import me.anno.utils.types.Strings.isBlank2
 import org.joml.*
+import kotlin.math.abs
 
 class TextWriter(beautify: Boolean) : BaseWriter(true) {
 
@@ -15,6 +17,9 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     val data = StringBuilder(32)
     private var hasObject = false
     private var usedPointers: HashSet<Int>? = null
+
+    private val tmp16 = FloatArray(16)
+    private val tmp16d = DoubleArray(16)
 
     fun open(array: Boolean) {
         data.append(if (array) '[' else '{')
@@ -102,7 +107,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
 
     override fun writeBooleanArray2D(name: String, values: Array<BooleanArray>, force: Boolean) {
         writeArray(name, values, force, "b[][]") {
-            data.append(",[")
+            data.append('[')
             data.append(values.size)
             val lastIndex = it.indexOfLast { b -> b }
             for (i in 0 until lastIndex) {
@@ -136,7 +141,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
 
     override fun writeCharArray2D(name: String, values: Array<CharArray>, force: Boolean) {
         writeArray(name, values, force, "c[][]") {
-            data.append(",[")
+            data.append('[')
             data.append(values.size)
             val lastIndex = it.indexOfLast { i -> i != 0.toChar() }
             for (i in 0 until lastIndex) {
@@ -170,7 +175,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
 
     override fun writeByteArray2D(name: String, values: Array<ByteArray>, force: Boolean) {
         writeArray(name, values, force, "B[][]") {
-            data.append(",[")
+            data.append('[')
             data.append(values.size)
             val lastIndex = it.indexOfLast { i -> i != 0.toByte() }
             for (i in 0 until lastIndex) {
@@ -204,7 +209,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
 
     override fun writeShortArray2D(name: String, values: Array<ShortArray>, force: Boolean) {
         writeArray(name, values, force, "s[][]") {
-            data.append(",[")
+            data.append('[')
             data.append(values.size)
             val lastIndex = it.indexOfLast { i -> i != 0.toShort() }
             for (i in 0 until lastIndex) {
@@ -238,7 +243,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
 
     override fun writeIntArray2D(name: String, values: Array<IntArray>, force: Boolean) {
         writeArray(name, values, force, "i[][]") {
-            data.append(",[")
+            data.append('[')
             data.append(values.size)
             val lastIndex = it.indexOfLast { i -> i != 0 }
             for (i in 0 until lastIndex) {
@@ -271,20 +276,14 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     override fun writeFloatArray2D(name: String, values: Array<FloatArray>, force: Boolean) {
-        if (force || values.isNotEmpty()) {
-            writeAttributeStart("f[][]", name)
-            open(true)
-            data.append(values.size)
-            for (vs in values) {
-                data.append(",[")
-                data.append(vs.size)
-                for (v in values) {
-                    data.append(',')
-                    data.append(v.toString())
-                }
-                data.append(']')
+        writeArray(name, values, force, "f[][]") {
+            data.append('[')
+            data.append(it.size)
+            for (v in it) {
+                data.append(',')
+                append(v)
             }
-            close(true)
+            data.append(']')
         }
     }
 
@@ -311,11 +310,11 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
 
     override fun writeDoubleArray2D(name: String, values: Array<DoubleArray>, force: Boolean) {
         writeArray(name, values, force, "d[][]") {
-            data.append(",[")
+            data.append('[')
             data.append(it.size)
             for (v in it) {
                 data.append(',')
-                data.append(v)
+                append(v)
             }
             data.append(']')
         }
@@ -337,7 +336,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
 
     override fun writeStringArray2D(name: String, values: Array<Array<String>>, force: Boolean) {
         writeArray(name, values, force, "S[][]") {
-            data.append(",[")
+            data.append('[')
             data.append(it.size)
             for (v in it) {
                 data.append(',')
@@ -384,7 +383,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
 
     override fun writeLongArray2D(name: String, values: Array<LongArray>, force: Boolean) {
         writeArray(name, values, force, "l[][]") {
-            data.append(",[")
+            data.append('[')
             data.append(it.size)
             for (v in it) {
                 data.append(',')
@@ -395,9 +394,11 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     private fun writeVector2f(value: Vector2fc) {
+        writeVector2f(value.x(), value.y())
+    }
+
+    private fun writeVector2f(x: Float, y: Float) {
         data.append('[')
-        val x = value.x()
-        val y = value.y()
         append(x)
         if (x != y) {
             data.append(separator)
@@ -407,10 +408,11 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     private fun writeVector3f(value: Vector3fc) {
+        writeVector3f(value.x(), value.y(), value.z())
+    }
+
+    private fun writeVector3f(x: Float, y: Float, z: Float) {
         data.append('[')
-        val x = value.x()
-        val y = value.y()
-        val z = value.z()
         append(x)
         if (!(x == y && x == z)) {
             data.append(separator)
@@ -422,11 +424,11 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     private fun writeVector4f(value: Vector4fc) {
+        writeVector4f(value.x(), value.y(), value.z(), value.w())
+    }
+
+    private fun writeVector4f(x: Float, y: Float, z: Float, w: Float) {
         data.append('[')
-        val x = value.x()
-        val y = value.y()
-        val z = value.z()
-        val w = value.w()
         // compressed writing for gray scale values, which are typical
         val xyz = !(x == y && x == z)
         val xw = x != w
@@ -464,9 +466,11 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     private fun writeVector2d(value: Vector2dc) {
+        writeVector2d(value.x(), value.y())
+    }
+
+    private fun writeVector2d(x: Double, y: Double) {
         data.append('[')
-        val x = value.x()
-        val y = value.y()
         append(x)
         if (x != y) {
             data.append(separator)
@@ -476,10 +480,11 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     private fun writeVector3d(value: Vector3dc) {
+        writeVector3d(value.x(), value.y(), value.z())
+    }
+
+    private fun writeVector3d(x: Double, y: Double, z: Double) {
         data.append('[')
-        val x = value.x()
-        val y = value.y()
-        val z = value.z()
         append(x)
         if (!(x == y && x == z)) {
             data.append(separator)
@@ -491,11 +496,11 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     private fun writeVector4d(value: Vector4dc) {
+        writeVector4d(value.x(), value.y(), value.z(), value.w())
+    }
+
+    private fun writeVector4d(x: Double, y: Double, z: Double, w: Double) {
         data.append('[')
-        val x = value.x()
-        val y = value.y()
-        val z = value.z()
-        val w = value.w()
         // compressed writing for gray scale values, which are typical
         val xyz = !(x == y && x == z)
         val xw = x != w
@@ -682,71 +687,154 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
 
     override fun writeMatrix3x3f(name: String, value: Matrix3fc, force: Boolean) {
         writeAttributeStart("m3x3", name)
-        data.append('[')
-        val tmp = FloatArray(9)
+        val tmp = tmp16
         value.get(tmp)
-        for (i in tmp.indices) {
+        data.append('[')
+        clamp3x3Relative(tmp)
+        for (i in 0 until 9 step 3) {
             if (i > 0) data.append(',')
-            append(tmp[i])
+            writeVector3f(tmp[i], tmp[i + 1], tmp[i + 2])
         }
         data.append(']')
     }
 
     override fun writeMatrix4x3f(name: String, value: Matrix4x3fc, force: Boolean) {
         writeAttributeStart("m4x3", name)
+        val tmp = tmp16
+        value.get(tmp) // col major
+        clamp4x3Relative(tmp)
         data.append('[')
-        val tmp = FloatArray(12)
-        value.get(tmp)
-        for (i in tmp.indices) {
+        for (i in 0 until 12 step 3) {
             if (i > 0) data.append(',')
-            append(tmp[i])
+            writeVector3f(tmp[i], tmp[i + 1], tmp[i + 2])
         }
         data.append(']')
     }
 
+    private fun clamp3x3Relative(tmp: FloatArray, scale: Float = 1e-7f) {
+        // clamp values, which are 1e-7 below the scale -> won't impact anything, and saves space
+        val sx = absMax(tmp[0], tmp[3], tmp[6]) * scale
+        val sy = absMax(tmp[1], tmp[4], tmp[7]) * scale
+        val sz = absMax(tmp[2], tmp[5], tmp[8]) * scale
+        for (i in 0 until 9 step 3) {
+            if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0f
+            if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0f
+            if (abs(tmp[i + 2]) < sz) tmp[i + 2] = 0f
+        }
+    }
+
+    private fun clamp3x3Relative(tmp: DoubleArray, scale: Double = 1e-7) {
+        // clamp values, which are 1e-7 below the scale -> won't impact anything, and saves space
+        val sx = absMax(tmp[0], tmp[3], tmp[6]) * scale
+        val sy = absMax(tmp[1], tmp[4], tmp[7]) * scale
+        val sz = absMax(tmp[2], tmp[5], tmp[8]) * scale
+        for (i in 0 until 9 step 3) {
+            if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0.0
+            if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0.0
+            if (abs(tmp[i + 2]) < sz) tmp[i + 2] = 0.0
+        }
+    }
+
+    private fun clamp4x3Relative(tmp: FloatArray, scale: Float = 1e-7f) {
+        // clamp values, which are 1e-7 below the scale -> won't impact anything, and saves space
+        val sx = absMax(tmp[0], tmp[3], tmp[6], tmp[9]) * scale
+        val sy = absMax(tmp[1], tmp[4], tmp[7], tmp[10]) * scale
+        val sz = absMax(tmp[2], tmp[5], tmp[8], tmp[11]) * scale
+        for (i in 0 until 12 step 3) {
+            if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0f
+            if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0f
+            if (abs(tmp[i + 2]) < sz) tmp[i + 2] = 0f
+        }
+    }
+
+    private fun clamp4x3Relative(tmp: DoubleArray, scale: Double = 1e-7) {
+        // clamp values, which are 1e-7 below the scale -> won't impact anything, and saves space
+        val sx = absMax(tmp[0], tmp[3], tmp[6], tmp[9]) * scale
+        val sy = absMax(tmp[1], tmp[4], tmp[7], tmp[10]) * scale
+        val sz = absMax(tmp[2], tmp[5], tmp[8], tmp[11]) * scale
+        for (i in 0 until 12 step 3) {
+            if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0.0
+            if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0.0
+            if (abs(tmp[i + 2]) < sz) tmp[i + 2] = 0.0
+        }
+    }
+
+    private fun clamp4x4Relative(tmp: FloatArray, scale: Float = 1e-7f) {
+        // clamp values, which are 1e-7 below the scale -> won't impact anything, and saves space
+        val sx = absMax(tmp[0], tmp[4], tmp[8], tmp[12]) * scale
+        val sy = absMax(tmp[1], tmp[5], tmp[9], tmp[13]) * scale
+        val sz = absMax(tmp[2], tmp[6], tmp[10], tmp[14]) * scale
+        val sw = absMax(tmp[3], tmp[7], tmp[11], tmp[15]) * scale
+        for (i in 0 until 16 step 4) {
+            if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0f
+            if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0f
+            if (abs(tmp[i + 2]) < sz) tmp[i + 2] = 0f
+            if (abs(tmp[i + 3]) < sw) tmp[i + 3] = 0f
+        }
+    }
+
+    private fun clamp4x4Relative(tmp: DoubleArray, scale: Double = 1e-7) {
+        // clamp values, which are 1e-7 below the scale -> won't impact anything, and saves space
+        val sx = absMax(tmp[0], tmp[4], tmp[8], tmp[12]) * scale
+        val sy = absMax(tmp[1], tmp[5], tmp[9], tmp[13]) * scale
+        val sz = absMax(tmp[2], tmp[6], tmp[10], tmp[14]) * scale
+        val sw = absMax(tmp[3], tmp[7], tmp[11], tmp[15]) * scale
+        for (i in 0 until 16 step 4) {
+            if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0.0
+            if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0.0
+            if (abs(tmp[i + 2]) < sz) tmp[i + 2] = 0.0
+            if (abs(tmp[i + 3]) < sw) tmp[i + 3] = 0.0
+        }
+    }
+
     override fun writeMatrix4x4f(name: String, value: Matrix4fc, force: Boolean) {
         writeAttributeStart("m4x4", name)
+        val tmp = tmp16
+        value.get(tmp) // col major
+        clamp4x4Relative(tmp)
         data.append('[')
-        val tmp = FloatArray(16)
-        for (i in tmp.indices) {
+        for (i in 0 until 16 step 4) {
             if (i > 0) data.append(',')
-            append(tmp[i])
+            writeVector4f(tmp[i], tmp[i + 1], tmp[i + 2], tmp[i + 3])
         }
         data.append(']')
     }
 
     override fun writeMatrix3x3d(name: String, value: Matrix3dc, force: Boolean) {
         writeAttributeStart("m3x3d", name)
-        data.append('[')
-        val tmp = DoubleArray(9)
+        val tmp = tmp16d
         value.get(tmp)
-        for (i in tmp.indices) {
+        data.append('[')
+        clamp3x3Relative(tmp)
+        for (i in 0 until 9 step 3) {
             if (i > 0) data.append(',')
-            append(tmp[i])
+            writeVector3d(tmp[i], tmp[i + 1], tmp[i + 2])
         }
         data.append(']')
     }
 
     override fun writeMatrix4x3d(name: String, value: Matrix4x3dc, force: Boolean) {
         writeAttributeStart("m4x3d", name)
+        val tmp = tmp16d
+        value.get(tmp) // col major
+        clamp4x3Relative(tmp)
         data.append('[')
-        val tmp = DoubleArray(12)
-        value.get(tmp)
-        for (i in tmp.indices) {
+        for (i in 0 until 12 step 3) {
             if (i > 0) data.append(',')
-            append(tmp[i])
+            writeVector3d(tmp[i], tmp[i + 1], tmp[i + 2])
         }
         data.append(']')
     }
 
     override fun writeMatrix4x4d(name: String, value: Matrix4dc, force: Boolean) {
         writeAttributeStart("m4x4d", name)
+        val tmp = tmp16d
+        value.get(tmp) // col major
+        clamp4x4Relative(tmp)
         data.append('[')
-        val tmp = DoubleArray(16)
-        value.get(tmp)
-        for (i in tmp.indices) {
+        for (i in 0 until 16 step 4) {
             if (i > 0) data.append(',')
-            append(tmp[i])
+            writeVector4d(tmp[i], tmp[i + 1], tmp[i + 2], tmp[i + 3])
         }
         data.append(']')
     }
@@ -910,12 +998,12 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
             file.writeText(toText(data, beautify))
         }
 
-        /*fun toBuilder(data: ISaveable, beautify: Boolean): StringBuilder2 {
+        fun toBuilder(data: ISaveable, beautify: Boolean): StringBuilder {
             val writer = TextWriter(beautify)
             writer.add(data)
             writer.writeAllInList()
             return writer.data
-        }*/
+        }
 
     }
 

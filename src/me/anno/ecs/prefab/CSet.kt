@@ -1,7 +1,6 @@
 package me.anno.ecs.prefab
 
 import me.anno.io.base.BaseWriter
-import me.anno.utils.LOGGER
 
 class CSet() : Change(5) {
 
@@ -13,6 +12,17 @@ class CSet() : Change(5) {
 
     var name: String? = null
     var value: Any? = null
+
+    /**
+     * shallow copy
+     * */
+    override fun clone(): Change {
+        val clone = CSet()
+        clone.path = path
+        clone.name = name
+        clone.value = value
+        return clone
+    }
 
     override fun save(writer: BaseWriter) {
         super.save(writer)

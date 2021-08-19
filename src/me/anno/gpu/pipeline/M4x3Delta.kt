@@ -8,6 +8,8 @@ import org.joml.Matrix4x3f
 import org.joml.Vector3d
 import org.lwjgl.opengl.GL21
 import org.lwjgl.system.MemoryUtil
+import java.nio.ByteBuffer
+import java.nio.FloatBuffer
 
 object M4x3Delta {
 
@@ -38,7 +40,7 @@ object M4x3Delta {
         b: Matrix4x3d,
         worldScale: Double,
         f: Double,
-        cam: Vector3d
+        pos: Vector3d
     ) {
         val uniformIndex = this[location]
         if (uniformIndex >= 0) {
@@ -59,9 +61,9 @@ object M4x3Delta {
             buffer16.put((Maths.mix(a.m21(), b.m21(), f) * worldScale).toFloat())
             buffer16.put((Maths.mix(a.m22(), b.m22(), f) * worldScale).toFloat())
 
-            buffer16.put(((Maths.mix(a.m30(), b.m30(), f) - cam.x) * worldScale).toFloat())
-            buffer16.put(((Maths.mix(a.m31(), b.m31(), f) - cam.y) * worldScale).toFloat())
-            buffer16.put(((Maths.mix(a.m32(), b.m32(), f) - cam.z) * worldScale).toFloat())
+            buffer16.put(((Maths.mix(a.m30(), b.m30(), f) - pos.x) * worldScale).toFloat())
+            buffer16.put(((Maths.mix(a.m31(), b.m31(), f) - pos.y) * worldScale).toFloat())
+            buffer16.put(((Maths.mix(a.m32(), b.m32(), f) - pos.z) * worldScale).toFloat())
 
             buffer16.position(0)
 
@@ -75,7 +77,7 @@ object M4x3Delta {
      * uploads the transform, minus some offset, to the GPU uniform <location>
      * the delta ensures, that we don't have to calculate high-precision numbers on the GPU
      * */
-    fun Shader.m4x3delta(location: String, m: Matrix4x3d, b: Vector3d, worldScale: Double) {
+    fun Shader.m4x3delta(location: String, m: Matrix4x3d, pos: Vector3d, worldScale: Double) {
         val uniformIndex = this[location]
         if (uniformIndex >= 0) {
 
@@ -95,15 +97,42 @@ object M4x3Delta {
             buffer16.put((m.m21() * worldScale).toFloat())
             buffer16.put((m.m22() * worldScale).toFloat())
 
-            buffer16.put(((m.m30() - b.x) * worldScale).toFloat())
-            buffer16.put(((m.m31() - b.y) * worldScale).toFloat())
-            buffer16.put(((m.m32() - b.z) * worldScale).toFloat())
+            buffer16.put(((m.m30() - pos.x) * worldScale).toFloat())
+            buffer16.put(((m.m31() - pos.y) * worldScale).toFloat())
+            buffer16.put(((m.m32() - pos.z) * worldScale).toFloat())
 
             buffer16.position(0)
 
             GL21.glUniformMatrix4x3fv(uniformIndex, false, buffer16)
 
         }
+    }
+
+
+    /**
+     * uploads the transform, minus some offset, to the GPU uniform <location>
+     * the delta ensures, that we don't have to calculate high-precision numbers on the GPU
+     * */
+    fun Shader.m4x3delta(m: Matrix4x3d, pos: Vector3d, worldScale: Double, buffer16: ByteBuffer) {
+
+        // false = column major, however the labelling of these things is awkward
+        // A_ji, as far, as I can see
+        buffer16.putFloat((m.m00() * worldScale).toFloat())
+        buffer16.putFloat((m.m01() * worldScale).toFloat())
+        buffer16.putFloat((m.m02() * worldScale).toFloat())
+
+        buffer16.putFloat((m.m10() * worldScale).toFloat())
+        buffer16.putFloat((m.m11() * worldScale).toFloat())
+        buffer16.putFloat((m.m12() * worldScale).toFloat())
+
+        buffer16.putFloat((m.m20() * worldScale).toFloat())
+        buffer16.putFloat((m.m21() * worldScale).toFloat())
+        buffer16.putFloat((m.m22() * worldScale).toFloat())
+
+        buffer16.putFloat(((m.m30() - pos.x) * worldScale).toFloat())
+        buffer16.putFloat(((m.m31() - pos.y) * worldScale).toFloat())
+        buffer16.putFloat(((m.m32() - pos.z) * worldScale).toFloat())
+
     }
 
 
@@ -143,7 +172,7 @@ object M4x3Delta {
 
     }
 
-    fun Matrix4f.mul4x3delta(m: Matrix4x3d, b: Vector3d, worldScale: Double): Matrix4f {
+    fun Matrix4f.mul4x3delta(m: Matrix4x3d, pos: Vector3d, worldScale: Double): Matrix4f {
         // false = column major, however the labelling of these things is awkward
         // A_ji, as far, as I can see
         return mul(
@@ -163,15 +192,15 @@ object M4x3Delta {
             (m.m22() * worldScale).toFloat(),
             0f,
 
-            ((m.m30() - b.x) * worldScale).toFloat(),
-            ((m.m31() - b.y) * worldScale).toFloat(),
-            ((m.m32() - b.z) * worldScale).toFloat(),
+            ((m.m30() - pos.x) * worldScale).toFloat(),
+            ((m.m31() - pos.y) * worldScale).toFloat(),
+            ((m.m32() - pos.z) * worldScale).toFloat(),
             1f
 
         )
     }
 
-    fun Matrix4x3f.set4x3delta(m: Matrix4x3d, b: Vector3d, worldScale: Double): Matrix4x3f {
+    fun Matrix4x3f.set4x3delta(m: Matrix4x3d, pos: Vector3d, worldScale: Double): Matrix4x3f {
         // false = column major, however the labelling of these things is awkward
         // A_ji, as far, as I can see
         return set(
@@ -188,9 +217,9 @@ object M4x3Delta {
             (m.m21() * worldScale).toFloat(),
             (m.m22() * worldScale).toFloat(),
 
-            ((m.m30() - b.x) * worldScale).toFloat(),
-            ((m.m31() - b.y) * worldScale).toFloat(),
-            ((m.m32() - b.z) * worldScale).toFloat()
+            ((m.m30() - pos.x) * worldScale).toFloat(),
+            ((m.m31() - pos.y) * worldScale).toFloat(),
+            ((m.m32() - pos.z) * worldScale).toFloat()
 
         )
     }

@@ -64,7 +64,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         if (withExtra) {
             path.add("")
             path.add(-1)
-            path.add(0.toChar())
+            path.add(' ')
         }
         val size = path.size / 3
         val names = Array(size) { path[it * 3] as String }
@@ -96,7 +96,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     }
 
     open fun getIndexOf(child: PrefabSaveable): Int = getChildListByType(getTypeOf(child)).indexOf(child)
-    open fun getTypeOf(child: PrefabSaveable): Char = 0.toChar()
+    open fun getTypeOf(child: PrefabSaveable): Char = ' '
 
     override fun onDestroy() {}
 

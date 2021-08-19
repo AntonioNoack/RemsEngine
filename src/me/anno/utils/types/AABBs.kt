@@ -10,13 +10,44 @@ object AABBs {
     fun AABBd.isEmpty() = minX > maxX
     fun AABBf.isEmpty() = minX > maxX
 
-    fun AABBd.reset(): AABBd {
+    // crazy... why is this not in the library???
+    fun AABBf.set(o: AABBf): AABBf {
+        minX = o.minX
+        minY = o.minY
+        minZ = o.minZ
+        maxX = o.maxX
+        maxY = o.maxY
+        maxZ = o.maxZ
+        return this
+    }
+
+    fun AABBd.set(o: AABBd): AABBd {
+        minX = o.minX
+        minY = o.minY
+        minZ = o.minZ
+        maxX = o.maxX
+        maxY = o.maxY
+        maxZ = o.maxZ
+        return this
+    }
+
+    fun AABBd.clear(): AABBd {
         minX = Double.POSITIVE_INFINITY
         minY = Double.POSITIVE_INFINITY
         minZ = Double.POSITIVE_INFINITY
         maxX = Double.NEGATIVE_INFINITY
         maxY = Double.NEGATIVE_INFINITY
         maxZ = Double.NEGATIVE_INFINITY
+        return this
+    }
+
+    fun AABBd.all(): AABBd {
+        minX = Double.NEGATIVE_INFINITY
+        minY = Double.NEGATIVE_INFINITY
+        minZ = Double.NEGATIVE_INFINITY
+        maxX = Double.POSITIVE_INFINITY
+        maxY = Double.POSITIVE_INFINITY
+        maxZ = Double.POSITIVE_INFINITY
         return this
     }
 

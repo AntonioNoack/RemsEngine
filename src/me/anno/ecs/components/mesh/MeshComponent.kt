@@ -1,9 +1,12 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.ecs.Component
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.shader.Shader
+import me.anno.io.serialization.SerializedProperty
+import me.anno.ui.editor.stacked.Option
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 
@@ -39,7 +42,10 @@ class MeshComponent() : Component() {
         this.mesh = mesh
     }
 
+    @SerializedProperty
     var mesh: Mesh? = null
+
+    var isInstanced = false
 
     var collisionMask: Int = 1
 

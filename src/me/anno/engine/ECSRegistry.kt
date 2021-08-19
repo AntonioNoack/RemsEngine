@@ -3,6 +3,8 @@ package me.anno.engine
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.ScriptComponent
+import me.anno.ecs.components.anim.BoneByBoneAnimation
+import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.anim.Skeleton
 import me.anno.ecs.components.camera.CameraComponent
 import me.anno.ecs.components.collider.*
@@ -16,11 +18,15 @@ import me.anno.ecs.components.physics.Vehicle
 import me.anno.ecs.components.physics.VehicleWheel
 import me.anno.ecs.components.test.RaycastTestComponent
 import me.anno.ecs.components.test.TypeTestComponent
-import me.anno.ecs.prefab.*
+import me.anno.ecs.prefab.CAdd
+import me.anno.ecs.prefab.CSet
+import me.anno.ecs.prefab.ChangeHistory
+import me.anno.ecs.prefab.Prefab
 import me.anno.engine.physics.BulletPhysics
 import me.anno.engine.scene.ScenePrefab
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.files.FileReference
+import me.anno.io.utils.StringMap
 import me.anno.mesh.assimp.Bone
 import me.anno.studio.Build
 
@@ -29,6 +35,8 @@ object ECSRegistry {
     fun init() {
 
         FileReference.register(ScenePrefab)
+
+        registerCustomClass(StringMap())
 
         registerCustomClass(Entity())
         registerCustomClass(Transform())
@@ -64,6 +72,8 @@ object ECSRegistry {
         registerCustomClass(MorphTarget())
         registerCustomClass(Skeleton())
         registerCustomClass(Bone())
+        registerCustomClass(ImportedAnimation())
+        registerCustomClass(BoneByBoneAnimation())
 
         // prefab system
         registerCustomClass(ChangeHistory())

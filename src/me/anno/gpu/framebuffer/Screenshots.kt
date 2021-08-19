@@ -12,6 +12,7 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.OS
+import me.anno.utils.Threads.threadWithName
 import me.anno.utils.files.Files
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11
@@ -134,7 +135,7 @@ object Screenshots {
             GFX.check()
 
             val data = getPixels(renderer)
-            thread {
+            threadWithName("Save Screenshot") {
 
                 val image = BufferedImage(w, h, 1)
 

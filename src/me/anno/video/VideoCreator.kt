@@ -108,7 +108,9 @@ class VideoCreator(
 
         process = builder.start()
         logOutput(null, process.inputStream, true)
-        thread { processOutput(LOGGER, "Video", startTime, fps, totalFrameCount, process.errorStream) }
+        thread(name = "VideoCreatorOutput") {
+            processOutput(LOGGER, "Video", startTime, fps, totalFrameCount, process.errorStream)
+        }
 
         videoOut = process.outputStream.buffered()
 
@@ -137,7 +139,7 @@ class VideoCreator(
 
         GFX.check()
 
-        thread {// offload to other thread
+        thread(name = "FrameDataCopy[$frameIndex]") {// offload to other thread
             try {
                 synchronized(videoOut) {
                     buffer.get(byteArrayBuffer)

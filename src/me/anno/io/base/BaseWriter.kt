@@ -3,6 +3,7 @@ package me.anno.io.base
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
+import me.anno.io.utils.StringMap
 import me.anno.studio.StudioBase
 import org.apache.logging.log4j.LogManager
 import org.joml.*
@@ -99,6 +100,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
         name: String, value: FileReference?, force: Boolean = false,
         workspace: FileReference? = StudioBase.workspace
     )
+
     abstract fun writeFileArray(
         name: String, values: Array<FileReference>, force: Boolean = false,
         workspace: FileReference? = StudioBase.workspace
@@ -301,7 +303,9 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                         is Vector2d -> writeVector2dArray(name, toArray(value), forceSaving)
                         is Vector3d -> writeVector3dArray(name, toArray(value), forceSaving)
                         is Vector4d -> writeVector4dArray(name, toArray(value), forceSaving)
-                        is PrefabSaveable -> writeObjectArray(self, name, toArray(value), forceSaving)
+                        // is PrefabSaveable -> writeObjectArray(self, name, toArray(value), forceSaving)
+                        is ISaveable -> writeObjectArray(self, name, toArray(value), forceSaving)
+                        is FileReference -> writeFileArray(name, toArray(value), forceSaving)
                         else -> throw RuntimeException("Not yet implemented: saving a list of ${sample?.javaClass}")
                     }
                 } // else if is force saving, then this won't work, because of the weak generics in Java :/
@@ -338,12 +342,20 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                             forceSaving
                         )
                         is ISaveable -> writeNullableObjectArray(self, name, value as Array<ISaveable?>, forceSaving)
+                        is FileReference -> writeFileArray(name, cast(value), forceSaving)
 
                         is Array<*> -> TODO("implement reading 2d array, of string or objects")
 
                         else -> throw RuntimeException("Not yet implemented: saving an array of $sample")
                     }
                 } // else if is force saving, then this won't work, because of the weak generics in Java :/
+            }
+            is Map<*, *> -> {// mmh, mediocre solution
+                val map = StringMap()
+                for ((k, v) in value) {
+                    map[k.toString()] = v
+                }
+                writeObject(self, name, map, forceSaving)
             }
             // native arrays
             is BooleanArray -> writeBooleanArray(name, value, forceSaving)
@@ -394,6 +406,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                 } catch (e: NoSuchMethodException) {
                     // e.printStackTrace()
                 }
+                LOGGER.warn("Could not serialize field $name with value $value of class ${value.javaClass}, Serializable")
                 // todo write lists and maps with our tools
                 // todo write default serializables...
                 val bytes0 = ByteArrayOutputStream()
@@ -401,7 +414,6 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                 bytes.writeObject(value)
                 bytes.close()
                 writeByteArray(name, bytes0.toByteArray())
-                LOGGER.warn("Could not serialize field $name with value $value of class ${value.javaClass}, Serializable")
             }
             else -> {
                 throw RuntimeException("todo implement saving an $value of class ${value.javaClass}, maybe it needs to be me.anno.io.[I]Saveable?")

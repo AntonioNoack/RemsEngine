@@ -2,7 +2,7 @@ package me.anno.utils.io
 
 import me.anno.utils.Threads.threadWithName
 import java.io.InputStream
-import kotlin.concurrent.thread
+import java.io.OutputStream
 
 object Streams {
 
@@ -19,5 +19,13 @@ object Streams {
     }
 
     fun InputStream.readText() = String(readBytes())
+
+    fun InputStream.copy(other: OutputStream) {
+        use { input ->
+            other.use { output ->
+                input.copyTo(output)
+            }
+        }
+    }
 
 }

@@ -1,21 +1,22 @@
-package me.anno.io.files
+package me.anno.io.zip
 
 import com.github.junrar.Archive
 import com.github.junrar.Volume
 import com.github.junrar.exception.RarException
 import com.github.junrar.io.IReadOnlyAccess
 import com.github.junrar.rarfile.FileHeader
+import me.anno.io.files.FileFileRef
+import me.anno.io.files.FileReference
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
 import javax.naming.OperationNotSupportedException
 
-class ZipFileRar(
+class InnerRarFile(
     absolutePath: String,
     relativePath: String,
-    isDirectory: Boolean,
     _parent: FileReference
-) : ZipFileBase(absolutePath, relativePath, isDirectory, _parent) {
+) : InnerFile(absolutePath, relativePath, false, _parent) {
 
     override fun getInputStream(): InputStream {
         throw OperationNotSupportedException()
@@ -83,13 +84,8 @@ class ZipFileRar(
         fun createZipRegistryRar(
             zipFileLocation: FileReference,
             getStream: () -> Archive
-        ): ZipFileRar {
-            val registry = HashMap<String, ZipFileRar>()
-            val file = ZipFileRar(
-                zipFileLocation.absolutePath, "", true,
-                zipFileLocation.getParent() ?: zipFileLocation
-            )
-            registry[file.relativePath] = file
+        ): InnerFolder {
+            val (file, registry) = createMainFolder(zipFileLocation)
             var hasReadEntry = false
             var e: Exception? = null
             try {
@@ -118,13 +114,16 @@ class ZipFileRar(
             zipFileLocation: String,
             archive: Archive,
             header: FileHeader,
-            registry: HashMap<String, ZipFileRar>
-        ): ZipFileRar {
+            registry: HashMap<String, InnerFile>
+        ): InnerFile {
             val (parent, path) = ZipCache.splitParent(header.fileNameString)
             val file = registry.getOrPut(path) {
-                ZipFileRar("$zipFileLocation/$path", path, header.isDirectory,
-                    registry.getOrPut(parent) { createFolderEntryRar(zipFileLocation, parent, registry) }
-                )
+                val parent2 = registry.getOrPut(parent) { createFolderEntryRar(zipFileLocation, parent, registry) }
+                if (header.isDirectory) {
+                    InnerFolder("$zipFileLocation/$path", path, parent2)
+                } else {
+                    InnerRarFile("$zipFileLocation/$path", path, parent2)
+                }
             }
             file.lastModified = header.mTime?.time ?: 0L
             file.lastAccessed = header.aTime?.time ?: 0L
@@ -147,14 +146,12 @@ class ZipFileRar(
         fun createFolderEntryRar(
             zipFileLocation: String,
             entry: String,
-            registry: HashMap<String, ZipFileRar>
-        ): ZipFileRar {
+            registry: HashMap<String, InnerFile>
+        ): InnerFile {
             val (parent, path) = ZipCache.splitParent(entry)
             val file = registry.getOrPut(path) {
-                ZipFileRar(
-                    "$zipFileLocation/$path", path, true,
-                    registry.getOrPut(parent) { createFolderEntryRar(zipFileLocation, parent, registry) }
-                )
+                val parent2 = registry.getOrPut(parent) { createFolderEntryRar(zipFileLocation, parent, registry) }
+                InnerFolder("$zipFileLocation/$path", path, parent2)
             }
             file.lastModified = 0L
             file.size = 0

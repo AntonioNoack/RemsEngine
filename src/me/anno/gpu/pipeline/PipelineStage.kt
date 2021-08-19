@@ -13,6 +13,9 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.shaderColor
 import me.anno.gpu.RenderState
 import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeType
+import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.pipeline.M4x3Delta.buffer16x256
 import me.anno.gpu.pipeline.M4x3Delta.m4x3delta
 import me.anno.gpu.shader.BaseShader
@@ -20,10 +23,13 @@ import me.anno.gpu.shader.Shader
 import me.anno.input.Input.isKeyDown
 import me.anno.io.Saveable
 import me.anno.utils.Maths.clamp
-import org.joml.Matrix3f
-import org.joml.Matrix4fc
-import org.joml.Matrix4x3d
-import org.joml.Vector3d
+import me.anno.utils.Maths.min
+import me.anno.utils.structures.maps.KeyPairMap
+import me.anno.utils.types.AABBs.all
+import me.anno.utils.types.AABBs.clear
+import me.anno.utils.types.AABBs.transformUnion
+import org.joml.*
+import org.lwjgl.opengl.GL15.GL_DYNAMIC_DRAW
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL21
 
@@ -44,17 +50,27 @@ class PipelineStage(
         val defaultMaterial = Material()
         val lastMaterial = HashMap<Shader, Material>(64)
         private val tmp3x3 = Matrix3f()
-    }
 
-    // todo what is not sorted could be collected here, and then be drawn using instances
-    // this ofc only works well, if we have limited lights
-    // or we would need light groups
-    val meshInstances = HashMap<Mesh, ArrayList<DrawRequest>>()
+        // is rotation, position and scale enough?...
+        // todo inverse transform for lights as well
+        // todo only if it is lights being drawn ofc
+        val instancedAttributes = listOf(
+            Attribute("instanceTrans0", 4),
+            Attribute("instanceTrans1", 4),
+            Attribute("instanceTrans2", 4),
+            Attribute("instanceTint", AttributeType.UINT8_NORM, 4)
+        )
+        val instancedBatchSize = 1024
+        val instanceBuffer = StaticBuffer(instancedAttributes, instancedBatchSize, GL_DYNAMIC_DRAW)
+        val tmpAABBd = AABBd()
+    }
 
     var nextInsertIndex = 0
     val drawRequests = ArrayList<DrawRequest>()
 
     val size get() = nextInsertIndex
+
+    val instancedMeshes = KeyPairMap<Mesh, Int, InstancedStack>()
 
     fun bindDraw(pipeline: Pipeline, cameraMatrix: Matrix4fc, cameraPosition: Vector3d, worldScale: Double) {
         RenderState.blendMode.use(blendMode) {
@@ -111,20 +127,26 @@ class PipelineStage(
 
     }
 
+    fun setupLights(
+        pipeline: Pipeline, shader: Shader,
+        cameraPosition: Vector3d, worldScale: Double,
+        request: DrawRequest
+    ) {
+        setupLights(pipeline, shader, cameraPosition, worldScale, request.entity.aabb)
+    }
+
     // todo only if this requires lights ofc...
     fun setupLights(
-        pipeline: Pipeline,
-        shader: Shader,
-        cameraPosition: Vector3d,
-        worldScale: Double,
-        request: DrawRequest
+        pipeline: Pipeline, shader: Shader,
+        cameraPosition: Vector3d, worldScale: Double,
+        aabb: AABBd
     ) {
         val numberOfLightsPtr = shader["numberOfLights"]
         // println("#0: $numberOfLightsPtr")
         if (numberOfLightsPtr < 0) return
         val maxNumberOfLights = RenderView.MAX_LIGHTS
         val lights = pipeline.lights
-        val numberOfLights = pipeline.getClosestRelevantNLights(request.entity.aabb, maxNumberOfLights, lights)
+        val numberOfLights = pipeline.getClosestRelevantNLights(aabb, maxNumberOfLights, lights)
         shader.v1(numberOfLightsPtr, numberOfLights)
         if (numberOfLights > 0) {
             val invLightMatrices = shader["invLightMatrices"]
@@ -202,6 +224,18 @@ class PipelineStage(
         }
     }
 
+    fun initShader(shader: Shader, cameraMatrix: Matrix4fc, pipeline: Pipeline, visualizeLightCount: Int) {
+        // information for the shader, which is material agnostic
+        // add all things, the shader needs to know, e.g. light direction, strength, ...
+        // (for the cheap shaders, which are not deferred)
+        shader.m4x4("transform", cameraMatrix)
+        shader.v3("ambientLight", pipeline.ambient)
+        shader.v1("visualizeLightCount", visualizeLightCount)
+        // shader.m4x4("cameraMatrix", cameraMatrix)
+        // shader.m4x3("worldTransform", ) // todo world transform could be used for procedural shaders...
+        // todo local transform could be used for procedural shaders as well
+    }
+
     fun draw(pipeline: Pipeline, cameraMatrix: Matrix4fc, cameraPosition: Vector3d, worldScale: Double) {
 
         // the dotViewDir may be easier to calculate, and technically more correct, but it has one major flaw:
@@ -242,6 +276,9 @@ class PipelineStage(
 
         pipeline.lights.fill(null)
 
+        val visualizeLightCount = if (isKeyDown('t')) 1 else 0
+
+        var previousMaterial2: Material? = null
         for (index in 0 until nextInsertIndex) {
 
             // gl_Position = cameraMatrix * v4(localTransform * v4(pos,1),1)
@@ -255,26 +292,15 @@ class PipelineStage(
             val transform = entity.transform
 
             val materialIndex = request.materialIndex
-            val material = mesh.materials.getOrNull(materialIndex) ?: defaultMaterial
-            val baseShader = material.shader ?: defaultShader
+            val material = getMaterial(mesh, materialIndex)
+            val shader = getShader(material)
             val renderer = request.component
 
-            // mesh.draw(shader, material)
-            val shader = baseShader.value
             shader.use()
 
             val previousMaterial = lastMaterial.put(shader, material)
-
             if (previousMaterial == null) {
-                // information for the shader, which is material agnostic
-                // add all things, the shader needs to know, e.g. light direction, strength, ...
-                // (for the cheap shaders, which are not deferred)
-                shader.m4x4("transform", cameraMatrix)
-                shader.v3("ambientLight", pipeline.ambient)
-                shader.v1("visualizeLightCount", if (isKeyDown('t')) 1 else 0)
-                // shader.m4x4("cameraMatrix", cameraMatrix)
-                // shader.m4x3("worldTransform", ) // todo world transform could be used for procedural shaders...
-                // todo local transform could be used for procedural shaders as well
+                initShader(shader, cameraMatrix, pipeline, visualizeLightCount)
             }
 
             if (hasLights) {
@@ -287,10 +313,11 @@ class PipelineStage(
 
             setupLocalTransform(shader, transform, cameraPosition, worldScale, time)
 
-            if (previousMaterial != material) {
+            if (previousMaterial != material || previousMaterial2 != material) {
                 // bind textures for the material
                 // bind all default properties, e.g. colors, roughness, metallic, clear coat/sheen, ...
                 material.defineShader(shader)
+                previousMaterial2 = material
             }
 
             shaderColor(shader, "tint", -1)
@@ -311,6 +338,58 @@ class PipelineStage(
 
         }
 
+        // draw instanced meshes
+        val batchSize = instancedBatchSize
+        val buffer = instanceBuffer
+        val aabb = tmpAABBd
+        RenderState.instanced.use(true){
+            for ((mesh, list) in instancedMeshes.values) {
+                for ((materialIndex, values) in list) {
+                    if (values.isNotEmpty()) {
+                        mesh.ensureBuffer()
+                        val localAABB = mesh.aabb
+                        val material = getMaterial(mesh, materialIndex)
+                        val shader = getShader(material)
+                        // update material and light properties
+                        val previousMaterial = lastMaterial.put(shader, material)
+                        if (previousMaterial == null) {
+                            initShader(shader, cameraMatrix, pipeline, visualizeLightCount)
+                        }
+                        if (previousMaterial == null && !needsLightUpdateForEveryMesh) {
+                            aabb.all()// todo only the view cone
+                            setupLights(pipeline, shader, cameraPosition, worldScale, aabb)
+                        }
+                        material.defineShader(shader)
+                        shader.v1("hasAnimation", 0f)
+                        // draw them in batches of size <= batchSize
+                        val size = values.size
+                        for (i in 0 until size step batchSize) {
+                            buffer.clear()
+                            val nioBuffer = buffer.nioBuffer!!
+                            // fill the data
+                            val trs = values.transforms
+                            val ids = values.clickIds
+                            for (j in i until min(size, i + batchSize)) {
+                                val t = trs[i]!!.drawTransform
+                                shader.m4x3delta(t, cameraPosition, worldScale, nioBuffer)
+                                buffer.putInt(ids[i])
+                            }
+                            if (needsLightUpdateForEveryMesh) {
+                                // calculate the lights for each group
+                                // todo cluster them cheaply?
+                                aabb.clear()
+                                for (j in i until min(size, i + batchSize)) {
+                                    val t = trs[i]!!.drawTransform
+                                    localAABB.transformUnion(t, aabb)
+                                }
+                                setupLights(pipeline, shader, cameraPosition, worldScale, aabb)
+                            }
+                            mesh.drawInstanced(shader, materialIndex, buffer)
+                        }
+                    }
+                }
+            }
+        }
         lastMaterial.clear()
 
     }
@@ -321,6 +400,11 @@ class PipelineStage(
             drawRequests.clear()
         }
         nextInsertIndex = 0
+        for ((_, values) in instancedMeshes.values) {
+            for ((_, value) in values) {
+                value.clear()
+            }
+        }
     }
 
     fun add(component: Component, mesh: Mesh, entity: Entity, materialIndex: Int, clickId: Int) {
@@ -336,6 +420,20 @@ class PipelineStage(
             request.clickId = clickId
         }
         nextInsertIndex++
+    }
+
+    fun addInstanced(mesh: Mesh, entity: Entity, materialIndex: Int, clickId: Int) {
+        val stack = instancedMeshes.getOrPut(mesh, materialIndex) { _, _ -> InstancedStack() }
+        // instanced animations not supported (entity not saved); they would need to be the same, and that's probably very rare...
+        stack.add(entity.transform, clickId)
+    }
+
+    fun getMaterial(mesh: Mesh, index: Int): Material {
+        return mesh.materials.getOrNull(index) ?: defaultMaterial
+    }
+
+    fun getShader(material: Material): Shader {
+        return (material.shader ?: defaultShader).value
     }
 
     override val className: String = "PipelineStage"

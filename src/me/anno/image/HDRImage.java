@@ -32,22 +32,26 @@ public class HDRImage extends Image {
     }
 
     public HDRImage(InputStream input, boolean useNioBuffer) throws IOException {
-        try (InputStream in = input instanceof BufferedInputStream ? input : new BufferedInputStream(input)) {
+        try (InputStream in = optimizeStream(input)) {
             read(in, useNioBuffer);
         }
     }
 
     public HDRImage(FileReference file, boolean useNioBuffer) throws IOException {
-        try (InputStream in = new BufferedInputStream(file.inputStream())) {
+        try (InputStream in = optimizeStream(file.inputStream())) {
             read(in, useNioBuffer);
-            in.close();
         }
     }
 
     public HDRImage(File file, boolean useNioBuffer) throws IOException {
-        try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
+        try (InputStream in = optimizeStream(new FileInputStream(file))) {
             read(in, useNioBuffer);
         }
+    }
+
+    public InputStream optimizeStream(InputStream input) {
+        return input instanceof BufferedInputStream ||
+                input instanceof ByteArrayInputStream ? input : new BufferedInputStream(input);
     }
 
     @Override

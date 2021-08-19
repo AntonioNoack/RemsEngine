@@ -8,43 +8,37 @@ import me.anno.utils.files.LocalFile.toGlobalFile
 
 class CAdd() : Change(2) {
 
-    constructor(path: Path, type: Char, className: String, uuid: String, prefab: FileReference = InvalidRef) : this() {
+    constructor(path: Path, type: Char, className: String, name: String, prefab: FileReference = InvalidRef) : this() {
         this.path = path
         this.type = type
         this.clazzName = className
         this.prefab = prefab
-        this.uuid = uuid
+        this.name = name
     }
-
-    /*constructor(type: String, prefab: FileReference) : this(type) {
-        this.prefab = prefab
-    }
-
-    constructor(className: String) : this() {
-        this.clazzName = className
-    }
-
-    constructor(path: IntArray, type: String) : this(Path(path), type)
-
-    constructor(path: Path, className: String) : this() {
-        this.clazzName = className
-        this.path = path
-    }*/
 
     fun getChildPath(index: Int): Path {
-        return path!!.added(uuid!!, index, type)
+        return path!!.added(name!!, index, type)
     }
 
-    var type: Char = 0.toChar()
+    var type: Char = ' '
     var clazzName: String? = null
-    var uuid: String? = null
+    var name: String? = null
     var prefab: FileReference = InvalidRef
 
-    // name is not used -> could be used as type...
+    override fun clone(): Change {
+        val clone = CAdd()
+        clone.path = path
+        clone.type = type
+        clone.clazzName = clazzName
+        clone.prefab = prefab
+        clone.name = name
+        return clone
+    }
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeChar("type", type)
+        writer.writeString("name", name)
         writer.writeString("className", clazzName)
         writer.writeString("prefab", prefab.toString())
     }
@@ -60,6 +54,7 @@ class CAdd() : Change(2) {
         when (name) {
             "className" -> clazzName = value
             "prefab" -> prefab = value?.toGlobalFile() ?: InvalidRef
+            "name" -> this.name = value ?: return
             else -> super.readString(name, value)
         }
     }
@@ -75,8 +70,7 @@ class CAdd() : Change(2) {
         // LOGGER.info("adding $clazzName with type $type")
         val loadedInstance = Prefab.loadPrefab(prefab)?.createInstance()
         val newInstance = loadedInstance ?: ISaveable.createOrNull(clazzName ?: return) as PrefabSaveable
-        val uuid = uuid
-        if (uuid != null) newInstance.name = uuid
+        val name = name; if (name != null) newInstance.name = name
         instance.addChildByType(instance.getChildListByType(type).size, type, newInstance)
     }
 

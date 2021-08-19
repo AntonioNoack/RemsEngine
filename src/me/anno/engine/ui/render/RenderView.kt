@@ -4,7 +4,6 @@ import me.anno.config.DefaultStyle.white4
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.CameraComponent
-import me.anno.ecs.components.light.LightType
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.RendererComponent
 import me.anno.ecs.components.player.LocalPlayer
@@ -13,17 +12,21 @@ import me.anno.engine.debug.DebugShapes.debugLines
 import me.anno.engine.debug.DebugShapes.debugPoints
 import me.anno.engine.debug.DebugShapes.debugRays
 import me.anno.engine.pbr.DeferredRenderer
-import me.anno.engine.pbr.PBRLibraryGLTF
 import me.anno.engine.ui.ECSTypeLibrary
 import me.anno.engine.ui.ECSTypeLibrary.Companion.lastSelection
 import me.anno.engine.ui.render.DrawAABB.drawAABB
+import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.MovingGrid.drawGrid
 import me.anno.engine.ui.render.Outlines.drawOutline
+import me.anno.engine.ui.render.Renderers.attributeRenderers
+import me.anno.engine.ui.render.Renderers.baseRenderer
+import me.anno.engine.ui.render.Renderers.cheapRenderer
+import me.anno.engine.ui.render.Renderers.overdrawRenderer
+import me.anno.engine.ui.render.Renderers.uiRenderer
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.RenderState
 import me.anno.gpu.RenderState.useFrame
-import me.anno.gpu.ShaderLib.pbrModelShader
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.deferred.DeferredLayerType
@@ -43,7 +46,6 @@ import me.anno.gpu.shader.BaseShader.Companion.lineGeometry
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.depthRenderer
 import me.anno.gpu.shader.Renderer.Companion.idRenderer
-import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.input.Input
@@ -51,7 +53,6 @@ import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
 import me.anno.objects.Transform
 import me.anno.studio.Build
-import me.anno.studio.rems.Scene
 import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
 import me.anno.utils.Clock
@@ -63,8 +64,17 @@ import org.joml.*
 import org.joml.Math.toRadians
 import org.lwjgl.opengl.GL20.GL_LOWER_LEFT
 import org.lwjgl.opengl.GL45.*
-import kotlin.math.min
 
+// todo shadows
+// todo usable editing of materials: own color + indent + super material selector
+// todo + add & remove materials
+
+// todo import unity scenes
+
+// todo optional, expensive cubic texture filtering?
+
+// todo drag assets into the scene
+// todo drag materials onto mesh components
 
 // todo optional blender like controls?
 
@@ -130,7 +140,7 @@ class RenderView(
     var rotation = Vector3d(-20.0, 0.0, 0.0)
 
     init {
-        editorCameraNode.transform.localRotation = rotation.toQuaternionDegrees()
+        updateTransform()
     }
 
     var movement = Vector3d()
@@ -143,160 +153,21 @@ class RenderView(
 
     val showOverdraw get() = Input.isKeyDown('n')
 
-    val overdrawRenderer = object : Renderer(true, ShaderPlus.DrawMode.COLOR) {
-        override fun getPostProcessing(): String {
-            return "void main(){\n" +
-                    "   finalColor = vec3(0.125);\n" +
-                    "   finalAlpha = 1.0;\n" +
-                    "}\n"
-        }
-    }
+    fun updateTransform() {
 
-    val cheapRenderer = object : Renderer(false, ShaderPlus.DrawMode.COLOR) {
-        override fun getPostProcessing(): String {
-            return "void main(){\n" +
-                    "   finalColor = vec3(0.0);\n" +
-                    "}"
-        }
-    }
+        val radius = radius
+        val camera = editorCamera
+        val cameraNode = editorCameraNode
+        cameraNode.transform.localRotation = rotation.toQuaternionDegrees()
+        camera.far = 1e300
+        camera.near = if (Input.isKeyDown('r')) radius * 1e-2 else radius * 1e-10
 
-    val baseRenderer = object : Renderer(false, ShaderPlus.DrawMode.COLOR) {
-        override fun getPostProcessing(): String {
-            return "" +
-                    // define all light positions, radii, types, and colors
-                    // use the lights to illuminate the model
-                    // light data
-                    "uniform vec3 ambientLight;\n" +
-                    "uniform int numberOfLights;\n" +
-                    "uniform mat4x3 invLightMatrices[$MAX_LIGHTS];\n" +
-                    "uniform vec4 lightData0[$MAX_LIGHTS];\n" +
-                    "uniform vec4 lightData1[$MAX_LIGHTS];\n" +
-                    "uniform int visualizeLightCount;\n" +
-                    "#define M_PI 3.141592653589793\n" +
-                    PBRLibraryGLTF.specularBRDFv2NoDiv +
-                    Scene.reinhardToneMapping +
-                    Scene.noiseFunc +
-                    "void main(){\n" +
-                    // a try of depth dithering, which can be used for plants, but is really expensive...
-                    // "   gl_FragDepth = 1.0/(1.0+zDistance) * (1.0 + 0.001 * random(finalPosition.xy));\n" +
-                    // shared pbr data
-                    "   vec3 V = normalize(-finalPosition);\n" +
-                    // light calculations
-                    // "   vec3 lightSum = ambientLight;\n" +
-                    "   vec3 specularBRDF = ambientLight, diffuseLight = ambientLight;\n" +
-                    "   vec3 diffuseColor = finalColor * (1.0 - finalMetallic);\n" +
-                    "   vec3 specularColor = finalColor * finalMetallic;\n" +
-                    "   float lightCount = 0;\n" +
-                    "   bool hasSpecular = dot(specularColor,vec3(1.0)) > 0.001;\n" +
-                    "   bool hasDiffuse = dot(diffuseColor,vec3(1.0)) > 0.001;\n" +
-                    "   if(hasDiffuse || hasSpecular) for(int i=0;i<numberOfLights;i++){\n" +
-                    "       mat4x3 WStoLightSpace = invLightMatrices[i];\n" +
-                    "       vec3 dir = invLightMatrices[i] * vec4(finalPosition,1.0);\n" + // local coordinates for falloff
-                    //"       if(!hasSpecular && dot(dir,dir) >= 1.0) continue;\n" +
-                    "       vec4 data0 = lightData0[i];\n" +
-                    "       vec4 data1 = lightData1[i];\n" +
-                    "       vec3 lightColor = data0.rgb;\n" +
-                    "       int lightType = int(data0.a);\n" +
-                    "       vec3 lightPosition, lightDirWS, localNormal, effectiveLightColor, effectiveSpecular, effectiveDiffuse;\n" +
-                    "       localNormal = normalize(WStoLightSpace * vec4(finalNormal,0.0));\n" +
-                    "       float NdotL;\n" + // normal dot light
-                    // local coordinates of the point in the light "cone"
-                    "       switch(lightType){\n" +
-                    LightType.values().joinToString("") {
-                        "case ${it.id}:\n" +
-                                when (it) {
-                                    LightType.DIRECTIONAL -> {
-                                        "" +
-                                                "NdotL = localNormal.z;\n" + // dot(lightDirWS, globalNormal) = dot(lightDirLS, localNormal)
-                                                // inv(W->L) * vec4(0,0,1,0) =
-                                                // transpose(m3x3(W->L)) * vec3(0,0,1)
-                                                "lightDirWS = normalize(vec3(WStoLightSpace[0][2],WStoLightSpace[1][2],WStoLightSpace[2][2]));\n" +
-                                                "effectiveDiffuse = lightColor * NdotL;\n" +
-                                                "effectiveSpecular = lightColor;\n"
-                                    }
-                                    LightType.POINT_LIGHT -> {
-                                        "" +
-                                                "float lightRadius = data1.a;\n" +
-                                                "lightPosition = data1.rgb;\n" +
-                                                // when light radius > 0, then adjust the light direction such that it looks as if the light was a sphere
-                                                "lightDirWS = normalize(lightPosition - finalPosition);\n" +
-                                                "if(lightRadius > 0.0){\n" +
-                                                // todo effect is much more visible in the diffuse part
-                                                // it's fine for small increased, but we wouldn't really use them...
-                                                // should be more visible in the specular case...
-                                                // in the ideal case, we move the light such that it best aligns the sphere...
-                                                "   vec3 idealLightDirWS = normalize(reflect(finalPosition, finalNormal));\n" +
-                                                "   lightDirWS = normalize(mix(lightDirWS, idealLightDirWS, clamp(lightRadius/(length(lightPosition-finalPosition)),0,1)));\n" +
-                                                "}\n" +
-                                                "NdotL = dot(lightDirWS, finalNormal);\n" +
-                                                "effectiveDiffuse = lightColor * NdotL * ${it.falloff};\n" +
-                                                "dir *= 0.2;\n" + // less falloff by a factor of 5,
-                                                // because specular light is more directed and therefore reached farther
-                                                "effectiveSpecular = lightColor * ${it.falloff};\n"
-                                    }
-                                    LightType.SPOT_LIGHT -> {
-                                        "" +
-                                                "lightPosition = data1.rgb;\n" +
-                                                "lightDirWS = normalize(lightPosition - finalPosition);\n" +
-                                                "NdotL = dot(lightDirWS, finalNormal);\n" +
-                                                "float coneAngle = data1.a;\n" +
-                                                "effectiveDiffuse = lightColor * NdotL * ${it.falloff};\n" +
-                                                "dir *= 0.2;\n" + // less falloff by a factor of 5,
-                                                // because specular light is more directed and therefore reached farther
-                                                "effectiveSpecular = lightColor * ${it.falloff};\n"
-                                    }
-                                } +
-                                "break;\n"
-                    } +
-                    "       }\n" +
-                    "       if(dot(effectiveSpecular, vec3(NdotL)) > ${0.5 / 255.0}){\n" +
-                    "           if(hasSpecular){\n" +
-                    "               vec3 H = normalize(V + lightDirWS);\n" +
-                    "               specularBRDF += effectiveSpecular * computeSpecularBRDF(specularColor, finalRoughness, V, finalNormal, lightDirWS, NdotL, H);" +
-                    "           }\n" +
-                    "           diffuseLight += effectiveDiffuse;\n" +
-                    "           lightCount++;\n" +
-                    "       }\n" +
-                    "   }\n" +
-                    "   finalColor = reinhard(visualizeLightCount > 0 ? vec3(lightCount * 0.125) :" +
-                    "       diffuseColor * diffuseLight + specularColor * specularBRDF);\n" +
-                    "   " +
-                    "   finalColor += finalEmissive;\n" +
-                    // banding prevention
-                    // -0.5, so we don't destroy blacks on OLEDs
-                    "   finalColor -= random(uv) * ${1.0 / 255.0};\n" +
-                    "}"
-        }
-    }
+        val rotation = cameraNode.transform.localRotation
+        cameraNode.transform.localPosition = Vector3d(position)
+            .add(rotation.transform(Vector3d(0.0, 0.0, radius)))
+        cameraNode.validateTransforms()
 
-    val uiRenderer = object : Renderer(false, ShaderPlus.DrawMode.COLOR) {
-        override fun getPostProcessing(): String {
-            return "" +
-                    "void main(){\n" +
-                    "   finalColor *= 0.6 - 0.4 * normalize(finalNormal).x;\n" +
-                    "   finalColor += finalEmissive;\n" +
-                    "}"
-        }
     }
-
-    val attributeRenderers: List<Renderer> = DeferredLayerType.values().run { toList().subList(0, min(size, 9)) }
-        .map {
-            object : Renderer(false, ShaderPlus.DrawMode.COLOR) {
-                override fun getPostProcessing(): String {
-                    return "" +
-                            "void main(){\n" +
-                            "   finalColor = ${
-                                when (it.dimensions) {
-                                    1 -> "vec3(${it.glslName}${it.map01})"
-                                    2 -> "vec3(${it.glslName}${it.map01},1)"
-                                    3 -> "(${it.glslName}${it.map01})"
-                                    4 -> "(${it.glslName}${it.map01}).rgb"
-                                    else -> ""
-                                }
-                            };\n}"
-                }
-            }
-        }
 
     override fun tickUpdate() {
         super.tickUpdate()
@@ -359,10 +230,7 @@ class RenderView(
         val camera = localPlayer?.camera?.currentCamera ?: editorCamera
         if (localPlayer == null) {
             // todo calculate camera location
-            val rotation = editorCameraNode.transform.localRotation
-            editorCameraNode.transform.localPosition =
-                Vector3d(position).add(rotation.transform(Vector3d(0.0, 0.0, radius)))
-            editorCameraNode.validateTransforms()
+            updateTransform()
         }
 
         val showIds = Input.isKeyDown('g')
@@ -379,7 +247,7 @@ class RenderView(
 
         val renderer = when {
             showOverdraw -> overdrawRenderer
-            showIds -> Renderer.idRenderer
+            showIds -> idRenderer
             showSpecialBuffer -> attributeRenderers[selectedAttribute]
             useDeferredRendering -> renderer
             else -> baseRenderer
@@ -476,9 +344,8 @@ class RenderView(
 
     fun resolveClick(
         px: Float,
-        py: Float,
-        callback: (entity: Entity?, component: Component?) -> Unit
-    ) {
+        py: Float
+    ): Pair<Entity?, Component?> {
 
         // pipeline should already be filled
         val camera = editorCamera
@@ -505,7 +372,7 @@ class RenderView(
         // val ids2 = world.getComponentsInChildren(MeshComponent::class, false).map { it.clickId }
         // println(ids2.joinToString())
         // println(clickedId in ids2)
-        callback(clicked as? Entity, clicked as? Component)
+        return Pair(clicked as? Entity, clicked as? Component)
 
     }
 

@@ -18,6 +18,7 @@ import me.anno.studio.cli.CommandLines.parseDouble
 import me.anno.studio.cli.CommandLines.parseInt
 import me.anno.studio.project.Project
 import me.anno.studio.rems.RemsConfig
+import me.anno.studio.rems.RemsRegistry
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.Rendering
 import me.anno.utils.Sleep.sleepABit
@@ -35,6 +36,7 @@ object RemsCLI {
 
     @JvmStatic
     fun main(args: Array<String>) {
+        RemsRegistry.init()
         val options = Options()
         options.addOption("o", "output", true, "output file")
         options.addOption("i", "input", true, "scene file")

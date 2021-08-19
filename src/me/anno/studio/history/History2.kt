@@ -86,6 +86,10 @@ abstract class History2<V> : Saveable() {
     override fun readSomething(name: String, value: Any?) {
         when (name) {
             "state" -> states.add(filter(value) ?: return)
+            "states" -> {
+                states.clear()
+                states.addAll((value as Array<*>).mapNotNull { filter(it) })
+            }
             else -> super.readSomething(name, value)
         }
     }
@@ -94,9 +98,10 @@ abstract class History2<V> : Saveable() {
         super.save(writer)
         writer.writeInt("nextInsertIndex", nextInsertIndex)
         synchronized(states) {
-            for (state in states) {
+            /*for (state in states) {
                 writer.writeSomething(null, "state", state, true)
-            }
+            }*/
+            writer.writeSomething(null, "states", states, true)
         }
     }
 

@@ -183,9 +183,9 @@ object StudioActions {
         keyMap["SceneView.left.p.${Modifiers[false, true]}"] = "MoveObjectAlternate"
 
         for (i in 0 until 10) {
-            keyMap["SceneView.$i.down"] = "Cam$i"
+            // keyMap["SceneView.$i.down"] = "Cam$i"
             keyMap["SceneView.numpad$i.down"] = "Cam$i"
-            keyMap["SceneView.$i.down.${Modifiers[true, false]}"] = "Cam$i"
+            // keyMap["SceneView.$i.down.${Modifiers[true, false]}"] = "Cam$i"
             keyMap["SceneView.numpad$i.down.${Modifiers[true, false]}"] = "Cam$i"
         }
 
@@ -196,9 +196,9 @@ object StudioActions {
         keyMap["SceneView.q.p"] = "MoveDown"
         keyMap["SceneView.e.p"] = "MoveUp"
         keyMap["SceneView.r.p"] = "SetMode(MOVE)"
-        keyMap["SceneView.t.p"] = "SetMode(SCALE)"
-        keyMap["SceneView.z.p"] = "SetMode(ROTATE)"
-        keyMap["SceneView.y.p"] = "SetMode(ROTATE)"
+        keyMap["SceneView.t.p"] = "SetMode(ROTATE)"
+        keyMap["SceneView.z.p"] = "SetMode(SCALE)"
+        keyMap["SceneView.y.p"] = "SetMode(SCALE)"
 
         keyMap["PureTextInputML.delete.typed"] = "DeleteAfter"
         keyMap["PureTextInputML.backspace.typed"] = "DeleteBefore"

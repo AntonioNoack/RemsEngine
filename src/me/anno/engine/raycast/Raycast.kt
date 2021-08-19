@@ -4,7 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.utils.types.AABBs.reset
+import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.AABBs.set
 import me.anno.utils.types.AABBs.testLineAABB
 import me.anno.utils.types.AABBs.transformAABB
@@ -304,7 +304,7 @@ object Raycast {
             val x = 1e31 * Math.random()
             println(x)
 
-            aabb.reset()
+            aabb.clear()
             aabb.union(x * (1 - f), y * (1 - f), z * (1 - f))
             aabb.union(x * (1 + f), y * (1 + f), z * (1 + f))
 

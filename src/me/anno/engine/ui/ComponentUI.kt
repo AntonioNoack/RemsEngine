@@ -27,6 +27,8 @@ import me.anno.ecs.annotations.Range.Companion.minUShort
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.IProperty
 import me.anno.io.ISaveable
+import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.language.translation.NameDesc
 import me.anno.objects.inspectable.Inspectable
 import me.anno.ui.base.Panel
@@ -130,6 +132,7 @@ object ComponentUI {
 
             is Inspectable -> "Inspectable"
             is PrefabSaveable -> "PrefabSaveable"
+            is FileReference -> "FileReference"
 
             // todo edit native arrays (byte/short/int/float/...) as images
 
@@ -601,6 +604,20 @@ object ComponentUI {
                 }
             }
 
+            "File", "FileReference", "InvalidReference" -> {
+                value as FileReference
+                return FileInput(title, style, value).apply {
+                    property.init(this)
+                    setResetListener {
+                        property.reset(this) as? FileReference
+                            ?: InvalidRef
+                    }
+                    setChangeListener {
+                        property.set(this, it)
+                    }
+                }
+            }
+
             "Inspectable" -> {
                 value as Inspectable
                 val list = PanelListY(style)
@@ -616,7 +633,7 @@ object ComponentUI {
             "PrefabSaveable", "Material", "Mesh", "MorphTarget", "Skeleton" -> {
                 value as? PrefabSaveable
                 // todo just a reference with a type limiter
-                
+
                 return TextPanel("todo: prefab saveable, ${value?.javaClass?.name}", style)
             }
 

@@ -289,52 +289,7 @@ abstract class FileExplorer(
         switchTo(files.first())
     }
 
-    override fun onPaste(x: Float, y: Float, data: String, type: String) {
-        when (type) {
-            "Transform" -> pasteTransform(data)
-            "PrefabSaveable" -> pastePrefab(data)
-            else -> {
-                if (!pasteTransform(data)) {
-                    if (data.length < 2048) {
-                        val ref = getReference(data)
-                        if (ref.exists) {
-                            switchTo(ref)
-                        } else super.onPaste(x, y, data, type)
-                    } else super.onPaste(x, y, data, type)
-                }
-            }
-        }
-    }
-
-    fun pastePrefab(data: String): Boolean {
-        val saveable = TextReader.read(data)[0] as? PrefabSaveable ?: return false
-        var name = saveable.name.toAllowedFilename()
-        name = name ?: saveable.defaultDisplayName.toAllowedFilename()
-        name = name ?: saveable.className
-        name = name.toAllowedFilename() ?: "Something"
-        // make .json lowercase
-        if (name.endsWith(".json", true)) {
-            name = name.substring(0, name.length - 5)
-        }
-        name += ".json"
-        val file = findNextFileName(folder.getChild(name), 1, '-')
-        file.writeText(data)
-        invalidate()
-        return true
-    }
-
-    fun pasteTransform(data: String): Boolean {
-        val transform = data.toTransform() ?: return false
-        var name = transform.name.toAllowedFilename() ?: transform.defaultDisplayName
-        // make .json lowercase
-        if (name.endsWith(".json", true)) {
-            name = name.substring(0, name.length - 5)
-        }
-        name += ".json"
-        findNextFileName(folder.getChild(name), 1, '-').writeText(data)
-        invalidate()
-        return true
-    }
+    abstract override fun onPaste(x: Float, y: Float, data: String, type: String)
 
     override fun onGotAction(
         x: Float,

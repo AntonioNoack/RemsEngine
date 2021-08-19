@@ -6,6 +6,9 @@ import me.anno.mesh.vox.meshing.BlockSide
 import me.anno.mesh.vox.meshing.VoxelMeshBuildInfo
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.types.Floats.f2
+import org.apache.logging.log4j.LogManager
+import kotlin.math.roundToInt
 
 abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
 
@@ -42,6 +45,19 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
         }
     }
 
+    open fun countBlocks(): Int {
+        var i = 0
+        val zero = 0.toByte()
+        for (x in 0 until sizeX) {
+            for (y in 0 until sizeY) {
+                for (z in 0 until sizeZ) {
+                    if (getBlock(x, y, z) != zero) i++
+                }
+            }
+        }
+        return i
+    }
+
     fun createMesh(palette: IntArray): Mesh {
 
         // create a mesh
@@ -61,10 +77,20 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
 
         // go over all six directions
         // just reuse our old code for minecraft like stuff
+        var removed = 0f
         for (side in BlockSide.values) {
             info.setNormal(side)
-            BakeMesh.bakeMesh(this, side, info)
+            // an estimate
+            removed += BakeMesh.bakeMesh(this, side, info)
         }
+        removed = removed * 100f / 6f
+        val numberOfBlocks = countBlocks()
+        val triangleCount = vertices.size / 9
+        LOGGER.info(
+            "" +
+                    "Removed ${removed.roundToInt()}% of $numberOfBlocks blocks, " +
+                    "created $triangleCount triangles, ${(triangleCount.toFloat() / numberOfBlocks).f2()}/block"
+        )
 
         mesh.positions = vertices.toFloatArray()
         mesh.normals = normals.toFloatArray()
@@ -72,6 +98,10 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
 
         return mesh
 
+    }
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(VoxelModel::class)
     }
 
 }

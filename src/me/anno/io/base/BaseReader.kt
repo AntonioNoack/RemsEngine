@@ -1,42 +1,9 @@
 package me.anno.io.base
 
-import me.anno.animation.AnimatedProperty
-import me.anno.animation.Keyframe
-import me.anno.animation.drivers.FunctionDriver
-import me.anno.animation.drivers.HarmonicDriver
-import me.anno.animation.drivers.PerlinNoiseDriver
-import me.anno.audio.effects.SoundPipeline
-import me.anno.audio.effects.falloff.ExponentialFalloff
-import me.anno.audio.effects.falloff.LinearFalloff
-import me.anno.audio.effects.falloff.SquareFalloff
-import me.anno.audio.effects.impl.AmplitudeEffect
-import me.anno.audio.effects.impl.EchoEffect
-import me.anno.audio.effects.impl.EqualizerEffect
-import me.anno.audio.effects.impl.PitchEffect
 import me.anno.io.ISaveable
 import me.anno.io.InvalidFormatException
-import me.anno.io.utils.StringMap
-import me.anno.objects.*
-import me.anno.objects.attractors.EffectColoring
-import me.anno.objects.attractors.EffectMorphing
-import me.anno.objects.distributions.*
-import me.anno.objects.documents.pdf.PDFDocument
-import me.anno.objects.effects.MaskLayer
-import me.anno.objects.forces.impl.*
-import me.anno.objects.geometric.Circle
-import me.anno.objects.geometric.LinePolygon
-import me.anno.objects.geometric.Polygon
-import me.anno.objects.meshes.Mesh
-import me.anno.objects.particles.ParticleSystem
-import me.anno.objects.particles.TextParticles
-import me.anno.objects.text.Chapter
-import me.anno.objects.text.Text
-import me.anno.objects.text.Timer
-import me.anno.studio.history.History
-import me.anno.studio.history.HistoryState
-import me.anno.ui.editor.sceneView.SceneTabData
-import me.anno.utils.structures.arrays.EfficientBooleanArray
 import org.apache.logging.log4j.LogManager
+import java.io.EOFException
 
 abstract class BaseReader {
 
@@ -86,12 +53,14 @@ abstract class BaseReader {
     }
 
     fun assert(isValue: Char, shallValue: Char) {
+        if (isValue == (-1).toChar()) throw EOFException()
         if (isValue != shallValue.lowercaseChar() && isValue != shallValue.uppercaseChar()) {
-            throw InvalidFormatException("Expected $shallValue but got $isValue")
+            throw InvalidFormatException("Expected $shallValue but got $isValue, ${isValue.code}")
         }
     }
 
     fun assert(isValue: Char, shallValue: Char, context: String) {
+        if (isValue == (-1).toChar()) throw EOFException()
         if (isValue != shallValue.lowercaseChar() && isValue != shallValue.uppercaseChar()) {
             throw InvalidFormatException("Expected $shallValue but got $isValue for $context")
         }
@@ -108,67 +77,7 @@ abstract class BaseReader {
         fun error(msg: String, appended: Any?): Nothing = throw InvalidFormatException("[BaseReader] $msg $appended")
 
         fun getNewClassInstance(clazz: String): ISaveable {
-            // the Rem's Studio specific stuff best should be moved in a separate class
-            return when (clazz) {
-                "SMap" -> StringMap()
-                "Transform" -> Transform()
-                "Text" -> Text()
-                "Circle" -> Circle()
-                "Polygon" -> Polygon()
-                "Video", "Audio", "Image" -> Video()
-                "GFXArray" -> GFXArray()
-                "MaskLayer" -> MaskLayer()
-                "ParticleSystem" -> ParticleSystem()
-                "Camera" -> Camera()
-                "Mesh" -> Mesh()
-                "Timer" -> Timer()
-                "AnimatedProperty" -> AnimatedProperty.any()
-                "Keyframe" -> Keyframe<Any>()
-                "HarmonicDriver" -> HarmonicDriver()
-                "PerlinNoiseDriver" -> PerlinNoiseDriver()
-                "CustomDriver", "FunctionDriver" -> FunctionDriver()
-                "SceneTabData" -> SceneTabData()
-                "ColorAttractor", "EffectColoring" -> EffectColoring()
-                "UVAttractor", "EffectMorphing" -> EffectMorphing()
-                "SoundPipeline" -> SoundPipeline()
-                "EchoEffect" -> EchoEffect()
-                "AmplitudeEffect" -> AmplitudeEffect()
-                "EqualizerEffect" -> EqualizerEffect()
-                "PitchEffect" -> PitchEffect()
-                "SquareFalloffEffect" -> SquareFalloff()
-                "LinearFalloffEffect" -> LinearFalloff()
-                "ExponentialFalloffEffect" -> ExponentialFalloff()
-                "AnimatedDistribution" -> AnimatedDistribution()
-                "GaussianDistribution" -> GaussianDistribution()
-                "ConstantDistribution" -> ConstantDistribution()
-                "UniformDistribution", // replaced
-                "CuboidDistribution" -> CuboidDistribution()
-                "CuboidHullDistribution" -> CuboidHullDistribution()
-                "SphereHullDistribution" -> SphereHullDistribution()
-                "SphereDistribution",
-                "SphereVolumeDistribution" -> SphereVolumeDistribution()
-                "GlobalForce" -> GlobalForce()
-                "GravityField" -> GravityField()
-                "LorentzForce" -> LorentzForce()
-                "NoisyLorentzForce" -> NoisyLorentzForce()
-                "MultiGravityForce" -> BetweenParticleGravity()
-                "TornadoField" -> TornadoField()
-                "VelocityFrictionForce" -> VelocityFrictionForce()
-                "History" -> History()
-                "HistoryState" -> HistoryState()
-                "BoolArray" -> EfficientBooleanArray()
-                "TextParticles" -> TextParticles()
-                "SoftLink" -> SoftLink()
-                "PDFDocument" -> PDFDocument()
-                "LinePolygon" -> LinePolygon()
-                "FourierTransform" -> FourierTransform()
-                "Chapter" -> Chapter()
-                else -> {
-                    // just for old stuff; AnimatedProperties must not be loaded directly; always just copied into
-                    if (clazz.startsWith("AnimatedProperty<")) AnimatedProperty.any()
-                    else ISaveable.objectTypeRegistry[clazz]?.generate() ?: throw UnknownClassException(clazz)
-                }
-            }
+            return ISaveable.objectTypeRegistry[clazz]?.generate() ?: throw UnknownClassException(clazz)
         }
     }
 

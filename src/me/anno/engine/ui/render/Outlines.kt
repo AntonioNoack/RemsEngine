@@ -4,6 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.RendererComponent
 import me.anno.gpu.ShaderLib
+import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.pipeline.M4x3Delta.m4x3delta
 import org.joml.Matrix4d
 
@@ -12,9 +13,14 @@ object Outlines {
     private val tmpMat4d = Matrix4d()
 
     fun drawOutline(entity: Entity, worldScale: Double) {
+        whiteTexture.bind(0) // for the albedo
+        drawOutlineInternally(entity, worldScale)
+    }
+
+    private fun drawOutlineInternally(entity: Entity, worldScale: Double) {
         val children = entity.children
         for (i in children.indices) {
-            drawOutline(children[i], worldScale)
+            drawOutlineInternally(children[i], worldScale)
         }
         val renderer = entity.getComponent(RendererComponent::class, false)
         if (renderer != null) {
@@ -32,7 +38,13 @@ object Outlines {
 
         val mesh = component.mesh ?: return
         val entity = component.entity ?: return
-        val transform = entity.transform.drawTransform
+        val transform0 = entity.transform
+
+        // important, when the object is off-screen, but the outline is not
+        // (can happen, because the outline is slightly larger)
+        transform0.drawDrawingLerpFactor()
+
+        val transform = transform0.drawTransform
         val camPosition = RenderView.camPosition
 
         // scale based on visual scale, or use a geometry shader for that
@@ -77,11 +89,11 @@ object Outlines {
 
             shader.m4x3delta("localTransform", transform, camPosition, worldScale, scale)
             shader.v4("tint", -1)
+
             if (renderer != null) {
                 renderer.defineVertexTransform(shader, entity, mesh)
             } else shader.v1("hasAnimation", 0f)
-            // todo all other shader properties...
-            // todo we should write a function for that generally
+
             mesh.draw(shader, 0)
 
         }

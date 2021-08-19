@@ -1,7 +1,9 @@
 package me.anno.io.files
 
 import me.anno.io.windows.WindowsShortcut
+import me.anno.io.zip.ZipCache
 import me.anno.studio.StudioBase
+import me.anno.utils.Tabs
 import me.anno.utils.files.Files.openInExplorer
 import me.anno.utils.files.LocalFile.toLocalPath
 import me.anno.utils.types.Strings.isBlank2
@@ -45,7 +47,33 @@ abstract class FileReference(val absolutePath: String) {
             val static = staticReferences[str]
             if (static != null) return static
             if (str == "null") return FileRootRef
-            return FileFileRef(File(str))
+            // check whether it exists -> easy then :)
+            val file0 = File(str)
+            if (file0.exists()) return FileFileRef(file0)
+            // split by /, and check when we need to enter a zip file
+            val parts = str.trim()
+                .replace('\\', '/')
+                .split('/')
+            // binary search? let's do linear first
+            for (i in parts.lastIndex downTo 0) {
+                val substr = parts.subList(0, i).joinToString("/")
+                val fileI = File(substr)
+                if (fileI.exists()) {
+                    // great :), now go into that file
+                    return appendPath(fileI, i, parts)
+                }
+            }
+            // somehow, we could not find the correct file...
+            return FileFileRef(file0)
+        }
+
+        fun appendPath(fileI: File, i: Int, parts: List<String>): FileReference {
+            var ref: FileReference = FileFileRef(fileI)
+            for (j in i until parts.size) {
+                ref = ref.getChild(parts[j])
+                if (ref == InvalidRef) return ref
+            }
+            return ref
         }
 
         fun getReference(file: File?): FileReference {
@@ -131,12 +159,12 @@ abstract class FileReference(val absolutePath: String) {
      * */
     abstract fun outputStream(): OutputStream
 
-    fun readText() = String(readBytes())
-    fun readText(charset: Charset) = String(readBytes(), charset)
+    open fun readText() = String(readBytes())
+    open fun readText(charset: Charset) = String(readBytes(), charset)
 
-    fun readBytes() = inputStream().readBytes()
+    open fun readBytes() = inputStream().readBytes()
 
-    fun writeText(text: String) {
+    open fun writeText(text: String) {
         val os = outputStream()
         val wr = OutputStreamWriter(os)
         wr.write(text)
@@ -144,7 +172,7 @@ abstract class FileReference(val absolutePath: String) {
         os.close()
     }
 
-    fun writeText(text: String, charset: Charset) {
+    open fun writeText(text: String, charset: Charset) {
         val os = outputStream()
         val wr = OutputStreamWriter(os, charset)
         wr.write(text)
@@ -152,7 +180,7 @@ abstract class FileReference(val absolutePath: String) {
         os.close()
     }
 
-    fun writeBytes(bytes: ByteArray) {
+    open fun writeBytes(bytes: ByteArray) {
         val os = outputStream()
         os.write(bytes)
         os.close()
@@ -181,6 +209,10 @@ abstract class FileReference(val absolutePath: String) {
 
     abstract fun getParent(): FileReference?
 
+    fun getSibling(name: String): FileReference {
+        return getParent()?.getChild(name) ?: InvalidRef
+    }
+
     fun renameTo(newName: File) = renameTo(getReference(newName))
     abstract fun renameTo(newName: FileReference): Boolean
 
@@ -194,11 +226,26 @@ abstract class FileReference(val absolutePath: String) {
                 LOGGER.info("Checking $absolutePath for zip file, matches signature")
                 true
             }
-            null -> return try {// maybe something unknown, that we understand anyways
-                val zis = createZipFile(this)
-                val result = zis.entries.hasMoreElements()
-                LOGGER.info("Checking $absolutePath for zip file, success")
-                result
+            // todo all mesh extensions
+            "fbx", "vox", "obj", "gltf", "dae", "yaml", "blend", "draco" -> {
+                LOGGER.info("Checking $absolutePath for mesh file, matches signature")
+                true
+            }
+            null, "xml" -> return try {// maybe something unknown, that we understand anyways
+                // dae is xml
+                when (extension) {
+                    "fbx", "vox", "obj", "gltf", "glb", "dae", "blend",
+                    "mat", "prefab", "unity", "asset", "controller" -> {
+                        LOGGER.info("Checking $absolutePath for mesh file, matches extension")
+                        true
+                    }
+                    else -> {
+                        val zis = createZipFile(this)
+                        val result = zis.entries.hasMoreElements()
+                        LOGGER.info("Checking $absolutePath for zip file, success")
+                        result
+                    }
+                }
             } catch (e: IOException) {
                 LOGGER.info("Checking $absolutePath for zip file, ${e.message}")
                 false
@@ -251,7 +298,7 @@ abstract class FileReference(val absolutePath: String) {
         } else null
     }
 
-    val isSomeKindOfDirectory get() = isDirectory || windowsLnk.value != null || isPacked.value
+    open val isSomeKindOfDirectory get() = isDirectory || windowsLnk.value != null || isPacked.value
 
     val isPacked = lazy {
         !isDirectory && isZipFile()
@@ -269,6 +316,17 @@ abstract class FileReference(val absolutePath: String) {
                 ref.getParent() ?: ref
             } else ref
         )
+    }
+
+    open fun nullIfUndefined(): FileReference? = this
+
+    fun printTree(depth: Int = 0) {
+        println("${Tabs.spaces(depth * 2)}$name")
+        if (isDirectory) {
+            for (child in listChildren() ?: return) {
+                child.printTree(depth + 1)
+            }
+        }
     }
 
     // todo support for ffmpeg to read all zip files

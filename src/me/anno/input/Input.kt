@@ -536,6 +536,13 @@ object Input {
             .setContents(FileTransferable(files.map { it.unsafeFile }), null)
     }
 
+    fun copyFiles2(files: List<File>) {
+        Toolkit
+            .getDefaultToolkit()
+            .systemClipboard
+            .setContents(FileTransferable(files), null)
+    }
+
     /*fun copyFiles(files: List<File>) {
         Toolkit
             .getDefaultToolkit()

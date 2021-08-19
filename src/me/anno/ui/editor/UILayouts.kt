@@ -8,7 +8,6 @@ import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXBase0
 import me.anno.gpu.Window
-import me.anno.input.Input
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
@@ -41,10 +40,10 @@ import me.anno.studio.rems.Rendering.renderSetPercent
 import me.anno.studio.rems.Selection
 import me.anno.studio.rems.Selection.selectTransform
 import me.anno.studio.rems.Selection.selectedTransform
-import me.anno.studio.rems.ui.StudioUITypeLibrary
 import me.anno.studio.rems.ui.StudioFileExplorer
 import me.anno.studio.rems.ui.StudioTreeView
 import me.anno.studio.rems.ui.StudioTreeView.Companion.openAddMenu
+import me.anno.studio.rems.ui.StudioUITypeLibrary
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.Visibility
@@ -53,9 +52,9 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.SizeLimitingContainer
 import me.anno.ui.base.constraints.WrapAlign
-import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.msg
 import me.anno.ui.base.menu.Menu.openMenu
@@ -136,7 +135,7 @@ object UILayouts {
             val tp = TextPanel(project.name, style)
             tp.enableHoverColor = true
             tp.setTooltip(project.file.absolutePath)
-            thread {// file search can use some time
+            thread(name = "FileExists?") {// file search can use some time
                 if (!project.file.exists) {
                     tp.textColor = 0xff0000 or black
                     tp.setTooltip(

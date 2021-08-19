@@ -1,6 +1,7 @@
 package me.anno.gpu.shader
 
 import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.shader.builder.ShaderStage
 
 // todo define the types of flat rendering here? would be a nice idea, so it stays customizable
 
@@ -16,7 +17,9 @@ open class Renderer(
     // todo the render engine decides how it is rendered...
     // todo this could include multiple passes as well...
 
-    open fun getPostProcessing(): String = ""
+    open fun getPostProcessing(): ShaderStage? = null
+
+    open fun uploadDefaultUniforms(shader: Shader) {}
 
     companion object {
         val colorRenderer = Renderer(false, ShaderPlus.DrawMode.COLOR, null)

@@ -10,7 +10,6 @@ import me.anno.utils.Maths.length
 import me.anno.utils.types.Vectors.safeNormalize
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
-import java.lang.RuntimeException
 import kotlin.math.atan2
 import kotlin.math.ln
 
@@ -24,13 +23,6 @@ import kotlin.math.ln
 class BlenderControls(view: RenderView) : ControlScheme(view) {
 
     // todo make selected axes thicker
-
-    enum class Mode {
-        NOTHING,
-        SCALING,
-        TRANSLATING,
-        ROTATING,
-    }
 
     var mode = Mode.NOTHING
 
@@ -167,7 +159,7 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
     }
 
     fun applyTransform(direction: Vector3d) {
-        if(direction.dot(1.0, 1.0, 1.0).isNaN()) throw RuntimeException("$direction")
+        if (direction.dot(1.0, 1.0, 1.0).isNaN()) throw RuntimeException("$direction")
         when (mode) {
             Mode.TRANSLATING -> {
                 applyTransform { selfGlobal, distance ->

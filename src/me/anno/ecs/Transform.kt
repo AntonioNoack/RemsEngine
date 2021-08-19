@@ -1,5 +1,6 @@
 package me.anno.ecs
 
+import me.anno.Engine
 import me.anno.gpu.GFX
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
@@ -24,7 +25,11 @@ class Transform : Saveable() {
     }
 
     fun checkTransform(drawTransform: Matrix4x3d) {
-        if (drawTransform.get(FloatArray(16)).any { it.isNaN() }) throw RuntimeException()
+        if (drawTransform.get(FloatArray(16)).any { it.isNaN() }) {
+            Engine.shutdown()
+            Thread.sleep(10)
+            throw RuntimeException("Transform became invalid")
+        }
     }
 
     fun update(time: Long = GFX.gameTime) {

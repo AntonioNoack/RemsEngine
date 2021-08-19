@@ -28,8 +28,8 @@ object RemsConfig {
                 this["rendering.useMSAA"] = true // should not be deactivated, unless... idk...
                 // this["ui.editor.useMSAA"] = true // can be deactivated for really weak GPUs
 
-                addImportMappings("Transform", "json")
                 defineDefaultFileAssociations()
+                addImportMappings("Transform", "json")
                 this["import.mapping.*"] = "Text"
 
                 newInstances()

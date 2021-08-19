@@ -9,12 +9,10 @@ import me.anno.studio.rems.RemsStudio.root
 import me.anno.utils.ShutdownException
 import me.anno.utils.Threads.threadWithName
 import me.anno.utils.hpc.ProcessingQueue
-import me.anno.utils.test.showValue
 import org.apache.logging.log4j.LogManager
 import java.io.FileNotFoundException
 import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.concurrent.thread
 import kotlin.math.max
 
 open class CacheSection(val name: String) : Comparable<CacheSection> {
@@ -123,7 +121,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             getEntryWithCallback(key, timeout, asyncGenerator, {
                 val value = generateSafely(key, generator)
                 limiter.decrementAndGet()
-                if(value is Exception) throw value
+                if (value is Exception) throw value
                 value as? ICacheData
             }) { limiter.decrementAndGet() }
         } else {
@@ -147,7 +145,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             getEntryWithCallback(key, timeout, queue, {
                 val value = generateSafely(key, generator)
                 limiter.decrementAndGet()
-                if(value is Exception) throw value
+                if (value is Exception) throw value
                 value as? ICacheData
             }) { limiter.decrementAndGet() }
         } else {
@@ -182,7 +180,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             if (asyncGenerator) {
                 threadWithName("$name<$key>") {
                     val value = generateSafely(key, generator)
-                    if(value is Exception) throw value
+                    if (value is Exception) throw value
                     value as? ICacheData
                     entry.data = value as? ICacheData
                     if (entry.hasBeenDestroyed) {
@@ -192,7 +190,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                 }
             } else {
                 val value = generateSafely(key, generator)
-                if(value is Exception) throw value
+                if (value is Exception) throw value
                 entry.data = value as? ICacheData
             }
         } else ifNotGenerating?.invoke()
@@ -227,7 +225,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             if (queue != null) {
                 queue += {
                     val value = generateSafely(key, generator)
-                    if(value is Exception) throw value
+                    if (value is Exception) throw value
                     entry.data = value as? ICacheData
                     if (entry.hasBeenDestroyed) {
                         LOGGER.warn("Value for $name<$key> was directly destroyed")
@@ -236,7 +234,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                 }
             } else {
                 val value = generateSafely(key, generator)
-                if(value is Exception) throw value
+                if (value is Exception) throw value
                 entry.data = value as? ICacheData
             }
         } else ifNotGenerating?.invoke()
@@ -275,7 +273,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     init {
-        thread { caches += this }
+        caches += this
     }
 
     companion object {

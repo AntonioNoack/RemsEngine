@@ -41,9 +41,6 @@ class Frustum {
         val objectSizeThreshold = minObjectSizePixels * 2.0 * tan(fovYRadians * 0.5) / max(width, height)
         sizeThreshold = /* detailFactor * */ sq(objectSizeThreshold)
 
-        // todo not completely correct yet, fix that!
-        // todo debug the view cone by drawing lines...
-
         // calculate all planes
         // all positions and normals of the planes
 
@@ -74,15 +71,16 @@ class Frustum {
         }
 
         // more complicated: calculate the normals of the sideways planes
-        val angleY = fovYRadians * 0.5// * borderFixFactor
-        val cosY = cos(angleY)
-        val sinY = sin(angleY)
+        val halfFovY = fovYRadians * 0.5
+        val cosY = cos(halfFovY)
+        val sinY = sin(halfFovY)
         normals[2].set(0.0, +cosY, +sinY)
         normals[3].set(0.0, -cosY, +sinY)
 
-        val angleX = angleY * aspectRatio
-        val cosX = cos(angleX)
-        val sinX = sin(angleX)
+        val sideLengthZ = tan(halfFovY) * aspectRatio
+        val halfFovX = atan(sideLengthZ)
+        val cosX = cos(halfFovX)
+        val sinX = sin(halfFovX)
         normals[4].set(+cosX, 0.0, +sinX)
         normals[5].set(-cosX, 0.0, +sinX)
 

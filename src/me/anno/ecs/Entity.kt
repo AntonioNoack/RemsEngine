@@ -21,7 +21,7 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.AABBs.reset
+import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.AABBs.transformUnion
 import me.anno.utils.types.Floats.f2s
 import org.joml.AABBd
@@ -86,18 +86,14 @@ class Entity() : PrefabSaveable(), Inspectable {
 
     override fun listChildTypes(): String = "ec" // entity children, components
 
-    override fun getChildListByType(type: Char): List<PrefabSaveable> {
-        return if (type == 'c') components else children
-    }
-
     override fun addChildByType(index: Int, type: Char, instance: PrefabSaveable) {
         if (type == 'c') addComponent(index, instance as Component)
         else addChild(index, instance as Entity)
     }
 
-    override fun getChildListNiceName(type: Char): String {
-        return if (type == 'c') "components" else "children"
-    }
+    override fun getChildListByType(type: Char): List<PrefabSaveable> = if (type == 'c') components else children
+    override fun getChildListNiceName(type: Char): String = if (type == 'c') "components" else "children"
+    override fun getTypeOf(child: PrefabSaveable): Char = if (child is Component) 'c' else 'e'
 
     override fun getIndexOf(child: PrefabSaveable): Int {
         return if (child is Component) {
@@ -264,7 +260,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         for (i in children.indices) {
             children[i].validateAABBs()
         }
-        aabb.reset()
+        aabb.clear()
         if (hasSpaceFillingComponents) {
             // todo if has particle system, include
             val globalTransform = transform.globalTransform
@@ -344,8 +340,12 @@ class Entity() : PrefabSaveable(), Inspectable {
         }
     }
 
-    fun invalidate() {
-
+    fun invalidateChildTransforms() {
+        for (i in children.indices) {
+            val child = children[i]
+            child.transform.invalidateGlobal()
+            child.invalidateChildTransforms()
+        }
     }
 
     fun physicsUpdate() {

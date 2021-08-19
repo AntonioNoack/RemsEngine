@@ -1,10 +1,21 @@
 package me.anno.ui.editor.files.thumbs
 
 import me.anno.cache.data.ImageData
+import me.anno.cache.instances.ImageCache
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.cache.instances.MeshCache
 import me.anno.cache.instances.TextureCache.getLateinitTexture
 import me.anno.cache.instances.VideoCache.getVideoFrame
+import me.anno.config.DefaultStyle.white4
+import me.anno.ecs.Component
+import me.anno.ecs.Entity
+import me.anno.ecs.components.anim.Animation
+import me.anno.ecs.components.anim.Skeleton
+import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.shapes.Icosahedron
+import me.anno.ecs.prefab.Prefab
+import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.RenderState.depthMode
@@ -17,22 +28,29 @@ import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.HDRImage
 import me.anno.image.tar.TGAImage
+import me.anno.io.ISaveable
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
+import me.anno.io.text.TextReader
+import me.anno.io.unity.UnityReader
 import me.anno.mesh.assimp.StaticMeshesLoader
 import me.anno.objects.Video
 import me.anno.objects.documents.pdf.PDFCache
 import me.anno.objects.meshes.Mesh.Companion.loadModel
+import me.anno.objects.meshes.MeshData
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
+import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.Threads.threadWithName
 import me.anno.utils.files.Files.use
@@ -44,13 +62,11 @@ import net.boeckling.crc.CRC64
 import org.apache.commons.imaging.Imaging
 import org.apache.logging.log4j.LogManager
 import org.joml.Math.toRadians
+import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
-import org.lwjgl.opengl.ARBFramebufferObject.GL_DRAW_FRAMEBUFFER
-import org.lwjgl.opengl.ARBFramebufferObject.glBindFramebuffer
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL20
-import org.lwjgl.opengl.GL30.GL_READ_FRAMEBUFFER
 import org.lwjgl.opengl.GL45
 import org.lwjgl.opengl.GL45.glClipControl
 import java.awt.image.BufferedImage
@@ -78,16 +94,28 @@ object Thumbs {
     private fun FileReference.getCacheFile(size: Int): FileReference {
         val hashReadLimit = 256
         val info = LastModifiedCache[this]
-        var hash = info.lastModified xor (454781903L * this.length())
-        if (!info.isDirectory) {
+        val length = this.length()
+        var hash = info.lastModified xor (454781903L * length)
+        if (!info.isDirectory && length > 0) {
             val reader = inputStream().buffered()
             val bytes = reader.readNBytes2(hashReadLimit, false)
             reader.close()
             hash = hash xor CRC64.fromInputStream(bytes.inputStream()).value
         }
-        var hashString = hash.toULong().toString(16)
-        while (hashString.length < 16) hashString = "0$hashString"
-        return folder.getChild("$size/${hashString.substring(0, 2)}/${hashString.substring(2)}.$destinationFormat")!!
+        val dstFormat = destinationFormat
+        val str0 = hash.toULong().toString(16)
+        // LOGGER.info("$this -> $hash -> $str0")
+        val str1 = CharArray(16 + 1 + dstFormat.length) { '0' }
+        for (i in str0.indices) {
+            str1[i + (16 - str0.length)] = str0[i]
+        }
+        str1[16] = '.'
+        for (i in dstFormat.indices) {
+            str1[i + 17] = dstFormat[i]
+        }
+        return folder.getChild("$size")
+            .getChild(String(str1, 0, 2))
+            .getChild(String(str1, 2, str1.size - 2))
     }
 
     init {
@@ -170,6 +198,7 @@ object Thumbs {
         srcFile: FileReference,
         dstFile: FileReference,
         withDepth: Boolean,
+        renderer: Renderer = colorRenderer,
         callback: (Texture2D) -> Unit,
         w: Int, h: Int, render: () -> Unit
     ) {
@@ -184,11 +213,11 @@ object Thumbs {
 
             renderPurely {
 
-                useFrame(0, 0, w, h, false, fb2, Renderer.colorRenderer) {
+                useFrame(0, 0, w, h, false, fb2, colorRenderer) {
 
                     Frame.bind()
 
-                    if(withDepth){
+                    if (withDepth) {
                         glClearColor(0f, 0f, 0f, 1f)
                         glClearDepth(1.0)
                         // in case we have reset this for reverse rendering
@@ -206,6 +235,10 @@ object Thumbs {
 
                     if (withDepth) glClear(GL_DEPTH_BUFFER_BIT)
 
+                }
+
+                useFrame(0, 0, w, h, false, fb2, renderer) {
+
                     if (withDepth) {
                         depthMode.use(DepthMode.LESS_EQUAL) {
                             render()
@@ -217,7 +250,7 @@ object Thumbs {
                 }
 
                 // cannot read from separate framebuffer, only from null... why ever...
-                useFrame(0, 0, w, h, false, null, Renderer.colorRenderer) {
+                useFrame(0, 0, w, h, false, null, colorRenderer) {
 
                     GFX.copy(fb2)
 
@@ -289,7 +322,7 @@ object Thumbs {
 
         // LOGGER.info("loaded frame for $srcFile")
 
-        renderToBufferedImage(srcFile, dstFile, false, callback, w, h) {
+        renderToBufferedImage(srcFile, dstFile, false, colorRenderer, callback, w, h) {
             renderPurely {
                 drawTexture(src)
             }
@@ -316,7 +349,7 @@ object Thumbs {
 
         val transform = Matrix4fArrayList()
         transform.scale(1f / (buffer.maxX / buffer.maxY).toFloat(), -1f, 1f)
-        renderToBufferedImage(srcFile, dstFile, false, callback, w, h) {
+        renderToBufferedImage(srcFile, dstFile, false, colorRenderer, callback, w, h) {
             SVGxGFX.draw3DSVG(
                 null, 0.0,
                 transform, buffer, whiteTexture,
@@ -327,6 +360,58 @@ object Thumbs {
 
     }
 
+    fun createPerspectiveList(y: Float = -25f): Matrix4fArrayList {
+
+        val stack = Matrix4fArrayList()
+        stack.perspective(0.7f, 1f, 0.001f, 5f)
+        stack.translate(0f, 0f, -1f)// move the camera back a bit
+        stack.rotateX(toRadians(-15f))// rotate it into a nice viewing angle
+        stack.rotateY(toRadians(y))
+
+        // calculate the scale, such that everything can be visible
+        // half, because it's half the size, 1.05f for a small border
+        val scale = 1.05f * 0.5f
+        stack.scale(scale, -scale, scale)
+
+        return stack
+
+    }
+
+    fun createPerspective(y: Float = -25f): Matrix4f {
+
+        val stack = Matrix4f()
+        stack.perspective(0.7f, 1f, 0.001f, 5f)
+        stack.translate(0f, 0f, -1f)// move the camera back a bit
+        stack.rotateX(toRadians(-15f))// rotate it into a nice viewing angle
+        if (y != 0f) stack.rotateY(toRadians(y))
+
+        // calculate the scale, such that everything can be visible
+        // half, because it's half the size, 1.05f for a small border
+        val scale = 1.05f * 0.5f
+        stack.scale(scale, -scale, scale)
+
+        return stack
+
+    }
+
+    // just render it using the simplest shader
+    fun generateFrame(
+        srcFile: FileReference,
+        dstFile: FileReference,
+        data: MeshData,
+        size: Int,
+        renderer: Renderer,
+        callback: (Texture2D) -> Unit
+    ) {
+        // render everything without color
+        renderToBufferedImage(srcFile, dstFile, true, renderer, callback, size, size) {
+            data.drawAssimp(
+                null, createPerspectiveList(), 0.0, white4, "",
+                useMaterials = false, centerMesh = true, normalizeScale = true
+            )
+        }
+    }
+
     // just render it using the simplest shader
     fun generateAssimpMeshFrame(
         srcFile: FileReference,
@@ -334,9 +419,6 @@ object Thumbs {
         size: Int,
         callback: (Texture2D) -> Unit
     ) {
-
-        if (size < 3) return
-
         val data = waitUntilDefined(true) {
             loadModel(srcFile, "Assimp-Static", null, { meshData ->
                 val reader = StaticMeshesLoader()
@@ -344,33 +426,109 @@ object Thumbs {
                 meshData.assimpModel = meshes
             }) { it.assimpModel }
         }
+        generateFrame(srcFile, dstFile, data, size, colorRenderer, callback)
+    }
 
-        val stack = Matrix4fArrayList()
-        stack.perspective(0.7f, 1f, 0.001f, 5f)
-        stack.translate(0f, 0f, -1f)// move the camera back a bit
-        stack.rotateX(toRadians(-15f))// rotate it into a nice viewing angle
-        stack.rotateY(toRadians(-25f))
-
-        // calculate the scale, such that everything can be visible
-        // half, because it's half the size, 1.05f for a small border
-        val scale = 1.05f * 0.5f
-        stack.scale(scale, -scale, scale)
-
+    fun generateMeshFrame(
+        srcFile: FileReference,
+        dstFile: FileReference,
+        size: Int,
+        mesh: Mesh,
+        callback: (Texture2D) -> Unit
+    ) {
+        mesh.checkCompleteness()
+        mesh.ensureBuffer()
+        // todo sometimes black... why?...
         // render everything without color
-        renderToBufferedImage(srcFile, dstFile, true, callback, size, size) {
-            data.drawAssimp(
-                null, stack, 0.0, Vector4f(1f), "",
-                useMaterials = false, centerMesh = true, normalizeScale = true
-            )
+        renderToBufferedImage(srcFile, dstFile, true, colorRenderer, callback, size, size) {
+            mesh.drawAssimp(createPerspective(), useMaterials = false, centerMesh = true, normalizeScale = true)
         }
+    }
 
+    private val materialCamTransform = createPerspective(0f)
+        .apply { scale(0.5f) }
+
+    // todo if we have preview images, we could use them as cheaper textures
+    fun generateMaterialFrame(
+        srcFile: FileReference,
+        dstFile: FileReference,
+        size: Int,
+        material: Material,
+        callback: (Texture2D) -> Unit
+    ) {
+        sphereMesh.ensureBuffer()
+        val mesh = sphereMesh.clone()
+        mesh.material = material
+        waitForTextures(material)
+        renderToBufferedImage(srcFile, dstFile, true, previewRenderer, callback, size, size) {
+            mesh.drawAssimp(materialCamTransform, useMaterials = true, centerMesh = false, normalizeScale = false)
+        }
+    }
+
+    private fun waitForTextures(material: Material, timeout: Long = 25000) {
+        // 25s timeout, because unzipping all can take its time
+        // wait for textures
+        // listing all textures
+        // does not include personal materials / shaders...
+        val textures = listOf(
+            material.diffuseMap,
+            material.emissiveMap,
+            material.normalMap,
+            material.roughnessMap,
+            material.metallicMap,
+            material.occlusionMap,
+            material.displacementMap,
+        ).filter { it != InvalidRef && it.exists }
+        val endTime = GFX.gameTime + timeout * 1e6.toLong()
+        waitUntil(true) {
+            if (GFX.gameTime > endTime) {
+                // textures may be missing; just ignore them, if they cannot be read
+                textures
+                    .filter { !ImageCache.hasImageOrCrashed(it, timeout, true) }
+                    .forEach { LOGGER.warn("Missing texture $it") }
+                true
+            } else textures.all { ImageCache.hasImageOrCrashed(it, timeout, true) }
+
+        }
+    }
+
+    val sphereMesh = Icosahedron.createMesh(30, 30)
+
+    fun generateSomething(
+        asset: ISaveable?,
+        srcFile: FileReference,
+        dstFile: FileReference,
+        size: Int,
+        callback: (Texture2D) -> Unit
+    ) {
+        when (asset) {
+            is Mesh -> generateMeshFrame(srcFile, dstFile, size, asset, callback)
+            is Material -> generateMaterialFrame(srcFile, dstFile, size, asset, callback)
+            is Skeleton -> {
+                // todo render skeleton
+            }
+            is Animation -> {
+                // todo render animation
+            }
+            is Entity -> {
+                // todo render entity somehow...
+            }
+            is Component -> {
+                // todo render component somehow... just return an icon?
+            }
+            is Prefab -> {
+                val instance = asset.createInstance()
+                generateSomething(instance, srcFile, dstFile, size, callback)
+            }
+            // is Transform -> todo show transform for Rem's Studio
+        }
     }
 
     // png/bmp/jpg?
     private const val destinationFormat = "png"
     private fun generate(srcFile: FileReference, size: Int, callback: (Texture2D) -> Unit) {
 
-        if (size < 1) return
+        if (size < 3) return
 
         val dstFile = srcFile.getCacheFile(size)
         if (dstFile.exists) {
@@ -408,7 +566,31 @@ object Thumbs {
                         // preview for mtl file? idk...
                         generateAssimpMeshFrame(srcFile, dstFile, size, callback)
                     }
-
+                    "mat", "prefab", "unity", "asset", "controller" -> {
+                        try {
+                            // parse unity files
+                            val decoded = UnityReader.readAsAsset(srcFile)
+                            if (decoded != InvalidRef) {
+                                if (decoded.length() > 0) {
+                                    // try to read the file as an asset
+                                    val sth = TextReader.read(decoded).firstOrNull()
+                                    generateSomething(sth, srcFile, dstFile, size, callback)
+                                } else LOGGER.warn("File $decoded is empty")
+                            }
+                        } catch (e: Throwable) {
+                            LOGGER.warn("$e in $srcFile")
+                            e.printStackTrace()
+                        }
+                    }
+                    "json" -> {
+                        try {
+                            // try to read the file as an asset
+                            generateSomething(TextReader.read(srcFile).firstOrNull(), srcFile, dstFile, size, callback)
+                        } catch (e: Throwable) {
+                            println("${e.message} in $srcFile")
+                            e.printStackTrace()
+                        }
+                    }
                     "hdr" -> {
                         val src = HDRImage(srcFile, true)
                         val sw = src.width

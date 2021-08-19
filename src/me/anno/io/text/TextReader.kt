@@ -95,6 +95,23 @@ class TextReader(val data: CharSequence) : BaseReader() {
         } else throw EOFException()
     }
 
+    private fun readStringValueOrNull(): String? {
+        return when (val c = skipSpace()) {
+            '"' -> readString()
+            'n' -> {
+                assert(next(), 'u')
+                assert(next(), 'l')
+                assert(next(), 'l')
+                null
+            }
+            else -> throw InvalidFormatException("Expected '\"' or 'n' but got $c for readStringValueOrNull")
+        }
+    }
+
+    private fun readFile(): FileReference {
+        return readStringValueOrNull()?.toGlobalFile() ?: InvalidRef
+    }
+
     private fun readStringValue(): String {
         assert(skipSpace(), '"', "Reading String")
         return readString()
@@ -201,24 +218,25 @@ class TextReader(val data: CharSequence) : BaseReader() {
         assert(skipSpace(), '[')
         val rawLength = readNumber()
         val length = rawLength.toIntOrNull() ?: error("Invalid $typeName[] length '$rawLength'")
-        if (length < (data.length - index) / 2) {
-            var i = 0
-            val values = createArray(length)
-            content@ while (true) {
-                when (val next = skipSpace()) {
-                    ',' -> {
-                        val raw = readValue()
-                        if (i < length) {
-                            putValue(values, i++, raw)
-                        }// else skip
-                    }
-                    ']' -> break@content
-                    else -> error("unknown character $next in $typeName[]")
+        // mistakes of the past: ofc, there may be arrays with just zeros...
+        /*if (length < (data.length - index) / 2) {
+        } else error("Broken file :/, $typeName[].length > data.length ($rawLength)")*/
+        var i = 0
+        val values = createArray(length)
+        content@ while (true) {
+            when (val next = skipSpace()) {
+                ',' -> {
+                    val raw = readValue()
+                    if (i < length) {
+                        putValue(values, i++, raw)
+                    }// else skip
                 }
+                ']' -> break@content
+                else -> error("unknown character $next in $typeName[]")
             }
-            if (i > length) LOGGER.warn("$typeName[] contained too many elements!")
-            return values
-        } else error("Broken file :/, $typeName[].length > data.length")
+        }
+        if (i > length) LOGGER.warn("$typeName[] contained too many elements!")
+        return values
     }
 
     private fun readBool(): Boolean {
@@ -242,8 +260,10 @@ class TextReader(val data: CharSequence) : BaseReader() {
         }
     }
 
-    private fun readVector2f(): Vector2f {
-        assert(skipSpace(), '[', "Start of Vector")
+    private fun readVector2f(allowCommaAtStart: Boolean = false): Vector2f {
+        var c0 = skipSpace()
+        if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
+        assert(c0, '[', "Start of Vector")
         val rawX = readFloat()
         val sep0 = skipSpace()
         if (sep0 == ']') return Vector2f(rawX)
@@ -253,8 +273,10 @@ class TextReader(val data: CharSequence) : BaseReader() {
         return Vector2f(rawX, rawY)
     }
 
-    private fun readVector3f(): Vector3f {
-        assert(skipSpace(), '[', "Start of Vector")
+    private fun readVector3f(allowCommaAtStart: Boolean = false): Vector3f {
+        var c0 = skipSpace()
+        if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
+        assert(c0, '[', "Start of Vector")
         val rawX = readFloat()
         val sep0 = skipSpace()
         if (sep0 == ']') return Vector3f(rawX) // monotone / grayscale
@@ -266,8 +288,10 @@ class TextReader(val data: CharSequence) : BaseReader() {
         return Vector3f(rawX, rawY, rawZ)
     }
 
-    private fun readVector4f(): Vector4f {
-        assert(skipSpace(), '[', "Start of Vector")
+    private fun readVector4f(allowCommaAtStart: Boolean = false): Vector4f {
+        var c0 = skipSpace()
+        if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
+        assert(c0, '[', "Start of Vector")
         val rawX = readFloat()
         val sep0 = skipSpace()
         if (sep0 == ']') return Vector4f(rawX) // monotone
@@ -540,11 +564,29 @@ class TextReader(val data: CharSequence) : BaseReader() {
                         { array, index, value -> array[index] = value })
                 )
             }
-            "m3x3" -> obj.readMatrix3x3f(name, Matrix3f(readVector3f(), readVector3f(), readVector3f()))
-            "m4x3" -> obj.readMatrix4x3f(
-                name,
-                Matrix4x3f(readVector3f(), readVector3f(), readVector3f(), readVector3f())
-            )
+            "m3x3" -> {
+                assert(skipSpace(), '[', "Start of m3x3")
+                obj.readMatrix3x3f(
+                    name, Matrix3f(
+                        readVector3f(),
+                        readVector3f(true),
+                        readVector3f(true)
+                    )
+                )
+                assert(skipSpace(), ']', "End of m3x3")
+            }
+            "m4x3" -> {
+                assert(skipSpace(), '[', "Start of m4x3")
+                obj.readMatrix4x3f(
+                    name, Matrix4x3f(
+                        readVector3f(),
+                        readVector3f(true),
+                        readVector3f(true),
+                        readVector3f(true)
+                    )
+                )
+                assert(skipSpace(), ']', "End of m4x3")
+            }
             "m4x4" -> obj.readMatrix4x4f(name, Matrix4f(readVector4f(), readVector4f(), readVector4f(), readVector4f()))
             "m3x3d" -> obj.readMatrix3x3d(name, Matrix3d(readVector3d(), readVector3d(), readVector3d()))
             "m4x3d" -> obj.readMatrix4x3d(
@@ -568,10 +610,10 @@ class TextReader(val data: CharSequence) : BaseReader() {
                     { array, index, value -> array[index] = value })
                 )
             }
-            "R" -> obj.readFile(name, readStringValue().toGlobalFile())
+            "R" -> obj.readFile(name, readFile())
             "R[]" -> obj.readFileArray(
                 name, readTypedArray("FileReference",
-                    { Array(it) { InvalidRef } }, { readStringValue().toGlobalFile() },
+                    { Array(it) { InvalidRef } }, { readFile() },
                     { array, index, value -> array[index] = value })
             )
             "*[]", "[]" -> {// array of mixed types

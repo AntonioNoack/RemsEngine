@@ -9,10 +9,17 @@ import me.anno.engine.scene.PrefabHelper.addC
 import me.anno.engine.scene.PrefabHelper.addE
 import me.anno.engine.scene.PrefabHelper.setC
 import me.anno.engine.scene.PrefabHelper.setE
+import me.anno.engine.ui.render.RenderView
 import me.anno.io.files.StaticRef
 import me.anno.io.text.TextWriter
+import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.utils.OS
 import org.joml.Vector3d
+import org.joml.Vector3f
+import kotlin.math.cos
+import kotlin.math.max
+import kotlin.math.pow
+import kotlin.math.sin
 
 object ScenePrefab : StaticRef("Scene.prefab", lazy {
     TextWriter.toText(Prefab("Entity").apply {
@@ -69,7 +76,7 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         setE(changes, spotLight, "scale", Vector3d(100.0))
         addC(changes, spotLight, "SpotLight")*/
 
-        /*val ringOfLights = addE(changes, lights, "Ring Of Lights")
+        val ringOfLights = addE(changes, lights, "Ring Of Lights")
         val ringLightCount = RenderView.MAX_LIGHTS - 4
         val lightLevel = 20f / max(3, ringLightCount)
         for (i in 0 until ringLightCount) {
@@ -80,7 +87,7 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
             setE(changes, light, "scale", Vector3d(100.0))
             val c = addC(changes, light, "PointLight")
             setC(changes, c, "color", HSLuv.toRGB(Vector3f(angle.toFloat(), 0.7f, 0.7f)).mul(lightLevel))
-        }*/
+        }
 
         ////////////////////
         // physics tests //
@@ -169,14 +176,14 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
 
 
         // row of planets
-        /*val spherePath = OS.documents.getChild("sphere.obj")
+        val spherePath = OS.documents.getChild("sphere.obj")
         val planets = addE(changes, world, "Planets")
         for (i in -50..50) {
             val size = 10.0.pow(i.toDouble())
             val sphere = addE(changes, planets, "Sphere 1e$i", spherePath)
             setE(changes, sphere, "position", Vector3d(0.0, 0.0, 3.0 * size))
             setE(changes, sphere, "scale", Vector3d(size))
-        }*/
+        }
 
     }, false).toByteArray()
 }) {

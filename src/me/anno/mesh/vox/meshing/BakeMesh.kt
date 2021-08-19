@@ -3,7 +3,6 @@ package me.anno.mesh.vox.meshing
 import me.anno.mesh.vox.meshing.BlockBuffer.addQuad
 import me.anno.mesh.vox.meshing.MergeBlocks.mergeBlocks
 import me.anno.mesh.vox.model.VoxelModel
-import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
 
 object BakeMesh {
@@ -14,14 +13,14 @@ object BakeMesh {
         model: VoxelModel,
         side: BlockSide,
         dst: VoxelMeshBuildInfo
-    ) {
+    ): Float {
 
         val colors = IntArray(model.size)
         model.fill(dst.palette, colors)
 
         val isSolid = BooleanArray(model.size)
         for (i in isSolid.indices) isSolid[i] = colors[i] != 0
-        removeSolidInnerBlocks(model, side, colors, isSolid)
+        val removed = removeSolidInnerBlocks(model, side, colors, isSolid)
 
         lateinit var blockSizes: IntArray
 
@@ -49,6 +48,8 @@ object BakeMesh {
                 }
             }
         }
+
+        return removed
 
     }
 
@@ -95,7 +96,7 @@ object BakeMesh {
         blockSide: BlockSide,
         colors: IntArray,
         isSolid: BooleanArray
-    ) {
+    ): Float {
         val dx = model.getIndex(1, 0, 0)
         val dy = model.getIndex(0, 1, 0)
         val dz = model.getIndex(0, 0, 1)
@@ -133,7 +134,8 @@ object BakeMesh {
             }
         }
         val wasSolid = isSolid.count { it }
-        LOGGER.info("Removed ${(ctr*100f/wasSolid).f1()}% of $wasSolid blocks")
+        // LOGGER.info("Removed ${(ctr*100f/wasSolid).f1()}% of $wasSolid blocks")
+        return ctr.toFloat() / wasSolid
     }
 
 }

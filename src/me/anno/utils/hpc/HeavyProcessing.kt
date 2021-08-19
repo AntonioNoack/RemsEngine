@@ -19,7 +19,8 @@ object HeavyProcessing {
     inline fun processUnbalanced(i0: Int, i1: Int, heavy: Boolean, crossinline func: (i0: Int, i1: Int) -> Unit) {
         val minCountPerThread = if (heavy) 1 else 5
         val count = i1 - i0
-        val threadCount = clamp(count / minCountPerThread, 1,
+        val threadCount = clamp(
+            count / minCountPerThread, 1,
             threads
         )
         if (threadCount == 1) {
@@ -27,7 +28,7 @@ object HeavyProcessing {
         } else {
             val counter = AtomicInteger(threadCount + i0)
             val otherThreads = Array(threadCount - 1) { threadId ->
-                thread {
+                thread(name = "Unbalanced[$threadId]") {
                     val index = threadId + i0
                     func(index, index + 1)
                     while (true) {
@@ -46,13 +47,14 @@ object HeavyProcessing {
                 if (nextIndex >= i1) break
                 func(nextIndex, nextIndex + 1)
             }
-            for(thread in otherThreads) thread.join()
+            for (thread in otherThreads) thread.join()
         }
     }
 
     inline fun processBalanced(i0: Int, i1: Int, minCountPerThread: Int, crossinline func: (i0: Int, i1: Int) -> Unit) {
         val count = i1 - i0
-        val threadCount = clamp(count / minCountPerThread, 1,
+        val threadCount = clamp(
+            count / minCountPerThread, 1,
             threads
         )
         if (threadCount == 1) {
@@ -61,13 +63,13 @@ object HeavyProcessing {
             val otherThreads = Array(threadCount - 1) { threadId ->
                 val startIndex = i0 + threadId * count / threadCount
                 val endIndex = i0 + (threadId + 1) * count / threadCount
-                thread { func(startIndex, endIndex) }
+                thread(name = "Balanced[$threadId]") { func(startIndex, endIndex) }
             }
             // process last
             val threadId = threadCount - 1
             val startIndex = i0 + threadId * count / threadCount
             func(startIndex, i1)
-            for(thread in otherThreads) thread.join()
+            for (thread in otherThreads) thread.join()
         }
     }
 
@@ -78,7 +80,7 @@ object HeavyProcessing {
     inline fun <V> processStage(entries: List<V>, doIO: Boolean, crossinline stage: (V) -> Unit) {
         if (doIO) {
             entries.map {
-                thread {
+                thread(name = "Stage[$it]") {
                     try {
                         stage(it)
                     } catch (e: Exception) {

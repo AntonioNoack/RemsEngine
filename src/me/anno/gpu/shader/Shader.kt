@@ -70,21 +70,23 @@ open class Shader(
         }
     }
 
-    fun invalidateCacheForTests(){
+    fun invalidateCacheForTests() {
         attributeLocations.clear()
         uniformLocations.clear()
         uniformCache.fill(Float.NaN)
     }
 
-    fun decodeVaryings(): List<Varying> {
+    private fun decodeVaryings(): List<Varying> {
         val result = ArrayList<Varying>()
         // todo remove comments (if they ever appear)
+        // todo apply preprocessor...
         for (line in varying.replaceShortCuts().split(';').map { it.trim() }) {
             // varying vec3 out
-            val index0 = line.indexOf("varying")
+            val index00 = line.indexOf('\n') + 1
+            val index0 = line.indexOf("varying", index00)
             if (index0 >= 0) {
                 // for flat varyings
-                val modifiers = line.substring(0, index0)
+                val modifiers = line.substring(index00, index0)
                 // out type name,name2,name3
                 val line2 = line.substring(index0 + "varying".length).trim()
                 val typeIndex = line2.indexOf(' ')
@@ -101,6 +103,9 @@ open class Shader(
         return result
     }
 
+    var vertexSource = ""
+    var fragmentSource = ""
+
     // shader compile time doesn't really matter... -> move it to the start to preserve ram use?
     // isn't that much either...
     fun init() {
@@ -112,7 +117,7 @@ open class Shader(
         program = glCreateProgram()
         val geometryShader = if (geometry != null) {
             for (v in varyings) v.makeDifferent()
-            var geo: String = "#version $glslVersion\n" + geometry
+            var geo = "#version $glslVersion\n$geometry"
             while (true) {
                 // copy over all varyings for the shaders
                 val copyIndex = geo.indexOf("#copy")
@@ -133,7 +138,7 @@ open class Shader(
         } else -1
 
         // the shaders are like a C compilation process, .o-files: after linking, they can be removed
-        val vertexSource = (
+        vertexSource = (
                 "" +
                         "#version $glslVersion\n" +
                         varyings.joinToString("\n") { "${it.modifiers} out ${it.type} ${it.vShaderName};" } +
@@ -142,7 +147,7 @@ open class Shader(
                 ).replaceShortCuts()
         val vertexShader = compile(GL_VERTEX_SHADER, vertexSource)
 
-        val fragmentSource = (
+        fragmentSource = (
                 "" +
                         "#version $glslVersion\n" +
                         "precision mediump float;\n" +
@@ -157,6 +162,7 @@ open class Shader(
         val fragmentShader = compile(GL_FRAGMENT_SHADER, fragmentSource)
 
         glLinkProgram(program)
+        // these could be reused...
         glDeleteShader(vertexShader)
         glDeleteShader(fragmentShader)
         if (geometryShader >= 0) glDeleteShader(geometryShader)
@@ -491,29 +497,29 @@ open class Shader(
     fun v3(name: String, v: Vector3fc) = v3(name, v.x(), v.y(), v.z())
     fun v4(name: String, v: Vector4fc) = v4(name, v.x(), v.y(), v.z(), v.w())
 
-    fun m3x3(name: String, value: Matrix3fc = identity3) = m3x3(getUniformLocation(name), value)
-    fun m3x3(loc: Int, value: Matrix3fc = identity3) {
+    fun m3x3(name: String, value: Matrix3fc?) = m3x3(getUniformLocation(name), value)
+    fun m3x3(loc: Int, value: Matrix3fc? = identity3) {
         if (loc > -1) {
             potentiallyUse()
-            value.get(matrixBuffer)
+            (value ?: identity3).get(matrixBuffer)
             glUniformMatrix3fv(loc, false, matrixBuffer)
         }
     }
 
-    fun m4x3(name: String, value: Matrix4x3fc = identity4x3) = m4x3(getUniformLocation(name), value)
-    fun m4x3(loc: Int, value: Matrix4x3fc = identity4x3) {
+    fun m4x3(name: String, value: Matrix4x3fc?) = m4x3(getUniformLocation(name), value)
+    fun m4x3(loc: Int, value: Matrix4x3fc? = identity4x3) {
         if (loc > -1) {
             potentiallyUse()
-            value.get(matrixBuffer)
+            (value ?: identity4x3).get(matrixBuffer)
             glUniformMatrix4x3fv(loc, false, matrixBuffer)
         }
     }
 
-    fun m4x4(name: String, value: Matrix4fc? = identity4) = m4x4(getUniformLocation(name), value ?: identity4)
-    fun m4x4(loc: Int, value: Matrix4fc = identity4) {
+    fun m4x4(name: String, value: Matrix4fc? = identity4) = m4x4(getUniformLocation(name), value)
+    fun m4x4(loc: Int, value: Matrix4fc? = identity4) {
         if (loc > -1) {
             potentiallyUse()
-            value.get(matrixBuffer)
+            (value ?: identity4).get(matrixBuffer)
             glUniformMatrix4fv(loc, false, matrixBuffer)
         }
     }

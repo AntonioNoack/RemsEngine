@@ -21,6 +21,20 @@ object ImageCache : CacheSection("Images") {
 
     private val LOGGER = LogManager.getLogger(ImageCache::class)
 
+    fun hasImageOrCrashed(file: FileReference, timeout: Long, asyncGenerator: Boolean): Boolean {
+        if (file == InvalidRef) return true
+        val meta = LastModifiedCache[file]
+        if (meta.isDirectory || !meta.exists) return true
+        val entry = getEntry(file, timeout, asyncGenerator, ::generateImageData)
+        return when {
+            entry == null -> false
+            entry !is ImageData -> true
+            entry.hasFailed -> true
+            entry.texture.isCreated -> true
+            else -> false
+        }
+    }
+
     fun getImage(file: FileReference, timeout: Long, asyncGenerator: Boolean): Texture2D? {
         if (file == InvalidRef) return null
         val meta = LastModifiedCache[file]

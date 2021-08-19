@@ -1,13 +1,22 @@
 package me.anno.engine.ui
 
 import me.anno.ecs.Entity
+import me.anno.ecs.prefab.CAdd
+import me.anno.ecs.prefab.CSet
+import me.anno.ecs.prefab.Path
+import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.Prefab.Companion.loadPrefab
 import me.anno.engine.ui.ECSTypeLibrary.Companion.lastSelection
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
+import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
+import me.anno.io.text.TextWriter
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.treeView.AbstractTreeView
 import me.anno.ui.style.Style
 import me.anno.utils.structures.lists.UpdatingList
 import org.joml.Vector4f
+import sun.reflect.generics.reflectiveObjects.NotImplementedException
 
 // todo runtime and pre-runtime view
 // todo unity oriented
@@ -69,24 +78,52 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
         if (element == root) {
             return tab.inspector.toString()
         } else {
-            /*val path0 = element.pathInRoot2(root, false)
-            var allApplicableChanges = tab.inspector.changes
-            var rootInInheritance: PrefabSaveable? = root.prefab
-            while (rootInInheritance != null) {
-                // todo only if the element is not inheriting from a mesh or texture file
-                allApplicableChanges = rootInInheritance.changes + allApplicableChanges
-                rootInInheritance = rootInInheritance.prefab
+            val adders = ArrayList<CAdd>()
+            val setters = ArrayList<CSet>()
+            val path = element.pathInRoot2(null, false)
+            // collect changes from this element going upwards
+            var someParent = element
+            val collDepth = element.depthInHierarchy
+            setters.add(CSet(Path(), "name", element.name))
+            for (depth in collDepth downTo 0) {
+                // the last level doesn't need to be transferred
+                someParent = someParent.parentEntity ?: break
+                println("checking depth $depth/$collDepth, ${someParent.name}")
+                var someRelatedParent = someParent.prefab2
+                while (true) {// follow the chain of prefab-inheritance
+                    val changes = someRelatedParent?.changes
+                    println("changes from $depth/${someRelatedParent?.getPrefabOrSource()}: ${changes?.size}")
+                    if (changes != null) {
+                        // get all changes
+                        // filter them & short them by their filter
+                        for (change in changes.mapNotNull { path.getSubPathIfMatching(it, depth) }) {
+                            when (change) {
+                                is CAdd -> adders.add(change)
+                                is CSet -> {
+                                    // don't apply changes twice, especially, because the order is reversed
+                                    // this would cause errors
+                                    if (setters.none { it.path == change.path && it.name == change.name }) {
+                                        setters.add(change)
+                                    }
+                                }
+                                else -> throw NotImplementedException()
+                            }
+                        }
+                    }
+                    someRelatedParent = getPrefab(someRelatedParent?.prefab) ?: break
+                }
             }
             val prefab = Prefab(element.className)
-            // find what is the inheritance of that element
-            prefab.prefab = element.prefab2?.prefab ?: InvalidRef
-            val relatedChanges = allApplicableChanges.filter {
-                it.path!!.startsWith(path0.first, path0.second)
-            }
-            prefab.changes = relatedChanges
-            return TextWriter.toText(prefab, false)*/
-            TODO()
+            prefab.prefab = element.prefab2?.prefab?.nullIfUndefined() ?: element.prefab2?.src ?: InvalidRef
+            println("found: ${prefab.prefab}, prefab: ${element.prefab2?.prefab}, own file: ${element.prefab2?.src}, has prefab: ${element.prefab2 != null}")
+            prefab.changes = adders + setters
+            return TextWriter.toText(prefab, false)
         }
+    }
+
+    private fun getPrefab(ref: FileReference?): Prefab? {
+        ref ?: return null
+        return loadPrefab(ref)
     }
 
     override fun addAfter(self: Entity, sibling: Entity) {

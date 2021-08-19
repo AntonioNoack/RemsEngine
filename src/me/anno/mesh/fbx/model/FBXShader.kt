@@ -2,10 +2,7 @@ package me.anno.mesh.fbx.model
 
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib
-import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.shader.BaseShader
-import me.anno.gpu.shader.Shader
 import me.anno.utils.Maths
 import org.apache.logging.log4j.LogManager
 
@@ -13,7 +10,7 @@ object FBXShader {
 
     private val LOGGER = LogManager.getLogger(FBXShader::class)
 
-    val attr = listOf(
+    /*val attr = listOf(
         Attribute("coords", 3),
         Attribute("uvs", 2),
         Attribute("uvs", 2),
@@ -21,7 +18,7 @@ object FBXShader {
         Attribute("materialIndex", AttributeType.UINT8, 1),
         Attribute("weightIndices", AttributeType.UINT8, 4),
         Attribute("weightValues", 4),
-    )
+    )*/
 
     var maxBones = 0
 
@@ -33,6 +30,7 @@ object FBXShader {
         maxBones = Maths.clamp((GFX.maxVertexUniforms - (16 * 3)) / 16, 4, 256)
         LOGGER.info("Max number of bones: $maxBones")
         return ShaderLib.createShaderPlus(
+            // todo to simplify the process, use defines for instanced
             "fbx", v3DBase +
                     "a3 coords;\n" +
                     "a2 uvs;\n" +
@@ -45,16 +43,14 @@ object FBXShader {
                     "void main(){\n" +
                     "   vec4 coords4 = vec4(coords, 1.0);\n" +
                     "   wei = weightValues;\n" +
-                    "   float sum = 0;" +
                     "   mat4x3 skinTransform = transforms[min(weightIndices.x, boneLimit)] * weightValues.x;\n" +
                     "   skinTransform       += transforms[min(weightIndices.y, boneLimit)] * weightValues.y;\n" +
                     "   skinTransform       += transforms[min(weightIndices.z, boneLimit)] * weightValues.z;\n" +
                     "   skinTransform       += transforms[min(weightIndices.w, boneLimit)] * weightValues.w;\n" +
                     "   skinTransform /= dot(vec4(1), weightValues);\n" +
-                    "   vec3 localPosition0 = (skinTransform * coords4).xyz;\n" +
-                    "   localPosition = localPosition0;\n" +
-                    "   gl_Position = transform * coords4;" +
-                    "   gl_Position = transform * vec4(localPosition0, 1.0);\n" + // already include second transform? yes, we should probably do that
+                    "   finalPosition = (skinTransform * coords4).xyz;\n" +
+                    "   gl_Position = transform * finalPosition;" + // * coords4
+                    // "   gl_Position = transform * vec4(localPosition0, 1.0);\n" +
                     "   uv = uvs;\n" +
                     "   normal = skinTransform * vec4(normals, 0.0);\n" + // rotate normal as well; normalization may be instead required in the fragment shader
                     positionPostProcessing +

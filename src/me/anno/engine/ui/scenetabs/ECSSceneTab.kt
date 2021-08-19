@@ -23,6 +23,10 @@ class ECSSceneTab(val syncMaster: SyncMaster, val inspector: PrefabInspector, va
     constructor(syncMaster: SyncMaster, inspector: PrefabInspector) :
             this(syncMaster, inspector, inspector.reference)
 
+    init {
+        println("created tab with ${inspector.prefab.changes?.size} changes")
+    }
+
     fun onStart() {
         syncMaster.nextSession()
         val rootEntity = inspector.root as? Entity

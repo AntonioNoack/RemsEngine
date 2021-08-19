@@ -3,7 +3,6 @@ package me.anno.studio.rems
 import me.anno.animation.AnimatedProperty
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.baseTheme
-import me.anno.engine.ECSRegistry
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.gameTime
 import me.anno.input.ActionManager
@@ -20,7 +19,6 @@ import me.anno.studio.StudioBase
 import me.anno.studio.cli.RemsCLI
 import me.anno.studio.project.Project
 import me.anno.studio.rems.CheckVersion.checkVersion
-import me.anno.studio.rems.ui.StudioFileExplorer
 import me.anno.studio.rems.ui.StudioFileImporter
 import me.anno.studio.rems.ui.StudioTreeView
 import me.anno.ui.editor.PropertyInspector
@@ -126,7 +124,6 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
 
     override fun onGameInit() {
         RemsConfig.init()
-        ECSRegistry.init()
         gfxSettings = GFXSettings.get(DefaultConfig["editor.gfx", GFXSettings.LOW.id], GFXSettings.LOW)
         workspace = DefaultConfig["workspace.dir", getReference(OS.documents, configName)]
         checkInstall()
@@ -271,6 +268,11 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
                 }
             }
         }
+    }
+
+    override fun run() {
+        RemsRegistry.init()
+        super.run()
     }
 
     // UI with traditional editor?

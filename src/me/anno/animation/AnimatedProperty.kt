@@ -24,6 +24,8 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
 
     constructor(type: Type) : this(type, type.defaultValue as V)
 
+    constructor(): this(Type.ANY)
+
     companion object {
 
         private val LOGGER = LogManager.getLogger(AnimatedProperty::class)

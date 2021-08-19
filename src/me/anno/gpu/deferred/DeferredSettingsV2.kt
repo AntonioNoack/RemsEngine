@@ -3,10 +3,6 @@ package me.anno.gpu.deferred
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
-import me.anno.utils.Color.a
-import me.anno.utils.Color.b
-import me.anno.utils.Color.g
-import me.anno.utils.Color.r
 import kotlin.math.max
 
 class DeferredSettingsV2(
@@ -14,9 +10,9 @@ class DeferredSettingsV2(
     fpLights: Boolean
 ) {
 
-    class Layer(val type: DeferredLayerType, val textureName: String, val mapping: String){
+    class Layer(val type: DeferredLayerType, val textureName: String, val mapping: String) {
 
-        fun appendMapping(fragment: StringBuilder){
+        fun appendMapping(fragment: StringBuilder) {
             fragment.append(textureName)
             fragment.append('.')
             fragment.append(mapping)
@@ -68,22 +64,17 @@ class DeferredSettingsV2(
     fun createShader(
         shaderName: String,
         geometrySource: String?,
+        instanced: Boolean,
         vertexSource: String,
         varyingSource: String,
         fragmentSource: String,
         textures: List<String>?
     ): Shader {
         // what do we do, if the position is missing? we cannot do anything...
-        val vertex = vertexSource + ""
+        val vertex = if (instanced) "#define INSTANCED;\n$vertexSource" else vertexSource
         val varying = varyingSource + ""
         val fragment = StringBuilder(16)
-        for ((index, type) in settingsV1.layers.withIndex()) {
-            fragment.append("layout (location = ")
-            fragment.append(index)
-            fragment.append(") out vec4 ")
-            fragment.append(type.name)
-            fragment.append(";\n")
-        }
+        appendLayerDeclarators(fragment)
         val oldFragmentCode = fragmentSource
             .substring(0, fragmentSource.lastIndexOf('}'))
             .replace("gl_FragColor", "vec4 glFragColor")
@@ -94,25 +85,8 @@ class DeferredSettingsV2(
             fragment.append("float finalAlpha = glFragColor.a;\n")
         }
 
-        // for each shader define default values for the deferred layer values (color, normal, ...), if they are not defined
-        for (type in layerTypes) {
-            if (type.glslName !in fragment) {
-                type.appendDefinition(fragment)
-                fragment.append(" = ")
-                type.appendDefaultValue(fragment)
-                fragment.append(";\n")
-            }
-        }
-
-        for (layer in layers) {
-            fragment.append(layer.textureName)
-            fragment.append('.')
-            fragment.append(layer.mapping)
-            fragment.append(" = ")
-            fragment.append(layer.type.glslName)
-            fragment.append(layer.type.map01)
-            fragment.append(";\n")
-        }
+        appendMissingDeclarations(fragment)
+        appendLayerWriters(fragment)
 
         fragment.append("}")
 
@@ -122,6 +96,38 @@ class DeferredSettingsV2(
         return shader
     }
 
+    fun appendMissingDeclarations(output: StringBuilder) {
+        for (type in layerTypes) {
+            if (type.glslName !in output) {
+                type.appendDefinition(output)
+                output.append(" = ")
+                type.appendDefaultValue(output)
+                output.append(";\n")
+            }
+        }
+    }
+
+    fun appendLayerDeclarators(output: StringBuilder) {
+        for ((index, type) in settingsV1.layers.withIndex()) {
+            output.append("layout (location = ")
+            output.append(index)
+            output.append(") out vec4 ")
+            output.append(type.name)
+            output.append(";\n")
+        }
+    }
+
+    fun appendLayerWriters(output: StringBuilder) {
+        for (layer in layers) {
+            output.append(layer.textureName)
+            output.append('.')
+            output.append(layer.mapping)
+            output.append(" = ")
+            output.append(layer.type.glslName)
+            output.append(layer.type.map01)
+            output.append(";\n")
+        }
+    }
 
     fun createPostProcessingShader(
         shaderName: String,

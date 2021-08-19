@@ -1,10 +1,11 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.cache.instances.ImageCache
+import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.Prefab.Companion.loadPrefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ECSRegistry
-import me.anno.gpu.ShaderLib.pbrModelShader
+import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.gpu.TextureLib
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.BaseShader
@@ -17,9 +18,9 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.OS
-import org.joml.*
-import org.lwjgl.opengl.GL20
-import org.lwjgl.opengl.GL21
+import org.joml.Vector2f
+import org.joml.Vector3f
+import org.joml.Vector4f
 
 class Material : PrefabSaveable() {
 
@@ -34,27 +35,66 @@ class Material : PrefabSaveable() {
     @NotSerializedProperty
     var shader: BaseShader? = null
 
+    @Range(0.0, 1.0)
     var diffuseBase = Vector4f(1f)
     var diffuseMap: FileReference = InvalidRef
 
-    var normalMap: FileReference = InvalidRef
+    @Range(-100.0, 100.0)
     var normalStrength = 1f
+    var normalMap: FileReference = InvalidRef
+
+    // translucency:
+    // only little light directionality
+    @Range(0.0, 1.0)
+    var translucency = 0f
+
+    // todo instead back/front/both?
+    var isDoubleSided = false
 
     // base * map
+    @Range(0.0, 100.0)
     var emissiveBase = Vector3f(1f)
     var emissiveMap: FileReference = InvalidRef
 
-    // base * map
-    var roughnessBase = 1f
+    // mix(min,max,value(uv)) or 1 if undefined)
+    @Range(0.0, 1.0)
+    var roughnessMinMax = Vector2f(0f, 1f)
     var roughnessMap: FileReference = InvalidRef
 
-    // base * map
-    var metallicBase = 0f
+    // mix(min,max,map(uv)) or 1 if undefined)
+    @Range(0.0, 1.0)
+    var metallicMinMax = Vector2f(0f, 0f)
     var metallicMap: FileReference = InvalidRef
 
     var displacementMap: FileReference = InvalidRef
 
+    // light *= 1-(1-map(uv)) * strength
+    @Range(0.0, 100.0)
+    var occlusionStrength = 1f
     var occlusionMap: FileReference = InvalidRef
+
+    // the last component is the strength
+    // clear coat is a thin coating over the material,
+    // which typically has a single color,
+    // and is only seen at steep angles
+    // this is typically seen on cars
+    // if you don't like the monotonicity, you can add your own fresnel effect in the shader
+    var clearCoatColor = Vector4f(1f, 1f, 1f, 0f)
+
+    @Range(0.0, 1.0)
+    var clearCoatMetallic = 1f
+
+    @Range(0.0, 1.0)
+    var clearCoatRoughness = 0f
+
+
+    // adds soft diffuse light capture on steep angles,
+    // can be used for clothing, where the fibers catch the light
+    @Range(0.0, 1.0)
+    var sheen = 0f
+
+    // e.g. for patterns, e.g. stroking over some clothes leaves patterns
+    var sheenNormalMap: FileReference = InvalidRef
 
     operator fun set(name: String, type: GLSLType, value: Any) {
         shaderOverrides[name] = TypeValue(type, value)
@@ -64,42 +104,59 @@ class Material : PrefabSaveable() {
         shaderOverrides[name] = value
     }
 
+    val timeout = 1000L
+    fun getTex(image: FileReference) = ImageCache.getImage(image, timeout, true)
+
     fun defineShader(shader: Shader) {
         // todo there will be shadow maps: find the correct texture indices!
         // all the data, the shader needs to know from the material
-        val timeout = 1000L
+
         // todo allow swizzling for alpha, roughness, metallic and such
-        val metallicTex = ImageCache.getImage(metallicMap, timeout, true)
-        val roughnessTex = ImageCache.getImage(roughnessMap, timeout, true)
-        val emissiveTex = ImageCache.getImage(emissiveMap, timeout, true)
-        val normalTex = ImageCache.getImage(normalMap, timeout, true)
-        val albedoTex = ImageCache.getImage(diffuseMap, timeout, true)
+        val metallicTex = getTex(metallicMap)
+        val roughnessTex = getTex(roughnessMap)
+        val emissiveTex = getTex(emissiveMap)
+        val normalTex = getTex(normalMap)
+        val diffuseTex = getTex(diffuseMap)
+        val occlusionTex = getTex(occlusionMap)
+        val sheenNormalTex = getTex(sheenNormalMap)
+
         val white = TextureLib.whiteTexture
         val black = TextureLib.blackTexture
         val n001 = TextureLib.normalTexture
         val filtering = GPUFiltering.LINEAR
         val clamping = Clamping.REPEAT
+
+        (sheenNormalTex ?: white).bind(6, filtering, clamping)
+        (occlusionTex ?: white).bind(5, filtering, clamping)
         (metallicTex ?: white).bind(4, filtering, clamping)
         (roughnessTex ?: white).bind(3, filtering, clamping)
         (emissiveTex ?: black).bind(2, filtering, clamping)
         (normalTex ?: n001).bind(1, filtering, clamping)
-        (albedoTex ?: white).bind(0, filtering, clamping)
-        // todo normal strength, emissive strength, ...
-        // todo we also could use an albedo multiplier, when we set the color for a material manually :)
-        shader.v1("normalStrength", if (normalTex == null) 0f else normalStrength)
+        (diffuseTex ?: white).bind(0, filtering, clamping)
+
         shader.v4("diffuseBase", diffuseBase)
+        shader.v2(
+            "normalStrength",
+            if (normalTex == null) 0f else normalStrength,
+            if (sheenNormalTex == null) 0f else 1f
+        )
         shader.v3("emissiveBase", emissiveBase)
-        shader.v3("roughnessBase", roughnessBase)
-        shader.v3("metallicBase", metallicBase)
+        shader.v2("roughnessMinMax", roughnessMinMax)
+        shader.v2("metallicMinMax", metallicMinMax)
+        shader.v1("occlusionStrength", occlusionStrength)
+        shader.v1("finalTranslucency", translucency)
+        shader.v1("finalSheen", sheen)
+
+        if (clearCoatColor.w > 0f) {
+            shader.v4("finalClearCoat", clearCoatColor)
+            shader.v2("finalClearCoatRoughMetallic", clearCoatRoughness, clearCoatMetallic)
+        } else {
+            shader.v4("finalClearCoat", 0f)
+        }
+
         for ((uniformName, valueType) in shaderOverrides) {
             valueType.bind(shader, uniformName)
         }
-    }
-
-    enum class GLSLType {
-        V1I, V2I, V3I, V4I,
-        V1F, V2F, V3F, V4F,
-        M3x3, M4x3, M4x4
     }
 
     override fun save(writer: BaseWriter) {
@@ -119,17 +176,18 @@ class Material : PrefabSaveable() {
         result = 31 * result + (shader?.hashCode() ?: 0)
         result = 31 * result + diffuseBase.hashCode()
         result = 31 * result + diffuseMap.hashCode()
-        result = 31 * result + normalMap.hashCode()
         result = 31 * result + normalStrength.hashCode()
+        result = 31 * result + normalMap.hashCode()
         result = 31 * result + emissiveBase.hashCode()
         result = 31 * result + emissiveMap.hashCode()
-        result = 31 * result + roughnessBase.hashCode()
+        result = 31 * result + roughnessMinMax.hashCode()
         result = 31 * result + roughnessMap.hashCode()
-        result = 31 * result + metallicBase.hashCode()
+        result = 31 * result + metallicMinMax.hashCode()
         result = 31 * result + metallicMap.hashCode()
         result = 31 * result + displacementMap.hashCode()
+        result = 31 * result + occlusionStrength.hashCode()
         result = 31 * result + occlusionMap.hashCode()
-        result = 31 * result + className.hashCode()
+        result = 31 * result + translucency.hashCode()
         return result
     }
 
@@ -144,54 +202,20 @@ class Material : PrefabSaveable() {
         if (shader != other.shader) return false
         if (diffuseBase != other.diffuseBase) return false
         if (diffuseMap != other.diffuseMap) return false
-        if (normalMap != other.normalMap) return false
         if (normalStrength != other.normalStrength) return false
+        if (normalMap != other.normalMap) return false
         if (emissiveBase != other.emissiveBase) return false
         if (emissiveMap != other.emissiveMap) return false
-        if (roughnessBase != other.roughnessBase) return false
+        if (roughnessMinMax != other.roughnessMinMax) return false
         if (roughnessMap != other.roughnessMap) return false
-        if (metallicBase != other.metallicBase) return false
+        if (metallicMinMax != other.metallicMinMax) return false
         if (metallicMap != other.metallicMap) return false
         if (displacementMap != other.displacementMap) return false
+        if (occlusionStrength != other.occlusionStrength) return false
         if (occlusionMap != other.occlusionMap) return false
-        if (className != other.className) return false
+        if (translucency != other.translucency) return false
 
         return true
-    }
-
-    class TypeValue(val type: GLSLType, val value: Any) {
-
-        fun bind(shader: Shader, uniformName: String) {
-            val location = shader[uniformName]
-            if (location >= 0) bind(shader, location)
-        }
-
-        fun bind(shader: Shader, location: Int) {
-            when (type) {
-                GLSLType.V1I -> shader.v1(location, value as Int)
-                GLSLType.V2I -> {
-                    value as Vector2ic
-                    GL21.glUniform2i(location, value.x(), value.y())
-                }
-                GLSLType.V3I -> {
-                    value as Vector3ic
-                    GL20.glUniform3i(location, value.x(), value.y(), value.z())
-                }
-                GLSLType.V4I -> {
-                    value as Vector4ic
-                    GL20.glUniform4i(location, value.x(), value.y(), value.z(), value.w())
-                }
-                GLSLType.V1F -> shader.v1(location, value as Float)
-                GLSLType.V2F -> shader.v2(location, value as Vector2fc)
-                GLSLType.V3F -> shader.v3(location, value as Vector3fc)
-                GLSLType.V4F -> shader.v4(location, value as Vector4fc)
-                GLSLType.M3x3 -> shader.m3x3(location, value as Matrix3fc)
-                GLSLType.M4x3 -> shader.m4x3(location, value as Matrix4x3fc)
-                GLSLType.M4x4 -> shader.m4x4(location, value as Matrix4fc)
-                // else -> LOGGER.warn("Type ${valueType.type} is not yet supported")
-            }
-        }
-
     }
 
     override val className: String = "Material"

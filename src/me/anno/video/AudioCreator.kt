@@ -82,7 +82,9 @@ open class AudioCreator(
         val process = builder.start()
         val targetFPS = 60.0
         val totalFrameCount = (targetFPS * durationSeconds).toLong()
-        thread { processOutput(LOGGER, "Audio", startTime, targetFPS, totalFrameCount, process.errorStream) }
+        thread(name = "AudioOutputListener") {
+            processOutput(LOGGER, "Audio", startTime, targetFPS, totalFrameCount, process.errorStream)
+        }
 
         val audioOutput = DataOutputStream(process.outputStream.buffered())
         createAudio(audioOutput)
@@ -91,7 +93,7 @@ open class AudioCreator(
 
         // delete the temporary file
         //
-        if(videoCreatorOutput != null && deleteVCO){
+        if (videoCreatorOutput != null && deleteVCO) {
             // temporary file survives sometimes
             // -> kill it at the end at the very least
             if (!videoCreatorOutput.delete()) videoCreatorOutput.deleteOnExit()

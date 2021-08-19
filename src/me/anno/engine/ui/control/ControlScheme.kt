@@ -18,7 +18,6 @@ import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
 import me.anno.utils.Maths
-import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import org.joml.AABBd
 import org.joml.Vector3d
 
@@ -51,7 +50,7 @@ open class ControlScheme(val camera: CameraComponent, val library: ECSTypeLibrar
             val rotation = view.rotation
             rotation.x = Maths.clamp(rotation.x + dy * speed, -90.0, 90.0)
             rotation.y += dx * speed
-            cameraNode.transform.localRotation = rotation.toQuaternionDegrees()
+            view.updateTransform()
             invalidateDrawing()
         }
     }
@@ -60,9 +59,7 @@ open class ControlScheme(val camera: CameraComponent, val library: ECSTypeLibrar
         if (isSelected) {
             val factor = Maths.pow(0.5f, (dx + dy) / 16f)
             view.radius *= factor
-            val radius = view.radius
-            camera.far = 1e300
-            camera.near = if (Input.isKeyDown('r')) radius * 1e-2 else radius * 1e-10
+            view.updateTransform()
             invalidateDrawing()
         }
     }
@@ -77,11 +74,10 @@ open class ControlScheme(val camera: CameraComponent, val library: ECSTypeLibrar
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-        view.resolveClick(x, y) { e, c ->
-            // show the entity in the property editor
-            // but highlight the specific mesh
-            library.select(e ?: c?.entity, e ?: c)
-        }
+        val (e, c) = view.resolveClick(x, y)
+        // show the entity in the property editor
+        // but highlight the specific mesh
+        library.select(e ?: c?.entity, e ?: c)
         testHits()
     }
 

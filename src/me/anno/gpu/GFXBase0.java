@@ -286,7 +286,7 @@ public class GFXBase0 {
         glfwMakeContextCurrent(window);
         updateVsync();
 
-        tick.stop("make context current + vsync");
+        tick.stop("Make context current + vsync");
 
         capabilities = GL.createCapabilities();
 
@@ -433,6 +433,7 @@ public class GFXBase0 {
             }, 0);
             glEnable(GL_DEBUG_OUTPUT);
         }
+        GFX.INSTANCE.setGlThread(Thread.currentThread());
     }
 
 

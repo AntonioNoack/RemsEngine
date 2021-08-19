@@ -26,7 +26,7 @@ object OS {// the os is important for some things, e.g. the allowed file names, 
     val screenshots = getReference(pictures, "Screenshots")
 
     fun startProcess(vararg args: String) {
-        thread {
+        thread(name = "Process $args") {
             val builder = BetterProcessBuilder(null, args.size, true)
             builder.addAll(args)
             builder.start()

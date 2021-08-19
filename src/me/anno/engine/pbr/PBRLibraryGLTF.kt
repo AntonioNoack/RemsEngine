@@ -1,5 +1,7 @@
 package me.anno.engine.pbr
 
+import kotlin.math.PI
+
 // from jGLTF
 object PBRLibraryGLTF {
 
@@ -115,7 +117,7 @@ object PBRLibraryGLTF {
             "    return (d * f * g) / (4.0 * NdotL * NdotV);\n" +
             "}\n"
 
-    val specularBRDFv2NoDiv = "" +
+    /*val specularBRDFv2NoDiv = "" +
             microfacetDistribution +
             specularReflectance +
             specularAttenuationNoDiv +
@@ -127,7 +129,73 @@ object PBRLibraryGLTF {
             // Compute the geometric specular attenuation (G)
             "    float G = computeSpecularAttenuation(roughness, V, N, L, H);\n" +
             "    return (D * F * G) * 0.25;\n" + // NdotL is already in the light equation, NdotV is in G
+            "}\n"*/
+
+    // todo regular plastic has specular as well... why not in this model?
+    val specularBRDFv2NoDivInlined = "" +
+            "vec3 computeSpecularBRDF(vec3 specularInputColor, float roughness, vec3 V, vec3 N, float NdotL, float NdotV, vec3 H){\n" +
+            // Compute the microfacet distribution (D)
+            "    float alpha = roughness * roughness;\n" +
+            "    float Dx = alpha * alpha;\n" +
+            "    float NdotH = dot(N, H);\n" + // clamp is probably unnecessary; could be inserted back
+            "    float NdotH_squared = NdotH * NdotH;\n" +
+            "    float x = NdotH_squared * (Dx - 1.0) + 1.0;\n" +
+            // "    float Dx = alpha_squared;\n" +
+            // Compute the specularly reflected color (F)\n
+            // "    float HdotV = clamp(dot(H, V), 0.0, 1.0);\n" + // clamp is probably unnecessary ^^
+            "    float HdotV = dot(H, V);\n" +
+            "    float invHov = 1.0 - HdotV, invHov2 = invHov*invHov, invHov5 = invHov*invHov2*invHov2;\n" +
+            // is x*(x*x)*(x*x) faster than pow5? yes it is, by 2.8x
+            // "    vec3  F = specularInputColor + (1.0 - specularInputColor) * pow(1.0 - HdotV, 5.0);\n" +
+            "    vec3  F = specularInputColor + (1.0 - specularInputColor) * invHov5;\n" +
+            // Compute the geometric specular attenuation (G)
+            // "    float NdotL = dot(N, L);\n" + // guaranteed to be > 0; already defined
+            // "    float NdotV = abs(dot(N, V));\n" + // back face gets same shading (if < 0); clamping is needed here
+            "    float rp1 = roughness + 1.0;\n" +
+            "    float k = rp1 * rp1 * 0.125;\n" +
+            "    vec2 t = vec2(NdotL,NdotV)*(1-k)+k;\n" +
+            //"    float Gx = NdotL;\n" +
+            // NdotL is already in the light equation, NdotV is in G
+            // also we don't need two divisions, we can use one
+            "    return ((Dx * NdotL) * ${0.25 / PI} / (x * x * t.x * t.y)) * F;\n" +
             "}\n"
+
+    // we can extract common factors (which always appear, and never change for a pixel)
+    // alpha, Dx, rp1, k, 1-k
+    val specularBRDFv2NoDivInlined2Start = "" +
+            "float alpha = finalRoughness * finalRoughness;\n" +
+            "float Dx = alpha * alpha, DxM1 = Dx - 1.0;\n" +
+            "float rp1 = finalRoughness + 1.0;\n" +
+            "float k = rp1 * rp1 * 0.125, invK = 1.0-k;\n" +
+            "vec3 invSpecularColor = 1.0 - specularColor;\n" +
+            "float DxPi4 = Dx * ${0.25 / PI};\n"
+
+    // factor extracted from the BRDF
+    val specularBRDFv2NoDivInlined2End = "specularLight *= DxPi4;\n"
+
+    // (specularColor, finalRoughness, V, finalNormal, NdotL, NdotV, H)
+    val specularBRDFv2NoDivInlined2 = "" +
+            // Compute the microfacet distribution (D)
+            "float NdotH = dot(finalNormal, H);\n" + // clamp is probably unnecessary; could be inserted back
+            "float NdotH_squared = NdotH * NdotH;\n" +
+            "float x = NdotH_squared * DxM1 + 1.0;\n" +
+            // "    float Dx = alpha_squared;\n" +
+            // Compute the specularly reflected color (F)\n
+            // "    float HdotV = clamp(dot(H, V), 0.0, 1.0);\n" + // clamp is probably unnecessary ^^
+            "float HdotV = dot(H, V);\n" +
+            "float invHov = 1.0 - HdotV, invHov2 = invHov*invHov, invHov5 = invHov*invHov2*invHov2;\n" +
+            // is x*(x*x)*(x*x) faster than pow5? yes it is, by 2.8x
+            // "    vec3  F = specularInputColor + (1.0 - specularInputColor) * pow(1.0 - HdotV, 5.0);\n" +
+            "vec3 F = specularColor + invSpecularColor * invHov5;\n" +
+            // Compute the geometric specular attenuation (G)
+            // "    float NdotL = dot(N, L);\n" + // guaranteed to be > 0; already defined
+            // "    float NdotV = abs(dot(N, V));\n" + // back face gets same shading (if < 0); clamping is needed here
+            "vec2 t = vec2(NdotL,NdotV)*invK+k;\n" +
+            //"    float Gx = NdotL;\n" +
+            // NdotL is already in the light equation, NdotV is in G
+            // also we don't need two divisions, we can use one
+            "vec3 computeSpecularBRDF = (NdotL / (x * x * t.x * t.y)) * F;\n"
+
 
     /**
      * Compute the vector from the surface point to the light (L),

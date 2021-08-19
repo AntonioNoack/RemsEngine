@@ -7,6 +7,7 @@ import org.apache.logging.log4j.LogManager
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
+import kotlin.reflect.jvm.jvmName
 
 class CachedProperty(
     val name: String,
@@ -24,7 +25,7 @@ class CachedProperty(
         try {
             setter.call(instance, value)
         } catch (e: Exception) {
-            LOGGER.warn("Setting $name with value ${value?.javaClass} of ${instance::class}, but the properties class is $clazz")
+            LOGGER.error("Setting property '$name' with value ${value?.javaClass?.name} of ${instance::class.jvmName}, but the properties class is '$clazz'")
             e.printStackTrace()
         }
     }
@@ -33,7 +34,7 @@ class CachedProperty(
         return try {
             getter.call(instance)
         } catch (e: Exception) {
-            LOGGER.warn("Setting $name of ${instance::class}, but the properties class is $clazz")
+            LOGGER.error("Setting property '$name' of ${instance::class.jvmName}, but the properties class is '$clazz'")
             e.printStackTrace()
             null
         }

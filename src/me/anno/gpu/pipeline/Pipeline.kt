@@ -7,11 +7,11 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshRenderer
 import me.anno.ecs.components.mesh.RendererComponent
+import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.Frustum
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
-import me.anno.gpu.ShaderLib.pbrModelShader
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.pipeline.M4x3Delta.set4x3delta
 import me.anno.io.ISaveable
@@ -70,6 +70,21 @@ class Pipeline : Saveable() {
         }
     }
 
+    private fun addMeshInstanced(mesh: Mesh?, entity: Entity, clickId: Int) {
+        mesh ?: return
+        val materials = mesh.materials
+        if (materials.isEmpty()) {
+            val stage = defaultStage
+            stage.addInstanced(mesh, entity, 0, clickId)
+        } else {
+            for (index in materials.indices) {
+                val material = materials[index]
+                val stage = material.pipelineStage ?: defaultStage
+                stage.addInstanced(mesh, entity, index, clickId)
+            }
+        }
+    }
+
     private fun addLight(light: LightComponent, entity: Entity, cameraPosition: Vector3d, worldScale: Double) {
         val mesh = light.getLightPrimitive()
         val stage = lightPseudoStage
@@ -81,7 +96,11 @@ class Pipeline : Saveable() {
         invWorldTransform.identity()
             .set4x3delta(drawTransform, cameraPosition, worldScale)
             .invert()
-        stage.add(light, mesh, entity, 0, 0)
+        if (light.isInstanced) {
+            stage.addInstanced(mesh, entity, 0, 0)
+        } else {
+            stage.add(light, mesh, entity, 0, 0)
+        }
     }
 
     // todo collect all buffers + materials, which need to be drawn at a certain stage, and then draw them together
@@ -156,7 +175,12 @@ class Pipeline : Saveable() {
                 component.onVisibleUpdate()
                 if (renderer != null && component is MeshComponent) {
                     component.clickId = clickId
-                    addMesh(component.mesh, renderer, entity, clickId)
+                    val mesh = component.mesh
+                    if (component.isInstanced) {
+                        addMeshInstanced(mesh, entity, clickId)
+                    } else {
+                        addMesh(mesh, renderer, entity, clickId)
+                    }
                     clickId++
                 }
                 if (component is LightComponent) {

@@ -37,7 +37,7 @@ public class Runner {
             RemsCLI.main(args);
         } else {
             // start the editor
-            RemsStudio.main(args);
+            RemsStudio.INSTANCE.run();
         }
     }
 

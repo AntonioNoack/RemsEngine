@@ -83,6 +83,11 @@ class FileInput(
         return this
     }
 
+    fun setResetListener(listener: () -> FileReference): FileInput {
+        base.setResetListener { listener().toLocalPath() }
+        return this
+    }
+
     fun setText(text: String, notify: Boolean) {
         base.setValue(text.replace('\\', '/'), notify)
     }

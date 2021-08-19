@@ -43,24 +43,21 @@ object InvalidRef : FileReference("") {
     // a local file...
     override fun getChild(name: String): FileReference = InvalidRef
 
-    override val isDirectory: Boolean
-        get() = false
+    override val exists: Boolean = false
+    override val isDirectory: Boolean = false
+    override val isSomeKindOfDirectory: Boolean = false
 
-    override val exists: Boolean
-        get() = false
-
-    override val lastModified: Long
-        get() = 0L
-
-    override val lastAccessed: Long
-        get() = 0L
+    override val lastModified: Long = 0L
+    override val lastAccessed: Long = 0L
 
     override fun toUri(): URI {
         return URI("file:/invalid")
     }
 
     override fun toString(): String {
-        return "InvalidRef"
+        return ""
     }
+
+    override fun nullIfUndefined(): FileReference? = null
 
 }

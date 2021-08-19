@@ -33,6 +33,8 @@ abstract class LightComponent : Component() {
     var shadowMapCascades = 0
     var shadowMapPower = 4f
 
+    var isInstanced = false
+
     // black lamp light?
     @SerializedProperty
     var color: Vector3f = Vector3f(1f)
@@ -64,9 +66,9 @@ abstract class LightComponent : Component() {
                             "a3 coords;\n" +
                             "uniform mat4x3 localTransform;\n" +
                             "void main(){\n" +
-                            "   localPosition = coords;\n" +
-                            "   localPosition = localTransform * vec4(localPosition, 1.0);\n" +
-                            "   gl_Position = transform * vec4(localPosition, 1.0);\n" +
+                            "   finalPosition = coords;\n" +
+                            "   finalPosition = localTransform * vec4(finalPosition, 1.0);\n" +
+                            "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
                             "   center = localTransform * vec4(0,0,0,1);\n" +
                             "   uvw = gl_Position.xyw;\n" +
                             ShaderLib.positionPostProcessing +

@@ -112,7 +112,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
         fun logOutput(prefix: String?, stream: InputStream, warn: Boolean) {
             val reader = stream.bufferedReader()
-            thread {
+            thread(name = "LogOutput") {
                 while (true) {
                     val line = reader.readLine() ?: break
                     val lineWithPrefix = if (prefix == null) line else "[$prefix] $line"
@@ -170,7 +170,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
     var srcH = 0
 
     fun devNull(prefix: String, stream: InputStream) {
-        thread {
+        thread(name = "devNull") {
             while (true) {
                 val read = stream.read()
                 if (read < 0) break

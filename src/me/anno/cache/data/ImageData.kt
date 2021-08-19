@@ -15,6 +15,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.image.HDRImage
 import me.anno.image.tar.TGAImage
 import me.anno.io.files.FileReference
+import me.anno.io.files.Signature
 import me.anno.objects.Video.Companion.imageTimeout
 import me.anno.objects.modes.RotateJPEG
 import me.anno.utils.Nullable.tryOrException
@@ -34,6 +35,7 @@ class ImageData(file: FileReference) : ICacheData {
 
     var texture = Texture2D("image-data", 1024, 1024, 1)
     var framebuffer: Framebuffer? = null
+    var hasFailed = false
 
     companion object {
 
@@ -96,51 +98,69 @@ class ImageData(file: FileReference) : ICacheData {
     }
 
     init {
-
-        val fileExtension = file.extension
-        // find jpeg rotation by checking exif tags...
-        // they may appear on other images as well, so we don't filter for tags
-        // this surely could be improved for improved performance...
-        // get all tags:
-        /*for (directory in metadata.directories) {
-            for (tag in directory.tags) {
-                (tag)
-            }
-        }*/
-        when (fileExtension.lowercase(Locale.getDefault())) {
-            "hdr" -> {
-                val img = HDRImage(file, true)
-                val w = img.width
-                val h = img.height
-                GFX.addGPUTask(w, h) {
-                    texture.setSize(w, h)
-                    texture.createFloat(img.byteBuffer)
-                }
-            }
-            "tga" -> {
-                val img = use(file.inputStream()) { stream ->
-                    TGAImage.read(stream, false)
-                        .createBufferedImage()
-                }
-                texture.create(img, false)
-            }
-            // ImageIO says it can do webp, however it doesn't understand most pics...
-            // tga was incomplete as well -> we're using our own solution
-            "webp" -> useFFMPEG(file)
+        when (Signature.find(file)?.name) {
+            "jpg", "png", "bmp" -> tryGetImage1(file)
+            "hdr" -> loadHDR(file)
+            "tga" -> loadTGA(file)
             else -> {
-                // read metadata information from jpegs
-                // read the exif rotation header
-                // because some camera images are rotated incorrectly
-                if (fileExtension.getImportType() == "Video") {
-                    useFFMPEG(file)
-                } else {
-                    val image = tryGetImage(file)
-                    if (image != null) {
-                        texture.create("ImageData", { image }, false)
-                        texture.rotation = getRotation(file)
-                    } else LOGGER.warn("Could not load $file")
+                val fileExtension = file.extension
+                when (fileExtension.lowercase(Locale.getDefault())) {
+                    "hdr" -> loadHDR(file)
+                    "tga" -> loadTGA(file)
+                    // ImageIO says it can do webp, however it doesn't understand most pics...
+                    // tga was incomplete as well -> we're using our own solution
+                    "webp" -> useFFMPEG(file)
+                    else -> tryGetImage0(file, fileExtension)
                 }
             }
+        }
+    }
+
+    fun loadHDR(file: FileReference) {
+        val img = HDRImage(file, true)
+        val w = img.width
+        val h = img.height
+        GFX.addGPUTask(w, h) {
+            texture.setSize(w, h)
+            texture.createFloat(img.byteBuffer)
+        }
+    }
+
+    fun loadTGA(file: FileReference) {
+        val img = use(file.inputStream()) { stream ->
+            TGAImage.read(stream, false)
+                .createBufferedImage()
+        }
+        texture.create(img, false)
+    }
+
+    // find jpeg rotation by checking exif tags...
+    // they may appear on other images as well, so we don't filter for tags
+    // this surely could be improved for improved performance...
+    // get all tags:
+    /*for (directory in metadata.directories) {
+        for (tag in directory.tags) {
+            (tag)
+        }
+    }*/
+
+    fun tryGetImage0(file: FileReference, fileExtension: String) {
+        // read metadata information from jpegs
+        // read the exif rotation header
+        // because some camera images are rotated incorrectly
+        if (fileExtension.getImportType() == "Video") {
+            useFFMPEG(file)
+        } else tryGetImage1(file)
+    }
+
+    fun tryGetImage1(file: FileReference) {
+        val image = tryGetImage(file)
+        if (image != null) {
+            texture.create("ImageData", { image }, false)
+            texture.rotation = getRotation(file)
+        } else {
+            LOGGER.warn("Could not load $file")
+            hasFailed = true
         }
     }
 
@@ -151,7 +171,7 @@ class ImageData(file: FileReference) : ICacheData {
     fun tryGetImage(file: InputStream): BufferedImage? {
         // try ImageIO first, then Imaging, then give up (we could try FFMPEG, but idk, whether it supports sth useful)
         val image = tryOrNull { ImageIO.read(file) } ?: tryOrException { Imaging.getBufferedImage(file) }
-        if (image is Exception) LOGGER.warn("Cannot read image from file $file: ${image.message}")
+        if (image is Exception) LOGGER.warn("Cannot read image from input $file: ${image.message}")
         return image as? BufferedImage
     }
 

@@ -30,7 +30,7 @@ import org.apache.logging.log4j.LogManager
 
 class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
 
-    constructor(prefab: Prefab) : this(prefab.ownFile, prefab)
+    constructor(prefab: Prefab) : this(prefab.src, prefab)
 
     constructor(reference: FileReference, classNameIfNull: String) : this(
         reference,
@@ -105,7 +105,7 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
     fun inspect(instance: PrefabSaveable, list: PanelListY, style: Style) {
 
         val path = instance.pathInRoot2(root, withExtra = false)
-        val pathIndices = path.ids
+        val pathIndices = path.indices
 
 
         // the index may not be set in the beginning
@@ -273,23 +273,29 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
      * renumber all changes, which are relevant to the components
      * */
     private fun renumber(from: Int, delta: Int, path: Path) {
-        val targetSize = path.ids.size
+        val targetSize = path.indices.size
         val changedArrays = HashSet<IntArray>()
         for (change in changes) {
             val path2 = change.path!!
-            val indices = path2.ids
+            val indices = path2.indices
             val types = path2.types
             if (change is CSet &&
                 indices.size == targetSize &&
                 indices[targetSize - 1] >= from &&
                 indices !in changedArrays &&
-                indices.startsWith(path.ids) &&
+                indices.startsWith(path.indices) &&
                 types.startsWith(path.types)
             ) {
                 indices[targetSize - 1] += delta
                 changedArrays.add(indices)
             }
         }
+    }
+
+    fun addEntityChild(parent: PrefabSaveable, prefab: Prefab) {
+        if (prefab.clazzName != "Entity") throw IllegalArgumentException("Type must be Entity!")
+        val path = parent.pathInRoot2(root, false)
+        changes.add(CAdd(path, 'e', "Entity", prefab.name, prefab.src))
     }
 
     fun addComponent(parent: PrefabSaveable, component: PrefabSaveable, index: Int, type: Char) {

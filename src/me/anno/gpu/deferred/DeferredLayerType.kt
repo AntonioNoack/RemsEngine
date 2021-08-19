@@ -19,6 +19,7 @@ enum class DeferredLayerType(
 
     // todo 12 bits per component? or sth like that?
     NORMAL("finalNormal", 3, false, 0x77ff77, "*0.5+0.5", "*2.0-1.0"),
+
     // todo do we need the tangent? it is calculated from uvs, so maybe for anisotropy...
     TANGENT("finalTangent", 3, false, 0x7777ff, "*0.5+0.5", "*2.0-1.0"),
 
@@ -31,29 +32,37 @@ enum class DeferredLayerType(
     OCCLUSION("finalOcclusion", 1, false, 0, "", ""), // from an occlusion texture, cavity
 
     // transparency? is a little late... finalAlpha, needs to be handled differently
+    TRANSLUCENCY("finalTranslucency", 1, 0),
+    SHEEN("finalSheen", 1, 0),
+    SHEEN_NORMAL("finalSheenNormal", 3, 0x77ff77),
 
-    // amount, roughness, e.g. for cars
-    CLEAR_COAT("finalClearCoat", 2, false, 0, "", ""),
+    // clear coat roughness? how would we implement that?
+    // color, amount; e.g. for cars
+    CLEAR_COAT("finalClearCoat", 4, 0xff9900ff.toInt()),
+    CLEAT_COAT_ROUGH_METALLIC("finalClearCoatRoughMetallic", 2, 0x00ff),
 
     // can be used for water droplets: they are a coating with their own normals
-    CLEAR_COAT_NORMAL("finalClearCoatNormal", 3, false, 0x77ff77, "", ""),
+    CLEAR_COAT_NORMAL("finalClearCoatNormal", 3, 0x77ff77),
 
     // color + radius/intensity, e.g. for skin
-    SUBSURFACE("finalSubsurface", 4, false, 0x00ffffff, "", ""),
+    SUBSURFACE("finalSubsurface", 4, 0x00ffffff),
 
     // amount, rotation
-    ANISOTROPIC("finalAnisotropic", 2, false, 0, "", ""),
+    ANISOTROPIC("finalAnisotropic", 2, 0),
 
     // needs some kind of mapping...
-    INDEX_OF_REFRACTION("finalIndexOfRefraction", 1, false, 0, "", ""),
+    INDEX_OF_REFRACTION("finalIndexOfRefraction", 1, 0),
 
     // ids / markers
-    ID("finalId", 4, false, 0, "", ""),
-    FLAGS("finalFlags", 4, false, 0, "", "")
+    ID("finalId", 4, 0),
+    FLAGS("finalFlags", 4, 0)
 
     // is there more, which we could use?
 
     ;
+
+    constructor(glslName: String, dimensions: Int, defaultValueARGB: Int) :
+            this(glslName, dimensions, false, defaultValueARGB, "", "")
 
     fun appendDefinition(fragment: StringBuilder) {
         fragment.append(DeferredSettingsV2.glslTypes[dimensions - 1])
@@ -69,34 +78,40 @@ enum class DeferredLayerType(
             2 -> {
                 fragment.append("vec2(")
                 fragment.append(defaultValueARGB.g() / 255f)
-                fragment.append(", ")
-                fragment.append(defaultValueARGB.b() / 255f)
+                if (defaultValueARGB.g() != defaultValueARGB.b()) {
+                    fragment.append(", ")
+                    fragment.append(defaultValueARGB.b() / 255f)
+                }
                 fragment.append(')')
             }
             3 -> {
                 fragment.append("vec3(")
                 fragment.append(defaultValueARGB.r() / 255f)
-                fragment.append(", ")
-                fragment.append(defaultValueARGB.g() / 255f)
-                fragment.append(", ")
-                fragment.append(defaultValueARGB.b() / 255f)
+                if (defaultValueARGB.r() != defaultValueARGB.g() || defaultValueARGB.r() != defaultValueARGB.b()) {
+                    fragment.append(", ")
+                    fragment.append(defaultValueARGB.g() / 255f)
+                    fragment.append(", ")
+                    fragment.append(defaultValueARGB.b() / 255f)
+                }
                 fragment.append(')')
             }
             4 -> {
                 fragment.append("vec4(")
                 fragment.append(defaultValueARGB.a() / 255f)
-                fragment.append(", ")
-                fragment.append(defaultValueARGB.r() / 255f)
-                fragment.append(", ")
-                fragment.append(defaultValueARGB.g() / 255f)
-                fragment.append(", ")
-                fragment.append(defaultValueARGB.b() / 255f)
+                if (defaultValueARGB != defaultValueARGB.b() * 0x1010101) {
+                    fragment.append(", ")
+                    fragment.append(defaultValueARGB.r() / 255f)
+                    fragment.append(", ")
+                    fragment.append(defaultValueARGB.g() / 255f)
+                    fragment.append(", ")
+                    fragment.append(defaultValueARGB.b() / 255f)
+                }
                 fragment.append(')')
             }
         }
     }
 
-    fun getValue(settingsV2: DeferredSettingsV2,  uv: String = "uv"): String {
+    fun getValue(settingsV2: DeferredSettingsV2, uv: String = "uv"): String {
         val layer = settingsV2.layers.first { it.type == this }
         return "texture(${layer.textureName}, $uv).${layer.mapping}$map10"
     }

@@ -2,6 +2,11 @@ package me.anno.utils.types
 
 object Lists {
 
+    fun <V> List<V>.asMutableList(): MutableList<V>{
+        return if(this is MutableList<V>) this
+        else ArrayList(this)
+    }
+
     fun List<Double>.median(default: Double): Double {
         return run {
             if (isEmpty()) default

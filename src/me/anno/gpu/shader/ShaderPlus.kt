@@ -1,5 +1,8 @@
 package me.anno.gpu.shader
 
+import me.anno.gpu.shader.builder.ShaderStage
+import me.anno.gpu.shader.builder.Variable
+
 object ShaderPlus {
 
     fun create(name: String, vertex: String, varying: String, fragment: String): Shader {
@@ -13,7 +16,7 @@ object ShaderPlus {
     fun makeFragmentShaderUniversal(varyingSource: String, fragmentSource: String): String {
         val hasFinalColor = "finalColor" in fragmentSource
         val hasZDistance = "zDistance" in varyingSource
-        val hasTint = "vec4 tint;" in fragmentSource
+        val hasTint = "vec4 tint;" in fragmentSource || "vec4 tint;" in varyingSource
         val raw = fragmentSource.trim()
         if (!raw.endsWith("}")) throw RuntimeException()
         return "" +
@@ -52,6 +55,48 @@ object ShaderPlus {
                 "   }\n" +
                 "}"
 
+    }
+
+    fun createShaderStage(hasTint: Boolean = true): ShaderStage {
+        val callName = "applyShaderPlus"
+        val variables = listOf(
+            Variable("float", "zDistance"),
+            Variable("vec4", "tint"),
+            Variable("vec3", "finalColor"),
+            Variable("float", "finalAlpha"),
+            Variable("int", "drawMode"),
+            Variable("vec4", "fragColor", false),
+        )
+        val code = "" +
+                "switch(drawMode){\n" +
+                "    case ${DrawMode.COLOR_SQUARED.id}:\n" +
+                "        vec3 tmpCol = ${if (hasTint) "finalColor" else "finalColor * tint.rgb"};\n" +
+                "        fragColor = vec4(tmpCol * tmpCol, clamp(finalAlpha, 0, 1) * tint.a);\n" +
+                "        break;\n" +
+                "    case ${DrawMode.COLOR.id}:\n" +
+                "        fragColor = vec4(${if (hasTint) "finalColor" else "finalColor * tint.rgb"}, clamp(finalAlpha, 0, 1) * tint.a);\n" +
+                "        break;\n" +
+                "    case ${DrawMode.ID.id}:\n" +
+                "        if(finalAlpha < 0.01) discard;\n" +
+                "        fragColor.rgb = tint.rgb;\n" +
+                "        break;\n" +
+                "    case ${DrawMode.DEPTH_LOG2_01.id}:\n" +
+                "        if(finalAlpha < 0.01) discard;\n" +
+                "        float depth01 = 0.5 + 0.04 * log2(zDistance);\n" +
+                "        fragColor = vec4(depth01, depth01, depth01*depth01, finalAlpha);\n" +
+                "        break;\n" +
+                "    case ${DrawMode.DEPTH_LOG2.id}:\n" +
+                "        if(finalAlpha < 0.01) discard;\n" +
+                "        fragColor = vec4(zDistance, 0.0, zDistance * zDistance, finalAlpha);\n" +
+                "        break;\n" +
+                "    case ${DrawMode.COPY.id}:\n" +
+                "       fragColor = vec4(finalColor, finalAlpha);\n" +
+                "       break;\n" +
+                "    case ${DrawMode.TINT.id}:\n" +
+                "       fragColor = tint;\n" +
+                "       break;\n" +
+                "}\n"
+        return ShaderStage(callName, variables, code)
     }
 
     enum class DrawMode(val id: Int) {

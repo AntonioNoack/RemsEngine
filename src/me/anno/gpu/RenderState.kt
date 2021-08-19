@@ -58,6 +58,13 @@ object RenderState {
 
     val geometryShader = SecureStack<GeoShader?>(null)
 
+    val instanced = object : SecureStack<Boolean>(false) {
+        override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
+            // nothing changes on the OpenGL side,
+            // just the shaders need to be modified
+        }
+    }
+
     inline fun withEqualDepth(func: () -> Unit) {
         val current = depthMode.currentValue
         depthMode.use(DepthMode.values().first { it.func == current.withEqual }, func)

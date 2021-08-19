@@ -40,7 +40,7 @@ object AudioManager {
     var ctr = 0
     var runningThread: Thread? = null
     fun startRunning() {
-        runningThread = thread {
+        runningThread = thread(name = "AudioManager") {
             init()
             while (!shallStop) {
                 ALBase.check()

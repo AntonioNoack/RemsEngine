@@ -24,6 +24,28 @@ class Clock(
         stop(wasUsedFor, minTime)
     }
 
+    fun update(wasUsedFor: String) {
+        update(wasUsedFor, minTime)
+    }
+
+    fun update(wasUsedFor: String, minTime: Double) {
+        val time = System.nanoTime()
+        val dt = (time - lastTime) * 1e-9
+        if (dt > minTime) {
+            lastTime = time
+            LOGGER.info("Used ${if (printWholeAccuracy) dt.toString() else dt.f3()}s for $wasUsedFor")
+        }
+    }
+
+    fun update(wasUsedFor: () -> String, minTime: Double) {
+        val time = System.nanoTime()
+        val dt = (time - lastTime) * 1e-9
+        if (dt > minTime) {
+            lastTime = time
+            LOGGER.info("Used ${if (printWholeAccuracy) dt.toString() else dt.f3()}s for ${wasUsedFor()}")
+        }
+    }
+
     fun stop(wasUsedFor: String, minTime: Double) {
         val time = System.nanoTime()
         val dt = (time - lastTime) * 1e-9

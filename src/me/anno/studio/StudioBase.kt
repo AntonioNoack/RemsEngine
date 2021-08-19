@@ -27,6 +27,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.studio.project.Project
+import me.anno.studio.rems.RemsRegistry
 import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.Panel
 import me.anno.ui.base.Tooltips
@@ -129,7 +130,7 @@ abstract class StudioBase(
         instance = this
     }
 
-    fun run() {
+    open fun run() {
 
         setupNames()
 

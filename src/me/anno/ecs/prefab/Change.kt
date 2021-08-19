@@ -2,11 +2,12 @@ package me.anno.ecs.prefab
 
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import org.apache.logging.log4j.LogManager
 
 // todo how do we reference (as variables) to other Entities? probably a path would be correct...
 // todo the same for components
 
-abstract class Change(val priority: Int) : Saveable() {
+abstract class Change(val priority: Int) : Saveable(), Cloneable {
 
     var path: Path? = null
 
@@ -25,14 +26,20 @@ abstract class Change(val priority: Int) : Saveable() {
             val childType = path.getType(pathIndex, chars[0])
 
             val components = instance.getChildListByType(childType)
-            val matchesName = components.firstOrNull { it.name == childName }
 
-            when {
-                matchesName != null -> apply(matchesName, pathIndex + 1)
-                childIndex in components.indices -> apply(components[childIndex], pathIndex + 1)
-                else -> throw IndexOutOfBoundsException("Missing path $pathIndex in $this, " +
-                        "only ${components.size} $childType available ${components.joinToString { "'${it["name"]}'" }}"
-                )
+            if (components.getOrNull(childIndex)?.name == childName) {
+                // bingo, easiest way: name and index are matching
+                apply(components[childIndex], pathIndex + 1)
+            } else {
+                val matchesName = components.firstOrNull { it.name == childName }
+                when {
+                    matchesName != null -> apply(matchesName, pathIndex + 1)
+                    childIndex in components.indices -> apply(components[childIndex], pathIndex + 1)
+                    else -> LOGGER.warn(
+                        "Missing path $pathIndex in $this, " +
+                                "only ${components.size} $childType available ${components.joinToString { "'${it["name"]}'" }}"
+                    )
+                }
             }
 
         } else applyChange(instance)
@@ -40,6 +47,11 @@ abstract class Change(val priority: Int) : Saveable() {
     }
 
     abstract fun applyChange(instance: PrefabSaveable)
+
+    /**
+     * shallow copy
+     * */
+    public abstract override fun clone(): Change
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
@@ -54,6 +66,10 @@ abstract class Change(val priority: Int) : Saveable() {
             "path" -> path = Path.parse(value ?: "")
             else -> super.readString(name, value)
         }
+    }
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(Change::class)
     }
 
 }

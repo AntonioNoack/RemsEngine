@@ -4,19 +4,20 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.engine.scene.ScenePrefab
 import me.anno.io.ISaveable
-import me.anno.io.Saveable
+import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
+import me.anno.io.unity.UnityReader
 import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.mesh.vox.VOXReader
 import me.anno.utils.files.LocalFile.toGlobalFile
 import org.apache.logging.log4j.LogManager
 
-class Prefab() : Saveable() {
+class Prefab() : NamedSaveable() {
 
     constructor(clazzName: String) : this() {
         this.clazzName = clazzName
@@ -31,7 +32,9 @@ class Prefab() : Saveable() {
     var changes: List<Change>? = null
     var prefab: FileReference = InvalidRef
     var wasCreatedFromJson = false
-    var ownFile: FileReference = InvalidRef
+    var src: FileReference = InvalidRef
+
+    fun getPrefabOrSource() = prefab.nullIfUndefined() ?: src
 
     // for the game runtime, we could save the prefab instance here
     // or maybe even just add the changes, and merge them
@@ -42,6 +45,10 @@ class Prefab() : Saveable() {
     fun add(change: Change) {
         if (changes == null) changes = ArrayList()
         (changes as MutableList<Change>).add(change)
+    }
+
+    fun setProperty(property: String, value: Any) {
+        add(CSet(Path(), property, value))
     }
 
     override fun save(writer: BaseWriter) {
@@ -83,13 +90,18 @@ class Prefab() : Saveable() {
 
     fun createInstance(): PrefabSaveable {
         // LOGGER.info("Requesting instance $ownFile: $prefab")
-        return createInstance(prefab, changes, HashSet(), clazzName!!)
+        val instance = createInstance(prefab, changes, HashSet(), clazzName!!)
+        instance.prefab2 = this
+        return instance
     }
 
     fun createInstance(chain: MutableSet<FileReference>?): PrefabSaveable {
         // LOGGER.info("Requesting instance $ownFile: $prefab")
         // LOGGER.info("$prefab/${changes?.size}/$clazzName")
-        return createInstance(prefab, changes, chain, clazzName!!)
+        val instance = createInstance(prefab, changes, chain, clazzName!!)
+        // assign super instance? we should really cache that...
+        instance.prefab2 = this
+        return instance
     }
 
     override val className: String = "Prefab"
@@ -149,6 +161,7 @@ class Prefab() : Saveable() {
         }
 
         private fun loadJson(resource: FileReference): Prefab? {
+            if (resource == InvalidRef) return null
             return try {
                 val read = TextReader.read(resource)
                 val prefab = read.firstOrNull() as? Prefab
@@ -157,9 +170,14 @@ class Prefab() : Saveable() {
                 prefab?.wasCreatedFromJson = true
                 prefab
             } catch (e: Exception) {
+                LOGGER.warn("$e by $resource")
                 e.printStackTrace()
                 null
             }
+        }
+
+        fun loadUnityFile(resource: FileReference): Prefab? {
+            return loadJson(UnityReader.readAsAsset(resource))
         }
 
         fun loadPrefab(resource: FileReference): Prefab? {
@@ -172,15 +190,18 @@ class Prefab() : Saveable() {
                             when (signature?.name) {
                                 "vox" -> loadVOXModel(resource)
                                 "fbx", "obj", "gltf" -> loadAssimpModel(resource)
+                                "yaml" -> loadUnityFile(resource)
+                                "json" -> loadJson(resource)
                                 else -> {
                                     when (resource.extension.lowercase()) {
                                         "vox" -> loadVOXModel(resource)
                                         "fbx", "dae", "obj", "gltf", "glb" -> loadAssimpModel(resource)
+                                        "unity", "mat", "prefab", "asset", "meta", "controller" -> loadUnityFile(resource)
                                         // todo define file extensions for materials, skeletons, components
                                         else -> loadJson(resource)
                                     }
                                 }
-                            }
+                            }?.apply { src = resource }
                         } else null
                     )
                 } as CacheData<*>
@@ -194,7 +215,7 @@ class Prefab() : Saveable() {
             clazz: String
         ): PrefabSaveable {
             if (chain != null) {
-                if (prefab in chain) throw RuntimeException()
+                if (prefab in chain) throw RuntimeException("Hit dependency ring: $chain, $prefab")
                 chain.add(prefab)
             }
             // LOGGER.info("chain: $chain")
@@ -203,9 +224,8 @@ class Prefab() : Saveable() {
 
         fun loadScenePrefab(file: FileReference): Prefab {
             // LOGGER.info("loading scene")
-            val prefab = loadPrefab(file) ?: Prefab("Entity")
-            prefab.prefab = ScenePrefab
-            prefab.ownFile = file
+            val prefab = loadPrefab(file) ?: Prefab("Entity").apply { this.prefab = ScenePrefab }
+            prefab.src = file
             if (!file.exists) file.writeText(TextWriter.toText(prefab, false))
             return prefab
         }
