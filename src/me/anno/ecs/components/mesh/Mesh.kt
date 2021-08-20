@@ -3,11 +3,12 @@ package me.anno.ecs.components.mesh
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.components.mesh.MeshComponent.Companion.clear
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.GFX
 import me.anno.gpu.TextureLib
+import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.IndexedStaticBuffer
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.drawing.GFXx3D
@@ -16,6 +17,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.objects.GFXTransform
+import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.AABBs.set
 import me.anno.utils.types.Lists.asMutableList
 import org.apache.logging.log4j.LogManager
@@ -23,6 +25,8 @@ import org.joml.*
 import org.lwjgl.opengl.GL11
 import kotlin.math.max
 import kotlin.math.roundToInt
+
+// todo make main.json always the main scene in a mesh file, and don't load everything twice...
 
 class Mesh : Component(), Cloneable {
 
@@ -32,6 +36,14 @@ class Mesh : Component(), Cloneable {
 
     @NotSerializedProperty
     private var needsMeshUpdate = true
+
+    var isInstanced = false
+
+    var collisionMask: Int = 1
+
+    fun canCollide(collisionMask: Int): Boolean {
+        return this.collisionMask.and(collisionMask) != 0
+    }
 
     // todo also we need a renderer, which can handle morphing
     @HideInInspector
@@ -87,9 +99,14 @@ class Mesh : Component(), Cloneable {
 
     var ignoreStrayPointsInAABB = false
 
-    public override fun clone(): Mesh {
-        val clone = Mesh()
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as Mesh
+        ensureBuffer()
         clone.buffer = buffer
+        clone.hasBonesInBuffer = hasBonesInBuffer
+        clone.isInstanced = isInstanced
+        clone.collisionMask = collisionMask
         clone.materials = materials
         clone.positions = positions
         clone.normals = normals
@@ -104,6 +121,13 @@ class Mesh : Component(), Cloneable {
         clone.ignoreStrayPointsInAABB = ignoreStrayPointsInAABB
         clone.drawMode = drawMode
         clone.materialIndices = materialIndices
+        clone.needsMeshUpdate = needsMeshUpdate
+    }
+
+    override fun clone(): Mesh {
+        ensureBuffer() // saves buffers
+        val clone = Mesh()
+        copy(clone)
         return clone
     }
 
@@ -171,7 +195,7 @@ class Mesh : Component(), Cloneable {
         if ((boneIndices == null) != (boneWeights == null)) throw IllegalStateException("Needs both or neither bone weights and indices")
         if (boneWeights != null && boneIndices != null) {
             if (boneWeights.size != boneIndices.size) throw IllegalStateException("Size of bone weights must match size of bone indices")
-            if (boneWeights.size * 3 != positions.size * MeshComponent.MAX_WEIGHTS) throw IllegalStateException("Size of weights does not match positions, there must be ${MeshComponent.MAX_WEIGHTS} weights per vertex")
+            if (boneWeights.size * 3 != positions.size * MAX_WEIGHTS) throw IllegalStateException("Size of weights does not match positions, there must be ${MAX_WEIGHTS} weights per vertex")
         }
         val color0 = color0
         if (color0 != null && color0.size * 3 != positions.size) throw IllegalStateException("Every vertex needs an ARGB color value")
@@ -252,6 +276,9 @@ class Mesh : Component(), Cloneable {
         }
     }
 
+    var hasVertexColors = false
+    var hasBonesInBuffer = false
+
     private fun updateMesh() {
 
         needsMeshUpdate = false
@@ -268,19 +295,48 @@ class Mesh : Component(), Cloneable {
         // if normals are null or have length 0, calculate them
         val normals = normals!!
         val tangents = tangents
-        NormalCalculator.checkNormals(positions, normals, indices)
-        TangentCalculator.checkTangents(positions, normals, tangents, uvs, indices)
 
         val uvs = uvs
+        val hasUVs = uvs != null && uvs.isNotEmpty()
+
+        NormalCalculator.checkNormals(positions, normals, indices)
+        if (hasUVs) TangentCalculator.checkTangents(positions, normals, tangents, uvs, indices)
+
         val colors = color0
         val boneWeights = boneWeights
         val boneIndices = boneIndices
 
         val pointCount = positions.size / 3
         val indices = indices
+
+        val hasBones = boneWeights != null && boneWeights.isNotEmpty()
+        hasBonesInBuffer = hasBones
+
+        val hasColors = colors != null && colors.isNotEmpty()
+        hasVertexColors = hasColors
+
+        val attributes = arrayListOf(
+            Attribute("coords", 3),
+            Attribute("normals", AttributeType.SINT8_NORM, 4),
+        )
+
+        if (hasUVs) {
+            attributes += Attribute("uvs", 2)
+            attributes += Attribute("tangents", AttributeType.SINT8_NORM, 4)
+        }
+
+        if (hasColors) {
+            attributes += Attribute("colors", AttributeType.UINT8_NORM, 4)
+        }
+
+        if (hasBones) {
+            attributes += Attribute("weights", AttributeType.UINT8_NORM, MAX_WEIGHTS)
+            attributes += Attribute("indices", AttributeType.UINT8, MAX_WEIGHTS, true)
+        }
+
         val buffer =
-            if (indices == null) StaticBuffer(MeshComponent.attributes, pointCount)
-            else IndexedStaticBuffer(MeshComponent.attributes, pointCount, indices)
+            if (indices == null) StaticBuffer(attributes, pointCount)
+            else IndexedStaticBuffer(attributes, pointCount, indices)
 
         // val hasBones = boneWeights != null && boneIndices != null
         // val boneCount = if (hasBones) min(boneWeights!!.size, boneIndices!!.size) else 0
@@ -300,63 +356,73 @@ class Mesh : Component(), Cloneable {
             buffer.put(positions[i3 + 1])
             buffer.put(positions[i3 + 2])
 
-            if (uvs != null && uvs.size > i2 + 1) {
-                buffer.put(uvs[i2], uvs[i2 + 1])
-            } else buffer.put(0f, 0f)
-
-
             buffer.putByte(normals[i3])
             buffer.putByte(normals[i3 + 1])
             buffer.putByte(normals[i3 + 2])
             buffer.putByte(0) // alignment
 
+            if (hasUVs) {
 
-            if (tangents != null) {
-                buffer.putByte(tangents[i3])
-                buffer.putByte(tangents[i3 + 1])
-                buffer.putByte(tangents[i3 + 2])
-                buffer.putByte(0) // alignment
-            } else buffer.putInt(0)
+                uvs!!
+                if (uvs.size > i2 + 1) {
+                    buffer.put(uvs[i2], uvs[i2 + 1])
+                } else buffer.put(0f, 0f)
 
+                if (tangents != null) {
+                    buffer.putByte(tangents[i3])
+                    buffer.putByte(tangents[i3 + 1])
+                    buffer.putByte(tangents[i3 + 2])
+                    buffer.putByte(0) // alignment
+                } else buffer.putInt(0)
 
-            if (colors != null && colors.size > i) {
-                buffer.putInt(colors[i])
-            } else buffer.putInt(-1)
-
-
-            // only works if MAX_WEIGHTS is four
-            if (boneWeights != null && boneWeights.isNotEmpty()) {
-                val w0 = max(boneWeights[i4], 1e-5f)
-                val w1 = boneWeights[i4 + 1]
-                val w2 = boneWeights[i4 + 2]
-                val w3 = boneWeights[i4 + 3]
-                val normalisation = 255f / (w0 + w1 + w2 + w3)
-                // var w0b = (w0 * normalisation).roundToInt()
-                val w1b = (w1 * normalisation).roundToInt()
-                val w2b = (w2 * normalisation).roundToInt()
-                val w3b = (w3 * normalisation).roundToInt()
-                val w0b = 255 - (w1b + w2b + w3b) // should be positive
-                buffer.putByte(w0b.toByte())
-                buffer.putByte(w1b.toByte())
-                buffer.putByte(w2b.toByte())
-                buffer.putByte(w3b.toByte())
-            } else {
-                buffer.putByte(-1)
-                buffer.putByte(0)
-                buffer.putByte(0)
-                buffer.putByte(0)
             }
 
-            if (boneIndices != null && boneIndices.isNotEmpty()) {
-                buffer.putByte(boneIndices[i4])
-                buffer.putByte(boneIndices[i4 + 1])
-                buffer.putByte(boneIndices[i4 + 2])
-                buffer.putByte(boneIndices[i4 + 3])
-            } else {
-                buffer.putInt(0)
+            if (hasColors) {
+                colors!!
+                if (colors.size > i) {
+                    buffer.putInt(colors[i])
+                } else buffer.putInt(-1)
+            }
+
+            // only works if MAX_WEIGHTS is four
+            if (hasBones) {
+
+                if (boneWeights != null && boneWeights.isNotEmpty()) {
+                    val w0 = max(boneWeights[i4], 1e-5f)
+                    val w1 = boneWeights[i4 + 1]
+                    val w2 = boneWeights[i4 + 2]
+                    val w3 = boneWeights[i4 + 3]
+                    val normalisation = 255f / (w0 + w1 + w2 + w3)
+                    // var w0b = (w0 * normalisation).roundToInt()
+                    val w1b = (w1 * normalisation).roundToInt()
+                    val w2b = (w2 * normalisation).roundToInt()
+                    val w3b = (w3 * normalisation).roundToInt()
+                    val w0b = 255 - (w1b + w2b + w3b) // should be positive
+                    buffer.putByte(w0b.toByte())
+                    buffer.putByte(w1b.toByte())
+                    buffer.putByte(w2b.toByte())
+                    buffer.putByte(w3b.toByte())
+                } else {
+                    buffer.putByte(-1)
+                    buffer.putByte(0)
+                    buffer.putByte(0)
+                    buffer.putByte(0)
+                }
+
+                if (boneIndices != null && boneIndices.isNotEmpty()) {
+                    buffer.putByte(boneIndices[i4])
+                    buffer.putByte(boneIndices[i4 + 1])
+                    buffer.putByte(boneIndices[i4 + 2])
+                    buffer.putByte(boneIndices[i4 + 3])
+                } else {
+                    buffer.putInt(0)
+                }
+
             }
 
         }
+
+        LOGGER.info("Flags($name): size: ${buffer.vertexCount}, colors? $hasColors, uvs? $hasUVs, bones? $hasBones")
 
         this.buffer?.destroy()
         this.buffer = buffer
@@ -409,7 +475,7 @@ class Mesh : Component(), Cloneable {
             localStack
         } else null
 
-        shader.v1("hasAnimation", 0f)
+        shader.v1("hasAnimation", false)
         shader.m4x4("transform", stack)
         shader.m4x3("localTransform", localStack)
 
@@ -453,8 +519,32 @@ class Mesh : Component(), Cloneable {
     }
 
     companion object {
+
         private val defaultMaterials = listOf(Material())
         private val LOGGER = LogManager.getLogger(Mesh::class)
+
+        // custom attributes for shaders? idk...
+        // will always be 4, so bone indices can be aligned
+        const val MAX_WEIGHTS = 4
+
+        val attributesBoneless = listOf(
+            Attribute("coords", 3),
+            Attribute("uvs", 2), // 20 bytes
+            Attribute("normals", AttributeType.SINT8_NORM, 4),
+            Attribute("tangents", AttributeType.SINT8_NORM, 4),
+            Attribute("colors", AttributeType.UINT8_NORM, 4), // 28 + 4 bytes
+        )
+
+        val attributes = listOf(
+            Attribute("coords", 3),
+            Attribute("uvs", 2), // 20 bytes
+            Attribute("normals", AttributeType.SINT8_NORM, 4),
+            Attribute("tangents", AttributeType.SINT8_NORM, 4),
+            Attribute("colors", AttributeType.UINT8_NORM, 4), // 28 + 4 bytes
+            Attribute("weights", AttributeType.UINT8_NORM, MAX_WEIGHTS),
+            Attribute("indices", AttributeType.UINT8, MAX_WEIGHTS, true) // 32 + 8 bytes
+        )
+
     }
 
 }

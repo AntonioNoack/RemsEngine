@@ -48,22 +48,22 @@ abstract class Component : PrefabSaveable(), Inspectable {
     var clickId = 0
 
     override fun addChildByType(index: Int, type: Char, instance: PrefabSaveable) {
-        // may be implemented, e.g. for Materials in MeshComponent
+        // may be implemented, e.g. for Materials in Mesh
         LOGGER.warn("$className.addChildByType(index,type,instance) is not supported")
     }
 
     override fun add(index: Int, child: PrefabSaveable) {
-        // may be implemented, e.g. for Materials in MeshComponent
+        // may be implemented, e.g. for Materials in Mesh
         LOGGER.warn("$className.add(index,child) is not supported")
     }
 
     override fun add(child: PrefabSaveable) {
-        // may be implemented, e.g. for Materials in MeshComponent
+        // may be implemented, e.g. for Materials in Mesh
         LOGGER.warn("$className.add(child) is not supported")
     }
 
     override fun remove(child: PrefabSaveable) {
-        // may be implemented, e.g. for Materials in MeshComponent
+        // may be implemented, e.g. for Materials in Mesh
         LOGGER.warn("$className.add(child) is not supported")
     }
 

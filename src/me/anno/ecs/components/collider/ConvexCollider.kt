@@ -3,6 +3,7 @@ package me.anno.ecs.components.collider
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.ConvexHullShape
 import com.bulletphysics.util.ObjectArrayList
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.serialization.SerializedProperty
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -14,7 +15,7 @@ import org.joml.Vector3d
 class ConvexCollider : Collider() {
 
     @SerializedProperty
-    val points = ArrayList<Vector3d>()
+    var points = ArrayList<Vector3d>()
 
     // todo signed distance...
 
@@ -32,6 +33,18 @@ class ConvexCollider : Collider() {
 
     override fun drawShape() {
         // todo draw the convex hull
+    }
+
+    override fun clone(): ConvexCollider {
+        val clone = ConvexCollider()
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as ConvexCollider
+        clone.points = points
     }
 
     override val className get() = "ConvexCollider"

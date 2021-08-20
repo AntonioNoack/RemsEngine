@@ -2,7 +2,7 @@ package me.anno.engine.ui.control
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.engine.ui.render.RenderView
@@ -204,15 +204,14 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
             val prefab = Prefab.loadPrefab(file) ?: continue
             when (prefab.clazzName) {
                 "Material" -> {
-                    val comp = hovered.value as? MeshComponent
-                    val mesh = comp?.mesh
+                    val mesh = hovered.value as? Mesh
                     if (mesh != null) {
                         val instance = prefab.createInstance() as Material
                         mesh.materials = listOf(instance)
                         // add this change
                         val inspector = PrefabInspector.currentInspector
                         if (inspector != null) {
-                            val path = comp.pathInRoot2(inspector.root, true)
+                            val path = mesh.pathInRoot2(inspector.root, true)
                             // inject the mesh into the path
                             path.setLast(mesh.name, 0, 'm')
                             inspector.change(path, "materials", mesh.materials)

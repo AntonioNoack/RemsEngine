@@ -1,8 +1,9 @@
 package me.anno.ecs.components.physics
 
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.serialization.SerializedProperty
 
-class Vehicle: Rigidbody() {
+class Vehicle : Rigidbody() {
 
     @SerializedProperty
     var suspensionStiffness = 5.88
@@ -18,6 +19,22 @@ class Vehicle: Rigidbody() {
 
     @SerializedProperty
     var frictionSlip = 10.5
+
+    override fun clone(): Vehicle {
+        val clone = Vehicle()
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as Vehicle
+        clone.suspensionDamping = suspensionDamping
+        clone.suspensionStiffness = suspensionStiffness
+        clone.suspensionCompression = suspensionCompression
+        clone.maxSuspensionTravelCm = maxSuspensionTravelCm
+        clone.frictionSlip = frictionSlip
+    }
 
     override val className: String = "Vehicle"
 

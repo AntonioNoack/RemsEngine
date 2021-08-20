@@ -5,6 +5,7 @@ import com.bulletphysics.collision.shapes.CylinderShape
 import com.bulletphysics.collision.shapes.CylinderShapeX
 import com.bulletphysics.collision.shapes.CylinderShapeZ
 import me.anno.ecs.annotations.Range
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.Maths.length
 import org.joml.AABBd
@@ -48,8 +49,6 @@ class CylinderCollider : Collider() {
         return and2SDFs(deltaPos, roundness.toFloat())
     }
 
-    override val className get() = "CylinderCollider"
-
     override fun createBulletShape(scale: Vector3d): CollisionShape {
         return when (axis) {
             0 -> CylinderShapeX(javax.vecmath.Vector3d(height * 0.5 * scale.x, radius * scale.y, radius * scale.z))
@@ -62,5 +61,21 @@ class CylinderCollider : Collider() {
     override fun drawShape() {
         // todo draw cylinder
     }
+
+    override fun clone(): CylinderCollider {
+        val clone = CylinderCollider()
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as CylinderCollider
+        clone.axis = axis
+        clone.height = height
+        clone.radius = radius
+    }
+
+    override val className get() = "CylinderCollider"
 
 }

@@ -13,6 +13,7 @@ import me.anno.io.zip.InnerTarFile.Companion.readAsGZip
 import me.anno.io.zip.InnerZipFile.Companion.createZipRegistryV2
 import me.anno.io.zip.InnerZipFile.Companion.fileFromStreamV2
 import me.anno.mesh.assimp.AnimatedMeshesLoader
+import me.anno.mesh.vox.VOXReader
 import org.apache.logging.log4j.LogManager
 
 object ZipCache : CacheSection("ZipCache") {
@@ -37,13 +38,15 @@ object ZipCache : CacheSection("ZipCache") {
                     "rar" -> createZipRegistryRar(file) { fileFromStreamRar(file) }
                     "gzip", "tar" -> readAsGZip(file)
                     // todo all mesh extensions
-                    "fbx", "gltf", "vox", "obj", "dae", "blend", "draco" -> AnimatedMeshesLoader.readAsFolder(file)
+                    "fbx", "gltf", "obj", "dae", "blend", "draco" -> AnimatedMeshesLoader.readAsFolder(file)
+                    "vox" -> VOXReader.readAsFolder(file)
                     "zip" -> createZipRegistryV2(file) { fileFromStreamV2(file) }
                     null, "xml", "yaml" -> {
                         when (file.extension) {
                             // todo all mesh extensions
-                            "fbx", "gltf", "glb", "vox", "obj", "dae", "blend", "draco" ->
+                            "fbx", "gltf", "glb", "obj", "dae", "blend", "draco" ->
                                 AnimatedMeshesLoader.readAsFolder(file)
+                            "vox" -> VOXReader.readAsFolder(file)
                             "mat", "prefab", "unity", "asset", "controller" -> UnityReader.readAsFolder(file)
                             else -> createZipRegistryV2(file) { fileFromStreamV2(file) }
                         }

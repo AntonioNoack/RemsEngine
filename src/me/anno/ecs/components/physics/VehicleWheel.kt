@@ -5,6 +5,7 @@ import com.bulletphysics.dynamics.vehicle.VehicleTuning
 import com.bulletphysics.dynamics.vehicle.WheelInfo
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderView
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
@@ -23,6 +24,10 @@ class VehicleWheel : Component() {
 
     @SerializedProperty
     var suspensionRestLength = 1.0
+        set(value) {
+            field = value
+            bulletInstance?.suspensionRestLength1 = value
+        }
 
     @SerializedProperty
     var radius = 1.0
@@ -40,24 +45,46 @@ class VehicleWheel : Component() {
 
     @SerializedProperty
     var suspensionStiffness = 5.88
+        set(value) {
+            field = value
+            bulletInstance?.suspensionStiffness = value
+        }
 
     @SerializedProperty
     var suspensionCompression = 0.83
+        set(value) {
+            field = value
+            // todo setter in bullet instance does not exist
+            // bulletInstance?.sus
+        }
 
     @SerializedProperty
     var suspensionDamping = 0.88
+        set(value) {
+            field = value
+            // todo setter in bullet instance does not exist
+            // bulletInstance?.sus
+        }
 
     @SerializedProperty
     var maxSuspensionTravelCm = 500.0
+        set(value) {
+            field = value
+            bulletInstance?.maxSuspensionTravelCm = value
+        }
 
     @SerializedProperty
     var frictionSlip = 10.5
+        set(value) {
+            field = value
+            bulletInstance?.frictionSlip = value
+        }
 
     @SerializedProperty
     var steering = 0.0
         set(value) {
             field = value
-            bulletInstance?.steering = steering
+            bulletInstance?.steering = value
         }
 
     @SerializedProperty
@@ -116,6 +143,31 @@ class VehicleWheel : Component() {
         wheel.steering = steering
         wheel.rollInfluence = rollInfluence
         return wheel
+    }
+
+    override fun clone(): VehicleWheel {
+        val clone = VehicleWheel()
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as VehicleWheel
+        clone.radius = radius
+        clone.wheelAxle = wheelAxle
+        clone.wheelDirection = wheelDirection
+        clone.brakeForce = brakeForce
+        clone.engineForce = engineForce
+        clone.isFront = isFront
+        clone.rollInfluence = rollInfluence
+        clone.suspensionDamping = suspensionDamping
+        clone.suspensionStiffness = suspensionStiffness
+        clone.suspensionRestLength = suspensionRestLength
+        clone.suspensionCompression = suspensionCompression
+        clone.maxSuspensionTravelCm = maxSuspensionTravelCm
+        clone.steering = steering
+        clone.frictionSlip = frictionSlip
     }
 
     override val className: String = "VehicleWheel"

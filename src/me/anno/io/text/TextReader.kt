@@ -209,7 +209,7 @@ class TextReader(val data: CharSequence) : BaseReader() {
         }
     }
 
-    private fun <ArrayType, InstanceType> readTypedArray(
+    fun <ArrayType, InstanceType> readTypedArray(
         typeName: String,
         createArray: (arraySize: Int) -> ArrayType,
         readValue: () -> InstanceType,
@@ -415,7 +415,7 @@ class TextReader(val data: CharSequence) : BaseReader() {
         toDouble()// ?: error("Invalid double", this)
     }
 
-    private fun readFloatArray() = readTypedArray(
+    fun readFloatArray() = readTypedArray(
         "float",
         { FloatArray(it) }, { readFloat() },
         { array, index, value -> array[index] = value }
@@ -612,10 +612,22 @@ class TextReader(val data: CharSequence) : BaseReader() {
             }
             "R" -> obj.readFile(name, readFile())
             "R[]" -> obj.readFileArray(
-                name, readTypedArray("FileReference",
+                name, readTypedArray("FileRef",
                     { Array(it) { InvalidRef } }, { readFile() },
                     { array, index, value -> array[index] = value })
             )
+            "R[][]" -> {
+                val a0 = Array<FileReference>(0) { InvalidRef }
+                obj.readFileArray2D(
+                    name, readTypedArray("FileRef",
+                        { Array(it) { a0 } }, {
+                            readTypedArray("FileRef[]",
+                                { Array<FileReference>(it) { InvalidRef } }, { readFile() },
+                                { array, index, value -> array[index] = value })
+                        },
+                        { array, index, value -> array[index] = value })
+                )
+            }
             "*[]", "[]" -> {// array of mixed types
                 val elements = readTypedArray("Any", { arrayOfNulls<ISaveable?>(it) }, {
                     when (val next = skipSpace()) {

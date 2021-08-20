@@ -4,7 +4,7 @@ import me.anno.animation.skeletal.SkeletalAnimation
 import me.anno.cache.data.ICacheData
 import me.anno.cache.instances.ImageCache.getImage
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.matrixBufferFBX
@@ -67,7 +67,7 @@ open class MeshData : ICacheData {
         // todo play animation
         val model0 = assimpModel!!
         val animation = model0.animations[animationName]
-        shader.v1("hasAnimation", if (animation == null) 0f else 1f)
+        shader.v1("hasAnimation", animation != null)
         if (animation != null) {
             model0.uploadJointMatrices(shader, animation, time)
         }
@@ -161,7 +161,7 @@ open class MeshData : ICacheData {
             )
         )
 
-        val meshes = entity.getComponents(MeshComponent::class, false).mapNotNull { it.mesh }
+        val meshes = entity.getComponents(Mesh::class, false)
         if (meshes.isNotEmpty()) {
 
             shader.m4x3("localTransform", stack)

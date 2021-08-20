@@ -7,6 +7,12 @@ class DirectionalLight : LightComponent() {
 
     override fun getLightPrimitive(): Mesh = cubeMesh
 
+    override fun clone(): DirectionalLight {
+        val clone = DirectionalLight()
+        copy(clone)
+        return clone
+    }
+
     override val className: String = "DirectionalLight"
 
 }

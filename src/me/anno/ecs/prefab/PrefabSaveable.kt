@@ -11,7 +11,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.LOGGER
 import me.anno.utils.structures.Hierarchical
 
-abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, Inspectable {
+abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, Inspectable, Cloneable {
 
     @SerializedProperty
     override var isEnabled = true
@@ -97,6 +97,16 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
 
     open fun getIndexOf(child: PrefabSaveable): Int = getChildListByType(getTypeOf(child)).indexOf(child)
     open fun getTypeOf(child: PrefabSaveable): Char = ' '
+
+    public abstract override fun clone(): PrefabSaveable
+    open fun copy(clone: PrefabSaveable) {
+        clone.name = name
+        clone.description = description
+        clone.isEnabled = isEnabled
+        clone.isCollapsed = isCollapsed
+        clone.prefab = prefab
+        clone.prefab2 = prefab2
+    }
 
     override fun onDestroy() {}
 

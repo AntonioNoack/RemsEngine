@@ -1,18 +1,16 @@
 package me.anno.ecs.components.color
 
-import me.anno.gpu.shader.Shader
-import me.anno.io.ISaveable
-import me.anno.io.base.BaseWriter
 import me.anno.animation.AnimatedProperty
 import me.anno.ecs.Component
 import me.anno.ecs.components.shaders.FragmentShaderComponent
 import me.anno.ecs.components.shaders.ShaderEnvironment
 import me.anno.ecs.components.shaders.VariableType
-import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.editor.SettingCategory
-import me.anno.ui.style.Style
+import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.gpu.shader.Shader
+import me.anno.io.ISaveable
+import me.anno.io.base.BaseWriter
 
-class VignetteComponent: Component(), FragmentShaderComponent {
+class VignetteComponent : Component(), FragmentShaderComponent {
 
     val color = AnimatedProperty.color()
     val strength = AnimatedProperty.float(1f)
@@ -49,7 +47,7 @@ class VignetteComponent: Component(), FragmentShaderComponent {
     }
 
     override fun readObject(name: String, value: ISaveable?) {
-        when(name){
+        when (name) {
             "strength" -> strength.copyFrom(value)
             else -> super.readObject(name, value)
         }
@@ -57,5 +55,8 @@ class VignetteComponent: Component(), FragmentShaderComponent {
 
     override val className get() = "VignetteComponent"
 
+    override fun clone(): PrefabSaveable {
+        TODO("Not yet implemented")
+    }
 
 }

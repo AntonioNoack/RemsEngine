@@ -25,7 +25,7 @@ import org.joml.Vector4f
 class Material : PrefabSaveable() {
 
     @SerializedProperty
-    val shaderOverrides = HashMap<String, TypeValue>()
+    var shaderOverrides = HashMap<String, TypeValue>()
 
     // or not yet...
     @NotSerializedProperty
@@ -216,6 +216,37 @@ class Material : PrefabSaveable() {
         if (translucency != other.translucency) return false
 
         return true
+    }
+
+    override fun clone(): Material {
+        // todo fast copy option
+        val material = Material()
+        copy(material)
+        return material
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as Material
+        clone.diffuseBase = diffuseBase
+        clone.diffuseMap = diffuseMap
+        clone.emissiveBase = emissiveBase
+        clone.emissiveMap = emissiveMap
+        clone.normalMap = normalMap
+        clone.normalStrength = normalStrength
+        clone.sheen = sheen
+        clone.sheenNormalMap = sheenNormalMap
+        clone.occlusionStrength = occlusionStrength
+        clone.occlusionMap = occlusionMap
+        clone.shaderOverrides = shaderOverrides
+        clone.roughnessMinMax = roughnessMinMax
+        clone.roughnessMap = roughnessMap
+        clone.clearCoatColor = clearCoatColor
+        clone.clearCoatRoughness = clearCoatRoughness
+        clone.clearCoatMetallic = clearCoatMetallic
+        clone.shader = shader
+        clone.pipelineStage = pipelineStage
+        // todo other stuff, that we missed
     }
 
     override val className: String = "Material"

@@ -1,6 +1,7 @@
 package me.anno.ecs.components.light
 
 import me.anno.ecs.Component
+import me.anno.ecs.prefab.PrefabSaveable
 
 class PlanarReflection : Component() {
 
@@ -13,5 +14,9 @@ class PlanarReflection : Component() {
     // todo then display it:
     // todo a) as a decal, overriding glossy surfaces
     // todo b) as a mesh
+
+    override fun clone(): PrefabSaveable {
+        TODO("Not yet implemented")
+    }
 
 }

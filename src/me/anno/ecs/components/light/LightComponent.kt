@@ -1,15 +1,14 @@
 package me.anno.ecs.components.light
 
 import me.anno.ecs.Component
-import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.pbr.DeferredRenderer
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.shader.BaseShader
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
-import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
 import org.joml.Vector3f
 
@@ -34,6 +33,15 @@ abstract class LightComponent : Component() {
     var shadowMapPower = 4f
 
     var isInstanced = false
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as LightComponent
+        clone.isInstanced = isInstanced
+        clone.shadowMapCascades = shadowMapCascades
+        clone.shadowMapPower = shadowMapPower
+        clone.color = color
+    }
 
     // black lamp light?
     @SerializedProperty

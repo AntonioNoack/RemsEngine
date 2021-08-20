@@ -3,7 +3,6 @@ package me.anno.mesh.assimp
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.Prefab
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.Shader
@@ -18,11 +17,12 @@ import kotlin.math.min
 
 class AnimGameItem(
     val hierarchy: Entity,
-    val hierarchyPrefab: Prefab,
     val meshes: List<Mesh>,
     val bones: List<Bone>,
     val animations: Map<String, me.anno.ecs.components.anim.Animation>
 ) {
+
+    constructor(hierarchy: Entity): this(hierarchy, emptyList(), emptyList(), emptyMap())
 
     val staticAABB = lazy {
         val rootEntity = hierarchy
@@ -147,7 +147,7 @@ class AnimGameItem(
                 // todo render all them points, and use them for the bbx calculation (only if no meshes present)
                 // because animated clothing may be too small to see
                 val local = AABBd()
-                val meshes = entity.getComponents(MeshComponent::class,false).mapNotNull { it.mesh }
+                val meshes = entity.getComponents(Mesh::class, false)
                 for (mesh in meshes) {
                     mesh.ensureBuffer()
                     local.union(mesh.aabb.toDouble())

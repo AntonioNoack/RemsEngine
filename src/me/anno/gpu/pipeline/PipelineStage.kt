@@ -322,17 +322,21 @@ class PipelineStage(
 
             shaderColor(shader, "tint", -1)
 
+            mesh.ensureBuffer()
+
             // only if the entity or mesh changed
             // not if the material has changed
             // this updates the skeleton and such
             if (entity !== lastEntity || lastMesh !== mesh || lastShader !== shader) {
-                if (renderer is MeshRenderer)
+                if (renderer is MeshRenderer && mesh.hasBonesInBuffer)
                     renderer.defineVertexTransform(shader, entity, mesh)
-                else shader.v1("hasAnimation", 0f)
+                else shader.v1("hasAnimation", false)
                 lastEntity = entity
                 lastMesh = mesh
                 lastShader = shader
             }
+
+            shader.v1("hasVertexColors", mesh.hasVertexColors)
 
             mesh.draw(shader, materialIndex)
 
@@ -342,7 +346,7 @@ class PipelineStage(
         val batchSize = instancedBatchSize
         val buffer = instanceBuffer
         val aabb = tmpAABBd
-        RenderState.instanced.use(true){
+        RenderState.instanced.use(true) {
             for ((mesh, list) in instancedMeshes.values) {
                 for ((materialIndex, values) in list) {
                     if (values.isNotEmpty()) {
@@ -360,7 +364,7 @@ class PipelineStage(
                             setupLights(pipeline, shader, cameraPosition, worldScale, aabb)
                         }
                         material.defineShader(shader)
-                        shader.v1("hasAnimation", 0f)
+                        shader.v1("hasAnimation", false)
                         // draw them in batches of size <= batchSize
                         val size = values.size
                         for (i in 0 until size step batchSize) {

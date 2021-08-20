@@ -1,7 +1,7 @@
 package me.anno.engine.raycast
 
 import me.anno.ecs.components.collider.Collider
-import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.Mesh
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
@@ -11,7 +11,7 @@ class RayHit {
 
     var distance = 0.0
     var collider: Collider? = null
-    var meshComponent: MeshComponent? = null
+    var mesh: Mesh? = null
 
     // collision algorithms require a bit of temporary storage for convenience
     // this pre-allocates the maximum, it will require

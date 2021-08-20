@@ -54,6 +54,7 @@ abstract class Saveable : ISaveable {
 
     override fun readFile(name: String, value: FileReference) = readSomething(name, value)
     override fun readFileArray(name: String, value: Array<FileReference>) = readSomething(name, value)
+    override fun readFileArray2D(name: String, value: Array<Array<FileReference>>) = readSomething(name, value)
 
     override fun readObject(name: String, value: ISaveable?) = readSomething(name, value)
     override fun readObjectArray(name: String, values: Array<ISaveable?>) = readSomething(name, values)

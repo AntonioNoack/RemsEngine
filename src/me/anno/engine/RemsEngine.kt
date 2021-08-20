@@ -54,6 +54,11 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
         Dict.loadDefault()
 
+        // pdf stuff
+        LogManager.disableLogger("PDICCBased")
+        LogManager.disableLogger("PostScriptTable")
+        LogManager.disableLogger("GlyphSubstitutionTable")
+
     }
 
     override fun onGameLoopStart() {

@@ -48,6 +48,7 @@ class ECSMeshShader(name: String) : BaseShader(name, "", "", "") {
         val params = attributes + if (instanced) {
             listOf(
                 Variable("mat4", "transform"),
+                Variable("bool", "hasVertexColors"),
                 // outputs
                 Variable("float", "zDistance", false),
                 Variable("vec2", "uv", false),
@@ -61,10 +62,11 @@ class ECSMeshShader(name: String) : BaseShader(name, "", "", "") {
         } else {
             listOf(
                 Variable("mat4", "transform"),
+                Variable("bool", "hasVertexColors"),
                 // not required for the instanced rendering, because this is instance specific
                 Variable("mat4x3", "jointTransforms", maxBones),
                 Variable("mat4x3", "localTransform"),
-                Variable("float", "hasAnimation"),
+                Variable("bool", "hasAnimation"),
                 // outputs
                 Variable("float", "zDistance", false),
                 Variable("vec2", "uv", false),
@@ -91,7 +93,7 @@ class ECSMeshShader(name: String) : BaseShader(name, "", "", "") {
                                     "   tint = instanceTint;\n"
                         } else {
                             "" +
-                                    "   if(hasAnimation > 0.5){\n" +
+                                    "   if(hasAnimation){\n" +
                                     "       mat4x3 jointMat;\n" +
                                     "       jointMat  = jointTransforms[indices.x] * weights.x;\n" +
                                     "       jointMat += jointTransforms[indices.y] * weights.y;\n" +
@@ -115,7 +117,7 @@ class ECSMeshShader(name: String) : BaseShader(name, "", "", "") {
                         "   normal = normalize(normal);\n" + // here? nah ^^
                         "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
                         "   uv = uvs;\n" +
-                        "   vertexColor = colors;\n" +
+                        "   vertexColor = hasVertexColors ? colors : vec4(1);\n" +
                         ShaderLib.positionPostProcessing
             )
         )

@@ -811,11 +811,11 @@ object ShaderLib {
                 "a4 colors;\n" +
                 "a4 weights;\n" +
                 "ai4 indices;\n" +
-                "uniform float hasAnimation;\n" +
+                "uniform bool hasAnimation;\n" +
                 "uniform mat4x3 localTransform;\n" +
                 "uniform mat4x3 jointTransforms[$maxBones];\n" +
                 "void main(){\n" +
-                "   if(hasAnimation > 0.5){\n" +
+                "   if(hasAnimation){\n" +
                 "       mat4x3 jointMat;\n" +
                 "       jointMat  = jointTransforms[indices.x] * weights.x;\n" +
                 "       jointMat += jointTransforms[indices.y] * weights.y;\n" +

@@ -5,6 +5,7 @@ import com.bulletphysics.collision.shapes.ConeShape
 import com.bulletphysics.collision.shapes.ConeShapeX
 import com.bulletphysics.collision.shapes.ConeShapeZ
 import me.anno.ecs.annotations.Range
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.Maths.length
 import me.anno.utils.types.Vectors.setAxis
@@ -61,8 +62,6 @@ class ConeCollider : Collider() {
 
     }
 
-    override val className get() = "ConeCollider"
-
     override fun createBulletShape(scale: Vector3d): CollisionShape {
         return when (axis) {
             0 -> ConeShapeX(radius * scale.y, height * scale.x)
@@ -75,5 +74,21 @@ class ConeCollider : Collider() {
     override fun drawShape() {
         // todo draw cone shape
     }
+
+    override fun clone(): ConeCollider {
+        val clone = ConeCollider()
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as ConeCollider
+        clone.axis = axis
+        clone.height = height
+        clone.radius = radius
+    }
+
+    override val className get() = "ConeCollider"
 
 }

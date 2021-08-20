@@ -67,6 +67,11 @@ abstract class FileReference(val absolutePath: String) {
             return FileFileRef(file0)
         }
 
+        fun appendPath(parent: String, name: String): String {
+            return if (parent.isBlank2()) name
+            else "$parent/$name"
+        }
+
         fun appendPath(fileI: File, i: Int, parts: List<String>): FileReference {
             var ref: FileReference = FileFileRef(fileI)
             for (j in i until parts.size) {

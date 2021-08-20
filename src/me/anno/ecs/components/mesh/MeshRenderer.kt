@@ -5,6 +5,12 @@ package me.anno.ecs.components.mesh
 
 class MeshRenderer : RendererComponent() {
 
+    override fun clone(): MeshRenderer {
+        val clone = MeshRenderer()
+        copy(clone)
+        return clone
+    }
+
     override val className get() = "MeshRenderer"
 
 }

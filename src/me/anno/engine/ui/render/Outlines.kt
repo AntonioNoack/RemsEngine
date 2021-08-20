@@ -1,7 +1,7 @@
 package me.anno.engine.ui.render
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.RendererComponent
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.TextureLib.whiteTexture
@@ -27,17 +27,16 @@ object Outlines {
             val components = entity.components
             for (i in components.indices) {
                 val component = components[i]
-                if (component is MeshComponent) {
+                if (component is Mesh) {
                     drawOutline(renderer, component, worldScale)
                 }
             }
         }
     }
 
-    fun drawOutline(renderer: RendererComponent?, component: MeshComponent, worldScale: Double) {
+    fun drawOutline(renderer: RendererComponent?, mesh: Mesh, worldScale: Double) {
 
-        val mesh = component.mesh ?: return
-        val entity = component.entity ?: return
+        val entity = mesh.entity ?: return
         val transform0 = entity.transform
 
         // important, when the object is off-screen, but the outline is not
@@ -92,7 +91,7 @@ object Outlines {
 
             if (renderer != null) {
                 renderer.defineVertexTransform(shader, entity, mesh)
-            } else shader.v1("hasAnimation", 0f)
+            } else shader.v1("hasAnimation", false)
 
             mesh.draw(shader, 0)
 

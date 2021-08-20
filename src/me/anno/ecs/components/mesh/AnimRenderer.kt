@@ -5,6 +5,7 @@ import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.anim.Retargeting
 import me.anno.ecs.components.anim.Skeleton
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.Shader
 import me.anno.io.serialization.SerializedProperty
@@ -29,7 +30,7 @@ class AnimRenderer : RendererComponent() {
 
         val skeleton = skeleton
         if (skeleton == null) {
-            shader.v1("hasAnimation", 0f)
+            shader.v1("hasAnimation", false)
             return
         }
 
@@ -46,7 +47,7 @@ class AnimRenderer : RendererComponent() {
         }
 
         if (animationWeights.isEmpty() || location <= 0) {
-            shader.v1("hasAnimation", 0f)
+            shader.v1("hasAnimation", false)
             return
         }
 
@@ -73,7 +74,7 @@ class AnimRenderer : RendererComponent() {
             sumWeight += weight
         }
 
-        shader.v1("hasAnimation", 1f)
+        shader.v1("hasAnimation", true)
 
         // upload the matrices
         val boneCount = min(matrices.size, AnimGameItem.maxBones)
@@ -90,6 +91,19 @@ class AnimRenderer : RendererComponent() {
         // get animation
         // blend the relevant animations together
 
+    }
+
+    override fun clone(): AnimRenderer {
+        val clone = AnimRenderer()
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as AnimRenderer
+        clone.skeleton = skeleton
+        clone.animationWeights = animationWeights
     }
 
     override val className: String = "AnimRenderer"

@@ -28,6 +28,7 @@ import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.components.physics.Vehicle
 import me.anno.ecs.components.physics.VehicleWheel
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.DrawAABB
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.camPosition
@@ -645,6 +646,18 @@ class BulletPhysics : Component() {
         val world = createBulletWorld()
         world.setGravity(Vector3d(0.0, -9.81, 0.0))
         return world
+    }
+
+    override fun clone(): BulletPhysics {
+        val clone = BulletPhysics()
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as BulletPhysics
+        clone.automaticDeathHeight = automaticDeathHeight
     }
 
     override val className: String = "BulletPhysics"

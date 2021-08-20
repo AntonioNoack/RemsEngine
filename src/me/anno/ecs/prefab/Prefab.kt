@@ -41,15 +41,24 @@ class Prefab() : NamedSaveable() {
     // (we don't need to override twice or more times)
 
     var history: ChangeHistory? = null
+    var isValid = false
 
     fun add(change: Change) {
         if (changes == null) changes = ArrayList()
         (changes as MutableList<Change>).add(change)
+        isValid = false
     }
 
-    fun setProperty(property: String, value: Any) {
-        add(CSet(Path(), property, value))
+    fun setProperty(key: String, value: Any?) {
+        if (changes == null) changes = ArrayList()
+        (changes as MutableList<Change>).apply {
+            removeIf { it.path!!.isEmpty() && it is CSet && it.name == key }
+            add(CSet(Path(), key, value))
+        }
+        isValid = false
     }
+
+    var sampleInstance: PrefabSaveable? = null
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
@@ -88,20 +97,23 @@ class Prefab() : NamedSaveable() {
         }
     }
 
-    fun createInstance(): PrefabSaveable {
-        // LOGGER.info("Requesting instance $ownFile: $prefab")
-        val instance = createInstance(prefab, changes, HashSet(), clazzName!!)
-        instance.prefab2 = this
-        return instance
-    }
-
-    fun createInstance(chain: MutableSet<FileReference>?): PrefabSaveable {
-        // LOGGER.info("Requesting instance $ownFile: $prefab")
+    private fun createInstance0(chain: MutableSet<FileReference>?): PrefabSaveable {
+        isValid = true
+        // LOGGER.info("Requesting instance '$src' extends '$prefab'")
         // LOGGER.info("$prefab/${changes?.size}/$clazzName")
         val instance = createInstance(prefab, changes, chain, clazzName!!)
         // assign super instance? we should really cache that...
         instance.prefab2 = this
         return instance
+    }
+
+    fun createInstance(): PrefabSaveable = createInstance(HashSet())
+
+    fun createInstance(chain: MutableSet<FileReference>?): PrefabSaveable {
+        synchronized(this) {
+            if (!isValid) sampleInstance = createInstance0(chain)
+        }
+        return sampleInstance!!.clone()
     }
 
     override val className: String = "Prefab"
@@ -113,6 +125,7 @@ class Prefab() : NamedSaveable() {
     companion object {
 
         val cache = CacheSection("Prefab")
+        val prefabTimeout = 60_000L
 
         private val LOGGER = LogManager.getLogger(Prefab::class)
 
@@ -143,8 +156,8 @@ class Prefab() : NamedSaveable() {
         private fun loadAssimpModel(resource: FileReference): Prefab? {
             return try {
                 val reader = AnimatedMeshesLoader
-                val meshes = reader.load(resource)
-                meshes.hierarchyPrefab
+                val meshes = reader.readAsFolder2(resource)
+                meshes.second
             } catch (e: Exception) {
                 e.printStackTrace()
                 null
@@ -153,7 +166,7 @@ class Prefab() : NamedSaveable() {
 
         private fun loadVOXModel(resource: FileReference): Prefab? {
             return try {
-                VOXReader().read(resource).toEntityPrefab()
+                VOXReader().read(resource).toEntityPrefab(resource)
             } catch (e: Exception) {
                 e.printStackTrace()
                 null
@@ -182,7 +195,7 @@ class Prefab() : NamedSaveable() {
 
         fun loadPrefab(resource: FileReference): Prefab? {
             return if (resource != InvalidRef && resource.exists && !resource.isDirectory) {
-                val data = cache.getEntry(resource, 1000, false) {
+                val data = cache.getEntry(resource, prefabTimeout, false) {
                     CacheData(
                         if (resource.exists && !resource.isDirectory) {
                             val signature = Signature.find(resource)
@@ -196,7 +209,9 @@ class Prefab() : NamedSaveable() {
                                     when (resource.extension.lowercase()) {
                                         "vox" -> loadVOXModel(resource)
                                         "fbx", "dae", "obj", "gltf", "glb" -> loadAssimpModel(resource)
-                                        "unity", "mat", "prefab", "asset", "meta", "controller" -> loadUnityFile(resource)
+                                        "unity", "mat", "prefab", "asset", "meta", "controller" -> loadUnityFile(
+                                            resource
+                                        )
                                         // todo define file extensions for materials, skeletons, components
                                         else -> loadJson(resource)
                                     }

@@ -1,6 +1,7 @@
 package me.anno.ecs.components.test
 
 import me.anno.ecs.Component
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.raycast.Raycast
@@ -23,6 +24,10 @@ class RaycastTestComponent : Component() {
         } else {
             DebugShapes.debugLines.add(DebugLine(start, Vector3d(direction).add(start), 0xff0000))
         }
+    }
+
+    override fun clone(): PrefabSaveable {
+        TODO("Not yet implemented")
     }
 
     override val className: String = javaClass.simpleName

@@ -2,6 +2,7 @@ package me.anno.ecs.components.collider
 
 import com.bulletphysics.collision.shapes.CapsuleShape
 import com.bulletphysics.collision.shapes.CollisionShape
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.types.Vectors.setAxis
 import org.joml.AABBd
@@ -52,6 +53,20 @@ class CapsuleCollider : Collider() {
 
     override fun drawShape() {
         // todo draw a capsule
+    }
+
+    override fun clone(): CapsuleCollider {
+        val clone = CapsuleCollider()
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as CapsuleCollider
+        clone.axis = axis
+        clone.height = height
+        clone.radius = radius
     }
 
     override val className get() = "CapsuleCollider"

@@ -5,6 +5,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.Maths.absMax
+import me.anno.utils.Maths.min
 import me.anno.utils.types.Strings
 import me.anno.utils.types.Strings.isBlank2
 import org.joml.*
@@ -94,27 +95,17 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     override fun writeBooleanArray(name: String, values: BooleanArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart("b[]", name)
-            open(true)
-            data.append(values.size)
-            val lastIndex = values.indexOfLast { it }
-            for (i in 0 until lastIndex) {
-                data.append(',')
-                data.append(if (values[i]) '1' else '0')
+            writeArray(values.size, values.indexOfLast { it }) {
+                data.append(if (values[it]) '1' else '0')
             }
-            close(true)
         }
     }
 
     override fun writeBooleanArray2D(name: String, values: Array<BooleanArray>, force: Boolean) {
-        writeArray(name, values, force, "b[][]") {
-            data.append('[')
-            data.append(values.size)
-            val lastIndex = it.indexOfLast { b -> b }
-            for (i in 0 until lastIndex) {
-                data.append(',')
-                data.append(if (it[i]) '1' else '0')
+        writeArray(name, values, force, "b[][]") { arr ->
+            writeArray(arr.size, arr.indexOfLast { it }) {
+                data.append(if (arr[it]) '1' else '0')
             }
-            data.append(']')
         }
     }
 
@@ -128,27 +119,17 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     override fun writeCharArray(name: String, values: CharArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart("c[]", name)
-            open(true)
-            data.append(values.size)
-            val lastIndex = values.indexOfLast { it != 0.toChar() }
-            for (i in 0 until lastIndex) {
-                data.append(',')
-                data.append(values[i].code.toString())
+            writeArray(values.size, values.indexOfLast { it.code != 0 }) {
+                data.append(values[it].code)
             }
-            close(true)
         }
     }
 
     override fun writeCharArray2D(name: String, values: Array<CharArray>, force: Boolean) {
-        writeArray(name, values, force, "c[][]") {
-            data.append('[')
-            data.append(values.size)
-            val lastIndex = it.indexOfLast { i -> i != 0.toChar() }
-            for (i in 0 until lastIndex) {
-                data.append(',')
-                data.append(it[i].code.toString())
+        writeArray(name, values, force, "c[][]") { arr ->
+            writeArray(arr.size, arr.indexOfLast { it.code != 0 }) {
+                data.append(arr[it].code)
             }
-            data.append(']')
         }
     }
 
@@ -162,27 +143,17 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     override fun writeByteArray(name: String, values: ByteArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart("B[]", name)
-            open(true)
-            data.append(values.size)
-            val lastIndex = values.indexOfLast { it != 0.toByte() }
-            for (i in 0 until lastIndex) {
-                data.append(',')
-                data.append(values[i].toString())
+            writeArray(values.size, values.indexOfLast { it != 0.toByte() }) {
+                data.append(values[it].toString())
             }
-            close(true)
         }
     }
 
     override fun writeByteArray2D(name: String, values: Array<ByteArray>, force: Boolean) {
-        writeArray(name, values, force, "B[][]") {
-            data.append('[')
-            data.append(values.size)
-            val lastIndex = it.indexOfLast { i -> i != 0.toByte() }
-            for (i in 0 until lastIndex) {
-                data.append(',')
-                data.append(it[i].toString())
+        writeArray(name, values, force, "B[][]") { arr ->
+            writeArray(arr.size, arr.indexOfLast { it != 0.toByte() }) {
+                data.append(arr[it].toString())
             }
-            data.append(']')
         }
     }
 
@@ -196,27 +167,17 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     override fun writeShortArray(name: String, values: ShortArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart("s[]", name)
-            open(true)
-            data.append(values.size)
-            val lastIndex = values.indexOfLast { it != 0.toShort() }
-            for (i in 0 until lastIndex) {
-                data.append(',')
-                data.append(values[i].toString())
+            writeArray(values.size, values.indexOfLast { it != 0.toShort() }) {
+                data.append(values[it].toString())
             }
-            close(true)
         }
     }
 
     override fun writeShortArray2D(name: String, values: Array<ShortArray>, force: Boolean) {
-        writeArray(name, values, force, "s[][]") {
-            data.append('[')
-            data.append(values.size)
-            val lastIndex = it.indexOfLast { i -> i != 0.toShort() }
-            for (i in 0 until lastIndex) {
-                data.append(',')
-                data.append(it[i].toString())
+        writeArray(name, values, force, "s[][]") { arr ->
+            writeArray(arr.size, arr.indexOfLast { it != 0.toShort() }) {
+                data.append(arr[it].toString())
             }
-            data.append(']')
         }
     }
 
@@ -230,27 +191,17 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     override fun writeIntArray(name: String, values: IntArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart("i[]", name)
-            open(true)
-            data.append(values.size)
-            val lastIndex = values.indexOfLast { it != 0 }
-            for (i in 0 until lastIndex) {
-                data.append(',')
-                data.append(values[i])
+            writeArray(values.size, values.indexOfLast { it != 0 }) {
+                data.append(values[it])
             }
-            close(true)
         }
     }
 
     override fun writeIntArray2D(name: String, values: Array<IntArray>, force: Boolean) {
-        writeArray(name, values, force, "i[][]") {
-            data.append('[')
-            data.append(values.size)
-            val lastIndex = it.indexOfLast { i -> i != 0 }
-            for (i in 0 until lastIndex) {
-                data.append(',')
-                data.append(it[i])
+        writeArray(name, values, force, "i[][]") { arr ->
+            writeArray(arr.size, arr.indexOfLast { it != 0 }) {
+                data.append(arr[it])
             }
-            data.append(']')
         }
     }
 
@@ -264,26 +215,17 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     override fun writeFloatArray(name: String, values: FloatArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart("f[]", name)
-            open(true)
-            data.append(values.size)
-            val lastIndex = values.indexOfLast { it != 0f }
-            for (i in 0 until lastIndex) {
-                data.append(',')
-                append(values[i])
+            writeArray(values.size, values.indexOfLast { it != 0f }) {
+                append(values[it])
             }
-            close(true)
         }
     }
 
     override fun writeFloatArray2D(name: String, values: Array<FloatArray>, force: Boolean) {
-        writeArray(name, values, force, "f[][]") {
-            data.append('[')
-            data.append(it.size)
-            for (v in it) {
-                data.append(',')
-                append(v)
+        writeArray(name, values, force, "f[][]") { arr ->
+            writeArray(arr.size, arr.indexOfLast { it != 0f }) {
+                append(arr[it])
             }
-            data.append(']')
         }
     }
 
@@ -297,26 +239,17 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     override fun writeDoubleArray(name: String, values: DoubleArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart("d[]", name)
-            open(true)
-            data.append(values.size)
-            val lastIndex = values.indexOfLast { it != 0.0 }
-            for (i in 0 until lastIndex) {
-                data.append(',')
-                append(values[i])
+            writeArray(values.size, values.indexOfLast { it != 0.0 }) {
+                append(values[it])
             }
-            close(true)
         }
     }
 
     override fun writeDoubleArray2D(name: String, values: Array<DoubleArray>, force: Boolean) {
-        writeArray(name, values, force, "d[][]") {
-            data.append('[')
-            data.append(it.size)
-            for (v in it) {
-                data.append(',')
-                append(v)
+        writeArray(name, values, force, "d[][]") { arr ->
+            writeArray(arr.size, arr.indexOfLast { it != 0.0 }) {
+                append(arr[it])
             }
-            data.append(']')
         }
     }
 
@@ -335,14 +268,10 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     }
 
     override fun writeStringArray2D(name: String, values: Array<Array<String>>, force: Boolean) {
-        writeArray(name, values, force, "S[][]") {
-            data.append('[')
-            data.append(it.size)
-            for (v in it) {
-                data.append(',')
-                writeString(v)
+        writeArray(name, values, force, "S[][]") { arr ->
+            writeArray(arr.size, arr.size - 1) {
+                writeString(arr[it])
             }
-            data.append(']')
         }
     }
 
@@ -370,26 +299,17 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     override fun writeLongArray(name: String, values: LongArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart("l[]", name)
-            open(true)
-            data.append(values.size)
-            val lastIndex = values.indexOfLast { it != 0L }
-            for (i in 0 until lastIndex) {
-                data.append(',')
-                data.append(values[i])
+            writeArray(values.size, values.indexOfLast { it != 0L }) {
+                data.append(values[it])
             }
-            close(true)
         }
     }
 
     override fun writeLongArray2D(name: String, values: Array<LongArray>, force: Boolean) {
-        writeArray(name, values, force, "l[][]") {
-            data.append('[')
-            data.append(it.size)
-            for (v in it) {
-                data.append(',')
-                data.append(v)
+        writeArray(name, values, force, "l[][]") { arr ->
+            writeArray(arr.size, arr.indexOfLast { it != 0L }) {
+                data.append(arr[it])
             }
-            data.append(']')
         }
     }
 
@@ -666,6 +586,20 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         writeArray(name, values, force, "v4d[]") { writeVector4d(it) }
     }
 
+    private inline fun writeArray(
+        size: Int,
+        lastIndex: Int,
+        writeValue: (Int) -> Unit
+    ) {
+        open(true)
+        data.append(size)
+        for (i in 0 until min(lastIndex + 1, size)) {
+            data.append(separator)
+            writeValue(i)
+        }
+        close(true)
+    }
+
     private inline fun <V> writeArray(
         name: String,
         values: Array<V>,
@@ -931,14 +865,9 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
 
     private fun <V : ISaveable?> writeHeterogeneousArray(name: String, values: Array<V>) {
         writeAttributeStart("*[]", name)
-        open(true)
-        data.append(values.size)
-        for (obj in values) {
-            data.append(',')
-            // self is null, because later init is not allowed
-            writeObject(null, null, obj, true)
+        writeArray(values.size, values.size) {
+            writeObject(null, null, values[it], true)
         }
-        close(true)
     }
 
     override fun <V : ISaveable> writeObjectArray2D(
@@ -947,7 +876,13 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         values: Array<Array<V>>,
         force: Boolean
     ) {
-        TODO("Not yet implemented")
+        writeAttributeStart("*[][]", name)
+        writeArray(values.size, values.size) { i ->
+            val arr = values[i]
+            writeArray(arr.size, arr.size) {
+                writeObject(null,null,arr[it],true)
+            }
+        }
     }
 
     override fun <V : ISaveable?> writeHomogenousObjectArray(

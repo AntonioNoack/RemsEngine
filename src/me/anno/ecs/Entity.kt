@@ -4,7 +4,7 @@ import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.light.AmbientLight
 import me.anno.ecs.components.light.LightComponent
-import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
@@ -14,7 +14,6 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
-import me.anno.io.text.TextReader
 import me.anno.objects.inspectable.Inspectable
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
@@ -22,6 +21,7 @@ import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AABBs.clear
+import me.anno.utils.types.AABBs.set
 import me.anno.utils.types.AABBs.transformUnion
 import me.anno.utils.types.Floats.f2s
 import org.joml.AABBd
@@ -226,7 +226,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         val components = components
         for (i in components.indices) {
             when (val component = components[i]) {
-                is MeshComponent -> {
+                is Mesh -> {
                     collisionMask = collisionMask or component.collisionMask
                     if (collisionMask == -1) break
                 }
@@ -269,11 +269,10 @@ class Entity() : PrefabSaveable(), Inspectable {
                 val component = components[i]
                 if (component.isEnabled) {
                     when (component) {
-                        is MeshComponent -> {
+                        is Mesh -> {
                             // add aabb of that mesh with the transform
-                            val mesh = component.mesh ?: continue
-                            mesh.ensureBuffer()
-                            mesh.aabb.transformUnion(globalTransform, aabb)
+                            component.ensureBuffer()
+                            component.aabb.transformUnion(globalTransform, aabb)
                         }
                         is LightComponent -> {
                             val mesh = component.getLightPrimitive()
@@ -485,13 +484,13 @@ class Entity() : PrefabSaveable(), Inspectable {
                 invalidateCollisionMask()
             }
             is Rigidbody -> physics?.invalidate(this)
-            is MeshComponent -> {
+            is Mesh -> {
                 invalidateOwnAABB()
                 invalidateCollisionMask()
             }
             is LightComponent -> invalidateOwnAABB()
         }
-        hasRenderables = hasComponent(MeshComponent::class, false) ||
+        hasRenderables = hasComponent(Mesh::class, false) ||
                 hasComponent(LightComponent::class, false)
         hasSpaceFillingComponents = hasRenderables ||
                 hasComponent(Collider::class, false)
@@ -645,7 +644,31 @@ class Entity() : PrefabSaveable(), Inspectable {
         return Matrix4x3d(other.transform.globalTransform).invert().mul(transform.globalTransform)
     }
 
-    fun clone() = TextReader.clone(this) as Entity
+    override fun clone(): Entity {
+        val clone = Entity()
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as Entity
+        // todo copy all properties
+        clone.hasRenderables = hasRenderables
+        clone.hasValidCollisionMask = hasValidCollisionMask
+        clone.hasSpaceFillingComponents = hasSpaceFillingComponents
+        clone.aabb.set(aabb)
+        clone.transform.set(transform)
+        clone.collisionMask = collisionMask
+        val components = components
+        for (i in components.indices) {
+            clone.addComponent(components[i].clone() as Component)
+        }
+        val children = children
+        for(i in children.indices){
+            clone.addChild(children[i].clone() as Entity)
+        }
+    }
 
     override fun onDestroy() {}
 

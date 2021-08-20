@@ -5,7 +5,6 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshRenderer
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
@@ -130,7 +129,7 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
             is Entity -> item
             is Mesh -> {
                 val entity = Entity()
-                entity.add(MeshComponent(item))
+                entity.add(item.clone())
                 entity.add(MeshRenderer())
                 entity
             }
@@ -138,7 +137,7 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
                 val entity = Entity()
                 val mesh = Thumbs.sphereMesh.clone()
                 mesh.materials = listOf(item)
-                entity.add(MeshComponent(mesh))
+                entity.add(mesh)
                 entity.add(MeshRenderer())
                 entity
             }

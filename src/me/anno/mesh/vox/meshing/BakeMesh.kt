@@ -4,6 +4,7 @@ import me.anno.mesh.vox.meshing.BlockBuffer.addQuad
 import me.anno.mesh.vox.meshing.MergeBlocks.mergeBlocks
 import me.anno.mesh.vox.model.VoxelModel
 import org.apache.logging.log4j.LogManager
+import kotlin.math.max
 
 object BakeMesh {
 
@@ -135,7 +136,7 @@ object BakeMesh {
         }
         val wasSolid = isSolid.count { it }
         // LOGGER.info("Removed ${(ctr*100f/wasSolid).f1()}% of $wasSolid blocks")
-        return ctr.toFloat() / wasSolid
+        return ctr.toFloat() / max(1, wasSolid)
     }
 
 }

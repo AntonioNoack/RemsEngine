@@ -2,6 +2,7 @@ package me.anno.ecs.components.test
 
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.Range
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.utils.StringMap
 import org.joml.*
 
@@ -58,6 +59,10 @@ class TypeTestComponent : Component() {
     var someRot = Quaternionf()
 
     var someRotDouble = Quaterniond(0.707, 0.0, 0.0, 0.707).normalize()
+
+    override fun clone(): PrefabSaveable {
+        TODO("Not yet implemented")
+    }
 
     override val className: String = "TypeTestComponent"
 

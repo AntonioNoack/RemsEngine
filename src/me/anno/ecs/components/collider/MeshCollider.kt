@@ -4,12 +4,16 @@ import com.bulletphysics.collision.shapes.*
 import com.bulletphysics.util.ObjectArrayList
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.serialization.SerializedProperty
 import org.joml.Vector3d
 import org.lwjgl.system.MemoryUtil
 
-class MeshCollider : Collider() {
+class MeshCollider() : Collider() {
+
+    constructor(src: MeshCollider) : this() {
+        src.copy(this)
+    }
 
     @SerializedProperty
     var isConvex = true
@@ -20,7 +24,7 @@ class MeshCollider : Collider() {
     override fun createBulletShape(scale: Vector3d): CollisionShape {
 
         if (mesh == null) {
-            mesh = entity?.getComponent(MeshComponent::class, false)?.mesh
+            mesh = entity?.getComponent(Mesh::class, false)
             me.anno.utils.LOGGER.warn("searched for mesh, found $mesh")
         }
 
@@ -91,6 +95,17 @@ class MeshCollider : Collider() {
 
     override fun drawShape() {
         // todo draw underlying collider shape
+    }
+
+    override fun clone(): MeshCollider {
+        return MeshCollider(this)
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as MeshCollider
+        clone.mesh = mesh
+        clone.isConvex = isConvex
     }
 
     override val className get() = "MeshCollider"

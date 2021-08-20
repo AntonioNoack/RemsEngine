@@ -5,6 +5,7 @@ import me.anno.ecs.components.mesh.GLSLType
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.mesh.vox.meshing.BlockBuffer
 import me.anno.mesh.vox.meshing.BlockSide
 import me.anno.mesh.vox.meshing.VoxelMeshBuildInfo
@@ -18,6 +19,18 @@ class PointLight : LightComponent() {
 
     @Range(0.0, 5.0)
     var lightSize = 0.0
+
+    override fun clone(): PrefabSaveable {
+        val clone = PointLight()
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as PointLight
+        clone.lightSize = lightSize
+    }
 
     override fun getLightPrimitive(): Mesh = cubeMesh
 

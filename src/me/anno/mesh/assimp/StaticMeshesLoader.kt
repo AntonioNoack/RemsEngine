@@ -5,7 +5,6 @@ import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.AnimRenderer
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.CAdd
 import me.anno.ecs.prefab.CSet
 import me.anno.ecs.prefab.Path
@@ -15,7 +14,6 @@ import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.StaticRef
-import me.anno.io.zip.InnerFile
 import me.anno.io.zip.InnerFolder
 import me.anno.mesh.assimp.AssimpTree.convert
 import me.anno.utils.Color.rgba
@@ -188,20 +186,14 @@ open class StaticMeshesLoader {
         val aiScene = loadFile(file, flags or aiProcess_PreTransformVertices)
         val materials = loadMaterials(aiScene, file, resources)
         val meshes = loadMeshes(aiScene, materials)
-        val (hierarchy, hierarchyPrefab) = buildScene(aiScene, meshes)
-        return AnimGameItem(hierarchy, hierarchyPrefab, meshes.toList(), emptyList(), emptyMap())
+        val hierarchy = buildScene(aiScene, meshes)
+        return AnimGameItem(hierarchy, meshes.toList(), emptyList(), emptyMap())
     }
 
-    // todo convert assimp mesh such that it's a normal mesh; because all meshes should be the same to create :)
-    private fun buildScene(aiScene: AIScene, sceneMeshes: Array<Mesh>, aiNode: AINode): Pair<Entity, Prefab> {
-
+    private fun buildScene(aiScene: AIScene, sceneMeshes: Array<Mesh>, aiNode: AINode): Entity {
         val entity = Entity()
-        val prefab = Prefab("Entity")
-
-        buildScene(aiScene, sceneMeshes, aiNode, entity, prefab, Path())
-
-        return Pair(entity, prefab)
-
+        buildScene(aiScene, sceneMeshes, aiNode, entity)
+        return entity
     }
 
     private fun buildScene(aiScene: AIScene, sceneMeshes: List<FileReference>, aiNode: AINode): Prefab {
@@ -214,23 +206,13 @@ open class StaticMeshesLoader {
         aiScene: AIScene,
         sceneMeshes: Array<Mesh>,
         aiNode: AINode,
-        entity: Entity,
-        prefab: Prefab,
-        path: Path
+        entity: Entity
     ) {
 
         entity.name = aiNode.mName().dataString()
-        if (!entity.name.isBlank2())
-            prefab.add(CSet(path, "name", entity.name))
 
         val transform = entity.transform
         transform.setLocal(convert(aiNode.mTransformation()))
-        if (transform.localPosition.length() != 0.0)
-            prefab.add(CSet(path, "position", transform.localPosition))
-        if (transform.localRotation.w != 1.0)
-            prefab.add(CSet(path, "rotation", transform.localRotation))
-        if (Vector3d(1.0).sub(transform.localScale).length() != 0.0)
-            prefab.add(CSet(path, "scale", transform.localScale))
 
         val meshCount = aiNode.mNumMeshes()
         if (meshCount > 0) {
@@ -239,16 +221,14 @@ open class StaticMeshesLoader {
             // model.transform.set(convert(aiNode.mTransformation()))
             val meshIndices = aiNode.mMeshes()!!
             for (i in 0 until meshCount) {
-                val mesh = sceneMeshes[meshIndices[i]]
-                entity.add(MeshComponent(mesh))
-                val meshComponent = CAdd(path, 'c', "MeshComponent", mesh.name)
-                prefab.add(meshComponent)
-                prefab.add(CSet(meshComponent.getChildPath(i), "mesh", mesh))
+                val meshIndex = meshIndices[i]
+                val mesh = sceneMeshes[meshIndex]
+                entity.add(mesh.clone())
             }
 
+            // todo use a normal renderer, if there is no skeleton
             val renderer = AnimRenderer()
             entity.addComponent(renderer)
-            prefab.add(CAdd(path, 'c', "AnimRenderer", "AnimRenderer"))
 
         }
 
@@ -261,11 +241,7 @@ open class StaticMeshesLoader {
                 val childEntity = Entity()
                 entity.addChild(childEntity)
 
-                val name = childNode.mName().dataString()
-                val add = CAdd(path, 'e', "Entity", name)
-                prefab.add(add)
-                val childPath = add.getChildPath(i)
-                buildScene(aiScene, sceneMeshes, childNode, entity, prefab, childPath)
+                buildScene(aiScene, sceneMeshes, childNode, entity)
 
             }
         }
@@ -300,9 +276,7 @@ open class StaticMeshesLoader {
             val meshIndices = aiNode.mMeshes()!!
             for (i in 0 until meshCount) {
                 val mesh = sceneMeshes[meshIndices[i]]
-                val meshComponent = CAdd(path, 'c', "MeshComponent", mesh.name)
-                prefab.add(meshComponent)
-                prefab.add(CSet(meshComponent.getChildPath(i), "mesh", mesh))
+                prefab.add(CAdd(path, 'c', "Mesh", mesh.name, mesh))
             }
 
             prefab.add(CAdd(path, 'c', "AnimRenderer", "AnimRenderer"))
@@ -324,7 +298,7 @@ open class StaticMeshesLoader {
 
     }
 
-    fun buildScene(aiScene: AIScene, sceneMeshes: Array<Mesh>): Pair<Entity, Prefab> {
+    fun buildScene(aiScene: AIScene, sceneMeshes: Array<Mesh>): Entity {
         return buildScene(aiScene, sceneMeshes, aiScene.mRootNode()!!)
     }
 
@@ -343,8 +317,7 @@ open class StaticMeshesLoader {
 
     fun loadTextures(
         aiScene: AIScene,
-        parentFolder: InnerFolder,
-        registry: HashMap<String, InnerFile>
+        parentFolder: InnerFolder
     ): List<FileReference> {
         val numTextures = aiScene.mNumTextures()
         return if (numTextures > 0) {
@@ -352,7 +325,7 @@ open class StaticMeshesLoader {
             val list = ArrayList<FileReference>(numTextures)
             for (it in 0 until numTextures) {
                 val (name, data) = loadTexture(AITexture.create(textures[it]), it)
-                list += parentFolder.createByteChild(name, data, registry)
+                list += parentFolder.createByteChild(name, data)
             }
             list
         } else emptyList()
@@ -700,34 +673,38 @@ open class StaticMeshesLoader {
         processPositions(aiMesh, positions)
         processIndices(aiMesh, indices)
 
-        val mesh = Prefab("Mesh")
+        val prefab = Prefab("Mesh")
         val name = aiMesh.mName().dataString()
-        if (name.isNotEmpty()) mesh.setProperty("name", name)
+        if (name.isNotEmpty()) {
+            prefab.setProperty("name", name)
+        }
 
-        mesh.setProperty("positions", positions)
-        mesh.setProperty("indices", indices)
+        prefab.setProperty("positions", positions)
+        prefab.setProperty("indices", indices)
 
         val normals = processNormals(aiMesh, vertexCount)
         if (normals != null) {
-            mesh.setProperty("normals", normals)
+            prefab.setProperty("normals", normals)
         }
 
         val uvs = processUVs(aiMesh, vertexCount)
         if (uvs != null && uvs.any { it != 0f }) {
-            mesh.setProperty("uvs", uvs)
+            prefab.setProperty("uvs", uvs)
         }
 
         val color0 = processVertexColors(aiMesh, vertexCount)
         if (color0 != null && color0.any { it != -1 }) {
-            mesh.setProperty("color0", color0)
+            prefab.setProperty("color0", color0)
         }
 
         val materialIdx = aiMesh.mMaterialIndex()
         if (materialIdx in materials.indices) {
-            mesh.setProperty("materials", listOf(materials[materialIdx]))
+            val ref = materials[materialIdx]
+            prefab.add(CAdd(Path(), 'm', "Material", ref.nameWithoutExtension, ref))
+            // prefab.setProperty("materials", listOf(ref))
         }
 
-        return mesh
+        return prefab
 
     }
 

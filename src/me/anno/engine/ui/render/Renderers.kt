@@ -242,6 +242,8 @@ object Renderers {
                         "vec3 specularColor = finalColor * finalMetallic;\n" +
                         "vec3 V = normalize(-finalPosition);\n" +
                         "bool hasSpecular = dot(specularColor, vec3(1.0)) > 0.0;\n" +
+                        "float NdotV = abs(dot(finalNormal, V));\n" +
+                        // todo use the more optimized, inlined version of specularBRDF
                         "for(int i=0;i<${previewLights.size};i++){\n" +
                         "   vec4 data = lightData[i];\n" +
                         "   vec3 lightDirection = data.xyz, lightColor = vec3(data.w);\n" +
@@ -250,7 +252,7 @@ object Renderers {
                         "       vec3 H = normalize(V + lightDirection);\n" +
                         "       if(hasSpecular) specularLight += lightColor * computeSpecularBRDF(\n" +
                         "           specularColor, finalRoughness, V,\n" +
-                        "           finalNormal, NdotL, H\n" +
+                        "           finalNormal, NdotL, NdotV, H\n" +
                         "       );\n" +
                         "       diffuseLight  += lightColor * NdotL;\n" +
                         "   }\n" +

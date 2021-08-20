@@ -6,9 +6,12 @@ import me.anno.ecs.prefab.CAdd
 import me.anno.ecs.prefab.CSet
 import me.anno.ecs.prefab.Change
 import me.anno.ecs.prefab.Path
+import me.anno.io.files.FileReference
 
-class Layer(var name: String) {
-    val nodes = ArrayList<Node>()
+class VOXLayer(var name: String) {
+
+    val nodes = ArrayList<VOXNode>()
+
     fun containsModel(): Boolean {
         return nodes.any { it.containsModel() }
     }
@@ -22,7 +25,7 @@ class Layer(var name: String) {
         return entity
     }
 
-    fun toEntityPrefab(changes: MutableList<Change>, meshes: List<Mesh>, index: Int) {
+    fun toEntityPrefab(changes: MutableList<Change>, meshes: List<FileReference>, index: Int) {
         val name = name.ifEmpty { "Layer $index" }
         val entity = CAdd(Path(), 'e', "Entity", name)
         changes.add(entity)

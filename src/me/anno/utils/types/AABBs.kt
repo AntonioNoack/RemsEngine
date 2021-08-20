@@ -31,6 +31,16 @@ object AABBs {
         return this
     }
 
+    fun AABBf.clear(): AABBf {
+        minX = Float.POSITIVE_INFINITY
+        minY = Float.POSITIVE_INFINITY
+        minZ = Float.POSITIVE_INFINITY
+        maxX = Float.NEGATIVE_INFINITY
+        maxY = Float.NEGATIVE_INFINITY
+        maxZ = Float.NEGATIVE_INFINITY
+        return this
+    }
+
     fun AABBd.clear(): AABBd {
         minX = Double.POSITIVE_INFINITY
         minY = Double.POSITIVE_INFINITY

@@ -237,7 +237,7 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
                         // works :)
                         val entity = reader.toEntity()
                         meshData.assimpModel = AnimGameItem(
-                            entity, Prefab("Entity"), reader.meshes,
+                            entity, reader.meshes,
                             emptyList(), emptyMap()
                         )
                     }) { it.assimpModel }

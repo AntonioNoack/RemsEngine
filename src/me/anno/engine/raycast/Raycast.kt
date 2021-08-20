@@ -3,7 +3,6 @@ package me.anno.engine.raycast
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.AABBs.set
 import me.anno.utils.types.AABBs.testLineAABB
@@ -74,11 +73,10 @@ object Raycast {
         for (i in components.indices) {
             val component = components[i]
             if (includeDisabled || component.isEnabled) {
-                if (triangles && component is MeshComponent) {
-                    val mesh = component.mesh ?: continue
+                if (triangles && component is Mesh) {
                     if (component.canCollide(collisionMask)) {
-                        if (raycastTriangleMesh(entity, mesh, start, direction, end, Matrix4x3d(), result)) {
-                            result.meshComponent = component
+                        if (raycastTriangleMesh(entity, component, start, direction, end, Matrix4x3d(), result)) {
+                            result.mesh = component
                         }
                     }
                 }

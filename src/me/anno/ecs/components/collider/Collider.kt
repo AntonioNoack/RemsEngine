@@ -4,6 +4,7 @@ import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.linearmath.Transform
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.physics.BulletPhysics.Companion.convertMatrix
 import me.anno.engine.ui.render.RenderView
 import me.anno.io.serialization.SerializedProperty
@@ -14,7 +15,6 @@ import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.max
-import kotlin.math.sqrt
 
 // todo collision-effect mappings:
 //  - which listener is used
@@ -31,6 +31,13 @@ abstract class Collider : Component() {
 
     fun canCollide(collisionMask: Int): Boolean {
         return this.collisionMask.and(collisionMask) != 0
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as Collider
+        clone.roundness = roundness
+        clone.collisionMask = collisionMask
     }
 
     fun unionRing(

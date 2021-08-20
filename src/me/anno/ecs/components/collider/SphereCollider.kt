@@ -2,6 +2,7 @@ package me.anno.ecs.components.collider
 
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.SphereShape
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.serialization.SerializedProperty
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -13,7 +14,17 @@ class SphereCollider : Collider() {
     @SerializedProperty
     var radius = 1.0
 
-    override val className get() = "SphereCollider"
+    override fun clone(): SphereCollider {
+        val clone = SphereCollider()
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as SphereCollider
+        clone.radius = radius
+    }
 
     override fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         // otherwise just use a cube and its 8 sides
@@ -53,5 +64,7 @@ class SphereCollider : Collider() {
     override fun drawShape() {
         // todo draw sphere
     }
+
+    override val className get() = "SphereCollider"
 
 }

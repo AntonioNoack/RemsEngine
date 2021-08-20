@@ -3,7 +3,7 @@ package me.anno.utils.types
 object Lists {
 
     fun <V> List<V>.asMutableList(): MutableList<V>{
-        return if(this is MutableList<V>) this
+        return if(this is MutableList<V> && javaClass.name != "java.util.Collections\$SingletonList") this
         else ArrayList(this)
     }
 

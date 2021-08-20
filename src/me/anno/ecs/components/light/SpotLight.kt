@@ -3,9 +3,14 @@ package me.anno.ecs.components.light
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.light.PointLight.Companion.cubeMesh
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.prefab.PrefabSaveable
 
 // a cone light
-class SpotLight : LightComponent() {
+class SpotLight() : LightComponent() {
+
+    constructor(src: SpotLight) : this() {
+        src.copy(this)
+    }
 
     // for a large angle, it just becomes a point light
     @Range(0.0, 100.0)
@@ -13,6 +18,16 @@ class SpotLight : LightComponent() {
 
     // for deferred rendering, this could be optimized
     override fun getLightPrimitive(): Mesh = cubeMesh
+
+    override fun clone(): SpotLight {
+        return SpotLight(this)
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as SpotLight
+        clone.coneAngle = coneAngle
+    }
 
     override val className: String = "SpotLight"
 

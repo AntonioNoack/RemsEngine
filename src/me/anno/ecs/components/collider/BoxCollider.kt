@@ -2,6 +2,7 @@ package me.anno.ecs.components.collider
 
 import com.bulletphysics.collision.shapes.BoxShape
 import com.bulletphysics.collision.shapes.CollisionShape
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.serialization.SerializedProperty
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -12,8 +13,6 @@ class BoxCollider : Collider() {
 
     @SerializedProperty
     var halfExtends = Vector3d(1.0)
-
-    override val className get() = "BoxCollider"
 
     // we could use this for our own physics engine...
     /*override fun getSignedDistance(deltaPosition: Vector3d, movement: Vector3d): Double {
@@ -50,5 +49,19 @@ class BoxCollider : Collider() {
     override fun drawShape() {
         // todo draw box
     }
+
+    override fun clone(): BoxCollider {
+        val clone = BoxCollider()
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as BoxCollider
+        clone.halfExtends = halfExtends
+    }
+
+    override val className get() = "BoxCollider"
 
 }

@@ -2,22 +2,23 @@ package me.anno.mesh.vox.format
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshRenderer
 import me.anno.ecs.prefab.CAdd
 import me.anno.ecs.prefab.CSet
 import me.anno.ecs.prefab.Change
 import me.anno.ecs.prefab.Path
+import me.anno.io.files.FileReference
 import org.joml.Vector3d
 
-class Node {
+// todo read vox files as directory just like other meshes
+class VOXNode {
 
     // meta data
     var name: String = ""
 
     // hierarchy
-    var child: Node? = null
-    var children: List<Node>? = null
+    var child: VOXNode? = null
+    var children: List<VOXNode>? = null
     var models: IntArray? = null
 
     // transform
@@ -38,7 +39,7 @@ class Node {
             // add these models as components
             for (modelIndex in models) {
                 val mesh = meshes[modelIndex]
-                entity.add(MeshComponent(mesh))
+                entity.add(mesh.clone())
             }
             entity.add(MeshRenderer())
         }
@@ -55,18 +56,16 @@ class Node {
         return entity
     }
 
-    fun toEntityPrefab(changes: MutableList<Change>, meshes: List<Mesh>, parentPath: Path, entityIndex: Int) {
+    fun toEntityPrefab(changes: MutableList<Change>, meshes: List<FileReference>, parentPath: Path, entityIndex: Int) {
         val entity = CAdd(parentPath, 'e', "Entity", name)
         changes.add(entity)
         val path = entity.getChildPath(entityIndex)
         val models = models ?: child?.models
         if (models != null) {
             // add these models as components
-            for ((compIndex, modelIndex) in models.withIndex()) {
+            for (modelIndex in models) {
                 val mesh = meshes[modelIndex]
-                val component = CAdd(path, 'c', "MeshComponent", "")
-                changes.add(component)
-                changes.add(CSet(component.getChildPath(compIndex), "mesh", mesh))
+                changes.add(CAdd(path, 'c', "Mesh", mesh.nameWithoutExtension, mesh))
             }
             changes.add(CAdd(path, 'c', "MeshRenderer", "MeshRenderer"))
         }

@@ -2,7 +2,7 @@ package me.anno.ecs.components.camera
 
 import me.anno.ecs.Component
 import me.anno.ecs.components.player.LocalPlayer.Companion.currentLocalPlayer
-import me.anno.gpu.pipeline.Pipeline
+import me.anno.ecs.prefab.PrefabSaveable
 import org.joml.Vector4f
 
 // like the studio camera,
@@ -26,7 +26,7 @@ class CameraComponent : Component() {
         get() = components
             .filterIsInstance<PostProcessingEffectComponent>()
 
-    val clearColor = Vector4f(0.1f, 0.2f, 0.3f, 1f)
+    var clearColor = Vector4f(0.1f, 0.2f, 0.3f, 1f)
 
     // function to blend to the next one
     fun use(blendingTime: Double) {
@@ -39,6 +39,22 @@ class CameraComponent : Component() {
             state.previousCamera = state.currentCamera
             state.currentCamera = this
         }
+    }
+
+    override fun clone(): CameraComponent {
+        val clone = CameraComponent()
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as CameraComponent
+        clone.isPerspective = isPerspective
+        clone.near = near
+        clone.far = far
+        clone.fov = fov
+        clone.clearColor = clearColor
     }
 
     override val className get() = "CameraComponent"

@@ -7,6 +7,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.components.shaders.FragmentShaderComponent
 import me.anno.ecs.components.shaders.ShaderEnvironment
 import me.anno.ecs.components.shaders.VariableType
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
@@ -61,5 +62,9 @@ class ColorGradingComponent : Component(), FragmentShaderComponent {
     }
 
     override fun getShaderCodeState(): Any? = null
+
+    override fun clone(): PrefabSaveable {
+        TODO("Not yet implemented")
+    }
 
 }

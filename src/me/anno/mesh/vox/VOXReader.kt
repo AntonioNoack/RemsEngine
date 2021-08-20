@@ -8,10 +8,13 @@ import me.anno.ecs.prefab.Change
 import me.anno.ecs.prefab.Path
 import me.anno.ecs.prefab.Prefab
 import me.anno.io.files.FileReference
-import me.anno.mesh.vox.format.Layer
-import me.anno.mesh.vox.format.Node
+import me.anno.io.text.TextWriter
+import me.anno.io.zip.InnerFolder
+import me.anno.mesh.vox.format.VOXLayer
+import me.anno.mesh.vox.format.VOXNode
 import me.anno.mesh.vox.model.DenseVoxelModel
 import me.anno.mesh.vox.model.VoxelModel
+import me.anno.utils.structures.tuples.Quad
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3i
 import java.io.IOException
@@ -36,8 +39,6 @@ class VOXReader {
 
         applyMapping()
 
-        createMeshes()
-
         if (nodes.none { it.containsModel() }) {
             createDefaultNode()
         }
@@ -47,7 +48,7 @@ class VOXReader {
     }
 
     private fun createMeshes() {
-        meshes.ensureCapacity(models.size)
+        if (meshes.isNotEmpty()) return
         meshes.addAll(models.map { it.createMesh(palette) })
     }
 
@@ -77,7 +78,11 @@ class VOXReader {
         } else this.indexMap = null // done and pseudo-applied
     }
 
-    fun toEntityPrefab(): Prefab {
+    fun toEntityPrefab(root: FileReference): Prefab {
+        return readAsFolder(this, root).c
+    }
+
+    fun toEntityPrefab(meshPaths: List<FileReference>): Prefab {
         val prefab = Prefab("Entity")
         val changes = ArrayList<Change>()
         prefab.changes = changes
@@ -90,12 +95,12 @@ class VOXReader {
                 // don't create a layer node, when there only is a single layer
                 val layer = availableLayers.first()
                 for ((childIndex, node) in layer.nodes.withIndex()) {
-                    node.toEntityPrefab(changes, meshes, Path(), childIndex)
+                    node.toEntityPrefab(changes, meshPaths, Path(), childIndex)
                 }
             }
             else -> {
                 for ((index, layer) in availableLayers.withIndex()) {
-                    layer.toEntityPrefab(changes, meshes, index)
+                    layer.toEntityPrefab(changes, meshPaths, index)
                 }
             }
         }
@@ -103,6 +108,7 @@ class VOXReader {
     }
 
     fun toEntity(): Entity {
+        createMeshes()
         val entity = Entity("Root")
         entity.add(layerNegative.toEntity(meshes, -1))
         for ((index, layer) in layers.withIndex()) {
@@ -124,18 +130,18 @@ class VOXReader {
     // why ever this exists...
     var indexMap: ByteArray? = null
 
-    private val nodes = ArrayList<Node>()
-    private fun getNode(id: Int): Node {
+    private val nodes = ArrayList<VOXNode>()
+    private fun getNode(id: Int): VOXNode {
         if (id < 0) throw IndexOutOfBoundsException()
-        while (nodes.size <= id) nodes.add(Node())
+        while (nodes.size <= id) nodes.add(VOXNode())
         return nodes[id]
     }
 
-    private var layerNegative = Layer("Default Layer")
-    private val layers = ArrayList<Layer>()
-    private fun getLayer(id: Int): Layer {
+    private var layerNegative = VOXLayer("Default Layer")
+    private val layers = ArrayList<VOXLayer>()
+    private fun getLayer(id: Int): VOXLayer {
         if (id < 0) return layerNegative
-        while (layers.size <= id) layers.add(Layer("Layer $id"))
+        while (layers.size <= id) layers.add(VOXLayer("Layer $id"))
         return layers[id]
     }
 
@@ -327,7 +333,7 @@ class VOXReader {
         bytes.position(position + contentSize + childrenBytes)
     }
 
-    private fun decodeFrame(node: Node, frame: HashMap<String, String>?) {
+    private fun decodeFrame(node: VOXNode, frame: HashMap<String, String>?) {
         frame ?: return
         val translation = frame["_t"]?.split(' ')?.map { it.toDouble() } // typically just ints
         if (translation != null) {
@@ -373,6 +379,33 @@ class VOXReader {
     }
 
     companion object {
+
+        fun readAsFolder(file: FileReference): InnerFolder {
+            val reader = VOXReader().read(file)
+            return readAsFolder(reader, file).a
+        }
+
+        fun readAsFolder2(file: FileReference): Quad<InnerFolder, FileReference, Prefab, List<FileReference>> {
+            val reader = VOXReader().read(file)
+            return readAsFolder(reader, file)
+        }
+
+        fun readAsFolder(
+            reader: VOXReader,
+            file: FileReference
+        ): Quad<InnerFolder, FileReference, Prefab, List<FileReference>> {
+            val folder = InnerFolder(file)
+            val meshes = InnerFolder(folder, "meshes")
+            val meshReferences = reader.models.mapIndexed { index, mesh ->
+                val prefab = mesh.createMeshPrefab(reader.palette)
+                val json = TextWriter.toText(prefab, false)
+                meshes.createTextChild("$index.json", json)
+            }
+            val prefab = reader.toEntityPrefab(meshReferences)
+            val layersRoot = folder.createTextChild("Scene.json", TextWriter.toText(prefab, false))
+            prefab.src = layersRoot
+            return Quad(folder, layersRoot, prefab, meshReferences)
+        }
 
         private val LOGGER = LogManager.getLogger(VOXReader::class)
 

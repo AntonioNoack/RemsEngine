@@ -17,6 +17,9 @@ open class InnerFolder(
 
     constructor(root: FileReference) : this(root.absolutePath, "", root.getParent() ?: InvalidRef)
 
+    constructor(parent: InnerFolder, name: String) :
+            this(appendPath(parent.absolutePath, name), appendPath(parent.relativePath, name), parent)
+
     val children = HashMap<String, InnerFile>()
 
     override fun listChildren(): List<FileReference> = children.values.toList()

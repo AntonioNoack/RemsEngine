@@ -4,7 +4,7 @@ import me.anno.config.DefaultStyle.white4
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.CameraComponent
-import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.RendererComponent
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.engine.debug.DebugPoint
@@ -564,7 +564,7 @@ class RenderView(
                 for (selected in library.fineSelection) {
                     when (selected) {
                         is Entity -> drawOutline(selected, worldScale)
-                        is MeshComponent -> {
+                        is Mesh -> {
                             val renderer = selected.entity?.getComponent(RendererComponent::class, false)
                             drawOutline(renderer, selected, worldScale)
                         }
@@ -653,7 +653,7 @@ class RenderView(
                     val components = entity.components
                     for (i in components.indices) {
                         val component = components[i]
-                        if (component !is MeshComponent) {
+                        if (component !is Mesh) {
                             // mesh components already got their id
                             val componentClickId = clickId++
                             component.clickId = componentClickId

@@ -6,7 +6,7 @@ import me.anno.ecs.components.anim.Skeleton
 import me.anno.ecs.components.mesh.AnimRenderer
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshComponent.Companion.MAX_WEIGHTS
+import me.anno.ecs.components.mesh.Mesh.Companion.MAX_WEIGHTS
 import me.anno.ecs.components.mesh.MorphTarget
 import me.anno.ecs.prefab.*
 import me.anno.io.NamedSaveable
@@ -14,7 +14,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextWriter
-import me.anno.io.zip.InnerFile.Companion.createMainFolder
 import me.anno.io.zip.InnerFolder
 import me.anno.mesh.assimp.AnimGameItem.Companion.maxBones
 import me.anno.mesh.assimp.AnimatedMeshesLoader2.boneTransform2
@@ -81,9 +80,8 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         val boneList = ArrayList<Bone>()
         val boneMap = HashMap<String, Bone>()
         val meshes = loadMeshes(aiScene, materials, boneList, boneMap)
-        val (hierarchy, hierarchyPrefab) = buildScene(aiScene, meshes)
-        // hierarchyPrefab.createInstance()
-        val skeleton = if (boneList.isEmpty()) null else addSkeleton(hierarchy, hierarchyPrefab, boneList)
+        val hierarchy = buildScene(aiScene, meshes)
+        val skeleton = if (boneList.isEmpty()) null else addSkeleton(hierarchy, boneList)
         val animations = if (boneList.isEmpty()) null else loadAnimations(aiScene, boneList, boneMap)
         skeleton?.animations?.putAll(animations!!)
         // todo save animations, skeleton, textures and hierarchy into files
@@ -101,24 +99,30 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         }
         // LOGGER.info("Found ${meshes.size} meshes and ${animations.size} animations on ${boneList.size} bones, in $resourcePath")
         // println(animations)
-        return AnimGameItem(hierarchy, hierarchyPrefab, meshes.toList(), boneList, animations ?: emptyMap())
+        return AnimGameItem(hierarchy, meshes.toList(), boneList, animations ?: emptyMap())
     }
 
     fun readAsFolder(
         file: FileReference,
         resources: FileReference = file.getParent() ?: InvalidRef,
         flags: Int = defaultFlags
-    ): InnerFolder {
+    ): InnerFolder = readAsFolder2(file, resources, flags).first
+
+    fun readAsFolder2(
+        file: FileReference,
+        resources: FileReference = file.getParent() ?: InvalidRef,
+        flags: Int = defaultFlags
+    ): Pair<InnerFolder, Prefab> {
         // creates prefabs from the whole file content
         // so we can inherit from the materials, meshes, animations, ...
         // all and separately
         val aiScene = loadFile(file, flags)
-        val (root, registry) = createMainFolder(file)
+        val root = InnerFolder(file)
         // val metadata = loadMetadata(aiScene)
         // val matrixFix = matrixFix(metadata)
         val loadedTextures = if (aiScene.mNumTextures() > 0) {
-            val texFolder = root.createChild("textures", registry) as InnerFolder
-            loadTextures(aiScene, texFolder, registry)
+            val texFolder = root.createChild("textures", null) as InnerFolder
+            loadTextures(aiScene, texFolder)
         } else emptyList()
         val materialList = loadMaterialPrefabs(aiScene, resources, loadedTextures).toList()
         val materials = createReferences(root, "materials", materialList)
@@ -135,7 +139,8 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
             skeleton.setProperty("animations", animMap)
             root.createTextChild("skeleton.json", TextWriter.toText(skeleton, false))
         }
-        return root
+        root.createTextChild("Scene.json", TextWriter.toText(hierarchy, false))
+        return root to hierarchy
     }
 
     private fun <V : NamedSaveable> createReferences(
@@ -161,20 +166,9 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         } else emptyList()
     }
 
-    private fun addSkeleton(hierarchy: Entity, hierarchyPrefab: Prefab, boneList: List<Bone>): Skeleton {
+    private fun addSkeleton(hierarchy: Entity, boneList: List<Bone>): Skeleton {
         val skeleton = Skeleton()
         skeleton.bones = boneList.toTypedArray()
-        val changes = hierarchyPrefab.changes!!
-        val skeletonAssignments = changes.mapNotNull { change ->
-            if (change is CAdd && change.clazzName == "AnimRenderer") {
-                val indexInEntity = changes.filter { it is CAdd && it.path == change.path }
-                    .indexOfFirst { it === change }
-                val name = "skeleton"
-                CSet(change.path!!.added(name, indexInEntity, 'c'), name, skeleton)
-            } else null
-        }
-        changes as MutableList<Change>
-        changes.addAll(skeletonAssignments)
         for (renderer in hierarchy.getComponentsInChildren(AnimRenderer::class, true)) {
             renderer.skeleton = skeleton
         }
@@ -199,7 +193,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         return skeleton
     }
 
-    private fun loadMorphTargets(aiMesh: AIMesh): List<MorphTarget> {
+    private fun loadMorphTargets(aiMesh: AIMesh): ArrayList<MorphTarget> {
         // alias vertex animations
         // alias shape keys
         val result = ArrayList<MorphTarget>()
@@ -662,21 +656,21 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         boneMap: HashMap<String, Bone>
     ): Prefab {
 
-        val mesh = createMeshPrefab(aiMesh, materials)
+        val prefab = createMeshPrefab(aiMesh, materials)
 
         val vertexCount = aiMesh.mNumVertices()
         val boneData = processBones(aiMesh, boneList, boneMap, vertexCount)
         if (boneData != null) {
-            mesh.setProperty("boneIndices", boneData.first)
-            mesh.setProperty("boneWeights", boneData.second)
+            prefab.setProperty("boneIndices", boneData.first)
+            prefab.setProperty("boneWeights", boneData.second)
         }
 
         val morphTargets = loadMorphTargets(aiMesh)
         if (morphTargets.isNotEmpty()) {
-            mesh.setProperty("morphTargets", morphTargets)
+            prefab.setProperty("morphTargets", morphTargets)
         }
 
-        return mesh
+        return prefab
 
     }
 

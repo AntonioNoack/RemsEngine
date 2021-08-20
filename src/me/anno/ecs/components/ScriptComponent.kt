@@ -1,6 +1,7 @@
 package me.anno.ecs.components
 
 import me.anno.ecs.Component
+import me.anno.ecs.prefab.PrefabSaveable
 
 class ScriptComponent: Component() {
 
@@ -8,6 +9,10 @@ class ScriptComponent: Component() {
     // todo languages supported?
     // todo lua from Java/Kotlin?
     // todo JavaScript from Java/Kotlin?
+
+    override fun clone(): PrefabSaveable {
+        TODO("Not yet implemented")
+    }
 
     override val className get() = "ScriptComponent"
 

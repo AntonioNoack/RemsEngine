@@ -1,16 +1,14 @@
 package me.anno.ecs.components.color
 
-import me.anno.gpu.shader.Shader
-import me.anno.io.ISaveable
-import me.anno.io.base.BaseWriter
 import me.anno.animation.AnimatedProperty
 import me.anno.ecs.Component
 import me.anno.ecs.components.shaders.FragmentShaderComponent
 import me.anno.ecs.components.shaders.ShaderEnvironment
 import me.anno.ecs.components.shaders.VariableType
-import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.editor.SettingCategory
-import me.anno.ui.style.Style
+import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.gpu.shader.Shader
+import me.anno.io.ISaveable
+import me.anno.io.base.BaseWriter
 import me.anno.utils.structures.ValueWithDefault
 import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
 
@@ -35,6 +33,7 @@ class SwizzleRGBAComponent : Component(), FragmentShaderComponent {
         // H, S, V,
 
         ;
+
         companion object {
             operator fun get(code: Int): Swizzle? {
                 return values().firstOrNull { it.code == code }
@@ -74,7 +73,7 @@ class SwizzleRGBAComponent : Component(), FragmentShaderComponent {
     }
 
     override fun readInt(name: String, value: Int) {
-        when(name){
+        when (name) {
             "swizzleR" -> swizzleR.value = Swizzle[value] ?: return
             "swizzleG" -> swizzleG.value = Swizzle[value] ?: return
             "swizzleB" -> swizzleB.value = Swizzle[value] ?: return
@@ -84,7 +83,7 @@ class SwizzleRGBAComponent : Component(), FragmentShaderComponent {
     }
 
     override fun readObject(name: String, value: ISaveable?) {
-        when(name){
+        when (name) {
             "strength" -> strength.copyFrom(value)
             else -> super.readObject(name, value)
         }
@@ -109,6 +108,10 @@ class SwizzleRGBAComponent : Component(), FragmentShaderComponent {
 
     override fun bindUniforms(shader: Shader, env: ShaderEnvironment, time: Double) {
         shader.v1(env[this, "strength", VariableType.UNIFORM_V1], strength[time])
+    }
+
+    override fun clone(): PrefabSaveable {
+        TODO("Not yet implemented")
     }
 
 }

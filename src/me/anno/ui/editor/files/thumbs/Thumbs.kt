@@ -40,7 +40,9 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextReader
 import me.anno.io.unity.UnityReader
+import me.anno.mesh.assimp.AnimGameItem
 import me.anno.mesh.assimp.StaticMeshesLoader
+import me.anno.mesh.vox.VOXReader
 import me.anno.objects.Video
 import me.anno.objects.documents.pdf.PDFCache
 import me.anno.objects.meshes.Mesh.Companion.loadModel
@@ -406,6 +408,7 @@ object Thumbs {
         // render everything without color
         renderToBufferedImage(srcFile, dstFile, true, renderer, callback, size, size) {
             data.drawAssimp(
+                // todo instead of not showing the materials, just show the vertex color
                 null, createPerspectiveList(), 0.0, white4, "",
                 useMaterials = false, centerMesh = true, normalizeScale = true
             )
@@ -428,6 +431,23 @@ object Thumbs {
         }
         generateFrame(srcFile, dstFile, data, size, colorRenderer, callback)
     }
+
+    fun generateVOXMeshFrame(
+        srcFile: FileReference,
+        dstFile: FileReference,
+        size: Int,
+        callback: (Texture2D) -> Unit
+    ) {
+        val data = waitUntilDefined(true) {
+            loadModel(srcFile, "Assimp-Static", null, { meshData ->
+                val reader = VOXReader.readAsFolder2(srcFile)
+                val meshes = reader.c.createInstance() as Entity
+                meshData.assimpModel = AnimGameItem(meshes)
+            }) { it.assimpModel }
+        }
+        generateFrame(srcFile, dstFile, data, size, colorRenderer, callback)
+    }
+
 
     fun generateMeshFrame(
         srcFile: FileReference,
@@ -550,6 +570,10 @@ object Thumbs {
             // upload the result to the gpu
             // save the file
 
+            // todo hdr preview broken?
+
+            // todo first check the signature
+
             try {
                 when (val ext = srcFile.extension.lowercase()) {
 
@@ -566,6 +590,7 @@ object Thumbs {
                         // preview for mtl file? idk...
                         generateAssimpMeshFrame(srcFile, dstFile, size, callback)
                     }
+                    "vox" -> generateVOXMeshFrame(srcFile, dstFile, size, callback)
                     "mat", "prefab", "unity", "asset", "controller" -> {
                         try {
                             // parse unity files

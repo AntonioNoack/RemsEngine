@@ -1,6 +1,7 @@
 package me.anno.mesh.vox.model
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.prefab.Prefab
 import me.anno.mesh.vox.meshing.BakeMesh
 import me.anno.mesh.vox.meshing.BlockSide
 import me.anno.mesh.vox.meshing.VoxelMeshBuildInfo
@@ -97,6 +98,19 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
         mesh.color0 = colors.toIntArray()
 
         return mesh
+
+    }
+
+    fun createMeshPrefab(palette: IntArray): Prefab {
+
+        val mesh = createMesh(palette)
+        val prefab = Prefab("Mesh")
+
+        prefab.setProperty("positions", mesh.positions)
+        prefab.setProperty("normals", mesh.normals)
+        prefab.setProperty("color0", mesh.color0)
+
+        return prefab
 
     }
 

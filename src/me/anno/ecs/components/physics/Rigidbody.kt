@@ -3,6 +3,7 @@ package me.anno.ecs.components.physics
 import com.bulletphysics.dynamics.RigidBody
 import cz.advel.stack.Stack
 import me.anno.ecs.Component
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.scale
 import me.anno.io.serialization.NotSerializedProperty
@@ -12,7 +13,7 @@ import org.joml.Vector3d
 import org.joml.Vector4f
 import kotlin.math.abs
 
-open class Rigidbody : Component() {
+open class Rigidbody() : Component() {
 
     // todo lock an axis of the object
     // todo other constraints, e.g. chains
@@ -256,6 +257,27 @@ open class Rigidbody : Component() {
         stack.translate(centerOfMass.x.toFloat(), centerOfMass.y.toFloat(), centerOfMass.z.toFloat())
         Transform.drawUICircle(stack, 0.2f / scale.toFloat(), 0.7f, centerOfMassColor)
         stack.popMatrix()
+    }
+
+    override fun clone(): Rigidbody {
+        val clone = Rigidbody()
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as Rigidbody
+        clone.centerOfMass = centerOfMass
+        clone.activeByDefault = activeByDefault
+        clone.angularDamping = angularDamping
+        clone.friction = friction
+        clone.mass = mass
+        clone.linearDamping = linearDamping
+        clone.sleepingTimeThreshold = sleepingTimeThreshold
+        clone.angularSleepingThreshold = angularSleepingThreshold
+        clone.linearSleepingThreshold = linearSleepingThreshold
+        clone.restitution = restitution
     }
 
     override val className get() = "Rigidbody"

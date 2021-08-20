@@ -9,6 +9,14 @@ object ECSShaderLib {
     fun init() {
 
         pbrModelShader = ECSMeshShader("model")
+        pbrModelShader.ignoreUniformWarnings(
+            listOf(
+                "finalSheen", "finalTranslucency", "metallicMinMax",
+                "emissiveBase", "normalStrength", "ambientLight",
+                "occlusionStrength", "invLocalTransform", "visualizeLightCount",
+                "numberOfLights"
+            )
+        )
         pbrModelShader.setTextureIndices(
             listOf(
                 "diffuseMap",

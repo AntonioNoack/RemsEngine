@@ -14,7 +14,7 @@ class Skeleton() : PrefabSaveable() {
 
     @Type("Map<String, Animation>")
     @SerializedProperty
-    val animations = HashMap<String, Animation>()
+    var animations = HashMap<String, Animation>()
 
     override val className: String = "Skeleton"
     override val approxSize: Int = 10
@@ -32,6 +32,18 @@ class Skeleton() : PrefabSaveable() {
         if (bones != null) {
             writer.writeObjectArray(this, "bones", bones)
         }
+    }
+
+    override fun clone(): PrefabSaveable {
+        val clone = Skeleton()
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        clone as Skeleton
+        clone.animations = animations
+        clone.bones = bones
     }
 
 }

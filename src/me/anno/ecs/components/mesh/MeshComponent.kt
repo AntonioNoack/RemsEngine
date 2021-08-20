@@ -66,33 +66,15 @@ class MeshComponent() : Component() {
     // on destroy we should maybe destroy the mesh:
     // only if it is unique, and owned by ourselves
 
+    override fun clone(): PrefabSaveable {
+        TODO("Not yet implemented")
+    }
+
     override val className get() = "MeshComponent"
 
     companion object {
 
         private val LOGGER = LogManager.getLogger(MeshComponent::class)
-
-        // custom attributes for shaders? idk...
-        // will always be 4, so bone indices can be aligned
-        const val MAX_WEIGHTS = 4
-        val attributes = listOf(
-            Attribute("coords", 3),
-            Attribute("uvs", 2), // 20 bytes
-            Attribute("normals", AttributeType.SINT8_NORM, 4),
-            Attribute("tangents", AttributeType.SINT8_NORM, 4),
-            Attribute("colors", AttributeType.UINT8_NORM, 4), // 28 + 4 bytes
-            Attribute("weights", AttributeType.UINT8_NORM, MAX_WEIGHTS),
-            Attribute("indices", AttributeType.UINT8, MAX_WEIGHTS, true) // 32 + 8 bytes
-        )
-
-        fun AABBf.clear() {
-            minX = Float.POSITIVE_INFINITY
-            minY = Float.POSITIVE_INFINITY
-            minZ = Float.POSITIVE_INFINITY
-            maxX = Float.NEGATIVE_INFINITY
-            maxY = Float.NEGATIVE_INFINITY
-            maxZ = Float.NEGATIVE_INFINITY
-        }
 
     }
 

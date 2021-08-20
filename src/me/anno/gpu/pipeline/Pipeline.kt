@@ -4,7 +4,6 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.light.AmbientLight
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshRenderer
 import me.anno.ecs.components.mesh.RendererComponent
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
@@ -173,13 +172,12 @@ class Pipeline : Saveable() {
             val component = components[i]
             if (component.isEnabled) {
                 component.onVisibleUpdate()
-                if (renderer != null && component is MeshComponent) {
+                if (renderer != null && component is Mesh) {
                     component.clickId = clickId
-                    val mesh = component.mesh
                     if (component.isInstanced) {
-                        addMeshInstanced(mesh, entity, clickId)
+                        addMeshInstanced(component, entity, clickId)
                     } else {
-                        addMesh(mesh, renderer, entity, clickId)
+                        addMesh(component, renderer, entity, clickId)
                     }
                     clickId++
                 }
@@ -211,7 +209,7 @@ class Pipeline : Saveable() {
             val components = entity.components
             for (i in components.indices) {
                 val c = components[i]
-                if (c.isEnabled && c is MeshComponent) {
+                if (c.isEnabled && c is Mesh) {
                     if (c.clickId == searchedId) return c
                 }
             }

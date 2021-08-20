@@ -76,6 +76,28 @@ class Transform : Saveable() {
     val localTransform = Matrix4x3d()
 
     private val pos = Vector3d()
+    private val rot = Quaterniond()
+    private val sca = Vector3d(1.0)
+
+    var needsGlobalUpdate = true
+
+    fun invalidateGlobal() {
+        needsGlobalUpdate = true
+    }
+
+    fun set(src: Transform) {
+        lastUpdateTime = src.lastUpdateTime
+        lastDrawTime = src.lastDrawTime
+        lastUpdateDt = src.lastUpdateDt
+        localTransform.set(src.localTransform)
+        globalTransform.set(src.globalTransform)
+        drawTransform.set(src.drawTransform)
+        pos.set(src.pos)
+        rot.set(src.rot)
+        sca.set(src.sca)
+        needsGlobalUpdate = src.needsGlobalUpdate
+    }
+
     var localPosition: Vector3d
         get() = pos
         set(value) {
@@ -86,7 +108,6 @@ class Transform : Saveable() {
             invalidateGlobal()
         }
 
-    private val rot = Quaterniond()
     var localRotation: Quaterniond
         get() = rot
         set(value) {
@@ -102,7 +123,6 @@ class Transform : Saveable() {
         localRotation.set(Quaterniond().rotateY(y).rotateX(x).rotateZ(z))
     }
 
-    private val sca = Vector3d(1.0)
     var localScale: Vector3d
         get() = sca
         set(value) {
@@ -167,12 +187,6 @@ class Transform : Saveable() {
         return dir.dot(x, y, z)
     }
 
-    var needsGlobalUpdate = true
-
-    fun invalidateGlobal() {
-        needsGlobalUpdate = true
-    }
-
     override fun readMatrix4x3d(name: String, value: Matrix4x3d) {
         when (name) {
             "local" -> setLocal(value)
@@ -181,9 +195,11 @@ class Transform : Saveable() {
     }
 
     fun calculateGlobalTransform(parent: Transform?) {
+        checkTransform(localTransform)
         if (parent == null) {
             globalTransform.set(localTransform)
         } else {
+            checkTransform(parent.globalTransform)
             globalTransform.set(parent.globalTransform)
                 .mul(localTransform)
         }

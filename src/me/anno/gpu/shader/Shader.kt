@@ -331,6 +331,7 @@ open class Shader(
         }
     }
 
+    fun v1(name: String, x: Boolean) = v1(name, if(x) 1 else 0)
     fun v1(name: String, x: Int) = v1(getUniformLocation(name), x)
     fun v1(loc: Int, x: Int) {
         if (loc > -1) {

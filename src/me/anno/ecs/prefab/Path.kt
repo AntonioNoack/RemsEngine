@@ -22,6 +22,10 @@ class Path(
     constructor(name: String, index: Int, type: Char) : this(arrayOf(name), intArrayOf(index), charArrayOf(type))
     constructor(pair: Triple<Array<String>, IntArray, CharArray>) : this(pair.first, pair.second, pair.third)
 
+
+    val size get() = indices.size
+    fun isEmpty() = size == 0
+
     fun setLast(name: String, index: Int, type: Char) {
         val i = size - 1
         names[i] = name
@@ -31,8 +35,6 @@ class Path(
 
     fun getIndex(index: Int) = indices[index]
     fun getName(index: Int) = names[index]
-
-    val size get() = indices.size
 
     fun getType(index: Int, default: Char): Char {
         val type = types[index]
