@@ -28,7 +28,7 @@ abstract class Audio(var file: FileReference = InvalidRef, parent: Transform? = 
     val amplitude = AnimatedProperty.floatPlus(1f)
     var pipeline = SoundPipeline(this)
     val isLooping = ValueWithDefaultFunc {
-        if (file.extension.equals("gif", true)) LoopingState.PLAY_LOOP
+        if (file.lcExtension == "gif") LoopingState.PLAY_LOOP
         else LoopingState.PLAY_ONCE
     }
 

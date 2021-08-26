@@ -5,7 +5,7 @@ import me.anno.input.Input.isShiftDown
 import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.pow
+import me.anno.utils.maths.Maths.pow
 import org.joml.Vector3d
 
 class GraphPanel(style: Style) : PanelGroup(style) {

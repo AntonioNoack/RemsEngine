@@ -9,8 +9,8 @@ import me.anno.io.files.FileReference
 import me.anno.objects.Audio
 import me.anno.objects.Transform
 import me.anno.objects.modes.LoopingState
-import me.anno.utils.Maths.clamp
-import me.anno.utils.Maths.mix
+import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.maths.Maths.mix
 import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.video.AudioCreator.Companion.playbackSampleRate

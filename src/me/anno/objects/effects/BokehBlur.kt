@@ -10,11 +10,12 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.studio.rems.Scene
-import me.anno.utils.Maths.clamp
+import me.anno.utils.maths.Maths.clamp
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
 import kotlin.math.roundToInt
@@ -149,7 +150,7 @@ object BokehBlur {
                 "   return texture(filterTexture, vec2(x, 0));\n" +
                 "}\n"
 
-        val varyingShader = "varying vec2 uv;\n"
+        val varyingShader = listOf(Variable("vec2", "uv"))
 
         perChannelShader = createShaderNoShorts(
             "bokeh-perChannel", vertexShader, varyingShader, "" +
@@ -280,7 +281,7 @@ object BokehBlur {
             kernelTexture[i + 3] = kernel1[i + 1]
         }
 
-        filterTexture.create(kernelTexture)
+        filterTexture.createRGBA(kernelTexture, false)
 
     }
 

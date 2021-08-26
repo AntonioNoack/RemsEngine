@@ -1,6 +1,5 @@
 package me.anno.mesh.vox
 
-import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.CSet
@@ -8,7 +7,6 @@ import me.anno.ecs.prefab.Change
 import me.anno.ecs.prefab.Path
 import me.anno.ecs.prefab.Prefab
 import me.anno.io.files.FileReference
-import me.anno.io.text.TextWriter
 import me.anno.io.zip.InnerFolder
 import me.anno.mesh.vox.format.VOXLayer
 import me.anno.mesh.vox.format.VOXNode
@@ -32,6 +30,9 @@ class VOXReader {
 
         val bytes = ByteBuffer.wrap(input.readBytes()).order(ByteOrder.LITTLE_ENDIAN)
 
+        bytes.position(0)
+
+        if (bytes.capacity() < 8) throw IOException("VOXFile is too small")
         if (bytes.int != VOX) throw IOException("Incorrect magic")
         /* val version = */ bytes.int // always 150
 
@@ -47,16 +48,11 @@ class VOXReader {
 
     }
 
-    private fun createMeshes() {
-        if (meshes.isNotEmpty()) return
-        meshes.addAll(models.map { it.createMesh(palette) })
-    }
-
     private fun createDefaultNode() {
         // there hasn't been nodes in that version yet ->
         // create default nodes
         val node = getNode(0)
-        node.models = IntArray(meshes.size) { it }
+        node.models = IntArray(models.size) { it }
         layerNegative.nodes.add(node)
     }
 
@@ -74,7 +70,7 @@ class VOXReader {
         if (!isDefault) {
             // todo function to apply index mapping
             LOGGER.warn("index map not applied")
-            println(indexMap.joinToString { (it.toInt() and 255).toString() })
+            LOGGER.info(indexMap.joinToString { (it.toInt() and 255).toString() })
         } else this.indexMap = null // done and pseudo-applied
     }
 
@@ -86,7 +82,7 @@ class VOXReader {
         val prefab = Prefab("Entity")
         val changes = ArrayList<Change>()
         prefab.changes = changes
-        changes.add(CSet(Path(), "name", "Root"))
+        changes.add(CSet(Path.ROOT_PATH, "name", "Root"))
         val availableLayers = (listOf(layerNegative) + layers).filter { it.containsModel() }
         when (availableLayers.size) {
             0 -> {// awkward
@@ -95,7 +91,7 @@ class VOXReader {
                 // don't create a layer node, when there only is a single layer
                 val layer = availableLayers.first()
                 for ((childIndex, node) in layer.nodes.withIndex()) {
-                    node.toEntityPrefab(changes, meshPaths, Path(), childIndex)
+                    node.toEntityPrefab(changes, meshPaths, Path.ROOT_PATH, childIndex)
                 }
             }
             else -> {
@@ -107,22 +103,9 @@ class VOXReader {
         return prefab
     }
 
-    fun toEntity(): Entity {
-        createMeshes()
-        val entity = Entity("Root")
-        entity.add(layerNegative.toEntity(meshes, -1))
-        for ((index, layer) in layers.withIndex()) {
-            entity.add(layer.toEntity(meshes, index))
-        }
-        entity.validateTransforms()
-        return entity
-    }
-
-
     val size = Vector3i()
 
     val models = ArrayList<VoxelModel>()
-    val meshes = ArrayList<Mesh>()
 
     var palette = defaultPalette
     val materials = HashMap<Int, Material>()
@@ -398,11 +381,10 @@ class VOXReader {
             val meshes = InnerFolder(folder, "meshes")
             val meshReferences = reader.models.mapIndexed { index, mesh ->
                 val prefab = mesh.createMeshPrefab(reader.palette)
-                val json = TextWriter.toText(prefab, false)
-                meshes.createTextChild("$index.json", json)
+                meshes.createPrefabChild("$index.json", prefab)
             }
             val prefab = reader.toEntityPrefab(meshReferences)
-            val layersRoot = folder.createTextChild("Scene.json", TextWriter.toText(prefab, false))
+            val layersRoot = folder.createPrefabChild("Scene.json", prefab)
             prefab.src = layersRoot
             return Quad(folder, layersRoot, prefab, meshReferences)
         }

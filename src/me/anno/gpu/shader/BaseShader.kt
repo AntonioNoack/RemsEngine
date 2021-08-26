@@ -5,6 +5,7 @@ import me.anno.gpu.RenderState
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.builder.ShaderStage
+import me.anno.gpu.shader.builder.Variable
 import me.anno.utils.structures.maps.KeyTripleMap
 import me.anno.utils.types.Strings.isBlank2
 import kotlin.math.max
@@ -18,11 +19,11 @@ import kotlin.math.max
 open class BaseShader(
     val name: String,
     val vertexSource: String,
-    val varyingSource: String,
+    val varyingSource: List<Variable>,
     val fragmentSource: String
 ) {
 
-    constructor() : this("", "", "", "")
+    constructor() : this("", "", emptyList(), "")
 
     var glslVersion = Shader.DefaultGLSLVersion
     var textures: List<String>? = null
@@ -99,7 +100,7 @@ open class BaseShader(
                     val shader = flatShader.getOrPut(renderer, instanced, geoMode) { r, i, g ->
                         val shader = createFlatShader(r.getPostProcessing(), i, g)
                         r.uploadDefaultUniforms(shader)
-                        // println(shader.fragmentSource)
+                        // LOGGER.info(shader.fragmentSource)
                         shader
                     }
                     shader.use()

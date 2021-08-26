@@ -1,7 +1,7 @@
 package me.anno.gpu.pipeline
 
 import me.anno.gpu.shader.Shader
-import me.anno.utils.Maths
+import me.anno.utils.maths.Maths
 import org.joml.Matrix4f
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
@@ -9,7 +9,6 @@ import org.joml.Vector3d
 import org.lwjgl.opengl.GL21
 import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
-import java.nio.FloatBuffer
 
 object M4x3Delta {
 
@@ -113,25 +112,46 @@ object M4x3Delta {
      * uploads the transform, minus some offset, to the GPU uniform <location>
      * the delta ensures, that we don't have to calculate high-precision numbers on the GPU
      * */
-    fun Shader.m4x3delta(m: Matrix4x3d, pos: Vector3d, worldScale: Double, buffer16: ByteBuffer) {
+    fun Shader.m4x3delta(m: Matrix4x3d, pos: Vector3d, worldScale: Double, buffer16: ByteBuffer, transposed: Boolean) {
 
-        // false = column major, however the labelling of these things is awkward
-        // A_ji, as far, as I can see
-        buffer16.putFloat((m.m00() * worldScale).toFloat())
-        buffer16.putFloat((m.m01() * worldScale).toFloat())
-        buffer16.putFloat((m.m02() * worldScale).toFloat())
+        if(transposed){
 
-        buffer16.putFloat((m.m10() * worldScale).toFloat())
-        buffer16.putFloat((m.m11() * worldScale).toFloat())
-        buffer16.putFloat((m.m12() * worldScale).toFloat())
+            // A_ji, as far, as I can see
+            buffer16.putFloat((m.m00() * worldScale).toFloat())
+            buffer16.putFloat((m.m10() * worldScale).toFloat())
+            buffer16.putFloat((m.m20() * worldScale).toFloat())
+            buffer16.putFloat(((m.m30() - pos.x) * worldScale).toFloat())
 
-        buffer16.putFloat((m.m20() * worldScale).toFloat())
-        buffer16.putFloat((m.m21() * worldScale).toFloat())
-        buffer16.putFloat((m.m22() * worldScale).toFloat())
+            buffer16.putFloat((m.m01() * worldScale).toFloat())
+            buffer16.putFloat((m.m11() * worldScale).toFloat())
+            buffer16.putFloat((m.m21() * worldScale).toFloat())
+            buffer16.putFloat(((m.m31() - pos.y) * worldScale).toFloat())
 
-        buffer16.putFloat(((m.m30() - pos.x) * worldScale).toFloat())
-        buffer16.putFloat(((m.m31() - pos.y) * worldScale).toFloat())
-        buffer16.putFloat(((m.m32() - pos.z) * worldScale).toFloat())
+            buffer16.putFloat((m.m02() * worldScale).toFloat())
+            buffer16.putFloat((m.m12() * worldScale).toFloat())
+            buffer16.putFloat((m.m22() * worldScale).toFloat())
+            buffer16.putFloat(((m.m32() - pos.z) * worldScale).toFloat())
+
+        } else {
+
+            // A_ji, as far, as I can see
+            buffer16.putFloat((m.m00() * worldScale).toFloat())
+            buffer16.putFloat((m.m01() * worldScale).toFloat())
+            buffer16.putFloat((m.m02() * worldScale).toFloat())
+
+            buffer16.putFloat((m.m10() * worldScale).toFloat())
+            buffer16.putFloat((m.m11() * worldScale).toFloat())
+            buffer16.putFloat((m.m12() * worldScale).toFloat())
+
+            buffer16.putFloat((m.m20() * worldScale).toFloat())
+            buffer16.putFloat((m.m21() * worldScale).toFloat())
+            buffer16.putFloat((m.m22() * worldScale).toFloat())
+
+            buffer16.putFloat(((m.m30() - pos.x) * worldScale).toFloat())
+            buffer16.putFloat(((m.m31() - pos.y) * worldScale).toFloat())
+            buffer16.putFloat(((m.m32() - pos.z) * worldScale).toFloat())
+
+        }
 
     }
 

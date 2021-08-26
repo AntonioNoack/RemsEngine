@@ -1,30 +1,38 @@
 package me.anno.ui.editor.files.thumbs
 
 import me.anno.cache.data.ImageData
-import me.anno.cache.instances.ImageCache
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.cache.instances.MeshCache
-import me.anno.cache.instances.TextureCache.getLateinitTexture
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultStyle.white4
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.anim.Skeleton
+import me.anno.ecs.components.anim.Skeleton.Companion.boneMeshVertices
+import me.anno.ecs.components.anim.Skeleton.Companion.generateSkeleton
+import me.anno.ecs.components.cache.MaterialCache
+import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.shapes.Icosahedron
 import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.PrefabReadable
 import me.anno.engine.ui.render.Renderers.previewRenderer
-import me.anno.gpu.DepthMode
-import me.anno.gpu.GFX
+import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
+import me.anno.gpu.*
+import me.anno.gpu.GFX.isGFXThread
 import me.anno.gpu.RenderState.depthMode
 import me.anno.gpu.RenderState.renderPurely
 import me.anno.gpu.RenderState.useFrame
-import me.anno.gpu.SVGxGFX
-import me.anno.gpu.TextureLib
 import me.anno.gpu.TextureLib.whiteTexture
+import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.drawing.DrawTextures.drawTexture
+import me.anno.gpu.drawing.GFXx2D
+import me.anno.gpu.drawing.GFXx2D.getSizeX
+import me.anno.gpu.drawing.GFXx2D.getSizeY
+import me.anno.gpu.drawing.Perspective.setPerspective
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.shader.Renderer
@@ -32,45 +40,45 @@ import me.anno.gpu.shader.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
-import me.anno.image.HDRImage
+import me.anno.gpu.texture.Texture2D.Companion.packAlignment
+import me.anno.image.*
 import me.anno.image.tar.TGAImage
 import me.anno.io.ISaveable
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.Signature
 import me.anno.io.text.TextReader
 import me.anno.io.unity.UnityReader
+import me.anno.io.zip.ZipCache
 import me.anno.mesh.assimp.AnimGameItem
-import me.anno.mesh.assimp.StaticMeshesLoader
-import me.anno.mesh.vox.VOXReader
 import me.anno.objects.Video
 import me.anno.objects.documents.pdf.PDFCache
-import me.anno.objects.meshes.Mesh.Companion.loadModel
 import me.anno.objects.meshes.MeshData
+import me.anno.objects.meshes.MeshTransform.Companion.loadAssimpStatic
+import me.anno.objects.meshes.MeshTransform.Companion.loadVOX
+import me.anno.studio.Build
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
+import me.anno.utils.Color.hex4
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
-import me.anno.utils.Sleep.waitUntil
+import me.anno.utils.Sleep.waitForGFXThread
+import me.anno.utils.Sleep.waitForGFXThreadUntilDefined
 import me.anno.utils.Sleep.waitUntilDefined
-import me.anno.utils.Threads.threadWithName
 import me.anno.utils.files.Files.use
+import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.image.ImageScale.scale
 import me.anno.utils.input.readNBytes2
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import net.boeckling.crc.CRC64
-import org.apache.commons.imaging.Imaging
 import org.apache.logging.log4j.LogManager
+import org.joml.*
+import org.joml.Math.sqrt
 import org.joml.Math.toRadians
-import org.joml.Matrix4f
-import org.joml.Matrix4fArrayList
-import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL20
-import org.lwjgl.opengl.GL45
-import org.lwjgl.opengl.GL45.glClipControl
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 import kotlin.concurrent.thread
@@ -84,20 +92,30 @@ import kotlin.math.roundToInt
  * */
 object Thumbs {
 
-    init {
-        LogManager.disableLogger("GlyphRenderer")
-    }
+    // todo right click option in file explorer to invalidate a thumbs image
 
     private val folder = ConfigBasics.cacheFolder.getChild("thumbs")
     private val sizes = intArrayOf(32, 64, 128, 256, 512)
     private val neededSizes = IntArray(sizes.last() + 1)
     private const val timeout = 5000L
 
+    // todo disable this, when everything works
+    var useCacheFolder = !Build.isDebug
+
+    init {
+        LogManager.disableLogger("GlyphRenderer")
+        LogManager.disableLogger("PDSimpleFont")
+        if (!useCacheFolder) {
+            folder.listChildren()?.forEach { it.deleteRecursively() }
+        }
+    }
+
     private fun FileReference.getCacheFile(size: Int): FileReference {
+
         val hashReadLimit = 256
         val info = LastModifiedCache[this]
         val length = this.length()
-        var hash = info.lastModified xor (454781903L * length)
+        var hash: Long = info.lastModified xor (454781903L * length)
         if (!info.isDirectory && length > 0) {
             val reader = inputStream().buffered()
             val bytes = reader.readNBytes2(hashReadLimit, false)
@@ -105,16 +123,16 @@ object Thumbs {
             hash = hash xor CRC64.fromInputStream(bytes.inputStream()).value
         }
         val dstFormat = destinationFormat
-        val str0 = hash.toULong().toString(16)
-        // LOGGER.info("$this -> $hash -> $str0")
         val str1 = CharArray(16 + 1 + dstFormat.length) { '0' }
-        for (i in str0.indices) {
-            str1[i + (16 - str0.length)] = str0[i]
+        for (i in 0 until 16) {
+            val base4 = hash.shr((15 - i) * 4).and(15)
+            str1[i] = hex4(base4)
         }
         str1[16] = '.'
         for (i in dstFormat.indices) {
             str1[i + 17] = dstFormat[i]
         }
+        // LOGGER.info("$hash -> ${String(str1)}")
         return folder.getChild("$size")
             .getChild(String(str1, 0, 2))
             .getChild(String(str1, 2, str1.size - 2))
@@ -135,23 +153,65 @@ object Thumbs {
         } else sizes.last()
     }
 
-    fun getThumbnail(file: FileReference, neededSize: Int): ITexture2D? {
+    fun invalidate(file: FileReference, neededSize: Int) {
         val size = getSize(neededSize)
         val key = ThumbnailKey(file, size)
-        return getLateinitTexture(key, timeout) { callback ->
-            thread(name = key.file.nameWithoutExtension) {
-                generate(file, size, callback)
-            }
-        }.texture
+        ImageGPUCache.removeEntry(key)
+    }
+
+    fun getThumbnail(file: FileReference, neededSize: Int, async: Boolean): ITexture2D? {
+
+        if (file is ImageReadable) {
+            return ImageGPUCache.getImage(file, timeout, async)
+        }
+
+        val size = getSize(neededSize)
+        val key = ThumbnailKey(file, size)
+        return ImageGPUCache.getLateinitTexture(key, timeout, async) { callback ->
+            if (async) {
+                thread(name = key.file.nameWithoutExtension) {
+                    generate(file, size, callback)
+                }
+            } else generate(file, size, callback)
+        }?.texture
+    }
+
+    private fun upload(srcFile: FileReference, dst: Image, callback: (Texture2D) -> Unit) {
+        val rotation = ImageData.getRotation(srcFile)
+        GFX.addGPUTask(dst.width, dst.height) {
+            val texture = Texture2D(srcFile.name, dst.width, dst.height, 1)
+            dst.createTexture(texture, true)
+            texture.rotation = rotation
+            callback(texture)
+        }
     }
 
     private fun upload(srcFile: FileReference, dst: BufferedImage, callback: (Texture2D) -> Unit) {
         val rotation = ImageData.getRotation(srcFile)
-        GFX.addGPUTask(dst.width, dst.height) {
-            val texture = Texture2D(dst)
+        if (isGFXThread()) {
+            val texture = Texture2D(dst, true)
             texture.rotation = rotation
             callback(texture)
+        } else {
+            GFX.addGPUTask(dst.width, dst.height) {
+                val texture = Texture2D(dst, true)
+                texture.rotation = rotation
+                callback(texture)
+            }
         }
+    }
+
+    private fun saveNUpload(
+        srcFile: FileReference,
+        dstFile: FileReference,
+        dst: Image,
+        callback: (Texture2D) -> Unit
+    ) {
+        if (useCacheFolder) {
+            dstFile.getParent()!!.mkdirs()
+            use(dstFile.outputStream()) { ImageIO.write(dst.createBufferedImage(), destinationFormat, it) }
+        }
+        upload(srcFile, dst, callback)
     }
 
     private fun saveNUpload(
@@ -160,14 +220,19 @@ object Thumbs {
         dst: BufferedImage,
         callback: (Texture2D) -> Unit
     ) {
-        dstFile.getParent()!!.mkdirs()
-        use(dstFile.outputStream()) { ImageIO.write(dst, destinationFormat, it) }
+        if (useCacheFolder) {
+            // don't wait to upload the image
+            thread(name = "Writing ${dstFile.name} for cached thumbs") {
+                dstFile.getParent()!!.mkdirs()
+                use(dstFile.outputStream()) { ImageIO.write(dst, destinationFormat, it) }
+            }
+        }
         upload(srcFile, dst, callback)
     }
 
     private fun transformNSaveNUpload(
         srcFile: FileReference,
-        src: BufferedImage,
+        src: Image,
         dstFile: FileReference,
         size: Int,
         callback: (Texture2D) -> Unit
@@ -175,115 +240,146 @@ object Thumbs {
         val sw = src.width
         val sh = src.height
         if (min(sw, sh) < 1) return
+
+        // if it matches the size, just upload it
+        // we have loaded it anyways already
         if (max(sw, sh) < size) {
-            return generate(srcFile, size / 2, callback)
+            saveNUpload(srcFile, dstFile, src, callback)
+            return
+            // return generate(srcFile, size / 2, callback)
         }
+
         val (w, h) = scale(sw, sh, size)
         if (min(w, h) < 1) return
         if (w == sw && h == sh) {
-            upload(srcFile, src, callback)
+            saveNUpload(srcFile, dstFile, src, callback)
         } else {
-            val dst = BufferedImage(
-                w, h,
-                if (src.colorModel.hasAlpha()) BufferedImage.TYPE_INT_ARGB
-                else BufferedImage.TYPE_INT_RGB
-            )
-            // todo better, custom interpolation? would be required in TGA & HDR as well
-            val gfx = dst.createGraphics()
-            gfx.drawImage(src, 0, 0, w, h, null)
-            gfx.dispose()
+            val dst = src.createBufferedImage(w, h)
             saveNUpload(srcFile, dstFile, dst, callback)
         }
     }
 
-    private fun renderToBufferedImage(
-        srcFile: FileReference,
+    fun renderToBufferedImage(
+        srcForRotation: FileReference,
         dstFile: FileReference,
         withDepth: Boolean,
         renderer: Renderer = colorRenderer,
+        flipY: Boolean,
         callback: (Texture2D) -> Unit,
         w: Int, h: Int, render: () -> Unit
     ) {
-
         val buffer = IntArray(w * h)
+        if (isGFXThread()) {
+            renderToBufferedImage2(
+                srcForRotation, dstFile, withDepth, renderer,
+                flipY, callback, w, h, buffer, render
+            )
+        } else {
+            GFX.addGPUTask(w, h) {
+                renderToBufferedImage2(
+                    srcForRotation, dstFile, withDepth, renderer,
+                    flipY, callback, w, h, buffer, render
+                )
+            }
+        }
+    }
 
-        GFX.addGPUTask(w, h) {
+    private fun renderToBufferedImage2(
+        srcFile: FileReference,
+        dstFile: FileReference,
+        withDepth: Boolean,
+        renderer: Renderer,
+        flipY: Boolean,
+        callback: (Texture2D) -> Unit,
+        w: Int, h: Int,
+        buffer: IntArray,
+        render: () -> Unit
+    ) {
+        GFX.check()
 
-            GFX.check()
+        val fb2 = FBStack["generateVideoFrame", w, h, 4, false, 8]
 
-            val fb2 = FBStack["generateVideoFrame", w, h, 4, false, 8]
+        renderPurely {
 
-            renderPurely {
-
+            if (!withDepth) {
                 useFrame(0, 0, w, h, false, fb2, colorRenderer) {
-
-                    Frame.bind()
-
-                    if (withDepth) {
-                        glClearColor(0f, 0f, 0f, 1f)
-                        glClearDepth(1.0)
-                        // in case we have reset this for reverse rendering
-                        glClipControl(GL20.GL_LOWER_LEFT, GL45.GL_NEGATIVE_ONE_TO_ONE)
-                    }
-
-                    glClear(GL_COLOR_BUFFER_BIT)
-
-                    // todo why is no tiling visible when rendering 3d models???
                     drawTexture(
                         0, 0, w, h,
                         TextureLib.colorShowTexture,
                         -1, Vector4f(4f, 4f, 0f, 0f)
                     )
-
-                    if (withDepth) glClear(GL_DEPTH_BUFFER_BIT)
-
                 }
+            }
 
-                useFrame(0, 0, w, h, false, fb2, renderer) {
-
-                    if (withDepth) {
-                        depthMode.use(DepthMode.LESS_EQUAL) {
-                            render()
-                        }
-                    } else {
+            useFrame(0, 0, w, h, false, fb2, renderer) {
+                if (withDepth) {
+                    depthMode.use(DepthMode.GREATER) {
+                        Frame.bind()
+                        glClearColor(0f, 0f, 0f, 0f)
+                        glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
                         render()
                     }
-
+                } else {
+                    render()
                 }
+            }
 
-                // cannot read from separate framebuffer, only from null... why ever...
-                useFrame(0, 0, w, h, false, null, colorRenderer) {
+            // cannot read from separate framebuffer, only from null... why ever...
+            useFrame(0, 0, w, h, false, null, colorRenderer) {
 
-                    GFX.copy(fb2)
+                GFX.copy(fb2)
 
-                    glFlush(); glFinish() // wait for everything to be drawn
-                    glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+                glFlush(); glFinish() // wait for everything to be drawn
 
-                    GFX.check()
+                GFX.check()
 
-                    glReadPixels(0, GFX.height - h, w, h, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
+                packAlignment(4 * w)
+                glReadPixels(0, GFX.height - h, w, h, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
 
-                    GFX.check()
-
-                }
+                GFX.check()
 
             }
 
-            threadWithName("Thumbs::renderToBufferedImage()") {
-                val dst = BufferedImage(w, h, 2)
-                val buffer2 = dst.raster.dataBuffer
+        }
+
+        threadWithName("Thumbs::renderToBufferedImage()") {
+            val dst = BufferedImage(w, h, 2)
+            val buffer2 = dst.raster.dataBuffer
+            if (flipY) {
+                var i = 0
+                val dy = h - 1
+                for (y in 0 until h) {
+                    for (x in 0 until w) {
+                        val col = buffer[i]
+                        // swizzle colors, because rgba != argb
+                        // and flip y
+                        buffer2.setElem(x + (dy - y) * w, rgba(col.b(), col.g(), col.r(), col.a()))
+                        i++
+                    }
+                }
+            } else {
                 for (i in 0 until w * h) {
                     val col = buffer[i]
                     // swizzle colors, because rgba != argb
                     buffer2.setElem(i, rgba(col.b(), col.g(), col.r(), col.a()))
                 }
-                saveNUpload(srcFile, dstFile, dst, callback)
             }
-
+            saveNUpload(srcFile, dstFile, dst, callback)
         }
     }
 
-    private fun generateVideoFrame(
+    fun loadVideo(srcFile: FileReference) {
+        if (isGFXThread()) {
+            val video = Video(srcFile)
+            for (i in 0 until 20) {
+                video.draw(Matrix4fArrayList(), 1.0, Vector4f(1f), Vector4f(1f))
+                GFX.workGPUTasks(false)
+                Thread.sleep(10)
+            }
+        }
+    }
+
+    fun generateVideoFrame(
         srcFile: FileReference,
         dstFile: FileReference,
         size: Int,
@@ -291,6 +387,7 @@ object Thumbs {
         wantedTime: Double
     ) {
 
+        // todo this is a bad option
         val meta = getMeta(srcFile, false)!!
         if (max(meta.videoWidth, meta.videoHeight) < size) return generate(srcFile, size / 2, callback)
 
@@ -303,34 +400,24 @@ object Thumbs {
         if (w < 2 || h < 2) return
 
         if (w > GFX.width || h > GFX.height) {
-            // cannot use this large size...
-            // would cause issues
-            return generate(srcFile, size, callback)
+            TODO("change reading to the generic function, which works for all sizes")
         }
 
         val fps = min(5.0, meta.videoFPS)
         val time = max(min(wantedTime, meta.videoDuration - 1 / fps), 0.0)
         val index = (time * fps).roundToInt()
 
-        // LOGGER.info("requesting frame $index / $time / $fps fps from $srcFile")
+        loadVideo(srcFile)
 
-        val src = waitUntilDefined(true) {
-            getVideoFrame(srcFile, scale, index, 1, fps, 1000L, true)
+        val src = waitForGFXThreadUntilDefined(true) {
+            getVideoFrame(srcFile, scale, index, 0, fps, 1000L, true)
         }
 
-        // LOGGER.info("got frame for $srcFile")
+        waitForGFXThread(true) { src.isCreated }
 
-        src.waitToLoad()
-
-        // LOGGER.info("loaded frame for $srcFile")
-
-        renderToBufferedImage(srcFile, dstFile, false, colorRenderer, callback, w, h) {
-            renderPurely {
-                drawTexture(src)
-            }
+        renderToBufferedImage(srcFile, dstFile, false, colorRenderer, false, callback, w, h) {
+            drawTexture(src)
         }
-
-        // LOGGER.info("rendered $srcFile")
 
     }
 
@@ -350,68 +437,91 @@ object Thumbs {
         if (w < 2 || h < 2) return
 
         val transform = Matrix4fArrayList()
-        transform.scale(1f / (buffer.maxX / buffer.maxY).toFloat(), -1f, 1f)
-        renderToBufferedImage(srcFile, dstFile, false, colorRenderer, callback, w, h) {
+        transform.scale(1f / (buffer.maxX / buffer.maxY).toFloat(), 1f, 1f)
+        renderToBufferedImage(InvalidRef, dstFile, false, colorRenderer, false, callback, w, h) {
             SVGxGFX.draw3DSVG(
                 null, 0.0,
                 transform, buffer, whiteTexture,
                 Vector4f(1f), Filtering.NEAREST,
-                whiteTexture.clamping, null
+                whiteTexture.clamping!!, null
             )
         }
 
     }
 
-    fun createPerspectiveList(y: Float = -25f): Matrix4fArrayList {
+    val defaultAngleY = -25f
 
-        val stack = Matrix4fArrayList()
-        stack.perspective(0.7f, 1f, 0.001f, 5f)
+    fun createPerspective(y: Float, aspectRatio: Float, stack: Matrix4f) {
+
+        setPerspective(stack, 0.7f, aspectRatio, 0.001f, 10f)
         stack.translate(0f, 0f, -1f)// move the camera back a bit
-        stack.rotateX(toRadians(-15f))// rotate it into a nice viewing angle
+        stack.rotateX(toRadians(15f))// rotate it into a nice viewing angle
         stack.rotateY(toRadians(y))
 
         // calculate the scale, such that everything can be visible
         // half, because it's half the size, 1.05f for a small border
-        val scale = 1.05f * 0.5f
-        stack.scale(scale, -scale, scale)
-
-        return stack
+        stack.scale(1.05f * 0.5f)
 
     }
 
-    fun createPerspective(y: Float = -25f): Matrix4f {
-
-        val stack = Matrix4f()
-        stack.perspective(0.7f, 1f, 0.001f, 5f)
-        stack.translate(0f, 0f, -1f)// move the camera back a bit
-        stack.rotateX(toRadians(-15f))// rotate it into a nice viewing angle
-        if (y != 0f) stack.rotateY(toRadians(y))
-
-        // calculate the scale, such that everything can be visible
-        // half, because it's half the size, 1.05f for a small border
-        val scale = 1.05f * 0.5f
-        stack.scale(scale, -scale, scale)
-
+    fun createPerspectiveList(y: Float, aspectRatio: Float): Matrix4fArrayList {
+        val stack = Matrix4fArrayList()
+        createPerspective(y, aspectRatio, stack)
         return stack
+    }
 
+    fun createPerspective(y: Float, aspectRatio: Float): Matrix4f {
+        val stack = Matrix4f()
+        createPerspective(y, aspectRatio, stack)
+        return stack
     }
 
     // just render it using the simplest shader
     fun generateFrame(
-        srcFile: FileReference,
         dstFile: FileReference,
         data: MeshData,
         size: Int,
         renderer: Renderer,
+        waitForTextures: Boolean,
         callback: (Texture2D) -> Unit
     ) {
-        // render everything without color
-        renderToBufferedImage(srcFile, dstFile, true, renderer, callback, size, size) {
+        if (waitForTextures) waitForTextures(data)
+        renderToBufferedImage(InvalidRef, dstFile, true, renderer, true, callback, size, size) {
             data.drawAssimp(
-                // todo instead of not showing the materials, just show the vertex color
-                null, createPerspectiveList(), 0.0, white4, "",
-                useMaterials = false, centerMesh = true, normalizeScale = true
+                true, null, createPerspectiveList(defaultAngleY, 1f), 0.0, white4, "",
+                useMaterials = true, centerMesh = true, normalizeScale = true, drawSkeletons = false
             )
+        }
+    }
+
+    fun waitForTextures(data: MeshData) {
+        // wait for all textures
+        val textures = HashSet<FileReference>()
+        collectTextures(data.assimpModel!!.hierarchy, textures)
+        textures.removeIf { it == InvalidRef }
+        textures.removeIf {
+            if (!it.exists) {
+                LOGGER.warn("Missing texture $it")
+                true
+            } else false
+        }
+        // LOGGER.info("Textures: $textures")
+        waitForTextures(textures)
+        // LOGGER.info("done waiting")
+    }
+
+    private fun collectTextures(entity: Entity, textures: MutableSet<FileReference>) {
+        for (comp in entity.getComponentsInChildren(MeshComponent::class, false)) {
+            // LOGGER.info("mesh comp ${comp.name}")
+            val mesh = me.anno.ecs.components.cache.MeshCache[comp.mesh]
+            if (mesh == null) {
+                LOGGER.warn("Missing mesh ${comp.mesh}")
+                continue
+            }
+            // LOGGER.info("mesh ${comp.mesh} has the materials ${mesh.materials}")
+            for (material in mesh.materials) {
+                textures += listTextures(material)
+            }
         }
     }
 
@@ -422,14 +532,8 @@ object Thumbs {
         size: Int,
         callback: (Texture2D) -> Unit
     ) {
-        val data = waitUntilDefined(true) {
-            loadModel(srcFile, "Assimp-Static", null, { meshData ->
-                val reader = StaticMeshesLoader()
-                val meshes = reader.load(srcFile)
-                meshData.assimpModel = meshes
-            }) { it.assimpModel }
-        }
-        generateFrame(srcFile, dstFile, data, size, colorRenderer, callback)
+        val data = waitUntilDefined(true) { loadAssimpStatic(srcFile, null) }
+        generateFrame(dstFile, data, size, previewRenderer, true, callback)
     }
 
     fun generateVOXMeshFrame(
@@ -438,16 +542,27 @@ object Thumbs {
         size: Int,
         callback: (Texture2D) -> Unit
     ) {
-        val data = waitUntilDefined(true) {
-            loadModel(srcFile, "Assimp-Static", null, { meshData ->
-                val reader = VOXReader.readAsFolder2(srcFile)
-                val meshes = reader.c.createInstance() as Entity
-                meshData.assimpModel = AnimGameItem(meshes)
-            }) { it.assimpModel }
-        }
-        generateFrame(srcFile, dstFile, data, size, colorRenderer, callback)
+        val data = waitUntilDefined(true) { loadVOX(srcFile, null) }
+        generateFrame(dstFile, data, size, previewRenderer, true, callback)
     }
 
+    fun generateEntityFrame(
+        dstFile: FileReference,
+        size: Int,
+        entity: Entity,
+        callback: (Texture2D) -> Unit
+    ) {
+        val data = MeshData()
+        data.assimpModel = AnimGameItem(entity)
+        // todo draw gui, entity positions
+        waitForTextures(data)
+        renderToBufferedImage(InvalidRef, dstFile, true, previewRenderer, true, callback, size, size) {
+            data.drawAssimp(
+                true, null, createPerspectiveList(defaultAngleY, 1f), 0.0, white4, "",
+                useMaterials = true, centerMesh = true, normalizeScale = true, drawSkeletons = true
+            )
+        }
+    }
 
     fun generateMeshFrame(
         srcFile: FileReference,
@@ -458,39 +573,203 @@ object Thumbs {
     ) {
         mesh.checkCompleteness()
         mesh.ensureBuffer()
-        // todo sometimes black... why?...
+        // sometimes black: because of vertex colors, which are black
         // render everything without color
-        renderToBufferedImage(srcFile, dstFile, true, colorRenderer, callback, size, size) {
-            mesh.drawAssimp(createPerspective(), useMaterials = false, centerMesh = true, normalizeScale = true)
+        renderToBufferedImage(srcFile, dstFile, true, simpleNormalRenderer, true, callback, size, size) {
+            mesh.drawAssimp(
+                createPerspective(defaultAngleY, 1f),
+                useMaterials = false,
+                centerMesh = true,
+                normalizeScale = true
+            )
         }
     }
 
-    private val materialCamTransform = createPerspective(0f)
-        .apply { scale(0.5f) }
+    private val materialCamTransform = createPerspective(0f, 1f).scale(0.62f)
 
     // todo if we have preview images, we could use them as cheaper textures
+    // todo for some scales, the image is just blank
     fun generateMaterialFrame(
         srcFile: FileReference,
         dstFile: FileReference,
         size: Int,
+        callback: (Texture2D) -> Unit
+    ) {
+        val material = MaterialCache[srcFile] ?: return
+        generateMaterialFrame(srcFile, dstFile, material, size, callback)
+    }
+
+    fun generateMaterialFrame(
+        srcFile: FileReference,
+        dstFile: FileReference,
         material: Material,
+        size: Int,
         callback: (Texture2D) -> Unit
     ) {
         sphereMesh.ensureBuffer()
         val mesh = sphereMesh.clone()
-        mesh.material = material
+        mesh.material = srcFile
         waitForTextures(material)
-        renderToBufferedImage(srcFile, dstFile, true, previewRenderer, callback, size, size) {
-            mesh.drawAssimp(materialCamTransform, useMaterials = true, centerMesh = false, normalizeScale = false)
+        renderToBufferedImage(InvalidRef, dstFile, true, previewRenderer, true, callback, size, size) {
+            RenderState.blendMode.use(BlendMode.DEFAULT) {
+                mesh.drawAssimp(materialCamTransform, useMaterials = true, centerMesh = false, normalizeScale = false)
+            }
         }
     }
 
-    private fun waitForTextures(material: Material, timeout: Long = 25000) {
-        // 25s timeout, because unzipping all can take its time
-        // wait for textures
-        // listing all textures
-        // does not include personal materials / shaders...
-        val textures = listOf(
+    fun split(total: Int): Int {
+        // smartly split space
+        val maxRatio = 3
+        if (total <= maxRatio) return GFXx2D.getSize(total, 1)
+        val sqrt = sqrt(total.toFloat()).toInt()
+        val minDivisor = max(1, ((total + maxRatio - 1) / maxRatio))
+        for (partsY in sqrt downTo min(sqrt, minDivisor)) {
+            if (total % partsY == 0) {
+                // we found something good
+                // partsX >= partsY, because partsY <= sqrt(total)
+                val partsX = total / partsY
+                return GFXx2D.getSize(partsX, partsY)
+            }
+        }
+        // we didn't find a good split -> try again
+        return split(total + 1)
+    }
+
+    fun generateMaterialFrame(
+        dstFile: FileReference,
+        materials: List<FileReference>,
+        size: Int,
+        callback: (Texture2D) -> Unit
+    ) {
+        sphereMesh.ensureBuffer()
+        waitForTextures(materials.mapNotNull { MaterialCache[it] })
+        renderMultiWindowImage(
+            dstFile, materials.size, size, false,
+            previewRenderer, callback
+        ) { it, _ ->
+            RenderState.blendMode.use(BlendMode.DEFAULT) {
+                val mesh = sphereMesh.clone()
+                mesh.material = materials[it]
+                mesh.drawAssimp(
+                    materialCamTransform,
+                    useMaterials = true,
+                    centerMesh = false,
+                    normalizeScale = false
+                )
+            }
+        }
+    }
+
+    fun renderMultiWindowImage(
+        dstFile: FileReference,
+        count: Int, size: Int,
+        // whether the aspect ratio of the parts can be adjusted to keep the result quadratic
+        // if false, the result will be rectangular
+        changeSubFrameAspectRatio: Boolean,
+        renderer0: Renderer,
+        callback: (Texture2D) -> Unit,
+        drawFunction: (i: Int, aspect: Float) -> Unit
+    ) {
+        val split = split(count)
+        val sx = getSizeX(split)
+        val sy = getSizeY(split)
+        val sizePerElement = size / sx
+        val w = sizePerElement * sx
+        val h = if (changeSubFrameAspectRatio) w else sizePerElement * sy
+        val aspect = if (changeSubFrameAspectRatio) (w * sy).toFloat() / (h * sx) else 1f
+        renderToBufferedImage(
+            InvalidRef, dstFile, true, renderer0, true,
+            callback, w, h
+        ) {
+            val frame = RenderState.currentBuffer!!
+            val renderer = RenderState.currentRenderer
+            for (i in 0 until count) {
+                val ix = i % sx
+                val iy = i / sx
+                val x0 = ix * sizePerElement
+                val y0 = (iy * h) / sy
+                val y1 = (iy + 1) * h / sy
+                useFrame(x0, y0, sizePerElement, y1 - y0, false, frame, renderer) {
+                    drawFunction(i, aspect)
+                }
+            }
+        }
+    }
+
+    fun generateSkeletonFrame(
+        srcFile: FileReference,
+        dstFile: FileReference,
+        skeleton: Skeleton,
+        size: Int,
+        callback: (Texture2D) -> Unit
+    ) {
+
+        // on working skeletons, this works
+        // therefore it probably is correct
+
+        // transform bones into image
+        val bones = skeleton.bones
+        if (bones.isEmpty()) return
+        val mesh = Mesh()
+
+        // in a tree with N nodes, there is N-1 lines
+        val positions = FloatArray((bones.size - 1) * boneMeshVertices.size)
+        val bonePositions = Array(bones.size) { bones[it].bindPosition }
+        generateSkeleton(bones, bonePositions, positions)
+        mesh.positions = positions
+        generateMeshFrame(srcFile, dstFile, size, mesh, callback)
+    }
+
+    fun generateAnimationFrame(
+        dstFile: FileReference,
+        animation: Animation,
+        size: Int,
+        callback: (Texture2D) -> Unit
+    ) {
+        val skeleton = SkeletonCache[animation.skeleton] ?: return
+        val entity = Entity()
+        val mesh = Mesh()
+        val duration = animation.duration
+        val hasMotion = duration > 0.0
+        val count = if (hasMotion) 6 else 1
+        val dt = if (hasMotion) duration / count else 0.0
+        val bones = skeleton.bones
+        val boneCount = bones.size // actually just joints
+        val meshVertices = FloatArray(boneCount * boneMeshVertices.size)
+        mesh.positions = meshVertices
+        val skinningMatrices = Array(boneCount) { Matrix4x3f() }
+        val animPositions = Array(boneCount) { Vector3f() }
+        renderMultiWindowImage(dstFile, count, size, true, simpleNormalRenderer, callback) { it, aspect ->
+            val time = it * dt
+            // generate the matrices
+            animation.getMatrices(entity, time.toFloat(), skinningMatrices)
+            // apply the matrices to the bone positions
+            for (i in animPositions.indices) {
+                val position = animPositions[i].set(bones[i].bindPosition)
+                skinningMatrices[i].transformPosition(position)
+            }
+            generateSkeleton(bones, animPositions, meshVertices)
+            mesh.invalidateGeometry()
+            // draw the skeleton in that portion of the frame
+            mesh.ensureBuffer()
+            mesh.drawAssimp(
+                createPerspective(defaultAngleY, aspect),
+                useMaterials = false,
+                centerMesh = true,
+                normalizeScale = true
+            )
+        }
+    }
+
+    private fun listTextures(materialReference: FileReference): List<FileReference> {
+        val material = MaterialCache[materialReference]
+        if (material == null) LOGGER.warn("Missing material $materialReference")
+        return if (material != null) listTextures(material) else emptyList()
+    }
+
+    private fun listTextures(material: Material): List<FileReference> {
+        // LOGGER.info("$material: ${material.diffuseMap}, ${material.emissiveMap}, ${material.normalMap}")
+        return listOf(
             material.diffuseMap,
             material.emissiveMap,
             material.normalMap,
@@ -498,17 +777,38 @@ object Thumbs {
             material.metallicMap,
             material.occlusionMap,
             material.displacementMap,
-        ).filter { it != InvalidRef && it.exists }
+        )
+    }
+
+    private fun waitForTextures(materials: List<Material>, timeout: Long = 25000) {
+        // listing all textures
+        // does not include personal materials / shaders...
+        val textures = ArrayList<FileReference>()
+        for (material in materials) {
+            textures += listTextures(material)
+        }
+        waitForTextures(textures, timeout)
+    }
+
+    private fun waitForTextures(material: Material, timeout: Long = 25000) {
+        // listing all textures
+        // does not include personal materials / shaders...
+        val textures = listTextures(material).filter { it != InvalidRef && it.exists }
+        waitForTextures(textures, timeout)
+    }
+
+    private fun waitForTextures(textures: Collection<FileReference>, timeout: Long = 25000) {
+        // 25s timeout, because unzipping all can take its time
+        // wait for textures
         val endTime = GFX.gameTime + timeout * 1e6.toLong()
-        waitUntil(true) {
+        waitForGFXThread(true) {
             if (GFX.gameTime > endTime) {
                 // textures may be missing; just ignore them, if they cannot be read
                 textures
-                    .filter { !ImageCache.hasImageOrCrashed(it, timeout, true) }
+                    .filter { !ImageGPUCache.hasImageOrCrashed(it, timeout, true) }
                     .forEach { LOGGER.warn("Missing texture $it") }
                 true
-            } else textures.all { ImageCache.hasImageOrCrashed(it, timeout, true) }
-
+            } else textures.all { ImageGPUCache.hasImageOrCrashed(it, timeout, true) }
         }
     }
 
@@ -523,16 +823,10 @@ object Thumbs {
     ) {
         when (asset) {
             is Mesh -> generateMeshFrame(srcFile, dstFile, size, asset, callback)
-            is Material -> generateMaterialFrame(srcFile, dstFile, size, asset, callback)
-            is Skeleton -> {
-                // todo render skeleton
-            }
-            is Animation -> {
-                // todo render animation
-            }
-            is Entity -> {
-                // todo render entity somehow...
-            }
+            is Material -> generateMaterialFrame(srcFile, dstFile, size, callback)
+            is Skeleton -> generateSkeletonFrame(srcFile, dstFile, asset, size, callback)
+            is Animation -> generateAnimationFrame(dstFile, asset, size, callback)
+            is Entity -> generateEntityFrame(dstFile, size, asset, callback)
             is Component -> {
                 // todo render component somehow... just return an icon?
             }
@@ -544,6 +838,45 @@ object Thumbs {
         }
     }
 
+    fun returnIfExists(srcFile: FileReference, dstFile: FileReference, callback: (Texture2D) -> Unit): Boolean {
+        if (dstFile.exists) {
+            // LOGGER.info("cached preview for $srcFile exists")
+            val image = ImageIO.read(dstFile.inputStream())
+            if (image == null) LOGGER.warn("Could not read $dstFile")
+            else {
+                val rotation = ImageData.getRotation(srcFile)
+                GFX.addGPUTask(image.width, image.height) {
+                    val texture = Texture2D(image, true)
+                    texture.rotation = rotation
+                    callback(texture)
+                }
+                return true
+            }
+        }
+        return false
+    }
+
+    private fun findScale(
+        src: Image,
+        srcFile: FileReference,
+        size0: Int,
+        callback: (Texture2D) -> Unit
+    ): BufferedImage? {
+        var dstFile: FileReference
+        var size = size0
+        val sw = src.width
+        val sh = src.height
+        while (max(sw, sh) < size) {
+            size /= 2
+            if (size < 3) return null
+            dstFile = srcFile.getCacheFile(size)
+            if (returnIfExists(srcFile, dstFile, callback)) return null
+        }
+        val (w, h) = scale(sw, sh, size)
+        if (w < 2 || h < 2) return null
+        return src.createBufferedImage(w, h)
+    }
+
     // png/bmp/jpg?
     private const val destinationFormat = "png"
     private fun generate(srcFile: FileReference, size: Int, callback: (Texture2D) -> Unit) {
@@ -551,36 +884,57 @@ object Thumbs {
         if (size < 3) return
 
         val dstFile = srcFile.getCacheFile(size)
-        if (dstFile.exists) {
+        if (returnIfExists(srcFile, dstFile, callback)) return
 
-            // LOGGER.info("cached preview for $srcFile exists")
-            val image = ImageIO.read(dstFile.inputStream())
-            val rotation = ImageData.getRotation(srcFile)
-            GFX.addGPUTask(size, size) {
-                val texture = Texture2D(image)
-                texture.rotation = rotation
-                callback(texture)
+        if(srcFile.isDirectory){
+            // todo thumbnails for folders: what files are inside, including their preview images
+            return
+        }
+
+        // LOGGER.info("cached preview for $srcFile needs to be created")
+
+        // generate the image,
+        // upload the result to the gpu
+        // save the file
+
+        when (srcFile) {
+            is ImageReadable -> {
+                val image = srcFile.readImage()
+                transformNSaveNUpload(srcFile, image, dstFile, size, callback)
+                return
             }
+            is PrefabReadable -> {
+                val image = srcFile.readPrefab()
+                generateSomething(image, srcFile, dstFile, size, callback)
+                return
+            }
+        }
 
-        } else {
-
-            // LOGGER.info("cached preview for $srcFile needs to be created")
-
-            // generate the image,
-            // upload the result to the gpu
-            // save the file
-
-            // todo hdr preview broken?
-
-            // todo first check the signature
-
-            try {
-                when (val ext = srcFile.extension.lowercase()) {
+        val signature = Signature.find(srcFile)
+        when (signature?.name) {
+            // list all signatures, which can be assigned strictly by their signature
+            "vox" -> generateVOXMeshFrame(srcFile, dstFile, size, callback)
+            "hdr" -> {
+                val src = HDRImage(srcFile)
+                val dst = findScale(src, srcFile, size, callback) ?: return
+                saveNUpload(srcFile, dstFile, dst, callback)
+            }
+            "pdf" -> {
+                val ref = PDFCache.getDocumentRef(srcFile, borrow = true, async = false) ?: return
+                val image = PDFCache.getImageCachedBySize(ref.doc, size, 0)
+                ref.returnInstance()
+                saveNUpload(srcFile, dstFile, image, callback)
+            }
+            "png", "jpg", "bmp", "ico", "psd" -> {
+                generateImage(srcFile, dstFile, size, callback)
+            }
+            else -> try {
+                when (srcFile.lcExtension) {
 
                     // todo start exe files from explorer
                     // todo preview icon for exe files / links
 
-                    // todo thumbnails and import for .vox files (MagicaVoxel voxel meshes)
+                    // done thumbnails and import for .vox files (MagicaVoxel voxel meshes)
 
                     // todo thumbnails for meshes, and components
                     // todo thumbnails for scripts?
@@ -590,7 +944,6 @@ object Thumbs {
                         // preview for mtl file? idk...
                         generateAssimpMeshFrame(srcFile, dstFile, size, callback)
                     }
-                    "vox" -> generateVOXMeshFrame(srcFile, dstFile, size, callback)
                     "mat", "prefab", "unity", "asset", "controller" -> {
                         try {
                             // parse unity files
@@ -610,39 +963,35 @@ object Thumbs {
                     "json" -> {
                         try {
                             // try to read the file as an asset
-                            generateSomething(TextReader.read(srcFile).firstOrNull(), srcFile, dstFile, size, callback)
+                            generateSomething(
+                                TextReader.read(srcFile).firstOrNull(),
+                                srcFile, dstFile, size, callback
+                            )
                         } catch (e: Throwable) {
-                            println("${e.message} in $srcFile")
+                            LOGGER.info("${e.message} in $srcFile")
                             e.printStackTrace()
                         }
                     }
-                    "hdr" -> {
-                        val src = HDRImage(srcFile, true)
-                        val sw = src.width
-                        val sh = src.height
-                        if (max(sw, sh) < size) return generate(srcFile, size / 2, callback)
-                        val (w, h) = scale(sw, sh, size)
-                        if (w < 2 || h < 2) return
-                        val dst = src.createBufferedImage(w, h)
-                        saveNUpload(srcFile, dstFile, dst, callback)
-                    }
                     "tga" -> {
                         val src = use(srcFile.inputStream()) { TGAImage.read(it, false) }
-                        val sw = src.width
-                        val sh = src.height
-                        if (max(sw, sh) < size) return generate(srcFile, size / 2, callback)
-                        val (w, h) = scale(sw, sh, size)
-                        if (w < 2 || h < 2) return
-                        val dst = src.createBufferedImage(w, h)
+                        val dst = findScale(src, srcFile, size, callback) ?: return
                         saveNUpload(srcFile, dstFile, dst, callback)
                     }
                     "svg" -> generateSVGFrame(srcFile, dstFile, size, callback)
-                    "pdf" -> {
-                        val doc = PDFCache.getDocument(srcFile, false) ?: return
-                        transformNSaveNUpload(
-                            srcFile, PDFCache.getImage(doc, 1f, 0),
-                            dstFile, size, callback
-                        )
+                    "mtl" -> {
+                        // read as folder
+                        val children = ZipCache.getMeta(srcFile, false)?.listChildren() ?: emptyList()
+                        if (children.isNotEmpty()) {
+                            val maxSize = 25 // with more, too many details are lost
+                            generateMaterialFrame(
+                                dstFile, if (children.size < maxSize) children else
+                                    children.subList(0, maxSize), size, callback
+                            )
+                        } else {
+                            // just an empty material to symbolize, that the file is empty
+                            // we maybe could do better with some kind of texture...
+                            generateMaterialFrame(srcFile, dstFile, Material(), size, callback)
+                        }
                     }
                     "url" -> {
                         // try to read the url, and redirect to the icon
@@ -654,7 +1003,7 @@ object Thumbs {
                                 .substring(9)
                                 .trim() // against \r
                                 .replace('\\', '/')
-                            println("'$iconFile'")
+                            LOGGER.info("'$iconFile'")
                             generate(FileReference.getReference(iconFile), size, callback)
                         }
                     }
@@ -663,37 +1012,35 @@ object Thumbs {
                     "lnk", "desktop" -> {
                         // not images, and I don't know yet how to get the image from them
                     }
-                    else -> { // png, jpg, jpeg, ico
-                        val image = try {
-                            ImageIO.read(srcFile.inputStream())!!
-                        } catch (e: Exception) {
-                            try {
-                                Imaging.getBufferedImage(srcFile.inputStream())!!
-                            } catch (e: Exception) {
-                                when (val importType = ext.getImportType()) {
-                                    "Video" -> {
-                                        LOGGER.info("Generating frame for $srcFile")
-                                        generateVideoFrame(srcFile, dstFile, size, callback, 1.0)
-                                        null
-                                    }
-                                    // else nothing to do
-                                    else -> {
-                                        LOGGER.info("ImageIO failed, Imaging failed, importType '$importType' != getImportType for $srcFile")
-                                        null
-                                    }
-                                }
-                            }
-                        }
-                        if (image != null) {
-                            transformNSaveNUpload(srcFile, image, dstFile, size, callback)
-                        }
-                    }
+                    // png, jpg, jpeg, ico, webp, mp4, ...
+                    else -> generateImage(srcFile, dstFile, size, callback)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
                 LOGGER.warn("Could not load image from $srcFile: ${e.message}")
             }
+        }
+    }
 
+    private fun generateImage(
+        srcFile: FileReference,
+        dstFile: FileReference,
+        size: Int,
+        callback: (Texture2D) -> Unit
+    ) {
+        val image = ImageCPUCache.getImage(srcFile, false)
+        if (image == null) {
+            val ext = srcFile.lcExtension
+            when (val importType = ext.getImportType()) {
+                "Video" -> {
+                    LOGGER.info("Generating frame for $srcFile")
+                    generateVideoFrame(srcFile, dstFile, size, callback, 1.0)
+                }
+                // else nothing to do
+                else -> LOGGER.info("ImageIO failed, Imaging failed, importType '$importType' != getImportType for $srcFile")
+            }
+        } else {
+            transformNSaveNUpload(srcFile, image, dstFile, size, callback)
         }
     }
 

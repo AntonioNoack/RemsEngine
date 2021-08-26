@@ -8,7 +8,7 @@ object TextureLib {
 
     class IndestructibleTexture2D(name: String, w: Int, h: Int) : Texture2D(name, w, h, 1) {
         override fun destroy() {}
-        fun doDestroy(){
+        fun doDestroy() {
             super.destroy()
         }
     }
@@ -20,29 +20,31 @@ object TextureLib {
     val normalTexture = IndestructibleTexture2D("normal", 1, 1)
     val blackTexture = IndestructibleTexture2D("black", 1, 1)
 
-    object nullTexture: ICacheData { override fun destroy() {} }
+    object nullTexture : ICacheData {
+        override fun destroy() {}
+    }
 
     fun init() {
         val tick = Clock()
-        invisibleTexture.createRGBA(ByteArray(4) { 0.toByte() })
+        invisibleTexture.createRGBA(ByteArray(4) { 0.toByte() }, false)
         whiteTexture.createRGBA(
-            byteArrayOf(255.toByte(), 255.toByte(), 255.toByte(), 255.toByte())
+            byteArrayOf(255.toByte(), 255.toByte(), 255.toByte(), 255.toByte()), false
         )
         stripeTexture.createMonochrome(
-            byteArrayOf(255.toByte(), 255.toByte(), 255.toByte(), 255.toByte(), 255.toByte())
+            byteArrayOf(255.toByte(), 255.toByte(), 255.toByte(), 255.toByte(), 255.toByte()), false
         )
         colorShowTexture.createRGBA(
             intArrayOf(
                 255, 255, 255, 127, 255, 255, 255, 255,
                 255, 255, 255, 255, 255, 255, 255, 127
-            ).map { it.toByte() }.toByteArray()
+            ).map { it.toByte() }.toByteArray(), false
         )
-        normalTexture.createRGBA(byteArrayOf(127, 127, 255.toByte(), 255.toByte()))
-        blackTexture.createRGBA(byteArrayOf(0, 0, 0, 255.toByte()))
+        normalTexture.createRGBA(byteArrayOf(127, 127, 255.toByte(), 255.toByte()), false)
+        blackTexture.createRGBA(byteArrayOf(0, 0, 0, 255.toByte()), false)
         tick.stop("creating default textures")
     }
 
-    fun destroy(){
+    fun destroy() {
         invisibleTexture.doDestroy()
         whiteTexture.doDestroy()
         stripeTexture.doDestroy()

@@ -1,5 +1,7 @@
 package me.anno.io.files
 
+import me.anno.ecs.prefab.PrefabReadable
+import me.anno.io.zip.InnerByteFile
 import kotlin.math.min
 
 class Signature(val name: String, val offset: Int, val signature: ByteArray) {
@@ -56,20 +58,29 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
 
     companion object {
 
-        fun find(fileReference: FileReference): Signature? {
-            val input = fileReference.inputStream()
-            // reads the bytes, or 255 if at end of file
-            // how much do we read? 🤔
-            // some formats are easy, others require more effort
-            // maybe we could read them piece by piece...
-            val bytes = ByteArray(128) { input.read().toByte() }
-            input.close()
+        fun find(bytes: ByteArray): Signature? {
             for (signature in signatures) {
                 if (signature.matches(bytes)) {
                     return signature
                 }
             }
             return null
+        }
+
+        fun find(fileReference: FileReference): Signature? {
+            return when (fileReference) {
+                is PrefabReadable -> signatures.first { it.name == "json" }
+                is InnerByteFile -> find(fileReference.data!!) // full data access costs nothing
+                else -> {
+                    // reads the bytes, or 255 if at end of file
+                    // how much do we read? 🤔
+                    // some formats are easy, others require more effort
+                    // maybe we could read them piece by piece...
+                    fileReference.inputStream().use { input ->
+                        find(ByteArray(128) { input.read().toByte() })
+                    }
+                }
+            }
         }
 
         // source: https://en.wikipedia.org/wiki/List_of_file_signatures
@@ -115,6 +126,8 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             Signature("bmp", 0, "BM"),
             Signature("psd", 0, "8BPS"), // photoshop image format
             Signature("hdr", 0, "#?RADIANCE"), // high dynamic range
+            Signature("ico", 0, listOf(0x00, 0x00, 0x01, 0x00, 0x01)),// ico with 1 "image"
+            Signature("ico", 0, listOf(0x00, 0x00, 0x02, 0x00, 0x01)),// cursor with 1 "image"
             // other
             Signature("xml", 0, "<?xml"), // plus other variations with UTF16, UTF32, ...
             // media (video/audio)
@@ -139,6 +152,8 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             Signature("blend", 0, "BLENDER"),
             Signature("gltf", 0, "glTF"),
             Signature("mesh-draco", 0, "DRACO"),
+            Signature("md2", 0, "IDP2"),
+            Signature("md5mesh", 0, "MD5Version"),
             // unity support
             Signature("yaml", 0, "%YAML"),
             // json, kind of

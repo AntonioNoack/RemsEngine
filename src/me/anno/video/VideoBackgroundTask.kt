@@ -16,7 +16,7 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.studio.rems.Scene
-import me.anno.utils.Threads.threadWithName
+import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.video.FrameTask.Companion.missingResource
 import org.lwjgl.opengl.GL11.*
 import java.util.concurrent.atomic.AtomicLong

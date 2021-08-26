@@ -13,6 +13,7 @@ import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.io.EOFException
 import java.io.InputStream
+import java.io.InputStreamReader
 
 /**
  * reads a JSON-similar format from a text file
@@ -158,7 +159,7 @@ class TextReader(val data: CharSequence) : BaseReader() {
 
         append(firstChar)
         while (true) {
-            if (index >= dataLength) throw InvalidFormatException("Expected \" at the end of string")
+            if (index >= dataLength) throw InvalidFormatException("Expected \" at the end of string, $data")
             if (append(data[index++])) {
                 val builder = builder0
                 return if (builder == null) {
@@ -399,6 +400,20 @@ class TextReader(val data: CharSequence) : BaseReader() {
         toInt().toShort()// ?: error("Invalid short", this)
     }
 
+    private fun readChar(): Char {
+        return when (val first = skipSpace()) {
+            '\'' -> {
+                val value = next()
+                assert(next(), '\'')
+                value
+            }
+            else -> {
+                tmpChar = first.code
+                readInt().toChar()
+            }
+        }
+    }
+
     private fun readInt() = readNumber().run {
         toInt()// ?: error("Invalid int", this)
     }
@@ -443,7 +458,7 @@ class TextReader(val data: CharSequence) : BaseReader() {
         var (type, name) = splitTypeName(typeName)
         when (type) {
             "i1", "b" -> obj.readBoolean(name, readBool())
-            "c" -> obj.readChar(name, readInt().toChar())
+            "c" -> obj.readChar(name, readChar())
             "i8", "B" -> obj.readByte(name, readByte())
             "i16", "s" -> obj.readShort(name, readShort())
             "i32", "i" -> obj.readInt(name, readInt())
@@ -702,7 +717,7 @@ class TextReader(val data: CharSequence) : BaseReader() {
         var child = try {
             getNewClassInstance(type)
         } catch (e: UnknownClassException) {
-            println(data)
+            LOGGER.info(data)
             throw e
         }
         val firstChar = skipSpace()
@@ -787,12 +802,15 @@ class TextReader(val data: CharSequence) : BaseReader() {
         // probably we could only memorize the last n bytes, since more won't be needed
         // or the TextReader could give the signal, that we're allowed to forget
 
+        // to support non-ascii charsets
+        private val reader = InputStreamReader(input)
+
         private val memory = IntArrayList(512)
         override var length: Int = if (length <= 0) Int.MAX_VALUE else length
 
         private fun ensureIndex(index: Int) {
             while (memory.size <= kotlin.math.min(index, length)) {
-                val read = input.read()
+                val read = reader.read()
                 if (read < 0) {
                     this.length = kotlin.math.min(
                         this.length,
@@ -818,6 +836,13 @@ class TextReader(val data: CharSequence) : BaseReader() {
             })
         }
 
+        override fun toString(): String {
+            val builder = StringBuilder(kotlin.math.min(1024, length))
+            var index = -1
+            while (++index < length) builder.append(get(index))
+            return builder.toString()
+        }
+
     }
 
 }
@@ -830,6 +855,6 @@ class TextReader(val data: CharSequence) : BaseReader() {
         val char = fakeString[i++]
         print(char)
     }
-    println()
-    println("characters: $i")
+    logger.info()
+    logger.info("characters: $i")
 }*/

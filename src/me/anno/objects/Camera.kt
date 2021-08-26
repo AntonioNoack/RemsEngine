@@ -18,8 +18,8 @@ import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.clamp
-import me.anno.utils.Maths.pow
+import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.maths.Maths.pow
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.types.Casting.castToFloat2
 import org.joml.Matrix4fArrayList

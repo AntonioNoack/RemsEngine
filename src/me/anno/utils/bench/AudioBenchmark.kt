@@ -5,11 +5,11 @@ import me.anno.audio.AudioFXCache
 import me.anno.audio.AudioFXCache.SPLITS
 import me.anno.objects.Camera
 import me.anno.objects.Video
-import me.anno.utils.Maths.mix
+import me.anno.utils.maths.Maths.mix
 import me.anno.utils.OS
 import me.anno.utils.Sleep
-import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.utils.LOGGER
 
 fun main() {
 
@@ -46,7 +46,7 @@ fun main() {
     val end = System.nanoTime()
     val delta = (end - start) * 1e-9
 
-    println("Used $delta seconds")
+    LOGGER.info("Used $delta seconds")
 
     Engine.shutdown()
 

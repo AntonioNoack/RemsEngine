@@ -1,7 +1,7 @@
 package audacity.soundtouch
 
 import me.anno.audio.AudioPools.FAPool
-import me.anno.utils.Maths.clamp
+import me.anno.utils.maths.Maths.clamp
 import kotlin.math.max
 import kotlin.math.sqrt
 

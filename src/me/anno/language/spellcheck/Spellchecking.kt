@@ -17,7 +17,7 @@ import me.anno.utils.OS
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.sleepABit10
 import me.anno.utils.Sleep.sleepShortly
-import me.anno.utils.Threads.threadWithName
+import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.io.Streams.listen
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.strings.StringHelper.titlecase

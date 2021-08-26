@@ -1,7 +1,7 @@
 package me.anno.utils
 
 import me.anno.config.DefaultStyle.black
-import me.anno.utils.Maths.clamp
+import me.anno.utils.maths.Maths.clamp
 import org.joml.Vector3fc
 import org.joml.Vector4f
 import org.joml.Vector4fc
@@ -42,12 +42,22 @@ object Color {
 
     fun Int.toVecRGBA() = Vector4f(r() / 255f, g() / 255f, b() / 255f, a() / 255f)
 
-    fun hex8(i: Int): String {
-        val hex = "0123456789abcdef"
-        return "${hex[(i shr 4) and 15]}${hex[i and 15]}"
+    const val base36 = "0123456789abcdefghijklmnopqrstuvwxyz"
+
+    fun hex4(i: Long): Char {
+        return base36[i.toInt() and 15]
     }
 
-    fun hex16(i: Int) = "${hex8((i shr 8))}${hex8(i)}"
+    fun base36(i: Int): Char {
+        return base36[i % 36]
+    }
+
+    fun hex4(i: Int): Char {
+        return base36[i and 15]
+    }
+
+    fun hex8(i: Int): String = "${base36[(i shr 4) and 15]}${base36[i and 15]}"
+    fun hex16(i: Int) = "${hex4(i shr 12)}${hex4(i shr 8)}${hex4(i shr 4)}${hex4(i)}"
     fun hex24(i: Int) = "${hex8((i shr 16))}${hex16(i)}"
     fun hex32(i: Int) = "${hex16((i shr 16))}${hex16(i)}"
     fun hex8(f: Float) = hex8(clamp((255 * f).roundToInt(), 0, 255))

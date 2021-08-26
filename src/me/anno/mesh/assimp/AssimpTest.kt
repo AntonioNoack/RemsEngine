@@ -2,6 +2,7 @@ package me.anno.mesh.assimp
 
 import de.javagl.jgltf.model.GltfConstants.GL_ARRAY_BUFFER
 import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.Buffer.Companion.bindBuffer
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.Color.a
@@ -9,28 +10,40 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.OS
+import me.anno.utils.OS.downloads
 import me.anno.utils.types.Vectors.print
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
 import org.lwjgl.assimp.*
 import org.lwjgl.assimp.Assimp.*
 import org.lwjgl.opengl.GL15.*
 import java.nio.IntBuffer
 
-// todo custom, faster Kotlin compiler...
-
 // todo sims game with baked, high quality lighting
 
 fun main() {
 
-    // todo if we are lucky, we can use assimp to load all models and play all skeletal animations
-    // todo this would really be great <3
+    val loader = AnimatedMeshesLoader
+    val (folder, prefab) = loader.readAsFolder2(getReference(downloads, "fbx/simple pack anims/Walking.fbx"))
+    for (change in prefab.changes!!) {
+        println(change)
+    }
+
+}
+
+fun oldTest() {
+
+    val logger = LogManager.getLogger("AssimpTest")
+
+    // if we are lucky, we can use assimp to load all models and play all skeletal animations
+    // this would really be great <3
 
     val file = getReference(OS.documents, "redMonkey.glb")
     val scene = aiImportFile(file.toString(), 0)
 
     if (scene != null) {
 
-        println(scene)
+        logger.info(scene)
 
         val materials = scene.mMaterials()!!
         for (i in 0 until scene.mNumMaterials()) {
@@ -44,22 +57,20 @@ fun main() {
             createMeshComponent(mesh)
         }
 
-        println("${scene.mNumMaterials()} materials + ${scene.mNumMeshes()} meshes")
+        logger.info("${scene.mNumMaterials()} materials + ${scene.mNumMeshes()} meshes")
 
-    } else println("failed to load scene")
+    } else logger.info("failed to load scene")
 
 }
 
 fun createMeshComponent(mesh: AIMesh) {
-
     processBuffer(mesh.mVertices())
-
 }
 
 fun processBuffer(buffer: AIVector3D.Buffer): StaticBuffer {
 
-    // todo like Unity, only load stuff in software, if we need it?
-    // todo first load into GPU for rendering
+    // like Unity, only load stuff in software, if we need it?
+    // first load into GPU for rendering
 
     val buffer2 = StaticBuffer(
         listOf(
@@ -67,7 +78,7 @@ fun processBuffer(buffer: AIVector3D.Buffer): StaticBuffer {
         ), buffer.remaining()
     )
     buffer2.buffer = glGenBuffers()
-    glBindBuffer(GL_ARRAY_BUFFER, buffer2.buffer)
+    bindBuffer(GL_ARRAY_BUFFER, buffer2.buffer)
     nglBufferData(// very efficient upload
         GL_ARRAY_BUFFER, AIVector3D.SIZEOF * buffer.remaining().toLong(),
         buffer.address(), GL_STATIC_DRAW
@@ -78,6 +89,8 @@ fun processBuffer(buffer: AIVector3D.Buffer): StaticBuffer {
 }
 
 fun processMaterial(material: AIMaterial) {
+
+    val logger = LogManager.getLogger("AssimpTest/Material")
 
     val color = AIColor4D.create()
     val path = AIString.calloc()
@@ -97,20 +110,20 @@ fun processMaterial(material: AIMaterial) {
     val path2 = path.dataString() ?: null
     if (path2 != null && path2.isNotEmpty()) {
         // we have a path :)
-        println("texture path: $path2")
+        logger.info("texture path: $path2")
     }
 
     val ambient = Vector4f()
     val result = aiGetMaterialColor(material, AI_MATKEY_COLOR_AMBIENT, aiTextureType_NONE, 0, color)
     if (result == 0) {
         ambient.set(result.r() / 255f, result.g() / 255f, result.b() / 255f, result.a() / 255f)
-        println("ambient: ${ambient.print()}")
+        logger.info("ambient: ${ambient.print()}")
     }
 
     val diffuse = Vector4f()
     if (aiGetMaterialColor(material, AI_MATKEY_COLOR_DIFFUSE, aiTextureType_NONE, 0, color) != 0) {
         diffuse.set(result.r() / 255f, result.g() / 255f, result.b() / 255f, result.a() / 255f)
-        println("diffuse: ${diffuse.print()}")
+        logger.info("diffuse: ${diffuse.print()}")
     }
 
     // ...

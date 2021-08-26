@@ -2,7 +2,7 @@ package me.anno.ui.editor.color
 
 import me.anno.language.translation.NameDesc
 import me.anno.ui.editor.color.ColorChooser.Companion.CircleBarRatio
-import me.anno.utils.Maths.GoldenRatio
+import me.anno.utils.maths.Maths.GoldenRatio
 
 enum class ColorVisualisation(
     val naming: NameDesc,

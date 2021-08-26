@@ -274,7 +274,7 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
                 val temp = FBStack["mask-bokeh", w, h, 4, true, 1]
 
                 val src0 = masked
-                src0.bindTexture0(0, src0.textures[0].filtering, src0.textures[0].clamping)
+                src0.bindTexture0(0, src0.textures[0].filtering, src0.textures[0].clamping!!)
                 val srcBuffer = src0.msBuffer ?: src0
                 BokehBlur.draw(srcBuffer.textures[0], temp, pixelSize)
 

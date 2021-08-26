@@ -200,6 +200,8 @@ object RemsCLI {
     }
 
     fun initGFX() {
+        // good size? mmh...
+        HiddenOpenGLContext.setSize(2048, 2048)
         HiddenOpenGLContext.createOpenGL()
         TextureLib.init()
         ShaderLib.init()
@@ -213,7 +215,7 @@ object RemsCLI {
     }
 
     fun ask(question: String, default: Boolean): Boolean {
-        println("[Q] $question (y/n)")
+        LOGGER.info("[Q] $question (y/n)")
         val br = System.`in`.bufferedReader()
         while (true) {
             val line = br.readLine() ?: return default

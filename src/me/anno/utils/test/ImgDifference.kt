@@ -4,7 +4,7 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
-import me.anno.utils.Maths
+import me.anno.utils.maths.Maths
 import me.anno.utils.OS
 import me.anno.utils.image.ImageWriter
 import javax.imageio.ImageIO

@@ -40,7 +40,7 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
-import me.anno.utils.Maths
+import me.anno.utils.maths.Maths
 import me.anno.utils.strings.StringHelper
 import me.anno.utils.strings.StringHelper.titlecase
 import me.anno.utils.structures.tuples.MutablePair
@@ -655,62 +655,81 @@ object ComponentUI {
             // is ISaveable -> { list all child properties }
             else -> {
 
-                if ('<' in type0) {
-                    val index0 = type0.indexOf('<')
-                    val index1 = type0.lastIndexOf('>')
-                    val mainType = type0.substring(0, index0).trim()
-                    val generics = type0.substring(index0 + 1, index1).trim()
-                    when (mainType) {
-                        "Array" -> {
-                            value as Array<*>
-                            return object : AnyArrayPanel(title, visibilityKey, generics, style) {
-                                override fun onChange() {
-                                    property.set(this, content.toTypedArray())
+                when {
+                    '<' in type0 -> {
+                        val index0 = type0.indexOf('<')
+                        val index1 = type0.lastIndexOf('>')
+                        val mainType = type0.substring(0, index0).trim()
+                        val generics = type0.substring(index0 + 1, index1).trim()
+                        when (mainType) {
+                            "Array" -> {
+                                value as Array<*>
+                                return object : AnyArrayPanel(title, visibilityKey, generics, style) {
+                                    override fun onChange() {
+                                        property.set(this, content.toTypedArray())
+                                    }
+                                }.apply {
+                                    property.init(this)
+                                    setValues(value.toList())
                                 }
-                            }.apply {
-                                property.init(this)
-                                setValues(value.toList())
+                            }
+                            "List" -> {
+                                value as List<*>
+                                return object : AnyArrayPanel(title, visibilityKey, generics, style) {
+                                    override fun onChange() {
+                                        property.set(this, content)
+                                    }
+                                }.apply {
+                                    property.init(this)
+                                    setValues(value.toList())
+                                }
+                            }
+                            "Set" -> {
+                                value as Set<*>
+                                return object : AnyArrayPanel(title, visibilityKey, generics, style) {
+                                    override fun onChange() {
+                                        property.set(this, content.toHashSet())
+                                    }
+                                }.apply {
+                                    property.init(this)
+                                    setValues(value.toList())
+                                }
+                            }
+                            "Map" -> {
+                                val (genericKey, genericValue) = generics.split(',')
+                                // types must not be generic themselves for this to work... we should fix that...
+                                value as Map<*, *>
+                                return object : AnyMapPanel(title, visibilityKey, genericKey, genericValue, style) {
+                                    override fun onChange() {
+                                        property.set(this, content.associate { it.first to it.second }.toMutableMap())
+                                    }
+                                }.apply {
+                                    property.init(this)
+                                    setValues(value.map { MutablePair(it.key, it.value) })
+                                }
+                            }
+                            // todo pair and triple
+                            // other generic types? stacks, queues, ...
+                            else -> {
+                                LOGGER.warn("Unknown generic type: $mainType<$generics>")
                             }
                         }
-                        "List" -> {
-                            value as List<*>
-                            return object : AnyArrayPanel(title, visibilityKey, generics, style) {
-                                override fun onChange() {
-                                    property.set(this, content)
-                                }
-                            }.apply {
-                                property.init(this)
-                                setValues(value.toList())
+                    }
+                    type0.endsWith("/Reference", true) -> {
+                        val type1 = type0.substring(0, type0.lastIndexOf('/'))
+                        // todo filter the types
+                        // todo index all files of this type in the current project (plus customizable extra directories)
+                        // todo and show them here, with their nice icons
+                        value as FileReference
+                        return FileInput(title, style, value).apply {
+                            property.init(this)
+                            setResetListener {
+                                property.reset(this) as? FileReference
+                                    ?: InvalidRef
                             }
-                        }
-                        "Set" -> {
-                            value as Set<*>
-                            return object : AnyArrayPanel(title, visibilityKey, generics, style) {
-                                override fun onChange() {
-                                    property.set(this, content.toHashSet())
-                                }
-                            }.apply {
-                                property.init(this)
-                                setValues(value.toList())
+                            setChangeListener {
+                                property.set(this, it)
                             }
-                        }
-                        "Map" -> {
-                            val (genericKey, genericValue) = generics.split(',')
-                            // types must not be generic themselves for this to work... we should fix that...
-                            value as Map<*, *>
-                            return object : AnyMapPanel(title, visibilityKey, genericKey, genericValue, style) {
-                                override fun onChange() {
-                                    property.set(this, content.associate { it.first to it.second }.toMutableMap())
-                                }
-                            }.apply {
-                                property.init(this)
-                                setValues(value.map { MutablePair(it.key, it.value) })
-                            }
-                        }
-                        // todo pair and triple
-                        // other generic types? stacks, queues, ...
-                        else -> {
-                            LOGGER.warn("Unknown generic type: $mainType<$generics>")
                         }
                     }
                 }
@@ -718,7 +737,6 @@ object ComponentUI {
                 LOGGER.warn("Missing knowledge to edit $type0, $title")
 
                 return TextPanel("?? $title : ${value?.javaClass?.simpleName}", style)
-
             }
         }
 

@@ -17,7 +17,7 @@ import me.anno.io.files.FileReference
 import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.modes.LoopingState
-import me.anno.utils.Maths.clamp
+import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.video.AudioCreator.Companion.playbackSampleRate
 import me.anno.video.FFMPEGMetadata
@@ -123,7 +123,7 @@ object AudioFXCache : CacheSection("AudioFX") {
 
         var isDestroyed = 0L
         override fun destroy() {
-            // println("Destroying ${hashCode()} $key")
+            // LOGGER.info("Destroying ${hashCode()} $key")
             // printStackTrace()
             GFX.checkIsGFXThread()
             // todo why is it being destroyed twice????
@@ -424,7 +424,7 @@ object AudioFXCache : CacheSection("AudioFX") {
         return (index + fraction) * bufferSize.toDouble() / sampleRate
     }
 
-    fun printFloats(floats: FloatArray) {
+    /*fun printFloats(floats: FloatArray) {
         var str = "${floats.size}x ["
         if (floats.isNotEmpty()) {
             val first = floats.first()
@@ -434,8 +434,8 @@ object AudioFXCache : CacheSection("AudioFX") {
             str += "$firstIndex * $first, [${lastIndex - firstIndex}, avg: ${floats.average()}], ${floats.size - lastIndex} * $last"
         }
         str += "]"
-        println(str)
-    }
+        logger.info(str)
+    }*/
 
     private const val timeout = 20_000L // audio needs few memory, so we can keep all recent audio
     private val LOGGER = LogManager.getLogger(AudioFXCache::class)

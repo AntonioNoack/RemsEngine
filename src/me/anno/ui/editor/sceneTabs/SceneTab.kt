@@ -23,8 +23,8 @@ import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.ui.editor.sceneTabs.SceneTabs.currentTab
 import me.anno.ui.editor.sceneTabs.SceneTabs.open
 import me.anno.ui.editor.sceneView.SceneTabData
-import me.anno.utils.Maths.mixARGB
-import me.anno.utils.Threads.threadWithName
+import me.anno.utils.maths.Maths.mixARGB
+import me.anno.utils.hpc.Threads.threadWithName
 import org.apache.logging.log4j.LogManager
 
 class SceneTab(var file: FileReference?, var root: Transform, history: History?) : TextPanel("", DefaultConfig.style) {

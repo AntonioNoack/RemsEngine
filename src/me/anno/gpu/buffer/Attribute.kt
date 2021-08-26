@@ -9,8 +9,26 @@ class Attribute(val name: String, val type: AttributeType, val components: Int, 
     val glslType get() = types[if (isNativeInt) 4 + components else components]
     val byteSize = components * type.byteSize
     var offset = 0L
+    var stride = 0
 
     fun withName(name: String) = Attribute(name, type, components, isNativeInt)
+
+    override fun equals(other: Any?): Boolean {
+        return other is Attribute && other.name == name &&
+                other.type == type && other.components == components &&
+                other.isNativeInt == isNativeInt &&
+                other.offset == offset
+    }
+
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + type.hashCode()
+        result = 31 * result + components
+        result = 31 * result + isNativeInt.hashCode()
+        result = 31 * result + byteSize
+        result = 31 * result + offset.hashCode()
+        return result
+    }
 
     companion object {
 

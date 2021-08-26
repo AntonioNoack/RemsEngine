@@ -3,8 +3,8 @@ package me.anno.ecs.components.anim
 import me.anno.ecs.Entity
 import me.anno.io.base.BaseWriter
 import me.anno.mesh.assimp.AnimationFrame
-import me.anno.utils.Maths.fract
-import me.anno.utils.Maths.min
+import me.anno.utils.maths.Maths.fract
+import me.anno.utils.maths.Maths.min
 import org.joml.Matrix4f
 import org.joml.Matrix4x3f
 

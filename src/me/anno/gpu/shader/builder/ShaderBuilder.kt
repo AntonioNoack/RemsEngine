@@ -5,6 +5,7 @@ import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.GeoShader
 import me.anno.gpu.shader.Shader
+import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 
 class ShaderBuilder(val name: String) {
@@ -43,15 +44,18 @@ class ShaderBuilder(val name: String) {
         val vi = vertex.findImportsAndDefineValues(null, null)
         fragment.findImportsAndDefineValues(vertex, vi)
         // create the code
-        val vertCode = vertex.createCode(false, outputs)
-        val fragCode = fragment.createCode(true, outputs)
-        val shader = Shader(name, geometry?.code, vertCode, "", fragCode)
+        val (vertCode, var0) = vertex.createCode(false, outputs)
+        val (fragCode, _) = fragment.createCode(true, outputs)
+        val shader = Shader(name, geometry?.code, vertCode, var0, fragCode)
         shader.glslVersion = max(330, max(glslVersion, shader.glslVersion))
         return shader
     }
 
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(ShaderBuilder::class)
+
         @JvmStatic
         fun main(args: Array<String>) {
             val sett = DeferredSettingsV2(listOf(DeferredLayerType.POSITION, DeferredLayerType.COLOR), false)
@@ -84,10 +88,10 @@ class ShaderBuilder(val name: String) {
             )
             HiddenOpenGLContext.createOpenGL()
             val shader = test.create()
-            println("// ---- vertex shader ----")
-            println(indent(shader.vertex))
-            println("// --- fragment shader ---")
-            println(indent(shader.fragment))
+            LOGGER.info("// ---- vertex shader ----")
+            LOGGER.info(indent(shader.vertex))
+            LOGGER.info("// --- fragment shader ---")
+            LOGGER.info(indent(shader.fragment))
             shader.use()
         }
 

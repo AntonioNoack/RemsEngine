@@ -12,7 +12,7 @@ import me.anno.animation.Type
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.clamp
+import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.types.Casting.castToFloat2
 import kotlin.math.abs
 

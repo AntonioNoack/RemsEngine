@@ -2,12 +2,15 @@ package me.anno.io
 
 import me.anno.Engine
 import me.anno.utils.types.Strings.isBlank2
+import org.apache.logging.log4j.LogManager
 import java.io.Closeable
 import java.io.IOException
 import java.io.InputStream
 import kotlin.concurrent.thread
 
 object CommandLineReader {
+
+    private val LOGGER = LogManager.getLogger(CommandLineReader::class)
 
     class TimeoutReader(val input: InputStream) : Closeable {
 
@@ -51,8 +54,8 @@ object CommandLineReader {
             while (true) {
                 val line = input.readLine() ?: break
                 // todo analyse the line content
-                if(line.isBlank2()) continue
-                println(line)
+                if (line.isBlank2()) continue
+                LOGGER.info(line)
             }
         }
     }

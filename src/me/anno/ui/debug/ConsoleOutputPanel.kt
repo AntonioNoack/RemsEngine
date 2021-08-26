@@ -12,7 +12,7 @@ import me.anno.ui.base.text.SimpleTextPanel
 import me.anno.ui.debug.console.COLine
 import me.anno.ui.debug.console.ConsoleLogFullscreen
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.mixARGB
+import me.anno.utils.maths.Maths.mixARGB
 import kotlin.math.min
 
 // todo second console output panel, which has the default font?

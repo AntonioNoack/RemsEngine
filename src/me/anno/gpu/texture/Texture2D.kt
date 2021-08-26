@@ -2,16 +2,17 @@ package me.anno.gpu.texture
 
 import me.anno.cache.data.ICacheData
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.glThread
 import me.anno.gpu.GFX.isGFXThread
 import me.anno.gpu.GFX.loadTexturesSync
+import me.anno.gpu.buffer.Buffer.Companion.bindBuffer
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.image.Image
 import me.anno.objects.modes.RotateJPEG
-import me.anno.utils.Threads.threadWithName
+import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.pooling.ByteArrayPool
 import me.anno.utils.pooling.ByteBufferPool
+import me.anno.utils.pooling.IntArrayPool
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
@@ -20,7 +21,6 @@ import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL32.GL_TEXTURE_2D_MULTISAMPLE
 import org.lwjgl.opengl.GL32.glTexImage2DMultisample
 import java.awt.image.BufferedImage
-import java.awt.image.DataBufferByte
 import java.awt.image.DataBufferInt
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -34,8 +34,8 @@ open class Texture2D(
     val samples: Int
 ) : ICacheData, ITexture2D {
 
-    constructor(img: BufferedImage) : this("img", img.width, img.height, 1) {
-        create(img, true)
+    constructor(img: BufferedImage, checkRedundancy: Boolean) : this("img", img.width, img.height, 1) {
+        create(img, true, checkRedundancy)
         filtering(GPUFiltering.NEAREST)
     }
 
@@ -52,7 +52,7 @@ open class Texture2D(
     var isDestroyed = false
 
     var filtering = GPUFiltering.TRULY_NEAREST
-    var clamping = Clamping.CLAMP
+    var clamping: Clamping? = null
 
     // only used for images with exif rotation tag...
     var rotation: RotateJPEG? = null
@@ -81,7 +81,25 @@ open class Texture2D(
 
     // todo is BGRA really faster than RGBA? we should try that and maybe use it...
 
-    fun texImage2D(w: Int, h: Int, type: TargetType, data: ByteBuffer?) {
+    fun texImage2D(type0: Int, type1: Int, fillType: Int, data: ByteBuffer?) {
+        val w = w
+        val h = h
+        unpackAlignment(w)
+        if (createdW == w && createdH == h) {
+            if (data == null) return
+            glTexSubImage2D(tex2D, 0, 0, 0, w, h, type1, fillType, data)
+        } else {
+            glTexImage2D(tex2D, 0, type0, w, h, 0, type1, fillType, data)
+            createdW = w
+            createdH = h
+        }
+    }
+
+    fun texImage2D(type: TargetType, data: ByteBuffer?) {
+        val w = w
+        val h = h
+        bindBuffer(GL_PIXEL_UNPACK_BUFFER, 0)
+        unpackAlignment(w)
         if (createdW == w && createdH == h) {
             if (data == null) return
             glTexSubImage2D(tex2D, 0, 0, 0, w, h, type.type1, type.fillType, data)
@@ -96,7 +114,7 @@ open class Texture2D(
         beforeUpload(0, 0)
         if (withMultisampling) {
             glTexImage2DMultisample(tex2D, samples, GL_RGBA8, w, h, false)
-        } else texImage2D(w, h, TargetType.UByteTarget4, null)
+        } else texImage2D(TargetType.UByteTarget4, null)
         afterUpload(4 * samples)
     }
 
@@ -104,7 +122,7 @@ open class Texture2D(
         beforeUpload(0, 0)
         if (withMultisampling) {
             glTexImage2DMultisample(tex2D, samples, type.type0, w, h, false)
-        } else texImage2D(w, h, type, null)
+        } else texImage2D(type, null)
         afterUpload(type.bytesPerPixel)
     }
 
@@ -112,103 +130,135 @@ open class Texture2D(
         beforeUpload(0, 0)
         if (withMultisampling) {
             glTexImage2DMultisample(tex2D, samples, GL_RGBA32F, w, h, false)
-        } else texImage2D(w, h, TargetType.FloatTarget4, null)
+        } else texImage2D(TargetType.FloatTarget4, null)
         afterUpload(4 * 4 * samples)
     }
 
-    fun create(name: String, createImage: () -> BufferedImage, forceSync: Boolean) {
+    /**
+     * force sync should be always enabled, when the image is directly available
+     * */
+    fun create2(name: String, createImage: () -> BufferedImage, forceSync: Boolean, checkRedundancy: Boolean) {
         if (isDestroyed) throw RuntimeException("Texture $name must be reset first")
         val requiredBudget = textureBudgetUsed + w * h
-        if ((requiredBudget > textureBudgetTotal && !loadTexturesSync.peek()) || Thread.currentThread() != glThread) {
+        if ((requiredBudget > textureBudgetTotal && !loadTexturesSync.peek()) || !isGFXThread()) {
             if (forceSync) {
                 GFX.addGPUTask(1000) {
-                    create(createImage(), true)
+                    create(createImage(), true, checkRedundancy)
                 }
             } else {
                 threadWithName("Create Image") {
-                    create(createImage(), false)
+                    create(createImage(), false, checkRedundancy)
                 }
             }
         } else {
             textureBudgetUsed += requiredBudget
-            create(createImage(), true)
+            create(createImage(), true, checkRedundancy)
         }
     }
 
-    fun create(img: BufferedImage, sync: Boolean) {
-        w = img.width
-        h = img.height
-        isCreated = false
-        val black = black
-        val hasAlpha = img.colorModel.hasAlpha()
-        val intData = when (val buffer = img.raster.dataBuffer) {
-            is DataBufferByte -> {
-                try {
-                    val buffer2 = getBuffer(buffer.data)
-                    // ensure it's opaque
-                    if (!hasAlpha) {
-                        for (i in 0 until w * h) buffer2.put(i * 4 + 3, -1)
-                    }
-                    if (sync) uploadData(buffer2)
-                    else GFX.addGPUTask(w, h) {
-                        uploadData(buffer2)
-                    }
-                    return
-                } catch (e: Exception) {
-                    img.getRGB(0, 0, w, h, null, 0, w)
-                }
-            }
-            is DataBufferInt -> buffer.data
-            else -> {// said to be slow; I indeed had lags in HomeDesigner
-                img.getRGB(0, 0, w, h, null, 0, w)
-            }
-        }
-        if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
-            if (hasAlpha) {
-                for (i in intData.indices) {// argb -> abgr
-                    val argb = intData[i]
-                    val r = (argb and 0xff0000).shr(16)
-                    val b = (argb and 0xff).shl(16)
-                    val ag = argb and 0xff00ff00.toInt()
-                    intData[i] = ag or r or b
-                }
-            } else {
-                for (i in intData.indices) {// argb -> abgr
-                    val argb = intData[i]
-                    val r = (argb and 0xff0000).shr(16)
-                    val b = (argb and 0xff).shl(16)
-                    val g = argb and 0xff00
-                    intData[i] = black or g or r or b
-                }
+    fun create(name: String, image: Image, checkRedundancy: Boolean) {
+        w = image.width
+        h = image.height
+        if (isDestroyed) throw RuntimeException("Texture $name must be reset first")
+        val requiredBudget = textureBudgetUsed + w * h
+        if ((requiredBudget > textureBudgetTotal && !loadTexturesSync.peek()) || !isGFXThread()) {
+            GFX.addGPUTask(1000) {
+                image.createTexture(this, checkRedundancy)
             }
         } else {
-            if (hasAlpha) {
-                for (i in intData.indices) {// argb -> rgba
-                    val argb = intData[i]
-                    val a = argb.shr(24) and 255
-                    val rgb = argb.and(0xffffff) shl 8
-                    intData[i] = rgb or a
-                }
-            } else {
-                for (i in intData.indices) {// argb -> rgba
-                    val argb = intData[i]
-                    val rgb = argb.and(0xffffff) shl 8
-                    intData[i] = rgb or 0xff
-                }
-            }
-        }
-        if (sync && Thread.currentThread() == glThread) {
-            uploadData(intData)
-        } else GFX.addGPUTask(w, h) {
-            uploadData(intData)
+            textureBudgetUsed += requiredBudget
+            image.createTexture(this, checkRedundancy)
         }
     }
 
-    fun getBuffer(bytes: ByteArray): ByteBuffer {
+    fun setSize1x1() {
+        w = 1
+        h = 1
+    }
+
+    fun create(image: Image, sync: Boolean, checkRedundancy: Boolean) {
+        if (sync && isGFXThread()) {
+            image.createTexture(this, checkRedundancy)
+        } else GFX.addGPUTask(w, h) {
+            image.createTexture(this, checkRedundancy)
+        }
+    }
+
+    fun create(image: BufferedImage, sync: Boolean, checkRedundancy: Boolean) {
+
+        w = image.width
+        h = image.height
+        isCreated = false
+
+        // todo use the type to correctly create the image
+        val buffer = image.data.dataBuffer
+        when (image.type) {
+            BufferedImage.TYPE_INT_ARGB -> {
+                buffer as DataBufferInt
+                val data = buffer.data
+                if (sync && isGFXThread()) {
+                    createRGBA(data, checkRedundancy)
+                } else GFX.addGPUTask(w, h) {
+                    createRGBA(data, checkRedundancy)
+                }
+            }
+            BufferedImage.TYPE_INT_RGB -> {
+                buffer as DataBufferInt
+                val data = buffer.data
+                if (sync && isGFXThread()) {
+                    createRGBSwizzle(data, checkRedundancy)
+                } else GFX.addGPUTask(w, h) {
+                    createRGBSwizzle(data, checkRedundancy)
+                }
+            }
+            BufferedImage.TYPE_INT_BGR -> {
+                buffer as DataBufferInt
+                val data = buffer.data
+                for (i in data.indices) {
+                    val c = data[i]
+                    data[i] = c.shr(16) or
+                            c.shl(16) or
+                            c.and(0x00ff00)
+                }
+                if (sync && isGFXThread()) {
+                    createRGBSwizzle(data, checkRedundancy)
+                } else GFX.addGPUTask(w, h) {
+                    createRGBSwizzle(data, checkRedundancy)
+                }
+            }
+            else -> createRGBA(image, sync, checkRedundancy)
+        }
+    }
+
+    private fun createRGBA(img: BufferedImage, sync: Boolean, checkRedundancy: Boolean) {
+        val intData = img.getRGB(0, 0, w, h, intArrayPool[w * h, false], 0, w)
+        val hasAlpha = img.hasAlphaChannel()
+        if (!hasAlpha) {
+            // ensure opacity
+            if (sync && isGFXThread()) {
+                createRGBSwizzle(intData, checkRedundancy)
+                intArrayPool.returnBuffer(intData)
+            } else GFX.addGPUTask(w, h) {
+                createRGBSwizzle(intData, checkRedundancy)
+                intArrayPool.returnBuffer(intData)
+            }
+        } else {
+            if (sync && isGFXThread()) {
+                createRGBA(intData, checkRedundancy)
+                intArrayPool.returnBuffer(intData)
+            } else GFX.addGPUTask(w, h) {
+                createRGBA(intData, checkRedundancy)
+                intArrayPool.returnBuffer(intData)
+            }
+        }
+    }
+
+    fun getBuffer(bytes: ByteArray, ensureOpaque: Boolean): ByteBuffer {
         val buffer = byteBufferPool[w * h * 4, false]
-        when (bytes.size / (w * h)) {
-            1 -> {
-                for (i in 0 until w * h) {
+        val wh = w * h
+        when (bytes.size) {
+            wh -> {
+                for (i in 0 until wh) {
                     val c = bytes[i]
                     buffer.put(c)
                     buffer.put(c)
@@ -216,50 +266,41 @@ open class Texture2D(
                     buffer.put(-1)
                 }
             }
-            3 -> {
-                if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
-                    for (i in 0 until w * h) {
-                        buffer.put(bytes[i * 3 + 2])
-                        buffer.put(bytes[i * 3 + 1])
-                        buffer.put(bytes[i * 3])
+            wh * 3 -> {
+                for (i in 0 until wh) {
+                    buffer.put(bytes[i * 3 + 2])
+                    buffer.put(bytes[i * 3 + 1])
+                    buffer.put(bytes[i * 3])
+                    buffer.put(-1)
+                }
+            }
+            wh * 4 -> {
+                if (ensureOpaque) {
+                    for (i in 0 until wh) {
+                        buffer.put(bytes[i * 4 + 3])
+                        buffer.put(bytes[i * 4 + 2])
+                        buffer.put(bytes[i * 4 + 1])
                         buffer.put(-1)
                     }
                 } else {
-                    for (i in 0 until w * h) {
-                        buffer.put(bytes[i * 3])
-                        buffer.put(bytes[i * 3 + 1])
-                        buffer.put(bytes[i * 3 + 2])
-                        buffer.put(-1)
-                    }
-                }
-            }
-            4 -> {
-                if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
-                    for (i in 0 until w * h) {
+                    for (i in 0 until wh) {
                         buffer.put(bytes[i * 4 + 3])
                         buffer.put(bytes[i * 4 + 2])
                         buffer.put(bytes[i * 4 + 1])
                         buffer.put(bytes[i * 4])
                     }
-                } else {
-                    for (i in 0 until w * h) {
-                        buffer.put(bytes[i * 4 + 3])
-                        buffer.put(bytes[i * 4])
-                        buffer.put(bytes[i * 4 + 1])
-                        buffer.put(bytes[i * 4 + 2])
-                    }
                 }
             }
-            else -> throw RuntimeException("Not matching sizes! ${w * h} vs ${bytes.size}")
+            else -> throw RuntimeException("Not matching sizes! $wh vs ${bytes.size}")
         }
         buffer.position(0)
         return buffer
     }
 
-    fun uploadData(buffer: ByteBuffer) {
+    fun createRGBA(buffer: ByteBuffer) {
         beforeUpload(4, buffer.remaining())
         val t0 = System.nanoTime()
-        texImage2D(w, h, TargetType.UByteTarget4, buffer)
+        texImage2D(TargetType.UByteTarget4, buffer)
         // glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
         byteBufferPool.returnBuffer(buffer)
         val t1 = System.nanoTime() // 0.02s for a single 4k texture
@@ -273,7 +314,7 @@ open class Texture2D(
         val pbo = GL15.glGenBuffers()
         val type = GL21.GL_PIXEL_UNPACK_BUFFER
 
-        GL15.glBindBuffer(type, pbo)
+        bindBuffer(type, pbo)
         GL15.glBufferData(type, w * h * 4L, GL_STREAM_DRAW)
         val mappedBuffer = GL15.glMapBuffer(type, GL15.GL_WRITE_ONLY)!!
 
@@ -284,7 +325,7 @@ open class Texture2D(
         mappedBuffer.position(startPosition)
 
         //GFX.addGPUTask(1) {
-        GL15.glBindBuffer(type, pbo)
+        bindBuffer(type, pbo)
         if (!GL15.glUnmapBuffer(type)) {
             LOGGER.warn("Unmap failed!")
         }
@@ -296,22 +337,6 @@ open class Texture2D(
         GFX.check()
 
     }*/
-
-    fun toByteBuffer(ints: IntArray): ByteBuffer {
-        val buffer = byteBufferPool[ints.size * 4, false]
-        for (i in ints) buffer.putInt(i)
-        buffer.position(0)
-        return buffer
-    }
-
-    fun uploadData(ints: IntArray) {
-        // if(h > 20) println("using ints: $w $h ${ints.size}")
-        beforeUpload(1, ints.size)
-        locallyAllocated = allocate(locallyAllocated, w * h * 4L)
-        glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, ints)
-        //uploadData2(toByteBuffer(ints)) { GFX.check() }
-        afterUpload(4)
-    }
 
     private fun beforeUpload(channels: Int, size: Int) {
         if (isDestroyed) throw RuntimeException("Texture is already destroyed, call reset() if you want to stream it")
@@ -325,101 +350,318 @@ open class Texture2D(
         locallyAllocated = allocate(locallyAllocated, w * h * bytesPerPixel.toLong())
         isCreated = true
         filtering(filtering)
-        clamping(clamping)
+        clamping(clamping ?: Clamping.REPEAT)
         GFX.check()
         if (isDestroyed) destroy()
     }
 
-    fun createRGBA(ints: IntBuffer) {
+    private fun checkRedundancy(data: IntArray): IntArray {
+        if (w * h <= 1) return data
+        val c0 = data[0]
+        for (i in 1 until w * h) {
+            if (c0 != data[i]) return data
+        }
+        setSize1x1()
+        return intArrayOf(c0)
+    }
+
+    private fun checkRedundancy(data: IntBuffer) {
+        if (w * h <= 1) return
+        val c0 = data[0]
+        for (i in 1 until w * h) {
+            if (c0 != data[i]) return
+        }
+        setSize1x1()
+        data.limit(1)
+    }
+
+    private fun checkRedundancyMonochrome(data: ByteBuffer) {
+        if (w * h <= 1) return
+        val c0 = data[0]
+        for (i in 1 until w * h) {
+            if (c0 != data[i]) return
+        }
+        setSize1x1()
+        data.limit(1)
+    }
+
+    private fun checkRedundancyMonochrome(data: FloatBuffer) {
+        val c0 = data[0]
+        for (i in 1 until w * h) {
+            if (c0 != data[i]) return
+        }
+        setSize1x1()
+        data.limit(1)
+    }
+
+    private fun checkRedundancyMonochrome(data: ByteArray): ByteArray {
+        val c0 = data[0]
+        for (i in 1 until w * h) {
+            if (c0 != data[i]) return data
+        }
+        setSize1x1()
+        return byteArrayOf(c0)
+    }
+
+    private fun checkRedundancy(data: FloatArray): FloatArray {
+        val c0 = data[0]
+        val c1 = data[1]
+        val c2 = data[2]
+        val c3 = data[3]
+        for (i in 4 until w * h * 4 step 4) {
+            if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2] || c3 != data[i + 3]) return data
+        }
+        setSize1x1()
+        return floatArrayOf(c0, c1, c2, c3)
+    }
+
+    private fun checkRedundancy(data: FloatBuffer) {
+        val c0 = data[0]
+        val c1 = data[1]
+        val c2 = data[2]
+        val c3 = data[3]
+        for (i in 4 until w * h * 4 step 4) {
+            if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2] || c3 != data[i + 3]) return
+        }
+        setSize1x1()
+        data.limit(4)
+    }
+
+    private fun checkRedundancy(data: ByteArray): ByteArray {
+        val c0 = data[0]
+        val c1 = data[1]
+        val c2 = data[2]
+        val c3 = data[3]
+        for (i in 4 until w * h * 4 step 4) {
+            if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2] || c3 != data[i + 3]) return data
+        }
+        setSize1x1()
+        return byteArrayOf(c0, c1, c2, c3)
+    }
+
+    private fun checkRedundancyRG(data: ByteArray): ByteArray {
+        val c0 = data[0]
+        val c1 = data[1]
+        for (i in 2 until w * h * 2 step 2) {
+            if (c0 != data[i] || c1 != data[i + 1]) return data
+        }
+        setSize1x1()
+        return byteArrayOf(c0, c1)
+    }
+
+    private fun checkRedundancy(data: ByteBuffer, rgbOnly: Boolean) {
+        // when rgbOnly, check rgb only?
+        val c0 = data[0]
+        val c1 = data[1]
+        val c2 = data[2]
+        val c3 = data[3]
+        for (i in 4 until w * h * 4 step 4) {
+            if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2] || c3 != data[i + 3]) return
+        }
+        setSize1x1()
+        data.limit(4)
+    }
+
+    private fun checkRedundancyRG(data: ByteBuffer) {
+        // when rgbOnly, check rgb only?
+        val c0 = data[0]
+        val c1 = data[1]
+        for (i in 2 until w * h * 2 step 2) {
+            if (c0 != data[i] || c1 != data[i + 1]) return
+        }
+        setSize1x1()
+        data.limit(2)
+    }
+
+    fun createRGBA(ints: IntArray, checkRedundancy: Boolean) {
+        beforeUpload(1, ints.size)
+        val ints2 = if (checkRedundancy) checkRedundancy(ints) else ints
+        switchRGB2BGR(ints2)
+        unpackAlignment(4 * w)
+        // uses bgra instead of rgba to save the swizzle
+        // glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, ints2)
+        glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, ints2)
+        afterUpload(4)
+    }
+
+    /**
+     * Warning:
+     * changes the red and blue bytes; if that is not ok, create a copy of your array!
+     * */
+    fun createRGBSwizzle(ints: IntArray, checkRedundancy: Boolean) {
+        beforeUpload(1, ints.size)
+        val ints2 = if (checkRedundancy) checkRedundancy(ints) else ints
+        switchRGB2BGR(ints2)
+        // would work without swizzle, but I am not sure, that this is legal,
+        // because the number of channels from the input and internal format differ
+        // glTexImage2D(tex2D, 0, GL_RGB8, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, ints2)
+        unpackAlignment(4 * w)
+        glTexImage2D(tex2D, 0, GL_RGB8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, ints2)
+        afterUpload(3)
+    }
+
+    fun createRGB(floats: FloatArray, checkRedundancy: Boolean) {
+        beforeUpload(3, floats.size)
+        val floats2 = if (checkRedundancy) checkRedundancy(floats) else floats
+        unpackAlignment(12 * w)
+        glTexImage2D(tex2D, 0, GL_RGB32F, w, h, 0, GL_RGB, GL_FLOAT, floats2)
+        afterUpload(12)
+    }
+
+    fun createRGB(floats: FloatBuffer, checkRedundancy: Boolean) {
+        beforeUpload(3, floats.capacity())
+        if (checkRedundancy) checkRedundancy(floats)
+        unpackAlignment(12 * w)
+        glTexImage2D(tex2D, 0, GL_RGB32F, w, h, 0, GL_RGB, GL_FLOAT, floats)
+        afterUpload(12)
+    }
+
+    fun createRGB(data: ByteArray, checkRedundancy: Boolean) {
+        beforeUpload(3, data.size)
+        val data2 = if (checkRedundancy) checkRedundancy(data) else data
+        val buffer = byteBufferPool[data2.size, false]
+        buffer.put(data2).flip()
+        unpackAlignment(3 * w)
+        glTexImage2D(tex2D, 0, GL_RGB8, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer)
+        byteBufferPool.returnBuffer(buffer)
+        afterUpload(3)
+    }
+
+    fun createRGBA(ints: IntBuffer, checkRedundancy: Boolean) {
         beforeUpload(1, ints.remaining())
+        if (checkRedundancy) checkRedundancy(ints)
+        if (ints.order() != ByteOrder.nativeOrder()) throw RuntimeException("Byte order must be native!")
+        unpackAlignment(4 * w)
         glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, ints)
         afterUpload(4)
     }
 
-    fun createRGB(ints: IntBuffer) {
+    fun createRGB(ints: IntBuffer, checkRedundancy: Boolean) {
         beforeUpload(1, ints.remaining())
+        if (checkRedundancy) checkRedundancy(ints)
+        if (ints.order() != ByteOrder.nativeOrder()) throw RuntimeException("Byte order must be native!")
+        unpackAlignment(4 * w)
         glTexImage2D(tex2D, 0, GL_RGB8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, ints)
-        afterUpload(3)
+        afterUpload(4)
     }
 
-    fun createMonochrome(data: ByteBuffer) {
+    fun createMonochrome(data: ByteBuffer, checkRedundancy: Boolean) {
         beforeUpload(1, data.remaining())
-        texImage2D(w, h, TargetType.UByteTarget1, data)
-        // glTexImage2D(tex2D, 0, GL_RED, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, data)
+        if (checkRedundancy) checkRedundancyMonochrome(data)
+        texImage2D(TargetType.UByteTarget1, data)
         byteBufferPool.returnBuffer(data)
         afterUpload(1)
+    }
+
+    fun createRG(data: ByteArray, checkRedundancy: Boolean) {
+        beforeUpload(2, data.size)
+        val data2 = if (checkRedundancy) checkRedundancyRG(data) else data
+        val buffer = byteBufferPool[data.size, false]
+        buffer.put(data2).flip()
+        texImage2D(GL_RG, GL_RG, GL_UNSIGNED_BYTE, buffer)
+        byteBufferPool.returnBuffer(buffer)
+        afterUpload(2)
+    }
+
+    fun createRG(data: ByteBuffer, checkRedundancy: Boolean) {
+        beforeUpload(2, data.remaining())
+        if (checkRedundancy) checkRedundancyRG(data)
+        texImage2D(GL_RG, GL_RG, GL_UNSIGNED_BYTE, data)
+        byteBufferPool.returnBuffer(data)
+        afterUpload(2)
     }
 
     /**
      * creates a monochrome float32 image on the GPU
      * used by SDF
      * */
-    fun createMonochrome(data: FloatBuffer) {
+    fun createMonochrome(data: FloatBuffer, checkRedundancy: Boolean) {
         beforeUpload(1, data.remaining())
+        if (checkRedundancy) checkRedundancyMonochrome(data)
+        unpackAlignment(4 * w)
         glTexImage2D(tex2D, 0, GL_R32F, w, h, 0, GL_RED, GL_FLOAT, data)
         afterUpload(4)
     }
 
-    fun createMonochrome(data: ByteArray) {
+    fun createBGR(data: ByteArray, checkRedundancy: Boolean) {
+        beforeUpload(3, data.size)
+        val data2 = if (checkRedundancy) checkRedundancyMonochrome(data) else data
+        val byteBuffer = byteBufferPool[data2.size, false]
+        byteBuffer.put(data2).flip()
+        texImage2D(GL_RGBA8, GL_BGR, GL_UNSIGNED_BYTE, byteBuffer)
+        byteBufferPool.returnBuffer(byteBuffer)
+        afterUpload(3)
+    }
+
+    fun createMonochrome(data: ByteArray, checkRedundancy: Boolean) {
         beforeUpload(1, data.size)
-        val byteBuffer = byteBufferPool[data.size, false]
-        byteBuffer.position(0)
-        byteBuffer.put(data)
-        byteBuffer.position(0)
-        texImage2D(w, h, TargetType.UByteTarget1, byteBuffer)
+        val data2 = if (checkRedundancy) checkRedundancyMonochrome(data) else data
+        val byteBuffer = byteBufferPool[data2.size, false]
+        byteBuffer.put(data2).flip()
+        texImage2D(TargetType.UByteTarget1, byteBuffer)
         // glTexImage2D(tex2D, 0, GL_RED, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, byteBuffer)
         byteBufferPool.returnBuffer(byteBuffer)
         afterUpload(1)
     }
 
-    fun create(data: FloatArray) {
-        checkSize(4, data.size)
-        val byteBuffer = byteBufferPool[data.size * 4, false]
-            .order(ByteOrder.nativeOrder())
-        byteBuffer.position(0)
-        val floatBuffer = byteBuffer.asFloatBuffer()
-        floatBuffer.put(data)
-        floatBuffer.position(0)
-        createFloat(byteBuffer)
-    }
+    fun createRGBA(data: FloatArray, checkRedundancy: Boolean) {
 
-    fun createFloat(byteBuffer: ByteBuffer?) {
+        checkSize(4, data.size)
+        val data2 = if (checkRedundancy && w * h > 1) checkRedundancy(data) else data
+
+        val byteBuffer = byteBufferPool[data2.size * 4, false]
+
+        val floatBuffer = byteBuffer.asFloatBuffer()
+        floatBuffer.put(data2).flip()
+
         ensurePointer()
         bindBeforeUpload()
         GFX.check()
         // rgba32f as internal format is extremely important... otherwise the value is cropped
-        locallyAllocated = allocate(locallyAllocated, w * h * 4L)
-        texImage2D(w, h, TargetType.FloatTarget4, byteBuffer)
+        texImage2D(TargetType.FloatTarget4, byteBuffer)
         // glTexImage2D(tex2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, buffer)
         byteBufferPool.returnBuffer(byteBuffer)
-        isCreated = true
-        filtering(filtering)
-        GFX.check()
+        afterUpload(16)
+
     }
 
-    fun createRGBA(data: ByteArray) {
+    fun createBGRA(data: ByteArray, checkRedundancy: Boolean) {
         checkSize(4, data.size)
-        val byteBuffer = byteBufferPool[data.size, false]
-        byteBuffer.position(0)
-        byteBuffer.put(data)
-        byteBuffer.position(0)
-        createRGBA(byteBuffer)
+        val data2 = if (checkRedundancy) checkRedundancy(data) else data
+        val buffer = byteBufferPool[data2.size, false]
+        buffer.put(data2).flip()
+        beforeUpload(4, buffer.remaining())
+        if (checkRedundancy) checkRedundancy(buffer, false)
+        texImage2D(GL_RGBA, GL_BGRA, GL_UNSIGNED_BYTE, buffer)
+        byteBufferPool.returnBuffer(buffer)
+        afterUpload(4)
     }
 
-    fun createRGBA(buffer: ByteBuffer) {
+    fun createRGBA(data: ByteArray, checkRedundancy: Boolean) {
+        checkSize(4, data.size)
+        val data2 = if (checkRedundancy) checkRedundancy(data) else data
+        val buffer = byteBufferPool[data2.size, false]
+        buffer.put(data2).flip()
+        createRGBA(buffer, false)
+    }
+
+    fun createRGBA(buffer: ByteBuffer, checkRedundancy: Boolean) {
         beforeUpload(4, buffer.remaining())
-        texImage2D(w, h, TargetType.UByteTarget4, buffer)
+        if (checkRedundancy) checkRedundancy(buffer, false)
+        texImage2D(TargetType.UByteTarget4, buffer)
         // glTexImage2D(tex2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
         byteBufferPool.returnBuffer(buffer)
         afterUpload(4)
     }
 
-    fun createRGB(buffer: ByteBuffer) {
-        beforeUpload(4, buffer.remaining())
-        texImage2D(w, h, TargetType.UByteTarget3, buffer)
-        // glTexImage2D(tex2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
+    fun createRGB(buffer: ByteBuffer, checkRedundancy: Boolean) {
+        beforeUpload(3, buffer.remaining())
+        if (checkRedundancy) checkRedundancy(buffer, true)
+        // texImage2D(TargetType.UByteTarget3, buffer)
+        unpackAlignment(3 * w)
+        glTexImage2D(tex2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer)
         byteBufferPool.returnBuffer(buffer)
-        afterUpload(4)
+        afterUpload(3)
     }
 
     /**
@@ -432,7 +674,7 @@ open class Texture2D(
     }
 
     private fun clamping(clamping: Clamping) {
-        if (!withMultisampling) {
+        if (!withMultisampling && this.clamping != clamping) {
             this.clamping = clamping
             val type = clamping.mode
             glTexParameteri(tex2D, GL_TEXTURE_WRAP_S, type)
@@ -447,7 +689,7 @@ open class Texture2D(
             // they don't accept the command to be what they are either
             return
         }
-        if (!hasMipmap && nearest.needsMipmap) {
+        if (!hasMipmap && nearest.needsMipmap && (w > 1 || h > 1)) {
             glGenerateMipmap(tex2D)
             hasMipmap = true
             if (GFX.supportsAnisotropicFiltering) {
@@ -455,7 +697,8 @@ open class Texture2D(
                 glTexParameteri(tex2D, GL_TEXTURE_LOD_BIAS, 0)
                 glTexParameterf(tex2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy)
             }
-            glTexParameteri(tex2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
+            // is called afterwards anyways
+            // glTexParameteri(tex2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
         }
         glTexParameteri(tex2D, GL_TEXTURE_MIN_FILTER, nearest.min)
         glTexParameteri(tex2D, GL_TEXTURE_MAG_FILTER, nearest.mag)
@@ -478,15 +721,16 @@ open class Texture2D(
     }*/
 
     override fun bind(index: Int, nearest: GPUFiltering, clamping: Clamping): Boolean {
-        activeSlot(index)
         if (pointer > -1 && isCreated) {
+            if (isBoundToSlot(index)) return false
+            activeSlot(index)
             val result = bindTexture(tex2D, pointer)
             ensureFilterAndClamping(nearest, clamping)
             return result
         } else throw IllegalStateException("Cannot bind non-created texture!")
     }
 
-    fun bind(index: Int) = bind(index, filtering, clamping)
+    fun bind(index: Int) = bind(index, filtering, clamping ?: Clamping.REPEAT)
 
     override fun destroy() {
         isCreated = false
@@ -524,17 +768,25 @@ open class Texture2D(
     }
 
     private fun checkSize(channels: Int, size: Int) {
-        if (size < w * h * channels) throw IllegalArgumentException("Incorrect size, ${w * h * channels} vs ${size}!")
+        if (size < w * h * channels) throw IllegalArgumentException("Incorrect size, $w*$h*$channels vs ${size}!")
+        if (size > w * h * channels) LOGGER.warn("$size != $w*$h*$channels")
     }
 
     fun reset() {
         isDestroyed = false
     }
 
+    fun isBoundToSlot(slot: Int): Boolean {
+        return boundTextures[slot] == pointer
+    }
+
     companion object {
+
+        fun BufferedImage.hasAlphaChannel() = colorModel.hasAlpha()
 
         val byteBufferPool = ByteBufferPool(64, true)
         val byteArrayPool = ByteArrayPool(64, true)
+        val intArrayPool = IntArrayPool(64, true)
 
         var allocated = 0L
         fun allocate(oldValue: Long, newValue: Long): Long {
@@ -560,6 +812,9 @@ open class Texture2D(
             }
         }
 
+        /**
+         * bind the texture, the slot doesn't matter
+         * */
         fun bindTexture(mode: Int, pointer: Int): Boolean {
             if (pointer < 0) throw IllegalArgumentException("Pointer must be valid")
             return if (boundTextures[boundTextureSlot] != pointer) {
@@ -574,6 +829,8 @@ open class Texture2D(
         var textureBudgetUsed = 0
         val texturesToDelete = ArrayList<Int>()
 
+        // val isLittleEndian = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN
+
         private var creationIndex = 0
         private val creationIndices = IntArray(16)
 
@@ -587,11 +844,39 @@ open class Texture2D(
             return creationIndices[creationIndex++]
         }
 
+        fun switchRGB2BGR(ints: IntArray) {
+            // convert argb to abgr
+            for (i in ints.indices) {
+                val v = ints[i]
+                val r = v.shr(16).and(0xff)
+                val ag = v.and(0xff00ff00.toInt())
+                val b = v.and(0xff)
+                ints[i] = ag or r or b.shl(16)
+            }
+        }
+
         fun destroyTextures() {
             if (texturesToDelete.isNotEmpty()) {
                 glDeleteTextures(texturesToDelete.toIntArray())
                 texturesToDelete.clear()
             }
+        }
+
+        private fun getAlignment(w: Int): Int {
+            return when {
+                w % 8 == 0 -> 8
+                w % 4 == 0 -> 4
+                w % 2 == 0 -> 2
+                else -> 1
+            }
+        }
+
+        fun packAlignment(w: Int) {
+            glPixelStorei(GL_PACK_ALIGNMENT, getAlignment(w))
+        }
+
+        fun unpackAlignment(w: Int) {
+            glPixelStorei(GL_UNPACK_ALIGNMENT, getAlignment(w))
         }
 
     }

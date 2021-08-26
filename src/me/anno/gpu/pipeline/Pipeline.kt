@@ -1,9 +1,13 @@
 package me.anno.gpu.pipeline
 
 import me.anno.ecs.Entity
+import me.anno.ecs.components.cache.MaterialCache
+import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.light.AmbientLight
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshRenderer
 import me.anno.ecs.components.mesh.RendererComponent
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
@@ -40,44 +44,40 @@ class Pipeline : Saveable() {
 
     val lightPseudoStage = PipelineStage(
         "lights", Sorting.NO_SORTING, 0, BlendMode.PURE_ADD,
-        DepthMode.LESS, false, GL_FRONT, pbrModelShader
+        DepthMode.GREATER, false, GL_FRONT, pbrModelShader
     )
     private val lightPseudoRenderer = MeshRenderer()
 
     lateinit var defaultStage: PipelineStage
 
-    var contained = 0
-    var nonContained = 0
     var lastClickId = 0
 
     val frustum = Frustum()
 
     val ambient = Vector3f()
 
-    private fun addMesh(mesh: Mesh?, renderer: RendererComponent, entity: Entity, clickId: Int) {
-        mesh ?: return
+    private fun addMesh(mesh: Mesh, renderer: RendererComponent, entity: Entity, clickId: Int) {
         val materials = mesh.materials
         if (materials.isEmpty()) {
             val stage = defaultStage
             stage.add(renderer, mesh, entity, 0, clickId)
         } else {
             for (index in materials.indices) {
-                val material = materials[index]
+                val material = MaterialCache[materials[index], defaultMaterial]
                 val stage = material.pipelineStage ?: defaultStage
                 stage.add(renderer, mesh, entity, index, clickId)
             }
         }
     }
 
-    private fun addMeshInstanced(mesh: Mesh?, entity: Entity, clickId: Int) {
-        mesh ?: return
+    private fun addMeshInstanced(mesh: Mesh, entity: Entity, clickId: Int) {
         val materials = mesh.materials
         if (materials.isEmpty()) {
             val stage = defaultStage
             stage.addInstanced(mesh, entity, 0, clickId)
         } else {
             for (index in materials.indices) {
-                val material = materials[index]
+                val material = MaterialCache[materials[index], defaultMaterial]
                 val stage = material.pipelineStage ?: defaultStage
                 stage.addInstanced(mesh, entity, index, clickId)
             }
@@ -120,8 +120,6 @@ class Pipeline : Saveable() {
     }
 
     fun fill(rootElement: Entity, cameraPosition: Vector3d, worldScale: Double) {
-        contained = 0
-        nonContained = 0
         // todo more complex traversal:
         // todo exclude static entities by their AABB
         // todo exclude entities, if they contain no meshes
@@ -172,14 +170,17 @@ class Pipeline : Saveable() {
             val component = components[i]
             if (component.isEnabled) {
                 component.onVisibleUpdate()
-                if (renderer != null && component is Mesh) {
-                    component.clickId = clickId
-                    if (component.isInstanced) {
-                        addMeshInstanced(component, entity, clickId)
-                    } else {
-                        addMesh(component, renderer, entity, clickId)
+                if (renderer != null && component is MeshComponent) {
+                    val mesh = MeshCache[component.mesh]
+                    if (mesh != null) {
+                        component.clickId = clickId
+                        if (component.isInstanced) {
+                            addMeshInstanced(mesh, entity, clickId)
+                        } else {
+                            addMesh(mesh, renderer, entity, clickId)
+                        }
+                        clickId++
                     }
-                    clickId++
                 }
                 if (component is LightComponent) {
                     addLight(component, entity, cameraPosition, worldScale)
@@ -192,11 +193,8 @@ class Pipeline : Saveable() {
         val children = entity.children
         for (i in children.indices) {
             val child = children[i]
-            if (child.isEnabled) {
-                val needsDrawing = frustum.isVisible(child.aabb)
-                if (needsDrawing) clickId = subFill(child, clickId, cameraPosition, worldScale)
-                if (needsDrawing) contained++
-                else nonContained += child.sizeOfHierarchy
+            if (child.isEnabled && frustum.isVisible(child.aabb)) {
+                clickId = subFill(child, clickId, cameraPosition, worldScale)
             }
         }
         return clickId
@@ -209,7 +207,7 @@ class Pipeline : Saveable() {
             val components = entity.components
             for (i in components.indices) {
                 val c = components[i]
-                if (c.isEnabled && c is Mesh) {
+                if (c.isEnabled && c is MeshComponent) {
                     if (c.clickId == searchedId) return c
                 }
             }

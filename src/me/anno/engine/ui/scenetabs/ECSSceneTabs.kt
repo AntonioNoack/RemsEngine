@@ -5,6 +5,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshRenderer
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
@@ -82,7 +83,7 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
                 if (!tab.contains(x, y)) {
                     val oldIndex = tab.indexInParent
                     val newIndex = children2.map { it.x + it.w / 2 }.count { it < x }
-                    // println("$oldIndex -> $newIndex, $x ${children2.map { it.x + it.w/2 }}")
+                    // LOGGER.info("$oldIndex -> $newIndex, $x ${children2.map { it.x + it.w/2 }}")
                     if (oldIndex < newIndex) {
                         children2.add(newIndex, tab)
                         children2.removeAt(oldIndex)
@@ -104,14 +105,15 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
             currentTab = sceneTab
             PrefabInspector.currentInspector = sceneTab.inspector
             // root = sceneTab.root
-            val prefabInstance = sceneTab.inspector.prefab.createInstance()
+            val src0 = sceneTab.inspector.prefab
+            val prefabInstance = src0.createInstance()
             for (window in windowStack) {
                 window.panel.listOfAll {
                     if (it is CustomContainer && it.child is RenderView) {
                         val oldView = it.child
                         if (oldView is RenderView) {
                             val library = oldView.library
-                            library.world = createWorld(prefabInstance)
+                            library.world = createWorld(prefabInstance, src0.src)
                             library.select(prefabInstance)
                         }
                     }
@@ -124,19 +126,19 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
         }
     }
 
-    fun createWorld(item: ISaveable): Entity {
+    fun createWorld(item: ISaveable, src: FileReference): Entity {
         return when (item) {
             is Entity -> item
             is Mesh -> {
                 val entity = Entity()
-                entity.add(item.clone())
+                entity.add(MeshComponent(src))
                 entity.add(MeshRenderer())
                 entity
             }
             is Material -> {
                 val entity = Entity()
                 val mesh = Thumbs.sphereMesh.clone()
-                mesh.materials = listOf(item)
+                mesh.materials = listOf(src)
                 entity.add(mesh)
                 entity.add(MeshRenderer())
                 entity

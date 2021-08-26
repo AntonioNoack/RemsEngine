@@ -3,8 +3,9 @@ package me.anno.engine.ui.render
 import me.anno.config.DefaultStyle.white4
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.camera.CameraComponent
-import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.RendererComponent
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.engine.debug.DebugPoint
@@ -19,10 +20,10 @@ import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.MovingGrid.drawGrid
 import me.anno.engine.ui.render.Outlines.drawOutline
 import me.anno.engine.ui.render.Renderers.attributeRenderers
-import me.anno.engine.ui.render.Renderers.baseRenderer
+import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.engine.ui.render.Renderers.cheapRenderer
 import me.anno.engine.ui.render.Renderers.overdrawRenderer
-import me.anno.engine.ui.render.Renderers.uiRenderer
+import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.RenderState
@@ -50,19 +51,19 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.input.Input
 import me.anno.input.Input.isControlDown
+import me.anno.input.Input.isKeyDown
 import me.anno.input.Input.isShiftDown
 import me.anno.objects.Transform
 import me.anno.studio.Build
 import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
 import me.anno.utils.Clock
-import me.anno.utils.Maths.clamp
-import me.anno.utils.Maths.mix
-import me.anno.utils.Maths.sq
+import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.maths.Maths.mix
+import me.anno.utils.maths.Maths.sq
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import org.joml.*
 import org.joml.Math.toRadians
-import org.lwjgl.opengl.GL20.GL_LOWER_LEFT
 import org.lwjgl.opengl.GL45.*
 
 // todo shadows
@@ -135,7 +136,7 @@ class RenderView(
 
     // todo different control schemes of the camera like in MagicaVoxel
     var radius = 50.0
-    val worldScale get() = if (Input.isKeyDown('f')) 1.0 else 1.0 / radius
+    val worldScale get() = if (isKeyDown('f')) 1.0 else 1.0 / radius
     var position = Vector3d()
     var rotation = Vector3d(-20.0, 0.0, 0.0)
 
@@ -143,15 +144,13 @@ class RenderView(
         updateTransform()
     }
 
-    var movement = Vector3d()
-
-    var renderer = DeferredRenderer
-    val deferred = renderer.deferredSettings!!
+    var deferredRenderer = DeferredRenderer
+    val deferred = deferredRenderer.deferredSettings!!
 
     val lightBuffer = deferred.createLightBuffer()
     val baseBuffer = deferred.createBaseBuffer()
 
-    val showOverdraw get() = Input.isKeyDown('n')
+    val showOverdraw get() = isKeyDown('n')
 
     fun updateTransform() {
 
@@ -160,7 +159,7 @@ class RenderView(
         val cameraNode = editorCameraNode
         cameraNode.transform.localRotation = rotation.toQuaternionDegrees()
         camera.far = 1e300
-        camera.near = if (Input.isKeyDown('r')) radius * 1e-2 else radius * 1e-10
+        camera.near = if (isKeyDown('r')) radius * 1e-2 else radius * 1e-10
 
         val rotation = cameraNode.transform.localRotation
         cameraNode.transform.localPosition = Vector3d(position)
@@ -175,46 +174,15 @@ class RenderView(
         invalidateDrawing()
     }
 
-    fun checkMovement() {
-        val dt = GFX.deltaTime
-        val factor = clamp(1.0 - 20.0 * dt, 0.0, 1.0)
-        movement.mul(factor)
-        val s = (1.0 - factor) * 0.035
-        if (parent!!.children.any { it.isInFocus }) {// todo check if "in focus"
-            if (Input.isKeyDown('a')) movement.x -= s
-            if (Input.isKeyDown('d')) movement.x += s
-            if (Input.isKeyDown('w')) movement.z -= s
-            if (Input.isKeyDown('s')) movement.z += s
-            if (Input.isKeyDown('q')) movement.y -= s
-            if (Input.isKeyDown('e')) movement.y += s
-        }
-        val normXZ = !isShiftDown // todo use UI toggle instead
-        val rotQuad = rotation.toQuaternionDegrees()
-        val right = rotQuad.transform(Vector3d(1.0, 0.0, 0.0))
-        val forward = rotQuad.transform(Vector3d(0.0, 0.0, 1.0))
-        val up = if (normXZ) {
-            right.y = 0.0
-            forward.y = 0.0
-            right.normalize()
-            forward.normalize()
-            Vector3d(0.0, 1.0, 0.0)
-        } else {
-            rotQuad.transform(Vector3d(0.0, 1.0, 0.0))
-        }
-        position.x += movement.dot(right.x, up.x, forward.x) * radius
-        position.y += movement.dot(right.y, up.y, forward.y) * radius
-        position.z += movement.dot(right.z, up.z, forward.z) * radius
-    }
-
     val clock = Clock()
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         clock.start()
 
-        checkMovement()
-
-        clock.stop("movement", 0.01)
+        // to see ghosting
+        // currently I see no ghosting...
+        if (isKeyDown('v')) Thread.sleep(250)
 
         // todo go through the rendering pipeline, and render everything
 
@@ -233,11 +201,11 @@ class RenderView(
             updateTransform()
         }
 
-        val showIds = Input.isKeyDown('g')
+        val showIds = isKeyDown('g')
         val showOverdraw = showOverdraw
-        val showSpecialBuffer = showIds || showOverdraw || Input.isKeyDown('j')
-        val useDeferredRendering = !showSpecialBuffer && Input.isKeyDown('k')
-        val samples = if (Input.isKeyDown('p')) 8 else 1
+        val showSpecialBuffer = showIds || showOverdraw || isKeyDown('j')
+        val useDeferredRendering = !showSpecialBuffer && isKeyDown('k')
+        val samples = if (isKeyDown('p')) 8 else 1
         val buffer = if (useDeferredRendering) baseBuffer else FBStack["scene", w, h, 4, false, samples]
 
         stage0.blendMode = if (showOverdraw) BlendMode.ADD else null
@@ -249,8 +217,8 @@ class RenderView(
             showOverdraw -> overdrawRenderer
             showIds -> idRenderer
             showSpecialBuffer -> attributeRenderers[selectedAttribute]
-            useDeferredRendering -> renderer
-            else -> baseRenderer
+            useDeferredRendering -> deferredRenderer
+            else -> pbrRenderer
         }
 
         var aspect = w.toFloat() / h
@@ -368,10 +336,10 @@ class RenderView(
 
         val clickedId = Screenshots.getClosestId(diameter, ids, depths, if (reverseDepth) -10 else +10)
         val clicked = if (clickedId == 0) null else pipeline.findDrawnSubject(clickedId, getWorld())
-        // println("$clickedId -> $clicked")
+        // LOGGER.info("$clickedId -> $clicked")
         // val ids2 = world.getComponentsInChildren(MeshComponent::class, false).map { it.clickId }
-        // println(ids2.joinToString())
-        // println(clickedId in ids2)
+        // LOGGER.info(ids2.joinToString())
+        // LOGGER.info(clickedId in ids2)
         return Pair(clicked as? Entity, clicked as? Component)
 
     }
@@ -381,7 +349,7 @@ class RenderView(
     val pipeline = Pipeline()
     val stage0 = PipelineStage(
         "default", Sorting.NO_SORTING, MAX_LIGHTS,
-        null, DepthMode.LESS, true, GL_BACK,
+        null, DepthMode.GREATER, true, GL_BACK,
         pbrModelShader
     )
 
@@ -408,7 +376,7 @@ class RenderView(
 
         val near = mix(previousCamera.near, camera.near, blend)
         val far = mix(previousCamera.far, camera.far, blend)
-        val fov = mix(previousCamera.fov, camera.fov, blending)
+        val fov = mix(previousCamera.fovY, camera.fovY, blending)
         val rot0 = previousCamera.entity!!.transform.globalTransform.getUnnormalizedRotation(Quaternionf())
         val rot1 = camera.entity!!.transform.globalTransform.getUnnormalizedRotation(Quaternionf())
         val rot2 = rot0.slerp(rot1, blendFloat)
@@ -455,18 +423,15 @@ class RenderView(
 
     }
 
-    val reverseDepth get() = !Input.isKeyDown('r')
+    val reverseDepth get() = !isKeyDown('r')
 
     fun setClearDepth() {
-        val reverseDepth = reverseDepth
-        glClearDepth(if (reverseDepth) 0.0 else 1.0)
-        glClipControl(GL_LOWER_LEFT, if (reverseDepth) GL_ZERO_TO_ONE else GL_NEGATIVE_ONE_TO_ONE)
         stage0.depthMode = depthMode
         pipeline.lightPseudoStage.depthMode = depthMode
         pipeline.stages.forEach { it.depthMode = depthMode }
     }
 
-    val depthMode get() = if (reverseDepth) DepthMode.GREATER else DepthMode.LESS
+    val depthMode get() = if (reverseDepth) DepthMode.GREATER else DepthMode.FORWARD_LESS
 
     // todo we could do the blending of the scenes using stencil tests <3 (very efficient)
     //  - however it would limit us to a single renderer...
@@ -529,7 +494,7 @@ class RenderView(
             }
 
             if (!renderer.isFakeColor && !isFinalRendering) {
-                useFrame(w, h, changeSize, dst, uiRenderer) {
+                useFrame(w, h, changeSize, dst, simpleNormalRenderer) {
                     drawGizmos(camPosition, true)
                     drawSelected()
                 }
@@ -538,8 +503,8 @@ class RenderView(
             }
 
             val canRenderDebug = Build.isDebug
-            val renderNormals = canRenderDebug && Input.isKeyDown('n')
-            val renderLines = canRenderDebug && Input.isKeyDown('l')
+            val renderNormals = canRenderDebug && isKeyDown('n')
+            val renderLines = canRenderDebug && isKeyDown('l')
 
             if (renderNormals || renderLines) {
 
@@ -564,9 +529,10 @@ class RenderView(
                 for (selected in library.fineSelection) {
                     when (selected) {
                         is Entity -> drawOutline(selected, worldScale)
-                        is Mesh -> {
+                        is MeshComponent -> {
+                            val mesh = MeshCache[selected.mesh, false] ?: continue
                             val renderer = selected.entity?.getComponent(RendererComponent::class, false)
-                            drawOutline(renderer, selected, worldScale)
+                            drawOutline(renderer, selected, mesh, worldScale)
                         }
                         is Component -> drawOutline(selected.entity ?: continue, worldScale)
                     }
@@ -588,8 +554,8 @@ class RenderView(
             Frame.bind()
 
             tmp4f.set(previousCamera.clearColor).lerp(camera.clearColor, blending)
+
             glClearColor(0f, 0f, 0f, 0f)
-            glClearDepth(1.0)
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
             pipeline.lightPseudoStage.bindDraw(pipeline, cameraMatrix, camPosition, worldScale)
@@ -606,7 +572,7 @@ class RenderView(
 
         // now works, after making the physics async :)
         // maybe it just doesn't work with the physics debugging together
-        val drawAABBs = Input.isKeyDown('o')
+        val drawAABBs = isKeyDown('o')
 
         RenderState.blendMode.use(BlendMode.DEFAULT) {
             RenderState.depthMode.use(depthMode) {
@@ -653,7 +619,7 @@ class RenderView(
                     val components = entity.components
                     for (i in components.indices) {
                         val component = components[i]
-                        if (component !is Mesh) {
+                        if (component !is MeshComponent) {
                             // mesh components already got their id
                             val componentClickId = clickId++
                             component.clickId = componentClickId

@@ -4,7 +4,7 @@ import me.anno.fonts.mesh.TextMesh
 import me.anno.fonts.mesh.TextMeshGroup.Companion.getAlignments
 import me.anno.fonts.mesh.TextRepBase
 import me.anno.utils.types.Lists.accumulate
-import me.anno.utils.Maths.clamp
+import me.anno.utils.maths.Maths.clamp
 import java.awt.Font
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout

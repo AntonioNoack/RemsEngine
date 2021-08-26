@@ -68,6 +68,7 @@ import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.RuntimeInfoPanel
 import me.anno.ui.editor.config.ConfigPanel
 import me.anno.ui.editor.cutting.CuttingView
+import me.anno.ui.editor.files.FileExplorer.Companion.openInExplorerDesc
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.ui.editor.graphs.GraphEditor
 import me.anno.ui.editor.sceneTabs.SceneTabs
@@ -78,7 +79,7 @@ import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FileInput
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
-import me.anno.utils.Threads.threadWithName
+import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.files.OpenInBrowser.openInBrowser
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
@@ -162,12 +163,7 @@ object UILayouts {
                                     "Opens that project", "ui.recentProjects.open"
                                 )
                             ) { open() },
-                            MenuOption(
-                                NameDesc(
-                                    "Open In Explorer",
-                                    "Opens that project in the file explorer", "ui.recentProjects.openInExplorer"
-                                )
-                            ) { project.file.openInExplorer() },
+                            MenuOption(openInExplorerDesc) { project.file.openInExplorer() },
                             MenuOption(
                                 NameDesc(
                                     "Hide",

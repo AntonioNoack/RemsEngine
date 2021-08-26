@@ -2,8 +2,7 @@ package me.anno.engine.ui
 
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.CAdd
-import me.anno.ecs.prefab.Path
-import me.anno.ecs.prefab.Prefab.Companion.loadPrefab
+import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.files.FileReference

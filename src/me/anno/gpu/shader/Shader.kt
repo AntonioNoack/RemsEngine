@@ -3,6 +3,7 @@ package me.anno.gpu.shader
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Frame
+import me.anno.gpu.shader.builder.Variable
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.OS
@@ -15,11 +16,13 @@ import org.lwjgl.opengl.GL21.glUniformMatrix4x3fv
 import org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER
 import java.nio.FloatBuffer
 
+// todo locations for the varyings: for debugging with RenderDoc
+
 open class Shader(
     val shaderName: String,
     val geometry: String? = null,
     val vertex: String,
-    val varying: String,
+    val varying: List<Variable>,
     val fragment: String,
     private val disableShorts: Boolean = false
 ) : ICacheData {
@@ -63,10 +66,10 @@ open class Shader(
 
     fun printLocationsAndValues() {
         for ((key, value) in attributeLocations.entries.sortedBy { it.value }) {
-            println("attribute $key = $value")
+            LOGGER.info("attribute $key = $value")
         }
         for ((key, value) in uniformLocations.entries.sortedBy { it.value }) {
-            println("uniform $key[$value] = (${uniformCache[value * 4]},${uniformCache[value * 4 + 1]},${uniformCache[value * 4 + 2]},${uniformCache[value * 4 + 3]})")
+            LOGGER.info("uniform $key[$value] = (${uniformCache[value * 4]},${uniformCache[value * 4 + 1]},${uniformCache[value * 4 + 2]},${uniformCache[value * 4 + 3]})")
         }
     }
 
@@ -74,33 +77,6 @@ open class Shader(
         attributeLocations.clear()
         uniformLocations.clear()
         uniformCache.fill(Float.NaN)
-    }
-
-    private fun decodeVaryings(): List<Varying> {
-        val result = ArrayList<Varying>()
-        // todo remove comments (if they ever appear)
-        // todo apply preprocessor...
-        for (line in varying.replaceShortCuts().split(';').map { it.trim() }) {
-            // varying vec3 out
-            val index00 = line.indexOf('\n') + 1
-            val index0 = line.indexOf("varying", index00)
-            if (index0 >= 0) {
-                // for flat varyings
-                val modifiers = line.substring(index00, index0)
-                // out type name,name2,name3
-                val line2 = line.substring(index0 + "varying".length).trim()
-                val typeIndex = line2.indexOf(' ')
-                if (typeIndex < 0) throw RuntimeException("Varying type must be followed by space")
-                val type = line2.substring(0, typeIndex)
-                val names = line2.substring(typeIndex + 1).split(',').filter { !it.isBlank2() }.map { it.trim() }
-                for (name in names) {
-                    result.add(Varying(modifiers, type, name))
-                }
-            } else if (!line.isBlank2()) {
-                LOGGER.warn("Awkward line: $line")
-            }
-        }
-        return result
     }
 
     var vertexSource = ""
@@ -112,7 +88,7 @@ open class Shader(
 
         // LOGGER.debug("$shaderName\nGEOMETRY:\n$geometry\nVERTEX:\n$vertex\nVARYING:\n$varying\nFRAGMENT:\n$fragment")
 
-        val varyings = decodeVaryings()
+        val varyings = varying.map { Varying(if (it.isFlat) "flat" else "", it.type, it.name) }
 
         program = glCreateProgram()
         val geometryShader = if (geometry != null) {
@@ -331,7 +307,7 @@ open class Shader(
         }
     }
 
-    fun v1(name: String, x: Boolean) = v1(name, if(x) 1 else 0)
+    fun v1(name: String, x: Boolean) = v1(name, if (x) 1 else 0)
     fun v1(name: String, x: Int) = v1(getUniformLocation(name), x)
     fun v1(loc: Int, x: Int) {
         if (loc > -1) {

@@ -1,10 +1,11 @@
 package me.anno.ecs
 
 import me.anno.ecs.annotations.HideInInspector
+import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.light.AmbientLight
 import me.anno.ecs.components.light.LightComponent
-import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
@@ -19,7 +20,9 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
+import me.anno.utils.LOGGER
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.AABBs.all
 import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.AABBs.set
 import me.anno.utils.types.AABBs.transformUnion
@@ -226,7 +229,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         val components = components
         for (i in components.indices) {
             when (val component = components[i]) {
-                is Mesh -> {
+                is MeshComponent -> {
                     collisionMask = collisionMask or component.collisionMask
                     if (collisionMask == -1) break
                 }
@@ -269,10 +272,13 @@ class Entity() : PrefabSaveable(), Inspectable {
                 val component = components[i]
                 if (component.isEnabled) {
                     when (component) {
-                        is Mesh -> {
-                            // add aabb of that mesh with the transform
-                            component.ensureBuffer()
-                            component.aabb.transformUnion(globalTransform, aabb)
+                        is MeshComponent -> {
+                            val mesh = MeshCache[component.mesh]
+                            if (mesh != null) {
+                                // add aabb of that mesh with the transform
+                                mesh.ensureBuffer()
+                                mesh.aabb.transformUnion(globalTransform, aabb)
+                            }
                         }
                         is LightComponent -> {
                             val mesh = component.getLightPrimitive()
@@ -281,10 +287,7 @@ class Entity() : PrefabSaveable(), Inspectable {
                         }
                         is AmbientLight -> {
                             // ambient light has influence on everything
-                            val n = Double.NEGATIVE_INFINITY
-                            val p = Double.POSITIVE_INFINITY
-                            aabb.setMin(n, n, n)
-                            aabb.setMax(p, p, p)
+                            aabb.all()
                         }
                         is Collider -> {
                             val tmp = JomlPools.vector3d.create()
@@ -375,7 +378,11 @@ class Entity() : PrefabSaveable(), Inspectable {
     }
 
     override fun add(child: PrefabSaveable) {
-        TODO("Not yet implemented")
+        when (child) {
+            is Entity -> addChild(child)
+            is Component -> addComponent(child)
+            else -> LOGGER.warn("Cannot add ${child.className} to Entity")
+        }
     }
 
     override fun add(index: Int, child: PrefabSaveable) {
@@ -484,16 +491,17 @@ class Entity() : PrefabSaveable(), Inspectable {
                 invalidateCollisionMask()
             }
             is Rigidbody -> physics?.invalidate(this)
-            is Mesh -> {
+            is MeshComponent -> {
                 invalidateOwnAABB()
                 invalidateCollisionMask()
             }
             is LightComponent -> invalidateOwnAABB()
         }
-        hasRenderables = hasComponent(Mesh::class, false) ||
+        hasRenderables = hasComponent(MeshComponent::class, false) ||
                 hasComponent(LightComponent::class, false)
         hasSpaceFillingComponents = hasRenderables ||
-                hasComponent(Collider::class, false)
+                hasComponent(Collider::class, false) ||
+                hasComponent(AmbientLight::class, false)
     }
 
     fun addChild(child: Entity) {
@@ -546,8 +554,17 @@ class Entity() : PrefabSaveable(), Inspectable {
     }
 
     fun <V : Component> getComponentInChildren(clazz: KClass<V>, includingDisabled: Boolean): V? {
-        val e = simpleTraversal(true) { getComponent(clazz, includingDisabled) != null }
-        return (e as? Entity)?.getComponent(clazz, includingDisabled)
+        var comp = getComponent(clazz, includingDisabled)
+        if (comp != null) return comp
+        val children = children
+        for (i in children.indices) {
+            val child = children[i]
+            if (includingDisabled || child.isEnabled) {
+                comp = child.getComponentInChildren(clazz, includingDisabled)
+                if (comp != null) return comp
+            }
+        }
+        return null
     }
 
     fun <V : Component> getComponentInHierarchy(clazz: KClass<V>, includingDisabled: Boolean): V? {
@@ -665,7 +682,7 @@ class Entity() : PrefabSaveable(), Inspectable {
             clone.addComponent(components[i].clone() as Component)
         }
         val children = children
-        for(i in children.indices){
+        for (i in children.indices) {
             clone.addChild(children[i].clone() as Entity)
         }
     }

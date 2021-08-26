@@ -69,7 +69,7 @@ class MainStage {
         return defined
     }
 
-    fun createCode(isFragmentStage: Boolean, deferredSettingsV2: DeferredSettingsV2?): String {
+    fun createCode(isFragmentStage: Boolean, deferredSettingsV2: DeferredSettingsV2?): Pair<String, List<Variable>> {
 
         // set what is all defined
         defined += imported
@@ -95,23 +95,26 @@ class MainStage {
             code.append('\n')
         }
 
-        for (variable in attributes) {
+        for (variable in attributes.sortedBy { it.size }) {
             variable.appendGlsl(code, "attribute ")
         }
         if (attributes.isNotEmpty()) code.append('\n')
 
-        for (variable in imported) {
+        val varying = (imported + exported).toList()
+        /*for (variable in imported.sortedBy { it.size }) {
             variable.appendGlsl(code, if (variable.isFlat) "flat varying " else "varying ")
         }
         if (imported.isNotEmpty()) code.append('\n')
 
-        for (variable in exported) {
+        for (variable in exported.sortedBy { it.size }) {
             variable.appendGlsl(code, "varying ")
         }
-        if (exported.isNotEmpty()) code.append('\n')
+        if (exported.isNotEmpty()) code.append('\n')*/
 
         // define the missing variables
-        for (variable in uniforms) {
+        // sorted by size, so small uniforms get a small location,
+        // which in return allows them to be cached
+        for (variable in uniforms.sortedBy { it.size }) {
             variable.appendGlsl(code, "uniform ")
         }
         if (uniforms.isNotEmpty()) code.append('\n')
@@ -207,7 +210,7 @@ class MainStage {
             }
         }
         code.append("}\n")
-        return code.toString()
+        return code.toString() to varying
     }
 
     val functions = HashMap<String, String>()

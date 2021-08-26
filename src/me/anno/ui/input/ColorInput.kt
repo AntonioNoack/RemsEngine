@@ -22,9 +22,8 @@ import me.anno.ui.editor.color.PreviewField
 import me.anno.ui.input.components.TitlePanel
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toARGB
-import me.anno.utils.Maths.clamp
-import me.anno.utils.Maths.pow
-import me.anno.utils.types.Strings.isBlank2
+import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.maths.Maths.pow
 import org.joml.Vector4f
 import org.joml.Vector4fc
 import kotlin.math.max

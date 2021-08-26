@@ -1,8 +1,8 @@
 package me.anno.animation
 
 import me.anno.language.translation.Dict
-import me.anno.utils.Maths.clamp
-import me.anno.utils.Maths.mix
+import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.maths.Maths.mix
 import org.joml.Vector4d
 import kotlin.math.PI
 import kotlin.math.cos

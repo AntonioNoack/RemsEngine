@@ -18,10 +18,10 @@ fun main() {
     val dst = OS.downloads.getChild("packingTest.zip")
     val map = Packer.packWithReporting(resources, true, dst, true, 500)
     for ((key, value) in map) {
-        println("$value: $key")
+        LOGGER.info("$value: $key")
     }
 
-    println(dst.listChildren())
+    LOGGER.info(dst.listChildren())
 
     LOGGER.info("End")
 

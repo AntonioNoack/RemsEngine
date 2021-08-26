@@ -2,16 +2,18 @@ package me.anno.utils.test
 
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS
-import me.anno.utils.Optimization.simplexAlgorithm
-import java.io.File
+import me.anno.utils.maths.Optimization.simplexAlgorithm
+import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 
 fun main() {
 
+    val logger = LogManager.getLogger("MMfO")
+
     loadMatrix()
 
     /*vectors.forEachIndexed { index, vector ->
-        println("'${index+1}' ${vector.joinToString(" ")}")
+        LOGGER.info("'${index+1}' ${vector.joinToString(" ")}")
     }
 
     return*/
@@ -28,18 +30,18 @@ fun main() {
     }
 
     /*for(i in 0 until vectorCount){
-        println("trivial solution $i: ${maxDistance(vectors[i])}")
+        LOGGER.info("trivial solution $i: ${maxDistance(vectors[i])}")
     }*/
 
-    println("average solution: ${maxDistance(average)}")
-    println("median solution: ${maxDistance(median)}")
+    logger.info("average solution: ${maxDistance(average)}")
+    logger.info("median solution: ${maxDistance(median)}")
 
     // use the median vector as a starting point
     // or the average? idk, average is simpler
 
-    println("average: ${average.joinToString()}")
+    logger.info("average: ${average.joinToString()}")
 
-    println(
+    logger.info(
         maxDistance(
             "3878.09131351636 3061.17267866391 3126.88511394304 3911.66869377691 4029.84779962704 2626.88975713788 3338.29690477943 4158.66690624099 1556.08411829276 2723.49734732109 2484.52391188888 3098.30790270422 3360.56684729076 2834.89909394725 2996.04120238281 3214.85303933428 2790.2150861753 4482.14310397302 4497.95315703025 4761.62083782121"
                 .split(' ').map { it.toDouble() }.toDoubleArray()
@@ -50,14 +52,14 @@ fun main() {
     val t0 = System.nanoTime()
     val solution = simplexAlgorithm(average, 1.0, 0.0, 1000000000) { potentialSolution ->
         val distance = maxDistance(potentialSolution)
-        if (++ctr % 5000 == 0) println(distance)
+        if (++ctr % 5000 == 0) logger.info(distance)
         distance
     }
     val t1 = System.nanoTime()
-    println((t1 - t0) * 1e-9)
+    logger.info((t1 - t0) * 1e-9)
 
-    println(solution.joinToString())
-    println("found solution: ${maxDistance(solution)}")
+    logger.info(solution.joinToString())
+    logger.info("found solution: ${maxDistance(solution)}")
 
 
     solution.forEachIndexed { index, _ ->
@@ -65,11 +67,11 @@ fun main() {
     }
     val solution2 = simplexAlgorithm(solution, 1.0, 0.0, 100000) { potentialSolution ->
         val distance = maxDistance(potentialSolution)
-        if (++ctr % 5000 == 0) println(distance)
+        if (++ctr % 5000 == 0) logger.info(distance)
         distance
     }
-    println("tested ${solution2.joinToString()}")
-    println(": ${maxDistance(solution2)}")
+    logger.info("tested ${solution2.joinToString()}")
+    logger.info(": ${maxDistance(solution2)}")
 
 }
 

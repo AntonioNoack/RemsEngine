@@ -5,18 +5,18 @@ import me.anno.gpu.shader.builder.Variable
 
 object ShaderPlus {
 
-    fun create(name: String, vertex: String, varying: String, fragment: String): Shader {
+    fun create(name: String, vertex: String, varying: List<Variable>, fragment: String): Shader {
         return Shader(name, null, vertex, varying, makeFragmentShaderUniversal(varying, fragment))
     }
 
-    fun create(name: String, geometry: String?, vertex: String, varying: String, fragment: String): Shader {
+    fun create(name: String, geometry: String?, vertex: String, varying: List<Variable>, fragment: String): Shader {
         return Shader(name, geometry, vertex, varying, makeFragmentShaderUniversal(varying, fragment))
     }
 
-    fun makeFragmentShaderUniversal(varyingSource: String, fragmentSource: String): String {
+    fun makeFragmentShaderUniversal(varyingSource: List<Variable>, fragmentSource: String): String {
         val hasFinalColor = "finalColor" in fragmentSource
-        val hasZDistance = "zDistance" in varyingSource
-        val hasTint = "vec4 tint;" in fragmentSource || "vec4 tint;" in varyingSource
+        val hasZDistance = "zDistance" in varyingSource.map { it.name }
+        val hasTint = "vec4 tint;" in fragmentSource || "tint" in varyingSource.map { it.name }
         val raw = fragmentSource.trim()
         if (!raw.endsWith("}")) throw RuntimeException()
         return "" +

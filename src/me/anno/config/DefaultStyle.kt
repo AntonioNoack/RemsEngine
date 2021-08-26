@@ -3,7 +3,7 @@ package me.anno.config
 import me.anno.io.config.ConfigBasics
 import me.anno.io.utils.StringMap
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.mixARGB
+import me.anno.utils.maths.Maths.mixARGB
 import org.joml.Vector3f
 import org.joml.Vector3fc
 import org.joml.Vector4f

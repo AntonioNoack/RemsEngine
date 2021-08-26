@@ -27,7 +27,7 @@ class MathD2Node() : ValueNode(listOf("Double", "Double"), listOf("Double")) {
         val a = graph.getValue(inputs[0]) as Double
         val b = graph.getValue(inputs[1]) as Double
         val c = type.double(a, b)
-        // println("$a $type $b = $c")
+        // logger.info("$a $type $b = $c")
         setOutput(c, 0)
     }
 

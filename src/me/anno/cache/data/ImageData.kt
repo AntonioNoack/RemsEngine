@@ -13,8 +13,13 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.HDRImage
+import me.anno.image.Image
+import me.anno.image.ImageCPUCache
+import me.anno.image.ImageReadable
+import me.anno.image.raw.BIImage
 import me.anno.image.tar.TGAImage
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
 import me.anno.objects.Video.Companion.imageTimeout
 import me.anno.objects.modes.RotateJPEG
@@ -41,7 +46,10 @@ class ImageData(file: FileReference) : ICacheData {
 
         private val LOGGER = LogManager.getLogger(ImageData::class)
 
-        fun getRotation(file: FileReference): RotateJPEG? = getRotation(file.inputStream())
+        fun getRotation(file: FileReference): RotateJPEG? {
+            if (file == InvalidRef) return null
+            return getRotation(file.inputStream())
+        }
 
         fun getRotation(file: InputStream): RotateJPEG? {
             var rotation: RotateJPEG? = null
@@ -94,35 +102,49 @@ class ImageData(file: FileReference) : ICacheData {
         GFX.addGPUTask(frame.w, frame.h) {
             frameToFramebuffer(frame, frame.w, frame.h, this)
         }
-        // if(texture?.isLoaded == true) draw3D(stack, texture, color, nearestFiltering, tiling)
     }
 
     init {
-        when (Signature.find(file)?.name) {
-            "jpg", "png", "bmp" -> tryGetImage1(file)
-            "hdr" -> loadHDR(file)
-            "tga" -> loadTGA(file)
-            else -> {
-                val fileExtension = file.extension
-                when (fileExtension.lowercase(Locale.getDefault())) {
-                    "hdr" -> loadHDR(file)
-                    "tga" -> loadTGA(file)
-                    // ImageIO says it can do webp, however it doesn't understand most pics...
-                    // tga was incomplete as well -> we're using our own solution
-                    "webp" -> useFFMPEG(file)
-                    else -> tryGetImage0(file, fileExtension)
+        load(file)
+    }
+
+    fun load(file: FileReference) {
+        if (file is ImageReadable) {
+            texture.create("ImageData", file.readImage(), true)
+        } else {
+            val signature = Signature.find(file)
+            if (signature?.name == "hdr") {
+                loadHDR(file)
+                return
+            }
+            val image = ImageCPUCache.getImage(file, false)
+            if (image != null) {
+                texture.create("ImageData", image, true)
+                texture.rotation = getRotation(file)
+                return
+            }
+            when (signature?.name) {
+                else -> {
+                    when (val fileExtension = file.lcExtension) {
+                        // "hdr" -> loadHDR(file)
+                        "tga" -> loadTGA(file)
+                        // ImageIO says it can do webp, however it doesn't understand most pics...
+                        // tga was incomplete as well -> we're using our own solution
+                        "webp" -> useFFMPEG(file)
+                        else -> tryGetImage0(file, fileExtension)
+                    }
                 }
             }
         }
     }
 
     fun loadHDR(file: FileReference) {
-        val img = HDRImage(file, true)
+        val img = HDRImage(file)
         val w = img.width
         val h = img.height
         GFX.addGPUTask(w, h) {
             texture.setSize(w, h)
-            texture.createFloat(img.byteBuffer)
+            img.createTexture(texture, true)
         }
     }
 
@@ -131,7 +153,7 @@ class ImageData(file: FileReference) : ICacheData {
             TGAImage.read(stream, false)
                 .createBufferedImage()
         }
-        texture.create(img, false)
+        texture.create(img, sync = false, checkRedundancy = true)
     }
 
     // find jpeg rotation by checking exif tags...
@@ -144,7 +166,7 @@ class ImageData(file: FileReference) : ICacheData {
         }
     }*/
 
-    fun tryGetImage0(file: FileReference, fileExtension: String) {
+    private fun tryGetImage0(file: FileReference, fileExtension: String) {
         // read metadata information from jpegs
         // read the exif rotation header
         // because some camera images are rotated incorrectly
@@ -153,10 +175,10 @@ class ImageData(file: FileReference) : ICacheData {
         } else tryGetImage1(file)
     }
 
-    fun tryGetImage1(file: FileReference) {
+    private fun tryGetImage1(file: FileReference) {
         val image = tryGetImage(file)
         if (image != null) {
-            texture.create("ImageData", { image }, false)
+            texture.create("ImageData", image, checkRedundancy = true)
             texture.rotation = getRotation(file)
         } else {
             LOGGER.warn("Could not load $file")
@@ -164,15 +186,18 @@ class ImageData(file: FileReference) : ICacheData {
         }
     }
 
-    fun tryGetImage(file: FileReference): BufferedImage? {
+    private fun tryGetImage(file: FileReference): Image? {
+        if (file is ImageReadable) return file.readImage()
         return tryGetImage(file.inputStream())
     }
 
-    fun tryGetImage(file: InputStream): BufferedImage? {
+    private fun tryGetImage(file: InputStream): Image? {
+        if (file is ImageReadable) return file.readImage()
         // try ImageIO first, then Imaging, then give up (we could try FFMPEG, but idk, whether it supports sth useful)
         val image = tryOrNull { ImageIO.read(file) } ?: tryOrException { Imaging.getBufferedImage(file) }
         if (image is Exception) LOGGER.warn("Cannot read image from input $file: ${image.message}")
-        return image as? BufferedImage
+        if (image !is BufferedImage) return null
+        return BIImage(image)
     }
 
     override fun destroy() {

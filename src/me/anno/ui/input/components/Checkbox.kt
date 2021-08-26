@@ -1,6 +1,6 @@
 package me.anno.ui.input.components
 
-import me.anno.cache.instances.ImageCache.getInternalTexture
+import me.anno.image.ImageGPUCache.getInternalTexture
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.Texture2D

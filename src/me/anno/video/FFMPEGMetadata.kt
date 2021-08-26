@@ -96,18 +96,21 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
         //      format_name=gif
         //  }}
 
-        val video =
-            streams.firstOrNull { (it as JsonObject)["codec_type"]?.asText().equals("video", true) } as? JsonObject
-        val audio =
-            streams.firstOrNull { (it as JsonObject)["codec_type"]?.asText().equals("audio", true) } as? JsonObject
-
         duration = format["duration"]?.toString()?.toDouble() ?: getDurationIfMissing(file)
+
+        val audio = streams.firstOrNull {
+            (it as JsonObject)["codec_type"]?.asText().equals("audio", true)
+        } as? JsonObject
 
         hasAudio = audio != null
         audioStartTime = audio?.get("start_time")?.asText()?.toDouble() ?: 0.0
         audioDuration = audio?.get("duration")?.asText()?.toDouble() ?: duration
         audioSampleRate = audio?.get("sample_rate")?.asText()?.toInt() ?: 20
         audioSampleCount = audio?.get("duration_ts")?.asText()?.toLong() ?: (audioSampleRate * audioDuration).toLong()
+
+        val video = streams.firstOrNull {
+            (it as JsonObject)["codec_type"]?.asText().equals("video", true)
+        } as? JsonObject
 
         hasVideo = video != null
         videoStartTime = video?.get("start_time")?.asText()?.toDouble() ?: 0.0
@@ -137,6 +140,8 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
 
     // not working for the problematic file 001.gif
     fun getDurationIfMissing(file: FileReference): Double {
+
+        LOGGER.warn("Duration is missing for $file")
 
         val args = listOf(
             // ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 input.mp4

@@ -1,5 +1,7 @@
 package me.anno.io.zip
 
+import me.anno.ecs.prefab.Prefab
+import me.anno.image.Image
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import java.io.IOException
@@ -54,11 +56,13 @@ open class InnerFolder(
     }
 
     fun createChild(name: String, relativePath: String = getSubName(name)): InnerFolder {
+        if (name in children) return children[name] as InnerFolder
         val absolutePath = "$absolutePath/$name"
         return InnerFolder(absolutePath, relativePath, this)
     }
 
     fun createChild(name: String, registry: HashMap<String, InnerFile>? = null): InnerFile {
+        if (name in children) return children[name]!!
         val relativePath = "$relativePath/$name"
         return registry?.getOrPut(relativePath) {
             createChild(name, relativePath)
@@ -66,15 +70,57 @@ open class InnerFolder(
     }
 
     fun createTextChild(name: String, content: String, registry: HashMap<String, InnerFile>? = null): InnerFile {
+        if (name in children) return children[name]!!
         val relativePath = getSubName(name)
         return registry?.getOrPut(relativePath) { createTextChild(name, content, null) }
             ?: InnerTextFile("$absolutePath/$name", relativePath, this, content)
     }
 
+    fun createPrefabChild(name: String, content: Prefab, registry: HashMap<String, InnerFile>? = null): InnerFile {
+        if (name in children) return children[name]!!
+        val relativePath = getSubName(name)
+        return registry?.getOrPut(relativePath) { createPrefabChild(name, content, null) }
+            ?: InnerPrefabFile("$absolutePath/$name", relativePath, this, content)
+    }
+
     fun createByteChild(name: String, content: ByteArray, registry: HashMap<String, InnerFile>? = null): InnerFile {
+        if (name in children) return children[name]!!
         val relativePath = getSubName(name)
         return registry?.getOrPut(relativePath) { createByteChild(name, content, null) }
             ?: InnerByteFile("$absolutePath/$name", relativePath, this, content)
+    }
+
+    fun createByteChild(
+        name: String,
+        content: Lazy<ByteArray>,
+        registry: HashMap<String, InnerFile>? = null
+    ): InnerFile {
+        if (name in children) return children[name]!!
+        val relativePath = getSubName(name)
+        return registry?.getOrPut(relativePath) { createByteChild(name, content, null) }
+            ?: InnerLazyByteFile("$absolutePath/$name", relativePath, this, content)
+    }
+
+    fun createImageChild(
+        name: String,
+        content: Image,
+        registry: HashMap<String, InnerFile>? = null
+    ): InnerFile {
+        if (name in children) return children[name]!!
+        val relativePath = getSubName(name)
+        return registry?.getOrPut(relativePath) { createImageChild(name, content, null) }
+            ?: InnerImageFile("$absolutePath/$name", relativePath, this, content)
+    }
+
+    fun createStreamChild(
+        name: String,
+        content: () -> InputStream,
+        registry: HashMap<String, InnerFile>? = null
+    ): InnerFile {
+        if (name in children) return children[name]!!
+        val relativePath = getSubName(name)
+        return registry?.getOrPut(relativePath) { createStreamChild(name, content, null) }
+            ?: InnerStreamFile("$absolutePath/$name", relativePath, this, content)
     }
 
 }

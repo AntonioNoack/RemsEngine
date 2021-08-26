@@ -9,24 +9,18 @@ import me.anno.engine.scene.PrefabHelper.addC
 import me.anno.engine.scene.PrefabHelper.addE
 import me.anno.engine.scene.PrefabHelper.setC
 import me.anno.engine.scene.PrefabHelper.setE
-import me.anno.engine.ui.render.RenderView
 import me.anno.io.files.StaticRef
 import me.anno.io.text.TextWriter
-import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.utils.OS
 import org.joml.Vector3d
 import org.joml.Vector3f
-import kotlin.math.cos
-import kotlin.math.max
-import kotlin.math.pow
-import kotlin.math.sin
 
 object ScenePrefab : StaticRef("Scene.prefab", lazy {
     TextWriter.toText(Prefab("Entity").apply {
         val changes = ArrayList<Change>()
         this.changes = changes
-        changes.add(CSet(Path(), "name", "Root"))
-        changes.add(CSet(Path(), "desc", "Contains the major components"))
+        changes.add(CSet(Path.ROOT_PATH, "name", "Root"))
+        changes.add(CSet(Path.ROOT_PATH, "desc", "Contains the major components"))
         val names = listOf("Globally Shared", "Player Prefab", "Locally Shared", "Local Players", "Remote Players")
         val descs = listOf(
             "The world, which is shared",
@@ -35,7 +29,7 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
             "Populated at runtime with the players on this PC; can be trusted",
             "Populated at runtime with players from different PCs, states, continents; may not be trusted"
         )
-        val root = Path()
+        val root = Path.ROOT_PATH
         for (i in names.indices) {
             val e = addE(changes, root, names[i])
             setC(changes, e, "desc", descs[i])
@@ -60,7 +54,8 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         ///////////////////////
 
         val lights = addE(changes, world, "Lights")
-        addC(changes, lights, "AmbientLight")
+        val ambient = addC(changes, lights, "AmbientLight")
+        setC(changes, ambient, "color", Vector3f(1f))
 
         /*val pointLight = addE(changes, lights, "Point Light")
         setE(changes, pointLight, "position", Vector3d(0.0, 50.0, 0.0))
@@ -76,7 +71,7 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         setE(changes, spotLight, "scale", Vector3d(100.0))
         addC(changes, spotLight, "SpotLight")*/
 
-        val ringOfLights = addE(changes, lights, "Ring Of Lights")
+        /*val ringOfLights = addE(changes, lights, "Ring Of Lights")
         val ringLightCount = RenderView.MAX_LIGHTS - 4
         val lightLevel = 20f / max(3, ringLightCount)
         for (i in 0 until ringLightCount) {
@@ -87,7 +82,7 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
             setE(changes, light, "scale", Vector3d(100.0))
             val c = addC(changes, light, "PointLight")
             setC(changes, c, "color", HSLuv.toRGB(Vector3f(angle.toFloat(), 0.7f, 0.7f)).mul(lightLevel))
-        }
+        }*/
 
         ////////////////////
         // physics tests //
@@ -143,7 +138,7 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         }*/
 
         // add a cube of cubes for frustum testing
-        val frustum = addE(changes, world, "Frustum Testing")
+        /*val frustum = addE(changes, world, "Frustum Testing")
         for (x in -5..5) {
             // for testing bounding boxes more
             val xGroup = addE(changes, frustum, "Group-$x")
@@ -160,7 +155,7 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
                     // addC(changes, cube, "Rigidbody")
                 }
             }
-        }
+        }*/
 
         // normal testing
         /*val normalTesting = addE(changes, world, "Normal Testing")
@@ -176,14 +171,14 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
 
 
         // row of planets
-        val spherePath = OS.documents.getChild("sphere.obj")
+        /*val spherePath = OS.documents.getChild("sphere.obj")
         val planets = addE(changes, world, "Planets")
         for (i in -50..50) {
             val size = 10.0.pow(i.toDouble())
             val sphere = addE(changes, planets, "Sphere 1e$i", spherePath)
             setE(changes, sphere, "position", Vector3d(0.0, 0.0, 3.0 * size))
             setE(changes, sphere, "scale", Vector3d(size))
-        }
+        }*/
 
     }, false).toByteArray()
 }) {

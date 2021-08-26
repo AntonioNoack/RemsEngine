@@ -9,12 +9,12 @@ import me.anno.gpu.RenderState.blendMode
 import me.anno.gpu.RenderState.depthMode
 import me.anno.gpu.Window
 import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.drawing.Perspective.perspective2
 import me.anno.input.Input
-import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.studio.StudioBase
 import me.anno.ui.base.Panel
-import me.anno.utils.Maths.pow
+import me.anno.utils.maths.Maths.pow
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
@@ -68,7 +68,7 @@ fun main() {
                     GFX.check()
 
                     transform.identity()
-                    transform.perspective(1.5f, GFX.width / GFX.height.toFloat(), 0.01f, 1000f)
+                    transform.perspective2(1.5f, GFX.width / GFX.height.toFloat(), 0.01f, 1000f)
                     transform.translate(0f, 0f, -radius)
                     transform.rotateX(rot.x)
                     transform.rotateY(rot.y)
@@ -76,7 +76,7 @@ fun main() {
                     extCamera.update(transform)
 
                     blendMode.use(BlendMode.DEFAULT) {
-                        depthMode.use(DepthMode.LESS_EQUAL) {
+                        depthMode.use(DepthMode.GREATER_EQUAL) {
                             viewer.glRender()
                         }
                     }

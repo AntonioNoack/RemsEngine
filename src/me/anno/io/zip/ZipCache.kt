@@ -2,6 +2,7 @@ package me.anno.io.zip
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
+import me.anno.image.ImageReader
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
 import me.anno.io.unity.UnityReader
@@ -13,7 +14,9 @@ import me.anno.io.zip.InnerTarFile.Companion.readAsGZip
 import me.anno.io.zip.InnerZipFile.Companion.createZipRegistryV2
 import me.anno.io.zip.InnerZipFile.Companion.fileFromStreamV2
 import me.anno.mesh.assimp.AnimatedMeshesLoader
+import me.anno.mesh.obj.MTLReader
 import me.anno.mesh.vox.VOXReader
+import me.anno.objects.documents.pdf.PDFCache
 import org.apache.logging.log4j.LogManager
 
 object ZipCache : CacheSection("ZipCache") {
@@ -38,16 +41,27 @@ object ZipCache : CacheSection("ZipCache") {
                     "rar" -> createZipRegistryRar(file) { fileFromStreamRar(file) }
                     "gzip", "tar" -> readAsGZip(file)
                     // todo all mesh extensions
-                    "fbx", "gltf", "obj", "dae", "blend", "draco" -> AnimatedMeshesLoader.readAsFolder(file)
+                    "fbx", "gltf", "obj", "dae", "blend",
+                    "draco", "md2", "md5mesh" ->
+                        AnimatedMeshesLoader.readAsFolder(file)
+                    "mtl" -> MTLReader.readAsFolder(file)
+                    "pdf" -> PDFCache.readAsFolder(file)
                     "vox" -> VOXReader.readAsFolder(file)
                     "zip" -> createZipRegistryV2(file) { fileFromStreamV2(file) }
-                    null, "xml", "yaml" -> {
-                        when (file.extension) {
+                    // todo all image formats
+                    "png", "jpg", "bmp", "pds", "hdr", "webp", "tga", "ico" ->
+                        ImageReader.readAsFolder(file)
+                    null, "xml", "yaml", "json" -> {
+                        when (file.lcExtension) {
                             // todo all mesh extensions
-                            "fbx", "gltf", "glb", "obj", "dae", "blend", "draco" ->
+                            "fbx", "gltf", "glb", "obj", "dae", "blend", "draco",
+                            "md2", "md5mesh" ->
                                 AnimatedMeshesLoader.readAsFolder(file)
+                            "mtl" -> MTLReader.readAsFolder(file)
                             "vox" -> VOXReader.readAsFolder(file)
                             "mat", "prefab", "unity", "asset", "controller" -> UnityReader.readAsFolder(file)
+                            // todo all image formats
+                            "png", "jpg", "bmp", "pds", "hdr", "webp", "tga" -> ImageReader.readAsFolder(file)
                             else -> createZipRegistryV2(file) { fileFromStreamV2(file) }
                         }
                     }
@@ -69,7 +83,7 @@ object ZipCache : CacheSection("ZipCache") {
         return parent to path
     }
 
-    val timeout = 10000L
+    val timeout = 60_000L
 
     // opening a packed stream again would be really expensive for large packages
     // todo is there a better strategy than this?? maybe index a few on every go to load something

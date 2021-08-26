@@ -2,7 +2,7 @@ package me.anno.ui.editor.color.spaces
 
 import me.anno.language.translation.NameDesc
 import me.anno.ui.editor.color.ColorSpace
-import me.anno.utils.Maths
+import me.anno.utils.maths.Maths
 import org.joml.Vector3f
 import kotlin.math.PI
 import kotlin.math.cos
@@ -67,19 +67,19 @@ object LinearHSI : ColorSpace(
                 b = i * (1 - s)
                 r = i * (1 + s * cos(hAngle) / (cos(deg60 - h)))
                 g = 3 * i - b - r
-                println("1 $b $r $g")
+                // LOGGER.info("1 $b $r $g")
             }
             h6 <= 4f -> {
                 r = i * (1 - s)
                 g = i * (1 + s * cos(2f * deg60 - hAngle) / cos(3f * deg60 - hAngle))
                 b = 3 * i - r - g
-                println("2 $r $g $b")
+                // LOGGER.info("2 $r $g $b")
             }
             else -> {
                 g = i * (1 - s)
                 b = i * (1 + s * cos(4f * deg60 - hAngle) / cos(5f * deg60 - hAngle))
                 r = 3 * i - b - g
-                println("3 $g $b $r")
+                // LOGGER.info("3 $g $b $r")
             }
         }
         return Vector3f(r, g, b)

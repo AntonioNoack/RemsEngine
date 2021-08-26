@@ -30,7 +30,7 @@ fun test(){
         }.data.toString()
     }
     // readerFile.writeText(readerText)
-    // println(readerText)
+    // LOGGER.info(readerText)
     // val nativeFile = File.createTempFile("RemsStudio", ".tmp")
     val nativeText = (0 until lines).joinToString("\n") { genName() }
     // nativeFile.writeText(nativeText)

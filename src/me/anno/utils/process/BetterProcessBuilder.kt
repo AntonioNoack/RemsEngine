@@ -1,7 +1,7 @@
 package me.anno.utils.process
 
 import me.anno.config.DefaultConfig
-import me.anno.utils.Maths.clamp
+import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 

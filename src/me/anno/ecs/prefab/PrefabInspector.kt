@@ -1,7 +1,7 @@
 package me.anno.ecs.prefab
 
 import me.anno.ecs.Component
-import me.anno.ecs.prefab.Prefab.Companion.loadPrefab
+import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.engine.IProperty
 import me.anno.engine.ui.ComponentUI
 import me.anno.engine.ui.DefaultLayout
@@ -33,8 +33,7 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
     constructor(prefab: Prefab) : this(prefab.src, prefab)
 
     constructor(reference: FileReference, classNameIfNull: String) : this(
-        reference,
-        loadPrefab(reference) ?: Prefab(classNameIfNull)
+        reference, loadPrefab(reference) ?: Prefab(classNameIfNull)
     )
 
     val history: ChangeHistory = prefab.history ?: ChangeHistory()
@@ -276,7 +275,7 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
         val targetSize = path.indices.size
         val changedArrays = HashSet<IntArray>()
         for (change in changes) {
-            val path2 = change.path!!
+            val path2 = change.path
             val indices = path2.indices
             val types = path2.types
             if (change is CSet &&

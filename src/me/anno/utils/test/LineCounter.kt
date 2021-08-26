@@ -1,10 +1,11 @@
 package me.anno.utils.test
 
+import me.anno.utils.LOGGER
 import java.io.File
 import java.util.*
 
 fun main(){
-    println(
+    LOGGER.info(
         countLines(
             File("C:\\Users\\Antonio\\Documents\\IdeaProjects\\VideoStudio\\src\\me\\anno")
         )

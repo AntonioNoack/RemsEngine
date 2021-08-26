@@ -1,10 +1,11 @@
 package me.anno.utils.test
 
+import me.anno.utils.LOGGER
 import me.anno.utils.structures.SecureStack
 
 val stack = object : SecureStack<Int>(0) {
     override fun onChangeValue(newValue: Int, oldValue: Int) {
-        println("$oldValue -> $newValue")
+        LOGGER.info("$oldValue -> $newValue")
     }
 }
 
@@ -14,12 +15,12 @@ fun main() {
         stack.use(1) {
             stack.use(2) {
                 stack.use(3) {
-                    println("top")
+                    LOGGER.info("top")
                 }
             }
         }
 
-        println("level zero")
+        LOGGER.info("level zero")
 
         stack.use(1) {
             stack.use(2) {
@@ -32,9 +33,9 @@ fun main() {
         e.printStackTrace()
     }
 
-    println(stack)
-    testFun(17){
-        println(stack)
+    LOGGER.info(stack)
+    testFun(17) {
+        LOGGER.info(stack)
     }
 
 

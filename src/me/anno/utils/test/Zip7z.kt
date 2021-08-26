@@ -1,10 +1,11 @@
 package me.anno.utils.test
 
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.utils.LOGGER
 
 fun main() {
 
     val file = getReference("C:\\Users\\Antonio\\Pictures\\RemsStudio/zip.7z")
-    println(file.listChildren())
+    LOGGER.info(file.listChildren())
 
 }

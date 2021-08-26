@@ -1,8 +1,9 @@
 package me.anno.ecs.components.collider
 
 import me.anno.utils.Color.rgba
-import me.anno.utils.Maths.fract
+import me.anno.utils.maths.Maths.fract
 import me.anno.utils.image.ImageWriter
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 
 fun main() {
@@ -49,15 +50,17 @@ fun main() {
 
 fun renderSDF(collider: Collider, name: String) {
 
+    val logger = LogManager.getLogger("SDFTest")
+
     val size = 8.0f
     val res = 512
 
     val scale = Vector3f(size / (res - 1))
     val offset = Vector3f(size * 0.5f, size * 0.5f, 0f)
 
-    println()
-    println(collider.name.ifEmpty { collider.className })
-    println(
+    logger.info()
+    logger.info(collider.name.ifEmpty { collider.className })
+    logger.info(
         "raycast from 1,0,0 to 0,0,0: " + collider.raycast(
             Vector3f(1f, 0f, 0f),
             Vector3f(-1f, 0f, 0f),
@@ -65,8 +68,8 @@ fun renderSDF(collider: Collider, name: String) {
             1f
         )
     )
-    println("distance at 0,0,0: " + collider.getSignedDistance(Vector3f()))
-    println("distance at 1,0,0: " + collider.getSignedDistance(Vector3f(1f, 0f, 0f)))
+    logger.info("distance at 0,0,0: " + collider.getSignedDistance(Vector3f()))
+    logger.info("distance at 1,0,0: " + collider.getSignedDistance(Vector3f(1f, 0f, 0f)))
 
     ImageWriter.writeImageFloatMSAA(res, res, name, 512, false) { x, y ->
         val pos = Vector3f(x, y, 0f)

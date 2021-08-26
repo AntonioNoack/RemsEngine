@@ -6,11 +6,10 @@ import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.io.files.FileReference
 import me.anno.ui.base.Font
 import me.anno.ui.base.text.TextPanel
-import me.anno.utils.Maths.fract
+import me.anno.utils.maths.Maths.fract
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.structures.lists.ExpensiveList
 import me.anno.utils.types.Floats.f1
-import java.io.File
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.floor
@@ -54,7 +53,7 @@ object Strings {
 
     fun String.getImportType(): String =
         DefaultConfig["import.mapping.$this"]?.toString()
-            ?: DefaultConfig["import.mapping.${lowercase(Locale.getDefault())}"]?.toString()
+            ?: DefaultConfig["import.mapping.${lowercase()}"]?.toString()
             ?: DefaultConfig["import.mapping.*"]?.toString() ?: defaultImportType
 
     // 00:57:28.87 -> 57 * 60 + 28.87

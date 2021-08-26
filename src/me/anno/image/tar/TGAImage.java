@@ -6,6 +6,7 @@
  */
 package me.anno.image.tar;
 
+import me.anno.gpu.texture.Texture2D;
 import me.anno.image.Image;
 import me.anno.io.BufferedIO;
 
@@ -25,17 +26,16 @@ import java.io.InputStream;
  */
 public class TGAImage extends Image {
 
-    public int channels;
     public int originalImageType, originalPixelDepth;
 
     // bgra, even if the implementation calls it rgba
     public byte[] data;
 
     public TGAImage(byte[] data, int width, int height, int channels) {
+        super(channels, channels > 3);
         this.data = data;
         this.width = width;
         this.height = height;
-        this.channels = channels;
     }
 
     private static int rgba(int b, int g, int r, int a) {
@@ -43,9 +43,49 @@ public class TGAImage extends Image {
     }
 
     @Override
+    public void createTexture(Texture2D texture, boolean checkRedundancy) {
+        switch (getNumChannels()) {
+            case 1:
+                texture.createMonochrome(data, checkRedundancy);
+                break;
+            case 3:
+                texture.createBGR(data, checkRedundancy);
+                break;
+            case 4:
+                texture.createBGRA(data, checkRedundancy);
+                break;
+            default:
+                throw new RuntimeException(getNumChannels() + " channels?");
+        }
+    }
+
+    @Override
+    public int getRGB(int index) {
+        switch (getNumChannels()) {
+            case 1:
+                return 0x10101 * (int) data[index];
+            case 2:// green and blue only, green comes first
+                int j = index * 2;
+                return rgba(0, data[j], data[j + 1], 255);
+            case 3:
+                j = index * 3;
+                return rgba(data[j], data[j + 1], data[j + 2], 255);
+            case 4:
+                j = index * 4;
+                return rgba(data[j], data[j + 1], data[j + 2], data[j + 3]);
+            default:
+                throw new RuntimeException("" + getNumChannels() + " channels?");
+        }
+    }
+
+    @Override
     public BufferedImage createBufferedImage() {
-        BufferedImage image = new BufferedImage(width, height, channels > 3 ? 2 : 1);
+        BufferedImage image = new BufferedImage(
+                width, height,
+                getNumChannels() > 3 ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB
+        );
         DataBuffer buffer = image.getRaster().getDataBuffer();
+        int channels = getNumChannels();
         for (int y = 0, i = 0, j = 0; y < height; y++) {
             for (int x = 0; x < width; x++, i++, j += channels) {
                 int color;
@@ -141,7 +181,7 @@ public class TGAImage extends Image {
         }
         if ((imageDescriptor & 16) != 0) // bit 4 : if 1, flip left/right ordering
         {
-            flipH = !flipH;
+            flipH = true;
         }
 
         // ---------- Done Reading the TGA header ---------- //
@@ -161,7 +201,6 @@ public class TGAImage extends Image {
             byte[] cMapData = new byte[bytesInColorMap];
             dis.readFully(cMapData, 0, bytesInColorMap);
 
-            ColorMapEntry entry = new ColorMapEntry();
             // Only go to the trouble of constructing the color map
             // table if this is declared a color mapped image.
             if (imageType == TYPE_COLORMAPPED || imageType == TYPE_COLORMAPPED_RLE) {
@@ -557,17 +596,4 @@ public class TGAImage extends Image {
         return ((b & 255) << 16) | ((g & 255) << 8) | (r & 255) | ((a & 255) << 24);
     }
 
-    static class ColorMapEntry {
-
-        byte b, g, r, a;
-
-        int getABGR() {
-            return (((int) b & 255) << 16) | (((int) g & 255) << 8) | ((int) r & 255) | (((int) a & 255) << 24);
-        }
-
-        @Override
-        public String toString() {
-            return "entry: " + b + "," + g + "," + r + "," + a;
-        }
-    }
 }

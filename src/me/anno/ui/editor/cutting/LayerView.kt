@@ -35,9 +35,9 @@ import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.studio.rems.ui.StudioFileImporter.addChildFromFile
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.clamp
-import me.anno.utils.Maths.mix
-import me.anno.utils.Maths.sq
+import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.maths.Maths.mix
+import me.anno.utils.maths.Maths.sq
 import me.anno.utils.hpc.ProcessingQueue
 import kotlin.math.abs
 import kotlin.math.roundToInt

@@ -1,27 +1,30 @@
 package me.anno.ecs.components.anim
 
 import me.anno.ecs.Entity
+import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import org.joml.Matrix4x3f
 
 // todo blend animations...
 // todo allow procedural animations; for that we'd need more knowledge about the model...
 abstract class Animation : NamedSaveable {
 
-    constructor(): super()
+    constructor() : super()
 
     constructor(name: String, duration: Double) : super() {
         this.name = name
         this.duration = duration
     }
 
-    // todo an animation should have a skeleton, so we can compare, whether we need to map the animations
+    final override var name: String = ""
 
     var duration = 1.0
 
-    var skeleton: Skeleton? = null
+    var skeleton: FileReference = InvalidRef
 
     abstract fun getMatrices(entity: Entity, time: Float, dst: Array<Matrix4x3f>): Array<Matrix4x3f>?
 
@@ -35,7 +38,7 @@ abstract class Animation : NamedSaveable {
         if (retargeting.isIdentityMapping) return base
         if (retargeting.srcSkeleton != skeleton) throw RuntimeException("Incompatible skeletons!")
         retargeting.validate()
-        for (it in retargeting.dstSkeleton!!.bones!!.indices) {
+        for (it in SkeletonCache[retargeting.dstSkeleton]!!.bones.indices) {
             val bm = base.getOrNull(retargeting.mapping[it])
             if (bm != null) dst[it].set(bm)
             else dst[it].identity()
@@ -51,7 +54,7 @@ abstract class Animation : NamedSaveable {
     ): Array<Matrix4x3f> {
         val base = getMappedMatrices(entity, time, dst, retargeting)
         if (base == null) {
-            for (i in retargeting.dstSkeleton!!.bones!!.indices) {
+            for (i in SkeletonCache[retargeting.dstSkeleton]!!.bones.indices) {
                 dst[i].identity()
             }
         }
@@ -61,7 +64,7 @@ abstract class Animation : NamedSaveable {
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeDouble("duration", duration)
-        writer.writeObject(this, "skeleton", skeleton)
+        writer.writeFile("skeleton", skeleton)
     }
 
     override fun readDouble(name: String, value: Double) {
@@ -71,10 +74,10 @@ abstract class Animation : NamedSaveable {
         }
     }
 
-    override fun readObject(name: String, value: ISaveable?) {
-        when (name) {
-            "skeleton" -> skeleton = value as? Skeleton
-            else -> super.readObject(name, value)
+    override fun readFile(name: String, value: FileReference) {
+        when(name){
+            "skeleton" -> skeleton = value
+            else -> super.readFile(name, value)
         }
     }
 

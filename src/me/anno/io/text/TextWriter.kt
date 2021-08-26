@@ -4,8 +4,8 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.utils.Maths.absMax
-import me.anno.utils.Maths.min
+import me.anno.utils.maths.Maths.absMax
+import me.anno.utils.maths.Maths.min
 import me.anno.utils.types.Strings
 import me.anno.utils.types.Strings.isBlank2
 import org.joml.*
@@ -109,10 +109,22 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         }
     }
 
+    fun append(value: Char) {
+        when (value) {
+            in 'A'..'Z', in 'a'..'z', in '0'..'9',
+            in " _+-*/!§$%&()[]{}|~<>" -> {
+                data.append('\'')
+                data.append(value)
+                data.append('\'')
+            }
+            else -> data.append(value.code)
+        }
+    }
+
     override fun writeChar(name: String, value: Char, force: Boolean) {
         if (force || value != 0.toChar()) {
             writeAttributeStart("c", name)
-            data.append(value.code.toString())
+            append(value)
         }
     }
 
@@ -120,7 +132,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart("c[]", name)
             writeArray(values.size, values.indexOfLast { it.code != 0 }) {
-                data.append(values[it].code)
+                append(values[it])
             }
         }
     }
@@ -128,7 +140,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     override fun writeCharArray2D(name: String, values: Array<CharArray>, force: Boolean) {
         writeArray(name, values, force, "c[][]") { arr ->
             writeArray(arr.size, arr.indexOfLast { it.code != 0 }) {
-                data.append(arr[it].code)
+                append(arr[it])
             }
         }
     }
@@ -880,7 +892,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         writeArray(values.size, values.size) { i ->
             val arr = values[i]
             writeArray(arr.size, arr.size) {
-                writeObject(null,null,arr[it],true)
+                writeObject(null, null, arr[it], true)
             }
         }
     }
@@ -911,14 +923,14 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
 
     companion object {
 
-        fun toText(data: List<ISaveable>, beautify: Boolean): String {
+        fun toText(data: List<ISaveable>, beautify: Boolean = false): String {
             val writer = TextWriter(beautify)
             for (entry in data) writer.add(entry)
             writer.writeAllInList()
             return writer.toString()
         }
 
-        fun toText(data: ISaveable, beautify: Boolean): String {
+        fun toText(data: ISaveable, beautify: Boolean = false): String {
             val writer = TextWriter(beautify)
             writer.add(data)
             writer.writeAllInList()

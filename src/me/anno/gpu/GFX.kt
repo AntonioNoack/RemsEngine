@@ -1,6 +1,7 @@
 package me.anno.gpu
 
 import me.anno.config.DefaultConfig
+import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.RenderState.blendMode
 import me.anno.gpu.RenderState.currentRenderer
 import me.anno.gpu.RenderState.depthMode
@@ -8,11 +9,11 @@ import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.ShaderLib.copyShader
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.SimpleBuffer
+import me.anno.gpu.drawing.Perspective.perspective2
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer.Companion.idRenderer
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
@@ -28,7 +29,7 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.debug.FrameTimes
 import me.anno.utils.Clock
-import me.anno.utils.Maths.pow
+import me.anno.utils.maths.Maths.pow
 import me.anno.utils.types.Vectors.minus
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
@@ -61,8 +62,7 @@ object GFX : GFXBase1() {
     // so just use a static variable
     var isFinalRendering = false
 
-    // var drawMode = ShaderPlus.DrawMode.COLOR_SQUARED
-    val drawMode get() = RenderState.currentRenderer.drawMode
+    val drawMode get() = currentRenderer.drawMode
 
     var supportsAnisotropicFiltering = false
     var anisotropy = 1f
@@ -242,7 +242,7 @@ object GFX : GFXBase1() {
         val up = cameraTransform2.transformProject(Vector3f(0f, 1f, 0f)) - position
         val lookAt = cameraTransform2.transformProject(Vector3f(0f, 0f, -1f))
         stack
-            .perspective(
+            .perspective2(
                 Math.toRadians(fov.toDouble()).toFloat(),
                 windowWidth * 1f / windowHeight, near, far
             )
@@ -334,6 +334,7 @@ object GFX : GFXBase1() {
         tick.stop("render step zero")
         TextureLib.init()
         ShaderLib.init()
+        ECSShaderLib.init()
     }
 
     /**
@@ -372,7 +373,7 @@ object GFX : GFXBase1() {
     fun ensureEmptyStack() {
         /*if (Framebuffer.stack.size > 0) {
             /*Framebuffer.stack.forEach {
-                println(it)
+                LOGGER.infoit)
             }
             throw RuntimeException("Catched ${Framebuffer.stack.size} items on the Framebuffer.stack")
             exitProcess(1)*/

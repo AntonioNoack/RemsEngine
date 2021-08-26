@@ -1,5 +1,6 @@
 package me.anno.engine.raycast
 
+import me.anno.ecs.Component
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Mesh
 import org.joml.AABBd
@@ -12,6 +13,7 @@ class RayHit {
     var distance = 0.0
     var collider: Collider? = null
     var mesh: Mesh? = null
+    var component: Component? = null
 
     // collision algorithms require a bit of temporary storage for convenience
     // this pre-allocates the maximum, it will require
@@ -42,7 +44,7 @@ class RayHit {
     ) {
         // transform the local position back
         val hitPosition = positionWS.set(localDir).mul(localDistance.toDouble()).add(localStart)
-        // println("hit position $hitPosition from local hit $localStart + $localDistance * $localDir")
+        // LOGGER.info("hit position $hitPosition from local hit $localStart + $localDistance * $localDir")
         globalTransform.transformPosition(hitPosition)
         val hitNormal = normalWS.set(localNormal)
         globalTransform.transformDirection(hitNormal)
@@ -59,7 +61,7 @@ class RayHit {
     ) {
         // transform the local position back
         val hitPosition = positionWS.set(localHit)
-        // println("hit position $hitPosition from local hit $localHit")
+        // LOGGER.info("hit position $hitPosition from local hit $localHit")
         globalTransform.transformPosition(hitPosition)
         val hitNormal = normalWS.set(localNormal)
         globalTransform.transformDirection(hitNormal)

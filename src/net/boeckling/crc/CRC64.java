@@ -22,7 +22,7 @@ import java.util.zip.Checksum;
  */
 public class CRC64 implements Checksum {
 
-    private final static long POLY = (long) 0xc96c5795d7870f42L; // ECMA-182
+    private final static long POLY = 0xc96c5795d7870f42L; // ECMA-182
 
     /* CRC64 calculation table. */
     private final static long[][] table;
@@ -292,8 +292,6 @@ public class CRC64 implements Checksum {
 
     @Override
     public String toString() {
-        return "CRC64{" +
-                "value=" + Long.toUnsignedString(value, 16) +
-                '}';
+        return "CRC64{value=" + Long.toUnsignedString(value, 16) + '}';
     }
 }

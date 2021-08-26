@@ -1,22 +1,18 @@
 package me.anno.studio.rems
 
 import me.anno.installer.Installer
-import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.utils.OS
-import me.anno.utils.Threads.threadWithName
-import me.anno.utils.files.Files.openInExplorer
+import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.files.OpenInBrowser.openInBrowser
 import org.apache.logging.log4j.LogManager
-import java.io.File
 import java.io.IOException
 import java.net.URI
 import java.net.URL
-import kotlin.concurrent.thread
 
 object CheckVersion {
 

@@ -5,8 +5,8 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input
 import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.clamp
-import me.anno.utils.Maths.mix
+import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.maths.Maths.mix
 import kotlin.math.min
 
 open class Scrollbar(style: Style) : Panel(style.getChild("scrollbar")) {

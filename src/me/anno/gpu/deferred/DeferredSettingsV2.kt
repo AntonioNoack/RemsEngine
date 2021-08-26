@@ -3,6 +3,7 @@ package me.anno.gpu.deferred
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.builder.Variable
 import kotlin.math.max
 
 class DeferredSettingsV2(
@@ -66,13 +67,12 @@ class DeferredSettingsV2(
         geometrySource: String?,
         instanced: Boolean,
         vertexSource: String,
-        varyingSource: String,
+        varyingSource: List<Variable>,
         fragmentSource: String,
         textures: List<String>?
     ): Shader {
         // what do we do, if the position is missing? we cannot do anything...
         val vertex = if (instanced) "#define INSTANCED;\n$vertexSource" else vertexSource
-        val varying = varyingSource + ""
         val fragment = StringBuilder(16)
         appendLayerDeclarators(fragment)
         val oldFragmentCode = fragmentSource
@@ -90,7 +90,7 @@ class DeferredSettingsV2(
 
         fragment.append("}")
 
-        val shader = Shader(shaderName, geometrySource, vertex, varying, fragment.toString())
+        val shader = Shader(shaderName, geometrySource, vertex, varyingSource, fragment.toString())
         shader.glslVersion = 330
         shader.setTextureIndices(textures)
         return shader
@@ -142,8 +142,7 @@ class DeferredSettingsV2(
                 "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
                 "   uv = attr0;\n" +
                 "}"
-        val varying = "" +
-                "varying vec2 uv;\n"
+        val varying = listOf(Variable("vec2", "uv"))
         return createPostProcessingShader(shaderName, vertex, varying, geometrySource, fragmentSource, textures)
     }
 
@@ -194,7 +193,7 @@ class DeferredSettingsV2(
     fun createPostProcessingShader(
         shaderName: String,
         vertex: String,
-        varying: String,
+        varying: List<Variable>,
         geometrySource: String?,
         fragmentSource: String,
         textures: List<String>?
@@ -208,7 +207,7 @@ class DeferredSettingsV2(
     fun createPostProcessingShader(
         shaderName: String,
         vertex: String,
-        varying: String,
+        varying: List<Variable>,
         fragmentSource: String,
         textures: List<String>?
     ): BaseShader {

@@ -1,15 +1,18 @@
 package me.anno.ecs.components.anim
 
+import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 
 class Retargeting : NamedSaveable() {
 
-    var srcSkeleton: Skeleton? = null
-    var dstSkeleton: Skeleton? = null
+    var srcSkeleton: FileReference = InvalidRef
+    var dstSkeleton: FileReference = InvalidRef
 
-    val src get() = srcSkeleton?.bones?.map { it.name }
+    val src get() = SkeletonCache[srcSkeleton]?.bones?.map { it.name }
     var dst = emptyList<String>()
 
     var isValid = false
@@ -40,20 +43,16 @@ class Retargeting : NamedSaveable() {
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeObject(this, "srcSkeleton", srcSkeleton)
-        writer.writeObject(this, "dstSkeleton", dstSkeleton)
+        writer.writeFile("srcSkeleton", srcSkeleton)
+        writer.writeFile("dstSkeleton", dstSkeleton)
         writer.writeStringArray("dstNames", dst.toTypedArray())
     }
 
-    override fun readObject(name: String, value: ISaveable?) {
-        when (name) {
-            "srcSkeleton" -> {
-                srcSkeleton = value as? Skeleton; invalidate()
-            }
-            "dstSkeleton" -> {
-                dstSkeleton = value as? Skeleton; invalidate()
-            }
-            else -> super.readObject(name, value)
+    override fun readFile(name: String, value: FileReference) {
+        when(name){
+            "srcSkeleton" -> srcSkeleton = value
+            "dstSkeleton" -> dstSkeleton = value
+            else -> super.readFile(name, value)
         }
     }
 

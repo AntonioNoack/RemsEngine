@@ -26,7 +26,7 @@ class RGBAFrame(w: Int, h: Int) : RGBFrame(w, h) {
         data.position(0)
         creationLimiter.acquire()
         GFX.addGPUTask(w, h) {
-            rgb.createRGBA(data)
+            rgb.createRGBA(data, true)
             creationLimiter.release()
         }
     }

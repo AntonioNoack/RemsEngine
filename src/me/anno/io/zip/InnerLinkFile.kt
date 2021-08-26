@@ -15,6 +15,9 @@ class InnerLinkFile(
         content
     )
 
+    override fun readBytes(): ByteArray = link.readBytes()
+    override fun readText(): String = link.readText()
+
     override fun getInputStream(): InputStream {
         return link.inputStream()
     }

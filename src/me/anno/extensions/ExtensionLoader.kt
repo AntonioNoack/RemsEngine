@@ -9,7 +9,7 @@ import me.anno.io.config.ConfigBasics.configFolder
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.studio.StudioBase
-import me.anno.utils.Threads.threadWithName
+import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.hpc.HeavyProcessing.processStage
 import org.apache.logging.log4j.LogManager
 import java.io.BufferedReader
@@ -192,7 +192,7 @@ object ExtensionLoader {
         ZipInputStream(file.inputStream()).use { zis ->
             while (true) {
                 val entry = zis.nextEntry ?: break
-                if (entry.name == "extension.info") {
+                if (entry.name == "extension.info(") {
                     val reader = BufferedReader(zis.reader())
                     var name = ""
                     var version = ""

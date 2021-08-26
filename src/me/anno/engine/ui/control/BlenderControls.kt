@@ -6,7 +6,7 @@ import me.anno.gpu.drawing.DrawTexts
 import me.anno.input.Input.isShiftDown
 import me.anno.input.MouseButton
 import me.anno.parser.SimpleExpressionParser
-import me.anno.utils.Maths.length
+import me.anno.utils.maths.Maths.length
 import me.anno.utils.types.Vectors.safeNormalize
 import org.joml.Matrix4x3d
 import org.joml.Vector3d

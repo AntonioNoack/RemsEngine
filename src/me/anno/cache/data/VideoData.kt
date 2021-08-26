@@ -1,7 +1,5 @@
 package me.anno.cache.data
 
-import me.anno.cache.instances.VideoCache
-import me.anno.cache.keys.VideoFrameKey
 import me.anno.io.files.FileReference
 import me.anno.studio.rems.RemsStudio.gfxSettings
 import me.anno.video.FFMPEGMetadata
@@ -12,29 +10,21 @@ import kotlin.math.max
 class VideoData(
     val file: FileReference, val w: Int, val h: Int,
     val scale: Int, val bufferIndex: Int,
-    bufferLength: Int, val fps: Double,
-    val ownsFrames: Boolean
+    bufferLength: Int, val fps: Double
 ) : ICacheData {
 
     init {
         val meta = FFMPEGMetadata.getMeta(file, false)!!
         val frame0 = bufferIndex * bufferLength
         if (frame0 <= -bufferLength || frame0 >= max(1, meta.videoFrameCount))
-            LOGGER.warn("Access of frames is out of bounds: $frame0/${meta.videoFrameCount}")
+            LOGGER.warn("Access of frames is out of bounds: $frame0/$bufferLength/${meta.videoFrameCount}")
     }
 
     // what about video webp? I think it's pretty rare...
     val stream = FFMPEGStream.getImageSequence(
         file, w, h, bufferIndex * bufferLength,
         if (file.name.endsWith(".webp", true)) 1 else bufferLength, fps
-    ) { frame, index ->
-        if (!ownsFrames) {
-            // on frame, if !ownsFrames, register in VideoCache
-            val localIndex = index % bufferLength
-            val key = VideoFrameKey(file, scale, bufferIndex, bufferLength, localIndex, fps)
-            VideoCache.override(key, frame, 5000)
-        }
-    }
+    )
 
     val frames = stream.frames
 
@@ -44,13 +34,12 @@ class VideoData(
 
     override fun destroy() {
         //if("128 per second" in file.name) LOGGER.debug("destroy v frames $file $w $h $index $bufferLength $fps")
-        if (ownsFrames) {
-            stream.destroy()
-        }
+        stream.destroy()
     }
 
     companion object {
         private val LOGGER = LogManager.getLogger(VideoData::class)
+
         // crashes once were common
         // now that this is fixed,
         // we can use a larger buffer size like 128 instead of 16 frames

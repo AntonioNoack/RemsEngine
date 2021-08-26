@@ -3,19 +3,17 @@ package me.anno.installer
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS
-import me.anno.utils.Threads.threadWithName
+import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.types.Strings.formatDownload
 import me.anno.utils.types.Strings.formatDownloadEnd
 import me.anno.video.FFMPEG
 import me.anno.video.FFMPEG.ffmpegPath
 import me.anno.video.FFMPEG.ffprobePath
 import org.apache.logging.log4j.LogManager
-import java.io.File
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import javax.net.ssl.SSLHandshakeException
-import kotlin.concurrent.thread
 
 object Installer {
 

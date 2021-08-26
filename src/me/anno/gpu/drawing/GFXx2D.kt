@@ -5,7 +5,11 @@ import me.anno.gpu.ShaderLib
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.GFXx3D.draw3DCircle
 import me.anno.gpu.shader.Shader
-import me.anno.utils.Maths.clamp
+import me.anno.objects.GFXTransform
+import me.anno.objects.GFXTransform.Companion.uploadAttractors0
+import me.anno.objects.Transform
+import me.anno.objects.Video
+import me.anno.utils.maths.Maths.clamp
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 
@@ -81,6 +85,15 @@ object GFXx2D {
         val relH = -h / GFX.windowHeight
         shader.v2("pos", posX, posY)
         shader.v2("size", relW, relH)
+    }
+
+    fun defineAdvancedGraphicalFeatures(shader: Shader) {
+        disableAdvancedGraphicalFeatures(shader)
+    }
+
+    fun defineAdvancedGraphicalFeatures(shader: Shader, transform: Transform?, time: Double) {
+        (transform as? GFXTransform)?.uploadAttractors(shader, time) ?: uploadAttractors0(shader)
+        GFXx3D.colorGradingUniforms(transform as? Video, time, shader)
     }
 
     fun disableAdvancedGraphicalFeatures(shader: Shader) {

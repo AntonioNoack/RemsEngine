@@ -2,11 +2,15 @@ package me.anno.mesh.assimp
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.ImportedAnimation
+import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.Shader
-import me.anno.utils.Maths
+import me.anno.utils.maths.Maths
+import me.anno.utils.types.AABBs.set
+import me.anno.utils.types.AABBs.transformProjectUnion
+import me.anno.utils.types.Matrices.mul2
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.lwjgl.opengl.GL21
@@ -22,13 +26,52 @@ class AnimGameItem(
     val animations: Map<String, me.anno.ecs.components.anim.Animation>
 ) {
 
-    constructor(hierarchy: Entity): this(hierarchy, emptyList(), emptyList(), emptyMap())
+    constructor(hierarchy: Entity) : this(hierarchy, emptyList(), emptyList(), emptyMap())
 
     val staticAABB = lazy {
         val rootEntity = hierarchy
         updateTransforms(rootEntity)
         // calculate/get the size
         calculateAABB(rootEntity)
+    }
+
+    /**
+     * calculates the bounds of the mesh
+     * not fast, but the gpu will take just as long -> doesn't matter
+     *
+     * the goal is to be accurate
+     * */
+    fun getBounds(transform: Matrix4f): AABBf {
+        val rootEntity = hierarchy
+        updateTransforms(rootEntity)
+        val vf = Vector3f()
+        val aabb = AABBf()
+        val testAABB = AABBf()
+        val jointMatrix = Matrix4f()
+        rootEntity.simpleTraversal(false) { entity ->
+            entity as Entity
+            val global = entity.transform.globalTransform
+            val meshes = entity.getComponents(MeshComponent::class, false)
+            for (comp in meshes) {
+
+                val mesh = MeshCache[comp.mesh] ?: continue
+                mesh.ensureBuffer()
+
+                // join the matrices for 2x better performance than without
+                jointMatrix.set(transform).mul2(global)
+
+                // if aabb u transform(mesh.aabb) == aabb, then skip this sub-mesh
+                mesh.aabb.transformProjectUnion(jointMatrix, testAABB.set(aabb))
+                if(testAABB != aabb){
+                    mesh.forEachPoint(false) { x, y, z ->
+                        aabb.union(jointMatrix.transformProject(vf.set(x, y, z)))
+                    }
+                }
+
+            }
+            false
+        }
+        return aabb
     }
 
     fun uploadJointMatrices(shader: Shader, animation: me.anno.ecs.components.anim.Animation, time: Double) {
@@ -66,7 +109,6 @@ class AnimGameItem(
         matrixBuffer.position(0)
         GL21.glUniformMatrix4x3fv(location, false, matrixBuffer)
     }
-
 
     companion object {
 
@@ -147,8 +189,9 @@ class AnimGameItem(
                 // todo render all them points, and use them for the bbx calculation (only if no meshes present)
                 // because animated clothing may be too small to see
                 val local = AABBd()
-                val meshes = entity.getComponents(Mesh::class, false)
-                for (mesh in meshes) {
+                val meshes = entity.getComponents(MeshComponent::class, false)
+                for (comp in meshes) {
+                    val mesh = MeshCache[comp.mesh] ?: continue
                     mesh.ensureBuffer()
                     local.union(mesh.aabb.toDouble())
                 }

@@ -3,7 +3,7 @@ package me.anno.ecs.components.camera
 import me.anno.ecs.Component
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
-import me.anno.utils.Maths.clamp
+import me.anno.utils.maths.Maths.clamp
 
 class CameraState : Component() {
 
@@ -31,7 +31,6 @@ class CameraState : Component() {
         super.copy(clone)
         clone as CameraState
         // mmh... may create issues:
-        // todo when these are in the tree being cloned, we need the clones here
         clone.currentCamera = currentCamera
         clone.previousCamera = previousCamera
         clone.cameraBlendingTime = cameraBlendingTime

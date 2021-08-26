@@ -131,6 +131,7 @@ abstract class FileReference(val absolutePath: String) {
     val name: String
     val nameWithoutExtension: String
     val extension: String
+    val lcExtension: String // the extension is often required in lowercase, so we cache it here
 
     init {
         val lastIndex = absolutePath.lastIndexOf('/')
@@ -140,9 +141,11 @@ abstract class FileReference(val absolutePath: String) {
         val extIndex = name.lastIndexOf('.')
         if (extIndex < 0) {
             extension = ""
+            lcExtension = ""
             nameWithoutExtension = name
         } else {
             extension = name.substring(extIndex + 1)
+            lcExtension = extension.lowercase()
             nameWithoutExtension = name.substring(0, extIndex)
         }
     }
@@ -231,17 +234,27 @@ abstract class FileReference(val absolutePath: String) {
                 LOGGER.info("Checking $absolutePath for zip file, matches signature")
                 true
             }
+            "pdf" -> true
             // todo all mesh extensions
-            "fbx", "vox", "obj", "gltf", "dae", "yaml", "blend", "draco" -> {
+            "fbx", "vox", "obj", "mtl", "gltf", "dae", "yaml", "blend", "draco",
+            "md2", "md5mesh" -> {
                 LOGGER.info("Checking $absolutePath for mesh file, matches signature")
                 true
             }
-            null, "xml" -> return try {// maybe something unknown, that we understand anyways
+            "png", "jpg", "bmp", "pds", "hdr", "webp", "ico", "tga" -> {
+                LOGGER.info("Checking $absolutePath for image file, matches signature")
+                true
+            }
+            null, "xml", "json", "media" -> return try {// maybe something unknown, that we understand anyways
                 // dae is xml
-                when (extension) {
-                    "fbx", "vox", "obj", "gltf", "glb", "dae", "blend",
-                    "mat", "prefab", "unity", "asset", "controller" -> {
+                when (lcExtension) {
+                    "fbx", "vox", "obj", "mtl", "gltf", "glb", "dae", "blend",
+                    "mat", "prefab", "unity", "asset", "controller", "json" -> {
                         LOGGER.info("Checking $absolutePath for mesh file, matches extension")
+                        true
+                    }
+                    "png", "jpg", "bmp", "pds", "hdr", "webp", "tga" -> {
+                        LOGGER.info("Checking $absolutePath for image file, matches extension")
                         true
                     }
                     else -> {
@@ -293,7 +306,7 @@ abstract class FileReference(val absolutePath: String) {
     }
 
     val windowsLnk: Lazy<WindowsShortcut?> = lazy {
-        if (extension.equals("lnk", true) && WindowsShortcut.isPotentialValidLink(this)) {
+        if (lcExtension == "lnk" && WindowsShortcut.isPotentialValidLink(this)) {
             try {
                 WindowsShortcut(this)
             } catch (e: Exception) {
@@ -310,7 +323,7 @@ abstract class FileReference(val absolutePath: String) {
     }
 
     open fun listChildren(): List<FileReference>? {
-        // println("listing children of $this, lnk: ${windowsLnk.value}")
+        // LOGGER.info("listing children of $this, lnk: ${windowsLnk.value}")
         val link = windowsLnk.value ?: return null
         // if the file is not a directory, then list the parent?
         // todo mark this child somehow?...
@@ -326,7 +339,7 @@ abstract class FileReference(val absolutePath: String) {
     open fun nullIfUndefined(): FileReference? = this
 
     fun printTree(depth: Int = 0) {
-        println("${Tabs.spaces(depth * 2)}$name")
+        LOGGER.info("${Tabs.spaces(depth * 2)}$name")
         if (isDirectory) {
             for (child in listChildren() ?: return) {
                 child.printTree(depth + 1)

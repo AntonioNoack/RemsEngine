@@ -43,7 +43,7 @@ class StudioFileExplorer(file: FileReference?, style: Style) : FileExplorer(file
             name = name.substring(0, name.length - 5)
         }
         name += ".json"
-        Files.findNextFileName(folder.getChild(name), 1, '-').writeText(data)
+        Files.findNextFile(folder.getChild(name), 1, '-').writeText(data)
         invalidate()
         return true
     }

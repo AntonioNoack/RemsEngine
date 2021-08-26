@@ -1,16 +1,14 @@
 package me.anno.ui.editor.files
 
 import me.anno.config.DefaultConfig
-import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.windowStack
 import me.anno.input.Input
+import me.anno.input.Input.setClipboardContent
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.FileRootRef
-import me.anno.io.text.TextReader
 import me.anno.language.translation.NameDesc
-import me.anno.objects.Transform.Companion.toTransform
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
@@ -25,10 +23,9 @@ import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.editor.files.FileExplorerEntry.Companion.deleteFileMaybe
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.clamp
-import me.anno.utils.Maths.pow
+import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.maths.Maths.pow
 import me.anno.utils.OS
-import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.files.Files.listFiles2
 import me.anno.utils.hpc.UpdatingTask
 import me.anno.utils.structures.Compare.ifDifferent
@@ -51,6 +48,10 @@ import kotlin.math.max
 // done a stack or history to know where we were
 // todo left list of relevant places? todo drag stuff in there
 
+// todo file explorer: if all entries are below a certain size, we could size them down
+// issue: then the size is no longer constant
+// solution: can we get the image size quickly? using ffmpeg maybe, or implemented ourselves
+
 abstract class FileExplorer(
     initialLocation: FileReference?,
     style: Style
@@ -72,17 +73,12 @@ abstract class FileExplorer(
         val rename = FileExplorerOption(NameDesc("Rename", "Change the name of this file", "ui.file.rename")) {
             onGotAction(0f, 0f, 0f, 0f, "Rename", false)
         }
-        val openInExplorer = FileExplorerOption(
-            NameDesc(
-                "Open in Explorer",
-                "Open the file in your default file explorer",
-                "ui.file.openInExplorer"
-            )
-        ) { it.openInExplorer() }
+        val openInExplorer = FileExplorerOption(openInExplorerDesc) { it.openInExplorer() }
+        val copyPath = FileExplorerOption(copyPathDesc) { setClipboardContent(it.absolutePath) }
         val delete = FileExplorerOption(
             NameDesc("Delete", "Delete this file", "ui.file.delete"),
         ) { deleteFileMaybe(it) }
-        return listOf(rename, openInExplorer, delete)
+        return listOf(rename, openInExplorer, copyPath, delete)
     }
 
     abstract fun onDoubleClick(file: FileReference)
@@ -191,7 +187,7 @@ abstract class FileExplorer(
                     for (i in 0 until searchDepth) {
                         for (file in lastLevel) {
                             if (file.name.startsWith('.')) continue
-                            if (file.isDirectory || when (file.extension.lowercase()) {
+                            if (file.isDirectory || when (file.lcExtension) {
                                     "zip", "rar", "7z", "s7z", "jar", "tar", "gz", "xz",
                                     "bz2", "lz", "lz4", "lzma", "lzo", "z", "zst",
                                     "unitypackage" -> file.isPacked.value
@@ -317,15 +313,8 @@ abstract class FileExplorer(
                                 }
                             }
                         },
-                        MenuOption(
-                            NameDesc(
-                                "Open In Explorer",
-                                "Show the file in your default file explorer",
-                                "ui.file.openInExplorer"
-                            )
-                        ) {
-                            folder.openInExplorer()
-                        }
+                        MenuOption(openInExplorerDesc) { folder.openInExplorer() },
+                        MenuOption(copyPathDesc) { setClipboardContent(folder.absolutePath) }
                     ) + getRightClickOptions().map {
                         MenuOption(it.nameDesc) {
                             it.onClick(folder)
@@ -402,6 +391,18 @@ abstract class FileExplorer(
                 }
             }
         }
+
+        val openInExplorerDesc = NameDesc(
+            "Open In Explorer",
+            "Show the file in your default file explorer",
+            "ui.file.openInExplorer"
+        )
+
+        val copyPathDesc = NameDesc(
+            "Copy Path",
+            "Copy the path of the file to clipboard",
+            "ui.file.copyPath"
+        )
 
     }
 

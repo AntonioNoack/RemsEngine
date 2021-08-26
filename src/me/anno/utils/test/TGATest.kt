@@ -19,6 +19,6 @@ fun main() {
     TGAImageReaderSpi()
     if (image != null) {
         ImageIO.write(image, "png", getReference(OS.desktop, "guard1_body.png").outputStream())
-    } else println("image could not be read")*/
+    } else LOGGER.info("image could not be read")*/
 
 }

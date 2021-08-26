@@ -1,8 +1,7 @@
-package me.anno.utils
+package me.anno.utils.maths
 
-import me.anno.utils.Maths.sq
+import me.anno.utils.maths.Maths.sq
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix3f
 import kotlin.math.abs
 
 object Optimization {

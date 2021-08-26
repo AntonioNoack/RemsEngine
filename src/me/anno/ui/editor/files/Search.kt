@@ -112,7 +112,7 @@ class Search(val term: String) {
             expr[i] = value
         }
         val result = matches(expr)
-        // println("$name x ${this.expr} ? $result")
+        // LOGGER.info("$name x ${this.expr} ? $result")
         return result
     }
 

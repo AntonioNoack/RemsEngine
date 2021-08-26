@@ -58,7 +58,7 @@ class Path(
     }
 
     fun getSubPathIfMatching(change: Change, extraDepth: Int): Change? {
-        val subPath = getSubPathIfMatching(change.path ?: return null, extraDepth) ?: return null
+        val subPath = getSubPathIfMatching(change.path, extraDepth) ?: return null
         val clone = change.clone()
         clone.path = subPath
         return clone
@@ -112,11 +112,12 @@ class Path(
     }
 
     fun added(name: String, index: Int, type: Char): Path {
-        return Path(
-            names + name,
-            indices + index,
-            types + type
-        )
+        return if (isEmpty()) Path(name, index, type) else
+            Path(
+                names + name,
+                indices + index,
+                types + type
+            )
     }
 
     operator fun plus(indexAndType: Triple<String, Int, Char>): Path {
@@ -149,6 +150,8 @@ class Path(
 
     companion object {
 
+        val ROOT_PATH = Path()
+
         @JvmStatic
         fun main(array: Array<String>) {
             val path = Path(arrayOf("1", "2", "3"), intArrayOf(0, 7, 3), charArrayOf('a', 'b', 'c'))
@@ -160,14 +163,14 @@ class Path(
             val abc = Path(arrayOf("a", "b", "c"), intArrayOf(0, 1, 2), charArrayOf('x', 'x', 'x'))
             val bcd = Path(arrayOf("b", "c", "d"), intArrayOf(1, 2, 3), charArrayOf('x', 'x', 'x'))
 
-            println("abc x abc, 0: '${abc.getSubPathIfMatching(abc, 0)}'")
-            println("abc x abc, 1: '${abc.getSubPathIfMatching(abc, 1)}'")
-            println("abc x bcd, 1: '${abc.getSubPathIfMatching(bcd, 1)}'")
+            LOGGER.info("abc x abc, 0: '${abc.getSubPathIfMatching(abc, 0)}'")
+            LOGGER.info("abc x abc, 1: '${abc.getSubPathIfMatching(abc, 1)}'")
+            LOGGER.info("abc x bcd, 1: '${abc.getSubPathIfMatching(bcd, 1)}'")
 
         }
 
         fun parse(str: String): Path {
-            if (str.isEmpty()) return Path()
+            if (str.isEmpty()) return ROOT_PATH
             val parts = str.split('/')
             val size = parts.size
             val names = Array(size) { "" }

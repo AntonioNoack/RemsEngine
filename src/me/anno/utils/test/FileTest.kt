@@ -2,6 +2,7 @@ package me.anno.utils.test
 
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.utils.LOGGER
 import me.anno.utils.Tabs
 
 fun main() {
@@ -12,32 +13,32 @@ fun main() {
     /*val zis = ZipInputStream(file.inputStream())
     while (true) {
         val entry = zis.nextEntry ?: break
-        println(entry.name)
+        LOGGER.info(entry.name)
     }
 
-    println(file.listFiles()?.joinToString())*/
+    LOGGER.info(file.listFiles()?.joinToString())*/
 
     printHierarchy(file, 0)
 
     /*val file2 = FileReference("E:\\Documents\\Uni\\Master\\SS21\\HPC\\u8\\u8.zip!!sve gemm/vm.zip")
-    println(file2.listFiles()?.joinToString())
-    println(file2.extension)
-    println("compressed: ${file2.isCompressed.value}")
-    println("directory: ${file2.isDirectory}")
-    println("insideCompressed: ${file2.isInsideCompressed}")*/
+    LOGGER.info(file2.listFiles()?.joinToString())
+    LOGGER.info(file2.extension)
+    LOGGER.info("compressed: ${file2.isCompressed.value}")
+    LOGGER.info("directory: ${file2.isDirectory}")
+    LOGGER.info("insideCompressed: ${file2.isInsideCompressed}")*/
     // getReference(OS.desktop,file2.name).writeBytes(file2.inputStream().readBytes())
 
 }
 
 fun printHierarchy(file: FileReference, depth: Int) {
-    println(Tabs.tabs(depth) + file.absolutePath)
+    LOGGER.info(Tabs.tabs(depth) + file.absolutePath)
     if (file.isSomeKindOfDirectory) {
         val children = file.listChildren() ?: emptyList()
         if (children.isNotEmpty()) {
             for (child in children)
                 printHierarchy(child, depth + 1)
         } else {
-            println(Tabs.tabs(depth + 1) + "sadly empty...")
+            LOGGER.info(Tabs.tabs(depth + 1) + "sadly empty...")
         }
     }
 }

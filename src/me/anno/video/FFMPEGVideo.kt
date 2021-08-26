@@ -15,8 +15,7 @@ class FFMPEGVideo(
     file: FileReference,
     w: Int, h: Int,
     private val frame0: Int,
-    bufferLength: Int,
-    val frameCallback: (VFrame, Int) -> Unit
+    bufferLength: Int
 ) : FFMPEGStream(file, isProcessCountLimited = !file.extension.isFFMPEGOnlyExtension()) {
 
     override fun process(process: Process, arguments: List<String>) {
@@ -57,9 +56,11 @@ class FFMPEGVideo(
     // todo what do we do, if we run out of memory?
     private fun readFrame(input: InputStream) {
         waitUntil(true) { w != 0 && h != 0 && codec.isNotEmpty() }
+        val w = w
+        val h = h
         if (!isDestroyed && !isFinished) {
             try {
-                // LOGGER.info("$codec from $file")
+                // LOGGER.info("$codec, $w x $h from $file")
                 val frame = when (codec) {
                     // yuv
                     "I420" -> I420Frame(w, h)
@@ -78,7 +79,6 @@ class FFMPEGVideo(
                 }
                 frame.load(input)
                 synchronized(frames) {
-                    frameCallback(frame, frames.size)
                     frames.add(frame)
                 }
             } catch (e: IOException) {
@@ -111,8 +111,6 @@ class FFMPEGVideo(
 
     companion object {
         private val LOGGER = LogManager.getLogger(FFMPEGVideo::class.java)
-        var lastRequest = 0L
-        var requestRate = 0.0
     }
 
 }

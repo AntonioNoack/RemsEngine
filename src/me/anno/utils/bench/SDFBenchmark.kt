@@ -2,13 +2,11 @@ package me.anno.utils.bench
 
 import me.anno.fonts.FontManager
 import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField
-import me.anno.fonts.signeddistfields.edges.QuadraticSegment
-import me.anno.utils.Maths.sq
+import me.anno.utils.maths.Maths.sq
 import me.anno.utils.OS
-import java.awt.Font
+import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
-import java.io.File
 import java.nio.FloatBuffer
 
 
@@ -24,6 +22,8 @@ fun toBytes(data: FloatBuffer): ByteArray {
 
 fun main() {
 
+    val logger = LogManager.getLogger()
+
     val roundEdges = false
     val font = FontManager.getFont("Verdana", 8f, false, false).font
     val text = "Lorem Ipsum is simply text."
@@ -35,15 +35,15 @@ fun main() {
     val data = SignedDistanceField.createBuffer(font, text, roundEdges)!!
 
     val t1 = System.nanoTime()
-    println("Used ${((t1-t0)*1e-9)}s")
+    logger.info("Used ${((t1 - t0) * 1e-9)}s")
 
     val calculated = toBytes(data)
 
     val file = OS.desktop.getChild("sdf.data")!!
     if (file.exists) {
         val bytes = file.readBytes()
-        val sum = calculated.withIndex().sumOf { (index, value) -> sq(value-bytes[index]) }
-        println("Error: $sum, ${sum.toDouble()/calculated.size}")
+        val sum = calculated.withIndex().sumOf { (index, value) -> sq(value - bytes[index]) }
+        logger.info("Error: $sum, ${sum.toDouble() / calculated.size}")
     } else {
         file.writeBytes(calculated)
     }

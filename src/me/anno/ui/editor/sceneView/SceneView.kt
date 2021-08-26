@@ -16,6 +16,7 @@ import me.anno.gpu.framebuffer.Screenshots
 import me.anno.gpu.framebuffer.StableWindowSize
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.colorRenderer
+import me.anno.gpu.shader.Renderer.Companion.colorSqRenderer
 import me.anno.input.Input
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
@@ -49,9 +50,9 @@ import me.anno.ui.custom.CustomContainer
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.simple.SimplePanel
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.clamp
-import me.anno.utils.Maths.length
-import me.anno.utils.Maths.pow
+import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.maths.Maths.length
+import me.anno.utils.maths.Maths.pow
 import me.anno.utils.bugs.SumOf.sumOf
 import me.anno.utils.types.Vectors.plus
 import me.anno.utils.types.Vectors.times
@@ -184,7 +185,7 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
         GFX.lastTouchedCamera = camera
     }
 
-    override fun getVisualState(): Any? =
+    override fun getVisualState(): Any =
         Triple(editorTime, stableSize.stableWidth, stableSize.stableHeight) to
                 Pair(Input.isKeyDown('l'), Input.isKeyDown('n'))
 
@@ -239,12 +240,7 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
-        val mode = if (camera.toneMapping == ToneMappers.RAW8)
-            Renderer.colorRenderer
-        else
-            Renderer.colorSqRenderer
-
-        // GFX.drawMode = mode
+        val mode = if (camera.toneMapping == ToneMappers.RAW8) colorRenderer else colorSqRenderer
 
         GFX.check()
 

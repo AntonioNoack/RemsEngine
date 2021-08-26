@@ -63,7 +63,7 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
                 folder = InnerFolder("${root.absolutePath}/$guid", guid, root)
                 files[guid] = folder
                 val content = guidObject.contentFile
-                when (content.extension) {
+                when (content.lcExtension) {
                     "asset", "unity", "mat", "prefab" -> {
                         val node = getYAML(guidObject.contentFile)
                         parse(node, guid, folder)
@@ -77,7 +77,7 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
                         // todo use this data to create a prefab, which then links to the original file
                         val meta = getMeta(content)
                         val fileId = getMainId(meta)
-                        // println("fileId from $meta: $fileId")
+                        // LOGGER.info("fileId from $meta: $fileId")
                         InnerLinkFile(folder, fileId ?: content.name, content)
                     }
                 }
@@ -134,7 +134,7 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
                 }
             }
             else -> {
-                when (file.extension) {
+                when (file.lcExtension) {
                     "meta"/*, "mat", "prefab", "unity", "asset"*/ -> {
                         try {
                             val yaml = parseYAML(file.readText(), true)

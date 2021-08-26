@@ -1,7 +1,7 @@
 package me.anno.gpu.buffer
 
 import me.anno.image.svg.SVGMesh
-import me.anno.utils.Maths.clamp
+import me.anno.utils.maths.Maths.clamp
 import org.joml.Vector2fc
 import org.joml.Vector3fc
 import org.joml.Vector4fc
@@ -144,7 +144,9 @@ open class StaticBuffer(attributes: List<Attribute>, val vertexCount: Int, usage
     }
 
     open fun clear() {
-        nioBuffer!!.position(0)
+        val buffer = nioBuffer!!
+        buffer.position(0)
+        buffer.limit(buffer.capacity())
         isUpToDate = false
     }
 

@@ -4,11 +4,10 @@ import me.anno.audio.AudioFXCache
 import me.anno.audio.effects.Domain
 import me.anno.audio.effects.Time
 import me.anno.audio.effects.impl.EqualizerEffect
-import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.objects.Camera
 import me.anno.objects.Video
-import me.anno.utils.Maths.pow
+import me.anno.utils.LOGGER
+import me.anno.utils.maths.Maths.pow
 import me.anno.utils.OS
 import kotlin.math.roundToInt
 import kotlin.math.sin
@@ -39,7 +38,7 @@ fun main() {
 
     fun print(data: FloatArray) {
         val size = 16
-        println(
+        LOGGER.info(
             "${
                 (0 until size).joinToString {
                     data[1024 - size + it].roundToInt().toString()

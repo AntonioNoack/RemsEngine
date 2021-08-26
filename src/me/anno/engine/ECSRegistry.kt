@@ -46,7 +46,7 @@ object ECSRegistry {
         // meshes and rendering
         registerCustomClass(Mesh())
         registerCustomClass(Material())
-        // registerCustomClass(MeshComponent())
+        registerCustomClass(MeshComponent())
         registerCustomClass(MeshRenderer())
         registerCustomClass(AnimRenderer())
 

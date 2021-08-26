@@ -14,7 +14,7 @@ fun main() {
 
     for (i in 0 until 11) {
         val time = i / 10.0
-        println(line.getIntegral(time, false))
+        LOGGER.info(line.getIntegral(time, false))
     }
 
     val ap = AnimatedProperty.float()

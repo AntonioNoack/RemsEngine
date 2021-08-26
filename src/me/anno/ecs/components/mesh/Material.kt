@@ -1,8 +1,8 @@
 package me.anno.ecs.components.mesh
 
-import me.anno.cache.instances.ImageCache
+import me.anno.image.ImageGPUCache
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.prefab.Prefab.Companion.loadPrefab
+import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
@@ -17,6 +17,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
+import me.anno.utils.LOGGER
 import me.anno.utils.OS
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -105,7 +106,7 @@ class Material : PrefabSaveable() {
     }
 
     val timeout = 1000L
-    fun getTex(image: FileReference) = ImageCache.getImage(image, timeout, true)
+    fun getTex(image: FileReference) = ImageGPUCache.getImage(image, timeout, true)
 
     fun defineShader(shader: Shader) {
         // todo there will be shadow maps: find the correct texture indices!
@@ -241,6 +242,8 @@ class Material : PrefabSaveable() {
         clone.shaderOverrides = shaderOverrides
         clone.roughnessMinMax = roughnessMinMax
         clone.roughnessMap = roughnessMap
+        clone.metallicMap = metallicMap
+        clone.metallicMinMax = metallicMinMax
         clone.clearCoatColor = clearCoatColor
         clone.clearCoatRoughness = clearCoatRoughness
         clone.clearCoatMetallic = clearCoatMetallic
@@ -259,10 +262,10 @@ class Material : PrefabSaveable() {
             ECSRegistry.init()
             val prefab = loadPrefab(OS.documents.getChild("cube bricks.glb"))!!
             for (change in prefab.changes!!) {
-                println(change)
+                LOGGER.info(change)
             }
             val instance = prefab.createInstance()
-            println(instance)
+            LOGGER.info(instance)
         }
 
     }

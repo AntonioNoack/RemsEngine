@@ -1,14 +1,14 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.ecs.Component
+import me.anno.ecs.annotations.Type
+import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.shader.Shader
+import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.SerializedProperty
-import me.anno.ui.editor.stacked.Option
 import org.apache.logging.log4j.LogManager
-import org.joml.AABBf
 
 
 // todo (file) references to meshes and animations inside mesh files
@@ -38,12 +38,13 @@ import org.joml.AABBf
 
 class MeshComponent() : Component() {
 
-    constructor(mesh: Mesh) : this() {
+    constructor(mesh: FileReference) : this() {
         this.mesh = mesh
     }
 
     @SerializedProperty
-    var mesh: Mesh? = null
+    @Type("Mesh/Reference")
+    var mesh: FileReference = InvalidRef
 
     var isInstanced = false
 
@@ -60,14 +61,24 @@ class MeshComponent() : Component() {
     // todo bake animations into textures, and use indices + weights
 
     fun draw(shader: Shader, materialIndex: Int) {
-        mesh?.draw(shader, materialIndex)
+        MeshCache[mesh]?.draw(shader, materialIndex)
     }
 
     // on destroy we should maybe destroy the mesh:
     // only if it is unique, and owned by ourselves
 
-    override fun clone(): PrefabSaveable {
-        TODO("Not yet implemented")
+    override fun clone(): MeshComponent {
+        val clone = MeshComponent()
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as MeshComponent
+        clone.collisionMask = collisionMask
+        clone.isInstanced = isInstanced
+        clone.mesh = mesh
     }
 
     override val className get() = "MeshComponent"

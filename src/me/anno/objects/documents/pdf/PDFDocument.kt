@@ -69,22 +69,28 @@ open class PDFDocument(var file: FileReference, parent: Transform?) : GFXTransfo
     val meta get() = getMeta(file, true)
     val forcedMeta get() = getMeta(file, false)!!
 
-    fun getMeta(src: FileReference, async: Boolean): PDDocument? {
-        return PDFCache.getDocument(src, async)
+    fun getMeta(src: FileReference, async: Boolean): PDFCache.AtomicCountedDocument? {
+        return PDFCache.getDocumentRef(src, true, async)
     }
 
     // rather heavy...
     override fun getRelativeSize(): Vector3f {
-        val doc = forcedMeta
+        val ref = forcedMeta
+        val doc = ref.doc
         val pageCount = doc.numberOfPages
         val referenceScale = (0 until min(10, pageCount)).map {
             doc.getPage(it).mediaBox.run {
                 if (windowWidth > windowHeight) height else width
             }
         }.median(0f)
-        if (pageCount < 1) return Vector3f(1f)
+        if (pageCount < 1) {
+            ref.returnInstance()
+            return Vector3f(1f)
+        }
         val firstPage = getSelectedSitesList().firstOrNull()?.first ?: return Vector3f(1f)
-        return doc.getPage(firstPage).mediaBox.run { Vector3f(width / referenceScale, height / referenceScale, 1f) }
+        val size = doc.getPage(firstPage).mediaBox.run { Vector3f(width / referenceScale, height / referenceScale, 1f) }
+        ref.returnInstance()
+        return size
     }
 
     fun getQuality() = if (isFinalRendering) renderQuality else editorQuality
@@ -92,11 +98,13 @@ open class PDFDocument(var file: FileReference, parent: Transform?) : GFXTransfo
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
         val file = file
-        val doc = meta
-        if (doc == null) {
+        val ref = meta
+        if (ref == null) {
             super.onDraw(stack, time, color)
             return checkFinalRendering()
         }
+
+        val doc = ref.doc
         val quality = getQuality()
         val numberOfPages = doc.numberOfPages
         val pages = getSelectedSitesList()
@@ -148,9 +156,13 @@ open class PDFDocument(var file: FileReference, parent: Transform?) : GFXTransfo
                 }
             }
         }
+
+        ref.returnInstance()
+
         if (!wasDrawn) {
             super.onDraw(stack, time, color)
         }
+
     }
 
     private fun isVisible(matrix: Matrix4f, x: Float): Boolean {
@@ -222,7 +234,8 @@ open class PDFDocument(var file: FileReference, parent: Transform?) : GFXTransfo
     }
 
     override fun getSplitElement(mode: String, index: Int): Element {
-        val doc = meta!!
+        val ref = forcedMeta
+        val doc = ref.doc
         val numberOfPages = doc.numberOfPages
         val pages = getSelectedSitesList()
         var remainingIndex = index
@@ -241,13 +254,15 @@ open class PDFDocument(var file: FileReference, parent: Transform?) : GFXTransfo
         child.selectedSites = "$pageNumber"
         val mediaBox = doc.getPage(pageNumber).mediaBox
         val scale = 1f / getReferenceScale(doc, numberOfPages)
+        ref.returnInstance()
         val w = mediaBox.width * scale
         val h = mediaBox.height * scale
         return Element(w, h, 0f, child)
     }
 
     override fun getSplitLength(mode: String): Int {
-        val doc = meta!!
+        val ref = meta!!
+        val doc = ref.doc
         val numberOfPages = doc.numberOfPages
         val pages = getSelectedSitesList()
         var sum = 0
@@ -257,6 +272,7 @@ open class PDFDocument(var file: FileReference, parent: Transform?) : GFXTransfo
             val length = max(0, end - start)
             sum += length
         }
+        ref.returnInstance()
         return sum
     }
 

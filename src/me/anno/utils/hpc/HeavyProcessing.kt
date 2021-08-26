@@ -1,6 +1,6 @@
 package me.anno.utils.hpc
 
-import me.anno.utils.Maths.clamp
+import me.anno.utils.maths.Maths.clamp
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 import kotlin.math.max

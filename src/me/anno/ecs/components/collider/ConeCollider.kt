@@ -7,7 +7,7 @@ import com.bulletphysics.collision.shapes.ConeShapeZ
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.serialization.SerializedProperty
-import me.anno.utils.Maths.length
+import me.anno.utils.maths.Maths.length
 import me.anno.utils.types.Vectors.setAxis
 import org.joml.AABBd
 import org.joml.Matrix4x3d

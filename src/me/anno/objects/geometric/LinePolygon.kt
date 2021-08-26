@@ -11,6 +11,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.animation.AnimatedProperty
+import me.anno.gpu.shader.builder.Variable
 import me.anno.objects.attractors.EffectColoring
 import me.anno.objects.attractors.EffectMorphing
 import me.anno.objects.modes.UVProjection
@@ -18,8 +19,8 @@ import me.anno.studio.rems.Scene.noiseFunc
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import me.anno.utils.Maths
-import me.anno.utils.Maths.fract
+import me.anno.utils.maths.Maths
+import me.anno.utils.maths.Maths.fract
 import me.anno.utils.types.Vectors.minus
 import me.anno.utils.types.Vectors.mulAlpha
 import me.anno.utils.types.Vectors.times
@@ -299,8 +300,7 @@ class LinePolygon(parent: Transform? = null) : GFXTransform(parent) {
                         "   uv = attr1;\n" +
                         "   uvw = attr0;\n" +
                         "   colX = mix(col0, col1, att.y);\n" +
-                        "}", y3D + "" +
-                        "varying vec4 colX;\n", "" +
+                        "}", y3D + Variable("vec4","colX"), "" +
                         ShaderLib.getTextureLib +
                         ShaderLib.getColorForceFieldLib +
                         noiseFunc +

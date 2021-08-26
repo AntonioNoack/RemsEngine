@@ -1,6 +1,6 @@
 package me.anno.animation
 
-import me.anno.utils.Maths.clamp
+import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.types.Casting.castToDouble
 import me.anno.utils.types.Casting.castToDouble2
 import me.anno.utils.types.Casting.castToFloat

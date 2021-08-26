@@ -8,7 +8,7 @@ import me.anno.objects.Transform
 import me.anno.objects.Transform.Companion.toTransform
 import me.anno.objects.Video
 import me.anno.objects.documents.pdf.PDFDocument
-import me.anno.objects.meshes.Mesh
+import me.anno.objects.meshes.MeshTransform
 import me.anno.objects.modes.UVProjection
 import me.anno.objects.text.Text
 import me.anno.studio.StudioBase.Companion.addEvent
@@ -18,7 +18,7 @@ import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.files.FileContentImporter
-import me.anno.utils.Threads.threadWithName
+import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.types.Strings.getImportType
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
@@ -140,7 +140,7 @@ object StudioFileImporter : FileContentImporter<Transform>() {
             }
             "Mesh" -> {
                 RemsStudio.largeChange("Added Mesh") {
-                    val mesh = Mesh(file, parent)
+                    val mesh = MeshTransform(file, parent)
                     mesh.name = name
                     if (doSelect) selectTransform(mesh)
                     callback(mesh)

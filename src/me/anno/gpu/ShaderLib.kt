@@ -2,6 +2,7 @@ package me.anno.gpu
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Filtering
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.objects.effects.MaskType
@@ -281,12 +282,13 @@ object ShaderLib {
             flatNormal +
             "}"
 
-    val y3D = "" +
-            "varying vec2 uv;\n" +
-            "varying vec3 uvw;\n" +
-            "varying vec3 finalPosition;\n" +
-            "varying float zDistance;\n" +
-            "varying vec3 normal;\n"
+    val y3D = listOf(
+        Variable("vec2", "uv"),
+        Variable("vec3", "uvw"),
+        Variable("vec3", "finalPosition"),
+        Variable("float", "zDistance"),
+        Variable("vec3", "normal")
+    )
 
     val f3D = "" +
             "uniform sampler2D tex;\n" +
@@ -315,7 +317,7 @@ object ShaderLib {
                     "u2 pos, size;\n" +
                     "void main(){\n" +
                     "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
-                    "}", "", "" +
+                    "}", emptyList(), "" +
                     "u4 color;\n" +
                     "void main(){\n" +
                     "   gl_FragColor = color;\n" +
@@ -329,7 +331,7 @@ object ShaderLib {
                     "u2 pos, size;\n" +
                     "void main(){\n" +
                     "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
-                    "}", "", "" +
+                    "}", emptyList(), "" +
                     "u4 color;\n" +
                     "uniform int offset, stride;\n" +
                     "void main(){\n" +
@@ -351,9 +353,7 @@ object ShaderLib {
                     "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
                     "   color = attr0.x < 0.5 ? lColor : rColor;\n" +
                     "   uv = mix(uvs.xy, uvs.zw, attr0);\n" +
-                    "}", "" +
-                    "varying vec4 color;\n" +
-                    "varying vec2 uv;\n", "" +
+                    "}", listOf(Variable("vec2", "uv"), Variable("vec4", "color")), "" +
                     "uniform int code;\n" +
                     "uniform sampler2D tex0,tex1,tex2;\n" +
                     yuv2rgb +
@@ -384,8 +384,7 @@ object ShaderLib {
                     "void main(){\n" +
                     "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
                     "   uv = (attr0-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
-                    "}", "" +
-                    "varying vec2 uv;\n", "" +
+                    "}", listOf(Variable("vec2", "uv")), "" +
                     "uniform sampler2D tex;\n" +
                     "u4 color;\n" +
                     "uniform bool ignoreTexAlpha;\n" +
@@ -396,13 +395,19 @@ object ShaderLib {
                     "   gl_FragColor = col;\n" +
                     "}"
         )
+        flatShaderTexture.ignoreUniformWarnings(
+            listOf(
+                "cgSlope", "cgOffset", "cgPower", "cgSaturation",
+                "forceFieldUVCount", "forceFieldColorCount"
+            )
+        )
 
         copyShader = createShader(
             "copy", "in vec2 attr0;\n" +
                     "void main(){\n" +
                     "   gl_Position = vec4(attr0*2.0-1.0, 0.5, 1.0);\n" +
                     "   uv = attr0;\n" +
-                    "}\n", "varying vec2 uv;\n", "" +
+                    "}\n", listOf(Variable("vec2", "uv")), "" +
                     "uniform sampler2D tex;\n" +
                     "uniform float am1;\n" +
                     "void main(){\n" +
@@ -422,8 +427,7 @@ object ShaderLib {
                     "   gl_Position = vec4(localPos*2.0-1.0, 0.0, 1.0);\n" +
                     "   position = localPos * windowSize;\n" +
                     "   uv = attr0;\n" +
-                    "}", "" +
-                    "varying v2 uv, position;\n", "" +
+                    "}", listOf(Variable("vec2", "uv"), Variable("vec2", "position")), "" +
                     "uniform vec4 textColor, backgroundColor;\n" +
                     "uniform vec2 windowSize;\n" +
                     "uniform sampler2D tex;\n" +
@@ -459,8 +463,7 @@ object ShaderLib {
                     flatNormal +
                     positionPostProcessing +
                     "   vertexId = gl_VertexID;\n" +
-                    "}", y3D + "" +
-                    "flat varying int vertexId;\n", "" +
+                    "}", y3D + listOf(Variable("int", "vertexId").flat()), "" +
                     noiseFunc +
                     getTextureLib +
                     getColorForceFieldLib +
@@ -551,10 +554,11 @@ object ShaderLib {
                 positionPostProcessing +
                 "}"
 
-        val y3DMasked = "" +
-                "varying vec3 uv;\n" +
-                "varying vec3 finalPosition;\n" +
-                "varying float zDistance;\n"
+        val y3DMasked = listOf(
+            Variable("vec3", "uv"),
+            Variable("vec3", "finalPosition"),
+            Variable("float", "zDistance")
+        )
 
         val f3DMasked = "" +
                 "precision highp float;\n" +
@@ -642,7 +646,7 @@ object ShaderLib {
                     "void main(){\n" +
                     "   gl_Position = vec4(attr0*2.0-1.0, 0.0, 1.0);\n" +
                     "   uv = attr0;\n" +
-                    "}", "varying vec2 uv;\n", "" +
+                    "}", listOf(Variable("vec2", "uv")), "" +
                     "precision highp float;\n" +
                     "uniform sampler2D tex;\n" +
                     "uniform vec2 stepSize;\n" +
@@ -686,12 +690,17 @@ object ShaderLib {
                 "   formula1 = aFormula1;\n" +
                 "}"
 
-        val ySVG = y3D +
-                "varying v4 color0, color1, color2, color3, stops;\n" +
-                "varying v4 formula0;\n" +
-                "varying v1 formula1;\n" +
-                "varying v1 padding;\n" +
-                "varying v2 localPos2;\n"
+        val ySVG = y3D + listOf(
+            Variable("vec4", "color0"),
+            Variable("vec4", "color1"),
+            Variable("vec4", "color2"),
+            Variable("vec4", "color3"),
+            Variable("vec4", "stops"),
+            Variable("vec4", "formula0"),
+            Variable("float", "formula1"),
+            Variable("float", "padding"),
+            Variable("vec2", "localPos2"),
+        )
 
         val fSVG = "" +
                 "uniform sampler2D tex;\n" +
@@ -788,8 +797,7 @@ object ShaderLib {
                     "   uv = uvs;\n" +
                     "   normal = normals;\n" +
                     positionPostProcessing +
-                    "}", y3D + "" +
-                    "varying vec3 normal;\n", "" +
+                    "}", y3D + listOf(Variable("vec3", "normal")), "" +
                     "uniform sampler2D tex;\n" +
                     getTextureLib +
                     getColorForceFieldLib +
@@ -841,11 +849,13 @@ object ShaderLib {
                 "   vertexColor = colors;\n" +
                 positionPostProcessing +
                 "}"
-        val assimpVarying = y3D + "" +
-                // "varying vec3 normal;\n" + // by default, in y3D, included
-                "varying vec3 tangent;\n" +
-                "varying vec4 weight;\n" +
-                "varying vec4 vertexColor;\n"
+
+        val assimpVarying = y3D + listOf(
+            Variable("vec3", "tangent"),
+            Variable("vec4", "weight"),
+            Variable("vec4", "vertexColor")
+        )
+
         shaderAssimp = createShaderPlus(
             "assimp",
             assimpVertex, assimpVarying, "" +
@@ -889,7 +899,7 @@ object ShaderLib {
         shader3DYUV = createShaderPlus(
             "3d-yuv",
             v3D, y3D, "" +
-                    "uniform sampler2D texY, texU, texV;\n" +
+                    "uniform sampler2D texY, texUV;\n" +
                     "uniform vec2 uvCorrection;\n" +
                     getTextureLib +
                     getColorForceFieldLib +
@@ -902,14 +912,13 @@ object ShaderLib {
                     "   vec2 correctedDUV = textureDeltaUV*uvCorrection;\n" +
                     "   vec3 yuv = vec3(" +
                     "       getTexture(texY, uv2).r, " +
-                    "       getTexture(texU, correctedUV, correctedDUV).r, " +
-                    "       getTexture(texV, correctedUV, correctedDUV).r);\n" +
+                    "       getTexture(texUV, correctedUV, correctedDUV).rg);\n" + //
                     "   vec4 color = vec4(yuv2rgb(yuv), 1.0);\n" +
                     "   color.rgb = colorGrading(color.rgb);\n" +
                     "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                     "   vec3 finalColor = color.rgb;\n" +
                     "   float finalAlpha = color.a;\n" +
-                    "}", listOf("texY", "texU", "texV")
+                    "}", listOf("texY", "texUV")
         )
 
         fun createSwizzleShader(swizzle: String): BaseShader {
@@ -942,8 +951,7 @@ object ShaderLib {
                     "void main(){" +
                     "   gl_Position = transform * vec4(attr0, 1.0);\n" +
                     positionPostProcessing +
-                    "}", "" +
-                    "varying float zDistance;\n", "" +
+                    "}", listOf(Variable("float", "zDistance")), "" +
                     "uniform vec4 color;\n" +
                     "void main(){" +
                     "   gl_FragColor = color;\n" +
@@ -960,7 +968,7 @@ object ShaderLib {
     fun createShaderNoShorts(
         shaderName: String,
         v3D: String,
-        y3D: String,
+        y3D: List<Variable>,
         f3D: String,
         textures: List<String>
     ): BaseShader {
@@ -972,7 +980,7 @@ object ShaderLib {
     fun createShaderPlus(
         shaderName: String,
         v3D: String,
-        y3D: String,
+        y3D: List<Variable>,
         f3D: String,
         textures: List<String>
     ): BaseShader {
@@ -981,7 +989,13 @@ object ShaderLib {
         return shader
     }
 
-    fun createShader(shaderName: String, v3D: String, y3D: String, f3D: String, textures: List<String>): BaseShader {
+    fun createShader(
+        shaderName: String,
+        v3D: String,
+        y3D: List<Variable>,
+        f3D: String,
+        textures: List<String>
+    ): BaseShader {
         val shader = BaseShader(shaderName, v3D, y3D, f3D)
         shader.setTextureIndices(textures)
         return shader

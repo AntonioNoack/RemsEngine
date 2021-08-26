@@ -1,5 +1,6 @@
 package me.anno.utils.test
 
+import org.apache.logging.log4j.LogManager
 import kotlin.math.min
 
 val minLength = 4
@@ -54,6 +55,7 @@ fun main() {
 }
 
 fun findWords(text: List<String>) {
+    val logger = LogManager.getLogger("FindWords")
     val lines = text
         .map { it.trim() }
         .filter { it.isNotEmpty() }
@@ -63,15 +65,15 @@ fun findWords(text: List<String>) {
     // 01 11 10
     // and reversed
     // check if it contains a word
-    println(0)
+    logger.info(0)
     lines.forEach { checkSubWords(it) }
-    println(1)
+    logger.info(1)
     for (i in 0 until sizeX) {
         checkSubWords(String(CharArray(sizeY) { lines[it][i] }))
     }
-    println(2)
+    logger.info(2)
     checkCrossSections(lines, sizeX, sizeY)
-    println(3)
+    logger.info(3)
     checkCrossSections(lines.reversed(), sizeX, sizeY) // to go left
 }
 
@@ -98,8 +100,9 @@ fun checkCrossSections(lines: List<String>, sizeX: Int, sizeY: Int) {
 }
 
 fun checkSubWords(total: String) {
-    println("V $total")
-    println("R ${total.reversed()}")
+    val logger = LogManager.getLogger("FindWords")
+    logger.info("V $total")
+    logger.info("R ${total.reversed()}")
     /*if (total.length == minLength) checkWord(total)
     else if (total.length > minLength) {
         for (startIndex in 0 until total.length - minLength) {
@@ -115,8 +118,9 @@ fun checkSubWords(total: String) {
 
 val processed = HashSet<String>()
 fun checkWord(word: String) {
+    val logger = LogManager.getLogger("FindWords")
     if (word !in processed) {
         processed += word
-        println(word)
+        logger.info(word)
     }
 }

@@ -2,7 +2,7 @@ package me.anno.objects.models
 
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.utils.Maths.pow
+import me.anno.utils.maths.Maths.pow
 import org.joml.Vector3f
 import kotlin.math.cos
 import kotlin.math.sin

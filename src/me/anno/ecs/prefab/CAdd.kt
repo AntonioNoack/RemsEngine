@@ -1,5 +1,6 @@
 package me.anno.ecs.prefab
 
+import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
@@ -8,7 +9,7 @@ import me.anno.utils.files.LocalFile.toGlobalFile
 
 class CAdd() : Change(2) {
 
-    constructor(path: Path, type: Char, className: String, name: String, prefab: FileReference = InvalidRef) : this() {
+    constructor(path: Path, type: Char, className: String, name: String = className, prefab: FileReference = InvalidRef) : this() {
         this.path = path
         this.type = type
         this.clazzName = className
@@ -17,7 +18,7 @@ class CAdd() : Change(2) {
     }
 
     fun getChildPath(index: Int): Path {
-        return path!!.added(name!!, index, type)
+        return path.added(name!!, index, type)
     }
 
     var type: Char = ' '
@@ -68,8 +69,10 @@ class CAdd() : Change(2) {
 
     override fun applyChange(instance: PrefabSaveable) {
         // LOGGER.info("adding $clazzName with type $type")
-        val loadedInstance = Prefab.loadPrefab(prefab)?.createInstance()
-        val newInstance = loadedInstance ?: ISaveable.createOrNull(clazzName ?: return) as PrefabSaveable
+        val loadedInstance = loadPrefab(prefab)?.createInstance()
+        val newInstance = loadedInstance
+            ?: ISaveable.createOrNull(clazzName ?: return) as? PrefabSaveable
+            ?: throw RuntimeException("Class $clazzName was not found")
         val name = name; if (name != null) newInstance.name = name
         instance.addChildByType(instance.getChildListByType(type).size, type, newInstance)
     }

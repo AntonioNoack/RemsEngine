@@ -2,23 +2,27 @@ package me.anno.objects.meshes
 
 import me.anno.animation.skeletal.SkeletalAnimation
 import me.anno.cache.data.ICacheData
-import me.anno.cache.instances.ImageCache.getImage
 import me.anno.ecs.Entity
+import me.anno.ecs.components.cache.MaterialCache
+import me.anno.ecs.components.cache.MeshCache
+import me.anno.ecs.components.cache.SkeletonCache
+import me.anno.ecs.components.mesh.AnimRenderer
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
+import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.matrixBufferFBX
-import me.anno.gpu.RenderState
 import me.anno.gpu.ShaderLib.shaderAssimp
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.drawing.GFXx3D.shader3DUniforms
 import me.anno.gpu.drawing.GFXx3D.transformUniform
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
+import me.anno.image.ImageGPUCache.getImage
 import me.anno.io.files.FileReference
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.mesh.assimp.AnimGameItem.Companion.centerStackFromAABB
@@ -27,9 +31,17 @@ import me.anno.mesh.fbx.model.FBXGeometry
 import me.anno.mesh.obj.Material
 import me.anno.objects.GFXTransform
 import me.anno.objects.GFXTransform.Companion.uploadAttractors
+import me.anno.utils.types.AABBs.avgX
+import me.anno.utils.types.AABBs.avgY
+import me.anno.utils.types.AABBs.deltaX
+import me.anno.utils.types.AABBs.deltaY
+import me.anno.utils.types.AABBs.set
 import me.anno.video.MissingFrameException
 import me.karl.scene.DAEScene
+import org.apache.logging.log4j.LogManager
 import org.joml.*
+import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.sin
 
 open class MeshData : ICacheData {
@@ -43,6 +55,7 @@ open class MeshData : ICacheData {
     var assimpModel: AnimGameItem? = null
 
     fun drawAssimp(
+        useECSShader: Boolean,
         transform: GFXTransform?,
         stack: Matrix4fArrayList,
         time: Double,
@@ -50,10 +63,12 @@ open class MeshData : ICacheData {
         animationName: String,
         useMaterials: Boolean,
         centerMesh: Boolean,
-        normalizeScale: Boolean
+        normalizeScale: Boolean,
+        drawSkeletons: Boolean
     ) {
 
-        val shader = shaderAssimp.value
+        val baseShader = if (useECSShader) pbrModelShader else shaderAssimp
+        val shader = baseShader.value
         shader.use()
         shader3DUniforms(shader, stack, color)
         uploadAttractors(transform, shader, time)
@@ -71,7 +86,6 @@ open class MeshData : ICacheData {
         if (animation != null) {
             model0.uploadJointMatrices(shader, animation, time)
         }
-
 
         /*val diffuse = Vector4f()
         for (model in model0.hierarchy) {
@@ -94,7 +108,6 @@ open class MeshData : ICacheData {
             }
         }*/
 
-        transformUniform(shader, stack)
 
         val localStack = Matrix4x3fArrayList()
 
@@ -104,28 +117,29 @@ open class MeshData : ICacheData {
         }
 
         if (centerMesh) {
-            centerStackFromAABB(localStack, model0.staticAABB.value)
+            centerMesh(stack, localStack, model0)
         }
 
-        drawHierarchy(shader, localStack, color, model0, model0.hierarchy, useMaterials)
+        transformUniform(shader, stack)
+
+        drawHierarchy(shader, localStack, color, model0, model0.hierarchy, useMaterials, drawSkeletons)
 
         // draw skeleton for debugging purposes
         // makes sense for the working skeletons, but is broken for the incorrect ones...
         // so at least that seems to be correct...
-        RenderState.geometryShader.use(null) {
+        /*RenderState.geometryShader.use(null) {
             for (boneIndex in model0.bones.indices) {
                 val bone = model0.bones[boneIndex]
                 stack.next {
                     stack.mul(localStack)
                     // val skinning = Matrix4x3f().get(matrixBuffer.apply { position(12 * boneIndex) })
                     // val m = Matrix4f(bone.tmpTransform).mul(Matrix4f(skinning))
-                    stack.translate(Vector3f(bone.tmpOffset.m30(), bone.tmpOffset.m31(), bone.tmpOffset.m32()))
-                    // stack.translate(bone.offsetVector)
+                    stack.translate(bone.bindPosition)
                     stack.scale(0.1f)
                     GFXx3D.draw3DCircle(null, 0.0, stack, 0.7f, 0f, 360f, color)
                 }
             }
-        }
+        }*/
 
         // todo line mode: draw every mesh as lines
         // todo draw non-indexed as lines: use an index buffer
@@ -142,10 +156,11 @@ open class MeshData : ICacheData {
         color: Vector4fc,
         model0: AnimGameItem,
         entity: Entity,
-        useMaterials: Boolean
+        useMaterials: Boolean,
+        drawSkeletons: Boolean
     ) {
-        stack.pushMatrix()
 
+        stack.pushMatrix()
 
         val transform = entity.transform
         val local = transform.localTransform
@@ -161,35 +176,62 @@ open class MeshData : ICacheData {
             )
         )
 
-        val meshes = entity.getComponents(Mesh::class, false)
+        val meshes = entity.getComponents(MeshComponent::class, false)
         if (meshes.isNotEmpty()) {
 
             shader.m4x3("localTransform", stack)
+            GFX.shaderColor(shader, "tint", -1)
+
+            // LOGGER.info("use materials? $useMaterials")
 
             if (useMaterials) {
-                val diffuse = Vector4f()
-                for (mesh in meshes) {
-                    val material = mesh.material
-                    val texturePath = material?.diffuseMap
-                    val textureOrNull = if (texturePath == null) null else getImage(texturePath, 1000, true)
-                    val texture = textureOrNull ?: whiteTexture
-                    texture.bind(0, Filtering.LINEAR, Clamping.REPEAT)
-                    diffuse.set(color)
-                    if (material != null) diffuse.mul(material.diffuseBase)
-                    GFX.shaderColor(shader, "tint", diffuse)
-                    mesh.draw(shader, 0)
+                for (comp in meshes) {
+                    val mesh = MeshCache[comp.mesh]
+                    if (mesh == null) {
+                        LOGGER.warn("Mesh ${comp.mesh} is missing")
+                        continue
+                    }
+                    mesh.ensureBuffer()
+                    shader.v1("hasVertexColors", mesh.hasVertexColors)
+                    val materials = mesh.materials
+                    if (materials.isNotEmpty()) {
+                        for ((index, mat) in mesh.materials.withIndex()) {
+                            val material = MaterialCache[mat, defaultMaterial]
+                            material.defineShader(shader)
+                            mesh.draw(shader, index)
+                        }
+                    } else {
+                        val material = defaultMaterial
+                        material.defineShader(shader)
+                        mesh.draw(shader, 0)
+                    }
                 }
             } else {
-                whiteTexture.bind(0)
-                for (mesh in meshes) {
-                    GFX.shaderColor(shader, "tint", -1)
-                    mesh.draw(shader, 0)
+                val material = defaultMaterial
+                material.defineShader(shader)
+                for (comp in meshes) {
+                    val mesh = MeshCache[comp.mesh]
+                    if (mesh == null) {
+                        LOGGER.warn("Mesh ${comp.mesh} is missing")
+                        continue
+                    }
+                    val materialCount = max(1, mesh.materials.size)
+                    for (i in 0 until materialCount) {
+                        mesh.draw(shader, i)
+                    }
                 }
             }
         }
 
+        /*if (drawSkeletons) {
+            val animMeshRenderer = entity.getComponent(AnimRenderer::class, false)
+            if (animMeshRenderer != null) {
+                SkeletonCache[animMeshRenderer.skeleton]?.draw(shader, stack, null)
+            }
+        }*/
+
         for (child in entity.children) {
-            drawHierarchy(shader, stack, color, model0, child, useMaterials)
+            drawHierarchy(shader, stack, color, model0, child, useMaterials, drawSkeletons)
         }
 
         stack.popMatrix()
@@ -369,7 +411,7 @@ open class MeshData : ICacheData {
         GFX.check()*/
 
         shader3DUniforms(shader, stack, 1, 1, color, null, Filtering.NEAREST, null)
-        getTexture(material.diffuseTexture, whiteTexture).bind(0, whiteTexture.filtering, whiteTexture.clamping)
+        getTexture(material.diffuseTexture, whiteTexture).bind(0, whiteTexture.filtering, whiteTexture.clamping!!)
         buffer.draw(shader)
         GFX.check()
 
@@ -386,6 +428,94 @@ open class MeshData : ICacheData {
     }
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(MeshData::class)
+
+        // todo make target frame usage dependent on size? probably better: ensure we have a ~ 3px padding
+
+        fun centerMesh(stack: Matrix4f, localStack: Matrix4x3f, mesh: Mesh, targetFrameUsage: Float = 0.95f) {
+            mesh.ensureBuffer()
+            centerMesh(stack, localStack, AABBd().set(mesh.aabb), { mesh.getBounds(it, false) }, targetFrameUsage)
+        }
+
+        fun centerMesh(stack: Matrix4f, localStack: Matrix4x3f, model0: AnimGameItem, targetFrameUsage: Float = 0.95f) {
+            centerMesh(stack, localStack, model0.staticAABB.value, { model0.getBounds(it) }, targetFrameUsage)
+        }
+
+        fun centerMesh(
+            stack: Matrix4f,
+            localStack: Matrix4x3f,
+            aabb0: AABBd,
+            getBounds: (Matrix4f) -> AABBf,
+            targetFrameUsage: Float = 0.95f
+        ) {
+
+            // rough approximation using bounding box
+            centerStackFromAABB(localStack, aabb0)
+
+            // todo whenever possible, this optimization should be on another thread
+
+
+            // todo this probably should only be done for thumbs, not for Rem's Studios mesh rendering
+
+            // Newton iterations to improve the result
+            val matrix = Matrix4f()
+            fun test(dx: Float, dy: Float): AABBf {
+                matrix
+                    .set(stack)
+                    .translateLocal(dx, dy, 0f)
+                    .mul(localStack)
+                return getBounds(matrix)
+            }
+
+            for (i in 1..5) {
+
+                val m0 = test(0f, 0f)
+
+                val scale = 2f * targetFrameUsage / max(m0.deltaX(), m0.deltaY())
+                if (scale !in 0.1f..10f) break // scale is too wrong... mmh...
+                val scaleIsGoodEnough = scale in 0.9999f..1.0001f
+
+                val x0 = m0.avgX()
+                val y0 = m0.avgY()
+
+                // good enough for pixels
+                // exit early to save two evaluations
+                if (scaleIsGoodEnough && abs(x0) + abs(y0) < 1e-4f) break
+
+                val epsilon = 0.1f
+                val mx = test(epsilon, 0f)
+                val my = test(0f, epsilon)
+
+                /*LOGGER.info("--- Iteration $i ---")
+                LOGGER.info("m0: ${m0.print()}")
+                LOGGER.info("mx: ${mx.print()}")
+                LOGGER.info("my: ${my.print()}")*/
+
+                val dx = (mx.avgX() - x0) / epsilon
+                val dy = (my.avgY() - y0) / epsilon
+
+                // todo dx and dy seem to always be close to 1.00000,
+                // todo what is the actual meaning of them, can we set them to 1.0 without errors?
+
+                // stack.translateLocal(-alpha * x0 / dx, -alpha * y0 / dy, 0f)
+                val newtonX = -x0 / dx
+                val newtonY = -y0 / dy
+
+                if (abs(newtonX) + abs(newtonY) > 5f) break // translation is too wrong... mmh...
+
+                // good enough for pixels
+                if (scaleIsGoodEnough && abs(newtonX) + abs(newtonY) < 1e-4f) break
+
+                stack.translateLocal(newtonX, newtonY, 0f)
+                stack.scaleLocal(scale, scale, scale)
+
+                LOGGER.info("Tested[$i]: $epsilon, Used: Newton = (-($x0/$dx), -($y0/$dy)), Scale: $scale")
+
+            }
+
+        }
+
         fun getTexture(file: FileReference?, defaultTexture: Texture2D): Texture2D {
             if (file == null) return defaultTexture
             val tex = getImage(file, 1000, true)

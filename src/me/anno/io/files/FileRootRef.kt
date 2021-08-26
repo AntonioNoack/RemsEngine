@@ -1,11 +1,14 @@
 package me.anno.io.files
 
+import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.IOException
 import java.net.URI
 import kotlin.system.exitProcess
 
 object FileRootRef : FileReference("null") {
+
+    private val LOGGER = LogManager.getLogger(FileRootRef::class)
 
     override fun inputStream() = throw IOException()
 
@@ -15,7 +18,7 @@ object FileRootRef : FileReference("null") {
 
     // whatever you're trying to do, it's bad. Really bad.
     override fun deleteRecursively(): Boolean {
-        System.err.println("WTF are you trying to do? This call would have deleted your whole computer!")
+        LOGGER.error("WTF are you trying to do? This call would have deleted your whole computer!")
         exitProcess(-1)
     }
 

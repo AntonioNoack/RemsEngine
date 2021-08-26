@@ -3,6 +3,7 @@ package me.anno.image.svg
 import me.anno.io.xml.XMLElement
 import me.anno.io.xml.XMLReader
 import me.anno.utils.OS
+import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayInputStream
 
 fun main() {
@@ -20,14 +21,15 @@ fun main() {
             "</svg> "
 
     testSVG(text)
-    testSVG(OS.downloads.getChild("tiger.svg")!!.readText())
+    testSVG(OS.downloads.getChild("tiger.svg").readText())
 
 }
 
 fun testSVG(text: String) {
-    SVGMesh().parse(XMLReader.parse(ByteArrayInputStream(text.toByteArray())) as XMLElement)
+    me.anno.image.svg.SVGMesh().parse(XMLReader.parse(ByteArrayInputStream(text.toByteArray())) as XMLElement)
 }
 
 fun testXML(text: String) {
-    println(XMLReader.parse(ByteArrayInputStream(text.toByteArray())))
+    val logger = LogManager.getLogger()
+    logger.info(XMLReader.parse(ByteArrayInputStream(text.toByteArray())))
 }

@@ -28,7 +28,7 @@ import me.anno.ui.input.FileInput
 import me.anno.ui.input.FloatInput
 import me.anno.ui.input.IntInput
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.mixARGB
+import me.anno.utils.maths.Maths.mixARGB
 import me.anno.utils.process.DelayedTask
 import me.anno.video.FFMPEGEncodingBalance
 import me.anno.video.FFMPEGEncodingType

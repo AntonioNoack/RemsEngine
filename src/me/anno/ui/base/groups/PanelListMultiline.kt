@@ -8,7 +8,7 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.scrolling.ScrollableY
 import me.anno.ui.base.scrolling.ScrollbarY
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.clamp
+import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.structures.tuples.Quad
 import kotlin.math.max
 

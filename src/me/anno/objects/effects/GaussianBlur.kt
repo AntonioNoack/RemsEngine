@@ -1,20 +1,23 @@
 package me.anno.objects.effects
 
 import me.anno.gpu.GFX
-import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.RenderState.renderPurely
 import me.anno.gpu.RenderState.useFrame
+import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.input.Input
+import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4fArrayList
 import org.lwjgl.opengl.GL11
 import kotlin.math.max
 
 object GaussianBlur {
+
+    private val LOGGER = LogManager.getLogger(GaussianBlur::class)
 
     private fun drawBlur(
         target: Framebuffer, w: Int, h: Int, resultIndex: Int,
@@ -76,7 +79,7 @@ object GaussianBlur {
                 }
             }
 
-            if (debug && 'I'.code in Input.keysDown) println("$w,$h -> $smallerW,$smallerH")
+            if (debug && 'I'.code in Input.keysDown) LOGGER.info("$w,$h -> $smallerW,$smallerH")
 
             drawBlur(
                 FBStack["mask-gaussian-blur-0", smallerW, smallerH, 4, true, 1], smallerW, smallerH,

@@ -3,6 +3,7 @@ package me.anno.ui.editor.treeView
 import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.midGray
 import me.anno.config.DefaultStyle.white
+import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.drawing.DrawRectangles.drawRect
@@ -12,10 +13,8 @@ import me.anno.input.Input.mouseDownY
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
-import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.text.TextReader
-import me.anno.io.text.TextWriter
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Camera
@@ -34,8 +33,8 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.toARGB
-import me.anno.utils.Maths.clamp
-import me.anno.utils.Maths.sq
+import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.maths.Maths.sq
 import org.joml.Vector4f
 
 class AbstractTreeViewPanel<V>(
@@ -58,7 +57,12 @@ class AbstractTreeViewPanel<V>(
             }
 
             override fun calculateSize(w: Int, h: Int) {
-                calculateSize(w, h, "xx")
+                val font = font
+                minW = font.sampleWidth * 2 + padding.width
+                minH = font.sampleHeight + padding.height
+                if (text != textCacheKey.text || font.isBold != textCacheKey.isBold() || font.isItalic != textCacheKey.isItalic()) {
+                    textCacheKey = TextCacheKey(text, font, -1, -1)
+                }
             }
 
             override fun onCopyRequested(x: Float, y: Float) =

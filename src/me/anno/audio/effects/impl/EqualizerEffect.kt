@@ -12,9 +12,9 @@ import me.anno.animation.AnimatedProperty
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.clamp
-import me.anno.utils.Maths.mix
-import me.anno.utils.Maths.pow
+import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.maths.Maths.mix
+import me.anno.utils.maths.Maths.pow
 import me.anno.utils.hpc.HeavyProcessing.processBalanced
 import kotlin.math.abs
 import kotlin.math.log2
@@ -95,14 +95,14 @@ class EqualizerEffect : SoundEffect(Domain.FREQUENCY_DOMAIN, Domain.FREQUENCY_DO
 
         val sliders = sliders.map { it[time] }
         if (sliders.all { abs(it - 0.5) < 1e-3f }) {
-            // println("no change at all")
+            // LOGGER.info("no change at all")
             copy(dataSrc, dataDst)
             return
         }
 
         val firstSlider = sliders.first()
         if (sliders.all { abs(it - firstSlider) < 1e-3f }) {
-            // println("all the same")
+            // LOGGER.info("all the same")
             // just multiply everything
             val amplitude = pow(range, firstSlider - 0.5f)
             if (amplitude < 1e-7f) {

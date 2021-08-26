@@ -7,7 +7,8 @@ import me.anno.gpu.shader.GeoShader
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.colorRenderer
 import me.anno.utils.structures.SecureStack
-import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL20.GL_LOWER_LEFT
+import org.lwjgl.opengl.GL45.*
 
 object RenderState {
 
@@ -19,7 +20,7 @@ object RenderState {
     val blendMode = object : SecureStack<BlendMode?>(BlendMode.DEFAULT) {
         // could be optimized
         override fun onChangeValue(newValue: BlendMode?, oldValue: BlendMode?) {
-            // println("Blending: $newValue <- $oldValue")
+            // LOGGER.info("Blending: $newValue <- $oldValue")
             if (newValue == null) {
                 glDisable(GL_BLEND)
             } else {
@@ -44,6 +45,11 @@ object RenderState {
             if (newValue != DepthMode.ALWAYS) {
                 glEnable(GL_DEPTH_TEST)
                 glDepthFunc(newValue.func)
+                val reversedDepth = newValue.reversedDepth
+                glClearDepth(if (reversedDepth) 0.0 else 1.0)
+                glClipControl(GL_LOWER_LEFT, if (reversedDepth) GL_ZERO_TO_ONE else GL_NEGATIVE_ONE_TO_ONE)
+                // glDepthRange(-1.0, 1.0)
+                // glDepthFunc(GL_LESS)
             } else {
                 glDisable(GL_DEPTH_TEST)
             }
@@ -63,16 +69,6 @@ object RenderState {
             // nothing changes on the OpenGL side,
             // just the shaders need to be modified
         }
-    }
-
-    inline fun withEqualDepth(func: () -> Unit) {
-        val current = depthMode.currentValue
-        depthMode.use(DepthMode.values().first { it.func == current.withEqual }, func)
-    }
-
-    inline fun withoutEqualDepth(func: () -> Unit) {
-        val current = depthMode.currentValue
-        depthMode.use(DepthMode.values().first { it.func == current.withoutEqual }, func)
     }
 
     val cullMode = object : SecureStack<Int>(0) {

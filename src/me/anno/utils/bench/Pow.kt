@@ -9,6 +9,8 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.texture.Texture2D.Companion.packAlignment
 import me.anno.utils.types.Floats.f2
 import org.lwjgl.opengl.GL11.*
 import java.nio.ByteBuffer
@@ -22,7 +24,7 @@ fun main() {
                 "void main(){\n" +
                 "   gl_Position = vec4(attr0*2.0-1.0, 0.0, 1.0);\n" +
                 "   uv = attr0;\n" +
-                "}", "varying vec2 uv;\n", "" +
+                "}", listOf(Variable("vec2", "uv")), "" +
                 "void main(){" +
                 code +
                 "}"
@@ -84,7 +86,7 @@ fun main() {
 
                 val multiplications = manualCode.count { it == '*' }
 
-                // println("$power: $manualCode")
+                // LOGGER.info("$power: $manualCode")
 
                 val shaders = listOf(
                     // manually optimized
@@ -127,6 +129,7 @@ fun main() {
                             flat01.draw(shader)
                         }
                         // synchronize
+                        packAlignment(4)
                         glReadPixels(0, 0, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixels)
                         GFX.check()
                         val t1 = System.nanoTime()

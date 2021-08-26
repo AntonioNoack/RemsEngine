@@ -1,5 +1,6 @@
 package me.anno.ecs.prefab
 
+import me.anno.ecs.prefab.Path.Companion.ROOT_PATH
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import org.apache.logging.log4j.LogManager
@@ -9,14 +10,14 @@ import org.apache.logging.log4j.LogManager
 
 abstract class Change(val priority: Int) : Saveable(), Cloneable {
 
-    var path: Path? = null
+    var path: Path = ROOT_PATH
 
     fun apply(instance: PrefabSaveable) {
         apply(instance, pathIndex = 0)
     }
 
     fun apply(instance: PrefabSaveable, pathIndex: Int) {
-        val path = path ?: throw NullPointerException("Path is null inside $this")
+        val path = path
         if (pathIndex < path.size) {
 
             // we can go deeper :)
@@ -56,7 +57,7 @@ abstract class Change(val priority: Int) : Saveable(), Cloneable {
     override fun save(writer: BaseWriter) {
         super.save(writer)
         val path = path
-        if (path != null) {
+        if (!path.isEmpty()) {
             writer.writeString("path", path.toString(), true)
         }
     }

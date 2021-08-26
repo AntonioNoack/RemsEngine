@@ -4,6 +4,7 @@ import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.ConvexHullShape
 import com.bulletphysics.util.ObjectArrayList
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.ui.render.RenderView
 import me.anno.io.serialization.SerializedProperty
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -32,7 +33,7 @@ class ConvexCollider : Collider() {
     }
 
     override fun drawShape() {
-        // todo draw the convex hull
+        // todo draw the convex hull: we need the hull as triangles!! or at least as polygons
     }
 
     override fun clone(): ConvexCollider {

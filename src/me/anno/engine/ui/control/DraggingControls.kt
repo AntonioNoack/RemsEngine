@@ -1,9 +1,8 @@
 package me.anno.engine.ui.control
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.camDirection
@@ -11,14 +10,16 @@ import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.input.Input
 import me.anno.io.files.FileReference
-import me.anno.utils.Maths.pow
+import me.anno.utils.maths.Maths.pow
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.distance
+import org.apache.logging.log4j.LogManager
 import org.joml.Math
 import org.joml.Vector3d
 import org.joml.Vector3f
 
 // todo mode to place it on top of things using mesh bounds
+// automatically attach it to that object, that is being targeted? mmh.. no, use the selection for that
 
 // todo draw the gizmos
 
@@ -126,7 +127,7 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                 // drag the selected object
                 // for that transform dx,dy into global space,
                 // and then update the local space
-                val fovYRadians = view.editorCamera.fov
+                val fovYRadians = view.editorCamera.fovY
                 val speed = Math.tan(fovYRadians * 0.5) / h // todo include fov in this calculation
                 val camTransform = camera.transform!!.globalTransform
                 val offset = camTransform.transformDirection(Vector3d(dx * speed, -dy * speed, 0.0))
@@ -201,13 +202,13 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
         for (file in files) {
             // todo load as prefab (?)
             // todo when a material, assign it to the hovered mesh-component
-            val prefab = Prefab.loadPrefab(file) ?: continue
+            val prefab = loadPrefab(file) ?: continue
             when (prefab.clazzName) {
                 "Material" -> {
-                    val mesh = hovered.value as? Mesh
-                    if (mesh != null) {
-                        val instance = prefab.createInstance() as Material
-                        mesh.materials = listOf(instance)
+                    val mesh = hovered.value as? MeshComponent
+                    // todo set this material in the prefab
+                    /*if (mesh != null) {
+                        mesh.materials = listOf(file)
                         // add this change
                         val inspector = PrefabInspector.currentInspector
                         if (inspector != null) {
@@ -216,7 +217,7 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                             path.setLast(mesh.name, 0, 'm')
                             inspector.change(path, "materials", mesh.materials)
                         }
-                    }
+                    }*/
                 }
                 "Entity" -> {
                     // add this to the scene
@@ -230,15 +231,19 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                     // todo add that component?
                 }
             }
-            println("pasted $file")
+            LOGGER.info("pasted $file")
         }
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         super.onPaste(x, y, data, type)
-        println("pasted $data/$type")
+        LOGGER.info("pasted $data/$type")
     }
 
     override val className: String = "SceneView"
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(DraggingControls::class)
+    }
 
 }

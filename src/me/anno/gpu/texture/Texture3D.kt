@@ -6,16 +6,17 @@ import me.anno.gpu.TextureLib.invisibleTexture
 import me.anno.gpu.texture.Texture2D.Companion.activeSlot
 import me.anno.gpu.texture.Texture2D.Companion.bindTexture
 import me.anno.gpu.texture.Texture2D.Companion.byteBufferPool
+import me.anno.gpu.texture.Texture2D.Companion.packAlignment
 import me.anno.gpu.texture.Texture2D.Companion.textureBudgetTotal
 import me.anno.gpu.texture.Texture2D.Companion.textureBudgetUsed
-import me.anno.utils.Threads.threadWithName
+import me.anno.image.Image
+import me.anno.utils.hpc.Threads.threadWithName
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL30.*
 import java.awt.image.BufferedImage
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
-import kotlin.concurrent.thread
 
 class Texture3D(val w: Int, val h: Int, val d: Int) : ICacheData {
 
@@ -30,13 +31,13 @@ class Texture3D(val w: Int, val h: Int, val d: Int) : ICacheData {
 
     fun ensurePointer() {
         if (pointer < 0) pointer = glGenTextures()
-        if (pointer <= 0) throw RuntimeException()
+        if (pointer < 0) throw RuntimeException("Could not generate texture")
     }
 
     fun create() {
         ensurePointer()
         forceBind()
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+        packAlignment(1)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, w, h, d, 0, GL11.GL_RGBA, GL_UNSIGNED_BYTE, null as ByteBuffer?)
         filtering(isFilteredNearest)
         isCreated = true
@@ -45,7 +46,7 @@ class Texture3D(val w: Int, val h: Int, val d: Int) : ICacheData {
     fun createFP32() {
         ensurePointer()
         forceBind()
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+        packAlignment(1)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, w, h, d, 0, GL_RGBA, GL_FLOAT, null as ByteBuffer?)
         filtering(isFilteredNearest)
         isCreated = true
@@ -61,9 +62,15 @@ class Texture3D(val w: Int, val h: Int, val d: Int) : ICacheData {
         }
     }
 
+    fun create(img: Image, sync: Boolean) {
+        val bi = img.createBufferedImage()
+        create(bi, sync)
+    }
+
     fun create(img: BufferedImage, sync: Boolean) {
         val intData = img.getRGB(0, 0, img.width, img.height, null, 0, img.width)
         if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
+            // todo check whether this inversion is really needed
             for (i in intData.indices) {// argb -> abgr
                 val argb = intData[i]
                 val r = (argb and 0xff0000).shr(16)
@@ -88,7 +95,7 @@ class Texture3D(val w: Int, val h: Int, val d: Int) : ICacheData {
         GFX.check()
         ensurePointer()
         forceBind()
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+        packAlignment(1)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, intData)
         isCreated = true
         GFX.check()
@@ -105,7 +112,7 @@ class Texture3D(val w: Int, val h: Int, val d: Int) : ICacheData {
         byteBuffer.position(0)
         byteBuffer.put(data)
         byteBuffer.position(0)
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+        packAlignment(1)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, w, h, d, 0, GL11.GL_RED, GL_UNSIGNED_BYTE, byteBuffer)
         byteBufferPool.returnBuffer(byteBuffer)
         isCreated = true
@@ -129,7 +136,7 @@ class Texture3D(val w: Int, val h: Int, val d: Int) : ICacheData {
         forceBind()
         GFX.check()
         // rgba32f as internal format is extremely important... otherwise the value is cropped
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+        packAlignment(1)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, w, h, d, 0, GL_RGBA, GL_FLOAT, floatBuffer)
         byteBufferPool.returnBuffer(byteBuffer)
         isCreated = true
@@ -146,7 +153,7 @@ class Texture3D(val w: Int, val h: Int, val d: Int) : ICacheData {
         byteBuffer.position(0)
         byteBuffer.put(data)
         byteBuffer.position(0)
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+        packAlignment(1)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer)
         byteBufferPool.returnBuffer(byteBuffer)
         isCreated = true

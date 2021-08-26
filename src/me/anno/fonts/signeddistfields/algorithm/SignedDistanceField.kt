@@ -12,8 +12,8 @@ import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
-import me.anno.utils.Maths.clamp
-import me.anno.utils.Maths.mix
+import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.maths.Maths.mix
 import org.joml.AABBf
 import org.joml.Vector2f
 import java.awt.Font
@@ -280,7 +280,7 @@ object SignedDistanceField {
 
         val tex = Texture2D("SDF", w, h, 1)
         GFX.addGPUTask(w, h) {
-            tex.createMonochrome(buffer)
+            tex.createMonochrome(buffer, true)
         }
 
         // the center, because we draw the pieces from the center

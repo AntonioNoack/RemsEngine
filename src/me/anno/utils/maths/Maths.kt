@@ -1,4 +1,4 @@
-package me.anno.utils
+package me.anno.utils.maths
 
 import org.joml.*
 import kotlin.math.*

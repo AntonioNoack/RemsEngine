@@ -48,17 +48,17 @@ fun main() {
     val animationLayers = objects["AnimationLayer"]
     val geometries = objects["Geometry"]
     geometries.forEach { geometry ->
-        println(geometry)
+        LOGGER.info(geometry)
         val vertices = geometry["Vertices"].first().properties[0] as DoubleArray
         val vertexIndices = geometry["PolygonVertexIndex"].first().properties[0] as IntArray
-        println("geometry with ${vertices.size} vertices, and ${vertexIndices.size} indices")
+        LOGGER.info("geometry with ${vertices.size} vertices, and ${vertexIndices.size} indices")
         val materialIndices = geometry["LayerElementMaterial"].firstOrNull()?.get("Materials")?.get(0)?.properties?.get(0) as? IntArray
         // crazy numbers...
-        println("materials: ${materialIndices?.joinToString()}")
+        LOGGER.info("materials: ${materialIndices?.joinToString()}")
         val colors = geometry["LayerElementColor"].firstOrNull()?.get("Colors")?.get(0)?.properties?.get(0) as? DoubleArray // crazy values as well :/
-        println("colors: ${colors?.joinToString()}")
+        LOGGER.info("colors: ${colors?.joinToString()}")
 
     }
-    println(objects.children.size)
-    println(nodeAttributes.size)*/
+    LOGGER.info(objects.children.size)
+    LOGGER.info(nodeAttributes.size)*/
 }

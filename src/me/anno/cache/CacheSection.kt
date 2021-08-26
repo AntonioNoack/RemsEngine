@@ -7,8 +7,8 @@ import me.anno.gpu.GFX.gameTime
 import me.anno.io.files.FileReference
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.utils.ShutdownException
-import me.anno.utils.Threads.threadWithName
 import me.anno.utils.hpc.ProcessingQueue
+import me.anno.utils.hpc.Threads.threadWithName
 import org.apache.logging.log4j.LogManager
 import java.io.FileNotFoundException
 import java.util.concurrent.ConcurrentSkipListSet
@@ -36,6 +36,12 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             val toRemove = cache.filter(filter)
             cache.remove(toRemove)
             toRemove.values.forEach { it.destroy() }
+        }
+    }
+
+    fun removeEntry(key: Any) {
+        synchronized(cache) {
+            cache.remove(cache)?.destroy()
         }
     }
 

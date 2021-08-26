@@ -1,13 +1,9 @@
 package me.anno.image;
 
+import me.anno.gpu.texture.Texture2D;
 import me.anno.io.files.FileReference;
 
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBuffer;
 import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
 
 // src/author: https://github.com/aicp7/HDR_file_readin
 // modified for our needs
@@ -16,36 +12,25 @@ import java.nio.FloatBuffer;
 public class HDRImage extends Image {
 
     private float[] pixels;
-    private ByteBuffer nioBytes;
-    private FloatBuffer nioPixels;
 
-    public float[] getPixelArray() {
-        return pixels;
-    }
-
-    public FloatBuffer getPixelBuffer() {
-        return nioPixels;
-    }
-
-    public ByteBuffer getByteBuffer() {
-        return nioBytes;
-    }
-
-    public HDRImage(InputStream input, boolean useNioBuffer) throws IOException {
+    public HDRImage(InputStream input) throws IOException {
+        super(3, false);
         try (InputStream in = optimizeStream(input)) {
-            read(in, useNioBuffer);
+            read(in);
         }
     }
 
-    public HDRImage(FileReference file, boolean useNioBuffer) throws IOException {
+    public HDRImage(FileReference file) throws IOException {
+        super(3, false);
         try (InputStream in = optimizeStream(file.inputStream())) {
-            read(in, useNioBuffer);
+            read(in);
         }
     }
 
-    public HDRImage(File file, boolean useNioBuffer) throws IOException {
+    public HDRImage(File file) throws IOException {
+        super(3, false);
         try (InputStream in = optimizeStream(new FileInputStream(file))) {
-            read(in, useNioBuffer);
+            read(in);
         }
     }
 
@@ -55,8 +40,8 @@ public class HDRImage extends Image {
     }
 
     @Override
-    public BufferedImage createBufferedImage() {
-        return createBufferedImage(width, height);
+    public boolean hasAlphaChannel() {
+        return false;
     }
 
     private static int rgb(int r, int g, int b) {
@@ -64,49 +49,31 @@ public class HDRImage extends Image {
     }
 
     @Override
-    public BufferedImage createBufferedImage(int w, int h) {
-        BufferedImage img = new BufferedImage(w, h, 1);
-        DataBuffer buffer = img.getRaster().getDataBuffer();
-        if (width == w && height == h) {
-            for (int y = 0, index = 0; y < h; y++) {
-                for (int x = 0; x < w; x++, index++) {
-                    int i0 = index * 4;
-                    float r = pixels[i0++];
-                    float g = pixels[i0++];
-                    float b = pixels[i0];
-                    // reinhard tonemapping
-                    r = r / (r + 1f) * 255f;
-                    g = g / (g + 1f) * 255f;
-                    b = b / (b + 1f) * 255f;
-                    int value = rgb((int) r, (int) g, (int) b);
-                    buffer.setElem(index, value);
-                }
-            }
-        } else {
-            for (int y = 0, index = 0; y < h; y++) {
-                int iy = y * height / h;
-                int iyw = iy * w;
-                for (int x = 0; x < w; x++, index++) {
-                    int ix = x * width / w;
-                    int i0 = (ix + iyw) * 4;
-                    float r = pixels[i0++];
-                    float g = pixels[i0++];
-                    float b = pixels[i0];
-                    // reinhard tonemapping
-                    r = r / (r + 1f) * 255f;
-                    g = g / (g + 1f) * 255f;
-                    b = b / (b + 1f) * 255f;
-                    int value = rgb((int) r, (int) g, (int) b);
-                    buffer.setElem(index, value);
-                }
-            }
-        }
-        return img;
+    public int getRGB(int index) {
+        int i0 = index * 3;
+        float delta = typicalBrightness;
+        float r = pixels[i0] * delta;
+        float g = pixels[i0 + 1] * delta;
+        float b = pixels[i0 + 2] * delta;
+        // reinhard tonemapping
+        r = r / (r + 1f) * 255f;
+        g = g / (g + 1f) * 255f;
+        b = b / (b + 1f) * 255f;
+        return rgb((int) r, (int) g, (int) b);
+    }
+
+    // with the reinhard tonemapping, the average brightness of pixels is expected to be
+    // more than just 1, and more like 5
+    public static float typicalBrightness = 5f;
+
+    @Override
+    public void createTexture(Texture2D texture, boolean checkRedundancy) {
+        texture.createRGB(pixels, checkRedundancy);
     }
 
     // Construction method if the input is a InputStream.
     // Parse the HDR file by its format. HDR format encode can be seen in Radiance HDR(.pic,.hdr) file format
-    private void read(InputStream in, boolean useNioBuffer) throws IOException {
+    private void read(InputStream in) throws IOException {
         // Parse HDR file's header line
         // readLine(InputStream in) method will be introduced later.
 
@@ -146,14 +113,7 @@ public class HDRImage extends Image {
 
         DataInput din = new DataInputStream(in);
 
-        if (useNioBuffer) {
-            ByteBuffer bytes = nioBytes = ByteBuffer.allocateDirect(width * height * 4 * 4);
-            bytes.order(ByteOrder.nativeOrder());
-            bytes.position(0);
-            nioPixels = bytes.asFloatBuffer();
-        } else {
-            pixels = new float[height * width * 4];
-        }
+        pixels = new float[height * width * 3];
 
         // optimized from the original; it does not need to be full image size; one row is enough
         // besides it only needs 8 bits of space per component, not 32
@@ -205,46 +165,19 @@ public class HDRImage extends Image {
                 }
             }
 
-            if (useNioBuffer) {
-                for (int x = 0; x < width; x++) {
-                    int i2 = x * 4;
-                    int exp = lineBuffer[i2 + 3] & 255;
-                    if (exp == 0) {
-                        nioPixels.put(0f);
-                        nioPixels.put(0f);
-                        nioPixels.put(0f);
-                    } else {
-                        float exponent = (float) Math.pow(2, exp - 128 - 8);
-                        nioPixels.put((lineBuffer[i2] & 255) * exponent);
-                        nioPixels.put((lineBuffer[i2 + 1] & 255) * exponent);
-                        nioPixels.put((lineBuffer[i2 + 2] & 255) * exponent);
-                    }
-                    nioPixels.put(1f);
-                }
-            } else {
-                for (int x = 0; x < width; x++) {
-                    int i2 = x * 4;
-                    int exp = lineBuffer[i2 + 3] & 255;
-                    if (exp == 0) {
-                        index += 3;// 0 is default
-                    } else {
-                        float exponent = (float) Math.pow(2, exp - 128 - 8);
-                        pixels[index] = (lineBuffer[i2] & 255) * exponent;
-                        index++;
-                        pixels[index] = (lineBuffer[i2 + 1] & 255) * exponent;
-                        index++;
-                        pixels[index] = (lineBuffer[i2 + 2] & 255) * exponent;
-                        index++;
-                    }
-                    pixels[index++] = 1;
+            for (int x = 0; x < width; x++) {
+                int i2 = x * 4;
+                int exp = lineBuffer[i2 + 3] & 255;
+                if (exp == 0) {
+                    index += 3;// 0 is default
+                } else {
+                    float exponent = (float) Math.pow(2, exp - 128 - 8);
+                    pixels[index++] = (lineBuffer[i2] & 255) * exponent;
+                    pixels[index++] = (lineBuffer[i2 + 1] & 255) * exponent;
+                    pixels[index++] = (lineBuffer[i2 + 2] & 255) * exponent;
                 }
             }
         }
-
-        if (useNioBuffer) {
-            nioPixels.position(0);
-        }
-
     }
 
     private String readLine(InputStream in) throws IOException {
@@ -255,11 +188,11 @@ public class HDRImage extends Image {
                 break;
             } else if (i == 500) {// 100 seems short and unsure ;)
                 throw new IllegalArgumentException("Line too long");
-            } else {
+            } else if (b != '\r') {
                 bout.write(b);
             }
         }
-        return new String(bout.toByteArray());
+        return bout.toString();
     }
 
 }

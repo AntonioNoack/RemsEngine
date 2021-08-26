@@ -2,7 +2,7 @@ package me.anno.engine.ui
 
 import me.anno.ecs.prefab.CSet
 import me.anno.ecs.prefab.Prefab
-import me.anno.ecs.prefab.Prefab.Companion.loadPrefab
+import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.scene.ScenePrefab
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
@@ -15,7 +15,8 @@ import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.FileExplorerOption
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.ui.style.Style
-import me.anno.utils.files.Files.findNextFileName
+import me.anno.utils.files.Files.findNextFile
+import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
 
@@ -35,7 +36,7 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
-        println("pasted $type : $data")
+        LOGGER.info("Pasted $type : $data")
         when (type) {
             "PrefabSaveable" -> if (!pastePrefab(data)) {
                 LOGGER.warn("Could not parse prefab, $data")
@@ -43,7 +44,7 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
             else -> {
                 if (!pastePrefab(data)) {
                     if (data.length < 2048) {
-                        val ref = FileReference.getReference(data)
+                        val ref = data.toGlobalFile()
                         if (ref.exists) {
                             switchTo(ref)
                         }// else super.onPaste(x, y, data, type)
@@ -54,43 +55,48 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
     }
 
     fun pastePrefab(data: String): Boolean {
-        val read = TextReader.read(data)
-        val saveable = read.getOrNull(0) ?: return false
-        when (saveable) {
-            is Prefab -> {
-                // find the name of the root element
-                var name = saveable.changes
-                    ?.filterIsInstance<CSet>()
-                    ?.firstOrNull { it.path?.size == 0 && it.name == "name" }?.value?.toString()
-                name = name?.toAllowedFilename()
-                name = name ?: saveable.className
-                name = name.toAllowedFilename() ?: "Something"
-                // make .json lowercase
-                if (name.endsWith(".json", true)) {
-                    name = name.substring(0, name.length - 5)
+        try {
+            val read = TextReader.read(data)
+            val saveable = read.getOrNull(0) ?: return false
+            when (saveable) {
+                is Prefab -> {
+                    // find the name of the root element
+                    var name = saveable.changes
+                        ?.filterIsInstance<CSet>()
+                        ?.firstOrNull { it.path.isEmpty() && it.name == "name" }?.value?.toString()
+                    name = name?.toAllowedFilename()
+                    name = name ?: saveable.className
+                    name = name.toAllowedFilename() ?: "Something"
+                    // make .json lowercase
+                    if (name.endsWith(".json", true)) {
+                        name = name.substring(0, name.length - 5)
+                    }
+                    name += ".json"
+                    val file = findNextFile(folder.getChild(name), 1, '-')
+                    file.writeText(data)
+                    invalidate()
+                    return true
                 }
-                name += ".json"
-                val file = findNextFileName(folder.getChild(name), 1, '-')
-                file.writeText(data)
-                invalidate()
-                return true
-            }
-            is PrefabSaveable -> {
-                var name = saveable.name.toAllowedFilename()
-                name = name ?: saveable.defaultDisplayName.toAllowedFilename()
-                name = name ?: saveable.className
-                name = name.toAllowedFilename() ?: "Something"
-                // make .json lowercase
-                if (name.endsWith(".json", true)) {
-                    name = name.substring(0, name.length - 5)
+                is PrefabSaveable -> {
+                    var name = saveable.name.toAllowedFilename()
+                    name = name ?: saveable.defaultDisplayName.toAllowedFilename()
+                    name = name ?: saveable.className
+                    name = name.toAllowedFilename() ?: "Something"
+                    // make .json lowercase
+                    if (name.endsWith(".json", true)) {
+                        name = name.substring(0, name.length - 5)
+                    }
+                    name += ".json"
+                    val file = findNextFile(folder.getChild(name), 1, '-')
+                    file.writeText(data)
+                    invalidate()
+                    return true
                 }
-                name += ".json"
-                val file = findNextFileName(folder.getChild(name), 1, '-')
-                file.writeText(data)
-                invalidate()
-                return true
+                else -> throw RuntimeException("Unknown class ${saveable.className}")
             }
-            else -> throw RuntimeException("Unknown class ${saveable.className}")
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return false
         }
     }
 
@@ -102,10 +108,7 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
 
         fun addOptionToCreateFile(name: String, fileContent: String) {
             folderOptions.add(FileExplorerOption(NameDesc("Add $name")) { folder ->
-                var file = folder.getChild("$name.json")
-                if (file.exists) {
-                    file = findNextFileName(file, 1, 0.toChar(), 0)
-                }
+                val file = findNextFile(folder, name, "json", 1, 0.toChar(), 0)
                 if (file == InvalidRef) {
                     msg(NameDesc("Directory is not writable"))
                 } else file.writeText(fileContent)

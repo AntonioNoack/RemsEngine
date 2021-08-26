@@ -1,6 +1,7 @@
 package me.anno.gpu.buffer
 
 import me.anno.gpu.GFX
+import me.anno.gpu.buffer.Buffer.Companion.bindBuffer
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL20
@@ -29,7 +30,7 @@ object DrawLinesBuffer {
         if (lineBuffer < 0) {
             // GFX.check()
             lineBuffer = GL20.glGenBuffers()
-            GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, lineBuffer)
+            bindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, lineBuffer)
             val nioBuffer = ByteBuffer.allocateDirect(4 * lineBufferLength)
                     .order(ByteOrder.nativeOrder())
                     .asIntBuffer()
@@ -47,7 +48,7 @@ object DrawLinesBuffer {
             nioBuffer.position(0)
             GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, nioBuffer, GL15.GL_STATIC_DRAW)
             // GFX.check()
-        } else GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, lineBuffer)
+        } else bindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, lineBuffer)
     }
     
 }

@@ -17,7 +17,7 @@ import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.msg
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.utils.Threads.threadWithName
+import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.types.Strings.defaultImportType
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.*
@@ -74,7 +74,7 @@ object Rendering {
             }
         }
 
-        val isGif = targetOutputFile.extension.equals("gif", true)
+        val isGif = targetOutputFile.lcExtension == "gif"
 
         isRendering = true
         LOGGER.info("Rendering video at $width x $height")

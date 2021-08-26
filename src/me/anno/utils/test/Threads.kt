@@ -1,5 +1,6 @@
 package me.anno.utils.test
 
+import me.anno.utils.LOGGER
 import kotlin.concurrent.thread
 
 fun main() {
@@ -20,6 +21,6 @@ fun main() {
 
     val t1 = System.nanoTime()
 
-    println("${(t1 - t0) * 1e-9} $ctr")
+    LOGGER.info("${(t1 - t0) * 1e-9} $ctr")
 
 }

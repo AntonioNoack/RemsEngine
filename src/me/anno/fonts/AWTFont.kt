@@ -137,7 +137,7 @@ class AWTFont(val font: Font) {
         }
 
         val texture = Texture2D("awt-font", width, height, 1)
-        texture.create("AWTFont.generateTexture", {
+        texture.create2("AWTFont.generateTexture", {
 
             val image = BufferedImage(width, height, 1)
 
@@ -158,7 +158,7 @@ class AWTFont(val font: Font) {
             if (debugJVMResults) debug(image)
             image
 
-        }, needsSync)
+        }, needsSync, true)
 
         return texture
 
@@ -319,7 +319,7 @@ class AWTFont(val font: Font) {
                 if (hasAutomaticLineBreak && index0 + 1 < index1 && currentX == 0f && nextX > lineBreakWidth) {
                     val tmp1 = index1
                     val splitIndex = findSplitIndex(chars, index0, index1, charSpacing, lineBreakWidth, currentX)
-                    /*println("split [$line $fontSize $lineBreakWidth] $substring into " +
+                    /*LOGGER.info("split [$line $fontSize $lineBreakWidth] $substring into " +
                             chars.subList(index0,splitIndex).joinChars() +
                             " + " +
                             chars.subList(splitIndex,index1).joinChars()
@@ -403,7 +403,7 @@ class AWTFont(val font: Font) {
         if (result.isEmpty() || width < 1 || height < 1) return FakeWhiteTexture(width, height)
 
         val texture = Texture2D("awt-font-v3", width, height, 1)
-        texture.create("AWTFont.generateTextureV3", {
+        texture.create2("AWTFont.generateTextureV3", {
 
             val image = BufferedImage(width, height, 1)
             // for (i in width-10 until width) image.setRGB(i, 0, 0xff0000)
@@ -424,7 +424,7 @@ class AWTFont(val font: Font) {
 
             image
 
-        }, needsSync)
+        }, needsSync, true)
 
         return texture
 

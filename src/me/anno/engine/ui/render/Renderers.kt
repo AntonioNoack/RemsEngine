@@ -2,6 +2,9 @@ package me.anno.engine.ui.render
 
 import me.anno.ecs.components.light.LightType
 import me.anno.engine.pbr.PBRLibraryGLTF
+import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2
+import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2End
+import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2Start
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
@@ -13,7 +16,7 @@ import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.studio.rems.Scene
-import me.anno.utils.Maths.length
+import me.anno.utils.maths.Maths.length
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL20
 import java.nio.ByteBuffer
@@ -21,7 +24,7 @@ import java.nio.ByteOrder
 
 object Renderers {
 
-    val overdrawRenderer = object : Renderer(true, ShaderPlus.DrawMode.COLOR) {
+    val overdrawRenderer = object : Renderer("overdraw", true, ShaderPlus.DrawMode.COLOR) {
         override fun getPostProcessing(): ShaderStage {
             return ShaderStage(
                 "overdraw", listOf(
@@ -34,7 +37,7 @@ object Renderers {
         }
     }
 
-    val cheapRenderer = object : Renderer(false, ShaderPlus.DrawMode.COLOR) {
+    val cheapRenderer = object : Renderer("cheap", false, ShaderPlus.DrawMode.COLOR) {
         override fun getPostProcessing(): ShaderStage {
             return ShaderStage(
                 "cheap", listOf(
@@ -44,7 +47,7 @@ object Renderers {
         }
     }
 
-    val baseRenderer = object : Renderer(false, ShaderPlus.DrawMode.COLOR) {
+    val pbrRenderer = object : Renderer("pbr", false, ShaderPlus.DrawMode.COLOR) {
         override fun getPostProcessing(): ShaderStage {
             return ShaderStage("pbr", listOf(
                 Variable("vec3", "ambientLight"),
@@ -58,7 +61,7 @@ object Renderers {
                 Variable("float", "finalRoughness"),
                 Variable("float", "finalOcclusion"),
                 Variable("float", "finalSheen"),
-                Variable("vec3", "finalSheenCoatNormal"),
+                Variable("vec3", "finalSheenNormal"),
                 Variable("vec4", "finalClearCoat"),
                 Variable("vec2", "finalClearCoatRoughMetallic"),
                 // if the translucency > 0, the normal map probably should be turned into occlusion ->
@@ -90,8 +93,8 @@ object Renderers {
                     "       finalColor = mix(finalColor, finalClearCoat.rgb, clearCoatEffect);\n" +
                     "   }\n" +
                     // precalculate sheen
-                    // todo use sheen normal
-                    "   float sheen = finalSheen * fresnel3;\n" +
+                    "   float sheenFresnel = 1.0 - abs(dot(finalSheenNormal,V));\n" +
+                    "   float sheen = finalSheen * pow(sheenFresnel, 3.0);\n" +
                     "   vec3 diffuseColor = finalColor * (1.0 - finalMetallic);\n" +
                     "   vec3 specularColor = finalColor * finalMetallic;\n" +
                     "   bool hasSpecular = dot(specularColor,vec3(1.0)) > 0.001;\n" +
@@ -174,13 +177,18 @@ object Renderers {
                     "       }\n" +
                     PBRLibraryGLTF.specularBRDFv2NoDivInlined2End +
                     "   }\n" +
-                    "   finalColor = diffuseColor * diffuseLight + specularColor * specularLight;\n" +
-                    "   finalColor = finalColor * finalOcclusion + finalEmissive;\n" +
-                    "   finalColor = reinhard(visualizeLightCount > 0 ? vec3(lightCount * 0.125) : finalColor);\n" +
-                    "   " +
+                    "   if(visualizeLightCount){\n" +
+                    "       finalColor.r = lightCount * 0.125;\n" +
+                    // reinhard tonemapping
+                    "       finalColor = vec3(lightCount/(1.0+lightCount));\n" +
+                    "   } else {\n" +
+                    "       finalColor = diffuseColor * diffuseLight + specularColor * specularLight;\n" +
+                    "       finalColor = finalColor * finalOcclusion + finalEmissive;\n" +
+                    "       finalColor = finalColor/(1.0+finalColor);\n" +
                     // banding prevention
                     // -0.5, so we don't destroy blacks on OLEDs
-                    "   finalColor -= random(uv) * ${1.0 / 255.0};\n"// + "}"
+                    "       finalColor -= random(uv) * ${1.0 / 255.0};\n" +
+                    "   }\n"
             ).apply {
                 val src = Scene.reinhardToneMapping +
                         Scene.noiseFunc
@@ -192,7 +200,7 @@ object Renderers {
     // todo if imported mesh has no materials, just create a sample material...
 
     // pbr rendering with a few fake lights (which have no falloff)
-    val previewRenderer = object : Renderer(false, ShaderPlus.DrawMode.COLOR) {
+    val previewRenderer = object : Renderer("preview", false, ShaderPlus.DrawMode.COLOR) {
 
         val previewLights = listOf(
             // direction, strength
@@ -233,48 +241,72 @@ object Renderers {
                     Variable("float", "finalAlpha", VariableMode.INOUT),
                     Variable("float", "finalRoughness"),
                     Variable("float", "finalMetallic"),
+                    Variable("float", "finalSheen"),
+                    Variable("vec3", "finalSheenNormal"),
+                    Variable("vec4", "finalClearCoat"),
+                    Variable("vec2", "finalClearCoatRoughMetallic"),
                     Variable("vec3", "finalNormal"),
                     Variable("vec3", "finalEmissive")
                 ), "" +
-                        "vec3 ambientLight = vec3(0.1);\n" +
+                        // shared pbr data
+                        "   vec3 V = normalize(-finalPosition);\n" +
+                        // light calculations
+                        "   float NdotV = abs(dot(finalNormal,V));\n" +
+                        // fresnel for all fresnel based effects
+                        "   float fresnel = 1.0 - NdotV, fresnel3 = pow(fresnel, 3.0);\n" +
+                        "   if(finalClearCoat.w > 0.0){\n" +
+                        // cheap clear coat effect
+                        "       float clearCoatEffect = fresnel3 * finalClearCoat.w;\n" +
+                        "       finalRoughness = mix(finalRoughness, finalClearCoatRoughMetallic.x, clearCoatEffect);\n" +
+                        "       finalMetallic = mix(finalMetallic, finalClearCoatRoughMetallic.y, clearCoatEffect);\n" +
+                        "       finalColor = mix(finalColor, finalClearCoat.rgb, clearCoatEffect);\n" +
+                        "   }\n" +
+                        // precalculate sheen
+                        "   float sheenFresnel = 1.0 - abs(dot(finalSheenNormal,V));\n" +
+                        "   float sheen = finalSheen * pow(sheenFresnel, 3.0);\n" +
+                        // light calculation
+                        "vec3 ambientLight = vec3(0.3);\n" +
                         "vec3 diffuseLight = ambientLight, specularLight = ambientLight;\n" +
-                        "vec3 diffuseColor = finalColor * (1.0 - finalMetallic);\n" +
+                        "vec3 diffuseColor  = finalColor * (1.0 - finalMetallic);\n" +
                         "vec3 specularColor = finalColor * finalMetallic;\n" +
-                        "vec3 V = normalize(-finalPosition);\n" +
                         "bool hasSpecular = dot(specularColor, vec3(1.0)) > 0.0;\n" +
-                        "float NdotV = abs(dot(finalNormal, V));\n" +
-                        // todo use the more optimized, inlined version of specularBRDF
+                        specularBRDFv2NoDivInlined2Start +
                         "for(int i=0;i<${previewLights.size};i++){\n" +
                         "   vec4 data = lightData[i];\n" +
                         "   vec3 lightDirection = data.xyz, lightColor = vec3(data.w);\n" +
                         "   float NdotL = dot(finalNormal, lightDirection);\n" +
                         "   if(NdotL > 0.0){\n" +
                         "       vec3 H = normalize(V + lightDirection);\n" +
-                        "       if(hasSpecular) specularLight += lightColor * computeSpecularBRDF(\n" +
-                        "           specularColor, finalRoughness, V,\n" +
-                        "           finalNormal, NdotL, NdotV, H\n" +
-                        "       );\n" +
-                        "       diffuseLight  += lightColor * NdotL;\n" +
+                        "       if(hasSpecular){\n" +
+                        specularBRDFv2NoDivInlined2 +
+                        "           specularLight += lightColor * computeSpecularBRDF;\n" +
+                        "       }\n" +
+                        "       diffuseLight += lightColor * NdotL;\n" +
                         "   }\n" +
                         "}\n" +
-                        "finalColor = reinhard(diffuseColor * diffuseLight + specularColor * specularLight);\n" +
-                        // "finalColor *= 0.6 - 0.4 * normalize(finalNormal).x;\n" +
-                        "finalColor += finalEmissive;\n" +
-                        "finalColor -= random(uv) * ${1.0 / 255.0};\n"
+                        specularBRDFv2NoDivInlined2End +
+                        "finalColor = diffuseColor * diffuseLight + specularColor * specularLight;\n" +
+                        "finalColor = finalColor * finalOcclusion + finalEmissive;\n" +
+                        "finalColor = finalColor/(1.0+finalColor);\n" +
+                        // a preview probably doesn't need anti-banding
+                        // "finalColor -= random(uv) * ${1.0 / 255.0};\n" +
+                        // make the border opaque, so we can see it better -> doesn't work somehow...
+                        // "finalAlpha = clamp(finalAlpha + 10.0 * fresnel3, 0.0, 1.0);\n"
+                        ""
             ).apply {
-                val src = PBRLibraryGLTF.specularBRDFv2NoDivInlined +
-                        Scene.reinhardToneMapping +
+                val src = Scene.reinhardToneMapping +
                         Scene.noiseFunc
                 functions.add(Function(src))
             }
         }
     }
 
-    val uiRenderer = object : Renderer(false, ShaderPlus.DrawMode.COLOR) {
+    val simpleNormalRenderer = object : Renderer("simple-normal", false, ShaderPlus.DrawMode.COLOR) {
         override fun getPostProcessing(): ShaderStage {
             return ShaderStage(
                 "uiRenderer", listOf(
                     Variable("vec3", "finalColor", VariableMode.INOUT),
+                    Variable("float", "finalAlpha", VariableMode.INOUT),
                     Variable("vec3", "finalNormal"),
                     Variable("vec3", "finalEmissive")
                 ), "" +
@@ -286,7 +318,7 @@ object Renderers {
 
     val attributeRenderers: List<Renderer> = DeferredLayerType.values()
         .run { toList().subList(0, kotlin.math.min(size, 9)) }.map {
-            object : Renderer(false, ShaderPlus.DrawMode.COLOR) {
+            object : Renderer("attribute-$it", false, ShaderPlus.DrawMode.COLOR) {
                 override fun getPostProcessing(): ShaderStage {
                     return ShaderStage(
                         "attribute", if (it == DeferredLayerType.COLOR) {

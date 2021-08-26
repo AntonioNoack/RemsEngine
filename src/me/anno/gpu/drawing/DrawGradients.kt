@@ -5,6 +5,7 @@ import me.anno.gpu.ShaderLib
 import me.anno.gpu.TextureLib
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
+import me.anno.ui.editor.sceneView.Grid.bindWhite
 import me.anno.video.VFrame
 import org.joml.Vector4fc
 
@@ -15,7 +16,7 @@ object DrawGradients {
         GFX.check()
         val shader = ShaderLib.flatShaderGradient.value
         shader.use()
-        TextureLib.whiteTexture.bind(0, TextureLib.whiteTexture.filtering, TextureLib.whiteTexture.clamping)
+        bindWhite(0)
         GFXx2D.posSize(shader, x, y, w, h)
         shader.v4("lColor", leftColor)
         shader.v4("rColor", rightColor)
@@ -29,7 +30,7 @@ object DrawGradients {
         GFX.check()
         val shader = ShaderLib.flatShaderGradient.value
         shader.use()
-        TextureLib.whiteTexture.bind(0, TextureLib.whiteTexture.filtering, TextureLib.whiteTexture.clamping)
+        bindWhite(0)
         GFXx2D.posSize(shader, x, y, w, h)
         shader.v4("lColor", leftColor)
         shader.v4("rColor", rightColor)

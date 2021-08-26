@@ -7,7 +7,7 @@ import me.anno.gpu.RenderState
 import me.anno.gpu.blending.BlendMode
 import me.anno.objects.Transform
 import me.anno.ui.editor.sceneView.Grid
-import me.anno.utils.Maths
+import me.anno.utils.maths.Maths
 import kotlin.math.floor
 import kotlin.math.log10
 

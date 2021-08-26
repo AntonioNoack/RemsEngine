@@ -11,7 +11,7 @@ import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.InputVisibility
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.mixARGB
+import me.anno.utils.maths.Maths.mixARGB
 import me.anno.utils.input.Keys.isClickKey
 import kotlin.math.max
 

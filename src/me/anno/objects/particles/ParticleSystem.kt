@@ -466,7 +466,7 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
         /* val t1 = System.nanoTime()
         timeSum += (t1-t0)*1e-6f
         timeCtr++
-        println("${timeSum/timeCtr}ms")*/
+        LOGGER.info("${timeSum/timeCtr}ms")*/
         // 0.3-0.5 ms -> could be improved
         // -> improved it to ~ 0.056 ms by avoiding a full copy
         // could be improved to 0.045 ms (~20%) by using a binary writer

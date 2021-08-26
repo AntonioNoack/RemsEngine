@@ -26,9 +26,9 @@ fun main() {
 fun test(file: FileReference, loadFunc: (file: FileReference) -> BufferedImage) {
     try {
         val image = loadFunc(file)
-        println(image.run { "${file.name}: $width x $height, ${image.colorModel}" })
+        LOGGER.info(image.run { "${file.name}: $width x $height, ${image.colorModel}" })
     } catch (e: Exception) {
-        println("${file.name}: ${e.message}")
+        LOGGER.info("${file.name}: ${e.message}")
     }
 }
 

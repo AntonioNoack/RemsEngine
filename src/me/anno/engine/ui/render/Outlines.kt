@@ -1,14 +1,19 @@
 package me.anno.engine.ui.render
 
 import me.anno.ecs.Entity
+import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.RendererComponent
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.pipeline.M4x3Delta.m4x3delta
+import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4d
 
 object Outlines {
+
+    private val LOGGER = LogManager.getLogger(Outlines::class)
 
     private val tmpMat4d = Matrix4d()
 
@@ -27,16 +32,17 @@ object Outlines {
             val components = entity.components
             for (i in components.indices) {
                 val component = components[i]
-                if (component is Mesh) {
-                    drawOutline(renderer, component, worldScale)
+                if (component is MeshComponent) {
+                    val mesh = MeshCache[component.mesh, true] ?: continue
+                    drawOutline(renderer, component, mesh, worldScale)
                 }
             }
         }
     }
 
-    fun drawOutline(renderer: RendererComponent?, mesh: Mesh, worldScale: Double) {
+    fun drawOutline(renderer: RendererComponent?, meshComponent: MeshComponent, mesh: Mesh, worldScale: Double) {
 
-        val entity = mesh.entity ?: return
+        val entity = meshComponent.entity ?: return
         val transform0 = entity.transform
 
         // important, when the object is off-screen, but the outline is not
@@ -72,7 +78,7 @@ object Outlines {
         scaledMax.sub(scaledMin)
 
         if (scaledMax.x.isNaN()) {
-            println("Outlines issue: $scaledMax from ${RenderView.cameraMatrix} * translate($camPosition) * $transform")
+            LOGGER.info("Outlines issue: $scaledMax from ${RenderView.cameraMatrix} * translate($camPosition) * $transform")
         }
 
         val scale = 1f + 0.01f / ((scaledMax.x + scaledMax.y).toFloat() * 0.5f)

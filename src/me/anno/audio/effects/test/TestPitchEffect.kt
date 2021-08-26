@@ -1,12 +1,11 @@
 package me.anno.audio.effects.test
 
 import me.anno.animation.AnimatedProperty
-import me.anno.utils.Maths.clamp
-import me.anno.utils.Maths.length
+import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.maths.Maths.length
 import me.anno.utils.OS
 import org.jtransforms.fft.FloatFFT_1D
 import java.awt.image.BufferedImage
-import java.io.File
 import javax.imageio.ImageIO
 import kotlin.math.*
 

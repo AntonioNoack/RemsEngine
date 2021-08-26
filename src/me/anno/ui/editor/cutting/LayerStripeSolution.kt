@@ -4,7 +4,6 @@ import me.anno.audio.AudioFXCache
 import me.anno.audio.AudioFXCache.SPLITS
 import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
 import me.anno.config.DefaultStyle.black
-import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.DrawGradients.drawRectGradient
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawStriped.drawRectStriped
@@ -15,10 +14,10 @@ import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.ui.editor.TimelinePanel.Companion.centralTime
 import me.anno.ui.editor.TimelinePanel.Companion.dtHalfLength
 import me.anno.ui.editor.cutting.LayerView.Companion.maxLines
-import me.anno.utils.Maths.clamp
-import me.anno.utils.Maths.max
-import me.anno.utils.Maths.mixARGB
-import me.anno.utils.Maths.nonNegativeModulo
+import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.maths.Maths.max
+import me.anno.utils.maths.Maths.mixARGB
+import me.anno.utils.maths.Maths.nonNegativeModulo
 import me.anno.video.FFMPEGMetadata
 import org.joml.Vector4f
 import kotlin.math.abs

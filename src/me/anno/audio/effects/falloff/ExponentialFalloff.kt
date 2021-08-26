@@ -1,6 +1,6 @@
 package me.anno.audio.effects.falloff
 
-import me.anno.utils.Maths.pow
+import me.anno.utils.maths.Maths.pow
 
 class ExponentialFalloff() : Falloff() {
 

@@ -1,14 +1,17 @@
 package me.anno.engine.raycast
 
 import me.anno.ecs.Entity
+import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.AABBs.set
 import me.anno.utils.types.AABBs.testLineAABB
 import me.anno.utils.types.AABBs.transformAABB
 import me.anno.utils.types.Triangles.rayTriangleIntersection
 import me.anno.utils.types.Vectors.toVector3f
+import org.apache.logging.log4j.LogManager
 import org.joml.*
 
 object Raycast {
@@ -73,10 +76,12 @@ object Raycast {
         for (i in components.indices) {
             val component = components[i]
             if (includeDisabled || component.isEnabled) {
-                if (triangles && component is Mesh) {
+                if (triangles && component is MeshComponent) {
                     if (component.canCollide(collisionMask)) {
-                        if (raycastTriangleMesh(entity, component, start, direction, end, Matrix4x3d(), result)) {
-                            result.mesh = component
+                        val mesh = MeshCache[component.mesh] ?: continue
+                        if (raycastTriangleMesh(entity, mesh, start, direction, end, Matrix4x3d(), result)) {
+                            result.mesh = mesh
+                            result.component = component
                         }
                     }
                 }
@@ -217,7 +222,7 @@ object Raycast {
         // todo if it is animated, we should ignore the aabb, and must apply the appropriate bone transforms
         if (hasValidCoordinates && orderOfMagnitudeIsFine) {
 
-            // println(Vector3f(localEnd).sub(localStart).normalize().dot(localDir))
+            // LOGGER.info(Vector3f(localEnd).sub(localStart).normalize().dot(localDir))
 
             // test whether we intersect the aabb of this mesh
             if (testLineAABB(mesh.aabb, localSrt, localEnd)) {
@@ -297,10 +302,12 @@ object Raycast {
 
         val aabb = AABBd()
 
+        val logger = LogManager.getLogger("Raycast")
+
         for (i in 0 until 1000) {
 
             val x = 1e31 * Math.random()
-            println(x)
+            logger.info(x)
 
             aabb.clear()
             aabb.union(x * (1 - f), y * (1 - f), z * (1 - f))

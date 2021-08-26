@@ -319,7 +319,7 @@ object UnityReader {
     fun readAsFolder(file: FileReference): FileReference {
 
         // val tree = parseYAML(file.readText(), true)
-        // println(tree)
+        // LOGGER.info(tree)
 
         // if it is only one thing, and has no references, we don't need the project...
         // but these materials would be boring anyways ;)
@@ -350,7 +350,7 @@ object UnityReader {
 
         parseYAML(getReference(OS.downloads, "up/SM_Prop_DiningTable_01.fbx.meta"))
 
-        println(readAsAsset(getReference(OS.downloads, "up/PolygonScifi_03_A.mat")))
+        LOGGER.info(readAsAsset(getReference(OS.downloads, "up/PolygonScifi_03_A.mat")))
 
         val meshMeta = getReference(main, "Models/Flame_Mesh.fbx")
         val material = getReference(main, "Materials/PolygonSciFi_01_A.mat")

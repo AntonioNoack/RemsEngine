@@ -3,7 +3,8 @@ package me.anno.mesh.fbx.model
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.shader.BaseShader
-import me.anno.utils.Maths
+import me.anno.gpu.shader.builder.Variable
+import me.anno.utils.maths.Maths
 import org.apache.logging.log4j.LogManager
 
 object FBXShader {
@@ -25,7 +26,7 @@ object FBXShader {
     const val maxWeightsDefault = 4 // 1 .. 4
     fun getShader(
         v3DBase: String, positionPostProcessing: String,
-        y3D: String, getTextureLib: String
+        y3D: List<Variable>, getTextureLib: String
     ): BaseShader {
         maxBones = Maths.clamp((GFX.maxVertexUniforms - (16 * 3)) / 16, 4, 256)
         LOGGER.info("Max number of bones: $maxBones")
@@ -54,9 +55,7 @@ object FBXShader {
                     "   uv = uvs;\n" +
                     "   normal = skinTransform * vec4(normals, 0.0);\n" + // rotate normal as well; normalization may be instead required in the fragment shader
                     positionPostProcessing +
-                    "}", y3D + "" +
-                    "varying vec3 normal;\n" +
-                    "varying vec4 wei;\n", "" +
+                    "}", y3D + listOf(Variable("vec3","normal"),Variable("vec4","wei")), "" +
                     "uniform sampler2D tex;\n" +
                     getTextureLib +
                     ShaderLib.getColorForceFieldLib +

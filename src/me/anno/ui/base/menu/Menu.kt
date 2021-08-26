@@ -17,7 +17,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.components.PureTextInput
-import me.anno.utils.Maths
+import me.anno.utils.maths.Maths
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt

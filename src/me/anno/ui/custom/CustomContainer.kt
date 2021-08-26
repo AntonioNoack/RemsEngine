@@ -1,6 +1,6 @@
 package me.anno.ui.custom
 
-import me.anno.cache.instances.ImageCache.getInternalTexture
+import me.anno.image.ImageGPUCache.getInternalTexture
 import me.anno.config.DefaultStyle.white
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.TextureLib.whiteTexture

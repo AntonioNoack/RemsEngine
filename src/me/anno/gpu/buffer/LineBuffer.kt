@@ -1,7 +1,10 @@
 package me.anno.gpu.buffer
 
+import me.anno.engine.ui.render.RenderView.Companion.camPosition
+import me.anno.engine.ui.render.RenderView.Companion.worldScale
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.builder.Variable
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
@@ -32,7 +35,7 @@ object LineBuffer {
                 "void main(){" +
                 "   gl_Position = transform * vec4(position, 1);\n" +
                 "   vColor = color;\n" +
-                "}", "varying vec4 vColor;\n", "" +
+                "}", listOf(Variable("vec4", "vColor")), "" +
                 "void main(){\n" +
                 "   vec3 finalColor = vColor.rgb;\n" +
                 "   float finalAlpha = vColor.a;\n" +
@@ -203,17 +206,24 @@ object LineBuffer {
         putRelativeLine(v0, v1, cam, worldScale, color.r() / 255.0, color.g() / 255.0, color.b() / 255.0)
     }
 
+    fun putRelativeLine(
+        v0: org.joml.Vector3d, v1: org.joml.Vector3d,
+        color: Int
+    ) {
+        putRelativeLine(v0, v1, camPosition, worldScale, color.r() / 255.0, color.g() / 255.0, color.b() / 255.0)
+    }
+
     fun finish(stack: Matrix4f) {
         val shader = shader.value
         shader.use()
         /*if (isKeyDown('x')) {
             shader.printLocationsAndValues()
             shader.invalidateCacheForTests()
-            println(RenderState.blendMode.currentValue)
-            println(RenderState.depthMode.currentValue)
-            println(RenderState.cullMode.currentValue)
-            println(RenderState.depthMask.currentValue)
-            println(RenderState.scissorTest.currentValue)
+            LOGGER.info(RenderState.blendMode.currentValue)
+            LOGGER.info(RenderState.depthMode.currentValue)
+            LOGGER.info(RenderState.cullMode.currentValue)
+            LOGGER.info(RenderState.depthMask.currentValue)
+            LOGGER.info(RenderState.scissorTest.currentValue)
         }*/
         shader.v4("tint", -1)
         finish(stack, shader)
@@ -232,7 +242,7 @@ object LineBuffer {
         buffer.isUpToDate = true
         shader.m4x4("transform", stack)
         buffer.draw(shader)
-        // println("${buffer.drawLength} for limit $limit")
+        // LOGGER.info("${buffer.drawLength} for limit $limit")
 
         // reset the buffer
         bytes.position(0)

@@ -16,9 +16,9 @@ import me.anno.studio.rems.RemsStudio.targetWidth
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.style.Style
 import me.anno.utils.types.Floats.toDegrees
-import me.anno.utils.Maths.clamp01
-import me.anno.utils.Maths.length
-import me.anno.utils.Maths.mixAngle
+import me.anno.utils.maths.Maths.clamp01
+import me.anno.utils.maths.Maths.length
+import me.anno.utils.maths.Maths.mixAngle
 import me.anno.utils.types.Vectors.minus
 import me.anno.utils.types.Vectors.times
 import org.joml.Vector3f

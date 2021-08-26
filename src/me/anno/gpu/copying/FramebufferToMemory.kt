@@ -1,6 +1,7 @@
 package me.anno.gpu.copying
 
 import me.anno.gpu.GFX
+import me.anno.gpu.texture.Texture2D.Companion.packAlignment
 import me.anno.utils.Color
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11
@@ -59,7 +60,7 @@ object FramebufferToMemory {
                 renderSection(x0, y0, width, height)
 
                 GL11.glFlush(); GL11.glFinish() // wait for everything to be drawn
-                GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 1)
+                packAlignment(4 * wi)
                 GL11.glReadPixels(0, 0, wi, hi, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer)
                 GFX.check()
 

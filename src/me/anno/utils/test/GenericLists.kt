@@ -8,8 +8,8 @@ fun main() {
 
 fun testList(list: List<*>) {
     val clazz = list::class
-    // println(clazz.nestedClasses)
-    // println(clazz.objectInstance)
+    // LOGGER.info(clazz.nestedClasses)
+    // LOGGER.info(clazz.objectInstance)
     println(clazz.typeParameters)
     println(clazz)
 }

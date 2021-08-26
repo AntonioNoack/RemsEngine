@@ -23,7 +23,7 @@ import me.anno.gpu.shader.ShaderPlus
 // todo and deferred rendering (no mapping needed, more memory intensive, more lights supported)
 
 object DeferredRenderer : Renderer(
-    false,
+    "deferred", false,
     ShaderPlus.DrawMode.COLOR,
     DeferredSettingsV2(
         listOf(

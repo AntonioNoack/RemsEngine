@@ -13,14 +13,12 @@ class BGRAFrame(w: Int, h: Int) : VFrame(w, h, 1) {
 
     private val bgra = Texture2D("bgra-frame", w, h, 1)
 
-    override val isCreated: Boolean get() = bgra.isCreated
-
     override fun load(input: InputStream) {
         val s0 = w * h * 4
         val data = input.readNBytes2(s0, Texture2D.byteArrayPool[s0, false], true)
         creationLimiter.acquire()
         GFX.addGPUTask(w, h) {
-            bgra.createRGBA(data)
+            bgra.createRGBA(data, true)
             Texture2D.byteArrayPool.returnBuffer(data)
             creationLimiter.release()
         }
@@ -31,11 +29,6 @@ class BGRAFrame(w: Int, h: Int) : VFrame(w, h, 1) {
 
     override fun bind(offset: Int, nearestFiltering: GPUFiltering, clamping: Clamping) {
         bgra.bind(offset, nearestFiltering, clamping)
-    }
-
-    override fun destroy() {
-        super.destroy()
-        bgra.destroy()
     }
 
 }

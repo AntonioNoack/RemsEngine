@@ -1,7 +1,6 @@
 package me.anno.ui.editor.files
 
 import me.anno.audio.openal.AudioTasks
-import me.anno.cache.instances.ImageCache.getInternalTexture
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultStyle.black
 import me.anno.fonts.FontManager
@@ -16,6 +15,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
+import me.anno.image.ImageGPUCache.getInternalTexture
 import me.anno.input.Input
 import me.anno.input.Input.mouseDownX
 import me.anno.input.Input.mouseDownY
@@ -39,13 +39,13 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.thumbs.Thumbs
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.mixARGB
-import me.anno.utils.Maths.sq
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.files.Files.listFiles2
 import me.anno.utils.image.ImageScale.scale
 import me.anno.utils.io.Streams.copy
+import me.anno.utils.maths.Maths.mixARGB
+import me.anno.utils.maths.Maths.sq
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.VFrame
@@ -62,16 +62,20 @@ class FileExplorerEntry(
     val isParent: Boolean, val file: FileReference, style: Style
 ) : PanelGroup(style.getChild("fileEntry")) {
 
+
+    // todo when entering a json file, and leaving it, the icon should not be a folder!
+
+
     // todo .lnk files for windows
     // todo .url files
     // todo icons from exe files?
 
-    // todo icons for 3d meshes
+    // done icons for 3d meshes
     // todo icons for project files
     // todo asset files like unity, and then icons for them? (we want a unity-like engine, just with Kotlin)
 
 
-    // todo load fbx files
+    // done load fbx files
     // todo load separate fbx animations
     // todo play them together
 
@@ -110,7 +114,7 @@ class FileExplorerEntry(
         // actually checking the type would need to be done async, because it's slow to ready many, many files
         when (importType) {
             "Container" -> "file/compressed.png"
-            "Image", "Cubemap" -> "file/image.png"
+            "Image", "Cubemap", "Cubemap-Equ" -> "file/image.png"
             "Text" -> "file/text.png"
             "Audio", "Video" -> "file/music.png"
             // todo link icon for .lnk and .url, and maybe .desktop
@@ -219,6 +223,7 @@ class FileExplorerEntry(
         val w = x1 - x0
         val h = y1 - y0
         val (iw, ih) = scale(image.w, image.h, w, h)
+        // todo if texture is HDR, then use reinhard tonemapping for preview, with factor of 5
         drawTexture(x0 + (w - iw) / 2, y0 + (h - ih) / 2, iw, ih, image, -1, null)
     }
 
@@ -226,7 +231,7 @@ class FileExplorerEntry(
 
     private fun getTexKey(): Any? {
         fun getImage(): Any? {
-            val thumb = Thumbs.getThumbnail(file, w)
+            val thumb = Thumbs.getThumbnail(file, w, true)
             return thumb ?: getDefaultIcon()
         }
         return when (importType) {
@@ -240,15 +245,14 @@ class FileExplorerEntry(
                     } else getDefaultIcon()
                 } else getDefaultIcon()
             }
-            "Image", "PDF", "Mesh", "URL", "Asset" -> getImage()
-            else -> getDefaultIcon()
+            else -> getImage()
         }
     }
 
     private fun drawImageOrThumb(x0: Int, y0: Int, x1: Int, y1: Int) {
         val w = x1 - x0
         val h = y1 - y0
-        val image = Thumbs.getThumbnail(file, w) ?: getDefaultIcon() ?: whiteTexture
+        val image = Thumbs.getThumbnail(file, w, true) ?: getDefaultIcon() ?: whiteTexture
         val tex2D = image as? Texture2D
         val rot = tex2D?.rotation
         image.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
@@ -294,11 +298,6 @@ class FileExplorerEntry(
     }
 
     private fun drawThumb(x0: Int, y0: Int, x1: Int, y1: Int) {
-        /*if (file.extension.equals("svg", true)) {
-            drawDefaultIcon(x0, y0, x1, y1)
-        } else {
-
-        }*/
         if (file.isDirectory) {
             return drawDefaultIcon(x0, y0, x1, y1)
         }
@@ -317,8 +316,7 @@ class FileExplorerEntry(
                     }
                 } else drawDefaultIcon(x0, y0, x1, y1)
             }
-            "Image", "PDF", "Mesh", "URL", "Asset" -> drawImageOrThumb(x0, y0, x1, y1)
-            else -> drawDefaultIcon(x0, y0, x1, y1)
+            else -> drawImageOrThumb(x0, y0, x1, y1)
         }
     }
 

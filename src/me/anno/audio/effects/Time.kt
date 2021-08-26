@@ -1,6 +1,6 @@
 package me.anno.audio.effects
 
-import me.anno.utils.Maths
+import me.anno.utils.maths.Maths
 
 data class Time(val localTime: Double, val globalTime: Double) {
 

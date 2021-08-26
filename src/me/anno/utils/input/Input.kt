@@ -34,6 +34,7 @@ fun InputStream.readNBytes2(n: Int, bytes: ByteArray, throwEOF: Boolean): ByteAr
 fun InputStream.readNBytes2(n: Int, bytes: ByteBuffer, throwEOF: Boolean): ByteBuffer {
     val buffered = buffered()
     bytes.position(0)
+    bytes.limit(n)
     for(i in 0 until n){
         val c = buffered.read()
         if(c < 0) {
@@ -42,6 +43,6 @@ fun InputStream.readNBytes2(n: Int, bytes: ByteBuffer, throwEOF: Boolean): ByteB
         }
         bytes.put(c.toByte())
     }
-    bytes.position(0)
+    bytes.flip()
     return bytes
 }

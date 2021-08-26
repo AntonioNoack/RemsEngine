@@ -3,6 +3,8 @@ package org.apache.logging.log4j
 import java.util.logging.Level
 
 interface Logger {
+    fun info() = info("")
+    fun info(msg: Any?) = info(msg.toString())
     fun info(msg: String)
     fun info(msg: String, vararg obj: Any)
     fun info(marker: Marker, msg: String)

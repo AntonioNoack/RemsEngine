@@ -40,7 +40,7 @@ class InnerTarFile(
 
         // assumes tar.gz format
         fun readAsGZip(parent: FileReference): InnerFolder {
-            return if (parent.extension.equals("unitypackage", true)) {
+            return if (parent.lcExtension == "unitypackage") {
                 unpack(parent)
             } else {
                 // only check if valid, later decode it, when required? may be expensive...

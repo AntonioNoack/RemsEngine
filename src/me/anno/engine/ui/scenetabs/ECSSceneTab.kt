@@ -1,7 +1,6 @@
 package me.anno.engine.ui.scenetabs
 
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultStyle.black
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
@@ -9,6 +8,7 @@ import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.hpc.SyncMaster
+import org.apache.logging.log4j.LogManager
 
 class ECSSceneTab(val syncMaster: SyncMaster, val inspector: PrefabInspector, val file: FileReference) :
     TextPanel(inspector.reference.nameWithoutExtension, DefaultConfig.style) {
@@ -24,7 +24,7 @@ class ECSSceneTab(val syncMaster: SyncMaster, val inspector: PrefabInspector, va
             this(syncMaster, inspector, inspector.reference)
 
     init {
-        println("created tab with ${inspector.prefab.changes?.size} changes")
+        LOGGER.info("created tab with ${inspector.prefab.changes?.size} changes")
     }
 
     fun onStart() {
@@ -53,6 +53,10 @@ class ECSSceneTab(val syncMaster: SyncMaster, val inspector: PrefabInspector, va
 
     fun save() {
         inspector.save()
+    }
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(ECSSceneTab::class)
     }
 
 }

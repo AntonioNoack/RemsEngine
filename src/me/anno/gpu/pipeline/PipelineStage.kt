@@ -3,9 +3,11 @@ package me.anno.gpu.pipeline
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
+import me.anno.ecs.components.cache.MaterialCache
 import me.anno.ecs.components.light.*
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshRenderer
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.DepthMode
@@ -22,8 +24,8 @@ import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
 import me.anno.input.Input.isKeyDown
 import me.anno.io.Saveable
-import me.anno.utils.Maths.clamp
-import me.anno.utils.Maths.min
+import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.maths.Maths.min
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.types.AABBs.all
 import me.anno.utils.types.AABBs.clear
@@ -47,7 +49,6 @@ class PipelineStage(
 ) : Saveable() {
 
     companion object {
-        val defaultMaterial = Material()
         val lastMaterial = HashMap<Shader, Material>(64)
         private val tmp3x3 = Matrix3f()
 
@@ -142,7 +143,7 @@ class PipelineStage(
         aabb: AABBd
     ) {
         val numberOfLightsPtr = shader["numberOfLights"]
-        // println("#0: $numberOfLightsPtr")
+        // LOGGER.info("#0: $numberOfLightsPtr")
         if (numberOfLightsPtr < 0) return
         val maxNumberOfLights = RenderView.MAX_LIGHTS
         val lights = pipeline.lights
@@ -231,9 +232,6 @@ class PipelineStage(
         shader.m4x4("transform", cameraMatrix)
         shader.v3("ambientLight", pipeline.ambient)
         shader.v1("visualizeLightCount", visualizeLightCount)
-        // shader.m4x4("cameraMatrix", cameraMatrix)
-        // shader.m4x3("worldTransform", ) // todo world transform could be used for procedural shaders...
-        // todo local transform could be used for procedural shaders as well
     }
 
     fun draw(pipeline: Pipeline, cameraMatrix: Matrix4fc, cameraPosition: Vector3d, worldScale: Double) {
@@ -278,10 +276,9 @@ class PipelineStage(
 
         val visualizeLightCount = if (isKeyDown('t')) 1 else 0
 
+        // draw non-instanced meshes
         var previousMaterial2: Material? = null
         for (index in 0 until nextInsertIndex) {
-
-            // gl_Position = cameraMatrix * v4(localTransform * v4(pos,1),1)
 
             val request = drawRequests[index]
             val mesh = request.mesh
@@ -342,6 +339,8 @@ class PipelineStage(
 
         }
 
+        lastMaterial.clear()
+
         // draw instanced meshes
         val batchSize = instancedBatchSize
         val buffer = instanceBuffer
@@ -365,6 +364,7 @@ class PipelineStage(
                         }
                         material.defineShader(shader)
                         shader.v1("hasAnimation", false)
+                        shader.v1("hasVertexColors", mesh.hasVertexColors)
                         // draw them in batches of size <= batchSize
                         val size = values.size
                         for (i in 0 until size step batchSize) {
@@ -375,7 +375,7 @@ class PipelineStage(
                             val ids = values.clickIds
                             for (j in i until min(size, i + batchSize)) {
                                 val t = trs[i]!!.drawTransform
-                                shader.m4x3delta(t, cameraPosition, worldScale, nioBuffer)
+                                shader.m4x3delta(t, cameraPosition, worldScale, nioBuffer, isKeyDown('i'))
                                 buffer.putInt(ids[i])
                             }
                             if (needsLightUpdateForEveryMesh) {
@@ -433,7 +433,7 @@ class PipelineStage(
     }
 
     fun getMaterial(mesh: Mesh, index: Int): Material {
-        return mesh.materials.getOrNull(index) ?: defaultMaterial
+        return MaterialCache[mesh.materials.getOrNull(index), defaultMaterial]
     }
 
     fun getShader(material: Material): Shader {

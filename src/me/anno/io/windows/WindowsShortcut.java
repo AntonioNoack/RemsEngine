@@ -52,7 +52,7 @@ public class WindowsShortcut {
      */
     public static boolean isPotentialValidLink(final FileReference file) throws IOException {
         final int minimum_length = 0x64;
-        if (!file.getExtension().equalsIgnoreCase("lnk") || file.isDirectory() || file.length() < minimum_length)
+        if (!file.getLcExtension().equals("lnk") || file.isDirectory() || file.length() < minimum_length)
             return false;
         try (InputStream fis = file.inputStream()) {
             return isMagicPresent(getBytes(fis, 32));

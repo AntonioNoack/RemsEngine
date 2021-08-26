@@ -12,7 +12,7 @@ import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseKeysDown
 import me.anno.input.MouseButton
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.clamp
+import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.types.Strings.getIndexFromText
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars

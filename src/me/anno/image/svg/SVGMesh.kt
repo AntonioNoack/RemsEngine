@@ -10,8 +10,8 @@ import me.anno.image.svg.gradient.Formula
 import me.anno.image.svg.gradient.LinearGradient
 import me.anno.image.svg.gradient.RadialGradient
 import me.anno.io.xml.XMLElement
-import me.anno.utils.Maths.clamp
-import me.anno.utils.Maths.length
+import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.maths.Maths.length
 import me.anno.utils.OS
 import me.anno.utils.files.Files.use
 import org.apache.logging.log4j.LogManager
@@ -19,7 +19,6 @@ import org.joml.*
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
-import java.io.File
 import java.util.*
 import javax.imageio.ImageIO
 import kotlin.math.*
@@ -227,7 +226,7 @@ class SVGMesh {
                 // upload all shapes
                 val gradient = curve.gradient
                 gradient.fill(formula, c0, c1, c2, c3, stops)
-                // if (gradient.colors.size > 1) println("$gradient -> $formula")
+                // if (gradient.colors.size > 1) LOGGER.info("$gradient -> $formula")
                 val padding = gradient.spreadMethod.id.toFloat()
                 val depth = curve.depth.toFloat()
                 for (v in curve.triangles) {

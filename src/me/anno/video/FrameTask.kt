@@ -2,7 +2,6 @@ package me.anno.video
 
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
-import me.anno.gpu.RenderState
 import me.anno.gpu.RenderState.blendMode
 import me.anno.gpu.RenderState.depthMode
 import me.anno.gpu.RenderState.useFrame
@@ -13,11 +12,12 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Texture2D.Companion.packAlignment
 import me.anno.io.files.FileReference
 import me.anno.objects.Transform
 import me.anno.studio.rems.Scene
 import me.anno.utils.Color.rgba
-import me.anno.utils.Threads.threadWithName
+import me.anno.utils.hpc.Threads.threadWithName
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
@@ -77,6 +77,7 @@ class FrameTask(
 
         // val t0 = Clock()
         pixels.position(0)
+        packAlignment(width)
         glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels)
         pixels.position(0)
         // t0.stop("read pixels"), 0.03s on RX 580, 1080p

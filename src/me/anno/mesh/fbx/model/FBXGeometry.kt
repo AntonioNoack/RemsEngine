@@ -174,7 +174,7 @@ class FBXGeometry(node: FBXNode) : FBXObject(node) {
             }
         }
 
-        // println("${buffer.nioBuffer!!.position()} vs ${buffer.nioBuffer!!.capacity()}")
+        // LOGGER.info("${buffer.nioBuffer!!.position()} vs ${buffer.nioBuffer!!.capacity()}")
 
         return buffer
 

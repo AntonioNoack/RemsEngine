@@ -1,13 +1,24 @@
 package me.anno.utils.test
 
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Keyframe
+import me.anno.config.DefaultConfig
+import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.text.TextReader
 import me.anno.objects.text.Text
+import me.anno.utils.LOGGER
 import me.anno.utils.types.Vectors.print
 import org.joml.Vector4f
 
 // todo audio is very unstable, rarely gets to play... is it that expensive?
 
-fun main(){
+fun main() {
+
+    DefaultConfig.init()
+
+    registerCustomClass(Text())
+    registerCustomClass(Keyframe<Int>())
+    registerCustomClass(AnimatedProperty.any())
 
     // fixed :)
     val data = "[{\"class\":\"Text\",\"AnimatedProperty:color\":{\"b:isAnimated\":true,\"Keyframe[]:vs\":[4," +
@@ -21,12 +32,11 @@ fun main(){
     val animation = element.color
 
     val steps = 10
-    for(i in 0 until steps){
-        val f = i*1.0/steps
+    for (i in 0 until steps) {
+        val f = i * 1.0 / steps
         val v = animation.getValueAt(f) as Vector4f
-        println("$f: ${v.print()}")
+        LOGGER.info("$f: ${v.print()}")
     }
-
 
 
 }

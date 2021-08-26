@@ -4,6 +4,7 @@ import me.anno.cache.CacheSection
 import me.anno.cache.data.VideoData
 import me.anno.cache.keys.VideoFramesKey
 import me.anno.io.files.FileReference
+import me.anno.utils.maths.Maths.clamp
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.VFrame
@@ -22,14 +23,15 @@ object VideoCache : CacheSection("Videos") {
         bufferIndex: Int, bufferLength: Int,
         fps: Double, timeout: Long, async: Boolean
     ): VideoData? {
-        if(!LastModifiedCache[file].exists) return null
-        return getEntryLimited(
-            VideoFramesKey(file, scale, bufferIndex, bufferLength, fps),
-            timeout, async, videoGenLimit, ::getVideoFrames
-        ) as? VideoData
+        if (!LastModifiedCache[file].exists) return null
+        val meta = getMeta(file, async) ?: return null
+        val bufferLength2 = clamp(bufferLength, 1, max(1, meta.videoFrameCount))
+        val fps2 = if (meta.videoFrameCount < 2) 1.0 else fps
+        val key = VideoFramesKey(file, scale, bufferIndex, bufferLength2, fps2)
+        return getEntryLimited(key, timeout, async, videoGenLimit, ::generateVideoFrames) as? VideoData
     }
 
-    private fun getVideoFrames(key: VideoFramesKey): VideoData {
+    private fun generateVideoFrames(key: VideoFramesKey): VideoData {
         val file = key.file
         val scale = key.scale
         val bufferIndex = key.bufferIndex
@@ -38,8 +40,7 @@ object VideoCache : CacheSection("Videos") {
         val meta = getMeta(file, false) ?: throw RuntimeException("Meta was not found for $key!")
         return VideoData(
             file, meta.videoWidth / scale, meta.videoHeight / scale, scale,
-            bufferIndex, bufferLength, fps,
-            true
+            bufferIndex, bufferLength, fps
         )
     }
 
@@ -142,7 +143,7 @@ object VideoCache : CacheSection("Videos") {
         val bufferLength = max(1, bufferLength0)
         val bufferIndex = index / bufferLength
         // if scale >= 4 && width >= 200 create a smaller version in case using ffmpeg
-        if (bufferLength0 > 0 && scale >= 4 && (getMeta(file, async)?.run {
+        if (bufferLength0 > 1 && scale >= 4 && (getMeta(file, async)?.run {
                 min(videoWidth, videoHeight) >= VideoProxyCreator.minSizeForScaling
             } == true)) {
             val file2 = VideoProxyCreator.getProxyFile(file)

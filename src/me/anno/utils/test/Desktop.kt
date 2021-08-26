@@ -12,6 +12,6 @@ fun main(){
     /*if(Desktop.isDesktopSupported()){
         val desktop = Desktop.getDesktop()
         desktop.open(OS.desktop)
-    } else println("Not supported")*/
+    } else LOGGER.info("Not supported")*/
 
 }

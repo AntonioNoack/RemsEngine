@@ -23,10 +23,10 @@ import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.StudioBase.Companion.instance
 import me.anno.ui.base.Panel
 import me.anno.ui.editor.treeView.AbstractTreeViewPanel
-import me.anno.utils.Maths.length
-import me.anno.utils.Threads.threadWithName
+import me.anno.utils.maths.Maths.length
+import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.files.FileExplorerSelectWrapper
-import me.anno.utils.files.Files.findNextFileName
+import me.anno.utils.files.Files.findNextFile
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWDropCallback
@@ -228,10 +228,10 @@ object Input {
                                                 .subList(index + 1, list.size)
                                                 .firstOrNull()
                                             if (next == null) {
-                                                // println("no more text input found, starting from top")
+                                                // LOGGER.info("no more text input found, starting from top")
                                                 // restart from top
                                                 next = list.firstOrNull()
-                                            }// else println(next)
+                                            }// else LOGGER.info(next)
                                             if (next != null) {
                                                 inFocus.clear()
                                                 inFocus += next
@@ -473,7 +473,7 @@ object Input {
         try {
             val data = clipboard.getData(stringFlavor)
             if (data is String) {
-                // println(data)
+                // LOGGER.info(data)
                 panel.onPaste(mouseX, mouseY, data, "")
                 return
             }
@@ -481,26 +481,26 @@ object Input {
         }
         /*try {
             val data = clipboard.getData(getTextPlainUnicodeFlavor())
-            println("plain text data: $data")
+            LOGGER.info("plain text data: $data")
             if (data is String) inFocus0?.onPaste(mouseX, mouseY, data, "")
             // return
         } catch (e: UnsupportedFlavorException) {
-            println("Plain text flavor is not supported")
+            LOGGER.info("Plain text flavor is not supported")
         }
         try {
             val data = clipboard.getData(javaFileListFlavor)
-            println("file data: $data")
-            println((data as? List<*>)?.map { it?.javaClass })
+            LOGGER.info("file data: $data")
+            LOGGER.info((data as? List<*>)?.map { it?.javaClass })
             if (data is String) inFocus0?.onPaste(mouseX, mouseY, data, "")
             // return
         } catch (e: UnsupportedFlavorException) {
-            println("File List flavor is not supported")
+            LOGGER.info("File List flavor is not supported")
         }*/
         try {
             val data = clipboard.getData(javaFileListFlavor) as? List<*>
             val data2 = data?.filterIsInstance<File>()
             if (data2 != null && data2.isNotEmpty()) {
-                // println(data2)
+                // LOGGER.info(data2)
                 panel.onPasteFiles(mouseX, mouseY, data2.map { getReference(it) })
                 return
                 // return
@@ -511,7 +511,7 @@ object Input {
             val data = clipboard.getData(imageFlavor) as RenderedImage
             val folder = instance.getPersistentStorage()
             val file0 = folder.getChild("PastedImage.png")
-            val file1 = findNextFileName(file0, 3, '-', 1)
+            val file1 = findNextFile(file0, 3, '-', 1)
             file1.outputStream().use { ImageIO.write(data, "png", it) }
             LOGGER.info("Pasted image of size ${data.width} x ${data.height}, placed into $file1")
             panel.onPasteFiles(mouseX, mouseY, listOf(file1))
@@ -523,7 +523,7 @@ object Input {
         }
         /*try {
             val data = clipboard.getData(DataFlavor.getTextPlainUnicodeFlavor())
-            println("plain text data: $data")
+            LOGGER.info("plain text data: $data")
         } catch (e: UnsupportedFlavorException) {
         }*/
         LOGGER.warn("Unsupported Data Flavor")

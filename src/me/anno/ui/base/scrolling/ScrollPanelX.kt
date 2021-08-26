@@ -3,7 +3,7 @@ package me.anno.ui.base.scrolling
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
-import me.anno.utils.Maths.clamp
+import me.anno.utils.maths.Maths.clamp
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign
@@ -11,7 +11,6 @@ import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.style.Style
 import kotlin.math.max
-import kotlin.math.min
 
 open class ScrollPanelX(child: Panel, padding: Padding,
                         style: Style,

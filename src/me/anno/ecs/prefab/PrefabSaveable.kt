@@ -100,6 +100,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
 
     public abstract override fun clone(): PrefabSaveable
     open fun copy(clone: PrefabSaveable) {
+        // todo when these are in the tree being cloned, we need the clones here
         clone.name = name
         clone.description = description
         clone.isEnabled = isEnabled

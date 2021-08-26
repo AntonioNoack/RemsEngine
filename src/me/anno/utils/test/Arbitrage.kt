@@ -1,5 +1,6 @@
 package me.anno.utils.test
 
+import me.anno.utils.LOGGER
 import kotlin.math.ceil
 import kotlin.math.sqrt
 
@@ -19,7 +20,7 @@ fun main() {
     for (i in 0 until s) {
         for (j in 0 until s) {
             if (i != j) {
-                println("$i -> $j -> $i, ${change(i,j) * change(j,i)}")
+                LOGGER.info("$i -> $j -> $i, ${change(i, j) * change(j, i)}")
             }
         }
     }

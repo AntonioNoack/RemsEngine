@@ -1,6 +1,7 @@
 package me.anno.mesh.assimp.test
 
 import me.anno.mesh.assimp.AnimatedMeshesLoader
+import me.anno.utils.LOGGER
 import me.anno.utils.OS
 
 fun main() {
@@ -8,8 +9,8 @@ fun main() {
     val file = OS.documents.getChild("CuteGhost.fbx")
     val model = AnimatedMeshesLoader.load(file)
 
-    println(model.bones)
+    LOGGER.info(model.bones)
 
-    println(model.hierarchy.toStringWithTransforms(0))
+    LOGGER.info(model.hierarchy.toStringWithTransforms(0))
 
 }

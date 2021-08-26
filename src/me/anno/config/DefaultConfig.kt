@@ -13,7 +13,7 @@ import me.anno.objects.attractors.EffectMorphing
 import me.anno.objects.effects.MaskLayer
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
-import me.anno.objects.meshes.Mesh
+import me.anno.objects.meshes.MeshTransform
 import me.anno.objects.modes.UVProjection
 import me.anno.objects.particles.ParticleSystem
 import me.anno.objects.particles.TextParticles
@@ -86,7 +86,7 @@ object DefaultConfig : StringMap() {
             "mov", "qt", "mts", "m2ts", "ts", "rm", "rmvb", "viv", "asf", "amv"
         )
         addImportMappings("Text", "txt")
-        addImportMappings("Mesh", "obj", "fbx", "dae", "gltf", "glb", "md2", "md5mesh", "vox")
+        addImportMappings("Mesh", "obj", "mtl", "fbx", "dae", "gltf", "glb", "md2", "md5mesh", "vox")
         // not yet supported
         // addImportMappings("Markdown", "md")
         addImportMappings("Audio", "mp3", "wav", "m4a", "ogg")
@@ -113,7 +113,7 @@ object DefaultConfig : StringMap() {
         val tick = Clock()
 
         val newInstances: Map<String, Transform> = mapOf(
-            "Mesh" to Mesh(getReference(OS.documents, "monkey.obj"), null),
+            "Mesh" to MeshTransform(getReference(OS.documents, "monkey.obj"), null),
             "Array" to GFXArray(),
             "Image / Audio / Video" to Video(),
             "Polygon" to Polygon(null),

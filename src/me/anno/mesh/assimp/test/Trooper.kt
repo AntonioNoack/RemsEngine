@@ -2,6 +2,7 @@ package me.anno.mesh.assimp.test
 
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.mesh.assimp.AnimatedMeshesLoader
+import me.anno.utils.LOGGER
 import me.anno.utils.OS
 
 fun main() {
@@ -16,18 +17,18 @@ fun main() {
     val glb = AnimatedMeshesLoader.load(glbPath)
 
     /*fbx.bones.forEachIndexed { index,it ->
-        println("$index ${it.name}")
-        println(it.offsetMatrix)
-        // println(it.skinningMatrix)
+        LOGGER.info("$index ${it.name}")
+        LOGGER.info(it.offsetMatrix)
+        // LOGGER.info(it.skinningMatrix)
     }
 
     glb.bones.forEachIndexed { index,it ->
-        println("$index ${it.name}")
-        println(it.offsetMatrix)
-        // println(it.skinningMatrix)
+        LOGGER.info("$index ${it.name}")
+        LOGGER.info(it.offsetMatrix)
+        // LOGGER.info(it.skinningMatrix)
     }*/
 
-    println(fbx.hierarchy)
-    println(glb.hierarchy)
+    LOGGER.info(fbx.hierarchy)
+    LOGGER.info(glb.hierarchy)
 
 }

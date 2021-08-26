@@ -5,7 +5,7 @@ import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.clamp
+import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.bugs.SumOf
 import kotlin.math.max
 import kotlin.math.min

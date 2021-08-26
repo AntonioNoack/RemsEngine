@@ -2,6 +2,7 @@ package me.anno.utils.types
 
 import me.anno.utils.types.Floats.f2s
 import org.joml.*
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 object Vectors {
@@ -252,12 +253,26 @@ object Vectors {
         return Vector3f(this).add(second)
     }
 
-    fun findTangent(normal: Vector3d): Vector3d {
-        val cross = Vector3d(normal).cross(0.0, 1.0, 0.0)
-        if (cross.lengthSquared() < 0.1) {
-            cross.set(normal).cross(1.0, 0.0, 0.0)
+    fun findTangent(normal: Vector3f, dst: Vector3f = Vector3f()): Vector3f {
+        val cross = dst.set(normal).normalize()
+        return if(abs(cross.y) < 0.5f){
+            // y is a good choice
+            cross.cross(0f,1f,0f)
+        } else {
+            // y is a bad choice -> use x
+            cross.cross(1f, 0f, 0f)
         }
-        return cross.normalize()
+    }
+
+    fun findTangent(normal: Vector3d, dst: Vector3d = Vector3d()): Vector3d {
+        val cross = dst.set(normal).normalize()
+        return if(abs(cross.y) < 0.5){
+            // y is a good choice
+            cross.cross(0.0,1.0,0.0)
+        } else {
+            // y is a bad choice -> use x
+            cross.cross(1.0, 0.0, 0.0)
+        }
     }
 
     fun Vector3f.roundToInt() = Vector3i(x.roundToInt(), y.roundToInt(), z.roundToInt())

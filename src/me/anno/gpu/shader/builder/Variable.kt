@@ -1,5 +1,7 @@
 package me.anno.gpu.shader.builder
 
+import kotlin.math.max
+
 class Variable(
     val type: String,
     var name: String,
@@ -22,6 +24,21 @@ class Variable(
     constructor(type: String, name: String) :
             this(type, name, -1, VariableMode.IN)
 
+    fun flat(): Variable {
+        isFlat = true
+        return this
+    }
+
+    val size = when (type) {
+        "float", "int", "bool" -> 1
+        "vec2", "ivec2" -> 2
+        "vec3", "ivec3" -> 3
+        "vec4", "ivec4" -> 4
+        "mat3" -> 9
+        "mat4" -> 16
+        "mat4x3" -> 12
+        else -> 100
+    } * max(1, arraySize)
 
     fun appendGlsl(code: StringBuilder, prefix: String) {
         code.append(prefix)

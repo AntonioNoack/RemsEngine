@@ -11,6 +11,8 @@ import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01Cube
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01CubeX10
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.gpu.drawing.GFXx2D.defineAdvancedGraphicalFeatures
+import me.anno.gpu.drawing.GFXx2D.disableAdvancedGraphicalFeatures
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
@@ -93,7 +95,7 @@ object GFXx3D {
         val tex = TextureLib.whiteTexture
         draw3D(
             matrix, tex, color,
-            Filtering.NEAREST, tex.clamping, null, UVProjection.TiledCubemap
+            Filtering.NEAREST, tex.clamping!!, null, UVProjection.TiledCubemap
         )
     }
 
@@ -209,6 +211,7 @@ object GFXx3D {
         val shader = shader0.value
         shader.use()
         shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
+        disableAdvancedGraphicalFeatures(shader)
         texture.bind(0, filtering, clamping)
         texture.bindUVCorrection(shader)
         uvProjection.getBuffer().draw(shader)
@@ -220,10 +223,10 @@ object GFXx3D {
         filtering: Filtering, clamping: Clamping, tiling: Vector4fc?, uvProjection: UVProjection
     ) {
         if (!texture.isCreated) throw RuntimeException("Frame must be loaded to be rendered!")
-        val shader0 = texture.get3DShader()
-        val shader = shader0.value
+        val shader = texture.get3DShader().value
         shader.use()
         shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
+        defineAdvancedGraphicalFeatures(shader)
         texture.bind(0, filtering, clamping)
         texture.bindUVCorrection(shader)
         uvProjection.getBuffer().draw(shader)
@@ -239,9 +242,8 @@ object GFXx3D {
         val shader0 = texture.get3DShader()
         val shader = shader0.value
         shader.use()
-        video.uploadAttractors(shader, time)
+        defineAdvancedGraphicalFeatures(shader, video, time)
         shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
-        colorGradingUniforms(video as? Video, time, shader)
         texture.bind(0, filtering, clamping)
         texture.bindUVCorrection(shader)
         uvProjection.getBuffer().draw(shader)
@@ -272,9 +274,8 @@ object GFXx3D {
         val shader0 = v0.get3DShader()
         val shader = shader0.value
         shader.use()
-        video.uploadAttractors(shader, time)
+        defineAdvancedGraphicalFeatures(shader, video, time)
         shader3DUniforms(shader, stack, v0.w, v0.h, color, tiling, filtering, uvProjection)
-        colorGradingUniforms(video as? Video, time, shader)
         v0.bindUVCorrection(shader)
         uvProjection.getBuffer().draw(shader)
         GFX.check()
@@ -297,6 +298,7 @@ object GFXx3D {
     ) {
         val shader = ShaderLib.shader3D.value
         shader.use()
+        defineAdvancedGraphicalFeatures(shader)
         shader3DUniforms(shader, stack, w, h, color, tiling, filtering, uvProjection)
         texture.bind(0, filtering, clamping)
         uvProjection.getBuffer().draw(shader)
@@ -309,6 +311,7 @@ object GFXx3D {
     ) {
         val shader = ShaderLib.shader3D.value
         shader.use()
+        defineAdvancedGraphicalFeatures(shader)
         shader3DUniforms(shader, stack, w, h, color, tiling, filtering, uvProjection)
         texture.bind(0, filtering, clamping)
         uvProjection.getBuffer().draw(shader)
@@ -335,7 +338,7 @@ object GFXx3D {
         val shader = ShaderLib.shaderSDFText.value
         shader.use()
 
-        GFXTransform.uploadAttractors(that, shader, time)
+        defineAdvancedGraphicalFeatures(shader, that, time)
 
         GFX.shaderColor(shader, "tint", color)
 
@@ -397,9 +400,8 @@ object GFXx3D {
     ) {
         val shader = ShaderLib.shader3DRGBA.value
         shader.use()
+        defineAdvancedGraphicalFeatures(shader, video, time)
         shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
-        video.uploadAttractors(shader, time)
-        colorGradingUniforms(video as? Video, time, shader)
         texture.bind(0, filtering, clamping)
         uvProjection.getBuffer().draw(shader)
         GFX.check()
@@ -452,8 +454,8 @@ object GFXx3D {
     ) {
         val shader = ShaderLib.shader3DCircle.value
         shader.use()
+        defineAdvancedGraphicalFeatures(shader, that, time)
         shader3DUniforms(shader, stack, 1, 1, color, null, Filtering.NEAREST, null)
-        GFXTransform.uploadAttractors(that, shader, time)
         var a0 = startDegrees
         var a1 = endDegrees
         // if the two arrows switch sides, flip the circle

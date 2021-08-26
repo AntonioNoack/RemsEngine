@@ -1,6 +1,6 @@
 package me.anno.studio.rems
 
-import me.anno.cache.instances.ImageCache.getLUT
+import me.anno.image.ImageGPUCache.getLUT
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.DepthMode
@@ -24,6 +24,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture3D
@@ -48,8 +49,7 @@ import me.anno.video.MissingFrameException
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL11.glClearColor
-import org.lwjgl.opengl.GL30
+import org.lwjgl.opengl.GL11.*
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
@@ -149,8 +149,7 @@ object Scene {
                     "   vec2 coords = attr0*2.0-1.0;\n" +
                     "   gl_Position = vec4(coords.x, coords.y * ySign, 0.0, 1.0);\n" +
                     "   uv = attr0;\n" +
-                    "}", "" +
-                    "varying vec2 uv;\n", "" +
+                    "}", listOf(Variable("vec2","uv")), "" +
                     "uniform sampler2D tex;\n" +
                     "uniform vec3 fxScale;\n" +
                     "uniform vec2 chromaticAberration;" +
@@ -221,8 +220,7 @@ object Scene {
                     "void main(){" +
                     "   gl_Position = vec4(attr0*2.0-1.0, 0.0, 1.0);\n" +
                     "   uv = attr0;\n" +
-                    "}", "" +
-                    "varying vec2 uv;\n", "" +
+                    "}", listOf(Variable("vec2","uv")), "" +
                     "uniform sampler2D tex;\n" +
                     "uniform sampler3D lut;\n" +
                     // "uniform float time;\n" +
@@ -240,8 +238,7 @@ object Scene {
                     "void main(){" +
                     "   gl_Position = vec4(attr0*2.0-1.0, 0.0, 1.0);\n" +
                     "   uv = attr0;\n" +
-                    "}", "" +
-                    "varying vec2 uv;\n", "" +
+                    "}", listOf(Variable("vec2","uv")), "" +
                     "uniform sampler2D original, blurred;\n" +
                     "uniform float intensity;\n" +
                     "void main(){" +
@@ -301,25 +298,24 @@ object Scene {
         x: Int, y: Int, w: Int, h: Int
     ) {
 
+        Frame.bind()
+
         glClearColor(0f, 0f, 0f, 1f)
 
         if (camera.useDepth) {
-            GL30.glClearDepth(1.0)
-            GL30.glDepthRange(-1.0, 1.0)
-            GL30.glDepthFunc(GL30.GL_LESS)
             if (buffer != null) {
                 if (needsTemporaryBuffer) {
-                    GL30.glClear(GL30.GL_DEPTH_BUFFER_BIT or GL30.GL_COLOR_BUFFER_BIT)
+                    glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT)
                 } else {
                     drawRect(x, y, w, h, black)
-                    GL30.glClear(GL30.GL_DEPTH_BUFFER_BIT)
+                    glClear(GL_DEPTH_BUFFER_BIT)
                 }
             } else {
-                GL30.glClear(GL30.GL_DEPTH_BUFFER_BIT)
+                glClear(GL_DEPTH_BUFFER_BIT)
             }
         } else {
             if (buffer != null) {
-                GL30.glClear(GL30.GL_COLOR_BUFFER_BIT)
+                glClear(GL_COLOR_BUFFER_BIT)
             }
         }
 
@@ -389,14 +385,13 @@ object Scene {
             if (needsTemporaryBuffer) FBStack["Scene-Main", w, h, 4, usesFPBuffers, samples]
             else RenderState.currentBuffer
 
-        // println("$needsTemporaryBuffer ? $buffer")
+        // LOGGER.info("$needsTemporaryBuffer ? $buffer")
 
         val x = if (needsTemporaryBuffer) 0 else x0
         val y = if (needsTemporaryBuffer) 0 else y0// GFX.height - (y0 + h)
 
-
         blendMode.use(if (isFakeColorRendering) null else BlendMode.DEFAULT) {
-            depthMode.use(if(camera.useDepth) DepthMode.LESS else DepthMode.ALWAYS) {
+            depthMode.use(if(camera.useDepth) DepthMode.GREATER else DepthMode.ALWAYS) {
 
                 useFrame(x, y, w, h, false, buffer) {
 

@@ -5,7 +5,7 @@ import me.anno.ecs.prefab.CAdd
 import me.anno.ecs.prefab.CSet
 import me.anno.ecs.prefab.Path
 import me.anno.ecs.prefab.Prefab
-import me.anno.ecs.prefab.Prefab.Companion.loadPrefab
+import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.engine.ui.ECSTypeLibrary.Companion.lastSelection
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.files.FileReference
@@ -15,6 +15,7 @@ import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.treeView.AbstractTreeView
 import me.anno.ui.style.Style
 import me.anno.utils.structures.lists.UpdatingList
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
 import sun.reflect.generics.reflectiveObjects.NotImplementedException
 
@@ -84,15 +85,15 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
             // collect changes from this element going upwards
             var someParent = element
             val collDepth = element.depthInHierarchy
-            setters.add(CSet(Path(), "name", element.name))
+            setters.add(CSet(Path.ROOT_PATH, "name", element.name))
             for (depth in collDepth downTo 0) {
                 // the last level doesn't need to be transferred
                 someParent = someParent.parentEntity ?: break
-                println("checking depth $depth/$collDepth, ${someParent.name}")
+                LOGGER.info("checking depth $depth/$collDepth, ${someParent.name}")
                 var someRelatedParent = someParent.prefab2
                 while (true) {// follow the chain of prefab-inheritance
                     val changes = someRelatedParent?.changes
-                    println("changes from $depth/${someRelatedParent?.getPrefabOrSource()}: ${changes?.size}")
+                    LOGGER.info("changes from $depth/${someRelatedParent?.getPrefabOrSource()}: ${changes?.size}")
                     if (changes != null) {
                         // get all changes
                         // filter them & short them by their filter
@@ -115,14 +116,13 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
             }
             val prefab = Prefab(element.className)
             prefab.prefab = element.prefab2?.prefab?.nullIfUndefined() ?: element.prefab2?.src ?: InvalidRef
-            println("found: ${prefab.prefab}, prefab: ${element.prefab2?.prefab}, own file: ${element.prefab2?.src}, has prefab: ${element.prefab2 != null}")
+            LOGGER.info("found: ${prefab.prefab}, prefab: ${element.prefab2?.prefab}, own file: ${element.prefab2?.src}, has prefab: ${element.prefab2 != null}")
             prefab.changes = adders + setters
             return TextWriter.toText(prefab, false)
         }
     }
 
     private fun getPrefab(ref: FileReference?): Prefab? {
-        ref ?: return null
         return loadPrefab(ref)
     }
 
@@ -195,6 +195,7 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
     override val className get() = "ECSTreeView"
 
     companion object {
+        private val LOGGER = LogManager.getLogger(ECSTreeView::class)
         /*fun listOfVisible(root: ECSWorld, isGaming: Boolean): List<Entity> {
             return if (isGaming) listOf(
                 root.globallyShared,

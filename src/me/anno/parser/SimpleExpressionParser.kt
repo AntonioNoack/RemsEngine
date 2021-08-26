@@ -548,7 +548,7 @@ object SimpleExpressionParser {
             break
         }
 
-        println(parts)
+        LOGGER.info(parts)
 
         return parts
     }

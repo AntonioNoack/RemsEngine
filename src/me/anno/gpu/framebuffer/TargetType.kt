@@ -5,7 +5,7 @@ import org.lwjgl.opengl.GL30.*
 data class TargetType(val type0: Int, val type1: Int, val fillType: Int, val bytesPerPixel: Int) {
 
     companion object {
-        val UByteTarget1 = TargetType(GL_R8, GL_RED, GL_UNSIGNED_BYTE, 1)
+        val UByteTarget1 = TargetType(GL_LUMINANCE, GL_RED, GL_UNSIGNED_BYTE, 1)
         val FloatTarget1 = TargetType(GL_R32F, GL_RGBA, GL_FLOAT, 1 * 4)
         val UByteTarget2 = TargetType(GL_RG8, GL_RG, GL_UNSIGNED_BYTE, 2)
         val FloatTarget2 = TargetType(GL_RG32F, GL_RGBA, GL_FLOAT, 2 * 4)

@@ -99,6 +99,7 @@
       <w>gizmos</w>
       <w>glfw</w>
       <w>glsl</w>
+      <w>gouraud</w>
       <w>greenscreen</w>
       <w>greenyellow</w>
       <w>hdot</w>
@@ -156,6 +157,7 @@
       <w>lightyellow</w>
       <w>limegreen</w>
       <w>lineargradient</w>
+      <w>lowpoly</w>
       <w>lwjgl</w>
       <w>magica</w>
       <w>markdeep</w>
@@ -189,6 +191,7 @@
       <w>navajowhite</w>
       <w>ndot</w>
       <w>ness</w>
+      <w>newmtl</w>
       <w>nglfw</w>
       <w>noack</w>
       <w>numpad</w>
@@ -251,6 +254,7 @@
       <w>starness</w>
       <w>steelblue</w>
       <w>stillimage</w>
+      <w>strided</w>
       <w>subarrays</w>
       <w>substr</w>
       <w>superfast</w>

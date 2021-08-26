@@ -105,8 +105,11 @@ open class OBJMTLReader(val reader: InputStream) {
 
     fun readFile(parent: FileReference): FileReference {
         skipSpaces()
-        val path = readUntilSpace()
+        var path = readUntilSpace()
+            .replace('\\', '/')
+            .replace("//", "/")
         skipLine()
+        if (path.startsWith("./")) path = path.substring(2)
         val file = getReference(parent.getParent(), path)
         if (!file.exists) LOGGER.warn("Missing file $file")
         return file

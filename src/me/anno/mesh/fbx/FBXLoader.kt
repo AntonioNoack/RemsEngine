@@ -36,7 +36,7 @@ object FBXLoader {
             val materials = model.children.filterIsInstance<FBXMaterial>()
 
             if (geometries.size > 2) {
-                println(model)
+                LOGGER.info(model)
                 throw RuntimeException("More than one geometry inside a model!")
             }
 
@@ -47,8 +47,8 @@ object FBXLoader {
                 true, 1, 0
             )
 
-            val stride = mesh.stride
             val attr = mesh.attributes
+            val stride = attr.first().stride
             val coordsIndex = attr.first { it.name == "coords" }.offset.toInt()
             val normalIndex = attr.first { it.name == "normals" }.offset.toInt()
             val materialIndex = attr.first { it.name == "materialIndex" }.offset.toInt()
@@ -102,7 +102,7 @@ object FBXLoader {
 
         }
 
-        if(models.isEmpty()){
+        if (models.isEmpty()) {
             LOGGER.warn(fbxFile.root.toString().trim())
         }
 
@@ -115,12 +115,12 @@ object FBXLoader {
     fun correctNormals(list: MutableList<Point>, front: Boolean) {
         for (i in 0 until list.size step 3) {
             val a = list[i]
-            val b = list[i+1]
-            val c = list[i+2]
+            val b = list[i + 1]
+            val c = list[i + 2]
             val da = a.position - b.position
             val db = b.position - c.position
             val cross = da.cross(db, Vector3f()) / sqrt(da.lengthSquared() * db.lengthSquared())
-            if(cross.lengthSquared() > 0.01f && (cross.dot(a.normal) < 0f) == front){
+            if (cross.lengthSquared() > 0.01f && (cross.dot(a.normal) < 0f) == front) {
                 val tmp = list[i]
                 list[i] = list[i + 1]
                 list[i + 1] = tmp

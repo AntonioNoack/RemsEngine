@@ -1,6 +1,6 @@
 package me.anno.engine.ui.render
 
-import me.anno.utils.Maths.sq
+import me.anno.utils.maths.Maths.sq
 import me.anno.utils.types.AABBs.isEmpty
 import org.joml.*
 import kotlin.math.*

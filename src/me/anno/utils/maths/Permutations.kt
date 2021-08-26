@@ -1,4 +1,4 @@
-package me.anno.utils
+package me.anno.utils.maths
 
 object Permutations {
 

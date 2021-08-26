@@ -19,7 +19,7 @@ import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.treeView.AbstractTreeView
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.clamp
+import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.structures.lists.UpdatingList
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
@@ -132,7 +132,7 @@ class StudioTreeView(style: Style) :
             val objectWorldPosition = objectToWorld.transformPosition(Vector3f(0f, 0f, 0f))
             val objectCameraPosition = if (cameraToWorld == null) objectWorldPosition else cameraToWorld.invert()
                 .transformPosition(objectWorldPosition)
-            println(objectCameraPosition)
+            LOGGER.info(objectCameraPosition)
             // apply this movement
             RemsStudio.largeChange("Move Camera to Object") {
                 camera.position.addKeyframe(camera.lastLocalTime, objectCameraPosition)

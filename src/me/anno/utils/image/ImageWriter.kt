@@ -4,7 +4,7 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
-import me.anno.utils.Maths.mixARGB
+import me.anno.utils.maths.Maths.mixARGB
 import me.anno.utils.OS
 import me.anno.utils.files.Files.use
 import me.anno.utils.hpc.HeavyProcessing.processBalanced

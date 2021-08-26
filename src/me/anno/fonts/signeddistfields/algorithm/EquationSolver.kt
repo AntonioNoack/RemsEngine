@@ -1,6 +1,6 @@
 package me.anno.fonts.signeddistfields.algorithm
 
-import me.anno.utils.Maths.pow
+import me.anno.utils.maths.Maths.pow
 import kotlin.math.abs
 import kotlin.math.acos
 import kotlin.math.cos

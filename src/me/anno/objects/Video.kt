@@ -4,7 +4,7 @@ import me.anno.animation.AnimatedProperty
 import me.anno.audio.openal.AudioManager
 import me.anno.audio.openal.AudioTasks
 import me.anno.cache.data.VideoData.Companion.framesPerContainer
-import me.anno.cache.instances.ImageCache
+import me.anno.image.ImageGPUCache
 import me.anno.cache.instances.MeshCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.cache.instances.VideoCache.getVideoFrameWithoutGenerator
@@ -50,10 +50,10 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import me.anno.utils.Clipping
-import me.anno.utils.Maths.clamp
-import me.anno.utils.Maths.fract
-import me.anno.utils.Maths.mix
-import me.anno.utils.Maths.pow
+import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.maths.Maths.fract
+import me.anno.utils.maths.Maths.mix
+import me.anno.utils.maths.Maths.pow
 import me.anno.utils.structures.ValueWithDefault
 import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
 import me.anno.utils.structures.maps.BiMap
@@ -264,7 +264,7 @@ class Video(file: FileReference = InvalidRef, parent: Transform? = null) : Audio
                 // draw the current texture
                 val localTime = isLooping[time, duration]
 
-                val frame = ImageCache.getImage(meta.getImage(localTime), 5L, true)
+                val frame = ImageGPUCache.getImage(meta.getImage(localTime), 5L, true)
                 if (frame == null || !frame.isCreated) onMissingImageOrFrame((localTime * 1000).toInt())
                 else {
                     lastW = frame.w
@@ -294,7 +294,7 @@ class Video(file: FileReference = InvalidRef, parent: Transform? = null) : Audio
     private fun onMissingImageOrFrame(frame: Int) {
         if (isFinalRendering) throw MissingFrameException("$file, $frame/${meta?.videoFrameCount}")
         else needsImageUpdate = true
-        // println("missing frame")
+        // LOGGER.info("missing frame")
     }
 
     fun getFrameAtLocalTime(time: Double, width: Int, meta: FFMPEGMetadata): VFrame? {
@@ -465,7 +465,7 @@ class Video(file: FileReference = InvalidRef, parent: Transform? = null) : Audio
                 // calculate required scale? no, without animation, we don't need to scale it down ;)
                 getVideoFrame(file, 1, 0, 1, 1.0, imageTimeout, true)
             else -> // some image
-                ImageCache.getImage(file, imageTimeout, true)
+                ImageGPUCache.getImage(file, imageTimeout, true)
         }
     }
 
@@ -498,7 +498,7 @@ class Video(file: FileReference = InvalidRef, parent: Transform? = null) : Audio
             }
             else -> {// some image
                 val tiling = tiling[time]
-                val texture = ImageCache.getImage(file, imageTimeout, true)
+                val texture = ImageGPUCache.getImage(file, imageTimeout, true)
                 if (texture == null || !texture.isCreated) onMissingImageOrFrame(0)
                 else {
                     texture.rotation?.apply(stack)
@@ -586,14 +586,14 @@ class Video(file: FileReference = InvalidRef, parent: Transform? = null) : Audio
 
                         if (index1 >= index0) {
                             for (i in index0..index1) {
-                                ImageCache.getImage(meta.getImage(i), videoFrameTimeout, true)
+                                ImageGPUCache.getImage(meta.getImage(i), videoFrameTimeout, true)
                             }
                         } else {
                             for (i in index1 until meta.matches.size) {
-                                ImageCache.getImage(meta.getImage(i), videoFrameTimeout, true)
+                                ImageGPUCache.getImage(meta.getImage(i), videoFrameTimeout, true)
                             }
                             for (i in 0 until index0) {
-                                ImageCache.getImage(meta.getImage(i), videoFrameTimeout, true)
+                                ImageGPUCache.getImage(meta.getImage(i), videoFrameTimeout, true)
                             }
                         }
 

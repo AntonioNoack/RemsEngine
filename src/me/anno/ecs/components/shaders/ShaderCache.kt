@@ -4,6 +4,7 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.gpu.ShaderLib.createShader
 import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.builder.Variable
 
 object ShaderCache : CacheSection("Shader") {
 
@@ -13,7 +14,13 @@ object ShaderCache : CacheSection("Shader") {
         }
     }
 
-    fun getShader(name: String, vertex: String, varying: String, fragment: String, textures: List<String>): ShaderData {
+    fun getShader(
+        name: String,
+        vertex: String,
+        varying: List<Variable>,
+        fragment: String,
+        textures: List<String>
+    ): ShaderData {
         return getEntry(vertex to fragment, timeout, false) {
             ShaderData(createShader(name, vertex, varying, fragment, textures))
         } as ShaderData

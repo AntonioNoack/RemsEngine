@@ -26,12 +26,12 @@ class VideoPreviewPanel(val video: Video, val height: Int, style: Style, val get
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         // super.onDraw(x0, y0, x1, y1)
         val meta = video.meta
-            ?: // println("Missing meta for ${video.name}")
+            ?: // LOGGER.info("Missing meta for ${video.name}")
             return
         val time = getTime(mouseX)
         val frame = video.getFrameAtLocalTime(time, width, meta)
         if(frame == null){
-            // println("Missing frame for ${video.name}")
+            // LOGGER.info("Missing frame for ${video.name}")
         } else {
             DrawGradients.drawRectGradient(
                 x0, y0, x1 - x0, y1 - y0, color, color, frame,

@@ -1,5 +1,6 @@
 package me.anno.ui.editor.color.spaces
 
+import me.anno.utils.LOGGER
 import me.anno.utils.types.Vectors.print
 import org.joml.Vector3f
 import java.util.*
@@ -15,6 +16,6 @@ fun main(){
         val internal = space.fromRGB(rgb)
         val rgb2 = space.toRGB(internal)
         val error = rgb.distance(rgb2)
-        if(error > 1e-3f) println("${rgb.print()} -> ${internal.print()} -> ${rgb2.print()}")
+        if(error > 1e-3f) LOGGER.info("${rgb.print()} -> ${internal.print()} -> ${rgb2.print()}")
     }
 }

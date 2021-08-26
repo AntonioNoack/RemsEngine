@@ -50,7 +50,7 @@ object Frame {
         val h = if (h0 < 0) buffer?.h ?: GFX.height else h0
 
         val ptr = buffer?.pointer ?: -1
-        // println("$ptr/$lastPtr")
+        // LOGGER.info("$ptr/$lastPtr")
         if (ptr != lastPtr || lastX != x || lastY != y || lastW != w || lastH != h) {
 
             if (buffer != null) {

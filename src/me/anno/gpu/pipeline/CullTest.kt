@@ -2,6 +2,7 @@ package me.anno.gpu.pipeline
 
 import me.anno.engine.ui.render.Frustum
 import me.anno.utils.image.ImageWriter.writeImageInt
+import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Math.toRadians
 import org.joml.Quaterniond
@@ -41,6 +42,8 @@ fun imageTest(frustum: Frustum) {
 
 fun simpleTest(frustum: Frustum) {
 
+    val logger = LogManager.getLogger("CullTest")
+
     frustum.define(0.001, 100.0, toRadians(90.0), 1.0, 1.0, 1.0, Vector3d(0.0, 0.0, -1.0), Quaterniond())
 
     val aabb1 = AABBd()
@@ -49,14 +52,14 @@ fun simpleTest(frustum: Frustum) {
     val aabb2 = AABBd()
     aabb2.union(0.0, 0.0, 0.9)
 
-    println("shall be false: ${aabb1 in frustum}")
+    logger.info("shall be false: ${aabb1 in frustum}")
 
-    println("shall be false: ${aabb2 in frustum}")
+    logger.info("shall be false: ${aabb2 in frustum}")
 
     frustum.define(0.001, 100.0, toRadians(90.0), 1.0, 1.0, 1.0, Vector3d(0.0, 0.0, 1.0), Quaterniond())
 
-    println("shall be true: ${aabb1 in frustum}")
+    logger.info("shall be true: ${aabb1 in frustum}")
 
-    println("shall be true: ${aabb2 in frustum}")
+    logger.info("shall be true: ${aabb2 in frustum}")
 
 }

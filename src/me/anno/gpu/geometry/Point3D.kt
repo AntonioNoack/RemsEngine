@@ -1,6 +1,6 @@
 package me.anno.gpu.geometry
 
-import me.anno.utils.Maths
+import me.anno.utils.maths.Maths
 import org.joml.Vector2f
 import org.joml.Vector3f
 

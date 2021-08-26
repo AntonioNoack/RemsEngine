@@ -4,7 +4,7 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.style.Style
-import me.anno.utils.Maths
+import me.anno.utils.maths.Maths
 
 class SizeLimitingContainer(
     child: Panel,

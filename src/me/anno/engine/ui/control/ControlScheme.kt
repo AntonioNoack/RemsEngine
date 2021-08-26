@@ -17,7 +17,8 @@ import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
-import me.anno.utils.Maths
+import me.anno.utils.maths.Maths
+import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import org.joml.AABBd
 import org.joml.Vector3d
 
@@ -103,12 +104,50 @@ open class ControlScheme(val camera: CameraComponent, val library: ECSTypeLibrar
         }
     }
 
+    var movement = Vector3d()
+    open fun checkMovement() {
+        val dt = GFX.deltaTime
+        val factor = Maths.clamp(1.0 - 20.0 * dt, 0.0, 1.0)
+        movement.mul(factor)
+        val s = (1.0 - factor) * 0.035
+        if (parent!!.children.any { it.isInFocus }) {// todo check if "in focus"
+            if (Input.isKeyDown('a')) movement.x -= s
+            if (Input.isKeyDown('d')) movement.x += s
+            if (Input.isKeyDown('w')) movement.z -= s
+            if (Input.isKeyDown('s')) movement.z += s
+            if (Input.isKeyDown('q')) movement.y -= s
+            if (Input.isKeyDown('e')) movement.y += s
+        }
+
+        val rotation = view.rotation
+        val position = view.position
+        val radius = view.radius
+
+        val normXZ = !Input.isShiftDown // todo use UI toggle instead
+        val rotQuad = rotation.toQuaternionDegrees()
+        val right = rotQuad.transform(Vector3d(1.0, 0.0, 0.0))
+        val forward = rotQuad.transform(Vector3d(0.0, 0.0, 1.0))
+        val up = if (normXZ) {
+            right.y = 0.0
+            forward.y = 0.0
+            right.normalize()
+            forward.normalize()
+            Vector3d(0.0, 1.0, 0.0)
+        } else {
+            rotQuad.transform(Vector3d(0.0, 1.0, 0.0))
+        }
+        position.x += movement.dot(right.x, up.x, forward.x) * radius
+        position.y += movement.dot(right.y, up.y, forward.y) * radius
+        position.z += movement.dot(right.z, up.z, forward.z) * radius
+    }
+
     private val tmpAABB = AABBd()
     private val hit = RayHit()
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         // no background
         // testHits()
+        checkMovement()
     }
 
 }

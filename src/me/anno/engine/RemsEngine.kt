@@ -36,6 +36,8 @@ import org.apache.logging.log4j.LogManager
 // todo drop in ui maybe...
 // todo key listeners (?)...
 
+// todo reduce animations to a single translation plus rotations only?
+// todo animation matrices then can be reduced to rotation + translation
 
 // todo bug: long text field is broken...
 
@@ -58,6 +60,7 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         LogManager.disableLogger("PDICCBased")
         LogManager.disableLogger("PostScriptTable")
         LogManager.disableLogger("GlyphSubstitutionTable")
+        LogManager.disableLogger("GouraudShadingContext")
 
     }
 

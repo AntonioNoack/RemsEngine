@@ -15,7 +15,7 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.mixARGB
+import me.anno.utils.maths.Maths.mixARGB
 import me.anno.utils.Tabs
 import me.anno.utils.input.Keys.isClickKey
 import me.anno.utils.types.Strings.isBlank2

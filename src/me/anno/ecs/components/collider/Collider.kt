@@ -8,8 +8,8 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.physics.BulletPhysics.Companion.convertMatrix
 import me.anno.engine.ui.render.RenderView
 import me.anno.io.serialization.SerializedProperty
-import me.anno.utils.Maths
-import me.anno.utils.Maths.SQRT1_2
+import me.anno.utils.maths.Maths
+import me.anno.utils.maths.Maths.SQRT1_2
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
@@ -236,6 +236,7 @@ abstract class Collider : Component() {
     abstract fun drawShape()
 
     companion object {
+        var guiLineColor = 0x777777
         const val INV_COSINE_22_5 = 1.082392200292394 // 1.0/Math.cos(45*Math.PI/180/2)
         const val OUTER_SPHERE_RADIUS_X8 = 1.224744871391589 // sqrt(1.5),
         // what is the inverse of the inner radius of a sphere approximated by 3 rings of 8 segments each

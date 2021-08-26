@@ -7,6 +7,7 @@ import me.anno.engine.pbr.DeferredRenderer
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.builder.Variable
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import org.joml.Matrix4x3f
@@ -80,8 +81,7 @@ abstract class LightComponent : Component() {
                             "   center = localTransform * vec4(0,0,0,1);\n" +
                             "   uvw = gl_Position.xyw;\n" +
                             ShaderLib.positionPostProcessing +
-                            "}", ShaderLib.y3D + "" +
-                            "varying vec3 center;\n", "" +
+                            "}", ShaderLib.y3D + Variable("vec3","center"), "" +
                             "float getIntensity(vec3 dir){\n" +
                             "   return 1.0;\n" +
                             // todo fix

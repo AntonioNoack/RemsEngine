@@ -1,19 +1,15 @@
 package me.anno.ecs.prefab
 
-import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
+import me.anno.ecs.prefab.Path.Companion.ROOT_PATH
+import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.engine.scene.ScenePrefab
 import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.files.Signature
-import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
-import me.anno.io.unity.UnityReader
-import me.anno.mesh.assimp.AnimatedMeshesLoader
-import me.anno.mesh.vox.VOXReader
 import me.anno.utils.files.LocalFile.toGlobalFile
 import org.apache.logging.log4j.LogManager
 
@@ -52,8 +48,8 @@ class Prefab() : NamedSaveable() {
     fun setProperty(key: String, value: Any?) {
         if (changes == null) changes = ArrayList()
         (changes as MutableList<Change>).apply {
-            removeIf { it.path!!.isEmpty() && it is CSet && it.name == key }
-            add(CSet(Path(), key, value))
+            removeIf { it.path.isEmpty() && it is CSet && it.name == key }
+            add(CSet(ROOT_PATH, key, value))
         }
         isValid = false
     }
@@ -125,7 +121,6 @@ class Prefab() : NamedSaveable() {
     companion object {
 
         val cache = CacheSection("Prefab")
-        val prefabTimeout = 60_000L
 
         private val LOGGER = LogManager.getLogger(Prefab::class)
 
@@ -151,77 +146,6 @@ class Prefab() : NamedSaveable() {
             }
             // LOGGER.info("  created instance '${entity.name}' has ${entity.children.size} children and ${entity.components.size} components")
             return instance
-        }
-
-        private fun loadAssimpModel(resource: FileReference): Prefab? {
-            return try {
-                val reader = AnimatedMeshesLoader
-                val meshes = reader.readAsFolder2(resource)
-                meshes.second
-            } catch (e: Exception) {
-                e.printStackTrace()
-                null
-            }
-        }
-
-        private fun loadVOXModel(resource: FileReference): Prefab? {
-            return try {
-                VOXReader().read(resource).toEntityPrefab(resource)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                null
-            }
-        }
-
-        private fun loadJson(resource: FileReference): Prefab? {
-            if (resource == InvalidRef) return null
-            return try {
-                val read = TextReader.read(resource)
-                val prefab = read.firstOrNull() as? Prefab
-                if (prefab == null) LOGGER.warn("No Prefab found in $resource! $read")
-                else LOGGER.info("Read ${prefab.changes?.size} changes from $resource")
-                prefab?.wasCreatedFromJson = true
-                prefab
-            } catch (e: Exception) {
-                LOGGER.warn("$e by $resource")
-                e.printStackTrace()
-                null
-            }
-        }
-
-        fun loadUnityFile(resource: FileReference): Prefab? {
-            return loadJson(UnityReader.readAsAsset(resource))
-        }
-
-        fun loadPrefab(resource: FileReference): Prefab? {
-            return if (resource != InvalidRef && resource.exists && !resource.isDirectory) {
-                val data = cache.getEntry(resource, prefabTimeout, false) {
-                    CacheData(
-                        if (resource.exists && !resource.isDirectory) {
-                            val signature = Signature.find(resource)
-                            // LOGGER.info("resource $resource has signature $signature")
-                            when (signature?.name) {
-                                "vox" -> loadVOXModel(resource)
-                                "fbx", "obj", "gltf" -> loadAssimpModel(resource)
-                                "yaml" -> loadUnityFile(resource)
-                                "json" -> loadJson(resource)
-                                else -> {
-                                    when (resource.extension.lowercase()) {
-                                        "vox" -> loadVOXModel(resource)
-                                        "fbx", "dae", "obj", "gltf", "glb" -> loadAssimpModel(resource)
-                                        "unity", "mat", "prefab", "asset", "meta", "controller" -> loadUnityFile(
-                                            resource
-                                        )
-                                        // todo define file extensions for materials, skeletons, components
-                                        else -> loadJson(resource)
-                                    }
-                                }
-                            }?.apply { src = resource }
-                        } else null
-                    )
-                } as CacheData<*>
-                return data.value as? Prefab
-            } else null
         }
 
         private fun createSuperInstance(

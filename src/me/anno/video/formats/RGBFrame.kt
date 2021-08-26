@@ -13,8 +13,6 @@ open class RGBFrame(w: Int, h: Int) : VFrame(w, h, -1) {
 
     val rgb = Texture2D("rgb-frame", w, h, 1)
 
-    override val isCreated: Boolean get() = rgb.isCreated
-
     override fun load(input: InputStream) {
         val s0 = w * h
         val data = Texture2D.byteBufferPool[s0 * 4, false]
@@ -23,7 +21,7 @@ open class RGBFrame(w: Int, h: Int) : VFrame(w, h, -1) {
             val r = input.read()
             val g = input.read()
             val b = input.read()
-            if(r < 0 || g < 0 || b < 0) throw EOFException()
+            if (r < 0 || g < 0 || b < 0) throw EOFException()
             data.put(r.toByte())
             data.put(g.toByte())
             data.put(b.toByte())
@@ -32,7 +30,7 @@ open class RGBFrame(w: Int, h: Int) : VFrame(w, h, -1) {
         data.position(0)
         creationLimiter.acquire()
         GFX.addGPUTask(w, h) {
-            rgb.createRGB(data)
+            rgb.createRGB(data, true)
             creationLimiter.release()
         }
     }
@@ -42,11 +40,6 @@ open class RGBFrame(w: Int, h: Int) : VFrame(w, h, -1) {
 
     override fun bind(offset: Int, nearestFiltering: GPUFiltering, clamping: Clamping) {
         rgb.bind(offset, nearestFiltering, clamping)
-    }
-
-    override fun destroy() {
-        super.destroy()
-        rgb.destroy()
     }
 
 }

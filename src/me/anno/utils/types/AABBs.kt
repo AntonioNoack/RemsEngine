@@ -1,6 +1,6 @@
 package me.anno.utils.types
 
-import me.anno.utils.Maths
+import me.anno.utils.maths.Maths
 import org.joml.*
 import kotlin.math.abs
 import kotlin.math.max
@@ -10,6 +10,17 @@ object AABBs {
     fun AABBd.isEmpty() = minX > maxX
     fun AABBf.isEmpty() = minX > maxX
 
+    fun AABBf.avgX() = (minX + maxX) * 0.5f
+    fun AABBf.avgY() = (minY + maxY) * 0.5f
+    fun AABBf.avgZ() = (minZ + maxZ) * 0.5f
+
+    fun AABBf.deltaX() = maxX - minX
+    fun AABBf.deltaY() = maxY - minY
+    fun AABBf.deltaZ() = maxZ - minZ
+
+    fun AABBf.print() = "($minX $minY $minZ) < ($maxX $maxY $maxZ)"
+    fun AABBd.print() = "($minX $minY $minZ) < ($maxX $maxY $maxZ)"
+
     // crazy... why is this not in the library???
     fun AABBf.set(o: AABBf): AABBf {
         minX = o.minX
@@ -18,6 +29,16 @@ object AABBs {
         maxX = o.maxX
         maxY = o.maxY
         maxZ = o.maxZ
+        return this
+    }
+
+    fun AABBf.set(o: AABBd): AABBf {
+        minX = o.minX.toFloat()
+        minY = o.minY.toFloat()
+        minZ = o.minZ.toFloat()
+        maxX = o.maxX.toFloat()
+        maxY = o.maxY.toFloat()
+        maxZ = o.maxZ.toFloat()
         return this
     }
 
@@ -206,6 +227,47 @@ object AABBs {
             val tx = m.m00() * x + m.m10() * y + m.m20() * z + m.m30()
             val ty = m.m01() * x + m.m11() * y + m.m21() * z + m.m31()
             val tz = m.m02() * x + m.m12() * y + m.m22() * z + m.m32()
+            minx = Math.min(tx, minx)
+            miny = Math.min(ty, miny)
+            minz = Math.min(tz, minz)
+            maxx = Math.max(tx, maxx)
+            maxy = Math.max(ty, maxy)
+            maxz = Math.max(tz, maxz)
+        }
+        dst.minX = minx
+        dst.minY = miny
+        dst.minZ = minz
+        dst.maxX = maxx
+        dst.maxY = maxy
+        dst.maxZ = maxz
+        return dst
+    }
+
+
+    /**
+     * transforms this matrix, then unions it with base, and places the result in dst
+     * */
+    fun AABBf.transformProjectUnion(m: Matrix4f, base: AABBf, dst: AABBf = base): AABBf {
+        val mx = minX
+        val my = minY
+        val mz = minZ
+        val dx = this.maxX - mx
+        val dy = this.maxY - my
+        val dz = this.maxZ - mz
+        var minx = base.minX
+        var miny = base.minY
+        var minz = base.minZ
+        var maxx = base.maxX
+        var maxy = base.maxY
+        var maxz = base.maxZ
+        for (i in 0..7) {
+            val x = mx + (i and 1).toFloat() * dx
+            val y = my + ((i shr 1) and 1).toFloat() * dy
+            val z = mz + ((i shr 2) and 1).toFloat() * dz
+            val tw = m.m03() * x + m.m13() * y + m.m23() * z + m.m33()
+            val tx = (m.m00() * x + m.m10() * y + m.m20() * z + m.m30()) / tw
+            val ty = (m.m01() * x + m.m11() * y + m.m21() * z + m.m31()) / tw
+            val tz = (m.m02() * x + m.m12() * y + m.m22() * z + m.m32()) / tw
             minx = Math.min(tx, minx)
             miny = Math.min(ty, miny)
             minz = Math.min(tz, minz)

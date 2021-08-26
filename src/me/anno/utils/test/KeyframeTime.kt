@@ -3,6 +3,7 @@ package me.anno.utils.test
 import me.anno.io.text.TextReader
 import me.anno.animation.AnimatedProperty
 import me.anno.animation.Interpolation
+import me.anno.utils.LOGGER
 
 fun main(){
 
@@ -16,7 +17,7 @@ fun main(){
     val asString = prop.toString()
     val fromString = TextReader.read(asString).filterIsInstance<AnimatedProperty<*>>().first()
 
-    println(asString)
-    println(fromString)
+    LOGGER.info(asString)
+    LOGGER.info(fromString)
 
 }

@@ -35,10 +35,10 @@ import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.sceneView.Grid.drawSmoothLine
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toARGB
-import me.anno.utils.Maths.clamp
-import me.anno.utils.Maths.length
-import me.anno.utils.Maths.mix
-import me.anno.utils.Maths.pow
+import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.maths.Maths.length
+import me.anno.utils.maths.Maths.mix
+import me.anno.utils.maths.Maths.pow
 import me.anno.utils.types.AnyToFloat.get
 import org.apache.logging.log4j.LogManager
 import org.joml.*
@@ -661,7 +661,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
                 property.addKeyframe(time, property[time]!!, propertyDt)
                 property.checkIsAnimated()
             }
-        } ?: println("Please select a property first!")
+        } ?: LOGGER.info("Please select a property first!")
     }
 
     fun clampValues() {

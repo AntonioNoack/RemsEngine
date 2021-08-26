@@ -1,5 +1,6 @@
 package me.anno.utils.test
 
+import me.anno.utils.LOGGER
 import java.io.File
 
 fun main(){
@@ -34,7 +35,7 @@ fun deleteClassFiles(file: File){
 fun cleanEclipseProject(file: File){
 
     if(!File(file,".classpath").exists()){
-        println("not a project: $file")
+        LOGGER.info("not a project: $file")
         return
     }
 
@@ -50,7 +51,7 @@ fun cleanIntellijProject(file: File){
         return
     }
 
-    println(file.name)
+    LOGGER.info(file.name)
 
     val files = listOf(".gradle","gradle","out","build","app/build","captures", "app/.externalNativeBuild")
 
@@ -61,7 +62,7 @@ fun cleanIntellijProject(file: File){
     val release = File(file,"app/release")
     if(release.exists()){
         if(release.listFiles()!!.size > 2){
-            println("Problematic: $file")
+            LOGGER.info("Problematic: $file")
         } else {
             release.deleteRecursively()
         }
@@ -80,7 +81,7 @@ fun deleteEmptyFolders(file: File){
     }
 
     if(file.listFiles()!!.isEmpty()){
-        println("deleting $file")
+        LOGGER.info("deleting $file")
         file.deleteRecursively()
     }
 

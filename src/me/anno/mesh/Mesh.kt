@@ -1,22 +1,19 @@
 package me.anno.mesh
 
-import me.anno.gpu.GFX.ensureEmptyStack
 import me.anno.gpu.GFX.isFinalRendering
-import me.anno.gpu.RenderState
-import me.anno.gpu.ShaderLib
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.shader.Shader
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isKeyDown
 import me.anno.input.Input.keysDown
-import me.anno.mesh.assimp.AnimGameItem
-import me.anno.objects.GFXTransform
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing.parseColor
 import me.anno.utils.types.Vectors
-import org.joml.*
+import org.joml.AABBf
+import org.joml.Vector3f
+import org.joml.Vector3fc
+import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.GL_LINES
 
 /**
@@ -26,7 +23,7 @@ import org.lwjgl.opengl.GL11.GL_LINES
 class Mesh(val material: String, val points: List<Point>?, val lines: List<Line>?) {
 
     fun flipV() = points?.forEach { it.flipV() }
-    fun scale(scale: Float){
+    fun scale(scale: Float) {
         points?.forEach { it.scale(scale) }
         lines?.forEach { it.scale(scale) }
     }
@@ -121,7 +118,7 @@ class Mesh(val material: String, val points: List<Point>?, val lines: List<Line>
         val randomDir = Vector3f(0f, 1f, 0f)
         val p = points
         var ctr = 0
-        if(p != null){
+        if (p != null) {
             for (i in p.indices step 3) {
                 val a = p[i].position
                 val b = p[i + 1].position

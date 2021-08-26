@@ -1,6 +1,6 @@
 package me.anno.animation.skeletal
 
-import me.anno.utils.Maths.clamp
+import me.anno.utils.maths.Maths.clamp
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.util.*

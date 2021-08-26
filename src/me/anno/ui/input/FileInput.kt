@@ -6,15 +6,15 @@ import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
-import me.anno.language.translation.NameDesc
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
+import me.anno.ui.editor.files.FileExplorer.Companion.openInExplorerDesc
 import me.anno.ui.style.Style
-import me.anno.utils.Threads.threadWithName
+import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.files.FileExplorerSelectWrapper
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.files.LocalFile.toLocalPath
@@ -52,6 +52,7 @@ class FileInput(
                         }
                     }
                     val file3 = if (file2 == InvalidRef) null else (file2 as? FileFileRef)?.file
+                    // todo select the file using our own explorer (?), because ours may be better
                     FileExplorerSelectWrapper.selectFileOrFolder(file3, isDirectory) { file ->
                         if (file != null) {
                             changeListener(getReference(file))
@@ -94,17 +95,7 @@ class FileInput(
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         when {
-            button.isRight -> {
-                openMenu(listOf(
-                    MenuOption(
-                        NameDesc(
-                            "Open In Explorer",
-                            "Opens the file in the default file explorer",
-                            "ui.file.openInExplorer"
-                        )
-                    ) { file.openInExplorer() }
-                ))
-            }
+            button.isRight -> openMenu(listOf(MenuOption(openInExplorerDesc) { file.openInExplorer() }))
             else -> super.onMouseClicked(x, y, button, long)
         }
     }

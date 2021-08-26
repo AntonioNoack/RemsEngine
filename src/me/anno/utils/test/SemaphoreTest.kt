@@ -1,5 +1,6 @@
 package me.anno.utils.test
 
+import me.anno.utils.LOGGER
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
@@ -20,7 +21,7 @@ fun main() {
                 val ci = c.incrementAndGet()
                 if (ci > max) {
                     max = ci
-                    println("max: $max")
+                    LOGGER.info("max: $max")
                 }
                 Thread.sleep(1)
                 c.decrementAndGet()

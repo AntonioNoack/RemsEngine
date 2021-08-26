@@ -9,16 +9,21 @@ import org.joml.Vector4f
 // a custom state, which stores all related rendering information
 class CameraComponent : Component() {
 
-    // todo different settings for orthographic and non-orthographic
-    // todo different classes? maybe...
-
     var isPerspective = true
 
     var near = 0.01
 
     var far = 5000.0
 
-    var fov = 90f
+    /**
+     * the fov when perspective, in degrees
+     * */
+    var fovY = 90f
+
+    /**
+     * the fov when orthographic, in base units
+     * */
+    var fovOrthographic = 500f
 
     // val pipeline = lazy { Pipeline() }
 
@@ -53,7 +58,7 @@ class CameraComponent : Component() {
         clone.isPerspective = isPerspective
         clone.near = near
         clone.far = far
-        clone.fov = fov
+        clone.fovY = fovY
         clone.clearColor = clearColor
     }
 

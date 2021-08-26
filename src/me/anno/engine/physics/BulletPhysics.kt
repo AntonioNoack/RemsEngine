@@ -219,7 +219,7 @@ class BulletPhysics : Component() {
         }
         return false;
             * */
-            // println("state: ${rb.activationState}, ${rb.deactivationTime}")
+            // LOGGER.info("state: ${rb.activationState}, ${rb.deactivationTime}")
 
             scale to rb
 

@@ -2,16 +2,19 @@ package me.anno.utils.test
 
 import me.anno.io.text.TextReader
 import me.anno.io.utils.StringMap
+import org.apache.logging.log4j.LogManager
 
 fun main() {
 
+    val logger = LogManager.getLogger("StringMap")
+
     val map = StringMap()
     map["debug.ui.enableVsync"] = true
-    println(map["debug.ui.enableVsync", true]) // true, correct
+    logger.info(map["debug.ui.enableVsync", true]) // true, correct
     map["debug.ui.enableVsync"] = false
-    println(map["debug.ui.enableVsync", true]) // false, correct
+    logger.info(map["debug.ui.enableVsync", true]) // false, correct
 
     val asMap = TextReader.clone(map) as StringMap
-    println(asMap["debug.ui.enableVsync"]) // null, incorrect
+    logger.info(asMap["debug.ui.enableVsync"]) // null, incorrect
 
 }

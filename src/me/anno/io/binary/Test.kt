@@ -1,6 +1,5 @@
 package me.anno.io.binary
 
-import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.text.TextWriter
 import me.anno.objects.Camera
@@ -10,12 +9,15 @@ import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
 import me.anno.objects.particles.ParticleSystem
 import me.anno.objects.text.Text
-import me.anno.utils.files.Files.use
 import me.anno.utils.OS
+import me.anno.utils.files.Files.use
+import org.apache.logging.log4j.LogManager
 import java.io.*
 import java.util.zip.DeflaterOutputStream
 
-fun main(){
+fun main() {
+
+    val logger = LogManager.getLogger("TestIO")
 
     val candidates = listOf(
         Video(),
@@ -54,9 +56,9 @@ fun main(){
     val bin0 = System.nanoTime()
     var bos: ByteArrayOutputStream
     lateinit var binaryValue: ByteArray
-    for(i in 0 until 100){
+    for (i in 0 until 100) {
         bos = ByteArrayOutputStream(4096)
-        use(DataOutputStream(bos)){ dos ->
+        use(DataOutputStream(bos)) { dos ->
             val writer = BinaryWriter(dos)
             candidates.forEach { writer.add(it) }
             writer.writeAllInList()
@@ -73,7 +75,7 @@ fun main(){
     // text
     val text0 = System.nanoTime()
     lateinit var textValue: String
-    for(i in 0 until 100){
+    for (i in 0 until 100) {
         val writer = TextWriter(false)
         candidates.forEach { writer.add(it) }
         writer.writeAllInList()
@@ -81,20 +83,20 @@ fun main(){
     }
     val textWriteTime = System.nanoTime() - text0
 
-    println("text write time: ${textWriteTime/1e9}")
-    println("binary write time: ${binaryWriteTime/1e9}")
+    logger.info("text write time: ${textWriteTime / 1e9}")
+    logger.info("binary write time: ${binaryWriteTime / 1e9}")
 
-    println("length as text: ${textValue.length}")
-    println("length in binary: ${binaryValue.size}")
+    logger.info("length as text: ${textValue.length}")
+    logger.info("length in binary: ${binaryValue.size}")
 
-    println("length text, compressed: ${compress(textValue.toByteArray())}")
-    println("length binary, compressed: ${compress(binaryValue)}")
+    logger.info("length text, compressed: ${compress(textValue.toByteArray())}")
+    logger.info("length binary, compressed: ${compress(binaryValue)}")
 
-    use(DataInputStream(ByteArrayInputStream(binaryValue))){ dis ->
+    use(DataInputStream(ByteArrayInputStream(binaryValue))) { dis ->
         val reader = BinaryReader(dis)
         reader.readAllInList()
         val content = reader.sortedContent
-        for(c in content) println(c.className)
+        for (c in content) logger.info(c.className)
     }
 
 }

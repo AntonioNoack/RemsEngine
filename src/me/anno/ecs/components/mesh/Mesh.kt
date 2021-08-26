@@ -1,12 +1,11 @@
 package me.anno.ecs.components.mesh
 
-import me.anno.ecs.Component
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Type
+import me.anno.ecs.components.cache.MaterialCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.GFX
-import me.anno.gpu.TextureLib
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.IndexedStaticBuffer
@@ -14,21 +13,20 @@ import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.shader.Shader
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.objects.GFXTransform
+import me.anno.objects.meshes.MeshData
 import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.AABBs.set
-import me.anno.utils.types.Lists.asMutableList
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.lwjgl.opengl.GL11
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-// todo make main.json always the main scene in a mesh file, and don't load everything twice...
-
-class Mesh : Component(), Cloneable {
+class Mesh : PrefabSaveable() {
 
     // use buffers instead, so they can be uploaded directly? no, I like the strided thing...
     // but it may be more flexible... still in Java, FloatArrays are more comfortable
@@ -37,12 +35,8 @@ class Mesh : Component(), Cloneable {
     @NotSerializedProperty
     private var needsMeshUpdate = true
 
-    var isInstanced = false
-
-    var collisionMask: Int = 1
-
-    fun canCollide(collisionMask: Int): Boolean {
-        return this.collisionMask.and(collisionMask) != 0
+    fun invalidateGeometry(){
+        needsMeshUpdate = true
     }
 
     // todo also we need a renderer, which can handle morphing
@@ -50,7 +44,7 @@ class Mesh : Component(), Cloneable {
     var positions: FloatArray? = null
 
     @Type("List<MorphTarget>")
-    var morphTargets = ArrayList<MorphTarget>()
+    var morphTargets: List<MorphTarget> = emptyList()
 
     @HideInInspector
     var normals: FloatArray? = null
@@ -61,10 +55,33 @@ class Mesh : Component(), Cloneable {
     @HideInInspector
     var uvs: FloatArray? = null
 
-    // multiple colors? idk...
-    // force RGBA? typically that would be the use for it -> yes
+    // colors, rgba,
+    // the default shader only supports the first color
+    // other colors still can be loaded for ... idk... maybe terrain information or sth like that
     @HideInInspector
     var color0: IntArray? = null
+
+    @HideInInspector
+    var color1: IntArray? = null
+
+    @HideInInspector
+    var color2: IntArray? = null
+
+    @HideInInspector
+    var color3: IntArray? = null
+
+    @HideInInspector
+    var color4: IntArray? = null
+
+    @HideInInspector
+    var color5: IntArray? = null
+
+    @HideInInspector
+    var color6: IntArray? = null
+
+    @HideInInspector
+    var color7: IntArray? = null
+
 
     @HideInInspector
     var boneWeights: FloatArray? = null
@@ -73,18 +90,21 @@ class Mesh : Component(), Cloneable {
     var boneIndices: ByteArray? = null
 
     // todo allow multiple materials? should make our life easier :), we just need to split the indices...
-    @Type("List<Material>")
-    var materials: List<Material> = defaultMaterials
+    // todo filter file references for a specific type...
+    @Type("List<Material/Reference>")
+    var materials: List<FileReference> = defaultMaterials
 
     @Type("Material")
-    var material: Material?
+    var material: FileReference?
         get() = materials.getOrNull(0)
         set(value) {
             materials = if (value != null) listOf(value)
             else emptyList()
         }
 
-    // one per triangle
+    /**
+     * one index per triangle
+     * */
     var materialIndices = IntArray(0)
 
     // todo sort them by material/shader, and create multiple buffers (or sub-buffers) for them
@@ -94,7 +114,6 @@ class Mesh : Component(), Cloneable {
     // to allow for quads, and strips and such
     var drawMode = GL11.GL_TRIANGLES
 
-    // todo when will it be calculated?
     val aabb = AABBf()
 
     var ignoreStrayPointsInAABB = false
@@ -103,25 +122,38 @@ class Mesh : Component(), Cloneable {
         super.copy(clone)
         clone as Mesh
         ensureBuffer()
-        clone.buffer = buffer
-        clone.hasBonesInBuffer = hasBonesInBuffer
-        clone.isInstanced = isInstanced
-        clone.collisionMask = collisionMask
+        // materials
         clone.materials = materials
+        // mesh data
         clone.positions = positions
         clone.normals = normals
-        clone.aabb.set(aabb)
         clone.uvs = uvs
         clone.color0 = color0
+        clone.color1 = color1
+        clone.color2 = color2
+        clone.color3 = color3
+        clone.color4 = color4
+        clone.color5 = color5
+        clone.color6 = color6
+        clone.color7 = color7
         clone.tangents = tangents
         clone.indices = indices
         clone.boneWeights = boneWeights
         clone.boneIndices = boneIndices
-        clone.morphTargets = morphTargets
-        clone.ignoreStrayPointsInAABB = ignoreStrayPointsInAABB
-        clone.drawMode = drawMode
         clone.materialIndices = materialIndices
+        // morph targets
+        clone.morphTargets = morphTargets
+        // draw mode
+        clone.drawMode = drawMode
+        // buffer
         clone.needsMeshUpdate = needsMeshUpdate
+        clone.buffer = buffer
+        clone.hasUVs = hasUVs
+        clone.hasVertexColors = hasVertexColors
+        clone.hasBonesInBuffer = hasBonesInBuffer
+        // aabb
+        clone.aabb.set(aabb)
+        clone.ignoreStrayPointsInAABB = ignoreStrayPointsInAABB
     }
 
     override fun clone(): Mesh {
@@ -214,6 +246,23 @@ class Mesh : Component(), Cloneable {
     @NotSerializedProperty
     private var buffer: StaticBuffer? = null
 
+    fun forEachPoint(onlyFaces: Boolean, callback: (x: Float, y: Float, z: Float) -> Unit) {
+        val positions = positions ?: return
+        val indices = indices
+        if (onlyFaces && indices != null) {
+            for (i in indices.indices) {
+                val ai = indices[i] * 3
+                callback(positions[ai], positions[ai + 1], positions[ai + 2])
+            }
+        } else {
+            var i = 0
+            val size = positions.size - 2
+            while (i < size) {
+                callback(positions[i++], positions[i++], positions[i++])
+            }
+        }
+    }
+
     fun forEachTriangle(callback: (a: Vector3f, b: Vector3f, c: Vector3f) -> Unit) {
         forEachTriangle(Vector3f(), Vector3f(), Vector3f(), callback)
     }
@@ -276,6 +325,7 @@ class Mesh : Component(), Cloneable {
         }
     }
 
+    var hasUVs = false
     var hasVertexColors = false
     var hasBonesInBuffer = false
 
@@ -297,7 +347,8 @@ class Mesh : Component(), Cloneable {
         val tangents = tangents
 
         val uvs = uvs
-        val hasUVs = uvs != null && uvs.isNotEmpty()
+        val hasUVs = true || uvs != null && uvs.isNotEmpty()
+        this.hasUVs = hasUVs
 
         NormalCalculator.checkNormals(positions, normals, indices)
         if (hasUVs) TangentCalculator.checkTangents(positions, normals, tangents, uvs, indices)
@@ -309,10 +360,10 @@ class Mesh : Component(), Cloneable {
         val pointCount = positions.size / 3
         val indices = indices
 
-        val hasBones = boneWeights != null && boneWeights.isNotEmpty()
+        val hasBones = true || boneWeights != null && boneWeights.isNotEmpty()
         hasBonesInBuffer = hasBones
 
-        val hasColors = colors != null && colors.isNotEmpty()
+        val hasColors = true || colors != null && colors.isNotEmpty()
         hasVertexColors = hasColors
 
         val attributes = arrayListOf(
@@ -363,8 +414,7 @@ class Mesh : Component(), Cloneable {
 
             if (hasUVs) {
 
-                uvs!!
-                if (uvs.size > i2 + 1) {
+                if (uvs != null && uvs.size > i2 + 1) {
                     buffer.put(uvs[i2], uvs[i2 + 1])
                 } else buffer.put(0f, 0f)
 
@@ -378,8 +428,7 @@ class Mesh : Component(), Cloneable {
             }
 
             if (hasColors) {
-                colors!!
-                if (colors.size > i) {
+                if (colors != null && colors.size > i) {
                     buffer.putInt(colors[i])
                 } else buffer.putInt(-1)
             }
@@ -433,7 +482,9 @@ class Mesh : Component(), Cloneable {
      * upload the data to the gpu, if it has changed
      * */
     fun ensureBuffer() {
-        if (needsMeshUpdate) updateMesh()
+        synchronized(this) {
+            if (needsMeshUpdate) updateMesh()
+        }
     }
 
     fun draw(shader: Shader, materialIndex: Int) {
@@ -449,6 +500,22 @@ class Mesh : Component(), Cloneable {
         if (meshBuffer != null) {
             instanceData.drawInstanced(shader, meshBuffer)
         }
+    }
+
+    /**
+     * calculates the bounds of the mesh
+     * not fast, but the gpu will take just as long -> doesn't matter
+     *
+     * the goal is to be accurate
+     * */
+    fun getBounds(transform: Matrix4f, onlyFaces: Boolean): AABBf {
+        val vf = Vector3f()
+        val aabb = AABBf()
+        ensureBuffer()
+        forEachPoint(onlyFaces) { x, y, z ->
+            aabb.union(transform.transformProject(vf.set(x, y, z)))
+        }
+        return aabb
     }
 
     fun drawAssimp(
@@ -470,7 +537,7 @@ class Mesh : Component(), Cloneable {
                 localStack.scale(scale)
             }
             if (centerMesh) {
-                AnimGameItem.centerStackFromAABB(localStack, aabb)
+                MeshData.centerMesh(stack, localStack, this)
             }
             localStack
         } else null
@@ -485,65 +552,40 @@ class Mesh : Component(), Cloneable {
         GFX.shaderColor(shader, "tint", -1)
 
         if (useMaterials && materials.isNotEmpty()) {
-            for (i in materials.indices) {
-                val material = materials[i]
+            for (materialIndex in materials.indices) {
+                val materialRef = materials[materialIndex]
+                val material = MaterialCache[materialRef, defaultMaterial]
                 material.defineShader(shader)
-                mesh.draw(shader, i)
+                mesh.draw(shader, materialIndex)
             }
         } else {
-            TextureLib.whiteTexture.bind(0)
-            mesh.draw(shader, 0)
-        }
-
-    }
-
-    override fun getChildListNiceName(type: Char): String = "Materials"
-    override fun listChildTypes(): String = "m"
-    override fun getChildListByType(type: Char): List<PrefabSaveable> = materials
-    override fun addChildByType(index: Int, type: Char, instance: PrefabSaveable) {
-        if (instance !is Material) return
-        val ms = materials.asMutableList()
-        ms.add(instance)
-        materials = ms
-    }
-
-    override fun removeChild(child: PrefabSaveable) {
-        if (child !is Material) return
-        if (materials.size <= 1) {
-            materials = emptyList()
-        } else if (child in materials) {
-            val ms = materials.asMutableList()
-            ms.remove(child)
-            materials = ms
+            val material = defaultMaterial
+            material.defineShader(shader)
+            for (materialIndex in 0 until max(1, materials.size)) {
+                mesh.draw(shader, materialIndex)
+            }
         }
     }
 
     companion object {
 
-        private val defaultMaterials = listOf(Material())
+        val defaultMaterial = Material()
+        private val defaultMaterials = emptyList<FileReference>()
         private val LOGGER = LogManager.getLogger(Mesh::class)
 
         // custom attributes for shaders? idk...
         // will always be 4, so bone indices can be aligned
         const val MAX_WEIGHTS = 4
 
-        val attributesBoneless = listOf(
-            Attribute("coords", 3),
-            Attribute("uvs", 2), // 20 bytes
-            Attribute("normals", AttributeType.SINT8_NORM, 4),
-            Attribute("tangents", AttributeType.SINT8_NORM, 4),
-            Attribute("colors", AttributeType.UINT8_NORM, 4), // 28 + 4 bytes
-        )
-
-        val attributes = listOf(
-            Attribute("coords", 3),
-            Attribute("uvs", 2), // 20 bytes
-            Attribute("normals", AttributeType.SINT8_NORM, 4),
-            Attribute("tangents", AttributeType.SINT8_NORM, 4),
-            Attribute("colors", AttributeType.UINT8_NORM, 4), // 28 + 4 bytes
-            Attribute("weights", AttributeType.UINT8_NORM, MAX_WEIGHTS),
-            Attribute("indices", AttributeType.UINT8, MAX_WEIGHTS, true) // 32 + 8 bytes
-        )
+        /*val attributes = listOf(
+             Attribute("coords", 3),
+             Attribute("uvs", 2), // 20 bytes
+             Attribute("normals", AttributeType.SINT8_NORM, 4),
+             Attribute("tangents", AttributeType.SINT8_NORM, 4),
+             Attribute("colors", AttributeType.UINT8_NORM, 4), // 28 + 4 bytes
+             Attribute("weights", AttributeType.UINT8_NORM, MAX_WEIGHTS),
+             Attribute("indices", AttributeType.UINT8, MAX_WEIGHTS, true) // 32 + 8 bytes
+         )*/
 
     }
 

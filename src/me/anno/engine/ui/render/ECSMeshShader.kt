@@ -12,7 +12,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.mesh.assimp.AnimGameItem.Companion.maxBones
 
-class ECSMeshShader(name: String) : BaseShader(name, "", "", "") {
+class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
     // todo just like the gltf shader define all material properties
     override fun createFlatShader(postProcessing: ShaderStage?, instanced: Boolean, geoShader: GeoShader?): Shader {
@@ -89,7 +89,7 @@ class ECSMeshShader(name: String) : BaseShader(name, "", "", "") {
                                     "   mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2);\n" +
                                     "   normal = localTransform * vec4(normals, 0.0);\n" +
                                     "   tangent = localTransform * vec4(tangents, 0.0);\n" +
-                                    "   finalPosition = coords;//localTransform * vec4(coords, 1.0);\n" +
+                                    "   finalPosition = localTransform * vec4(coords, 1.0);\n" +
                                     "   tint = instanceTint;\n"
                         } else {
                             "" +

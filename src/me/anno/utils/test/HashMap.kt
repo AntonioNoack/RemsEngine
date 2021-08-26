@@ -2,8 +2,11 @@ package me.anno.utils.test
 
 import me.anno.utils.Clock
 import me.anno.utils.structures.maps.HashMap2
+import org.apache.logging.log4j.LogManager
 
 fun main() {
+
+    val logger = LogManager.getLogger("HashMap")
 
     val capacity0 = 16
     val capacity1 = 1 shl 16
@@ -19,7 +22,7 @@ fun main() {
                 map[i] = i
             }
 
-            println("Map $index:")
+            logger.info("Map $index:")
 
             clock.start()
 
@@ -34,10 +37,10 @@ fun main() {
                     map as HashMap2
                     val hash = i.hashCode()
                     val index = hash and map.capacityM1
-                    println(index)
-                    println(map.keyStore[index])
-                    println(map.valStore[index])
-                    println(map.overflow[index])
+                    logger.info(index)
+                    logger.info(map.keyStore[index])
+                    logger.info(map.valStore[index])
+                    logger.info(map.overflow[index])
                     throw RuntimeException()
                 }
             }
@@ -70,7 +73,7 @@ fun main() {
 
             clock.stop("clear", -1.0)
 
-            println()
+            logger.info()
 
         }
 

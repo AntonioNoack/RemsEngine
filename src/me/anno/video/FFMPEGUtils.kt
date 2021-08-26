@@ -2,7 +2,7 @@ package me.anno.video
 
 import me.anno.gpu.GFX
 import me.anno.studio.rems.Rendering
-import me.anno.utils.Maths
+import me.anno.utils.maths.Maths
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Strings.formatTime2
 import me.anno.utils.types.Strings.withLength

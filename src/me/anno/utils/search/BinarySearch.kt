@@ -32,13 +32,13 @@ fun main() {
     for (v in toAdd) {
         val insertIndex = binarySearch(list.size) { list[it].compareTo(v) }
         if (insertIndex >= 0) {
-            println("$v was found")
+            LOGGER.info("$v was found")
         } else {
             list.add(-1 - insertIndex, v)
         }
     }
 
-    println("isSorted? ${list.sorted() == list}")
-    println(list)
+    LOGGER.info("isSorted? ${list.sorted() == list}")
+    LOGGER.info(list)
 
 }*/

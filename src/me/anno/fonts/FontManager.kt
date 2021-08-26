@@ -11,8 +11,8 @@ import me.anno.gpu.TextureLib
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.texture.ITexture2D
 import me.anno.utils.Clock
-import me.anno.utils.Maths.ceilDiv
-import me.anno.utils.Threads.threadWithName
+import me.anno.utils.maths.Maths.ceilDiv
+import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager

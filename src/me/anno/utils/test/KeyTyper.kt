@@ -1,5 +1,6 @@
 package me.anno.utils.test
 
+import me.anno.utils.LOGGER
 import java.awt.Robot
 import java.awt.event.KeyEvent
 import java.io.File
@@ -14,7 +15,7 @@ fun main(){
     val keyMap = HashMap<String, Int>()
     for(i in 0 until 1000){
         val chars = KeyEvent.getKeyText(i)
-        if ("unknown" !in chars.lowercase(Locale.getDefault())) println(chars)
+        if ("unknown" !in chars.lowercase(Locale.getDefault())) LOGGER.info(chars)
         keyMap[chars] = i
     }
 

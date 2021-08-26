@@ -1,5 +1,6 @@
 package me.anno.gpu.hidden
 
+import me.anno.gpu.GFX
 import me.anno.gpu.GFXBase0
 import me.anno.utils.Clock
 import org.apache.logging.log4j.LogManager
@@ -16,8 +17,8 @@ import org.lwjgl.system.MemoryUtil
 object HiddenOpenGLContext {
 
     private var window = 0L
-    private var width = 1
-    private var height = 1
+    private val width get() = GFX.width
+    private val height get() = GFX.height
 
     private var errorCallback: GLFWErrorCallback? = null
 
@@ -25,9 +26,9 @@ object HiddenOpenGLContext {
 
     var capabilities: GLCapabilities? = null
 
-    fun setSize(w: Int, h: Int){
-        width = w
-        height = h
+    fun setSize(w: Int, h: Int) {
+        GFX.width = w
+        GFX.height = h
     }
 
     fun createOpenGL() {
@@ -55,6 +56,8 @@ object HiddenOpenGLContext {
         GLFW.glfwMakeContextCurrent(window)
         GLFW.glfwSwapInterval(1)
         capabilities = GL.createCapabilities()
+
+        GFX.check()
 
     }
 

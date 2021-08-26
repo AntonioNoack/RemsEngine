@@ -1,6 +1,6 @@
 package me.anno.utils.types
 
-import me.anno.utils.Maths.sq
+import me.anno.utils.maths.Maths.sq
 import org.joml.Matrix4d
 import org.joml.Matrix4f
 import org.joml.Matrix4x3d
@@ -30,6 +30,24 @@ object Matrices {
             1.0, y, 0.0,
             x, 1.0, 0.0,
             0.0, 0.0, 1.0
+        )
+    }
+
+    fun Matrix4f.set2(other: Matrix4x3d): Matrix4f {
+        return set(
+            other.m00().toFloat(), other.m01().toFloat(), other.m02().toFloat(), 0f,
+            other.m10().toFloat(), other.m11().toFloat(), other.m12().toFloat(), 0f,
+            other.m20().toFloat(), other.m21().toFloat(), other.m22().toFloat(), 0f,
+            other.m30().toFloat(), other.m31().toFloat(), other.m32().toFloat(), 1f
+        )
+    }
+
+    fun Matrix4f.mul2(other: Matrix4x3d): Matrix4f {
+        return mul(
+            other.m00().toFloat(), other.m01().toFloat(), other.m02().toFloat(), 0f,
+            other.m10().toFloat(), other.m11().toFloat(), other.m12().toFloat(), 0f,
+            other.m20().toFloat(), other.m21().toFloat(), other.m22().toFloat(), 0f,
+            other.m30().toFloat(), other.m31().toFloat(), other.m32().toFloat(), 1f
         )
     }
 

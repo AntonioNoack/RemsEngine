@@ -14,6 +14,53 @@ import java.util.zip.InflaterInputStream
 object Files {
 
     fun findNextFileName(
+        parent: FileReference,
+        nameWithoutExtension: String,
+        extension: String,
+        digitsLength: Int,
+        colonSymbol: Char,
+        startingNumber: Long = 1
+    ): String {
+        // format: name-1.json
+        // -, because the usual name may contain numbers itself
+        // find all files matching the description, and then use the max+1
+        val default = "$nameWithoutExtension.$extension"
+        val siblings = parent.listChildren() ?: return default
+        if (default !in siblings.map { it.name }) return default
+        val prefix = if (colonSymbol.code == 0) nameWithoutExtension else "$nameWithoutExtension$colonSymbol"
+        // val nameLength = prefix.length + digitsLength
+        val relatedFiles = siblings.filter {
+            it.extension == extension && it.nameWithoutExtension.startsWith(prefix)
+            // it.nameWithoutExtension.length == nameLength
+        }.mapNotNull {
+            val name2 = it.nameWithoutExtension
+            var i = prefix.length
+            while (i + 1 < name2.length && name2[i] == '0') {
+                i++
+            }
+            name2.substring(i).toLongOrNull() // ^^, long for large names
+        }
+        val maxNumber = relatedFiles.maxOrNull() ?: startingNumber
+        val nextNumber = maxNumber + 1
+        return "$prefix$nextNumber.$extension"
+    }
+
+    fun findNextFile(
+        parent: FileReference,
+        nameWithoutExtension: String,
+        extension: String,
+        digitsLength: Int,
+        colonSymbol: Char,
+        startingNumber: Long = 1
+    ): FileReference {
+        val newName = findNextFileName(
+            parent, nameWithoutExtension, extension,
+            digitsLength, colonSymbol, startingNumber
+        )
+        return parent.getChild(newName)
+    }
+
+    fun findNextFile(
         reference: FileReference,
         digitsLength: Int,
         colonSymbol: Char,
@@ -26,25 +73,24 @@ object Files {
         val parent = reference.getParent() ?: return InvalidRef
         val name = reference.nameWithoutExtension
         val extension = reference.extension
-        val siblings = parent.listChildren() ?: return InvalidRef
-        val prefix = if (colonSymbol.code == 0) name else "$name$colonSymbol"
-        val nameLength = prefix.length + digitsLength
-        val relatedFiles = siblings.filter {
-            it.extension == extension &&
-                    it.nameWithoutExtension.startsWith(prefix) &&
-                    it.nameWithoutExtension.length == nameLength
-        }.mapNotNull {
-            val name2 = it.nameWithoutExtension
-            var i = prefix.length
-            while (i + 1 < prefix.length && name2[i] == '0') {
-                i++
-            }
-            name2.substring(i).toLongOrNull() // ^^, long for large names
-        }
-        val maxNumber = relatedFiles.maxOrNull() ?: startingNumber
-        val nextNumber = maxNumber + 1
-        val newName = "$prefix$nextNumber.$extension"
+        val newName = findNextFileName(parent, name, extension, digitsLength, colonSymbol, startingNumber)
         return parent.getChild(newName)
+    }
+
+    fun findNextFileName(
+        reference: FileReference,
+        digitsLength: Int,
+        colonSymbol: Char,
+        startingNumber: Long = 1
+    ): String {
+        // format: name-1.json
+        // -, because the usual name may contain numbers itself
+        // find all files matching the description, and then use the max+1
+        if (!reference.exists) return reference.name
+        val parent = reference.getParent() ?: return reference.name
+        val name = reference.nameWithoutExtension
+        val extension = reference.extension
+        return findNextFileName(parent, name, extension, digitsLength, colonSymbol, startingNumber)
     }
 
     fun Long.formatFileSize(): String {

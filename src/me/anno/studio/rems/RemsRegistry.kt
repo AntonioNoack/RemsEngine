@@ -25,7 +25,7 @@ import me.anno.objects.forces.impl.*
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.LinePolygon
 import me.anno.objects.geometric.Polygon
-import me.anno.objects.meshes.Mesh
+import me.anno.objects.meshes.MeshTransform
 import me.anno.objects.particles.ParticleSystem
 import me.anno.objects.particles.TextParticles
 import me.anno.objects.text.Chapter
@@ -49,7 +49,7 @@ object RemsRegistry {
         registerCustomClass(MaskLayer())
         registerCustomClass(ParticleSystem())
         registerCustomClass(Camera())
-        registerCustomClass(Mesh())
+        registerCustomClass(MeshTransform())
         registerCustomClass(Timer())
         registerCustomClass(AnimatedProperty<Any>())
         registerCustomClass(Keyframe<Any>())

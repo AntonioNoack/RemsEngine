@@ -5,13 +5,18 @@ import me.anno.animation.Type
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.cache.instances.MeshCache.getMesh
 import me.anno.config.DefaultConfig
-import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.AnimRenderer
+import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.MeshRenderer
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.RenderState
 import me.anno.gpu.shader.BaseShader.Companion.cullFaceColoringGeometry
 import me.anno.gpu.shader.BaseShader.Companion.lineGeometry
 import me.anno.input.Input
 import me.anno.io.ISaveable
+import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -19,6 +24,7 @@ import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.mesh.assimp.AnimatedMeshesLoader
+import me.anno.mesh.assimp.StaticMeshesLoader
 import me.anno.mesh.vox.VOXReader
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
@@ -29,14 +35,14 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.pow
+import me.anno.utils.maths.Maths.pow
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4fc
 import java.util.*
 
-class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
+class MeshTransform(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
 
     // todo lerp animations
 
@@ -61,6 +67,14 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
             LogManager.disableLogger("DefaultRenderedGltfModel")
         }*/
 
+        init {
+            registerCustomClass(Mesh())
+            registerCustomClass(Entity())
+            registerCustomClass(MeshComponent())
+            registerCustomClass(MeshRenderer())
+            registerCustomClass(AnimRenderer())
+        }
+
         fun loadModel(
             file: FileReference,
             key: String,
@@ -84,6 +98,33 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
             return if (renderData == null) null else meshData1
         }
 
+        fun loadVOX(file: FileReference, instance: Transform?): MeshData? {
+            return loadModel(file, "vox", instance, {
+                val reader = VOXReader().read(file)
+                val entity = reader.toEntityPrefab(file).createInstance() as Entity
+                // alternatively for testing:
+                // reader.toEntityPrefab().createInstance()
+                // works :)
+                it.assimpModel = AnimGameItem(entity)
+            }, { it.assimpModel })
+        }
+
+        fun loadAssimpAnimated(file: FileReference, instance: Transform?): MeshData? {
+            return loadModel(file, "Assimp", instance, { meshData ->
+                val reader = AnimatedMeshesLoader
+                val meshes = reader.load(file)
+                meshData.assimpModel = meshes
+            }) { it.assimpModel }
+        }
+
+        fun loadAssimpStatic(file: FileReference, instance: Transform?): MeshData? {
+            return loadModel(file, "Assimp-Static", instance, { meshData ->
+                val reader = StaticMeshesLoader()
+                val meshes = reader.load(file)
+                meshData.assimpModel = meshes
+            }) { it.assimpModel }
+        }
+
     }
 
     val animation = AnimatedProperty.string()
@@ -105,7 +146,7 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
         if (file.hasValidName() && LastModifiedCache[file].exists) {
 
             if (file !== lastFile) {
-                extension = file.extension.lowercase(Locale.getDefault())
+                extension = file.lcExtension
                 lastFile = file
             }
 
@@ -226,44 +267,17 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
 
                 }*/
                 "vox" -> {
-
                     // vox is not supported by assimp -> custom loader
-                    val data = loadModel(file, "vox", this, { meshData ->
-                        val reader = VOXReader()
-                        reader.read(file)
-                        // reader.toEntity()
-                        // alternatively for testing:
-                        // reader.toEntityPrefab().createInstance()
-                        // works :)
-                        val entity = reader.toEntity()
-                        meshData.assimpModel = AnimGameItem(
-                            entity, reader.meshes,
-                            emptyList(), emptyMap()
-                        )
-                    }) { it.assimpModel }
-
+                    val data = loadVOX(file, this)
                     drawAssimp(data, stack, time, color)
-
                     lastModel = data?.assimpModel
-
                 }
                 else -> {
-
                     // load the 3D model
-                    val data = loadModel(file, "Assimp", this, { meshData ->
-                        val reader = AnimatedMeshesLoader
-                        val meshes = reader.load(file)
-                        meshData.assimpModel = meshes
-                    }) { it.assimpModel }
-
+                    val data = loadAssimpAnimated(file, this)
                     drawAssimp(data, stack, time, color)
-
                     lastModel = data?.assimpModel
-
                 }
-                /*else -> {
-                    lastWarning = "Extension '$extension' is not supported"
-                }*/
             }
 
         } else {
@@ -286,28 +300,28 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
 
                 when {
                     isFinalRendering -> data.drawAssimp(
-                        this, stack, time, color,
-                        animation[time], true, centerMesh, normalizeScale
+                        false, this, stack, time, color,
+                        animation[time], true, centerMesh, normalizeScale, false
                     )
                     Input.isKeyDown('l') -> {// line debugging
                         RenderState.geometryShader.use(lineGeometry) {
                             data.drawAssimp(
-                                this, stack, time, color,
-                                animation[time], true, centerMesh, normalizeScale
+                                false, this, stack, time, color,
+                                animation[time], true, centerMesh, normalizeScale, false
                             )
                         }
                     }
                     Input.isKeyDown('n') -> {// normal debugging
                         RenderState.geometryShader.use(cullFaceColoringGeometry) {
                             data.drawAssimp(
-                                this, stack, time, color,
-                                animation[time], true, centerMesh, normalizeScale
+                                false, this, stack, time, color,
+                                animation[time], true, centerMesh, normalizeScale, false
                             )
                         }
                     }
                     else -> data.drawAssimp(
-                        this, stack, time, color,
-                        animation[time], true, centerMesh, normalizeScale
+                        false, this, stack, time, color,
+                        animation[time], true, centerMesh, normalizeScale, true
                     )
                 }
 
@@ -414,7 +428,12 @@ class Mesh(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
         }
     }
 
-    override val className get() = "Mesh"
+    // was Mesh before
+    // mmh, but the game engine is kinda more important...
+    // and the mesh support was very limited before anyways -> we shouldn't worry too much,
+    // because we don't have users at the moment anyways
+    override val className get() = "MeshTransform"
+
     override val defaultDisplayName = Dict["Mesh", "obj.mesh"]
     override val symbol = DefaultConfig["ui.symbol.mesh", "\uD83D\uDC69"]
 

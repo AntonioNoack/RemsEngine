@@ -3,7 +3,7 @@ package me.anno.ui.editor.color
 import me.anno.config.DefaultStyle
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.clamp
+import me.anno.utils.maths.Maths.clamp
 import org.joml.Vector3f
 import kotlin.math.roundToInt
 

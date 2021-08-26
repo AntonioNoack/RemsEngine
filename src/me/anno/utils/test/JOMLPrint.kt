@@ -1,9 +1,11 @@
 package me.anno.utils.test
 
+import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import org.joml.Random
 
 fun main() {
+    val logger = LogManager.getLogger("JOMLPrint")
     System.setProperty("joml.format", "false")
     // doesn't matter
     // System.setProperty("joml.sinLookup", "true")
@@ -21,6 +23,6 @@ fun main() {
         // m.mul(m)
     }
     val t1 = System.nanoTime()
-    println(m)
-    println("${(t1 - t0) * 1e-9}s")
+    logger.info(m)
+    logger.info("${(t1 - t0) * 1e-9}s")
 }

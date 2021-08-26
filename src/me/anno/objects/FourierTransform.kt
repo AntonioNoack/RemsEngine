@@ -17,11 +17,11 @@ import me.anno.objects.modes.LoopingState
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import me.anno.utils.Maths
-import me.anno.utils.Maths.clamp
-import me.anno.utils.Maths.fract
-import me.anno.utils.Maths.max
-import me.anno.utils.Maths.mix
+import me.anno.utils.maths.Maths
+import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.maths.Maths.fract
+import me.anno.utils.maths.Maths.max
+import me.anno.utils.maths.Maths.mix
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.MissingFrameException

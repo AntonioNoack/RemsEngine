@@ -1,6 +1,6 @@
 package me.anno.utils.io
 
-import me.anno.utils.Threads.threadWithName
+import me.anno.utils.hpc.Threads.threadWithName
 import java.io.InputStream
 import java.io.OutputStream
 

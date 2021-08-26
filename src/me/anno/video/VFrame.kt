@@ -9,22 +9,28 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
+import me.anno.utils.OS.desktop
 import me.anno.utils.Sleep.waitUntil
+import me.anno.utils.files.Files.findNextFile
+import java.awt.image.BufferedImage
 import java.io.InputStream
+import java.nio.ByteBuffer
 import java.util.concurrent.Semaphore
+import javax.imageio.ImageIO
 
 abstract class VFrame(
     var w: Int, var h: Int, val code: Int
 ) : ICacheData {
 
-    open val isCreated = false
-    var isDestroyed = false
+    val isCreated: Boolean get() = getTextures().all { it.isCreated && !it.isDestroyed }
+    val isDestroyed: Boolean get() = getTextures().any { it.isDestroyed }
 
     abstract fun get3DShader(): BaseShader
 
     abstract fun getTextures(): List<Texture2D>
 
     abstract fun bind(offset: Int, nearestFiltering: GPUFiltering, clamping: Clamping)
+
     fun bind(offset: Int, filtering: Filtering, clamping: Clamping) {
         val gpuFiltering = if (filtering.baseIsNearest) GPUFiltering.NEAREST else GPUFiltering.LINEAR
         bind(offset, gpuFiltering, clamping)
@@ -45,7 +51,19 @@ abstract class VFrame(
     }
 
     override fun destroy() {
-        isDestroyed = true
+        for (texture in getTextures()) {
+            texture.destroy()
+        }
+    }
+
+    fun interlace(a: ByteBuffer, b: ByteBuffer, dst: ByteBuffer): ByteBuffer {
+        val size = a.limit()
+        var j = 0
+        for (i in 0 until size) {
+            dst.put(j++, a[i])
+            dst.put(j++, b[i])
+        }
+        return dst
     }
 
     abstract fun load(input: InputStream)
@@ -58,6 +76,17 @@ abstract class VFrame(
         val w = w
         val h = h
         shader.v2("uvCorrection", w.toFloat() / ((w + 1) / 2 * 2), h.toFloat() / ((h + 1) / 2 * 2))
+    }
+
+    fun writeMonochromeDebugImage(w: Int, h: Int, buffer: ByteBuffer) {
+        val file = findNextFile(desktop, "mono", "png", 1, '-')
+        val img = BufferedImage(w, h, 1)
+        for (y in 0 until h) {
+            for (x in 0 until w) {
+                img.setRGB(x, y, buffer[x + y * w].toInt().and(255) * 0x10101)
+            }
+        }
+        file.outputStream().use { ImageIO.write(img, "png", it) }
     }
 
     companion object {

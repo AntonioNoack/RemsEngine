@@ -4,6 +4,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS
 import me.anno.utils.files.Files.use
+import org.apache.logging.log4j.LogManager
 import javax.imageio.ImageIO
 
 fun main() {
@@ -12,20 +13,22 @@ fun main() {
 
 fun convert(file: FileReference) {
 
+    val logger = LogManager.getLogger("TargaTest")
+
     if (file.isDirectory) {
         for (file2 in file.listChildren() ?: return) {
             convert(file2)
         }
     } else {
-        if (file.extension.equals("tga", true)) {
-            println("reading file $file")
+        if (file.lcExtension == "tga") {
+            logger.info("reading file $file")
             val image = TGAImage.read(file.inputStream(), false)
             val data = image.data
-            println("${file.name}: ${image.width} x ${image.height}, ${image.channels}, ${data.size}")
-            // println(OS.desktop)
+            logger.info("${file.name}: ${image.width} x ${image.height}, ${image.numChannels}, ${data.size}")
+            // LOGGER.infoOS.desktop)
             val dst = getReference(OS.desktop, "tga/${file.name}.png")
-            // println("dst: $dst, ${dst.name}")
-            // println("dst.parent: ${dst.getParent()}")
+            // LOGGER.info("dst: $dst, ${dst.name}")
+            // LOGGER.info("dst.parent: ${dst.getParent()}")
             dst.getParent()!!.mkdirs()
             use(dst.outputStream()) {
                 ImageIO.write(image.createBufferedImage(), "png", it)

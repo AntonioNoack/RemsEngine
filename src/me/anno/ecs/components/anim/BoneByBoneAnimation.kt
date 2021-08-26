@@ -10,7 +10,7 @@ class BoneByBoneAnimation() : Animation() {
     val joints = ArrayList<Joint>()
 
     class Joint {
-        val matrices = ArrayList<Matrix4f>()
+        val matrices = ArrayList<Matrix4x3f>()
     }
 
     override fun getMatrices(entity: Entity, time: Float, dst: Array<Matrix4x3f>): Array<Matrix4x3f>? {

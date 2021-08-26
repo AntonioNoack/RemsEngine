@@ -27,7 +27,7 @@ class MathL2Node() : ValueNode(listOf("Long", "Long"), listOf("Long")) {
         val a = graph.getValue(inputs[0]) as Long
         val b = graph.getValue(inputs[1]) as Long
         val c = type.long(a, b)
-        // println("$a $type $b = $c")
+        // LOGGER.info("$a $type $b = $c")
         setOutput(c, 0)
     }
 

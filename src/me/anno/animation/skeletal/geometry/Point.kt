@@ -1,6 +1,6 @@
 package me.anno.animation.skeletal.geometry
 
-import me.anno.utils.Maths.clamp
+import me.anno.utils.maths.Maths.clamp
 import org.joml.Vector3f
 import java.io.DataInputStream
 import java.io.DataOutputStream

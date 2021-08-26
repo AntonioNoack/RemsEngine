@@ -5,7 +5,10 @@ import me.anno.ecs.components.mesh.GLSLType
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.io.text.TextWriter
+import me.anno.io.zip.InnerTmpFile
 import me.anno.mesh.vox.meshing.BlockBuffer
 import me.anno.mesh.vox.meshing.BlockSide
 import me.anno.mesh.vox.meshing.VoxelMeshBuildInfo
@@ -64,10 +67,9 @@ class PointLight : LightComponent() {
             }
 
             cubeMesh.positions = vertices.toFloatArray()
-            cubeMesh.material = Material().apply {
-                shader = getShader(PointLight())
-                shaderOverrides["uColor"] = TypeValue(GLSLType.V3F, Vector3f(.3f, .3f, 0.7f))
-            }
+            val material = Prefab("Material")
+            material.setProperty("shaderOverrides", mapOf("uColor" to TypeValue(GLSLType.V3F, Vector3f(.3f, .3f, 0.7f))))
+            cubeMesh.material = InnerTmpFile.InnerTmpPrefabFile(material)
 
         }
 

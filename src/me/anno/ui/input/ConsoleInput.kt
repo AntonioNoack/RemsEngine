@@ -1,7 +1,7 @@
 package me.anno.ui.input
 
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.clamp
+import me.anno.utils.maths.Maths.clamp
 
 class ConsoleInput(title: String, enableSuggestions: Boolean, style: Style) :
     TextInput(title, "", enableSuggestions, style) {

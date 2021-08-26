@@ -1,7 +1,7 @@
 package me.anno.objects.geometric
 
 import me.anno.animation.AnimatedProperty
-import me.anno.cache.instances.ImageCache.getImage
+import me.anno.image.ImageGPUCache.getImage
 import me.anno.cache.instances.MeshCache
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
@@ -22,7 +22,7 @@ import me.anno.objects.Transform
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.clamp
+import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.video.MissingFrameException
 import org.joml.*

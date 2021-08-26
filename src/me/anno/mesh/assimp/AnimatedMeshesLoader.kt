@@ -1,25 +1,28 @@
 package me.anno.mesh.assimp
 
 import me.anno.ecs.Entity
+import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.anim.ImportedAnimation
-import me.anno.ecs.components.anim.Skeleton
-import me.anno.ecs.components.mesh.AnimRenderer
-import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.MAX_WEIGHTS
 import me.anno.ecs.components.mesh.MorphTarget
-import me.anno.ecs.prefab.*
+import me.anno.ecs.prefab.CAdd
+import me.anno.ecs.prefab.CSet
+import me.anno.ecs.prefab.Change
+import me.anno.ecs.prefab.Prefab
 import me.anno.io.NamedSaveable
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextWriter
 import me.anno.io.zip.InnerFolder
+import me.anno.io.zip.InnerLinkFile
+import me.anno.io.zip.InnerTextFile
 import me.anno.mesh.assimp.AnimGameItem.Companion.maxBones
 import me.anno.mesh.assimp.AnimatedMeshesLoader2.boneTransform2
 import me.anno.mesh.assimp.AnimatedMeshesLoader2.getDuration
+import me.anno.mesh.assimp.AnimatedMeshesLoader2.readBoneAnimHierarchy
+import me.anno.mesh.assimp.AnimatedMeshesLoader2.readBoneHierarchy
 import me.anno.mesh.assimp.AssimpTree.convert
-import me.anno.utils.OS
+import me.anno.utils.files.Files.findNextFileName
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.lwjgl.assimp.*
@@ -72,34 +75,12 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
     }
 
     override fun read(file: FileReference, resources: FileReference, flags: Int): AnimGameItem {
+
+        val prefab = readAsFolder2(file, resources, flags).second
+        val hierarchy = prefab.createInstance() as Entity
+        return AnimGameItem(hierarchy)
         // todo load lights and cameras for the game engine
-        val aiScene = loadFile(file, flags)
-        val metadata = loadMetadata(aiScene)
-        val matrixFix = matrixFix(metadata)
-        val materials = loadMaterials(aiScene, file, resources)
-        val boneList = ArrayList<Bone>()
-        val boneMap = HashMap<String, Bone>()
-        val meshes = loadMeshes(aiScene, materials, boneList, boneMap)
-        val hierarchy = buildScene(aiScene, meshes)
-        val skeleton = if (boneList.isEmpty()) null else addSkeleton(hierarchy, boneList)
-        val animations = if (boneList.isEmpty()) null else loadAnimations(aiScene, boneList, boneMap)
-        skeleton?.animations?.putAll(animations!!)
         // todo save animations, skeleton, textures and hierarchy into files
-        if (debugTransforms) {
-            var name = file.name
-            if (name == "scene.gltf") name = file.getParent()!!.name
-            val txt = "" +
-                    "metadata:\n$metadata\n" +
-                    "matrix fix:\n$matrixFix\n" +
-                    "bones:\n${boneList.map { "${it.name}: ${it.offsetMatrix}" }}\n" +
-                    "hierarchy:\n${hierarchy.toStringWithTransforms(0)}"
-            val ref = getReference(OS.desktop, "$name-${file.hashCode()}.txt")
-            LOGGER.info("$file.metadata: ")
-            if (!ref.exists || ref.readText() != txt) ref.writeText(txt)
-        }
-        // LOGGER.info("Found ${meshes.size} meshes and ${animations.size} animations on ${boneList.size} bones, in $resourcePath")
-        // println(animations)
-        return AnimGameItem(hierarchy, meshes.toList(), boneList, animations ?: emptyMap())
     }
 
     fun readAsFolder(
@@ -118,6 +99,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         // all and separately
         val aiScene = loadFile(file, flags)
         val root = InnerFolder(file)
+        val rootNode = aiScene.mRootNode()!!
         // val metadata = loadMetadata(aiScene)
         // val matrixFix = matrixFix(metadata)
         val loadedTextures = if (aiScene.mNumTextures() > 0) {
@@ -130,16 +112,59 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         val boneMap = HashMap<String, Bone>()
         val meshList = loadMeshPrefabs(aiScene, materials, boneList, boneMap).toList()
         val meshes = createReferences(root, "meshes", meshList)
-        val hierarchy = buildScene(aiScene, meshes)
-        if (boneList.isNotEmpty()) {
-            val skeleton = addSkeleton(hierarchy, boneList)
+        val hasAnimations = aiScene.mNumAnimations() > 0
+        val hasSkeleton = boneList.isNotEmpty() || hasAnimations
+        val hierarchy = buildScene(aiScene, meshes, hasSkeleton)
+
+        // for (change in hierarchy.changes!!) LOGGER.info(change)
+        val animationReferences = if (hasSkeleton) {
+
+            val skeleton = Prefab("Skeleton")
+            if (boneList.isNotEmpty()) {
+                compareBoneWithNodeNames(rootNode, boneMap)
+                readBoneHierarchy(rootNode, boneMap, -1)
+            } else {
+                // create bones from animation data
+                val animNodeCache = HashMap<String, AINodeAnim>()
+                val animations = aiScene.mAnimations()!!
+                for (i in 0 until aiScene.mNumAnimations()) {// collect all animated bones
+                    val aiAnimation = AIAnimation.create(animations[i])
+                    animNodeCache.putAll(createAnimationCache(aiAnimation))
+                }
+                readBoneAnimHierarchy(
+                    rootNode, boneList, boneMap, -1, animNodeCache,
+                    null, Matrix4f()
+                )
+            }
+            skeleton.setProperty("bones", boneList.toTypedArray())
+
+            val skeletonPath = root.createPrefabChild("Skeleton.json", skeleton)
+            addSkeleton(hierarchy, skeleton, skeletonPath)
+
             val animMap = loadAnimations(aiScene, boneList, boneMap)
+            skeleton.setProperty("animations", animMap)
+            for (animation in animMap.values) animation.skeleton = skeletonPath
+
+            // create a animation node to show the first animation
+            /*if (meshes.isEmpty() && animMap.isNotEmpty()) {
+                val anim = CAdd(Path.ROOT_PATH, 'c', "AnimRenderer")
+                val animPath = anim.getChildPath(0)
+                hierarchy.add(anim)
+                hierarchy.add(CSet(animPath, "skeleton", skeletonPath))
+                hierarchy.add(CSet(animPath, "animation", animMap.values.first()))
+            }*/
+
             val animList = animMap.values.toList()
             createReferences(root, "animations", animList)
-            skeleton.setProperty("animations", animMap)
-            root.createTextChild("skeleton.json", TextWriter.toText(skeleton, false))
-        }
-        root.createTextChild("Scene.json", TextWriter.toText(hierarchy, false))
+
+        } else emptyList()
+
+        // override the empty scene with an animation
+        if (meshes.isEmpty() && hasAnimations) {
+            val sample = animationReferences.first()
+            root.createTextChild("Scene.json", sample.readText())
+        } else root.createPrefabChild("Scene.json", hierarchy)
+
         return root to hierarchy
     }
 
@@ -153,39 +178,31 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
             val references = ArrayList<FileReference>(instances.size)
             for (index in instances.indices) {
                 val instance = instances[index]
-                val name = if (instance is Prefab) {
-                    instance.changes!!.filterIsInstance<CSet>()
-                        .first { it.path == Path() && it.name == "name" }.value.toString()
-                } else instance.name
-                references += meshFolder.createTextChild(
-                    "${name.ifEmpty { "$index" }}.json",
-                    TextWriter.toText(instance, false)
-                )
+                references += if (instance is Prefab) {
+                    val name = instance.changes!!.filterIsInstance<CSet>()
+                        .firstOrNull { it.path.isEmpty() && it.name == "name" }?.value?.toString() ?: ""
+                    val nameOrIndex = name.ifEmpty { "$index" }
+                    val fileName = findNextFileName(meshFolder, nameOrIndex, "json", 3, '-')
+                    meshFolder.createPrefabChild(fileName, instance)
+                } else {
+                    val name = instance.name
+                    val nameOrIndex = name.ifEmpty { "$index" }
+                    val fileName = findNextFileName(meshFolder, nameOrIndex, "json", 3, '-')
+                    meshFolder.createTextChild(fileName, TextWriter.toText(instance))
+                }
             }
             references
         } else emptyList()
     }
 
-    private fun addSkeleton(hierarchy: Entity, boneList: List<Bone>): Skeleton {
-        val skeleton = Skeleton()
-        skeleton.bones = boneList.toTypedArray()
-        for (renderer in hierarchy.getComponentsInChildren(AnimRenderer::class, true)) {
-            renderer.skeleton = skeleton
-        }
-        return skeleton
-    }
-
-
-    private fun addSkeleton(hierarchyPrefab: Prefab, boneList: List<Bone>): Prefab {
-        val skeleton = Prefab("Skeleton")
-        skeleton.setProperty("bones", boneList.toTypedArray())
+    private fun addSkeleton(hierarchyPrefab: Prefab, skeleton: Prefab, skeletonPath: FileReference): Prefab {
         val changes = hierarchyPrefab.changes!!
         val skeletonAssignments = changes.mapNotNull { change ->
             if (change is CAdd && change.clazzName == "AnimRenderer") {
                 val indexInEntity = changes.filter { it is CAdd && it.path == change.path }
                     .indexOfFirst { it === change }
                 val name = "skeleton"
-                CSet(change.path!!.added(name, indexInEntity, 'c'), name, skeleton)
+                CSet(change.path.added(name, indexInEntity, 'c'), name, skeletonPath)
             } else null
         }
         changes as MutableList<Change>
@@ -267,25 +284,11 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         } else emptyArray()
     }
 
-    private fun loadMeshes(
-        aiScene: AIScene, materials: Array<Material>,
-        boneList: ArrayList<Bone>, boneMap: HashMap<String, Bone>
-    ): Array<Mesh> {
-        val numMeshes = aiScene.mNumMeshes()
-        return if (numMeshes > 0) {
-            val aiMeshes = aiScene.mMeshes()!!
-            Array(numMeshes) {
-                val aiMesh = AIMesh.create(aiMeshes[it])
-                createMesh(aiMesh, materials, boneList, boneMap)
-            }
-        } else emptyArray()
-    }
-
     private fun loadAnimations(
         aiScene: AIScene,
         boneList: List<Bone>,
         boneMap: HashMap<String, Bone>
-    ): Map<String, me.anno.ecs.components.anim.Animation> {
+    ): Map<String, Animation> {
         val root = aiScene.mRootNode()!!
         val globalInverseTransformation = convert(root.mTransformation()).invert()
         // LOGGER.info("global inverse transform: ${convert(root.mTransformation()).invert()}")
@@ -298,12 +301,11 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
     private fun processAnimations2(
         aiScene: AIScene, boneList: List<Bone>, boneMap: HashMap<String, Bone>,
         rootNode: AINode, globalInverseTransformation: Matrix4f
-    ): Map<String, me.anno.ecs.components.anim.Animation> {
+    ): Map<String, Animation> {
         // Process all animations
         val numAnimations = aiScene.mNumAnimations()
-        val animations = HashMap<String, me.anno.ecs.components.anim.Animation>(numAnimations)
+        val animations = HashMap<String, Animation>(numAnimations)
         if (numAnimations > 0) {
-            compareBonesAndAnimations(aiScene.mRootNode()!!, boneMap)
             val aiAnimations = aiScene.mAnimations()!!
             // LOGGER.info("Loading animations: $numAnimations")
             for (i in 0 until numAnimations) {
@@ -333,7 +335,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         return animations
     }
 
-    fun compareBonesAndAnimations(aiRoot: AINode, bones: HashMap<String, Bone>) {
+    fun compareBoneWithNodeNames(aiRoot: AINode, bones: HashMap<String, Bone>) {
 
         // collect names of all nodes
         val sceneNodes = HashSet<String>()
@@ -389,7 +391,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                 }
                 bonesWithIssue.forEach { boneNameWithIssue ->
                     val bone = bones[boneNameWithIssue]!!
-                    val boneMatrix = bone.offsetMatrix
+                    val boneMatrix = bone.inverseBindPose
                     var bestNode = 0
                     var bestDistance = Float.POSITIVE_INFINITY
                     for (i in nodeMatrices.indices) {
@@ -426,36 +428,6 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                 transformPosition(Vector3f(0f, 0f, 1f)).distanceSquared(other.transformPosition(Vector3f(0f, 0f, 1f)))
     }
 
-    /*private fun processAnimations(
-        aiScene: AIScene, boneList: List<Bone>,
-        rootNode: Node, globalInverseTransformation: Matrix4f
-    ): Map<String, Animation> {
-        // Process all animations
-        val numAnimations = aiScene.mNumAnimations()
-        val animations = HashMap<String, Animation>(numAnimations)
-        val aiAnimations = aiScene.mAnimations()
-        LOGGER.info("Loading animations: $numAnimations")
-        for (i in 0 until numAnimations) {
-            val aiAnimation = AIAnimation.create(aiAnimations!![i])
-            val animNodeCache = createAnimationCache(aiAnimation)
-            val maxFrames = calcAnimationMaxFrames(aiAnimation)
-            val frames = Array(maxFrames) { frameIndex ->
-                val animatedFrame = AnimatedFrame()
-                buildFrameMatrices(
-                    aiAnimation, animNodeCache, boneList, animatedFrame, frameIndex, rootNode,
-                    rootNode.transformation, globalInverseTransformation
-                )
-                animatedFrame
-            }
-            var tps = aiAnimation.mTicksPerSecond()
-            if (tps < 1e-16) tps = 1000.0
-            val duration = aiAnimation.mDuration() / tps
-            val animation = Animation(aiAnimation.mName().dataString(), frames, duration)
-            animations[animation.name] = animation
-        }
-        return animations
-    }*/
-
     /*fun buildFrameMatrices(
         aiAnimation: AIAnimation,
         animNodeCache: Map<String, AINodeAnim>,
@@ -477,7 +449,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         // todo if not, we can use a hashmap, which is n times as fast
         // todo -> there is, because there is multiple meshes, one for each material...
         val affectedBones = bones.filter { it.name == nodeName }
-        // if(affectedBones.size > 1) println("filtering nodes for name $nodeName, found ${affectedBones.size} bones, bones: ${bones.map { it.name }}")
+        // if(affectedBones.size > 1) LOGGER.info("filtering nodes for name $nodeName, found ${affectedBones.size} bones, bones: ${bones.map { it.name }}")
         for (bone in affectedBones) {
             val boneTransform = Matrix4f(globalInverseTransform)
                 .mul(nodeGlobalTransform)
@@ -578,7 +550,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
 
                 var bone = boneMap[boneName]
                 if (bone == null) {
-                    bone = Bone(boneList.size, boneName, Matrix4x3f().set(boneTransform))
+                    bone = Bone(boneList.size, -1, boneName, Matrix4x3f().set(boneTransform))
                     boneList.add(bone)
                     boneMap[boneName] = bone
                 }
@@ -623,29 +595,6 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         }
 
         return null
-
-    }
-
-    fun createMesh(
-        aiMesh: AIMesh,
-        materials: Array<Material>,
-        boneList: ArrayList<Bone>,
-        boneMap: HashMap<String, Bone>
-    ): Mesh {
-
-        val mesh = createMesh(aiMesh, materials)
-
-        val vertexCount = aiMesh.mNumVertices()
-        val boneData = processBones(aiMesh, boneList, boneMap, vertexCount)
-        if (boneData != null) {
-            mesh.boneIndices = boneData.first
-            mesh.boneWeights = boneData.second
-        }
-
-        val morphTargets = loadMorphTargets(aiMesh)
-        mesh.morphTargets.addAll(morphTargets)
-
-        return mesh
 
     }
 

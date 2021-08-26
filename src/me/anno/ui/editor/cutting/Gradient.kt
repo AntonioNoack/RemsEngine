@@ -2,13 +2,12 @@ package me.anno.ui.editor.cutting
 
 import me.anno.ui.editor.cutting.LayerView.Companion.minAlphaInt
 import me.anno.ui.editor.cutting.LayerView.Companion.minDistSq
-import me.anno.ui.editor.cutting.LayerView.Companion.minDistSqInt
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.toARGB
-import me.anno.utils.Maths.mix
+import me.anno.utils.maths.Maths.mix
 import org.joml.Vector4f
 
 class Gradient(
@@ -41,7 +40,7 @@ class Gradient(
         val g0 = mix(c0.g()/255f, firstC1.g()/255f, f)
         val b0 = mix(c0.b()/255f, firstC1.b()/255f, f)
         val a0 = mix(c0.a()/255f, firstC1.a()/255f, f)
-        // if (abs(a0 - c3.w) > 1e-4f) println("approx. $a0 from mix(${c0.w}, ${firstC1.w}, $f) = ($x3-$x0)/($firstX1-$x0) for ${c3.w}")
+        // if (abs(a0 - c3.w) > 1e-4f) LOGGER.info("approx. $a0 from mix(${c0.w}, ${firstC1.w}, $f) = ($x3-$x0)/($firstX1-$x0) for ${c3.w}")
         // compare to the actual color
         val distSq = sq(c3.x - r0, c3.y - g0, c3.z - b0, c3.w - a0)
         // if the error is small enough, we can use this linear approximation

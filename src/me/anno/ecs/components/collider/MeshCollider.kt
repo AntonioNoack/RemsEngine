@@ -3,8 +3,10 @@ package me.anno.ecs.components.collider
 import com.bulletphysics.collision.shapes.*
 import com.bulletphysics.util.ObjectArrayList
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.cache.MeshCache
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.io.files.FileReference
 import me.anno.io.serialization.SerializedProperty
 import org.joml.Vector3d
 import org.lwjgl.system.MemoryUtil
@@ -19,16 +21,16 @@ class MeshCollider() : Collider() {
     var isConvex = true
 
     @Type("Mesh")
-    var mesh: Mesh? = null
+    var mesh: FileReference? = null
 
     override fun createBulletShape(scale: Vector3d): CollisionShape {
 
         if (mesh == null) {
-            mesh = entity?.getComponent(Mesh::class, false)
+            mesh = entity?.getComponent(MeshComponent::class, false)?.mesh
             me.anno.utils.LOGGER.warn("searched for mesh, found $mesh")
         }
 
-        val mesh = mesh ?: return SphereShape(0.5)
+        val mesh = MeshCache[mesh] ?: return SphereShape(0.5)
 
         val positions = mesh.positions!!
         val indices = mesh.indices

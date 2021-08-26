@@ -5,7 +5,7 @@ import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.ui.base.DefaultRenderingHints
-import me.anno.utils.Maths.distance
+import me.anno.utils.maths.Maths.distance
 import me.anno.utils.OS
 import me.anno.utils.files.Files.use
 import me.anno.utils.types.Vectors.avg
@@ -22,7 +22,6 @@ import java.awt.font.TextLayout
 import java.awt.geom.GeneralPath
 import java.awt.geom.PathIterator
 import java.awt.image.BufferedImage
-import java.io.File
 import javax.imageio.ImageIO
 import kotlin.math.abs
 import kotlin.math.max
@@ -116,7 +115,7 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
                         )
                     }
 
-                    // if(debugPieces) println("cubic to $x0 $y0 $x1 $y1 $x2 $y2")
+                    // if(debugPieces) LOGGER.info("cubic to $x0 $y0 $x1 $y1 $x2 $y2")
 
                     val length = distance(x, y, x0, y0) + distance(x0, y0, x1, y1) + distance(x1, y1, x2, y2)
                     val steps = max(3, (cubicAccuracy * length).roundToInt())
@@ -131,7 +130,7 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
                 }
                 PathIterator.SEG_LINETO -> {
 
-                    // if(debugPieces) println("line $x $y to $x0 $y0")
+                    // if(debugPieces) LOGGER.info("line $x $y to $x0 $y0")
 
                     currentShape.add(Vector2f(x, y))
                     // currentShape.add(rand2d(x, y))
@@ -144,7 +143,7 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
 
                     if (currentShape.isNotEmpty()) throw RuntimeException("move to is only allowed after close or at the start...")
 
-                    // if(debugPieces) println("move to $x0 $y0")
+                    // if(debugPieces) LOGGER.info("move to $x0 $y0")
 
                     x = x0
                     y = y0
@@ -152,7 +151,7 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
                 }
                 PathIterator.SEG_CLOSE -> {
 
-                    // if(debugPieces) println("close")
+                    // if(debugPieces) LOGGER.info("close")
 
                     if (currentShape.size > 2) {
                         // randomize the shapes to break up linear parts,

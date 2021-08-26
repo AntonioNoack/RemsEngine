@@ -6,6 +6,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.io.text.TextReader
+import org.apache.logging.log4j.LogManager
 
 class TestClass : Saveable() {
 
@@ -45,12 +46,14 @@ class TestClass : Saveable() {
 
 fun main() {
 
+    val logger = LogManager.getLogger("SerializationTest")
+
     val instance = TestClass()
     val text = instance.toString()
-    println(text)
+    logger.info(text)
 
     ISaveable.registerCustomClass("Test") { TestClass() }
     val copiedInstance = TextReader.read(text)
-    println(copiedInstance)
+    logger.info(copiedInstance)
 
 }

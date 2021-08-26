@@ -147,8 +147,8 @@ class FBXReader(input: InputStream) : LittleEndianDataInputStream(input.useBuffe
         if (child == null || parent == null) {
             // Missing pointers actually occur;
             // but it's good to check anyways
-            // if(n1 == null) println("Missing ${p[1]}")
-            // if(n2 == null) println("Missing ${p[2]}")
+            // if(n1 == null) LOGGER.info("Missing ${p[1]}")
+            // if(n2 == null) LOGGER.info("Missing ${p[2]}")
         } else connect(child, parent, type, p.getOrNull(3) as? String)
     }
 

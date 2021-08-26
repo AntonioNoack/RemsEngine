@@ -1,6 +1,7 @@
 package me.anno.utils
 
 import me.anno.utils.types.Floats.f3
+import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 
 class Clock(
@@ -64,7 +65,11 @@ class Clock(
         val dt = (time - firstTime) * 1e-9
         lastTime = time
         if (dt > minTime) {
-            LOGGER.info("Used ${if (printWholeAccuracy) dt.toString() else dt.f3()}s in total for $wasUsedFor")
+            if(wasUsedFor.isBlank2()){
+                LOGGER.info("Used ${if (printWholeAccuracy) dt.toString() else dt.f3()}s in total")
+            } else {
+                LOGGER.info("Used ${if (printWholeAccuracy) dt.toString() else dt.f3()}s in total for $wasUsedFor")
+            }
         }
     }
 

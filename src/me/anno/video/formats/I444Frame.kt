@@ -17,26 +17,24 @@ class I444Frame(iw: Int, ih: Int) : VFrame(iw, ih, 2) {
     private val u = Texture2D("i444-u-frame", w, h, 1)
     private val v = Texture2D("i444-v-frame", w, h, 1)
 
-    override val isCreated: Boolean get() = y.isCreated && u.isCreated && v.isCreated
-
     override fun load(input: InputStream) {
         val s0 = w * h
         val yData = input.readNBytes2(s0, Texture2D.byteBufferPool[s0, false], true)
         creationLimiter.acquire()
         GFX.addGPUTask(w, h) {
-            y.createMonochrome(yData)
+            y.createMonochrome(yData, true)
             creationLimiter.release()
         }
         val uData = input.readNBytes2(s0, Texture2D.byteBufferPool[s0, false], true)
         creationLimiter.acquire()
         GFX.addGPUTask(w, h) {
-            u.createMonochrome(uData)
+            u.createMonochrome(uData, true)
             creationLimiter.release()
         }
         val vData = input.readNBytes2(s0, Texture2D.byteBufferPool[s0, false], true)
         creationLimiter.acquire()
         GFX.addGPUTask(w, h) {
-            v.createMonochrome(vData)
+            v.createMonochrome(vData, true)
             creationLimiter.release()
             // tasks are executed in order, so this is true
             // (if no exception happened)
@@ -67,11 +65,5 @@ class I444Frame(iw: Int, ih: Int) : VFrame(iw, ih, 2) {
     // 23 MB / RGBA uv
     // 5.1 MB / full channel
     // -> awkward....
-    override fun destroy() {
-        super.destroy()
-        y.destroy()
-        u.destroy()
-        v.destroy()
-    }
 
 }

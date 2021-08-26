@@ -93,7 +93,7 @@ open class Gradient1D {
                 stops.set(colors[i0].percentage, colors[i1].percentage, colors[i2].percentage, colors[i3].percentage)
             }
         }
-        if (colors.size > 1) println("${colors.size} / ${stops.print()} / ${c0.print()} ${c1.print()} ${c2.print()} ${c3.print()}")
+        if (colors.size > 1) LOGGER.info("${colors.size} / ${stops.print()} / ${c0.print()} ${c1.print()} ${c2.print()} ${c3.print()}")
     }
 
     val colors = ArrayList<GradientColor>()
@@ -144,14 +144,14 @@ open class Gradient1D {
                 val color = parseColor(colorStr, opacityStr) ?: (0xff00ff or black)
                 val offset = stop["offset"]?.parseOffset() ?: (index / (stops.size - 1f))
 
-                println("$colorStr/$opacityStr -> $color, $offset")
+                // LOGGER.info("$colorStr/$opacityStr -> $color, $offset")
 
                 colors += GradientColor(color, offset)
 
             }
         }
         // calculateAverageColor()
-        println(colors.joinToString())
+        LOGGER.info(colors.joinToString())
     }
 
     fun parseColor(stopColor: String?, stopOpacity: String?): Int? {

@@ -5,6 +5,7 @@ import me.anno.gpu.RenderState
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Texture2D.Companion.packAlignment
 import me.anno.language.translation.Dict
 import me.anno.utils.Color
 import me.anno.utils.Color.a
@@ -12,16 +13,14 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.OS
-import me.anno.utils.Threads.threadWithName
+import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.files.Files
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11
 import java.awt.image.BufferedImage
-import java.lang.RuntimeException
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.imageio.ImageIO
-import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.min
 
@@ -43,15 +42,15 @@ object Screenshots {
             val y0 = max(localYOpenGL - radius, 0)
             val x1 = min(localX + radius + 1, fb.w)
             val y1 = min(localYOpenGL + radius + 1, fb.h)
-            if(x1 < x0 || y1 < y0) throw RuntimeException("$x0..$x1,$y0..$y1 by ${fb.w} x ${fb.h}, ($localX,$localYOpenGL-$localY)")
-            if(x1 > x0 && y1 > y0){
+            if (x1 < x0 || y1 < y0) throw RuntimeException("$x0..$x1,$y0..$y1 by ${fb.w} x ${fb.h}, ($localX,$localYOpenGL-$localY)")
+            if (x1 > x0 && y1 > y0) {
                 Frame.bind()
                 // draw only the clicked area
                 RenderState.scissorTest.use(true) {
                     GL11.glScissor(x0, y0, x1 - x0, y1 - y0)
                     drawScene()
                     GL11.glFlush(); GL11.glFinish() // wait for everything to be drawn
-                    GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 1)
+                    packAlignment(4 * (x1 - x0))
                     GL11.glReadPixels(x0, y0, x1 - x0, y1 - y0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer)
                 }
             }
@@ -59,7 +58,12 @@ object Screenshots {
         return buffer
     }
 
-    fun getClosestId(diameter: Int, idBuffer: IntArray, depthBuffer: IntArray, depthImportance: Int = 10): Int {
+    fun getClosestId(
+        diameter: Int,
+        idBuffer: IntArray,
+        depthBuffer: IntArray,
+        depthImportance: Int = if (RenderState.depthMode.currentValue.reversedDepth) -10 else +10
+    ): Int {
 
         var bestDistance = Int.MAX_VALUE
         var bestResult = 0
@@ -124,7 +128,7 @@ object Screenshots {
                     RenderState.useFrame(fb.msBuffer) {
                         Frame.bind()
                         GL11.glFlush(); GL11.glFinish() // wait for everything to be drawn
-                        GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 1)
+                        packAlignment(4 * w)
                         GL11.glReadPixels(0, 0, w, h, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer)
                         GFX.check()
                     }

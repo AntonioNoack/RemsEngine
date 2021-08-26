@@ -4,8 +4,7 @@ import me.anno.gpu.Cursor
 import me.anno.input.Input
 import me.anno.ui.base.SpacePanel
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.mixARGB
-import java.lang.RuntimeException
+import me.anno.utils.maths.Maths.mixARGB
 
 class CustomizingBar(var index: Int, sizeX: Int, sizeY: Int, style: Style): SpacePanel(sizeX, sizeY, style){
 

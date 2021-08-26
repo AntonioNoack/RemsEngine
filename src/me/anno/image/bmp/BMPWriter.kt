@@ -1,12 +1,29 @@
 package me.anno.image.bmp
 
+import java.awt.image.BufferedImage
+
 object BMPWriter {
 
-    // converts raw data into a bmp buffer
-    // is meant to be worked on locally only, theoretically doesn't need to be saved
-    // https://en.wikipedia.org/wiki/BMP_file_format, example 2
-    fun createBMP(width: Int, height: Int, argb: ByteArray): ByteArray {
-        val pixelDataStart = 0x7a
+    private const val pixelDataStart = 0x7a
+
+    fun createBMP(img: BufferedImage): ByteArray {
+        val width = img.width
+        val height = img.height
+        val dst = createBMPHeader(width, height)
+        val buffer = img.data.dataBuffer
+        // a lot of zeros
+        var j = pixelDataStart
+        for (i in 0 until width * height) {
+            val color = buffer.getElem(i)
+            dst[j++] = (color shr 24).toByte()
+            dst[j++] = (color shr 16).toByte()
+            dst[j++] = (color shr 8).toByte()
+            dst[j++] = color.toByte()
+        }
+        return dst
+    }
+
+    fun createBMPHeader(width: Int, height: Int): ByteArray {
         val dst = ByteArray(pixelDataStart + width * height * 4)
         // BM
         dst[0] = 0x42
@@ -31,7 +48,7 @@ object BMPWriter {
         write16(1, 0x1A) // 1 plane
         write16(32, 0x1C) // 32 bits
         write32(3, 0x1E) // no compression used
-        write32(argb.size, 0x22) // size of the data
+        write32(width * height * 4, 0x22) // size of the data
         val pixelsPerMeterForPrinting = 2835 // 72 DPI
         write32(pixelsPerMeterForPrinting, 0x26)
         write32(pixelsPerMeterForPrinting, 0x2A)
@@ -41,6 +58,14 @@ object BMPWriter {
         write32(0x0000ff, 0x3e) // blue mask
         write32(0xff.shl(24), 0x42) // alpha mask
         write32(0x57696e20, 0x46) // color space, "Win "
+        return dst
+    }
+
+    // converts raw data into a bmp buffer
+    // is meant to be worked on locally only, theoretically doesn't need to be saved
+    // https://en.wikipedia.org/wiki/BMP_file_format, example 2
+    fun createBMP(width: Int, height: Int, argb: ByteArray): ByteArray {
+        val dst = createBMPHeader(width, height)
         // a lot of zeros
         for (i in argb.indices) {
             dst[pixelDataStart + i] = argb[i]

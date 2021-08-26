@@ -14,7 +14,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.style.Style
-import me.anno.utils.Maths.clamp
+import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.structures.tuples.Quad
 import me.anno.utils.types.Strings.getIndexFromText
 import me.anno.utils.types.Strings.getLineWidth
@@ -367,7 +367,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
         var cursor = cursor0
         if (cursor.y !in 0 until lines.size) {
             cursor = CursorPosition(cursor.x, clamp(cursor.y, 0, lines.lastIndex))
-            // println("changed y from ${cursor0.y} to ${cursor.y}, because ${cursor.y} !in 0 until ${lines.size}")
+            // LOGGER.info("changed y from ${cursor0.y} to ${cursor.y}, because ${cursor.y} !in 0 until ${lines.size}")
         }
         val line = lines[cursor.y]
         if (cursor.x !in 0..line.size) {

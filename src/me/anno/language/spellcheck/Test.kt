@@ -3,6 +3,7 @@ package me.anno.language.spellcheck
 import me.anno.language.Language
 import me.anno.studio.project.Project
 import me.anno.studio.rems.RemsStudio.project
+import me.anno.utils.LOGGER
 import me.anno.utils.OS
 
 fun main(){
@@ -18,6 +19,6 @@ fun main(){
         Thread.sleep(10)
     }
 
-    println(answer)
+    LOGGER.info(answer)
 
 }

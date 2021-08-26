@@ -4,6 +4,7 @@ import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.EmptyInputStream
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.utils.types.AnyToInt.get
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.URI
@@ -63,7 +64,7 @@ abstract class InnerFile(
     }
 
     override fun getChild(name: String): FileReference {
-        return InvalidRef
+        return ZipCache.getMeta(this,false)?.getChild(name) ?: InvalidRef
     }
 
     override val exists: Boolean = true

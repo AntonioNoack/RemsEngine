@@ -1,6 +1,6 @@
 package me.karl.renderer;
 
-import me.anno.cache.instances.ImageCache;
+import me.anno.image.ImageGPUCache;
 import me.anno.gpu.GFX;
 import me.anno.gpu.TextureLib;
 import me.anno.gpu.texture.Clamping;
@@ -49,7 +49,7 @@ public class AnimatedModelRenderer {
         Texture2D texture = null;
         FileReference file0;
         if (!tex.isEmpty() && (file0 = tex.get(0)) != null) {
-            texture = ImageCache.INSTANCE.getImage(file0, 1000L, true);
+            texture = ImageGPUCache.INSTANCE.getImage(file0, 1000L, true);
             if (texture == null && GFX.INSTANCE.isFinalRendering() && file0.hasValidName()) {
                 throw new MissingFrameException(file0);
             }

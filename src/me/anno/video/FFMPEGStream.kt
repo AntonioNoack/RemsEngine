@@ -45,25 +45,15 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         ) as FFMPEGMeta).stringData
 
         fun getImageSequence(
-            input: FileReference,
-            w: Int,
-            h: Int,
-            startFrame: Int,
-            frameCount: Int,
-            fps: Double,
-            frameCallback: (VFrame, Int) -> Unit
-        ) = getImageSequence(input, w, h, startFrame / fps, frameCount, fps, frameCallback)
+            input: FileReference, w: Int, h: Int, startFrame: Int, frameCount: Int, fps: Double
+        ): FFMPEGVideo {
+            return getImageSequence(input, w, h, startFrame / fps, frameCount, fps)
+        }
 
         // ffmpeg needs to fetch hardware decoded frames (-hwaccel auto) from gpu memory;
         // if we use hardware decoding, we need to use it on the gpu...
         fun getImageSequence(
-            input: FileReference,
-            w: Int,
-            h: Int,
-            startTime: Double,
-            frameCount: Int,
-            fps: Double,
-            frameCallback: (VFrame, Int) -> Unit
+            input: FileReference, w: Int, h: Int, startTime: Double, frameCount: Int, fps: Double
         ): FFMPEGVideo {
             val meta = getMeta(input, false)
             val args = arrayListOf(
@@ -82,10 +72,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
                 // "-movflags", "faststart", // didn't have noticeable effect, maybe it does now (??...)
                 "-f", "rawvideo", "-" // format
             )
-            val video = FFMPEGVideo(
-                input, w, h, (startTime * fps).roundToInt(), frameCount,
-                frameCallback
-            )
+            val video = FFMPEGVideo(input, w, h, (startTime * fps).roundToInt(), frameCount)
             video.run(args)
             return video
         }

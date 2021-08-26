@@ -16,7 +16,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.Color.toARGB
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.ColorParsing
-import me.anno.utils.Maths.mixARGB
+import me.anno.utils.maths.Maths.mixARGB
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
 import org.joml.Vector4fc

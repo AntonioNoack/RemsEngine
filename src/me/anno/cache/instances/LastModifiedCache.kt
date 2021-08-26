@@ -25,7 +25,7 @@ object LastModifiedCache {
 
     operator fun get(file: FileReference): Result {
         val time = gameTime
-        if (abs(time - lastChecked) / 1_000_000 > timeout) {
+        if (abs(time - lastChecked) > timeout * 1_000_000L) {
             lastChecked = time
             values.clear()
         }
