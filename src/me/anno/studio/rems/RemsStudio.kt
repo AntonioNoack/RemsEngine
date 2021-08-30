@@ -118,6 +118,12 @@ import me.anno.utils.OS
 
 // todo when playing video, and the time hasn't been touched manually, slide the time panel, when the time reaches the end: slide by 1x window width
 
+
+// todo signed field to split meshes
+// todo with option for face subdivisions
+
+// todo a play button
+
 object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
 
     // private val LOGGER = LogManager.getLogger(RemsStudio::class)

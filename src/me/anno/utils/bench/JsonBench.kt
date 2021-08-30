@@ -1,6 +1,6 @@
 package me.anno.utils.bench
 
-import com.fasterxml.jackson.databind.ObjectMapper
+// import com.fasterxml.jackson.databind.ObjectMapper
 import me.anno.config.DefaultConfig
 import me.anno.io.text.TextReader
 import me.anno.utils.Clock
@@ -24,12 +24,12 @@ fun main() {
     timer.stop("just reading")
 
     // warm-up
-    ObjectMapper().readTree(text)
+    // ObjectMapper().readTree(text)
     timer.start()
 
-    for (i in 0 until tries) {
+   /* for (i in 0 until tries) {
         ObjectMapper().readTree(text)
-    }
+    }*/
 
     timer.stop("jackson")
 

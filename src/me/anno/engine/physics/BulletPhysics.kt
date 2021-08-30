@@ -42,6 +42,7 @@ import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.debug.FrameTimes
 import me.anno.utils.Clock
 import me.anno.utils.hpc.SyncMaster
+import me.anno.utils.structures.sets.ParallelHashSet
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -54,8 +55,9 @@ import kotlin.reflect.KClass
 
 class BulletPhysics : Component() {
 
-    // todo signed field to split meshes
-    // todo with option for face subdivisions
+    // I use jBullet2, however I have modified it to use doubles for everything
+    // this may be bad for performance, but it also allows our engine to run much larger worlds
+    // if we need top-notch-performance, I just should switch to a native implementation
 
     companion object {
         private val LOGGER = LogManager.getLogger(BulletPhysics::class)
@@ -76,35 +78,18 @@ class BulletPhysics : Component() {
     @SerializedProperty
     var automaticDeathHeight = -100.0
 
-    // todo a play button
-
-    // I use jBullet2, however I have modified it to use doubles for everything
-    // this may be bad for performance, but it also allows our engine to run much larger worlds
-    // if we need top-notch-performance, I just should switch to a native implementation
-
     @NotSerializedProperty
     private val sampleWheels = ArrayList<WheelInfo>()
 
     @NotSerializedProperty
-    private var enu1 = HashSet<Entity>()
-    private var enu2 = HashSet<Entity>()
+    private var invalidEntities = ParallelHashSet<Entity>(256)
 
     fun invalidate(entity: Entity) {
-        synchronized(enu1) {
-            enu1.add(entity)
-        }
+        invalidEntities.add(entity)
     }
 
     private fun validate() {
-        synchronized(enu1) {
-            val tmp = enu1
-            enu1 = enu2
-            enu2 = tmp
-        }
-        for (entity in enu2) {
-            update(entity)
-        }
-        enu2.clear()
+        invalidEntities.process(::update)
     }
 
     @NotSerializedProperty
@@ -120,7 +105,8 @@ class BulletPhysics : Component() {
     private val raycastVehicles = HashMap<Entity, RaycastVehicle>()
 
     // todo ideally for bullet, we would need a non-symmetric matrix:
-    //  --- types ---
+    //
+    //   t y p e s
     // t
     // y
     // p  whether it can be moved by the other
@@ -229,11 +215,12 @@ class BulletPhysics : Component() {
 
     fun add(entity: Entity): RigidBody? {
         // todo add including constraints and such
+        println("adding ${entity.name} maybe, ${entity.getComponent(Rigidbody::class, false)}")
         val rigidbody = entity.getComponent(Rigidbody::class, false) ?: return null
         if (rigidbody.isEnabled) {
 
             val bodyWithScale = createRigidbody(entity, rigidbody) ?: return null
-            val (scale, body) = bodyWithScale
+            val (_, body) = bodyWithScale
 
             // todo correctly create vehicle, if the body is scaled
 
@@ -290,7 +277,9 @@ class BulletPhysics : Component() {
 
     private fun update(entity: Entity) {
         remove(entity)
-        entity.isPhysicsControlled = add(entity) != null
+        val rigidbody = add(entity)
+        entity.isPhysicsControlled = rigidbody != null
+        println("updated ${entity.name}, rigid: ${rigidbody?.invMass}")
     }
 
     @SerializedProperty
@@ -301,14 +290,16 @@ class BulletPhysics : Component() {
     var time = 0L
 
     fun callUpdates() {
-        val tmp = Stack.borrowTrans()
+        /* val tmp = Stack.borrowTrans()
         for ((body, scaledBody) in rigidBodies) {
-            // val physics = scaledBody.second
-            // physics.clearForces() // needed???...
+            val physics = scaledBody.second
+            physics.clearForces() // needed???...
             // testing force: tornado
-            // physics.getWorldTransform(tmp)
-            // val f = 1.0 + 0.01 * sq(tmp.origin.x, tmp.origin.z)
-            // physics.applyCentralForce(Vector3d(tmp.origin.z / f, 0.0, -tmp.origin.x / f))
+            physics.getWorldTransform(tmp)
+            val f = 1.0 + 0.01 * sq(tmp.origin.x, tmp.origin.z)
+            physics.applyCentralForce(Vector3d(tmp.origin.z / f, 0.0, -tmp.origin.x / f))
+        }*/
+        for (body in rigidBodies.keys) {
             body.physicsUpdate()
         }
     }

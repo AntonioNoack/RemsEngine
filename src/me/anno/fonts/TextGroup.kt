@@ -3,41 +3,44 @@ package me.anno.fonts
 import me.anno.fonts.mesh.TextMesh
 import me.anno.fonts.mesh.TextMeshGroup.Companion.getAlignments
 import me.anno.fonts.mesh.TextRepBase
-import me.anno.utils.types.Lists.accumulate
 import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.structures.arrays.DoubleArrays.accumulate
+import me.anno.utils.types.Lists.accumulate
 import java.awt.Font
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
-import kotlin.streams.toList
 
 /**
  * custom character-character alignment maps by font for faster calculation
  * */
 abstract class TextGroup(
     val font: Font, val text: String,
-    var charSpacing: Float
+    charSpacing: Double
 ) : TextRepBase() {
 
     val alignment = getAlignments(font)
 
-    val codepoints = text.codePoints().toList()
+    val codepoints: IntArray =
+        text.codePoints().toArray()
 
-    val offsets: List<Double>
-    val baseScale: Float
+    val offsets: DoubleArray
+    val baseScale: Double
 
     init {
 
         val ctx = FontRenderContext(null, true, true)
-        offsets = (codepoints.mapIndexed { index, secondCodePoint ->
-            if (index > 0) {
-                val firstCodePoint = codepoints[index - 1]
-                charSpacing + getOffset(ctx, firstCodePoint, secondCodePoint)
-            } else 0.0
-        } + getOffset(ctx, codepoints.last(), 32)).accumulate() // space
+        offsets = DoubleArray(codepoints.size + 1)
+        for (index in 1 until codepoints.size) {
+            val firstCodePoint = codepoints[index - 1]
+            val secondCodePoint = codepoints[index]
+            offsets[index] = charSpacing + getOffset(ctx, firstCodePoint, secondCodePoint)
+        }
+        offsets[codepoints.size] = getOffset(ctx, codepoints.last(), 32)
+        offsets.accumulate()
 
         if ('\t' in text || '\n' in text) throw RuntimeException("\t and \n are not allowed in FontMesh2!")
         val layout = TextLayout(".", font, ctx)
-        baseScale = TextMesh.DEFAULT_LINE_HEIGHT / (layout.ascent + layout.descent)
+        baseScale = TextMesh.DEFAULT_LINE_HEIGHT.toDouble() / (layout.ascent + layout.descent)
         minX = 0f
         maxX = 0f
 
@@ -49,9 +52,9 @@ abstract class TextGroup(
         val characterLengthCache = alignment.charSize
 
         fun getLength(str: String): Double {
-            if(str.isEmpty()) return 0.0
-            if(' ' in str) {
-                val lengthWithoutSpaces = getLength(str.replace(" ",""))
+            if (str.isEmpty()) return 0.0
+            if (' ' in str) {
+                val lengthWithoutSpaces = getLength(str.replace(" ", ""))
                 val spacesLength = str.count { it == ' ' } * clamp(
                     getLength("x"),
                     1.0,

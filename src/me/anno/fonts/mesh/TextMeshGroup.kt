@@ -16,7 +16,7 @@ class TextMeshGroup(
     forceVariableBuffer: Boolean,
     debugPieces: Boolean = false
 ) : TextGroup(
-    font, text, charSpacing
+    font, text, charSpacing.toDouble()
 ) {
 
     init {
@@ -40,31 +40,29 @@ class TextMeshGroup(
         // ("creating large ${codepoints.joinChars()}")
         val characters = alignment.buffers
         val b0 = characters[codepoints.first()]!!
-        var vertexCount = 0
-        codepoints.forEach { codepoint ->
-            vertexCount += characters[codepoint]!!.vertexCount
-        }
-        val buffer = StaticBuffer(b0.attributes, vertexCount)
+        val vertexCount = codepoints.sumOf { characters[it]!!.vertexCount }
+        val dst = StaticBuffer(b0.attributes, vertexCount)
         val components = b0.attributes.sumOf { it.components }
-        codepoints.forEachIndexed { index, codePoint ->
+        for (index in codepoints.indices) {
+            val codepoint = codepoints[index]
             val offset = offsets[index] * baseScale
-            val subBuffer = characters[codePoint]!!
-            val fb = subBuffer.nioBuffer!!
+            val src = characters[codepoint]!!
+            val fb = src.nioBuffer!!
             var k = 0
-            for (i in 0 until subBuffer.vertexCount) {
-                buffer.put((fb.getFloat(4 * k++) + offset).toFloat())
-                for (j in 1 until components) {
-                    buffer.put(fb.getFloat(4 * k++))
+            for (i in 0 until src.vertexCount) {
+                dst.put((fb.getFloat(4 * k++) + offset).toFloat()) // x
+                for (j in 1 until components) {// y, z
+                    dst.put(fb.getFloat(4 * k++))
                 }
             }
         }
-        this.buffer = buffer
+        this.buffer = dst
     }
 
     // are draw-calls always expensive??
     // or buffer creation?
     // very long strings just are displayed char by char (you must be kidding me ;))
-    private val isSmallBuffer = forceVariableBuffer || codepoints.size < 5 || codepoints.size > 512
+    private val drawCharByChar = forceVariableBuffer || codepoints.size < 5 || codepoints.size > 512
 
     // the performance could be improved
     // still its initialization time should be much faster than FontMesh
@@ -73,7 +71,7 @@ class TextMeshGroup(
         drawBuffer: (StaticBuffer?, TextSDF?, offset: Float) -> Unit
     ) {
         if (codepoints.isEmpty()) return
-        if (isSmallBuffer || startIndex > 0 || endIndex < codepoints.size) {
+        if (drawCharByChar || startIndex > 0 || endIndex < codepoints.size) {
             drawSlowly(startIndex, endIndex, drawBuffer)
         } else {
             if (buffer == null) createStaticBuffer()
@@ -99,7 +97,7 @@ class TextMeshGroup(
     }
 
     companion object {
-        val alignments = HashMap<Font, AlignmentGroup>()
+        private val alignments = HashMap<Font, AlignmentGroup>()
         fun getAlignments(font: Font): AlignmentGroup {
             var alignment = alignments[font]
             if (alignment != null) return alignment

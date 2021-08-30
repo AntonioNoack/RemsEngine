@@ -87,7 +87,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     }
 
     override fun add(index: Int, child: PrefabSaveable) = addChildByType(index, getTypeOf(child), child)
-    override fun remove(child: PrefabSaveable) {
+    override fun deleteChild(child: PrefabSaveable) {
         val list = getChildListByType(getTypeOf(child))
         val index = list.indexOf(child)
         if (index < 0) return

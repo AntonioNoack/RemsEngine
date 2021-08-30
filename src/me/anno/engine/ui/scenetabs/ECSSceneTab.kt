@@ -24,7 +24,7 @@ class ECSSceneTab(val syncMaster: SyncMaster, val inspector: PrefabInspector, va
             this(syncMaster, inspector, inspector.reference)
 
     init {
-        LOGGER.info("created tab with ${inspector.prefab.changes?.size} changes")
+        LOGGER.info("Created tab with ${inspector.prefab.countTotalChanges()} changes")
     }
 
     fun onStart() {

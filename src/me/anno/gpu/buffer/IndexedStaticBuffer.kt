@@ -9,7 +9,6 @@ import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL31.glDrawElementsInstanced
 import org.lwjgl.opengl.GL33
 import org.lwjgl.system.MemoryUtil
-import java.nio.ByteBuffer
 
 class IndexedStaticBuffer(
     attributes: List<Attribute>,
@@ -60,13 +59,17 @@ class IndexedStaticBuffer(
         // todo if size is the same as the old one, reuse it with glBufferSubData
         val maxIndex = indices.maxOrNull() ?: 0
         when {// optimize the size usage on the gpu side
-            maxIndex < 256 -> {
+            // todo how do we find out, what is optimal?
+            // RX 580 Message:
+            // glDrawElements uses element index type 'GL_UNSIGNED_BYTE' that is not optimal for the current hardware configuration;
+            // consider using 'GL_UNSIGNED_SHORT' instead, source: API, type: PERFORMANCE, id: 102, severity: MEDIUM
+            /*maxIndex < 256 -> {
                 elementsType = GL_UNSIGNED_BYTE
                 val buffer = ByteBuffer.allocateDirect(indices.size)
                 for (i in indices) buffer.put(i.toByte())
                 buffer.flip()
                 GL30.glBufferData(GL30.GL_ELEMENT_ARRAY_BUFFER, buffer, usage)
-            }
+            }*/
             maxIndex < 65536 -> {
                 elementsType = GL_UNSIGNED_SHORT
                 val buffer = MemoryUtil.memAllocShort(indices.size)

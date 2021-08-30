@@ -222,7 +222,7 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         // "found ${outerFragments.size} outer rings"
 
         if (img != null) {
-            use(OS.desktop.getChild("text1.png")!!.outputStream()) {
+            use(OS.desktop.getChild("text1.png").outputStream()) {
                 ImageIO.write(img, "png", it)
             }
         }
@@ -262,11 +262,7 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
             triangles += it.triangles
         }
 
-        buffer = StaticBuffer(
-            listOf(
-                Attribute("attr0", 2)
-            ), triangles.size * 2
-        )
+        buffer = StaticBuffer(attributes, triangles.size)
 
         outerFragments.forEach {
             minX = min(minX, it.minX)
@@ -281,7 +277,7 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
 
         val baseScale = DEFAULT_LINE_HEIGHT / (layout.ascent + layout.descent)
 
-        triangles.forEach {
+        for(it in triangles) {
             buffer.put(it.x * baseScale)
             buffer.put(it.y * baseScale)
         }
@@ -364,6 +360,10 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
     companion object {
 
         private val LOGGER = LogManager.getLogger(TextMesh::class)
+
+        val attributes = listOf(
+            Attribute("attr0", 2)
+        )
 
         const val DEFAULT_LINE_HEIGHT = 0.2f
         const val DEFAULT_FONT_HEIGHT = 20f

@@ -375,7 +375,7 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
 
             // it's ok, and fine
             // remove the respective change
-            parent.remove(component)
+            parent.deleteChild(component)
             // not very elegant, but should work...
             // correct?
 

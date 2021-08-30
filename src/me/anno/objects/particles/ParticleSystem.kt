@@ -477,8 +477,8 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
     override fun acceptsWeight() = true
     override val className get() = "ParticleSystem"
-    override val defaultDisplayName: String = Dict["Particle System", "obj.particles"]
-    override val symbol = DefaultConfig["ui.symbol.particleSystem", "❄"]
+    override val defaultDisplayName: String get() = Dict["Particle System", "obj.particles"]
+    override val symbol get() = DefaultConfig["ui.symbol.particleSystem", "❄"]
 
     companion object {
         fun listDistributions(): List<() -> Distribution> {

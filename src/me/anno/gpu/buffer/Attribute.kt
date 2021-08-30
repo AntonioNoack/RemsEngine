@@ -13,6 +13,10 @@ class Attribute(val name: String, val type: AttributeType, val components: Int, 
 
     fun withName(name: String) = Attribute(name, type, components, isNativeInt)
 
+    override fun toString(): String {
+        return "Attribute($name,$type,$components${if (isNativeInt) ",nativeInt" else ""})"
+    }
+
     override fun equals(other: Any?): Boolean {
         return other is Attribute && other.name == name &&
                 other.type == type && other.components == components &&

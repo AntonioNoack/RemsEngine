@@ -87,7 +87,6 @@ object PrefabCache : CacheSection("Prefab") {
                         "unity", "mat", "prefab", "asset", "meta", "controller" -> loadUnityFile(
                             resource
                         )
-                        // todo define file extensions for materials, skeletons, components
                         else -> loadJson(resource)
                     }
                 }

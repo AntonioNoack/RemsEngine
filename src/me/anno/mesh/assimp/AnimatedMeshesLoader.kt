@@ -5,31 +5,30 @@ import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.mesh.Mesh.Companion.MAX_WEIGHTS
 import me.anno.ecs.components.mesh.MorphTarget
-import me.anno.ecs.prefab.CAdd
-import me.anno.ecs.prefab.CSet
-import me.anno.ecs.prefab.Change
-import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.*
 import me.anno.io.NamedSaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.io.zip.InnerFolder
-import me.anno.io.zip.InnerLinkFile
-import me.anno.io.zip.InnerTextFile
 import me.anno.mesh.assimp.AnimGameItem.Companion.maxBones
 import me.anno.mesh.assimp.AnimatedMeshesLoader2.boneTransform2
 import me.anno.mesh.assimp.AnimatedMeshesLoader2.getDuration
-import me.anno.mesh.assimp.AnimatedMeshesLoader2.readBoneAnimHierarchy
-import me.anno.mesh.assimp.AnimatedMeshesLoader2.readBoneHierarchy
 import me.anno.mesh.assimp.AssimpTree.convert
+import me.anno.mesh.assimp.MissingBones.compareBoneWithNodeNames
+import me.anno.mesh.assimp.SkeletonAnimAndBones.loadSkeletonFromAnimationsAndBones
 import me.anno.utils.files.Files.findNextFileName
+import me.anno.utils.types.Matrices.isIdentity
 import org.apache.logging.log4j.LogManager
-import org.joml.*
+import org.joml.Matrix3f
+import org.joml.Matrix4f
+import org.joml.Vector3d
+import org.joml.Vector3f
 import org.lwjgl.assimp.*
 import java.nio.charset.StandardCharsets
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.sqrt
 
 object AnimatedMeshesLoader : StaticMeshesLoader() {
 
@@ -76,9 +75,18 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
 
     override fun read(file: FileReference, resources: FileReference, flags: Int): AnimGameItem {
 
-        val prefab = readAsFolder2(file, resources, flags).second
-        val hierarchy = prefab.createInstance() as Entity
-        return AnimGameItem(hierarchy)
+        val asFolder = readAsFolder2(file, resources, flags)
+
+        val prefab = asFolder.second
+        val instance = prefab.createInstance() as Entity
+        val animations = asFolder.first.getChild("animations")
+            .listChildren()?.associate {
+                val text = it.readText()
+                val animation = TextReader.read(text).first() as Animation
+                it.nameWithoutExtension to animation
+            } ?: emptyMap()
+        return AnimGameItem(instance, animations)
+
         // todo load lights and cameras for the game engine
         // todo save animations, skeleton, textures and hierarchy into files
     }
@@ -94,6 +102,10 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         resources: FileReference = file.getParent() ?: InvalidRef,
         flags: Int = defaultFlags
     ): Pair<InnerFolder, Prefab> {
+
+        var name = file.nameWithoutExtension
+        if (name.equals("scene", true)) name = file.getParent()!!.name
+
         // creates prefabs from the whole file content
         // so we can inherit from the materials, meshes, animations, ...
         // all and separately
@@ -117,42 +129,39 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         val hierarchy = buildScene(aiScene, meshes, hasSkeleton)
 
         // for (change in hierarchy.changes!!) LOGGER.info(change)
+
         val animationReferences = if (hasSkeleton) {
 
             val skeleton = Prefab("Skeleton")
-            if (boneList.isNotEmpty()) {
-                compareBoneWithNodeNames(rootNode, boneMap)
-                readBoneHierarchy(rootNode, boneMap, -1)
-            } else {
-                // create bones from animation data
-                val animNodeCache = HashMap<String, AINodeAnim>()
-                val animations = aiScene.mAnimations()!!
-                for (i in 0 until aiScene.mNumAnimations()) {// collect all animated bones
-                    val aiAnimation = AIAnimation.create(animations[i])
-                    animNodeCache.putAll(createAnimationCache(aiAnimation))
-                }
-                readBoneAnimHierarchy(
-                    rootNode, boneList, boneMap, -1, animNodeCache,
-                    null, Matrix4f()
-                )
-            }
+            compareBoneWithNodeNames(rootNode, boneMap)
+            loadSkeletonFromAnimationsAndBones(aiScene, rootNode, boneList, boneMap)
+
+            /* if (boneList.isNotEmpty()) {
+                 compareBoneWithNodeNames(rootNode, boneMap)
+                 readBoneHierarchy(rootNode, boneMap, -1)
+             } else {
+                 // create bones from animation data
+                 loadSkeletonFromAnimations(aiScene, rootNode, boneList, boneMap)
+             }*/
             skeleton.setProperty("bones", boneList.toTypedArray())
 
             val skeletonPath = root.createPrefabChild("Skeleton.json", skeleton)
             addSkeleton(hierarchy, skeleton, skeletonPath)
 
-            val animMap = loadAnimations(aiScene, boneList, boneMap)
+            val animMap = loadAnimations(name, aiScene, boneList, boneMap)
             skeleton.setProperty("animations", animMap)
             for (animation in animMap.values) animation.skeleton = skeletonPath
 
             // create a animation node to show the first animation
-            /*if (meshes.isEmpty() && animMap.isNotEmpty()) {
+            if (meshes.isEmpty() && animMap.isNotEmpty()) {
                 val anim = CAdd(Path.ROOT_PATH, 'c', "AnimRenderer")
                 val animPath = anim.getChildPath(0)
                 hierarchy.add(anim)
                 hierarchy.add(CSet(animPath, "skeleton", skeletonPath))
                 hierarchy.add(CSet(animPath, "animation", animMap.values.first()))
-            }*/
+            }
+
+            correctBonePositions(name, rootNode, boneList, boneMap)
 
             val animList = animMap.values.toList()
             createReferences(root, "animations", animList)
@@ -168,7 +177,16 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         return root to hierarchy
     }
 
-    private fun <V : NamedSaveable> createReferences(
+    fun correctBonePositions(name: String, rootNode: AINode, boneList: List<Bone>, boneMap: HashMap<String, Bone>) {
+        val (gt, git) = findRootTransform(name, rootNode, boneMap)
+        if (gt != null && git != null) {
+            for(bone in boneList){
+                bone.setBindPose(Matrix4f(git).mul(bone.bindPose))
+            }
+        }
+    }
+
+    fun <V : NamedSaveable> createReferences(
         root: InnerFolder,
         folderName: String,
         instances: List<V>
@@ -270,7 +288,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         } else emptyMap()
     }
 
-    private fun loadMeshPrefabs(
+    fun loadMeshPrefabs(
         aiScene: AIScene, materials: List<FileReference>,
         boneList: ArrayList<Bone>, boneMap: HashMap<String, Bone>
     ): Array<Prefab> {
@@ -284,24 +302,59 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         } else emptyArray()
     }
 
-    private fun loadAnimations(
-        aiScene: AIScene,
-        boneList: List<Bone>,
-        boneMap: HashMap<String, Bone>
-    ): Map<String, Animation> {
-        val root = aiScene.mRootNode()!!
-        val globalInverseTransformation = convert(root.mTransformation()).invert()
-        // LOGGER.info("global inverse transform: ${convert(root.mTransformation()).invert()}")
-        return processAnimations2(
-            aiScene, boneList, boneMap, root,
-            globalInverseTransformation
-        )
+    private fun printRoot(aiNode: AINode, boneMap: HashMap<String, Bone>) {
+        val name = aiNode.mName().dataString()
+        if (name in boneMap) return
+        LOGGER.debug("$name: ${convert(aiNode.mTransformation())}")
+        if (aiNode.mNumChildren() == 1) {
+            printRoot(AINode.create(aiNode.mChildren()!![0]), boneMap)
+        }
     }
 
-    private fun processAnimations2(
-        aiScene: AIScene, boneList: List<Bone>, boneMap: HashMap<String, Bone>,
-        rootNode: AINode, globalInverseTransformation: Matrix4f
+    // using all root nodes together fixes the fox and the robot <3
+    // however, there is still the pilot with the slight scale, and slight rotation...
+    private fun complexRootTransform(
+        name0: String,
+        aiNode: AINode,
+        boneMap: HashMap<String, Bone>,
+        transform: Matrix4f
+    ): Matrix4f {
+        val name = aiNode.mName().dataString()
+        if (name in boneMap) return transform
+        val localTransform = convert(aiNode.mTransformation())
+        LOGGER.debug("$name0/$name:\n$localTransform")
+        transform.mul(localTransform)
+        if (aiNode.mNumChildren() == 1) {
+            complexRootTransform(name0, AINode.create(aiNode.mChildren()!![0]), boneMap, transform)
+        }
+        return transform
+    }
+
+    private fun findRootTransform(
+        name: String,
+        rootNode: AINode,
+        boneMap: HashMap<String, Bone>
+    ): Pair<Matrix4f?, Matrix4f?> {
+        // printRoot(rootNode, boneMap)
+        // convert(rootNode.mTransformation()) is incorrect: we need all root nodes to fix the transforms
+        var globalTransform: Matrix4f? = complexRootTransform(name, rootNode, boneMap, Matrix4f())
+        if (globalTransform!!.isIdentity()) globalTransform = null
+        val globalInverseTransformation = globalTransform?.invert(Matrix4f())
+        return globalTransform to globalInverseTransformation
+    }
+
+    private fun loadAnimations(
+        name: String,
+        aiScene: AIScene, boneList: List<Bone>, boneMap: HashMap<String, Bone>
     ): Map<String, Animation> {
+
+        val rootNode = aiScene.mRootNode()!!
+
+        val (globalTransform, globalInverseTransform) = findRootTransform(name, rootNode, boneMap)
+        // if we apply the bone correction first, these must be null/identity
+        /*val globalTransform: Matrix4f? = null
+        val globalInverseTransform: Matrix4f? = null*/
+
         // Process all animations
         val numAnimations = aiScene.mNumAnimations()
         val animations = HashMap<String, Animation>(numAnimations)
@@ -320,7 +373,8 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                     val animatedFrame = AnimationFrame(boneList.size)
                     boneTransform2(
                         aiScene, rootNode, frameIndex * timeScale,
-                        animatedFrame.matrices, globalInverseTransformation, boneList, boneMap, animNodeCache
+                        animatedFrame.matrices, globalTransform, globalInverseTransform,
+                        boneList, boneMap, animNodeCache
                     )
                     animatedFrame
                 }
@@ -335,98 +389,6 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         return animations
     }
 
-    fun compareBoneWithNodeNames(aiRoot: AINode, bones: HashMap<String, Bone>) {
-
-        // collect names of all nodes
-        val sceneNodes = HashSet<String>()
-        val sceneNodeList = ArrayList<Pair<String, AINode>>()
-        val todoStack = ArrayList<AINode>()
-        todoStack.add(aiRoot)
-        while (todoStack.isNotEmpty()) {
-            val node = todoStack.removeAt(todoStack.lastIndex)
-            val nodeName = node.mName().dataString()
-            sceneNodes.add(nodeName)
-            sceneNodeList.add(nodeName to node)
-            val childCount = node.mNumChildren()
-            if (childCount > 0) {
-                val children = node.mChildren()!!
-                for (i in 0 until childCount) {
-                    todoStack.add(AINode.create(children[i]))
-                }
-            }
-        }
-
-        val bonesWithIssue = ArrayList<String>()
-        // may be required, if the bones only have partially matching names
-        // also we may want to override all bones then...
-        // val availableNodes = HashSet<String>(sceneNodes.keys)
-        for (boneName in bones.keys) {
-            if (!sceneNodes.contains(boneName)) {
-                bonesWithIssue.add(boneName)
-            }/* else {
-                availableNodes.remove(boneName)
-            }*/
-        }
-
-        if (bonesWithIssue.isNotEmpty()) {
-            LOGGER.warn("Bone-Node-Mapping incomplete! Bones[${bones.size}]:")
-            bones.entries.forEach { (key, value) ->
-                LOGGER.warn("  $key: ${value.offsetVector}")
-            }
-            LOGGER.warn("Nodes[${sceneNodeList.size}]:")
-            sceneNodeList.forEach { (key, value) ->
-                val transform = value.mTransformation()
-                val position = Vector3f(transform.a4(), transform.b4(), transform.c4())
-                LOGGER.warn("  $key: $position")
-            }
-            // find the ideal mapping of all missing bones
-            // for each bone find the closest node
-            // at least in my sample it works, and there is a 1:1 mapping
-            // also no two bones should have the same location
-            // the only issue is two nodes being in the same place... (does happen)
-            if (sceneNodeList.isNotEmpty()) {
-                LOGGER.warn("Mapping ${bonesWithIssue.size} bones:")
-                val nodeMatrices = sceneNodeList.map { (_, value) ->
-                    convert(value.mTransformation())
-                }
-                bonesWithIssue.forEach { boneNameWithIssue ->
-                    val bone = bones[boneNameWithIssue]!!
-                    val boneMatrix = bone.inverseBindPose
-                    var bestNode = 0
-                    var bestDistance = Float.POSITIVE_INFINITY
-                    for (i in nodeMatrices.indices) {
-                        val distance = boneMatrix.sampleDistanceSquared(nodeMatrices[i])
-                        if (distance < bestDistance) {
-                            bestNode = i
-                            bestDistance = distance
-                        }
-                    }
-                    val nodeName = sceneNodeList[bestNode].first
-                    bones[nodeName] = bone
-                    LOGGER.warn("  Error ${sqrt(bestDistance)}, ${bone.name} to $nodeName")
-                }
-            }
-        }
-
-    }
-
-    fun Matrix4x3f.sampleDistanceSquared(other: Matrix4f): Float {
-        // compare a few sample points in every direction to also detect rotation issues
-        // in my case, the matrices were identical
-        return transformPosition(Vector3f()).distanceSquared(other.transformPosition(Vector3f())) +
-                transformPosition(Vector3f(1f, 0f, 0f)).distanceSquared(other.transformPosition(Vector3f(1f, 0f, 0f))) +
-                transformPosition(Vector3f(0f, 1f, 0f)).distanceSquared(other.transformPosition(Vector3f(0f, 1f, 0f))) +
-                transformPosition(Vector3f(0f, 0f, 1f)).distanceSquared(other.transformPosition(Vector3f(0f, 0f, 1f)))
-    }
-
-    fun Matrix4f.sampleDistanceSquared(other: Matrix4f): Float {
-        // compare a few sample points in every direction to also detect rotation issues
-        // in my case, the matrices were identical
-        return transformPosition(Vector3f()).distanceSquared(other.transformPosition(Vector3f())) +
-                transformPosition(Vector3f(1f, 0f, 0f)).distanceSquared(other.transformPosition(Vector3f(1f, 0f, 0f))) +
-                transformPosition(Vector3f(0f, 1f, 0f)).distanceSquared(other.transformPosition(Vector3f(0f, 1f, 0f))) +
-                transformPosition(Vector3f(0f, 0f, 1f)).distanceSquared(other.transformPosition(Vector3f(0f, 0f, 1f)))
-    }
 
     /*fun buildFrameMatrices(
         aiAnimation: AIAnimation,
@@ -507,6 +469,18 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         return result
     }
 
+    fun createAnimationCache2(aiAnimation: AIAnimation, names: MutableCollection<String>) {
+        val channelCount = aiAnimation.mNumChannels()
+        if (channelCount > 0) {
+            val channels = aiAnimation.mChannels()!!
+            for (i in 0 until channelCount) {
+                val aiNodeAnim = AINodeAnim.create(channels[i])
+                val name = aiNodeAnim.mNodeName().dataString()
+                names.add(name)
+            }
+        }
+    }
+
     fun calcAnimationMaxFrames(aiAnimation: AIAnimation): Int {
         var maxFrames = 0
         val channelCount = aiAnimation.mNumChannels()
@@ -550,7 +524,9 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
 
                 var bone = boneMap[boneName]
                 if (bone == null) {
-                    bone = Bone(boneList.size, -1, boneName, Matrix4x3f().set(boneTransform))
+                    bone = Bone(boneList.size, -1, boneName)
+                    // for finding the correct nodes
+                    bone.originalTransform.set(boneTransform)
                     boneList.add(bone)
                     boneMap[boneName] = bone
                 }

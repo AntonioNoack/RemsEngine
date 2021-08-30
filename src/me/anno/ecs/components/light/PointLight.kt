@@ -23,7 +23,7 @@ class PointLight : LightComponent() {
     @Range(0.0, 5.0)
     var lightSize = 0.0
 
-    override fun clone(): PrefabSaveable {
+    override fun clone(): PointLight {
         val clone = PointLight()
         copy(clone)
         return clone

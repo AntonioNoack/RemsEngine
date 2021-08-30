@@ -338,7 +338,7 @@ abstract class FileReference(val absolutePath: String) {
 
     open fun nullIfUndefined(): FileReference? = this
 
-    fun printTree(depth: Int = 0) {
+    private fun printTree(depth: Int = 0) {
         LOGGER.info("${Tabs.spaces(depth * 2)}$name")
         if (isDirectory) {
             for (child in listChildren() ?: return) {

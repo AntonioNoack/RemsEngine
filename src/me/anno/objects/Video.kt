@@ -938,7 +938,7 @@ class Video(file: FileReference = InvalidRef, parent: Transform? = null) : Audio
 
         private val LOGGER = LogManager.getLogger(Video::class)
 
-        val imageSequenceIdentifier = DefaultConfig["video.imageSequence.identifier", "%"]
+        val imageSequenceIdentifier get() = DefaultConfig["video.imageSequence.identifier", "%"]
 
         val videoScaleNames = BiMap<String, Int>(10)
 
@@ -953,7 +953,7 @@ class Video(file: FileReference = InvalidRef, parent: Transform? = null) : Audio
         val videoFrameTimeout get() = if (isFinalRendering) 2000L else 10000L
         val tiling16x9 = Vector4f(8f, 4.5f, 0f, 0f)
 
-        val imageTimeout = DefaultConfig["ui.image.frameTimeout", 5000L]
+        val imageTimeout get() = DefaultConfig["ui.image.frameTimeout", 5000L]
 
     }
 

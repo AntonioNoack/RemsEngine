@@ -19,6 +19,7 @@ import me.anno.mesh.assimp.AssimpTree.convert
 import me.anno.utils.Color.rgba
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
+import org.joml.Matrix4x3f
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -184,7 +185,8 @@ open class StaticMeshesLoader {
     fun load(file: FileReference): AnimGameItem = read(file, file.getParent() ?: InvalidRef, defaultFlags)
 
     open fun read(file: FileReference, resources: FileReference, flags: Int = defaultFlags): AnimGameItem {
-        val prefab = AnimatedMeshesLoader.readAsFolder2(file, resources, flags).second
+        val asFolder = AnimatedMeshesLoader.readAsFolder2(file, resources, flags)
+        val prefab = asFolder.second
         val instance = prefab.createInstance() as Entity
         return AnimGameItem(instance)
     }

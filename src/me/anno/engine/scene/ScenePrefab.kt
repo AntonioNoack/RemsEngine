@@ -9,11 +9,16 @@ import me.anno.engine.scene.PrefabHelper.addC
 import me.anno.engine.scene.PrefabHelper.addE
 import me.anno.engine.scene.PrefabHelper.setC
 import me.anno.engine.scene.PrefabHelper.setE
+import me.anno.engine.ui.render.RenderView
 import me.anno.io.files.StaticRef
 import me.anno.io.text.TextWriter
+import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.utils.OS
 import org.joml.Vector3d
 import org.joml.Vector3f
+import kotlin.math.cos
+import kotlin.math.max
+import kotlin.math.sin
 
 object ScenePrefab : StaticRef("Scene.prefab", lazy {
     TextWriter.toText(Prefab("Entity").apply {
@@ -36,7 +41,7 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         }
 
         // root has bullet physics, because the players need physics as well
-        addC(changes, root, "BulletPhysics", "Physics")
+        addC(changes, root, "BulletPhysics")
 
         // just add stuff for debugging :)
         //////////////////
@@ -129,16 +134,16 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         setC(changes, floorCollider, "halfExtends", Vector3d(1.0))
 
         // add spheres for testing
-        /*val sphereMesh = OS.documents.getChild("sphere.obj")
+        val sphereMesh = OS.documents.getChild("sphere.obj")
         for (i in 0 until 100) {
             val sphere = addE(changes, physics, "Sphere[$i]", sphereMesh)
             setE(changes, sphere, "position", Vector3d(0.0, (i + 2) * 2.1, 0.0))
             // addC(changes, sphere, "Rigidbody")
             addC(changes, sphere, "SphereCollider")
-        }*/
+        }
 
         // add a cube of cubes for frustum testing
-        /*val frustum = addE(changes, world, "Frustum Testing")
+        val frustum = addE(changes, world, "Frustum Testing")
         for (x in -5..5) {
             // for testing bounding boxes more
             val xGroup = addE(changes, frustum, "Group-$x")
@@ -151,11 +156,11 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
                     // val q = Quaterniond(Math.random(), Math.random(), Math.random(), Math.random()).normalize()
                     // setE(changes, cube, "rotation", q)
                     // physics test
-                    // addC(changes, cube, "BoxCollider")
-                    // addC(changes, cube, "Rigidbody")
+                    addC(changes, cube, "BoxCollider")
+                    addC(changes, cube, "Rigidbody")
                 }
             }
-        }*/
+        }
 
         // normal testing
         /*val normalTesting = addE(changes, world, "Normal Testing")

@@ -1,24 +1,24 @@
 package me.anno.objects.attractors
 
+import me.anno.animation.AnimatedProperty
 import me.anno.config.DefaultConfig
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
 import me.anno.objects.Transform
-import me.anno.animation.AnimatedProperty
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 
-class EffectMorphing: Transform() {
+class EffectMorphing : Transform() {
 
     var lastInfluence = 0f
     val influence = AnimatedProperty.float(1f)
     val sharpness = AnimatedProperty.float(20f)
 
     override val className get() = "EffectMorphing"
-    override val defaultDisplayName = Dict["Effect: Morphing", "obj.effect.morphing"]
-    override val symbol = DefaultConfig["ui.symbol.fx.morphing", "\uD83D\uDCA0"]
+    override val defaultDisplayName get() = Dict["Effect: Morphing", "obj.effect.morphing"]
+    override val symbol get() = DefaultConfig["ui.symbol.fx.morphing", "\uD83D\uDCA0"]
 
     override fun createInspector(
         list: PanelListY,
@@ -38,7 +38,7 @@ class EffectMorphing: Transform() {
     }
 
     override fun readObject(name: String, value: ISaveable?) {
-        when(name){
+        when (name) {
             "influence" -> influence.copyFrom(value)
             "sharpness" -> sharpness.copyFrom(value)
             else -> super.readObject(name, value)

@@ -6,6 +6,8 @@ import me.anno.ecs.components.anim.Retargeting
 import me.anno.ecs.components.cache.AnimationCache
 import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
+import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
@@ -81,7 +83,8 @@ class AnimRenderer : RendererComponent() {
         shader.v1("hasAnimation", true)
 
         // upload the matrices
-        val boneCount = min(matrices.size, AnimGameItem.maxBones)
+        upload(location, matrices)
+        /*val boneCount = min(matrices.size, AnimGameItem.maxBones)
         AnimGameItem.matrixBuffer.limit(AnimGameItem.matrixSize * boneCount)
         for (index in 0 until boneCount) {
             val matrix0 = matrices[index]
@@ -89,7 +92,7 @@ class AnimRenderer : RendererComponent() {
             AnimGameItem.get(matrix0, AnimGameItem.matrixBuffer)
         }
         AnimGameItem.matrixBuffer.position(0)
-        GL21.glUniformMatrix4x3fv(location, false, AnimGameItem.matrixBuffer)
+        GL21.glUniformMatrix4x3fv(location, false, AnimGameItem.matrixBuffer)*/
 
         // get skeleton
         // get animation
@@ -110,11 +113,32 @@ class AnimRenderer : RendererComponent() {
         clone.animationWeights = animationWeights
     }
 
+    override fun onDrawGUI(view: RenderView) {
+        val skeleton = SkeletonCache[skeleton]
+        if (skeleton != null) {
+            val shader = pbrModelShader.value
+            skeleton.draw(shader, Matrix4x3f(), null)
+        }
+    }
+
     override val className: String = "AnimRenderer"
 
     companion object {
         val dst0 = Array(256) { Matrix4x3f() }
         val dst1 = Array(256) { Matrix4x3f() }
+
+        fun upload(location: Int, matrices: Array<Matrix4x3f>){
+            val boneCount = min(matrices.size, AnimGameItem.maxBones)
+            AnimGameItem.matrixBuffer.limit(AnimGameItem.matrixSize * boneCount)
+            for (index in 0 until boneCount) {
+                val matrix0 = matrices[index]
+                AnimGameItem.matrixBuffer.position(index * AnimGameItem.matrixSize)
+                AnimGameItem.get(matrix0, AnimGameItem.matrixBuffer)
+            }
+            AnimGameItem.matrixBuffer.position(0)
+            GL21.glUniformMatrix4x3fv(location, false, AnimGameItem.matrixBuffer)
+        }
+
     }
 
 }

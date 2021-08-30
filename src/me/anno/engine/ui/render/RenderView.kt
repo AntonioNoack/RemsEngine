@@ -20,9 +20,9 @@ import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.MovingGrid.drawGrid
 import me.anno.engine.ui.render.Outlines.drawOutline
 import me.anno.engine.ui.render.Renderers.attributeRenderers
-import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.engine.ui.render.Renderers.cheapRenderer
 import me.anno.engine.ui.render.Renderers.overdrawRenderer
+import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
@@ -100,7 +100,6 @@ import org.lwjgl.opengl.GL45.*
 
 class RenderView(
     val library: ECSTypeLibrary,
-    val getWorld: () -> Entity,
     val mode: Mode,
     style: Style
 ) : Panel(style) {
@@ -342,6 +341,10 @@ class RenderView(
         // LOGGER.info(clickedId in ids2)
         return Pair(clicked as? Entity, clicked as? Component)
 
+    }
+
+    fun getWorld(): Entity {
+        return library.world
     }
 
     val tmp4f = Vector4f()

@@ -471,7 +471,7 @@ class Mesh : PrefabSaveable() {
 
         }
 
-        LOGGER.info("Flags($name): size: ${buffer.vertexCount}, colors? $hasColors, uvs? $hasUVs, bones? $hasBones")
+        // LOGGER.info("Flags($name): size: ${buffer.vertexCount}, colors? $hasColors, uvs? $hasUVs, bones? $hasBones")
 
         this.buffer?.destroy()
         this.buffer = buffer

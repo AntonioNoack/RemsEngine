@@ -1,13 +1,16 @@
 package me.anno.utils.types
 
 import me.anno.utils.maths.Maths.sq
-import org.joml.Matrix4d
-import org.joml.Matrix4f
-import org.joml.Matrix4x3d
-import org.joml.Vector2fc
+import org.joml.*
 import kotlin.math.sqrt
 
 object Matrices {
+
+    fun Matrix4f.isIdentity(): Boolean {
+        return properties().and(4) != 0
+    }
+
+    fun Matrix4f.clone() = Matrix4f(this)
 
     fun Matrix4f.skew(v: Vector2fc) {
         mul3x3(// works
@@ -57,6 +60,24 @@ object Matrices {
 
     fun Matrix4x3d.distance(other: Matrix4x3d): Double {
         return sqrt(distanceSquared(other))
+    }
+
+    fun Matrix4x3f.sampleDistanceSquared(other: Matrix4f): Float {
+        // compare a few sample points in every direction to also detect rotation issues
+        // in my case, the matrices were identical
+        return transformPosition(Vector3f()).distanceSquared(other.transformPosition(Vector3f())) +
+                transformPosition(Vector3f(1f, 0f, 0f)).distanceSquared(other.transformPosition(Vector3f(1f, 0f, 0f))) +
+                transformPosition(Vector3f(0f, 1f, 0f)).distanceSquared(other.transformPosition(Vector3f(0f, 1f, 0f))) +
+                transformPosition(Vector3f(0f, 0f, 1f)).distanceSquared(other.transformPosition(Vector3f(0f, 0f, 1f)))
+    }
+
+    fun Matrix4f.sampleDistanceSquared(other: Matrix4f): Float {
+        // compare a few sample points in every direction to also detect rotation issues
+        // in my case, the matrices were identical
+        return transformPosition(Vector3f()).distanceSquared(other.transformPosition(Vector3f())) +
+                transformPosition(Vector3f(1f, 0f, 0f)).distanceSquared(other.transformPosition(Vector3f(1f, 0f, 0f))) +
+                transformPosition(Vector3f(0f, 1f, 0f)).distanceSquared(other.transformPosition(Vector3f(0f, 1f, 0f))) +
+                transformPosition(Vector3f(0f, 0f, 1f)).distanceSquared(other.transformPosition(Vector3f(0f, 0f, 1f)))
     }
 
 }

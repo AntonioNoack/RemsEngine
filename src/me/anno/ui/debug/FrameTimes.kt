@@ -60,14 +60,32 @@ object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
             val values = container.values
             val barColor = container.color
             val indexOffset = nextIndex - 1 + width
+
+            var lastX = x0
+            var lastBarHeight = 0
+
             for (x in x0 until x1) {
                 val i = x - this.x
                 val v = values[(indexOffset + i) % width]
                 val barHeight = (height * v / maxValue).toInt()
-                drawRect(x, y + height - barHeight, 1, barHeight, barColor)
+                if (barHeight != lastBarHeight) {
+                    drawLine(lastX, x, lastBarHeight, barColor)
+                    lastX = x
+                    lastBarHeight = barHeight
+                }
             }
+
+            drawLine(lastX, x1, lastBarHeight, barColor)
+
         }
 
+    }
+
+    // to reduce draw calls by bundling stacks of the same height
+    fun drawLine(lastX: Int, nextX: Int, barHeight: Int, barColor: Int) {
+        if (lastX < nextX) {
+            drawRect(lastX, y + height - barHeight, nextX - lastX, barHeight, barColor)
+        }
     }
 
 }

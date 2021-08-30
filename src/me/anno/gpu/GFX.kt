@@ -8,6 +8,7 @@ import me.anno.gpu.RenderState.depthMode
 import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.ShaderLib.copyShader
 import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.drawing.Perspective.perspective2
 import me.anno.gpu.framebuffer.Frame
@@ -400,6 +401,9 @@ object GFX : GFXBase1() {
     override fun renderStep() {
 
         Texture2D.destroyTextures()
+        Texture2D.invalidateBinding()
+        Buffer.invalidateBinding()
+        // todo vao.invalidateBinding(), and all others, which keep state
 
         ensureEmptyStack()
 

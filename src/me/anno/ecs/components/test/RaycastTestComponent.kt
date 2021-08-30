@@ -26,7 +26,7 @@ class RaycastTestComponent : Component() {
         }
     }
 
-    override fun clone(): PrefabSaveable {
+    override fun clone(): RaycastTestComponent {
         TODO("Not yet implemented")
     }
 

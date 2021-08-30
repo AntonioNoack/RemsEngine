@@ -10,6 +10,17 @@ import kotlin.math.abs
 
 object Triangulation {
 
+    fun ringToTriangles2f(points: FloatArray): FloatArray {
+        val indices = EarCut.earcut(points, intArrayOf(), 2)
+        val result = FloatArray(indices.size * 2)
+        for (i in indices.indices) {
+            val index = indices[i] * 2
+            result[i * 2] = points[index]
+            result[i * 2 + 1] = points[index + 1]
+        }
+        return result
+    }
+
     fun ringToTrianglesVec2f(points: List<Vector2f>): List<Vector2f> {
         val joint = FloatArray(points.size * 2)
         points.forEachIndexed { index, vector2d -> joint[index * 2] = vector2d.x; joint[index * 2 + 1] = vector2d.y }

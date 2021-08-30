@@ -5,7 +5,11 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.style.Style
 import me.anno.utils.structures.lists.UpdatingSingletonList
 
-open class PanelContainer(onlyChild: Panel, val padding: Padding, style: Style) : PanelGroup(style) {
+open class PanelContainer(
+    onlyChild: Panel,
+    val padding: Padding,
+    style: Style
+) : PanelGroup(style) {
 
     init {
         onlyChild.parent = this
@@ -31,10 +35,8 @@ open class PanelContainer(onlyChild: Panel, val padding: Padding, style: Style) 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
         child.calculateSize(w - padding.width, h - padding.height)
-        // child.applyConstraints()
         minW = child.minW + padding.width
         minH = child.minH + padding.height
-        // applyConstraints()
     }
 
     override fun placeInParent(x: Int, y: Int) {

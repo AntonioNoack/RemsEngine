@@ -21,7 +21,7 @@ interface Hierarchical<V : Hierarchical<V>> {
     fun add(child: V)
     fun add(index: Int, child: V)
 
-    fun remove(child: V)
+    fun deleteChild(child: V)
 
     fun addBefore(sibling: V) {
         val p = parent!!
@@ -51,7 +51,7 @@ interface Hierarchical<V : Hierarchical<V>> {
 
     fun removeChild(child: V) {
         child.parent = null
-        remove(child)
+        deleteChild(child)
     }
 
     fun contains(t: V): Boolean {

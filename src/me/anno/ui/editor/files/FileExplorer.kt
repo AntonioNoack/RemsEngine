@@ -23,11 +23,11 @@ import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.editor.files.FileExplorerEntry.Companion.deleteFileMaybe
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
-import me.anno.utils.maths.Maths.clamp
-import me.anno.utils.maths.Maths.pow
 import me.anno.utils.OS
 import me.anno.utils.files.Files.listFiles2
 import me.anno.utils.hpc.UpdatingTask
+import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.maths.Maths.pow
 import me.anno.utils.structures.Compare.ifDifferent
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max

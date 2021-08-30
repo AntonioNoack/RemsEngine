@@ -40,7 +40,7 @@ class RegularList(parent: Transform? = null) : GFXTransform(parent) {
 
     // per child skew?
 
-    override val symbol = DefaultConfig["ui.symbol.array", "[[["]
+    override val symbol get() = DefaultConfig["ui.symbol.array", "[[["]
 
     val instanceCount = AnimatedProperty.intPlus(10)
     var selectionSeed = AnimatedProperty.long()

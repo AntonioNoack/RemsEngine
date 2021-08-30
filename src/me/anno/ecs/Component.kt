@@ -47,6 +47,8 @@ abstract class Component : PrefabSaveable(), Inspectable {
     @NotSerializedProperty
     var clickId = 0
 
+    abstract override fun clone(): Component
+
     override fun addChildByType(index: Int, type: Char, instance: PrefabSaveable) {
         // may be implemented, e.g. for Materials in Mesh
         LOGGER.warn("$className.addChildByType(index,type,instance) is not supported")
@@ -62,7 +64,7 @@ abstract class Component : PrefabSaveable(), Inspectable {
         LOGGER.warn("$className.add(child) is not supported")
     }
 
-    override fun remove(child: PrefabSaveable) {
+    override fun deleteChild(child: PrefabSaveable) {
         // may be implemented, e.g. for Materials in Mesh
         LOGGER.warn("$className.add(child) is not supported")
     }

@@ -35,8 +35,8 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        drawBackground()
         GFX.loadTexturesSync.push(true)
-        super.onDraw(x0, y0, x1, y1)
         val offset = when(alignment){
             AxisAlignment.MIN -> 1
             AxisAlignment.CENTER -> w/2

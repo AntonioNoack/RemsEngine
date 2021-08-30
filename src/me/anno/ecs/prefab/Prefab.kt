@@ -1,6 +1,7 @@
 package me.anno.ecs.prefab
 
 import me.anno.cache.CacheSection
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.Path.Companion.ROOT_PATH
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.engine.scene.ScenePrefab
@@ -31,6 +32,17 @@ class Prefab() : NamedSaveable() {
     var src: FileReference = InvalidRef
 
     fun getPrefabOrSource() = prefab.nullIfUndefined() ?: src
+
+    fun countTotalChanges(): Int {
+        var sum = changes?.size ?: 0
+        if (prefab != InvalidRef) sum += loadPrefab(prefab)?.countTotalChanges() ?: 0
+        for (change in changes ?: return sum) {
+            if (change is CAdd && change.prefab != InvalidRef) {
+                sum += loadPrefab(change.prefab)?.countTotalChanges() ?: 0
+            }
+        }
+        return sum
+    }
 
     // for the game runtime, we could save the prefab instance here
     // or maybe even just add the changes, and merge them
@@ -109,7 +121,12 @@ class Prefab() : NamedSaveable() {
         synchronized(this) {
             if (!isValid) sampleInstance = createInstance0(chain)
         }
-        return sampleInstance!!.clone()
+        val newInstance = sampleInstance!!.clone()
+       /* if (newInstance !is Mesh) {
+            println("sample: $sampleInstance")
+            println("new:    $newInstance")
+        }*/
+        return newInstance
     }
 
     override val className: String = "Prefab"

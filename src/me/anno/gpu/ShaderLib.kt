@@ -667,7 +667,7 @@ object ShaderLib {
         )
 
         val vSVG = v3DBase +
-                "a3 afinalPosition;\n" +
+                "a3 aLocalPosition;\n" +
                 "a2 aLocalPos2;\n" +
                 "a4 aFormula0;\n" +
                 "a1 aFormula1;\n" +
@@ -675,7 +675,7 @@ object ShaderLib {
                 "a4 aStops;\n" +
                 "a1 aPadding;\n" +
                 "void main(){\n" +
-                "   finalPosition = afinalPosition;\n" +
+                "   finalPosition = aLocalPosition;\n" +
                 "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
                 flatNormal +
                 positionPostProcessing +

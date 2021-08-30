@@ -8,6 +8,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.Shader
 import me.anno.utils.maths.Maths
+import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.AABBs.set
 import me.anno.utils.types.AABBs.transformProjectUnion
 import me.anno.utils.types.Matrices.mul2
@@ -21,12 +22,10 @@ import kotlin.math.min
 
 class AnimGameItem(
     val hierarchy: Entity,
-    val meshes: List<Mesh>,
-    val bones: List<Bone>,
     val animations: Map<String, me.anno.ecs.components.anim.Animation>
 ) {
 
-    constructor(hierarchy: Entity) : this(hierarchy, emptyList(), emptyList(), emptyMap())
+    constructor(hierarchy: Entity) : this(hierarchy, emptyMap())
 
     val staticAABB = lazy {
         val rootEntity = hierarchy
@@ -62,7 +61,7 @@ class AnimGameItem(
 
                 // if aabb u transform(mesh.aabb) == aabb, then skip this sub-mesh
                 mesh.aabb.transformProjectUnion(jointMatrix, testAABB.set(aabb))
-                if(testAABB != aabb){
+                if (testAABB != aabb) {
                     mesh.forEachPoint(false) { x, y, z ->
                         aabb.union(jointMatrix.transformProject(vf.set(x, y, z)))
                     }
@@ -74,9 +73,14 @@ class AnimGameItem(
         return aabb
     }
 
-    fun uploadJointMatrices(shader: Shader, animation: me.anno.ecs.components.anim.Animation, time: Double) {
+    fun uploadJointMatrices(
+        shader: Shader,
+        animation: me.anno.ecs.components.anim.Animation,
+        time: Double,
+        needsResult: Boolean
+    ): Array<Matrix4x3f>? {
         val location = shader.getUniformLocation("jointTransforms")
-        if (location < 0) return
+        if (location < 0) return null
         // most times the duration is specified in milli seconds
         animation as ImportedAnimation
         val frames = animation.frames
@@ -92,22 +96,37 @@ class AnimGameItem(
         shader.use()
         val boneCount = min(frame0.size, maxBones)
         matrixBuffer.limit(matrixSize * boneCount)
-        for (index in 0 until boneCount) {
-            val matrix0 = frame0[index]
-            val matrix1 = frame1[index]
-            tmpBuffer.position(0)
-            val offset = index * matrixSize
-            matrixBuffer.position(offset)
-            get(matrix0, matrixBuffer)
-            get(matrix1, tmpBuffer)
-            // matrix interpolation
-            for (i in 0 until matrixSize) {
-                val j = offset + i
-                matrixBuffer.put(j, matrixBuffer[j] * invFraction + fraction * tmpBuffer[i])
+        val matrixResults = if (needsResult) Array(boneCount) { Matrix4x3f() } else null
+        if (needsResult) {
+            for (index in 0 until boneCount) {
+                val matrix0 = frame0[index]
+                val matrix1 = frame1[index]
+                val matrixI = matrixResults!![index]
+                matrixI.set(matrix0)
+                matrixI.lerp(matrix1, fraction)
+                val offset = index * matrixSize
+                matrixBuffer.position(offset)
+                get(matrixI, matrixBuffer)
+            }
+        } else {
+            for (index in 0 until boneCount) {
+                val matrix0 = frame0[index]
+                val matrix1 = frame1[index]
+                tmpBuffer.position(0)
+                val offset = index * matrixSize
+                matrixBuffer.position(offset)
+                get(matrix0, matrixBuffer)
+                get(matrix1, tmpBuffer)
+                // matrix interpolation
+                for (i in 0 until matrixSize) {
+                    val j = offset + i
+                    matrixBuffer.put(j, matrixBuffer[j] * invFraction + fraction * tmpBuffer[i])
+                }
             }
         }
         matrixBuffer.position(0)
         GL21.glUniformMatrix4x3fv(location, false, matrixBuffer)
+        return matrixResults
     }
 
     companion object {
@@ -183,20 +202,24 @@ class AnimGameItem(
 
         private fun calculateAABB(root: Entity): AABBd {
             val joint = AABBd()
+            val local = AABBd()
             root.simpleTraversal(true) { entity ->
                 entity as Entity
                 // todo rendering all points is only a good idea, if there are no meshes
                 // todo render all them points, and use them for the bbx calculation (only if no meshes present)
                 // because animated clothing may be too small to see
-                val local = AABBd()
-                val meshes = entity.getComponents(MeshComponent::class, false)
-                for (comp in meshes) {
-                    val mesh = MeshCache[comp.mesh] ?: continue
-                    mesh.ensureBuffer()
-                    local.union(mesh.aabb.toDouble())
+                if (entity.hasComponent(MeshComponent::class)) {
+                    local.clear()
+                    val meshes = entity.getComponents(MeshComponent::class, false)
+                    for (comp in meshes) {
+                        val meshByCache = MeshCache[comp.mesh]
+                        val mesh = meshByCache ?: continue
+                        mesh.ensureBuffer()
+                        local.union(mesh.aabb.toDouble())
+                    }
+                    local.transform(Matrix4d(entity.transform.globalTransform))
+                    joint.union(local)
                 }
-                local.transform(Matrix4d(entity.transform.globalTransform))
-                joint.union(local)
                 false
             }
             return joint
@@ -206,7 +229,6 @@ class AnimGameItem(
 
     }
 
-    // todo number input: cannot enter 0.01 from left to right, because the 0 is removed instantly
     // todo cubemap from 6 images...
 
 }

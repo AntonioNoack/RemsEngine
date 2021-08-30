@@ -9,6 +9,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshRenderer
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
+import me.anno.engine.ui.ECSTreeView
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX.windowStack
 import me.anno.io.ISaveable
@@ -18,7 +19,6 @@ import me.anno.language.translation.Dict
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
-import me.anno.ui.custom.CustomContainer
 import me.anno.ui.editor.files.thumbs.Thumbs
 import me.anno.utils.hpc.SyncMaster
 import me.anno.utils.types.Lists.getOrPrevious
@@ -105,16 +105,20 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
             currentTab = sceneTab
             PrefabInspector.currentInspector = sceneTab.inspector
             // root = sceneTab.root
-            val src0 = sceneTab.inspector.prefab
-            val prefabInstance = src0.createInstance()
+            val prefab = sceneTab.inspector.prefab
+            val prefabInstance = prefab.createInstance()
+            val world = lazy { createWorld(prefabInstance, prefab.src) }
             for (window in windowStack) {
                 window.panel.listOfAll {
-                    if (it is CustomContainer && it.child is RenderView) {
-                        val oldView = it.child
-                        if (oldView is RenderView) {
-                            val library = oldView.library
-                            library.world = createWorld(prefabInstance, src0.src)
+                    when (it) {
+                        is RenderView -> {
+                            val library = it.library
+                            library.world = world.value
                             library.select(prefabInstance)
+                            println("setting world to ${library.world}")
+                        }
+                        is ECSTreeView -> {
+                            it.invalidateLayout()
                         }
                     }
                 }
@@ -126,7 +130,8 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
         }
     }
 
-    fun createWorld(item: ISaveable, src: FileReference): Entity {
+    private fun createWorld(item: ISaveable, src: FileReference): Entity {
+        // todo if there is no lights at all, we should all them "virtually", temporarily
         return when (item) {
             is Entity -> item
             is Mesh -> {
@@ -173,6 +178,17 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
     fun save(writer: BaseWriter) {
         for (it in children3) {
             writer.writeFile("file", it.file)
+        }
+    }
+
+    override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
+        val syncMaster = rootPanel.listOfAll.filterIsInstance<RenderView>().firstOrNull()?.library?.syncMaster
+        if (syncMaster != null) {
+            try {
+                open(syncMaster, files.first(), "Entity")
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 

@@ -1,6 +1,9 @@
 package me.anno.utils.test
 
+import me.anno.cache.instances.MeshCache.getSVG
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultConfig.style
+import me.anno.config.DefaultStyle.white4
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.anim.Skeleton
@@ -12,28 +15,38 @@ import me.anno.ecs.prefab.CSet
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ui.render.ECSShaderLib
+import me.anno.gpu.GFX.windowStack
+import me.anno.gpu.SVGxGFX
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.TextureLib
+import me.anno.gpu.Window
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.Renderer
+import me.anno.gpu.texture.Filtering
 import me.anno.image.ImageCPUCache
 import me.anno.image.ImageGPUCache
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.mesh.assimp.Bone
+import me.anno.objects.Video
+import me.anno.studio.StudioBase
+import me.anno.ui.base.Panel
 import me.anno.ui.editor.files.thumbs.Thumbs
 import me.anno.ui.editor.files.thumbs.Thumbs.generateAssimpMeshFrame
 import me.anno.ui.editor.files.thumbs.Thumbs.generateEntityFrame
 import me.anno.ui.editor.files.thumbs.Thumbs.generateMaterialFrame
 import me.anno.ui.editor.files.thumbs.Thumbs.generateMeshFrame
+import me.anno.ui.editor.files.thumbs.Thumbs.generateSVGFrame
 import me.anno.ui.editor.files.thumbs.Thumbs.generateSkeletonFrame
 import me.anno.ui.editor.files.thumbs.Thumbs.generateVOXMeshFrame
 import me.anno.ui.editor.files.thumbs.Thumbs.generateVideoFrame
 import me.anno.utils.Clock
 import me.anno.utils.OS.desktop
+import me.anno.utils.OS.documents
 import me.anno.utils.OS.downloads
+import org.joml.Matrix4fArrayList
 import javax.imageio.ImageIO
 
 fun main() {
@@ -93,7 +106,7 @@ fun main() {
 
     fun testSkeletonFrame(file: FileReference) {
         val skeleton = SkeletonCache[file]!!
-        generateSkeletonFrame(file, file.dst(), skeleton, size) {}
+        generateSkeletonFrame(file.dst(), skeleton, size) {}
     }
 
     fun testImage(file: FileReference) {
@@ -111,15 +124,21 @@ fun main() {
             val texture = ImageGPUCache.getImage(file, 10_000, false)!!
             drawTexture(0, 0, size, size, texture, -1, null)
         }
-        val tex2 = Thumbs.getThumbnail(file,size,false)
-        println("texture from thumbs: ${tex2.toString()}")
+        //val tex2 = Thumbs.getThumbnail(file,size,false)
+        //println("texture from thumbs: ${tex2.toString()}")
     }
 
     fun testFFMPEGImage(file: FileReference) {
         generateVideoFrame(file, file.dst(), size, {}, 0.0)
     }
 
-    testImage(getReference(downloads, "qwantani_1k.hdr"))
+    fun testSVG(file: FileReference) {
+        generateSVGFrame(file, file.dst(), size) {}
+    }
+
+    // testSVG(getReference(downloads, "tiger.svg"))
+
+    // testImage(getReference(downloads, "qwantani_1k.hdr"))
 
     // testFFMPEGImage(getReference(pictures, "Anime/70697252_p4_master1200.webp"))
 
@@ -148,7 +167,8 @@ fun main() {
     // done metallic was missing
     // testAssimpMeshFrame(downloads.getChild("DamagedHelmet.glb"))
 
-    // todo that skeleton looks incorrect... why?
+
+    // that skeleton looks incorrect... why? because it itself is incorrect, others work
     // testSkeletonFrame(desktop.getChild("Skeleton.json"))
 
     // this skeleton meanwhile looks correct
@@ -157,9 +177,9 @@ fun main() {
     // 3ds max files are not supported by assimp, sadly :/
     // testAssimpMeshFrame(downloads.getChild("Diningtable.max"))
 
-    /* testAssimpMeshFrame(documents.getChild("sphere.obj"))
+     testAssimpMeshFrame(documents.getChild("sphere.obj"))
      testAssimpMeshFrame(documents.getChild("cube bricks.fbx"))
-     testAssimpMeshFrame(downloads.getChild("3d/robot_kyle_walking.fbx"))*/
+     testAssimpMeshFrame(downloads.getChild("3d/robot_kyle_walking.fbx"))
     // testAssimpMeshFrame(downloads.getChild("2CylinderEngine.glb"))
     // testAssimpMeshFrame(downloads.getChild("fbx/free meshes/simple small lowpoly bridge_better.fbx"))
     //testEntityMeshFrame(desktop.getChild("Scene.json"))
@@ -176,7 +196,7 @@ fun main() {
     fun testMeshFrame(file: FileReference) {
         val mesh = MeshCache[file]!!
         clock.stop("loading ${file.name}")
-        generateMeshFrame(file, file.dst(), size, mesh) {}
+        generateMeshFrame(file.dst(), size, mesh) {}
         clock.stop("rendering ${file.name}")
     }
 

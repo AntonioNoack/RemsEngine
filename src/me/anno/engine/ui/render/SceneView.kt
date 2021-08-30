@@ -8,7 +8,7 @@ import me.anno.ui.style.Style
 
 class SceneView(val library: ECSTypeLibrary, style: Style) : PanelStack(style) {
 
-    val renderer = RenderView(library, { library.world }, RenderView.Mode.EDITING, style)
+    val renderer = RenderView(library, RenderView.Mode.EDITING, style)
 
     var controls: ControlScheme = DraggingControls(renderer)
 

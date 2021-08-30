@@ -84,7 +84,7 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
     var type = MaskType.MASKING
     val effectSize = AnimatedProperty.float01exp(0.01f)
 
-    override val symbol = DefaultConfig["ui.symbol.mask", "\uD83D\uDCA5"]
+    override val symbol get() = DefaultConfig["ui.symbol.mask", "\uD83D\uDCA5"]
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 

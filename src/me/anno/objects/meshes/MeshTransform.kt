@@ -6,10 +6,9 @@ import me.anno.cache.instances.LastModifiedCache
 import me.anno.cache.instances.MeshCache.getMesh
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.AnimRenderer
-import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.MeshRenderer
+import me.anno.ecs.components.anim.ImportedAnimation
+import me.anno.ecs.components.anim.Skeleton
+import me.anno.ecs.components.mesh.*
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.RenderState
 import me.anno.gpu.shader.BaseShader.Companion.cullFaceColoringGeometry
@@ -35,12 +34,11 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
-import me.anno.utils.maths.Maths.pow
 import me.anno.utils.files.LocalFile.toGlobalFile
+import me.anno.utils.maths.Maths.pow
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4fc
-import java.util.*
 
 class MeshTransform(var file: FileReference, parent: Transform?) : GFXTransform(parent) {
 
@@ -54,25 +52,15 @@ class MeshTransform(var file: FileReference, parent: Transform?) : GFXTransform(
 
     companion object {
 
-        // var daeEngine: RenderEngine? = null
-        // val gltfReader = GltfModelReader()
-        // var daeRenderer: AnimatedModelRenderer? = null
-
-        /*init {
-            GltfLogger.setup()
-            LogManager.disableLogger("MatrixOps")
-            LogManager.disableLogger("RenderCommandUtils")
-            LogManager.disableLogger("GlContextLwjgl")
-            LogManager.disableLogger("GltfRenderData")
-            LogManager.disableLogger("DefaultRenderedGltfModel")
-        }*/
-
         init {
             registerCustomClass(Mesh())
             registerCustomClass(Entity())
             registerCustomClass(MeshComponent())
             registerCustomClass(MeshRenderer())
             registerCustomClass(AnimRenderer())
+            registerCustomClass(Skeleton())
+            registerCustomClass(Material())
+            registerCustomClass(ImportedAnimation())
         }
 
         fun loadModel(
@@ -151,134 +139,19 @@ class MeshTransform(var file: FileReference, parent: Transform?) : GFXTransform(
             }
 
             // todo decide on file magic instead
-            when (extension) {
-                /*"dae" -> {
-
-                    GFX.check()
-                    if (daeRenderer == null) {
-                        daeRenderer = AnimatedModelRenderer()
-                    }
-                    GFX.check()
-
-                    // load the 3D model
-                    val data = getMesh(file, "Mesh-DAE", 1000, true) {
-                        val meshData = MeshData()
-                        GFX.addGPUTask(10) {
-                            GFX.check()
-                            try {
-                                meshData.daeScene = SceneLoader.loadScene(URI(file), URI(file))
-                                // for consistency between Obj and Dae files
-                                meshData.daeScene?.lightDirection?.set(1f, 0f, 0f)
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                                meshData.lastWarning = e.message
-                            }
-                            GFX.check()
-                        }
-                        meshData
-                    } as? MeshData
-
-                    if (isFinalRendering && data == null) throw MissingFrameException(file)
-
-                    // stack.scale(0.01f, -0.01f, 0.01f)
-                    if (data?.daeScene != null){
-                        stack.next {
-                            if (powerOf10Correction != 0)
-                                stack.scale(pow(10f, powerOf10Correction.toFloat()))
-                            data.drawDae(stack, time, color)
-                        }
-                    } else super.onDraw(stack, time, color)
-
-                }
-                "fbx" -> {
-
-                    // load the 3D model
-                    val data = loadModel(file, "Mesh-FBX", { meshData ->
-                        val reader = FBXReader(file.inputStream().buffered())
-                        val geometries = reader.fbxObjects.filterIsInstance<FBXGeometry>()
-                        // join all geometries
-                        // todo assign the materials, and correct the material indices... (and then don't join them)
-                        // todo or import them in a hierarchy and set the mesh selectors (by index or similar)
-                        val m0 = Material()
-                        meshData.fbxData = geometries.map {
-                            val buffer =
-                                it.generateMesh("coords", "normals", "materialIndex", true, 1, maxWeightsDefault)
-                            FBXData(it, mapOf(m0 to buffer))
-                        }
-                    }) { it.fbxData }
-
-                    if (data?.fbxData != null) {
-                        stack.next {
-                            if (powerOf10Correction != 0)
-                                stack.scale(pow(10f, powerOf10Correction.toFloat()))
-                            data.drawFBX(stack, time, color)
-                        }
-                    } else super.onDraw(stack, time, color)
-
-                }
-                "obj" -> {
-                    // load the 3D model
-                    val data = loadModel(file, "Mesh-OBJ", { meshData ->
-                        val attributes = listOf(
-                            Attribute("coords", 3),
-                            Attribute("uvs", 2),
-                            Attribute("normals", 3)
-                        )
-                        // load the model...
-                        // assume it's obj first...
-                        val obj = OBJReader(file.file)
-                        // generate mesh data from this obj somehow...
-                        meshData.objData = obj.pointsByMaterial.mapValues {
-                            val buffer = StaticBuffer(attributes, it.value.size)
-                            it.value.forEach { v -> buffer.put(v) }
-                            buffer
-                        }
-                    }) { it.objData }
-
-                    if (data?.objData != null) {
-                        stack.next {
-                            if (powerOf10Correction != 0)
-                                stack.scale(pow(10f, powerOf10Correction.toFloat()))
-                            data.drawObj(stack, time, color)
-                        }
-                    } else super.onDraw(stack, time, color)
-
-                }
-                // assimp can load gltf files <3
-                // -> we can give up/remove jGLTF*/
-                /*"gltf", "glb" -> {
-                    val data = loadModel(file, "Mesh-GLTF", {
-
-                        val model = gltfReader.read(file.toUri())
-                        val viewer = GltfViewerLwjgl()
-                        val camera = ExternalCameraImpl()
-                        viewer.setup(camera, model)
-                        it.gltfData = GlTFData(viewer, model, camera)
-
-                    }) { it.gltfData }
-
-                    if (data?.gltfData != null) {
-                        stack.next {
-                            if (powerOf10Correction != 0)
-                                stack.scale(pow(10f, powerOf10Correction.toFloat()))
-                            data.drawGlTF(stack, time, color, animationIndex[time])
-                        }
-                    } else super.onDraw(stack, time, color)
-
-                }*/
+            val data =  when (extension) {
                 "vox" -> {
                     // vox is not supported by assimp -> custom loader
-                    val data = loadVOX(file, this)
-                    drawAssimp(data, stack, time, color)
-                    lastModel = data?.assimpModel
+                    loadVOX(file, this)
                 }
                 else -> {
                     // load the 3D model
-                    val data = loadAssimpAnimated(file, this)
-                    drawAssimp(data, stack, time, color)
-                    lastModel = data?.assimpModel
+                    loadAssimpAnimated(file, this)
                 }
             }
+
+            drawAssimp(data, stack, time, color)
+            lastModel = data?.assimpModel
 
         } else {
             lastWarning = "Missing file"
@@ -434,7 +307,7 @@ class MeshTransform(var file: FileReference, parent: Transform?) : GFXTransform(
     // because we don't have users at the moment anyways
     override val className get() = "MeshTransform"
 
-    override val defaultDisplayName = Dict["Mesh", "obj.mesh"]
-    override val symbol = DefaultConfig["ui.symbol.mesh", "\uD83D\uDC69"]
+    override val defaultDisplayName get() = Dict["Mesh", "obj.mesh"]
+    override val symbol get() = DefaultConfig["ui.symbol.mesh", "\uD83D\uDC69"]
 
 }

@@ -1,15 +1,22 @@
 package me.anno.mesh.assimp
 
-import de.javagl.jgltf.model.GltfConstants.GL_ARRAY_BUFFER
+import me.anno.ecs.components.anim.Skeleton
+import me.anno.engine.ui.render.ECSShaderLib
+import me.anno.gpu.ShaderLib
+import me.anno.gpu.TextureLib
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.Buffer.Companion.bindBuffer
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.mesh.assimp.AnimHierarchy.loadSkeletonFromAnimations
+import me.anno.ui.editor.files.thumbs.Thumbs
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.OS
+import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
 import me.anno.utils.types.Vectors.print
 import org.apache.logging.log4j.LogManager
@@ -23,12 +30,49 @@ import java.nio.IntBuffer
 
 fun main() {
 
+    HiddenOpenGLContext.createOpenGL()
+    TextureLib.init()
+    ShaderLib.init()
+    ECSShaderLib.init()
+    Thumbs.useCacheFolder = true
+
+    val size = 512
+
+    // todo test animation / skeleton
+    val file = getReference(downloads, "3d/taryk/scene.gltf")
+    val aiScene = AnimatedMeshesLoader.loadFile(file, StaticMeshesLoader.defaultFlags)
+    val rootNode = aiScene.mRootNode()!!
+
+    val boneList = ArrayList<Bone>()
+    val boneMap = HashMap<String, Bone>()
+
+    val skeleton = Skeleton()
+    skeleton.bones = boneList
+
+    // check what is the result using the animations
+    loadSkeletonFromAnimations(aiScene, rootNode, boneList, boneMap)
+    Thumbs.generateSkeletonFrame(getReference(desktop, "byAnimation.png"), skeleton, size) {}
+    println("by animation: ${boneList.map { it.name }}")
+
+
+
+
+    boneList.clear()
+    boneMap.clear()
+
+    SkeletonAnimAndBones.loadSkeletonFromAnimationsAndBones(aiScene, rootNode, boneList, boneMap)
+    Thumbs.generateSkeletonFrame(getReference(desktop, "byTree.png"), skeleton, size) {}
+    println("by tree, full: ${boneList.map { it.name }}")
+
+
+}
+
+fun walkingTest() {
     val loader = AnimatedMeshesLoader
-    val (folder, prefab) = loader.readAsFolder2(getReference(downloads, "fbx/simple pack anims/Walking.fbx"))
+    val (_, prefab) = loader.readAsFolder2(getReference(downloads, "fbx/simple pack anims/Walking.fbx"))
     for (change in prefab.changes!!) {
         println(change)
     }
-
 }
 
 fun oldTest() {

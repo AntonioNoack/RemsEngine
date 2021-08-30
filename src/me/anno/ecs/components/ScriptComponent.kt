@@ -10,7 +10,7 @@ class ScriptComponent: Component() {
     // todo lua from Java/Kotlin?
     // todo JavaScript from Java/Kotlin?
 
-    override fun clone(): PrefabSaveable {
+    override fun clone(): Component {
         TODO("Not yet implemented")
     }
 

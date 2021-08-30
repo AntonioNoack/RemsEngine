@@ -63,8 +63,6 @@ object DrawTextures {
 
         GFX.check()
 
-        Texture2D.invalidateBinding()
-
         shader.use()
         defineAdvancedGraphicalFeatures(shader)
         GFXx3D.shader3DUniforms(shader, null, -1)

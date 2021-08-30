@@ -63,7 +63,7 @@ class ColorGradingComponent : Component(), FragmentShaderComponent {
 
     override fun getShaderCodeState(): Any? = null
 
-    override fun clone(): PrefabSaveable {
+    override fun clone(): Component {
         TODO("Not yet implemented")
     }
 

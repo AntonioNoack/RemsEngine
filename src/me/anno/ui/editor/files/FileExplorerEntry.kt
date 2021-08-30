@@ -274,7 +274,6 @@ class FileExplorerEntry(
         }
     }
 
-
     private fun drawVideo(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         // todo something with the states is broken...
@@ -331,12 +330,20 @@ class FileExplorerEntry(
         val font1 = FontManager.getFont(font0)
         val fontSize = font1.actualFontSize
 
-        lines = max(ceil((h - w) / fontSize).toInt(), 1)
+        val x = x
+        val y = y
+        val w = w
+        val h = h
+
+        val extraHeight = h - w
+        lines = max(ceil(extraHeight / fontSize).toInt(), 1)
 
         val padding = w / 20
 
-        val remainingW = w - padding * 2
-        val remainingH = h - padding * 2
+        // why not twice the padding?????
+        // only once centers it...
+        val remainingW = w - padding// * 2
+        val remainingH = h - padding// * 2
 
         val textH = (lines * fontSize).toInt()
         val imageH = remainingH - textH
@@ -358,32 +365,22 @@ class FileExplorerEntry(
             y + h - padding,
             ::drawText
         )
-
-        return
-
-        // todo extra start button for Isabell, and disabled auto-play
-        // todo change this in the settings xD
-
-        // todo tiles on background to show transparency? ofc only in the area of the image
-
     }
 
     /**
      * draws the title
      * */
     private fun drawText(x0: Int, y0: Int, x1: Int, y1: Int) {
-        // GFXx2D.drawSimpleTextCharByChar(x0 + max(0, deltaX), y0, 0, titlePanel.text)
         titlePanel.w = x1 - x0
         titlePanel.minW = x1 - x0
         titlePanel.calculateSize(x1 - x0, y1 - y0)
         titlePanel.backgroundColor = backgroundColor and 0xffffff
-        val deltaX = ((x1 - x0) - titlePanel.minW) / 2
+        val deltaX = ((x1 - x0) - titlePanel.minW) / 2 // centering the text
         titlePanel.x = x0 + max(0, deltaX)
         titlePanel.y = y0
         titlePanel.w = x1 - x0
-        titlePanel.minW = x1 - x0
         titlePanel.h = y1 - y0
-        titlePanel.drawText(0, 0, titlePanel.textColor)
+        titlePanel.drawText()
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {

@@ -1,13 +1,14 @@
 package me.anno.gpu
 
 import me.anno.config.DefaultConfig
+import me.anno.gpu.buffer.StaticBuffer
+import me.anno.gpu.drawing.GFXx2D.defineAdvancedGraphicalFeatures
 import me.anno.gpu.drawing.GFXx3D.colorGradingUniforms
 import me.anno.gpu.drawing.GFXx3D.shader3DUniforms
-import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
-import me.anno.objects.Video
+import me.anno.objects.GFXTransform
 import me.anno.utils.maths.Maths.fract
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4fc
@@ -17,7 +18,7 @@ import kotlin.math.round
 object SVGxGFX {
 
     fun draw3DSVG(
-        video: Video?, time: Double,
+        video: GFXTransform?, time: Double,
         stack: Matrix4fArrayList, buffer: StaticBuffer, texture: Texture2D, color: Vector4fc,
         filtering: Filtering, clamping: Clamping, tiling: Vector4fc?
     ) {
@@ -27,13 +28,16 @@ object SVGxGFX {
         val sy = 1f
         if (tiling == null) {
 
+            GFX.check()
             val shader = ShaderLib.shader3DSVG.value
             shader.use()
             shader3DUniforms(shader, stack, texture.w, texture.h, color, null, filtering, null)
-            colorGradingUniforms(video, time, shader)
+            defineAdvancedGraphicalFeatures(shader, video, time)
             // x2 just for security...
             shader.v4("uvLimits", -2f * sx, -2f, 2f * sx, 2f)
+            GFX.check()
             texture.bind(0, filtering, clamping)
+            GFX.check()
             buffer.draw(shader)
             GFX.check()
 
@@ -104,7 +108,7 @@ object SVGxGFX {
                         val shader = ShaderLib.shader3DSVG.value
                         shader.use()
                         shader3DUniforms(shader, stack, texture.w, texture.h, color, null, filtering, null)
-                        colorGradingUniforms(video, time, shader)
+                        defineAdvancedGraphicalFeatures(shader, video, time)
                         shader.v4("uvLimits", sx * a0, b0, sx * a1, b1)
                         texture.bind(0, filtering, clamping)
                         buffer.draw(shader)

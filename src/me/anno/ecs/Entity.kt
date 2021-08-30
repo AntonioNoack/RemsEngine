@@ -89,9 +89,17 @@ class Entity() : PrefabSaveable(), Inspectable {
 
     override fun listChildTypes(): String = "ec" // entity children, components
 
+    override fun addChild(child: PrefabSaveable) {
+        when (child) {
+            is Entity -> addEntity(child)
+            is Component -> addComponent(child)
+            else -> throw UnsupportedOperationException()
+        }
+    }
+
     override fun addChildByType(index: Int, type: Char, instance: PrefabSaveable) {
         if (type == 'c') addComponent(index, instance as Component)
-        else addChild(index, instance as Entity)
+        else addEntity(index, instance as Entity)
     }
 
     override fun getChildListByType(type: Char): List<PrefabSaveable> = if (type == 'c') components else children
@@ -194,6 +202,7 @@ class Entity() : PrefabSaveable(), Inspectable {
 
     fun invalidatePhysics(force: Boolean) {
         if (force || hasPhysicsInfluence()) {
+            println("inv physics: ${physics != null}, ${rigidbody != null}")
             physics?.invalidate(rigidbody ?: return)
         }
     }
@@ -379,7 +388,7 @@ class Entity() : PrefabSaveable(), Inspectable {
 
     override fun add(child: PrefabSaveable) {
         when (child) {
-            is Entity -> addChild(child)
+            is Entity -> addEntity(child)
             is Component -> addComponent(child)
             else -> LOGGER.warn("Cannot add ${child.className} to Entity")
         }
@@ -389,15 +398,15 @@ class Entity() : PrefabSaveable(), Inspectable {
         TODO("Not yet implemented")
     }
 
-    override fun remove(child: PrefabSaveable) {
+    override fun deleteChild(child: PrefabSaveable) {
         when (child) {
-            is Entity -> removeChild(child)
-            is Component -> removeComponent(child)
+            is Entity -> deleteEntity(child)
+            is Component -> deleteComponent(child)
         }
     }
 
-    fun add(index: Int, child: Entity) {
-        addChild(index, child)
+    fun deleteEntity(child: Entity) {
+        child.destroy()
     }
 
     // todo don't directly update, rather invalidate this, because there may be more to come
@@ -432,7 +441,7 @@ class Entity() : PrefabSaveable(), Inspectable {
 
     private fun checkNeedsPhysics() {
         // physics
-        if (listOfHierarchy.all { isEnabled }) {
+        if (allInHierarchy { it.isEnabled }) {
             // something can change
             val physics = physics
             if (physics != null) {
@@ -447,7 +456,7 @@ class Entity() : PrefabSaveable(), Inspectable {
                         // todo add it for click tests
                     }
                 }
-            }
+            }// else println("physics is null, $name, list of hierarchy: ${listOfHierarchy.joinToString { it.name }}")
         }
     }
 
@@ -464,7 +473,17 @@ class Entity() : PrefabSaveable(), Inspectable {
             component.onDestroy()
         }
         // todo some event based system? or just callable functions? idk...
-        this.parent?.remove(this)
+        val parent = parent as? Entity
+        if (parent != null) {
+            parent.internalChildren.remove(this)
+            if (hasComponentInChildren(Collider::class, false) ||
+                hasComponentInChildren(AmbientLight::class, false)
+            ) {
+                // todo other components with aabb?
+                parent.invalidateCollisionMask()
+            }
+            parent.invalidateOwnAABB()
+        }
     }
 
     fun addComponent(component: Component) {
@@ -504,28 +523,28 @@ class Entity() : PrefabSaveable(), Inspectable {
                 hasComponent(AmbientLight::class, false)
     }
 
-    fun addChild(child: Entity) {
+    fun addEntity(child: Entity) {
         child.setParent(this, children.size, false)
     }
 
-    fun addChild(index: Int, child: Entity) {
+    fun addEntity(index: Int, child: Entity) {
         child.setParent(this, index, false)
     }
 
     fun remove(component: Component) {
-        removeComponent(component)
+        deleteComponent(component)
     }
 
-    fun removeComponent(component: Component) {
+    fun deleteComponent(component: Component) {
         internalComponents.remove(component)
         onChangeComponent(component)
     }
 
-    fun <V : Component> hasComponent(clazz: KClass<V>, includingDisabled: Boolean): Boolean {
+    fun <V : Component> hasComponent(clazz: KClass<V>, includingDisabled: Boolean = false): Boolean {
         return getComponent(clazz, includingDisabled) != null
     }
 
-    fun <V : Component> hasComponentInChildren(clazz: KClass<V>, includingDisabled: Boolean): Boolean {
+    fun <V : Component> hasComponentInChildren(clazz: KClass<V>, includingDisabled: Boolean = false): Boolean {
         if (hasComponent(clazz, includingDisabled)) return true
         val children = children
         for (index in children.indices) {
@@ -674,16 +693,17 @@ class Entity() : PrefabSaveable(), Inspectable {
         clone.hasRenderables = hasRenderables
         clone.hasValidCollisionMask = hasValidCollisionMask
         clone.hasSpaceFillingComponents = hasSpaceFillingComponents
+        clone.hasValidAABB = hasValidAABB
         clone.aabb.set(aabb)
         clone.transform.set(transform)
         clone.collisionMask = collisionMask
         val components = components
         for (i in components.indices) {
-            clone.addComponent(components[i].clone() as Component)
+            clone.addComponent(components[i].clone())
         }
         val children = children
         for (i in children.indices) {
-            clone.addChild(children[i].clone() as Entity)
+            clone.addEntity(children[i].clone())
         }
     }
 

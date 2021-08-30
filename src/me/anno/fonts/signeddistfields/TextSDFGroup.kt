@@ -17,7 +17,7 @@ class TextSDFGroup(
     font: Font, text: String,
     charSpacing: Float
 ) : TextGroup(
-    font, text, charSpacing
+    font, text, charSpacing.toDouble()
 ) {
 
     // are draw-calls always expensive??

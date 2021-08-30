@@ -12,12 +12,10 @@ import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.style.Style
-import me.anno.utils.maths.Maths.mixARGB
-import me.anno.utils.Tabs
 import me.anno.utils.input.Keys.isClickKey
+import me.anno.utils.maths.Maths.mixARGB
 import me.anno.utils.types.Strings.isBlank2
 import kotlin.math.max
 import kotlin.math.min
@@ -104,6 +102,12 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         )
     }
 
+    fun drawText(color: Int = effectiveTextColor) {
+        val offset = if (textAlignment == AxisAlignment.MIN) 0
+        else textAlignment.getOffset(w, getMaxWidth())
+        drawText(offset, 0, color)
+    }
+
     var minW2 = 0
     var minH2 = 0
 
@@ -141,9 +145,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         val inst = instantTextLoading
         if (inst) loadTexturesSync.push(true)
         super.onDraw(x0, y0, x1, y1)
-        val offset = if (textAlignment == AxisAlignment.MIN) 0
-        else textAlignment.getOffset(w, getMaxWidth())
-        drawText(offset, 0, effectiveTextColor)
+        drawText(effectiveTextColor)
         if (inst) loadTexturesSync.pop()
     }
 
@@ -161,12 +163,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
 
     override fun getCursor(): Long? = if (onClickListener == null) super.getCursor() else Cursor.drag
 
-    override fun printLayout(tabDepth: Int) {
-        println(
-            "${Tabs.spaces(tabDepth * 2)}${javaClass.simpleName}($weight, ${if (visibility == Visibility.VISIBLE) "v" else "_"}) " +
-                    "$x $y += $w $h ($minW $minH) \"${text.substring(0, min(text.length, 20))}\""
-        )
-    }
+    override fun getPrintSuffix(): String = "\"${text.substring(0, min(text.length, 20))}\""
 
     override fun isKeyInput() = onClickListener != null
     override fun acceptsChar(char: Int) = when (char.toChar()) {

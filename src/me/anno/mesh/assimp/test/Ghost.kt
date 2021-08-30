@@ -9,7 +9,7 @@ fun main() {
     val file = OS.documents.getChild("CuteGhost.fbx")
     val model = AnimatedMeshesLoader.load(file)
 
-    LOGGER.info(model.bones)
+    // LOGGER.info(model.bones)
 
     LOGGER.info(model.hierarchy.toStringWithTransforms(0))
 

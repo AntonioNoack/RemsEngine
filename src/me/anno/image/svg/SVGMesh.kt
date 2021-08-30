@@ -10,10 +10,11 @@ import me.anno.image.svg.gradient.Formula
 import me.anno.image.svg.gradient.LinearGradient
 import me.anno.image.svg.gradient.RadialGradient
 import me.anno.io.xml.XMLElement
-import me.anno.utils.maths.Maths.clamp
-import me.anno.utils.maths.Maths.length
 import me.anno.utils.OS
 import me.anno.utils.files.Files.use
+import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.maths.Maths.length
+import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.awt.Color
@@ -59,7 +60,11 @@ class SVGMesh {
 
     fun parse(xml: XMLElement) {
         parseChildren(xml.children, null)
-        val viewBox = (xml["viewBox"] ?: "0 0 100 100").split(' ').map { it.toDouble() }
+        val viewBox = (xml["viewBox"] ?: "0 0 100 100")
+            .replace(',', ' ')
+            .split(' ')
+            .filter { !it.isBlank2() }
+            .map { it.toDouble() }
         val w = viewBox[2]
         val h = viewBox[3]
         createMesh(viewBox[0], viewBox[1], w, h)
@@ -197,7 +202,7 @@ class SVGMesh {
                 gfx.drawLine(ix(c), iy(c), ix(a), iy(a))
             }
         }
-        use(OS.desktop.getChild("svg/tiger.png").outputStream()){
+        use(OS.desktop.getChild("svg/tiger.png").outputStream()) {
             ImageIO.write(img, "png", it)
         }
     }
@@ -232,16 +237,23 @@ class SVGMesh {
                 for (v in curve.triangles) {
                     val vx = v.x()
                     val vy = v.y()
+                    // position, v3
                     buffer.put(((vx - cx) * scale).toFloat(), ((vy - cy) * scale).toFloat(), depth)
+                    // local pos 2
                     buffer.put(((vx - minX) * scaleX).toFloat(), ((vy - minY) * scaleY).toFloat())
+                    // formula 0
                     buffer.put(formula.position.x.toFloat(), formula.position.y.toFloat())
+                    // formula 1
                     buffer.put(formula.directionOrRadius.x.toFloat(), formula.directionOrRadius.y.toFloat())
                     buffer.put(if (formula.isCircle) 1f else 0f)
+                    // color 0-3, v4 each
                     buffer.put(c0)
                     buffer.put(c1)
                     buffer.put(c2)
                     buffer.put(c3)
+                    // stops, v4
                     buffer.put(stops)
+                    // padding, v1
                     buffer.put(padding)
                     // LOGGER.info(Vector3d((v.x-x0)*scale, (v.y-y0)*scale, it.depth).print())
                 }

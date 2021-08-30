@@ -69,7 +69,11 @@ class HarmonicDriver : AnimationDriver() {
 
     override fun getValue0(time: Double, keyframeValue: Double, index: Int): Double {
         val w0 = time * 2.0 * PI
-        return harmonics.withIndex().sumByDouble { (index, it) -> it * sin((index + 1f) * w0) }
+        var sum = 0.0
+        for (idx in harmonics.indices) {
+            sum += harmonics[idx] * sin((idx + 1f) * w0)
+        }
+        return sum
     }
 
     override val className get() = "HarmonicDriver"
@@ -77,7 +81,7 @@ class HarmonicDriver : AnimationDriver() {
 
     companion object {
         // could support more, but is useless anyways xD
-        val maxHarmonics = DefaultConfig["driver.harmonics.max", 32]
+        val maxHarmonics get() = DefaultConfig["driver.harmonics.max", 32]
     }
 
 }

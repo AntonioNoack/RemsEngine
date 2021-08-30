@@ -8,11 +8,10 @@ import org.joml.Vector3f
 
 // todo assign an entity for components, which can be assigned to that? -> we would need to clone the skeleton and bone...
 class Bone(
-    var id: Int, var parentId: Int, name: String,
-    val inverseBindPose: Matrix4x3f // offsetMatrix; inverse of bone position + rotation
+    var id: Int, var parentId: Int, name: String
 ) : NamedSaveable() {
 
-    constructor() : this(-1, -1, "", Matrix4x3f())
+    constructor() : this(-1, -1, "")
 
     init {
         this.name = name
@@ -21,34 +20,33 @@ class Bone(
     // parent is unknown, maybe be indirect...
     // var parent: Bone? = null
 
-    val offsetVector = Vector3f(inverseBindPose.m30(), inverseBindPose.m31(), inverseBindPose.m32())
+    val originalTransform = Matrix4x3f()
 
-    val bindPose = Matrix4x3f(inverseBindPose).invert()
+    val inverseBindPose = Matrix4x3f() // offsetMatrix; inverse of bone position + rotation
+    val offsetVector = Vector3f() // inverseBindPose.m30(), inverseBindPose.m31(), inverseBindPose.m32()
 
-    val bindPosition = Vector3f(bindPose.m30(), bindPose.m31(), bindPose.m32())
+    val bindPose = Matrix4x3f() // = inverseBindPose.invert()
+    val bindPosition = Vector3f() // bindPose.m30(), bindPose.m31(), bindPose.m32()
 
-    val tmpOffset = Matrix4f()
-    val tmpTransform = Matrix4f()
-
-    fun setBindPose(m: Matrix4f){
+    fun setBindPose(m: Matrix4f) {
         bindPose.set(m)
         bindPosition.set(m.m30(), m.m31(), m.m32())
         calculateInverseBindPose()
     }
 
-    fun setBindPose(m: Matrix4x3f){
+    fun setBindPose(m: Matrix4x3f) {
         bindPose.set(m)
         bindPosition.set(m.m30(), m.m31(), m.m32())
         calculateInverseBindPose()
     }
 
-    fun setInverseBindPose(m: Matrix4f){
+    fun setInverseBindPose(m: Matrix4f) {
         inverseBindPose.set(m)
         offsetVector.set(m.m30(), m.m31(), m.m32())
         calculateBindPose()
     }
 
-    fun setInverseBindPose(m: Matrix4x3f){
+    fun setInverseBindPose(m: Matrix4x3f) {
         inverseBindPose.set(m)
         offsetVector.set(m.m30(), m.m31(), m.m32())
         calculateBindPose()

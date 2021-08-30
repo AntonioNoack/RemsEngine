@@ -69,7 +69,7 @@ open class Texture2D(
 
     fun ensurePointer() {
         if (isDestroyed) throw RuntimeException("Texture was destroyed")
-        if (pointer < 0) {
+        if (pointer <= 0) {
             GFX.check()
             pointer = createTexture()
             // many textures can be created by the console log and the fps viewer constantly xD
@@ -708,7 +708,7 @@ open class Texture2D(
     var hasMipmap = false
 
     private fun bindBeforeUpload() {
-        if (pointer == -1) throw RuntimeException("Pointer must be defined")
+        if (pointer <= -1) throw RuntimeException("Pointer must be defined")
         bindTexture(tex2D, pointer)
     }
 
@@ -721,7 +721,7 @@ open class Texture2D(
     }*/
 
     override fun bind(index: Int, nearest: GPUFiltering, clamping: Clamping): Boolean {
-        if (pointer > -1 && isCreated) {
+        if (pointer > 0 && isCreated) {
             if (isBoundToSlot(index)) return false
             activeSlot(index)
             val result = bindTexture(tex2D, pointer)

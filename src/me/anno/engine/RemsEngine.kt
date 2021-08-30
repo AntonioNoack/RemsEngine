@@ -31,7 +31,6 @@ import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
 
 
-// todo make rendering working
 // todo drop in meshes
 // todo drop in ui maybe...
 // todo key listeners (?)...
@@ -130,23 +129,25 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         }
 
         list.add(options)
-
-        list += editUI
-        // list += gameUI
-
+        list.add(editUI)
 
         val bottom2 = PanelStack(style)
         bottom2 += RemsStudio.createConsole(style)
         val right = PanelListX(style)
-        right += RuntimeInfoPanel(style).apply { alignment = AxisAlignment.MAX }.setWeight(1f)
-        right += object : Panel(style) {
+        right.makeBackgroundTransparent()
+        right.add(RuntimeInfoPanel(style).apply {
+            alignment = AxisAlignment.MAX
+            makeBackgroundOpaque()
+            setWeight(1f)
+        })
+        right.add(object : Panel(style) {
             override fun calculateSize(w: Int, h: Int) {
                 minW = if (showFPS) FrameTimes.width else 0
                 minH = 1
             }
-        }
-        bottom2 += right
-        list += bottom2
+        })
+        bottom2.add(right)
+        list.add(bottom2)
         windowStack.add(Window(list))
 
         StudioActions.register()

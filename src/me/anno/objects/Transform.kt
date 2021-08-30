@@ -144,7 +144,7 @@ open class Transform() : Saveable(),
         child.parent = this
     }
 
-    override fun remove(child: Transform) {
+    override fun deleteChild(child: Transform) {
         children.remove(child)
     }
 

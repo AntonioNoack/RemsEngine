@@ -308,7 +308,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent), SplittableEle
         else (text.keyframes.maxByOrNull { it.value.length }?.value
                 ?: text.defaultValue).ifBlank { Dict["Text", "obj.text"] }
 
-    override val symbol = DefaultConfig["ui.symbol.text", "\uD83D\uDCC4"]
+    override val symbol get() = DefaultConfig["ui.symbol.text", "\uD83D\uDCC4"]
 
     companion object {
 

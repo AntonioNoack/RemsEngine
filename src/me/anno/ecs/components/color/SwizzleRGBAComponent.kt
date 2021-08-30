@@ -110,7 +110,7 @@ class SwizzleRGBAComponent : Component(), FragmentShaderComponent {
         shader.v1(env[this, "strength", VariableType.UNIFORM_V1], strength[time])
     }
 
-    override fun clone(): PrefabSaveable {
+    override fun clone(): Component {
         TODO("Not yet implemented")
     }
 

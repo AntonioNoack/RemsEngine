@@ -306,7 +306,7 @@ object Thumbs {
                     drawTexture(
                         0, 0, w, h,
                         TextureLib.colorShowTexture,
-                        -1, Vector4f(4f, 4f, 0f, 0f)
+                        -1, Vector4f(4f * w.toFloat() / h, 4f, 0f, 0f)
                     )
                 }
             }
@@ -421,7 +421,7 @@ object Thumbs {
 
     }
 
-    private fun generateSVGFrame(
+    fun generateSVGFrame(
         srcFile: FileReference,
         dstFile: FileReference,
         size: Int,
@@ -437,12 +437,12 @@ object Thumbs {
         if (w < 2 || h < 2) return
 
         val transform = Matrix4fArrayList()
-        transform.scale(1f / (buffer.maxX / buffer.maxY).toFloat(), 1f, 1f)
-        renderToBufferedImage(InvalidRef, dstFile, false, colorRenderer, false, callback, w, h) {
+        transform.scale((buffer.maxY / buffer.maxX).toFloat(), 1f, 1f)
+        renderToBufferedImage(InvalidRef, dstFile, false, colorRenderer, true, callback, w, h) {
             SVGxGFX.draw3DSVG(
                 null, 0.0,
                 transform, buffer, whiteTexture,
-                Vector4f(1f), Filtering.NEAREST,
+                white4, Filtering.NEAREST,
                 whiteTexture.clamping!!, null
             )
         }
@@ -556,16 +556,16 @@ object Thumbs {
         data.assimpModel = AnimGameItem(entity)
         // todo draw gui, entity positions
         waitForTextures(data)
+        val drawSkeletons = !entity.hasComponent(MeshComponent::class)
         renderToBufferedImage(InvalidRef, dstFile, true, previewRenderer, true, callback, size, size) {
             data.drawAssimp(
                 true, null, createPerspectiveList(defaultAngleY, 1f), 0.0, white4, "",
-                useMaterials = true, centerMesh = true, normalizeScale = true, drawSkeletons = true
+                useMaterials = true, centerMesh = true, normalizeScale = true, drawSkeletons = drawSkeletons
             )
         }
     }
 
     fun generateMeshFrame(
-        srcFile: FileReference,
         dstFile: FileReference,
         size: Int,
         mesh: Mesh,
@@ -575,7 +575,7 @@ object Thumbs {
         mesh.ensureBuffer()
         // sometimes black: because of vertex colors, which are black
         // render everything without color
-        renderToBufferedImage(srcFile, dstFile, true, simpleNormalRenderer, true, callback, size, size) {
+        renderToBufferedImage(InvalidRef, dstFile, true, simpleNormalRenderer, true, callback, size, size) {
             mesh.drawAssimp(
                 createPerspective(defaultAngleY, 1f),
                 useMaterials = false,
@@ -697,7 +697,6 @@ object Thumbs {
     }
 
     fun generateSkeletonFrame(
-        srcFile: FileReference,
         dstFile: FileReference,
         skeleton: Skeleton,
         size: Int,
@@ -715,9 +714,9 @@ object Thumbs {
         // in a tree with N nodes, there is N-1 lines
         val positions = FloatArray((bones.size - 1) * boneMeshVertices.size)
         val bonePositions = Array(bones.size) { bones[it].bindPosition }
-        generateSkeleton(bones, bonePositions, positions)
+        generateSkeleton(bones, bonePositions, positions, null)
         mesh.positions = positions
-        generateMeshFrame(srcFile, dstFile, size, mesh, callback)
+        generateMeshFrame(dstFile, size, mesh, callback)
     }
 
     fun generateAnimationFrame(
@@ -748,7 +747,7 @@ object Thumbs {
                 val position = animPositions[i].set(bones[i].bindPosition)
                 skinningMatrices[i].transformPosition(position)
             }
-            generateSkeleton(bones, animPositions, meshVertices)
+            generateSkeleton(bones, animPositions, meshVertices, null)
             mesh.invalidateGeometry()
             // draw the skeleton in that portion of the frame
             mesh.ensureBuffer()
@@ -822,9 +821,9 @@ object Thumbs {
         callback: (Texture2D) -> Unit
     ) {
         when (asset) {
-            is Mesh -> generateMeshFrame(srcFile, dstFile, size, asset, callback)
+            is Mesh -> generateMeshFrame(dstFile, size, asset, callback)
             is Material -> generateMaterialFrame(srcFile, dstFile, size, callback)
-            is Skeleton -> generateSkeletonFrame(srcFile, dstFile, asset, size, callback)
+            is Skeleton -> generateSkeletonFrame(dstFile, asset, size, callback)
             is Animation -> generateAnimationFrame(dstFile, asset, size, callback)
             is Entity -> generateEntityFrame(dstFile, size, asset, callback)
             is Component -> {
@@ -886,7 +885,7 @@ object Thumbs {
         val dstFile = srcFile.getCacheFile(size)
         if (returnIfExists(srcFile, dstFile, callback)) return
 
-        if(srcFile.isDirectory){
+        if (srcFile.isDirectory) {
             // todo thumbnails for folders: what files are inside, including their preview images
             return
         }

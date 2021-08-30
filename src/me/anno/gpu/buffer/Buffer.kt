@@ -8,6 +8,8 @@ import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL33.glDrawArraysInstanced
 import org.lwjgl.opengl.GL33.glVertexAttribDivisor
+import java.lang.IllegalArgumentException
+import java.lang.RuntimeException
 import java.nio.ByteBuffer
 
 abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
@@ -43,14 +45,14 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
 
         GFX.check()
 
-        if (buffer < 0) buffer = glGenBuffers()
-        if (buffer < 0) throw IllegalStateException()
-
-        bindBuffer(GL_ARRAY_BUFFER, buffer)
-
         if (nioBuffer == null) {
             createNioBuffer()
         }
+
+        if (buffer <= 0) buffer = glGenBuffers()
+        if (buffer <= 0) throw IllegalStateException()
+
+        bindBuffer(GL_ARRAY_BUFFER, buffer)
 
         val nio = nioBuffer!!
         val stride = attributes.first().stride
@@ -209,7 +211,7 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
         glDrawArrays(mode, first, length)
     }
 
-    open fun drawSimpleInstanced(shader: Shader, mode: Int = drawMode, count: Int){
+    open fun drawSimpleInstanced(shader: Shader, mode: Int = drawMode, count: Int) {
         bind(shader) // defines drawLength
         if (drawLength > 0) {
             glDrawArraysInstanced(mode, 0, drawLength, count)
@@ -235,11 +237,12 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
 
     companion object {
 
-        var boundBuffers = IntArray(2) { -1 }
+        var boundBuffers = IntArray(2) { 0 }
         fun bindBuffer(slot: Int, buffer: Int) {
             val index = slot - GL_ARRAY_BUFFER
             if (index in boundBuffers.indices) {
                 if (boundBuffers[index] != buffer) {
+                    if(buffer < 0) throw IllegalArgumentException("Buffer is invalid!")
                     boundBuffers[index] = buffer
                     glBindBuffer(slot, buffer)
                 }
@@ -249,11 +252,15 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
         fun onDestroyBuffer(buffer: Int) {
             for (index in boundBuffers.indices) {
                 if (buffer == boundBuffers[index]) {
-                    boundBuffers[index] = -1
+                    boundBuffers[index] = 0
                     val slot = GL_ARRAY_BUFFER + index
                     glBindBuffer(slot, 0) // unbind
                 }
             }
+        }
+
+        fun invalidateBinding() {
+            boundBuffers.fill(0)
         }
 
         // todo cache bound vao to save opengl calls

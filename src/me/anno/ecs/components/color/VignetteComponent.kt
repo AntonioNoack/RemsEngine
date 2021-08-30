@@ -55,7 +55,7 @@ class VignetteComponent : Component(), FragmentShaderComponent {
 
     override val className get() = "VignetteComponent"
 
-    override fun clone(): PrefabSaveable {
+    override fun clone(): Component {
         TODO("Not yet implemented")
     }
 

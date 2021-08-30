@@ -1,5 +1,6 @@
 package me.anno.ui.base
 
+import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.Window
 import me.anno.gpu.drawing.DrawRectangles.drawRect
@@ -15,6 +16,7 @@ import me.anno.utils.Tabs
 import me.anno.utils.structures.arrays.ExpandingGenericArray
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
+import kotlin.math.roundToInt
 
 open class Panel(val style: Style) {
 
@@ -41,6 +43,14 @@ open class Panel(val style: Style) {
     fun toggleVisibility() {
         visibility = if (visibility == Visibility.VISIBLE) Visibility.GONE else Visibility.VISIBLE
         invalidateLayout()
+    }
+
+    fun makeBackgroundTransparent(){
+        backgroundColor = backgroundColor and 0xffffff
+    }
+
+    fun makeBackgroundOpaque(){
+        backgroundColor = backgroundColor or black
     }
 
     fun hide() {
@@ -417,8 +427,14 @@ open class Panel(val style: Style) {
     }
 
     open fun printLayout(tabDepth: Int) {
-        println("${Tabs.spaces(tabDepth * 2)}${javaClass.simpleName}($weight, ${if (visibility == Visibility.VISIBLE) "v" else "_"})) $x $y += $w $h ($minW $minH) ${style.prefix}")
+        println(
+            "${Tabs.spaces(tabDepth * 2)}${javaClass.simpleName}(${(weight * 10).roundToInt()}, " +
+                    "${if (visibility == Visibility.VISIBLE) "v" else "_"})) " +
+                    "$x-${x + w}, $y-${y + h} ($minW $minH) ${getPrintSuffix()}"
+        )
     }
+
+    open fun getPrintSuffix(): String = "${style.prefix}"
 
     open fun drawsOverlaysOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int) = false
 

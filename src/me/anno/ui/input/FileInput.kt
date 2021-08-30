@@ -14,10 +14,10 @@ import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.files.FileExplorer.Companion.openInExplorerDesc
 import me.anno.ui.style.Style
-import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.files.FileExplorerSelectWrapper
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.files.LocalFile.toLocalPath
+import me.anno.utils.hpc.Threads.threadWithName
 import java.io.File
 
 class FileInput(
@@ -31,11 +31,13 @@ class FileInput(
     // val text get() = base.text
 
     init {
-        setTooltip(title)
+        base.setTooltip(f0.absolutePath)
         base.apply {
             this += WrapAlign.LeftCenter
             setChangeListener {
-                this@FileInput.changeListener(it.toGlobalFile())
+                val gf = it.toGlobalFile()
+                this@FileInput.changeListener(gf)
+                base.setTooltip(gf.absolutePath)
             }
         }
         button.apply {

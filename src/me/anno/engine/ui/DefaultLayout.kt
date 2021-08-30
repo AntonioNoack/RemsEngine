@@ -1,7 +1,6 @@
 package me.anno.engine.ui
 
 import me.anno.ecs.Entity
-import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView
 import me.anno.io.files.FileReference
 import me.anno.ui.base.Panel
@@ -33,7 +32,6 @@ object DefaultLayout {
         customUI.setWeight(10f)
 
         val animationWindow = CustomList(false, style)
-        customUI.add(animationWindow, 2f)
 
         val libraryBase = ECSTypeLibrary(projectFile, world, syncMaster, isGaming)
         this.library = libraryBase
@@ -47,6 +45,8 @@ object DefaultLayout {
         animationWindow.add(CustomContainer(SceneView(libraryBase, style), library, style), 3f)
         animationWindow.add(CustomContainer(PropertyInspector({ libraryBase.selection }, style), library, style), 1f)
         animationWindow.setWeight(1f)
+        customUI.add(animationWindow, 2f)
+
         customUI.add(CustomContainer(ECSFileExplorer(projectFile, syncMaster, style), library, style).setWeight(0.3f))
 
         /*if (!isGaming) {
@@ -62,7 +62,6 @@ object DefaultLayout {
         return customUI
 
     }
-
 
 
 }

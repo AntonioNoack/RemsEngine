@@ -15,7 +15,7 @@ class PlanarReflection : Component() {
     // todo a) as a decal, overriding glossy surfaces
     // todo b) as a mesh
 
-    override fun clone(): PrefabSaveable {
+    override fun clone(): Component {
         TODO("Not yet implemented")
     }
 

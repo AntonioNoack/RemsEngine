@@ -6,7 +6,6 @@ import me.anno.utils.maths.Maths.mix
 import me.anno.utils.search.BinarySearch.binarySearch
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
-import org.joml.Matrix4x3f
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.lwjgl.assimp.*
@@ -96,21 +95,17 @@ object AnimatedMeshesLoader2 : StaticMeshesLoader() {
         )
     }
 
-    // todo try two things: nodeTransform must be inverse(offsetMatrix)
-    // done a) offsetMatrix = inverse(nodeTransform) -> works for BrainStem.glb
-    // todo b) nodeTransform = inverse(offsetMatrix), Problem: offsetMatrix isn't always defined
-
     fun getNodeTransform(animationTime: Double, aiNodeAnim: AINodeAnim, dst: Matrix4f) {
 
         // local matrix
-        val scale = interpolateScale(animationTime, aiNodeAnim)
-        val rotation = interpolateRotation(animationTime, aiNodeAnim)
         val translation = interpolatePosition(animationTime, aiNodeAnim)
+        val rotation = interpolateRotation(animationTime, aiNodeAnim)
+        val scale = interpolateScale(animationTime, aiNodeAnim)
 
         dst.identity()
             .translate(translation)
             .rotate(rotation)
-            .scale(scale) // probably could be disabled*/
+            .scale(scale) // probably could be disabled
 
     }
 
@@ -123,7 +118,8 @@ object AnimatedMeshesLoader2 : StaticMeshesLoader() {
         skinningMatrices: Array<Matrix4f>,
         nodeTransformParent: Matrix4f?,
         nodeTransformParent0: Matrix4f?,
-        globalInverseTransform: Matrix4f
+        globalTransform: Matrix4f?,
+        globalInverseTransform: Matrix4f?
     ) {
 
         val name = aiNode.mName().dataString()
@@ -142,26 +138,27 @@ object AnimatedMeshesLoader2 : StaticMeshesLoader() {
 
         }
 
-        val nodeTransform =
-            if (nodeTransformParent == null) {
-                if (aiNodeAnim == null) Matrix4f()
-                else Matrix4f(globalInverseTransform).mul(localTransform)
-            } else Matrix4f(nodeTransformParent).mul(localTransform)
-
-        val nodeTransform0 =
-            if (nodeTransformParent == null) {
-                if (aiNodeAnim == null) Matrix4f()
-                else Matrix4f(globalInverseTransform).mul(localTransform0)
-            } else Matrix4f(nodeTransformParent0).mul(localTransform0)
+        nodeTransformParent?.mul(localTransform, localTransform)
+        nodeTransformParent0?.mul(localTransform0, localTransform0)
 
         val bone = boneMap[name]
         if (bone != null) {
             // ? * inv(tmp) = skinning -> skinning * tmp = ?
-            bone.tmpTransform.set(nodeTransform0)
-            val boneOffsetMatrix = Matrix4f(nodeTransform0).invert()
-            bone.tmpOffset.set(boneOffsetMatrix)
+            // bone.tmpTransform.set(nodeTransform0)
+            // val boneOffsetMatrix = Matrix4f(nodeTransform0).invert()
+            val boneOffsetMatrix = bone.inverseBindPose
+            // bone.tmpOffset.set(boneOffsetMatrix)
             // bone.offsetMatrix.set(boneOffsetMatrix)
-            skinningMatrices[bone.id].set(nodeTransform).mul(boneOffsetMatrix)
+            val skinningMatrix = skinningMatrices[bone.id]
+            if (globalTransform == null) {
+                skinningMatrix.set(localTransform).mul(boneOffsetMatrix)
+            } else {
+                // the same, just converting the vertices temporarily into local global space and then back
+                skinningMatrix.set(globalInverseTransform)
+                    .mul(localTransform)
+                    .mul(boneOffsetMatrix)
+                    .mul(globalTransform)
+            }
         }
 
         val children = aiNode.mChildren()
@@ -173,7 +170,8 @@ object AnimatedMeshesLoader2 : StaticMeshesLoader() {
                     animNodeCache, animationTime,
                     AINode.create(children[i]),
                     skinningMatrices,
-                    nodeTransform, nodeTransform0,
+                    localTransform, localTransform0,
+                    globalTransform,
                     globalInverseTransform
                 )
             }
@@ -198,19 +196,19 @@ object AnimatedMeshesLoader2 : StaticMeshesLoader() {
         val localTransform0 = convert(aiNode.mTransformation())
         val aiNodeAnim = animNodeCache[name]
 
-        if (aiNodeAnim != null) {
-            val bone = Bone(boneList.size, lastBoneId, name, Matrix4x3f())
+        val bone = if (aiNodeAnim != null) {
+            val bone = Bone(boneList.size, lastBoneId, name)
             boneList.add(bone)
             boneMap[name] = bone
-        }
+            bone
+        } else null
 
         val nodeTransform0 =
             if (nodeTransformParent0 == null) {
-                if (aiNodeAnim == null) Matrix4f()
+                if (aiNodeAnim == null) Matrix4f(localTransform0)
                 else Matrix4f(globalInverseTransform).mul(localTransform0)
             } else Matrix4f(nodeTransformParent0).mul(localTransform0)
 
-        val bone = boneMap[name]
         val boneId = if (bone != null) {
             bone.setBindPose(nodeTransform0)
             bone.id
@@ -254,26 +252,29 @@ object AnimatedMeshesLoader2 : StaticMeshesLoader() {
     }
 
     fun readNodeHierarchy(
-        aiScene: AIScene, lastBoneId: Int,
+        aiScene: AIScene,
         boneMap: Map<String, Bone>,
         animNodeCache: Map<String, AINodeAnim>,
         animationTime: Double,
         aiNode: AINode,
         skinningMatrices: Array<Matrix4f>,
         nodeTransformParent: Matrix4f?,
-        globalInverseTransform: Matrix4f
+        globalInverseTransform: Matrix4f?
     ) {
 
         val nodeName = aiNode.mName().dataString()
         val localTransform = convert(aiNode.mTransformation())
         val aiNodeAnim = animNodeCache[nodeName]
 
-        if (false && aiNodeAnim != null) {
+        if (aiNodeAnim != null) {
 
             // local matrix
-            val scale = Vector3f(1f) //interpolateScale(animationTime, aiNodeAnim)
-            val rotation = Quaternionf() // interpolateRotation(animationTime, aiNodeAnim)
-            val translation = Vector3f()// interpolatePosition(animationTime, aiNodeAnim)
+            //val scale = Vector3f(1f) //interpolateScale(animationTime, aiNodeAnim)
+            //val rotation = Quaternionf() // interpolateRotation(animationTime, aiNodeAnim)
+            //val translation = Vector3f()// interpolatePosition(animationTime, aiNodeAnim)
+            val scale = interpolateScale(animationTime, aiNodeAnim)
+            val rotation = interpolateRotation(animationTime, aiNodeAnim)
+            val translation = interpolatePosition(animationTime, aiNodeAnim)
 
             localTransform.identity()
                 .translate(translation)
@@ -289,22 +290,19 @@ object AnimatedMeshesLoader2 : StaticMeshesLoader() {
             } else Matrix4f(nodeTransformParent).mul(localTransform)
 
         val bone = boneMap[nodeName]
-        val boneId = if (bone != null) {
+        if (bone != null) {
             // inspired by DAE from Karl (ThinMatrix)
             // bone.skinningMatrix.set(nodeTransform).mul(convert(aiNode.mTransformation()).invert())
             // at least the DAE sample is working
             skinningMatrices[bone.id].set(nodeTransform).mul(bone.inverseBindPose)
             // bone.skinningMatrix.set(modelTransform).mul(Matrix4f(bone.offsetMatrix).invert())
-            bone.parentId = lastBoneId
-            bone.id
-        } else lastBoneId
+        }
 
         val children = aiNode.mChildren()
         if (children != null) {
             for (i in 0 until aiNode.mNumChildren()) {
                 readNodeHierarchy(
-                    aiScene,
-                    boneId, boneMap,
+                    aiScene, boneMap,
                     animNodeCache, animationTime,
                     AINode.create(children[i]),
                     skinningMatrices, nodeTransform,
@@ -331,7 +329,8 @@ object AnimatedMeshesLoader2 : StaticMeshesLoader() {
         rootNode: AINode,
         relativeIndex: Double,
         transforms: Array<Matrix4f>,
-        globalInverseTransform: Matrix4f,
+        globalTransform: Matrix4f?,
+        globalInverseTransform: Matrix4f?,
         boneList: List<Bone>,
         boneMap: Map<String, Bone>,
         animNodeCache: Map<String, AINodeAnim>
@@ -342,7 +341,7 @@ object AnimatedMeshesLoader2 : StaticMeshesLoader() {
         )*/
         readNodeHierarchyA(
             aiScene, boneMap, animNodeCache,
-            relativeIndex, rootNode, transforms, null, null, globalInverseTransform
+            relativeIndex, rootNode, transforms, null, null, globalTransform, globalInverseTransform
         )
     }
 

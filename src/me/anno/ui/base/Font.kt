@@ -13,9 +13,16 @@ data class Font(val name: String, val size: Float, val isBold: Boolean, val isIt
     val sizeInt = size.roundToInt()
     val sizeIndex = FontManager.getFontSizeIndex(size)
 
-    val sampleSize = DrawTexts.getTextSize(this, "w", -1, -1)
-    val sampleWidth = GFXx2D.getSizeX(sampleSize)
-    val sampleHeight = GFXx2D.getSizeY(sampleSize)
+    class SampleSize(font: Font){
+        val size = DrawTexts.getTextSize(font, "w", -1, -1)
+        val width = GFXx2D.getSizeX(size)
+        val height = GFXx2D.getSizeY(size)
+    }
+
+    val sample = lazy { SampleSize(this) }
+    val sampleWidth get() = sample.value.width
+    val sampleHeight get() = sample.value.height
+    val sampleSize get() = sample.value.size
 
     fun withBold(bold: Boolean) = Font(name, size, bold, isItalic)
     fun withItalic(italic: Boolean) = Font(name, size, isBold, italic)
