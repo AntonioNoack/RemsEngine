@@ -51,6 +51,11 @@ open class Shader(
     private val uniformLocations = HashMap<String, Int>()
     private val attributeLocations = HashMap<String, Int>()
     private val uniformCache = FloatArray(UniformCacheSizeX4) { Float.NaN }
+    private val textureIndices = HashMap<String, Int>()
+
+    fun getTextureIndex(name: String): Int {
+        return textureIndices[name] ?: -1
+    }
 
     val pointer get() = program
     private val ignoredNames = HashSet<String>()
@@ -129,7 +134,7 @@ open class Shader(
                         "precision mediump float;\n" +
                         varyings.joinToString("\n") { "${it.modifiers} in  ${it.type} ${it.fShaderName};" } +
                         "\n" +
-                        (if (!fragment.contains("out ") && glslVersion == DefaultGLSLVersion) {
+                        (if (!fragment.contains("out ") && glslVersion == DefaultGLSLVersion && fragment.contains("gl_FragColor")) {
                             "" +
                                     "out vec4 glFragColor;" +
                                     fragment.replace("gl_FragColor", "glFragColor")
@@ -177,7 +182,10 @@ open class Shader(
         if (textures == null) return
         for ((index, name) in textures.withIndex()) {
             val texName = getUniformLocation(name)
-            if (texName >= 0) glUniform1i(texName, index)
+            textureIndices[name] = if (texName >= 0) {
+                glUniform1i(texName, index)
+                index
+            } else -1
         }
     }
 

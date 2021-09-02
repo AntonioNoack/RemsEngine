@@ -19,7 +19,6 @@ import me.anno.mesh.assimp.AssimpTree.convert
 import me.anno.utils.Color.rgba
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix4x3f
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -342,11 +341,24 @@ open class StaticMeshesLoader {
         aiGetMaterialString(aiMaterial, AI_MATKEY_NAME, 0, 0, name)
         prefab.setProperty("name", name.dataString())
 
-        // diffuse
-        val diffuse = getColor(aiMaterial, color, AI_MATKEY_COLOR_DIFFUSE)
-        if (diffuse != null) prefab.setProperty("diffuseBase", diffuse)
         val diffuseMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_DIFFUSE, texturesDir)
         if (diffuseMap != InvalidRef) prefab.setProperty("diffuseMap", diffuseMap)
+        else {// I think the else-if is the correct thing here; the storm-trooper is too dark otherwise
+
+            var opacity = getFloat(aiMaterial, AI_MATKEY_OPACITY)
+            if(opacity == 0f) opacity = 1f // completely transparent makes no sense
+            // todo can we check whether this key is actually set? or change the default value?
+            // LOGGER.info("opacity: $opacity")
+
+            // diffuse
+            val diffuse = getColor(aiMaterial, color, AI_MATKEY_COLOR_DIFFUSE)
+            if (diffuse != null) {
+                diffuse.w = opacity
+                prefab.setProperty("diffuseBase", diffuse)
+            } else if (opacity != 1f) {
+                prefab.setProperty("diffuseBase", Vector4f(1f, 1f, 1f, opacity))
+            }
+        }
 
         // emissive
         val emissive = getColor(aiMaterial, color, AI_MATKEY_COLOR_EMISSIVE)
@@ -390,7 +402,7 @@ open class StaticMeshesLoader {
             // val metallic0 = getColor(aiMaterial, color, AI_MATKEY_COLOR_REFLECTIVE) // always null
             val metallic = getFloat(aiMaterial, AI_MATKEY_REFLECTIVITY) // 0.0, rarely 0.5
             if (metallic != 0f) prefab.setProperty("metallicMinMax", Vector2f(0f, metallic))
-            LOGGER.info("metallic: $metallic, roughness: $roughnessBase")
+            // LOGGER.info("metallic: $metallic, roughness: $roughnessBase")
 
         }
         // LOGGER.info("metallic: $metallic0 x $metallic")
@@ -406,17 +418,11 @@ open class StaticMeshesLoader {
             println("$key,$index,$length,$semantic,$type")
         }*/
 
-        val opacity = getFloat(aiMaterial, AI_MATKEY_OPACITY)
-        LOGGER.info("opacity: $opacity")
-
-
         // other stuff
         val displacementMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_DISPLACEMENT, texturesDir)
         val occlusionMap = getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_LIGHTMAP, texturesDir)
         if (displacementMap != InvalidRef) prefab.setProperty("displacementMap", displacementMap)
         if (occlusionMap != InvalidRef) prefab.setProperty("occlusionMap", occlusionMap)
-
-        // todo metallic & roughness
 
         return prefab
     }
@@ -497,12 +503,12 @@ open class StaticMeshesLoader {
         // todo make unique
 
         return if (isCompressed) {
-            LOGGER.info("Loading compressed texture: $index, $width bytes")
+            // LOGGER.info("Loading compressed texture: $index, $width bytes")
             // width is the buffer size in bytes
             // the last bytes will be filled automatically with zeros :)
             parentFolder.createByteChild(fileName, data)
         } else {
-            LOGGER.info("Loading raw texture: $index, $width x $height")
+            // LOGGER.info("Loading raw texture: $index, $width x $height")
             // if not compressed, get data as raw, and save it to bmp or sth like that
             // best possible format: raw
             // ARGB8888

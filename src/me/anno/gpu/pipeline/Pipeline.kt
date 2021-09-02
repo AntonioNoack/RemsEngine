@@ -8,7 +8,6 @@ import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.MeshRenderer
 import me.anno.ecs.components.mesh.RendererComponent
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.Frustum
@@ -20,12 +19,13 @@ import me.anno.gpu.pipeline.M4x3Delta.set4x3delta
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.utils.sorting.MergeSort.mergeSort
+import me.anno.utils.structures.Compare.ifDifferent
 import org.joml.AABBd
 import org.joml.Matrix4f
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL11.GL_FRONT
-import kotlin.math.min
 
 // todo idea: the scene rarely changes -> we can reuse it, and just update the uniforms
 // and the graph may be deep, however meshes may be only in parts of the tree
@@ -46,7 +46,7 @@ class Pipeline : Saveable() {
         "lights", Sorting.NO_SORTING, 0, BlendMode.PURE_ADD,
         DepthMode.GREATER, false, GL_FRONT, pbrModelShader
     )
-    private val lightPseudoRenderer = MeshRenderer()
+    // private val lightPseudoRenderer = MeshRenderer()
 
     lateinit var defaultStage: PipelineStage
 
@@ -70,6 +70,10 @@ class Pipeline : Saveable() {
         }
     }
 
+    private fun addMeshDepth(mesh: Mesh, renderer: RendererComponent, entity: Entity) {
+        defaultStage.add(renderer, mesh, entity, 0, 0)
+    }
+
     private fun addMeshInstanced(mesh: Mesh, entity: Entity, clickId: Int) {
         val materials = mesh.materials
         if (materials.isEmpty()) {
@@ -82,6 +86,10 @@ class Pipeline : Saveable() {
                 stage.addInstanced(mesh, entity, index, clickId)
             }
         }
+    }
+
+    private fun addMeshInstancedDepth(mesh: Mesh, entity: Entity) {
+        defaultStage.addInstanced(mesh, entity, 0, 0)
     }
 
     private fun addLight(light: LightComponent, entity: Entity, cameraPosition: Vector3d, worldScale: Double) {
@@ -102,18 +110,22 @@ class Pipeline : Saveable() {
         }
     }
 
-    // todo collect all buffers + materials, which need to be drawn at a certain stage, and then draw them together
     fun draw(cameraMatrix: Matrix4f, cameraPosition: Vector3d, worldScale: Double) {
         for (stage in stages) {
             stage.bindDraw(this, cameraMatrix, cameraPosition, worldScale)
         }
+    }
 
-        // todo test the culling by drawing 1000 spheres, and using a non-moving frustum
-
+    fun drawDepth(cameraMatrix: Matrix4f, cameraPosition: Vector3d, worldScale: Double) {
+        GFX.check()
+        defaultStage.drawDepth(this, cameraMatrix, cameraPosition, worldScale)
+        GFX.check()
     }
 
     fun reset() {
+        ambient.set(0f)
         lightPseudoStage.reset()
+        defaultStage.reset()
         for (stage in stages) {
             stage.reset()
         }
@@ -121,17 +133,22 @@ class Pipeline : Saveable() {
 
     fun fill(rootElement: Entity, cameraPosition: Vector3d, worldScale: Double) {
         // todo more complex traversal:
-        // todo exclude static entities by their AABB
-        // todo exclude entities, if they contain no meshes
-        // todo exclude entities, if they are off-screen
+        // done exclude static entities by their AABB
+        // done exclude entities, if they contain no meshes
+        // done exclude entities, if they are off-screen
         // todo reuse the pipeline state for multiple frames
         //  - add a margin, so entities at the screen border can stay visible
         //  - partially populate the pipeline?
         rootElement.validateTransforms()
         rootElement.validateAABBs()
-        ambient.set(0f)
         lastClickId = subFill(rootElement, 1, cameraPosition, worldScale)
         // LOGGER.debug("$contained/$nonContained")
+    }
+
+    fun fillDepth(rootElement: Entity, cameraPosition: Vector3d, worldScale: Double){
+        rootElement.validateTransforms()
+        rootElement.validateAABBs()
+        subFillDepth(rootElement, cameraPosition, worldScale)
     }
 
     // 256 = absolute max number of lights
@@ -143,18 +160,29 @@ class Pipeline : Saveable() {
      * creates a list of relevant lights for a forward-rendering draw call of a mesh or region
      * */
     fun getClosestRelevantNLights(region: AABBd, numberOfLights: Int, lights: Array<DrawRequest?>): Int {
-        val stage = lightPseudoStage
+        val lightStage = lightPseudoStage
         if (numberOfLights <= 0) return 0
         // todo if there are more than N lights, create a 3D or 4D lookup array: (x/size,y/size,z/size,log2(size)|0)
-        if (stage.size < numberOfLights) {
+        if (lightStage.size < numberOfLights) {
             // todo always clear the lights array
             // check if already filled:
+            val size = lightStage.size
             if (lights[0] == null) {
-                for (i in 0 until stage.size) {
-                    lights[i] = stage.drawRequests[i]
+                for (i in 0 until size) {
+                    lights[i] = lightStage.drawRequests[i]
+                }
+                // todo lights with shadow could get their own category in the shader
+                // todo probably would make more sense, because they can get complicated
+                // sort by type, and whether they have a shadow
+                mergeSort(lights, 0, size) { a, b ->
+                    val va = a!!.component as LightComponent
+                    val vb = b!!.component as LightComponent
+                    va.hasShadow.compareTo(vb.hasShadow).ifDifferent {
+                        va.lightType.shadowMapType.compareTo(vb.lightType.shadowMapType)
+                    }
                 }
             }// else done
-            return min(numberOfLights, stage.size)
+            return size
         } else {
             // todo find the closest / most relevant lights (large ones)
 
@@ -163,13 +191,13 @@ class Pipeline : Saveable() {
     }
 
     private fun subFill(entity: Entity, clickId0: Int, cameraPosition: Vector3d, worldScale: Double): Int {
+        entity.hasBeenVisible = true
         var clickId = clickId0
         val renderer = entity.getComponent(RendererComponent::class, false)
         val components = entity.components
         for (i in components.indices) {
             val component = components[i]
             if (component.isEnabled) {
-                component.onVisibleUpdate()
                 if (renderer != null && component is MeshComponent) {
                     val mesh = MeshCache[component.mesh]
                     if (mesh != null) {
@@ -198,6 +226,34 @@ class Pipeline : Saveable() {
             }
         }
         return clickId
+    }
+
+    private fun subFillDepth(entity: Entity, cameraPosition: Vector3d, worldScale: Double) {
+        entity.hasBeenVisible = true
+        val renderer = entity.getComponent(RendererComponent::class, false)
+        val components = entity.components
+        for (i in components.indices) {
+            val component = components[i]
+            if (component.isEnabled) {
+                if (renderer != null && component is MeshComponent) {
+                    val mesh = MeshCache[component.mesh]
+                    if (mesh != null) {
+                        if (component.isInstanced) {
+                            addMeshInstancedDepth(mesh, entity)
+                        } else {
+                            addMeshDepth(mesh, renderer, entity)
+                        }
+                    }
+                }
+            }
+        }
+        val children = entity.children
+        for (i in children.indices) {
+            val child = children[i]
+            if (child.isEnabled && frustum.isVisible(child.aabb)) {
+                subFillDepth(child, cameraPosition, worldScale)
+            }
+        }
     }
 
     fun findDrawnSubject(searchedId: Int, entity: Entity): Any? {

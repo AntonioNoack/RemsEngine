@@ -32,7 +32,11 @@ import me.anno.studio.Build
 
 object ECSRegistry {
 
+    private var hasBeenInited = false
     fun init() {
+
+        if(hasBeenInited) return
+        hasBeenInited = true
 
         FileReference.register(ScenePrefab)
 

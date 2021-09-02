@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureCubemap
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13
@@ -34,7 +35,8 @@ class Framebuffer(
     enum class DepthBufferType {
         NONE,
         INTERNAL,
-        TEXTURE
+        TEXTURE,
+        TEXTURE_CUBEMAP
     }
 
     var needsBlit = true
@@ -47,6 +49,7 @@ class Framebuffer(
     var depthRenderBuffer = -1
     var colorRenderBuffer = -1
     var depthTexture: Texture2D? = null
+    var depthTextureCubemap: TextureCubemap? = null
 
     lateinit var textures: Array<Texture2D>
 
@@ -113,7 +116,9 @@ class Framebuffer(
             texture
         }
         GFX.check()
-        textures.forEachIndexed { index, texture ->
+        val textures = textures
+        for(index in textures.indices){
+            val texture = textures[index]
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, tex2D, texture.pointer, 0)
         }
         GFX.check()
@@ -130,6 +135,13 @@ class Framebuffer(
                 depthTexture.createDepth()
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, tex2D, depthTexture.pointer, 0)
                 this.depthTexture = depthTexture
+            }
+            DepthBufferType.TEXTURE_CUBEMAP -> {
+                val size = (w + h) ushr 1
+                val depthTexture = TextureCubemap(size)
+                depthTexture.createDepth()
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, tex2D, depthTexture.pointer, 0)
+                this.depthTextureCubemap = depthTexture
             }
         }
         GFX.check()

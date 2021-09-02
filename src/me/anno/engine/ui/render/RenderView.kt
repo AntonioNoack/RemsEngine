@@ -5,6 +5,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.camera.CameraComponent
+import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.RendererComponent
 import me.anno.ecs.components.player.LocalPlayer
@@ -33,6 +34,7 @@ import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTextures
+import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
@@ -161,8 +163,21 @@ class RenderView(
         camera.near = if (isKeyDown('r')) radius * 1e-2 else radius * 1e-10
 
         val rotation = cameraNode.transform.localRotation
+
+        if(!position.isFinite){
+            me.anno.utils.LOGGER.warn("Invalid position $position")
+            Thread.sleep(100)
+        }
+        if(!rotation.isFinite) {
+            me.anno.utils.LOGGER.warn("Invalid rotation $rotation")
+            Thread.sleep(100)
+        }
+
         cameraNode.transform.localPosition = Vector3d(position)
             .add(rotation.transform(Vector3d(0.0, 0.0, radius)))
+
+        // println(cameraNode.transform.localTransform)
+
         cameraNode.validateTransforms()
 
     }
@@ -284,7 +299,7 @@ class RenderView(
                 }
 
                 // y flipped, because it would be incorrect otherwise
-                DrawTextures.drawTexture(x02, y12, x12 - x02, y02 - y12, texture, true, -1, null)
+                drawTexture(x02, y12, x12 - x02, y02 - y12, texture, true, -1, null)
 
             }
 
@@ -303,6 +318,25 @@ class RenderView(
                 x, y, 2,
                 if (showIds) "IDs" else DeferredLayerType.values()[selectedAttribute].glslName
             )
+        }
+
+        if (!isFinalRendering) {
+            // show the shadow map for debugging purposes
+            val light = library.selected
+                .filterIsInstance<Entity>()
+                .mapNotNull { e -> e.getComponentsInChildren(LightComponent::class).firstOrNull { it.hasShadow } }
+                .firstOrNull()
+            if (light != null) {
+                val textures = light.shadowTextures
+                if (textures != null) {
+                    // draw the texture
+                    val texture = textures.getOrNull(selectedAttribute)?.depthTexture
+                    if (texture != null && texture.isCreated && !texture.isDestroyed) {
+                        val s = w / 3
+                        drawTexture(x, y+s, s, -s, texture, true, -1, null)
+                    }
+                }
+            }
         }
 
         // clock.total("drawing the scene", 0.1)
@@ -374,6 +408,9 @@ class RenderView(
         blending: Float,
     ) {
 
+        val world = getWorld()
+        world.invalidateVisibility()
+
         val blend = clamp(blending, 0f, 1f).toDouble()
         val blendFloat = blend.toFloat()
 
@@ -408,21 +445,20 @@ class RenderView(
         camInverse.set(camTransform).invert()
 
         pipeline.reset()
-        pipeline.frustum.define(
-            near, far,
-            fovYRadians.toDouble(),
-            width.toDouble(),
-            height.toDouble(),
-            aspectRatio.toDouble(),
-            camPosition,
-            camRotation.set(rot2),
+        pipeline.frustum.definePerspective(
+            near, far, fovYRadians.toDouble(),
+            width, height, aspectRatio.toDouble(),
+            camPosition, camRotation.set(rot2),
         )
 
         camRotation.transform(camDirection.set(0.0, 0.0, -1.0))
         debugPoints.add(DebugPoint(Vector3d(camDirection).mul(20.0).add(camPosition), 0xff0000, -1))
 
-        pipeline.fill(getWorld(), camPosition, worldScale)
+        pipeline.fill(world, camPosition, worldScale)
         entityBaseClickId = pipeline.lastClickId
+
+        world.update()
+        world.updateVisible()
 
     }
 

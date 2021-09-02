@@ -9,7 +9,13 @@ import me.anno.utils.files.LocalFile.toGlobalFile
 
 class CAdd() : Change(2) {
 
-    constructor(path: Path, type: Char, className: String, name: String = className, prefab: FileReference = InvalidRef) : this() {
+    constructor(
+        path: Path,
+        type: Char,
+        className: String,
+        name: String = className,
+        prefab: FileReference = InvalidRef
+    ) : this() {
         this.path = path
         this.type = type
         this.clazzName = className

@@ -2,7 +2,6 @@ package me.anno.engine.ui
 
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
-import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView
 import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
@@ -20,12 +19,14 @@ class ECSTypeLibrary(
     val isGaming: Boolean
 ) {
 
+    // todo box selecting with shift
+
     // todo we should be able to select and edit multiple values at the same time
-    var selection: List<Inspectable> = listOf(world)
+    var selected: List<Inspectable> = listOf(world)
     var fineSelection: List<Inspectable> = listOf(world)
 
     fun select(major: Inspectable?, minor: Inspectable? = major) {
-        selection = if (major == null) emptyList() else listOf(major)
+        selected = if (major == null) emptyList() else listOf(major)
         fineSelection = if (minor == null) emptyList() else listOf(minor)
     }
 
@@ -34,7 +35,7 @@ class ECSTypeLibrary(
         // todo some stuff is (maybe) missing, e.g. animation panels, particle system editors, ...
         Dict["Scene View", "ui.customize.sceneView"] to { SceneView(this, DefaultConfig.style) },
         Dict["Tree View", "ui.customize.treeView"] to { ECSTreeView(this, isGaming, DefaultConfig.style) },
-        Dict["Properties", "ui.customize.inspector"] to { PropertyInspector({ selection }, DefaultConfig.style) },
+        Dict["Properties", "ui.customize.inspector"] to { PropertyInspector({ selected }, DefaultConfig.style) },
         // Dict["Cutting Panel", "ui.customize.cuttingPanel"] to { CuttingView(DefaultConfig.style) },
         // Dict["Timeline", "ui.customize.timeline"] to { TimelinePanel(DefaultConfig.style) },
         // Dict["Animations", "ui.customize.graphEditor"] to { GraphEditor(DefaultConfig.style) },

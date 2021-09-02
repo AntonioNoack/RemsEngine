@@ -222,7 +222,7 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                 "Entity" -> {
                     // add this to the scene
                     // where? selected / root
-                    val root = library.selection.filterIsInstance<Entity>().firstOrNull() ?: library.world
+                    val root = library.selected.filterIsInstance<Entity>().firstOrNull() ?: library.world
                     PrefabInspector.currentInspector!!.addEntityChild(root, prefab)
                 }
                 // todo general listener in the components, which listens for drag events? they could be useful for custom stuff...

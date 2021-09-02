@@ -180,7 +180,7 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
         return parentPrefab == null || indexInParent >= parentPrefab.children.size
     }
 
-    override val selectedElement: Entity? = library.selection as? Entity
+    override val selectedElement: Entity? = library.selected as? Entity
 
     override fun selectElement(element: Entity?) {
         library.select(element)

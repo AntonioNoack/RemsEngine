@@ -2,6 +2,7 @@ package me.anno.gpu.texture
 
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
+import org.lwjgl.opengl.ARBDepthBufferFloat.GL_DEPTH_COMPONENT32F
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE
@@ -12,10 +13,7 @@ import org.lwjgl.opengl.GL30
 
 // todo test it
 // todo can be used e.g. for game engine for environment & irradiation maps
-class TextureCubemap : ICacheData {
-
-    var w = 0
-    var h = 0
+class TextureCubemap(var size: Int = 0) : ICacheData {
 
     var isCreated = false
     var isDestroyed = false
@@ -42,8 +40,8 @@ class TextureCubemap : ICacheData {
         Texture2D.bindTexture(tex2D, pointer)
     }
 
-    private fun checkSize(channels: Int, size: Int) {
-        if (size < w * h * channels) throw IllegalArgumentException("Incorrect size, ${w * h * channels} vs ${size}!")
+    private fun checkSize(channels: Int, size0: Int) {
+        if (size0 < size * size * channels) throw IllegalArgumentException("Incorrect size, ${size * size * channels} vs ${size0}!")
     }
 
     private fun beforeUpload(channels: Int, size: Int) {
@@ -54,21 +52,54 @@ class TextureCubemap : ICacheData {
         bindBeforeUpload()
     }
 
-    fun create(sides: List<ByteArray>) {
+    fun createRGB(sides: List<ByteArray>) {
         bindBeforeUpload()
-        val byteBuffer = Texture2D.byteBufferPool[w * h * 3, false]
+        val size = size
+        val byteBuffer = Texture2D.byteBufferPool[size * size * 3, false]
         for (i in 0 until 6) {
             byteBuffer.position(0)
             byteBuffer.put(sides[i])
             byteBuffer.position(0)
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer)
+            glTexImage2D(
+                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB8,
+                size, size, 0, GL_RGB, GL_UNSIGNED_BYTE, byteBuffer
+            )
         }
         Texture2D.byteBufferPool.returnBuffer(byteBuffer)
         afterUpload(6 * 3)
     }
 
+    fun createRGBA(sides: List<ByteArray>) {
+        bindBeforeUpload()
+        val size = size
+        val byteBuffer = Texture2D.byteBufferPool[size * size * 4, false]
+        for (i in 0 until 6) {
+            byteBuffer.position(0)
+            byteBuffer.put(sides[i])
+            byteBuffer.position(0)
+            glTexImage2D(
+                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA8,
+                size, size, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer
+            )
+        }
+        Texture2D.byteBufferPool.returnBuffer(byteBuffer)
+        afterUpload(6 * 4)
+    }
+
+    fun createDepth() {
+        bindBeforeUpload()
+        val size = size
+        for (i in 0 until 6) {
+            glTexImage2D(
+                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT32F,
+                size, size, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0
+            )
+        }
+        afterUpload(6 * 4)
+    }
+
     private fun afterUpload(bytesPerPixel: Int) {
-        locallyAllocated = Texture2D.allocate(locallyAllocated, w * h * bytesPerPixel.toLong())
+        locallyAllocated = Texture2D.allocate(locallyAllocated, size * size * bytesPerPixel.toLong())
         isCreated = true
         filtering(filtering)
         clamping()
@@ -105,7 +136,6 @@ class TextureCubemap : ICacheData {
         // ensure being bound?
         if (nearest != this.filtering) filtering(nearest)
     }
-
 
     fun reset() {
         isDestroyed = false

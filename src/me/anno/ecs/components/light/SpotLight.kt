@@ -1,12 +1,15 @@
 package me.anno.ecs.components.light
 
+import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.light.PointLight.Companion.cubeMesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.io.serialization.NotSerializedProperty
+import kotlin.math.tan
 
 // a cone light
-class SpotLight() : LightComponent() {
+class SpotLight() : LightComponent(LightType.SPOT) {
 
     constructor(src: SpotLight) : this() {
         src.copy(this)
@@ -15,6 +18,11 @@ class SpotLight() : LightComponent() {
     // for a large angle, it just becomes a point light
     @Range(0.0, 100.0)
     var coneAngle = 1.0
+
+    @HideInInspector
+    @NotSerializedProperty
+    val fovRadians
+        get() = 2.0 * tan(coneAngle)
 
     // for deferred rendering, this could be optimized
     override fun getLightPrimitive(): Mesh = cubeMesh

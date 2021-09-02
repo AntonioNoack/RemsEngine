@@ -232,7 +232,8 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun writeFloatArray(name: String, values: FloatArray, force: Boolean) {
+    override fun writeFloatArray(name: String, values: FloatArray?, force: Boolean) {
+        if (values == null) TODO()
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, FLOAT_ARRAY)
             output.writeInt(values.size)
@@ -240,7 +241,8 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun writeFloatArray2D(name: String, values: Array<FloatArray>, force: Boolean) {
+    override fun writeFloatArray2D(name: String, values: Array<FloatArray>?, force: Boolean) {
+        if (values == null) TODO()
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, FLOAT_ARRAY_2D)
             output.writeInt(values.size)
@@ -326,7 +328,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector2fArray(name: String, values: Array<Vector2fc>, force: Boolean) {
+    override fun writeVector2fArray(name: String, values: Array<Vector2f>, force: Boolean) {
         writeGenericArray(name, values, force, VECTOR2F_ARRAY) { v ->
             output.writeFloat(v.x())
             output.writeFloat(v.y())
@@ -342,7 +344,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector3fArray(name: String, values: Array<Vector3fc>, force: Boolean) {
+    override fun writeVector3fArray(name: String, values: Array<Vector3f>, force: Boolean) {
         writeGenericArray(name, values, force, VECTOR3F_ARRAY) { v ->
             output.writeFloat(v.x())
             output.writeFloat(v.y())
@@ -360,7 +362,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector4fArray(name: String, values: Array<Vector4fc>, force: Boolean) {
+    override fun writeVector4fArray(name: String, values: Array<Vector4f>, force: Boolean) {
         writeGenericArray(name, values, force, VECTOR4F_ARRAY) { v ->
             output.writeFloat(v.x())
             output.writeFloat(v.y())
@@ -377,7 +379,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector2dArray(name: String, values: Array<Vector2dc>, force: Boolean) {
+    override fun writeVector2dArray(name: String, values: Array<Vector2d>, force: Boolean) {
         writeGenericArray(name, values, force, VECTOR2D_ARRAY) { v ->
             output.writeDouble(v.x())
             output.writeDouble(v.y())
@@ -393,7 +395,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector3dArray(name: String, values: Array<Vector3dc>, force: Boolean) {
+    override fun writeVector3dArray(name: String, values: Array<Vector3d>, force: Boolean) {
         writeGenericArray(name, values, force, VECTOR3D_ARRAY) { v ->
             output.writeDouble(v.x())
             output.writeDouble(v.y())
@@ -411,7 +413,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector4dArray(name: String, values: Array<Vector4dc>, force: Boolean) {
+    override fun writeVector4dArray(name: String, values: Array<Vector4d>, force: Boolean) {
         writeGenericArray(name, values, force, VECTOR4D_ARRAY) { v ->
             output.writeDouble(v.x())
             output.writeDouble(v.y())
@@ -447,36 +449,52 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector2iArray(name: String, values: Array<Vector2ic>, force: Boolean) {
+    override fun writeVector2iArray(name: String, values: Array<Vector2i>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
-    override fun writeVector3iArray(name: String, values: Array<Vector3ic>, force: Boolean) {
+    override fun writeVector3iArray(name: String, values: Array<Vector3i>, force: Boolean) {
         TODO("Not yet implemented")
     }
 
-    override fun writeVector4iArray(name: String, values: Array<Vector4ic>, force: Boolean) {
+    override fun writeVector4iArray(name: String, values: Array<Vector4i>, force: Boolean) {
         TODO("Not yet implemented")
+    }
+
+    fun writeQuaternion(value: Quaternionf) {
+        output.writeFloat(value.x())
+        output.writeFloat(value.y())
+        output.writeFloat(value.z())
+        output.writeFloat(value.w())
+    }
+
+    fun writeQuaternion(value: Quaterniond) {
+        output.writeDouble(value.x())
+        output.writeDouble(value.y())
+        output.writeDouble(value.z())
+        output.writeDouble(value.w())
     }
 
     override fun writeQuaternionf(name: String, value: Quaternionf, force: Boolean) {
         if (force || (value.x() != 0f || value.y() != 0f || value.z() != 0f || value.w() != 1f)) {
             writeAttributeStart(name, QUATERNION32)
-            output.writeFloat(value.x())
-            output.writeFloat(value.y())
-            output.writeFloat(value.z())
-            output.writeFloat(value.w())
+            writeQuaternion(value)
         }
     }
 
     override fun writeQuaterniond(name: String, value: Quaterniond, force: Boolean) {
         if (force || (value.x() != 0.0 || value.y() != 0.0 || value.z() != 0.0 || value.w() != 1.0)) {
             writeAttributeStart(name, QUATERNION64)
-            output.writeDouble(value.x())
-            output.writeDouble(value.y())
-            output.writeDouble(value.z())
-            output.writeDouble(value.w())
+            writeQuaternion(value)
         }
+    }
+
+    override fun writeQuaternionfArray(name: String, values: Array<Quaternionf>, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeQuaternionfArray2D(name: String, values: Array<Array<Quaternionf>>, force: Boolean) {
+        TODO("Not yet implemented")
     }
 
     override fun writeMatrix3x3f(name: String, value: Matrix3fc, force: Boolean) {

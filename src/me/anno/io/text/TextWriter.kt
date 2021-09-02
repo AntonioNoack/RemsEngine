@@ -224,16 +224,23 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         }
     }
 
-    override fun writeFloatArray(name: String, values: FloatArray, force: Boolean) {
-        if (force || values.isNotEmpty()) {
-            writeAttributeStart("f[]", name)
-            writeArray(values.size, values.indexOfLast { it != 0f }) {
-                append(values[it])
+    override fun writeFloatArray(name: String, values: FloatArray?, force: Boolean) {
+        if (values == null) {
+            if (force) {
+                writeAttributeStart("f[]", name)
+                data.append("null")
+            }
+        } else {
+            if (force || values.isNotEmpty()) {
+                writeAttributeStart("f[]", name)
+                writeArray(values.size, values.indexOfLast { it != 0f }) {
+                    append(values[it])
+                }
             }
         }
     }
 
-    override fun writeFloatArray2D(name: String, values: Array<FloatArray>, force: Boolean) {
+    override fun writeFloatArray2D(name: String, values: Array<FloatArray>?, force: Boolean) {
         writeArray(name, values, force, "f[][]") { arr ->
             writeArray(arr.size, arr.indexOfLast { it != 0f }) {
                 append(arr[it])
@@ -378,23 +385,51 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         data.append(']')
     }
 
+    private fun writeQuaternion(value: Quaternionf) {
+        data.append('[')
+        val x = value.x()
+        val y = value.y()
+        val z = value.z()
+        val w = value.w()
+        append(x)
+        data.append(separator)
+        append(y)
+        data.append(separator)
+        append(z)
+        data.append(separator)
+        append(w)
+        data.append(']')
+    }
+
+    private fun writeQuaternion(value: Quaterniond) {
+        data.append('[')
+        val x = value.x()
+        val y = value.y()
+        val z = value.z()
+        val w = value.w()
+        append(x)
+        data.append(separator)
+        append(y)
+        data.append(separator)
+        append(z)
+        data.append(separator)
+        append(w)
+        data.append(']')
+    }
+
     override fun writeQuaternionf(name: String, value: Quaternionf, force: Boolean) {
         if (force || value.x != 0f || value.y != 0f || value.z != 0f || value.w != 1f) {
             writeAttributeStart("q4", name)
-            data.append('[')
-            val x = value.x()
-            val y = value.y()
-            val z = value.z()
-            val w = value.w()
-            append(x)
-            data.append(separator)
-            append(y)
-            data.append(separator)
-            append(z)
-            data.append(separator)
-            append(w)
-            data.append(']')
+            writeQuaternion(value)
         }
+    }
+
+    override fun writeQuaternionfArray(name: String, values: Array<Quaternionf>, force: Boolean) {
+        writeArray(name, values, force, "q4[]") { writeQuaternion(it) }
+    }
+
+    override fun writeQuaternionfArray2D(name: String, values: Array<Array<Quaternionf>>, force: Boolean) {
+        TODO("Not yet implemented")
     }
 
     private fun writeVector2d(value: Vector2dc) {
@@ -453,19 +488,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
     override fun writeQuaterniond(name: String, value: Quaterniond, force: Boolean) {
         if (force || value.x != 0.0 || value.y != 0.0 || value.z != 0.0 || value.w != 1.0) {
             writeAttributeStart("q4d", name)
-            data.append('[')
-            val x = value.x()
-            val y = value.y()
-            val z = value.z()
-            val w = value.w()
-            append(x)
-            data.append(separator)
-            append(y)
-            data.append(separator)
-            append(z)
-            data.append(separator)
-            append(w)
-            data.append(']')
+            writeQuaternion(value)
         }
     }
 
@@ -506,7 +529,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector2iArray(name: String, values: Array<Vector2ic>, force: Boolean) {
+    override fun writeVector2iArray(name: String, values: Array<Vector2i>, force: Boolean) {
         writeArray(name, values, force, "v2i[]") { writeVector2i(it) }
     }
 
@@ -517,7 +540,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector3iArray(name: String, values: Array<Vector3ic>, force: Boolean) {
+    override fun writeVector3iArray(name: String, values: Array<Vector3i>, force: Boolean) {
         writeArray(name, values, force, "v3i[]") { writeVector3i(it) }
     }
 
@@ -528,7 +551,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector4iArray(name: String, values: Array<Vector4ic>, force: Boolean) {
+    override fun writeVector4iArray(name: String, values: Array<Vector4i>, force: Boolean) {
         writeArray(name, values, force, "v4i[]") { writeVector4i(it) }
     }
 
@@ -539,7 +562,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector2fArray(name: String, values: Array<Vector2fc>, force: Boolean) {
+    override fun writeVector2fArray(name: String, values: Array<Vector2f>, force: Boolean) {
         writeArray(name, values, force, "v2[]") { writeVector2f(it) }
     }
 
@@ -550,7 +573,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector3fArray(name: String, values: Array<Vector3fc>, force: Boolean) {
+    override fun writeVector3fArray(name: String, values: Array<Vector3f>, force: Boolean) {
         writeArray(name, values, force, "v3[]") { writeVector3f(it) }
     }
 
@@ -561,7 +584,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector4fArray(name: String, values: Array<Vector4fc>, force: Boolean) {
+    override fun writeVector4fArray(name: String, values: Array<Vector4f>, force: Boolean) {
         writeArray(name, values, force, "v4[]") { writeVector4f(it) }
     }
 
@@ -572,7 +595,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector2dArray(name: String, values: Array<Vector2dc>, force: Boolean) {
+    override fun writeVector2dArray(name: String, values: Array<Vector2d>, force: Boolean) {
         writeArray(name, values, force, "v2d[]") { writeVector2d(it) }
     }
 
@@ -583,7 +606,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector3dArray(name: String, values: Array<Vector3dc>, force: Boolean) {
+    override fun writeVector3dArray(name: String, values: Array<Vector3d>, force: Boolean) {
         writeArray(name, values, force, "v3d[]") { writeVector3d(it) }
     }
 
@@ -594,7 +617,7 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector4dArray(name: String, values: Array<Vector4dc>, force: Boolean) {
+    override fun writeVector4dArray(name: String, values: Array<Vector4d>, force: Boolean) {
         writeArray(name, values, force, "v4d[]") { writeVector4d(it) }
     }
 
@@ -614,21 +637,29 @@ class TextWriter(beautify: Boolean) : BaseWriter(true) {
 
     private inline fun <V> writeArray(
         name: String,
-        values: Array<V>,
+        values: Array<V>?,
         force: Boolean,
         type: String,
         writeValue: (V) -> Unit
     ) {
-        if (force || values.isNotEmpty()) {
-            writeAttributeStart(type, name)
-            open(true)
-            data.append(values.size)
-            for (it in values) {
-                data.append(separator)
-                writeValue(it)
+        if (values == null) {
+            if (force) {
+                writeAttributeStart(type, name)
+                data.append("null")
             }
-            close(true)
+        } else {
+            if (force || values.isNotEmpty()) {
+                writeAttributeStart(type, name)
+                open(true)
+                data.append(values.size)
+                for (it in values) {
+                    data.append(separator)
+                    writeValue(it)
+                }
+                close(true)
+            }
         }
+
     }
 
     override fun writeMatrix3x3f(name: String, value: Matrix3fc, force: Boolean) {

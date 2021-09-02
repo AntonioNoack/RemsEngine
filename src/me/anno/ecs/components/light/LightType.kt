@@ -3,10 +3,10 @@ package me.anno.ecs.components.light
 import me.anno.ecs.components.light.PointLight.Companion.falloff
 import me.anno.ecs.components.light.SpotLight.Companion.coneFunction
 
-enum class LightType(val id: Int, val falloff: String) {
-    DIRECTIONAL(0, "max(0.0, dir.z)"),
-    SPOT_LIGHT(1, "$coneFunction * $falloff"), // todo position is awkward / not working
-    POINT_LIGHT(2, falloff);
+enum class LightType(val id: Int, val falloff: String, val shadowMapType: ShadowMapType) {
+    DIRECTIONAL(0, "max(0.0, dir.z)", ShadowMapType.PLANE),
+    SPOT(1, "$coneFunction * $falloff", ShadowMapType.PLANE), // todo position is awkward / not working
+    POINT(2, falloff, ShadowMapType.CUBEMAP);
     // todo environment map is another type
     // todo combine it with shadows somehow? idk...
 }

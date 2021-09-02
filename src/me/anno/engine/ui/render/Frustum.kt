@@ -11,10 +11,12 @@ class Frustum {
     val normals = Array(6) { Vector3d() }
     val positions = Array(6) { Vector3d() }
 
-    // frustum information
-    val cameraPosition = Vector3d()
-    val cameraRotation = Matrix3d()
-    var sizeThreshold = 0.01 // todo depends on fov, bounds/distance visible
+    // frustum information, for the size estimation
+    private val cameraPosition = Vector3d()
+    private val cameraRotation = Matrix3d()
+
+    var sizeThreshold = 0.01
+    var isPerspective = false
 
     // 1.0 is nearly not noticeable
     // 3.0 is noticeable, if you look at it, and have a static scene
@@ -23,12 +25,58 @@ class Frustum {
 
     // todo for size thresholding, it would be great, if we could fade the objects in and out
 
-    fun define(
+    fun defineOrthographic(
+        sizeX: Double,
+        sizeY: Double,
+        sizeZ: Double,
+        resolution: Int,
+        cameraPosition: Vector3d,
+        cameraRotation: Quaterniond
+    ) {
+
+        // todo is this correct? from -1 to +1? x,y yes, z maybe not...
+
+        val objectSizeThreshold = minObjectSizePixels * sizeX / resolution
+        sizeThreshold = /* detailFactor * */ sq(objectSizeThreshold)
+
+        positions[0].set(+sizeX, 0.0, 0.0)
+        normals[0].set(+1.0, 0.0, 0.0)
+        positions[1].set(-sizeX, 0.0, 0.0)
+        normals[1].set(-1.0, 0.0, 0.0)
+
+        positions[2].set(0.0, -sizeY, 0.0)
+        normals[2].set(0.0, -1.0, 0.0)
+        positions[3].set(0.0, +sizeY, 0.0)
+        normals[3].set(0.0, +1.0, 0.0)
+
+        positions[4].set(0.0, 0.0, -sizeZ)
+        normals[4].set(0.0, 0.0, -1.0)
+        positions[5].set(0.0, 0.0, +sizeZ)
+        normals[5].set(0.0, 0.0, +1.0)
+
+        for (i in 0 until 6) {
+            cameraRotation.transform(normals[i])
+            val position = positions[i]
+            position.add(cameraPosition)
+            val normal = normals[i]
+            val distance = position.dot(normal)
+            planes[i].set(normal, -distance)
+        }
+
+        isPerspective = false
+
+        this.cameraPosition.set(cameraPosition)
+        this.cameraRotation.identity()
+            .rotate(cameraRotation)
+
+    }
+
+    fun definePerspective(
         near: Double,
         far: Double,
         fovYRadians: Double,
-        width: Double,
-        height: Double,
+        width: Int,
+        height: Int,
         aspectRatio: Double,
         cameraPosition: Vector3d,
         cameraRotation: Quaterniond,
@@ -92,6 +140,8 @@ class Frustum {
             planes[i].set(normal, -distance)
         }
 
+        isPerspective = true
+
         this.cameraPosition.set(cameraPosition)
         this.cameraRotation.identity()
             .rotate(cameraRotation)
@@ -107,42 +157,63 @@ class Frustum {
 
         val cameraPosition = cameraPosition
 
-        // if the aabb contains the camera,
-        // it will be visible
-        if (aabb.testPoint(cameraPosition)) {
-            return true
+        if (isPerspective) {
+
+            // if the aabb contains the camera,
+            // it will be visible
+            if (aabb.testPoint(cameraPosition)) {
+                return true
+            }
+
+            val mx = aabb.minX - cameraPosition.x
+            val my = aabb.minY - cameraPosition.y
+            val mz = aabb.minZ - cameraPosition.z
+            val xx = aabb.maxX - cameraPosition.x
+            val xy = aabb.maxY - cameraPosition.y
+            val xz = aabb.maxZ - cameraPosition.z
+
+            // if the aabb has a regular shape, we can use a simpler test than this 8-fold loop
+            /*for (i in 0 until 8) {
+                v.set(
+                    (if ((i and 1) != 0) aabb.minX else aabb.maxX).toDouble()-cam.x,
+                    (if ((i and 2) != 0) aabb.minY else aabb.maxY).toDouble()-cam.y,
+                    (if ((i and 4) != 0) aabb.minZ else aabb.maxZ).toDouble()-cam.z,
+                    1.0
+                )
+                viewTransform.transform(v)
+                v.div(v.w)
+                // clamp to screen?
+                scaledMax.max(v)
+                scaledMin.min(v)
+            }*/
+            // quaternion * vec ~ 47 flops
+            // mat3 * vec ~ 15 flops -> much more effective
+            // val transformedBounds = cameraRotation.transform(tmp.set(xx - mx, xy - my, xz - mz))
+            // abs(transformedBounds.x * transformedBounds.y) // area
+            val guessedSize = calculateArea(cameraRotation, xx - mx, xy - my, xz - mz) // area
+
+            val guessedDistance = sq(min(-mx, xx), min(-my, xy), min(-mz, xz)) // distance²
+            val relativeSizeGuess = guessedSize / guessedDistance // (bounds / distance)²
+            return relativeSizeGuess > sizeThreshold
+
+        } else {
+
+            val mx = aabb.minX
+            val my = aabb.minY
+            val mz = aabb.minZ
+            val xx = aabb.maxX
+            val xy = aabb.maxY
+            val xz = aabb.maxZ
+
+            val guessedSize = calculateArea(cameraRotation, xx - mx, xy - my, xz - mz) // area
+            return guessedSize > sizeThreshold
+
         }
-        val mx = aabb.minX - cameraPosition.x
-        val my = aabb.minY - cameraPosition.y
-        val mz = aabb.minZ - cameraPosition.z
-        val xx = aabb.maxX - cameraPosition.x
-        val xy = aabb.maxY - cameraPosition.y
-        val xz = aabb.maxZ - cameraPosition.z
-        // if the aabb has a regular shape, we can use a simpler test than this 8-fold loop
-        /*for (i in 0 until 8) {
-            v.set(
-                (if ((i and 1) != 0) aabb.minX else aabb.maxX).toDouble()-cam.x,
-                (if ((i and 2) != 0) aabb.minY else aabb.maxY).toDouble()-cam.y,
-                (if ((i and 4) != 0) aabb.minZ else aabb.maxZ).toDouble()-cam.z,
-                1.0
-            )
-            viewTransform.transform(v)
-            v.div(v.w)
-            // clamp to screen?
-            scaledMax.max(v)
-            scaledMin.min(v)
-        }*/
-        // quaternion * vec ~ 47 flops
-        // mat3 * vec ~ 15 flops -> much more effective
-        // val transformedBounds = cameraRotation.transform(tmp.set(xx - mx, xy - my, xz - mz))
-        // abs(transformedBounds.x * transformedBounds.y) // area
-        val guessedSize = calculateArea(cameraRotation, xx - mx, xy - my, xz - mz) // area
-        val guessedDistance = sq(min(-mx, xx), min(-my, xy), min(-mz, xz)) // distance²
-        val effectiveSize = guessedSize / guessedDistance // (bounds / distance)²
-        return effectiveSize > sizeThreshold
+
     }
 
     private fun calculateArea(mat: Matrix3d, x: Double, y: Double, z: Double): Double {
+        if (x.isInfinite() || y.isInfinite() || z.isInfinite()) return Double.POSITIVE_INFINITY
         val rx = Math.fma(mat.m00(), x, Math.fma(mat.m10(), y, mat.m20() * z))
         val ry = Math.fma(mat.m01(), x, Math.fma(mat.m11(), y, mat.m21() * z))
         val rz = Math.fma(mat.m02(), x, Math.fma(mat.m12(), y, mat.m22() * z))

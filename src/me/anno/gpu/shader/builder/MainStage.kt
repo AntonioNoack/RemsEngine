@@ -1,6 +1,8 @@
 package me.anno.gpu.shader.builder
 
 import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.shader.builder.ShaderBuilder.Companion.indent
+import me.anno.utils.test.cleanEclipseProject
 
 class MainStage {
 
@@ -125,6 +127,54 @@ class MainStage {
         }
         if (functions.isNotEmpty()) code.append('\n')
 
+        // for all uniforms, which are sampler arrays, define the appropriate access function
+        for (uniform in uniforms) {
+            if (uniform.arraySize > 0 && uniform.type.startsWith("sampler")) {
+                val name = uniform.name
+                // base color function
+                code.append("vec4 texture_array_")
+                code.append(name)
+                code.append("(int index, vec2 uv){\n")
+                code.append("switch(index){\n")
+                for(index in 0 until uniform.arraySize){
+                    code.append("case ")
+                    code.append(index)
+                    code.append(": return texture(")
+                    code.append(name)
+                    code.append(index)
+                    code.append(", uv);\n")
+                }
+                code.append("default: return vec4(0.0);\n")
+                code.append("}\n}\n")
+                // function with interpolation for depth,
+                // as sampler2DShadow is supposed to work
+                code.append("float texture_array_depth_")
+                code.append(name)
+                code.append("(int index, vec2 uv, float depth){\n")
+                code.append("int size;vec2 f;float d,fSize;\n")
+                code.append("switch(index){\n")
+                for(index in 0 until uniform.arraySize){
+                    val nameIndex = name+index.toString()
+                    code.append("case ")
+                    code.append(index)
+                    code.append(":\n" +
+                            "size = textureSize($nameIndex,0).x;\n" +
+                            "fSize = float(size);\n" +
+                            "d = 1.0/fSize;\n" +
+                            "f = fract(uv*fSize);\n" +
+                            "return mix(mix(" +
+                            "   texture($nameIndex, uv          ).r>depth?1.0:0.0,\n" +
+                            "   texture($nameIndex, uv+vec2(0,d)).r>depth?1.0:0.0,\n" +
+                            "f.y), mix(\n" +
+                            "   texture($nameIndex, uv+vec2(d,0)).r>depth?1.0:0.0,\n" +
+                            "   texture($nameIndex, uv+vec2(d,d)).r>depth?1.0:0.0,\n" +
+                            "f.y), f.x);\n")
+                }
+                code.append("default: return 0.0;\n")
+                code.append("}\n}\n")
+            }
+        }
+
         code.append("void main(){\n")
 
         val defined = HashSet(defined)
@@ -175,10 +225,14 @@ class MainStage {
                         else -> Int.MAX_VALUE
                     }
                 }
-                if (outputSum in 1..4) {
-                    if (outputSum == 4 && lastOutputs.size == 1) {
+                when {
+                    outputSum == 0 -> {
+                        code.append("glFragColor = vec4(1.0);\n")
+                    }
+                    outputSum == 4 && lastOutputs.size == 1 -> {
                         code.append("glFragColor = ${lastOutputs[0].name};\n")
-                    } else {
+                    }
+                    outputSum in 1..4 -> {
                         code.append("glFragColor = vec4(")
                         for (i in lastOutputs.indices) {
                             if (i > 0) code.append(',')
@@ -189,8 +243,9 @@ class MainStage {
                         }
                         code.append(");\n")
                     }
-                } else {
-                    code.append("glFragColor = vec4(finalColor, finalAlpha);\n")
+                    else -> {
+                        code.append("glFragColor = vec4(finalColor, finalAlpha);\n")
+                    }
                 }
             } else {
 

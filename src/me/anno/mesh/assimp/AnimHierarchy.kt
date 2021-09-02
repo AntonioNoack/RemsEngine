@@ -1,9 +1,8 @@
 package me.anno.mesh.assimp
 
-import org.joml.Matrix4f
+import org.joml.Matrix4x3f
 import org.lwjgl.assimp.AIAnimation
 import org.lwjgl.assimp.AINode
-import org.lwjgl.assimp.AINodeAnim
 import org.lwjgl.assimp.AIScene
 
 object AnimHierarchy {
@@ -14,17 +13,17 @@ object AnimHierarchy {
         boneList: MutableList<Bone>,
         boneMap: MutableMap<String, Bone>,
         lastBoneId: Int,
-        animNodeCache: Map<String, AINodeAnim>,
+        animNodeCache: Set<String>,
 
-        nodeTransformParent: Matrix4f?
+        nodeTransformParent: Matrix4x3f?
 
     ) {
 
         val name = aiNode.mName().dataString()
         val localTransform = AssimpTree.convert(aiNode.mTransformation())
-        val aiNodeAnim = animNodeCache[name]
+        val animNodeExists = name in animNodeCache
 
-        val bone = if (aiNodeAnim != null) {
+        val bone = if (animNodeExists) {
             val bone = Bone(boneList.size, lastBoneId, name)
             boneList.add(bone)
             boneMap[name] = bone
@@ -54,14 +53,15 @@ object AnimHierarchy {
     fun loadSkeletonFromAnimations(
         aiScene: AIScene,
         rootNode: AINode,
+        nodeCache: Map<String, AINode>,
         boneList: ArrayList<Bone>,
         boneMap: HashMap<String, Bone>
     ) {
-        val animNodeCache = HashMap<String, AINodeAnim>()
+        val animNodeCache = HashSet<String>()
         val animations = aiScene.mAnimations()!!
         for (i in 0 until aiScene.mNumAnimations()) {// collect all animated bones
             val aiAnimation = AIAnimation.create(animations[i])
-            animNodeCache.putAll(AnimatedMeshesLoader.createAnimationCache(aiAnimation))
+            animNodeCache.addAll(AnimatedMeshesLoader.createAnimationCache(aiAnimation, nodeCache).keys)
         }
         readBoneAnimHierarchy(
             rootNode, boneList, boneMap, -1, animNodeCache,

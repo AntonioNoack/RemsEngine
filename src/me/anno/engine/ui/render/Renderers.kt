@@ -1,7 +1,6 @@
 package me.anno.engine.ui.render
 
 import me.anno.ecs.components.light.LightType
-import me.anno.engine.pbr.PBRLibraryGLTF
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2End
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2Start
@@ -50,12 +49,21 @@ object Renderers {
     val pbrRenderer = object : Renderer("pbr", false, ShaderPlus.DrawMode.COLOR) {
         override fun getPostProcessing(): ShaderStage {
             return ShaderStage("pbr", listOf(
+                // light data
                 Variable("vec3", "ambientLight"),
                 Variable("int", "numberOfLights"),
                 Variable("mat4x3", "invLightMatrices", RenderView.MAX_LIGHTS),
                 Variable("vec4", "lightData0", RenderView.MAX_LIGHTS),
                 Variable("vec4", "lightData1", RenderView.MAX_LIGHTS),
+                Variable("vec4", "shadowData", RenderView.MAX_LIGHTS),
+                // light maps for shadows
+                // - spot lights, directional lights
+                Variable("sampler2D", "shadowMapPlanar", MAX_PLANAR_LIGHTS),
+                // - point lights
+                Variable("sampler2D", "shadowMapCubic", MAX_CUBEMAP_LIGHTS),
+                // debug
                 Variable("int", "visualizeLightCount"),
+                // material properties
                 Variable("vec3", "finalEmissive"),
                 Variable("float", "finalMetallic"),
                 Variable("float", "finalRoughness"),
@@ -100,13 +108,14 @@ object Renderers {
                     "   bool hasSpecular = dot(specularColor,vec3(1.0)) > 0.001;\n" +
                     "   bool hasDiffuse = dot(diffuseColor,vec3(1.0)) > 0.001;\n" +
                     "   if(hasDiffuse || hasSpecular){\n" +
-                    PBRLibraryGLTF.specularBRDFv2NoDivInlined2Start +
+                    specularBRDFv2NoDivInlined2Start +
                     "       for(int i=0;i<numberOfLights;i++){\n" +
                     "           mat4x3 WStoLightSpace = invLightMatrices[i];\n" +
                     "           vec3 dir = invLightMatrices[i] * vec4(finalPosition,1.0);\n" + // local coordinates for falloff
                     // "       if(!hasSpecular && dot(dir,dir) >= 1.0) continue;\n" +
-                    "           vec4 data0 = lightData0[i];\n" +
-                    "           vec4 data1 = lightData1[i];\n" +
+                    "           vec4 data0 = lightData0[i];\n" + // color, type
+                    "           vec4 data1 = lightData1[i];\n" + // point: position, radius, spot: position, angle
+                    "           vec4 data2 = shadowData[i];\n" +
                     "           vec3 lightColor = data0.rgb;\n" +
                     "           int lightType = int(data0.a);\n" +
                     "           vec3 lightPosition, lightDirWS, localNormal, effectiveLightColor, effectiveSpecular, effectiveDiffuse;\n" +
@@ -123,10 +132,41 @@ object Renderers {
                                                 // inv(W->L) * vec4(0,0,1,0) =
                                                 // transpose(m3x3(W->L)) * vec3(0,0,1)
                                                 "lightDirWS = normalize(vec3(WStoLightSpace[0][2],WStoLightSpace[1][2],WStoLightSpace[2][2]));\n" +
+                                                "int shadowMapIdx0 = int(data2.r);\n" +
+                                                "int shadowMapIdx1 = int(data2.g);\n" +
+                                                "if(shadowMapIdx0 < shadowMapIdx1){\n" +
+                                                // when we are close to the edge, we blend in
+                                                "   float edgeFactor = min(20.0*(1.0-max(abs(dir.x),abs(dir.y))),1.0);\n" +
+                                                "   if(edgeFactor > 0.0){\n" +
+                                                "       #define shadowMapPower data2.b\n" +
+                                                "       float invShadowMapPower = 1.0/shadowMapPower;\n" +
+                                                "       vec2 shadowDir = dir.xy;\n" +
+                                                "       vec2 nextDir = shadowDir * shadowMapPower;\n" +
+                                                "       float bias = max(0.05 * (1.0 - NdotL), 0.005);\n" +
+                                                // find the best shadow map
+                                                // blend between the two best shadow maps, if close to the border?
+                                                // no, the results are already very good this way :)
+                                                // at least at the moment, the seams are not obvious
+                                                // todo implement percentage closer filtering
+                                                "       while(abs(nextDir.x)<1.0 && abs(nextDir.y)<1.0 && shadowMapIdx0+1<shadowMapIdx1){\n" +
+                                                "           shadowMapIdx0++;\n" +
+                                                "           shadowDir = nextDir;\n" +
+                                                "           nextDir *= shadowMapPower;\n" +
+                                                "           bias *= invShadowMapPower;\n" +
+                                                "       }\n" +
+                                                "       float depthFromShader = dir.z*.5+.5 + bias;\n" +
+                                                "       if(depthFromShader > 0.0){\n" +
+                                                // do the shadow map function and compare
+                                                "       float depthFromTex = texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy*.5+.5, depthFromShader);\n" +
+                                                // "   diffuseColor = vec3(val,val,dir.z);\n" + nice for debugging
+                                                "       lightColor *= 1.0 - edgeFactor * depthFromTex;\n" +
+                                                "       }\n" +
+                                                "   }\n" +
+                                                "}\n" +
                                                 "effectiveDiffuse = lightColor;\n" +
                                                 "effectiveSpecular = lightColor;\n"
                                     }
-                                    LightType.POINT_LIGHT -> {
+                                    LightType.POINT -> {
                                         "" +
                                                 "float lightRadius = data1.a;\n" +
                                                 "lightPosition = data1.rgb;\n" +
@@ -146,7 +186,7 @@ object Renderers {
                                                 // because specular light is more directed and therefore reached farther
                                                 "effectiveSpecular = lightColor * ${it.falloff};\n"
                                     }
-                                    LightType.SPOT_LIGHT -> {
+                                    LightType.SPOT -> {
                                         "" +
                                                 "lightPosition = data1.rgb;\n" +
                                                 "lightDirWS = normalize(lightPosition - finalPosition);\n" +
@@ -163,19 +203,20 @@ object Renderers {
                     "           }\n" +
                     "           if(hasSpecular && dot(effectiveSpecular, vec3(NdotL)) > ${0.5 / 255.0}){\n" +
                     "               vec3 H = normalize(V + lightDirWS);\n" +
-                    PBRLibraryGLTF.specularBRDFv2NoDivInlined2 +
+                    specularBRDFv2NoDivInlined2 +
                     "               specularLight += effectiveSpecular * computeSpecularBRDF;\n" +
                     "           }\n" +
                     // translucency; looks good and approximately correct
                     "           NdotL = mix(NdotL, 0.23, finalTranslucency);\n" +
                     // sheen is a fresnel effect, which adds light
+                    // todo back side may not be dark
                     "           NdotL = NdotL + sheen;\n" +
                     "           if(NdotL > 0.0){\n" +
                     "               diffuseLight += effectiveDiffuse * min(NdotL, 1.0);\n" +
                     "               lightCount++;\n" +
                     "           }\n" +
                     "       }\n" +
-                    PBRLibraryGLTF.specularBRDFv2NoDivInlined2End +
+                    specularBRDFv2NoDivInlined2End +
                     "   }\n" +
                     "   if(visualizeLightCount){\n" +
                     "       finalColor.r = lightCount * 0.125;\n" +
@@ -347,5 +388,7 @@ object Renderers {
             }
         }
 
+    val MAX_PLANAR_LIGHTS = 8
+    val MAX_CUBEMAP_LIGHTS = 8
 
 }

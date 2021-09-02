@@ -28,6 +28,7 @@ class Transform : Saveable() {
         if (drawTransform.get(FloatArray(16)).any { it.isNaN() }) {
             Engine.shutdown()
             Thread.sleep(10)
+            System.exit(-1)
             throw RuntimeException("Transform became invalid")
         }
     }
@@ -155,6 +156,15 @@ class Transform : Saveable() {
         pos.set(values.m30(), values.m31(), values.m32())
         values.getUnnormalizedRotation(rot)
         values.getScale(sca)
+        invalidateGlobal()
+    }
+
+    fun setLocal(values: Matrix4x3f) {
+        localTransform.set(values)
+        checkTransform(localTransform)
+        pos.set(values.m30().toDouble(), values.m31().toDouble(), values.m32().toDouble())
+        values.getUnnormalizedRotation(rot)
+        sca.set(values.getScale(Vector3f()))
         invalidateGlobal()
     }
 

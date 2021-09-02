@@ -7,7 +7,9 @@ import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.utils.structures.maps.KeyTripleMap
+import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.isBlank2
+import java.lang.RuntimeException
 import kotlin.math.max
 
 /**
@@ -31,6 +33,14 @@ open class BaseShader(
 
     private val flatShader = KeyTripleMap<Renderer, Boolean, GeoShader?, Shader>()
     private val deferredShaders = KeyTripleMap<DeferredSettingsV2, Boolean, GeoShader?, Shader>()
+    private val depthShader = lazy { Array(2) { createDepthShader(it > 0) } }
+
+    open fun createDepthShader(instanced: Boolean): Shader {
+        println("creating depth shader $name from '$vertexSource'")
+        if(vertexSource.isBlank2()) throw RuntimeException()
+        val vertex = if (instanced) "#define INSTANCED\n$vertexSource" else vertexSource
+        return Shader(name, null, vertex, emptyList(), "void main(){}")
+    }
 
     open fun createFlatShader(postProcessing: ShaderStage?, instanced: Boolean, geoShader: GeoShader?): Shader {
 
@@ -94,7 +104,9 @@ open class BaseShader(
         get() {
             val renderer = RenderState.currentRenderer
             val instanced = RenderState.instanced.currentValue
-            return when (val deferred = renderer.deferredSettings) {
+            return if (renderer == Renderer.depthOnlyRenderer) {
+                depthShader.value[instanced.toInt()]
+            } else when (val deferred = renderer.deferredSettings) {
                 null -> {
                     val geoMode = RenderState.geometryShader.currentValue
                     val shader = flatShader.getOrPut(renderer, instanced, geoMode) { r, i, g ->

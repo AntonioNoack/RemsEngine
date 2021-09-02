@@ -6,6 +6,7 @@ import me.anno.cache.instances.LastModifiedCache
 import me.anno.cache.instances.MeshCache.getMesh
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
+import me.anno.ecs.components.anim.BoneByBoneAnimation
 import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.anim.Skeleton
 import me.anno.ecs.components.mesh.*
@@ -61,6 +62,7 @@ class MeshTransform(var file: FileReference, parent: Transform?) : GFXTransform(
             registerCustomClass(Skeleton())
             registerCustomClass(Material())
             registerCustomClass(ImportedAnimation())
+            registerCustomClass(BoneByBoneAnimation())
         }
 
         fun loadModel(

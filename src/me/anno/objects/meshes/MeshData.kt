@@ -58,10 +58,10 @@ open class MeshData : ICacheData {
 
         val model0 = assimpModel!!
         val animation = model0.animations[animationName]
-        shader.v1("hasAnimation", animation != null)
         val skinningMatrices = if (animation != null) {
-            model0.uploadJointMatrices(shader, animation, time, drawSkeletons)
+            model0.uploadJointMatrices(shader, animation, time)
         } else null
+        shader.v1("hasAnimation", skinningMatrices != null)
 
         val localStack = Matrix4x3fArrayList()
 

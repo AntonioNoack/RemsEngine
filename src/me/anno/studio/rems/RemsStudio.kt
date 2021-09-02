@@ -29,6 +29,8 @@ import me.anno.ui.editor.sceneTabs.SceneTabs.currentTab
 import me.anno.ui.editor.sceneView.ISceneView
 import me.anno.utils.OS
 
+// todo test rendering
+// todo background needs to be black again
 
 // todo triangle pixelation instead of quad pixelation, looks nicer (e.g. hex pattern)
 

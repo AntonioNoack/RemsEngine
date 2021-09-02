@@ -6,10 +6,7 @@ import org.joml.Matrix4f
 import org.joml.Matrix4x3f
 import org.joml.Vector3f
 
-// todo assign an entity for components, which can be assigned to that? -> we would need to clone the skeleton and bone...
-class Bone(
-    var id: Int, var parentId: Int, name: String
-) : NamedSaveable() {
+class Bone(var id: Int, var parentId: Int, name: String) : NamedSaveable() {
 
     constructor() : this(-1, -1, "")
 
@@ -19,6 +16,8 @@ class Bone(
 
     // parent is unknown, maybe be indirect...
     // var parent: Bone? = null
+
+    val relativeTransform = Matrix4x3f()
 
     val originalTransform = Matrix4x3f()
 
@@ -75,10 +74,9 @@ class Bone(
 
     override fun readMatrix4x3f(name: String, value: Matrix4x3f) {
         when (name) {
-            "offset" -> {
-                inverseBindPose.set(value)
-                calculateBindPose()
-            }
+            "offset" -> setInverseBindPose(value)
+            "relativeTransform" -> relativeTransform.set(value)
+            "originalTransform" -> originalTransform.set(value)
             else -> super.readMatrix4x3f(name, value)
         }
     }
@@ -88,6 +86,8 @@ class Bone(
         writer.writeInt("id", id)
         writer.writeInt("parentId", parentId, true)
         writer.writeMatrix4x3f("offset", inverseBindPose)
+        writer.writeMatrix4x3f("relativeTransform", relativeTransform)
+        writer.writeMatrix4x3f("originalTransform", originalTransform)
     }
 
 }

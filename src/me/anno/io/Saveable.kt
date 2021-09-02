@@ -92,7 +92,11 @@ abstract class Saveable : ISaveable {
     override fun readMatrix4x4d(name: String, value: Matrix4d) = readSomething(name, value)
 
     override fun readQuaternionf(name: String, value: Quaternionf) = readSomething(name, value)
+    override fun readQuaternionfArray(name: String, values: Array<Quaternionf>) = readSomething(name, values)
+    override fun readQuaternionfArray2D(name: String, values: Array<Array<Quaternionf>>) = readSomething(name, values)
     override fun readQuaterniond(name: String, value: Quaterniond) = readSomething(name, value)
+    override fun readQuaterniondArray(name: String, values: Array<Quaterniond>) = readSomething(name, values)
+    override fun readQuaterniondArray2D(name: String, values: Array<Array<Quaterniond>>) = readSomething(name, values)
 
     open fun readSomething(name: String, value: Any?) = warnMissingParam(name)
 

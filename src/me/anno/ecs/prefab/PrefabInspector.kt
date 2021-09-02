@@ -51,7 +51,7 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
     }
 
     // val changes = ArrayList()
-    var root = prefab.createInstance()
+    val root = prefab.getSampleInstance()
 
     // todo if there is a physics components, start it
     // todo only execute it, if the scene is visible/selected

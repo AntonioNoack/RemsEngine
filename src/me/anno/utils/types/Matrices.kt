@@ -7,7 +7,11 @@ import kotlin.math.sqrt
 object Matrices {
 
     fun Matrix4f.isIdentity(): Boolean {
-        return properties().and(4) != 0
+        return properties().and(Matrix4f.PROPERTY_IDENTITY.toInt()) != 0
+    }
+
+    fun Matrix4x3f.isIdentity(): Boolean {
+        return properties().and(Matrix4x3f.PROPERTY_IDENTITY.toInt()) != 0
     }
 
     fun Matrix4f.clone() = Matrix4f(this)
@@ -62,7 +66,7 @@ object Matrices {
         return sqrt(distanceSquared(other))
     }
 
-    fun Matrix4x3f.sampleDistanceSquared(other: Matrix4f): Float {
+    fun Matrix4x3f.sampleDistanceSquared(other: Matrix4x3f): Float {
         // compare a few sample points in every direction to also detect rotation issues
         // in my case, the matrices were identical
         return transformPosition(Vector3f()).distanceSquared(other.transformPosition(Vector3f())) +

@@ -860,10 +860,11 @@ object ShaderLib {
             "assimp",
             assimpVertex, assimpVarying, "" +
                     "uniform sampler2D albedoTex;\n" +
+                    "uniform vec4 diffuseBase;\n" +
                     getTextureLib +
                     getColorForceFieldLib +
                     "void main(){\n" +
-                    "   vec4 color = vec4(vertexColor.rgb,1) * getTexture(albedoTex, uv);\n" +
+                    "   vec4 color = vec4(vertexColor.rgb,1) * diffuseBase * getTexture(albedoTex, uv);\n" +
                     "   color.rgb *= 0.6 + 0.4 * dot(vec3(-1.0, 0.0, 0.0), normal);\n" +
                     "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                     "   vec3 finalColor = color.rgb;\n" +

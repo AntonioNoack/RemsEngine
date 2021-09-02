@@ -8,8 +8,12 @@ object ECSShaderLib {
 
     fun init() {
 
-        pbrModelShader = ECSMeshShader("model")
-        pbrModelShader.ignoreUniformWarnings(
+        // todo automatic texture mapping and indices
+        // todo use shader stages for that everywhere
+
+        val shader = ECSMeshShader("model")
+        pbrModelShader = shader
+        shader.ignoreUniformWarnings(
             listOf(
                 "finalSheen", "finalTranslucency", "metallicMinMax",
                 "emissiveBase", "normalStrength", "ambientLight",
@@ -17,16 +21,22 @@ object ECSShaderLib {
                 "numberOfLights"
             )
         )
-        pbrModelShader.setTextureIndices(
-            listOf(
-                "diffuseMap",
-                "normalMap",
-                "emissiveMap",
-                "roughnessMap",
-                "metallicMap",
-                "occlusionMap"
-            )
+        val textures = mutableListOf(
+            "diffuseMap",
+            "normalMap",
+            "emissiveMap",
+            "roughnessMap",
+            "metallicMap",
+            "occlusionMap",
+            "sheenNormalMap"
         )
+        for (i in 0 until Renderers.MAX_PLANAR_LIGHTS) {
+            textures.add("shadowMapPlanar$i")
+        }
+        for (i in 0 until Renderers.MAX_CUBEMAP_LIGHTS) {
+            textures.add("shadowMapCubic$i")
+        }
+        pbrModelShader.setTextureIndices(textures)
         pbrModelShader.glslVersion = 330
 
     }

@@ -2,11 +2,11 @@ package me.anno.ecs.components.anim
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.cache.SkeletonCache
-import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.utils.maths.Maths
 import org.joml.Matrix4x3f
 
 // todo blend animations...
@@ -26,10 +26,22 @@ abstract class Animation : NamedSaveable {
 
     var skeleton: FileReference = InvalidRef
 
-    abstract fun getMatrices(entity: Entity, time: Float, dst: Array<Matrix4x3f>): Array<Matrix4x3f>?
+    fun calculateMonotonousTime(time: Float, frameCount: Int): Triple<Float, Int, Int> {
+        var timeF = (time % duration) / duration * frameCount
+        if (timeF < 0f) timeF += frameCount
+
+        val index0 = timeF.toInt() % frameCount
+        val index1 = (index0 + 1) % frameCount
+
+        val fraction = Maths.fract(timeF).toFloat()
+
+        return Triple(fraction, index0, index1)
+    }
+
+    abstract fun getMatrices(entity: Entity?, time: Float, dst: Array<Matrix4x3f>): Array<Matrix4x3f>?
 
     fun getMappedMatrices(
-        entity: Entity,
+        entity: Entity?,
         time: Float,
         dst: Array<Matrix4x3f>,
         retargeting: Retargeting
@@ -47,7 +59,7 @@ abstract class Animation : NamedSaveable {
     }
 
     fun getMappedMatricesSafely(
-        entity: Entity,
+        entity: Entity?,
         time: Float,
         dst: Array<Matrix4x3f>,
         retargeting: Retargeting
@@ -75,7 +87,7 @@ abstract class Animation : NamedSaveable {
     }
 
     override fun readFile(name: String, value: FileReference) {
-        when(name){
+        when (name) {
             "skeleton" -> skeleton = value
             else -> super.readFile(name, value)
         }

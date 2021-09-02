@@ -18,6 +18,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.shapes.Icosahedron
 import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
@@ -830,7 +831,7 @@ object Thumbs {
                 // todo render component somehow... just return an icon?
             }
             is Prefab -> {
-                val instance = asset.createInstance()
+                val instance = asset.getSampleInstance()
                 generateSomething(instance, srcFile, dstFile, size, callback)
             }
             // is Transform -> todo show transform for Rem's Studio
@@ -962,10 +963,9 @@ object Thumbs {
                     "json" -> {
                         try {
                             // try to read the file as an asset
-                            generateSomething(
-                                TextReader.read(srcFile).firstOrNull(),
-                                srcFile, dstFile, size, callback
-                            )
+                            val data = PrefabCache.getPrefabPair(srcFile)
+                            val something = data?.first ?: data?.second
+                            generateSomething(something, srcFile, dstFile, size, callback)
                         } catch (e: Throwable) {
                             LOGGER.info("${e.message} in $srcFile")
                             e.printStackTrace()

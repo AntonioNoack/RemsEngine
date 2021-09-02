@@ -19,6 +19,7 @@ import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
 import me.anno.utils.maths.Maths
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
+import me.anno.utils.types.Vectors.safeNormalize
 import org.joml.AABBd
 import org.joml.Vector3d
 
@@ -29,7 +30,7 @@ open class ControlScheme(val camera: CameraComponent, val library: ECSTypeLibrar
 
     val cameraNode = camera.entity!!
 
-    val selectedEntities get() = library.selection.filterIsInstance<Entity>()
+    val selectedEntities get() = library.selected.filterIsInstance<Entity>()
     val selectedTransforms get() = selectedEntities.map { it.transform }
 
     val isSelected get() = parent!!.children.any { it.isInFocus }
@@ -130,8 +131,8 @@ open class ControlScheme(val camera: CameraComponent, val library: ECSTypeLibrar
         val up = if (normXZ) {
             right.y = 0.0
             forward.y = 0.0
-            right.normalize()
-            forward.normalize()
+            right.safeNormalize()
+            forward.safeNormalize()
             Vector3d(0.0, 1.0, 0.0)
         } else {
             rotQuad.transform(Vector3d(0.0, 1.0, 0.0))
@@ -139,6 +140,11 @@ open class ControlScheme(val camera: CameraComponent, val library: ECSTypeLibrar
         position.x += movement.dot(right.x, up.x, forward.x) * radius
         position.y += movement.dot(right.y, up.y, forward.y) * radius
         position.z += movement.dot(right.z, up.z, forward.z) * radius
+        if (!position.isFinite) {
+            me.anno.utils.LOGGER.warn("Invalid position $position from $movement * mat($right, $up, $forward)")
+            position.set(0.0)
+            Thread.sleep(100)
+        }
     }
 
     private val tmpAABB = AABBd()

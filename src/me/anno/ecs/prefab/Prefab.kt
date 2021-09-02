@@ -1,7 +1,6 @@
 package me.anno.ecs.prefab
 
 import me.anno.cache.CacheSection
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.Path.Companion.ROOT_PATH
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.engine.scene.ScenePrefab
@@ -66,7 +65,7 @@ class Prefab() : NamedSaveable() {
         isValid = false
     }
 
-    var sampleInstance: PrefabSaveable? = null
+    private var sampleInstance: PrefabSaveable? = null
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
@@ -115,14 +114,16 @@ class Prefab() : NamedSaveable() {
         return instance
     }
 
-    fun createInstance(): PrefabSaveable = createInstance(HashSet())
-
-    fun createInstance(chain: MutableSet<FileReference>?): PrefabSaveable {
+    fun getSampleInstance(chain: MutableSet<FileReference>? = null): PrefabSaveable {
         synchronized(this) {
             if (!isValid) sampleInstance = createInstance0(chain)
         }
-        val newInstance = sampleInstance!!.clone()
-       /* if (newInstance !is Mesh) {
+        return sampleInstance!!
+    }
+
+    fun createInstance(chain: MutableSet<FileReference>? = null): PrefabSaveable {
+        val newInstance = getSampleInstance(chain).clone()
+        /* if (newInstance !is Mesh) {
             println("sample: $sampleInstance")
             println("new:    $newInstance")
         }*/
@@ -179,7 +180,6 @@ class Prefab() : NamedSaveable() {
         }
 
         fun loadScenePrefab(file: FileReference): Prefab {
-            // LOGGER.info("loading scene")
             val prefab = loadPrefab(file) ?: Prefab("Entity").apply { this.prefab = ScenePrefab }
             prefab.src = file
             if (!file.exists) file.writeText(TextWriter.toText(prefab, false))

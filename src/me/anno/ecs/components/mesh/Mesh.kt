@@ -493,8 +493,21 @@ class Mesh : PrefabSaveable() {
         buffer?.draw(shader)
     }
 
+    fun drawDepth(shader: Shader) {
+        ensureBuffer()
+        buffer?.draw(shader)
+    }
+
     fun drawInstanced(shader: Shader, materialIndex: Int, instanceData: StaticBuffer) {
         // todo respect the material index: only draw what belongs to the material
+        ensureBuffer()
+        val meshBuffer = buffer
+        if (meshBuffer != null) {
+            instanceData.drawInstanced(shader, meshBuffer)
+        }
+    }
+
+    fun drawInstancedDepth(shader: Shader, instanceData: StaticBuffer) {
         ensureBuffer()
         val meshBuffer = buffer
         if (meshBuffer != null) {

@@ -1,5 +1,6 @@
 package me.anno.ecs.prefab
 
+import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
@@ -10,6 +11,7 @@ import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
 import me.anno.utils.LOGGER
 import me.anno.utils.structures.Hierarchical
+import kotlin.reflect.KClass
 
 abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, Inspectable, Cloneable {
 
@@ -29,7 +31,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     override var parent: PrefabSaveable? = null
 
     private fun getSuperParent(): PrefabSaveable {
-        return prefab ?: this::class.java.getConstructor().newInstance()
+        return prefab ?: getSuperInstance(className)
     }
 
     fun getDefaultValue(name: String): Any? {
@@ -127,6 +129,12 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
         PrefabInspector.currentInspector?.inspect(this, list, style) ?: LOGGER.warn("Missing inspector!")
+    }
+
+    companion object {
+        private fun getSuperInstance(className: String): PrefabSaveable {
+            return ISaveable.objectTypeRegistry[className]!!.sampleInstance as PrefabSaveable
+        }
     }
 
 }

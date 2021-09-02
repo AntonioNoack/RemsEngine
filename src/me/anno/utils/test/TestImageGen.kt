@@ -5,6 +5,7 @@ import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.config.DefaultStyle.white4
 import me.anno.ecs.Entity
+import me.anno.ecs.components.anim.BoneByBoneAnimation
 import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.anim.Skeleton
 import me.anno.ecs.components.cache.MeshCache
@@ -86,6 +87,7 @@ fun main() {
     registerCustomClass(Skeleton())
     registerCustomClass(AnimRenderer())
     registerCustomClass(ImportedAnimation())
+    registerCustomClass(BoneByBoneAnimation())
 
     clock.stop("Registry")
 

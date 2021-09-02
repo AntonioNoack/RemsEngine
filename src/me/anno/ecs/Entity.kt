@@ -70,6 +70,17 @@ class Entity() : PrefabSaveable(), Inspectable {
         }
     }
 
+    fun create() {
+        val children = internalChildren
+        for (index in children.indices) {
+            children[index].create()
+        }
+        val components = internalComponents
+        for (index in components.indices) {
+            components[index].onCreate()
+        }
+    }
+
     @NotSerializedProperty
     private val internalComponents = ArrayList<Component>()
 
@@ -202,8 +213,18 @@ class Entity() : PrefabSaveable(), Inspectable {
 
     fun invalidatePhysics(force: Boolean) {
         if (force || hasPhysicsInfluence()) {
-            println("inv physics: ${physics != null}, ${rigidbody != null}")
+            // println("inv physics: ${physics != null}, ${rigidbody != null}")
             physics?.invalidate(rigidbody ?: return)
+        }
+    }
+
+    fun rebuildPhysics(physics: BulletPhysics) {
+        if (hasComponent(Rigidbody::class)) {
+            physics.invalidate(this)
+        } else {
+            for (child in children) {
+                child.rebuildPhysics(physics)
+            }
         }
     }
 
@@ -340,6 +361,27 @@ class Entity() : PrefabSaveable(), Inspectable {
     // is set by the engine
     @NotSerializedProperty
     var isPhysicsControlled = false
+
+    @NotSerializedProperty
+    var hasBeenVisible = false
+
+    fun updateVisible() {
+        if (hasBeenVisible) {
+            for (component in components) {
+                component.onVisibleUpdate()
+            }
+        }
+        for (child in children) {
+            child.updateVisible()
+        }
+    }
+
+    fun invalidateVisibility() {
+        hasBeenVisible = false
+        for (child in children) {
+            child.invalidateVisibility()
+        }
+    }
 
     fun validateTransforms(time: Long = GFX.gameTime) {
         if (!isPhysicsControlled) {
@@ -509,7 +551,9 @@ class Entity() : PrefabSaveable(), Inspectable {
                 invalidateRigidbody()
                 invalidateCollisionMask()
             }
-            is Rigidbody -> physics?.invalidate(this)
+            is Rigidbody -> {
+                physics?.invalidate(this)
+            }
             is MeshComponent -> {
                 invalidateOwnAABB()
                 invalidateCollisionMask()
@@ -558,7 +602,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         return false
     }
 
-    fun <V : Component> getComponent(clazz: KClass<V>, includingDisabled: Boolean): V? {
+    fun <V : Component> getComponent(clazz: KClass<V>, includingDisabled: Boolean = false): V? {
         // elegant:
         // return components.firstOrNull { clazz.isInstance(it) && (includingDisabled || it.isEnabled) } as V?
         // without damn iterator:
@@ -572,7 +616,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         return null
     }
 
-    fun <V : Component> getComponentInChildren(clazz: KClass<V>, includingDisabled: Boolean): V? {
+    fun <V : Component> getComponentInChildren(clazz: KClass<V>, includingDisabled: Boolean = false): V? {
         var comp = getComponent(clazz, includingDisabled)
         if (comp != null) return comp
         val children = children
@@ -586,25 +630,36 @@ class Entity() : PrefabSaveable(), Inspectable {
         return null
     }
 
-    fun <V : Component> getComponentInHierarchy(clazz: KClass<V>, includingDisabled: Boolean): V? {
+    fun <V : Component> getComponentInHierarchy(clazz: KClass<V>, includingDisabled: Boolean = false): V? {
         return getComponent(clazz, includingDisabled) ?: parentEntity?.getComponentInHierarchy(clazz, includingDisabled)
     }
 
-    fun <V : Component> getComponents(clazz: KClass<V>, includingDisabled: Boolean): List<V> {
+    fun <V : Component> getComponents(clazz: KClass<V>, includingDisabled: Boolean = false): List<V> {
         return components.filter { (includingDisabled || it.isEnabled) && clazz.isInstance(it) } as List<V>
     }
 
-    fun <V : Component> getComponentsInChildren(clazz: KClass<V>, includingDisabled: Boolean): List<V> {
-        val result = ArrayList<V>()
-        val todo = ArrayList<Entity>()
-        todo.add(this)
-        while (todo.isNotEmpty()) {
-            val entity = todo.removeAt(todo.lastIndex)
-            result.addAll(entity.getComponents(clazz, includingDisabled))
-            todo.addAll(if (includingDisabled) entity.children
-            else entity.children.filter { it.isEnabled })
+    fun <V : Component> getComponentsInChildren(clazz: KClass<V>, includingDisabled: Boolean = false): List<V> {
+        return getComponentsInChildren(clazz, includingDisabled, ArrayList<V>())
+    }
+
+    fun <V : Component> getComponentsInChildren(
+        clazz: KClass<V>,
+        includingDisabled: Boolean,
+        dst: MutableList<V>
+    ): List<V> {
+        val components = components
+        for (i in components.indices) {
+            val component = components[i]
+            if (clazz.isInstance(component)) {
+                dst.add(component as V)
+            }
         }
-        return result
+        val children = children
+        for (i in children.indices) {
+            val child = children[i]
+            child.getComponentsInChildren(clazz, includingDisabled, dst)
+        }
+        return dst
     }
 
     override fun toString(): String {
@@ -686,10 +741,13 @@ class Entity() : PrefabSaveable(), Inspectable {
         return clone
     }
 
+    /**
+     * O(|E|+|C|) clone of properties and components
+     * */
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as Entity
-        // todo copy all properties
+        // copy all properties
         clone.hasRenderables = hasRenderables
         clone.hasValidCollisionMask = hasValidCollisionMask
         clone.hasSpaceFillingComponents = hasSpaceFillingComponents
@@ -697,13 +755,22 @@ class Entity() : PrefabSaveable(), Inspectable {
         clone.aabb.set(aabb)
         clone.transform.set(transform)
         clone.collisionMask = collisionMask
-        val components = components
-        for (i in components.indices) {
-            clone.addComponent(components[i].clone())
-        }
-        val children = children
+        // first the structure
+        val children = internalChildren
+        val cloneEntities = clone.internalChildren
+        if (cloneEntities.isNotEmpty()) cloneEntities.clear()
         for (i in children.indices) {
-            clone.addEntity(children[i].clone())
+            val entity = children[i].clone()
+            entity.parent = clone
+            cloneEntities.add(entity)
+        }
+        val components = internalComponents
+        val cloneComponents = clone.internalComponents
+        if (cloneComponents.isNotEmpty()) cloneComponents.clear()
+        for (i in components.indices) {
+            val component = components[i].clone()
+            component.entity = clone
+            cloneComponents.add(component)
         }
     }
 

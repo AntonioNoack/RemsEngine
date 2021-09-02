@@ -30,27 +30,41 @@ class Variable(
     }
 
     val size = when (type) {
-        "float", "int", "bool" -> 1
-        "vec2", "ivec2" -> 2
-        "vec3", "ivec3" -> 3
-        "vec4", "ivec4" -> 4
-        "mat3" -> 9
-        "mat4" -> 16
-        "mat4x3" -> 12
-        else -> 100
+        "bool" -> 5
+        "int" -> 7
+        "float" -> 10
+        "vec2", "ivec2" -> 20
+        "vec3", "ivec3" -> 30
+        "vec4", "ivec4" -> 40
+        "mat3" -> 90
+        "mat4" -> 160
+        "mat4x3" -> 120
+        else -> 1000
     } * max(1, arraySize)
 
     fun appendGlsl(code: StringBuilder, prefix: String) {
-        code.append(prefix)
-        code.append(type)
-        code.append(' ')
-        code.append(name)
-        if (arraySize > 0) {
-            code.append('[')
-            code.append(arraySize)
-            code.append(']')
+        if (prefix.startsWith("uniform") && arraySize > 0 && type.startsWith("sampler")) {
+            for (index in 0 until arraySize) {
+                code.append(prefix)
+                code.append(type)
+                code.append(' ')
+                code.append(name)
+                code.append(index)
+                code.append(";\n")
+            }
+        } else {
+            code.append(prefix)
+            code.append(type)
+            code.append(' ')
+            code.append(name)
+            if (arraySize > 0) {
+                code.append('[')
+                code.append(arraySize)
+                code.append(']')
+            }
+            code.append(";\n")
         }
-        code.append(";\n")
+
     }
 
     var isFlat = false

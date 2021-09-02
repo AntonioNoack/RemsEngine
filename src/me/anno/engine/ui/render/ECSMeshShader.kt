@@ -14,6 +14,85 @@ import me.anno.mesh.assimp.AnimGameItem.Companion.maxBones
 
 class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
+    override fun createDepthShader(instanced: Boolean): Shader {
+
+        val base = ShaderBuilder(name, null)
+
+        val attributes = mutableListOf(
+            Variable("vec3", "coords"),
+        )
+
+        attributes += if (instanced) {
+            listOf(
+                Variable("vec4", "instanceTrans0"),
+                Variable("vec4", "instanceTrans1"),
+                Variable("vec4", "instanceTrans2"),
+                Variable("vec4", "instanceTint")
+            )
+        } else {
+            // not supported for instanced rendering (at the moment),
+            // because having 100 skeletons with all the same animation is probably rare, and could be solved differently
+            listOf(
+                Variable("vec4", "weights"),
+                Variable("ivec4", "indices"),
+            )
+        }
+
+        base.vertex.attributes += attributes
+
+        val params = attributes + if (instanced) {
+            listOf(
+                Variable("mat4", "transform")
+            )
+        } else {
+            listOf(
+                Variable("mat4", "transform"),
+                // not required for the instanced rendering, because this is instance specific
+                Variable("mat4x3", "jointTransforms", maxBones),
+                Variable("mat4x3", "localTransform"),
+                Variable("bool", "hasAnimation")
+            )
+        }
+
+        base.addVertex(
+            ShaderStage(
+                "vertex",
+                params,
+                "" +
+                        if (instanced) {
+                            "" +
+                                    "mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2);\n" +
+                                    "vec3 finalPosition = localTransform * vec4(coords, 1.0);\n"
+                        } else {
+                            "" +
+                                    "vec3 localPosition;\n" +
+                                    "if(hasAnimation){\n" +
+                                    "    mat4x3 jointMat;\n" +
+                                    "    jointMat  = jointTransforms[indices.x] * weights.x;\n" +
+                                    "    jointMat += jointTransforms[indices.y] * weights.y;\n" +
+                                    "    jointMat += jointTransforms[indices.z] * weights.z;\n" +
+                                    "    jointMat += jointTransforms[indices.w] * weights.w;\n" +
+                                    "    localPosition = jointMat * vec4(coords, 1.0);\n" +
+                                    "} else {\n" +
+                                    "    localPosition = coords;\n" +
+                                    "}\n" +
+                                    "vec3 finalPosition = localTransform * vec4(localPosition, 1.0);\n"
+                        } +
+                        "gl_Position = transform * vec4(finalPosition, 1.0);\n"
+            )
+        )
+
+        // for the future, we could respect transparency from textures :)
+        base.addFragment(ShaderStage("material", emptyList(), ""))
+
+        GFX.check()
+        val shader = base.create()
+        shader.glslVersion = glslVersion
+        GFX.check()
+        return shader
+
+    }
+
     // todo just like the gltf shader define all material properties
     override fun createFlatShader(postProcessing: ShaderStage?, instanced: Boolean, geoShader: GeoShader?): Shader {
 
@@ -86,38 +165,38 @@ class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "" +
                         if (instanced) {
                             "" +
-                                    "   mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2);\n" +
-                                    "   normal = localTransform * vec4(normals, 0.0);\n" +
-                                    "   tangent = localTransform * vec4(tangents, 0.0);\n" +
-                                    "   finalPosition = localTransform * vec4(coords, 1.0);\n" +
-                                    "   tint = instanceTint;\n"
+                                    "mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2);\n" +
+                                    "normal = localTransform * vec4(normals, 0.0);\n" +
+                                    "tangent = localTransform * vec4(tangents, 0.0);\n" +
+                                    "finalPosition = localTransform * vec4(coords, 1.0);\n" +
+                                    "tint = instanceTint;\n"
                         } else {
                             "" +
-                                    "   if(hasAnimation){\n" +
-                                    "       mat4x3 jointMat;\n" +
-                                    "       jointMat  = jointTransforms[indices.x] * weights.x;\n" +
-                                    "       jointMat += jointTransforms[indices.y] * weights.y;\n" +
-                                    "       jointMat += jointTransforms[indices.z] * weights.z;\n" +
-                                    "       jointMat += jointTransforms[indices.w] * weights.w;\n" +
-                                    "       localPosition = jointMat * vec4(coords, 1.0);\n" +
-                                    "       normal = jointMat * vec4(normals, 0.0);\n" +
-                                    "       tangent = jointMat * vec4(tangents, 0.0);\n" +
-                                    "   } else {\n" +
-                                    "       localPosition = coords;\n" +
-                                    "       normal = normals;\n" +
-                                    "       tangent = tangents;\n" +
-                                    "   }\n" +
-                                    "   normal = localTransform * vec4(normal, 0.0);\n" +
-                                    "   tangent = localTransform * vec4(tangent, 0.0);\n" +
-                                    "   finalPosition = localTransform * vec4(localPosition, 1.0);\n" +
-                                    "   weight = weights;\n"
+                                    "if(hasAnimation){\n" +
+                                    "    mat4x3 jointMat;\n" +
+                                    "    jointMat  = jointTransforms[indices.x] * weights.x;\n" +
+                                    "    jointMat += jointTransforms[indices.y] * weights.y;\n" +
+                                    "    jointMat += jointTransforms[indices.z] * weights.z;\n" +
+                                    "    jointMat += jointTransforms[indices.w] * weights.w;\n" +
+                                    "    localPosition = jointMat * vec4(coords, 1.0);\n" +
+                                    "    normal = jointMat * vec4(normals, 0.0);\n" +
+                                    "    tangent = jointMat * vec4(tangents, 0.0);\n" +
+                                    "} else {\n" +
+                                    "    localPosition = coords;\n" +
+                                    "    normal = normals;\n" +
+                                    "    tangent = tangents;\n" +
+                                    "}\n" +
+                                    "normal = localTransform * vec4(normal, 0.0);\n" +
+                                    "tangent = localTransform * vec4(tangent, 0.0);\n" +
+                                    "finalPosition = localTransform * vec4(localPosition, 1.0);\n" +
+                                    "weight = weights;\n"
                         } +
                         // normal only needs to be normalized, if we show the normal
                         // todo only activate on viewing it...
-                        "   normal = normalize(normal);\n" + // here? nah ^^
-                        "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
-                        "   uv = uvs;\n" +
-                        "   vertexColor = hasVertexColors ? colors : vec4(1);\n" +
+                        "normal = normalize(normal);\n" + // here? nah ^^
+                        "gl_Position = transform * vec4(finalPosition, 1.0);\n" +
+                        "uv = uvs;\n" +
+                        "vertexColor = hasVertexColors ? colors : vec4(1);\n" +
                         ShaderLib.positionPostProcessing
             )
         )

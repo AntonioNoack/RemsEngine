@@ -3,7 +3,7 @@ package me.anno.ecs.components.light
 import me.anno.ecs.components.light.PointLight.Companion.cubeMesh
 import me.anno.ecs.components.mesh.Mesh
 
-class DirectionalLight : LightComponent() {
+class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
 
     override fun getLightPrimitive(): Mesh = cubeMesh
 

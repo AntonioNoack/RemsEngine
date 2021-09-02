@@ -2,7 +2,9 @@ package me.anno.gpu.framebuffer
 
 import org.lwjgl.opengl.GL30.*
 
-data class TargetType(val type0: Int, val type1: Int, val fillType: Int, val bytesPerPixel: Int) {
+data class TargetType(
+    val type0: Int, val type1: Int, val fillType: Int, val bytesPerPixel: Int
+) {
 
     companion object {
         val UByteTarget1 = TargetType(GL_LUMINANCE, GL_RED, GL_UNSIGNED_BYTE, 1)

@@ -10,6 +10,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshRenderer
 import me.anno.engine.ui.render.RenderView
+import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.shaderColor
@@ -22,6 +23,8 @@ import me.anno.gpu.pipeline.M4x3Delta.buffer16x256
 import me.anno.gpu.pipeline.M4x3Delta.m4x3delta
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.input.Input.isKeyDown
 import me.anno.io.Saveable
 import me.anno.utils.maths.Maths.clamp
@@ -176,8 +179,8 @@ class PipelineStage(
                     buffer.put(color.z)
                     val type = when (light) {
                         is DirectionalLight -> LightType.DIRECTIONAL.id
-                        is PointLight -> LightType.POINT_LIGHT.id
-                        is SpotLight -> LightType.SPOT_LIGHT.id
+                        is PointLight -> LightType.POINT.id
+                        is SpotLight -> LightType.SPOT.id
                         else -> -1
                     }
                     buffer.put(type + 0.25f)
@@ -220,6 +223,49 @@ class PipelineStage(
                 }
                 buffer.position(0)
                 GL20.glUniform4fv(lightTypes, buffer)
+            }
+            val shadowData = shader["shadowData"]
+            if (shadowData >= 0) {
+                buffer.limit(4 * numberOfLights)
+                for (i in 0 until 4 * numberOfLights) buffer.put(i, 0f)
+                // todo write all texture indices, and bind all shadow textures (as long as we have slots available)
+                var planarSlot = 0
+                var cubicSlot = 0
+                val maxTextureIndex = 31
+                val planarIndex0 = shader.getTextureIndex("shadowMapPlanar0")
+                val cubicIndex0 = shader.getTextureIndex("shadowMapCubic0")
+                val supportsPlanarShadows = planarIndex0 >= 0
+                val supportsCubicShadows = cubicIndex0 >= 0
+                if (supportsPlanarShadows || supportsCubicShadows) {
+                    for (i in 0 until numberOfLights) {
+                        buffer.position(4 * i)
+                        val light = lights[i]!!.component as LightComponent
+                        buffer.put(4 * i + 3, 1f - light.shadowBleed)
+                        if (light.hasShadow) {
+                            when (light) {
+                                is DirectionalLight -> {
+                                    if (planarSlot < Renderers.MAX_PLANAR_LIGHTS && supportsPlanarShadows) {
+                                        val cascades = light.shadowTextures ?: continue
+                                        buffer.put(planarSlot.toFloat()) // start index
+                                        for (j in cascades.indices) {
+                                            val slot = planarIndex0 + planarSlot
+                                            if (slot > maxTextureIndex) break
+                                            val texture = cascades[j].depthTexture!!
+                                            // bind the texture, and don't you dare to use mipmapping ^^
+                                            // (at least without variance shadow maps)
+                                            texture.bind(slot, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                                            if (++planarSlot >= Renderers.MAX_PLANAR_LIGHTS) break
+                                        }
+                                        buffer.put(planarSlot.toFloat()) // end index
+                                        buffer.put(light.shadowMapPower.toFloat())
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                buffer.position(0)
+                GL20.glUniform4fv(shadowData, buffer)
             }
             // todo bind all shadow textures
         }
@@ -395,6 +441,84 @@ class PipelineStage(
             }
         }
         lastMaterial.clear()
+
+    }
+
+    fun drawDepth(pipeline: Pipeline, cameraMatrix: Matrix4fc, cameraPosition: Vector3d, worldScale: Double) {
+
+        var lastEntity: Entity? = null
+        var lastMesh: Mesh? = null
+
+        val time = GFX.gameTime
+
+        val shader = defaultShader.value
+        shader.use()
+        initShader(shader, cameraMatrix, pipeline, 0)
+
+        // draw non-instanced meshes
+        for (index in 0 until nextInsertIndex) {
+
+            val request = drawRequests[index]
+            val mesh = request.mesh
+            val entity = request.entity
+
+            val transform = entity.transform
+            val renderer = request.component
+
+            setupLocalTransform(shader, transform, cameraPosition, worldScale, time)
+
+            mesh.ensureBuffer()
+
+            // only if the entity or mesh changed
+            // not if the material has changed
+            // this updates the skeleton and such
+            if (entity !== lastEntity || lastMesh !== mesh) {
+                if (renderer is MeshRenderer && mesh.hasBonesInBuffer)
+                    renderer.defineVertexTransform(shader, entity, mesh)
+                else shader.v1("hasAnimation", false)
+                lastEntity = entity
+                lastMesh = mesh
+            }
+
+            shader.v1("hasVertexColors", mesh.hasVertexColors)
+
+            mesh.drawDepth(shader)
+
+        }
+
+        GFX.check()
+
+        // draw instanced meshes
+        val batchSize = instancedBatchSize
+        val buffer = instanceBuffer
+        RenderState.instanced.use(true) {
+            val shader2 = defaultShader.value
+            shader2.use()
+            for ((mesh, list) in instancedMeshes.values) {
+                for ((_, values) in list) {
+                    if (values.isNotEmpty()) {
+                        mesh.ensureBuffer()
+                        shader2.v1("hasAnimation", false)
+                        shader2.v1("hasVertexColors", mesh.hasVertexColors)
+                        val size = values.size
+                        for (i in 0 until size step batchSize) {
+                            buffer.clear()
+                            val nioBuffer = buffer.nioBuffer!!
+                            // fill the data
+                            val trs = values.transforms
+                            for (j in i until min(size, i + batchSize)) {
+                                val t = trs[i]!!.drawTransform
+                                shader2.m4x3delta(t, cameraPosition, worldScale, nioBuffer, isKeyDown('i'))
+                                buffer.putInt(0) // clickId
+                            }
+                            mesh.drawInstancedDepth(shader2, buffer)
+                        }
+                    }
+                }
+            }
+        }
+
+        GFX.check()
 
     }
 

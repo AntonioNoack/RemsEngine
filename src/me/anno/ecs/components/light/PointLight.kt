@@ -2,12 +2,10 @@ package me.anno.ecs.components.light
 
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.GLSLType
-import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.io.text.TextWriter
 import me.anno.io.zip.InnerTmpFile
 import me.anno.mesh.vox.meshing.BlockBuffer
 import me.anno.mesh.vox.meshing.BlockSide
@@ -18,7 +16,7 @@ import org.joml.Vector3f
 // todo size of point light: probably either distance or direction needs to be adjusted
 // todo - in proximity, the appearance must not stay as a point, but rather be a sphere
 
-class PointLight : LightComponent() {
+class PointLight : LightComponent(LightType.POINT) {
 
     @Range(0.0, 5.0)
     var lightSize = 0.0

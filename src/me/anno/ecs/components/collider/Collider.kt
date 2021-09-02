@@ -6,6 +6,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.physics.BulletPhysics.Companion.convertMatrix
+import me.anno.engine.ui.ECSTypeLibrary.Companion.lastSelection
 import me.anno.engine.ui.render.RenderView
 import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.maths.Maths
@@ -229,14 +230,17 @@ abstract class Collider : Component() {
     // a collider needs to be drawn
     override fun onDrawGUI(view: RenderView) {
         // draw shape
-        drawShape()
+        // only draw shape, if the entity is selected (or any of its parent entities)
+        if (entity!!.anyInHierarchy { it == lastSelection }){
+            drawShape()
+        }
         // todo draw transformation gizmos for easy transforms
     }
 
     abstract fun drawShape()
 
     companion object {
-        var guiLineColor = 0x777777
+        var guiLineColor = 0x77ffff
         const val INV_COSINE_22_5 = 1.082392200292394 // 1.0/Math.cos(45*Math.PI/180/2)
         const val OUTER_SPHERE_RADIUS_X8 = 1.224744871391589 // sqrt(1.5),
         // what is the inverse of the inner radius of a sphere approximated by 3 rings of 8 segments each

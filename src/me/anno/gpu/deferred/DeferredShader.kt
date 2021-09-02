@@ -2,7 +2,6 @@ package me.anno.gpu.deferred
 
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
-import org.lwjgl.opengl.GL20
 
 open class DeferredShader(
     settings: DeferredSettingsV1,
@@ -17,13 +16,7 @@ open class DeferredShader(
         glslVersion = 330
         use()
         if (textures != null) {
-            for (index in textures.indices) {
-                val textureName = textures[index]
-                val nameIndex = this[textureName]
-                if (nameIndex >= 0) {
-                    GL20.glUniform1i(nameIndex, index)
-                }
-            }
+            setTextureIndices(textures)
         }
     }
 

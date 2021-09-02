@@ -32,7 +32,6 @@ class Skeleton : PrefabSaveable() {
     @SerializedProperty
     var animations: Map<String, FileReference> = emptyMap()
 
-
     @NotSerializedProperty
     private var mesh: Mesh? = null
 

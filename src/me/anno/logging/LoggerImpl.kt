@@ -48,12 +48,7 @@ class LoggerImpl(val prefix: String?) : Logger, Log {
     }
 
     override fun info(msg: String) {
-        when (suffix) {
-            // todo use logging settings instead of this blacklist
-            ":ScratchFileBuffer", ":PDFObjectStreamParser",
-            ":FontFileFinder", ":FontMapperImpl", ":FileSystemFontProvider" -> Unit
-            else -> print("INFO", msg)
-        }
+        print("INFO", msg)
     }
 
     override fun info(msg: String, vararg obj: Any) {
@@ -67,6 +62,15 @@ class LoggerImpl(val prefix: String?) : Logger, Log {
     override fun info(msg: String, thrown: Throwable) {
         info(msg)
         thrown.printStackTrace()
+    }
+
+    override fun debug(msg: String) {
+        print("DEBUG", msg)
+    }
+
+    override fun debug(msg: String, e: Throwable) {
+        print("DEBUG", msg)
+        e.printStackTrace()
     }
 
     override fun error(msg: String) {

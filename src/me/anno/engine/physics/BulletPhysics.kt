@@ -59,6 +59,16 @@ class BulletPhysics : Component() {
     // this may be bad for performance, but it also allows our engine to run much larger worlds
     // if we need top-notch-performance, I just should switch to a native implementation
 
+    // todo ideally for bullet, we would need a non-symmetric collision matrix:
+    //
+    //   t y p e s
+    // t
+    // y
+    // p  whether it can be moved by the other
+    // e
+    // s
+    // todo this would allow for pushing, ignoring, and such...
+
     companion object {
         private val LOGGER = LogManager.getLogger(BulletPhysics::class)
         fun convertMatrix(ourTransform: Matrix4x3d, scale: org.joml.Vector3d): Matrix4d {
@@ -82,37 +92,36 @@ class BulletPhysics : Component() {
     private val sampleWheels = ArrayList<WheelInfo>()
 
     @NotSerializedProperty
-    private var invalidEntities = ParallelHashSet<Entity>(256)
+    private val invalidEntities = ParallelHashSet<Entity>(256)
 
     fun invalidate(entity: Entity) {
+        //println("invalidated ${System.identityHashCode(this)}")
         invalidEntities.add(entity)
     }
 
     private fun validate() {
+        //println("validating ${System.identityHashCode(this)}")
         invalidEntities.process(::update)
     }
 
     @NotSerializedProperty
-    private val world = createBulletWorldWithGroundNGravity()
+    private lateinit var world: DiscreteDynamicsWorld
 
     @NotSerializedProperty
-    private val rigidBodies = HashMap<Entity, Pair<org.joml.Vector3d, RigidBody>>()
+    private lateinit var rigidBodies: HashMap<Entity, Pair<org.joml.Vector3d, RigidBody>>
 
     @NotSerializedProperty
-    private val nonStaticRigidBodies = HashMap<Entity, Pair<org.joml.Vector3d, RigidBody>>()
+    private lateinit var nonStaticRigidBodies: HashMap<Entity, Pair<org.joml.Vector3d, RigidBody>>
 
     @NotSerializedProperty
-    private val raycastVehicles = HashMap<Entity, RaycastVehicle>()
+    private lateinit var raycastVehicles: HashMap<Entity, RaycastVehicle>
 
-    // todo ideally for bullet, we would need a non-symmetric matrix:
-    //
-    //   t y p e s
-    // t
-    // y
-    // p  whether it can be moved by the other
-    // e
-    // s
-    // todo this would allow for pushing, ignoring, and such...
+    override fun onCreate() {
+        raycastVehicles = HashMap()
+        nonStaticRigidBodies = HashMap()
+        world = createBulletWorldWithGroundNGravity()
+        rigidBodies = HashMap()
+    }
 
     init {
         // addSampleVehicle()
@@ -215,7 +224,7 @@ class BulletPhysics : Component() {
 
     fun add(entity: Entity): RigidBody? {
         // todo add including constraints and such
-        println("adding ${entity.name} maybe, ${entity.getComponent(Rigidbody::class, false)}")
+        // println("adding ${entity.name} maybe, ${entity.getComponent(Rigidbody::class, false)}")
         val rigidbody = entity.getComponent(Rigidbody::class, false) ?: return null
         if (rigidbody.isEnabled) {
 
@@ -279,13 +288,12 @@ class BulletPhysics : Component() {
         remove(entity)
         val rigidbody = add(entity)
         entity.isPhysicsControlled = rigidbody != null
-        println("updated ${entity.name}, rigid: ${rigidbody?.invMass}")
     }
 
     @SerializedProperty
     var targetUpdatesPerSecond = 30.0
 
-    val clock = Clock()
+    // val clock = Clock()
 
     var time = 0L
 

@@ -9,16 +9,12 @@ import me.anno.engine.scene.PrefabHelper.addC
 import me.anno.engine.scene.PrefabHelper.addE
 import me.anno.engine.scene.PrefabHelper.setC
 import me.anno.engine.scene.PrefabHelper.setE
-import me.anno.engine.ui.render.RenderView
 import me.anno.io.files.StaticRef
 import me.anno.io.text.TextWriter
-import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.utils.OS
+import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3f
-import kotlin.math.cos
-import kotlin.math.max
-import kotlin.math.sin
 
 object ScenePrefab : StaticRef("Scene.prefab", lazy {
     TextWriter.toText(Prefab("Entity").apply {
@@ -60,19 +56,28 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
 
         val lights = addE(changes, world, "Lights")
         val ambient = addC(changes, lights, "AmbientLight")
-        setC(changes, ambient, "color", Vector3f(1f))
+        setC(changes, ambient, "color", Vector3f(0.1f))
 
         /*val pointLight = addE(changes, lights, "Point Light")
         setE(changes, pointLight, "position", Vector3d(0.0, 50.0, 0.0))
         setE(changes, pointLight, "scale", Vector3d(80.0))
         addC(changes, pointLight, "PointLight")*/
 
-        /*val sun = addE(changes, lights, "Sun")
-        setE(changes, sun, "scale", Vector3d(1000.0))
-        setE(changes, sun, "position", Vector3d(0.0, 50.0, 0.0))
-        addC(changes, sun, "DirectionalLight")
+        val sun = addE(changes, lights, "Sun")
+        setE(changes, sun, "scale", Vector3d(50.0))
+        setE(changes, sun, "position", Vector3d(0.0, -10.0, 0.0))
+        setE(changes, sun, "rotation", Quaterniond().rotateX(-0.5))
+        val dl = addC(changes, sun, "DirectionalLight")
+        setE(changes, dl, "shadowMapCascades", 4)
 
-        val spotLight = addE(changes, lights, "Spot Light")
+        val sun2 = addE(changes, lights, "Sun2")
+        setE(changes, sun2, "scale", Vector3d(50.0))
+        setE(changes, sun2, "position", Vector3d(0.0, -10.0, 0.0))
+        setE(changes, sun2, "rotation", Quaterniond().rotateX(-0.5).rotateY(-0.5))
+        val dl2 = addC(changes, sun2, "DirectionalLight")
+        setE(changes, dl2, "shadowMapCascades", 1)
+
+        /*val spotLight = addE(changes, lights, "Spot Light")
         setE(changes, spotLight, "scale", Vector3d(100.0))
         addC(changes, spotLight, "SpotLight")*/
 
@@ -133,12 +138,12 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         val floorCollider = addC(changes, floor, "BoxCollider")
         setC(changes, floorCollider, "halfExtends", Vector3d(1.0))
 
-        // add spheres for testing
+        /*// add spheres for testing
         val sphereMesh = OS.documents.getChild("sphere.obj")
         for (i in 0 until 100) {
             val sphere = addE(changes, physics, "Sphere[$i]", sphereMesh)
             setE(changes, sphere, "position", Vector3d(0.0, (i + 2) * 2.1, 0.0))
-            // addC(changes, sphere, "Rigidbody")
+            addC(changes, sphere, "Rigidbody")
             addC(changes, sphere, "SphereCollider")
         }
 
@@ -160,7 +165,7 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
                     addC(changes, cube, "Rigidbody")
                 }
             }
-        }
+        }*/
 
         // normal testing
         /*val normalTesting = addE(changes, world, "Normal Testing")

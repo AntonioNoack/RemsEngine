@@ -1,7 +1,7 @@
 package me.anno.mesh.assimp
 
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix4f
+import org.joml.Matrix4x3f
 import org.lwjgl.assimp.*
 
 object SkeletonAnimAndBones {
@@ -43,7 +43,7 @@ object SkeletonAnimAndBones {
         }
         // works for adjusting the skeleton to the mesh, but does not work yet for the animation correction
         // todo apply it when loading animations
-        val nodeTransformParent: Matrix4f? = null//AssimpTree.convert(rootNode.mTransformation()).invert()
+        val nodeTransformParent: Matrix4x3f? = null//AssimpTree.convert(rootNode.mTransformation()).invert()
         processTree(rootNode, allowedNames, boneList, boneMap, -1, nodeTransformParent)
     }
 
@@ -59,7 +59,7 @@ object SkeletonAnimAndBones {
         boneMap: MutableMap<String, Bone>,
         lastBoneId: Int,
 
-        nodeTransformParent: Matrix4f?
+        nodeTransformParent: Matrix4x3f?
 
     ) {
 
@@ -73,10 +73,10 @@ object SkeletonAnimAndBones {
             val bone = boneMap.getOrPut(name) {
                 val bone = Bone(boneList.size, lastBoneId, name)
                 boneList.add(bone)
-                boneMap[name] = bone
                 bone
             }
             bone.setBindPose(localTransform)
+            AssimpTree.convert(aiNode.mTransformation(), bone.relativeTransform)
             bone.parentId = lastBoneId
             bone.id
         } else {

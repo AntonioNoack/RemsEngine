@@ -255,9 +255,9 @@ object Vectors {
 
     fun findTangent(normal: Vector3f, dst: Vector3f = Vector3f()): Vector3f {
         val cross = dst.set(normal).normalize()
-        return if(abs(cross.y) < 0.5f){
+        return if (abs(cross.y) < 0.5f) {
             // y is a good choice
-            cross.cross(0f,1f,0f)
+            cross.cross(0f, 1f, 0f)
         } else {
             // y is a bad choice -> use x
             cross.cross(1f, 0f, 0f)
@@ -266,9 +266,9 @@ object Vectors {
 
     fun findTangent(normal: Vector3d, dst: Vector3d = Vector3d()): Vector3d {
         val cross = dst.set(normal).normalize()
-        return if(abs(cross.y) < 0.5){
+        return if (abs(cross.y) < 0.5) {
             // y is a good choice
-            cross.cross(0.0,1.0,0.0)
+            cross.cross(0.0, 1.0, 0.0)
         } else {
             // y is a bad choice -> use x
             cross.cross(1.0, 0.0, 0.0)
@@ -290,13 +290,9 @@ object Vectors {
         return this
     }
 
-    fun Vector3d.safeNormalize(length: Double): Vector3d {
-        val f = length / length()
-        if (f.isNaN() || f == 0.0) {
-            set(0.0)
-        } else {
-            mul(f)
-        }
+    fun Vector3d.safeNormalize(length: Double = 1.0): Vector3d {
+        normalize(length)
+        if (!isFinite) set(0.0)
         return this
     }
 

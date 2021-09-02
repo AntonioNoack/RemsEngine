@@ -10,6 +10,7 @@ import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.mesh.assimp.AnimHierarchy.loadSkeletonFromAnimations
+import me.anno.mesh.assimp.AnimatedMeshesLoader.createNodeCache
 import me.anno.ui.editor.files.thumbs.Thumbs
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
@@ -50,7 +51,7 @@ fun main() {
     skeleton.bones = boneList
 
     // check what is the result using the animations
-    loadSkeletonFromAnimations(aiScene, rootNode, boneList, boneMap)
+    loadSkeletonFromAnimations(aiScene, rootNode, createNodeCache(rootNode), boneList, boneMap)
     Thumbs.generateSkeletonFrame(getReference(desktop, "byAnimation.png"), skeleton, size) {}
     println("by animation: ${boneList.map { it.name }}")
 

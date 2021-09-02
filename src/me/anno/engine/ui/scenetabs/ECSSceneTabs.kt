@@ -9,6 +9,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.MeshRenderer
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
+import me.anno.engine.physics.BulletPhysics
 import me.anno.engine.ui.ECSTreeView
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX.windowStack
@@ -106,7 +107,12 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
             PrefabInspector.currentInspector = sceneTab.inspector
             // root = sceneTab.root
             val prefab = sceneTab.inspector.prefab
-            val prefabInstance = prefab.createInstance()
+            val prefabInstance = prefab.getSampleInstance()
+            (prefabInstance as? Entity)?.apply {
+                create()
+                val physics = prefabInstance.getComponent(BulletPhysics::class, false)
+                if (physics != null) rebuildPhysics(physics)
+            }
             val world = lazy { createWorld(prefabInstance, prefab.src) }
             for (window in windowStack) {
                 window.panel.listOfAll {

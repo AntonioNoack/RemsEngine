@@ -1,14 +1,14 @@
 package me.anno.mesh.assimp
 
-import org.joml.Matrix4f
+import org.joml.Matrix4x3f
 
 class AnimationFrame(boneCount: Int) {
 
-    val matrices = Array(boneCount) { Matrix4f() }
+    val skinningMatrices = Array(boneCount) { Matrix4x3f() }
 
     override fun toString(): String {
         // matrices.joinToString("\n"){ "\t${it.print()}"}
-        return matrices.size.toString()
+        return skinningMatrices.size.toString()
     }
 
 }

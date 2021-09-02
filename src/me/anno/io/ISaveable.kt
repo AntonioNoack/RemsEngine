@@ -111,7 +111,12 @@ interface ISaveable {
     fun readMatrix4x4d(name: String, value: Matrix4d)
 
     fun readQuaternionf(name: String, value: Quaternionf)
+    fun readQuaternionfArray(name: String, values: Array<Quaternionf>)
+    fun readQuaternionfArray2D(name: String, values: Array<Array<Quaternionf>>)
+
     fun readQuaterniond(name: String, value: Quaterniond)
+    fun readQuaterniondArray(name: String, values: Array<Quaterniond>)
+    fun readQuaterniondArray2D(name: String, values: Array<Array<Quaterniond>>)
 
     /**
      * can saving be ignored?, because this is default anyways?

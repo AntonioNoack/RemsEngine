@@ -346,6 +346,13 @@ open class Texture2D(
         bindBeforeUpload()
     }
 
+    private fun beforeUpload() {
+        if (isDestroyed) throw RuntimeException("Texture is already destroyed, call reset() if you want to stream it")
+        GFX.check()
+        ensurePointer()
+        bindBeforeUpload()
+    }
+
     private fun afterUpload(bytesPerPixel: Int) {
         locallyAllocated = allocate(locallyAllocated, w * h * bytesPerPixel.toLong())
         isCreated = true
@@ -606,7 +613,7 @@ open class Texture2D(
 
     fun createRGBA(data: FloatArray, checkRedundancy: Boolean) {
 
-        checkSize(4, data.size)
+        beforeUpload(4, data.size)
         val data2 = if (checkRedundancy && w * h > 1) checkRedundancy(data) else data
 
         val byteBuffer = byteBufferPool[data2.size * 4, false]
@@ -614,9 +621,6 @@ open class Texture2D(
         val floatBuffer = byteBuffer.asFloatBuffer()
         floatBuffer.put(data2).flip()
 
-        ensurePointer()
-        bindBeforeUpload()
-        GFX.check()
         // rgba32f as internal format is extremely important... otherwise the value is cropped
         texImage2D(TargetType.FloatTarget4, byteBuffer)
         // glTexImage2D(tex2D, 0, GL_RGBA32F, w, h, 0, GL_RGBA, GL_FLOAT, buffer)
@@ -664,6 +668,17 @@ open class Texture2D(
         afterUpload(3)
     }
 
+    fun createDepth() {
+        beforeUpload()
+        val format = GL_DEPTH_COMPONENT32F
+        if (withMultisampling) {
+            glTexImage2DMultisample(tex2D, samples, format, w, h, false)
+        } else {
+            glTexImage2D(tex2D, 0, format, w, h, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0)
+        }
+        afterUpload(4)
+    }
+
     /**
      * texture must be bound!
      * */
@@ -682,6 +697,8 @@ open class Texture2D(
         }
     }
 
+    var autoUpdateMipmaps = true
+
     private fun filtering(nearest: GPUFiltering) {
         if (withMultisampling) {
             this.filtering = GPUFiltering.TRULY_NEAREST
@@ -697,6 +714,8 @@ open class Texture2D(
                 glTexParameteri(tex2D, GL_TEXTURE_LOD_BIAS, 0)
                 glTexParameterf(tex2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy)
             }
+            // whenever the base mipmap is changed, the mipmaps will be updated :)
+            glTexParameteri(tex2D, GL_GENERATE_MIPMAP, if (autoUpdateMipmaps) GL_TRUE else GL_FALSE)
             // is called afterwards anyways
             // glTexParameteri(tex2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
         }
@@ -750,21 +769,6 @@ open class Texture2D(
             }
         }
         this.pointer = -1
-    }
-
-    fun createDepth() {
-        ensurePointer()
-        bindBeforeUpload()
-        locallyAllocated = allocate(locallyAllocated, w * h * 4L)
-        val format = GL_DEPTH_COMPONENT32F
-        if (withMultisampling) {
-            glTexImage2DMultisample(tex2D, samples, format, w, h, false)
-        } else {
-            glTexImage2D(tex2D, 0, format, w, h, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0)
-        }
-        filtering(filtering)
-        clamping(Clamping.CLAMP)
-        GFX.check()
     }
 
     private fun checkSize(channels: Int, size: Int) {

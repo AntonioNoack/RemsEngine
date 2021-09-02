@@ -19,8 +19,8 @@ fun imageTest(frustum: Frustum) {
     val w = 256
     val h = 256
 
-    frustum.define(
-        0.001, 100.0, toRadians(20.0), 1.0, 1.0, 1.0,
+    frustum.definePerspective(
+        0.001, 100.0, toRadians(20.0), w, h, 1.0,
         Vector3d(0.0, 0.0, 0.0),
         Quaterniond().rotateX(0.3)
     )
@@ -44,7 +44,9 @@ fun simpleTest(frustum: Frustum) {
 
     val logger = LogManager.getLogger("CullTest")
 
-    frustum.define(0.001, 100.0, toRadians(90.0), 1.0, 1.0, 1.0, Vector3d(0.0, 0.0, -1.0), Quaterniond())
+    val res = 100
+
+    frustum.definePerspective(0.001, 100.0, toRadians(90.0), res, res, 1.0, Vector3d(0.0, 0.0, -1.0), Quaterniond())
 
     val aabb1 = AABBd()
     aabb1.union(0.0, 0.0, 0.0)
@@ -56,7 +58,7 @@ fun simpleTest(frustum: Frustum) {
 
     logger.info("shall be false: ${aabb2 in frustum}")
 
-    frustum.define(0.001, 100.0, toRadians(90.0), 1.0, 1.0, 1.0, Vector3d(0.0, 0.0, 1.0), Quaterniond())
+    frustum.definePerspective(0.001, 100.0, toRadians(90.0), res, res, 1.0, Vector3d(0.0, 0.0, 1.0), Quaterniond())
 
     logger.info("shall be true: ${aabb1 in frustum}")
 

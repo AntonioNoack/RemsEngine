@@ -97,6 +97,14 @@ interface Hierarchical<V : Hierarchical<V>> {
         }
     }
 
+    fun anyInHierarchy(lambda: (V) -> Boolean): Boolean {
+        var v = this as V
+        while (true) {
+            if (lambda(v)) return true
+            v = v.parent ?: return false
+        }
+    }
+
     val listOfHierarchy: Sequence<V>
         get() {
             val self = this
