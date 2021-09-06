@@ -137,7 +137,7 @@ class Project(var name: String, val file: FileReference) : Saveable() {
     }
 
     fun saveTabs() {
-        val writer = TextWriter(false)
+        val writer = TextWriter()
         SceneTabs.save(writer)
         writer.writeAllInList()
         tabsFile.writeText(writer.data.toString())

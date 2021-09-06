@@ -20,7 +20,9 @@ import me.anno.ui.base.Panel
 import me.anno.utils.maths.Maths
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import me.anno.utils.types.Vectors.safeNormalize
+import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
+import org.joml.Quaterniond
 import org.joml.Vector3d
 
 open class ControlScheme(val camera: CameraComponent, val library: ECSTypeLibrary, val view: RenderView) :
@@ -34,6 +36,15 @@ open class ControlScheme(val camera: CameraComponent, val library: ECSTypeLibrar
     val selectedTransforms get() = selectedEntities.map { it.transform }
 
     val isSelected get() = parent!!.children.any { it.isInFocus }
+
+    private val tmpAABB = AABBd()
+    private val hit = RayHit()
+
+    private val velX = Vector3d()
+    private val velY = Vector3d()
+    private val velZ = Vector3d()
+    private val rotQuad = Quaterniond()
+    private val velocity = Vector3d()
 
     override fun onKeyDown(x: Float, y: Float, key: Int) {
         super.onKeyDown(x, y, key)
@@ -105,55 +116,58 @@ open class ControlScheme(val camera: CameraComponent, val library: ECSTypeLibrar
         }
     }
 
-    var movement = Vector3d()
     open fun checkMovement() {
+        val view = view
         val dt = GFX.deltaTime
-        val factor = Maths.clamp(1.0 - 20.0 * dt, 0.0, 1.0)
-        movement.mul(factor)
-        val s = (1.0 - factor) * 0.035
-        if (parent!!.children.any { it.isInFocus }) {// todo check if "in focus"
-            if (Input.isKeyDown('a')) movement.x -= s
-            if (Input.isKeyDown('d')) movement.x += s
-            if (Input.isKeyDown('w')) movement.z -= s
-            if (Input.isKeyDown('s')) movement.z += s
-            if (Input.isKeyDown('q')) movement.y -= s
-            if (Input.isKeyDown('e')) movement.y += s
-        }
-
-        val rotation = view.rotation
-        val position = view.position
+        val factor = Maths.clamp(20.0 * dt, 0.0, 1.0)
+        val velocity = velocity.mul(1.0 - factor)
         val radius = view.radius
-
-        val normXZ = !Input.isShiftDown // todo use UI toggle instead
-        val rotQuad = rotation.toQuaternionDegrees()
-        val right = rotQuad.transform(Vector3d(1.0, 0.0, 0.0))
-        val forward = rotQuad.transform(Vector3d(0.0, 0.0, 1.0))
-        val up = if (normXZ) {
-            right.y = 0.0
-            forward.y = 0.0
-            right.safeNormalize()
-            forward.safeNormalize()
-            Vector3d(0.0, 1.0, 0.0)
-        } else {
-            rotQuad.transform(Vector3d(0.0, 1.0, 0.0))
+        val s = factor * radius * 1.2
+        if (isSelected) {
+            if (Input.isKeyDown('a')) velocity.x -= s
+            if (Input.isKeyDown('d')) velocity.x += s
+            if (Input.isKeyDown('w')) velocity.z -= s
+            if (Input.isKeyDown('s')) velocity.z += s
+            if (Input.isKeyDown('q')) velocity.y -= s
+            if (Input.isKeyDown('e')) velocity.y += s
         }
-        position.x += movement.dot(right.x, up.x, forward.x) * radius
-        position.y += movement.dot(right.y, up.y, forward.y) * radius
-        position.z += movement.dot(right.z, up.z, forward.z) * radius
+        val normXZ = !Input.isShiftDown // todo use UI toggle instead
+        val rotQuad = view.rotation.toQuaternionDegrees(rotQuad).invert()
+        val velX = velX.set(1.0, 0.0, 0.0)
+        val velY = velY.set(0.0, 1.0, 0.0)
+        val velZ = velZ.set(0.0, 0.0, 1.0)
+        rotQuad.transform(velX)
+        rotQuad.transform(velZ)
+        if (normXZ) {
+            velX.y = 0.0
+            velZ.y = 0.0
+            velX.safeNormalize()
+            velZ.safeNormalize()
+        } else {
+            rotQuad.transform(velY)
+        }
+        val position = view.position
+        /*position.x += velocity.dot(velX.x, velY.x, velZ.x) * dt
+        position.y += velocity.dot(velX.y, velY.y, velZ.y) * dt
+        position.z += velocity.dot(velX.z, velY.z, velZ.z) * dt*/
+        position.x += velocity.dot(velX) * dt
+        position.y += velocity.dot(velY) * dt
+        position.z += velocity.dot(velZ) * dt
         if (!position.isFinite) {
-            me.anno.utils.LOGGER.warn("Invalid position $position from $movement * mat($right, $up, $forward)")
+            LOGGER.warn("Invalid position $position from $velocity * mat($velX, $velY, $velZ)")
             position.set(0.0)
             Thread.sleep(100)
         }
     }
 
-    private val tmpAABB = AABBd()
-    private val hit = RayHit()
-
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         // no background
         // testHits()
         checkMovement()
+    }
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(ControlScheme::class)
     }
 
 }

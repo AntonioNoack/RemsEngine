@@ -436,7 +436,7 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
 
     open fun getSystemState(): Any? {
         // val t0 = System.nanoTime()
-        val writer = TextWriter(false)
+        val writer = TextWriter()
         writer.add(spawnPosition)
         writer.add(spawnVelocity)
         writer.add(spawnRotation)

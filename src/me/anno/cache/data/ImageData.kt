@@ -7,6 +7,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.RenderState.renderPurely
 import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.drawing.GFXx3D.shader3DUniforms
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
@@ -73,7 +74,7 @@ class ImageData(file: FileReference) : ICacheData {
         }
 
         fun frameToFramebuffer(frame: VFrame, w: Int, h: Int, result: ImageData?): Framebuffer {
-            val framebuffer = Framebuffer("webp-temp", w, h, 1, 1, false, Framebuffer.DepthBufferType.NONE)
+            val framebuffer = Framebuffer("webp-temp", w, h, 1, 1, false, DepthBufferType.NONE)
             result?.framebuffer = framebuffer
             useFrame(framebuffer, Renderer.copyRenderer) {
                 renderPurely {

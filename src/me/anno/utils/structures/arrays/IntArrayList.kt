@@ -3,13 +3,17 @@ package me.anno.utils.structures.arrays
 import kotlin.math.min
 
 class IntArrayList(val capacity: Int) {
+
     private val buffers = ArrayList<IntArray>()
+
     var size = 0
+
     operator fun get(index: Int) = buffers[index / capacity][index % capacity]
+
     operator fun plusAssign(value: Int) {
-        val index = size % capacity
-        if (index == 0) buffers.add(IntArray(capacity))
-        buffers.last()[index] = value
+        val bufferIndex = size / capacity
+        if (bufferIndex >= buffers.size) buffers.add(IntArray(capacity))
+        buffers[bufferIndex][size % capacity] = value
         size++
     }
 
@@ -26,4 +30,9 @@ class IntArrayList(val capacity: Int) {
         }
         return dst
     }
+
+    fun clear() {
+        size = 0
+    }
+
 }

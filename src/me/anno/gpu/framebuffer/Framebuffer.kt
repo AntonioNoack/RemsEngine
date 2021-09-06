@@ -4,8 +4,6 @@ import me.anno.gpu.GFX
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.TextureCubemap
-import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL30.*
@@ -13,10 +11,11 @@ import org.lwjgl.opengl.GL32
 import kotlin.system.exitProcess
 
 class Framebuffer(
-    var name: String, var w: Int, var h: Int, val samples: Int,
-    val targets: Array<TargetType>,
+    var name: String,
+    override var w: Int, override var h: Int,
+    val samples: Int, val targets: Array<TargetType>,
     val depthBufferType: DepthBufferType
-) {
+) : IFramebuffer {
 
     constructor(
         name: String, w: Int, h: Int, samples: Int,
@@ -32,33 +31,24 @@ class Framebuffer(
     // multiple targets, layout=x require shader version 330+
     // use glBindFragDataLocation instead
 
-    enum class DepthBufferType {
-        NONE,
-        INTERNAL,
-        TEXTURE,
-        TEXTURE_CUBEMAP
-    }
-
     var needsBlit = true
 
     val withMultisampling get() = samples > 1
     var msBuffer = if (withMultisampling)
         Framebuffer("$name.ms", w, h, 1, targets, depthBufferType) else null
 
-    var pointer = -1
+    override var pointer = -1
     var depthRenderBuffer = -1
-    var colorRenderBuffer = -1
-    var depthTexture: Texture2D? = null
-    var depthTextureCubemap: TextureCubemap? = null
+    override var depthTexture: Texture2D? = null
 
     lateinit var textures: Array<Texture2D>
 
-    fun ensure() {
+    override fun ensure() {
         if (pointer < 0) create()
     }
 
-    fun bindDirectly(viewport: Boolean) = bind(viewport)
-    fun bindDirectly(w: Int, h: Int, viewport: Boolean) = bind(w, h, viewport)
+    override fun bindDirectly(viewport: Boolean) = bind(viewport)
+    override fun bindDirectly(w: Int, h: Int, viewport: Boolean) = bind(w, h, viewport)
 
     private fun bind(viewport: Boolean) {
         needsBlit = true
@@ -117,14 +107,16 @@ class Framebuffer(
         }
         GFX.check()
         val textures = textures
-        for(index in textures.indices){
+        for (index in textures.indices) {
             val texture = textures[index]
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, tex2D, texture.pointer, 0)
         }
         GFX.check()
-        if (targets.size > 1) {// skip array alloc otherwise
-            glDrawBuffers(textures.indices.map { it + GL_COLOR_ATTACHMENT0 }.toIntArray())
-        } else glDrawBuffer(GL_COLOR_ATTACHMENT0)
+        when (targets.size) {
+            0 -> glDrawBuffer(GL_NONE)
+            1 -> glDrawBuffer(GL_COLOR_ATTACHMENT0)
+            else -> glDrawBuffers(textures.indices.map { it + GL_COLOR_ATTACHMENT0 }.toIntArray())
+        }
         GFX.check()
         when (depthBufferType) {
             DepthBufferType.NONE -> {
@@ -135,13 +127,6 @@ class Framebuffer(
                 depthTexture.createDepth()
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, tex2D, depthTexture.pointer, 0)
                 this.depthTexture = depthTexture
-            }
-            DepthBufferType.TEXTURE_CUBEMAP -> {
-                val size = (w + h) ushr 1
-                val depthTexture = TextureCubemap(size)
-                depthTexture.createDepth()
-                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, tex2D, depthTexture.pointer, 0)
-                this.depthTextureCubemap = depthTexture
             }
         }
         GFX.check()
@@ -260,7 +245,7 @@ class Framebuffer(
         GFX.check()
     }
 
-    fun destroy() {
+    override fun destroy() {
         msBuffer?.destroy()
         if (pointer > -1) {
             glDeleteFramebuffers(pointer)
@@ -279,16 +264,13 @@ class Framebuffer(
 
     companion object {
 
-        val LOGGER = LogManager.getLogger(Framebuffer::class)!!
-
-        // val stack = Stack<Framebuffer?>()
+        // private val LOGGER = LogManager.getLogger(Framebuffer::class)!!
 
         fun bindNullDirectly() = bindNull()
 
         private fun bindNull() {
             glBindFramebuffer(GL_FRAMEBUFFER, 0)
             Frame.lastPtr = 0
-            // stack.push(null)
         }
 
     }

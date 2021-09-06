@@ -2,6 +2,8 @@ package me.anno.gpu.texture
 
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
+import me.anno.gpu.buffer.Buffer
+import me.anno.gpu.framebuffer.TargetType
 import org.lwjgl.opengl.ARBDepthBufferFloat.GL_DEPTH_COMPONENT32F
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL11.*
@@ -10,16 +12,25 @@ import org.lwjgl.opengl.GL12.GL_TEXTURE_WRAP_R
 import org.lwjgl.opengl.GL13.GL_TEXTURE_CUBE_MAP
 import org.lwjgl.opengl.GL13.GL_TEXTURE_CUBE_MAP_POSITIVE_X
 import org.lwjgl.opengl.GL30
+import java.nio.ByteBuffer
 
 // todo test it
 // todo can be used e.g. for game engine for environment & irradiation maps
-class TextureCubemap(var size: Int = 0) : ICacheData {
+class CubemapTexture(var size: Int = 0) : ICacheData, ITexture2D {
 
     var isCreated = false
     var isDestroyed = false
     var pointer = -1
 
     var locallyAllocated = 0L
+
+    override var w: Int
+        get() = size
+        set(value) { size = value }
+
+    override var h: Int
+        get() = size
+        set(_) {  }
 
     val tex2D = GL_TEXTURE_CUBE_MAP
 
@@ -53,7 +64,7 @@ class TextureCubemap(var size: Int = 0) : ICacheData {
     }
 
     fun createRGB(sides: List<ByteArray>) {
-        bindBeforeUpload()
+        beforeUpload(6 * 3, sides[0].size)
         val size = size
         val byteBuffer = Texture2D.byteBufferPool[size * size * 3, false]
         for (i in 0 until 6) {
@@ -70,7 +81,7 @@ class TextureCubemap(var size: Int = 0) : ICacheData {
     }
 
     fun createRGBA(sides: List<ByteArray>) {
-        bindBeforeUpload()
+        beforeUpload(6 * 4, sides[0].size)
         val size = size
         val byteBuffer = Texture2D.byteBufferPool[size * size * 4, false]
         for (i in 0 until 6) {
@@ -86,7 +97,16 @@ class TextureCubemap(var size: Int = 0) : ICacheData {
         afterUpload(6 * 4)
     }
 
+    fun create(type: TargetType) {
+        beforeUpload(0, 0)
+        val size = size
+        Buffer.bindBuffer(GL30.GL_PIXEL_UNPACK_BUFFER, 0)
+        glTexImage2D(tex2D, 0, type.type0, size, size, 0, type.type1, type.fillType, null as ByteBuffer?)
+        afterUpload(type.bytesPerPixel)
+    }
+
     fun createDepth() {
+        ensurePointer()
         bindBeforeUpload()
         val size = size
         for (i in 0 until 6) {
@@ -105,6 +125,20 @@ class TextureCubemap(var size: Int = 0) : ICacheData {
         clamping()
         GFX.check()
         if (isDestroyed) destroy()
+    }
+
+    fun isBoundToSlot(slot: Int): Boolean {
+        return Texture2D.boundTextures[slot] == pointer
+    }
+
+    override fun bind(index: Int, nearest: GPUFiltering, clamping: Clamping): Boolean {
+        if (pointer > 0 && isCreated) {
+            if (isBoundToSlot(index)) return false
+            Texture2D.activeSlot(index)
+            val result = Texture2D.bindTexture(tex2D, pointer)
+            ensureFilterAndClamping(nearest, clamping)
+            return result
+        } else throw IllegalStateException("Cannot bind non-created texture!")
     }
 
     private fun clamping() {

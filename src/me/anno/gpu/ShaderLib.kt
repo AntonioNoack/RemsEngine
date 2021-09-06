@@ -21,6 +21,7 @@ object ShaderLib {
     lateinit var flatShaderStriped: BaseShader
     lateinit var flatShaderGradient: BaseShader
     lateinit var flatShaderTexture: BaseShader
+    lateinit var flatShaderCubemap: BaseShader
     lateinit var subpixelCorrectTextShader: BaseShader
     lateinit var shader3DPolygon: BaseShader
     lateinit var shader3D: BaseShader
@@ -396,6 +397,36 @@ object ShaderLib {
                     "}"
         )
         flatShaderTexture.ignoreUniformWarnings(
+            listOf(
+                "cgSlope", "cgOffset", "cgPower", "cgSaturation",
+                "forceFieldUVCount", "forceFieldColorCount"
+            )
+        )
+
+        flatShaderCubemap = BaseShader(
+            "flatShaderCubemap",
+            "" +
+                    "a2 attr0;\n" +
+                    "u2 pos, size;\n" +
+                    "void main(){\n" +
+                    "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
+                    "   uv = (attr0 - 0.5) * vec2(${Math.PI * 2},${Math.PI});\n" +
+                    "}", listOf(Variable("vec2", "uv")), "" +
+                    "uniform samplerCube tex;\n" +
+                    "u4 color;\n" +
+                    "uniform bool ignoreTexAlpha;\n" +
+                    // "uniform mat3 rotation;\n" +
+                    "void main(){\n" +
+                    "   vec2 sc = vec2(sin(uv.y),cos(uv.y));\n" +
+                    "   vec3 uvw = vec3(sin(uv.x),1.0,cos(uv.x)) * sc.yxy;\n" +
+                    // "   uvw = rotation * uvw;\n" +
+                    "   vec4 col = color;\n" +
+                    "   if(ignoreTexAlpha) col.rgb *= texture(tex, uvw).rgb;\n" +
+                    "   else col *= texture(tex, uvw);\n" +
+                    "   gl_FragColor = col;\n" +
+                    "}"
+        )
+        flatShaderCubemap.ignoreUniformWarnings(
             listOf(
                 "cgSlope", "cgOffset", "cgPower", "cgSaturation",
                 "forceFieldUVCount", "forceFieldColorCount"
@@ -780,7 +811,8 @@ object ShaderLib {
                 "textureDeltaUV",
                 "tiling",
                 "uvProjection",
-                "forceFieldUVCount"
+                "forceFieldUVCount",
+                "cgOffset", "cgSlope", "cgPower", "cgSaturation"
             )
         )
 

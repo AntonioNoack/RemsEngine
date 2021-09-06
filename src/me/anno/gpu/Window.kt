@@ -1,5 +1,6 @@
 package me.anno.gpu
 
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
@@ -31,7 +32,7 @@ open class Window(
 
     // the graphics may want to draw directly on the panel in 3D, so we need a depth texture
     // we could use multiple samples, but for performance reasons, let's not do that, when it's not explicitly requested
-    val buffer = Framebuffer("window-${panel.className}", 1, 1, 1, 1, false, Framebuffer.DepthBufferType.TEXTURE)
+    val buffer = Framebuffer("window-${panel.className}", 1, 1, 1, 1, false, DepthBufferType.TEXTURE)
 
     init {
         panel.window = this

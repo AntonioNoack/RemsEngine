@@ -25,7 +25,7 @@ fun test(){
     val genName = { Math.random().toString() }
     // val readerFile = File.createTempFile("RemsStudio", ".tmp")
     val readerText = measure("Reader-create"){
-        TextWriter(true).apply {
+        TextWriter().apply {
             writeStringArray("strings", (0 until lines).map { genName() }.toTypedArray())
         }.data.toString()
     }

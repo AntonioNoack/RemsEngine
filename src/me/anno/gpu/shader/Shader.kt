@@ -277,7 +277,7 @@ open class Shader(
         if (safeShaderBinding) use()
         val loc = glGetUniformLocation(program, name)
         uniformLocations[name] = loc
-        if (loc < 0 && name !in ignoredNames) {
+        if (loc < 0 && name !in ignoredNames && name !in vertexSource && name !in fragmentSource) {
             LOGGER.warn("Uniform location \"$name\" not found in shader $shaderName")
         }
         return loc

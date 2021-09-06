@@ -102,7 +102,7 @@ class SceneTab(var file: FileReference?, var root: Transform, history: History?)
             try {
                 synchronized(root) {
                     dst.getParent()?.mkdirs()
-                    val writer = TextWriter(false)
+                    val writer = TextWriter()
                     writer.add(root)
                     writer.add(history)
                     writer.writeAllInList()

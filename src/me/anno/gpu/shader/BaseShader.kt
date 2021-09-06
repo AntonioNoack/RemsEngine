@@ -143,8 +143,8 @@ open class BaseShader(
             )
             shader.glslVersion = max(shader.glslVersion, glslVersion)
             shader.use()
-            shader.setTextureIndices(textures)
             shader.ignoreUniformWarnings(ignoredUniforms)
+            shader.setTextureIndices(textures)
             shader.v1("drawMode", ShaderPlus.DrawMode.COLOR.id)
             shader.v4("tint", 1f, 1f, 1f, 1f)
             shader

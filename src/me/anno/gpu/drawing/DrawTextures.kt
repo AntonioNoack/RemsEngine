@@ -11,6 +11,23 @@ import org.joml.Vector4fc
 
 object DrawTextures {
 
+    fun drawProjection(
+        x: Int, y: Int, w: Int, h: Int,
+        texture: CubemapTexture, ignoreAlpha: Boolean, color: Int
+    ) {
+        if (w == 0 || h == 0) return
+        GFX.check()
+        val shader = ShaderLib.flatShaderCubemap.value
+        shader.use()
+        GFXx2D.posSize(shader, x, y, w, h)
+        defineAdvancedGraphicalFeatures(shader)
+        shader.v4("color", color)
+        shader.v1("ignoreTexAlpha", if (ignoreAlpha) 1 else 0)
+        texture.bind(0, texture.filtering, Clamping.CLAMP)
+        GFX.flat01.draw(shader)
+        GFX.check()
+    }
+
     fun drawTexture(
         x: Int, y: Int, w: Int, h: Int,
         texture: ITexture2D, ignoreAlpha: Boolean, color: Int, tiling: Vector4fc?

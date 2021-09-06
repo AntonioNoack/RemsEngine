@@ -625,7 +625,7 @@ open class Transform() : Saveable(),
     fun stringify(): String {
         val myParent = parent
         parent = null
-        val data = TextWriter.toText(this, false)
+        val data = TextWriter.toText(this)
         parent = myParent
         return data
     }
@@ -688,7 +688,7 @@ open class Transform() : Saveable(),
 
     open fun clone(): Transform {
         val asString = try {
-            TextWriter.toText(this, false)
+            TextWriter.toText(this)
         } catch (e: Exception) {
             e.printStackTrace()
             ""

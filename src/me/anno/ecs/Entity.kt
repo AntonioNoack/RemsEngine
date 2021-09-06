@@ -155,6 +155,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         get() = transform.localPosition
         set(value) {
             transform.localPosition = value
+            transform.calculateGlobalTransform(parentEntity?.transform)
             invalidateAABBsCompletely()
             invalidatePhysics(false)
         }
@@ -164,6 +165,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         get() = transform.localRotation
         set(value) {
             transform.localRotation = value
+            transform.calculateGlobalTransform(parentEntity?.transform)
             invalidateAABBsCompletely()
             invalidatePhysics(false)
         }
@@ -173,6 +175,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         get() = transform.localScale
         set(value) {
             transform.localScale = value
+            transform.calculateGlobalTransform(parentEntity?.transform)
             invalidateAABBsCompletely()
             invalidatePhysics(false)
         }
@@ -636,6 +639,26 @@ class Entity() : PrefabSaveable(), Inspectable {
 
     fun <V : Component> getComponents(clazz: KClass<V>, includingDisabled: Boolean = false): List<V> {
         return components.filter { (includingDisabled || it.isEnabled) && clazz.isInstance(it) } as List<V>
+    }
+
+    fun <V : Component> allComponents(clazz: KClass<V>, includingDisabled: Boolean = false, lambda: (V) -> Boolean): Boolean {
+        val components = components
+        for(index in components.indices){
+            val c = components[index]
+            if((includingDisabled || c.isEnabled) && clazz.isInstance(c) && !lambda(c as V))
+                return false
+        }
+        return true
+    }
+
+    fun <V : Component> anyComponent(clazz: KClass<V>, includingDisabled: Boolean = false, lambda: (V) -> Boolean): Boolean {
+        val components = components
+        for(index in components.indices){
+            val c = components[index]
+            if((includingDisabled || c.isEnabled) && clazz.isInstance(c) && lambda(c as V))
+                return true
+        }
+        return false
     }
 
     fun <V : Component> getComponentsInChildren(clazz: KClass<V>, includingDisabled: Boolean = false): List<V> {

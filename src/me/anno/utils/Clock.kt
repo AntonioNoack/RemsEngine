@@ -25,26 +25,27 @@ class Clock(
         stop(wasUsedFor, minTime)
     }
 
+    fun stop(wasUsedFor: String, elementCount: Int) {
+        val time = System.nanoTime()
+        val dt0 = time - lastTime
+        val dt = dt0 * 1e-9
+        lastTime = time
+        if (dt > minTime) {
+            val nanosPerElement = dt0 / elementCount
+            LOGGER.info("Used ${if (printWholeAccuracy) dt.toString() else dt.f3()}s for $wasUsedFor, ${nanosPerElement}ns/e")
+        }
+    }
+
     fun update(wasUsedFor: String) {
         update(wasUsedFor, minTime)
     }
 
     fun update(wasUsedFor: String, minTime: Double) {
-        val time = System.nanoTime()
-        val dt = (time - lastTime) * 1e-9
-        if (dt > minTime) {
-            lastTime = time
-            LOGGER.info("Used ${if (printWholeAccuracy) dt.toString() else dt.f3()}s for $wasUsedFor")
-        }
+        stop(wasUsedFor, minTime)
     }
 
     fun update(wasUsedFor: () -> String, minTime: Double) {
-        val time = System.nanoTime()
-        val dt = (time - lastTime) * 1e-9
-        if (dt > minTime) {
-            lastTime = time
-            LOGGER.info("Used ${if (printWholeAccuracy) dt.toString() else dt.f3()}s for ${wasUsedFor()}")
-        }
+        stop(wasUsedFor, minTime)
     }
 
     fun stop(wasUsedFor: String, minTime: Double) {
@@ -53,6 +54,15 @@ class Clock(
         lastTime = time
         if (dt > minTime) {
             LOGGER.info("Used ${if (printWholeAccuracy) dt.toString() else dt.f3()}s for $wasUsedFor")
+        }
+    }
+
+    fun stop(wasUsedFor: () -> String, minTime: Double) {
+        val time = System.nanoTime()
+        val dt = (time - lastTime) * 1e-9
+        lastTime = time
+        if (dt > minTime) {
+            LOGGER.info("Used ${if (printWholeAccuracy) dt.toString() else dt.f3()}s for ${wasUsedFor()}")
         }
     }
 
@@ -65,7 +75,7 @@ class Clock(
         val dt = (time - firstTime) * 1e-9
         lastTime = time
         if (dt > minTime) {
-            if(wasUsedFor.isBlank2()){
+            if (wasUsedFor.isBlank2()) {
                 LOGGER.info("Used ${if (printWholeAccuracy) dt.toString() else dt.f3()}s in total")
             } else {
                 LOGGER.info("Used ${if (printWholeAccuracy) dt.toString() else dt.f3()}s in total for $wasUsedFor")

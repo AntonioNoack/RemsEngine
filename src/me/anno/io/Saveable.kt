@@ -100,6 +100,10 @@ abstract class Saveable : ISaveable {
 
     open fun readSomething(name: String, value: Any?) = warnMissingParam(name)
 
-    override fun toString(): String = TextWriter.toText(this, true)// + "@${super.toString()}"
+    override fun isDefaultValue(): Boolean = false
+    override val approxSize: Int = 100
+    override val className: String = javaClass.simpleName
+
+    override fun toString(): String = TextWriter.toText(this)// + "@${super.toString()}"
 
 }

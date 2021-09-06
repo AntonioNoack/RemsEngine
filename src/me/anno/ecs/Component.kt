@@ -2,6 +2,7 @@ package me.anno.ecs
 
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.ui.ECSTypeLibrary
 import me.anno.engine.ui.render.RenderView
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -36,6 +37,8 @@ abstract class Component : PrefabSaveable(), Inspectable {
     @NotSerializedProperty
     val transform
         get() = entity?.transform
+
+    val isSelectedIndirectly get() = entity!!.anyInHierarchy { it == ECSTypeLibrary.lastSelection }
 
     // can be overridden, e.g. for materials
     override fun listChildTypes(): String = ""

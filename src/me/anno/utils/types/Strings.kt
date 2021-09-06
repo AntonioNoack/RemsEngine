@@ -4,10 +4,11 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.io.files.FileReference
+import me.anno.io.text.TextWriterBase
 import me.anno.ui.base.Font
 import me.anno.ui.base.text.TextPanel
-import me.anno.utils.maths.Maths.fract
 import me.anno.utils.files.Files.formatFileSize
+import me.anno.utils.maths.Maths.fract
 import me.anno.utils.structures.lists.ExpensiveList
 import me.anno.utils.types.Floats.f1
 import java.util.*
@@ -87,7 +88,7 @@ object Strings {
     }
 
     fun Double?.formatTime2(fractions: Int): String {
-        if(this == null || this.isNaN()) return "Unknown"
+        if (this == null || this.isNaN()) return "Unknown"
         if (fractions > 0) {
             val fractionString = "%.${fractions}f".format(Locale.ENGLISH, fract(this))
             return formatTime2(0) + fractionString.substring(1)
@@ -171,6 +172,42 @@ object Strings {
             i++
         }
         if (i > lastI) data.append(value, lastI, i)
+    }
+
+    fun writeEscaped(value: String, data: TextWriterBase) {
+        for (i in value.indices) {
+            when (val char = value[i]) {
+                '\\' -> {
+                    data.append('\\')
+                    data.append('\\')
+                }
+                '\t' -> {
+                    data.append('\\')
+                    data.append('t')
+                }
+                '\r' -> {
+                    data.append('\\')
+                    data.append('r')
+                }
+                '\n' -> {
+                    data.append('\\')
+                    data.append('n')
+                }
+                '"' -> {
+                    data.append('\\')
+                    data.append('"')
+                }
+                '\b' -> {
+                    data.append('\\')
+                    data.append('b')
+                }
+                12.toChar() -> {
+                    data.append('\\')
+                    data.append('f')
+                }
+                else -> data.append(char)
+            }
+        }
     }
 
     // the normal isBlank() allocates memory, even though it's just a test

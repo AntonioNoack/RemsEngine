@@ -27,7 +27,7 @@ import org.joml.Vector3f
 
 class DraggingControls(view: RenderView) : ControlScheme(view) {
 
-    var mode = Mode.ROTATING
+    var mode = Mode.TRANSLATING
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
@@ -143,8 +143,8 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
 
                 val tmpQ = JomlPools.quat4d.borrow()
 
-                for (target in sorted) {// for correct transformation when parent and child are selected together
-                    val transform = target.transform
+                for (entity in sorted) {// for correct transformation when parent and child are selected together
+                    val transform = entity.transform
                     val global = transform.globalTransform
                     when (mode) {
                         Mode.TRANSLATING -> {
@@ -183,6 +183,8 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
     }
 
     private fun onChangeTransform(entity: Entity) {
+        // todo invalidate inspector as well
+        // todo bug: moving in scene, then rotating, loses translation by scene
         // save changes to file
         val i = ECSSceneTabs.currentTab!!.inspector
         val path = entity.pathInRoot2(i.root, false)
@@ -207,6 +209,7 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                 "Material" -> {
                     val mesh = hovered.value as? MeshComponent
                     // todo set this material in the prefab
+                    // todo if the prefab is not writable, create a prefab for that mesh, and replace the mesh...
                     /*if (mesh != null) {
                         mesh.materials = listOf(file)
                         // add this change

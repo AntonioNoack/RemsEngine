@@ -7,6 +7,7 @@ import me.anno.gpu.RenderState.blendMode
 import me.anno.gpu.RenderState.depthMode
 import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
@@ -31,12 +32,12 @@ class VideoBackgroundTask(
 
     private val partialFrame = Framebuffer(
         "VideoBackgroundTask-partial", video.w, video.h, 1, 1,
-        false, Framebuffer.DepthBufferType.TEXTURE
+        false, DepthBufferType.TEXTURE
     )
 
     private val averageFrame = Framebuffer(
         "VideoBackgroundTask-sum", video.w, video.h, 1, 1,
-        true, Framebuffer.DepthBufferType.TEXTURE
+        true, DepthBufferType.TEXTURE
     )
 
     private val renderingIndex = AtomicLong(0)

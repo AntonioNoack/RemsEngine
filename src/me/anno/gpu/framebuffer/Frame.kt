@@ -40,7 +40,7 @@ object Frame {
     var lastH = 0
     var lastPtr = -1
 
-    fun bind(buffer: Framebuffer?, changeSize: Boolean, x: Int, y: Int, w0: Int, h0: Int) {
+    fun bind(buffer: IFramebuffer?, changeSize: Boolean, x: Int, y: Int, w0: Int, h0: Int) {
 
         if (buffer != null && buffer.pointer <= 0) {
             buffer.ensure()

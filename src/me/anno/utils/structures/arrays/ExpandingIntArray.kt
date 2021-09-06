@@ -8,7 +8,7 @@ class ExpandingIntArray(
 
     var size = 0
 
-    fun clear(){
+    fun clear() {
         size = 0
     }
 
@@ -30,6 +30,18 @@ class ExpandingIntArray(
         } else {
             array[size++] = value
         }
+    }
+
+    override fun toString(): String {
+        val builder = StringBuilder(size * 4)
+        builder.append('[')
+        if (size > 0) builder.append(this[0])
+        for (i in 1 until size) {
+            builder.append(',')
+            builder.append(this[i])
+        }
+        builder.append(']')
+        return builder.toString()
     }
 
 }

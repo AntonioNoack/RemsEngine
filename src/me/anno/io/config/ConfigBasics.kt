@@ -66,13 +66,13 @@ object ConfigBasics {
     fun loadConfig(file: FileReference, defaultValue: StringMap, saveIfMissing: Boolean): StringMap {
         val read = load(file, saveIfMissing) {
             LOGGER.info("Didn't find $file, using default values")
-            TextWriter.toText(defaultValue, beautify)
+            TextWriter.toText(defaultValue)
         }
         val readData = TextReader.read(read)
         val map = readData.firstOrNull { it is StringMap } as? StringMap
         return if (map == null) {
             LOGGER.info("Config was corrupted, didn't find a config, in $file, got $readData")
-            save(file, TextWriter.toText(defaultValue, beautify))
+            save(file, TextWriter.toText(defaultValue))
             defaultValue
         } else map
     }
@@ -86,7 +86,7 @@ object ConfigBasics {
         saveIfMissing: Boolean
     ): List<ConfigEntry> {
 
-        val data = load(localFileName, saveIfMissing) { TextWriter.toText(defaultValue, beautify) }
+        val data = load(localFileName, saveIfMissing) { TextWriter.toText(defaultValue) }
 
         val loaded = TextReader.read(data)
         val newestEntries = HashMap<String, ConfigEntry>(loaded.size + 10)
@@ -123,7 +123,7 @@ object ConfigBasics {
         val result = newestEntries.values.toList()
 
         if (wasAugmentedByDefault) {
-            save(localFileName, TextWriter.toText(result, beautify))
+            save(localFileName, TextWriter.toText(result))
         }
 
         return result

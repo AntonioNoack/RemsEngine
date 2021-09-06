@@ -703,7 +703,8 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         return TextWriter.toText(
             selectedKeyframes
                 .map { Keyframe(it.time - time0, it.value) }
-                .toList(), false)
+                .toList()
+        )
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {

@@ -127,7 +127,7 @@ class TextParticles : ParticleSystem() {
     }
 
     override fun getSystemState(): Any? {
-        return super.getSystemState() to TextWriter.toText(text, false)
+        return super.getSystemState() to TextWriter.toText(text)
     }
 
     override fun readObject(name: String, value: ISaveable?) {

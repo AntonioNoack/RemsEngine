@@ -277,7 +277,7 @@ open class MeshData : ICacheData {
                 stack.translateLocal(newtonX, newtonY, 0f)
                 stack.scaleLocal(scale, scale, scale)
 
-                LOGGER.info("Tested[$i]: $epsilon, Used: Newton = (-($x0/$dx), -($y0/$dy)), Scale: $scale")
+                // LOGGER.info("Tested[$i]: $epsilon, Used: Newton = (-($x0/$dx), -($y0/$dy)), Scale: $scale")
 
             }
 

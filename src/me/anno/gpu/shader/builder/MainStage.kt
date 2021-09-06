@@ -1,8 +1,6 @@
 package me.anno.gpu.shader.builder
 
 import me.anno.gpu.deferred.DeferredSettingsV2
-import me.anno.gpu.shader.builder.ShaderBuilder.Companion.indent
-import me.anno.utils.test.cleanEclipseProject
 
 class MainStage {
 
@@ -130,13 +128,17 @@ class MainStage {
         // for all uniforms, which are sampler arrays, define the appropriate access function
         for (uniform in uniforms) {
             if (uniform.arraySize > 0 && uniform.type.startsWith("sampler")) {
+                val isCubemap = uniform.type.startsWith("samplerCube")
                 val name = uniform.name
                 // base color function
                 code.append("vec4 texture_array_")
                 code.append(name)
-                code.append("(int index, vec2 uv){\n")
+                code.append(
+                    if (isCubemap) "(int index, vec3 uv){\n"
+                    else "(int index, vec2 uv){\n"
+                )
                 code.append("switch(index){\n")
-                for(index in 0 until uniform.arraySize){
+                for (index in 0 until uniform.arraySize) {
                     code.append("case ")
                     code.append(index)
                     code.append(": return texture(")
@@ -150,28 +152,67 @@ class MainStage {
                 // as sampler2DShadow is supposed to work
                 code.append("float texture_array_depth_")
                 code.append(name)
-                code.append("(int index, vec2 uv, float depth){\n")
-                code.append("int size;vec2 f;float d,fSize;\n")
-                code.append("switch(index){\n")
-                for(index in 0 until uniform.arraySize){
-                    val nameIndex = name+index.toString()
-                    code.append("case ")
-                    code.append(index)
-                    code.append(":\n" +
-                            "size = textureSize($nameIndex,0).x;\n" +
-                            "fSize = float(size);\n" +
-                            "d = 1.0/fSize;\n" +
-                            "f = fract(uv*fSize);\n" +
-                            "return mix(mix(" +
-                            "   texture($nameIndex, uv          ).r>depth?1.0:0.0,\n" +
-                            "   texture($nameIndex, uv+vec2(0,d)).r>depth?1.0:0.0,\n" +
-                            "f.y), mix(\n" +
-                            "   texture($nameIndex, uv+vec2(d,0)).r>depth?1.0:0.0,\n" +
-                            "   texture($nameIndex, uv+vec2(d,d)).r>depth?1.0:0.0,\n" +
-                            "f.y), f.x);\n")
+                if (isCubemap) {
+                    code.append("(int index, vec3 uv, float depth){\n")
+                    code.append("float d0;\n")
+                    code.append("switch(index){\n")
+                    for (index in 0 until uniform.arraySize) {
+                        val nameIndex = name + index.toString()
+                        code.append("case ")
+                        code.append(index)
+                        code.append(
+                            // interpolation? we would need to know the side, and switch case on that
+                            ": d0=texture($nameIndex, uv).r; break;\n"
+                        )
+                    }
+                    code.append("default: return 0.0;\n")
+                    code.append("}\n")
+                    code.append(
+                        "" +
+                                // depth bias
+                                // dynamic bias is hard...
+                                "depth += 0.005;\n" +
+                                "return float(d0>depth);\n"
+                    )
+                    code.append("}\n")
+                } else {
+                    code.append("(int index, vec2 uv, float depth){\n")
+                    code.append("int size;vec2 f;float d,d0,d1,d2,d3,fSize;uv=uv*.5+.5;\n")
+                    code.append("switch(index){\n")
+                    for (index in 0 until uniform.arraySize) {
+                        val nameIndex = name + index.toString()
+                        code.append("case ")
+                        code.append(index)
+                        code.append(
+                            ":\n" +
+                                    "size = textureSize($nameIndex,0).x;\n" +
+                                    "fSize = float(size);\n" +
+                                    "d = 1.0/fSize;\n" +
+                                    "f = fract(uv*fSize);\n" +
+                                    "d0=texture($nameIndex, uv          ).r;\n" +
+                                    "d1=texture($nameIndex, uv+vec2(0,d)).r;\n" +
+                                    "d2=texture($nameIndex, uv+vec2(d,0)).r;\n" +
+                                    "d3=texture($nameIndex, uv+vec2(d,d)).r;\n" +
+                                    "break;\n"
+                        )
+                    }
+                    code.append("default: return 0.0;\n")
+                    code.append("}\n")
+                    code.append(
+                        "" +
+                                // depth bias
+                                // dynamic bias is hard...
+                                "depth += 0.005;\n" +
+                                "return mix(mix(" +
+                                "   float(d0>depth),\n" +
+                                "   float(d1>depth),\n" +
+                                "f.y), mix(\n" +
+                                "   float(d2>depth),\n" +
+                                "   float(d3>depth),\n" +
+                                "f.y), f.x);\n"
+                    )
+                    code.append("}\n")
                 }
-                code.append("default: return 0.0;\n")
-                code.append("}\n}\n")
             }
         }
 

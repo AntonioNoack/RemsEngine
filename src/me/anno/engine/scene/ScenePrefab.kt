@@ -58,11 +58,6 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         val ambient = addC(changes, lights, "AmbientLight")
         setC(changes, ambient, "color", Vector3f(0.1f))
 
-        /*val pointLight = addE(changes, lights, "Point Light")
-        setE(changes, pointLight, "position", Vector3d(0.0, 50.0, 0.0))
-        setE(changes, pointLight, "scale", Vector3d(80.0))
-        addC(changes, pointLight, "PointLight")*/
-
         val sun = addE(changes, lights, "Sun")
         setE(changes, sun, "scale", Vector3d(50.0))
         setE(changes, sun, "position", Vector3d(0.0, -10.0, 0.0))
@@ -70,16 +65,23 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         val dl = addC(changes, sun, "DirectionalLight")
         setE(changes, dl, "shadowMapCascades", 4)
 
-        val sun2 = addE(changes, lights, "Sun2")
+        /*val sun2 = addE(changes, lights, "Sun2")
         setE(changes, sun2, "scale", Vector3d(50.0))
         setE(changes, sun2, "position", Vector3d(0.0, -10.0, 0.0))
         setE(changes, sun2, "rotation", Quaterniond().rotateX(-0.5).rotateY(-0.5))
         val dl2 = addC(changes, sun2, "DirectionalLight")
-        setE(changes, dl2, "shadowMapCascades", 1)
+        setE(changes, dl2, "shadowMapCascades", 1)*/
 
-        /*val spotLight = addE(changes, lights, "Spot Light")
+        val spotLight = addE(changes, lights, "Spot Light")
         setE(changes, spotLight, "scale", Vector3d(100.0))
-        addC(changes, spotLight, "SpotLight")*/
+        val dls = addC(changes, spotLight, "SpotLight")
+        setE(changes, dls, "shadowMapCascades", 1)
+
+        val pointLight = addE(changes, lights, "Point Light")
+        setE(changes, pointLight, "position", Vector3d(0.0, 50.0, 0.0))
+        setE(changes, pointLight, "scale", Vector3d(80.0))
+        val dlp = addC(changes, pointLight, "PointLight")
+        setE(changes, dlp, "shadowMapCascades", 1)
 
         /*val ringOfLights = addE(changes, lights, "Ring Of Lights")
         val ringLightCount = RenderView.MAX_LIGHTS - 4
@@ -190,7 +192,7 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
             setE(changes, sphere, "scale", Vector3d(size))
         }*/
 
-    }, false).toByteArray()
+    }).toByteArray()
 }) {
 
     val worldIndex = 0

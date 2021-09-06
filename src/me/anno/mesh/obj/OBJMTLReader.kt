@@ -8,6 +8,7 @@ import org.joml.Vector3f
 import java.io.EOFException
 import java.io.File
 import java.io.InputStream
+import kotlin.math.pow
 
 open class OBJMTLReader(val reader: InputStream) {
 
@@ -46,8 +47,38 @@ open class OBJMTLReader(val reader: InputStream) {
         return char
     }
 
+    fun nextChar(): Char = next().toChar()
+
     fun putBack(char: Int) {
         putBack = char
+    }
+
+    fun putBack(char: Char) {
+        putBack = char.code
+    }
+
+    fun readIndex(): Int = readInt() - 1
+
+    fun readInt(default: Int = 0): Int {
+        var number = 0
+        var isNegative = false
+        var hadChar = false
+        while (true) {
+            when (val char = nextChar()) {
+                '-' -> isNegative = true
+                in '0'..'9' -> {
+                    number = 10 * number + char.code - '0'.code
+                    hadChar = true
+                }
+                else -> {
+                    putBack(char)
+                    return if (hadChar)
+                        if (isNegative) -number
+                        else number
+                    else default
+                }
+            }
+        }
     }
 
     fun readUntilSpace(): String {
@@ -65,7 +96,64 @@ open class OBJMTLReader(val reader: InputStream) {
         }
     }
 
-    fun readFloat() = readUntilSpace().toFloat()
+    // not perfect, but maybe faster
+    // uses no allocations :)
+    fun readFloat(): Float {
+        var isNegative = false
+        var number = 0f
+        while (true) {
+            when (val char = nextChar()) {
+                '-' -> isNegative = true
+                in '0'..'9' -> {
+                    number = number * 10f + char.code - '0'.code
+                }
+                '.' -> {
+                    var exponent = 0.1f
+                    var fraction = 0f
+                    while (true) {
+                        when (val char2 = nextChar()) {
+                            in '0'..'9' -> {
+                                fraction = exponent * (char2.code - 48)
+                                exponent *= 0.1f
+                            }
+                            'e', 'E' -> {
+                                var exponentInt = 0
+                                var expIsNegative = false
+                                while (true) {
+                                    when (val char3 = nextChar()) {
+                                        '-' -> expIsNegative = true
+                                        in '0'..'9' -> exponentInt = exponentInt * 10 + (char3.code - 48)
+                                        else -> {
+                                            putBack = char3.code
+                                            val exp = if (expIsNegative) -exponentInt else +exponentInt
+                                            return if (isNegative) {
+                                                -(number + fraction) * 10f.pow(exp)
+                                            } else {
+                                                +(number + fraction) * 10f.pow(exp)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else -> {
+                                putBack = char2.code
+                                return if (isNegative) {
+                                    -(number + fraction)
+                                } else {
+                                    +(number + fraction)
+                                }
+                            }
+                        }
+                    }
+                }
+                'e' -> throw UnsupportedOperationException("exponent numbers not supported")
+                else -> {
+                    putBack = char.code
+                    return if (isNegative) -number else +number
+                }
+            }
+        }
+    }
 
     fun readValue(): Float {
         skipSpaces()

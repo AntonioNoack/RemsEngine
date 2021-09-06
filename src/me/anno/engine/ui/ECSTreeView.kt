@@ -118,7 +118,7 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
             prefab.prefab = element.prefab2?.prefab?.nullIfUndefined() ?: element.prefab2?.src ?: InvalidRef
             LOGGER.info("found: ${prefab.prefab}, prefab: ${element.prefab2?.prefab}, own file: ${element.prefab2?.src}, has prefab: ${element.prefab2 != null}")
             prefab.changes = adders + setters
-            return TextWriter.toText(prefab, false)
+            return TextWriter.toText(prefab)
         }
     }
 

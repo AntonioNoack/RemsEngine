@@ -383,7 +383,7 @@ object Scene {
 
         var buffer: Framebuffer? =
             if (needsTemporaryBuffer) FBStack["Scene-Main", w, h, 4, usesFPBuffers, samples]
-            else RenderState.currentBuffer
+            else RenderState.currentBuffer as Framebuffer?
 
         // LOGGER.info("$needsTemporaryBuffer ? $buffer")
 

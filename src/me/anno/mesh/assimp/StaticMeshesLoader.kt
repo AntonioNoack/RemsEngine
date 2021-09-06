@@ -16,6 +16,7 @@ import me.anno.io.files.Signature
 import me.anno.io.zip.InnerFile
 import me.anno.io.zip.InnerFolder
 import me.anno.mesh.assimp.AssimpTree.convert
+import me.anno.mesh.assimp.io.AIFileIOImpl
 import me.anno.utils.Color.rgba
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
@@ -25,7 +26,6 @@ import org.joml.Vector4f
 import org.lwjgl.assimp.*
 import org.lwjgl.assimp.Assimp.*
 import org.lwjgl.system.MemoryUtil
-import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
 
@@ -34,8 +34,14 @@ open class StaticMeshesLoader {
 
     companion object {
 
-        val defaultFlags = aiProcess_GenSmoothNormals or aiProcess_JoinIdenticalVertices or aiProcess_Triangulate or
-                aiProcess_FixInfacingNormals or aiProcess_GlobalScale
+        /*val defaultFlags = aiProcess_GenSmoothNormals or aiProcess_JoinIdenticalVertices or aiProcess_Triangulate or
+                aiProcess_FixInfacingNormals or aiProcess_GlobalScale*/
+
+        val defaultFlags = aiProcess_GenSmoothNormals or // if the normals are unavailable, generate smooth ones
+                aiProcess_Triangulate or // we don't want to triangulate ourselves
+                aiProcess_JoinIdenticalVertices or // is required to load indexed geometry
+                aiProcess_FixInfacingNormals or // is recommended, may be incorrect...
+                aiProcess_GlobalScale
 
         // or aiProcess_PreTransformVertices // <- disables animations
         private val LOGGER = LogManager.getLogger(StaticMeshesLoader::class)
@@ -64,120 +70,13 @@ open class StaticMeshesLoader {
         return byteBuffer
     }
 
-    class AIFileIOStream(val file: FileReference) {
-
-        companion object {
-            private const val SEEK_SET = 1
-            private const val SEEK_CUR = 2
-            private const val SEEK_END = 3
-        }
-
-        var input: InputStream? = null
-        var position: Long = 0L
-
-        val length = file.length()
-
-        fun close() {
-            input?.close()
-            input = null
-        }
-
-        // whence = from where / where to add the offset
-        fun seek(offset: Long, whence: Int): Int {
-            ensureInput()
-            val target = when (whence) {
-                SEEK_SET -> 0L
-                SEEK_CUR -> position
-                SEEK_END -> file.length()
-                else -> throw RuntimeException("Unknown mode $whence")
-            } + offset
-            val delta = target - position
-            if (delta < 0L) throw RuntimeException("Skipping back hasn't yet been implemented")
-            val input = input!!
-            var done = 0L
-            while (done < delta) {
-                val skipped = input.skip(delta)
-                if (skipped < 0L) return -1 // eof
-                done += skipped
-            }
-            position = target
-            // 0 = success
-            return 0
-        }
-
-        fun ensureInput() {
-            if (input == null) input = file.inputStream()
-        }
-
-        fun read(buffer: ByteBuffer, length: Long): Long {
-            ensureInput()
-            val input = input!!
-            val position0 = position
-            var position = position
-            for (i in 0 until length) {
-                val b = input.read()
-                if (b < 0) break
-                buffer.put(b.toByte())
-                position++
-            }
-            this.position = position
-            return position - position0
-        }
-
-    }
 
     fun loadFile(file: FileReference, flags: Int): AIScene {
         return if (file is FileFileRef || file.absolutePath.count { it == '.' } <= 1) {
             aiImportFile(file.absolutePath, flags)
         } else {
-            // not worth it, as it doesn't seem to work for files consisting of multiples, packed into a zip
-            val fileIO = AIFileIO.calloc()
-            val map = HashMap<Long, AIFileIOStream>()
-            fileIO.set({ _, fileNamePtr, openModePtr ->
-                var fileName = MemoryUtil.memUTF8(fileNamePtr)
-                val openMode = MemoryUtil.memUTF8(openModePtr)
-                if (openMode != "rb") throw RuntimeException("Expected rb as mode")
-                // LOGGER.info("name/mode: $fileName / $openMode")
-                // if (fileName != file.name) throw RuntimeException()
-                if (fileName.startsWith("/")) fileName = fileName.substring(1)
-                if ('\\' in fileName) fileName = fileName.replace('\\', '/')
-                val file1 = if (fileName == file.name) file
-                else file.getParent()!!.getChild(fileName)
-                // LOGGER.info("$fileName -> $file1")
-                val callbacks = AIFile.create()
-                map[callbacks.address()] = AIFileIOStream(file1)
-                callbacks.set(
-                    { aiFile, dstBufferPtr, size1, size2 ->
-                        val totalSize = size1 * size2
-                        val dstBuffer = MemoryUtil.memByteBuffer(dstBufferPtr, totalSize.toInt())
-                        // LOGGER.info("reading $size1*$size2 bytes of ${map[aiFile]!!.length}")
-                        map[aiFile]!!.read(dstBuffer, totalSize)
-                    },
-                    { _, charArray, size1, size2 ->
-                        // write proc
-                        // LOGGER.info("writing")
-                        throw RuntimeException("Writing is not supported, $charArray, $size1*$size2")
-                    },
-                    { aiFile -> map[aiFile]!!.position },
-                    { aiFile -> map[aiFile]!!.length },
-                    { aiFile, offset, whence ->
-                        // LOGGER.info("seek $offset $whence")
-                        map[aiFile]!!.seek(offset, whence)
-                    },
-                    {
-                        // flush
-                        // LOGGER.info("flush")
-                        throw RuntimeException("Flush is not supported")
-                    },
-                    0L
-                )
-                callbacks.address()
-            }, { _, aiFile ->
-                // close the stream
-                map[aiFile]?.close()
-            }, 0L)
-            aiImportFileEx(fileToBuffer(file.name, true), flags, fileIO)
-            // aiImportFileFromMemory(fileToBuffer(file), flags, file.extension)
+            val fileIO = AIFileIOImpl.create(file, file.getParent()!!)
+            aiImportFileEx(file.name, flags, fileIO)
         } ?: throw Exception("Error loading model $file, ${aiGetErrorString()}")
     }
 
@@ -346,7 +245,7 @@ open class StaticMeshesLoader {
         else {// I think the else-if is the correct thing here; the storm-trooper is too dark otherwise
 
             var opacity = getFloat(aiMaterial, AI_MATKEY_OPACITY)
-            if(opacity == 0f) opacity = 1f // completely transparent makes no sense
+            if (opacity == 0f) opacity = 1f // completely transparent makes no sense
             // todo can we check whether this key is actually set? or change the default value?
             // LOGGER.info("opacity: $opacity")
 
@@ -396,12 +295,12 @@ open class StaticMeshesLoader {
             // val shininessStrength = getFloat(aiMaterial, AI_MATKEY_SHININESS_STRENGTH) // always 0.0
             // LOGGER.info("roughness: $shininess x $shininessStrength")
             val roughnessBase = shininessToRoughness(shininessExponent)
-            if (roughnessBase != 1f) prefab.setProperty("roughnessMinMax", Vector2f(0f, roughnessBase))
+            if (roughnessBase != 1f) prefab.setProperty("metallicMinMax", Vector2f(0f, roughnessBase))
 
             // metallic
             // val metallic0 = getColor(aiMaterial, color, AI_MATKEY_COLOR_REFLECTIVE) // always null
             val metallic = getFloat(aiMaterial, AI_MATKEY_REFLECTIVITY) // 0.0, rarely 0.5
-            if (metallic != 0f) prefab.setProperty("metallicMinMax", Vector2f(0f, metallic))
+            if (metallic != 0f) prefab.setProperty("roughnessMinMax", Vector2f(0f, metallic))
             // LOGGER.info("metallic: $metallic, roughness: $roughnessBase")
 
         }

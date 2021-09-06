@@ -24,6 +24,8 @@ import me.anno.ecs.prefab.ChangeHistory
 import me.anno.ecs.prefab.Prefab
 import me.anno.engine.physics.BulletPhysics
 import me.anno.engine.scene.ScenePrefab
+import me.anno.engine.ui.render.ECSShaderLib
+import me.anno.gpu.shader.BaseShader
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
@@ -99,6 +101,11 @@ object ECSRegistry {
             registerCustomClass(TypeTestComponent())
             registerCustomClass(RaycastTestComponent())
         }
+    }
+
+    fun initNoGFX(){
+        ECSShaderLib.pbrModelShader = BaseShader()
+        init()
     }
 
 }

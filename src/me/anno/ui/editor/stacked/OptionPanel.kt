@@ -61,7 +61,7 @@ class OptionPanel(
 
     override fun onCopyRequested(x: Float, y: Float): String? {
         return if (value is Saveable) {
-            TextWriter.toText(value, false)
+            TextWriter.toText(value)
         } else {
             super.onCopyRequested(x, y)
         }

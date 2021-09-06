@@ -10,7 +10,7 @@ fun main() {
 
     val logger = LogManager.getLogger("FloatArray2D")
 
-    val writer = TextWriter(false)
+    val writer = TextWriter()
     writer.writeFloatArray2D("x", Array(5) { FloatArray(5) { if (it < 3) it.toFloat() else 0f } })
     logger.info(writer.data.toString())
 
@@ -35,7 +35,7 @@ fun main() {
     val mesh = Mesh()
     mesh.positions = FloatArray(18) { it.toFloat() % 5f }
     mesh.indices = IntArray(10) { it }
-    logger.info(TextWriter.toText(mesh, false))
+    logger.info(TextWriter.toText(mesh))
 
 
 }

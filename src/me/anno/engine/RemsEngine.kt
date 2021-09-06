@@ -28,7 +28,10 @@ import me.anno.ui.editor.UILayouts.createReloadWindow
 import me.anno.ui.editor.config.ConfigPanel
 import me.anno.utils.OS
 import me.anno.utils.hpc.SyncMaster
+import org.apache.commons.logging.Log
 import org.apache.logging.log4j.LogManager
+
+// todo reading obj files is very slow: speed it up by implementing it ourselves
 
 
 // todo drop in meshes
@@ -60,6 +63,11 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         LogManager.disableLogger("PostScriptTable")
         LogManager.disableLogger("GlyphSubstitutionTable")
         LogManager.disableLogger("GouraudShadingContext")
+        LogManager.disableLogger("FontMapperImpl")
+        LogManager.disableLogger("FileSystemFontProvider")
+        LogManager.disableLogger("ScratchFileBuffer")
+        LogManager.disableLogger("FontFileFinder")
+        LogManager.disableLogger("PDFObjectStreamParser")
 
     }
 

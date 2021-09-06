@@ -26,7 +26,7 @@ object FBStack : CacheSection("FBStack") {
                 val framebuffer = Framebuffer(
                     name, w, h,
                     samples, arrayOf(targetType),
-                    Framebuffer.DepthBufferType.TEXTURE
+                    DepthBufferType.TEXTURE
                 )
                 data.add(framebuffer)
                 nextIndex = data.size

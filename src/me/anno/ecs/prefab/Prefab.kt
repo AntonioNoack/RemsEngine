@@ -182,7 +182,7 @@ class Prefab() : NamedSaveable() {
         fun loadScenePrefab(file: FileReference): Prefab {
             val prefab = loadPrefab(file) ?: Prefab("Entity").apply { this.prefab = ScenePrefab }
             prefab.src = file
-            if (!file.exists) file.writeText(TextWriter.toText(prefab, false))
+            if (!file.exists) file.writeText(TextWriter.toText(prefab))
             return prefab
         }
 

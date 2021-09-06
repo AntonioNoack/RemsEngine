@@ -22,7 +22,7 @@ class GameEngineProject() : NamedSaveable() {
                         TextReader.read(configFile).filterIsInstance<GameEngineProject>().firstOrNull()
                     } else {
                         val project = GameEngineProject(location)
-                        configFile.writeText(TextWriter.toText(project, false))
+                        configFile.writeText(TextWriter.toText(project))
                         project
                     }
                 } else {

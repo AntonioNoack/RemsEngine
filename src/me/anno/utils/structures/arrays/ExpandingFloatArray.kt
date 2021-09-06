@@ -1,5 +1,7 @@
 package me.anno.utils.structures.arrays
 
+import org.joml.Vector2f
+import org.joml.Vector3f
 import kotlin.math.max
 
 class ExpandingFloatArray(
@@ -8,7 +10,7 @@ class ExpandingFloatArray(
 
     var size = 0
 
-    fun clear(){
+    fun clear() {
         size = 0
     }
 
@@ -31,5 +33,23 @@ class ExpandingFloatArray(
             array[size++] = value
         }
     }
+
+    fun toFloatArray(): FloatArray {
+        val tmp = FloatArray(size)
+        if (size > 0) System.arraycopy(array!!, 0, tmp, 0, size)
+        return tmp
+    }
+
+    operator fun plusAssign(v: Vector2f) {
+        plusAssign(v.x)
+        plusAssign(v.y)
+    }
+
+    operator fun plusAssign(v: Vector3f) {
+        plusAssign(v.x)
+        plusAssign(v.y)
+        plusAssign(v.z)
+    }
+
 
 }

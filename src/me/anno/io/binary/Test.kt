@@ -70,13 +70,13 @@ fun main() {
     file.writeBytes(binaryValue)
 
     // load all files into the cache
-    candidates.forEach { it.save(TextWriter(false)) }
+    candidates.forEach { it.save(TextWriter()) }
 
     // text
     val text0 = System.nanoTime()
     lateinit var textValue: String
     for (i in 0 until 100) {
-        val writer = TextWriter(false)
+        val writer = TextWriter()
         candidates.forEach { writer.add(it) }
         writer.writeAllInList()
         textValue = writer.toString()

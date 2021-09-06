@@ -33,13 +33,10 @@ import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.drawing.DrawTexts
-import me.anno.gpu.drawing.DrawTextures
+import me.anno.gpu.drawing.DrawTextures.drawProjection
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.Perspective
-import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.framebuffer.Frame
-import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.framebuffer.Screenshots
+import me.anno.gpu.framebuffer.*
 import me.anno.gpu.pipeline.M4x3Delta.mul4x3delta
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStage
@@ -164,11 +161,11 @@ class RenderView(
 
         val rotation = cameraNode.transform.localRotation
 
-        if(!position.isFinite){
+        if (!position.isFinite) {
             me.anno.utils.LOGGER.warn("Invalid position $position")
             Thread.sleep(100)
         }
-        if(!rotation.isFinite) {
+        if (!rotation.isFinite) {
             me.anno.utils.LOGGER.warn("Invalid rotation $rotation")
             Thread.sleep(100)
         }
@@ -330,10 +327,21 @@ class RenderView(
                 val textures = light.shadowTextures
                 if (textures != null) {
                     // draw the texture
-                    val texture = textures.getOrNull(selectedAttribute)?.depthTexture
-                    if (texture != null && texture.isCreated && !texture.isDestroyed) {
-                        val s = w / 3
-                        drawTexture(x, y+s, s, -s, texture, true, -1, null)
+                    when (val fb = textures.getOrNull(selectedAttribute)) {
+                        is Framebuffer -> {
+                            val texture = fb.depthTexture
+                            if (texture != null && texture.isCreated && !texture.isDestroyed) {
+                                val s = w / 3
+                                drawTexture(x, y + s, s, -s, texture, true, -1, null)
+                            }
+                        }
+                        is CubemapFramebuffer -> {
+                            val texture = fb.depthTexture
+                            if (texture != null && texture.isCreated && !texture.isDestroyed) {
+                                val s = w / 4
+                                drawProjection(x, y + s, s * 3 / 2, -s, texture, true, -1)
+                            }
+                        }
                     }
                 }
             }
@@ -417,8 +425,14 @@ class RenderView(
         val near = mix(previousCamera.near, camera.near, blend)
         val far = mix(previousCamera.far, camera.far, blend)
         val fov = mix(previousCamera.fovY, camera.fovY, blending)
-        val rot0 = previousCamera.entity!!.transform.globalTransform.getUnnormalizedRotation(Quaternionf())
-        val rot1 = camera.entity!!.transform.globalTransform.getUnnormalizedRotation(Quaternionf())
+        val t0 = previousCamera.entity!!.transform.globalTransform
+        val t1 = camera.entity!!.transform.globalTransform
+        val rot0 = t0.getUnnormalizedRotation(Quaternionf())
+        val rot1 = t1.getUnnormalizedRotation(Quaternionf())
+
+        if (!rot0.isFinite) rot0.identity()
+        if (!rot1.isFinite) rot1.identity()
+
         val rot2 = rot0.slerp(rot1, blendFloat)
         val rot = Quaternionf(rot2).conjugate() // conjugate is quickly inverting, when already normalized
 
@@ -434,7 +448,10 @@ class RenderView(
             (far * worldScale).toFloat()
         )
         cameraMatrix.rotate(rot)
-        if (cameraMatrix.get(FloatArray(16)).any { it.isNaN() }) throw RuntimeException()
+        if (!cameraMatrix.isFinite) throw RuntimeException(
+            "camera matrix is NaN, " +
+                    "by setPerspective, $fovYRadians, $aspectRatio, $near, $far, $worldScale, $rot"
+        )
 
         // lerp the world transforms
         val camTransform = camTransform

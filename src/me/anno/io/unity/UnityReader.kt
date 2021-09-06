@@ -249,7 +249,7 @@ object UnityReader {
             val prefab = readUnityObject(node, guid, fileId, project)
             if (prefab != null) {
                 val file = folder.getChild(fileId) as InnerFile
-                val data = TextWriter.toText(prefab, false).toByteArray()
+                val data = TextWriter.toText(prefab).toByteArray()
                 file.data = data
                 val size = data.size.toLong()
                 file.size = size

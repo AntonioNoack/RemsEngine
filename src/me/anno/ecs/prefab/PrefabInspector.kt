@@ -60,7 +60,7 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
 
     private val savingTask = DelayedTask {
         addEvent {
-            history.put(TextWriter.toText(changes, false))
+            history.put(TextWriter.toText(changes))
         }
     }
 
@@ -153,7 +153,7 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
 
         // for debugging
         list.add(TextButton("Copy", false, style).setSimpleClickListener {
-            LOGGER.info("Copy: ${TextWriter.toText(instance, false)}")
+            LOGGER.info("Copy: ${TextWriter.toText(instance)}")
         })
 
         // bold/non bold for other properties
@@ -161,19 +161,21 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
         val reflections = instance.getReflections()
         for ((clazz, propertyNames) in reflections.propertiesByClass.value.reversed()) {
 
-            if (clazz == NamedSaveable::class) continue
-
-            val className = clazz.simpleName
-            list.add(TextPanel(className ?: "Anonymous", style).apply {
-                textColor = textColor and 0x7fffffff
-                focusTextColor = textColor
-                setItalic()
-            })
-
+            var hadIntro = false
             for (name in propertyNames) {
 
                 val property = reflections.allProperties[name]!!
                 if (property.hideInInspector) continue
+
+                if (!hadIntro) {
+                    hadIntro = true
+                    val className = clazz.simpleName
+                    list.add(TextPanel(className ?: "Anonymous", style).apply {
+                        textColor = textColor and 0x7fffffff
+                        focusTextColor = textColor
+                        setItalic()
+                    })
+                }
 
                 // todo mesh input, skeleton selection, animation selection, ...
 
@@ -392,10 +394,10 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
     }
 
     fun save() {
-        TextWriter.save(prefab, false, reference)
+        TextWriter.save(prefab, reference)
     }
 
-    override fun toString(): String = TextWriter.toText(prefab, false)
+    override fun toString(): String = TextWriter.toText(prefab)
 
     companion object {
 

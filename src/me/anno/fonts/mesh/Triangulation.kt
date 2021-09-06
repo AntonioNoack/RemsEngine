@@ -63,6 +63,32 @@ object Triangulation {
         } else return emptyList()
     }
 
+    fun ringToTrianglesPoint(points: Array<Point>): List<Point> {
+        if (points.size > 2) {
+            val normal = Vector3f()
+            for (i in points.indices) {
+                val a = points[i].position
+                val b = points[(i + 1) % points.size].position
+                val c = points[(i + 2) % points.size].position
+                normal.add((a - b).cross(b - c))
+            }
+            normal.normalize()
+            if (normal.length() < 0.5f) return emptyList()
+            // find 2d coordinate system
+            val xAxis = findSecondAxis(normal)
+            val yAxis = normal.cross(xAxis)
+            val projected = points.map {
+                Vector2f(it.position.dot(xAxis), it.position.dot(yAxis))
+            }
+            val reverseMap = HashMap<Vector2fc, Point>()
+            points.forEachIndexed { index, vector3d ->
+                reverseMap[projected[index]] = vector3d
+            }
+            val triangles2f = ringToTrianglesVec2f(projected)
+            return triangles2f.map { reverseMap[it]!! }
+        } else return emptyList()
+    }
+
     fun ringToTrianglesPoint(points: List<Point>): List<Point> {
         if (points.size > 2) {
             val normal = Vector3f()

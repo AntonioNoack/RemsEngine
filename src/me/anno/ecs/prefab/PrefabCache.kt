@@ -9,6 +9,7 @@ import me.anno.io.files.Signature
 import me.anno.io.text.TextReader
 import me.anno.io.unity.UnityReader
 import me.anno.mesh.assimp.AnimatedMeshesLoader
+import me.anno.mesh.obj.OBJReader2
 import me.anno.mesh.vox.VOXReader
 import org.apache.logging.log4j.LogManager
 
@@ -35,6 +36,16 @@ object PrefabCache : CacheSection("Prefab") {
             e.printStackTrace()
             null
         }
+    }
+
+    fun loadObjModel(resource: FileReference): Prefab? {
+        return loadAssimpModel(resource)
+        /*return try {
+            OBJReader2(resource).prefab
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }*/
     }
 
     fun loadJson(resource: FileReference?): ISaveable? {
@@ -68,9 +79,10 @@ object PrefabCache : CacheSection("Prefab") {
             // LOGGER.info("resource $resource has signature $signature")
             val prefab = when (signature?.name) {
                 "vox" -> loadVOXModel(resource)
-                "fbx", "obj", "gltf",
+                "fbx", "gltf",
                 "md2", "md5mesh" ->
                     loadAssimpModel(resource)
+                "obj" -> loadObjModel(resource)
                 "yaml" -> loadUnityFile(resource)
                 "json" -> {
                     // could be gltf as well
@@ -82,9 +94,10 @@ object PrefabCache : CacheSection("Prefab") {
                 else -> {
                     when (resource.lcExtension) {
                         "vox" -> loadVOXModel(resource)
-                        "fbx", "dae", "obj", "gltf", "glb",
+                        "fbx", "dae", "gltf", "glb",
                         "md2", "md5mesh" ->
                             loadAssimpModel(resource)
+                        "obj" -> loadObjModel(resource)
                         "unity", "mat", "prefab", "asset", "meta", "controller" -> loadUnityFile(
                             resource
                         )

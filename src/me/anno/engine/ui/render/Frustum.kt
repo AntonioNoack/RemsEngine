@@ -1,5 +1,6 @@
 package me.anno.engine.ui.render
 
+import me.anno.gpu.buffer.LineBuffer
 import me.anno.utils.maths.Maths.sq
 import me.anno.utils.types.AABBs.isEmpty
 import org.joml.*
@@ -34,8 +35,6 @@ class Frustum {
         cameraRotation: Quaterniond
     ) {
 
-        // todo is this correct? from -1 to +1? x,y yes, z maybe not...
-
         val objectSizeThreshold = minObjectSizePixels * sizeX / resolution
         sizeThreshold = /* detailFactor * */ sq(objectSizeThreshold)
 
@@ -62,6 +61,49 @@ class Frustum {
             val distance = position.dot(normal)
             planes[i].set(normal, -distance)
         }
+
+        isPerspective = false
+
+        this.cameraPosition.set(cameraPosition)
+        this.cameraRotation.identity()
+            .rotate(cameraRotation)
+
+    }
+
+    fun defineOrthographic(
+        transform: Matrix4x3d,
+        resolution: Int,
+        cameraPosition: Vector3d,
+        cameraRotation: Quaterniond
+    ) {
+
+        transform.transformPosition(positions[0].set(+1.0, 0.0, 0.0))
+        transform.transformPosition(positions[1].set(-1.0, 0.0, 0.0))
+        transform.transformPosition(positions[2].set(0.0, +1.0, 0.0))
+        transform.transformPosition(positions[3].set(0.0, -1.0, 0.0))
+        transform.transformPosition(positions[4].set(0.0, 0.0, +1.0))
+        transform.transformPosition(positions[5].set(0.0, 0.0, -1.0))
+
+        normals[0].set(positions[0]).sub(positions[1])
+        normals[2].set(positions[2]).sub(positions[3])
+        normals[4].set(positions[4]).sub(positions[5])
+
+        normals[1].set(normals[0]).mul(-1.0)
+        normals[3].set(normals[2]).mul(-1.0)
+        normals[5].set(normals[4]).mul(-1.0)
+
+        for (i in 0 until 6) {
+            val position = positions[i]
+            val normal = normals[i]
+            val distance = position.dot(normal)
+            planes[i].set(normal, -distance)
+        }
+
+        val dx = normals[0].lengthSquared()
+        val dy = normals[2].lengthSquared()
+        val dz = normals[4].lengthSquared()
+        val objectSizeThreshold = minObjectSizePixels * sqrt(max(dx, max(dy, dz))) / resolution
+        sizeThreshold = sq(objectSizeThreshold)
 
         isPerspective = false
 
@@ -146,6 +188,20 @@ class Frustum {
         this.cameraRotation.identity()
             .rotate(cameraRotation)
 
+        // showPlanes()
+    }
+
+    fun showPlanes() {
+        for (i in 0 until 6) {
+            val length = 10.0
+            val s = 1.0
+            val p = positions[i]
+            val n = normals[i]
+            LineBuffer.putRelativeLine(p, Vector3d(n).normalize(length).add(p), 0x00ff00)
+            LineBuffer.putRelativeLine(Vector3d(p).add(-s, 0.0, 0.0), Vector3d(p).add(+s, 0.0, 0.0), 0x00ff00)
+            LineBuffer.putRelativeLine(Vector3d(p).add(0.0, -s, 0.0), Vector3d(p).add(0.0, +s, 0.0), 0x00ff00)
+            LineBuffer.putRelativeLine(Vector3d(p).add(0.0, 0.0, -s), Vector3d(p).add(0.0, 0.0, +s), 0x00ff00)
+        }
     }
 
     /**

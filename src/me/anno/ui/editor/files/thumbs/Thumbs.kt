@@ -56,7 +56,6 @@ import me.anno.mesh.assimp.AnimGameItem
 import me.anno.objects.Video
 import me.anno.objects.documents.pdf.PDFCache
 import me.anno.objects.meshes.MeshData
-import me.anno.objects.meshes.MeshTransform.Companion.loadAssimpStatic
 import me.anno.objects.meshes.MeshTransform.Companion.loadVOX
 import me.anno.studio.Build
 import me.anno.utils.Color.a
@@ -533,8 +532,14 @@ object Thumbs {
         size: Int,
         callback: (Texture2D) -> Unit
     ) {
-        val data = waitUntilDefined(true) { loadAssimpStatic(srcFile, null) }
-        generateFrame(dstFile, data, size, previewRenderer, true, callback)
+        // statically loading is easier, but we may load things twice ->
+        // only load them once, use our cache
+        val data = waitUntilDefined(true) {
+            PrefabCache.loadPrefab(srcFile)
+            // loadAssimpStatic(srcFile, null)
+        }.getSampleInstance() as Entity
+        // generateFrame(dstFile, data, size, previewRenderer, true, callback)
+        generateEntityFrame(dstFile, size, data, callback)
     }
 
     fun generateVOXMeshFrame(
@@ -543,8 +548,12 @@ object Thumbs {
         size: Int,
         callback: (Texture2D) -> Unit
     ) {
-        val data = waitUntilDefined(true) { loadVOX(srcFile, null) }
-        generateFrame(dstFile, data, size, previewRenderer, true, callback)
+        val data = waitUntilDefined(true) {
+            PrefabCache.loadPrefab(srcFile)
+            // loadVOX(srcFile, null)
+        }.getSampleInstance() as Entity
+        // generateFrame(dstFile, data, size, previewRenderer, true, callback)
+        generateEntityFrame(dstFile, size, data, callback)
     }
 
     fun generateEntityFrame(

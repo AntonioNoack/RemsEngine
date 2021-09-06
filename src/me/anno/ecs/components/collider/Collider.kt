@@ -229,9 +229,7 @@ abstract class Collider : Component() {
 
     // a collider needs to be drawn
     override fun onDrawGUI(view: RenderView) {
-        // draw shape
-        // only draw shape, if the entity is selected (or any of its parent entities)
-        if (entity!!.anyInHierarchy { it == lastSelection }){
+        if (isSelectedIndirectly){
             drawShape()
         }
         // todo draw transformation gizmos for easy transforms

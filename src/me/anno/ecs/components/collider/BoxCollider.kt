@@ -2,7 +2,9 @@ package me.anno.ecs.components.collider
 
 import com.bulletphysics.collision.shapes.BoxShape
 import com.bulletphysics.collision.shapes.CollisionShape
+import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.gui.LineShapes.drawBox
 import me.anno.gpu.buffer.LineBuffer.putRelativeLine
 import me.anno.io.serialization.SerializedProperty
 import org.joml.AABBd
@@ -48,33 +50,7 @@ class BoxCollider : Collider() {
     }
 
     override fun drawShape() {
-
-        // draw box
-        // iterate over all lines:
-        // all bits that can flip
-        val transform = entity?.transform?.drawTransform
-        for (i in 0 until 8) {
-            val position = guiPositionsTmp[i]
-            position.set(halfExtends)
-            position.mul(
-                if ((i.and(1) != 0)) -1.0 else +1.0,
-                if ((i.and(2) != 0)) -1.0 else +1.0,
-                if ((i.and(4) != 0)) -1.0 else +1.0
-            )
-            transform?.transformPosition(position)
-        }
-
-        for (base in 0 until 7) {
-            for (bitIndex in 0 until 3) {
-                val bit = 1 shl bitIndex
-                if (base.and(bit) == 0) {
-                    val other = base or bit
-                    // line from base to other
-                    putRelativeLine(guiPositionsTmp[base], guiPositionsTmp[other], guiLineColor)
-                }
-            }
-        }
-
+        drawBox(entity, guiLineColor, halfExtends)
     }
 
     override fun clone(): BoxCollider {
@@ -90,9 +66,5 @@ class BoxCollider : Collider() {
     }
 
     override val className get() = "BoxCollider"
-
-    companion object {
-        val guiPositionsTmp = Array(8) { Vector3d() }
-    }
 
 }

@@ -1,5 +1,6 @@
 package me.anno.gpu.deferred
 
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.Shader
@@ -17,12 +18,12 @@ object DeferredBuffers {
         return Framebuffer(
             "main", 1, 1, 1,
             Array(layers.size) { layers[it].type },
-            Framebuffer.DepthBufferType.TEXTURE
+            DepthBufferType.TEXTURE
         )
     }
 
     fun getLightBuffer(settings: DeferredSettingsV1): Framebuffer {
-        return Framebuffer("light", 1, 1, 1, 1, settings.fpLights, Framebuffer.DepthBufferType.NONE)
+        return Framebuffer("light", 1, 1, 1, 1, settings.fpLights, DepthBufferType.NONE)
     }
 
     val defaultLayers = listOf(

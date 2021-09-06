@@ -258,8 +258,7 @@ class Material : PrefabSaveable() {
 
         @JvmStatic
         fun main(args: Array<String>) {
-            pbrModelShader = BaseShader()
-            ECSRegistry.init()
+            ECSRegistry.initNoGFX()
             val prefab = loadPrefab(OS.documents.getChild("cube bricks.glb"))!!
             for (change in prefab.changes!!) {
                 LOGGER.info(change)

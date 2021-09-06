@@ -60,7 +60,7 @@ object Renderers {
                 // - spot lights, directional lights
                 Variable("sampler2D", "shadowMapPlanar", MAX_PLANAR_LIGHTS),
                 // - point lights
-                Variable("sampler2D", "shadowMapCubic", MAX_CUBEMAP_LIGHTS),
+                Variable("samplerCube", "shadowMapCubic", MAX_CUBEMAP_LIGHTS),
                 // debug
                 Variable("int", "visualizeLightCount"),
                 // material properties
@@ -121,6 +121,8 @@ object Renderers {
                     "           vec3 lightPosition, lightDirWS, localNormal, effectiveLightColor, effectiveSpecular, effectiveDiffuse;\n" +
                     "           localNormal = normalize(WStoLightSpace * vec4(finalNormal,0.0));\n" +
                     "           float NdotL;\n" + // normal dot light
+                    "           int shadowMapIdx0 = int(data2.r);\n" +
+                    "           int shadowMapIdx1 = int(data2.g);\n" +
                     // local coordinates of the point in the light "cone"
                     "           switch(lightType){\n" +
                     LightType.values().joinToString("") {
@@ -132,8 +134,6 @@ object Renderers {
                                                 // inv(W->L) * vec4(0,0,1,0) =
                                                 // transpose(m3x3(W->L)) * vec3(0,0,1)
                                                 "lightDirWS = normalize(vec3(WStoLightSpace[0][2],WStoLightSpace[1][2],WStoLightSpace[2][2]));\n" +
-                                                "int shadowMapIdx0 = int(data2.r);\n" +
-                                                "int shadowMapIdx1 = int(data2.g);\n" +
                                                 "if(shadowMapIdx0 < shadowMapIdx1){\n" +
                                                 // when we are close to the edge, we blend in
                                                 "   float edgeFactor = min(20.0*(1.0-max(abs(dir.x),abs(dir.y))),1.0);\n" +
@@ -142,7 +142,6 @@ object Renderers {
                                                 "       float invShadowMapPower = 1.0/shadowMapPower;\n" +
                                                 "       vec2 shadowDir = dir.xy;\n" +
                                                 "       vec2 nextDir = shadowDir * shadowMapPower;\n" +
-                                                "       float bias = max(0.05 * (1.0 - NdotL), 0.005);\n" +
                                                 // find the best shadow map
                                                 // blend between the two best shadow maps, if close to the border?
                                                 // no, the results are already very good this way :)
@@ -152,14 +151,13 @@ object Renderers {
                                                 "           shadowMapIdx0++;\n" +
                                                 "           shadowDir = nextDir;\n" +
                                                 "           nextDir *= shadowMapPower;\n" +
-                                                "           bias *= invShadowMapPower;\n" +
                                                 "       }\n" +
-                                                "       float depthFromShader = dir.z*.5+.5 + bias;\n" +
+                                                "       float depthFromShader = dir.z*.5+.5;\n" +
                                                 "       if(depthFromShader > 0.0){\n" +
                                                 // do the shadow map function and compare
-                                                "       float depthFromTex = texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy*.5+.5, depthFromShader);\n" +
-                                                // "   diffuseColor = vec3(val,val,dir.z);\n" + nice for debugging
-                                                "       lightColor *= 1.0 - edgeFactor * depthFromTex;\n" +
+                                                "           float depthFromTex = texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy, depthFromShader);\n" +
+                                                // "        diffuseColor = vec3(val,val,dir.z);\n" + // nice for debugging
+                                                "           lightColor *= 1.0 - edgeFactor * depthFromTex;\n" +
                                                 "       }\n" +
                                                 "   }\n" +
                                                 "}\n" +
@@ -168,6 +166,7 @@ object Renderers {
                                     }
                                     LightType.POINT -> {
                                         "" +
+                                                "if(dot(dir,dir)>1.0) continue;\n" + // outside
                                                 "float lightRadius = data1.a;\n" +
                                                 "lightPosition = data1.rgb;\n" +
                                                 // when light radius > 0, then adjust the light direction such that it looks as if the light was a sphere
@@ -181,6 +180,19 @@ object Renderers {
                                                 "   lightDirWS = normalize(mix(lightDirWS, idealLightDirWS, clamp(lightRadius/(length(lightPosition-finalPosition)),0,1)));\n" +
                                                 "}\n" +
                                                 "NdotL = dot(lightDirWS, finalNormal);\n" +
+                                                // shadow maps
+                                                // shadows can be in every direction -> use cubemaps
+                                                "if(shadowMapIdx0 < shadowMapIdx1){\n" +
+                                                "   float near = data2.a;\n" +
+                                                "   float maxAbsComponent = max(max(abs(dir.x),abs(dir.y)),abs(dir.z));\n" +
+                                                "   float depthFromShader = near/maxAbsComponent;\n" +
+                                                // todo how can we get rid of this (1,-1,-1), what rotation is missing?
+                                                "   float depthFromTex = texture_array_depth_shadowMapCubic(shadowMapIdx0, dir*vec3(+1,-1,-1), depthFromShader);\n" +
+                                                // "   float val = texture_array_shadowMapCubic(shadowMapIdx0, dir*vec3(+1,-1,-1)).r;\n" +
+                                                // "   effectiveDiffuse = lightColor * vec3(vec2(val),depthFromShader);\n" + // nice for debugging
+                                                //"   effectiveDiffuse = lightColor * (dir*.5+.5);\n" +
+                                                "   lightColor *= 1.0 - depthFromTex;\n" +
+                                                "}\n" +
                                                 "effectiveDiffuse = lightColor * ${it.falloff};\n" +
                                                 "dir *= 0.2;\n" + // less falloff by a factor of 5,
                                                 // because specular light is more directed and therefore reached farther
@@ -188,10 +200,30 @@ object Renderers {
                                     }
                                     LightType.SPOT -> {
                                         "" +
+                                                "if(dir.z >= 0.0) continue;\n" + // backside
                                                 "lightPosition = data1.rgb;\n" +
                                                 "lightDirWS = normalize(lightPosition - finalPosition);\n" +
                                                 "NdotL = dot(lightDirWS, finalNormal);\n" +
                                                 "float coneAngle = data1.a;\n" +
+                                                "vec2 shadowDir = dir.xy/(-dir.z * coneAngle);\n" +
+                                                "float ringFalloff = dot(shadowDir,shadowDir);\n" +
+                                                "if(ringFalloff > 1.0) continue;\n" + // outside of light
+                                                // when we are close to the edge, we blend in
+                                                "lightColor *= 1.0-ringFalloff;\n" +
+                                                "if(shadowMapIdx0 < shadowMapIdx1){\n" +
+                                                "   #define shadowMapPower data2.b\n" +
+                                                "   vec2 nextDir = shadowDir * shadowMapPower;\n" +
+                                                "   while(abs(nextDir.x)<1.0 && abs(nextDir.y)<1.0 && shadowMapIdx0+1<shadowMapIdx1){\n" +
+                                                "       shadowMapIdx0++;\n" +
+                                                "       shadowDir = nextDir;\n" +
+                                                "       nextDir *= shadowMapPower;\n" +
+                                                "   }\n" +
+                                                "   float near = data2.a;\n" +
+                                                "   float depthFromShader = -near/dir.z;\n" +
+                                                // do the shadow map function and compare
+                                                "    float depthFromTex = texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy, depthFromShader);\n" +
+                                                "    lightColor *= 1.0 - depthFromTex;\n" +
+                                                "}\n" +
                                                 "effectiveDiffuse = lightColor * ${it.falloff};\n" +
                                                 "dir *= 0.2;\n" + // less falloff by a factor of 5,
                                                 // because specular light is more directed and therefore reached farther

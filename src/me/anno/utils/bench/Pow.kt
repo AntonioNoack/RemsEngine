@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.RenderState
 import me.anno.gpu.RenderState.useFrame
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.hidden.HiddenOpenGLContext
@@ -42,7 +43,7 @@ fun main() {
     HiddenOpenGLContext.setSize(size, size)
     HiddenOpenGLContext.createOpenGL()
 
-    val buffer = Framebuffer("", size, size, 1, 1, true, Framebuffer.DepthBufferType.NONE)
+    val buffer = Framebuffer("", size, size, 1, 1, true, DepthBufferType.NONE)
 
     println("Power,Multiplications,GFlops-multiplication,GFlops-floats,GFlops-ints,GFlops-power,Speedup")
 

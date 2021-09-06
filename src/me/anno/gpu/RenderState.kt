@@ -3,6 +3,7 @@ package me.anno.gpu
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.GeoShader
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.colorRenderer
@@ -113,15 +114,15 @@ object RenderState {
     val hs = IntArray(maxSize)
     val changeSizes = BooleanArray(maxSize)
 
-    val framebuffer = object : SecureStack<Framebuffer?>(null) {
-        override fun onChangeValue(newValue: Framebuffer?, oldValue: Framebuffer?) {
+    val framebuffer = object : SecureStack<IFramebuffer?>(null) {
+        override fun onChangeValue(newValue: IFramebuffer?, oldValue: IFramebuffer?) {
             val index = size - 1
             Frame.bind(newValue, changeSizes[index], xs[index], ys[index], ws[index], hs[index])
         }
     }
 
     inline fun useFrame(
-        buffer: Framebuffer?,
+        buffer: IFramebuffer?,
         renderer: Renderer,
         render: () -> Unit
     ) {
@@ -138,7 +139,7 @@ object RenderState {
     inline fun useFrame(
         x: Int, y: Int, w: Int, h: Int,
         changeSize: Boolean,
-        buffer: Framebuffer?,
+        buffer: IFramebuffer?,
         renderer: Renderer,
         render: () -> Unit
     ) {
@@ -155,17 +156,17 @@ object RenderState {
     inline fun useFrame(renderer: Renderer, render: () -> Unit) =
         useFrame(currentBuffer, renderer, render)
 
-    inline fun useFrame(buffer: Framebuffer?, render: () -> Unit) =
+    inline fun useFrame(buffer: IFramebuffer?, render: () -> Unit) =
         useFrame(buffer, currentRenderer, render)
 
-    inline fun useFrame(w: Int, h: Int, changeSize: Boolean, buffer: Framebuffer?, render: () -> Unit) =
+    inline fun useFrame(w: Int, h: Int, changeSize: Boolean, buffer: IFramebuffer?, render: () -> Unit) =
         useFrame(0, 0, w, h, changeSize, buffer, currentRenderer, render)
 
     inline fun useFrame(
         w: Int,
         h: Int,
         changeSize: Boolean,
-        buffer: Framebuffer?,
+        buffer: IFramebuffer?,
         renderer: Renderer,
         render: () -> Unit
     ) = useFrame(0, 0, w, h, changeSize, buffer, renderer, render)
@@ -173,7 +174,7 @@ object RenderState {
     inline fun useFrame(x: Int, y: Int, w: Int, h: Int, changeSize: Boolean, render: () -> Unit) =
         useFrame(x, y, w, h, changeSize, currentBuffer, currentRenderer, render)
 
-    inline fun useFrame(x: Int, y: Int, w: Int, h: Int, changeSize: Boolean, buffer: Framebuffer?, render: () -> Unit) =
+    inline fun useFrame(x: Int, y: Int, w: Int, h: Int, changeSize: Boolean, buffer: IFramebuffer?, render: () -> Unit) =
         useFrame(x, y, w, h, changeSize, buffer, currentRenderer, render)
 
 }

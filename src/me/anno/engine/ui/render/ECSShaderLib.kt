@@ -18,7 +18,7 @@ object ECSShaderLib {
                 "finalSheen", "finalTranslucency", "metallicMinMax",
                 "emissiveBase", "normalStrength", "ambientLight",
                 "occlusionStrength", "invLocalTransform", "visualizeLightCount",
-                "numberOfLights"
+                "numberOfLights", "roughnessMinMax", "finalClearCoat"
             )
         )
         val textures = mutableListOf(

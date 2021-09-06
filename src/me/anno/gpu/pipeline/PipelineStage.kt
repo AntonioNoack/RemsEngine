@@ -228,7 +228,7 @@ class PipelineStage(
             if (shadowData >= 0) {
                 buffer.limit(4 * numberOfLights)
                 for (i in 0 until 4 * numberOfLights) buffer.put(i, 0f)
-                // todo write all texture indices, and bind all shadow textures (as long as we have slots available)
+                // write all texture indices, and bind all shadow textures (as long as we have slots available)
                 var planarSlot = 0
                 var cubicSlot = 0
                 val maxTextureIndex = 31
@@ -236,29 +236,44 @@ class PipelineStage(
                 val cubicIndex0 = shader.getTextureIndex("shadowMapCubic0")
                 val supportsPlanarShadows = planarIndex0 >= 0
                 val supportsCubicShadows = cubicIndex0 >= 0
+                if (planarIndex0 < 0) planarSlot = Renderers.MAX_PLANAR_LIGHTS
+                if (cubicIndex0 < 0) cubicSlot = Renderers.MAX_CUBEMAP_LIGHTS
                 if (supportsPlanarShadows || supportsCubicShadows) {
                     for (i in 0 until numberOfLights) {
                         buffer.position(4 * i)
                         val light = lights[i]!!.component as LightComponent
-                        buffer.put(4 * i + 3, 1f - light.shadowBleed)
                         if (light.hasShadow) {
-                            when (light) {
-                                is DirectionalLight -> {
-                                    if (planarSlot < Renderers.MAX_PLANAR_LIGHTS && supportsPlanarShadows) {
-                                        val cascades = light.shadowTextures ?: continue
-                                        buffer.put(planarSlot.toFloat()) // start index
-                                        for (j in cascades.indices) {
-                                            val slot = planarIndex0 + planarSlot
-                                            if (slot > maxTextureIndex) break
-                                            val texture = cascades[j].depthTexture!!
-                                            // bind the texture, and don't you dare to use mipmapping ^^
-                                            // (at least without variance shadow maps)
-                                            texture.bind(slot, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                                            if (++planarSlot >= Renderers.MAX_PLANAR_LIGHTS) break
-                                        }
-                                        buffer.put(planarSlot.toFloat()) // end index
-                                        buffer.put(light.shadowMapPower.toFloat())
+                            if (light is PointLight) {
+                                if (cubicSlot < Renderers.MAX_CUBEMAP_LIGHTS) {
+                                    val cascades = light.shadowTextures ?: continue
+                                    buffer.put(cubicSlot.toFloat()) // start index
+                                    val slot = cubicIndex0 + cubicSlot
+                                    if (slot > maxTextureIndex) break
+                                    val texture = cascades[0].depthTexture!!
+                                    // bind the texture, and don't you dare to use mipmapping ^^
+                                    // (at least without variance shadow maps)
+                                    texture.bind(slot, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                                    if (++cubicSlot >= Renderers.MAX_CUBEMAP_LIGHTS) continue
+                                    buffer.put(cubicSlot.toFloat()) // end index
+                                    buffer.put(0f) // power, not used
+                                    buffer.put(light.near.toFloat())
+                                }
+                            } else {
+                                if (planarSlot < Renderers.MAX_PLANAR_LIGHTS) {
+                                    val cascades = light.shadowTextures ?: continue
+                                    buffer.put(planarSlot.toFloat()) // start index
+                                    for (j in cascades.indices) {
+                                        val slot = planarIndex0 + planarSlot
+                                        if (slot > maxTextureIndex) break
+                                        val texture = cascades[j].depthTexture!!
+                                        // bind the texture, and don't you dare to use mipmapping ^^
+                                        // (at least without variance shadow maps)
+                                        texture.bind(slot, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                                        if (++planarSlot >= Renderers.MAX_PLANAR_LIGHTS) break
                                     }
+                                    buffer.put(planarSlot.toFloat()) // end index
+                                    buffer.put(light.shadowMapPower.toFloat())
+                                    if (light is SpotLight) buffer.put(light.near.toFloat())
                                 }
                             }
                         }
@@ -267,7 +282,6 @@ class PipelineStage(
                 buffer.position(0)
                 GL20.glUniform4fv(shadowData, buffer)
             }
-            // todo bind all shadow textures
         }
     }
 

@@ -8,13 +8,13 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.pbr.DeferredRenderer
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
+import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.DepthMode
 import me.anno.gpu.RenderState
 import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.framebuffer.Frame
-import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.*
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
@@ -28,6 +28,7 @@ import org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT
 import org.lwjgl.opengl.GL11.glClear
 import kotlin.math.pow
 
+// todo show area when selected
 abstract class LightComponent(
     val lightType: LightType
 ) : Component() {
@@ -49,12 +50,19 @@ abstract class LightComponent(
     var shadowMapPower = 4.0
     var shadowMapResolution = 1024
 
-    // how much light there is in the shadow
-    var shadowBleed = 0.5f
-
     val hasShadow get() = shadowMapCascades > 0
 
+    /** for deferred rendering, no shadows
+     * improves rendering speed when drawing lots of lights without shadows */
     var isInstanced = false
+
+    var needsUpdate = true
+    var autoUpdate = true
+
+
+    // black lamp light?
+    @SerializedProperty
+    var color: Vector3f = Vector3f(1f)
 
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
@@ -64,34 +72,45 @@ abstract class LightComponent(
         clone.shadowMapPower = shadowMapPower
         clone.shadowMapResolution = shadowMapResolution
         clone.color = color
-        println("cloning light with $shadowMapCascades cascades")
     }
 
-    // black lamp light?
-    @SerializedProperty
-    var color: Vector3f = Vector3f(1f)
+    override fun onDrawGUI(view: RenderView) {
+        if (isSelectedIndirectly) {
+            drawShape()
+        }
+    }
+
+    abstract fun drawShape()
 
     abstract fun getLightPrimitive(): Mesh
 
     @HideInInspector
     @NotSerializedProperty
-    var shadowTextures: Array<Framebuffer>? = null
+    var shadowTextures: Array<IFramebuffer>? = null
 
     fun ensureShadowBuffers() {
         if (hasShadow) {
             // only a single one is supported,
             // because more makes no sense
-            if (lightType == LightType.POINT) shadowMapCascades = 1
+            val isPointLight = lightType == LightType.POINT
+            if (isPointLight) shadowMapCascades = 1
             val shadowCascades = shadowTextures
             val targetSize = shadowMapCascades
             val resolution = shadowMapResolution
             if (shadowCascades == null || shadowCascades.size != targetSize || shadowCascades.first().w != resolution) {
                 shadowCascades?.forEach { it.destroy() }
                 this.shadowTextures = Array(targetSize) {
-                    Framebuffer(
-                        "Shadow[$it]", resolution, resolution, 1, 0,
-                        false, Framebuffer.DepthBufferType.TEXTURE
-                    )
+                    if (isPointLight) {
+                        CubemapFramebuffer(
+                            "ShadowCubemap[$it]", resolution, 0,
+                            false, DepthBufferType.TEXTURE
+                        )
+                    } else {
+                        Framebuffer(
+                            "Shadow[$it]", resolution, resolution, 1, 0,
+                            false, DepthBufferType.TEXTURE
+                        )
+                    }
                 }
             }
         } else {
@@ -101,21 +120,31 @@ abstract class LightComponent(
     }
 
     override fun onUpdate() {
-        ensureShadowBuffers()
-        if (hasShadow) {
-            updateShadowMaps()
+        if (autoUpdate || needsUpdate) {
+            needsUpdate = autoUpdate
+            ensureShadowBuffers()
+            if (hasShadow) {
+                updateShadowMaps()
+            }
         }
     }
 
     // todo the single really large light is the sun, and maybe the moon,
     // todo so theoretically, we could limit cascades to those two...
 
+    abstract fun updateShadowMap(
+        cascadeScale: Double, worldScale: Double,
+        cameraMatrix: Matrix4f,
+        drawTransform: Matrix4x3d, pipeline: Pipeline,
+        resolution: Int, position: Vector3d, rotation: Quaterniond
+    )
 
-    fun updateShadowMaps() {
+    open fun updateShadowMaps() {
         val pipeline = pipeline
         pipeline.reset()
         val entity = entity!!
         val transform = entity.transform
+        val drawTransform = transform.drawTransform
         val resolution = shadowMapResolution
         val global = transform.globalTransform
         val position = global.getTranslation(Vector3d())
@@ -126,44 +155,12 @@ abstract class LightComponent(
         for (i in 0 until shadowMapCascades) {
             val cascadeScale = shadowMapPower.pow(-i.toDouble())
             val texture = shadowTextures!![i]
-            when (lightType) {
-                LightType.DIRECTIONAL -> {
-                    // not times worldScale, because worldScale would need to be divided again
-                    val size = worldScale * 20.0 // cascadeScale
-                    cameraMatrix.set(Matrix4d(transform.drawTransform).invert())
-                    cameraMatrix.setTranslation(0f, 0f, 0f)
-                    val sx = (1.0 / (cascadeScale * worldScale)).toFloat()
-                    val sz = (1.0 / (worldScale)).toFloat()
-                    // z must be mapped from [-1,1] to [0,1]
-                    // additionally it must be scaled to match the world size
-                    cameraMatrix.scaleLocal(sx, sx, sz * 0.5f)
-                    cameraMatrix.m32(0.5f)
-                    pipeline.frustum.defineOrthographic(// todo correct frustum
-                        size, size, size, resolution,
-                        position, rotation
-                    )
-                }
-                LightType.SPOT -> {
-                    val near = 1e-16 * cascadeScale // idk...
-                    val far = worldScale * cascadeScale
-                    this as SpotLight
-                    val fovYRadians = fovRadians
-                    cameraMatrix.setPerspective(fovYRadians.toFloat(), 1f, near.toFloat(), far.toFloat())
-                    cameraMatrix.rotate(Quaternionf(rotation).invert())
-                    pipeline.frustum.definePerspective(
-                        near, far, fovYRadians, resolution, resolution,
-                        1.0, position, rotation,
-                    )
-                }
-                LightType.POINT -> {
-                    val near = worldScale * cascadeScale
-                    val far = worldScale * cascadeScale
-                    cameraMatrix.setPerspective(Math.PI.toFloat() / 2f, 1f, near.toFloat(), far.toFloat())
-                    cameraMatrix.rotate(Quaternionf(rotation).invert())
-                    TODO("cubemap ... how do we render it?")
-                }
-            }
-
+            updateShadowMap(
+                cascadeScale, worldScale,
+                cameraMatrix, drawTransform,
+                pipeline, resolution,
+                position, rotation
+            )
             val root = entity.getRoot(Entity::class)
             pipeline.fillDepth(root, position, worldScale)
             RenderState.depthMode.use(DepthMode.GREATER) {
@@ -181,6 +178,12 @@ abstract class LightComponent(
     // is set by the pipeline
     @NotSerializedProperty
     val invWorldMatrix = Matrix4x3f()
+
+    override fun destroy() {
+        super.destroy()
+        shadowTextures?.forEach { it.destroy() }
+        shadowTextures = null
+    }
 
     companion object {
 

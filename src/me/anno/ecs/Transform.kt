@@ -25,10 +25,9 @@ class Transform : Saveable() {
     }
 
     fun checkTransform(drawTransform: Matrix4x3d) {
-        if (drawTransform.get(FloatArray(16)).any { it.isNaN() }) {
+        if (!drawTransform.isFinite) {
             Engine.shutdown()
-            Thread.sleep(10)
-            System.exit(-1)
+            Thread.sleep(100)
             throw RuntimeException("Transform became invalid")
         }
     }
@@ -146,7 +145,6 @@ class Transform : Saveable() {
         if (needsGlobalUpdate) {
             update(time)
             calculateGlobalTransform(parent)
-            needsGlobalUpdate = false
         }
     }
 
@@ -214,6 +212,7 @@ class Transform : Saveable() {
                 .mul(localTransform)
         }
         checkTransform(globalTransform)
+        needsGlobalUpdate = false
     }
 
     fun calculateLocalTransform(parent: Transform?) {
