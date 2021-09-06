@@ -668,15 +668,15 @@ open class Texture2D(
         afterUpload(3)
     }
 
-    fun createDepth() {
+    fun createDepth(lowQuality: Boolean = false) {
         beforeUpload()
-        val format = GL_DEPTH_COMPONENT32F
+        val format = if (lowQuality) GL_DEPTH_COMPONENT16 else GL_DEPTH_COMPONENT32F
         if (withMultisampling) {
             glTexImage2DMultisample(tex2D, samples, format, w, h, false)
         } else {
             glTexImage2D(tex2D, 0, format, w, h, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0)
         }
-        afterUpload(4)
+        afterUpload(if (lowQuality) 2 else 4)
     }
 
     /**

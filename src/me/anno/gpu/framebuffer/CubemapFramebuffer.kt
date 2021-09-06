@@ -113,9 +113,9 @@ class CubemapFramebuffer(
             DepthBufferType.NONE -> {
             }
             DepthBufferType.INTERNAL -> createDepthBuffer()
-            DepthBufferType.TEXTURE -> {
+            DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {
                 val depthTexture = CubemapTexture(size)
-                depthTexture.createDepth()
+                depthTexture.createDepth(depthBufferType == DepthBufferType.TEXTURE_16)
                 glFramebufferTexture2D(
                     GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
                     GL_TEXTURE_CUBE_MAP_POSITIVE_X, depthTexture.pointer, 0
@@ -206,7 +206,7 @@ class CubemapFramebuffer(
             else -> glDrawBuffers(textures.indices.map { it + GL_COLOR_ATTACHMENT0 }.toIntArray())
         }
         GFX.check()
-        if (depthBufferType == DepthBufferType.TEXTURE) {
+        if (depthBufferType == DepthBufferType.TEXTURE || depthBufferType == DepthBufferType.TEXTURE_16) {
             val depthTexture = depthTexture!!
             glFramebufferTexture2D(
                 GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,

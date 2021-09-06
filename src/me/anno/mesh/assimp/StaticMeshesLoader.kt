@@ -289,18 +289,20 @@ open class StaticMeshesLoader {
 
         if (metallicRoughness == InvalidRef) {
 
+            // todo these settings seem wrong... what is actually metallic/roughness?
+
             // roughness
             // AI_MATKEY_SHININESS as color, .r: 360, 500, so the exponent?
             val shininessExponent = getFloat(aiMaterial, AI_MATKEY_SHININESS)
             // val shininessStrength = getFloat(aiMaterial, AI_MATKEY_SHININESS_STRENGTH) // always 0.0
             // LOGGER.info("roughness: $shininess x $shininessStrength")
             val roughnessBase = shininessToRoughness(shininessExponent)
-            if (roughnessBase != 1f) prefab.setProperty("metallicMinMax", Vector2f(0f, roughnessBase))
+            if (roughnessBase != 1f) prefab.setProperty("roughnessMinMax", Vector2f(0f, roughnessBase))
 
             // metallic
             // val metallic0 = getColor(aiMaterial, color, AI_MATKEY_COLOR_REFLECTIVE) // always null
             val metallic = getFloat(aiMaterial, AI_MATKEY_REFLECTIVITY) // 0.0, rarely 0.5
-            if (metallic != 0f) prefab.setProperty("roughnessMinMax", Vector2f(0f, metallic))
+            if (metallic != 0f) prefab.setProperty("metallicMinMax", Vector2f(0f, metallic))
             // LOGGER.info("metallic: $metallic, roughness: $roughnessBase")
 
         }

@@ -122,9 +122,9 @@ class Framebuffer(
             DepthBufferType.NONE -> {
             }
             DepthBufferType.INTERNAL -> createDepthBuffer()
-            DepthBufferType.TEXTURE -> {
+            DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {
                 val depthTexture = Texture2D("$name-depth", w, h, samples) // xD
-                depthTexture.createDepth()
+                depthTexture.createDepth(depthBufferType == DepthBufferType.TEXTURE_16)
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, tex2D, depthTexture.pointer, 0)
                 this.depthTexture = depthTexture
             }

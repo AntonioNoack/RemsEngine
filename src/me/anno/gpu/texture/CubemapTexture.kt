@@ -11,6 +11,7 @@ import org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE
 import org.lwjgl.opengl.GL12.GL_TEXTURE_WRAP_R
 import org.lwjgl.opengl.GL13.GL_TEXTURE_CUBE_MAP
 import org.lwjgl.opengl.GL13.GL_TEXTURE_CUBE_MAP_POSITIVE_X
+import org.lwjgl.opengl.GL14.GL_DEPTH_COMPONENT16
 import org.lwjgl.opengl.GL30
 import java.nio.ByteBuffer
 
@@ -26,11 +27,13 @@ class CubemapTexture(var size: Int = 0) : ICacheData, ITexture2D {
 
     override var w: Int
         get() = size
-        set(value) { size = value }
+        set(value) {
+            size = value
+        }
 
     override var h: Int
         get() = size
-        set(_) {  }
+        set(_) {}
 
     val tex2D = GL_TEXTURE_CUBE_MAP
 
@@ -105,17 +108,18 @@ class CubemapTexture(var size: Int = 0) : ICacheData, ITexture2D {
         afterUpload(type.bytesPerPixel)
     }
 
-    fun createDepth() {
+    fun createDepth(lowQuality: Boolean = false) {
         ensurePointer()
         bindBeforeUpload()
         val size = size
+        val format = if (lowQuality) GL_DEPTH_COMPONENT16 else GL_DEPTH_COMPONENT32F
         for (i in 0 until 6) {
             glTexImage2D(
-                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT32F,
+                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format,
                 size, size, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0
             )
         }
-        afterUpload(6 * 4)
+        afterUpload(if (lowQuality) 2 * 6 else 4 * 6)
     }
 
     private fun afterUpload(bytesPerPixel: Int) {

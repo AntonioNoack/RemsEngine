@@ -28,19 +28,15 @@ import org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT
 import org.lwjgl.opengl.GL11.glClear
 import kotlin.math.pow
 
-// todo show area when selected
 abstract class LightComponent(
     val lightType: LightType
 ) : Component() {
 
-    // todo instead of using the matrix directly, define a matrix
-    // todo this matrix then can include the perspective transform if required
+    // todo AES lights, and their textures?
 
-    // todo how do we get the normal then?
-    // todo just divide by z?
-
-
-    // todo for shadow mapping, we need this information...
+    // todo plane of light: how?
+    // todo lines of light: how?
+    // todo circle/sphere of light: how?
 
     var shadowMapCascades = 0
 
@@ -58,7 +54,6 @@ abstract class LightComponent(
 
     var needsUpdate = true
     var autoUpdate = true
-
 
     // black lamp light?
     @SerializedProperty
@@ -99,16 +94,20 @@ abstract class LightComponent(
             val resolution = shadowMapResolution
             if (shadowCascades == null || shadowCascades.size != targetSize || shadowCascades.first().w != resolution) {
                 shadowCascades?.forEach { it.destroy() }
+                // we currently use a depth bias of 0.005,
+                // which is equal to ~ 1/255
+                // so a 8 bit depth buffer would be enough
+                val depthBufferType = DepthBufferType.TEXTURE_16
                 this.shadowTextures = Array(targetSize) {
                     if (isPointLight) {
                         CubemapFramebuffer(
                             "ShadowCubemap[$it]", resolution, 0,
-                            false, DepthBufferType.TEXTURE
+                            false, depthBufferType
                         )
                     } else {
                         Framebuffer(
                             "Shadow[$it]", resolution, resolution, 1, 0,
-                            false, DepthBufferType.TEXTURE
+                            false,depthBufferType
                         )
                     }
                 }
@@ -128,9 +127,6 @@ abstract class LightComponent(
             }
         }
     }
-
-    // todo the single really large light is the sun, and maybe the moon,
-    // todo so theoretically, we could limit cascades to those two...
 
     abstract fun updateShadowMap(
         cascadeScale: Double, worldScale: Double,
@@ -173,8 +169,6 @@ abstract class LightComponent(
         }
     }
 
-    // todo AES lights, and their textures?
-
     // is set by the pipeline
     @NotSerializedProperty
     val invWorldMatrix = Matrix4x3f()
@@ -196,9 +190,6 @@ abstract class LightComponent(
                 true, 0, pbrModelShader
             )
         }
-
-        // todo plane of light... how?
-        // todo lines of light... how?
 
         val lightShaders = HashMap<String, BaseShader>()
         fun getShader(sample: LightComponent): BaseShader {

@@ -130,6 +130,15 @@ object Renderers {
                                 when (it) {
                                     LightType.DIRECTIONAL -> {
                                         "" +
+                                                // cutting it off may be useful for lamps, but a directional light typically is the sun or the moon
+                                                "#define cutoff data2.a\n" +
+                                                // box cutoff: max(max(abs(dir.x),abs(dir.y)),abs(dir.z))
+                                                // sphere cutoff:
+                                                "if(cutoff > 0.0){\n" +
+                                                "   float cut = min(cutoff*(1-dot(dir,dir)),1);\n" +
+                                                "   if(cut <= 0) continue;\n" +
+                                                "   lightColor *= cut;\n" +
+                                                "}\n" +
                                                 "NdotL = localNormal.z;\n" + // dot(lightDirWS, globalNormal) = dot(lightDirLS, localNormal)
                                                 // inv(W->L) * vec4(0,0,1,0) =
                                                 // transpose(m3x3(W->L)) * vec3(0,0,1)
@@ -146,7 +155,6 @@ object Renderers {
                                                 // blend between the two best shadow maps, if close to the border?
                                                 // no, the results are already very good this way :)
                                                 // at least at the moment, the seams are not obvious
-                                                // todo implement percentage closer filtering
                                                 "       while(abs(nextDir.x)<1.0 && abs(nextDir.y)<1.0 && shadowMapIdx0+1<shadowMapIdx1){\n" +
                                                 "           shadowMapIdx0++;\n" +
                                                 "           shadowDir = nextDir;\n" +
@@ -156,7 +164,8 @@ object Renderers {
                                                 "       if(depthFromShader > 0.0){\n" +
                                                 // do the shadow map function and compare
                                                 "           float depthFromTex = texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy, depthFromShader);\n" +
-                                                // "        diffuseColor = vec3(val,val,dir.z);\n" + // nice for debugging
+                                                // "           float val = texture_array_shadowMapPlanar(shadowMapIdx0, shadowDir.xy).r;\n" +
+                                                // "           diffuseColor = vec3(val,val,dir.z);\n" + // nice for debugging
                                                 "           lightColor *= 1.0 - edgeFactor * depthFromTex;\n" +
                                                 "       }\n" +
                                                 "   }\n" +

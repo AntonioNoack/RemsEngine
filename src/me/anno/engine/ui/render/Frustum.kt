@@ -84,13 +84,10 @@ class Frustum {
         transform.transformPosition(positions[4].set(0.0, 0.0, +1.0))
         transform.transformPosition(positions[5].set(0.0, 0.0, -1.0))
 
-        normals[0].set(positions[0]).sub(positions[1])
-        normals[2].set(positions[2]).sub(positions[3])
-        normals[4].set(positions[4]).sub(positions[5])
-
-        normals[1].set(normals[0]).mul(-1.0)
-        normals[3].set(normals[2]).mul(-1.0)
-        normals[5].set(normals[4]).mul(-1.0)
+        for(i in 0 until 6 step 2){
+            normals[i].set(positions[i]).sub(positions[i+1])
+            normals[i+1].set(normals[i]).mul(-1.0)
+        }
 
         for (i in 0 until 6) {
             val position = positions[i]
@@ -110,6 +107,8 @@ class Frustum {
         this.cameraPosition.set(cameraPosition)
         this.cameraRotation.identity()
             .rotate(cameraRotation)
+
+        // showPlanes()
 
     }
 
@@ -155,9 +154,7 @@ class Frustum {
         // then add the camera position ->
         // in summary just use the camera position
         for (i in 2 until 6) {
-            // assignment is faster than copying :D
-            // just the camera position must not change (largely)
-            positions[i] = cameraPosition
+            positions[i].set(cameraPosition)
         }
 
         // more complicated: calculate the normals of the sideways planes

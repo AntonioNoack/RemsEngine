@@ -45,6 +45,11 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
         style
     ) {
 
+    override fun addChild2(element: Entity, child: Any) {
+        child as Prefab
+        TODO("add prefab to child: modify changes, make path for changes longer")
+    }
+
     override fun destroy(element: Entity) {
         element.onDestroy()
     }

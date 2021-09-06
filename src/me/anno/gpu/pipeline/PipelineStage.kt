@@ -273,7 +273,11 @@ class PipelineStage(
                                     }
                                     buffer.put(planarSlot.toFloat()) // end index
                                     buffer.put(light.shadowMapPower.toFloat())
-                                    if (light is SpotLight) buffer.put(light.near.toFloat())
+                                    when (light) {
+                                        is SpotLight -> buffer.put(light.near.toFloat())
+                                        is DirectionalLight -> buffer.put(if (light.cutoff > 0f) 1f / light.cutoff else 0f)
+                                    }
+
                                 }
                             }
                         }

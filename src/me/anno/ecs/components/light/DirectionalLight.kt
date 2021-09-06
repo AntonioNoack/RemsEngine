@@ -1,13 +1,24 @@
 package me.anno.ecs.components.light
 
+import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.light.PointLight.Companion.cubeMesh
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.gui.LineShapes.drawArrowZ
 import me.anno.engine.gui.LineShapes.drawBox
 import me.anno.gpu.pipeline.Pipeline
 import org.joml.*
 
 class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
+
+    /**
+     * typically a directional light will be the sun;
+     * it's influence should be over the whole scene, while its shadows may not
+     *
+     * with cutoff > 0, it is cutoff, as if it was a plane light
+     * */
+    @Range(0.0, 1.0)
+    var cutoff = 0f
 
     override fun updateShadowMap(
         cascadeScale: Double,
@@ -41,6 +52,12 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
         val clone = DirectionalLight()
         copy(clone)
         return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as DirectionalLight
+        clone.cutoff = cutoff
     }
 
     override val className: String = "DirectionalLight"

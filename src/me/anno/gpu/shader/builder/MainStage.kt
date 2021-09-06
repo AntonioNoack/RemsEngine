@@ -176,6 +176,7 @@ class MainStage {
                     )
                     code.append("}\n")
                 } else {
+                    // todo implement percentage closer filtering for prettier results
                     code.append("(int index, vec2 uv, float depth){\n")
                     code.append("int size;vec2 f;float d,d0,d1,d2,d3,fSize;uv=uv*.5+.5;\n")
                     code.append("switch(index){\n")

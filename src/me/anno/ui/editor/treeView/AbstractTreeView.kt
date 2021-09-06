@@ -41,6 +41,8 @@ abstract class AbstractTreeView<V>(
 
     abstract val selectedElement: V?
 
+    abstract fun addChild2(element: V, child: Any)
+
     // Selection.select(element, null)
     abstract fun selectElement(element: V?)
 

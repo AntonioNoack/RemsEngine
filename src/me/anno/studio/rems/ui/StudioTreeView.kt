@@ -42,6 +42,10 @@ class StudioTreeView(style: Style) :
         return element.symbol
     }
 
+    override fun addChild2(element: Transform, child: Any) {
+        element.addChild(child as? Transform ?: return)
+    }
+
     override fun removeChild(element: Transform, child: Transform) {
         element.removeChild(child)
     }

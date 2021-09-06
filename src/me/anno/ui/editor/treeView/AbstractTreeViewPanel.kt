@@ -204,7 +204,8 @@ class AbstractTreeViewPanel<V>(
                     if (element.parent != null) {
                         treeView.addBefore(element, child)
                     } else {
-                        element.addChild(child)
+                        treeView.addChild2(element, child)
+                        // element.addChild(child)
                     }
                     // we can't remove the element, if it's the parent
                     if (original !in child.listOfAll) {
@@ -212,7 +213,8 @@ class AbstractTreeViewPanel<V>(
                     }
                 } else if (relativeY < 0.67f) {
                     // paste as child
-                    element.addChild(child)
+                    treeView.addChild2(element, child)
+                    // element.addChild(child)
                     if (element != original) {
                         // we can't remove the element, if it's the parent
                         if (original !in child.listOfAll) {
@@ -224,7 +226,8 @@ class AbstractTreeViewPanel<V>(
                     if (element.parent != null) {
                         treeView.addAfter(element, child)
                     } else {
-                        element.addChild(child)
+                        treeView.addChild2(element, child)
+                        // element.addChild(child)
                     }
                     // we can't remove the element, if it's the parent
                     if (original !in child.listOfAll) {
