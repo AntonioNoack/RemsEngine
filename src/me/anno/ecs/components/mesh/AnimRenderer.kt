@@ -64,7 +64,8 @@ class AnimRenderer : RendererComponent() {
 
         // what if the weight is less than 1? change to T-pose? no, the programmer can define that himself with an animation
         val weightNormalization = 1f / max(1e-7f, animationWeights.map { it.second }.sum())
-        val animation0 = AnimationCache[animationWeights[0].first]!!
+        val weight0 = animationWeights[0].first
+        val animation0 = AnimationCache[weight0]!!
         val matrices = animation0.getMappedMatricesSafely(entity, time, dst0, retargeting)
         var sumWeight = animationWeights[0].second
         for (i in 1 until animationWeights.size) {
@@ -127,7 +128,7 @@ class AnimRenderer : RendererComponent() {
         val dst0 = Array(256) { Matrix4x3f() }
         val dst1 = Array(256) { Matrix4x3f() }
 
-        fun upload(location: Int, matrices: Array<Matrix4x3f>){
+        fun upload(location: Int, matrices: Array<Matrix4x3f>) {
             val boneCount = min(matrices.size, AnimGameItem.maxBones)
             AnimGameItem.matrixBuffer.limit(AnimGameItem.matrixSize * boneCount)
             for (index in 0 until boneCount) {

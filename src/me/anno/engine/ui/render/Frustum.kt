@@ -84,9 +84,9 @@ class Frustum {
         transform.transformPosition(positions[4].set(0.0, 0.0, +1.0))
         transform.transformPosition(positions[5].set(0.0, 0.0, -1.0))
 
-        for(i in 0 until 6 step 2){
-            normals[i].set(positions[i]).sub(positions[i+1])
-            normals[i+1].set(normals[i]).mul(-1.0)
+        for (i in 0 until 6 step 2) {
+            normals[i].set(positions[i]).sub(positions[i + 1])
+            normals[i + 1].set(normals[i]).mul(-1.0)
         }
 
         for (i in 0 until 6) {
@@ -263,6 +263,36 @@ class Frustum {
 
         }
 
+    }
+
+    fun union(aabb: AABBd) {
+        // calculate all 8 intersection points of the 6 planes
+        // the pairs must be guaranteed to be opposite
+
+        // solve
+        // (v-p[x])*n[x] = 0
+        // (v-p[y])*n[y] = 0
+        // (v-p[z])*n[z] = 0
+        // solution:
+        // center + p[x] + p[y] + p[z] - 3*center
+        // = p[x]+p[y]+p[z]-2*center
+
+        val cx = cameraPosition.x * 2
+        val cy = cameraPosition.y * 2
+        val cz = cameraPosition.z * 2
+        for (i in 0 until 8) {
+            val sx = if (i.and(1) != 0) 1 else 0
+            val sy = if (i.and(2) != 0) 3 else 2
+            val sz = if (i.and(4) != 0) 5 else 4
+            val px = positions[sx]
+            val py = positions[sy]
+            val pz = positions[sz]
+            aabb.union(
+                px.x + py.x + pz.x - cx,
+                px.y + py.y + pz.y - cy,
+                px.z + py.z + pz.z - cz
+            )
+        }
     }
 
     private fun calculateArea(mat: Matrix3d, x: Double, y: Double, z: Double): Double {

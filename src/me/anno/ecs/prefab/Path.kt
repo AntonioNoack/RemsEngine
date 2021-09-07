@@ -22,6 +22,17 @@ class Path(
     constructor(name: String, index: Int, type: Char) : this(arrayOf(name), intArrayOf(index), charArrayOf(type))
     constructor(pair: Triple<Array<String>, IntArray, CharArray>) : this(pair.first, pair.second, pair.third)
 
+    constructor(parent: Path, name: String, index: Int, type: Char) : this(
+        parent.names + name,
+        parent.indices + index,
+        parent.types + type
+    )
+
+    constructor(parent: Path, child: Path) : this(
+        parent.names + child.names,
+        parent.indices + child.indices,
+        parent.types + child.types
+    )
 
     val size get() = indices.size
     fun isEmpty() = size == 0

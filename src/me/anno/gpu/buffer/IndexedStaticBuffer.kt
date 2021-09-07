@@ -39,6 +39,8 @@ class IndexedStaticBuffer(
 
     var elementVBO = -1
     var elementsType = GL_UNSIGNED_INT
+    var isUpToDate2 = false
+    var locallyAllocated2 = 0L
 
     init {
         createNioBuffer()
@@ -49,14 +51,25 @@ class IndexedStaticBuffer(
         updateElementBuffer()
     }
 
-    fun updateElementBuffer() {
+    override fun createVAOInstanced(shader: Shader, instanceData: Buffer) {
+        super.createVAOInstanced(shader, instanceData)
+        updateElementBuffer()
+    }
+
+    private fun updateElementBuffer() {
+
         // GFX.check()
         // extra: element buffer
+
         val indices = indices
         if (indices.isEmpty()) return
+
         if (elementVBO < 0) elementVBO = glGenBuffers()
         bindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementVBO)
-        // todo if size is the same as the old one, reuse it with glBufferSubData
+
+        if (isUpToDate2) return
+        isUpToDate2 = true
+
         val maxIndex = indices.maxOrNull() ?: 0
         when {// optimize the size usage on the gpu side
             // todo how do we find out, what is optimal?
@@ -75,29 +88,35 @@ class IndexedStaticBuffer(
                 val buffer = MemoryUtil.memAllocShort(indices.size)
                 for (i in indices) buffer.put(i.toShort())
                 buffer.flip()
-                GL30.glBufferData(GL30.GL_ELEMENT_ARRAY_BUFFER, buffer, usage)
+                if (indices.size * 2L == locallyAllocated2) {
+                    GL30.glBufferSubData(GL30.GL_ELEMENT_ARRAY_BUFFER, 0, buffer)
+                } else {
+                    GL30.glBufferData(GL30.GL_ELEMENT_ARRAY_BUFFER, buffer, usage)
+                }
+                locallyAllocated2 = allocate(locallyAllocated2, indices.size * 2L)
+                MemoryUtil.memFree(buffer)
             }
             else -> {
                 elementsType = GL_UNSIGNED_INT
-                GL30.glBufferData(GL30.GL_ELEMENT_ARRAY_BUFFER, indices, usage)
+                if (indices.size * 4L == locallyAllocated2) {
+                    GL30.glBufferSubData(GL30.GL_ELEMENT_ARRAY_BUFFER, 0, indices)
+                } else {
+                    GL30.glBufferData(GL30.GL_ELEMENT_ARRAY_BUFFER, indices, usage)
+                }
+                locallyAllocated2 = allocate(locallyAllocated2, indices.size * 4L)
             }
         }
         // GFX.check()
-    }
-
-    override fun createVAOInstanced(shader: Shader, base: Buffer) {
-        super.createVAOInstanced(shader, base)
-        updateElementBuffer()
     }
 
     override fun draw(mode: Int, first: Int, length: Int) {
         glDrawElements(mode, indices.size, elementsType, 0)
     }
 
-    override fun drawInstanced(shader: Shader, base: Buffer, mode: Int) {
-        base.ensureBuffer()
-        bindInstanced(shader, base)
-        GL33.glDrawElementsInstanced(mode, indices.size, elementsType, 0, base.drawLength)
+    override fun drawInstanced(shader: Shader, instanceData: Buffer, mode: Int) {
+        instanceData.ensureBuffer()
+        bindInstanced(shader, instanceData)
+        GL33.glDrawElementsInstanced(mode, indices.size, elementsType, 0, instanceData.drawLength)
         // GL33.glDrawArraysInstanced(mode, 0, base.drawLength, drawLength)
         unbind()
     }

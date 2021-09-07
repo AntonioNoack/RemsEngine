@@ -13,6 +13,7 @@ import me.anno.engine.debug.DebugPoint
 import me.anno.engine.debug.DebugShapes.debugLines
 import me.anno.engine.debug.DebugShapes.debugPoints
 import me.anno.engine.debug.DebugShapes.debugRays
+import me.anno.engine.gui.PlaneShapes
 import me.anno.engine.pbr.DeferredRenderer
 import me.anno.engine.ui.ECSTypeLibrary
 import me.anno.engine.ui.ECSTypeLibrary.Companion.lastSelection
@@ -27,6 +28,7 @@ import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.flat01
 import me.anno.gpu.RenderState
 import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.blending.BlendMode
@@ -39,6 +41,7 @@ import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.framebuffer.*
 import me.anno.gpu.pipeline.M4x3Delta.mul4x3delta
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.gpu.pipeline.PipelineLightStage
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.BaseShader.Companion.cullFaceColoringGeometry
@@ -48,7 +51,6 @@ import me.anno.gpu.shader.Renderer.Companion.depthRenderer
 import me.anno.gpu.shader.Renderer.Companion.idRenderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
-import me.anno.input.Input
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isKeyDown
 import me.anno.input.Input.isShiftDown
@@ -215,22 +217,13 @@ class RenderView(
         val showIds = isKeyDown('g')
         val showOverdraw = showOverdraw
         val showSpecialBuffer = showIds || showOverdraw || isKeyDown('j')
-        val useDeferredRendering = !showSpecialBuffer && isKeyDown('k')
+        var useDeferredRendering = !showSpecialBuffer && isKeyDown('k')
         val samples = if (isKeyDown('p')) 8 else 1
-        val buffer = if (useDeferredRendering) baseBuffer else FBStack["scene", w, h, 4, false, samples]
 
         stage0.blendMode = if (showOverdraw) BlendMode.ADD else null
         stage0.sorting = if (isShiftDown) Sorting.FRONT_TO_BACK
         else if (isControlDown) Sorting.BACK_TO_FRONT
         else Sorting.NO_SORTING
-
-        val renderer = when {
-            showOverdraw -> overdrawRenderer
-            showIds -> idRenderer
-            showSpecialBuffer -> attributeRenderers[selectedAttribute]
-            useDeferredRendering -> deferredRenderer
-            else -> pbrRenderer
-        }
 
         var aspect = w.toFloat() / h
 
@@ -244,7 +237,8 @@ class RenderView(
             else -> 1
         }
         val cols = (size + rows - 1) / rows
-        if (useDeferredRendering) {
+        val debugDeferredRendering = useDeferredRendering && isShiftDown
+        if (debugDeferredRendering) {
             aspect *= rows.toFloat() / cols.toFloat()
         }
 
@@ -253,9 +247,19 @@ class RenderView(
         clock.stop("initialization", 0.05)
 
         prepareDrawScene(w / 2f, h / 2f, w, h, aspect, camera, camera, 1f)
+        if(pipeline.hasTooManyLights()) useDeferredRendering = true
 
         clock.stop("preparing", 0.05)
 
+        val renderer = when {
+            showOverdraw -> overdrawRenderer
+            showIds -> idRenderer
+            showSpecialBuffer -> attributeRenderers[selectedAttribute]
+            useDeferredRendering -> deferredRenderer
+            else -> pbrRenderer
+        }
+
+        val buffer = if (useDeferredRendering) baseBuffer else FBStack["scene", w, h, 4, false, samples]
         drawScene(w, h, camera, camera, 1f, renderer, buffer, true)
 
         // clock.stop("drawing scene", 0.05)
@@ -268,47 +272,59 @@ class RenderView(
 
             // todo for the scene, the environment map and shadow cascades need to be updated,
             // todo and used in the calculation
-            drawSceneLights(camera, camera, 1f, Renderer.copyRenderer, lightBuffer)
+            drawSceneLights(camera, camera, 1f, Renderer.copyRenderer, buffer, lightBuffer)
 
-            clock.stop("drawing lights")
+            // clock.stop("drawing lights", 0.1)
 
-            // todo calculate the colors via post processing
-            // todo this would also allow us to easier visualize all the layers
+            if (debugDeferredRendering) {
 
+                for (index in 0 until size) {
 
-            // todo post processing could do screen space reflections :)
+                    // rows x N field
+                    val col = index % cols
+                    val x02 = x0 + (x1 - x0) * (col + 0) / cols
+                    val x12 = x0 + (x1 - x0) * (col + 1) / cols
+                    val row = index / cols
+                    val y02 = y0 + (y1 - y0) * (row + 0) / 2
+                    val y12 = y0 + (y1 - y0) * (row + 1) / 2
 
-            for (index in 0 until size) {
+                    // draw the light buffer as the last stripe
+                    val texture = if (index < layers.size) {
+                        buffer.textures[index]
+                    } else {
+                        lightBuffer.textures[0]
+                    }
 
-                // rows x N field
-                val col = index % cols
-                val x02 = x0 + (x1 - x0) * (col + 0) / cols
-                val x12 = x0 + (x1 - x0) * (col + 1) / cols
-                val row = index / cols
-                val y02 = y0 + (y1 - y0) * (row + 0) / 2
-                val y12 = y0 + (y1 - y0) * (row + 1) / 2
+                    // todo instead of drawing the raw buffers, draw the actual layers (color,roughness,metallic,...)
 
-                // draw the light buffer as the last stripe
-                val texture = if (index < layers.size) {
-                    buffer.textures[index]
-                } else {
-                    lightBuffer.textures[0]
+                    // y flipped, because it would be incorrect otherwise
+                    drawTexture(x02, y12, x12 - x02, y02 - y12, texture, true, -1, null)
+                    DrawTexts.drawSimpleTextCharByChar(
+                        x02, y02, 2,
+                        texture.name
+                    )
+
                 }
 
-                // y flipped, because it would be incorrect otherwise
-                drawTexture(x02, y12, x12 - x02, y02 - y12, texture, true, -1, null)
+            } else {
 
+                // todo calculate the colors via post processing
+                // todo this would also allow us to easier visualize all the layers
+
+                // todo post processing could do screen space reflections :)
+
+                val shader = PipelineLightStage.getPostShader(deferred)
+                shader.use()
+
+                lightBuffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                buffer.bindTextures(1, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+
+                flat01.draw(shader)
             }
 
             clock.stop("presenting deferred buffers", 0.1)
 
-
-        } else {
-
-            GFX.copy(buffer)
-            // DrawRectangles.drawRect(x, y, 10, 10, 0xff0000 or black)
-
-        }
+        } else GFX.copyNoAlpha(buffer)
 
         if (showSpecialBuffer) {
             DrawTexts.drawSimpleTextCharByChar(
@@ -391,7 +407,7 @@ class RenderView(
 
     val tmp4f = Vector4f()
 
-    val pipeline = Pipeline()
+    val pipeline = Pipeline(deferred)
     val stage0 = PipelineStage(
         "default", Sorting.NO_SORTING, MAX_LIGHTS,
         null, DepthMode.GREATER, true, GL_BACK,
@@ -471,11 +487,11 @@ class RenderView(
         camRotation.transform(camDirection.set(0.0, 0.0, -1.0))
         debugPoints.add(DebugPoint(Vector3d(camDirection).mul(20.0).add(camPosition), 0xff0000, -1))
 
-        pipeline.fill(world, camPosition, worldScale)
-        entityBaseClickId = pipeline.lastClickId
-
         world.update()
         world.updateVisible()
+
+        pipeline.fill(world, camPosition, worldScale)
+        entityBaseClickId = pipeline.lastClickId
 
     }
 
@@ -502,7 +518,7 @@ class RenderView(
         changeSize: Boolean
     ) {
 
-        val preDrawDepth = Input.isKeyDown('b')
+        val preDrawDepth = isKeyDown('b')
 
         if (preDrawDepth) {
             useFrame(w, h, changeSize, dst, cheapRenderer) {
@@ -562,6 +578,8 @@ class RenderView(
             val renderNormals = canRenderDebug && isKeyDown('n')
             val renderLines = canRenderDebug && isKeyDown('l')
 
+            GFX.check()
+
             if (renderNormals || renderLines) {
 
                 val shader = if (renderLines) lineGeometry else cullFaceColoringGeometry
@@ -571,13 +589,15 @@ class RenderView(
 
             } else pipeline.draw(cameraMatrix, camPosition, worldScale)
 
+            GFX.check()
+
             // Thread.sleep(500)
 
         }
 
     }
 
-    fun drawSelected() {
+    private fun drawSelected() {
         if (library.fineSelection.isEmpty()) return
         // draw scaled, inverted object (for outline), which is selected
         RenderState.depthMode.use(depthMode) {
@@ -602,6 +622,7 @@ class RenderView(
         previousCamera: CameraComponent,
         blending: Float,
         renderer: Renderer,
+        src: Framebuffer,
         dst: Framebuffer
     ) {
 
@@ -614,15 +635,15 @@ class RenderView(
             glClearColor(0f, 0f, 0f, 0f)
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
-            pipeline.lightPseudoStage.bindDraw(pipeline, cameraMatrix, camPosition, worldScale)
+            pipeline.lightPseudoStage.bindDraw(src, cameraMatrix, camPosition, worldScale)
 
         }
 
     }
 
-    val selectedColor = Vector4f(1f, 1f, 0.7f, 1f)
+    private val selectedColor = Vector4f(1f, 1f, 0.7f, 1f)
 
-    fun drawGizmos(camPosition: Vector3d, drawGridLines: Boolean) {
+    private fun drawGizmos(camPosition: Vector3d, drawGridLines: Boolean) {
 
         // draw UI
 
@@ -669,7 +690,8 @@ class RenderView(
                     if (doDrawCircle) {
                         scale = globalTransform.getScale(scaleV).dot(0.3, 0.3, 0.3)
                         val ringColor = if (entity == lastSelection) selectedColor else white4
-                        Transform.drawUICircle(stack, 0.5f / scale.toFloat(), 0.7f, ringColor)
+                        // PlaneShapes.drawCircle(globalTransform, ringColor.toARGB())
+                        // Transform.drawUICircle(stack, 0.5f / scale.toFloat(), 0.7f, ringColor)
                     }
 
                     val components = entity.components
@@ -698,6 +720,7 @@ class RenderView(
                 drawDebug()
 
                 LineBuffer.finish(cameraMatrix)
+                PlaneShapes.finish()
 
             }
         }

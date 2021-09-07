@@ -1,6 +1,5 @@
 package me.anno.gpu.buffer
 
-import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Buffer.Companion.bindBuffer
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15
@@ -11,7 +10,7 @@ import java.nio.ByteOrder
 import kotlin.math.min
 
 object DrawLinesBuffer {
-    
+
     fun drawLines(triangleCount: Int) {
         ensureLineBuffer()
         val count = min(triangleCount * 2, lineBufferLength)
@@ -30,10 +29,11 @@ object DrawLinesBuffer {
         if (lineBuffer < 0) {
             // GFX.check()
             lineBuffer = GL20.glGenBuffers()
+            if(lineBuffer < 0) throw RuntimeException("Failed to create buffer")
             bindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, lineBuffer)
             val nioBuffer = ByteBuffer.allocateDirect(4 * lineBufferLength)
-                    .order(ByteOrder.nativeOrder())
-                    .asIntBuffer()
+                .order(ByteOrder.nativeOrder())
+                .asIntBuffer()
             nioBuffer.position(0)
             for (i in 0 until lineBufferLength / 6) {
                 // 01 12 20
@@ -50,5 +50,5 @@ object DrawLinesBuffer {
             // GFX.check()
         } else bindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, lineBuffer)
     }
-    
+
 }

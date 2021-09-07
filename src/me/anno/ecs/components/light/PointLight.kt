@@ -2,10 +2,7 @@ package me.anno.ecs.components.light
 
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.components.mesh.GLSLType
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.TypeValue
-import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.gui.LineShapes.drawBox
 import me.anno.gpu.DepthMode
@@ -16,11 +13,10 @@ import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Renderer
 import me.anno.io.serialization.SerializedProperty
-import me.anno.io.zip.InnerTmpFile
 import me.anno.mesh.vox.meshing.BlockBuffer
 import me.anno.mesh.vox.meshing.BlockSide
 import me.anno.mesh.vox.meshing.VoxelMeshBuildInfo
-import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.utils.structures.arrays.ExpandingFloatArray
 import org.joml.*
 import org.lwjgl.opengl.GL11
 import kotlin.math.PI
@@ -36,6 +32,31 @@ class PointLight : LightComponent(LightType.POINT) {
     @SerializedProperty
     @Range(1e-6, 1.0)
     var near = 0.001
+
+
+    /* good idea, but typically, the precision is good enough,
+    and motion is fast enough, that the results flicker way too much
+    @SerializedProperty
+    var updateIndividually = false
+
+    // not important enough to be serialized
+    @NotSerializedProperty
+    var nextFaceIndex = 0*/
+
+    override fun getShaderV0(drawTransform: Matrix4x3d, worldScale: Double): Float {
+        // put light size * world scale
+        // avg, and then /3
+        // but the center really is much smaller -> *0.01
+        val lightSize = drawTransform.getScale(Vector3d()).dot(1.0, 1.0, 1.0) * lightSize / 9.0
+        return (lightSize * worldScale).toFloat()
+    }
+
+    // v1 is not used
+    override fun getShaderV2() = near.toFloat()
+
+    override fun invalidateShadows() {
+        needsUpdate = true // 6
+    }
 
     override fun clone(): PointLight {
         val clone = PointLight()
@@ -80,6 +101,7 @@ class PointLight : LightComponent(LightType.POINT) {
         val root = entity.getRoot(Entity::class)
         RenderState.depthMode.use(DepthMode.GREATER) {
             texture.draw(Renderer.depthOnlyRenderer) { side ->
+                // if (!updateIndividually || side == nextFaceIndex) {
                 Frame.bind()
                 GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT)
                 setPerspective(cameraMatrix, deg90.toFloat(), 1f, near.toFloat(), far.toFloat())
@@ -111,8 +133,11 @@ class PointLight : LightComponent(LightType.POINT) {
                 )
                 pipeline.fillDepth(root, position, worldScale)
                 pipeline.drawDepth(cameraMatrix, position, worldScale)
+                // }
             }
         }
+
+        // if(updateIndividually) nextFaceIndex = (nextFaceIndex + 1) % 6
 
     }
 
@@ -120,6 +145,8 @@ class PointLight : LightComponent(LightType.POINT) {
         super.copy(clone)
         clone as PointLight
         clone.lightSize = lightSize
+        clone.near = near
+        // clone.updateIndividually = updateIndividually
     }
 
     override fun drawShape() {
@@ -141,32 +168,69 @@ class PointLight : LightComponent(LightType.POINT) {
 
     companion object {
 
-        val cutoff = 0.1
-        val falloff = "max(0.0, 1.0/(1.0+9.0*dot(dir,dir)) - $cutoff)*${1.0 / (1.0 - cutoff)}"
-        val falloff2d = "max(0.0, 1.0/(1.0+9.0*dir.z*dir.z) - $cutoff)*${1.0 / (1.0 - cutoff)}"
+        private const val cutoff = 0.1
+        const val falloff = "max(0.0, 1.0/(1.0+9.0*dot(dir,dir)) - $cutoff)*${1.0 / (1.0 - cutoff)}"
+        // val falloff2d = "max(0.0, 1.0/(1.0+9.0*dir.z*dir.z) - $cutoff)*${1.0 / (1.0 - cutoff)}"
 
         val cubeMesh = Mesh()
 
         init {
 
-            val vertices = FloatArrayList(6 * 2 * 3 * 3)
+            val vertices = ExpandingFloatArray(6 * 2 * 3 * 3)
             val base = VoxelMeshBuildInfo(intArrayOf(0, -1), vertices, null, null)
 
             base.color = -1
-            base.setOffset(-0.5f, -0.5f, -0.5f)
 
             for (side in BlockSide.values) {
                 BlockBuffer.addQuad(base, side, 1, 1, 1)
             }
 
-            cubeMesh.positions = vertices.toFloatArray()
-            val material = Prefab("Material")
-            material.setProperty(
-                "shaderOverrides",
-                mapOf("uColor" to TypeValue(GLSLType.V3F, Vector3f(.3f, .3f, 0.7f)))
-            )
-            cubeMesh.material = InnerTmpFile.InnerTmpPrefabFile(material)
+            // [0,1]³ -> [-1,+1]³
+            val positions = vertices.toFloatArray()
+            for (i in positions.indices) {
+                positions[i] = positions[i] * 2f - 1f
+            }
+            cubeMesh.positions = positions
 
+        }
+
+        fun getShaderCode(cutoffContinue: String?, withShadows: Boolean, hasLightRadius: Boolean): String {
+            return "" +
+                    (if (cutoffContinue != null) "if(dot(dir,dir)>1.0) $cutoffContinue;\n"
+                    else "") + // outside
+                    "lightPosition = data1.rgb;\n" +
+                    // when light radius > 0, then adjust the light direction such that it looks as if the light was a sphere
+                    "lightDirWS = normalize(lightPosition - finalPosition);\n" +
+                    (if (hasLightRadius) "" +
+                            "#define lightRadius data1.a\n" +
+                            "if(lightRadius > 0.0){\n" +
+                            // todo effect is much more visible in the diffuse part
+                            // it's fine for small increased, but we wouldn't really use them...
+                            // should be more visible in the specular case...
+                            // in the ideal case, we move the light such that it best aligns the sphere...
+                            "   vec3 idealLightDirWS = normalize(reflect(finalPosition, finalNormal));\n" +
+                            "   lightDirWS = normalize(mix(lightDirWS, idealLightDirWS, clamp(lightRadius/(length(lightPosition-finalPosition)),0,1)));\n" +
+                            "}\n" else "") +
+                    "NdotL = dot(lightDirWS, finalNormal);\n" +
+                    // shadow maps
+                    // shadows can be in every direction -> use cubemaps
+                    (if (withShadows) "" +
+                            "if(shadowMapIdx0 < shadowMapIdx1){\n" +
+                            "   float near = data2.a;\n" +
+                            "   float maxAbsComponent = max(max(abs(dir.x),abs(dir.y)),abs(dir.z));\n" +
+                            "   float depthFromShader = near/maxAbsComponent;\n" +
+                            // todo how can we get rid of this (1,-1,-1), what rotation is missing?
+                            "   float depthFromTex = texture_array_depth_shadowMapCubic(shadowMapIdx0, dir*vec3(+1,-1,-1), depthFromShader);\n" +
+                            // "   float val = texture_array_shadowMapCubic(shadowMapIdx0, dir*vec3(+1,-1,-1)).r;\n" +
+                            // "   effectiveDiffuse = lightColor * vec3(vec2(val),depthFromShader);\n" + // nice for debugging
+                            //"   effectiveDiffuse = lightColor * (dir*.5+.5);\n" +
+                            "   lightColor *= 1.0 - depthFromTex;\n" +
+                            "}\n"
+                    else "") +
+                    "effectiveDiffuse = lightColor * ${LightType.POINT.falloff};\n" +
+                    "dir *= 0.2;\n" + // less falloff by a factor of 5,
+                    // because specular light is more directed and therefore reached farther
+                    "effectiveSpecular = lightColor * ${LightType.POINT.falloff};\n"
         }
 
     }

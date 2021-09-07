@@ -1,5 +1,6 @@
 package me.anno.utils.pooling
 
+import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -43,8 +44,8 @@ open class ByteBufferPool(val size: Int, val exactMatchesOnly: Boolean) {
                     return
                 }
             }
-            val index = (Math.random() * size).toInt()
-            available[index % size] = buffer
+            // we don't need it anymore
+            MemoryUtil.memFree(buffer)
         }
     }
 

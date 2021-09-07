@@ -1,15 +1,18 @@
 package me.anno.engine.ui
 
+import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.CAdd
 import me.anno.ecs.prefab.CSet
 import me.anno.ecs.prefab.Path
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
+import me.anno.ecs.prefab.PrefabInspector.Companion.currentInspector
 import me.anno.engine.ui.ECSTypeLibrary.Companion.lastSelection
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.treeView.AbstractTreeView
@@ -45,9 +48,56 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
         style
     ) {
 
-    override fun addChild2(element: Entity, child: Any) {
+    val inspector get() = currentInspector!!
+
+    override fun addChild(element: Entity, child: Any) {
         child as Prefab
-        TODO("add prefab to child: modify changes, make path for changes longer")
+        if (child.src != InvalidRef) {
+            // simple: just add a reference
+            when (child.clazzName) {
+                "Entity" -> currentInspector!!.addEntityChild(element, child)
+                "Component" -> currentInspector!!.addComponentChild(element, child)
+                else -> LOGGER.warn("Unknown type of child: ${child.clazzName}")
+            }
+        } else {
+            // not so simple:
+            // add prefab to child: modify changes, make path for changes longer
+            val type = when (child.getSampleInstance(HashSet())) {
+                is Entity -> 'e'
+                is Component -> 'c'
+                else -> {
+                    LOGGER.warn("Unknown type to add: ${child.clazzName}")
+                    return
+                }
+            }
+            val path = element.pathInRoot2(null, false)
+            val prefab = inspector.prefab
+            val add = CAdd(path, type, child.clazzName!!)
+            prefab.add(add)
+            val index = if (type == 'c') element.components.size else element.children.size
+            val instancePath = add.getChildPath(index)
+            for(change in child.adds ?: emptyList()){
+                prefab.add(change.withPath(Path(instancePath, change.path)))
+            }
+            // todo either invalidate the inspector, or actually add the child
+        }
+    }
+
+    override fun addAfter(self: Entity, sibling: Any) {
+        sibling as Entity
+        self.addAfter(sibling)
+        // todo add the changes for this
+    }
+
+    override fun addBefore(self: Entity, sibling: Any) {
+        sibling as Entity
+        self.addBefore(sibling)
+        // todo add the changes for this
+    }
+
+    override fun removeChild(element: Entity, child: Entity) {
+        element.remove(child)
+        // todo add the changes for this
     }
 
     override fun destroy(element: Entity) {
@@ -84,8 +134,11 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
         if (element == root) {
             return tab.inspector.toString()
         } else {
-            val adders = ArrayList<CAdd>()
-            val setters = ArrayList<CSet>()
+            val prefab = Prefab(element.className)
+            prefab.prefab = element.prefab2?.prefab?.nullIfUndefined() ?: element.prefab2?.src ?: InvalidRef
+            prefab.createLists()
+            val adders = prefab.adds as ArrayList<CAdd>
+            val setters = prefab.sets as ArrayList<CSet>
             val path = element.pathInRoot2(null, false)
             // collect changes from this element going upwards
             var someParent = element
@@ -97,7 +150,7 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
                 LOGGER.info("checking depth $depth/$collDepth, ${someParent.name}")
                 var someRelatedParent = someParent.prefab2
                 while (true) {// follow the chain of prefab-inheritance
-                    val changes = someRelatedParent?.changes
+                    val changes = someRelatedParent?.adds
                     LOGGER.info("changes from $depth/${someRelatedParent?.getPrefabOrSource()}: ${changes?.size}")
                     if (changes != null) {
                         // get all changes
@@ -119,36 +172,13 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
                     someRelatedParent = getPrefab(someRelatedParent?.prefab) ?: break
                 }
             }
-            val prefab = Prefab(element.className)
-            prefab.prefab = element.prefab2?.prefab?.nullIfUndefined() ?: element.prefab2?.src ?: InvalidRef
             LOGGER.info("found: ${prefab.prefab}, prefab: ${element.prefab2?.prefab}, own file: ${element.prefab2?.src}, has prefab: ${element.prefab2 != null}")
-            prefab.changes = adders + setters
             return TextWriter.toText(prefab)
         }
     }
 
     private fun getPrefab(ref: FileReference?): Prefab? {
         return loadPrefab(ref)
-    }
-
-    override fun addAfter(self: Entity, sibling: Entity) {
-        self.addAfter(sibling)
-        // todo add the changes for this
-    }
-
-    override fun addBefore(self: Entity, sibling: Entity) {
-        self.addBefore(sibling)
-        // todo add the changes for this
-    }
-
-    override fun addChild(element: Entity, child: Entity) {
-        element.add(child)
-        // todo add the changes for this
-    }
-
-    override fun removeChild(element: Entity, child: Entity) {
-        element.remove(child)
-        // todo add the changes for this
     }
 
     override fun getSymbol(element: Entity): String {
@@ -189,12 +219,32 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
 
     override fun selectElement(element: Entity?) {
         library.select(element)
-        lastSelection = element
     }
 
     override fun focusOnElement(element: Entity) {
         selectElement(element)
         // todo focus on the element by inverting the camera transform and such...
+    }
+
+    override fun onPaste(x: Float, y: Float, data: String, type: String) {
+        if (!tryPaste(data)) {
+            super.onPaste(x, y, data, type)
+        }
+    }
+
+    /**
+     * returns true on success
+     * */
+    private fun tryPaste(data: String): Boolean {
+        return when (val element = TextReader.read(data).firstOrNull()) {
+            is Prefab -> TODO("paste prefab")
+            is Entity -> TODO("paste entity somehow")
+            is Component -> TODO("paste component somehow")
+            else -> {
+                LOGGER.warn("Unknown type ${element?.className}")
+                false
+            }
+        }
     }
 
     override val className get() = "ECSTreeView"

@@ -2,6 +2,7 @@ package me.anno.engine.ui.render
 
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib
+import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GeoShader
 import me.anno.gpu.shader.Shader
@@ -17,35 +18,31 @@ class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
     override fun createDepthShader(instanced: Boolean): Shader {
 
         val base = ShaderBuilder(name, null)
+        base.ignored += Array(8) { "shadowMapPlanar$it" }
+        base.ignored += Array(8) { "shadowMapCubic$it" }
 
-        val attributes = mutableListOf(
-            Variable("vec3", "coords"),
-        )
-
-        attributes += if (instanced) {
+        val params = if (instanced) {
             listOf(
-                Variable("vec4", "instanceTrans0"),
-                Variable("vec4", "instanceTrans1"),
-                Variable("vec4", "instanceTrans2"),
-                Variable("vec4", "instanceTint")
-            )
-        } else {
-            // not supported for instanced rendering (at the moment),
-            // because having 100 skeletons with all the same animation is probably rare, and could be solved differently
-            listOf(
-                Variable("vec4", "weights"),
-                Variable("ivec4", "indices"),
-            )
-        }
-
-        base.vertex.attributes += attributes
-
-        val params = attributes + if (instanced) {
-            listOf(
+                // base
+                Variable("vec3", "coords", VariableMode.ATTR),
+                // other
+                Variable("vec4", "instanceTrans0", VariableMode.ATTR),
+                Variable("vec4", "instanceTrans1", VariableMode.ATTR),
+                Variable("vec4", "instanceTrans2", VariableMode.ATTR),
+                // Variable("vec4", "instanceTint", VariableMode.ATTR),
+                // uniforms
                 Variable("mat4", "transform")
             )
         } else {
+            // weights & indices are not supported for instanced rendering at the moment,
+            // because having 100 skeletons with all the same animation is probably rare, and could be solved differently
             listOf(
+                // base
+                Variable("vec3", "coords", VariableMode.ATTR),
+                // other
+                Variable("vec4", "weights", VariableMode.ATTR),
+                Variable("ivec4", "indices", VariableMode.ATTR),
+                // uniforms
                 Variable("mat4", "transform"),
                 // not required for the instanced rendering, because this is instance specific
                 Variable("mat4x3", "jointTransforms", maxBones),
@@ -83,7 +80,7 @@ class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         )
 
         // for the future, we could respect transparency from textures :)
-        base.addFragment(ShaderStage("material", emptyList(), ""))
+        // base.addFragment(ShaderStage("material", emptyList(), ""))
 
         GFX.check()
         val shader = base.create()
@@ -93,39 +90,29 @@ class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
     }
 
-    // todo just like the gltf shader define all material properties
-    override fun createFlatShader(postProcessing: ShaderStage?, instanced: Boolean, geoShader: GeoShader?): Shader {
+    // just like the gltf pbr shader define all material properties
+    private fun createBase(instanced: Boolean): ShaderBuilder {
 
         val base = ShaderBuilder(name, null)
+        base.ignored += Array(8) { "shadowMapPlanar$it" }
+        base.ignored += Array(8) { "shadowMapCubic$it" }
 
-        val attributes = mutableListOf(
-            Variable("vec3", "coords"),
-            Variable("vec2", "uvs"),
-            Variable("vec3", "normals"),
-            Variable("vec3", "tangents"),
-            Variable("vec4", "colors")
+        val baseAttributes = listOf(
+            Variable("vec3", "coords", VariableMode.ATTR),
+            Variable("vec2", "uvs", VariableMode.ATTR),
+            Variable("vec3", "normals", VariableMode.ATTR),
+            Variable("vec3", "tangents", VariableMode.ATTR),
+            Variable("vec4", "colors", VariableMode.ATTR)
         )
 
-        attributes += if (instanced) {
+        val params = baseAttributes + if (instanced) {
             listOf(
-                Variable("vec4", "instanceTrans0"),
-                Variable("vec4", "instanceTrans1"),
-                Variable("vec4", "instanceTrans2"),
-                Variable("vec4", "instanceTint")
-            )
-        } else {
-            // not supported for instanced rendering (at the moment),
-            // because having 100 skeletons with all the same animation is probably rare, and could be solved differently
-            listOf(
-                Variable("vec4", "weights"),
-                Variable("ivec4", "indices"),
-            )
-        }
-
-        base.vertex.attributes += attributes
-
-        val params = attributes + if (instanced) {
-            listOf(
+                // attributes
+                Variable("vec4", "instanceTrans0", VariableMode.ATTR),
+                Variable("vec4", "instanceTrans1", VariableMode.ATTR),
+                Variable("vec4", "instanceTrans2", VariableMode.ATTR),
+                Variable("vec4", "instanceTint", VariableMode.ATTR),
+                // uniforms
                 Variable("mat4", "transform"),
                 Variable("bool", "hasVertexColors"),
                 // outputs
@@ -136,10 +123,14 @@ class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 Variable("vec4", "vertexColor", false),
                 Variable("vec3", "localPosition", false),
                 Variable("vec3", "finalPosition", false),
-                Variable("vec4", "tint", false),
+                Variable("vec4", "tint", VariableMode.OUT),
             )
         } else {
             listOf(
+                // attributes
+                Variable("vec4", "weights", VariableMode.ATTR),
+                Variable("ivec4", "indices", VariableMode.ATTR),
+                // uniforms
                 Variable("mat4", "transform"),
                 Variable("bool", "hasVertexColors"),
                 // not required for the instanced rendering, because this is instance specific
@@ -152,7 +143,7 @@ class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 Variable("vec3", "normal", false),
                 Variable("vec3", "tangent", false),
                 Variable("vec4", "vertexColor", false),
-                Variable("vec4", "weight", false),
+                // Variable("vec4", "weight", false),
                 Variable("vec3", "localPosition", false),
                 Variable("vec3", "finalPosition", false),
             )
@@ -189,7 +180,8 @@ class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                                     "normal = localTransform * vec4(normal, 0.0);\n" +
                                     "tangent = localTransform * vec4(tangent, 0.0);\n" +
                                     "finalPosition = localTransform * vec4(localPosition, 1.0);\n" +
-                                    "weight = weights;\n"
+                                    // "weight = weights;\n" +
+                                    ""
                         } +
                         // normal only needs to be normalized, if we show the normal
                         // todo only activate on viewing it...
@@ -224,21 +216,21 @@ class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     Variable("float", "occlusionStrength"),
                     Variable("vec4", "diffuseBase"),
                     Variable("vec3", "emissiveBase"),
+                    Variable("float", "sheen"),
                     // outputs
-                    Variable("vec3", "finalColor", false),
-                    Variable("float", "finalAlpha", false),
-                    Variable("vec3", "finalPosition", false),
-                    Variable("vec3", "finalNormal", false),
-                    Variable("vec3", "finalTangent", false),
-                    Variable("vec3", "finalBitangent", false),
-                    Variable("vec3", "finalEmissive", false),
-                    Variable("float", "finalMetallic", false),
-                    Variable("float", "finalRoughness", false),
-                    Variable("float", "finalOcclusion", false),
-                    Variable("vec3", "finalSheenNormal", false),
+                    Variable("vec3", "finalColor", VariableMode.OUT),
+                    Variable("float", "finalAlpha", VariableMode.OUT),
+                    Variable("vec3", "finalPosition", VariableMode.OUT),
+                    Variable("vec3", "finalNormal", VariableMode.OUT),
+                    Variable("vec3", "finalTangent", VariableMode.OUT),
+                    Variable("vec3", "finalBitangent", VariableMode.OUT),
+                    Variable("vec3", "finalEmissive", VariableMode.OUT),
+                    Variable("float", "finalMetallic", VariableMode.OUT),
+                    Variable("float", "finalRoughness", VariableMode.OUT),
+                    Variable("float", "finalOcclusion", VariableMode.OUT),
+                    Variable("float", "finalSheen", VariableMode.OUT),
                     // just passed from uniforms
                     Variable("float", "finalTranslucency", VariableMode.INOUT),
-                    Variable("float", "finalSheen", VariableMode.INOUT),
                     Variable("vec4", "finalClearCoat", VariableMode.INOUT),
                     Variable("vec2", "finalClearCoatRoughMetallic", VariableMode.INOUT),
                     /* Variable("float", "translucency"),
@@ -247,6 +239,7 @@ class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                      Variable("vec2", "clearCoatRoughMetallic"),*/
                 ),
                 "" +
+
                         // step by step define all material properties
                         "vec4 color = vec4(vertexColor.rgb, 1) * diffuseBase * texture(diffuseMap, uv);\n" +
                         "finalColor = color.rgb;\n" +
@@ -268,33 +261,67 @@ class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                         "finalOcclusion = 1.0 - (1.0 - texture(occlusionMap, uv).r) * occlusionStrength;\n" +
                         "finalMetallic  = mix(metallicMinMax.x,  metallicMinMax.y,  texture(metallicMap,  uv).r);\n" +
                         "finalRoughness = mix(roughnessMinMax.x, roughnessMinMax.y, texture(roughnessMap, uv).r);\n" +
-                        // clear coat normal calculation
-                        "if(finalSheen * normalStrength.y > 0.0){\n" +
-                        "   vec3 normalFromTex = texture(sheenNormalMap, uv).rgb * 2.0 - 1.0;\n" +
-                        "        normalFromTex = tbn * normalFromTex;\n" +
+
+                        // sheen calculation
+                        "vec3 V0 = normalize(-finalPosition);\n" +
+                        "if(sheen > 0){\n" +
+                        "   vec3 sheenNormal = finalNormal;\n" +
+                        "   if(finalSheen * normalStrength.y > 0.0){\n" +
+                        "      vec3 normalFromTex = texture(sheenNormalMap, uv).rgb * 2.0 - 1.0;\n" +
+                        "           normalFromTex = tbn * normalFromTex;\n" +
                         // original or transformed "finalNormal"? mmh...
                         // transformed probably is better
-                        "   finalSheenNormal = mix(finalNormal, normalFromTex, normalStrength.y);\n" +
-                        "} else finalSheenNormal = finalNormal;\n"
+                        "      sheenNormal = mix(finalNormal, normalFromTex, normalStrength.y);\n" +
+                        "   }\n" +
+                        // calculate sheen
+                        "   float sheenFresnel = 1.0 - abs(dot(sheenNormal,V0));\n" +
+                        "   finalSheen = sheen * pow(sheenFresnel, 3.0);\n" +
+                        "} else finalSheen = 0;\n" +
+
+                        "if(finalClearCoat.w > 0){\n" +
+                        // cheap clear coat effect
+                        "   float fresnel = 1.0 - abs(dot(finalNormal,V0));\n" +
+                        "   float clearCoatEffect = pow(fresnel, 3.0) * finalClearCoat.w;\n" +
+                        "   finalRoughness = mix(finalRoughness, finalClearCoatRoughMetallic.x, clearCoatEffect);\n" +
+                        "   finalMetallic = mix(finalMetallic, finalClearCoatRoughMetallic.y, clearCoatEffect);\n" +
+                        "   finalColor = mix(finalColor, finalClearCoat.rgb, clearCoatEffect);\n" +
+                        "}\n"
 
             )
         )
+
+        return base
+
+    }
+
+    override fun createFlatShader(postProcessing: ShaderStage?, instanced: Boolean, geoShader: GeoShader?): Shader {
+
+        val base = createBase(instanced)
 
         // <3, this is crazily easy
         base.addFragment(postProcessing)
         base.addFragment(ShaderPlus.createShaderStage())
 
-        GFX.check()
         val shader = base.create()
-        shader.glslVersion = glslVersion
-        shader.setTextureIndices(textures)
-        shader.ignoreUniformWarnings(ignoredUniforms)
-        shader.v1("drawMode", ShaderPlus.DrawMode.COLOR.id)
-        shader.v4("tint", 1f, 1f, 1f, 1f)
-        GFX.check()
+        finish(shader)
         return shader
 
     }
 
+    override fun createDeferredShader(
+        deferred: DeferredSettingsV2,
+        isInstanced: Boolean,
+        geoShader: GeoShader?
+    ): Shader {
+
+        val base = createBase(isInstanced)
+        base.outputs = deferred
+
+        // build & finish
+        val shader = base.create()
+        finish(shader)
+        return shader
+
+    }
 
 }

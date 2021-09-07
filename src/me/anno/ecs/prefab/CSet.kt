@@ -4,10 +4,14 @@ import me.anno.io.base.BaseWriter
 
 class CSet() : Change(5) {
 
-    constructor(path: Path, name: String, value: Any?) : this() {
+    constructor(path: Path, name: String?, value: Any?) : this() {
         this.path = path
         this.name = name
         this.value = value
+    }
+
+    override fun withPath(path: Path): Change {
+        return CSet(path, name, value)
     }
 
     var name: String? = null
@@ -53,5 +57,16 @@ class CSet() : Change(5) {
     override fun isDefaultValue(): Boolean = false
 
     override val className: String = "CSet"
+
+    override fun toString(): String {
+        var str = value.toString()
+        val maxLength = 100
+        if (str.length > maxLength) {
+            str = str.substring(0, maxLength * 7 / 10 - 3) +
+                    "..." +
+                    str.substring(str.length - maxLength * 3 / 10)
+        }
+        return "CSet($path, $name, $str)"
+    }
 
 }

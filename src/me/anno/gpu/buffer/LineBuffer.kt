@@ -12,6 +12,7 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL15
+import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import javax.vecmath.Vector3d
@@ -73,12 +74,14 @@ object LineBuffer {
                 .order(ByteOrder.nativeOrder())
             // copy over
             LOGGER.info("Increased size of buffer $size*2")
-            bytes.position(0)
+            val oldBytes = bytes
+            oldBytes.position(0)
             newBytes.position(0)
-            newBytes.put(bytes)
+            newBytes.put(oldBytes)
             newBytes.position(position)
+            MemoryUtil.memFree(oldBytes)
             bytes = newBytes
-            buffer.nioBuffer = bytes
+            buffer.nioBuffer = newBytes
         }
     }
 

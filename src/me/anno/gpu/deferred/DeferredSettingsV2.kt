@@ -4,6 +4,7 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import kotlin.math.max
 
 class DeferredSettingsV2(
@@ -19,6 +20,39 @@ class DeferredSettingsV2(
             fragment.append(mapping)
             fragment.append(type.map10)
             fragment.append(";\n")
+        }
+
+        fun appendMapping(fragment: StringBuilder, suffix: String, uv: String, imported: MutableSet<String>) {
+            if (imported.add(textureName)) {
+                fragment.append("vec4 ")
+                fragment.append(textureName)
+                fragment.append(suffix)
+                fragment.append(" = texture(")
+                fragment.append(textureName)
+                fragment.append(", ")
+                fragment.append(uv)
+                fragment.append(");\n")
+            }
+            fragment.append(glslTypes[type.dimensions - 1])
+            fragment.append(' ')
+            fragment.append(type.glslName)
+            fragment.append(" = ")
+            fragment.append(textureName)
+            fragment.append(suffix)
+            fragment.append('.')
+            fragment.append(mapping)
+            fragment.append(type.map10)
+            fragment.append(";\n")
+        }
+
+        fun appendLayer(output: StringBuilder) {
+            output.append(textureName)
+            output.append('.')
+            output.append(mapping)
+            output.append(" = ")
+            output.append(type.glslName)
+            output.append(type.map01)
+            output.append(";\n")
         }
 
     }
@@ -67,18 +101,26 @@ class DeferredSettingsV2(
         geometrySource: String?,
         instanced: Boolean,
         vertexSource: String,
-        varyingSource: List<Variable>,
+        varyings: List<Variable>,
         fragmentSource: String,
         textures: List<String>?
     ): Shader {
+
         // what do we do, if the position is missing? we cannot do anything...
         val vertex = if (instanced) "#define INSTANCED;\n$vertexSource" else vertexSource
         val fragment = StringBuilder(16)
+
         appendLayerDeclarators(fragment)
+
+        val lio = fragmentSource.lastIndexOf('}')
+        if (lio < 0) throw RuntimeException("Expected to find } in fragment source, but only got '$vertexSource'/'$geometrySource'/'$fragmentSource'")
+
         val oldFragmentCode = fragmentSource
-            .substring(0, fragmentSource.lastIndexOf('}'))
+            .substring(0, lio)
             .replace("gl_FragColor", "vec4 glFragColor")
+
         fragment.append(oldFragmentCode)
+
         val hasFragColor = "gl_FragColor" in fragmentSource
         if (hasFragColor) {
             fragment.append("vec3 finalColor = glFragColor.rgb;\n")
@@ -90,7 +132,7 @@ class DeferredSettingsV2(
 
         fragment.append("}")
 
-        val shader = Shader(shaderName, geometrySource, vertex, varyingSource, fragment.toString())
+        val shader = Shader(shaderName, geometrySource, vertex, varyings, fragment.toString())
         shader.glslVersion = 330
         shader.setTextureIndices(textures)
         return shader
@@ -117,15 +159,16 @@ class DeferredSettingsV2(
         }
     }
 
+
+    fun getLayerOutputVariables(): List<Variable> {
+        return settingsV1.layers.map { type ->
+            Variable("vec4", type.name, VariableMode.OUT)
+        }
+    }
+
     fun appendLayerWriters(output: StringBuilder) {
         for (layer in layers) {
-            output.append(layer.textureName)
-            output.append('.')
-            output.append(layer.mapping)
-            output.append(" = ")
-            output.append(layer.type.glslName)
-            output.append(layer.type.map01)
-            output.append(";\n")
+            layer.appendLayer(output)
         }
     }
 

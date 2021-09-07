@@ -12,6 +12,8 @@ abstract class Change(val priority: Int) : Saveable(), Cloneable {
 
     var path: Path = ROOT_PATH
 
+    abstract fun withPath(path: Path): Change
+
     fun apply(instance: PrefabSaveable) {
         apply(instance, pathIndex = 0)
     }

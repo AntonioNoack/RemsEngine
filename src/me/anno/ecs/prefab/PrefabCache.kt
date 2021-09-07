@@ -2,14 +2,15 @@ package me.anno.ecs.prefab
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
+import me.anno.engine.scene.ScenePrefab
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
 import me.anno.io.text.TextReader
+import me.anno.io.text.TextWriter
 import me.anno.io.unity.UnityReader
 import me.anno.mesh.assimp.AnimatedMeshesLoader
-import me.anno.mesh.obj.OBJReader2
 import me.anno.mesh.vox.VOXReader
 import org.apache.logging.log4j.LogManager
 
@@ -55,7 +56,7 @@ object PrefabCache : CacheSection("Prefab") {
             else -> {
                 try {
                     val read = TextReader.read(resource)
-                    val prefab = read.firstOrNull() as? ISaveable
+                    val prefab = read.firstOrNull()
                     if (prefab == null) LOGGER.warn("No Prefab found in $resource:${resource::class.simpleName}! $read")
                     // else LOGGER.info("Read ${prefab.changes?.size} changes from $resource")
                     (prefab as? Prefab)?.wasCreatedFromJson = true
@@ -122,14 +123,79 @@ object PrefabCache : CacheSection("Prefab") {
                         else -> null
                     }
                 )
-            } as CacheData<*>
-            val pair = data.value as? Pair<*, *>
+            } as? CacheData<*>
+            val pair = data?.value as? Pair<*, *>
             return pair as? Pair<Prefab, PrefabSaveable>
         } else null
     }
 
     fun loadPrefab(resource: FileReference?): Prefab? {
         return getPrefabPair(resource)?.first
+    }
+
+    fun createInstance(
+        superPrefab: FileReference,
+        adds: List<CAdd>?,
+        sets: List<CSet>?,
+        chain: MutableSet<FileReference>?,
+        clazz: String
+    ): PrefabSaveable {
+        // LOGGER.info("creating instance from $superPrefab")
+        val instance = createSuperInstance(superPrefab, chain, clazz)
+        // val changes2 = (changes0 ?: emptyList()).groupBy { it.className }.map { "${it.value.size}x ${it.key}" }
+        // LOGGER.info("  creating entity instance from ${changes0?.size ?: 0} changes, $changes2")
+        if (adds != null) {
+            for ((index, change) in adds.withIndex()) {
+                /*if (chain != null && change is CAdd && change.prefab in chain) {
+                    val old = change.prefab
+                    change.prefab = InvalidRef
+                    LOGGER.warn("Invalidated circular reference! $old in $chain")
+                }*/
+                try {
+                    change.apply(instance)
+                } catch (e: Exception) {
+                    LOGGER.warn("Change $index, $change failed")
+                    throw e
+                }
+            }
+        }
+        if (sets != null) {
+            for ((index, change) in sets.withIndex()) {
+                try {
+                    change.apply(instance)
+                } catch (e: Exception) {
+                    LOGGER.warn("Change $index, $change failed")
+                    throw e
+                }
+            }
+        }
+        // LOGGER.info("  created instance '${entity.name}' has ${entity.children.size} children and ${entity.components.size} components")
+        return instance
+    }
+
+    private fun createSuperInstance(
+        prefab: FileReference,
+        chain: MutableSet<FileReference>?,
+        clazz: String
+    ): PrefabSaveable {
+        /*if (chain != null) {
+            if (prefab != InvalidRef) {
+                chain.add(prefab)
+                if (prefab in chain) {
+                    LOGGER.warn("Hit dependency ring: $chain, $prefab")
+                    return ISaveable.create(clazz) as PrefabSaveable
+                }
+            }
+        }*/
+        // LOGGER.info("chain: $chain")
+        return loadPrefab(prefab)?.createInstance(chain) ?: ISaveable.create(clazz) as PrefabSaveable
+    }
+
+    fun loadScenePrefab(file: FileReference): Prefab {
+        val prefab = loadPrefab(file) ?: Prefab("Entity").apply { this.prefab = ScenePrefab }
+        prefab.src = file
+        if (!file.exists) file.writeText(TextWriter.toText(prefab))
+        return prefab
     }
 
 }

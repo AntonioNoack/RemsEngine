@@ -25,21 +25,35 @@ class Prefab() : NamedSaveable() {
 
     var clazzName: String? = null
 
-    var changes: List<Change>? = null
+    var adds: List<CAdd>? = null
+    var sets: List<CSet>? = null
+
     var prefab: FileReference = InvalidRef
     var wasCreatedFromJson = false
     var src: FileReference = InvalidRef
 
+    fun createLists() {
+        adds = ArrayList()
+        sets = ArrayList()
+    }
+
+    fun addAll(changes: Collection<Change>) {
+        for (change in changes) {
+            add(change)
+        }
+    }
+
     fun getPrefabOrSource() = prefab.nullIfUndefined() ?: src
 
     fun countTotalChanges(): Int {
-        var sum = changes?.size ?: 0
+        var sum = adds?.size ?: 0
         if (prefab != InvalidRef) sum += loadPrefab(prefab)?.countTotalChanges() ?: 0
-        for (change in changes ?: return sum) {
-            if (change is CAdd && change.prefab != InvalidRef) {
+        for (change in adds ?: return sum) {
+            if (change.prefab != InvalidRef) {
                 sum += loadPrefab(change.prefab)?.countTotalChanges() ?: 0
             }
         }
+        sum += sets?.size ?: 0
         return sum
     }
 
@@ -50,19 +64,36 @@ class Prefab() : NamedSaveable() {
     var history: ChangeHistory? = null
     var isValid = false
 
-    fun add(change: Change) {
-        if (changes == null) changes = ArrayList()
-        (changes as MutableList<Change>).add(change)
-        isValid = false
+    fun add(change: CAdd, index: Int): Path {
+        return add(change).getChildPath(index)
+    }
+
+    fun <V : Change> add(change: V): V {
+        when (change) {
+            is CAdd -> {
+                if (adds == null) adds = ArrayList()
+                (adds as MutableList<CAdd>).add(change)
+                isValid = false
+            }
+            is CSet -> {
+                if (sets == null) sets = ArrayList()
+                (sets as MutableList<CSet>).add(change)
+                // apply to sample instance to keep it valid
+                if (sampleInstance != null) change.apply(sampleInstance!!)
+            }
+        }
+        return change
     }
 
     fun setProperty(key: String, value: Any?) {
-        if (changes == null) changes = ArrayList()
-        (changes as MutableList<Change>).apply {
-            removeIf { it.path.isEmpty() && it is CSet && it.name == key }
-            add(CSet(ROOT_PATH, key, value))
+        if (sets == null) sets = ArrayList()
+        (sets as MutableList<CSet>).apply {
+            val change = CSet(ROOT_PATH, key, value)
+            removeIf { it.path.isEmpty() && it.name == key }
+            add(change)
+            // apply to sample instance to keep it valid
+            if (sampleInstance != null) change.apply(sampleInstance!!)
         }
-        isValid = false
     }
 
     private var sampleInstance: PrefabSaveable? = null
@@ -71,7 +102,8 @@ class Prefab() : NamedSaveable() {
         super.save(writer)
         writer.writeFile("prefab", prefab)
         writer.writeString("className", clazzName)
-        writer.writeObjectList(null, "changes", changes ?: emptyList())
+        writer.writeObjectList(null, "adds", adds)
+        writer.writeObjectList(null, "sets", sets)
         writer.writeObject(null, "history", history)
     }
 
@@ -92,7 +124,12 @@ class Prefab() : NamedSaveable() {
 
     override fun readObjectArray(name: String, values: Array<ISaveable?>) {
         when (name) {
-            "changes" -> changes = values.filterIsInstance<Change>()
+            "changes" -> {
+                adds = values.filterIsInstance<CAdd>()
+                sets = values.filterIsInstance<CSet>()
+            }
+            "adds" -> adds = values.filterIsInstance<CAdd>()
+            "sets" -> sets = values.filterIsInstance<CSet>()
             else -> super.readObjectArray(name, values)
         }
     }
@@ -108,84 +145,31 @@ class Prefab() : NamedSaveable() {
         isValid = true
         // LOGGER.info("Requesting instance '$src' extends '$prefab'")
         // LOGGER.info("$prefab/${changes?.size}/$clazzName")
-        val instance = createInstance(prefab, changes, chain, clazzName!!)
+        val instance = PrefabCache.createInstance(prefab, adds, sets, chain, clazzName!!)
         // assign super instance? we should really cache that...
         instance.prefab2 = this
         return instance
     }
 
-    fun getSampleInstance(chain: MutableSet<FileReference>? = null): PrefabSaveable {
+    fun getSampleInstance(chain: MutableSet<FileReference>? = HashSet()): PrefabSaveable {
         synchronized(this) {
             if (!isValid) sampleInstance = createInstance0(chain)
         }
         return sampleInstance!!
     }
 
-    fun createInstance(chain: MutableSet<FileReference>? = null): PrefabSaveable {
-        val newInstance = getSampleInstance(chain).clone()
-        /* if (newInstance !is Mesh) {
-            println("sample: $sampleInstance")
-            println("new:    $newInstance")
-        }*/
-        return newInstance
+    fun createInstance(chain: MutableSet<FileReference>? = HashSet()): PrefabSaveable {
+        return getSampleInstance(chain).clone()
     }
 
     override val className: String = "Prefab"
     override val approxSize: Int = 100_000_000
 
     override fun isDefaultValue(): Boolean =
-        (changes == null || changes!!.isEmpty()) && prefab == InvalidRef && history == null
+        (adds == null || adds!!.isEmpty()) && prefab == InvalidRef && history == null
 
     companion object {
-
-        val cache = CacheSection("Prefab")
-
-        private val LOGGER = LogManager.getLogger(Prefab::class)
-
-        private fun createInstance(
-            superPrefab: FileReference,
-            changes: List<Change>?,
-            chain: MutableSet<FileReference>?,
-            clazz: String
-        ): PrefabSaveable {
-            // LOGGER.info("creating instance from $superPrefab")
-            val instance = createSuperInstance(superPrefab, chain, clazz)
-            // val changes2 = (changes0 ?: emptyList()).groupBy { it.className }.map { "${it.value.size}x ${it.key}" }
-            // LOGGER.info("  creating entity instance from ${changes0?.size ?: 0} changes, $changes2")
-            if (changes != null) {
-                for ((index, change) in changes.withIndex()) {
-                    try {
-                        change.apply(instance)
-                    } catch (e: Exception) {
-                        LOGGER.warn("Change $index, $change failed")
-                        throw e
-                    }
-                }
-            }
-            // LOGGER.info("  created instance '${entity.name}' has ${entity.children.size} children and ${entity.components.size} components")
-            return instance
-        }
-
-        private fun createSuperInstance(
-            prefab: FileReference,
-            chain: MutableSet<FileReference>?,
-            clazz: String
-        ): PrefabSaveable {
-            if (chain != null) {
-                if (prefab in chain) throw RuntimeException("Hit dependency ring: $chain, $prefab")
-                chain.add(prefab)
-            }
-            // LOGGER.info("chain: $chain")
-            return loadPrefab(prefab)?.createInstance(chain) ?: ISaveable.create(clazz) as PrefabSaveable
-        }
-
-        fun loadScenePrefab(file: FileReference): Prefab {
-            val prefab = loadPrefab(file) ?: Prefab("Entity").apply { this.prefab = ScenePrefab }
-            prefab.src = file
-            if (!file.exists) file.writeText(TextWriter.toText(prefab))
-            return prefab
-        }
-
+        // private val LOGGER = LogManager.getLogger(Prefab::class)
     }
 
 }

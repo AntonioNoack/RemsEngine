@@ -6,6 +6,8 @@ class ShaderStage(
     val body: String
 ) {
 
+    val attributes = parameters.filter { it.inOutMode == VariableMode.ATTR }
+
     val functions = ArrayList<Function>()
 
     val defines = ArrayList<String>()

@@ -42,7 +42,7 @@ class StudioTreeView(style: Style) :
         return element.symbol
     }
 
-    override fun addChild2(element: Transform, child: Any) {
+    override fun addChild(element: Transform, child: Any) {
         element.addChild(child as? Transform ?: return)
     }
 
@@ -50,16 +50,14 @@ class StudioTreeView(style: Style) :
         element.removeChild(child)
     }
 
-    override fun addBefore(self: Transform, sibling: Transform) {
+    override fun addBefore(self: Transform, sibling: Any) {
+        sibling as Transform
         self.addBefore(sibling)
     }
 
-    override fun addAfter(self: Transform, sibling: Transform) {
+    override fun addAfter(self: Transform, sibling: Any) {
+        sibling as Transform
         self.addAfter(sibling)
-    }
-
-    override fun addChild(element: Transform, child: Transform) {
-        element.addChild(child)
     }
 
     override fun setCollapsed(element: Transform, collapsed: Boolean) {
@@ -120,6 +118,23 @@ class StudioTreeView(style: Style) :
         element.getLocalColor(dst.set(1f))
         dst.w = 0.5f + 0.5f * clamp(dst.w, 0f, 1f)
         return dst
+    }
+
+    override fun onPaste(x: Float, y: Float, data: String, type: String) {
+        if (!tryPasteTransform(data)) {
+            super.onPaste(x, y, data, type)
+        }
+    }
+
+    /**
+     * returns true on success
+     * */
+    private fun tryPasteTransform(data: String): Boolean {
+        val transform = data.toTransform() ?: return false
+        RemsStudio.largeChange("Pasted ${transform.name}") {
+            root.addChild(transform)
+        }
+        return true
     }
 
     companion object {

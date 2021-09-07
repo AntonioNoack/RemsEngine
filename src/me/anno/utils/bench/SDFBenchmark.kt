@@ -39,7 +39,7 @@ fun main() {
 
     val calculated = toBytes(data)
 
-    val file = OS.desktop.getChild("sdf.data")!!
+    val file = OS.desktop.getChild("sdf.data")
     if (file.exists) {
         val bytes = file.readBytes()
         val sum = calculated.withIndex().sumOf { (index, value) -> sq(value - bytes[index]) }

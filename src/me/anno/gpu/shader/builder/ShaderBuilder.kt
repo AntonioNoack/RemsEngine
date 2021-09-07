@@ -30,6 +30,8 @@ class ShaderBuilder(val name: String) {
 
     var glslVersion = Shader.DefaultGLSLVersion
 
+    val ignored = HashSet<String>()
+
     fun addVertex(stage: ShaderStage?) {
         vertex.add(stage ?: return)
     }
@@ -44,17 +46,31 @@ class ShaderBuilder(val name: String) {
         val vi = vertex.findImportsAndDefineValues(null, null)
         fragment.findImportsAndDefineValues(vertex, vi)
         // create the code
-        val (vertCode, var0) = vertex.createCode(false, outputs)
-        val (fragCode, _) = fragment.createCode(true, outputs)
-        val shader = Shader(name, geometry?.code, vertCode, var0, fragCode)
+        val vertCode = vertex.createCode(false, outputs)
+        val fragCode = fragment.createCode(true, outputs)
+        val varying = (vertex.imported + vertex.exported).toList()
+        val shader = Shader(name, geometry?.code, vertCode, varying, fragCode)
         shader.glslVersion = max(330, max(glslVersion, shader.glslVersion))
+        /*shader.ignoreUniformWarnings(ignored)
+        for (stage in vertex.stages) ignore(shader, stage)
+        for (stage in fragment.stages) ignore(shader, stage)*/
         return shader
     }
 
+    fun ignore(shader: Shader, stage: ShaderStage) {
+        for (param in stage.parameters.filter { !it.isAttribute }) {
+            if (param.arraySize > 0 && param.type.startsWith("sampler")) {
+                for (i in 0 until param.arraySize) {
+                    shader.ignoreUniformWarning(param.name + i)
+                }
+            }
+        }
+        shader.ignoreUniformWarnings(stage.parameters.filter { !it.isAttribute }.map { it.name })
+    }
 
     companion object {
 
-        private val LOGGER = LogManager.getLogger(ShaderBuilder::class)
+        /*private val LOGGER = LogManager.getLogger(ShaderBuilder::class)
 
         @JvmStatic
         fun main(args: Array<String>) {
@@ -93,8 +109,7 @@ class ShaderBuilder(val name: String) {
             LOGGER.info("// --- fragment shader ---")
             LOGGER.info(indent(shader.fragment))
             shader.use()
-        }
-
+        }*/
 
         // a little auto-formatting
         fun indent(text: String): String {

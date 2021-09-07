@@ -6,7 +6,10 @@ import me.anno.ecs.components.anim.BoneByBoneAnimation
 import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.mesh.Mesh.Companion.MAX_WEIGHTS
 import me.anno.ecs.components.mesh.MorphTarget
-import me.anno.ecs.prefab.*
+import me.anno.ecs.prefab.CAdd
+import me.anno.ecs.prefab.CSet
+import me.anno.ecs.prefab.Path
+import me.anno.ecs.prefab.Prefab
 import me.anno.io.NamedSaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -32,7 +35,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
 
     private val LOGGER = LogManager.getLogger(AnimatedMeshesLoader::class)
 
-    fun matrixFix(metadata: Map<String, Any>): Matrix3f {
+    fun matrixFix(metadata: Map<String, Any>): Matrix3f? {
 
         var unitScaleFactor = 1f
 
@@ -46,6 +49,8 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         val coordAxisSign = (metadata["CoordAxisSign"] as? Int) ?: 1
 
         unitScaleFactor = (metadata["UnitScaleFactor"] as? Double)?.toFloat() ?: unitScaleFactor
+
+        if (unitScaleFactor == 1f && upAxis == 1 && frontAxis == 2) return null
 
         val upVec = Vector3f()
         val forwardVec = Vector3f()
@@ -106,8 +111,6 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         val aiScene = loadFile(file, flags)
         val root = InnerFolder(file)
         val rootNode = aiScene.mRootNode()!!
-        // val metadata = loadMetadata(aiScene)
-        // val matrixFix = matrixFix(metadata)
         val loadedTextures = if (aiScene.mNumTextures() > 0) {
             val texFolder = root.createChild("textures", null) as InnerFolder
             loadTextures(aiScene, texFolder)
@@ -121,6 +124,11 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         val hasAnimations = aiScene.mNumAnimations() > 0
         val hasSkeleton = boneList.isNotEmpty() || hasAnimations
         val hierarchy = buildScene(aiScene, meshes, hasSkeleton)
+
+        val matrixFix = matrixFix(loadMetadata(aiScene))
+        if (matrixFix != null) {
+            applyMatrixFix(hierarchy, matrixFix)
+        }
 
         // for (change in hierarchy.changes!!) LOGGER.info(change)
 
@@ -166,7 +174,32 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         return root to hierarchy
     }
 
-    fun fixBoneOrder(boneList: ArrayList<Bone>, meshes: List<Prefab>) {
+    fun applyMatrixFix(prefab: Prefab, matrix: Matrix3f) {
+
+        // apply matrix fix:
+        // - get the root transform
+        // - apply our transform
+        // - then write it back
+
+        val sample = prefab.getSampleInstance() as? Entity ?: return
+
+        val transform0 = sample.transform
+
+        val transform = transform0.localTransform // root, so global = local
+
+        // correct order? at least the rotation is correct
+        // correct scale?
+        transform.mul(Matrix4x3d(matrix.transpose()))
+
+        prefab.setProperty("position", transform.getTranslation(Vector3d()))
+        prefab.setProperty("rotation", transform.getUnnormalizedRotation(Quaterniond()))
+        prefab.setProperty("scale", transform.getScale(Vector3d()))
+
+        sample.invalidateChildTransforms()
+
+    }
+
+    private fun fixBoneOrder(boneList: ArrayList<Bone>, meshes: List<Prefab>) {
         // bones must be in order: the parent id must always be smaller than the own id
         var needsFix = false
         val size = boneList.size
@@ -192,9 +225,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         }
         // apply the change to all meshes
         for (mesh in meshes) {
-            val changes = mesh.changes as ArrayList<Change>
-            val changeWithIndices = changes.filterIsInstance<CSet>()
-                .firstOrNull { it.name == "boneIndices" }
+            val changeWithIndices = mesh.sets!!.firstOrNull { it.name == "boneIndices" }
             if (changeWithIndices != null) {
                 // correct order?
                 val values = changeWithIndices.value as ByteArray
@@ -205,7 +236,12 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         }
     }
 
-    fun correctBonePositions(name: String, rootNode: AINode, boneList: List<Bone>, boneMap: HashMap<String, Bone>) {
+    private fun correctBonePositions(
+        name: String,
+        rootNode: AINode,
+        boneList: List<Bone>,
+        boneMap: HashMap<String, Bone>
+    ) {
         val (gt, git) = findRootTransform(name, rootNode, boneMap)
         if (gt != null && git != null) {
             for (bone in boneList) {
@@ -214,7 +250,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         }
     }
 
-    fun <V : NamedSaveable> createReferences(
+    private fun <V : NamedSaveable> createReferences(
         root: InnerFolder,
         folderName: String,
         instances: List<V>
@@ -225,7 +261,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
             for (index in instances.indices) {
                 val instance = instances[index]
                 references += if (instance is Prefab) {
-                    val name = instance.changes!!.filterIsInstance<CSet>()
+                    val name = instance.sets!!
                         .firstOrNull { it.path.isEmpty() && it.name == "name" }?.value?.toString() ?: ""
                     val nameOrIndex = name.ifEmpty { "$index" }
                     val fileName = findNextFileName(meshFolder, nameOrIndex, "json", 3, '-')
@@ -242,17 +278,16 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
     }
 
     private fun addSkeleton(hierarchyPrefab: Prefab, skeleton: Prefab, skeletonPath: FileReference): Prefab {
-        val changes = hierarchyPrefab.changes!!
-        val skeletonAssignments = changes.mapNotNull { change ->
-            if (change is CAdd && change.clazzName == "AnimRenderer") {
-                val indexInEntity = changes.filter { it is CAdd && it.path == change.path }
+        val adds = hierarchyPrefab.adds!!
+        for (change in adds) {
+            if (change.clazzName == "AnimRenderer") {
+                val indexInEntity = adds
+                    .filter { it.path == change.path }
                     .indexOfFirst { it === change }
                 val name = "skeleton"
-                CSet(change.path.added(name, indexInEntity, 'c'), name, skeletonPath)
-            } else null
+                hierarchyPrefab.add(CSet(change.path.added(name, indexInEntity, 'c'), name, skeletonPath))
+            }
         }
-        changes as MutableList<Change>
-        changes.addAll(skeletonAssignments)
         return skeleton
     }
 
@@ -294,14 +329,15 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                     1 -> valueRaw.mData(4).int // int
                     2 -> valueRaw.mData(8).long // long, unsigned
                     3 -> valueRaw.mData(4).float // float
-                    4 -> {// string
+                    4 -> valueRaw.mData(8).double // double
+                    5 -> {// string
                         val capacity = 2048
                         val buff = valueRaw.mData(capacity)
                         val length = max(0, min(capacity - 4, buff.int))
                         buff.limit(buff.position() + length)
                         "$length: '${StandardCharsets.UTF_8.decode(buff)}'"
                     }
-                    5 -> {
+                    6 -> {
                         // aivector3d
                         // todo doubles or floats?
                         val buffer = valueRaw.mData(12 * 8).asDoubleBuffer()
@@ -312,6 +348,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                 // LOGGER.info("Metadata $key: $valueType, $value")
                 map[key] = value
             }
+            // LOGGER.info(map)
             return map
         } else emptyMap()
     }
@@ -549,7 +586,10 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
             for (i in 0 until channelCount) {
                 val aiNodeAnim = AINodeAnim.create(channels[i])
                 val name = aiNodeAnim.mNodeName().dataString()
-                result[name] = NodeAnim(nodeCache[name]!!, aiNodeAnim)
+                val node = nodeCache[name]
+                if (node != null) {
+                    result[name] = NodeAnim(node, aiNodeAnim)
+                } else LOGGER.warn("Missing node '$name'")
             }
         }
         return result

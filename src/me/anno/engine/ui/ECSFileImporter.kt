@@ -38,7 +38,7 @@ object ECSFileImporter : FileContentImporter<PrefabSaveable>() {
 
             val instance = prefab.createInstance()
             parent.add(instance)
-            inspector.changes.add(CAdd(path, 'e', "Entity", instance.name, file))
+            inspector.adds.add(CAdd(path, 'e', "Entity", instance.name, file))
             callback(instance as Entity)
             if (doSelect) {
                 // todo select it

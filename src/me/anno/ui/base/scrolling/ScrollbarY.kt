@@ -14,7 +14,7 @@ class ScrollbarY(val scrollbar: ScrollableY, style: Style): Scrollbar(style){
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
 
-        val relativePosition = scrollbar.scrollPosition / scrollbar.maxScrollPosition
+        val relativePosition = scrollbar.scrollPositionY / scrollbar.maxScrollPositionY
         val barHeight = relativeSize * h
         val barY = y + relativePosition * h * (1f - relativeSize)
 
@@ -26,7 +26,7 @@ class ScrollbarY(val scrollbar: ScrollableY, style: Style): Scrollbar(style){
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         if(0 in Input.mouseKeysDown){
-            scrollbar.scrollPosition += dy / relativeSize
+            scrollbar.scrollPositionY += dy / relativeSize
         }// else super.onMouseMoved(x, y, dx, dy)
     }
 

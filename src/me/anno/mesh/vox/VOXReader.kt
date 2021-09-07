@@ -1,9 +1,7 @@
 package me.anno.mesh.vox
 
 import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.CSet
-import me.anno.ecs.prefab.Change
 import me.anno.ecs.prefab.Path
 import me.anno.ecs.prefab.Prefab
 import me.anno.io.files.FileReference
@@ -80,9 +78,8 @@ class VOXReader {
 
     fun toEntityPrefab(meshPaths: List<FileReference>): Prefab {
         val prefab = Prefab("Entity")
-        val changes = ArrayList<Change>()
-        prefab.changes = changes
-        changes.add(CSet(Path.ROOT_PATH, "name", "Root"))
+        prefab.createLists()
+        prefab.add(CSet(Path.ROOT_PATH, "name", "Root"))
         val availableLayers = (listOf(layerNegative) + layers).filter { it.containsModel() }
         when (availableLayers.size) {
             0 -> {// awkward
@@ -91,12 +88,12 @@ class VOXReader {
                 // don't create a layer node, when there only is a single layer
                 val layer = availableLayers.first()
                 for ((childIndex, node) in layer.nodes.withIndex()) {
-                    node.toEntityPrefab(changes, meshPaths, Path.ROOT_PATH, childIndex)
+                    node.toEntityPrefab(prefab, meshPaths, Path.ROOT_PATH, childIndex)
                 }
             }
             else -> {
                 for ((index, layer) in availableLayers.withIndex()) {
-                    layer.toEntityPrefab(changes, meshPaths, index)
+                    layer.toEntityPrefab(prefab, meshPaths, index)
                 }
             }
         }

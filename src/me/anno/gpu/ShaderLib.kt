@@ -877,14 +877,14 @@ object ShaderLib {
                 "   normal = normalize(normal);\n" + // here? nah ^^
                 "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
                 "   uv = uvs;\n" +
-                "   weight = weights;\n" +
+                // "   weight = weights;\n" +
                 "   vertexColor = colors;\n" +
                 positionPostProcessing +
                 "}"
 
         val assimpVarying = y3D + listOf(
             Variable("vec3", "tangent"),
-            Variable("vec4", "weight"),
+            // Variable("vec4", "weight"),
             Variable("vec4", "vertexColor")
         )
 

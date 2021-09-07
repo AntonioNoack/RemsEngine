@@ -19,7 +19,7 @@ object DefaultLayout {
 
     fun createDefaultMainUI(
         projectFile: FileReference,
-        world: Entity,
+        world: () -> Entity,
         syncMaster: SyncMaster,
         isGaming: Boolean,
         style: Style

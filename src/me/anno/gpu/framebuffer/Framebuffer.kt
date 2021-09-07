@@ -264,6 +264,10 @@ class Framebuffer(
 
     companion object {
 
+        // todo keep track of the allocated bytes
+        // todo render buffers
+        // todo internal depth textures
+
         // private val LOGGER = LogManager.getLogger(Framebuffer::class)!!
 
         fun bindNullDirectly() = bindNull()

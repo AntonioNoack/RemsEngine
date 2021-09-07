@@ -2,8 +2,8 @@ package me.anno.mesh.vox.format
 
 import me.anno.ecs.prefab.CAdd
 import me.anno.ecs.prefab.CSet
-import me.anno.ecs.prefab.Change
 import me.anno.ecs.prefab.Path
+import me.anno.ecs.prefab.Prefab
 import me.anno.io.files.FileReference
 import org.joml.Vector3d
 
@@ -28,29 +28,26 @@ class VOXNode {
         else children?.any { it.containsModel() } ?: false
     }
 
-    fun toEntityPrefab(changes: MutableList<Change>, meshes: List<FileReference>, parentPath: Path, entityIndex: Int) {
-        val entity = CAdd(parentPath, 'e', "Entity", name)
-        changes.add(entity)
-        val path = entity.getChildPath(entityIndex)
+    fun toEntityPrefab(prefab: Prefab, meshes: List<FileReference>, parentPath: Path, entityIndex: Int) {
+        val path = prefab.add(CAdd(parentPath, 'e', "Entity", name), entityIndex)
         val models = models ?: child?.models
         if (models != null) {
             // add these models as components
             for (i in models) {
                 val mesh = meshes[i]
-                val meshComponent = CAdd(path, 'c', "MeshComponent", mesh.name)
-                changes.add(meshComponent)
-                changes.add(CSet(meshComponent.getChildPath(i), "mesh", mesh))
+                val meshComponent = prefab.add(CAdd(path, 'c', "MeshComponent", mesh.name), i)
+                prefab.add(CSet(meshComponent, "mesh", mesh))
             }
-            changes.add(CAdd(path, 'c', "MeshRenderer"))
+            prefab.add(CAdd(path, 'c', "MeshRenderer"))
         }
         if (px != 0.0 || py != 0.0 || pz != 0.0) {
-            changes.add(CSet(path, "position", Vector3d(px, py, pz)))
+            prefab.add(CSet(path, "position", Vector3d(px, py, pz)))
             // rotation is found, but looks wrong in the price of persia sample
         }
         val children = children
         if (children != null) {
             for (childIndex in children.indices) {
-                children[childIndex].toEntityPrefab(changes, meshes, path, childIndex)
+                children[childIndex].toEntityPrefab(prefab, meshes, path, childIndex)
             }
         }
     }

@@ -33,10 +33,7 @@ import me.anno.utils.Clock
 import me.anno.utils.maths.Maths.pow
 import me.anno.utils.types.Vectors.minus
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix4f
-import org.joml.Matrix4fArrayList
-import org.joml.Vector3f
-import org.joml.Vector4fc
+import org.joml.*
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.ARBImaging.GL_TABLE_TOO_LARGE
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
@@ -44,6 +41,7 @@ import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL45.GL_CONTEXT_LOST
+import java.lang.Math
 import java.nio.FloatBuffer
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -263,6 +261,14 @@ object GFX : GFXBase1() {
         when {
             currentRenderer == idRenderer -> shaderId(shader, name)
             color != null -> shader.v4(name, color)
+            else -> shader.v4(name, 1f)
+        }
+    }
+
+    fun shaderColor(shader: Shader, name: String, color: Vector3fc?) {
+        when {
+            currentRenderer == idRenderer -> shaderId(shader, name)
+            color != null -> shader.v4(name, color, 1f)
             else -> shader.v4(name, 1f)
         }
     }

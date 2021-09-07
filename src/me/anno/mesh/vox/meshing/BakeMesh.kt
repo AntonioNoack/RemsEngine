@@ -8,7 +8,7 @@ import kotlin.math.max
 
 object BakeMesh {
 
-    private val LOGGER = LogManager.getLogger(BakeMesh::class)
+    // private val LOGGER = LogManager.getLogger(BakeMesh::class)
 
     fun bakeMesh(
         model: VoxelModel,
@@ -76,7 +76,7 @@ object BakeMesh {
         addQuad(base, side, sx, sy, sz)
     }
 
-    fun addFaces(
+    /*fun addFaces(
         side: BlockSide, base: VoxelMeshBuildInfo,
         x: Int, y: Int, z: Int, size: Int, color: Byte, model: VoxelModel
     ) {
@@ -90,7 +90,7 @@ object BakeMesh {
         base.setOffset(x - model.centerX, y - model.centerY, z - model.centerZ)
         base.setColor(color)
         addQuad(base, side, sx, sy, sz)
-    }
+    }*/
 
     fun removeSolidInnerBlocks(
         model: VoxelModel,

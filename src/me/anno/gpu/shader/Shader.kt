@@ -271,16 +271,19 @@ open class Shader(
         ignoredNames += names
     }
 
+    fun ignoreUniformWarning(name: String) {
+        ignoredNames += name
+    }
+
     fun getUniformLocation(name: String): Int {
-        val old = uniformLocations[name]
-        if (old != null) return old
-        if (safeShaderBinding) use()
-        val loc = glGetUniformLocation(program, name)
-        uniformLocations[name] = loc
-        if (loc < 0 && name !in ignoredNames && name !in vertexSource && name !in fragmentSource) {
-            LOGGER.warn("Uniform location \"$name\" not found in shader $shaderName")
+        return uniformLocations.getOrPut(name) {
+            if (safeShaderBinding) use()
+            val loc = glGetUniformLocation(program, name)
+            if (loc < 0 && name !in ignoredNames && name !in vertex && name !in fragment) {
+                LOGGER.warn("Uniform location \"$name\" not found in shader $shaderName")
+            }
+            loc
         }
-        return loc
     }
 
     fun getAttributeLocation(name: String): Int {
@@ -455,6 +458,9 @@ open class Shader(
             (color.shr(24) and 255) / 255f
         )
     }
+
+    fun v4(name: String, color: Vector3fc, alpha: Float) = v4(getUniformLocation(name), color, alpha)
+    fun v4(loc: Int, color: Vector3fc, alpha: Float) = v4(loc, color.x(), color.y(), color.z(), alpha)
 
     fun v4(name: String, color: Int, alpha: Float) = v4(getUniformLocation(name), color, alpha)
     fun v4(loc: Int, color: Int, alpha: Float) {

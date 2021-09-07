@@ -1,12 +1,13 @@
 package me.anno.ecs.prefab
 
 import me.anno.ecs.Component
+import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.engine.IProperty
 import me.anno.engine.ui.ComponentUI
 import me.anno.engine.ui.DefaultLayout
-import me.anno.io.NamedSaveable
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextWriter
 import me.anno.objects.inspectable.Inspectable
 import me.anno.studio.StudioBase.Companion.addEvent
@@ -37,7 +38,8 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
     )
 
     val history: ChangeHistory = prefab.history ?: ChangeHistory()
-    val changes: MutableList<Change> = ArrayList(prefab.changes ?: emptyList())
+    val adds: MutableList<CAdd> = ArrayList(prefab.adds ?: emptyList())
+    val sets: MutableList<CSet> = ArrayList(prefab.sets ?: emptyList())
 
     init {
 
@@ -46,12 +48,13 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
         }
 
         prefab.history = history
-        prefab.changes = changes
+        prefab.adds = adds
+        prefab.sets = sets
 
     }
 
     // val changes = ArrayList()
-    val root = prefab.getSampleInstance()
+    val root get() = prefab.getSampleInstance()
 
     // todo if there is a physics components, start it
     // todo only execute it, if the scene is visible/selected
@@ -60,7 +63,7 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
 
     private val savingTask = DelayedTask {
         addEvent {
-            history.put(TextWriter.toText(changes))
+            history.put(TextWriter.toText(adds + sets))
         }
     }
 
@@ -69,33 +72,32 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
     }
 
     fun reset(path: Path) {
-        if (changes.removeIf { it is CSet && it.path == path }) {
+        if (sets.removeIf { it.path == path }) {
             onChange()
         }
     }
 
     fun reset(path: Path, name: String) {
-        if (changes.removeIf { it is CSet && it.path == path && it.name == name }) {
+        if (sets.removeIf { it.path == path && it.name == name }) {
             onChange()
         }
     }
 
     fun isChanged(path: Path): Boolean {
-        val oldChange = changes.firstOrNull { it is CSet && it.path == path }
+        val oldChange = sets.firstOrNull { it.path == path }
         return oldChange != null
     }
 
     fun isChanged(path: Path, name: String): Boolean {
-        val oldChange = changes.firstOrNull { it is CSet && it.path == path && it.name == name }
+        val oldChange = sets.firstOrNull { it.path == path && it.name == name }
         return oldChange != null
     }
 
     fun change(path: Path, name: String, value: Any?) {
-        val oldChange = changes.firstOrNull { it is CSet && it.path == path && it.name == name }
+        val oldChange = sets.firstOrNull { it.path == path && it.name == name }
         if (oldChange == null) {
-            changes.add(CSet(path, name, value))
+            sets.add(CSet(path, name, value))
         } else {
-            oldChange as CSet
             oldChange.value = value
         }
         onChange()
@@ -276,12 +278,11 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
     private fun renumber(from: Int, delta: Int, path: Path) {
         val targetSize = path.indices.size
         val changedArrays = HashSet<IntArray>()
-        for (change in changes) {
+        for (change in sets) {
             val path2 = change.path
             val indices = path2.indices
             val types = path2.types
-            if (change is CSet &&
-                indices.size == targetSize &&
+            if (indices.size == targetSize &&
                 indices[targetSize - 1] >= from &&
                 indices !in changedArrays &&
                 indices.startsWith(path.indices) &&
@@ -293,10 +294,26 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
         }
     }
 
-    fun addEntityChild(parent: PrefabSaveable, prefab: Prefab) {
+    fun checkDependencies(parent: PrefabSaveable, src: FileReference): Boolean {
+        if (src == InvalidRef) return true
+        return if (parent.anyInHierarchy { it.prefab2?.src == src }) {
+            LOGGER.warn("Cannot add $src to ${parent.name} because of dependency loop!")
+            false
+            // throw IllegalArgumentException("Must not create dependency loops")
+        } else true
+    }
+
+    fun addEntityChild(parent: Entity, prefab: Prefab) {
+        if (!checkDependencies(parent, prefab.src)) return
         if (prefab.clazzName != "Entity") throw IllegalArgumentException("Type must be Entity!")
         val path = parent.pathInRoot2(root, false)
-        changes.add(CAdd(path, 'e', "Entity", prefab.name, prefab.src))
+        adds.add(CAdd(path, 'e', prefab.clazzName!!, prefab.name, prefab.src))
+    }
+
+    fun addComponentChild(parent: Entity, prefab: Prefab) {
+        if (prefab.getSampleInstance(HashSet()) !is Component) throw IllegalArgumentException("Type must be Component!")
+        val path = parent.pathInRoot2(root, false)
+        adds.add(CAdd(path, 'c', prefab.clazzName!!, prefab.name, prefab.src))
     }
 
     fun addComponent(parent: PrefabSaveable, component: PrefabSaveable, index: Int, type: Char) {
@@ -321,7 +338,7 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
         parent.addChildByType(index, type, component)
 
         // just append it :)
-        changes.add(CAdd(path, 'c', component.className, component.name))
+        adds.add(CAdd(path, 'c', component.className, component.name))
         // if it contains any changes, we need to apply them
         val base = Component.create(component.className)
         val compPath = path.added(component.name, index, type)
@@ -341,7 +358,7 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
         for (name in component.getReflections().allProperties.keys) {
             val value = component[name]
             if (value != base[name]) {
-                changes.add(CSet(compPath, name, value))
+                sets.add(CSet(compPath, name, value))
             }
         }
 
@@ -368,7 +385,7 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
 
             // when a component is deleted, its changes need to be deleted as well
             val compPath = path.added(component.name, index, type)
-            changes.removeIf { it is CSet && it.path == compPath }
+            sets.removeIf { it.path == compPath }
 
             if (index + 1 < components.size) {
                 // not the last one
@@ -381,12 +398,13 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
             // not very elegant, but should work...
             // correct?
 
-            changes.removeIf { it.path == path && it is CAdd }
+            // todo only remove first one
+            adds.removeIf { it.path == path }
             val prefabList = prefab?.getChildListByType(type)
             val i0 = (prefabList?.size ?: 0)
             for (i in i0 until components.size) {
                 val componentI = components[i]
-                changes.add(i - i0, CAdd(path, type, componentI.className, componentI.name))
+                adds.add(i - i0, CAdd(path, type, componentI.className, componentI.name))
             }
 
         }

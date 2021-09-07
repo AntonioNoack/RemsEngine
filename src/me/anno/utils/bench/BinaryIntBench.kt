@@ -57,7 +57,7 @@ fun main() {
 
         val asInts = reader.run {
             readAllInList()
-            content.values.first() as TestClass
+            sortedContent.firstOrNull() as TestClass
         }.x!!
 
         clock.stop("toIntArray", length)

@@ -16,6 +16,7 @@ import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.maths.Maths.mix
 import org.joml.AABBf
 import org.joml.Vector2f
+import org.lwjgl.system.MemoryUtil
 import java.awt.Font
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
@@ -281,6 +282,7 @@ object SignedDistanceField {
         val tex = Texture2D("SDF", w, h, 1)
         GFX.addGPUTask(w, h) {
             tex.createMonochrome(buffer, true)
+            MemoryUtil.memFree(buffer)
         }
 
         // the center, because we draw the pieces from the center

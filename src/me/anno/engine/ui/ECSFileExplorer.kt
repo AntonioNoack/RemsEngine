@@ -61,7 +61,7 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
             when (saveable) {
                 is Prefab -> {
                     // find the name of the root element
-                    var name = saveable.changes
+                    var name = saveable.adds
                         ?.filterIsInstance<CSet>()
                         ?.firstOrNull { it.path.isEmpty() && it.name == "name" }?.value?.toString()
                     name = name?.toAllowedFilename()

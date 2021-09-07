@@ -10,7 +10,6 @@ import me.anno.utils.structures.maps.KeyTripleMap
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.isBlank2
 import java.lang.RuntimeException
-import kotlin.math.max
 
 /**
  * converts a shader with color, normal, tint and such into
@@ -36,7 +35,6 @@ open class BaseShader(
     private val depthShader = lazy { Array(2) { createDepthShader(it > 0) } }
 
     open fun createDepthShader(instanced: Boolean): Shader {
-        println("creating depth shader $name from '$vertexSource'")
         if(vertexSource.isBlank2()) throw RuntimeException()
         val vertex = if (instanced) "#define INSTANCED\n$vertexSource" else vertexSource
         return Shader(name, null, vertex, emptyList(), "void main(){}")
@@ -131,24 +129,31 @@ open class BaseShader(
         this.textures = textures
     }
 
+    open fun createDeferredShader(deferred: DeferredSettingsV2, isInstanced: Boolean, geoShader: GeoShader?): Shader {
+        val shader = deferred.createShader(
+            name,
+            geoShader?.code, isInstanced,
+            vertexSource,
+            varyingSource,
+            fragmentSource,
+            textures
+        )
+        finish(shader)
+        return shader
+    }
+
+    fun finish(shader: Shader){
+        shader.glslVersion = glslVersion
+        shader.use()
+        shader.setTextureIndices(textures)
+        shader.ignoreUniformWarnings(ignoredUniforms)
+        shader.v1("drawMode", ShaderPlus.DrawMode.COLOR.id)
+        shader.v4("tint", 1f, 1f, 1f, 1f)
+        GFX.check()
+    }
+
     operator fun get(settings: DeferredSettingsV2, instanced: Boolean, geoShader: GeoShader?): Shader {
-        return deferredShaders.getOrPut(settings, instanced, geoShader) { s, i, g ->
-            val shader = s.createShader(
-                name,
-                g?.code, i,
-                vertexSource,
-                varyingSource,
-                fragmentSource,
-                textures
-            )
-            shader.glslVersion = max(shader.glslVersion, glslVersion)
-            shader.use()
-            shader.ignoreUniformWarnings(ignoredUniforms)
-            shader.setTextureIndices(textures)
-            shader.v1("drawMode", ShaderPlus.DrawMode.COLOR.id)
-            shader.v4("tint", 1f, 1f, 1f, 1f)
-            shader
-        }
+        return deferredShaders.getOrPut(settings, instanced, geoShader, ::createDeferredShader)
     }
 
     fun destroy() {

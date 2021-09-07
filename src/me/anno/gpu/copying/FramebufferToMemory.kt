@@ -5,6 +5,7 @@ import me.anno.gpu.texture.Texture2D.Companion.packAlignment
 import me.anno.utils.Color
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11
+import org.lwjgl.system.MemoryUtil
 import java.awt.image.BufferedImage
 import java.nio.ByteBuffer
 import kotlin.math.min
@@ -77,6 +78,8 @@ object FramebufferToMemory {
 
             }
         }
+
+        MemoryUtil.memFree(buffer)
 
     }
 

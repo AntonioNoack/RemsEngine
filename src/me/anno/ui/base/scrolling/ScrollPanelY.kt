@@ -29,21 +29,21 @@ open class ScrollPanelY(child: Panel, padding: Padding,
     var lmsp = -1
     override fun tickUpdate() {
         super.tickUpdate()
-        if(scrollPosition != lsp || maxScrollPosition != lmsp){
-            lsp = scrollPosition
-            lmsp = maxScrollPosition
+        if(scrollPositionY != lsp || maxScrollPositionY != lmsp){
+            lsp = scrollPositionY
+            lmsp = maxScrollPositionY
             window!!.needsLayout += this
         }
     }
 
     override fun drawsOverlaysOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
-        return maxScrollPosition > 0 && lx1 > this.lx1 - scrollbarWidth // overlaps on the right
+        return maxScrollPositionY > 0 && lx1 > this.lx1 - scrollbarWidth // overlaps on the right
     }
 
-    override var scrollPosition = 0f
+    override var scrollPositionY = 0f
     var isDownOnScrollbar = false
 
-    override val maxScrollPosition get() = max(0, child.minH + padding.height - h)
+    override val maxScrollPositionY get() = max(0, child.minH + padding.height - h)
     val scrollbar = ScrollbarY(this, style)
     val scrollbarWidth = style.getSize("scrollbarWidth", 8)
     val scrollbarPadding = style.getSize("scrollbarPadding", 1)
@@ -55,13 +55,13 @@ open class ScrollPanelY(child: Panel, padding: Padding,
 
         minW = child.minW + padding.width
         minH = child.minH + padding.height
-        if(maxScrollPosition > 0) minW += scrollbarWidth
+        if(maxScrollPositionY > 0) minW += scrollbarWidth
     }
 
     override fun placeInParent(x: Int, y: Int) {
         super.placeInParent(x, y)
 
-        val scroll = scrollPosition.toInt()
+        val scroll = scrollPositionY.toInt()
         child.placeInParent(x+padding.left,y+padding.top-scroll)
 
     }
@@ -69,7 +69,7 @@ open class ScrollPanelY(child: Panel, padding: Padding,
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         clampScrollPosition()
         super.onDraw(x0, y0, x1, y1)
-        if(maxScrollPosition > 0f){
+        if(maxScrollPositionY > 0f){
             scrollbar.x = x1 - scrollbarWidth - scrollbarPadding
             scrollbar.y = y + scrollbarPadding
             scrollbar.w = scrollbarWidth
@@ -82,18 +82,18 @@ open class ScrollPanelY(child: Panel, padding: Padding,
         if(!Input.isShiftDown){
             val delta = dx-dy
             val scale = 20f
-            if((delta > 0f && scrollPosition >= maxScrollPosition) ||
-                (delta < 0f && scrollPosition <= 0f)){// if done scrolling go up the hierarchy one
+            if((delta > 0f && scrollPositionY >= maxScrollPositionY) ||
+                (delta < 0f && scrollPositionY <= 0f)){// if done scrolling go up the hierarchy one
                 super.onMouseWheel(x, y, dx, dy)
             } else {
-                scrollPosition += scale * delta
+                scrollPositionY += scale * delta
                 clampScrollPosition()
             }
         } else super.onMouseWheel(x, y, dx, dy)
     }
 
     fun clampScrollPosition(){
-        scrollPosition = clamp(scrollPosition, 0f, maxScrollPosition.toFloat())
+        scrollPositionY = clamp(scrollPositionY, 0f, maxScrollPositionY.toFloat())
     }
 
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {

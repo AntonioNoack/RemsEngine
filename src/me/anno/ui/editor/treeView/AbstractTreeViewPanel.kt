@@ -193,7 +193,7 @@ class AbstractTreeViewPanel<V>(
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         try {
-            val child0 = TextReader.read(data).first()
+            val child0 = TextReader.read(data).firstOrNull()
             val child = child0 as? V ?: return super.onPaste(x, y, data, type)
             val original = (dragged as? Draggable)?.getOriginal() as? V
             val relativeY = (y - this.y) / this.h
@@ -204,7 +204,7 @@ class AbstractTreeViewPanel<V>(
                     if (element.parent != null) {
                         treeView.addBefore(element, child)
                     } else {
-                        treeView.addChild2(element, child)
+                        treeView.addChild(element, child)
                         // element.addChild(child)
                     }
                     // we can't remove the element, if it's the parent
@@ -213,7 +213,7 @@ class AbstractTreeViewPanel<V>(
                     }
                 } else if (relativeY < 0.67f) {
                     // paste as child
-                    treeView.addChild2(element, child)
+                    treeView.addChild(element, child)
                     // element.addChild(child)
                     if (element != original) {
                         // we can't remove the element, if it's the parent
@@ -226,7 +226,7 @@ class AbstractTreeViewPanel<V>(
                     if (element.parent != null) {
                         treeView.addAfter(element, child)
                     } else {
-                        treeView.addChild2(element, child)
+                        treeView.addChild(element, child)
                         // element.addChild(child)
                     }
                     // we can't remove the element, if it's the parent
@@ -241,10 +241,6 @@ class AbstractTreeViewPanel<V>(
             e.printStackTrace()
             super.onPaste(x, y, data, type)
         }
-    }
-
-    fun V.addChild(child: V) {
-        treeView.addChild(this, child)
     }
 
     val V.parent: V? get() = treeView.getParent(this)

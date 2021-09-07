@@ -4,7 +4,10 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.cache.MaterialCache
-import me.anno.ecs.components.light.*
+import me.anno.ecs.components.light.DirectionalLight
+import me.anno.ecs.components.light.LightType
+import me.anno.ecs.components.light.PointLight
+import me.anno.ecs.components.light.SpotLight
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
@@ -30,15 +33,12 @@ import me.anno.io.Saveable
 import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.maths.Maths.min
 import me.anno.utils.structures.maps.KeyPairMap
-import me.anno.utils.types.AABBs.all
 import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.AABBs.transformUnion
 import org.joml.*
 import org.lwjgl.opengl.GL15.GL_DYNAMIC_DRAW
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL21
-
-// todo somehow the textures are not found...
 
 class PipelineStage(
     var name: String,
@@ -52,27 +52,74 @@ class PipelineStage(
 ) : Saveable() {
 
     companion object {
+
         val lastMaterial = HashMap<Shader, Material>(64)
         private val tmp3x3 = Matrix3f()
 
         // is rotation, position and scale enough?...
-        // todo inverse transform for lights as well
-        // todo only if it is lights being drawn ofc
-        val instancedAttributes = listOf(
+        private val meshInstancedAttributes = listOf(
             Attribute("instanceTrans0", 4),
             Attribute("instanceTrans1", 4),
             Attribute("instanceTrans2", 4),
             Attribute("instanceTint", AttributeType.UINT8_NORM, 4)
         )
-        val instancedBatchSize = 1024
-        val instanceBuffer = StaticBuffer(instancedAttributes, instancedBatchSize, GL_DYNAMIC_DRAW)
+
+        const val instancedBatchSize = 1024
+
+        val meshInstanceBuffer = StaticBuffer(meshInstancedAttributes, instancedBatchSize, GL_DYNAMIC_DRAW)
+
         val tmpAABBd = AABBd()
+
+        fun getDrawMatrix(transform: Transform, time: Long): Matrix4x3d {
+            val drawTransform = transform.drawTransform
+            val factor = transform.updateDrawingLerpFactor(time)
+            if (factor > 0.0) {
+                val extrapolatedTime = (GFX.gameTime - transform.lastUpdateTime).toDouble() / transform.lastUpdateDt
+                // needs to be changed, if the extrapolated time changes -> it changes if the phyisics engine is behind
+                // its target -> in the physics engine, we send the game time instead of the physics time,
+                // and this way, it's relatively guaranteed to be roughly within [0,1]
+                val fac2 = factor / (clamp(1.0 - extrapolatedTime, 0.001, 1.0))
+                if (fac2 < 1.0) {
+                    drawTransform.lerp(transform.globalTransform, fac2)
+                    transform.checkDrawTransform()
+                } else {
+                    drawTransform.set(transform.globalTransform)
+                    transform.checkDrawTransform()
+                }
+            }
+            return drawTransform
+        }
+
+        fun setupLocalTransform(
+            shader: Shader,
+            transform: Transform,
+            cameraPosition: Vector3d,
+            worldScale: Double,
+            time: Long
+        ) {
+
+            val drawTransform = getDrawMatrix(transform, time)
+            shader.m4x3delta("localTransform", drawTransform, cameraPosition, worldScale)
+
+            val invLocalUniform = shader["invLocalTransform"]
+            if (invLocalUniform >= 0) {
+                val invLocal = tmp3x3.set(
+                    drawTransform.m00().toFloat(), drawTransform.m01().toFloat(), drawTransform.m02().toFloat(),
+                    drawTransform.m10().toFloat(), drawTransform.m11().toFloat(), drawTransform.m12().toFloat(),
+                    drawTransform.m20().toFloat(), drawTransform.m21().toFloat(), drawTransform.m22().toFloat(),
+                ).invert()
+                shader.m3x3(invLocalUniform, invLocal)
+            }
+
+        }
+
     }
 
     var nextInsertIndex = 0
+    var instancedSize = 0
     val drawRequests = ArrayList<DrawRequest>()
 
-    val size get() = nextInsertIndex
+    val size get() = nextInsertIndex + instancedSize
 
     val instancedMeshes = KeyPairMap<Mesh, Int, InstancedStack>()
 
@@ -81,54 +128,13 @@ class PipelineStage(
             RenderState.depthMode.use(depthMode) {
                 RenderState.depthMask.use(writeDepth) {
                     RenderState.cullMode.use(cullMode) {
+                        GFX.check()
                         draw(pipeline, cameraMatrix, cameraPosition, worldScale)
+                        GFX.check()
                     }
                 }
             }
         }
-    }
-
-    fun getDrawMatrix(transform: Transform, time: Long): Matrix4x3d {
-        val drawTransform = transform.drawTransform
-        val factor = transform.updateDrawingLerpFactor(time)
-        if (factor > 0.0) {
-            val extrapolatedTime = (GFX.gameTime - transform.lastUpdateTime).toDouble() / transform.lastUpdateDt
-            // needs to be changed, if the extrapolated time changes -> it changes if the phyisics engine is behind
-            // its target -> in the physics engine, we send the game time instead of the physics time,
-            // and this way, it's relatively guaranteed to be roughly within [0,1]
-            val fac2 = factor / (clamp(1.0 - extrapolatedTime, 0.001, 1.0))
-            if (fac2 < 1.0) {
-                drawTransform.lerp(transform.globalTransform, fac2)
-                transform.checkDrawTransform()
-            } else {
-                drawTransform.set(transform.globalTransform)
-                transform.checkDrawTransform()
-            }
-        }
-        return drawTransform
-    }
-
-    fun setupLocalTransform(
-        shader: Shader,
-        transform: Transform,
-        cameraPosition: Vector3d,
-        worldScale: Double,
-        time: Long
-    ) {
-
-        val drawTransform = getDrawMatrix(transform, time)
-        shader.m4x3delta("localTransform", drawTransform, cameraPosition, worldScale)
-
-        val invLocalUniform = shader["invLocalTransform"]
-        if (invLocalUniform >= 0) {
-            val invLocal = tmp3x3.set(
-                drawTransform.m00().toFloat(), drawTransform.m01().toFloat(), drawTransform.m02().toFloat(),
-                drawTransform.m10().toFloat(), drawTransform.m11().toFloat(), drawTransform.m12().toFloat(),
-                drawTransform.m20().toFloat(), drawTransform.m21().toFloat(), drawTransform.m22().toFloat(),
-            ).invert()
-            shader.m3x3(invLocalUniform, invLocal)
-        }
-
     }
 
     fun setupLights(
@@ -139,12 +145,12 @@ class PipelineStage(
         setupLights(pipeline, shader, cameraPosition, worldScale, request.entity.aabb)
     }
 
-    // todo only if this requires lights ofc...
     fun setupLights(
         pipeline: Pipeline, shader: Shader,
         cameraPosition: Vector3d, worldScale: Double,
         aabb: AABBd
     ) {
+        val time = GFX.gameTime
         val numberOfLightsPtr = shader["numberOfLights"]
         // LOGGER.info("#0: $numberOfLightsPtr")
         if (numberOfLightsPtr < 0) return
@@ -160,7 +166,7 @@ class PipelineStage(
                 buffer.limit(12 * numberOfLights)
                 for (i in 0 until numberOfLights) {
                     buffer.position(12 * i)
-                    val light = lights[i]!!.component as LightComponent
+                    val light = lights[i]!!.light
                     light.invWorldMatrix.get(buffer)
                 }
                 buffer.position(0)
@@ -172,7 +178,7 @@ class PipelineStage(
                 // fill all light colors
                 buffer.limit(4 * numberOfLights)
                 for (i in 0 until numberOfLights) {
-                    val light = lights[i]!!.component as LightComponent
+                    val light = lights[i]!!.light
                     val color = light.color
                     buffer.put(color.x)
                     buffer.put(color.y)
@@ -192,42 +198,26 @@ class PipelineStage(
             // additional, whether we have a texture, and maybe other data
             val lightTypes = shader["lightData1"]
             if (lightTypes >= 0) {
-                // fill the type, and cone angle, sharpness, and such
+
                 buffer.limit(4 * numberOfLights)
                 for (i in 0 until numberOfLights) {
 
-                    buffer.position(4 * i)
-
-                    val light = lights[i]!!.component as LightComponent
-                    val m = light.entity!!.transform.drawTransform
+                    val lightI = lights[i]!!
+                    val light = lightI.light
+                    val m = getDrawMatrix(lightI.transform, time)
 
                     buffer.put(((m.m30() - cameraPosition.x) * worldScale).toFloat())
                     buffer.put(((m.m31() - cameraPosition.y) * worldScale).toFloat())
                     buffer.put(((m.m32() - cameraPosition.z) * worldScale).toFloat())
-
-                    when (light) {
-                        is PointLight -> {
-                            // put light size * world scale
-                            // avg, and then /3
-                            // but the center really is much smaller -> *0.01
-                            val lightSize = m.getScale(Vector3d()).dot(1.0, 1.0, 1.0) * light.lightSize / 9.0
-                            buffer.put((lightSize * worldScale).toFloat())
-                        }
-                        is SpotLight -> {
-                            // todo third buffer, because here the light size would be useful as well...
-                            buffer.put(light.coneAngle.toFloat())
-                        }
-                        // other light types could write their data here
-                    }
+                    buffer.put(light.getShaderV0(m, worldScale))
 
                 }
-                buffer.position(0)
+                buffer.flip()
                 GL20.glUniform4fv(lightTypes, buffer)
             }
             val shadowData = shader["shadowData"]
             if (shadowData >= 0) {
                 buffer.limit(4 * numberOfLights)
-                for (i in 0 until 4 * numberOfLights) buffer.put(i, 0f)
                 // write all texture indices, and bind all shadow textures (as long as we have slots available)
                 var planarSlot = 0
                 var cubicSlot = 0
@@ -241,27 +231,30 @@ class PipelineStage(
                 if (supportsPlanarShadows || supportsCubicShadows) {
                     for (i in 0 until numberOfLights) {
                         buffer.position(4 * i)
-                        val light = lights[i]!!.component as LightComponent
+                        val light = lights[i]!!.light
+                        buffer.put(0f)
+                        buffer.put(0f)
+                        buffer.put(light.getShaderV1())
+                        buffer.put(light.getShaderV2())
+                        buffer.position(4 * i)
                         if (light.hasShadow) {
                             if (light is PointLight) {
+                                buffer.put(cubicSlot.toFloat()) // start index
                                 if (cubicSlot < Renderers.MAX_CUBEMAP_LIGHTS) {
                                     val cascades = light.shadowTextures ?: continue
-                                    buffer.put(cubicSlot.toFloat()) // start index
                                     val slot = cubicIndex0 + cubicSlot
-                                    if (slot > maxTextureIndex) break
+                                    if (slot > maxTextureIndex) continue
                                     val texture = cascades[0].depthTexture!!
                                     // bind the texture, and don't you dare to use mipmapping ^^
                                     // (at least without variance shadow maps)
                                     texture.bind(slot, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                                    if (++cubicSlot >= Renderers.MAX_CUBEMAP_LIGHTS) continue
-                                    buffer.put(cubicSlot.toFloat()) // end index
-                                    buffer.put(0f) // power, not used
-                                    buffer.put(light.near.toFloat())
+                                    cubicSlot++ // no break necessary
                                 }
+                                buffer.put(cubicSlot.toFloat()) // end index
                             } else {
+                                buffer.put(planarSlot.toFloat()) // start index
                                 if (planarSlot < Renderers.MAX_PLANAR_LIGHTS) {
                                     val cascades = light.shadowTextures ?: continue
-                                    buffer.put(planarSlot.toFloat()) // start index
                                     for (j in cascades.indices) {
                                         val slot = planarIndex0 + planarSlot
                                         if (slot > maxTextureIndex) break
@@ -271,14 +264,8 @@ class PipelineStage(
                                         texture.bind(slot, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                                         if (++planarSlot >= Renderers.MAX_PLANAR_LIGHTS) break
                                     }
-                                    buffer.put(planarSlot.toFloat()) // end index
-                                    buffer.put(light.shadowMapPower.toFloat())
-                                    when (light) {
-                                        is SpotLight -> buffer.put(light.near.toFloat())
-                                        is DirectionalLight -> buffer.put(if (light.cutoff > 0f) 1f / light.cutoff else 0f)
-                                    }
-
                                 }
+                                buffer.put(planarSlot.toFloat()) // end index
                             }
                         }
                     }
@@ -341,7 +328,7 @@ class PipelineStage(
         val visualizeLightCount = if (isKeyDown('t')) 1 else 0
 
         // draw non-instanced meshes
-        var previousMaterial2: Material? = null
+        var previousMaterialInScene: Material? = null
         for (index in 0 until nextInsertIndex) {
 
             val request = drawRequests[index]
@@ -355,18 +342,19 @@ class PipelineStage(
             val materialIndex = request.materialIndex
             val material = getMaterial(mesh, materialIndex)
             val shader = getShader(material)
-            val renderer = request.component
-
             shader.use()
 
-            val previousMaterial = lastMaterial.put(shader, material)
-            if (previousMaterial == null) {
+            val renderer = request.component
+
+            val previousMaterialByShader = lastMaterial.put(shader, material)
+            if (previousMaterialByShader == null) {
                 initShader(shader, cameraMatrix, pipeline, visualizeLightCount)
             }
 
             if (hasLights) {
-                // todo or if shader has changed
-                if (previousMaterial == null || needsLightUpdateForEveryMesh) {
+                if (previousMaterialByShader == null ||
+                    needsLightUpdateForEveryMesh
+                ) {
                     // upload all light data
                     setupLights(pipeline, shader, cameraPosition, worldScale, request)
                 }
@@ -374,14 +362,15 @@ class PipelineStage(
 
             setupLocalTransform(shader, transform, cameraPosition, worldScale, time)
 
-            if (previousMaterial != material || previousMaterial2 != material) {
+            // the state depends on textures (global) and uniforms (per shader),
+            // so test both
+            if (previousMaterialByShader != material || previousMaterialInScene != material) {
                 // bind textures for the material
                 // bind all default properties, e.g. colors, roughness, metallic, clear coat/sheen, ...
                 material.defineShader(shader)
-                previousMaterial2 = material
+                previousMaterialInScene = material
             }
 
-            shaderColor(shader, "tint", -1)
 
             mesh.ensureBuffer()
 
@@ -397,6 +386,7 @@ class PipelineStage(
                 lastShader = shader
             }
 
+            shaderColor(shader, "tint", -1)
             shader.v1("hasVertexColors", mesh.hasVertexColors)
 
             mesh.draw(shader, materialIndex)
@@ -407,51 +397,59 @@ class PipelineStage(
 
         // draw instanced meshes
         val batchSize = instancedBatchSize
-        val buffer = instanceBuffer
+        val buffer = meshInstanceBuffer
         val aabb = tmpAABBd
         RenderState.instanced.use(true) {
             for ((mesh, list) in instancedMeshes.values) {
                 for ((materialIndex, values) in list) {
                     if (values.isNotEmpty()) {
+
                         mesh.ensureBuffer()
+
                         val localAABB = mesh.aabb
                         val material = getMaterial(mesh, materialIndex)
+
                         val shader = getShader(material)
+                        shader.use()
+
                         // update material and light properties
                         val previousMaterial = lastMaterial.put(shader, material)
                         if (previousMaterial == null) {
                             initShader(shader, cameraMatrix, pipeline, visualizeLightCount)
                         }
                         if (previousMaterial == null && !needsLightUpdateForEveryMesh) {
-                            aabb.all()// todo only the view cone
+                            aabb.clear()
+                            pipeline.frustum.union(aabb)
                             setupLights(pipeline, shader, cameraPosition, worldScale, aabb)
                         }
                         material.defineShader(shader)
+                        shaderColor(shader, "tint", -1)
+                        shader.v1("drawMode", GFX.drawMode.id)
                         shader.v1("hasAnimation", false)
                         shader.v1("hasVertexColors", mesh.hasVertexColors)
+                        GFX.check()
                         // draw them in batches of size <= batchSize
                         val size = values.size
-                        for (i in 0 until size step batchSize) {
+                        for (baseIndex in 0 until size step batchSize) {
                             buffer.clear()
                             val nioBuffer = buffer.nioBuffer!!
                             // fill the data
                             val trs = values.transforms
                             val ids = values.clickIds
-                            for (j in i until min(size, i + batchSize)) {
-                                val t = trs[i]!!.drawTransform
-                                shader.m4x3delta(t, cameraPosition, worldScale, nioBuffer, isKeyDown('i'))
-                                buffer.putInt(ids[i])
+                            for (index in baseIndex until min(size, baseIndex + batchSize)) {
+                                m4x3delta(getDrawMatrix(trs[index]!!, time), cameraPosition, worldScale, nioBuffer, false)
+                                buffer.putInt(ids[index])
                             }
                             if (needsLightUpdateForEveryMesh) {
                                 // calculate the lights for each group
                                 // todo cluster them cheaply?
                                 aabb.clear()
-                                for (j in i until min(size, i + batchSize)) {
-                                    val t = trs[i]!!.drawTransform
-                                    localAABB.transformUnion(t, aabb)
+                                for (index in baseIndex until min(size, baseIndex + batchSize)) {
+                                    localAABB.transformUnion(trs[index]!!.drawTransform, aabb)
                                 }
                                 setupLights(pipeline, shader, cameraPosition, worldScale, aabb)
                             }
+                            GFX.check()
                             mesh.drawInstanced(shader, materialIndex, buffer)
                         }
                     }
@@ -471,6 +469,7 @@ class PipelineStage(
 
         val shader = defaultShader.value
         shader.use()
+
         initShader(shader, cameraMatrix, pipeline, 0)
 
         // draw non-instanced meshes
@@ -498,6 +497,7 @@ class PipelineStage(
                 lastMesh = mesh
             }
 
+            shaderColor(shader, "tint", -1)
             shader.v1("hasVertexColors", mesh.hasVertexColors)
 
             mesh.drawDepth(shader)
@@ -508,10 +508,11 @@ class PipelineStage(
 
         // draw instanced meshes
         val batchSize = instancedBatchSize
-        val buffer = instanceBuffer
+        val buffer = meshInstanceBuffer
         RenderState.instanced.use(true) {
             val shader2 = defaultShader.value
             shader2.use()
+            initShader(shader2, cameraMatrix, pipeline, 0)
             for ((mesh, list) in instancedMeshes.values) {
                 for ((_, values) in list) {
                     if (values.isNotEmpty()) {
@@ -519,16 +520,16 @@ class PipelineStage(
                         shader2.v1("hasAnimation", false)
                         shader2.v1("hasVertexColors", mesh.hasVertexColors)
                         val size = values.size
-                        for (i in 0 until size step batchSize) {
+                        for (baseIndex in 0 until size step batchSize) {
                             buffer.clear()
                             val nioBuffer = buffer.nioBuffer!!
                             // fill the data
                             val trs = values.transforms
-                            for (j in i until min(size, i + batchSize)) {
-                                val t = trs[i]!!.drawTransform
-                                shader2.m4x3delta(t, cameraPosition, worldScale, nioBuffer, isKeyDown('i'))
+                            for (index in baseIndex until min(size, baseIndex + batchSize)) {
+                                m4x3delta(getDrawMatrix(trs[index]!!, time), cameraPosition, worldScale, nioBuffer, false)
                                 buffer.putInt(0) // clickId
                             }
+                            buffer.ensureBufferWithoutResize()
                             mesh.drawInstancedDepth(shader2, buffer)
                         }
                     }
@@ -540,17 +541,24 @@ class PipelineStage(
 
     }
 
+    private var hadTooMuchSpace = 0
     fun reset() {
-        // there is too much space
-        if (nextInsertIndex < drawRequests.size / 2) {
-            drawRequests.clear()
-        }
+
+        // there is too much space since 100 iterations
+        if (nextInsertIndex < drawRequests.size shr 1) {
+            if (hadTooMuchSpace++ > 100) {
+                drawRequests.clear()
+            }
+        } else hadTooMuchSpace = 0
+
         nextInsertIndex = 0
+        instancedSize = 0
         for ((_, values) in instancedMeshes.values) {
             for ((_, value) in values) {
                 value.clear()
             }
         }
+
     }
 
     fun add(component: Component, mesh: Mesh, entity: Entity, materialIndex: Int, clickId: Int) {
@@ -572,6 +580,7 @@ class PipelineStage(
         val stack = instancedMeshes.getOrPut(mesh, materialIndex) { _, _ -> InstancedStack() }
         // instanced animations not supported (entity not saved); they would need to be the same, and that's probably very rare...
         stack.add(entity.transform, clickId)
+        instancedSize++
     }
 
     fun getMaterial(mesh: Mesh, index: Int): Material {

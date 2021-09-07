@@ -3,7 +3,7 @@ package me.anno.engine
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
-import me.anno.ecs.prefab.Prefab.Companion.loadScenePrefab
+import me.anno.ecs.prefab.PrefabCache.loadScenePrefab
 import me.anno.engine.ui.DefaultLayout
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
@@ -28,7 +28,6 @@ import me.anno.ui.editor.UILayouts.createReloadWindow
 import me.anno.ui.editor.config.ConfigPanel
 import me.anno.utils.OS
 import me.anno.utils.hpc.SyncMaster
-import org.apache.commons.logging.Log
 import org.apache.logging.log4j.LogManager
 
 // todo reading obj files is very slow: speed it up by implementing it ourselves
@@ -41,7 +40,8 @@ import org.apache.logging.log4j.LogManager
 // todo reduce animations to a single translation plus rotations only?
 // todo animation matrices then can be reduced to rotation + translation
 
-// todo bug: long text field is broken...
+// could not reproduce it lately -> was it fixed?
+// to do bug: long text field is broken...
 
 class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
@@ -76,6 +76,11 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         GameEngine.scaledDeltaTime = GFX.deltaTime * GameEngine.timeFactor
         GameEngine.scaledNanos += (GameEngine.scaledDeltaTime * 1e9).toLong()
         GameEngine.scaledTime = GameEngine.scaledNanos * 1e-9
+    }
+
+    override fun onGameLoop(w: Int, h: Int): Boolean {
+        DefaultConfig.saveMaybe("main.config")
+        return super.onGameLoop(w, h)
     }
 
     override fun save() {
@@ -119,7 +124,7 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         val options = OptionBar(style)
 
         val editUI =
-            DefaultLayout.createDefaultMainUI(projectFile, tab.inspector.root as Entity, syncMaster, false, style)
+            DefaultLayout.createDefaultMainUI(projectFile, { tab.inspector.root as Entity }, syncMaster, false, style)
 
         val configTitle = Dict["Config", "ui.top.config"]
         options.addAction(configTitle, Dict["Settings", "ui.top.config.settings"]) {

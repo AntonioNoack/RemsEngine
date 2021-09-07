@@ -1,7 +1,7 @@
 package me.anno.mesh.vox.meshing
 
-import me.anno.utils.structures.arrays.FloatArrayList
-import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.structures.arrays.ExpandingFloatArray
+import me.anno.utils.structures.arrays.ExpandingIntArray
 import org.joml.Vector3f
 import org.joml.Vector3i
 
@@ -9,9 +9,9 @@ class VoxelMeshBuildInfo(
     // input
     val palette: IntArray,
     // output
-    val vertices: FloatArrayList,
-    val colors: IntArrayList?,
-    val normals: FloatArrayList?
+    val vertices: ExpandingFloatArray,
+    val colors: ExpandingIntArray?,
+    val normals: ExpandingFloatArray?
 ) {
 
     var nx = 0
@@ -45,9 +45,9 @@ class VoxelMeshBuildInfo(
         vertices += oy + v.y
         vertices += oz + v.z
         if (normals != null) {
-            normals += nx
-            normals += ny
-            normals += nz
+            normals.add(nx.toFloat())
+            normals.add(ny.toFloat())
+            normals.add(nz.toFloat())
         }
         colors?.add(color)
     }
@@ -57,9 +57,9 @@ class VoxelMeshBuildInfo(
         vertices += oy + v.y
         vertices += oz + v.z
         if (normals != null) {
-            normals += nx
-            normals += ny
-            normals += nz
+            normals.add(nx.toFloat())
+            normals.add(ny.toFloat())
+            normals.add(nz.toFloat())
         }
         colors?.add(color)
     }
@@ -69,9 +69,9 @@ class VoxelMeshBuildInfo(
         vertices += oy + y
         vertices += oz + z
         if (normals != null) {
-            normals += nx
-            normals += ny
-            normals += nz
+            normals.add(nx.toFloat())
+            normals.add(ny.toFloat())
+            normals.add(nz.toFloat())
         }
         colors?.add(color)
     }

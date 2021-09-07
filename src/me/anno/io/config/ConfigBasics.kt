@@ -28,8 +28,6 @@ object ConfigBasics {
     val configFolder get() = configFolderI.value
     val cacheFolder get() = cachedFolderI.value
 
-    val beautify = true
-
     fun getConfigFile(localFileName: String): FileReference {
         return getReference(configFolder, localFileName)
     }

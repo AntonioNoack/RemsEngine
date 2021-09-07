@@ -171,7 +171,8 @@ object PBRLibraryGLTF {
             "float DxPi4 = Dx * ${0.25 / PI};\n"
 
     // factor extracted from the BRDF
-    val specularBRDFv2NoDivInlined2End = "specularLight *= DxPi4;\n"
+    // also ambient must be added at the end, or we would need to divide by DxPi4 at the start
+    val specularBRDFv2NoDivInlined2End = "specularLight = specularLight * DxPi4 + specularColor * ambientLight;\n"
 
     // (specularColor, finalRoughness, V, finalNormal, NdotL, NdotV, H)
     val specularBRDFv2NoDivInlined2 = "" +
@@ -180,7 +181,7 @@ object PBRLibraryGLTF {
             "float NdotH_squared = NdotH * NdotH;\n" +
             "float x = NdotH_squared * DxM1 + 1.0;\n" +
             // "    float Dx = alpha_squared;\n" +
-            // Compute the specularly reflected color (F)\n
+            // Compute the specularly reflected color (F)
             // "    float HdotV = clamp(dot(H, V), 0.0, 1.0);\n" + // clamp is probably unnecessary ^^
             "float HdotV = dot(H, V);\n" +
             "float invHov = 1.0 - HdotV, invHov2 = invHov*invHov, invHov5 = invHov*invHov2*invHov2;\n" +
@@ -196,6 +197,35 @@ object PBRLibraryGLTF {
             // also we don't need two divisions, we can use one
             "vec3 computeSpecularBRDF = (NdotL / (x * x * t.x * t.y)) * F;\n"
 
+    // the following functions can be used, if the color isn't yet available
+    // (or you want to use one texture access less)
+    // they have missing color, when H || V, so when you look perpendicular onto the surface
+    val specularBRDFv2NoColorStart = "" +
+            "float alpha = finalRoughness * finalRoughness;\n" +
+            "float Dx = alpha * alpha, DxM1 = Dx - 1.0;\n" +
+            "float rp1 = finalRoughness + 1.0;\n" +
+            "float k = rp1 * rp1 * 0.125, invK = 1.0-k;\n" +
+            "float DxPi4 = Dx * ${0.25 / PI};\n"
+
+    // (finalRoughness, finalNormal, NdotL, NdotV, H)
+    val specularBRDFv2NoColor = "" +
+            // Compute the microfacet distribution (D)
+            "float NdotH = dot(finalNormal, H);\n" + // clamp is probably unnecessary; could be inserted back
+            "float NdotH_squared = NdotH * NdotH;\n" +
+            "float x = NdotH_squared * DxM1 + 1.0;\n" +
+            // "    float Dx = alpha_squared;\n" +
+            // skipped: computing the specularly reflected color (F)
+            // "    vec3  F = specularInputColor + (1.0 - specularInputColor) * pow(1.0 - HdotV, 5.0);\n" +
+            // Compute the geometric specular attenuation (G)
+            // "    float NdotL = dot(N, L);\n" + // guaranteed to be > 0; already defined
+            // "    float NdotV = abs(dot(N, V));\n" + // back face gets same shading (if < 0); clamping is needed here
+            "vec2 t = vec2(NdotL,NdotV)*invK+k;\n" +
+            //"    float Gx = NdotL;\n" +
+            // NdotL is already in the light equation, NdotV is in G
+            // also we don't need two divisions, we can use one
+            "#define computeSpecularBRDF NdotL/(x*x*t.x*t.y)\n"
+
+    val specularBRDFv2NoColorEnd = "specularLight *= DxPi4;\n"
 
     /**
      * Compute the vector from the surface point to the light (L),

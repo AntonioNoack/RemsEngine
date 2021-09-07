@@ -14,20 +14,22 @@ import me.anno.utils.hpc.SyncMaster
 
 class ECSTypeLibrary(
     val projectFile: FileReference,
-    var world: Entity,
+    var getWorld: () -> Entity,
     val syncMaster: SyncMaster,
     val isGaming: Boolean
 ) {
 
+    val world get() = getWorld()
     // todo box selecting with shift
 
-    // todo we should be able to select and edit multiple values at the same time
+    // todo we should be able to edit multiple values at the same time
     var selected: List<Inspectable> = listOf(world)
-    var fineSelection: List<Inspectable> = listOf(world)
+    var fineSelection: List<Inspectable> = selected
 
     fun select(major: Inspectable?, minor: Inspectable? = major) {
         selected = if (major == null) emptyList() else listOf(major)
         fineSelection = if (minor == null) emptyList() else listOf(minor)
+        lastSelection = major
     }
 
     val typeList = listOf<Pair<String, () -> Panel>>(

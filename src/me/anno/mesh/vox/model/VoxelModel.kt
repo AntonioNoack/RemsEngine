@@ -5,10 +5,11 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.mesh.vox.meshing.BakeMesh
 import me.anno.mesh.vox.meshing.BlockSide
 import me.anno.mesh.vox.meshing.VoxelMeshBuildInfo
-import me.anno.utils.structures.arrays.FloatArrayList
-import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.structures.arrays.ExpandingFloatArray
+import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.types.Floats.f2
 import org.apache.logging.log4j.LogManager
+import kotlin.math.max
 import kotlin.math.roundToInt
 
 abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
@@ -69,10 +70,13 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
         // could increase performance massively
         // probably complicated to implement -> skip for now
 
+        // guess the number of required points
+        val vertexPointGuess = max(size * 6, 18)
+
         val mesh = Mesh()
-        val vertices = FloatArrayList(512)
-        val colors = IntArrayList(512)
-        val normals = FloatArrayList(512)
+        val vertices = ExpandingFloatArray(vertexPointGuess)
+        val colors = ExpandingIntArray(vertexPointGuess / 3 + 1)
+        val normals = ExpandingFloatArray(vertexPointGuess)
 
         val info = VoxelMeshBuildInfo(palette, vertices, colors, normals)
 

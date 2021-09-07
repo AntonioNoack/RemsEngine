@@ -119,7 +119,7 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
                     when (it) {
                         is RenderView -> {
                             val library = it.library
-                            library.world = world.value
+                            library.getWorld = { world.value }
                             library.select(prefabInstance)
                             println("setting world to ${library.world}")
                         }

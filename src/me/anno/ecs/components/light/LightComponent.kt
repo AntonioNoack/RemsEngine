@@ -14,6 +14,7 @@ import me.anno.gpu.RenderState
 import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.deferred.DeferredLayerType
+import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.*
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStage
@@ -48,12 +49,12 @@ abstract class LightComponent(
 
     val hasShadow get() = shadowMapCascades > 0
 
-    /** for deferred rendering, no shadows
-     * improves rendering speed when drawing lots of lights without shadows */
-    var isInstanced = false
-
     var needsUpdate = true
     var autoUpdate = true
+
+    open fun invalidateShadows() {
+        needsUpdate = true
+    }
 
     // black lamp light?
     @SerializedProperty
@@ -62,11 +63,12 @@ abstract class LightComponent(
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as LightComponent
-        clone.isInstanced = isInstanced
         clone.shadowMapCascades = shadowMapCascades
         clone.shadowMapPower = shadowMapPower
         clone.shadowMapResolution = shadowMapResolution
         clone.color = color
+        clone.needsUpdate = true
+        clone.autoUpdate = autoUpdate
     }
 
     override fun onDrawGUI(view: RenderView) {
@@ -107,7 +109,7 @@ abstract class LightComponent(
                     } else {
                         Framebuffer(
                             "Shadow[$it]", resolution, resolution, 1, 0,
-                            false,depthBufferType
+                            false, depthBufferType
                         )
                     }
                 }
@@ -120,7 +122,7 @@ abstract class LightComponent(
 
     override fun onUpdate() {
         if (autoUpdate || needsUpdate) {
-            needsUpdate = autoUpdate
+            needsUpdate = false
             ensureShadowBuffers()
             if (hasShadow) {
                 updateShadowMaps()
@@ -173,6 +175,10 @@ abstract class LightComponent(
     @NotSerializedProperty
     val invWorldMatrix = Matrix4x3f()
 
+    open fun getShaderV0(drawTransform: Matrix4x3d, worldScale: Double): Float = 0f
+    open fun getShaderV1(): Float = 0f
+    open fun getShaderV2(): Float = 0f
+
     override fun destroy() {
         super.destroy()
         shadowTextures?.forEach { it.destroy() }
@@ -182,7 +188,7 @@ abstract class LightComponent(
     companion object {
 
         val cameraMatrix = Matrix4f()
-        val pipeline = Pipeline()
+        val pipeline = Pipeline(DeferredSettingsV2(listOf(), false))
 
         init {
             pipeline.defaultStage = PipelineStage(
@@ -191,7 +197,7 @@ abstract class LightComponent(
             )
         }
 
-        val lightShaders = HashMap<String, BaseShader>()
+        /*val lightShaders = HashMap<String, BaseShader>()
         fun getShader(sample: LightComponent): BaseShader {
             return lightShaders.getOrPut(sample.className) {
                 val deferred = DeferredRenderer.deferredSettings!!
@@ -210,15 +216,15 @@ abstract class LightComponent(
                             "}", ShaderLib.y3D + Variable("vec3", "center"), "" +
                             "float getIntensity(vec3 dir){\n" +
                             "   return 1.0;\n" +
-                            // todo fix
+                            // to do fix
                             //"" + sample.getFalloffFunction() +
                             "}\n" +
                             "uniform vec3 uColor;\n" +
                             "uniform mat3 invLocalTransform;\n" +
                             "uniform sampler2D ${deferred.settingsV1.layerNames.joinToString()};\n" +
                             // roughness / metallic + albedo defines reflected light points -> needed as input as well
-                            // todo roughness / metallic + albedo defines reflected light points -> compute them
-                            // todo environment map is required for brilliant results as well
+                            // to do roughness / metallic + albedo defines reflected light points -> compute them
+                            // to do environment map is required for brilliant results as well
                             "void main(){\n" +
                             "   vec2 uv = uvw.xy/uvw.z*.5+.5;\n" +
                             "   vec3 globalDelta = ${DeferredLayerType.POSITION.getValue(deferred)} - center;\n" +
@@ -230,7 +236,7 @@ abstract class LightComponent(
                             "}", deferred.settingsV1.layerNames
                 )
             }
-        }
+        }*/
 
     }
 

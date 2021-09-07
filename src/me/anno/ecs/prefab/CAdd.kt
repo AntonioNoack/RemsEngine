@@ -13,7 +13,7 @@ class CAdd() : Change(2) {
         path: Path,
         type: Char,
         className: String,
-        name: String = className,
+        name: String? = className,
         prefab: FileReference = InvalidRef
     ) : this() {
         this.path = path
@@ -21,6 +21,10 @@ class CAdd() : Change(2) {
         this.clazzName = className
         this.prefab = prefab
         this.name = name
+    }
+
+    override fun withPath(path: Path): Change {
+        return CAdd(path, type, className, name, prefab)
     }
 
     fun getChildPath(index: Int): Path {

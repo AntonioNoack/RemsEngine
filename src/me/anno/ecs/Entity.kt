@@ -4,6 +4,7 @@ import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.light.AmbientLight
+import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.physics.Rigidbody
@@ -309,6 +310,15 @@ class Entity() : PrefabSaveable(), Inspectable {
                             val mesh = MeshCache[component.mesh]
                             if (mesh != null) {
                                 // add aabb of that mesh with the transform
+                                mesh.ensureBuffer()
+                                mesh.aabb.transformUnion(globalTransform, aabb)
+                            }
+                        }
+                        is DirectionalLight -> {
+                            if (component.cutoff <= 0f) {
+                                aabb.all()
+                            } else {
+                                val mesh = component.getLightPrimitive()
                                 mesh.ensureBuffer()
                                 mesh.aabb.transformUnion(globalTransform, aabb)
                             }
@@ -641,21 +651,29 @@ class Entity() : PrefabSaveable(), Inspectable {
         return components.filter { (includingDisabled || it.isEnabled) && clazz.isInstance(it) } as List<V>
     }
 
-    fun <V : Component> allComponents(clazz: KClass<V>, includingDisabled: Boolean = false, lambda: (V) -> Boolean): Boolean {
+    fun <V : Component> allComponents(
+        clazz: KClass<V>,
+        includingDisabled: Boolean = false,
+        lambda: (V) -> Boolean
+    ): Boolean {
         val components = components
-        for(index in components.indices){
+        for (index in components.indices) {
             val c = components[index]
-            if((includingDisabled || c.isEnabled) && clazz.isInstance(c) && !lambda(c as V))
+            if ((includingDisabled || c.isEnabled) && clazz.isInstance(c) && !lambda(c as V))
                 return false
         }
         return true
     }
 
-    fun <V : Component> anyComponent(clazz: KClass<V>, includingDisabled: Boolean = false, lambda: (V) -> Boolean): Boolean {
+    fun <V : Component> anyComponent(
+        clazz: KClass<V>,
+        includingDisabled: Boolean = false,
+        lambda: (V) -> Boolean
+    ): Boolean {
         val components = components
-        for(index in components.indices){
+        for (index in components.indices) {
             val c = components[index]
-            if((includingDisabled || c.isEnabled) && clazz.isInstance(c) && lambda(c as V))
+            if ((includingDisabled || c.isEnabled) && clazz.isInstance(c) && lambda(c as V))
                 return true
         }
         return false

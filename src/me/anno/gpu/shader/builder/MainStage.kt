@@ -15,6 +15,7 @@ class MainStage {
 
     fun add(stage: ShaderStage) {
         stages.add(stage)
+        attributes.addAll(stage.attributes)
         for (function in stage.functions) {
             defineFunction(function)
         }
@@ -32,8 +33,10 @@ class MainStage {
     fun findImportsAndDefineValues(
         previous: MainStage?, previousDefined: Set<Variable>?
     ): Set<Variable> {
+
         val defined = HashSet(defined)
-        defined += attributes
+        defined.addAll(attributes)
+
         val definedByPrevious = HashSet<Variable>()
         if (previousDefined != null) {
             for (value in previousDefined) {
@@ -42,10 +45,11 @@ class MainStage {
                 }
             }
         }
+
         uniforms.clear()
         for (stage in stages) {
             for (variable in stage.parameters) {
-                if (variable.isInput) {
+                if (variable.isInput && !variable.isAttribute) {
                     if (variable !in defined) {
                         if (variable in definedByPrevious) {
                             // we need this variable
@@ -69,7 +73,115 @@ class MainStage {
         return defined
     }
 
-    fun createCode(isFragmentStage: Boolean, deferredSettingsV2: DeferredSettingsV2?): Pair<String, List<Variable>> {
+    fun defineUniformSamplerArrayFunctions(code: StringBuilder, uniform: Variable) {
+        val isMoreThanOne = uniform.arraySize > 1 // if there is only one value, we can optimize it
+        val isCubemap = uniform.type.startsWith("samplerCube")
+        val name = uniform.name
+        // base color function
+        code.append("vec4 texture_array_")
+        code.append(name)
+        code.append(
+            if (isCubemap) "(int index, vec3 uv){\n"
+            else "(int index, vec2 uv){\n"
+        )
+        if (isMoreThanOne) code.append("switch(index){\n")
+        for (index in 0 until uniform.arraySize) {
+            if (isMoreThanOne) {
+                code.append("case ")
+                code.append(index)
+                code.append(": ")
+            }
+            code.append("return texture(")
+            code.append(name)
+            code.append(index)
+            code.append(", uv);\n")
+        }
+        if (isMoreThanOne) {
+            code.append("default: return vec4(0.0);\n")
+            code.append("}\n")
+        }
+        code.append("}\n")
+        // function with interpolation for depth,
+        // as sampler2DShadow is supposed to work
+        code.append("float texture_array_depth_")
+        code.append(name)
+        if (isCubemap) {
+            code.append("(int index, vec3 uv, float depth){\n")
+            code.append("float d0;\n")
+            if (isMoreThanOne) code.append("switch(index){\n")
+            for (index in 0 until uniform.arraySize) {
+                val nameIndex = name + index.toString()
+                if (isMoreThanOne) {
+                    code.append("case ")
+                    code.append(index)
+                    code.append(": ")
+                }
+                // interpolation? we would need to know the side, and switch case on that
+                code.append("d0=texture($nameIndex, uv).r;\n")
+                if (isMoreThanOne) code.append("break;\n")
+            }
+            if (isMoreThanOne) {
+                code.append("default: return 0.0;\n")
+                code.append("}\n")
+            }
+            code.append(
+                "" +
+                        // depth bias
+                        // dynamic bias is hard...
+                        "depth += 0.005;\n" +
+                        "return float(d0>depth);\n"
+            )
+            code.append("}\n")
+        } else {
+            // todo implement percentage closer filtering for prettier results
+            code.append("(int index, vec2 uv, float depth){\n")
+            code.append("int size;vec2 f;float d,d0,d1,d2,d3,fSize;uv=uv*.5+.5;\n")
+            if (isMoreThanOne) code.append("switch(index){\n")
+            for (index in 0 until uniform.arraySize) {
+                val nameIndex = name + index.toString()
+                if (isMoreThanOne) {
+                    code.append("case ")
+                    code.append(index)
+                    code.append(":\n")
+                }
+                code.append(
+                    "" +
+                            "size = textureSize($nameIndex,0).x;\n" +
+                            "fSize = float(size);\n" +
+                            "d = 1.0/fSize;\n" +
+                            "f = fract(uv*fSize);\n" +
+                            "d0=texture($nameIndex, uv          ).r;\n" +
+                            "d1=texture($nameIndex, uv+vec2(0,d)).r;\n" +
+                            "d2=texture($nameIndex, uv+vec2(d,0)).r;\n" +
+                            "d3=texture($nameIndex, uv+vec2(d,d)).r;\n"
+
+                )
+                if (isMoreThanOne) {
+                    code.append("break;\n")
+                }
+            }
+            if (isMoreThanOne) {
+                code.append("default: return 0.0;\n")
+                code.append("}\n")
+            }
+            code.append(
+                "" +
+                        // depth bias
+                        // dynamic bias is hard...
+                        "depth += 0.005;\n" +
+                        "return mix(mix(" +
+                        "   float(d0>depth),\n" +
+                        "   float(d1>depth),\n" +
+                        "f.y), mix(\n" +
+                        "   float(d2>depth),\n" +
+                        "   float(d3>depth),\n" +
+                        "f.y), f.x);\n"
+            )
+            code.append("}\n")
+        }
+    }
+
+    fun createCode(isFragmentStage: Boolean, deferredSettingsV2: DeferredSettingsV2?): String {
 
         // set what is all defined
         defined += imported
@@ -84,6 +196,9 @@ class MainStage {
             }
         }
 
+        for (variable in attributes.sortedBy { it.size }) variable.appendGlsl(code, "attribute ")
+        if (attributes.isNotEmpty()) code.append('\n')
+
         if (isFragmentStage) {
             // fragment shader
             if (deferredSettingsV2 == null) {
@@ -95,125 +210,20 @@ class MainStage {
             code.append('\n')
         }
 
-        for (variable in attributes.sortedBy { it.size }) {
-            variable.appendGlsl(code, "attribute ")
-        }
-        if (attributes.isNotEmpty()) code.append('\n')
-
-        val varying = (imported + exported).toList()
-        /*for (variable in imported.sortedBy { it.size }) {
-            variable.appendGlsl(code, if (variable.isFlat) "flat varying " else "varying ")
-        }
-        if (imported.isNotEmpty()) code.append('\n')
-
-        for (variable in exported.sortedBy { it.size }) {
-            variable.appendGlsl(code, "varying ")
-        }
-        if (exported.isNotEmpty()) code.append('\n')*/
-
         // define the missing variables
         // sorted by size, so small uniforms get a small location,
         // which in return allows them to be cached
-        for (variable in uniforms.sortedBy { it.size }) {
-            variable.appendGlsl(code, "uniform ")
-        }
+        for (variable in uniforms.sortedBy { it.size }) variable.appendGlsl(code, "uniform ")
         if (uniforms.isNotEmpty()) code.append('\n')
 
         // define all required functions
-        for ((_, func) in functions) {
-            code.append(func)
-        }
+        for ((_, func) in functions) code.append(func)
         if (functions.isNotEmpty()) code.append('\n')
 
         // for all uniforms, which are sampler arrays, define the appropriate access function
         for (uniform in uniforms) {
             if (uniform.arraySize > 0 && uniform.type.startsWith("sampler")) {
-                val isCubemap = uniform.type.startsWith("samplerCube")
-                val name = uniform.name
-                // base color function
-                code.append("vec4 texture_array_")
-                code.append(name)
-                code.append(
-                    if (isCubemap) "(int index, vec3 uv){\n"
-                    else "(int index, vec2 uv){\n"
-                )
-                code.append("switch(index){\n")
-                for (index in 0 until uniform.arraySize) {
-                    code.append("case ")
-                    code.append(index)
-                    code.append(": return texture(")
-                    code.append(name)
-                    code.append(index)
-                    code.append(", uv);\n")
-                }
-                code.append("default: return vec4(0.0);\n")
-                code.append("}\n}\n")
-                // function with interpolation for depth,
-                // as sampler2DShadow is supposed to work
-                code.append("float texture_array_depth_")
-                code.append(name)
-                if (isCubemap) {
-                    code.append("(int index, vec3 uv, float depth){\n")
-                    code.append("float d0;\n")
-                    code.append("switch(index){\n")
-                    for (index in 0 until uniform.arraySize) {
-                        val nameIndex = name + index.toString()
-                        code.append("case ")
-                        code.append(index)
-                        code.append(
-                            // interpolation? we would need to know the side, and switch case on that
-                            ": d0=texture($nameIndex, uv).r; break;\n"
-                        )
-                    }
-                    code.append("default: return 0.0;\n")
-                    code.append("}\n")
-                    code.append(
-                        "" +
-                                // depth bias
-                                // dynamic bias is hard...
-                                "depth += 0.005;\n" +
-                                "return float(d0>depth);\n"
-                    )
-                    code.append("}\n")
-                } else {
-                    // todo implement percentage closer filtering for prettier results
-                    code.append("(int index, vec2 uv, float depth){\n")
-                    code.append("int size;vec2 f;float d,d0,d1,d2,d3,fSize;uv=uv*.5+.5;\n")
-                    code.append("switch(index){\n")
-                    for (index in 0 until uniform.arraySize) {
-                        val nameIndex = name + index.toString()
-                        code.append("case ")
-                        code.append(index)
-                        code.append(
-                            ":\n" +
-                                    "size = textureSize($nameIndex,0).x;\n" +
-                                    "fSize = float(size);\n" +
-                                    "d = 1.0/fSize;\n" +
-                                    "f = fract(uv*fSize);\n" +
-                                    "d0=texture($nameIndex, uv          ).r;\n" +
-                                    "d1=texture($nameIndex, uv+vec2(0,d)).r;\n" +
-                                    "d2=texture($nameIndex, uv+vec2(d,0)).r;\n" +
-                                    "d3=texture($nameIndex, uv+vec2(d,d)).r;\n" +
-                                    "break;\n"
-                        )
-                    }
-                    code.append("default: return 0.0;\n")
-                    code.append("}\n")
-                    code.append(
-                        "" +
-                                // depth bias
-                                // dynamic bias is hard...
-                                "depth += 0.005;\n" +
-                                "return mix(mix(" +
-                                "   float(d0>depth),\n" +
-                                "   float(d1>depth),\n" +
-                                "f.y), mix(\n" +
-                                "   float(d2>depth),\n" +
-                                "   float(d3>depth),\n" +
-                                "f.y), f.x);\n"
-                    )
-                    code.append("}\n")
-                }
+                defineUniformSamplerArrayFunctions(code, uniform)
             }
         }
 
@@ -256,8 +266,8 @@ class MainStage {
             // fragment shader
             if (deferredSettingsV2 == null) {
                 // use last layer, if defined
-                val lastLayer = stages.last()
-                val lastOutputs = lastLayer.parameters.filter { it.isOutput }
+                val lastLayer = stages.lastOrNull()
+                val lastOutputs = lastLayer?.parameters?.filter { it.isOutput } ?: emptyList()
                 val outputSum = lastOutputs.sumOf {
                     when (it.type) {
                         "float" -> 1
@@ -307,7 +317,7 @@ class MainStage {
             }
         }
         code.append("}\n")
-        return code.toString() to varying
+        return code.toString()
     }
 
     val functions = HashMap<String, String>()

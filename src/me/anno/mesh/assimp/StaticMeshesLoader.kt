@@ -48,7 +48,7 @@ open class StaticMeshesLoader {
 
     }
 
-    fun fileToBuffer(name: String, termination: Boolean): ByteBuffer {
+    /*fun fileToBuffer(name: String, termination: Boolean): ByteBuffer {
         val bytes = name.toByteArray()
         var size = bytes.size
         if (termination) size++
@@ -68,8 +68,7 @@ open class StaticMeshesLoader {
         if (termination) byteBuffer.put(0)
         byteBuffer.flip()
         return byteBuffer
-    }
-
+    }*/
 
     fun loadFile(file: FileReference, flags: Int): AIScene {
         return if (file is FileFileRef || file.absolutePath.count { it == '.' } <= 1) {

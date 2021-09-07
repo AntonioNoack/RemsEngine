@@ -7,11 +7,7 @@ import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.objects.Transform
-import me.anno.objects.Transform.Companion.toTransform
-import me.anno.studio.rems.RemsStudio
-import me.anno.studio.rems.RemsStudio.root
 import me.anno.studio.rems.Selection
-import me.anno.studio.rems.ui.StudioFileImporter.addChildFromFile
 import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
@@ -41,8 +37,6 @@ abstract class AbstractTreeView<V>(
 
     abstract val selectedElement: V?
 
-    abstract fun addChild2(element: V, child: Any)
-
     // Selection.select(element, null)
     abstract fun selectElement(element: V?)
 
@@ -57,7 +51,7 @@ abstract class AbstractTreeView<V>(
 
     abstract fun setCollapsed(element: V, collapsed: Boolean)
 
-    abstract fun addChild(element: V, child: V)
+    abstract fun addChild(element: V, child: Any)
 
     abstract fun removeChild(element: V, child: V)
 
@@ -75,12 +69,12 @@ abstract class AbstractTreeView<V>(
     // val index = parentChildren.indexOf(self)
     // parentChildren.add(index, child)
     // child.parent = p
-    abstract fun addBefore(self: V, sibling: V)
+    abstract fun addBefore(self: V, sibling: Any)
 
     // val index = parentChildren.indexOf(self)
     // parentChildren.add(index + 1, child)
     // child.parent = p
-    abstract fun addAfter(self: V, sibling: V)
+    abstract fun addAfter(self: V, sibling: Any)
 
     abstract fun stringifyForCopy(element: V): String
 
@@ -121,7 +115,7 @@ abstract class AbstractTreeView<V>(
         }
         if (!isCollapsed) {
             val children = getChildren(element)
-            for(i in children.indices){
+            for (i in children.indices) {
                 val child = children[i]
                 index = addToTreeList(child, depth + 1, index)
             }
@@ -136,7 +130,7 @@ abstract class AbstractTreeView<V>(
         needsTreeUpdate = false
         var index = 0
         val sources = sources
-        for(i in sources.indices){
+        for (i in sources.indices) {
             val element = sources[i]
             index = addToTreeList(element, 0, index)
         }
@@ -242,27 +236,14 @@ abstract class AbstractTreeView<V>(
     // done between vs at the end vs at the start
     // todo we'd need a selection mode with the arrow keys, too...
 
-    // todo this is not ok for abstract tree view
-    override fun onPaste(x: Float, y: Float, data: String, type: String) {
-        if (!tryPasteTransform(data)) {
-            super.onPaste(x, y, data, type)
-        }
-    }
-
-    /**
-     * returns true on success
-     * */
-    fun tryPasteTransform(data: String): Boolean {
-        val transform = data.toTransform() ?: return false
-        RemsStudio.largeChange("Pasted ${transform.name}") {
-            root.addChild(transform)
-        }
-        return true
-    }
-
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
-        for(file in files){
-            addChildFromFile(root, file, FileContentImporter.SoftLinkMode.ASK, true) {}
+        for (file in files) {
+            fileContentImporter.addChildFromFile(
+                sources.lastOrNull(),
+                file,
+                FileContentImporter.SoftLinkMode.ASK,
+                true
+            ) {}
         }
     }
 

@@ -32,6 +32,12 @@ class ExpandingIntArray(
         }
     }
 
+    fun toIntArray(): IntArray {
+        val tmp = IntArray(size)
+        if (size > 0) System.arraycopy(array!!, 0, tmp, 0, size)
+        return tmp
+    }
+
     override fun toString(): String {
         val builder = StringBuilder(size * 4)
         builder.append('[')

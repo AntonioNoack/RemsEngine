@@ -2,40 +2,57 @@ package me.anno.io.base
 
 import me.anno.io.ISaveable
 import me.anno.io.InvalidFormatException
+import me.anno.io.Saveable
 import org.apache.logging.log4j.LogManager
 import java.io.EOFException
 
 abstract class BaseReader {
 
-    val content = HashMap<Int, ISaveable>()
-    val sortedContent get() = content.entries.sortedBy { it.key }.map { it.value }.toList()
+    private val content2 = ArrayList<ISaveable>()
+    private val content3 = ArrayList<ISaveable>()
+
+    val sortedContent: List<ISaveable> get() = content2 + content3
+
     private val missingReferences = HashMap<Int, ArrayList<Pair<Any, String>>>()
+
+    fun getByPointer(ptr: Int): ISaveable? {
+        return content2.getOrNull(ptr - 1)
+    }
+
+    private fun setContent(ptr: Int, iSaveable: ISaveable) {
+        if (ptr < 0) content3.add(iSaveable)
+        else {
+            // add missing instances
+            val index = ptr - 1
+            for (i in content2.size..index) {
+                content2.add(UnitSaveable)
+            }
+            content2[index] = iSaveable
+        }
+    }
 
     fun register(value: ISaveable, ptr: Int) {
         if (ptr != 0) {
-            content[ptr] = value
-            missingReferences[ptr]?.forEach { (obj, name) ->
-                when (obj) {
-                    is ISaveable -> {
-                        obj.readObject(name, value)
+            setContent(ptr, value)
+            val missingReferences = missingReferences[ptr]
+            if (missingReferences != null) {
+                for ((obj, name) in missingReferences) {
+                    when (obj) {
+                        is ISaveable -> obj.readObject(name, value)
+                        is MissingListElement -> {
+                            obj.target[obj.targetIndex] = value
+                        }
+                        else -> throw RuntimeException("Unknown missing reference type")
                     }
-                    is MissingListElement -> {
-                        obj.target[obj.targetIndex] = value
-                    }
-                    else -> throw RuntimeException("Unknown missing reference type")
                 }
             }
         } else if (ptr == 0) LOGGER.warn("Got object with uuid $ptr: $value, it will be ignored")
     }
 
     fun addMissingReference(owner: Any, name: String, childPtr: Int) {
-        val list = missingReferences[childPtr]
-        val entry = owner to name
-        if (list != null) {
-            list += entry
-        } else {
-            missingReferences[childPtr] = arrayListOf(entry)
-        }
+        missingReferences
+            .getOrPut(childPtr) { ArrayList() }
+            .add(owner to name)
     }
 
     fun assert(b: Boolean) {
@@ -70,6 +87,8 @@ abstract class BaseReader {
     abstract fun readAllInList()
 
     companion object {
+
+        private val UnitSaveable = object : Saveable() {}
 
         private val LOGGER = LogManager.getLogger(BaseReader::class)
 

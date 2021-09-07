@@ -35,7 +35,7 @@ class Mesh : PrefabSaveable() {
     @NotSerializedProperty
     private var needsMeshUpdate = true
 
-    fun invalidateGeometry(){
+    fun invalidateGeometry() {
         needsMeshUpdate = true
     }
 
@@ -105,7 +105,8 @@ class Mesh : PrefabSaveable() {
     /**
      * one index per triangle
      * */
-    var materialIndices = IntArray(0)
+    var materialIndices: IntArray? = null
+    private var helperMeshes: Array<Mesh?>? = null
 
     // todo sort them by material/shader, and create multiple buffers (or sub-buffers) for them
     @HideInInspector
@@ -151,6 +152,7 @@ class Mesh : PrefabSaveable() {
         clone.hasUVs = hasUVs
         clone.hasVertexColors = hasVertexColors
         clone.hasBonesInBuffer = hasBonesInBuffer
+        clone.helperMeshes = helperMeshes
         // aabb
         clone.aabb.set(aabb)
         clone.ignoreStrayPointsInAABB = ignoreStrayPointsInAABB
@@ -346,8 +348,9 @@ class Mesh : PrefabSaveable() {
         val normals = normals!!
         val tangents = tangents
 
+
         val uvs = uvs
-        val hasUVs = true || uvs != null && uvs.isNotEmpty()
+        val hasUVs = uvs != null && uvs.isNotEmpty()
         this.hasUVs = hasUVs
 
         NormalCalculator.checkNormals(positions, normals, indices)
@@ -360,9 +363,10 @@ class Mesh : PrefabSaveable() {
         val pointCount = positions.size / 3
         val indices = indices
 
-        val hasBones = true || boneWeights != null && boneWeights.isNotEmpty()
+        val hasBones = boneWeights != null && boneWeights.isNotEmpty()
         hasBonesInBuffer = hasBones
 
+        // todo missing attributes cause issues... why??
         val hasColors = true || colors != null && colors.isNotEmpty()
         hasVertexColors = hasColors
 
@@ -385,15 +389,10 @@ class Mesh : PrefabSaveable() {
             attributes += Attribute("indices", AttributeType.UINT8, MAX_WEIGHTS, true)
         }
 
+        // todo reuse the old buffer, if the size matches
         val buffer =
             if (indices == null) StaticBuffer(attributes, pointCount)
             else IndexedStaticBuffer(attributes, pointCount, indices)
-
-        // val hasBones = boneWeights != null && boneIndices != null
-        // val boneCount = if (hasBones) min(boneWeights!!.size, boneIndices!!.size) else 0
-
-        // to do only put the attributes, which are really available, and push only them
-        // our shader ofc would need to cope with missing attributes
 
         for (i in 0 until pointCount) {
 
@@ -471,11 +470,75 @@ class Mesh : PrefabSaveable() {
 
         }
 
+        val materialIndices = materialIndices
+        val first = materialIndices?.firstOrNull() ?: 0
+        val hasMultipleMaterials = materialIndices != null && materialIndices.any { it != first && it >= 0 }
+        if (hasMultipleMaterials) {
+            createHelperMeshes(materialIndices!!)
+        } else destroyHelperMeshes()
+
         // LOGGER.info("Flags($name): size: ${buffer.vertexCount}, colors? $hasColors, uvs? $hasUVs, bones? $hasBones")
 
         this.buffer?.destroy()
         this.buffer = buffer
 
+    }
+
+    private fun createHelperMeshes(materialIndices: IntArray) {
+        // todo test this function
+        // todo maybe via vox files :), those can have multiple materials in the same mesh (when we implement it)
+        // creating separate buffers on the gpu,
+        // split indices / data, would be of advantage here
+        val length = materialIndices.maxOrNull()!! + 1
+        if (drawMode != GL11.GL_TRIANGLES) throw IllegalStateException("Multi-material meshes only supported on triangle meshes; got $drawMode")
+        if (length > 1000) throw IllegalStateException("Material Id must be less than 1000!")
+        val helperMeshes = arrayOfNulls<Mesh>(length)
+        val indices = indices
+        for (materialId in 0 until length) {
+            if (materialIndices.any { it == materialId }) {
+                val mesh = Mesh()
+                copy(mesh)
+                mesh.material = materials.getOrNull(materialId)
+                val triangles = materialIndices.count { it == materialId }
+                val partialIndices = IntArray(triangles * 3)
+                var j = 0
+                if (indices == null) {
+                    for (i in materialIndices.indices) {
+                        val id = materialIndices[i]
+                        if (id == materialId) {
+                            val i3 = i * 3
+                            partialIndices[j++] = i3
+                            partialIndices[j++] = i3 + 1
+                            partialIndices[j++] = i3 + 2
+                        }
+                    }
+                } else {
+                    for (i in materialIndices.indices) {
+                        val id = materialIndices[i]
+                        if (id == materialId) {
+                            val i3 = i * 3
+                            partialIndices[j++] = indices[i3]
+                            partialIndices[j++] = indices[i3 + 1]
+                            partialIndices[j++] = indices[i3 + 2]
+                        }
+                    }
+                }
+                mesh.indices = partialIndices
+            }// else mesh not required
+        }
+        this.helperMeshes = helperMeshes
+    }
+
+    private fun destroyHelperMeshes() {
+        helperMeshes?.forEach { it?.destroy() }
+        helperMeshes = null
+    }
+
+    override fun destroy() {
+        super.destroy()
+        // todo only if we were not cloned...
+        destroyHelperMeshes()
+        // todo destroy buffer?
     }
 
     /**
@@ -500,19 +563,18 @@ class Mesh : PrefabSaveable() {
 
     fun drawInstanced(shader: Shader, materialIndex: Int, instanceData: StaticBuffer) {
         // todo respect the material index: only draw what belongs to the material
+        GFX.check()
         ensureBuffer()
-        val meshBuffer = buffer
-        if (meshBuffer != null) {
-            instanceData.drawInstanced(shader, meshBuffer)
-        }
+        buffer?.drawInstanced(shader, instanceData)
+        GFX.check()
     }
 
     fun drawInstancedDepth(shader: Shader, instanceData: StaticBuffer) {
+        // draw all materials
+        GFX.check()
         ensureBuffer()
-        val meshBuffer = buffer
-        if (meshBuffer != null) {
-            instanceData.drawInstanced(shader, meshBuffer)
-        }
+        buffer?.drawInstanced(shader, instanceData)
+        GFX.check()
     }
 
     /**
@@ -589,16 +651,6 @@ class Mesh : PrefabSaveable() {
         // custom attributes for shaders? idk...
         // will always be 4, so bone indices can be aligned
         const val MAX_WEIGHTS = 4
-
-        /*val attributes = listOf(
-             Attribute("coords", 3),
-             Attribute("uvs", 2), // 20 bytes
-             Attribute("normals", AttributeType.SINT8_NORM, 4),
-             Attribute("tangents", AttributeType.SINT8_NORM, 4),
-             Attribute("colors", AttributeType.UINT8_NORM, 4), // 28 + 4 bytes
-             Attribute("weights", AttributeType.UINT8_NORM, MAX_WEIGHTS),
-             Attribute("indices", AttributeType.UINT8, MAX_WEIGHTS, true) // 32 + 8 bytes
-         )*/
 
     }
 

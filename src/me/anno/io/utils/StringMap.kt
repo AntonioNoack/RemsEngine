@@ -4,10 +4,10 @@ import me.anno.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.texture.Filtering
-import me.anno.io.files.FileReference
 import me.anno.io.base.BaseWriter
 import me.anno.io.config.ConfigBasics
 import me.anno.io.config.ConfigEntry
+import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.OS
@@ -15,7 +15,6 @@ import me.anno.utils.hpc.ProcessingQueue
 import org.joml.Vector3f
 import java.io.File
 import java.util.*
-import kotlin.math.abs
 import kotlin.math.min
 
 /**
@@ -322,9 +321,9 @@ open class StringMap(
     fun saveMaybe(name: String) {
         if (wasChanged) {
             synchronized(this) {
-                if (abs(lastSaveTime - gameTime) >= saveDelay) {// only save every 1s
+                if (gameTime - lastSaveTime >= saveDelay) {// only save every 1s
                     // delay in case it needs longer
-                    lastSaveTime = gameTime + (60 * 1e9).toLong()
+                    lastSaveTime = gameTime + 60_000_000_000L
                     savingQueue += {
                         save(name)
                         lastSaveTime = gameTime

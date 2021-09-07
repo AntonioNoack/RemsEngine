@@ -35,7 +35,7 @@ class CubemapTexture(var size: Int = 0) : ICacheData, ITexture2D {
         get() = size
         set(_) {}
 
-    val tex2D = GL_TEXTURE_CUBE_MAP
+    private val tex2D = GL_TEXTURE_CUBE_MAP
 
     fun ensurePointer() {
         if (isDestroyed) throw RuntimeException("Texture was destroyed")

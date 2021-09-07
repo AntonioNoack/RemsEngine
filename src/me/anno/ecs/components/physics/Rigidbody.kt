@@ -4,6 +4,7 @@ import com.bulletphysics.dynamics.RigidBody
 import cz.advel.stack.Stack
 import me.anno.ecs.Component
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.gui.PlaneShapes
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.scale
 import me.anno.io.serialization.NotSerializedProperty
@@ -252,11 +253,12 @@ open class Rigidbody() : Component() {
 
     override fun onDrawGUI(view: RenderView) {// center of mass circle
         super.onDrawGUI(view)
-        val stack = RenderView.stack
+        /*val stack = RenderView.stack
         stack.pushMatrix()
         stack.translate(centerOfMass.x.toFloat(), centerOfMass.y.toFloat(), centerOfMass.z.toFloat())
         Transform.drawUICircle(stack, 0.2f / scale.toFloat(), 0.7f, centerOfMassColor)
-        stack.popMatrix()
+        stack.popMatrix()*/
+        PlaneShapes.drawCircle(entity!!,-1)
     }
 
     override fun clone(): Rigidbody {

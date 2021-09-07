@@ -1,5 +1,6 @@
 package me.anno.gpu.shader.builder
 
+import me.anno.gpu.deferred.DeferredSettingsV2.Companion.glslTypes
 import kotlin.math.max
 
 class Variable(
@@ -20,6 +21,15 @@ class Variable(
 
     constructor(type: String, name: String, arraySize: Int) :
             this(type, name, arraySize, VariableMode.IN)
+
+    constructor(components: Int, name: String) :
+            this(glslTypes[components - 1], name, VariableMode.IN)
+
+    constructor(components: Int, name: String, inOutMode: VariableMode) :
+            this(glslTypes[components - 1], name, inOutMode)
+
+    constructor(components: Int, name: String, arraySize: Int = -1) :
+            this(glslTypes[components - 1], name, arraySize)
 
     constructor(type: String, name: String) :
             this(type, name, -1, VariableMode.IN)
@@ -81,7 +91,8 @@ class Variable(
         return "${inOutMode.glslName} $type $name"
     }
 
+    val isAttribute get() = inOutMode == VariableMode.ATTR
     val isInput get() = inOutMode != VariableMode.OUT
-    val isOutput get() = inOutMode != VariableMode.IN
+    val isOutput get() = inOutMode == VariableMode.OUT || inOutMode == VariableMode.INOUT
 
 }

@@ -48,6 +48,10 @@ class MeshComponent() : Component() {
 
     var isInstanced = false
 
+    // todo respect this property
+    @SerializedProperty
+    var receiveShadows = true
+
     var collisionMask: Int = 1
 
     fun canCollide(collisionMask: Int): Boolean {

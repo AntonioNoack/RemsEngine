@@ -41,8 +41,8 @@ class PanelListMultiline(val sorter: Comparator<Panel>?, style: Style) : PanelGr
             Quad(
                 childWidth,
                 childHeight,
-                scrollPosition,
-                maxScrollPosition
+                scrollPositionY,
+                maxScrollPositionY
             )
         )
 
@@ -116,7 +116,7 @@ class PanelListMultiline(val sorter: Comparator<Panel>?, style: Style) : PanelGr
         val w = w - scrollbarWidth
         val contentW = columns * childWidth
 
-        val scroll = scrollPosition.toInt()
+        val scroll = scrollPositionY.toInt()
         var i = 0
         for (j in children.indices) {
             val child = children[j]
@@ -136,10 +136,10 @@ class PanelListMultiline(val sorter: Comparator<Panel>?, style: Style) : PanelGr
 
     }
 
-    override var scrollPosition = 0f
+    override var scrollPositionY = 0f
     var isDownOnScrollbar = false
 
-    override val maxScrollPosition get() = max(0, minH2 - h)
+    override val maxScrollPositionY get() = max(0, minH2 - h)
     val scrollbar = ScrollbarY(this, style)
     val scrollbarWidth = style.getSize("scrollbarWidth", 8)
     val scrollbarPadding = style.getSize("scrollbarPadding", 1)
@@ -147,7 +147,7 @@ class PanelListMultiline(val sorter: Comparator<Panel>?, style: Style) : PanelGr
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
         clampScrollPosition()
-        if (maxScrollPosition > 0f) {
+        if (maxScrollPositionY > 0f) {
             scrollbar.x = x1 - scrollbarWidth - scrollbarPadding
             scrollbar.y = y + scrollbarPadding
             scrollbar.w = scrollbarWidth
@@ -160,19 +160,19 @@ class PanelListMultiline(val sorter: Comparator<Panel>?, style: Style) : PanelGr
         if (!Input.isShiftDown && !Input.isControlDown) {
             val delta = dx - dy
             val scale = 20f
-            if ((delta > 0f && scrollPosition >= maxScrollPosition) ||
-                (delta < 0f && scrollPosition <= 0f)
+            if ((delta > 0f && scrollPositionY >= maxScrollPositionY) ||
+                (delta < 0f && scrollPositionY <= 0f)
             ) {// if done scrolling go up the hierarchy one
                 super.onMouseWheel(x, y, dx, dy)
             } else {
-                scrollPosition += scale * delta
+                scrollPositionY += scale * delta
                 clampScrollPosition()
             }
         } else super.onMouseWheel(x, y, dx, dy)
     }
 
     private fun clampScrollPosition() {
-        scrollPosition = clamp(scrollPosition, 0f, maxScrollPosition.toFloat())
+        scrollPositionY = clamp(scrollPositionY, 0f, maxScrollPositionY.toFloat())
     }
 
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {

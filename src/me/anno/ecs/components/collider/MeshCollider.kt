@@ -9,7 +9,8 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.SerializedProperty
 import org.joml.Vector3d
-import org.lwjgl.system.MemoryUtil
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 class MeshCollider() : Collider() {
 
@@ -60,8 +61,12 @@ class MeshCollider() : Collider() {
 
         } else {
 
+            // we don't send the data to the gpu here, so we don't need to allocate directly
+            // this has the advantage, that the jvm will free the memory itself
+
             val indexCount = indices?.size ?: positions.size / 3
-            val indices3 = MemoryUtil.memAlloc(4 * indexCount)
+            val indices3 = ByteBuffer.allocate(4 * indexCount)
+                .order(ByteOrder.nativeOrder())
             if (indices == null) {
                 // 0 1 2 3 4 5 6 7 8 ...
                 for (i in 0 until indexCount) {
@@ -70,7 +75,8 @@ class MeshCollider() : Collider() {
             } else indices3.asIntBuffer().put(indices)
             indices3.flip()
 
-            val vertexBase = MemoryUtil.memAlloc(4 * positions.size)
+            val vertexBase = ByteBuffer.allocate(4 * positions.size)
+                .order(ByteOrder.nativeOrder())
             vertexBase.asFloatBuffer().apply {
                 if (scale.x == 1.0 && scale.y == 1.0 && scale.z == 1.0) {
                     put(positions)

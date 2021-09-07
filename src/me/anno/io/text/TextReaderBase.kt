@@ -18,9 +18,8 @@ abstract class TextReaderBase() : BaseReader() {
     var tmpChar = -1
     private val tmpString = StringBuilder(32)
 
-    private var unusedPointer = Int.MAX_VALUE
     private fun getUnusedPointer(): Int {
-        return unusedPointer--
+        return -1
     }
 
     abstract fun next(): Char
@@ -150,12 +149,48 @@ abstract class TextReaderBase() : BaseReader() {
         }
     }
 
+    private fun skipLine() {
+        while (true) {
+            if (next() == '\n') {
+                return
+            }
+        }
+    }
+
+    private fun skipComment() {
+        when (val next = next()) {
+            '/' -> skipLine()
+            '*' -> {
+                var last = next
+                while (true) {
+                    val next2 = next()
+                    if (next2 == '/' && last == '*') {
+                        return
+                    }
+                    last = next2
+                }
+            }
+            else -> throw InvalidFormatException("Expected a comment after '/', but got '$next'")
+        }
+    }
+
     private fun propertyLoop(obj0: ISaveable): ISaveable {
         var obj = obj0
         while (true) {
             when (val next = skipSpace()) {
-                ',' -> obj = readProperty(obj)
+                ',' -> {// support for extra commas and comments after a comma
+                    when (val next2 = skipSpace()) {
+                        '"' -> {
+                            tmpChar = '"'.code
+                            obj = readProperty(obj)
+                        }
+                        '}' -> return obj
+                        '/' -> skipComment()
+                        else -> throw InvalidFormatException("Expected property or end of object after comma, got '$next2'")
+                    }
+                }
                 '}' -> return obj
+                '/' -> skipComment()
                 else -> throw InvalidFormatException("Unexpected char $next in object of class ${obj.className}")
             }
         }
@@ -356,7 +391,7 @@ abstract class TextReaderBase() : BaseReader() {
             }
             else -> {
                 tmpChar = first.code
-                readLong().toChar()
+                readInt().toChar()
             }
         }
     }
@@ -646,7 +681,7 @@ abstract class TextReaderBase() : BaseReader() {
                             val rawPtr = readNumber()
                             val ptr = rawPtr.toIntOrNull() ?: error("Invalid pointer: $rawPtr")
                             if (ptr > 0) {
-                                val child = content[ptr]
+                                val child = getByPointer(ptr)
                                 if (child == null) {
                                     addMissingReference(obj, name, ptr)
                                 } else {
@@ -664,11 +699,7 @@ abstract class TextReaderBase() : BaseReader() {
 
     private fun readPtr(next: Char): ISaveable? {
         tmpChar = next.code
-        val rawPtr = readNumber()
-        val ptr = rawPtr.toIntOrNull() ?: error("Invalid pointer: $rawPtr")
-        return if (ptr > 0) {
-            content[ptr]
-        } else null
+        return getByPointer(readInt())
     }
 
     private fun readNull(): Nothing? {
@@ -678,20 +709,20 @@ abstract class TextReaderBase() : BaseReader() {
         return null
     }
 
+    private var ptr = 0
     private fun readObjectAndRegister(type: String): ISaveable {
-        val (value, ptr) = readObject(type)
+        val value = readObject(type)
         register(value, ptr)
         return value
     }
 
-    private fun readObject(type: String): Pair<ISaveable, Int> {
+    private fun readObject(type: String): ISaveable {
         var child = try {
             getNewClassInstance(type)
         } catch (e: UnknownClassException) {
             throw e
         }
         val firstChar = skipSpace()
-        val ptr: Int
         if (firstChar == '}') {
             // nothing to do
             ptr = getUnusedPointer() // not used
@@ -730,7 +761,7 @@ abstract class TextReaderBase() : BaseReader() {
                 } // else nothing to do
             }
         }
-        return child to ptr
+        return child
     }
 
     private fun splitTypeName(typeName: String): Pair<String, String> {

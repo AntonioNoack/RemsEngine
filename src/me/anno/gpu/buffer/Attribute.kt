@@ -18,9 +18,10 @@ class Attribute(val name: String, val type: AttributeType, val components: Int, 
     }
 
     override fun equals(other: Any?): Boolean {
-        return other is Attribute && other.name == name &&
+        return other is Attribute &&
                 other.type == type && other.components == components &&
                 other.isNativeInt == isNativeInt &&
+                other.name == name &&
                 other.offset == offset
     }
 

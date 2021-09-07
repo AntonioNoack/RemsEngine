@@ -5,7 +5,6 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ECSRegistry
-import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.gpu.TextureLib
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.BaseShader
@@ -147,6 +146,7 @@ class Material : PrefabSaveable() {
         shader.v1("occlusionStrength", occlusionStrength)
         shader.v1("finalTranslucency", translucency)
         shader.v1("finalSheen", sheen)
+        shader.v1("sheen", sheen)
 
         if (clearCoatColor.w > 0f) {
             shader.v4("finalClearCoat", clearCoatColor)
@@ -260,7 +260,10 @@ class Material : PrefabSaveable() {
         fun main(args: Array<String>) {
             ECSRegistry.initNoGFX()
             val prefab = loadPrefab(OS.documents.getChild("cube bricks.glb"))!!
-            for (change in prefab.changes!!) {
+            for (change in prefab.adds!!) {
+                LOGGER.info(change)
+            }
+            for (change in prefab.sets!!) {
                 LOGGER.info(change)
             }
             val instance = prefab.createInstance()
