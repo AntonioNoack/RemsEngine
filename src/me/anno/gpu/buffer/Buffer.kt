@@ -50,7 +50,7 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
         if (buffer <= 0) buffer = glGenBuffers()
         if (buffer <= 0) throw IllegalStateException()
 
-        bindBuffer(GL_ARRAY_BUFFER, buffer, true)
+        bindBuffer(GL_ARRAY_BUFFER, buffer)
 
         val nio = nioBuffer!!
         val stride = attributes.first().stride
@@ -98,7 +98,7 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
         ensureVAO()
 
         bindVAO(vao)
-        bindBuffer(GL_ARRAY_BUFFER, buffer, true)
+        bindBuffer(GL_ARRAY_BUFFER, buffer)
         var hasAttr = false
         for (attr in attributes) {
             hasAttr = bindAttribute(shader, attr, false) || hasAttr
@@ -116,14 +116,14 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
         ensureBuffer()
 
         bindVAO(vao)
-        bindBuffer(GL_ARRAY_BUFFER, buffer, true)
+        bindBuffer(GL_ARRAY_BUFFER, buffer)
         // first the instanced attributes, so the function can be called with super.createVAOInstanced without binding the buffer again
         for (attr in attributes) {
             bindAttribute(shader, attr, false)
         }
 
         instanceData.ensureBuffer()
-        bindBuffer(GL_ARRAY_BUFFER, instanceData.buffer, true)
+        bindBuffer(GL_ARRAY_BUFFER, instanceData.buffer)
         for (attr in instanceData.attributes) {
             bindAttribute(shader, attr, true)
         }

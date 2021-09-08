@@ -1,12 +1,16 @@
 package me.anno.ecs.components.shaders.effects
 
 import me.anno.gpu.GFX.flat01
+import me.anno.gpu.RenderState
 import me.anno.gpu.RenderState.renderPurely
 import me.anno.gpu.RenderState.useFrame
+import me.anno.gpu.ShaderLib
 import me.anno.gpu.ShaderLib.brightness
 import me.anno.gpu.ShaderLib.simplestVertexShader
 import me.anno.gpu.ShaderLib.uvList
+import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
@@ -32,7 +36,7 @@ object Bloom {
     private const val minSize = 4
 
     // temporary buffer for this object
-    private val tmpForward = arrayOfNulls<ITexture2D>(maxSteps)
+    private val tmpForward = arrayOfNulls<Framebuffer>(maxSteps)
 
     private fun forwardPass(source: ITexture2D, offset: Float): Int {
 
@@ -72,7 +76,7 @@ object Bloom {
                 previous = bufferY.getColor0()
             }
 
-            tmpForward[i] = previous
+            tmpForward[i] = bufferY
 
             // in the next steps with x use the actual shader,
             // which does not have the costly offset calculation
@@ -83,20 +87,21 @@ object Bloom {
     }
 
     private fun backwardPass(steps: Int): ITexture2D {
-        val shader = backwardBlurShader.value
+        val shader = ShaderLib.copyShader.value
         shader.use()
+        shader.v1("am1", 0f)
         var previous = tmpForward[steps - 1]!!
-        for (i in steps - 2 downTo 0) {// render onto that layer
-            val nextSrc = tmpForward[i]!! // large
-            val dst = FBStack["bloom1", nextSrc.w, nextSrc.h, 4, true, 1] // large
-            useFrame(dst, copyRenderer) {
-                nextSrc.bindTrulyNearest(1)
-                previous.bind(0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
-                flat01.draw(shader)
-                previous = dst.getColor0()
+        RenderState.blendMode.use(BlendMode.PURE_ADD) {
+            for (i in steps - 2 downTo 0) {// render onto that layer
+                val nextSrc = tmpForward[i]!! // large
+                useFrame(nextSrc, copyRenderer) {
+                    previous.bindTexture0(0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
+                    flat01.draw(shader)
+                    previous = nextSrc
+                }
             }
         }
-        return previous
+        return previous.getColor0()
     }
 
     private fun createForwardShader(dx: Int, dy: Int, offset: Boolean): Shader {
@@ -161,20 +166,6 @@ object Bloom {
     private val forwardShaderX = createForwardShader(1, 0, false)
     private val forwardShaderY = createForwardShader(0, 1, false)
     private val forwardShader0 = createForwardShader(1, 0, true)
-
-    // this does not require an additional shader:
-    // we can just add the value
-    private val backwardBlurShader = lazy {
-        Shader(
-            "bloom1", null, simplestVertexShader, uvList, "" +
-                    "out vec4 fragColor;\n" +
-                    "uniform sampler2D tex0,tex1;\n" +
-                    "void main(){\n" +
-                    "   ivec2 p = ivec2(gl_FragCoord.xy);\n" +
-                    "   fragColor = texture(tex0,uv) + texelFetch(tex1,p,0);\n" +
-                    "}"
-        ).apply { setTextureIndices(listOf("tex0", "tex1")) }
-    }
 
     private val compositionShader = lazy {
         Shader(
