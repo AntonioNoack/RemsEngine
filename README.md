@@ -36,8 +36,8 @@ additionally developed with Java, so it works with Windows and Linux.
 * [JAI ImageIO Core](https://github.com/jai-imageio/jai-imageio-core) (More image formats for PDFs)
 * [JAI ImageIO JPEG2000](https://github.com/jai-imageio/jai-imageio-jpeg2000) (JPEG 2000 support for PDFs)
 * [jUnRAR](https://github.com/edmund-wagner/junrar)
-  , [Apache VFS](https://search.maven.org/artifact/org.apache.commons/commons-vfs2/2.8.0/jar) (reading RAR files)
-* [Image4j](https://github.com/imcdonagh/image4j) (reading ICO images)
+  , [Apache VFS](https://search.maven.org/artifact/org.apache.commons/commons-vfs2/2.8.0/jar) (Reading RAR files)
+* [Image4j](https://github.com/imcdonagh/image4j) (Reading ICO images)
 
 <!-- * [jGLTF](https://github.com/AntonioNoack/jGLTF) (jGLTF for glTF files, modified), included, but only used for their PBR shader -->
 <!-- * [Caliko](https://github.com/FedUni/caliko) (FABRIK IK), not yet actively used -->
@@ -51,6 +51,31 @@ additionally developed with Java, so it works with Windows and Linux.
 To build Rem's Studio, I am using Intellij Idea (the community edition is free). It should work in other IDEs as well,
 you just need to add all libraries. In Intellij Idea set the memory of the compiler (Settings/Build/Compiler) to more
 than 700 MB, as it becomes awfully slow with that amount, or even crashes.
+
+## Game Engine: Rem's Engine
+
+Parallel to this video editor, I am developing my own game engine. I have often written the beginnings of small games,
+but they always had much in common, so I decided to write my own engine.
+
+- direct Java/Kotlin support
+- usable in my favourite IDE: Intellij Idea
+- completely Open Source
+- no fees
+- hopefully in the future fewer annoyances with skeletons than Unreal Engine
+- support for all kinds of formats
+- working/loading from inside compressed folders
+- hopefully fewer files than Unity, with their one-meta-for-every-file-strategy
+- I get to learn even more about game engines <3
+
+This engine does not have the target to offer the best graphics, or be the best performant. Its goal is to be nice and
+quick to develop in, like a tool box.
+
+I am writing the game engine in this same repository as Rem's Studio, because
+
+- they share a lot of code,
+- I want to base the video studio on the engine in the future
+- currently, the engine needs to be based on the video editor
+- when I started the engine, the video studio already was a huge project
 
 <!--
 ## Supported Formats (Import)
