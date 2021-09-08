@@ -9,6 +9,7 @@ import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.RendererComponent
 import me.anno.ecs.components.player.LocalPlayer
+import me.anno.ecs.components.shaders.effects.Bloom
 import me.anno.engine.debug.DebugPoint
 import me.anno.engine.debug.DebugShapes.debugLines
 import me.anno.engine.debug.DebugShapes.debugPoints
@@ -47,6 +48,7 @@ import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.BaseShader.Companion.cullFaceColoringGeometry
 import me.anno.gpu.shader.BaseShader.Companion.lineGeometry
 import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Renderer.Companion.depthRenderer
 import me.anno.gpu.shader.Renderer.Companion.idRenderer
 import me.anno.gpu.texture.Clamping
@@ -54,7 +56,6 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isKeyDown
 import me.anno.input.Input.isShiftDown
-import me.anno.objects.Transform
 import me.anno.studio.Build
 import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
@@ -247,7 +248,7 @@ class RenderView(
         clock.stop("initialization", 0.05)
 
         prepareDrawScene(w / 2f, h / 2f, w, h, aspect, camera, camera, 1f)
-        if(pipeline.hasTooManyLights()) useDeferredRendering = true
+        if (pipeline.hasTooManyLights()) useDeferredRendering = true
 
         clock.stop("preparing", 0.05)
 
@@ -313,13 +314,41 @@ class RenderView(
 
                 // todo post processing could do screen space reflections :)
 
-                val shader = PipelineLightStage.getPostShader(deferred)
-                shader.use()
+                val bloomStrength = 0.5f
+                val bloomOffset = 10f
 
-                lightBuffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                buffer.bindTextures(1, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                val useBloom = bloomOffset > 0f
 
-                flat01.draw(shader)
+                if(useBloom){
+
+                    val tmp = FBStack["",w,h,4,true,1]
+                    useFrame(tmp, copyRenderer){
+
+                        val shader = PipelineLightStage.getPostShader(deferred)
+                        shader.use()
+                        shader.v1("applyToneMapping", !useBloom)
+
+                        lightBuffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                        buffer.bindTextures(1, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+
+                        flat01.draw(shader)
+
+                    }
+
+                    Bloom.bloom(tmp.getColor0(), bloomOffset, bloomStrength, true)
+
+                } else {
+
+                    val shader = PipelineLightStage.getPostShader(deferred)
+                    shader.use()
+                    shader.v1("applyToneMapping", !useBloom)
+
+                    lightBuffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                    buffer.bindTextures(1, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+
+                    flat01.draw(shader)
+
+                }
             }
 
             clock.stop("presenting deferred buffers", 0.1)

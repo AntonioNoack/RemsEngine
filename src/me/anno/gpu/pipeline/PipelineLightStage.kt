@@ -10,6 +10,7 @@ import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.RenderState
+import me.anno.gpu.ShaderLib.simplestVertexShader
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
@@ -81,8 +82,7 @@ class PipelineLightStage(
                         "v", listOf(
                             Variable("vec2", "attr0", VariableMode.ATTR),
                             Variable("vec2", "uv", VariableMode.OUT)
-                        ), "" +
-                                "gl_Position = vec4(attr0*2-1, 0.5, 1.0);\n" +
+                        ), "gl_Position = vec4(attr0*2.0-1.0,0.5,1.0);\n" +
                                 "uv = attr0;\n"
                     )
                 )
@@ -91,15 +91,20 @@ class PipelineLightStage(
                 val fragment = ShaderStage(
                     "f", listOf(
                         Variable("vec3", "finalColor"),
+                        Variable("vec3", "finalPosition"),
                         Variable("vec3", "finalOcclusion"),
                         Variable("vec3", "finalEmissive"),
+                        Variable("bool", "applyToneMapping"),
                         Variable("sampler2D", "finalLight"),
-                        Variable("vec4", "color", VariableMode.OUT)
+                        Variable("vec3", "color", VariableMode.OUT)
                     ), "" +
-                            "vec3 light = texture(finalLight, uv).rgb;\n" +
-                            "vec3 col = finalColor * light * finalOcclusion + finalEmissive;\n" +
-                            "col = col/(1+col);\n" +
-                            "color = vec4(col,1);\n"
+                            "if(dot(finalPosition,finalPosition) == 0.0){\n" + // ui
+                            "   color = vec3(1,0,0);\n" +
+                            "} else {\n" +
+                            "   vec3 light = texture(finalLight, uv).rgb;\n" +
+                            "   color = finalColor * light * finalOcclusion + finalEmissive;\n" +
+                            "   if(applyToneMapping) color = color/(1+color);\n" +
+                            "}\n"
                 )
 
                 // deferred inputs

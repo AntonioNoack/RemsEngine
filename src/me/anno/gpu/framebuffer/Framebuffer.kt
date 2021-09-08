@@ -245,6 +245,26 @@ class Framebuffer(
         GFX.check()
     }
 
+    fun destroyExceptTextures(deleteDepth: Boolean) {
+        if(msBuffer != null){
+            msBuffer?.destroyExceptTextures(deleteDepth)
+            msBuffer = null
+            destroy()
+        } else {
+            msBuffer?.destroy()
+            if (pointer > -1) {
+                glDeleteFramebuffers(pointer)
+                Frame.invalidate()
+                pointer = -1
+                if(deleteDepth) depthTexture?.destroy()
+            }
+            if (depthRenderBuffer > -1) {
+                glDeleteRenderbuffers(depthRenderBuffer)
+                depthRenderBuffer = -1
+            }
+        }
+    }
+
     override fun destroy() {
         msBuffer?.destroy()
         if (pointer > -1) {
@@ -260,6 +280,13 @@ class Framebuffer(
             glDeleteRenderbuffers(depthRenderBuffer)
             depthRenderBuffer = -1
         }
+    }
+
+    fun getColor0(): Texture2D {
+        return if (samples > 1) {
+            bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+            msBuffer!!.textures.first()
+        } else textures.first()
     }
 
     companion object {

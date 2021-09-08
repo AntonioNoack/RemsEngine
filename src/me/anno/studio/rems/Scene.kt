@@ -16,6 +16,7 @@ import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.ShaderLib.ascColorDecisionList
 import me.anno.gpu.ShaderLib.brightness
 import me.anno.gpu.ShaderLib.createShader
+import me.anno.gpu.ShaderLib.simplestVertexShader
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.framebuffer.FBStack
@@ -214,13 +215,7 @@ object Scene {
         // todo Tone Mapping on Video objects for performance improvements (doesn't need fp framebuffer)
 
         lutShader = createShader(
-            "lut", "" +
-                    "in vec2 attr0;\n" +
-                    "uniform float ySign;\n" +
-                    "void main(){" +
-                    "   gl_Position = vec4(attr0*2.0-1.0, 0.0, 1.0);\n" +
-                    "   uv = attr0;\n" +
-                    "}", listOf(Variable("vec2","uv")), "" +
+            "lut", simplestVertexShader, listOf(Variable("vec2","uv")), "" +
                     "uniform sampler2D tex;\n" +
                     "uniform sampler3D lut;\n" +
                     // "uniform float time;\n" +
@@ -233,12 +228,7 @@ object Scene {
         )
 
         addBloomShader = createShader(
-            "addBloom", "" +
-                    "in vec2 attr0;\n" +
-                    "void main(){" +
-                    "   gl_Position = vec4(attr0*2.0-1.0, 0.0, 1.0);\n" +
-                    "   uv = attr0;\n" +
-                    "}", listOf(Variable("vec2","uv")), "" +
+            "addBloom", simplestVertexShader, listOf(Variable("vec2","uv")), "" +
                     "uniform sampler2D original, blurred;\n" +
                     "uniform float intensity;\n" +
                     "void main(){" +

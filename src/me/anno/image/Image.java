@@ -1,11 +1,15 @@
 package me.anno.image;
 
 import me.anno.gpu.texture.Texture2D;
+import me.anno.io.files.FileReference;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.awt.image.Raster;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 public abstract class Image {
@@ -134,6 +138,14 @@ public abstract class Image {
         // update the image, otherwise the result is broken
         img.setData(Raster.createRaster(img.getRaster().getSampleModel(), buffer, new Point()));
         return img;
+    }
+
+    public void write(FileReference dst) throws IOException {
+        BufferedImage image = createBufferedImage();
+        String format = dst.getLcExtension();
+        try (OutputStream out = dst.outputStream()) {
+            ImageIO.write(image, format, out);
+        }
     }
 
     public static int argb(int a, int r, int g, int b) {

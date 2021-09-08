@@ -28,6 +28,34 @@ object DrawTextures {
         GFX.check()
     }
 
+    fun drawTexturePure(
+        x: Int, y: Int, w: Int, h: Int,
+        texture: ITexture2D, ignoreAlpha: Boolean,
+    ) {
+        if (w == 0 || h == 0) return
+        GFX.check()
+        val shader = ShaderLib.flatShaderTexture.value
+        shader.use()
+        val posX = (x - GFX.windowX).toFloat() / GFX.windowWidth
+        val posY = (y - GFX.windowY).toFloat() / GFX.windowHeight
+        val relW = +w.toFloat() / GFX.windowWidth
+        val relH = +h.toFloat() / GFX.windowHeight
+        shader.v2("pos", posX, posY)
+        shader.v2("size", relW, relH)
+        defineAdvancedGraphicalFeatures(shader)
+        shader.v4("color", -1)
+        shader.v1("ignoreTexAlpha", if (ignoreAlpha) 1 else 0)
+        shader.v4("tiling", 1f, 1f, 0f, 0f)
+        val tex = texture as? Texture2D
+        texture.bind(
+            0,
+            tex?.filtering ?: GPUFiltering.NEAREST,
+            tex?.clamping ?: Clamping.CLAMP
+        )
+        GFX.flat01.draw(shader)
+        GFX.check()
+    }
+
     fun drawTexture(
         x: Int, y: Int, w: Int, h: Int,
         texture: ITexture2D, ignoreAlpha: Boolean, color: Int, tiling: Vector4fc?

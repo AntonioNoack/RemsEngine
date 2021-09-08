@@ -17,5 +17,6 @@ interface ITexture2D : ICacheData {
         return bind(index, if (filtering.baseIsNearest) GPUFiltering.NEAREST else GPUFiltering.LINEAR, clamping)
     }
 
+    fun bindTrulyNearest(index: Int) = bind(index, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
 
 }

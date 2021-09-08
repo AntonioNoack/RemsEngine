@@ -27,16 +27,19 @@ object DeferredRenderer : Renderer(
     ShaderPlus.DrawMode.COLOR,
     DeferredSettingsV2(
         listOf(
-            DeferredLayerType.POSITION,
-            DeferredLayerType.NORMAL,
+            DeferredLayerType.COLOR, // 3
+            DeferredLayerType.OCCLUSION, // 1
+            DeferredLayerType.NORMAL, // 3
+            DeferredLayerType.POSITION, // 3, could be replaced by depth + transform + math
+            DeferredLayerType.EMISSIVE, // 3
             // DeferredLayerType.TANGENT,
-            DeferredLayerType.COLOR,
-            DeferredLayerType.EMISSIVE,
-            DeferredLayerType.ROUGHNESS,
-            DeferredLayerType.METALLIC,
-            DeferredLayerType.OCCLUSION,
-            DeferredLayerType.CLEAR_COAT,
-            DeferredLayerType.ANISOTROPIC
+            DeferredLayerType.ROUGHNESS, // 1
+            DeferredLayerType.METALLIC,// 1
+            DeferredLayerType.SHEEN, // 1
+            DeferredLayerType.TRANSLUCENCY, // 1
+            // applied in material shader
+            // DeferredLayerType.CLEAR_COAT,
+            DeferredLayerType.ANISOTROPIC // 1
         ),
         true
     )

@@ -4,6 +4,7 @@ import me.anno.gpu.GFX.flat01
 import me.anno.gpu.RenderState.renderPurely
 import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.ShaderLib.createShaderNoShorts
+import me.anno.gpu.ShaderLib.simplestVertexShader
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
@@ -138,12 +139,7 @@ object BokehBlur {
                 "   float f11 = float(i)/float(radius);\n" + // -1 .. +1
                 "   float f01 = f11*0.5-0.5;\n" // 0 .. 1
 
-        val vertexShader = "" +
-                "in vec2 attr0;\n" +
-                "void main(){" +
-                "   gl_Position = vec4(attr0*2.0-1.0, 0.0, 1.0);\n" +
-                "   uv = attr0;\n" +
-                "}"
+        val vertexShader = simplestVertexShader
 
         val getFilters = "" +
                 "vec4 getFilters(float x){\n" +

@@ -26,7 +26,7 @@ object HiddenOpenGLContext {
 
     var capabilities: GLCapabilities? = null
 
-    fun setSize(w: Int, h: Int) {
+    fun setSize(w: Int, h: Int = w) {
         GFX.width = w
         GFX.height = h
     }

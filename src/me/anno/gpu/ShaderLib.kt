@@ -49,6 +49,23 @@ object ShaderLib {
      * */
     const val maxOutlineColors = 6
 
+    val simplestVertexShader =  "" +
+            "attribute vec2 attr0;\n" +
+            "void main(){\n" +
+            "   gl_Position = vec4(attr0*2.0-1.0,0.5,1.0);\n" +
+            "   uv = attr0;\n" +
+            "}"
+
+    val uvList = listOf(Variable("vec2", "uv"))
+    val simpleVertexShader = "" +
+            "attribute vec2 attr0;\n" +
+            "uniform vec2 pos, size;\n" +
+            "uniform vec4 tiling;\n" +
+            "void main(){\n" +
+            "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.5, 1.0);\n" +
+            "   uv = (attr0-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
+            "}"
+
     const val brightness = "" +
             "float brightness(vec3 color){\n" +
             "   return sqrt(0.299*color.r*color.r + 0.587*color.g*color.g + 0.114*color.b*color.b);\n" +
@@ -379,13 +396,7 @@ object ShaderLib {
         flatShaderTexture = BaseShader(
             "flatShaderTexture",
             "" +
-                    "a2 attr0;\n" +
-                    "u2 pos, size;\n" +
-                    "u4 tiling;\n" +
-                    "void main(){\n" +
-                    "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
-                    "   uv = (attr0-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
-                    "}", listOf(Variable("vec2", "uv")), "" +
+                    simpleVertexShader, uvList, "" +
                     "uniform sampler2D tex;\n" +
                     "u4 color;\n" +
                     "uniform bool ignoreTexAlpha;\n" +
@@ -434,11 +445,7 @@ object ShaderLib {
         )
 
         copyShader = createShader(
-            "copy", "in vec2 attr0;\n" +
-                    "void main(){\n" +
-                    "   gl_Position = vec4(attr0*2.0-1.0, 0.5, 1.0);\n" +
-                    "   uv = attr0;\n" +
-                    "}\n", listOf(Variable("vec2", "uv")), "" +
+            "copy", simplestVertexShader, listOf(Variable("vec2", "uv")), "" +
                     "uniform sampler2D tex;\n" +
                     "uniform float am1;\n" +
                     "void main(){\n" +
@@ -672,12 +679,7 @@ object ShaderLib {
 
         // somehow becomes dark for large |steps|-values
         shader3DBoxBlur = createShader(
-            "3d-blur", "" +
-                    "a2 attr0;\n" +
-                    "void main(){\n" +
-                    "   gl_Position = vec4(attr0*2.0-1.0, 0.0, 1.0);\n" +
-                    "   uv = attr0;\n" +
-                    "}", listOf(Variable("vec2", "uv")), "" +
+            "3d-blur", simplestVertexShader, listOf(Variable("vec2", "uv")), "" +
                     "precision highp float;\n" +
                     "uniform sampler2D tex;\n" +
                     "uniform vec2 stepSize;\n" +

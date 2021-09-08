@@ -149,6 +149,8 @@ open class Shader(
         if (geometryShader >= 0) glDeleteShader(geometryShader)
         logShader(vertexSource, fragmentSource)
 
+        postPossibleError(program, false, fragmentSource)
+
         GFX.check()
 
     }
@@ -245,12 +247,16 @@ open class Shader(
         glShaderSource(shader, source)
         glCompileShader(shader)
         glAttachShader(program, shader)
-        postPossibleError(shader, source)
+        postPossibleError(shader, true, source)
         return shader
     }
 
-    private fun postPossibleError(shader: Int, source: String) {
-        val log = glGetShaderInfoLog(shader)
+    private fun postPossibleError(shader: Int, isShader: Boolean, source: String) {
+        val log = if(isShader){
+            glGetShaderInfoLog(shader)
+        } else {
+            glGetProgramInfoLog(shader)
+        }
         if (!log.isBlank2()) {
             LOGGER.warn(
                 "$log by $shaderName\n\n${

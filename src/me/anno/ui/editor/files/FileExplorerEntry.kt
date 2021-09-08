@@ -224,7 +224,11 @@ class FileExplorerEntry(
         val h = y1 - y0
         val (iw, ih) = scale(image.w, image.h, w, h)
         // todo if texture is HDR, then use reinhard tonemapping for preview, with factor of 5
-        drawTexture(x0 + (w - iw) / 2, y0 + (h - ih) / 2, iw, ih, image, -1, null)
+        // we can use FSR to upsample the images LOL
+        val x = x0 + (w - iw) / 2
+        val y = y0 + (h - ih) / 2
+        // FSR.upscale(image, x, y, iw, ih) ^^, but sadly, it doesn't work well with alpha
+        drawTexture(x, y, iw, ih, image, -1, null)
     }
 
     private fun getDefaultIcon() = getInternalTexture(iconPath, true)

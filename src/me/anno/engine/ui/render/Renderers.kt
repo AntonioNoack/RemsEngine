@@ -154,6 +154,7 @@ object Renderers {
                     "       finalColor = finalColor/(1.0+finalColor);\n" +
                     // banding prevention
                     // -0.5, so we don't destroy blacks on OLEDs
+                    // todo this and tone mapping only, if we don't use bloom
                     "       finalColor -= random(uv) * ${1.0 / 255.0};\n" +
                     "   }\n"
             ).apply {

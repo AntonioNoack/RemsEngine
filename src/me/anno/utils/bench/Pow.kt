@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.RenderState
 import me.anno.gpu.RenderState.useFrame
+import me.anno.gpu.ShaderLib.simplestVertexShader
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
@@ -20,15 +21,8 @@ import kotlin.math.roundToInt
 fun main() {
 
     fun createShader(code: String) = Shader(
-        "", null, "" +
-                "attribute vec2 attr0;\n" +
-                "void main(){\n" +
-                "   gl_Position = vec4(attr0*2.0-1.0, 0.0, 1.0);\n" +
-                "   uv = attr0;\n" +
-                "}", listOf(Variable("vec2", "uv")), "" +
-                "void main(){" +
-                code +
-                "}"
+        "", null, simplestVertexShader,
+        listOf(Variable("vec2", "uv")), "void main(){$code}"
     )
 
     fun repeat(code: String, times: Int): String {

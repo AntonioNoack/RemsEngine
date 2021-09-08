@@ -29,18 +29,18 @@ import me.anno.gpu.RenderState.renderPurely
 import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.copying.FramebufferToMemory.createBufferedImage
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.gpu.drawing.Perspective.setPerspective
-import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame
+import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.colorRenderer
-import me.anno.gpu.texture.Filtering
-import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.*
 import me.anno.gpu.texture.Texture2D.Companion.packAlignment
 import me.anno.image.*
 import me.anno.image.tar.TGAImage
@@ -56,7 +56,6 @@ import me.anno.mesh.assimp.AnimGameItem
 import me.anno.objects.Video
 import me.anno.objects.documents.pdf.PDFCache
 import me.anno.objects.meshes.MeshData
-import me.anno.objects.meshes.MeshTransform.Companion.loadVOX
 import me.anno.studio.Build
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
@@ -186,6 +185,13 @@ object Thumbs {
         }
     }
 
+    private fun upload(srcFile: FileReference, fb: Framebuffer, callback: (Texture2D) -> Unit) {
+        val texture = (fb.msBuffer?.textures ?: fb.textures).first()
+        texture.rotation = ImageData.getRotation(srcFile)
+        callback(texture)
+        GFX.addGPUTask(1) { fb.destroyExceptTextures(true) }
+    }
+
     private fun upload(srcFile: FileReference, dst: BufferedImage, callback: (Texture2D) -> Unit) {
         val rotation = ImageData.getRotation(srcFile)
         if (isGFXThread()) {
@@ -212,6 +218,23 @@ object Thumbs {
             use(dstFile.outputStream()) { ImageIO.write(dst.createBufferedImage(), destinationFormat, it) }
         }
         upload(srcFile, dst, callback)
+    }
+
+    private fun saveNUpload(
+        srcFile: FileReference,
+        dstFile: FileReference,
+        fb: Framebuffer,
+        dst: BufferedImage,
+        callback: (Texture2D) -> Unit
+    ) {
+        if (useCacheFolder) {
+            // don't wait to upload the image
+            thread(name = "Writing ${dstFile.name} for cached thumbs") {
+                dstFile.getParent()!!.mkdirs()
+                use(dstFile.outputStream()) { ImageIO.write(dst, destinationFormat, it) }
+            }
+        }
+        upload(srcFile, fb, callback)
     }
 
     private fun saveNUpload(
@@ -284,6 +307,17 @@ object Thumbs {
         }
     }
 
+    fun BufferedImage.flipY() {
+        for (y0 in 0 until height / 2) {
+            val y1 = height - 1 - y0
+            for (x in 0 until width) {
+                val rgb0 = getRGB(x, y0)
+                setRGB(x, y0, getRGB(x, y1))
+                setRGB(x, y1, rgb0)
+            }
+        }
+    }
+
     private fun renderToBufferedImage2(
         srcFile: FileReference,
         dstFile: FileReference,
@@ -297,7 +331,10 @@ object Thumbs {
     ) {
         GFX.check()
 
-        val fb2 = FBStack["generateVideoFrame", w, h, 4, false, 8]
+        val fb2 = Framebuffer(
+            "generateVideoFrame", w, h, 4, 1, false,
+            if (withDepth) DepthBufferType.TEXTURE_16 else DepthBufferType.NONE
+        )
 
         renderPurely {
 
@@ -324,48 +361,58 @@ object Thumbs {
                 }
             }
 
-            // cannot read from separate framebuffer, only from null... why ever...
-            useFrame(0, 0, w, h, false, null, colorRenderer) {
-
-                GFX.copy(fb2)
-
-                glFlush(); glFinish() // wait for everything to be drawn
-
-                GFX.check()
-
-                packAlignment(4 * w)
-                glReadPixels(0, GFX.height - h, w, h, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
-
-                GFX.check()
-
-            }
-
-        }
-
-        threadWithName("Thumbs::renderToBufferedImage()") {
-            val dst = BufferedImage(w, h, 2)
-            val buffer2 = dst.raster.dataBuffer
-            if (flipY) {
-                var i = 0
-                val dy = h - 1
-                for (y in 0 until h) {
-                    for (x in 0 until w) {
-                        val col = buffer[i]
-                        // swizzle colors, because rgba != argb
-                        // and flip y
-                        buffer2.setElem(x + (dy - y) * w, rgba(col.b(), col.g(), col.r(), col.a()))
-                        i++
-                    }
-                }
+            if (true || w > GFX.width || h > GFX.height) {
+                fb2.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                val dst = createBufferedImage(w, h, fb2, flipY, true)
+                saveNUpload(srcFile, dstFile, dst, callback)
             } else {
-                for (i in 0 until w * h) {
-                    val col = buffer[i]
-                    // swizzle colors, because rgba != argb
-                    buffer2.setElem(i, rgba(col.b(), col.g(), col.r(), col.a()))
+                // cannot read from separate framebuffer, only from null... why ever...
+                useFrame(0, 0, w, h, false, null, colorRenderer) {
+
+                    GFX.copy(fb2)
+
+                    glFlush(); glFinish() // wait for everything to be drawn
+
+                    GFX.check()
+
+                    packAlignment(4 * w)
+                    glReadPixels(0, GFX.height - h, w, h, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
+
+                    GFX.check()
+
                 }
+
+                threadWithName("Thumbs::renderToBufferedImage()") {
+                    val dst = BufferedImage(w, h, 2)
+                    val buffer2 = dst.raster.dataBuffer
+                    if (flipY) {
+                        var i = 0
+                        val dy = h - 1
+                        for (y in 0 until h) {
+                            for (x in 0 until w) {
+                                val col = buffer[i]
+                                // swizzle colors, because rgba != argb
+                                // and flip y
+                                buffer2.setElem(x + (dy - y) * w, rgba(col.b(), col.g(), col.r(), col.a()))
+                                i++
+                            }
+                        }
+                    } else {
+                        for (i in 0 until w * h) {
+                            val col = buffer[i]
+                            // swizzle colors, because rgba != argb
+                            buffer2.setElem(i, rgba(col.b(), col.g(), col.r(), col.a()))
+                        }
+                    }
+                    saveNUpload(srcFile, dstFile, fb2, dst, callback)
+                }
+
             }
-            saveNUpload(srcFile, dstFile, dst, callback)
+
+
         }
+
+
     }
 
     fun loadVideo(srcFile: FileReference) {

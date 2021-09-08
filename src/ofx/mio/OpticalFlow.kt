@@ -3,6 +3,7 @@ package ofx.mio
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.ShaderLib.createShader
+import me.anno.gpu.ShaderLib.simplestVertexShader
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
@@ -81,12 +82,8 @@ object OpticalFlow {
 
     val flowShader = lazy {
         createShader(
-            "flow", "" +
-                    "attribute vec2 attr0;\n" +
-                    "void main(){" +
-                    "   gl_Position = vec4(attr0*2.-1., 0., 1.);\n" +
-                    "   texCoord = attr0;\n" +
-                    "}", listOf(Variable("vec2", "texCoord")), "" +
+            "flow", simplestVertexShader,
+            listOf(Variable("vec2", "uv")), "" +
                     "uniform sampler2D tex0, tex1;\n" +
                     "uniform vec2 scale, offset;\n" +
                     "uniform float lambda;\n" +
@@ -99,8 +96,8 @@ object OpticalFlow {
                     "}\n" +
                     "void main(){\n" +
 
-                    "   vec4 a = texture(tex0, texCoord);\n" +
-                    "   vec4 b = texture(tex1, texCoord);\n" +
+                    "   vec4 a = texture(tex0, uv);\n" +
+                    "   vec4 b = texture(tex1, uv);\n" +
                     "   vec2 x1 = vec2(offset.x,0.);\n" +
                     "   vec2 y1 = vec2(0.,offset.y);\n" +
 
@@ -109,12 +106,12 @@ object OpticalFlow {
 
                     "   // calculate the gradient\n" +
                     "   // for X\n" +
-                    "   float gradX = texture(tex1, texCoord+x1).r-texture(tex1, texCoord-x1).r;\n" +
-                    "   gradX += texture(tex0, texCoord+x1).r-texture(tex0, texCoord-x1).r;\n" +
+                    "   float gradX = texture(tex1, uv+x1).r-texture(tex1, uv-x1).r;\n" +
+                    "   gradX += texture(tex0, uv+x1).r-texture(tex0, uv-x1).r;\n" +
 
                     "   // for Y\n" +
-                    "   float gradY = texture(tex1, texCoord+y1).r-texture(tex1, texCoord-y1).r;\n" +
-                    "   gradY += texture(tex0, texCoord+y1).r-texture(tex0, texCoord-y1).r;\n" +
+                    "   float gradY = texture(tex1, uv+y1).r-texture(tex1, uv-y1).r;\n" +
+                    "   gradY += texture(tex0, uv+y1).r-texture(tex0, uv-y1).r;\n" +
 
                     "   vec2 grad = vec2(gradX, gradY);\n" +
                     "   float gradMagnitude = sqrt(dot(grad,grad) + lambda);\n" +
@@ -128,12 +125,8 @@ object OpticalFlow {
 
     val blurShader = lazy {
         createShader(
-            "blur", "" +
-                    "attribute vec2 attr0;\n" +
-                    "void main(){" +
-                    "   gl_Position = vec4(attr0*2.-1., 0., 1.);\n" +
-                    "   texCoord = attr0;\n" +
-                    "}", listOf(Variable("vec2", "texCoord")), "" +
+            "blur", "" + simplestVertexShader,
+            listOf(Variable("vec2", "uv")), "" +
                     "uniform sampler2D tex;\n" +
                     "uniform vec2 texOffset;\n" +
                     "\n" +
@@ -172,15 +165,15 @@ object OpticalFlow {
                     "   float coefficientSum = 0.0;\n" +
 
                     "   // Take the central sample first...\n" +
-                    "   avgValue += get2DOff(tex, texCoord.st) * incrementalGaussian.x;\n" +
+                    "   avgValue += get2DOff(tex, uv.st) * incrementalGaussian.x;\n" +
                     "   coefficientSum += incrementalGaussian.x;\n" +
                     "   incrementalGaussian.xy *= incrementalGaussian.yz;\n" +
 
                     // Go through the remaining 8 vertical samples (4 on each side of the center)
                     "       for (float i = 1.0; i <= numBlurPixelsPerSide; i++) { \n" +
-                    "       avgValue += get2DOff(tex, texCoord.st - i * texOffset * \n" +
+                    "       avgValue += get2DOff(tex, uv.st - i * texOffset * \n" +
                     "           blurMultiplyVec) * incrementalGaussian.x;         \n" +
-                    "       avgValue += get2DOff(tex, texCoord.st + i * texOffset * \n" +
+                    "       avgValue += get2DOff(tex, uv.st + i * texOffset * \n" +
                     "           blurMultiplyVec) * incrementalGaussian.x;         \n" +
                     "       coefficientSum += 2.0 * incrementalGaussian.x;\n" +
                     "       incrementalGaussian.xy *= incrementalGaussian.yz;\n" +
@@ -194,11 +187,7 @@ object OpticalFlow {
     val repositionShader = lazy {
         createShader(
             "reposition", "" +
-                    "attribute vec2 attr0;\n" +
-                    "void main(){" +
-                    "   gl_Position = vec4(attr0*2.-1., 0., 1.);\n" +
-                    "   texCoord = attr0;\n" +
-                    "}", listOf(Variable("vec2", "texCoord")), "" +
+                    simplestVertexShader, listOf(Variable("vec2", "uv")), "" +
                     "uniform vec2 amt;\n" +
                     "uniform sampler2D tex0, tex1;\n" +
                     "vec2 get2DOff(sampler2D tex, vec2 coord) {\n" +
@@ -207,7 +196,7 @@ object OpticalFlow {
                     "   return vec2(col.x-col.y, col.z);\n" +
                     "}\n" +
                     "void main(){\n" +
-                    "   vec2 coord = get2DOff(tex1, texCoord) * amt + texCoord;// relative coordinates\n" +
+                    "   vec2 coord = get2DOff(tex1, uv) * amt + uv;// relative coordinates\n" +
                     "   vec4 repos = texture(tex0, coord);\n" +
                     "   gl_FragColor = repos;\n" +
                     "}", listOf("tex0", "tex1")

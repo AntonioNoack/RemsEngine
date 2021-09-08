@@ -10,7 +10,7 @@ object ResourceHelper {
     fun loadResource(name: String) = (
         // needs to be the same package
         ResourceHelper.javaClass.classLoader.getResourceAsStream(name)
-            ?: throw FileNotFoundException(name)
+            ?: throw FileNotFoundException("res://$name")
     )
 
     @Throws(IOException::class)

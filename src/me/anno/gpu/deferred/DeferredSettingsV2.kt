@@ -1,5 +1,6 @@
 package me.anno.gpu.deferred
 
+import me.anno.gpu.ShaderLib.uvList
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
@@ -185,8 +186,7 @@ class DeferredSettingsV2(
                 "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
                 "   uv = attr0;\n" +
                 "}"
-        val varying = listOf(Variable("vec2", "uv"))
-        return createPostProcessingShader(shaderName, vertex, varying, geometrySource, fragmentSource, textures)
+        return createPostProcessingShader(shaderName, vertex, uvList, geometrySource, fragmentSource, textures)
     }
 
     fun createPostProcessFragment(
