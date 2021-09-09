@@ -269,6 +269,44 @@ class Mesh : PrefabSaveable() {
         forEachTriangle(Vector3f(), Vector3f(), Vector3f(), callback)
     }
 
+    fun forEachTriangleIndex(callback: (a: Int, b: Int, c: Int) -> Unit) {
+        val indices = indices
+        if (indices == null) {
+            for (i in 0 until positions!!.size / 3) {
+                val i3 = i * 3
+                callback(i3 + 0, i3 + 1, i3 + 2)
+            }
+        } else {
+            for (i in indices.indices step 3) {
+                val a = indices[i + 0]
+                val b = indices[i + 1]
+                val c = indices[i + 2]
+                callback(a, b, c)
+            }
+        }
+    }
+
+    fun forEachSideIndex(callback: (a: Int, b: Int) -> Unit) {
+        val indices = indices
+        if (indices == null) {
+            for (i in 0 until positions!!.size / 3) {
+                val i3 = i * 3
+                callback(i3 + 0, i3 + 1)
+                callback(i3 + 1, i3 + 2)
+                callback(i3 + 2, i3 + 0)
+            }
+        } else {
+            for (i in indices.indices step 3) {
+                val a = indices[i + 0]
+                val b = indices[i + 1]
+                val c = indices[i + 2]
+                callback(a, b)
+                callback(b, c)
+                callback(c, a)
+            }
+        }
+    }
+
     fun forEachTriangle(
         a: Vector3f,
         b: Vector3f,
@@ -330,6 +368,8 @@ class Mesh : PrefabSaveable() {
     var hasUVs = false
     var hasVertexColors = false
     var hasBonesInBuffer = false
+
+    val numTriangles get() = indices?.run { size / 3 } ?: positions?.run { size / 9 } ?: 0
 
     private fun updateMesh() {
 

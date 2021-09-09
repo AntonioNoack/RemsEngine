@@ -31,7 +31,7 @@ import kotlin.math.pow
 
 abstract class LightComponent(
     val lightType: LightType
-) : Component() {
+) : LightComponentBase() {
 
     // todo AES lights, and their textures?
 

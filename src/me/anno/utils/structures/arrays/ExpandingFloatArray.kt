@@ -1,20 +1,51 @@
 package me.anno.utils.structures.arrays
 
+import me.anno.io.Saveable
+import me.anno.io.base.BaseWriter
 import org.joml.Vector2f
 import org.joml.Vector3f
 import kotlin.math.max
 
 class ExpandingFloatArray(
-    private val initCapacity: Int
-) {
+    private var initCapacity: Int
+) : Saveable() {
 
     var size = 0
+
+    private var array: FloatArray? = null
 
     fun clear() {
         size = 0
     }
 
-    private var array: FloatArray? = null
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        writer.writeInt("initCapacity", initCapacity)
+        writer.writeInt("size", size)
+        val array = array
+        if (array != null) {
+            // clear the end, so we can save it with less space wasted
+            for (i in size until array.size) {
+                array[i] = 0f
+            }
+            writer.writeFloatArray("values", array)
+        }
+    }
+
+    override fun readInt(name: String, value: Int) {
+        when (name) {
+            "size" -> size = value
+            "initCapacity" -> initCapacity
+            else -> super.readInt(name, value)
+        }
+    }
+
+    override fun readFloatArray(name: String, values: FloatArray) {
+        when (name) {
+            "values" -> array = values
+            else -> super.readFloatArray(name, values)
+        }
+    }
 
     fun add(value: Float) = plusAssign(value)
     operator fun set(index: Int, value: Float) {
@@ -50,6 +81,5 @@ class ExpandingFloatArray(
         plusAssign(v.y)
         plusAssign(v.z)
     }
-
 
 }

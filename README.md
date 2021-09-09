@@ -77,6 +77,42 @@ I am writing the game engine in this same repository as Rem's Studio, because
 - currently, the engine needs to be based on the video editor
 - when I started the engine, the video studio already was a huge project
 
+### Features
+
+- entity - component based system
+  - because I like the system from Unity more than that of Godot (still imperfect)
+- supports loading all kinds of formats
+- can load files from compressed folders
+- pbr workflow
+- Bullet as physics engine
+- mods / plugins from the start: your game is a mod for the engine
+- event based
+- auto switch between forward- and deferred rendering
+- shadows with cascades (directional, spot, point)
+- static meshes
+- animated meshes
+- aabb optimized scene hierarchy
+- bloom
+
+### Planned Features
+- nice UI system
+- easy local multiplayer
+- environment maps as lights
+- compute env maps from the scene  
+- AMD FSR
+- animation trees
+- shader graphs
+
+### Maybe Later Features
+- light baking for realistic graphics
+- trees for much stuff: animations, shaders
+- visual coding?
+- path finding algorithms
+- block based library?
+- save files
+- multiplayer system?
+
+
 <!--
 ## Supported Formats (Import)
 

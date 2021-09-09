@@ -1,9 +1,11 @@
 package me.anno.utils.types
 
+import me.anno.graph.knn.Heap
+
 object Lists {
 
-    fun <V> List<V>.asMutableList(): MutableList<V>{
-        return if(this is MutableList<V> && javaClass.name != "java.util.Collections\$SingletonList") this
+    fun <V> List<V>.asMutableList(): MutableList<V> {
+        return if (this is MutableList<V> && javaClass.name != "java.util.Collections\$SingletonList") this
         else ArrayList(this)
     }
 
@@ -133,16 +135,88 @@ object Lists {
         return result
     }
 
-    fun <A, B,C> List<A>.cross(other: List<B>, other2: List<C>): List<Triple<A, B, C>> {
+    fun <A, B, C> List<A>.cross(other: List<B>, other2: List<C>): List<Triple<A, B, C>> {
         val result = ArrayList<Triple<A, B, C>>(size * other.size * other2.size)
         for (a in this) {
             for (b in other) {
-                for(c in other2){
+                for (c in other2) {
                     result += Triple(a, b, c)
                 }
             }
         }
         return result
+    }
+
+    fun <X, Y : Comparable<Y>> List<X>.smallestKElementsBy(k: Int, comparator: (X) -> Y): List<X> {
+        return if (size <= k) {
+            this
+        } else {
+            val comp2 = { a: X, b: X -> comparator(a).compareTo(comparator(b)) }
+            this.smallestKElements(k, comp2)
+        }
+    }
+
+    fun <X> List<X>.smallestKElements(k: Int, comparator: Comparator<X>): List<X> {
+        return if (size <= k) {
+            this
+        } else {
+            /*this // the simple way, O(n*log(n))
+                .sortedBy(comparator)
+                .subList(0, k)*/
+            this // a fast way, O(n+k*log(n))
+                .buildMinHeap(comparator) // O(n)
+                .extractMin(k, comparator) // O(k*log(n))
+        }
+    }
+
+    fun <X, Y : Comparable<Y>> List<X>.largestKElementsBy(k: Int, comparator: (X) -> Y): List<X> {
+        return if (size <= k) {
+            this
+        } else {
+            val comp2 = { a: X, b: X -> comparator(a).compareTo(comparator(b)) }
+            this.largestKElements(k, comp2)
+        }
+    }
+
+    fun <X> List<X>.largestKElements(k: Int, comparator: Comparator<X>): List<X> {
+        return if (size <= k) {
+            this
+        } else {
+            /*this // the simple way, O(n*log(n))
+                .sortedByDescending(comparator)
+                .subList(0, k)*/
+            this // a fast way, O(n+k*log(n))
+                .buildMaxHeap(comparator) // O(n)
+                .extractMax(k, comparator) // O(k*log(n))
+        }
+    }
+
+    fun <X> List<X>.buildMaxHeap(comparator: Comparator<X>): ArrayList<X> {
+        val list = ArrayList(this)
+        Heap.buildMaxHeap(list, comparator)
+        return list
+    }
+
+    fun <X> ArrayList<X>.extractMax(k: Int, comparator: Comparator<X>): List<X> {
+        val list = ArrayList<X>(k)
+        for (i in 0 until k) {
+            list.add(Heap.extractMax(this, comparator))
+        }
+        return list
+    }
+
+    fun <X> List<X>.buildMinHeap(comparator: Comparator<X>): ArrayList<X> {
+        val list = ArrayList(this)
+        Heap.buildMinHeap(list, comparator)
+        return list
+    }
+
+    fun <X> ArrayList<X>.extractMin(k: Int, comparator: Comparator<X>): List<X> {
+        val list = ArrayList<X>(k)
+        for (i in 0 until k) {
+            list.add(Heap.extractMin(this, comparator))
+        }
+        return list
     }
 
 

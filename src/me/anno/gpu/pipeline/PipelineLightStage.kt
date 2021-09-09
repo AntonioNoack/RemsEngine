@@ -45,6 +45,9 @@ class PipelineLightStage(
     val writeDepth = false
     val cullMode = GL_FRONT
 
+    // not yet optimized
+    val environmentMaps = ArrayList<EnvironmentMap>()
+
     val size get() = instanced.size + nonInstanced.size
 
     companion object {
@@ -552,11 +555,16 @@ class PipelineLightStage(
     fun reset() {
         instanced.clear()
         nonInstanced.clear()
+        environmentMaps.clear()
     }
 
     fun add(light: LightComponent, entity: Entity) {
         val group = if (light.hasShadow && light.shadowTextures != null) nonInstanced else instanced
         group.add(light, entity.transform)
+    }
+
+    fun add(environmentMap: EnvironmentMap, entity: Entity){
+        environmentMaps.add(environmentMap)
     }
 
     override val className: String = "LightPipelineStage"
