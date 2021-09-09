@@ -52,6 +52,12 @@ class ExpandingFloatArray(
         array!![index] = value
     }
 
+    fun add(v: Vector3f){
+        add(v.x)
+        add(v.y)
+        add(v.z)
+    }
+
     operator fun get(index: Int) = array!![index]
     operator fun plusAssign(value: Float) {
         val array = array

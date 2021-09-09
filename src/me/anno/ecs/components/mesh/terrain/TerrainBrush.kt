@@ -7,7 +7,7 @@ abstract class TerrainBrush {
 
     abstract fun apply(
         editorPosition: Vector3f, editorMatrix: Matrix3f,
-        size: Float, strength: Float,
+        radius: Float, strength: Float,
         point: Vector3f, normal: Vector3f
     )
 

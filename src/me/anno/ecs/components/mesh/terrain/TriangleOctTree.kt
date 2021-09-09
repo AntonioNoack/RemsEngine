@@ -26,6 +26,9 @@ class TriangleOctTree(
     constructor(terrain: TriTerrain, min: Vector3f, max: Vector3f, maxTriangles: Int) :
             this(terrain, null, min, max, maxTriangles)
 
+    constructor(terrain: TriTerrain, maxTriangles: Int) :
+            this(terrain, null, Vector3f(), Vector3f(), maxTriangles)
+
     var indices = IntArray(maxTriangles * 3)
     var isOnEdge = BooleanArray(maxTriangles * 3) // A,B,C
 
@@ -118,6 +121,68 @@ class TriangleOctTree(
             numTriangles += node.numTriangles
 
             return true
+        }
+        return false
+    }
+
+    fun forEachEdgeIndexed(
+        callback: (a: Int, b: Int, c: Int, abIsEdge: Boolean, bcIsEdge: Boolean, caIsEdge: Boolean, index: Int) -> Boolean
+    ): Boolean {
+        if (hasValue) {
+            val srcIdx = indices
+            val srcIOE = isOnEdge
+            for (i in 0 until numTriangles) {
+                val i3 = i * 3
+                val ab = srcIOE[i3]
+                val bc = srcIOE[i3 + 1]
+                val ca = srcIOE[i3 + 2]
+                if (ab || bc || ca) {
+                    val a = srcIdx[i3]
+                    val b = srcIdx[i3 + 1]
+                    val c = srcIdx[i3 + 2]
+                    if (callback(a, b, c, ab, bc, ca, i)) return true
+                }
+            }
+        }
+        return false
+    }
+
+    fun forEachTriangleIndexed(
+        callback: (a: Int, b: Int, c: Int, abIsEdge: Boolean, bcIsEdge: Boolean, caIsEdge: Boolean, index: Int) -> Boolean
+    ): Boolean {
+        if (hasValue) {
+            val srcIdx = indices
+            val srcIOE = isOnEdge
+            for (i in 0 until numTriangles) {
+                val i3 = i * 3
+                val a = srcIdx[i3]
+                val b = srcIdx[i3 + 1]
+                val c = srcIdx[i3 + 2]
+                val ab = srcIOE[i3]
+                val bc = srcIOE[i3 + 1]
+                val ca = srcIOE[i3 + 2]
+                if (callback(a, b, c, ab, bc, ca, i)) return true
+            }
+        }
+        return false
+    }
+
+    fun forEachTriangle(
+        callback: (a: Int, b: Int, c: Int, abIsEdge: Boolean, bcIsEdge: Boolean, caIsEdge: Boolean) -> Boolean
+    ): Boolean {
+        if (hasValue) {
+            val srcIdx = indices
+            val srcIOE = isOnEdge
+            for (i in 0 until numTriangles) {
+                val i3 = i * 3
+                val a = srcIdx[i3]
+                val b = srcIdx[i3 + 1]
+                val c = srcIdx[i3 + 2]
+                val ab = srcIOE[i3]
+                val bc = srcIOE[i3 + 1]
+                val ca = srcIOE[i3 + 2]
+                if (callback(a, b, c, ab, bc, ca)) return true
+            }
         }
         return false
     }

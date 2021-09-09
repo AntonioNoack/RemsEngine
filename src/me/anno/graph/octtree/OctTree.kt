@@ -21,7 +21,7 @@ abstract class OctTree<Point>(
     abstract fun split(other: Any): SplitResult<Point>
 
     var splitPoint: Point? = null
-    var hasAny: Boolean = false
+    var hasValue: Boolean = false
     var children: Array<OctTree<Point>?>? = null
 
     fun iterate(callback: (Any) -> Boolean): Boolean {
@@ -33,7 +33,7 @@ abstract class OctTree<Point>(
             }
             false
         } else {
-            if (hasAny) {
+            if (hasValue) {
                 callback(this as Any)
             } else false
         }
@@ -55,7 +55,7 @@ abstract class OctTree<Point>(
             }
             false
         } else {
-            if (hasAny) {
+            if (hasValue) {
                 callback(this as Any)
             } else false
         }
@@ -66,15 +66,15 @@ abstract class OctTree<Point>(
     fun add(newAny: Any) {
         val children = children
         if (children == null) {
-            if (!hasAny) {
+            if (!hasValue) {
                 // this is the first Any
                 setContent(newAny)
-                hasAny = true
+                hasValue = true
             } else {
                 if (!tryJoin(newAny)) {
                     // we cannot join them -> we need to split them
                     val result = split(newAny)
-                    hasAny = false
+                    hasValue = false
                     this.splitPoint = result.splitPoint
                     this.children = result.children
                 }
