@@ -129,16 +129,13 @@ open class StaticMeshesLoader {
         val meshCount = aiNode.mNumMeshes()
         if (meshCount > 0) {
 
+            val rendererClass = if (hasSkeleton) "AnimRenderer" else "MeshComponent"
             val meshIndices = aiNode.mMeshes()!!
             for (i in 0 until meshCount) {
                 val mesh = sceneMeshes[meshIndices[i]]
-                val meshComponent = CAdd(path, 'c', "MeshComponent", mesh.name)
-                prefab.add(meshComponent)
+                val meshComponent = prefab.add(CAdd(path, 'c', rendererClass, mesh.name))
                 prefab.add(CSet(meshComponent.getChildPath(i), "mesh", mesh))
             }
-
-            val rendererClass = if (hasSkeleton) "AnimRenderer" else "MeshRenderer"
-            prefab.add(CAdd(path, 'c', rendererClass, "Renderer"))
 
         }
 

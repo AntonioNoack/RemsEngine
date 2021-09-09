@@ -4,7 +4,6 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.RendererComponent
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.pipeline.M4x3Delta.m4x3delta
@@ -27,20 +26,17 @@ object Outlines {
         for (i in children.indices) {
             drawOutlineInternally(children[i], worldScale)
         }
-        val renderer = entity.getComponent(RendererComponent::class, false)
-        if (renderer != null) {
-            val components = entity.components
-            for (i in components.indices) {
-                val component = components[i]
-                if (component is MeshComponent) {
-                    val mesh = MeshCache[component.mesh, true] ?: continue
-                    drawOutline(renderer, component, mesh, worldScale)
-                }
+        val components = entity.components
+        for (i in components.indices) {
+            val component = components[i]
+            if (component is MeshComponent) {
+                val mesh = MeshCache[component.mesh, true] ?: continue
+                drawOutline(component, mesh, worldScale)
             }
         }
     }
 
-    fun drawOutline(renderer: RendererComponent?, meshComponent: MeshComponent, mesh: Mesh, worldScale: Double) {
+    fun drawOutline(meshComponent: MeshComponent, mesh: Mesh, worldScale: Double) {
 
         val entity = meshComponent.entity ?: return
         val transform0 = entity.transform
@@ -95,9 +91,7 @@ object Outlines {
             shader.m4x3delta("localTransform", transform, camPosition, worldScale, scale)
             shader.v4("tint", -1)
 
-            if (renderer != null) {
-                renderer.defineVertexTransform(shader, entity, mesh)
-            } else shader.v1("hasAnimation", false)
+            meshComponent.defineVertexTransform(shader, entity, mesh)
 
             mesh.draw(shader, 0)
 

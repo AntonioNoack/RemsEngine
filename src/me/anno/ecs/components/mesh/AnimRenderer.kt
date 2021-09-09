@@ -19,7 +19,7 @@ import org.lwjgl.opengl.GL21
 import kotlin.math.max
 import kotlin.math.min
 
-class AnimRenderer : RendererComponent() {
+class AnimRenderer : MeshComponent() {
 
     @Type("Skeleton/Reference")
     @SerializedProperty

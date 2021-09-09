@@ -7,7 +7,6 @@ import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.camera.CameraComponent
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.RendererComponent
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.shaders.effects.Bloom
 import me.anno.engine.debug.DebugPoint
@@ -636,8 +635,7 @@ class RenderView(
                         is Entity -> drawOutline(selected, worldScale)
                         is MeshComponent -> {
                             val mesh = MeshCache[selected.mesh, false] ?: continue
-                            val renderer = selected.entity?.getComponent(RendererComponent::class, false)
-                            drawOutline(renderer, selected, mesh, worldScale)
+                            drawOutline(selected, mesh, worldScale)
                         }
                         is Component -> drawOutline(selected.entity ?: continue, worldScale)
                     }

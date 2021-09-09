@@ -6,7 +6,6 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.MeshRenderer
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.engine.physics.BulletPhysics
@@ -143,7 +142,6 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
             is Mesh -> {
                 val entity = Entity()
                 entity.add(MeshComponent(src))
-                entity.add(MeshRenderer())
                 entity
             }
             is Material -> {
@@ -151,7 +149,6 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
                 val mesh = Thumbs.sphereMesh.clone()
                 mesh.materials = listOf(src)
                 entity.add(mesh)
-                entity.add(MeshRenderer())
                 entity
             }
             // todo if light, also add some objects for visualization

@@ -53,7 +53,6 @@ object ECSRegistry {
         registerCustomClass(Mesh())
         registerCustomClass(Material())
         registerCustomClass(MeshComponent())
-        registerCustomClass(MeshRenderer())
         registerCustomClass(AnimRenderer())
 
         // lights

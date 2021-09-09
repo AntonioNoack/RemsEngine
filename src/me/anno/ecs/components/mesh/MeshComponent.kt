@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.ecs.Component
+import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.prefab.PrefabSaveable
@@ -36,7 +37,7 @@ import org.apache.logging.log4j.LogManager
 // todo also make it deferred / forward/backward compatible
 
 
-class MeshComponent() : Component() {
+open class MeshComponent() : Component() {
 
     constructor(mesh: FileReference) : this() {
         this.mesh = mesh
@@ -66,6 +67,10 @@ class MeshComponent() : Component() {
 
     fun draw(shader: Shader, materialIndex: Int) {
         MeshCache[mesh]?.draw(shader, materialIndex)
+    }
+
+    open fun defineVertexTransform(shader: Shader, entity: Entity, mesh: Mesh) {
+        shader.v1("hasAnimation", false)
     }
 
     // on destroy we should maybe destroy the mesh:

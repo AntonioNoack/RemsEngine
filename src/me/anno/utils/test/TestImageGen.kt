@@ -81,7 +81,6 @@ fun main() {
     registerCustomClass(Mesh())
     registerCustomClass(Material())
     registerCustomClass(MeshComponent())
-    registerCustomClass(MeshRenderer())
 
     registerCustomClass(Bone())
     registerCustomClass(Skeleton())

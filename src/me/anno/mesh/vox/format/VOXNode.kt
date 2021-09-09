@@ -38,7 +38,6 @@ class VOXNode {
                 val meshComponent = prefab.add(CAdd(path, 'c', "MeshComponent", mesh.name), i)
                 prefab.add(CSet(meshComponent, "mesh", mesh))
             }
-            prefab.add(CAdd(path, 'c', "MeshRenderer"))
         }
         if (px != 0.0 || py != 0.0 || pz != 0.0) {
             prefab.add(CSet(path, "position", Vector3d(px, py, pz)))

@@ -57,7 +57,6 @@ class MeshTransform(var file: FileReference, parent: Transform?) : GFXTransform(
             registerCustomClass(Mesh())
             registerCustomClass(Entity())
             registerCustomClass(MeshComponent())
-            registerCustomClass(MeshRenderer())
             registerCustomClass(AnimRenderer())
             registerCustomClass(Skeleton())
             registerCustomClass(Material())

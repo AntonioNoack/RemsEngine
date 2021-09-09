@@ -9,7 +9,6 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.RendererComponent
 import me.anno.engine.ui.render.Frustum
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.DepthMode
@@ -62,7 +61,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         return defaultStage
     }
 
-    private fun addMesh(mesh: Mesh, renderer: RendererComponent, entity: Entity, clickId: Int) {
+    private fun addMesh(mesh: Mesh, renderer: MeshComponent, entity: Entity, clickId: Int) {
         val materials = mesh.materials
         if (materials.isEmpty()) {
             val stage = defaultStage
@@ -76,7 +75,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         }
     }
 
-    private fun addMeshDepth(mesh: Mesh, renderer: RendererComponent, entity: Entity) {
+    private fun addMeshDepth(mesh: Mesh, renderer: MeshComponent, entity: Entity) {
         defaultStage.add(renderer, mesh, entity, 0, 0)
     }
 
@@ -193,19 +192,18 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
     private fun subFill(entity: Entity, clickId0: Int, cameraPosition: Vector3d, worldScale: Double): Int {
         entity.hasBeenVisible = true
         var clickId = clickId0
-        val renderer = entity.getComponent(RendererComponent::class, false)
         val components = entity.components
         for (i in components.indices) {
             val component = components[i]
             if (component.isEnabled) {
-                if (renderer != null && component is MeshComponent) {
+                if (component is MeshComponent) {
                     val mesh = MeshCache[component.mesh]
                     if (mesh != null) {
                         component.clickId = clickId
                         if (component.isInstanced) {
                             addMeshInstanced(mesh, entity, clickId)
                         } else {
-                            addMesh(mesh, renderer, entity, clickId)
+                            addMesh(mesh, component, entity, clickId)
                         }
                         clickId++
                     }
@@ -230,18 +228,17 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
 
     private fun subFillDepth(entity: Entity, cameraPosition: Vector3d, worldScale: Double) {
         entity.hasBeenVisible = true
-        val renderer = entity.getComponent(RendererComponent::class, false)
         val components = entity.components
         for (i in components.indices) {
             val component = components[i]
             if (component.isEnabled) {
-                if (renderer != null && component is MeshComponent) {
+                if (component is MeshComponent) {
                     val mesh = MeshCache[component.mesh]
                     if (mesh != null) {
                         if (component.isInstanced) {
                             addMeshInstancedDepth(mesh, entity)
                         } else {
-                            addMeshDepth(mesh, renderer, entity)
+                            addMeshDepth(mesh, component, entity)
                         }
                     }
                 }
@@ -258,14 +255,11 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
 
     fun findDrawnSubject(searchedId: Int, entity: Entity): Any? {
         if (entity.clickId == searchedId) return entity
-        val renderer = entity.getComponent(RendererComponent::class, false)
-        if (renderer != null) {
-            val components = entity.components
-            for (i in components.indices) {
-                val c = components[i]
-                if (c.isEnabled && c is MeshComponent) {
-                    if (c.clickId == searchedId) return c
-                }
+        val components = entity.components
+        for (i in components.indices) {
+            val c = components[i]
+            if (c.isEnabled && c is MeshComponent) {
+                if (c.clickId == searchedId) return c
             }
         }
         val children = entity.children

@@ -11,7 +11,7 @@ import me.anno.ecs.components.light.SpotLight
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
-import me.anno.ecs.components.mesh.MeshRenderer
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.DepthMode
@@ -378,7 +378,7 @@ class PipelineStage(
             // not if the material has changed
             // this updates the skeleton and such
             if (entity !== lastEntity || lastMesh !== mesh || lastShader !== shader) {
-                if (renderer is MeshRenderer && mesh.hasBonesInBuffer)
+                if (renderer is MeshComponent && mesh.hasBonesInBuffer)
                     renderer.defineVertexTransform(shader, entity, mesh)
                 else shader.v1("hasAnimation", false)
                 lastEntity = entity
@@ -490,7 +490,7 @@ class PipelineStage(
             // not if the material has changed
             // this updates the skeleton and such
             if (entity !== lastEntity || lastMesh !== mesh) {
-                if (renderer is MeshRenderer && mesh.hasBonesInBuffer)
+                if (renderer is MeshComponent && mesh.hasBonesInBuffer)
                     renderer.defineVertexTransform(shader, entity, mesh)
                 else shader.v1("hasAnimation", false)
                 lastEntity = entity
