@@ -1,6 +1,7 @@
-package me.anno.ecs.prefab
+package me.anno.ecs.prefab.change
 
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference

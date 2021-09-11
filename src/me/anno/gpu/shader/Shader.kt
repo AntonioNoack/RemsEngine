@@ -30,7 +30,7 @@ open class Shader(
     companion object {
         private var logShaders = false
         private val LOGGER = LogManager.getLogger(Shader::class)
-        private const val attributeName = "in"
+        const val attributeName = "in"
         private val matrixBuffer = BufferUtils.createFloatBuffer(16)
         private val identity3: Matrix3fc = Matrix3f()
         private val identity4: Matrix4fc = Matrix4f()

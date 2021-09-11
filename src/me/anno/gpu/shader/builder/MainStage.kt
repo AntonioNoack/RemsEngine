@@ -1,6 +1,7 @@
 package me.anno.gpu.shader.builder
 
 import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.shader.Shader
 
 class MainStage {
 
@@ -196,7 +197,7 @@ class MainStage {
             }
         }
 
-        for (variable in attributes.sortedBy { it.size }) variable.appendGlsl(code, "attribute ")
+        for (variable in attributes.sortedBy { it.size }) variable.appendGlsl(code, Shader.attributeName)
         if (attributes.isNotEmpty()) code.append('\n')
 
         if (isFragmentStage) {
@@ -213,7 +214,7 @@ class MainStage {
         // define the missing variables
         // sorted by size, so small uniforms get a small location,
         // which in return allows them to be cached
-        for (variable in uniforms.sortedBy { it.size }) variable.appendGlsl(code, "uniform ")
+        for (variable in uniforms.sortedBy { it.size }) variable.appendGlsl(code, "uniform")
         if (uniforms.isNotEmpty()) code.append('\n')
 
         // define all required functions

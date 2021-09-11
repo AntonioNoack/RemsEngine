@@ -1,5 +1,6 @@
 package me.anno.ecs.prefab
 
+import me.anno.ecs.prefab.change.Change
 import me.anno.io.text.TextReader
 import me.anno.studio.history.History2
 

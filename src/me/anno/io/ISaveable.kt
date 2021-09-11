@@ -173,6 +173,8 @@ interface ISaveable {
             return objectTypeRegistry[type]?.generate() ?: throw RuntimeException("Type $type unknown!")
         }
 
+        fun getSample(type: String) = objectTypeRegistry[type]?.sampleInstance
+
         val objectTypeRegistry = HashMap<String, RegistryEntry>()
 
         @JvmStatic

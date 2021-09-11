@@ -2,13 +2,12 @@ package me.anno.engine.ui
 
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.prefab.CAdd
-import me.anno.ecs.prefab.CSet
-import me.anno.ecs.prefab.Path
+import me.anno.ecs.prefab.change.CAdd
+import me.anno.ecs.prefab.change.CSet
+import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabInspector.Companion.currentInspector
-import me.anno.engine.ui.ECSTypeLibrary.Companion.lastSelection
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef

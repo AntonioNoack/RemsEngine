@@ -9,12 +9,13 @@ import me.anno.graph.types.flow.actions.PrintNode
 import me.anno.graph.types.flow.control.ForNode
 import me.anno.graph.types.flow.local.GetLocalVariableNode
 import me.anno.graph.types.flow.local.SetLocalVariableNode
-import me.anno.graph.types.flow.maths.FloatMathType
+import me.anno.graph.types.flow.maths.FloatMathsBinary
 import me.anno.graph.types.flow.maths.IntMathType
 import me.anno.graph.types.flow.maths.MathD2Node
 import me.anno.graph.types.flow.maths.MathL2Node
 import org.apache.logging.log4j.LogManager
 
+// = visual coding language
 // we enter the graph somewhere, do processing, and then exit some time
 class FlowGraph : Graph() {
 
@@ -50,7 +51,7 @@ class FlowGraph : Graph() {
     }
 
     // returns the last node, which was executed
-    fun execute2(startNode: Node): Node {
+    fun execute(startNode: Node): Node {
         // LOGGER.debug("Execute ${startNode.className}")
         startNode as FlowGraphNode
         val nextNodes = startNode.execute(this)?.others?.mapNotNull { it.node } ?: return startNode
@@ -58,7 +59,7 @@ class FlowGraph : Graph() {
         var lastNode = startNode
         for (nodeI in nextNodes) {
             if (nodeI == nextNodes) penalty()
-            lastNode = execute2(nodeI)
+            lastNode = execute(nodeI)
         }
         return lastNode
     }
@@ -67,21 +68,26 @@ class FlowGraph : Graph() {
         Thread.sleep(5000) // penalty for this infinity loop
     }
 
-    fun execute2(inputs: List<NodeConnector>) {
+    fun executeConnectors(inputs: List<NodeConnector>) {
         for (input in inputs) {
             execute(input.node ?: continue)
         }
     }
 
-    fun execute(inputs: List<Node>) {
+    fun executeNodes(inputs: List<Node>) {
         for (input in inputs) {
             execute(input)
         }
     }
 
-    fun execute(input: Node): List<Any?> {
-        val node = execute2(input)
+    fun computeNode(input: Node): List<Any?> {
+        val node = execute(input)
         return node.outputs!!.map { it.value }
+    }
+
+    fun computeNode1(input: Node): Any? {
+        val node = execute(input)
+        return node.outputs!!.firstOrNull()?.value
     }
 
     fun getValue(input: NodeInput): Any? {
@@ -94,13 +100,12 @@ class FlowGraph : Graph() {
 
         fun testCalculation() {
             val g = FlowGraph()
-            val n0 = MathD2Node(FloatMathType.ADD)
-            val n1 = MathD2Node(FloatMathType.DIV)
+            val n0 = MathD2Node(FloatMathsBinary.ADD)
+            val n1 = MathD2Node(FloatMathsBinary.DIV)
             n0.connectTo(n1, 0)
             n0.setInputs(listOf(1.0, 2.0))
             n1.setInput(1, 2.0)
-            val v = g.execute(n1)
-            LOGGER.info(v.joinToString())
+            LOGGER.info(g.computeNode1(n1))
         }
 
         fun testLoopPrint() {
@@ -113,7 +118,7 @@ class FlowGraph : Graph() {
             val endNode = PrintNode()
             endNode.setInputs(listOf(null, "Done"))
             forNode.connectTo(2, endNode, 0)
-            g.execute2(forNode)
+            g.execute(forNode)
         }
 
         fun testLocalVariables() {
@@ -130,7 +135,7 @@ class FlowGraph : Graph() {
             val setNode = SetLocalVariableNode("var", null)
             forNode.connectTo(setNode)
             mulNode.connectTo(0, setNode, 2)
-            g.execute2(initNode)
+            g.execute(initNode)
             g.requestId()
             LOGGER.info(g.localVariables["var"])
         }

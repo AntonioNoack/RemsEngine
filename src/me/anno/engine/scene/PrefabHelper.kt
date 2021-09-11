@@ -1,8 +1,8 @@
 package me.anno.engine.scene
 
-import me.anno.ecs.prefab.CAdd
-import me.anno.ecs.prefab.CSet
-import me.anno.ecs.prefab.Path
+import me.anno.ecs.prefab.change.CAdd
+import me.anno.ecs.prefab.change.CSet
+import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.prefab.Prefab
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef

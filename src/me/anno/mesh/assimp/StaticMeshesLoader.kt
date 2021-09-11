@@ -2,9 +2,9 @@ package me.anno.mesh.assimp
 
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
-import me.anno.ecs.prefab.CAdd
-import me.anno.ecs.prefab.CSet
-import me.anno.ecs.prefab.Path
+import me.anno.ecs.prefab.change.CAdd
+import me.anno.ecs.prefab.change.CSet
+import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.prefab.Prefab
 import me.anno.image.raw.ByteImage
 import me.anno.image.raw.ByteImage.Companion.hasAlpha
@@ -25,7 +25,6 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.assimp.*
 import org.lwjgl.assimp.Assimp.*
-import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
 

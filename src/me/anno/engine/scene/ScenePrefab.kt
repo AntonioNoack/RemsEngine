@@ -1,8 +1,8 @@
 package me.anno.engine.scene
 
 import me.anno.ecs.Entity
-import me.anno.ecs.prefab.CSet
-import me.anno.ecs.prefab.Path
+import me.anno.ecs.prefab.change.CSet
+import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.prefab.Prefab
 import me.anno.engine.scene.PrefabHelper.addC
 import me.anno.engine.scene.PrefabHelper.addE
@@ -99,7 +99,7 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
             val ringOfLights = addE(this, lights, "Ring Of Lights")
             val superRings = 30
             val exponent = 1.1
-            val rlc0 = RenderView.MAX_LIGHTS - 4
+            val rlc0 = RenderView.MAX_FORWARD_LIGHTS - 4
             val elementSize = 300.0 / max(3, rlc0)
             val lightLevel = 20f // max(3, ringLightCount)
             for (j in 0 until superRings) {

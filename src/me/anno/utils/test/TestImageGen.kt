@@ -1,9 +1,6 @@
 package me.anno.utils.test
 
-import me.anno.cache.instances.MeshCache.getSVG
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultConfig.style
-import me.anno.config.DefaultStyle.white4
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.BoneByBoneAnimation
 import me.anno.ecs.components.anim.ImportedAnimation
@@ -11,29 +8,21 @@ import me.anno.ecs.components.anim.Skeleton
 import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.ecs.components.mesh.*
-import me.anno.ecs.prefab.CAdd
-import me.anno.ecs.prefab.CSet
+import me.anno.ecs.prefab.change.CAdd
+import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ui.render.ECSShaderLib
-import me.anno.gpu.GFX.windowStack
-import me.anno.gpu.SVGxGFX
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.TextureLib
-import me.anno.gpu.Window
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.Renderer
-import me.anno.gpu.texture.Filtering
 import me.anno.image.ImageCPUCache
 import me.anno.image.ImageGPUCache
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.mesh.assimp.Bone
-import me.anno.objects.Video
-import me.anno.studio.StudioBase
-import me.anno.ui.base.Panel
 import me.anno.ui.editor.files.thumbs.Thumbs
 import me.anno.ui.editor.files.thumbs.Thumbs.generateAssimpMeshFrame
 import me.anno.ui.editor.files.thumbs.Thumbs.generateEntityFrame
@@ -47,7 +36,6 @@ import me.anno.utils.Clock
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.downloads
-import org.joml.Matrix4fArrayList
 import javax.imageio.ImageIO
 
 fun main() {

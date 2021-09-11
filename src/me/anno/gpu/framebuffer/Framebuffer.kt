@@ -28,6 +28,24 @@ class Framebuffer(
             Array(targetCount) { TargetType.UByteTarget4 }, depthBufferType
     )
 
+    // todo test this, does this work?
+    /**
+     * attach another framebuffer, which shares the depth buffer
+     * this can be used to draw 3D ui without deferred-rendering,
+     * but using the same depth values
+     * */
+    fun attachFramebufferToDepth(targetCount: Int, fpTargets: Boolean): Framebuffer {
+        bind(false) // ensure we exist
+        val fb = Framebuffer(name, w, h, samples, targetCount, fpTargets, DepthBufferType.NONE)
+        fb.bind(false)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, tex2D, depthTexture!!.pointer, 0)
+        fb.check()
+        bindNull()
+        return fb
+    }
+
+    val tex2D = if (withMultisampling) GL32.GL_TEXTURE_2D_MULTISAMPLE else GL_TEXTURE_2D
+
     // multiple targets, layout=x require shader version 330+
     // use glBindFragDataLocation instead
 
@@ -89,7 +107,6 @@ class Framebuffer(
         Frame.invalidate()
         // LOGGER.info("w: $w, h: $h, samples: $samples, targets: $targetCount x fp32? $fpTargets")
         GFX.check()
-        val tex2D = if (withMultisampling) GL32.GL_TEXTURE_2D_MULTISAMPLE else GL_TEXTURE_2D
         pointer = glGenFramebuffers()
         if (pointer < 0) throw RuntimeException()
         glBindFramebuffer(GL_FRAMEBUFFER, pointer)
@@ -246,7 +263,7 @@ class Framebuffer(
     }
 
     fun destroyExceptTextures(deleteDepth: Boolean) {
-        if(msBuffer != null){
+        if (msBuffer != null) {
             msBuffer?.destroyExceptTextures(deleteDepth)
             msBuffer = null
             destroy()
@@ -256,7 +273,7 @@ class Framebuffer(
                 glDeleteFramebuffers(pointer)
                 Frame.invalidate()
                 pointer = -1
-                if(deleteDepth) depthTexture?.destroy()
+                if (deleteDepth) depthTexture?.destroy()
             }
             if (depthRenderBuffer > -1) {
                 glDeleteRenderbuffers(depthRenderBuffer)

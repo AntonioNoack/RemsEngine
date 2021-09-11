@@ -1,5 +1,6 @@
 package me.anno.utils.structures
 
+import me.anno.utils.structures.lists.UnsafeArrayList
 import kotlin.reflect.KClass
 
 interface Hierarchical<V : Hierarchical<V>> {
@@ -151,6 +152,27 @@ interface Hierarchical<V : Hierarchical<V>> {
     fun simpleTraversal(processDisabled: Boolean, func: (V) -> Boolean): V? {
         return depthFirstTraversal(processDisabled, func)
     }
+
+    /*fun depthFirstTraversal(processDisabled: Boolean, list: UnsafeArrayList<V>, func: (V) -> Boolean): V? {
+        if (!processDisabled && !isEnabled) return null
+        this as V
+        list.quickClear()
+        list.add(this)
+        var index = 0
+        while (index < list.size) {
+            val element = list[index]
+            if (func(element)) return element
+            val children = element.children
+            for (childIndex in children.indices) {
+                val child = children[childIndex]
+                if (processDisabled || child.isEnabled) {
+                    list.add(child)
+                }
+            }
+            index++
+        }
+        return null
+    }*/
 
     fun depthFirstTraversal(processDisabled: Boolean, func: (V) -> Boolean): V? {
         this as V

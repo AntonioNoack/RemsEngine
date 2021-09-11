@@ -1,4 +1,4 @@
-package me.anno.ecs.prefab
+package me.anno.ecs.prefab.change
 
 import me.anno.utils.LOGGER
 

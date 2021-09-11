@@ -1,14 +1,16 @@
 package me.anno.fonts.signeddistfields.algorithm
 
-import org.joml.*
+import org.joml.AABBf
+import org.joml.Vector2dc
+import org.joml.Vector2f
+import org.joml.Vector2fc
 import kotlin.math.max
 import kotlin.math.min
 
 object SDFMaths {
 
-    fun median(a: Float, b: Float, c: Float): Float {
-        return max(min(a, b), min(max(a, b), c))
-    }
+    fun median(a: Float, b: Float, c: Float): Float = max(min(a, b), min(max(a, b), c))
+    fun median(a: Double, b: Double, c: Double): Double = max(min(a, b), min(max(a, b), c))
 
     fun clamp(f: Float) = if (f < 0) 0f else if (f < 1f) f else 1f
     fun clamp(n: Int, b: Int) = if (n in 0..b) n else if (n > 0) b else 0
@@ -42,7 +44,7 @@ object SDFMaths {
         } else if (polarity) Vector2f(-y() / length, x() / length) else Vector2f(y() / length, -x() / length)
     }
 
-    fun union(aabb: AABBf, p1: Vector2fc){
+    fun union(aabb: AABBf, p1: Vector2fc) {
         aabb.union(p1.x(), p1.y(), 0f)
     }
 

@@ -63,11 +63,14 @@ import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.maths.Maths.mix
 import me.anno.utils.maths.Maths.sq
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
+import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.joml.Math.toRadians
 import org.lwjgl.opengl.GL45.*
 
-// todo shadows
+// todo deferred line renderer/draw lines over deferred image
+
+// done shadows
 // todo usable editing of materials: own color + indent + super material selector
 // todo + add & remove materials
 
@@ -88,16 +91,21 @@ import org.lwjgl.opengl.GL45.*
 // todo or drag and keep it in the same distance
 
 // todo controls
-// todo show the scene
+// done show the scene
 // todo drag stuff
 // todo translate, rotate, scale with gizmos
-// todo render in different modes: overdraw, color blindness, normals, color, before-post-process, with-post-process
+
+// done render in different modes: overdraw, color blindness, normals, color, before-post-process, with-post-process
+// todo nice ui for that: drop down menues at top or bottom
 
 // todo blend between multiple cameras, only allow 2? yes :)
 
 
 // todo easily allow for multiple players in the same instance, with just player key mapping
 // -> camera cannot be global, or todo it must be switched whenever the player changes
+
+// todo reinhard tonemapping works often, but not always: {0,1}³ does not work, add spilling somehow
+// todo also maybe it should be customizable...
 
 class RenderView(
     val library: ECSTypeLibrary,
@@ -147,8 +155,12 @@ class RenderView(
     var deferredRenderer = DeferredRenderer
     val deferred = deferredRenderer.deferredSettings!!
 
-    val lightBuffer = deferred.createLightBuffer()
     val baseBuffer = deferred.createBaseBuffer()
+
+    // val lightBuffer = deferred.createLightBuffer()
+    // val lightBuffer = baseBuffer.attachFramebufferToDepth(1, deferred.settingsV1.fpLights)//deferred.createLightBuffer()
+    // no depth is currently required on this layer
+    val lightBuffer = Framebuffer("lights", w, h, 1, 1, deferred.settingsV1.fpLights, DepthBufferType.NONE)
 
     val showOverdraw get() = isKeyDown('n')
 
@@ -164,11 +176,11 @@ class RenderView(
         val rotation = cameraNode.transform.localRotation
 
         if (!position.isFinite) {
-            me.anno.utils.LOGGER.warn("Invalid position $position")
+            LOGGER.warn("Invalid position $position")
             Thread.sleep(100)
         }
         if (!rotation.isFinite) {
-            me.anno.utils.LOGGER.warn("Invalid rotation $rotation")
+            LOGGER.warn("Invalid rotation $rotation")
             Thread.sleep(100)
         }
 
@@ -260,6 +272,40 @@ class RenderView(
         }
 
         val buffer = if (useDeferredRendering) baseBuffer else FBStack["scene", w, h, 4, false, samples]
+
+        drawScene(
+            x0, y0, x1, y1, camera, renderer,
+            buffer, useDeferredRendering, debugDeferredRendering,
+            size, cols, layers.size
+        )
+
+        // todo draw gui on top of the buffer
+        // todo copy the depth information, or keep it there from the start
+
+        if (showSpecialBuffer) {
+            DrawTexts.drawSimpleTextCharByChar(
+                x, y, 2,
+                if (showIds) "IDs" else DeferredLayerType.values()[selectedAttribute].glslName
+            )
+        }
+
+        if (!isFinalRendering) {
+            showShadowMapDebug()
+        }
+
+        // clock.total("drawing the scene", 0.1)
+
+    }
+
+    fun drawScene(
+        x0: Int, y0: Int, x1: Int, y1: Int,
+        camera: CameraComponent,
+        renderer: Renderer, buffer: Framebuffer,
+        useDeferredRendering: Boolean,
+        debugDeferredRendering: Boolean,
+        size: Int, cols: Int, layersSize: Int
+    ) {
+
         drawScene(w, h, camera, camera, 1f, renderer, buffer, true)
 
         // clock.stop("drawing scene", 0.05)
@@ -272,7 +318,7 @@ class RenderView(
 
             // todo for the scene, the environment map and shadow cascades need to be updated,
             // todo and used in the calculation
-            drawSceneLights(camera, camera, 1f, Renderer.copyRenderer, buffer, lightBuffer)
+            drawSceneLights(camera, camera, 1f, copyRenderer, buffer, lightBuffer)
 
             // clock.stop("drawing lights", 0.1)
 
@@ -289,7 +335,7 @@ class RenderView(
                     val y12 = y0 + (y1 - y0) * (row + 1) / 2
 
                     // draw the light buffer as the last stripe
-                    val texture = if (index < layers.size) {
+                    val texture = if (index < layersSize) {
                         buffer.textures[index]
                     } else {
                         lightBuffer.textures[0]
@@ -318,10 +364,10 @@ class RenderView(
 
                 val useBloom = bloomOffset > 0f
 
-                if(useBloom){
+                if (useBloom) {
 
-                    val tmp = FBStack["",w,h,4,true,1]
-                    useFrame(tmp, copyRenderer){
+                    val tmp = FBStack["", w, h, 4, true, 1]
+                    useFrame(tmp, copyRenderer) {
 
                         val shader = PipelineLightStage.getPostShader(deferred)
                         shader.use()
@@ -354,45 +400,36 @@ class RenderView(
 
         } else GFX.copyNoAlpha(buffer)
 
-        if (showSpecialBuffer) {
-            DrawTexts.drawSimpleTextCharByChar(
-                x, y, 2,
-                if (showIds) "IDs" else DeferredLayerType.values()[selectedAttribute].glslName
-            )
-        }
+    }
 
-        if (!isFinalRendering) {
-            // show the shadow map for debugging purposes
-            val light = library.selected
-                .filterIsInstance<Entity>()
-                .mapNotNull { e -> e.getComponentsInChildren(LightComponent::class).firstOrNull { it.hasShadow } }
-                .firstOrNull()
-            if (light != null) {
-                val textures = light.shadowTextures
-                if (textures != null) {
-                    // draw the texture
-                    when (val fb = textures.getOrNull(selectedAttribute)) {
-                        is Framebuffer -> {
-                            val texture = fb.depthTexture
-                            if (texture != null && texture.isCreated && !texture.isDestroyed) {
-                                val s = w / 3
-                                drawTexture(x, y + s, s, -s, texture, true, -1, null)
-                            }
+    fun showShadowMapDebug() {
+        // show the shadow map for debugging purposes
+        val light = library.selected
+            .filterIsInstance<Entity>()
+            .mapNotNull { e -> e.getComponentsInChildren(LightComponent::class).firstOrNull { it.hasShadow } }
+            .firstOrNull()
+        if (light != null) {
+            val textures = light.shadowTextures
+            if (textures != null) {
+                // draw the texture
+                when (val fb = textures.getOrNull(selectedAttribute)) {
+                    is Framebuffer -> {
+                        val texture = fb.depthTexture
+                        if (texture != null && texture.isCreated && !texture.isDestroyed) {
+                            val s = w / 3
+                            drawTexture(x, y + s, s, -s, texture, true, -1, null)
                         }
-                        is CubemapFramebuffer -> {
-                            val texture = fb.depthTexture
-                            if (texture != null && texture.isCreated && !texture.isDestroyed) {
-                                val s = w / 4
-                                drawProjection(x, y + s, s * 3 / 2, -s, texture, true, -1)
-                            }
+                    }
+                    is CubemapFramebuffer -> {
+                        val texture = fb.depthTexture
+                        if (texture != null && texture.isCreated && !texture.isDestroyed) {
+                            val s = w / 4
+                            drawProjection(x, y + s, s * 3 / 2, -s, texture, true, -1)
                         }
                     }
                 }
             }
         }
-
-        // clock.total("drawing the scene", 0.1)
-
     }
 
     fun resolveClick(
@@ -437,7 +474,7 @@ class RenderView(
 
     val pipeline = Pipeline(deferred)
     val stage0 = PipelineStage(
-        "default", Sorting.NO_SORTING, MAX_LIGHTS,
+        "default", Sorting.NO_SORTING, MAX_FORWARD_LIGHTS,
         null, DepthMode.GREATER, true, GL_BACK,
         pbrModelShader
     )
@@ -692,7 +729,7 @@ class RenderView(
                 val scaleV = Vector3d()
 
                 val world = getWorld()
-                world.simpleTraversal(false) { entity ->
+                world.depthFirstTraversal(false) { entity ->
 
                     entity as Entity
 
@@ -795,7 +832,13 @@ class RenderView(
 
     companion object {
 
-        val MAX_LIGHTS = 32
+        private val LOGGER = LogManager.getLogger(RenderView::class)
+
+        /**
+         * maximum number of lights used for forward rendering
+         * when this number is surpassed, the engine switches to deferred rendering automatically
+         * */
+        val MAX_FORWARD_LIGHTS = 32
 
         var scale = 1.0
         var worldScale = 1.0

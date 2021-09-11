@@ -2,6 +2,8 @@ package me.anno.ecs.prefab
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
+import me.anno.ecs.prefab.change.CAdd
+import me.anno.ecs.prefab.change.CSet
 import me.anno.engine.scene.ScenePrefab
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference

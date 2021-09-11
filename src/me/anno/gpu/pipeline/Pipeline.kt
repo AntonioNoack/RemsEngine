@@ -41,7 +41,8 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
 
     val stages = ArrayList<PipelineStage>()
 
-    val lightPseudoStage = PipelineLightStage(DepthMode.GREATER, deferred)
+    // depth doesn't matter for lights
+    val lightPseudoStage = PipelineLightStage(DepthMode.ALWAYS, deferred)
 
     lateinit var defaultStage: PipelineStage
 
@@ -52,7 +53,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
     val ambient = Vector3f()
 
     fun hasTooManyLights(): Boolean {
-        return lightPseudoStage.size > RenderView.MAX_LIGHTS
+        return lightPseudoStage.size > RenderView.MAX_FORWARD_LIGHTS
     }
 
     private fun getDefaultStage(mesh: Mesh, material: Material?): PipelineStage {
@@ -156,7 +157,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
 
     // todo fix deferred rendering for scenes with many lights
 
-    val lights = arrayOfNulls<LightRequest<*>>(RenderView.MAX_LIGHTS)
+    val lights = arrayOfNulls<LightRequest<*>>(RenderView.MAX_FORWARD_LIGHTS)
 
     /**
      * creates a list of relevant lights for a forward-rendering draw call of a mesh or region

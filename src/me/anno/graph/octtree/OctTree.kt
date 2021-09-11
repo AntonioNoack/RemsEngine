@@ -93,7 +93,7 @@ abstract class OctTree<Point>(
         }
     }
 
-    fun bitsAreInBetween(or: Int, and: Int, bits: Int): Boolean {
+    private fun bitsAreInBetween(or: Int, and: Int, bits: Int): Boolean {
 
         // this does a test, whether bits.and(idx) is in and.and(idx) .. or.and(idx)
         // it does this test for every power of two

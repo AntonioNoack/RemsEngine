@@ -23,7 +23,9 @@ class TriTerrain : Component(), CustomEditMode {
 
     // could be local, but that would mean a lot more complex calculations
     val positions = ExpandingFloatArray(512)
-    val removedPositions = HashSet<Int>()
+    private val removedPositions = HashSet<Int>()
+
+    val init = RegularTerrainInit(32, 100f)
 
     // todo support smooth normals on request
 
@@ -48,7 +50,10 @@ class TriTerrain : Component(), CustomEditMode {
         bounds.union(min)
         bounds.union(max)
         val pos = positions
-        val foundEdgeWithIssue = data.iterate(min, max) { partialData ->
+
+        init.ensure(editorPosition, radius, this)
+
+        /*val foundEdgeWithIssue = data.iterate(min, max) { partialData ->
             partialData as TriangleOctTree
             partialData.forEachTriangleIndexed { a, b, c, abIsEdge, bcIsEdge, caIsEdge, i ->
                 // test whether this triangle is inside the bounds
@@ -89,15 +94,13 @@ class TriTerrain : Component(), CustomEditMode {
         if (foundEdgeWithIssue) {
             applyBrush(editorPosition, editorMatrix, radius, strength, brush)
             return
-        }
+        }*/
 
         val point = Vector3f()
-        // todo compute normal somehow...
-        val normal = Vector3f()
         for (index in indices) {
             val i3 = index * 3
             point.set(pos[i3], pos[i3 + 1], pos[i3 + 2])
-            brush.apply(editorPosition, editorMatrix, radius, strength, point, normal)
+            brush.apply(editorPosition, editorMatrix, radius, strength, point)
             pos[i3] = point.x
             pos[i3 + 1] = point.y
             pos[i3 + 2] = point.z
@@ -304,5 +307,7 @@ class TriTerrain : Component(), CustomEditMode {
         // copy or clone the data?
         TODO("Not yet implemented")
     }
+
+    override val className = "TriTerrain"
 
 }

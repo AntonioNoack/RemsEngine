@@ -56,10 +56,10 @@ object Renderers {
                 // light data
                 Variable("vec3", "ambientLight"),
                 Variable("int", "numberOfLights"),
-                Variable("mat4x3", "invLightMatrices", RenderView.MAX_LIGHTS),
-                Variable("vec4", "lightData0", RenderView.MAX_LIGHTS),
-                Variable("vec4", "lightData1", RenderView.MAX_LIGHTS),
-                Variable("vec4", "shadowData", RenderView.MAX_LIGHTS),
+                Variable("mat4x3", "invLightMatrices", RenderView.MAX_FORWARD_LIGHTS),
+                Variable("vec4", "lightData0", RenderView.MAX_FORWARD_LIGHTS),
+                Variable("vec4", "lightData1", RenderView.MAX_FORWARD_LIGHTS),
+                Variable("vec4", "shadowData", RenderView.MAX_FORWARD_LIGHTS),
                 // light maps for shadows
                 // - spot lights, directional lights
                 Variable("sampler2D", "shadowMapPlanar", MAX_PLANAR_LIGHTS),

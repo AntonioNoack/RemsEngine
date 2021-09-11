@@ -1,5 +1,6 @@
-package me.anno.ecs.prefab
+package me.anno.ecs.prefab.change
 
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.base.BaseWriter
 
 class CSet() : Change(5) {

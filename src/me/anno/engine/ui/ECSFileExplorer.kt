@@ -1,6 +1,6 @@
 package me.anno.engine.ui
 
-import me.anno.ecs.prefab.CSet
+import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabSaveable

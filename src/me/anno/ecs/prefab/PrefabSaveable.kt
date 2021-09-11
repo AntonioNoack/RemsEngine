@@ -1,5 +1,8 @@
 package me.anno.ecs.prefab
 
+import me.anno.ecs.prefab.change.Path
+import me.anno.ecs.prefab.change2.CRes
+import me.anno.ecs.prefab.change2.Prefab2
 import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
 import me.anno.io.serialization.NotSerializedProperty
@@ -11,44 +14,48 @@ import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
 import me.anno.utils.LOGGER
 import me.anno.utils.structures.Hierarchical
-import kotlin.reflect.KClass
 
 abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, Inspectable, Cloneable {
 
     @SerializedProperty
     override var isEnabled = true
 
-    @NotSerializedProperty
-    override var isCollapsed = false
+    @NotSerializedProperty // ideally, this would have the default value "depth>3" or root.numChildrenAtDepth(depth)>100
+    override var isCollapsed = true
 
-    @NotSerializedProperty
-    var prefab: PrefabSaveable? = null
+    // todo when creating a new prefab, this needs to be set
+    var id: String = ""
+
+    // @NotSerializedProperty
+    // var prefab: PrefabSaveable? = null
+    val prefab: PrefabSaveable? get() = prefab2?.getSampleInstance()
+    val prefabOrDefault: PrefabSaveable get() = prefab ?: getSuperInstance(className)
 
     @NotSerializedProperty
     var prefab2: Prefab? = null
 
     @NotSerializedProperty
+    var prefab3: Prefab2? = null
+    @NotSerializedProperty
+    var res: CRes? = null
+
+    @NotSerializedProperty
     override var parent: PrefabSaveable? = null
 
-    private fun getSuperParent(): PrefabSaveable {
-        return prefab ?: getSuperInstance(className)
-    }
 
     fun getDefaultValue(name: String): Any? {
-        return getSuperParent()[name]
+        return (prefabOrDefault)[name]
     }
 
     fun resetProperty(name: String): Any? {
         // how do we find the default value, if the root is null? -> create an empty copy
-        val parent = getSuperParent()
-        val reflections = getReflections()
-        val defaultValue = reflections[parent, name]
-        reflections[this, name] = defaultValue
+        val defaultValue = getDefaultValue(name)
+        this[name] = defaultValue
         LOGGER.info("Reset $className/$name to $defaultValue")
         return defaultValue
     }
 
-    fun pathInRoot(root: PrefabSaveable? = null): ArrayList<Any> {
+    private fun pathInRoot(root: PrefabSaveable? = null): ArrayList<Any> {
         if (this == root) return ArrayList()
         val parent = parent
         return if (parent != null) {
@@ -102,12 +109,10 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
 
     public abstract override fun clone(): PrefabSaveable
     open fun copy(clone: PrefabSaveable) {
-        // todo when these are in the tree being cloned, we need the clones here
         clone.name = name
         clone.description = description
         clone.isEnabled = isEnabled
         clone.isCollapsed = isCollapsed
-        clone.prefab = prefab
         clone.prefab2 = prefab2
     }
 
@@ -133,7 +138,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
 
     companion object {
         private fun getSuperInstance(className: String): PrefabSaveable {
-            return ISaveable.objectTypeRegistry[className]!!.sampleInstance as PrefabSaveable
+            return ISaveable.getSample(className) as PrefabSaveable
         }
     }
 

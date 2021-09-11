@@ -1,8 +1,8 @@
 package me.anno.mesh.vox
 
 import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.prefab.CSet
-import me.anno.ecs.prefab.Path
+import me.anno.ecs.prefab.change.CSet
+import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.prefab.Prefab
 import me.anno.io.files.FileReference
 import me.anno.io.zip.InnerFolder

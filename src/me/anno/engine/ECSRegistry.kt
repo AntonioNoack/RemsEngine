@@ -13,13 +13,14 @@ import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.light.SpotLight
 import me.anno.ecs.components.mesh.*
+import me.anno.ecs.components.mesh.terrain.TriTerrain
 import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.components.physics.Vehicle
 import me.anno.ecs.components.physics.VehicleWheel
 import me.anno.ecs.components.test.RaycastTestComponent
 import me.anno.ecs.components.test.TypeTestComponent
-import me.anno.ecs.prefab.CAdd
-import me.anno.ecs.prefab.CSet
+import me.anno.ecs.prefab.change.CAdd
+import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.ChangeHistory
 import me.anno.ecs.prefab.Prefab
 import me.anno.engine.physics.BulletPhysics
@@ -94,6 +95,10 @@ object ECSRegistry {
         registerCustomClass(Rigidbody())
         registerCustomClass(Vehicle())
         registerCustomClass(VehicleWheel())
+
+        // utils
+        // currently a small thing, hopefully will become important and huge <3
+        registerCustomClass(TriTerrain())
 
         if (Build.isDebug) {
             // test classes

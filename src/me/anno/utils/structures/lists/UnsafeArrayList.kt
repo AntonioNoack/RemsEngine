@@ -76,6 +76,10 @@ class UnsafeArrayList<V>(capacity0: Int = 16) : MutableList<V> {
         return true
     }
 
+    fun quickClear() {
+        size = 0
+    }
+
     override fun clear() {
         size = 0
         backend = arrayOfNulls(1024)

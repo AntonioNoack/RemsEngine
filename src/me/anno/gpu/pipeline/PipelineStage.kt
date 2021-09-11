@@ -154,7 +154,7 @@ class PipelineStage(
         val numberOfLightsPtr = shader["numberOfLights"]
         // LOGGER.info("#0: $numberOfLightsPtr")
         if (numberOfLightsPtr < 0) return
-        val maxNumberOfLights = RenderView.MAX_LIGHTS
+        val maxNumberOfLights = RenderView.MAX_FORWARD_LIGHTS
         val lights = pipeline.lights
         val numberOfLights = pipeline.getClosestRelevantNLights(aabb, maxNumberOfLights, lights)
         shader.v1(numberOfLightsPtr, numberOfLights)

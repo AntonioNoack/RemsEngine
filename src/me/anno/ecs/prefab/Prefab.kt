@@ -1,17 +1,17 @@
 package me.anno.ecs.prefab
 
-import me.anno.cache.CacheSection
-import me.anno.ecs.prefab.Path.Companion.ROOT_PATH
+import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
-import me.anno.engine.scene.ScenePrefab
+import me.anno.ecs.prefab.change.CAdd
+import me.anno.ecs.prefab.change.CSet
+import me.anno.ecs.prefab.change.Change
+import me.anno.ecs.prefab.change.Path
 import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.text.TextWriter
 import me.anno.utils.files.LocalFile.toGlobalFile
-import org.apache.logging.log4j.LogManager
 
 class Prefab() : NamedSaveable() {
 
@@ -141,19 +141,15 @@ class Prefab() : NamedSaveable() {
         }
     }
 
-    private fun createInstance0(chain: MutableSet<FileReference>?): PrefabSaveable {
-        isValid = true
-        // LOGGER.info("Requesting instance '$src' extends '$prefab'")
-        // LOGGER.info("$prefab/${changes?.size}/$clazzName")
-        val instance = PrefabCache.createInstance(prefab, adds, sets, chain, clazzName!!)
-        // assign super instance? we should really cache that...
-        instance.prefab2 = this
-        return instance
-    }
-
     fun getSampleInstance(chain: MutableSet<FileReference>? = HashSet()): PrefabSaveable {
-        synchronized(this) {
-            if (!isValid) sampleInstance = createInstance0(chain)
+        if (!isValid) synchronized(this) {
+            if (!isValid) {
+                isValid = true
+                val instance = PrefabCache.createInstance(prefab, adds, sets, chain, clazzName!!)
+                // assign super instance? we should really cache that...
+                instance.prefab2 = this
+                sampleInstance = instance
+            }
         }
         return sampleInstance!!
     }

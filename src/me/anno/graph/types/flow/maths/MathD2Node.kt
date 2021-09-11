@@ -9,16 +9,16 @@ import me.anno.ui.style.Style
 
 class MathD2Node() : ValueNode(listOf("Double", "Double"), listOf("Double")) {
 
-    constructor(type: FloatMathType) : this() {
+    constructor(type: FloatMathsBinary) : this() {
         this.type = type
     }
 
-    var type: FloatMathType = FloatMathType.ADD
+    var type: FloatMathsBinary = FloatMathsBinary.ADD
 
     override fun createUI(list: PanelListY, style: Style) {
-        list += EnumInput("Type", true, type.name, FloatMathType.values().map { NameDesc(it.name) }, style)
+        list += EnumInput("Type", true, type.name, FloatMathsBinary.values().map { NameDesc(it.name) }, style)
             .setChangeListener { _, index, _ ->
-                type = FloatMathType.values()[index]
+                type = FloatMathsBinary.values()[index]
             }
     }
 

@@ -43,10 +43,16 @@ abstract class FileReference(val absolutePath: String) {
         }
 
         fun getReference(str: String?): FileReference {
+            // invalid
             if (str == null || str.isBlank2()) return InvalidRef
+            // root
+            if (str == "null") return FileRootRef
+            // internal resource
+            if (str.startsWith(BundledRef.prefix)) return BundledRef.parse(str)
+            // static references
             val static = staticReferences[str]
             if (static != null) return static
-            if (str == "null") return FileRootRef
+            // real or compressed files
             // check whether it exists -> easy then :)
             val file0 = File(str)
             if (file0.exists()) return FileFileRef(file0)
@@ -63,7 +69,8 @@ abstract class FileReference(val absolutePath: String) {
                     return appendPath(fileI, i, parts)
                 }
             }
-            // somehow, we could not find the correct file...
+            // somehow, we could not find the correct file
+            // it probably just is new
             return FileFileRef(file0)
         }
 
@@ -199,10 +206,16 @@ abstract class FileReference(val absolutePath: String) {
     // fun length() = if (isInsideCompressed) zipFile?.size ?: 0L else file.length()
     fun openInExplorer() = File(absolutePath.replace("!!", "/")).openInExplorer()
 
-    abstract fun deleteRecursively(): Boolean
-    abstract fun deleteOnExit()
     abstract fun delete(): Boolean
     abstract fun mkdirs(): Boolean
+
+    open fun deleteOnExit() {
+        deleteRecursively()
+    }
+
+    open fun deleteRecursively(): Boolean {
+        return delete()
+    }
 
     val zipFileForDirectory
         get(): FileReference? {

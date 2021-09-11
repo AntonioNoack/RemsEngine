@@ -5,8 +5,8 @@ import me.anno.io.config.ConfigBasics
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import me.anno.utils.io.ResourceHelper
+import me.anno.utils.io.Streams.readText
 import org.apache.logging.log4j.LogManager
-import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStream
@@ -60,7 +60,7 @@ object Dict {
         val internalFiles = listOf("en.lang", "de.lang")
         internalFiles.forEach {
             try {
-                val data = String(ResourceHelper.loadResource("lang/$it").readBytes())
+                val data = ResourceHelper.loadResource("lang/$it").readText()
                 val name = getLanguageName(data)
                 if (name?.isNotEmpty() == true) {
                     options += LanguageOption(data, "internal/$it", name)
@@ -69,7 +69,7 @@ object Dict {
                 LOGGER.warn("Skipped $it, didn't find it")
             }
         }
-        val externalFiles = ConfigBasics.configFolder.getChild("lang")!!.listChildren()
+        val externalFiles = ConfigBasics.configFolder.getChild("lang").listChildren()
         externalFiles?.forEach { file ->
             if (!file.isDirectory && file.name.endsWith(".lang")) {
                 try {

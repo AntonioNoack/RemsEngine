@@ -3,6 +3,11 @@ package me.anno.ecs.prefab
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
+import me.anno.ecs.prefab.Hierarchy.addNewChild
+import me.anno.ecs.prefab.Hierarchy.removeChild
+import me.anno.ecs.prefab.change.CAdd
+import me.anno.ecs.prefab.change.CSet
+import me.anno.ecs.prefab.change.Path
 import me.anno.engine.IProperty
 import me.anno.engine.ui.ComponentUI
 import me.anno.engine.ui.DefaultLayout
@@ -23,7 +28,6 @@ import me.anno.ui.style.Style
 import me.anno.utils.process.DelayedTask
 import me.anno.utils.strings.StringHelper
 import me.anno.utils.strings.StringHelper.titlecase
-import me.anno.utils.structures.StartsWith.startsWith
 import org.apache.logging.log4j.LogManager
 
 // this can be like a scene (/scene tab)
@@ -252,12 +256,12 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
 
                 override fun onAddComponent(component: Inspectable, index: Int) {
                     component as PrefabSaveable
-                    addComponent(instance, component, index, type)
+                    addNewChild(root, adds, sets, instance, component, index, type)
                 }
 
                 override fun onRemoveComponent(component: Inspectable) {
                     component as PrefabSaveable
-                    removeComponent(instance, component, type)
+                    removeChild(root, adds, sets, instance, component, type)
                 }
 
                 override fun getOptionFromInspectable(inspectable: Inspectable): Option {
@@ -272,27 +276,6 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
 
     }
 
-    /**
-     * renumber all changes, which are relevant to the components
-     * */
-    private fun renumber(from: Int, delta: Int, path: Path) {
-        val targetSize = path.indices.size
-        val changedArrays = HashSet<IntArray>()
-        for (change in sets) {
-            val path2 = change.path
-            val indices = path2.indices
-            val types = path2.types
-            if (indices.size == targetSize &&
-                indices[targetSize - 1] >= from &&
-                indices !in changedArrays &&
-                indices.startsWith(path.indices) &&
-                types.startsWith(path.types)
-            ) {
-                indices[targetSize - 1] += delta
-                changedArrays.add(indices)
-            }
-        }
-    }
 
     fun checkDependencies(parent: PrefabSaveable, src: FileReference): Boolean {
         if (src == InvalidRef) return true
@@ -316,100 +299,6 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
         adds.add(CAdd(path, 'c', prefab.clazzName!!, prefab.name, prefab.src))
     }
 
-    fun addComponent(parent: PrefabSaveable, component: PrefabSaveable, index: Int, type: Char) {
-
-        val path = parent.pathInRoot2(root, false)
-
-        val prefab = parent.prefab
-
-        component.parent = parent
-
-        val prefabComponents = prefab?.getChildListByType(type)
-        if (prefab != null && index < prefabComponents!!.size) {
-            // if index < prefab.size, then disallow
-            throw RuntimeException("Cannot insert between prefab components!")
-        }
-
-        val parentComponents = parent.getChildListByType(type)
-        if (index < parentComponents.size) {
-            renumber(index, +1, path)
-        }
-
-        parent.addChildByType(index, type, component)
-
-        // just append it :)
-        adds.add(CAdd(path, 'c', component.className, component.name))
-        // if it contains any changes, we need to apply them
-        val base = Component.create(component.className)
-        val compPath = path.added(component.name, index, type)
-
-        /*var clazz: KClass<*> = component::class
-        while (true) {
-            val reflections = ISaveable.getReflections(clazz)
-            for (name in reflections.declaredProperties.keys) {
-                val value = component[name]
-                if (value != base[name]) {
-                    changes.add(ChangeSetComponentAttribute(Path(compPath, name), value))
-                }
-            }
-            clazz = clazz.superclasses.firstOrNull() ?: break
-        }*/
-
-        for (name in component.getReflections().allProperties.keys) {
-            val value = component[name]
-            if (value != base[name]) {
-                sets.add(CSet(compPath, name, value))
-            }
-        }
-
-    }
-
-    fun removeComponent(parent: PrefabSaveable, component: PrefabSaveable, type: Char) {
-
-        val path = parent.pathInRoot2(root, false)
-
-        val prefab = parent.prefab
-
-        val components = parent.getChildListByType(type)
-        if (component !in components) return
-        // done :)
-
-        val index = components.indexOf(component)
-        val prefabComponents = prefab?.getChildListByType(type)
-        if (prefab != null && index < prefabComponents!!.size) {
-
-            // original component, cannot be removed
-            component.isEnabled = false
-
-        } else {
-
-            // when a component is deleted, its changes need to be deleted as well
-            val compPath = path.added(component.name, index, type)
-            sets.removeIf { it.path == compPath }
-
-            if (index + 1 < components.size) {
-                // not the last one
-                renumber(index + 1, -1, path)
-            }
-
-            // it's ok, and fine
-            // remove the respective change
-            parent.deleteChild(component)
-            // not very elegant, but should work...
-            // correct?
-
-            // todo only remove first one
-            adds.removeIf { it.path == path }
-            val prefabList = prefab?.getChildListByType(type)
-            val i0 = (prefabList?.size ?: 0)
-            for (i in i0 until components.size) {
-                val componentI = components[i]
-                adds.add(i - i0, CAdd(path, type, componentI.className, componentI.name))
-            }
-
-        }
-
-    }
 
     fun save() {
         TextWriter.save(prefab, reference)

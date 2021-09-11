@@ -27,6 +27,7 @@ open class GFXBase1 : GFXBase0() {
                 val pixels = BufferUtils.createByteBuffer(w * h * 4)
                 for (y in 0 until h) {
                     for (x in 0 until w) {
+                        // argb -> rgba
                         val color = bufferedImage.getRGB(x, y)
                         pixels.put(color.shr(16).toByte())
                         pixels.put(color.shr(8).toByte())
@@ -45,7 +46,9 @@ open class GFXBase1 : GFXBase0() {
 
         }
 
-        fun loadAssetsImage(name: String) = ImageIO.read(loadResource(name).buffered())
+        fun loadAssetsImage(name: String): BufferedImage {
+            return ImageIO.read(loadResource(name).buffered())
+        }
 
     }
 

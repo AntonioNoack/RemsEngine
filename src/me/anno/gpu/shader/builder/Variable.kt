@@ -56,6 +56,7 @@ class Variable(
         if (prefix.startsWith("uniform") && arraySize > 0 && type.startsWith("sampler")) {
             for (index in 0 until arraySize) {
                 code.append(prefix)
+                code.append(' ')
                 code.append(type)
                 code.append(' ')
                 code.append(name)
@@ -64,6 +65,7 @@ class Variable(
             }
         } else {
             code.append(prefix)
+            code.append(' ')
             code.append(type)
             code.append(' ')
             code.append(name)

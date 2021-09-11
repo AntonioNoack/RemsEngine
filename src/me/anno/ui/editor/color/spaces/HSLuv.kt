@@ -9,7 +9,7 @@ import org.joml.Vector3f
 
 object HSLuv : ColorSpace(
     NameDesc("HSLuv","HSL/HSV with constant brightness","colorSpace.hsluv"),
-    loadText("me/anno/ui/editor/color/spaces/HSLuv.glsl") + "\n" +
+    loadText("shader/color/HSLuv.glsl") + "\n" +
             "vec3 spaceToRGB(vec3 hsl){\n" +
             "   return clamp(hsluvToRgb(hsl*vec3(360.0, 100.0, 100.0)), 0.0, 1.0);\n" +
             "}\n", Vector3f(0f, 1f, 0.5f)
