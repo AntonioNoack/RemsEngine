@@ -35,14 +35,13 @@ class Framebuffer(
      * but using the same depth values
      * */
     fun attachFramebufferToDepth(targetCount: Int, fpTargets: Boolean): Framebuffer {
-        bind(false) // ensure we exist
-        val fb = Framebuffer(name, w, h, samples, targetCount, fpTargets, DepthBufferType.NONE)
-        fb.bind(false)
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, tex2D, depthTexture!!.pointer, 0)
-        fb.check()
-        bindNull()
+        val fb = Framebuffer(name, w, h, samples, targetCount, fpTargets, DepthBufferType.ATTACHMENT)
+        fb.depthAttachment = this
         return fb
     }
+
+    // the source of our depth texture
+    var depthAttachment: Framebuffer? = null
 
     val tex2D = if (withMultisampling) GL32.GL_TEXTURE_2D_MULTISAMPLE else GL_TEXTURE_2D
 
@@ -138,9 +137,13 @@ class Framebuffer(
         when (depthBufferType) {
             DepthBufferType.NONE -> {
             }
+            DepthBufferType.ATTACHMENT -> {
+                val pointer = depthAttachment!!.depthTexture!!.pointer
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, tex2D, pointer, 0)
+            }
             DepthBufferType.INTERNAL -> createDepthBuffer()
             DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {
-                val depthTexture = Texture2D("$name-depth", w, h, samples) // xD
+                val depthTexture = Texture2D("$name-depth", w, h, samples)
                 depthTexture.createDepth(depthBufferType == DepthBufferType.TEXTURE_16)
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, tex2D, depthTexture.pointer, 0)
                 this.depthTexture = depthTexture
@@ -244,6 +247,13 @@ class Framebuffer(
             msBuffer.bindTextureI(index, offset, nearest, clamping)
         } else {
             textures[index].bind(offset, nearest, clamping)
+        }
+    }
+
+    fun resolve() {
+        if (withMultisampling) {
+            resolveTo(msBuffer!!)
+            GFX.check()
         }
     }
 

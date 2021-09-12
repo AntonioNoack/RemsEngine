@@ -13,6 +13,7 @@ import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.io.unity.UnityReader
 import me.anno.mesh.assimp.AnimatedMeshesLoader
+import me.anno.mesh.obj.OBJReader2
 import me.anno.mesh.vox.VOXReader
 import org.apache.logging.log4j.LogManager
 
@@ -20,6 +21,10 @@ object PrefabCache : CacheSection("Prefab") {
 
     private val prefabTimeout = 60_000L
     private val LOGGER = LogManager.getLogger(PrefabCache::class)
+
+    fun getPrefab(file: FileReference): Prefab? {
+        return getPrefabPair(file)?.first
+    }
 
     fun loadAssimpModel(resource: FileReference): Prefab? {
         return try {
@@ -42,13 +47,13 @@ object PrefabCache : CacheSection("Prefab") {
     }
 
     fun loadObjModel(resource: FileReference): Prefab? {
-        return loadAssimpModel(resource)
-        /*return try {
+        // return loadAssimpModel(resource)
+        return try {
             OBJReader2(resource).prefab
         } catch (e: Exception) {
             e.printStackTrace()
             null
-        }*/
+        }
     }
 
     fun loadJson(resource: FileReference?): ISaveable? {
@@ -108,7 +113,7 @@ object PrefabCache : CacheSection("Prefab") {
                     }
                 }
             }
-            (prefab as? Prefab)?.src = resource
+            (prefab as? Prefab)?.source = resource
             prefab
         } else null
     }
@@ -148,13 +153,8 @@ object PrefabCache : CacheSection("Prefab") {
         // LOGGER.info("  creating entity instance from ${changes0?.size ?: 0} changes, $changes2")
         if (adds != null) {
             for ((index, change) in adds.withIndex()) {
-                /*if (chain != null && change is CAdd && change.prefab in chain) {
-                    val old = change.prefab
-                    change.prefab = InvalidRef
-                    LOGGER.warn("Invalidated circular reference! $old in $chain")
-                }*/
                 try {
-                    change.apply(instance)
+                    change.apply(instance, chain)
                 } catch (e: Exception) {
                     LOGGER.warn("Change $index, $change failed")
                     throw e
@@ -162,9 +162,10 @@ object PrefabCache : CacheSection("Prefab") {
             }
         }
         if (sets != null) {
-            for ((index, change) in sets.withIndex()) {
+            for (index in sets.indices) {
+                val change = sets[index]
                 try {
-                    change.apply(instance)
+                    change.apply(instance, chain)
                 } catch (e: Exception) {
                     LOGGER.warn("Change $index, $change failed")
                     throw e
@@ -195,7 +196,7 @@ object PrefabCache : CacheSection("Prefab") {
 
     fun loadScenePrefab(file: FileReference): Prefab {
         val prefab = loadPrefab(file) ?: Prefab("Entity").apply { this.prefab = ScenePrefab }
-        prefab.src = file
+        prefab.source = file
         if (!file.exists) file.writeText(TextWriter.toText(prefab))
         return prefab
     }

@@ -1,26 +1,32 @@
 package me.anno.ecs.prefab
 
-import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Change
 import me.anno.ecs.prefab.change.Path
+import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.io.ISaveable
-import me.anno.io.NamedSaveable
+import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.files.LocalFile.toGlobalFile
 
-class Prefab() : NamedSaveable() {
+class Prefab : Saveable {
+
+    constructor() : super() {
+        println("created generic prefab")
+    }
 
     constructor(clazzName: String) : this() {
         this.clazzName = clazzName
+        println("created prefab $clazzName")
     }
 
     constructor(clazzName: String, prefab: FileReference) : this(clazzName) {
         this.prefab = prefab
+        println("created prefab $clazzName extends $prefab")
     }
 
     var clazzName: String? = null
@@ -30,11 +36,11 @@ class Prefab() : NamedSaveable() {
 
     var prefab: FileReference = InvalidRef
     var wasCreatedFromJson = false
-    var src: FileReference = InvalidRef
+    var source: FileReference = InvalidRef
 
     fun createLists() {
-        adds = ArrayList()
-        sets = ArrayList()
+        if (adds == null) adds = ArrayList()
+        if (sets == null) sets = ArrayList()
     }
 
     fun addAll(changes: Collection<Change>) {
@@ -43,7 +49,7 @@ class Prefab() : NamedSaveable() {
         }
     }
 
-    fun getPrefabOrSource() = prefab.nullIfUndefined() ?: src
+    fun getPrefabOrSource() = prefab.nullIfUndefined() ?: source
 
     fun countTotalChanges(): Int {
         var sum = adds?.size ?: 0
@@ -71,15 +77,17 @@ class Prefab() : NamedSaveable() {
     fun <V : Change> add(change: V): V {
         when (change) {
             is CAdd -> {
-                if (adds == null) adds = ArrayList()
-                (adds as MutableList<CAdd>).add(change)
+                if (adds == null) createLists()
+                (adds as MutableList).add(change)
                 isValid = false
             }
             is CSet -> {
-                if (sets == null) sets = ArrayList()
-                (sets as MutableList<CSet>).add(change)
+                if (sets == null) createLists()
+                (sets as MutableList).add(change)
                 // apply to sample instance to keep it valid
-                if (sampleInstance != null) change.apply(sampleInstance!!)
+                if (sampleInstance != null && isValid) {
+                    change.apply(sampleInstance!!, null)
+                }
             }
         }
         return change
@@ -92,7 +100,7 @@ class Prefab() : NamedSaveable() {
             removeIf { it.path.isEmpty() && it.name == key }
             add(change)
             // apply to sample instance to keep it valid
-            if (sampleInstance != null) change.apply(sampleInstance!!)
+            if (sampleInstance != null) change.apply(sampleInstance!!, null)
         }
     }
 
@@ -144,11 +152,11 @@ class Prefab() : NamedSaveable() {
     fun getSampleInstance(chain: MutableSet<FileReference>? = HashSet()): PrefabSaveable {
         if (!isValid) synchronized(this) {
             if (!isValid) {
-                isValid = true
                 val instance = PrefabCache.createInstance(prefab, adds, sets, chain, clazzName!!)
                 // assign super instance? we should really cache that...
                 instance.prefab2 = this
                 sampleInstance = instance
+                isValid = true
             }
         }
         return sampleInstance!!

@@ -9,6 +9,7 @@ import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.shaders.effects.Bloom
+import me.anno.ecs.components.shaders.effects.FSR
 import me.anno.engine.debug.DebugPoint
 import me.anno.engine.debug.DebugShapes.debugLines
 import me.anno.engine.debug.DebugShapes.debugPoints
@@ -34,6 +35,7 @@ import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.deferred.DeferredLayerType
+import me.anno.gpu.deferred.DepthBasedAntiAliasing
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTextures.drawProjection
 import me.anno.gpu.drawing.DrawTextures.drawTexture
@@ -156,6 +158,7 @@ class RenderView(
     val deferred = deferredRenderer.deferredSettings!!
 
     val baseBuffer = deferred.createBaseBuffer()
+    val baseSameDepth = baseBuffer.attachFramebufferToDepth(1, false)
 
     // val lightBuffer = deferred.createLightBuffer()
     // val lightBuffer = baseBuffer.attachFramebufferToDepth(1, deferred.settingsV1.fpLights)//deferred.createLightBuffer()
@@ -171,7 +174,7 @@ class RenderView(
         val cameraNode = editorCameraNode
         cameraNode.transform.localRotation = rotation.toQuaternionDegrees()
         camera.far = 1e300
-        camera.near = if (isKeyDown('r')) radius * 1e-2 else radius * 1e-10
+        camera.near = if (reverseDepth) radius * 1e-1 else radius * 1e-2
 
         val rotation = cameraNode.transform.localRotation
 
@@ -306,9 +309,20 @@ class RenderView(
         size: Int, cols: Int, layersSize: Int
     ) {
 
-        drawScene(w, h, camera, camera, 1f, renderer, buffer, true)
+        var w = x1 - x0
+        var h = y1 - y0
+
+        val useFSR = isKeyDown('f')
+        if (useFSR) {
+            w = w * 2 / 3
+            h = h * 2 / 3
+        }
+
+        drawScene(w, h, camera, camera, 1f, renderer, buffer, true, !useDeferredRendering)
 
         // clock.stop("drawing scene", 0.05)
+
+        var dstBuffer = buffer
 
         if (useDeferredRendering) {
 
@@ -320,36 +334,41 @@ class RenderView(
             // todo and used in the calculation
             drawSceneLights(camera, camera, 1f, copyRenderer, buffer, lightBuffer)
 
+            // todo draw scene depth with msaa
+
+
             // clock.stop("drawing lights", 0.1)
 
             if (debugDeferredRendering) {
 
-                for (index in 0 until size) {
+                useFrame(dstBuffer) {
+                    for (index in 0 until size) {
 
-                    // rows x N field
-                    val col = index % cols
-                    val x02 = x0 + (x1 - x0) * (col + 0) / cols
-                    val x12 = x0 + (x1 - x0) * (col + 1) / cols
-                    val row = index / cols
-                    val y02 = y0 + (y1 - y0) * (row + 0) / 2
-                    val y12 = y0 + (y1 - y0) * (row + 1) / 2
+                        // rows x N field
+                        val col = index % cols
+                        val x02 = x0 + (x1 - x0) * (col + 0) / cols
+                        val x12 = x0 + (x1 - x0) * (col + 1) / cols
+                        val row = index / cols
+                        val y02 = y0 + (y1 - y0) * (row + 0) / 2
+                        val y12 = y0 + (y1 - y0) * (row + 1) / 2
 
-                    // draw the light buffer as the last stripe
-                    val texture = if (index < layersSize) {
-                        buffer.textures[index]
-                    } else {
-                        lightBuffer.textures[0]
+                        // draw the light buffer as the last stripe
+                        val texture = if (index < layersSize) {
+                            buffer.textures[index]
+                        } else {
+                            lightBuffer.textures[0]
+                        }
+
+                        // todo instead of drawing the raw buffers, draw the actual layers (color,roughness,metallic,...)
+
+                        // y flipped, because it would be incorrect otherwise
+                        drawTexture(x02, y12, x12 - x02, y02 - y12, texture, true, -1, null)
+                        DrawTexts.drawSimpleTextCharByChar(
+                            x02, y02, 2,
+                            texture.name
+                        )
+
                     }
-
-                    // todo instead of drawing the raw buffers, draw the actual layers (color,roughness,metallic,...)
-
-                    // y flipped, because it would be incorrect otherwise
-                    drawTexture(x02, y12, x12 - x02, y02 - y12, texture, true, -1, null)
-                    DrawTexts.drawSimpleTextCharByChar(
-                        x02, y02, 2,
-                        texture.name
-                    )
-
                 }
 
             } else {
@@ -359,19 +378,24 @@ class RenderView(
 
                 // todo post processing could do screen space reflections :)
 
+
                 val bloomStrength = 0.5f
                 val bloomOffset = 10f
 
                 val useBloom = bloomOffset > 0f
 
+                // use the existing depth buffer for the 3d ui
+                val dstBuffer0 = baseSameDepth
+
                 if (useBloom) {
 
+
                     val tmp = FBStack["", w, h, 4, true, 1]
-                    useFrame(tmp, copyRenderer) {
+                    useFrame(tmp, copyRenderer) {// apply post processing
 
                         val shader = PipelineLightStage.getPostShader(deferred)
                         shader.use()
-                        shader.v1("applyToneMapping", !useBloom)
+                        shader.v1("applyToneMapping", false)
 
                         lightBuffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                         buffer.bindTextures(1, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
@@ -380,25 +404,63 @@ class RenderView(
 
                     }
 
-                    Bloom.bloom(tmp.getColor0(), bloomOffset, bloomStrength, true)
+                    useFrame(w, h, true, dstBuffer0) {
+
+                        // don't write depth
+                        RenderState.depthMask.use(false) {
+                            Bloom.bloom(tmp.getColor0(), bloomOffset, bloomStrength, true)
+                        }
+
+                        // todo use msaa for gizmos
+                        drawGizmos(camPosition, true)
+                    }
 
                 } else {
 
-                    val shader = PipelineLightStage.getPostShader(deferred)
-                    shader.use()
-                    shader.v1("applyToneMapping", !useBloom)
+                    useFrame(w, h, true, dstBuffer0) {
 
-                    lightBuffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                    buffer.bindTextures(1, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                        // don't write depth
+                        RenderState.depthMask.use(false) {
+                            val shader = PipelineLightStage.getPostShader(deferred)
+                            shader.use()
+                            shader.v1("applyToneMapping", !useBloom)
 
-                    flat01.draw(shader)
+                            lightBuffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                            buffer.bindTextures(1, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+
+                            flat01.draw(shader)
+                        }
+
+                        drawGizmos(camPosition, true)
+
+                    }
 
                 }
+
+                // anti-aliasing
+                dstBuffer = FBStack["dst", w, h, 4, false, 1]
+                useFrame(w, h, true, dstBuffer) {
+                    DepthBasedAntiAliasing.render(dstBuffer0.getColor0(), buffer.depthTexture!!)
+                }
+
             }
 
             clock.stop("presenting deferred buffers", 0.1)
 
-        } else GFX.copyNoAlpha(buffer)
+        }
+
+        if (useFSR) {
+            val flipY = isShiftDown
+            val tw = x1 - x0
+            val th = y1 - y0
+            val tmp = FBStack["fsr", tw, th, 4, false, 1]
+            useFrame(tmp) { FSR.upscale(dstBuffer.getColor0(), 0, 0, tw, th, flipY) }
+            // afterwards sharpen
+            FSR.sharpen(tmp.getColor0(), 0.5f, x, y, tw, th, flipY)
+        } else {
+            // we could optimize that one day, when the shader graph works
+            GFX.copyNoAlpha(dstBuffer)
+        }
 
     }
 
@@ -447,12 +509,12 @@ class RenderView(
         val py2 = py.toInt() - y
 
         val ids = Screenshots.getPixels(diameter, 0, 0, px2, py2, buffer, idRenderer) {
-            drawScene(w, h, camera, camera, 0f, idRenderer, buffer, false)
+            drawScene(w, h, camera, camera, 0f, idRenderer, buffer, changeSize = false, true)
             drawGizmos(camPosition, false)
         }
 
         val depths = Screenshots.getPixels(diameter, 0, 0, px2, py2, buffer, depthRenderer) {
-            drawScene(w, h, camera, camera, 0f, depthRenderer, buffer, false)
+            drawScene(w, h, camera, camera, 0f, depthRenderer, buffer, changeSize = false, true)
             drawGizmos(camPosition, false)
         }
 
@@ -466,7 +528,7 @@ class RenderView(
 
     }
 
-    fun getWorld(): Entity {
+    private fun getWorld(): Entity {
         return library.world
     }
 
@@ -573,6 +635,27 @@ class RenderView(
     // todo we could do the blending of the scenes using stencil tests <3 (very efficient)
     //  - however it would limit us to a single renderer...
     // todo -> first just draw a single scene and later make it multiplayer
+
+    fun setClearColor(
+        renderer: Renderer,
+        previousCamera: CameraComponent, camera: CameraComponent, blending: Float,
+        doDrawGizmos: Boolean
+    ) {
+        val useInverseTonemappedColor: Boolean = !doDrawGizmos
+        if (renderer.isFakeColor) {
+            glClearColor(0f, 0f, 0f, 0f)
+        } else {
+            val c = tmp4f
+            c.set(previousCamera.clearColor).lerp(camera.clearColor, blending)
+            if (useInverseTonemappedColor) {
+                // inverse reinhard tonemapping
+                glClearColor(c.x / (1f - c.x), c.y / (1f - c.y), c.z / (1f - c.z), 1f)
+            } else {
+                glClearColor(c.x, c.y, c.z, 1f)
+            }
+        }
+    }
+
     fun drawScene(
         w: Int, h: Int,
         camera: CameraComponent,
@@ -580,7 +663,8 @@ class RenderView(
         blending: Float,
         renderer: Renderer,
         dst: Framebuffer,
-        changeSize: Boolean
+        changeSize: Boolean,
+        doDrawGizmos: Boolean
     ) {
 
         val preDrawDepth = isKeyDown('b')
@@ -590,17 +674,11 @@ class RenderView(
 
                 Frame.bind()
 
-                if (renderer.isFakeColor) {
-                    glClearColor(0f, 0f, 0f, 0f)
-                } else {
-                    tmp4f.set(previousCamera.clearColor).lerp(camera.clearColor, blending)
-                    glClearColor(tmp4f.x, tmp4f.y, tmp4f.z, 1f)
-                }
-
+                setClearColor(renderer, previousCamera, camera, blending, doDrawGizmos)
                 setClearDepth()
                 glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
-                RenderState.depthMode.use(DepthMode.GREATER) {
+                RenderState.depthMode.use(depthMode) {
                     RenderState.cullMode.use(GL_BACK) {
                         RenderState.blendMode.use(null) {
                             stage0.draw(pipeline, cameraMatrix, camPosition, worldScale)
@@ -618,25 +696,21 @@ class RenderView(
 
                 Frame.bind()
 
-                if (renderer.isFakeColor) {
-                    glClearColor(0f, 0f, 0f, 0f)
-                } else {
-                    tmp4f.set(previousCamera.clearColor).lerp(camera.clearColor, blending)
-                    glClearColor(tmp4f.x, tmp4f.y, tmp4f.z, 1f)
-                }
-
+                setClearColor(renderer, previousCamera, camera, blending, doDrawGizmos)
                 setClearDepth()
                 glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
             }
 
-            if (!renderer.isFakeColor && !isFinalRendering) {
-                useFrame(w, h, changeSize, dst, simpleNormalRenderer) {
-                    drawGizmos(camPosition, true)
-                    drawSelected()
+            if (doDrawGizmos) {
+                if (!renderer.isFakeColor && !isFinalRendering) {
+                    useFrame(w, h, changeSize, dst, simpleNormalRenderer) {
+                        drawGizmos(camPosition, true)
+                        drawSelected()
+                    }
+                } else if (renderer == idRenderer) {
+                    drawGizmos(camPosition, false)
                 }
-            } else if (renderer == idRenderer) {
-                drawGizmos(camPosition, false)
             }
 
             val canRenderDebug = Build.isDebug
@@ -646,17 +720,47 @@ class RenderView(
             GFX.check()
 
             if (renderNormals || renderLines) {
-
                 val shader = if (renderLines) lineGeometry else cullFaceColoringGeometry
                 RenderState.geometryShader.use(shader) {
                     pipeline.draw(cameraMatrix, camPosition, worldScale)
                 }
-
             } else pipeline.draw(cameraMatrix, camPosition, worldScale)
 
             GFX.check()
 
             // Thread.sleep(500)
+
+        }
+
+    }
+
+    fun drawSceneDepth(
+        w: Int, h: Int,
+        renderer: Renderer,
+        dst: Framebuffer,
+        changeSize: Boolean,
+        doDrawGizmos: Boolean
+    ) {
+
+        useFrame(w, h, changeSize, dst, renderer) {
+
+            Frame.bind()
+
+            setClearDepth()
+            glClear(GL_DEPTH_BUFFER_BIT)
+
+            if (doDrawGizmos) {
+                useFrame(w, h, changeSize, dst, simpleNormalRenderer) {
+                    drawGizmos(camPosition, true)
+                    drawSelected()
+                }
+            }
+
+            GFX.check()
+
+            pipeline.drawDepth(cameraMatrix, camPosition, worldScale)
+
+            GFX.check()
 
         }
 

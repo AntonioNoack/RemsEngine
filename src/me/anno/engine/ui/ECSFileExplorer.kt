@@ -26,7 +26,7 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
         // open the file
         val prefab = loadPrefab(file)
         if (prefab != null) {
-            prefab.src = file
+            prefab.source = file
             ECSSceneTabs.open(syncMaster, prefab)
         } else msg(NameDesc("Could not open prefab!"))
     }

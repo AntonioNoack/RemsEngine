@@ -28,6 +28,7 @@ abstract class AbstractTreeView<V>(
 ) : ScrollPanelXY(Padding(5), style.getChild("treeView")) {
 
     val list = content as PanelList
+    val sample get() = list.children.first() as AbstractTreeViewPanel<*>
 
     init {
         padding.top = 16
@@ -56,6 +57,8 @@ abstract class AbstractTreeView<V>(
     abstract fun removeChild(element: V, child: V)
 
     abstract fun getSymbol(element: V): String
+
+    abstract fun getTooltipText(element: V): String?
 
     abstract fun getParent(element: V): V?
 
@@ -92,9 +95,8 @@ abstract class AbstractTreeView<V>(
         selectElement(element)
     }
 
-    open fun getLocalColor(element: V, dst: Vector4f): Vector4f {
-        dst.set(1f) // white, no transparency
-        return dst
+    open fun getLocalColor(element: V, isHovered: Boolean, isInFocus: Boolean): Int {
+        return -1
     }
 
     private val inset = style.getSize("fontSize", 12) / 3

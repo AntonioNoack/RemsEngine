@@ -15,13 +15,12 @@ import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.io.text.TextReader
-import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
-import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.Selection.selectedTransform
+import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.askName
@@ -29,13 +28,14 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.style.Style
+import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
-import me.anno.utils.Color.toARGB
+import me.anno.utils.Color.rgba
 import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.maths.Maths.sq
-import org.joml.Vector4f
+import kotlin.math.roundToInt
 
 class AbstractTreeViewPanel<V>(
     val getElement: () -> V,
@@ -47,7 +47,7 @@ class AbstractTreeViewPanel<V>(
     val treeView: AbstractTreeView<V>, style: Style
 ) : PanelListX(style) {
 
-    private val accentColor = style.getColor("accentColor", black or 0xff0000)
+    val accentColor = style.getColor("accentColor", black or 0xff0000)
 
     val symbol: TextPanel? = if (showSymbol) {
         object : TextPanel("", style) {
@@ -96,20 +96,22 @@ class AbstractTreeViewPanel<V>(
         set(value) {
             symbol?.textColor = value
             text.textColor = value
+            text.focusTextColor = value
         }
 
     // override val effectiveTextColor: Int get() = textColor
     val hoverColor get() = (symbol ?: text).hoverColor
     val font get() = (symbol ?: text).font
 
-    private val tmp0 = Vector4f()
+    fun Int.scaleRGB(f: Float): Int {
+        return rgba((r() * f).roundToInt(), (g() * f).roundToInt(), (b() * f).roundToInt(), a())
+    }
+
     override fun tickUpdate() {
         super.tickUpdate()
         val transform = getElement()
         val dragged = dragged
         var backgroundColor = originalBGColor
-        val textColor0 = treeView.getLocalColor(transform, tmp0)
-        var textColor = textColor0.toARGB(180)
         val showAddIndex = if (
             mouseX.toInt() in lx0..lx1 &&
             mouseY.toInt() in ly0..ly1 &&
@@ -119,9 +121,8 @@ class AbstractTreeViewPanel<V>(
         } else null
         if (this.showAddIndex != showAddIndex) invalidateDrawing()
         this.showAddIndex = showAddIndex
-        val isInFocus = isInFocus || selectedTransform == transform
-        if (isHovered) textColor = hoverColor
-        if (isInFocus) textColor = accentColor
+        val isInFocus = isInFocus || text.isInFocus || (symbol?.isInFocus == true) || selectedTransform == transform
+        val textColor = treeView.getLocalColor(transform, isHovered, isInFocus).scaleRGB(180 / 255f)
         val colorDifference = sq(textColor.r() - backgroundColor.r()) +
                 sq(textColor.g() - backgroundColor.g()) +
                 sq(textColor.b() - backgroundColor.b())
@@ -152,26 +153,35 @@ class AbstractTreeViewPanel<V>(
         }
     }
 
+    private fun toggleCollapsed(){
+        val element = getElement()
+        val name = treeView.getName(element)
+        val isCollapsed = treeView.isCollapsed(element)
+        // todo obviously, this RemsStudio must be removed
+        // todo and instead we need to use the general history/...
+        RemsStudio.largeChange(if (isCollapsed) "Expanded $name" else "Collapsed $name") {
+            val target = !isCollapsed
+            // remove children from the selection???...
+            val targets = inFocus.filterIsInstance<AbstractTreeViewPanel<*>>()
+            for (it in targets) {
+                val element2 = it.getElement() as V
+                treeView.setCollapsed(element2, target)
+            }
+            if (targets.isEmpty()) {
+                treeView.setCollapsed(element, target)
+            }
+        }
+    }
+
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
 
         val element = getElement()
         when {
             button.isLeft -> {
+                // todo collapse / expand multiple elements at the same time
+                // todo edit multiple elements at the same time
                 if (Input.isShiftDown && inFocus.size < 2) {
-                    val name = treeView.getName(element)
-                    val isCollapsed = treeView.isCollapsed(element)
-                    RemsStudio.largeChange(if (isCollapsed) "Expanded $name" else "Collapsed $name") {
-                        val target = !isCollapsed
-                        // remove children from the selection???...
-                        val targets = inFocus.filterIsInstance<AbstractTreeViewPanel<*>>()
-                        for (it in targets) {
-                            val element2 = it.getElement() as V
-                            treeView.setCollapsed(element2, target)
-                        }
-                        if (targets.isEmpty()) {
-                            treeView.setCollapsed(element, target)
-                        }
-                    }
+                    toggleCollapsed()
                 } else {
                     treeView.selectElementMaybe(element)
                 }
@@ -183,6 +193,7 @@ class AbstractTreeViewPanel<V>(
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
         when {
             button.isLeft -> treeView.focusOnElement(getElement())
+            // button.isRight -> toggleCollapsed()
             else -> super.onDoubleClick(x, y, button)
         }
     }
@@ -296,6 +307,7 @@ class AbstractTreeViewPanel<V>(
         val element = getElement()
         val parent = treeView.getParent(element)
         if (parent != null) {
+            // todo only in Rem's Studio...
             RemsStudio.largeChange("Deleted Component ${treeView.getName(getElement())}") {
                 treeView.removeChild(parent, element)
                 for (it in element.listOfAll.toList()) treeView.destroy(it)
@@ -307,10 +319,8 @@ class AbstractTreeViewPanel<V>(
     override fun getCursor() = Cursor.drag
 
     override fun getTooltipText(x: Float, y: Float): String? {
-        val element = getElement()
-        return if (element is Camera) {
-            element.defaultDisplayName + Dict[", drag onto scene to view", "ui.treeView.dragCameraToView"]
-        } else element!!::class.simpleName
+        return if (visibility == Visibility.VISIBLE) treeView.getTooltipText(getElement())
+        else null
     }
 
     // multiple values can be selected

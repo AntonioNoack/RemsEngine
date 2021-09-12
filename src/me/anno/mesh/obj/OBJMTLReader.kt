@@ -16,10 +16,16 @@ open class OBJMTLReader(val reader: InputStream) {
         private val LOGGER = LogManager.getLogger(OBJMTLReader::class)
     }
 
-    fun skipSpaces() {
+    fun skipSpaces(skipNewLine: Boolean = false) {
         while (true) {
             when (val next = next()) {
-                ' '.code, '\t'.code, '\r'.code, '\n'.code -> {
+                ' '.code, '\t'.code, '\r'.code -> {
+                }
+                '\n'.code -> {
+                    if(!skipNewLine){
+                        putBack(next)
+                        return
+                    }
                 }
                 else -> {
                     putBack(next)
@@ -100,12 +106,12 @@ open class OBJMTLReader(val reader: InputStream) {
     // uses no allocations :)
     fun readFloat(): Float {
         var isNegative = false
-        var number = 0f
+        var number = 0
         while (true) {
             when (val char = nextChar()) {
                 '-' -> isNegative = true
                 in '0'..'9' -> {
-                    number = number * 10f + char.code - '0'.code
+                    number = number * 10 + char.code - '0'.code
                 }
                 '.' -> {
                     var exponent = 0.1f
@@ -113,7 +119,7 @@ open class OBJMTLReader(val reader: InputStream) {
                     while (true) {
                         when (val char2 = nextChar()) {
                             in '0'..'9' -> {
-                                fraction = exponent * (char2.code - 48)
+                                fraction += exponent * (char2.code - 48)
                                 exponent *= 0.1f
                             }
                             'e', 'E' -> {
@@ -149,7 +155,7 @@ open class OBJMTLReader(val reader: InputStream) {
                 'e' -> throw UnsupportedOperationException("exponent numbers not supported")
                 else -> {
                     putBack = char.code
-                    return if (isNegative) -number else +number
+                    return if (isNegative) -number.toFloat() else +number.toFloat()
                 }
             }
         }

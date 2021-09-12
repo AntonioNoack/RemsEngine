@@ -15,6 +15,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
+import me.anno.mesh.FindLines
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.objects.GFXTransform
 import me.anno.objects.meshes.MeshData
@@ -40,6 +41,7 @@ class Mesh : PrefabSaveable() {
     }
 
     // todo also we need a renderer, which can handle morphing
+    // todo or we need to compute it on the cpu
     @HideInInspector
     var positions: FloatArray? = null
 
@@ -89,6 +91,15 @@ class Mesh : PrefabSaveable() {
     @HideInInspector
     var boneIndices: ByteArray? = null
 
+    // todo find lines, and display them
+    // triangle (a,b,c), where (a==b||b==c||c==a) && (a!=b||b!=c||c!=a)
+    @HideInInspector
+    var lineIndices: IntArray? = null
+
+    // todo sort them by material/shader, and create multiple buffers (or sub-buffers) for them
+    @HideInInspector
+    var indices: IntArray? = null
+
     // todo allow multiple materials? should make our life easier :), we just need to split the indices...
     // todo filter file references for a specific type...
     @Type("List<Material/Reference>")
@@ -107,10 +118,6 @@ class Mesh : PrefabSaveable() {
      * */
     var materialIndices: IntArray? = null
     private var helperMeshes: Array<Mesh?>? = null
-
-    // todo sort them by material/shader, and create multiple buffers (or sub-buffers) for them
-    @HideInInspector
-    var indices: IntArray? = null
 
     // to allow for quads, and strips and such
     var drawMode = GL11.GL_TRIANGLES
@@ -248,6 +255,9 @@ class Mesh : PrefabSaveable() {
     @NotSerializedProperty
     private var buffer: StaticBuffer? = null
 
+    @NotSerializedProperty
+    private var lineBuffer: StaticBuffer? = null
+
     fun forEachPoint(onlyFaces: Boolean, callback: (x: Float, y: Float, z: Float) -> Unit) {
         val positions = positions ?: return
         val indices = indices
@@ -369,6 +379,8 @@ class Mesh : PrefabSaveable() {
     var hasVertexColors = false
     var hasBonesInBuffer = false
 
+    var drawLines = false
+
     val numTriangles get() = indices?.run { size / 3 } ?: positions?.run { size / 9 } ?: 0
 
     private fun updateMesh() {
@@ -409,6 +421,7 @@ class Mesh : PrefabSaveable() {
         // todo missing attributes cause issues... why??
         val hasColors = true || colors != null && colors.isNotEmpty()
         hasVertexColors = hasColors
+
 
         val attributes = arrayListOf(
             Attribute("coords", 3),
@@ -519,6 +532,19 @@ class Mesh : PrefabSaveable() {
 
         // LOGGER.info("Flags($name): size: ${buffer.vertexCount}, colors? $hasColors, uvs? $hasUVs, bones? $hasBones")
 
+        // todo reuse old buffer as well
+        val lineBuffer = if (drawLines) {
+            val lineIndices = lineIndices ?: FindLines.findLines(indices, positions)
+            if (lineIndices != null) {
+                this.lineIndices = lineIndices
+                // todo register second set of indices for a indexed buffer... or generally for a buffer...
+                null
+            } else null
+        } else null
+
+        this.lineBuffer?.destroy()
+        this.lineBuffer = lineBuffer
+
         this.buffer?.destroy()
         this.buffer = buffer
 
@@ -594,7 +620,13 @@ class Mesh : PrefabSaveable() {
         // todo respect the material index: only draw what belongs to the material
         ensureBuffer()
         buffer?.draw(shader)
+        lineBuffer?.draw(shader)
     }
+
+    /*fun drawLines(shader: Shader, materialIndex: Int) {
+        ensureBuffer()
+        lineBuffer?.draw(shader)
+    }*/
 
     fun drawDepth(shader: Shader) {
         ensureBuffer()

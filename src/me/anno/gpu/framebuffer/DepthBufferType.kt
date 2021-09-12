@@ -4,5 +4,6 @@ enum class DepthBufferType {
     NONE,
     INTERNAL,
     TEXTURE,
-    TEXTURE_16
+    TEXTURE_16,
+    ATTACHMENT
 }

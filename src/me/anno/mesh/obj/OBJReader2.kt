@@ -1,9 +1,9 @@
 package me.anno.mesh.obj
 
+import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
-import me.anno.ecs.prefab.Prefab
 import me.anno.fonts.mesh.Triangulation
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -29,14 +29,23 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
     constructor(file: FileReference) : this(file.inputStream(), file)
 
     companion object {
+
+        fun readAsFolder(file: FileReference): InnerFolder {
+            return file.inputStream().use { OBJReader2(it, file) }.folder
+        }
+
         private val LOGGER = LogManager.getLogger(OBJReader2::class)
     }
 
     val folder = InnerFolder(file)
-    val materialsFolder = InnerFolder(folder, "materials")
-    val meshesFolder = InnerFolder(folder, "meshes")
+    val materialsFolder = lazy { InnerFolder(folder, "materials") }
+    val meshesFolder = lazy { InnerFolder(folder, "meshes") }
 
     val prefab = Prefab("Entity")
+
+    init {
+        folder.createPrefabChild("Scene.json", prefab)
+    }
 
     // inside the function, because not used materials aren't relevant to us
     val materials = HashMap<String, FileReference>()
@@ -84,8 +93,7 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
         }
     }
 
-    private fun putLinePoint(index: Int) {
-        val vertex = points[index]
+    private fun putLinePoint(vertex: Int) {
         facePositions += positions[vertex]
         facePositions += positions[vertex + 1]
         facePositions += positions[vertex + 2]
@@ -134,6 +142,7 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
             mesh.setProperty("positions", facePositions.toFloatArray())
             mesh.setProperty("normals", faceNormals.toFloatArray())
             mesh.setProperty("uvs", faceUVs.toFloatArray())
+            val meshesFolder = meshesFolder.value
             // find good new name for mesh
             if (meshesFolder.getChild(name) != InvalidRef) {
                 name = "$lastObjectName-${lastMaterial.name}"
@@ -164,7 +173,214 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
         lastObjectPath = Path.ROOT_PATH
     }
 
+    private fun readNewObject() {
+        // new object begins
+        skipSpaces()
+        finishObject()
+        lastObjectName = readUntilSpace()
+        skipLine()
+    }
+
+    private fun readNewGroup() {
+        // new group begins
+        finishGroup()
+        skipSpaces()
+        lastGroupName = readUntilSpace()
+    }
+
+    private fun readUseMaterial() {
+        if (nextChar() == 's' && nextChar() == 'e' && nextChar() == 'm' && nextChar() == 't' && nextChar() == 'l') {
+            skipSpaces()
+            finishMesh()
+            lastMaterial = materials[readUntilSpace()] ?: InvalidRef
+        } else skipLine()
+    }
+
+    private fun readPosition() {
+        skipSpaces()
+        positions += readFloat()
+        skipSpaces()
+        positions += readFloat()
+        skipSpaces()
+        positions += readFloat()
+        skipLine()
+    }
+
+    private fun readUVs() {
+        skipSpaces()
+        uvs += readFloat()
+        skipSpaces()
+        uvs += readFloat()
+        skipLine()
+    }
+
+    private fun readNormals() {
+        skipSpaces()
+        normals += readFloat()
+        skipSpaces()
+        normals += readFloat()
+        skipSpaces()
+        normals += readFloat()
+        skipLine()
+    }
+
+    private fun readMaterialLib() {
+        // mtllib
+        if (nextChar() == 't' && nextChar() == 'l' && nextChar() == 'l' && nextChar() == 'i' && nextChar() == 'b') {
+            val file2 = readFile(file)
+            if (file2.exists && !file2.isDirectory) {
+                try {
+                    val folder = MTLReader2.readAsFolder(file2, materialsFolder.value)
+                    val subMaterials = folder.listChildren()!!
+                    materials.putAll(subMaterials.map {
+                        it.nameWithoutExtension to it
+                    })
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
+
+    private fun readLine() {
+        points.clear()
+        skipSpaces()
+        val idx0 = readIndex()
+        skipSpaces()
+        val idx1 = readIndex()
+        val next0 = nextChar()
+        if (next0 == '\n') {
+            putLinePoint(idx0)
+            putLinePoint(idx1)
+            putLinePoint(idx1) // degenerate triangle
+        } else {
+            putBack(next0)
+            points.add(idx0)
+            points.add(idx1)
+            pts@ while (true) {
+                when (val next = next()) {
+                    ' '.code, '\t'.code -> {
+                    }
+                    '\n'.code -> break@pts
+                    else -> {
+                        putBack(next)
+                        points += readIndex() * 3
+                    }
+                }
+            }
+            var previous = points[0]
+            for (i in 1 until points.size) {
+                putLinePoint(previous)
+                val next = points[i]
+                putLinePoint(next)
+                putLinePoint(next) // degenerate triangle
+                previous = next
+            }
+        }
+    }
+
+    private fun readFacePoints() {
+        points.clear()
+        pts@ while (true) {
+            when (val next = nextChar()) {
+                ' ', '\t' -> {
+                }
+                '\n' -> break@pts
+                else -> {
+                    putBack(next)
+                    val vertexIndex0 = readInt()
+                    val vertexIndex = (vertexIndex0 - 1)
+                    var uvIndex = -1
+                    var normalIndex = -1
+                    if (putBack == '/'.code) {
+                        nextChar()
+                        uvIndex = (readInt() - 1)
+                        if (putBack == '/'.code) {
+                            nextChar()
+                            normalIndex = (readInt() - 1)
+                        }
+                    }
+                    points += vertexIndex * 3
+                    points += normalIndex * 3
+                    points += uvIndex * 2
+                }
+            }
+        }
+    }
+
+    private fun triangulateFace() {
+        // triangulate the points correctly
+        // currently is the most expensive step, because of so much allocations:
+        // points, the array, the return list, ...
+        val nullNormal = Vector3f()
+        val nullUV = Vector2f()
+        val points2 = Array(points.size / 3) {
+            val vi = points[it * 3]
+            val ni = points[it * 3 + 1]
+            val ui = points[it * 3 + 2]
+            Point(
+                Vector3f(
+                    positions[vi],
+                    positions[vi + 1],
+                    positions[vi + 2]
+                ), if (ni < 0) nullNormal
+                else Vector3f(
+                    normals[ni],
+                    normals[ni + 1],
+                    normals[ni + 2]
+                ), if (ui < 0) nullUV
+                else Vector2f(
+                    uvs[ui],
+                    uvs[ui + 1]
+                )
+            )
+        }
+        val triangles = Triangulation.ringToTrianglesPoint(points2)
+        for (i in triangles.indices step 3) {
+            putPoint(triangles[i])
+            putPoint(triangles[i + 1])
+            putPoint(triangles[i + 2])
+        }
+    }
+
+    fun readFace() {
+
+        readFacePoints()
+
+        when (points.size / 3) {
+            0 -> {
+            } // nothing...
+            1 -> {
+                // a single, floating point
+                putPoint(0)
+                putPoint(0)
+                putPoint(0)
+            }
+            2 -> {
+                // a line...
+                putPoint(0)
+                putPoint(3)
+                putPoint(3)
+            }
+            3 -> {
+                putPoint(0)
+                putPoint(3)
+                putPoint(6)
+            }
+            4 -> {
+                putPoint(0)
+                putPoint(3)
+                putPoint(6)
+                putPoint(6)
+                putPoint(9)
+                putPoint(0)
+            }
+            else -> triangulateFace()
+        }
+    }
+
     init {
+
         try {
 
             while (true) {
@@ -172,186 +388,24 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
                 skipSpaces()
                 when (val char0 = nextChar()) {
                     '#' -> skipLine()
-                    'o' -> {
-                        // new object begins
-                        skipSpaces()
-                        finishObject()
-                        lastObjectName = readUntilSpace()
-                        skipLine()
-                    }
-                    'g' -> {
-                        // new group begins
-                        finishGroup()
-                        skipSpaces()
-                        lastGroupName = readUntilSpace()
-                    }
-                    'u' -> {
-                        if (nextChar() == 's' && nextChar() == 'e' && nextChar() == 'm' && nextChar() == 't' && nextChar() == 'l') {
-                            skipSpaces()
-                            finishMesh()
-                            lastMaterial = materials[readUntilSpace()] ?: InvalidRef
-                        } else skipLine()
-                    }
+                    'o' -> readNewObject()
+                    'g' -> readNewGroup()
+                    'u' -> readUseMaterial()
                     'v' -> {
                         when (nextChar()) {
-                            ' ', '\t' -> {
-                                skipSpaces()
-                                positions += readFloat()
-                                skipSpaces()
-                                positions += readFloat()
-                                skipSpaces()
-                                positions += readFloat()
-                                skipLine()
-                            }
-                            't' -> {
-                                skipSpaces()
-                                uvs += readFloat()
-                                skipSpaces()
-                                uvs += readFloat()
-                                skipLine()
-                            }
-                            'n' -> {
-                                skipSpaces()
-                                normals += readFloat()
-                                skipSpaces()
-                                normals += readFloat()
-                                skipSpaces()
-                                normals += readFloat()
-                                skipLine()
-                            }
+                            ' ', '\t' -> readPosition()
+                            't' -> readUVs()
+                            'n' -> readNormals()
                             else -> skipLine()
                         }
                     }
-                    's' -> {
-                        // smoothness -> ignore?
-                        // at least Blender sets smoothness by normals
-                        // what would it be otherwise???...
-                        skipLine()
-                    }
-                    'm' -> {
-                        // mtllib
-                        if (nextChar() == 't' && nextChar() == 'l' && nextChar() == 'l' && nextChar() == 'i' && nextChar() == 'b') {
-                            val file2 = readFile(file)
-                            if (file2.exists && !file2.isDirectory) {
-                                try {
-                                    val folder = MTLReader2.readAsFolder(file2, materialsFolder)
-                                    val subMaterials = folder.listChildren()!!
-                                    materials.putAll(subMaterials.map {
-                                        it.nameWithoutExtension to it
-                                    })
-                                } catch (e: IOException) {
-                                    e.printStackTrace()
-                                }
-                            }
-                        }
-                    }
-                    'l' -> {
-
-                        points.clear()
-
-                        pts@ while (true) {
-                            when (val next = next()) {
-                                ' '.code, '\t'.code -> {
-                                }
-                                '\n'.code -> break@pts
-                                else -> {
-                                    putBack(next)
-                                    points += readIndex() * 3
-                                }
-                            }
-                        }
-
-                        for (i in 1 until points.size) {
-                            putLinePoint(i - 1)
-                            putLinePoint(i)
-                            putLinePoint(i) // degenerate triangle
-                        }
-
-                    }
-                    'f' -> {
-
-                        points.clear()
-
-                        pts@ while (true) {
-                            when (val next = nextChar()) {
-                                ' ', '\t' -> {
-                                }
-                                '\n' -> break@pts
-                                else -> {
-                                    putBack(next)
-                                    val vertexIndex0 = readInt()
-                                    val vertexIndex = (vertexIndex0 - 1)
-                                    var uvIndex = -1
-                                    var normalIndex = -1
-                                    if (putBack == '/'.code) {
-                                        nextChar()
-                                        uvIndex = (readInt() - 1)
-                                        if (putBack == '/'.code) {
-                                            nextChar()
-                                            normalIndex = (readInt() - 1)
-                                        }
-                                    }
-                                    points += vertexIndex * 3
-                                    points += normalIndex * 3
-                                    points += uvIndex * 2
-                                }
-                            }
-                        }
-
-                        when (points.size / 3) {
-                            in 0..1 -> {
-                            }
-                            2 -> {
-                                // a line...
-                                putPoint(0)
-                                putPoint(3)
-                                putPoint(3)
-                            }
-                            3 -> {
-                                putPoint(0)
-                                putPoint(3)
-                                putPoint(6)
-                            }
-                            4 -> {
-                                putPoint(0)
-                                putPoint(3)
-                                putPoint(6)
-                                putPoint(6)
-                                putPoint(9)
-                                putPoint(0)
-                            }
-                            else -> {
-                                // triangulate the points correctly
-                                // currently is the most expensive step, because of so much allocations:
-                                // points, the array, the return list, ...
-                                val points2 = Array(points.size / 3) {
-                                    val vi = points[it * 3]
-                                    val ni = points[it * 3 + 1]
-                                    val ui = points[it * 3 + 2]
-                                    Point(
-                                        Vector3f(
-                                            positions[vi],
-                                            positions[vi + 1],
-                                            positions[vi + 2]
-                                        ), Vector3f(
-                                            normals[ni],
-                                            normals[ni + 1],
-                                            normals[ni + 2]
-                                        ), Vector2f(
-                                            uvs[ui],
-                                            uvs[ui + 1]
-                                        )
-                                    )
-                                }
-                                val triangles = Triangulation.ringToTrianglesPoint(points2)
-                                for (i in triangles.indices step 3) {
-                                    putPoint(triangles[i])
-                                    putPoint(triangles[i + 1])
-                                    putPoint(triangles[i + 2])
-                                }
-                            }
-                        }
-                    }
+                    // smoothness -> ignore?
+                    // at least Blender sets smoothness by normals
+                    // what would it be otherwise???...
+                    's' -> skipLine()
+                    'm' -> readMaterialLib()
+                    'l' -> readLine()
+                    'f' -> readFace()
                     else -> {
                         putBack(char0)
                         LOGGER.warn("Unknown obj tag ${readUntilSpace()}")
@@ -361,8 +415,10 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
             }
         } catch (e: EOFException) {
         }
-        finishObject()
+
+        finishGroup()
         reader.close()
+
     }
 
 }

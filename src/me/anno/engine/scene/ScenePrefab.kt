@@ -1,9 +1,9 @@
 package me.anno.engine.scene
 
 import me.anno.ecs.Entity
+import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
-import me.anno.ecs.prefab.Prefab
 import me.anno.engine.scene.PrefabHelper.addC
 import me.anno.engine.scene.PrefabHelper.addE
 import me.anno.engine.scene.PrefabHelper.setX
@@ -26,23 +26,25 @@ import kotlin.math.sin
 
 object ScenePrefab : StaticRef("Scene.prefab", lazy {
     TextWriter.toText(Prefab("Entity").apply {
-        val sets = ArrayList<CSet>()
-        this.adds = ArrayList()
-        this.sets = sets
-        sets.add(CSet(Path.ROOT_PATH, "name", "Root"))
-        sets.add(CSet(Path.ROOT_PATH, "desc", "Contains the major components"))
+
+        createLists()
+
+        add(CSet(Path.ROOT_PATH, "name", "Root"))
+        add(CSet(Path.ROOT_PATH, "description", "Contains the major components"))
+
         val names = listOf("Globally Shared", "Player Prefab", "Locally Shared", "Local Players", "Remote Players")
-        val descs = listOf(
+        val descriptions = listOf(
             "The world, which is shared",
-            "How a player in the global world looks like",
+            "What a player in the global world looks like",
             "If there is UI to be shared for local multiplayer, define it here",
             "Populated at runtime with the players on this PC; can be trusted",
             "Populated at runtime with players from different PCs, states, continents; may not be trusted"
         )
+
         val root = Path.ROOT_PATH
         for (i in names.indices) {
             val e = addE(this, root, names[i])
-            setX(this, e, "desc", descs[i])
+            setX(this, e, "description", descriptions[i])
         }
 
         // root has bullet physics, because the players need physics as well

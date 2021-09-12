@@ -7,11 +7,14 @@ import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.anim.Skeleton
 import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.cache.SkeletonCache
-import me.anno.ecs.components.mesh.*
-import me.anno.ecs.prefab.change.CAdd
-import me.anno.ecs.prefab.change.CSet
+import me.anno.ecs.components.mesh.AnimRenderer
+import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
+import me.anno.ecs.prefab.change.CAdd
+import me.anno.ecs.prefab.change.CSet
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.TextureLib
@@ -22,6 +25,7 @@ import me.anno.image.ImageCPUCache
 import me.anno.image.ImageGPUCache
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.mesh.assimp.Bone
 import me.anno.ui.editor.files.thumbs.Thumbs
 import me.anno.ui.editor.files.thumbs.Thumbs.generateAssimpMeshFrame
@@ -33,6 +37,7 @@ import me.anno.ui.editor.files.thumbs.Thumbs.generateSkeletonFrame
 import me.anno.ui.editor.files.thumbs.Thumbs.generateVOXMeshFrame
 import me.anno.ui.editor.files.thumbs.Thumbs.generateVideoFrame
 import me.anno.utils.Clock
+import me.anno.utils.OS
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.downloads
@@ -125,6 +130,8 @@ fun main() {
         generateSVGFrame(file, file.dst(), size) {}
     }
 
+    testEntityMeshFrame(getReference(documents, "CuteGhost.obj"))
+
     // testSVG(getReference(downloads, "tiger.svg"))
 
     // testImage(getReference(downloads, "qwantani_1k.hdr"))
@@ -166,9 +173,9 @@ fun main() {
     // 3ds max files are not supported by assimp, sadly :/
     // testAssimpMeshFrame(downloads.getChild("Diningtable.max"))
 
-     testAssimpMeshFrame(documents.getChild("sphere.obj"))
-     testAssimpMeshFrame(documents.getChild("cube bricks.fbx"))
-     testAssimpMeshFrame(downloads.getChild("3d/robot_kyle_walking.fbx"))
+    testAssimpMeshFrame(documents.getChild("sphere.obj"))
+    // testAssimpMeshFrame(documents.getChild("cube bricks.fbx"))
+    // testAssimpMeshFrame(downloads.getChild("3d/robot_kyle_walking.fbx"))
     // testAssimpMeshFrame(downloads.getChild("2CylinderEngine.glb"))
     // testAssimpMeshFrame(downloads.getChild("fbx/free meshes/simple small lowpoly bridge_better.fbx"))
     //testEntityMeshFrame(desktop.getChild("Scene.json"))

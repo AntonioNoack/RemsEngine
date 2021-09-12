@@ -41,7 +41,7 @@ open class Texture2D(
 
     override fun toString() = "$name $w $h $samples"
 
-    private val withMultisampling get() = samples > 1
+    private val withMultisampling = samples > 1
 
     private val tex2D = if (withMultisampling) GL_TEXTURE_2D_MULTISAMPLE else GL_TEXTURE_2D
     val state get(): Int = pointer * 4 + isDestroyed.toInt(2) + isCreated.toInt(1)
@@ -78,8 +78,6 @@ open class Texture2D(
         }
         if (pointer <= 0) throw RuntimeException("Could not allocate texture pointer")
     }
-
-    // todo is BGRA really faster than RGBA? we should try that and maybe use it...
 
     fun texImage2D(type0: Int, type1: Int, fillType: Int, data: ByteBuffer?) {
         val w = w

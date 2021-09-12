@@ -11,6 +11,7 @@ import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.prefab.Prefab
 import me.anno.io.NamedSaveable
+import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextReader
@@ -35,7 +36,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
 
     private val LOGGER = LogManager.getLogger(AnimatedMeshesLoader::class)
 
-    fun matrixFix(metadata: Map<String, Any>): Matrix3f? {
+    private fun matrixFix(metadata: Map<String, Any>): Matrix3f? {
 
         var unitScaleFactor = 1f
 
@@ -174,7 +175,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         return root to hierarchy
     }
 
-    fun applyMatrixFix(prefab: Prefab, matrix: Matrix3f) {
+    private fun applyMatrixFix(prefab: Prefab, matrix: Matrix3f) {
 
         // apply matrix fix:
         // - get the root transform
@@ -250,7 +251,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         }
     }
 
-    private fun <V : NamedSaveable> createReferences(
+    private fun <V : Saveable> createReferences(
         root: InnerFolder,
         folderName: String,
         instances: List<V>
@@ -267,7 +268,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                     val fileName = findNextFileName(meshFolder, nameOrIndex, "json", 3, '-')
                     meshFolder.createPrefabChild(fileName, instance)
                 } else {
-                    val name = instance.name
+                    val name = (instance as? NamedSaveable)?.name ?: ""
                     val nameOrIndex = name.ifEmpty { "$index" }
                     val fileName = findNextFileName(meshFolder, nameOrIndex, "json", 3, '-')
                     meshFolder.createTextChild(fileName, TextWriter.toText(instance))
@@ -353,7 +354,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         } else emptyMap()
     }
 
-    fun loadMeshPrefabs(
+    private fun loadMeshPrefabs(
         aiScene: AIScene, materials: List<FileReference>,
         boneList: ArrayList<Bone>, boneMap: HashMap<String, Bone>
     ): Array<Prefab> {
@@ -607,7 +608,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         }
     }
 
-    fun calcAnimationMaxFrames(aiAnimation: AIAnimation): Int {
+    private fun calcAnimationMaxFrames(aiAnimation: AIAnimation): Int {
         var maxFrames = 0
         val channelCount = aiAnimation.mNumChannels()
         if (channelCount > 0) {
@@ -624,7 +625,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         return maxFrames
     }
 
-    fun processBones(
+    private fun processBones(
         aiMesh: AIMesh,
         boneList: ArrayList<Bone>,
         boneMap: HashMap<String, Bone>,
@@ -700,7 +701,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
 
     }
 
-    fun createMeshPrefab(
+    private fun createMeshPrefab(
         aiMesh: AIMesh,
         materials: List<FileReference>,
         boneList: ArrayList<Bone>,

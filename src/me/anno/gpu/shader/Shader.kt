@@ -183,6 +183,7 @@ open class Shader(
         use()
         if (textures == null) return
         for ((index, name) in textures.withIndex()) {
+            if(',' in name) throw IllegalArgumentException("Name must not contain comma!")
             val texName = getUniformLocation(name)
             textureIndices[name] = if (texName >= 0) {
                 glUniform1i(texName, index)

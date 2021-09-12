@@ -1,13 +1,15 @@
 package me.anno.utils.image
 
+import me.anno.image.raw.IntImage
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
-import me.anno.utils.maths.Maths.mixARGB
 import me.anno.utils.OS
 import me.anno.utils.files.Files.use
 import me.anno.utils.hpc.HeavyProcessing.processBalanced
+import me.anno.utils.maths.Maths.mixARGB
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 import kotlin.math.abs
@@ -62,6 +64,18 @@ object ImageWriter {
         writeImageInt(w, h, true, name, minPerThread, getRGB)
     }
 
+    val zeroColor = 255 shl 24
+    val minColor = 0xff0000 or zeroColor
+    val maxColor = 0xffffff or zeroColor
+    val nanColor = 0x7700ff or zeroColor
+
+    fun writeImageFloat(
+        w: Int, h: Int, name: String,
+        normalize: Boolean, values: FloatArray
+    ) {
+        writeImageFloat(w, h, name, normalize, minColor, zeroColor, maxColor, nanColor, values)
+    }
+
     fun writeImageFloat(
         w: Int, h: Int, name: String,
         normalize: Boolean,
@@ -72,8 +86,7 @@ object ImageWriter {
         values: FloatArray
     ) {
         if (normalize) normalizeValues(values)
-        val img = BufferedImage(w, h, 1)
-        val buffer = img.data.dataBuffer
+        val imgData = IntArray(w * h)
         for (i in 0 until w * h) {
             val v = values[i]
             val color = when {
@@ -81,12 +94,13 @@ object ImageWriter {
                 v.isNaN() -> nanColor
                 else -> if (v < 0f) minColor else maxColor // todo special colors for infinity?
             }
-            buffer.setElem(i, color)
+            imgData[i] = color
         }
         val file = OS.desktop.getChild(name)
         file.getParent()?.mkdirs()
         use(file.outputStream()) {
-            ImageIO.write(img, if (name.endsWith(".jpg")) "jpg" else "png", it)
+            val img = IntImage(w, h, imgData, false)
+            img.write(getReference(OS.desktop, name))
         }
     }
 
@@ -158,6 +172,16 @@ object ImageWriter {
         return writeImageFloat(w, h, name, normalize, minColor, zeroColor, maxColor, nanColor, values)
     }
 
+    val MSAAx8 = floatArrayOf(
+        0.058824f, 0.419608f,
+        0.298039f, 0.180392f,
+        0.180392f, 0.819608f,
+        0.419608f, 0.698039f,
+        0.580392f, 0.298039f,
+        0.941176f, 0.058824f,
+        0.698039f, 0.941176f,
+        0.819608f, 0.580392f
+    )
 
     inline fun writeImageFloatMSAA(
         w: Int, h: Int, name: String,
@@ -170,16 +194,7 @@ object ImageWriter {
         crossinline getRGB: (x: Float, y: Float) -> Float
     ) {
         val samples = 8
-        val positions = floatArrayOf(
-            0.058824f, 0.419608f,
-            0.298039f, 0.180392f,
-            0.180392f, 0.819608f,
-            0.419608f, 0.698039f,
-            0.580392f, 0.298039f,
-            0.941176f, 0.058824f,
-            0.698039f, 0.941176f,
-            0.819608f, 0.580392f
-        )
+        val positions = MSAAx8
         val values = FloatArray(w * h * samples)
         if (minPerThread < 0) {// multi-threading is forbidden
             for (y in 0 until h) {

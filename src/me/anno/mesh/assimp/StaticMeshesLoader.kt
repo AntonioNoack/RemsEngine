@@ -70,6 +70,7 @@ open class StaticMeshesLoader {
     }*/
 
     fun loadFile(file: FileReference, flags: Int): AIScene {
+        if(file.lcExtension == "obj") throw RuntimeException()
         return if (file is FileFileRef || file.absolutePath.count { it == '.' } <= 1) {
             aiImportFile(file.absolutePath, flags)
         } else {
@@ -185,7 +186,7 @@ open class StaticMeshesLoader {
         }
     }
 
-    fun processIndices(aiMesh: AIMesh, indices: IntArray) {
+    private fun processIndices(aiMesh: AIMesh, indices: IntArray) {
         val numFaces = aiMesh.mNumFaces()
         val aiFaces = aiMesh.mFaces()
         for (j in 0 until numFaces) {
@@ -218,7 +219,7 @@ open class StaticMeshesLoader {
         }
     }
 
-    fun processMaterialPrefab(
+    private fun processMaterialPrefab(
         aiScene: AIScene,
         aiMaterial: AIMaterial,
         loadedTextures: List<FileReference>,
@@ -341,7 +342,7 @@ open class StaticMeshesLoader {
         return a[0]
     }
 
-    fun getPath(
+    private fun getPath(
         aiScene: AIScene,
         aiMaterial: AIMaterial,
         loadedTextures: List<FileReference>,
@@ -373,7 +374,7 @@ open class StaticMeshesLoader {
             ?: maybePath
     }
 
-    fun loadTexture(parentFolder: InnerFolder, texture: AITexture, index: Int): InnerFile {
+    private fun loadTexture(parentFolder: InnerFolder, texture: AITexture, index: Int): InnerFile {
         // ("file name: ${texture.mFilename().dataString()}")
         // val hintBuffer = texture.achFormatHint()
         // ("format hints: ${hintBuffer.toByteArray().joinToString()}, ${texture.achFormatHintString()}")
@@ -417,12 +418,12 @@ open class StaticMeshesLoader {
         return ByteArray(limit()) { get(it) }
     }
 
-    fun bufferToBytes(texture: AITexture, size: Int): ByteArray {
+    private fun bufferToBytes(texture: AITexture, size: Int): ByteArray {
         val buffer = texture.pcData(size / 4)
         return bufferToBytes(buffer, size)
     }
 
-    fun bufferToBytes(buffer: AITexel.Buffer, size: Int): ByteArray {
+    private fun bufferToBytes(buffer: AITexel.Buffer, size: Int): ByteArray {
         val bytes = ByteArray(size)
         var j = 0
         for (i in 0 until size / 4) {
@@ -492,7 +493,7 @@ open class StaticMeshesLoader {
 
     }
 
-    fun processTangents(aiMesh: AIMesh, vertexCount: Int): FloatArray? {
+    private fun processTangents(aiMesh: AIMesh, vertexCount: Int): FloatArray? {
         val src = aiMesh.mTangents()
         return if (src != null) {
             val dst = FloatArray(vertexCount * 3)
@@ -507,7 +508,7 @@ open class StaticMeshesLoader {
         } else null
     }
 
-    fun processNormals(aiMesh: AIMesh, vertexCount: Int): FloatArray? {
+    private fun processNormals(aiMesh: AIMesh, vertexCount: Int): FloatArray? {
         val src = aiMesh.mNormals()
         return if (src != null) {
             val dst = FloatArray(vertexCount * 3)
@@ -522,7 +523,7 @@ open class StaticMeshesLoader {
         } else null
     }
 
-    fun processUVs(aiMesh: AIMesh, vertexCount: Int): FloatArray? {
+    private fun processUVs(aiMesh: AIMesh, vertexCount: Int): FloatArray? {
         val src = aiMesh.mTextureCoords(0)
         return if (src != null) {
             val dst = FloatArray(vertexCount * 2)
@@ -536,7 +537,7 @@ open class StaticMeshesLoader {
         } else null
     }
 
-    fun processPositions(aiMesh: AIMesh, dst: FloatArray) {
+    private fun processPositions(aiMesh: AIMesh, dst: FloatArray) {
         var j = 0
         val src = aiMesh.mVertices()
         while (src.hasRemaining()) {
@@ -558,7 +559,7 @@ open class StaticMeshesLoader {
         }
     }
 
-    fun processVertexColors(aiMesh: AIMesh, index: Int, vertexCount: Int): IntArray? {
+    private fun processVertexColors(aiMesh: AIMesh, index: Int, vertexCount: Int): IntArray? {
         val src = aiMesh.mColors(index)
         return if (src != null) {
             val dst = IntArray(vertexCount)

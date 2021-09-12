@@ -757,14 +757,11 @@ class Entity() : PrefabSaveable(), Inspectable {
             for (i in children.indices) {
                 sum += children[i].sizeOfHierarchy
             }
-            return sum
+            // the root would be missing
+            return if (parent == null) sum + 1 else sum
         }
 
-    val depthInHierarchy
-        get(): Int {
-            val parent = parentEntity ?: return 0
-            return parent.depthInHierarchy + 1
-        }
+    val sizeOfAllChildren get() = sizeOfHierarchy - 1 // hierarchy - 1
 
     fun fromOtherLocalToLocal(other: Entity): Matrix4x3d {
         // converts the point from the local coordinates of the other one to our local coordinates

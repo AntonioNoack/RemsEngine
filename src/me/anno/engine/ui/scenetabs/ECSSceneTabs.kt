@@ -49,7 +49,7 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
         }
 
     fun open(syncMaster: SyncMaster, prefab: Prefab): ECSSceneTab {
-        val opened = children3.firstOrNull { it.file == prefab.src }
+        val opened = children3.firstOrNull { it.file == prefab.source }
         return if (opened != null) {
             open(opened)
             opened
@@ -112,7 +112,7 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
                 val physics = prefabInstance.getComponent(BulletPhysics::class, false)
                 if (physics != null) rebuildPhysics(physics)
             }
-            val world = lazy { createWorld(prefabInstance, prefab.src) }
+            val world = lazy { createWorld(prefabInstance, prefab.source) }
             for (window in windowStack) {
                 window.panel.listOfAll {
                     when (it) {

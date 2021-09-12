@@ -2,6 +2,8 @@ package me.anno.ecs.prefab.change
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.FileReference
+import org.apache.logging.log4j.LogManager
 
 class CSet() : Change(5) {
 
@@ -31,8 +33,15 @@ class CSet() : Change(5) {
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeString("name", name)
-        writer.writeSomething(null, "value", value, true)
+        val name = name
+        val value = value
+        if (name == "path") {
+            writer.writeString("name", name)
+            writer.writeSomething(null, "value", value, true)
+        } else {
+            // special handling, to save a little space by omitting "name": and "value":
+            writer.writeSomething(null, name!!, value, true)
+        }
     }
 
     override fun readString(name: String, value: String?) {
@@ -43,13 +52,12 @@ class CSet() : Change(5) {
     }
 
     override fun readSomething(name: String, value: Any?) {
-        when (name) {
-            "value" -> this.value = value
-            else -> super.readSomething(name, value)
-        }
+        // special handling, to save a little space by omitting "name": and "value":
+        if (this.name == null) this.name = name
+        this.value = value
     }
 
-    override fun applyChange(instance: PrefabSaveable) {
+    override fun applyChange(instance: PrefabSaveable, chain: MutableSet<FileReference>?) {
         // LOGGER.info("set $name = $value for ${instance::class}")
         instance[name ?: return] = value
     }
@@ -68,6 +76,10 @@ class CSet() : Change(5) {
                     str.substring(str.length - maxLength * 3 / 10)
         }
         return "CSet($path, $name, $str)"
+    }
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(CSet::class)
     }
 
 }

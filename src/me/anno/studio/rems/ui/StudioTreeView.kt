@@ -7,6 +7,7 @@ import me.anno.io.text.TextWriter
 import me.anno.io.utils.StringMap
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
+import me.anno.objects.Camera
 import me.anno.objects.Rectangle
 import me.anno.objects.Transform
 import me.anno.objects.Transform.Companion.toTransform
@@ -19,6 +20,7 @@ import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.treeView.AbstractTreeView
 import me.anno.ui.style.Style
+import me.anno.utils.Color.toARGB
 import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.structures.lists.UpdatingList
 import org.apache.logging.log4j.LogManager
@@ -114,10 +116,21 @@ class StudioTreeView(style: Style) :
         Companion.openAddMenu(parent)
     }
 
-    override fun getLocalColor(element: Transform, dst: Vector4f): Vector4f {
-        element.getLocalColor(dst.set(1f))
+    val tmp = Vector4f()
+    override fun getLocalColor(element: Transform, isHovered: Boolean, isInFocus: Boolean): Int {
+        val dst = element.getLocalColor(tmp)
         dst.w = 0.5f + 0.5f * clamp(dst.w, 0f, 1f)
-        return dst
+        var textColor = dst.toARGB()
+        val sample = sample
+        if (isHovered) textColor = sample.hoverColor
+        if (isInFocus) textColor = sample.accentColor
+        return textColor
+    }
+
+    override fun getTooltipText(element: Transform): String? {
+        return if (element is Camera) {
+            element.defaultDisplayName + Dict[", drag onto scene to view", "ui.treeView.dragCameraToView"]
+        } else element::class.simpleName
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {

@@ -90,6 +90,12 @@ interface Hierarchical<V : Hierarchical<V>> {
         callback(this as V)
     }
 
+    val depthInHierarchy
+        get(): Int {
+            val parent = parent ?: return 0
+            return parent.depthInHierarchy + 1
+        }
+
     fun allInHierarchy(lambda: (V) -> Boolean): Boolean {
         var v = this as V
         while (true) {

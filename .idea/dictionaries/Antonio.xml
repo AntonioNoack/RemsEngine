@@ -210,6 +210,7 @@
       <w>paleturquoise</w>
       <w>palevioletred</w>
       <w>papayawhip</w>
+      <w>passthrough</w>
       <w>peachpuff</w>
       <w>perlin</w>
       <w>pgfref</w>
@@ -226,6 +227,7 @@
       <w>rawvideo</w>
       <w>raycast</w>
       <w>raycaster</w>
+      <w>rcas</w>
       <w>remsstudio</w>
       <w>renderable</w>
       <w>renderables</w>

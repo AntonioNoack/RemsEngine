@@ -34,6 +34,16 @@ class Path(
         parent.types + child.types
     )
 
+    fun getParent(): Path {
+        val size = size
+        if (size == 0) throw IllegalArgumentException()
+        return Path(
+            Array(size - 1) { names[it] },
+            IntArray(size - 1) { indices[it] },
+            CharArray(size - 1) { types[it] }
+        )
+    }
+
     val size get() = indices.size
     fun isEmpty() = size == 0
 
@@ -68,9 +78,9 @@ class Path(
         } else null
     }
 
-    fun getSubPathIfMatching(change: Change, extraDepth: Int): Change? {
+    fun <V: Change> getSubPathIfMatching(change: V, extraDepth: Int): V? {
         val subPath = getSubPathIfMatching(change.path, extraDepth) ?: return null
-        val clone = change.clone()
+        val clone = change.clone() as V
         clone.path = subPath
         return clone
     }

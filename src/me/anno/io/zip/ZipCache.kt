@@ -15,6 +15,7 @@ import me.anno.io.zip.InnerZipFile.Companion.createZipRegistryV2
 import me.anno.io.zip.InnerZipFile.Companion.fileFromStreamV2
 import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.mesh.obj.MTLReader
+import me.anno.mesh.obj.OBJReader2
 import me.anno.mesh.vox.VOXReader
 import me.anno.objects.documents.pdf.PDFCache
 import org.apache.logging.log4j.LogManager
@@ -41,9 +42,10 @@ object ZipCache : CacheSection("ZipCache") {
                     "rar" -> createZipRegistryRar(file) { fileFromStreamRar(file) }
                     "gzip", "tar" -> readAsGZip(file)
                     // todo all mesh extensions
-                    "fbx", "gltf", "obj", "dae", "blend",
+                    "fbx", "gltf", "dae", "blend",
                     "draco", "md2", "md5mesh" ->
                         AnimatedMeshesLoader.readAsFolder(file)
+                    "obj" -> OBJReader2.readAsFolder(file)
                     "mtl" -> MTLReader.readAsFolder(file)
                     "pdf" -> PDFCache.readAsFolder(file)
                     "vox" -> VOXReader.readAsFolder(file)

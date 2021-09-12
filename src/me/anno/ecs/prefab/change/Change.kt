@@ -1,9 +1,11 @@
 package me.anno.ecs.prefab.change
 
-import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
+import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.FileReference
 import org.apache.logging.log4j.LogManager
 
 // todo how do we reference (as variables) to other Entities? probably a path would be correct...
@@ -15,42 +17,12 @@ abstract class Change(val priority: Int) : Saveable(), Cloneable {
 
     abstract fun withPath(path: Path): Change
 
-    fun apply(instance: PrefabSaveable) {
-        apply(instance, pathIndex = 0)
+    fun apply(instance0: PrefabSaveable, chain: MutableSet<FileReference>?) {
+        val instance = Hierarchy.getInstanceAt(instance0, path) ?: return
+        applyChange(instance, chain)
     }
 
-    fun apply(instance: PrefabSaveable, pathIndex: Int) {
-        val path = path
-        if (pathIndex < path.size) {
-
-            // we can go deeper :)
-            val chars = instance.listChildTypes()
-            val childName = path.getName(pathIndex)
-            val childIndex = path.getIndex(pathIndex)
-            val childType = path.getType(pathIndex, chars[0])
-
-            val components = instance.getChildListByType(childType)
-
-            if (components.getOrNull(childIndex)?.name == childName) {
-                // bingo, easiest way: name and index are matching
-                apply(components[childIndex], pathIndex + 1)
-            } else {
-                val matchesName = components.firstOrNull { it.name == childName }
-                when {
-                    matchesName != null -> apply(matchesName, pathIndex + 1)
-                    childIndex in components.indices -> apply(components[childIndex], pathIndex + 1)
-                    else -> LOGGER.warn(
-                        "Missing path $pathIndex in $this, " +
-                                "only ${components.size} $childType available ${components.joinToString { "'${it["name"]}'" }}"
-                    )
-                }
-            }
-
-        } else applyChange(instance)
-
-    }
-
-    abstract fun applyChange(instance: PrefabSaveable)
+    abstract fun applyChange(instance: PrefabSaveable, chain: MutableSet<FileReference>?)
 
     /**
      * shallow copy
@@ -73,7 +45,9 @@ abstract class Change(val priority: Int) : Saveable(), Cloneable {
     }
 
     companion object {
+
         private val LOGGER = LogManager.getLogger(Change::class)
+
     }
 
 }

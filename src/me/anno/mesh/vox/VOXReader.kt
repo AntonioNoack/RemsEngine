@@ -382,7 +382,7 @@ class VOXReader {
             }
             val prefab = reader.toEntityPrefab(meshReferences)
             val layersRoot = folder.createPrefabChild("Scene.json", prefab)
-            prefab.src = layersRoot
+            prefab.source = layersRoot
             return Quad(folder, layersRoot, prefab, meshReferences)
         }
 

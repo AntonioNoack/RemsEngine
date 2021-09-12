@@ -1,68 +1,206 @@
 package me.anno.ecs.prefab
 
+import me.anno.ecs.Entity
+import me.anno.ecs.prefab.PrefabCache.getPrefab
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
-import me.anno.ecs.prefab.change.Change
 import me.anno.ecs.prefab.change.Path
+import me.anno.engine.ECSRegistry
+import me.anno.engine.scene.ScenePrefab
 import me.anno.io.ISaveable
+import me.anno.io.files.InvalidRef
+import me.anno.io.text.TextWriter
+import me.anno.io.zip.InnerTmpFile
 import me.anno.utils.structures.StartsWith.startsWith
+import org.apache.logging.log4j.LogManager
 
 object Hierarchy {
 
+    private val LOGGER = LogManager.getLogger(Hierarchy::class)
 
-    fun add(
-        src: Prefab,
-        srcPath: Path,
-        dst: Prefab,
-        dstParentPath: Path,
-        index: Int
-    ) {
-
+    fun extractPrefab(element: PrefabSaveable, copyPasteRoot: Boolean): Prefab {
+        val prefab = Prefab(element.className)
+        val elPrefab = element.prefab2
+        if (!copyPasteRoot) prefab.prefab = elPrefab?.prefab?.nullIfUndefined() ?: elPrefab?.source ?: InvalidRef
+        prefab.createLists()
+        val adders = prefab.adds as ArrayList
+        val setters = prefab.sets as ArrayList
+        val path = element.pathInRoot2()
+        LOGGER.info("for copy path: $path")
+        // collect changes from this element going upwards
+        var someParent = element
+        val collDepth = element.depthInHierarchy
+        setters.add(CSet(Path.ROOT_PATH, "name", element.name))
+        if (!copyPasteRoot) someParent = someParent.parent!!
+        val startIndex = if (copyPasteRoot) collDepth else collDepth - 1
+        for (depth in startIndex downTo 0) {// from element to root
+            LOGGER.info("checking depth $depth/$collDepth, ${someParent.name}")
+            var someRelatedParent = someParent.prefab2
+            while (someRelatedParent != null) {// follow the chain of prefab-inheritance
+                val adds = someRelatedParent.adds
+                val sets = someRelatedParent.sets
+                LOGGER.info("changes from $depth/${someRelatedParent.getPrefabOrSource()}: ${adds?.size} + ${sets?.size}")
+                // get all changes
+                // filter them & short them by their filter
+                if (adds != null) for (change in adds.mapNotNull { path.getSubPathIfMatching(it, depth) }) {
+                    adders.add(change)
+                }
+                if (sets != null) for (change in sets.mapNotNull { path.getSubPathIfMatching(it, depth) }) {
+                    // don't apply changes twice, especially, because the order is reversed
+                    // this would cause errors
+                    if (setters.none { it.path == change.path && it.name == change.name }) {
+                        setters.add(change)
+                    }
+                }
+                someRelatedParent = getPrefab(someRelatedParent.prefab) ?: break
+            }
+            someParent = someParent.parent ?: break
+        }
+        LOGGER.info("found: ${prefab.prefab}, prefab: ${elPrefab?.prefab}, own file: ${elPrefab?.source}, has prefab: ${elPrefab != null}")
+        return prefab
     }
 
+    fun stringify(element: PrefabSaveable): String {
+        return TextWriter.toText(extractPrefab(element, false))
+    }
 
-    // todo completely rework these functions
+    fun getInstanceAt(instance0: PrefabSaveable, path: Path): PrefabSaveable? {
+
+        var instance = instance0
+        for (pathIndex in 0 until path.size) {
+
+            // we can go deeper :)
+            val chars = instance.listChildTypes()
+            val childName = path.getName(pathIndex)
+            val childIndex = path.getIndex(pathIndex)
+            val childType = path.getType(pathIndex, chars[0])
+
+            val components = instance.getChildListByType(childType)
+
+            instance = if (components.getOrNull(childIndex)?.name == childName) {
+                // bingo, easiest way: name and index are matching
+                components[childIndex]
+            } else {
+                val matchesName = components.firstOrNull { it.name == childName }
+                when {
+                    matchesName != null -> matchesName
+                    childIndex in components.indices -> components[childIndex]
+                    else -> {
+                        LOGGER.warn(
+                            "Missing path at index $pathIndex, '$childName','$childType',${childIndex} in $this, " +
+                                    "only ${components.size} $childType available ${components.joinToString { "'${it["name"]}'" }}"
+                        )
+                        throw RuntimeException()
+                        return null
+                    }
+                }
+            }
+        }
+        return instance
+    }
 
     fun add(
-        dst: Prefab,
-        dstPath: Path,
-        child: Prefab,
-        index: Int
-    ) {
-        if (child.src == dst.src) {
-            // this ofc won't work, because it would cause infinite recursion on instantiation
-            // -> extract changes and try again
-            add(
-                dst, dstPath, index,
-                child.clazzName!!,
-                ' ',// todo get the type in parent...
-                child.adds!! + child.sets!!
-            )
+        srcPrefab: Prefab,
+        srcPath: Path,
+        dstPrefab: Prefab,
+        dstParentPath: Path,
+        dstParentInstance: PrefabSaveable = getInstanceAt(dstPrefab.getSampleInstance(), dstParentPath)!!
+    ): Path? {
+        println("trying to add ${srcPrefab.source}/$srcPath to ${dstPrefab.source}/$dstParentPath")
+        if (srcPrefab == dstPrefab || (srcPrefab.source == dstPrefab.source && srcPrefab.source != InvalidRef)) {
+            val element = srcPrefab.getSampleInstance()
+            return add(extractPrefab(element, true), Path.ROOT_PATH, dstPrefab, dstParentPath, dstParentInstance)
         } else {
-            // todo add the item with all its own changes
-            // todo get the name somehow
-            val childPath = dst.add(CAdd(dstPath, ' ', child.clazzName!!, child.name, child.getPrefabOrSource()))
-
-            TODO()
+            // find all necessary changes
+            if (srcPath.isEmpty()) {
+                // find correct type and insert index
+                val srcSample = getInstanceAt(srcPrefab.getSampleInstance(), srcPath)!!
+                val type = dstParentInstance.getTypeOf(srcSample)
+                val index = dstParentInstance.getChildListByType(type).size
+                val name = srcSample.name
+                val clazz = srcPrefab.clazzName!!
+                val prefab0 = srcSample.prefab2?.prefab ?: InvalidRef
+                val add0 = CAdd(dstParentPath, type, clazz, name, prefab0)
+                val dstPath = dstPrefab.add(add0, index)
+                LOGGER.info("adding element to path $dstPath")
+                val adds = srcPrefab.adds
+                val sets = srcPrefab.sets
+                if (adds === dstPrefab.adds) throw IllegalStateException()
+                if (adds != null) for (change in adds) {
+                    dstPrefab.add(change.withPath(Path(dstPath, change.path)))
+                }
+                if (sets != null) for (change in sets) {
+                    dstPrefab.add(change.withPath(Path(dstPath, change.path)))
+                }
+                return dstPath
+            } else {
+                val element = getInstanceAt(srcPrefab.getSampleInstance(), srcPath) ?: return null
+                return add(extractPrefab(element, false), Path.ROOT_PATH, dstPrefab, dstParentPath, dstParentInstance)
+            }
         }
     }
 
     fun add(
-        dst: Prefab,
+        dstPrefab: Prefab,
         dstPath: Path,
-        index: Int,
-        childClass: String,
-        childType: Char,
-        changes: List<Change>
+        parent: PrefabSaveable,
+        child: PrefabSaveable,
     ) {
-        // todo all later items, that we defined, must be renumbered
-        TODO()
+        val type = dstPath.types.last()
+        val name = child.name.ifEmpty { child.className }
+        dstPrefab.add(CAdd(dstPath.getParent(), type, child.className, name, child.prefab2?.source ?: InvalidRef))
+        val sample = ISaveable.getSample(child.className)!!
+        for (pName in child.getReflections().allProperties.keys) {
+            val value = child[pName]
+            if (value != sample[pName]) {
+                dstPrefab.add(CSet(dstPath, pName, value))
+            }
+        }
+        // val index = dstPath.indices.last()
+        // parent.addChildByType(index, type, child)
     }
 
-    fun remove(dst: Prefab, path: Path) {
-        // todo remove the instance at this path completely
-        // todo if this is not possible, go as far as possible, and disable the instance
+    fun remove(
+        prefab: Prefab,
+        path: Path
+    ) {
 
+        // remove the instance at this path completely
+        // if this is not possible, go as far as possible, and disable the instance
+
+        // remove all properties
+        val sets = prefab.sets
+        if (sets != null) {
+            sets as MutableList
+            LOGGER.info("Removing ${sets.count { it.path.startsWith(path) }} sets")
+            sets.removeIf { it.path.startsWith(path) }
+            prefab.isValid = false
+        }
+
+        val parentPath = path.getParent()
+
+        val adds = prefab.adds ?: emptyList()
+        val matches = adds.filter { it.path == parentPath }
+        when (matches.size) {
+            0 -> {
+                LOGGER.info("did not find add @$parentPath, prefab: ${prefab.source}:${prefab.prefab}, ${prefab.adds}, ${prefab.sets}")
+                prefab.add(CSet(path, "isEnabled", false))
+            }
+            1 -> {
+                LOGGER.info("Removing single add")
+                adds as MutableList
+                adds.removeIf { it.path.startsWith(parentPath) }
+                prefab.isValid = false
+            }
+            else -> {
+                // todo find the correct index...
+                // todo how many elements where there in the parent for this element
+
+                // todo also renumber all following adds & changes
+
+                TODO()
+            }
+        }
     }
 
 
@@ -88,113 +226,31 @@ object Hierarchy {
         }
     }
 
-    fun addExistingChild(
-        root: PrefabSaveable,
-        adds: MutableList<CAdd>, sets: MutableList<CSet>,
-        parent: PrefabSaveable, child: PrefabSaveable, index: Int, type: Char
-    ) {
-
-        val hierarchyPrefabs = parent.listOfHierarchy.mapNotNull { it.prefab2 }.map { it.getPrefabOrSource() }
-
-        // todo add all changes
-        // todo if there are prefabs, which describe the existing changes, use them, as long, as they are not part of this hierarchy
-        // todo actually add a copy of it
-
-
-    }
-
-    fun addNewChild(
-        root: PrefabSaveable,
-        adds: MutableList<CAdd>, sets: MutableList<CSet>,
-        parent: PrefabSaveable, child: PrefabSaveable, index: Int, type: Char
-    ) {
-
-        val parentPath = parent.pathInRoot2(root, false)
-
-        val prefab = parent.prefab
-
-        child.parent = parent
-
-        val prefabComponents = prefab?.getChildListByType(type)
-        if (prefab != null && index < prefabComponents!!.size) {
-            // if index < prefab.size, then disallow
-            throw RuntimeException("Cannot insert between prefab components!")
+    @JvmStatic
+    fun main(args: Array<String>) {
+        // test
+        ECSRegistry.initNoGFX()
+        ISaveable.create("CAdd")
+        val scene = Prefab("Entity", ScenePrefab)
+        scene.source = InnerTmpFile.InnerTmpPrefabFile(scene)
+        val sample0 = scene.getSampleInstance() as Entity
+        val size0 = sample0.sizeOfHierarchy
+        val added = add(scene, Path.ROOT_PATH, scene, Path.ROOT_PATH)!!
+        val sample1 = scene.getSampleInstance() as Entity
+        val size1 = sample1.sizeOfHierarchy
+        if (size0 * 2 != size1) {
+            println(sample0)
+            println(sample1)
+            throw RuntimeException("Sizes don't match: $size0*2 vs $size1")
         }
-
-        val parentComponents = parent.getChildListByType(type)
-        if (index < parentComponents.size) {
-            renumber(index, +1, parentPath, sets)
+        remove(scene, added)
+        val sample2 = scene.getSampleInstance() as Entity
+        val size2 = sample2.sizeOfHierarchy
+        if (size0 != size2){
+            println(sample0)
+            println(sample2)
+            throw RuntimeException("Removal failed: $size0 vs $size2")
         }
-
-        parent.addChildByType(index, type, child)
-
-        // just append it :)
-        adds.add(CAdd(parentPath, 'c', child.className, child.name))
-
-        // if it contains any changes, we need to apply them
-        val sample = ISaveable.getSample(child.className)!!
-        val compPath = parentPath.added(child.name, index, type)
-
-        for (name in child.getReflections().allProperties.keys) {
-            val value = child[name]
-            if (value != sample[name]) {
-                sets.add(CSet(compPath, name, value))
-            }
-        }
-
-    }
-
-    fun removeChild(
-        root: PrefabSaveable,
-        adds: MutableList<CAdd>, sets: MutableList<CSet>,
-        parent: PrefabSaveable, child: PrefabSaveable, type: Char
-    ) {
-
-        val parentPath = parent.pathInRoot2(root, false)
-        val childPath = child.pathInRoot2(root, false)
-
-        val prefab = parent.prefab
-
-        val components = parent.getChildListByType(type)
-        if (child !in components) return // done
-
-        val index = components.indexOf(child)
-        val prefabComponents = prefab?.getChildListByType(type)
-        if (prefab != null && index < prefabComponents!!.size) {
-
-            // original component, cannot be removed
-            // remove all the changes, that we applied? yes :)
-            adds.removeIf { it.path.startsWith(parentPath) }
-            sets.removeIf { it.path.startsWith(parentPath) }
-            child.isEnabled = false
-
-        } else {
-
-            // when a component is deleted, its changes need to be deleted as well
-            sets.removeIf { it.path == childPath }
-
-            if (index + 1 < components.size) {
-                // not the last one
-                renumber(index + 1, -1, parentPath, sets)
-            }
-
-            // it's ok, and fine
-            // remove the respective change
-            parent.deleteChild(child)
-            // not very elegant, but should work...
-            // correct?
-
-            // todo only remove first one
-            adds.removeIf { it.path == parentPath }
-            val prefabList = prefab?.getChildListByType(type)
-            val i0 = (prefabList?.size ?: 0)
-            for (i in i0 until components.size) {
-                val componentI = components[i]
-                adds.add(i - i0, CAdd(parentPath, type, componentI.className, componentI.name))
-            }
-
-        }
-
     }
 
 }

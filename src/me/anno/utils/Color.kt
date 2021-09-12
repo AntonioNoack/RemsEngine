@@ -1,7 +1,9 @@
 package me.anno.utils
 
 import me.anno.config.DefaultStyle.black
+import me.anno.utils.maths.Maths
 import me.anno.utils.maths.Maths.clamp
+import org.joml.Vector3f
 import org.joml.Vector3fc
 import org.joml.Vector4f
 import org.joml.Vector4fc
@@ -32,6 +34,14 @@ object Color {
 
     fun rgba(r: Float, g: Float, b: Float, a: Float): Int =
         rgba((r * 255).roundToInt(), (g * 255).roundToInt(), (b * 255).roundToInt(), (a * 255).roundToInt())
+
+    fun normARGB(v: Vector3f): Int {
+        val r = v.x
+        val g = v.y
+        val b = v.z
+        val div = Maths.max(r, Maths.max(g, b))
+        return rgba(r * div, g * div, b * div, 1f)
+    }
 
     fun colorDifference(c0: Int, c1: Int): Int {
         val dr = abs(c0.r() - c1.r())

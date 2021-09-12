@@ -11,13 +11,13 @@ import me.anno.utils.files.LocalFile.toGlobalFile
 class CAdd() : Change(2) {
 
     constructor(
-        path: Path,
+        parentPath: Path,
         type: Char,
         className: String,
         name: String? = className,
         prefab: FileReference = InvalidRef
     ) : this() {
-        this.path = path
+        this.path = parentPath
         this.type = type
         this.clazzName = className
         this.prefab = prefab
@@ -25,7 +25,7 @@ class CAdd() : Change(2) {
     }
 
     override fun withPath(path: Path): Change {
-        return CAdd(path, type, className, name, prefab)
+        return CAdd(path, type, clazzName!!, name, prefab)
     }
 
     fun getChildPath(index: Int): Path {
@@ -78,14 +78,24 @@ class CAdd() : Change(2) {
         }
     }
 
-    override fun applyChange(instance: PrefabSaveable) {
+    override fun applyChange(instance: PrefabSaveable, chain: MutableSet<FileReference>?) {
+
         // LOGGER.info("adding $clazzName with type $type")
+        if (prefab != InvalidRef && chain?.add(prefab) == false) throw RuntimeException("Circular Reference on $chain: $prefab")
+
         val loadedInstance = loadPrefab(prefab)?.createInstance()
-        val newInstance = loadedInstance
-            ?: ISaveable.createOrNull(clazzName ?: return) as? PrefabSaveable
-            ?: throw RuntimeException("Class $clazzName was not found")
+        var newInstance = loadedInstance
+        if (newInstance == null) {
+            val maybe = ISaveable.createOrNull(clazzName ?: return)
+            if (maybe is PrefabSaveable) {
+                newInstance = maybe
+            } else {
+                throw RuntimeException("Class $clazzName is not PrefabSaveable")
+            }
+        }
         val name = name; if (name != null) newInstance.name = name
         instance.addChildByType(instance.getChildListByType(type).size, type, newInstance)
+
     }
 
     override val className: String = "CAdd"

@@ -307,7 +307,7 @@ object Thumbs {
         }
     }
 
-    fun BufferedImage.flipY() {
+    /*fun BufferedImage.flipY() {
         for (y0 in 0 until height / 2) {
             val y1 = height - 1 - y0
             for (x in 0 until width) {
@@ -316,7 +316,7 @@ object Thumbs {
                 setRGB(x, y1, rgb0)
             }
         }
-    }
+    }*/
 
     private fun renderToBufferedImage2(
         srcFile: FileReference,
@@ -333,7 +333,7 @@ object Thumbs {
 
         val fb2 = Framebuffer(
             "generateVideoFrame", w, h, 4, 1, false,
-            if (withDepth) DepthBufferType.TEXTURE_16 else DepthBufferType.NONE
+            if (withDepth) DepthBufferType.TEXTURE else DepthBufferType.NONE
         )
 
         renderPurely {
@@ -818,8 +818,9 @@ object Thumbs {
     }
 
     private fun listTextures(materialReference: FileReference): List<FileReference> {
+        if (materialReference == InvalidRef) return emptyList()
         val material = MaterialCache[materialReference]
-        if (material == null) LOGGER.warn("Missing material $materialReference")
+        if (material == null) LOGGER.warn("Missing material '$materialReference'")
         return if (material != null) listTextures(material) else emptyList()
     }
 

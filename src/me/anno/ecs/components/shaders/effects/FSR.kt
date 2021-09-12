@@ -51,21 +51,16 @@ object FSR {
         val shader = Shader(
             "upscale", null, vertex,
             listOf(Variable("vec2", "uv")), "" +
+                    "uniform vec2 dstWH;\n" +
                     "uniform sampler2D source;\n" +
                     "#define A_GPU 1\n" +
                     "#define A_GLSL 1\n" +
                     "#define ANNO 1\n" +
                     defines +
                     "#define FSR_EASU_F 1\n" +
-                    "AF4 FsrEasuRF(AF2 p){\n" +
-                    "   return textureGather(source,p,0);\n" +
-                    "}\n" +
-                    "AF4 FsrEasuGF(AF2 p){\n" +
-                    "   return textureGather(source,p,1);\n" +
-                    "}\n" +
-                    "AF4 FsrEasuBF(AF2 p){\n" +
-                    "   return textureGather(source,p,2);\n" +
-                    "}\n" +
+                    "AF4 FsrEasuRF(vec2 p){ return textureGather(source,p,0); }\n" +
+                    "AF4 FsrEasuGF(vec2 p){ return textureGather(source,p,1); }\n" +
+                    "AF4 FsrEasuBF(vec2 p){ return textureGather(source,p,2); }\n" +
                     functions +
                     "layout(location=0) out vec4 glFragColor;\n" +
                     "uniform vec4 con0,con1,con2,con3;\n" +
@@ -73,14 +68,13 @@ object FSR {
                     "void main(){\n" +
                     "   vec3 color;\n" +
                     "   float alpha = texture(source,uv).a;\n" +
-                    "   FsrEasuF(color,gl_FragCoord.xy*vec2(1,-1)+texelOffset,con0,con1,con2,con3);\n" +
+                    "   ivec2 coords = ivec2(uv*dstWH);\n" +
+                    "   FsrEasuF(color,coords,con0,con1,con2,con3);\n" +
                     "   glFragColor = vec4(color,alpha);\n" +
-                    ");\n" +
                     "}", true
         )
         shader.glslVersion = 420 // for int->float->int ops, which are used for fast sqrt and such
         shader
-
     }
 
     private val sharpenShader = lazy {
@@ -92,8 +86,8 @@ object FSR {
             "upscale", null, vertex,
             listOf(Variable("vec2", "uv")), "" +
                     "out vec4 glFragColor;\n" +
+                    "uniform vec2 dstWH;\n" +
                     "uniform float sharpness;\n" +
-                    "uniform vec2 texelOffset;\n" +
                     "uniform sampler2D source;\n" +
                     "#define A_GPU 1\n" +
                     "#define A_GLSL 1\n" +
@@ -101,30 +95,30 @@ object FSR {
                     "#define ANNO 1\n" +
                     defines +
                     "#define FSR_RCAS_F 1\n" +
-                    "AF4 FsrRcasLoadF(ASU2 p){\n" +
-                    "   return texelFetch(source,p,0);\n" +
-                    "}\n" +
+                    "AF4 FsrRcasLoadF(ivec2 p){ return texelFetch(source,p,0); }\n" +
                     // optional input transform
                     "void FsrRcasInputF(inout AF1 r,inout AF1 g,inout AF1 b){}\n" +
                     functions +
                     "void main(){\n" +
                     "   vec4 color;\n" +
-                    "   FsrRcasF(color.r,color.g,color.b,color.a,ivec2(gl_FragCoord.xy*vec2(1,-1)+texelOffset),sharpness);" +
+                    "   ivec2 coords = ivec2(uv*dstWH);\n" +
+                    "   FsrRcasF(color.r,color.g,color.b,color.a,coords,sharpness);\n" +
                     "   glFragColor = color;\n" +
                     "}", true
         )
         shader.glslVersion = 420 // for int->float->int ops, which are used for fast sqrt and such
+        shader.use()
         shader
 
     }
 
-    fun upscale(sw: Int, sh: Int, x: Int, y: Int, w: Int, h: Int) {
+    fun upscale(sw: Int, sh: Int, x: Int, y: Int, w: Int, h: Int, flipY: Boolean) {
         // if source is null, the texture needs to be bound to slot 0
         val shader = upscaleShader.value
         shader.use()
         fsrConfig(shader, sw, sh, w, h)
-        shader.v4("tiling", 1f, 1f, 0f, 0f)
-        texelOffset(shader, x, y)
+        tiling(shader, flipY)
+        texelOffset(shader, w, h)
         posSize(shader, x, y, w, h)
         flat01.draw(shader)
     }
@@ -136,27 +130,47 @@ object FSR {
         shader.v4("con3", 0f, 4f / ih, 0f, 0f)
     }
 
-    fun upscale(source: ITexture2D, x: Int, y: Int, w: Int, h: Int) {
+    fun upscale(source: ITexture2D, x: Int, y: Int, w: Int, h: Int, flipY: Boolean) {
         source.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-        upscale(source.w, source.h, x, y, w, h)
+        upscale(source.w, source.h, x, y, w, h, flipY)
     }
 
-    fun sharpen(sharpness: Float, x: Int, y: Int, w: Int, h: Int) {
+    fun sharpen(sharpness: Float, x: Int, y: Int, w: Int, h: Int, flipY: Boolean) {
         val shader = sharpenShader.value
         shader.use()
         shader.v1("sharpness", sharpness)
-        texelOffset(shader, x, y)
+        texelOffset(shader, w, h)
+        tiling(shader, flipY)
         posSize(shader, x, y, w, h)
         flat01.draw(shader)
     }
 
-    fun texelOffset(shader: Shader, x: Int, y: Int) {
-        shader.v2("texelOffset", -x.toFloat(), (GFX.height - y).toFloat())
+    fun tiling(shader: Shader, flipY: Boolean){
+        shader.v4("tiling", 1f, if (flipY) -1f else +1f, 0f, 0f)
     }
 
-    fun sharpen(source: ITexture2D, sharpness: Float, x: Int, y: Int, w: Int, h: Int) {
+    fun sharpen(sharpness: Float, flipY: Boolean) {
+        val shader = sharpenShader.value
+        shader.use()
+        shader.v1("sharpness", sharpness)
+        texelOffset(shader, GFX.windowY, GFX.windowHeight)
+        tiling(shader, flipY)
+        posSize(shader, 0f, 0f, 1f, 1f)
+        flat01.draw(shader)
+    }
+
+    fun texelOffset(shader: Shader, w: Int, h: Int) {
+        shader.v2("dstWH", w.toFloat(), h.toFloat())
+    }
+
+    fun sharpen(source: ITexture2D, sharpness: Float, x: Int, y: Int, w: Int, h: Int, flipY: Boolean) {
         source.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-        sharpen(sharpness, x, y, w, h)
+        sharpen(sharpness, x, y, w, h, flipY)
+    }
+
+    fun sharpen(source: ITexture2D, sharpness: Float, flipY: Boolean) {
+        source.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+        sharpen(sharpness, flipY)
     }
 
     @JvmStatic
@@ -179,12 +193,12 @@ object FSR {
         val oh = texture.h * size
 
         val upscaled = FBStack["", ow, oh, 4, false, 1]
-        useFrame(upscaled) { upscale(texture, 0, 0, ow, oh) }
+        useFrame(upscaled) { upscale(texture, 0, 0, ow, oh, true) }
         FramebufferToMemory.createImage(upscaled, false, false)
             .write(src.getSibling("${src.nameWithoutExtension}-${size}x.png"))
 
         val sharpened = FBStack["", ow, oh, 4, false, 1]
-        useFrame(sharpened) { sharpen(upscaled.textures.first(), 1f, 0, 0, ow, oh) }
+        useFrame(sharpened) { sharpen(upscaled.textures.first(), 1f, 0, 0, ow, oh, true) }
 
         FramebufferToMemory.createImage(sharpened, false, false)
             .write(src.getSibling("${src.nameWithoutExtension}-${size}x-s.png"))

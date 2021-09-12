@@ -3,8 +3,6 @@ package me.anno.ecs.prefab
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
-import me.anno.ecs.prefab.Hierarchy.addNewChild
-import me.anno.ecs.prefab.Hierarchy.removeChild
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
@@ -35,15 +33,19 @@ import org.apache.logging.log4j.LogManager
 
 class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
 
-    constructor(prefab: Prefab) : this(prefab.src, prefab)
+    constructor(prefab: Prefab) : this(prefab.source, prefab)
 
     constructor(reference: FileReference, classNameIfNull: String) : this(
         reference, loadPrefab(reference) ?: Prefab(classNameIfNull)
     )
 
+    init {
+        prefab.createLists()
+    }
+
     val history: ChangeHistory = prefab.history ?: ChangeHistory()
-    val adds: MutableList<CAdd> = ArrayList(prefab.adds ?: emptyList())
-    val sets: MutableList<CSet> = ArrayList(prefab.sets ?: emptyList())
+    val adds = prefab.adds!! as MutableList
+    val sets = prefab.sets!! as MutableList
 
     init {
 
@@ -52,8 +54,6 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
         }
 
         prefab.history = history
-        prefab.adds = adds
-        prefab.sets = sets
 
     }
 
@@ -256,12 +256,16 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
 
                 override fun onAddComponent(component: Inspectable, index: Int) {
                     component as PrefabSaveable
-                    addNewChild(root, adds, sets, instance, component, index, type)
+                    val newPath = instance.pathInRoot2(root, true)
+                    newPath.setLast(component.className, index, type)
+                    Hierarchy.add(this@PrefabInspector.prefab, newPath, instance, component)
+                    // addNewChild(root, adds, sets, instance, component, index, type)
                 }
 
                 override fun onRemoveComponent(component: Inspectable) {
                     component as PrefabSaveable
-                    removeChild(root, adds, sets, instance, component, type)
+                    Hierarchy.remove(this@PrefabInspector.prefab, component.pathInRoot2(root, false))
+                    // removeChild(root, adds, sets, instance, component, type)
                 }
 
                 override fun getOptionFromInspectable(inspectable: Inspectable): Option {
@@ -279,7 +283,7 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
 
     fun checkDependencies(parent: PrefabSaveable, src: FileReference): Boolean {
         if (src == InvalidRef) return true
-        return if (parent.anyInHierarchy { it.prefab2?.src == src }) {
+        return if (parent.anyInHierarchy { it.prefab2?.source == src }) {
             LOGGER.warn("Cannot add $src to ${parent.name} because of dependency loop!")
             false
             // throw IllegalArgumentException("Must not create dependency loops")
@@ -287,17 +291,32 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
     }
 
     fun addEntityChild(parent: Entity, prefab: Prefab) {
-        if (!checkDependencies(parent, prefab.src)) return
+        if (!checkDependencies(parent, prefab.source)) return
         if (prefab.clazzName != "Entity") throw IllegalArgumentException("Type must be Entity!")
         val path = parent.pathInRoot2(root, false)
-        adds.add(CAdd(path, 'e', prefab.clazzName!!, prefab.name, prefab.src))
+        adds.add(CAdd(path, 'e', prefab.clazzName!!, prefab.clazzName, prefab.source))
+    }
+
+    /*fun addEntityChild(parent: Entity, prefab: Prefab, index: Int) {
+        // todo adjust the index: renumber & shuffle, if possible
+        if (!checkDependencies(parent, prefab.source)) return
+        if (prefab.clazzName != "Entity") throw IllegalArgumentException("Type must be Entity!")
+        val path = parent.pathInRoot2(root, false)
+        adds.add(CAdd(path, 'e', prefab.clazzName!!, prefab.clazzName, prefab.source))
     }
 
     fun addComponentChild(parent: Entity, prefab: Prefab) {
         if (prefab.getSampleInstance(HashSet()) !is Component) throw IllegalArgumentException("Type must be Component!")
         val path = parent.pathInRoot2(root, false)
-        adds.add(CAdd(path, 'c', prefab.clazzName!!, prefab.name, prefab.src))
+        adds.add(CAdd(path, 'c', prefab.clazzName!!, prefab.clazzName, prefab.source))
     }
+
+    fun addComponentChild(parent: Entity, prefab: Prefab, index: Int) {
+        // todo adjust the index: renumber & shuffle, if possible
+        if (prefab.getSampleInstance(HashSet()) !is Component) throw IllegalArgumentException("Type must be Component!")
+        val path = parent.pathInRoot2(root, false)
+        adds.add(CAdd(path, 'c', prefab.clazzName!!, prefab.clazzName, prefab.source))
+    }*/
 
 
     fun save() {

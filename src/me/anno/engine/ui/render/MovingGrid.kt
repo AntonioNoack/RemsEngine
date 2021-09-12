@@ -28,8 +28,8 @@ object MovingGrid {
         RenderState.blendMode.use(BlendMode.ADD) {
             // draw grid
             // scale it based on the radius (movement speed)
-            // equal because we want to add lines of equal depth
-            RenderState.depthMode.use(DepthMode.ALWAYS) {
+            // don't write depth, we want to stack it
+            RenderState.depthMask.use(false) {
 
                 val log = log10(distance)
                 val f = (log - floor(log)).toFloat()

@@ -1,10 +1,9 @@
 package me.anno.ecs.prefab
 
 import me.anno.ecs.prefab.change.Path
-import me.anno.ecs.prefab.change2.CRes
-import me.anno.ecs.prefab.change2.Prefab2
 import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
+import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.objects.inspectable.Inspectable
@@ -35,13 +34,20 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     var prefab2: Prefab? = null
 
     @NotSerializedProperty
-    var prefab3: Prefab2? = null
-    @NotSerializedProperty
-    var res: CRes? = null
-
-    @NotSerializedProperty
     override var parent: PrefabSaveable? = null
 
+
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        writer.writeBoolean("isCollapsed", isCollapsed)
+    }
+
+    override fun readBoolean(name: String, value: Boolean) {
+        when(name){
+            "isCollapsed" -> isCollapsed = value
+            else -> super.readBoolean(name, value)
+        }
+    }
 
     fun getDefaultValue(name: String): Any? {
         return (prefabOrDefault)[name]
@@ -68,6 +74,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         } else ArrayList()
     }
 
+    fun pathInRoot2() = pathInRoot2(null, false)
     fun pathInRoot2(root: PrefabSaveable? = null, withExtra: Boolean): Path {
         val path = pathInRoot(root)
         if (withExtra) {
