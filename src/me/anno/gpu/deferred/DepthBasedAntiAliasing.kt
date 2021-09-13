@@ -5,6 +5,8 @@ import me.anno.gpu.ShaderLib.simplestVertexShader
 import me.anno.gpu.ShaderLib.uvList
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.ITexture2D
+import me.anno.input.Input.isControlDown
+import me.anno.input.Input.isShiftDown
 import me.anno.utils.LOGGER
 import me.anno.utils.image.ImageWriter
 import me.anno.utils.image.ImageWriter.MSAAx8
@@ -83,19 +85,49 @@ object DepthBasedAntiAliasing {
                     // use color instead of depth?
                     // depth is great for false-positives, but bad for false-negatives (it blurs too few pixels)
                     // color does not guarantee the 2 wide transitions -> cannot really be used
-                    // todo combine color with depth???
-                    "uniform sampler2D color,depth0,depthMSAA;\n" +
-                    "uniform float strength;\n" +
+                    "uniform sampler2D color,depth0;\n" +
+                    "uniform bool showEdges,disableEffect;\n" +
                     "uniform float threshold;\n" +
                     "uniform vec2 rbOffset;\n" +
+                    "#define COLOR_STRENGTH 200\n" + // is square
                     "bool needsBlur(ivec2 p){\n" +
-                    "   float d0 = texelFetch(depth0,p,0).r;\n" +
+                    "   float d0 = max(texelFetch(depth0,p,0).r,1e-38);\n" +
                     "   float d1 = texelFetch(depth0,p-ivec2(1,0),0).r;\n" +
                     "   float d2 = texelFetch(depth0,p-ivec2(0,1),0).r;\n" +
                     "   float d3 = texelFetch(depth0,p+ivec2(1,0),0).r;\n" +
                     "   float d4 = texelFetch(depth0,p+ivec2(0,1),0).r;\n" +
                     "   float sobel = 4.0-(d1+d2+d3+d4)/d0;\n" +
-                    "   return abs(sobel) > threshold;\n" +
+                    "   if(abs(sobel) > threshold) return true;\n" +
+                    // combine color with depth
+                    "   vec4 c0 = texelFetch(color,p,0);\n" +
+                    "   vec4 c1 = texelFetch(color,p-ivec2(1,0),0);\n" +
+                    "   vec4 c2 = texelFetch(color,p-ivec2(0,1),0);\n" +
+                    "   vec4 c3 = texelFetch(color,p+ivec2(1,0),0);\n" +
+                    "   vec4 c4 = texelFetch(color,p+ivec2(0,1),0);\n" +
+                    "   vec4 sobel2 = 4.0*c0-(c1+c2+c3+c4);\n" +
+                    "   float sobel2x = COLOR_STRENGTH*dot(sobel2,sobel2);\n" +
+                    "   return sobel2x > 1.0;\n" +
+                    "}\n" +
+                    // theoretically better,
+                    // practically there is too much noise to decide such a thing
+                    /*"bool isEdge(ivec2 p){\n" +
+                    "   return needsBlur(p) && !(\n" +
+                    "       needsBlur(p+ivec2(1,0)) && needsBlur(p+ivec2(0,1)) &&\n" +
+                    "       needsBlur(p-ivec2(1,0)) && needsBlur(p-ivec2(0,1))\n" +
+                    "   );\n" +
+                    "}\n" +*/
+                    "#define isEdge needsBlur\n" +
+                    "float dC2(ivec2 p, ivec2 dp){\n" +
+                    "   vec4 c1 = texelFetch(color,p-dp,0);\n" +
+                    "   vec4 c2 = texelFetch(color,p+dp,0);\n" +
+                    "   vec4 dc = c1-c2;\n" +
+                    "   return COLOR_STRENGTH*dot(dc,dc)*threshold;\n" +
+                    "}\n" +
+                    "float dC1(ivec2 p, ivec2 dp){\n" +
+                    "   vec4 c1 = texelFetch(color,p,0);\n" +
+                    "   vec4 c2 = texelFetch(color,p+dp,0);\n" +
+                    "   vec4 dc = c1-c2;\n" +
+                    "   return COLOR_STRENGTH*dot(dc,dc)*threshold;\n" +
                     "}\n" +
                     // we don't need clamp
                     "float smoothstep(float x){\n" +
@@ -103,44 +135,59 @@ object DepthBasedAntiAliasing {
                     "}\n" +
                     "void main(){\n" +
                     "   ivec2 p = ivec2(gl_FragCoord.xy);\n" +
-                    "   float d0 = texelFetch(depth0,p,0).r;\n" +
-                    "   float d1 = texelFetch(depth0,p-ivec2(1,0),0).r;\n" +
-                    "   float d2 = texelFetch(depth0,p-ivec2(0,1),0).r;\n" +
-                    "   float d3 = texelFetch(depth0,p+ivec2(1,0),0).r;\n" +
-                    "   float d4 = texelFetch(depth0,p+ivec2(0,1),0).r;\n" +
-                    "   float sobel = 4.0-(d1+d2+d3+d4)/d0;\n" +
-                    "   if(abs(sobel) > threshold){\n" +
+                    "   if(disableEffect){\n" +
+                    "       fragColor = texelFetch(color,p,0);\n" +
+                    "       return;\n" +
+                    "   }\n" +
+                    "   if(showEdges){\n" +
+                    "       fragColor = vec4(vec2(isEdge(p)?1:0),0,1);\n" +
+                    "       return;\n" +
+                    "   }\n" +
+                    "   if(isEdge(p)){\n" +
                     "#define maxSteps 15\n" +
-                    "       float dx = abs(d3-d1);\n" +
-                    "       float dy = abs(d4-d2);\n" +
+                    "       float d0 = texelFetch(depth0,p,0).r;\n" +
+                    "       float d1 = texelFetch(depth0,p-ivec2(1,0),0).r;\n" +
+                    "       float d2 = texelFetch(depth0,p-ivec2(0,1),0).r;\n" +
+                    "       float d3 = texelFetch(depth0,p+ivec2(1,0),0).r;\n" +
+                    "       float d4 = texelFetch(depth0,p+ivec2(0,1),0).r;\n" +
+                    "       float sobel = 4.0-(d1+d2+d3+d4)/d0;\n" +
+                    "       float dx = abs(d3-d1)+dC2(p,ivec2(1,0));\n" +
+                    "       float dy = abs(d4-d2)+dC2(p,ivec2(0,1));\n" +
                     "       bool dirX = dx > dy;\n" + // dx > dy
+                    "       int ix = 0;\n" +
                     "       if (min(dx, dy) * 1.05 > max(dx, dy)) {\n" +
                     // small corner: go to one of the edges, x/y doesn't matter
-                    "           int ix = abs(d1 - d0) > abs(d3 - d0) ? +1 : -1;\n" +
+                    // not perfect, but pretty good
+                    "           ix = abs(d1-d0)+dC1(p,ivec2(-1,0)) > abs(d3-d0)+dC1(p,ivec2(1,0)) ? +1 : -1;\n" +
+                    "           p.x += ix;\n" +
                     "           float d02,d12,d22,d32,d42,dx2,dy2;\n" +
                     "           d02 = texelFetch(depth0,p+ivec2(ix,   0),0).r;\n" +
                     "           d12 = texelFetch(depth0,p+ivec2(ix-1, 0),0).r;\n" +
                     "           d22 = texelFetch(depth0,p+ivec2(ix,  -1),0).r;\n" +
                     "           d32 = texelFetch(depth0,p+ivec2(ix+1, 0),0).r;\n" +
                     "           d42 = texelFetch(depth0,p+ivec2(ix,  +1),0).r;\n" +
-                    "           dx2 = abs(d32 - d12);\n" +
-                    "           dy2 = abs(d42 - d22);\n" +
+                    "           dx2 = abs(d32-d12)+dC2(p,ivec2(1,0));\n" +
+                    "           dy2 = abs(d42-d22)+dC2(p,ivec2(0,1));\n" +
                     "           dirX = dx2 >= dy2;\n" +
                     "       }\n" +
-                    "       ivec2 di = dirX ? ivec2(1,0) : ivec2(0,1);\n" +
                     "       int pos,neg;\n" +
+                    "       ivec2 p2=p,dp=dirX?ivec2(0,1):ivec2(1,0);\n" +
                     "       for(pos=1;pos<=maxSteps;pos++){\n" +
-                    "           if(!needsBlur(p+(dirX?ivec2(0,pos):ivec2(pos,0)))) break;\n" +
+                    "           p2+=dp;\n" +
+                    "           if(!needsBlur(p2)) break;\n" +
                     "       }\n" +
+                    "       p2=p;\n" +
                     "       for(neg=1;neg<=maxSteps;neg++){\n" +
-                    "           if(!needsBlur(p-(dirX?ivec2(0,neg):ivec2(neg,0)))) break;\n" +
+                    "           p2-=dp;\n" +
+                    "           if(!needsBlur(p2)) break;\n" +
                     "       }\n" +
-                    "       pos--;\n" +
-                    "       neg--;\n" +
-                    "       float fraction = (float(pos)+0.5)/float(1+pos+neg);\n" +
+                    "       float fraction = (float(pos)-0.5)/float(pos+neg-1);\n" +
                     "       float blur = min(1-fraction,fraction);\n" +
                     "       blur = smoothstep(blur);\n" + // sharpen the edge from 2 wide to 1 wide
-                    "       int other = (dirX?abs(d1-d0)>abs(d3-d0) : abs(d2-d0)>abs(d4-d0)) ? -1:+1;\n" +
+                    "       int other = (dirX?" +
+                    "           abs(d1-d0)+dC1(p,ivec2(-1,0)) > abs(d3-d0)+dC1(p,ivec2(1,0)) : " +
+                    "           abs(d2-d0)+dC1(p,ivec2(0,-1)) > abs(d4-d0)+dC1(p,ivec2(0,1))) ? -1 : +1;\n" +
+                    "       p.x -= ix;\n" + // undo the coordinate change
                     "       vec4 mixColor = texelFetch(color,p+(dirX?ivec2(other,0):ivec2(0,other)),0);\n" +
                     // "       fragColor = vec4(vec3(fraction),1);\n" +
                     // "       fragColor = vec4(vec3(blur),1);\n" +
@@ -160,18 +207,119 @@ object DepthBasedAntiAliasing {
                     "   } else {\n" +
                     "       fragColor = texelFetch(color,p,0);\n" +
                     "   }\n" +
-                    // "   if(true) fragColor = vec4(vec2(abs(sobel) > THRESHOLD ? 1 : 0),texelFetch(depth0,p,0).r,1);\n" +
+                    "}"
+        ).apply { setTextureIndices(listOf("color", "depth0")) }
+    }
+
+    val shaderNoColor = lazy {
+        Shader(
+            "Depth-Based MSAA", null,
+            simplestVertexShader, uvList,
+            "out vec4 fragColor;\n" +
+                    // use color instead of depth?
+                    // depth is great for false-positives, but bad for false-negatives (it blurs too few pixels)
+                    // color does not guarantee the 2 wide transitions -> cannot really be used
+                    "uniform sampler2D color,depth0;\n" +
+                    "uniform bool showEdges,disableEffect;\n" +
+                    "uniform float threshold;\n" +
+                    "uniform vec2 rbOffset;\n" +
+                    "bool needsBlur(ivec2 p){\n" +
+                    "   float d0 = max(texelFetch(depth0,p,0).r,1e-38);\n" +
+                    "   float d1 = texelFetch(depth0,p-ivec2(1,0),0).r;\n" +
+                    "   float d2 = texelFetch(depth0,p-ivec2(0,1),0).r;\n" +
+                    "   float d3 = texelFetch(depth0,p+ivec2(1,0),0).r;\n" +
+                    "   float d4 = texelFetch(depth0,p+ivec2(0,1),0).r;\n" +
+                    "   float sobel = 4.0-(d1+d2+d3+d4)/d0;\n" +
+                    "   return abs(sobel) > threshold;\n" +
+                    "}\n" +
+                    // we don't need clamp
+                    "float smoothstep(float x){\n" +
+                    "   return pow(x,2)*(3-2*x);\n" +
+                    "}\n" +
+                    "void main(){\n" +
+                    "   ivec2 p = ivec2(gl_FragCoord.xy);\n" +
+                    "   if(disableEffect){\n" +
+                    "       fragColor = texelFetch(color,p,0);\n" +
+                    "       return;\n" +
+                    "   }\n" +
+                    "   if(showEdges){\n" +
+                    "       fragColor = vec4(vec2(needsBlur(p)?1:0),0,1);\n" +
+                    "       return;\n" +
+                    "   }\n" +
+                    "   if(needsBlur(p)){\n" +
+                    "#define maxSteps 15\n" +
+                    "       float d0 = texelFetch(depth0,p,0).r;\n" +
+                    "       float d1 = texelFetch(depth0,p-ivec2(1,0),0).r;\n" +
+                    "       float d2 = texelFetch(depth0,p-ivec2(0,1),0).r;\n" +
+                    "       float d3 = texelFetch(depth0,p+ivec2(1,0),0).r;\n" +
+                    "       float d4 = texelFetch(depth0,p+ivec2(0,1),0).r;\n" +
+                    "       float sobel = 4.0-(d1+d2+d3+d4)/d0;\n" +
+                    "       float dx = abs(d3-d1);\n" +
+                    "       float dy = abs(d4-d2);\n" +
+                    "       bool dirX = dx > dy;\n" + // dx > dy
+                    "       if (min(dx, dy) * 1.05 > max(dx, dy)) {\n" +
+                    // small corner: go to one of the edges, x/y doesn't matter
+                    // not perfect, but pretty good
+                    "           int ix = abs(d1-d0) > abs(d3-d0) ? +1 : -1;\n" +
+                    "           float d02,d12,d22,d32,d42,dx2,dy2;\n" +
+                    "           d02 = texelFetch(depth0,p+ivec2(ix,   0),0).r;\n" +
+                    "           d12 = texelFetch(depth0,p+ivec2(ix-1, 0),0).r;\n" +
+                    "           d22 = texelFetch(depth0,p+ivec2(ix,  -1),0).r;\n" +
+                    "           d32 = texelFetch(depth0,p+ivec2(ix+1, 0),0).r;\n" +
+                    "           d42 = texelFetch(depth0,p+ivec2(ix,  +1),0).r;\n" +
+                    "           dx2 = abs(d32-d12);\n" +
+                    "           dy2 = abs(d42-d22);\n" +
+                    "           dirX = dx2 >= dy2;\n" +
+                    "       }\n" +
+                    "       int pos,neg;\n" +
+                    "       ivec2 p2=p,dp=dirX?ivec2(0,1):ivec2(1,0);\n" +
+                    "       for(pos=1;pos<=maxSteps;pos++){\n" +
+                    "           p2+=dp;\n" +
+                    "           if(!needsBlur(p2)) break;\n" +
+                    "       }\n" +
+                    "       p2=p;\n" +
+                    "       for(neg=1;neg<=maxSteps;neg++){\n" +
+                    "           p2-=dp;\n" +
+                    "           if(!needsBlur(p2)) break;\n" +
+                    "       }\n" +
+                    "       float fraction = (float(pos)-0.5)/float(pos+neg-1);\n" +
+                    "       float blur = min(1-fraction,fraction);\n" +
+                    "       blur = smoothstep(blur);\n" + // sharpen the edge from 2 wide to 1 wide
+                    "       int other = (dirX?" +
+                    "           abs(d1-d0) > abs(d3-d0) : " +
+                    "           abs(d2-d0) > abs(d4-d0)) ? -1 : +1;\n" +
+                    "       vec4 mixColor = texelFetch(color,p+(dirX?ivec2(other,0):ivec2(0,other)),0);\n" +
+                    // "       fragColor = vec4(vec3(fraction),1);\n" +
+                    // "       fragColor = vec4(vec3(blur),1);\n" +
+                    "       vec4 baseColor = texelFetch(color,p,0);\n" +
+                    "       vec2 offset = rbOffset * other;\n" +
+                    "       if(dirX){\n" +
+                    "           vec2 ga = mix(baseColor.ga, mixColor.ga, blur);\n" +
+                    "           float r = mix(baseColor.r,  mixColor.r,  max(blur-offset.x, 0));\n" +
+                    "           float b = mix(baseColor.b,  mixColor.b,  max(blur+offset.x, 0));\n" +
+                    "           fragColor = vec4(r,ga.x,b,ga.y);\n" +
+                    "       } else {\n" +
+                    "           vec2 ga = mix(baseColor.ga, mixColor.ga, blur);\n" +
+                    "           float r = mix(baseColor.r,  mixColor.r,  max(blur-offset.y, 0));\n" +
+                    "           float b = mix(baseColor.b,  mixColor.b,  max(blur+offset.y, 0));\n" +
+                    "           fragColor = vec4(r,ga.x,b,ga.y);\n" +
+                    "       }\n" +
+                    "   } else {\n" +
+                    "       fragColor = texelFetch(color,p,0);\n" +
+                    "   }\n" +
                     "}"
         ).apply { setTextureIndices(listOf("color", "depth0")) }
     }
 
     fun render(color: ITexture2D, simpleDepth: ITexture2D, threshold: Float = 1e-5f) {
-        val shader = shader.value
+        val shader = (if (isControlDown) shaderNoColor else shader).value
         shader.use()
         shader.v1("threshold", threshold)
+        shader.v1("disableEffect", false)
         // this only is correct on screens with RGB subpixel layout
         // todo check using a text sample, what is really correct
         shader.v2("rbOffset", (0.5f - 1f / 3f), 0f)
+        shader.v1("showEdges", isShiftDown)
         simpleDepth.bindTrulyNearest(1)
         color.bindTrulyNearest(0)
         flat01.draw(shader)
