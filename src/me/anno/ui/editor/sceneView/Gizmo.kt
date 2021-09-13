@@ -80,7 +80,9 @@ object Gizmo {
         shaderColor(shader, "tint", color and (255 shl 24))
         shader.v1("hasAnimation", false)
         shader.v1("hasVertexColors", false)
+        material.defineShader(shader)
         mesh.draw(shader, 0)
+        println("drawing something")
     }
 
     // avoid unnecessary allocations ;)

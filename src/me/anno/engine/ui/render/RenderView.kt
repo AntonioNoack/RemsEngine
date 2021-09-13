@@ -59,6 +59,7 @@ import me.anno.input.Input.isKeyDown
 import me.anno.input.Input.isShiftDown
 import me.anno.studio.Build
 import me.anno.ui.base.Panel
+import me.anno.ui.editor.sceneView.Gizmo
 import me.anno.ui.style.Style
 import me.anno.utils.Clock
 import me.anno.utils.maths.Maths.clamp
@@ -69,8 +70,6 @@ import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.joml.Math.toRadians
 import org.lwjgl.opengl.GL45.*
-
-// todo deferred line renderer/draw lines over deferred image
 
 // done shadows
 // todo usable editing of materials: own color + indent + super material selector
@@ -174,7 +173,7 @@ class RenderView(
         val cameraNode = editorCameraNode
         cameraNode.transform.localRotation = rotation.toQuaternionDegrees()
         camera.far = 1e300
-        camera.near = if (reverseDepth) radius * 1e-1 else radius * 1e-2
+        camera.near = if (reverseDepth) radius * 1e-10 else radius * 1e-2
 
         val rotation = cameraNode.transform.localRotation
 
@@ -389,7 +388,6 @@ class RenderView(
 
                 if (useBloom) {
 
-
                     val tmp = FBStack["", w, h, 4, true, 1]
                     useFrame(tmp, copyRenderer) {// apply post processing
 
@@ -412,7 +410,10 @@ class RenderView(
                         }
 
                         // todo use msaa for gizmos
+                        // or use anti-aliasing, that works on color edges
+                        // and supports lines
                         drawGizmos(camPosition, true)
+                        drawSelected()
                     }
 
                 } else {
@@ -432,6 +433,7 @@ class RenderView(
                         }
 
                         drawGizmos(camPosition, true)
+                        drawSelected()
 
                     }
 
@@ -466,7 +468,7 @@ class RenderView(
 
     fun showShadowMapDebug() {
         // show the shadow map for debugging purposes
-        val light = library.selected
+        val light = library.selection
             .filterIsInstance<Entity>()
             .mapNotNull { e -> e.getComponentsInChildren(LightComponent::class).firstOrNull { it.hasShadow } }
             .firstOrNull()
@@ -674,9 +676,11 @@ class RenderView(
 
                 Frame.bind()
 
-                setClearColor(renderer, previousCamera, camera, blending, doDrawGizmos)
-                setClearDepth()
-                glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+                RenderState.depthMode.use(depthMode){
+                    setClearColor(renderer, previousCamera, camera, blending, doDrawGizmos)
+                    setClearDepth()
+                    glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+                }
 
                 RenderState.depthMode.use(depthMode) {
                     RenderState.cullMode.use(GL_BACK) {
@@ -696,9 +700,11 @@ class RenderView(
 
                 Frame.bind()
 
-                setClearColor(renderer, previousCamera, camera, blending, doDrawGizmos)
-                setClearDepth()
-                glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+                RenderState.depthMode.use(depthMode){
+                    setClearColor(renderer, previousCamera, camera, blending, doDrawGizmos)
+                    setClearDepth()
+                    glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+                }
 
             }
 
@@ -728,49 +734,29 @@ class RenderView(
 
             GFX.check()
 
-            // Thread.sleep(500)
-
-        }
-
-    }
-
-    fun drawSceneDepth(
-        w: Int, h: Int,
-        renderer: Renderer,
-        dst: Framebuffer,
-        changeSize: Boolean,
-        doDrawGizmos: Boolean
-    ) {
-
-        useFrame(w, h, changeSize, dst, renderer) {
-
-            Frame.bind()
-
-            setClearDepth()
-            glClear(GL_DEPTH_BUFFER_BIT)
-
-            if (doDrawGizmos) {
-                useFrame(w, h, changeSize, dst, simpleNormalRenderer) {
-                    drawGizmos(camPosition, true)
-                    drawSelected()
-                }
-            }
-
-            GFX.check()
-
-            pipeline.drawDepth(cameraMatrix, camPosition, worldScale)
-
-            GFX.check()
-
         }
 
     }
 
     private fun drawSelected() {
-        if (library.fineSelection.isEmpty()) return
+        if (library.fineSelection.isEmpty() && library.selection.isEmpty()) return
         // draw scaled, inverted object (for outline), which is selected
         RenderState.depthMode.use(depthMode) {
-            RenderState.cullMode.use(GL_FRONT) {
+            RenderState.cullMode.use(GL_FRONT) { // inverse cull mode
+                for (selected in library.selection) {
+                    when(selected){
+                        is Entity -> {
+                            // todo draw gizmos depending on mode
+                            val transform = selected.transform.globalTransform
+                            Gizmo.drawTranslateGizmos(cameraMatrix,
+                                transform.getTranslation(Vector3d()).sub(camPosition),// mul world scale?
+                                1e3, -12)
+                        }
+                        else -> {
+                            println("selected: $selected")
+                        }
+                    }
+                }
                 for (selected in library.fineSelection) {
                     when (selected) {
                         is Entity -> drawOutline(selected, worldScale)

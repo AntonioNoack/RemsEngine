@@ -23,11 +23,11 @@ class ECSTypeLibrary(
     // todo box selecting with shift
 
     // todo we should be able to edit multiple values at the same time
-    var selected: List<Inspectable> = listOf(world)
-    var fineSelection: List<Inspectable> = selected
+    var selection: List<Inspectable> = listOf(world)
+    var fineSelection: List<Inspectable> = selection
 
     fun select(major: Inspectable?, minor: Inspectable? = major) {
-        selected = if (major == null) emptyList() else listOf(major)
+        selection = if (major == null) emptyList() else listOf(major)
         fineSelection = if (minor == null) emptyList() else listOf(minor)
         lastSelection = major
     }
@@ -37,7 +37,7 @@ class ECSTypeLibrary(
         // todo some stuff is (maybe) missing, e.g. animation panels, particle system editors, ...
         Dict["Scene View", "ui.customize.sceneView"] to { SceneView(this, DefaultConfig.style) },
         Dict["Tree View", "ui.customize.treeView"] to { ECSTreeView(this, isGaming, DefaultConfig.style) },
-        Dict["Properties", "ui.customize.inspector"] to { PropertyInspector({ selected }, DefaultConfig.style) },
+        Dict["Properties", "ui.customize.inspector"] to { PropertyInspector({ selection }, DefaultConfig.style) },
         // Dict["Cutting Panel", "ui.customize.cuttingPanel"] to { CuttingView(DefaultConfig.style) },
         // Dict["Timeline", "ui.customize.timeline"] to { TimelinePanel(DefaultConfig.style) },
         // Dict["Animations", "ui.customize.graphEditor"] to { GraphEditor(DefaultConfig.style) },

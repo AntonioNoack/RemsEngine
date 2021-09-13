@@ -32,7 +32,7 @@ open class ControlScheme(val camera: CameraComponent, val library: ECSTypeLibrar
 
     val cameraNode = camera.entity!!
 
-    val selectedEntities get() = library.selected.filterIsInstance<Entity>()
+    val selectedEntities get() = library.selection.filterIsInstance<Entity>()
     val selectedTransforms get() = selectedEntities.map { it.transform }
 
     val isSelected get() = parent!!.children.any { it.isInFocus }

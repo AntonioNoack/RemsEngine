@@ -43,7 +43,7 @@ object DefaultLayout {
         // treeFiles += CustomContainer(FileExplorer(fileExplorerOptions, projectFile, style), library, style)
         animationWindow.add(CustomContainer(treeFiles, library, style), 1f)
         animationWindow.add(CustomContainer(SceneView(libraryBase, style), library, style), 3f)
-        animationWindow.add(CustomContainer(PropertyInspector({ libraryBase.selected }, style), library, style), 1f)
+        animationWindow.add(CustomContainer(PropertyInspector({ libraryBase.selection }, style), library, style), 1f)
         animationWindow.setWeight(1f)
         customUI.add(animationWindow, 2f)
 

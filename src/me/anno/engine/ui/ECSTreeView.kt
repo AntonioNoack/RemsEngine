@@ -22,7 +22,6 @@ import me.anno.utils.Color.normARGB
 import me.anno.utils.maths.Maths.mixARGB
 import me.anno.utils.structures.lists.UpdatingList
 import org.apache.logging.log4j.LogManager
-import javax.xml.bind.Element
 
 // todo runtime and pre-runtime view
 // todo unity oriented
@@ -215,7 +214,7 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
         return parentPrefab == null || indexInParent >= parentPrefab.children.size
     }
 
-    override val selectedElement: Entity? = library.selected as? Entity
+    override val selectedElement: Entity? = library.selection as? Entity
 
     override fun selectElement(element: Entity?) {
         library.select(element)
