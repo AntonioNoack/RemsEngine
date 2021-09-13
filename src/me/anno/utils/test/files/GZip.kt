@@ -1,4 +1,4 @@
-package me.anno.utils.test
+package me.anno.utils.test.files
 
 import me.anno.utils.OS
 import java.util.zip.GZIPInputStream

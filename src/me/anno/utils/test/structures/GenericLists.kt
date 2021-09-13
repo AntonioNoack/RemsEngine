@@ -1,4 +1,4 @@
-package me.anno.utils.test
+package me.anno.utils.test.structures
 
 fun main() {
     testList(listOf(1, 2, 3))

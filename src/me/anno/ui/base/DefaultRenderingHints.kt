@@ -23,4 +23,8 @@ object DefaultRenderingHints {
         setRenderingHints(hints)
     }
 
+    fun Graphics2D.prepareGraphics(){
+        setRenderingHints(hints)
+    }
+
 }

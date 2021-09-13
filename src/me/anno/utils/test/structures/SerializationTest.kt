@@ -1,4 +1,4 @@
-package me.anno.utils.test
+package me.anno.utils.test.structures
 
 import me.anno.io.ISaveable
 import me.anno.io.Saveable

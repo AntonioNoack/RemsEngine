@@ -1,4 +1,4 @@
-package me.anno.utils.test
+package me.anno.utils.test.files
 
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference

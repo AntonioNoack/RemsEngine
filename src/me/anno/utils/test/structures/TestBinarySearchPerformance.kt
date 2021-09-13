@@ -1,4 +1,4 @@
-package me.anno.utils.test
+package me.anno.utils.test.structures
 
 import me.anno.animation.AnimatedProperty
 import org.apache.logging.log4j.LogManager

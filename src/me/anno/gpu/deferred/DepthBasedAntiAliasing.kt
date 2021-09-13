@@ -3,6 +3,7 @@ package me.anno.gpu.deferred
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.ShaderLib.simplestVertexShader
 import me.anno.gpu.ShaderLib.uvList
+import me.anno.gpu.monitor.SubpixelLayout
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.ITexture2D
 import me.anno.input.Input.isControlDown
@@ -77,7 +78,7 @@ object DepthBasedAntiAliasing {
 
     // done when it works, add sub-pixel anti-aliasing for the sharpest game engine on the market XD
 
-    val shader = lazy {
+    /*val shader = lazy {
         Shader(
             "Depth-Based MSAA", null,
             simplestVertexShader, uvList,
@@ -210,7 +211,7 @@ object DepthBasedAntiAliasing {
                     "}"
         ).apply { setTextureIndices(listOf("color", "depth0")) }
     }
-
+*/
     val shaderNoColor = lazy {
         Shader(
             "Depth-Based MSAA", null,
@@ -312,13 +313,16 @@ object DepthBasedAntiAliasing {
     }
 
     fun render(color: ITexture2D, simpleDepth: ITexture2D, threshold: Float = 1e-5f) {
-        val shader = (if (isControlDown) shaderNoColor else shader).value
+        val shader = shaderNoColor.value
         shader.use()
         shader.v1("threshold", threshold)
-        shader.v1("disableEffect", false)
-        // this only is correct on screens with RGB subpixel layout
-        // todo check using a text sample, what is really correct
-        shader.v2("rbOffset", (0.5f - 1f / 3f), 0f)
+        shader.v1("disableEffect", isControlDown)
+        // use the subpixel layout to define the correct subpixel rendering
+        // only works for RGB or BGR, otherwise just will cancel to 0
+        val sr = SubpixelLayout.r
+        val sb = SubpixelLayout.b
+        // 0.5 for mean, 0.5 to make the effect less obvious
+        shader.v2("rbOffset", (sr.x - sb.x) * 0.25f, (sr.y - sb.y) * 0.25f)
         shader.v1("showEdges", isShiftDown)
         simpleDepth.bindTrulyNearest(1)
         color.bindTrulyNearest(0)
@@ -330,7 +334,7 @@ object DepthBasedAntiAliasing {
         testEdgeAA()
     }
 
-    fun testEdgeAA() {
+    private fun testEdgeAA() {
 
         // task: to find the correct formula, maybe draw a graph of fraction ~ correct blur
         // result: there is no simple correct formula, it seems... there must be something inheritely wrong...
@@ -494,7 +498,7 @@ object DepthBasedAntiAliasing {
 
     }
 
-    fun testPlanarAA() {
+    private fun testPlanarAA() {
 
         val size = 64
         val sm1 = size - 1

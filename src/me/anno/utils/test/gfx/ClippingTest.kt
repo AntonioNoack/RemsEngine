@@ -1,4 +1,4 @@
-package me.anno.utils.test
+package me.anno.utils.test.gfx
 
 import me.anno.utils.Clipping
 import org.apache.logging.log4j.LogManager

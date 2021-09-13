@@ -1,4 +1,4 @@
-package me.anno.utils.test
+package me.anno.utils.test.gfx
 
 import me.anno.cache.instances.MeshCache
 import me.anno.config.DefaultConfig

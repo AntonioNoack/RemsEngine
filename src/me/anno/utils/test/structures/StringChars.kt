@@ -1,6 +1,6 @@
-package me.anno.utils.test
+package me.anno.utils.test.structures
 
-import org.joml.Vector4f
+import me.anno.utils.test.measure
 import java.util.*
 
 fun main() {
@@ -14,22 +14,22 @@ fun main() {
     val turns = 2048
 
     // 1.32s
-    measure("toCharArray0"){
+    measure("toCharArray0") {
         var sum = 0
         for (str in randomStrings) {
-            for(i in 0 until turns){
+            for (i in 0 until turns) {
                 sum += str.toCharArray().sumOf { it.code }
             }
         }
     }
 
     // 1.63s
-    measure("toCharArray1"){
+    measure("toCharArray1") {
         var sum = 0
         for (str in randomStrings) {
-            for(i in 0 until turns){
+            for (i in 0 until turns) {
                 val chars = str.toCharArray()
-                for(c in chars) {
+                for (c in chars) {
                     sum += c.code
                 }
             }
@@ -37,11 +37,11 @@ fun main() {
     }
 
     // 1.22s
-    measure("iterator()"){
+    measure("iterator()") {
         var sum = 0
         for (str in randomStrings) {
-            for(i in 0 until turns){
-                for(c in str) {
+            for (i in 0 until turns) {
+                for (c in str) {
                     sum += c.code
                 }
             }
@@ -49,11 +49,11 @@ fun main() {
     }
 
     // 0.59s -> use this
-    measure("getCharAt0"){
+    measure("getCharAt0") {
         var sum = 0
         for (str in randomStrings) {
-            for(i in 0 until turns){
-                for(j in str.indices) {
+            for (i in 0 until turns) {
+                for (j in str.indices) {
                     sum += str[j].code
                 }
             }
@@ -61,11 +61,11 @@ fun main() {
     }
 
     // 0.59s -> use the one above
-    measure("getCharAt1"){
+    measure("getCharAt1") {
         var sum = 0
         for (str in randomStrings) {
-            for(i in 0 until turns){
-                for(j in 0 until str.length) {
+            for (i in 0 until turns) {
+                for (j in 0 until str.length) {
                     sum += str[j].code
                 }
             }
@@ -73,10 +73,10 @@ fun main() {
     }
 
     // 6.2s -> don't use
-    measure("codePoints()"){
+    measure("codePoints()") {
         var sum = 0
         for (str in randomStrings) {
-            for(i in 0 until turns){
+            for (i in 0 until turns) {
                 sum += str.codePoints().sum()
             }
         }

@@ -1,4 +1,4 @@
-package me.anno.utils.test
+package me.anno.utils.test.gfx
 
 import me.anno.animation.AnimatedProperty
 import me.anno.animation.Keyframe

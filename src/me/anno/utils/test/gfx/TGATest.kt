@@ -1,4 +1,4 @@
-package me.anno.utils.test
+package me.anno.utils.test.gfx
 
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS

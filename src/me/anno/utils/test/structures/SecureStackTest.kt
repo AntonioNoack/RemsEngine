@@ -1,4 +1,4 @@
-package me.anno.utils.test
+package me.anno.utils.test.structures
 
 import me.anno.utils.LOGGER
 import me.anno.utils.structures.SecureStack

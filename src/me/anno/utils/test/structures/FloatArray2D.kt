@@ -1,4 +1,4 @@
-package me.anno.utils.test
+package me.anno.utils.test.structures
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.io.Saveable

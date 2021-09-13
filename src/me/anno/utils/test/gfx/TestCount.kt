@@ -1,4 +1,4 @@
-package me.anno.utils.test
+package me.anno.utils.test.gfx
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.cache.MeshCache

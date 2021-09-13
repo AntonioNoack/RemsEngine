@@ -1,4 +1,4 @@
-package me.anno.utils.test
+package me.anno.utils.test.gfx
 
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.Version

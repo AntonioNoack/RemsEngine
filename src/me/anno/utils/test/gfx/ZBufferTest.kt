@@ -1,4 +1,4 @@
-package me.anno.utils.test
+package me.anno.utils.test.gfx
 
 import me.anno.gpu.drawing.Perspective.perspective2
 import me.anno.utils.types.Vectors.print

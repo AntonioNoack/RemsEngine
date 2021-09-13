@@ -1,4 +1,4 @@
-package me.anno.utils.test
+package me.anno.utils.test.structures
 
 import me.anno.utils.Clock
 import me.anno.utils.structures.maps.HashMap2
