@@ -1,29 +1,25 @@
 package me.anno.ecs.components.light
 
-import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.pbr.DeferredRenderer
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.DepthMode
 import me.anno.gpu.RenderState
 import me.anno.gpu.RenderState.useFrame
-import me.anno.gpu.ShaderLib
-import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.*
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
-import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Renderer
-import me.anno.gpu.shader.builder.Variable
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
+import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Matrices.getScaleLength
 import org.joml.*
 import org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT
 import org.lwjgl.opengl.GL11.glClear
@@ -85,6 +81,8 @@ abstract class LightComponent(
     @NotSerializedProperty
     var shadowTextures: Array<IFramebuffer>? = null
 
+    var samples = 1
+
     fun ensureShadowBuffers() {
         if (hasShadow) {
             // only a single one is supported,
@@ -94,7 +92,11 @@ abstract class LightComponent(
             val shadowCascades = shadowTextures
             val targetSize = shadowMapCascades
             val resolution = shadowMapResolution
-            if (shadowCascades == null || shadowCascades.size != targetSize || shadowCascades.first().w != resolution) {
+            val samples = samples
+            if (shadowCascades == null ||
+                shadowCascades.size != targetSize ||
+                shadowCascades.first().samples != samples
+            ) {
                 shadowCascades?.forEach { it.destroy() }
                 // we currently use a depth bias of 0.005,
                 // which is equal to ~ 1/255
@@ -103,12 +105,12 @@ abstract class LightComponent(
                 this.shadowTextures = Array(targetSize) {
                     if (isPointLight) {
                         CubemapFramebuffer(
-                            "ShadowCubemap[$it]", resolution, 0,
+                            "ShadowCubemap[$it]", resolution, samples, 0,
                             false, depthBufferType
                         )
                     } else {
                         Framebuffer(
-                            "Shadow[$it]", resolution, resolution, 1, 0,
+                            "Shadow[$it]", resolution, resolution, samples, 0,
                             false, depthBufferType
                         )
                     }
@@ -145,10 +147,11 @@ abstract class LightComponent(
         val drawTransform = transform.drawTransform
         val resolution = shadowMapResolution
         val global = transform.globalTransform
-        val position = global.getTranslation(Vector3d())
-        val rotation = global.getUnnormalizedRotation(Quaterniond())
+        val position = global.getTranslation(JomlPools.vec3d.create())
+        val rotation = global.getUnnormalizedRotation(JomlPools.quat4d.create())
         val sqrt3 = 1.7320508075688772
-        val worldScale = sqrt3 / global.getScale(Vector3d()).length()
+        val worldScale = sqrt3 / global.getScaleLength()
+        val cameraMatrix = JomlPools.mat4f.create()
         // only fill pipeline once? probably better...
         for (i in 0 until shadowMapCascades) {
             val cascadeScale = shadowMapPower.pow(-i.toDouble())
@@ -162,13 +165,16 @@ abstract class LightComponent(
             val root = entity.getRoot(Entity::class)
             pipeline.fillDepth(root, position, worldScale)
             RenderState.depthMode.use(DepthMode.GREATER) {
-                useFrame(texture, Renderer.depthOnlyRenderer) {
+                useFrame(resolution, resolution, true, texture, Renderer.depthOnlyRenderer) {
                     Frame.bind()
                     glClear(GL_DEPTH_BUFFER_BIT)
                     pipeline.drawDepth(cameraMatrix, position, worldScale)
                 }
             }
         }
+        JomlPools.vec3d.sub(1)
+        JomlPools.quat4d.sub(1)
+        JomlPools.mat4f.sub(1)
     }
 
     // is set by the pipeline
@@ -187,7 +193,6 @@ abstract class LightComponent(
 
     companion object {
 
-        val cameraMatrix = Matrix4f()
         val pipeline = Pipeline(DeferredSettingsV2(listOf(), false))
 
         init {

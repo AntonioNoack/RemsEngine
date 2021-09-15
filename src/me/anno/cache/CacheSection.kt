@@ -287,16 +287,12 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         private val caches = ConcurrentSkipListSet<CacheSection>()
 
         fun updateAll() {
-            caches.forEach {
-                it.update()
-            }
+            for(cache in caches) cache.update()
         }
 
         fun clearAll() {
-            caches.forEach {
-                it.clear()
-            }
-            root.listOfAll { it.clearCache(); false }
+            for(cache in caches) cache.clear()
+            root.findFirstInAll { it.clearCache(); false }
             LastModifiedCache.clear()
         }
 

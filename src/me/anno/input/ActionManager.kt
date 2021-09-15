@@ -154,7 +154,7 @@ object ActionManager {
             }
         }
         for (window in GFX.windowStack) {
-            window.panel.listOfAll { panel ->
+            window.panel.forAll { panel ->
                 executeLocally(dx, dy, isContinuous, panel, actions)
             }
         }

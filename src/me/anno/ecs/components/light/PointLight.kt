@@ -16,10 +16,11 @@ import me.anno.io.serialization.SerializedProperty
 import me.anno.mesh.vox.meshing.BlockBuffer
 import me.anno.mesh.vox.meshing.BlockSide
 import me.anno.mesh.vox.meshing.VoxelMeshBuildInfo
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.ExpandingFloatArray
+import me.anno.utils.types.Matrices.rotate2
 import org.joml.*
 import org.lwjgl.opengl.GL11
-import kotlin.math.PI
 
 // todo size of point light: probably either distance or direction needs to be adjusted
 // todo - in proximity, the appearance must not stay as a point, but rather be a sphere
@@ -33,21 +34,11 @@ class PointLight : LightComponent(LightType.POINT) {
     @Range(1e-6, 1.0)
     var near = 0.001
 
-
-    /* good idea, but typically, the precision is good enough,
-    and motion is fast enough, that the results flicker way too much
-    @SerializedProperty
-    var updateIndividually = false
-
-    // not important enough to be serialized
-    @NotSerializedProperty
-    var nextFaceIndex = 0*/
-
     override fun getShaderV0(drawTransform: Matrix4x3d, worldScale: Double): Float {
         // put light size * world scale
         // avg, and then /3
         // but the center really is much smaller -> *0.01
-        val lightSize = drawTransform.getScale(Vector3d()).dot(1.0, 1.0, 1.0) * lightSize / 9.0
+        val lightSize = drawTransform.getScale(JomlPools.vec3d.borrow()).dot(1.0, 1.0, 1.0) * lightSize / 9.0
         return (lightSize * worldScale).toFloat()
     }
 
@@ -55,7 +46,7 @@ class PointLight : LightComponent(LightType.POINT) {
     override fun getShaderV2() = near.toFloat()
 
     override fun invalidateShadows() {
-        needsUpdate = true // 6
+        needsUpdate = true
     }
 
     override fun clone(): PointLight {
@@ -87,8 +78,8 @@ class PointLight : LightComponent(LightType.POINT) {
         val position = global.getTranslation(Vector3d())
         val rotation = global.getUnnormalizedRotation(Quaterniond())
         val sqrt3 = 1.7320508075688772
-        val worldScale = sqrt3 / global.getScale(Vector3d()).length()
-        // only fill pipeline once? probably better...
+        val worldScale = sqrt3 / global.getScale(JomlPools.vec3d.borrow()).length()
+        // only fill pipeline once?
 
         val texture = shadowTextures!![0] as CubemapFramebuffer
 
@@ -98,46 +89,26 @@ class PointLight : LightComponent(LightType.POINT) {
         val rot2 = Quaterniond(rotation).invert()
         val rot3 = Quaterniond()
 
+
+        val cameraMatrix = JomlPools.mat4f.create()
         val root = entity.getRoot(Entity::class)
         RenderState.depthMode.use(DepthMode.GREATER) {
-            texture.draw(Renderer.depthOnlyRenderer) { side ->
-                // if (!updateIndividually || side == nextFaceIndex) {
+            texture.draw(resolution, Renderer.depthOnlyRenderer) { side ->
                 Frame.bind()
                 GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT)
                 setPerspective(cameraMatrix, deg90.toFloat(), 1f, near.toFloat(), far.toFloat())
-                rot3.identity()
-                // rotate based on direction
-                /*
-                * POSITIVE_X = 34069;
-                * NEGATIVE_X = 34070;
-                * POSITIVE_Y = 34071;
-                * NEGATIVE_Y = 34072;
-                * POSITIVE_Z = 34073;
-                * NEGATIVE_Z = 34074;
-                * */
-                when (side) {
-                    0 -> rot3.rotateY(+PI * 0.5)
-                    1 -> rot3.rotateY(-PI * 0.5)
-                    2 -> rot3.rotateX(+PI * 0.5)
-                    3 -> rot3.rotateX(-PI * 0.5)
-                    5 -> rot3.rotateY(PI)
-                    4 -> {
-                        rot3//.rotateZ(PI*1.0)
-                    } // done
-                }
+                EnvironmentMap.rotateForCubemap(rot3.identity(), side)
                 rot3.mul(rot2)
-                cameraMatrix.rotate(Quaternionf(rot3))
+                cameraMatrix.rotate2(rot3)
                 pipeline.frustum.definePerspective(
                     near / worldScale, far / worldScale, deg90, resolution, resolution, 1.0,
                     position, rot3.invert() // needs to be the inverse again
                 )
                 pipeline.fillDepth(root, position, worldScale)
                 pipeline.drawDepth(cameraMatrix, position, worldScale)
-                // }
             }
         }
-
-        // if(updateIndividually) nextFaceIndex = (nextFaceIndex + 1) % 6
+        JomlPools.mat4f.sub(1)
 
     }
 
@@ -146,7 +117,6 @@ class PointLight : LightComponent(LightType.POINT) {
         clone as PointLight
         clone.lightSize = lightSize
         clone.near = near
-        // clone.updateIndividually = updateIndividually
     }
 
     override fun drawShape() {
@@ -156,21 +126,12 @@ class PointLight : LightComponent(LightType.POINT) {
 
     override fun getLightPrimitive(): Mesh = cubeMesh
 
-    /*override fun onDrawGUI(view: RenderView) {
-        super.onDrawGUI(view)
-        stack.pushMatrix()
-        stack.scale(1f / 3f)
-        Grid.drawBuffer(stack, white4, Grid.sphereBuffer)
-        stack.popMatrix()
-    }*/
-
     override val className: String = "PointLight"
 
     companion object {
 
         private const val cutoff = 0.1
         const val falloff = "max(0.0, 1.0/(1.0+9.0*dot(dir,dir)) - $cutoff)*${1.0 / (1.0 - cutoff)}"
-        // val falloff2d = "max(0.0, 1.0/(1.0+9.0*dir.z*dir.z) - $cutoff)*${1.0 / (1.0 - cutoff)}"
 
         val cubeMesh = Mesh()
 
@@ -228,9 +189,10 @@ class PointLight : LightComponent(LightType.POINT) {
                             "}\n"
                     else "") +
                     "effectiveDiffuse = lightColor * ${LightType.POINT.falloff};\n" +
-                    "dir *= 0.2;\n" + // less falloff by a factor of 5,
+                    // "dir *= 0.2;\n" + // less falloff by a factor of 5,
                     // because specular light is more directed and therefore reached farther
-                    "effectiveSpecular = lightColor * ${LightType.POINT.falloff};\n"
+                    // nice in theory, but practically, we would need a larger cube for that
+                    "effectiveSpecular = effectiveDiffuse;//lightColor * ${LightType.POINT.falloff};\n"
         }
 
     }

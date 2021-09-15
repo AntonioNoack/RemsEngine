@@ -14,6 +14,10 @@ object AABBs {
     fun AABBf.avgY() = (minY + maxY) * 0.5f
     fun AABBf.avgZ() = (minZ + maxZ) * 0.5f
 
+    fun AABBd.avgX() = (minX + maxX) * 0.5
+    fun AABBd.avgY() = (minY + maxY) * 0.5
+    fun AABBd.avgZ() = (minZ + maxZ) * 0.5
+
     fun AABBf.deltaX() = maxX - minX
     fun AABBf.deltaY() = maxY - minY
     fun AABBf.deltaZ() = maxZ - minZ

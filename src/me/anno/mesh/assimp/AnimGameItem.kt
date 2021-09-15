@@ -49,25 +49,24 @@ class AnimGameItem(
         rootEntity.simpleTraversal(false) { entity ->
             entity as Entity
             val global = entity.transform.globalTransform
-            val meshes = entity.getComponents(MeshComponent::class, false)
-            for (comp in meshes) {
+            entity.anyComponent(MeshComponent::class, false) { comp ->
+                val mesh = MeshCache[comp.mesh]
+                if (mesh != null) {
+                    mesh.ensureBuffer()
 
-                val mesh = MeshCache[comp.mesh] ?: continue
-                mesh.ensureBuffer()
+                    // join the matrices for 2x better performance than without
+                    jointMatrix.set(transform).mul2(global)
 
-                // join the matrices for 2x better performance than without
-                jointMatrix.set(transform).mul2(global)
-
-                // if aabb u transform(mesh.aabb) == aabb, then skip this sub-mesh
-                mesh.aabb.transformProjectUnion(jointMatrix, testAABB.set(aabb))
-                if (testAABB != aabb) {
-                    mesh.forEachPoint(false) { x, y, z ->
-                        aabb.union(jointMatrix.transformProject(vf.set(x, y, z)))
+                    // if aabb u transform(mesh.aabb) == aabb, then skip this sub-mesh
+                    mesh.aabb.transformProjectUnion(jointMatrix, testAABB.set(aabb))
+                    if (testAABB != aabb) {
+                        mesh.forEachPoint(false) { x, y, z ->
+                            aabb.union(jointMatrix.transformProject(vf.set(x, y, z)))
+                        }
                     }
                 }
-
+                false
             }
-            false
         }
         return aabb
     }
@@ -176,12 +175,13 @@ class AnimGameItem(
                 // because animated clothing may be too small to see
                 if (entity.hasComponent(MeshComponent::class)) {
                     local.clear()
-                    val meshes = entity.getComponents(MeshComponent::class, false)
-                    for (comp in meshes) {
-                        val meshByCache = MeshCache[comp.mesh]
-                        val mesh = meshByCache ?: continue
-                        mesh.ensureBuffer()
-                        local.union(mesh.aabb.toDouble())
+                    entity.anyComponent(MeshComponent::class, false) { comp ->
+                        val mesh = MeshCache[comp.mesh]
+                        if (mesh != null) {
+                            mesh.ensureBuffer()
+                            local.union(mesh.aabb.toDouble())
+                        }
+                        false
                     }
                     local.transform(Matrix4d(entity.transform.globalTransform))
                     joint.union(local)

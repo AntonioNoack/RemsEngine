@@ -12,6 +12,7 @@ import kotlin.reflect.jvm.jvmName
 class CachedProperty(
     val name: String,
     val clazz: KClass<*>,
+    val serialize: Boolean,
     val forceSaving: Boolean?,
     val annotations: List<Annotation>,
     val getter: KProperty1.Getter<*, *>,

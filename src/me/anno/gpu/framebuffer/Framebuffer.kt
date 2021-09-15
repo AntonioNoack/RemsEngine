@@ -13,7 +13,7 @@ import kotlin.system.exitProcess
 class Framebuffer(
     var name: String,
     override var w: Int, override var h: Int,
-    val samples: Int, val targets: Array<TargetType>,
+    override val samples: Int, val targets: Array<TargetType>,
     val depthBufferType: DepthBufferType
 ) : IFramebuffer {
 

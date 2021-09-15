@@ -148,9 +148,10 @@ class SpotLight() : LightComponent(LightType.SPOT) {
                             "}\n"
                     else "") +
                     "effectiveDiffuse = lightColor * ${LightType.SPOT.falloff};\n" +
-                    "dir *= 0.2;\n" + // less falloff by a factor of 5,
+                    // "dir *= 0.2;\n" + // less falloff by a factor of 5,
                     // because specular light is more directed and therefore reached farther
-                    "effectiveSpecular = lightColor * ${LightType.SPOT.falloff};\n"
+                    // nice in theory, but practically, we would to render need a larger cube
+                    "effectiveSpecular = effectiveDiffuse;//lightColor * ${LightType.SPOT.falloff};\n"
         }
 
     }

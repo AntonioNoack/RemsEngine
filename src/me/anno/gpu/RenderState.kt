@@ -83,6 +83,13 @@ object RenderState {
         }
     }
 
+    val stencilTest = object: SecureStack<Boolean>(false){
+        override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
+            if(newValue) glEnable(GL_STENCIL_TEST)
+            else glDisable(GL_STENCIL_TEST)
+        }
+    }
+
     val scissorTest = object : SecureStack<Boolean>(false) {
         override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
             if (newValue) glEnable(GL_SCISSOR_TEST)

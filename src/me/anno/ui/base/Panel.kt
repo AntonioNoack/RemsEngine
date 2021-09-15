@@ -485,7 +485,7 @@ open class Panel(val style: Style) {
             callback(this)
             if (this is PanelGroup) {
                 for (child in children) {
-                    child.listOfAll(callback)
+                    child.forAll(callback)
                 }
             }
         }
@@ -503,21 +503,21 @@ open class Panel(val style: Style) {
             }
         }
 
-    fun listOfAll(callback: (Panel) -> Unit) {
+    fun forAll(callback: (Panel) -> Unit) {
         callback(this)
         if (this is PanelGroup) {
             val children = children
             for (i in children.indices) {
-                children[i].listOfAll(callback)
+                children[i].forAll(callback)
             }
         }
     }
 
-    fun listOfAll(array: ExpandingGenericArray<Panel>) {
+    fun forAll(array: ExpandingGenericArray<Panel>) {
         array += this
         if (this is PanelGroup) {
             for (child in children) {
-                child.listOfAll(array)
+                child.forAll(array)
             }
         }
     }

@@ -60,7 +60,7 @@ class HistoryState() : Saveable() {
         select(selectedUUID, selectedPropName)
         windowStack.map { window ->
             var index = 0
-            window.panel.listOfAll {
+            window.panel.forAll {
                 if (it is SceneView) {
                     it.camera = if (index in usedCameras.indices) {
                         val cameraIndex = usedCameras[index]

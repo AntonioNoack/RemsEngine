@@ -7,7 +7,11 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.gui.LineShapes.drawArrowZ
 import me.anno.engine.gui.LineShapes.drawBox
 import me.anno.gpu.pipeline.Pipeline
-import org.joml.*
+import me.anno.utils.types.Matrices.set2
+import org.joml.Matrix4f
+import org.joml.Matrix4x3d
+import org.joml.Quaterniond
+import org.joml.Vector3d
 
 class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
 
@@ -30,7 +34,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
         position: Vector3d,
         rotation: Quaterniond
     ) {
-        cameraMatrix.set(Matrix4d(drawTransform).invert())
+        cameraMatrix.set2(drawTransform).invert()
         cameraMatrix.setTranslation(0f, 0f, 0f)
         val sx = (1.0 / (cascadeScale * worldScale)).toFloat()
         val sz = (1.0 / (worldScale)).toFloat()

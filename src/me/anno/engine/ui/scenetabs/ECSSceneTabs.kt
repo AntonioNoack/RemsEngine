@@ -114,7 +114,7 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
             }
             val world = lazy { createWorld(prefabInstance, prefab.source) }
             for (window in windowStack) {
-                window.panel.listOfAll {
+                window.panel.forAll {
                     when (it) {
                         is RenderView -> {
                             val library = it.library

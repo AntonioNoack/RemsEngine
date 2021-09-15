@@ -26,6 +26,9 @@ import java.nio.ByteOrder
 
 object Renderers {
 
+    // and banding prevention
+    val toneMapping = "vec3 toneMapping(vec3 color){ return (color)/(1+color) - random(gl_FragCoord.xy) * ${1f / 255f}; }\n"
+
     val overdrawRenderer = object : Renderer("overdraw", true, ShaderPlus.DrawMode.COLOR) {
         override fun getPostProcessing(): ShaderStage {
             return ShaderStage(
@@ -49,10 +52,11 @@ object Renderers {
         }
     }
 
-
     val pbrRenderer = object : Renderer("pbr", false, ShaderPlus.DrawMode.COLOR) {
         override fun getPostProcessing(): ShaderStage {
             return ShaderStage("pbr", listOf(
+                // rendering
+                Variable("bool", "applyToneMapping"),
                 // light data
                 Variable("vec3", "ambientLight"),
                 Variable("int", "numberOfLights"),
@@ -65,6 +69,11 @@ object Renderers {
                 Variable("sampler2D", "shadowMapPlanar", MAX_PLANAR_LIGHTS),
                 // - point lights
                 Variable("samplerCube", "shadowMapCubic", MAX_CUBEMAP_LIGHTS),
+                // reflection plane for rivers or perfect mirrors
+                Variable("bool", "hasReflectionPlane"),
+                Variable("sampler2D", "reflectionPlane"),
+                // reflection cubemap or irradiance map
+                Variable("samplerCube", "reflectionMap"),
                 // debug
                 Variable("int", "visualizeLightCount"),
                 // material properties
@@ -147,19 +156,16 @@ object Renderers {
                     "   if(visualizeLightCount){\n" +
                     "       finalColor.r = lightCount * 0.125;\n" +
                     // reinhard tonemapping
-                    "       finalColor = vec3(lightCount/(1.0+lightCount));\n" +
+                    "       finalColor = toneMapping(vec3(lightCount));\n" +
                     "   } else {\n" +
                     "       finalColor = diffuseColor * diffuseLight + specularLight;\n" +
                     "       finalColor = finalColor * finalOcclusion + finalEmissive;\n" +
-                    "       finalColor = finalColor/(1.0+finalColor);\n" +
-                    // banding prevention
-                    // -0.5, so we don't destroy blacks on OLEDs
-                    // todo this and tone mapping only, if we don't use bloom
-                    "       finalColor -= random(uv) * ${1.0 / 255.0};\n" +
+                    "       if(applyToneMapping){\n" +
+                    "           finalColor = toneMapping(finalColor);\n" +
+                    "       }\n" +
                     "   }\n"
             ).apply {
-                val src = Scene.reinhardToneMapping +
-                        Scene.noiseFunc
+                val src = Scene.noiseFunc + toneMapping
                 functions.add(Function(src))
             }
         }

@@ -47,10 +47,10 @@ fun main() {
     }*/
 
     // second try
-    val depthTexture = CubemapTexture(w)
+    val depthTexture = CubemapTexture(w, 1)
     depthTexture.createDepth()
 
-    for(i in 0 until 6){
+    for (i in 0 until 6) {
         GL30.glFramebufferTexture2D(
             GL30.GL_FRAMEBUFFER, GL30.GL_DEPTH_ATTACHMENT,
             layers[i], depthTexture.pointer, 0

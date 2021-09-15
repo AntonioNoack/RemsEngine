@@ -494,6 +494,7 @@ open class Shader(
     fun v2(name: String, v: Vector2fc) = v2(name, v.x(), v.y())
     fun v3(name: String, v: Vector3fc) = v3(name, v.x(), v.y(), v.z())
     fun v4(name: String, v: Vector4fc) = v4(name, v.x(), v.y(), v.z(), v.w())
+    fun v4f(name: String, v: Vector4dc) = v4(name, v.x().toFloat(), v.y().toFloat(), v.z().toFloat(), v.w().toFloat())
 
     fun m3x3(name: String, value: Matrix3fc?) = m3x3(getUniformLocation(name), value)
     fun m3x3(loc: Int, value: Matrix3fc? = identity3) {

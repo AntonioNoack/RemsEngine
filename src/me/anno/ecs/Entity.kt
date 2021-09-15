@@ -3,9 +3,7 @@ package me.anno.ecs
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.collider.Collider
-import me.anno.ecs.components.light.AmbientLight
-import me.anno.ecs.components.light.DirectionalLight
-import me.anno.ecs.components.light.LightComponent
+import me.anno.ecs.components.light.*
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.prefab.PrefabInspector
@@ -328,14 +326,24 @@ class Entity() : PrefabSaveable(), Inspectable {
                             mesh.ensureBuffer()
                             mesh.aabb.transformUnion(globalTransform, aabb)
                         }
+                        is EnvironmentMap, is PlanarReflection -> {
+                            val mesh = PointLight.cubeMesh
+                            mesh.ensureBuffer()
+                            mesh.aabb.transformUnion(globalTransform, aabb)
+                        }
+                        /* is PlanarReflection -> {
+                             val mesh = PlanarReflection.planeMesh
+                             mesh.ensureBuffer()
+                             mesh.aabb.transformUnion(globalTransform, aabb)
+                         }*/
                         is AmbientLight -> {
                             // ambient light has influence on everything
                             aabb.all()
                         }
                         is Collider -> {
-                            val tmp = JomlPools.vector3d.create()
+                            val tmp = JomlPools.vec3d.create()
                             component.union(globalTransform, aabb, tmp, false)
-                            JomlPools.vector3d.sub(1)
+                            JomlPools.vec3d.sub(1)
                         }
                     }
                 }
@@ -367,8 +375,10 @@ class Entity() : PrefabSaveable(), Inspectable {
     var clickId = 0
 
     fun update() {
-        for (component in components) component.onUpdate()
-        for (child in children) child.update()
+        val components = components
+        for (i in components.indices) components[i].onUpdate()
+        val children = children
+        for (i in children.indices) children[i].update()
     }
 
     // is set by the engine
@@ -380,20 +390,17 @@ class Entity() : PrefabSaveable(), Inspectable {
 
     fun updateVisible() {
         if (hasBeenVisible) {
-            for (component in components) {
-                component.onVisibleUpdate()
-            }
+            val components = components
+            for (i in components.indices) components[i].onVisibleUpdate()
         }
-        for (child in children) {
-            child.updateVisible()
-        }
+        val children = children
+        for (i in children.indices) children[i].updateVisible()
     }
 
     fun invalidateVisibility() {
         hasBeenVisible = false
-        for (child in children) {
-            child.invalidateVisibility()
-        }
+        val children = children
+        for (i in children.indices) children[i].invalidateVisibility()
     }
 
     fun validateTransforms(time: Long = GFX.gameTime) {
@@ -571,10 +578,10 @@ class Entity() : PrefabSaveable(), Inspectable {
                 invalidateOwnAABB()
                 invalidateCollisionMask()
             }
-            is LightComponent -> invalidateOwnAABB()
+            is LightComponentBase -> invalidateOwnAABB()
         }
         hasRenderables = hasComponent(MeshComponent::class, false) ||
-                hasComponent(LightComponent::class, false)
+                hasComponent(LightComponentBase::class, false)
         hasSpaceFillingComponents = hasRenderables ||
                 hasComponent(Collider::class, false) ||
                 hasComponent(AmbientLight::class, false)
@@ -668,19 +675,19 @@ class Entity() : PrefabSaveable(), Inspectable {
     fun <V : Component> anyComponent(
         clazz: KClass<V>,
         includingDisabled: Boolean = false,
-        lambda: (V) -> Boolean
+        test: (V) -> Boolean
     ): Boolean {
         val components = components
         for (index in components.indices) {
             val c = components[index]
-            if ((includingDisabled || c.isEnabled) && clazz.isInstance(c) && lambda(c as V))
+            if ((includingDisabled || c.isEnabled) && clazz.isInstance(c) && test(c as V))
                 return true
         }
         return false
     }
 
     fun <V : Component> getComponentsInChildren(clazz: KClass<V>, includingDisabled: Boolean = false): List<V> {
-        return getComponentsInChildren(clazz, includingDisabled, ArrayList<V>())
+        return getComponentsInChildren(clazz, includingDisabled, ArrayList())
     }
 
     fun <V : Component> getComponentsInChildren(
@@ -701,6 +708,28 @@ class Entity() : PrefabSaveable(), Inspectable {
             child.getComponentsInChildren(clazz, includingDisabled, dst)
         }
         return dst
+    }
+
+    fun <V : Component> getComponentsInChildren(
+        clazz: KClass<V>,
+        includingDisabled: Boolean = false,
+        action: (V) -> Boolean
+    ): V? {
+        val components = components
+        for (i in components.indices) {
+            val component = components[i]
+            if (clazz.isInstance(component)) {
+                component as V
+                if (action(component)) return component
+            }
+        }
+        val children = children
+        for (i in children.indices) {
+            val child = children[i]
+            val v = child.getComponentsInChildren(clazz, includingDisabled, action)
+            if (v != null) return v
+        }
+        return null
     }
 
     override fun toString(): String {
@@ -863,6 +892,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         style: Style,
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
+        // todo call this when moving an object
         // interpolation tests
         /*list += UpdatingTextPanel(50, style) {
             val t = transform

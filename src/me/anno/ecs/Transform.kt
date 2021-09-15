@@ -4,6 +4,7 @@ import me.anno.Engine
 import me.anno.gpu.GFX
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.utils.types.Matrices.getScale2
 import org.joml.*
 
 class Transform : Saveable() {
@@ -162,7 +163,7 @@ class Transform : Saveable() {
         checkTransform(localTransform)
         pos.set(values.m30().toDouble(), values.m31().toDouble(), values.m32().toDouble())
         values.getUnnormalizedRotation(rot)
-        sca.set(values.getScale(Vector3f()))
+        values.getScale2(sca)
         invalidateGlobal()
     }
 
@@ -175,7 +176,7 @@ class Transform : Saveable() {
         )
         pos.set(values.m30().toDouble(), values.m31().toDouble(), values.m32().toDouble())
         values.getUnnormalizedRotation(rot)
-        sca.set(values.getScale(Vector3f()))
+        values.getScale2(sca)
         invalidateGlobal()
     }
 

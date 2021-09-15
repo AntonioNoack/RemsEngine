@@ -28,6 +28,7 @@ import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input.isKeyDown
 import me.anno.io.Saveable
 import me.anno.utils.maths.Maths.clamp
@@ -145,135 +146,167 @@ class PipelineStage(
         setupLights(pipeline, shader, cameraPosition, worldScale, request.entity.aabb)
     }
 
+    fun setupPlanarReflection(
+        pipeline: Pipeline, shader: Shader,
+        cameraPosition: Vector3d, worldScale: Double,
+        aabb: AABBd
+    ) {
+
+        shader.v4f("reflectionCullingPlane", pipeline.reflectionCullingPlane)
+
+        val ti = shader.getTextureIndex("reflectionPlane")
+        if (ti < 0) {
+            shader.v1("hasReflectionPlane", false)
+            return
+        }
+        // todo find the by-angle-and-position best matching planar reflection
+        val pr = pipeline.planarReflections
+        val bestPr = pr.firstOrNull {
+            val lb = it.lastBuffer as Texture2D?
+            lb != null && lb.pointer >= 0
+        }
+        shader.v1("hasReflectionPlane", bestPr != null)
+        if (bestPr != null) {
+            val tex = bestPr.lastBuffer!!
+            tex.bindTrulyNearest(ti)
+            val normal = bestPr.globalNormal
+            shader.v3("reflectionPlaneNormal", normal.x.toFloat(), normal.y.toFloat(), normal.z.toFloat())
+        }
+    }
+
     fun setupLights(
         pipeline: Pipeline, shader: Shader,
         cameraPosition: Vector3d, worldScale: Double,
         aabb: AABBd
     ) {
+
+        setupPlanarReflection(pipeline, shader, cameraPosition, worldScale, aabb)
+
         val time = GFX.gameTime
         val numberOfLightsPtr = shader["numberOfLights"]
-        // LOGGER.info("#0: $numberOfLightsPtr")
-        if (numberOfLightsPtr < 0) return
-        val maxNumberOfLights = RenderView.MAX_FORWARD_LIGHTS
-        val lights = pipeline.lights
-        val numberOfLights = pipeline.getClosestRelevantNLights(aabb, maxNumberOfLights, lights)
-        shader.v1(numberOfLightsPtr, numberOfLights)
-        if (numberOfLights > 0) {
-            val invLightMatrices = shader["invLightMatrices"]
-            val buffer = buffer16x256
-            if (invLightMatrices >= 0) {
-                // fill all transforms
-                buffer.limit(12 * numberOfLights)
-                for (i in 0 until numberOfLights) {
-                    buffer.position(12 * i)
-                    val light = lights[i]!!.light
-                    light.invWorldMatrix.get(buffer)
-                }
-                buffer.position(0)
-                GL21.glUniformMatrix4x3fv(invLightMatrices, false, buffer)
-            }
-            // and sharpness; implementation depending on type
-            val lightIntensities = shader["lightData0"]
-            if (lightIntensities >= 0) {
-                // fill all light colors
-                buffer.limit(4 * numberOfLights)
-                for (i in 0 until numberOfLights) {
-                    val light = lights[i]!!.light
-                    val color = light.color
-                    buffer.put(color.x)
-                    buffer.put(color.y)
-                    buffer.put(color.z)
-                    val type = when (light) {
-                        is DirectionalLight -> LightType.DIRECTIONAL.id
-                        is PointLight -> LightType.POINT.id
-                        is SpotLight -> LightType.SPOT.id
-                        else -> -1
-                    }
-                    buffer.put(type + 0.25f)
-                }
-                buffer.position(0)
-                GL20.glUniform4fv(lightIntensities, buffer)
-            }
-            // type, and cone angle (or other data, if required)
-            // additional, whether we have a texture, and maybe other data
-            val lightTypes = shader["lightData1"]
-            if (lightTypes >= 0) {
-
-                buffer.limit(4 * numberOfLights)
-                for (i in 0 until numberOfLights) {
-
-                    val lightI = lights[i]!!
-                    val light = lightI.light
-                    val m = getDrawMatrix(lightI.transform, time)
-
-                    buffer.put(((m.m30() - cameraPosition.x) * worldScale).toFloat())
-                    buffer.put(((m.m31() - cameraPosition.y) * worldScale).toFloat())
-                    buffer.put(((m.m32() - cameraPosition.z) * worldScale).toFloat())
-                    buffer.put(light.getShaderV0(m, worldScale))
-
-                }
-                buffer.flip()
-                GL20.glUniform4fv(lightTypes, buffer)
-            }
-            val shadowData = shader["shadowData"]
-            if (shadowData >= 0) {
-                buffer.limit(4 * numberOfLights)
-                // write all texture indices, and bind all shadow textures (as long as we have slots available)
-                var planarSlot = 0
-                var cubicSlot = 0
-                val maxTextureIndex = 31
-                val planarIndex0 = shader.getTextureIndex("shadowMapPlanar0")
-                val cubicIndex0 = shader.getTextureIndex("shadowMapCubic0")
-                val supportsPlanarShadows = planarIndex0 >= 0
-                val supportsCubicShadows = cubicIndex0 >= 0
-                if (planarIndex0 < 0) planarSlot = Renderers.MAX_PLANAR_LIGHTS
-                if (cubicIndex0 < 0) cubicSlot = Renderers.MAX_CUBEMAP_LIGHTS
-                if (supportsPlanarShadows || supportsCubicShadows) {
+        if (numberOfLightsPtr >= 0) {
+            val maxNumberOfLights = RenderView.MAX_FORWARD_LIGHTS
+            val lights = pipeline.lights
+            val numberOfLights = pipeline.getClosestRelevantNLights(aabb, maxNumberOfLights, lights)
+            shader.v1(numberOfLightsPtr, numberOfLights)
+            if (numberOfLights > 0) {
+                val invLightMatrices = shader["invLightMatrices"]
+                val buffer = buffer16x256
+                if (invLightMatrices >= 0) {
+                    // fill all transforms
+                    buffer.limit(12 * numberOfLights)
                     for (i in 0 until numberOfLights) {
-                        buffer.position(4 * i)
+                        buffer.position(12 * i)
                         val light = lights[i]!!.light
-                        buffer.put(0f)
-                        buffer.put(0f)
-                        buffer.put(light.getShaderV1())
-                        buffer.put(light.getShaderV2())
-                        buffer.position(4 * i)
-                        if (light.hasShadow) {
-                            if (light is PointLight) {
-                                buffer.put(cubicSlot.toFloat()) // start index
-                                if (cubicSlot < Renderers.MAX_CUBEMAP_LIGHTS) {
-                                    val cascades = light.shadowTextures ?: continue
-                                    val slot = cubicIndex0 + cubicSlot
-                                    if (slot > maxTextureIndex) continue
-                                    val texture = cascades[0].depthTexture!!
-                                    // bind the texture, and don't you dare to use mipmapping ^^
-                                    // (at least without variance shadow maps)
-                                    texture.bind(slot, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                                    cubicSlot++ // no break necessary
-                                }
-                                buffer.put(cubicSlot.toFloat()) // end index
-                            } else {
-                                buffer.put(planarSlot.toFloat()) // start index
-                                if (planarSlot < Renderers.MAX_PLANAR_LIGHTS) {
-                                    val cascades = light.shadowTextures ?: continue
-                                    for (j in cascades.indices) {
-                                        val slot = planarIndex0 + planarSlot
-                                        if (slot > maxTextureIndex) break
-                                        val texture = cascades[j].depthTexture!!
+                        light.invWorldMatrix.get(buffer)
+                    }
+                    buffer.position(0)
+                    GL21.glUniformMatrix4x3fv(invLightMatrices, false, buffer)
+                }
+                // and sharpness; implementation depending on type
+                val lightIntensities = shader["lightData0"]
+                if (lightIntensities >= 0) {
+                    // fill all light colors
+                    buffer.limit(4 * numberOfLights)
+                    for (i in 0 until numberOfLights) {
+                        val light = lights[i]!!.light
+                        val color = light.color
+                        buffer.put(color.x)
+                        buffer.put(color.y)
+                        buffer.put(color.z)
+                        val type = when (light) {
+                            is DirectionalLight -> LightType.DIRECTIONAL.id
+                            is PointLight -> LightType.POINT.id
+                            is SpotLight -> LightType.SPOT.id
+                            else -> -1
+                        }
+                        buffer.put(type + 0.25f)
+                    }
+                    buffer.position(0)
+                    GL20.glUniform4fv(lightIntensities, buffer)
+                }
+                // type, and cone angle (or other data, if required)
+                // additional, whether we have a texture, and maybe other data
+                val lightTypes = shader["lightData1"]
+                if (lightTypes >= 0) {
+
+                    buffer.limit(4 * numberOfLights)
+                    for (i in 0 until numberOfLights) {
+
+                        val lightI = lights[i]!!
+                        val light = lightI.light
+                        val m = getDrawMatrix(lightI.transform, time)
+
+                        buffer.put(((m.m30() - cameraPosition.x) * worldScale).toFloat())
+                        buffer.put(((m.m31() - cameraPosition.y) * worldScale).toFloat())
+                        buffer.put(((m.m32() - cameraPosition.z) * worldScale).toFloat())
+                        buffer.put(light.getShaderV0(m, worldScale))
+
+                    }
+                    buffer.flip()
+                    GL20.glUniform4fv(lightTypes, buffer)
+                }
+                val shadowData = shader["shadowData"]
+                if (shadowData >= 0) {
+                    buffer.limit(4 * numberOfLights)
+                    // write all texture indices, and bind all shadow textures (as long as we have slots available)
+                    var planarSlot = 0
+                    var cubicSlot = 0
+                    val maxTextureIndex = 31
+                    val planarIndex0 = shader.getTextureIndex("shadowMapPlanar0")
+                    val cubicIndex0 = shader.getTextureIndex("shadowMapCubic0")
+                    val supportsPlanarShadows = planarIndex0 >= 0
+                    val supportsCubicShadows = cubicIndex0 >= 0
+                    if (planarIndex0 < 0) planarSlot = Renderers.MAX_PLANAR_LIGHTS
+                    if (cubicIndex0 < 0) cubicSlot = Renderers.MAX_CUBEMAP_LIGHTS
+                    if (supportsPlanarShadows || supportsCubicShadows) {
+                        for (i in 0 until numberOfLights) {
+                            buffer.position(4 * i)
+                            val light = lights[i]!!.light
+                            buffer.put(0f)
+                            buffer.put(0f)
+                            buffer.put(light.getShaderV1())
+                            buffer.put(light.getShaderV2())
+                            buffer.position(4 * i)
+                            if (light.hasShadow) {
+                                if (light is PointLight) {
+                                    buffer.put(cubicSlot.toFloat()) // start index
+                                    if (cubicSlot < Renderers.MAX_CUBEMAP_LIGHTS) {
+                                        val cascades = light.shadowTextures ?: continue
+                                        val slot = cubicIndex0 + cubicSlot
+                                        if (slot > maxTextureIndex) continue
+                                        val texture = cascades[0].depthTexture!!
                                         // bind the texture, and don't you dare to use mipmapping ^^
                                         // (at least without variance shadow maps)
                                         texture.bind(slot, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                                        if (++planarSlot >= Renderers.MAX_PLANAR_LIGHTS) break
+                                        cubicSlot++ // no break necessary
                                     }
+                                    buffer.put(cubicSlot.toFloat()) // end index
+                                } else {
+                                    buffer.put(planarSlot.toFloat()) // start index
+                                    if (planarSlot < Renderers.MAX_PLANAR_LIGHTS) {
+                                        val cascades = light.shadowTextures ?: continue
+                                        for (j in cascades.indices) {
+                                            val slot = planarIndex0 + planarSlot
+                                            if (slot > maxTextureIndex) break
+                                            val texture = cascades[j].depthTexture!!
+                                            // bind the texture, and don't you dare to use mipmapping ^^
+                                            // (at least without variance shadow maps)
+                                            texture.bind(slot, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                                            if (++planarSlot >= Renderers.MAX_PLANAR_LIGHTS) break
+                                        }
+                                    }
+                                    buffer.put(planarSlot.toFloat()) // end index
                                 }
-                                buffer.put(planarSlot.toFloat()) // end index
                             }
                         }
                     }
+                    buffer.position(0)
+                    GL20.glUniform4fv(shadowData, buffer)
                 }
-                buffer.position(0)
-                GL20.glUniform4fv(shadowData, buffer)
             }
         }
+
     }
 
     fun initShader(shader: Shader, cameraMatrix: Matrix4fc, pipeline: Pipeline, visualizeLightCount: Int) {
@@ -282,6 +315,7 @@ class PipelineStage(
         // (for the cheap shaders, which are not deferred)
         shader.m4x4("transform", cameraMatrix)
         shader.v3("ambientLight", pipeline.ambient)
+        shader.v1("applyToneMapping", pipeline.applyToneMapping)
         shader.v1("visualizeLightCount", visualizeLightCount)
     }
 
@@ -437,7 +471,13 @@ class PipelineStage(
                             val trs = values.transforms
                             val ids = values.clickIds
                             for (index in baseIndex until min(size, baseIndex + batchSize)) {
-                                m4x3delta(getDrawMatrix(trs[index]!!, time), cameraPosition, worldScale, nioBuffer, false)
+                                m4x3delta(
+                                    getDrawMatrix(trs[index]!!, time),
+                                    cameraPosition,
+                                    worldScale,
+                                    nioBuffer,
+                                    false
+                                )
                                 buffer.putInt(ids[index])
                             }
                             if (needsLightUpdateForEveryMesh) {
@@ -526,7 +566,13 @@ class PipelineStage(
                             // fill the data
                             val trs = values.transforms
                             for (index in baseIndex until min(size, baseIndex + batchSize)) {
-                                m4x3delta(getDrawMatrix(trs[index]!!, time), cameraPosition, worldScale, nioBuffer, false)
+                                m4x3delta(
+                                    getDrawMatrix(trs[index]!!, time),
+                                    cameraPosition,
+                                    worldScale,
+                                    nioBuffer,
+                                    false
+                                )
                                 buffer.putInt(0) // clickId
                             }
                             buffer.ensureBufferWithoutResize()

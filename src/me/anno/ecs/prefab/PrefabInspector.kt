@@ -44,8 +44,8 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
     }
 
     val history: ChangeHistory = prefab.history ?: ChangeHistory()
-    val adds = prefab.adds!! as MutableList
-    val sets = prefab.sets!! as MutableList
+    val adds get() = prefab.adds!! as MutableList
+    val sets get() = prefab.sets!! as MutableList
 
     init {
 
@@ -98,12 +98,7 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
     }
 
     fun change(path: Path, name: String, value: Any?) {
-        val oldChange = sets.firstOrNull { it.path == path && it.name == name }
-        if (oldChange == null) {
-            sets.add(CSet(path, name, value))
-        } else {
-            oldChange.value = value
-        }
+        prefab.add(CSet(path, name, value))
         onChange()
     }
 
@@ -171,7 +166,7 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
             for (name in propertyNames) {
 
                 val property = reflections.allProperties[name]!!
-                if (property.hideInInspector) continue
+                if (property.hideInInspector || !property.serialize) continue
 
                 if (!hadIntro) {
                     hadIntro = true
@@ -272,12 +267,8 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
                     inspectable as Component
                     return Option(inspectable.className, "") { inspectable }
                 }
-
             })
-
         }
-
-
     }
 
 

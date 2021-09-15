@@ -8,6 +8,8 @@ import kotlin.math.*
 
 class Frustum {
 
+    // todo define a 7th plane for reflection culling
+
     val planes = Array(6) { Vector4d() }
     val normals = Array(6) { Vector3d() }
     val positions = Array(6) { Vector3d() }
@@ -25,6 +27,44 @@ class Frustum {
     var minObjectSizePixels = 1.0
 
     // todo for size thresholding, it would be great, if we could fade the objects in and out
+
+    fun applyTransform(m: Matrix4d) {
+        m.transformPosition(cameraPosition)
+        // m.mul(cameraRotation, cameraRotation) // todo apply transform on rotation
+        // minObjectSize needs to be transformed, when m contains a scale
+        for (i in 0 until 6) {
+            m.transformDirection(planes[i])
+        }
+    }
+
+    fun Matrix4d.transformDirection(dest: Vector4d): Vector4d? {
+        return dest.set(
+            m00() * dest.x + m10() * dest.y + m20() * dest.z,
+            m01() * dest.x + m11() * dest.y + m21() * dest.z,
+            m02() * dest.x + m12() * dest.y + m22() * dest.z,
+            dest.z
+        )
+    }
+
+    // for debugging, when the pipeline seems to be empty for unknown reasons
+    fun all(cameraPosition: Vector3d, cameraRotation: Quaterniond) {
+
+        planes[0].set(-1.0, 0.0, 0.0, -1e30)
+        planes[1].set(+1.0, 0.0, 0.0, -1e30)
+        planes[2].set(0.0, -1.0, 0.0, -1e30)
+        planes[3].set(0.0, +1.0, 0.0, -1e30)
+        planes[4].set(0.0, 0.0, -1.0, -1e30)
+        planes[5].set(0.0, 0.0, +1.0, -1e30)
+
+        isPerspective = false
+
+        sizeThreshold = 0.0
+
+        this.cameraPosition.set(cameraPosition)
+        this.cameraRotation.identity()
+            .rotate(cameraRotation)
+
+    }
 
     fun defineOrthographic(
         sizeX: Double,

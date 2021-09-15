@@ -233,12 +233,20 @@ class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     Variable("float", "finalTranslucency", VariableMode.INOUT),
                     Variable("vec4", "finalClearCoat", VariableMode.INOUT),
                     Variable("vec2", "finalClearCoatRoughMetallic", VariableMode.INOUT),
+                    // for reflections;
+                    // we could support multiple
+                    Variable("bool", "hasReflectionPlane"),
+                    Variable("vec3", "reflectionPlaneNormal"),
+                    Variable("sampler2D", "reflectionPlane"),
+                    Variable("vec4", "reflectionCullingPlane"),
                     /* Variable("float", "translucency"),
                      Variable("float", "sheen"),
                      Variable("vec4", "clearCoat"),
                      Variable("vec2", "clearCoatRoughMetallic"),*/
                 ),
                 "" +
+                        "" +
+                        "if(dot(vec4(finalPosition,1),reflectionCullingPlane) < 0) discard;\n" +
 
                         // step by step define all material properties
                         "vec4 color = vec4(vertexColor.rgb, 1) * diffuseBase * texture(diffuseMap, uv);\n" +
@@ -261,6 +269,24 @@ class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                         "finalOcclusion = 1.0 - (1.0 - texture(occlusionMap, uv).r) * occlusionStrength;\n" +
                         "finalMetallic  = mix(metallicMinMax.x,  metallicMinMax.y,  texture(metallicMap,  uv).r);\n" +
                         "finalRoughness = mix(roughnessMinMax.x, roughnessMinMax.y, texture(roughnessMap, uv).r);\n" +
+
+                        // reflections
+                        // use roughness instead?
+                        // "   if(finalMetallic > 0.0) finalColor = mix(finalColor, texture(reflectionPlane,uv).rgb, finalMetallic);\n" +
+                        "if(hasReflectionPlane){\n" +
+                        "   float effect = dot(reflectionPlaneNormal,finalNormal) * (1-finalRoughness);\n" +
+                        "   float factor = clamp((effect-.3)/.7,0,1);\n" +
+                        "   if(factor > 0){\n" +
+                        "       vec3 newColor = vec3(0);\n" +
+                        "       vec3 newEmissive = finalColor * texelFetch(reflectionPlane,ivec2(gl_FragCoord.xy),0).rgb;\n" +
+                        // also multiply for mirror color <3
+                        "       finalEmissive = mix(finalEmissive, newEmissive, factor);\n" +
+                        // "       finalEmissive /= (1-finalEmissive);\n" + // only required, if tone mapping is applied
+                        "       finalColor = mix(finalColor, newColor, factor);\n" +
+                        // "       finalRoughness = 0;\n" +
+                        // "       finalMetallic = 0;\n" +
+                        "   }\n" +
+                        "};\n" +
 
                         // sheen calculation
                         "vec3 V0 = normalize(-finalPosition);\n" +

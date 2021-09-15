@@ -22,7 +22,8 @@ class KeyTripleMap<KManifold, KFewOnly, KFewOnly2, Value>(capacity: Int = 16) :
         v: Value
     ) {
         val list = values.getOrPut(k1) { ArrayList(8) }
-        for (pair in list) {
+        for (pairIndex in list.indices) {
+            val pair = list[pairIndex]
             if (pair.first == k2 && pair.second == k3) {
                 pair.third = v
                 return
@@ -38,7 +39,8 @@ class KeyTripleMap<KManifold, KFewOnly, KFewOnly2, Value>(capacity: Int = 16) :
         v: (k1: KManifold, k2: KFewOnly, k3: KFewOnly2) -> Value
     ): Value {
         val list = values.getOrPut(k1) { ArrayList(8) }
-        for (pair in list) {
+        for (pairIndex in list.indices) {
+            val pair = list[pairIndex]
             if (pair.first == k2 && pair.second == k3) {
                 return pair.third
             }

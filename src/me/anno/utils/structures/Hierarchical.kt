@@ -1,6 +1,5 @@
 package me.anno.utils.structures
 
-import me.anno.utils.structures.lists.UnsafeArrayList
 import kotlin.reflect.KClass
 
 interface Hierarchical<V : Hierarchical<V>> {
@@ -142,15 +141,14 @@ interface Hierarchical<V : Hierarchical<V>> {
             }
         }
 
-    fun listOfAll(callback: (element: V) -> Boolean): Boolean {
-        if (!callback(this as V)) {
-            val children = children
-            for (index in children.indices) {
-                if (children[index].listOfAll(callback))
-                    return true
-            }
+    fun findFirstInAll(callback: (element: V) -> Boolean): V? {
+        if(callback(this as V)) return this
+        val children = children
+        for (index in children.indices) {
+            val v = children[index].findFirstInAll(callback)
+            if (v != null) return v
         }
-        return false
+        return null
     }
 
     val indexInParent get() = parent?.children?.indexOf(this)

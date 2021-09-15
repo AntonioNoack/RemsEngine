@@ -16,7 +16,11 @@ import me.anno.engine.ui.render.RenderView.Companion.camPosition
 import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.input.MouseButton
+import me.anno.studio.rems.ui.StudioTreeView
 import me.anno.ui.base.Panel
+import me.anno.ui.editor.PropertyInspector
+import me.anno.ui.editor.TimelinePanel
+import me.anno.ui.editor.sceneView.ISceneView
 import me.anno.utils.maths.Maths
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import me.anno.utils.types.Vectors.safeNormalize
@@ -92,6 +96,18 @@ open class ControlScheme(val camera: CameraComponent, val library: ECSTypeLibrar
         // but highlight the specific mesh
         library.select(e ?: c?.entity, e ?: c)
         testHits()
+    }
+
+    fun invalidateInspector(){
+        for (window in GFX.windowStack) {
+            for (panel in window.panel.listOfVisible) {
+                when (panel) {
+                    is PropertyInspector -> {
+                        panel.invalidate()
+                    }
+                }
+            }
+        }
     }
 
     fun testHits() {

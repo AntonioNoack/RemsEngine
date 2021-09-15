@@ -53,7 +53,7 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
 
     override fun addChild(element: Entity, child: Any) {
         val entityIndex = child is Entity || (child is Prefab && child.clazzName == "Entity")
-        val index = if(entityIndex) element.children.size else element.components.size
+        val index = if (entityIndex) element.children.size else element.components.size
         addChild(element, child, index)
     }
 
@@ -110,11 +110,16 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
     }
 
     override fun getLocalColor(element: Entity, isHovered: Boolean, isInFocus: Boolean): Int {
+        val isInFocus2 = isInFocus || element in library.selection
+        // show a special color, if the current element contains something selected
+        val isIndirectlyInFocus = !isInFocus2
+                && library.selection.isNotEmpty()
+                && element.findFirstInAll { it in library.selection } != null
         val isEnabled = element.allInHierarchy { it.isEnabled }
         var color = if (isEnabled)
-            if (isInFocus) 0xffcc15 else 0xcccccc
+            if (isInFocus2) 0xffcc15 else if(isIndirectlyInFocus) 0xddccaa else 0xcccccc
         else
-            if (isInFocus) 0xcc15ff else 0x333333
+            if (isInFocus2) 0xcc15ff else if(isIndirectlyInFocus) 0x442255 else 0x333333
         // if is light component, we can mix in its color
         val light = element.getComponent(LightComponent::class)
         if (light != null) color = mixARGB(color, normARGB(light.color), 0.5f)

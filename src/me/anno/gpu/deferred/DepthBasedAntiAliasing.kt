@@ -313,17 +313,18 @@ object DepthBasedAntiAliasing {
     }
 
     fun render(color: ITexture2D, simpleDepth: ITexture2D, threshold: Float = 1e-5f) {
+        val enableDebugControls = false
         val shader = shaderNoColor.value
         shader.use()
         shader.v1("threshold", threshold)
-        shader.v1("disableEffect", isControlDown)
+        shader.v1("disableEffect", enableDebugControls && isControlDown)
         // use the subpixel layout to define the correct subpixel rendering
         // only works for RGB or BGR, otherwise just will cancel to 0
         val sr = SubpixelLayout.r
         val sb = SubpixelLayout.b
         // 0.5 for mean, 0.5 to make the effect less obvious
         shader.v2("rbOffset", (sr.x - sb.x) * 0.25f, (sr.y - sb.y) * 0.25f)
-        shader.v1("showEdges", isShiftDown)
+        shader.v1("showEdges", enableDebugControls && isShiftDown)
         simpleDepth.bindTrulyNearest(1)
         color.bindTrulyNearest(0)
         flat01.draw(shader)

@@ -15,9 +15,12 @@ import org.lwjgl.opengl.GL14.GL_DEPTH_COMPONENT16
 import org.lwjgl.opengl.GL30
 import java.nio.ByteBuffer
 
-// todo test it
-// todo can be used e.g. for game engine for environment & irradiation maps
-class CubemapTexture(var size: Int = 0) : ICacheData, ITexture2D {
+// can be used e.g. for game engine for environment & irradiation maps
+// todo multi-sampled environment maps, because some gpus may handle them just fine :3
+
+class CubemapTexture(
+    var size: Int, val samples: Int
+) : ICacheData, ITexture2D {
 
     var isCreated = false
     var isDestroyed = false
@@ -37,7 +40,7 @@ class CubemapTexture(var size: Int = 0) : ICacheData, ITexture2D {
 
     private val tex2D = GL_TEXTURE_CUBE_MAP
 
-    fun ensurePointer() {
+    private fun ensurePointer() {
         if (isDestroyed) throw RuntimeException("Texture was destroyed")
         if (pointer < 0) {
             GFX.check()
@@ -64,6 +67,7 @@ class CubemapTexture(var size: Int = 0) : ICacheData, ITexture2D {
         GFX.check()
         ensurePointer()
         bindBeforeUpload()
+        GFX.check()
     }
 
     fun createRGB(sides: List<ByteArray>) {
@@ -75,7 +79,7 @@ class CubemapTexture(var size: Int = 0) : ICacheData, ITexture2D {
             byteBuffer.put(sides[i])
             byteBuffer.position(0)
             glTexImage2D(
-                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB8,
+                getTarget(i), 0, GL_RGB8,
                 size, size, 0, GL_RGB, GL_UNSIGNED_BYTE, byteBuffer
             )
         }
@@ -92,7 +96,7 @@ class CubemapTexture(var size: Int = 0) : ICacheData, ITexture2D {
             byteBuffer.put(sides[i])
             byteBuffer.position(0)
             glTexImage2D(
-                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA8,
+                getTarget(i), 0, GL_RGBA8,
                 size, size, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer
             )
         }
@@ -104,25 +108,33 @@ class CubemapTexture(var size: Int = 0) : ICacheData, ITexture2D {
         beforeUpload(0, 0)
         val size = size
         Buffer.bindBuffer(GL30.GL_PIXEL_UNPACK_BUFFER, 0)
-        glTexImage2D(tex2D, 0, type.type0, size, size, 0, type.type1, type.fillType, null as ByteBuffer?)
+        for (i in 0 until 6) {
+            glTexImage2D(
+                getTarget(i), 0, type.type0, size, size,
+                0, type.type1, type.fillType, null as ByteBuffer?
+            )
+        }
         afterUpload(type.bytesPerPixel)
     }
+
+    private fun getTarget(side: Int) = GL_TEXTURE_CUBE_MAP_POSITIVE_X + side
 
     fun createDepth(lowQuality: Boolean = false) {
         ensurePointer()
         bindBeforeUpload()
         val size = size
         val format = if (lowQuality) GL_DEPTH_COMPONENT16 else GL_DEPTH_COMPONENT32F
-        for (i in 0 until 6) {
+        for (side in 0 until 6) {
             glTexImage2D(
-                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format,
-                size, size, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0
+                getTarget(side), 0, format, size, size,
+                0, GL_DEPTH_COMPONENT, GL_FLOAT, 0
             )
         }
         afterUpload(if (lowQuality) 2 * 6 else 4 * 6)
     }
 
     private fun afterUpload(bytesPerPixel: Int) {
+        GFX.check()
         locallyAllocated = Texture2D.allocate(locallyAllocated, size * size * bytesPerPixel.toLong())
         isCreated = true
         filtering(filtering)
@@ -131,7 +143,7 @@ class CubemapTexture(var size: Int = 0) : ICacheData, ITexture2D {
         if (isDestroyed) destroy()
     }
 
-    fun isBoundToSlot(slot: Int): Boolean {
+    private fun isBoundToSlot(slot: Int): Boolean {
         return Texture2D.boundTextures[slot] == pointer
     }
 
@@ -170,7 +182,7 @@ class CubemapTexture(var size: Int = 0) : ICacheData, ITexture2D {
         this.filtering = nearest
     }
 
-    fun ensureFilterAndClamping(nearest: GPUFiltering, clamping: Clamping) {
+    private fun ensureFilterAndClamping(nearest: GPUFiltering, clamping: Clamping) {
         // ensure being bound?
         if (nearest != this.filtering) filtering(nearest)
     }

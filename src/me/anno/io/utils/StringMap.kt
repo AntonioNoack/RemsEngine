@@ -75,11 +75,12 @@ open class StringMap(
     }
 
     override operator fun get(key: String): Any? = synchronized(this) { map[key] }
-    override operator fun set(key: String, value: Any?) {
+    override operator fun set(key: String, value: Any?): Boolean {
         synchronized(this) {
             wasChanged = true
             map[key] = value
         }
+        return true
     }
 
     override fun containsKey(key: String) = synchronized(this) { map.containsKey(key) }

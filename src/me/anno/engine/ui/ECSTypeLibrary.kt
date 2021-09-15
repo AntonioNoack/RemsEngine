@@ -29,7 +29,7 @@ class ECSTypeLibrary(
     fun select(major: Inspectable?, minor: Inspectable? = major) {
         selection = if (major == null) emptyList() else listOf(major)
         fineSelection = if (minor == null) emptyList() else listOf(minor)
-        lastSelection = major
+        lastSelection = major ?: minor
     }
 
     val typeList = listOf<Pair<String, () -> Panel>>(

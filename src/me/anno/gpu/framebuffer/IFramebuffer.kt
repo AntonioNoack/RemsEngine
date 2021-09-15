@@ -9,6 +9,8 @@ interface IFramebuffer {
     val w: Int
     val h: Int
 
+    val samples: Int
+
     fun ensure()
 
     fun bindDirectly(viewport: Boolean)

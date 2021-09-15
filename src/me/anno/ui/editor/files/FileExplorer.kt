@@ -384,7 +384,7 @@ abstract class FileExplorer(
 
         fun invalidateFileExplorers() {
             windowStack.forEach { window ->
-                window.panel.listOfAll {
+                window.panel.forAll {
                     if (it is FileExplorer) {
                         it.invalidate()
                     }

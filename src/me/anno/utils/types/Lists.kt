@@ -147,11 +147,11 @@ object Lists {
         return result
     }
 
-    fun <X, Y : Comparable<Y>> List<X>.smallestKElementsBy(k: Int, comparator: (X) -> Y): List<X> {
+    fun <X, Y : Comparable<Y>> List<X>.smallestKElementsBy(k: Int, getValue: (X) -> Y): List<X> {
         return if (size <= k) {
             this
         } else {
-            val comp2 = { a: X, b: X -> comparator(a).compareTo(comparator(b)) }
+            val comp2 = { a: X, b: X -> getValue(a).compareTo(getValue(b)) }
             this.smallestKElements(k, comp2)
         }
     }
@@ -160,12 +160,23 @@ object Lists {
         return if (size <= k) {
             this
         } else {
-            /*this // the simple way, O(n*log(n))
-                .sortedBy(comparator)
-                .subList(0, k)*/
-            this // a fast way, O(n+k*log(n))
-                .buildMinHeap(comparator) // O(n)
-                .extractMin(k, comparator) // O(k*log(n))
+            val topK = ArrayList<X>(k)
+            for (j in 0 until k) topK.add(this[j])
+            topK.sortWith(comparator)
+            var lastBest = topK.last()
+            for (j in k until this.size) {
+                val element = this[j]
+                if (comparator.compare(element, lastBest) < 0) {
+                    var index = topK.binarySearch(element, comparator)
+                    if (index < 0) index = -1 - index // insert index
+                    for (l in k - 1 downTo index + 1) {
+                        topK[l] = topK[l - 1]
+                    }
+                    topK[index] = element
+                    lastBest = topK.last()
+                }
+            }
+            topK
         }
     }
 
@@ -182,12 +193,7 @@ object Lists {
         return if (size <= k) {
             this
         } else {
-            /*this // the simple way, O(n*log(n))
-                .sortedByDescending(comparator)
-                .subList(0, k)*/
-            this // a fast way, O(n+k*log(n))
-                .buildMaxHeap(comparator) // O(n)
-                .extractMax(k, comparator) // O(k*log(n))
+            smallestKElements(k) { a, b -> -comparator.compare(a, b) }
         }
     }
 

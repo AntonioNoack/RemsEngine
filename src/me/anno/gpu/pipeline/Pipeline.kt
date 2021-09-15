@@ -1,10 +1,12 @@
 package me.anno.gpu.pipeline
 
+import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.cache.MaterialCache
 import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.light.AmbientLight
 import me.anno.ecs.components.light.LightComponent
+import me.anno.ecs.components.light.PlanarReflection
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
@@ -19,12 +21,15 @@ import me.anno.gpu.pipeline.PipelineStage.Companion.getDrawMatrix
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.sorting.MergeSort.mergeSort
 import me.anno.utils.structures.Compare.ifDifferent
-import org.joml.AABBd
-import org.joml.Matrix4f
-import org.joml.Vector3d
-import org.joml.Vector3f
+import me.anno.utils.structures.lists.SmallestKList
+import me.anno.utils.types.AABBs.avgX
+import me.anno.utils.types.AABBs.avgY
+import me.anno.utils.types.AABBs.avgZ
+import me.anno.utils.types.Matrices.distanceSquared
+import org.joml.*
 
 // todo idea: the scene rarely changes -> we can reuse it, and just update the uniforms
 // and the graph may be deep, however meshes may be only in parts of the tree
@@ -39,6 +44,9 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
     // todo we can sort by material and shaders...
     // todo or by distance...
 
+    var ignoredEntity: Entity? = null // e.g. for environment maps
+    var ignoredComponent: Component? = null
+
     val stages = ArrayList<PipelineStage>()
 
     // depth doesn't matter for lights
@@ -51,6 +59,18 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
     val frustum = Frustum()
 
     val ambient = Vector3f()
+
+    val planarReflections = ArrayList<PlanarReflection>()
+
+    // vec4(pos,1).dot(prp) > 0.0 -> discard
+    // therefore use 0,0,0,0 to disable this plane
+    val reflectionCullingPlane = Vector4d()
+
+    var applyToneMapping = true
+
+    fun disableReflectionCullingPlane() {
+        reflectionCullingPlane.set(0.0)
+    }
 
     fun hasTooManyLights(): Boolean {
         return lightPseudoStage.size > RenderView.MAX_FORWARD_LIGHTS
@@ -129,6 +149,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         ambient.set(0f)
         lightPseudoStage.reset()
         defaultStage.reset()
+        planarReflections.clear()
         lights.fill(null)
         for (stage in stages) {
             stage.reset()
@@ -159,6 +180,18 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
 
     val lights = arrayOfNulls<LightRequest<*>>(RenderView.MAX_FORWARD_LIGHTS)
 
+    val center = Vector3d()
+    private val lightList = SmallestKList<LightRequest<*>>(16) { a, b ->
+        // todo also use the size, and relative size to the camera
+        val at = a.transform.globalTransform
+        val bt = b.transform.globalTransform
+        val cam = RenderView.camPosition
+        val scale = JomlPools.vec3d.borrow()
+        val da = (at.distanceSquared(center) + at.distanceSquared(cam)) * bt.getScale(scale).lengthSquared()
+        val db = (bt.distanceSquared(center) + bt.distanceSquared(cam)) * at.getScale(scale).lengthSquared()
+        da.compareTo(db)
+    }
+
     /**
      * creates a list of relevant lights for a forward-rendering draw call of a mesh or region
      * */
@@ -183,11 +216,24 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
             }// else done
             return size
         } else {
-            // todo if there are more than N lights, create a 3D or 4D lookup array: (x/size,y/size,z/size,log2(size)|0)
-            // todo find the closest / most relevant lights (large ones)
-
+            val center = center.set(region.avgX(), region.avgY(), region.avgZ())
+            if (!center.isFinite) center.set(0.0)
+            lightList.clear()
+            lightPseudoStage.listOfAll(lightList)
+            val smallest = lightList
+            for (i in 0 until smallest.size) {
+                lights[i] = smallest[i]
+            }
+            // sort by type, and whether they have a shadow
+            mergeSort(lights, 0, smallest.size) { a, b ->
+                val va = a!!.light
+                val vb = b!!.light
+                va.hasShadow.compareTo(vb.hasShadow).ifDifferent {
+                    va.lightType.shadowMapType.compareTo(vb.lightType.shadowMapType)
+                }
+            }
+            return smallest.size
         }
-        return 0
     }
 
     private fun subFill(entity: Entity, clickId0: Int, cameraPosition: Vector3d, worldScale: Double): Int {
@@ -196,31 +242,36 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         val components = entity.components
         for (i in components.indices) {
             val component = components[i]
-            if (component.isEnabled) {
-                if (component is MeshComponent) {
-                    val mesh = MeshCache[component.mesh]
-                    if (mesh != null) {
-                        component.clickId = clickId
-                        if (component.isInstanced) {
-                            addMeshInstanced(mesh, entity, clickId)
-                        } else {
-                            addMesh(mesh, component, entity, clickId)
+            if (component.isEnabled && component !== ignoredComponent) {
+                when (component) {
+                    is MeshComponent -> {
+                        val mesh = MeshCache[component.mesh]
+                        if (mesh != null) {
+                            component.clickId = clickId
+                            if (component.isInstanced) {
+                                addMeshInstanced(mesh, entity, clickId)
+                            } else {
+                                addMesh(mesh, component, entity, clickId)
+                            }
+                            clickId++
                         }
-                        clickId++
                     }
-                }
-                if (component is LightComponent) {
-                    addLight(component, entity, cameraPosition, worldScale)
-                }
-                if (component is AmbientLight) {
-                    ambient.add(component.color)
+                    is LightComponent -> {
+                        addLight(component, entity, cameraPosition, worldScale)
+                    }
+                    is AmbientLight -> {
+                        ambient.add(component.color)
+                    }
+                    is PlanarReflection -> {
+                        planarReflections.add(component)
+                    }
                 }
             }
         }
         val children = entity.children
         for (i in children.indices) {
             val child = children[i]
-            if (child.isEnabled && frustum.isVisible(child.aabb)) {
+            if (child !== ignoredEntity && child.isEnabled && frustum.isVisible(child.aabb)) {
                 clickId = subFill(child, clickId, cameraPosition, worldScale)
             }
         }
@@ -232,7 +283,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         val components = entity.components
         for (i in components.indices) {
             val component = components[i]
-            if (component.isEnabled) {
+            if (component.isEnabled && component !== ignoredComponent) {
                 if (component is MeshComponent) {
                     val mesh = MeshCache[component.mesh]
                     if (mesh != null) {
@@ -248,7 +299,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         val children = entity.children
         for (i in children.indices) {
             val child = children[i]
-            if (child.isEnabled && frustum.isVisible(child.aabb)) {
+            if (child !== ignoredEntity && child.isEnabled && frustum.isVisible(child.aabb)) {
                 subFillDepth(child, cameraPosition, worldScale)
             }
         }

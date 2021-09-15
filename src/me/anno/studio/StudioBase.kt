@@ -273,8 +273,8 @@ abstract class StudioBase(
         // which still happens...
         panel0.findMissingParents()
 
-        panel0.listOfAll { panel -> if (panel.canBeSeen) panel.tickUpdate() }
-        panel0.listOfAll { panel -> if (panel.canBeSeen) panel.tick() }
+        panel0.forAll { panel -> if (panel.canBeSeen) panel.tickUpdate() }
+        panel0.forAll { panel -> if (panel.canBeSeen) panel.tick() }
 
         findRedraws(window, needsRedraw)
 
@@ -409,7 +409,7 @@ abstract class StudioBase(
                             ) { panel.redraw() }
                         }
                         wasRedrawn += panel
-                        panel.listOfAll {
+                        panel.forAll {
                             needsRedraw.remove(it)
                         }
                     }

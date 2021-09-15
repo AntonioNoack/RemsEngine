@@ -55,7 +55,6 @@ class CachedReflections(
 
     operator fun get(name: String) = allProperties[name]
 
-
     companion object {
 
         private val LOGGER = LogManager.getLogger(CachedProperty::class)
@@ -65,11 +64,8 @@ class CachedReflections(
         }
 
         fun getDeclaredMemberProperties(instance: Any, clazz: KClass<*>): Map<String, CachedProperty> {
-            return findProperties(
-                instance,
-                clazz,
-                clazz.declaredMemberProperties.filterIsInstance<KMutableProperty1<*, *>>()
-            )
+            val properties = clazz.declaredMemberProperties.filterIsInstance<KMutableProperty1<*, *>>()
+            return findProperties(instance, clazz, properties)
         }
 
         fun getPropertiesByDeclaringClass(
@@ -113,31 +109,32 @@ class CachedReflections(
             clazz: KClass<*>,
             properties: List<KMutableProperty1<*, *>>
         ): Map<String, CachedProperty> {
-            // todo this is great: declaredMemberProperties in only what was changes, so we can really create listener lists :)
+            // this is great: declaredMemberProperties in only what was changes, so we can really create listener lists :)
             val map = HashMap<String, CachedProperty>()
             properties.map { field ->
                 val isPublic = field.visibility == KVisibility.PUBLIC
                 val serial = field.findAnnotation<SerializedProperty>()
-                val needsSerialization =
-                    serial != null || (isPublic && field.findAnnotation<NotSerializedProperty>() == null)
-                if (needsSerialization) {
-                    try {
-                        // save the field
-                        var name = serial?.name
-                        if (name == null || name.isEmpty()) name = field.name
-                        // make sure we can access it
-                        val setter = field.setter
-                        setter.isAccessible = true
-                        val getter = field.getter
-                        getter.isAccessible = true
-                        val value = getter.call(instance)
-                        val forceSaving = serial?.forceSaving ?: value is Boolean
-                        val property = CachedProperty(name, clazz, forceSaving, field.annotations, getter, setter)
-                        if (name in map) LOGGER.warn("Property $name appears twice in $clazz")
-                        map[name] = property
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
+                val notSerial = field.findAnnotation<NotSerializedProperty>()
+                val needsSerialization = serial != null || (isPublic && notSerial == null)
+                try {
+                    // save the field
+                    var name = serial?.name
+                    if (name == null || name.isEmpty()) name = field.name
+                    // make sure we can access it
+                    val setter = field.setter
+                    setter.isAccessible = true
+                    val getter = field.getter
+                    getter.isAccessible = true
+                    val value = getter.call(instance)
+                    val forceSaving = serial?.forceSaving ?: value is Boolean
+                    val property = CachedProperty(
+                        name, clazz, needsSerialization, forceSaving,
+                        field.annotations, getter, setter
+                    )
+                    if (name in map) LOGGER.warn("Property $name appears twice in $clazz")
+                    map[name] = property
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
             }
             return map

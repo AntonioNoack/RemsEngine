@@ -11,22 +11,19 @@ import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.utils.LOGGER
 import me.anno.utils.files.LocalFile.toGlobalFile
 
 class Prefab : Saveable {
 
-    constructor() : super() {
-        println("created generic prefab")
-    }
+    constructor() : super()
 
     constructor(clazzName: String) : this() {
         this.clazzName = clazzName
-        println("created prefab $clazzName")
     }
 
     constructor(clazzName: String, prefab: FileReference) : this(clazzName) {
         this.prefab = prefab
-        println("created prefab $clazzName extends $prefab")
     }
 
     var clazzName: String? = null
@@ -89,18 +86,19 @@ class Prefab : Saveable {
                     change.apply(sampleInstance!!, null)
                 }
             }
+            else -> LOGGER.warn("Unknown change type")
         }
         return change
     }
 
     fun setProperty(key: String, value: Any?) {
         if (sets == null) sets = ArrayList()
-        (sets as MutableList<CSet>).apply {
-            val change = CSet(ROOT_PATH, key, value)
-            removeIf { it.path.isEmpty() && it.name == key }
-            add(change)
-            // apply to sample instance to keep it valid
-            if (sampleInstance != null) change.apply(sampleInstance!!, null)
+        val sets = sets as MutableList
+        val change = CSet(ROOT_PATH, key, value)
+        sets.removeIf { it.path.isEmpty() && it.name == key }
+        sets.add(change)
+        if (sampleInstance != null && isValid) {
+            change.apply(sampleInstance!!, null)
         }
     }
 

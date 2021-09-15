@@ -5,12 +5,14 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.camera.CameraComponent
+import me.anno.ecs.components.light.EnvironmentMap
 import me.anno.ecs.components.light.LightComponent
+import me.anno.ecs.components.light.LightComponentBase
+import me.anno.ecs.components.light.PlanarReflection
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.shaders.effects.Bloom
 import me.anno.ecs.components.shaders.effects.FSR
-import me.anno.engine.debug.DebugPoint
 import me.anno.engine.debug.DebugShapes.debugLines
 import me.anno.engine.debug.DebugShapes.debugPoints
 import me.anno.engine.debug.DebugShapes.debugRays
@@ -53,7 +55,9 @@ import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Renderer.Companion.depthRenderer
 import me.anno.gpu.shader.Renderer.Companion.idRenderer
 import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.ITexture2D
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isKeyDown
 import me.anno.input.Input.isShiftDown
@@ -65,6 +69,7 @@ import me.anno.utils.Clock
 import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.maths.Maths.mix
 import me.anno.utils.maths.Maths.sq
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import org.apache.logging.log4j.LogManager
 import org.joml.*
@@ -171,7 +176,7 @@ class RenderView(
         val radius = radius
         val camera = editorCamera
         val cameraNode = editorCameraNode
-        cameraNode.transform.localRotation = rotation.toQuaternionDegrees()
+        cameraNode.transform.localRotation = rotation.toQuaternionDegrees(JomlPools.quat4d.borrow())
         camera.far = 1e300
         camera.near = if (reverseDepth) radius * 1e-10 else radius * 1e-2
 
@@ -186,8 +191,8 @@ class RenderView(
             Thread.sleep(100)
         }
 
-        cameraNode.transform.localPosition = Vector3d(position)
-            .add(rotation.transform(Vector3d(0.0, 0.0, radius)))
+        val tmp3d = JomlPools.vec3d.borrow()
+        cameraNode.transform.localPosition = rotation.transform(tmp3d.set(0.0, 0.0, radius)).add(position)
 
         // println(cameraNode.transform.localTransform)
 
@@ -210,6 +215,7 @@ class RenderView(
         // to see ghosting
         // currently I see no ghosting...
         if (isKeyDown('v')) Thread.sleep(250)
+
 
         // todo go through the rendering pipeline, and render everything
 
@@ -278,7 +284,7 @@ class RenderView(
         drawScene(
             x0, y0, x1, y1, camera, renderer,
             buffer, useDeferredRendering, debugDeferredRendering,
-            size, cols, layers.size
+            size, cols, rows, layers.size
         )
 
         // todo draw gui on top of the buffer
@@ -299,13 +305,13 @@ class RenderView(
 
     }
 
-    fun drawScene(
+    private fun drawScene(
         x0: Int, y0: Int, x1: Int, y1: Int,
         camera: CameraComponent,
         renderer: Renderer, buffer: Framebuffer,
         useDeferredRendering: Boolean,
         debugDeferredRendering: Boolean,
-        size: Int, cols: Int, layersSize: Int
+        size: Int, cols: Int, rows: Int, layersSize: Int
     ) {
 
         var w = x1 - x0
@@ -345,11 +351,11 @@ class RenderView(
 
                         // rows x N field
                         val col = index % cols
-                        val x02 = x0 + (x1 - x0) * (col + 0) / cols
-                        val x12 = x0 + (x1 - x0) * (col + 1) / cols
+                        val x02 = (x1 - x0) * (col + 0) / cols
+                        val x12 = (x1 - x0) * (col + 1) / cols
                         val row = index / cols
-                        val y02 = y0 + (y1 - y0) * (row + 0) / 2
-                        val y12 = y0 + (y1 - y0) * (row + 1) / 2
+                        val y02 = (y1 - y0) * (row + 0) / rows
+                        val y12 = (y1 - y0) * (row + 1) / rows
 
                         // draw the light buffer as the last stripe
                         val texture = if (index < layersSize) {
@@ -466,30 +472,35 @@ class RenderView(
 
     }
 
-    fun showShadowMapDebug() {
+    private fun showShadowMapDebug() {
         // show the shadow map for debugging purposes
         val light = library.selection
             .filterIsInstance<Entity>()
-            .mapNotNull { e -> e.getComponentsInChildren(LightComponent::class).firstOrNull { it.hasShadow } }
+            .mapNotNull { e ->
+                e.getComponentsInChildren(LightComponentBase::class).firstOrNull {
+                    if (it is LightComponent) it.hasShadow else true
+                }
+            }
             .firstOrNull()
         if (light != null) {
-            val textures = light.shadowTextures
-            if (textures != null) {
-                // draw the texture
-                when (val fb = textures.getOrNull(selectedAttribute)) {
-                    is Framebuffer -> {
-                        val texture = fb.depthTexture
-                        if (texture != null && texture.isCreated && !texture.isDestroyed) {
-                            val s = w / 3
-                            drawTexture(x, y + s, s, -s, texture, true, -1, null)
-                        }
-                    }
-                    is CubemapFramebuffer -> {
-                        val texture = fb.depthTexture
-                        if (texture != null && texture.isCreated && !texture.isDestroyed) {
-                            val s = w / 4
-                            drawProjection(x, y + s, s * 3 / 2, -s, texture, true, -1)
-                        }
+            val texture: ITexture2D? = when (light) {
+                is LightComponent -> light.shadowTextures?.getOrNull(selectedAttribute)?.depthTexture
+                is EnvironmentMap -> light.texture?.textures?.firstOrNull()
+                is PlanarReflection -> light.lastBuffer
+                else -> null
+            }
+            // draw the texture
+            when (texture) {
+                is CubemapTexture -> {
+                    val s = w / 4
+                    drawProjection(x, y + s, s * 3 / 2, -s, texture, true, -1)
+                }
+                is ITexture2D -> {
+                    if (isShiftDown && light is PlanarReflection) {
+                        drawTexture(x, y + h, w, -h, texture, true, 0x33ffffff, null)
+                    } else {
+                        val s = w / 3
+                        drawTexture(x, y + s, s, -s, texture, true, -1, null)
                     }
                 }
             }
@@ -534,10 +545,10 @@ class RenderView(
         return library.world
     }
 
-    val tmp4f = Vector4f()
+    private val tmp4f = Vector4f()
 
     val pipeline = Pipeline(deferred)
-    val stage0 = PipelineStage(
+    private val stage0 = PipelineStage(
         "default", Sorting.NO_SORTING, MAX_FORWARD_LIGHTS,
         null, DepthMode.GREATER, true, GL_BACK,
         pbrModelShader
@@ -550,7 +561,9 @@ class RenderView(
 
     var entityBaseClickId = 0
 
-    fun prepareDrawScene(
+    private val tmpRot0 = Quaternionf()
+    private val tmpRot1 = Quaternionf()
+    private fun prepareDrawScene(
         centerX: Float,
         centerY: Float,
         width: Int,
@@ -572,14 +585,14 @@ class RenderView(
         val fov = mix(previousCamera.fovY, camera.fovY, blending)
         val t0 = previousCamera.entity!!.transform.globalTransform
         val t1 = camera.entity!!.transform.globalTransform
-        val rot0 = t0.getUnnormalizedRotation(Quaternionf())
-        val rot1 = t1.getUnnormalizedRotation(Quaternionf())
+        val rot0 = t0.getUnnormalizedRotation(tmpRot0)
+        val rot1 = t1.getUnnormalizedRotation(tmpRot1)
 
         if (!rot0.isFinite) rot0.identity()
         if (!rot1.isFinite) rot1.identity()
 
-        val rot2 = rot0.slerp(rot1, blendFloat)
-        val rot = Quaternionf(rot2).conjugate() // conjugate is quickly inverting, when already normalized
+        val rotInv = rot0.slerp(rot1, blendFloat)
+        val rot = rot1.set(rotInv).conjugate() // conjugate is quickly inverting, when already normalized
 
         val fovYRadians = toRadians(fov)
 
@@ -605,28 +618,43 @@ class RenderView(
 
         camTransform.transformPosition(camPosition.set(0.0))
         camInverse.set(camTransform).invert()
+        camRotation.set(rotInv)
+
+        camRotation.transform(camDirection.set(0.0, 0.0, -1.0))
+        // debugPoints.add(DebugPoint(Vector3d(camDirection).mul(20.0).add(camPosition), 0xff0000, -1))
+
+        world.update()
+
+        world.updateVisible()
+
+        world.getComponentsInChildren(PlanarReflection::class) {
+            pipeline.reset()
+            it.draw(pipeline, w, h, cameraMatrix, camPosition, camRotation, worldScale) { pos, rot ->
+                pipeline.frustum.definePerspective(
+                    near, far, fovYRadians.toDouble(),
+                    width, height, aspectRatio.toDouble(),
+                    pos, rot
+                )
+            }
+            false
+        }
 
         pipeline.reset()
         pipeline.frustum.definePerspective(
             near, far, fovYRadians.toDouble(),
             width, height, aspectRatio.toDouble(),
-            camPosition, camRotation.set(rot2),
+            camPosition, camRotation,
         )
-
-        camRotation.transform(camDirection.set(0.0, 0.0, -1.0))
-        debugPoints.add(DebugPoint(Vector3d(camDirection).mul(20.0).add(camPosition), 0xff0000, -1))
-
-        world.update()
-        world.updateVisible()
-
+        pipeline.disableReflectionCullingPlane()
+        pipeline.ignoredEntity = null
         pipeline.fill(world, camPosition, worldScale)
         entityBaseClickId = pipeline.lastClickId
 
     }
 
-    val reverseDepth get() = !isKeyDown('r')
+    private val reverseDepth get() = !isKeyDown('r')
 
-    fun setClearDepth() {
+    private fun setClearDepth() {
         stage0.depthMode = depthMode
         pipeline.lightPseudoStage.depthMode = depthMode
         pipeline.stages.forEach { it.depthMode = depthMode }
@@ -638,7 +666,7 @@ class RenderView(
     //  - however it would limit us to a single renderer...
     // todo -> first just draw a single scene and later make it multiplayer
 
-    fun setClearColor(
+    private fun setClearColor(
         renderer: Renderer,
         previousCamera: CameraComponent, camera: CameraComponent, blending: Float,
         doDrawGizmos: Boolean
@@ -658,7 +686,7 @@ class RenderView(
         }
     }
 
-    fun drawScene(
+    private fun drawScene(
         w: Int, h: Int,
         camera: CameraComponent,
         previousCamera: CameraComponent,
@@ -676,7 +704,7 @@ class RenderView(
 
                 Frame.bind()
 
-                RenderState.depthMode.use(depthMode){
+                RenderState.depthMode.use(depthMode) {
                     setClearColor(renderer, previousCamera, camera, blending, doDrawGizmos)
                     setClearDepth()
                     glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
@@ -700,7 +728,7 @@ class RenderView(
 
                 Frame.bind()
 
-                RenderState.depthMode.use(depthMode){
+                RenderState.depthMode.use(depthMode) {
                     setClearColor(renderer, previousCamera, camera, blending, doDrawGizmos)
                     setClearDepth()
                     glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
@@ -744,16 +772,20 @@ class RenderView(
         RenderState.depthMode.use(depthMode) {
             RenderState.cullMode.use(GL_FRONT) { // inverse cull mode
                 for (selected in library.selection) {
-                    when(selected){
+                    when (selected) {
                         is Entity -> {
                             // todo draw gizmos depending on mode
                             val transform = selected.transform.globalTransform
-                            Gizmo.drawTranslateGizmos(cameraMatrix,
-                                transform.getTranslation(Vector3d()).sub(camPosition),// mul world scale?
-                                1e3, -12)
+                            val pos = transform.getTranslation(JomlPools.vec3d.create()).sub(camPosition)
+                            Gizmo.drawTranslateGizmos(
+                                cameraMatrix,
+                                pos,// mul world scale?
+                                1e3, -12
+                            )
+                            JomlPools.vec3d.sub(1)
                         }
                         else -> {
-                            println("selected: $selected")
+                            LOGGER.info("todo draw selected: ${selected.javaClass.simpleName}")
                         }
                     }
                 }
@@ -771,7 +803,7 @@ class RenderView(
         }
     }
 
-    fun drawSceneLights(
+    private fun drawSceneLights(
         camera: CameraComponent,
         previousCamera: CameraComponent,
         blending: Float,
@@ -816,7 +848,7 @@ class RenderView(
                 val maxCircleLenSq = sq(maximumCircleDistance).toDouble()
 
                 var clickId = entityBaseClickId
-                val scaleV = Vector3d()
+                val scaleV = JomlPools.vec3d.create()
 
                 val world = getWorld()
                 world.depthFirstTraversal(false) { entity ->
@@ -867,6 +899,8 @@ class RenderView(
                     false
                 }
 
+                JomlPools.vec3d.sub(1)
+
                 if (drawGridLines) {
                     drawGrid(radius, worldScale)
                 }
@@ -881,7 +915,7 @@ class RenderView(
 
     }
 
-    fun drawDebug() {
+    private fun drawDebug() {
         val worldScale = worldScale
         val debugPoints = debugPoints
         val debugLines = debugLines

@@ -22,9 +22,6 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     @NotSerializedProperty // ideally, this would have the default value "depth>3" or root.numChildrenAtDepth(depth)>100
     override var isCollapsed = true
 
-    // todo when creating a new prefab, this needs to be set
-    var id: String = ""
-
     // @NotSerializedProperty
     // var prefab: PrefabSaveable? = null
     val prefab: PrefabSaveable? get() = prefab2?.getSampleInstance()
@@ -50,7 +47,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     }
 
     fun getDefaultValue(name: String): Any? {
-        return (prefabOrDefault)[name]
+        return prefabOrDefault[name]
     }
 
     fun resetProperty(name: String): Any? {

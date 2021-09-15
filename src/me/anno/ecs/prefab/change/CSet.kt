@@ -58,8 +58,10 @@ class CSet() : Change(5) {
     }
 
     override fun applyChange(instance: PrefabSaveable, chain: MutableSet<FileReference>?) {
-        // LOGGER.info("set $name = $value for ${instance::class}")
-        instance[name ?: return] = value
+        val name = name ?: return
+        if (!instance.set(name, value)) {
+            LOGGER.warn("${instance::class.simpleName}.$name is unknown")
+        }
     }
 
     override val approxSize: Int = 10

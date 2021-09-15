@@ -10,7 +10,6 @@ import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.RenderState
-import me.anno.gpu.ShaderLib.simplestVertexShader
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
@@ -30,6 +29,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.io.Saveable
 import me.anno.utils.maths.Maths.min
+import me.anno.utils.structures.lists.SmallestKList
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Matrix4fc
 import org.joml.Vector3d
@@ -40,15 +40,6 @@ class PipelineLightStage(
     var depthMode: DepthMode,
     val deferred: DeferredSettingsV2
 ) : Saveable() {
-
-    val blendMode = BlendMode.ADD
-    val writeDepth = false
-    val cullMode = GL_FRONT
-
-    // not yet optimized
-    val environmentMaps = ArrayList<EnvironmentMap>()
-
-    val size get() = instanced.size + nonInstanced.size
 
     companion object {
 
@@ -101,13 +92,9 @@ class PipelineLightStage(
                         Variable("sampler2D", "finalLight"),
                         Variable("vec3", "color", VariableMode.OUT)
                     ), "" +
-                            "if(dot(finalPosition,finalPosition) == 0.0){\n" + // ui
-                            "   color = vec3(1,0,0);\n" +
-                            "} else {\n" +
                             "   vec3 light = texture(finalLight, uv).rgb;\n" +
                             "   color = finalColor * light * finalOcclusion + finalEmissive;\n" +
-                            "   if(applyToneMapping) color = color/(1+color);\n" +
-                            "}\n"
+                            "   if(applyToneMapping) color = color/(1+color);\n"
                 )
 
                 // deferred inputs
@@ -301,11 +288,20 @@ class PipelineLightStage(
 
     }
 
+    val blendMode = BlendMode.ADD
+    val writeDepth = false
+    val cullMode = GL_FRONT
+
+    // not yet optimized
+    val environmentMaps = ArrayList<EnvironmentMap>()
+
+    val size get() = instanced.size + nonInstanced.size
+
     class Group {
 
         val dirs = ArrayList<LightRequest<DirectionalLight>>()
-        val points = ArrayList<LightRequest<PointLight>>()
         val spots = ArrayList<LightRequest<SpotLight>>()
+        val points = ArrayList<LightRequest<PointLight>>()
 
         var dirIndex = 0
         var spotIndex = 0
@@ -347,6 +343,19 @@ class PipelineLightStage(
                     }
                 }
             }
+        }
+
+        fun listOfAll(): List<LightRequest<*>> {
+            return dirs.subList(0, dirIndex) +
+                    spots.subList(0, spotIndex) +
+                    points.subList(0, pointsIndex)
+        }
+
+        fun listOfAll(dst: SmallestKList<LightRequest<*>>): Int {
+            dst.addAll(dirs, 0, dirIndex)
+            dst.addAll(spots, 0, spotIndex)
+            dst.addAll(points, 0, pointsIndex)
+            return dst.size
         }
 
         operator fun get(index: Int): LightRequest<*> {
@@ -563,8 +572,18 @@ class PipelineLightStage(
         group.add(light, entity.transform)
     }
 
-    fun add(environmentMap: EnvironmentMap, entity: Entity){
+    fun add(environmentMap: EnvironmentMap, entity: Entity) {
         environmentMaps.add(environmentMap)
+    }
+
+    fun listOfAll(): List<LightRequest<*>> {
+        return instanced.listOfAll() + nonInstanced.listOfAll()
+    }
+
+    fun listOfAll(dst: SmallestKList<LightRequest<*>>): Int {
+        instanced.listOfAll(dst)
+        nonInstanced.listOfAll(dst)
+        return dst.size
     }
 
     override val className: String = "LightPipelineStage"

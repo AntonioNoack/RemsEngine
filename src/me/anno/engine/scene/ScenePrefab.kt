@@ -12,6 +12,7 @@ import me.anno.io.files.StaticRef
 import me.anno.io.text.TextWriter
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.utils.OS
+import me.anno.utils.OS.documents
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -76,6 +77,15 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         val dl = addC(this, sun, "DirectionalLight")
         setX(this, dl, "shadowMapCascades", 1)
         setX(this, dl, "color", Vector3f(3f))
+
+        val env = addE(this, lights, "EnvMap")
+        setX(this, env, "scale", Vector3d(50.0))
+        setX(this, env, "position", Vector3d(0.0, 10.0, 0.0))
+        addC(this, env, "EnvironmentMap")
+
+        val plane = addE(this, lights, "Planar")
+        addC(this, plane, "PlanarReflection")
+        addE(this, plane, "Mirror", documents.getChild("mirror.fbx"))
 
         /*val sun2 = addE(this, lights, "Sun2")
         setX(this, sun2, "scale", Vector3d(50.0))
@@ -172,10 +182,10 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
             setX(this, sphere, "position", Vector3d(0.0, (i + 2) * 2.1, 0.0))
             addC(this, sphere, "Rigidbody")
             addC(this, sphere, "SphereCollider")
-        }
+        }*/
 
         // add a cube of cubes for frustum testing
-        val frustum = addE(this, world, "Frustum Testing")
+        /*val frustum = addE(this, world, "Frustum Testing")
         for (x in -5..5) {
             // for testing bounding boxes more
             val xGroup = addE(this, frustum, "Group-$x")
@@ -194,7 +204,7 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
                     setX(this, meshComp, "isInstanced", true)
                 }
             }
-        }*/
+        } // */
 
         // normal testing
         /*val normalTesting = addE(this, world, "Normal Testing")

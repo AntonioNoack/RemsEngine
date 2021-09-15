@@ -42,7 +42,7 @@ object LineShapes {
 
         // from z0 to z1; used for lights
 
-        val x = abs(z1 - z0) * 0.15
+        val x = (z1 - z0) * 0.15
         val z = 2.0 * x + z1
 
         val positions = guiPositionsTmp
@@ -68,6 +68,34 @@ object LineShapes {
         for (i in 2 until 6) {
             putRelativeLine(positions[1], positions[i], color)
         }
+    }
+
+    fun drawCross(entity: Entity?, halfExtends: Vector3d? = null) {
+        drawCross(entity, Collider.guiLineColor, halfExtends)
+    }
+
+    fun drawCross(entity: Entity?, color: Int = Collider.guiLineColor, halfExtends: Vector3d? = null) {
+        // iterate over all lines:
+        // all bits that can flip
+        val transform = entity?.transform?.drawTransform
+        val positions = guiPositionsTmp
+        positions[0].set(-1.0,0.0,0.0)
+        positions[1].set(+1.0,0.0,0.0)
+        positions[2].set(0.0,-1.0,0.0)
+        positions[3].set(0.0,+1.0,0.0)
+        positions[4].set(0.0,0.0,-1.0)
+        positions[5].set(0.0,0.0,+1.0)
+
+        for (i in 0 until 6) {
+            val position = positions[i]
+            if (halfExtends != null) position.mul(halfExtends)
+            transform?.transformPosition(position)
+        }
+
+        putRelativeLine(positions[0], positions[1], color)
+        putRelativeLine(positions[2], positions[3], color)
+        putRelativeLine(positions[4], positions[5], color)
+
     }
 
     fun drawBox(entity: Entity?, color: Int = Collider.guiLineColor, halfExtends: Vector3d? = null) {
@@ -96,6 +124,28 @@ object LineShapes {
                 }
             }
         }
+    }
+
+    fun drawXYPlane(entity: Entity?, z: Double, color: Int = Collider.guiLineColor, halfExtends: Vector3d? = null) {
+        // iterate over all lines:
+        // all bits that can flip
+        val transform = entity?.transform?.drawTransform
+        val positions = guiPositionsTmp
+        for (i in 0 until 4) {
+            val position = positions[i]
+            position.set(
+                if ((i.and(1) != 0)) -1.0 else +1.0,
+                if ((i.and(2) != 0)) -1.0 else +1.0,
+                z
+            )
+            if (halfExtends != null) position.mul(halfExtends)
+            transform?.transformPosition(position)
+        }
+
+        putRelativeLine(positions[0], positions[1], color)
+        putRelativeLine(positions[1], positions[3], color)
+        putRelativeLine(positions[3], positions[2], color)
+        putRelativeLine(positions[2], positions[0], color)
     }
 
 }

@@ -4,7 +4,6 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.CachedReflections
 import org.joml.*
-import java.lang.RuntimeException
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -135,10 +134,12 @@ interface ISaveable {
     fun saveSerializableProperties(writer: BaseWriter) {
         val reflections = getReflections()
         for ((name, field) in reflections.declaredProperties) {
-            val value = field.getter.call(this)
-            // todo if the type is explicitely given, however not deductable (empty array), and the saving is forced,
-            // todo use the field.type
-            writer.writeSomething(this, name, value, field.forceSaving ?: value is Boolean)
+            if (field.serialize) {
+                val value = field.getter.call(this)
+                // todo if the type is explicitly given, however not deductible (empty array), and the saving is forced,
+                // todo use the field.type
+                writer.writeSomething(this, name, value, field.forceSaving ?: value is Boolean)
+            }
         }
     }
 
@@ -151,8 +152,9 @@ interface ISaveable {
         return getReflections()[this, propertyName]
     }
 
-    operator fun set(propertyName: String, value: Any?) {
-        getReflections()[this, propertyName] = value
+    operator fun set(propertyName: String, value: Any?): Boolean {
+        val reflections = getReflections()
+        return reflections.set(this, propertyName, value)
     }
 
     companion object {

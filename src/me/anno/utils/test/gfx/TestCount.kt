@@ -19,17 +19,16 @@ fun main() {
     val obj = PrefabCache.loadPrefab(file)
     val entity = obj!!.getSampleInstance(hashSetOf()) as Entity
     var sum = 0L
-    entity.listOfAll {
+    entity.findFirstInAll {
         if (it is Entity) {
-            val meshes = it.getComponents(MeshComponent::class)
-            for (mesh in meshes) {
+            it.anyComponent(MeshComponent::class){ mesh ->
                 val mesh2 = MeshCache[mesh.mesh]!!
                 sum += if (mesh2.indices != null) {
                     mesh2.indices!!.size / 3
                 } else {
                     mesh2.positions!!.size / 9
                 }
-
+                false
             }
         }
         false

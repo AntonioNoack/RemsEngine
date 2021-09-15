@@ -76,7 +76,16 @@ open class MeshData : ICacheData {
 
         transformUniform(shader, stack)
 
-        drawHierarchy(shader, localStack, skinningMatrices, color, model0, model0.hierarchy, useMaterials, drawSkeletons)
+        drawHierarchy(
+            shader,
+            localStack,
+            skinningMatrices,
+            color,
+            model0,
+            model0.hierarchy,
+            useMaterials,
+            drawSkeletons
+        )
 
         // todo line mode: draw every mesh as lines
         // todo draw non-indexed as lines: use an index buffer
@@ -114,8 +123,7 @@ open class MeshData : ICacheData {
             )
         )
 
-        val meshes = entity.getComponents(MeshComponent::class, false)
-        if (meshes.isNotEmpty()) {
+        if (entity.hasComponent(MeshComponent::class)) {
 
             shader.m4x3("localTransform", stack)
             GFX.shaderColor(shader, "tint", -1)
@@ -123,40 +131,42 @@ open class MeshData : ICacheData {
             // LOGGER.info("use materials? $useMaterials")
 
             if (useMaterials) {
-                for (comp in meshes) {
+                entity.anyComponent(MeshComponent::class) { comp ->
                     val mesh = MeshCache[comp.mesh]
                     if (mesh == null) {
                         LOGGER.warn("Mesh ${comp.mesh} is missing")
-                        continue
-                    }
-                    mesh.ensureBuffer()
-                    shader.v1("hasVertexColors", mesh.hasVertexColors)
-                    val materials = mesh.materials
-                    if (materials.isNotEmpty()) {
-                        for ((index, mat) in mesh.materials.withIndex()) {
-                            val material = MaterialCache[mat, defaultMaterial]
-                            material.defineShader(shader)
-                            mesh.draw(shader, index)
-                        }
                     } else {
-                        val material = defaultMaterial
-                        material.defineShader(shader)
-                        mesh.draw(shader, 0)
+                        mesh.ensureBuffer()
+                        shader.v1("hasVertexColors", mesh.hasVertexColors)
+                        val materials = mesh.materials
+                        if (materials.isNotEmpty()) {
+                            for ((index, mat) in mesh.materials.withIndex()) {
+                                val material = MaterialCache[mat, defaultMaterial]
+                                material.defineShader(shader)
+                                mesh.draw(shader, index)
+                            }
+                        } else {
+                            val material = defaultMaterial
+                            material.defineShader(shader)
+                            mesh.draw(shader, 0)
+                        }
                     }
+                    false
                 }
             } else {
                 val material = defaultMaterial
                 material.defineShader(shader)
-                for (comp in meshes) {
+                entity.anyComponent(MeshComponent::class){ comp ->
                     val mesh = MeshCache[comp.mesh]
                     if (mesh == null) {
                         LOGGER.warn("Mesh ${comp.mesh} is missing")
-                        continue
+                    } else {
+                        val materialCount = max(1, mesh.materials.size)
+                        for (i in 0 until materialCount) {
+                            mesh.draw(shader, i)
+                        }
                     }
-                    val materialCount = max(1, mesh.materials.size)
-                    for (i in 0 until materialCount) {
-                        mesh.draw(shader, i)
-                    }
+                    false
                 }
             }
         }

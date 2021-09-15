@@ -193,7 +193,7 @@ object Vectors {
     fun Vector2fc.toVector3d() = Vector2d(this)
     fun Vector2dc.toVector3f() = Vector2f(x().toFloat(), y().toFloat())
     fun Vector3fc.toVector3d() = Vector3d(this)
-    fun Vector3dc.toVector3f() = Vector3f(x().toFloat(), y().toFloat(), z().toFloat())
+    fun Vector3dc.toVector3f(dst: Vector3f = Vector3f()) = dst.set(x().toFloat(), y().toFloat(), z().toFloat())
     fun Vector4fc.toVector3d() = Vector4d(this)
     fun Vector4dc.toVector3f() = Vector4f(x().toFloat(), y().toFloat(), z().toFloat(), w().toFloat())
 

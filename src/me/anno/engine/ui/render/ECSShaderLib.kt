@@ -28,7 +28,8 @@ object ECSShaderLib {
             "roughnessMap",
             "metallicMap",
             "occlusionMap",
-            "sheenNormalMap"
+            "sheenNormalMap",
+            "reflectionPlane"
         )
         for (i in 0 until Renderers.MAX_PLANAR_LIGHTS) {
             textures.add("shadowMapPlanar$i")

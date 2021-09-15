@@ -12,17 +12,19 @@ import org.lwjgl.opengl.GL30.*
 
 class CubemapFramebuffer(
     var name: String, var size: Int,
+    override val samples: Int, // todo when we support multi-sampled cubemaps, also support them here
     val targets: Array<TargetType>,
     val depthBufferType: DepthBufferType
 ) : IFramebuffer {
 
     constructor(
         name: String, size: Int,
+        samples: Int,
         targetCount: Int,
         fpTargets: Boolean,
         depthBufferType: DepthBufferType
     ) : this(
-        name, size, if (fpTargets)
+        name, size, samples, if (fpTargets)
             Array(targetCount) { TargetType.FloatTarget4 } else
             Array(targetCount) { TargetType.UByteTarget4 }, depthBufferType
     )
@@ -88,7 +90,7 @@ class CubemapFramebuffer(
         //stack.push(this)
         GFX.check()
         textures = Array(targets.size) { index ->
-            val texture = CubemapTexture(size)
+            val texture = CubemapTexture(size, samples)
             texture.create(targets[index])
             GFX.check()
             texture
@@ -114,7 +116,7 @@ class CubemapFramebuffer(
             }
             DepthBufferType.INTERNAL -> createDepthBuffer()
             DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {
-                val depthTexture = CubemapTexture(size)
+                val depthTexture = CubemapTexture(size, samples)
                 depthTexture.createDepth(depthBufferType == DepthBufferType.TEXTURE_16)
                 glFramebufferTexture2D(
                     GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
@@ -214,6 +216,19 @@ class CubemapFramebuffer(
             )
         }
         GFX.check()
+    }
+
+    fun draw(size: Int, renderer: Renderer, render: (side: Int) -> Unit) {
+        useFrame(size, size, true, this, renderer) {
+            Frame.bind()
+            for (side in 0 until 6) {
+                // update all attachments, updating the framebuffer texture targets
+                updateAttachments(side)
+                val status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER)
+                if (status != GL_FRAMEBUFFER_COMPLETE) throw IllegalStateException("Framebuffer incomplete $status")
+                render(side)
+            }
+        }
     }
 
     fun draw(renderer: Renderer, render: (side: Int) -> Unit) {

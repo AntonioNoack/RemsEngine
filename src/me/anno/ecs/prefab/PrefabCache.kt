@@ -154,7 +154,7 @@ object PrefabCache : CacheSection("Prefab") {
         if (adds != null) {
             for ((index, change) in adds.withIndex()) {
                 try {
-                    change.apply(instance, chain)
+                    change.apply(instance, HashSet(chain))
                 } catch (e: Exception) {
                     LOGGER.warn("Change $index, $change failed")
                     throw e
@@ -165,7 +165,7 @@ object PrefabCache : CacheSection("Prefab") {
             for (index in sets.indices) {
                 val change = sets[index]
                 try {
-                    change.apply(instance, chain)
+                    change.apply(instance, null)
                 } catch (e: Exception) {
                     LOGGER.warn("Change $index, $change failed")
                     throw e

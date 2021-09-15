@@ -4,6 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabInspector
+import me.anno.ecs.prefab.change.CSet
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.camDirection
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
@@ -183,17 +184,18 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
     }
 
     private fun onChangeTransform(entity: Entity) {
-        // todo invalidate inspector as well
         // todo bug: moving in scene, then rotating, loses translation by scene
         // save changes to file
-        val i = ECSSceneTabs.currentTab!!.inspector
-        val path = entity.pathInRoot2(i.root, false)
+        val root = entity.getRoot(Entity::class)
+        val prefab = root.prefab2!!
+        val path = entity.pathInRoot2(root, false)
         val transform = entity.transform
-        i.change(path, "position", transform.localPosition)
-        i.change(path, "rotation", transform.localRotation)
-        i.change(path, "scale", transform.localScale)
+        prefab.add(CSet(path, "position", transform.localPosition))
+        prefab.add(CSet(path, "rotation", transform.localRotation))
+        prefab.add(CSet(path, "scale", transform.localScale))
         entity.invalidateAABBsCompletely()
         entity.invalidateChildTransforms()
+        invalidateInspector()
     }
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
