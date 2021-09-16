@@ -12,7 +12,9 @@ import me.anno.io.files.Signature
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.io.unity.UnityReader
+import me.anno.io.zip.InnerPrefabFile
 import me.anno.mesh.assimp.AnimatedMeshesLoader
+import me.anno.mesh.blender.BlenderReader
 import me.anno.mesh.obj.OBJReader2
 import me.anno.mesh.vox.VOXReader
 import org.apache.logging.log4j.LogManager
@@ -56,6 +58,17 @@ object PrefabCache : CacheSection("Prefab") {
         }
     }
 
+    fun loadBlenderModel(resource: FileReference): Prefab? {
+        return try {
+            val folder = BlenderReader.readAsFolder(resource)
+            val sceneFile = folder.getChild("Scene.json") as InnerPrefabFile
+            return sceneFile.prefab
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
     fun loadJson(resource: FileReference?): ISaveable? {
         return when (resource) {
             InvalidRef, null -> null
@@ -88,8 +101,8 @@ object PrefabCache : CacheSection("Prefab") {
             val prefab = when (signature?.name) {
                 "vox" -> loadVOXModel(resource)
                 "fbx", "gltf",
-                "md2", "md5mesh" ->
-                    loadAssimpModel(resource)
+                "md2", "md5mesh" -> loadAssimpModel(resource)
+                "blend" -> loadBlenderModel(resource)
                 "obj" -> loadObjModel(resource)
                 "yaml" -> loadUnityFile(resource)
                 "json" -> {
@@ -103,7 +116,7 @@ object PrefabCache : CacheSection("Prefab") {
                     when (resource.lcExtension) {
                         "vox" -> loadVOXModel(resource)
                         "fbx", "dae", "gltf", "glb",
-                        "md2", "md5mesh" ->
+                        "md2", "md5mesh", "blend" ->
                             loadAssimpModel(resource)
                         "obj" -> loadObjModel(resource)
                         "unity", "mat", "prefab", "asset", "meta", "controller" -> loadUnityFile(

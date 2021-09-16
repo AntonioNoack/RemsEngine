@@ -78,14 +78,14 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         setX(this, dl, "shadowMapCascades", 1)
         setX(this, dl, "color", Vector3f(3f))
 
-        val env = addE(this, lights, "EnvMap")
+        /*val env = addE(this, lights, "EnvMap")
         setX(this, env, "scale", Vector3d(50.0))
         setX(this, env, "position", Vector3d(0.0, 10.0, 0.0))
         addC(this, env, "EnvironmentMap")
 
         val plane = addE(this, lights, "Planar")
         addC(this, plane, "PlanarReflection")
-        addE(this, plane, "Mirror", documents.getChild("mirror.fbx"))
+        addE(this, plane, "Mirror", documents.getChild("mirror.fbx"))*/
 
         /*val sun2 = addE(this, lights, "Sun2")
         setX(this, sun2, "scale", Vector3d(50.0))
@@ -164,8 +164,8 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         }*/
 
         // add a floor for testing
-        val cubePath = OS.documents.getChild("cube.obj")
-        val cubePathNormals = OS.documents.getChild("cube shield.glb")
+        val cubePath = documents.getChild("cube.obj")
+        val cubePathNormals = documents.getChild("cube shield.glb")
         val floor = addE(this, physics, "Floor", cubePath)
         setX(this, floor, "position", Vector3d(0.0, -50.0, 0.0))
         setX(this, floor, "scale", Vector3d(200.0, 50.0, 200.0))
@@ -185,7 +185,7 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         }*/
 
         // add a cube of cubes for frustum testing
-        /*val frustum = addE(this, world, "Frustum Testing")
+        val frustum = addE(this, world, "Frustum Testing")
         for (x in -5..5) {
             // for testing bounding boxes more
             val xGroup = addE(this, frustum, "Group-$x")

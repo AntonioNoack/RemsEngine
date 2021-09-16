@@ -408,7 +408,8 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
                     'f' -> readFace()
                     else -> {
                         putBack(char0)
-                        LOGGER.warn("Unknown obj tag ${readUntilSpace()}")
+                        val tagName = readUntilSpace()
+                        if (tagName.isNotEmpty()) LOGGER.warn("Unknown obj tag $tagName")
                         skipLine()
                     }
                 }

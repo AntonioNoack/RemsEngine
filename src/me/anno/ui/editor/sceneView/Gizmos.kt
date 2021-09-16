@@ -5,18 +5,18 @@ import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
+import me.anno.engine.ui.render.RenderView.Companion.camPosition
+import me.anno.engine.ui.render.RenderView.Companion.worldScale
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.shaderColor
 import me.anno.gpu.drawing.DrawRectangles.drawRect
+import me.anno.gpu.pipeline.M4x3Delta.m4x3delta
 import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference
 import me.anno.objects.Transform
-import org.joml.Matrix4f
-import org.joml.Matrix4x3f
-import org.joml.Vector3d
-import org.joml.Vector3f
+import org.joml.*
 
-object Gizmo {
+object Gizmos {
 
     // todo show drag/hover of these on the specific gizmo parts
 
@@ -52,7 +52,7 @@ object Gizmo {
 
     // todo ui does not need lighting, and we can use pbr rendering
 
-    val local = Matrix4x3f()
+    val local = Matrix4x3d()
 
     fun drawMesh(
         cameraTransform: Matrix4f,
@@ -70,19 +70,18 @@ object Gizmo {
         shader.m4x4("transform", cameraTransform)
         val local = local
         local.identity()
-        local.translate(position.x.toFloat(), position.y.toFloat(), position.z.toFloat())
+        local.translate(position)
         when (axis) {
-            1 -> local.rotateX(1.57f)
-            2 -> local.rotateY(1.57f)
+            1 -> local.rotateX(1.57)
+            2 -> local.rotateY(1.57)
         }
-        local.scale(scale.toFloat())
-        shader.m4x3("localTransform", local)
-        shaderColor(shader, "tint", color and (255 shl 24))
+        local.scale(scale)
+        shader.m4x3delta("localTransform", local, camPosition, worldScale)
+        shaderColor(shader, "tint", color or (255 shl 24))
         shader.v1("hasAnimation", false)
         shader.v1("hasVertexColors", false)
         material.defineShader(shader)
         mesh.draw(shader, 0)
-        println("drawing something")
     }
 
     // avoid unnecessary allocations ;)

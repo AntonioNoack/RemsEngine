@@ -982,9 +982,8 @@ object Thumbs {
                 ref.returnInstance()
                 saveNUpload(srcFile, dstFile, image, callback)
             }
-            "png", "jpg", "bmp", "ico", "psd" -> {
-                generateImage(srcFile, dstFile, size, callback)
-            }
+            "png", "jpg", "bmp", "ico", "psd" -> generateImage(srcFile, dstFile, size, callback)
+            "blend" -> generateSomething(PrefabCache.getPrefabPair(srcFile)?.second, srcFile, dstFile, size, callback)
             else -> try {
                 when (srcFile.lcExtension) {
 

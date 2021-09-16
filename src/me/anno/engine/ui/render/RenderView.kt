@@ -63,7 +63,7 @@ import me.anno.input.Input.isKeyDown
 import me.anno.input.Input.isShiftDown
 import me.anno.studio.Build
 import me.anno.ui.base.Panel
-import me.anno.ui.editor.sceneView.Gizmo
+import me.anno.ui.editor.sceneView.Gizmos
 import me.anno.ui.style.Style
 import me.anno.utils.Clock
 import me.anno.utils.maths.Maths.clamp
@@ -775,12 +775,13 @@ class RenderView(
                     when (selected) {
                         is Entity -> {
                             // todo draw gizmos depending on mode
+                            // println("drawing translate gizmos")
                             val transform = selected.transform.globalTransform
                             val pos = transform.getTranslation(JomlPools.vec3d.create()).sub(camPosition)
-                            Gizmo.drawTranslateGizmos(
+                            Gizmos.drawTranslateGizmos(
                                 cameraMatrix,
                                 pos,// mul world scale?
-                                1e3, -12
+                                10.0, -12
                             )
                             JomlPools.vec3d.sub(1)
                         }

@@ -7,7 +7,6 @@ import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.change.CSet
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.camDirection
-import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.input.Input
 import me.anno.io.files.FileReference
@@ -19,7 +18,12 @@ import org.joml.Math
 import org.joml.Vector3d
 import org.joml.Vector3f
 
+// todo gui depth doesn't match scene depth.. why?
+
+// todo advanced snapping
 // todo mode to place it on top of things using mesh bounds
+// todo xyz keys to rotate 90° on that axis
+// todo shift for dynamic angles
 // automatically attach it to that object, that is being targeted? mmh.. no, use the selection for that
 
 // todo draw the gizmos
@@ -45,25 +49,15 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         when (action) {
-            "SetMode(MOVE)" -> {
-                mode = Mode.TRANSLATING
-                invalidateDrawing()
-            }
-            "SetMode(ROTATE)" -> {
-                mode = Mode.ROTATING
-                invalidateDrawing()
-            }
-            "SetMode(SCALE)" -> {
-                mode = Mode.SCALING
-                invalidateDrawing()
-            }
+            "SetMode(MOVE)" -> mode = Mode.TRANSLATING
+            "SetMode(ROTATE)" -> mode = Mode.ROTATING
+            "SetMode(SCALE)" -> mode = Mode.SCALING
             "Cam0", "ResetCamera" -> {
                 // reset the camera
                 view.rotation.set(0.0)
                 view.position.set(0.0)
                 view.radius = 50.0
                 view.updateTransform()
-                invalidateDrawing()
             }
             "Cam5" -> {// switch between orthographic and perspective
                 // todo switch between ortho and perspective
@@ -124,7 +118,7 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
         super.onMouseMoved(x, y, dx, dy)
         if (Input.isLeftDown && isSelected) {
             val targets = selectedEntities
-            if (targets.isNotEmpty()) {
+            if (targets.isNotEmpty() && mode != Mode.NOTHING) {
                 // drag the selected object
                 // for that transform dx,dy into global space,
                 // and then update the local space
@@ -168,8 +162,7 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                             val scale = pow(2.0, (dx - dy).toDouble() / h)
                             global.scale(scale, scale, scale) // correct
                         }
-                        else -> {
-                            // not yet implemented
+                        Mode.NOTHING -> {
                         }
                     }
                 }
@@ -184,7 +177,6 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
     }
 
     private fun onChangeTransform(entity: Entity) {
-        // todo bug: moving in scene, then rotating, loses translation by scene
         // save changes to file
         val root = entity.getRoot(Entity::class)
         val prefab = root.prefab2!!

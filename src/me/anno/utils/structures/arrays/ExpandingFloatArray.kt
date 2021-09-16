@@ -58,6 +58,12 @@ class ExpandingFloatArray(
         add(v.z)
     }
 
+    fun add(v: FloatArray, startIndex: Int, length: Int){
+        for(i in 0 until length){
+            add(v[startIndex + i])
+        }
+    }
+
     operator fun get(index: Int) = array!![index]
     operator fun plusAssign(value: Float) {
         val array = array

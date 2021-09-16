@@ -6,6 +6,7 @@ import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Change
 import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
+import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
@@ -13,6 +14,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.LOGGER
 import me.anno.utils.files.LocalFile.toGlobalFile
+import org.joml.Vector3d
 
 class Prefab : Saveable {
 

@@ -26,7 +26,7 @@ class BundledRef(
 
     override fun inputStream(): InputStream {
         // needs to be the same package
-        val stream = BundledRef::class.java.classLoader.getResourceAsStream(name)
+        val stream = BundledRef::class.java.classLoader.getResourceAsStream(resName)
             ?: throw FileNotFoundException(absolutePath)
         return stream.useBuffered()
     }
@@ -77,12 +77,12 @@ class BundledRef(
             if (!str.startsWith(prefix, true)) throw IllegalArgumentException()
             val zip = jarAsZip.value
             if (zip == null) {
-                BundledRef(str.substring(5), str, false)
+                BundledRef(str.substring(prefix.length), str, false)
             } else {
                 getReference(zip, str.substring(prefix.length))
             }
             // is directory may be false...
-            return BundledRef(str.substring(5), str, false)
+            return BundledRef(str.substring(prefix.length), str, false)
         }
 
         const val prefix = "res://"

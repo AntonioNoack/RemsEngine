@@ -5,13 +5,13 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
-import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabInspector.Companion.currentInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
+import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.io.files.FileReference
+import me.anno.gpu.GFX.windowStack
 import me.anno.io.text.TextReader
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.menu.Menu.askName
@@ -19,8 +19,12 @@ import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.treeView.AbstractTreeView
 import me.anno.ui.style.Style
 import me.anno.utils.Color.normARGB
+import me.anno.utils.maths.Maths.length
 import me.anno.utils.maths.Maths.mixARGB
 import me.anno.utils.structures.lists.UpdatingList
+import me.anno.utils.types.AABBs.deltaX
+import me.anno.utils.types.AABBs.deltaY
+import me.anno.utils.types.AABBs.deltaZ
 import org.apache.logging.log4j.LogManager
 
 // todo runtime and pre-runtime view
@@ -117,9 +121,9 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
                 && element.findFirstInAll { it in library.selection } != null
         val isEnabled = element.allInHierarchy { it.isEnabled }
         var color = if (isEnabled)
-            if (isInFocus2) 0xffcc15 else if(isIndirectlyInFocus) 0xddccaa else 0xcccccc
+            if (isInFocus2) 0xffcc15 else if (isIndirectlyInFocus) 0xddccaa else 0xcccccc
         else
-            if (isInFocus2) 0xcc15ff else if(isIndirectlyInFocus) 0x442255 else 0x333333
+            if (isInFocus2) 0xcc15ff else if (isIndirectlyInFocus) 0x442255 else 0x333333
         // if is light component, we can mix in its color
         val light = element.getComponent(LightComponent::class)
         if (light != null) color = mixARGB(color, normARGB(light.color), 0.5f)
@@ -176,9 +180,9 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
         }
     }
 
-    private fun getPrefab(ref: FileReference?): Prefab? {
+    /*private fun getPrefab(ref: FileReference?): Prefab? {
         return loadPrefab(ref)
-    }
+    }*/
 
     override fun getSymbol(element: Entity): String {
         return ""
@@ -227,7 +231,20 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
 
     override fun focusOnElement(element: Entity) {
         selectElement(element)
-        // todo focus on the element by inverting the camera transform and such...
+        // focus on the element by inverting the camera transform and such...
+        for (window in windowStack) {
+            window.panel.forAll {
+                if (it is RenderView) {
+                    // not perfect, but good enough probably
+                    // todo smooth lerp over .2s for orientation?
+                    val aabb = element.aabb
+                    val newRadius = length(aabb.deltaX(), aabb.deltaY(), aabb.deltaZ())
+                    if (newRadius.isFinite() && newRadius > 0.0) it.radius = newRadius
+                    it.position.set(element.transform.globalPosition)
+                    it.updateTransform()
+                }
+            }
+        }
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {

@@ -4,7 +4,6 @@ import me.anno.Engine
 import me.anno.gpu.GFX
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
-import me.anno.utils.types.Matrices.getScale2
 import org.joml.*
 
 class Transform : Saveable() {
@@ -135,11 +134,11 @@ class Transform : Saveable() {
             invalidateGlobal()
         }
 
-    fun updateLocal() {
-        pos.set(localTransform.m30(), localTransform.m31(), localTransform.m32())
-        localTransform.getUnnormalizedRotation(rot);rot.normalize()
-        localTransform.getScale(sca)
-    }
+    // todo setter
+    // todo cache it
+    val globalPosition
+        get() = globalTransform.getTranslation(Vector3d())
+
 
     // todo only update if changed to save resources
     fun update(parent: Transform?, time: Long = GFX.gameTime) {
@@ -161,9 +160,7 @@ class Transform : Saveable() {
     fun setLocal(values: Matrix4x3f) {
         localTransform.set(values)
         checkTransform(localTransform)
-        pos.set(values.m30().toDouble(), values.m31().toDouble(), values.m32().toDouble())
-        values.getUnnormalizedRotation(rot)
-        values.getScale2(sca)
+        setCachedPosRotSca()
         invalidateGlobal()
     }
 
@@ -174,9 +171,8 @@ class Transform : Saveable() {
             values.m20().toDouble(), values.m21().toDouble(), values.m22().toDouble(),
             values.m30().toDouble(), values.m31().toDouble(), values.m32().toDouble(),
         )
-        pos.set(values.m30().toDouble(), values.m31().toDouble(), values.m32().toDouble())
-        values.getUnnormalizedRotation(rot)
-        values.getScale2(sca)
+        checkTransform(localTransform)
+        setCachedPosRotSca()
         invalidateGlobal()
     }
 
@@ -217,16 +213,29 @@ class Transform : Saveable() {
     }
 
     fun calculateLocalTransform(parent: Transform?) {
+        val localTransform = localTransform
         if (parent == null) {
             localTransform.set(globalTransform)
+            setCachedPosRotSca()
+            // invalidateGlobal() not needed, or is it?
         } else {
             // parent.global * self.local * point = self.global * point
             // parent.global * self.local = self.global
             // self.local = inv(parent.global) * self.global
-            // correct???
-            localTransform.set(parent.globalTransform).invert().mul(globalTransform)
+            localTransform.set(parent.globalTransform)
+                .invert()
+                .mul(globalTransform)
+            setCachedPosRotSca()
             checkTransform(localTransform)
         }
+    }
+
+    private fun setCachedPosRotSca() {
+        val localTransform = localTransform
+        pos.set(localTransform.m30(), localTransform.m31(), localTransform.m32())
+        localTransform.getUnnormalizedRotation(rot)
+        localTransform.getScale(sca)
+        invalidateGlobal()
     }
 
     fun clone(): Transform {

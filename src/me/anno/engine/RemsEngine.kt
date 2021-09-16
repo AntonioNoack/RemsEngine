@@ -30,8 +30,9 @@ import me.anno.utils.OS
 import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
 
-// todo reading obj files is very slow: speed it up by implementing it ourselves
-
+// todo right click on a path:
+// todo - mutate -> create an asset based on that and replace the path, then inspect
+// todo - inspect -> show it in the editor
 
 // todo drop in meshes
 // todo drop in ui maybe...

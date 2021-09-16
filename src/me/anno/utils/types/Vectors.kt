@@ -7,6 +7,8 @@ import kotlin.math.roundToInt
 
 object Vectors {
 
+    // todo joml 2.0 project? with all these functions that are missing
+
     operator fun Vector2fc.plus(s: Vector2fc) = Vector2f(x() + s.x(), y() + s.y())
     operator fun Vector2fc.minus(s: Vector2fc) = Vector2f(x() - s.x(), y() - s.y())
     operator fun Vector2fc.times(f: Float) = Vector2f(x() * f, y() * f)

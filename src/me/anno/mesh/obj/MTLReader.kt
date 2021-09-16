@@ -71,7 +71,9 @@ class MTLReader(val file: FileReference) : OBJMTLReader(file.inputStream()) {
                         // also there is additional parameters for texture blending, scale,
                         // offset, clamped textures, bump multiplier, channel selection for textures, ...
                         else -> {
-                            LOGGER.info("Unknown tag in mtl: $name")
+                            if(name.isNotEmpty()){
+                                LOGGER.info("Unknown tag in mtl: $name")
+                            }
                             skipLine()
                         }
                     }

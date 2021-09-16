@@ -9,7 +9,9 @@ fun main() {
 
     // File("E:\\Documents\\Uni\\Master\\SS21\\HPC\\u8\\u8.zip!sve gemm/vm.zip").readText()
 
-    val file = getReference("E:\\Documents\\Uni\\Master\\SS21\\HPC\\u8")
+    LOGGER.info(getReference("res://mesh/arrowX.obj").readText())
+
+    // val file = getReference("E:\\Documents\\Uni\\Master\\SS21\\HPC\\u8")
     /*val zis = ZipInputStream(file.inputStream())
     while (true) {
         val entry = zis.nextEntry ?: break
@@ -18,7 +20,7 @@ fun main() {
 
     LOGGER.info(file.listFiles()?.joinToString())*/
 
-    printHierarchy(file, 0)
+    // printHierarchy(file, 0)
 
     /*val file2 = FileReference("E:\\Documents\\Uni\\Master\\SS21\\HPC\\u8\\u8.zip!!sve gemm/vm.zip")
     LOGGER.info(file2.listFiles()?.joinToString())

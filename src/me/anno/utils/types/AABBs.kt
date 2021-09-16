@@ -22,6 +22,10 @@ object AABBs {
     fun AABBf.deltaY() = maxY - minY
     fun AABBf.deltaZ() = maxZ - minZ
 
+    fun AABBd.deltaX() = maxX - minX
+    fun AABBd.deltaY() = maxY - minY
+    fun AABBd.deltaZ() = maxZ - minZ
+
     fun AABBf.print() = "($minX $minY $minZ) < ($maxX $maxY $maxZ)"
     fun AABBd.print() = "($minX $minY $minZ) < ($maxX $maxY $maxZ)"
 

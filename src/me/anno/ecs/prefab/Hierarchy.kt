@@ -90,7 +90,6 @@ object Hierarchy {
                             "Missing path at index $pathIndex, '$childName','$childType',${childIndex} in $this, " +
                                     "only ${components.size} $childType available ${components.joinToString { "'${it["name"]}'" }}"
                         )
-                        throw RuntimeException()
                         return null
                     }
                 }
