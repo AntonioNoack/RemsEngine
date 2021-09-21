@@ -7,6 +7,7 @@ import me.anno.ecs.prefab.change.CSet
 import me.anno.engine.scene.ScenePrefab
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
+import me.anno.io.files.FileWatch
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
 import me.anno.io.text.TextReader
@@ -25,7 +26,7 @@ object PrefabCache : CacheSection("Prefab") {
     private val LOGGER = LogManager.getLogger(PrefabCache::class)
 
     fun getPrefab(file: FileReference): Prefab? {
-        return getPrefabPair(file)?.first
+        return getPrefabPair(file)?.prefab
     }
 
     fun loadAssimpModel(resource: FileReference): Prefab? {
@@ -96,12 +97,11 @@ object PrefabCache : CacheSection("Prefab") {
 
     fun loadPrefab2(resource: FileReference): ISaveable? {
         return if (resource.exists && !resource.isDirectory) {
-            val signature = Signature.find(resource)
             // LOGGER.info("resource $resource has signature $signature")
-            val prefab = when (signature?.name) {
+            val prefab = when (Signature.findName(resource)) {
                 "vox" -> loadVOXModel(resource)
-                "fbx", "gltf",
-                "md2", "md5mesh" -> loadAssimpModel(resource)
+                "fbx", "gltf", "md2", "md5mesh" ->
+                    loadAssimpModel(resource)
                 "blend" -> loadBlenderModel(resource)
                 "obj" -> loadObjModel(resource)
                 "yaml" -> loadUnityFile(resource)
@@ -116,12 +116,14 @@ object PrefabCache : CacheSection("Prefab") {
                     when (resource.lcExtension) {
                         "vox" -> loadVOXModel(resource)
                         "fbx", "dae", "gltf", "glb",
-                        "md2", "md5mesh", "blend" ->
+                        "md2", "md5mesh" ->
                             loadAssimpModel(resource)
+                        "blend" -> loadBlenderModel(resource)
                         "obj" -> loadObjModel(resource)
                         "unity", "mat", "prefab", "asset", "meta", "controller" -> loadUnityFile(
                             resource
                         )
+                        "mtl" -> null
                         else -> loadJson(resource)
                     }
                 }
@@ -131,26 +133,25 @@ object PrefabCache : CacheSection("Prefab") {
         } else null
     }
 
-    fun getPrefabPair(resource: FileReference?, async: Boolean = false): Pair<Prefab?, ISaveable>? {
+
+    fun getPrefabPair(resource: FileReference?, async: Boolean = false): FileReadPrefabData? {
         resource ?: return null
         return if (resource != InvalidRef && resource.exists && !resource.isDirectory) {
-            val data = getEntry(resource, prefabTimeout, async) {
-                val loaded = loadPrefab2(resource)
-                CacheData(
-                    when (loaded) {
-                        is Prefab -> Pair(loaded, loaded.getSampleInstance())
-                        is ISaveable -> Pair(null, loaded)
-                        else -> null
-                    }
-                )
-            } as? CacheData<*>
-            val pair = data?.value as? Pair<*, *>
-            return pair as? Pair<Prefab, PrefabSaveable>
+            return getFileEntry(resource, false, prefabTimeout, async) { file, _ ->
+                val loaded = loadPrefab2(file)
+                if (loaded != null) {
+                    FileWatch.addWatchDog(file)
+                    FileReadPrefabData(
+                        loaded as? Prefab,
+                        if (loaded is Prefab) loaded.getSampleInstance() else loaded, file
+                    )
+                } else CacheData(null)
+            } as? FileReadPrefabData
         } else null
     }
 
     fun loadPrefab(resource: FileReference?): Prefab? {
-        return getPrefabPair(resource)?.first
+        return getPrefabPair(resource)?.prefab
     }
 
     fun createInstance(

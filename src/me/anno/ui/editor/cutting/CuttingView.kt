@@ -10,7 +10,7 @@ import me.anno.ui.style.Style
 class CuttingView(style: Style) : ScrollPanelY(Padding(0), AxisAlignment.MIN, style) {
 
     private val addLayerButton = TextButton("+", true, style)
-        .setSimpleClickListener { addLayer() }
+        .addLeftClickListener { addLayer() }
 
     private val content = this
     private val layers = content.child as PanelListY

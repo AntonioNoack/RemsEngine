@@ -32,7 +32,7 @@ class GraphEditor(style: Style) : PanelListY(style) {
                     padding.bottom = 0
                 }
                 .setTooltip("${type.displayName}: ${type.description}")
-                .setSimpleClickListener {
+                .addLeftClickListener {
                     body.selectedKeyframes.forEach {
                         it.interpolation = type
                     }

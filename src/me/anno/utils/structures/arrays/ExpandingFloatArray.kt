@@ -18,6 +18,12 @@ class ExpandingFloatArray(
         size = 0
     }
 
+    fun ensure() {
+        if (array == null) {
+            array = FloatArray(initCapacity)
+        }
+    }
+
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeInt("initCapacity", initCapacity)
@@ -47,25 +53,7 @@ class ExpandingFloatArray(
         }
     }
 
-    fun add(value: Float) = plusAssign(value)
-    operator fun set(index: Int, value: Float) {
-        array!![index] = value
-    }
-
-    fun add(v: Vector3f){
-        add(v.x)
-        add(v.y)
-        add(v.z)
-    }
-
-    fun add(v: FloatArray, startIndex: Int, length: Int){
-        for(i in 0 until length){
-            add(v[startIndex + i])
-        }
-    }
-
-    operator fun get(index: Int) = array!![index]
-    operator fun plusAssign(value: Float) {
+    fun add(value: Float) {
         val array = array
         if (array == null || size + 1 >= array.size) {
             val newArray = FloatArray(if (array == null) initCapacity else max(array.size * 2, 16))
@@ -77,7 +65,39 @@ class ExpandingFloatArray(
         }
     }
 
+    fun addUnsafe(value: Float) {
+        array!![size++] = value
+    }
+
+    operator fun set(index: Int, value: Float) {
+        array!![index] = value
+    }
+
+    fun add(v: Vector3f) {
+        add(v.x)
+        add(v.y)
+        add(v.z)
+    }
+
+    fun add(v: FloatArray, startIndex: Int, length: Int) {
+        for (i in 0 until length) {
+            add(v[startIndex + i])
+        }
+    }
+
+    fun addUnsafe(v: FloatArray, startIndex: Int, length: Int) {
+        for (i in 0 until length) {
+            addUnsafe(v[startIndex + i])
+        }
+    }
+
+    operator fun get(index: Int) = array!![index]
+    operator fun plusAssign(value: Float) {
+        add(value)
+    }
+
     fun toFloatArray(): FloatArray {
+        if (size == array?.size) return array!!
         val tmp = FloatArray(size)
         if (size > 0) System.arraycopy(array!!, 0, tmp, 0, size)
         return tmp

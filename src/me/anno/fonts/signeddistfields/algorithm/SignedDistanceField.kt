@@ -14,16 +14,14 @@ import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.maths.Maths.mix
+import me.anno.utils.pooling.ByteBufferPool
 import org.joml.AABBf
 import org.joml.Vector2f
-import org.lwjgl.system.MemoryUtil
 import java.awt.Font
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
 import java.awt.geom.GeneralPath
 import java.awt.geom.PathIterator
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -62,8 +60,8 @@ object SignedDistanceField {
         roundEdges: Boolean
     ): FloatBuffer {
 
-        val buffer = ByteBuffer.allocateDirect(w * h * 4)
-            .order(ByteOrder.nativeOrder())
+        val buffer = ByteBufferPool
+            .allocateDirect(w * h * 4)
             .asFloatBuffer()
 
         val maxDistance = max(maxX - minX, maxY - minY)
@@ -282,7 +280,7 @@ object SignedDistanceField {
         val tex = Texture2D("SDF", w, h, 1)
         GFX.addGPUTask(w, h) {
             tex.createMonochrome(buffer, true)
-            MemoryUtil.memFree(buffer)
+            ByteBufferPool.free(buffer)
         }
 
         // the center, because we draw the pieces from the center

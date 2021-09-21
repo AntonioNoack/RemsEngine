@@ -31,6 +31,11 @@ object HiddenOpenGLContext {
         GFX.height = h
     }
 
+    fun createOpenGL(w: Int, h: Int = w){
+        setSize(w, h)
+        createOpenGL()
+    }
+
     fun createOpenGL() {
 
         LOGGER.info("Using LWJGL Version " + Version.getVersion())

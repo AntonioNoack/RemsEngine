@@ -139,16 +139,10 @@ open class MeshData : ICacheData {
                         mesh.ensureBuffer()
                         shader.v1("hasVertexColors", mesh.hasVertexColors)
                         val materials = mesh.materials
-                        if (materials.isNotEmpty()) {
-                            for ((index, mat) in mesh.materials.withIndex()) {
-                                val material = MaterialCache[mat, defaultMaterial]
-                                material.defineShader(shader)
-                                mesh.draw(shader, index)
-                            }
-                        } else {
-                            val material = defaultMaterial
+                        for(index in 0 until mesh.numMaterials){
+                            val material = MaterialCache[materials.getOrNull(index), defaultMaterial]
                             material.defineShader(shader)
-                            mesh.draw(shader, 0)
+                            mesh.draw(shader, index)
                         }
                     }
                     false
@@ -161,8 +155,8 @@ open class MeshData : ICacheData {
                     if (mesh == null) {
                         LOGGER.warn("Mesh ${comp.mesh} is missing")
                     } else {
-                        val materialCount = max(1, mesh.materials.size)
-                        for (i in 0 until materialCount) {
+                        mesh.ensureBuffer()
+                        for (i in 0 until mesh.numMaterials) {
                             mesh.draw(shader, i)
                         }
                     }

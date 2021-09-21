@@ -1,12 +1,17 @@
 package me.anno.mesh.blender.blocks
 
-class BlockTable(val blocks: Array<Block>?, offHeapStructs: IntArray?) {
+import me.anno.mesh.blender.BlenderFile
+import org.apache.logging.log4j.LogManager
+import java.io.IOException
+
+class BlockTable(val file: BlenderFile, val blocks: Array<Block>?, offHeapStructs: IntArray?) {
 
     companion object {
-        val HEAPBASE = 4096L
+        private val LOGGER = LogManager.getLogger(BlockTable::class)
+        private const val HEAPBASE = 4096L
     }
 
-    constructor() : this(null, null)
+    constructor(file: BlenderFile) : this(file, null, null)
 
     val sorted = blocks?.sortedBy { it.header.address }?.toMutableList() ?: ArrayList()
     val blockList = blocks?.toMutableList() ?: ArrayList()
@@ -17,7 +22,7 @@ class BlockTable(val blocks: Array<Block>?, offHeapStructs: IntArray?) {
         if (offHeapStructs != null) {
             offHeapAreas = HashMap()
             for (index in offHeapStructs.indices) {
-                offHeapAreas!![offHeapStructs[index]] = BlockTable()
+                offHeapAreas!![offHeapStructs[index]] = BlockTable(file)
             }
             val sorted = sorted
             var i = 0
@@ -42,32 +47,34 @@ class BlockTable(val blocks: Array<Block>?, offHeapStructs: IntArray?) {
     }
 
     fun checkBlockOverlaps() {
-        /*for (var i=0;i<this.sorted.length;i++) {
-			var cur = this.sorted[i];
-			for (var j=i+1;j<this.sorted.length;j++) {
-				var b = this.sorted[j];
-				if(cur.contains(b.header.address)) {
-					overlapping.add(cur, b);
-					throw "blocks are overlapping!";
-				}
-			}
-		}*/
+        for (i in 0 until sorted.size) {
+            val bi = this.sorted[i]
+            val endAddress = bi.header.address + bi.header.size
+            for (j in i + 1 until sorted.size) {
+                val bj = this.sorted[j]
+                if (bj.header.address < endAddress) {
+                    LOGGER.warn(
+                        "Blocks $i and $j are overlapping: " +
+                                "${bi.header.address} += ${bi.header.size} and ${bj.header.address} += ${bj.header.size}, " +
+                                "type 0: ${bi.getTypeName(file)}, type 1: ${bj.getTypeName(file)}"
+                    )
+                } else break
+            }
+        }
     }
 
     fun binarySearch(address: Long): Int {
         return sorted.binarySearch { it.header.address.compareTo(address) }
     }
 
-    fun add(block: Block) {
-        val index = binarySearch(block.header.address)
-        if (index >= 0) throw RuntimeException()
-        sorted.add(-index - 1, block)
+    fun binarySearch(block: Block): Int {
+        return binarySearch(block.header.address)
     }
 
-    fun findBlock(startAddress: Long): Block {
-        val index = binarySearch(startAddress)
-        if (index < 0) throw IllegalStateException()
-        return sorted[index]
+    fun add(block: Block) {
+        val index = binarySearch(block)
+        if (index >= 0) throw IOException("Block cannot be defined twice")
+        sorted.add(-index - 1, block)
     }
 
     fun getBlockAt(positionInFile: Int): Block {
@@ -76,9 +83,13 @@ class BlockTable(val blocks: Array<Block>?, offHeapStructs: IntArray?) {
         return blockList[index]
     }
 
-    fun getBlock(address: Long): Block? {
+    fun getAddressAt(positionInFile: Int): Long {
+        val block = getBlockAt(positionInFile)
+        return block.header.address + (positionInFile - block.positionInFile)
+    }
+
+    fun getBlock(file: BlenderFile, address: Long): Block? {
         if (address == 0L) return null
-        val sorted = sorted
         var i = binarySearch(address)
         if (i >= 0) {
             return sorted[i]
@@ -90,9 +101,16 @@ class BlockTable(val blocks: Array<Block>?, offHeapStructs: IntArray?) {
             i = -i - 2;
             if (i >= 0) {
                 val b = sorted[i]
-                if (address < (b.header.address + b.header.size)) {
+                val endAddress = b.header.address + b.header.size
+                if (address < endAddress) {
                     // block found
                     return b
+                } else {
+                    println(
+                        "block out of bounds: $address >= ${b.header.address} + ${b.header.size} " +
+                                "(type: ${file.structs[b.header.sdnaIndex].type.name}), " +
+                                "next block: ${sorted.getOrNull(i + 1)?.header?.address}"
+                    )
                 }
             }
             return null

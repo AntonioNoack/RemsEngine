@@ -1,5 +1,6 @@
 package me.anno.io.files
 
+import me.anno.cache.instances.LastModifiedCache
 import me.anno.io.windows.WindowsShortcut
 import me.anno.io.zip.ZipCache
 import me.anno.studio.StudioBase
@@ -11,8 +12,14 @@ import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
 import org.apache.logging.log4j.LogManager
 import java.io.*
+import java.lang.ref.WeakReference
 import java.net.URI
+import java.nio.ByteBuffer
 import java.nio.charset.Charset
+
+// todo when a file is changed, all inner files based on that need to be invalidated (editor only)
+// todo when a file is changed, the meta data of it needs to be invalidated
+// todo only allocate each inner file once: create a static store of weak references
 
 /**
  * doesn't call toLowerCase() for each comparison,
@@ -28,7 +35,7 @@ abstract class FileReference(val absolutePath: String) {
 
     // done if there is a !!, it's into a zip file -> it only needs to be a slash;
     // all zip files should be detected automatically
-    // todo if res:// at the start (?), then it's a local resource
+    // done if res:// at the start, then it's a local resource
     // todo other protocols as well, so like an URI replacement?
 
     companion object {
@@ -37,9 +44,28 @@ abstract class FileReference(val absolutePath: String) {
 
         private val staticReferences = HashMap<String, StaticRef>()
 
+        private val allReferences = HashMap<String, WeakReference<FileReference>>()
+
+        fun clear() {
+            allReferences.values.removeIf { it.get() == null }
+        }
+
         fun register(ref: StaticRef): StaticRef {
             staticReferences[ref.absolutePath] = ref
             return ref
+        }
+
+        fun invalidate(file: String, fileInstance: File = File(file)) {
+            synchronized(allReferences) {
+                allReferences.remove(
+                    file.replace('\\', '/')
+                )
+            }
+            LastModifiedCache.invalidate(fileInstance)
+        }
+
+        fun invalidate(file: File) {
+            invalidate(file.absolutePath, file)
         }
 
         fun getReference(str: String?): FileReference {
@@ -47,6 +73,16 @@ abstract class FileReference(val absolutePath: String) {
             if (str == null || str.isBlank2()) return InvalidRef
             // root
             if (str == "null") return FileRootRef
+            synchronized(allReferences) {
+                val cached = allReferences[str]?.get()
+                if (cached != null) return cached
+                val value = createReference(str)
+                allReferences[str] = WeakReference(value)
+                return value
+            }
+        }
+
+        private fun createReference(str: String): FileReference {
             // internal resource
             if (str.startsWith(BundledRef.prefix)) return BundledRef.parse(str)
             // static references
@@ -178,6 +214,13 @@ abstract class FileReference(val absolutePath: String) {
     open fun readText(charset: Charset) = String(readBytes(), charset)
 
     open fun readBytes() = inputStream().readBytes()
+    fun readByteBuffer(): ByteBuffer {
+        val bytes = readBytes()
+        val buffer = ByteBuffer.allocate(bytes.size)
+        buffer.put(bytes)
+        buffer.flip()
+        return buffer
+    }
 
     open fun writeText(text: String) {
         val os = outputStream()
@@ -239,10 +282,9 @@ abstract class FileReference(val absolutePath: String) {
 
     abstract val isDirectory: Boolean
 
-    private fun isZipFile(): Boolean {
+    open fun isSerializedFolder(): Boolean {
         // only read the first bytes
-        val signature = Signature.find(this)
-        return when (signature?.name) {
+        return when (val signature = Signature.findName(this)) {
             "zip", "rar", "7z", "bz2", "lz4", "xar", "oar", "gzip", "tar" -> {
                 LOGGER.info("Checking $absolutePath for zip file, matches signature")
                 true
@@ -282,7 +324,7 @@ abstract class FileReference(val absolutePath: String) {
                 false
             }
             else -> {
-                LOGGER.info("Checking $absolutePath for zip file, other signature: ${signature.name}")
+                LOGGER.info("Checking $absolutePath for zip file, other signature: $signature")
                 false
             }
         }
@@ -332,7 +374,7 @@ abstract class FileReference(val absolutePath: String) {
     open val isSomeKindOfDirectory get() = isDirectory || windowsLnk.value != null || isPacked.value
 
     val isPacked = lazy {
-        !isDirectory && isZipFile()
+        !isDirectory && isSerializedFolder()
     }
 
     open fun listChildren(): List<FileReference>? {

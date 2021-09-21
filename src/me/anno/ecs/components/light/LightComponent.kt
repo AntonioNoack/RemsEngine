@@ -19,6 +19,7 @@ import me.anno.gpu.shader.Renderer
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.AABBs.transformUnion
 import me.anno.utils.types.Matrices.getScaleLength
 import org.joml.*
 import org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT
@@ -47,6 +48,13 @@ abstract class LightComponent(
 
     var needsUpdate = true
     var autoUpdate = true
+
+    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
+        val mesh = getLightPrimitive()
+        mesh.ensureBuffer()
+        mesh.aabb.transformUnion(globalTransform, aabb)
+        return true
+    }
 
     open fun invalidateShadows() {
         needsUpdate = true

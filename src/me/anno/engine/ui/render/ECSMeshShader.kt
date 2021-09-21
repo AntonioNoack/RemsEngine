@@ -250,6 +250,7 @@ class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
                         // step by step define all material properties
                         "vec4 color = vec4(vertexColor.rgb, 1) * diffuseBase * texture(diffuseMap, uv);\n" +
+                        "if(color.a < ${1f/255f}) discard;\n" +
                         "finalColor = color.rgb;\n" +
                         "finalAlpha = color.a;\n" +
                         // "   vec3 finalNormal = normal;\n" +

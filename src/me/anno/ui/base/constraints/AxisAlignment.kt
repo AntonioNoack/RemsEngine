@@ -6,7 +6,10 @@ enum class AxisAlignment(val id: Int, val xName: String, val yName: String){
     CENTER(0, "Center", "Center"){
         override fun getOffset(parentW: Int, minW: Int): Int = (parentW - minW) / 2 },
     MAX(1, "Right", "Bottom"){
-        override fun getOffset(parentW: Int, minW: Int): Int = parentW - minW };
+        override fun getOffset(parentW: Int, minW: Int): Int = parentW - minW },
+    FILL(2, "Fill", "Fill"){
+        override fun getOffset(parentW: Int, minW: Int): Int = 0
+    };
     abstract fun getOffset(parentW: Int, minW: Int): Int
     companion object {
         fun find(id: Int) = values().firstOrNull { it.id == id }

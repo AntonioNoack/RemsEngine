@@ -10,6 +10,7 @@ import me.anno.objects.effects.types.GLSLLib
 import me.anno.objects.modes.UVProjection
 import me.anno.studio.rems.Scene.noiseFunc
 import me.anno.utils.Clock
+import me.anno.utils.pooling.ByteBufferPool
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -180,9 +181,8 @@ object ShaderLib {
             "   return sqrt(sumColor / sumWeight);\n" +
             "}\n"
 
-    val colorForceFieldBuffer: FloatBuffer = ByteBuffer
+    val colorForceFieldBuffer: FloatBuffer = ByteBufferPool
         .allocateDirect(4 * maxColorForceFields)
-        .order(ByteOrder.nativeOrder())
         .asFloatBuffer()
 
     val maxUVForceFields = DefaultConfig["objects.attractors.scale.maxCount", 12]

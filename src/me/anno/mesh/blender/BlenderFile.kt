@@ -39,15 +39,25 @@ class BlenderFile(val file: BinaryFile) {
     }
 
     private val firstBlockOffset = file.offset()
+
+    // read blocks
+    val blocks: ArrayList<Block>
+
     init {
-        val code = DNA1
-        // file.offset(firstBlockOffset) // is given automatically
-        val blockHeader = BlockHeader(file)
+        val blocks = ArrayList<Block>()
+        this.blocks = blocks
+        file.offset(firstBlockOffset)
+        var blockHeader = BlockHeader(file)
         while (blockHeader.code != ENDBlock) {
-            if (blockHeader.code == code) break
+            blocks.add(Block(blockHeader, file.index))
             file.skip(blockHeader.size)
-            blockHeader.read(file)
+            blockHeader = BlockHeader(file)
         }
+    }
+
+    init {
+        val offset = blocks.first { it.header.code == DNA1 }.positionInFile
+        file.offset(offset)
     }
 
     init {
@@ -57,7 +67,7 @@ class BlenderFile(val file: BinaryFile) {
 
     // read struct dna
     private val names = Array(file.readInt()) {
-        file.read0String(true)
+        file.read0String()
     }
 
     init {
@@ -66,7 +76,7 @@ class BlenderFile(val file: BinaryFile) {
     }
 
     private val typeNames = Array(file.readInt()) {
-        file.read0String(true)
+        file.read0String()
     }
 
     init {
@@ -87,21 +97,6 @@ class BlenderFile(val file: BinaryFile) {
     }
 
     private val structsWithIndices = Array(file.readInt()) { Struct(file) }
-
-    // read blocks
-    val blocks: ArrayList<Block>
-
-    init {
-        val blocks = ArrayList<Block>()
-        this.blocks = blocks
-        file.offset(firstBlockOffset)
-        var blockHeader = BlockHeader(file)
-        while (blockHeader.code != ENDBlock) {
-            blocks.add(Block(blockHeader, file.clone(), file.index))
-            file.skip(blockHeader.size)
-            blockHeader = BlockHeader(file)
-        }
-    }
 
     val structs: Array<DNAStruct> = Array(structsWithIndices.size) { i ->
         val s = structsWithIndices[i]
@@ -124,14 +119,14 @@ class BlenderFile(val file: BinaryFile) {
         val offHeapAreas = if (version < 276) arrayOf("FileGlobal") else arrayOf("FileGlobal", "TreeStoreElem")
         var indices = IntArray(offHeapAreas.size)
         var length = 0
-        for (structName in offHeapAreas.indices) {
-            val struct = structs.getOrNull(structName)
+        for (index in offHeapAreas.indices) {
+            val struct = structByName[offHeapAreas[index]]
             if (struct == null) LOGGER.warn("List of off-heap areas contains struct name, which does not exist")
             else indices[length++] = struct.index
         }
         // shorten the array, if needed
         if (length < offHeapAreas.size) indices = IntArray(length) { indices[it] }
-        blockTable = BlockTable(blocks.toTypedArray(), indices)
+        blockTable = BlockTable(this, blocks.toTypedArray(), indices)
 
     }
 
@@ -141,19 +136,25 @@ class BlenderFile(val file: BinaryFile) {
     val instances = HashMap<String, ArrayList<BlendData>>(64)
 
     init {
-        for (block in blockTable.sorted) {
+        // println("read blocks, now instantiating:")
+        for (block in blockTable.blockList) {
             val header = block.header
             val code = header.code
             if (!(code == DNA1 || code == ENDBlock || code == TEST)) {
                 val struct = structs[header.sdnaIndex]
                 val blendFields = struct.fields
+                // println("block ${header.address} contains ${header.count}x ${struct.type.name}")
                 if (blendFields.isNotEmpty() && blendFields.first().type.name == "ID") {
                     // maybe we should create multiple instances, if there are multiples
                     val name = struct.type.name
-                    val instance = create(struct, struct.type.name, block, block.header.address)
-                    if (instance != null) {
-                        instances.getOrPut(name) { ArrayList() }
-                            .add(instance)
+                    // println("  $name")
+                    for (i in 0 until header.count) {
+                        val address = block.header.address + struct.type.size * i
+                        val instance = getOrCreate(struct, struct.type.name, block, address)
+                        if (instance != null) {
+                            instances.getOrPut(name) { ArrayList() }
+                                .add(instance)
+                        }
                     }
                 }
             }
@@ -184,27 +185,77 @@ class BlenderFile(val file: BinaryFile) {
         }
     }
 
-    fun create(struct: DNAStruct, clazz: String, block: Block, address: Long): BlendData? {
+    fun getOrCreate(struct: DNAStruct, clazz: String, block: Block, address: Long): BlendData? {
         return objectCache.getOrPut(address) {
-            val position = (address + block.dataOffset).toInt()
-            val data = file.data
-            when (clazz) {
-                "Mesh" -> BMesh(this, struct, data, position)
-                "Material" -> BMaterial(this, struct, data, position)
-                "MVert" -> MVert(this, struct, data, position)
-                "MPoly" -> MPoly(this, struct, data, position)
-                "MLoop" -> MLoop(this, struct, data, position)
-                "MLoopUV" -> MLoopUV(this, struct, data, position)
-                "MEdge" -> MEdge(this, struct, data, position)
-                "ID" -> BID(this, struct, data, position)
-                "Image" -> BImage(this, struct, data, position)
-                // node trees, collections and such may be interesting
-                "CustomData" -> BCustomData(this, struct, data, position)
-                "CustomDataExternal" -> BCustomDataExternal(this, struct, data, position)
-                "CustomDataLayer" -> BCustomDataLayer(this, struct, data, position)
-                "Brush", "bScreen", "wmWindowManager" -> null // idc
-                else -> {
-                    null
+            create(struct, clazz, block, address)
+        }
+    }
+
+    fun create(struct: DNAStruct, clazz: String, block: Block, address: Long): BlendData? {
+        val position = (address + block.dataOffset).toInt()
+        val data = file.data
+        return when (clazz) {
+            "Mesh" -> BMesh(this, struct, data, position)
+            "Material" -> BMaterial(this, struct, data, position)
+            "MVert" -> MVert(this, struct, data, position)
+            "MPoly" -> MPoly(this, struct, data, position)
+            "MLoop" -> MLoop(this, struct, data, position)
+            "MLoopUV" -> MLoopUV(this, struct, data, position)
+            "MLoopCol" -> MLoopCol(this, struct, data, position)
+            "MEdge" -> MEdge(this, struct, data, position)
+            "ID" -> BID(this, struct, data, position)
+            "Image" -> BImage(this, struct, data, position)
+            "Object" -> BObject(this, struct, data, position)
+            "bNodeTree" -> BNodeTree(this, struct, data, position)
+            "Link" -> BLink(this, struct, data, position)
+            "LinkData" -> BLinkData(this, struct, data, position)
+            "ListBase" -> BListBase(this, struct, data, position)
+            "Scene" -> BScene(this, struct, data, position)
+            // node trees, collections and such may be interesting
+            "CustomData" -> BCustomData(this, struct, data, position)
+            "CustomDataExternal" -> BCustomDataExternal(this, struct, data, position)
+            "CustomDataLayer" -> BCustomDataLayer(this, struct, data, position)
+            "Brush", "bScreen", "wmWindowManager" -> null // idc
+            else -> {
+                null
+            }
+        }
+    }
+
+    fun searchReferencesByStructsAtPositions(positions: List<Int>, names: List<String>){
+        val positionsOfInterest = HashSet<Int>()
+        val nextPositions = ArrayList<Pair<Int, String>>()
+        for(i in positions.indices){
+            positionsOfInterest.add(positions[i])
+            nextPositions.add(positions[i] to names[i])
+        }
+        val nio = file.data
+        val limit = nio.capacity() - 7
+        while (nextPositions.isNotEmpty()) {
+            val posPath = nextPositions.removeAt(0)
+            val position = posPath.first
+            val address = blockTable.getAddressAt(position)
+            // println(mat.id.name.substring(2))
+            // val position = mat.position
+            // val address = mat.address
+            // 4 byte alignment is typically given
+            for (searchPosition in 0 until limit step 4) {
+                if (nio.getLong(searchPosition) == address) {
+                    val block = blockTable.getBlockAt(searchPosition)
+                    val typeName = block.getTypeName(this)
+                    val struct = block.getType(this)
+                    val localAddress = searchPosition - block.positionInFile
+                    val localIndex = localAddress / struct.type.size
+                    val localOffset = localAddress % struct.type.size
+                    val field = struct.fields.firstOrNull { it.offset >= localOffset }
+                    if (field != null && field.isPointer) {
+                        val structPosition = searchPosition - localOffset
+                        if (positionsOfInterest.add(structPosition)) {
+                            val newPath = "$typeName[$localIndex].${field.decoratedName}/${posPath.second}"
+                            nextPositions.add(structPosition to newPath)
+                            println("found ref at $newPath")
+                        }
+                    }
                 }
             }
         }

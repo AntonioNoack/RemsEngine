@@ -12,7 +12,7 @@ import org.lwjgl.opengl.GL33.glVertexAttribDivisor
 import java.nio.ByteBuffer
 
 abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
-    ICacheData {
+    ICacheData, Drawable {
 
     constructor(attributes: List<Attribute>) : this(attributes, GL15.GL_STATIC_DRAW)
 
@@ -57,7 +57,7 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
         val newLimit = nio.position().toLong()
         drawLength = (newLimit / stride).toInt()
         nio.flip()
-        val minAcceptedSize = if(allowResize) locallyAllocated / 2 else 0
+        val minAcceptedSize = if (allowResize) locallyAllocated / 2 else 0
         if (locallyAllocated > 0 && newLimit in minAcceptedSize..locallyAllocated) {
             // just keep the buffer
             GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, 0, nio)
@@ -159,7 +159,7 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
         GFX.check()
     }
 
-    open fun draw(shader: Shader) = draw(shader, drawMode)
+    override fun draw(shader: Shader) = draw(shader, drawMode)
     open fun draw(shader: Shader, mode: Int) {
         bind(shader) // defines drawLength
         if (drawLength > 0) {
@@ -182,7 +182,11 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
         if (!isUpToDate) upload(false)
     }
 
-    open fun drawInstanced(shader: Shader, instanceData: Buffer, mode: Int = drawMode) {
+    override fun drawInstanced(shader: Shader, instanceData: Buffer) {
+        drawInstanced(shader, instanceData, drawMode)
+    }
+
+    open fun drawInstanced(shader: Shader, instanceData: Buffer, mode: Int) {
         ensureBuffer()
         instanceData.ensureBuffer()
         bindInstanced(shader, instanceData)
@@ -248,7 +252,7 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
 
     companion object {
 
-        private fun bindAttribute(shader: Shader, attr: Attribute, instanced: Boolean): Boolean {
+        fun bindAttribute(shader: Shader, attr: Attribute, instanced: Boolean): Boolean {
             val instanceDivisor = if (instanced) 1 else 0
             val index = shader.getAttributeLocation(attr.name)
             return if (index > -1) {
@@ -256,7 +260,14 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
                 if (attr.isNativeInt) {
                     glVertexAttribIPointer(index, attr.components, type.glType, attr.stride, attr.offset)
                 } else {
-                    glVertexAttribPointer(index, attr.components, type.glType, type.normalized, attr.stride, attr.offset)
+                    glVertexAttribPointer(
+                        index,
+                        attr.components,
+                        type.glType,
+                        type.normalized,
+                        attr.stride,
+                        attr.offset
+                    )
                 }
                 glVertexAttribDivisor(index, instanceDivisor)
                 glEnableVertexAttribArray(index)
@@ -295,6 +306,7 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
 
         fun invalidateBinding() {
             boundBuffers.fill(0)
+            boundVAO = -1
         }
 
         var allocated = 0L

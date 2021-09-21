@@ -9,7 +9,7 @@ open class ByteImage(
     width: Int, height: Int,
     val channelsInData: Int,
     val data: ByteArray = ByteArray(width * height * 4),
-    hasAlphaChannel: Boolean
+    hasAlphaChannel: Boolean = false
 ) : Image(channelsInData, hasAlphaChannel) {
 
     init {

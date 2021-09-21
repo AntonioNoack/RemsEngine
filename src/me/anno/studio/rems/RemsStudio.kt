@@ -130,8 +130,11 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
 
     // private val LOGGER = LogManager.getLogger(RemsStudio::class)
 
-    override fun onGameInit() {
+    override fun loadConfig() {
         RemsConfig.init()
+    }
+
+    override fun onGameInit() {
         gfxSettings = GFXSettings.get(DefaultConfig["editor.gfx", GFXSettings.LOW.id], GFXSettings.LOW)
         workspace = DefaultConfig["workspace.dir", getReference(OS.documents, configName)]
         checkInstall()

@@ -5,7 +5,7 @@ import me.anno.gpu.ShaderLib.shader3DARGB
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
-import me.anno.utils.input.readNBytes2
+import me.anno.utils.input.Input.readNBytes2
 import me.anno.video.VFrame
 import java.io.InputStream
 
@@ -15,7 +15,7 @@ class ARGBFrame(w: Int, h: Int) : VFrame(w, h, 0) {
 
     override fun load(input: InputStream) {
         val s0 = w * h * 4
-        val data = input.readNBytes2(s0, Texture2D.byteBufferPool[s0, false], true)
+        val data = input.readNBytes2(s0, Texture2D.bufferPool)
         creationLimiter.acquire()
         GFX.addGPUTask(w, h) {
             // the data actually still is argb and shuffling is needed

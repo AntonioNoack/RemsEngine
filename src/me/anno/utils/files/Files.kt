@@ -110,10 +110,10 @@ object Files {
                         in 10..99 -> "%.1f".format(Locale.ENGLISH, (vSaved.toFloat() / divider))
                         else -> v.toString()
                     }
-                } ${prefix}B$suffix"
+                } ${prefix}${suffix}B"
             }
         }
-        return "$v ${endings.last()}B$suffix"
+        return "$v ${endings.last()}${suffix}B"
     }
 
     fun File.listFiles2(includeHiddenFiles: Boolean = OS.isWindows) = listFiles()?.filter {

@@ -17,7 +17,7 @@ class VOXLayer(var name: String) {
     fun toEntityPrefab(prefab: Prefab, meshes: List<FileReference>, index: Int) {
         val name = name.ifEmpty { "Layer $index" }
         val entity = prefab.add(CAdd(Path.ROOT_PATH, 'e', "Entity", name), index)
-        prefab.add(CSet(entity, "name", name))
+        prefab.setUnsafe(entity, "name", name)
         for ((childIndex, node) in nodes.withIndex()) {
             node.toEntityPrefab(
                 prefab, meshes, entity,

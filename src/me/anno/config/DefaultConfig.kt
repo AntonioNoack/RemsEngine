@@ -34,7 +34,7 @@ object DefaultConfig : StringMap() {
 
     private val LOGGER = LogManager.getLogger(DefaultConfig::class)
 
-    lateinit var style: Style
+    var style: Style = Style("","")
 
     var createDefaults: (config: DefaultConfig) -> Unit = {}
 

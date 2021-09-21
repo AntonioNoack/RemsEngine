@@ -1,5 +1,6 @@
 package me.anno.io.utils
 
+import me.anno.Engine
 import me.anno.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.gpu.GFX.gameTime
@@ -322,7 +323,7 @@ open class StringMap(
     fun saveMaybe(name: String) {
         if (wasChanged) {
             synchronized(this) {
-                if (gameTime - lastSaveTime >= saveDelay) {// only save every 1s
+                if (gameTime - lastSaveTime >= saveDelay || Engine.shutdown) {// only save every 1s
                     // delay in case it needs longer
                     lastSaveTime = gameTime + 60_000_000_000L
                     savingQueue += {

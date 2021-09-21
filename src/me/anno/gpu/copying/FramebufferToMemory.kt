@@ -1,16 +1,23 @@
 package me.anno.gpu.copying
 
+import me.anno.engine.ECSRegistry
 import me.anno.gpu.GFX
 import me.anno.gpu.RenderState.useFrame
+import me.anno.gpu.drawing.DrawGradients
 import me.anno.gpu.drawing.DrawTextures
+import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.packAlignment
+import me.anno.gpu.texture.Texture2D.Companion.unpackAlignment
 import me.anno.image.raw.IntImage
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.Color
+import me.anno.utils.OS
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL11.glClearColor
 import java.awt.image.BufferedImage
 import java.nio.ByteBuffer
 import kotlin.math.min
@@ -126,15 +133,15 @@ object FramebufferToMemory {
         val wi = GFX.width
         val hi = GFX.height
 
-        val buffer = Texture2D.byteBufferPool[wi * hi * 4, false]
+        val buffer = Texture2D.bufferPool[wi * hi * 4, false]
 
         if (clearColor != null) {
-            GL11.glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w)
+            glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w)
         }
 
         GFX.check()
 
-        packAlignment(4 * wi)
+        packAlignment(width)
 
         useFrame(0, 0, wi, hi, false, null, Renderer.colorRenderer) {
 
@@ -164,8 +171,27 @@ object FramebufferToMemory {
 
         }
 
-        Texture2D.byteBufferPool.returnBuffer(buffer)
+        Texture2D.bufferPool.returnBuffer(buffer)
 
+    }
+
+    @JvmStatic
+    fun main(args: Array<String>) {
+        // test odd widths
+        // fixed the bug :)
+        val s = 31
+        ECSRegistry.initWithGFX(s + s.and(1))
+        val fb = FBStack["", s, s, 4, false, 1]
+        useFrame(fb) {
+            val black = 255 shl 24
+            // random color, so we can observe changes in the preview icon
+            val color = (Math.random() * (1 shl 24)).toInt() or 0x333333
+            DrawGradients.drawRectGradient(
+                0, 0, s, s, color or black, black
+            )
+        }
+        val image = createImage(fb, false, withAlpha = false)
+        image.write(getReference(OS.desktop, "odd.png"))
     }
 
 }

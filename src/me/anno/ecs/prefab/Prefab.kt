@@ -6,16 +6,17 @@ import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Change
 import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
-import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.serialization.NotSerializedProperty
 import me.anno.utils.LOGGER
 import me.anno.utils.files.LocalFile.toGlobalFile
-import org.joml.Vector3d
 
+// todo allow to make immutable
+// todo and send a warning: instantiate to make mutable
 class Prefab : Saveable {
 
     constructor() : super()
@@ -30,19 +31,33 @@ class Prefab : Saveable {
 
     var clazzName: String? = null
 
-    var adds: List<CAdd>? = null
-    var sets: List<CSet>? = null
+    var adds: List<CAdd> = emptyList()
+    var sets: List<CSet> = emptyList()
 
     var prefab: FileReference = InvalidRef
     var wasCreatedFromJson = false
     var source: FileReference = InvalidRef
 
-    fun createLists() {
-        if (adds == null) adds = ArrayList()
-        if (sets == null) sets = ArrayList()
+    fun invalidate() {
+        isValid = false
+    }
+
+    @NotSerializedProperty
+    var isWritable = true
+        private set
+
+    fun sealFromModifications() {
+        isWritable = false
+        // make adds and sets immutable?
+    }
+
+    fun ensureMutableLists() {
+        if (adds !is MutableList) adds = ArrayList(adds)
+        if (sets !is MutableList) sets = ArrayList(sets)
     }
 
     fun addAll(changes: Collection<Change>) {
+        if (!isWritable) throw ImmutablePrefabException(source)
         for (change in changes) {
             add(change)
         }
@@ -51,14 +66,14 @@ class Prefab : Saveable {
     fun getPrefabOrSource() = prefab.nullIfUndefined() ?: source
 
     fun countTotalChanges(): Int {
-        var sum = adds?.size ?: 0
+        var sum = adds.size
         if (prefab != InvalidRef) sum += loadPrefab(prefab)?.countTotalChanges() ?: 0
-        for (change in adds ?: return sum) {
+        for (change in adds) {
             if (change.prefab != InvalidRef) {
                 sum += loadPrefab(change.prefab)?.countTotalChanges() ?: 0
             }
         }
-        sum += sets?.size ?: 0
+        sum += sets.size
         return sum
     }
 
@@ -73,35 +88,61 @@ class Prefab : Saveable {
         return add(change).getChildPath(index)
     }
 
+    fun set(path: Path, name: String, value: Any?) {
+        add(CSet(path, name, value))
+    }
+
+    /**
+     * does not check, whether the change already exists;
+     * it assumes, that it does not yet exist
+     * */
+    fun setUnsafe(path: Path, name: String, value: Any?) {
+        ensureMutableLists()
+        (sets as MutableList).add(CSet(path, name, value))
+    }
+
+    fun add(path: Path, type: Char, clazzName: String) {
+        add(CAdd(path, type, clazzName))
+    }
+
+    fun add(path: Path, type: Char, clazzName: String, index: Int): Path {
+        return add(CAdd(path, type, clazzName), index)
+    }
+
     fun <V : Change> add(change: V): V {
+        if (!isWritable) throw ImmutablePrefabException(source)
         when (change) {
             is CAdd -> {
-                if (adds == null) createLists()
+                ensureMutableLists()
                 (adds as MutableList).add(change)
                 isValid = false
             }
             is CSet -> {
-                if (sets == null) createLists()
-                (sets as MutableList).add(change)
-                // apply to sample instance to keep it valid
-                if (sampleInstance != null && isValid) {
-                    change.apply(sampleInstance!!, null)
+                ensureMutableLists()
+                if (sets.none {
+                        if (it.path == change.path && it.name == change.name) {
+                            it.value = change.value
+                            true
+                        } else false
+                    }) {
+                    (sets as MutableList).add(change)
                 }
+                // apply to sample instance to keep it valid
+                updateSample(change)
             }
             else -> LOGGER.warn("Unknown change type")
         }
         return change
     }
 
-    fun setProperty(key: String, value: Any?) {
-        if (sets == null) sets = ArrayList()
-        val sets = sets as MutableList
-        val change = CSet(ROOT_PATH, key, value)
-        sets.removeIf { it.path.isEmpty() && it.name == key }
-        sets.add(change)
+    private fun updateSample(change: CSet) {
         if (sampleInstance != null && isValid) {
             change.apply(sampleInstance!!, null)
         }
+    }
+
+    fun setProperty(name: String, value: Any?) {
+        set(ROOT_PATH, name, value)
     }
 
     private var sampleInstance: PrefabSaveable? = null
@@ -116,6 +157,7 @@ class Prefab : Saveable {
     }
 
     override fun readString(name: String, value: String?) {
+        if (!isWritable) throw ImmutablePrefabException(source)
         when (name) {
             "prefab" -> prefab = value?.toGlobalFile() ?: InvalidRef
             "className" -> clazzName = value
@@ -124,6 +166,7 @@ class Prefab : Saveable {
     }
 
     override fun readFile(name: String, value: FileReference) {
+        if (!isWritable) throw ImmutablePrefabException(source)
         when (name) {
             "prefab" -> prefab = value
             else -> super.readFile(name, value)
@@ -131,6 +174,7 @@ class Prefab : Saveable {
     }
 
     override fun readObjectArray(name: String, values: Array<ISaveable?>) {
+        if (!isWritable) throw ImmutablePrefabException(source)
         when (name) {
             "changes" -> {
                 adds = values.filterIsInstance<CAdd>()
@@ -143,6 +187,7 @@ class Prefab : Saveable {
     }
 
     override fun readObject(name: String, value: ISaveable?) {
+        if (!isWritable) throw ImmutablePrefabException(source)
         when (name) {
             "history" -> history = value as? ChangeHistory ?: return
             else -> super.readObject(name, value)
@@ -167,10 +212,10 @@ class Prefab : Saveable {
     }
 
     override val className: String = "Prefab"
-    override val approxSize: Int = 100_000_000
+    override val approxSize: Int = 1_000_000_000
 
     override fun isDefaultValue(): Boolean =
-        (adds == null || adds!!.isEmpty()) && prefab == InvalidRef && history == null
+        adds.isEmpty() && sets.isEmpty() && prefab == InvalidRef && history == null
 
     companion object {
         // private val LOGGER = LogManager.getLogger(Prefab::class)

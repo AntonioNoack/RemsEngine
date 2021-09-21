@@ -9,10 +9,13 @@ import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.SerializedProperty
+import me.anno.utils.types.AABBs.transformUnion
 import org.apache.logging.log4j.LogManager
+import org.joml.AABBd
+import org.joml.Matrix4x3d
 
 
-// todo (file) references to meshes and animations inside mesh files
+// done (file) references to meshes and animations inside mesh files
 //      - bird.fbx:anim:walk
 //      - bird.fbx:mesh:wings
 // todo static storage of things, e.g. for retargeting
@@ -23,18 +26,6 @@ import org.apache.logging.log4j.LogManager
 // todo packages are mods/plugins, which are just installed with dependencies?
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// todo MeshComponent + MeshRenderComponent (+ AnimatableComponent) = animated skeleton
-
-// todo ui components, because we want everything to be ecs -> reuse our existing stuff? maybe
-
-// todo in a game, there are assets, so
-// todo - we need to pack assets
-// todo - it would be nice, if FileReferences could point to local files as well
-// todo always ship the editor with the game? would make creating mods easier :)
-// (and cheating, but there always will be cheaters, soo...)
-
-// todo custom shading environment, so we can easily convert every shader into something clickable
-// todo also make it deferred / forward/backward compatible
 
 
 open class MeshComponent() : Component() {
@@ -64,6 +55,16 @@ open class MeshComponent() : Component() {
     // far into the future:
     // todo instanced animations for hundreds of humans:
     // todo bake animations into textures, and use indices + weights
+
+    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
+        val mesh = MeshCache[mesh]
+        if (mesh != null) {
+            // add aabb of that mesh with the transform
+            mesh.ensureBuffer()
+            mesh.aabb.transformUnion(globalTransform, aabb)
+        }
+        return true
+    }
 
     fun draw(shader: Shader, materialIndex: Int) {
         MeshCache[mesh]?.draw(shader, materialIndex)

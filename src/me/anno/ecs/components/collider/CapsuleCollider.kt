@@ -3,6 +3,7 @@ package me.anno.ecs.components.collider
 import com.bulletphysics.collision.shapes.CapsuleShape
 import com.bulletphysics.collision.shapes.CollisionShape
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.gui.LineShapes
 import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.types.Vectors.setAxis
 import org.joml.AABBd
@@ -52,7 +53,37 @@ class CapsuleCollider : Collider() {
     }
 
     override fun drawShape() {
-        // todo draw a capsule
+        // todo test this
+        // todo only draw if selected or collider debug mode
+        // todo color based on physics / trigger (?)
+        val h = height * 0.5
+        val r = radius
+        when (axis) {
+            0 -> {
+                LineShapes.drawLine(entity, -h, -r, 0.0, +h, -r, 0.0)
+                LineShapes.drawLine(entity, -h, +r, 0.0, +h, +r, 0.0)
+                LineShapes.drawLine(entity, -h, 0.0, -r, +h, 0.0, -r)
+                LineShapes.drawLine(entity, -h, 0.0, +r, +h, 0.0, +r)
+                LineShapes.drawSphere(entity, r, Vector3d(-h, 0.0, 0.0))
+                LineShapes.drawSphere(entity, r, Vector3d(+h, 0.0, 0.0))
+            }
+            1 -> {
+                LineShapes.drawLine(entity, -r, -h, 0.0, -r, +h, 0.0)
+                LineShapes.drawLine(entity, +r, -h, 0.0, +r, +h, 0.0)
+                LineShapes.drawLine(entity, 0.0, -h, -r, 0.0, +h, -r)
+                LineShapes.drawLine(entity, 0.0, -h, +r, 0.0, +h, +r)
+                LineShapes.drawSphere(entity, r, Vector3d(0.0, -h, 0.0))
+                LineShapes.drawSphere(entity, r, Vector3d(0.0, +h, 0.0))
+            }
+            2 -> {
+                LineShapes.drawLine(entity, -r, 0.0, -h, -r, 0.0, +h)
+                LineShapes.drawLine(entity, +r, 0.0, -h, +r, 0.0, +h)
+                LineShapes.drawLine(entity, 0.0, -r, -h, 0.0, -r, +h)
+                LineShapes.drawLine(entity, 0.0, +r, -h, 0.0, +r, +h)
+                LineShapes.drawSphere(entity, r, Vector3d(0.0, 0.0, -h))
+                LineShapes.drawSphere(entity, r, Vector3d(0.0, 0.0, +h))
+            }
+        }
     }
 
     override fun clone(): CapsuleCollider {

@@ -2,7 +2,6 @@ package me.anno.audio
 
 import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
 import me.anno.audio.effects.Time
-import me.anno.audio.openal.SoundBuffer
 import me.anno.io.files.FileReference
 import me.anno.objects.Audio
 import me.anno.objects.Camera
@@ -10,6 +9,7 @@ import me.anno.objects.modes.LoopingState
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
+import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.ShortBuffer
 import java.util.concurrent.atomic.AtomicBoolean
@@ -87,16 +87,14 @@ abstract class AudioStream(
 
     var isPlaying = false
 
-    val buffers = ArrayList<SoundBuffer>()
-
     fun requestNextBuffer(bufferIndex: Long, session: Int) {
 
         isWaitingForBuffer.set(true)
         AudioStreamRaw.taskQueue += {// load all data async
 
-            val byteBuffer = bufferPool[bufferSize * 2 * 2, false]
+            val sb0 = bufferPool[bufferSize * 2 * 2, false]
                 .order(ByteOrder.nativeOrder())
-            val stereoBuffer = byteBuffer.asShortBuffer()
+            val stereoBuffer = sb0.asShortBuffer()
 
             val floats = AudioFXCache.getBuffer(bufferIndex, this, false)!!
 
@@ -110,7 +108,9 @@ abstract class AudioStream(
 
             stereoBuffer.position(0)
 
-            onBufferFilled(stereoBuffer, bufferIndex, session)
+            if (onBufferFilled(stereoBuffer, sb0, bufferIndex, session)) {
+                bufferPool.returnBuffer(sb0)
+            }
 
         }
 
@@ -129,6 +129,9 @@ abstract class AudioStream(
         }
     }
 
-    abstract fun onBufferFilled(stereoBuffer: ShortBuffer, bufferIndex: Long, session: Int)
+    /**
+     * has to return, whether the buffer can be freed
+     * */
+    abstract fun onBufferFilled(stereoBuffer: ShortBuffer, sb0: ByteBuffer, bufferIndex: Long, session: Int): Boolean
 
 }

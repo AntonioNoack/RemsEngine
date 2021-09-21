@@ -128,7 +128,7 @@ object Raycast {
         val localDistance = collider.raycast(localStart, localDir, localNormal, maxDistance)
         // result is ignored, if we already are inside that collider
         // todo this behaviour probably should be customizable
-        return if (localDistance > 0f && localDistance < maxDistance) {
+        return if (localDistance in 0f .. maxDistance) {
             result.setFromLocal(
                 globalTransform,
                 localStart, localDir, localDistance, localNormal,

@@ -7,8 +7,13 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.pipeline.M4x3Delta.m4x3delta
+import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.AABBs.avgX
+import me.anno.utils.types.AABBs.avgY
+import me.anno.utils.types.AABBs.avgZ
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4d
+import org.joml.Matrix4x3d
 
 object Outlines {
 
@@ -37,6 +42,8 @@ object Outlines {
     }
 
     fun drawOutline(meshComponent: MeshComponent, mesh: Mesh, worldScale: Double) {
+
+        // todo respect alpha somehow?
 
         val entity = meshComponent.entity ?: return
         val transform0 = entity.transform
@@ -77,18 +84,24 @@ object Outlines {
             LOGGER.info("Outlines issue: $scaledMax from ${RenderView.cameraMatrix} * translate($camPosition) * $transform")
         }
 
-        val scale = 1f + 0.01f / ((scaledMax.x + scaledMax.y).toFloat() * 0.5f)
+        val scaleExtra = 0.01f / ((scaledMax.x + scaledMax.y).toFloat() * 0.5f)
+        val scale = 1f + scaleExtra
+
+        // the mesh may not be centered:
+        // center the outline-mesh
+        val offsetCorrectedTransform = JomlPools.mat4x3d.borrow().set(transform)
+        val fac = -scaleExtra.toDouble()
+        // translate local or global?
+        offsetCorrectedTransform.translate(aabb.avgX() * fac, aabb.avgY() * fac, aabb.avgZ() * fac)
 
         if (scale < 1e10f) {
 
-            // todo if not outline, respect the materials
-            // todo or always respect them, and just override the textures?
             val baseShader = ShaderLib.monochromeModelShader
             val shader = baseShader.value
             shader.use()
             shader.m4x4("transform", RenderView.cameraMatrix)
 
-            shader.m4x3delta("localTransform", transform, camPosition, worldScale, scale)
+            shader.m4x3delta("localTransform", offsetCorrectedTransform, camPosition, worldScale, scale)
             shader.v4("tint", -1)
 
             meshComponent.defineVertexTransform(shader, entity, mesh)

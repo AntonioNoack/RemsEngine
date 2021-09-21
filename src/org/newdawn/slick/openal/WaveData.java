@@ -13,6 +13,7 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
+import me.anno.utils.pooling.ByteBufferPool;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.LWJGLUtil;
@@ -62,16 +63,17 @@ public class WaveData {
         return AudioSystem.getAudioInputStream(is);
     }
 
-    public static WaveData create(InputStream is, int frameCount) {
+    /*public static WaveData create(InputStream is, int frameCount) {
         try {
-            new WaveReader(is, frameCount);
-            return create(getAudioInputStream(is), frameCount);
+            // new WaveReader(is, frameCount);
+            WaveReader.INSTANCE.readWAV(is, frameCount);
+            // return create(getAudioInputStream(is), frameCount);
         } catch (Exception e) {
             LOGGER.warn("Unable to create from inputstream", e);
             e.printStackTrace();
             return null;
         }
-    }
+    }*/
 
     public static WaveData create(InputStream is) {
         try {
@@ -154,30 +156,30 @@ public class WaveData {
 
         try {
             ais.close();
-        } catch (IOException e) { }
+        } catch (IOException ignored) { }
 
         return wavedata;
     }
 
     private static ByteBuffer convertAudioBytes(byte[] audio_bytes, boolean two_bytes_data) {
-        ByteBuffer dest = ByteBuffer.allocateDirect(audio_bytes.length);
-        dest.order(ByteOrder.nativeOrder());
-        ByteBuffer src = ByteBuffer.wrap(audio_bytes);
-        src.order(ByteOrder.LITTLE_ENDIAN);
-        if (two_bytes_data) {
-            ShortBuffer dest_short = dest.asShortBuffer();
-            ShortBuffer src_short = src.asShortBuffer();
+        ByteBuffer dest = ByteBufferPool.Companion.allocateDirect(audio_bytes.length);
+        // the source is little endian, correct?
+        if(ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN || !two_bytes_data){
 
-            while(src_short.hasRemaining()) {
-                dest_short.put(src_short.get());
-            }
+            // it's fine from the start
+            dest.put(audio_bytes);
+
         } else {
-            while(src.hasRemaining()) {
-                dest.put(src.get());
-            }
-        }
 
-        dest.rewind();
+            ByteBuffer src = ByteBuffer.wrap(audio_bytes);
+            src.order(ByteOrder.LITTLE_ENDIAN);
+
+            ShortBuffer dest_short = dest.asShortBuffer();
+            dest_short.put(src.asShortBuffer());
+
+        }
+        dest.flip();
         return dest;
+
     }
 }

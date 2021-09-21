@@ -77,7 +77,7 @@ object SubpixelLayout {
             g = mean(gs)
             b = mean(bs)
 
-            val mean = Vector2f(r).add(g).add(b)
+            val mean = Vector2f(r).add(g).add(b).div(3f)
             r.sub(mean)
             g.sub(mean)
             b.sub(mean)

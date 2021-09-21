@@ -112,6 +112,7 @@ class LoggerImpl(val prefix: String?) : Logger, Log {
         thrown.printStackTrace()
     }
 
+    // todo only print repeating warnings once every ... 5s or sth like that
     override fun warn(msg: String) {
         print("WARN", msg)
     }

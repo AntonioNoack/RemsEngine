@@ -37,6 +37,7 @@ object ECSShaderLib {
         for (i in 0 until Renderers.MAX_CUBEMAP_LIGHTS) {
             textures.add("shadowMapCubic$i")
         }
+        pbrModelShader.ignoreUniformWarnings(textures)
         pbrModelShader.setTextureIndices(textures)
         pbrModelShader.glslVersion = 330
 

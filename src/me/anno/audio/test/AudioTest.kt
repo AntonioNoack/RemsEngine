@@ -1,7 +1,6 @@
 package me.anno.audio.test
 
 import me.anno.audio.openal.*
-import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.studio.StudioBase
 import me.anno.utils.OS
@@ -67,7 +66,7 @@ fun testSingleBuffer(){
     val source = SoundSource(true, true)
     source.setPosition(Vector3f(0f, 0f, 0f))
     source.setVelocity(Vector3f(0f, 0f, 0f))
-    source.setBuffer(buffer.buffer)
+    source.setBuffer(buffer.pointer)
 
     source.play()
 }

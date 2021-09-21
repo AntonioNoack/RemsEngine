@@ -1,6 +1,7 @@
 package me.anno.image;
 
 import me.anno.gpu.texture.Texture2D;
+import me.anno.image.raw.IntImage;
 import me.anno.io.files.FileReference;
 
 import javax.imageio.ImageIO;
@@ -50,6 +51,17 @@ public abstract class Image {
         return height;
     }
 
+    public IntImage createIntImage() {
+        int[] data = new int[width * height];
+        IntImage image = new IntImage(width, height, data, hasAlphaChannel);
+        int width = getWidth();
+        int height = getHeight();
+        for (int i = 0, size = width * height; i < size; i++) {
+            data[i] = getRGB(i);
+        }
+        return image;
+    }
+
     public BufferedImage createBufferedImage() {
         BufferedImage image = new BufferedImage(width, height, hasAlphaChannel ? 2 : 1);
         int width = getWidth();
@@ -64,7 +76,7 @@ public abstract class Image {
 
     public void createRGBFrom3StridedData(Texture2D texture, boolean checkRedundancy, byte[] data) {
         // add a padding for alpha, because OpenGL needs it that way
-        ByteBuffer buffer = Texture2D.Companion.getByteBufferPool().get(width * height * 4, false);
+        ByteBuffer buffer = Texture2D.Companion.getBufferPool().get(width * height * 4, false);
         for (int j = 0, k = 0, l = width * height * 3; k < l; ) {
             buffer.put(j++, (byte) 255);// a
             buffer.put(j++, data[k++]);// r
@@ -77,6 +89,14 @@ public abstract class Image {
     public abstract int getRGB(int index);
 
     public int getRGB(int x, int y) {
+        return getRGB(x + y * width);
+    }
+
+    public int getSafeRGB(int x, int y) {
+        if (x < 0) x = 0;
+        else if (x >= width) x = width - 1;
+        if (y < 0) y = 0;
+        else if (y >= height) y = height - 1;
         return getRGB(x + y * width);
     }
 

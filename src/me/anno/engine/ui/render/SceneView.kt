@@ -15,6 +15,7 @@ class SceneView(val library: ECSTypeLibrary, style: Style) : PanelStack(style) {
     init {
         add(renderer)
         add(controls)
+        renderer.controlScheme = controls
     }
 
 }

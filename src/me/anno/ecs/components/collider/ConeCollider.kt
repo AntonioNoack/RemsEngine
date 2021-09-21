@@ -6,6 +6,8 @@ import com.bulletphysics.collision.shapes.ConeShapeX
 import com.bulletphysics.collision.shapes.ConeShapeZ
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.gui.LineShapes
+import me.anno.engine.gui.LineShapes.drawCone
 import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.maths.Maths.length
 import me.anno.utils.types.Vectors.setAxis
@@ -65,14 +67,18 @@ class ConeCollider : Collider() {
     override fun createBulletShape(scale: Vector3d): CollisionShape {
         return when (axis) {
             0 -> ConeShapeX(radius * scale.y, height * scale.x)
-            1 -> ConeShape(radius * scale.x, height * scale.y)
             2 -> ConeShapeZ(radius * scale.x, height * scale.z)
-            else -> throw RuntimeException()
+            else -> ConeShape(radius * scale.x, height * scale.y)
         }
     }
 
     override fun drawShape() {
-        // todo draw cone shape
+        // todo check whether they are correct (the same as the physics behaviour)
+        when (axis) {
+            0 -> drawCone(entity, radius, radius, height, 0.0, LineShapes.zToX)
+            1 -> drawCone(entity, radius, radius, height, 0.0, LineShapes.zToY)
+            2 -> drawCone(entity, radius, radius, height, 0.0, null)
+        }
     }
 
     override fun clone(): ConeCollider {

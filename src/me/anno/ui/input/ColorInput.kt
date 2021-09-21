@@ -48,7 +48,7 @@ class ColorInput(
     private val titleView = TitlePanel(title, contentView, style)
     private val previewField = PreviewField(titleView, 2, style)
         .apply {
-            setSimpleClickListener { openColorChooser() }
+            addLeftClickListener { openColorChooser() }
             color = oldValue.toARGB() or black
         }
 

@@ -20,6 +20,10 @@ class InnerPrefabFile(
     val text = lazy { TextWriter.toText(prefab) }
     val bytes = lazy { text.value.toByteArray() }
 
+    // it's a prefab, not a zip; never ever
+    override fun isSerializedFolder(): Boolean = false
+    override fun listChildren(): List<FileReference>? = null
+
     override fun readText() = text.value
     override fun readBytes() = bytes.value
 

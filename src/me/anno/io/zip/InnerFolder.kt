@@ -1,6 +1,7 @@
 package me.anno.io.zip
 
 import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.PrefabReadable
 import me.anno.image.Image
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -121,6 +122,17 @@ open class InnerFolder(
         val relativePath = getSubName(name)
         return registry?.getOrPut(relativePath) { createStreamChild(name, content, null) }
             ?: InnerStreamFile("$absolutePath/$name", relativePath, this, content)
+    }
+
+    fun sealPrefabs() {
+        for (child in listChildren()) {
+            if (child is PrefabReadable) {
+                child.readPrefab().sealFromModifications()
+            }
+            if (child is InnerFolder) {
+                child.sealPrefabs()
+            }
+        }
     }
 
 }

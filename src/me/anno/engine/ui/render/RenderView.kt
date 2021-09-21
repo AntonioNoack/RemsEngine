@@ -18,8 +18,11 @@ import me.anno.engine.debug.DebugShapes.debugPoints
 import me.anno.engine.debug.DebugShapes.debugRays
 import me.anno.engine.gui.PlaneShapes
 import me.anno.engine.pbr.DeferredRenderer
+import me.anno.engine.physics.BulletPhysics
 import me.anno.engine.ui.ECSTypeLibrary
-import me.anno.engine.ui.ECSTypeLibrary.Companion.lastSelection
+import me.anno.engine.ui.control.ControlScheme
+import me.anno.engine.ui.render.DefaultSun.defaultSun
+import me.anno.engine.ui.render.DefaultSun.defaultSunEntity
 import me.anno.engine.ui.render.DrawAABB.drawAABB
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.MovingGrid.drawGrid
@@ -63,7 +66,7 @@ import me.anno.input.Input.isKeyDown
 import me.anno.input.Input.isShiftDown
 import me.anno.studio.Build
 import me.anno.ui.base.Panel
-import me.anno.ui.editor.sceneView.Gizmos
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.style.Style
 import me.anno.utils.Clock
 import me.anno.utils.maths.Maths.clamp
@@ -75,6 +78,14 @@ import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.joml.Math.toRadians
 import org.lwjgl.opengl.GL45.*
+
+
+// todo import mesh/material/... for modifications:
+// todo create material, mesh, animation etc folder
+// todo rename Scene.json to mesh file name.json
+// todo ask for additional folder, inside project
+
+
 
 // done shadows
 // todo usable editing of materials: own color + indent + super material selector
@@ -96,13 +107,13 @@ import org.lwjgl.opengl.GL45.*
 // todo drag stuff onto surfaces using raytracing
 // todo or drag and keep it in the same distance
 
-// todo controls
+// done controls
 // done show the scene
-// todo drag stuff
+// done drag stuff
 // todo translate, rotate, scale with gizmos
 
 // done render in different modes: overdraw, color blindness, normals, color, before-post-process, with-post-process
-// todo nice ui for that: drop down menues at top or bottom
+// todo nice ui for that: drop down menus at top or bottom
 
 // todo blend between multiple cameras, only allow 2? yes :)
 
@@ -112,6 +123,9 @@ import org.lwjgl.opengl.GL45.*
 
 // todo reinhard tonemapping works often, but not always: {0,1}³ does not work, add spilling somehow
 // todo also maybe it should be customizable...
+
+
+// todo different control schemes of the camera like in MagicaVoxel
 
 class RenderView(
     val library: ECSTypeLibrary,
@@ -128,6 +142,7 @@ class RenderView(
     // not really required, since our universe just has a scale of 1e-10 (~ size of an atom) - 1e28 (~ size of the observable universe) meters
 
 
+
     // todo buttons:
     // todo start game -> always in new tab, so we can make changes while playing
     // todo stop game
@@ -136,6 +151,12 @@ class RenderView(
 
     // todo create the different pipeline stages: opaque, transparent, post-processing, ...
 
+    // todo make this camera properties
+    var bloomStrength = 0.5f
+    var bloomOffset = 10f
+    val useBloom get() = bloomOffset > 0f
+
+    var controlScheme: ControlScheme? = null
 
     // can exist (game/game mode), but does not need to (editor)
     // todo in the editor it becomes the prefab for a local player -> ui shall always be placed in the local player
@@ -148,7 +169,6 @@ class RenderView(
 
     var selectedAttribute = 0
 
-    // todo different control schemes of the camera like in MagicaVoxel
     var radius = 50.0
     val worldScale get() = if (isKeyDown('f')) 1.0 else 1.0 / radius
     var position = Vector3d()
@@ -207,6 +227,7 @@ class RenderView(
     }
 
     val clock = Clock()
+    private var lastPhysics: BulletPhysics? = null
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
@@ -216,6 +237,10 @@ class RenderView(
         // currently I see no ghosting...
         if (isKeyDown('v')) Thread.sleep(250)
 
+        if (lastPhysics != getWorld().physics) {
+            library.syncMaster.nextSession()
+            lastPhysics = getWorld().physics
+        }
 
         // todo go through the rendering pipeline, and render everything
 
@@ -267,7 +292,7 @@ class RenderView(
         clock.stop("initialization", 0.05)
 
         prepareDrawScene(w / 2f, h / 2f, w, h, aspect, camera, camera, 1f)
-        if (pipeline.hasTooManyLights()) useDeferredRendering = true
+        if (pipeline.hasTooManyLights() || useBloom) useDeferredRendering = true
 
         clock.stop("preparing", 0.05)
 
@@ -294,6 +319,13 @@ class RenderView(
             DrawTexts.drawSimpleTextCharByChar(
                 x, y, 2,
                 if (showIds) "IDs" else DeferredLayerType.values()[selectedAttribute].glslName
+            )
+        }
+
+        if (useDeferredRendering) {
+            DrawTexts.drawSimpleTextCharByChar(
+                x + w, y, 2,
+                "DEFERRED", AxisAlignment.MAX
             )
         }
 
@@ -384,11 +416,6 @@ class RenderView(
                 // todo post processing could do screen space reflections :)
 
 
-                val bloomStrength = 0.5f
-                val bloomOffset = 10f
-
-                val useBloom = bloomOffset > 0f
-
                 // use the existing depth buffer for the 3d ui
                 val dstBuffer0 = baseSameDepth
 
@@ -400,6 +427,7 @@ class RenderView(
                         val shader = PipelineLightStage.getPostShader(deferred)
                         shader.use()
                         shader.v1("applyToneMapping", false)
+                        shader.v3("ambientLight", pipeline.ambient)
 
                         lightBuffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                         buffer.bindTextures(1, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
@@ -524,11 +552,13 @@ class RenderView(
         val ids = Screenshots.getPixels(diameter, 0, 0, px2, py2, buffer, idRenderer) {
             drawScene(w, h, camera, camera, 0f, idRenderer, buffer, changeSize = false, true)
             drawGizmos(camPosition, false)
+            controlScheme?.drawGizmos()
         }
 
         val depths = Screenshots.getPixels(diameter, 0, 0, px2, py2, buffer, depthRenderer) {
             drawScene(w, h, camera, camera, 0f, depthRenderer, buffer, changeSize = false, true)
             drawGizmos(camPosition, false)
+            controlScheme?.drawGizmos()
         }
 
         val clickedId = Screenshots.getClosestId(diameter, ids, depths, if (reverseDepth) -10 else +10)
@@ -578,7 +608,7 @@ class RenderView(
         world.invalidateVisibility()
 
         val blend = clamp(blending, 0f, 1f).toDouble()
-        val blendFloat = blend.toFloat()
+        val blendF = blend.toFloat()
 
         val near = mix(previousCamera.near, camera.near, blend)
         val far = mix(previousCamera.far, camera.far, blend)
@@ -588,10 +618,13 @@ class RenderView(
         val rot0 = t0.getUnnormalizedRotation(tmpRot0)
         val rot1 = t1.getUnnormalizedRotation(tmpRot1)
 
+        bloomOffset = mix(previousCamera.bloomOffset, camera.bloomOffset, blendF)
+        bloomStrength = mix(previousCamera.bloomStrength, camera.bloomStrength, blendF)
+
         if (!rot0.isFinite) rot0.identity()
         if (!rot1.isFinite) rot1.identity()
 
-        val rotInv = rot0.slerp(rot1, blendFloat)
+        val rotInv = rot0.slerp(rot1, blendF)
         val rot = rot1.set(rotInv).conjugate() // conjugate is quickly inverting, when already normalized
 
         val fovYRadians = toRadians(fov)
@@ -648,6 +681,11 @@ class RenderView(
         pipeline.disableReflectionCullingPlane()
         pipeline.ignoredEntity = null
         pipeline.fill(world, camPosition, worldScale)
+        if (pipeline.lightPseudoStage.size <= 0 && pipeline.ambient.dot(1f, 1f, 1f) <= 0f) {
+            // define lights, so we can see something
+            pipeline.ambient.set(0.5f)
+            pipeline.lightPseudoStage.add(defaultSun, defaultSunEntity)
+        }
         entityBaseClickId = pipeline.lastClickId
 
     }
@@ -771,25 +809,6 @@ class RenderView(
         // draw scaled, inverted object (for outline), which is selected
         RenderState.depthMode.use(depthMode) {
             RenderState.cullMode.use(GL_FRONT) { // inverse cull mode
-                for (selected in library.selection) {
-                    when (selected) {
-                        is Entity -> {
-                            // todo draw gizmos depending on mode
-                            // println("drawing translate gizmos")
-                            val transform = selected.transform.globalTransform
-                            val pos = transform.getTranslation(JomlPools.vec3d.create()).sub(camPosition)
-                            Gizmos.drawTranslateGizmos(
-                                cameraMatrix,
-                                pos,// mul world scale?
-                                10.0, -12
-                            )
-                            JomlPools.vec3d.sub(1)
-                        }
-                        else -> {
-                            LOGGER.info("todo draw selected: ${selected.javaClass.simpleName}")
-                        }
-                    }
-                }
                 for (selected in library.fineSelection) {
                     when (selected) {
                         is Entity -> drawOutline(selected, worldScale)
@@ -876,7 +895,7 @@ class RenderView(
                     // only draw the circle, if its size is larger than ~ a single pixel
                     if (doDrawCircle) {
                         scale = globalTransform.getScale(scaleV).dot(0.3, 0.3, 0.3)
-                        val ringColor = if (entity == lastSelection) selectedColor else white4
+                        val ringColor = if (entity == ECSTypeLibrary.lastSelection) selectedColor else white4
                         // PlaneShapes.drawCircle(globalTransform, ringColor.toARGB())
                         // Transform.drawUICircle(stack, 0.5f / scale.toFloat(), 0.7f, ringColor)
                     }
@@ -884,7 +903,7 @@ class RenderView(
                     val components = entity.components
                     for (i in components.indices) {
                         val component = components[i]
-                        if (component !is MeshComponent) {
+                        if (component !is MeshComponent && component.isEnabled) {
                             // mesh components already got their id
                             val componentClickId = clickId++
                             component.clickId = componentClickId

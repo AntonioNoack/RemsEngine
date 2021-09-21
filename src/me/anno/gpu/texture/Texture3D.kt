@@ -5,7 +5,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.TextureLib.invisibleTexture
 import me.anno.gpu.texture.Texture2D.Companion.activeSlot
 import me.anno.gpu.texture.Texture2D.Companion.bindTexture
-import me.anno.gpu.texture.Texture2D.Companion.byteBufferPool
+import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.gpu.texture.Texture2D.Companion.packAlignment
 import me.anno.gpu.texture.Texture2D.Companion.textureBudgetTotal
 import me.anno.gpu.texture.Texture2D.Companion.textureBudgetUsed
@@ -108,13 +108,13 @@ class Texture3D(val w: Int, val h: Int, val d: Int) : ICacheData {
         ensurePointer()
         forceBind()
         GFX.check()
-        val byteBuffer = byteBufferPool[data.size, false]
+        val byteBuffer = bufferPool[data.size, false]
         byteBuffer.position(0)
         byteBuffer.put(data)
         byteBuffer.position(0)
         packAlignment(1)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, w, h, d, 0, GL11.GL_RED, GL_UNSIGNED_BYTE, byteBuffer)
-        byteBufferPool.returnBuffer(byteBuffer)
+        bufferPool.returnBuffer(byteBuffer)
         isCreated = true
         filtering(isFilteredNearest)
         GFX.check()
@@ -122,7 +122,7 @@ class Texture3D(val w: Int, val h: Int, val d: Int) : ICacheData {
 
     fun create(data: FloatArray) {
         if (w * h * d * 4 != data.size) throw RuntimeException("incorrect size!")
-        val byteBuffer = byteBufferPool[data.size * 4, false]
+        val byteBuffer = bufferPool[data.size * 4, false]
         byteBuffer.order(ByteOrder.nativeOrder())
         byteBuffer.position(0)
         val floatBuffer = byteBuffer.asFloatBuffer()
@@ -138,7 +138,7 @@ class Texture3D(val w: Int, val h: Int, val d: Int) : ICacheData {
         // rgba32f as internal format is extremely important... otherwise the value is cropped
         packAlignment(1)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, w, h, d, 0, GL_RGBA, GL_FLOAT, floatBuffer)
-        byteBufferPool.returnBuffer(byteBuffer)
+        bufferPool.returnBuffer(byteBuffer)
         isCreated = true
         filtering(isFilteredNearest)
         GFX.check()
@@ -149,13 +149,13 @@ class Texture3D(val w: Int, val h: Int, val d: Int) : ICacheData {
         ensurePointer()
         forceBind()
         GFX.check()
-        val byteBuffer = byteBufferPool[data.size, false]
+        val byteBuffer = bufferPool[data.size, false]
         byteBuffer.position(0)
         byteBuffer.put(data)
         byteBuffer.position(0)
         packAlignment(1)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer)
-        byteBufferPool.returnBuffer(byteBuffer)
+        bufferPool.returnBuffer(byteBuffer)
         isCreated = true
         filtering(isFilteredNearest)
         GFX.check()

@@ -71,7 +71,7 @@ fun main() {
 fun walkingTest() {
     val loader = AnimatedMeshesLoader
     val (_, prefab) = loader.readAsFolder2(getReference(downloads, "fbx/simple pack anims/Walking.fbx"))
-    for (change in prefab.adds!!) {
+    for (change in prefab.adds) {
         println(change)
     }
 }

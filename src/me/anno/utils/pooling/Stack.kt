@@ -46,6 +46,10 @@ class Stack<V : Any>(
         return storage.get().create()
     }
 
+    fun reset() {
+        storage.get().index = 0
+    }
+
     fun borrow(): V {
         return storage.get().borrow()
     }

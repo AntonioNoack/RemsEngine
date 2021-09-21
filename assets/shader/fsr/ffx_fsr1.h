@@ -427,18 +427,22 @@ A_STATIC void FsrEasuConOffset(
   AF2 p1=p0+(con2.xy);
   AF2 p2=p0+(con2.zw);
   AF2 p3=p0+(con3.xy);
-  AF4 bczzR=FsrEasuRF(p0);
-  AF4 bczzG=FsrEasuGF(p0);
-  AF4 bczzB=FsrEasuBF(p0);
-  AF4 ijfeR=FsrEasuRF(p1);
-  AF4 ijfeG=FsrEasuGF(p1);
-  AF4 ijfeB=FsrEasuBF(p1);
-  AF4 klhgR=FsrEasuRF(p2);
-  AF4 klhgG=FsrEasuGF(p2);
-  AF4 klhgB=FsrEasuBF(p2);
-  AF4 zzonR=FsrEasuRF(p3);
-  AF4 zzonG=FsrEasuGF(p3);
-  AF4 zzonB=FsrEasuBF(p3);
+  AF4 alpha0 = FsrEasuAF(p0);
+  AF4 bczzR=FsrEasuRF(p0,alpha0);
+  AF4 bczzG=FsrEasuGF(p0,alpha0);
+  AF4 bczzB=FsrEasuBF(p0,alpha0);
+  AF4 alpha1 = FsrEasuAF(p1);
+  AF4 ijfeR=FsrEasuRF(p1,alpha1);
+  AF4 ijfeG=FsrEasuGF(p1,alpha1);
+  AF4 ijfeB=FsrEasuBF(p1,alpha1);
+  AF4 alpha2 = FsrEasuAF(p2);
+  AF4 klhgR=FsrEasuRF(p2,alpha2);
+  AF4 klhgG=FsrEasuGF(p2,alpha2);
+  AF4 klhgB=FsrEasuBF(p2,alpha2);
+  AF4 alpha3 = FsrEasuAF(p3);
+  AF4 zzonR=FsrEasuRF(p3,alpha3);
+  AF4 zzonG=FsrEasuGF(p3,alpha3);
+  AF4 zzonB=FsrEasuBF(p3,alpha3);
 //------------------------------------------------------------------------------------------------------------------------------
   // Simplest multi-channel approximate luma possible (luma times 2, in 2 FMA/MAD).
   AF4 bczzL=bczzB*AF4_(0.5)+(bczzR*AF4_(0.5)+bczzG);

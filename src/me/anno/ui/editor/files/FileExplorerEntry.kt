@@ -3,11 +3,13 @@ package me.anno.ui.editor.files
 import me.anno.audio.openal.AudioTasks
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultStyle.black
+import me.anno.ecs.components.shaders.effects.FSR
 import me.anno.fonts.FontManager
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.clip2Dual
 import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.TextureLib.whiteTexture
+import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx3D
@@ -46,6 +48,7 @@ import me.anno.utils.image.ImageScale.scale
 import me.anno.utils.io.Streams.copy
 import me.anno.utils.maths.Maths.mixARGB
 import me.anno.utils.maths.Maths.sq
+import me.anno.utils.strings.StringHelper.setNumber
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.VFrame
@@ -56,7 +59,13 @@ import java.nio.file.Files
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
+// todo when is audio, and hovered, we need to draw the loading animation continuously as well
+
+// todo right click to get all meta information? (properties panel in windows)
+
+// todo images: show extra information: width, height
 class FileExplorerEntry(
     private val explorer: FileExplorer,
     val isParent: Boolean, val file: FileReference, style: Style
@@ -68,11 +77,11 @@ class FileExplorerEntry(
 
     // todo .lnk files for windows
     // todo .url files
-    // todo icons from exe files?
+    // todo icons from exe files
 
     // done icons for 3d meshes
-    // todo icons for project files
-    // todo asset files like unity, and then icons for them? (we want a unity-like engine, just with Kotlin)
+    // done icons for project files
+    // done asset files like unity, and then icons for them? (we want a unity-like engine, just with Kotlin)
 
 
     // done load fbx files
@@ -150,9 +159,9 @@ class FileExplorerEntry(
         super.calculateSize(w, h)
         val size = size
         minW = size
-        minH = size * 4 / 3
-        this.w = size
-        this.h = size * 4 / 3
+        minH = size + (titlePanel.font.sizeInt * 5 / 2)
+        this.w = minW
+        this.h = minH
     }
 
     override fun getLayoutState(): Any? = titlePanel.getLayoutState()
@@ -189,6 +198,7 @@ class FileExplorerEntry(
                     maxFrameIndex = max(1, (previewFPS * meta.videoDuration).toInt())
                     time = 0.0
                     frameIndex = if (isHovered) {
+                        invalidateDrawing()
                         if (startTime == 0L) {
                             startTime = GFX.gameTime
                             val audio = Video(file)
@@ -227,8 +237,12 @@ class FileExplorerEntry(
         // we can use FSR to upsample the images LOL
         val x = x0 + (w - iw) / 2
         val y = y0 + (h - ih) / 2
-        // FSR.upscale(image, x, y, iw, ih) ^^, but sadly, it doesn't work well with alpha
-        drawTexture(x, y, iw, ih, image, -1, null)
+        if (image is Texture2D) image.filtering = GPUFiltering.LINEAR
+        if (iw > image.w && ih > image.h) {
+            FSR.upscale(image, x, y, iw, ih, false, backgroundColor)// ^^
+        } else {
+            drawTexture(x, y, iw, ih, image, -1, null)
+        }
     }
 
     private fun getDefaultIcon() = getInternalTexture(iconPath, true)
@@ -278,19 +292,19 @@ class FileExplorerEntry(
         }
     }
 
+    fun getFrame(offset: Int) = getVideoFrame(
+        file, scale, frameIndex + offset,
+        videoBufferLength, previewFPS, 1000, true
+    )
+
     private fun drawVideo(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         // todo something with the states is broken...
         // todo only white is visible, even if there should be colors...
 
-        val bufferLength = 64
-        fun getFrame(offset: Int) = getVideoFrame(
-            file, scale, frameIndex + offset,
-            bufferLength, previewFPS, 1000, true
-        )
 
         val image = getFrame(0)
-        if (frameIndex > 0) getFrame(bufferLength)
+        if (frameIndex > 0) getFrame(videoBufferLength)
         if (image != null && image.isCreated) {
             drawTexture(
                 GFX.windowWidth, GFX.windowHeight,
@@ -298,6 +312,41 @@ class FileExplorerEntry(
             )
             drawCircle(x0, y0, x1, y1)
         } else drawDefaultIcon(x0, y0, x1, y1)
+
+        // show video progress on playback, e.g. hh:mm:ss/hh:mm:ss
+        if (h >= 3 * titlePanel.font.sizeInt) {
+            val meta = FFMPEGMetadata.getMeta(file, true)
+            if (meta != null) {
+
+                val totalSeconds = (meta.videoDuration).roundToInt()
+                val needsHours = totalSeconds >= 3600
+                val seconds = max((frameIndex / previewFPS).toInt(), 0) % max(totalSeconds, 1)
+
+                val format = if (needsHours) charHHMMSS else charMMSS
+                if (needsHours) {
+                    setNumber(15, totalSeconds % 60, format)
+                    setNumber(12, (totalSeconds / 60) % 60, format)
+                    setNumber(9, totalSeconds / 3600, format)
+                    setNumber(6, seconds % 60, format)
+                    setNumber(3, (seconds / 60) % 60, format)
+                    setNumber(0, seconds / 3600, format)
+                } else {
+                    setNumber(9, totalSeconds % 60, format)
+                    setNumber(6, (totalSeconds / 60) % 60, format)
+                    setNumber(3, seconds % 60, format)
+                    setNumber(0, seconds / 60, format)
+                }
+
+                // more clip space, and draw it a little more left and at the top
+                val extra = padding / 2
+                clip2Dual(
+                    x0 - extra, y0 - extra, x1, y1,
+                    this.lx0, this.ly0, this.lx1, this.ly1
+                ) { _, _, _, _ ->
+                    drawSimpleTextCharByChar(x + padding - extra, y + padding - extra, 1, format)
+                }
+            }
+        }
     }
 
     private fun drawThumb(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -306,13 +355,16 @@ class FileExplorerEntry(
         }
         when (importType) {
             // todo audio preview???
+            // todo animation preview: draw the animated skeleton
             "Video", "Audio" -> {
                 val meta = meta
                 if (meta != null) {
                     if (meta.videoWidth > 0) {
                         if (time == 0.0) { // not playing
                             drawImageOrThumb(x0, y0, x1, y1)
-                        } else drawVideo(x0, y0, x1, y1)
+                        } else {
+                            drawVideo(x0, y0, x1, y1)
+                        }
                     } else {
                         drawDefaultIcon(x0, y0, x1, y1)
                         drawCircle(x0, y0, x1, y1)
@@ -324,9 +376,11 @@ class FileExplorerEntry(
     }
 
     private var lines = 0
+    private var padding = 0
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
-        tooltip = file.name
+        tooltip = file.name + "\n" +
+                file.length().formatFileSize()
 
         drawBackground()
 
@@ -342,7 +396,7 @@ class FileExplorerEntry(
         val extraHeight = h - w
         lines = max(ceil(extraHeight / fontSize).toInt(), 1)
 
-        val padding = w / 20
+        padding = w / 20
 
         // why not twice the padding?????
         // only once centers it...
@@ -366,7 +420,7 @@ class FileExplorerEntry(
             x + padding,
             y + h - padding - textH,
             x + remainingW,
-            y + h - padding,
+            y + h/* - padding*/, // only apply the padding, when not playing video?
             ::drawText
         )
     }
@@ -381,9 +435,9 @@ class FileExplorerEntry(
         titlePanel.backgroundColor = backgroundColor and 0xffffff
         val deltaX = ((x1 - x0) - titlePanel.minW) / 2 // centering the text
         titlePanel.x = x0 + max(0, deltaX)
-        titlePanel.y = y0
+        titlePanel.y = max(y0, (y0 + y1 - titlePanel.minH) / 2)
         titlePanel.w = x1 - x0
-        titlePanel.h = y1 - y0
+        titlePanel.h = titlePanel.minH
         titlePanel.drawText()
     }
 
@@ -533,6 +587,11 @@ class FileExplorerEntry(
 
     companion object {
 
+        val videoBufferLength = 64
+
+        private val charHHMMSS = "hh:mm:ss/hh:mm:ss".toCharArray()
+        private val charMMSS = "mm:ss/mm:ss".toCharArray()
+
         val dontDelete
             get() = MenuOption(
                 NameDesc(
@@ -581,7 +640,9 @@ class FileExplorerEntry(
             val r = 1f - sq(relativeTime * 2 - 1)
             val radius = min(y1 - y0, x1 - x0) / 2f
             GFXx2D.drawCircle(
-                (x0 + x1) / 2, (y0 + y1) / 2, radius, radius, 0f, relativeTime * 360f * 4 / 3, relativeTime * 360f * 2,
+                (x0 + x1) / 2, (y0 + y1) / 2, radius, radius, 0f,
+                relativeTime * 360f * 4 / 3,
+                relativeTime * 360f * 2,
                 Vector4f(1f, 1f, 1f, r * 0.2f)
             )
         }

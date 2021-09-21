@@ -10,6 +10,10 @@ import org.lwjgl.opengl.GL31.glDrawElementsInstanced
 import org.lwjgl.opengl.GL33
 import org.lwjgl.system.MemoryUtil
 
+/**
+ * indexed rendering from a time, when we only needed 1 indexing buffer at maximum per geometry data
+ * the times have changes, so now we use multiple IndexBuffers with one Buffer
+ * */
 class IndexedStaticBuffer(
     attributes: List<Attribute>,
     vertexCount: Int,
@@ -78,7 +82,7 @@ class IndexedStaticBuffer(
             // consider using 'GL_UNSIGNED_SHORT' instead, source: API, type: PERFORMANCE, id: 102, severity: MEDIUM
             /*maxIndex < 256 -> {
                 elementsType = GL_UNSIGNED_BYTE
-                val buffer = ByteBuffer.allocateDirect(indices.size)
+                val buffer = ByteBufferPool.allocate(indices.size)
                 for (i in indices) buffer.put(i.toByte())
                 buffer.flip()
                 GL30.glBufferData(GL30.GL_ELEMENT_ARRAY_BUFFER, buffer, usage)
@@ -113,6 +117,10 @@ class IndexedStaticBuffer(
         glDrawElements(mode, indices.size, elementsType, 0)
     }
 
+    override fun drawInstanced(shader: Shader, instanceData: Buffer) {
+        drawInstanced(shader, instanceData, drawMode)
+    }
+
     override fun drawInstanced(shader: Shader, instanceData: Buffer, mode: Int) {
         instanceData.ensureBuffer()
         bindInstanced(shader, instanceData)
@@ -144,17 +152,6 @@ class IndexedStaticBuffer(
             }
         }
         elementVBO = -1
-    }
-
-    companion object {
-        /*fun join(buffers: List<IndexedStaticBuffer>): IndexedStaticBuffer? {
-            if (buffers.isEmpty()) return null
-            val vertexCount = buffers.sumOf { it.vertexCount }
-            val sample = buffers.first()
-            val joint = IndexedStaticBuffer(sample.attributes, vertexCount)
-            for (buffer in buffers) joint.put(buffer)
-            return joint
-        }*/
     }
 
 }

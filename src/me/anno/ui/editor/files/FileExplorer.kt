@@ -20,6 +20,7 @@ import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.scrolling.ScrollPanelY
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.files.FileExplorerEntry.Companion.deleteFileMaybe
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
@@ -31,10 +32,23 @@ import me.anno.utils.maths.Maths.pow
 import me.anno.utils.structures.Compare.ifDifferent
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
+import kotlin.math.roundToInt
+
+// todo file change watcher
+// todo also watch mesh files, e.g. for parallel tinkering e.g. in Blender with meshes :)
+// todo if we can work together with Blender nicely, we can skip a lot of own mesh generation :)
+// https://docs.oracle.com/javase/tutorial/essential/io/notification.html
+// http://jnotify.sourceforge.net/
+
+
+// done, kind of: zoom: keep mouse at item in question
+// done change side ratio based on: border + 1:1 frame + 2 lines of text
+// todo dynamically change aspect ratio based on content for better coverage?
+
 
 // done the text size is quite small on my x360 -> get the font size for the ui from the OS :)
 // todo double click is not working in touch mode?
-// todo make file path clickable to quickly move to a grandparent folder :)
+// done make file path clickable to quickly move to a grandparent folder :)
 
 // todo buttons for filters, then dir name, search over it?, ...
 // todo drag n drop; links or copy?
@@ -362,12 +376,34 @@ abstract class FileExplorer(
         }
     }
 
+    var hoveredItemIndex = 0
+    var hoverFractionY = 0f
+
+    override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
+        super.onMouseMoved(x, y, dx, dy)
+        if (!Input.isControlDown) {
+            // find which item is being hovered
+            hoveredItemIndex = content.getItemIndexAt(x, y)
+            hoverFractionY = clamp(content.getItemFractionY(y), 0.25f, 0.75f)
+        }
+    }
+
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
         if (Input.isControlDown) {
-            entrySize = clamp(entrySize * pow(1.05f, dy), minEntrySize, max(w / 2f, 20f))
+            entrySize = clamp(
+                entrySize * pow(1.05f, dy),
+                minEntrySize,
+                max(w - content.spacing * 2f - 1f, 20f)
+            )
             val esi = entrySize.toInt()
             content.childWidth = esi
-            content.childHeight = esi * 4 / 3
+            // define the aspect ratio by 2 lines of space for the name
+            val sample = content.firstOfAll { it is TextPanel } as? TextPanel
+            val sampleFont = sample?.font ?: style.getFont("text", DefaultConfig.defaultFont)
+            val textSize = sampleFont.sizeInt
+            content.childHeight = esi + (textSize * 2.5f).roundToInt()
+            // scroll to hoverItemIndex, hoverFractionY
+            content.scrollTo(hoveredItemIndex, hoverFractionY)
         } else super.onMouseWheel(x, y, dx, dy)
     }
 

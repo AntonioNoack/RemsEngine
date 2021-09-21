@@ -63,6 +63,8 @@ abstract class StudioBase(
     val versionName =
         addSuffix("${versionNumber / 10000}.${(versionNumber / 100) % 100}.${versionNumber % 100}", versionSuffix)
 
+    abstract fun loadConfig()
+
     abstract fun createUI()
 
     open fun onGameLoopStart() {}
@@ -139,11 +141,13 @@ abstract class StudioBase(
 
         tick("logging")
 
-        tick("loading ui")
-
         GFX.gameInit = this::gameInit
         GFX.gameLoop = this::onGameLoop
         GFX.onShutdown = this::onShutdown
+
+        loadConfig()
+
+        tick("config")
 
         GFX.run()
 

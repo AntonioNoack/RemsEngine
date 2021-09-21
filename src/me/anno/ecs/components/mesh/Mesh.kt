@@ -6,15 +6,13 @@ import me.anno.ecs.components.cache.MaterialCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.GFX
-import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.AttributeType
-import me.anno.gpu.buffer.IndexedStaticBuffer
-import me.anno.gpu.buffer.StaticBuffer
+import me.anno.gpu.buffer.*
 import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.shader.Shader
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
+import me.anno.io.serialization.SerializedProperty
 import me.anno.mesh.FindLines
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.objects.GFXTransform
@@ -24,6 +22,7 @@ import me.anno.utils.types.AABBs.set
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL11.GL_LINES
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -100,12 +99,13 @@ class Mesh : PrefabSaveable() {
     @HideInInspector
     var indices: IntArray? = null
 
-    // todo allow multiple materials? should make our life easier :), we just need to split the indices...
-    // todo filter file references for a specific type...
+    // allow multiple materials? should make our life easier :), we just need to split the indices...
+    // todo filter file references for a specific type for ui
+    @SerializedProperty
     @Type("List<Material/Reference>")
     var materials: List<FileReference> = defaultMaterials
 
-    @Type("Material")
+    @HideInInspector
     var material: FileReference?
         get() = materials.getOrNull(0)
         set(value) {
@@ -117,6 +117,9 @@ class Mesh : PrefabSaveable() {
      * one index per triangle
      * */
     var materialIndices: IntArray? = null
+
+    var numMaterials = 1
+
     private var helperMeshes: Array<Mesh?>? = null
 
     // to allow for quads, and strips and such
@@ -156,6 +159,7 @@ class Mesh : PrefabSaveable() {
         // buffer
         clone.needsMeshUpdate = needsMeshUpdate
         clone.buffer = buffer
+        clone.triBuffer = triBuffer
         clone.hasUVs = hasUVs
         clone.hasVertexColors = hasVertexColors
         clone.hasBonesInBuffer = hasBonesInBuffer
@@ -256,7 +260,10 @@ class Mesh : PrefabSaveable() {
     private var buffer: StaticBuffer? = null
 
     @NotSerializedProperty
-    private var lineBuffer: StaticBuffer? = null
+    private var triBuffer: IndexBuffer? = null
+
+    @NotSerializedProperty
+    private var lineBuffer: IndexBuffer? = null
 
     fun forEachPoint(onlyFaces: Boolean, callback: (x: Float, y: Float, z: Float) -> Unit) {
         val positions = positions ?: return
@@ -282,7 +289,7 @@ class Mesh : PrefabSaveable() {
     fun forEachTriangleIndex(callback: (a: Int, b: Int, c: Int) -> Unit) {
         val indices = indices
         if (indices == null) {
-            for (i in 0 until positions!!.size / 3) {
+            for (i in 0 until positions!!.size / 9) {
                 val i3 = i * 3
                 callback(i3 + 0, i3 + 1, i3 + 2)
             }
@@ -443,9 +450,8 @@ class Mesh : PrefabSaveable() {
         }
 
         // todo reuse the old buffer, if the size matches
-        val buffer =
-            if (indices == null) StaticBuffer(attributes, pointCount)
-            else IndexedStaticBuffer(attributes, pointCount, indices)
+        val buffer = StaticBuffer(attributes, pointCount)
+        val triBuffer = if (indices != null) IndexBuffer(buffer, indices) else null
 
         for (i in 0 until pointCount) {
 
@@ -467,7 +473,8 @@ class Mesh : PrefabSaveable() {
             if (hasUVs) {
 
                 if (uvs != null && uvs.size > i2 + 1) {
-                    buffer.put(uvs[i2], uvs[i2 + 1])
+                    buffer.put(uvs[i2])
+                    buffer.put(1f - uvs[i2 + 1]) // todo in the future flip the textures instead
                 } else buffer.put(0f, 0f)
 
                 if (tangents != null) {
@@ -528,17 +535,21 @@ class Mesh : PrefabSaveable() {
         val hasMultipleMaterials = materialIndices != null && materialIndices.any { it != first && it >= 0 }
         if (hasMultipleMaterials) {
             createHelperMeshes(materialIndices!!)
-        } else destroyHelperMeshes()
+        } else {
+            destroyHelperMeshes()
+            numMaterials = 1
+        }
 
         // LOGGER.info("Flags($name): size: ${buffer.vertexCount}, colors? $hasColors, uvs? $hasUVs, bones? $hasBones")
 
-        // todo reuse old buffer as well
         val lineBuffer = if (drawLines) {
             val lineIndices = lineIndices ?: FindLines.findLines(indices, positions)
             if (lineIndices != null) {
                 this.lineIndices = lineIndices
-                // todo register second set of indices for a indexed buffer... or generally for a buffer...
-                null
+                // todo reuse old buffer as well
+                val lineBuffer = IndexBuffer(buffer, lineIndices)
+                lineBuffer.drawMode = GL_LINES
+                lineBuffer
             } else null
         } else null
 
@@ -547,24 +558,29 @@ class Mesh : PrefabSaveable() {
 
         this.buffer?.destroy()
         this.buffer = buffer
+        this.triBuffer?.destroy()
+        this.triBuffer = triBuffer
 
     }
 
     private fun createHelperMeshes(materialIndices: IntArray) {
-        // todo test this function
-        // todo maybe via vox files :), those can have multiple materials in the same mesh (when we implement it)
+        // todo use the same geometry data buffers: allow different index buffers per buffer
+        // lines, per-material, all-together
         // creating separate buffers on the gpu,
         // split indices / data, would be of advantage here
         val length = materialIndices.maxOrNull()!! + 1
+        if (length == 1) return
         if (drawMode != GL11.GL_TRIANGLES) throw IllegalStateException("Multi-material meshes only supported on triangle meshes; got $drawMode")
         if (length > 1000) throw IllegalStateException("Material Id must be less than 1000!")
         val helperMeshes = arrayOfNulls<Mesh>(length)
         val indices = indices
+        val materials = materials
         for (materialId in 0 until length) {
             if (materialIndices.any { it == materialId }) {
                 val mesh = Mesh()
                 copy(mesh)
                 mesh.material = materials.getOrNull(materialId)
+                mesh.materialIndices = null
                 val triangles = materialIndices.count { it == materialId }
                 val partialIndices = IntArray(triangles * 3)
                 var j = 0
@@ -590,9 +606,13 @@ class Mesh : PrefabSaveable() {
                     }
                 }
                 mesh.indices = partialIndices
+                mesh.checkCompleteness()
+                mesh.invalidateGeometry()
+                helperMeshes[materialId] = mesh
             }// else mesh not required
         }
         this.helperMeshes = helperMeshes
+        numMaterials = length
     }
 
     private fun destroyHelperMeshes() {
@@ -617,10 +637,19 @@ class Mesh : PrefabSaveable() {
     }
 
     fun draw(shader: Shader, materialIndex: Int) {
-        // todo respect the material index: only draw what belongs to the material
         ensureBuffer()
-        buffer?.draw(shader)
-        lineBuffer?.draw(shader)
+        // respect the material index: only draw what belongs to the material
+        val helperMeshes = helperMeshes
+        if (helperMeshes != null) {
+            helperMeshes
+                .getOrNull(materialIndex)
+                ?.draw(shader, 0)
+        } else {
+            if (materialIndex == 0) {
+                (triBuffer ?: buffer)?.draw(shader)
+                lineBuffer?.draw(shader)
+            }
+        }
     }
 
     /*fun drawLines(shader: Shader, materialIndex: Int) {
@@ -629,23 +658,35 @@ class Mesh : PrefabSaveable() {
     }*/
 
     fun drawDepth(shader: Shader) {
+        // all materials are assumed to behave the same
+        // when we have vertex shaders by material, this will become wrong...
         ensureBuffer()
-        buffer?.draw(shader)
+        // buffer?.draw(shader)
+        (triBuffer ?: buffer)?.draw(shader)
     }
 
-    fun drawInstanced(shader: Shader, materialIndex: Int, instanceData: StaticBuffer) {
-        // todo respect the material index: only draw what belongs to the material
+    fun drawInstanced(shader: Shader, materialIndex: Int, instanceData: Buffer) {
         GFX.check()
         ensureBuffer()
-        buffer?.drawInstanced(shader, instanceData)
+        // respect the material index: only draw what belongs to the material
+        val helperMeshes = helperMeshes
+        if (helperMeshes != null) {
+            helperMeshes
+                .getOrNull(materialIndex)
+                ?.drawInstanced(shader, 0, instanceData)
+        } else {
+            if (materialIndex == 0) {
+                (triBuffer ?: buffer)?.drawInstanced(shader, instanceData)
+            }
+        }
         GFX.check()
     }
 
-    fun drawInstancedDepth(shader: Shader, instanceData: StaticBuffer) {
+    fun drawInstancedDepth(shader: Shader, instanceData: Buffer) {
         // draw all materials
         GFX.check()
         ensureBuffer()
-        buffer?.drawInstanced(shader, instanceData)
+        (triBuffer ?: buffer)?.drawInstanced(shader, instanceData)
         GFX.check()
     }
 

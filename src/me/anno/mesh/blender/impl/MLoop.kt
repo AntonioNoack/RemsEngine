@@ -6,6 +6,10 @@ import java.nio.ByteBuffer
 
 class MLoop(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
     BlendData(file, type, buffer, position) {
-    val v = int("v")
-    val e = int("e")
+
+    private val vOffset = getOffset("v")
+    private val eOffset = getOffset("e")
+
+    val v get() = int(vOffset)
+    val e get() = int(eOffset)
 }

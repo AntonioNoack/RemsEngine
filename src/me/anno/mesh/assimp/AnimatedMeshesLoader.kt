@@ -6,10 +6,10 @@ import me.anno.ecs.components.anim.BoneByBoneAnimation
 import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.mesh.Mesh.Companion.MAX_WEIGHTS
 import me.anno.ecs.components.mesh.MorphTarget
+import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
-import me.anno.ecs.prefab.Prefab
 import me.anno.io.NamedSaveable
 import me.anno.io.Saveable
 import me.anno.io.files.FileReference
@@ -147,7 +147,6 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
 
             val nodeCache = createNodeCache(rootNode)
             val animMap = loadAnimations(name, aiScene, nodeCache, boneMap)
-            skeleton.setProperty("animations", animMap)
             for (animation in animMap.values) animation.skeleton = skeletonPath
 
             // create a animation node to show the first animation
@@ -155,14 +154,16 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                 val anim = CAdd(Path.ROOT_PATH, 'c', "AnimRenderer")
                 val animPath = anim.getChildPath(0)
                 hierarchy.add(anim)
-                hierarchy.add(CSet(animPath, "skeleton", skeletonPath))
-                hierarchy.add(CSet(animPath, "animation", animMap.values.first()))
+                hierarchy.setUnsafe(animPath, "skeleton", skeletonPath)
+                hierarchy.setUnsafe(animPath, "animation", animMap.values.first())
             }
 
             correctBonePositions(name, rootNode, boneList, boneMap)
 
             val animList = animMap.values.toList()
-            createReferences(root, "animations", animList)
+            val animRefs = createReferences(root, "animations", animList)
+            skeleton.setUnsafe(Path.ROOT_PATH, "animations", animRefs.associateBy { it.nameWithoutExtension })
+            animRefs
 
         } else emptyList()
 
@@ -171,6 +172,8 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
             val sample = animationReferences.first()
             root.createTextChild("Scene.json", sample.readText())
         } else root.createPrefabChild("Scene.json", hierarchy)
+
+        root.sealPrefabs()
 
         return root to hierarchy
     }
@@ -262,7 +265,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
             for (index in instances.indices) {
                 val instance = instances[index]
                 references += if (instance is Prefab) {
-                    val name = instance.sets!!
+                    val name = instance.sets
                         .firstOrNull { it.path.isEmpty() && it.name == "name" }?.value?.toString() ?: ""
                     val nameOrIndex = name.ifEmpty { "$index" }
                     val fileName = findNextFileName(meshFolder, nameOrIndex, "json", 3, '-')
@@ -279,14 +282,14 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
     }
 
     private fun addSkeleton(hierarchyPrefab: Prefab, skeleton: Prefab, skeletonPath: FileReference): Prefab {
-        val adds = hierarchyPrefab.adds!!
+        val adds = hierarchyPrefab.adds
         for (change in adds) {
             if (change.clazzName == "AnimRenderer") {
                 val indexInEntity = adds
                     .filter { it.path == change.path }
                     .indexOfFirst { it === change }
                 val name = "skeleton"
-                hierarchyPrefab.add(CSet(change.path.added(name, indexInEntity, 'c'), name, skeletonPath))
+                hierarchyPrefab.setUnsafe(change.path.added(name, indexInEntity, 'c'), name, skeletonPath)
             }
         }
         return skeleton

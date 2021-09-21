@@ -36,11 +36,11 @@ class VOXNode {
             for (i in models) {
                 val mesh = meshes[i]
                 val meshComponent = prefab.add(CAdd(path, 'c', "MeshComponent", mesh.name), i)
-                prefab.add(CSet(meshComponent, "mesh", mesh))
+                prefab.setUnsafe(meshComponent, "mesh", mesh)
             }
         }
         if (px != 0.0 || py != 0.0 || pz != 0.0) {
-            prefab.add(CSet(path, "position", Vector3d(px, py, pz)))
+            prefab.setUnsafe(path, "position", Vector3d(px, py, pz))
             // rotation is found, but looks wrong in the price of persia sample
         }
         val children = children

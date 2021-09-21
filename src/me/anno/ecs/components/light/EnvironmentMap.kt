@@ -25,11 +25,10 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.AABBs.transformUnion
 import me.anno.utils.types.Matrices.rotate2
 import org.apache.logging.log4j.LogManager
-import org.joml.Math
-import org.joml.Quaterniond
-import org.joml.Vector3d
+import org.joml.*
 import org.lwjgl.opengl.GL11.*
 import kotlin.math.PI
 
@@ -79,6 +78,13 @@ class EnvironmentMap : LightComponentBase() {
     var autoUpdate = true
 
     var samples = 1
+
+    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
+        val mesh = PointLight.cubeMesh
+        mesh.ensureBuffer()
+        mesh.aabb.transformUnion(globalTransform, aabb)
+        return true
+    }
 
     override fun onVisibleUpdate() {
         super.onVisibleUpdate()
@@ -231,7 +237,7 @@ class EnvironmentMap : LightComponentBase() {
                 1 -> rot3.rotateY(-PI * 0.5)
                 2 -> rot3.rotateX(+PI * 0.5)
                 3 -> rot3.rotateX(-PI * 0.5)
-                // 4 done automatically
+                // 4 is already correct
                 5 -> rot3.rotateY(PI)
             }
         }

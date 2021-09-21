@@ -19,6 +19,7 @@ import me.anno.gpu.pipeline.PipelineStage.Companion.getDrawMatrix
 import me.anno.gpu.texture.ITexture2D
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.utils.types.AABBs.clear
+import me.anno.utils.types.AABBs.transformUnion
 import me.anno.utils.types.Matrices.mirror
 import me.anno.utils.types.Matrices.mul2
 import me.anno.utils.types.Vectors.toVector3f
@@ -48,6 +49,14 @@ class PlanarReflection : LightComponentBase() {
 
     var bothSided = true
 
+    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
+        // todo if not both-sided, use half-cubes
+        val mesh = PointLight.cubeMesh
+        mesh.ensureBuffer()
+        mesh.aabb.transformUnion(globalTransform, aabb)
+        return true
+    }
+
     fun draw(
         pipeline: Pipeline, w: Int, h: Int,
         cameraMatrix: Matrix4f, cameraPosition: Vector3d, camRotation: Quaterniond,
@@ -55,7 +64,7 @@ class PlanarReflection : LightComponentBase() {
         defineFrustum: (camPosition: Vector3d, camRotation: Quaterniond) -> Unit
     ) {
 
-        val transform = getDrawMatrix(transform!!, GFX.gameTime)
+        val transform = transform!!.getDrawMatrix(GFX.gameTime)
         val mirrorPosition = transform.getTranslation(tmp0d)
 
         // local -> global = yes, this is the correct direction

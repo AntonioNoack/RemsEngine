@@ -152,7 +152,7 @@ object TextInspector {
 
         val ops = getGroup("Operations", "", "operations")
         ops += TextButton("Create Shadow", false, style)
-            .setSimpleClickListener {
+            .addLeftClickListener {
                 // such a mess is the result of copying colors from the editor ;)
                 val signalColor = Vector4f(HSLuv.toRGB(Vector3f(0.000f, 0.934f, 0.591f)), 1f)
                 val shadow = clone() as Text

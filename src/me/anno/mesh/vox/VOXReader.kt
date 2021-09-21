@@ -1,7 +1,6 @@
 package me.anno.mesh.vox
 
 import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.prefab.Prefab
 import me.anno.io.files.FileReference
@@ -78,8 +77,8 @@ class VOXReader {
 
     fun toEntityPrefab(meshPaths: List<FileReference>): Prefab {
         val prefab = Prefab("Entity")
-        prefab.createLists()
-        prefab.add(CSet(Path.ROOT_PATH, "name", "Root"))
+        prefab.ensureMutableLists()
+        prefab.setUnsafe(Path.ROOT_PATH, "name", "Root")
         val availableLayers = (listOf(layerNegative) + layers).filter { it.containsModel() }
         when (availableLayers.size) {
             0 -> {// awkward
@@ -383,6 +382,7 @@ class VOXReader {
             val prefab = reader.toEntityPrefab(meshReferences)
             val layersRoot = folder.createPrefabChild("Scene.json", prefab)
             prefab.source = layersRoot
+            folder.sealPrefabs()
             return Quad(folder, layersRoot, prefab, meshReferences)
         }
 
@@ -391,23 +391,23 @@ class VOXReader {
         fun encode(str: String) = str.mapIndexed { index, it -> it.code.shl(index * 8) }.sum()
 
         // old stuff
-        val VOX = encode("VOX ")
-        val MAIN = encode("MAIN")
-        val PACK = encode("PACK")
-        val SIZE = encode("SIZE")
-        val BLOCK_DATA = encode("XYZI")
-        val RGBA = encode("RGBA")
-        val MATv1 = encode("MATT")
+        private val VOX = encode("VOX ")
+        private val MAIN = encode("MAIN")
+        private val PACK = encode("PACK")
+        private val SIZE = encode("SIZE")
+        private val BLOCK_DATA = encode("XYZI")
+        private val RGBA = encode("RGBA")
+        private val MATv1 = encode("MATT")
 
         // new stuff
         // https://github.com/ephtracy/voxel-model/issues/19
-        val MATv2 = encode("MATL")
-        val nSHP = encode("nSHP")
-        val nTRN = encode("nTRN")
-        val nGRP = encode("nGRP")
-        val LAYER = encode("LAYR")
-        val rOBJ = encode("rOBJ")
-        val IMAP = encode("IMAP")
+        private val MATv2 = encode("MATL")
+        private val nSHP = encode("nSHP")
+        private val nTRN = encode("nTRN")
+        private val nGRP = encode("nGRP")
+        private val LAYER = encode("LAYR")
+        private val rOBJ = encode("rOBJ")
+        private val IMAP = encode("IMAP")
 
         // we could store it in a large list, but this algorithm probably is shorter
         val defaultPalette: IntArray

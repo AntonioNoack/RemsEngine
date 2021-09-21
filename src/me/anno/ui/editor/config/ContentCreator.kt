@@ -59,7 +59,7 @@ class ContentCreator(
                         }
                     }
                     is FileReference -> {
-                        FileInput(shortName, style, value)
+                        FileInput(shortName, style, value, emptyList())
                             .setChangeListener { map[fullName] = it }
                     }
                     is Int -> {

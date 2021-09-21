@@ -58,6 +58,7 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
 
     companion object {
 
+        fun findName(bytes: ByteArray) = find(bytes)?.name
         fun find(bytes: ByteArray): Signature? {
             for (signature in signatures) {
                 if (signature.matches(bytes)) {
@@ -67,6 +68,7 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             return null
         }
 
+        fun findName(fileReference: FileReference) = find(fileReference)?.name
         fun find(fileReference: FileReference): Signature? {
             return when (fileReference) {
                 is PrefabReadable -> signatures.first { it.name == "json" }

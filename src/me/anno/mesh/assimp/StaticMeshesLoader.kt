@@ -97,7 +97,7 @@ open class StaticMeshesLoader {
         val prefab = Prefab("Entity")
         val name = aiNode.mName().dataString()
         if (!name.isBlank2())
-            prefab.add(CSet(Path.ROOT_PATH, "name", name))
+            prefab.setUnsafe(Path.ROOT_PATH, "name", name)
         buildScene(aiScene, sceneMeshes, hasSkeleton, aiNode, prefab, Path.ROOT_PATH)
         return prefab
     }
@@ -116,15 +116,15 @@ open class StaticMeshesLoader {
 
         val localPosition = transform.localPosition
         if (localPosition.length() != 0.0)
-            prefab.add(CSet(path, "position", localPosition))
+            prefab.setUnsafe(path, "position", localPosition)
 
         val localRotation = transform.localRotation
         if (localRotation.w != 1.0)
-            prefab.add(CSet(path, "rotation", localRotation))
+            prefab.setUnsafe(path, "rotation", localRotation)
 
         val localScale = transform.localScale
         if (localScale.x != 1.0 || localScale.y != 1.0 || localScale.z != 1.0)
-            prefab.add(CSet(path, "scale", localScale))
+            prefab.setUnsafe(path, "scale", localScale)
 
         val meshCount = aiNode.mNumMeshes()
         if (meshCount > 0) {
@@ -134,7 +134,7 @@ open class StaticMeshesLoader {
             for (i in 0 until meshCount) {
                 val mesh = sceneMeshes[meshIndices[i]]
                 val meshComponent = prefab.add(CAdd(path, 'c', rendererClass, mesh.name))
-                prefab.add(CSet(meshComponent.getChildPath(i), "mesh", mesh))
+                prefab.setUnsafe(meshComponent.getChildPath(i), "mesh", mesh)
             }
 
         }
@@ -390,8 +390,7 @@ open class StaticMeshesLoader {
         val fileName = texture.mFilename().dataString().ifEmpty {
             if (isCompressed) {
                 // png file? check using signature
-                val signature = Signature.find(data)
-                val extension = signature?.name ?: "png"
+                val extension = Signature.findName(data) ?: "png"
                 "$index.$extension"
             } else {
                 "$index.bmp"
@@ -531,7 +530,7 @@ open class StaticMeshesLoader {
             while (src.remaining() > 0) {
                 val value = src.get()
                 dst[j++] = value.x()
-                dst[j++] = 1 - value.y()
+                dst[j++] = value.y()
             }
             dst
         } else null

@@ -94,7 +94,7 @@ fun main() {
     }
 
     fun testEntityMeshFrame(file: FileReference) {
-        val entity = PrefabCache.getPrefabPair(file)!!.second as Entity
+        val entity = PrefabCache.getPrefabPair(file)!!.instance as Entity
         generateEntityFrame(file.dst(), size, entity) {}
     }
 

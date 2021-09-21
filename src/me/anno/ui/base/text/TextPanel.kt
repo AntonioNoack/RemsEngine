@@ -16,9 +16,9 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.style.Style
 import me.anno.utils.input.Keys.isClickKey
 import me.anno.utils.maths.Maths.mixARGB
+import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.types.Strings.isBlank2
 import kotlin.math.max
-import kotlin.math.min
 
 open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
 
@@ -161,18 +161,24 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
             else if (isInFocus) focusTextColor
             else textColor
 
-    override fun getCursor(): Long? = if (onClickListener == null) super.getCursor() else Cursor.drag
+    override fun getCursor(): Long? = if (onClickListeners.isEmpty()) super.getCursor() else Cursor.drag
 
-    override fun getPrintSuffix(): String = "\"${text.substring(0, min(text.length, 20))}\""
+    override fun getPrintSuffix(): String = "\"${text.shorten(20)}\""
 
-    override fun isKeyInput() = onClickListener != null
+    override fun isKeyInput() = onClickListeners.isNotEmpty()
     override fun acceptsChar(char: Int) = when (char.toChar()) {
         '\t', '\n' -> false
         else -> true
     }
 
     override fun onKeyDown(x: Float, y: Float, key: Int) {
-        if (key.isClickKey()) onClickListener?.invoke(x, y, MouseButton.LEFT, false)
+        if (key.isClickKey()) {
+            for (l in onClickListeners) {
+                if (l(x, y, MouseButton.LEFT, false)) {
+                    return
+                }
+            }
+        }
     }
 
 }

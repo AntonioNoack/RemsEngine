@@ -21,6 +21,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.Color.normARGB
 import me.anno.utils.maths.Maths.length
 import me.anno.utils.maths.Maths.mixARGB
+import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.lists.UpdatingList
 import me.anno.utils.types.AABBs.deltaX
 import me.anno.utils.types.AABBs.deltaY
@@ -39,23 +40,23 @@ import org.apache.logging.log4j.LogManager
 
 // todo add / remove components
 // todo reorder them by dragging
-// todo just generalize the TreeViewPanel? sounds like a good idea :)
 
 
 // todo switch between programming language styles easily, throughout the code?... idk whether that's possible...
 // maybe on a per-function-basis
 
 class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) :
-    AbstractTreeView<Entity>(
+    AbstractTreeView<PrefabSaveable>(
         UpdatingList { listOf(library.world) },
-        ECSFileImporter as FileContentImporter<Entity>,
-        false,
+        ECSFileImporter as FileContentImporter<PrefabSaveable>,
+        true,
         style
     ) {
 
     val inspector get() = currentInspector!!
 
-    override fun addChild(element: Entity, child: Any) {
+    override fun addChild(element: PrefabSaveable, child: Any) {
+        if (element !is Entity) return
         val entityIndex = child is Entity || (child is Prefab && child.clazzName == "Entity")
         val index = if (entityIndex) element.children.size else element.components.size
         addChild(element, child, index)
@@ -93,27 +94,26 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
         }
     }
 
-    override fun addAfter(self: Entity, sibling: Any) {
+    override fun addAfter(self: PrefabSaveable, sibling: Any) {
         // self.addAfter(sibling as Entity)
-        addChild(self.parentEntity!!, sibling, self.indexInParent!! + 1)
+        addChild(self.parent as Entity, sibling, self.indexInParent!! + 1)
     }
 
-    override fun addBefore(self: Entity, sibling: Any) {
+    override fun addBefore(self: PrefabSaveable, sibling: Any) {
         // self.addBefore(sibling as Entity)
-        addChild(self.parentEntity!!, sibling, self.indexInParent!!)
+        addChild(self.parent as Entity, sibling, self.indexInParent!!)
     }
 
-    override fun removeChild(element: Entity, child: Entity) {
-        // element.remove(child)
-        val dstPath = child.pathInRoot2()
-        Hierarchy.remove(element.root.prefab2!!, dstPath)
+    override fun removeChild(element: PrefabSaveable, child: PrefabSaveable) {
+        if (element !is Entity) return
+        Hierarchy.removePathFromPrefab(element.root.prefab2!!, child)
     }
 
-    override fun destroy(element: Entity) {
+    override fun destroy(element: PrefabSaveable) {
         // element.onDestroy()
     }
 
-    override fun getLocalColor(element: Entity, isHovered: Boolean, isInFocus: Boolean): Int {
+    override fun getLocalColor(element: PrefabSaveable, isHovered: Boolean, isInFocus: Boolean): Int {
         val isInFocus2 = isInFocus || element in library.selection
         // show a special color, if the current element contains something selected
         val isIndirectlyInFocus = !isInFocus2
@@ -125,22 +125,18 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
         else
             if (isInFocus2) 0xcc15ff else if (isIndirectlyInFocus) 0x442255 else 0x333333
         // if is light component, we can mix in its color
-        val light = element.getComponent(LightComponent::class)
+        val light = if (element is Entity) element.getComponent(LightComponent::class) else element as? LightComponent
         if (light != null) color = mixARGB(color, normARGB(light.color), 0.5f)
         if (isHovered) color = mixARGB(color, -1, 0.5f)
         return color or (255 shl 24)
     }
 
-    override fun getTooltipText(element: Entity): String {
-        var desc = element.description
+    override fun getTooltipText(element: PrefabSaveable): String {
         val maxLength = 100
-        desc = when (desc.length) {
-            0 -> ""
-            in 1..maxLength -> desc
-            else -> desc.substring(0, maxLength - 3) + "..."
-        }
+        val desc = element.description.shorten(maxLength)
         val descLn = if (desc.isEmpty()) desc else desc + "\n"
         return when {
+            element !is Entity -> desc
             element.children.isEmpty() -> when (element.components.size) {
                 0 -> desc
                 1, 2, 3 -> descLn + element.components.joinToString { it.className }
@@ -151,26 +147,29 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
         }
     }
 
-    override fun getChildren(element: Entity): List<Entity> {
-        return element.children
+    override fun getChildren(element: PrefabSaveable): List<PrefabSaveable> {
+        return when (element) {
+            is Entity -> element.children + element.components
+            else -> emptyList()
+        }
     }
 
-    override fun isCollapsed(element: Entity): Boolean {
+    override fun isCollapsed(element: PrefabSaveable): Boolean {
         return element.isCollapsed
     }
 
-    override fun setCollapsed(element: Entity, collapsed: Boolean) {
+    override fun setCollapsed(element: PrefabSaveable, collapsed: Boolean) {
         element.isCollapsed = collapsed
         element.root.prefab2!!.add(CSet(element.pathInRoot2(), "isCollapsed", collapsed))
         needsTreeUpdate = true
         invalidateLayout()
     }
 
-    override fun getDragType(element: Entity): String {
+    override fun getDragType(element: PrefabSaveable): String {
         return "PrefabSaveable"
     }
 
-    override fun stringifyForCopy(element: Entity): String {
+    override fun stringifyForCopy(element: PrefabSaveable): String {
         val tab = ECSSceneTabs.currentTab ?: return ""
         val root = tab.inspector.root
         return if (element == root) {
@@ -184,23 +183,23 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
         return loadPrefab(ref)
     }*/
 
-    override fun getSymbol(element: Entity): String {
-        return ""
+    override fun getSymbol(element: PrefabSaveable): String {
+        return if (element.root.prefab2?.isWritable == false) "\uD83D\uDD12" else "⚪"
     }
 
-    override fun getParent(element: Entity): Entity? {
+    override fun getParent(element: PrefabSaveable): Entity? {
         return element.parent as? Entity
     }
 
-    override fun getName(element: Entity): String {
+    override fun getName(element: PrefabSaveable): String {
         return element.name.ifBlank { "Entity" }
     }
 
-    override fun setName(element: Entity, name: String) {
+    override fun setName(element: PrefabSaveable, name: String) {
         element.name = name
     }
 
-    override fun openAddMenu(parent: Entity) {
+    override fun openAddMenu(parent: PrefabSaveable) {
         // todo open add menu for often created entities: camera, light, nodes, ...
         // we could use which prefabs were most often created :)
         // temporary solution:
@@ -212,11 +211,11 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
         }
     }
 
-    override fun canBeInserted(parent: Entity, element: Entity, index: Int): Boolean {
+    override fun canBeInserted(parent: PrefabSaveable, element: PrefabSaveable, index: Int): Boolean {
         return parent.prefab.run { this == null || index >= children.size }
     }
 
-    override fun canBeRemoved(element: Entity): Boolean {
+    override fun canBeRemoved(element: PrefabSaveable): Boolean {
         val indexInParent = element.indexInParent!!
         val parent = element.parent!!
         val parentPrefab = parent.prefab
@@ -225,14 +224,14 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
 
     override val selectedElement: Entity? = library.selection as? Entity
 
-    override fun selectElement(element: Entity?) {
+    override fun selectElement(element: PrefabSaveable?) {
         library.select(element)
     }
 
-    override fun focusOnElement(element: Entity) {
+    override fun focusOnElement(element: PrefabSaveable) {
         selectElement(element)
         // focus on the element by inverting the camera transform and such...
-        for (window in windowStack) {
+        if (element is Entity) for (window in windowStack) {
             window.panel.forAll {
                 if (it is RenderView) {
                     // not perfect, but good enough probably
@@ -259,7 +258,7 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
     private fun tryPaste(data: String): Boolean {
         return when (val element = TextReader.read(data).firstOrNull()) {
             is Prefab -> {
-                val root = library.getWorld().root
+                val root = library.world
                 Hierarchy.add(root.prefab2!!, Path.ROOT_PATH, element, Path.ROOT_PATH, root)
                 true
             }

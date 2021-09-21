@@ -2,9 +2,9 @@ package me.anno.engine
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
-import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabCache.loadScenePrefab
 import me.anno.engine.ui.DefaultLayout
+import me.anno.engine.ui.ECSTypeLibrary
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX
@@ -30,6 +30,12 @@ import me.anno.utils.OS
 import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
 
+// todo fix: tree view, adding entities is no longer working
+// todo also the main object randomly just shrinks down
+
+// todo fix: tooltip texts of properties are not being displayed
+
+
 // todo right click on a path:
 // todo - mutate -> create an asset based on that and replace the path, then inspect
 // todo - inspect -> show it in the editor
@@ -50,12 +56,15 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
     val syncMaster = SyncMaster()
 
+    override fun loadConfig() {
+        DefaultConfig.defineDefaultFileAssociations()
+        DefaultConfig.init()
+    }
+
     override fun onGameInit() {
 
         // CommandLineReader.start()
         ECSRegistry.init()
-
-        DefaultConfig.defineDefaultFileAssociations()
 
         Dict.loadDefault()
 
@@ -117,15 +126,16 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
         val list = PanelListY(style)
 
-        val tab = ECSSceneTabs.open(syncMaster, editScene)
+        val isGaming = false
+        ECSTypeLibrary.syncMaster = syncMaster
+        ECSTypeLibrary.projectFile = editScene.source
+
+        ECSSceneTabs.open(syncMaster, editScene)
         // ECSSceneTabs.add(syncMaster, projectFile.getChild("2ndScene.json"))
 
-        list.add(ECSSceneTabs)
 
         val options = OptionBar(style)
 
-        val editUI =
-            DefaultLayout.createDefaultMainUI(projectFile, { tab.inspector.root as Entity }, syncMaster, false, style)
 
         val configTitle = Dict["Config", "ui.top.config"]
         options.addAction(configTitle, Dict["Settings", "ui.top.config.settings"]) {
@@ -143,6 +153,10 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         }
 
         list.add(options)
+
+        list.add(ECSSceneTabs)
+
+        val editUI = DefaultLayout.createDefaultMainUI(projectFile, syncMaster, isGaming, style)
         list.add(editUI)
 
         val bottom2 = PanelStack(style)
@@ -150,16 +164,11 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         val right = PanelListX(style)
         right.makeBackgroundTransparent()
         right.add(RuntimeInfoPanel(style).apply {
-            alignment = AxisAlignment.MAX
+            alignmentX = AxisAlignment.MAX
             makeBackgroundOpaque()
             setWeight(1f)
         })
-        right.add(object : Panel(style) {
-            override fun calculateSize(w: Int, h: Int) {
-                minW = if (showFPS) FrameTimes.width else 0
-                minH = 1
-            }
-        })
+        right.add(RuntimeInfoPlaceholder())
         bottom2.add(right)
         list.add(bottom2)
         windowStack.add(Window(list))
@@ -167,6 +176,13 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         StudioActions.register()
         ActionManager.init()
 
+    }
+
+    class RuntimeInfoPlaceholder: Panel(style) {
+        override fun calculateSize(w: Int, h: Int) {
+            minW = if (instance.showFPS) FrameTimes.width else 0
+            minH = 1
+        }
     }
 
     companion object {

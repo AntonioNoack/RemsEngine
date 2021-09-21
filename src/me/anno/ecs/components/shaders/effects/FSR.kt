@@ -52,15 +52,17 @@ object FSR {
             "upscale", null, vertex,
             listOf(Variable("vec2", "uv")), "" +
                     "uniform vec2 dstWH;\n" +
+                    "uniform vec4 background;\n" +
                     "uniform sampler2D source;\n" +
                     "#define A_GPU 1\n" +
                     "#define A_GLSL 1\n" +
-                    "#define ANNO 1\n" +
+                    "#define ANNO 1\n" + // we use our custom version
                     defines +
                     "#define FSR_EASU_F 1\n" +
-                    "AF4 FsrEasuRF(vec2 p){ return textureGather(source,p,0); }\n" +
-                    "AF4 FsrEasuGF(vec2 p){ return textureGather(source,p,1); }\n" +
-                    "AF4 FsrEasuBF(vec2 p){ return textureGather(source,p,2); }\n" +
+                    "AF4 FsrEasuAF(vec2 p){ return textureGather(source,p,3); }\n" +
+                    "AF4 FsrEasuRF(vec2 p, vec4 alpha){ return mix(background.rrrr, textureGather(source,p,0), alpha); }\n" +
+                    "AF4 FsrEasuGF(vec2 p, vec4 alpha){ return mix(background.gggg, textureGather(source,p,1), alpha); }\n" +
+                    "AF4 FsrEasuBF(vec2 p, vec4 alpha){ return mix(background.bbbb, textureGather(source,p,2), alpha); }\n" +
                     functions +
                     "layout(location=0) out vec4 glFragColor;\n" +
                     "uniform vec4 con0,con1,con2,con3;\n" +
@@ -70,7 +72,7 @@ object FSR {
                     "   float alpha = texture(source,uv).a;\n" +
                     "   ivec2 coords = ivec2(uv*dstWH);\n" +
                     "   FsrEasuF(color,coords,con0,con1,con2,con3);\n" +
-                    "   glFragColor = vec4(color,alpha);\n" +
+                    "   glFragColor = vec4(color,alpha>.01 ? 1.0 : 0.0);\n" +
                     "}", true
         )
         shader.glslVersion = 420 // for int->float->int ops, which are used for fast sqrt and such
@@ -120,6 +122,19 @@ object FSR {
         tiling(shader, flipY)
         texelOffset(shader, w, h)
         posSize(shader, x, y, w, h)
+        shader.v4("background", 0)
+        flat01.draw(shader)
+    }
+
+    fun upscale(sw: Int, sh: Int, x: Int, y: Int, w: Int, h: Int, flipY: Boolean, backgroundColor: Int) {
+        // if source is null, the texture needs to be bound to slot 0
+        val shader = upscaleShader.value
+        shader.use()
+        fsrConfig(shader, sw, sh, w, h)
+        tiling(shader, flipY)
+        texelOffset(shader, w, h)
+        posSize(shader, x, y, w, h)
+        shader.v4("background", backgroundColor or (255 shl 24))
         flat01.draw(shader)
     }
 
@@ -133,6 +148,11 @@ object FSR {
     fun upscale(source: ITexture2D, x: Int, y: Int, w: Int, h: Int, flipY: Boolean) {
         source.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
         upscale(source.w, source.h, x, y, w, h, flipY)
+    }
+
+    fun upscale(source: ITexture2D, x: Int, y: Int, w: Int, h: Int, flipY: Boolean, backgroundColor: Int) {
+        source.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+        upscale(source.w, source.h, x, y, w, h, flipY, backgroundColor)
     }
 
     fun sharpen(sharpness: Float, x: Int, y: Int, w: Int, h: Int, flipY: Boolean) {

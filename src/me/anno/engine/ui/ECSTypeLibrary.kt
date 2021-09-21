@@ -12,24 +12,30 @@ import me.anno.ui.custom.UITypeLibrary
 import me.anno.ui.editor.PropertyInspector
 import me.anno.utils.hpc.SyncMaster
 
-class ECSTypeLibrary(
-    val projectFile: FileReference,
-    var getWorld: () -> Entity,
-    val syncMaster: SyncMaster,
-    val isGaming: Boolean
-) {
+object ECSTypeLibrary {
 
-    val world get() = getWorld()
+    lateinit var projectFile: FileReference
+    lateinit var syncMaster: SyncMaster
+    var isGaming = false
+
+    lateinit var world: Entity
+
     // todo box selecting with shift
 
     // todo we should be able to edit multiple values at the same time
-    var selection: List<Inspectable> = listOf(world)
+    var selection: List<Inspectable> = emptyList()
     var fineSelection: List<Inspectable> = selection
 
     fun select(major: Inspectable?, minor: Inspectable? = major) {
         selection = if (major == null) emptyList() else listOf(major)
         fineSelection = if (minor == null) emptyList() else listOf(minor)
         lastSelection = major ?: minor
+    }
+
+    fun unselect(element: Inspectable) {
+        selection = selection.filter { it != element }
+        fineSelection = fineSelection.filter { it != element }
+        if (lastSelection == element) lastSelection = null
     }
 
     val typeList = listOf<Pair<String, () -> Panel>>(
@@ -46,10 +52,6 @@ class ECSTypeLibrary(
 
     val uiLibrary = UITypeLibrary(typeList)
 
-    companion object {
-
-        var lastSelection: Inspectable? = null
-
-    }
+    var lastSelection: Inspectable? = null
 
 }

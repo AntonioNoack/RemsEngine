@@ -5,6 +5,9 @@ import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
+import me.anno.engine.ui.render.GridColors.colorX
+import me.anno.engine.ui.render.GridColors.colorY
+import me.anno.engine.ui.render.GridColors.colorZ
 import me.anno.engine.ui.render.RenderView.Companion.camPosition
 import me.anno.engine.ui.render.RenderView.Companion.worldScale
 import me.anno.gpu.GFX
@@ -23,10 +26,6 @@ object Gizmos {
     val arrowRef = BundledRef("mesh/arrowX.obj")
     val ringRef = BundledRef("mesh/ringX.obj")
     val scaleRef = BundledRef("mesh/scaleX.obj")
-
-    val colorX = 0xff0000
-    val colorY = 0x00ff00
-    val colorZ = 0x0000ff
 
     fun drawScaleGizmos(cameraTransform: Matrix4f, position: Vector3d, scale: Double, clickId: Int): Int {
         drawMesh(cameraTransform, position, scale, clickId, scaleRef)
@@ -72,15 +71,16 @@ object Gizmos {
         local.identity()
         local.translate(position)
         when (axis) {
-            1 -> local.rotateX(1.57)
-            2 -> local.rotateY(1.57)
+            1 -> local.rotateZ(+Math.PI * 0.5)
+            2 -> local.rotateY(-Math.PI * 0.5)
         }
         local.scale(scale)
         shader.m4x3delta("localTransform", local, camPosition, worldScale)
+        material.defineShader(shader)
+        shader.v4("diffuseBase", color or (255 shl 24))
         shaderColor(shader, "tint", color or (255 shl 24))
         shader.v1("hasAnimation", false)
         shader.v1("hasVertexColors", false)
-        material.defineShader(shader)
         mesh.draw(shader, 0)
     }
 

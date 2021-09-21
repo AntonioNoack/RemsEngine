@@ -4,11 +4,11 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.change.CAdd
-import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.IProperty
 import me.anno.engine.ui.ComponentUI
-import me.anno.engine.ui.DefaultLayout
+import me.anno.engine.ui.ECSTypeLibrary
+import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextWriter
@@ -28,24 +28,31 @@ import me.anno.utils.strings.StringHelper
 import me.anno.utils.strings.StringHelper.titlecase
 import org.apache.logging.log4j.LogManager
 
+// todo right click - reset is not available on all elements
+//  - float input
+//  - vector input: only control + x, not right click
+//  - text input: only control + x, not right click
+
 // this can be like a scene (/scene tab)
 // show changed values in bold
 
-class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
+class PrefabInspector(
+    val reference: FileReference,
+    val prefab: Prefab
+) {
 
     constructor(prefab: Prefab) : this(prefab.source, prefab)
 
-    constructor(reference: FileReference, classNameIfNull: String) : this(
-        reference, loadPrefab(reference) ?: Prefab(classNameIfNull)
-    )
+    constructor(reference: FileReference, classNameIfNull: String) :
+            this(reference, loadPrefab(reference) ?: Prefab(classNameIfNull))
 
     init {
-        prefab.createLists()
+        prefab.ensureMutableLists()
     }
 
     val history: ChangeHistory = prefab.history ?: ChangeHistory()
-    val adds get() = prefab.adds!! as MutableList
-    val sets get() = prefab.sets!! as MutableList
+    val adds get() = prefab.adds as MutableList
+    val sets get() = prefab.sets as MutableList
 
     init {
 
@@ -60,7 +67,7 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
     // val changes = ArrayList()
     val root get() = prefab.getSampleInstance()
 
-    // todo if there is a physics components, start it
+    // done if there is a physics components, start it
     // todo only execute it, if the scene is visible/selected
     // todo later: only execute it, if in game mode
     // todo later: control it's speed, and step size
@@ -76,14 +83,20 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
     }
 
     fun reset(path: Path) {
+        if (!prefab.isWritable) throw ImmutablePrefabException(prefab.source)
         if (sets.removeIf { it.path == path }) {
+            prefab.invalidate()
             onChange()
+            ECSSceneTabs.updatePrefab(prefab)
         }
     }
 
     fun reset(path: Path, name: String) {
+        if (!prefab.isWritable) throw ImmutablePrefabException(prefab.source)
         if (sets.removeIf { it.path == path && it.name == name }) {
+            prefab.invalidate()
             onChange()
+            ECSSceneTabs.updatePrefab(prefab)
         }
     }
 
@@ -98,13 +111,19 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
     }
 
     fun change(path: Path, name: String, value: Any?) {
-        prefab.add(CSet(path, name, value))
+        prefab.set(path, name, value)
         onChange()
     }
 
     fun inspect(instance: PrefabSaveable, list: PanelListY, style: Style) {
 
-        val path = instance.pathInRoot2(root, withExtra = false)
+        if (instance.prefabRoot !== root)
+            LOGGER.warn(
+                "Component ${instance.name}:${instance.className} " +
+                        "is not part of tree ${root.name}:${root.className}, " +
+                        "its root is ${instance.root.name}:${instance.root.className}"
+            )
+        val path = instance.pathInRoot2(instance.prefabRoot, withExtra = false)
         val pathIndices = path.indices
 
 
@@ -119,21 +138,8 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
 
         val prefab = instance.prefab
 
-        // create the ui for the component, and also keep track of the changes :)
-        /*list.add(BooleanInput(
-            "Is Enabled", "When a component is disabled, its functions won't be called.",
-            component.isEnabled, true, style
-        ).apply {
-            setBold(isComponentChanged(getPath("isEnabled")))
-            setChangeListener { setBold(); changeComponent(getPath("isEnabled"), it); component.isEnabled = it }
-            setResetListener {
-                unsetBold(); resetComponent(getPath("isEnabled"))
-                component.isEnabled = prefab?.isEnabled ?: true; component.isEnabled
-            }
-        })*/
-
-        list.add(TextButton("Select Parent", false, style).setSimpleClickListener {
-            DefaultLayout.library.select(instance.parent)
+        list.add(TextButton("Select Parent", false, style).addLeftClickListener {
+            ECSTypeLibrary.select(instance.parent)
         })
 
         list.add(TextInput("Name", "", instance.name, style).apply {
@@ -153,7 +159,7 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
         })
 
         // for debugging
-        list.add(TextButton("Copy", false, style).setSimpleClickListener {
+        list.add(TextButton("Copy", false, style).addLeftClickListener {
             LOGGER.info("Copy: ${TextWriter.toText(instance)}")
         })
 
@@ -219,6 +225,7 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
                             get() = property.annotations
 
                     }, property.range, style) ?: continue
+                    if (panel.tooltip != null) panel.setTooltip(property.description)
                     list.add(panel)
 
                 } catch (e: Exception) {
@@ -254,13 +261,12 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
                     val newPath = instance.pathInRoot2(root, true)
                     newPath.setLast(component.className, index, type)
                     Hierarchy.add(this@PrefabInspector.prefab, newPath, instance, component)
-                    // addNewChild(root, adds, sets, instance, component, index, type)
                 }
 
                 override fun onRemoveComponent(component: Inspectable) {
                     component as PrefabSaveable
-                    Hierarchy.remove(this@PrefabInspector.prefab, component.pathInRoot2(root, false))
-                    // removeChild(root, adds, sets, instance, component, type)
+                    ECSTypeLibrary.unselect(component)
+                    Hierarchy.removePathFromPrefab(this@PrefabInspector.prefab, component)
                 }
 
                 override fun getOptionFromInspectable(inspectable: Inspectable): Option {
@@ -271,13 +277,11 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
         }
     }
 
-
     fun checkDependencies(parent: PrefabSaveable, src: FileReference): Boolean {
         if (src == InvalidRef) return true
         return if (parent.anyInHierarchy { it.prefab2?.source == src }) {
             LOGGER.warn("Cannot add $src to ${parent.name} because of dependency loop!")
             false
-            // throw IllegalArgumentException("Must not create dependency loops")
         } else true
     }
 
@@ -285,30 +289,8 @@ class PrefabInspector(val reference: FileReference, val prefab: Prefab) {
         if (!checkDependencies(parent, prefab.source)) return
         if (prefab.clazzName != "Entity") throw IllegalArgumentException("Type must be Entity!")
         val path = parent.pathInRoot2(root, false)
-        adds.add(CAdd(path, 'e', prefab.clazzName!!, prefab.clazzName, prefab.source))
+        prefab.add(CAdd(path, 'e', prefab.clazzName!!, prefab.clazzName, prefab.source))
     }
-
-    /*fun addEntityChild(parent: Entity, prefab: Prefab, index: Int) {
-        // todo adjust the index: renumber & shuffle, if possible
-        if (!checkDependencies(parent, prefab.source)) return
-        if (prefab.clazzName != "Entity") throw IllegalArgumentException("Type must be Entity!")
-        val path = parent.pathInRoot2(root, false)
-        adds.add(CAdd(path, 'e', prefab.clazzName!!, prefab.clazzName, prefab.source))
-    }
-
-    fun addComponentChild(parent: Entity, prefab: Prefab) {
-        if (prefab.getSampleInstance(HashSet()) !is Component) throw IllegalArgumentException("Type must be Component!")
-        val path = parent.pathInRoot2(root, false)
-        adds.add(CAdd(path, 'c', prefab.clazzName!!, prefab.clazzName, prefab.source))
-    }
-
-    fun addComponentChild(parent: Entity, prefab: Prefab, index: Int) {
-        // todo adjust the index: renumber & shuffle, if possible
-        if (prefab.getSampleInstance(HashSet()) !is Component) throw IllegalArgumentException("Type must be Component!")
-        val path = parent.pathInRoot2(root, false)
-        adds.add(CAdd(path, 'c', prefab.clazzName!!, prefab.clazzName, prefab.source))
-    }*/
-
 
     fun save() {
         TextWriter.save(prefab, reference)

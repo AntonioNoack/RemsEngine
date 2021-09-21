@@ -3,18 +3,20 @@ package me.anno.ecs.components.physics
 import com.bulletphysics.dynamics.RigidBody
 import cz.advel.stack.Stack
 import me.anno.ecs.Component
+import me.anno.ecs.annotations.Docs
+import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.gui.PlaneShapes
+import me.anno.engine.gui.LineShapes
 import me.anno.engine.ui.render.RenderView
-import me.anno.engine.ui.render.RenderView.Companion.scale
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
-import me.anno.objects.Transform
 import org.joml.Vector3d
 import org.joml.Vector4f
 import kotlin.math.abs
 
-open class Rigidbody() : Component() {
+open class Rigidbody : Component() {
+
+    // todo physics: awake button, which adds a little of force, or temporarily undoes the sleeping time limit, and activates it
 
     // todo lock an axis of the object
     // todo other constraints, e.g. chains
@@ -36,6 +38,7 @@ open class Rigidbody() : Component() {
             }
         }
 
+    @Docs("How heavy it is")
     @SerializedProperty
     var mass = 1.0
         set(value) {
@@ -54,9 +57,7 @@ open class Rigidbody() : Component() {
             }
         }
 
-    /**
-     * friction when moving through air / water
-     * */
+    @Docs("Friction against motion when moving through air / water")
     var linearDamping = 0.1
         set(value) {
             if (field != value) {
@@ -65,9 +66,7 @@ open class Rigidbody() : Component() {
             }
         }
 
-    /**
-     * friction when moving through air / water
-     * */
+    @Docs("Friction against rotation when moving through air / water")
     var angularDamping = 0.1
         set(value) {
             if (field != value) {
@@ -76,29 +75,36 @@ open class Rigidbody() : Component() {
             }
         }
 
-    /**
-     * how much energy is absorbed in a collision; relative,
-     * 0 = perfectly bouncy, 1 = all energy absorbed (knead)
-     * */
+    @Docs(
+        "how much energy is absorbed in a collision; relative,\n" +
+                "0 = perfectly bouncy, 1 = all energy absorbed (knead)"
+    )
+    @Range(0.0, 1.0)
     var restitution = 0.1
         set(value) {
             field = value
             bulletInstance?.restitution = value
         }
 
+    @Docs("Minimum velocity to count as standing still")
+    @Range(0.0, Double.POSITIVE_INFINITY)
     var linearSleepingThreshold = 1.0
         set(value) {
             field = value
             bulletInstance?.setSleepingThresholds(value, angularSleepingThreshold)
         }
 
+    @Docs("Minimum angular velocity to count as standing still")
+    @Range(0.0, Double.POSITIVE_INFINITY)
     var angularSleepingThreshold = 0.8
         set(value) {
             field = value
             bulletInstance?.setSleepingThresholds(linearSleepingThreshold, value)
         }
 
-    var sleepingTimeThreshold = 4.0
+    @Docs("Minimum time after which an object is marked as sleeping")
+    @Range(0.0, Double.POSITIVE_INFINITY)
+    var sleepingTimeThreshold = 0.0 // 4.0
         set(value) {
             field = value
             bulletInstance?.deactivationTime = value
@@ -112,6 +118,7 @@ open class Rigidbody() : Component() {
     /**
      * slowing down on contact
      * */
+    @Range(0.0, 1.0)
     var friction = 0.1
         set(value) {
             field = value
@@ -125,6 +132,7 @@ open class Rigidbody() : Component() {
         bulletInstance?.setCenterOfMassTransform(com.bulletphysics.linearmath.Transform())
     }*/
 
+    @Docs("If an object is static, it will never move, and has infinite mass")
     @NotSerializedProperty
     var isStatic
         get() = mass <= 0.0
@@ -258,7 +266,8 @@ open class Rigidbody() : Component() {
         stack.translate(centerOfMass.x.toFloat(), centerOfMass.y.toFloat(), centerOfMass.z.toFloat())
         Transform.drawUICircle(stack, 0.2f / scale.toFloat(), 0.7f, centerOfMassColor)
         stack.popMatrix()*/
-        PlaneShapes.drawCircle(entity!!,-1)
+        LineShapes.drawCircle(entity, 1.0, 0, 1, 0.0)
+        // PlaneShapes.drawCircle(entity!!, -1)
     }
 
     override fun clone(): Rigidbody {
@@ -284,8 +293,8 @@ open class Rigidbody() : Component() {
 
     override val className get() = "Rigidbody"
 
-    companion object {
+    /*companion object {
         val centerOfMassColor = Vector4f(1f, 0f, 0f, 1f)
-    }
+    }*/
 
 }

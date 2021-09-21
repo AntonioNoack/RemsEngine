@@ -27,8 +27,7 @@ object ImageGPUCache : CacheSection("Images") {
 
     fun hasImageOrCrashed(file: FileReference, timeout: Long, asyncGenerator: Boolean): Boolean {
         if (file == InvalidRef) return true
-        val meta = LastModifiedCache[file]
-        if (meta.isDirectory || !meta.exists) return true
+        if (file.isDirectory || !file.exists) return true
         val entry = getEntry(file, timeout, asyncGenerator, ImageGPUCache::generateImageData)
         return when {
             entry == null -> false
@@ -42,8 +41,7 @@ object ImageGPUCache : CacheSection("Images") {
     fun getImage(file: FileReference, timeout: Long, asyncGenerator: Boolean): Texture2D? {
         if (file == InvalidRef) return null
         if (file !is InnerFile) {
-            val meta = LastModifiedCache[file]
-            if (meta.isDirectory || !meta.exists) return null
+            if (file.isDirectory || !file.exists) return null
         } else if (file.isDirectory || !file.exists) {
             LOGGER.warn("Image missing: $file")
             return null

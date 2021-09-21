@@ -7,5 +7,4 @@ enum class LightType(val id: Int, val falloff: String, val shadowMapType: Shadow
     SPOT(1, falloff, ShadowMapType.PLANE),
     POINT(2, falloff, ShadowMapType.CUBEMAP);
     // todo environment map is another type
-    // todo combine it with shadows somehow? idk...
 }

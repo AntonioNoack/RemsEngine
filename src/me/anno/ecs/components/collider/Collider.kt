@@ -6,11 +6,11 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.physics.BulletPhysics.Companion.convertMatrix
-import me.anno.engine.ui.ECSTypeLibrary.Companion.lastSelection
 import me.anno.engine.ui.render.RenderView
 import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.maths.Maths
 import me.anno.utils.maths.Maths.SQRT1_2
+import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
@@ -23,12 +23,21 @@ import kotlin.math.max
 //  - whether a can push b
 //  - whether b can push a
 
+// todo collider events
+
 abstract class Collider : Component() {
 
     @SerializedProperty
     var roundness = 0.0
 
     var collisionMask = 1
+
+    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
+        val tmp = JomlPools.vec3d.create()
+        union(globalTransform, aabb, tmp, false)
+        JomlPools.vec3d.sub(1)
+        return true
+    }
 
     fun canCollide(collisionMask: Int): Boolean {
         return this.collisionMask.and(collisionMask) != 0
@@ -232,7 +241,7 @@ abstract class Collider : Component() {
         if (isSelectedIndirectly){
             drawShape()
         }
-        // todo draw transformation gizmos for easy transforms
+        // todo draw transformation gizmos for easy collider manipulation
     }
 
     abstract fun drawShape()

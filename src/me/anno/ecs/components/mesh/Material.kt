@@ -260,10 +260,10 @@ class Material : PrefabSaveable() {
         fun main(args: Array<String>) {
             ECSRegistry.initNoGFX()
             val prefab = loadPrefab(OS.documents.getChild("cube bricks.glb"))!!
-            for (change in prefab.adds!!) {
+            for (change in prefab.adds) {
                 LOGGER.info(change)
             }
-            for (change in prefab.sets!!) {
+            for (change in prefab.sets) {
                 LOGGER.info(change)
             }
             val instance = prefab.createInstance()

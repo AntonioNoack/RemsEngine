@@ -139,7 +139,7 @@ object RenderSettings : Transform() {
             project.ffmpegFlags.nameDesc, FFMPEGEncodingType.values().map { it.nameDesc }, style
         ).setChangeListener { _, index, _ -> project.ffmpegFlags = FFMPEGEncodingType.values()[index]; save() }
 
-        val fileInput = FileInput("Output File", style, targetOutputFile)
+        val fileInput = FileInput("Output File", style, targetOutputFile, emptyList())
         val originalColor = fileInput.base2.textColor
         fun updateFileInputColor() {
             val file = project.targetOutputFile
@@ -167,25 +167,25 @@ object RenderSettings : Transform() {
         val callback = { GFX.requestAttentionMaybe() }
 
         list += TextButton("Render at 100%", false, style)
-            .setSimpleClickListener { renderPart(1, true, callback) }
+            .addLeftClickListener { renderPart(1, true, callback) }
             .setTooltip("Create video at full resolution")
         list += TextButton("Render at 50%", false, style)
-            .setSimpleClickListener { renderPart(2, true, callback) }
+            .addLeftClickListener { renderPart(2, true, callback) }
             .setTooltip("Create video at half resolution")
         list += TextButton("Render at 25%", false, style)
-            .setSimpleClickListener { renderPart(4, true, callback) }
+            .addLeftClickListener { renderPart(4, true, callback) }
             .setTooltip("Create video at quarter resolution")
         list += TextButton("Render at Set%", false, style)
-            .setSimpleClickListener { renderSetPercent(true, callback) }
+            .addLeftClickListener { renderSetPercent(true, callback) }
             .setTooltip("Create video at your custom set relative resolution")
         list += TextButton("Render Audio only", false, style)
-            .setSimpleClickListener { renderAudio(true, callback) }
+            .addLeftClickListener { renderAudio(true, callback) }
             .setTooltip("Only creates an audio file; no video is rendered nor saved.")
         list += TextButton("Override Audio", false, style)
-            .setSimpleClickListener { overrideAudio(InvalidRef, true, callback) }
+            .addLeftClickListener { overrideAudio(InvalidRef, true, callback) }
             .setTooltip("Only creates an audio file; no video is rendered nor saved.")
         list += TextButton("Render Current Frame", false, style)
-            .setSimpleClickListener { renderFrame(targetWidth, targetHeight, editorTime, true, callback) }
+            .addLeftClickListener { renderFrame(targetWidth, targetHeight, editorTime, true, callback) }
             .setTooltip("Only creates an audio file; no video is rendered nor saved.")
 
     }

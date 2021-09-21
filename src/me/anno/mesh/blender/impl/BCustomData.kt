@@ -7,10 +7,10 @@ import java.nio.ByteBuffer
 class BCustomData(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
     BlendData(file, type, buffer, position) {
 
-    val external = ptr("*external")
+    val external = getStructArray("*external")
     val size = int("totsize")
     val numLayers = int("totlayer")
     val maxLayer = int("maxlayer")
-    val layers = ptr("*layers")
+    val layers = getStructArray("*layers")
 
 }

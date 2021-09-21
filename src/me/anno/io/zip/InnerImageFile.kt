@@ -2,6 +2,7 @@ package me.anno.io.zip
 
 import me.anno.image.Image
 import me.anno.image.ImageReadable
+import me.anno.image.bmp.BMPWriter
 import me.anno.image.bmp.BMPWriter.createBMP
 import me.anno.io.files.FileReference
 import java.io.InputStream
@@ -19,12 +20,12 @@ class InnerImageFile(
     )
 
     init {
-        size = Int.MAX_VALUE.toLong()
-        compressedSize = size
+        size = BMPWriter.calculateSize(content) // very simple calculation
+        compressedSize = size // unknown until we compress it
     }
 
     val bytes = lazy {
-        createBMP(content.createBufferedImage())
+        createBMP(content.createIntImage())
     }
 
     override fun readImage(): Image {
@@ -36,7 +37,7 @@ class InnerImageFile(
     }
 
     override fun readText(): String {
-        return String(bytes.value)
+        return String(bytes.value) // what are you doing? ;)
     }
 
     override fun getInputStream(): InputStream {

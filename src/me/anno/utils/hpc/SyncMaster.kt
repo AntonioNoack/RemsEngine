@@ -15,6 +15,7 @@ class SyncMaster {
 
     fun nextSession() {
         sessionId++
+        LOGGER.debug("Changed session to $sessionId")
     }
 
     /**

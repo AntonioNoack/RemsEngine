@@ -2,12 +2,11 @@ package me.anno.gpu.buffer
 
 import me.anno.image.svg.SVGMesh
 import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.pooling.ByteBufferPool
 import org.joml.Vector2fc
 import org.joml.Vector3fc
 import org.joml.Vector4fc
 import org.lwjgl.opengl.GL15.GL_STATIC_DRAW
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import kotlin.math.roundToInt
 
 open class StaticBuffer(attributes: List<Attribute>, val vertexCount: Int, usage: Int = GL_STATIC_DRAW) :
@@ -152,8 +151,13 @@ open class StaticBuffer(attributes: List<Attribute>, val vertexCount: Int, usage
 
     final override fun createNioBuffer() {
         val byteSize = vertexCount * attributes.sumOf { it.byteSize }
-        val nio = ByteBuffer.allocateDirect(byteSize).order(ByteOrder.nativeOrder())
+        val nio = ByteBufferPool.allocateDirect(byteSize)
         nioBuffer = nio
+    }
+
+    override fun destroy() {
+        ByteBufferPool.free(nioBuffer)
+        nioBuffer = null
     }
 
     companion object {

@@ -1,14 +1,26 @@
 package me.anno.mesh.obj
 
+import me.anno.ecs.components.cache.MaterialCache
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
+import me.anno.engine.ECSRegistry
 import me.anno.fonts.mesh.Triangulation
+import me.anno.image.Image
+import me.anno.image.ImageCPUCache
 import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.zip.InnerFolder
+import me.anno.io.zip.InnerPrefabFile
 import me.anno.mesh.Point
+import me.anno.utils.Clock
+import me.anno.utils.Color.b
+import me.anno.utils.Color.g
+import me.anno.utils.Color.r
+import me.anno.utils.OS.downloads
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
@@ -18,6 +30,12 @@ import org.joml.Vector3f
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
+import kotlin.math.abs
+import kotlin.math.sqrt
+
+// todo there are Obj files, which have inverted uvs
+// todo idea: we probably can solve that: inside the area, the contrast shall be minimal
+// todo for that we need the texture from the mtl file
 
 // in a really heavy scene (San Miguel with 10M vertices),
 // with unpacking it from a zip file,
@@ -27,15 +45,6 @@ import java.io.InputStream
 class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(input) {
 
     constructor(file: FileReference) : this(file.inputStream(), file)
-
-    companion object {
-
-        fun readAsFolder(file: FileReference): InnerFolder {
-            return file.inputStream().use { OBJReader2(it, file) }.folder
-        }
-
-        private val LOGGER = LogManager.getLogger(OBJReader2::class)
-    }
 
     val folder = InnerFolder(file)
     val materialsFolder = lazy { InnerFolder(folder, "materials") }
@@ -419,6 +428,19 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
 
         finishGroup()
         reader.close()
+
+        // UVCorrection.correct(folder)
+        folder.sealPrefabs()
+
+    }
+
+    companion object {
+
+        private val LOGGER = LogManager.getLogger(OBJReader2::class)
+
+        fun readAsFolder(file: FileReference): InnerFolder {
+            return file.inputStream().use { OBJReader2(it, file) }.folder
+        }
 
     }
 

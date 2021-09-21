@@ -1,5 +1,6 @@
 package me.anno.gpu
 
+import me.anno.audio.AudioStream
 import me.anno.config.DefaultConfig
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.RenderState.blendMode
@@ -31,6 +32,7 @@ import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.debug.FrameTimes
 import me.anno.utils.Clock
 import me.anno.utils.maths.Maths.pow
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Vectors.minus
 import org.apache.logging.log4j.LogManager
 import org.joml.*
@@ -409,7 +411,11 @@ object GFX : GFXBase1() {
         Texture2D.destroyTextures()
         Texture2D.invalidateBinding()
         Buffer.invalidateBinding()
-        // todo vao.invalidateBinding(), and all others, which keep state
+
+        Texture2D.bufferPool.freeUnusedEntries()
+        AudioStream.bufferPool.freeUnusedEntries()
+
+        JomlPools.reset()
 
         ensureEmptyStack()
 
@@ -427,7 +433,7 @@ object GFX : GFXBase1() {
 
         workEventTasks()
 
-        Texture2D.textureBudgetUsed = 0
+        Texture2D.resetBudget()
 
         check()
 

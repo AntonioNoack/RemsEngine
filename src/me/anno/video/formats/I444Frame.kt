@@ -6,7 +6,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
-import me.anno.utils.input.readNBytes2
+import me.anno.utils.input.Input.readNBytes2
 import me.anno.video.VFrame
 import java.io.InputStream
 
@@ -19,19 +19,19 @@ class I444Frame(iw: Int, ih: Int) : VFrame(iw, ih, 2) {
 
     override fun load(input: InputStream) {
         val s0 = w * h
-        val yData = input.readNBytes2(s0, Texture2D.byteBufferPool[s0, false], true)
+        val yData = input.readNBytes2(s0, Texture2D.bufferPool)
         creationLimiter.acquire()
         GFX.addGPUTask(w, h) {
             y.createMonochrome(yData, true)
             creationLimiter.release()
         }
-        val uData = input.readNBytes2(s0, Texture2D.byteBufferPool[s0, false], true)
+        val uData = input.readNBytes2(s0, Texture2D.bufferPool)
         creationLimiter.acquire()
         GFX.addGPUTask(w, h) {
             u.createMonochrome(uData, true)
             creationLimiter.release()
         }
-        val vData = input.readNBytes2(s0, Texture2D.byteBufferPool[s0, false], true)
+        val vData = input.readNBytes2(s0, Texture2D.bufferPool)
         creationLimiter.acquire()
         GFX.addGPUTask(w, h) {
             v.createMonochrome(vData, true)

@@ -1,11 +1,11 @@
 package me.anno.engine.ui.render
 
-import me.anno.config.DefaultStyle
-import me.anno.gpu.DepthMode
-import me.anno.gpu.GFX
+import me.anno.engine.gui.LineShapes
+import me.anno.engine.ui.render.GridColors.colorX
+import me.anno.engine.ui.render.GridColors.colorY
+import me.anno.engine.ui.render.GridColors.colorZ
 import me.anno.gpu.RenderState
 import me.anno.gpu.blending.BlendMode
-import me.anno.objects.Transform
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.utils.maths.Maths
 import kotlin.math.floor
@@ -40,7 +40,7 @@ object MovingGrid {
                 drawGrid(worldScaleX, cameraDistance * 1e2, 1f)
                 drawGrid(worldScaleX, cameraDistance * 1e3, f)
 
-                drawAxes(worldScaleX, cameraDistance * 1e3)
+                drawAxes(worldScale)
 
             }
         }
@@ -66,30 +66,13 @@ object MovingGrid {
 
     }
 
-    private fun drawAxes(scale: Double, cameraDistance: Double) {
+    private fun drawAxes(scale: Double) {
 
-        RenderView.stack.pushMatrix()
-
-        RenderView.stack.translate(// always centered
-            (-RenderView.camPosition.x * scale).toFloat(),
-            (-RenderView.camPosition.y * scale).toFloat(),
-            (-RenderView.camPosition.z * scale).toFloat()
-        )
-
-        RenderView.stack.scale(cameraDistance.toFloat())
-
-        val axisAlpha = 0.7f
-
-        RenderView.stack.rotate(GFX.toRadians(90f), Transform.xAxis)
-        Grid.drawLine(RenderView.stack, 0xff0000 or DefaultStyle.black, axisAlpha) // x
-
-        RenderView.stack.rotate(GFX.toRadians(90f), Transform.yAxis)
-        Grid.drawLine(RenderView.stack, 0x00ff00 or DefaultStyle.black, axisAlpha) // y
-
-        RenderView.stack.rotate(GFX.toRadians(90f), Transform.zAxis)
-        Grid.drawLine(RenderView.stack, 0x0000ff or DefaultStyle.black, axisAlpha) // z
-
-        RenderView.stack.popMatrix()
+        val length = 1e5 / scale
+        val alpha = 127 shl 24
+        LineShapes.drawLine(null, -length, 0.0, 0.0, +length, 0.0, 0.0, colorX or alpha)
+        LineShapes.drawLine(null, 0.0, -length, 0.0, 0.0, +length, 0.0, colorY or alpha)
+        LineShapes.drawLine(null, 0.0, 0.0, -length, 0.0, 0.0, +length, colorZ or alpha)
 
     }
 

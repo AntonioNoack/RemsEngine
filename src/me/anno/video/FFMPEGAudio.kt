@@ -36,9 +36,9 @@ class FFMPEGAudio(file: FileReference?, val sampleRate: Int, val length: Double)
             }
             input.reset()
             try {
-                val wav = WaveReader(input, frameCount)
+                val wav = WaveReader.readWAV(input, frameCount)
                 val buffer = SoundBuffer()
-                buffer.loadRawStereo16(wav.stereoPCM, sampleRate)
+                buffer.loadRawStereo16(wav.second, wav.first, sampleRate)
                 soundBuffer = buffer
             } catch (e: ShutdownException){
                 // ...

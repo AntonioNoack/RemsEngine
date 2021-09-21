@@ -841,7 +841,7 @@ class Video(file: FileReference = InvalidRef, parent: Transform? = null) : Audio
 
         val playbackButton = TextButton(getPlaybackTitle(false), false, style)
         audio += aud(playbackButton
-            .setSimpleClickListener {
+            .addLeftClickListener {
                 if (isPaused) {
                     playbackButton.text = getPlaybackTitle(true)
                     if (component == null) {

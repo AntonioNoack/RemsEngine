@@ -2,14 +2,16 @@ package me.anno.objects.meshes
 
 import me.anno.animation.AnimatedProperty
 import me.anno.animation.Type
-import me.anno.cache.instances.LastModifiedCache
 import me.anno.cache.instances.MeshCache.getMesh
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.BoneByBoneAnimation
 import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.anim.Skeleton
-import me.anno.ecs.components.mesh.*
+import me.anno.ecs.components.mesh.AnimRenderer
+import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.RenderState
 import me.anno.gpu.shader.BaseShader.Companion.cullFaceColoringGeometry
@@ -71,7 +73,7 @@ class MeshTransform(var file: FileReference, parent: Transform?) : GFXTransform(
             load: (MeshData) -> Unit,
             getData: (MeshData) -> Any?
         ): MeshData? {
-            val meshData1 = getMesh(file, key, 1000, true) {
+            val meshData1 = getMesh(file, key, 1000, true) { _, _ ->
                 val meshData = MeshData()
                 try {
                     load(meshData)
@@ -132,7 +134,7 @@ class MeshTransform(var file: FileReference, parent: Transform?) : GFXTransform(
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
         val file = file
-        if (file.hasValidName() && LastModifiedCache[file].exists) {
+        if (file.hasValidName() && file.exists) {
 
             if (file !== lastFile) {
                 extension = file.lcExtension
@@ -140,7 +142,7 @@ class MeshTransform(var file: FileReference, parent: Transform?) : GFXTransform(
             }
 
             // todo decide on file magic instead
-            val data =  when (extension) {
+            val data = when (extension) {
                 "vox" -> {
                     // vox is not supported by assimp -> custom loader
                     loadVOX(file, this)

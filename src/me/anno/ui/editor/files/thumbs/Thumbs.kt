@@ -69,7 +69,7 @@ import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.files.Files.use
 import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.image.ImageScale.scale
-import me.anno.utils.input.readNBytes2
+import me.anno.utils.input.Input.readNBytes2
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import net.boeckling.crc.CRC64
@@ -99,7 +99,7 @@ object Thumbs {
     private const val timeout = 5000L
 
     // todo disable this, when everything works
-    var useCacheFolder = !Build.isDebug
+    var useCacheFolder = true || !Build.isDebug
 
     init {
         LogManager.disableLogger("GlyphRenderer")
@@ -112,10 +112,9 @@ object Thumbs {
     private fun FileReference.getCacheFile(size: Int): FileReference {
 
         val hashReadLimit = 256
-        val info = LastModifiedCache[this]
         val length = this.length()
-        var hash: Long = info.lastModified xor (454781903L * length)
-        if (!info.isDirectory && length > 0) {
+        var hash: Long = lastModified xor (454781903L * length)
+        if (!isDirectory && length > 0) {
             val reader = inputStream().buffered()
             val bytes = reader.readNBytes2(hashReadLimit, false)
             reader.close()
@@ -967,8 +966,7 @@ object Thumbs {
             }
         }
 
-        val signature = Signature.find(srcFile)
-        when (signature?.name) {
+        when (Signature.findName(srcFile)) {
             // list all signatures, which can be assigned strictly by their signature
             "vox" -> generateVOXMeshFrame(srcFile, dstFile, size, callback)
             "hdr" -> {
@@ -983,7 +981,7 @@ object Thumbs {
                 saveNUpload(srcFile, dstFile, image, callback)
             }
             "png", "jpg", "bmp", "ico", "psd" -> generateImage(srcFile, dstFile, size, callback)
-            "blend" -> generateSomething(PrefabCache.getPrefabPair(srcFile)?.second, srcFile, dstFile, size, callback)
+            "blend" -> generateSomething(PrefabCache.getPrefabPair(srcFile)?.instance, srcFile, dstFile, size, callback)
             else -> try {
                 when (srcFile.lcExtension) {
 
@@ -1020,7 +1018,7 @@ object Thumbs {
                         try {
                             // try to read the file as an asset
                             val data = PrefabCache.getPrefabPair(srcFile)
-                            val something = data?.first ?: data?.second
+                            val something = data?.prefab ?: data?.instance
                             generateSomething(something, srcFile, dstFile, size, callback)
                         } catch (e: Throwable) {
                             LOGGER.info("${e.message} in $srcFile")

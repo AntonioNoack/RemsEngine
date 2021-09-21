@@ -5,6 +5,7 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.gui.LineShapes.drawBox
+import me.anno.engine.gui.LineShapes.drawSphere
 import me.anno.gpu.DepthMode
 import me.anno.gpu.RenderState
 import me.anno.gpu.drawing.Perspective.setPerspective
@@ -18,6 +19,7 @@ import me.anno.mesh.vox.meshing.BlockSide
 import me.anno.mesh.vox.meshing.VoxelMeshBuildInfo
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.ExpandingFloatArray
+import me.anno.utils.types.Matrices.getScaleLength
 import me.anno.utils.types.Matrices.rotate2
 import org.joml.*
 import org.lwjgl.opengl.GL11
@@ -69,16 +71,17 @@ class PointLight : LightComponent(LightType.POINT) {
     }
 
     override fun updateShadowMaps() {
+
         val pipeline = pipeline
-        pipeline.reset()
+
         val entity = entity!!
         val transform = entity.transform
         val resolution = shadowMapResolution
         val global = transform.globalTransform
-        val position = global.getTranslation(Vector3d())
-        val rotation = global.getUnnormalizedRotation(Quaterniond())
+        val position = global.getTranslation(JomlPools.vec3d.create())
+        val rotation = global.getUnnormalizedRotation(JomlPools.quat4d.create())
         val sqrt3 = 1.7320508075688772
-        val worldScale = sqrt3 / global.getScale(JomlPools.vec3d.borrow()).length()
+        val worldScale = sqrt3 / global.getScaleLength()
         // only fill pipeline once?
 
         val texture = shadowTextures!![0] as CubemapFramebuffer
@@ -86,9 +89,8 @@ class PointLight : LightComponent(LightType.POINT) {
         val far = 1.0
 
         val deg90 = Math.PI * 0.5
-        val rot2 = Quaterniond(rotation).invert()
-        val rot3 = Quaterniond()
-
+        val rotInvert = rotation.invert()
+        val rot3 = JomlPools.quat4d.create()
 
         val cameraMatrix = JomlPools.mat4f.create()
         val root = entity.getRoot(Entity::class)
@@ -98,17 +100,21 @@ class PointLight : LightComponent(LightType.POINT) {
                 GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT)
                 setPerspective(cameraMatrix, deg90.toFloat(), 1f, near.toFloat(), far.toFloat())
                 EnvironmentMap.rotateForCubemap(rot3.identity(), side)
-                rot3.mul(rot2)
+                rot3.mul(rotInvert)
                 cameraMatrix.rotate2(rot3)
+                pipeline.reset()
                 pipeline.frustum.definePerspective(
                     near / worldScale, far / worldScale, deg90, resolution, resolution, 1.0,
-                    position, rot3.invert() // needs to be the inverse again
+                    position, rot3.invert()
                 )
                 pipeline.fillDepth(root, position, worldScale)
                 pipeline.drawDepth(cameraMatrix, position, worldScale)
             }
         }
+
+        JomlPools.vec3d.sub(1)
         JomlPools.mat4f.sub(1)
+        JomlPools.quat4d.sub(2)
 
     }
 
@@ -120,8 +126,8 @@ class PointLight : LightComponent(LightType.POINT) {
     }
 
     override fun drawShape() {
-        // todo draw sphere or view-aligned-circle
-        drawBox(entity)
+        drawBox(entity, JomlPools.vec3d.borrow().set(near))
+        drawSphere(entity, 1.0)
     }
 
     override fun getLightPrimitive(): Mesh = cubeMesh

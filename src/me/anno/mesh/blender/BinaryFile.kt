@@ -60,15 +60,18 @@ class BinaryFile(val data: ByteBuffer) {
 
     fun readByte() = read()
     fun readBoolean() = read() != 0.toByte()
-    fun read0String(removeControlCodes: Boolean): String {
+    fun read0String(): String {
         // control codes?
-        val str = StringBuilder()
-        while (true) {
-            val char = read()
-            if (char == 0.toByte()) break
-            else str.append(char.toInt().toChar())
+        var length = 0
+        // find \0
+        val data = data
+        for (i in index until data.capacity()) {
+            if (data.get(i).toInt() == 0) break
+            length++
         }
-        return str.toString()
+        val str = readString(length)
+        index++ // skip \0
+        return str
     }
 
     fun offset(): Int = index

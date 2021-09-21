@@ -77,12 +77,10 @@ class Chapter(parent: Transform?) : GFXTransform(parent) {
         super.createInspector(list, style, getGroup)
         list += UpdatingTextPanel(500, style) { "Start time: ${createTimestamp(getChapterTime().roundToInt())}" }
         list += UpdatingTextPanel(500, style) { getNiceText() }
-            .setOnClickListener { _, _, button, long ->
-                if (button.isRight || long) {
-                    openMenu(listOf(MenuOption(NameDesc("Copy to clipboard")) {
-                        setClipboardContent(getNiceText())
-                    }))
-                }
+            .addRightClickListener {
+                openMenu(listOf(MenuOption(NameDesc("Copy to clipboard")) {
+                    setClipboardContent(getNiceText())
+                }))
             }
     }
 

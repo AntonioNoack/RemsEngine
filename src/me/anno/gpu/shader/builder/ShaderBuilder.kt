@@ -51,8 +51,8 @@ class ShaderBuilder(val name: String) {
         val varying = (vertex.imported + vertex.exported).toList()
         val shader = Shader(name, geometry?.code, vertCode, varying, fragCode)
         shader.glslVersion = max(330, max(glslVersion, shader.glslVersion))
-        /*shader.ignoreUniformWarnings(ignored)
-        for (stage in vertex.stages) ignore(shader, stage)
+        shader.ignoreUniformWarnings(ignored)
+        /*for (stage in vertex.stages) ignore(shader, stage)
         for (stage in fragment.stages) ignore(shader, stage)*/
         return shader
     }

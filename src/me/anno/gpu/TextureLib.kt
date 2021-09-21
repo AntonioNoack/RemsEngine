@@ -44,6 +44,10 @@ object TextureLib {
         tick.stop("creating default textures")
     }
 
+    fun bindWhite(index: Int): Boolean {
+        return whiteTexture.bind(index, whiteTexture.filtering, whiteTexture.clamping!!)
+    }
+
     fun destroy() {
         invisibleTexture.doDestroy()
         whiteTexture.doDestroy()

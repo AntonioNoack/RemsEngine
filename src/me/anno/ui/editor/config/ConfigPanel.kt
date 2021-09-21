@@ -42,9 +42,9 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
         add(topicTree, 1f)
         add(contentListUI, 3f)
         searchBar += TextButton(Dict["Close", "ui.general.close"], false, deep)
-            .setSimpleClickListener { windowStack.pop().destroy() }
+            .addLeftClickListener { windowStack.pop().destroy() }
         if (isStyle) {
-            searchBar += TextButton(Dict["Apply", "ui.general.apply"], false, deep).setSimpleClickListener {
+            searchBar += TextButton(Dict["Apply", "ui.general.apply"], false, deep).addLeftClickListener {
                 createTopics()
                 lastTopic = "-"
                 applySearch(searchInput.text)

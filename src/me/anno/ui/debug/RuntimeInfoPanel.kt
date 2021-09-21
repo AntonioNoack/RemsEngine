@@ -7,6 +7,7 @@ import me.anno.language.translation.Dict
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.text.SimpleTextPanel
 import me.anno.ui.style.Style
+import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.Floats.f1
 import kotlin.math.abs
 
@@ -25,15 +26,19 @@ class RuntimeInfoPanel(style: Style) : SimpleTextPanel(style) {
         }
     }
 
+    // todo another slot may be interesting: how much ram is used by sub-processes
+
     // todo onclick show more details about the ram and vram usage, e.g. allocated textures, with and without multisampling, ...
     // todo also we could plot them in a graph
     private fun getDebugText(): String {
         val runtime = Runtime.getRuntime()
         val memory = runtime.totalMemory() - runtime.freeMemory()
         val videoMemory = Texture2D.allocated + Buffer.allocated
-        return Dict["RAM/VRAM: %1/%2 MB", "ui.debug.ramUsage2"]
+        val cMemory = ByteBufferPool.getAllocated()
+        return Dict["JVM/C/VRAM: %1/%3/%2 MB", "ui.debug.ramUsage2"]
             .replace("%1", (memory.toFloat() / (1 shl 20)).f1())
             .replace("%2", (videoMemory.toFloat() / (1 shl 20)).f1())
+            .replace("%3", (cMemory.toFloat() / (1 shl 20)).f1())
     }
 
     init {

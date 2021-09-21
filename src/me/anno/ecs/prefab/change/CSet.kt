@@ -11,6 +11,7 @@ class CSet() : Change(5) {
         this.path = path
         this.name = name
         this.value = value
+        if (name == "parent") throw IllegalStateException("Name cannot be parent, use CAdd for that")
     }
 
     override fun withPath(path: Path): Change {
@@ -33,34 +34,25 @@ class CSet() : Change(5) {
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        val name = name
-        val value = value
-        if (name == "path") {
-            writer.writeString("name", name)
-            writer.writeSomething(null, "value", value, true)
-        } else {
-            // special handling, to save a little space by omitting "name": and "value":
-            writer.writeSomething(null, name!!, value, true)
+        // special handling, to save a little space by omitting "name": and "value":
+        if (value is PrefabSaveable) {
+            TODO("write path for value")
         }
-    }
-
-    override fun readString(name: String, value: String?) {
-        when (name) {
-            "name" -> this.name = value
-            else -> super.readString(name, value)
-        }
+        writer.writeSomething(null, name!!, value, true)
     }
 
     override fun readSomething(name: String, value: Any?) {
-        // special handling, to save a little space by omitting "name": and "value":
-        if (this.name == null) this.name = name
+        this.name = name
+        if (value is Path) {
+            TODO("get the element at that path")
+        }
         this.value = value
     }
 
     override fun applyChange(instance: PrefabSaveable, chain: MutableSet<FileReference>?) {
         val name = name ?: return
         if (!instance.set(name, value)) {
-            LOGGER.warn("${instance::class.simpleName}.$name is unknown")
+            LOGGER.warn("Property ${instance::class.simpleName}.$name is unknown")
         }
     }
 

@@ -35,17 +35,20 @@ class Path(
     )
 
     fun getParent(): Path {
-        val size = size
-        if (size == 0) throw IllegalArgumentException()
-        return Path(
-            Array(size - 1) { names[it] },
-            IntArray(size - 1) { indices[it] },
-            CharArray(size - 1) { types[it] }
-        )
+        return when (val size = size) {
+            0 -> throw RuntimeException("Root path has no parent")
+            1 -> ROOT_PATH
+            else -> Path(
+                Array(size - 1) { names[it] },
+                IntArray(size - 1) { indices[it] },
+                CharArray(size - 1) { types[it] }
+            )
+        }
     }
 
     val size get() = indices.size
     fun isEmpty() = size == 0
+    fun isNotEmpty() = size > 0
 
     fun setLast(name: String, index: Int, type: Char) {
         val i = size - 1
@@ -78,7 +81,7 @@ class Path(
         } else null
     }
 
-    fun <V: Change> getSubPathIfMatching(change: V, extraDepth: Int): V? {
+    fun <V : Change> getSubPathIfMatching(change: V, extraDepth: Int): V? {
         val subPath = getSubPathIfMatching(change.path, extraDepth) ?: return null
         val clone = change.clone() as V
         clone.path = subPath
@@ -125,11 +128,10 @@ class Path(
         return true
     }
 
-    // problematic...
-    override fun hashCode(): Int = indices.hashCode() * 31 + types.hashCode()
+    override fun hashCode(): Int = (indices.hashCode() * 31 + types.hashCode()) * 31 + names.hashCode()
 
     override fun equals(other: Any?): Boolean {
-        return other is Path && other.indices.contentEquals(indices) && types.contentEquals(other.types)
+        return other is Path && other.size == size && startsWith(other) && other.startsWith(this)
     }
 
     fun added(name: String, index: Int, type: Char): Path {

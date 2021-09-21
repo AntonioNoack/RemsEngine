@@ -1,14 +1,18 @@
 package me.anno.ui.base.groups
 
+import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.scrolling.ScrollPanelY.Companion.scrollSpeed
 import me.anno.ui.base.scrolling.ScrollableY
 import me.anno.ui.base.scrolling.ScrollbarY
 import me.anno.ui.style.Style
 import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.maths.Maths.fract
+import me.anno.utils.maths.Maths.mix
 import me.anno.utils.structures.tuples.Quad
 import kotlin.math.max
 
@@ -54,10 +58,18 @@ class PanelListMultiline(val sorter: Comparator<Panel>?, style: Style) : PanelGr
 
     var spacing = style.getSize("childSpacing", 1)
 
+    override var scrollPositionY = 0f
+    var isDownOnScrollbar = false
+
+    override val maxScrollPositionY get() = max(0, minH2 - h)
+    val scrollbar = ScrollbarY(this, style)
+    val scrollbarWidth = style.getSize("scrollbarWidth", 8)
+    val scrollbarPadding = style.getSize("scrollbarPadding", 1)
+
     override fun calculateSize(w: Int, h: Int) {
 
         val children = children
-        if(sorter != null){
+        if (sorter != null) {
             children.sortWith(sorter)
         }
 
@@ -70,6 +82,57 @@ class PanelListMultiline(val sorter: Comparator<Panel>?, style: Style) : PanelGr
             }
         }
 
+    }
+
+    var autoScrollTargetPosition = 0f
+    var autoScrollEndTime = 0L
+    var autoScrollPerNano = 1f
+    var autoScrollLastUpdate = 0L
+
+    fun scrollTo(itemIndex: Int, fractionY: Float) {
+        val child = children.getOrNull(itemIndex) ?: return
+        val currentY = child.y + fractionY * child.h
+        val targetY = Input.mouseY
+        val newScrollPosition = scrollPositionY + (currentY - targetY)
+        smoothlyScrollTo(newScrollPosition, 0.25f)
+    }
+
+    override fun tickUpdate() {
+        super.tickUpdate()
+        if (autoScrollLastUpdate < autoScrollEndTime) {
+            val delta = autoScrollPerNano * (GFX.gameTime - autoScrollLastUpdate)
+            if (delta > 0L) {
+                scrollPositionY = if (autoScrollLastUpdate < autoScrollEndTime && delta < 1f) {
+                    mix(scrollPositionY, autoScrollTargetPosition, delta)
+                } else autoScrollTargetPosition
+                clampScrollPosition()
+                invalidateLayout()
+                autoScrollLastUpdate = GFX.gameTime
+            }
+        }
+    }
+
+    fun smoothlyScrollTo(y: Float, duration: Float = 1f) {
+        autoScrollTargetPosition = clamp(y, 0f, maxScrollPositionY.toFloat())
+        autoScrollPerNano = 5e-9f / duration
+        autoScrollEndTime = GFX.gameTime + (duration * 1e9f).toLong()
+        autoScrollLastUpdate = GFX.gameTime
+        if (duration <= 0f) scrollPositionY = autoScrollTargetPosition
+        invalidateDrawing()
+    }
+
+    fun getItemIndexAt(x: Float, y: Float): Int {
+        val lx = x - this.x
+        val ly = y - this.y + scrollPositionY - spacing
+        val itemX = (lx * columns / w).toInt()
+        val itemY = (ly * rows / h).toInt()
+        return clamp(itemX + itemY * columns, 0, children.lastIndex)
+    }
+
+    fun getItemFractionY(y: Float): Float {
+        val ly = y - this.y + scrollPositionY - spacing
+        val itemY = ly * rows / h
+        return fract(itemY)
     }
 
     fun clear() = children.clear()
@@ -124,25 +187,18 @@ class PanelListMultiline(val sorter: Comparator<Panel>?, style: Style) : PanelGr
                 val ix = i % columns
                 val iy = i / columns
                 val cx = x + when (childAlignmentX) {
-                    AxisAlignment.MIN -> ix * (calcChildWidth + spacing) + spacing
+                    AxisAlignment.MIN, AxisAlignment.FILL -> ix * (calcChildWidth + spacing) + spacing
                     AxisAlignment.CENTER -> ix * calcChildWidth + max(0, w - contentW) * (ix + 1) / (columns + 1)
                     AxisAlignment.MAX -> w - (columns - ix) * (calcChildWidth + spacing)
                 }
                 val cy = y + iy * (calcChildHeight + spacing) + spacing - scroll
-                child.placeInParent(cx, cy)
+                // child.placeInParent(cx, cy)
+                child.place(cx, cy, calcChildWidth, calcChildHeight)
                 i++
             }
         }
 
     }
-
-    override var scrollPositionY = 0f
-    var isDownOnScrollbar = false
-
-    override val maxScrollPositionY get() = max(0, minH2 - h)
-    val scrollbar = ScrollbarY(this, style)
-    val scrollbarWidth = style.getSize("scrollbarWidth", 8)
-    val scrollbarPadding = style.getSize("scrollbarPadding", 1)
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
@@ -159,7 +215,7 @@ class PanelListMultiline(val sorter: Comparator<Panel>?, style: Style) : PanelGr
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
         if (!Input.isShiftDown && !Input.isControlDown) {
             val delta = dx - dy
-            val scale = 20f
+            val scale = scrollSpeed
             if ((delta > 0f && scrollPositionY >= maxScrollPositionY) ||
                 (delta < 0f && scrollPositionY <= 0f)
             ) {// if done scrolling go up the hierarchy one
@@ -167,6 +223,7 @@ class PanelListMultiline(val sorter: Comparator<Panel>?, style: Style) : PanelGr
             } else {
                 scrollPositionY += scale * delta
                 clampScrollPosition()
+                invalidateLayout()
             }
         } else super.onMouseWheel(x, y, dx, dy)
     }

@@ -142,7 +142,7 @@ interface Hierarchical<V : Hierarchical<V>> {
         }
 
     fun findFirstInAll(callback: (element: V) -> Boolean): V? {
-        if(callback(this as V)) return this
+        if (callback(this as V)) return this
         val children = children
         for (index in children.indices) {
             val v = children[index].findFirstInAll(callback)

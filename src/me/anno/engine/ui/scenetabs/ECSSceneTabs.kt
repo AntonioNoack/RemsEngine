@@ -7,9 +7,11 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.engine.physics.BulletPhysics
 import me.anno.engine.ui.ECSTreeView
+import me.anno.engine.ui.ECSTypeLibrary
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX.windowStack
 import me.anno.io.ISaveable
@@ -99,6 +101,10 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
         }
     }
 
+    fun open(file: FileReference, classNameIfNull: String = "Entity"){
+        open(ECSTypeLibrary.syncMaster, file, classNameIfNull)
+    }
+
     fun open(sceneTab: ECSSceneTab) {
         if (currentTab == sceneTab) return
         synchronized(this) {
@@ -106,28 +112,8 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
             PrefabInspector.currentInspector = sceneTab.inspector
             // root = sceneTab.root
             val prefab = sceneTab.inspector.prefab
-            val prefabInstance = prefab.getSampleInstance()
-            (prefabInstance as? Entity)?.apply {
-                create()
-                val physics = prefabInstance.getComponent(BulletPhysics::class, false)
-                if (physics != null) rebuildPhysics(physics)
-            }
-            val world = lazy { createWorld(prefabInstance, prefab.source) }
-            for (window in windowStack) {
-                window.panel.forAll {
-                    when (it) {
-                        is RenderView -> {
-                            val library = it.library
-                            library.getWorld = { world.value }
-                            library.select(prefabInstance)
-                            println("setting world to ${library.world}")
-                        }
-                        is ECSTreeView -> {
-                            it.invalidateLayout()
-                        }
-                    }
-                }
-            }
+            ECSTypeLibrary.select(null, null)
+            updatePrefab(prefab)
             if (sceneTab !in children3) {
                 content += sceneTab
             }
@@ -135,7 +121,18 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
         }
     }
 
-    private fun createWorld(item: ISaveable, src: FileReference): Entity {
+    fun updatePrefab(prefab: Prefab) {
+        val prefabInstance = prefab.getSampleInstance()
+        val world = createWorld(prefabInstance, prefab.source)
+        ECSTypeLibrary.world = world
+        (prefabInstance as? Entity)?.apply {
+            create()
+            val physics = prefabInstance.getComponent(BulletPhysics::class, false)
+            if (physics != null) rebuildPhysics(physics)
+        }
+    }
+
+    fun createWorld(item: ISaveable, src: FileReference): Entity {
         // todo if there is no lights at all, we should all them "virtually", temporarily
         return when (item) {
             is Entity -> item

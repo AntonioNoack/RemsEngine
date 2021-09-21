@@ -13,6 +13,7 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.files.FileExplorer.Companion.openInExplorerDesc
+import me.anno.ui.editor.files.FileExplorerOption
 import me.anno.ui.style.Style
 import me.anno.utils.files.FileExplorerSelectWrapper
 import me.anno.utils.files.LocalFile.toGlobalFile
@@ -21,7 +22,10 @@ import me.anno.utils.hpc.Threads.threadWithName
 import java.io.File
 
 class FileInput(
-    title: String, style: Style, f0: FileReference, val isDirectory: Boolean = false
+    title: String, style: Style,
+    f0: FileReference,
+    val extraRightClickOptions: List<FileExplorerOption>,
+    val isDirectory: Boolean = false
 ) : PanelListX(style) {
 
     val button = TextButton(DefaultConfig["ui.symbol.folder", "\uD83D\uDCC1"], true, style)
@@ -41,7 +45,7 @@ class FileInput(
             }
         }
         button.apply {
-            setSimpleClickListener {
+            addLeftClickListener {
                 threadWithName("SelectFile/Folder") {
                     var file2 = file
                     while (file2 != InvalidRef && !file2.exists) {
@@ -97,7 +101,11 @@ class FileInput(
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         when {
-            button.isRight -> openMenu(listOf(MenuOption(openInExplorerDesc) { file.openInExplorer() }))
+            button.isRight -> openMenu(listOf(
+                MenuOption(openInExplorerDesc) { file.openInExplorer() }
+            ) + extraRightClickOptions.map {
+                MenuOption(it.nameDesc) { it.onClick(file) }
+            })
             else -> super.onMouseClicked(x, y, button, long)
         }
     }

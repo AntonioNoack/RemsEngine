@@ -8,11 +8,13 @@ import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.ui.base.components.Corner.drawRoundedRect
 import me.anno.ui.base.components.Padding
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.Constraint
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
+import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.arrays.ExpandingGenericArray
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
@@ -20,10 +22,29 @@ import kotlin.math.roundToInt
 
 open class Panel(val style: Style) {
 
+    // wished size and placement
+    var minX = 0
+    var minY = 0
     var minW = 1
     var minH = 1
 
     val depth: Int get() = 1 + (parent?.depth ?: 0)
+
+    var alignmentX = AxisAlignment.MIN
+    var alignmentY = AxisAlignment.MIN
+
+    /**
+     * this weight is used inside some layouts
+     * it allows layout by percentages and such
+     *
+     * alignment should be "fill"
+     * */
+    open var weight = 0f
+        set(value) {
+            if (value.isFinite()) {
+                field = value
+            }
+        }
 
     open var visibility = Visibility.VISIBLE
         set(value) {
@@ -45,11 +66,11 @@ open class Panel(val style: Style) {
         invalidateLayout()
     }
 
-    fun makeBackgroundTransparent(){
+    fun makeBackgroundTransparent() {
         backgroundColor = backgroundColor and 0xffffff
     }
 
-    fun makeBackgroundOpaque(){
+    fun makeBackgroundOpaque() {
         backgroundColor = backgroundColor or black
     }
 
@@ -134,17 +155,6 @@ open class Panel(val style: Style) {
         Framebuffer.DepthBufferType.NONE
     )
     var renderOnRequestOnly = false*/
-
-    /**
-     * this weight is used inside some layouts
-     * it allows layout by percentages and such
-     * */
-    open var weight = 0f
-        set(value) {
-            if (value.isFinite()) {
-                field = value
-            }
-        }
 
     var backgroundRadiusX = style.getSize("background.radius.x", 0)
     var backgroundRadiusY = style.getSize("background.radius.y", 0)
@@ -293,9 +303,35 @@ open class Panel(val style: Style) {
         }
     }
 
+    /**
+     * sets minW & minH to the minimum size, this panel would like, given the available space
+     * */
     open fun calculateSize(w: Int, h: Int) {
+        minW = 1
+        minH = 1
+        // todo why is this required? this should not be a thing
         this.w = w
         this.h = h
+    }
+
+    /**
+     * calculates the placement, given the available space
+     * */
+    open fun calculatePlacement(x: Int, y: Int, w: Int, h: Int) {
+        when (alignmentX) {
+            AxisAlignment.FILL -> {
+                minX = 0
+                minW = w
+            }
+            else -> x + alignmentX.getOffset(w, this.minW)
+        }
+        when (alignmentY) {
+            AxisAlignment.FILL -> {
+                minY = 0
+                minH = h
+            }
+            else -> y + alignmentY.getOffset(h, this.minH)
+        }
     }
 
     fun add(c: Constraint): Panel {
@@ -312,15 +348,29 @@ open class Panel(val style: Style) {
      * as functions to be able to cancel parent listeners
      * */
 
-    var onClickListener: ((Float, Float, MouseButton, Boolean) -> Unit)? = null
-    fun setOnClickListener(onClickListener: ((x: Float, y: Float, button: MouseButton, long: Boolean) -> Unit)): Panel {
-        this.onClickListener = onClickListener
+    val onClickListeners = ArrayList<(Float, Float, MouseButton, Boolean) -> Boolean>()
+
+    fun addOnClickListener(onClickListener: ((x: Float, y: Float, button: MouseButton, long: Boolean) -> Boolean)): Panel {
+        onClickListeners.add(onClickListener)
         return this
     }
 
-    fun setSimpleClickListener(onClick: () -> Unit): Panel {
-        onClickListener = { _, _, b, _ ->
-            if (b.isLeft) onClick()
+    fun addLeftClickListener(onClick: () -> Unit): Panel {
+        addOnClickListener { _, _, b, isLong ->
+            if (b.isLeft && !isLong) {
+                onClick()
+                true
+            } else false
+        }
+        return this
+    }
+
+    fun addRightClickListener(onClick: () -> Unit): Panel {
+        addOnClickListener { _, _, b, isLong ->
+            if (b.isRight || isLong) {
+                onClick()
+                true
+            } else false
         }
         return this
     }
@@ -334,11 +384,17 @@ open class Panel(val style: Style) {
     }
 
     open fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-        onClickListener?.invoke(x, y, button, long) ?: parent?.onMouseClicked(x, y, button, long)
+        for (l in onClickListeners) {
+            if (l(x, y, button, long)) return
+        }
+        parent?.onMouseClicked(x, y, button, long)
     }
 
     open fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
-        onClickListener?.invoke(x, y, button, false) ?: parent?.onDoubleClick(x, y, button)
+        for (l in onClickListeners) {
+            if (l(x, y, button, false)) return
+        }
+        parent?.onDoubleClick(x, y, button)
     }
 
     open fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
@@ -427,10 +483,13 @@ open class Panel(val style: Style) {
     }
 
     open fun printLayout(tabDepth: Int) {
+        val tooltip = tooltip
         println(
             "${Tabs.spaces(tabDepth * 2)}${javaClass.simpleName}(${(weight * 10).roundToInt()}, " +
                     "${if (visibility == Visibility.VISIBLE) "v" else "_"})) " +
-                    "$x-${x + w}, $y-${y + h} ($minW $minH) ${getPrintSuffix()}"
+                    "$x-${x + w}, $y-${y + h} ($minW $minH) ${
+                        if (tooltip == null) "" else "'${tooltip.shorten(20)}' "
+                    }${getPrintSuffix()}"
         )
     }
 

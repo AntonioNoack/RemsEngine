@@ -6,13 +6,21 @@ package me.anno.gpu;
 
 import kotlin.Unit;
 import me.anno.config.DefaultConfig;
+import me.anno.ecs.prefab.Prefab;
+import me.anno.ecs.prefab.change.CSet;
 import me.anno.input.Input;
+import me.anno.io.files.FileReference;
+import me.anno.io.files.InvalidRef;
+import me.anno.io.zip.InnerFolder;
+import me.anno.io.zip.InnerPrefabFile;
 import me.anno.language.translation.NameDesc;
+import me.anno.mesh.obj.OBJReader2;
 import me.anno.studio.Build;
 import me.anno.studio.StudioBase;
 import me.anno.ui.base.Panel;
 import me.anno.ui.base.menu.Menu;
 import me.anno.utils.Clock;
+import me.anno.utils.io.ResourceHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.Version;
@@ -28,10 +36,9 @@ import org.lwjgl.system.Callback;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
-import java.io.File;
-import java.io.OutputStream;
-import java.io.PrintStream;
+import java.io.*;
 import java.nio.IntBuffer;
+import java.util.List;
 
 import static me.anno.gpu.debug.OpenGLDebug.*;
 import static org.lwjgl.glfw.GLFW.*;
@@ -80,21 +87,21 @@ public class GFXBase0 {
     public long window;
     public int width = 800;
     public int height = 700;
-    final Object lock = new Object();
-    final Object lock2 = new Object();
+    final Object glfwLock = new Object();
+    final Object openglLock = new Object();
     boolean destroyed;
 
     public void loadRenderDoc() {
         // must be executed before OpenGL-init
-        if (Build.INSTANCE.isDebug()) {
+        String renderDocPath = DefaultConfig.INSTANCE.get("debug.renderdoc.path", "C:/Program Files/RenderDoc/renderdoc.dll");
+        boolean renderDocEnabled = DefaultConfig.INSTANCE.get("debug.renderdoc.enabled", Build.INSTANCE.isDebug());
+        if (renderDocEnabled) {
             try {
-                // todo this path should be customizable
                 // if renderdoc is install on linux, or given in the path, we could use it as well with loadLibrary()
                 // at least this is the default location for RenderDoc
-                String file = "C:/Program Files/RenderDoc/renderdoc.dll";
-                if (new File(file).exists()) {
-                    System.load(file);
-                } else LOGGER.warn("Did not find RenderDoc, searched '" + file + "'");
+                if (new File(renderDocPath).exists()) {
+                    System.load(renderDocPath);
+                } else LOGGER.warn("Did not find RenderDoc, searched '" + renderDocPath + "'");
             } catch (Exception e) {
                 LOGGER.warn("Could not initialize RenderDoc");
                 e.printStackTrace();
@@ -105,15 +112,18 @@ public class GFXBase0 {
     public void run() {
         try {
 
-            // todo there should be a way to switch this at runtime, or at least some runtime argument...
             loadRenderDoc();
 
             init();
             windowLoop();
 
-            synchronized (lock) {
+            synchronized (glfwLock) {
                 destroyed = true;
-                glfwDestroyWindow(window);
+                // wait for the last frame to be finished,
+                // before we actually destroy the window and its framebuffer
+                synchronized (openglLock) {
+                    glfwDestroyWindow(window);
+                }
             }
 
             if (debugProc != null)
@@ -294,7 +304,9 @@ public class GFXBase0 {
 
         setupDebugging();
 
-        DefaultConfig.INSTANCE.init();
+        renderFrame0();
+
+        glfwSwapBuffers(window);
 
         renderStep0();
 
@@ -303,33 +315,32 @@ public class GFXBase0 {
         long lastTime = System.nanoTime();
 
         while (!destroyed) {
-            synchronized (lock2) {
 
+            synchronized (openglLock) {
                 renderStep();
+            }
 
-                synchronized (lock) {
-                    if (!destroyed) {
-                        glfwSwapBuffers(window);
-                    }
+            synchronized (glfwLock) {
+                if (!destroyed) {
+                    glfwSwapBuffers(window);
+                    updateVsync();
+                }
+            }
+
+            if (!isInFocus || isMinimized) {
+
+                // enforce 30 fps, because we don't need more
+                // and don't want to waste energy
+                long currentTime = System.nanoTime();
+                long waitingTime = 30 - (currentTime - lastTime) / 1_000_000;
+                lastTime = currentTime;
+
+                if (waitingTime > 0) try {
+                    // wait does not work, causes IllegalMonitorState exception
+                    Thread.sleep(waitingTime);
+                } catch (InterruptedException ignored) {
                 }
 
-                updateVsync();
-
-                if (!isInFocus || isMinimized) {
-
-                    // enforce 30 fps, because we don't need more
-                    // and don't want to waste energy
-                    long currentTime = System.nanoTime();
-                    long waitingTime = 30 - (currentTime - lastTime) / 1_000_000;
-                    lastTime = currentTime;
-
-                    if (waitingTime > 0) try {
-                        // wait does not work, causes IllegalMonitorState exception
-                        Thread.sleep(waitingTime);
-                    } catch (InterruptedException ignored) {
-                    }
-
-                }
             }
         }
 
@@ -436,6 +447,67 @@ public class GFXBase0 {
         GFX.INSTANCE.setGlThread(Thread.currentThread());
     }
 
+    // can be set by the application
+    public int frame0BackgroundColor = 0;
+    public int frame0IconColor = 0x172040;
+
+    public void renderFrame0() {
+
+        // load icon.obj as file, and draw it using OpenGL 1.0
+
+        int c = frame0BackgroundColor;
+        glClearColor(((c >> 16) & 255) / 255f, ((c >> 8) & 255) / 255f, (c & 255) / 255f, 1f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+
+        float aspect = (float) width / height;
+        glOrtho(-aspect, aspect, -1f, +1f, -1f, +1f);
+        c = frame0IconColor;
+        glColor3f(((c >> 16) & 255) / 255f, ((c >> 8) & 255) / 255f, (c & 255) / 255f);
+
+        try {
+            InputStream stream = ResourceHelper.INSTANCE.loadResource("icon.obj");
+            OBJReader2 reader = new OBJReader2(stream, InvalidRef.INSTANCE);
+            if (reader.getMeshesFolder().isInitialized()) {
+                InnerFolder file = reader.getMeshesFolder().getValue();
+                for (FileReference child : file.listChildren()) {
+                    // we could use the name as color... probably a nice idea :)
+                    Prefab prefab = ((InnerPrefabFile) child).getPrefab();
+                    List<CSet> sets = prefab.getSets();
+                    if (sets != null) {
+                        float[] positions = null;
+                        int[] indices = null;
+                        for (CSet set : sets) {
+                            if ("positions".equals(set.getName())) {
+                                positions = (float[]) set.getValue();
+                            }
+                            if ("indices".equals(set.getName())) {
+                                indices = (int[]) set.getValue();
+                            }
+                        }
+                        if (positions != null) {
+                            glBegin(GL_TRIANGLES);
+                            if (indices == null) {
+                                for (int i = 0; i < positions.length; i += 3) {
+                                    glVertex2f(positions[i], positions[i + 1]);
+                                }
+                            } else {
+                                for (int index : indices) {
+                                    int j = index * 3;
+                                    glVertex2f(positions[j], positions[j + 1]);
+                                }
+                            }
+                            glEnd();
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
 
     public void renderStep() {
 
@@ -459,7 +531,7 @@ public class GFXBase0 {
 
     }
 
-    public static String projectName = "Rems Studio";
+    public static String projectName = "";
     private String newTitle = null;
     boolean shouldClose = false;
 

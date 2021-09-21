@@ -98,7 +98,7 @@ class SoftLink(var file: FileReference) : GFXTransform(null) {
     }
 
     fun updateCache() {
-        val lm = LastModifiedCache[file] to cameraIndex
+        val lm = file.lastModified to cameraIndex
         if (lm != lastModified) {
             lastModified = lm
             load()

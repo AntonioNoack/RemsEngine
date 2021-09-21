@@ -81,7 +81,6 @@ class BulletDebugDraw : IDebugDraw() {
         lifeTime: Int,
         color: Vector3d
     ) {
-        // todo draw it
         // todo instead of a line, draw a shape with arrow
         drawLine(position, Vector3d(position).apply { add(normal) }, color)
     }

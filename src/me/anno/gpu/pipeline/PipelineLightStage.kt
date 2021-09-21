@@ -17,7 +17,6 @@ import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.pipeline.M4x3Delta.m4x3delta
 import me.anno.gpu.pipeline.M4x3Delta.m4x3x
-import me.anno.gpu.pipeline.PipelineStage.Companion.getDrawMatrix
 import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBatchSize
 import me.anno.gpu.pipeline.PipelineStage.Companion.setupLocalTransform
 import me.anno.gpu.shader.Shader
@@ -90,9 +89,10 @@ class PipelineLightStage(
                         Variable("vec3", "finalEmissive"),
                         Variable("bool", "applyToneMapping"),
                         Variable("sampler2D", "finalLight"),
+                        Variable("vec3", "ambientLight"),
                         Variable("vec3", "color", VariableMode.OUT)
                     ), "" +
-                            "   vec3 light = texture(finalLight, uv).rgb;\n" +
+                            "   vec3 light = texture(finalLight, uv).rgb + ambientLight;\n" +
                             "   color = finalColor * light * finalOcclusion + finalEmissive;\n" +
                             "   if(applyToneMapping) color = color/(1+color);\n"
                 )
@@ -434,7 +434,7 @@ class PipelineLightStage(
 
                 setupLocalTransform(shader, transform, cameraPosition, worldScale, time)
 
-                val m = getDrawMatrix(transform, time)
+                val m = transform.getDrawMatrix(time)
 
                 shader.v4("tint", -1)
 
@@ -519,7 +519,7 @@ class PipelineLightStage(
                         nioBuffer.position((index - baseIndex) * stride)
                         val lightI = lights[index]
                         val light = lightI.light
-                        val m = getDrawMatrix(lightI.transform, time)
+                        val m = lightI.transform.getDrawMatrix(time)
                         val mInv = light.invWorldMatrix
                         m4x3delta(m, cameraPosition, worldScale, nioBuffer, false)
                         m4x3x(mInv, nioBuffer, false)
@@ -588,6 +588,5 @@ class PipelineLightStage(
 
     override val className: String = "LightPipelineStage"
     override val approxSize: Int = 5
-    override fun isDefaultValue(): Boolean = false
 
 }

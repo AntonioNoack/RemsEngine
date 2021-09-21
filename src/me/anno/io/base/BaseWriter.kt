@@ -309,7 +309,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                         // is PrefabSaveable -> writeObjectArray(self, name, toArray(value), forceSaving)
                         is ISaveable -> writeObjectArray(self, name, toArray(value), forceSaving)
                         is FileReference -> writeFileArray(name, toArray(value), forceSaving)
-                        else -> throw RuntimeException("Not yet implemented: saving a list of ${sample?.javaClass}")
+                        else -> throw RuntimeException("Not yet implemented: saving a list of '$name' ${sample?.javaClass}")
                     }
                 } // else if is force saving, then this won't work, because of the weak generics in Java :/
             }

@@ -17,7 +17,6 @@ import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.pipeline.M4x3Delta.set4x3delta
-import me.anno.gpu.pipeline.PipelineStage.Companion.getDrawMatrix
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
@@ -83,16 +82,12 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
     }
 
     private fun addMesh(mesh: Mesh, renderer: MeshComponent, entity: Entity, clickId: Int) {
+        mesh.ensureBuffer()
         val materials = mesh.materials
-        if (materials.isEmpty()) {
-            val stage = defaultStage
-            stage.add(renderer, mesh, entity, 0, clickId)
-        } else {
-            for (index in materials.indices) {
-                val material = MaterialCache[materials[index], defaultMaterial]
-                val stage = material.pipelineStage ?: getDefaultStage(mesh, material)
-                stage.add(renderer, mesh, entity, index, clickId)
-            }
+        for (index in 0 until mesh.numMaterials) {
+            val material = MaterialCache[materials.getOrNull(index), defaultMaterial]
+            val stage = material.pipelineStage ?: getDefaultStage(mesh, material)
+            stage.add(renderer, mesh, entity, index, clickId)
         }
     }
 
@@ -101,16 +96,12 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
     }
 
     private fun addMeshInstanced(mesh: Mesh, entity: Entity, clickId: Int) {
+        mesh.ensureBuffer()
         val materials = mesh.materials
-        if (materials.isEmpty()) {
-            val stage = defaultStage
-            stage.addInstanced(mesh, entity, 0, clickId)
-        } else {
-            for (index in materials.indices) {
-                val material = MaterialCache[materials[index], defaultMaterial]
-                val stage = material.pipelineStage ?: defaultStage
-                stage.addInstanced(mesh, entity, index, clickId)
-            }
+        for (index in 0 until mesh.numMaterials) {
+            val material = MaterialCache[materials.getOrNull(index), defaultMaterial]
+            val stage = material.pipelineStage ?: defaultStage
+            stage.addInstanced(mesh, entity, index, clickId)
         }
     }
 
@@ -126,7 +117,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         // its drawn position probably should be smoothed -> we probably should use the drawnMatrix instead of the global one
         // we may want to set a timestamp, so we don't update it twice? no, we fill the pipeline only once
         val invWorldTransform = light.invWorldMatrix
-        val drawTransform = getDrawMatrix(entity.transform, GFX.gameTime)
+        val drawTransform = entity.transform.getDrawMatrix(GFX.gameTime)
         invWorldTransform.identity()
             .set4x3delta(drawTransform, cameraPosition, worldScale)
             .invert()

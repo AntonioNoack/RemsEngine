@@ -13,6 +13,13 @@ public class HDRImage extends Image {
 
     private float[] pixels;
 
+    public HDRImage(int width, int height, int numChannels) {
+        super(numChannels, numChannels > 3);
+        this.width = width;
+        this.height = height;
+        this.pixels = new float[width * height * numChannels];
+    }
+
     public HDRImage(InputStream input) throws IOException {
         super(3, false);
         try (InputStream in = optimizeStream(input)) {

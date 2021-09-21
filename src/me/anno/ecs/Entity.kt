@@ -1,9 +1,9 @@
 package me.anno.ecs
 
 import me.anno.ecs.annotations.HideInInspector
-import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.collider.Collider
-import me.anno.ecs.components.light.*
+import me.anno.ecs.components.light.AmbientLight
+import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.prefab.PrefabInspector
@@ -20,11 +20,9 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
 import me.anno.utils.LOGGER
-import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AABBs.all
 import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.AABBs.set
-import me.anno.utils.types.AABBs.transformUnion
 import me.anno.utils.types.Floats.f2s
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -69,7 +67,11 @@ class Entity() : PrefabSaveable(), Inspectable {
         }
     }
 
+    @NotSerializedProperty
+    private var isCreated = false
     fun create() {
+        if (isCreated) return
+        isCreated = true
         val children = internalChildren
         for (index in children.indices) {
             children[index].create()
@@ -297,55 +299,12 @@ class Entity() : PrefabSaveable(), Inspectable {
         }
         aabb.clear()
         if (hasSpaceFillingComponents) {
-            // todo if has particle system, include
             val globalTransform = transform.globalTransform
             val components = components
             for (i in components.indices) {
                 val component = components[i]
                 if (component.isEnabled) {
-                    when (component) {
-                        is MeshComponent -> {
-                            val mesh = MeshCache[component.mesh]
-                            if (mesh != null) {
-                                // add aabb of that mesh with the transform
-                                mesh.ensureBuffer()
-                                mesh.aabb.transformUnion(globalTransform, aabb)
-                            }
-                        }
-                        is DirectionalLight -> {
-                            if (component.cutoff <= 0f) {
-                                aabb.all()
-                            } else {
-                                val mesh = component.getLightPrimitive()
-                                mesh.ensureBuffer()
-                                mesh.aabb.transformUnion(globalTransform, aabb)
-                            }
-                        }
-                        is LightComponent -> {
-                            val mesh = component.getLightPrimitive()
-                            mesh.ensureBuffer()
-                            mesh.aabb.transformUnion(globalTransform, aabb)
-                        }
-                        is EnvironmentMap, is PlanarReflection -> {
-                            val mesh = PointLight.cubeMesh
-                            mesh.ensureBuffer()
-                            mesh.aabb.transformUnion(globalTransform, aabb)
-                        }
-                        /* is PlanarReflection -> {
-                             val mesh = PlanarReflection.planeMesh
-                             mesh.ensureBuffer()
-                             mesh.aabb.transformUnion(globalTransform, aabb)
-                         }*/
-                        is AmbientLight -> {
-                            // ambient light has influence on everything
-                            aabb.all()
-                        }
-                        is Collider -> {
-                            val tmp = JomlPools.vec3d.create()
-                            component.union(globalTransform, aabb, tmp, false)
-                            JomlPools.vec3d.sub(1)
-                        }
-                    }
+                    component.fillSpace(globalTransform, aabb)
                 }
             }
         }
@@ -375,6 +334,7 @@ class Entity() : PrefabSaveable(), Inspectable {
     var clickId = 0
 
     fun update() {
+        if (!isCreated) create()
         val components = components
         for (i in components.indices) components[i].onUpdate()
         val children = children
@@ -389,6 +349,7 @@ class Entity() : PrefabSaveable(), Inspectable {
     var hasBeenVisible = false
 
     fun updateVisible() {
+        if (!isCreated) create()
         if (hasBeenVisible) {
             val components = components
             for (i in components.indices) components[i].onVisibleUpdate()
@@ -474,6 +435,11 @@ class Entity() : PrefabSaveable(), Inspectable {
     // todo don't directly update, rather invalidate this, because there may be more to come
     fun setParent(parent: Entity, index: Int, keepWorldTransform: Boolean) {
 
+        if (this === parent) {
+            LOGGER.warn("Cannot append child to itself!")
+            return
+        }
+
         val oldParent = parentEntity
         if (parent === oldParent) return
 
@@ -531,6 +497,7 @@ class Entity() : PrefabSaveable(), Inspectable {
     }
 
     override fun destroy() {
+        isCreated = false
         for (component in components) {
             component.onDestroy()
         }
@@ -582,9 +549,10 @@ class Entity() : PrefabSaveable(), Inspectable {
         }
         hasRenderables = hasComponent(MeshComponent::class, false) ||
                 hasComponent(LightComponentBase::class, false)
+        val tmpAABB = tmpAABB.all()
+        val globalTransform = transform.globalTransform
         hasSpaceFillingComponents = hasRenderables ||
-                hasComponent(Collider::class, false) ||
-                hasComponent(AmbientLight::class, false)
+                anyComponent { it.fillSpace(globalTransform, tmpAABB) }
     }
 
     fun addEntity(child: Entity) {
@@ -670,6 +638,19 @@ class Entity() : PrefabSaveable(), Inspectable {
                 return false
         }
         return true
+    }
+
+    fun anyComponent(
+        includingDisabled: Boolean = false,
+        test: (Component) -> Boolean
+    ): Boolean {
+        val components = components
+        for (index in components.indices) {
+            val c = components[index]
+            if ((includingDisabled || c.isEnabled) && test(c))
+                return true
+        }
+        return false
     }
 
     fun <V : Component> anyComponent(
@@ -892,7 +873,6 @@ class Entity() : PrefabSaveable(), Inspectable {
         style: Style,
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
-        // todo call this when moving an object
         // interpolation tests
         /*list += UpdatingTextPanel(50, style) {
             val t = transform
@@ -928,6 +908,10 @@ class Entity() : PrefabSaveable(), Inspectable {
                 }
             }
         }
+    }
+
+    companion object {
+        private val tmpAABB = AABBd()
     }
 
 }

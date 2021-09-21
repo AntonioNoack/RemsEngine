@@ -7,6 +7,6 @@ import java.nio.ByteBuffer
 class BCustomDataExternal(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
     BlendData(file, type, buffer, position) {
 
-    val fileName = string("filename[1024]", 1024)
+    val fileName get() = string("filename[1024]", 1024)
 
 }

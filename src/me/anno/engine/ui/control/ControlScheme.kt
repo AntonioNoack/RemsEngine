@@ -20,8 +20,10 @@ import me.anno.studio.rems.ui.StudioTreeView
 import me.anno.ui.base.Panel
 import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.TimelinePanel
+import me.anno.ui.editor.sceneView.Gizmos
 import me.anno.ui.editor.sceneView.ISceneView
 import me.anno.utils.maths.Maths
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import me.anno.utils.types.Vectors.safeNormalize
 import org.apache.logging.log4j.LogManager
@@ -58,6 +60,10 @@ open class ControlScheme(val camera: CameraComponent, val library: ECSTypeLibrar
     override fun onKeyUp(x: Float, y: Float, key: Int) {
         super.onKeyUp(x, y, key)
         invalidateDrawing()
+    }
+
+    open fun drawGizmos(){
+
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {

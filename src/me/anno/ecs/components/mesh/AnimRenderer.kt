@@ -26,9 +26,9 @@ class AnimRenderer : MeshComponent() {
     var skeleton: FileReference = InvalidRef
 
     // maybe not the most efficient way, but it should work :)
-    @Type("List<Pair<Animation,Float>>")
+    @Type("Map<Animation/Reference,Float>")
     @SerializedProperty
-    var animationWeights = ArrayList<Pair<FileReference, Float>>()
+    var animationWeights = HashMap<FileReference, Float>()
 
     override fun defineVertexTransform(shader: Shader, entity: Entity, mesh: Mesh) {
 
@@ -43,11 +43,13 @@ class AnimRenderer : MeshComponent() {
         val location = shader["jointTransforms"]
 
         // the programmer must be careful.. or does he? idk...
-        animationWeights.removeIf { it.second <= 0f }
+        animationWeights.values.removeIf { it <= 0f }
+        // animationWeights.removeIf { it.second <= 0f }
 
         // todo remove that; just for debugging
         if (animationWeights.isEmpty() && skeleton.animations.isNotEmpty()) {
-            animationWeights.add(skeleton.animations.entries.first().value to 1f)
+            val sample = skeleton.animations.entries.first().value
+            animationWeights[sample] = 1f
         }
 
         if (animationWeights.isEmpty() || location <= 0) {
@@ -63,17 +65,19 @@ class AnimRenderer : MeshComponent() {
         val retargeting = Retargeting()
 
         // what if the weight is less than 1? change to T-pose? no, the programmer can define that himself with an animation
-        val weightNormalization = 1f / max(1e-7f, animationWeights.map { it.second }.sum())
-        val weight0 = animationWeights[0].first
-        val animation0 = AnimationCache[weight0]!!
+        // val weightNormalization = 1f / max(1e-7f, animationWeights.values.sum())
+        val keys = animationWeights.keys.iterator()
+        val values = animationWeights.values.iterator()
+        val key0 = keys.next()
+        val animation0 = AnimationCache[key0]!!
         val matrices = animation0.getMappedMatricesSafely(entity, time, dst0, retargeting)
-        var sumWeight = animationWeights[0].second
-        for (i in 1 until animationWeights.size) {
-            val weightAnim = animationWeights[i]
-            val weight = weightAnim.second
+        var sumWeight = values.next()
+        while (keys.hasNext()) {
+            val weightAnim = keys.next()
+            val weight = values.next()
             val relativeWeight = weight / (sumWeight + weight)
             // todo the second animation may have a different time value -> we need to manage that...
-            val animationI = AnimationCache[weightAnim.first] ?: continue
+            val animationI = AnimationCache[weightAnim] ?: continue
             val secondMatrices = animationI.getMappedMatricesSafely(entity, time, dst1, retargeting)
             for (j in matrices.indices) {
                 matrices[j].lerp(secondMatrices[j], relativeWeight)
@@ -125,6 +129,7 @@ class AnimRenderer : MeshComponent() {
     override val className: String = "AnimRenderer"
 
     companion object {
+
         val dst0 = Array(256) { Matrix4x3f() }
         val dst1 = Array(256) { Matrix4x3f() }
 

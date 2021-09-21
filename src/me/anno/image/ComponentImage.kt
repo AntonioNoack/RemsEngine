@@ -2,7 +2,7 @@ package me.anno.image
 
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.Texture2D.Companion.byteBufferPool
+import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.image.raw.BIImage
 import java.awt.image.BufferedImage
 
@@ -57,7 +57,7 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) : 
 
     override fun createTexture(texture: Texture2D, checkRedundancy: Boolean) {
         val size = width * height
-        val bytes = byteBufferPool[size, false]
+        val bytes = bufferPool[size, false]
         when (src) {
             is BIImage -> {
                 // use direct data access

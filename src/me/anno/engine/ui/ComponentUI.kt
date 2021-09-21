@@ -24,8 +24,10 @@ import me.anno.ecs.annotations.Range.Companion.minUByte
 import me.anno.ecs.annotations.Range.Companion.minUInt
 import me.anno.ecs.annotations.Range.Companion.minULong
 import me.anno.ecs.annotations.Range.Companion.minUShort
+import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.IProperty
+import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -35,9 +37,11 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.groups.TitledListY
 import me.anno.ui.base.menu.Menu
+import me.anno.ui.base.menu.Menu.msg
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
+import me.anno.ui.editor.files.FileExplorerOption
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
 import me.anno.utils.maths.Maths
@@ -54,41 +58,24 @@ object ComponentUI {
 
     private val LOGGER = LogManager.getLogger(ComponentUI::class)
 
-    /**
-     * a massive function, which provides editors for all types of variables
-     * */
-    /*fun createUI(name: String, property: CachedProperty, c: Component, style: Style): Panel? {
-        if (property.hideInInspector) return null
-
-        // todo mesh input, skeleton selection, animation selection, ...
-
-        return createUI2(name, name, object : IProperty<Any?> {
-
-            override fun getDefault(): Any? {
-                return c.getDefaultValue(name)
+    val fileInputRightClickOptions = listOf(
+        // todo create menu of files with same type in project, e.g. image files, meshes or sth like that
+        FileExplorerOption(NameDesc("Open Scene")) { ECSSceneTabs.open(it) },
+        // create mutable scene, = import
+        FileExplorerOption(NameDesc("Import")) { it ->
+            val prefab = loadPrefab(it)
+            if (prefab == null) msg(NameDesc("Cannot import ${it.name}", "Because it cannot be loaded as a scene", ""))
+            else {
+                // todo import options: place it into which folder?
+                // todo create sub folders? for materials / meshes / animations (if that is relevant to the resource)
+                // todo if it already exists: ask for replace
+                // todo for all to-generate-files: ask for replace / new-rename / abort all
+                // todo then open the scene
             }
+        }
+    )
 
-            override fun set(value: Any?) {
-                property[c] = value
-                c.changedPropertiesInInstance.add(name)
-            }
-
-            override fun get(): Any? {
-                return property[c]
-            }
-
-            override fun reset(): Any? {
-                c.changedPropertiesInInstance.remove(name)
-                val value = getDefault()
-                property[c] = value
-                return value
-            }
-
-            override val annotations: List<Annotation>
-                get() = property.annotations
-
-        }, property.range, style)
-    }*/
+    // todo mesh input, skeleton selection, animation selection, ...
 
     fun createUI2(
         name: String?,
@@ -606,7 +593,7 @@ object ComponentUI {
 
             "File", "FileReference", "InvalidReference" -> {
                 value as FileReference
-                return FileInput(title, style, value).apply {
+                return FileInput(title, style, value, fileInputRightClickOptions).apply {
                     property.init(this)
                     setResetListener {
                         property.reset(this) as? FileReference
@@ -721,7 +708,7 @@ object ComponentUI {
                         // todo index all files of this type in the current project (plus customizable extra directories)
                         // todo and show them here, with their nice icons
                         value as FileReference
-                        return FileInput(title, style, value).apply {
+                        return FileInput(title, style, value, fileInputRightClickOptions).apply {
                             property.init(this)
                             setResetListener {
                                 property.reset(this) as? FileReference
@@ -797,13 +784,14 @@ object ComponentUI {
     }
 
     private fun Panel.askForReset(property: IProperty<Any?>, callback: (Any?) -> Unit): Panel {
-        setOnClickListener { _, _, button, _ ->
+        addOnClickListener { _, _, button, _ ->
             if (button.isRight) {
                 // todo option to edit the parent... how will that work?
                 Menu.openMenu(listOf(MenuOption(NameDesc("Reset")) {
                     callback(property.reset(this))
                 }))
-            }
+                true
+            } else false
         }
         return this
     }

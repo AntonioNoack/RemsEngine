@@ -2,6 +2,7 @@ package me.anno.io.packer
 
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.createZipFile
+import me.anno.io.zip.InnerImageFile
 import me.anno.io.zip.InnerZipFile
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.types.Floats.f1
@@ -10,6 +11,7 @@ import org.apache.logging.log4j.LogManager
 import java.nio.file.attribute.FileTime
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import javax.imageio.ImageIO
 import kotlin.math.abs
 
 object Packer {
@@ -17,6 +19,12 @@ object Packer {
     private val LOGGER = LogManager.getLogger(Packer::class)
 
     // todo apply this to our engine
+
+    // in a game, there are assets, so
+    // todo - we need to pack assets
+    // done - it would be nice, if FileReferences could point to local files as well
+    // todo always ship the editor with the game? would make creating mods easier :)
+    // (and cheating, but there always will be cheaters, soo...)
 
     /**
      * packs resources,
@@ -104,21 +112,33 @@ object Packer {
             // write data
             zos.putNextEntry(entry)
             try {
-                val input = resource.inputStream()
-                while (true) {
-                    val readLength = input.read(buffer)
-                    if (readLength < 0) break
-                    if (readLength > 0) {
-                        zos.write(buffer, 0, readLength)
-                        doneSize += readLength
-                        try {
-                            reportProgress(doneSize, totalSize)
-                        } catch (e: Exception) {
-                            e.printStackTrace()
+                if (resource is InnerImageFile) {
+                    // don't save it as bmp, use png instead
+                    // if the original was a jpg, we should use jpg
+                    val originalWasJpeg = resource.absolutePath.contains(".jpg/", true) ||
+                            resource.absolutePath.contains(".jpeg/", true)
+                    val extension = if (originalWasJpeg) "jpg" else "png"
+                    val bi = resource.content.createBufferedImage()
+                    ImageIO.write(bi, extension, zos)
+                    doneSize += resource.compressedSize
+                    reportProgress(doneSize, totalSize)
+                } else {
+                    val input = resource.inputStream()
+                    while (true) {
+                        val readLength = input.read(buffer)
+                        if (readLength < 0) break
+                        if (readLength > 0) {
+                            zos.write(buffer, 0, readLength)
+                            doneSize += readLength
+                            try {
+                                reportProgress(doneSize, totalSize)
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
                         }
                     }
+                    input.close()
                 }
-                input.close()
             } catch (e: Exception) {
                 LOGGER.warn("Issue when copying $resource: ${e.message}")
                 e.printStackTrace()

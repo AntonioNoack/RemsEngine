@@ -59,9 +59,10 @@ class FFMPEGVideo(
         val w = w
         val h = h
         if (!isDestroyed && !isFinished) {
+            var frame: VFrame? = null
             try {
                 // LOGGER.info("$codec, $w x $h from $file")
-                val frame = when (codec) {
+                frame = when (codec) {
                     // yuv
                     "I420" -> I420Frame(w, h)
                     "444P" -> I444Frame(w, h)
@@ -82,12 +83,15 @@ class FFMPEGVideo(
                     frames.add(frame)
                 }
             } catch (e: IOException) {
+                frame?.destroy()
                 frameCountByFile[file!!] = frames.size + frame0
                 isFinished = true
             } catch (e: LastFrame) {
+                frame?.destroy()
                 frameCountByFile[file!!] = frames.size + frame0
                 isFinished = true
             } catch (e: Exception) {
+                frame?.destroy()
                 e.printStackTrace()
                 frameCountByFile[file!!] = frames.size + frame0
                 isFinished = true

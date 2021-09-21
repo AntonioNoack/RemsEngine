@@ -6,6 +6,7 @@ import com.bulletphysics.dynamics.vehicle.WheelInfo
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.gui.LineShapes
 import me.anno.engine.ui.render.RenderView
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
@@ -14,13 +15,13 @@ import kotlin.math.abs
 
 class VehicleWheel : Component() {
 
-    // raycast direction
+    /*// raycast direction, e.g. down = -y axis
     @SerializedProperty
     var wheelDirection = org.joml.Vector3d(0.0, -1.0, 0.0)
 
-    // turning direction
+    // turning direction, e.g. +/- x axis
     @SerializedProperty
-    var wheelAxle = org.joml.Vector3d(-1.0, 0.0, 0.0)
+    var wheelAxle = org.joml.Vector3d(-1.0, 0.0, 0.0)*/
 
     @SerializedProperty
     var suspensionRestLength = 1.0
@@ -109,10 +110,8 @@ class VehicleWheel : Component() {
         }
 
     override fun onDrawGUI(view: RenderView) {
-        super.onDrawGUI(view)
-
-        // todo draw a circle for the radius, and wheel movement and such
-
+        // todo draw steering and power, brake and such for debugging
+        LineShapes.drawCircle(entity, radius, 1, 2, 0.0)
     }
 
     @NotSerializedProperty
@@ -120,13 +119,18 @@ class VehicleWheel : Component() {
 
     fun createBulletInstance(entity: Entity, vehicle: RaycastVehicle): WheelInfo {
         val transform = this.entity!!.fromLocalToOtherLocal(entity)
+        // +w
         val position = Vector3d(transform.m30(), transform.m31(), transform.m32())
-        val wheelDirection1 = Vector3d(wheelDirection.x, wheelDirection.y, wheelDirection.z)
-        val scale0 = transform.getScale(org.joml.Vector3d())
-            .dot(wheelDirection.x, wheelDirection.y, wheelDirection.z)
+        // val wheelDirection1 = Vector3d(wheelDirection.x, wheelDirection.y, wheelDirection.z)
+        // raycast direction, e.g. down, so -y
+        val wheelDirection1 = Vector3d(-transform.m10(), -transform.m11(), -transform.m12())
+        val scale0 = transform.getScale(org.joml.Vector3d()).y
+        // .dot(wheelDirection1.x, wheelDirection1.y, wheelDirection1.z)
         val scale = abs(scale0)
         val actualWheelRadius = radius * scale
-        val wheelAxle1 = Vector3d(wheelAxle.x, wheelAxle.y, wheelAxle.z)
+        // wheel axis, e.g. x axis, so +x
+        // val wheelAxle1 = Vector3d(wheelAxle.x, wheelAxle.y, wheelAxle.z)
+        val wheelAxle1 = Vector3d(transform.m00(), transform.m01(), transform.m02())
         val tuning = VehicleTuning()
         tuning.frictionSlip = tuning.frictionSlip
         tuning.suspensionDamping = suspensionDamping
@@ -155,8 +159,8 @@ class VehicleWheel : Component() {
         super.copy(clone)
         clone as VehicleWheel
         clone.radius = radius
-        clone.wheelAxle = wheelAxle
-        clone.wheelDirection = wheelDirection
+        // clone.wheelAxle = wheelAxle
+        // clone.wheelDirection = wheelDirection
         clone.brakeForce = brakeForce
         clone.engineForce = engineForce
         clone.isFront = isFront

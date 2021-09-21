@@ -20,6 +20,9 @@ fun main() {
     // what was the error?: 1) we renamed finalPosition to localPosition, but not everywhere...
 
     object : StudioBase(false, "Test", 1) {
+        override fun loadConfig() {
+            DefaultConfig.init()
+        }
         override fun createUI() {
             val srcFile = FileReference.getReference(OS.downloads, "tiger.svg")
             val panel = object : Panel(DefaultConfig.style) {

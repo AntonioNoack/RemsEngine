@@ -1,9 +1,9 @@
 package me.anno.ui.custom
 
-import me.anno.image.ImageGPUCache.getInternalTexture
 import me.anno.config.DefaultStyle.white
-import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.TextureLib.whiteTexture
+import me.anno.gpu.drawing.DrawTextures.drawTexture
+import me.anno.image.ImageGPUCache.getInternalTexture
 import me.anno.input.MouseButton
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.Panel
@@ -16,6 +16,11 @@ import me.anno.ui.style.Style
 
 class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) :
     PanelContainer(default, Padding(0), style) {
+
+    init {
+        if (default is CustomContainer) me.anno.utils.LOGGER.warn("You added a custom container to a custom container." +
+                " You probably made a mistake!")
+    }
 
     override fun calculateSize(w: Int, h: Int) {
         child.calculateSize(w, h)
@@ -83,18 +88,17 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
         parent.update()
     }
 
-    fun addPanel(isYAction: Boolean, firstThis: Boolean){
+    fun addPanel(isYAction: Boolean, firstThis: Boolean) {
         val parent = parent!!
         val index = indexInParent
         parent as CustomList
-        if (isYAction == parent.isY){
-            if(firstThis){
+        if (isYAction == parent.isY) {
+            if (firstThis) {
                 addAfter(index, parent)
             } else {
                 addBefore(index, parent)
             }
-        }
-        else replace(index, parent, isYAction, firstThis)
+        } else replace(index, parent, isYAction, firstThis)
     }
 
     private fun changeType() {

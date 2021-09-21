@@ -6,8 +6,8 @@ import java.nio.ByteBuffer
 
 class BID(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
     BlendData(file, type, buffer, position) {
-    val next get() = ptr("*next")
-    val prev get() = ptr("*prev")
+    val next get() = getPointer("*next")
+    val prev get() = getPointer("*prev")
     val name = string("name[66]",66)
     // tags, flags, ...
 }

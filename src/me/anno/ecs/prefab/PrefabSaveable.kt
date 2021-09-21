@@ -33,6 +33,11 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     @NotSerializedProperty
     override var parent: PrefabSaveable? = null
 
+    val prefabRoot: PrefabSaveable
+        get() {
+            if (prefab2 != null) return this
+            return parent!!
+        }
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
@@ -40,7 +45,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     }
 
     override fun readBoolean(name: String, value: Boolean) {
-        when(name){
+        when (name) {
             "isCollapsed" -> isCollapsed = value
             else -> super.readBoolean(name, value)
         }
@@ -131,7 +136,11 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
 
     @NotSerializedProperty
     override val children: List<PrefabSaveable>
-        get() = getChildListByType(listChildTypes()[0])
+        get() {
+            val types = listChildTypes()
+            return if (types.isEmpty()) emptyList()
+            else getChildListByType(types[0])
+        }
 
     override fun createInspector(
         list: PanelListY, style: Style,

@@ -19,15 +19,15 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.studio.rems.Scene
 import me.anno.utils.maths.Maths.length
+import me.anno.utils.pooling.ByteBufferPool
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL20
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 
 object Renderers {
 
     // and banding prevention
-    val toneMapping = "vec3 toneMapping(vec3 color){ return (color)/(1+color) - random(gl_FragCoord.xy) * ${1f / 255f}; }\n"
+    val toneMapping =
+        "vec3 toneMapping(vec3 color){ return (color)/(1+color) - random(gl_FragCoord.xy) * ${1f / 255f}; }\n"
 
     val overdrawRenderer = object : Renderer("overdraw", true, ShaderPlus.DrawMode.COLOR) {
         override fun getPostProcessing(): ShaderStage {
@@ -181,8 +181,8 @@ object Renderers {
             Vector4f(0f, 0f, 1f, 1f)
         )
 
-        val tmpDefaultUniforms = ByteBuffer.allocateDirect(previewLights.size * 4 * 4)
-            .order(ByteOrder.nativeOrder())
+        val tmpDefaultUniforms = ByteBufferPool
+            .allocateDirect(previewLights.size * 4 * 4)
             .asFloatBuffer()
 
         override fun uploadDefaultUniforms(shader: Shader) {

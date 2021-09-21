@@ -40,5 +40,6 @@
     <orderEntry type="library" name="JBullet2x64" level="project" />
     <orderEntry type="library" name="jUnRAR" level="project" />
     <orderEntry type="library" name="JavaBlend-1.3.6-DNA-2.93.20" level="project" />
+    <orderEntry type="library" name="luaj-jse-3.0.2" level="project" />
   </component>
 </module>

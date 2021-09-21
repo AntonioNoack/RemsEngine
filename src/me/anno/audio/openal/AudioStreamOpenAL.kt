@@ -1,6 +1,6 @@
 package me.anno.audio.openal
 
-import me.anno.audio.*
+import me.anno.audio.AudioStream
 import me.anno.io.files.FileReference
 import me.anno.objects.Audio
 import me.anno.objects.Camera
@@ -9,6 +9,7 @@ import me.anno.video.AudioCreator.Companion.playbackSampleRate
 import me.anno.video.FFMPEGMetadata
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.openal.AL10.*
+import java.nio.ByteBuffer
 import java.nio.ShortBuffer
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.max
@@ -16,8 +17,9 @@ import kotlin.math.max
 // only play once, then destroy; it makes things easier
 // (on user input and when finally rendering only)
 
-// todo destroy OpenAL context when stopping playing, and recreate when starting
-// todo to fix "AL lib: (EE) ALCwasapiPlayback_mixerProc: Failed to get padding: 0x88890004"
+// done? destroy OpenAL context when stopping playing, and recreate when starting
+// done? to fix "AL lib: (EE) ALCwasapiPlayback_mixerProc: Failed to get padding: 0x88890004"
+// we fixed sth like that
 
 class AudioStreamOpenAL(
     file: FileReference,
@@ -49,6 +51,8 @@ class AudioStreamOpenAL(
     var queued = AtomicLong()
     var processed = 0
 
+    val buffers = ArrayList<SoundBuffer>()
+
     fun checkProcessed() {
         processed = alGetSourcei(alSource.sourcePtr, AL_BUFFERS_PROCESSED)
         ALBase.check()
@@ -69,6 +73,10 @@ class AudioStreamOpenAL(
         alSource.stop()
         alSource.destroy()
         ALBase.check()
+        // let's hope it works
+        for (buffer in buffers) {
+            buffer.destroy()
+        }
         // ALBase.check()
         // somehow crashes..., buffers can't be reused either (without error)
         // buffers.toSet().forEach { it.destroy() }
@@ -115,8 +123,10 @@ class AudioStreamOpenAL(
 
     var hadFirstBuffer = false
 
-    override fun onBufferFilled(stereoBuffer: ShortBuffer, bufferIndex: Long, session: Int) {
-        if (!isPlaying) return
+    override fun onBufferFilled(stereoBuffer: ShortBuffer, sb0: ByteBuffer, bufferIndex: Long, session: Int): Boolean {
+
+        if (!isPlaying) return true
+
         AudioTasks.addTask(10) {
             if (isPlaying) {
 
@@ -158,12 +168,13 @@ class AudioStreamOpenAL(
                 ALBase.check()
                 val soundBuffer = SoundBuffer()
                 ALBase.check()
-                soundBuffer.loadRawStereo16(stereoBuffer, playbackSampleRate)
+                soundBuffer.loadRawStereo16(stereoBuffer, sb0, playbackSampleRate)
                 soundBuffer.ensureData()
                 buffers.add(soundBuffer)
+
                 ALBase.check()
 
-                alSourceQueueBuffers(alSource.sourcePtr, soundBuffer.buffer)
+                alSourceQueueBuffers(alSource.sourcePtr, soundBuffer.pointer)
                 ALBase.check()
 
                 alSource.play()
@@ -175,6 +186,9 @@ class AudioStreamOpenAL(
 
             }
         }
+
+        return false
+
     }
 
 }

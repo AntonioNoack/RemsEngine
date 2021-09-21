@@ -2,11 +2,9 @@ package me.anno.engine.scene
 
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.Prefab
-import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.scene.PrefabHelper.addC
 import me.anno.engine.scene.PrefabHelper.addE
-import me.anno.engine.scene.PrefabHelper.setX
 import me.anno.engine.ui.render.RenderView
 import me.anno.io.files.StaticRef
 import me.anno.io.text.TextWriter
@@ -21,17 +19,14 @@ import kotlin.math.max
 import kotlin.math.pow
 import kotlin.math.sin
 
-// todo ByteBuffer.allocateDirect is not tracked:
-// todo either track the process memory
-// todo or track the allocateDirect-allocations
-
 object ScenePrefab : StaticRef("Scene.prefab", lazy {
     TextWriter.toText(Prefab("Entity").apply {
 
-        createLists()
+        ensureMutableLists()
 
-        add(CSet(Path.ROOT_PATH, "name", "Root"))
-        add(CSet(Path.ROOT_PATH, "description", "Contains the major components"))
+        set(Path.ROOT_PATH, "name", "Root")
+        set(Path.ROOT_PATH, "description", "Contains the major components")
+        set(Path.ROOT_PATH, "isCollapsed", false)
 
         val names = listOf("Globally Shared", "Player Prefab", "Locally Shared", "Local Players", "Remote Players")
         val descriptions = listOf(
@@ -45,7 +40,8 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         val root = Path.ROOT_PATH
         for (i in names.indices) {
             val e = addE(this, root, names[i])
-            setX(this, e, "description", descriptions[i])
+            set(e, "description", descriptions[i])
+            set(e, "isCollapsed", false)
         }
 
         // root has bullet physics, because the players need physics as well
@@ -59,8 +55,9 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         val truck = addE(this, world, "VOX/Truck", OS.downloads.getChild("MagicaVoxel/vox/truck.vox"))
         val truckBody0 = truck.added("", 0, 'e')
         addC(this, truckBody0, "MeshCollider")
+        set(truck, "isCollapsed", false)
         //val truckRigidbody = addC(this, truckBody0, "Rigidbody")
-        //setX(this, truckRigidbody, "mass", 100.0)
+        //set(truckRigidbody, "mass", 100.0)
 
         /////////////////////////
         // sample point light //
@@ -68,19 +65,19 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
 
         val lights = addE(this, world, "Lights")
         val ambient = addC(this, lights, "AmbientLight")
-        setX(this, ambient, "color", Vector3f(0.1f))
+        set(ambient, "color", Vector3f(0.1f))
 
         val sun = addE(this, lights, "Sun")
-        setX(this, sun, "scale", Vector3d(50.0))
-        setX(this, sun, "position", Vector3d(0.0, -10.0, 0.0))
-        setX(this, sun, "rotation", Quaterniond().rotateY(0.8).rotateX(-0.8))
+        set(sun, "scale", Vector3d(50.0))
+        set(sun, "position", Vector3d(0.0, -10.0, 0.0))
+        set(sun, "rotation", Quaterniond().rotateY(0.8).rotateX(-0.8))
         val dl = addC(this, sun, "DirectionalLight")
-        setX(this, dl, "shadowMapCascades", 1)
-        setX(this, dl, "color", Vector3f(3f))
+        set(dl, "shadowMapCascades", 1)
+        set(dl, "color", Vector3f(3f))
 
         /*val env = addE(this, lights, "EnvMap")
-        setX(this, env, "scale", Vector3d(50.0))
-        setX(this, env, "position", Vector3d(0.0, 10.0, 0.0))
+        set(env, "scale", Vector3d(50.0))
+        set(env, "position", Vector3d(0.0, 10.0, 0.0))
         addC(this, env, "EnvironmentMap")
 
         val plane = addE(this, lights, "Planar")
@@ -88,24 +85,24 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         addE(this, plane, "Mirror", documents.getChild("mirror.fbx"))*/
 
         /*val sun2 = addE(this, lights, "Sun2")
-        setX(this, sun2, "scale", Vector3d(50.0))
-        setX(this, sun2, "position", Vector3d(0.0, -10.0, 0.0))
-        setX(this, sun2, "rotation", Quaterniond().rotateX(-0.5).rotateY(-0.5))
+        set(sun2, "scale", Vector3d(50.0))
+        set(sun2, "position", Vector3d(0.0, -10.0, 0.0))
+        set(sun2, "rotation", Quaterniond().rotateX(-0.5).rotateY(-0.5))
         val dl2 = addC(this, sun2, "DirectionalLight")
-        setX(this, dl2, "shadowMapCascades", 1)*/
+        set(dl2, "shadowMapCascades", 1)*/
 
         /*val spotLight = addE(this, lights, "Spot Light")
-        setX(this, spotLight, "scale", Vector3d(100.0))
+        set(spotLight, "scale", Vector3d(100.0))
         val dls = addC(this, spotLight, "SpotLight")
-        setX(this, dls, "shadowMapCascades", 1)
-        setX(this, dls, "color", Vector3f(70f))
+        set(dls, "shadowMapCascades", 1)
+        set(dls, "color", Vector3f(70f))
 
         val pointLight = addE(this, lights, "Point Light")
-        setX(this, pointLight, "position", Vector3d(0.0, 50.0, 0.0))
-        setX(this, pointLight, "scale", Vector3d(80.0))
+        set(pointLight, "position", Vector3d(0.0, 50.0, 0.0))
+        set(pointLight, "scale", Vector3d(80.0))
         val dlp = addC(this, pointLight, "PointLight")
-        setX(this, dlp, "shadowMapCascades", 1)
-        setX(this, dlp, "color", Vector3f(70f))*/
+        set(dlp, "shadowMapCascades", 1)
+        set(dlp, "color", Vector3f(70f))*/
 
         if (true) {
             val ringOfLights = addE(this, lights, "Ring Of Lights")
@@ -115,17 +112,17 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
             val elementSize = 300.0 / max(3, rlc0)
             val lightLevel = 20f // max(3, ringLightCount)
             for (j in 0 until superRings) {
-                val superRing = if (superRings > 1) addE(this, ringOfLights, "Ring Of Lights") else ringOfLights
+                val superRing = if (superRings > 1) addE(this, ringOfLights, "Ring[$j]") else ringOfLights
                 val ringLightCount = (rlc0 * exponent.pow(j)).toInt()
                 val radius = 50.0 * (1.0 + j * 0.1)
                 for (i in 0 until ringLightCount) {
                     val angle = 6.2830 * i / ringLightCount
                     val light = addE(this, superRing, "Light[$i]")
                     val position = Vector3d(radius * cos(angle), elementSize * 0.5, radius * sin(angle))
-                    setX(this, light, "position", position)
-                    setX(this, light, "scale", Vector3d(elementSize))
+                    set(light, "position", position)
+                    set(light, "scale", Vector3d(elementSize))
                     val c = addC(this, light, "PointLight")
-                    setX(this, c, "color", HSLuv.toRGB(Vector3f(angle.toFloat(), 1f, 0.7f)).mul(lightLevel))
+                    set(c, "color", HSLuv.toRGB(Vector3f(angle.toFloat(), 1f, 0.7f)).mul(lightLevel))
                 }
             }
 
@@ -137,26 +134,26 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         val physics = addE(this, world, "Physics")
 
         // vehicle
-        /*val vehicle = addE(this, physics, "Vehicle")
+        val vehicle = addE(this, physics, "Vehicle")
         val vehicleComp = addC(this, vehicle, "Vehicle")
-        setX(this, vehicleComp, "centerOfMass", Vector3d(0.0, -1.0, 0.0))
+        set(vehicleComp, "centerOfMass", Vector3d(0.0, -1.0, 0.0))
         val vehicleCollider = addC(this, vehicle, "BoxCollider", "Box Collider")
-        setX(this, vehicleCollider, "halfExtends", Vector3d(1.0, 0.5, 2.0))
+        set(vehicleCollider, "halfExtends", Vector3d(1.0, 0.5, 2.0))
         // this.add(ChangeAddEntity(Path(intArrayOf(0, physics, 0))))
         // add all wheels
         var ci = 1
         for (x in -1..1 step 2) {
             for (z in -1..1 step 2) {
                 val wheel = addE(this, vehicle, "Wheel[$x,$z]")
-                setX(this, wheel, "position", Vector3d(x * 1.1, 0.0, z * 2.0))
-                val wheelComp = addC(this, wheel, "VehicleWheel", null)
+                set(wheel, "position", Vector3d(x * 1.1, 0.0, z * 2.0))
+                val wheelComp = addC(this, wheel, "VehicleWheel")
                 // todo set forward and such
-                setX(this, wheelComp, "isFront", z > 0)
+                set(wheelComp, "isFront", z > 0)
                 ci++
             }
         }
         // todo add script for driving
-        */
+
 
         /*var testChain = addE(this, world,"chain-0")
         for(i in 1 until 7){
@@ -167,25 +164,25 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         val cubePath = documents.getChild("cube.obj")
         val cubePathNormals = documents.getChild("cube shield.glb")
         val floor = addE(this, physics, "Floor", cubePath)
-        setX(this, floor, "position", Vector3d(0.0, -50.0, 0.0))
-        setX(this, floor, "scale", Vector3d(200.0, 50.0, 200.0))
-        // setX(this, floor, "scale", Vector3d(5.0))
+        set(floor, "position", Vector3d(0.0, -50.0, 0.0))
+        set(floor, "scale", Vector3d(200.0, 50.0, 200.0))
+        // set(floor, "scale", Vector3d(5.0))
         val floorBody = addC(this, floor, "Rigidbody")
-        setX(this, floorBody, "mass", 0.0) // static
+        set(floorBody, "mass", 0.0) // static
         val floorCollider = addC(this, floor, "BoxCollider")
-        setX(this, floorCollider, "halfExtends", Vector3d(1.0))
+        set(floorCollider, "halfExtends", Vector3d(1.0))
 
         // add spheres for testing
         /*val sphereMesh = OS.documents.getChild("sphere.obj")
         for (i in 0 until 100) {
             val sphere = addE(this, physics, "Sphere[$i]", sphereMesh)
-            setX(this, sphere, "position", Vector3d(0.0, (i + 2) * 2.1, 0.0))
+            set(sphere, "position", Vector3d(0.0, (i + 2) * 2.1, 0.0))
             addC(this, sphere, "Rigidbody")
             addC(this, sphere, "SphereCollider")
         }*/
 
         // add a cube of cubes for frustum testing
-        val frustum = addE(this, world, "Frustum Testing")
+        /*val frustum = addE(this, world, "Frustum Testing")
         for (x in -5..5) {
             // for testing bounding boxes more
             val xGroup = addE(this, frustum, "Group-$x")
@@ -193,15 +190,15 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
                 for (z in -5..5) {
                     // meshes
                     val cube = addE(this, xGroup, "Cube[$x,$y,$z]", cubePathNormals)
-                    setX(this, cube, "position", Vector3d(x * 5.0, y * 5.0 + 30.0, z * 5.0))
+                    set(cube, "position", Vector3d(x * 5.0, y * 5.0 + 30.0, z * 5.0))
                     // a little random rotation
                     // val q = Quaterniond(Math.random(), Math.random(), Math.random(), Math.random()).normalize()
-                    // setX(this, cube, "rotation", q)
+                    // set(cube, "rotation", q)
                     // physics test
                     addC(this, cube, "BoxCollider")
                     addC(this, cube, "Rigidbody")
                     val meshComp = Path(cube, "MeshComponent", 0, 'c')
-                    setX(this, meshComp, "isInstanced", true)
+                    set(meshComp, "isInstanced", true)
                 }
             }
         } // */
@@ -213,8 +210,8 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
             for (j in 0 until 2) {
                 val cube = addE(this, normalTesting, "Cube[$i]", cubePathNormals)
                 val angle = (i + (j.and(1) * 0.5)) * 6.2830 / l
-                setX(this, cube, "position", Vector3d(cos(angle) * l / 2, 1.0 + 2 * j, sin(angle) * l / 2))
-                setX(this, cube, "rotation", Quaterniond().rotateY(-angle).rotateX(j * 6.2830 / 8))
+                set(cube, "position", Vector3d(cos(angle) * l / 2, 1.0 + 2 * j, sin(angle) * l / 2))
+                set(cube, "rotation", Quaterniond().rotateY(-angle).rotateX(j * 6.2830 / 8))
             }
         }*/
 
@@ -225,8 +222,8 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         for (i in -50..50) {
             val size = 10.0.pow(i.toDouble())
             val sphere = addE(this, planets, "Sphere 1e$i", spherePath)
-            setX(this, sphere, "position", Vector3d(0.0, 0.0, 3.0 * size))
-            setX(this, sphere, "scale", Vector3d(size))
+            set(sphere, "position", Vector3d(0.0, 0.0, 3.0 * size))
+            set(sphere, "scale", Vector3d(size))
         }*/
 
     }).toByteArray()

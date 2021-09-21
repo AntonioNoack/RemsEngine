@@ -19,8 +19,6 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
             }
         }
 
-    var alignment = AxisAlignment.MIN
-
     var textColor = style.getColor("textColor", DefaultStyle.iconGray)
     var focusTextColor = style.getColor("textColorFocused", -1)
 
@@ -37,14 +35,15 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         drawBackground()
         GFX.loadTexturesSync.push(true)
-        val offset = when(alignment){
+        val offset = when(alignmentX){
             AxisAlignment.MIN -> 1
             AxisAlignment.CENTER -> w/2
             AxisAlignment.MAX -> w-1
+            else -> 1
         }
         DrawTexts.drawSimpleTextCharByChar(
             x + offset, y + 2, 2, // idk...
-            text, textColor, backgroundColor, alignment
+            text, textColor, backgroundColor, alignmentX
         )
         GFX.loadTexturesSync.pop()
     }

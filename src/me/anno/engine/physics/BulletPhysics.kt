@@ -29,6 +29,7 @@ import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.components.physics.Vehicle
 import me.anno.ecs.components.physics.VehicleWheel
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.ui.ECSTypeLibrary
 import me.anno.engine.ui.render.DrawAABB
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.camPosition
@@ -40,8 +41,6 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.debug.FrameTimes
-import me.anno.utils.Clock
-import me.anno.utils.hpc.SyncMaster
 import me.anno.utils.structures.sets.ParallelHashSet
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
@@ -60,6 +59,7 @@ class BulletPhysics : Component() {
     // if we need top-notch-performance, I just should switch to a native implementation
 
     // todo ideally for bullet, we would need a non-symmetric collision matrix:
+    // this would allow for pushing, ignoring, and such
     //
     //   t y p e s
     // t
@@ -67,7 +67,6 @@ class BulletPhysics : Component() {
     // p  whether it can be moved by the other
     // e
     // s
-    // todo this would allow for pushing, ignoring, and such...
 
     companion object {
         private val LOGGER = LogManager.getLogger(BulletPhysics::class)
@@ -510,11 +509,15 @@ class BulletPhysics : Component() {
 
     }
 
+    override fun onUpdate() {
+        // todo call this async, and when the step is done
+        step((GFX.deltaTime * 1e9f).toLong(), false)
+    }
+
     @HideInInspector
     @NotSerializedProperty
-    var syncMaster: SyncMaster? = null
-    fun startWork(syncMaster: SyncMaster) {
-        this.syncMaster = syncMaster
+    fun startWork() {
+        /*val syncMaster = ECSTypeLibrary.syncMaster
         var first = true
         syncMaster.addThread("Physics", {
 
@@ -559,7 +562,7 @@ class BulletPhysics : Component() {
                 0
             }
 
-        }, { debugDraw })
+        }, { debugDraw })*/
     }
 
 

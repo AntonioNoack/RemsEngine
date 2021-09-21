@@ -9,7 +9,7 @@ class RGBAFrame(w: Int, h: Int) : RGBFrame(w, h) {
 
     override fun load(input: InputStream) {
         val s0 = w * h
-        val data = Texture2D.byteBufferPool[s0 * 4, false]
+        val data = Texture2D.bufferPool[s0 * 4, false]
         data.position(0)
         for (i in 0 until s0) {
             // todo is this correct?
@@ -17,7 +17,10 @@ class RGBAFrame(w: Int, h: Int) : RGBFrame(w, h) {
             val g = input.read()
             val b = input.read()
             val a = input.read()
-            if (r < 0 || g < 0 || b < 0 || a < 0) throw EOFException()
+            if (r < 0 || g < 0 || b < 0 || a < 0){
+                Texture2D.bufferPool.returnBuffer(data)
+                throw EOFException()
+            }
             data.put(a.toByte())
             data.put(g.toByte())
             data.put(b.toByte())

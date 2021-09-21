@@ -92,13 +92,13 @@ object Menu {
 
         val submit = TextButton(actionName.name, false, style)
             .setTooltip(actionName.desc)
-            .setSimpleClickListener {
+            .addLeftClickListener {
                 callback(panel.text)
                 close()
             }
 
         val cancel = TextButton("Cancel", false, style)
-            .setSimpleClickListener { close() }
+            .addLeftClickListener { close() }
 
         val buttons = PanelListX(style)
         buttons += cancel
@@ -139,10 +139,11 @@ object Menu {
                 }
             } else {
                 val buttonView = TextPanel(name, style)
-                buttonView.setOnClickListener { _, _, button, long ->
+                buttonView.addOnClickListener { _, _, button, long ->
                     if (action(button, long)) {
                         close()
-                    }
+                        true
+                    } else false
                 }
                 buttonView.setTooltip(element.description)
                 buttonView.enableHoverColor = true

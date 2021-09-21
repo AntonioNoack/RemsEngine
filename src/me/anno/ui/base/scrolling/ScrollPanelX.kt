@@ -8,6 +8,7 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListX
+import me.anno.ui.base.scrolling.ScrollPanelY.Companion.scrollSpeed
 import me.anno.ui.style.Style
 import me.anno.utils.maths.Maths.clamp
 import kotlin.math.max
@@ -85,7 +86,7 @@ open class ScrollPanelX(
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
         if (Input.isShiftDown || Input.isControlDown) {
             val delta = dx - dy
-            val scale = 20f
+            val scale = scrollSpeed
             if ((delta > 0f && scrollPositionX >= maxScrollPositionX) ||
                 (delta < 0f && scrollPositionX <= 0f)
             ) {// if done scrolling go up the hierarchy one

@@ -2,7 +2,7 @@ package me.anno.image.raw
 
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.Texture2D.Companion.byteBufferPool
+import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.image.Image
 import me.anno.image.ComponentImage
 
@@ -33,7 +33,7 @@ open class GrayscaleImage(
         when (src) {
             is IntImage -> {
                 val data = src.data
-                val bytes = byteBufferPool[width * height, false]
+                val bytes = bufferPool[width * height, false]
                 for (i in 0 until width * height) {
                     bytes.put(i, getLuminance(data[i]).toByte())
                 }
@@ -41,7 +41,7 @@ open class GrayscaleImage(
             }
             is ByteImage -> {
                 val data = src.data
-                val bytes = byteBufferPool[width * height, false]
+                val bytes = bufferPool[width * height, false]
                 for (i in 0 until width * height) {
                     val j = i * 4
                     bytes.put(i, getLuminance(data[j + 1], data[j + 2], data[j + 3]).toByte())

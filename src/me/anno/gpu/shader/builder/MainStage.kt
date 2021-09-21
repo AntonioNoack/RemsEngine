@@ -78,6 +78,8 @@ class MainStage {
         val isMoreThanOne = uniform.arraySize > 1 // if there is only one value, we can optimize it
         val isCubemap = uniform.type.startsWith("samplerCube")
         val name = uniform.name
+
+
         // base color function
         code.append("vec4 texture_array_")
         code.append(name)
@@ -102,6 +104,29 @@ class MainStage {
             code.append("}\n")
         }
         code.append("}\n")
+
+        // texture size function
+        code.append("ivec2 texture_array_size_")
+        code.append(name)
+        code.append("(int index, int lod){\n")
+        if (isMoreThanOne) code.append("switch(index){\n")
+        for (index in 0 until uniform.arraySize) {
+            if (isMoreThanOne) {
+                code.append("case ")
+                code.append(index)
+                code.append(": ")
+            }
+            code.append("return textureSize(")
+            code.append(name)
+            code.append(index)
+            code.append(", lod);\n")
+        }
+        if (isMoreThanOne) {
+            code.append("default: return ivec2(1);\n")
+            code.append("}\n")
+        }
+        code.append("}\n")
+
         // function with interpolation for depth,
         // as sampler2DShadow is supposed to work
         code.append("float texture_array_depth_")

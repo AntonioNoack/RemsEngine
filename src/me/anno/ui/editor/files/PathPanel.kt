@@ -28,7 +28,7 @@ class PathPanel(file: FileReference?, style: Style) : PanelListX(style) {
         if (name.isEmpty()) return
 
         val panel = TextPanel(name, style)
-        panel.setSimpleClickListener { onChangeListener?.invoke(file?.getParent()) }
+        panel.addLeftClickListener { onChangeListener?.invoke(file?.getParent()) }
         panel.setTooltip(file.toString())
         this += panel
 

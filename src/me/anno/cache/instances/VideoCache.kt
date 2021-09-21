@@ -23,7 +23,7 @@ object VideoCache : CacheSection("Videos") {
         bufferIndex: Int, bufferLength: Int,
         fps: Double, timeout: Long, async: Boolean
     ): VideoData? {
-        if (!LastModifiedCache[file].exists) return null
+        if (!file.exists) return null
         val meta = getMeta(file, async) ?: return null
         val bufferLength2 = clamp(bufferLength, 1, max(1, meta.videoFrameCount))
         val fps2 = if (meta.videoFrameCount < 2) 1.0 else fps

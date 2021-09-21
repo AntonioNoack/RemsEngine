@@ -2,10 +2,9 @@ package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib
-import me.anno.gpu.TextureLib
+import me.anno.gpu.TextureLib.bindWhite
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
-import me.anno.ui.editor.sceneView.Grid.bindWhite
 import me.anno.video.VFrame
 import org.joml.Vector4fc
 

@@ -7,7 +7,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.RenderState.depthMode
 import me.anno.gpu.ShaderLib.shader3D
-import me.anno.gpu.TextureLib.whiteTexture
+import me.anno.gpu.TextureLib.bindWhite
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.Shader
@@ -268,10 +268,6 @@ object Grid {
         bindWhite(0)
         gridBuffer.draw(shader)
 
-    }
-
-    fun bindWhite(index: Int): Boolean {
-        return whiteTexture.bind(index, whiteTexture.filtering, whiteTexture.clamping!!)
     }
 
 }

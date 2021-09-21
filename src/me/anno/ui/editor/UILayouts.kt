@@ -147,48 +147,46 @@ object UILayouts {
                     )
                 }
             }
-            tp.setOnClickListener { _, _, button, _ ->
-                fun open() {// open zip?
-                    if (project.file.exists && project.file.isDirectory) {
-                        openProject(project.name, project.file)
-                    } else msg(NameDesc("File not found!", "", "ui.recentProjects.fileNotFound"))
-                }
-                when {
-                    button.isLeft -> open()
-                    button.isRight -> {
-                        openMenu(listOf(
-                            MenuOption(
-                                NameDesc(
-                                    "Open",
-                                    "Opens that project", "ui.recentProjects.open"
-                                )
-                            ) { open() },
-                            MenuOption(openInExplorerDesc) { project.file.openInExplorer() },
-                            MenuOption(
-                                NameDesc(
-                                    "Hide",
-                                    "Moves the project to the end of the list or removes it",
-                                    "ui.recentProjects.hide"
-                                )
-                            ) {
-                                DefaultConfig.removeFromRecentProjects(project.file)
-                                tp.visibility = Visibility.GONE
-                            },
-                            MenuOption(
-                                NameDesc(
-                                    "Delete",
-                                    "Removes the project from your drive!", "ui.recentProjects.delete"
-                                )
-                            ) {
-                                ask(NameDesc("Are you sure?", "", "")) {
-                                    DefaultConfig.removeFromRecentProjects(project.file)
-                                    project.file.deleteRecursively()
-                                    tp.visibility = Visibility.GONE
-                                }
-                            }
-                        ))
+
+            fun open() {// open zip?
+                if (project.file.exists && project.file.isDirectory) {
+                    openProject(project.name, project.file)
+                } else msg(NameDesc("File not found!", "", "ui.recentProjects.fileNotFound"))
+            }
+
+            tp.addLeftClickListener { open() }
+            tp.addRightClickListener {
+                openMenu(listOf(
+                    MenuOption(
+                        NameDesc(
+                            "Open",
+                            "Opens that project", "ui.recentProjects.open"
+                        )
+                    ) { open() },
+                    MenuOption(openInExplorerDesc) { project.file.openInExplorer() },
+                    MenuOption(
+                        NameDesc(
+                            "Hide",
+                            "Moves the project to the end of the list or removes it",
+                            "ui.recentProjects.hide"
+                        )
+                    ) {
+                        DefaultConfig.removeFromRecentProjects(project.file)
+                        tp.visibility = Visibility.GONE
+                    },
+                    MenuOption(
+                        NameDesc(
+                            "Delete",
+                            "Removes the project from your drive!", "ui.recentProjects.delete"
+                        )
+                    ) {
+                        ask(NameDesc("Are you sure?", "", "")) {
+                            DefaultConfig.removeFromRecentProjects(project.file)
+                            project.file.deleteRecursively()
+                            tp.visibility = Visibility.GONE
+                        }
                     }
-                }
+                ))
             }
             tp.padding.top--
             tp.padding.bottom--
@@ -307,7 +305,8 @@ object UILayouts {
             FileInput(
                 Dict["Project Location", "ui.newProject.location"],
                 style,
-                getReference(workspace, nameInput.text)
+                getReference(workspace, nameInput.text),
+                emptyList()
             )
 
         updateFileInputColor()
@@ -328,7 +327,7 @@ object UILayouts {
         newProject += fileInput
 
         val button = TextButton("Create Project", "Creates a new project", "ui.createNewProject", false, style)
-        button.setSimpleClickListener { loadNewProject(usableFile, nameInput) }
+        button.addLeftClickListener { loadNewProject(usableFile, nameInput) }
         newProject += button
 
         return newProject
@@ -570,7 +569,7 @@ object UILayouts {
 
         val bottom2 = PanelStack(style)
         bottom2 += RemsStudio.createConsole(style)
-        bottom2 += RuntimeInfoPanel(style).apply { alignment = AxisAlignment.MAX }.setWeight(1f)
+        bottom2 += RuntimeInfoPanel(style).apply { alignmentX = AxisAlignment.MAX }.setWeight(1f)
         ui += bottom2
 
         windowStack.clear()

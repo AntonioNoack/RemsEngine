@@ -13,16 +13,23 @@ class CAdd() : Change(2) {
     constructor(
         parentPath: Path,
         type: Char,
-        className: String,
-        name: String? = className,
+        clazzName: String,
+        name: String? = clazzName,
         prefab: FileReference = InvalidRef
     ) : this() {
         this.path = parentPath
         this.type = type
-        this.clazzName = className
+        this.clazzName = clazzName
         this.prefab = prefab
         this.name = name
     }
+
+    constructor(
+        parentPath: Path,
+        type: Char,
+        clazzName: String,
+        prefab: FileReference = InvalidRef
+    ) : this(parentPath, type, clazzName, clazzName, prefab)
 
     override fun withPath(path: Path): Change {
         return CAdd(path, type, clazzName!!, name, prefab)

@@ -1,6 +1,5 @@
 package me.anno.ui.simple
 
-import me.anno.gpu.GFX.isFinalRendering
 import me.anno.ui.base.Panel
 import kotlin.math.abs
 
@@ -32,7 +31,7 @@ class SimplePanel(
     }
 
     fun setOnClickListener(listener: () -> Unit): SimplePanel {
-        drawable.setSimpleClickListener { listener() }
+        drawable.addLeftClickListener { listener() }
         return this
     }
 

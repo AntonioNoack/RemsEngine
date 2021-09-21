@@ -7,7 +7,6 @@ import kotlin.math.sqrt
 
 object Matrices {
 
-
     fun Matrix4f.isIdentity(): Boolean {
         return properties().and(Matrix4f.PROPERTY_IDENTITY.toInt()) != 0
     }
@@ -50,7 +49,7 @@ object Matrices {
     }
 
     fun Matrix4f.rotate2(q: Quaterniond): Matrix4f {
-        return rotate(q.x.toFloat(), q.y.toFloat(), q.z.toFloat(), q.w.toFloat())
+        return rotate(JomlPools.quat4f.borrow().set(q))
     }
 
     fun Matrix4x3d.getScaleLengthSquared(): Double {
@@ -65,8 +64,12 @@ object Matrices {
         return dst.set(getScale(JomlPools.vec3f.borrow()))
     }
 
-    fun Matrix4f.getScale2(dst: Vector3d): Vector3d {
+    fun Matrix4f.getScale2(dst: Vector3d = Vector3d()): Vector3d {
         return dst.set(getScale(JomlPools.vec3f.borrow()))
+    }
+
+    fun Matrix4f.getTranslation2(dst: Vector3d = Vector3d()): Vector3d {
+        return dst.set(m30().toDouble(), m31().toDouble(), m32().toDouble())
     }
 
     fun Matrix4f.set2(other: Matrix4x3d): Matrix4f {

@@ -13,13 +13,13 @@ open class PrefabByFileCache<V : ISaveable>(val clazz: KClass<V>) {
 
     fun getPrefab(ref: FileReference?, async: Boolean): Prefab? {
         if (ref == null || ref == InvalidRef) return null
-        return getPrefabPair(ref, async)?.first
+        return getPrefabPair(ref, async)?.prefab
     }
 
     open operator fun get(ref: FileReference?, async: Boolean): V? {
         if (ref == null || ref == InvalidRef) return null
         val pair = getPrefabPair(ref, async)
-        val instance = pair?.second ?: return null
+        val instance = pair?.instance ?: return null
         return if (clazz.isInstance(instance)) instance as V else null
     }
 

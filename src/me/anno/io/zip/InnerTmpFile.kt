@@ -2,6 +2,7 @@ package me.anno.io.zip
 
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabReadable
+import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextWriter
 import java.io.InputStream
@@ -54,6 +55,9 @@ abstract class InnerTmpFile(id1: Int = id.incrementAndGet()) :
 
         val text = lazy { TextWriter.toText(prefab) }
         val bytes = lazy { text.value.toByteArray() }
+
+        override fun isSerializedFolder(): Boolean = false
+        override fun listChildren(): List<FileReference>? = null
 
         override fun readText() = text.value
         override fun readBytes() = bytes.value

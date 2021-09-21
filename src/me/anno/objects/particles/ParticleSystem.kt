@@ -316,7 +316,7 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
                     if (needsUpdate) RemsStudio.updateSceneViews()
                 }
             })
-            group.setOnClickListener { _, _, button, long ->
+            group.addOnClickListener { _, _, button, long ->
                 if (button.isRight || long) {
                     // show all options for different distributions
                     openMenu(
@@ -334,7 +334,8 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
                             }
                         }
                     )
-                }
+                    true
+                } else false
             }
             property.createInspector(group.content, this, style)
             viCtr++
@@ -384,7 +385,7 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
         }
 
         general += TextButton("Reset Cache", false, style)
-            .setSimpleClickListener { clearCache() }
+            .addLeftClickListener { clearCache() }
 
     }
 

@@ -186,7 +186,7 @@ class VectorInput(
             titleView.enableHoverColor = true
             titleView.setWeight(1f)
             titleView.focusTextColor = titleView.textColor
-            titleView.setSimpleClickListener {
+            titleView.addLeftClickListener {
                 InputVisibility.toggle(visibilityKey, this)
             }
         }

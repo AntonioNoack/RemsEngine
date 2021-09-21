@@ -65,23 +65,17 @@ class SceneTab(var file: FileReference?, var root: Transform, history: History?)
     init {
         padding.top--
         padding.bottom--
-        setOnClickListener { _, _, button, _ ->
-            when {
-                button.isLeft -> {
-                    open(this)
-                }
-                button.isRight -> {
-                    if (hasChanged) {
-                        openMenu(listOf(
-                            MenuOption(NameDesc("Close", "", "ui.sceneTab.closeSaved")) { save { close() } },
-                            MenuOption(NameDesc("Close (Unsaved)", "", "ui.sceneTab.closeUnsaved")) { close() }
-                        ))
-                    } else {
-                        openMenu(listOf(
-                            MenuOption(NameDesc("Close", "", "ui.sceneTab.close")) { close() }
-                        ))
-                    }
-                }
+        addLeftClickListener { open(this)  }
+        addRightClickListener {
+            if (hasChanged) {
+                openMenu(listOf(
+                    MenuOption(NameDesc("Close", "", "ui.sceneTab.closeSaved")) { save { close() } },
+                    MenuOption(NameDesc("Close (Unsaved)", "", "ui.sceneTab.closeUnsaved")) { close() }
+                ))
+            } else {
+                openMenu(listOf(
+                    MenuOption(NameDesc("Close", "", "ui.sceneTab.close")) { close() }
+                ))
             }
         }
     }

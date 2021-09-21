@@ -113,8 +113,8 @@ class ImageData(file: FileReference) : ICacheData {
         if (file is ImageReadable) {
             texture.create("ImageData", file.readImage(), true)
         } else {
-            val signature = Signature.find(file)
-            if (signature?.name == "hdr") {
+            val signature = Signature.findName(file)
+            if (signature == "hdr") {
                 loadHDR(file)
                 return
             }
@@ -124,17 +124,13 @@ class ImageData(file: FileReference) : ICacheData {
                 texture.rotation = getRotation(file)
                 return
             }
-            when (signature?.name) {
-                else -> {
-                    when (val fileExtension = file.lcExtension) {
-                        // "hdr" -> loadHDR(file)
-                        "tga" -> loadTGA(file)
-                        // ImageIO says it can do webp, however it doesn't understand most pics...
-                        // tga was incomplete as well -> we're using our own solution
-                        "webp" -> useFFMPEG(file)
-                        else -> tryGetImage0(file, fileExtension)
-                    }
-                }
+            when (val fileExtension = file.lcExtension) {
+                // "hdr" -> loadHDR(file)
+                "tga" -> loadTGA(file)
+                // ImageIO says it can do webp, however it doesn't understand most pics...
+                // tga was incomplete as well -> we're using our own solution
+                "webp" -> useFFMPEG(file)
+                else -> tryGetImage0(file, fileExtension)
             }
         }
     }

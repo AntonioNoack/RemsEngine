@@ -58,11 +58,11 @@ abstract class VFrame(
 
     fun interlace(a: ByteBuffer, b: ByteBuffer, dst: ByteBuffer): ByteBuffer {
         val size = a.limit()
-        var j = 0
         for (i in 0 until size) {
-            dst.put(j++, a[i])
-            dst.put(j++, b[i])
+            dst.put(a[i])
+            dst.put(b[i])
         }
+        dst.flip()
         return dst
     }
 

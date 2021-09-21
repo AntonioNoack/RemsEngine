@@ -88,7 +88,7 @@ class MTLReader2(val file: FileReference) : OBJMTLReader(file.inputStream()) {
                             }*/
                             skipLine()
                         }
-                        "map_Ns", "map_d", "map_Ka", "Ns", "Ks", "Ka", "map_Bump", "map_bump", "Tf", "Ni" -> {
+                        "map_Ns", "map_d", "map_Ka", "Ns", "Ks", "Ka", "map_Bump", "map_bump", "Tf", "Ni", "bump" -> {
                             skipLine()
                         }
                         // bump maps, displacement maps, decal maps exists;
@@ -107,9 +107,12 @@ class MTLReader2(val file: FileReference) : OBJMTLReader(file.inputStream()) {
         reader.close()
     }
 
+    // todo roughness, metallic, normal map, occlusion
+    // todo extra opacity texture? how could we integrate that?
+
     companion object {
 
-        fun readAsFolder(file: FileReference, dstFolder: InnerFolder): InnerFile {
+        fun readAsFolder(file: FileReference, dstFolder: InnerFolder = InnerFolder(file)): InnerFile {
             val materials = MTLReader2(file).materials
             for ((name, material) in materials) {
                 dstFolder.createPrefabChild("$name.json", material)

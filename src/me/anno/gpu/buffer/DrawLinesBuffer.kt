@@ -1,12 +1,11 @@
 package me.anno.gpu.buffer
 
 import me.anno.gpu.buffer.Buffer.Companion.bindBuffer
+import me.anno.utils.pooling.ByteBufferPool
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL31
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import kotlin.math.min
 
 object DrawLinesBuffer {
@@ -31,8 +30,9 @@ object DrawLinesBuffer {
             lineBuffer = GL20.glGenBuffers()
             if(lineBuffer < 0) throw RuntimeException("Failed to create buffer")
             bindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, lineBuffer)
-            val nioBuffer = ByteBuffer.allocateDirect(4 * lineBufferLength)
-                .order(ByteOrder.nativeOrder())
+            val nioBytes = ByteBufferPool
+                .allocateDirect(4 * lineBufferLength)
+            val nioBuffer = nioBytes
                 .asIntBuffer()
             nioBuffer.position(0)
             for (i in 0 until lineBufferLength / 6) {
@@ -47,6 +47,7 @@ object DrawLinesBuffer {
             }
             nioBuffer.position(0)
             GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, nioBuffer, GL15.GL_STATIC_DRAW)
+            ByteBufferPool.free(nioBytes)
             // GFX.check()
         } else bindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, lineBuffer)
     }

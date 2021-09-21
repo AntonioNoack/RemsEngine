@@ -7,11 +7,10 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.gui.LineShapes.drawArrowZ
 import me.anno.engine.gui.LineShapes.drawBox
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.utils.types.AABBs.all
+import me.anno.utils.types.AABBs.transformUnion
 import me.anno.utils.types.Matrices.set2
-import org.joml.Matrix4f
-import org.joml.Matrix4x3d
-import org.joml.Quaterniond
-import org.joml.Vector3d
+import org.joml.*
 
 class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
 
@@ -23,6 +22,17 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
      * */
     @Range(0.0, 1.0)
     var cutoff = 0f
+
+    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
+        if (cutoff <= 0f) {
+            aabb.all()
+        } else {
+            val mesh = getLightPrimitive()
+            mesh.ensureBuffer()
+            mesh.aabb.transformUnion(globalTransform, aabb)
+        }
+        return true
+    }
 
     override fun updateShadowMap(
         cascadeScale: Double,
@@ -115,9 +125,23 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                             "       if(depthFromShader > 0.0){\n" +
                             // do the shadow map function and compare
                             "           float depthFromTex = texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy, depthFromShader);\n" +
+                            // todo this will become proportional to the distance to the shadow throwing surface
+                            // "           float coc = 1.0 / texture_array_size_shadowMapPlanar(shadowMapIdx0, 0).x;\n" +
                             // "           float val = texture_array_shadowMapPlanar(shadowMapIdx0, shadowDir.xy).r;\n" +
                             // "           diffuseColor = vec3(val,val,dir.z);\n" + // nice for debugging
+                            "           " +
                             "           lightColor *= 1.0 - edgeFactor * depthFromTex;\n" +
+                           /* "           lightColor *= 1.0 - edgeFactor * (" +
+                            "texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy-vec2(coc,0), depthFromShader) +" +
+                            "texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy-vec2(0,coc), depthFromShader) +" +
+                            "texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy+vec2(coc,0), depthFromShader) +" +
+                            "texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy+vec2(0,coc), depthFromShader) +" +
+                            "texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy+vec2(+coc,+coc), depthFromShader) +" +
+                            "texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy+vec2(+coc,-coc), depthFromShader) +" +
+                            "texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy+vec2(-coc,+coc), depthFromShader) +" +
+                            "texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy+vec2(-coc,-coc), depthFromShader) +" +
+                            "texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy, depthFromShader)" +
+                            ") * 0.111111;\n" +*/
                             "       }\n" +
                             "   }\n" +
                             "}\n"

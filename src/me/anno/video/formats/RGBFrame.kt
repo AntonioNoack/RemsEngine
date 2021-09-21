@@ -15,13 +15,16 @@ open class RGBFrame(w: Int, h: Int) : VFrame(w, h, -1) {
 
     override fun load(input: InputStream) {
         val s0 = w * h
-        val data = Texture2D.byteBufferPool[s0 * 4, false]
+        val data = Texture2D.bufferPool[s0 * 4, false]
         data.position(0)
         for (i in 0 until s0) {
             val r = input.read()
             val g = input.read()
             val b = input.read()
-            if (r < 0 || g < 0 || b < 0) throw EOFException()
+            if (r < 0 || g < 0 || b < 0){
+                Texture2D.bufferPool.returnBuffer(data)
+                throw EOFException()
+            }
             data.put(r.toByte())
             data.put(g.toByte())
             data.put(b.toByte())

@@ -33,6 +33,9 @@ class CameraComponent : Component() {
 
     var clearColor = Vector4f(0.1f, 0.2f, 0.3f, 1f)
 
+    val bloomStrength = 0.5f
+    val bloomOffset = 10f
+
     // function to blend to the next one
     fun use(blendingTime: Double) {
         val player = currentLocalPlayer!!

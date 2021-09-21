@@ -9,6 +9,7 @@ import me.anno.studio.rems.RemsStudio.root
 import me.anno.utils.ShutdownException
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.hpc.Threads.threadWithName
+import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
 import java.io.FileNotFoundException
 import java.util.concurrent.ConcurrentSkipListSet
@@ -18,6 +19,7 @@ import kotlin.math.max
 open class CacheSection(val name: String) : Comparable<CacheSection> {
 
     val cache = HashMap<Any, CacheEntry>(512)
+    val dualCache = KeyPairMap<Any, Any, CacheEntry>(512)
 
     override fun compareTo(other: CacheSection): Int {
         return name.compareTo(other.name)
@@ -45,17 +47,27 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
     }
 
+    fun getFileEntry(
+        file: FileReference,
+        allowDirectories: Boolean,
+        timeout: Long,
+        asyncGenerator: Boolean,
+        generator: (FileReference, Long) -> ICacheData
+    ): ICacheData? {
+        if (!file.exists || (!allowDirectories && file.isDirectory)) return null
+        return getEntry(file, file.lastModified, timeout, asyncGenerator, generator)
+    }
+
     fun <V> getEntry(
         file: FileReference,
         allowDirectories: Boolean,
         key: V,
         timeout: Long,
         asyncGenerator: Boolean,
-        generator: (Pair<FileReference, V>) -> ICacheData
+        generator: (FileReference, V) -> ICacheData
     ): ICacheData? {
-        val meta = LastModifiedCache[file]
-        if (!meta.exists || (!allowDirectories && meta.isDirectory)) return null
-        return getEntry(file to key, timeout, asyncGenerator, generator)
+        if (!file.exists || (!allowDirectories && file.isDirectory)) return null
+        return getEntry(file, key, timeout, asyncGenerator, generator)
     }
 
     fun getEntry(
@@ -98,6 +110,19 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         var data: ICacheData? = null
         try {
             data = generator(key)
+        } catch (e: FileNotFoundException) {
+            LOGGER.warn("FileNotFoundException: ${e.message}")
+        } catch (e: Exception) {
+            if (e is ShutdownException) throw e
+            else return e
+        }
+        return data
+    }
+
+    private fun <V, W> generateSafely(key0: V, key1: W, generator: (V, W) -> ICacheData?): Any? {
+        var data: ICacheData? = null
+        try {
+            data = generator(key0, key1)
         } catch (e: FileNotFoundException) {
             LOGGER.warn("FileNotFoundException: ${e.message}")
         } catch (e: Exception) {
@@ -159,6 +184,59 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             // get the value without generator
             getEntryWithoutGenerator(key)
         }
+    }
+
+    fun <V, W> getEntryWithCallback(
+        key0: V,
+        key1: W,
+        timeout: Long,
+        asyncGenerator: Boolean,
+        generator: (key0: V, key1: W) -> ICacheData?,
+        ifNotGenerating: (() -> Unit)?
+    ): ICacheData? {
+
+        if (key0 == null || key1 == null) throw IllegalStateException("Key must not be null")
+
+        checkKey(key0)
+        checkKey(key1)
+
+        // new, async cache
+        // only the key needs to be locked, not the whole cache
+
+        var needsGenerator = false
+        val entry = synchronized(dualCache) {
+            dualCache.getOrPut(key0, key1) { _, _ ->
+                needsGenerator = true
+                CacheEntry(timeout, gameTime)
+            }
+        }
+
+        entry.lastUsed = gameTime
+
+        if (needsGenerator) {
+            if (asyncGenerator) {
+                threadWithName("$name<$key0,$key1>") {
+                    val value = generateSafely(key0, key1, generator)
+                    if (value is Exception) throw value
+                    value as? ICacheData
+                    entry.data = value as? ICacheData
+                    if (entry.hasBeenDestroyed) {
+                        LOGGER.warn("Value for $name<$key0,$key1> was directly destroyed")
+                        entry.data?.destroy()
+                    }
+                }
+            } else {
+                val value = generateSafely(key0, key1, generator)
+                if (value is Exception) throw value
+                entry.data = value as? ICacheData
+            }
+        } else ifNotGenerating?.invoke()
+
+        if (!asyncGenerator) entry.waitForValue()
+        return if (entry.hasBeenDestroyed) {
+            getEntryWithCallback(key0, key1, timeout, asyncGenerator, generator, null)
+        } else entry.data
+
     }
 
     fun <V> getEntryWithCallback(
@@ -256,6 +334,16 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         return getEntryWithCallback(key, timeout, asyncGenerator, generator, null)
     }
 
+    fun <V, W> getEntry(
+        key0: V,
+        key1: W,
+        timeout: Long,
+        asyncGenerator: Boolean,
+        generator: (V, W) -> ICacheData?
+    ): ICacheData? {
+        return getEntryWithCallback(key0, key1, timeout, asyncGenerator, generator, null)
+    }
+
     fun <V> getEntry(key: V, timeout: Long, queue: ProcessingQueue?, generator: (V) -> ICacheData?): ICacheData? {
         return getEntryWithCallback(key, timeout, queue, generator, null)
     }
@@ -287,11 +375,11 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         private val caches = ConcurrentSkipListSet<CacheSection>()
 
         fun updateAll() {
-            for(cache in caches) cache.update()
+            for (cache in caches) cache.update()
         }
 
         fun clearAll() {
-            for(cache in caches) cache.clear()
+            for (cache in caches) cache.clear()
             root.findFirstInAll { it.clearCache(); false }
             LastModifiedCache.clear()
         }

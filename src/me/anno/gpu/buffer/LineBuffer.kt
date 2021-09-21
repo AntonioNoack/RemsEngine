@@ -8,13 +8,11 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
+import me.anno.utils.pooling.ByteBufferPool
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL15
-import org.lwjgl.system.MemoryUtil
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import javax.vecmath.Vector3d
 import kotlin.math.roundToInt
 
@@ -51,9 +49,8 @@ object LineBuffer {
     )
 
     // whenever this is updated, nioBuffer in buffer needs to be updated as well
-    private var bytes = ByteBuffer.allocateDirect(1024 * attributes.sumOf { it.byteSize })
-        .order(ByteOrder.nativeOrder())
-        .apply { position(0) }
+    private var bytes = ByteBufferPool
+        .allocateDirect(1024 * attributes.sumOf { it.byteSize })
 
     private val buffer = object : Buffer(attributes, GL15.GL_DYNAMIC_DRAW) {
         init {
@@ -70,8 +67,7 @@ object LineBuffer {
         val newSize = extraSize + position
         val size = bytes.capacity()
         if (newSize > size) {
-            val newBytes = ByteBuffer.allocateDirect(size * 2)
-                .order(ByteOrder.nativeOrder())
+            val newBytes = ByteBufferPool.allocateDirect(size * 2)
             // copy over
             LOGGER.info("Increased size of buffer $size*2")
             val oldBytes = bytes
@@ -79,7 +75,7 @@ object LineBuffer {
             newBytes.position(0)
             newBytes.put(oldBytes)
             newBytes.position(position)
-            MemoryUtil.memFree(oldBytes)
+            ByteBufferPool.free(oldBytes)
             bytes = newBytes
             buffer.nioBuffer = newBytes
         }

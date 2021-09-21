@@ -205,11 +205,14 @@ class Framebuffer(
             GFX.check()
 
             // LOGGER.info("Blit $w $h into target $target")
+            var bits = 0
+            if (targets.isNotEmpty()) bits = bits or GL_COLOR_BUFFER_BIT
+            if (depthBufferType != DepthBufferType.NONE) bits = bits or GL_DEPTH_BUFFER_BIT
             glBlitFramebuffer(
                 0, 0, w, h,
                 0, 0, w, h,
                 // we may want to GL_STENCIL_BUFFER_BIT, if present
-                GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT,
+                bits,
                 GL11.GL_NEAREST
             )
 

@@ -21,7 +21,7 @@ object PrefabHelper {
         prefab: Prefab, parentPath: Path,
         typeChar: Char, type: String, name: String, ref: FileReference
     ): Path {
-        val index = prefab.adds!!.count { it.type == typeChar && it.path == parentPath }
+        val index = prefab.adds.count { it.type == typeChar && it.path == parentPath }
         prefab.add(CAdd(parentPath, typeChar, type, name, ref))
         return parentPath.added(name, index, typeChar)
     }

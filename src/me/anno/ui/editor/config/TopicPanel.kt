@@ -9,7 +9,7 @@ class TopicPanel(val topic: String, topicName: String, val configPanel: ConfigPa
     init {
         enableHoverColor = true
         padding.left += topicDepth * font.sizeInt
-        setSimpleClickListener {
+        addLeftClickListener {
             configPanel.createContent(topic)
         }
     }

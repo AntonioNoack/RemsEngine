@@ -2,10 +2,12 @@ package me.anno.ecs.components.collider
 
 import com.bulletphysics.collision.shapes.*
 import com.bulletphysics.util.ObjectArrayList
+import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.gui.LineShapes
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.SerializedProperty
 import org.joml.Vector3d
@@ -24,11 +26,13 @@ class MeshCollider() : Collider() {
     @Type("Mesh")
     var mesh: FileReference? = null
 
+    @HideInInspector
+    var hull: ShapeHull? = null
+
     override fun createBulletShape(scale: Vector3d): CollisionShape {
 
         if (mesh == null) {
-            mesh = entity?.getComponent(MeshComponent::class, false)?.mesh
-            me.anno.utils.LOGGER.warn("searched for mesh, found $mesh")
+            mesh = entity?.getComponentInChildren(MeshComponent::class, false)?.mesh
         }
 
         val mesh = MeshCache[mesh] ?: return SphereShape(0.5)
@@ -57,9 +61,13 @@ class MeshCollider() : Collider() {
 
             val hull = ShapeHull(convex)
             hull.buildHull(convex.margin)
+            this.hull = hull
+
             return ConvexHullShape(hull.vertexPointer)
 
         } else {
+
+            this.hull = null
 
             // we don't send the data to the gpu here, so we don't need to allocate directly
             // this has the advantage, that the jvm will free the memory itself
@@ -75,8 +83,10 @@ class MeshCollider() : Collider() {
             } else indices3.asIntBuffer().put(indices)
             indices3.flip()
 
-            val vertexBase = ByteBuffer.allocate(4 * positions.size)
+            val vertexBase = ByteBuffer
+                .allocate(4 * positions.size)
                 .order(ByteOrder.nativeOrder())
+
             vertexBase.asFloatBuffer().apply {
                 if (scale.x == 1.0 && scale.y == 1.0 && scale.z == 1.0) {
                     put(positions)
@@ -102,7 +112,20 @@ class MeshCollider() : Collider() {
     }
 
     override fun drawShape() {
-        // todo draw underlying collider shape
+        val hull = hull
+        // todo check whether this works... physics seems to be broken currently...
+        if (isConvex && hull != null) {
+            val points = hull.vertexPointer
+            val indices = hull.indexPointer
+            for (i in 0 until hull.numIndices() step 3) {
+                val a = points[indices[i]]
+                val b = points[indices[i + 1]]
+                val c = points[indices[i + 2]]
+                LineShapes.drawLine(entity, a, b)
+                LineShapes.drawLine(entity, b, c)
+                LineShapes.drawLine(entity, c, a)
+            }
+        }
     }
 
     override fun clone(): MeshCollider {

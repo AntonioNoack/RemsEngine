@@ -53,13 +53,13 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
 
     fun getProxyFileDontUpdate(src: FileReference): FileReference? {
         init()
-        val data = getEntryWithoutGenerator(LastModifiedCache[src]) as? CacheData<*>
+        val data = getEntryWithoutGenerator(src) as? CacheData<*>
         return data?.value as? FileReference
     }
 
     fun getProxyFile(src: FileReference): FileReference? {
         init()
-        val data = getEntry(LastModifiedCache[src], 10_000, true) {
+        val data = getEntry(src, 10_000, true) {
             if (src.exists && !src.isDirectory) {
                 val uuid = getUniqueFilename(src)
                 val proxyFile = getReference(proxyFolder, uuid)
@@ -129,7 +129,7 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
 
     private fun getUniqueFilename(file: FileReference): String {
         val completePath = file.toString()
-        val lastModified = LastModifiedCache[file].lastModified
+        val lastModified = file.lastModified
         return "${file.nameWithoutExtension}-" +
                 "${completePath.hashCode().toUInt().toString(36)}-" +
                 "${lastModified.hashCode().toUInt().toString(36)}." +

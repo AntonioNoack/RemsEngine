@@ -23,22 +23,38 @@ object ImageCPUCache : CacheSection("BufferedImages") {
             if (file is ImageReadable) {
                 CacheData(file.readImage())
             } else {
-                val bytes = file.readBytes()
-                val signature = Signature.find(bytes)
-                CacheData(
-                    when (signature?.name) {
-                        "hdr" -> HDRImage(bytes.inputStream())
-                        "tga" -> TGAImage.read(bytes.inputStream(), false)
-                        "ico" -> tryIco(bytes.inputStream())
-                        null -> {
-                            when (file.lcExtension) {
-                                "tga" -> TGAImage.read(bytes.inputStream(), false)
-                                else -> tryGeneric(bytes)
+                if(file.length() < 1e7){ // < 10MB -> read directly
+                    val bytes = file.readBytes()
+                    CacheData(
+                        when (Signature.findName(bytes)) {
+                            "hdr" -> HDRImage(bytes.inputStream())
+                            "tga" -> TGAImage.read(bytes.inputStream(), false)
+                            "ico" -> tryIco(bytes.inputStream())
+                            null -> {
+                                when (file.lcExtension) {
+                                    "tga" -> TGAImage.read(bytes.inputStream(), false)
+                                    else -> tryGeneric(bytes)
+                                }
                             }
+                            else -> tryGeneric(bytes)
                         }
-                        else -> tryGeneric(bytes)
-                    }
-                )
+                    )
+                } else {
+                    CacheData(
+                        when (Signature.findName(file)) {
+                            "hdr" -> HDRImage(file.inputStream())
+                            "tga" -> TGAImage.read(file.inputStream(), false)
+                            "ico" -> tryIco(file.inputStream())
+                            null -> {
+                                when (file.lcExtension) {
+                                    "tga" -> TGAImage.read(file.inputStream(), false)
+                                    else -> tryGeneric(file)
+                                }
+                            }
+                            else -> tryGeneric(file)
+                        }
+                    )
+                }
             }
         } as? CacheData<*>
         return data?.value as? Image
@@ -50,6 +66,23 @@ object ImageCPUCache : CacheSection("BufferedImages") {
         if (images.size > 1) LOGGER.warn("Should implement array texture for ico files")
         if (images.isEmpty()) return null
         return images.maxByOrNull { it.width * it.height }!! // was blue ... why ever...
+    }
+
+    private fun tryGeneric(bytes: FileReference): Image? {
+        var image = try {
+            ImageIO.read(bytes.inputStream())
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+        if (image == null) {
+            try {
+                image = Imaging.getBufferedImage(bytes.inputStream())
+            } catch (e: Exception) {
+                // e.printStackTrace()
+            }
+        }
+        return if (image == null) null else BIImage(image)
     }
 
     private fun tryGeneric(bytes: ByteArray): Image? {

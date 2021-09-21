@@ -5,8 +5,8 @@ import me.anno.gpu.ShaderLib.shader3DYUV
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.Texture2D.Companion.byteBufferPool
-import me.anno.utils.input.readNBytes2
+import me.anno.gpu.texture.Texture2D.Companion.bufferPool
+import me.anno.utils.input.Input.readNBytes2
 import me.anno.video.VFrame
 import java.io.InputStream
 
@@ -22,7 +22,7 @@ class I420Frame(iw: Int, ih: Int) : VFrame(iw, ih, 2) {
     override fun load(input: InputStream) {
         val s0 = w * h
         val s1 = w2 * h2
-        val yData = input.readNBytes2(s0, byteBufferPool[s0, false], true)
+        val yData = input.readNBytes2(s0, bufferPool)
         // writeMonochromeDebugImage(w, h, yData)
         creationLimiter.acquire()
         GFX.addGPUTask(w, h) {
@@ -30,11 +30,11 @@ class I420Frame(iw: Int, ih: Int) : VFrame(iw, ih, 2) {
             creationLimiter.release()
         }
         // merge the u and v planes
-        val uData = input.readNBytes2(s1, byteBufferPool[s1, false], true)
-        val vData = input.readNBytes2(s1, byteBufferPool[s1, false], true)
-        val interlaced = interlace(uData, vData, byteBufferPool[s1 * 2, false])
-        byteBufferPool.returnBuffer(uData)
-        byteBufferPool.returnBuffer(vData)
+        val uData = input.readNBytes2(s1, bufferPool)
+        val vData = input.readNBytes2(s1, bufferPool)
+        val interlaced = interlace(uData, vData, bufferPool[s1 * 2, false])
+        bufferPool.returnBuffer(uData)
+        bufferPool.returnBuffer(vData)
         // create the uv texture
         creationLimiter.acquire()
         GFX.addGPUTask(w2, h2) {

@@ -12,6 +12,8 @@ import me.anno.ui.editor.stacked.Option
 import me.anno.utils.strings.StringHelper
 import me.anno.utils.structures.lists.UpdatingList
 import org.apache.logging.log4j.LogManager
+import org.joml.AABBd
+import org.joml.Matrix4x3d
 
 abstract class Component : PrefabSaveable(), Inspectable {
 
@@ -49,6 +51,12 @@ abstract class Component : PrefabSaveable(), Inspectable {
     @HideInInspector
     @NotSerializedProperty
     var clickId = 0
+
+    /**
+     * returns whether it needs any space in the AABBs for visibility updates / rendering
+     * if so, it fills the global transform with its bounds
+     * */
+    open fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean = false
 
     abstract override fun clone(): Component
 

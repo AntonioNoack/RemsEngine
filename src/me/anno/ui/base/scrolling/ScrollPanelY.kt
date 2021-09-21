@@ -1,5 +1,6 @@
 package me.anno.ui.base.scrolling
 
+import me.anno.config.DefaultConfig
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
@@ -81,7 +82,7 @@ open class ScrollPanelY(child: Panel, padding: Padding,
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
         if(!Input.isShiftDown){
             val delta = dx-dy
-            val scale = 20f
+            val scale = scrollSpeed
             if((delta > 0f && scrollPositionY >= maxScrollPositionY) ||
                 (delta < 0f && scrollPositionY <= 0f)){// if done scrolling go up the hierarchy one
                 super.onMouseWheel(x, y, dx, dy)
@@ -110,7 +111,12 @@ open class ScrollPanelY(child: Panel, padding: Padding,
         if(isDownOnScrollbar){
             scrollbar.onMouseMoved(x, y, dx, dy)
             clampScrollPosition()
+            invalidateLayout()
         } else super.onMouseMoved(x, y, dx, dy)
+    }
+
+    companion object {
+        val scrollSpeed get() = DefaultConfig["ui.scroll.speed", 30f]
     }
 
 }

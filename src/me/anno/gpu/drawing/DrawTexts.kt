@@ -23,7 +23,8 @@ object DrawTexts {
 
     val simpleChars = Array('z'.code + 1) { it.toChar().toString() }
     var monospaceFont = lazy { Font("Consolas", DefaultConfig.style.getSize("fontSize", 12), false, false) }
-    val monospaceKeys = lazy { Array(simpleChars.size) { FontManager.getTextCacheKey(monospaceFont.value, simpleChars[it], -1, -1) } }
+    val monospaceKeys =
+        lazy { Array(simpleChars.size) { FontManager.getTextCacheKey(monospaceFont.value, simpleChars[it], -1, -1) } }
 
     fun drawSimpleTextCharByChar(
         x0: Int, y0: Int,
@@ -31,15 +32,15 @@ object DrawTexts {
         text: CharArray,
         textColor: Int = FrameTimes.textColor,
         backgroundColor: Int = FrameTimes.backgroundColor,
-        alignment: AxisAlignment = AxisAlignment.MIN
+        alignmentX: AxisAlignment = AxisAlignment.MIN
     ) {
         val font = monospaceFont.value
         val keys = monospaceKeys.value
         val charWidth = font.sampleWidth
         val size = text.size
         val width = charWidth * size
-        val offset = -when (alignment) {
-            AxisAlignment.MIN -> 0
+        val offset = -when (alignmentX) {
+            AxisAlignment.MIN, AxisAlignment.FILL -> 0
             AxisAlignment.CENTER -> width / 2
             AxisAlignment.MAX -> width
         }
@@ -61,6 +62,18 @@ object DrawTexts {
         }
     }
 
+
+    fun drawSimpleTextCharByChar(
+        x0: Int, y0: Int,
+        padding: Int,
+        text: String,
+        alignment: AxisAlignment = AxisAlignment.MIN
+    ): Unit = drawSimpleTextCharByChar(
+        x0, y0, padding, text, FrameTimes.textColor,
+        FrameTimes.backgroundColor, alignment
+    )
+
+
     fun drawSimpleTextCharByChar(
         x0: Int, y0: Int,
         padding: Int,
@@ -76,7 +89,7 @@ object DrawTexts {
         val size = text.length
         val width = charWidth * size
         val offset = -when (alignment) {
-            AxisAlignment.MIN -> 0
+            AxisAlignment.MIN, AxisAlignment.FILL -> 0
             AxisAlignment.CENTER -> width / 2
             AxisAlignment.MAX -> width
         }
@@ -131,7 +144,7 @@ object DrawTexts {
         val charWidth = if (equalSpaced) getTextSizeX(font, "x", widthLimit, heightLimit) else 0
 
         val offset = when (alignment) {
-            AxisAlignment.MIN -> 0
+            AxisAlignment.MIN, AxisAlignment.FILL -> 0
             AxisAlignment.CENTER -> -charWidth * text.length / 2
             AxisAlignment.MAX -> -charWidth * text.length
         }
@@ -229,7 +242,7 @@ object DrawTexts {
             val shader = ShaderLib.subpixelCorrectTextShader.value
             shader.use()
             val xWithOffset = x - when (alignment) {
-                AxisAlignment.MIN -> 0
+                AxisAlignment.MIN, AxisAlignment.FILL -> 0
                 AxisAlignment.CENTER -> w / 2
                 AxisAlignment.MAX -> w
             }
@@ -254,7 +267,7 @@ object DrawTexts {
         x: Int, y: Int,
         font: Font, key: TextCacheKey,
         color: Int, backgroundColor: Int,
-        alignment: AxisAlignment = AxisAlignment.MIN
+        alignmentX: AxisAlignment = AxisAlignment.MIN
     ): Int {
 
         GFX.check()
@@ -262,11 +275,22 @@ object DrawTexts {
         val tex0 = FontManager.getString(key)
         val charByChar = tex0 == null || tex0 !is Texture2D || !tex0.isCreated
         if (charByChar) {
-            return drawTextCharByChar(x, y, font, key.text, color, backgroundColor, key.widthLimit, key.heightLimit, alignment, false)
+            return drawTextCharByChar(
+                x,
+                y,
+                font,
+                key.text,
+                color,
+                backgroundColor,
+                key.widthLimit,
+                key.heightLimit,
+                alignmentX,
+                false
+            )
         }
 
         val texture = tex0 ?: return GFXx2D.getSize(0, font.sizeInt)
-        return drawText(x, y, color, backgroundColor, texture, alignment)
+        return drawText(x, y, color, backgroundColor, texture, alignmentX)
 
     }
 

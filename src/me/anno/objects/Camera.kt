@@ -151,7 +151,7 @@ class Camera(parent: Transform? = null) : Transform(parent) {
         ) { onlyShowTarget = it }
         val ops = getGroup("Operations", "Actions", "operations")
         ops += TextButton("Reset Transform", "If accidentally moved", "obj.camera.resetTransform", false, style)
-            .setSimpleClickListener { resetTransform(true) }
+            .addLeftClickListener { resetTransform(true) }
     }
 
     override fun onDraw(stack: Matrix4fArrayList, time: Double, color: Vector4fc) {

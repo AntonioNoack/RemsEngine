@@ -4,6 +4,7 @@ import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.ConvexHullShape
 import com.bulletphysics.util.ObjectArrayList
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.gui.LineShapes
 import me.anno.engine.ui.render.RenderView
 import me.anno.io.serialization.SerializedProperty
 import org.joml.AABBd
@@ -18,8 +19,6 @@ class ConvexCollider : Collider() {
     @SerializedProperty
     var points = ArrayList<Vector3d>()
 
-    // todo signed distance...
-
     override fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         for (pt in points) {
             aabb.union(globalTransform.transformPosition(tmp.set(pt)))
@@ -33,7 +32,11 @@ class ConvexCollider : Collider() {
     }
 
     override fun drawShape() {
-        // todo draw the convex hull: we need the hull as triangles!! or at least as polygons
+        // currently drawn as a point cloud
+        // triangles or polygons would be better, but we don't have them
+        for(point in points){
+            LineShapes.drawPoint(entity, point, 0.1)
+        }
     }
 
     override fun clone(): ConvexCollider {

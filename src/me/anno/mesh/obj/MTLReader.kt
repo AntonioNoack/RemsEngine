@@ -86,7 +86,7 @@ class MTLReader(val file: FileReference) : OBJMTLReader(file.inputStream()) {
 
     companion object {
 
-        fun readAsFolder(file: FileReference): InnerFile {
+        /*fun readAsFolder(file: FileReference): InnerFile {
 
             val materials = MTLReader(file).materials
             val folder = InnerFolder(file)
@@ -99,8 +99,8 @@ class MTLReader(val file: FileReference) : OBJMTLReader(file.inputStream()) {
                         prefab.setProperty("diffuseBase", Vector4f(diffuseColor!!, opacity))
                     if (emissiveTexture != InvalidRef) prefab.setProperty("emissiveMap", emissiveTexture)
                     if (emissiveColor != null) prefab.setProperty("emissiveBase", emissiveColor)
-                    // todo roughness, metallic, normal map, occlusion
-                    // todo extra opacity texture? how could we integrate that?
+                    // roughness, metallic, normal map, occlusion
+                    // extra opacity texture? how could we integrate that?
                     // if(opacityTexture != InvalidRef) prefab.setProperty("occlusionMap", opacityTexture)
                 }
                 folder.createPrefabChild("$name.json", prefab)
@@ -108,7 +108,7 @@ class MTLReader(val file: FileReference) : OBJMTLReader(file.inputStream()) {
 
             return folder
 
-        }
+        }*/
 
         private val LOGGER = LogManager.getLogger(MTLReader::class)
     }

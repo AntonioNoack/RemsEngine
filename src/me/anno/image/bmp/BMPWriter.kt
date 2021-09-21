@@ -1,10 +1,33 @@
 package me.anno.image.bmp
 
+import me.anno.image.Image
+import me.anno.image.raw.IntImage
 import java.awt.image.BufferedImage
 
 object BMPWriter {
 
-    private const val pixelDataStart = 0x7a
+    const val pixelDataStart = 0x7a
+
+    fun calculateSize(img: Image): Long {
+        return pixelDataStart + img.width * img.height * 4L
+    }
+
+    fun createBMP(img: IntImage): ByteArray {
+        val width = img.width
+        val height = img.height
+        val dst = createBMPHeader(width, height)
+        val buffer = img.data
+        // a lot of zeros
+        var j = pixelDataStart
+        for (i in 0 until width * height) {
+            val color = buffer[i]
+            dst[j++] = (color shr 24).toByte()
+            dst[j++] = (color shr 16).toByte()
+            dst[j++] = (color shr 8).toByte()
+            dst[j++] = color.toByte()
+        }
+        return dst
+    }
 
     fun createBMP(img: BufferedImage): ByteArray {
         val width = img.width

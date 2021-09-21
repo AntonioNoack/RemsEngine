@@ -15,7 +15,7 @@ import me.anno.io.zip.InnerZipFile.Companion.createZipRegistryV2
 import me.anno.io.zip.InnerZipFile.Companion.fileFromStreamV2
 import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.mesh.blender.BlenderReader
-import me.anno.mesh.obj.MTLReader
+import me.anno.mesh.obj.MTLReader2
 import me.anno.mesh.obj.OBJReader2
 import me.anno.mesh.vox.VOXReader
 import me.anno.objects.documents.pdf.PDFCache
@@ -37,8 +37,7 @@ object ZipCache : CacheSection("ZipCache") {
     fun getMeta(file: FileReference, async: Boolean): InnerFolder? {
         val data = getEntry(file.absolutePath, timeout, async) {
             CacheData(try {
-                val signature = Signature.find(file)
-                when (signature?.name) {
+                when (Signature.findName(file)) {
                     "7z" -> createZipRegistry7z(file) { fileFromStream7z(file) }
                     "rar" -> createZipRegistryRar(file) { fileFromStreamRar(file) }
                     "gzip", "tar" -> readAsGZip(file)
@@ -48,7 +47,7 @@ object ZipCache : CacheSection("ZipCache") {
                         AnimatedMeshesLoader.readAsFolder(file)
                     "blend" -> BlenderReader.readAsFolder(file)
                     "obj" -> OBJReader2.readAsFolder(file)
-                    "mtl" -> MTLReader.readAsFolder(file)
+                    "mtl" -> MTLReader2.readAsFolder(file)
                     "pdf" -> PDFCache.readAsFolder(file)
                     "vox" -> VOXReader.readAsFolder(file)
                     "zip" -> createZipRegistryV2(file) { fileFromStreamV2(file) }
@@ -58,11 +57,12 @@ object ZipCache : CacheSection("ZipCache") {
                     null, "xml", "yaml", "json" -> {
                         when (file.lcExtension) {
                             // todo all mesh extensions
-                            "fbx", "gltf", "glb", "obj", "dae", "draco",
+                            "fbx", "gltf", "glb", "dae", "draco",
                             "md2", "md5mesh" ->
                                 AnimatedMeshesLoader.readAsFolder(file)
+                            "obj" -> OBJReader2.readAsFolder(file)
                             "blend" -> BlenderReader.readAsFolder(file)
-                            "mtl" -> MTLReader.readAsFolder(file)
+                            "mtl" -> MTLReader2.readAsFolder(file)
                             "vox" -> VOXReader.readAsFolder(file)
                             "mat", "prefab", "unity", "asset", "controller" -> UnityReader.readAsFolder(file)
                             // todo all image formats

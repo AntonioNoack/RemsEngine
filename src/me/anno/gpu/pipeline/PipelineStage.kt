@@ -31,7 +31,6 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input.isKeyDown
 import me.anno.io.Saveable
-import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.maths.Maths.min
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.types.AABBs.clear
@@ -71,24 +70,8 @@ class PipelineStage(
 
         val tmpAABBd = AABBd()
 
-        fun getDrawMatrix(transform: Transform, time: Long): Matrix4x3d {
-            val drawTransform = transform.drawTransform
-            val factor = transform.updateDrawingLerpFactor(time)
-            if (factor > 0.0) {
-                val extrapolatedTime = (GFX.gameTime - transform.lastUpdateTime).toDouble() / transform.lastUpdateDt
-                // needs to be changed, if the extrapolated time changes -> it changes if the phyisics engine is behind
-                // its target -> in the physics engine, we send the game time instead of the physics time,
-                // and this way, it's relatively guaranteed to be roughly within [0,1]
-                val fac2 = factor / (clamp(1.0 - extrapolatedTime, 0.001, 1.0))
-                if (fac2 < 1.0) {
-                    drawTransform.lerp(transform.globalTransform, fac2)
-                    transform.checkDrawTransform()
-                } else {
-                    drawTransform.set(transform.globalTransform)
-                    transform.checkDrawTransform()
-                }
-            }
-            return drawTransform
+        fun getDrawMatrix(entity: Entity?, time: Long = GFX.gameTime): Matrix4x3d? {
+            return entity?.transform?.getDrawMatrix(time)
         }
 
         fun setupLocalTransform(
@@ -99,7 +82,7 @@ class PipelineStage(
             time: Long
         ) {
 
-            val drawTransform = getDrawMatrix(transform, time)
+            val drawTransform = transform.getDrawMatrix(time)
             shader.m4x3delta("localTransform", drawTransform, cameraPosition, worldScale)
 
             val invLocalUniform = shader["invLocalTransform"]
@@ -235,7 +218,7 @@ class PipelineStage(
 
                         val lightI = lights[i]!!
                         val light = lightI.light
-                        val m = getDrawMatrix(lightI.transform, time)
+                        val m = lightI.transform.getDrawMatrix(time)
 
                         buffer.put(((m.m30() - cameraPosition.x) * worldScale).toFloat())
                         buffer.put(((m.m31() - cameraPosition.y) * worldScale).toFloat())
@@ -472,7 +455,7 @@ class PipelineStage(
                             val ids = values.clickIds
                             for (index in baseIndex until min(size, baseIndex + batchSize)) {
                                 m4x3delta(
-                                    getDrawMatrix(trs[index]!!, time),
+                                    trs[index]!!.getDrawMatrix(time),
                                     cameraPosition,
                                     worldScale,
                                     nioBuffer,
@@ -567,7 +550,7 @@ class PipelineStage(
                             val trs = values.transforms
                             for (index in baseIndex until min(size, baseIndex + batchSize)) {
                                 m4x3delta(
-                                    getDrawMatrix(trs[index]!!, time),
+                                    trs[index]!!.getDrawMatrix(time),
                                     cameraPosition,
                                     worldScale,
                                     nioBuffer,

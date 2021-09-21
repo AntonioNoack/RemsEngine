@@ -4,12 +4,13 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabInspector
-import me.anno.ecs.prefab.change.CSet
+import me.anno.engine.ui.ECSTypeLibrary
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.camDirection
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.input.Input
 import me.anno.io.files.FileReference
+import me.anno.ui.editor.sceneView.Gizmos
 import me.anno.utils.maths.Maths.pow
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.distance
@@ -45,6 +46,42 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                 else -> "X"
             }
         )
+        drawGizmos()
+    }
+
+    override fun drawGizmos() {
+        // todo also render this in the RenderView for click detection
+        for (selected in ECSTypeLibrary.selection) {
+            if (selected is Entity) {
+                val transform = selected.transform.globalTransform
+                val pos = transform.getTranslation(JomlPools.vec3d.create())//.sub(RenderView.camPosition)
+                when (mode) {
+                    Mode.TRANSLATING -> {
+                        Gizmos.drawTranslateGizmos(
+                            RenderView.cameraMatrix,
+                            pos,// mul world scale?
+                            10.0, -12
+                        )
+                    }
+                    Mode.ROTATING -> {
+                        Gizmos.drawRotateGizmos(
+                            RenderView.cameraMatrix,
+                            pos,// mul world scale?
+                            10.0, -12
+                        )
+                    }
+                    Mode.SCALING -> {
+                        Gizmos.drawScaleGizmos(
+                            RenderView.cameraMatrix,
+                            pos,// mul world scale?
+                            10.0, -12
+                        )
+                    }
+                    else -> {}
+                }
+                JomlPools.vec3d.sub(1)
+            }
+        }
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
@@ -119,6 +156,13 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
         if (Input.isLeftDown && isSelected) {
             val targets = selectedEntities
             if (targets.isNotEmpty() && mode != Mode.NOTHING) {
+
+                val prefab = targets.first().root.prefab2!!
+                if (!prefab.isWritable) {
+                    LOGGER.warn("Prefab from '${prefab.source}' cannot be directly modified, inherit from it")
+                    return
+                }
+
                 // drag the selected object
                 // for that transform dx,dy into global space,
                 // and then update the local space
@@ -182,9 +226,9 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
         val prefab = root.prefab2!!
         val path = entity.pathInRoot2(root, false)
         val transform = entity.transform
-        prefab.add(CSet(path, "position", transform.localPosition))
-        prefab.add(CSet(path, "rotation", transform.localRotation))
-        prefab.add(CSet(path, "scale", transform.localScale))
+        prefab.set(path, "position", transform.localPosition)
+        prefab.set(path, "rotation", transform.localRotation)
+        prefab.set(path, "scale", transform.localScale)
         entity.invalidateAABBsCompletely()
         entity.invalidateChildTransforms()
         invalidateInspector()
