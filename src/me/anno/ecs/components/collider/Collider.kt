@@ -237,7 +237,7 @@ abstract class Collider : Component() {
     abstract fun createBulletShape(scale: Vector3d): CollisionShape
 
     // a collider needs to be drawn
-    override fun onDrawGUI(view: RenderView) {
+    override fun onDrawGUI() {
         if (isSelectedIndirectly){
             drawShape()
         }

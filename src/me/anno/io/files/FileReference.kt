@@ -16,6 +16,7 @@ import java.lang.ref.WeakReference
 import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
+import java.util.concurrent.ConcurrentHashMap
 
 // todo when a file is changed, all inner files based on that need to be invalidated (editor only)
 // todo when a file is changed, the meta data of it needs to be invalidated
@@ -42,30 +43,43 @@ abstract class FileReference(val absolutePath: String) {
 
         private val LOGGER = LogManager.getLogger(FileReference::class)
 
-        private val staticReferences = HashMap<String, StaticRef>()
+        private val staticReferences = HashMap<String, FileReference>()
 
-        private val allReferences = HashMap<String, WeakReference<FileReference>>()
+        private val allReferences = ConcurrentHashMap<String, WeakReference<FileReference>>()
 
-        fun clear() {
-            allReferences.values.removeIf { it.get() == null }
+        /**
+         * removes old references
+         * needs to be called regularly
+         * */
+        fun updateCache() {
+            //allReferences.values.removeIf { it.get() == null }
         }
 
-        fun register(ref: StaticRef): StaticRef {
+        fun registerStatic(ref: FileReference): FileReference {
             staticReferences[ref.absolutePath] = ref
             return ref
         }
 
         fun invalidate(file: String, fileInstance: File = File(file)) {
-            synchronized(allReferences) {
-                allReferences.remove(
-                    file.replace('\\', '/')
-                )
-            }
+            allReferences.remove(
+                file.replace('\\', '/')
+            )?.get()?.invalidate()
             LastModifiedCache.invalidate(fileInstance)
         }
 
         fun invalidate(file: File) {
             invalidate(file.absolutePath, file)
+        }
+
+        fun register(file: FileReference): FileReference {
+            // println("registered $file")
+            synchronized(allReferences) {
+                val str = file.absolutePath
+                val cached = allReferences[str]?.get()
+                if (cached != null) return cached
+                allReferences[str] = WeakReference(file)
+                return file
+            }
         }
 
         fun getReference(str: String?): FileReference {
@@ -133,24 +147,23 @@ abstract class FileReference(val absolutePath: String) {
         }
 
         fun getReference(parent: FileReference?, name: String): FileReference {
-            parent ?: return InvalidRef
-            var result: FileReference? = parent
+            var result = parent ?: return InvalidRef
             val name1 = name.replace('\\', '/')
-            return if ('/' !in name1) {
-                result?.getChild(name)
+            if ('/' !in name1) {
+                return result.getChild(name)
             } else {
                 val parts = name1.split('/')
                 for (partialName in parts) {
                     if (!partialName.isBlank2()) {
                         result = if (partialName == "..") {
-                            result?.getParent()
+                            result.getParent()
                         } else {
-                            result?.getChild(partialName)
-                        }
+                            result.getChild(partialName)
+                        } ?: return InvalidRef
                     }
                 }
-                result
-            } ?: InvalidRef
+                return result
+            }
         }
 
         fun createZipFile(file: FileReference): ZipFile {
@@ -161,6 +174,21 @@ abstract class FileReference(val absolutePath: String) {
     }
 
     abstract fun getChild(name: String): FileReference
+
+    open fun hasChildren(): Boolean = listChildren()?.isNotEmpty() == true
+
+    private var isValid = true
+
+    open fun invalidate() {
+        println("invalidated $absolutePath")
+        isValid = false
+        // if this has inner folders, replace all of their children as well
+        ZipCache.getMetaMaybe(this)?.invalidate()
+    }
+
+    fun validate(): FileReference {
+        return if (isValid) this else getReference(absolutePath)
+    }
 
     /*constructor() : this("")
     constructor(parent: File, name: String) : this(File(parent, name))
@@ -215,11 +243,7 @@ abstract class FileReference(val absolutePath: String) {
 
     open fun readBytes() = inputStream().readBytes()
     fun readByteBuffer(): ByteBuffer {
-        val bytes = readBytes()
-        val buffer = ByteBuffer.allocate(bytes.size)
-        buffer.put(bytes)
-        buffer.flip()
-        return buffer
+        return ByteBuffer.wrap(readBytes())
     }
 
     open fun writeText(text: String) {
@@ -242,6 +266,14 @@ abstract class FileReference(val absolutePath: String) {
         val os = outputStream()
         os.write(bytes)
         os.close()
+    }
+
+    open fun writeBytes(bytes: ByteBuffer) {
+        val byte2 = ByteArray(bytes.remaining())
+        bytes.get(byte2)
+        if (!exists || length() != byte2.size.toLong() || !readBytes().contentEquals(byte2)) {
+            writeBytes(byte2)
+        }
     }
 
     abstract fun length(): Long
@@ -296,7 +328,7 @@ abstract class FileReference(val absolutePath: String) {
                 LOGGER.info("Checking $absolutePath for mesh file, matches signature")
                 true
             }
-            "png", "jpg", "bmp", "pds", "hdr", "webp", "ico", "tga" -> {
+            "png", "jpg", "bmp", "pds", "hdr", "webp", "ico", "tga", "dds" -> {
                 LOGGER.info("Checking $absolutePath for image file, matches signature")
                 true
             }
@@ -308,7 +340,7 @@ abstract class FileReference(val absolutePath: String) {
                         LOGGER.info("Checking $absolutePath for mesh file, matches extension")
                         true
                     }
-                    "png", "jpg", "bmp", "pds", "hdr", "webp", "tga" -> {
+                    "png", "jpg", "bmp", "pds", "hdr", "webp", "tga", "dds" -> {
                         LOGGER.info("Checking $absolutePath for image file, matches extension")
                         true
                     }
@@ -392,6 +424,15 @@ abstract class FileReference(val absolutePath: String) {
     }
 
     open fun nullIfUndefined(): FileReference? = this
+
+    inline fun anyInHierarchy(run: (FileReference) -> Boolean): Boolean {
+        var element = this
+        while (element != InvalidRef) {
+            if (run(this)) return true
+            element = element.getParent() ?: return false
+        }
+        return false
+    }
 
     private fun printTree(depth: Int = 0) {
         LOGGER.info("${Tabs.spaces(depth * 2)}$name")

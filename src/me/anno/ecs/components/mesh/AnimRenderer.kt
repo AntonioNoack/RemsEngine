@@ -118,7 +118,7 @@ class AnimRenderer : MeshComponent() {
         clone.animationWeights = animationWeights
     }
 
-    override fun onDrawGUI(view: RenderView) {
+    override fun onDrawGUI() {
         val skeleton = SkeletonCache[skeleton]
         if (skeleton != null) {
             val shader = pbrModelShader.value

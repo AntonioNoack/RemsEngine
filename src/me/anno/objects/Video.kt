@@ -4,7 +4,6 @@ import me.anno.animation.AnimatedProperty
 import me.anno.audio.openal.AudioManager
 import me.anno.audio.openal.AudioTasks
 import me.anno.cache.data.VideoData.Companion.framesPerContainer
-import me.anno.image.ImageGPUCache
 import me.anno.cache.instances.MeshCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.cache.instances.VideoCache.getVideoFrameWithoutGenerator
@@ -20,6 +19,7 @@ import me.anno.gpu.drawing.GFXx3D.draw3DVideo
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
+import me.anno.image.ImageGPUCache
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
@@ -66,7 +66,7 @@ import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.ImageSequenceMeta
 import me.anno.video.IsFFMPEGOnly.isFFMPEGOnlyExtension
 import me.anno.video.MissingFrameException
-import me.anno.video.VFrame
+import me.anno.video.formats.gpu.GPUFrame
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.net.URL
@@ -297,7 +297,7 @@ class Video(file: FileReference = InvalidRef, parent: Transform? = null) : Audio
         // LOGGER.info("missing frame")
     }
 
-    fun getFrameAtLocalTime(time: Double, width: Int, meta: FFMPEGMetadata): VFrame? {
+    fun getFrameAtLocalTime(time: Double, width: Int, meta: FFMPEGMetadata): GPUFrame? {
 
         // only load a single frame at a time?? idk...
 
@@ -338,7 +338,7 @@ class Video(file: FileReference = InvalidRef, parent: Transform? = null) : Audio
 
     }
 
-    private var lastFrame: VFrame? = null
+    private var lastFrame: GPUFrame? = null
 
     private fun drawVideo(meta: FFMPEGMetadata, stack: Matrix4fArrayList, time: Double, color: Vector4fc) {
 
@@ -432,7 +432,7 @@ class Video(file: FileReference = InvalidRef, parent: Transform? = null) : Audio
         }
     }
 
-    fun getFrame(zoomLevel: Int, meta: FFMPEGMetadata, frameIndex0: Int, videoFPS: Double): VFrame? {
+    fun getFrame(zoomLevel: Int, meta: FFMPEGMetadata, frameIndex0: Int, videoFPS: Double): GPUFrame? {
 
         val zl = max(1, zoomLevel)
         val fpc = framesPerContainer
@@ -461,7 +461,7 @@ class Video(file: FileReference = InvalidRef, parent: Transform? = null) : Audio
         return when {
             ext.equals("svg", true) ->
                 MeshCache.getSVG(file, imageTimeout, true)
-            ext.equals("webp", true) ->
+            ext.equals("webp", true) || ext.equals("dds", true) ->
                 // calculate required scale? no, without animation, we don't need to scale it down ;)
                 getVideoFrame(file, 1, 0, 1, 1.0, imageTimeout, true)
             else -> // some image

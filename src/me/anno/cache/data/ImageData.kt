@@ -29,7 +29,7 @@ import me.anno.utils.Nullable.tryOrNull
 import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.files.Files.use
 import me.anno.utils.types.Strings.getImportType
-import me.anno.video.VFrame
+import me.anno.video.formats.gpu.GPUFrame
 import org.apache.commons.imaging.Imaging
 import org.apache.logging.log4j.LogManager
 import java.awt.image.BufferedImage
@@ -73,7 +73,7 @@ class ImageData(file: FileReference) : ICacheData {
             return rotation
         }
 
-        fun frameToFramebuffer(frame: VFrame, w: Int, h: Int, result: ImageData?): Framebuffer {
+        fun frameToFramebuffer(frame: GPUFrame, w: Int, h: Int, result: ImageData?): Framebuffer {
             val framebuffer = Framebuffer("webp-temp", w, h, 1, 1, false, DepthBufferType.NONE)
             result?.framebuffer = framebuffer
             useFrame(framebuffer, Renderer.copyRenderer) {
@@ -113,24 +113,25 @@ class ImageData(file: FileReference) : ICacheData {
         if (file is ImageReadable) {
             texture.create("ImageData", file.readImage(), true)
         } else {
-            val signature = Signature.findName(file)
-            if (signature == "hdr") {
-                loadHDR(file)
-                return
-            }
-            val image = ImageCPUCache.getImage(file, false)
-            if (image != null) {
-                texture.create("ImageData", image, true)
-                texture.rotation = getRotation(file)
-                return
-            }
-            when (val fileExtension = file.lcExtension) {
-                // "hdr" -> loadHDR(file)
-                "tga" -> loadTGA(file)
-                // ImageIO says it can do webp, however it doesn't understand most pics...
-                // tga was incomplete as well -> we're using our own solution
-                "webp" -> useFFMPEG(file)
-                else -> tryGetImage0(file, fileExtension)
+            when (Signature.findName(file)) {
+                "hdr" -> loadHDR(file)
+                "dds" -> useFFMPEG(file)
+                else -> {
+                    val image = ImageCPUCache.getImage(file, false)
+                    if (image != null) {
+                        texture.create("ImageData", image, true)
+                        texture.rotation = getRotation(file)
+                    } else {
+                        when (val fileExtension = file.lcExtension) {
+                            // "hdr" -> loadHDR(file)
+                            "tga" -> loadTGA(file)
+                            // ImageIO says it can do webp, however it doesn't understand most pics...
+                            // tga was incomplete as well -> we're using our own solution
+                            "webp" -> useFFMPEG(file)
+                            else -> tryGetImage0(file, fileExtension)
+                        }
+                    }
+                }
             }
         }
     }

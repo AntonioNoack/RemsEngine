@@ -117,6 +117,10 @@ object Maths {
         return if (a < b) a else b
     }
 
+    fun min(a: Double, b: Double): Double {
+        return if (a < b) a else b
+    }
+
     fun min(a: Float, b: Float, c: Float): Float {
         var value = if (a < b) a else b
         value = if (value < c) value else c

@@ -86,8 +86,7 @@ class EnvironmentMap : LightComponentBase() {
         return true
     }
 
-    override fun onVisibleUpdate() {
-        super.onVisibleUpdate()
+    override fun onVisibleUpdate(): Boolean {
         if (type != SourceType.TEXTURE) {
             if(texture == null || texture?.samples != samples){
                 texture?.destroy()
@@ -103,9 +102,10 @@ class EnvironmentMap : LightComponentBase() {
             needsUpdate = false
             drawBuffer(texture)
         }
+        return true
     }
 
-    override fun onDrawGUI(view: RenderView) {
+    override fun onDrawGUI() {
         if (isSelectedIndirectly) {
             drawBox(entity)
             drawCross(entity, crossExtends)

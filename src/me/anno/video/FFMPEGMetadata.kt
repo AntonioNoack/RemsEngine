@@ -2,7 +2,6 @@ package me.anno.video
 
 import me.anno.cache.CacheSection
 import me.anno.cache.data.ICacheData
-import me.anno.cache.instances.LastModifiedCache
 import me.anno.io.files.FileReference
 import me.anno.io.json.JsonArray
 import me.anno.io.json.JsonObject
@@ -121,8 +120,10 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
         videoFPS = video?.get("r_frame_rate")?.asText()?.parseFraction() ?: 30.0
 
         if (videoFrameCount == 0) {
-            videoFrameCount = ceil(videoDuration * videoFPS).toInt()
-            LOGGER.info("Frame count was 0, corrected it to $videoFrameCount = $videoDuration * $videoFPS")
+            if (videoDuration > 0.0) {
+                videoFrameCount = ceil(videoDuration * videoFPS).toInt()
+                LOGGER.info("Frame count was 0, corrected it to $videoFrameCount = $videoDuration * $videoFPS")
+            }
         } else {
             val expectedFrameCount = (videoDuration * videoFPS).roundToInt()
             if (expectedFrameCount * 10 !in videoFrameCount * 9..videoFrameCount * 11) {

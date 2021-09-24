@@ -27,6 +27,11 @@ open class InnerFolder(
 
     override fun listChildren(): List<FileReference> = children.values.toList()
 
+    override fun invalidate() {
+        super.invalidate()
+        for(child in children.values) child.invalidate()
+    }
+
     override fun getInputStream(): InputStream {
         throw IOException("File is directory")
     }

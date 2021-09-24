@@ -34,43 +34,51 @@ object ZipCache : CacheSection("ZipCache") {
     // todo display unity packages differently: display them as their usual file structure
     // it kind of is a new format, that is based on another decompression
 
+    fun getMetaMaybe(file: FileReference): InnerFolder? {
+        val data = getEntryWithoutGenerator(file) as? CacheData<*>
+        return data?.value as? InnerFolder
+    }
+
     fun getMeta(file: FileReference, async: Boolean): InnerFolder? {
-        val data = getEntry(file.absolutePath, timeout, async) {
+        val data = getFileEntry(file, false, timeout, async) { file1, _ ->
             CacheData(try {
-                when (Signature.findName(file)) {
-                    "7z" -> createZipRegistry7z(file) { fileFromStream7z(file) }
-                    "rar" -> createZipRegistryRar(file) { fileFromStreamRar(file) }
-                    "gzip", "tar" -> readAsGZip(file)
+                when (Signature.findName(file1)) {
+                    "7z" -> createZipRegistry7z(file1) { fileFromStream7z(file1) }
+                    "rar" -> createZipRegistryRar(file1) { fileFromStreamRar(file1) }
+                    "gzip", "tar" -> readAsGZip(file1)
                     // todo all mesh extensions
                     "fbx", "gltf", "dae",
                     "draco", "md2", "md5mesh" ->
-                        AnimatedMeshesLoader.readAsFolder(file)
-                    "blend" -> BlenderReader.readAsFolder(file)
-                    "obj" -> OBJReader2.readAsFolder(file)
-                    "mtl" -> MTLReader2.readAsFolder(file)
-                    "pdf" -> PDFCache.readAsFolder(file)
-                    "vox" -> VOXReader.readAsFolder(file)
-                    "zip" -> createZipRegistryV2(file) { fileFromStreamV2(file) }
+                        AnimatedMeshesLoader.readAsFolder(file1)
+                    "blend" -> BlenderReader.readAsFolder(file1)
+                    "obj" -> OBJReader2.readAsFolder(file1)
+                    "mtl" -> MTLReader2.readAsFolder(file1)
+                    "pdf" -> PDFCache.readAsFolder(file1)
+                    "vox" -> VOXReader.readAsFolder(file1)
+                    "zip" -> createZipRegistryV2(file1) { fileFromStreamV2(file1) }
                     // todo all image formats
-                    "png", "jpg", "bmp", "pds", "hdr", "webp", "tga", "ico" ->
-                        ImageReader.readAsFolder(file)
+                    "png", "jpg", "bmp", "pds", "hdr", "webp", "tga", "ico", "dds" ->
+                        ImageReader.readAsFolder(file1)
                     null, "xml", "yaml", "json" -> {
-                        when (file.lcExtension) {
+                        when (file1.lcExtension) {
                             // todo all mesh extensions
                             "fbx", "gltf", "glb", "dae", "draco",
                             "md2", "md5mesh" ->
-                                AnimatedMeshesLoader.readAsFolder(file)
-                            "obj" -> OBJReader2.readAsFolder(file)
-                            "blend" -> BlenderReader.readAsFolder(file)
-                            "mtl" -> MTLReader2.readAsFolder(file)
-                            "vox" -> VOXReader.readAsFolder(file)
-                            "mat", "prefab", "unity", "asset", "controller" -> UnityReader.readAsFolder(file)
+                                AnimatedMeshesLoader.readAsFolder(file1)
+                            "obj" -> OBJReader2.readAsFolder(file1)
+                            "blend" -> BlenderReader.readAsFolder(file1)
+                            "mtl" -> MTLReader2.readAsFolder(file1)
+                            "vox" -> VOXReader.readAsFolder(file1)
+                            "mat", "prefab", "unity", "asset", "controller" -> UnityReader.readAsFolder(file1)
                             // todo all image formats
-                            "png", "jpg", "bmp", "pds", "hdr", "webp", "tga" -> ImageReader.readAsFolder(file)
-                            else -> createZipRegistryV2(file) { fileFromStreamV2(file) }
+                            "png", "jpg", "bmp", "pds", "hdr", "webp", "tga", "dds" -> ImageReader.readAsFolder(
+                                file1
+                            )
+                            else -> createZipRegistryV2(file1) { fileFromStreamV2(file1) }
                         }
                     }
-                    else -> createZipRegistryV2(file) { fileFromStreamV2(file) }
+                    "media" -> ImageReader.readAsFolder(file1) // correct for webp, not for videos
+                    else -> createZipRegistryV2(file1) { fileFromStreamV2(file1) }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

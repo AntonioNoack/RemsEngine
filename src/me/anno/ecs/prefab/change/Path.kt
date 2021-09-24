@@ -1,17 +1,23 @@
 package me.anno.ecs.prefab.change
 
+import me.anno.engine.ECSRegistry
+import me.anno.io.Saveable
+import me.anno.io.base.BaseWriter
+import me.anno.io.text.TextReader
+import me.anno.io.text.TextWriter
 import me.anno.utils.LOGGER
+import java.text.ParseException
 
 class Path(
     // two identification methods:
     // if one is invalidated, the other one can still work
     // name is more important than id
-    val names: Array<String>,
-    val indices: IntArray,
-    val types: CharArray// if null, then always the default type will be chosen, e.g. 'c' for children
-) {
+    var names: Array<String>,
+    var indices: IntArray,
+    var types: CharArray// if null, then always the default type will be chosen, e.g. 'c' for children
+) : Saveable() {
 
-    constructor() : this(arrayOf(), intArrayOf(), charArrayOf())
+    constructor() : this(emptyStringArray, emptyIntArray, emptyCharArray)
     constructor(hierarchy: Array<String>) : this(
         hierarchy,
         IntArray(hierarchy.size) { -1 },
@@ -34,6 +40,8 @@ class Path(
         parent.types + child.types
     )
 
+    var size = indices.size
+
     fun getParent(): Path {
         return when (val size = size) {
             0 -> throw RuntimeException("Root path has no parent")
@@ -46,7 +54,6 @@ class Path(
         }
     }
 
-    val size get() = indices.size
     fun isEmpty() = size == 0
     fun isNotEmpty() = size > 0
 
@@ -171,7 +178,47 @@ class Path(
         return str.toString()
     }
 
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        writer.writeString("v", toString())
+    }
+
+    override fun readString(name: String, value: String?) {
+        if (name == "v") {
+            if (value == null || value.isEmpty()) {
+                names = emptyStringArray
+                indices = emptyIntArray
+                types = emptyCharArray
+                size = 0
+                return
+            } else {
+                val parts = value.split('/')
+                size = parts.size
+                names = Array(size) { "" }
+                indices = IntArray(size)
+                types = CharArray(size)
+                for (i in 0 until size) {
+                    // type,id,name
+                    val part = parts[i]
+                    val symbol = part[0]
+                    types[i] = symbol
+                    val commaIndex = part.indexOf(',', 2)
+                    indices[i] = part.substring(1, commaIndex).toInt()
+                    names[i] = part.substring(commaIndex + 1)
+                }
+            }
+        } else super.readString(name, value)
+    }
+
+    override val className: String = "Path"
+    override val approxSize: Int = 1
+    override fun isDefaultValue(): Boolean = isEmpty()
+
     companion object {
+
+        val emptyIntArray = IntArray(0)
+        val emptyCharArray = CharArray(0)
+        val emptyStringArray = emptyArray<String>()
 
         val ROOT_PATH = Path()
 
@@ -190,10 +237,16 @@ class Path(
             LOGGER.info("abc x abc, 1: '${abc.getSubPathIfMatching(abc, 1)}'")
             LOGGER.info("abc x bcd, 1: '${abc.getSubPathIfMatching(bcd, 1)}'")
 
+            ECSRegistry.initNoGFX()
+            LOGGER.info(path)
+            val cloned = TextReader.read(TextWriter.toText(path)).first()
+            LOGGER.info(cloned)
+            LOGGER.info(cloned == path)
+
         }
 
-        fun parse(str: String): Path {
-            if (str.isEmpty()) return ROOT_PATH
+        fun parse(str: String?): Path {
+            if (str == null || str.isEmpty()) return ROOT_PATH
             val parts = str.split('/')
             val size = parts.size
             val names = Array(size) { "" }
@@ -205,6 +258,9 @@ class Path(
                 val symbol = part[0]
                 types[i] = symbol
                 val commaIndex = part.indexOf(',', 2)
+                if (commaIndex < 1 || commaIndex > part.length - 1) {
+                    throw ParseException("Invalid path: '$str'", 0)
+                }
                 indices[i] = part.substring(1, commaIndex).toInt()
                 names[i] = part.substring(commaIndex + 1)
             }

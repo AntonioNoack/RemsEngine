@@ -73,7 +73,7 @@ object DefaultConfig : StringMap() {
 
         addImportMappings(
             "Image",
-            "png", "jpg", "jpeg", "tiff", "webp", "svg", "ico", "psd", "bmp", "jp2", "tga"
+            "png", "jpg", "jpeg", "tiff", "webp", "svg", "ico", "psd", "bmp", "jp2", "tga", "dds"
         )
         addImportMappings("PDF", "pdf")
         addImportMappings("Cubemap-Equ", "hdr")

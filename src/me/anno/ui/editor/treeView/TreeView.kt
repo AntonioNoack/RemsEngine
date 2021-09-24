@@ -20,7 +20,7 @@ import org.joml.Vector4f
 
 // todo select multiple elements, filter for common properties, and apply them all together :)
 
-abstract class AbstractTreeView<V>(
+abstract class TreeView<V>(
     val sources: List<V>,
     val fileContentImporter: FileContentImporter<V>,
     val showSymbols: Boolean,
@@ -35,8 +35,6 @@ abstract class AbstractTreeView<V>(
     }
 
     val elementByIndex = ArrayList<V>()
-
-    abstract val selectedElement: V?
 
     // Selection.select(element, null)
     abstract fun selectElement(element: V?)

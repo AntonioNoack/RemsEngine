@@ -19,7 +19,9 @@ class GameEngineProject() : NamedSaveable() {
                 if (location.isDirectory) {
                     val configFile = location.getChild("config.json")
                     if (configFile.exists) {
-                        TextReader.read(configFile).filterIsInstance<GameEngineProject>().firstOrNull()
+                        val instance = TextReader.read(configFile).filterIsInstance<GameEngineProject>().firstOrNull()
+                        instance?.location = location
+                        instance
                     } else {
                         val project = GameEngineProject(location)
                         configFile.writeText(TextWriter.toText(project))

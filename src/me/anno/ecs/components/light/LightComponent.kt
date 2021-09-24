@@ -37,6 +37,14 @@ abstract class LightComponent(
     // todo circle/sphere of light: how?
 
     var shadowMapCascades = 0
+        set(value) {
+            if (field != value) {
+                field = value
+                if (value < 1) {
+                    ensureShadowBuffers()
+                }
+            }
+        }
 
     // typical: 2..4
     @Range(1.0, 1000.0)
@@ -75,7 +83,7 @@ abstract class LightComponent(
         clone.autoUpdate = autoUpdate
     }
 
-    override fun onDrawGUI(view: RenderView) {
+    override fun onDrawGUI() {
         if (isSelectedIndirectly) {
             drawShape()
         }
@@ -130,14 +138,17 @@ abstract class LightComponent(
         }
     }
 
-    override fun onUpdate() {
-        if (autoUpdate || needsUpdate) {
-            needsUpdate = false
-            ensureShadowBuffers()
-            if (hasShadow) {
-                updateShadowMaps()
+    override fun onVisibleUpdate(): Boolean {
+        return if (hasShadow) {
+            if (autoUpdate || needsUpdate) {
+                needsUpdate = false
+                ensureShadowBuffers()
+                if (hasShadow) {
+                    updateShadowMaps()
+                }
             }
-        }
+            true
+        } else false
     }
 
     abstract fun updateShadowMap(
@@ -160,7 +171,11 @@ abstract class LightComponent(
         val sqrt3 = 1.7320508075688772
         val worldScale = sqrt3 / global.getScaleLength()
         val cameraMatrix = JomlPools.mat4f.create()
+        val shadowTextures = shadowTextures
+        val shadowMapPower = shadowMapPower
         // only fill pipeline once? probably better...
+        val renderer = Renderer.depthOnlyRenderer
+        val depthMode = DepthMode.GREATER
         for (i in 0 until shadowMapCascades) {
             val cascadeScale = shadowMapPower.pow(-i.toDouble())
             val texture = shadowTextures!![i]
@@ -172,8 +187,8 @@ abstract class LightComponent(
             )
             val root = entity.getRoot(Entity::class)
             pipeline.fillDepth(root, position, worldScale)
-            RenderState.depthMode.use(DepthMode.GREATER) {
-                useFrame(resolution, resolution, true, texture, Renderer.depthOnlyRenderer) {
+            RenderState.depthMode.use(depthMode) {
+                useFrame(resolution, resolution, true, texture, renderer) {
                     Frame.bind()
                     glClear(GL_DEPTH_BUFFER_BIT)
                     pipeline.drawDepth(cameraMatrix, position, worldScale)
@@ -185,7 +200,10 @@ abstract class LightComponent(
         JomlPools.mat4f.sub(1)
     }
 
-    // is set by the pipeline
+    /**
+     * is set by the pipeline,
+     * is equal to inv(transform.globalMatrix - cameraPosition)
+     * */
     @NotSerializedProperty
     val invWorldMatrix = Matrix4x3f()
 
@@ -209,48 +227,6 @@ abstract class LightComponent(
                 true, 0, pbrModelShader
             )
         }
-
-        /*val lightShaders = HashMap<String, BaseShader>()
-        fun getShader(sample: LightComponent): BaseShader {
-            return lightShaders.getOrPut(sample.className) {
-                val deferred = DeferredRenderer.deferredSettings!!
-                ShaderLib.createShaderPlus(
-                    "PointLight",
-                    ShaderLib.v3DBase +
-                            "a3 coords;\n" +
-                            "uniform mat4x3 localTransform;\n" +
-                            "void main(){\n" +
-                            "   finalPosition = coords;\n" +
-                            "   finalPosition = localTransform * vec4(finalPosition, 1.0);\n" +
-                            "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
-                            "   center = localTransform * vec4(0,0,0,1);\n" +
-                            "   uvw = gl_Position.xyw;\n" +
-                            ShaderLib.positionPostProcessing +
-                            "}", ShaderLib.y3D + Variable("vec3", "center"), "" +
-                            "float getIntensity(vec3 dir){\n" +
-                            "   return 1.0;\n" +
-                            // to do fix
-                            //"" + sample.getFalloffFunction() +
-                            "}\n" +
-                            "uniform vec3 uColor;\n" +
-                            "uniform mat3 invLocalTransform;\n" +
-                            "uniform sampler2D ${deferred.settingsV1.layerNames.joinToString()};\n" +
-                            // roughness / metallic + albedo defines reflected light points -> needed as input as well
-                            // to do roughness / metallic + albedo defines reflected light points -> compute them
-                            // to do environment map is required for brilliant results as well
-                            "void main(){\n" +
-                            "   vec2 uv = uvw.xy/uvw.z*.5+.5;\n" +
-                            "   vec3 globalDelta = ${DeferredLayerType.POSITION.getValue(deferred)} - center;\n" +
-                            "   vec3 localDelta = invLocalTransform * globalDelta;\n" + // transform into local coordinates
-                            "   vec3 nor = ${DeferredLayerType.NORMAL.getValue(deferred)};\n" +
-                            "   float intensity = getIntensity(localDelta * 5.0) * max(0.0, -dot(globalDelta, nor));\n" +
-                            "   vec3 finalColor = uColor * intensity;\n" +
-                            "   float finalAlpha = 0.125;\n" +
-                            "}", deferred.settingsV1.layerNames
-                )
-            }
-        }*/
-
     }
 
 }

@@ -1,8 +1,10 @@
-package me.anno.utils.structures
+package me.anno.utils.structures.stacks
 
-open class SecureStack<V>(var currentValue: V) {
+import me.anno.utils.structures.arrays.ExpandingIntArray
 
-    val values = ArrayList<V>()
+open class SecureIntStack(var currentValue: Int) {
+
+    val values = ExpandingIntArray(256)
     var size = 1
     val index get() = size - 1
 
@@ -10,12 +12,12 @@ open class SecureStack<V>(var currentValue: V) {
         values.add(currentValue)
     }
 
-    var lastV: V = currentValue
+    var lastV: Int = currentValue
 
-    open fun onChangeValue(newValue: V, oldValue: V) {
+    open fun onChangeValue(newValue: Int, oldValue: Int) {
     }
 
-    fun internalPush(v: V) {
+    fun internalPush(v: Int) {
         if (values.size < size + 1) {
             values.add(v)
         } else {
@@ -31,7 +33,7 @@ open class SecureStack<V>(var currentValue: V) {
         }
     }
 
-    fun internalSet(v: V) {
+    fun internalSet(v: Int) {
         currentValue = v
         try {
             onChangeValue(v, lastV)
@@ -40,7 +42,7 @@ open class SecureStack<V>(var currentValue: V) {
         }
     }
 
-    inline fun use(v: V, func: () -> Unit) {
+    inline fun use(v: Int, func: () -> Unit) {
         internalPush(v)
         try {
             internalSet(v)
@@ -53,7 +55,7 @@ open class SecureStack<V>(var currentValue: V) {
     fun getParent() = values[size - 2]
 
     override fun toString(): String {
-        return super.toString() + ", [${values.subList(0, size).joinToString()}]"
+        return super.toString() + ", [${values.toIntArray().joinToString()}]"
     }
 
 }

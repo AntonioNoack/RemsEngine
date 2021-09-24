@@ -12,8 +12,9 @@ class CameraState : Component() {
     var cameraBlendingTime = 0.0
     var cameraBlendingProgress = 0.0
 
-    override fun onUpdate() {
+    override fun onUpdate(): Int {
         cameraBlendingProgress += GFX.deltaTime / clamp(cameraBlendingTime, 1e-6, 1e3)
+        return 1
     }
 
     // todo draw: first cam 1, then cam 2, and then blend them together

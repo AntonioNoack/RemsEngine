@@ -25,7 +25,7 @@ import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
 import me.anno.objects.modes.UVProjection
 import me.anno.studio.rems.RemsStudio
-import me.anno.video.VFrame
+import me.anno.video.formats.gpu.GPUFrame
 import ofx.mio.OpticalFlow
 import org.joml.*
 import org.lwjgl.BufferUtils
@@ -203,7 +203,7 @@ object GFXx3D {
     }
 
     fun draw3D(
-        stack: Matrix4fArrayList, texture: VFrame, color: Vector4fc,
+        stack: Matrix4fArrayList, texture: GPUFrame, color: Vector4fc,
         filtering: Filtering, clamping: Clamping, tiling: Vector4fc?, uvProjection: UVProjection
     ) {
         if (!texture.isCreated) throw RuntimeException("Frame must be loaded to be rendered!")
@@ -219,7 +219,7 @@ object GFXx3D {
     }
 
     fun draw3D(
-        stack: Matrix4fArrayList, texture: VFrame, color: Int,
+        stack: Matrix4fArrayList, texture: GPUFrame, color: Int,
         filtering: Filtering, clamping: Clamping, tiling: Vector4fc?, uvProjection: UVProjection
     ) {
         if (!texture.isCreated) throw RuntimeException("Frame must be loaded to be rendered!")
@@ -235,7 +235,7 @@ object GFXx3D {
 
     fun draw3DVideo(
         video: GFXTransform, time: Double,
-        stack: Matrix4fArrayList, texture: VFrame, color: Vector4fc,
+        stack: Matrix4fArrayList, texture: GPUFrame, color: Vector4fc,
         filtering: Filtering, clamping: Clamping, tiling: Vector4fc?, uvProjection: UVProjection
     ) {
         if (!texture.isCreated) throw RuntimeException("Frame must be loaded to be rendered!")
@@ -252,7 +252,7 @@ object GFXx3D {
 
     fun draw3DVideo(
         video: GFXTransform, time: Double,
-        stack: Matrix4fArrayList, v0: VFrame, v1: VFrame, interpolation: Float, color: Vector4fc,
+        stack: Matrix4fArrayList, v0: GPUFrame, v1: GPUFrame, interpolation: Float, color: Vector4fc,
         filtering: Filtering, clamping: Clamping, tiling: Vector4fc?, uvProjection: UVProjection
     ) {
 

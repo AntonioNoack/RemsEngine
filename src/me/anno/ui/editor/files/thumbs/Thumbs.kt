@@ -1,7 +1,6 @@
 package me.anno.ui.editor.files.thumbs
 
 import me.anno.cache.data.ImageData
-import me.anno.cache.instances.LastModifiedCache
 import me.anno.cache.instances.MeshCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultStyle.white4
@@ -41,7 +40,6 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.*
-import me.anno.gpu.texture.Texture2D.Companion.packAlignment
 import me.anno.image.*
 import me.anno.image.tar.TGAImage
 import me.anno.io.ISaveable
@@ -57,17 +55,11 @@ import me.anno.objects.Video
 import me.anno.objects.documents.pdf.PDFCache
 import me.anno.objects.meshes.MeshData
 import me.anno.studio.Build
-import me.anno.utils.Color.a
-import me.anno.utils.Color.b
-import me.anno.utils.Color.g
 import me.anno.utils.Color.hex4
-import me.anno.utils.Color.r
-import me.anno.utils.Color.rgba
 import me.anno.utils.Sleep.waitForGFXThread
 import me.anno.utils.Sleep.waitForGFXThreadUntilDefined
 import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.files.Files.use
-import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.image.ImageScale.scale
 import me.anno.utils.input.Input.readNBytes2
 import me.anno.utils.types.Strings.getImportType
@@ -99,7 +91,7 @@ object Thumbs {
     private const val timeout = 5000L
 
     // todo disable this, when everything works
-    var useCacheFolder = true || !Build.isDebug
+    var useCacheFolder = !Build.isDebug
 
     init {
         LogManager.disableLogger("GlyphRenderer")
@@ -111,7 +103,7 @@ object Thumbs {
 
     private fun FileReference.getCacheFile(size: Int): FileReference {
 
-        val hashReadLimit = 256
+        val hashReadLimit = 4096
         val length = this.length()
         var hash: Long = lastModified xor (454781903L * length)
         if (!isDirectory && length > 0) {
@@ -167,7 +159,7 @@ object Thumbs {
         val key = ThumbnailKey(file, size)
         return ImageGPUCache.getLateinitTexture(key, timeout, async) { callback ->
             if (async) {
-                thread(name = key.file.nameWithoutExtension) {
+                thread(name = "Thumbs/${key.file.name}") {
                     generate(file, size, callback)
                 }
             } else generate(file, size, callback)
@@ -360,57 +352,11 @@ object Thumbs {
                 }
             }
 
-            if (true || w > GFX.width || h > GFX.height) {
-                fb2.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                val dst = createBufferedImage(w, h, fb2, flipY, true)
-                saveNUpload(srcFile, dstFile, dst, callback)
-            } else {
-                // cannot read from separate framebuffer, only from null... why ever...
-                useFrame(0, 0, w, h, false, null, colorRenderer) {
-
-                    GFX.copy(fb2)
-
-                    glFlush(); glFinish() // wait for everything to be drawn
-
-                    GFX.check()
-
-                    packAlignment(4 * w)
-                    glReadPixels(0, GFX.height - h, w, h, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
-
-                    GFX.check()
-
-                }
-
-                threadWithName("Thumbs::renderToBufferedImage()") {
-                    val dst = BufferedImage(w, h, 2)
-                    val buffer2 = dst.raster.dataBuffer
-                    if (flipY) {
-                        var i = 0
-                        val dy = h - 1
-                        for (y in 0 until h) {
-                            for (x in 0 until w) {
-                                val col = buffer[i]
-                                // swizzle colors, because rgba != argb
-                                // and flip y
-                                buffer2.setElem(x + (dy - y) * w, rgba(col.b(), col.g(), col.r(), col.a()))
-                                i++
-                            }
-                        }
-                    } else {
-                        for (i in 0 until w * h) {
-                            val col = buffer[i]
-                            // swizzle colors, because rgba != argb
-                            buffer2.setElem(i, rgba(col.b(), col.g(), col.r(), col.a()))
-                        }
-                    }
-                    saveNUpload(srcFile, dstFile, fb2, dst, callback)
-                }
-
-            }
-
+            fb2.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+            val dst = createBufferedImage(w, h, fb2, flipY, true)
+            saveNUpload(srcFile, dstFile, dst, callback)
 
         }
-
 
     }
 
@@ -540,6 +486,24 @@ object Thumbs {
         }
     }
 
+    fun waitForTextures(mesh: Mesh) {
+        // wait for all textures
+        val textures = HashSet<FileReference>()
+        for (material in mesh.materials) {
+            textures += listTextures(material)
+        }
+        textures.removeIf { it == InvalidRef }
+        textures.removeIf {
+            if (!it.exists) {
+                LOGGER.warn("Missing texture $it")
+                true
+            } else false
+        }
+        // LOGGER.info("Textures: $textures")
+        waitForTextures(textures)
+        // LOGGER.info("done waiting")
+    }
+
     fun waitForTextures(data: MeshData) {
         // wait for all textures
         val textures = HashSet<FileReference>()
@@ -629,12 +593,13 @@ object Thumbs {
     ) {
         mesh.checkCompleteness()
         mesh.ensureBuffer()
+        waitForTextures(mesh)
         // sometimes black: because of vertex colors, which are black
         // render everything without color
         renderToBufferedImage(InvalidRef, dstFile, true, simpleNormalRenderer, true, callback, size, size) {
             mesh.drawAssimp(
                 createPerspective(defaultAngleY, 1f),
-                useMaterials = false,
+                useMaterials = true,
                 centerMesh = true,
                 normalizeScale = true
             )
@@ -1061,7 +1026,7 @@ object Thumbs {
                         }
                     }
                     // ImageIO says it can do webp, however it doesn't understand most pics...
-                    "webp" -> generateVideoFrame(srcFile, dstFile, size, callback, 0.0)
+                    "webp", "dds" -> generateVideoFrame(srcFile, dstFile, size, callback, 0.0)
                     "lnk", "desktop" -> {
                         // not images, and I don't know yet how to get the image from them
                     }

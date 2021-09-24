@@ -6,7 +6,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.text.TextWriter
 import java.io.InputStream
 
-class InnerPrefabFile(
+open class InnerPrefabFile(
     absolutePath: String, relativePath: String, _parent: FileReference,
     val prefab: Prefab
 ) : InnerFile(absolutePath, relativePath, false, _parent), PrefabReadable {

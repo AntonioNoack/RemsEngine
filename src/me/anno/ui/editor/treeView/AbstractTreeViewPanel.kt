@@ -44,7 +44,7 @@ class AbstractTreeViewPanel<V>(
     val openAddMenu: (parent: V) -> Unit,
     val fileContentImporter: FileContentImporter<V>,
     showSymbol: Boolean,
-    val treeView: AbstractTreeView<V>, style: Style
+    val treeView: TreeView<V>, style: Style
 ) : PanelListX(style) {
 
     val accentColor = style.getColor("accentColor", black or 0xff0000)
@@ -153,7 +153,7 @@ class AbstractTreeViewPanel<V>(
         }
     }
 
-    private fun toggleCollapsed(){
+    private fun toggleCollapsed() {
         val element = getElement()
         val name = treeView.getName(element)
         val isCollapsed = treeView.isCollapsed(element)
@@ -173,14 +173,21 @@ class AbstractTreeViewPanel<V>(
         }
     }
 
+    private fun isMouseOnSymbol(x: Float): Boolean {
+        return symbol != null && x <= symbol.lx1
+    }
+
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
 
         val element = getElement()
         when {
             button.isLeft -> {
+
+                // todo collapse, if you click on the symbol
+
                 // todo collapse / expand multiple elements at the same time
                 // todo edit multiple elements at the same time
-                if (Input.isShiftDown && inFocus.size < 2) {
+                if ((Input.isShiftDown && inFocus.size < 2) || isMouseOnSymbol(x)) {
                     toggleCollapsed()
                 } else {
                     treeView.selectElementMaybe(element)

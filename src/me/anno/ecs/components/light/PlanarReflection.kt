@@ -1,7 +1,6 @@
 package me.anno.ecs.components.light
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.gui.LineShapes.drawArrowZ
 import me.anno.engine.gui.LineShapes.drawXYPlane
@@ -13,9 +12,7 @@ import me.anno.gpu.RenderState
 import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
-import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.gpu.pipeline.PipelineStage.Companion.getDrawMatrix
 import me.anno.gpu.texture.ITexture2D
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.utils.types.AABBs.clear
@@ -48,6 +45,35 @@ class PlanarReflection : LightComponentBase() {
     val globalNormal = Vector3d()
 
     var bothSided = true
+
+    var near = 0.001
+    var far = 1e3
+
+    override fun onVisibleUpdate(): Boolean {
+
+        val instance = RenderView.currentInstance
+        val pipeline = instance.pipeline
+
+        pipeline.reset()
+
+        val w = instance.w
+        val h = instance.h
+        val aspectRatio = w.toFloat() / h
+
+        draw(
+            pipeline, w, h,
+            RenderView.cameraMatrix,
+            RenderView.camPosition,
+            RenderView.camRotation, RenderView.worldScale
+        ) { pos, rot ->
+            pipeline.frustum.definePerspective(
+                near, far, instance.fovYRadians.toDouble(),
+                w, h, aspectRatio.toDouble(),
+                pos, rot
+            )
+        }
+        return true
+    }
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
         // todo if not both-sided, use half-cubes
@@ -178,7 +204,7 @@ class PlanarReflection : LightComponentBase() {
         return aabb
     }
 
-    override fun onDrawGUI(view: RenderView) {
+    override fun onDrawGUI() {
         if (isSelectedIndirectly) {
             drawXYPlane(entity, 0.0)
             drawXYPlane(entity, 1.0)

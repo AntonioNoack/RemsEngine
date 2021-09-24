@@ -19,6 +19,11 @@ import org.joml.Math
 import org.joml.Vector3d
 import org.joml.Vector3f
 
+// done controls
+// done show the scene
+// done drag stuff
+// todo translate, rotate, scale with gizmos
+
 // todo gui depth doesn't match scene depth.. why?
 
 // todo advanced snapping

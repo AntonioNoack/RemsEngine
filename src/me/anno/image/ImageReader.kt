@@ -7,6 +7,7 @@ import me.anno.io.zip.InnerFolder
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferByte
 import java.awt.image.DataBufferInt
+import java.io.IOException
 
 object ImageReader {
 
@@ -18,7 +19,7 @@ object ImageReader {
         val folder = InnerFolder(file)
         // add the most common swizzles: r,g,b,a
         // todo maybe bgra or similar in the future
-        val image = ImageCPUCache.getImage(file, false)!!
+        val image = ImageCPUCache.getImage(file, false) ?: throw IOException("Could not read $file as folder")
         val hasG = image.numChannels > 1
         val hasB = image.numChannels > 2
         val hasA = image.hasAlphaChannel

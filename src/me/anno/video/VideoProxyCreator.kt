@@ -13,6 +13,7 @@ import me.anno.studio.rems.RemsStudio
 import me.anno.utils.OS
 import me.anno.utils.files.Files.formatFileSize
 import org.apache.logging.log4j.LogManager
+import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -106,8 +107,8 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
         object : FFMPEGStream(null, true) {
             override fun process(process: Process, arguments: List<String>) {
                 // filter information, that we don't need (don't spam the console that much, rather create an overview for it)
-                devNull("Proxy", process.errorStream)
-                devNull("Proxy", process.inputStream)
+                devNull("error", process.errorStream)
+                devNull("input", process.inputStream)
                 process.waitFor()
                 if (tmp.exists) {
                     if (dst.exists) dst.deleteRecursively()
@@ -120,11 +121,7 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
             }
 
             override fun destroy() {}
-        }.run(
-            listOf(
-                "-i", src.absolutePath, "-filter:v", "scale=\"$w:$h\"", "-c:a", "copy", tmp.absolutePath
-            )
-        )
+        }.run(listOf("-i", src.absolutePath, "-filter:v", "scale=\"$w:$h\"", "-c:a", "copy", tmp.absolutePath))
     }
 
     private fun getUniqueFilename(file: FileReference): String {

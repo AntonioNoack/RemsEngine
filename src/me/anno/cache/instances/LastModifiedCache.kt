@@ -29,7 +29,8 @@ object LastModifiedCache {
             )?.lastAccessTime()?.toMillis() ?: 0L
         } else 0L
 
-        val length = if(isDirectory) 0L else file.length() // todo sum first level?, and add plus for additional children folders
+        val length =
+            if (isDirectory) 0L else file.length() // todo sum first level?, and add plus for additional children folders
 
     }
 
@@ -38,6 +39,12 @@ object LastModifiedCache {
 
     fun invalidate(file: File) {
         values.remove(file)
+    }
+
+    fun invalidate(file: FileReference) {
+        if (file is FileFileRef) {
+            invalidate(file.file)
+        }
     }
 
     operator fun get(file: File): Result {

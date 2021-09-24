@@ -7,7 +7,7 @@ import me.anno.io.files.FileReference
 import me.anno.utils.maths.Maths.clamp
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
-import me.anno.video.VFrame
+import me.anno.video.formats.gpu.GPUFrame
 import me.anno.video.VideoProxyCreator
 import kotlin.math.max
 import kotlin.math.min
@@ -57,7 +57,7 @@ object VideoCache : CacheSection("Videos") {
         index: Int, bufferIndex: Int, bufferLength: Int,
         fps: Double, timeout: Long, async: Boolean,
         needsToBeCreated: Boolean = true
-    ): VFrame? {
+    ): GPUFrame? {
         val localIndex = index % bufferLength
         val videoData = getVideoFrames(file, scale, bufferIndex, bufferLength, fps, timeout, async) ?: return null
         val frame = videoData.frames.getOrNull(localIndex)
@@ -68,7 +68,7 @@ object VideoCache : CacheSection("Videos") {
         file: FileReference, scale: Int,
         index: Int, bufferIndex: Int, bufferLength: Int,
         fps: Double
-    ): VFrame? {
+    ): GPUFrame? {
         val videoData = getVideoFramesWithoutGenerator(file, scale, bufferIndex, bufferLength, fps) ?: return null
         val frame = videoData.frames.getOrNull(index % bufferLength)
         return if (frame?.isCreated == true) frame else null
@@ -81,7 +81,7 @@ object VideoCache : CacheSection("Videos") {
         file: FileReference, scale: Int, index: Int,
         bufferLength0: Int, fps: Double, timeout: Long,
         meta: FFMPEGMetadata, async: Boolean
-    ): VFrame? {
+    ): GPUFrame? {
         if (index < 0) return null
         if (scale < 1) throw RuntimeException()
         val bufferLength = max(1, bufferLength0)
@@ -104,7 +104,7 @@ object VideoCache : CacheSection("Videos") {
         index: Int,
         bufferLength0: Int,
         fps: Double
-    ): VFrame? {
+    ): GPUFrame? {
         if (index < 0) return null
         val bufferLength = max(1, bufferLength0)
         val bufferIndex = index / bufferLength
@@ -137,7 +137,7 @@ object VideoCache : CacheSection("Videos") {
         fps: Double,
         timeout: Long,
         async: Boolean
-    ): VFrame? {
+    ): GPUFrame? {
         if (index < 0) return null
         if (scale < 1) throw IllegalArgumentException("Scale must not be < 1")
         val bufferLength = max(1, bufferLength0)

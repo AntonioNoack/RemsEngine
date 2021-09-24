@@ -28,7 +28,7 @@ class Vehicle : Rigidbody() {
 
     val wheels get() = entity!!.getComponents(VehicleWheel::class)
 
-    override fun onPhysicsUpdate() {
+    override fun onPhysicsUpdate(): Boolean {
         // only if enabled...
         entity!!.anyComponent(VehicleWheel::class) {
             it.steering = steering
@@ -36,6 +36,7 @@ class Vehicle : Rigidbody() {
             it.brakeForce = brakeForcePerWheel
             false
         }
+        return true
     }
 
     override fun clone(): Vehicle {

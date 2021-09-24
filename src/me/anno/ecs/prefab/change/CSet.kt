@@ -52,7 +52,7 @@ class CSet() : Change(5) {
     override fun applyChange(instance: PrefabSaveable, chain: MutableSet<FileReference>?) {
         val name = name ?: return
         if (!instance.set(name, value)) {
-            LOGGER.warn("Property ${instance::class.simpleName}.$name is unknown")
+            LOGGER.warn("Property ${instance::class.simpleName}.$name is unknown, path: $path")
         }
     }
 

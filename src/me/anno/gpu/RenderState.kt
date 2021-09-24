@@ -2,12 +2,13 @@ package me.anno.gpu
 
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.Frame
-import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.GeoShader
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.colorRenderer
-import me.anno.utils.structures.SecureStack
+import me.anno.utils.structures.stacks.SecureBoolStack
+import me.anno.utils.structures.stacks.SecureIntStack
+import me.anno.utils.structures.stacks.SecureStack
 import org.lwjgl.opengl.GL20.GL_LOWER_LEFT
 import org.lwjgl.opengl.GL45.*
 
@@ -65,14 +66,14 @@ object RenderState {
 
     val geometryShader = SecureStack<GeoShader?>(null)
 
-    val instanced = object : SecureStack<Boolean>(false) {
+    val instanced = object : SecureBoolStack(false) {
         override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
             // nothing changes on the OpenGL side,
             // just the shaders need to be modified
         }
     }
 
-    val cullMode = object : SecureStack<Int>(0) {
+    val cullMode = object : SecureIntStack(0) {
         override fun onChangeValue(newValue: Int, oldValue: Int) {
             if (newValue != 0) {
                 glEnable(GL_CULL_FACE)
@@ -83,14 +84,14 @@ object RenderState {
         }
     }
 
-    val stencilTest = object: SecureStack<Boolean>(false){
+    val stencilTest = object: SecureBoolStack(false){
         override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
             if(newValue) glEnable(GL_STENCIL_TEST)
             else glDisable(GL_STENCIL_TEST)
         }
     }
 
-    val scissorTest = object : SecureStack<Boolean>(false) {
+    val scissorTest = object : SecureBoolStack(false) {
         override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
             if (newValue) glEnable(GL_SCISSOR_TEST)
             else glDisable(GL_SCISSOR_TEST)

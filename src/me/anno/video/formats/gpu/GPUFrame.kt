@@ -1,7 +1,6 @@
-package me.anno.video
+package me.anno.video.formats.gpu
 
 import me.anno.cache.data.ICacheData
-import me.anno.gpu.GFX.glThread
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
@@ -10,7 +9,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.OS.desktop
-import me.anno.utils.Sleep.waitUntil
+import me.anno.utils.Sleep.waitForGFXThread
 import me.anno.utils.files.Files.findNextFile
 import java.awt.image.BufferedImage
 import java.io.InputStream
@@ -18,7 +17,7 @@ import java.nio.ByteBuffer
 import java.util.concurrent.Semaphore
 import javax.imageio.ImageIO
 
-abstract class VFrame(
+abstract class GPUFrame(
     var w: Int, var h: Int, val code: Int
 ) : ICacheData {
 
@@ -68,8 +67,7 @@ abstract class VFrame(
 
     abstract fun load(input: InputStream)
     fun waitToLoad() {
-        if (Thread.currentThread() == glThread) throw RuntimeException("Cannot wait on main thread")
-        waitUntil(true) { isCreated }
+        waitForGFXThread(true) { isCreated }
     }
 
     open fun bindUVCorrection(shader: Shader) {

@@ -16,7 +16,7 @@ class RaycastTestComponent : Component() {
     @SerializedProperty
     var maxLength = 1e3
 
-    override fun onVisibleUpdate() {
+    override fun onVisibleUpdate(): Boolean {
         // throw ray cast, and draw the result
         val entity = entity!!
         val transform = entity.transform.globalTransform
@@ -28,6 +28,7 @@ class RaycastTestComponent : Component() {
         } else {
             DebugShapes.debugLines.add(DebugLine(start, Vector3d(direction).add(start), 0xff0000))
         }
+        return true
     }
 
     override fun clone(): RaycastTestComponent {

@@ -16,8 +16,7 @@ object ResourceFinder {
         result.add(prefab.source)
         donePrefabs.add(prefab)
 
-        for (set in prefab.sets) {
-            val ref = set.value
+        prefab.sets.forEach { _, _, ref ->
             if (ref is FileReference && ref.exists) {
                 if (result.add(ref)) {
                     // not done yet

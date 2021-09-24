@@ -16,7 +16,7 @@ import me.anno.io.text.TextReader
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.editor.files.FileContentImporter
-import me.anno.ui.editor.treeView.AbstractTreeView
+import me.anno.ui.editor.treeView.TreeView
 import me.anno.ui.style.Style
 import me.anno.utils.Color.normARGB
 import me.anno.utils.maths.Maths.length
@@ -26,6 +26,7 @@ import me.anno.utils.structures.lists.UpdatingList
 import me.anno.utils.types.AABBs.deltaX
 import me.anno.utils.types.AABBs.deltaY
 import me.anno.utils.types.AABBs.deltaZ
+import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 
 // todo runtime and pre-runtime view
@@ -46,7 +47,7 @@ import org.apache.logging.log4j.LogManager
 // maybe on a per-function-basis
 
 class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) :
-    AbstractTreeView<PrefabSaveable>(
+    TreeView<PrefabSaveable>(
         UpdatingList { listOf(library.world) },
         ECSFileImporter as FileContentImporter<PrefabSaveable>,
         true,
@@ -116,9 +117,11 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
     override fun getLocalColor(element: PrefabSaveable, isHovered: Boolean, isInFocus: Boolean): Int {
         val isInFocus2 = isInFocus || element in library.selection
         // show a special color, if the current element contains something selected
+
         val isIndirectlyInFocus = !isInFocus2
-                && library.selection.isNotEmpty()
-                && element.findFirstInAll { it in library.selection } != null
+                // && library.selection.isNotEmpty()
+                && library.selection.any { it is PrefabSaveable && it.anyInHierarchy { p -> p === element } }
+        // element.findFirstInAll { it in library.selection } != null
         val isEnabled = element.allInHierarchy { it.isEnabled }
         var color = if (isEnabled)
             if (isInFocus2) 0xffcc15 else if (isIndirectlyInFocus) 0xddccaa else 0xcccccc
@@ -192,7 +195,8 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
     }
 
     override fun getName(element: PrefabSaveable): String {
-        return element.name.ifBlank { "Entity" }
+        val name = element.name
+        return if (name.isBlank2()) "Entity" else name
     }
 
     override fun setName(element: PrefabSaveable, name: String) {
@@ -221,8 +225,6 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
         val parentPrefab = parent.prefab
         return parentPrefab == null || indexInParent >= parentPrefab.children.size
     }
-
-    override val selectedElement: Entity? = library.selection as? Entity
 
     override fun selectElement(element: PrefabSaveable?) {
         library.select(element)

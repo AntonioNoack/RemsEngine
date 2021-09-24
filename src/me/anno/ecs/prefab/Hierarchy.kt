@@ -3,7 +3,6 @@ package me.anno.ecs.prefab
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabCache.getPrefab
 import me.anno.ecs.prefab.change.CAdd
-import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Change
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
@@ -14,6 +13,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextWriter
 import me.anno.io.zip.InnerTmpFile
 import me.anno.utils.structures.StartsWith.startsWith
+import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
 
@@ -31,13 +31,14 @@ object Hierarchy {
         if (!copyPasteRoot) prefab.prefab = elPrefab?.prefab?.nullIfUndefined() ?: elPrefab?.source ?: InvalidRef
         prefab.ensureMutableLists()
         val adders = prefab.adds as ArrayList
-        val setters = prefab.sets as ArrayList
+        val setters = prefab.sets //as ArrayList
         val path = element.pathInRoot2()
         LOGGER.info("For copy path: $path")
         // collect changes from this element going upwards
         var someParent = element
         val collDepth = element.depthInHierarchy
-        setters.add(CSet(Path.ROOT_PATH, "name", element.name))
+        prefab.set(Path.ROOT_PATH, "name", element.name)
+        // setters.add(CSet(Path.ROOT_PATH, "name", element.name))
         if (!copyPasteRoot) someParent = someParent.parent!!
         val startIndex = if (copyPasteRoot) collDepth else collDepth - 1
         for (depth in startIndex downTo 0) {// from element to root
@@ -52,11 +53,15 @@ object Hierarchy {
                 for (change in adds.mapNotNull { path.getSubPathIfMatching(it, depth) }) {
                     adders.add(change)
                 }
-                for (change in sets.mapNotNull { path.getSubPathIfMatching(it, depth) }) {
-                    // don't apply changes twice, especially, because the order is reversed
-                    // this would cause errors
-                    if (setters.none { it.path == change.path && it.name == change.name }) {
-                        setters.add(change)
+                sets.forEach { k1, k2, v ->
+                    val change = path.getSubPathIfMatching(k1, depth)
+                    if (change != null) {
+                        // don't apply changes twice, especially, because the order is reversed
+                        // this would cause errors
+                        prefab.setIfNotExisting(change, k2, v)
+                        /*if (setters.none { it.path == change.path && it.name == change.name }) {
+                            setters.add(change)
+                        }*/
                     }
                 }
                 someRelatedParent = getPrefab(someRelatedParent.prefab) ?: break
@@ -126,7 +131,7 @@ object Hierarchy {
                 val type = dstParentInstance.getTypeOf(srcSample)
                 val index = dstParentInstance.getChildListByType(type).size
                 val name = srcSample.name
-                val clazz = srcPrefab.clazzName!!
+                val clazz = srcPrefab.clazzName
                 val prefab0 = srcSample.prefab2?.prefab ?: InvalidRef
                 val add0 = CAdd(dstParentPath, type, clazz, name, prefab0)
                 val dstPath = dstPrefab.add(add0, index)
@@ -137,8 +142,8 @@ object Hierarchy {
                     dstPrefab.add(change.withPath(Path(dstPath, change.path)))
                 }
                 val sets = srcPrefab.sets
-                for (change in sets) {
-                    dstPrefab.add(change.withPath(Path(dstPath, change.path)))
+                sets.forEach { k1, k2, v ->
+                    dstPrefab.set(Path(dstPath, k1), k2, v)
                 }
                 ECSSceneTabs.updatePrefab(dstPrefab)
                 return dstPath
@@ -200,10 +205,11 @@ object Hierarchy {
         // remove all properties
         prefab.ensureMutableLists()
         val sets = prefab.sets
-        sets as MutableList
+        // sets as MutableList
 
-        LOGGER.info("Removing ${sets.count { it.path.startsWith(path) }} sets")
-        sets.removeIf { it.path.startsWith(path) }
+        LOGGER.info("Removing ${sets.count { k1, _, _ -> k1.startsWith(path) }} sets")
+        sets.removeMajorIf { it.startsWith(path) }
+        // sets.removeIf { it.path.startsWith(path) }
         prefab.isValid = false
 
         val parentPath = path.getParent()
@@ -337,6 +343,29 @@ object Hierarchy {
         return changedArrays
     }
 
+    private fun renumber(
+        from: Int, delta: Int, path0: Path, changes: KeyPairMap<Path, String, Any?>,
+        changedArrays: HashSet<IntArray> = HashSet()
+    ): HashSet<IntArray> {
+        val targetSize = path0.indices.size
+        val targetIndex = targetSize - 1
+        changes.forEach { path, _, _ ->
+            val indices = path.indices
+            val types = path.types
+            if (path.size >= targetSize &&
+                indices[targetIndex] >= from &&
+                indices !in changedArrays &&
+                indices.startsWith(path0.indices, 0, targetIndex) &&
+                types.startsWith(path0.types, 0, targetIndex)
+            ) {
+                val str0 = path.toString()
+                indices[targetIndex] += delta
+                changedArrays.add(indices)
+                LOGGER.info("Renumbered $str0 to $path")
+            }
+        }
+        return changedArrays
+    }
 
     @JvmStatic
     fun main(args: Array<String>) {

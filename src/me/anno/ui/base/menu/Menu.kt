@@ -106,6 +106,8 @@ object Menu {
 
         window = openMenuComplex2(x, y, title, listOf(panel, buttons))!!
 
+        GFX.requestFocus(panel, true)
+
     }
 
     fun openMenuComplex(

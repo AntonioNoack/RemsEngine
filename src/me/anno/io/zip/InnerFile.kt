@@ -5,9 +5,11 @@ import me.anno.io.EmptyInputStream
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.types.AnyToInt.get
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.URI
+import kotlin.math.abs
 
 /**
  * a file, which is inside another file,
@@ -52,7 +54,7 @@ abstract class InnerFile(
     }
 
     override fun outputStream(): OutputStream {
-        throw RuntimeException("Writing into zip files is not yet supported")
+        throw IOException("Writing into zip files is not yet supported, '$absolutePath'")
     }
 
     fun get(path: String) = getLc(path.replace('\\', '/').lowercase())

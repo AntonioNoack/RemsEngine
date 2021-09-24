@@ -1,4 +1,4 @@
-package me.anno.video.formats
+package me.anno.video.formats.gpu
 
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib.shader3DBGRA
@@ -6,10 +6,9 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.input.Input.readNBytes2
-import me.anno.video.VFrame
 import java.io.InputStream
 
-class BGRAFrame(w: Int, h: Int) : VFrame(w, h, 1) {
+class BGRAFrame(w: Int, h: Int) : GPUFrame(w, h, 1) {
 
     private val bgra = Texture2D("bgra-frame", w, h, 1)
 

@@ -259,8 +259,8 @@ open class Rigidbody : Component() {
     @NotSerializedProperty
     var bulletInstance: RigidBody? = null
 
-    override fun onDrawGUI(view: RenderView) {// center of mass circle
-        super.onDrawGUI(view)
+    override fun onDrawGUI() {// center of mass circle
+        super.onDrawGUI()
         /*val stack = RenderView.stack
         stack.pushMatrix()
         stack.translate(centerOfMass.x.toFloat(), centerOfMass.y.toFloat(), centerOfMass.z.toFloat())

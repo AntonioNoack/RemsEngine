@@ -35,8 +35,8 @@ import me.anno.ui.debug.FPSPanel
 import me.anno.ui.dragging.IDraggable
 import me.anno.ui.style.Style
 import me.anno.utils.Clock
-import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.OS
+import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.types.Strings.addSuffix
 import me.anno.utils.types.Strings.filterAlphaNumeric
 import org.apache.logging.log4j.LogManager
@@ -174,6 +174,8 @@ abstract class StudioBase(
         onGameLoopStart()
 
         if (isFirstFrame) tick("game loop")
+
+        if (Math.random() < 0.1) FileReference.updateCache()
 
         updateVSync()
         updateHoveredAndCursor()

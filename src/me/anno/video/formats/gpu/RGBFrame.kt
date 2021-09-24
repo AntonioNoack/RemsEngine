@@ -1,15 +1,14 @@
-package me.anno.video.formats
+package me.anno.video.formats.gpu
 
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib.shader3DRGBA
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
-import me.anno.video.VFrame
 import java.io.EOFException
 import java.io.InputStream
 
-open class RGBFrame(w: Int, h: Int) : VFrame(w, h, -1) {
+open class RGBFrame(w: Int, h: Int) : GPUFrame(w, h, -1) {
 
     val rgb = Texture2D("rgb-frame", w, h, 1)
 
@@ -21,7 +20,7 @@ open class RGBFrame(w: Int, h: Int) : VFrame(w, h, -1) {
             val r = input.read()
             val g = input.read()
             val b = input.read()
-            if (r < 0 || g < 0 || b < 0){
+            if (r < 0 || g < 0 || b < 0) {
                 Texture2D.bufferPool.returnBuffer(data)
                 throw EOFException()
             }

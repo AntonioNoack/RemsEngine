@@ -7,7 +7,7 @@ package me.anno.gpu;
 import kotlin.Unit;
 import me.anno.config.DefaultConfig;
 import me.anno.ecs.prefab.Prefab;
-import me.anno.ecs.prefab.change.CSet;
+import me.anno.ecs.prefab.change.Path;
 import me.anno.input.Input;
 import me.anno.io.files.FileReference;
 import me.anno.io.files.InvalidRef;
@@ -21,6 +21,7 @@ import me.anno.ui.base.Panel;
 import me.anno.ui.base.menu.Menu;
 import me.anno.utils.Clock;
 import me.anno.utils.io.ResourceHelper;
+import me.anno.utils.structures.maps.KeyPairMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.Version;
@@ -38,7 +39,6 @@ import org.lwjgl.system.MemoryUtil;
 
 import java.io.*;
 import java.nio.IntBuffer;
-import java.util.List;
 
 import static me.anno.gpu.debug.OpenGLDebug.*;
 import static org.lwjgl.glfw.GLFW.*;
@@ -444,7 +444,7 @@ public class GFXBase0 {
             }, 0);
             glEnable(GL_DEBUG_OUTPUT);
         }
-        GFX.INSTANCE.setGlThread(Thread.currentThread());
+        GFX.INSTANCE.checkIsGFXThread();
     }
 
     // can be set by the application
@@ -474,32 +474,22 @@ public class GFXBase0 {
                 for (FileReference child : file.listChildren()) {
                     // we could use the name as color... probably a nice idea :)
                     Prefab prefab = ((InnerPrefabFile) child).getPrefab();
-                    List<CSet> sets = prefab.getSets();
-                    if (sets != null) {
-                        float[] positions = null;
-                        int[] indices = null;
-                        for (CSet set : sets) {
-                            if ("positions".equals(set.getName())) {
-                                positions = (float[]) set.getValue();
+                    KeyPairMap<Path, String, Object> sets = prefab.getSets();
+                    float[] positions = (float[]) sets.get(Path.Companion.getROOT_PATH(), "positions");
+                    int[] indices = (int[]) sets.get(Path.Companion.getROOT_PATH(), "indices");
+                    if (positions != null) {
+                        glBegin(GL_TRIANGLES);
+                        if (indices == null) {
+                            for (int i = 0; i < positions.length; i += 3) {
+                                glVertex2f(positions[i], positions[i + 1]);
                             }
-                            if ("indices".equals(set.getName())) {
-                                indices = (int[]) set.getValue();
+                        } else {
+                            for (int index : indices) {
+                                int j = index * 3;
+                                glVertex2f(positions[j], positions[j + 1]);
                             }
                         }
-                        if (positions != null) {
-                            glBegin(GL_TRIANGLES);
-                            if (indices == null) {
-                                for (int i = 0; i < positions.length; i += 3) {
-                                    glVertex2f(positions[i], positions[i + 1]);
-                                }
-                            } else {
-                                for (int index : indices) {
-                                    int j = index * 3;
-                                    glVertex2f(positions[j], positions[j + 1]);
-                                }
-                            }
-                            glEnd();
-                        }
+                        glEnd();
                     }
                 }
             }

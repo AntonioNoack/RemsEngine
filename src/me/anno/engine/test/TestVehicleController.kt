@@ -9,8 +9,8 @@ class TestVehicleController : Component() {
 
     var force = 1.0
 
-    override fun onPhysicsUpdate() {
-        val vehicle = entity!!.getComponent(Vehicle::class) ?: return
+    override fun onPhysicsUpdate(): Boolean {
+        val vehicle = entity!!.getComponent(Vehicle::class) ?: return false
         var steering = 0.0
         if (Input.isKeyDown('f')) steering--
         if (Input.isKeyDown('d')) steering++
@@ -19,6 +19,7 @@ class TestVehicleController : Component() {
         if (Input.isKeyDown('g')) force--
         vehicle.steering = steering
         vehicle.engineForcePerWheel = force * this.force
+        return true
     }
 
     override fun clone(): Component {

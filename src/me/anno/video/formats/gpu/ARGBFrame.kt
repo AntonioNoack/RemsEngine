@@ -1,4 +1,4 @@
-package me.anno.video.formats
+package me.anno.video.formats.gpu
 
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib.shader3DARGB
@@ -6,10 +6,9 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.input.Input.readNBytes2
-import me.anno.video.VFrame
 import java.io.InputStream
 
-class ARGBFrame(w: Int, h: Int) : VFrame(w, h, 0) {
+class ARGBFrame(w: Int, h: Int) : GPUFrame(w, h, 0) {
 
     private val argb = Texture2D("argb-frame", w, h, 1)
 

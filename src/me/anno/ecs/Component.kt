@@ -3,7 +3,6 @@ package me.anno.ecs
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.ECSTypeLibrary
-import me.anno.engine.ui.render.RenderView
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
@@ -26,6 +25,8 @@ abstract class Component : PrefabSaveable(), Inspectable {
             if (field != value) {
                 field = value
                 entity?.onChangeComponent(this)
+                if (value) onEnable()
+                else onDisable()
             }
         }
 
@@ -84,22 +85,51 @@ abstract class Component : PrefabSaveable(), Inspectable {
 
     override fun onDestroy() {}
 
+    open fun onEnable() {}
+    open fun onDisable() {}
+
     open fun onBeginPlay() {}
 
-    // todo setting for that? (offset/-1 for idc, and 1/frequency)
-    // todo just listeners for different update frequencies? :)
-    // called every x frames
-    open fun onUpdate() {}
+    /**
+     * called every x frames
+     * return 0, if you don't need this event
+     * return n, if you need this event every n-th frame; there is no strict guarantee,
+     *      that you will be called exactly then, because this would allow us to reduce events, when the fps are low
+     * */
+    open fun onUpdate(): Int = 0
+    private var onUpdateItr = 1
+    private var onUpdateCtr = 0
 
-    // is called every frame, when the entity was visible
-    open fun onVisibleUpdate() {}
+    fun callUpdate(): Boolean {
+        return if (onUpdateItr > 0) {
+            if (onUpdateCtr++ >= onUpdateItr) {
+                onUpdateCtr = 0
+                onUpdateItr = onUpdate()
+            }
+            true
+        } else false
+    }
 
-    // called on rigidbodies, when the physics engine does a simulation step; async
-    open fun onPhysicsUpdate() {}
+    /**
+     * whether onUpdate() needs to be called
+     * */
+    fun needsUpdate() = onUpdateItr > 0
+
+    /**
+     * is called every frame, when the entity was visible
+     * return true, if you need this event
+     * */
+    open fun onVisibleUpdate(): Boolean = false
+
+    /**
+     * called on rigidbodies, when the physics engine does a simulation step; async
+     * return true, if you need this update
+     * */
+    open fun onPhysicsUpdate(): Boolean = false
 
     override fun isDefaultValue(): Boolean = false
 
-    open fun onDrawGUI(view: RenderView) {}
+    open fun onDrawGUI() {}
 
     open fun onClick() {}
 

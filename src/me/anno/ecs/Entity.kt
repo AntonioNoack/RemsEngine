@@ -9,7 +9,6 @@ import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.physics.BulletPhysics
-import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
@@ -68,6 +67,22 @@ class Entity() : PrefabSaveable(), Inspectable {
     }
 
     @NotSerializedProperty
+    var hasValidCollisionMask = false
+
+    @NotSerializedProperty
+    var hasSpaceFillingComponents = false
+
+    // renderable-cache for faster rendering
+    @NotSerializedProperty
+    var hasRenderables = false
+
+    @NotSerializedProperty
+    var hasOnUpdate = true
+
+    @NotSerializedProperty
+    var hasOnVisibleUpdate = true
+
+    @NotSerializedProperty
     private var isCreated = false
     fun create() {
         if (isCreated) return
@@ -82,8 +97,15 @@ class Entity() : PrefabSaveable(), Inspectable {
         }
     }
 
+    val transform = Transform(this)
+
+    // assigned and tested for click checks
+    @HideInInspector
     @NotSerializedProperty
-    private val internalComponents = ArrayList<Component>()
+    var clickId = 0
+
+    @NotSerializedProperty
+    private val internalComponents = ArrayList<Component>(4)
 
     @SerializedProperty
     val components: List<Component>
@@ -93,7 +115,7 @@ class Entity() : PrefabSaveable(), Inspectable {
     // override var parent: Entity? = null
 
     @NotSerializedProperty
-    private val internalChildren = ArrayList<Entity>()
+    private val internalChildren = ArrayList<Entity>(4)
 
     @NotSerializedProperty
     override val children: List<Entity>
@@ -137,19 +159,16 @@ class Entity() : PrefabSaveable(), Inspectable {
     @NotSerializedProperty
     var hasValidAABB = false
 
+    // is set by the engine
+    @NotSerializedProperty
+    var isPhysicsControlled = false
+
+    @NotSerializedProperty
+    var hasBeenVisible = false
+
     // collision mask for faster collision checks
     @NotSerializedProperty
     var collisionMask = 0
-
-    @NotSerializedProperty
-    var hasValidCollisionMask = false
-
-    @NotSerializedProperty
-    var hasSpaceFillingComponents = false
-
-    // renderable-cache for faster rendering
-    @NotSerializedProperty
-    var hasRenderables = false
 
     @SerializedProperty
     var position: Vector3d
@@ -326,59 +345,101 @@ class Entity() : PrefabSaveable(), Inspectable {
         //        hasComponentInChildren(false, Collider::class)
     }
 
-    val transform = Transform()
+    private inline fun executeOptimizedEvent(
+        call: (Entity) -> Boolean,
+        call2: (Component) -> Boolean
+    ): Boolean {
 
-    // assigned and tested for click checks
-    @HideInInspector
-    @NotSerializedProperty
-    var clickId = 0
-
-    fun update() {
         if (!isCreated) create()
+
+        var hasOnUpdate = false
+
         val components = components
-        for (i in components.indices) components[i].onUpdate()
+        for (i in components.indices) {
+            if (call2(components[i])) {
+                hasOnUpdate = true
+            }
+        }
+
         val children = children
-        for (i in children.indices) children[i].update()
+        for (i in children.indices) {
+            val child = children[i]
+            if (child.hasOnUpdate) {
+                if (call(child)) {
+                    hasOnUpdate = true
+                }
+            }
+        }
+
+        this.hasOnUpdate = hasOnUpdate
+        return hasOnUpdate
     }
 
-    // is set by the engine
-    @NotSerializedProperty
-    var isPhysicsControlled = false
+    fun update(): Boolean {
+        val hasUpdate = executeOptimizedEvent({ it.update() }) { it.callUpdate() }
+        this.hasOnUpdate = hasUpdate
+        return hasUpdate
+    }
 
+    /*// when something is selected, this needs to be updated,
+    // because many things only draw, if they are selected
+    // -> generally this was a good idea, but sadly we also need the pipeline optimization...
     @NotSerializedProperty
-    var hasBeenVisible = false
+    var hasDrawGUI = true
+    fun drawGUI(): Boolean {
+        val hasDrawGUI = executeOptimizedEvent({ it.drawGUI() }) { it.onDrawGUI() }
+        this.hasDrawGUI = hasDrawGUI
+        return hasDrawGUI
+    }*/
 
-    fun updateVisible() {
-        if (!isCreated) create()
-        if (hasBeenVisible) {
-            val components = components
-            for (i in components.indices) components[i].onVisibleUpdate()
-        }
-        val children = children
-        for (i in children.indices) children[i].updateVisible()
+    fun updateVisible(): Boolean {
+        val hasUpdate = executeOptimizedEvent({ it.updateVisible() }) { it.onVisibleUpdate() }
+        this.hasOnVisibleUpdate = hasUpdate
+        return hasUpdate
     }
 
     fun invalidateVisibility() {
         hasBeenVisible = false
         val children = children
-        for (i in children.indices) children[i].invalidateVisibility()
-    }
-
-    fun validateTransforms(time: Long = GFX.gameTime) {
-        if (!isPhysicsControlled) {
-            transform.update(parentEntity?.transform, time)
-            val children = children
-            for (i in children.indices) {
-                children[i].validateTransforms(time)
+        for (i in children.indices) {
+            val child = children[i]
+            if (child.hasBeenVisible) {
+                child.invalidateVisibility()
             }
         }
     }
 
-    fun invalidateChildTransforms() {
+    private var hasValidTransform = false
+    /**
+     * when the element is moved
+     * invalidates all children, so it's pretty expensive
+     * */
+    fun invalidateChildTransforms(first: Boolean = true) {
+        hasValidTransform = false
+        if (first) forAllInHierarchy {
+            if (it is Entity) it.hasValidTransform = false
+        }
+        val children = children
         for (i in children.indices) {
             val child = children[i]
-            child.transform.invalidateGlobal()
-            child.invalidateChildTransforms()
+            if (!child.isPhysicsControlled) {
+                // child.transform.invalidateGlobal()
+                child.invalidateChildTransforms(false)
+            }
+        }
+    }
+
+    /**
+     * validates all children, which are invalid
+     * */
+    fun validateTransform() {
+        transform.calculateGlobalTransform(parentEntity?.transform)
+        val children = children
+        for (i in children.indices) {
+            val child = children[i]
+            if (!child.isPhysicsControlled && !child.hasValidTransform) {
+                child.validateTransform()
+            }
         }
     }
 
@@ -829,44 +890,6 @@ class Entity() : PrefabSaveable(), Inspectable {
 
     override val defaultDisplayName: String
         get() = "Entity"
-
-    // which properties were changed
-    // options:
-    // - child/index, child/name
-    // - component/index, component/name
-    // - position, rotation, scale
-    // - name, description,
-    // - isEnabled
-
-    // var prefabPath: FileReference = InvalidRef
-
-    // var prefab: Entity? = null
-    // var ownPath: FileReference = InvalidRef // where our file is located
-
-    // get root somehow? how can we detect it?
-    // not possible in the whole scene for sub-scenes
-    // however, when we are only editing prefabs, it would be possible :)
-
-    /*fun pathInRoot(root: Entity): ArrayList<Int> {
-        if (this == root) return arrayListOf()
-        val parent = parent
-        return if (parent != null) {
-            val ownIndex = parent.children.indexOf(this@Entity)
-            parent.pathInRoot().apply {
-                add(ownIndex)
-            }
-        } else arrayListOf()
-    }
-
-    fun pathInRoot(): ArrayList<Int> {
-        val parent = parent
-        return if (parent != null) {
-            val ownIndex = parent.children.indexOf(this@Entity)
-            parent.pathInRoot().apply {
-                add(ownIndex)
-            }
-        } else arrayListOf()
-    }*/
 
     override fun createInspector(
         list: PanelListY,

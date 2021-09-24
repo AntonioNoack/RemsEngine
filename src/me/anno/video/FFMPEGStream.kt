@@ -1,17 +1,21 @@
 package me.anno.video
 
 import me.anno.gpu.GFX
+import me.anno.io.TimeoutInputStream.Companion.withTimeout
 import me.anno.io.files.FileReference
 import me.anno.utils.hpc.HeavyProcessing.threads
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.types.Floats.f3
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
+import me.anno.video.formats.cpu.CPUFrameReader
+import me.anno.video.formats.gpu.GPUFrameReader
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.InputStream
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -46,7 +50,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
         fun getImageSequence(
             input: FileReference, w: Int, h: Int, startFrame: Int, frameCount: Int, fps: Double
-        ): FFMPEGVideo {
+        ): GPUFrameReader {
             return getImageSequence(input, w, h, startFrame / fps, frameCount, fps)
         }
 
@@ -54,7 +58,23 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         // if we use hardware decoding, we need to use it on the gpu...
         fun getImageSequence(
             input: FileReference, w: Int, h: Int, startTime: Double, frameCount: Int, fps: Double
-        ): FFMPEGVideo {
+        ): GPUFrameReader {
+            val video = GPUFrameReader(input, (startTime * fps).roundToInt(), frameCount)
+            video.run(getImageSequenceArguments(input, w, h, startTime, frameCount, fps))
+            return video
+        }
+
+        fun getImageSequenceCPU(
+            input: FileReference, w: Int, h: Int, frameIndex: Int, frameCount: Int, fps: Double
+        ): CPUFrameReader {
+            val video = CPUFrameReader(input, frameIndex, frameCount)
+            video.run(getImageSequenceArguments(input, w, h, frameIndex / max(fps, 1e-3), frameCount, fps))
+            return video
+        }
+
+        fun getImageSequenceArguments(
+            input: FileReference, w: Int, h: Int, startTime: Double, frameCount: Int, fps: Double
+        ): List<String> {
             val meta = getMeta(input, false)
             val args = arrayListOf(
                 "-ss", "$startTime", // must be placed here!!!
@@ -72,9 +92,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
                 // "-movflags", "faststart", // didn't have noticeable effect, maybe it does now (??...)
                 "-f", "rawvideo", "-" // format
             )
-            val video = FFMPEGVideo(input, w, h, (startTime * fps).roundToInt(), frameCount)
-            video.run(args)
-            return video
+            return args
         }
 
         fun getAudioSequence(input: FileReference, startTime: Double, duration: Double, sampleRate: Int) =
@@ -156,12 +174,17 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
     var srcW = 0
     var srcH = 0
 
-    fun devNull(prefix: String, stream: InputStream) {
-        thread(name = "devNull") {
-            while (true) {
-                val read = stream.read()
-                if (read < 0) break
+    fun devNull(name: String, stream: InputStream) {
+        val stream2 = stream.withTimeout(5000)
+        thread(name = "devNull-$name") {
+            try {
+                while (true) {
+                    val read = stream2.read()
+                    if (read < 0) break
+                }
+            } catch (e: TimeoutException) {
             }
+            stream2.close()
         }
     }
 

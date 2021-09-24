@@ -64,7 +64,8 @@ class PipelineStage(
             Attribute("instanceTint", AttributeType.UINT8_NORM, 4)
         )
 
-        const val instancedBatchSize = 1024
+        // 16k is ~ 20% better than 1024: 9 fps instead of 7 fps with 150k instanced lights on my RX 580
+        const val instancedBatchSize = 1024 * 16
 
         val meshInstanceBuffer = StaticBuffer(meshInstancedAttributes, instancedBatchSize, GL_DYNAMIC_DRAW)
 

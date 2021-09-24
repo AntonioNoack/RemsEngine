@@ -4,6 +4,7 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
+import me.anno.ecs.prefab.change.Path
 import me.anno.engine.scene.ScenePrefab
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
@@ -18,6 +19,7 @@ import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.mesh.blender.BlenderReader
 import me.anno.mesh.obj.OBJReader2
 import me.anno.mesh.vox.VOXReader
+import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
 
 object PrefabCache : CacheSection("Prefab") {
@@ -152,6 +154,45 @@ object PrefabCache : CacheSection("Prefab") {
 
     fun loadPrefab(resource: FileReference?): Prefab? {
         return getPrefabPair(resource)?.prefab
+    }
+
+    fun createInstance(
+        superPrefab: FileReference,
+        adds: List<CAdd>?,
+        sets: KeyPairMap<Path, String, Any?>?,
+        chain: MutableSet<FileReference>?,
+        clazz: String
+    ): PrefabSaveable {
+        // LOGGER.info("creating instance from $superPrefab")
+        val instance = createSuperInstance(superPrefab, chain, clazz)
+        // val changes2 = (changes0 ?: emptyList()).groupBy { it.className }.map { "${it.value.size}x ${it.key}" }
+        // LOGGER.info("  creating entity instance from ${changes0?.size ?: 0} changes, $changes2")
+        if (adds != null) {
+            for ((index, change) in adds.withIndex()) {
+                try {
+                    change.apply(instance, HashSet(chain))
+                } catch (e: Exception) {
+                    LOGGER.warn("Change $index, $change failed")
+                    throw e
+                }
+            }
+        }
+        if (sets != null) {
+            val sample = CSet()
+            sets.forEach { k1, k2, v ->
+                sample.path = k1
+                sample.name = k2
+                sample.value = v
+                try {
+                    sample.apply(instance, null)
+                } catch (e: Exception) {
+                    LOGGER.warn("Change $sample failed")
+                    throw e
+                }
+            }
+        }
+        // LOGGER.info("  created instance '${entity.name}' has ${entity.children.size} children and ${entity.components.size} components")
+        return instance
     }
 
     fun createInstance(

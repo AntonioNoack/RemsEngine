@@ -509,9 +509,10 @@ class BulletPhysics : Component() {
 
     }
 
-    override fun onUpdate() {
+    override fun onUpdate(): Int {
         // todo call this async, and when the step is done
         step((GFX.deltaTime * 1e9f).toLong(), false)
+        return 1
     }
 
     @HideInInspector
@@ -567,9 +568,10 @@ class BulletPhysics : Component() {
 
 
     private var debugDraw: BulletDebugDraw? = null
-    override fun onDrawGUI(view: RenderView) {
-        super.onDrawGUI(view)
+    override fun onDrawGUI() {
+        super.onDrawGUI()
 
+        val view = RenderView.currentInstance
         drawDebug(view, view.worldScale)
 
         var steering = 0.0

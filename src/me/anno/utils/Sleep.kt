@@ -42,7 +42,7 @@ object Sleep {
 
     @Throws(ShutdownException::class)
     fun waitForGFXThread(canBeKilled: Boolean, condition: () -> Boolean) {
-        // the texture was forced to be loaded -> wait for it
+        // if we are the gfx thread ourselves, we have to fulfil our processing duties
         val isGFXThread = GFX.isGFXThread()
         if (isGFXThread) {
             waitOnGFXThread(canBeKilled, condition)

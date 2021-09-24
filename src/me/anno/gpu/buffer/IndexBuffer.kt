@@ -148,17 +148,20 @@ class IndexBuffer(
 
     private var baseAttributes: List<Attribute>? = null
     private var instanceAttributes: List<Attribute>? = null
+    private var lastInstanceBuffer: Buffer? = null
     private fun bindBufferAttributesInstanced(shader: Shader, instanceData: Buffer) {
         GFX.check()
         shader.potentiallyUse()
         if (vao < 0 ||
+            lastInstanceBuffer !== instanceData ||
+            shader !== lastShader ||
             base.attributes != baseAttributes ||
-            instanceAttributes != instanceData.attributes ||
-            shader !== lastShader
+            instanceAttributes != instanceData.attributes
         ) {
             lastShader = shader
             baseAttributes = base.attributes
             instanceAttributes = instanceData.attributes
+            lastInstanceBuffer = instanceData
             createVAOInstanced(shader, instanceData)
         } else Buffer.bindVAO(vao)
         GFX.check()

@@ -3,6 +3,7 @@ package me.anno.io.files
 import me.anno.cache.instances.LastModifiedCache
 import java.io.File
 import java.net.URI
+import java.nio.charset.Charset
 
 class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath)) {
 
@@ -19,6 +20,21 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
     override fun inputStream() = file.inputStream().buffered()
 
     override fun outputStream() = file.outputStream().buffered()
+
+    override fun writeText(text: String) {
+        super.writeText(text)
+        LastModifiedCache.invalidate(file)
+    }
+
+    override fun writeBytes(bytes: ByteArray) {
+        super.writeBytes(bytes)
+        LastModifiedCache.invalidate(file)
+    }
+
+    override fun writeText(text: String, charset: Charset) {
+        super.writeText(text, charset)
+        LastModifiedCache.invalidate(file)
+    }
 
     override fun length() = LastModifiedCache[file].length
 
@@ -45,10 +61,16 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
         return success
     }
 
+    override fun hasChildren(): Boolean {
+        return file.listFiles()?.isNotEmpty() == true
+    }
+
     override fun listChildren(): List<FileReference>? {
         return (if (exists) {
             if (isDirectory) {
-                file.listFiles()?.map { FileFileRef(it) }
+                file.listFiles()?.map {
+                    register(FileFileRef(it))
+                }
             } else {
                 zipFileForDirectory?.listChildren()
             }
@@ -64,7 +86,7 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
             if ('/' in name || '\\' in name) {
                 getReference(this, name)
             } else {
-                FileFileRef(File(file, name))
+                register(FileFileRef(File(file, name)))
             }
         } else {
             getReference(zipFileForDirectory, name)

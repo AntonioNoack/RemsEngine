@@ -1,4 +1,4 @@
-package me.anno.video.formats
+package me.anno.video.formats.gpu
 
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib.shader3DYUV
@@ -7,10 +7,9 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.utils.input.Input.readNBytes2
-import me.anno.video.VFrame
 import java.io.InputStream
 
-class I420Frame(iw: Int, ih: Int) : VFrame(iw, ih, 2) {
+class I420Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 2) {
 
     // this is correct, confirmed by example
     private val w2 get() = (w + 1) / 2

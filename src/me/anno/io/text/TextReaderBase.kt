@@ -13,7 +13,7 @@ import org.joml.*
 /**
  * reads a JSON-similar format from a text file
  * */
-abstract class TextReaderBase() : BaseReader() {
+abstract class TextReaderBase : BaseReader() {
 
     var tmpChar = -1
     private val tmpString = StringBuilder(32)

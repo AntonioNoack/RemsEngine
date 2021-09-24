@@ -9,6 +9,9 @@ open class IntImage(
     hasAlphaChannel: Boolean
 ) : Image(width, height, if (hasAlphaChannel) 4 else 3, hasAlphaChannel) {
 
+    constructor(width: Int, height: Int, hasAlphaChannel: Boolean):
+            this(width, height, IntArray(width*height), hasAlphaChannel)
+
     fun setRGB(x: Int, y: Int, rgb: Int) {
         data[x + y * width] = rgb
     }

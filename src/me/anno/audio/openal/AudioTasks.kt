@@ -2,7 +2,6 @@ package me.anno.audio.openal
 
 import me.anno.gpu.GFX.workQueue
 import me.anno.gpu.Task
-import java.util.ArrayList
 import java.util.concurrent.ConcurrentLinkedQueue
 
 object AudioTasks {
@@ -12,22 +11,24 @@ object AudioTasks {
 
     fun addTask(weight: Int, task: () -> Unit) {
         // could be optimized for release...
-        audioTasks += weight to task
+        audioTasks.add(weight to task)
     }
 
     fun addNextTask(weight: Int, task: () -> Unit) {
         // could be optimized for release...
-        synchronized(nextAudioTasks){
-            nextAudioTasks += weight to task
+        synchronized(nextAudioTasks) {
+            nextAudioTasks.add(weight to task)
         }
     }
 
-    fun workQueue(){
-        synchronized(nextAudioTasks){
-            audioTasks += nextAudioTasks
-            nextAudioTasks.clear()
+    fun workQueue() {
+        synchronized(nextAudioTasks) {
+            if (nextAudioTasks.isNotEmpty()) {
+                audioTasks.addAll(nextAudioTasks)
+                nextAudioTasks.clear()
+            }
         }
-        workQueue(audioTasks, 1f/60f, false)
+        workQueue(audioTasks, 1f / 60f, false)
     }
 
 

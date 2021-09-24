@@ -6,9 +6,10 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.engine.scene.PrefabHelper.addC
 import me.anno.engine.scene.PrefabHelper.addE
 import me.anno.engine.ui.render.RenderView
-import me.anno.io.files.StaticRef
-import me.anno.io.text.TextWriter
+import me.anno.io.files.FileRootRef
+import me.anno.io.zip.InnerPrefabFile
 import me.anno.ui.editor.color.spaces.HSLuv
+import me.anno.utils.Clock
 import me.anno.utils.OS
 import me.anno.utils.OS.documents
 import org.joml.Quaterniond
@@ -16,11 +17,15 @@ import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.cos
 import kotlin.math.max
-import kotlin.math.pow
 import kotlin.math.sin
 
-object ScenePrefab : StaticRef("Scene.prefab", lazy {
-    TextWriter.toText(Prefab("Entity").apply {
+object ScenePrefab : InnerPrefabFile(
+    "Scene.prefab",
+    "Scene.prefab",
+    FileRootRef,
+    Prefab("Entity").apply {
+
+        val clock = Clock()
 
         ensureMutableLists()
 
@@ -47,6 +52,8 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         // root has bullet physics, because the players need physics as well
         addC(this, root, "BulletPhysics")
 
+        clock.stop("main things")
+
         // just add stuff for debugging :)
         //////////////////
         // sample mesh //
@@ -58,6 +65,8 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         set(truck, "isCollapsed", false)
         //val truckRigidbody = addC(this, truckBody0, "Rigidbody")
         //set(truckRigidbody, "mass", 100.0)
+
+        clock.stop("truck")
 
         /////////////////////////
         // sample point light //
@@ -74,6 +83,8 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         val dl = addC(this, sun, "DirectionalLight")
         set(dl, "shadowMapCascades", 1)
         set(dl, "color", Vector3f(3f))
+
+        clock.stop("lights")
 
         /*val env = addE(this, lights, "EnvMap")
         set(env, "scale", Vector3d(50.0))
@@ -106,27 +117,34 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
 
         if (true) {
             val ringOfLights = addE(this, lights, "Ring Of Lights")
-            val superRings = 30
-            val exponent = 1.1
+            val superRings = 35
             val rlc0 = RenderView.MAX_FORWARD_LIGHTS - 4
             val elementSize = 300.0 / max(3, rlc0)
-            val lightLevel = 20f // max(3, ringLightCount)
+            val lightLevel = 20f
+            val numColors = 3
+            val colors = Array(numColors) {
+                val angle = it / numColors.toFloat()
+                HSLuv.toRGB(Vector3f(angle, 1f, 0.7f)).mul(lightLevel)
+            }
+            val scale = Vector3d(elementSize)
+            val instanceNames = Array(10) { "Light[$it]" }
             for (j in 0 until superRings) {
                 val superRing = if (superRings > 1) addE(this, ringOfLights, "Ring[$j]") else ringOfLights
-                val ringLightCount = (rlc0 * exponent.pow(j)).toInt()
                 val radius = 50.0 * (1.0 + j * 0.1)
+                val ringLightCount = (radius * 0.5).toInt()
                 for (i in 0 until ringLightCount) {
-                    val angle = 6.2830 * i / ringLightCount
-                    val light = addE(this, superRing, "Light[$i]")
+                    val angle = 6.2830 * i.toDouble() / ringLightCount
+                    val light = addE(this, superRing, instanceNames.getOrNull(i) ?: "Light[..]")
                     val position = Vector3d(radius * cos(angle), elementSize * 0.5, radius * sin(angle))
                     set(light, "position", position)
-                    set(light, "scale", Vector3d(elementSize))
+                    set(light, "scale", scale)
                     val c = addC(this, light, "PointLight")
-                    set(c, "color", HSLuv.toRGB(Vector3f(angle.toFloat(), 1f, 0.7f)).mul(lightLevel))
+                    set(c, "color", colors[(numColors * 3 * i / ringLightCount) % numColors])
                 }
             }
-
         }
+
+        clock.stop("ring of lights")
 
         ////////////////////
         // physics tests //
@@ -153,7 +171,7 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
             }
         }
         // todo add script for driving
-
+        clock.stop("vehicle")
 
         /*var testChain = addE(this, world,"chain-0")
         for(i in 1 until 7){
@@ -165,12 +183,14 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
         val cubePathNormals = documents.getChild("cube shield.glb")
         val floor = addE(this, physics, "Floor", cubePath)
         set(floor, "position", Vector3d(0.0, -50.0, 0.0))
-        set(floor, "scale", Vector3d(200.0, 50.0, 200.0))
+        set(floor, "scale", Vector3d(2000.0, 50.0, 2000.0))
         // set(floor, "scale", Vector3d(5.0))
         val floorBody = addC(this, floor, "Rigidbody")
         set(floorBody, "mass", 0.0) // static
         val floorCollider = addC(this, floor, "BoxCollider")
         set(floorCollider, "halfExtends", Vector3d(1.0))
+
+        clock.stop("floor")
 
         // add spheres for testing
         /*val sphereMesh = OS.documents.getChild("sphere.obj")
@@ -226,8 +246,7 @@ object ScenePrefab : StaticRef("Scene.prefab", lazy {
             set(sphere, "scale", Vector3d(size))
         }*/
 
-    }).toByteArray()
-}) {
+    }) {
 
     val worldIndex = 0
     val playerPrefabIndex = 1

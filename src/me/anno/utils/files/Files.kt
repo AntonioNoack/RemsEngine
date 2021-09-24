@@ -24,7 +24,7 @@ object Files {
         // format: name-1.json
         // -, because the usual name may contain numbers itself
         // find all files matching the description, and then use the max+1
-        val default = "$nameWithoutExtension.$extension"
+        val default = if(extension.isEmpty()) nameWithoutExtension else "$nameWithoutExtension.$extension"
         val siblings = parent.listChildren() ?: return default
         if (default !in siblings.map { it.name }) return default
         val prefix = if (colonSymbol.code == 0) nameWithoutExtension else "$nameWithoutExtension$colonSymbol"
@@ -42,7 +42,7 @@ object Files {
         }
         val maxNumber = relatedFiles.maxOrNull() ?: startingNumber
         val nextNumber = maxNumber + 1
-        return "$prefix$nextNumber.$extension"
+        return if(extension.isEmpty()) "$prefix$nextNumber" else "$prefix$nextNumber.$extension"
     }
 
     fun findNextFile(

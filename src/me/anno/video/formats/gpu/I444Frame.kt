@@ -1,4 +1,4 @@
-package me.anno.video.formats
+package me.anno.video.formats.gpu
 
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderLib.shader3DYUV
@@ -7,11 +7,10 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.input.Input.readNBytes2
-import me.anno.video.VFrame
 import java.io.InputStream
 
 // this seems to work, and to be correct
-class I444Frame(iw: Int, ih: Int) : VFrame(iw, ih, 2) {
+class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 2) {
 
     private val y = Texture2D("i444-y-frame", w, h, 1)
     private val u = Texture2D("i444-u-frame", w, h, 1)

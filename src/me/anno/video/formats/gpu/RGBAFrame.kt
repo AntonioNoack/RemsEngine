@@ -1,4 +1,4 @@
-package me.anno.video.formats
+package me.anno.video.formats.gpu
 
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
@@ -12,7 +12,6 @@ class RGBAFrame(w: Int, h: Int) : RGBFrame(w, h) {
         val data = Texture2D.bufferPool[s0 * 4, false]
         data.position(0)
         for (i in 0 until s0) {
-            // todo is this correct?
             val r = input.read()
             val g = input.read()
             val b = input.read()
@@ -21,7 +20,7 @@ class RGBAFrame(w: Int, h: Int) : RGBFrame(w, h) {
                 Texture2D.bufferPool.returnBuffer(data)
                 throw EOFException()
             }
-            data.put(a.toByte())
+            data.put(r.toByte())
             data.put(g.toByte())
             data.put(b.toByte())
             data.put(a.toByte()) // offset is required

@@ -7,7 +7,13 @@ import me.anno.io.base.BaseWriter
 import me.anno.utils.maths.Maths
 import org.joml.*
 
-class Transform : Saveable() {
+class Transform() : Saveable() {
+
+    constructor(entity: Entity) : this() {
+        this.entity = entity
+    }
+
+    var entity: Entity? = null
 
     // two transforms could be used to interpolate between draw calls
     var lastUpdateTime = 0L
@@ -100,10 +106,15 @@ class Transform : Saveable() {
     private val rot = Quaterniond()
     private val sca = Vector3d(1.0)
 
-    var needsGlobalUpdate = true
+    var needsGlobalUpdate = false
 
     fun invalidateGlobal() {
         needsGlobalUpdate = true
+        val entity = entity
+        if (entity != null) {
+            calculateGlobalTransform(entity.parentEntity?.transform)
+            entity.invalidateChildTransforms()
+        }
     }
 
     fun set(src: Transform) {
@@ -257,17 +268,6 @@ class Transform : Saveable() {
         localTransform.getUnnormalizedRotation(rot)
         localTransform.getScale(sca)
         invalidateGlobal()
-    }
-
-    fun clone(): Transform {
-        val t = Transform()
-        t.globalTransform.set(globalTransform)
-        t.localTransform.set(localTransform)
-        t.pos.set(pos)
-        t.rot.set(rot)
-        t.sca.set(sca)
-        t.invalidateGlobal()
-        return t
     }
 
     override fun save(writer: BaseWriter) {

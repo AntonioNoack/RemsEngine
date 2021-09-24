@@ -2,6 +2,7 @@ package me.anno.io.files
 
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.io.zip.InnerByteFile
+import java.nio.ByteBuffer
 import kotlin.math.min
 
 class Signature(val name: String, val offset: Int, val signature: ByteArray) {
@@ -33,6 +34,29 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
         bytes.map { it.toByte() }.toByteArray()
     )
 
+    fun matches(bytes: ByteBuffer): Boolean {
+        val position = bytes.position()
+        val size = bytes.remaining()
+        if (offset >= size) return false
+        if (offset < 0) {
+            // search the signature instead of requiring it
+            search@ for (offset in 0 until size - signature.size) {
+                for (i in 0 until min(size - offset, signature.size)) {
+                    if (bytes[position + i + offset] != signature[i]) {
+                        continue@search
+                    }
+                }
+                return true
+            }
+            return false
+        } else {
+            for (i in 0 until min(size - offset, signature.size)) {
+                if (bytes[position + i + offset] != signature[i]) return false
+            }
+            return true
+        }
+    }
+
     fun matches(bytes: ByteArray): Boolean {
         if (offset >= bytes.size) return false
         if (offset < 0) {
@@ -57,6 +81,16 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
     override fun toString(): String = name
 
     companion object {
+
+        fun findName(bytes: ByteBuffer) = find(bytes)?.name
+        fun find(bytes: ByteBuffer): Signature? {
+            for (signature in signatures) {
+                if (signature.matches(bytes)) {
+                    return signature
+                }
+            }
+            return null
+        }
 
         fun findName(bytes: ByteArray) = find(bytes)?.name
         fun find(bytes: ByteArray): Signature? {
@@ -130,6 +164,7 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             Signature("hdr", 0, "#?RADIANCE"), // high dynamic range
             Signature("ico", 0, listOf(0x00, 0x00, 0x01, 0x00, 0x01)),// ico with 1 "image"
             Signature("ico", 0, listOf(0x00, 0x00, 0x02, 0x00, 0x01)),// cursor with 1 "image"
+            Signature("dds", 0, "DDS "), // direct x image file format
             // other
             Signature("xml", 0, "<?xml"), // plus other variations with UTF16, UTF32, ...
             // media (video/audio)
@@ -160,7 +195,8 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             Signature("yaml", 0, "%YAML"),
             // json, kind of
             Signature("json", 0, "["),
-            Signature("json", 0, "{")
+            Signature("json", 0, "{"),
+            Signature("sims", 0, "DBPF"),
         ).apply {
             // first long ones, then short ones; to be more specific first
             sortByDescending { it.signature.size }

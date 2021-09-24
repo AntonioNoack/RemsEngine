@@ -52,6 +52,11 @@ open class MeshComponent() : Component() {
 
     fun invalidate() {}
 
+    override fun onVisibleUpdate(): Boolean {
+        mesh = mesh.validate()
+        return true
+    }
+
     // far into the future:
     // todo instanced animations for hundreds of humans:
     // todo bake animations into textures, and use indices + weights

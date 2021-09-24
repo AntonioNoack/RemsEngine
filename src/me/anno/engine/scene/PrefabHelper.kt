@@ -21,14 +21,11 @@ object PrefabHelper {
         prefab: Prefab, parentPath: Path,
         typeChar: Char, type: String, name: String, ref: FileReference
     ): Path {
-        val index = prefab.adds.count { it.type == typeChar && it.path == parentPath }
-        prefab.add(CAdd(parentPath, typeChar, type, name, ref))
-        return parentPath.added(name, index, typeChar)
+        return prefab.add(parentPath, typeChar, type, name, ref)
     }
 
     fun setX(prefab: Prefab, path: Path, name: String, value: Any?) {
-        val changes = prefab.sets as MutableList<CSet>
-        changes.add(CSet(path, name, value))
+        prefab.set(path, name, value)
     }
 
 }

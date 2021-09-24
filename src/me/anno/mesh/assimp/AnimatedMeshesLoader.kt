@@ -8,7 +8,6 @@ import me.anno.ecs.components.mesh.Mesh.Companion.MAX_WEIGHTS
 import me.anno.ecs.components.mesh.MorphTarget
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.CAdd
-import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.io.NamedSaveable
 import me.anno.io.Saveable
@@ -229,10 +228,10 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         }
         // apply the change to all meshes
         for (mesh in meshes) {
-            val changeWithIndices = mesh.sets!!.firstOrNull { it.name == "boneIndices" }
+            val changeWithIndices = mesh.sets[Path.ROOT_PATH, "boneIndices"] // !!.firstOrNull { it.name == "boneIndices" }
             if (changeWithIndices != null) {
                 // correct order?
-                val values = changeWithIndices.value as ByteArray
+                val values = changeWithIndices as ByteArray
                 for (i in values.indices) {
                     values[i] = mapping[values[i].toInt().and(255)].toByte()
                 }
@@ -265,8 +264,8 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
             for (index in instances.indices) {
                 val instance = instances[index]
                 references += if (instance is Prefab) {
-                    val name = instance.sets
-                        .firstOrNull { it.path.isEmpty() && it.name == "name" }?.value?.toString() ?: ""
+                    val name = instance.sets[Path.ROOT_PATH, "name"]?.toString() ?: ""
+                    // .firstOrNull { it.path.isEmpty() && it.name == "name" }?.value?.toString() ?: ""
                     val nameOrIndex = name.ifEmpty { "$index" }
                     val fileName = findNextFileName(meshFolder, nameOrIndex, "json", 3, '-')
                     meshFolder.createPrefabChild(fileName, instance)

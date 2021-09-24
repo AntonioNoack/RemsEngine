@@ -14,11 +14,7 @@ import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Renderer
 import me.anno.io.serialization.SerializedProperty
-import me.anno.mesh.vox.meshing.BlockBuffer
-import me.anno.mesh.vox.meshing.BlockSide
-import me.anno.mesh.vox.meshing.VoxelMeshBuildInfo
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.types.Matrices.getScaleLength
 import me.anno.utils.types.Matrices.rotate2
 import org.joml.*
@@ -40,7 +36,8 @@ class PointLight : LightComponent(LightType.POINT) {
         // put light size * world scale
         // avg, and then /3
         // but the center really is much smaller -> *0.01
-        val lightSize = drawTransform.getScale(JomlPools.vec3d.borrow()).dot(1.0, 1.0, 1.0) * lightSize / 9.0
+        val scaleX = drawTransform.getScale(JomlPools.vec3d.borrow())
+        val lightSize = (scaleX.x + scaleX.y + scaleX.z) * lightSize / 9.0
         return (lightSize * worldScale).toFloat()
     }
 
@@ -142,23 +139,24 @@ class PointLight : LightComponent(LightType.POINT) {
         val cubeMesh = Mesh()
 
         init {
-
-            val vertices = ExpandingFloatArray(6 * 2 * 3 * 3)
-            val base = VoxelMeshBuildInfo(intArrayOf(0, -1), vertices, null, null)
-
-            base.color = -1
-
-            for (side in BlockSide.values) {
-                BlockBuffer.addQuad(base, side, 1, 1, 1)
-            }
-
-            // [0,1]³ -> [-1,+1]³
-            val positions = vertices.toFloatArray()
-            for (i in positions.indices) {
-                positions[i] = positions[i] * 2f - 1f
-            }
-            cubeMesh.positions = positions
-
+            cubeMesh.positions = floatArrayOf(
+                -1f, -1f, -1f,
+                -1f, -1f, +1f,
+                -1f, +1f, -1f,
+                -1f, +1f, +1f,
+                +1f, -1f, -1f,
+                +1f, -1f, +1f,
+                +1f, +1f, -1f,
+                +1f, +1f, +1f,
+            )
+            cubeMesh.indices = intArrayOf(
+                0, 1, 3, 3, 2, 0,
+                1, 5, 7, 7, 3, 1,
+                2, 3, 7, 7, 6, 2,
+                4, 0, 2, 2, 6, 4,
+                4, 6, 7, 7, 5, 4,
+                1, 0, 4, 4, 5, 1
+            )
         }
 
         fun getShaderCode(cutoffContinue: String?, withShadows: Boolean, hasLightRadius: Boolean): String {

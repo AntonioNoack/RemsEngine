@@ -14,6 +14,8 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.utils.LOGGER
 import me.anno.utils.files.LocalFile.toGlobalFile
+import me.anno.utils.structures.maps.CountMap
+import me.anno.utils.structures.maps.KeyPairMap
 
 // todo allow to make immutable
 // todo and send a warning: instantiate to make mutable
@@ -29,10 +31,17 @@ class Prefab : Saveable {
         this.prefab = prefab
     }
 
-    var clazzName: String? = null
+    constructor(prefab: Prefab){
+        this.clazzName = prefab.clazzName
+        this.prefab = prefab.source
+    }
 
+    var clazzName: String = ""
+
+    val addCounts = CountMap<Pair<Char, Path>>()
     var adds: List<CAdd> = emptyList()
-    var sets: List<CSet> = emptyList()
+
+    val sets = KeyPairMap<Path, String, Any?>(256)
 
     var prefab: FileReference = InvalidRef
     var wasCreatedFromJson = false
@@ -41,6 +50,8 @@ class Prefab : Saveable {
     fun invalidate() {
         isValid = false
     }
+
+    val instanceName get() = sets[ROOT_PATH, "name"]?.toString()
 
     @NotSerializedProperty
     var isWritable = true
@@ -53,7 +64,7 @@ class Prefab : Saveable {
 
     fun ensureMutableLists() {
         if (adds !is MutableList) adds = ArrayList(adds)
-        if (sets !is MutableList) sets = ArrayList(sets)
+        // if (sets !is MutableList) sets = ArrayList(sets)
     }
 
     fun addAll(changes: Collection<Change>) {
@@ -92,13 +103,25 @@ class Prefab : Saveable {
         add(CSet(path, name, value))
     }
 
+    fun setIfNotExisting(path: Path, name: String, value: Any?) {
+        if (sets.contains(path, name)) {// could be optimized to use no instantiations
+            add(CSet(path, name, value))
+        }
+    }
+
     /**
      * does not check, whether the change already exists;
      * it assumes, that it does not yet exist
      * */
     fun setUnsafe(path: Path, name: String, value: Any?) {
-        ensureMutableLists()
-        (sets as MutableList).add(CSet(path, name, value))
+        /*ensureMutableLists()
+        (sets as MutableList).add(CSet(path, name, value))*/
+        sets[path, name] = value
+    }
+
+    fun add(parentPath: Path, typeChar: Char, type: String, name: String, ref: FileReference): Path {
+        val index = addCounts.getAndInc(typeChar to parentPath)
+        return add(CAdd(parentPath, typeChar, type, name, ref)).getChildPath(index)
     }
 
     fun add(path: Path, type: Char, clazzName: String) {
@@ -118,7 +141,7 @@ class Prefab : Saveable {
                 isValid = false
             }
             is CSet -> {
-                ensureMutableLists()
+                /*ensureMutableLists()
                 if (sets.none {
                         if (it.path == change.path && it.name == change.name) {
                             it.value = change.value
@@ -126,7 +149,8 @@ class Prefab : Saveable {
                         } else false
                     }) {
                     (sets as MutableList).add(change)
-                }
+                }*/
+                sets[change.path, change.name!!] = change.value
                 // apply to sample instance to keep it valid
                 updateSample(change)
             }
@@ -152,7 +176,7 @@ class Prefab : Saveable {
         writer.writeFile("prefab", prefab)
         writer.writeString("className", clazzName)
         writer.writeObjectList(null, "adds", adds)
-        writer.writeObjectList(null, "sets", sets)
+        writer.writeObjectList(null, "sets", sets.map { k1, k2, v -> CSet(k1, k2, v) })
         writer.writeObject(null, "history", history)
     }
 
@@ -160,7 +184,7 @@ class Prefab : Saveable {
         if (!isWritable) throw ImmutablePrefabException(source)
         when (name) {
             "prefab" -> prefab = value?.toGlobalFile() ?: InvalidRef
-            "className" -> clazzName = value
+            "className" -> clazzName = value ?: ""
             else -> super.readString(name, value)
         }
     }
@@ -178,10 +202,20 @@ class Prefab : Saveable {
         when (name) {
             "changes" -> {
                 adds = values.filterIsInstance<CAdd>()
-                sets = values.filterIsInstance<CSet>()
+                for (v in values) {
+                    if (v is CSet) {
+                        sets[v.path, v.name!!] = v.value
+                    }
+                }
             }
             "adds" -> adds = values.filterIsInstance<CAdd>()
-            "sets" -> sets = values.filterIsInstance<CSet>()
+            "sets" -> {
+                for (v in values) {
+                    if (v is CSet) {
+                        sets[v.path, v.name!!] = v.value
+                    }
+                }
+            }
             else -> super.readObjectArray(name, values)
         }
     }
@@ -197,7 +231,7 @@ class Prefab : Saveable {
     fun getSampleInstance(chain: MutableSet<FileReference>? = HashSet()): PrefabSaveable {
         if (!isValid) synchronized(this) {
             if (!isValid) {
-                val instance = PrefabCache.createInstance(prefab, adds, sets, chain, clazzName!!)
+                val instance = PrefabCache.createInstance(prefab, adds, sets, chain, clazzName)
                 // assign super instance? we should really cache that...
                 instance.prefab2 = this
                 sampleInstance = instance

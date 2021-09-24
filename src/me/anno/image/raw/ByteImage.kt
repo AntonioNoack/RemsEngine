@@ -8,8 +8,8 @@ import java.awt.image.BufferedImage
 open class ByteImage(
     width: Int, height: Int,
     val channelsInData: Int,
-    val data: ByteArray = ByteArray(width * height * 4),
-    hasAlphaChannel: Boolean = false
+    val data: ByteArray = ByteArray(width * height * channelsInData),
+    hasAlphaChannel: Boolean = channelsInData > 3
 ) : Image(channelsInData, hasAlphaChannel) {
 
     init {

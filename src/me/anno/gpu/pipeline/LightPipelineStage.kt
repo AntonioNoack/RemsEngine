@@ -35,7 +35,7 @@ import org.joml.Vector3d
 import org.lwjgl.opengl.GL15.GL_DYNAMIC_DRAW
 import org.lwjgl.opengl.GL15.GL_FRONT
 
-class PipelineLightStage(
+class LightPipelineStage(
     var depthMode: DepthMode,
     val deferred: DeferredSettingsV2
 ) : Saveable() {
@@ -57,6 +57,17 @@ class PipelineLightStage(
             Attribute("shadowData", 4)
             // instanced rendering does not support shadows -> no shadow data / as a uniform
         )
+
+        // test: can we get better performance, when we eliminate dependencies?
+        // pro: less dependencies
+        // con: we use more vram
+        // con: we remove cache locality
+        /*private val lightInstanceBuffers = Array(512) {
+            StaticBuffer(lightInstancedAttributes, instancedBatchSize, GL_DYNAMIC_DRAW)
+        }
+        private var libIndex = 0
+        // performance: the same
+        */
 
         private val lightInstanceBuffer = StaticBuffer(lightInstancedAttributes, instancedBatchSize, GL_DYNAMIC_DRAW)
 
@@ -232,21 +243,20 @@ class PipelineLightStage(
                             "bool hasSpecular = finalMetallic > 0.0;\n" +
                             "vec3 V = normalize(-finalPosition);\n" +
                             "float NdotV = abs(dot(finalNormal,V));\n" +
-                            "vec3 effectiveDiffuse, effectiveSpecular;\n" +
                             "int shadowMapIdx0 = 0;\n" + // always 0 at the start
                             "int shadowMapIdx1 = int(data2.g);\n" +
                             // light properties, which are typically inside the loop
                             "vec3 lightColor = data0.rgb;\n" +
-                            "vec3 lightPosition, lightDirWS;\n" +
-                            "vec3 dir = WStoLightSpace * vec4(finalPosition,1.0);\n" +
-                            "vec3 localNormal = normalize(WStoLightSpace * vec4(finalNormal,0.0));\n" +
+                            "vec3 dir = WStoLightSpace * vec4(finalPosition, 1.0);\n" +
+                            "vec3 localNormal = normalize(WStoLightSpace * vec4(finalNormal, 0.0));\n" +
                             "float NdotL;\n" + // normal dot light
+                            "vec3 effectiveDiffuse, effectiveSpecular,lightPosition, lightDirWS;\n" +
                             coreFragment +
                             "if(hasSpecular && dot(effectiveSpecular, vec3(NdotL)) > ${0.5 / 255.0}){\n" +
                             "    vec3 H = normalize(V + lightDirWS);\n" +
                             specularBRDFv2NoColorStart +
                             specularBRDFv2NoColor +
-                            "    specularLight += effectiveSpecular * computeSpecularBRDF;\n" +
+                            "    specularLight = effectiveSpecular * computeSpecularBRDF;\n" +
                             specularBRDFv2NoColorEnd +
                             "}\n" +
                             // translucency; looks good and approximately correct
@@ -366,7 +376,7 @@ class PipelineLightStage(
             }
         }
 
-        fun forEachType(run: (lights: List<LightRequest<*>>, type: LightType, size: Int) -> Unit) {
+        inline fun forEachType(run: (lights: List<LightRequest<*>>, type: LightType, size: Int) -> Unit) {
             if (dirIndex > 0) run(dirs, LightType.DIRECTIONAL, dirIndex)
             if (spotIndex > 0) run(spots, LightType.SPOT, spotIndex)
             if (pointsIndex > 0) run(points, LightType.POINT, pointsIndex)
@@ -491,65 +501,82 @@ class PipelineLightStage(
         }
 
         // draw instanced meshes
-        val batchSize = instancedBatchSize
-        val buffer = lightInstanceBuffer
-        val nioBuffer = buffer.nioBuffer!!
-
-        // todo this does not work... why???
-        if (instanced.isNotEmpty()) RenderState.instanced.use(true) {
-            instanced.forEachType { lights, type, size ->
-
-                val sample = lights[0].light
-                val mesh = sample.getLightPrimitive()
-                mesh.ensureBuffer()
-
-                val shader = getShader(deferred, type)
-                shader.use()
-
-                initShader(shader, cameraMatrix)
-
-                val stride = buffer.attributes[0].stride
-
-                // draw them in batches of size <= batchSize
-                for (baseIndex in 0 until size step batchSize) {
-                    buffer.clear()
-                    nioBuffer.limit(nioBuffer.capacity())
-                    // fill the data
-                    for (index in baseIndex until min(size, baseIndex + batchSize)) {
-                        nioBuffer.position((index - baseIndex) * stride)
-                        val lightI = lights[index]
-                        val light = lightI.light
-                        val m = lightI.transform.getDrawMatrix(time)
-                        val mInv = light.invWorldMatrix
-                        m4x3delta(m, cameraPosition, worldScale, nioBuffer, false)
-                        m4x3x(mInv, nioBuffer, false)
-                        // put all light data: lightData0, lightData1
-                        val color = light.color
-                        nioBuffer.putFloat(color.x)
-                        nioBuffer.putFloat(color.y)
-                        nioBuffer.putFloat(color.z)
-                        nioBuffer.putFloat(0f) // type, not used
-                        // put data1: world position
-                        val px = ((m.m30() - cameraPosition.x) * worldScale).toFloat()
-                        val py = ((m.m31() - cameraPosition.y) * worldScale).toFloat()
-                        val pz = ((m.m32() - cameraPosition.z) * worldScale).toFloat()
-                        nioBuffer.putFloat(px)
-                        nioBuffer.putFloat(py)
-                        nioBuffer.putFloat(pz)
-                        // put data1: custom property
-                        nioBuffer.putFloat(light.getShaderV0(m, worldScale))
-                        // put data2:
-                        nioBuffer.putFloat(0f)
-                        nioBuffer.putFloat(0f)
-                        nioBuffer.putFloat(light.getShaderV1())
-                        nioBuffer.putFloat(light.getShaderV2())
-                    }
-                    buffer.ensureBufferWithoutResize()
-                    mesh.drawInstanced(shader, 0, buffer)
-                }
+        if (instanced.isNotEmpty()) {
+            this.cameraMatrix = cameraMatrix
+            this.cameraPosition = cameraPosition
+            this.worldScale = worldScale
+            RenderState.instanced.use(true) {
+                instanced.forEachType(::drawBatches)
             }
         }
 
+    }
+
+    private var cameraMatrix: Matrix4fc? = null
+    private var cameraPosition: Vector3d? = null
+    private var worldScale: Double = 1.0
+
+    fun drawBatches(lights: List<LightRequest<*>>, type: LightType, size: Int) {
+
+        val batchSize = instancedBatchSize
+
+        val sample = lights[0].light
+        val mesh = sample.getLightPrimitive()
+        mesh.ensureBuffer()
+
+        val shader = getShader(deferred, type)
+        shader.use()
+
+        val cameraMatrix = cameraMatrix!!
+        val cameraPosition = cameraPosition!!
+        val worldScale = worldScale
+
+        initShader(shader, cameraMatrix)
+
+        val time = GFX.gameTime
+
+        // draw them in batches of size <= batchSize
+        for (baseIndex in 0 until size step batchSize) {
+
+            val buffer = lightInstanceBuffer
+            val nioBuffer = buffer.nioBuffer!!
+            val stride = buffer.attributes[0].stride
+
+            buffer.clear()
+            nioBuffer.limit(nioBuffer.capacity())
+            // fill the data
+            for (index in baseIndex until min(size, baseIndex + batchSize)) {
+                nioBuffer.position((index - baseIndex) * stride)
+                val lightI = lights[index]
+                val light = lightI.light
+                val m = lightI.transform.getDrawMatrix(time)
+                val mInv = light.invWorldMatrix
+                m4x3delta(m, cameraPosition, worldScale, nioBuffer, false)
+                m4x3x(mInv, nioBuffer, false)
+                // put all light data: lightData0, lightData1
+                val color = light.color
+                nioBuffer.putFloat(color.x)
+                nioBuffer.putFloat(color.y)
+                nioBuffer.putFloat(color.z)
+                nioBuffer.putFloat(0f) // type, not used
+                // put data1: world position
+                val px = ((m.m30() - cameraPosition.x) * worldScale).toFloat()
+                val py = ((m.m31() - cameraPosition.y) * worldScale).toFloat()
+                val pz = ((m.m32() - cameraPosition.z) * worldScale).toFloat()
+                nioBuffer.putFloat(px)
+                nioBuffer.putFloat(py)
+                nioBuffer.putFloat(pz)
+                // put data1: custom property
+                nioBuffer.putFloat(light.getShaderV0(m, worldScale))
+                // put data2:
+                nioBuffer.putFloat(0f)
+                nioBuffer.putFloat(0f)
+                nioBuffer.putFloat(light.getShaderV1())
+                nioBuffer.putFloat(light.getShaderV2())
+            }
+            buffer.ensureBufferWithoutResize()
+            mesh.drawInstanced(shader, 0, buffer)
+        }
     }
 
     operator fun get(index: Int): LightRequest<*> {
@@ -572,7 +599,7 @@ class PipelineLightStage(
         group.add(light, entity.transform)
     }
 
-    fun add(environmentMap: EnvironmentMap, entity: Entity) {
+    fun add(environmentMap: EnvironmentMap) {
         environmentMaps.add(environmentMap)
     }
 

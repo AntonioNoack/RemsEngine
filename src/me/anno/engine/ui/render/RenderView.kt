@@ -48,7 +48,7 @@ import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.framebuffer.*
 import me.anno.gpu.pipeline.M4x3Delta.mul4x3delta
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.gpu.pipeline.PipelineLightStage
+import me.anno.gpu.pipeline.LightPipelineStage
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.BaseShader.Companion.cullFaceColoringGeometry
@@ -80,12 +80,6 @@ import org.joml.Math.toRadians
 import org.lwjgl.opengl.GL45.*
 
 
-// todo import mesh/material/... for modifications:
-// todo create material, mesh, animation etc folder
-// todo rename Scene.json to mesh file name.json
-// todo ask for additional folder, inside project
-
-
 
 // done shadows
 // todo usable editing of materials: own color + indent + super material selector
@@ -95,22 +89,12 @@ import org.lwjgl.opengl.GL45.*
 
 // todo optional, expensive cubic texture filtering?
 
-// todo drag assets into the scene
-// todo drag materials onto mesh components
-
-// todo optional blender like controls?
-
 
 // todo clickable & draggable gizmos, e.g. for translation, rotation scaling:
 // todo thick arrows for 1d, and planes for 2d, and a center cube for 3d
 
 // todo drag stuff onto surfaces using raytracing
 // todo or drag and keep it in the same distance
-
-// done controls
-// done show the scene
-// done drag stuff
-// todo translate, rotate, scale with gizmos
 
 // done render in different modes: overdraw, color blindness, normals, color, before-post-process, with-post-process
 // todo nice ui for that: drop down menus at top or bottom
@@ -140,7 +124,6 @@ class RenderView(
     }
     // to do scene scale, which is premultiplied with everything to allow stuff outside the 1e-38 - 1e+38 range?
     // not really required, since our universe just has a scale of 1e-10 (~ size of an atom) - 1e28 (~ size of the observable universe) meters
-
 
 
     // todo buttons:
@@ -215,8 +198,6 @@ class RenderView(
         cameraNode.transform.localPosition = rotation.transform(tmp3d.set(0.0, 0.0, radius)).add(position)
 
         // println(cameraNode.transform.localTransform)
-
-        cameraNode.validateTransforms()
 
     }
 
@@ -424,7 +405,7 @@ class RenderView(
                     val tmp = FBStack["", w, h, 4, true, 1]
                     useFrame(tmp, copyRenderer) {// apply post processing
 
-                        val shader = PipelineLightStage.getPostShader(deferred)
+                        val shader = LightPipelineStage.getPostShader(deferred)
                         shader.use()
                         shader.v1("applyToneMapping", false)
                         shader.v3("ambientLight", pipeline.ambient)
@@ -456,7 +437,7 @@ class RenderView(
 
                         // don't write depth
                         RenderState.depthMask.use(false) {
-                            val shader = PipelineLightStage.getPostShader(deferred)
+                            val shader = LightPipelineStage.getPostShader(deferred)
                             shader.use()
                             shader.v1("applyToneMapping", !useBloom)
 
@@ -591,6 +572,8 @@ class RenderView(
 
     var entityBaseClickId = 0
 
+    var fovYRadians = 1f
+
     private val tmpRot0 = Quaternionf()
     private val tmpRot1 = Quaternionf()
     private fun prepareDrawScene(
@@ -656,21 +639,14 @@ class RenderView(
         camRotation.transform(camDirection.set(0.0, 0.0, -1.0))
         // debugPoints.add(DebugPoint(Vector3d(camDirection).mul(20.0).add(camPosition), 0xff0000, -1))
 
+        currentInstance = this
+        this.fovYRadians = fovYRadians
+
         world.update()
 
         world.updateVisible()
 
-        world.getComponentsInChildren(PlanarReflection::class) {
-            pipeline.reset()
-            it.draw(pipeline, w, h, cameraMatrix, camPosition, camRotation, worldScale) { pos, rot ->
-                pipeline.frustum.definePerspective(
-                    near, far, fovYRadians.toDouble(),
-                    width, height, aspectRatio.toDouble(),
-                    pos, rot
-                )
-            }
-            false
-        }
+        world.validateTransform()
 
         pipeline.reset()
         pipeline.frustum.definePerspective(
@@ -871,9 +847,9 @@ class RenderView(
                 val scaleV = JomlPools.vec3d.create()
 
                 val world = getWorld()
-                world.depthFirstTraversal(false) { entity ->
 
-                    entity as Entity
+                // much faster than depthTraversal, because we only need visible elements anyways
+                pipeline.traverse(world) { entity ->
 
                     val transform = entity.transform
                     val globalTransform = transform.globalTransform
@@ -908,7 +884,7 @@ class RenderView(
                             val componentClickId = clickId++
                             component.clickId = componentClickId
                             GFX.drawnId = componentClickId
-                            component.onDrawGUI(this)
+                            component.onDrawGUI()
                         }
                     }
 
@@ -916,7 +892,6 @@ class RenderView(
 
                     if (drawAABBs) drawAABB(entity, worldScale)
 
-                    false
                 }
 
                 JomlPools.vec3d.sub(1)
@@ -999,6 +974,8 @@ class RenderView(
         val scaledMin = Vector4d()
         val scaledMax = Vector4d()
         val tmpVec4f = Vector4d()
+
+        lateinit var currentInstance: RenderView
 
     }
 

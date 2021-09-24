@@ -18,7 +18,7 @@ import me.anno.studio.rems.RemsStudio.root
 import me.anno.studio.rems.Selection
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.ui.editor.treeView.AbstractTreeView
+import me.anno.ui.editor.treeView.TreeView
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toARGB
 import me.anno.utils.maths.Maths.clamp
@@ -31,7 +31,7 @@ import java.util.*
 // todo select multiple elements, filter for common properties, and apply them all together :)
 
 class StudioTreeView(style: Style) :
-    AbstractTreeView<Transform>(
+    TreeView<Transform>(
         UpdatingList { listOf(nullCamera!!, root) },
         StudioFileImporter, true, style
     ) {
@@ -101,9 +101,6 @@ class StudioTreeView(style: Style) :
         return !immutable
     }
 
-    override val selectedElement: Transform?
-        get() = Selection.selectedTransform
-
     override fun selectElement(element: Transform?) {
         Selection.selectTransform(element)
     }
@@ -116,7 +113,7 @@ class StudioTreeView(style: Style) :
         Companion.openAddMenu(parent)
     }
 
-    val tmp = Vector4f()
+    private val tmp = Vector4f()
     override fun getLocalColor(element: Transform, isHovered: Boolean, isInFocus: Boolean): Int {
         val dst = element.getLocalColor(tmp)
         dst.w = 0.5f + 0.5f * clamp(dst.w, 0f, 1f)

@@ -5,7 +5,7 @@ import me.anno.gpu.ShaderLib
 import me.anno.gpu.drawing.GFXx2D.defineAdvancedGraphicalFeatures
 import me.anno.gpu.texture.*
 import me.anno.objects.modes.UVProjection
-import me.anno.video.VFrame
+import me.anno.video.formats.gpu.GPUFrame
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4fc
 
@@ -92,7 +92,7 @@ object DrawTextures {
         )
     }
 
-    fun drawTexture(w: Int, h: Int, texture: VFrame, color: Int, tiling: Vector4fc?) {
+    fun drawTexture(w: Int, h: Int, texture: GPUFrame, color: Int, tiling: Vector4fc?) {
         val matrix = Matrix4fArrayList()
         matrix.scale(w.toFloat() / GFX.windowWidth, h.toFloat() / GFX.windowHeight, 1f)
         GFXx3D.draw3D(
@@ -101,7 +101,7 @@ object DrawTextures {
         )
     }
 
-    fun drawTexture(texture: VFrame) {
+    fun drawTexture(texture: GPUFrame) {
 
         if (!texture.isCreated) throw RuntimeException("Frame must be loaded to be rendered!")
         val shader = texture.get3DShader().value

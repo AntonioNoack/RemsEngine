@@ -178,7 +178,7 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
     }
 
-    class RuntimeInfoPlaceholder: Panel(style) {
+    class RuntimeInfoPlaceholder : Panel(style) {
         override fun calculateSize(w: Int, h: Int) {
             minW = if (instance.showFPS) FrameTimes.width else 0
             minH = 1
@@ -188,10 +188,13 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
     companion object {
 
         private val LOGGER = LogManager.getLogger(RemsEngine::class)
+        var instance2: RemsEngine? = null
 
         @JvmStatic
         fun main(args: Array<String>) {
-            RemsEngine().run()
+            val instance = RemsEngine()
+            instance2 = instance
+            instance.run()
         }
 
     }

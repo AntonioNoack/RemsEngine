@@ -4,6 +4,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.change.CAdd
+import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.IProperty
 import me.anno.engine.ui.ComponentUI
@@ -52,7 +53,7 @@ class PrefabInspector(
 
     val history: ChangeHistory = prefab.history ?: ChangeHistory()
     val adds get() = prefab.adds as MutableList
-    val sets get() = prefab.sets as MutableList
+    val sets get() = prefab.sets // as MutableList
 
     init {
 
@@ -73,9 +74,7 @@ class PrefabInspector(
     // todo later: control it's speed, and step size
 
     private val savingTask = DelayedTask {
-        addEvent {
-            history.put(TextWriter.toText(adds + sets))
-        }
+        addEvent { history.put(TextWriter.toText(adds + sets.map { k1, k2, v -> CSet(k1, k2, v) })) }
     }
 
     fun onChange() {
@@ -84,7 +83,8 @@ class PrefabInspector(
 
     fun reset(path: Path) {
         if (!prefab.isWritable) throw ImmutablePrefabException(prefab.source)
-        if (sets.removeIf { it.path == path }) {
+        // if (sets.removeIf { it.path == path }) {
+        if (sets.removeMajorIf { it == path }) {
             prefab.invalidate()
             onChange()
             ECSSceneTabs.updatePrefab(prefab)
@@ -93,20 +93,22 @@ class PrefabInspector(
 
     fun reset(path: Path, name: String) {
         if (!prefab.isWritable) throw ImmutablePrefabException(prefab.source)
-        if (sets.removeIf { it.path == path && it.name == name }) {
+        // if (sets.removeIf { it.path == path && it.name == name }) {
+        if (sets.contains(path, name)) {
+            sets.remove(path, name)
             prefab.invalidate()
             onChange()
             ECSSceneTabs.updatePrefab(prefab)
         }
     }
 
-    fun isChanged(path: Path): Boolean {
+    /*fun isChanged(path: Path): Boolean {
         val oldChange = sets.firstOrNull { it.path == path }
         return oldChange != null
-    }
+    }*/
 
     fun isChanged(path: Path, name: String): Boolean {
-        val oldChange = sets.firstOrNull { it.path == path && it.name == name }
+        val oldChange = sets[path, name] // .firstOrNull { it.path == path && it.name == name }
         return oldChange != null
     }
 
@@ -289,7 +291,7 @@ class PrefabInspector(
         if (!checkDependencies(parent, prefab.source)) return
         if (prefab.clazzName != "Entity") throw IllegalArgumentException("Type must be Entity!")
         val path = parent.pathInRoot2(root, false)
-        prefab.add(CAdd(path, 'e', prefab.clazzName!!, prefab.clazzName, prefab.source))
+        prefab.add(CAdd(path, 'e', prefab.clazzName, prefab.clazzName, prefab.source))
     }
 
     fun save() {

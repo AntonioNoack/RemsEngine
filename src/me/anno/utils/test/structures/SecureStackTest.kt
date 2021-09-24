@@ -1,7 +1,7 @@
 package me.anno.utils.test.structures
 
 import me.anno.utils.LOGGER
-import me.anno.utils.structures.SecureStack
+import me.anno.utils.structures.stacks.SecureStack
 
 val stack = object : SecureStack<Int>(0) {
     override fun onChangeValue(newValue: Int, oldValue: Int) {

@@ -1,6 +1,7 @@
 package me.anno.ui.editor.files
 
 import me.anno.audio.openal.AudioTasks
+import me.anno.cache.instances.LastModifiedCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultStyle.black
 import me.anno.ecs.components.shaders.effects.FSR
@@ -43,7 +44,6 @@ import me.anno.ui.editor.files.thumbs.Thumbs
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
-import me.anno.utils.files.Files.listFiles2
 import me.anno.utils.image.ImageScale.scale
 import me.anno.utils.io.Streams.copy
 import me.anno.utils.maths.Maths.mixARGB
@@ -51,7 +51,7 @@ import me.anno.utils.maths.Maths.sq
 import me.anno.utils.strings.StringHelper.setNumber
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.FFMPEGMetadata
-import me.anno.video.VFrame
+import me.anno.video.formats.gpu.GPUFrame
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import java.io.File
@@ -115,7 +115,7 @@ class FileExplorerEntry(
                 "music", "musik", "videos", "movies" -> "file/music.png"
                 "documents", "dokumente", "downloads" -> "file/text.png"
                 "images", "pictures", "bilder" -> "file/image.png"
-                else -> if (file.listFiles2().isNotEmpty())
+                else -> if (file.hasChildren())
                     "file/folder.png" else "file/empty_folder.png"
             }
         }
@@ -167,7 +167,7 @@ class FileExplorerEntry(
     override fun getLayoutState(): Any? = titlePanel.getLayoutState()
     override fun getVisualState(): Any {
         val tex = when (val tex = getTexKey()) {
-            is VFrame -> if (tex.isCreated) tex else null
+            is GPUFrame -> if (tex.isCreated) tex else null
             is Texture2D -> tex.state
             else -> tex
         }
@@ -483,7 +483,7 @@ class FileExplorerEntry(
     fun renameTo(newName: String) {
         val allowed = newName.toAllowedFilename()
         if (allowed != null) {
-            val dst = file.getParent()!!.getChild(allowed)!!
+            val dst = file.getParent()!!.getChild(allowed)
             if (dst.exists && !allowed.equals(file.name, true)) {
                 ask(NameDesc("Override existing file?", "", "ui.file.override")) {
                     file.renameTo(dst)
@@ -614,8 +614,10 @@ class FileExplorerEntry(
                     "ui.file.delete.yes"
                 )
             ) {
-                moveToTrash(file.unsafeFile)
+                val file2 = file.unsafeFile
+                moveToTrash(file2)
                 FileExplorer.invalidateFileExplorers()
+                LastModifiedCache.invalidate(file2)
             }
             val deletePermanently = MenuOption(
                 NameDesc(

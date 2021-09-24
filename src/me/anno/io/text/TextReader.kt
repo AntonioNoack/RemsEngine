@@ -3,6 +3,7 @@ package me.anno.io.text
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
+import me.anno.utils.strings.StringHelper.shorten
 import org.apache.logging.log4j.LogManager
 import java.io.EOFException
 import java.io.InputStream

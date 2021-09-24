@@ -601,6 +601,14 @@ open class Texture2D(
         afterUpload(false, 3)
     }
 
+    fun createBGR(data: ByteBuffer, checkRedundancy: Boolean) {
+        beforeUpload(3, data.remaining())
+        if (checkRedundancy) checkRedundancyMonochrome(data)
+        texImage2D(GL_RGBA8, GL_BGR, GL_UNSIGNED_BYTE, data)
+        bufferPool.returnBuffer(data)
+        afterUpload(false, 3)
+    }
+
     fun createMonochrome(data: ByteArray, checkRedundancy: Boolean) {
         beforeUpload(1, data.size)
         val data2 = if (checkRedundancy) checkRedundancyMonochrome(data) else data

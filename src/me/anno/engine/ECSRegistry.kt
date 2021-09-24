@@ -20,6 +20,7 @@ import me.anno.ecs.prefab.ChangeHistory
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
+import me.anno.ecs.prefab.change.Path
 import me.anno.engine.physics.BulletPhysics
 import me.anno.engine.scene.ScenePrefab
 import me.anno.engine.test.TestVehicleController
@@ -42,7 +43,7 @@ object ECSRegistry {
         if (hasBeenInited) return
         hasBeenInited = true
 
-        FileReference.register(ScenePrefab)
+        FileReference.registerStatic(ScenePrefab)
 
         registerCustomClass(StringMap())
 
@@ -85,6 +86,7 @@ object ECSRegistry {
         registerCustomClass(BoneByBoneAnimation())
 
         // prefab system
+        registerCustomClass(Path())
         registerCustomClass(ChangeHistory())
         registerCustomClass(CAdd())
         registerCustomClass(CSet())

@@ -95,6 +95,14 @@ interface Hierarchical<V : Hierarchical<V>> {
             return parent.depthInHierarchy + 1
         }
 
+    fun forAllInHierarchy(lambda: (V) -> Unit) {
+        var v = this as V
+        while (true) {
+            lambda(v)
+            v = v.parent ?: return
+        }
+    }
+
     fun allInHierarchy(lambda: (V) -> Boolean): Boolean {
         var v = this as V
         while (true) {

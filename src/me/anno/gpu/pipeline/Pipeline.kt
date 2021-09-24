@@ -49,7 +49,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
     val stages = ArrayList<PipelineStage>()
 
     // depth doesn't matter for lights
-    val lightPseudoStage = PipelineLightStage(DepthMode.ALWAYS, deferred)
+    val lightPseudoStage = LightPipelineStage(DepthMode.ALWAYS, deferred)
 
     lateinit var defaultStage: PipelineStage
 
@@ -118,7 +118,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         // we may want to set a timestamp, so we don't update it twice? no, we fill the pipeline only once
         val invWorldTransform = light.invWorldMatrix
         val drawTransform = entity.transform.getDrawMatrix(GFX.gameTime)
-        invWorldTransform.identity()
+        invWorldTransform
             .set4x3delta(drawTransform, cameraPosition, worldScale)
             .invert()
         stage.add(light, entity)
@@ -155,14 +155,12 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         // todo reuse the pipeline state for multiple frames
         //  - add a margin, so entities at the screen border can stay visible
         //  - partially populate the pipeline?
-        rootElement.validateTransforms()
         rootElement.validateAABBs()
         lastClickId = subFill(rootElement, 1, cameraPosition, worldScale)
         // LOGGER.debug("$contained/$nonContained")
     }
 
     fun fillDepth(rootElement: Entity, cameraPosition: Vector3d, worldScale: Double) {
-        rootElement.validateTransforms()
         rootElement.validateAABBs()
         subFillDepth(rootElement, cameraPosition, worldScale)
     }
@@ -267,6 +265,29 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
             }
         }
         return clickId
+    }
+
+    fun traverse(entity: Entity, run: (Entity) -> Unit) {
+        run(entity)
+        val children = entity.children
+        for (i in children.indices) {
+            val child = children[i]
+            if (child !== ignoredEntity && child.isEnabled && frustum.isVisible(child.aabb)) {
+                traverse(child, run)
+            }
+        }
+    }
+
+    fun traverseConditionally(entity: Entity, run: (Entity) -> Boolean) {
+        if (run(entity)) {
+            val children = entity.children
+            for (i in children.indices) {
+                val child = children[i]
+                if (child !== ignoredEntity && child.isEnabled && frustum.isVisible(child.aabb)) {
+                    traverseConditionally(child, run)
+                }
+            }
+        }
     }
 
     private fun subFillDepth(entity: Entity, cameraPosition: Vector3d, worldScale: Double) {
