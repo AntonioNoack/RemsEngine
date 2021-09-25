@@ -1,25 +1,26 @@
 package me.anno.ui.base.scrolling
 
 import me.anno.config.DefaultConfig
-import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
-import me.anno.utils.maths.Maths.clamp
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
+import me.anno.utils.maths.Maths.clamp
 import kotlin.math.max
 
-open class ScrollPanelY(child: Panel, padding: Padding,
-                        style: Style,
-                        alignX: AxisAlignment): PanelContainer(child, padding, style), ScrollableY {
+open class ScrollPanelY(
+    child: Panel, padding: Padding,
+    style: Style,
+    alignX: AxisAlignment
+) : PanelContainer(child, padding, style), ScrollableY {
 
-    constructor(child: Panel, style: Style): this(child, Padding(), style, AxisAlignment.MIN)
-    constructor(child: Panel, padding: Padding, style: Style): this(child, padding, style, AxisAlignment.MIN)
-    constructor(padding: Padding, align: AxisAlignment, style: Style): this(PanelListY(style), padding, style, align)
+    constructor(child: Panel, style: Style) : this(child, Padding(), style, AxisAlignment.MIN)
+    constructor(child: Panel, padding: Padding, style: Style) : this(child, padding, style, AxisAlignment.MIN)
+    constructor(padding: Padding, align: AxisAlignment, style: Style) : this(PanelListY(style), padding, style, align)
 
     init {
         child += WrapAlign(alignX, AxisAlignment.MIN)
@@ -30,7 +31,7 @@ open class ScrollPanelY(child: Panel, padding: Padding,
     var lmsp = -1
     override fun tickUpdate() {
         super.tickUpdate()
-        if(scrollPositionY != lsp || maxScrollPositionY != lmsp){
+        if (scrollPositionY != lsp || maxScrollPositionY != lmsp) {
             lsp = scrollPositionY
             lmsp = maxScrollPositionY
             window!!.needsLayout += this
@@ -52,25 +53,25 @@ open class ScrollPanelY(child: Panel, padding: Padding,
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
 
-        child.calculateSize(w-padding.width, maxLength-padding.height)
+        child.calculateSize(w - padding.width, maxLength - padding.height)
 
         minW = child.minW + padding.width
         minH = child.minH + padding.height
-        if(maxScrollPositionY > 0) minW += scrollbarWidth
+        if (maxScrollPositionY > 0) minW += scrollbarWidth
     }
 
     override fun placeInParent(x: Int, y: Int) {
         super.placeInParent(x, y)
 
         val scroll = scrollPositionY.toInt()
-        child.placeInParent(x+padding.left,y+padding.top-scroll)
+        child.placeInParent(x + padding.left, y + padding.top - scroll)
 
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         clampScrollPosition()
         super.onDraw(x0, y0, x1, y1)
-        if(maxScrollPositionY > 0f){
+        if (maxScrollPositionY > 0f) {
             scrollbar.x = x1 - scrollbarWidth - scrollbarPadding
             scrollbar.y = y + scrollbarPadding
             scrollbar.w = scrollbarWidth
@@ -80,26 +81,26 @@ open class ScrollPanelY(child: Panel, padding: Padding,
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
-        if(!Input.isShiftDown){
-            val delta = dx-dy
-            val scale = scrollSpeed
-            if((delta > 0f && scrollPositionY >= maxScrollPositionY) ||
-                (delta < 0f && scrollPositionY <= 0f)){// if done scrolling go up the hierarchy one
-                super.onMouseWheel(x, y, dx, dy)
-            } else {
-                scrollPositionY += scale * delta
-                clampScrollPosition()
-            }
-        } else super.onMouseWheel(x, y, dx, dy)
+        val delta = -dy * scrollSpeed
+        if ((delta > 0f && scrollPositionY >= maxScrollPositionY) ||
+            (delta < 0f && scrollPositionY <= 0f)
+        ) {// if done scrolling go up the hierarchy one
+            super.onMouseWheel(x, y, dx, dy)
+        } else {
+            scrollPositionY += delta
+            clampScrollPosition()
+            // we consumed dy
+            super.onMouseWheel(x, y, dx, 0f)
+        }
     }
 
-    fun clampScrollPosition(){
+    fun clampScrollPosition() {
         scrollPositionY = clamp(scrollPositionY, 0f, maxScrollPositionY.toFloat())
     }
 
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
-        isDownOnScrollbar = scrollbar.contains(x,y,scrollbarPadding*2)
-        if(!isDownOnScrollbar) super.onMouseDown(x, y, button)
+        isDownOnScrollbar = scrollbar.contains(x, y, scrollbarPadding * 2)
+        if (!isDownOnScrollbar) super.onMouseDown(x, y, button)
     }
 
     override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
@@ -108,7 +109,7 @@ open class ScrollPanelY(child: Panel, padding: Padding,
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        if(isDownOnScrollbar){
+        if (isDownOnScrollbar) {
             scrollbar.onMouseMoved(x, y, dx, dy)
             clampScrollPosition()
             invalidateLayout()

@@ -80,7 +80,7 @@ open class ControlScheme(val camera: CameraComponent, val library: ECSTypeLibrar
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
         if (isSelected) {
-            val factor = Maths.pow(0.5f, (dx + dy) / 16f)
+            val factor = Maths.pow(2f, (dx - dy) / 16f)
             view.radius *= factor
             view.updateTransform()
             invalidateDrawing()

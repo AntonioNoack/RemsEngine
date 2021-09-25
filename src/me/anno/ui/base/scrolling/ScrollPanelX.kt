@@ -58,6 +58,7 @@ open class ScrollPanelX(
 
         minW = child.minW + padding.width
         minH = child.minH + padding.height
+
         if (maxScrollPositionX > 0) minH += scrollbarHeight
 
     }
@@ -84,18 +85,17 @@ open class ScrollPanelX(
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
-        if (Input.isShiftDown || Input.isControlDown) {
-            val delta = dx - dy
-            val scale = scrollSpeed
-            if ((delta > 0f && scrollPositionX >= maxScrollPositionX) ||
-                (delta < 0f && scrollPositionX <= 0f)
-            ) {// if done scrolling go up the hierarchy one
-                super.onMouseWheel(x, y, dx, dy)
-            } else {
-                scrollPositionX += scale * delta
-                clampScrollPosition()
-            }
-        } else super.onMouseWheel(x, y, dx, dy)
+        val scale = scrollSpeed
+        if ((dx > 0f && scrollPositionX >= maxScrollPositionX) ||
+            (dx < 0f && scrollPositionX <= 0f)
+        ) {// if done scrolling go up the hierarchy one
+            super.onMouseWheel(x, y, dx, dy)
+        } else {
+            scrollPositionX += scale * dx
+            clampScrollPosition()
+            // we consumed dx
+            super.onMouseWheel(x, y, 0f, dy)
+        }
     }
 
     private fun clampScrollPosition() {

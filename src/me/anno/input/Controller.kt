@@ -11,12 +11,12 @@ import me.anno.utils.maths.Maths.sq
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWGamepadState
-import java.awt.Robot
 import java.awt.event.InputEvent
 import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.roundToInt
 
 class Controller(val id: Int) {
 
@@ -107,7 +107,7 @@ class Controller(val id: Int) {
             if (isMouseInWindow() && GFX.isInFocus) {
                 Input.onMousePress(key)
             } else {
-                robot.mousePress(if(key == 0) InputEvent.BUTTON1_MASK else InputEvent.BUTTON2_MASK)
+                GFX.robot.mousePress(if (key == 0) InputEvent.BUTTON1_MASK else InputEvent.BUTTON2_MASK)
             }
         }
         ActionManager.onKeyDown(baseKey + key)
@@ -125,7 +125,7 @@ class Controller(val id: Int) {
             if (isMouseInWindow() && GFX.isInFocus) {
                 Input.onMouseRelease(key)
             } else {
-                robot.mouseRelease(if(key == 0) InputEvent.BUTTON1_MASK else InputEvent.BUTTON2_MASK)
+                GFX.robot.mouseRelease(if (key == 0) InputEvent.BUTTON1_MASK else InputEvent.BUTTON2_MASK)
             }
         }
         ActionManager.onKeyTyped(baseKey + key)
@@ -159,6 +159,8 @@ class Controller(val id: Int) {
             ticksOnline = max(1, ticksOnline + 1)
 
             if (false && isGamepad) {
+
+                // todo doesn't work yet...
 
                 // update other axes as well? mmh...
 
@@ -249,14 +251,14 @@ class Controller(val id: Int) {
             }
 
             // support multiple mice (?); game specific; nice for strategy games
-            if (isFirst && isActive && GFX.isInFocus) {
+            if (isFirst && isActive) {
                 // if buttons = 0,1 (left wheel), then move the mouse
                 val moveButtons = 0
                 if (axisValues[moveButtons] != 0f || axisValues[moveButtons + 1] != 0f) {
                     val speed = 1000f
-                    val dx = +axisValues[moveButtons] * speed * dt
-                    val dy = +axisValues[moveButtons + 1] * speed * dt
-                    ActionManager.onMouseMoved(+dx, +dy)
+                    val dx = axisValues[moveButtons] * speed * dt
+                    val dy = axisValues[moveButtons + 1] * speed * dt
+                    ActionManager.onMouseMoved(dx, dy)
                     if (!GFX.isMouseTrapped) {
                         // only works well, if we have a single player
                         // it we have a mouse user and a controller user, the controller user will win here ...
@@ -276,23 +278,39 @@ class Controller(val id: Int) {
                 val scrollButtons = 2
                 if (axisValues[scrollButtons] != 0f || axisValues[scrollButtons + 1] != 0f) {
                     val speed = 50f // non linear curve for better control, and fast-scrolling
-                    var dx = +axisValues[scrollButtons]
-                    var dy = -axisValues[scrollButtons + 1]
+                    var dx = axisValues[scrollButtons]
+                    var dy = axisValues[scrollButtons + 1]
                     val f = sq(dx, dy)
                     dx *= f
                     dy *= f
-                    Input.onMouseWheel(dx * speed * dt, dy * speed * dt)
+                    if (GFX.isInFocus && isMouseInWindow()) {
+                        if (controllerMouseWheelIsSingleAxis) {
+                            Input.onMouseWheel(0f, -dy * speed * dt, true)
+                        } else {
+                            Input.onMouseWheel(dx * speed * dt, -dy * speed * dt, false)
+                        }
+                        mouseWheelFract = 0f
+                    } else {
+                        mouseWheelFract += dy * speed * dt
+                        val mwf = mouseWheelFract.roundToInt()
+                        if (mwf != 0) {
+                            GFX.robot.mouseWheel(+mwf)
+                            mouseWheelFract -= mwf
+                        }
+                    }
                 }
             }
-
         }
     }
 
     companion object {
 
+        var controllerMouseWheelIsSingleAxis = false
+
         private var lastMousePos = 0L
         private var mousePosX = 0f
         private var mousePosY = 0f
+        private var mouseWheelFract = 0f
 
         fun formatGuid(guid: String): String {
             var str = guid.trim()
@@ -344,8 +362,6 @@ class Controller(val id: Int) {
         // private val minActivationPoint = 0.05f
         // private val maxActivationPoint = 0.95f
         private val LOGGER = LogManager.getLogger(Controller::class)
-
-        private val robot = Robot()
 
     }
 }

@@ -1,11 +1,9 @@
 package me.anno.ui.base.scrolling
 
-import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
-import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY.Companion.scrollSpeed
@@ -49,7 +47,7 @@ open class ScrollPanelXY(
         if (
             scrollPositionX != lspX ||
             scrollPositionY != lspY ||
-            maxScrollPositionX != lmspX||
+            maxScrollPositionX != lmspX ||
             maxScrollPositionY != lmspY
         ) {
             lspX = scrollPositionX
@@ -83,18 +81,23 @@ open class ScrollPanelXY(
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
 
-        child.calculateSize(w - padding.width, maxLength - padding.height)
+        child.calculateSize(maxLength - padding.width, maxLength - padding.height)
 
         minW = child.minW + padding.width
         minH = child.minH + padding.height
+
         if (maxScrollPositionY > 0) minW += scrollbarWidth
+        if (maxScrollPositionX > 0) minH += scrollbarHeight
+
     }
 
     override fun placeInParent(x: Int, y: Int) {
         super.placeInParent(x, y)
 
-        val scroll = scrollPositionY.toInt()
-        child.placeInParent(x + padding.left, y + padding.top - scroll)
+        val scrollX = scrollPositionX.toInt()
+        val scrollY = scrollPositionY.toInt()
+
+        child.placeInParent(x + padding.left - scrollX, y + padding.top - scrollY)
 
     }
 
@@ -120,27 +123,38 @@ open class ScrollPanelXY(
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
-        val delta = dx - dy
-        val scale = scrollSpeed
-        if (Input.isShiftDown) {
-            if ((delta > 0f && scrollPositionX >= maxScrollPositionX) ||
-                (delta < 0f && scrollPositionX <= 0f)
-            ) {// if done scrolling go up the hierarchy one
-                super.onMouseWheel(x, y, dx, dy)
-            } else {
-                scrollPositionX += scale * delta
-                clampScrollPosition()
-            }
+
+        var consumedX = false
+        var consumedY = false
+
+        val dx0 = dx * scrollSpeed
+        if ((dx0 > 0f && scrollPositionX >= maxScrollPositionX) ||
+            (dx0 < 0f && scrollPositionX <= 0f)
+        ) {// if done scrolling go up the hierarchy one
+
         } else {
-            if ((delta > 0f && scrollPositionY >= maxScrollPositionY) ||
-                (delta < 0f && scrollPositionY <= 0f)
-            ) {// if done scrolling go up the hierarchy one
-                super.onMouseWheel(x, y, dx, dy)
-            } else {
-                scrollPositionY += scale * delta
-                clampScrollPosition()
-            }
+            scrollPositionX += dx0
+            clampScrollPosition()
+            consumedX = true
         }
+
+        val dy0 = -dy * scrollSpeed
+        if ((dy0 > 0f && scrollPositionY >= maxScrollPositionY) ||
+            (dy0 < 0f && scrollPositionY <= 0f)
+        ) {// if done scrolling go up the hierarchy one
+
+        } else {
+            scrollPositionY += dy0
+            clampScrollPosition()
+            consumedY = true
+        }
+
+        if (!consumedX || !consumedY) {
+            val dx2 = if (consumedX) 0f else dx
+            val dy2 = if (consumedY) 0f else dy
+            super.onMouseWheel(x, y, dx2, dy2)
+        }
+
     }
 
     fun clampScrollPosition() {

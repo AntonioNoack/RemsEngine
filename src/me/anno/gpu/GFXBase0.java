@@ -37,6 +37,7 @@ import org.lwjgl.system.Callback;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
+import java.awt.*;
 import java.io.*;
 import java.nio.IntBuffer;
 
@@ -99,6 +100,8 @@ public class GFXBase0 {
     public float contentScaleY = 1f;
 
     public GLCapabilities capabilities;
+
+    public Robot robot = null;
 
     public void loadRenderDoc() {
         // must be executed before OpenGL-init
@@ -210,6 +213,12 @@ public class GFXBase0 {
         glfwGetCursorPos(window, x, y);
         Input.INSTANCE.setMouseX((float) x[0]);
         Input.INSTANCE.setMouseY((float) y[0]);
+
+        try {
+            robot = new Robot();
+        } catch (AWTException e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -594,7 +603,14 @@ public class GFXBase0 {
                     cursorIsHidden = false;
                 }
                 if (mouseTargetX != -1.0 && mouseTargetY != -1.0) {
-                    glfwSetCursorPos(window, mouseTargetX, mouseTargetY);
+                    if (isInFocus) {
+                        glfwSetCursorPos(window, mouseTargetX, mouseTargetY);
+                    } else if (robot != null) {
+                        int[] x = new int[1];
+                        int[] y = new int[1];
+                        glfwGetWindowPos(window, x, y);
+                        robot.mouseMove((int) mouseTargetX + x[0], (int) mouseTargetY + y[0]);
+                    }
                     mouseTargetX = -1.0;
                     mouseTargetY = -1.0;
                 }

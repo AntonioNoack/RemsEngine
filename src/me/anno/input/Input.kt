@@ -170,7 +170,7 @@ object Input {
         }
 
         GLFW.glfwSetScrollCallback(window) { _, xOffset, yOffset ->
-            onMouseWheel(xOffset.toFloat(), yOffset.toFloat())
+            onMouseWheel(xOffset.toFloat(), yOffset.toFloat(), true)
         }
 
         GLFW.glfwSetKeyCallback(window) { window, key, scancode, action, mods ->
@@ -296,11 +296,19 @@ object Input {
 
     }
 
-    fun onMouseWheel(dx: Float, dy: Float) {
+    var hasSeenMouseWheelX = false
+    fun onMouseWheel(dx: Float, dy: Float, byMouse: Boolean) {
         addEvent {
             framesSinceLastInteraction = 0
             val clicked = getPanelAt(mouseX, mouseY)
-            clicked?.onMouseWheel(mouseX, mouseY, dx, dy)
+            if (!byMouse && abs(dx) > abs(dy)) hasSeenMouseWheelX = true // e.g. by touchpad
+            if (clicked != null) {
+                if (!hasSeenMouseWheelX && byMouse && (isShiftDown || isControlDown)) {
+                    clicked.onMouseWheel(mouseX, mouseY, -dy, dx)
+                } else {
+                    clicked.onMouseWheel(mouseX, mouseY, dx, dy)
+                }
+            }
         }
     }
 

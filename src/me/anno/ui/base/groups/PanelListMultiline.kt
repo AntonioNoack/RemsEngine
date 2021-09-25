@@ -213,19 +213,18 @@ class PanelListMultiline(val sorter: Comparator<Panel>?, style: Style) : PanelGr
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
-        if (!Input.isShiftDown && !Input.isControlDown) {
-            val delta = dx - dy
-            val scale = scrollSpeed
-            if ((delta > 0f && scrollPositionY >= maxScrollPositionY) ||
-                (delta < 0f && scrollPositionY <= 0f)
-            ) {// if done scrolling go up the hierarchy one
-                super.onMouseWheel(x, y, dx, dy)
-            } else {
-                scrollPositionY += scale * delta
-                clampScrollPosition()
-                invalidateLayout()
-            }
-        } else super.onMouseWheel(x, y, dx, dy)
+        val delta = -dy * scrollSpeed
+        if ((delta > 0f && scrollPositionY >= maxScrollPositionY) ||
+            (delta < 0f && scrollPositionY <= 0f)
+        ) {// if done scrolling go up the hierarchy one
+            super.onMouseWheel(x, y, dx, dy)
+        } else {
+            scrollPositionY += delta
+            clampScrollPosition()
+            invalidateLayout()
+            // we consumed dy
+            super.onMouseWheel(x, y, dx, 0f)
+        }
     }
 
     private fun clampScrollPosition() {
