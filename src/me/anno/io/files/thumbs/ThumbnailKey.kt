@@ -1,4 +1,4 @@
-package me.anno.ui.editor.files.thumbs
+package me.anno.io.files.thumbs
 
 import me.anno.io.files.FileReference
 

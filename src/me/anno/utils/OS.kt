@@ -10,6 +10,8 @@ object OS {// the os is important for some things, e.g. the allowed file names, 
     val isWindows = data.contains("windows", true)
     val isLinux = !isWindows // ^^
     val isMac = false // ^^
+    val isIPhoneOS = false // ^^
+    val isIPadOS = false // ^^
 
     // we haven't implemented a mobile version yet (because that needs different controls),
     // and idk about performance

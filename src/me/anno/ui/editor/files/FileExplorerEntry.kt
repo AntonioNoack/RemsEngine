@@ -40,7 +40,7 @@ import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.dragging.Draggable
-import me.anno.ui.editor.files.thumbs.Thumbs
+import me.anno.io.files.thumbs.Thumbs
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
@@ -127,7 +127,6 @@ class FileExplorerEntry(
             "Text" -> "file/text.png"
             "Audio", "Video" -> "file/music.png"
             // todo link icon for .lnk and .url, and maybe .desktop
-            // todo icon for asset
             else -> "file/document.png"
         }
     }
@@ -474,10 +473,6 @@ class FileExplorerEntry(
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
         return true
-    }
-
-    fun openInExplorer() {
-        file.openInExplorer()
     }
 
     fun renameTo(newName: String) {

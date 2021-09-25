@@ -45,8 +45,7 @@ import me.anno.ui.editor.files.FileExplorerOption
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
 import me.anno.utils.maths.Maths
-import me.anno.utils.strings.StringHelper
-import me.anno.utils.strings.StringHelper.titlecase
+import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.structures.tuples.MutablePair
 import me.anno.utils.types.Quaternions.toEulerAnglesDegrees
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
@@ -85,7 +84,7 @@ object ComponentUI {
         style: Style
     ): Panel? {
 
-        val title = if (name == null) "" else StringHelper.splitCamelCase(name.titlecase())
+        val title = name?.camelCaseToTitle() ?: ""
 
         val type0 = property.annotations.filterIsInstance<me.anno.ecs.annotations.Type>().firstOrNull()?.type
         val type1 = type0 ?: when (val value = property.get()) {// todo better, not sample-depending check for the type
@@ -196,7 +195,7 @@ object ComponentUI {
         style: Style
     ): Panel {
 
-        val title = if (name == null) "" else StringHelper.splitCamelCase(name.titlecase())
+        val title = name?.camelCaseToTitle() ?: ""
         val ttt = "" // we could use annotations for that :)
         val value = property.get()
         val default = property.getDefault()

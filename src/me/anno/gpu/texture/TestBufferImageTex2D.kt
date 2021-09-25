@@ -1,7 +1,6 @@
 package me.anno.gpu.texture
 
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultStyle.black
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.TextureLib
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
@@ -10,7 +9,7 @@ import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.Renderer
 import me.anno.io.files.InvalidRef
-import me.anno.ui.editor.files.thumbs.Thumbs
+import me.anno.io.files.thumbs.Thumbs
 import me.anno.utils.OS.desktop
 import org.lwjgl.opengl.GL11.*
 import java.awt.image.BufferedImage

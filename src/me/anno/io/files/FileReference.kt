@@ -6,6 +6,7 @@ import me.anno.io.zip.ZipCache
 import me.anno.studio.StudioBase
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.openInExplorer
+import me.anno.utils.files.Files.use
 import me.anno.utils.files.LocalFile.toLocalPath
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.commons.compress.archivers.zip.ZipFile
@@ -244,6 +245,33 @@ abstract class FileReference(val absolutePath: String) {
     open fun readBytes() = inputStream().readBytes()
     fun readByteBuffer(): ByteBuffer {
         return ByteBuffer.wrap(readBytes())
+    }
+
+    fun writeFile(file: FileReference, deltaProgress: (Long) -> Unit) {
+        use(outputStream()) { output ->
+            use(file.inputStream()) { input ->
+                val buffer = ByteArray(2048)
+                while (true) {
+                    val numReadBytes = input.read(buffer)
+                    if (numReadBytes < 0) break
+                    output.write(buffer, 0, numReadBytes)
+                    deltaProgress(numReadBytes.toLong())
+                }
+            }
+        }
+    }
+
+    fun writeFile(file: FileReference) {
+        use(outputStream()) { output ->
+            use(file.inputStream()) { input ->
+                val buffer = ByteArray(2048)
+                while (true) {
+                    val numReadBytes = input.read(buffer)
+                    if (numReadBytes < 0) break
+                    output.write(buffer, 0, numReadBytes)
+                }
+            }
+        }
     }
 
     open fun writeText(text: String) {

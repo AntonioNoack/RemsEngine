@@ -431,6 +431,8 @@ object GFX : GFXBase1() {
         // the worker thread might have invalidated those
         updateLastLocalTime(root, editorTime)
 
+        Input.pollControllers()
+
         workEventTasks()
 
         Texture2D.resetBudget()

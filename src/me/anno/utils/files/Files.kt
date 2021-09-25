@@ -47,6 +47,35 @@ object Files {
 
     fun findNextFile(
         parent: FileReference,
+        name: FileReference,
+        extension: String,
+        digitsLength: Int,
+        colonSymbol: Char,
+        startingNumber: Long = 1
+    ): FileReference {
+        val newName = findNextFileName(
+            parent, name.nameWithoutExtension, extension,
+            digitsLength, colonSymbol, startingNumber
+        )
+        return parent.getChild(newName)
+    }
+
+    fun findNextFile(
+        parent: FileReference,
+        name: FileReference,
+        digitsLength: Int,
+        colonSymbol: Char,
+        startingNumber: Long = 1
+    ): FileReference {
+        val newName = findNextFileName(
+            parent, name.nameWithoutExtension, name.extension,
+            digitsLength, colonSymbol, startingNumber
+        )
+        return parent.getChild(newName)
+    }
+
+    fun findNextFile(
+        parent: FileReference,
         nameWithoutExtension: String,
         extension: String,
         digitsLength: Int,

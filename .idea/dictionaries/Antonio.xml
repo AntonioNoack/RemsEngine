@@ -96,6 +96,7 @@
       <w>fract</w>
       <w>framebuffers</w>
       <w>gainsboro</w>
+      <w>gamepad</w>
       <w>gbar</w>
       <w>generatable</w>
       <w>gggg</w>
@@ -167,6 +168,7 @@
       <w>lowpoly</w>
       <w>lwjgl</w>
       <w>magica</w>
+      <w>makelink</w>
       <w>markdeep</w>
       <w>matkey</w>
       <w>matl</w>
@@ -272,6 +274,7 @@
       <w>symbola</w>
       <w>targa</w>
       <w>thinnen</w>
+      <w>titlecase</w>
       <w>tonemapping</w>
       <w>treemiddle</w>
       <w>triangulator</w>

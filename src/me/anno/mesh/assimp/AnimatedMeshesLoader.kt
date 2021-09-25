@@ -154,7 +154,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                 val animPath = anim.getChildPath(0)
                 hierarchy.add(anim)
                 hierarchy.setUnsafe(animPath, "skeleton", skeletonPath)
-                hierarchy.setUnsafe(animPath, "animation", animMap.values.first())
+                hierarchy.setUnsafe(animPath, "animationWeights", hashMapOf(animMap.values.first() to 1f))
             }
 
             correctBonePositions(name, rootNode, boneList, boneMap)
@@ -228,7 +228,8 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         }
         // apply the change to all meshes
         for (mesh in meshes) {
-            val changeWithIndices = mesh.sets[Path.ROOT_PATH, "boneIndices"] // !!.firstOrNull { it.name == "boneIndices" }
+            val changeWithIndices =
+                mesh.sets[Path.ROOT_PATH, "boneIndices"] // !!.firstOrNull { it.name == "boneIndices" }
             if (changeWithIndices != null) {
                 // correct order?
                 val values = changeWithIndices as ByteArray

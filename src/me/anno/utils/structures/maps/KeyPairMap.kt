@@ -1,18 +1,18 @@
 package me.anno.utils.structures.maps
 
-import me.anno.utils.structures.tuples.MutablePair
+import me.anno.utils.structures.lists.PairArrayList
 
 class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
-    Iterable<List<MutablePair<KFewOnly, Value>>> {
+    Iterable<PairArrayList<KFewOnly, Value>> {
 
-    val values = HashMap<KManifold, MutableList<MutablePair<KFewOnly, Value>>>(capacity)
+    val values = HashMap<KManifold, PairArrayList<KFewOnly, Value>>(capacity)
     var size = 0
 
     operator fun get(
         k1: KManifold,
         k2: KFewOnly
     ): Value? {
-        return values[k1]?.firstOrNull { it.first == k2 }?.second
+        return values[k1]?.byA(k2)
     }
 
     operator fun set(
@@ -20,15 +20,8 @@ class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
         k2: KFewOnly,
         v: Value
     ) {
-        val list = values.getOrPut(k1) { ArrayList(8) }
-        for (pair in list) {
-            if (pair.first == k2) {
-                pair.second = v
-                size++
-                return
-            }
-        }
-        list.add(MutablePair(k2, v))
+        val list = values.getOrPut(k1) { PairArrayList(8) }
+        list.replaceOrAddMap(k2, v)
         size++
     }
 
@@ -37,14 +30,14 @@ class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
         k2: KFewOnly,
         v: (k1: KManifold, k2: KFewOnly) -> Value
     ): Value {
-        val list = values.getOrPut(k1) { ArrayList(8) }
+        val list = values.getOrPut(k1) { PairArrayList(8) }
         for (pair in list) {
             if (pair.first == k2) {
                 return pair.second
             }
         }
         val value = v(k1, k2)
-        list.add(MutablePair(k2, value))
+        list.add(k2, value)
         size++
         return value
     }
@@ -91,7 +84,7 @@ class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
 
     inline fun removeIf(crossinline run: (k1: KManifold, k2: KFewOnly, v: Value) -> Boolean) {
         for ((k1, k2s) in values) {
-            k2s.removeIf { (k2, v) ->
+            k2s.removeIf { k2, v ->
                 run(k1, k2, v)
             }
         }
@@ -100,7 +93,7 @@ class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
 
     fun remove(k1: KManifold, k2: KFewOnly): Boolean {
         val list = values[k1] ?: return false
-        return if(list.removeIf { it.first == k2 }){
+        return if (list.removeIf { first, _ -> first == k2 }) {
             size--
             true
         } else false
@@ -116,9 +109,7 @@ class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
         return sum
     }
 
-    override fun iterator(): Iterator<List<MutablePair<KFewOnly, Value>>> {
-        return values.values.iterator()
-    }
+    override fun iterator() = values.values.iterator()
 
     fun isEmpty() = size == 0
 

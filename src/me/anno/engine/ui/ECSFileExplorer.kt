@@ -96,7 +96,7 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
                 } else {
                     LOGGER.warn("Could not load $src as prefab")
                     if (files.size == 1) {
-                        switchTo(src)
+                        super.onPasteFiles(x, y, files)
                         return
                     }
                     // todo copy the file?
@@ -107,7 +107,7 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
             LastModifiedCache.invalidate(current)
         } else {
             LOGGER.info("$current is not in $projectFolder, skipping import")
-            switchTo(files.first())
+            super.onPasteFiles(x, y, files)
         }
     }
 

@@ -42,11 +42,12 @@ class CSet() : Change(5) {
     }
 
     override fun readSomething(name: String, value: Any?) {
-        this.name = name
-        if (value is Path) {
-            TODO("get the element at that path")
+        if (name == "path" && value is Path) {
+            path = value
+        } else {
+            this.name = name
+            this.value = value
         }
-        this.value = value
     }
 
     override fun applyChange(instance: PrefabSaveable, chain: MutableSet<FileReference>?) {

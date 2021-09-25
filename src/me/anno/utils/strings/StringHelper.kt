@@ -20,16 +20,15 @@ object StringHelper {
     }
 
     // by polyGeneLubricants, https://stackoverflow.com/a/2560017/4979303
-    fun splitCamelCase(s: String): String {
-        return s.replace(
-            String.format(
-                "%s|%s|%s",
-                "(?<=[A-Z])(?=[A-Z][a-z])",
-                "(?<=[^A-Z])(?=[A-Z])",
-                "(?<=[A-Za-z])(?=[^A-Za-z])"
-            ).toRegex(),
+    fun String.splitCamelCase(): String {
+        return replace(
+            splitCamelCaseRegex,
             " "
         )
+    }
+
+    fun String.camelCaseToTitle(): String {
+        return splitCamelCase().titlecase()
     }
 
     fun setNumber(pos: Int, num: Int, dst: CharArray) {
@@ -51,5 +50,8 @@ object StringHelper {
             else this
         }
     }
+
+    // by polyGeneLubricants, https://stackoverflow.com/a/2560017/4979303
+    private val splitCamelCaseRegex = Regex("(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])")
 
 }

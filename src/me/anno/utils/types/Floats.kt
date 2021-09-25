@@ -52,18 +52,30 @@ object Floats {
     fun Float.toDegrees() = this * x180fPi
     fun Float.toRadians() = this * piF180
 
+    fun Float.f6() = "%.6f".format(Locale.ENGLISH,this)
+    fun Float.f5() = "%.5f".format(Locale.ENGLISH,this)
+    fun Float.f4() = "%.4f".format(Locale.ENGLISH,this)
     fun Float.f3() = "%.3f".format(Locale.ENGLISH,this)
     fun Float.f2() = "%.2f".format(Locale.ENGLISH,this)
     fun Float.f1() = "%.1f".format(Locale.ENGLISH,this)
 
+    fun Double.f6() = "%.6f".format(Locale.ENGLISH,this)
+    fun Double.f5() = "%.5f".format(Locale.ENGLISH,this)
+    fun Double.f4() = "%.4f".format(Locale.ENGLISH,this)
     fun Double.f3() = "%.3f".format(Locale.ENGLISH,this)
     fun Double.f2() = "%.2f".format(Locale.ENGLISH,this)
     fun Double.f1() = "%.1f".format(Locale.ENGLISH,this)
 
+    fun Float.f6s() = "% .6f".format(Locale.ENGLISH,this)
+    fun Float.f5s() = "% .5f".format(Locale.ENGLISH,this)
+    fun Float.f4s() = "% .4f".format(Locale.ENGLISH,this)
     fun Float.f3s() = "% .3f".format(Locale.ENGLISH,this)
     fun Float.f2s() = "% .2f".format(Locale.ENGLISH,this)
     fun Float.f1s() = "% .1f".format(Locale.ENGLISH,this)
 
+    fun Double.f6s() = "% .6f".format(Locale.ENGLISH,this)
+    fun Double.f5s() = "% .5f".format(Locale.ENGLISH,this)
+    fun Double.f4s() = "% .4f".format(Locale.ENGLISH,this)
     fun Double.f3s() = "% .3f".format(Locale.ENGLISH,this)
     fun Double.f2s() = "% .2f".format(Locale.ENGLISH,this)
     fun Double.f1s() = "% .1f".format(Locale.ENGLISH,this)

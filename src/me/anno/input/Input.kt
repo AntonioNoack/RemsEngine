@@ -23,10 +23,10 @@ import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.StudioBase.Companion.instance
 import me.anno.ui.base.Panel
 import me.anno.ui.editor.treeView.AbstractTreeViewPanel
-import me.anno.utils.maths.Maths.length
-import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.files.FileExplorerSelectWrapper
 import me.anno.utils.files.Files.findNextFile
+import me.anno.utils.hpc.Threads.threadWithName
+import me.anno.utils.maths.Maths.length
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWDropCallback
@@ -48,8 +48,11 @@ object Input {
 
     var keyUpCtr = 0
 
-    var mouseX = 0f
-    var mouseY = 0f
+    // where the mouse is
+    // the default is before any mouse move was registered:
+    // then the cursor shall start in the center of the window
+    var mouseX = GFX.width * 0.5f
+    var mouseY = GFX.height * 0.5f
 
     var lastFile: FileReference = InvalidRef
 
@@ -167,11 +170,7 @@ object Input {
         }
 
         GLFW.glfwSetScrollCallback(window) { _, xOffset, yOffset ->
-            addEvent {
-                framesSinceLastInteraction = 0
-                val clicked = getPanelAt(mouseX, mouseY)
-                clicked?.onMouseWheel(mouseX, mouseY, xOffset.toFloat(), yOffset.toFloat())
-            }
+            onMouseWheel(xOffset.toFloat(), yOffset.toFloat())
         }
 
         GLFW.glfwSetKeyCallback(window) { window, key, scancode, action, mods ->
@@ -295,6 +294,27 @@ object Input {
                 }
         }
 
+    }
+
+    fun onMouseWheel(dx: Float, dy: Float) {
+        addEvent {
+            framesSinceLastInteraction = 0
+            val clicked = getPanelAt(mouseX, mouseY)
+            clicked?.onMouseWheel(mouseX, mouseY, dx, dy)
+        }
+    }
+
+    val controllers = Array(15) { Controller(it) }
+    fun pollControllers() {
+        // controllers need to be pulled constantly
+        synchronized(GFX.glfwLock) {
+            var isFirst = true
+            for (index in controllers.indices) {
+                if (controllers[index].pollEvents(isFirst)) {
+                    isFirst = false
+                }
+            }
+        }
     }
 
     fun onClickIntoWindow(button: Int, panelWindow: Pair<Panel, Window>?) {

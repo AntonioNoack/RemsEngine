@@ -11,7 +11,7 @@ import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.mesh.assimp.AnimHierarchy.loadSkeletonFromAnimations
 import me.anno.mesh.assimp.AnimatedMeshesLoader.createNodeCache
-import me.anno.ui.editor.files.thumbs.Thumbs
+import me.anno.io.files.thumbs.Thumbs
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g

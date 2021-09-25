@@ -25,8 +25,7 @@ import me.anno.ui.editor.stacked.StackPanel
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.utils.process.DelayedTask
-import me.anno.utils.strings.StringHelper
-import me.anno.utils.strings.StringHelper.titlecase
+import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import org.apache.logging.log4j.LogManager
 
 // todo right click - reset is not available on all elements
@@ -252,7 +251,7 @@ class PrefabInspector(
 
             // todo get options of any type...
 
-            val nicerName = StringHelper.splitCamelCase(niceName.titlecase())
+            val nicerName = niceName.camelCaseToTitle()
             list.add(object : StackPanel(
                 nicerName, "",
                 options, children, style

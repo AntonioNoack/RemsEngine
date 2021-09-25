@@ -9,6 +9,8 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.objects.inspectable.Inspectable
 import me.anno.ui.editor.stacked.Option
 import me.anno.utils.strings.StringHelper
+import me.anno.utils.strings.StringHelper.camelCaseToTitle
+import me.anno.utils.strings.StringHelper.splitCamelCase
 import me.anno.utils.structures.lists.UpdatingList
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
@@ -191,7 +193,7 @@ abstract class Component : PrefabSaveable(), Inspectable {
             val knownComponents = ISaveable.objectTypeRegistry.filterValues { it.sampleInstance is Component }
             return UpdatingList {
                 knownComponents.map {
-                    Option(StringHelper.splitCamelCase(it.key), "") {
+                    Option(it.key.camelCaseToTitle(), "") {
                         val comp = it.value.generator() as Component
                         comp.entity = entity
                         comp

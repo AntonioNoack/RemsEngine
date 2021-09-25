@@ -51,14 +51,13 @@ abstract class Change(val priority: Int) : Saveable(), Cloneable {
     }
 
     override fun readString(name: String, value: String?) {
-        when (name) {
-            "path" -> try {
+        if (name == "path") {
+            try {
                 path = Path.parse(value)
             } catch (e: ParseException) {
                 super.readString(name, value)
             }
-            else -> super.readString(name, value)
-        }
+        } else super.readString(name, value)
     }
 
     companion object {

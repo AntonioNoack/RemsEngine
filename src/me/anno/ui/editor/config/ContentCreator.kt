@@ -14,6 +14,7 @@ import me.anno.utils.Color.rgba
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing.parseColor
+import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
 
@@ -28,11 +29,12 @@ class ContentCreator(
     }
 
     fun createPanels(list: PanelList) {
-        val title = TextPanel(shortName, style)
+        val shortTitle = shortName.camelCaseToTitle()
+        val title = TextPanel(shortTitle, style)
         val pad = title.font.sizeInt
         when (val value = map[fullName]!!) {
             is Boolean -> {
-                list += BooleanInput(shortName, value, false, style)
+                list += BooleanInput(shortTitle, value, false, style)
                     .setChangeListener { map[fullName] = it }
                     .withPadding(pad, 0, 0, 0)
             }
@@ -46,41 +48,41 @@ class ContentCreator(
                     is String -> {
                         when (shortName) {
                             "background", "color", "textColor" -> {
-                                ColorInput(style, "", shortName, (parseColor(value) ?: black).toVecRGBA(), true)
+                                ColorInput(style, "", "", (parseColor(value) ?: black).toVecRGBA(), true)
                                     .setChangeListener { r, g, b, a ->
                                         map[fullName] = Vector4f(r, g, b, a).toHexColor()
                                     }
                             }
                             else -> {
-                                TextInput(shortName, "", false, style)
+                                TextInput("", "", false, style)
                                     .setValue(value, false)
                                     .setChangeListener { map[fullName] = it }
                             }
                         }
                     }
                     is FileReference -> {
-                        FileInput(shortName, style, value, emptyList())
+                        FileInput("", style, value, emptyList())
                             .setChangeListener { map[fullName] = it }
                     }
                     is Int -> {
                         if (value.shr(24).and(255) > 100) {
                             // a color
-                            ColorInput(style, "", shortName, value.toVecRGBA(), true)
+                            ColorInput(style, "", "", value.toVecRGBA(), true)
                                 .setChangeListener { r, g, b, a -> map[fullName] = rgba(r, g, b, a) }
                         } else {
-                            IntInput("", shortName, value, style)
+                            IntInput("", "", value, style)
                                 .setChangeListener { map[fullName] = it.toInt() }
                         }
                     }
-                    is Long -> IntInput("", shortName, value, style)
+                    is Long -> IntInput("", "", value, style)
                         .setChangeListener { map[fullName] = it }
-                    is Float -> FloatInput("", shortName, value, Type.FLOAT, style)
+                    is Float -> FloatInput("", "", value, Type.FLOAT, style)
                         .setChangeListener { map[fullName] = it.toFloat() }
-                    is Double -> FloatInput("", shortName, value, Type.DOUBLE, style)
+                    is Double -> FloatInput("", "", value, Type.DOUBLE, style)
                         .setChangeListener { map[fullName] = it }
                     else -> {
                         LOGGER.warn("Missing type implementation ${value.javaClass.simpleName}")
-                        root.vi(shortName, fullName, null, value, style) { map[fullName] = value }
+                        root.vi(shortTitle, fullName, null, value, style) { map[fullName] = value }
                     }
                 }
                 list += body.withPadding(pad * 2, 0, 0, 0)

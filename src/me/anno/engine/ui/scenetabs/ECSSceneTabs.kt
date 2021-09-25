@@ -7,13 +7,10 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.Prefab
-import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.engine.physics.BulletPhysics
-import me.anno.engine.ui.ECSTreeView
 import me.anno.engine.ui.ECSTypeLibrary
 import me.anno.engine.ui.render.RenderView
-import me.anno.gpu.GFX.windowStack
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
@@ -21,7 +18,7 @@ import me.anno.language.translation.Dict
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
-import me.anno.ui.editor.files.thumbs.Thumbs
+import me.anno.io.files.thumbs.Thumbs
 import me.anno.utils.hpc.SyncMaster
 import me.anno.utils.types.Lists.getOrPrevious
 import org.apache.logging.log4j.LogManager

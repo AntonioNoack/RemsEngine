@@ -6,6 +6,7 @@ import me.anno.audio.openal.AudioManager
 import me.anno.audio.openal.AudioTasks
 import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultConfig.style
 import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.Cursor
 import me.anno.gpu.Cursor.useCursor
@@ -30,6 +31,7 @@ import me.anno.studio.project.Project
 import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.Panel
 import me.anno.ui.base.Tooltips
+import me.anno.ui.base.progress.ProgressBar
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.debug.FPSPanel
 import me.anno.ui.dragging.IDraggable
@@ -493,6 +495,18 @@ abstract class StudioBase(
             }
         }
 
+        synchronized(progressBars) {
+            if (progressBars.isNotEmpty()) {
+                val ph = style.getSize("progressbarHeight", 12)
+                val time = GFX.gameTime
+                for (index in progressBars.indices) {
+                    val bar = progressBars[index]
+                    bar.draw(0, ph * index, w, ph, time)
+                }
+                progressBars.removeIf { it.canBeRemoved(time) }
+            }
+        }
+
         // dragging can be a nice way to work, but dragging values to change them,
         // and copying by ctrl+c/v is probably better -> no, we need both
         // dragging files for example
@@ -540,6 +554,8 @@ abstract class StudioBase(
         return console
     }
 
+    val progressBars = ArrayList<ProgressBar>()
+
     companion object {
 
         var shallStop = false
@@ -570,6 +586,14 @@ abstract class StudioBase(
 
         fun warn(msg: String) {
             LOGGER.warn(msg)
+        }
+
+        fun addProgressBar(unit: String, total: Double): ProgressBar {
+            val bar = ProgressBar(unit, total)
+            synchronized(instance.progressBars) {
+                instance.progressBars.add(bar)
+            }
+            return bar
         }
 
         val eventTasks = ConcurrentLinkedQueue<() -> Unit>()

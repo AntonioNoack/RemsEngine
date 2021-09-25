@@ -12,6 +12,7 @@ import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.custom.CustomList
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
+import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.types.Strings.isBlank2
 import java.util.*
 import kotlin.collections.ArrayList
@@ -157,7 +158,8 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
         val topList = entries.filter { it.depth == 0 }
 
         // add header
-        val largeHeader2 = TextPanel(topic, largeHeaderText).apply { font = font.withItalic(true) }
+        val headerTitle = topic.camelCaseToTitle()
+        val largeHeader2 = TextPanel(headerTitle, largeHeaderText).apply { font = font.withItalic(true) }
         contentListUI += largeHeader2
         val subChain = StringBuilder(topList.size * 2)
         for (entry in topList) {
@@ -180,7 +182,8 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
 
         for (group in groups.entries.sortedBy { it.key }) {
             val groupName = group.key
-            val smallHeader = TextPanel(groupName, smallHeaderStyle)
+            val title = groupName.camelCaseToTitle()
+            val smallHeader = TextPanel(title, smallHeaderStyle)
             contentListUI += smallHeader
             val subChain2 = StringBuilder(group.value.size * 2)
             for (entry in group.value) {

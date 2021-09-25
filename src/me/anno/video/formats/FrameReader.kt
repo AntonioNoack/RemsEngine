@@ -55,7 +55,7 @@ abstract class FrameReader<FrameType>(
         waitUntil(true) { w != 0 && h != 0 && codec.isNotEmpty() }
         synchronized(foundCodecs) {
             if (foundCodecs.add(codec)) {
-                LOGGER.info("Found codec '$codec' by $file")
+                LOGGER.info("Found codec '$codec' in $file")
             }
         }
         if (!isDestroyed && !isFinished) {

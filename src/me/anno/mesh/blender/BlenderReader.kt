@@ -10,7 +10,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.zip.InnerFolder
 import me.anno.io.zip.InnerPrefabFile
 import me.anno.mesh.blender.impl.*
-import me.anno.ui.editor.files.thumbs.Thumbs
+import me.anno.io.files.thumbs.Thumbs
 import me.anno.utils.Clock
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.documents

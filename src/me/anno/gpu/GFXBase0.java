@@ -75,21 +75,30 @@ public class GFXBase0 {
         enableVsync = !enableVsync;
     }
 
-    static Logger LOGGER = LogManager.getLogger(GFXBase0.class);
+    private static final Logger LOGGER = LogManager.getLogger(GFXBase0.class);
 
-    GLFWErrorCallback errorCallback;
-    GLFWKeyCallback keyCallback;
-    GLFWFramebufferSizeCallback fsCallback;
-    Callback debugProc;
+    private GLFWErrorCallback errorCallback;
+    private GLFWKeyCallback keyCallback;
+    private GLFWFramebufferSizeCallback fsCallback;
+    private Callback debugProc;
 
     public String title = "Rem's Studio";
 
     public long window;
     public int width = 800;
     public int height = 700;
-    final Object glfwLock = new Object();
-    final Object openglLock = new Object();
-    boolean destroyed;
+    public final Object glfwLock = new Object();
+    public final Object openglLock = new Object();
+    public boolean destroyed;
+
+    public boolean isInFocus = false;
+    public boolean isMinimized = false;
+    public boolean needsRefresh = true;
+
+    public float contentScaleX = 1f;
+    public float contentScaleY = 1f;
+
+    public GLCapabilities capabilities;
 
     public void loadRenderDoc() {
         // must be executed before OpenGL-init
@@ -197,6 +206,11 @@ public class GFXBase0 {
 
         tick.stop("setting icon");
 
+        double[] x = new double[1], y = new double[1];
+        glfwGetCursorPos(window, x, y);
+        Input.INSTANCE.setMouseX((float) x[0]);
+        Input.INSTANCE.setMouseY((float) y[0]);
+
     }
 
     public void setTitle(String title) {
@@ -206,13 +220,6 @@ public class GFXBase0 {
     private void setNewTitle(String title) {
         glfwSetWindowTitle(window, title);
     }
-
-    public boolean isInFocus = false;
-    public boolean isMinimized = false;
-    public boolean needsRefresh = true;
-
-    public float contentScaleX = 1f;
-    public float contentScaleY = 1f;
 
     public void addCallbacks() {
         glfwSetKeyCallback(window, keyCallback = new GLFWKeyCallback() {
@@ -260,10 +267,7 @@ public class GFXBase0 {
             contentScaleY = yScale;
         });
 
-
     }
-
-    GLCapabilities capabilities;
 
     public void requestAttention() {
         glfwRequestWindowAttention(window);
@@ -528,14 +532,27 @@ public class GFXBase0 {
     public Panel trapMousePanel;
     public float trapMouseRadius = 250f;
 
+    public double mouseTargetX = -1.0, mouseTargetY = -1.0;
+
+    public boolean isMouseTrapped() {
+        return trapMousePanel != null && isInFocus && trapMousePanel == GFX.INSTANCE.getInFocus0();
+    }
+
+    public void moveMouseTo(float x, float y) {
+        mouseTargetX = x;
+        mouseTargetY = y;
+    }
+
+    public void moveMouseTo(double x, double y) {
+        mouseTargetX = x;
+        mouseTargetY = y;
+    }
+
     void windowLoop() {
 
         Thread.currentThread().setName("GLFW");
 
-        /*
-         * Start new thread to have the OpenGL context current in and which does
-         * the rendering.
-         */
+        // Start new thread to have the OpenGL context current in and which does the rendering.
         new Thread(() -> {
             runRenderLoop();
             cleanUp();
@@ -543,13 +560,22 @@ public class GFXBase0 {
 
         boolean cursorIsHidden = false;
 
+        /*new Thread(() -> {
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException ignored) { }
+            requestExit();
+        }).start();*/
+
         while (!shouldClose) {
             while (!glfwWindowShouldClose(window) && !shouldClose) {
+                // update title, if necessary
                 if (newTitle != null) {
                     setNewTitle(newTitle);
                     newTitle = null;
                 }
-                if (trapMousePanel != null && isInFocus && trapMousePanel == GFX.INSTANCE.getInFocus0()) {
+                // trapping the mouse
+                if (isMouseTrapped()) {
                     if (!cursorIsHidden) {
                         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
                         cursorIsHidden = true;
@@ -567,8 +593,16 @@ public class GFXBase0 {
                     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
                     cursorIsHidden = false;
                 }
-                glfwWaitEvents();
+                if (mouseTargetX != -1.0 && mouseTargetY != -1.0) {
+                    glfwSetCursorPos(window, mouseTargetX, mouseTargetY);
+                    mouseTargetX = -1.0;
+                    mouseTargetY = -1.0;
+                }
+                // only happens, if keyboard or mouse is used
+                glfwWaitEventsTimeout(1.0 / 240.0);// timeout, because otherwise it sleeps forever, until keyboard
+                // or mouse input is received
             }
+            // close tests
             if (DefaultConfig.INSTANCE.get("window.close.directly", false)) {
                 break;
             } else {
@@ -592,7 +626,6 @@ public class GFXBase0 {
     public void requestExit() {
         glfwSetWindowShouldClose(window, true);
     }
-
 
     public boolean isFramebufferTransparent() {
         return glfwGetWindowAttrib(window, GLFW_TRANSPARENT_FRAMEBUFFER) != GLFW_FALSE;

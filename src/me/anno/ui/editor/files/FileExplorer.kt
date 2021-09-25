@@ -9,6 +9,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.FileRootRef
 import me.anno.language.translation.NameDesc
+import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
@@ -25,12 +26,16 @@ import me.anno.ui.editor.files.FileExplorerEntry.Companion.deleteFileMaybe
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.utils.OS
+import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.files.Files.listFiles2
 import me.anno.utils.hpc.UpdatingTask
 import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.maths.Maths.pow
+import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.structures.Compare.ifDifferent
 import org.apache.logging.log4j.LogManager
+import java.io.File
+import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -294,9 +299,100 @@ abstract class FileExplorer(
     }
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
-        // todo create links? or truly copy them?
-        // todo or just switch?
-        switchTo(files.first())
+        // create links? or truly copy them?
+        // or just switch?
+        if (files.size > 1) {
+            copyIntoCurrent(files)
+        } else {
+            openMenu(
+                listOf(
+                    MenuOption(NameDesc("Switch To")) {
+                        switchTo(files.first())
+                    },
+                    MenuOption(NameDesc("Copy")) {
+                        thread(name = "copying files") {
+                            copyIntoCurrent(files)
+                        }
+                    },
+                    MenuOption(NameDesc("Create Links")) {
+                        thread(name = "creating links") {
+                            createLinksIntoCurrent(files)
+                        }
+                    },
+                    MenuOption(NameDesc("Cancel")) {}
+                ))
+        }
+    }
+
+    fun copyIntoCurrent(files: List<FileReference>) {
+        // done progress bar
+        // todo cancellable
+        // and then async as well
+        val progress = StudioBase.addProgressBar("Bytes", files.sumOf { it.length() }.toDouble())
+        for (file in files) {
+            val newFile = findNextFile(folder, file, 1, '-', 1)
+            newFile.writeFile(file) { progress.add(it) }
+        }
+        invalidate()
+    }
+
+    fun createLinksIntoCurrent(files: List<FileReference>) {
+        // done progress bar
+        // todo cancellable
+        val progress = StudioBase.addProgressBar("Files", files.size.toDouble())
+        var tmp: File? = null
+        loop@ for (file in files) {
+            when {
+                OS.isWindows -> {
+                    val newFile = findNextFile(folder, file, "lnk", 1, '-', 1)
+                    if (tmp == null) tmp = File.createTempFile("create-link", ".ps1")
+                    tmp!!
+                    tmp.writeText(
+                        "" + // param ( [string]$SourceExe, [string]$DestinationPath )
+                                "\$WshShell = New-Object -comObject WScript.Shell\n" +
+                                "\$Shortcut = \$WshShell.CreateShortcut(\"${newFile.absolutePath}\")\n" +
+                                "\$Shortcut.TargetPath = \"${file.absolutePath}\"\n" +
+                                "\$Shortcut.Save()"
+                    )
+                    // PowerShell.exe -ExecutionPolicy Unrestricted -command "C:\temp\TestPS.ps1"
+                    val builder = BetterProcessBuilder("PowerShell.exe", 16, false)
+                    builder.add("-ExecutionPolicy")
+                    builder.add("Unrestricted")
+                    builder.add("-command")
+                    builder.add(tmp.absolutePath)
+                    builder.startAndPrint().waitFor()
+                    invalidate()
+                    progress.add(1.0)
+                }
+                OS.isLinux || OS.isMac -> {
+                    val newFile = findNextFile(folder, file, 1, '-', 1)
+                    // create symbolic link
+                    // ln -s target_file link_name
+                    val builder = BetterProcessBuilder("ln", 3, false)
+                    builder.add("-s") // symbolic link
+                    builder.add(file.absolutePath)
+                    builder.add(newFile.absolutePath)
+                    builder.startAndPrint()
+                    invalidate()
+                    progress.add(1.0)
+                }
+                OS.isAndroid -> {
+                    LOGGER.warn("Unsupported OS for creating links.. how would you do that?")
+                    progress.cancel()
+                    return
+                }
+                else -> {
+                    LOGGER.warn("Unknown OS, don't know how to create links")
+                    progress.cancel()
+                    return
+                }
+            }
+        }
+        progress.finish()
+        try {
+            tmp?.delete()
+        } catch (e: Exception) {
+        }
     }
 
     abstract override fun onPaste(x: Float, y: Float, data: String, type: String)

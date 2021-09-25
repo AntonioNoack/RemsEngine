@@ -8,7 +8,7 @@ import me.anno.gpu.TextureLib
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.mesh.assimp.StaticMeshesLoader
-import me.anno.ui.editor.files.thumbs.Thumbs
+import me.anno.io.files.thumbs.Thumbs
 import me.anno.utils.Clock
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
