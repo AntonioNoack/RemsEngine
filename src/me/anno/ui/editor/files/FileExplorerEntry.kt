@@ -128,6 +128,7 @@ class FileExplorerEntry(
             "Image", "Cubemap", "Cubemap-Equ" -> "file/image.png"
             "Text" -> "file/text.png"
             "Audio", "Video" -> "file/music.png"
+            "Executable" -> "file/executable.png"
             // todo link icon for .lnk and .url, and maybe .desktop
             else -> "file/document.png"
         }

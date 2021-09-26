@@ -966,6 +966,9 @@ object Thumbs {
             }
             "lua-bytecode" -> {
             }
+            "exe" -> {
+                // todo get icon from exe...
+            }
             else -> try {
                 when (srcFile.lcExtension) {
 

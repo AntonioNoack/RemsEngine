@@ -167,6 +167,7 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             Signature("dds", 0, "DDS "), // direct x image file format
             // other
             Signature("xml", 0, "<?xml"), // plus other variations with UTF16, UTF32, ...
+            Signature("exe", 0, "MZ"),
             // media (video/audio)
             Signature("media", 0, listOf(0x1A, 0x45, 0xDF, 0xA3)), // mkv, mka, mks, mk3d, webm
             Signature("media", 0, "ID3"),// mp3 container

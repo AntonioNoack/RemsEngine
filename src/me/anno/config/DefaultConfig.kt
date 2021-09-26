@@ -34,7 +34,7 @@ object DefaultConfig : StringMap() {
 
     private val LOGGER = LogManager.getLogger(DefaultConfig::class)
 
-    var style: Style = Style("","")
+    var style: Style = Style("", "")
 
     var createDefaults: (config: DefaultConfig) -> Unit = {}
 
@@ -93,6 +93,7 @@ object DefaultConfig : StringMap() {
         addImportMappings("URL", "url", "lnk", "desktop")
         addImportMappings("Container", "unitypackage", "zip", "7z", "tar", "gz", "xz", "rar", "bz2", "xar", "oar")
         addImportMappings("Asset", "json", "mat", "prefab", "unity", "controller")
+        addImportMappings("Executable", "exe", "lib", "dll", "pyd", "jar")
 
     }
 
