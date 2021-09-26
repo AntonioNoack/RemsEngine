@@ -5,6 +5,7 @@ import me.anno.cache.instances.LastModifiedCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultStyle.black
 import me.anno.ecs.components.shaders.effects.FSR
+import me.anno.ecs.prefab.PrefabReadable
 import me.anno.fonts.FontManager
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.clip2Dual
@@ -19,12 +20,14 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.ImageGPUCache.getInternalTexture
+import me.anno.image.ImageReadable
 import me.anno.input.Input
 import me.anno.input.Input.mouseDownX
 import me.anno.input.Input.mouseDownY
 import me.anno.input.MouseButton
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
+import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.trash.TrashManager.moveToTrash
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Audio
@@ -40,7 +43,6 @@ import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.dragging.Draggable
-import me.anno.io.files.thumbs.Thumbs
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
@@ -68,7 +70,7 @@ import kotlin.math.roundToInt
 // todo images: show extra information: width, height
 class FileExplorerEntry(
     private val explorer: FileExplorer,
-    val isParent: Boolean, val file: FileReference, style: Style
+    val isParent: Boolean, var file: FileReference, style: Style
 ) : PanelGroup(style.getChild("fileEntry")) {
 
 
@@ -176,6 +178,13 @@ class FileExplorerEntry(
 
     override fun tickUpdate() {
         super.tickUpdate()
+
+        val newFile = FileReference.getReference(file)
+        if (newFile !== file) {
+            file = newFile
+            invalidateDrawing()
+        }
+
         wasInFocus = isInFocus
         backgroundColor = when {
             isInFocus -> darkerBackgroundColor
@@ -183,6 +192,7 @@ class FileExplorerEntry(
             else -> originalBackgroundColor
         }
         updatePlaybackTime()
+
     }
 
     private fun updatePlaybackTime() {
@@ -378,8 +388,25 @@ class FileExplorerEntry(
     private var padding = 0
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
-        tooltip = file.name + "\n" +
-                file.length().formatFileSize()
+        val file = file
+        when {
+            file.isDirectory -> {
+                tooltip = file.name
+            }
+            file is PrefabReadable -> {
+                tooltip = file.name + "\n" +
+                        file.readPrefab().countTotalChanges() +" Changes"
+            }
+            file is ImageReadable -> {
+                val image = file.readImage()
+                tooltip = file.name + "\n" +
+                        "${image.width} x ${image.height}"
+            }
+            else -> {
+                tooltip = file.name + "\n" +
+                        file.length().formatFileSize()
+            }
+        }
 
         drawBackground()
 

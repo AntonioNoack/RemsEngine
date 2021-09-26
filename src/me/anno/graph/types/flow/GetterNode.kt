@@ -2,8 +2,8 @@ package me.anno.graph.types.flow
 
 abstract class GetterNode : CalculationNode {
 
-    constructor() : super()
+    constructor(name: String) : super(name)
 
-    constructor(outputType: String) : super(emptyList(), listOf(outputType))
+    constructor(name: String, outputType: String) : super(name, emptyList(), listOf(outputType))
 
 }

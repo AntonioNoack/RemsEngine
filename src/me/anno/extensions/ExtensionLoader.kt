@@ -19,6 +19,10 @@ import java.util.zip.ZipInputStream
 
 object ExtensionLoader {
 
+    // todo link files, which can be used for linking folders
+    // todo maybe read symbolic links and lnk files
+    // todo this would ease development :)
+
     lateinit var pluginsFolder: FileReference
     lateinit var modsFolder: FileReference
 

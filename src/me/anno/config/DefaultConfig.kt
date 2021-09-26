@@ -245,5 +245,6 @@ object DefaultConfig : StringMap() {
 
     val defaultFontName get() = this["defaultFont"] as? String ?: "Verdana"
     val defaultFont get() = Font(defaultFontName, 15f, false, false)
+    val defaultFont2 get() = Font(defaultFontName, 25f, false, false)
 
 }

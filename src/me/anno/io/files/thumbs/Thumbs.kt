@@ -3,6 +3,7 @@ package me.anno.io.files.thumbs
 import me.anno.cache.data.ImageData
 import me.anno.cache.instances.MeshCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
+import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.white4
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -21,6 +22,7 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
+import me.anno.fonts.FontManager
 import me.anno.gpu.*
 import me.anno.gpu.GFX.isGFXThread
 import me.anno.gpu.RenderState.depthMode
@@ -55,6 +57,7 @@ import me.anno.objects.Video
 import me.anno.objects.documents.pdf.PDFCache
 import me.anno.objects.meshes.MeshData
 import me.anno.studio.Build
+import me.anno.ui.base.Font
 import me.anno.utils.Color.hex4
 import me.anno.utils.Sleep.waitForGFXThread
 import me.anno.utils.Sleep.waitForGFXThreadUntilDefined
@@ -62,6 +65,8 @@ import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.files.Files.use
 import me.anno.utils.image.ImageScale.scale
 import me.anno.utils.input.Input.readNBytes2
+import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import net.boeckling.crc.CRC64
@@ -145,18 +150,23 @@ object Thumbs {
 
     fun invalidate(file: FileReference, neededSize: Int) {
         val size = getSize(neededSize)
-        val key = ThumbnailKey(file, size)
-        ImageGPUCache.removeEntry(key)
+        ImageGPUCache.remove {
+            val key = it.key
+            key is ThumbnailKey && key.file == file && key.size == size
+        }
     }
 
     fun getThumbnail(file: FileReference, neededSize: Int, async: Boolean): ITexture2D? {
+
+        // todo thumbs for directories
+        if (file.isDirectory) return null
 
         if (file is ImageReadable) {
             return ImageGPUCache.getImage(file, timeout, async)
         }
 
         val size = getSize(neededSize)
-        val key = ThumbnailKey(file, size)
+        val key = ThumbnailKey(file, file.lastModified, size)
         return ImageGPUCache.getLateinitTexture(key, timeout, async) { callback ->
             if (async) {
                 thread(name = "Thumbs/${key.file.name}") {
@@ -947,6 +957,15 @@ object Thumbs {
             }
             "png", "jpg", "bmp", "ico", "psd" -> generateImage(srcFile, dstFile, size, callback)
             "blend" -> generateSomething(PrefabCache.getPrefabPair(srcFile)?.instance, srcFile, dstFile, size, callback)
+            "zip", "bz2", "tar", "gzip", "xz", "lz4", "7z", "xar" -> {
+            }
+            "sims" -> {
+            }
+            "ttf", "woff1", "woff2" -> {
+                // todo generate font preview
+            }
+            "lua-bytecode" -> {
+            }
             else -> try {
                 when (srcFile.lcExtension) {
 
@@ -1030,12 +1049,65 @@ object Thumbs {
                     "lnk", "desktop" -> {
                         // not images, and I don't know yet how to get the image from them
                     }
+                    "txt", "html", "md" -> generateTextImage(srcFile, dstFile, size, callback)
                     // png, jpg, jpeg, ico, webp, mp4, ...
                     else -> generateImage(srcFile, dstFile, size, callback)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
                 LOGGER.warn("Could not load image from $srcFile: ${e.message}")
+            }
+        }
+    }
+
+    private fun generateTextImage(
+        srcFile: FileReference,
+        dstFile: FileReference,
+        size: Int,
+        callback: (Texture2D) -> Unit
+    ) {
+        // todo html preview???
+        // todo markdown preview (?)
+        // generate text preview
+        // scale text with size?
+        val maxLineCount = clamp((size + 8) / 16, 3, 40)
+        val maxLineLength = maxLineCount * 5 / 2
+        val maxLength = min(2048, maxLineCount * maxLineLength)
+        val bytes = srcFile.inputStream().use {
+            it.readNBytes2(maxLength, false)
+        }
+        if (bytes.isNotEmpty()) {
+            if (bytes.last() < 0) {
+                bytes[bytes.lastIndex] = ' '.code.toByte()
+            }
+            var lines = String(bytes)
+                .split('\n')
+                .map { it.shorten(maxLineLength) }
+                .toMutableList()
+            if (lines.size > maxLineCount) {
+                lines = lines.subList(0, maxLineCount)
+                lines[lines.lastIndex] = "..."
+            }
+            // remove empty lines at the end
+            while (lines.isNotEmpty() && lines.last().isEmpty()) {
+                lines = lines.subList(0, lines.size - 1)
+            }
+            val text = lines
+                .joinToString("\n")
+            val lineCount = lines.size
+            val key = Font(DefaultConfig.defaultFontName, size * 1.5f / lineCount, false, false)
+            val font2 = FontManager.getFont(key)
+            GFX.addGPUTask(100) {
+                GFX.loadTexturesSync.push(true)
+                val texture = font2.generateTexture(
+                    text, key.size, -1, -1,
+                    portableImages = true,
+                    textColor = 255 shl 24,
+                    backgroundColor = -1,
+                    extraPadding = key.sizeInt / 2
+                )
+                if (texture != null) callback(texture as Texture2D)
+                GFX.loadTexturesSync.pop()
             }
         }
     }
@@ -1055,7 +1127,10 @@ object Thumbs {
                     generateVideoFrame(srcFile, dstFile, size, callback, 1.0)
                 }
                 // else nothing to do
-                else -> LOGGER.info("ImageIO failed, Imaging failed, importType '$importType' != getImportType for $srcFile")
+                else -> {
+                    LOGGER.info("ImageIO failed, Imaging failed, importType '$importType' != getImportType for $srcFile")
+                    generateTextImage(srcFile, dstFile, size, callback)
+                }
             }
         } else {
             transformNSaveNUpload(srcFile, image, dstFile, size, callback)

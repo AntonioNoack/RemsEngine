@@ -98,7 +98,7 @@ class FlowGraph : Graph() {
 
         private val LOGGER = LogManager.getLogger(FlowGraph::class)
 
-        fun testCalculation() {
+        fun testCalculation(): FlowGraph {
             val g = FlowGraph()
             val n0 = MathD2Node(FloatMathsBinary.ADD)
             val n1 = MathD2Node(FloatMathsBinary.DIV)
@@ -106,9 +106,10 @@ class FlowGraph : Graph() {
             n0.setInputs(listOf(1.0, 2.0))
             n1.setInput(1, 2.0)
             LOGGER.info(g.computeNode1(n1))
+            return g
         }
 
-        fun testLoopPrint() {
+        fun testLoopPrint(): FlowGraph {
             val g = FlowGraph()
             val forNode = ForNode()
             forNode.setInputs(listOf(null, 0L, 5L, 1L))
@@ -119,9 +120,10 @@ class FlowGraph : Graph() {
             endNode.setInputs(listOf(null, "Done"))
             forNode.connectTo(2, endNode, 0)
             g.execute(forNode)
+            return g
         }
 
-        fun testLocalVariables() {
+        fun testLocalVariables(): FlowGraph {
             // calculate factorial
             val g = FlowGraph()
             val initNode = SetLocalVariableNode("var", 1)
@@ -137,7 +139,15 @@ class FlowGraph : Graph() {
             mulNode.connectTo(0, setNode, 2)
             g.execute(initNode)
             g.requestId()
+            g.addAll(listOf(
+                initNode,
+                forNode,
+                mulNode,
+                getNode,
+                setNode
+            ))
             LOGGER.info(g.localVariables["var"])
+            return g
         }
 
         @JvmStatic

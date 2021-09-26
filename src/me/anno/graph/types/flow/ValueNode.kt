@@ -8,15 +8,15 @@ import me.anno.ui.style.Style
 
 abstract class ValueNode : FlowGraphNode {
 
-    constructor() : super()
+    constructor(name: String) : super(name)
 
-    constructor(inputTypes: List<String>, outputTypes: List<String>) {
+    constructor(name: String, inputTypes: List<String>, outputTypes: List<String>): super(name) {
         inputs = Array(inputTypes.size) { NodeInput(inputTypes[it], this) }
         outputs = Array(outputTypes.size) { NodeOutput(outputTypes[it], this) }
     }
 
-    constructor(inputType: String, inputCount: Int, outputType: String, outputCount: Int) :
-            this(Array(inputCount) { inputType }.toList(), Array(outputCount) { outputType }.toList())
+    constructor(name: String, inputType: String, inputCount: Int, outputType: String, outputCount: Int) :
+            this(name, Array(inputCount) { inputType }.toList(), Array(outputCount) { outputType }.toList())
 
     override fun createUI(list: PanelListY, style: Style) {}
 

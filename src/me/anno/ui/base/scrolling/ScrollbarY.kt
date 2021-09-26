@@ -5,16 +5,16 @@ import me.anno.input.Input
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.style.Style
 
-class ScrollbarY(val scrollbar: ScrollableY, style: Style): Scrollbar(style){
+class ScrollbarY(val scrollable: ScrollableY, style: Style): Scrollbar(style){
 
     init {
-        parent = scrollbar as PanelGroup
+        parent = scrollable as PanelGroup
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
 
-        val relativePosition = scrollbar.scrollPositionY / scrollbar.maxScrollPositionY
+        val relativePosition = scrollable.scrollPositionY / scrollable.maxScrollPositionY
         val barHeight = relativeSize * h
         val barY = y + relativePosition * h * (1f - relativeSize)
 
@@ -22,11 +22,11 @@ class ScrollbarY(val scrollbar: ScrollableY, style: Style): Scrollbar(style){
 
     }
 
-    val relativeSize get() = scrollbar.h.toFloat() / scrollbar.child.minH
+    val relativeSize get() = scrollable.h.toFloat() / scrollable.child.minH
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         if(0 in Input.mouseKeysDown){
-            scrollbar.scrollPositionY += dy / relativeSize
+            scrollable.scrollPositionY += dy / relativeSize
         }// else super.onMouseMoved(x, y, dx, dy)
     }
 

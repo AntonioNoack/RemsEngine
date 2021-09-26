@@ -2,20 +2,19 @@ package me.anno.ui.base.scrolling
 
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input
-import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.style.Style
 
-open class ScrollbarX(val scrollbar: ScrollableX, style: Style): Scrollbar(style){
+open class ScrollbarX(val scrollable: ScrollableX, style: Style): Scrollbar(style){
 
     init {
-        parent = scrollbar as PanelGroup
+        parent = scrollable as PanelGroup
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
 
-        val relativePosition = scrollbar.scrollPositionX / scrollbar.maxScrollPositionX
+        val relativePosition = scrollable.scrollPositionX / scrollable.maxScrollPositionX
         val barW = relativeSize * w
         val barX = x + relativePosition * w * (1f - relativeSize)
 
@@ -23,11 +22,11 @@ open class ScrollbarX(val scrollbar: ScrollableX, style: Style): Scrollbar(style
 
     }
 
-    val relativeSize get() = scrollbar.w.toFloat() / scrollbar.child.minW
+    val relativeSize get() = scrollable.w.toFloat() / scrollable.child.minW
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         if(0 in Input.mouseKeysDown){
-            scrollbar.scrollPositionX += dx / relativeSize
+            scrollable.scrollPositionX += dx / relativeSize
         }// else super.onMouseMoved(x, y, dx, dy)
     }
 

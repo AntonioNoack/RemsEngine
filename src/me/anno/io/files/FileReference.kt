@@ -62,9 +62,8 @@ abstract class FileReference(val absolutePath: String) {
         }
 
         fun invalidate(file: String, fileInstance: File = File(file)) {
-            allReferences.remove(
-                file.replace('\\', '/')
-            )?.get()?.invalidate()
+            val path = file.replace('\\', '/')
+            allReferences.remove(path)?.get()?.invalidate()
             LastModifiedCache.invalidate(fileInstance)
         }
 
@@ -81,6 +80,10 @@ abstract class FileReference(val absolutePath: String) {
                 allReferences[str] = WeakReference(file)
                 return file
             }
+        }
+
+        fun getReference(ref: FileReference): FileReference {
+            return getReference(ref.absolutePath)
         }
 
         fun getReference(str: String?): FileReference {

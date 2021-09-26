@@ -39,12 +39,6 @@ import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-// todo file change watcher
-// todo also watch mesh files, e.g. for parallel tinkering e.g. in Blender with meshes :)
-// todo if we can work together with Blender nicely, we can skip a lot of own mesh generation :)
-// https://docs.oracle.com/javase/tutorial/essential/io/notification.html
-// http://jnotify.sourceforge.net/
-
 
 // done, kind of: zoom: keep mouse at item in question
 // done change side ratio based on: border + 1:1 frame + 2 lines of text
@@ -168,6 +162,7 @@ abstract class FileExplorer(
 
     fun invalidate() {
         isValid = 0f
+        lastFiles = listOf("!")
         invalidateLayout()
     }
 
@@ -225,6 +220,7 @@ abstract class FileExplorer(
                     }
                 }
 
+                // be cancellable
                 Thread.sleep(0)
 
                 GFX.addGPUTask(1) {
@@ -484,10 +480,10 @@ abstract class FileExplorer(
         }
     }
 
-    override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
+    override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
         if (Input.isControlDown) {
             entrySize = clamp(
-                entrySize * pow(1.05f, dy),
+                entrySize * pow(1.05f, dy - dx),
                 minEntrySize,
                 max(w - content.spacing * 2f - 1f, 20f)
             )
@@ -500,7 +496,7 @@ abstract class FileExplorer(
             content.childHeight = esi + (textSize * 2.5f).roundToInt()
             // scroll to hoverItemIndex, hoverFractionY
             content.scrollTo(hoveredItemIndex, hoverFractionY)
-        } else super.onMouseWheel(x, y, dx, dy)
+        } else super.onMouseWheel(x, y, dx, dy, byMouse)
     }
 
     // multiple elements can be selected

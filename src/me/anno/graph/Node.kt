@@ -7,7 +7,11 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
 import org.joml.Vector3d
 
-abstract class Node : NamedSaveable() {
+abstract class Node() : NamedSaveable() {
+
+    constructor(name: String): this(){
+        this.name = name
+    }
 
     abstract fun createUI(list: PanelListY, style: Style)
 

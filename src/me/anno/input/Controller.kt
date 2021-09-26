@@ -1,5 +1,6 @@
 package me.anno.input
 
+import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference.Companion.getReference
@@ -16,11 +17,10 @@ import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.roundToInt
 
 class Controller(val id: Int) {
 
-    val glfwId = GLFW_JOYSTICK_1 + id
+    private val glfwId = GLFW_JOYSTICK_1 + id
 
     var isConnected = false
     val baseKey = BASE_KEY * (id + 1)
@@ -75,8 +75,12 @@ class Controller(val id: Int) {
     }
 
     private val gamepadState = GLFWGamepadState.calloc()
-    private val gamepadAxes = gamepadState.axes()
-    private val gamepadButtons = gamepadState.buttons()
+    private val gamepadAxes get() = gamepadState.axes()
+    private val gamepadButtons get() = gamepadState.buttons()
+
+    private var lastTime = 0L
+
+    var isFirst = false
 
     private fun resetState() {
         name = glfwGetJoystickName(glfwId) ?: "Controller[$id]"
@@ -101,13 +105,39 @@ class Controller(val id: Int) {
         return mousePosX in 0f..GFX.width - 1f && mousePosY in 0f..GFX.height - 1f
     }
 
+    private fun mouseButtonDown(key: Int) {
+        if (isMouseInWindow() && GFX.isInFocus) {
+            Input.onMousePress(key)
+        } else {
+            GFX.robot.mousePress(
+                when (key) {
+                    0 -> InputEvent.BUTTON1_MASK
+                    1 -> InputEvent.BUTTON2_MASK
+                    else -> InputEvent.BUTTON3_MASK
+                }
+            )
+        }
+    }
+
+    private fun mouseButtonUp(key: Int){
+        if (isMouseInWindow() && GFX.isInFocus) {
+            Input.onMouseRelease(key)
+        } else {
+            GFX.robot.mouseRelease(when (key) {
+                0 -> InputEvent.BUTTON1_MASK
+                1 -> InputEvent.BUTTON2_MASK
+                else -> InputEvent.BUTTON3_MASK
+            })
+        }
+    }
+
     private fun buttonDown(key: Int) {
-        if (isFirst && key in 0..1) {
-            // mouse click left/right
-            if (isMouseInWindow() && GFX.isInFocus) {
-                Input.onMousePress(key)
-            } else {
-                GFX.robot.mousePress(if (key == 0) InputEvent.BUTTON1_MASK else InputEvent.BUTTON2_MASK)
+        if (isFirst) {
+            when (key) {
+                DefaultConfig["ui.controller.leftMouseButton", 0] -> mouseButtonDown(0)
+                DefaultConfig["ui.controller.rightMouseButton", 1] -> mouseButtonDown(1)
+                // 9 = click on right wheel
+                DefaultConfig["ui.controller.middleMouseButton", 9] -> mouseButtonDown(2)
             }
         }
         ActionManager.onKeyDown(baseKey + key)
@@ -120,21 +150,17 @@ class Controller(val id: Int) {
     }
 
     private fun buttonUp(key: Int) {
-        if (isFirst && key in 0..1) {
-            // mouse click left/right
-            if (isMouseInWindow() && GFX.isInFocus) {
-                Input.onMouseRelease(key)
-            } else {
-                GFX.robot.mouseRelease(if (key == 0) InputEvent.BUTTON1_MASK else InputEvent.BUTTON2_MASK)
+        if (isFirst) {
+            when (key) {
+                DefaultConfig["ui.controller.leftMouseButton", 0] -> mouseButtonUp(0)
+                DefaultConfig["ui.controller.rightMouseButton", 1] -> mouseButtonUp(1)
+                // 9 = click on right wheel
+                DefaultConfig["ui.controller.middleMouseButton", 9] -> mouseButtonUp(2)
             }
         }
         ActionManager.onKeyTyped(baseKey + key)
         isActiveMaybe = 1f
     }
-
-    private var lastTime = 0L
-
-    var isFirst = false
 
     fun pollEvents(isFirst: Boolean): Boolean {
 
@@ -158,12 +184,9 @@ class Controller(val id: Int) {
 
             ticksOnline = max(1, ticksOnline + 1)
 
-            if (false && isGamepad) {
+            if (isGamepad) {
 
-                // todo doesn't work yet...
-
-                // update other axes as well? mmh...
-
+                // update other axes as well? mmh
                 glfwGetGamepadState(glfwId, gamepadState)
                 updateButtons(gamepadButtons)
                 updateAxes(dt, gamepadAxes)
@@ -214,6 +237,7 @@ class Controller(val id: Int) {
 
     private fun updateAxes(dt: Float, axes: FloatBuffer? = glfwGetJoystickAxes(glfwId)) {
         if (axes != null) {
+
             val time = GFX.gameTime
             numAxes = min(axes.remaining(), MAX_NUM_AXES)
             for (axisId in 0 until numAxes) {
@@ -252,19 +276,35 @@ class Controller(val id: Int) {
 
             // support multiple mice (?); game specific; nice for strategy games
             if (isFirst && isActive) {
+
                 // if buttons = 0,1 (left wheel), then move the mouse
-                val moveButtons = 0
-                if (axisValues[moveButtons] != 0f || axisValues[moveButtons + 1] != 0f) {
-                    val speed = 1000f
-                    val dx = axisValues[moveButtons] * speed * dt
-                    val dy = axisValues[moveButtons + 1] * speed * dt
+                val moveButtons = DefaultConfig["ui.controller.mouseMoveAxis0", 0]
+                if (moveButtons in 0 until MAX_NUM_AXES - 1 &&
+                    (axisValues[moveButtons] != 0f || axisValues[moveButtons + 1] != 0f)
+                ) {
+
+                    val speed = DefaultConfig["ui.controller.mouseMoveSpeed", 1000f] * dt
+                    var dx = axisValues[moveButtons]
+                    var dy = axisValues[moveButtons + 1]
+
+                    if (DefaultConfig["ui.controller.mouseMoveEnableAcceleration", true]) {
+                        val f = sq(dx, dy)
+                        dx *= f
+                        dy *= f
+                    }
+
+                    dx *= speed
+                    dy *= speed
+
                     ActionManager.onMouseMoved(dx, dy)
                     if (!GFX.isMouseTrapped) {
                         // only works well, if we have a single player
                         // it we have a mouse user and a controller user, the controller user will win here ...
                         // todo grand theft waifu should be playable on keyboard/mouse + controller at the same time <3
-                        // todo only if mouse has actually moved
-                        if (abs(time - lastMousePos) > 1e9) {// 1s delay to switch back to mouse
+                        // reset the mouse position, if we used the original mouse again
+                        // todo update mouseX/Y outside the main window, and then remove this condition
+                        // don't reset, if we're outside the window, because Input.mouseX/Y is not updated outside
+                        if (abs(time - lastMousePos) > 1e9 && isMouseInWindow()) {// 1s delay to switch back to mouse
                             mousePosX = Input.mouseX
                             mousePosY = Input.mouseY
                         }
@@ -274,38 +314,50 @@ class Controller(val id: Int) {
                         GFX.moveMouseTo(mousePosX, mousePosY)
                     }
                 }
+
                 // if buttons = 2,3 (right wheel), then scroll
-                val scrollButtons = 2
-                if (axisValues[scrollButtons] != 0f || axisValues[scrollButtons + 1] != 0f) {
-                    val speed = 50f // non linear curve for better control, and fast-scrolling
+                val scrollButtons = DefaultConfig["ui.controller.mouseWheelAxis0", 2]
+                if (scrollButtons in 0 until MAX_NUM_AXES - 1 &&
+                    (axisValues[scrollButtons] != 0f || axisValues[scrollButtons + 1] != 0f)
+                ) {
+
                     var dx = axisValues[scrollButtons]
                     var dy = axisValues[scrollButtons + 1]
-                    val f = sq(dx, dy)
-                    dx *= f
-                    dy *= f
+
+                    // non linear curve for better control, and fast-scrolling
+                    val speed = DefaultConfig["ui.controller.mouseWheelSpeed", 50f] * dt
+                    if (DefaultConfig["ui.controller.mouseWheelEnableAcceleration", true]) {
+                        val f = sq(dx, dy)
+                        dx *= f
+                        dy *= f
+                    }
+
+                    dx *= speed
+                    dy *= speed
+
                     if (GFX.isInFocus && isMouseInWindow()) {
-                        if (controllerMouseWheelIsSingleAxis) {
-                            Input.onMouseWheel(0f, -dy * speed * dt, true)
+                        // why -y? mmh...
+                        if (DefaultConfig["ui.controller.mouseWheelIsSingleAxis", false]) {
+                            Input.onMouseWheel(0f, -dy, true)
                         } else {
-                            Input.onMouseWheel(dx * speed * dt, -dy * speed * dt, false)
+                            Input.onMouseWheel(dx, -dy, false)
                         }
                         mouseWheelFract = 0f
                     } else {
-                        mouseWheelFract += dy * speed * dt
-                        val mwf = mouseWheelFract.roundToInt()
+                        mouseWheelFract += dy
+                        val mwf = mouseWheelFract.toInt() // round towards zero
                         if (mwf != 0) {
                             GFX.robot.mouseWheel(+mwf)
                             mouseWheelFract -= mwf
                         }
                     }
+
                 }
             }
         }
     }
 
     companion object {
-
-        var controllerMouseWheelIsSingleAxis = false
 
         private var lastMousePos = 0L
         private var mousePosX = 0f
@@ -352,6 +404,7 @@ class Controller(val id: Int) {
         const val MAX_NUM_BUTTONS = 32
         const val MAX_NUM_AXES = 32
 
+        // todo make these configurable
         // should get a place in the config
         private val initialTypeDelay = 1_000_000_000L
         private val typeDelay = 100_000_000L

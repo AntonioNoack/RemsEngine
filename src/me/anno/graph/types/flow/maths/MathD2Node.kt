@@ -7,7 +7,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 
-class MathD2Node() : ValueNode(listOf("Double", "Double"), listOf("Double")) {
+class MathD2Node() : ValueNode("Math", listOf("Double", "Double"), listOf("Double")) {
 
     constructor(type: FloatMathsBinary) : this() {
         this.type = type

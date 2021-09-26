@@ -333,24 +333,19 @@ open class TimelinePanel(style: Style) : Panel(style) {
         }
     }
 
-    override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
-        if (Input.isShiftDown || Input.isControlDown) {
-            val delta = dx - dy
-            val scale = pow(1.05f, delta)
-            if (Input.isControlDown) { // zoom
-                // set the center to the cursor
-                // works great :D
-                val normalizedX = (x - w / 2) / (w / 2)
-                centralTime += normalizedX * dtHalfLength * (1f - scale)
-                dtHalfLength *= scale
-            } else { // move
-                centralTime += dtHalfLength * 20f * delta / w
-            }
-            clampTime()
-        } else {
-            super.onMouseWheel(x, y, dx, dy)
-        }
-    }
+    override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
 
+        val scale = pow(1.05f, dx)
+        // set the center to the cursor
+        // works great :D
+        val normalizedX = (x - w / 2) / (w / 2)
+        centralTime += normalizedX * dtHalfLength * (1f - scale)
+        dtHalfLength *= scale
+
+        centralTime += dtHalfLength * 20f * dy / w
+
+        clampTime()
+
+    }
 
 }

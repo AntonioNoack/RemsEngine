@@ -129,13 +129,14 @@ public class GFXBase0 {
             init();
             windowLoop();
 
+            // wait for the last frame to be finished,
+            // before we actually destroy the window and its framebuffer
             synchronized (glfwLock) {
                 destroyed = true;
-                // wait for the last frame to be finished,
-                // before we actually destroy the window and its framebuffer
-                synchronized (openglLock) {
-                    glfwDestroyWindow(window);
-                }
+            }
+
+            synchronized (openglLock) {
+                glfwDestroyWindow(window);
             }
 
             if (debugProc != null)

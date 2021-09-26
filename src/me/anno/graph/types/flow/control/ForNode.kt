@@ -3,7 +3,7 @@ package me.anno.graph.types.flow.control
 import me.anno.graph.NodeOutput
 import me.anno.graph.types.FlowGraph
 
-class ForNode : FixedControlFlowNode(listOf("Flow", "Long", "Long", "Long"), listOf("Flow", "Long", "Flow")) {
+class ForNode : FixedControlFlowNode("For", listOf("Flow", "Long", "Long", "Long"), listOf("Flow", "Long", "Flow")) {
 
     override fun execute(graph: FlowGraph): NodeOutput {
         val inputs = inputs!!

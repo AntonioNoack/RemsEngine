@@ -787,7 +787,7 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
         invalidateDrawing()
     }
 
-    override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
+    override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
         onInteraction()
         invalidateDrawing()
         RemsStudio.incrementalChange("Zoom In / Out") {

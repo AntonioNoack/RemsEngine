@@ -3,7 +3,7 @@ package me.anno.graph.types.flow.local
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.actions.ActionNode
 
-class SetLocalVariableNode() : ActionNode(listOf("String", "?"), listOf("String", "?")) {
+class SetLocalVariableNode() : ActionNode("SetLocal", listOf("String", "?"), listOf("String", "?")) {
 
     constructor(key: String, value: Any?) : this() {
         setInputs(listOf(null, key, value))

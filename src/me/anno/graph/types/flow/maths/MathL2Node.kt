@@ -7,7 +7,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 
-class MathL2Node() : ValueNode(listOf("Long", "Long"), listOf("Long")) {
+class MathL2Node() : ValueNode("Math", listOf("Long", "Long"), listOf("Long")) {
 
     constructor(type: IntMathType) : this() {
         this.type = type

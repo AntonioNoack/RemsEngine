@@ -65,7 +65,9 @@ abstract class StudioBase(
     val versionName =
         addSuffix("${versionNumber / 10000}.${(versionNumber / 100) % 100}.${versionNumber % 100}", versionSuffix)
 
-    abstract fun loadConfig()
+    open fun loadConfig(){
+        DefaultConfig.init()
+    }
 
     abstract fun createUI()
 

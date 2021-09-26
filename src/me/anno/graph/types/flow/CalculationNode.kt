@@ -4,12 +4,12 @@ import me.anno.graph.types.FlowGraph
 
 abstract class CalculationNode : ValueNode {
 
-    constructor() : super()
+    constructor(name: String) : super(name)
 
-    constructor(inputTypes: List<String>, outputTypes: List<String>) : super(inputTypes, outputTypes)
+    constructor(name: String, inputTypes: List<String>, outputTypes: List<String>) : super(name, inputTypes, outputTypes)
 
-    constructor(inputType: String, inputCount: Int, outputType: String, outputCount: Int) :
-            this(Array(inputCount) { inputType }.toList(), Array(outputCount) { outputType }.toList())
+    constructor(name: String, inputType: String, inputCount: Int, outputType: String, outputCount: Int) :
+            this(name, Array(inputCount) { inputType }.toList(), Array(outputCount) { outputType }.toList())
 
     abstract fun calculate(graph: FlowGraph): Any?
 

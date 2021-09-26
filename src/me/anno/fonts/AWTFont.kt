@@ -16,6 +16,7 @@ import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
+import java.awt.Color
 import java.awt.Font
 import java.awt.FontMetrics
 import java.awt.Graphics2D
@@ -35,7 +36,7 @@ class AWTFont(val font: Font) {
 
     init {
         val unused = BufferedImage(1, 1, 1).graphics as Graphics2D
-        unused.prepareGraphics(font)
+        unused.prepareGraphics(font, false)
         fontMetrics = unused.fontMetrics
     }
 
@@ -112,20 +113,32 @@ class AWTFont(val font: Font) {
 
     }
 
-    fun generateTexture(text: String, fontSize: Float, widthLimit: Int, heightLimit: Int): ITexture2D? {
+    fun generateTexture(
+        text: String,
+        fontSize: Float,
+        widthLimit: Int,
+        heightLimit: Int,
+        portableImages: Boolean,
+        textColor: Int = -1,
+        backgroundColor: Int = 255 shl 24,
+        extraPadding: Int = 0
+    ): ITexture2D? {
 
         if (text.isEmpty()) return null
         if (text.containsSpecialChar() || widthLimit > 0) {
-            return generateTextureV3(text, fontSize, widthLimit.toFloat(), heightLimit.toFloat())
+            return generateTextureV3(
+                text, fontSize, widthLimit.toFloat(), heightLimit.toFloat(), portableImages,
+                textColor, backgroundColor, extraPadding
+            )
         }
 
         val group = getGroup(text)
-        val width = getStringWidth(group).roundToInt() + 1
+        val width = getStringWidth(group).roundToInt() + 1 + 2 * extraPadding
 
         val lineCount = text.countLines()
         val spaceBetweenLines = spaceBetweenLines(fontSize)
         val fontHeight = fontMetrics.height
-        val height = fontHeight * lineCount + (lineCount - 1) * spaceBetweenLines
+        val height = fontHeight * lineCount + (lineCount - 1) * spaceBetweenLines + 2 * extraPadding
 
         if (width < 1 || height < 1) return null
         if (text.isBlank2()) {
@@ -142,7 +155,15 @@ class AWTFont(val font: Font) {
             val image = BufferedImage(width, height, 1)
 
             val gfx = image.graphics as Graphics2D
-            gfx.prepareGraphics(font)
+            gfx.prepareGraphics(font, portableImages)
+            gfx.background = Color(backgroundColor)
+            if (backgroundColor.and(0xffffff) != 0) {
+                // fill background with that color
+                gfx.color = Color(backgroundColor)
+                gfx.fillRect(0, 0, width, height)
+            }
+            gfx.translate(extraPadding, extraPadding)
+            gfx.color = Color(textColor)
 
             val y = fontMetrics.ascent
 
@@ -150,8 +171,8 @@ class AWTFont(val font: Font) {
                 drawString(gfx, text, group, y)
             } else {
                 val lines = text.split('\n')
-                lines.forEachIndexed { index, line ->
-                    drawString(gfx, line, null, y + index * (fontHeight + spaceBetweenLines))
+                for (index in lines.indices) {
+                    drawString(gfx, lines[index], null, y + index * (fontHeight + spaceBetweenLines))
                 }
             }
             gfx.dispose()
@@ -390,15 +411,19 @@ class AWTFont(val font: Font) {
         text: String,
         fontSize: Float,
         lineBreakWidth: Float,
-        textBreakHeight: Float
+        textBreakHeight: Float,
+        portableImages: Boolean,
+        textColor: Int,
+        backgroundColor: Int,
+        extraPadding: Int
     ): ITexture2D {
 
         val parts = splitParts(text, fontSize, 4f, 0f, lineBreakWidth, textBreakHeight)
         val result = parts.parts
         val exampleLayout = parts.exampleLayout
 
-        val width = ceil(parts.width).toInt()
-        val height = ceil(parts.height).toInt()
+        val width = ceil(parts.width).toInt() + 2 * extraPadding
+        val height = ceil(parts.height).toInt() + 2 * extraPadding
 
         if (result.isEmpty() || width < 1 || height < 1) return FakeWhiteTexture(width, height)
 
@@ -409,7 +434,15 @@ class AWTFont(val font: Font) {
             // for (i in width-10 until width) image.setRGB(i, 0, 0xff0000)
 
             val gfx = image.graphics as Graphics2D
-            gfx.prepareGraphics(font)
+            gfx.prepareGraphics(font, portableImages)
+            gfx.background = Color(backgroundColor)
+            if (backgroundColor.and(0xffffff) != 0) {
+                // fill background with that color
+                gfx.color = Color(backgroundColor)
+                gfx.fillRect(0, 0, width, height)
+            }
+            gfx.translate(extraPadding, extraPadding)
+            gfx.color = Color(textColor)
 
             val x = (image.width - width) * 0.5f
             val y = (image.height - height) * 0.5f + exampleLayout.ascent

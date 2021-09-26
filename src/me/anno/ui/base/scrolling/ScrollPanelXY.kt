@@ -34,7 +34,7 @@ open class ScrollPanelXY(
         // weight = 0.0001f
     }
 
-    val content get() = child
+    open val content get() = child
 
     var lspX = -1f
     var lspY = -1f
@@ -122,7 +122,7 @@ open class ScrollPanelXY(
         }
     }
 
-    override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
+    override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
 
         var consumedX = false
         var consumedY = false
@@ -152,7 +152,7 @@ open class ScrollPanelXY(
         if (!consumedX || !consumedY) {
             val dx2 = if (consumedX) 0f else dx
             val dy2 = if (consumedY) 0f else dy
-            super.onMouseWheel(x, y, dx2, dy2)
+            super.onMouseWheel(x, y, dx2, dy2, byMouse)
         }
 
     }

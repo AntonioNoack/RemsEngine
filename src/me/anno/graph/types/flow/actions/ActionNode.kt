@@ -6,10 +6,10 @@ import me.anno.graph.types.flow.control.FixedControlFlowNode
 
 abstract class ActionNode : FixedControlFlowNode {
 
-    constructor() : super()
+    constructor(name: String) : super(name)
 
-    constructor(inputs: List<String>, outputs: List<String>) :
-            super(1, inputs, 1, outputs)
+    constructor(name: String, inputs: List<String>, outputs: List<String>) :
+            super(name, 1, inputs, 1, outputs)
 
     abstract fun executeAction(graph: FlowGraph)
 

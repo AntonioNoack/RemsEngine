@@ -20,7 +20,7 @@ object ShaderGraph {
         TODO()
     }
 
-    class CustomShaderNode(val shader: Shader) : ActionNode() {
+    class CustomShaderNode(val shader: Shader) : ActionNode("Shader") {
 
         override fun executeAction(graph: FlowGraph) {
             // todo we have inputs, and outputs

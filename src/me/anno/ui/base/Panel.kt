@@ -401,8 +401,8 @@ open class Panel(val style: Style) {
         parent?.onMouseMoved(x, y, dx, dy)
     }
 
-    open fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
-        parent?.onMouseWheel(x, y, dx, dy)
+    open fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
+        parent?.onMouseWheel(x, y, dx, dy, byMouse)
     }
 
     open fun onKeyDown(x: Float, y: Float, key: Int) {

@@ -16,7 +16,6 @@ import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.types.Strings.getIndexFromText
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
-import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.streams.toList
@@ -45,6 +44,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
         cursor1 = characters.size
         cursor2 = cursor1
         invalidateLayout()
+        invalidateDrawing()
     }
 
     override fun updateChars(notify: Boolean) {
@@ -58,6 +58,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
         text = characters.joinChars()
         if (notify) changeListener(text)
         invalidateLayout()
+        invalidateDrawing()
     }
 
     override fun calculateSize(w: Int, h: Int) {
@@ -92,13 +93,15 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
                 updateText(true)
                 cursor1 = min
                 cursor2 = min
+                invalidateDrawing()
             }
             return max > min
         }
     }
 
     var lastChange = 0L
-    val wasJustChanged get() = abs(GFX.gameTime - lastChange) < 200_000_000
+    val blinkVisible get() = (((GFX.gameTime - lastChange) / 500_000_000L).and(1) == 0L)
+    val wasJustChanged get() = GFX.gameTime - lastChange < 200_000_000
 
     fun calculateOffset(required: Int, cursor: Int) {
         // center the cursor, 1/3 of the width, if possible;
@@ -107,9 +110,9 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
     }
 
     override fun tickUpdate() {
-        super.tickUpdate()
-        val blinkVisible = ((GFX.gameTime / 500_000_000L) % 2L == 0L)
-        showBars = isInFocus && (blinkVisible || wasJustChanged)
+        val lastShowBars = showBars
+        showBars = isInFocus && blinkVisible
+        if (showBars != lastShowBars) invalidateDrawing()
     }
 
     override val isShowingPlaceholder: Boolean
@@ -173,6 +176,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
             cursor2 = cursor1
             updateText(true)
             ensureCursorBounds()
+            invalidateDrawing()
         }
     }
 
@@ -184,6 +188,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
         cursor1++
         cursor2++
         ensureCursorBounds()
+        invalidateDrawing()
     }
 
     fun deleteBefore() {
@@ -195,6 +200,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
             cursor2--
         }
         ensureCursorBounds()
+        invalidateDrawing()
     }
 
     fun deleteAfter() {
@@ -204,6 +210,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
             updateText(true)
         }
         ensureCursorBounds()
+        invalidateDrawing()
     }
 
     fun ensureCursorBounds() {
@@ -225,6 +232,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
             }
         }
         ensureCursorBounds()
+        invalidateDrawing()
     }
 
     fun moveLeft() {
@@ -236,6 +244,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
             cursor2 = cursor1
         }
         ensureCursorBounds()
+        invalidateDrawing()
     }
 
     override fun onBackSpaceKey(x: Float, y: Float) {
@@ -274,6 +283,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
         cursor1 = position
         cursor2 = position
         ensureCursorBounds()
+        invalidateDrawing()
     }
 
     override fun onCharTyped2(x: Float, y: Float, key: Int) {
@@ -300,6 +310,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
     fun selectAll() {
         cursor1 = 0
         cursor2 = characters.size
+        invalidateDrawing()
     }
 
     var isDragging = false
@@ -311,16 +322,16 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
                 isDragging = true
             } else isDragging = false
         } else isDragging = false
+        invalidateDrawing()
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
-        cursor1 = 0
-        cursor2 = characters.size
+        selectAll()
+        invalidateDrawing()
     }
 
     override fun onSelectAll(x: Float, y: Float) {
-        cursor1 = 0
-        cursor2 = characters.size
+        selectAll()
     }
 
     fun isNothingSelected() = cursor1 == cursor2

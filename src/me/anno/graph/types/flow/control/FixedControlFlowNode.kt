@@ -5,16 +5,17 @@ import me.anno.graph.types.flow.ControlFlowNode
 
 abstract class FixedControlFlowNode : ControlFlowNode {
 
-    constructor() : super()
+    constructor(name: String) : super(name)
 
-    constructor(inputs: List<String>, outputs: List<String>) : super(inputs, outputs)
+    constructor(name: String, inputs: List<String>, outputs: List<String>) : super(name, inputs, outputs)
 
     constructor(
+        name: String,
         numFlowInputs: Int,
         otherInputs: List<String>,
         numFlowOutputs: Int,
         otherOutputs: List<String>
-    ) : super(numFlowInputs, otherInputs, numFlowOutputs, otherOutputs)
+    ) : super(name, numFlowInputs, otherInputs, numFlowOutputs, otherOutputs)
 
     fun getOutputNodes(index: Int): NodeOutput {
         val c = outputs!![index] // NodeOutputs

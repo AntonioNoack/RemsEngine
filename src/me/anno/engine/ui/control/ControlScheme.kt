@@ -78,7 +78,7 @@ open class ControlScheme(val camera: CameraComponent, val library: ECSTypeLibrar
         }
     }
 
-    override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
+    override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
         if (isSelected) {
             val factor = Maths.pow(2f, (dx - dy) / 16f)
             view.radius *= factor

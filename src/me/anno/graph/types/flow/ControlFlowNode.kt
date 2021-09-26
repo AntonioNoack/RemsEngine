@@ -5,30 +5,32 @@ import me.anno.graph.NodeOutput
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
 
-abstract class ControlFlowNode() : FlowGraphNode() {
+abstract class ControlFlowNode(name: String) : FlowGraphNode(name) {
 
     // may not have details
     override fun createUI(list: PanelListY, style: Style) {}
 
-    constructor(numInputs: Int, numOutputs: Int) : this() {
+    constructor(name: String, numInputs: Int, numOutputs: Int) : this(name) {
         inputs = Array(numInputs) { NodeInput("", this) }
         outputs = Array(numOutputs) { NodeOutput("", this) }
     }
 
     constructor(
+        name: String,
         otherInputs: List<String>,
         otherOutputs: List<String>
-    ) : this() {
+    ) : this(name) {
         inputs = Array(otherInputs.size) { NodeInput(otherInputs[it], this) }
         outputs = Array(otherOutputs.size) { NodeOutput(otherOutputs[it], this) }
     }
 
     constructor(
+        name: String,
         numFlowInputs: Int,
         otherInputs: List<String>,
         numFlowOutputs: Int,
         otherOutputs: List<String>
-    ) : this() {
+    ) : this(name) {
         inputs = Array(numFlowInputs + otherInputs.size) {
             NodeInput(if (it < numFlowInputs) "Flow" else otherInputs[it - numFlowInputs], this)
         }

@@ -169,7 +169,7 @@ object FontManager {
         return TextCache.getEntry(cacheKey, textureTimeout, false) { key ->
             val font2 = getFont(key)
             val averageFontSize = getAvgFontSize(key.fontSizeIndex())
-            val texture = font2.generateTexture(key.text, averageFontSize, key.widthLimit, key.heightLimit)
+            val texture = font2.generateTexture(key.text, averageFontSize, key.widthLimit, key.heightLimit, false)
             if (texture == null) LOGGER.warn("Texture for '$key' was null")
             texture ?: TextureLib.nullTexture
         } as? ITexture2D

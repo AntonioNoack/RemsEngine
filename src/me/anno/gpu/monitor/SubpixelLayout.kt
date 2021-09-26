@@ -42,7 +42,7 @@ object SubpixelLayout {
         gfx.font = gfx.font.deriveFont(width)
         gfx.background = Color.BLACK
         gfx.color = Color.WHITE
-        gfx.prepareGraphics()
+        gfx.prepareGraphics(false)
         gfx.drawString(".", 3, height * 4 / 5)
         gfx.dispose()
 

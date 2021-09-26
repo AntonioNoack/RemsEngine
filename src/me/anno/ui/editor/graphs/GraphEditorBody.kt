@@ -1,12 +1,17 @@
 package me.anno.ui.editor.graphs
 
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Interpolation
+import me.anno.animation.Keyframe
+import me.anno.animation.Type
 import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.white
 import me.anno.gpu.GFX
-import me.anno.gpu.drawing.GFXx2D.drawBorder
-import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.TextureLib.colorShowTexture
+import me.anno.gpu.drawing.DrawRectangles.drawRect
+import me.anno.gpu.drawing.DrawTexts
+import me.anno.gpu.drawing.DrawTextures.drawTexture
+import me.anno.gpu.drawing.GFXx2D.drawBorder
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseDownX
@@ -18,11 +23,6 @@ import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.language.translation.NameDesc
-import me.anno.animation.AnimatedProperty
-import me.anno.animation.Interpolation
-import me.anno.animation.Keyframe
-import me.anno.animation.Type
-import me.anno.gpu.drawing.DrawTexts
 import me.anno.studio.StudioBase.Companion.updateAudio
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.editorTime
@@ -707,14 +707,12 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         )
     }
 
-    override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float) {
-        val delta = dx - dy
-        val scale = pow(1.05f, delta)
-        if (isShiftDown) {
-            dvHalfHeight *= scale
-            clampValues()
-        } else {// time
-            super.onMouseWheel(x, y, dx, dy)
+    override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
+        val scale = pow(1.05f, dx)
+        dvHalfHeight *= scale
+        clampValues()
+        if (dy != 0f) {
+            super.onMouseWheel(x, y, 0f, dy, byMouse)
         }
     }
 

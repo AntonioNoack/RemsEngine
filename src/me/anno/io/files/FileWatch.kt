@@ -14,6 +14,12 @@ import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 import kotlin.io.path.absolutePathString
 
+// todo file change watcher
+// todo also watch mesh files, e.g. for parallel tinkering e.g. in Blender with meshes :)
+// todo if we can work together with Blender nicely, we can skip a lot of own mesh generation :)
+// https://docs.oracle.com/javase/tutorial/essential/io/notification.html
+// http://jnotify.sourceforge.net/
+
 object FileWatch {
 
     /**

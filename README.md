@@ -81,27 +81,40 @@ I am writing the game engine in this same repository as Rem's Studio, because
 
 - entity - component based system
   - because I like the system from Unity more than that of Godot (still imperfect)
+- 64 bit fp transformations for universe simulations 
 - supports loading all kinds of formats
 - can load files from compressed folders
 - pbr workflow
 - Bullet as physics engine
+  - running on a separate thread for uninterrupted graphics
+  - running with 64 bit floating precision for accuracy / universe simulations
 - mods / plugins from the start: your game is a mod for the engine
 - event based
 - auto switch between forward- and deferred rendering
+  - for beautiful MSAA with a few lights,
+  - or thousands of lights without performance hit
+- depth-edge-detection based anti-aliasing (like FXAA) 
 - shadows with cascades (directional, spot, point)
+- planar reflections
 - static meshes
 - animated meshes
 - aabb optimized scene hierarchy
-- bloom
+- bloom to convey brightness
+- AMD FSR: dynamic upscaling and sharpening
+    - is used to upscale images in the file explorer as well
+- controller support
+  - works for UI automatically
+  - you can even use your controller in other programs as a mouse, while Rem's Engine/Studio is running :3
 
 ### Planned Features
 - nice UI system
 - easy local multiplayer
 - environment maps as lights
 - compute env maps from the scene  
-- AMD FSR
 - animation trees
 - shader graphs
+- automatic mesh reload + basic Blender file support
+  - so you could use Blender as a superb terrain editor
 
 ### Maybe Later Features
 - light baking for realistic graphics
@@ -111,7 +124,8 @@ I am writing the game engine in this same repository as Rem's Studio, because
 - block based library?
 - save files
 - multiplayer system?
-
+- support separate mice / keyboards for local multiplayer?
+- support controller + mouse/keyboard for one more local player
 
 <!--
 ## Supported Formats (Import)

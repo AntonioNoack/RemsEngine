@@ -4,7 +4,11 @@ import me.anno.graph.Node
 import me.anno.graph.NodeOutput
 import me.anno.graph.types.FlowGraph
 
-abstract class FlowGraphNode() : Node() {
+abstract class FlowGraphNode : Node {
+
+    constructor() : super()
+
+    constructor(name: String) : super(name)
 
     fun getInput(graph: FlowGraph, index: Int): Any? {
         return inputs!![index].castGetValue(graph, graph.validId)

@@ -296,17 +296,17 @@ object Input {
 
     }
 
-    var hasSeenMouseWheelX = false
+    var userCanScrollX = false
     fun onMouseWheel(dx: Float, dy: Float, byMouse: Boolean) {
         addEvent {
             framesSinceLastInteraction = 0
             val clicked = getPanelAt(mouseX, mouseY)
-            if (!byMouse && abs(dx) > abs(dy)) hasSeenMouseWheelX = true // e.g. by touchpad
+            if (!byMouse && abs(dx) > abs(dy)) userCanScrollX = true // e.g. by touchpad: use can scroll x
             if (clicked != null) {
-                if (!hasSeenMouseWheelX && byMouse && (isShiftDown || isControlDown)) {
-                    clicked.onMouseWheel(mouseX, mouseY, -dy, dx)
+                if (!userCanScrollX && byMouse && (isShiftDown || isControlDown)) {
+                    clicked.onMouseWheel(mouseX, mouseY, -dy, dx, byMouse)
                 } else {
-                    clicked.onMouseWheel(mouseX, mouseY, dx, dy)
+                    clicked.onMouseWheel(mouseX, mouseY, dx, dy, byMouse)
                 }
             }
         }

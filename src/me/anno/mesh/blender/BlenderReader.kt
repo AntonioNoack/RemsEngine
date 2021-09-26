@@ -7,10 +7,10 @@ import me.anno.fonts.mesh.Triangulation
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.zip.InnerFolder
 import me.anno.io.zip.InnerPrefabFile
 import me.anno.mesh.blender.impl.*
-import me.anno.io.files.thumbs.Thumbs
 import me.anno.utils.Clock
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.documents
@@ -22,12 +22,14 @@ import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.nio.ByteBuffer
 
+
 // extract the relevant information from a blender file:
 // done meshes
 // todo skeletons
 // todo animations
 // done materials
 // todo scene hierarchy
+//     create a test scene with different layouts, and check that everything is in the right place
 object BlenderReader {
 
     private val LOGGER = LogManager.getLogger(BlenderReader::class)
@@ -520,10 +522,12 @@ object BlenderReader {
                 // materials would be nice... but somehow they are always null
             }
             BObject.BObjectType.OB_CAMERA -> {
-                val c = prefab.add(path, 'c', "CameraComponent", 0)
-                val cam = obj.data as BCamera
-                prefab.setUnsafe(c, "near", cam.near.toDouble())
-                prefab.setUnsafe(c, "far", cam.far.toDouble())
+                val cam = obj.data as? BCamera
+                if (cam != null) {
+                    val c = prefab.add(path, 'c', "CameraComponent", 0)
+                    prefab.setUnsafe(c, "near", cam.near.toDouble())
+                    prefab.setUnsafe(c, "far", cam.far.toDouble())
+                }
             }
             BObject.BObjectType.OB_LAMP -> {
                 val light = obj.data as? BLamp

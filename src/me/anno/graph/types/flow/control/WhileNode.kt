@@ -3,7 +3,7 @@ package me.anno.graph.types.flow.control
 import me.anno.graph.NodeOutput
 import me.anno.graph.types.FlowGraph
 
-class WhileNode : FixedControlFlowNode(1, listOf("Boolean"), 2, emptyList()) {
+class WhileNode : FixedControlFlowNode("While", 1, listOf("Boolean"), 2, emptyList()) {
 
     override fun execute(graph: FlowGraph): NodeOutput {
         val running = getOutputNodes(0).others.mapNotNull { it.node }

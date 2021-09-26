@@ -24,7 +24,7 @@ fun main() {
     val font = FontManager.getFont("Verdana", fs, false, false).font
     val img = BufferedImage(w, w, 1)
     val gfx = img.graphics as Graphics2D
-    gfx.prepareGraphics(font) // yes, values are changing: single letters are assigned fraction widths now too
+    gfx.prepareGraphics(font, false) // yes, values are changing: single letters are assigned fraction widths now too
 
     val ctx = FontRenderContext(null, true, true)//gfx.fontRenderContext
     val sl = TextLayout(".", font, ctx)
