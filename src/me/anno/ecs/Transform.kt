@@ -113,7 +113,7 @@ class Transform() : Saveable() {
         val entity = entity
         if (entity != null) {
             calculateGlobalTransform(entity.parentEntity?.transform)
-            entity.invalidateChildTransforms()
+            if (entity.isCreated) entity.invalidateChildTransforms()
         }
     }
 
@@ -134,9 +134,7 @@ class Transform() : Saveable() {
         get() = pos
         set(value) {
             pos.set(value)
-            localTransform.m30(value.x)
-            localTransform.m31(value.y)
-            localTransform.m32(value.z)
+            localTransform.setTranslation(value)
             invalidateGlobal()
         }
 
@@ -144,8 +142,8 @@ class Transform() : Saveable() {
         get() = rot
         set(value) {
             rot.set(value)
-            localTransform.identity()
-                .translate(pos)
+            localTransform
+                .translation(pos)
                 .rotate(value)
                 .scale(sca)
             invalidateGlobal()
@@ -159,8 +157,8 @@ class Transform() : Saveable() {
         get() = sca
         set(value) {
             sca.set(value)
-            localTransform.identity()
-                .translate(pos)
+            localTransform
+                .translation(pos)
                 .rotate(rot)
                 .scale(value)
             invalidateGlobal()

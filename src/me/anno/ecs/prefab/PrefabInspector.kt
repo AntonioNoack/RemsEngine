@@ -300,7 +300,7 @@ class PrefabInspector(
         if (!checkDependencies(parent, prefab.source)) return
         if (prefab.clazzName != "Entity") throw IllegalArgumentException("Type must be Entity!")
         val path = parent.prefabPath!!
-        prefab.add(CAdd(path, 'e', prefab.clazzName, prefab.clazzName, prefab.source))
+        prefab.add(path, 'e', prefab.clazzName, prefab.clazzName, prefab.source)
     }
 
     fun save() {

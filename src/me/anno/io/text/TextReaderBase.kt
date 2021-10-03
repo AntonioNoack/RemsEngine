@@ -38,7 +38,6 @@ abstract class TextReaderBase : BaseReader() {
             assert(skipSpace(), '"')
             val secondProperty = readString()
             assert(skipSpace(), ':')
-            LOGGER.info("second property: $secondProperty for class $clazz")
             if (secondProperty == "i:*ptr") {
                 val ptr = readInt()
                 register(obj, ptr)
@@ -730,7 +729,6 @@ abstract class TextReaderBase : BaseReader() {
                 register(instance)
             } else {
                 assert(nextChar, ':')
-                LOGGER.info("first property: $property0")
                 if (property0 == "*ptr" || property0 == "i:*ptr") {
                     val ptr = readNumber().toIntOrNull() ?: throw InvalidFormatException("Invalid pointer")
                     register(instance, ptr)

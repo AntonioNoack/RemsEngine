@@ -294,11 +294,10 @@ object Hierarchy {
 
     private fun testRenumberRemove() {
         val prefab = Prefab("Entity")
-        val elementA = prefab.add(CAdd(Path.ROOT_PATH, 'e', "Entity", "A"))
-        val elementB = prefab.add(CAdd(Path.ROOT_PATH, 'e', "Entity", "B"))
-        val elementC = prefab.add(CAdd(elementB.getChildPath(1), 'e', "Entity", "C"))
-        val pathC = elementC.getChildPath(0)
-        prefab.set(pathC, "position", Vector3d())
+        val elementA = prefab.add(Path.ROOT_PATH, 'e', "Entity", "A",0)
+        val elementB = prefab.add(Path.ROOT_PATH, 'e', "Entity", "B",1)
+        val elementC = prefab.add(elementB, 'e', "Entity", "C",0)
+        prefab.set(elementC, "position", Vector3d())
         // Root
         // - A
         // - B
@@ -306,7 +305,7 @@ object Hierarchy {
         val sample0 = prefab.getSampleInstance() as Entity
         val numElements = sample0.sizeOfHierarchy
         if (numElements != 4) throw IllegalStateException()
-        removePathFromPrefab(prefab, elementA.getChildPath(0), "Entity")
+        removePathFromPrefab(prefab, elementA, "Entity")
         val sample1 = prefab.getSampleInstance() as Entity
         val numElements2 = sample1.sizeOfHierarchy
         if (numElements2 != 3) throw IllegalStateException("number of elements: $numElements2")

@@ -26,7 +26,7 @@ abstract class BaseReader {
     }
 
     private fun setContent(ptr: Int, iSaveable: ISaveable) {
-        LOGGER.info("SetContent($ptr, ${iSaveable.className})")
+        // LOGGER.info("SetContent($ptr, ${iSaveable.className})")
         if (ptr < 0) withoutPtr.add(iSaveable)
         else {
             // add missing instances

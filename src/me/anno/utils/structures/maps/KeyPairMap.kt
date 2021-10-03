@@ -23,7 +23,7 @@ class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
         v: Value
     ) {
         // if (k1 == Path.ROOT_PATH && k2 == "gravity") throw RuntimeException()
-        LOGGER.info("('$k1','$k2') = '$v'")
+        // LOGGER.info("('$k1','$k2') = '$v'")
         val list = values.getOrPut(k1) { PairArrayList(8) }
         list.replaceOrAddMap(k2, v)
         size++

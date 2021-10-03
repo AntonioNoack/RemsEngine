@@ -15,6 +15,7 @@ import me.anno.gpu.ShaderLib.shaderAssimp
 import me.anno.gpu.drawing.GFXx3D.shader3DUniforms
 import me.anno.gpu.drawing.GFXx3D.transformUniform
 import me.anno.gpu.shader.Shader
+import me.anno.io.files.InvalidRef
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.mesh.assimp.AnimGameItem.Companion.centerStackFromAABB
 import me.anno.mesh.assimp.AnimGameItem.Companion.getScaleFromAABB
@@ -134,12 +135,14 @@ open class MeshData : ICacheData {
                 entity.anyComponent(MeshComponent::class) { comp ->
                     val mesh = MeshCache[comp.mesh]
                     if (mesh == null) {
-                        LOGGER.warn("Mesh ${comp.mesh} is missing")
+                        if (comp.mesh != InvalidRef) {
+                            LOGGER.warn("Mesh ${comp.mesh} is missing")
+                        }
                     } else {
                         mesh.ensureBuffer()
                         shader.v1("hasVertexColors", mesh.hasVertexColors)
                         val materials = mesh.materials
-                        for(index in 0 until mesh.numMaterials){
+                        for (index in 0 until mesh.numMaterials) {
                             val material = MaterialCache[materials.getOrNull(index), defaultMaterial]
                             material.defineShader(shader)
                             mesh.draw(shader, index)
@@ -150,12 +153,15 @@ open class MeshData : ICacheData {
             } else {
                 val material = defaultMaterial
                 material.defineShader(shader)
-                entity.anyComponent(MeshComponent::class){ comp ->
+                entity.anyComponent(MeshComponent::class) { comp ->
                     val mesh = MeshCache[comp.mesh]
                     if (mesh == null) {
-                        LOGGER.warn("Mesh ${comp.mesh} is missing")
+                        if (comp.mesh != InvalidRef) {
+                            LOGGER.warn("Mesh ${comp.mesh} is missing")
+                        }
                     } else {
                         mesh.ensureBuffer()
+                        shader.v1("hasVertexColors", mesh.hasVertexColors)
                         for (i in 0 until mesh.numMaterials) {
                             mesh.draw(shader, i)
                         }

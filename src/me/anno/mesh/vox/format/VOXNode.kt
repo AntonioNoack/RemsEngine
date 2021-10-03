@@ -5,6 +5,7 @@ import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.prefab.Prefab
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import org.joml.Vector3d
 
 class VOXNode {
@@ -29,13 +30,13 @@ class VOXNode {
     }
 
     fun toEntityPrefab(prefab: Prefab, meshes: List<FileReference>, parentPath: Path, entityIndex: Int) {
-        val path = prefab.add(CAdd(parentPath, 'e', "Entity", name), entityIndex)
+        val path = prefab.add(parentPath, 'e', "Entity", name, entityIndex)
         val models = models ?: child?.models
         if (models != null) {
             // add these models as components
             for (i in models) {
                 val mesh = meshes[i]
-                val meshComponent = prefab.add(CAdd(path, 'c', "MeshComponent", mesh.name), i)
+                val meshComponent = prefab.add(path, 'c', "MeshComponent", mesh.name, i)
                 prefab.setUnsafe(meshComponent, "mesh", mesh)
             }
         }

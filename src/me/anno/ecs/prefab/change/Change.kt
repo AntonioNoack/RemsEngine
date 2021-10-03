@@ -13,9 +13,6 @@ import me.anno.io.text.TextWriter
 import org.apache.logging.log4j.LogManager
 import java.text.ParseException
 
-// todo how do we reference (as variables) to other Entities? probably a path would be correct...
-// todo the same for components
-
 abstract class Change(val priority: Int) : Saveable(), Cloneable {
 
     var path: Path = ROOT_PATH

@@ -17,8 +17,6 @@ import me.anno.utils.structures.maps.CountMap
 import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
 
-// todo allow to make immutable
-// todo and send a warning: instantiate to make mutable
 class Prefab : Saveable {
 
     constructor() : super()
@@ -131,6 +129,10 @@ class Prefab : Saveable {
         sets[path, name] = value
     }
 
+    fun add(parentPath: Path, typeChar: Char, type: String, name: String, index: Int): Path {
+        return add(CAdd(parentPath, typeChar, type, name, InvalidRef)).getChildPath(index)
+    }
+
     fun add(parentPath: Path, typeChar: Char, type: String, name: String, ref: FileReference): Path {
         val index = addCounts.getAndInc(typeChar to parentPath)
         return add(CAdd(parentPath, typeChar, type, name, ref)).getChildPath(index)
@@ -143,6 +145,11 @@ class Prefab : Saveable {
 
     fun add(parentPath: Path, typeChar: Char, clazzName: String, index: Int): Path {
         return add(CAdd(parentPath, typeChar, clazzName, clazzName, InvalidRef)).getChildPath(index)
+    }
+
+    fun add(parentPath: Path, typeChar: Char, clazzName: String, name: String): Path {
+        val index = addCounts.getAndInc(typeChar to parentPath)
+        return add(CAdd(parentPath, typeChar, clazzName, name, InvalidRef)).getChildPath(index)
     }
 
     fun <V : Change> add(change: V): V {
@@ -225,7 +232,6 @@ class Prefab : Saveable {
             "sets" -> {
                 for (v in values) {
                     if (v is CSet) {
-                        LOGGER.warn("Read ${v.path} ${v.name} ${v.value}")
                         sets[v.path, v.name!!] = v.value
                     }
                 }

@@ -133,8 +133,8 @@ open class StaticMeshesLoader {
             val meshIndices = aiNode.mMeshes()!!
             for (i in 0 until meshCount) {
                 val mesh = sceneMeshes[meshIndices[i]]
-                val meshComponent = prefab.add(CAdd(path, 'c', rendererClass, mesh.name))
-                prefab.setUnsafe(meshComponent.getChildPath(i), "mesh", mesh)
+                val meshComponent = prefab.add(path, 'c', rendererClass, mesh.name, i)
+                prefab.setUnsafe(meshComponent, "mesh", mesh)
             }
 
         }
@@ -145,9 +145,7 @@ open class StaticMeshesLoader {
             for (i in 0 until childCount) {
                 val childNode = AINode.create(children[i])
                 val childName = childNode.mName().dataString()
-                val add = CAdd(path, 'e', "Entity", childName)
-                prefab.add(add)
-                val childPath = add.getChildPath(i)
+                val childPath = prefab.add(path, 'e', "Entity", childName, i)
                 buildScene(aiScene, sceneMeshes, hasSkeleton, childNode, prefab, childPath)
             }
         }

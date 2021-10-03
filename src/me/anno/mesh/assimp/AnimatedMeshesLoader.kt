@@ -1,6 +1,7 @@
 package me.anno.mesh.assimp
 
 import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.anim.BoneByBoneAnimation
 import me.anno.ecs.components.anim.ImportedAnimation
@@ -150,9 +151,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
 
             // create a animation node to show the first animation
             if (meshes.isEmpty() && animMap.isNotEmpty()) {
-                val anim = CAdd(Path.ROOT_PATH, 'c', "AnimRenderer")
-                val animPath = anim.getChildPath(0)
-                hierarchy.add(anim)
+                val animPath =  hierarchy.add(Path.ROOT_PATH, 'c', "AnimRenderer", 0)
                 hierarchy.setUnsafe(animPath, "skeleton", skeletonPath)
                 hierarchy.setUnsafe(animPath, "animationWeights", hashMapOf(animMap.values.first() to 1f))
             }
@@ -184,9 +183,14 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         // - apply our transform
         // - then write it back
 
-        val sample = prefab.getSampleInstance() as? Entity ?: return
+        val transform0 = Transform()
+        val localPosition = prefab.sets[Path.ROOT_PATH, "position"] as? Vector3d
+        val localRotation = prefab.sets[Path.ROOT_PATH, "rotation"] as? Quaterniond
+        val localScale = prefab.sets[Path.ROOT_PATH, "scale"] as? Vector3d
 
-        val transform0 = sample.transform
+        if (localPosition != null) transform0.localPosition = localPosition
+        if (localRotation != null) transform0.localRotation = localRotation
+        if (localScale != null) transform0.localScale = localScale
 
         val transform = transform0.localTransform // root, so global = local
 
@@ -197,8 +201,6 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         prefab.setProperty("position", transform.getTranslation(Vector3d()))
         prefab.setProperty("rotation", transform.getUnnormalizedRotation(Quaterniond()))
         prefab.setProperty("scale", transform.getScale(Vector3d()))
-
-        sample.invalidateChildTransforms()
 
     }
 

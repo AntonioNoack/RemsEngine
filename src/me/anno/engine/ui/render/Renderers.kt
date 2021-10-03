@@ -145,7 +145,6 @@ object Renderers {
                     "           NdotL = mix(NdotL, 0.23, finalTranslucency) + finalSheen;\n" +
                     "           if(NdotL > 0.0){\n" +
                     "               diffuseLight += effectiveDiffuse * min(NdotL, 1.0);\n" +
-                    "               lightCount++;\n" +
                     "           }\n" +
                     "       }\n" +
                     specularBRDFv2NoDivInlined2End +

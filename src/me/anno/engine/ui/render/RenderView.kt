@@ -82,7 +82,6 @@ import org.joml.*
 import org.joml.Math.toRadians
 import org.lwjgl.opengl.GL45.*
 
-
 // done shadows
 // todo usable editing of materials: own color + indent + super material selector
 // todo + add & remove materials
@@ -134,6 +133,7 @@ class RenderView(
         FORCE_NON_DEFERRED,
         ALL_DEFERRED_LAYERS,
         ALL_DEFERRED_BUFFERS,
+
         COLOR(DeferredLayerType.COLOR),
         NORMAL(DeferredLayerType.NORMAL),
         EMISSIVE(DeferredLayerType.EMISSIVE),
@@ -147,7 +147,7 @@ class RenderView(
 
         // ALPHA, // currently not defined
         LIGHT_SUM, // todo implement dust-light-spilling for impressive fog
-        LIGHT_COUNT, // todo implement
+        LIGHT_COUNT,
 
         INVERSE_DEPTH,
         OVERDRAW, // todo overdraw seems to be missing all cubes... why?
@@ -182,7 +182,7 @@ class RenderView(
     // todo make this camera properties
     var bloomStrength = 0.5f
     var bloomOffset = 10f
-    val useBloom get() = bloomOffset > 0f
+    val useBloom get() = bloomOffset > 0f && renderMode != RenderMode.WITHOUT_POST_PROCESSING
 
     var controlScheme: ControlScheme? = null
 
@@ -363,7 +363,7 @@ class RenderView(
 
         if (renderMode.dlt != null) {
             useDeferredRendering = true
-            renderer = DeferredRenderer
+            renderer = attributeRenderers[renderMode.dlt!!]!!
         }
 
         val buffer = when {

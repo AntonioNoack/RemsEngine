@@ -83,7 +83,7 @@ class Entity() : PrefabSaveable(), Inspectable {
     var hasOnVisibleUpdate = true
 
     @NotSerializedProperty
-    private var isCreated = false
+    var isCreated = false
     fun create() {
         if (isCreated) return
         isCreated = true

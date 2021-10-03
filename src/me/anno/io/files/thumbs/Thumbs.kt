@@ -626,6 +626,7 @@ object Thumbs {
         data.assimpModel = AnimGameItem(entity)
         // todo draw gui, entity positions
         waitForTextures(data)
+        entity.validateTransform()
         val drawSkeletons = !entity.hasComponent(MeshComponent::class)
         renderToBufferedImage(InvalidRef, dstFile, true, previewRenderer, true, callback, size, size) {
             data.drawAssimp(

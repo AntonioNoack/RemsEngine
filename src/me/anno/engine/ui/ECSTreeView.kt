@@ -7,7 +7,6 @@ import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector.Companion.currentInspector
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
@@ -163,7 +162,10 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
 
     override fun setCollapsed(element: PrefabSaveable, collapsed: Boolean) {
         element.isCollapsed = collapsed
-        element.root.prefab!!.add(CSet(element.prefabPath!!, "isCollapsed", collapsed))
+        try {
+            element.root.prefab!!.set(element.prefabPath!!, "isCollapsed", collapsed)
+        } catch (e: Exception) {
+        } // idc too much about saving that property; main thing is that we can collapse and expand stuff in the editor
         needsTreeUpdate = true
         invalidateLayout()
     }

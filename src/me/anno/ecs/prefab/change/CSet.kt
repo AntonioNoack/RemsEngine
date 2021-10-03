@@ -48,7 +48,6 @@ class CSet() : Change(5) {
 
     override fun readObject(name: String, value: ISaveable?) {
         if (name == "path" && value is Path) {
-            LOGGER.info("CSet.path = $value")
             path = value
         } else super.readObject(name, value)
     }
@@ -86,11 +85,10 @@ class CSet() : Change(5) {
             if (value is Path) {// it's a prefab saveable; yes, saving paths therefore is no longer supported
                 // they just are internal to the change package
                 value = Hierarchy.getInstanceAt(instance.root, value)
-                LOGGER.info("Changed path $value0 to instance $value")
+                LOGGER.debug("Changed path $value0 to instance $value")
             }
             if (!instance.set(name, value)) {
                 LOGGER.warn("Property ${instance::class.simpleName}.$name is unknown/faulty, path: $path, prefab: ${instance.root.prefab?.source}")
-                throw RuntimeException()
             }
         }
 
