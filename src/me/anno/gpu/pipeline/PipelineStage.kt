@@ -293,14 +293,13 @@ class PipelineStage(
 
     }
 
-    fun initShader(shader: Shader, cameraMatrix: Matrix4fc, pipeline: Pipeline, visualizeLightCount: Int) {
+    fun initShader(shader: Shader, cameraMatrix: Matrix4fc, pipeline: Pipeline) {
         // information for the shader, which is material agnostic
         // add all things, the shader needs to know, e.g. light direction, strength, ...
         // (for the cheap shaders, which are not deferred)
         shader.m4x4("transform", cameraMatrix)
         shader.v3("ambientLight", pipeline.ambient)
         shader.v1("applyToneMapping", pipeline.applyToneMapping)
-        shader.v1("visualizeLightCount", visualizeLightCount)
     }
 
     fun draw(pipeline: Pipeline, cameraMatrix: Matrix4fc, cameraPosition: Vector3d, worldScale: Double) {
@@ -343,8 +342,6 @@ class PipelineStage(
 
         pipeline.lights.fill(null)
 
-        val visualizeLightCount = if (isKeyDown('t')) 1 else 0
-
         // draw non-instanced meshes
         var previousMaterialInScene: Material? = null
         for (index in 0 until nextInsertIndex) {
@@ -366,7 +363,7 @@ class PipelineStage(
 
             val previousMaterialByShader = lastMaterial.put(shader, material)
             if (previousMaterialByShader == null) {
-                initShader(shader, cameraMatrix, pipeline, visualizeLightCount)
+                initShader(shader, cameraMatrix, pipeline)
             }
 
             if (hasLights) {
@@ -433,7 +430,7 @@ class PipelineStage(
                         // update material and light properties
                         val previousMaterial = lastMaterial.put(shader, material)
                         if (previousMaterial == null) {
-                            initShader(shader, cameraMatrix, pipeline, visualizeLightCount)
+                            initShader(shader, cameraMatrix, pipeline)
                         }
                         if (previousMaterial == null && !needsLightUpdateForEveryMesh) {
                             aabb.clear()
@@ -494,7 +491,7 @@ class PipelineStage(
         val shader = defaultShader.value
         shader.use()
 
-        initShader(shader, cameraMatrix, pipeline, 0)
+        initShader(shader, cameraMatrix, pipeline)
 
         // draw non-instanced meshes
         for (index in 0 until nextInsertIndex) {
@@ -536,7 +533,7 @@ class PipelineStage(
         RenderState.instanced.use(true) {
             val shader2 = defaultShader.value
             shader2.use()
-            initShader(shader2, cameraMatrix, pipeline, 0)
+            initShader(shader2, cameraMatrix, pipeline)
             for ((mesh, list) in instancedMeshes.values) {
                 for ((_, values) in list) {
                     if (values.isNotEmpty()) {

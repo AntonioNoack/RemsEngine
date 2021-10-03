@@ -41,6 +41,39 @@ object Matrices {
         )
     }
 
+
+    fun Matrix4f.unprojectInvRay2(
+        mouseX: Float,
+        mouseY: Float,
+        windowX: Float, windowY: Float,
+        windowW: Float, windowH: Float,
+        // originDest: Vector3f,
+        dst: Vector3f = Vector3f()
+    ): Vector3f {
+        val ndcX = (mouseX - windowX) / windowW * 2.0f - 1.0f
+        val ndcY = (mouseY - windowY) / windowH * 2.0f - 1.0f
+        val px = this.m00() * ndcX + this.m10() * ndcY + this.m30()
+        val py = this.m01() * ndcX + this.m11() * ndcY + this.m31()
+        val pz = this.m02() * ndcX + this.m12() * ndcY + this.m32()
+        val pw = this.m03() * ndcX + this.m13() * ndcY + this.m33()
+        val pw1 = pw - this.m23()
+        val invNearW = 1.0f / pw1
+        val nearX = (px - this.m20()) * invNearW
+        val nearY = (py - this.m21()) * invNearW
+        val nearZ = (pz - this.m22()) * invNearW
+        val invW0 = 1.0f / pw
+        val x0 = px * invW0
+        val y0 = py * invW0
+        val z0 = pz * invW0
+        /*originDest.x = nearX
+        originDest.y = nearY
+        originDest.z = nearZ*/
+        dst.x = x0 - nearX
+        dst.y = y0 - nearY
+        dst.z = z0 - nearZ
+        return dst
+    }
+
     fun Matrix4x3d.distanceSquared(center: Vector3d): Double {
         val dx = center.x - m30()
         val dy = center.y - m31()

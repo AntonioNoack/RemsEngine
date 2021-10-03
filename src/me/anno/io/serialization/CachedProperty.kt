@@ -23,12 +23,14 @@ class CachedProperty(
     val hideInInspector = annotations.any { it is HideInInspector }
     val description = annotations.filterIsInstance<Docs>().joinToString("\n") { it.description }
 
-    operator fun set(instance: Any, value: Any?) {
-        try {
+    operator fun set(instance: Any, value: Any?): Boolean {
+        return try {
             setter.call(instance, value)
+            true
         } catch (e: Exception) {
-            LOGGER.error("Setting property '$name' with value ${value?.javaClass?.name} of ${instance::class.jvmName}, but the properties class is '$clazz'")
+            LOGGER.error("Setting property '$name' with value of class '${value?.javaClass?.name}' to instance of class '${instance::class.jvmName}', properties class: '$clazz'")
             e.printStackTrace()
+            false
         }
     }
 

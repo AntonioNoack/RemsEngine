@@ -83,7 +83,7 @@ public class GFXBase0 {
     private GLFWFramebufferSizeCallback fsCallback;
     private Callback debugProc;
 
-    public String title = "Rem's Studio";
+    public String title = "X";
 
     public long window;
     public int width = 800;
@@ -535,7 +535,7 @@ public class GFXBase0 {
 
     }
 
-    public static String projectName = "";
+    public static String projectName = "X";
     private String newTitle = null;
     boolean shouldClose = false;
 

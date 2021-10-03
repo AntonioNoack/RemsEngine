@@ -40,12 +40,10 @@ class CachedReflections(
      * */
     operator fun set(self: ISaveable, name: String, value: Any?): Boolean {
         val property = allProperties[name] ?: return false
-        if (value is Array<*> && property[self] !is Array<*>) {
-            property[self] = value.toList()
-        } else {
-            property[self] = value
-        }
-        return true
+        val value2 = if (value is Array<*> && property[self] !is Array<*>) {
+            value.toList()
+        } else value
+        return property.set(self, value2)
     }
 
     operator fun get(self: ISaveable, name: String): Any? {

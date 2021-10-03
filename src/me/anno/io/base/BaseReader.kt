@@ -8,26 +8,33 @@ import java.io.EOFException
 
 abstract class BaseReader {
 
-    private val content2 = ArrayList<ISaveable>()
-    private val content3 = ArrayList<ISaveable>()
+    private val withPtr = ArrayList<ISaveable>()
+    private val withoutPtr = ArrayList<ISaveable>()
 
-    val sortedContent: List<ISaveable> get() = content2 + content3
+    val sortedContent: List<ISaveable> get() = (withPtr + withoutPtr).filter { it !== UnitSaveable }
 
     private val missingReferences = HashMap<Int, ArrayList<Pair<Any, String>>>()
 
     fun getByPointer(ptr: Int): ISaveable? {
-        return content2.getOrNull(ptr - 1)
+        val index = ptr - 1
+        return if (index in 0 until withPtr.size) {
+            withPtr[index]
+        } else {
+            LOGGER.warn("Missing object *$ptr, only ${withPtr.size} available")
+            null
+        }
     }
 
     private fun setContent(ptr: Int, iSaveable: ISaveable) {
-        if (ptr < 0) content3.add(iSaveable)
+        LOGGER.info("SetContent($ptr, ${iSaveable.className})")
+        if (ptr < 0) withoutPtr.add(iSaveable)
         else {
             // add missing instances
             val index = ptr - 1
-            for (i in content2.size..index) {
-                content2.add(UnitSaveable)
+            for (i in withPtr.size..index) {
+                withPtr.add(UnitSaveable)
             }
-            content2[index] = iSaveable
+            withPtr[index] = iSaveable
         }
     }
 
@@ -46,7 +53,7 @@ abstract class BaseReader {
                     }
                 }
             }
-        } else if (ptr == 0) LOGGER.warn("Got object with uuid $ptr: $value, it will be ignored")
+        } else LOGGER.warn("Got object with uuid $ptr: $value, it will be ignored")
     }
 
     fun addMissingReference(owner: Any, name: String, childPtr: Int) {

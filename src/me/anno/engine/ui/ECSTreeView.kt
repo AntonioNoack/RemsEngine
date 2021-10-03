@@ -67,11 +67,11 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
         when (child) {
             is Prefab -> {
                 val elementRoot = element.root
-                val dstPath = element.pathInRoot2(element, true)
+                val dstPath = element.prefabPath!!
                 Hierarchy.add(
                     child,
                     Path.ROOT_PATH,
-                    elementRoot.prefab2!!,
+                    elementRoot.prefab!!,
                     dstPath,
                     element
                 )
@@ -79,12 +79,12 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
             is PrefabSaveable -> {
                 val childRoot = child.root
                 val elementRoot = element.root
-                val dstPath = element.pathInRoot2(element, true)
+                val dstPath = element.prefabPath!!
                 dstPath.setLast(child.name, index, element.getTypeOf(child))
                 Hierarchy.add(
-                    childRoot.prefab2!!,
-                    child.pathInRoot2(childRoot, false),
-                    elementRoot.prefab2!!,
+                    childRoot.prefab!!,
+                    child.prefabPath!!,
+                    elementRoot.prefab!!,
                     dstPath,
                     element
                 )
@@ -107,7 +107,7 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
 
     override fun removeChild(element: PrefabSaveable, child: PrefabSaveable) {
         if (element !is Entity) return
-        Hierarchy.removePathFromPrefab(element.root.prefab2!!, child)
+        Hierarchy.removePathFromPrefab(element.root.prefab!!, child)
     }
 
     override fun destroy(element: PrefabSaveable) {
@@ -163,7 +163,7 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
 
     override fun setCollapsed(element: PrefabSaveable, collapsed: Boolean) {
         element.isCollapsed = collapsed
-        element.root.prefab2!!.add(CSet(element.pathInRoot2(), "isCollapsed", collapsed))
+        element.root.prefab!!.add(CSet(element.prefabPath!!, "isCollapsed", collapsed))
         needsTreeUpdate = true
         invalidateLayout()
     }
@@ -187,7 +187,7 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
     }*/
 
     override fun getSymbol(element: PrefabSaveable): String {
-        return if (element.root.prefab2?.isWritable == false) "\uD83D\uDD12" else "⚪"
+        return if (element.root.prefab?.isWritable == false) "\uD83D\uDD12" else "⚪"
     }
 
     override fun getParent(element: PrefabSaveable): Entity? {
@@ -209,20 +209,21 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
         // temporary solution:
         askName(NameDesc("Name"), "Entity", NameDesc(), { -1 }) {
             val child = Entity()
-            val prefab = parent.root.prefab2!!
-            val dstPath = parent.pathInRoot2()
+            val prefab = parent.root.prefab!!
+            val index = parent.children.size
+            val dstPath = parent.prefabPath!!.added(it, index, 'e')
             Hierarchy.add(prefab, dstPath, parent, child)
         }
     }
 
     override fun canBeInserted(parent: PrefabSaveable, element: PrefabSaveable, index: Int): Boolean {
-        return parent.prefab.run { this == null || index >= children.size }
+        return parent.getOriginal().run { this == null || index >= children.size }
     }
 
     override fun canBeRemoved(element: PrefabSaveable): Boolean {
         val indexInParent = element.indexInParent!!
         val parent = element.parent!!
-        val parentPrefab = parent.prefab
+        val parentPrefab = parent.getOriginal()
         return parentPrefab == null || indexInParent >= parentPrefab.children.size
     }
 
@@ -261,7 +262,7 @@ class ECSTreeView(val library: ECSTypeLibrary, isGaming: Boolean, style: Style) 
         return when (val element = TextReader.read(data).firstOrNull()) {
             is Prefab -> {
                 val root = library.world
-                Hierarchy.add(root.prefab2!!, Path.ROOT_PATH, element, Path.ROOT_PATH, root)
+                Hierarchy.add(root.prefab!!, Path.ROOT_PATH, element, Path.ROOT_PATH, root)
                 true
             }
             is Entity -> TODO("paste entity somehow")

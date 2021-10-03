@@ -1,24 +1,18 @@
 package me.anno.engine.ui.scenetabs
 
 import me.anno.config.DefaultConfig
-import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
-import me.anno.engine.physics.BulletPhysics
+import me.anno.ecs.components.physics.BulletPhysics
 import me.anno.engine.ui.ECSTypeLibrary
 import me.anno.engine.ui.render.RenderView
-import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
-import me.anno.io.files.thumbs.Thumbs
 import me.anno.utils.hpc.SyncMaster
 import me.anno.utils.types.Lists.getOrPrevious
 import org.apache.logging.log4j.LogManager
@@ -109,7 +103,8 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
             PrefabInspector.currentInspector = sceneTab.inspector
             // root = sceneTab.root
             val prefab = sceneTab.inspector.prefab
-            ECSTypeLibrary.select(null, null)
+            val instance = prefab.getSampleInstance()
+            ECSTypeLibrary.select(instance, null)
             updatePrefab(prefab)
             if (sceneTab !in children3) {
                 content += sceneTab
@@ -120,8 +115,8 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
 
     fun updatePrefab(prefab: Prefab) {
         val prefabInstance = prefab.getSampleInstance()
-        val world = createWorld(prefabInstance, prefab.source)
-        ECSTypeLibrary.world = world
+        // val world = createWorld(prefabInstance, prefab.source)
+        ECSTypeLibrary.world = prefabInstance
         (prefabInstance as? Entity)?.apply {
             create()
             val physics = prefabInstance.getComponent(BulletPhysics::class, false)
@@ -129,7 +124,7 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
         }
     }
 
-    fun createWorld(item: ISaveable, src: FileReference): Entity {
+    /*fun createWorld(item: ISaveable, src: FileReference): Entity {
         // todo if there is no lights at all, we should all them "virtually", temporarily
         return when (item) {
             is Entity -> item
@@ -154,7 +149,7 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
             // todo display skeleton, animations, lights and such
             else -> throw RuntimeException("Cannot open ${item.className} in scene")
         }
-    }
+    }*/
 
     fun close(sceneTab: ECSSceneTab) {
         if (currentTab === sceneTab) {

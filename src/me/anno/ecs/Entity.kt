@@ -5,10 +5,10 @@ import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.light.AmbientLight
 import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.physics.BulletPhysics
 import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.physics.BulletPhysics
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
@@ -346,37 +346,38 @@ class Entity() : PrefabSaveable(), Inspectable {
     }
 
     private inline fun executeOptimizedEvent(
+        hasEvent: (Entity) -> Boolean,
         call: (Entity) -> Boolean,
         call2: (Component) -> Boolean
     ): Boolean {
 
         if (!isCreated) create()
 
-        var hasOnUpdate = false
+        var hasEventReceiver = false
 
         val components = components
         for (i in components.indices) {
             if (call2(components[i])) {
-                hasOnUpdate = true
+                hasEventReceiver = true
             }
         }
 
         val children = children
         for (i in children.indices) {
             val child = children[i]
-            if (child.hasOnUpdate) {
-                if (call(child)) {
-                    hasOnUpdate = true
-                }
+            if (hasEvent(child) && call(child)) {
+                hasEventReceiver = true
             }
         }
 
-        this.hasOnUpdate = hasOnUpdate
-        return hasOnUpdate
+        // this.hasOnUpdate = hasOnUpdate
+        return hasEventReceiver
     }
 
     fun update(): Boolean {
-        val hasUpdate = executeOptimizedEvent({ it.update() }) { it.callUpdate() }
+        val hasUpdate = executeOptimizedEvent({ it.hasOnUpdate }, { it.update() }) {
+            it.callUpdate()
+        }
         this.hasOnUpdate = hasUpdate
         return hasUpdate
     }
@@ -393,7 +394,9 @@ class Entity() : PrefabSaveable(), Inspectable {
     }*/
 
     fun updateVisible(): Boolean {
-        val hasUpdate = executeOptimizedEvent({ it.updateVisible() }) { it.onVisibleUpdate() }
+        val hasUpdate = executeOptimizedEvent({ it.hasOnVisibleUpdate }, { it.updateVisible() }) {
+            it.onVisibleUpdate()
+        }
         this.hasOnVisibleUpdate = hasUpdate
         return hasUpdate
     }
@@ -410,6 +413,7 @@ class Entity() : PrefabSaveable(), Inspectable {
     }
 
     private var hasValidTransform = false
+
     /**
      * when the element is moved
      * invalidates all children, so it's pretty expensive
@@ -423,7 +427,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         for (i in children.indices) {
             val child = children[i]
             if (!child.isPhysicsControlled) {
-                // child.transform.invalidateGlobal()
+                child.transform.invalidateGlobal()
                 child.invalidateChildTransforms(false)
             }
         }
@@ -582,7 +586,11 @@ class Entity() : PrefabSaveable(), Inspectable {
     }
 
     fun addComponent(index: Int, component: Component) {
-        internalComponents.add(index, component)
+        if (index >= internalComponents.size) {
+            internalComponents.add(component)
+        } else {
+            internalComponents.add(index, component)
+        }
         onAddComponent(component)
     }
 

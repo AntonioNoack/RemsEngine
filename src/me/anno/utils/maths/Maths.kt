@@ -29,6 +29,7 @@ object Maths {
     fun clamp(x: ULong, min: ULong, max: ULong) = if (x < min) min else if (x < max) x else max
     fun clamp(x: Float, min: Float, max: Float) = if (x < min) min else if (x < max) x else max
     fun clamp(x: Double, min: Double, max: Double) = if (x < min) min else if (x < max) x else max
+    fun clamp(x: Double) = if (x < 0.0) 0.0 else if (x < 1.0) x else 1.0
 
     fun smoothStep(x: Float): Float {
         return when {

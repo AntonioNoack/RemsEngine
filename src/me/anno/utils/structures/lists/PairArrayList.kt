@@ -1,6 +1,7 @@
 package me.anno.utils.structures.lists
 
 import me.anno.utils.structures.tuples.MutablePair
+import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 
 class PairArrayList<A, B>(capacity: Int = 16) : Iterable<MutablePair<A, B>> {
@@ -82,6 +83,19 @@ class PairArrayList<A, B>(capacity: Int = 16) : Iterable<MutablePair<A, B>> {
         add(a, b)
     }
 
+    fun replaceBs(run: (a: A, b: B) -> B): Int {
+        var changed = 0
+        for (i in 0 until elementSize step 2) {
+            val oldValue = array[i + 1] as B
+            val newValue = run(array[i] as A, oldValue)
+            if (newValue !== oldValue) {
+                array[i + 1] = newValue
+                changed++
+            }
+        }
+        return changed
+    }
+
     override fun iterator(): Iterator<MutablePair<A, B>> {
         return object : Iterator<MutablePair<A, B>> {
             val pair = MutablePair(null as A, null as B)
@@ -95,16 +109,20 @@ class PairArrayList<A, B>(capacity: Int = 16) : Iterable<MutablePair<A, B>> {
         }
     }
 
-    fun removeIf(run: (a: A, b: B) -> Boolean): Boolean {
-        var result = false
+    fun removeIf(run: (a: A, b: B) -> Boolean): Int {
+        var result = 0
         var i = 0
         while (i < elementSize) {
             if (run(array[i] as A, array[i + 1] as B)) {
                 removeAt(i)
-                result = true
+                result++
             } else i += 2
         }
         return result
+    }
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(PairArrayList::class)
     }
 
 }

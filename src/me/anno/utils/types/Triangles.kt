@@ -1,5 +1,6 @@
 package me.anno.utils.types
 
+import me.anno.image.ImageWriter
 import me.anno.utils.types.Vectors.minus
 import org.joml.Vector3d
 import org.joml.Vector3dc
@@ -18,41 +19,34 @@ object Triangles {
     ): Float {
         val n = subCross(a, b, c, dstNormal)
         val d = n.dot(a)
-        val t = (d - n.dot(origin)) / n.dot(direction)
-        if (t < 0f || t >= maxDistance) return Float.POSITIVE_INFINITY
-        // val q = origin + direction * t
-        dstPosition.set(direction).mul(t).add(origin)
-        // if ((b - a).cross(dst - a).dot(n) < 0) return Float.POSITIVE_INFINITY
-        // if ((c - b).cross(dst - b).dot(n) < 0) return Float.POSITIVE_INFINITY
-        // if ((a - c).cross(dst - c).dot(n) < 0) return Float.POSITIVE_INFINITY
-        if (subCrossDot(a, b, dstPosition, n) < 0f) return Float.POSITIVE_INFINITY
-        if (subCrossDot(b, c, dstPosition, n) < 0f) return Float.POSITIVE_INFINITY
-        if (subCrossDot(c, a, dstPosition, n) < 0f) return Float.POSITIVE_INFINITY
-        return t
+        val distance = (d - n.dot(origin)) / n.dot(direction)
+        if (distance < 0f || distance >= maxDistance) return Float.POSITIVE_INFINITY
+        direction.mulAdd(distance, origin, dstPosition)
+        if (subCrossDot(a, b, dstPosition, n) < 0f ||
+            subCrossDot(b, c, dstPosition, n) < 0f ||
+            subCrossDot(c, a, dstPosition, n) < 0f
+        ) return Float.POSITIVE_INFINITY
+        return distance
     }
-
 
     // https://courses.cs.washington.edu/courses/csep557/10au/lectures/triangle_intersection.pdf
     fun rayTriangleIntersection(
         origin: Vector3dc, direction: Vector3dc,
         a: Vector3dc, b: Vector3dc, c: Vector3dc,
         maxDistance: Double,
+        dstPosition: Vector3d,
         dstNormal: Vector3d,
-        dstPosition: Vector3d
     ): Double {
         val n = subCross(a, b, c, dstNormal) // to keep the magnitude of the calculations under control
         val d = n.dot(a)
-        val t = (d - n.dot(origin)) / n.dot(direction)
-        if (t < 0f || t >= maxDistance) return Double.POSITIVE_INFINITY
-        // val q = origin + direction * t
-        dstPosition.set(direction).mul(t).add(origin)
-        // if ((b - a).cross(dst - a).dot(n) < 0) return Float.POSITIVE_INFINITY
-        // if ((c - b).cross(dst - b).dot(n) < 0) return Float.POSITIVE_INFINITY
-        // if ((a - c).cross(dst - c).dot(n) < 0) return Float.POSITIVE_INFINITY
-        if (subCrossDot(a, b, dstPosition, n) < 0.0) return Double.POSITIVE_INFINITY
-        if (subCrossDot(b, c, dstPosition, n) < 0.0) return Double.POSITIVE_INFINITY
-        if (subCrossDot(c, a, dstPosition, n) < 0.0) return Double.POSITIVE_INFINITY
-        return t
+        val distance = (d - n.dot(origin)) / n.dot(direction) // distance to triangle
+        if (distance < 0f || distance >= maxDistance) return Double.POSITIVE_INFINITY
+        direction.mulAdd(distance, origin, dstPosition)
+        if (subCrossDot(a, b, dstPosition, n) < 0.0 ||
+            subCrossDot(b, c, dstPosition, n) < 0.0 ||
+            subCrossDot(c, a, dstPosition, n) < 0.0
+        ) return Double.POSITIVE_INFINITY
+        return distance
     }
 
     /**
@@ -69,7 +63,7 @@ object Triangles {
         val rx = y0 * z1 - y1 * z0
         val ry = z0 * x1 - x0 * z1
         val rz = x0 * y1 - y0 * x1
-        return rx * n.x() + ry * n.y() + rz * n.z()
+        return n.dot(rx, ry, rz)
     }
 
     /**
@@ -103,7 +97,7 @@ object Triangles {
         val rx = y0 * z1 - y1 * z0
         val ry = z0 * x1 - x0 * z1
         val rz = x0 * y1 - y0 * x1
-        return rx * n.x() + ry * n.y() + rz * n.z()
+        return n.dot(rx, ry, rz)
     }
 
     /**
@@ -125,6 +119,23 @@ object Triangles {
 
     @JvmStatic
     fun main(args: Array<String>) {
+        testSubCrossDot()
+        testTriangleTest()
+    }
+
+    fun testTriangleTest() {
+        val a = Vector3d()
+        val b = Vector3d(0.4, 1.0, 0.0)
+        val c = Vector3d(1.0, 0.0, 0.0)
+        val origin = Vector3d(0.5, 0.5, -1.1)
+        val size = 256
+        ImageWriter.writeImageInt(size, size, false, "triangle", 512) { x, y, _ ->
+            val direction = Vector3d((x - size * 0.5) / size, -(y - size * 0.5) / size, 1.0)
+            if (rayTriangleIntersection(origin, direction, a, b, c, 1e3, Vector3d(), Vector3d()).isFinite()) 0 else -1
+        }
+    }
+
+    fun testSubCrossDot() {
         val a = Vector3f(Math.random().toFloat(), Math.random().toFloat(), Math.random().toFloat())
         val b = Vector3f(Math.random().toFloat(), Math.random().toFloat(), Math.random().toFloat())
         val c = Vector3f(Math.random().toFloat(), Math.random().toFloat(), Math.random().toFloat())

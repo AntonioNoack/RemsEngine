@@ -1,9 +1,13 @@
 package me.anno.io.files
 
-import me.anno.cache.instances.LastModifiedCache
+import me.anno.cache.CacheData
+import me.anno.cache.CacheSection
+import me.anno.ecs.prefab.PrefabCache
+import me.anno.gpu.GFX.windowStack
 import me.anno.io.windows.WindowsShortcut
 import me.anno.io.zip.ZipCache
 import me.anno.studio.StudioBase
+import me.anno.ui.editor.files.FileExplorer
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.openInExplorer
 import me.anno.utils.files.Files.use
@@ -13,15 +17,13 @@ import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
 import org.apache.logging.log4j.LogManager
 import java.io.*
-import java.lang.ref.WeakReference
 import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
-import java.util.concurrent.ConcurrentHashMap
 
 // todo when a file is changed, all inner files based on that need to be invalidated (editor only)
-// todo when a file is changed, the meta data of it needs to be invalidated
-// todo only allocate each inner file once: create a static store of weak references
+// done when a file is changed, the meta data of it needs to be invalidated
+// idk only allocate each inner file once: create a static store of weak references
 
 /**
  * doesn't call toLowerCase() for each comparison,
@@ -46,7 +48,8 @@ abstract class FileReference(val absolutePath: String) {
 
         private val staticReferences = HashMap<String, FileReference>()
 
-        private val allReferences = ConcurrentHashMap<String, WeakReference<FileReference>>()
+        private val fileCache = CacheSection("Files")
+        private val fileTimeout = 60_000L
 
         /**
          * removes old references
@@ -56,30 +59,47 @@ abstract class FileReference(val absolutePath: String) {
             //allReferences.values.removeIf { it.get() == null }
         }
 
+        fun register(ref: FileReference): FileReference {
+            fileCache.override(ref.absolutePath, CacheData(ref), fileTimeout)
+            return ref
+        }
+
         fun registerStatic(ref: FileReference): FileReference {
             staticReferences[ref.absolutePath] = ref
             return ref
         }
 
-        fun invalidate(file: String, fileInstance: File = File(file)) {
-            val path = file.replace('\\', '/')
-            allReferences.remove(path)?.get()?.invalidate()
-            LastModifiedCache.invalidate(fileInstance)
-        }
-
-        fun invalidate(file: File) {
-            invalidate(file.absolutePath, file)
-        }
-
-        fun register(file: FileReference): FileReference {
-            // println("registered $file")
-            synchronized(allReferences) {
-                val str = file.absolutePath
-                val cached = allReferences[str]?.get()
-                if (cached != null) return cached
-                allReferences[str] = WeakReference(file)
-                return file
+        /**
+         * this happens rarely, and can be disabled in the shipping game
+         * therefore it can be a little expensive
+         * */
+        fun invalidate(
+            absolutePath: String
+        ) {
+            val path = absolutePath.replace('\\', '/')
+            synchronized(fileCache) {
+                fileCache.remove {
+                    val key = it.key
+                    key is String && key.startsWith(path)
+                }
             }
+            // go over all file explorers, and invalidate them, if they contain it, or are inside
+            // a little unspecific; works anyways
+            val parent = getReference(absolutePath).getParent()
+            if (parent != null) {
+                for (window in windowStack) {
+                    window.panel.forAll {
+                        if (it is FileExplorer && it.folder.absolutePath.startsWith(parent.absolutePath)) {
+                            it.invalidate()
+                        }
+                    }
+                }
+            }
+            val removed = PrefabCache.removeDual { file, _, _ ->
+                (file is FileReference && file.absolutePath.startsWith(path, true)) ||
+                        (file is String && file.startsWith(path, true))
+            }
+            LOGGER.info("Removed $removed instances from prefab cache")
         }
 
         fun getReference(ref: FileReference): FileReference {
@@ -91,13 +111,10 @@ abstract class FileReference(val absolutePath: String) {
             if (str == null || str.isBlank2()) return InvalidRef
             // root
             if (str == "null") return FileRootRef
-            synchronized(allReferences) {
-                val cached = allReferences[str]?.get()
-                if (cached != null) return cached
-                val value = createReference(str)
-                allReferences[str] = WeakReference(value)
-                return value
-            }
+            val data = fileCache.getEntry(str, fileTimeout, false) {
+                CacheData(createReference(it))
+            } as CacheData<*>
+            return data.value as FileReference
         }
 
         private fun createReference(str: String): FileReference {
@@ -143,7 +160,7 @@ abstract class FileReference(val absolutePath: String) {
         }
 
         fun getReference(file: File?): FileReference {
-            return getReference(file?.toString())
+            return getReference(file?.absolutePath?.replace('\\', '/'))
         }
 
         fun getReference(parent: File, name: String): FileReference {
@@ -184,10 +201,10 @@ abstract class FileReference(val absolutePath: String) {
     private var isValid = true
 
     open fun invalidate() {
-        println("invalidated $absolutePath")
+        LOGGER.info("Invalidated $absolutePath")
         isValid = false
         // if this has inner folders, replace all of their children as well
-        ZipCache.getMetaMaybe(this)?.invalidate()
+        ZipCache.unzipMaybe(this)?.invalidate()
     }
 
     fun validate(): FileReference {
@@ -229,6 +246,12 @@ abstract class FileReference(val absolutePath: String) {
 
     val hasValidName = !absolutePath.isBlank2()
     fun hasValidName() = hasValidName
+
+    var isHidden = name.startsWith('.') || (lcExtension == "meta" && "/Assets/" in absolutePath)
+
+    fun hide() {
+        isHidden = true
+    }
 
     /**
      * give an access to an input stream
@@ -327,12 +350,12 @@ abstract class FileReference(val absolutePath: String) {
         get(): FileReference? {
             var zipFile = zipFile ?: return null
             if (!zipFile.isDirectory) {
-                zipFile = ZipCache.getMeta(zipFile, false) ?: return null
+                zipFile = ZipCache.unzip(zipFile, false) ?: return null
             }
             return zipFile
         }
 
-    private val zipFile get() = ZipCache.getMeta(this, false)
+    private val zipFile get() = ZipCache.unzip(this, false)
 
     abstract fun getParent(): FileReference?
 
@@ -445,7 +468,7 @@ abstract class FileReference(val absolutePath: String) {
         val link = windowsLnk.value ?: return null
         // if the file is not a directory, then list the parent?
         // todo mark this child somehow?...
-        val str = link.realFilename.replace('\\', '/')
+        val str = link.absolutePath.replace('\\', '/')
         val ref = getReference(str)
         return listOf(
             if (link.isDirectory) {
@@ -463,6 +486,18 @@ abstract class FileReference(val absolutePath: String) {
             element = element.getParent() ?: return false
         }
         return false
+    }
+
+    fun <V> toFile(run: (File) -> V): V {
+        return if (this is FileFileRef) {
+            run(file)
+        } else {
+            val tmp = File.createTempFile(nameWithoutExtension, extension)
+            tmp.writeBytes(readBytes())
+            val result = run(tmp)
+            tmp.deleteOnExit()
+            result
+        }
     }
 
     private fun printTree(depth: Int = 0) {

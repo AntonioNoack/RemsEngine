@@ -11,26 +11,26 @@ import me.anno.utils.types.Strings.isBlank2
 import org.joml.*
 import kotlin.math.abs
 
-abstract class TextWriterBase() : BaseWriter(true) {
+abstract class TextWriterBase : BaseWriter(true) {
 
     private var hasObject = false
-    private var usedPointers: HashSet<Int>? = null
+    private var usedPointers: HashSet<ISaveable>? = null
 
     private val tmp16 = FloatArray(16)
     private val tmp16d = DoubleArray(16)
-    
+
     abstract fun append(v: Char)
-    
+
     abstract fun append(v: String)
-    
+
     abstract fun append(v: Int)
 
     abstract fun append(v: Long)
-    
+
     open fun append(v: Byte): Unit = append(v.toInt())
-    
+
     open fun append(v: Short): Unit = append(v.toInt())
-    
+
     fun open(array: Boolean) {
         append(if (array) '[' else '{')
         hasObject = false
@@ -866,7 +866,7 @@ abstract class TextWriterBase() : BaseWriter(true) {
             hasObject = true
         }
         val pointer = getPointer(value)!!
-        if (usedPointers?.contains(pointer) != false) {// null oder true
+        if (usedPointers?.contains(value) != false) {// null oder true
             writeInt("*ptr", pointer)
         }
         value.save(this)
@@ -957,19 +957,22 @@ abstract class TextWriterBase() : BaseWriter(true) {
         force: Boolean
     ) = writeNullableObjectArray(self, name, values, force)
 
-    override fun writePointer(name: String?, className: String, ptr: Int) {
+    override fun writePointer(name: String?, className: String, ptr: Int, value: ISaveable) {
         writeAttributeStart(className, name)
         append(ptr)
     }
 
+    private fun findReferences() {
+        val referenceFinder = FindReferencesWriter(canSkipDefaultValues)
+        for (todoItem in sortedPointers) referenceFinder.add(todoItem)
+        referenceFinder.writeAllInList()
+        usedPointers = referenceFinder.usedPointers
+        usedPointers!!.addAll(pointers.keys)
+    }
+
     override fun writeAllInList() {
-        val writer0 = FindReferencesWriter()
-        for (todoItem in todo) writer0.add(todoItem)
-        writer0.writeAllInList()
-        usedPointers = writer0.usedPointers
-        // directly written needs this, because of sortedContent
-        usedPointers!!.addAll(todo.map { writer0.getPointer(it)!! })
+        findReferences()
         super.writeAllInList()
     }
-    
+
 }

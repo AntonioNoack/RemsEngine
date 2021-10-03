@@ -115,7 +115,7 @@ object ScenePrefab : InnerPrefabFile(
         set(dlp, "shadowMapCascades", 1)
         set(dlp, "color", Vector3f(70f))*/
 
-        if (true) {
+        if (false) {
             val ringOfLights = addE(this, lights, "Ring Of Lights")
             val superRings = 35
             val rlc0 = RenderView.MAX_FORWARD_LIGHTS - 4
@@ -157,6 +157,7 @@ object ScenePrefab : InnerPrefabFile(
         set(vehicleComp, "centerOfMass", Vector3d(0.0, -1.0, 0.0))
         val vehicleCollider = addC(this, vehicle, "BoxCollider", "Box Collider")
         set(vehicleCollider, "halfExtends", Vector3d(1.0, 0.5, 2.0))
+        addC(this, vehicle, "TestVehicleController")
         // this.add(ChangeAddEntity(Path(intArrayOf(0, physics, 0))))
         // add all wheels
         var ci = 1
@@ -173,6 +174,22 @@ object ScenePrefab : InnerPrefabFile(
         // todo add script for driving
         clock.stop("vehicle")
 
+
+        // todo chain test:
+        // todo create two static points, and a long chain in-between
+        // todo when this works, create spider girl ...
+
+        // todo test all constraints...
+        // todo debug input mode to debug physics
+        val constraints = addE(this, physics, "Constraints")
+
+        // todo generic
+        // todo hinge
+        // todo point2point
+        // todo cone twist
+
+        // (except we need to much other stuff... UI, controls, click events, ...)
+
         /*var testChain = addE(this, world,"chain-0")
         for(i in 1 until 7){
             testChain = addE(this, testChain, "chain-$i")
@@ -181,7 +198,7 @@ object ScenePrefab : InnerPrefabFile(
         // add a floor for testing
         val cubePath = documents.getChild("cube.obj")
         val cubePathNormals = documents.getChild("cube shield.glb")
-        val floor = addE(this, physics, "Floor", cubePath)
+        val floor = addE(this, physics, "Floor")
         set(floor, "position", Vector3d(0.0, -50.0, 0.0))
         set(floor, "scale", Vector3d(2000.0, 50.0, 2000.0))
         // set(floor, "scale", Vector3d(5.0))
@@ -189,6 +206,8 @@ object ScenePrefab : InnerPrefabFile(
         set(floorBody, "mass", 0.0) // static
         val floorCollider = addC(this, floor, "BoxCollider")
         set(floorCollider, "halfExtends", Vector3d(1.0))
+        val floorMesh = addC(this, floor, "MeshComponent")
+        set(floorMesh, "mesh", cubePath)
 
         clock.stop("floor")
 

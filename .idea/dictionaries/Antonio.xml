@@ -44,6 +44,7 @@
       <w>cornsilk</w>
       <w>cubemap</w>
       <w>cubemaps</w>
+      <w>curviness</w>
       <w>darkblue</w>
       <w>darkcyan</w>
       <w>darkgoldenrod</w>
@@ -197,6 +198,7 @@
       <w>msaa</w>
       <w>mtllib</w>
       <w>multisample</w>
+      <w>multisampled</w>
       <w>musik</w>
       <w>navajowhite</w>
       <w>ndot</w>
@@ -228,6 +230,7 @@
       <w>quaterniond</w>
       <w>quaternionf</w>
       <w>radialgradient</w>
+      <w>ragdoll</w>
       <w>rasterization</w>
       <w>rawvideo</w>
       <w>raycast</w>
@@ -250,6 +253,7 @@
       <w>sandybrown</w>
       <w>saveable</w>
       <w>saveables</w>
+      <w>scifi</w>
       <w>seagreen</w>
       <w>segoe</w>
       <w>serializables</w>
@@ -283,6 +287,7 @@
       <w>ultrafast</w>
       <w>unifont</w>
       <w>unitypackage</w>
+      <w>unproject</w>
       <w>upsample</w>
       <w>upscaled</w>
       <w>usemtl</w>
@@ -303,6 +308,7 @@
       <w>xxyy</w>
       <w>xyxy</w>
       <w>xyzi</w>
+      <w>xyzw</w>
       <w>yellowgreen</w>
       <w>zerolatency</w>
     </words>

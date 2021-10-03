@@ -21,12 +21,14 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.ImageGPUCache.getInternalTexture
 import me.anno.image.ImageReadable
+import me.anno.image.ImageScale.scale
 import me.anno.input.Input
 import me.anno.input.Input.mouseDownX
 import me.anno.input.Input.mouseDownY
 import me.anno.input.MouseButton
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.trash.TrashManager.moveToTrash
 import me.anno.language.translation.NameDesc
@@ -36,6 +38,7 @@ import me.anno.objects.Video
 import me.anno.objects.modes.LoopingState
 import me.anno.studio.StudioBase
 import me.anno.ui.base.Panel
+import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.askName
@@ -46,7 +49,6 @@ import me.anno.ui.dragging.Draggable
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
-import me.anno.utils.image.ImageScale.scale
 import me.anno.utils.io.Streams.copy
 import me.anno.utils.maths.Maths.mixARGB
 import me.anno.utils.maths.Maths.sq
@@ -54,6 +56,7 @@ import me.anno.utils.strings.StringHelper.setNumber
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.formats.gpu.GPUFrame
+import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import java.io.File
@@ -63,6 +66,8 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
+// todo cannot enter mtl file
+
 // todo when is audio, and hovered, we need to draw the loading animation continuously as well
 
 // todo right click to get all meta information? (properties panel in windows)
@@ -70,9 +75,10 @@ import kotlin.math.roundToInt
 // todo images: show extra information: width, height
 class FileExplorerEntry(
     private val explorer: FileExplorer,
-    val isParent: Boolean, var file: FileReference, style: Style
+    val isParent: Boolean, file: FileReference, style: Style
 ) : PanelGroup(style.getChild("fileEntry")) {
 
+    val path = file.absolutePath
 
     // todo when entering a json file, and leaving it, the icon should not be a folder!
 
@@ -166,27 +172,44 @@ class FileExplorerEntry(
         this.h = minH
     }
 
-    override fun getLayoutState(): Any? = titlePanel.getLayoutState()
-    override fun getVisualState(): Any {
+    // is null
+    // override fun getLayoutState(): Any? = titlePanel.getLayoutState()
+    private var lastTex: Any? = null
+    private var lastMeta: Any? = null
+
+    override fun tickUpdate() {
+        super.tickUpdate()
+
+        val meta = meta
         val tex = when (val tex = getTexKey()) {
             is GPUFrame -> if (tex.isCreated) tex else null
             is Texture2D -> tex.state
             else -> tex
         }
+        if (lastMeta !== meta || lastTex !== tex) {
+            lastTex = tex
+            lastMeta = meta
+            invalidateDrawing()
+        }
+
         titlePanel.canBeSeen = canBeSeen
-        return Pair(tex, meta)
-    }
 
-    override fun tickUpdate() {
-        super.tickUpdate()
-
-        val newFile = FileReference.getReference(file)
+        // todo instead invalidate all file explorers, if they contain that file
+        /*val newFile = FileReference.getReference(file)
         if (newFile !== file) {
             file = newFile
             invalidateDrawing()
         }
 
-        wasInFocus = isInFocus
+        if (!file.exists) {
+            explorer.invalidate()
+        }*/
+
+        // needs to be disabled in the future, I think
+        if (getReference(path).isHidden) {
+            visibility = Visibility.GONE
+        }
+
         backgroundColor = when {
             isInFocus -> darkerBackgroundColor
             isHovered -> hoverBackgroundColor
@@ -199,7 +222,7 @@ class FileExplorerEntry(
     private fun updatePlaybackTime() {
         when (importType) {
             "Video", "Audio" -> {
-                val meta = FFMPEGMetadata.getMeta(file, true)
+                val meta = FFMPEGMetadata.getMeta(path, true)
                 this.meta = meta
                 if (meta != null) {
                     val w = w
@@ -211,7 +234,7 @@ class FileExplorerEntry(
                         invalidateDrawing()
                         if (startTime == 0L) {
                             startTime = GFX.gameTime
-                            val audio = Video(file)
+                            val audio = Video(getReference(path))
                             audio.isLooping.value = LoopingState.PLAY_LOOP
                             audio.update()// sets audio.type, which is required for startPlayback
                             this.audio = audio
@@ -259,7 +282,7 @@ class FileExplorerEntry(
 
     private fun getTexKey(): Any? {
         fun getImage(): Any? {
-            val thumb = Thumbs.getThumbnail(file, w, true)
+            val thumb = Thumbs.getThumbnail(getReference(path), w, true)
             return thumb ?: getDefaultIcon()
         }
         return when (importType) {
@@ -280,9 +303,8 @@ class FileExplorerEntry(
     private fun drawImageOrThumb(x0: Int, y0: Int, x1: Int, y1: Int) {
         val w = x1 - x0
         val h = y1 - y0
-        val image = Thumbs.getThumbnail(file, w, true) ?: getDefaultIcon() ?: whiteTexture
-        val tex2D = image as? Texture2D
-        val rot = tex2D?.rotation
+        val image = Thumbs.getThumbnail(getReference(path), w, true) ?: getDefaultIcon() ?: whiteTexture
+        val rot = (image as? Texture2D)?.rotation
         image.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
         if (rot == null) {
             drawTexture(x0, y0, x1, y1, image)
@@ -303,7 +325,7 @@ class FileExplorerEntry(
     }
 
     fun getFrame(offset: Int) = getVideoFrame(
-        file, scale, frameIndex + offset,
+        getReference(path), scale, frameIndex + offset,
         videoBufferLength, previewFPS, 1000, true
     )
 
@@ -325,7 +347,7 @@ class FileExplorerEntry(
 
         // show video progress on playback, e.g. hh:mm:ss/hh:mm:ss
         if (h >= 3 * titlePanel.font.sizeInt) {
-            val meta = FFMPEGMetadata.getMeta(file, true)
+            val meta = FFMPEGMetadata.getMeta(path, true)
             if (meta != null) {
 
                 val totalSeconds = (meta.videoDuration).roundToInt()
@@ -360,9 +382,9 @@ class FileExplorerEntry(
     }
 
     private fun drawThumb(x0: Int, y0: Int, x1: Int, y1: Int) {
-        if (file.isDirectory) {
+        /*if (file.isDirectory) {
             return drawDefaultIcon(x0, y0, x1, y1)
-        }
+        }*/
         when (importType) {
             // todo audio preview???
             // todo animation preview: draw the animated skeleton
@@ -389,14 +411,15 @@ class FileExplorerEntry(
     private var padding = 0
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
-        val file = file
+        val file = getReference(path)
         when {
             file.isDirectory -> {
                 tooltip = file.name
             }
             file is PrefabReadable -> {
+                val prefab = file.readPrefab()
                 tooltip = file.name + "\n" +
-                        file.readPrefab().countTotalChanges() +" Changes"
+                        "${prefab.clazzName}, ${prefab.countTotalChangesAsync()} Changes"
             }
             file is ImageReadable -> {
                 val image = file.readImage()
@@ -472,8 +495,9 @@ class FileExplorerEntry(
         when (action) {
             "DragStart" -> {
                 // todo select the file, if the mouse goes up, not down
+                val file = getReference(path)
                 if (inFocus.any { it.contains(mouseDownX, mouseDownY) } && StudioBase.dragged?.getOriginal() != file) {
-                    val inFocus = inFocus.filterIsInstance<FileExplorerEntry>().map { it.file }
+                    val inFocus = inFocus.filterIsInstance<FileExplorerEntry>().map { getReference(it.path) }
                     if (inFocus.size == 1) {
                         val textPanel = TextPanel(file.nameWithoutExtension, style)
                         val draggable = Draggable(file.toString(), "File", file, textPanel)
@@ -487,17 +511,19 @@ class FileExplorerEntry(
                 }
             }
             "Enter" -> {
-                if (file.isSomeKindOfDirectory) {
+                val file = getReference(path)
+                if (explorer.canSensiblyEnter(file)) {
                     explorer.switchTo(file)
                 } else return false
             }
             "Rename" -> {
+                val file = getReference(path)
                 val title = NameDesc("Rename To...", "", "ui.file.rename2")
                 askName(x.toInt(), y.toInt(), title, file.name, NameDesc("Rename"), { -1 }, ::renameTo)
             }
-            "OpenInExplorer" -> file.openInExplorer()
-            "Delete" -> deleteFileMaybe(file)
-            "OpenOptions" -> explorer.openOptions(file)
+            "OpenInExplorer" -> getReference(path).openInExplorer()
+            "Delete" -> deleteFileMaybe(getReference(path))
+            "OpenOptions" -> explorer.openOptions(getReference(path))
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
         return true
@@ -506,6 +532,7 @@ class FileExplorerEntry(
     fun renameTo(newName: String) {
         val allowed = newName.toAllowedFilename()
         if (allowed != null) {
+            val file = getReference(path)
             val dst = file.getParent()!!.getChild(allowed)
             if (dst.exists && !allowed.equals(file.name, true)) {
                 ask(NameDesc("Override existing file?", "", "ui.file.override")) {
@@ -521,9 +548,9 @@ class FileExplorerEntry(
 
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
         if (button.isLeft) {
-            if (file.isSomeKindOfDirectory) {
+            val file = getReference(path)
+            if (explorer.canSensiblyEnter(file)) {
                 explorer.switchTo(file)
-                // super.onDoubleClick(x, y, button)
             } else {
                 explorer.onDoubleClick(file)
             }
@@ -531,8 +558,9 @@ class FileExplorerEntry(
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
+        val file = getReference(path)
         // todo in Rem's Engine, we first should check, whether there are prefabs, which depend on this file
-        val files = inFocus.mapNotNull { (it as? FileExplorerEntry)?.file }
+        val files = inFocus.mapNotNull { if (it is FileExplorerEntry) getReference(it.path) else null }
         if (files.size <= 1) {
             // ask, then delete (or cancel)
             deleteFileMaybe(file)
@@ -568,8 +596,11 @@ class FileExplorerEntry(
     }
 
     override fun onCopyRequested(x: Float, y: Float): String? {
+        val file = getReference(path)
         val rawFiles = if (this in inFocus) {// multiple files maybe
-            inFocus.filterIsInstance<FileExplorerEntry>().map { it.file }
+            inFocus.filterIsInstance<FileExplorerEntry>().map {
+                getReference(it.path)
+            }
         } else listOf(file)
         // we need this folder, when we have temporary copies,
         // because just File.createTempFile() changes the name,
@@ -584,6 +615,7 @@ class FileExplorerEntry(
                 tmp
             }
         }
+        // me.anno.utils.LOGGER.info("Copy requested, $tmpFiles")
         Input.copyFiles2(tmpFiles)
         return null
     }
@@ -603,12 +635,14 @@ class FileExplorerEntry(
 
     override fun printLayout(tabDepth: Int) {
         super.printLayout(tabDepth)
-        println("${Tabs.spaces(tabDepth * 2 + 2)} ${file.name}")
+        println("${Tabs.spaces(tabDepth * 2 + 2)} ${getReference(path).name}")
     }
 
     override val className get() = "FileEntry"
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(FileExplorerEntry::class)
 
         val videoBufferLength = 64
 

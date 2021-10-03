@@ -1,6 +1,8 @@
 package me.anno.utils.structures.maps
 
+import me.anno.ecs.prefab.change.Path
 import me.anno.utils.structures.lists.PairArrayList
+import org.apache.logging.log4j.LogManager
 
 class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
     Iterable<PairArrayList<KFewOnly, Value>> {
@@ -20,6 +22,8 @@ class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
         k2: KFewOnly,
         v: Value
     ) {
+        // if (k1 == Path.ROOT_PATH && k2 == "gravity") throw RuntimeException()
+        LOGGER.info("('$k1','$k2') = '$v'")
         val list = values.getOrPut(k1) { PairArrayList(8) }
         list.replaceOrAddMap(k2, v)
         size++
@@ -75,6 +79,14 @@ class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
         }
     }
 
+    inline fun replaceValues(crossinline run: (k1: KManifold, k2: KFewOnly, v: Value) -> Value): Int {
+        var changed = 0
+        for ((k1, k2s) in values) {
+            changed += k2s.replaceBs { a, b -> run(k1, a, b) }
+        }
+        return changed
+    }
+
     inline fun removeMajorIf(noinline run: (k1: KManifold) -> Boolean): Boolean {
         return if (values.keys.removeIf(run)) {
             size = values.values.sumOf { it.size }
@@ -82,18 +94,20 @@ class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
         } else false
     }
 
-    inline fun removeIf(crossinline run: (k1: KManifold, k2: KFewOnly, v: Value) -> Boolean) {
+    inline fun removeIf(crossinline run: (k1: KManifold, k2: KFewOnly, v: Value) -> Boolean): Int {
+        var removed = 0
         for ((k1, k2s) in values) {
-            k2s.removeIf { k2, v ->
+            removed += k2s.removeIf { k2, v ->
                 run(k1, k2, v)
             }
         }
-        size = values.values.sumOf { it.size }
+        size -= removed
+        return removed
     }
 
     fun remove(k1: KManifold, k2: KFewOnly): Boolean {
         val list = values[k1] ?: return false
-        return if (list.removeIf { first, _ -> first == k2 }) {
+        return if (list.removeIf { first, _ -> first == k2 } > 0) {
             size--
             true
         } else false
@@ -113,5 +127,8 @@ class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
 
     fun isEmpty() = size == 0
 
+    companion object {
+        private val LOGGER = LogManager.getLogger(KeyPairMap::class)
+    }
 
 }

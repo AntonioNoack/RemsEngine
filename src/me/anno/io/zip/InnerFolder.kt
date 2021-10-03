@@ -7,6 +7,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import java.io.IOException
 import java.io.InputStream
+import kotlin.math.abs
 
 /**
  * a file, which is inside another file,

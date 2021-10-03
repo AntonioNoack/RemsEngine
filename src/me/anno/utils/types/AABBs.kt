@@ -344,8 +344,21 @@ object AABBs {
         // this didn't work because of the end
         // the end typically won't be reached anyways
         // test the end just by distance: distance(aabb,start) must be <= distance(start,end)
+        // println("${aabb.testRay(start.x, start.y, start.z, end.x - start.x, end.y - start.y, end.z - start.z)}")
+        // println("distance: ${distanceSquared(aabb, start)} <= ${start.distanceSquared(end)}")
         return aabb.testRay(start.x, start.y, start.z, end.x - start.x, end.y - start.y, end.z - start.z) &&
-                distanceSquared(aabb, start) <= start.distanceSquared(end)
+               true// distanceSquared(aabb, start) <= start.distanceSquared(end)
+    }
+
+    fun testLineAABB(aabb: AABBd, start: Vector3d, dir: Vector3d, length: Double): Boolean {
+        if (aabb.isEmpty()) return false
+        // this didn't work because of the end
+        // the end typically won't be reached anyways
+        // test the end just by distance: distance(aabb,start) must be <= distance(start,end)
+        // println("${aabb.testRay(start.x, start.y, start.z, end.x - start.x, end.y - start.y, end.z - start.z)}")
+        // println("distance: ${distanceSquared(aabb, start)} <= ${start.distanceSquared(end)}")
+        return aabb.testRay(start.x, start.y, start.z, dir.x, dir.y, dir.z) &&
+                distanceSquared(aabb, start) <= dir.lengthSquared() * length * length
     }
 
     // pseudo-distance from aabb to v

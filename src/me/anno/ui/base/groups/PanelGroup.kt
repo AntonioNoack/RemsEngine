@@ -5,12 +5,10 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
-import java.lang.Exception
-import java.lang.RuntimeException
 import kotlin.math.max
 import kotlin.math.min
 
-abstract class PanelGroup(style: Style): Panel(style){
+abstract class PanelGroup(style: Style) : Panel(style) {
 
     abstract val children: List<Panel>
     abstract fun remove(child: Panel)
@@ -19,8 +17,10 @@ abstract class PanelGroup(style: Style): Panel(style){
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
-        children@ for(child in children){
-            if(child.visibility == Visibility.VISIBLE){
+        val children = children
+        children@ for (index in children.indices) {
+            val child = children[index]
+            if (child.visibility == Visibility.VISIBLE) {
                 drawChild(child, x0, y0, x1, y1)
             }
         }
@@ -31,8 +31,8 @@ abstract class PanelGroup(style: Style): Panel(style){
         val y02 = max(child.y, y0)
         val x12 = min(child.x + child.w, x1)
         val y12 = min(child.y + child.h, y1)
-        return if(x12 > x02 && y12 > y02){
-            GFX.clip2(x02, y02, x12, y12){
+        return if (x12 > x02 && y12 > y02) {
+            GFX.clip2(x02, y02, x12, y12) {
                 child.draw(x02, y02, x12, y12)
             }
             true
@@ -48,11 +48,11 @@ abstract class PanelGroup(style: Style): Panel(style){
 
     override fun printLayout(tabDepth: Int) {
         super.printLayout(tabDepth)
-        if(visibility == Visibility.VISIBLE){
-            for(child in children){
-                child.printLayout(tabDepth+1)
+        if (visibility == Visibility.VISIBLE) {
+            for (child in children) {
+                child.printLayout(tabDepth + 1)
             }
-        } else println("${Tabs.spaces((tabDepth+1) * 2)}...")
+        } else println("${Tabs.spaces((tabDepth + 1) * 2)}...")
     }
 
 }

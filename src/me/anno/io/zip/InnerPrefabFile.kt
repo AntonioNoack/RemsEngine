@@ -8,7 +8,7 @@ import java.io.InputStream
 
 open class InnerPrefabFile(
     absolutePath: String, relativePath: String, _parent: FileReference,
-    val prefab: Prefab
+    var prefab: Prefab
 ) : InnerFile(absolutePath, relativePath, false, _parent), PrefabReadable {
 
     init {

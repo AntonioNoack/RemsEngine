@@ -43,7 +43,10 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
         if (prefab != null) {
             prefab.source = file
             ECSSceneTabs.open(syncMaster, prefab)
-        } else msg(NameDesc("Could not open prefab!"))
+        } else {
+            switchTo(file)
+            // msg(NameDesc("Could not open prefab!"))
+        }
     }
 
     override fun getRightClickOptions(): List<FileExplorerOption> {
@@ -75,14 +78,15 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
 
 
         // when dragging over a current folder, do that operation on that folder
-        val current = (content.children.firstOrNull { it.contains(x, y) } as? FileExplorerEntry)?.file ?: folder
+        val entry = content.children.firstOrNull { it.contains(x, y) } as? FileExplorerEntry
+        val current = if (entry == null) folder else getReference(entry.path)
 
         val projectFolder = RemsEngine.instance2!!.currentProject.location
 
         if (current.absolutePath.startsWith(projectFolder.absolutePath)) {
             for (src in files) {
                 // in the future, we could do this async
-                val innerFolder = ZipCache.getMeta(src, false)
+                val innerFolder = ZipCache.unzip(src, false)
                 if (innerFolder != null) {
 
                     // ask user for destination directory... or do we just use this one? yes :)
@@ -116,10 +120,17 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
         for ((_, prefab) in prefabs) {
             val original = loadPrefab(prefab.prefab)!!
             original.sets.forEach { k1, k2, v ->
-                if (v is FileReference && v != InvalidRef) {
-                    val replacement = prefabs[v]
-                    if (replacement != null) {
-                        prefab.set(k1, k2, replacement.source)
+                when {
+                    v is FileReference && v != InvalidRef -> {
+                        val replacement = prefabs[v]
+                        if (replacement != null) {
+                            prefab.set(k1, k2, replacement.source)
+                        }
+                    }
+                    v is List<*> && v.any { it is FileReference && it != InvalidRef } -> {
+                        // e.g. materials
+                        val replacement = v.map { prefabs[it]?.source ?: it }
+                        prefab.set(k1, k2, replacement)
                     }
                 }
             }
@@ -157,11 +168,14 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
                         name = srcFile.getParent()!!.nameWithoutExtension
                     }
                     val newPrefab = Prefab(prefab.clazzName, srcFile)
-                    val dstFile = findNextFile(dstFolder, name, "json", 3, '-', 1)
+                    val dstFile = getReference(dstFolder, "$name.json")
+
+                    // val dstFile = findNextFile(dstFolder, name, "json", 3, '-', 1)
                     dstFile.getParent()?.mkdirs()
                     dstFile.writeText(TextWriter.toText(newPrefab))
                     newPrefab.source = dstFile
                     result[srcFile] = newPrefab
+
                 } else LOGGER.warn("Skipped $srcFile, because it was not a prefab")
             }
         }

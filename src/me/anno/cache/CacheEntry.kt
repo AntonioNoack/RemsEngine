@@ -17,15 +17,19 @@ class CacheEntry(
     var hasValue = false
     var hasBeenDestroyed = false
 
-    fun waitForValue(){
-        Sleep.waitUntil(true){ hasValue }
+    fun waitForValue() {
+        Sleep.waitUntil(true) { hasValue }
     }
 
     fun destroy() {
-        if(hasBeenDestroyed) throw IllegalStateException()
-        hasBeenDestroyed = true
-        data?.destroy()
-        data = null
+        if (!hasBeenDestroyed) {
+            hasBeenDestroyed = true
+            data?.destroy()
+            data = null
+        } else {
+            RuntimeException("Cannot destroy things twice!")
+                .printStackTrace()
+        }
     }
 
 }

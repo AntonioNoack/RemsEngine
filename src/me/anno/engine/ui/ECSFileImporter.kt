@@ -30,7 +30,7 @@ object ECSFileImporter : FileContentImporter<PrefabSaveable>() {
         parent!!
 
         val inspector = PrefabInspector.currentInspector!!
-        val path = parent.pathInRoot2(inspector.root, false)
+        val path = parent.prefabPath!!
 
         val prefab = loadPrefab(file)
 

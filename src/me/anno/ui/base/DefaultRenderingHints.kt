@@ -11,6 +11,8 @@ object DefaultRenderingHints {
     private val LOGGER = LogManager.getLogger(DefaultRenderingHints::class)
 
     val hints: MutableMap<*, *>
+
+    // display-independent hints, without subpixel rendering: scalable without color artefacts
     val portableHints = mutableMapOf(RenderingHints.KEY_FRACTIONALMETRICS to RenderingHints.VALUE_FRACTIONALMETRICS_ON)
 
     init {

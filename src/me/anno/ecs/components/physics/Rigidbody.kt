@@ -5,27 +5,38 @@ import cz.advel.stack.Stack
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
+import me.anno.ecs.components.physics.BulletPhysics.Companion.castB
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.gui.LineShapes
-import me.anno.engine.ui.render.RenderView
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import org.joml.Vector3d
-import org.joml.Vector4f
 import kotlin.math.abs
 
 open class Rigidbody : Component() {
 
+    // todo prefer to split strings when switching from lower case to upper case
+
     // todo physics: awake button, which adds a little of force, or temporarily undoes the sleeping time limit, and activates it
 
-    // todo lock an axis of the object
-    // todo other constraints, e.g. chains
-
-    // todo extra gravity settings
+    // done extra gravity settings
 
     // todo getters for all information like velocity and such
 
     // done functions to add impulses and forces
+
+    // todo transform this into a matrix
+
+    @Range(0.0, 15.0)
+    var group = 1
+
+    // which groups to collide with
+    @NotSerializedProperty
+    val collisionMask
+        get() = collisionMatrix[group]
+
+    @NotSerializedProperty
+    var bulletInstance: RigidBody? = null
 
     @SerializedProperty
     var activeByDefault = true
@@ -36,6 +47,28 @@ open class Rigidbody : Component() {
                 field = value
                 invalidatePhysics()
             }
+        }
+
+    @SerializedProperty
+    var deleteWhenKilledByDepth = true
+
+    @SerializedProperty
+    var overrideGravity = false
+        set(value) {
+            field = value
+            if (value) {
+                bulletInstance?.setGravity(castB(gravity))
+            } else {
+                invalidateRigidbody() // it's complicated ^^
+            }
+        }
+
+    @SerializedProperty
+    var gravity = gravity0
+        set(value) {
+            field.set(value)
+            if (overrideGravity)
+                bulletInstance?.setGravity(castB(value))
         }
 
     @Docs("How heavy it is")
@@ -256,9 +289,6 @@ open class Rigidbody : Component() {
         bulletInstance?.applyGravity()
     }
 
-    @NotSerializedProperty
-    var bulletInstance: RigidBody? = null
-
     override fun onDrawGUI() {// center of mass circle
         super.onDrawGUI()
         /*val stack = RenderView.stack
@@ -289,12 +319,20 @@ open class Rigidbody : Component() {
         clone.angularSleepingThreshold = angularSleepingThreshold
         clone.linearSleepingThreshold = linearSleepingThreshold
         clone.restitution = restitution
+        clone.overrideGravity = overrideGravity
+        clone.gravity.set(gravity)
     }
 
     override val className get() = "Rigidbody"
 
-    /*companion object {
-        val centerOfMassColor = Vector4f(1f, 0f, 0f, 1f)
-    }*/
+    companion object {
+        val gravity0 = Vector3d(0.0, -9.81, 0.0)
+
+        // todo define some kind of matrix
+        // todo this would need to be a) standardized
+        // todo or be customizable...
+        val collisionMatrix = ShortArray(16) { (1 shl it).toShort() }
+        // val centerOfMassColor = Vector4f(1f, 0f, 0f, 1f)
+    }
 
 }

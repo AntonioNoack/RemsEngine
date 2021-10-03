@@ -41,8 +41,9 @@ open class Panel(val style: Style) {
      * */
     open var weight = 0f
         set(value) {
-            if (value.isFinite()) {
+            if (value.isFinite() && field != value) {
                 field = value
+                parent?.invalidateLayout()
             }
         }
 
@@ -101,11 +102,16 @@ open class Panel(val style: Style) {
 
     open fun invalidateDrawing() {
         val window = window
-        window?.needsRedraw?.add(this)
+        window?.addNeedsRedraw(this)
         // ?: throw RuntimeException("${javaClass.simpleName} is missing parent, state: $oldLayoutState/$oldVisualState")
     }
 
-    open fun tickUpdate() {}
+    open fun tickUpdate() {
+        if (wasInFocus != isInFocus) {
+            invalidateDrawing()
+        }
+        wasInFocus = isInFocus
+    }
 
     var lx0 = 0
     var ly0 = 0

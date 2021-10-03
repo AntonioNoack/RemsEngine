@@ -67,7 +67,7 @@ class PlanarReflection : LightComponentBase() {
             RenderView.camRotation, RenderView.worldScale
         ) { pos, rot ->
             pipeline.frustum.definePerspective(
-                near, far, instance.fovYRadians.toDouble(),
+                near, far, RenderView.fovYRadians.toDouble(),
                 w, h, aspectRatio.toDouble(),
                 pos, rot
             )

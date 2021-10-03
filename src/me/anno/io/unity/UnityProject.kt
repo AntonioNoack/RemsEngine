@@ -2,6 +2,7 @@ package me.anno.io.unity
 
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.unity.UnityReader.assetExtension
 import me.anno.io.unity.UnityReader.readUnityObjects
 import me.anno.io.yaml.YAMLNode
 import me.anno.io.yaml.YAMLReader.parseYAML
@@ -9,7 +10,11 @@ import me.anno.io.zip.InnerFolder
 import me.anno.io.zip.InnerLinkFile
 import me.anno.utils.Clock
 import org.apache.logging.log4j.LogManager
+import org.lwjgl.BufferUtils
+import org.lwjgl.system.MemoryUtil
 import java.io.IOException
+import java.nio.Buffer
+import java.nio.ByteBuffer
 
 /**
  * in a Unity file,
@@ -29,6 +34,7 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
     fun getYAML(file: FileReference): YAMLNode {
         return synchronized(this) {
             yamlCache.getOrPut(file) {
+                if (file.lcExtension == "meta") file.hide()
                 try {
                     parseYAML(file.readText(), true)
                 } catch (e: Exception) {
@@ -60,9 +66,12 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
             var folder = files[guid]
             if (folder == null && isValidUUID(guid)) {
                 val guidObject = registry[guid] ?: return InvalidRef
+                val content = guidObject.contentFile
+                // this looks much nicer, because then we have the file name in the name, not just IDs
+                // folder = InnerFolder(content)
+                // but it would also override the original resources...
                 folder = InnerFolder("${root.absolutePath}/$guid", guid, root)
                 files[guid] = folder
-                val content = guidObject.contentFile
                 when (content.lcExtension) {
                     "asset", "unity", "mat", "prefab" -> {
                         val node = getYAML(guidObject.contentFile)
@@ -89,7 +98,8 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
     fun getMainId(node: YAMLNode): String? {
         // NativeFormatImporter:
         //  mainObjectFileID
-        return node["NativeFormatImporter"]?.get("MainObjectFileID")?.value
+        val value = node["NativeFormatImporter"]?.get("MainObjectFileID")?.value
+        return if (value == null) null else value + assetExtension
     }
 
     override fun getChild(name: String): FileReference {
@@ -102,7 +112,9 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
     fun getMeta(metaFile: FileReference): YAMLNode {
         return if (metaFile.extension != "meta") {
             getMeta(metaFile.getSibling(metaFile.name + ".meta"))
-        } else getYAML(metaFile)
+        } else {
+            getYAML(metaFile)
+        }
     }
 
     fun register(guid: String, metaFile: FileReference, assetFile: FileReference) {

@@ -12,10 +12,10 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
-import me.anno.utils.LOGGER
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.maps.CountMap
 import me.anno.utils.structures.maps.KeyPairMap
+import org.apache.logging.log4j.LogManager
 
 // todo allow to make immutable
 // todo and send a warning: instantiate to make mutable
@@ -31,7 +31,7 @@ class Prefab : Saveable {
         this.prefab = prefab
     }
 
-    constructor(prefab: Prefab){
+    constructor(prefab: Prefab) {
         this.clazzName = prefab.clazzName
         this.prefab = prefab.source
     }
@@ -47,7 +47,7 @@ class Prefab : Saveable {
     var wasCreatedFromJson = false
     var source: FileReference = InvalidRef
 
-    fun invalidate() {
+    fun invalidateInstance() {
         isValid = false
     }
 
@@ -81,7 +81,19 @@ class Prefab : Saveable {
         if (prefab != InvalidRef) sum += loadPrefab(prefab)?.countTotalChanges() ?: 0
         for (change in adds) {
             if (change.prefab != InvalidRef) {
-                sum += loadPrefab(change.prefab)?.countTotalChanges() ?: 0
+                sum += loadPrefab(change.prefab, HashSet())?.countTotalChanges() ?: 0
+            }
+        }
+        sum += sets.size
+        return sum
+    }
+
+    fun countTotalChangesAsync(): Int {
+        var sum = adds.size
+        if (prefab != InvalidRef) sum += loadPrefab(prefab, HashSet(), true)?.countTotalChanges() ?: 0
+        for (change in adds) {
+            if (change.prefab != InvalidRef) {
+                sum += loadPrefab(change.prefab, HashSet(), true)?.countTotalChanges() ?: 0
             }
         }
         sum += sets.size
@@ -124,12 +136,13 @@ class Prefab : Saveable {
         return add(CAdd(parentPath, typeChar, type, name, ref)).getChildPath(index)
     }
 
-    fun add(path: Path, type: Char, clazzName: String) {
-        add(CAdd(path, type, clazzName))
+    fun add(parentPath: Path, typeChar: Char, clazzName: String): Path {
+        val index = addCounts.getAndInc(typeChar to parentPath)
+        return add(CAdd(parentPath, typeChar, clazzName, clazzName, InvalidRef)).getChildPath(index)
     }
 
-    fun add(path: Path, type: Char, clazzName: String, index: Int): Path {
-        return add(CAdd(path, type, clazzName), index)
+    fun add(parentPath: Path, typeChar: Char, clazzName: String, index: Int): Path {
+        return add(CAdd(parentPath, typeChar, clazzName, clazzName, InvalidRef)).getChildPath(index)
     }
 
     fun <V : Change> add(change: V): V {
@@ -212,6 +225,7 @@ class Prefab : Saveable {
             "sets" -> {
                 for (v in values) {
                     if (v is CSet) {
+                        LOGGER.warn("Read ${v.path} ${v.name} ${v.value}")
                         sets[v.path, v.name!!] = v.value
                     }
                 }
@@ -231,9 +245,13 @@ class Prefab : Saveable {
     fun getSampleInstance(chain: MutableSet<FileReference>? = HashSet()): PrefabSaveable {
         if (!isValid) synchronized(this) {
             if (!isValid) {
-                val instance = PrefabCache.createInstance(prefab, adds, sets, chain, clazzName)
+                val instance = PrefabCache.createInstance(this, prefab, adds, sets, chain, clazzName)
+                instance.forAll {
+                    if (it.prefab !== this) {
+                        throw IllegalStateException("Incorrectly created prefab!")
+                    }
+                }
                 // assign super instance? we should really cache that...
-                instance.prefab2 = this
                 sampleInstance = instance
                 isValid = true
             }
@@ -242,7 +260,12 @@ class Prefab : Saveable {
     }
 
     fun createInstance(chain: MutableSet<FileReference>? = HashSet()): PrefabSaveable {
-        return getSampleInstance(chain).clone()
+        val clone = getSampleInstance(chain).clone()
+        clone.forAll {
+            if (it.prefab !== this)
+                throw IllegalStateException("Incorrectly created prefab!")
+        }
+        return clone
     }
 
     override val className: String = "Prefab"
@@ -252,7 +275,7 @@ class Prefab : Saveable {
         adds.isEmpty() && sets.isEmpty() && prefab == InvalidRef && history == null
 
     companion object {
-        // private val LOGGER = LogManager.getLogger(Prefab::class)
+        private val LOGGER = LogManager.getLogger(Prefab::class)
     }
 
 }

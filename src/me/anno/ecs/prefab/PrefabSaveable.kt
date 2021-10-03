@@ -11,8 +11,8 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
-import me.anno.utils.LOGGER
 import me.anno.utils.structures.Hierarchical
+import org.apache.logging.log4j.LogManager
 
 abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, Inspectable, Cloneable {
 
@@ -24,20 +24,24 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
 
     // @NotSerializedProperty
     // var prefab: PrefabSaveable? = null
-    val prefab: PrefabSaveable? get() = prefab2?.getSampleInstance()
-    val prefabOrDefault: PrefabSaveable get() = prefab ?: getSuperInstance(className)
+    fun getOriginal(): PrefabSaveable? {
+        val sampleInstance = prefab?.getSampleInstance() ?: return null
+        return Hierarchy.getInstanceAt(sampleInstance, prefabPath!!)
+    }
+
+    fun getOriginalOrDefault(): PrefabSaveable = getOriginal() ?: getSuperInstance(className)
+
+    /**
+     * only defined while building the game
+     * */
+    @NotSerializedProperty
+    var prefab: Prefab? = null
 
     @NotSerializedProperty
-    var prefab2: Prefab? = null
+    var prefabPath: Path? = null
 
     @NotSerializedProperty
     override var parent: PrefabSaveable? = null
-
-    val prefabRoot: PrefabSaveable
-        get() {
-            if (prefab2 != null) return this
-            return parent!!
-        }
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
@@ -52,7 +56,12 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     }
 
     fun getDefaultValue(name: String): Any? {
-        return prefabOrDefault[name]
+        val original = getOriginalOrDefault()
+        if (original.className != className) {
+            LOGGER.warn("Original has type ${original.className}, self is $className")
+            return getSuperInstance(className)[name]
+        }
+        return original[name]
     }
 
     fun resetProperty(name: String): Any? {
@@ -63,32 +72,13 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         return defaultValue
     }
 
-    private fun pathInRoot(root: PrefabSaveable? = null): ArrayList<Any> {
-        if (this == root) return ArrayList()
-        val parent = parent
-        return if (parent != null) {
-            val index = parent.getIndexOf(this)
-            val list = parent.pathInRoot()
-            list.add(name)
-            list.add(index)
-            list.add(parent.getTypeOf(this))
-            return list
-        } else ArrayList()
-    }
-
-    fun pathInRoot2() = pathInRoot2(null, false)
-    fun pathInRoot2(root: PrefabSaveable? = null, withExtra: Boolean): Path {
-        val path = pathInRoot(root)
-        if (withExtra) {
-            path.add("")
-            path.add(-1)
-            path.add(' ')
+    fun forAll(run: (PrefabSaveable) -> Unit) {
+        run(this)
+        for (type in listChildTypes()) {
+            for (child in getChildListByType(type)) {
+                child.forAll(run)
+            }
         }
-        val size = path.size / 3
-        val names = Array(size) { path[it * 3] as String }
-        val ids = IntArray(size) { path[it * 3 + 1] as Int }
-        val types = CharArray(size) { path[it * 3 + 2] as Char }
-        return Path(names, ids, types)
     }
 
     // e.g. "ec" for child entities + child components
@@ -113,6 +103,13 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         list.remove(child)
     }
 
+    fun <V: PrefabSaveable> getInClone(thing: V?, clone: PrefabSaveable): V? {
+        thing ?: return null
+        val path = thing.prefabPath ?: return null
+        val instance = Hierarchy.getInstanceAt(clone.root, path)
+        return instance as V
+    }
+
     open fun getIndexOf(child: PrefabSaveable): Int = getChildListByType(getTypeOf(child)).indexOf(child)
     open fun getTypeOf(child: PrefabSaveable): Char = ' '
 
@@ -122,7 +119,8 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         clone.description = description
         clone.isEnabled = isEnabled
         clone.isCollapsed = isCollapsed
-        clone.prefab2 = prefab2
+        clone.prefab = prefab
+        clone.prefabPath = prefabPath
     }
 
     override fun onDestroy() {}
@@ -149,7 +147,23 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         PrefabInspector.currentInspector?.inspect(this, list, style) ?: LOGGER.warn("Missing inspector!")
     }
 
+    fun changePaths(prefab: Prefab?, path: Path) {
+
+        this.prefab = prefab
+        this.prefabPath = path
+
+        for (type in listChildTypes()) {
+            val children = getChildListByType(type)
+            for (index in children.indices) {
+                val child = children[index]
+                val childPath = path.added(child.name, index, type)
+                child.changePaths(prefab, childPath)
+            }
+        }
+    }
+
     companion object {
+        private val LOGGER = LogManager.getLogger(PrefabSaveable::class)
         private fun getSuperInstance(className: String): PrefabSaveable {
             return ISaveable.getSample(className) as PrefabSaveable
         }

@@ -25,7 +25,11 @@ open class Window(
     val needsRedraw = HashSet<Panel>()
     val needsLayout = HashSet<Panel>()
 
-    lateinit var needsRedraw2: HashSet<Panel>
+    fun addNeedsRedraw(panel: Panel) {
+        if (panel.canBeSeen) {
+            needsRedraw.add(panel.getOverlayParent() ?: panel)
+        }
+    }
 
     var lastW = -1
     var lastH = -1

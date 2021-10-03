@@ -10,7 +10,10 @@ import org.joml.Vector3f
 
 class RayHit {
 
+    var hitIfInside = false
+
     var distance = 0.0
+
     var collider: Collider? = null
     var mesh: Mesh? = null
     var component: Component? = null
@@ -28,9 +31,6 @@ class RayHit {
 
     val positionWS = Vector3d()
     val normalWS: Vector3d = Vector3d()
-    fun clear() {
-        distance = Double.POSITIVE_INFINITY
-    }
 
     fun setFromLocal(
         globalTransform: Matrix4x3d,

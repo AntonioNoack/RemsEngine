@@ -4,13 +4,18 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabInspector
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.ECSTypeLibrary
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.camDirection
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.input.Input
 import me.anno.io.files.FileReference
+import me.anno.language.translation.NameDesc
+import me.anno.ui.base.buttons.TextButton
+import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.editor.sceneView.Gizmos
+import me.anno.ui.input.EnumInput
 import me.anno.utils.maths.Maths.pow
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.distance
@@ -40,6 +45,28 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
 
     var mode = Mode.TRANSLATING
 
+    // todo start button
+    // todo stop button
+
+    init {
+        // todo debugging view selection
+        val topLeft = PanelListX(style)
+        topLeft.add(EnumInput(
+            "Draw Mode", "", view.renderMode.name,
+            RenderView.RenderMode.values().map { NameDesc(it.name) }, style
+        ).setChangeListener { _, index, _ ->
+            view.renderMode = RenderView.RenderMode.values()[index]
+        })
+        topLeft.add(TextButton("Play", "Start the game", false, style)
+            .addLeftClickListener {
+                // todo change RenderView mode to play
+                // todo also copy everything
+                // todo also set this instance text to "Back"
+                // todo like Unity, open a second tab(?)
+            })
+        add(topLeft)
+    }
+
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
         // show the mode
@@ -58,6 +85,7 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
         // todo also render this in the RenderView for click detection
         for (selected in ECSTypeLibrary.selection) {
             if (selected is Entity) {
+                val scale = view.radius * 0.1
                 val transform = selected.transform.globalTransform
                 val pos = transform.getTranslation(JomlPools.vec3d.create())//.sub(RenderView.camPosition)
                 when (mode) {
@@ -65,24 +93,25 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                         Gizmos.drawTranslateGizmos(
                             RenderView.cameraMatrix,
                             pos,// mul world scale?
-                            10.0, -12
+                            scale, -12
                         )
                     }
                     Mode.ROTATING -> {
                         Gizmos.drawRotateGizmos(
                             RenderView.cameraMatrix,
                             pos,// mul world scale?
-                            10.0, -12
+                            scale, -12
                         )
                     }
                     Mode.SCALING -> {
                         Gizmos.drawScaleGizmos(
                             RenderView.cameraMatrix,
                             pos,// mul world scale?
-                            10.0, -12
+                            scale, -12
                         )
                     }
-                    else -> {}
+                    else -> {
+                    }
                 }
                 JomlPools.vec3d.sub(1)
             }
@@ -162,7 +191,7 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
             val targets = selectedEntities
             if (targets.isNotEmpty() && mode != Mode.NOTHING) {
 
-                val prefab = targets.first().root.prefab2!!
+                val prefab = targets.first().root.prefab!!
                 if (!prefab.isWritable) {
                     LOGGER.warn("Prefab from '${prefab.source}' cannot be directly modified, inherit from it")
                     return
@@ -228,8 +257,8 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
     private fun onChangeTransform(entity: Entity) {
         // save changes to file
         val root = entity.getRoot(Entity::class)
-        val prefab = root.prefab2!!
-        val path = entity.pathInRoot2(root, false)
+        val prefab = root.prefab!!
+        val path = entity.prefabPath!!
         val transform = entity.transform
         prefab.set(path, "position", transform.localPosition)
         prefab.set(path, "rotation", transform.localRotation)
@@ -251,6 +280,7 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
             when (prefab.clazzName) {
                 "Material" -> {
                     val mesh = hovered.value as? MeshComponent
+
                     // todo set this material in the prefab
                     // todo if the prefab is not writable, create a prefab for that mesh, and replace the mesh...
                     /*if (mesh != null) {
@@ -268,8 +298,8 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                 "Entity" -> {
                     // add this to the scene
                     // where? selected / root
-                    val root = library.selection.filterIsInstance<Entity>().firstOrNull() ?: library.world
-                    PrefabInspector.currentInspector!!.addEntityChild(root, prefab)
+                    val root = library.selection.filterIsInstance<PrefabSaveable>().firstOrNull() ?: library.world
+                    if (root is Entity) PrefabInspector.currentInspector!!.addEntityChild(root, prefab)
                 }
                 // todo general listener in the components, which listens for drag events? they could be useful for custom stuff...
                 else -> {

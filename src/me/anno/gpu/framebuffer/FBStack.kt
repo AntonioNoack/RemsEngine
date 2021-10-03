@@ -62,14 +62,14 @@ object FBStack : CacheSection("FBStack") {
     fun getValue(w: Int, h: Int, channels: Int, usesFP: Boolean, samples: Int): FBStackData {
         val key = FBKey1(w, h, channels, usesFP, samples)
         return getEntry(key, 2100, false) {
-            FBStackData1(key)
+            FBStackData1(it)
         } as FBStackData
     }
 
     fun getValue(w: Int, h: Int, targetType: TargetType, samples: Int): FBStackData {
         val key = FBKey2(w, h, targetType, samples)
         return getEntry(key, 2100, false) {
-            FBStackData2(key)
+            FBStackData2(it)
         } as FBStackData
     }
 

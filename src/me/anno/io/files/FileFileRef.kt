@@ -36,12 +36,12 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
         LastModifiedCache.invalidate(file)
     }
 
-    override fun length() = LastModifiedCache[file].length
+    override fun length() = LastModifiedCache[file, absolutePath].length
 
     override fun deleteRecursively(): Boolean {
         // todo also invalidate children
         val success = file.deleteRecursively()
-        if (success) LastModifiedCache.invalidate(file)
+        if (success) LastModifiedCache.invalidate(absolutePath)
         return success
     }
 
@@ -51,13 +51,13 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
 
     override fun delete(): Boolean {
         val success = file.delete()
-        if (success) LastModifiedCache.invalidate(file)
+        if (success) LastModifiedCache.invalidate(absolutePath)
         return success
     }
 
     override fun mkdirs(): Boolean {
         val success = file.mkdirs()
-        if (success) LastModifiedCache.invalidate(file)
+        if (success) LastModifiedCache.invalidate(absolutePath)
         return success
     }
 
@@ -67,13 +67,8 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
 
     override fun listChildren(): List<FileReference>? {
         return (if (exists) {
-            if (isDirectory) {
-                file.listFiles()?.map {
-                    register(FileFileRef(it))
-                }
-            } else {
-                zipFileForDirectory?.listChildren()
-            }
+            if (isDirectory) file.listFiles()?.map { getReference(it) }
+            else zipFileForDirectory?.listChildren()
         } else null) ?: super.listChildren()
     }
 
@@ -83,24 +78,19 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
 
     override fun getChild(name: String): FileReference {
         return if (!exists || isDirectory) {
-            if ('/' in name || '\\' in name) {
-                getReference(this, name)
-            } else {
-                register(FileFileRef(File(file, name)))
-            }
-        } else {
-            getReference(zipFileForDirectory, name)
-        }
+            if ('/' in name || '\\' in name) getReference(this, name)
+            else register(FileFileRef(File(file, name)))
+        } else getReference(zipFileForDirectory, name)
     }
 
     override val exists: Boolean
-        get() = LastModifiedCache[file].exists
+        get() = LastModifiedCache[file, absolutePath].exists
 
     override val lastModified: Long
-        get() = LastModifiedCache[file].lastModified
+        get() = LastModifiedCache[file, absolutePath].lastModified
 
     override val lastAccessed: Long
-        get() = LastModifiedCache[file].lastAccessed
+        get() = LastModifiedCache[file, absolutePath].lastAccessed
 
     override fun toUri(): URI {
         return URI("file:/${absolutePath.replace(" ", "%20")}")

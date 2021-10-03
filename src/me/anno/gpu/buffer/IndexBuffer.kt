@@ -38,8 +38,9 @@ class IndexBuffer(
         Buffer.bindVAO(vao)
         Buffer.bindBuffer(GL30.GL_ARRAY_BUFFER, base.buffer)
         var hasAttr = false
-        for (attr in base.attributes) {
-            hasAttr = Buffer.bindAttribute(shader, attr, false) || hasAttr
+        val attributes = base.attributes
+        for (index in attributes.indices) {
+            hasAttr = Buffer.bindAttribute(shader, attributes[index], false) || hasAttr
         }
         if (!hasAttr && !hasWarned) {
             hasWarned = true

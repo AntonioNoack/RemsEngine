@@ -100,8 +100,9 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
         bindVAO(vao)
         bindBuffer(GL_ARRAY_BUFFER, buffer)
         var hasAttr = false
-        for (attr in attributes) {
-            hasAttr = bindAttribute(shader, attr, false) || hasAttr
+        val attributes = attributes
+        for (index in attributes.indices) {
+            hasAttr = bindAttribute(shader, attributes[index], false) || hasAttr
         }
         if (!hasAttr && !hasWarned) {
             hasWarned = true

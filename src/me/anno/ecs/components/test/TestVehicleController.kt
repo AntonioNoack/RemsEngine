@@ -1,4 +1,4 @@
-package me.anno.engine.test
+package me.anno.ecs.components.test
 
 import me.anno.ecs.Component
 import me.anno.ecs.components.physics.Vehicle
@@ -12,8 +12,8 @@ class TestVehicleController : Component() {
     override fun onPhysicsUpdate(): Boolean {
         val vehicle = entity!!.getComponent(Vehicle::class) ?: return false
         var steering = 0.0
-        if (Input.isKeyDown('f')) steering--
-        if (Input.isKeyDown('d')) steering++
+        if (Input.isKeyDown('f')) steering++
+        if (Input.isKeyDown('d')) steering--
         var force = 0.0
         if (Input.isKeyDown('t')) force++
         if (Input.isKeyDown('g')) force--

@@ -170,7 +170,6 @@ abstract class StudioBase(
         onGameClose()
     }
 
-    private val needsRedraw = HashSet<Panel>()
     open fun onGameLoop(w: Int, h: Int): Boolean {
 
         check()
@@ -201,7 +200,7 @@ abstract class StudioBase(
             for (index in windowStack.indices) {
                 val window = windowStack[index]
                 if (index >= lastFullscreenIndex) {
-                    didSomething = drawWindow(w, h, window, needsRedraw, sparseRedraw, didSomething)
+                    didSomething = drawWindow(w, h, window, sparseRedraw, didSomething)
                 }
             }
 
@@ -268,7 +267,6 @@ abstract class StudioBase(
 
     fun drawWindow(
         w: Int, h: Int, window: Window,
-        needsRedraw: MutableSet<Panel>,
         sparseRedraw: Boolean,
         didSomething0: Boolean
     ): Boolean {
@@ -286,19 +284,17 @@ abstract class StudioBase(
         panel0.forAll { panel -> if (panel.canBeSeen) panel.tickUpdate() }
         panel0.forAll { panel -> if (panel.canBeSeen) panel.tick() }
 
-        findRedraws(window, needsRedraw)
-
-        validateLayouts(w, h, window, panel0, needsRedraw)
+        validateLayouts(w, h, window, panel0)
 
         if (panel0.w > 0 && panel0.h > 0) {
 
             // overlays get missing...
             // this somehow needs to be circumvented...
             if (sparseRedraw) {
-                didSomething = sparseRedraw(w, h, window, panel0, needsRedraw, didSomething)
+                didSomething = sparseRedraw(w, h, window, panel0, didSomething)
             } else {
                 if (shallDraw(didSomething)) {
-                    needsRedraw.clear()
+                    window.needsRedraw.clear()
                     fullRedraw(w, h, window, panel0)
                 }// else no buffer needs to be updated
             }
@@ -308,27 +304,13 @@ abstract class StudioBase(
 
     }
 
-    fun findRedraws(window: Window, needsRedraw: MutableSet<Panel>) {
-        needsRedraw.clear()
-        try {
-            for (panel in window.needsRedraw) {
-                if (panel.canBeSeen) {
-                    val panel2 = panel.getOverlayParent() ?: panel
-                    needsRedraw.add(panel2)
-                }
-            }
-        } catch (e: ConcurrentModificationException) {
-            // something async has changed stuff... should not happen
-        }
-    }
-
-    fun validateLayouts(w: Int, h: Int, window: Window, panel0: Panel, needsRedraw: MutableSet<Panel>) {
+    private fun validateLayouts(w: Int, h: Int, window: Window, panel0: Panel) {
         val needsLayout = window.needsLayout
         if (panel0 in needsLayout || window.lastW != w || window.lastH != h) {
             window.lastW = w
             window.lastH = h
             window.calculateFullLayout(w, h, isFirstFrame)
-            needsRedraw.add(panel0)
+            window.needsRedraw.add(panel0)
             needsLayout.clear()
         } else {
             while (needsLayout.isNotEmpty()) {
@@ -337,12 +319,12 @@ abstract class StudioBase(
                 panel.calculateSize(panel.lx1 - panel.lx0, panel.ly1 - panel.ly0)
                 panel.place(panel.lx0, panel.ly0, panel.lx1 - panel.lx0, panel.ly1 - panel.ly0)
                 needsLayout.removeAll(panel.listOfAll.toList())
-                needsRedraw.add(panel.getOverlayParent() ?: panel)
+                window.addNeedsRedraw(panel)
             }
         }
     }
 
-    fun fullRedraw(
+    private fun fullRedraw(
         w: Int, h: Int, window: Window,
         panel0: Panel
     ) {
@@ -367,13 +349,13 @@ abstract class StudioBase(
     fun sparseRedraw(
         w: Int, h: Int, window: Window,
         panel0: Panel,
-        needsRedraw: MutableSet<Panel>,
         didSomething0: Boolean
     ): Boolean {
 
         var didSomething = didSomething0
 
         val wasRedrawn = ArrayList<Panel>()
+        val needsRedraw = window.needsRedraw
 
         if (needsRedraw.isNotEmpty()) {
 
@@ -499,7 +481,7 @@ abstract class StudioBase(
 
         synchronized(progressBars) {
             if (progressBars.isNotEmpty()) {
-                val ph = style.getSize("progressbarHeight", 12)
+                val ph = style.getSize("progressbarHeight", 8)
                 val time = GFX.gameTime
                 for (index in progressBars.indices) {
                     val bar = progressBars[index]

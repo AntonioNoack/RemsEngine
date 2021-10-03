@@ -8,7 +8,7 @@ import org.joml.*
 /**
  * a class, that does nothing
  * */
-abstract class PartialWriter(respectsDefaultValues: Boolean) : BaseWriter(respectsDefaultValues) {
+abstract class PartialWriter(canSkipDefaultValues: Boolean) : BaseWriter(canSkipDefaultValues) {
 
     override fun writeBoolean(name: String, value: Boolean, force: Boolean) {}
     override fun writeBooleanArray(name: String, values: BooleanArray, force: Boolean) {}
@@ -89,7 +89,7 @@ abstract class PartialWriter(respectsDefaultValues: Boolean) : BaseWriter(respec
     override fun writeQuaternionfArray2D(name: String, values: Array<Array<Quaternionf>>, force: Boolean) {}
 
     override fun writeNull(name: String?) {}
-    override fun writePointer(name: String?, className: String, ptr: Int) {}
+    override fun writePointer(name: String?, className: String, ptr: Int, value: ISaveable) {}
 
     override fun writeObjectImpl(name: String?, value: ISaveable) {
         value.save(this)

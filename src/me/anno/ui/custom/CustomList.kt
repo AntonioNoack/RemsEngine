@@ -5,8 +5,8 @@ import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.style.Style
-import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.bugs.SumOf
+import me.anno.utils.maths.Maths.clamp
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -20,10 +20,6 @@ open class CustomList(val isY: Boolean, style: Style) : PanelListX(style) {
 
     override fun invalidateLayout() {
         window?.needsLayout?.add(this)
-    }
-
-    override fun getLayoutState(): Any? {
-        return children.map { it.weight }
     }
 
     val customChildren
@@ -42,7 +38,20 @@ open class CustomList(val isY: Boolean, style: Style) : PanelListX(style) {
     }
 
     fun remove(index: Int) {
-        remove(this, index)
+        if (children.size > 1) {
+            if (index > 0) {
+                children.removeAt(index)
+                children.removeAt(index - 1)
+            } else {
+                children.removeAt(index + 1)
+                children.removeAt(index)
+            }
+            update()
+        } else {
+            // todo remove the last child -> remove this from our parent
+            (parent as? CustomList)?.remove(indexInParent)
+        }
+        invalidateLayout()
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -76,6 +85,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelListX(style) {
         }
         if (child.weight <= 0f) child.weight = 1f
         child.parent = this
+        invalidateLayout()
         return super.add(child)
     }
 
@@ -143,26 +153,5 @@ open class CustomList(val isY: Boolean, style: Style) : PanelListX(style) {
             }
         }
     }
-
-    companion object {
-        fun remove(vg: PanelList, index: Int) {
-            vg.apply {
-                if (children.size > 1) {
-                    if (index > 0) {
-                        children.removeAt(index)
-                        children.removeAt(index - 1)
-                    } else {
-                        children.removeAt(index + 1)
-                        children.removeAt(index)
-                    }
-                    (vg as? CustomList)?.update()
-                } else {
-                    // todo remove the last child -> remove this from our parent
-                    (parent as? CustomList)?.remove(indexInParent)
-                }
-            }
-        }
-    }
-
 
 }

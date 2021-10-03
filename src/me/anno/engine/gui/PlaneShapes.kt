@@ -104,7 +104,6 @@ object PlaneShapes {
         GFX.shaderColor(shader, "tint", -1)
         shader.m4x4("transform", cameraMatrix)
         shader.v3("ambientLight", 1f)
-        shader.v1("visualizeLightCount", 0)
         shader.v1("hasVertexColors", mesh.hasVertexColors)
         shader.v1("hasAnimation", false)
         shader.v1("numberOfLightsPtr", 0)

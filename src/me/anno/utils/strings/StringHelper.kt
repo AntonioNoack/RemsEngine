@@ -42,13 +42,17 @@ object StringHelper {
     }
 
     fun String.shorten(maxLength: Int, cutLines: Boolean = true): String {
-        return if (cutLines && '\n' in this) {
-            (if (length > maxLength) substring(0, maxLength - 3) + "..."
-            else this).replace("\n", "\\n")
-        } else {
-            if (length > maxLength) substring(0, maxLength - 3) + "..."
-            else this
-        }
+        var str = if (length > maxLength) substring(0, maxLength - 3) + "..." else this
+        if (cutLines && '\n' in this) str = str.replace("\n", "\\n")
+        return str
+    }
+
+    fun String.shorten2Way(maxLength: Int, cutLines: Boolean = true): String {
+        val halfLength = maxLength / 2
+        var str = if (length > maxLength) substring(0, halfLength - 2) + "..." + substring(1 + length - halfLength)
+        else this
+        if (cutLines && '\n' in this) str = str.replace("\n", "\\n")
+        return str
     }
 
     // by polyGeneLubricants, https://stackoverflow.com/a/2560017/4979303

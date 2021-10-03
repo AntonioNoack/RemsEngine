@@ -26,7 +26,6 @@ import me.anno.image.ImageGPUCache
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.mesh.assimp.Bone
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.files.thumbs.Thumbs.generateAssimpMeshFrame
 import me.anno.io.files.thumbs.Thumbs.generateEntityFrame
@@ -36,6 +35,7 @@ import me.anno.io.files.thumbs.Thumbs.generateSVGFrame
 import me.anno.io.files.thumbs.Thumbs.generateSkeletonFrame
 import me.anno.io.files.thumbs.Thumbs.generateVOXMeshFrame
 import me.anno.io.files.thumbs.Thumbs.generateVideoFrame
+import me.anno.mesh.assimp.Bone
 import me.anno.utils.Clock
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.documents
@@ -92,7 +92,7 @@ fun main() {
     }
 
     fun testEntityMeshFrame(file: FileReference) {
-        val entity = PrefabCache.getPrefabPair(file)!!.instance as Entity
+        val entity = PrefabCache.getPrefabPair(file, null)!!.instance as Entity
         generateEntityFrame(file.dst(), size, entity) {}
     }
 

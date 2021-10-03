@@ -74,8 +74,6 @@ object Renderers {
                 Variable("sampler2D", "reflectionPlane"),
                 // reflection cubemap or irradiance map
                 Variable("samplerCube", "reflectionMap"),
-                // debug
-                Variable("int", "visualizeLightCount"),
                 // material properties
                 Variable("vec3", "finalEmissive"),
                 Variable("float", "finalMetallic"),
@@ -101,7 +99,6 @@ object Renderers {
                     // shared pbr data
                     "   vec3 V = normalize(-finalPosition);\n" +
                     // light calculations
-                    "   float lightCount = 0;\n" +
                     "   float NdotV = abs(dot(finalNormal,V));\n" +
                     "   vec3 diffuseColor = finalColor * (1.0 - finalMetallic);\n" +
                     "   vec3 specularColor = finalColor * finalMetallic;\n" +
@@ -153,21 +150,28 @@ object Renderers {
                     "       }\n" +
                     specularBRDFv2NoDivInlined2End +
                     "   }\n" +
-                    "   if(visualizeLightCount){\n" +
-                    "       finalColor.r = lightCount * 0.125;\n" +
-                    // reinhard tonemapping
-                    "       finalColor = toneMapping(vec3(lightCount));\n" +
-                    "   } else {\n" +
-                    "       finalColor = diffuseColor * diffuseLight + specularLight;\n" +
-                    "       finalColor = finalColor * finalOcclusion + finalEmissive;\n" +
-                    "       if(applyToneMapping){\n" +
-                    "           finalColor = toneMapping(finalColor);\n" +
-                    "       }\n" +
+                    "   finalColor = diffuseColor * diffuseLight + specularLight;\n" +
+                    "   finalColor = finalColor * finalOcclusion + finalEmissive;\n" +
+                    "   if(applyToneMapping){\n" +
+                    "       finalColor = toneMapping(finalColor);\n" +
                     "   }\n"
             ).apply {
                 val src = Scene.noiseFunc + toneMapping
                 functions.add(Function(src))
             }
+        }
+    }
+
+    val frontBackRenderer = object : Renderer("front-back", true, ShaderPlus.DrawMode.COLOR) {
+        override fun getPostProcessing(): ShaderStage {
+            return ShaderStage("front-back", listOf(
+                Variable("vec3", "finalPosition"),
+                Variable("vec3", "finalNormal"),
+                Variable("vec3", "finalColor", VariableMode.INOUT),
+            ), "" +
+                    "finalColor = dot(finalNormal,finalPosition)>0.0 ? vec3(1,0,0) : vec3(0,.3,1);\n" +
+                    "finalColor *= finalNormal.x * 0.4 + 0.6;\n" // some simple shading
+            )
         }
     }
 
@@ -288,8 +292,8 @@ object Renderers {
         }
     }
 
-    val attributeRenderers: List<Renderer> = DeferredLayerType.values()
-        .run { toList().subList(0, kotlin.math.min(size, 9)) }.map {
+    val attributeRenderers: Map<DeferredLayerType, Renderer> = DeferredLayerType.values()
+        .associateWith {
             object : Renderer("attribute-$it", false, ShaderPlus.DrawMode.COLOR) {
                 override fun getPostProcessing(): ShaderStage {
                     return ShaderStage(

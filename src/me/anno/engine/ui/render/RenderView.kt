@@ -9,16 +9,18 @@ import me.anno.ecs.components.light.EnvironmentMap
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.light.PlanarReflection
+import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.shaders.effects.Bloom
 import me.anno.ecs.components.shaders.effects.FSR
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.debug.DebugShapes.debugLines
 import me.anno.engine.debug.DebugShapes.debugPoints
 import me.anno.engine.debug.DebugShapes.debugRays
 import me.anno.engine.gui.PlaneShapes
 import me.anno.engine.pbr.DeferredRenderer
-import me.anno.engine.physics.BulletPhysics
+import me.anno.ecs.components.physics.BulletPhysics
 import me.anno.engine.ui.ECSTypeLibrary
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.DefaultSun.defaultSun
@@ -29,6 +31,7 @@ import me.anno.engine.ui.render.MovingGrid.drawGrid
 import me.anno.engine.ui.render.Outlines.drawOutline
 import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.engine.ui.render.Renderers.cheapRenderer
+import me.anno.engine.ui.render.Renderers.frontBackRenderer
 import me.anno.engine.ui.render.Renderers.overdrawRenderer
 import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
@@ -46,9 +49,9 @@ import me.anno.gpu.drawing.DrawTextures.drawProjection
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.framebuffer.*
+import me.anno.gpu.pipeline.LightPipelineStage
 import me.anno.gpu.pipeline.M4x3Delta.mul4x3delta
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.gpu.pipeline.LightPipelineStage
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.BaseShader.Companion.cullFaceColoringGeometry
@@ -61,7 +64,6 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
-import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isKeyDown
 import me.anno.input.Input.isShiftDown
 import me.anno.studio.Build
@@ -73,12 +75,12 @@ import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.maths.Maths.mix
 import me.anno.utils.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.AABBs
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.joml.Math.toRadians
 import org.lwjgl.opengl.GL45.*
-
 
 
 // done shadows
@@ -122,6 +124,49 @@ class RenderView(
         PLAY_TESTING,
         PLAYING
     }
+
+    enum class RenderMode(val dlt: DeferredLayerType? = null) {
+        DEFAULT,
+        WITHOUT_POST_PROCESSING,
+        CLICK_IDS,
+        DEPTH,
+        FORCE_DEFERRED,
+        FORCE_NON_DEFERRED,
+        ALL_DEFERRED_LAYERS,
+        ALL_DEFERRED_BUFFERS,
+        COLOR(DeferredLayerType.COLOR),
+        NORMAL(DeferredLayerType.NORMAL),
+        EMISSIVE(DeferredLayerType.EMISSIVE),
+        ROUGHNESS(DeferredLayerType.ROUGHNESS),
+        METALLIC(DeferredLayerType.METALLIC),
+        POSITION(DeferredLayerType.POSITION),
+        TRANSLUCENCY(DeferredLayerType.TRANSLUCENCY),
+        OCCLUSION(DeferredLayerType.OCCLUSION),
+        SHEEN(DeferredLayerType.SHEEN),
+        ANISOTROPY(DeferredLayerType.ANISOTROPIC),
+
+        // ALPHA, // currently not defined
+        LIGHT_SUM, // todo implement dust-light-spilling for impressive fog
+        LIGHT_COUNT, // todo implement
+
+        INVERSE_DEPTH,
+        OVERDRAW, // todo overdraw seems to be missing all cubes... why?
+        MSAA_X8,
+        WITH_PRE_DRAW_DEPTH,
+        MONO_WORLD_SCALE,
+        GHOSTING_DEBUG,
+        FSR_SQRT2,
+        FSR_X2,
+        FSR_X4,
+        NEAREST_X4,
+        LINES, FRONT_BACK,
+
+        SHOW_AABB,
+        PHYSICS,
+
+        RAY_TEST,
+
+    }
     // to do scene scale, which is premultiplied with everything to allow stuff outside the 1e-38 - 1e+38 range?
     // not really required, since our universe just has a scale of 1e-10 (~ size of an atom) - 1e28 (~ size of the observable universe) meters
 
@@ -150,29 +195,24 @@ class RenderView(
 
     var isFinalRendering = false
 
-    var selectedAttribute = 0
+    var renderMode = RenderMode.DEFAULT
 
     var radius = 50.0
-    val worldScale get() = if (isKeyDown('f')) 1.0 else 1.0 / radius
+    val worldScale get() = if (renderMode == RenderMode.MONO_WORLD_SCALE) 1.0 else 1.0 / radius
     var position = Vector3d()
     var rotation = Vector3d(-20.0, 0.0, 0.0)
-
-    init {
-        updateTransform()
-    }
 
     var deferredRenderer = DeferredRenderer
     val deferred = deferredRenderer.deferredSettings!!
 
-    val baseBuffer = deferred.createBaseBuffer()
-    val baseSameDepth = baseBuffer.attachFramebufferToDepth(1, false)
+    val baseNBuffer = deferred.createBaseBuffer()
+    val baseSameDepth = baseNBuffer.attachFramebufferToDepth(1, false)
+    val base1Buffer = Framebuffer("debug", 1, 1, 1, 4, false, DepthBufferType.TEXTURE)
 
     // val lightBuffer = deferred.createLightBuffer()
     // val lightBuffer = baseBuffer.attachFramebufferToDepth(1, deferred.settingsV1.fpLights)//deferred.createLightBuffer()
     // no depth is currently required on this layer
     val lightBuffer = Framebuffer("lights", w, h, 1, 1, deferred.settingsV1.fpLights, DepthBufferType.NONE)
-
-    val showOverdraw get() = isKeyDown('n')
 
     fun updateTransform() {
 
@@ -181,7 +221,12 @@ class RenderView(
         val cameraNode = editorCameraNode
         cameraNode.transform.localRotation = rotation.toQuaternionDegrees(JomlPools.quat4d.borrow())
         camera.far = 1e300
-        camera.near = if (reverseDepth) radius * 1e-10 else radius * 1e-2
+        camera.near = if (renderMode == RenderMode.DEPTH) {
+            0.2
+        } else {
+            if (reverseDepth) radius * 1e-10
+            else radius * 1e-2
+        }
 
         val rotation = cameraNode.transform.localRotation
 
@@ -214,13 +259,17 @@ class RenderView(
 
         clock.start()
 
-        // to see ghosting
-        // currently I see no ghosting...
-        if (isKeyDown('v')) Thread.sleep(250)
+        // to see ghosting, if there is any
+        if (renderMode == RenderMode.GHOSTING_DEBUG) Thread.sleep(250)
 
-        if (lastPhysics != getWorld().physics) {
-            library.syncMaster.nextSession()
-            lastPhysics = getWorld().physics
+        updateTransform()
+
+        val world = getWorld()
+        if (world is Entity) {
+            if (lastPhysics != world.physics) {
+                library.syncMaster.nextSession()
+                lastPhysics = world.physics
+            }
         }
 
         // todo go through the rendering pipeline, and render everything
@@ -240,21 +289,37 @@ class RenderView(
             updateTransform()
         }
 
-        val showIds = isKeyDown('g')
-        val showOverdraw = showOverdraw
+        val showIds = renderMode == RenderMode.CLICK_IDS
+        val showOverdraw = renderMode == RenderMode.OVERDRAW
         val showSpecialBuffer = showIds || showOverdraw || isKeyDown('j')
-        var useDeferredRendering = !showSpecialBuffer && isKeyDown('k')
-        val samples = if (isKeyDown('p')) 8 else 1
+        var useDeferredRendering = when (renderMode) {
+            RenderMode.DEFAULT,
+            RenderMode.CLICK_IDS,
+            RenderMode.DEPTH,
+            RenderMode.FSR_X4, RenderMode.FSR_SQRT2,
+            RenderMode.FSR_X2, RenderMode.NEAREST_X4,
+            RenderMode.GHOSTING_DEBUG,
+            RenderMode.INVERSE_DEPTH,
+            RenderMode.WITHOUT_POST_PROCESSING,
+            RenderMode.LINES, RenderMode.FRONT_BACK,
+            RenderMode.MSAA_X8 -> false
+            else -> true
+        }
 
         stage0.blendMode = if (showOverdraw) BlendMode.ADD else null
-        stage0.sorting = if (isShiftDown) Sorting.FRONT_TO_BACK
+        stage0.sorting = Sorting.NO_SORTING
+        /*if (isShiftDown) Sorting.FRONT_TO_BACK
         else if (isControlDown) Sorting.BACK_TO_FRONT
-        else Sorting.NO_SORTING
+        else Sorting.NO_SORTING*/
 
         var aspect = w.toFloat() / h
 
         val layers = deferred.settingsV1.layers
-        val size = layers.size + 1
+        val size = when (renderMode) {
+            RenderMode.ALL_DEFERRED_BUFFERS -> layers.size + 1
+            RenderMode.ALL_DEFERRED_LAYERS -> deferred.layerTypes.size// + 1
+            else -> 1
+        }
         val rows = when {
             size % 2 == 0 -> 2
             size % 3 == 0 -> 3
@@ -262,9 +327,9 @@ class RenderView(
             size > 6 -> 2
             else -> 1
         }
+
         val cols = (size + rows - 1) / rows
-        val debugDeferredRendering = useDeferredRendering && isShiftDown
-        if (debugDeferredRendering) {
+        if (size > 1) {
             aspect *= rows.toFloat() / cols.toFloat()
         }
 
@@ -277,19 +342,39 @@ class RenderView(
 
         clock.stop("preparing", 0.05)
 
-        val renderer = when {
-            showOverdraw -> overdrawRenderer
-            showIds -> idRenderer
-            showSpecialBuffer -> attributeRenderers[selectedAttribute]
-            useDeferredRendering -> deferredRenderer
-            else -> pbrRenderer
+        var renderer = when (renderMode) {
+            RenderMode.OVERDRAW -> overdrawRenderer
+            RenderMode.CLICK_IDS -> idRenderer
+            RenderMode.FORCE_DEFERRED -> {
+                useDeferredRendering = true
+                DeferredRenderer
+            }
+            RenderMode.FORCE_NON_DEFERRED, RenderMode.MSAA_X8, RenderMode.LINES -> {
+                useDeferredRendering = false
+                pbrRenderer
+            }
+            RenderMode.FRONT_BACK -> {
+                useDeferredRendering = false
+                frontBackRenderer
+            }
+            else -> if (useDeferredRendering)
+                DeferredRenderer else pbrRenderer
         }
 
-        val buffer = if (useDeferredRendering) baseBuffer else FBStack["scene", w, h, 4, false, samples]
+        if (renderMode.dlt != null) {
+            useDeferredRendering = true
+            renderer = DeferredRenderer
+        }
+
+        val buffer = when {
+            renderer == DeferredRenderer -> baseNBuffer
+            renderMode == RenderMode.MSAA_X8 -> FBStack["", w, h, 4, false, 8]
+            else -> base1Buffer
+        }
 
         drawScene(
             x0, y0, x1, y1, camera, renderer,
-            buffer, useDeferredRendering, debugDeferredRendering,
+            buffer, useDeferredRendering,
             size, cols, rows, layers.size
         )
 
@@ -298,8 +383,8 @@ class RenderView(
 
         if (showSpecialBuffer) {
             DrawTexts.drawSimpleTextCharByChar(
-                x, y, 2,
-                if (showIds) "IDs" else DeferredLayerType.values()[selectedAttribute].glslName
+                x + 20, y, 2,
+                renderMode.name
             )
         }
 
@@ -323,20 +408,30 @@ class RenderView(
         camera: CameraComponent,
         renderer: Renderer, buffer: Framebuffer,
         useDeferredRendering: Boolean,
-        debugDeferredRendering: Boolean,
         size: Int, cols: Int, rows: Int, layersSize: Int
     ) {
 
         var w = x1 - x0
         var h = y1 - y0
 
-        val useFSR = isKeyDown('f')
-        if (useFSR) {
-            w = w * 2 / 3
-            h = h * 2 / 3
+        when (renderMode) {
+            RenderMode.FSR_SQRT2 -> {
+                // 12/17 ~ 0.706 ~ sqrt 1/2
+                w = w * 12 / 17
+                h = h * 12 / 17
+            }
+            RenderMode.FSR_X2 -> {
+                w /= 2
+                h /= 2
+            }
+            RenderMode.FSR_X4, RenderMode.NEAREST_X4 -> {
+                w /= 4
+                h /= 4
+            }
+            else -> {
+            }
         }
 
-        drawScene(w, h, camera, camera, 1f, renderer, buffer, true, !useDeferredRendering)
 
         // clock.stop("drawing scene", 0.05)
 
@@ -345,30 +440,51 @@ class RenderView(
         if (useDeferredRendering) {
 
             // bind all the required buffers: position, normal
-            val lightBuffer = lightBuffer
-            baseBuffer.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
 
-            // todo for the scene, the environment map and shadow cascades need to be updated,
-            // todo and used in the calculation
-            drawSceneLights(camera, camera, 1f, copyRenderer, buffer, lightBuffer)
+            if (renderMode.dlt != null) {
+                drawScene(w, h, camera, camera, 1f, renderer, buffer, true, !useDeferredRendering)
+                GFX.copyNoAlpha(buffer)
+                return
+            }
 
-            // todo draw scene depth with msaa
+            when (renderMode) {
+                RenderMode.DEPTH -> {
+                    drawScene(w, h, camera, camera, 1f, renderer, buffer, true, !useDeferredRendering)
+                    drawTexture(x, y + h, w, -h, buffer.depthTexture!!, true, -1, null)
+                    return
+                }
+                RenderMode.LIGHT_SUM -> {
+                    drawScene(w, h, camera, camera, 1f, renderer, buffer, true, !useDeferredRendering)
+                    val lightBuffer = lightBuffer
+                    buffer.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                    drawSceneLights(camera, camera, 1f, copyRenderer, buffer, lightBuffer)
+                    drawTexture(x, y + h, w, -h, lightBuffer.getColor0(), true, -1, null)
+                    return
+                }
+                RenderMode.LIGHT_COUNT -> {
+                    val lightBuffer = lightBuffer
+                    pipeline.lightPseudoStage.visualizeLightCount = true
+                    drawSceneLights(camera, camera, 1f, copyRenderer, buffer, lightBuffer)
+                    drawTexture(x, y + h, w, -h, lightBuffer.getColor0(), true, -1, null)
+                    pipeline.lightPseudoStage.visualizeLightCount = false
+                    return
+                }
+                RenderMode.ALL_DEFERRED_BUFFERS -> {
 
+                    drawScene(w, h, camera, camera, 1f, renderer, buffer, true, !useDeferredRendering)
+                    val lightBuffer = lightBuffer
+                    buffer.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                    drawSceneLights(camera, camera, 1f, copyRenderer, buffer, lightBuffer)
 
-            // clock.stop("drawing lights", 0.1)
-
-            if (debugDeferredRendering) {
-
-                useFrame(dstBuffer) {
                     for (index in 0 until size) {
 
                         // rows x N field
                         val col = index % cols
-                        val x02 = (x1 - x0) * (col + 0) / cols
-                        val x12 = (x1 - x0) * (col + 1) / cols
+                        val x02 = x + (x1 - x0) * (col + 0) / cols
+                        val x12 = x + (x1 - x0) * (col + 1) / cols
                         val row = index / cols
-                        val y02 = (y1 - y0) * (row + 0) / rows
-                        val y12 = (y1 - y0) * (row + 1) / rows
+                        val y02 = y + (y1 - y0) * (row + 0) / rows
+                        val y12 = y + (y1 - y0) * (row + 1) / rows
 
                         // draw the light buffer as the last stripe
                         val texture = if (index < layersSize) {
@@ -376,8 +492,6 @@ class RenderView(
                         } else {
                             lightBuffer.textures[0]
                         }
-
-                        // todo instead of drawing the raw buffers, draw the actual layers (color,roughness,metallic,...)
 
                         // y flipped, because it would be incorrect otherwise
                         drawTexture(x02, y12, x12 - x02, y02 - y12, texture, true, -1, null)
@@ -387,87 +501,144 @@ class RenderView(
                         )
 
                     }
+                    return
                 }
+                RenderMode.ALL_DEFERRED_LAYERS -> {
 
-            } else {
+                    // instead of drawing the raw buffers, draw the actual layers (color,roughness,metallic,...)
+                    // todo also draw light as last one
 
-                // todo calculate the colors via post processing
-                // todo this would also allow us to easier visualize all the layers
+                    val tw = w / cols
+                    val th = h / rows
+                    val tmp = FBStack["tmp-layers", tw, th, 4, false, 1]
+                    for (index in 0 until size) {
 
-                // todo post processing could do screen space reflections :)
+                        // rows x N field
+                        val col = index % cols
+                        val x02 = x + (x1 - x0) * (col + 0) / cols
+                        val x12 = x + (x1 - x0) * (col + 1) / cols
+                        val row = index / cols
+                        val y02 = y + (y1 - y0) * (row + 0) / rows
+                        val y12 = y + (y1 - y0) * (row + 1) / rows
 
+                        // draw the light buffer as the last stripe
+                        val layer = deferred.layerTypes[index]
+                        val layerRenderer = attributeRenderers[layer]!!
 
-                // use the existing depth buffer for the 3d ui
-                val dstBuffer0 = baseSameDepth
+                        drawScene(tw, th, camera, camera, 1f, layerRenderer, tmp, false, !useDeferredRendering)
 
-                if (useBloom) {
-
-                    val tmp = FBStack["", w, h, 4, true, 1]
-                    useFrame(tmp, copyRenderer) {// apply post processing
-
-                        val shader = LightPipelineStage.getPostShader(deferred)
-                        shader.use()
-                        shader.v1("applyToneMapping", false)
-                        shader.v3("ambientLight", pipeline.ambient)
-
-                        lightBuffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                        buffer.bindTextures(1, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-
-                        flat01.draw(shader)
+                        val texture = tmp.getColor0()
+                        // y flipped, because it would be incorrect otherwise
+                        drawTexture(x02, y12, tw, -th, texture, true, -1, null)
+                        DrawTexts.drawSimpleTextCharByChar(
+                            x02, y02, 2,
+                            layer.name
+                        )
 
                     }
+                    return
 
-                    useFrame(w, h, true, dstBuffer0) {
+                }
+                else -> {
 
-                        // don't write depth
-                        RenderState.depthMask.use(false) {
-                            Bloom.bloom(tmp.getColor0(), bloomOffset, bloomStrength, true)
-                        }
-
-                        // todo use msaa for gizmos
-                        // or use anti-aliasing, that works on color edges
-                        // and supports lines
-                        drawGizmos(camPosition, true)
-                        drawSelected()
+                    if (renderer != DeferredRenderer) {
+                        drawScene(w, h, camera, camera, 1f, renderer, buffer, true, !useDeferredRendering)
+                        drawTexture(x, y + h, w, -h, buffer.getColor0(), true, -1, null)
+                        return
                     }
 
-                } else {
+                    if (buffer != baseNBuffer) throw IllegalStateException("Expected baseBuffer, but got ${buffer.name} for $renderMode")
 
-                    useFrame(w, h, true, dstBuffer0) {
+                    drawScene(w, h, camera, camera, 1f, renderer, buffer, true, !useDeferredRendering)
+                    val lightBuffer = lightBuffer
+                    buffer.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                    drawSceneLights(camera, camera, 1f, copyRenderer, buffer, lightBuffer)
 
-                        // don't write depth
-                        RenderState.depthMask.use(false) {
+                    // todo calculate the colors via post processing
+                    // todo this would also allow us to easier visualize all the layers
+
+                    // todo post processing could do screen space reflections :)
+
+
+                    // use the existing depth buffer for the 3d ui
+                    val dstBuffer0 = baseSameDepth
+
+                    if (useBloom) {
+
+                        val tmp = FBStack["", w, h, 4, true, 1]
+                        useFrame(tmp, copyRenderer) {// apply post processing
+
                             val shader = LightPipelineStage.getPostShader(deferred)
                             shader.use()
-                            shader.v1("applyToneMapping", !useBloom)
+                            shader.v1("applyToneMapping", false)
+                            shader.v3("ambientLight", pipeline.ambient)
 
                             lightBuffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                             buffer.bindTextures(1, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
 
                             flat01.draw(shader)
+
                         }
 
-                        drawGizmos(camPosition, true)
-                        drawSelected()
+                        useFrame(w, h, true, dstBuffer0) {
+
+                            // don't write depth
+                            RenderState.depthMask.use(false) {
+                                Bloom.bloom(tmp.getColor0(), bloomOffset, bloomStrength, true)
+                            }
+
+                            // todo use msaa for gizmos
+                            // or use anti-aliasing, that works on color edges
+                            // and supports lines
+                            drawGizmos(camPosition, true)
+                            drawSelected()
+                        }
+
+                    } else {
+
+                        useFrame(w, h, true, dstBuffer0) {
+
+                            // don't write depth
+                            RenderState.depthMask.use(false) {
+                                val shader = LightPipelineStage.getPostShader(deferred)
+                                shader.use()
+                                shader.v1("applyToneMapping", !useBloom)
+
+                                lightBuffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                                buffer.bindTextures(1, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+
+                                flat01.draw(shader)
+                            }
+
+                            drawGizmos(camPosition, true)
+                            drawSelected()
+
+                        }
 
                     }
 
-                }
+                    // anti-aliasing
+                    dstBuffer = FBStack["dst", w, h, 4, false, 1]
+                    useFrame(w, h, true, dstBuffer) {
+                        DepthBasedAntiAliasing.render(dstBuffer0.getColor0(), buffer.depthTexture!!)
+                    }
 
-                // anti-aliasing
-                dstBuffer = FBStack["dst", w, h, 4, false, 1]
-                useFrame(w, h, true, dstBuffer) {
-                    DepthBasedAntiAliasing.render(dstBuffer0.getColor0(), buffer.depthTexture!!)
                 }
-
             }
 
             clock.stop("presenting deferred buffers", 0.1)
 
+        } else {
+            drawScene(w, h, camera, camera, 1f, renderer, buffer, true, !useDeferredRendering)
+        }
+
+        val useFSR = when (renderMode) {
+            RenderMode.FSR_X2, RenderMode.FSR_SQRT2, RenderMode.FSR_X4 -> true
+            else -> false
         }
 
         if (useFSR) {
-            val flipY = isShiftDown
+            val flipY = isShiftDown // works without difference, so maybe it could be removed...
             val tw = x1 - x0
             val th = y1 - y0
             val tmp = FBStack["fsr", tw, th, 4, false, 1]
@@ -493,7 +664,7 @@ class RenderView(
             .firstOrNull()
         if (light != null) {
             val texture: ITexture2D? = when (light) {
-                is LightComponent -> light.shadowTextures?.getOrNull(selectedAttribute)?.depthTexture
+                is LightComponent -> light.shadowTextures?.firstOrNull()?.depthTexture
                 is EnvironmentMap -> light.texture?.textures?.firstOrNull()
                 is PlanarReflection -> light.lastBuffer
                 else -> null
@@ -543,7 +714,9 @@ class RenderView(
         }
 
         val clickedId = Screenshots.getClosestId(diameter, ids, depths, if (reverseDepth) -10 else +10)
-        val clicked = if (clickedId == 0) null else pipeline.findDrawnSubject(clickedId, getWorld())
+        val world = getWorld()
+        val clicked = if (clickedId == 0 || world !is Entity) null
+        else pipeline.findDrawnSubject(clickedId, world)
         // LOGGER.info("$clickedId -> $clicked")
         // val ids2 = world.getComponentsInChildren(MeshComponent::class, false).map { it.clickId }
         // LOGGER.info(ids2.joinToString())
@@ -552,7 +725,7 @@ class RenderView(
 
     }
 
-    private fun getWorld(): Entity {
+    private fun getWorld(): PrefabSaveable {
         return library.world
     }
 
@@ -572,8 +745,6 @@ class RenderView(
 
     var entityBaseClickId = 0
 
-    var fovYRadians = 1f
-
     private val tmpRot0 = Quaternionf()
     private val tmpRot1 = Quaternionf()
     private fun prepareDrawScene(
@@ -588,7 +759,9 @@ class RenderView(
     ) {
 
         val world = getWorld()
-        world.invalidateVisibility()
+        if (world is Entity) {
+            world.invalidateVisibility()
+        }
 
         val blend = clamp(blending, 0f, 1f).toDouble()
         val blendF = blend.toFloat()
@@ -611,6 +784,7 @@ class RenderView(
         val rot = rot1.set(rotInv).conjugate() // conjugate is quickly inverting, when already normalized
 
         val fovYRadians = toRadians(fov)
+        Companion.fovYRadians = fovYRadians
 
         // this needs to be separate from the stack
         // (for normal calculations and such)
@@ -637,16 +811,24 @@ class RenderView(
         camRotation.set(rotInv)
 
         camRotation.transform(camDirection.set(0.0, 0.0, -1.0))
+        camDirection.normalize()
         // debugPoints.add(DebugPoint(Vector3d(camDirection).mul(20.0).add(camPosition), 0xff0000, -1))
 
         currentInstance = this
-        this.fovYRadians = fovYRadians
 
-        world.update()
+        if (world is Entity) {
 
-        world.updateVisible()
+            world.update()
 
-        world.validateTransform()
+            world.updateVisible()
+
+            world.validateTransform()
+
+        }
+
+        if (world is Material && world.prefab?.source?.exists != true) {
+            throw IllegalStateException("Material must have source")
+        }
 
         pipeline.reset()
         pipeline.frustum.definePerspective(
@@ -666,7 +848,7 @@ class RenderView(
 
     }
 
-    private val reverseDepth get() = !isKeyDown('r')
+    private val reverseDepth get() = renderMode != RenderMode.INVERSE_DEPTH
 
     private fun setClearDepth() {
         stage0.depthMode = depthMode
@@ -711,8 +893,7 @@ class RenderView(
         doDrawGizmos: Boolean
     ) {
 
-        val preDrawDepth = isKeyDown('b')
-
+        val preDrawDepth = renderMode == RenderMode.WITH_PRE_DRAW_DEPTH
         if (preDrawDepth) {
             useFrame(w, h, changeSize, dst, cheapRenderer) {
 
@@ -762,8 +943,8 @@ class RenderView(
             }
 
             val canRenderDebug = Build.isDebug
-            val renderNormals = canRenderDebug && isKeyDown('n')
-            val renderLines = canRenderDebug && isKeyDown('l')
+            val renderNormals = canRenderDebug && renderMode == RenderMode.FRONT_BACK
+            val renderLines = canRenderDebug && renderMode == RenderMode.LINES
 
             GFX.check()
 
@@ -831,7 +1012,7 @@ class RenderView(
 
         // now works, after making the physics async :)
         // maybe it just doesn't work with the physics debugging together
-        val drawAABBs = isKeyDown('o')
+        val drawAABBs = renderMode == RenderMode.SHOW_AABB
 
         RenderState.blendMode.use(BlendMode.DEFAULT) {
             RenderState.depthMode.use(depthMode) {
@@ -890,7 +1071,15 @@ class RenderView(
 
                     stack.popMatrix()
 
-                    if (drawAABBs) drawAABB(entity, worldScale)
+                    if (drawAABBs) {
+                        val aabb = entity.aabb
+                        if (AABBs.testLineAABB(aabb, camPosition, ControlScheme.mouseDir, 1e10))
+                        // if (aabb.testRay(Rayd(camPosition, ControlScheme.mouseDir)))
+                            drawAABB(aabb, worldScale, 1.0, 1.0, 1.0)
+                        else
+                            drawAABB(aabb, worldScale, 1.0, 0.7, 0.7)
+
+                    }
 
                 }
 
@@ -912,41 +1101,59 @@ class RenderView(
 
     private fun drawDebug() {
         val worldScale = worldScale
-        val debugPoints = debugPoints
-        val debugLines = debugLines
-        val debugRays = debugRays
-        for (point in debugPoints) {
+        val points = debugPoints
+        val lines = debugLines
+        val rays = debugRays
+        val camPosition = camPosition
+        for (index in points.indices) {
+            val point = points[index]
             // visualize a point
-            val delta = point.position.distance(camPosition) * 0.05
-            LineBuffer.putRelativeLine(
-                point.position, Vector3d(point.position).add(delta, 0.0, 0.0),
-                camPosition, worldScale, point.color
-            )
-            LineBuffer.putRelativeLine(
-                point.position, Vector3d(point.position).add(0.0, delta, 0.0),
-                camPosition, worldScale, point.color
-            )
-            LineBuffer.putRelativeLine(
-                point.position, Vector3d(point.position).add(0.0, 0.0, delta),
-                camPosition, worldScale, point.color
-            )
+            drawDebugPoint(point.position, point.color)
         }
-        for (line in debugLines) {
+        for (index in lines.indices) {
+            val line = lines[index]
             LineBuffer.putRelativeLine(
-                line.p0, line.p1, camPosition, worldScale,
+                line.p0, line.p1,
+                camPosition, worldScale,
                 line.color
             )
         }
-        for (ray in debugRays) {
+        for (index in rays.indices) {
+            val ray = rays[index]
+            val pos = ray.start
+            val dir = ray.direction
+            val color = ray.color
+            val length = radius * 100.0
+            drawDebugPoint(pos, color)
             LineBuffer.putRelativeLine(
-                ray.start, Vector3d(ray.direction).mul(radius * 100.0).add(ray.start), camPosition, worldScale,
-                ray.color
+                pos,
+                pos.x + dir.x * length,
+                pos.y + dir.y * length,
+                pos.z + dir.z * length,
+                camPosition, worldScale,
+                color
             )
         }
         val time = GFX.gameTime
-        debugPoints.removeIf { it.timeOfDeath < time }
-        debugLines.removeIf { it.timeOfDeath < time }
-        debugRays.removeIf { it.timeOfDeath < time }
+        points.removeIf { it.timeOfDeath < time }
+        lines.removeIf { it.timeOfDeath < time }
+        rays.removeIf { it.timeOfDeath < time }
+    }
+
+    fun drawDebugPoint(p: Vector3d, color: Int) {
+        val d = p.distance(camPosition) * 0.01
+        LineBuffer.putRelativeLine(
+            p.x - d, p.y, p.z, p.x + d, p.y, p.z,
+            camPosition, worldScale, color
+        )
+        LineBuffer.putRelativeLine(
+            p.x, p.y - d, p.z, p.x, p.y + d, p.z,
+            camPosition, worldScale, color
+        )
+        LineBuffer.putRelativeLine(
+            p.x, p.y, p.z - d, p.x, p.y, p.z + d,
+            camPosition, worldScale, color
+        )
     }
 
     companion object {
@@ -962,6 +1169,8 @@ class RenderView(
         var scale = 1.0
         var worldScale = 1.0
         val stack = Matrix4fArrayList()
+
+        var fovYRadians = 1f
 
         val cameraMatrix = Matrix4f()
 

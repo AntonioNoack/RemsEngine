@@ -74,7 +74,7 @@ public class WindowsShortcut {
     /**
      * @return the name of the filesystem object pointed to by this shortcut
      */
-    public String getRealFilename() {
+    public String getAbsolutePath() {
         return real_file;
     }
 
@@ -256,7 +256,7 @@ public class WindowsShortcut {
             if ((flags & has_command_line_arguments) > 0) {
                 final int string_len = bytesToWord(link, next_string_start) * 2; // times 2 because UTF-16
                 command_line_arguments = getUTF16String(link, next_string_start + 2, string_len);
-                next_string_start = next_string_start + string_len + 2;
+                // next_string_start = next_string_start + string_len + 2;
             }
 
         } catch (final ArrayIndexOutOfBoundsException e) {

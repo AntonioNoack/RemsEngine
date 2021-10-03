@@ -18,6 +18,8 @@ import java.nio.FloatBuffer
 import kotlin.math.abs
 import kotlin.math.max
 
+// todo rumble using external library? glfw and lwjgl sadly have no support for it
+// https://github.com/williamahartman/Jamepad?
 class Controller(val id: Int) {
 
     private val glfwId = GLFW_JOYSTICK_1 + id
@@ -89,7 +91,7 @@ class Controller(val id: Int) {
         LOGGER.info("Connected to controller '$name', id '$guid', gamepad? $isGamepad")
         calibration = loadCalibration(guid) ?: ControllerCalibration(isGamepad)
         if (!calibration.isCalibrated) {
-            // todo
+            // todo controller calibration procedure
             LOGGER.warn("TODO: Request a calibration from the user for controller '$name', '$guid'")
         }
         buttonDownTime.fill(0)

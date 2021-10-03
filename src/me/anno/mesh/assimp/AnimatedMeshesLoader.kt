@@ -264,18 +264,21 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
             val references = ArrayList<FileReference>(instances.size)
             for (index in instances.indices) {
                 val instance = instances[index]
-                references += if (instance is Prefab) {
+                val reference = if (instance is Prefab) {
                     val name = instance.sets[Path.ROOT_PATH, "name"]?.toString() ?: ""
                     // .firstOrNull { it.path.isEmpty() && it.name == "name" }?.value?.toString() ?: ""
                     val nameOrIndex = name.ifEmpty { "$index" }
                     val fileName = findNextFileName(meshFolder, nameOrIndex, "json", 3, '-')
-                    meshFolder.createPrefabChild(fileName, instance)
+                    val reference = meshFolder.createPrefabChild(fileName, instance)
+                    instance.source = reference
+                    reference
                 } else {
                     val name = (instance as? NamedSaveable)?.name ?: ""
                     val nameOrIndex = name.ifEmpty { "$index" }
                     val fileName = findNextFileName(meshFolder, nameOrIndex, "json", 3, '-')
                     meshFolder.createTextChild(fileName, TextWriter.toText(instance))
                 }
+                references += reference
             }
             references
         } else emptyList()

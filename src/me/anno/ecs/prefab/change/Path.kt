@@ -8,6 +8,11 @@ import me.anno.io.text.TextWriter
 import me.anno.utils.LOGGER
 import java.text.ParseException
 
+/**
+ * internal class to changes,
+ * do not use in components/entities, as saving them won't work,
+ * or maybe serialize them yourself then
+ * */
 class Path(
     // two identification methods:
     // if one is invalidated, the other one can still work
@@ -58,6 +63,7 @@ class Path(
     fun isNotEmpty() = size > 0
 
     fun setLast(name: String, index: Int, type: Char) {
+        if(size == 0) throw IllegalArgumentException("Cannot set last of root")
         val i = size - 1
         names[i] = name
         indices[i] = index

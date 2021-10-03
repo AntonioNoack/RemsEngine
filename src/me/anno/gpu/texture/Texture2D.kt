@@ -143,7 +143,9 @@ open class Texture2D(
         if ((requiredBudget > textureBudgetTotal && !loadTexturesSync.peek()) || !isGFXThread()) {
             if (forceSync) {
                 GFX.addGPUTask(1000) {
-                    create(createImage(), true, checkRedundancy)
+                    if (!isDestroyed) {
+                        create(createImage(), true, checkRedundancy)
+                    }
                 }
             } else {
                 threadWithName("Create Image") {
@@ -842,7 +844,7 @@ open class Texture2D(
         var textureBudgetUsed = 0L
         val texturesToDelete = ArrayList<Int>()
 
-        fun resetBudget(){
+        fun resetBudget() {
             textureBudgetUsed = 0L
         }
 

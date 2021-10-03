@@ -58,6 +58,15 @@ class LightPipelineStage(
             // instanced rendering does not support shadows -> no shadow data / as a uniform
         )
 
+        private val lightCountInstancedAttributes = listOf(
+            // transform
+            Attribute("instanceTrans0", 4),
+            Attribute("instanceTrans1", 4),
+            Attribute("instanceTrans2", 4),
+            Attribute("shadowData", 1)
+            // instanced rendering does not support shadows -> no shadow data / as a uniform
+        )
+
         // test: can we get better performance, when we eliminate dependencies?
         // pro: less dependencies
         // con: we use more vram
@@ -70,6 +79,8 @@ class LightPipelineStage(
         */
 
         private val lightInstanceBuffer = StaticBuffer(lightInstancedAttributes, instancedBatchSize, GL_DYNAMIC_DRAW)
+        private val lightCountInstanceBuffer =
+            StaticBuffer(lightCountInstancedAttributes, instancedBatchSize, GL_DYNAMIC_DRAW)
 
         fun getPostShader(settingsV2: DeferredSettingsV2): Shader {
             return shaderCache.getOrPut(settingsV2 to -1) {
@@ -296,7 +307,54 @@ class LightPipelineStage(
             }
         }
 
+        val visualizeLightCountShader = lazy {
+            Shader(
+                "visualize-light-count", null, "" +
+                        "attribute vec3 coords;\n" +
+                        "uniform mat4 transform;\n" +
+                        "uniform mat4x3 localTransform;\n" +
+                        "uniform bool fullscreen;\n" +
+                        "void main(){\n" +
+                        // cutoff = 0 -> scale onto whole screen, has effect everywhere
+                        "   if(fullscreen){\n" +
+                        "      gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
+                        "   } else {\n" +
+                        "      gl_Position = transform * vec4(localTransform * vec4(coords, 1.0), 1.0);\n" +
+                        "   }\n" +
+                        "}\n", listOf(), "" +
+                        "out vec4 glFragColor;\n" +
+                        "void main(){ glFragColor = vec4(${1.0 / 8.0}); }"
+            )
+        }
+
+        val visualizeLightCountShaderInstanced = lazy {
+            Shader(
+                "visualize-light-count-instanced", null, "" +
+                        "attribute vec3 coords;\n" +
+                        "attribute vec4 instanceTrans0;\n" +
+                        "attribute vec4 instanceTrans1;" +
+                        "attribute vec4 instanceTrans2;\n" +
+                        "attribute vec4 shadowData;\n" +
+                        "uniform mat4 transform;\n" +
+                        "uniform bool isDirectional;\n" +
+                        "void main(){\n" +
+                        // cutoff = 0 -> scale onto whole screen, has effect everywhere
+                        "   if(isDirectional && shadowData.a <= 0.0){\n" +
+                        "      gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
+                        "   } else {\n" +
+                        "      mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2);\n" +
+                        "      gl_Position = transform * vec4(localTransform * vec4(coords, 1.0), 1.0);\n" +
+                        "   }\n" +
+                        "}", listOf(), "" +
+                        "out vec4 glFragColor;\n" +
+                        "void main(){ glFragColor = vec4(${1.0 / 8.0}); }"
+            )
+
+        }
+
     }
+
+    var visualizeLightCount = false
 
     val blendMode = BlendMode.ADD
     val writeDepth = false
@@ -411,6 +469,15 @@ class LightPipelineStage(
         shader.m4x4("transform", cameraMatrix)
     }
 
+    fun getShader(type: LightType, isInstanced: Boolean): Shader {
+        return if (visualizeLightCount) {
+            if (isInstanced) visualizeLightCountShaderInstanced.value
+            else visualizeLightCountShader.value
+        } else {
+            Companion.getShader(deferred, type)
+        }
+    }
+
     fun draw(source: Framebuffer, cameraMatrix: Matrix4fc, cameraPosition: Vector3d, worldScale: Double) {
 
         val time = GFX.gameTime
@@ -422,8 +489,10 @@ class LightPipelineStage(
             val sample = lights[0].light
             val mesh = sample.getLightPrimitive()
 
-            val shader = getShader(deferred, type)
+            val shader = getShader(type, false)
             shader.use()
+
+            shader.v4("tint", -1)
 
             initShader(shader, cameraMatrix)
 
@@ -442,11 +511,11 @@ class LightPipelineStage(
 
                 val transform = request.transform
 
+                shader.v1("fullscreen", light is DirectionalLight && light.cutoff <= 0.0)
+
                 setupLocalTransform(shader, transform, cameraPosition, worldScale, time)
 
                 val m = transform.getDrawMatrix(time)
-
-                shader.v4("tint", -1)
 
                 // define the light data
                 // data0: color, type
@@ -454,10 +523,13 @@ class LightPipelineStage(
                 shader.v4("data0", light.color, 1f)
 
                 // data1: camera position, shader specific value (cone angle / size)
-                val px = ((m.m30() - cameraPosition.x) * worldScale).toFloat()
-                val py = ((m.m31() - cameraPosition.y) * worldScale).toFloat()
-                val pz = ((m.m32() - cameraPosition.z) * worldScale).toFloat()
-                shader.v4("data1", px, py, pz, light.getShaderV0(m, worldScale))
+                shader.v4(
+                    "data1",
+                    ((m.m30() - cameraPosition.x) * worldScale).toFloat(),
+                    ((m.m31() - cameraPosition.y) * worldScale).toFloat(),
+                    ((m.m32() - cameraPosition.z) * worldScale).toFloat(),
+                    light.getShaderV0(m, worldScale)
+                )
 
                 if (light is DirectionalLight) shader.v1("cutoff", light.cutoff)
 
@@ -519,13 +591,16 @@ class LightPipelineStage(
     fun drawBatches(lights: List<LightRequest<*>>, type: LightType, size: Int) {
 
         val batchSize = instancedBatchSize
+        val visualizeLightCount = visualizeLightCount
 
         val sample = lights[0].light
         val mesh = sample.getLightPrimitive()
         mesh.ensureBuffer()
 
-        val shader = getShader(deferred, type)
+        val shader = getShader(type, true)
         shader.use()
+
+        shader.v1("isDirectional", type == LightType.DIRECTIONAL)
 
         val cameraMatrix = cameraMatrix!!
         val cameraPosition = cameraPosition!!
@@ -535,12 +610,16 @@ class LightPipelineStage(
 
         val time = GFX.gameTime
 
-        // draw them in batches of size <= batchSize
-        for (baseIndex in 0 until size step batchSize) {
+        val buffer =
+            if (visualizeLightCount) lightCountInstanceBuffer
+            else lightInstanceBuffer
+        val nioBuffer = buffer.nioBuffer!!
+        val stride = buffer.attributes[0].stride
 
-            val buffer = lightInstanceBuffer
-            val nioBuffer = buffer.nioBuffer!!
-            val stride = buffer.attributes[0].stride
+        // draw them in batches of size <= batchSize
+        // converted from for(.. step ..) to while to avoid allocation
+        var baseIndex = 0
+        while(baseIndex < size){
 
             buffer.clear()
             nioBuffer.limit(nioBuffer.capacity())
@@ -550,32 +629,35 @@ class LightPipelineStage(
                 val lightI = lights[index]
                 val light = lightI.light
                 val m = lightI.transform.getDrawMatrix(time)
-                val mInv = light.invWorldMatrix
                 m4x3delta(m, cameraPosition, worldScale, nioBuffer, false)
-                m4x3x(mInv, nioBuffer, false)
-                // put all light data: lightData0, lightData1
-                val color = light.color
-                nioBuffer.putFloat(color.x)
-                nioBuffer.putFloat(color.y)
-                nioBuffer.putFloat(color.z)
-                nioBuffer.putFloat(0f) // type, not used
-                // put data1: world position
-                val px = ((m.m30() - cameraPosition.x) * worldScale).toFloat()
-                val py = ((m.m31() - cameraPosition.y) * worldScale).toFloat()
-                val pz = ((m.m32() - cameraPosition.z) * worldScale).toFloat()
-                nioBuffer.putFloat(px)
-                nioBuffer.putFloat(py)
-                nioBuffer.putFloat(pz)
-                // put data1: custom property
-                nioBuffer.putFloat(light.getShaderV0(m, worldScale))
-                // put data2:
-                nioBuffer.putFloat(0f)
-                nioBuffer.putFloat(0f)
-                nioBuffer.putFloat(light.getShaderV1())
+                if (!visualizeLightCount) {
+                    val mInv = light.invWorldMatrix
+                    m4x3x(mInv, nioBuffer, false)
+                    // put all light data: lightData0, lightData1
+                    // put data0:
+                    val color = light.color
+                    nioBuffer.putFloat(color.x)
+                    nioBuffer.putFloat(color.y)
+                    nioBuffer.putFloat(color.z)
+                    nioBuffer.putFloat(0f) // type, not used
+                    // put data1/xyz: world position
+                    nioBuffer.putFloat(((m.m30() - cameraPosition.x) * worldScale).toFloat())
+                    nioBuffer.putFloat(((m.m31() - cameraPosition.y) * worldScale).toFloat())
+                    nioBuffer.putFloat(((m.m32() - cameraPosition.z) * worldScale).toFloat())
+                    // put data1/a: custom property
+                    nioBuffer.putFloat(light.getShaderV0(m, worldScale))
+                    // put data2:
+                    nioBuffer.putFloat(0f)
+                    nioBuffer.putFloat(0f)
+                    nioBuffer.putFloat(light.getShaderV1())
+                }
                 nioBuffer.putFloat(light.getShaderV2())
             }
             buffer.ensureBufferWithoutResize()
             mesh.drawInstanced(shader, 0, buffer)
+
+            baseIndex += batchSize
+
         }
     }
 

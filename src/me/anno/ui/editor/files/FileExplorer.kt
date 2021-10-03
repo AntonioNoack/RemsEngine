@@ -43,6 +43,8 @@ import kotlin.math.roundToInt
 // done, kind of: zoom: keep mouse at item in question
 // done change side ratio based on: border + 1:1 frame + 2 lines of text
 // todo dynamically change aspect ratio based on content for better coverage?
+// issue: then the size is no longer constant
+// solution: can we get the image size quickly? using ffmpeg maybe, or implemented ourselves
 
 
 // done the text size is quite small on my x360 -> get the font size for the ui from the OS :)
@@ -50,7 +52,7 @@ import kotlin.math.roundToInt
 // done make file path clickable to quickly move to a grandparent folder :)
 
 // todo buttons for filters, then dir name, search over it?, ...
-// todo drag n drop; links or copy?
+// done drag n drop; links or copy?
 // done search options
 // done search results below
 // todo search in text files
@@ -60,10 +62,6 @@ import kotlin.math.roundToInt
 
 // done a stack or history to know where we were
 // todo left list of relevant places? todo drag stuff in there
-
-// todo file explorer: if all entries are below a certain size, we could size them down
-// issue: then the size is no longer constant
-// solution: can we get the image size quickly? using ffmpeg maybe, or implemented ourselves
 
 abstract class FileExplorer(
     initialLocation: FileReference?,
@@ -123,10 +121,10 @@ abstract class FileExplorer(
         a as FileExplorerEntry
         b as FileExplorerEntry
         (b.isParent.compareTo(a.isParent)).ifDifferent {
-            val af = a.file
-            val bf = b.file
+            val af = getReference(a.path)
+            val bf = getReference(b.path)
             bf.isDirectory.compareTo(af.isDirectory).ifDifferent {
-                a.file.name.compareTo(b.file.name, true)
+                af.name.compareTo(bf.name, true)
             }
         }
     }, style)
@@ -183,7 +181,7 @@ abstract class FileExplorer(
             val search = Search(searchTerm)
 
             var level0: List<FileReference> = folder.listFiles2()
-                .filter { !it.name.startsWith('.') }
+                .filter { !it.isHidden }
             val newFiles = level0.map { it.name }
             val newSearch = search.isNotEmpty()
 
@@ -200,7 +198,7 @@ abstract class FileExplorer(
                     var nextLevel = ArrayList<FileReference>()
                     for (i in 0 until searchDepth) {
                         for (file in lastLevel) {
-                            if (file.name.startsWith('.')) continue
+                            if (file.isHidden) continue
                             if (file.isDirectory || when (file.lcExtension) {
                                     "zip", "rar", "7z", "s7z", "jar", "tar", "gz", "xz",
                                     "bz2", "lz", "lz4", "lzma", "lzo", "z", "zst",
@@ -277,7 +275,7 @@ abstract class FileExplorer(
 
                 val fe = content.children.filterIsInstance<FileExplorerEntry>()
                 for (it in fe) {
-                    it.visibility = Visibility[search.matches(it.file.name)]
+                    it.visibility = Visibility[search.matches(getReference(it.path).name)]
                 }
 
             }
@@ -458,7 +456,15 @@ abstract class FileExplorer(
 
     fun switchTo(folder: FileReference?) {
         folder ?: return
-        if (!folder.isSomeKindOfDirectory) {
+        val windowsLink = folder.windowsLnk.value
+        if (windowsLink != null) {
+            val dst = getReference(windowsLink.absolutePath)
+            if (dst.exists) {
+                switchTo(dst)
+            } else {
+                switchTo(folder.getParent())
+            }
+        } else if (!canSensiblyEnter(folder)) {
             switchTo(folder.getParent())
         } else {
             while (history.lastIndex > historyIndex) history.removeAt(history.lastIndex)
@@ -466,6 +472,10 @@ abstract class FileExplorer(
             historyIndex++
             invalidate()
         }
+    }
+
+    fun canSensiblyEnter(file: FileReference): Boolean {
+        return file.isDirectory || (file.isSomeKindOfDirectory && file.hasChildren())
     }
 
     var hoveredItemIndex = 0

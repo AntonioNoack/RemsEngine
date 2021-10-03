@@ -6,7 +6,7 @@ import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
 import me.anno.utils.maths.Maths
 import me.anno.utils.OS
-import me.anno.utils.image.ImageWriter
+import me.anno.image.ImageWriter
 import javax.imageio.ImageIO
 import kotlin.math.abs
 

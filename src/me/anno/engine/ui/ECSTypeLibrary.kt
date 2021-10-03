@@ -2,6 +2,7 @@ package me.anno.engine.ui
 
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.SceneView
 import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
@@ -18,7 +19,7 @@ object ECSTypeLibrary {
     lateinit var syncMaster: SyncMaster
     var isGaming = false
 
-    lateinit var world: Entity
+    lateinit var world: PrefabSaveable
 
     // todo box selecting with shift
 

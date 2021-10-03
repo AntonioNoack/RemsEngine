@@ -104,6 +104,7 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
 
         fun findName(fileReference: FileReference) = find(fileReference)?.name
         fun find(fileReference: FileReference): Signature? {
+            if (!fileReference.exists) return null
             return when (fileReference) {
                 is PrefabReadable -> signatures.first { it.name == "json" }
                 is InnerByteFile -> find(fileReference.data!!) // full data access costs nothing

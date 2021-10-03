@@ -8,9 +8,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.objects.inspectable.Inspectable
 import me.anno.ui.editor.stacked.Option
-import me.anno.utils.strings.StringHelper
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
-import me.anno.utils.strings.StringHelper.splitCamelCase
 import me.anno.utils.structures.lists.UpdatingList
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
@@ -137,6 +135,10 @@ abstract class Component : PrefabSaveable(), Inspectable {
 
     open fun onChangeProperty(name: String, value: Any?) {}
 
+    fun invalidateRigidbody() {
+        entity?.invalidateRigidbody()
+    }
+
     // automatic property inspector by reflection
     // property inspector annotations, e.g. Range, ExecuteInEditMode, HideInInspector,
     // todo GraphicalValueTracker
@@ -188,7 +190,7 @@ abstract class Component : PrefabSaveable(), Inspectable {
             )) as Component
         }
 
-        fun getComponentOptions(entity: Entity?): List<Option> {
+        fun getComponentOptions(entity: Entity): List<Option> {
             // registry over all options... / todo search the raw files + search all scripts
             val knownComponents = ISaveable.objectTypeRegistry.filterValues { it.sampleInstance is Component }
             return UpdatingList {

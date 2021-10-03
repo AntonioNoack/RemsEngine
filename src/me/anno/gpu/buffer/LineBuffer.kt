@@ -8,6 +8,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
+import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.pooling.ByteBufferPool
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
@@ -82,6 +83,32 @@ object LineBuffer {
     }
 
     fun addLine(
+        x0: Float, y0: Float, z0: Float,
+        x1: Float, y1: Float, z1: Float,
+        r: Double, g: Double, b: Double
+    ) {
+        ensureSize(2 * (3 * 4 + 4))
+        val r0 = (r * 255).roundToInt().toByte()
+        val g0 = (g * 255).roundToInt().toByte()
+        val b0 = (b * 255).roundToInt().toByte()
+        val bytes = bytes
+        bytes.putFloat(x0)
+        bytes.putFloat(y0)
+        bytes.putFloat(z0)
+        bytes.put(r0)
+        bytes.put(g0)
+        bytes.put(b0)
+        bytes.put(-1)
+        bytes.putFloat(x1)
+        bytes.putFloat(y1)
+        bytes.putFloat(z1)
+        bytes.put(r0)
+        bytes.put(g0)
+        bytes.put(b0)
+        bytes.put(-1)
+    }
+
+    fun addLine(
         v0: Vector3f, v1: Vector3f,
         r: Double, g: Double, b: Double
     ) {
@@ -133,30 +160,153 @@ object LineBuffer {
     }
 
     fun putRelativeLine(
+        x0: Double, y0: Double, z0: Double,
+        x1: Double, y1: Double, z1: Double,
+        cam: org.joml.Vector3d,
+        color: Int
+    ) {
+        ensureSize(2 * (3 * 4 + 4))
+        val bytes = bytes
+        bytes.putFloat((x0 - cam.x).toFloat())
+        bytes.putFloat((y0 - cam.y).toFloat())
+        bytes.putFloat((z0 - cam.z).toFloat())
+        bytes.putInt(color)
+        bytes.putFloat((x1 - cam.x).toFloat())
+        bytes.putFloat((y1 - cam.y).toFloat())
+        bytes.putFloat((z1 - cam.z).toFloat())
+        bytes.putInt(color)
+    }
+
+    fun putRelativeLine(
+        x0: Double, y0: Double, z0: Double,
+        x1: Double, y1: Double, z1: Double,
+        cam: org.joml.Vector3d,
+        r: Byte, g: Byte, b: Byte
+    ) {
+        ensureSize(2 * (3 * 4 + 4))
+        val bytes = bytes
+        bytes.putFloat((x0 - cam.x).toFloat())
+        bytes.putFloat((y0 - cam.y).toFloat())
+        bytes.putFloat((z0 - cam.z).toFloat())
+        bytes.put(r)
+        bytes.put(g)
+        bytes.put(b)
+        bytes.put(-1)
+        bytes.putFloat((x1 - cam.x).toFloat())
+        bytes.putFloat((y1 - cam.y).toFloat())
+        bytes.putFloat((z1 - cam.z).toFloat())
+        bytes.put(r)
+        bytes.put(g)
+        bytes.put(b)
+        bytes.put(-1)
+    }
+
+    fun putRelativeLine(
+        v0: Vector3d, v1: Vector3d,
+        cam: org.joml.Vector3d,
+        worldScale: Double,
+        r: Byte, g: Byte, b: Byte
+    ) {
+        ensureSize(2 * (3 * 4 + 4))
+        val bytes = bytes
+        bytes.putFloat(((v0.x - cam.x) * worldScale).toFloat())
+        bytes.putFloat(((v0.y - cam.y) * worldScale).toFloat())
+        bytes.putFloat(((v0.z - cam.z) * worldScale).toFloat())
+        bytes.put(r)
+        bytes.put(g)
+        bytes.put(b)
+        bytes.put(-1)
+        bytes.putFloat(((v1.x - cam.x) * worldScale).toFloat())
+        bytes.putFloat(((v1.y - cam.y) * worldScale).toFloat())
+        bytes.putFloat(((v1.z - cam.z) * worldScale).toFloat())
+        bytes.put(r)
+        bytes.put(g)
+        bytes.put(b)
+        bytes.put(-1)
+    }
+
+
+    fun putRelativeLine(
         v0: Vector3d, v1: Vector3d,
         cam: org.joml.Vector3d,
         worldScale: Double,
         r: Double, g: Double, b: Double
     ) {
+        putRelativeLine(
+            v0, v1, cam, worldScale,
+            (clamp(r) * 255).toInt().toByte(),
+            (clamp(g) * 255).toInt().toByte(),
+            (clamp(b) * 255).toInt().toByte()
+        )
+    }
+
+    fun putRelativeLine(
+        x0: Double, y0: Double, z0: Double,
+        x1: Double, y1: Double, z1: Double,
+        cam: org.joml.Vector3d,
+        worldScale: Double,
+        r: Byte, g: Byte, b: Byte
+    ) {
         ensureSize(2 * (3 * 4 + 4))
-        val r0 = (r * 255).roundToInt().toByte()
-        val g0 = (g * 255).roundToInt().toByte()
-        val b0 = (b * 255).roundToInt().toByte()
         val bytes = bytes
-        bytes.putFloat(((v0.x - cam.x) * worldScale).toFloat())
-        bytes.putFloat(((v0.y - cam.y) * worldScale).toFloat())
-        bytes.putFloat(((v0.z - cam.z) * worldScale).toFloat())
-        bytes.put(r0)
-        bytes.put(g0)
-        bytes.put(b0)
+        bytes.putFloat(((x0 - cam.x) * worldScale).toFloat())
+        bytes.putFloat(((y0 - cam.y) * worldScale).toFloat())
+        bytes.putFloat(((z0 - cam.z) * worldScale).toFloat())
+        bytes.put(r)
+        bytes.put(g)
+        bytes.put(b)
         bytes.put(-1)
-        bytes.putFloat(((v1.x - cam.x) * worldScale).toFloat())
-        bytes.putFloat(((v1.y - cam.y) * worldScale).toFloat())
-        bytes.putFloat(((v1.z - cam.z) * worldScale).toFloat())
-        bytes.put(r0)
-        bytes.put(g0)
-        bytes.put(b0)
+        bytes.putFloat(((x1 - cam.x) * worldScale).toFloat())
+        bytes.putFloat(((y1 - cam.y) * worldScale).toFloat())
+        bytes.putFloat(((z1 - cam.z) * worldScale).toFloat())
+        bytes.put(r)
+        bytes.put(g)
+        bytes.put(b)
         bytes.put(-1)
+    }
+
+    fun putRelativeLine(
+        p0: org.joml.Vector3d,
+        x1: Double, y1: Double, z1: Double,
+        cam: org.joml.Vector3d,
+        worldScale: Double,
+        color: Int
+    ) {
+        putRelativeLine(
+            p0.x,
+            p0.y,
+            p0.z,
+            x1,
+            y1,
+            z1,
+            cam,
+            worldScale,
+            color.r().toByte(),
+            color.g().toByte(),
+            color.b().toByte()
+        )
+    }
+
+    fun putRelativeLine(
+        x0: Double, y0: Double, z0: Double,
+        x1: Double, y1: Double, z1: Double,
+        cam: org.joml.Vector3d,
+        worldScale: Double,
+        color: Int
+    ) {
+        putRelativeLine(
+            x0,
+            y0,
+            z0,
+            x1,
+            y1,
+            z1,
+            cam,
+            worldScale,
+            color.r().toByte(),
+            color.g().toByte(),
+            color.b().toByte()
+        )
     }
 
     fun putRelativeLine(
@@ -165,9 +315,8 @@ object LineBuffer {
         worldScale: Double,
         color: Int
     ) {
-        putRelativeLine(v0, v1, cam, worldScale, color.r() / 255.0, color.g() / 255.0, color.b() / 255.0)
+        putRelativeLine(v0, v1, cam, worldScale, color.r().toByte(), color.g().toByte(), color.b().toByte())
     }
-
 
     fun putRelativeLine(
         v0: org.joml.Vector3d, v1: org.joml.Vector3d,

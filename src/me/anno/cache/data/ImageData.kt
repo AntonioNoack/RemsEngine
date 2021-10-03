@@ -48,7 +48,7 @@ class ImageData(file: FileReference) : ICacheData {
         private val LOGGER = LogManager.getLogger(ImageData::class)
 
         fun getRotation(file: FileReference): RotateJPEG? {
-            if (file == InvalidRef) return null
+            if (file == InvalidRef || file.isDirectory) return null
             return getRotation(file.inputStream())
         }
 

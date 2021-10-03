@@ -1,8 +1,8 @@
 package me.anno.mesh.vox
 
 import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.change.Path
 import me.anno.io.files.FileReference
 import me.anno.io.zip.InnerFolder
 import me.anno.mesh.vox.format.VOXLayer
@@ -384,7 +384,9 @@ class VOXReader {
             val meshes = InnerFolder(folder, "meshes")
             val meshReferences = reader.models.mapIndexed { index, mesh ->
                 val prefab = mesh.createMeshPrefab(reader.palette)
-                meshes.createPrefabChild("$index.json", prefab)
+                val meshFile = meshes.createPrefabChild("$index.json", prefab)
+                prefab.source = meshFile
+                meshFile
             }
             val prefab = reader.toEntityPrefab(meshReferences)
             val layersRoot = folder.createPrefabChild("Scene.json", prefab)

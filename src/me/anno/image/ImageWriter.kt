@@ -1,22 +1,31 @@
-package me.anno.utils.image
+package me.anno.image
 
+import me.anno.image.BoxBlur.gaussianBlur
 import me.anno.image.raw.IntImage
+import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
+import me.anno.utils.LOGGER
 import me.anno.utils.OS
+import me.anno.utils.OS.desktop
 import me.anno.utils.files.Files.use
 import me.anno.utils.hpc.HeavyProcessing.processBalanced
+import me.anno.utils.maths.Maths.mix
 import me.anno.utils.maths.Maths.mixARGB
+import org.joml.Vector2f
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
+import kotlin.math.*
 
 object ImageWriter {
+
+    fun getFile(name: String): FileReference {
+        val name2 = if (name.endsWith("png") || name.endsWith("jpg")) name else "$name.png"
+        return getReference(desktop, name2)
+    }
 
     inline fun writeRGBImageByte3(
         w: Int,
@@ -100,7 +109,52 @@ object ImageWriter {
         file.getParent()?.mkdirs()
         use(file.outputStream()) {
             val img = IntImage(w, h, imgData, false)
-            img.write(getReference(OS.desktop, name))
+            img.write(getFile(name))
+        }
+    }
+
+    fun writeImageFloatWithOffsetAndStride(
+        w: Int, h: Int,
+        offset: Int, stride: Int,
+        name: String,
+        normalize: Boolean,
+        minColor: Int,
+        zeroColor: Int,
+        maxColor: Int,
+        nanColor: Int,
+        values: FloatArray
+    ) {
+        if (normalize) normalizeValues(values)
+        val imgData = IntArray(w * h)
+        var j = offset
+        for (y in 0 until h) {
+            val i0 = y * h
+            val i1 = i0 + h
+            for (i in i0 until i1) {
+                val v = values[j++]
+                val color = when {
+                    v.isFinite() -> mixARGB(zeroColor, if (v < 0) minColor else maxColor, abs(v))
+                    v.isNaN() -> nanColor
+                    else -> if (v < 0f) minColor else maxColor // todo special colors for infinity?
+                }
+                imgData[i] = color
+            }
+            j += stride - h
+        }
+        /*for (i in 0 until w * h) {
+            val v = values[i]
+            val color = when {
+                v.isFinite() -> mixARGB(zeroColor, if (v < 0) minColor else maxColor, abs(v))
+                v.isNaN() -> nanColor
+                else -> if (v < 0f) minColor else maxColor // todo special colors for infinity?
+            }
+            imgData[i] = color
+        }*/
+        val file = OS.desktop.getChild(name)
+        file.getParent()?.mkdirs()
+        use(file.outputStream()) {
+            val img = IntImage(w, h, imgData, false)
+            img.write(getFile(name))
         }
     }
 
@@ -135,8 +189,7 @@ object ImageWriter {
             }
             buffer.setElem(i, rgba(r, g, b, 255))
         }
-        val file = OS.desktop.getChild(name)
-        file.getParent()?.mkdirs()
+        val file = getFile(name)
         use(file.outputStream()) {
             ImageIO.write(img, if (name.endsWith(".jpg")) "jpg" else "png", it)
         }
@@ -286,9 +339,80 @@ object ImageWriter {
                 }
             }
         }
-        use(OS.desktop.getChild(name).outputStream()) {
+        use(getFile(name).outputStream()) {
             ImageIO.write(img, if (name.endsWith(".jpg")) "jpg" else "png", it)
         }
     }
+
+    private fun addPoint(image: FloatArray, w: Int, x: Int, y: Int, v: Float) {
+        if (x in 0 until w && y >= 0) {
+            val index = x + y * w
+            if (index < image.size) {
+                image[index] += v
+            }
+        }
+    }
+
+    fun writeImageCurve(
+        wr: Int, hr: Int, c0: Int, c1: Int,
+        thickness: Int,
+        points: List<Vector2f>, name: String
+    ) {
+        val w = wr + 2 * thickness
+        val h = hr + 2 * thickness
+        val image = FloatArray(w * h)
+        // do all line sections
+        var ctr = 0f
+        val t0 = System.nanoTime()
+        for (i in 1 until points.size) {
+            val p0 = points[i - 1]
+            val p1 = points[i]
+            val distance = p0.distance(p1)
+            val steps = ceil(distance)
+            val invSteps = 1f / steps
+            val stepSize = distance * invSteps
+            ctr += steps
+            for (j in 0 until steps.toInt()) {
+                // add point
+                val f = j * invSteps
+                val x = mix(p0.x, p1.x, f) + thickness
+                val y = mix(p0.y, p1.y, f) + thickness
+                val xi = floor(x)
+                val yi = floor(y)
+                val fx = x - xi
+                val fy = y - yi
+                val gx = 1f - fx
+                val gy = 1f - fy
+                val s0 = stepSize * gx
+                val s1 = stepSize * fx
+                val w0 = s0 * gy
+                val w1 = s0 * fy
+                val w2 = s1 * gy
+                val w3 = s1 * fy
+                val ix = xi.toInt()
+                val iy = yi.toInt()
+                addPoint(image, w, ix, iy, w0)
+                addPoint(image, w, ix, iy + 1, w1)
+                addPoint(image, w, ix + 1, iy, w2)
+                addPoint(image, w, ix + 1, iy + 1, w3)
+            }
+        }
+        // bokeh-blur would be nicer, and correcter,
+        // but this is a pretty good trade-off between visuals and performance :)
+        gaussianBlur(image, w, h, thickness)
+        val scale = 1f / (thickness * thickness * sqrt(thickness.toFloat()))
+        for (i in 0 until w * h) image[i] *= scale
+        val t1 = System.nanoTime()
+        // nano seconds per pixel
+        // ~ 24ns/px for everything, including copy;
+        // for 2048² pixels, and thickness = 75
+        LOGGER.info("${(t1 - t0).toFloat() / (w * h)}ns/px")
+        // writeImageFloat(w, h, "$name-2.png", false, 0, c0, c1, 0, image)
+        writeImageFloatWithOffsetAndStride(
+            wr, hr, thickness * (w + 1), w,
+            name, false, 0, c0, c1, 0, image
+        )
+    }
+
 
 }

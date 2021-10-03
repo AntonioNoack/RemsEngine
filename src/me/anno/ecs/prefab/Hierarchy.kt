@@ -27,12 +27,11 @@ object Hierarchy {
 
     private fun extractPrefab(element: PrefabSaveable, copyPasteRoot: Boolean): Prefab {
         val prefab = Prefab(element.className)
-        val elPrefab = element.prefab2
+        val elPrefab = element.prefab
         if (!copyPasteRoot) prefab.prefab = elPrefab?.prefab?.nullIfUndefined() ?: elPrefab?.source ?: InvalidRef
         prefab.ensureMutableLists()
         val adders = prefab.adds as ArrayList
-        val setters = prefab.sets //as ArrayList
-        val path = element.pathInRoot2()
+        val path = element.prefabPath!!
         LOGGER.info("For copy path: $path")
         // collect changes from this element going upwards
         var someParent = element
@@ -43,7 +42,7 @@ object Hierarchy {
         val startIndex = if (copyPasteRoot) collDepth else collDepth - 1
         for (depth in startIndex downTo 0) {// from element to root
             LOGGER.info("Checking depth $depth/$collDepth, ${someParent.name}")
-            var someRelatedParent = someParent.prefab2
+            var someRelatedParent = someParent.prefab
             while (someRelatedParent != null) {// follow the chain of prefab-inheritance
                 val adds = someRelatedParent.adds
                 val sets = someRelatedParent.sets
@@ -132,7 +131,7 @@ object Hierarchy {
                 val index = dstParentInstance.getChildListByType(type).size
                 val name = srcSample.name
                 val clazz = srcPrefab.clazzName
-                val prefab0 = srcSample.prefab2?.prefab ?: InvalidRef
+                val prefab0 = srcSample.prefab?.prefab ?: InvalidRef
                 val add0 = CAdd(dstParentPath, type, clazz, name, prefab0)
                 val dstPath = dstPrefab.add(add0, index)
                 LOGGER.debug("Adding element to path $dstPath")
@@ -163,7 +162,9 @@ object Hierarchy {
         if (!dstPrefab.isWritable) throw ImmutablePrefabException(dstPrefab.source)
         val type = dstPath.types.last()
         val name = child.name.ifEmpty { child.className }
-        dstPrefab.add(CAdd(dstPath.getParent(), type, child.className, name, child.prefab2?.source ?: InvalidRef))
+        val dstPath2 =
+            dstPrefab.add(dstPath.getParent(), type, child.className, name, child.prefab?.source ?: InvalidRef)
+        if (dstPath2 != dstPath) throw IllegalStateException("Could not add child at index, $dstPath vs $dstPath2")
         val sample = ISaveable.getSample(child.className)!!
         for ((pName, field) in child.getReflections().allProperties) {
             if (field.serialize) {
@@ -175,6 +176,8 @@ object Hierarchy {
                 }
             }
         }
+        // hopefully correct...
+        parent.addChildByType(dstPath2.indices.last(), type, child)
         ECSSceneTabs.updatePrefab(dstPrefab)
         // val index = dstPath.indices.last()
         // parent.addChildByType(index, type, child)
@@ -183,7 +186,7 @@ object Hierarchy {
     fun removePathFromPrefab(
         prefab: Prefab,
         element: PrefabSaveable
-    ) = removePathFromPrefab(prefab, element.pathInRoot2(), element.className)
+    ) = removePathFromPrefab(prefab, element.prefabPath!!, element.className)
 
     fun removePathFromPrefab(
         prefab: Prefab,
@@ -257,7 +260,7 @@ object Hierarchy {
                 val t = HashSet<IntArray>()
                 renumber(path.indices.last(), -1, path, adds, t)
                 renumber(path.indices.last(), -1, path, sets, t)
-                prefab.invalidate()
+                prefab.invalidateInstance()
             }
         }
 
@@ -370,7 +373,7 @@ object Hierarchy {
     @JvmStatic
     fun main(args: Array<String>) {
         ECSRegistry.initNoGFX()
-        // testAdd()
+        testAdd()
         testRenumberRemove()
     }
 

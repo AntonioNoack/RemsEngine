@@ -2,7 +2,7 @@ package me.anno.ecs.components.collider
 
 import me.anno.utils.Color.rgba
 import me.anno.utils.maths.Maths.fract
-import me.anno.utils.image.ImageWriter
+import me.anno.image.ImageWriter
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 

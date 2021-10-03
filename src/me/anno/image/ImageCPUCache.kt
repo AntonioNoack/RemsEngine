@@ -40,6 +40,7 @@ object ImageCPUCache : CacheSection("BufferedImages") {
                             null -> when (file.lcExtension) {
                                 "tga" -> TGAImage.read(bytes.inputStream(), false)
                                 "webp" -> tryFFMPEG(file)
+                                "ico" -> tryIco(bytes.inputStream())
                                 else -> tryGeneric(bytes)
                             }
                             else -> tryGeneric(bytes)
@@ -55,6 +56,7 @@ object ImageCPUCache : CacheSection("BufferedImages") {
                             null -> when (file.lcExtension) {
                                 "tga" -> TGAImage.read(file.inputStream(), false)
                                 "webp" -> tryFFMPEG(file)
+                                "ico" -> tryIco(file.inputStream())
                                 else -> tryGeneric(file)
                             }
                             else -> tryGeneric(file)
@@ -86,7 +88,7 @@ object ImageCPUCache : CacheSection("BufferedImages") {
 
     private fun tryIco(input: InputStream): Image? {
         val images = ICODecoder.read(input)
-        // image array?
+        // image array? it happens for better scalable icons
         if (images.size > 1) LOGGER.warn("Should implement array texture for ico files")
         if (images.isEmpty()) return null
         return images.maxByOrNull { it.width * it.height }!! // was blue ... why ever...

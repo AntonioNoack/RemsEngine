@@ -33,11 +33,25 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
     }
 
-    fun remove(filter: (Map.Entry<Any, CacheEntry>) -> Boolean) {
+    fun remove(filter: (Map.Entry<Any, CacheEntry>) -> Boolean): Int {
         synchronized(cache) {
             val toRemove = cache.filter(filter)
             cache.remove(toRemove)
-            toRemove.values.forEach { it.destroy() }
+            for (value in toRemove.values) {
+                value.destroy()
+            }
+            return toRemove.values.size
+        }
+    }
+
+    fun removeDual(filter: (Any, Any, CacheEntry) -> Boolean): Int {
+        synchronized(dualCache) {
+            return dualCache.removeIf { k1, k2, v ->
+                if (filter(k1, k2, v)) {
+                    v.destroy()
+                    true
+                } else false
+            }
         }
     }
 
@@ -240,7 +254,9 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     fun <V> getEntryWithCallback(
-        key: V, timeout: Long, asyncGenerator: Boolean, generator: (V) -> ICacheData?, ifNotGenerating: (() -> Unit)?
+        key: V, timeout: Long, asyncGenerator: Boolean,
+        generator: (V) -> ICacheData?,
+        ifNotGenerating: (() -> Unit)?
     ): ICacheData? {
 
         if (key == null) throw IllegalStateException("Key must not be null")
@@ -252,10 +268,16 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
         var needsGenerator = false
         val entry = synchronized(cache) {
-            cache.getOrPut(key) {
+            var entry = cache.getOrPut(key) {
                 needsGenerator = true
                 CacheEntry(timeout, gameTime)
             }
+            if (entry.hasBeenDestroyed) {
+                entry = CacheEntry(timeout, gameTime)
+                cache[key] = entry
+                needsGenerator = true
+            }
+            entry
         }
 
         entry.lastUsed = gameTime
@@ -281,6 +303,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
         if (!asyncGenerator) entry.waitForValue()
         return if (entry.hasBeenDestroyed) {
+            // if (maxDepth < 0) throw RuntimeException("Cache for key '$key' is broken, always is destroyed!")
             getEntryWithCallback(key, timeout, asyncGenerator, generator, null)
         } else entry.data
 

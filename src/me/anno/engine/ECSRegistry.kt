@@ -10,10 +10,15 @@ import me.anno.ecs.components.camera.CameraComponent
 import me.anno.ecs.components.collider.*
 import me.anno.ecs.components.light.*
 import me.anno.ecs.components.mesh.*
+import me.anno.ecs.components.mesh.spline.PathProfile
+import me.anno.ecs.components.mesh.spline.SplineControlPoint
+import me.anno.ecs.components.mesh.spline.SplineMesh
 import me.anno.ecs.components.mesh.terrain.TriTerrain
+import me.anno.ecs.components.physics.BulletPhysics
 import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.components.physics.Vehicle
 import me.anno.ecs.components.physics.VehicleWheel
+import me.anno.ecs.components.physics.constraints.*
 import me.anno.ecs.components.test.RaycastTestComponent
 import me.anno.ecs.components.test.TypeTestComponent
 import me.anno.ecs.prefab.ChangeHistory
@@ -21,9 +26,8 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
-import me.anno.engine.physics.BulletPhysics
 import me.anno.engine.scene.ScenePrefab
-import me.anno.engine.test.TestVehicleController
+import me.anno.ecs.components.test.TestVehicleController
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.TextureLib
@@ -57,6 +61,9 @@ object ECSRegistry {
         registerCustomClass(Material())
         registerCustomClass(MeshComponent())
         registerCustomClass(AnimRenderer())
+        registerCustomClass(SplineMesh())
+        registerCustomClass(SplineControlPoint())
+        registerCustomClass(PathProfile())
 
         // lights
         registerCustomClass(SpotLight())
@@ -101,6 +108,15 @@ object ECSRegistry {
         registerCustomClass(Vehicle())
         registerCustomClass(VehicleWheel())
 
+        // todo test scene for all these constraints
+        // todo drag on physics to add forces/impulses
+        // physics constraints
+        registerCustomClass(PointConstraint())
+        registerCustomClass(GenericConstraint())
+        registerCustomClass(ConeTwistConstraint())
+        registerCustomClass(HingeConstraint())
+        registerCustomClass(SliderConstraint())
+
         // utils
         // currently a small thing, hopefully will become important and huge <3
         registerCustomClass(TriTerrain())
@@ -113,7 +129,7 @@ object ECSRegistry {
         }
     }
 
-    fun initWithGFX(w: Int, h: Int = w){
+    fun initWithGFX(w: Int, h: Int = w) {
         HiddenOpenGLContext.createOpenGL(w, h)
         ShaderLib.init()
         TextureLib.init()

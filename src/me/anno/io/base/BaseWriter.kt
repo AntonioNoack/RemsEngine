@@ -5,6 +5,7 @@ import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
 import me.anno.studio.StudioBase
+import me.anno.utils.structures.maps.BiMap
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.io.ByteArrayOutputStream
@@ -14,9 +15,8 @@ import java.io.Serializable
 
 abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
 
-    val todo = ArrayList<ISaveable>(256)
-    private val listed = HashSet<ISaveable>()
-    private val pointers = HashMap<ISaveable, Int>()
+    val sortedPointers = ArrayList<ISaveable>(256)
+    val pointers = BiMap<ISaveable, Int>(256)
 
     /**
      * gets the pointer of a know value
@@ -131,57 +131,33 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
         }
     }
 
-    private
-    fun getOrCreatePtr(value: ISaveable): Int {
-        var ptr = pointers[value]
-        if (ptr != null) return ptr
-        ptr = pointers.size + 1
-        pointers[value] = ptr
-        return ptr
-    }
-
     fun writeObject(self: ISaveable?, name: String?, value: ISaveable?, force: Boolean = false) {
-
-        if (value == null) {
-
-            if (force) {
-                writeNull(name)
+        when {
+            value == null -> {
+                if (force) writeNull(name)
             }
-            return
+            force || !(canSkipDefaultValues && value.isDefaultValue()) -> {
 
-        }
-
-        val canDiscard = canSkipDefaultValues && value.isDefaultValue()
-        if (force || !canDiscard) {
-
-            val ptr = getOrCreatePtr(value)
-
-            if (value in listed) {
-
-                writePointer(name, value.className, ptr)
-
-            } else {
-
-                listed += value
-                val canInclude = self == null || self.approxSize > value.approxSize
-                if (canInclude) {
-
-                    writeObjectImpl(name, value)
-
+                val ptr0 = pointers[value]
+                if (ptr0 != null) {
+                    writePointer(name, value.className, ptr0, value)
                 } else {
-
-                    todo += value
-                    writePointer(name, value.className, ptr)
-
+                    val canInclude = self == null || self.approxSize > value.approxSize
+                    if (canInclude) {
+                        generatePointer(value, false)
+                        writeObjectImpl(name, value)
+                    } else {
+                        val ptr = generatePointer(value, true)
+                        writePointer(name, value.className, ptr, value)
+                    }
                 }
+
             }
-
         }
-
     }
 
     abstract fun writeNull(name: String?)
-    abstract fun writePointer(name: String?, className: String, ptr: Int)
+    abstract fun writePointer(name: String?, className: String, ptr: Int, value: ISaveable)
     abstract fun writeObjectImpl(name: String?, value: ISaveable)
 
     open fun <V : ISaveable> writeObjectList(
@@ -251,11 +227,18 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
         force: Boolean = false
     )
 
+    fun generatePointer(obj: ISaveable, addToSorted: Boolean): Int {
+        val ptr = pointers.size + 1
+        pointers[obj] = ptr
+        if (addToSorted) {
+            sortedPointers += obj
+        }
+        return ptr
+    }
+
     fun add(obj: ISaveable) {
-        if (obj !in listed) {
-            getOrCreatePtr(obj)
-            listed += obj
-            todo += obj
+        if (obj !in pointers) {
+            generatePointer(obj, true)
         }
     }
 
@@ -265,12 +248,10 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
 
     open fun writeAllInList() {
         writeListStart()
-        if (todo.isNotEmpty()) {
-            while (true) {
-                writeObjectImpl(null, todo.removeAt(0))
-                if (todo.isNotEmpty()) writeListSeparator()
-                else break
-            }
+        var i = 0
+        while (i < sortedPointers.size) {
+            writeObjectImpl(null, sortedPointers[i++])
+            if (i < sortedPointers.size) writeListSeparator()
         }
         writeListEnd()
     }

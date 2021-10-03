@@ -8,7 +8,8 @@ import kotlin.concurrent.thread
 
 fun main() {
 
-    // todo goal: the meshes in the engine, and the file explorer need to update
+    // goal: the meshes in the engine, and the file explorer need to update
+    // todo does this work for imported meshes?
 
     val folder = documents
     val file1 = getReference(folder, "t1.obj")

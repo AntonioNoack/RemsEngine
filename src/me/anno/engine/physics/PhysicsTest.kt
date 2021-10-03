@@ -2,6 +2,7 @@ package me.anno.engine.physics
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.SphereCollider
+import me.anno.ecs.components.physics.BulletPhysics
 import me.anno.ecs.components.physics.Rigidbody
 import org.apache.logging.log4j.LogManager
 

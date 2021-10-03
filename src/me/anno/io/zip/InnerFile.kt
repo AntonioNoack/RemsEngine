@@ -4,12 +4,11 @@ import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.EmptyInputStream
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.utils.types.AnyToInt.get
+import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.URI
-import kotlin.math.abs
 
 /**
  * a file, which is inside another file,
@@ -25,11 +24,14 @@ abstract class InnerFile(
     val lcName = name.lowercase()
 
     init {
-        (_parent as? InnerFolder)?.children?.put(lcName, this)
+        if (_parent is InnerFolder) {
+            val old = _parent.children.put(lcName, this)
+            if (old != null) LOGGER.warn("Overrode $old")
+        }
     }
 
-    override var lastModified = 0L
-    override var lastAccessed = 0L
+    override var lastModified = _parent.lastModified
+    override var lastAccessed = _parent.lastAccessed
 
     var compressedSize = 0L
     var size = 0L
@@ -60,13 +62,13 @@ abstract class InnerFile(
     fun get(path: String) = getLc(path.replace('\\', '/').lowercase())
 
     open fun getLc(path: String): FileReference? {
-        if (path.isEmpty()) return ZipCache.getMeta(this, false)
-        val m = ZipCache.getMeta(this, false) as? InnerFile
+        if (path.isEmpty()) return ZipCache.unzip(this, false)
+        val m = ZipCache.unzip(this, false) as? InnerFile
         return m?.getLc(path)
     }
 
     override fun getChild(name: String): FileReference {
-        return ZipCache.getMeta(this,false)?.getChild(name) ?: InvalidRef
+        return ZipCache.unzip(this, false)?.getChild(name) ?: InvalidRef
     }
 
     override val exists: Boolean = true
@@ -106,6 +108,8 @@ abstract class InnerFile(
     }
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(InnerFile::class)
 
         fun createMainFolder(zipFileLocation: FileReference): Pair<InnerFolder, HashMap<String, InnerFile>> {
             val file = InnerFolder(zipFileLocation)

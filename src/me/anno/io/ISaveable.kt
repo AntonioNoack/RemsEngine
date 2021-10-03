@@ -177,6 +177,11 @@ interface ISaveable {
 
         fun getSample(type: String) = objectTypeRegistry[type]?.sampleInstance
 
+        fun getClass(type: String): KClass<ISaveable>? {
+            val instance = objectTypeRegistry[type]?.sampleInstance ?: return null
+            return instance::class as KClass<ISaveable>
+        }
+
         val objectTypeRegistry = HashMap<String, RegistryEntry>()
 
         @JvmStatic

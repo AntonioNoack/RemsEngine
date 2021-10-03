@@ -4,9 +4,9 @@ import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.linearmath.Transform
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.annotations.Range
+import me.anno.ecs.components.physics.BulletPhysics.Companion.convertMatrix
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.physics.BulletPhysics.Companion.convertMatrix
-import me.anno.engine.ui.render.RenderView
 import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.maths.Maths
 import me.anno.utils.maths.Maths.SQRT1_2
@@ -15,6 +15,7 @@ import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import org.joml.Vector3f
+import kotlin.math.abs
 import kotlin.math.max
 
 // todo collision-effect mappings:
@@ -27,6 +28,7 @@ import kotlin.math.max
 
 abstract class Collider : Component() {
 
+    @Range(0.0, 1.0)
     @SerializedProperty
     var roundness = 0.0
 
@@ -207,14 +209,17 @@ abstract class Collider : Component() {
      * also sets the surface normal
      * */
     open fun raycast(start: Vector3f, direction: Vector3f, surfaceNormal: Vector3f?, maxDistance: Float): Float {
+        // todo check if the ray is inside the bounding box:
+        // todo I get many false - positives behind the object... why?
         // default implementation is slow, and not perfect:
         // ray casting
         var distance = 0f
         val pos = Vector3f(start)
         val maxDist = maxDistance.toDouble()
         var isDone = 0
+        var allowedStepDistance = 0f
         for (i in 0 until 16) { // max steps
-            val allowedStepDistance = getSignedDistance(pos)
+            allowedStepDistance = getSignedDistance(pos)
             distance += allowedStepDistance
             // we have gone too far -> the ray does not intersect the collider
             if (distance >= maxDist) {
@@ -222,13 +227,16 @@ abstract class Collider : Component() {
             } else {
                 // we are still in the sector
                 pos.set(direction).mul(distance).add(start)
-                if (allowedStepDistance < 1e-3f) {
+                if (abs(allowedStepDistance) < 1e-3f) {
                     // we found the surface :)
                     isDone++ // we want at least one extra iteration
-                    if (isDone > 1) break
+                    if (isDone > 1) {
+                        break
+                    }
                 }
             }
         }
+        if (abs(allowedStepDistance) > 1f) return Float.POSITIVE_INFINITY
         // the normal calculation can be 4x more expensive than the normal evaluation -> only do it once
         if (surfaceNormal != null) getSignedDistance(pos, surfaceNormal)
         return distance
@@ -238,7 +246,7 @@ abstract class Collider : Component() {
 
     // a collider needs to be drawn
     override fun onDrawGUI() {
-        if (isSelectedIndirectly){
+        if (isSelectedIndirectly) {
             drawShape()
         }
         // todo draw transformation gizmos for easy collider manipulation

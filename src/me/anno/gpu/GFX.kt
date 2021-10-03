@@ -147,8 +147,12 @@ object GFX : GFXBase1() {
     val inFocus0 get() = inFocus.firstOrNull()
 
     fun requestFocus(panel: Panel?, exclusive: Boolean) {
-        if (exclusive) inFocus.clear()
+        if (exclusive) {
+            for (p in inFocus) p.invalidateDrawing()
+            inFocus.clear()
+        }
         if (panel != null) inFocus += panel
+        panel?.invalidateDrawing()
     }
 
     inline fun clip(x: Int, y: Int, w: Int, h: Int, render: () -> Unit) {
@@ -190,7 +194,9 @@ object GFX : GFXBase1() {
 
     fun getPanelAndWindowAt(x: Float, y: Float) = getPanelAndWindowAt(x.toInt(), y.toInt())
     fun getPanelAndWindowAt(x: Int, y: Int): Pair<Panel, Window>? {
-        for (root in windowStack.reversed()) {
+        val stack = windowStack
+        for (index in stack.size - 1 downTo 0) {
+            val root = stack[index]
             val panel = getPanelAt(root.panel, x, y)
             if (panel != null) return panel to root
         }

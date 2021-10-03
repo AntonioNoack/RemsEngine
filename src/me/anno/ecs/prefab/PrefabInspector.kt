@@ -37,14 +37,15 @@ import org.apache.logging.log4j.LogManager
 // show changed values in bold
 
 class PrefabInspector(
-    val reference: FileReference,
     val prefab: Prefab
 ) {
 
-    constructor(prefab: Prefab) : this(prefab.source, prefab)
+    val reference get() = prefab.source
+
+    // todo instance and inspector can get out of sync: the color slider stops working :/
 
     constructor(reference: FileReference, classNameIfNull: String) :
-            this(reference, loadPrefab(reference) ?: Prefab(classNameIfNull))
+            this(loadPrefab(reference) ?: Prefab(classNameIfNull))
 
     init {
         prefab.ensureMutableLists()
@@ -84,7 +85,7 @@ class PrefabInspector(
         if (!prefab.isWritable) throw ImmutablePrefabException(prefab.source)
         // if (sets.removeIf { it.path == path }) {
         if (sets.removeMajorIf { it == path }) {
-            prefab.invalidate()
+            prefab.invalidateInstance()
             onChange()
             ECSSceneTabs.updatePrefab(prefab)
         }
@@ -95,7 +96,7 @@ class PrefabInspector(
         // if (sets.removeIf { it.path == path && it.name == name }) {
         if (sets.contains(path, name)) {
             sets.remove(path, name)
-            prefab.invalidate()
+            prefab.invalidateInstance()
             onChange()
             ECSSceneTabs.updatePrefab(prefab)
         }
@@ -118,15 +119,25 @@ class PrefabInspector(
 
     fun inspect(instance: PrefabSaveable, list: PanelListY, style: Style) {
 
-        if (instance.prefabRoot !== root)
+        if (instance.prefab !== prefab)
             LOGGER.warn(
                 "Component ${instance.name}:${instance.className} " +
                         "is not part of tree ${root.name}:${root.className}, " +
-                        "its root is ${instance.root.name}:${instance.root.className}"
+                        "its root is ${instance.root.name}:${instance.root.className}; " +
+                        "${instance.prefab?.source} vs ${prefab.source}"
             )
-        val path = instance.pathInRoot2(instance.prefabRoot, withExtra = false)
-        val pathIndices = path.indices
 
+        val path = instance.prefabPath
+        if (path == null) {
+            LOGGER.error(
+                "Missing path for " +
+                        "[${instance.listOfHierarchy.joinToString { "${it.className}:${it.name}" }}], " +
+                        "prefab: '${instance.prefab?.source}', root prefab: '${instance.root.prefab?.source}'"
+            )
+            return
+        }
+
+        val pathIndices = path.indices
 
         // the index may not be set in the beginning
         fun getPath(): Path {
@@ -137,7 +148,7 @@ class PrefabInspector(
             return path
         }
 
-        val prefab = instance.prefab
+        val prefab = instance.getOriginal()
 
         list.add(TextButton("Select Parent", false, style).addLeftClickListener {
             ECSTypeLibrary.select(instance.parent)
@@ -259,8 +270,7 @@ class PrefabInspector(
 
                 override fun onAddComponent(component: Inspectable, index: Int) {
                     component as PrefabSaveable
-                    val newPath = instance.pathInRoot2(root, true)
-                    newPath.setLast(component.className, index, type)
+                    val newPath = instance.prefabPath!!.added(component.className, index, type)
                     Hierarchy.add(this@PrefabInspector.prefab, newPath, instance, component)
                 }
 
@@ -280,7 +290,7 @@ class PrefabInspector(
 
     fun checkDependencies(parent: PrefabSaveable, src: FileReference): Boolean {
         if (src == InvalidRef) return true
-        return if (parent.anyInHierarchy { it.prefab2?.source == src }) {
+        return if (parent.anyInHierarchy { it.prefab?.source == src }) {
             LOGGER.warn("Cannot add $src to ${parent.name} because of dependency loop!")
             false
         } else true
@@ -289,11 +299,12 @@ class PrefabInspector(
     fun addEntityChild(parent: Entity, prefab: Prefab) {
         if (!checkDependencies(parent, prefab.source)) return
         if (prefab.clazzName != "Entity") throw IllegalArgumentException("Type must be Entity!")
-        val path = parent.pathInRoot2(root, false)
+        val path = parent.prefabPath!!
         prefab.add(CAdd(path, 'e', prefab.clazzName, prefab.clazzName, prefab.source))
     }
 
     fun save() {
+        if (reference == InvalidRef) LOGGER.warn("Prefab doesn't have source!!")
         TextWriter.save(prefab, reference)
     }
 

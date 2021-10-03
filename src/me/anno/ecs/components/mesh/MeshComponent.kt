@@ -7,6 +7,7 @@ import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.types.AABBs.transformUnion
@@ -14,6 +15,7 @@ import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 
+// todo light beams: when inside the cone, from that view, then add a little brightness
 
 // done (file) references to meshes and animations inside mesh files
 //      - bird.fbx:anim:walk
@@ -50,10 +52,8 @@ open class MeshComponent() : Component() {
         return this.collisionMask.and(collisionMask) != 0
     }
 
-    fun invalidate() {}
-
     override fun onVisibleUpdate(): Boolean {
-        mesh = mesh.validate()
+        mesh = getReference(mesh)
         return true
     }
 

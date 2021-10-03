@@ -35,10 +35,14 @@ object LastModifiedCache {
     }
 
     var lastChecked = 0L
-    var values = ConcurrentHashMap<File, Result>()
+    var values = ConcurrentHashMap<String, Result>()
+
+    fun invalidate(absolutePath: String) {
+        values.remove(absolutePath)
+    }
 
     fun invalidate(file: File) {
-        values.remove(file)
+        values.remove(file.absolutePath)
     }
 
     fun invalidate(file: FileReference) {
@@ -47,7 +51,7 @@ object LastModifiedCache {
         }
     }
 
-    operator fun get(file: File): Result {
+    operator fun get(file: File, absolutePath: String): Result {
         val time = gameTime
         // todo partial reload only, like a cache section, just that the entries decay
         // todo randomness in decay time
@@ -55,8 +59,10 @@ object LastModifiedCache {
             lastChecked = time
             values.clear()
         }
-        return values.getOrPut(file) { Result(file) }
+        return values.getOrPut(absolutePath) { Result(file) }
     }
+
+    operator fun get(file: File): Result = get(file, file.absolutePath)
 
     fun isDirectory(ref: FileReference): Boolean {
         return if (ref is FileFileRef) this[ref.file].exists

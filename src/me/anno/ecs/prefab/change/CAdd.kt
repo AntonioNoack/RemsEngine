@@ -90,7 +90,7 @@ class CAdd() : Change(2) {
         // LOGGER.info("adding $clazzName with type $type")
         if (prefab != InvalidRef && chain?.add(prefab) == false) throw RuntimeException("Circular Reference on $chain: $prefab")
 
-        val loadedInstance = loadPrefab(prefab)?.createInstance()
+        val loadedInstance = loadPrefab(prefab, chain)?.createInstance()
         var newInstance = loadedInstance
         if (newInstance == null) {
             val maybe = ISaveable.createOrNull(clazzName ?: return)
@@ -100,8 +100,22 @@ class CAdd() : Change(2) {
                 throw RuntimeException("Class $clazzName is not PrefabSaveable")
             }
         }
+
+
+        val prefab = instance.prefab
+        val index = instance.getChildListByType(type).size
         val name = name; if (name != null) newInstance.name = name
-        instance.addChildByType(instance.getChildListByType(type).size, type, newInstance)
+        val path = instance.prefabPath!!.added(name ?: className, index, type)
+
+        newInstance.changePaths(prefab, path)
+
+        newInstance.forAll {
+            if (it.prefab !== prefab) {
+                throw IllegalStateException("Incorrectly changed paths")
+            }
+        }
+
+        instance.addChildByType(index, type, newInstance)
 
     }
 

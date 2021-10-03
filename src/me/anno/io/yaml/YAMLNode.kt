@@ -3,8 +3,10 @@ package me.anno.io.yaml
 import me.anno.io.yaml.YAMLReader.listKey
 import me.anno.io.yaml.YAMLReader.parseYAMLxJSON
 import me.anno.utils.Color.rgba
+import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4f
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 class YAMLNode(
@@ -34,6 +36,12 @@ class YAMLNode(
     operator fun get(key: String): YAMLNode? {
         return children?.firstOrNull { it.key == key }
     }
+
+    fun getBool(): Boolean? = if (value == null) null else value?.toIntOrNull() != 0
+    fun getBool(name: String): Boolean? = this[name]?.getBool()
+
+    fun getInt(): Int? = value?.toIntOrNull()
+    fun getInt(name: String): Int? = this[name]?.getInt()
 
     fun getFloat(): Float? = value?.toFloatOrNull()
     fun getFloat(name: String): Float? = this[name]?.getFloat()
@@ -98,6 +106,46 @@ class YAMLNode(
             }
         }
         return Vector3f(r, g, b)
+    }
+
+    fun getVector3d(significance: Double): Vector3d? {
+        val str = value ?: return null
+        var x = 0.0
+        var y = 0.0
+        var z = 0.0
+        parseYAMLxJSON(str) { key, value ->
+            val parsed = value.toDoubleOrNull()
+            if (parsed != null) {
+                when (key) {
+                    "r", "x" -> x = parsed
+                    "g", "y" -> y = parsed
+                    "b", "z" -> z = parsed
+                }
+            }
+        }
+        return if (abs(x) > significance || abs(y) > significance || abs(z) > significance) {
+            Vector3d(x, y, z)
+        } else null
+    }
+
+    fun getVector3dScale(significance: Double): Vector3d? {
+        val str = value ?: return null
+        var x = 1.0
+        var y = 1.0
+        var z = 1.0
+        parseYAMLxJSON(str) { key, value ->
+            val parsed = value.toDoubleOrNull()
+            if (parsed != null) {
+                when (key) {
+                    "r", "x" -> x = parsed
+                    "g", "y" -> y = parsed
+                    "b", "z" -> z = parsed
+                }
+            }
+        }
+        return if (abs(x - 1) > significance || abs(y - 1) > significance || abs(z - 1) > significance) {
+            Vector3d(x, y, z)
+        } else null
     }
 
     fun toString(builder: StringBuilder): StringBuilder {

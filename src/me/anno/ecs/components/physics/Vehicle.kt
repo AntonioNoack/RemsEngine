@@ -30,6 +30,7 @@ class Vehicle : Rigidbody() {
 
     override fun onPhysicsUpdate(): Boolean {
         // only if enabled...
+        // only if they actually are connected to the engine/brake/steering...
         entity!!.anyComponent(VehicleWheel::class) {
             it.steering = steering
             it.engineForce = engineForcePerWheel

@@ -199,6 +199,7 @@ object ComponentUI {
         val ttt = "" // we could use annotations for that :)
         val value = property.get()
         val default = property.getDefault()
+        // LOGGER.debug("Default for $title: $default")
 
         when (type0) {
             // native types
@@ -299,7 +300,7 @@ object ComponentUI {
                 }
             }
             "Long" -> {
-                val type = Type(default as Long,
+                val type = Type(default as? Long ?: throw RuntimeException("$title is not long"),
                     { Maths.clamp(it.toLong(), range.minLong(), range.maxLong()) }, { it })
                 return IntInput(style, title, visibilityKey, type, null, 0).apply {
                     property.init(this)
@@ -325,7 +326,7 @@ object ComponentUI {
                 }
             }
             "Float" -> {
-                val type = Type(default as Float,
+                val type = Type(default as? Float ?: throw RuntimeException("$title is not float"),
                     { Maths.clamp(it as Float, range.minFloat(), range.maxFloat()) }, { it })
                 return FloatInput(style, title, visibilityKey, type, null, 0).apply {
                     property.init(this)
@@ -338,7 +339,7 @@ object ComponentUI {
                 }
             }
             "Double" -> {
-                val type = Type(default as Double,
+                val type = Type(default as? Double ?: throw RuntimeException("$title is not double"),
                     { Maths.clamp(it as Double, range.minDouble(), range.maxDouble()) }, { it })
                 return FloatInput(style, title, visibilityKey, type, null, 0).apply {
                     property.init(this)
@@ -366,7 +367,8 @@ object ComponentUI {
             // float vectors
             // todo ranges for vectors (?)
             "Vector2f" -> {
-                val type = Type.VEC2.withDefault(default!!)
+                val type =
+                    Type.VEC2.withDefault(default as? Vector2f ?: throw RuntimeException("$title is not Vector2f"))
                 return VectorInput(title, visibilityKey, value as Vector2f, type, style).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
@@ -377,7 +379,8 @@ object ComponentUI {
                 }
             }
             "Vector3f" -> {
-                val type = Type.VEC3.withDefault(default!!)
+                val type =
+                    Type.VEC3.withDefault(default as? Vector3f ?: throw RuntimeException("$title is not Vector3f"))
                 return VectorInput(title, visibilityKey, value as Vector3f, type, style).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
@@ -493,6 +496,36 @@ object ComponentUI {
                         property.set(this, Vector3d(x, y, z).toQuaternionDegrees())
                     }
                 }
+            }
+
+            // colors, e.g. for materials
+            "Color3", "Color3HDR" -> {
+                value as Vector3f
+                // todo hdr colors per color amplitude
+                return ColorInput(style, title, visibilityKey, Vector4f(value, 1f), false)
+                    .apply {
+                        property.init(this)
+                        // todo reset listener for color inputs
+                        // setResetListener { property.reset(this) }
+                        askForReset(property) { setValue(Vector4f(it as Vector3f, 1f), false) }
+                        setChangeListener { r, g, b, _ ->
+                            property.set(this, Vector3f(r, g, b))
+                        }
+                    }
+            }
+            "Color4", "Color4HDR" -> {
+                value as Vector4f
+                // todo hdr colors per color amplitude
+                return ColorInput(style, title, visibilityKey, value, true)
+                    .apply {
+                        property.init(this)
+                        // todo reset listener for color inputs
+                        // setResetListener { property.reset(this) }
+                        askForReset(property) { setValue(it as Vector4f, false) }
+                        setChangeListener { r, g, b, a ->
+                            property.set(this, Vector4f(r, g, b, a))
+                        }
+                    }
             }
 
             // matrices
@@ -717,6 +750,23 @@ object ComponentUI {
                                 property.set(this, it)
                             }
                         }
+                    }
+                    // actual instance, needs to be local, linked via path
+                    // e.g. for physics constraints, events, or things like that
+                    type0.endsWith("/PrefabSaveable", true) -> {
+                        val type1 = type0.substring(0, type0.lastIndexOf('/'))
+                        value as PrefabSaveable?
+                        val clazz = ISaveable.getClass(type1)!!
+                        return PrefabSaveableInput(title, clazz, value, style)
+                            .apply {
+                                property.init(this)
+                                setResetListener {
+                                    property.reset(this) as? PrefabSaveable
+                                }
+                                setChangeListener {
+                                    property.set(this, it)
+                                }
+                            }
                     }
                 }
 

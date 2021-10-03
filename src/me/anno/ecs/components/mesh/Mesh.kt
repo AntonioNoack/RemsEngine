@@ -116,6 +116,7 @@ class Mesh : PrefabSaveable() {
     /**
      * one index per triangle
      * */
+    @HideInInspector
     var materialIndices: IntArray? = null
 
     var numMaterials = 1

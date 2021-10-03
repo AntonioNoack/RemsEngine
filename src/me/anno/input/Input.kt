@@ -362,16 +362,16 @@ object Input {
         val multiSelect = isShiftDown
 
         val mouseTarget = getPanelAt(mouseX, mouseY)
-        val selectionTarget = mouseTarget?.getMultiSelectablePanel()
-        val inFocusTarget = inFocus0?.getMultiSelectablePanel()
-        val joinedParent = inFocusTarget?.parent
-
-        maySelectByClick =
-            if ((singleSelect || multiSelect) && selectionTarget != null && joinedParent == selectionTarget.parent) {
+        maySelectByClick = if (singleSelect || multiSelect) {
+            val selectionTarget = mouseTarget?.getMultiSelectablePanel()
+            val inFocusTarget = inFocus0?.getMultiSelectablePanel()
+            val joinedParent = inFocusTarget?.parent
+            if (selectionTarget != null && joinedParent == selectionTarget.parent) {
                 if (inFocus0 != inFocusTarget) requestFocus(inFocusTarget, true)
                 if (singleSelect) {
                     if (selectionTarget in inFocus) inFocus -= selectionTarget
                     else inFocus += selectionTarget
+                    selectionTarget.invalidateDrawing()
                 } else {
                     val index0 = inFocusTarget!!.indexInParent
                     val index1 = selectionTarget.indexInParent
@@ -379,7 +379,9 @@ object Input {
                     val minIndex = min(index0, index1)
                     val maxIndex = max(index0, index1)
                     for (index in minIndex..maxIndex) {
-                        inFocus += joinedParent!!.children[index]
+                        val child = joinedParent!!.children[index]
+                        inFocus += child
+                        child.invalidateDrawing()
                     }
                 }
                 false
@@ -391,6 +393,14 @@ object Input {
                     false
                 }
             }
+        } else {
+            if (mouseTarget in inFocus) {
+                true
+            } else {
+                requestFocus(mouseTarget, true)
+                false
+            }
+        }
 
         if (!windowWasClosed) {
 

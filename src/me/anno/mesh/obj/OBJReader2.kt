@@ -162,6 +162,7 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
             }
             // add mesh component to last object
             val meshRef = meshesFolder.createPrefabChild(name, mesh)
+            mesh.source = meshRef
             val add = CAdd(lastObjectPath, 'c', "MeshComponent", meshRef.nameWithoutExtension)
             prefab.add(add)
             prefab.add(CSet(add.getChildPath(meshCountInObject++), "mesh", meshRef))

@@ -9,8 +9,8 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
 import me.anno.utils.LOGGER
-import me.anno.utils.image.ImageWriter
-import me.anno.utils.image.ImageWriter.MSAAx8
+import me.anno.image.ImageWriter
+import me.anno.image.ImageWriter.MSAAx8
 import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.maths.Maths.max
 import me.anno.utils.maths.Maths.min

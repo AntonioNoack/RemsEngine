@@ -1,4 +1,4 @@
-package me.anno.utils.image
+package me.anno.image
 
 object ImageScale {
 

@@ -3,7 +3,6 @@ package me.anno.io.text
 import me.anno.io.ISaveable
 import me.anno.io.InvalidFormatException
 import me.anno.io.base.BaseReader
-import me.anno.io.base.UnknownClassException
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.files.LocalFile.toGlobalFile
@@ -34,26 +33,24 @@ abstract class TextReaderBase : BaseReader() {
         assert(skipSpace(), '"')
         val clazz = readString()
         val nc0 = skipSpace()
-        var obj: ISaveable
-        val ptr: Int
+        val obj = getNewClassInstance(clazz)
         if (nc0 == ',') {
             assert(skipSpace(), '"')
             val secondProperty = readString()
             assert(skipSpace(), ':')
-            obj = getNewClassInstance(clazz)
-            ptr = if (secondProperty == "i:*ptr") {
-                readInt()
+            LOGGER.info("second property: $secondProperty for class $clazz")
+            if (secondProperty == "i:*ptr") {
+                val ptr = readInt()
+                register(obj, ptr)
             } else {
-                obj = readProperty(obj, secondProperty)
-                getUnusedPointer() // not used
+                register(obj)
+                readProperty(obj, secondProperty)
             }
-            obj = propertyLoop(obj)
+            propertyLoop(obj)
         } else {
             assert(nc0, '}')
-            obj = getNewClassInstance(clazz)
-            ptr = getUnusedPointer()
+            register(obj)
         }
-        register(obj, ptr)
         return obj
     }
 
@@ -174,22 +171,21 @@ abstract class TextReaderBase : BaseReader() {
         }
     }
 
-    private fun propertyLoop(obj0: ISaveable): ISaveable {
-        var obj = obj0
+    private fun propertyLoop(obj: ISaveable) {
         while (true) {
             when (val next = skipSpace()) {
                 ',' -> {// support for extra commas and comments after a comma
                     when (val next2 = skipSpace()) {
                         '"' -> {
                             tmpChar = '"'.code
-                            obj = readProperty(obj)
+                            readProperty(obj)
                         }
-                        '}' -> return obj
+                        '}' -> return
                         '/' -> skipComment()
                         else -> throw InvalidFormatException("Expected property or end of object after comma, got '$next2'")
                     }
                 }
-                '}' -> return obj
+                '}' -> return
                 '/' -> skipComment()
                 else -> throw InvalidFormatException("Unexpected char $next in object of class ${obj.className}")
             }
@@ -371,11 +367,11 @@ abstract class TextReaderBase : BaseReader() {
         return Quaterniond(rawX, rawY, rawZ, rawW)
     }
 
-    fun readProperty(obj: ISaveable): ISaveable {
+    fun readProperty(obj: ISaveable) {
         assert(skipSpace(), '"')
         val typeName = readString()
         assert(skipSpace(), ':')
-        return readProperty(obj, typeName)
+        readProperty(obj, typeName)
     }
 
     private fun readByte() = readLong().toByte()
@@ -709,23 +705,14 @@ abstract class TextReaderBase : BaseReader() {
         return null
     }
 
-    private var ptr = 0
-    private fun readObjectAndRegister(type: String): ISaveable {
-        val value = readObject(type)
-        register(value, ptr)
-        return value
-    }
+    fun register(value: ISaveable) = register(value, getUnusedPointer())
 
-    private fun readObject(type: String): ISaveable {
-        var child = try {
-            getNewClassInstance(type)
-        } catch (e: UnknownClassException) {
-            throw e
-        }
+    private fun readObjectAndRegister(type: String): ISaveable {
+        val instance = getNewClassInstance(type)
         val firstChar = skipSpace()
         if (firstChar == '}') {
             // nothing to do
-            ptr = getUnusedPointer() // not used
+            register(instance)
         } else {
             assert(firstChar, '"')
             var property0 = readString()
@@ -740,14 +727,16 @@ abstract class TextReaderBase : BaseReader() {
             val nextChar = skipSpace()
             if (nextChar == '}') {
                 // nothing to do
-                ptr = getUnusedPointer() // not used
+                register(instance)
             } else {
                 assert(nextChar, ':')
-                ptr = if (property0 == "*ptr" || property0 == "i:*ptr") {
-                    readNumber().toIntOrNull() ?: throw InvalidFormatException("Invalid pointer")
+                LOGGER.info("first property: $property0")
+                if (property0 == "*ptr" || property0 == "i:*ptr") {
+                    val ptr = readNumber().toIntOrNull() ?: throw InvalidFormatException("Invalid pointer")
+                    register(instance, ptr)
                 } else {
-                    child = readProperty(child, property0)
-                    getUnusedPointer() // not used
+                    register(instance)
+                    readProperty(instance, property0)
                 }
                 var n = skipSpace()
                 if (n != '}') {
@@ -755,13 +744,13 @@ abstract class TextReaderBase : BaseReader() {
                     if (n != '}') {
                         assert(n, '"')
                         tmpChar = '"'.code
-                        child = readProperty(child)
-                        child = propertyLoop(child)
+                        readProperty(instance)
+                        propertyLoop(instance)
                     }
                 } // else nothing to do
             }
         }
-        return child
+        return instance
     }
 
     private fun splitTypeName(typeName: String): Pair<String, String> {

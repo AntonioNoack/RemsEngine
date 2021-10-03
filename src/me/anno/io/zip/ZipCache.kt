@@ -23,7 +23,7 @@ import org.apache.logging.log4j.LogManager
 
 object ZipCache : CacheSection("ZipCache") {
 
-    private val LOGGER = LogManager.getLogger(ZipCache::class)
+    // private val LOGGER = LogManager.getLogger(ZipCache::class)
 
     // done cache the whole content? if less than a certain file size
     // done cache the whole hierarchy [? only less than a certain depth level - not done]
@@ -31,15 +31,15 @@ object ZipCache : CacheSection("ZipCache") {
     // todo read compressed exe files?
 
 
-    // todo display unity packages differently: display them as their usual file structure
+    // done display unity packages differently: display them as their usual file structure
     // it kind of is a new format, that is based on another decompression
 
-    fun getMetaMaybe(file: FileReference): InnerFolder? {
+    fun unzipMaybe(file: FileReference): InnerFolder? {
         val data = getEntryWithoutGenerator(file) as? CacheData<*>
         return data?.value as? InnerFolder
     }
 
-    fun getMeta(file: FileReference, async: Boolean): InnerFolder? {
+    fun unzip(file: FileReference, async: Boolean): InnerFolder? {
         val data = getFileEntry(file, false, timeout, async) { file1, _ ->
             CacheData(try {
                 when (Signature.findName(file1)) {
@@ -74,6 +74,7 @@ object ZipCache : CacheSection("ZipCache") {
                             "png", "jpg", "bmp", "pds", "hdr", "webp", "tga", "dds" -> ImageReader.readAsFolder(
                                 file1
                             )
+                            "json" -> null
                             else -> createZipRegistryV2(file1) { fileFromStreamV2(file1) }
                         }
                     }
@@ -100,6 +101,6 @@ object ZipCache : CacheSection("ZipCache") {
 
     // opening a packed stream again would be really expensive for large packages
     // todo is there a better strategy than this?? maybe index a few on every go to load something
-    val sizeLimit = 100_000_000L
+    val sizeLimit = 20_000_000L
 
 }

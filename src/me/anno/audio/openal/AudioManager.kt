@@ -8,6 +8,7 @@ import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.editorTimeDilation
 import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.studio.rems.RemsStudio.root
+import me.anno.utils.Sleep.sleepABit
 import me.anno.utils.Sleep.sleepShortly
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.openal.AL
@@ -65,7 +66,7 @@ object AudioManager {
                 ALBase.check()
                 if (!shallStop) {
                     // shall be destroyed by OpenAL itself -> false
-                    sleepShortly(false)
+                    sleepABit(false)
                 }
                 checkIsDestroyed()
             }

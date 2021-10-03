@@ -1,8 +1,11 @@
 package me.anno.ecs.prefab.change
 
+import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
+import me.anno.utils.strings.StringHelper.shorten2Way
 import org.apache.logging.log4j.LogManager
 
 class CSet() : Change(5) {
@@ -35,26 +38,28 @@ class CSet() : Change(5) {
     override fun save(writer: BaseWriter) {
         super.save(writer)
         // special handling, to save a little space by omitting "name": and "value":
+        val value = value
         if (value is PrefabSaveable) {
-            TODO("write path for value")
+            writer.writeObject(null, name, value.prefabPath!!)
+        } else {
+            writer.writeSomething(null, name!!, value, true)
         }
-        writer.writeSomething(null, name!!, value, true)
+    }
+
+    override fun readObject(name: String, value: ISaveable?) {
+        if (name == "path" && value is Path) {
+            LOGGER.info("CSet.path = $value")
+            path = value
+        } else super.readObject(name, value)
     }
 
     override fun readSomething(name: String, value: Any?) {
-        if (name == "path" && value is Path) {
-            path = value
-        } else {
-            this.name = name
-            this.value = value
-        }
+        this.name = name
+        this.value = value
     }
 
     override fun applyChange(instance: PrefabSaveable, chain: MutableSet<FileReference>?) {
-        val name = name ?: return
-        if (!instance.set(name, value)) {
-            LOGGER.warn("Property ${instance::class.simpleName}.$name is unknown, path: $path")
-        }
+        applyChange(instance, path, name!!, value)
     }
 
     override val approxSize: Int = 10
@@ -63,18 +68,32 @@ class CSet() : Change(5) {
     override val className: String = "CSet"
 
     override fun toString(): String {
-        var str = value.toString()
-        val maxLength = 100
-        if (str.length > maxLength) {
-            str = str.substring(0, maxLength * 7 / 10 - 3) +
-                    "..." +
-                    str.substring(str.length - maxLength * 3 / 10)
-        }
+        val str = value.toString().shorten2Way(100)
         return "CSet($path, $name, $str)"
     }
 
     companion object {
+
         private val LOGGER = LogManager.getLogger(CSet::class)
+
+        fun apply(instance0: PrefabSaveable, path: Path, name: String, value: Any?) {
+            val instance = Hierarchy.getInstanceAt(instance0, path) ?: return
+            applyChange(instance, path, name, value)
+        }
+
+        fun applyChange(instance: PrefabSaveable, path: Path, name: String, value0: Any?) {
+            var value = value0
+            if (value is Path) {// it's a prefab saveable; yes, saving paths therefore is no longer supported
+                // they just are internal to the change package
+                value = Hierarchy.getInstanceAt(instance.root, value)
+                LOGGER.info("Changed path $value0 to instance $value")
+            }
+            if (!instance.set(name, value)) {
+                LOGGER.warn("Property ${instance::class.simpleName}.$name is unknown/faulty, path: $path, prefab: ${instance.root.prefab?.source}")
+                throw RuntimeException()
+            }
+        }
+
     }
 
 }

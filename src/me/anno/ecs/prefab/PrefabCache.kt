@@ -15,6 +15,7 @@ import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.io.unity.UnityReader
 import me.anno.io.zip.InnerPrefabFile
+import me.anno.io.zip.ZipCache
 import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.mesh.blender.BlenderReader
 import me.anno.mesh.obj.OBJReader2
@@ -27,8 +28,8 @@ object PrefabCache : CacheSection("Prefab") {
     private val prefabTimeout = 60_000L
     private val LOGGER = LogManager.getLogger(PrefabCache::class)
 
-    fun getPrefab(file: FileReference): Prefab? {
-        return getPrefabPair(file)?.prefab
+    fun getPrefab(file: FileReference, chain: MutableSet<FileReference>? = null): Prefab? {
+        return getPrefabPair(file, chain)?.prefab
     }
 
     fun loadAssimpModel(resource: FileReference): Prefab? {
@@ -97,7 +98,7 @@ object PrefabCache : CacheSection("Prefab") {
         return loadJson(UnityReader.readAsAsset(resource)) as? Prefab
     }
 
-    fun loadPrefab2(resource: FileReference): ISaveable? {
+    private fun loadPrefab2(resource: FileReference): ISaveable? {
         return if (resource.exists && !resource.isDirectory) {
             // LOGGER.info("resource $resource has signature $signature")
             val prefab = when (Signature.findName(resource)) {
@@ -135,28 +136,50 @@ object PrefabCache : CacheSection("Prefab") {
         } else null
     }
 
+    private fun loadPrefab3(file: FileReference): ISaveable? {
+        if (file is PrefabReadable) return file.readPrefab()
+        try {
+            val pure = TextReader.read(file).firstOrNull()
+            if (pure != null) return pure
+        } catch (e: Exception) {
+        }
+        val signature = Signature.findName(file)
+        if (signature == "yaml") {
+            try {
+                val prefab = loadUnityFile(file)
+                if (prefab != null) return prefab
+            } catch (e: Exception) {
 
-    fun getPrefabPair(resource: FileReference?, async: Boolean = false): FileReadPrefabData? {
+            }
+        }
+        val folder = ZipCache.unzip(file, false) ?: return null
+        val scene = folder.getChild("Scene.json") as? PrefabReadable ?: return null
+        return scene.readPrefab()
+    }
+
+    fun getPrefabPair(resource: FileReference?, chain: MutableSet<FileReference>?, async: Boolean = false): FileReadPrefabData? {
         resource ?: return null
         return if (resource != InvalidRef && resource.exists && !resource.isDirectory) {
             return getFileEntry(resource, false, prefabTimeout, async) { file, _ ->
-                val loaded = loadPrefab2(file)
+                val loaded = loadPrefab3(file)
                 if (loaded != null) {
                     FileWatch.addWatchDog(file)
                     FileReadPrefabData(
                         loaded as? Prefab,
-                        if (loaded is Prefab) loaded.getSampleInstance() else loaded, file
+                        if (loaded is Prefab) loaded.getSampleInstance(chain ?: HashSet())
+                        else loaded, file
                     )
                 } else CacheData(null)
             } as? FileReadPrefabData
         } else null
     }
 
-    fun loadPrefab(resource: FileReference?): Prefab? {
-        return getPrefabPair(resource)?.prefab
+    fun loadPrefab(resource: FileReference?, chain: MutableSet<FileReference>? = null, async: Boolean = false): Prefab? {
+        return getPrefabPair(resource, chain, async)?.prefab
     }
 
     fun createInstance(
+        prefab: Prefab?,
         superPrefab: FileReference,
         adds: List<CAdd>?,
         sets: KeyPairMap<Path, String, Any?>?,
@@ -165,30 +188,25 @@ object PrefabCache : CacheSection("Prefab") {
     ): PrefabSaveable {
         // LOGGER.info("creating instance from $superPrefab")
         val instance = createSuperInstance(superPrefab, chain, clazz)
+        instance.changePaths(prefab, Path.ROOT_PATH)
         // val changes2 = (changes0 ?: emptyList()).groupBy { it.className }.map { "${it.value.size}x ${it.key}" }
         // LOGGER.info("  creating entity instance from ${changes0?.size ?: 0} changes, $changes2")
         if (adds != null) {
-            for ((index, change) in adds.withIndex()) {
+            for ((index, add) in adds.withIndex()) {
                 try {
-                    change.apply(instance, HashSet(chain))
+                    add.apply(instance, HashSet(chain))
                 } catch (e: Exception) {
-                    LOGGER.warn("Change $index, $change failed")
+                    LOGGER.warn("Change $index, $add failed")
                     throw e
                 }
             }
         }
-        if (sets != null) {
-            val sample = CSet()
-            sets.forEach { k1, k2, v ->
-                sample.path = k1
-                sample.name = k2
-                sample.value = v
-                try {
-                    sample.apply(instance, null)
-                } catch (e: Exception) {
-                    LOGGER.warn("Change $sample failed")
-                    throw e
-                }
+        sets?.forEach { k1, k2, v ->
+            try {
+                CSet.apply(instance, k1, k2, v)
+            } catch (e: Exception) {
+                LOGGER.warn("Change '$k1' '$k2' '$v' failed")
+                throw e
             }
         }
         // LOGGER.info("  created instance '${entity.name}' has ${entity.children.size} children and ${entity.components.size} components")
@@ -246,11 +264,11 @@ object PrefabCache : CacheSection("Prefab") {
             }
         }*/
         // LOGGER.info("chain: $chain")
-        return loadPrefab(prefab)?.createInstance(chain) ?: ISaveable.create(clazz) as PrefabSaveable
+        return loadPrefab(prefab, chain)?.createInstance(chain) ?: ISaveable.create(clazz) as PrefabSaveable
     }
 
     fun loadScenePrefab(file: FileReference): Prefab {
-        val prefab = loadPrefab(file) ?: Prefab("Entity").apply { this.prefab = ScenePrefab }
+        val prefab = loadPrefab(file, HashSet()) ?: Prefab("Entity").apply { this.prefab = ScenePrefab }
         prefab.source = file
         if (!file.exists) file.writeText(TextWriter.toText(prefab))
         return prefab

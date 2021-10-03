@@ -29,7 +29,7 @@ public class WindowsShortcutMain {
         WindowsShortcut link = new WindowsShortcut(file);
 
         System.out.printf("-------%s------ \n", filename);
-        System.out.printf("getRealFilename: %s \n", link.getRealFilename());
+        System.out.printf("getRealFilename: %s \n", link.getAbsolutePath());
         System.out.printf("getDescription: %s \n", link.getDescription());
         System.out.printf("getRelativePath: %s \n", link.getRelativePath());
         System.out.printf("getWorkingDirectory: %s \n", link.getWorkingDirectory());

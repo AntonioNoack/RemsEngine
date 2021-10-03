@@ -2,6 +2,10 @@ package me.anno.engine.ui.render
 
 import me.anno.ecs.Entity
 import me.anno.gpu.buffer.LineBuffer
+import me.anno.utils.Color.b
+import me.anno.utils.Color.g
+import me.anno.utils.Color.r
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AABBs.isEmpty
 import org.joml.AABBd
 import org.joml.Vector3f
@@ -9,13 +13,17 @@ import javax.vecmath.Vector3d
 
 object DrawAABB {
 
-    fun drawAABB(entity: Entity, worldScale: Double) {
-        drawAABB(entity.aabb, worldScale, 1.0, 0.0, 0.0)
+    fun drawAABB(entity: Entity, worldScale: Double, color: Int) {
+        drawAABB(entity.aabb, worldScale, color.r() / 255.0, color.g() / 255.0, color.b() / 255.0)
     }
 
-    fun transform(a: Vector3d, worldScale: Double): Vector3f {
+    fun drawAABB(entity: Entity, worldScale: Double) {
+        drawAABB(entity.aabb, worldScale, 1.0, 0.7, 0.7)
+    }
+
+    fun transform(a: Vector3d, worldScale: Double, dst: Vector3f = Vector3f()): Vector3f {
         val camPosition = RenderView.camPosition
-        return Vector3f(
+        return dst.set(
             ((a.x - camPosition.x) * worldScale).toFloat(),
             ((a.y - camPosition.y) * worldScale).toFloat(),
             ((a.z - camPosition.z) * worldScale).toFloat()
@@ -23,11 +31,14 @@ object DrawAABB {
     }
 
     fun drawLine(a: Vector3d, b: Vector3d, worldScale: Double, cr: Double, cg: Double, cb: Double) {
+        val t0 = JomlPools.vec3f.create()
+        val t1 = JomlPools.vec3f.create()
         LineBuffer.addLine(
-            transform(a, worldScale),
-            transform(b, worldScale),
+            transform(a, worldScale, t0),
+            transform(b, worldScale, t1),
             cr, cg, cb
         )
+        JomlPools.vec3f.sub(2)
     }
 
     fun drawAABB(aabb: AABBd, worldScale: Double, cr: Double, cg: Double, cb: Double) {
@@ -50,8 +61,8 @@ object DrawAABB {
             val a = ((i shr 0) and 1).toFloat() * dx
             val b = ((i shr 1) and 1).toFloat() * dy
             LineBuffer.addLine(
-                Vector3f(x + a, y + b, z + 0f),
-                Vector3f(x + a, y + b, z + dz),
+                x + a, y + b, z + 0f,
+                x + a, y + b, z + dz,
                 cr, cg, cb
             )
         }
@@ -60,8 +71,8 @@ object DrawAABB {
             val a = ((i shr 0) and 1).toFloat() * dx
             val b = ((i shr 1) and 1).toFloat() * dz
             LineBuffer.addLine(
-                Vector3f(x + a, y + 0f, z + b),
-                Vector3f(x + a, y + dy, z + b),
+                x + a, y + 0f, z + b,
+                x + a, y + dy, z + b,
                 cr, cg, cb
             )
         }
@@ -70,8 +81,8 @@ object DrawAABB {
             val a = ((i shr 0) and 1).toFloat() * dy
             val b = ((i shr 1) and 1).toFloat() * dz
             LineBuffer.addLine(
-                Vector3f(x + 0f, y + a, z + b),
-                Vector3f(x + dx, y + a, z + b),
+                x + 0f, y + a, z + b,
+                x + dx, y + a, z + b,
                 cr, cg, cb
             )
         }

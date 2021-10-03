@@ -526,7 +526,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         else output.write(OBJECT_NULL.code)
     }
 
-    override fun writePointer(name: String?, className: String, ptr: Int) {
+    override fun writePointer(name: String?, className: String, ptr: Int, value: ISaveable) {
         if (name != null) writeAttributeStart(name, OBJECT_PTR)
         else output.write(OBJECT_PTR.code)
         output.writeInt(ptr)

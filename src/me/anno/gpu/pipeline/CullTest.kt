@@ -1,7 +1,7 @@
 package me.anno.gpu.pipeline
 
 import me.anno.engine.ui.render.Frustum
-import me.anno.utils.image.ImageWriter.writeImageInt
+import me.anno.image.ImageWriter.writeImageInt
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Math.toRadians

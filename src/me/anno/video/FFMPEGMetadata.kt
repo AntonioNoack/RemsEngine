@@ -3,6 +3,7 @@ package me.anno.video
 import me.anno.cache.CacheSection
 import me.anno.cache.data.ICacheData
 import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.json.JsonArray
 import me.anno.io.json.JsonObject
 import me.anno.io.json.JsonReader
@@ -175,13 +176,20 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
     override fun destroy() {}
 
     companion object {
+
         private val LOGGER = LogManager.getLogger(FFMPEGMetadata::class)
         private val metadataCache = CacheSection("Metadata")
-        private fun createMetadata(file: FileReference) = FFMPEGMetadata(file)
+
+        private fun createMetadata(file: FileReference, i: Long) = FFMPEGMetadata(file)
+
+        fun getMeta(path: String, async: Boolean): FFMPEGMetadata? {
+            return getMeta(getReference(path), async)
+        }
+
         fun getMeta(file: FileReference, async: Boolean): FFMPEGMetadata? {
             if (file.isDirectory || !file.exists) return null
             // if (!async) GFX.checkIsNotGFXThread()
-            return metadataCache.getEntry(file, 300_000, async, ::createMetadata) as? FFMPEGMetadata
+            return metadataCache.getEntry(file, file.lastModified, 300_000, async, ::createMetadata) as? FFMPEGMetadata
         }
     }
 

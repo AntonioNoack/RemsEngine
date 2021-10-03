@@ -18,7 +18,9 @@ import me.anno.utils.maths.Maths.mixARGB
 
 open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
 
-    // todo open path, if clicked on
+    override fun tickUpdate() {
+        invalidateDrawing()
+    }
 
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
         if (button.isLeft) {

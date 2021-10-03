@@ -17,7 +17,7 @@ object ECSShaderLib {
             listOf(
                 "finalSheen", "finalTranslucency", "metallicMinMax",
                 "emissiveBase", "normalStrength", "ambientLight",
-                "occlusionStrength", "invLocalTransform", "visualizeLightCount",
+                "occlusionStrength", "invLocalTransform",
                 "numberOfLights", "roughnessMinMax", "finalClearCoat"
             )
         )

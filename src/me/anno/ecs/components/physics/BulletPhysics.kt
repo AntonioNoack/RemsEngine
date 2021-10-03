@@ -1,4 +1,4 @@
-package me.anno.engine.physics
+package me.anno.ecs.components.physics
 
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.broadphase.DbvtBroadphase
@@ -20,16 +20,14 @@ import com.bulletphysics.dynamics.vehicle.WheelInfo
 import com.bulletphysics.linearmath.DefaultMotionState
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
-import me.anno.config.DefaultStyle.black
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.components.collider.Collider
-import me.anno.ecs.components.physics.Rigidbody
-import me.anno.ecs.components.physics.Vehicle
-import me.anno.ecs.components.physics.VehicleWheel
+import me.anno.ecs.components.physics.constraints.Constraint
+import me.anno.ecs.components.physics.events.FallenOutOfWorld
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ui.ECSTypeLibrary
+import me.anno.engine.physics.BulletDebugDraw
 import me.anno.engine.ui.render.DrawAABB
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.camPosition
@@ -39,12 +37,12 @@ import me.anno.gpu.buffer.LineBuffer
 import me.anno.input.Input
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
-import me.anno.studio.StudioBase.Companion.addEvent
-import me.anno.ui.debug.FrameTimes
+import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.structures.sets.ParallelHashSet
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
+import org.joml.Quaterniond
 import org.lwjgl.glfw.GLFW
 import javax.vecmath.Matrix4d
 import javax.vecmath.Quat4d
@@ -52,7 +50,7 @@ import javax.vecmath.Vector3d
 import kotlin.math.max
 import kotlin.reflect.KClass
 
-class BulletPhysics : Component() {
+class BulletPhysics() : Component() {
 
     // I use jBullet2, however I have modified it to use doubles for everything
     // this may be bad for performance, but it also allows our engine to run much larger worlds
@@ -69,7 +67,27 @@ class BulletPhysics : Component() {
     // s
 
     companion object {
+
         private val LOGGER = LogManager.getLogger(BulletPhysics::class)
+
+        fun castB(s: org.joml.Vector3d): Vector3d {
+            val v = Stack.borrowVec()
+            v.set(s.x, s.y, s.z)
+            return v
+        }
+
+        fun castB(s: Quaterniond): Quat4d {
+            val v = Stack.borrowQuat()
+            v.set(s.x, s.y, s.z, s.z)
+            return v
+        }
+
+        fun castB(x: Double, y: Double, z: Double): Vector3d {
+            val v = Stack.borrowVec()
+            v.set(x, y, z)
+            return v
+        }
+
         fun convertMatrix(ourTransform: Matrix4x3d, scale: org.joml.Vector3d): Matrix4d {
             // bullet does not support scale -> we always need to correct it
             val sx = 1.0 / scale.x
@@ -84,6 +102,7 @@ class BulletPhysics : Component() {
         }
     }
 
+    // todo bounding box instead, with infinite ends on xz by default
     @SerializedProperty
     var automaticDeathHeight = -100.0
 
@@ -94,12 +113,12 @@ class BulletPhysics : Component() {
     private val invalidEntities = ParallelHashSet<Entity>(256)
 
     fun invalidate(entity: Entity) {
-        //println("invalidated ${System.identityHashCode(this)}")
+        // LOGGER.debug("invalidated ${System.identityHashCode(this)}")
         invalidEntities.add(entity)
     }
 
     private fun validate() {
-        //println("validating ${System.identityHashCode(this)}")
+        // LOGGER.debug("validating ${System.identityHashCode(this)}")
         invalidEntities.process(::update)
     }
 
@@ -122,16 +141,29 @@ class BulletPhysics : Component() {
         rigidBodies = HashMap()
     }
 
-    init {
-        // addSampleVehicle()
-        /*val radius = 0.0
-        for (i in 2 until 100) {
-            addSampleSphere(
-                cos(i * 0.01) * radius,
-                i * 2.1,
-                sin(i * 0.01) * radius
-            )
-        }*/
+    private fun getRigidbody(rigidBody: Rigidbody): RigidBody {
+
+        // todo when a rigidbody is invalidated, also re-create all constrained rigidbodies!
+        // todo otherwise we'll get issues, where one partner no longer is part of the world...
+
+        // todo possible solution: instead of recreating the rigidbody instance, just clear all properties,
+        // todo and write them again :)
+
+        // todo also we need to somehow ensure, that constrained rigidbodies are enabled as well
+        // todo we can't have constraints between two static rigidbodies
+
+        val entity = rigidBody.entity!!
+        var newlyCreated = false
+        val bodyWithScale = rigidBodies.getOrPut(entity) {
+            newlyCreated = true
+            createRawRigidbody(entity, rigidBody)!!
+        }
+        if (newlyCreated) {
+            // after creating and registering, so
+            // it works for circular constraint dependencies
+            appendsExtras(entity, rigidBody, bodyWithScale)
+        }
+        return bodyWithScale.second
     }
 
     private fun <V : Component> getValidComponents(entity: Entity, clazz: KClass<V>): Sequence<V> {
@@ -147,7 +179,22 @@ class BulletPhysics : Component() {
         }
     }
 
-    private fun createRigidbody(entity: Entity, base: Rigidbody): Pair<org.joml.Vector3d, RigidBody>? {
+    private fun createCollider(entity: Entity, colliders: List<Collider>, scale: org.joml.Vector3d): CollisionShape {
+        val firstCollider = colliders.first()
+        return if (colliders.size == 1 && firstCollider.entity === entity) {
+            // there is only one, and no transform needs to be applied -> use it directly
+            firstCollider.createBulletShape(scale)
+        } else {
+            val jointCollider = CompoundShape()
+            for (collider in colliders) {
+                val (transform, subCollider) = collider.createBulletCollider(entity, scale)
+                jointCollider.addChildShape(transform, subCollider)
+            }
+            jointCollider
+        }
+    }
+
+    private fun createRawRigidbody(entity: Entity, base: Rigidbody): Pair<org.joml.Vector3d, RigidBody>? {
 
         val colliders = getValidComponents(entity, Collider::class).toList()
         return if (colliders.isNotEmpty()) {
@@ -157,18 +204,7 @@ class BulletPhysics : Component() {
             val scale = globalTransform.getScale(org.joml.Vector3d())
 
             // copy all knowledge from ecs to bullet
-            val firstCollider = colliders.first()
-            val jointCollider: CollisionShape = if (colliders.size == 1 && firstCollider.entity === entity) {
-                // there is only one, and no transform needs to be applied -> use it directly
-                firstCollider.createBulletShape(scale)
-            } else {
-                val jointCollider = CompoundShape()
-                for (collider in colliders) {
-                    val (transform, subCollider) = collider.createBulletCollider(entity, scale)
-                    jointCollider.addChildShape(transform, subCollider)
-                }
-                jointCollider
-            }
+            val jointCollider = createCollider(entity, colliders, scale)
 
             val mass = max(0.0, base.mass)
             val inertia = Vector3d()
@@ -194,26 +230,6 @@ class BulletPhysics : Component() {
             val rb = RigidBody(rbInfo)
             rb.deactivationTime = base.sleepingTimeThreshold
             BulletGlobals.setDeactivationTime(1.0)
-            /*
-            *  if (getActivationState() == DISABLE_DEACTIVATION) {
-            return false;
-        }
-
-        // disable deactivation
-        if (BulletGlobals.isDeactivationDisabled() || (BulletGlobals.getDeactivationTime() == 0f)) {
-            return false;
-        }
-
-        if ((getActivationState() == ISLAND_SLEEPING) || (getActivationState() == WANTS_DEACTIVATION)) {
-            return true;
-        }
-
-        if (deactivationTime > BulletGlobals.getDeactivationTime()) {
-            return true;
-        }
-        return false;
-            * */
-            // LOGGER.info("state: ${rb.activationState}, ${rb.deactivationTime}")
 
             scale to rb
 
@@ -221,70 +237,110 @@ class BulletPhysics : Component() {
 
     }
 
-    fun add(entity: Entity): RigidBody? {
-        // todo add including constraints and such
-        // println("adding ${entity.name} maybe, ${entity.getComponent(Rigidbody::class, false)}")
-        val rigidbody = entity.getComponent(Rigidbody::class, false) ?: return null
-        if (rigidbody.isEnabled) {
-
-            val bodyWithScale = createRigidbody(entity, rigidbody) ?: return null
-            val (_, body) = bodyWithScale
-
-            // todo correctly create vehicle, if the body is scaled
-
-            // if vehicle, add vehicle
-            if (rigidbody is Vehicle) {
-                val tuning = VehicleTuning()
-                tuning.frictionSlip = rigidbody.frictionSlip
-                tuning.suspensionDamping = rigidbody.suspensionDamping
-                tuning.suspensionStiffness = rigidbody.suspensionStiffness
-                tuning.suspensionCompression = rigidbody.suspensionCompression
-                tuning.maxSuspensionTravelCm = rigidbody.maxSuspensionTravelCm
-                val raycaster = DefaultVehicleRaycaster(world)
-                val vehicle = RaycastVehicle(tuning, body, raycaster)
-                vehicle.setCoordinateSystem(0, 1, 2)
-                val wheels = getValidComponents(entity, VehicleWheel::class)
-                for (wheel in wheels) {
-                    val info = wheel.createBulletInstance(entity, vehicle)
-                    wheel.bulletInstance = info
-                    sampleWheels.add(info)
-                }
-                // vehicle.currentSpeedKmHour
-                // vehicle.applyEngineForce()
-                world.addVehicle(vehicle)
-                body.activationState = DISABLE_DEACTIVATION
-                raycastVehicles[entity] = vehicle
-            } else {
-                if (rigidbody.activeByDefault) body.activationState = ACTIVE_TAG
-            }
-
-            world.addRigidBody(body) // todo what is the mask option, and the group?
-            rigidBodies[entity] = bodyWithScale
-            rigidbody.bulletInstance = body
-
-            if (!rigidbody.isStatic) {
-                nonStaticRigidBodies[entity] = bodyWithScale
-            }
-
-            return body
-
+    private fun defineVehicle(entity: Entity, rigidbody: Vehicle, body: RigidBody) {
+        // todo correctly create vehicle, if the body is scaled
+        val tuning = VehicleTuning()
+        tuning.frictionSlip = rigidbody.frictionSlip
+        tuning.suspensionDamping = rigidbody.suspensionDamping
+        tuning.suspensionStiffness = rigidbody.suspensionStiffness
+        tuning.suspensionCompression = rigidbody.suspensionCompression
+        tuning.maxSuspensionTravelCm = rigidbody.maxSuspensionTravelCm
+        val raycaster = DefaultVehicleRaycaster(world)
+        val vehicle = RaycastVehicle(tuning, body, raycaster)
+        vehicle.setCoordinateSystem(0, 1, 2)
+        val wheels = getValidComponents(entity, VehicleWheel::class)
+        for (wheel in wheels) {
+            val info = wheel.createBulletInstance(entity, vehicle)
+            wheel.bulletInstance = info
+            sampleWheels.add(info)
         }
-
-        return null
-
+        // vehicle.currentSpeedKmHour
+        // vehicle.applyEngineForce()
+        world.addVehicle(vehicle)
+        body.activationState = DISABLE_DEACTIVATION
+        raycastVehicles[entity] = vehicle
     }
 
-    fun remove(entity: Entity) {
+    private fun appendsExtras(entity: Entity, rigidbody: Rigidbody, bodyWithScale: Pair<org.joml.Vector3d, RigidBody>) {
+
+        val (_, body) = bodyWithScale
+
+        if (rigidbody is Vehicle) {
+            defineVehicle(entity, rigidbody, body)
+        } else {
+            if (rigidbody.activeByDefault) body.activationState = ACTIVE_TAG
+        }
+
+        world.addRigidBody(body, clamp(rigidbody.group, 0, 15).toShort(), rigidbody.collisionMask)
+
+        // must be done after adding the body to the world,
+        // because it is overridden by World.addRigidbody()
+        if (rigidbody.overrideGravity) {
+            body.setGravity(castB(rigidbody.gravity))
+        }
+
+        rigidBodies[entity] = bodyWithScale
+        rigidbody.bulletInstance = body
+
+        // create all constraints
+        entity.allComponents(Constraint::class, false) { c ->
+            val other = c.other
+            if (other != null && other != rigidbody && other.isEnabled) {
+                if (!rigidbody.isStatic || !other.isStatic) {
+
+                    // create constraint
+                    val constraint = c.createConstraint(body, getRigidbody(other), c.getTA(), c.getTB())
+                    // c.bulletInstance = constraint // does not work somehow, so we have to cheat...
+                    c["bulletInstance"] = constraint
+                    world.addConstraint(constraint, c.disableCollisionsBetweenLinked)
+
+                } else {
+                    LOGGER.warn("Cannot constrain two static bodies!, ${rigidbody.prefabPath} to ${other.prefabPath}")
+                }
+            }
+            false
+        }
+
+        if (!rigidbody.isStatic) {
+            nonStaticRigidBodies[entity] = bodyWithScale
+        }
+    }
+
+    fun add(entity: Entity): RigidBody? {
+        // LOGGER.info("adding ${entity.name} maybe, ${entity.getComponent(Rigidbody::class, false)}")
+        val rigidbody = entity.getComponent(Rigidbody::class, false) ?: return null
+        return if (rigidbody.isEnabled) {
+            getRigidbody(rigidbody)
+        } else null
+    }
+
+    fun remove(entity: Entity, fallenOutOfWorld: Boolean) {
         val rigid = rigidBodies.remove(entity) ?: return
         nonStaticRigidBodies.remove(entity)
         world.removeRigidBody(rigid.second)
         val vehicle = raycastVehicles.remove(entity) ?: return
         world.removeVehicle(vehicle)
         entity.isPhysicsControlled = false
+        if (fallenOutOfWorld) {
+            val rigid2 = entity.getComponent(Rigidbody::class)
+            if (rigid2 != null) {
+                // when something falls of the world, often it's nice to directly destroy the object,
+                // because it will no longer be needed
+                if (rigid2.deleteWhenKilledByDepth) {
+                    entity.parentEntity?.deleteChild(entity)
+                } else {
+                    // else call event, so e.g. we could add it back to a pool of entities, or respawn it
+                    entity.allComponents(Component::class) {
+                        if (it is FallenOutOfWorld) it.onFallOutOfWorld()
+                        false
+                    }
+                }
+            }
+        }
     }
 
     private fun update(entity: Entity) {
-        remove(entity)
+        remove(entity, false)
         val rigidbody = add(entity)
         entity.isPhysicsControlled = rigidbody != null
     }
@@ -294,6 +350,7 @@ class BulletPhysics : Component() {
 
     // val clock = Clock()
 
+    @NotSerializedProperty
     var time = 0L
 
     fun callUpdates() {
@@ -373,9 +430,8 @@ class BulletPhysics : Component() {
         }
 
         for (i in deadEntities.indices) {
-            remove(deadEntities[i])
+            remove(deadEntities[i], true)
             world.removeRigidBody(deadRigidBodies[i])
-            // todo kill or disable?
         }
 
         // update the local transforms last, so all global transforms have been completely updated
@@ -399,7 +455,7 @@ class BulletPhysics : Component() {
         debugDraw.worldScale = worldScale
         debugDraw.cam.set(camPosition)
 
-        if (Input.isKeyDown('y')) {
+        if (view.renderMode == RenderView.RenderMode.PHYSICS) {
             drawContactPoints(view)
             drawAABBs(view)
             drawVehicles(view)
@@ -577,24 +633,17 @@ class BulletPhysics : Component() {
         var steering = 0.0
         var engineForce = 0.0
         var brakeForce = 0.0
-        if (GLFW.GLFW_KEY_SPACE in Input.keysDown) {
-            brakeForce++
-        }
-        if (GLFW.GLFW_KEY_UP in Input.keysDown) {
-            engineForce++
-        }
-        if (GLFW.GLFW_KEY_DOWN in Input.keysDown) {
-            engineForce--
-        }
-        if (GLFW.GLFW_KEY_LEFT in Input.keysDown) {
-            steering++
-        }
-        if (GLFW.GLFW_KEY_RIGHT in Input.keysDown) {
-            steering--
-        }
+
+        if (GLFW.GLFW_KEY_SPACE in Input.keysDown) brakeForce++
+        if (GLFW.GLFW_KEY_UP in Input.keysDown) engineForce++
+        if (GLFW.GLFW_KEY_DOWN in Input.keysDown) engineForce--
+        if (GLFW.GLFW_KEY_LEFT in Input.keysDown) steering++
+        if (GLFW.GLFW_KEY_RIGHT in Input.keysDown) steering--
 
         try {
-            for (wheel in sampleWheels) {
+            val wheels = sampleWheels
+            for (index in wheels.indices) {
+                val wheel = wheels[index]
                 wheel.engineForce = if (wheel.bIsFrontWheel) 0.0 else engineForce
                 wheel.steering = if (wheel.bIsFrontWheel) steering * 0.5 else 0.0
                 wheel.brake = brakeForce
@@ -604,36 +653,6 @@ class BulletPhysics : Component() {
         }
 
     }
-
-    /*private fun addSampleVehicle() {
-        val entity = Entity()
-        entity.transform.globalTransform.translate(0.0, 1.0, 0.0)
-        entity.add(Vehicle().apply { centerOfMass.set(0.0, -0.5, 0.0) })
-        entity.add(BoxCollider().apply { halfExtends.set(1.0, 0.5, 2.0) })
-        // add wheels
-        for (x in -1..1 step 2) {
-            for (z in -1..1 step 2) {
-                entity.add(Entity().apply {
-                    transform.globalTransform.translate(x * 1.1, 1.0, z * 2.0)
-                    add(VehicleWheel().apply {
-                        radius = 0.7
-                        isFront = z > 0
-                    })
-                })
-            }
-        }
-        add(entity)
-    }*/
-
-    /*private fun addSampleSphere(x: Double, y: Double, z: Double) {
-        val entity = Entity()
-        entity.transform.localPosition = org.joml.Vector3d(x, y, z)
-        entity.transform.invalidateGlobal()
-        entity.validateTransforms()
-        entity.add(Rigidbody())
-        entity.add(SphereCollider())
-        add(entity)
-    }*/
 
     private fun createBulletWorld(): DiscreteDynamicsWorld {
         val collisionConfig = DefaultCollisionConfiguration()

@@ -12,7 +12,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
 
     override operator fun get(ref: FileReference?, async: Boolean): Mesh? {
         if (ref == null || ref == InvalidRef) return null
-        val pair = PrefabCache.getPrefabPair(ref, async)
+        val pair = PrefabCache.getPrefabPair(ref, null, async)
         val instance = pair?.instance ?: return null
         return when (instance) {
             is Mesh -> instance

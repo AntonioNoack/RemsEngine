@@ -11,6 +11,8 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.shapes.Icosahedron
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.Frustum
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.DepthMode
@@ -20,6 +22,7 @@ import me.anno.gpu.pipeline.M4x3Delta.set4x3delta
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.utils.LOGGER
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.sorting.MergeSort.mergeSort
 import me.anno.utils.structures.Compare.ifDifferent
@@ -160,6 +163,30 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         // LOGGER.debug("$contained/$nonContained")
     }
 
+    fun fill(rootElement: PrefabSaveable, cameraPosition: Vector3d, worldScale: Double) {
+        val clickId = 1
+        when (rootElement) {
+            is Entity -> fill(rootElement, cameraPosition, worldScale)
+            is MeshComponent -> {
+                val mesh = MeshCache[rootElement.mesh]
+                if (mesh != null) addMesh(mesh, rootElement, sampleEntity, clickId)
+            }
+            is Mesh -> addMesh(rootElement, sampleMeshComponent, sampleEntity, clickId)
+            is Material -> {
+                val mesh = sampleMesh
+                val stage = rootElement.pipelineStage ?: getDefaultStage(mesh, rootElement)
+                val materialSource = rootElement.prefab!!.source // should be defined
+                if (!materialSource.exists) throw IllegalArgumentException("Material must have source")
+                mesh.material = materialSource
+                stage.add(sampleMeshComponent, mesh, sampleEntity, 0, clickId)
+            }
+            // todo animation, skeleton, ...
+            else -> {
+                LOGGER.warn("Don't know how to draw ${rootElement.className}")
+            }
+        }
+    }
+
     fun fillDepth(rootElement: Entity, cameraPosition: Vector3d, worldScale: Double) {
         rootElement.validateAABBs()
         subFillDepth(rootElement, cameraPosition, worldScale)
@@ -267,9 +294,13 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         return clickId
     }
 
-    fun traverse(entity: Entity, run: (Entity) -> Unit) {
-        run(entity)
-        val children = entity.children
+    fun traverse(world: PrefabSaveable, run: (Entity) -> Unit) {
+        if (world is Entity) traverse(world, run)
+    }
+
+    fun traverse(world: Entity, run: (Entity) -> Unit) {
+        run(world)
+        val children = world.children
         for (i in children.indices) {
             val child = children[i]
             if (child !== ignoredEntity && child.isEnabled && frustum.isVisible(child.aabb)) {
@@ -366,5 +397,11 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
     override val className: String = "Pipeline"
     override val approxSize: Int = 10
     override fun isDefaultValue(): Boolean = false
+
+    companion object {
+        private val sampleEntity = Entity()
+        private val sampleMeshComponent = MeshComponent()
+        private val sampleMesh = Icosahedron.createMesh(60, 60)
+    }
 
 }

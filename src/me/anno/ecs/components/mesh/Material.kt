@@ -2,6 +2,7 @@ package me.anno.ecs.components.mesh
 
 import me.anno.image.ImageGPUCache
 import me.anno.ecs.annotations.Range
+import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ECSRegistry
@@ -36,6 +37,7 @@ class Material : PrefabSaveable() {
     var shader: BaseShader? = null
 
     @Range(0.0, 1.0)
+    @Type("Color4HDR")
     var diffuseBase = Vector4f(1f)
     var diffuseMap: FileReference = InvalidRef
 
@@ -53,6 +55,7 @@ class Material : PrefabSaveable() {
 
     // base * map
     @Range(0.0, 100.0)
+    @Type("Color3HDR")
     var emissiveBase = Vector3f(1f)
     var emissiveMap: FileReference = InvalidRef
 
@@ -79,6 +82,7 @@ class Material : PrefabSaveable() {
     // and is only seen at steep angles
     // this is typically seen on cars
     // if you don't like the monotonicity, you can add your own fresnel effect in the shader
+    @Type("Color4")
     var clearCoatColor = Vector4f(1f, 1f, 1f, 0f)
 
     @Range(0.0, 1.0)
