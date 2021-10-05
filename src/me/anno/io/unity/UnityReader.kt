@@ -575,18 +575,6 @@ object UnityReader {
 
         return folder
 
-        // todo read hierarchy somehow...
-
-        // then they can get decoded and written to the files
-        forAllUnityObjects(root) { fileId, node ->
-            // write the prefab result to the file, in binary or text
-            val prefab = readUnityObject(node, guid, fileId, project)
-            if (prefab != null) {
-                val file = folder.getChild(fileId) as InnerPrefabFile
-                file.prefab = prefab
-            }
-        }
-
         /*
         --- !u!4 &441804715 stripped
         Transform:
@@ -627,17 +615,6 @@ object UnityReader {
           m_RootOrder: 0
           m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
         * */
-
-        forAllUnityObjects(root) { fileId, node ->
-            if (node.key == "Transform") {
-                /*val children = node["Children"]
-                if(children != null){
-                    throw RuntimeException("found node with children $children")
-                }*/
-            }
-        }
-
-        return folder
 
     }
 

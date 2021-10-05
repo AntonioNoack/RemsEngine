@@ -33,7 +33,7 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
     var videoFrameCount: Int
 
     override fun toString(): String {
-        return "FFMPEGMetadata(file: $file, audio: $hasAudio, video: $hasVideo)"
+        return "FFMPEGMetadata(file: $file, audio: $hasAudio, video: $hasVideo, $videoWidth x $videoHeight, $videoFrameCount)"
     }
 
     init {

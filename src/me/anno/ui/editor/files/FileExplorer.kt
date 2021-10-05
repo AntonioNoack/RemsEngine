@@ -8,6 +8,7 @@ import me.anno.input.Input.setClipboardContent
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.FileRootRef
+import me.anno.io.zip.ZipCache
 import me.anno.language.translation.NameDesc
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.addEvent
@@ -242,11 +243,14 @@ abstract class FileExplorer(
                         val list = tmpList
                         tmpList = ArrayList(tmpCount)
                         addEvent {
-                            for (file in list) {
-                                content += FileExplorerEntry(this, false, file, style)
+                            // check if the folder is still the same
+                            if (lastFiles === newFiles && lastSearch == newSearch) {
+                                for (file in list) {
+                                    content += FileExplorerEntry(this, false, file, style)
+                                }
+                                // force layout update
+                                Input.invalidateLayout()
                             }
-                            // force layout update
-                            Input.invalidateLayout()
                         }
                     }
                 }
@@ -475,7 +479,8 @@ abstract class FileExplorer(
     }
 
     fun canSensiblyEnter(file: FileReference): Boolean {
-        return file.isDirectory || (file.isSomeKindOfDirectory && file.hasChildren())
+        return file.isDirectory || (file.isSomeKindOfDirectory &&
+                ZipCache.unzip(file, false)?.listChildren()?.isEmpty() == false)
     }
 
     var hoveredItemIndex = 0

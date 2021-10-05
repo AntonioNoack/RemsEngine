@@ -356,6 +356,7 @@ object BlenderReader {
                 prefab.setProperty("diffuseBase", Vector4f(mat.r, mat.g, mat.b, mat.a))
                 prefab.setProperty("metallicMinMax", Vector2f(0f, mat.metallic))
                 prefab.setProperty("roughnessMinMax", Vector2f(0f, mat.roughness))
+                prefab.sealFromModifications()
                 mat.fileRef = matFolder.createPrefabChild("$name.json", prefab)
                 // println("prev ${mat.id.prev}, next: ${mat.id.next}")
             }
@@ -438,6 +439,7 @@ object BlenderReader {
                     collectIndices(positions, polygons, loopData, materialIndices, prefab)
                     if (materialIndices != null) prefab.setProperty("materialIndices", materialIndices)
                 }
+                prefab.sealFromModifications()
                 mesh.fileRef = meshFolder.createPrefabChild("$name.json", prefab)
             }
         }
@@ -477,6 +479,7 @@ object BlenderReader {
             }
 
         }
+        prefab.sealFromModifications()
         folder.createPrefabChild("Scene.json", prefab)
         clock.stop("read hierarchy")
         return folder

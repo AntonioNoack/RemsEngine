@@ -9,7 +9,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.Signature
 import me.anno.utils.Sleep
-import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.maths.Maths.min
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGStream
@@ -23,6 +22,8 @@ import javax.imageio.ImageIO
 object ImageCPUCache : CacheSection("BufferedImages") {
 
     private val LOGGER = LogManager.getLogger(ImageCPUCache::class)
+
+    // eps: like svg, we could implement it, but we don't really need it that dearly...
 
     fun getImage(file: FileReference, async: Boolean): Image? {
         val data = getEntry(file, 100_000, async) {
@@ -41,9 +42,9 @@ object ImageCPUCache : CacheSection("BufferedImages") {
                                 "tga" -> TGAImage.read(bytes.inputStream(), false)
                                 "webp" -> tryFFMPEG(file)
                                 "ico" -> tryIco(bytes.inputStream())
-                                else -> tryGeneric(bytes)
+                                else -> tryGeneric(file, bytes)
                             }
-                            else -> tryGeneric(bytes)
+                            else -> tryGeneric(file, bytes)
                         }
                     )
                 } else {
@@ -72,7 +73,7 @@ object ImageCPUCache : CacheSection("BufferedImages") {
         return if (file is FileFileRef) {
             val meta = FFMPEGMetadata.getMeta(file, false)!!
             val sequence = FFMPEGStream.getImageSequenceCPU(
-                file, meta.videoWidth, meta.videoHeight, min(20, (meta.videoFrameCount-1)/3), 1, meta.videoFPS
+                file, meta.videoWidth, meta.videoHeight, min(20, (meta.videoFrameCount - 1) / 3), 1, meta.videoFPS
             )
             Sleep.waitUntil(true) { sequence.frames.size > 0 }
             sequence.frames.first()
@@ -94,24 +95,28 @@ object ImageCPUCache : CacheSection("BufferedImages") {
         return images.maxByOrNull { it.width * it.height }!! // was blue ... why ever...
     }
 
-    private fun tryGeneric(bytes: FileReference): Image? {
+    private fun tryGeneric(file: FileReference): Image? {
         var image = try {
-            ImageIO.read(bytes.inputStream())
+            ImageIO.read(file.inputStream())
         } catch (e: Exception) {
             e.printStackTrace()
             null
         }
         if (image == null) {
+            LOGGER.debug("ImageIO failed for $file")
             try {
-                image = Imaging.getBufferedImage(bytes.inputStream())
+                image = Imaging.getBufferedImage(file.inputStream())
             } catch (e: Exception) {
                 // e.printStackTrace()
             }
         }
+        if (image == null) {
+            LOGGER.debug("Imaging failed for $file")
+        }
         return if (image == null) null else BIImage(image)
     }
 
-    private fun tryGeneric(bytes: ByteArray): Image? {
+    private fun tryGeneric(file: FileReference, bytes: ByteArray): Image? {
         var image = try {
             ImageIO.read(bytes.inputStream())
         } catch (e: Exception) {
@@ -119,11 +124,15 @@ object ImageCPUCache : CacheSection("BufferedImages") {
             null
         }
         if (image == null) {
+            LOGGER.debug("ImageIO failed for $file")
             try {
                 image = Imaging.getBufferedImage(bytes)
             } catch (e: Exception) {
                 // e.printStackTrace()
             }
+        }
+        if (image == null) {
+            LOGGER.debug("Imaging failed for $file")
         }
         return if (image == null) null else BIImage(image)
     }

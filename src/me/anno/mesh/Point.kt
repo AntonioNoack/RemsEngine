@@ -1,5 +1,6 @@
 package me.anno.mesh
 
+import me.anno.utils.pooling.Stack
 import org.joml.Vector2f
 import org.joml.Vector3f
 
@@ -32,5 +33,9 @@ class Point(val position: Vector3f, val normal: Vector3f, val uv: Vector2f?) {
     operator fun component1() = position
     operator fun component2() = normal
     operator fun component3() = uv
+
+    companion object {
+        val stack = Stack { Point(Vector3f(), Vector3f(), Vector2f()) }
+    }
 
 }

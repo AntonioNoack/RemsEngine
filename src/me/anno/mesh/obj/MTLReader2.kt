@@ -32,6 +32,8 @@ class MTLReader2(val file: FileReference) : OBJMTLReader(file.inputStream()) {
                     skipLine()
                 } else {
                     putBack(char0)
+                    // we could make this as efficient as OBJReader2, however we probably don't need to,
+                    // because material files will always be much shorter than the actual geometry
                     when (val name = readUntilSpace()) {
                         "newmtl" -> {
                             material?.setProperty("diffuseBase", color)

@@ -15,6 +15,8 @@ import me.anno.io.text.TextWriter
 import me.anno.io.zip.ZipCache
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.menu.Menu.msg
+import me.anno.ui.base.menu.Menu.openMenu
+import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.FileExplorerEntry
 import me.anno.ui.editor.files.FileExplorerOption
@@ -26,9 +28,12 @@ import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
 
 
-// todo import mesh/material/... for modifications:
-// todo create material, mesh, animation etc folder
-// todo rename Scene.json to mesh file name.json
+// done import mesh/material/... for modifications:
+// done create material, mesh, animation etc folder
+// done rename Scene.json to mesh file name.json
+// todo if the name is a number, try to find another one
+// todo or use a different name for that prefab...
+
 // todo ask for additional folder, inside project
 
 // todo drag assets into the scene
@@ -84,35 +89,39 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
         val projectFolder = RemsEngine.instance2!!.currentProject.location
 
         if (current.absolutePath.startsWith(projectFolder.absolutePath)) {
-            for (src in files) {
-                // in the future, we could do this async
-                val innerFolder = ZipCache.unzip(src, false)
-                if (innerFolder != null) {
-
-                    // ask user for destination directory... or do we just use this one? yes :)
-                    // easier
-
-                    // first create the file mapping, then replace all references
-                    val result = HashMap<FileReference, Prefab>()
-                    copyAssets(innerFolder, current, true, result)
-                    replaceReferences(result)
-
-                } else {
-                    LOGGER.warn("Could not load $src as prefab")
-                    if (files.size == 1) {
-                        super.onPasteFiles(x, y, files)
-                        return
-                    }
-                    // todo copy the file?
+            openMenu(listOf(
+                MenuOption(NameDesc("Import")) {
+                    import(current, files)
+                },
+                MenuOption(NameDesc(if (files.size > 1) "Raw-Copy" else "Other")) {
+                    super.onPasteFiles(x, y, files)
                 }
-            }
-            invalidate()
-            // todo update icon of current folder
-            LastModifiedCache.invalidate(current)
+            ))
         } else {
             LOGGER.info("$current is not in $projectFolder, skipping import")
             super.onPasteFiles(x, y, files)
         }
+    }
+
+    private fun import(current: FileReference, files: List<FileReference>) {
+        for (src in files) {
+            // in the future, we could do this async
+            val innerFolder = ZipCache.unzip(src, false)
+            if (innerFolder != null) {
+
+                // ask user for destination directory... or do we just use this one? yes :)
+                // easier
+
+                // first create the file mapping, then replace all references
+                val result = HashMap<FileReference, Prefab>()
+                copyAssets(innerFolder, current, true, result)
+                replaceReferences(result)
+
+            } else LOGGER.warn("Could not load $src as prefab")
+        }
+        invalidate()
+        // todo update icon of current folder
+        LastModifiedCache.invalidate(current)
     }
 
     fun replaceReferences(prefabs: HashMap<FileReference, Prefab>) {
@@ -159,18 +168,28 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
                 // it may not be necessarily a prefab, it could be a saveable
                 val prefab = loadPrefab(srcFile)
                 if (prefab != null) {
-                    var name = srcFile.nameWithoutExtension
-                    name = name.toAllowedFilename() ?: srcFile.getParent()?.nameWithoutExtension
-                            ?: prefab.instanceName
-                            ?: "Scene"
+                    /*val possibleNames = ArrayList<String>(8)
+                    val name0 = srcFile.nameWithoutExtension.toAllowedFilename()
+                    possibleNames.add(name0 ?: "")
+                    possibleNames.add(srcFile.getParent()?.nameWithoutExtension ?: "")
+                    possibleNames.add(prefab.instanceName ?: "")*/
+                    val prefabName = prefab.instanceName?.toAllowedFilename()
+                    val fileName = srcFile.nameWithoutExtension.toAllowedFilename()
+                    var name = fileName ?: srcFile.getParent()?.nameWithoutExtension ?: prefab.instanceName ?: "Scene"
+                    if (name.toIntOrNull() != null) {
+                        name = prefabName ?: "Scene"
+                    }
                     if (isMainFolder && name == "Scene") {
                         // rename to file name
                         name = srcFile.getParent()!!.nameWithoutExtension
                     }
                     val newPrefab = Prefab(prefab.clazzName, srcFile)
-                    val dstFile = getReference(dstFolder, "$name.json")
+                    var dstFile = getReference(dstFolder, "$name.json")
 
-                    // val dstFile = findNextFile(dstFolder, name, "json", 3, '-', 1)
+                    if (dstFile.exists && prefab.clazzName == "Mesh") {
+                        // todo compare the contents
+                        dstFile = findNextFile(dstFolder, name, "json", 3, '-', 1)
+                    }
                     dstFile.getParent()?.mkdirs()
                     dstFile.writeText(TextWriter.toText(newPrefab))
                     newPrefab.source = dstFile
@@ -251,11 +270,12 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
 
         init {
             // todo create camera, material, shader, prefab, mesh, script, etc
-            addOptionToCreateComponent("Prefab", "Entity")
+            addOptionToCreateComponent("Entity")
             addOptionToCreateComponent("Scene", "Entity", ScenePrefab)
             addOptionToCreateComponent("Camera", "CameraComponent")
             // addOptionToCreateComponent("Cube", "")
             addOptionToCreateComponent("Material")
+            addOptionToCreateComponent("Rigidbody")
         }
     }
 

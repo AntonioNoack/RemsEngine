@@ -16,6 +16,7 @@ import me.anno.input.Touch.Companion.onTouchDown
 import me.anno.input.Touch.Companion.onTouchMove
 import me.anno.input.Touch.Companion.onTouchUp
 import me.anno.io.files.FileFileRef
+import me.anno.io.files.FileFileRef.Companion.copyHierarchy
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
@@ -36,6 +37,7 @@ import java.awt.datatransfer.StringSelection
 import java.awt.datatransfer.UnsupportedFlavorException
 import java.awt.image.RenderedImage
 import java.io.File
+import java.nio.file.Files
 import javax.imageio.ImageIO
 import kotlin.collections.set
 import kotlin.math.abs
@@ -568,10 +570,20 @@ object Input {
     }
 
     fun copyFiles(files: List<FileReference>) {
-        Toolkit
-            .getDefaultToolkit()
-            .systemClipboard
-            .setContents(FileTransferable(files.map { it.unsafeFile }), null)
+        // we need this folder, when we have temporary copies,
+        // because just File.createTempFile() changes the name,
+        // and we need the original file name
+        val tmpFolder = lazy { Files.createTempDirectory("tmp").toFile() }
+        val tmpFiles = files.map {
+            if (it is FileFileRef) it.file
+            else {
+                // create a temporary copy, that the OS understands
+                val tmp = File(tmpFolder.value, it.name)
+                copyHierarchy(it, tmp)
+                tmp
+            }
+        }
+        copyFiles2(tmpFiles)
     }
 
     fun copyFiles2(files: List<File>) {
@@ -580,13 +592,6 @@ object Input {
             .systemClipboard
             .setContents(FileTransferable(files), null)
     }
-
-    /*fun copyFiles(files: List<File>) {
-        Toolkit
-            .getDefaultToolkit()
-            .systemClipboard
-            .setContents(FileTransferable(files), null)
-    }*/
 
     fun isKeyDown(key: Char): Boolean {
         return key.uppercaseChar().code in keysDown

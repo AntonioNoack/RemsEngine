@@ -29,6 +29,11 @@ object AABBs {
     fun AABBf.print() = "($minX $minY $minZ) < ($maxX $maxY $maxZ)"
     fun AABBd.print() = "($minX $minY $minZ) < ($maxX $maxY $maxZ)"
 
+    fun AABBf.getMin2(dst: Vector3f = Vector3f()): Vector3f = dst.set(minX, minY, minZ)
+    fun AABBf.getMax2(dst: Vector3f = Vector3f()): Vector3f = dst.set(maxX, maxY, maxZ)
+    fun AABBd.getMin2(dst: Vector3d = Vector3d()): Vector3d = dst.set(minX, minY, minZ)
+    fun AABBd.getMax2(dst: Vector3d = Vector3d()): Vector3d = dst.set(maxX, maxY, maxZ)
+
     // crazy... why is this not in the library???
     fun AABBf.set(o: AABBf): AABBf {
         minX = o.minX
@@ -347,7 +352,7 @@ object AABBs {
         // println("${aabb.testRay(start.x, start.y, start.z, end.x - start.x, end.y - start.y, end.z - start.z)}")
         // println("distance: ${distanceSquared(aabb, start)} <= ${start.distanceSquared(end)}")
         return aabb.testRay(start.x, start.y, start.z, end.x - start.x, end.y - start.y, end.z - start.z) &&
-               true// distanceSquared(aabb, start) <= start.distanceSquared(end)
+                true// distanceSquared(aabb, start) <= start.distanceSquared(end)
     }
 
     fun testLineAABB(aabb: AABBd, start: Vector3d, dir: Vector3d, length: Double): Boolean {

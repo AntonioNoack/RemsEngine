@@ -58,4 +58,10 @@ class Stack<V : Any>(
         storage.get().sub(delta)
     }
 
+    var index: Int
+        get() = storage.get().index
+        set(value) {
+            storage.get().index = value
+        }
+
 }

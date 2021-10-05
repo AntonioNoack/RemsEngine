@@ -1,6 +1,7 @@
 package me.anno.io.files
 
 import me.anno.cache.instances.LastModifiedCache
+import me.anno.utils.io.Streams.copy
 import java.io.File
 import java.net.URI
 import java.nio.charset.Charset
@@ -13,6 +14,17 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
             var p = path.replace('\\', '/')
             while (p.endsWith('/')) p = p.substring(0, p.length - 1)
             return p
+        }
+
+        fun copyHierarchy(src: FileReference, dst: File) {
+            if (src.isDirectory) {
+                dst.mkdirs()
+                for (child in src.listChildren() ?: emptyList()) {
+                    copyHierarchy(child, File(dst, child.name))
+                }
+            } else {
+                src.inputStream().copy(dst.outputStream())
+            }
         }
 
     }

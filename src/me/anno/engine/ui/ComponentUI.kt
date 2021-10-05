@@ -47,6 +47,8 @@ import me.anno.ui.style.Style
 import me.anno.utils.maths.Maths
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.structures.tuples.MutablePair
+import me.anno.utils.types.AABBs.getMax2
+import me.anno.utils.types.AABBs.getMin2
 import me.anno.utils.types.Quaternions.toEulerAnglesDegrees
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import org.apache.logging.log4j.LogManager
@@ -109,6 +111,8 @@ object ComponentUI {
             is Matrix3f, is Matrix3d,
             is Matrix4x3f, is Matrix4x3d,
             is Matrix4f, is Matrix4d,
+                // aabbs
+            is AABBf, is AABBd,
                 // native arrays
             is ByteArray, is ShortArray,
             is CharArray,
@@ -535,6 +539,7 @@ object ComponentUI {
                 val panel = TitledListY(title, visibilityKey, style)
                 property.init(panel)
                 // todo special types
+                // todo operations: translate, rotate, scale
                 for (i in 0 until 4) {
                     panel.add(VectorInput("", visibilityKey, value.getRow(i, Vector4f()), Type.VEC4, style)
                         .apply {
@@ -555,6 +560,61 @@ object ComponentUI {
                 }
                 return panel
             }
+
+            // AABBf/AABBd
+            "AABBf" -> {
+                value as AABBf
+                default as AABBf
+                val typeMin = Type.VEC3.withDefault(default.getMin2())
+                val pane = TitledListY(title, visibilityKey, style)
+                pane.add(VectorInput("", visibilityKey, value.getMin2(), typeMin, style).apply {
+                    property.init(this)
+                    setResetListener { property.reset(this) }
+                    askForReset(property) { setValue((it as AABBf).getMin2(), false) }
+                    setChangeListener { x, y, z, _ ->
+                        value.setMin(x.toFloat(), y.toFloat(), z.toFloat())
+                        property.set(this, value)
+                    }
+                })
+                val typeMax = Type.VEC3D.withDefault(default.getMax2())
+                pane.add(VectorInput("", visibilityKey, value.getMax2(), typeMax, style).apply {
+                    property.init(this)
+                    setResetListener { property.reset(this) }
+                    askForReset(property) { setValue((it as AABBf).getMax2(), false) }
+                    setChangeListener { x, y, z, _ ->
+                        value.setMax(x.toFloat(), y.toFloat(), z.toFloat())
+                        property.set(this, value)
+                    }
+                })
+                return pane
+            }
+            "AABBd" -> {
+                value as AABBd
+                default as AABBd
+                val typeMin = Type.VEC3D.withDefault(default.getMin2())
+                val pane = TitledListY(title, visibilityKey, style)
+                pane.add(VectorInput("", visibilityKey, value.getMin2(), typeMin, style).apply {
+                    property.init(this)
+                    setResetListener { property.reset(this) }
+                    askForReset(property) { setValue((it as AABBd).getMin2(), false) }
+                    setChangeListener { x, y, z, _ ->
+                        value.setMin(x, y, z)
+                        property.set(this, value)
+                    }
+                })
+                val typeMax = Type.VEC3D.withDefault(default.getMax2())
+                pane.add(VectorInput("", visibilityKey, value.getMax2(), typeMax, style).apply {
+                    property.init(this)
+                    setResetListener { property.reset(this) }
+                    askForReset(property) { setValue((it as AABBd).getMax2(), false) }
+                    setChangeListener { x, y, z, _ ->
+                        value.setMax(x, y, z)
+                        property.set(this, value)
+                    }
+                })
+                return pane
+            }
+
             // todo smaller matrices, and for double
             // todo when editing a matrix, maybe add a second mode for translation x rotation x scale
 

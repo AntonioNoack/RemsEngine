@@ -20,6 +20,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
+import me.anno.mesh.Point
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.studio.Build.isDebug
@@ -422,6 +423,7 @@ object GFX : GFXBase1() {
         AudioStream.bufferPool.freeUnusedEntries()
 
         JomlPools.reset()
+        Point.stack.reset()
 
         ensureEmptyStack()
 

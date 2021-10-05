@@ -9,11 +9,11 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.zip.InnerFolder
 import me.anno.mesh.Point
 import me.anno.utils.files.Files.findNextFileName
+import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.maths.Maths.pow
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import org.apache.logging.log4j.LogManager
-import org.joml.Vector2f
-import org.joml.Vector3f
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
@@ -31,26 +31,38 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
     val materialsFolder = lazy { InnerFolder(folder, "materials") }
     val meshesFolder = lazy { InnerFolder(folder, "meshes") }
 
-    val prefab = Prefab("Entity")
+    val scenePrefab = Prefab("Entity")
 
     init {
-        folder.createPrefabChild("Scene.json", prefab)
+        folder.createPrefabChild("Scene.json", scenePrefab)
     }
 
     // inside the function, because not used materials aren't relevant to us
-    val materials = HashMap<String, FileReference>()
-    val defaultSize = 256
+    private val materials = HashMap<String, FileReference>()
+
+    // guess to the sizes to allocate, so in the best case, we allocate a little more,
+    // but don't allocate twice for no reason
+    private val defaultSize1 = clamp(file.length() / 64, 64, 1 shl 20).toInt()
+    private val defaultSize2 = clamp(pow(file.length().toDouble(), 0.66).toInt(), 64, 1 shl 20)
 
     private var lastMaterial: FileReference = InvalidRef
-    private val positions = ExpandingFloatArray(defaultSize)
-    private val normals = ExpandingFloatArray(defaultSize)
-    private val uvs = ExpandingFloatArray(defaultSize)
+    private val positions = ExpandingFloatArray(3 * defaultSize1)
+    private val normals = ExpandingFloatArray(3 * defaultSize1)
+    private val uvs = ExpandingFloatArray(2 * defaultSize1)
 
-    private val facePositions = ExpandingFloatArray(defaultSize)
-    private val faceNormals = ExpandingFloatArray(defaultSize)
-    private val faceUVs = ExpandingFloatArray(defaultSize)
+    private val facePositions = ExpandingFloatArray(3 * defaultSize2)
+    private val faceNormals = ExpandingFloatArray(3 * defaultSize2)
+    private val faceUVs = ExpandingFloatArray(2 * defaultSize2)
 
     private val points = ExpandingIntArray(256)
+
+    fun printSizes() {
+        LOGGER.info(
+            "positions: ${positions.size}, normals: ${normals.size}, uvs: ${uvs.size}, " +
+                    "facePositions: ${facePositions.capacity}, faceNormals: ${faceNormals.capacity}, faceUVs: ${faceUVs.capacity}, " +
+                    "points: ${points.size}, defaultSize: $defaultSize1/$defaultSize2"
+        )
+    }
 
     private fun putPoint(p: Point) {
         facePositions += p.position
@@ -103,8 +115,8 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
     private var objectCountInGroup = 0
     private var meshCountInObject = 0
 
-    fun newGroup() {
-        lastGroupPath = prefab.add(
+    private fun newGroup() {
+        lastGroupPath = scenePrefab.add(
             CAdd(Path.ROOT_PATH, 'e', "Entity", lastGroupName),
             groupCountInScene++
         )
@@ -112,18 +124,18 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
         newObject()
     }
 
-    fun newObject() {
+    private fun newObject() {
         if (lastGroupName.isNotEmpty() && lastGroupPath.isEmpty()) {
             newGroup()
         }
-        lastObjectPath = prefab.add(
+        lastObjectPath = scenePrefab.add(
             CAdd(lastGroupPath, 'e', "Entity", lastObjectName),
             objectCountInGroup++
         )
         meshCountInObject = 0
     }
 
-    fun finishMesh() {
+    private fun finishMesh() {
         if (facePositions.size > 0) {
             if (lastObjectPath.isEmpty()) newObject()
             val mesh = Prefab("Mesh")
@@ -145,21 +157,22 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
             val meshRef = meshesFolder.createPrefabChild(name, mesh)
             mesh.source = meshRef
             val add =
-                prefab.add(lastObjectPath, 'c', "MeshComponent", meshRef.nameWithoutExtension, meshCountInObject++)
-            prefab.set(add, "mesh", meshRef)
+                scenePrefab.add(lastObjectPath, 'c', "MeshComponent", meshRef.nameWithoutExtension, meshCountInObject++)
+            scenePrefab.set(add, "mesh", meshRef)
+            // LOGGER.debug("Clearing at ${facePositions.size / 3}")
             facePositions.clear()
             faceNormals.clear()
             faceUVs.clear()
         }
     }
 
-    fun finishGroup() {
+    private fun finishGroup() {
         finishMesh()
         lastObjectPath = Path.ROOT_PATH
         lastGroupPath = Path.ROOT_PATH
     }
 
-    fun finishObject() {
+    private fun finishObject() {
         finishMesh()
         lastObjectPath = Path.ROOT_PATH
     }
@@ -300,31 +313,35 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
     }
 
     private fun triangulateFace() {
+
         // triangulate the points correctly
         // currently is the most expensive step, because of so much allocations:
         // points, the array, the return list, ...
-        val nullNormal = Vector3f()
-        val nullUV = Vector2f()
+
         val points2 = Array(points.size / 3) {
+            val point = Point.stack.create()
             val vi = points[it * 3]
             val ni = points[it * 3 + 1]
             val ui = points[it * 3 + 2]
-            Point(
-                Vector3f(
-                    positions[vi],
-                    positions[vi + 1],
-                    positions[vi + 2]
-                ), if (ni < 0) nullNormal
-                else Vector3f(
+            point.position.set(
+                positions[vi],
+                positions[vi + 1],
+                positions[vi + 2]
+            )
+            if (ni >= 0) {
+                point.normal.set(
                     normals[ni],
                     normals[ni + 1],
                     normals[ni + 2]
-                ), if (ui < 0) nullUV
-                else Vector2f(
+                )
+            } else point.normal.set(0f)
+            if (ui >= 0) {
+                point.uv!!.set(
                     uvs[ui],
                     uvs[ui + 1]
                 )
-            )
+            } else point.uv!!.set(0f)
+            point
         }
         val triangles = Triangulation.ringToTrianglesPoint(points2)
         for (i in triangles.indices step 3) {
@@ -332,9 +349,12 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
             putPoint(triangles[i + 1])
             putPoint(triangles[i + 2])
         }
+
+        Point.stack.sub(points2.size)
+
     }
 
-    fun readFace() {
+    private fun readFace() {
 
         readFacePoints()
 

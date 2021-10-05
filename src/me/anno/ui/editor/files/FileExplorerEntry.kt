@@ -26,7 +26,6 @@ import me.anno.input.Input
 import me.anno.input.Input.mouseDownX
 import me.anno.input.Input.mouseDownY
 import me.anno.input.MouseButton
-import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.thumbs.Thumbs
@@ -49,7 +48,6 @@ import me.anno.ui.dragging.Draggable
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
-import me.anno.utils.io.Streams.copy
 import me.anno.utils.maths.Maths.mixARGB
 import me.anno.utils.maths.Maths.sq
 import me.anno.utils.strings.StringHelper.setNumber
@@ -59,8 +57,6 @@ import me.anno.video.formats.gpu.GPUFrame
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
-import java.io.File
-import java.nio.file.Files
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
@@ -550,8 +546,10 @@ class FileExplorerEntry(
         if (button.isLeft) {
             val file = getReference(path)
             if (explorer.canSensiblyEnter(file)) {
+                LOGGER.info("Can enter ${file.name}? Yes!")
                 explorer.switchTo(file)
             } else {
+                LOGGER.info("Can enter ${file.name}? No :/")
                 explorer.onDoubleClick(file)
             }
         } else super.onDoubleClick(x, y, button)
@@ -597,38 +595,13 @@ class FileExplorerEntry(
 
     override fun onCopyRequested(x: Float, y: Float): String? {
         val file = getReference(path)
-        val rawFiles = if (this in inFocus) {// multiple files maybe
+        val files = if (this in inFocus) {// multiple files maybe
             inFocus.filterIsInstance<FileExplorerEntry>().map {
                 getReference(it.path)
             }
         } else listOf(file)
-        // we need this folder, when we have temporary copies,
-        // because just File.createTempFile() changes the name,
-        // and we need the original file name
-        val tmpFolder = lazy { Files.createTempDirectory("tmp").toFile() }
-        val tmpFiles = rawFiles.map {
-            if (it is FileFileRef) it.file
-            else {
-                // create a temporary copy, that the OS understands
-                val tmp = File(tmpFolder.value, it.name)
-                copyHierarchy(it, tmp)
-                tmp
-            }
-        }
-        // me.anno.utils.LOGGER.info("Copy requested, $tmpFiles")
-        Input.copyFiles2(tmpFiles)
+        Input.copyFiles(files)
         return null
-    }
-
-    fun copyHierarchy(src: FileReference, dst: File) {
-        if (src.isDirectory) {
-            dst.mkdirs()
-            for (child in src.listChildren() ?: emptyList()) {
-                copyHierarchy(child, File(dst, child.name))
-            }
-        } else {
-            src.inputStream().copy(dst.outputStream())
-        }
     }
 
     override fun getMultiSelectablePanel() = this

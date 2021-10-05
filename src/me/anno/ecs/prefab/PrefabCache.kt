@@ -32,7 +32,7 @@ object PrefabCache : CacheSection("Prefab") {
         return getPrefabPair(file, chain)?.prefab
     }
 
-    fun loadAssimpModel(resource: FileReference): Prefab? {
+    private fun loadAssimpModel(resource: FileReference): Prefab? {
         return try {
             val reader = AnimatedMeshesLoader
             val meshes = reader.readAsFolder2(resource)
@@ -43,7 +43,7 @@ object PrefabCache : CacheSection("Prefab") {
         }
     }
 
-    fun loadVOXModel(resource: FileReference): Prefab? {
+    private fun loadVOXModel(resource: FileReference): Prefab? {
         return try {
             VOXReader().read(resource).toEntityPrefab(resource)
         } catch (e: Exception) {
@@ -52,17 +52,16 @@ object PrefabCache : CacheSection("Prefab") {
         }
     }
 
-    fun loadObjModel(resource: FileReference): Prefab? {
-        // return loadAssimpModel(resource)
+    private fun loadObjModel(resource: FileReference): Prefab? {
         return try {
-            OBJReader2(resource).prefab
+            OBJReader2(resource).scenePrefab
         } catch (e: Exception) {
             e.printStackTrace()
             null
         }
     }
 
-    fun loadBlenderModel(resource: FileReference): Prefab? {
+    private fun loadBlenderModel(resource: FileReference): Prefab? {
         return try {
             val folder = BlenderReader.readAsFolder(resource)
             val sceneFile = folder.getChild("Scene.json") as InnerPrefabFile
@@ -73,7 +72,7 @@ object PrefabCache : CacheSection("Prefab") {
         }
     }
 
-    fun loadJson(resource: FileReference?): ISaveable? {
+    private fun loadJson(resource: FileReference?): ISaveable? {
         return when (resource) {
             InvalidRef, null -> null
             is PrefabReadable -> resource.readPrefab()
@@ -94,7 +93,7 @@ object PrefabCache : CacheSection("Prefab") {
         }
     }
 
-    fun loadUnityFile(resource: FileReference): Prefab? {
+    private fun loadUnityFile(resource: FileReference): Prefab? {
         return loadJson(UnityReader.readAsAsset(resource)) as? Prefab
     }
 

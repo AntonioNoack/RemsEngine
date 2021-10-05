@@ -82,6 +82,11 @@ import org.joml.*
 import org.joml.Math.toRadians
 import org.lwjgl.opengl.GL45.*
 
+// todo render the grid slightly off position, so we don't get flickering
+// todo always closer to the camera
+// todo proportional to radius
+// (because meshes at 0 are very common and to be expected)
+
 // done shadows
 // todo usable editing of materials: own color + indent + super material selector
 // todo + add & remove materials

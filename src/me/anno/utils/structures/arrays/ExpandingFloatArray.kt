@@ -14,6 +14,8 @@ class ExpandingFloatArray(
 
     private var array: FloatArray? = null
 
+    val capacity get() = array?.size ?: 0
+
     fun clear() {
         size = 0
     }

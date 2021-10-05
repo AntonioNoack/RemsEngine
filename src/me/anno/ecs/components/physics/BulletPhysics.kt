@@ -39,6 +39,7 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.structures.sets.ParallelHashSet
+import me.anno.utils.types.AABBs.set
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -51,6 +52,10 @@ import kotlin.math.max
 import kotlin.reflect.KClass
 
 class BulletPhysics() : Component() {
+
+    constructor(base: BulletPhysics) : this() {
+        base.copy(this)
+    }
 
     // I use jBullet2, however I have modified it to use doubles for everything
     // this may be bad for performance, but it also allows our engine to run much larger worlds
@@ -102,9 +107,11 @@ class BulletPhysics() : Component() {
         }
     }
 
-    // todo bounding box instead, with infinite ends on xz by default
+    // entities outside these bounds will be killed
     @SerializedProperty
-    var automaticDeathHeight = -100.0
+    var allowedSpace = AABBd()
+        .setMin(-1e300, -100.0, -1e300)
+        .setMax(+1e300, 1e300, +1e300)
 
     @NotSerializedProperty
     private val sampleWheels = ArrayList<WheelInfo>()
@@ -403,7 +410,8 @@ class BulletPhysics() : Component() {
 
             // set the global transform
             rigidbody.getWorldTransform(tmpTransform)
-            if (tmpTransform.origin.y < automaticDeathHeight) {
+            val tmpOrigin = tmpTransform.origin
+            if (!allowedSpace.testPoint(tmpOrigin.x, tmpOrigin.y, tmpOrigin.z)) {
                 // delete the entity
                 deadEntities.add(entity)
                 deadRigidBodies.add(rigidbody)
@@ -671,16 +679,12 @@ class BulletPhysics() : Component() {
         return world
     }
 
-    override fun clone(): BulletPhysics {
-        val clone = BulletPhysics()
-        copy(clone)
-        return clone
-    }
+    override fun clone() = BulletPhysics(this)
 
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as BulletPhysics
-        clone.automaticDeathHeight = automaticDeathHeight
+        clone.allowedSpace.set(allowedSpace)
     }
 
     override val className: String = "BulletPhysics"
