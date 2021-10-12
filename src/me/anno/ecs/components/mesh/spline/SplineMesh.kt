@@ -1,11 +1,13 @@
 package me.anno.ecs.components.mesh.spline
 
-import me.anno.ecs.components.mesh.AutoMesh
+import me.anno.ecs.components.mesh.ProceduralMesh
 import me.anno.ecs.components.mesh.spline.Splines.getIntermediates
 import me.anno.ecs.components.mesh.spline.Splines.interpolate
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.ui.EditorState
 import me.anno.image.ImageWriter.writeImageCurve
 import me.anno.utils.maths.Maths.mix
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Vectors.toVector3f
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
@@ -15,7 +17,7 @@ import org.joml.Vector3f
 /**
  * spline meshes are parts of many simulator games, e.g. street building
  * */
-class SplineMesh : AutoMesh() {
+class SplineMesh : ProceduralMesh() {
 
     var profile: PathProfile? = TestProfiles.cubeProfile
         set(value) {
@@ -34,7 +36,8 @@ class SplineMesh : AutoMesh() {
 
     // children as control points
 
-    // todo when changed, update the mesh
+    // todo when changed, update the mesh automatically
+    // only if debugging the mesh
 
     // todo update based on distance
 
@@ -92,17 +95,36 @@ class SplineMesh : AutoMesh() {
         clone.profile = profile
     }
 
-    fun set(t: SplineTmpMesh) {
-        val prefab = meshPrefab
-        prefab.setProperty("positions", t.positions)
-        prefab.setProperty("normals", t.normals)
-        prefab.setProperty("colors", t.colors)
+    override fun onUpdate(): Int {
+        super.onUpdate()
+        // if a child is selected, invalidate this
+        val children = entity?.children ?: return 10
+        val lastSelection = EditorState.lastSelection
+        for (i in children.indices) {
+            val child = children[i]
+            if (child.hasComponent(SplineControlPoint::class) && child === lastSelection) {
+                invalidate()
+                return 1
+            }
+        }
+        return 10
     }
 
+    fun set(t: SplineTmpMesh) {
+        mesh2.positions = t.positions
+        mesh2.normals = t.normals
+        mesh2.color0 = t.colors
+    }
+
+    fun replace(v0: IntArray?, size: Int) = if (v0 != null && v0.size == size) v0 else IntArray(size)
+    fun replace(v0: FloatArray?, size: Int) = if (v0 != null && v0.size == size) v0 else FloatArray(size)
+
     fun set(ts: List<SplineTmpMesh>) {
-        val col = IntArray(ts.sumOf { it.colors.size })
-        val pos = FloatArray(col.size * 3)
-        val nor = FloatArray(pos.size)
+        val colSize = ts.sumOf { it.colors.size }
+        val posSize = colSize * 3
+        val col = replace(mesh2.color0, colSize)
+        val pos = replace(mesh2.positions, posSize)
+        val nor = replace(mesh2.normals, posSize)
         var i = 0
         var j = 0
         for (t in ts) {
@@ -115,10 +137,9 @@ class SplineMesh : AutoMesh() {
             i += pi.size
             j += ci.size
         }
-        val prefab = meshPrefab
-        prefab.setProperty("positions", pos)
-        prefab.setProperty("normals", nor)
-        prefab.setProperty("colors", col)
+        mesh2.positions = pos
+        mesh2.normals = nor
+        mesh2.color0 = col
     }
 
     override fun generateMesh() {
@@ -176,7 +197,8 @@ class SplineMesh : AutoMesh() {
         var k = 0
         val n0 = Vector2f()
         val n1 = Vector2f()
-        val dirY = Vector3f()
+        val dirY0 = Vector3f()
+        val dirY1 = Vector3f()
         for (j in 0 until profileSize) {
             for (i in 0 until splineSize) {
 
@@ -187,7 +209,14 @@ class SplineMesh : AutoMesh() {
                 val p2 = splinePoints[(i2 + 2) % splinePoints.size]
                 val p3 = splinePoints[(i2 + 3) % splinePoints.size]
 
-                findDirY(p0, p1, p3, dirY)
+                findDirY(p0, p1, p3, dirY0)
+
+                if (!isClosed && i2 + 5 > splinePoints.size) {
+                    dirY1.set(dirY0)
+                } else {
+                    val p5 = splinePoints[(i2 + 5) % splinePoints.size]
+                    findDirY(p2, p3, p5, dirY1)
+                }
 
                 val pro0 = profile.getPosition(j)
                 val pro1 = profile.getPosition(j + 1)
@@ -198,16 +227,25 @@ class SplineMesh : AutoMesh() {
                 val c = profile.getColor(j)
 
                 // 012 230
-                add(pos, nor, col, k++, p0, p1, pro0, n0, c, dirY)
-                add(pos, nor, col, k++, p2, p3, pro0, n0, c, dirY)
-                add(pos, nor, col, k++, p0, p1, pro1, n1, c, dirY)
+                add(pos, nor, col, k++, p0, p1, pro0, n0, c, dirY0)
+                add(pos, nor, col, k++, p2, p3, pro0, n0, c, dirY1)
+                add(pos, nor, col, k++, p2, p3, pro1, n1, c, dirY1)
 
-                add(pos, nor, col, k++, p0, p1, pro1, n1, c, dirY)
-                add(pos, nor, col, k++, p2, p3, pro1, n1, c, dirY)
-                add(pos, nor, col, k++, p0, p1, pro0, n0, c, dirY)
+                add(pos, nor, col, k++, p2, p3, pro1, n1, c, dirY1)
+                add(pos, nor, col, k++, p0, p1, pro1, n1, c, dirY0)
+                add(pos, nor, col, k++, p0, p1, pro0, n0, c, dirY0)
+
             }
         }
         return SplineTmpMesh(pos, nor, col)
+    }
+
+    private fun mirrorIfClosed(index: Int, size: Int): Int {
+        return when {
+            index < size -> index
+            isClosed -> index - size
+            else -> size * 2 - index
+        }
     }
 
     private fun findDirY(p0: Vector3d, p1: Vector3d, p3: Vector3d, dst: Vector3f = Vector3f()) {
@@ -236,7 +274,10 @@ class SplineMesh : AutoMesh() {
         val k3 = k * 3
         val px = profile.x.toDouble()
         val py = profile.y
-        val dirX = Vector3d(p1).sub(p0).normalize().toVector3f()
+        val dirX = JomlPools.vec3f.borrow()
+        JomlPools.vec3d.borrow()
+            .set(p1).sub(p0).normalize()
+            .toVector3f(dirX)
         positions[k3 + 0] = (mix(p0.x, p1.x, px) + py * dirY.x).toFloat()
         positions[k3 + 1] = (mix(p0.y, p1.y, px) + py * dirY.y).toFloat()
         positions[k3 + 2] = (mix(p0.z, p1.z, px) + py * dirY.z).toFloat()

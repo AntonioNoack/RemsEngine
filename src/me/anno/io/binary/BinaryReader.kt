@@ -82,7 +82,7 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
     private fun readFloatArray() = FloatArray(input.readInt()) { input.readFloat() }
     private fun readDoubleArray() = DoubleArray(input.readInt()) { input.readDouble() }
     private fun readStringArray() = Array(input.readInt()) { readEfficientString()!! }
-    private fun readFileArray() = Array(input.readInt()) { readEfficientString()?.toGlobalFile() ?: InvalidRef }
+
     private fun readObjectOrNull(): ISaveable? {
         return when (val subType = input.read().toChar()) {
             OBJECT_IMPL -> readObject()
@@ -92,9 +92,8 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
         }
     }
 
-    private fun readHeterogeneousObjectArray() = Array(input.readInt()) { readObjectOrNull() }
     private fun readHomogeneousObjectArray(type: String): Array<ISaveable?> {
-        return Array(input.readInt()) {
+        return readArray {
             when (val subType = input.read().toChar()) {
                 OBJECT_IMPL -> readObject(type)
                 OBJECT_PTR -> getByPointer(input.readInt())!!
@@ -148,8 +147,9 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
                     STRING_ARRAY -> obj.readStringArray(name, readStringArray())
                     STRING_ARRAY_2D -> obj.readStringArray2D(name, Array(input.readInt()) { readStringArray() })
 
-                    FILE -> obj.readFile(name, readEfficientString()?.toGlobalFile() ?: InvalidRef)
-                    FILE_ARRAY -> obj.readFileArray(name, readFileArray())
+                    FILE -> obj.readFile(name, readFile())
+                    FILE_ARRAY -> obj.readFileArray(name, readArray { readFile() })
+                    FILE_ARRAY_2D -> obj.readFileArray2D(name, readArray2D { readFile() })
 
                     OBJECT_IMPL -> obj.readObject(name, readObject())
                     OBJECT_PTR -> {
@@ -163,34 +163,42 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
                     }
 
                     OBJECT_NULL -> obj.readObject(name, null)
-                    OBJECT_ARRAY -> obj.readObjectArray(name, readHeterogeneousObjectArray())
-                    OBJECT_ARRAY_2D -> obj.readObjectArray2D(
-                        name,
-                        Array(input.readInt()) { readHeterogeneousObjectArray() })
+                    OBJECT_ARRAY -> obj.readObjectArray(name, readArray { readObjectOrNull() })
+                    OBJECT_ARRAY_2D -> obj.readObjectArray2D(name, readArray2D { readObjectOrNull() })
 
-                    OBJECTS_HOMOGENOUS_ARRAY -> {
-                        val type = readTypeString()
-                        obj.readObjectArray(name, readHomogeneousObjectArray(type))
-                    }
+                    OBJECTS_HOMOGENOUS_ARRAY -> obj.readObjectArray(name, readHomogeneousObjectArray(readTypeString()))
 
                     VECTOR2F -> obj.readVector2f(name, readVector2f())
-                    VECTOR3F -> obj.readVector3f(name, readVector3f())
-                    VECTOR4F -> obj.readVector4f(name, readVector4f())
+                    VECTOR2F_ARRAY -> obj.readVector2fArray(name, readArray { readVector2f() })
+                    VECTOR2F_ARRAY_2D -> obj.readVector2fArray2D(name, readArray2D { readVector2f() })
 
-                    VECTOR2F_ARRAY -> obj.readVector2fArray(name, Array(input.readInt()) { readVector2f() })
-                    VECTOR3F_ARRAY -> obj.readVector3fArray(name, Array(input.readInt()) { readVector3f() })
-                    VECTOR4F_ARRAY -> obj.readVector4fArray(name, Array(input.readInt()) { readVector4f() })
+                    VECTOR3F -> obj.readVector3f(name, readVector3f())
+                    VECTOR3F_ARRAY -> obj.readVector3fArray(name, readArray { readVector3f() })
+                    VECTOR3F_ARRAY_2D -> obj.readVector3fArray2D(name, readArray2D { readVector3f() })
+
+                    VECTOR4F -> obj.readVector4f(name, readVector4f())
+                    VECTOR4F_ARRAY -> obj.readVector4fArray(name, readArray { readVector4f() })
+                    VECTOR4F_ARRAY_2D -> obj.readVector4fArray2D(name, readArray2D { readVector4f() })
 
                     VECTOR2D -> obj.readVector2d(name, readVector2d())
-                    VECTOR3D -> obj.readVector3d(name, readVector3d())
-                    VECTOR4D -> obj.readVector4d(name, readVector4d())
+                    VECTOR2D_ARRAY -> obj.readVector2dArray(name, readArray { readVector2d() })
+                    VECTOR2D_ARRAY_2D -> obj.readVector2dArray2D(name, readArray2D { readVector2d() })
 
-                    VECTOR2D_ARRAY -> obj.readVector2dArray(name, Array(input.readInt()) { readVector2d() })
-                    VECTOR3D_ARRAY -> obj.readVector3dArray(name, Array(input.readInt()) { readVector3d() })
-                    VECTOR4D_ARRAY -> obj.readVector4dArray(name, Array(input.readInt()) { readVector4d() })
+                    VECTOR3D -> obj.readVector3d(name, readVector3d())
+                    VECTOR3D_ARRAY -> obj.readVector3dArray(name, readArray { readVector3d() })
+                    VECTOR3D_ARRAY_2D -> obj.readVector3dArray2D(name, readArray2D { readVector3d() })
+
+                    VECTOR4D -> obj.readVector4d(name, readVector4d())
+                    VECTOR4D_ARRAY -> obj.readVector4dArray(name, readArray { readVector4d() })
+                    VECTOR4D_ARRAY_2D -> obj.readVector4dArray2D(name, readArray2D { readVector4d() })
 
                     QUATERNION32 -> obj.readQuaternionf(name, readQuaternionf())
+                    QUATERNION32_ARRAY -> obj.readQuaternionfArray(name, readArray { readQuaternionf() })
+                    QUATERNION32_ARRAY_2D -> obj.readQuaternionfArray2D(name, readArray2D { readQuaternionf() })
+
                     QUATERNION64 -> obj.readQuaterniond(name, readQuaterniond())
+                    QUATERNION64_ARRAY -> obj.readQuaterniondArray(name, readArray { readQuaterniond() })
+                    QUATERNION64_ARRAY_2D -> obj.readQuaterniondArray2D(name, readArray2D { readQuaterniond() })
 
                     else -> throw RuntimeException("Unknown type ${typeName.type}")
                 }
@@ -200,6 +208,12 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
         return obj
     }
 
+    private inline fun <reified V> readArray(get: () -> V): Array<V> = Array(input.readInt()) { get() }
+    private inline fun <reified V> readArray2D(get: () -> V): Array<Array<V>> {
+        return readArray { readArray(get) }
+    }
+
+    private fun readFile() = readEfficientString()?.toGlobalFile() ?: InvalidRef
     private fun readVector2f() = Vector2f(input.readFloat(), input.readFloat())
     private fun readVector3f() = Vector3f(input.readFloat(), input.readFloat(), input.readFloat())
     private fun readVector4f() = Vector4f(input.readFloat(), input.readFloat(), input.readFloat(), input.readFloat())

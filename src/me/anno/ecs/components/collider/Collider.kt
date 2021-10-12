@@ -5,6 +5,7 @@ import com.bulletphysics.linearmath.Transform
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Range
+import me.anno.ecs.components.CollidingComponent
 import me.anno.ecs.components.physics.BulletPhysics.Companion.convertMatrix
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.serialization.SerializedProperty
@@ -26,13 +27,11 @@ import kotlin.math.max
 
 // todo collider events
 
-abstract class Collider : Component() {
+abstract class Collider : CollidingComponent() {
 
     @Range(0.0, 1.0)
     @SerializedProperty
     var roundness = 0.0
-
-    var collisionMask = 1
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
         val tmp = JomlPools.vec3d.create()
@@ -41,15 +40,10 @@ abstract class Collider : Component() {
         return true
     }
 
-    fun canCollide(collisionMask: Int): Boolean {
-        return this.collisionMask.and(collisionMask) != 0
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as Collider
         clone.roundness = roundness
-        clone.collisionMask = collisionMask
     }
 
     fun unionRing(

@@ -26,7 +26,6 @@ import me.anno.utils.io.ResourceHelper
 // todo test case: rotate camera by 45°, draw white box on black background:
 // todo do we get the correct appearance from just mixing?
 
-// todo integrate this into the engine somehow
 object FSR {
 
     /*fun String.removeComments(): String {
@@ -198,8 +197,7 @@ object FSR {
 
         // testing to upscale and sharpen an image
 
-        HiddenOpenGLContext.setSize(1024)
-        HiddenOpenGLContext.createOpenGL()
+        HiddenOpenGLContext.createOpenGL(1024)
 
         val src = getReference(OS.pictures, "bg,f8f8f8-flat,750x,075,f-pad,750x1000,f8f8f8.u4.jpg")
         val texture = ImageGPUCache.getImage(src, 10000, false)!!

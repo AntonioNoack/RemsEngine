@@ -58,6 +58,10 @@ abstract class StudioBase(
     constructor(needsAudio: Boolean, title: String, versionNumber: Int, versionSuffix: String? = null) :
             this(needsAudio, title, filterAlphaNumeric(title), versionNumber, versionSuffix)
 
+    init {
+        LOGGER.info("Process ID: ${OS.getProcessID()}")
+    }
+
     /**
      * version of program as string,
      * x.yy.zz

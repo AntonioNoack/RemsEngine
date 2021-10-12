@@ -55,7 +55,7 @@ class Framebuffer(
         Framebuffer("$name.ms", w, h, 1, targets, depthBufferType) else null
 
     override var pointer = -1
-    var depthRenderBuffer = -1
+    var internalDepthTexture = -1
     override var depthTexture: Texture2D? = null
 
     lateinit var textures: Array<Texture2D>
@@ -165,15 +165,18 @@ class Framebuffer(
 
     private fun createDepthBuffer() {
         val renderBuffer = glGenRenderbuffers()
-        depthRenderBuffer = renderBuffer
-        if (renderBuffer < 0) throw RuntimeException()
+        if (renderBuffer < 0) throw RuntimeException("Failed to create renderbuffer")
+        internalDepthTexture = renderBuffer
         glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer)
+        val format = GL_DEPTH_COMPONENT // application chooses bytes/pixel
         if (withMultisampling) {
-            glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_DEPTH_COMPONENT, w, h)
+            glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, format, w, h)
         } else {
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, w, h)
+            glRenderbufferStorage(GL_RENDERBUFFER, format, w, h)
         }
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBuffer)
+        val bytesPerPixel = 4 // a guess for the internal format; worst case
+        depthAllocated = Texture2D.allocate(depthAllocated, w * h * bytesPerPixel.toLong())
     }
 
     private fun resolveTo(target: Framebuffer) {
@@ -282,21 +285,12 @@ class Framebuffer(
             destroy()
         } else {
             msBuffer?.destroy()
-            if (pointer > -1) {
-                glDeleteFramebuffers(pointer)
-                Frame.invalidate()
-                pointer = -1
-                if (deleteDepth) depthTexture?.destroy()
-            }
-            if (depthRenderBuffer > -1) {
-                glDeleteRenderbuffers(depthRenderBuffer)
-                depthRenderBuffer = -1
-            }
+            destroyFramebuffer()
+            destroyInternalDepth()
         }
     }
 
-    override fun destroy() {
-        msBuffer?.destroy()
+    fun destroyFramebuffer() {
         if (pointer > -1) {
             glDeleteFramebuffers(pointer)
             Frame.invalidate()
@@ -306,10 +300,22 @@ class Framebuffer(
             }
             depthTexture?.destroy()
         }
-        if (depthRenderBuffer > -1) {
-            glDeleteRenderbuffers(depthRenderBuffer)
-            depthRenderBuffer = -1
+    }
+
+    fun destroyInternalDepth() {
+        if (internalDepthTexture > -1) {
+            glDeleteRenderbuffers(internalDepthTexture)
+            depthAllocated = Texture2D.allocate(depthAllocated, 0L)
+            internalDepthTexture = -1
         }
+    }
+
+    var depthAllocated = 0L
+
+    override fun destroy() {
+        msBuffer?.destroy()
+        destroyFramebuffer()
+        destroyInternalDepth()
     }
 
     fun getColor0(): Texture2D {
@@ -320,10 +326,6 @@ class Framebuffer(
     }
 
     companion object {
-
-        // todo keep track of the allocated bytes
-        // todo render buffers
-        // todo internal depth textures
 
         // private val LOGGER = LogManager.getLogger(Framebuffer::class)!!
 

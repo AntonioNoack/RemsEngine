@@ -9,6 +9,7 @@ import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL33.glDrawArraysInstanced
 import org.lwjgl.opengl.GL33.glVertexAttribDivisor
+import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 
 abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
@@ -108,7 +109,7 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
             hasWarned = true
             LOGGER.warn("VAO does not have attribute!, $attributes, ${shader.vertexSource}")
         }
-        // todo disable all attributes, which were not bound
+        // disable all attributes, which were not bound? no, not required
     }
 
     open fun createVAOInstanced(shader: Shader, instanceData: Buffer) {
@@ -134,7 +135,7 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
     private fun bindBufferAttributes(shader: Shader) {
         GFX.check()
         shader.potentiallyUse()
-        // todo cache vao by shader? typically, we only need 4 shaders for a single mesh
+        // todo cache vao by shader? typically, we only need 4-8 shaders for a single mesh
         // todo alternatively, we could specify the location in the shader
         if (vao <= 0 || shader !== lastShader) createVAO(shader)
         else bindVAO(vao)
@@ -245,7 +246,7 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
         this.buffer = -1
         this.vao = -1
         if (nioBuffer != null) {
-            // todo this crashes... why???
+            // todo does this still crash?
             // MemoryUtil.memFree(nioBuffer)
         }
         nioBuffer = null

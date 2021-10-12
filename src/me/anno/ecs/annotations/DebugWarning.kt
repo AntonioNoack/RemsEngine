@@ -1,3 +1,3 @@
 package me.anno.ecs.annotations
 
-annotation class InfoProperty()
+annotation class DebugWarning()

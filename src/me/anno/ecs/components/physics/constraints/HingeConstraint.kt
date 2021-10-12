@@ -2,14 +2,16 @@ package me.anno.ecs.components.physics.constraints
 
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.Transform
+import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
 import javax.vecmath.Vector3d
 
 class HingeConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.HingeConstraint>() {
 
+    @Range(0.0, 2.0)
     var axis = 0
         set(value) {
-            if (field != value && field in 0..2) {
+            if (field != value && value in 0..2) {
                 field = value
                 invalidateRigidbody()
             }

@@ -10,12 +10,10 @@ import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
 import me.anno.utils.OS
 import me.anno.utils.files.Files.use
 import me.anno.utils.structures.lists.ExpensiveList
-import me.anno.utils.types.Lists.join
 import me.anno.utils.types.Strings.incrementTab
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
 import org.apache.logging.log4j.LogManager
-import org.joml.Vector2f
 import java.awt.Color
 import java.awt.Font
 import java.awt.FontMetrics
@@ -204,8 +202,6 @@ class AWTFont(val font: Font) {
         exampleLayout.ascent + exampleLayout.descent
     }
 
-    private fun isSpace(char: Int) = char == '\t'.code || char == ' '.code
-
     fun splitParts(
         text: String,
         fontSize: Float,
@@ -233,14 +229,21 @@ class AWTFont(val font: Font) {
         }
 
         val width = splitLines.maxByOrNull { it?.width ?: 0f }?.width ?: 0f
+
         var lineCount = 0
-        val parts = splitLines.mapNotNull { partResult ->
-            val offsetY = actualFontSize * lineCount
-            lineCount += partResult?.lineCount ?: 1
-            val offset = Vector2f(0f, offsetY)
-            partResult?.parts?.map { it + offset }
-            // todo break, if the line limit has been reached
-        }.join()
+        val parts = ArrayList<StringPart>(splitLines.sumOf { it?.parts?.size ?: 0 })
+        for (i in splitLines.indices) {
+            val partResult = splitLines[i]
+            lineCount += if (partResult != null) {
+                if (lineCount == 0) {
+                    parts.addAll(partResult.parts)
+                } else {
+                    val offsetY = actualFontSize * lineCount
+                    parts.addAll(partResult.parts.map { it.plus(offsetY) })
+                }
+                partResult.lineCount
+            } else 1
+        }
         val height = lineCount * actualFontSize
         return PartResult(parts, width, height, lineCount, exampleLayout)
     }

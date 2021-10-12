@@ -307,8 +307,10 @@ abstract class TextReaderBase : BaseReader() {
         return Quaternionf(rawX, rawY, rawZ, rawW)
     }
 
-    private fun readVector2d(): Vector2d {
-        assert(skipSpace(), '[', "Start of Vector")
+    private fun readVector2d(allowCommaAtStart: Boolean = false): Vector2d {
+        var c0 = skipSpace()
+        if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
+        assert(c0, '[', "Start of Vector")
         val rawX = readDouble()
         val sep0 = skipSpace()
         if (sep0 == ']') return Vector2d(rawX)
@@ -318,8 +320,10 @@ abstract class TextReaderBase : BaseReader() {
         return Vector2d(rawX, rawY)
     }
 
-    private fun readVector3d(): Vector3d {
-        assert(skipSpace(), '[', "Start of Vector")
+    private fun readVector3d(allowCommaAtStart: Boolean = false): Vector3d {
+        var c0 = skipSpace()
+        if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
+        assert(c0, '[', "Start of Vector")
         val rawX = readDouble()
         val sep0 = skipSpace()
         if (sep0 == ']') return Vector3d(rawX) // monotone / grayscale
@@ -331,8 +335,10 @@ abstract class TextReaderBase : BaseReader() {
         return Vector3d(rawX, rawY, rawZ)
     }
 
-    private fun readVector4d(): Vector4d {
-        assert(skipSpace(), '[', "Start of Vector")
+    private fun readVector4d(allowCommaAtStart: Boolean = false): Vector4d {
+        var c0 = skipSpace()
+        if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
+        assert(c0, '[', "Start of Vector")
         val rawX = readDouble()
         val sep0 = skipSpace()
         if (sep0 == ']') return Vector4d(rawX) // monotone
@@ -591,8 +597,7 @@ abstract class TextReaderBase : BaseReader() {
                 )
                 assert(skipSpace(), ']', "End of m3x3")
             }
-            "m4x3" -> {
-                assert(skipSpace(), '[', "Start of m4x3")
+            "m4x3" -> readWithBrackets(type) {
                 obj.readMatrix4x3f(
                     name, Matrix4x3f(
                         readVector3f(),
@@ -601,22 +606,40 @@ abstract class TextReaderBase : BaseReader() {
                         readVector3f(true)
                     )
                 )
-                assert(skipSpace(), ']', "End of m4x3")
             }
-            "m4x4" -> obj.readMatrix4x4f(name, Matrix4f(readVector4f(), readVector4f(), readVector4f(), readVector4f()))
-            "m3x3d" -> obj.readMatrix3x3d(name, Matrix3d(readVector3d(), readVector3d(), readVector3d()))
-            "m4x3d" -> obj.readMatrix4x3d(
-                name, Matrix4x3d(
-                    readDouble(), readDouble(), readDouble(),
-                    readDouble(), readDouble(), readDouble(),
-                    readDouble(), readDouble(), readDouble(),
-                    readDouble(), readDouble(), readDouble()
+            "m4x4" -> readWithBrackets(type) {
+                obj.readMatrix4x4f(name, Matrix4f(readVector4f(), readVector4f(), readVector4f(), readVector4f()))
+            }
+            "m3x3d" -> readWithBrackets(type) {
+                obj.readMatrix3x3d(name, Matrix3d(readVector3d(), readVector3d(), readVector3d()))
+            }
+            "m4x3d" -> readWithBrackets(type) {
+                obj.readMatrix4x3d(
+                    name, Matrix4x3d(
+                        readDouble(), readDouble(), readDouble(),
+                        readDouble(), readDouble(), readDouble(),
+                        readDouble(), readDouble(), readDouble(),
+                        readDouble(), readDouble(), readDouble()
+                    )
                 )
-            )
-            "m4x4d" -> obj.readMatrix4x4d(
-                name,
-                Matrix4d(readVector4d(), readVector4d(), readVector4d(), readVector4d())
-            )
+            }
+            "m4x4d" -> readWithBrackets(type) {
+                obj.readMatrix4x4d(name, Matrix4d(readVector4d(), readVector4d(), readVector4d(), readVector4d()))
+            }
+            "AABBf" -> readWithBrackets(type) {
+                obj.readAABBf(
+                    name, AABBf()
+                        .setMin(readVector3f())
+                        .setMax(readVector3f(true))
+                )
+            }
+            "AABBd" -> readWithBrackets(type) {
+                obj.readAABBd(
+                    name, AABBd()
+                        .setMin(readVector3d())
+                        .setMax(readVector3d(true))
+                )
+            }
             "S" -> obj.readString(name, readStringValue())
             "S[]" -> obj.readStringArray(name, readStringArray())
             "S[][]" -> {
@@ -749,6 +772,12 @@ abstract class TextReaderBase : BaseReader() {
             }
         }
         return instance
+    }
+
+    inline fun readWithBrackets(name: String, run: () -> Unit) {
+        assert(skipSpace(), '[', name)
+        run()
+        assert(skipSpace(), ']', name)
     }
 
     private fun splitTypeName(typeName: String): Pair<String, String> {

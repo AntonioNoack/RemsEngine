@@ -3,6 +3,8 @@ package me.anno.ecs.components.physics.constraints
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.Transform
 import me.anno.ecs.Component
+import me.anno.ecs.annotations.DebugProperty
+import me.anno.ecs.annotations.DebugWarning
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.physics.BulletPhysics.Companion.castB
 import me.anno.ecs.components.physics.Rigidbody
@@ -17,9 +19,32 @@ abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constrain
 
     @Type("Rigidbody/PrefabSaveable")
     var other: Rigidbody? = null
+        set(value) {
+            if (field != value) {
+                value?.constrained?.add(this)
+                field?.constrained?.remove(this)
+                field = value
+            }
+        }
 
+    @DebugProperty
     @NotSerializedProperty
     var bulletInstance: TypedConstraint? = null
+
+    @DebugWarning
+    @NotSerializedProperty
+    val missingOther
+        get() = if (other == null) "True" else null
+
+    @DebugWarning
+    @NotSerializedProperty
+    val isMissingRigidbody
+        get() = if (entity?.getComponent(Rigidbody::class) == null) "" else null
+
+    @DebugWarning
+    @NotSerializedProperty
+    val otherIsRigidbody
+        get() = if (entity?.getComponent(Rigidbody::class)?.run { this == other } == true) "" else null
 
     var disableCollisionsBetweenLinked = true
 

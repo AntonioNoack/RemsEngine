@@ -47,6 +47,7 @@ class Prefab : Saveable {
 
     fun invalidateInstance() {
         isValid = false
+        // todo all child prefab instances would need to be invalidated as well
     }
 
     val instanceName get() = sets[ROOT_PATH, "name"]?.toString()
@@ -111,11 +112,17 @@ class Prefab : Saveable {
 
     fun set(path: Path, name: String, value: Any?) {
         add(CSet(path, name, value))
+        if (!isWritable) throw ImmutablePrefabException(source)
+        sets[path, name] = value
+        // apply to sample instance to keep it valid
+        updateSample(path, name, value)
+        // todo all child prefab instances would need to be updated as well
+        // todo same for add...
     }
 
     fun setIfNotExisting(path: Path, name: String, value: Any?) {
-        if (sets.contains(path, name)) {// could be optimized to use no instantiations
-            add(CSet(path, name, value))
+        if (!sets.contains(path, name)) {// could be optimized to use no instantiations
+            set(path, name, value)
         }
     }
 
@@ -180,8 +187,16 @@ class Prefab : Saveable {
     }
 
     private fun updateSample(change: CSet) {
+        val sampleInstance = sampleInstance
         if (sampleInstance != null && isValid) {
-            change.apply(sampleInstance!!, null)
+            change.apply(sampleInstance, null)
+        }
+    }
+
+    private fun updateSample(path: Path, name: String, value: Any?) {
+        val sampleInstance = sampleInstance
+        if (sampleInstance != null && isValid) {
+            CSet.apply(sampleInstance, path, name, value)
         }
     }
 

@@ -34,6 +34,7 @@ import me.anno.gpu.TextureLib
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.BaseShader
 import me.anno.io.ISaveable.Companion.registerCustomClass
+import me.anno.io.SaveableArray
 import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
 import me.anno.mesh.assimp.Bone
@@ -50,6 +51,7 @@ object ECSRegistry {
         FileReference.registerStatic(ScenePrefab)
 
         registerCustomClass(StringMap())
+        registerCustomClass(SaveableArray())
 
         registerCustomClass(Entity())
         registerCustomClass(Transform())

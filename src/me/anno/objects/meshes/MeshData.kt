@@ -8,6 +8,7 @@ import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.ecs.components.mesh.AnimRenderer
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
+import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.gpu.GFX
@@ -124,7 +125,7 @@ open class MeshData : ICacheData {
             )
         )
 
-        if (entity.hasComponent(MeshComponent::class)) {
+        if (entity.hasComponent(MeshBaseComponent::class)) {
 
             shader.m4x3("localTransform", stack)
             GFX.shaderColor(shader, "tint", -1)
@@ -132,10 +133,10 @@ open class MeshData : ICacheData {
             // LOGGER.info("use materials? $useMaterials")
 
             if (useMaterials) {
-                entity.anyComponent(MeshComponent::class) { comp ->
-                    val mesh = MeshCache[comp.mesh]
+                entity.anyComponent(MeshBaseComponent::class) { comp ->
+                    val mesh = comp.getMesh()
                     if (mesh == null) {
-                        if (comp.mesh != InvalidRef) {
+                        if (comp is MeshComponent && comp.mesh != InvalidRef) {
                             LOGGER.warn("Mesh ${comp.mesh} is missing")
                         }
                     } else {
@@ -153,10 +154,10 @@ open class MeshData : ICacheData {
             } else {
                 val material = defaultMaterial
                 material.defineShader(shader)
-                entity.anyComponent(MeshComponent::class) { comp ->
-                    val mesh = MeshCache[comp.mesh]
+                entity.anyComponent(MeshBaseComponent::class) { comp ->
+                    val mesh = comp.getMesh()
                     if (mesh == null) {
-                        if (comp.mesh != InvalidRef) {
+                        if (comp is MeshComponent && comp.mesh != InvalidRef) {
                             LOGGER.warn("Mesh ${comp.mesh} is missing")
                         }
                     } else {

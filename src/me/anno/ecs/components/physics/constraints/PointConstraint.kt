@@ -3,32 +3,44 @@ package me.anno.ecs.components.physics.constraints
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.dynamics.constraintsolver.Point2PointConstraint
 import com.bulletphysics.linearmath.Transform
+import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.gui.LineShapes
-import org.joml.Vector3d
 
 /**
  * fixes two local points of rigidbodies to lay onto each other
  * */
 class PointConstraint : Constraint<Point2PointConstraint>() {
 
-    // 0 = disabled,
-    // otherwise impulse = clamp(impulse,-impulseClamp,+impulseClamp)
+    /**
+     * ensures that the impulse is below a certain threshold
+     * 0 = disabled,
+     * otherwise impulse = clamp(impulse,-impulseClamp,+impulseClamp)
+     * */
     var impulseClamp = 0.0
         set(value) {
             field = value
             bulletInstance?.setting?.impulseClamp = value
         }
 
-    // why 1?
+    /**
+     * when close, how much the velocity is reduced to avoid forward-backward-jiggling
+     * 0 = allow jiggle,
+     * 1 = no jiggle
+     * */
+    @Range(0.0, 1.0)
     var damping = 1.0
         set(value) {
             field = value
             bulletInstance?.setting?.damping = damping
         }
 
-    // some kind of multiplier for impulse...
-    var tau = 0.0
+    /**
+     * how fast the point is moved towards that other point
+     * 0 = never,
+     * 1 = instantly
+     * */
+    @Range(0.0, 1.0)
+    var tau = 0.3
         set(value) {
             field = value
             bulletInstance?.setting?.tau = tau

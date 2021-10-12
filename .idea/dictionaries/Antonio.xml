@@ -125,6 +125,7 @@
       <w>inited</w>
       <w>inspectable</w>
       <w>inspectables</w>
+      <w>invalidations</w>
       <w>iter</w>
       <w>ivec</w>
       <w>jacobian</w>
@@ -210,6 +211,7 @@
       <w>oldlace</w>
       <w>olivedrab</w>
       <w>orangered</w>
+      <w>ortho</w>
       <w>orthogonalize</w>
       <w>orthographicness</w>
       <w>palegoldenrod</w>

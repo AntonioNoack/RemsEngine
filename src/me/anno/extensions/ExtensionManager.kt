@@ -2,14 +2,14 @@ package me.anno.extensions
 
 import org.apache.logging.log4j.LogManager
 
-abstract class ExtensionManager<V: Extension>(val instanceName: String) {
+abstract class ExtensionManager<V : Extension>(val instanceName: String) {
 
     val loaded = HashSet<V>()
 
-    fun enable(extensions: List<V>){
+    fun enable(extensions: List<V>) {
         onEnable(extensions)
         loaded += extensions
-        for(ex in extensions){
+        for (ex in extensions) {
             LOGGER.info("Enabled $instanceName \"${ex.name}\"")
         }
     }
@@ -19,7 +19,7 @@ abstract class ExtensionManager<V: Extension>(val instanceName: String) {
     fun disable() {
         val list = loaded.toList()
         onDisable(list)
-        for(ex in list){
+        for (ex in list) {
             LOGGER.info("Disabled $instanceName \"${ex.name}\"")
         }
         loaded.clear()

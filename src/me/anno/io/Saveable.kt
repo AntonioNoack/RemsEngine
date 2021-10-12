@@ -61,28 +61,40 @@ abstract class Saveable : ISaveable {
     override fun readObjectArray2D(name: String, values: Array<Array<ISaveable?>>) = readSomething(name, values)
 
     override fun readVector2f(name: String, value: Vector2f) = readSomething(name, value)
-    override fun readVector3f(name: String, value: Vector3f) = readSomething(name, value)
-    override fun readVector4f(name: String, value: Vector4f) = readSomething(name, value)
-
     override fun readVector2fArray(name: String, values: Array<Vector2f>) = readSomething(name, values)
+    override fun readVector2fArray2D(name: String, values: Array<Array<Vector2f>>) = readSomething(name, values)
+
+    override fun readVector3f(name: String, value: Vector3f) = readSomething(name, value)
     override fun readVector3fArray(name: String, values: Array<Vector3f>) = readSomething(name, values)
+    override fun readVector3fArray2D(name: String, values: Array<Array<Vector3f>>) = readSomething(name, values)
+
+    override fun readVector4f(name: String, value: Vector4f) = readSomething(name, value)
     override fun readVector4fArray(name: String, values: Array<Vector4f>) = readSomething(name, values)
+    override fun readVector4fArray2D(name: String, values: Array<Array<Vector4f>>) = readSomething(name, values)
 
     override fun readVector2d(name: String, value: Vector2d) = readSomething(name, value)
-    override fun readVector3d(name: String, value: Vector3d) = readSomething(name, value)
-    override fun readVector4d(name: String, value: Vector4d) = readSomething(name, value)
-
     override fun readVector2dArray(name: String, values: Array<Vector2d>) = readSomething(name, values)
+    override fun readVector2dArray2D(name: String, values: Array<Array<Vector2d>>) = readSomething(name, values)
+
+    override fun readVector3d(name: String, value: Vector3d) = readSomething(name, value)
     override fun readVector3dArray(name: String, values: Array<Vector3d>) = readSomething(name, values)
+    override fun readVector3dArray2D(name: String, values: Array<Array<Vector3d>>) = readSomething(name, values)
+
+    override fun readVector4d(name: String, value: Vector4d) = readSomething(name, value)
     override fun readVector4dArray(name: String, values: Array<Vector4d>) = readSomething(name, values)
+    override fun readVector4dArray2D(name: String, values: Array<Array<Vector4d>>) = readSomething(name, values)
 
     override fun readVector2i(name: String, value: Vector2i) = readSomething(name, value)
-    override fun readVector3i(name: String, value: Vector3i) = readSomething(name, value)
-    override fun readVector4i(name: String, value: Vector4i) = readSomething(name, value)
-
     override fun readVector2iArray(name: String, values: Array<Vector2i>) = readSomething(name, values)
+    override fun readVector2iArray2D(name: String, values: Array<Array<Vector2i>>) = readSomething(name, values)
+
+    override fun readVector3i(name: String, value: Vector3i) = readSomething(name, value)
     override fun readVector3iArray(name: String, values: Array<Vector3i>) = readSomething(name, values)
+    override fun readVector3iArray2D(name: String, values: Array<Array<Vector3i>>) = readSomething(name, values)
+
+    override fun readVector4i(name: String, value: Vector4i) = readSomething(name, value)
     override fun readVector4iArray(name: String, values: Array<Vector4i>) = readSomething(name, values)
+    override fun readVector4iArray2D(name: String, values: Array<Array<Vector4i>>) = readSomething(name, values)
 
     override fun readMatrix3x3f(name: String, value: Matrix3f) = readSomething(name, value)
     override fun readMatrix4x3f(name: String, value: Matrix4x3f) = readSomething(name, value)
@@ -94,9 +106,13 @@ abstract class Saveable : ISaveable {
     override fun readQuaternionf(name: String, value: Quaternionf) = readSomething(name, value)
     override fun readQuaternionfArray(name: String, values: Array<Quaternionf>) = readSomething(name, values)
     override fun readQuaternionfArray2D(name: String, values: Array<Array<Quaternionf>>) = readSomething(name, values)
+
     override fun readQuaterniond(name: String, value: Quaterniond) = readSomething(name, value)
     override fun readQuaterniondArray(name: String, values: Array<Quaterniond>) = readSomething(name, values)
     override fun readQuaterniondArray2D(name: String, values: Array<Array<Quaterniond>>) = readSomething(name, values)
+
+    override fun readAABBf(name: String, value: AABBf) = readSomething(name, value)
+    override fun readAABBd(name: String, value: AABBd) = readSomething(name, value)
 
     open fun readSomething(name: String, value: Any?) = warnMissingParam(name)
 

@@ -439,7 +439,7 @@ open class Panel(val style: Style) {
         parent?.onPasteFiles(x, y, files) ?: LOGGER.warn("Paste Ignored! $files, ${javaClass.simpleName}")
     }
 
-    open fun onCopyRequested(x: Float, y: Float): String? = parent?.onCopyRequested(x, y)
+    open fun onCopyRequested(x: Float, y: Float): Any? = parent?.onCopyRequested(x, y)
 
     open fun onSelectAll(x: Float, y: Float) {
         parent?.onSelectAll(x, y)

@@ -227,4 +227,27 @@ object Strings {
         return true
     }
 
+    fun isNumber(s: String): Boolean = s.toDoubleOrNull() != null
+
+    fun isName(s: String): Boolean {
+        if (s.isEmpty()) return false
+        val s0 = s[0]
+        return if (s0 in 'A'..'Z' || s0 in 'a'..'z') {
+            for (i in 1 until s.length) {
+                when (s[i]) {
+                    in 'A'..'Z', in 'a'..'z', in '0'..'9', '_' -> {
+                    }
+                    else -> return false
+                }
+            }
+            true
+        } else false
+    }
+
+    fun isArray(s: String): Boolean {
+        // todo only names and such are allowed, only commas, and only valid numbers...
+        // very complex -> currently just say no
+        return false
+    }
+
 }

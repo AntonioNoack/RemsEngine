@@ -1,7 +1,8 @@
 package me.anno.engine.ui
 
 import me.anno.config.DefaultConfig
-import me.anno.ecs.Entity
+import me.anno.ecs.interfaces.ControlReceiver
+import me.anno.ecs.interfaces.CustomEditMode
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.SceneView
 import me.anno.io.files.FileReference
@@ -13,7 +14,7 @@ import me.anno.ui.custom.UITypeLibrary
 import me.anno.ui.editor.PropertyInspector
 import me.anno.utils.hpc.SyncMaster
 
-object ECSTypeLibrary {
+object EditorState {
 
     lateinit var projectFile: FileReference
     lateinit var syncMaster: SyncMaster
@@ -22,6 +23,18 @@ object ECSTypeLibrary {
     lateinit var world: PrefabSaveable
 
     // todo box selecting with shift
+
+    var control: ControlReceiver? = null
+        set(value) {
+            field = value
+            if (value != null) editMode = null
+        }
+
+    var editMode: CustomEditMode? = null
+        set(value) {
+            field = value
+            if (value != null) control = null
+        }
 
     // todo we should be able to edit multiple values at the same time
     var selection: List<Inspectable> = emptyList()

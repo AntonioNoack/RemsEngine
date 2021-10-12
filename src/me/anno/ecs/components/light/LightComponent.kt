@@ -195,7 +195,8 @@ abstract class LightComponent(
                 }
             }
         }
-        JomlPools.vec3d.sub(1)
+        // why is this causing a BufferUnderFlow?
+        // JomlPools.vec3d.sub(1)
         JomlPools.quat4d.sub(1)
         JomlPools.mat4f.sub(1)
     }

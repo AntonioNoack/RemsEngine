@@ -14,6 +14,7 @@ import me.anno.audio.effects.impl.EchoEffect
 import me.anno.audio.effects.impl.EqualizerEffect
 import me.anno.audio.effects.impl.PitchEffect
 import me.anno.io.ISaveable.Companion.registerCustomClass
+import me.anno.io.SaveableArray
 import me.anno.io.utils.StringMap
 import me.anno.objects.*
 import me.anno.objects.attractors.EffectColoring
@@ -40,6 +41,7 @@ object RemsRegistry {
     fun init() {
 
         registerCustomClass(StringMap())
+        registerCustomClass(SaveableArray())
         registerCustomClass(Transform())
         registerCustomClass(Text())
         registerCustomClass(Circle())

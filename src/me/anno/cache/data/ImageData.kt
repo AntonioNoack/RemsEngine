@@ -117,7 +117,7 @@ class ImageData(file: FileReference) : ICacheData {
                 "hdr" -> loadHDR(file)
                 "dds" -> useFFMPEG(file)
                 else -> {
-                    val image = ImageCPUCache.getImage(file, false)
+                    val image = ImageCPUCache.getImage(file, 500, false)
                     if (image != null) {
                         texture.create("ImageData", image, true)
                         texture.rotation = getRotation(file)

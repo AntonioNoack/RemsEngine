@@ -20,14 +20,15 @@ import me.anno.studio.cli.RemsCLI
 import me.anno.studio.project.Project
 import me.anno.studio.rems.CheckVersion.checkVersion
 import me.anno.studio.rems.ui.StudioFileImporter
-import me.anno.studio.rems.ui.StudioTreeView
-import me.anno.ui.editor.PropertyInspector
-import me.anno.ui.editor.TimelinePanel
+import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
 import me.anno.ui.editor.UILayouts
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.sceneTabs.SceneTabs.currentTab
-import me.anno.ui.editor.sceneView.ISceneView
 import me.anno.utils.OS
+
+// todo isolate and remove certain frequencies from audio
+// todo visualize audio frequency, always!!!, from 25Hz to 48kHz
+// inspiration: https://www.youtube.com/watch?v=RA5UiLYWdbM&ab_channel=TomScott
 
 // todo test rendering
 // todo background needs to be black again
@@ -98,8 +99,8 @@ import me.anno.utils.OS
 // todo make stuff component based and compile shaders on the fly...
 // would allow easy system for pdf particles and such... maybe...
 
-// todo color to alpha
-// todo alpha to color ???
+// done color to alpha
+// done alpha to color
 // todo discard alpha being > or < than x / map alpha
 
 // todo splines for the polygon line
@@ -245,14 +246,14 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
             history.update(title, code)
         }
         currentTab?.hasChanged = true
-        updateSceneViews()
+        invalidateUI()
     }
 
     fun largeChange(title: String, run: () -> Unit) {
         change(title, gameTime, run)
         lastCode = null
         currentTab?.hasChanged = true
-        updateSceneViews()
+        invalidateUI()
     }
 
     private fun change(title: String, code: Any, run: () -> Unit) {
@@ -262,23 +263,6 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
         }
         run()
         history.put(title, code)
-    }
-
-    fun updateSceneViews() {
-        // if(gameTime > 1e10) throw RuntimeException()
-        // LOGGER.info("UpdateSceneViews ${gameTime / 1e9f}")
-        for (window in GFX.windowStack) {
-            for (panel in window.panel.listOfVisible) {
-                when (panel) {
-                    is StudioTreeView, is ISceneView, is TimelinePanel -> {
-                        panel.invalidateDrawing()
-                    }
-                    is PropertyInspector -> {
-                        panel.invalidate()
-                    }
-                }
-            }
-        }
     }
 
     override fun run() {

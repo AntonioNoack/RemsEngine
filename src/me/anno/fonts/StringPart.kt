@@ -11,7 +11,7 @@ class StringPart(
     var lineWidth: Float,
     val codepointLength: Int = text.codePointCount(0, text.length)
 ) {
-    operator fun plus(v: Vector2f) = StringPart(
-        xPos + v.x, yPos + v.y, text, font, lineWidth, codepointLength
+    fun plus(dy: Float) = StringPart(
+        xPos, yPos + dy, text, font, lineWidth, codepointLength
     )
 }

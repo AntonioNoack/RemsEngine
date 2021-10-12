@@ -15,11 +15,14 @@ import me.anno.input.MouseButton.Companion.toMouseButton
 import me.anno.input.Touch.Companion.onTouchDown
 import me.anno.input.Touch.Companion.onTouchMove
 import me.anno.input.Touch.Companion.onTouchUp
+import me.anno.io.ISaveable
+import me.anno.io.SaveableArray
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileFileRef.Companion.copyHierarchy
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.text.TextWriter
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.StudioBase.Companion.instance
 import me.anno.ui.base.Panel
@@ -28,6 +31,9 @@ import me.anno.utils.files.FileExplorerSelectWrapper
 import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.maths.Maths.length
+import me.anno.utils.types.Strings.isArray
+import me.anno.utils.types.Strings.isName
+import me.anno.utils.types.Strings.isNumber
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWDropCallback
@@ -442,7 +448,8 @@ object Input {
                 requestFocus(panelWindow?.first, true)
             }
 
-            val isDoubleClick = abs(lastClickTime - currentNanos) / 1_000_000 < longClickMillis &&
+            val longClickNanos = 1_000_000 * longClickMillis
+            val isDoubleClick = abs(lastClickTime - currentNanos) < longClickNanos &&
                     length(mouseX - lastClickX, mouseY - lastClickY) < maxClickDistance
 
             if (isDoubleClick) {
@@ -487,12 +494,54 @@ object Input {
     }
 
     fun copy() {
-        // todo combine all selected values into an array?
-        setClipboardContent(inFocus0?.onCopyRequested(mouseX, mouseY))
+        val inFocus0 = inFocus0 ?: return
+        val mx = mouseX
+        val my = mouseY
+        when (inFocus.size) {
+            0 -> return // don't clear the clipboard xD, nobody wants that empty
+            1 -> setClipboardContent(inFocus0.onCopyRequested(mx, my)?.toString())
+            else -> {
+                // combine them into an array
+                when (val first = inFocus0.onCopyRequested(mx, my)) {
+                    is ISaveable -> {
+                        // create array
+                        val array = SaveableArray()
+                        array.add(first)
+                        for (panel in inFocus) {
+                            if (panel !== inFocus0) {
+                                array.add(panel.onCopyRequested(mx, my) as? ISaveable ?: continue)
+                            }
+                        }
+                        setClipboardContent(TextWriter.toText(listOf(array)))
+                        // todo where necessary, support pasting an array of elements
+                    }
+                    is FileReference -> {
+                        // when this is a list of files, invoke copyFiles instead
+                        copyFiles(inFocus.mapNotNull { it.onCopyRequested(mx, my) as? FileReference })
+                    }
+                    else -> {
+                        // create very simple, stupid array of values as strings
+                        val data = inFocus
+                            .mapNotNull { it.onCopyRequested(mx, my) }
+                            .joinToString(",", "[", "]") {
+                                val s = it.toString()
+                                when {
+                                    s.isEmpty() -> "\"\""
+                                    isName(s) || isArray(s) || isNumber(s) -> s
+                                    else -> "\"${
+                                        s.replace("\\", "\\\\").replace("\"", "\\\"")
+                                    }\""
+                                }
+                            }
+                        setClipboardContent(data)
+                    }
+                }
+            }
+        }
     }
 
     fun copy(panel: Panel) {
-        setClipboardContent(panel.onCopyRequested(mouseX, mouseY))
+        setClipboardContent(panel.onCopyRequested(mouseX, mouseY)?.toString())
     }
 
     fun setClipboardContent(copied: String?) {

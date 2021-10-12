@@ -4,7 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.prefab.PrefabCache.loadScenePrefab
 import me.anno.engine.ui.DefaultLayout
-import me.anno.engine.ui.ECSTypeLibrary
+import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX
@@ -127,8 +127,8 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         val list = PanelListY(style)
 
         val isGaming = false
-        ECSTypeLibrary.syncMaster = syncMaster
-        ECSTypeLibrary.projectFile = editScene.source
+        EditorState.syncMaster = syncMaster
+        EditorState.projectFile = editScene.source
 
         ECSSceneTabs.open(syncMaster, editScene)
         // ECSSceneTabs.add(syncMaster, projectFile.getChild("2ndScene.json"))

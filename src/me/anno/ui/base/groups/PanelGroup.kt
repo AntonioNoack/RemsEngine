@@ -55,4 +55,12 @@ abstract class PanelGroup(style: Style) : Panel(style) {
         } else println("${Tabs.spaces((tabDepth + 1) * 2)}...")
     }
 
+    override fun onSelectAll(x: Float, y: Float) {
+        if (children.any { it.getMultiSelectablePanel() == it }) {
+            // select all panels, which are multi-selectable
+            GFX.inFocus.clear()
+            GFX.inFocus.addAll(children.filter { it.getMultiSelectablePanel() == it })
+        } else super.onSelectAll(x, y)
+    }
+
 }

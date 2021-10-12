@@ -88,6 +88,9 @@ abstract class PartialWriter(canSkipDefaultValues: Boolean) : BaseWriter(canSkip
     override fun writeQuaternionfArray(name: String, values: Array<Quaternionf>, force: Boolean) {}
     override fun writeQuaternionfArray2D(name: String, values: Array<Array<Quaternionf>>, force: Boolean) {}
 
+    override fun writeAABBf(name: String, value: AABBf, force: Boolean) {}
+    override fun writeAABBd(name: String, value: AABBd, force: Boolean) {}
+
     override fun writeNull(name: String?) {}
     override fun writePointer(name: String?, className: String, ptr: Int, value: ISaveable) {}
 

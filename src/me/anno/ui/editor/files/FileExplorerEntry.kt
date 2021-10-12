@@ -403,30 +403,49 @@ class FileExplorerEntry(
         }
     }
 
+    private fun updateTooltip() {
+
+        // if is selected, and there are multiple files selected, show group stats
+        if (isInFocus && inFocus.count { it is FileExplorerEntry } > 1) {
+
+            val files = inFocus.mapNotNull { (it as? FileExplorerEntry)?.path }
+                .map { getReference(it) }
+
+            tooltip = "${files.count { it.isDirectory }} folders + ${files.count { !it.isDirectory }} files\n" +
+                    files.sumOf { it.length() }.formatFileSize()
+
+        } else {
+
+            val file = getReference(path)
+            when {
+                file.isDirectory -> {
+                    // todo add number of children?
+                    tooltip = file.name
+                }
+                file is PrefabReadable -> {
+                    val prefab = file.readPrefab()
+                    tooltip = file.name + "\n" +
+                            "${prefab.clazzName}, ${prefab.countTotalChangesAsync()} Changes"
+                }
+                file is ImageReadable -> {
+                    val image = file.readImage()
+                    tooltip = file.name + "\n" +
+                            "${image.width} x ${image.height}"
+                }
+                else -> {
+                    tooltip = file.name + "\n" +
+                            file.length().formatFileSize()
+                }
+            }
+
+        }
+    }
+
     private var lines = 0
     private var padding = 0
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
-        val file = getReference(path)
-        when {
-            file.isDirectory -> {
-                tooltip = file.name
-            }
-            file is PrefabReadable -> {
-                val prefab = file.readPrefab()
-                tooltip = file.name + "\n" +
-                        "${prefab.clazzName}, ${prefab.countTotalChangesAsync()} Changes"
-            }
-            file is ImageReadable -> {
-                val image = file.readImage()
-                tooltip = file.name + "\n" +
-                        "${image.width} x ${image.height}"
-            }
-            else -> {
-                tooltip = file.name + "\n" +
-                        file.length().formatFileSize()
-            }
-        }
+        updateTooltip()
 
         drawBackground()
 

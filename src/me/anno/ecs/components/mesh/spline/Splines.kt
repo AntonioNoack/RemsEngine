@@ -58,7 +58,7 @@ object Splines {
         val p2a = Vector3d()
         val p1b = Vector3d()
         val p2b = Vector3d()
-        for (i in 2 until posNormals.size step 2) {
+        for (i in 4 until posNormals.size step 4) {
 
             val p0a = posNormals[i - 4]
             val n0a = posNormals[i - 3]
@@ -75,7 +75,8 @@ object Splines {
             // calculate using curviness, how many pts we need
             val angle0 = angle(p0a, p1a, p2a) + angle(p0b, p1b, p2b)
             val angle1 = angle(p1a, p2a, p3a) + angle(p1b, p2b, p3b)
-            val stops = Maths.max(1, ((angle0 + angle1) * ptsPerRadiant * 0.5).roundToInt())
+            val stopsF = ((angle0 + angle1) * ptsPerRadiant * 0.5)
+            val stops = if (stopsF.isFinite()) Maths.max(1, stopsF.roundToInt()) else 1
 
             result.add(p0a)
             result.add(p0b)

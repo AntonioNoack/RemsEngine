@@ -7,8 +7,6 @@ import kotlin.math.roundToInt
 
 object Vectors {
 
-    // todo joml 2.0 project? with all these functions that are missing
-
     operator fun Vector2fc.plus(s: Vector2fc) = Vector2f(x() + s.x(), y() + s.y())
     operator fun Vector2fc.minus(s: Vector2fc) = Vector2f(x() - s.x(), y() - s.y())
     operator fun Vector2fc.times(f: Float) = Vector2f(x() * f, y() * f)
@@ -256,25 +254,11 @@ object Vectors {
     }
 
     fun findTangent(normal: Vector3f, dst: Vector3f = Vector3f()): Vector3f {
-        val cross = dst.set(normal).normalize()
-        return if (abs(cross.y) < 0.5f) {
-            // y is a good choice
-            cross.cross(0f, 1f, 0f)
-        } else {
-            // y is a bad choice -> use x
-            cross.cross(1f, 0f, 0f)
-        }
+        return normal.findSecondAxis(dst)
     }
 
     fun findTangent(normal: Vector3d, dst: Vector3d = Vector3d()): Vector3d {
-        val cross = dst.set(normal).normalize()
-        return if (abs(cross.y) < 0.5) {
-            // y is a good choice
-            cross.cross(0.0, 1.0, 0.0)
-        } else {
-            // y is a bad choice -> use x
-            cross.cross(1.0, 0.0, 0.0)
-        }
+        return normal.findSecondAxis(dst)
     }
 
     fun Vector3f.roundToInt() = Vector3i(x.roundToInt(), y.roundToInt(), z.roundToInt())
@@ -409,6 +393,28 @@ object Vectors {
         if (!intersect(p0, n0, p1, n1, factor, dst)) {
             dst.set(p0).add(p1).mul(0.5)
         }
+    }
+
+    fun Vector3f.findSecondAxis(dst: Vector3f = Vector3f()): Vector3f {
+        val thirdAxis = if (abs(x) > abs(y)) dst.set(0f, 1f, 0f)
+        else dst.set(1f, 0f, 0f)
+        return cross(thirdAxis, dst).normalize()
+    }
+
+    fun Vector3d.findSecondAxis(dst: Vector3d = Vector3d()): Vector3d {
+        val thirdAxis = if (abs(x) > abs(y)) dst.set(0.0, 1.0, 0.0)
+        else dst.set(1.0, 0.0, 0.0)
+        return cross(thirdAxis, dst).normalize()
+    }
+
+    fun Vector3f.findSystem(dstY: Vector3f = Vector3f(), dstZ: Vector3f = Vector3f()) {
+        findSecondAxis(dstY)
+        cross(dstY, dstZ).normalize()
+    }
+
+    fun Vector3d.findSystem(dstY: Vector3d = Vector3d(), dstZ: Vector3d = Vector3d()) {
+        findSecondAxis(dstY)
+        cross(dstY, dstZ).normalize()
     }
 
 }

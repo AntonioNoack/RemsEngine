@@ -10,6 +10,7 @@ import me.anno.ecs.components.light.PlanarReflection
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
+import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.shapes.Icosahedron
 import me.anno.ecs.prefab.PrefabSaveable
@@ -84,7 +85,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         return defaultStage
     }
 
-    private fun addMesh(mesh: Mesh, renderer: MeshComponent, entity: Entity, clickId: Int) {
+    private fun addMesh(mesh: Mesh, renderer: MeshBaseComponent, entity: Entity, clickId: Int) {
         mesh.ensureBuffer()
         val materials = mesh.materials
         for (index in 0 until mesh.numMaterials) {
@@ -94,7 +95,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         }
     }
 
-    private fun addMeshDepth(mesh: Mesh, renderer: MeshComponent, entity: Entity) {
+    private fun addMeshDepth(mesh: Mesh, renderer: MeshBaseComponent, entity: Entity) {
         defaultStage.add(renderer, mesh, entity, 0, 0)
     }
 
@@ -167,8 +168,8 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         val clickId = 1
         when (rootElement) {
             is Entity -> fill(rootElement, cameraPosition, worldScale)
-            is MeshComponent -> {
-                val mesh = MeshCache[rootElement.mesh]
+            is MeshBaseComponent -> {
+                val mesh = rootElement.getMesh()
                 if (mesh != null) addMesh(mesh, rootElement, sampleEntity, clickId)
             }
             is Mesh -> addMesh(rootElement, sampleMeshComponent, sampleEntity, clickId)
@@ -260,8 +261,8 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
             val component = components[i]
             if (component.isEnabled && component !== ignoredComponent) {
                 when (component) {
-                    is MeshComponent -> {
-                        val mesh = MeshCache[component.mesh]
+                    is MeshBaseComponent -> {
+                        val mesh = component.getMesh()
                         if (mesh != null) {
                             component.clickId = clickId
                             if (component.isInstanced) {
@@ -327,8 +328,8 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         for (i in components.indices) {
             val component = components[i]
             if (component.isEnabled && component !== ignoredComponent) {
-                if (component is MeshComponent) {
-                    val mesh = MeshCache[component.mesh]
+                if (component is MeshBaseComponent) {
+                    val mesh = component.getMesh()
                     if (mesh != null) {
                         if (component.isInstanced) {
                             addMeshInstancedDepth(mesh, entity)
@@ -353,7 +354,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         val components = entity.components
         for (i in components.indices) {
             val c = components[i]
-            if (c.isEnabled && c is MeshComponent) {
+            if (c.isEnabled && c is MeshBaseComponent) {
                 if (c.clickId == searchedId) return c
             }
         }

@@ -1,21 +1,22 @@
 package me.anno.io.serialization
 
+import me.anno.ecs.annotations.DebugAction
+import me.anno.ecs.annotations.DebugProperty
+import me.anno.ecs.annotations.DebugWarning
 import me.anno.ecs.annotations.ExecuteInEditMode
 import me.anno.io.ISaveable
 import org.apache.logging.log4j.LogManager
-import kotlin.reflect.KClass
-import kotlin.reflect.KMutableProperty1
-import kotlin.reflect.KVisibility
-import kotlin.reflect.full.declaredMemberProperties
-import kotlin.reflect.full.findAnnotation
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.full.superclasses
+import kotlin.reflect.*
+import kotlin.reflect.full.*
 import kotlin.reflect.jvm.isAccessible
 
 class CachedReflections(
     val clazz: KClass<*>,
     val allProperties: Map<String, CachedProperty>,
-    val declaredProperties: Map<String, CachedProperty>
+    val declaredProperties: Map<String, CachedProperty>,
+    val debugActions: List<KFunction<*>>,
+    val debugProperties: List<KProperty<*>>,
+    val debugWarnings: List<KProperty<*>>
 ) {
 
     constructor(instance: Any) : this(instance, instance::class)
@@ -23,7 +24,10 @@ class CachedReflections(
     constructor(instance: Any, clazz: KClass<*>) : this(
         clazz,
         getMemberProperties(instance, clazz),
-        getDeclaredMemberProperties(instance, clazz)
+        getDeclaredMemberProperties(instance, clazz),
+        getDebugActions(clazz),
+        getDebugProperties(clazz),
+        getDebugWarnings(clazz)
     )
 
     val annotations = clazz.annotations
@@ -56,6 +60,39 @@ class CachedReflections(
     companion object {
 
         private val LOGGER = LogManager.getLogger(CachedProperty::class)
+
+        fun getDebugActions(clazz: KClass<*>): List<KFunction<*>> {
+            var list = emptyList<KFunction<*>>()
+            for (func in clazz.memberFunctions) {
+                if (func.annotations.any { it is DebugAction }) {
+                    if (list is MutableList) list.add(func)
+                    else list = arrayListOf(func)
+                }
+            }
+            return list
+        }
+
+        fun getDebugProperties(clazz: KClass<*>): List<KProperty<*>> {
+            var list = emptyList<KProperty<*>>()
+            for (func in clazz.memberProperties) {
+                if (func.annotations.any { it is DebugProperty }) {
+                    if (list is MutableList) list.add(func)
+                    else list = arrayListOf(func)
+                }
+            }
+            return list
+        }
+
+        fun getDebugWarnings(clazz: KClass<*>): List<KProperty<*>> {
+            var list = emptyList<KProperty<*>>()
+            for (func in clazz.memberProperties) {
+                if (func.annotations.any { it is DebugWarning }) {
+                    if (list is MutableList) list.add(func)
+                    else list = arrayListOf(func)
+                }
+            }
+            return list
+        }
 
         fun getMemberProperties(instance: Any, clazz: KClass<*>): Map<String, CachedProperty> {
             return findProperties(instance, clazz, clazz.memberProperties.filterIsInstance<KMutableProperty1<*, *>>())

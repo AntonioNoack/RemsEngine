@@ -1,17 +1,22 @@
 package me.anno.ecs.components.physics.constraints
 
 import com.bulletphysics.dynamics.RigidBody
+import com.bulletphysics.dynamics.constraintsolver.SliderConstraint.*
 import com.bulletphysics.linearmath.Transform
-import me.anno.ecs.annotations.InfoProperty
+import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.prefab.PrefabSaveable
+import org.joml.Vector3d
 
+// todo draw limits
+class SliderConstraint() : Constraint<com.bulletphysics.dynamics.constraintsolver.SliderConstraint>() {
 
-class SliderConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.SliderConstraint>() {
+    constructor(base: SliderConstraint) : this() {
+        base.copy(this)
+    }
 
-    // todo tracked property: shows the current value
-    // todo when clicked, a tracking graph is displayed (real time)
-    @InfoProperty
-    val positionalError get() = bulletInstance?.linDepth ?: 0.0
+    @DebugProperty
+    val positionalError
+        get() = bulletInstance?.linDepth ?: 0.0
 
     var lowerLimit = -1.0
         set(value) {
@@ -74,7 +79,82 @@ class SliderConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.
             bulletInstance?.maxAngMotorForce = value
         }
 
-    // todo declare all properties
+    /**
+     * x, y, z = dir, lim, ortho
+     * dir/lim: depending on whether there is a valid limit, or not
+     * ortho: when not on x-axis
+     * */
+    var linearSoftness = Vector3d(SLIDER_CONSTRAINT_DEF_SOFTNESS)
+        set(value) {
+            field = value
+            setSoftLin(bulletInstance ?: return, value)
+        }
+
+    var angularSoftness = Vector3d(SLIDER_CONSTRAINT_DEF_SOFTNESS)
+        set(value) {
+            field = value
+            setSoftAng(bulletInstance ?: return, value)
+        }
+
+    var linearRestitution = Vector3d(SLIDER_CONSTRAINT_DEF_RESTITUTION)
+        set(value) {
+            field = value
+            setResLin(bulletInstance ?: return, value)
+        }
+
+    var angularRestitution = Vector3d(SLIDER_CONSTRAINT_DEF_RESTITUTION)
+        set(value) {
+            field = value
+            setResAng(bulletInstance ?: return, value)
+        }
+
+    var linearDamping = Vector3d(SLIDER_CONSTRAINT_DEF_DAMPING)
+        set(value) {
+            field = value
+            setDamLin(bulletInstance ?: return, value)
+        }
+
+    var angularDamping = Vector3d(SLIDER_CONSTRAINT_DEF_DAMPING)
+        set(value) {
+            field = value
+            setDamAng(bulletInstance ?: return, value)
+        }
+
+    private fun setDamAng(instance: com.bulletphysics.dynamics.constraintsolver.SliderConstraint, value: Vector3d) {
+        instance.dampingDirAng = value.x
+        instance.dampingLimAng = value.y
+        instance.dampingOrthoAng = value.z
+    }
+
+    private fun setDamLin(instance: com.bulletphysics.dynamics.constraintsolver.SliderConstraint, value: Vector3d) {
+        instance.dampingDirLin = value.x
+        instance.dampingLimLin = value.y
+        instance.dampingOrthoLin = value.z
+    }
+
+    private fun setSoftAng(instance: com.bulletphysics.dynamics.constraintsolver.SliderConstraint, value: Vector3d) {
+        instance.softnessDirAng = value.x
+        instance.softnessLimAng = value.y
+        instance.softnessOrthoAng = value.z
+    }
+
+    private fun setSoftLin(instance: com.bulletphysics.dynamics.constraintsolver.SliderConstraint, value: Vector3d) {
+        instance.softnessDirLin = value.x
+        instance.softnessLimLin = value.y
+        instance.softnessOrthoLin = value.z
+    }
+
+    private fun setResAng(instance: com.bulletphysics.dynamics.constraintsolver.SliderConstraint, value: Vector3d) {
+        instance.restitutionDirAng = value.x
+        instance.restitutionLimAng = value.y
+        instance.restitutionOrthoAng = value.z
+    }
+
+    private fun setResLin(instance: com.bulletphysics.dynamics.constraintsolver.SliderConstraint, value: Vector3d) {
+        instance.restitutionDirLin = value.x
+        instance.restitutionLimLin = value.y
+        instance.restitutionOrthoLin = value.z
+    }
 
     override fun createConstraint(
         a: RigidBody,
@@ -93,14 +173,16 @@ class SliderConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.
         instance.maxAngMotorForce = motorMaxAngularForce
         instance.targetLinMotorVelocity = targetMotorVelocity
         instance.targetAngMotorVelocity = targetMotorAngularVelocity
+        setSoftLin(instance, linearSoftness)
+        setSoftAng(instance, angularSoftness)
+        setResLin(instance, linearRestitution)
+        setResAng(instance, angularRestitution)
+        setDamLin(instance, linearDamping)
+        setDamAng(instance, angularDamping)
         return instance
     }
 
-    override fun clone(): SliderConstraint {
-        val clone = SliderConstraint()
-        copy(clone)
-        return clone
-    }
+    override fun clone() = SliderConstraint(this)
 
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
@@ -115,6 +197,12 @@ class SliderConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.
         clone.targetMotorAngularVelocity = targetMotorAngularVelocity
         clone.motorMaxForce = motorMaxForce
         clone.motorMaxAngularForce = motorMaxAngularForce
+        clone.linearDamping.set(linearDamping)
+        clone.linearRestitution.set(linearRestitution)
+        clone.linearSoftness.set(linearSoftness)
+        clone.angularDamping.set(angularDamping)
+        clone.angularRestitution.set(angularRestitution)
+        clone.angularSoftness.set(angularSoftness)
     }
 
     override val className: String = "SliderConstraint"

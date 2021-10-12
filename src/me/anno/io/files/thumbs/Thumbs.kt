@@ -1,6 +1,7 @@
 package me.anno.io.files.thumbs
 
 import me.anno.cache.data.ImageData
+import me.anno.cache.data.LateinitTexture
 import me.anno.cache.instances.MeshCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultConfig
@@ -15,6 +16,7 @@ import me.anno.ecs.components.cache.MaterialCache
 import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.shapes.Icosahedron
 import me.anno.ecs.prefab.Prefab
@@ -43,6 +45,7 @@ import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.*
 import me.anno.image.*
+import me.anno.image.ImageScale.scale
 import me.anno.image.tar.TGAImage
 import me.anno.io.ISaveable
 import me.anno.io.config.ConfigBasics
@@ -64,7 +67,6 @@ import me.anno.utils.Sleep.waitForGFXThread
 import me.anno.utils.Sleep.waitForGFXThreadUntilDefined
 import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.files.Files.use
-import me.anno.image.ImageScale.scale
 import me.anno.utils.input.Input.readNBytes2
 import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.strings.StringHelper.shorten
@@ -78,6 +80,7 @@ import org.joml.Math.toRadians
 import org.lwjgl.opengl.GL11.*
 import sun.awt.shell.ShellFolder
 import java.awt.image.BufferedImage
+import java.util.concurrent.Semaphore
 import javax.imageio.ImageIO
 import javax.swing.ImageIcon
 import javax.swing.filechooser.FileSystemView
@@ -95,6 +98,8 @@ object Thumbs {
 
     // todo right click option in file explorer to invalidate a thumbs image
 
+    private val LOGGER = LogManager.getLogger(Thumbs::class)
+
     private val folder = ConfigBasics.cacheFolder.getChild("thumbs")
     private val sizes = intArrayOf(32, 64, 128, 256, 512)
     private val neededSizes = IntArray(sizes.last() + 1)
@@ -103,12 +108,68 @@ object Thumbs {
     // todo disable this, when everything works
     var useCacheFolder = !Build.isDebug
 
+    // png/bmp/jpg?
+    private const val destinationFormat = "png"
+    val sphereMesh = Icosahedron.createMesh(30, 30)
+
     init {
         LogManager.disableLogger("GlyphRenderer")
         LogManager.disableLogger("PDSimpleFont")
         if (!useCacheFolder) {
             folder.listChildren()?.forEach { it.deleteRecursively() }
         }
+        var index = 0
+        for (size in sizes) {
+            while (index <= size) {
+                neededSizes[index++] = size
+            }
+        }
+    }
+
+    fun invalidate(file: FileReference, neededSize: Int) {
+        val size = getSize(neededSize)
+        ImageGPUCache.remove {
+            val key = it.key
+            key is ThumbnailKey && key.file == file && key.size == size
+        }
+    }
+
+    fun getThumbnail(file: FileReference, neededSize: Int, async: Boolean): ITexture2D? {
+
+        if (file is ImageReadable) {
+            return ImageGPUCache.getImage(file, timeout, async)
+        }
+
+        // currently not supported
+        if (file.isDirectory) return null
+
+        // was deleted
+        if (!file.exists) return null
+
+        val size = getSize(neededSize)
+        val key = ThumbnailKey(file, file.lastModified, file.isDirectory, size)
+
+        // if async, and we cannot acquire, just return the sample without generator
+        // this prevents a build-up of requests, that are async only anyways
+        if (async && !hasFreeCreationSlot()) {
+            val tex = ImageGPUCache.getEntryWithoutGenerator(key) as? LateinitTexture
+            return tex?.texture
+        }
+
+        return ImageGPUCache.getLateinitTexture(key, timeout, async) { callback ->
+            if (async) {
+                thread(name = "Thumbs/${key.file.name}") {
+                    creationLimiter.acquire()
+                    try {
+                        LOGGER.info("Loading $file")
+                        generate(file, size, callback)
+                    } catch (e: Throwable) {
+                        e.printStackTrace()
+                    }
+                    creationLimiter.release()
+                }
+            } else generate(file, size, callback)
+        }?.texture
     }
 
     private fun FileReference.getCacheFile(size: Int): FileReference {
@@ -138,50 +199,19 @@ object Thumbs {
             .getChild(String(str1, 2, str1.size - 2))
     }
 
-    init {
-        var index = 0
-        for (size in sizes) {
-            while (index <= size) {
-                neededSizes[index++] = size
-            }
-        }
-    }
-
     private fun getSize(neededSize: Int): Int {
         return if (neededSize < neededSizes.size) {
             neededSizes[neededSize]
         } else sizes.last()
     }
 
-    fun invalidate(file: FileReference, neededSize: Int) {
-        val size = getSize(neededSize)
-        ImageGPUCache.remove {
-            val key = it.key
-            key is ThumbnailKey && key.file == file && key.size == size
-        }
-    }
+    private val creationLimiter = Semaphore(4)
 
-    fun getThumbnail(file: FileReference, neededSize: Int, async: Boolean): ITexture2D? {
-
-        if (file is ImageReadable) {
-            return ImageGPUCache.getImage(file, timeout, async)
-        }
-
-        // currently not supported
-        if (file.isDirectory) return null
-
-        // was deleted
-        if (!file.exists) return null
-
-        val size = getSize(neededSize)
-        val key = ThumbnailKey(file, file.lastModified, file.isDirectory, size)
-        return ImageGPUCache.getLateinitTexture(key, timeout, async) { callback ->
-            if (async) {
-                thread(name = "Thumbs/${key.file.name}") {
-                    generate(file, size, callback)
-                }
-            } else generate(file, size, callback)
-        }?.texture
+    private fun hasFreeCreationSlot(): Boolean {
+        return if (creationLimiter.tryAcquire()) {
+            creationLimiter.release()
+            true
+        } else false
     }
 
     private fun upload(srcFile: FileReference, dst: Image, callback: (Texture2D) -> Unit) {
@@ -332,32 +362,20 @@ object Thumbs {
         callback: (Texture2D) -> Unit,
         w: Int, h: Int, render: () -> Unit
     ) {
-        val buffer = IntArray(w * h)
         if (isGFXThread()) {
             renderToBufferedImage2(
                 srcForRotation, dstFile, withDepth, renderer,
-                flipY, callback, w, h, buffer, render
+                flipY, callback, w, h, render
             )
         } else {
             GFX.addGPUTask(w, h) {
                 renderToBufferedImage2(
                     srcForRotation, dstFile, withDepth, renderer,
-                    flipY, callback, w, h, buffer, render
+                    flipY, callback, w, h, render
                 )
             }
         }
     }
-
-    /*fun BufferedImage.flipY() {
-        for (y0 in 0 until height / 2) {
-            val y1 = height - 1 - y0
-            for (x in 0 until width) {
-                val rgb0 = getRGB(x, y0)
-                setRGB(x, y0, getRGB(x, y1))
-                setRGB(x, y1, rgb0)
-            }
-        }
-    }*/
 
     private fun renderToBufferedImage2(
         srcFile: FileReference,
@@ -367,7 +385,6 @@ object Thumbs {
         flipY: Boolean,
         callback: (Texture2D) -> Unit,
         w: Int, h: Int,
-        buffer: IntArray,
         render: () -> Unit
     ) {
         GFX.check()
@@ -410,7 +427,7 @@ object Thumbs {
 
     }
 
-    fun loadVideo(srcFile: FileReference) {
+    private fun loadVideo(srcFile: FileReference) {
         if (isGFXThread()) {
             val video = Video(srcFile)
             for (i in 0 until 20) {
@@ -440,10 +457,6 @@ object Thumbs {
 
         val (w, h) = scale(sw, sh, size)
         if (w < 2 || h < 2) return
-
-        if (w > GFX.width || h > GFX.height) {
-            TODO("change reading to the generic function, which works for all sizes")
-        }
 
         val fps = min(5.0, meta.videoFPS)
         val time = max(min(wantedTime, meta.videoDuration - 1 / fps), 0.0)
@@ -493,7 +506,7 @@ object Thumbs {
 
     val defaultAngleY = -25f
 
-    fun createPerspective(y: Float, aspectRatio: Float, stack: Matrix4f) {
+    private fun createPerspective(y: Float, aspectRatio: Float, stack: Matrix4f) {
 
         setPerspective(stack, 0.7f, aspectRatio, 0.001f, 10f)
         stack.translate(0f, 0f, -1f)// move the camera back a bit
@@ -506,13 +519,13 @@ object Thumbs {
 
     }
 
-    fun createPerspectiveList(y: Float, aspectRatio: Float): Matrix4fArrayList {
+    private fun createPerspectiveList(y: Float, aspectRatio: Float): Matrix4fArrayList {
         val stack = Matrix4fArrayList()
         createPerspective(y, aspectRatio, stack)
         return stack
     }
 
-    fun createPerspective(y: Float, aspectRatio: Float): Matrix4f {
+    private fun createPerspective(y: Float, aspectRatio: Float): Matrix4f {
         val stack = Matrix4f()
         createPerspective(y, aspectRatio, stack)
         return stack
@@ -536,7 +549,7 @@ object Thumbs {
         }
     }
 
-    fun waitForTextures(mesh: Mesh) {
+    private fun waitForTextures(mesh: Mesh) {
         // wait for all textures
         val textures = HashSet<FileReference>()
         for (material in mesh.materials) {
@@ -554,7 +567,7 @@ object Thumbs {
         // LOGGER.info("done waiting")
     }
 
-    fun waitForTextures(data: MeshData) {
+    private fun waitForTextures(data: MeshData) {
         // wait for all textures
         val textures = HashSet<FileReference>()
         collectTextures(data.assimpModel!!.hierarchy, textures)
@@ -571,11 +584,11 @@ object Thumbs {
     }
 
     private fun collectTextures(entity: Entity, textures: MutableSet<FileReference>) {
-        for (comp in entity.getComponentsInChildren(MeshComponent::class, false)) {
+        for (comp in entity.getComponentsInChildren(MeshBaseComponent::class, false)) {
             // LOGGER.info("mesh comp ${comp.name}")
-            val mesh = me.anno.ecs.components.cache.MeshCache[comp.mesh]
+            val mesh = comp.getMesh()
             if (mesh == null) {
-                LOGGER.warn("Missing mesh ${comp.mesh}")
+                LOGGER.warn("Missing mesh $comp")
                 continue
             }
             // LOGGER.info("mesh ${comp.mesh} has the materials ${mesh.materials}")
@@ -624,10 +637,10 @@ object Thumbs {
     ) {
         val data = MeshData()
         data.assimpModel = AnimGameItem(entity)
-        // todo draw gui, entity positions
+        // todo draw gui (colliders), entity positions
         waitForTextures(data)
         entity.validateTransform()
-        val drawSkeletons = !entity.hasComponent(MeshComponent::class)
+        val drawSkeletons = !entity.hasComponent(MeshBaseComponent::class)
         renderToBufferedImage(InvalidRef, dstFile, true, previewRenderer, true, callback, size, size) {
             data.drawAssimp(
                 true, null, createPerspectiveList(defaultAngleY, 1f), 0.0, white4, "",
@@ -884,8 +897,6 @@ object Thumbs {
         }
     }
 
-    val sphereMesh = Icosahedron.createMesh(30, 30)
-
     fun generateSomething(
         asset: ISaveable?,
         srcFile: FileReference,
@@ -903,8 +914,8 @@ object Thumbs {
                 // todo render component somehow... just return an icon?
                 // todo render debug ui :)
             }
-            is MeshComponent -> {
-                generateMeshFrame(dstFile, size, me.anno.ecs.components.cache.MeshCache[asset.mesh] ?: return, callback)
+            is MeshBaseComponent -> {
+                generateMeshFrame(dstFile, size, asset.getMesh() ?: return, callback)
             }
             is Prefab -> {
                 val instance = asset.getSampleInstance()
@@ -956,8 +967,6 @@ object Thumbs {
         return src.createBufferedImage(w, h)
     }
 
-    // png/bmp/jpg?
-    private const val destinationFormat = "png"
     private fun generate(srcFile: FileReference, size: Int, callback: (Texture2D) -> Unit) {
 
         if (size < 3) return
@@ -1123,7 +1132,7 @@ object Thumbs {
                     "lnk", "desktop" -> {
                         // not images, and I don't know yet how to get the image from them
                     }
-                    "txt", "html", "md" -> generateTextImage(srcFile, dstFile, size, callback)
+                    "txt", "html", "md" -> generateTextImage(srcFile, size, callback)
                     // png, jpg, jpeg, ico, webp, mp4, ...
                     else -> generateImage(srcFile, dstFile, size, callback)
                 }
@@ -1136,7 +1145,6 @@ object Thumbs {
 
     private fun generateTextImage(
         srcFile: FileReference,
-        dstFile: FileReference,
         size: Int,
         callback: (Texture2D) -> Unit
     ) {
@@ -1169,7 +1177,7 @@ object Thumbs {
             val text = lines
                 .joinToString("\n")
             val lineCount = lines.size
-            val key = Font(DefaultConfig.defaultFontName, size * 1.5f / lineCount, false, false)
+            val key = Font(DefaultConfig.defaultFontName, size * 1.5f / lineCount, isBold = false, isItalic = false)
             val font2 = FontManager.getFont(key)
             GFX.addGPUTask(100) {
                 GFX.loadTexturesSync.push(true)
@@ -1192,7 +1200,14 @@ object Thumbs {
         size: Int,
         callback: (Texture2D) -> Unit
     ) {
-        val image = ImageCPUCache.getImage(srcFile, false)
+        // small timeout, because we need that image shortly only
+        val tries = 200
+        var image: Image? = null
+        for (i in 0 until tries) {
+            image = ImageCPUCache.getImage(srcFile, 50, true)
+            if (image != null) break
+            Thread.sleep(5)
+        }
         if (image == null) {
             val ext = srcFile.lcExtension
             when (val importType = ext.getImportType()) {
@@ -1203,7 +1218,7 @@ object Thumbs {
                 // else nothing to do
                 else -> {
                     LOGGER.info("ImageIO failed, Imaging failed, importType '$importType' != getImportType for $srcFile")
-                    generateTextImage(srcFile, dstFile, size, callback)
+                    generateTextImage(srcFile, size, callback)
                 }
             }
         } else {
@@ -1232,7 +1247,5 @@ object Thumbs {
         // respect the size
         transformNSaveNUpload(srcFile, image, dstFile, size, callback)
     }
-
-    private val LOGGER = LogManager.getLogger(Thumbs::class)
 
 }

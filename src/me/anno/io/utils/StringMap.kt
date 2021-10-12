@@ -338,7 +338,6 @@ open class StringMap(
                 }
             }
         }
-
     }
 
     fun save(name: String) {

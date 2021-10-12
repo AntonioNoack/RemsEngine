@@ -7,6 +7,7 @@ import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
@@ -65,8 +66,8 @@ class ECSSceneTab(
     fun resetCamera(root: PrefabSaveable) {
         rotation.set(-20.0, 0.0, 0.0)
         when (root) {
-            is MeshComponent -> {
-                val mesh = MeshCache[root.mesh] ?: return
+            is MeshBaseComponent -> {
+                val mesh = root.getMesh() ?: return
                 resetCamera(mesh)
             }
             is Mesh -> resetCamera(root)

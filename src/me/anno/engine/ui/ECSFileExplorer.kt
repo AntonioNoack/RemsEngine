@@ -34,11 +34,8 @@ import org.apache.logging.log4j.LogManager
 // todo if the name is a number, try to find another one
 // todo or use a different name for that prefab...
 
-// todo ask for additional folder, inside project
-
 // todo drag assets into the scene
 // todo drag materials onto mesh components
-
 
 class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: Style) : FileExplorer(file0, style) {
 

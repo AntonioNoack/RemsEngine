@@ -6,5 +6,5 @@ enum class LightType(val id: Int, val falloff: String, val shadowMapType: Shadow
     DIRECTIONAL(0, "max(0.0, dir.z)", ShadowMapType.PLANE),
     SPOT(1, falloff, ShadowMapType.PLANE),
     POINT(2, falloff, ShadowMapType.CUBEMAP);
-    // todo environment map is another type
+    // environment map coule be another type, mmh...
 }

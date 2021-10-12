@@ -7,14 +7,15 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D.Companion.packAlignment
 import me.anno.language.translation.Dict
+import me.anno.ui.debug.ConsoleOutputPanel.Companion.formatFilePath
 import me.anno.utils.Color
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.OS
-import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.files.Files
+import me.anno.utils.hpc.Threads.threadWithName
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11
 import java.awt.image.BufferedImage
@@ -149,14 +150,11 @@ object Screenshots {
                     image.raster.dataBuffer.setElem(i, argb)
                 }
 
-                // todo actions for console messages, e.g. opening a file
                 val file = folder.getChild(name)
                 Files.use(file.outputStream()) { ImageIO.write(image, "png", it) }
                 LOGGER.info(
-                    Dict["Saved screenshot to %1", "ui.sceneView.savedScreenshot"].replace(
-                        "%1",
-                        file.toString()
-                    )
+                    Dict["Saved screenshot to %1", "ui.sceneView.savedScreenshot"]
+                        .replace("%1", formatFilePath(file))
                 )
 
             }

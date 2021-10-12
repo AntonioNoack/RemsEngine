@@ -25,8 +25,12 @@ object ImageCPUCache : CacheSection("BufferedImages") {
 
     // eps: like svg, we could implement it, but we don't really need it that dearly...
 
-    fun getImage(file: FileReference, async: Boolean): Image? {
-        val data = getEntry(file, 100_000, async) {
+    fun getImage(file: FileReference,async: Boolean): Image? {
+        return getImage(file, 10_000, async)
+    }
+
+    fun getImage(file: FileReference, timeout: Long, async: Boolean): Image? {
+        val data = getEntry(file, timeout, async) {
             if (file is ImageReadable) {
                 CacheData(file.readImage())
             } else {

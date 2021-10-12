@@ -15,9 +15,6 @@ open class Renderer(
 
 ) {
 
-    // todo the render engine decides how it is rendered...
-    // todo this could include multiple passes as well...
-
     open fun getPostProcessing(): ShaderStage? = null
 
     open fun uploadDefaultUniforms(shader: Shader) {}

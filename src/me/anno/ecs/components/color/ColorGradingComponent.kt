@@ -1,16 +1,12 @@
 package me.anno.ecs.components.color
 
-import me.anno.gpu.shader.Shader
-import me.anno.io.base.BaseWriter
 import me.anno.animation.AnimatedProperty
 import me.anno.ecs.Component
 import me.anno.ecs.components.shaders.FragmentShaderComponent
 import me.anno.ecs.components.shaders.ShaderEnvironment
 import me.anno.ecs.components.shaders.VariableType
-import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.editor.SettingCategory
-import me.anno.ui.style.Style
+import me.anno.gpu.shader.Shader
+import me.anno.io.base.BaseWriter
 import org.joml.Vector3f
 import org.joml.Vector4f
 
@@ -64,7 +60,7 @@ class ColorGradingComponent : Component(), FragmentShaderComponent {
     override fun getShaderCodeState(): Any? = null
 
     override fun clone(): Component {
-        TODO("Not yet implemented")
+        throw RuntimeException("Not yet implemented")
     }
 
 }

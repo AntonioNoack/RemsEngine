@@ -6,7 +6,7 @@ import java.io.IOException
 import java.net.URI
 import kotlin.system.exitProcess
 
-object FileRootRef : FileReference("null") {
+object FileRootRef : FileReference("root") {
 
     private val LOGGER = LogManager.getLogger(FileRootRef::class)
 

@@ -7,12 +7,12 @@ object EventBroadcasting {
     fun callEventNullable(event: Event?): Event? {
 
         event ?: return null
-        if(event.isCancelled) return null
+        if (event.isCancelled) return null
 
-        for(manager in managers){
-            for(ext in manager.loaded){
+        for (manager in managers) {
+            for (ext in manager.loaded) {
                 ext.onEvent(event)
-                if(event.isCancelled) return null
+                if (event.isCancelled) return null
             }
         }
 
@@ -21,7 +21,7 @@ object EventBroadcasting {
     }
 
     fun callEvent(event: Event): Event {
-        if(callEventNullable(event) == null) event.isCancelled = true
+        if (callEventNullable(event) == null) event.isCancelled = true
         return event
     }
 

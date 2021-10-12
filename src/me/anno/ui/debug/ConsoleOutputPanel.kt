@@ -4,6 +4,7 @@ import me.anno.config.DefaultStyle
 import me.anno.gpu.GFX.windowStack
 import me.anno.gpu.Window
 import me.anno.input.MouseButton
+import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
 import me.anno.studio.Logging
 import me.anno.ui.base.buttons.TextButton
@@ -32,16 +33,19 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             list += TextButton(Dict["Close", "ui.general.close"], false, style).addLeftClickListener {
                 windowStack.pop().destroy()
             }
-            Logging.lastConsoleLines.reversed().forEach { msg ->
+            val lcl = Logging.lastConsoleLines
+            for (i in lcl.lastIndex downTo 0) {
+                val msg = lcl[i]
+                val panel = COLine(list, msg, style)
                 val color = when {
-                    msg.startsWith("[INF") -> 0xffffff
+                    msg.startsWith("[INF") -> panel.textColor
                     msg.startsWith("[WAR") -> 0xffff00
                     msg.startsWith("[ERR") -> 0xff0000
-                    msg.startsWith("[DEB") ||
-                            msg.startsWith("[FIN") -> 0x77ff77
+                    msg.startsWith("[DEB") || msg.startsWith("[FIN") -> 0x77ff77
                     else -> -1
                 } or DefaultStyle.black
-                val panel = COLine(list, msg, style)
+                // todo if line contains file, then add a section for that
+                // todo styled simple text panel: colors, and actions for sections of text
                 panel.focusTextColor = color
                 panel.textColor = mixARGB(panel.textColor, color, 0.5f)
                 list += panel
@@ -49,4 +53,12 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             windowStack.add(Window(listPanel, true, 0, 0))
         }
     }
+
+    companion object {
+        fun formatFilePath(file: FileReference) = formatFilePath(file.absolutePath)
+        fun formatFilePath(file: String): String {
+            return "file://${file.replace(" ", "%20")}"
+        }
+    }
+
 }

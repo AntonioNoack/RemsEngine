@@ -1,10 +1,10 @@
 package me.anno.engine.raycast
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.cache.MeshCache
+import me.anno.ecs.components.CollidingComponent
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.AABBs.print
@@ -17,7 +17,6 @@ import me.anno.utils.types.Vectors.toVector3f
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Math
-import org.joml.Matrix4x3d
 import org.joml.Vector3d
 
 object Raycast {
@@ -84,22 +83,21 @@ object Raycast {
         for (i in components.indices) {
             val component = components[i]
             if (includeDisabled || component.isEnabled) {
-                if (triangles && component is MeshComponent) {
-                    if (component.canCollide(collisionMask)) {
-                        val mesh = MeshCache[component.mesh] ?: continue
-                        if (raycastTriangleMesh(entity, mesh, start, direction, end, result)) {
+                if (component is CollidingComponent && component.canCollide(collisionMask)) {
+                    if (triangles && component is MeshBaseComponent) {
+                        val mesh = component.getMesh()
+                        if (mesh != null && raycastTriangleMesh(entity, mesh, start, direction, end, result)) {
                             result.mesh = mesh
                             result.component = component
                         }
                     }
-                }
-                if (colliders && component is Collider) {
-                    if (component.canCollide(collisionMask)) {
+                    if (colliders && component is Collider) {
                         if (raycastCollider(entity, component, start, direction, end, result)) {
                             result.collider = component
                         }
                     }
                 }
+
             }
         }
         val children = entity.children

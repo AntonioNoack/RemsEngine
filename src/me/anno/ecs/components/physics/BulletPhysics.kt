@@ -71,6 +71,12 @@ class BulletPhysics() : Component() {
     // e
     // s
 
+    /*@DebugAction
+    fun reset() {
+        // todo reset everything...
+        // todo index whole world...
+    }*/
+
     companion object {
 
         private val LOGGER = LogManager.getLogger(BulletPhysics::class)
@@ -126,14 +132,30 @@ class BulletPhysics() : Component() {
 
     private fun validate() {
         // LOGGER.debug("validating ${System.identityHashCode(this)}")
-        invalidEntities.process(::update)
+        invalidEntities.process2x { entity, first ->
+            if (first) {
+                remove(entity, false)
+                // will be re-added by addOrGet
+                // todo add to invalidEntities somehow? mmh...
+                entity.allComponents(Constraint::class) {
+                    val other = it.other?.entity
+                    if (other != null) {
+                        remove(other, false)
+                    }
+                    false
+                }
+            } else {
+                val rigidbody = addOrGet(entity)
+                entity.isPhysicsControlled = rigidbody != null
+            }
+        }
     }
 
     @NotSerializedProperty
     private lateinit var world: DiscreteDynamicsWorld
 
     @NotSerializedProperty
-    private lateinit var rigidBodies: HashMap<Entity, Pair<org.joml.Vector3d, RigidBody>>
+    private lateinit var rigidBodies: HashMap<Entity, Pair<org.joml.Vector3d, RigidBody>?>
 
     @NotSerializedProperty
     private lateinit var nonStaticRigidBodies: HashMap<Entity, Pair<org.joml.Vector3d, RigidBody>>
@@ -148,7 +170,7 @@ class BulletPhysics() : Component() {
         rigidBodies = HashMap()
     }
 
-    private fun getRigidbody(rigidBody: Rigidbody): RigidBody {
+    private fun getRigidbody(rigidBody: Rigidbody): RigidBody? {
 
         // todo when a rigidbody is invalidated, also re-create all constrained rigidbodies!
         // todo otherwise we'll get issues, where one partner no longer is part of the world...
@@ -163,14 +185,15 @@ class BulletPhysics() : Component() {
         var newlyCreated = false
         val bodyWithScale = rigidBodies.getOrPut(entity) {
             newlyCreated = true
-            createRawRigidbody(entity, rigidBody)!!
+            createRawRigidbody(entity, rigidBody)
         }
-        if (newlyCreated) {
+        if (newlyCreated && bodyWithScale != null) {
             // after creating and registering, so
             // it works for circular constraint dependencies
             appendsExtras(entity, rigidBody, bodyWithScale)
+            LOGGER.debug("+ ${entity.prefabPath}")
         }
-        return bodyWithScale.second
+        return bodyWithScale?.second
     }
 
     private fun <V : Component> getValidComponents(entity: Entity, clazz: KClass<V>): Sequence<V> {
@@ -289,31 +312,53 @@ class BulletPhysics() : Component() {
         rigidBodies[entity] = bodyWithScale
         rigidbody.bulletInstance = body
 
+        if (!rigidbody.isStatic) {
+            nonStaticRigidBodies[entity] = bodyWithScale
+        } else {
+            nonStaticRigidBodies.remove(entity)
+        }
+
+        for (c in rigidbody.constrained) {
+            // ensure the constraint exists
+            val rigidbody2 = c.entity!!.rigidbodyComponent!!
+            addConstraint(c, getRigidbody(rigidbody2)!!, rigidbody2, rigidbody)
+        }
+
         // create all constraints
         entity.allComponents(Constraint::class, false) { c ->
             val other = c.other
             if (other != null && other != rigidbody && other.isEnabled) {
-                if (!rigidbody.isStatic || !other.isStatic) {
-
-                    // create constraint
-                    val constraint = c.createConstraint(body, getRigidbody(other), c.getTA(), c.getTB())
-                    // c.bulletInstance = constraint // does not work somehow, so we have to cheat...
-                    c["bulletInstance"] = constraint
-                    world.addConstraint(constraint, c.disableCollisionsBetweenLinked)
-
-                } else {
-                    LOGGER.warn("Cannot constrain two static bodies!, ${rigidbody.prefabPath} to ${other.prefabPath}")
-                }
+                addConstraint(c, body, rigidbody, other)
             }
             false
         }
+    }
 
-        if (!rigidbody.isStatic) {
-            nonStaticRigidBodies[entity] = bodyWithScale
+    private fun addConstraint(c: Constraint<*>, body: RigidBody, rigidbody: Rigidbody, other: Rigidbody) {
+        val oldInstance = c.bulletInstance
+        if (oldInstance != null) {
+            world.removeConstraint(oldInstance)
+            c.bulletInstance = null
+        }
+        if (!rigidbody.isStatic || !other.isStatic) {
+            val otherBody = getRigidbody(other)
+            if (otherBody != null) {
+                // create constraint
+                val constraint = c.createConstraint(body, otherBody, c.getTA(), c.getTB())
+                c["bulletInstance"] = constraint
+                world.addConstraint(constraint, c.disableCollisionsBetweenLinked)
+                if (oldInstance != null) {
+                    LOGGER.debug("* ${c.prefabPath}")
+                } else {
+                    LOGGER.debug("+ ${c.prefabPath}")
+                }
+            }
+        } else {
+            LOGGER.warn("Cannot constrain two static bodies!, ${rigidbody.prefabPath} to ${other.prefabPath}")
         }
     }
 
-    fun add(entity: Entity): RigidBody? {
+    fun addOrGet(entity: Entity): RigidBody? {
         // LOGGER.info("adding ${entity.name} maybe, ${entity.getComponent(Rigidbody::class, false)}")
         val rigidbody = entity.getComponent(Rigidbody::class, false) ?: return null
         return if (rigidbody.isEnabled) {
@@ -323,13 +368,33 @@ class BulletPhysics() : Component() {
 
     fun remove(entity: Entity, fallenOutOfWorld: Boolean) {
         val rigid = rigidBodies.remove(entity) ?: return
+        LOGGER.debug("- ${entity.prefabPath}")
         nonStaticRigidBodies.remove(entity)
         world.removeRigidBody(rigid.second)
+        entity.allComponents(Constraint::class) {
+            val bi = it.bulletInstance
+            if (bi != null) {
+                it.bulletInstance = null
+                world.removeConstraint(bi)
+                LOGGER.debug("- ${it.prefabPath}")
+            }
+            false
+        }
+        val rigid2 = entity.rigidbodyComponent
+        if (rigid2 != null) {
+            for (c in rigid2.constrained) {
+                val bi = c.bulletInstance
+                if (bi != null){
+                    world.removeConstraint(bi)
+                    c.bulletInstance = null
+                    LOGGER.debug("- ${c.prefabPath}")
+                }
+            }
+        }
         val vehicle = raycastVehicles.remove(entity) ?: return
         world.removeVehicle(vehicle)
         entity.isPhysicsControlled = false
         if (fallenOutOfWorld) {
-            val rigid2 = entity.getComponent(Rigidbody::class)
             if (rigid2 != null) {
                 // when something falls of the world, often it's nice to directly destroy the object,
                 // because it will no longer be needed
@@ -344,12 +409,6 @@ class BulletPhysics() : Component() {
                 }
             }
         }
-    }
-
-    private fun update(entity: Entity) {
-        remove(entity, false)
-        val rigidbody = add(entity)
-        entity.isPhysicsControlled = rigidbody != null
     }
 
     @SerializedProperty

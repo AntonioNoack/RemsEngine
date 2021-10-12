@@ -25,14 +25,14 @@ fun main() {
     sphere.transform.globalTransform.translate(-1.0, y0, 0.0)
     sphere.add(Rigidbody().apply { mass = 1.0 })
     sphere.add(SphereCollider())
-    physics.add(sphere)
+    physics.addOrGet(sphere)
 
     // moves the other sphere to the side
     val sphere2 = Entity()
     sphere2.transform.globalTransform.translate(1.0, y0, 0.0)
     sphere2.add(Rigidbody().apply { mass = 1.0 })
     sphere2.add(SphereCollider())
-    physics.add(sphere2)
+    physics.addOrGet(sphere2)
 
     val steps = (duration * 60.0).toInt()
     for (i in 0 until steps) physics.step((duration / steps * 1e9).toLong(), true)

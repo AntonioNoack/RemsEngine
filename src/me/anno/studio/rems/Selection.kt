@@ -6,6 +6,7 @@ import me.anno.io.find.PropertyFinder
 import me.anno.objects.Transform
 import me.anno.objects.inspectable.Inspectable
 import me.anno.studio.rems.RemsStudio.root
+import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
 import me.anno.utils.structures.maps.BiMap
 import me.anno.utils.types.Sequences.getOrNull
 import org.apache.logging.log4j.LogManager
@@ -104,7 +105,7 @@ object Selection {
                 si = st
             }
 
-            RemsStudio.updateSceneViews()
+            invalidateUI()
 
             needsUpdate = false
 

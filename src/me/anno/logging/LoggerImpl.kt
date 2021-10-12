@@ -1,5 +1,6 @@
 package me.anno.logging
 
+import me.anno.gpu.GFX
 import org.apache.commons.logging.Log
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -8,6 +9,9 @@ import java.util.*
 import java.util.logging.Level
 
 class LoggerImpl(val prefix: String?) : Logger, Log {
+
+    val lastWarned = HashMap<String, Long>()
+    val warningTimeout = 10_000_000_000L
 
     fun interleave(msg: String, args: Array<out Any>): String {
         if (args.isEmpty()) return msg
@@ -112,9 +116,14 @@ class LoggerImpl(val prefix: String?) : Logger, Log {
         thrown.printStackTrace()
     }
 
-    // todo only print repeating warnings once every ... 5s or sth like that
     override fun warn(msg: String) {
-        print("WARN", msg)
+        synchronized(lastWarned) {
+            val time = GFX.gameTime
+            if (msg !in lastWarned || (lastWarned[msg]!! - time) > warningTimeout) {
+                lastWarned[msg] = time
+                print("WARN", msg)
+            }
+        }
     }
 
     override fun warn(msg: String, vararg obj: Any) {
@@ -144,8 +153,8 @@ class LoggerImpl(val prefix: String?) : Logger, Log {
         else fatal(o.toString(), throwable)
     }
 
-    override fun info(o: Any?) {
-        info(o.toString())
+    override fun info(msg: Any?) {
+        info(msg.toString())
     }
 
     override fun info(o: Any?, throwable: Throwable?) {

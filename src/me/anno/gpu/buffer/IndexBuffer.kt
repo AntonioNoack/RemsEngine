@@ -46,8 +46,8 @@ class IndexBuffer(
             hasWarned = true
             LOGGER.warn("VAO does not have attribute!, ${base.attributes}, ${shader.vertexSource}")
         }
-        // todo disable all attributes, which were not bound
-
+        // disable all attributes, which were not bound
+        // not required
         updateElementBuffer()
     }
 
@@ -88,7 +88,8 @@ class IndexBuffer(
 
         val maxIndex = indices.maxOrNull() ?: 0
         when {// optimize the size usage on the gpu side
-            // todo how do we find out, what is optimal?
+            // how do we find out, what is optimal?
+            // we don't, we just assume (because it probably will be true), that 16 and 32 bits are always optimal
             // RX 580 Message:
             // glDrawElements uses element index type 'GL_UNSIGNED_BYTE' that is not optimal for the current hardware configuration;
             // consider using 'GL_UNSIGNED_SHORT' instead, source: API, type: PERFORMANCE, id: 102, severity: MEDIUM

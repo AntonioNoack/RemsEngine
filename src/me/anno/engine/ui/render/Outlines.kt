@@ -3,7 +3,9 @@ package me.anno.engine.ui.render
 import me.anno.ecs.Entity
 import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.ProceduralMesh
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.pipeline.M4x3Delta.m4x3delta
@@ -34,14 +36,14 @@ object Outlines {
         val components = entity.components
         for (i in components.indices) {
             val component = components[i]
-            if (component is MeshComponent) {
-                val mesh = MeshCache[component.mesh, true] ?: continue
+            if(component is MeshBaseComponent){
+                val mesh = component.getMesh() ?: continue
                 drawOutline(component, mesh, worldScale)
             }
         }
     }
 
-    fun drawOutline(meshComponent: MeshComponent, mesh: Mesh, worldScale: Double) {
+    fun drawOutline(meshComponent: MeshBaseComponent, mesh: Mesh, worldScale: Double) {
 
         // todo respect alpha somehow?
 
@@ -81,7 +83,8 @@ object Outlines {
         scaledMax.sub(scaledMin)
 
         if (scaledMax.x.isNaN()) {
-            LOGGER.info("Outlines issue: $scaledMax from ${RenderView.cameraMatrix} * translate($camPosition) * $transform")
+            LOGGER.warn("Outlines issue: $scaledMax from \n${RenderView.cameraMatrix} * translate($camPosition) * $transform")
+            return
         }
 
         val scaleExtra = 0.01f / ((scaledMax.x + scaledMax.y).toFloat() * 0.5f)

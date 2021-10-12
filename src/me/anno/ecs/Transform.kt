@@ -164,13 +164,14 @@ class Transform() : Saveable() {
             invalidateGlobal()
         }
 
-    // todo setter
-    // todo cache it
-    val globalPosition
+    // mmh, really needed?
+    var globalPosition
         get() = globalTransform.getTranslation(Vector3d())
+        set(value) {
+            globalTransform.setTranslation(value)
+            calculateLocalTransform(entity?.parentEntity?.transform)
+        }
 
-
-    // todo only update if changed to save resources
     fun update(parent: Transform?, time: Long = GFX.gameTime) {
         if (needsGlobalUpdate) {
             update(time)

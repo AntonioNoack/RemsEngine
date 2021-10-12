@@ -23,10 +23,10 @@ import me.anno.objects.lists.SplittableElement
 import me.anno.objects.modes.TextMode
 import me.anno.objects.modes.TextRenderMode
 import me.anno.objects.text.TextInspector.createInspectorWithoutSuperImpl
-import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.Font
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 import me.anno.utils.maths.Maths.mix
@@ -108,7 +108,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent), SplittableEle
     var needsUpdate = false
     override fun claimLocalResources(lTime0: Double, lTime1: Double) {
         if (needsUpdate) {
-            RemsStudio.updateSceneViews()
+            invalidateUI()
             needsUpdate = false
         }
     }

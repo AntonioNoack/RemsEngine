@@ -2,13 +2,14 @@ package me.anno.ecs.components.collider
 
 import com.bulletphysics.collision.shapes.*
 import com.bulletphysics.util.ObjectArrayList
+import me.anno.ecs.annotations.DebugAction
+import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.components.cache.MeshCache
-import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.gui.LineShapes
-import me.anno.io.files.FileReference
+import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import org.joml.Vector3d
 import java.nio.ByteBuffer
@@ -23,21 +24,41 @@ class MeshCollider() : Collider() {
     @SerializedProperty
     var isConvex = true
 
-    @Type("Mesh")
-    var mesh: FileReference? = null
+    @Type("MeshBaseComponent/PrefabSaveable")
+    var mesh: MeshBaseComponent? = null
 
     @HideInInspector
+    @NotSerializedProperty
     var hull: ShapeHull? = null
+
+    var isValid = false
+
+    @DebugAction
+    fun validate() {
+        if (!isValid) {
+            createBulletShape(Vector3d())
+        }
+    }
+
+    @DebugProperty
+    val info = "hull: $hull, ${mesh?.getMesh()?.positions?.size} positions"
 
     override fun createBulletShape(scale: Vector3d): CollisionShape {
 
+        isValid = true
+
         if (mesh == null) {
-            mesh = entity?.getComponentInChildren(MeshComponent::class, false)?.mesh
+            mesh = entity?.getComponentInChildren(MeshBaseComponent::class, false)
         }
 
-        val mesh = MeshCache[mesh] ?: return SphereShape(0.5)
+        val mesh = mesh?.getMesh() ?: return SphereShape(0.5)
 
-        val positions = mesh.positions!!
+        val positions = mesh.positions
+        if (positions == null) {
+            isValid = false
+            return defaultShape
+        }
+
         val indices = mesh.indices
 
         if (isConvex) {
@@ -112,8 +133,8 @@ class MeshCollider() : Collider() {
     }
 
     override fun drawShape() {
+        validate()
         val hull = hull
-        // todo check whether this works... physics seems to be broken currently...
         if (isConvex && hull != null) {
             val points = hull.vertexPointer
             val indices = hull.indexPointer
@@ -137,8 +158,13 @@ class MeshCollider() : Collider() {
         clone as MeshCollider
         clone.mesh = mesh
         clone.isConvex = isConvex
+        clone.hull = hull
     }
 
     override val className get() = "MeshCollider"
+
+    companion object {
+        val defaultShape = BoxShape(javax.vecmath.Vector3d(1.0, 1.0, 1.0))
+    }
 
 }

@@ -1,19 +1,13 @@
 package me.anno.ecs.components.mesh
 
-import me.anno.ecs.Component
-import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.SerializedProperty
-import me.anno.utils.types.AABBs.transformUnion
 import org.apache.logging.log4j.LogManager
-import org.joml.AABBd
-import org.joml.Matrix4x3d
 
 // todo light beams: when inside the cone, from that view, then add a little brightness
 
@@ -30,7 +24,7 @@ import org.joml.Matrix4x3d
 /////////////////////////////////////////////////////////////////////////////////////////
 
 
-open class MeshComponent() : Component() {
+open class MeshComponent() : MeshBaseComponent() {
 
     constructor(mesh: FileReference) : this() {
         this.mesh = mesh
@@ -40,17 +34,7 @@ open class MeshComponent() : Component() {
     @Type("Mesh/Reference")
     var mesh: FileReference = InvalidRef
 
-    var isInstanced = false
-
-    // todo respect this property
-    @SerializedProperty
-    var receiveShadows = true
-
-    var collisionMask: Int = 1
-
-    fun canCollide(collisionMask: Int): Boolean {
-        return this.collisionMask.and(collisionMask) != 0
-    }
+    override fun getMesh(): Mesh? = MeshCache[mesh]
 
     override fun onVisibleUpdate(): Boolean {
         mesh = getReference(mesh)
@@ -60,24 +44,6 @@ open class MeshComponent() : Component() {
     // far into the future:
     // todo instanced animations for hundreds of humans:
     // todo bake animations into textures, and use indices + weights
-
-    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
-        val mesh = MeshCache[mesh]
-        if (mesh != null) {
-            // add aabb of that mesh with the transform
-            mesh.ensureBuffer()
-            mesh.aabb.transformUnion(globalTransform, aabb)
-        }
-        return true
-    }
-
-    fun draw(shader: Shader, materialIndex: Int) {
-        MeshCache[mesh]?.draw(shader, materialIndex)
-    }
-
-    open fun defineVertexTransform(shader: Shader, entity: Entity, mesh: Mesh) {
-        shader.v1("hasAnimation", false)
-    }
 
     // on destroy we should maybe destroy the mesh:
     // only if it is unique, and owned by ourselves
@@ -91,7 +57,6 @@ open class MeshComponent() : Component() {
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as MeshComponent
-        clone.collisionMask = collisionMask
         clone.isInstanced = isInstanced
         clone.mesh = mesh
     }

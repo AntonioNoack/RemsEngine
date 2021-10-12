@@ -110,7 +110,7 @@ abstract class FileReference(val absolutePath: String) {
             // invalid
             if (str == null || str.isBlank2()) return InvalidRef
             // root
-            if (str == "null") return FileRootRef
+            if (str == "root") return FileRootRef
             val data = fileCache.getEntry(str, fileTimeout, false) {
                 CacheData(createReference(it))
             } as CacheData<*>
@@ -337,6 +337,15 @@ abstract class FileReference(val absolutePath: String) {
 
     abstract fun delete(): Boolean
     abstract fun mkdirs(): Boolean
+
+    fun tryMkdirs(): Boolean {
+        return try {
+            mkdirs()
+        } catch (e: java.lang.Exception) {
+            LOGGER.warn("Failed to create ${toString()}")
+            false
+        }
+    }
 
     open fun deleteOnExit() {
         deleteRecursively()

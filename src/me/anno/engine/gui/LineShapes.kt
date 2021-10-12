@@ -4,6 +4,8 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.Collider
 import me.anno.gpu.buffer.LineBuffer.putRelativeLine
 import me.anno.gpu.pipeline.PipelineStage.Companion.getDrawMatrix
+import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Vectors.findSystem
 import me.anno.utils.types.Vectors.setAxis
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
@@ -53,6 +55,42 @@ object LineShapes {
             // frame
             putRelativeLine(positions[i], positions[(i + 1) and 3], color)
         }
+
+    }
+
+    fun drawArrowZ(from: Vector3d, to: Vector3d, color: Int = Collider.guiLineColor) {
+
+        val positions = guiPositionsTmp
+        positions[0].set(from)
+        positions[1].set(to)
+
+        val dirZ = Vector3d(to).sub(from)
+        val length = dirZ.length()
+
+        if (length == 0.0 || !length.isFinite()) return
+
+        val dirX = JomlPools.vec3d.create()
+        val dirY = JomlPools.vec3d.create()
+        dirZ.findSystem(dirX, dirY)
+
+        val to2 = from.lerp(to, 0.7, JomlPools.vec3d.create())
+        dirX.normalize(length * 0.15)
+        dirY.normalize(length * 0.15)
+
+        positions[2].set(to2).add(dirX).add(dirY)
+        positions[3].set(to2).add(dirX).sub(dirY)
+        positions[4].set(to2).sub(dirX).sub(dirY)
+        positions[5].set(to2).sub(dirX).add(dirY)
+
+        // body
+        putRelativeLine(positions[0], positions[1], color)
+
+        // arrow tip
+        for (i in 2 until 6) {
+            putRelativeLine(positions[1], positions[i], color)
+        }
+
+        JomlPools.vec3d.sub(3)
 
     }
 
@@ -204,14 +242,26 @@ object LineShapes {
     ) {
         val transform = getDrawMatrix(entity)
         val positions = guiPositionsTmp
-        positions[0].set(x0, y0, z0)
-        positions[1].set(x1, y1, z1)
+        val p0 = positions[0]
+        val p1 = positions[1]
+        p0.set(x0, y0, z0)
+        p1.set(x1, y1, z1)
         if (transform != null) {
-            for (i in 0 until 2) {
-                transform.transformPosition(positions[i])
-            }
+            transform.transformPosition(p0)
+            transform.transformPosition(p1)
         }
-        putRelativeLine(positions[0], positions[1], color)
+        val pi = positions[2]
+        val pj = positions[3]
+        pi.set(p0)
+        // split the line in pieces for less flickering
+        // alternatively, we could apply the transform with doubles, and clip in view-space on the cpu side
+        // the most important thing with splitting is that the number is even, so the center is on the true center
+        val pieces = 16
+        for (i in 0 until pieces) {
+            p0.lerp(p1, (i + 1.0) / pieces, pj)
+            putRelativeLine(pi, pj, color)
+            pi.set(pj)
+        }
     }
 
     fun drawLine(

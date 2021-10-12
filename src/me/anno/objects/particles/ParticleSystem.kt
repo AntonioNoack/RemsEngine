@@ -22,6 +22,7 @@ import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
+import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.FileExplorerEntry.Companion.drawLoadingCircle
 import me.anno.ui.editor.stacked.Option
@@ -222,7 +223,7 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
         particles.clear()
         aliveParticles.clear()
         random = Random(seed)
-        RemsStudio.updateSceneViews()
+        invalidateUI()
     }
 
     var lastState: Any? = null
@@ -313,7 +314,7 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
                 if (group.listOfVisible.any { it.isInFocus }) {
                     val needsUpdate = selectedDistribution !== property
                     selectedDistribution = property
-                    if (needsUpdate) RemsStudio.updateSceneViews()
+                    if (needsUpdate) invalidateUI()
                 }
             })
             group.addOnClickListener { _, _, button, long ->

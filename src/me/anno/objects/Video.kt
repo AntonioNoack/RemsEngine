@@ -34,7 +34,6 @@ import me.anno.objects.modes.UVProjection
 import me.anno.objects.modes.VideoType
 import me.anno.objects.modes.editorFPS
 import me.anno.studio.StudioBase
-import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.isPaused
 import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.studio.rems.RemsStudio.targetHeight
@@ -46,6 +45,7 @@ import me.anno.ui.base.Visibility
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.UpdatingTextPanel
+import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
@@ -614,7 +614,7 @@ class Video(file: FileReference = InvalidRef, parent: Transform? = null) : Audio
         }
 
         if (needsImageUpdate) {
-            RemsStudio.updateSceneViews()
+            invalidateUI()
             needsImageUpdate = false
         }
 

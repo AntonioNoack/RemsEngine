@@ -27,7 +27,7 @@ class TitlePanel(title: String, var owner: Panel, style: Style) : TextPanel(titl
         owner.onEmpty(x, y)
     }
 
-    override fun onCopyRequested(x: Float, y: Float): String? {
+    override fun onCopyRequested(x: Float, y: Float): Any? {
         return owner.onCopyRequested(x, y)
     }
 

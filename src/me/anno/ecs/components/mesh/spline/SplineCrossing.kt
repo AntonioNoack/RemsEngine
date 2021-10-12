@@ -1,10 +1,10 @@
 package me.anno.ecs.components.mesh.spline
 
-import me.anno.ecs.components.mesh.AutoMesh
+import me.anno.ecs.components.mesh.ProceduralMesh
 import org.joml.Vector3d
 import kotlin.math.atan2
 
-class SplineCrossing : AutoMesh() {
+class SplineCrossing : ProceduralMesh() {
 
     var profile = 0
 
@@ -48,7 +48,7 @@ class SplineCrossing : AutoMesh() {
         TODO("Not yet implemented")
     }
 
-    override fun clone(): AutoMesh {
+    override fun clone(): ProceduralMesh {
         val clone = SplineCrossing()
         copy(clone)
         return clone

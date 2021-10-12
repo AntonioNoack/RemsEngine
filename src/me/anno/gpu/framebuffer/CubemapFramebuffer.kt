@@ -6,6 +6,7 @@ import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.GPUFiltering
+import me.anno.utils.LOGGER
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL30.*
@@ -123,6 +124,9 @@ class CubemapFramebuffer(
                     GL_TEXTURE_CUBE_MAP_POSITIVE_X, depthTexture.pointer, 0
                 )
                 this.depthTexture = depthTexture
+            }
+            DepthBufferType.ATTACHMENT -> {
+                throw IllegalArgumentException("attachment depth not yet supported for cubemaps")
             }
         }
         GFX.check()

@@ -27,9 +27,8 @@ fun test1() {
         if (!b) throw RuntimeException()
     }
 
-    // todo test adding, appending, setting of properties
-    // todo test removing, deleting
-    // todo test with and without prefabs...
+    // test adding, appending, setting of properties
+    // todo test with and without prefabs
 
     val basePrefab = Prefab("Entity")
 
@@ -67,6 +66,8 @@ fun test1() {
 }
 
 fun test2() {
+
+    // test removing, deleting
 
     val prefab = Prefab("Entity")
     val child = prefab.add(Path.ROOT_PATH, 'e', "Entity")

@@ -21,6 +21,7 @@ import kotlin.math.sqrt
 // todo scripting graphs = flow graph
 // todo animations graphs = state graphs
 // todo play graphs/story-graphs, e.g. with Q&As
+// todo many game-internal machines could be built with state machines :3
 
 open class Graph : NamedSaveable() {
 
@@ -58,8 +59,6 @@ open class Graph : NamedSaveable() {
         }
 
     }
-
-    // todo we need a graph ui to display these
 
     override val className: String = "Graph"
     override val approxSize: Int = 1000

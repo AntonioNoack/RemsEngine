@@ -166,6 +166,7 @@ object StudioActions {
         keyMap["FileEntry.left.press"] = "DragStart"
         keyMap["FileEntry.left.double"] = "Enter|Open"
         keyMap["FileEntry.f2.down"] = "Rename"
+        // todo only when clicked...
         keyMap["FileEntry.right.down"] = "OpenOptions"
         keyMap["FileExplorer.right.down"] = "OpenOptions"
         keyMap["FileExplorer.mouseBackward.down"] = "Back"

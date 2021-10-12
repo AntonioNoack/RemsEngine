@@ -2,7 +2,7 @@ package me.anno.ecs
 
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ui.ECSTypeLibrary
+import me.anno.engine.ui.EditorState
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
@@ -15,9 +15,6 @@ import org.joml.AABBd
 import org.joml.Matrix4x3d
 
 abstract class Component : PrefabSaveable(), Inspectable {
-
-    // todo call onEnable, onDisable
-    // todo event listener lists
 
     override var isEnabled: Boolean = true
         get() = super.isEnabled
@@ -41,7 +38,7 @@ abstract class Component : PrefabSaveable(), Inspectable {
     val transform
         get() = entity?.transform
 
-    val isSelectedIndirectly get() = entity!!.anyInHierarchy { it == ECSTypeLibrary.lastSelection }
+    val isSelectedIndirectly get() = entity!!.anyInHierarchy { it == EditorState.lastSelection }
 
     // can be overridden, e.g. for materials
     override fun listChildTypes(): String = ""
@@ -139,10 +136,6 @@ abstract class Component : PrefabSaveable(), Inspectable {
         entity?.invalidateRigidbody()
     }
 
-    // automatic property inspector by reflection
-    // property inspector annotations, e.g. Range, ExecuteInEditMode, HideInInspector,
-    // todo GraphicalValueTracker
-
     @NotSerializedProperty
     val components
         get() = entity!!.components
@@ -171,13 +164,6 @@ abstract class Component : PrefabSaveable(), Inspectable {
         builder.append('\n')
         return builder
     }
-
-    // todo create title bar, where you can change the script
-    // todo save values to history
-
-    // todo system to quickly load the scene from multiple files:
-    //  - use zipping for a shipped game -> faster file load speed and only a single file access
-    //  - just do it serially, it's not that much data
 
     companion object {
 

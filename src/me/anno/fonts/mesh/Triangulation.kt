@@ -1,13 +1,11 @@
 package me.anno.fonts.mesh
 
 import me.anno.mesh.Point
-import me.anno.objects.Transform.Companion.xAxis
-import me.anno.objects.Transform.Companion.yAxis
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Vectors.findSecondAxis
 import me.anno.utils.types.Vectors.minus
 import org.joml.*
 import org.the3deers.util.EarCut
-import kotlin.math.abs
 
 object Triangulation {
 
@@ -24,7 +22,10 @@ object Triangulation {
 
     fun ringToTrianglesVec2f(points: List<Vector2f>): List<Vector2f> {
         val joint = FloatArray(points.size * 2)
-        points.forEachIndexed { index, vector2d -> joint[index * 2] = vector2d.x; joint[index * 2 + 1] = vector2d.y }
+        points.forEachIndexed { index, vector2d ->
+            joint[index * 2] = vector2d.x
+            joint[index * 2 + 1] = vector2d.y
+        }
         val indices = EarCut.earcut(joint, intArrayOf(), 2)
         return indices.map { index -> points[index] }
     }
@@ -32,7 +33,8 @@ object Triangulation {
     fun ringToTrianglesVec2d(points: List<Vector2dc>): List<Vector2dc> {
         val joint = FloatArray(points.size * 2)
         points.forEachIndexed { index, vector2d ->
-            joint[index * 2] = vector2d.x().toFloat(); joint[index * 2 + 1] = vector2d.y().toFloat()
+            joint[index * 2] = vector2d.x().toFloat()
+            joint[index * 2 + 1] = vector2d.y().toFloat()
         }
         val indices = EarCut.earcut(joint, intArrayOf(), 2)
         return indices.map { index -> points[index] }
@@ -48,19 +50,26 @@ object Triangulation {
                 normal.add((a - b).cross(b - c))
             }
             normal.normalize()
-            if (normal.length() < 0.5f) return emptyList()
+            if (normal.length() < 0.5f) {
+                JomlPools.vec3f.sub(1)
+                return emptyList()
+            }
             // find 2d coordinate system
-            val xAxis = findSecondAxis(normal)
+            val xAxis = normal.findSecondAxis(JomlPools.vec3f.create())
             val yAxis = normal.cross(xAxis)
             val projected = points.map {
-                Vector2f(it.dot(xAxis), it.dot(yAxis))
+                JomlPools.vec2f.create()
+                    .set(it.dot(xAxis), it.dot(yAxis))
             }
             val reverseMap = HashMap<Vector2fc, Vector3fc>()
             points.forEachIndexed { index, vector3f ->
                 reverseMap[projected[index]] = vector3f
             }
             val triangles2d = ringToTrianglesVec2f(projected)
-            return triangles2d.map { reverseMap[it]!! }
+            val result = triangles2d.map { reverseMap[it]!! }
+            JomlPools.vec2f.sub(projected.size)
+            JomlPools.vec3f.sub(2)
+            return result
         } else return emptyList()
     }
 
@@ -74,9 +83,12 @@ object Triangulation {
                 normal.add((a - b).cross(b - c))
             }
             normal.normalize()
-            if (normal.length() < 0.5) return emptyList()
+            if (normal.length() < 0.5) {
+                JomlPools.vec3d.sub(1)
+                return emptyList()
+            }
             // find 2d coordinate system
-            val xAxis = findSecondAxis(normal)
+            val xAxis = normal.findSecondAxis(JomlPools.vec3d.create())
             val yAxis = normal.cross(xAxis)
             val projected = points.map {
                 JomlPools.vec2d.create()
@@ -87,7 +99,10 @@ object Triangulation {
                 reverseMap[projected[index]] = vector3d
             }
             val triangles2d = ringToTrianglesVec2d(projected)
-            return triangles2d.map { reverseMap[it]!! }
+            val result = triangles2d.map { reverseMap[it]!! }
+            JomlPools.vec2d.sub(projected.size)
+            JomlPools.vec3d.sub(2)
+            return result
         } else return emptyList()
     }
 
@@ -101,9 +116,12 @@ object Triangulation {
                 normal.add((a - b).cross(b - c))
             }
             normal.normalize()
-            if (normal.length() < 0.5f) return emptyList()
+            if (normal.length() < 0.5f) {
+                JomlPools.vec3f.sub(1)
+                return emptyList()
+            }
             // find 2d coordinate system
-            val xAxis = findSecondAxis(normal)
+            val xAxis = normal.findSecondAxis(JomlPools.vec3f.create())
             val yAxis = normal.cross(xAxis)
             val projected = points.map {
                 JomlPools.vec2f.create()
@@ -114,7 +132,10 @@ object Triangulation {
                 reverseMap[projected[index]] = vector3d
             }
             val triangles2f = ringToTrianglesVec2f(projected)
-            return triangles2f.map { reverseMap[it]!! }
+            val result = triangles2f.map { reverseMap[it]!! }
+            JomlPools.vec2f.sub(projected.size)
+            JomlPools.vec3f.sub(2)
+            return result
         } else return emptyList()
     }
 
@@ -128,38 +149,27 @@ object Triangulation {
                 normal.add((a - b).cross(b - c))
             }
             normal.normalize()
-            if (normal.length() < 0.5f) return emptyList()
+            if (normal.length() < 0.5f) {
+                JomlPools.vec3f.sub(1)
+                return emptyList()
+            }
             // find 2d coordinate system
-            val xAxis = findSecondAxis(normal)
+            val xAxis = normal.findSecondAxis(JomlPools.vec3f.create())
             val yAxis = normal.cross(xAxis)
             val projected = points.map {
-                JomlPools.vec2f.create().set(it.position.dot(xAxis), it.position.dot(yAxis))
+                JomlPools.vec2f.create()
+                    .set(it.position.dot(xAxis), it.position.dot(yAxis))
             }
             val reverseMap = HashMap<Vector2fc, Point>()
             points.forEachIndexed { index, vector3d ->
                 reverseMap[projected[index]] = vector3d
             }
             val triangles2f = ringToTrianglesVec2f(projected)
-            return triangles2f.map { reverseMap[it]!! }
+            val result = triangles2f.map { reverseMap[it]!! }
+            JomlPools.vec2f.sub(projected.size)
+            JomlPools.vec3f.sub(2)
+            return result
         } else return emptyList()
-    }
-
-    private fun findSecondAxis(axis: Vector3f): Vector3f {
-        val ax = abs(axis.x)
-        val ay = abs(axis.y)
-        val try0 = if (ax > ay) yAxis else xAxis
-        val rect = axis.cross(try0, JomlPools.vec3f.create())
-        return rect.normalize()
-    }
-
-    private fun findSecondAxis(axis: Vector3d): Vector3d {
-        val ax = abs(axis.x)
-        val ay = abs(axis.y)
-        val try0 = JomlPools.vec3d.create()
-        if (ax > ay) try0.set(0.0, 1.0, 0.0)
-        else try0.set(1.0, 0.0, 0.0)
-        val rect = axis.cross(try0, try0)
-        return rect.normalize()
     }
 
 }

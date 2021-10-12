@@ -11,6 +11,7 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.utils.structures.ValueWithDefault
 import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
+import java.lang.RuntimeException
 
 class SwizzleRGBAComponent : Component(), FragmentShaderComponent {
 
@@ -111,7 +112,7 @@ class SwizzleRGBAComponent : Component(), FragmentShaderComponent {
     }
 
     override fun clone(): Component {
-        TODO("Not yet implemented")
+       throw RuntimeException("Not yet implemented")
     }
 
 }

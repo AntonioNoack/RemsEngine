@@ -59,12 +59,10 @@ class OptionPanel(
         stackPanel.removeComponent(value)
     }
 
-    override fun onCopyRequested(x: Float, y: Float): String? {
+    override fun onCopyRequested(x: Float, y: Float): Any? {
         return if (value is Saveable) {
             TextWriter.toText(value)
-        } else {
-            super.onCopyRequested(x, y)
-        }
+        } else super.onCopyRequested(x, y)
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {

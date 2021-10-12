@@ -2,6 +2,7 @@ package me.anno.utils
 
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.process.BetterProcessBuilder
+import java.lang.management.ManagementFactory
 import kotlin.concurrent.thread
 
 object OS {// the os is important for some things, e.g. the allowed file names, and the home directory
@@ -33,6 +34,10 @@ object OS {// the os is important for some things, e.g. the allowed file names, 
             builder.addAll(args)
             builder.start()
         }
+    }
+
+    fun getProcessID(): Int {
+        return ManagementFactory.getRuntimeMXBean().name.split("@")[0].toIntOrNull() ?: -1
     }
 
 }

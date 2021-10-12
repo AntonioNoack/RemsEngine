@@ -838,6 +838,48 @@ abstract class TextWriterBase : BaseWriter(true) {
         append(']')
     }
 
+    override fun writeAABBf(name: String, value: AABBf, force: Boolean) {
+        writeAttributeStart("AABBf", name)
+        append('[')
+        append('[')
+        append(value.minX)
+        append(',')
+        append(value.minY)
+        append(',')
+        append(value.minZ)
+        append(']')
+        append(',')
+        append('[')
+        append(value.maxX)
+        append(',')
+        append(value.maxY)
+        append(',')
+        append(value.maxZ)
+        append(']')
+        append(']')
+    }
+
+    override fun writeAABBd(name: String, value: AABBd, force: Boolean) {
+        writeAttributeStart("AABBd", name)
+        append('[')
+        append('[')
+        append(value.minX)
+        append(',')
+        append(value.minY)
+        append(',')
+        append(value.minZ)
+        append(']')
+        append(',')
+        append('[')
+        append(value.maxX)
+        append(',')
+        append(value.maxY)
+        append(',')
+        append(value.maxZ)
+        append(']')
+        append(']')
+    }
+
     override fun writeNull(name: String?) {
         writeAttributeStart("?", name)
         append("null")

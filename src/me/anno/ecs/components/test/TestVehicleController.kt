@@ -2,10 +2,11 @@ package me.anno.ecs.components.test
 
 import me.anno.ecs.Component
 import me.anno.ecs.components.physics.Vehicle
+import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.input.Input
 
-class TestVehicleController : Component() {
+class TestVehicleController : Component(), ControlReceiver {
 
     var force = 1.0
 

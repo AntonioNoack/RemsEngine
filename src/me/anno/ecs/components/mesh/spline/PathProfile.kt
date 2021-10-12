@@ -42,19 +42,19 @@ class PathProfile() : Saveable() {
     }
 
     fun getPosition(i: Int): Vector2f {
-        return positions[i]
+        return positions[i % positions.size]
     }
 
     fun getNormal(i: Int, end: Boolean, dst: Vector2f = Vector2f()): Vector2f {
         val j = if (end && !flatShading) i + 1 else i
         // todo if closed, wrap around
         if (flatShading) {
-            val v0 = positions[j]
-            val v1 = positions[j + 1]
+            val v0 = getPosition(j)
+            val v1 = getPosition(j + 1)
             dst.set(v1).sub(v0)
         } else {
-            val v0 = positions[max(j - 1, 0)]
-            val v1 = positions[j + 1]
+            val v0 = getPosition(max(j - 1, 0))
+            val v1 = getPosition(j + 1)
             dst.set(v1).sub(v0)
         }
         dst.set(-dst.y, dst.x)
@@ -62,7 +62,7 @@ class PathProfile() : Saveable() {
     }
 
     fun getColor(i: Int): Int {
-        return colors[i]
+        return colors[i % colors.size]
     }
 
     override fun save(writer: BaseWriter) {

@@ -9,6 +9,7 @@ import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
 import kotlin.reflect.KClass
+import kotlin.reflect.full.superclasses
 
 interface ISaveable {
 
@@ -75,28 +76,40 @@ interface ISaveable {
     fun readObjectArray2D(name: String, values: Array<Array<ISaveable?>>)
 
     fun readVector2f(name: String, value: Vector2f)
-    fun readVector3f(name: String, value: Vector3f)
-    fun readVector4f(name: String, value: Vector4f)
-
     fun readVector2fArray(name: String, values: Array<Vector2f>)
+    fun readVector2fArray2D(name: String, values: Array<Array<Vector2f>>)
+
+    fun readVector3f(name: String, value: Vector3f)
     fun readVector3fArray(name: String, values: Array<Vector3f>)
+    fun readVector3fArray2D(name: String, values: Array<Array<Vector3f>>)
+
+    fun readVector4f(name: String, value: Vector4f)
     fun readVector4fArray(name: String, values: Array<Vector4f>)
+    fun readVector4fArray2D(name: String, values: Array<Array<Vector4f>>)
 
     fun readVector2d(name: String, value: Vector2d)
-    fun readVector3d(name: String, value: Vector3d)
-    fun readVector4d(name: String, value: Vector4d)
-
     fun readVector2dArray(name: String, values: Array<Vector2d>)
+    fun readVector2dArray2D(name: String, values: Array<Array<Vector2d>>)
+
+    fun readVector3d(name: String, value: Vector3d)
     fun readVector3dArray(name: String, values: Array<Vector3d>)
+    fun readVector3dArray2D(name: String, values: Array<Array<Vector3d>>)
+
+    fun readVector4d(name: String, value: Vector4d)
     fun readVector4dArray(name: String, values: Array<Vector4d>)
+    fun readVector4dArray2D(name: String, values: Array<Array<Vector4d>>)
 
     fun readVector2i(name: String, value: Vector2i)
-    fun readVector3i(name: String, value: Vector3i)
-    fun readVector4i(name: String, value: Vector4i)
-
     fun readVector2iArray(name: String, values: Array<Vector2i>)
+    fun readVector2iArray2D(name: String, values: Array<Array<Vector2i>>)
+
+    fun readVector3i(name: String, value: Vector3i)
     fun readVector3iArray(name: String, values: Array<Vector3i>)
+    fun readVector3iArray2D(name: String, values: Array<Array<Vector3i>>)
+
+    fun readVector4i(name: String, value: Vector4i)
     fun readVector4iArray(name: String, values: Array<Vector4i>)
+    fun readVector4iArray2D(name: String, values: Array<Array<Vector4i>>)
 
 
     // read matrices
@@ -116,6 +129,9 @@ interface ISaveable {
     fun readQuaterniond(name: String, value: Quaterniond)
     fun readQuaterniondArray(name: String, values: Array<Quaterniond>)
     fun readQuaterniondArray2D(name: String, values: Array<Array<Quaterniond>>)
+
+    fun readAABBf(name: String, value: AABBf)
+    fun readAABBd(name: String, value: AABBd)
 
     /**
      * can saving be ignored?, because this is default anyways?
@@ -177,16 +193,19 @@ interface ISaveable {
 
         fun getSample(type: String) = objectTypeRegistry[type]?.sampleInstance
 
-        fun getClass(type: String): KClass<ISaveable>? {
-            val instance = objectTypeRegistry[type]?.sampleInstance ?: return null
-            return instance::class as KClass<ISaveable>
+        fun getClass(type: String): KClass<out ISaveable>? {
+            val instance = objectTypeRegistry[type]?.sampleInstance ?: return superTypeRegistry[type]
+            return instance::class
         }
 
         val objectTypeRegistry = HashMap<String, RegistryEntry>()
+        val superTypeRegistry = HashMap<String, KClass<out ISaveable>>()
 
         @JvmStatic
         fun registerCustomClass(className: String, constructor: () -> ISaveable) {
-            objectTypeRegistry[className] = RegistryEntry(constructor)
+            val instance0 = constructor()
+            objectTypeRegistry[className] = RegistryEntry(instance0, constructor)
+            registerSuperClasses(instance0)
         }
 
         @JvmStatic
@@ -194,6 +213,15 @@ interface ISaveable {
             val className = instance0.className
             val constructor = instance0.javaClass
             objectTypeRegistry[className] = RegistryEntry(instance0) { constructor.newInstance() }
+            registerSuperClasses(instance0)
+        }
+
+        fun registerSuperClasses(instance0: ISaveable) {
+            var clazz = instance0::class
+            while (true) {
+                superTypeRegistry[clazz.simpleName!!] = clazz
+                clazz = clazz.superclasses.firstOrNull() as? KClass<out ISaveable> ?: break
+            }
         }
 
         @JvmStatic
@@ -201,6 +229,7 @@ interface ISaveable {
             val instance0 = constructor()
             val className = instance0.className
             objectTypeRegistry[className] = RegistryEntry(instance0, constructor)
+            registerSuperClasses(instance0)
         }
 
         @JvmStatic
@@ -209,12 +238,15 @@ interface ISaveable {
             val instance0 = constructor.newInstance()
             val className = instance0.className
             objectTypeRegistry[className] = RegistryEntry(instance0) { constructor.newInstance() }
+            registerSuperClasses(instance0)
         }
 
         @JvmStatic
         fun registerCustomClass(className: String, clazz: Class<ISaveable>) {
             val constructor = clazz.getConstructor()
-            objectTypeRegistry[className] = RegistryEntry { constructor.newInstance() }
+            val instance0 = constructor.newInstance()
+            objectTypeRegistry[className] = RegistryEntry(instance0) { constructor.newInstance() }
+            registerSuperClasses(instance0)
         }
 
     }

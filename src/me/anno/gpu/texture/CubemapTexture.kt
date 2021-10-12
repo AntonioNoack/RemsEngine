@@ -152,7 +152,7 @@ class CubemapTexture(
             if (isBoundToSlot(index)) return false
             Texture2D.activeSlot(index)
             val result = Texture2D.bindTexture(tex2D, pointer)
-            ensureFilterAndClamping(nearest, clamping)
+            ensureFilterAndClamping(nearest)
             return result
         } else throw IllegalStateException("Cannot bind non-created texture!")
     }
@@ -167,7 +167,7 @@ class CubemapTexture(
     var filtering: GPUFiltering = GPUFiltering.TRULY_NEAREST
 
     private fun filtering(nearest: GPUFiltering) {
-        if (!hasMipmap && nearest.needsMipmap) {
+        if (!hasMipmap && nearest.needsMipmap && samples <= 1) {
             GL30.glGenerateMipmap(tex2D)
             hasMipmap = true
             if (GFX.supportsAnisotropicFiltering) {
@@ -182,7 +182,7 @@ class CubemapTexture(
         this.filtering = nearest
     }
 
-    private fun ensureFilterAndClamping(nearest: GPUFiltering, clamping: Clamping) {
+    private fun ensureFilterAndClamping(nearest: GPUFiltering) {
         // ensure being bound?
         if (nearest != this.filtering) filtering(nearest)
     }

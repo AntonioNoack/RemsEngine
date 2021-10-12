@@ -149,7 +149,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         if (inst) loadTexturesSync.pop()
     }
 
-    override fun onCopyRequested(x: Float, y: Float): String? {
+    override fun onCopyRequested(x: Float, y: Float): Any? {
         return if (disableCopy) super.onCopyRequested(x, y) else text
     }
 

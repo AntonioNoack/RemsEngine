@@ -10,6 +10,7 @@ import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.light.PlanarReflection
 import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.shaders.effects.Bloom
@@ -21,7 +22,7 @@ import me.anno.engine.debug.DebugShapes.debugRays
 import me.anno.engine.gui.PlaneShapes
 import me.anno.engine.pbr.DeferredRenderer
 import me.anno.ecs.components.physics.BulletPhysics
-import me.anno.engine.ui.ECSTypeLibrary
+import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.DefaultSun.defaultSun
 import me.anno.engine.ui.render.DefaultSun.defaultSunEntity
@@ -64,6 +65,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
+import me.anno.input.Input
 import me.anno.input.Input.isKeyDown
 import me.anno.input.Input.isShiftDown
 import me.anno.studio.Build
@@ -81,6 +83,7 @@ import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.joml.Math.toRadians
 import org.lwjgl.opengl.GL45.*
+import kotlin.math.tan
 
 // todo render the grid slightly off position, so we don't get flickering
 // todo always closer to the camera
@@ -118,7 +121,7 @@ import org.lwjgl.opengl.GL45.*
 // todo different control schemes of the camera like in MagicaVoxel
 
 class RenderView(
-    val library: ECSTypeLibrary,
+    val library: EditorState,
     val mode: Mode,
     style: Style
 ) : Panel(style) {
@@ -817,6 +820,10 @@ class RenderView(
 
         camRotation.transform(camDirection.set(0.0, 0.0, -1.0))
         camDirection.normalize()
+
+        // camera matrix and mouse position to ray direction
+        getMouseRayDirection(Input.mouseX, Input.mouseY, mouseDir)
+
         // debugPoints.add(DebugPoint(Vector3d(camDirection).mul(20.0).add(camPosition), 0xff0000, -1))
 
         currentInstance = this
@@ -974,8 +981,8 @@ class RenderView(
                 for (selected in library.fineSelection) {
                     when (selected) {
                         is Entity -> drawOutline(selected, worldScale)
-                        is MeshComponent -> {
-                            val mesh = MeshCache[selected.mesh, false] ?: continue
+                        is MeshBaseComponent -> {
+                            val mesh = selected.getMesh() ?: continue
                             drawOutline(selected, mesh, worldScale)
                         }
                         is Component -> drawOutline(selected.entity ?: continue, worldScale)
@@ -1057,7 +1064,7 @@ class RenderView(
                     // only draw the circle, if its size is larger than ~ a single pixel
                     if (doDrawCircle) {
                         scale = globalTransform.getScale(scaleV).dot(0.3, 0.3, 0.3)
-                        val ringColor = if (entity == ECSTypeLibrary.lastSelection) selectedColor else white4
+                        val ringColor = if (entity == EditorState.lastSelection) selectedColor else white4
                         // PlaneShapes.drawCircle(globalTransform, ringColor.toARGB())
                         // Transform.drawUICircle(stack, 0.5f / scale.toFloat(), 0.7f, ringColor)
                     }
@@ -1065,7 +1072,7 @@ class RenderView(
                     val components = entity.components
                     for (i in components.indices) {
                         val component = components[i]
-                        if (component !is MeshComponent && component.isEnabled) {
+                        if (component !is MeshBaseComponent && component.isEnabled) {
                             // mesh components already got their id
                             val componentClickId = clickId++
                             component.clickId = componentClickId
@@ -1078,7 +1085,7 @@ class RenderView(
 
                     if (drawAABBs) {
                         val aabb = entity.aabb
-                        if (AABBs.testLineAABB(aabb, camPosition, ControlScheme.mouseDir, 1e10))
+                        if (AABBs.testLineAABB(aabb, camPosition, mouseDir, 1e10))
                         // if (aabb.testRay(Rayd(camPosition, ControlScheme.mouseDir)))
                             drawAABB(aabb, worldScale, 1.0, 1.0, 1.0)
                         else
@@ -1161,6 +1168,28 @@ class RenderView(
         )
     }
 
+    fun getMouseRayDirection(
+        cx: Float = Input.mouseX,
+        cy: Float = Input.mouseY,
+        dst: Vector3d = Vector3d()
+    ): Vector3d {
+        // todo normalize with aspect ratio
+        // todo normalize with fov
+        val rx = (cx - x) / w * +2f - 1f
+        val ry = (cy - y) / h * -2f + 1f
+        val tan = tan(fovYRadians * 0.5f)
+        val aspectRatio = w.toFloat() / h
+        val dir = dst.set((rx * tan * aspectRatio).toDouble(), (ry * tan).toDouble(), -1.0)
+        camRotation.transform(dir)
+        dir.normalize()
+        return dst
+    }
+
+    override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
+        getMouseRayDirection(x, y, JomlPools.vec3d.create())
+        super.onMouseMoved(x, y, dx, dy)
+    }
+
     companion object {
 
         private val LOGGER = LogManager.getLogger(RenderView::class)
@@ -1184,6 +1213,7 @@ class RenderView(
         val camPosition = Vector3d()
         val camDirection = Vector3d()
         val camRotation = Quaterniond()
+        val mouseDir = Vector3d()
 
         val scaledMin = Vector4d()
         val scaledMax = Vector4d()

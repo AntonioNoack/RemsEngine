@@ -30,7 +30,7 @@ object DefaultLayout {
 
         val animationWindow = CustomList(false, style)
 
-        val libraryBase = ECSTypeLibrary
+        val libraryBase = EditorState
         val library = libraryBase.uiLibrary
 
         animationWindow.add(CustomContainer(ECSTreeView(libraryBase, isGaming, style), library, style), 1f)

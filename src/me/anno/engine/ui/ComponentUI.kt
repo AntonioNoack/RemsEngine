@@ -78,6 +78,8 @@ object ComponentUI {
 
     // todo mesh input, skeleton selection, animation selection, ...
 
+    // todo position control+x is not working (reset on right click is working)
+    
     fun createUI2(
         name: String?,
         visibilityKey: String,
@@ -816,6 +818,7 @@ object ComponentUI {
                     type0.endsWith("/PrefabSaveable", true) -> {
                         val type1 = type0.substring(0, type0.lastIndexOf('/'))
                         value as PrefabSaveable?
+                        // todo find the class somehow...
                         val clazz = ISaveable.getClass(type1)!!
                         return PrefabSaveableInput(title, clazz, value, style)
                             .apply {

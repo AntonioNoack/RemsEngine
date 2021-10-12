@@ -5,7 +5,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ui.ECSTypeLibrary
+import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.camDirection
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
@@ -83,7 +83,7 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
 
     override fun drawGizmos() {
         // todo also render this in the RenderView for click detection
-        for (selected in ECSTypeLibrary.selection) {
+        for (selected in EditorState.selection) {
             if (selected is Entity) {
                 val scale = view.radius * 0.1
                 val transform = selected.transform.globalTransform

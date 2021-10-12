@@ -1,12 +1,12 @@
 package me.anno.engine.physics
 
 import com.bulletphysics.linearmath.IDebugDraw
-import me.anno.gpu.buffer.LineBuffer
+import me.anno.engine.gui.LineShapes
+import me.anno.engine.physics.Vectors2.set2
 import me.anno.gpu.buffer.LineBuffer.putRelativeLine
+import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
-import org.joml.Vector3f
-import org.joml.Vector4f
 import javax.vecmath.Vector3d
 
 class BulletDebugDraw : IDebugDraw() {
@@ -81,8 +81,11 @@ class BulletDebugDraw : IDebugDraw() {
         lifeTime: Int,
         color: Vector3d
     ) {
-        // todo instead of a line, draw a shape with arrow
-        drawLine(position, Vector3d(position).apply { add(normal) }, color)
+        // instead of a line, draw a shape with arrow
+        val p0 = JomlPools.vec3d.create().set2(position)
+        val p1 = JomlPools.vec3d.create().set2(normal).add(p0)
+        LineShapes.drawArrowZ(p0, p1)
+        // drawLine(position, Vector3d(position).apply { add(normal) }, color)
     }
 
     override fun drawLine(from: Vector3d, to: Vector3d, color: Vector3d) {

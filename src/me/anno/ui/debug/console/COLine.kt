@@ -8,8 +8,8 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.style.Style
 
 class COLine(val list: PanelList, msg: String, style: Style): TextPanel(msg, style) {
-    override fun getMultiSelectablePanel(): Panel? = this
-    override fun onCopyRequested(x: Float, y: Float): String? {
+    override fun getMultiSelectablePanel(): Panel = this
+    override fun onCopyRequested(x: Float, y: Float): String {
         val all = rootPanel.listOfAll.toList()
         return GFX.inFocus
             .filterIsInstance<TextPanel>()

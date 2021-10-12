@@ -233,8 +233,9 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     }
 
     override fun writeFloatArray(name: String, values: FloatArray?, force: Boolean) {
-        if (values == null) TODO()
-        if (force || values.isNotEmpty()) {
+        if (values == null) {
+            writeNull(name)
+        } else if (force || values.isNotEmpty()) {
             writeAttributeStart(name, FLOAT_ARRAY)
             output.writeInt(values.size)
             for (v in values) output.writeFloat(v)
@@ -242,8 +243,9 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     }
 
     override fun writeFloatArray2D(name: String, values: Array<FloatArray>?, force: Boolean) {
-        if (values == null) TODO()
-        if (force || values.isNotEmpty()) {
+        if (values == null) {
+            writeNull(name)
+        } else if (force || values.isNotEmpty()) {
             writeAttributeStart(name, FLOAT_ARRAY_2D)
             output.writeInt(values.size)
             for (vs in values) {
@@ -450,15 +452,36 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     }
 
     override fun writeVector2iArray(name: String, values: Array<Vector2i>, force: Boolean) {
-        TODO("Not yet implemented")
+        writeAttributeStart(name, VECTOR2I_ARRAY)
+        output.writeInt(values.size)
+        for (i in values.indices) {
+            val value = values[i]
+            output.writeInt(value.x())
+            output.writeInt(value.y())
+        }
     }
 
     override fun writeVector3iArray(name: String, values: Array<Vector3i>, force: Boolean) {
-        TODO("Not yet implemented")
+        writeAttributeStart(name, VECTOR3I_ARRAY)
+        output.writeInt(values.size)
+        for (i in values.indices) {
+            val value = values[i]
+            output.writeInt(value.x())
+            output.writeInt(value.y())
+            output.writeInt(value.z())
+        }
     }
 
     override fun writeVector4iArray(name: String, values: Array<Vector4i>, force: Boolean) {
-        TODO("Not yet implemented")
+        writeAttributeStart(name, VECTOR4I_ARRAY)
+        output.writeInt(values.size)
+        for (i in values.indices) {
+            val value = values[i]
+            output.writeInt(value.x())
+            output.writeInt(value.y())
+            output.writeInt(value.z())
+            output.writeInt(value.w())
+        }
     }
 
     fun writeQuaternion(value: Quaternionf) {
@@ -490,35 +513,141 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     }
 
     override fun writeQuaternionfArray(name: String, values: Array<Quaternionf>, force: Boolean) {
-        TODO("Not yet implemented")
+        writeAttributeStart(name, QUATERNION32_ARRAY)
+        output.writeInt(values.size)
+        for (i in values.indices) {
+            writeQuaternion(values[i])
+        }
     }
 
     override fun writeQuaternionfArray2D(name: String, values: Array<Array<Quaternionf>>, force: Boolean) {
-        TODO("Not yet implemented")
+        writeAttributeStart(name, QUATERNION32_ARRAY_2D)
+        output.writeInt(values.size)
+        for (i in values.indices) {
+            val values2 = values[i]
+            output.writeInt(values2.size)
+            for (j in values2.indices) {
+                writeQuaternion(values2[j])
+            }
+        }
     }
 
     override fun writeMatrix3x3f(name: String, value: Matrix3fc, force: Boolean) {
-        TODO("Not yet implemented")
+        writeAttributeStart(name, MATRIX3X3F)
+        output.writeFloat(value.m00())
+        output.writeFloat(value.m01())
+        output.writeFloat(value.m02())
+        output.writeFloat(value.m10())
+        output.writeFloat(value.m11())
+        output.writeFloat(value.m12())
+        output.writeFloat(value.m20())
+        output.writeFloat(value.m21())
+        output.writeFloat(value.m22())
     }
 
     override fun writeMatrix4x3f(name: String, value: Matrix4x3fc, force: Boolean) {
-        TODO("Not yet implemented")
+        writeAttributeStart(name, MATRIX4X3F)
+        output.writeFloat(value.m00())
+        output.writeFloat(value.m01())
+        output.writeFloat(value.m02())
+        output.writeFloat(value.m10())
+        output.writeFloat(value.m11())
+        output.writeFloat(value.m12())
+        output.writeFloat(value.m20())
+        output.writeFloat(value.m21())
+        output.writeFloat(value.m22())
+        output.writeFloat(value.m30())
+        output.writeFloat(value.m31())
+        output.writeFloat(value.m32())
     }
 
     override fun writeMatrix4x4f(name: String, value: Matrix4fc, force: Boolean) {
-        TODO("Not yet implemented")
+        writeAttributeStart(name, MATRIX4X4F)
+        output.writeFloat(value.m00())
+        output.writeFloat(value.m01())
+        output.writeFloat(value.m02())
+        output.writeFloat(value.m03())
+        output.writeFloat(value.m10())
+        output.writeFloat(value.m11())
+        output.writeFloat(value.m12())
+        output.writeFloat(value.m13())
+        output.writeFloat(value.m20())
+        output.writeFloat(value.m21())
+        output.writeFloat(value.m22())
+        output.writeFloat(value.m23())
+        output.writeFloat(value.m30())
+        output.writeFloat(value.m31())
+        output.writeFloat(value.m32())
+        output.writeFloat(value.m33())
     }
 
     override fun writeMatrix3x3d(name: String, value: Matrix3dc, force: Boolean) {
-        TODO("Not yet implemented")
+        writeAttributeStart(name, MATRIX3X3D)
+        output.writeDouble(value.m00())
+        output.writeDouble(value.m01())
+        output.writeDouble(value.m02())
+        output.writeDouble(value.m10())
+        output.writeDouble(value.m11())
+        output.writeDouble(value.m12())
+        output.writeDouble(value.m20())
+        output.writeDouble(value.m21())
+        output.writeDouble(value.m22())
     }
 
     override fun writeMatrix4x3d(name: String, value: Matrix4x3dc, force: Boolean) {
-        TODO("Not yet implemented")
+        writeAttributeStart(name, MATRIX4X3D)
+        output.writeDouble(value.m00())
+        output.writeDouble(value.m01())
+        output.writeDouble(value.m02())
+        output.writeDouble(value.m10())
+        output.writeDouble(value.m11())
+        output.writeDouble(value.m12())
+        output.writeDouble(value.m20())
+        output.writeDouble(value.m21())
+        output.writeDouble(value.m22())
+        output.writeDouble(value.m30())
+        output.writeDouble(value.m31())
+        output.writeDouble(value.m32())
     }
 
     override fun writeMatrix4x4d(name: String, value: Matrix4dc, force: Boolean) {
-        TODO("Not yet implemented")
+        writeAttributeStart(name, MATRIX4X4D)
+        output.writeDouble(value.m00())
+        output.writeDouble(value.m01())
+        output.writeDouble(value.m02())
+        output.writeDouble(value.m03())
+        output.writeDouble(value.m10())
+        output.writeDouble(value.m11())
+        output.writeDouble(value.m12())
+        output.writeDouble(value.m13())
+        output.writeDouble(value.m20())
+        output.writeDouble(value.m21())
+        output.writeDouble(value.m22())
+        output.writeDouble(value.m23())
+        output.writeDouble(value.m30())
+        output.writeDouble(value.m31())
+        output.writeDouble(value.m32())
+        output.writeDouble(value.m33())
+    }
+
+    override fun writeAABBf(name: String, value: AABBf, force: Boolean) {
+        writeAttributeStart(name, AABBF)
+        output.writeFloat(value.minX)
+        output.writeFloat(value.minY)
+        output.writeFloat(value.minZ)
+        output.writeFloat(value.maxX)
+        output.writeFloat(value.maxY)
+        output.writeFloat(value.maxZ)
+    }
+
+    override fun writeAABBd(name: String, value: AABBd, force: Boolean) {
+        writeAttributeStart(name, AABBD)
+        output.writeDouble(value.minX)
+        output.writeDouble(value.minY)
+        output.writeDouble(value.minZ)
+        output.writeDouble(value.maxX)
+        output.writeDouble(value.maxY)
+        output.writeDouble(value.maxZ)
     }
 
     override fun writeNull(name: String?) {
@@ -627,7 +756,12 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         values: Array<Array<V>>,
         force: Boolean
     ) {
-        TODO("Not yet implemented")
+        writeGenericArray(name, values, force, OBJECT_ARRAY_2D) {
+            output.writeInt(it.size)
+            for (i in it.indices) {
+                writeObject(null, null, it[i], true)
+            }
+        }
     }
 
     override fun <V : ISaveable> writeObjectList(self: ISaveable?, name: String, values: List<V>?, force: Boolean) {

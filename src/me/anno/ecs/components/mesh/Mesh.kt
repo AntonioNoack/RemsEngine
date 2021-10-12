@@ -195,18 +195,18 @@ class Mesh : PrefabSaveable() {
         aabb.clear()
         val indices = indices
         // if the indices array is empty, it indicates a non-indexed array, so all values will be considered
+        val positions = positions ?: return
         if (ignoreStrayPointsInAABB && indices != null && indices.isNotEmpty()) {
-            val positions = positions!!
             for (index in indices) {
-                val x = positions[index * 3 + 0]
-                val y = positions[index * 3 + 1]
-                val z = positions[index * 3 + 2]
+                val i3 = index * 3
+                val x = positions[i3]
+                val y = positions[i3 + 1]
+                val z = positions[i3 + 2]
                 aabb.union(x, y, z)
             }
         } else {
-            val positions = positions!!
             for (index in positions.indices step 3) {
-                val x = positions[index + 0]
+                val x = positions[index]
                 val y = positions[index + 1]
                 val z = positions[index + 2]
                 aabb.union(x, y, z)
@@ -397,7 +397,8 @@ class Mesh : PrefabSaveable() {
 
         calculateAABB()
 
-        val positions = positions!!
+        // not the safest, but well...
+        val positions = positions ?: return
         if (normals == null)
             normals = FloatArray(positions.size)
 

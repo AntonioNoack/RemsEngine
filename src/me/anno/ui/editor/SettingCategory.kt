@@ -40,7 +40,7 @@ open class SettingCategory(
             else super.onMouseClicked(x, y, button, long)
         }
 
-        override fun onCopyRequested(x: Float, y: Float): String? {
+        override fun onCopyRequested(x: Float, y: Float): Any? {
             return if (canCopyTitleText) text
             else parent?.onCopyRequested(x, y)
         }

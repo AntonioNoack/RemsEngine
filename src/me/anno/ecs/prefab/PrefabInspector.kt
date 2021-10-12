@@ -1,14 +1,16 @@
 package me.anno.ecs.prefab
 
+import me.anno.config.DefaultStyle.black
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.interfaces.ControlReceiver
+import me.anno.ecs.interfaces.CustomEditMode
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
-import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.IProperty
 import me.anno.engine.ui.ComponentUI
-import me.anno.engine.ui.ECSTypeLibrary
+import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -17,32 +19,36 @@ import me.anno.objects.inspectable.Inspectable
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.base.Panel
 import me.anno.ui.base.buttons.TextButton
+import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.TextStyleable
+import me.anno.ui.base.text.UpdatingTextPanel
+import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.editor.stacked.StackPanel
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.utils.process.DelayedTask
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
+import me.anno.utils.strings.StringHelper.shorten2Way
+import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 
-// todo right click - reset is not available on all elements
-//  - float input
-//  - vector input: only control + x, not right click
-//  - text input: only control + x, not right click
+// todo bug: right click to reset is not working on text inputs, why?
+// todo bug: instance and inspector can get out of sync: the color slider for materials stops working :/
+
+// done if there is a physics components, start it
+// todo only execute it, if the scene is visible/selected
+// todo later: only execute it, if in game mode
+// todo later: control it's speed, and step size
 
 // this can be like a scene (/scene tab)
 // show changed values in bold
 
-class PrefabInspector(
-    val prefab: Prefab
-) {
+class PrefabInspector(val prefab: Prefab) {
 
     val reference get() = prefab.source
-
-    // todo instance and inspector can get out of sync: the color slider stops working :/
 
     constructor(reference: FileReference, classNameIfNull: String) :
             this(loadPrefab(reference) ?: Prefab(classNameIfNull))
@@ -67,11 +73,6 @@ class PrefabInspector(
 
     // val changes = ArrayList()
     val root get() = prefab.getSampleInstance()
-
-    // done if there is a physics components, start it
-    // todo only execute it, if the scene is visible/selected
-    // todo later: only execute it, if in game mode
-    // todo later: control it's speed, and step size
 
     private val savingTask = DelayedTask {
         addEvent { history.put(TextWriter.toText(adds + sets.map { k1, k2, v -> CSet(k1, k2, v) })) }
@@ -151,7 +152,7 @@ class PrefabInspector(
         val prefab = instance.getOriginal()
 
         list.add(TextButton("Select Parent", false, style).addLeftClickListener {
-            ECSTypeLibrary.select(instance.parent)
+            EditorState.select(instance.parent)
         })
 
         list.add(TextInput("Name", "", instance.name, style).apply {
@@ -175,9 +176,53 @@ class PrefabInspector(
             LOGGER.info("Copy: ${TextWriter.toText(instance)}")
         })
 
-        // bold/non bold for other properties
+        if (instance is ControlReceiver) {
+            list.add(TextButton("Test Controls", false, style)
+                .addLeftClickListener { EditorState.control = instance })
+        }
+
+        if (instance is CustomEditMode) {
+            list.add(TextButton("Enable Edit Mode", false, style)
+                .addLeftClickListener { EditorState.editMode = instance })
+        }
 
         val reflections = instance.getReflections()
+
+        // debug warnings
+        for (warn in reflections.debugWarnings) {
+            val title = warn.name.camelCaseToTitle()
+            list.add(UpdatingTextPanel(500L, style) {
+                formatWarning(title, warn.getter.call(instance))
+            }.apply { textColor = black or 0xffff33 })
+        }
+
+        // debug actions: buttons for them
+        for (action in reflections.debugActions) {
+            // todo if there are extra arguments, we would need to create a list inputs for them
+            /* for (param in action.parameters) {
+                     param.kind
+            } */
+            list.add(TextButton(action.name.camelCaseToTitle(), false, style)
+                .addLeftClickListener {
+                    action.call(instance)
+                    invalidateUI() // typically sth would have changed -> show that automatically
+                })
+        }
+
+        // debug properties: text showing the value, constantly updating
+        for (property in reflections.debugProperties) {
+            val title = property.name.camelCaseToTitle()
+            val list1 = PanelListX(style)
+            list1.add(TextPanel("$title:", style))
+            list1.add(UpdatingTextPanel(100L, style) { property.getter.call(instance).toString().shorten2Way(50) })
+            list1.addLeftClickListener {
+                // todo when clicked, a tracking graph/plot is displayed (real time)
+
+            }
+            list.add(list1)
+        }
+
+        // bold/non bold for other properties
         for ((clazz, propertyNames) in reflections.propertiesByClass.value.reversed()) {
 
             var hadIntro = false
@@ -257,11 +302,6 @@ class PrefabInspector(
             val niceName = instance.getChildListNiceName(type)
             val children = instance.getChildListByType(type)
 
-            // todo all list properties, e.g. children, properties and such
-            // todo ofc, children should be hidden, but other material may be important
-
-            // todo get options of any type...
-
             val nicerName = niceName.camelCaseToTitle()
             list.add(object : StackPanel(
                 nicerName, "",
@@ -276,7 +316,7 @@ class PrefabInspector(
 
                 override fun onRemoveComponent(component: Inspectable) {
                     component as PrefabSaveable
-                    ECSTypeLibrary.unselect(component)
+                    EditorState.unselect(component)
                     Hierarchy.removePathFromPrefab(this@PrefabInspector.prefab, component)
                 }
 
@@ -311,6 +351,14 @@ class PrefabInspector(
     override fun toString(): String = TextWriter.toText(prefab)
 
     companion object {
+
+        fun formatWarning(title: String, warn: Any?): String? {
+            if (warn == null) return null
+            val tos = warn.toString()
+            val title2 = if (' ' in title) title else title.camelCaseToTitle()
+            if (tos.isBlank2()) return title2
+            return "$title2: ${tos.shorten2Way(50)}"
+        }
 
         private val LOGGER = LogManager.getLogger(PrefabInspector::class)
 

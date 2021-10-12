@@ -3,6 +3,7 @@ package me.anno.mesh.assimp
 import me.anno.ecs.Entity
 import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.cache.SkeletonCache
+import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.Shader
@@ -49,8 +50,8 @@ class AnimGameItem(
         rootEntity.simpleTraversal(false) { entity ->
             entity as Entity
             val global = entity.transform.globalTransform
-            entity.anyComponent(MeshComponent::class, false) { comp ->
-                val mesh = MeshCache[comp.mesh]
+            entity.anyComponent(MeshBaseComponent::class, false) { comp ->
+                val mesh = comp.getMesh()
                 if (mesh != null) {
                     mesh.ensureBuffer()
 
@@ -173,10 +174,11 @@ class AnimGameItem(
                 // todo rendering all points is only a good idea, if there are no meshes
                 // todo render all them points, and use them for the bbx calculation (only if no meshes present)
                 // because animated clothing may be too small to see
-                if (entity.hasComponent(MeshComponent::class)) {
+                if (entity.hasComponent(MeshBaseComponent::class)) {
                     local.clear()
-                    entity.anyComponent(MeshComponent::class, false) { comp ->
-                        val mesh = MeshCache[comp.mesh]
+                    entity.anyComponent(MeshBaseComponent::class, false) { comp ->
+                        comp.ensureBuffer()
+                        val mesh = comp.getMesh()
                         if (mesh != null) {
                             mesh.ensureBuffer()
                             local.union(mesh.aabb.toDouble())

@@ -2,6 +2,7 @@ package me.anno.config
 
 import me.anno.config.DefaultStyle.baseTheme
 import me.anno.io.ISaveable.Companion.registerCustomClass
+import me.anno.io.SaveableArray
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
@@ -48,6 +49,7 @@ object DefaultConfig : StringMap() {
 
         // in case it wasn't registered yet
         registerCustomClass(StringMap())
+        registerCustomClass(SaveableArray())
 
         this["style"] = "dark"
 

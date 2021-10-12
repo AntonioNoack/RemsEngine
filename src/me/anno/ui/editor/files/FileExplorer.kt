@@ -8,10 +8,12 @@ import me.anno.input.Input.setClipboardContent
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.FileRootRef
+import me.anno.io.files.InvalidRef
 import me.anno.io.zip.ZipCache
 import me.anno.language.translation.NameDesc
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
@@ -27,8 +29,16 @@ import me.anno.ui.editor.files.FileExplorerEntry.Companion.deleteFileMaybe
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.utils.OS
+import me.anno.utils.OS.desktop
+import me.anno.utils.OS.documents
+import me.anno.utils.OS.downloads
+import me.anno.utils.OS.home
+import me.anno.utils.OS.music
+import me.anno.utils.OS.pictures
+import me.anno.utils.OS.videos
 import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.files.Files.listFiles2
+import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.hpc.UpdatingTask
 import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.maths.Maths.pow
@@ -39,7 +49,6 @@ import java.io.File
 import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.roundToInt
-
 
 // done, kind of: zoom: keep mouse at item in question
 // done change side ratio based on: border + 1:1 frame + 2 lines of text
@@ -137,19 +146,56 @@ abstract class FileExplorer(
 
     val title = PathPanel(folder, style)
 
+    fun getShortcutFolders(): List<FileReference> {
+        val raw = DefaultConfig["files.shortcuts",
+                listOf(
+                    home,
+                    desktop,
+                    documents,
+                    downloads,
+                    pictures,
+                    videos,
+                    music,
+                    workspace,
+                    FileRootRef
+                ).joinToString("|") { it.toLocalPath() }
+        ]
+        return raw
+            .split('|')
+            .map { it.toGlobalFile() }
+            .filter { it != InvalidRef }
+    }
+
     init {
+
         val esi = entrySize.toInt()
         content.childWidth = esi
         content.childHeight = esi * 4 / 3
         val topBar = PanelListX(style)
         this += topBar
         topBar += title
+
+        // todo somehow a second menu is opening :/
+        title.addRightClickListener {
+            val shortCutFolders = getShortcutFolders()
+            openMenu(NameDesc("Switch To"), listOf(
+                MenuOption(NameDesc("Add Current To This List")) {
+                    DefaultConfig["files.shortcuts"] = (getShortcutFolders() + folder)
+                        .joinToString("|") { it.toLocalPath() }
+                }
+            ) + shortCutFolders.map { file ->
+                MenuOption(NameDesc(file.name)) { switchTo(file) }
+            })
+        }
+
         topBar += searchBar
         this += uContent
+
         title.onChangeListener = {
             switchTo(it)
             invalidate()
         }
+
         uContent += ScrollPanelY(
             favourites,
             Padding(1),
@@ -157,6 +203,7 @@ abstract class FileExplorer(
             AxisAlignment.MIN
         ).setWeight(1f)
         uContent += content.setWeight(3f)
+
     }
 
     fun invalidate() {

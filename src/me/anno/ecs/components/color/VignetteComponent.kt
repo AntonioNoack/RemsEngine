@@ -5,7 +5,6 @@ import me.anno.ecs.Component
 import me.anno.ecs.components.shaders.FragmentShaderComponent
 import me.anno.ecs.components.shaders.ShaderEnvironment
 import me.anno.ecs.components.shaders.VariableType
-import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.Shader
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -56,7 +55,7 @@ class VignetteComponent : Component(), FragmentShaderComponent {
     override val className get() = "VignetteComponent"
 
     override fun clone(): Component {
-        TODO("Not yet implemented")
+        throw RuntimeException("Not yet implemented")
     }
 
 }

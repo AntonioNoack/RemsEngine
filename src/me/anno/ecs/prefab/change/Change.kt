@@ -34,11 +34,7 @@ abstract class Change(val priority: Int) : Saveable(), Cloneable {
     override fun save(writer: BaseWriter) {
         super.save(writer)
         val path = path
-        // todo writing as object somehow introduces errors...
         writer.writeObject(null, "path", path)
-        /*if (!path.isEmpty()) {
-            writer.writeString("path", path.toString(), true)
-        }*/
     }
 
     override fun readObject(name: String, value: ISaveable?) {

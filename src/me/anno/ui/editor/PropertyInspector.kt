@@ -1,12 +1,16 @@
 package me.anno.ui.editor
 
+import me.anno.gpu.GFX
 import me.anno.language.translation.Dict
 import me.anno.objects.inspectable.Inspectable
+import me.anno.studio.rems.ui.StudioTreeView
 import me.anno.ui.base.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
+import me.anno.ui.editor.sceneView.ISceneView
+import me.anno.ui.editor.treeView.AbstractTreeViewPanel
 import me.anno.ui.input.ColorInput
 import me.anno.ui.input.FloatInput
 import me.anno.ui.input.TextInputML
@@ -128,6 +132,26 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
                 }.apply {
                     if (tooltip?.isBlank2() != false) {
                         tooltip = Dict[description, "obj.$dictSubPath.desc"]
+                    }
+                }
+            }
+        }
+
+        fun invalidateUI() {
+            // if(gameTime > 1e10) throw RuntimeException()
+            // LOGGER.info("UpdateSceneViews ${gameTime / 1e9f}")
+            for (window in GFX.windowStack) {
+                for (panel in window.panel.listOfVisible) {
+                    when (panel) {
+                        is StudioTreeView, is ISceneView, is TimelinePanel -> {
+                            panel.invalidateDrawing()
+                        }
+                        is PropertyInspector -> {
+                            panel.invalidate()
+                        }
+                        is AbstractTreeViewPanel<*> -> {
+                            panel.invalidateLayout()
+                        }
                     }
                 }
             }

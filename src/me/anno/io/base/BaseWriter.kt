@@ -99,6 +99,9 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     abstract fun writeQuaternionfArray(name: String, values: Array<Quaternionf>, force: Boolean = false)
     abstract fun writeQuaternionfArray2D(name: String, values: Array<Array<Quaternionf>>, force: Boolean = false)
 
+    abstract fun writeAABBf(name: String, value: AABBf, force: Boolean = false)
+    abstract fun writeAABBd(name: String, value: AABBd, force: Boolean = false)
+
     abstract fun writeFile(
         name: String, value: FileReference?, force: Boolean = false,
         workspace: FileReference? = StudioBase.workspace
@@ -368,6 +371,8 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             is Matrix4dc -> writeMatrix4x4d(name, value, forceSaving)
             is Quaternionf -> writeQuaternionf(name, value, forceSaving)
             is Quaterniond -> writeQuaterniond(name, value, forceSaving)
+            is AABBf -> writeAABBf(name, value, forceSaving)
+            is AABBd -> writeAABBd(name, value, forceSaving)
             // files
             is File -> writeFile(name, FileReference.getReference(value), forceSaving)
             is FileReference -> writeFile(name, value, forceSaving)

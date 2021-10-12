@@ -5,7 +5,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.components.physics.BulletPhysics
-import me.anno.engine.ui.ECSTypeLibrary
+import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.RenderView
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
@@ -93,7 +93,7 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
     }
 
     fun open(file: FileReference, classNameIfNull: String = "Entity"){
-        open(ECSTypeLibrary.syncMaster, file, classNameIfNull)
+        open(EditorState.syncMaster, file, classNameIfNull)
     }
 
     fun open(sceneTab: ECSSceneTab) {
@@ -104,7 +104,7 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
             // root = sceneTab.root
             val prefab = sceneTab.inspector.prefab
             val instance = prefab.getSampleInstance()
-            ECSTypeLibrary.select(instance, null)
+            EditorState.select(instance, null)
             updatePrefab(prefab)
             if (sceneTab !in children3) {
                 content += sceneTab
@@ -116,7 +116,7 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
     fun updatePrefab(prefab: Prefab) {
         val prefabInstance = prefab.getSampleInstance()
         // val world = createWorld(prefabInstance, prefab.source)
-        ECSTypeLibrary.world = prefabInstance
+        EditorState.world = prefabInstance
         (prefabInstance as? Entity)?.apply {
             create()
             val physics = prefabInstance.getComponent(BulletPhysics::class, false)

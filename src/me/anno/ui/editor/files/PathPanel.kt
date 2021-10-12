@@ -17,6 +17,10 @@ class PathPanel(file: FileReference?, style: Style) : PanelListX(style) {
 
     var onChangeListener: ((FileReference?) -> Unit)? = null
 
+    init {
+        update()
+    }
+
     fun update() {
         clear()
 

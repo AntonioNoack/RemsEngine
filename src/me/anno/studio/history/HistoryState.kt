@@ -10,6 +10,7 @@ import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.studio.rems.Selection
 import me.anno.studio.rems.Selection.select
+import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
 import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.utils.types.Lists.join
@@ -72,7 +73,7 @@ class HistoryState() : Saveable() {
                 }
             }
         }
-        RemsStudio.updateSceneViews()
+        invalidateUI()
     }
 
     fun capture(previous: HistoryState?) {

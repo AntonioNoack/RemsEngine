@@ -1,11 +1,13 @@
 package me.anno.ecs.components.physics
 
+import com.bulletphysics.collision.dispatch.CollisionObject.*
 import com.bulletphysics.dynamics.RigidBody
 import cz.advel.stack.Stack
 import me.anno.ecs.Component
-import me.anno.ecs.annotations.Docs
-import me.anno.ecs.annotations.Range
+import me.anno.ecs.annotations.*
+import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.physics.BulletPhysics.Companion.castB
+import me.anno.ecs.components.physics.constraints.Constraint
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.gui.LineShapes
 import me.anno.io.serialization.NotSerializedProperty
@@ -31,15 +33,44 @@ open class Rigidbody : Component() {
     var group = 1
 
     // which groups to collide with
+    @DebugProperty
     @NotSerializedProperty
     val collisionMask
         get() = collisionMatrix[group]
 
+    @DebugProperty
     @NotSerializedProperty
     var bulletInstance: RigidBody? = null
 
+    @NotSerializedProperty
+    val constrained = ArrayList<Constraint<*>>()
+
+    @DebugProperty
+    @NotSerializedProperty
+    val bulletState: String
+        get() = when (val s = bulletInstance?.activationState ?: -1) {
+            ACTIVE_TAG -> "Active"
+            ISLAND_SLEEPING -> "Island Sleeping"
+            WANTS_DEACTIVATION -> "Wants Deactivation"
+            DISABLE_DEACTIVATION -> "Disable Deactivation"
+            DISABLE_SIMULATION -> "Disable Simulation"
+            -1 -> "null"
+            else -> s.toString()
+        }
+
+    @DebugWarning
+    @NotSerializedProperty
+    val isMissingCollider: String? get() = if (entity!!.hasComponent(Collider::class)) null else "True"
+
     @SerializedProperty
     var activeByDefault = true
+
+    @DebugAction
+    fun activate() {
+        val bi = bulletInstance
+        if (bi == null) invalidatePhysics()
+        else bi.applyCentralImpulse(javax.vecmath.Vector3d(0.0, 10.0 * mass, 0.0))
+    }
 
     override var isEnabled: Boolean = true
         set(value) {
@@ -50,7 +81,7 @@ open class Rigidbody : Component() {
         }
 
     @SerializedProperty
-    var deleteWhenKilledByDepth = true
+    var deleteWhenKilledByDepth = false // mmh... depending on edit mode?
 
     @SerializedProperty
     var overrideGravity = false

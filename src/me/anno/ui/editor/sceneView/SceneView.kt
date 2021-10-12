@@ -47,6 +47,7 @@ import me.anno.studio.rems.ui.StudioTreeView.Companion.zoomToObject
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.custom.CustomContainer
+import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.simple.SimplePanel
 import me.anno.ui.style.Style
@@ -510,7 +511,7 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
                 invalidateDrawing()
                 RemsStudio.incrementalChange("Move Object") {
                     selected.position.addKeyframe(localTime, oldPosition + localDelta)
-                    RemsStudio.updateSceneViews()
+                    invalidateUI()
                 }
 
             }
@@ -531,7 +532,7 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
                             oldScale.z() * pow(base, localDelta.z * speed2)
                         )
                     )
-                    RemsStudio.updateSceneViews()
+                    invalidateUI()
                 }
             }
             SceneDragMode.ROTATE -> {
@@ -551,7 +552,7 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
                 invalidateDrawing()
                 RemsStudio.incrementalChange("Rotate Object") {
                     selected.rotationYXZ.addKeyframe(localTime, oldRotation + localDelta)
-                    RemsStudio.updateSceneViews()
+                    invalidateUI()
                 }
             }
         }
@@ -590,7 +591,7 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
         invalidateDrawing()
         RemsStudio.incrementalChange("Turn Camera") {
             camera.putValue(camera.rotationYXZ, oldRotation + Vector3f(dy0 * scaleFactor, dx0 * scaleFactor, 0f), false)
-            RemsStudio.updateSceneViews()
+            invalidateUI()
         }
     }
 

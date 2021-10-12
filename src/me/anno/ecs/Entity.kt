@@ -1,12 +1,15 @@
 package me.anno.ecs
 
 import me.anno.ecs.annotations.HideInInspector
+import me.anno.ecs.components.CollidingComponent
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.light.AmbientLight
 import me.anno.ecs.components.light.LightComponentBase
-import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.ecs.components.physics.BulletPhysics
 import me.anno.ecs.components.physics.Rigidbody
+import me.anno.ecs.components.ui.UIEvent
+import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.ISaveable
@@ -32,17 +35,10 @@ import kotlin.reflect.KClass
 // entities would be an idea to make effects more modular
 // it could apply new effects to both the camera and image sources
 
-// todo buttons via annotation, which can be triggered from the editor for debugging
-// todo we also could set fields for the params in the editor...
-// e.g. @Action
-
-// hide the mutable children list, -> not possible with the general approach
-// todo keep track of size of hierarchy
-
-// todo load from file whenever something changes;
+// done load from file whenever something changes;
 //  - other way around: when a file changes, update all nodes
 
-// todo delta settings & control: only saves as values, what was changed from the prefab
+// done delta settings & control: only saves as values, what was changed from the prefab
 
 class Entity() : PrefabSaveable(), Inspectable {
 
@@ -81,6 +77,9 @@ class Entity() : PrefabSaveable(), Inspectable {
 
     @NotSerializedProperty
     var hasOnVisibleUpdate = true
+
+    @NotSerializedProperty
+    var hasControlReceiver = false
 
     @NotSerializedProperty
     var isCreated = false
@@ -281,15 +280,10 @@ class Entity() : PrefabSaveable(), Inspectable {
         var collisionMask = 0
         val components = components
         for (i in components.indices) {
-            when (val component = components[i]) {
-                is MeshComponent -> {
-                    collisionMask = collisionMask or component.collisionMask
-                    if (collisionMask == -1) break
-                }
-                is Collider -> {
-                    collisionMask = collisionMask or component.collisionMask
-                    if (collisionMask == -1) break
-                }
+            val component = components[i]
+            if (component is CollidingComponent) {
+                collisionMask = collisionMask or component.collisionMask
+                if (collisionMask == -1) break
             }
         }
         val children = children
@@ -341,8 +335,6 @@ class Entity() : PrefabSaveable(), Inspectable {
 
     fun hasPhysicsInfluence(): Boolean {
         return isPhysicsControlled || parentEntity?.hasPhysicsInfluence() == true
-        // return hasComponent(false, Rigidbody::class) ||
-        //        hasComponentInChildren(false, Collider::class)
     }
 
     private inline fun executeOptimizedEvent(
@@ -410,6 +402,18 @@ class Entity() : PrefabSaveable(), Inspectable {
                 child.invalidateVisibility()
             }
         }
+    }
+
+    // todo start the game, and then redirect all events to these functions
+    fun onUIEvent(event: UIEvent): Boolean {
+        val hasUpdate = executeOptimizedEvent({ it.hasOnVisibleUpdate }, { it.updateVisible() }) {
+            if (it is ControlReceiver) {
+                event.call(it)
+                true
+            } else false
+        }
+        this.hasControlReceiver = hasUpdate
+        return hasControlReceiver
     }
 
     private var hasValidTransform = false
@@ -483,7 +487,7 @@ class Entity() : PrefabSaveable(), Inspectable {
     }
 
     override fun add(index: Int, child: PrefabSaveable) {
-        TODO("Not yet implemented")
+        throw RuntimeException("Not supported/not yet implemented")
     }
 
     override fun deleteChild(child: PrefabSaveable) {
@@ -566,7 +570,6 @@ class Entity() : PrefabSaveable(), Inspectable {
         for (component in components) {
             component.onDestroy()
         }
-        // todo some event based system? or just callable functions? idk...
         val parent = parent as? Entity
         if (parent != null) {
             parent.internalChildren.remove(this)
@@ -610,18 +613,21 @@ class Entity() : PrefabSaveable(), Inspectable {
             is Rigidbody -> {
                 physics?.invalidate(this)
             }
-            is MeshComponent -> {
+            is MeshBaseComponent -> {
                 invalidateOwnAABB()
                 invalidateCollisionMask()
             }
             is LightComponentBase -> invalidateOwnAABB()
         }
-        hasRenderables = hasComponent(MeshComponent::class, false) ||
+        hasRenderables = hasComponent(MeshBaseComponent::class, false) ||
                 hasComponent(LightComponentBase::class, false)
         val tmpAABB = tmpAABB.all()
         val globalTransform = transform.globalTransform
         hasSpaceFillingComponents = hasRenderables ||
-                anyComponent { it.fillSpace(globalTransform, tmpAABB) }
+                anyComponent {
+                    it !is MeshBaseComponent && it !is LightComponentBase &&
+                            it.fillSpace(globalTransform, tmpAABB)
+                }
     }
 
     fun addEntity(child: Entity) {
@@ -822,10 +828,12 @@ class Entity() : PrefabSaveable(), Inspectable {
 
     fun remove(child: Entity) {
         if (child.parent !== this) return
-        // todo invalidate physics
         internalChildren.remove(child)
         if (child.parent == this) {
             child.parent = null
+        }
+        if (child.hasComponentInChildren(Collider::class)) {
+            invalidatePhysics(false)
         }
     }
 

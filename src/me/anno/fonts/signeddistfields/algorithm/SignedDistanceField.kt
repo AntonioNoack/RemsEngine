@@ -31,7 +31,7 @@ object SignedDistanceField {
 
     // done: kind of optimize contours
     // done: toggle depth manipulation of outlined-characters?
-    // todo char spacing for joint strips...
+    // todo char spacing for joint strips
 
     class Contour(val segments: ArrayList<EdgeSegment>) {
         var bounds = AABBf()
