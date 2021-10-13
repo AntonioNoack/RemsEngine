@@ -296,7 +296,7 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
         val camera = camera
         GFX.check()
 
-        val buffer: Framebuffer = FBStack["resolveClick", GFX.width, GFX.height, 4, false, 1]
+        val buffer: Framebuffer = FBStack["resolveClick", GFX.width, GFX.height, 4, false, 1, true]
 
         val diameter = 5
 

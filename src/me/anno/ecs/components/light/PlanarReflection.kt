@@ -150,7 +150,7 @@ class PlanarReflection : LightComponentBase() {
         // todo cut frustum into local area by bounding box
         // todo is perspective then depends on camera
 
-        val buffer = FBStack["mirror", w, h, 4, usesFP, samples]
+        val buffer = FBStack["mirror", w, h, 4, usesFP, samples, true]
         RenderState.depthMode.use(DepthMode.GREATER) {
             useFrame(w, h, true, buffer, pbrRenderer) {
                 Frame.bind()

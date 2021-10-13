@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.ShaderLib
+import me.anno.gpu.ShaderLib.uvList
 import me.anno.gpu.TextureLib
 import me.anno.gpu.copying.FramebufferToMemory
 import me.anno.gpu.drawing.GFXx2D.posSize
@@ -18,13 +19,6 @@ import me.anno.image.ImageGPUCache
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS
 import me.anno.utils.io.ResourceHelper
-
-// todo fxaa
-// todo by inverse transform between frames
-// todo pixel-wise motion vector for that
-// todo then mix then, if they are compatible / in-field-of-view
-// todo test case: rotate camera by 45°, draw white box on black background:
-// todo do we get the correct appearance from just mixing?
 
 object FSR {
 
@@ -48,8 +42,7 @@ object FSR {
         val functions = code.value.second
 
         val shader = Shader(
-            "upscale", null, vertex,
-            listOf(Variable("vec2", "uv")), "" +
+            "upscale", null, vertex, uvList, "" +
                     "uniform vec2 dstWH;\n" +
                     "uniform vec4 background;\n" +
                     "uniform sampler2D source;\n" +
@@ -84,8 +77,7 @@ object FSR {
         val functions = code.value.second
 
         val shader = Shader(
-            "upscale", null, vertex,
-            listOf(Variable("vec2", "uv")), "" +
+            "upscale", null, vertex, uvList, "" +
                     "out vec4 glFragColor;\n" +
                     "uniform vec2 dstWH;\n" +
                     "uniform float sharpness;\n" +
@@ -210,12 +202,12 @@ object FSR {
         val ow = texture.w * size
         val oh = texture.h * size
 
-        val upscaled = FBStack["", ow, oh, 4, false, 1]
+        val upscaled = FBStack["", ow, oh, 4, false, 1, false]
         useFrame(upscaled) { upscale(texture, 0, 0, ow, oh, true) }
         FramebufferToMemory.createImage(upscaled, false, false)
             .write(src.getSibling("${src.nameWithoutExtension}-${size}x.png"))
 
-        val sharpened = FBStack["", ow, oh, 4, false, 1]
+        val sharpened = FBStack["", ow, oh, 4, false, 1, false]
         useFrame(sharpened) { sharpen(upscaled.textures.first(), 1f, 0, 0, ow, oh, true) }
 
         FramebufferToMemory.createImage(sharpened, false, false)

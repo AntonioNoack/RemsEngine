@@ -114,7 +114,7 @@ object Screenshots {
 
             GFX.check()
 
-            val fb: Framebuffer = FBStack["Screenshot", w, h, 4, false, 8]
+            val fb: Framebuffer = FBStack["Screenshot", w, h, 4, false, 8, true]
 
             GFX.check()
 

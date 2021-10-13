@@ -45,17 +45,17 @@ open class BaseShader(
         val varying = varyingSource
         val vertex = if (instanced) "#define INSTANCED\n$vertexSource" else vertexSource
 
-        val postProcessing = postProcessing?.functions?.firstOrNull { it.name == "main" }?.body ?: ""
+        val postProcessing1 = postProcessing?.functions?.firstOrNull { it.name == "main" }?.body ?: ""
 
         // if it does not have tint, then add it?
         // what do we do if it writes glFragColor?
         // option to use flat shading independent of rendering mode (?)
         val fragment = StringBuilder()
         if (instanced) fragment.append("#define INSTANCED\n")
-        val postMainIndex = postProcessing.indexOf("void main")
+        val postMainIndex = postProcessing1.indexOf("void main")
         if (postMainIndex > 0) {
             // add the code before main
-            fragment.append(postProcessing.substring(0, postMainIndex))
+            fragment.append(postProcessing1.substring(0, postMainIndex))
         }
         if ("gl_FragColor" !in fragmentSource) {
             fragment.append(fragmentSource.substring(0, fragmentSource.lastIndexOf('}')))
@@ -69,18 +69,18 @@ open class BaseShader(
                         "float finalAlpha = gl_FragColor.a;\n"
             )
         }
-        if (postMainIndex >= 0 || !postProcessing.isBlank2()) {
-            val pmi2 = if (postMainIndex < 0) -1 else postProcessing.indexOf('{', postMainIndex + 9)
+        if (postMainIndex >= 0 || !postProcessing1.isBlank2()) {
+            val pmi2 = if (postMainIndex < 0) -1 else postProcessing1.indexOf('{', postMainIndex + 9)
             // define all variables with prefix "final", which are missing
             for (type in DeferredLayerType.values()) {
-                if (type.glslName in postProcessing && type.glslName !in fragment) {
+                if (type.glslName in postProcessing1 && type.glslName !in fragment) {
                     type.appendDefinition(fragment)
                     fragment.append(" = ")
                     type.appendDefaultValue(fragment)
                     fragment.append(";\n")
                 }
             }
-            fragment.append(postProcessing.substring(pmi2 + 1))
+            fragment.append(postProcessing1.substring(pmi2 + 1))
         } else {
             fragment.append("gl_FragColor = vec4(finalColor, finalAlpha);\n")
         }

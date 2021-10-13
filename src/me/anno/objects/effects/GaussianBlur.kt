@@ -68,7 +68,7 @@ object GaussianBlur {
                 // smallerH = max(10, h / subSteps)
                 size = pixelSize * smallerW / w
                 // draw image on smaller thing...
-                val temp2 = FBStack["mask-gaussian-blur-2", smallerW, smallerH, 4, true, 1]// temp[2]
+                val temp2 = FBStack["mask-gaussian-blur-2", smallerW, smallerH, 4, true, 1, false]// temp[2]
                 useFrame(0, 0, smallerW, smallerH, false, temp2, Renderer.colorRenderer) {
                     // glClearColor(0f, 0f, 0f, 0f)
                     // glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
@@ -82,12 +82,12 @@ object GaussianBlur {
             if (debug && 'I'.code in Input.keysDown) LOGGER.info("$w,$h -> $smallerW,$smallerH")
 
             drawBlur(
-                FBStack["mask-gaussian-blur-0", smallerW, smallerH, 4, true, 1], smallerW, smallerH,
+                FBStack["mask-gaussian-blur-0", smallerW, smallerH, 4, true, 1, false], smallerW, smallerH,
                 0, threshold, true, isFullscreen,
                 localTransform, size, pixelSize
             )
             drawBlur(
-                FBStack["mask-gaussian-blur-1", smallerW, smallerH, 4, true, 1], smallerW, smallerH,
+                FBStack["mask-gaussian-blur-1", smallerW, smallerH, 4, true, 1, false], smallerW, smallerH,
                 resultIndex, 0f, false, isFullscreen,
                 localTransform, size, pixelSize
             )

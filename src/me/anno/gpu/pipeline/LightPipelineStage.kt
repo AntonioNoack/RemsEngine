@@ -102,20 +102,21 @@ class LightPipelineStage(
                     )
                 )
 
-
                 val fragment = ShaderStage(
                     "f", listOf(
                         Variable("vec3", "finalColor"),
                         Variable("vec3", "finalPosition"),
-                        Variable("vec3", "finalOcclusion"),
+                        Variable("float", "finalOcclusion"),
                         Variable("vec3", "finalEmissive"),
                         Variable("bool", "applyToneMapping"),
                         Variable("sampler2D", "finalLight"),
+                        Variable("sampler2D", "ambientOcclusion"),
                         Variable("vec3", "ambientLight"),
                         Variable("vec3", "color", VariableMode.OUT)
                     ), "" +
                             "   vec3 light = texture(finalLight, uv).rgb + ambientLight;\n" +
-                            "   color = finalColor * light * finalOcclusion + finalEmissive;\n" +
+                            "   float occlusion = finalOcclusion * texture(ambientOcclusion, uv).r;\n" +
+                            "   color = finalColor * light * occlusion + finalEmissive;\n" +
                             "   if(applyToneMapping) color = color/(1+color);\n"
                 )
 
@@ -140,7 +141,7 @@ class LightPipelineStage(
                 // find all textures
                 // first the ones for the deferred data
                 // then the ones for the shadows
-                val textures = listOf("finalLight") + settingsV2.layers2.map { it.name }
+                val textures = listOf("finalLight", "ambientOcclusion") + settingsV2.layers2.map { it.name }
                 shader.ignoreUniformWarnings(listOf("tint", "invLocalTransform"))
                 shader.setTextureIndices(textures)
                 shader
@@ -619,7 +620,7 @@ class LightPipelineStage(
         // draw them in batches of size <= batchSize
         // converted from for(.. step ..) to while to avoid allocation
         var baseIndex = 0
-        while(baseIndex < size){
+        while (baseIndex < size) {
 
             buffer.clear()
             nioBuffer.limit(nioBuffer.capacity())

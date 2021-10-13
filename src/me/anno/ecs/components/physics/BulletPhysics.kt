@@ -384,7 +384,7 @@ class BulletPhysics() : Component() {
         if (rigid2 != null) {
             for (c in rigid2.constrained) {
                 val bi = c.bulletInstance
-                if (bi != null){
+                if (bi != null) {
                     world.removeConstraint(bi)
                     c.bulletInstance = null
                     LOGGER.debug("- ${c.prefabPath}")
@@ -492,7 +492,8 @@ class BulletPhysics() : Component() {
                 origin.x, origin.y, origin.z
             )
 
-            dst.update(time, entity, true)
+            dst.setStateAfterUpdate(me.anno.ecs.Transform.State.VALID_GLOBAL)
+            // dst.update(time, entity, true)
 
         }
 
@@ -504,8 +505,8 @@ class BulletPhysics() : Component() {
         // update the local transforms last, so all global transforms have been completely updated
         for ((entity, bodyWithScale) in nonStaticRigidBodies) {
             if (!bodyWithScale.second.isActive) continue
-            val dst = entity.transform
-            dst.calculateLocalTransform((entity.parent as? Entity)?.transform)
+            // val dst = entity.transform
+            // dst.calculateLocalTransform((entity.parent as? Entity)?.transform)
             entity.invalidateAABBsCompletely()
         }
 

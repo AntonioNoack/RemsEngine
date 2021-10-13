@@ -1,5 +1,6 @@
 package me.anno.engine.ui.control
 
+import me.anno.ecs.Transform
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawTexts
@@ -203,9 +204,7 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
             transformFunction(selfGlobal, distance)
             transform.checkTransform(selfGlobal)
             transform.globalTransform.set(selfGlobal)
-            transform.calculateLocalTransform(parentTransform)
-            transform.checkTransform(transform.localTransform)
-            transform.teleportUpdate(GFX.gameTime)
+            transform.setStateAfterUpdate(Transform.State.VALID_GLOBAL)
         }
     }
 
@@ -252,8 +251,7 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
         // set the old transforms
         for ((index, transform) in selectedTransforms.withIndex()) {
             if (index >= old.size) break
-            transform.localTransform.set(old[index])
-            transform.invalidateGlobal()
+            transform.setLocal(old[index])
             transform.teleportUpdate(GFX.gameTime)
         }
         old = emptyList()

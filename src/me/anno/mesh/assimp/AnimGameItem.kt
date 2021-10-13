@@ -1,10 +1,8 @@
 package me.anno.mesh.assimp
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.ecs.components.mesh.MeshBaseComponent
-import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.Shader
 import me.anno.utils.maths.Maths
@@ -155,7 +153,8 @@ class AnimGameItem(
         }
 
         private fun updateTransforms(entity: Entity) {
-            entity.transform.update((entity.parent as? Entity)?.transform, 0)
+            entity.validateTransform()
+            entity.transform.teleportUpdate(0)
             for (child in entity.children) updateTransforms(child)
         }
 
@@ -196,7 +195,5 @@ class AnimGameItem(
         private val LOGGER = LogManager.getLogger(AnimGameItem::class)
 
     }
-
-    // todo cubemap from 6 images...
 
 }

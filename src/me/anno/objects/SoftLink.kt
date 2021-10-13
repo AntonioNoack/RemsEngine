@@ -81,7 +81,7 @@ class SoftLink(var file: FileReference) : GFXTransform(null) {
             val rx = resolution.x().roundToInt()
             val ry = resolution.y().roundToInt()
             if (rx > 0 && ry > 0 && rx * ry < 16e6) {
-                val fb = FBStack["SoftLink", rx, ry, 4, false, 1]
+                val fb = FBStack["SoftLink", rx, ry, 4, false, 1, true]
                 useFrame(fb) {
                     Frame.bind()
                     glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)

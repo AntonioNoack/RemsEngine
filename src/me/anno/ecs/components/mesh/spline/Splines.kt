@@ -131,10 +131,12 @@ object Splines {
     ): Vector3d {
         // 1 3 3 1
         val s = 1.0 - t
-        dst.set(p0).mul(s * s * s)
-        p1.mulAdd(3.0 * s * s * t, dst, dst)
-        p2.mulAdd(3.0 * s * t * t, dst, dst)
-        p3.mulAdd(t * t * t, dst, dst)
+        val ss = s * s
+        val tt = t * t
+        dst.set(p0).mul(ss * s)
+        p1.mulAdd(3.0 * ss * t, dst, dst)
+        p2.mulAdd(3.0 * s * tt, dst, dst)
+        p3.mulAdd(t * tt, dst, dst)
         return dst
     }
 

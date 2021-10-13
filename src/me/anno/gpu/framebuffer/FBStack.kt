@@ -8,7 +8,13 @@ object FBStack : CacheSection("FBStack") {
 
     private val LOGGER = LogManager.getLogger(FBStack::class)
 
-    abstract class FBStackData(val w: Int, val h: Int, val samples: Int, val targetType: TargetType) : ICacheData {
+    abstract class FBStackData(
+        val w: Int,
+        val h: Int,
+        private val samples: Int,
+        private val targetType: TargetType,
+        private val withDepth: Boolean
+    ) : ICacheData {
 
         var nextIndex = 0
         val data = ArrayList<Framebuffer>()
@@ -26,7 +32,8 @@ object FBStack : CacheSection("FBStack") {
                 val framebuffer = Framebuffer(
                     name, w, h,
                     samples, arrayOf(targetType),
-                    DepthBufferType.TEXTURE
+                    if (withDepth) DepthBufferType.TEXTURE
+                    else DepthBufferType.NONE
                 )
                 data.add(framebuffer)
                 nextIndex = data.size
@@ -42,46 +49,54 @@ object FBStack : CacheSection("FBStack") {
 
     }
 
-    data class FBKey1(val w: Int, val h: Int, val channels: Int, val usesFP: Boolean, val samples: Int)
+    data class FBKey1(
+        val w: Int,
+        val h: Int,
+        val channels: Int,
+        val usesFP: Boolean,
+        val samples: Int,
+        val withDepth: Boolean
+    )
+
     class FBStackData1(val key: FBKey1) :
-        FBStackData(key.w, key.h, key.samples, getTargetType(key.channels, key.usesFP)) {
+        FBStackData(key.w, key.h, key.samples, getTargetType(key.channels, key.usesFP), key.withDepth) {
         override fun printDestroyed(size: Int) {
-            val fs = if(size == 1) "1 framebuffer" else "$size framebuffers"
+            val fs = if (size == 1) "1 framebuffer" else "$size framebuffers"
             LOGGER.info("Freed $fs of size ${key.w} x ${key.h}, samples: ${key.samples}, fp: ${key.usesFP}")
         }
     }
 
-    data class FBKey2(val w: Int, val h: Int, val targetType: TargetType, val samples: Int)
-    class FBStackData2(val key: FBKey2) : FBStackData(key.w, key.h, key.samples, key.targetType) {
+    data class FBKey2(val w: Int, val h: Int, val targetType: TargetType, val samples: Int, val withDepth: Boolean)
+    class FBStackData2(val key: FBKey2) : FBStackData(key.w, key.h, key.samples, key.targetType, key.withDepth) {
         override fun printDestroyed(size: Int) {
-            val fs = if(size == 1) "1 framebuffer" else "$size framebuffers"
+            val fs = if (size == 1) "1 framebuffer" else "$size framebuffers"
             LOGGER.info("Freed $fs of size ${key.w} x ${key.h}, samples: ${key.samples}, type: ${key.targetType}")
         }
     }
 
-    fun getValue(w: Int, h: Int, channels: Int, usesFP: Boolean, samples: Int): FBStackData {
-        val key = FBKey1(w, h, channels, usesFP, samples)
+    fun getValue(w: Int, h: Int, channels: Int, usesFP: Boolean, samples: Int, withDepth: Boolean): FBStackData {
+        val key = FBKey1(w, h, channels, usesFP, samples, withDepth)
         return getEntry(key, 2100, false) {
             FBStackData1(it)
         } as FBStackData
     }
 
-    fun getValue(w: Int, h: Int, targetType: TargetType, samples: Int): FBStackData {
-        val key = FBKey2(w, h, targetType, samples)
+    fun getValue(w: Int, h: Int, targetType: TargetType, samples: Int, withDepth: Boolean): FBStackData {
+        val key = FBKey2(w, h, targetType, samples, withDepth)
         return getEntry(key, 2100, false) {
             FBStackData2(it)
         } as FBStackData
     }
 
-    operator fun get(name: String, w: Int, h: Int, channels: Int, usesFP: Boolean, samples: Int): Framebuffer {
-        val value = getValue(w, h, channels, usesFP, samples)
+    operator fun get(name: String, w: Int, h: Int, channels: Int, usesFP: Boolean, samples: Int, withDepth: Boolean): Framebuffer {
+        val value = getValue(w, h, channels, usesFP, samples, withDepth)
         synchronized(value) {
             return value.getFrame(name)
         }
     }
 
-    operator fun get(name: String, w: Int, h: Int, targetType: TargetType, samples: Int): Framebuffer {
-        val value = getValue(w, h, targetType, samples)
+    operator fun get(name: String, w: Int, h: Int, targetType: TargetType, samples: Int, withDepth: Boolean): Framebuffer {
+        val value = getValue(w, h, targetType, samples, withDepth)
         synchronized(value) {
             return value.getFrame(name)
         }
@@ -110,17 +125,6 @@ object FBStack : CacheSection("FBStack") {
             for (value in cache.values) {
                 val data = value.data
                 if (data is FBStackData && data.w == w && data.h == h) {
-                    data.nextIndex = 0
-                }
-            }
-        }
-    }
-
-    fun clear(w: Int, h: Int, samples: Int) {
-        synchronized(cache) {
-            for (value in cache.values) {
-                val data = value.data
-                if (data is FBStackData && data.w == w && data.h == h && data.samples == samples) {
                     data.nextIndex = 0
                 }
             }

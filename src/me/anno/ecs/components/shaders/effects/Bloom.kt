@@ -59,7 +59,7 @@ object Bloom {
             // x blur pass
             wi = wi shr 1
             shaderX.use()
-            val bufferX = FBStack["bloomX", wi, hi, 4, true, 1]
+            val bufferX = FBStack["bloomX", wi, hi, 4, true, 1, false]
             useFrame(bufferX, renderer) {
                 previous.bindTrulyNearest(0)
                 flat01.draw(shaderX)
@@ -69,7 +69,7 @@ object Bloom {
             // y blur pass
             hi = hi shr 1
             shaderY.use()
-            val bufferY = FBStack["bloomY", wi, hi, 4, true, 1]
+            val bufferY = FBStack["bloomY", wi, hi, 4, true, 1, false]
             useFrame(bufferY, renderer) {
                 previous.bindTrulyNearest(0)
                 flat01.draw(shaderY)

@@ -49,12 +49,12 @@ object BoxBlur {
 
             // first is y, then x
             drawBlur(
-                FBStack["mask-box-blur-y", w, ih, 4, true, 1], w, h, 0,
+                FBStack["mask-box-blur-y", w, ih, 4, true, 1, false], w, h, 0,
                 true, localTransform, (2 * h) / max(1, ih)
             )
 
             drawBlur(
-                FBStack["mask-box-blur-x", iw, ih, 4, true, 1], w, ih, resultIndex,
+                FBStack["mask-box-blur-x", iw, ih, 4, true, 1, false], w, ih, resultIndex,
                 false, localTransform, (2 * w) / max(1, iw)
             )
 

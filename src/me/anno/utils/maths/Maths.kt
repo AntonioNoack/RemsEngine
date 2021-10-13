@@ -223,5 +223,6 @@ object Maths {
     }
 
     fun ceilDiv(a: Int, b: Int): Int = (a + b - 1) / b
+    fun roundDiv(a: Int, b: Int) = (a + b.shr(1)) / b
 
 }

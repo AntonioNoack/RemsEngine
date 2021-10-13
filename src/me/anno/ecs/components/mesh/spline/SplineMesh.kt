@@ -6,6 +6,7 @@ import me.anno.ecs.components.mesh.spline.Splines.interpolate
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.EditorState
 import me.anno.image.ImageWriter.writeImageCurve
+import me.anno.studio.Build
 import me.anno.utils.maths.Maths.mix
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Vectors.toVector3f
@@ -36,16 +37,12 @@ class SplineMesh : ProceduralMesh() {
 
     // children as control points
 
-    // todo when changed, update the mesh automatically
+    // kind of done when changed, update the mesh automatically
     // only if debugging the mesh
 
     // todo update based on distance
 
     // todo load profile from mesh file?
-
-    // todo start and end angles
-
-    // todo start and end widths
 
     var isClosed = false
         set(value) {
@@ -98,16 +95,18 @@ class SplineMesh : ProceduralMesh() {
     override fun onUpdate(): Int {
         super.onUpdate()
         // if a child is selected, invalidate this
-        val children = entity?.children ?: return 10
-        val lastSelection = EditorState.lastSelection
-        for (i in children.indices) {
-            val child = children[i]
-            if (child.hasComponent(SplineControlPoint::class) && child === lastSelection) {
-                invalidate()
-                return 1
+        if (Build.isDebug) {
+            val children = entity?.children ?: return 16
+            val lastSelection = EditorState.lastSelection
+            for (i in children.indices) {
+                val child = children[i]
+                if (child.hasComponent(SplineControlPoint::class) && child === lastSelection) {
+                    invalidate()
+                    return 1
+                }
             }
         }
-        return 10
+        return 32
     }
 
     fun set(t: SplineTmpMesh) {

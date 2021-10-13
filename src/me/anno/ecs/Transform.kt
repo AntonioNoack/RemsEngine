@@ -13,6 +13,27 @@ class Transform() : Saveable() {
         this.entity = entity
     }
 
+    enum class State {
+        VALID,
+        CHILDREN_NEED_UPDATE,
+        VALID_LOCAL,
+        VALID_GLOBAL
+    }
+
+    private var state = State.VALID
+        set(value) {
+            field = value
+            if (field != State.VALID) {
+                entity?.parentEntity?.transform?.invalidateForChildren()
+            }
+        }
+
+    fun invalidateForChildren() {
+        if (state == State.VALID) state = State.CHILDREN_NEED_UPDATE
+    }
+
+    val needsUpdate get() = state != State.VALID
+
     var entity: Entity? = null
 
     // two transforms could be used to interpolate between draw calls
@@ -39,7 +60,7 @@ class Transform() : Saveable() {
         }
     }
 
-    fun update(time: Long = GFX.gameTime) {
+    fun onChange(time: Long = GFX.gameTime) {
         val dt = time - lastUpdateTime
         if (dt > 0) {
             lastUpdateTime = time
@@ -47,7 +68,12 @@ class Transform() : Saveable() {
         }
     }
 
-    fun update(time: Long, entity: Entity, calculateMatrices: Boolean) {
+    fun setStateAfterUpdate(state: State, time: Long = GFX.gameTime) {
+        this.state = state
+        onChange(time)
+    }
+
+    /*fun update(time: Long, entity: Entity, calculateMatrices: Boolean) {
         update(time)
         val children = entity.children
         for (i in children.indices) {
@@ -57,7 +83,7 @@ class Transform() : Saveable() {
                 child.transform.update(time, child, calculateMatrices)
             }
         }
-    }
+    }*/
 
     fun getDrawMatrix(time: Long = GFX.gameTime): Matrix4x3d {
         val drawTransform = drawTransform
@@ -106,15 +132,12 @@ class Transform() : Saveable() {
     private val rot = Quaterniond()
     private val sca = Vector3d(1.0)
 
-    var needsGlobalUpdate = false
+    fun invalidateLocal() {
+        state = State.VALID_GLOBAL
+    }
 
     fun invalidateGlobal() {
-        needsGlobalUpdate = true
-        val entity = entity
-        if (entity != null) {
-            calculateGlobalTransform(entity.parentEntity?.transform)
-            if (entity.isCreated) entity.invalidateChildTransforms()
-        }
+        state = State.VALID_LOCAL
     }
 
     fun set(src: Transform) {
@@ -127,7 +150,7 @@ class Transform() : Saveable() {
         pos.set(src.pos)
         rot.set(src.rot)
         sca.set(src.sca)
-        needsGlobalUpdate = src.needsGlobalUpdate
+        state = src.state
     }
 
     var localPosition: Vector3d
@@ -169,30 +192,40 @@ class Transform() : Saveable() {
         get() = globalTransform.getTranslation(Vector3d())
         set(value) {
             globalTransform.setTranslation(value)
-            calculateLocalTransform(entity?.parentEntity?.transform)
+            state = State.VALID_GLOBAL
         }
 
-    fun update(parent: Transform?, time: Long = GFX.gameTime) {
-        if (needsGlobalUpdate) {
-            update(time)
-            calculateGlobalTransform(parent)
+    fun validate() {
+        val parent = entity?.parentEntity?.transform
+        when (state) {
+            // really update by time? idk... this is not the time when it was changed...
+            // it kind of is, when we call updateTransform() every frame
+            State.VALID_LOCAL -> {
+                calculateGlobalTransform(parent)
+            }
+            State.VALID_GLOBAL -> {
+                calculateLocalTransform(parent)
+            }
+            else -> {
+            }
         }
+        state = State.VALID
     }
 
     fun setLocal(values: Matrix4x3d) {
         localTransform.set(values)
         checkTransform(localTransform)
-        pos.set(values.m30(), values.m31(), values.m32())
+        values.getTranslation(pos)
         values.getUnnormalizedRotation(rot)
         values.getScale(sca)
-        invalidateGlobal()
+        state = State.VALID_LOCAL
     }
 
     fun setLocal(values: Matrix4x3f) {
         localTransform.set(values)
         checkTransform(localTransform)
         setCachedPosRotSca()
-        invalidateGlobal()
+        state = State.VALID_LOCAL
     }
 
     fun setLocal(values: Matrix4f) {
@@ -230,7 +263,7 @@ class Transform() : Saveable() {
         }
     }
 
-    fun calculateGlobalTransform(parent: Transform?) {
+    private fun calculateGlobalTransform(parent: Transform?) {
         checkTransform(localTransform)
         if (parent == null) {
             globalTransform.set(localTransform)
@@ -240,10 +273,9 @@ class Transform() : Saveable() {
                 .mul(localTransform)
         }
         checkTransform(globalTransform)
-        needsGlobalUpdate = false
     }
 
-    fun calculateLocalTransform(parent: Transform?) {
+    private fun calculateLocalTransform(parent: Transform?) {
         val localTransform = localTransform
         if (parent == null) {
             localTransform.set(globalTransform)

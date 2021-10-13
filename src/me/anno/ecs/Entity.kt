@@ -3,11 +3,11 @@ package me.anno.ecs
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.components.CollidingComponent
 import me.anno.ecs.components.collider.Collider
-import me.anno.ecs.components.light.AmbientLight
 import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.ecs.components.physics.BulletPhysics
 import me.anno.ecs.components.physics.Rigidbody
+import me.anno.ecs.components.physics.constraints.Constraint
 import me.anno.ecs.components.ui.UIEvent
 import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.prefab.PrefabInspector
@@ -22,6 +22,7 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
 import me.anno.utils.LOGGER
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AABBs.all
 import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.AABBs.set
@@ -174,7 +175,6 @@ class Entity() : PrefabSaveable(), Inspectable {
         get() = transform.localPosition
         set(value) {
             transform.localPosition = value
-            transform.calculateGlobalTransform(parentEntity?.transform)
             invalidateAABBsCompletely()
             invalidatePhysics(false)
         }
@@ -184,7 +184,6 @@ class Entity() : PrefabSaveable(), Inspectable {
         get() = transform.localRotation
         set(value) {
             transform.localRotation = value
-            transform.calculateGlobalTransform(parentEntity?.transform)
             invalidateAABBsCompletely()
             invalidatePhysics(false)
         }
@@ -194,7 +193,6 @@ class Entity() : PrefabSaveable(), Inspectable {
         get() = transform.localScale
         set(value) {
             transform.localScale = value
-            transform.calculateGlobalTransform(parentEntity?.transform)
             invalidateAABBsCompletely()
             invalidatePhysics(false)
         }
@@ -206,12 +204,10 @@ class Entity() : PrefabSaveable(), Inspectable {
     /**
      * smoothly transitions to the next position
      * */
-    fun moveTo(position: Vector3d) {
-        transform.globalTransform.m30(position.x)
-        transform.globalTransform.m30(position.y)
-        transform.globalTransform.m30(position.z)
-        transform.calculateLocalTransform(parentEntity?.transform)
-        transform.update()
+    fun moveToGlobal(position: Vector3d) {
+        transform.globalTransform.setTranslation(position)
+        transform.globalPosition = position
+        transform.onChange()
         invalidateAABBsCompletely()
         invalidatePhysics(false)
     }
@@ -219,11 +215,8 @@ class Entity() : PrefabSaveable(), Inspectable {
     /**
      * teleports to the new position without interpolation
      * */
-    fun teleportTo(position: Vector3d) {
-        transform.globalTransform.m30(position.x)
-        transform.globalTransform.m30(position.y)
-        transform.globalTransform.m30(position.z)
-        transform.calculateLocalTransform(parentEntity?.transform)
+    fun teleportToGlobal(position: Vector3d) {
+        transform.globalPosition = position
         transform.teleportUpdate()
         invalidateAABBsCompletely()
         invalidatePhysics(false)
@@ -266,7 +259,10 @@ class Entity() : PrefabSaveable(), Inspectable {
         hasValidAABB = false
         val children = children
         for (i in children.indices) {
-            children[i].invalidateChildAABBs()
+            val child = children[i]
+            if (!child.isPhysicsControlled) {
+                child.invalidateChildAABBs()
+            }
         }
     }
 
@@ -416,23 +412,18 @@ class Entity() : PrefabSaveable(), Inspectable {
         return hasControlReceiver
     }
 
-    private var hasValidTransform = false
-
     /**
      * when the element is moved
      * invalidates all children, so it's pretty expensive
      * */
-    fun invalidateChildTransforms(first: Boolean = true) {
-        hasValidTransform = false
-        if (first) forAllInHierarchy {
-            if (it is Entity) it.hasValidTransform = false
-        }
+    fun invalidateChildTransforms() {
+        // notify root, that we need an update
         val children = children
         for (i in children.indices) {
             val child = children[i]
-            if (!child.isPhysicsControlled) {
+            if (!child.isPhysicsControlled && !child.transform.needsUpdate) {
                 child.transform.invalidateGlobal()
-                child.invalidateChildTransforms(false)
+                child.invalidateChildTransforms()
             }
         }
     }
@@ -441,11 +432,12 @@ class Entity() : PrefabSaveable(), Inspectable {
      * validates all children, which are invalid
      * */
     fun validateTransform() {
-        transform.calculateGlobalTransform(parentEntity?.transform)
+        transform.validate()
+        // transform.calculateGlobalTransform(parentEntity?.transform)
         val children = children
         for (i in children.indices) {
             val child = children[i]
-            if (!child.isPhysicsControlled && !child.hasValidTransform) {
+            if (!child.isPhysicsControlled && child.transform.needsUpdate) {
                 child.validateTransform()
             }
         }
@@ -468,13 +460,9 @@ class Entity() : PrefabSaveable(), Inspectable {
 
     override fun isDefaultValue(): Boolean = false
 
-    private fun transformUpdate(parent: Entity, keepWorldTransform: Boolean) {
-        if (keepWorldTransform) {
-            transform.calculateLocalTransform(parent.transform)
-            // global transform theoretically stays the same
-            // it will not, if there is an anomaly, e.g. scale 0
-        }
-        transform.invalidateGlobal()
+    private fun transformUpdate(keepWorldTransform: Boolean) {
+        val state = if (keepWorldTransform) Transform.State.VALID_GLOBAL else Transform.State.VALID_LOCAL
+        transform.setStateAfterUpdate(state)
         invalidateAABBsCompletely()
     }
 
@@ -523,7 +511,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         this.parent = parent
 
         // transform
-        transformUpdate(parent, keepWorldTransform)
+        transformUpdate(keepWorldTransform)
         // collision mask
         parent.invalidateCollisionMask()
 
@@ -573,12 +561,11 @@ class Entity() : PrefabSaveable(), Inspectable {
         val parent = parent as? Entity
         if (parent != null) {
             parent.internalChildren.remove(this)
-            if (hasComponentInChildren(Collider::class, false) ||
-                hasComponentInChildren(AmbientLight::class, false)
-            ) {
-                // todo other components with aabb?
+            val tmpMat = JomlPools.mat4x3d.create()
+            if (anyComponent { it.fillSpace(tmpMat, tmpAABB) }) {
                 parent.invalidateCollisionMask()
             }
+            JomlPools.mat4x3d.sub(1)
             parent.invalidateOwnAABB()
         }
     }
@@ -612,6 +599,9 @@ class Entity() : PrefabSaveable(), Inspectable {
             }
             is Rigidbody -> {
                 physics?.invalidate(this)
+            }
+            is Constraint<*> -> {
+                invalidateRigidbody()
             }
             is MeshBaseComponent -> {
                 invalidateOwnAABB()

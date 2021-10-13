@@ -20,7 +20,7 @@ object OpticalFlow {
         val w = t0.w
         val h = t0.h
 
-        val flowT = FBStack["flow", w, h, 4, false, 1]
+        val flowT = FBStack["flow", w, h, 4, false, 1, false]
 
         // flow process
 
@@ -44,7 +44,7 @@ object OpticalFlow {
         blur.v1("sigma", blurAmount * 0.5f)
         blur.v2("texOffset", 2f, 2f)
 
-        val blurH = FBStack["blurH", w, h, 4, false, 1]
+        val blurH = FBStack["blurH", w, h, 4, false, 1, false]
         useFrame(blurH, Renderer.colorRenderer) {
             Frame.bind()
             flowT.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
@@ -52,7 +52,7 @@ object OpticalFlow {
             flat01.draw(blur)
         }
 
-        val blurV = FBStack["blurV", w, h, 4, false, 1]
+        val blurV = FBStack["blurV", w, h, 4, false, 1, false]
         useFrame(blurV, Renderer.colorRenderer) {
             Frame.bind()
             blurH.bindTexture0(0, GPUFiltering.LINEAR, Clamping.CLAMP)
@@ -60,7 +60,7 @@ object OpticalFlow {
             flat01.draw(blur)
         }
 
-        val result = FBStack["reposition", w, h, 4, false, 1]
+        val result = FBStack["reposition", w, h, 4, false, 1, false]
         useFrame(result, Renderer.colorRenderer) {
 
             Frame.bind()

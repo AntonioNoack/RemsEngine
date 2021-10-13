@@ -1,11 +1,15 @@
 package me.anno.gpu.deferred
 
 import me.anno.gpu.ShaderLib.uvList
+import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.texture.Texture2D
+import me.anno.utils.LOGGER
+import org.joml.Vector4f
 import kotlin.math.max
 
 class DeferredSettingsV2(
@@ -13,7 +17,7 @@ class DeferredSettingsV2(
     fpLights: Boolean
 ) {
 
-    class Layer(val type: DeferredLayerType, val textureName: String, val mapping: String) {
+    class Layer(val type: DeferredLayerType, val textureName: String, val layerIndex: Int, val mapping: String) {
 
         fun appendMapping(fragment: StringBuilder) {
             fragment.append(textureName)
@@ -66,19 +70,20 @@ class DeferredSettingsV2(
         val maxTextures = layerTypes.size
         val spaceInLayers = IntArray(maxTextures) { 4 }
         val needsHighPrecision = BooleanArray(maxTextures)
-        var usedTextures0 = 0
+        var usedTextures0 = -1
 
         for (layerType in layerTypes) {
             val dimensions = layerType.dimensions
             val layerIndex = spaceInLayers.indexOfFirst { it >= dimensions }
             val startIndex = 4 - spaceInLayers[layerIndex]
             val mapping = "rgba".substring(startIndex, startIndex + dimensions)
-            val layer = Layer(layerType, "defLayer$layerIndex", mapping)
+            val layer = Layer(layerType, "defLayer$layerIndex", layerIndex, mapping)
             layers.add(layer)
             spaceInLayers[layerIndex] -= dimensions
-            usedTextures0 = max(usedTextures0, layerIndex + 1)
+            usedTextures0 = max(usedTextures0, layerIndex)
             if (layerType.needsHighPrecision) needsHighPrecision[layerIndex] = true
         }
+        usedTextures0++
 
         layers2 = ArrayList(usedTextures0)
         for (i in 0 until usedTextures0) {
@@ -132,6 +137,8 @@ class DeferredSettingsV2(
         appendLayerWriters(fragment)
 
         fragment.append("}")
+
+        LOGGER.info("shader: $fragment")
 
         val shader = Shader(shaderName, geometrySource, vertex, varyings, fragment.toString())
         shader.glslVersion = 330
@@ -260,8 +267,26 @@ class DeferredSettingsV2(
         return shader
     }
 
+    fun findLayer(type: DeferredLayerType): Layer? {
+        return layers.firstOrNull { it.type == type }
+    }
+
+    fun findTexture(buffer: Framebuffer, type: DeferredLayerType): Texture2D? {
+        val layer = layers.firstOrNull { it.type == type } ?: return null
+        return buffer.textures[layer.layerIndex]
+    }
+
     companion object {
+
         val glslTypes = listOf("float", "vec2", "vec3", "vec4")
+
+        val singleToVector = mapOf(
+            "r" to Vector4f(1f, 0f, 0f, 0f),
+            "g" to Vector4f(0f, 1f, 0f, 0f),
+            "b" to Vector4f(0f, 0f, 1f, 0f),
+            "a" to Vector4f(0f, 0f, 0f, 1f)
+        )
+
     }
 
 }

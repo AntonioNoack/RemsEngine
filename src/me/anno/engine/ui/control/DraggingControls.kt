@@ -246,8 +246,9 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                 }
                 for (entity in sorted) {
                     val transform = entity.transform
-                    transform.calculateLocalTransform(entity.parentEntity?.transform)
+                    transform.invalidateLocal()
                     transform.teleportUpdate()
+                    transform.validate()
                     onChangeTransform(entity)
                 }
             }
@@ -263,8 +264,8 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
         prefab.set(path, "position", transform.localPosition)
         prefab.set(path, "rotation", transform.localRotation)
         prefab.set(path, "scale", transform.localScale)
-        entity.invalidateAABBsCompletely()
-        entity.invalidateChildTransforms()
+        // entity.invalidateAABBsCompletely()
+        // entity.invalidateChildTransforms()
         invalidateInspector()
     }
 

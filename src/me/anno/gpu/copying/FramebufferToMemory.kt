@@ -181,7 +181,7 @@ object FramebufferToMemory {
         // fixed the bug :)
         val s = 31
         ECSRegistry.initWithGFX(s + s.and(1))
-        val fb = FBStack["", s, s, 4, false, 1]
+        val fb = FBStack["", s, s, 4, false, 1, false]
         useFrame(fb) {
             val black = 255 shl 24
             // random color, so we can observe changes in the preview icon

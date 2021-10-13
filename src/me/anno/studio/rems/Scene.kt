@@ -248,7 +248,7 @@ object Scene {
         nearest: GPUFiltering,
         samples: Int?
     ): Framebuffer {
-        val next = FBStack[name, previous.w, previous.h, 4, usesFPBuffers, samples ?: previous.samples]
+        val next = FBStack[name, previous.w, previous.h, 4, usesFPBuffers, samples ?: previous.samples, true]
         previous.bindTextures(offset, nearest, Clamping.CLAMP)
         return next
     }
@@ -372,7 +372,7 @@ object Scene {
         }
 
         var buffer: Framebuffer? =
-            if (needsTemporaryBuffer) FBStack["Scene-Main", w, h, 4, usesFPBuffers, samples]
+            if (needsTemporaryBuffer) FBStack["Scene-Main", w, h, 4, usesFPBuffers, samples, camera.useDepth]
             else RenderState.currentBuffer as Framebuffer?
 
         // LOGGER.info("$needsTemporaryBuffer ? $buffer")
