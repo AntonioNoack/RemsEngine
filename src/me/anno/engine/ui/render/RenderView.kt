@@ -47,7 +47,6 @@ import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.LineBuffer
-import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01Cube
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DepthBasedAntiAliasing
 import me.anno.gpu.drawing.DrawTexts
@@ -91,9 +90,16 @@ import org.lwjgl.opengl.GL45.*
 import kotlin.math.max
 import kotlin.math.tan
 
-// todo render the grid slightly off position, so we don't get flickering
-// todo always closer to the camera
-// todo proportional to radius
+
+// todo buttons:
+// todo start game -> always in new tab, so we can make changes while playing
+// todo stop game
+// todo restart game (just re-instantiate the whole scene)
+
+
+// todo create the different pipeline stages: opaque, transparent, post-processing, ...
+
+// todo render the grid slightly off position, so we don't get flickering, always closer to the camera, proportional to radius
 // (because meshes at 0 are very common and to be expected)
 
 // done shadows
@@ -102,7 +108,7 @@ import kotlin.math.tan
 
 // todo import unity scenes
 
-// todo optional, expensive cubic texture filtering?
+// optional, expensive cubic texture filtering? via custom shaders
 
 
 // todo clickable & draggable gizmos, e.g. for translation, rotation scaling:
@@ -112,7 +118,7 @@ import kotlin.math.tan
 // todo or drag and keep it in the same distance
 
 // done render in different modes: overdraw, color blindness, normals, color, before-post-process, with-post-process
-// todo nice ui for that: drop down menus at top or bottom
+// done nice ui for that: drop down menus at top or bottom
 
 // todo blend between multiple cameras, only allow 2? yes :)
 
@@ -124,7 +130,9 @@ import kotlin.math.tan
 // todo also maybe it should be customizable...
 
 
-// todo different control schemes of the camera like in MagicaVoxel
+// todo we could do the blending of the scenes using stencil tests <3 (very efficient)
+//  - however it would limit us to a single renderer...
+// -> first just draw a single scene and later todo make it multiplayer
 
 class RenderView(
     val library: EditorState,
@@ -184,19 +192,7 @@ class RenderView(
         RAY_TEST,
 
     }
-    // to do scene scale, which is premultiplied with everything to allow stuff outside the 1e-38 - 1e+38 range?
-    // not really required, since our universe just has a scale of 1e-10 (~ size of an atom) - 1e28 (~ size of the observable universe) meters
 
-
-    // todo buttons:
-    // todo start game -> always in new tab, so we can make changes while playing
-    // todo stop game
-    // todo restart game (just re-instantiate the whole scene)
-
-
-    // todo create the different pipeline stages: opaque, transparent, post-processing, ...
-
-    // todo make this camera properties
     var bloomStrength = 0.5f
     var bloomOffset = 10f
     val useBloom get() = bloomOffset > 0f && renderMode != RenderMode.WITHOUT_POST_PROCESSING
@@ -235,7 +231,7 @@ class RenderView(
     // no depth is currently required on this layer
     val lightBuffer = Framebuffer("lights", w, h, 1, 1, deferred.settingsV1.fpLights, DepthBufferType.NONE)
 
-    fun updateTransform() {
+    fun updateEditorCameraTransform() {
 
         val radius = radius
         val camera = editorCamera
@@ -284,7 +280,7 @@ class RenderView(
         // to see ghosting, if there is any
         if (renderMode == RenderMode.GHOSTING_DEBUG) Thread.sleep(250)
 
-        updateTransform()
+        updateEditorCameraTransform()
 
         val world = getWorld()
         if (world is Entity) {
@@ -294,7 +290,7 @@ class RenderView(
             }
         }
 
-        // todo go through the rendering pipeline, and render everything
+        // done go through the rendering pipeline, and render everything
 
         // todo draw all local players in their respective fields
         // todo use customizable masks for the assignment (plus a button mapping)
@@ -306,10 +302,7 @@ class RenderView(
 
         // todo find which sections shall be rendered for what camera
         val camera = localPlayer?.camera?.currentCamera ?: editorCamera
-        if (localPlayer == null) {
-            // todo calculate camera location
-            updateTransform()
-        }
+        if (localPlayer == null) updateEditorCameraTransform()
 
         val showIds = renderMode == RenderMode.CLICK_IDS
         val showOverdraw = renderMode == RenderMode.OVERDRAW
@@ -399,9 +392,6 @@ class RenderView(
             buffer, useDeferredRendering,
             size, cols, rows, layers.size
         )
-
-        // todo draw gui on top of the buffer
-        // todo copy the depth information, or keep it there from the start
 
         if (showSpecialBuffer) {
             DrawTexts.drawSimpleTextCharByChar(
@@ -520,7 +510,7 @@ class RenderView(
                             flat01.draw(shader)
                         }
                     }
-                    val result = ScreenSpaceReflections.compute(buffer, illuminated, deferred, cameraMatrix)
+                    val result = ScreenSpaceReflections.compute(buffer, illuminated, deferred, cameraMatrix, true)
                     drawTexture(x, y + h, w, -h, result, true, -1, null)
                     return
                 }
@@ -617,15 +607,13 @@ class RenderView(
                     // todo calculate the colors via post processing
                     // todo this would also allow us to easier visualize all the layers
 
-                    // todo post processing could do screen space reflections :)
-
                     // use the existing depth buffer for the 3d ui
                     val dstBuffer0 = baseSameDepth
 
                     if (useBloom) {
 
-                        val tmp = FBStack["", w, h, 4, true, 1, false]
-                        useFrame(tmp, copyRenderer) {// apply post processing
+                        val illuminated = FBStack["", w, h, 4, true, 1, false]
+                        useFrame(illuminated, copyRenderer) {// apply post processing
 
                             val shader = LightPipelineStage.getPostShader(deferred)
                             shader.use()
@@ -640,11 +628,17 @@ class RenderView(
 
                         }
 
+                        // screen space reflections
+                        val ssReflections = ScreenSpaceReflections.compute(
+                            buffer, illuminated, deferred, cameraMatrix,
+                            false
+                        )// else illuminated.getColor0()
+
                         useFrame(w, h, true, dstBuffer0) {
 
                             // don't write depth
                             RenderState.depthMask.use(false) {
-                                Bloom.bloom(tmp.getColor0(), bloomOffset, bloomStrength, true)
+                                Bloom.bloom(ssReflections, bloomOffset, bloomStrength, true)
                             }
 
                             // todo use msaa for gizmos
@@ -663,7 +657,7 @@ class RenderView(
 
                                 val shader = LightPipelineStage.getPostShader(deferred)
                                 shader.use()
-                                shader.v1("applyToneMapping", !useBloom)
+                                shader.v1("applyToneMapping", true)
 
                                 buffer.bindTextures(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                                 ssao.bind(1, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
@@ -692,7 +686,18 @@ class RenderView(
             clock.stop("presenting deferred buffers", 0.1)
 
         } else {
-            drawScene(w, h, camera, camera, 1f, renderer, buffer, true, !useDeferredRendering)
+            // supports bloom
+            // screen-space reflections cannot be supported
+            if (useBloom) {
+                pipeline.applyToneMapping = false
+                val tmp = FBStack["scene", w, h, 4, true, buffer.samples, true]
+                drawScene(w, h, camera, camera, 1f, renderer, tmp, changeSize = true, true)
+                useFrame(w, h, true, dstBuffer) {
+                    Bloom.bloom(tmp.getColor0(), bloomOffset, bloomStrength, true)
+                }
+            } else {
+                drawScene(w, h, camera, camera, 1f, renderer, buffer, changeSize = true, true)
+            }
         }
 
         val useFSR = when (renderMode) {
@@ -925,10 +930,6 @@ class RenderView(
 
     val depthMode get() = if (reverseDepth) DepthMode.GREATER else DepthMode.FORWARD_LESS
 
-    // todo we could do the blending of the scenes using stencil tests <3 (very efficient)
-    //  - however it would limit us to a single renderer...
-    // todo -> first just draw a single scene and later make it multiplayer
-
     private fun setClearColor(
         renderer: Renderer,
         previousCamera: CameraComponent, camera: CameraComponent, blending: Float,
@@ -949,12 +950,11 @@ class RenderView(
         }
     }
 
-    private fun clearDeferred(renderer: Renderer) {
-        if (renderer === DeferredRenderer) {
-            glClearColor(0f, 0f, 0f, 0f)
-            glClear(GL_COLOR_BUFFER_BIT)
-            // todo why is this not working?
-           /* RenderState.depthMode.use(DepthMode.ALWAYS) {
+    private fun clearDeferred() {
+        // if (renderer === DeferredRenderer) {
+        Frame.bind()
+        RenderState.blendMode.use(null) {
+            RenderState.depthMode.use(DepthMode.ALWAYS) {
                 // don't write depth, only all buffers
                 RenderState.depthMask.use(false) {
                     // draw huge cube with default values for all buffers
@@ -963,7 +963,7 @@ class RenderView(
                     shader.m4x4("transform", cameraMatrix)
                     cubeMesh.draw(shader, 0)
                 }
-            }*/
+            }
         }
     }
 
@@ -978,9 +978,8 @@ class RenderView(
         doDrawGizmos: Boolean
     ) {
 
-        // todo clear texture by a buffer, which is "infinite"
-
         val isDeferred = dst.targets.size > 1
+        val specialClear = isDeferred && renderer === DeferredRenderer
 
         val preDrawDepth = renderMode == RenderMode.WITH_PRE_DRAW_DEPTH
         if (preDrawDepth) {
@@ -990,7 +989,7 @@ class RenderView(
 
                 RenderState.depthMode.use(depthMode) {
                     setClearColor(renderer, previousCamera, camera, blending, doDrawGizmos)
-                    glClear(if (isDeferred) GL_DEPTH_BUFFER_BIT else GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+                    glClear(if (specialClear) GL_DEPTH_BUFFER_BIT else GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
                 }
 
                 RenderState.depthMode.use(depthMode) {
@@ -1008,17 +1007,14 @@ class RenderView(
         useFrame(w, h, changeSize, dst, renderer) {
 
             if (!preDrawDepth) {
-
                 Frame.bind()
-
                 RenderState.depthMode.use(depthMode) {
                     setClearColor(renderer, previousCamera, camera, blending, doDrawGizmos)
-                    glClear(if (isDeferred) GL_DEPTH_BUFFER_BIT else GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+                    glClear(if (specialClear) GL_DEPTH_BUFFER_BIT else GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
                 }
-
             }
 
-            if (isDeferred) clearDeferred(renderer)
+            if (specialClear) clearDeferred()
 
             if (doDrawGizmos) {
                 if (!renderer.isFakeColor && !isFinalRendering) {

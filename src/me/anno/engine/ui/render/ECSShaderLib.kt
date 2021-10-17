@@ -1,6 +1,5 @@
 package me.anno.engine.ui.render
 
-import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.builder.Variable
 
@@ -55,7 +54,10 @@ object ECSShaderLib {
                     "   finalPosition *= 1e5;\n" +
                     "}", listOf(Variable("vec3", "finalNormal")), "" +
                     "void main(){\n" +
+                    // tricking the detection for variable definitions,
+                    // because it doesn't check the varyings, it seems
                     "   // finalNormal\n" +
+                    "   vec3 finalPosition = finalNormal * 1e35;\n" + // 1e38 is max for float
                     "}"
         )
 

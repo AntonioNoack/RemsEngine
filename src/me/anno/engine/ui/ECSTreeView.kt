@@ -291,7 +291,7 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
                     val newRadius = length(aabb.deltaX(), aabb.deltaY(), aabb.deltaZ())
                     if (newRadius.isFinite() && newRadius > 0.0) it.radius = newRadius
                     it.position.set(element.transform.globalPosition)
-                    it.updateTransform()
+                    it.updateEditorCameraTransform()
                 }
             }
         }

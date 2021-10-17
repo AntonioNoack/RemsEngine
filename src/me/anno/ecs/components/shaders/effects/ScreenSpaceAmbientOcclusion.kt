@@ -15,7 +15,6 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
-import me.anno.input.Input
 import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.maths.Maths.min
 import me.anno.utils.maths.Maths.roundDiv
@@ -168,7 +167,7 @@ object ScreenSpaceAmbientOcclusion {
             random4x4.value.bind(2)
             normal.bind(1)
             position.bind(0)
-            if (lastSamples != samples || Input.isShiftDown) {
+            if (lastSamples != samples) { // || Input.isShiftDown
                 // generate random kernel
                 sampleKernel.position(0)
                 generateSampleKernel(samples)

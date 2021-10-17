@@ -5,10 +5,13 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.zip.InnerFile
 import me.anno.io.zip.InnerFolder
+import me.anno.mesh.assimp.StaticMeshesLoader.Companion.shininessToRoughness
 import org.apache.logging.log4j.LogManager
+import org.joml.Vector2f
 import org.joml.Vector4f
 import java.io.EOFException
 import java.io.File
+import kotlin.math.sqrt
 
 class MTLReader2(val file: FileReference) : OBJMTLReader(file.inputStream()) {
 
@@ -49,7 +52,15 @@ class MTLReader2(val file: FileReference) : OBJMTLReader(file.inputStream()) {
                         "Kd" -> color.set(readVector3f(), color.w)
                         "Ke" -> material!!.setProperty("emissiveBase", readVector3f())
                         // "Ks" -> material.specularColor = readVector3f()
-                        // "Ns" -> material.specularExponent = readValue() // todo metallic
+                        // metallic
+                        "Ns" -> {
+                            // theoretically, convert(specular exponent) = metallic * (1-roughness)
+                            // therefore, this could be roughness as well
+                            val specularExponent = readValue()
+                            val metallic = 1f - shininessToRoughness(specularExponent)
+                            material!!.setProperty("metallicMinMax", Vector2f(0f, sqrt(metallic)))
+                            material.setProperty("roughnessMinMax", Vector2f(0f, 1f - sqrt(metallic)))
+                        }
                         "d" -> {
                             color.w = readValue()
                             hadOpacity = true
@@ -90,7 +101,7 @@ class MTLReader2(val file: FileReference) : OBJMTLReader(file.inputStream()) {
                             }*/
                             skipLine()
                         }
-                        "map_Ns", "map_d", "map_Ka", "Ns", "Ks", "Ka", "map_Bump", "map_bump", "Tf", "Ni", "bump" -> {
+                        "map_Ns", "map_d", "map_Ka", "Ks", "Ka", "map_Bump", "map_bump", "Tf", "Ni", "bump" -> {
                             skipLine()
                         }
                         // bump maps, displacement maps, decal maps exists;

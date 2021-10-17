@@ -112,12 +112,16 @@ class LightPipelineStage(
                         Variable("sampler2D", "finalLight"),
                         Variable("sampler2D", "ambientOcclusion"),
                         Variable("vec3", "ambientLight"),
-                        Variable("vec3", "color", VariableMode.OUT)
+                        Variable("vec4", "color", VariableMode.OUT)
                     ), "" +
-                            "   vec3 light = texture(finalLight, uv).rgb + ambientLight;\n" +
-                            "   float occlusion = finalOcclusion * texture(ambientOcclusion, uv).r;\n" +
-                            "   color = finalColor * light * occlusion + finalEmissive;\n" +
-                            "   if(applyToneMapping) color = color/(1+color);\n"
+                            "   vec3 color3;\n" +
+                            "   if(length(finalPosition) < 1e34){\n" +
+                            "       vec3 light = texture(finalLight, uv).rgb + ambientLight;\n" +
+                            "       float occlusion = finalOcclusion * texture(ambientOcclusion, uv).r;\n" +
+                            "       color3 = finalColor * light * occlusion + finalEmissive;\n" +
+                            "   } else color3 = finalColor + finalEmissive;\n" + // sky
+                            "   if(applyToneMapping) color3 = color3/(1+color3);\n" +
+                            "   color = vec4(color3, 1);\n"
                 )
 
                 // deferred inputs

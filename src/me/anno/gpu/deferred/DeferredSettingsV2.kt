@@ -138,8 +138,6 @@ class DeferredSettingsV2(
 
         fragment.append("}")
 
-        LOGGER.info("shader: $fragment")
-
         val shader = Shader(shaderName, geometrySource, vertex, varyings, fragment.toString())
         shader.glslVersion = 330
         shader.setTextureIndices(textures)
@@ -273,6 +271,10 @@ class DeferredSettingsV2(
 
     fun findTexture(buffer: Framebuffer, type: DeferredLayerType): Texture2D? {
         val layer = layers.firstOrNull { it.type == type } ?: return null
+        return buffer.textures[layer.layerIndex]
+    }
+
+    fun findTexture(buffer: Framebuffer, layer: Layer): Texture2D? {
         return buffer.textures[layer.layerIndex]
     }
 

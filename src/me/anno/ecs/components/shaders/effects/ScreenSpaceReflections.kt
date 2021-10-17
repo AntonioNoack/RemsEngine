@@ -1,5 +1,6 @@
 package me.anno.ecs.components.shaders.effects
 
+import me.anno.engine.ui.render.Renderers.toneMapping
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.RenderState.useFrame
 import me.anno.gpu.ShaderLib.simplestVertexShader
@@ -14,11 +15,14 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
+import me.anno.studio.rems.Scene
 import org.joml.Matrix4f
 
 // https://lettier.github.io/3d-game-shaders-for-beginners/screen-space-reflection.html
 // https://github.com/lettier/3d-game-shaders-for-beginners/blob/master/demonstration/shaders/fragment/screen-space-reflection.frag
 object ScreenSpaceReflections {
+
+    private const val testMaxDistanceRatio = 100
 
     // position + normal + metallic/reflectivity + maybe-roughness + illuminated image -> illuminated + reflections
     val shader = lazy {
@@ -32,172 +36,194 @@ object ScreenSpaceReflections {
                     "uniform sampler2D finalIlluminated;\n" +
                     "uniform sampler2D finalPosition;\n" +
                     "uniform sampler2D finalNormal;\n" +
+                    // reflectivity = metallic * (1-roughness)
                     "uniform sampler2D finalMetallic;\n" +
-                    "uniform vec4 metallicMask;\n" +
+                    "uniform sampler2D finalRoughness;\n" +
+                    "uniform vec4 metallicMask, roughnessMask;\n" +
 
-                    "uniform float maxDistance;\n" +
+                    "uniform float testDistance;\n" +
+                    "uniform float maxDistanceSq;\n" +
                     "uniform float resolution;\n" +
                     "uniform int steps;\n" +
                     "uniform float thickness;\n" +
+                    "uniform float maskSharpness;\n" +
+
+                    "uniform bool applyToneMapping;\n" +
+
+                    Scene.noiseFunc +
+                    toneMapping +
 
                     "void main() {\n" +
 
-                    "   vec4 color0 = texture(finalIlluminated, uv);\n" +
+                    "   vec3 color0 = texture(finalIlluminated, uv).rgb;\n" +
 
-                    "   ivec2 texSizeI = textureSize(finalPosition, 0);\n" +
-                    "   vec2  texSize  = texSizeI.xy;\n" +
-
-                    "   vec3 positionFrom = texture(finalPosition, uv).xyz;\n" +
-                    "   float mask        = dot(texture(finalMetallic, uv), metallicMask);\n" +
-                    "   mask = 1;//uv.x > 0.5 ? 1 : 0;\n" + // for debugging
-
-                    "   if (mask <= 0.0) {\n" +
-                    "       fragColor = color0;\n" +
-                    "       fragColor = fragColor/(1+fragColor);\n" +
+                    "   float metallic = dot(texture(finalMetallic, uv), metallicMask);\n" +
+                    "   float roughness = dot(texture(finalRoughness, uv), roughnessMask);\n" +
+                    "   float reflectivity = metallic * (1.0 - roughness);\n" +
+                    "   reflectivity = (reflectivity - 1.0) * maskSharpness + 1.0;\n" +
+                    // "   reflectivity = 1;//uv.x > 0.5 ? 1 : 0;\n" + // for debugging
+                    // skip, if not reflective
+                    "   if (reflectivity <= 0.0) {\n" +
+                    "       fragColor = vec4(applyToneMapping ? toneMapping(color0) : color0, 1.0);\n" +
+                    // "       fragColor = vec4(1,0,0,1);\n" +
                     "       return;\n" +
                     "   }\n" +
 
-                    "   vec3 unitPositionFrom = normalize(positionFrom);\n" +
+                    "   ivec2 texSizeI = textureSize(finalPosition, 0);\n" +
+                    "   vec2  texSize  = vec2(texSizeI);\n" +
+
+                    "   vec3 positionFrom     = texture(finalPosition, uv).xyz;\n" +
                     "   vec3 normal           = normalize(texture(finalNormal, uv).xyz*2-1);\n" +
-                    "   vec3 pivot            = normalize(reflect(unitPositionFrom, normal));\n" +
+                    "   vec3 pivot            = normalize(reflect(positionFrom, normal));\n" +
 
                     "   vec4  startView     = vec4(positionFrom, 1.0);\n" +
                     "   float startDistance = length(positionFrom);\n" +
-                    "   vec4  endView       = vec4(positionFrom + (pivot * maxDistance), 1.0);\n" +
-                    "   float endDistance   = length(endView.xyz);\n" +
 
-                    "   vec4 startFrag     = startView;\n" +
-                    "        startFrag     = transform * startFrag;\n" +
-                    "        startFrag.xy /= startFrag.w;\n" + // z is never used
-                    "        startFrag.xy  = startFrag.xy * 0.5 + 0.5;\n" +
-                    "        startFrag.xy *= texSize;\n" +
+                    "   vec3  endView       = positionFrom + pivot * testDistance;\n" +
+                    "   float endDistance   = length(endView);\n" +
 
-                    "   vec4 endFrag     = endView;\n" +
-                    "        endFrag     = transform * endFrag;\n" +
-                    "        endFrag.xy /= endFrag.w;\n" + // z is never used
-                    "        endFrag.xy  = endFrag.xy * 0.5 + 0.5;\n" +
-                    "        endFrag.xy *= texSize;\n" +
+                    "   vec4 endUV0    = transform * vec4(endView,1);\n" +
+                    "   vec2 endUV     = endUV0.xy / endUV0.w * 0.5 + 0.5;\n" +
 
-                    "   vec2 frag  = startFrag.xy;\n" +
-                    "   vec2 dstUV = frag / texSize;\n" +
+                    "   vec2 dstUV = uv;\n" +
 
-                    "   vec2  deltaXY   = endFrag.xy - startFrag.xy;\n" +
-                    "   bool  useX      = abs(deltaXY.x) >= abs(deltaXY.y);\n" +
-                    "   float delta     = (useX ? abs(deltaXY.x) : abs(deltaXY.y)) * resolution;\n" +
-                    "   vec2  increment = deltaXY / max(delta, 0.001);\n" +
+                    "   vec2  deltaXY   = endUV - uv;\n" +
+                    "   vec2  absDelta = abs(deltaXY * texSize);\n" +
+                    "   bool  useX      = absDelta.x >= absDelta.y;\n" +
+                    "   float delta     = (useX ? absDelta.x : absDelta.y) * resolution;\n" + // number of pixels / resolution
+                    "   vec2  increment = deltaXY / delta;\n" +
 
-                    "   float search0 = 0;\n" +
-                    "   float search1 = 0;\n" +
+                    "   float fraction0 = 0;\n" +
+                    "   float fraction1 = 0;\n" +
 
                     "   int hit0 = 0;\n" +
-                    "   int hit1 = 0;\n" +
 
                     "   float depth = thickness, viewDistance;\n" +
                     "   vec3 positionTo;\n" +
 
-                    "   int maxLinearSteps = min(int(delta), min(texSizeI.x, texSizeI.y));\n" +
-                    "   for (int i = 0; i < maxLinearSteps; i++) {\n" +
-                    "       frag      += increment;\n" +
-                    "       dstUV      = frag / texSize;\n" +
+                    // calculate the number of pixels to the edge of the screen
+                    "   int maxLinearSteps = int(min(delta * $testMaxDistanceRatio, useX ? " +
+                    "       (deltaXY.x < 0.0 ? uv.x : 1-uv.x) * resolution * texSize.x : " +
+                    "       (deltaXY.y < 0.0 ? uv.y : 1-uv.y) * resolution * texSize.y" +
+                    "   ));\n" +
+                    "   for (int i = 0; i <= maxLinearSteps; i++){\n" +
+
+                    "       dstUV     += increment;\n" +
                     "       positionTo = texture(finalPosition, dstUV).xyz;\n" +
 
-                    "       search1 = useX ? (frag.x - startFrag.x) / deltaXY.x : (frag.y - startFrag.y) / deltaXY.y;\n" +
-                    "       search1 = clamp(search1, 0.0, 1.0);\n" +
+                    "       fraction1 = useX ? (dstUV.x - uv.x) / deltaXY.x : (dstUV.y - uv.y) / deltaXY.y;\n" +
 
-                    "       viewDistance = (startDistance * endDistance) / mix(endDistance, startDistance, search1);\n" +
+                    "       viewDistance = (startDistance * endDistance) / mix(endDistance, startDistance, fraction1);\n" +
                     "       depth        = viewDistance - length(positionTo);\n" +
 
                     "       if (depth > 0 && depth < thickness) {\n" +
+                    // we found something between fraction0 and fraction1
                     "           hit0 = 1;\n" +
                     "           break;\n" +
-                    "       } else {\n" +
-                    "           search0 = search1;\n" +
+                    "       } else {\n" + // last fraction0
+                    "           fraction0 = fraction1;\n" +
                     "       }\n" +
                     "   }\n" +
 
                     "   if(hit0 == 0){\n" +
-                    "       fragColor = color0;\n" +
-                    "       fragColor = fragColor/(1+fragColor);\n" +
+                    "       fragColor = vec4(applyToneMapping ? toneMapping(color0) : color0, 1.0);\n" +
                     // debug color
                     // "       fragColor = vec4(1,0,1,1);\n" +
                     "       return;\n" +
                     "   }\n" +
 
-                    "   search1 = (search0 + search1) * 0.5;\n" +
+                    // "   fraction1 = (fraction0 + fraction1) * 0.5;\n" +
 
-                    "   for (int i = 0; i < steps; i++) {\n" +
-                    "       frag       = mix(startFrag.xy, endFrag.xy, search1);\n" +
-                    "       dstUV      = frag / texSize;\n" +
+                    "   vec2  bestUV = dstUV;\n" +
+                    "   vec3  bestPositionTo = positionTo;\n" +
+                    "   float bestDepth = depth;\n" +
+                    "   for (int i = 0; i < steps; i++){\n" +
+
+                    "       float fractionI = mix(fraction0, fraction1, float(i)/float(steps));\n" +
+
+                    "       dstUV      = mix(uv, endUV, fractionI);\n" +
                     "       positionTo = texture(finalPosition, dstUV).xyz;\n" +
 
-                    "       viewDistance = (startDistance * endDistance) / mix(endDistance, startDistance, search1);\n" +
+                    "       viewDistance = (startDistance * endDistance) / mix(endDistance, startDistance, fractionI);\n" +
                     "       depth        = viewDistance - length(positionTo);\n" +
 
-                    // todo why is this soo noisy for regions under the thing?
-                    "       if (depth > 0 && depth < thickness) {\n" +
-                    "           hit1 = 1;\n" +
-                    "           search1 = (search0 + search1) * 0.5;\n" +
-                    "       } else {\n" +
-                    "           float temp = search1;\n" +
-                    "           search1 += (search1 - search0) * 0.5;\n" + // why?? mmh...
-                    "           search0 = temp;\n" +
+                    "       if (depth > 0 && depth < bestDepth) {\n" +
+                    "           bestDepth = depth;\n" +
+                    "           bestUV = dstUV;\n" +
+                    "           bestPositionTo = positionTo;\n" +
+                    "           break;\n" +
                     "       }\n" +
                     "   }\n" +
-                    "" +
-                    "   if(hit1 == 0){\n" +
-                    "       fragColor = color0;\n" +
-                    "       fragColor = fragColor/(1+fragColor);\n" +
+
+                    "   vec3 distanceDelta = bestPositionTo - positionFrom;\n" +
+                    "   float distanceSq = dot(distanceDelta, distanceDelta);\n" +
+                    "   if(distanceSq >= maxDistanceSq || bestUV.x < 0 || bestUV.x > 1 || bestUV.y < 0 || bestUV.y > 1){\n" +
+                    "       fragColor = vec4(applyToneMapping ? toneMapping(color0) : color0, 1.0);\n" +
                     // debug color
-                    // "       fragColor = vec4(0,1,1,1);\n" +
+                    // "       fragColor = vec4(0,0,0,1);\n" +
                     "       return;\n" +
                     "   }\n" +
 
-                    "   float visibility = hit1 * mask\n" +
-                    "       * (1 + min(dot(unitPositionFrom, pivot), 0))\n" + // actually [0,1], I think
-                    "       * (1 - clamp(depth / thickness, 0, 1))\n" +
-                    "       * (1 - clamp(length(positionTo - positionFrom) / maxDistance, 0, 1))\n" +
-                    "       * (dstUV.x < 0 || dstUV.x > 1 ? 0 : 1)\n" +
-                    "       * (dstUV.y < 0 || dstUV.y > 1 ? 0 : 1);\n" +
+                    "   float visibility = reflectivity\n" +
+                    "       * (1 + min(dot(normalize(positionFrom), pivot), 0))\n" + // [0,1]
+                    "       * (1 - min(bestDepth / thickness, 1))\n" +
+                    "       * (1 - sqrt(distanceSq / maxDistanceSq))\n" +
+                    "       * min(10.0 * (.5-abs(bestUV.x-0.5)), 1.0)\n" +
+                    "       * min(10.0 * (.5-abs(bestUV.y-0.5)), 1.0);\n" +
 
                     // reflected position * base color of mirror (for golden reflections)
-                    "   vec4 color1 = texture(finalIlluminated, dstUV) * texture(finalColor, uv);\n" +
-                    "   fragColor = mix(color0, color1, visibility);\n" +
-                    "   fragColor = fragColor/(1+fragColor);\n" +
-                    // "   fragColor = vec4(dstUV, visibility, 1);\n" +
+                    "   vec3 color1 = texture(finalIlluminated, bestUV).rgb * texture(finalColor, uv).rgb;\n" +
+                    "   color0 = mix(color0, color1, visibility);\n" +
+                    "   fragColor = vec4(applyToneMapping ? toneMapping(color0) : color0, 1.0);\n" +
+                    // "   fragColor = vec4(0,0,visibility,1);\n" +
+                    // "   fragColor = vec4(bestUV, visibility, 1);\n" +
                     "}"
         ).apply {
-            setTextureIndices(listOf("finalColor", "finalPosition", "finalNormal", "finalMetallic", "finalIlluminated"))
+            setTextureIndices(
+                listOf(
+                    "finalColor", "finalPosition", "finalNormal",
+                    "finalMetallic", "finalRoughness", "finalIlluminated"
+                )
+            )
         }
     }
 
     fun compute(
         buffer: Framebuffer,
         illuminated: Framebuffer,
-        settingsV2: DeferredSettingsV2,
+        deferred: DeferredSettingsV2,
         transform: Matrix4f,
+        applyToneMapping: Boolean,
         dst: Framebuffer = FBStack["ss-reflections", buffer.w, buffer.h, 4, true, 1, false]
     ): Texture2D {
         useFrame(dst, Renderer.copyRenderer) {
+            val fineSteps = 5 // 10 are enough, if there are only rough surfaces
+            val maxDistance = 8f
             val shader = shader.value
             shader.use()
-            shader.v1("maxDistance", 8f)
-            shader.v1("resolution", 0.3f) // [0,1]
-            shader.v1("steps", 10)
+            shader.v1("applyToneMapping", applyToneMapping)
+            shader.v1("testDistance", maxDistance / testMaxDistanceRatio)
+            shader.v1("maxDistanceSq", maxDistance * maxDistance)
+            shader.v1("resolution", 1f / fineSteps)
+            shader.v1("steps", fineSteps)
+            shader.v1("maskSharpness", 2f)
             shader.v1("thickness", 0.2f) // thickness, when we are under something
             shader.m4x4("transform", transform)
+            val n = GPUFiltering.TRULY_LINEAR
+            val c = Clamping.CLAMP
             // metallic may be on r, g, b, or a
-            val metallicLayer = settingsV2.findLayer(DeferredLayerType.METALLIC)!!
+            val metallicLayer = deferred.findLayer(DeferredLayerType.METALLIC)!!
             val metallicName = metallicLayer.mapping
-            illuminated.bindTexture0(4, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+            val roughnessLayer = deferred.findLayer(DeferredLayerType.ROUGHNESS)!!
+            val roughnessName = roughnessLayer.mapping
             shader.v4("metallicMask", singleToVector[metallicName]!!)
-            settingsV2.findTexture(buffer, DeferredLayerType.METALLIC)!!
-                .bind(3, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-            settingsV2.findTexture(buffer, DeferredLayerType.NORMAL)!!
-                .bind(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-            settingsV2.findTexture(buffer, DeferredLayerType.POSITION)!!
-                .bind(1, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-            settingsV2.findTexture(buffer, DeferredLayerType.COLOR)!!
-                .bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+            shader.v4("roughnessMask", singleToVector[roughnessName]!!)
+            illuminated.bindTexture0(5, n, c)
+            deferred.findTexture(buffer, roughnessLayer)!!.bind(4, n, c)
+            deferred.findTexture(buffer, metallicLayer)!!.bind(3, n, c)
+            deferred.findTexture(buffer, DeferredLayerType.NORMAL)!!.bind(2, n, c)
+            deferred.findTexture(buffer, DeferredLayerType.POSITION)!!.bind(1, n, c)
+            deferred.findTexture(buffer, DeferredLayerType.COLOR)!!.bind(0, n, c)
             flat01.draw(shader)
         }
         return dst.getColor0()

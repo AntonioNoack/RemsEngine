@@ -128,7 +128,7 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                 view.rotation.set(0.0)
                 view.position.set(0.0)
                 view.radius = 50.0
-                view.updateTransform()
+                view.updateEditorCameraTransform()
             }
             "Cam5" -> {// switch between orthographic and perspective
                 // todo switch between ortho and perspective
@@ -173,12 +173,12 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
 
     fun rotateCameraTo(v: Vector3f) {
         view.rotation.set(v)
-        view.updateTransform()
+        view.updateEditorCameraTransform()
     }
 
     fun rotateCamera(v: Vector3f) {
         view.rotation.add(v)
-        view.updateTransform()
+        view.updateEditorCameraTransform()
     }
 
     fun turn(dx: Float, dy: Float) {

@@ -9,31 +9,32 @@ enum class DeferredLayerType(
     val glslName: String,
     val dimensions: Int,
     val needsHighPrecision: Boolean,
+    val highDynamicRange: Boolean,
     val defaultValueARGB: Int,
     val map01: String,
     val map10: String
 ) {
 
-    COLOR("finalColor", 3, false, 0xffffff, "", ""),
-    EMISSIVE("finalEmissive", 3, false, 0, "", ""),
+    COLOR("finalColor", 3, false, false, 0x7799ff, "", ""),
+    EMISSIVE("finalEmissive", 3, false, true, 0, "", ""), // could need high precision...
 
     // todo 12 bits per component? or sth like that?
-    NORMAL("finalNormal", 3, false, 0x77ff77, "*0.5+0.5", "*2.0-1.0"),
+    NORMAL("finalNormal", 3, false, false, 0x77ff77, "*0.5+0.5", "*2.0-1.0"),
 
     // todo do we need the tangent? it is calculated from uvs, so maybe for anisotropy...
-    TANGENT("finalTangent", 3, false, 0x7777ff, "*0.5+0.5", "*2.0-1.0"),
+    TANGENT("finalTangent", 3, false, false, 0x7777ff, "*0.5+0.5", "*2.0-1.0"),
 
     // may be in camera space, player space, or world space
     // the best probably would be player space: relative to the player, same rotation, scale, etc as world
-    POSITION("finalPosition", 3, true, 0, "", ""),
+    POSITION("finalPosition", 3, true, true, 0, "", ""),
 
-    METALLIC("finalMetallic", 1, false, 0x0, "", ""),
-    ROUGHNESS("finalRoughness", 1, false, 0x11, "", ""), // roughness = 1-reflectivity
-    OCCLUSION("finalOcclusion", 1, false, 0, "", ""), // from an occlusion texture, cavity
+    METALLIC("finalMetallic", 0),
+    ROUGHNESS("finalRoughness", 0x11), // roughness = 1-reflectivity
+    OCCLUSION("finalOcclusion", 0xff), // from an occlusion texture, cavity; 1 = no cavities, 0 = completely hidden
 
     // transparency? is a little late... finalAlpha, needs to be handled differently
-    TRANSLUCENCY("finalTranslucency", 1, 0),
-    SHEEN("finalSheen", 1, 0),
+    TRANSLUCENCY("finalTranslucency", 0),
+    SHEEN("finalSheen", 0),
     SHEEN_NORMAL("finalSheenNormal", 3, 0x77ff77),
 
     // clear coat roughness? how would we implement that?
@@ -51,7 +52,7 @@ enum class DeferredLayerType(
     ANISOTROPIC("finalAnisotropic", 2, 0),
 
     // needs some kind of mapping...
-    INDEX_OF_REFRACTION("finalIndexOfRefraction", 1, 0),
+    INDEX_OF_REFRACTION("finalIndexOfRefraction", 0),
 
     // ids / markers
     ID("finalId", 4, 0),
@@ -61,8 +62,11 @@ enum class DeferredLayerType(
 
     ;
 
+    constructor(glslName: String, defaultValueARGB: Int) :
+            this(glslName, 1, false, false, defaultValueARGB, "", "")
+
     constructor(glslName: String, dimensions: Int, defaultValueARGB: Int) :
-            this(glslName, dimensions, false, defaultValueARGB, "", "")
+            this(glslName, dimensions, false, false, defaultValueARGB, "", "")
 
     fun appendDefinition(fragment: StringBuilder) {
         fragment.append(DeferredSettingsV2.glslTypes[dimensions - 1])

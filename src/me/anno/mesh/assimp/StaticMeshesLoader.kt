@@ -42,6 +42,18 @@ open class StaticMeshesLoader {
                 aiProcess_FixInfacingNormals or // is recommended, may be incorrect...
                 aiProcess_GlobalScale
 
+        fun shininessToRoughness(shininessExponent: Float): Float {
+            // an approximation, which maps the exponent to roughness;
+            // just roughly...
+            //   0: 1.00
+            // 100: 0.50
+            // 200: 0.34
+            // 600: 0.14
+            // 900: 0.10
+            // 1e3: 0.09
+            return 1f / (shininessExponent * 0.01f + 1f)
+        }
+
         // or aiProcess_PreTransformVertices // <- disables animations
         private val LOGGER = LogManager.getLogger(StaticMeshesLoader::class)
 
@@ -320,18 +332,6 @@ open class StaticMeshesLoader {
         if (occlusionMap != InvalidRef) prefab.setProperty("occlusionMap", occlusionMap)
 
         return prefab
-    }
-
-    fun shininessToRoughness(shininessExponent: Float): Float {
-        // an approximation, which maps the exponent to roughness;
-        // just roughly...
-        //   0: 1.00
-        // 100: 0.50
-        // 200: 0.34
-        // 600: 0.14
-        // 900: 0.10
-        // 1e3: 0.09
-        return 1f / (shininessExponent * 0.01f + 1f)
     }
 
     fun getFloat(aiMaterial: AIMaterial, key: String): Float {

@@ -28,7 +28,7 @@ object PBRLibraryGLTF {
      * roughness. This implementation is based on the description in [1], which
      * is supposed to be a summary of [3], although I didn't do the maths...
      */
-    val microfacetDistribution = "" +
+    private const val microfacetDistribution = "" +
             "float computeMicrofacetDistribution(vec3 H, vec3 N, float roughness){\n" +
             "    \n" +
             "    float alpha = roughness * roughness;\n" +
@@ -46,7 +46,7 @@ object PBRLibraryGLTF {
      * described in [4]. It receives the specular color, the
      * direction from the surface point to the viewer V, and the half-vector H.
      * */
-    val specularReflectance = "" +
+    private const val specularReflectance = "" +
             "vec3 computeSpecularReflectance(vec3 specularColor, vec3 V, vec3 H){\n" +
             "    float HdotV = clamp(dot(H, V), 0.0, 1.0);\n" +
             "    return specularColor + (1.0 - specularColor) * pow(1.0 - HdotV, 5.0);\n" +
@@ -63,7 +63,7 @@ object PBRLibraryGLTF {
      * the vector from the surface to the viewer V, the vector from the
      * surface to the light L, and the half vector H
      * */
-    val specularAttenuation = "" +
+    private const val specularAttenuation = "" +
             "float computeSpecularAttenuation(float roughness, vec3 V, vec3 N, vec3 L, vec3 H){\n" +
             "    float NdotL = dot(N, L);\n" + // guaranteed to be > 0
             "    float NdotV = abs(dot(N, V));\n" + // back face gets same shading (if < 0)
@@ -75,8 +75,7 @@ object PBRLibraryGLTF {
             "    return GL * GV;\n" +
             "}\n"
 
-
-    val specularAttenuationNoDiv = "" + // without times NdotV, because we divide by it in the result
+    /*val specularAttenuationNoDiv = "" + // without times NdotV, because we divide by it in the result
             "float computeSpecularAttenuation(float roughness, vec3 V, vec3 N, vec3 L, vec3 H){\n" +
             "    float NdotL = dot(N, L);\n" + // guaranteed to be > 0
             "    float NdotV = abs(dot(N, V));\n" + // back face gets same shading (if < 0)
@@ -87,7 +86,7 @@ object PBRLibraryGLTF {
             "    float t1 = NdotV * invK + k;\n" +
             "    \n" +
             "    return NdotL / (t0 * t1);\n" +
-            "}\n"
+            "}\n"*/
 
     /**
      * Compute the BRDF, as it is described in [1], with a reference
@@ -184,14 +183,14 @@ object PBRLibraryGLTF {
             // Compute the specularly reflected color (F)
             // "    float HdotV = clamp(dot(H, V), 0.0, 1.0);\n" + // clamp is probably unnecessary ^^
             "float HdotV = dot(H, V);\n" +
-            "float invHov = 1.0 - HdotV, invHov2 = invHov*invHov, invHov5 = invHov*invHov2*invHov2;\n" +
+            "float invHov = 1.0 - HdotV, invHov2 = invHov * invHov, invHov5 = invHov * invHov2 * invHov2;\n" +
             // is x*(x*x)*(x*x) faster than pow5? yes it is, by 2.8x
             // "    vec3  F = specularInputColor + (1.0 - specularInputColor) * pow(1.0 - HdotV, 5.0);\n" +
             "vec3 F = specularColor + invSpecularColor * invHov5;\n" +
             // Compute the geometric specular attenuation (G)
             // "    float NdotL = dot(N, L);\n" + // guaranteed to be > 0; already defined
             // "    float NdotV = abs(dot(N, V));\n" + // back face gets same shading (if < 0); clamping is needed here
-            "vec2 t = vec2(NdotL,NdotV)*invK+k;\n" +
+            "vec2 t = vec2(NdotL,NdotV) * invK + k;\n" +
             //"    float Gx = NdotL;\n" +
             // NdotL is already in the light equation, NdotV is in G
             // also we don't need two divisions, we can use one
@@ -219,7 +218,7 @@ object PBRLibraryGLTF {
             // Compute the geometric specular attenuation (G)
             // "    float NdotL = dot(N, L);\n" + // guaranteed to be > 0; already defined
             // "    float NdotV = abs(dot(N, V));\n" + // back face gets same shading (if < 0); clamping is needed here
-            "vec2 t = vec2(NdotL,NdotV)*invK+k;\n" +
+            "vec2 t = vec2(NdotL,NdotV) * invK + k;\n" +
             //"    float Gx = NdotL;\n" +
             // NdotL is already in the light equation, NdotV is in G
             // also we don't need two divisions, we can use one
@@ -239,21 +238,20 @@ object PBRLibraryGLTF {
             specularAttenuation +
             specularBRDFv2 +
             "vec3 combineMainColor(vec3 baseColor, vec3 normal, float metallic, float roughness, vec3 emissive, float occlusionFactor, vec3 lightDir){\n" +
-            "    \n" +
             // if the light and the normal are in opposite directions, won't be light
             "    float NdotL = dot(normal, lightDir);\n" +
             "    if(NdotL <= 0.0) return vec3(0.0);\n" +
-            "    \n" +
+
             "    vec3 V =-normalize(finalPosition);\n" + // norm(camera position - vertex position), camera position is (0,0,0)
             "    vec3 H = normalize(lightDir + V);\n" +
-            "    \n" +
+
             "    vec3 diffuseColor = baseColor.rgb * (1.0 - metallic);\n" + // diffuse part (lerped influence)
             "    vec3 diffuse = diffuseColor * NdotL;\n" +
-            "    \n" +
+
             "    vec3 specularInputColor = baseColor.rgb * metallic;\n" + // specular part (lerped influence)
             "    vec3 specularBRDF = computeSpecularBRDF(specularInputColor, roughness, V, normal, lightDir, H);\n" +
             "    vec3 specular = specularInputColor * specularBRDF;\n" +
-            "    \n" +
+
             "    return diffuse + specular;\n" + // we could accumulate this in the light buffer
             "}\n"
 

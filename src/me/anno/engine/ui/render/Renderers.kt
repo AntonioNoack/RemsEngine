@@ -163,13 +163,14 @@ object Renderers {
 
     val frontBackRenderer = object : Renderer("front-back", true, ShaderPlus.DrawMode.COLOR) {
         override fun getPostProcessing(): ShaderStage {
-            return ShaderStage("front-back", listOf(
-                Variable("vec3", "finalPosition"),
-                Variable("vec3", "finalNormal"),
-                Variable("vec3", "finalColor", VariableMode.INOUT),
-            ), "" +
-                    "finalColor = dot(finalNormal,finalPosition)>0.0 ? vec3(1,0,0) : vec3(0,.3,1);\n" +
-                    "finalColor *= finalNormal.x * 0.4 + 0.6;\n" // some simple shading
+            return ShaderStage(
+                "front-back", listOf(
+                    Variable("vec3", "finalPosition"),
+                    Variable("vec3", "finalNormal"),
+                    Variable("vec3", "finalColor", VariableMode.INOUT),
+                ), "" +
+                        "finalColor = dot(finalNormal,finalPosition)>0.0 ? vec3(1,0,0) : vec3(0,.3,1);\n" +
+                        "finalColor *= finalNormal.x * 0.4 + 0.6;\n" // some simple shading
             )
         }
     }
@@ -292,30 +293,32 @@ object Renderers {
     }
 
     val attributeRenderers: Map<DeferredLayerType, Renderer> = DeferredLayerType.values()
-        .associateWith {
-            object : Renderer("attribute-$it", false, ShaderPlus.DrawMode.COLOR) {
+        .associateWith { type ->
+            object : Renderer(type.name, false, ShaderPlus.DrawMode.COLOR) {
                 override fun getPostProcessing(): ShaderStage {
                     return ShaderStage(
-                        "attribute", if (it == DeferredLayerType.COLOR) {
+                        type.name, if (type == DeferredLayerType.COLOR) {
                             listOf(Variable("vec3", "finalColor", VariableMode.INOUT))
                         } else {
                             listOf(
-                                Variable(DeferredSettingsV2.glslTypes[it.dimensions - 1], it.glslName, true),
+                                Variable(DeferredSettingsV2.glslTypes[type.dimensions - 1], type.glslName, true),
                                 Variable("vec3", "finalColor", false)
                             )
                         },
-                        if (it == DeferredLayerType.COLOR) {
+                        if (type == DeferredLayerType.COLOR) {
                             ""
                         } else {
                             "finalColor = ${
-                                when (it.dimensions) {
-                                    1 -> "vec3(${it.glslName}${it.map01})"
-                                    2 -> "vec3(${it.glslName}${it.map01},1)"
-                                    3 -> "(${it.glslName}${it.map01})"
-                                    4 -> "(${it.glslName}${it.map01}).rgb"
+                                when (type.dimensions) {
+                                    1 -> "vec3(${type.glslName}${type.map01})"
+                                    2 -> "vec3(${type.glslName}${type.map01},1)"
+                                    3 -> "(${type.glslName}${type.map01})"
+                                    4 -> "(${type.glslName}${type.map01}).rgb"
                                     else -> ""
                                 }
-                            };\n"
+                            };\n" + if (type.highDynamicRange) {
+                                "finalColor = finalColor / (1+abs(finalColor));\n"
+                            } else ""
                         }
                     )
                 }

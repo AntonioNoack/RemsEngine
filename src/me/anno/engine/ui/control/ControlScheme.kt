@@ -22,7 +22,6 @@ import me.anno.input.MouseButton
 import me.anno.ui.base.groups.NineTilePanel
 import me.anno.ui.editor.PropertyInspector
 import me.anno.utils.maths.Maths
-import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import me.anno.utils.types.Vectors.safeNormalize
 import org.apache.logging.log4j.LogManager
@@ -120,7 +119,7 @@ open class ControlScheme(val camera: CameraComponent, val library: EditorState, 
             val limit = 90.0 - 0.0001
             rotation.x = Maths.clamp(rotation.x + dy * speed, -limit, limit)
             rotation.y += dx * speed
-            view.updateTransform()
+            view.updateEditorCameraTransform()
             invalidateDrawing()
         }
     }
@@ -133,7 +132,7 @@ open class ControlScheme(val camera: CameraComponent, val library: EditorState, 
         if (isSelected) {
             val factor = Maths.pow(0.5f, dy / 16f)
             view.radius *= factor
-            view.updateTransform()
+            view.updateEditorCameraTransform()
             invalidateDrawing()
         }
     }
