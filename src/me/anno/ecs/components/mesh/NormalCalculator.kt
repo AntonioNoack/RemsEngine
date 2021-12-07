@@ -10,7 +10,8 @@ object NormalCalculator {
     fun needsNormalsComputation(normals: FloatArray): Boolean {
         for (j in 0 until normals.size / 3) {
             val i = j * 3
-            if (abs(normals[i]) + abs(normals[i + 1]) + abs(normals[i + 2]) < 0.001) {
+            val normalL1 = abs(normals[i]) + abs(normals[i + 1]) + abs(normals[i + 2])
+            if (normalL1 < 0.001f) {
                 return true
             }
         }

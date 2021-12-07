@@ -11,7 +11,7 @@ open class AnyArrayPanel(title: String, visibilityKey: String, val arrayType: St
     override fun createPanel(value: Any?): Panel {
         val panel = Ptr<Panel?>(null)
         val property = AAPProperty(this, value, arrayType, panel)
-        panel.value = ComponentUI.createUI2("", visibilityKey, property, null, style)!!
+        panel.value = ComponentUI.createUIByTypeName("", visibilityKey, property, arrayType, null, style)
         return panel.value!!
     }
 

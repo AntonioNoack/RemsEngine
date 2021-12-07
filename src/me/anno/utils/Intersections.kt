@@ -5,22 +5,22 @@ import org.joml.*
 object Intersections {
 
     fun getStrictLineIntersection(
-        v1: Vector2fc, v2: Vector2fc, v3: Vector2fc, v4: Vector2fc
+        s0: Vector2fc, e0: Vector2fc, s1: Vector2fc, e1: Vector2fc
     ): Vector2f? {
         val result = Vector2f()
         val intersects = Intersectionf.intersectLineLine(
-            v1.x(), v1.y(),
-            v2.x(), v2.y(),
-            v3.x(), v3.y(),
-            v4.x(), v4.y(), result
+            s0.x(), s0.y(),
+            e0.x(), e0.y(),
+            s1.x(), s1.y(),
+            e1.x(), e1.y(), result
         )
         if(!intersects) return null
-        val d1 = v1.distance(result)
-        val d2 = v2.distance(result)
-        val d3 = v3.distance(result)
-        val d4 = v4.distance(result)
+        val d1 = s0.distance(result)
+        val d2 = e0.distance(result)
+        val d3 = s1.distance(result)
+        val d4 = e1.distance(result)
         val innerDistance = d1+d2+d3+d4
-        val totalDistance = v1.distance(v2) + v3.distance(v4)
+        val totalDistance = s0.distance(e0) + s1.distance(e1)
         val isInside = innerDistance < 1.00001f * totalDistance
         val margin = totalDistance * 0.0001f
         val isVeryClose = d1 <= margin || d2 <= margin || d3 <= margin || d4 <= margin
@@ -32,22 +32,22 @@ object Intersections {
 
 
     fun getStrictLineIntersection(
-        v1: Vector2dc, v2: Vector2dc, v3: Vector2dc, v4: Vector2dc
+        s0: Vector2dc, e0: Vector2dc, s1: Vector2dc, e1: Vector2dc
     ): Vector2d? {
         val result = Vector2d()
         val intersects = Intersectiond.intersectLineLine(
-            v1.x(), v1.y(),
-            v2.x(), v2.y(),
-            v3.x(), v3.y(),
-            v4.x(), v4.y(), result
+            s0.x(), s0.y(),
+            e0.x(), e0.y(),
+            s1.x(), s1.y(),
+            e1.x(), e1.y(), result
         )
         if(!intersects) return null
-        val d1 = v1.distance(result)
-        val d2 = v2.distance(result)
-        val d3 = v3.distance(result)
-        val d4 = v4.distance(result)
+        val d1 = s0.distance(result)
+        val d2 = e0.distance(result)
+        val d3 = s1.distance(result)
+        val d4 = e1.distance(result)
         val innerDistance = d1+d2+d3+d4
-        val totalDistance = v1.distance(v2) + v3.distance(v4)
+        val totalDistance = s0.distance(e0) + s1.distance(e1)
         val isInside = innerDistance < 1.00001f * totalDistance
         val margin = totalDistance * 0.0001f
         val isVeryClose = d1 <= margin || d2 <= margin || d3 <= margin || d4 <= margin

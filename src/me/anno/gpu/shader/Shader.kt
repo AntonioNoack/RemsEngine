@@ -28,6 +28,7 @@ open class Shader(
 ) : ICacheData {
 
     companion object {
+
         private var logShaders = false
         private val LOGGER = LogManager.getLogger(Shader::class)
         const val attributeName = "in"
@@ -40,6 +41,11 @@ open class Shader(
         const val UniformCacheSizeX4 = UniformCacheSize * 4
         var safeShaderBinding = false
         var lastProgram = -1
+
+        fun formatVersion(version: Int): String {
+            return if (OS.isAndroid) "#version $version es\n" else "#version $version\n"
+        }
+
     }
 
     val safeShaderBinding = Companion.safeShaderBinding
@@ -96,9 +102,10 @@ open class Shader(
         val varyings = varying.map { Varying(if (it.isFlat) "flat" else "", it.type, it.name) }
 
         program = glCreateProgram()
+        val versionString = formatVersion(glslVersion)
         val geometryShader = if (geometry != null) {
             for (v in varyings) v.makeDifferent()
-            var geo = "#version $glslVersion\n$geometry"
+            var geo = versionString + geometry
             while (true) {
                 // copy over all varyings for the shaders
                 val copyIndex = geo.indexOf("#copy")
@@ -119,26 +126,24 @@ open class Shader(
         } else -1
 
         // the shaders are like a C compilation process, .o-files: after linking, they can be removed
-        vertexSource = (
-                "" +
-                        "#version $glslVersion\n" +
-                        varyings.joinToString("\n") { "${it.modifiers} out ${it.type} ${it.vShaderName};" } +
-                        "\n" +
-                        vertex.replaceVaryingNames(true, varyings)
+        vertexSource = (versionString +
+                // todo only specify mediump float, if we really don't need highp, and there is no common uniforms (issue in OpenGL ES)
+                "precision mediump float;\n" +
+                varyings.joinToString("\n") { "${it.modifiers} out ${it.type} ${it.vShaderName};" } +
+                "\n" +
+                vertex.replaceVaryingNames(true, varyings)
                 ).replaceShortCuts()
         val vertexShader = compile(GL_VERTEX_SHADER, vertexSource)
 
-        fragmentSource = (
-                "" +
-                        "#version $glslVersion\n" +
-                        "precision mediump float;\n" +
-                        varyings.joinToString("\n") { "${it.modifiers} in  ${it.type} ${it.fShaderName};" } +
-                        "\n" +
-                        (if (!fragment.contains("out ") && glslVersion == DefaultGLSLVersion && fragment.contains("gl_FragColor")) {
-                            "" +
-                                    "out vec4 glFragColor;" +
-                                    fragment.replace("gl_FragColor", "glFragColor")
-                        } else fragment).replaceVaryingNames(false, varyings)
+        fragmentSource = (versionString +
+                "precision mediump float;\n" +
+                varyings.joinToString("\n") { "${it.modifiers} in  ${it.type} ${it.fShaderName};" } +
+                "\n" +
+                (if (!fragment.contains("out ") && glslVersion == DefaultGLSLVersion && fragment.contains("gl_FragColor")) {
+                    "" +
+                            "out vec4 glFragColor;" +
+                            fragment.replace("gl_FragColor", "glFragColor")
+                } else fragment).replaceVaryingNames(false, varyings)
                 ).replaceShortCuts()
         val fragmentShader = compile(GL_FRAGMENT_SHADER, fragmentSource)
 
@@ -149,7 +154,7 @@ open class Shader(
         if (geometryShader >= 0) glDeleteShader(geometryShader)
         logShader(vertexSource, fragmentSource)
 
-        postPossibleError(program, false, fragmentSource)
+        postPossibleError(program, false, vertexSource, fragmentSource)
 
         GFX.check()
 
@@ -183,7 +188,7 @@ open class Shader(
         use()
         if (textures == null) return
         for ((index, name) in textures.withIndex()) {
-            if(',' in name) throw IllegalArgumentException("Name must not contain comma!")
+            if (',' in name) throw IllegalArgumentException("Name must not contain comma!")
             val texName = getUniformLocation(name)
             textureIndices[name] = if (texName >= 0) {
                 glUniform1i(texName, index)
@@ -248,12 +253,12 @@ open class Shader(
         glShaderSource(shader, source)
         glCompileShader(shader)
         glAttachShader(program, shader)
-        postPossibleError(shader, true, source)
+        postPossibleError(shader, true, source, "")
         return shader
     }
 
-    private fun postPossibleError(shader: Int, isShader: Boolean, source: String) {
-        val log = if(isShader){
+    private fun postPossibleError(shader: Int, isShader: Boolean, s0: String, s1: String) {
+        val log = if (isShader) {
             glGetShaderInfoLog(shader)
         } else {
             glGetProgramInfoLog(shader)
@@ -261,7 +266,7 @@ open class Shader(
         if (!log.isBlank2()) {
             LOGGER.warn(
                 "$log by $shaderName\n\n${
-                    source
+                    (s0 + s1)
                         .split('\n')
                         .mapIndexed { index, line ->
                             "${"%1\$3s".format(index + 1)}: $line"

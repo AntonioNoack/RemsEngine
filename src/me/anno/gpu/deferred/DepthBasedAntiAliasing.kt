@@ -240,11 +240,11 @@ object DepthBasedAntiAliasing {
                     "void main(){\n" +
                     "   ivec2 p = ivec2(gl_FragCoord.xy);\n" +
                     "   if(disableEffect){\n" +
-                    "       fragColor = texelFetch(color,p,0);\n" +
+                    "       fragColor = texelFetch(color, p, 0);\n" +
                     "       return;\n" +
                     "   }\n" +
                     "   if(showEdges){\n" +
-                    "       fragColor = vec4(vec2(needsBlur(p)?1:0),0,1);\n" +
+                    "       fragColor = vec4(vec2(needsBlur(p) ? 1.0 : 0.0), 0.0, 1.0);\n" +
                     "       return;\n" +
                     "   }\n" +
                     "   if(needsBlur(p)){\n" +
@@ -254,7 +254,7 @@ object DepthBasedAntiAliasing {
                     "       float d2 = texelFetch(depth0,p-ivec2(0,1),0).r;\n" +
                     "       float d3 = texelFetch(depth0,p+ivec2(1,0),0).r;\n" +
                     "       float d4 = texelFetch(depth0,p+ivec2(0,1),0).r;\n" +
-                    "       float sobel = 4.0-(d1+d2+d3+d4)/d0;\n" +
+                    "       float sobel = 4.0 - (d1+d2+d3+d4)/d0;\n" +
                     "       float dx = abs(d3-d1);\n" +
                     "       float dy = abs(d4-d2);\n" +
                     "       bool dirX = dx > dy;\n" + // dx > dy
@@ -296,17 +296,17 @@ object DepthBasedAntiAliasing {
                     "       vec2 offset = rbOffset * other;\n" +
                     "       if(dirX){\n" +
                     "           vec2 ga = mix(baseColor.ga, mixColor.ga, blur);\n" +
-                    "           float r = mix(baseColor.r,  mixColor.r,  max(blur-offset.x, 0));\n" +
-                    "           float b = mix(baseColor.b,  mixColor.b,  max(blur+offset.x, 0));\n" +
+                    "           float r = mix(baseColor.r,  mixColor.r,  max(blur-offset.x, 0.0));\n" +
+                    "           float b = mix(baseColor.b,  mixColor.b,  max(blur+offset.x, 0.0));\n" +
                     "           fragColor = vec4(r,ga.x,b,ga.y);\n" +
                     "       } else {\n" +
                     "           vec2 ga = mix(baseColor.ga, mixColor.ga, blur);\n" +
-                    "           float r = mix(baseColor.r,  mixColor.r,  max(blur-offset.y, 0));\n" +
-                    "           float b = mix(baseColor.b,  mixColor.b,  max(blur+offset.y, 0));\n" +
+                    "           float r = mix(baseColor.r,  mixColor.r,  max(blur-offset.y, 0.0));\n" +
+                    "           float b = mix(baseColor.b,  mixColor.b,  max(blur+offset.y, 0.0));\n" +
                     "           fragColor = vec4(r,ga.x,b,ga.y);\n" +
                     "       }\n" +
                     "   } else {\n" +
-                    "       fragColor = texelFetch(color,p,0);\n" +
+                    "       fragColor = texelFetch(color, p, 0);\n" +
                     "   }\n" +
                     "}"
         ).apply { setTextureIndices(listOf("color", "depth0")) }

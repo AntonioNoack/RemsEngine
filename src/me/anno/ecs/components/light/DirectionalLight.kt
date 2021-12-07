@@ -89,8 +89,8 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                         // box cutoff: max(max(abs(dir.x),abs(dir.y)),abs(dir.z))
                         // sphere cutoff:
                         "if(invCutoff > 0.0){\n" +
-                        "   float cut = min(invCutoff*(1-dot(dir,dir)),1);\n" +
-                        "   if(cut <= 0) $cutoffContinue;\n" +
+                        "   float cut = min(invCutoff * (1.0 - dot(dir,dir)), 1.0);\n" +
+                        "   if(cut <= 0.0) { $cutoffContinue; }\n" +
                         "   lightColor *= cut;\n" +
                         "}\n"
             } else ""
@@ -101,7 +101,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                     getCutoff(cutoffContinue) +
                     "NdotL = localNormal.z;\n" + // dot(lightDirWS, globalNormal) = dot(lightDirLS, localNormal)
                     // inv(W->L) * vec4(0,0,1,0) =
-                    // transpose(m3x3(W->L)) * vec3(0,0,1)
+                    // transpose(m3x3(W->L)) * vec3(0.0,0.0,1.0)
                     "lightDirWS = normalize(vec3(WStoLightSpace[0][2],WStoLightSpace[1][2],WStoLightSpace[2][2]));\n" +
                     (if (withShadows) "" +
                             "if(shadowMapIdx0 < shadowMapIdx1){\n" +

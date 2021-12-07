@@ -193,13 +193,13 @@ class RenderView(
 
     }
 
-    var bloomStrength = 0.5f
-    var bloomOffset = 10f
-    val useBloom get() = bloomOffset > 0f && renderMode != RenderMode.WITHOUT_POST_PROCESSING
+    private var bloomStrength = 0.5f
+    private var bloomOffset = 10f
+    private val useBloom get() = bloomOffset > 0f && renderMode != RenderMode.WITHOUT_POST_PROCESSING
 
-    val ssaoRadius = 0.2f // 0.1 of world size looks pretty good :)
-    val ssaoSamples get() = max(1, DefaultConfig["gpu.ssao.samples", 128])
-    val ssaoStrength get() = max(1e-3f, DefaultConfig["gpu.ssao.strength", 1f])
+    private val ssaoRadius = 0.2f // 0.1 of world size looks pretty good :)
+    private val ssaoSamples get() = max(1, DefaultConfig["gpu.ssao.samples", 128])
+    private val ssaoStrength get() = max(1e-3f, DefaultConfig["gpu.ssao.strength", 1f])
 
     var controlScheme: ControlScheme? = null
 
@@ -210,7 +210,7 @@ class RenderView(
     var editorCamera = CameraComponent()
     val editorCameraNode = Entity(editorCamera)
 
-    var isFinalRendering = false
+    val isFinalRendering get() = mode != Mode.EDITING
 
     var renderMode = RenderMode.DEFAULT
 
@@ -219,17 +219,17 @@ class RenderView(
     var position = Vector3d()
     var rotation = Vector3d(-20.0, 0.0, 0.0)
 
-    var deferredRenderer = DeferredRenderer
-    val deferred = deferredRenderer.deferredSettings!!
+    private val deferredRenderer = DeferredRenderer
+    private val deferred = deferredRenderer.deferredSettings!!
 
-    val baseNBuffer = deferred.createBaseBuffer()
-    val baseSameDepth = baseNBuffer.attachFramebufferToDepth(1, false)
-    val base1Buffer = Framebuffer("debug", 1, 1, 1, 4, false, DepthBufferType.TEXTURE)
+    private val baseNBuffer = deferred.createBaseBuffer()
+    private val baseSameDepth = baseNBuffer.attachFramebufferToDepth(1, false)
+    private val base1Buffer = Framebuffer("debug", 1, 1, 1, 4, false, DepthBufferType.TEXTURE)
 
     // val lightBuffer = deferred.createLightBuffer()
     // val lightBuffer = baseBuffer.attachFramebufferToDepth(1, deferred.settingsV1.fpLights)//deferred.createLightBuffer()
     // no depth is currently required on this layer
-    val lightBuffer = Framebuffer("lights", w, h, 1, 1, deferred.settingsV1.fpLights, DepthBufferType.NONE)
+    private val lightBuffer = Framebuffer("lights", w, h, 1, 1, deferred.settingsV1.fpLights, DepthBufferType.NONE)
 
     fun updateEditorCameraTransform() {
 
@@ -270,7 +270,7 @@ class RenderView(
         invalidateDrawing()
     }
 
-    val clock = Clock()
+    private val clock = Clock()
     private var lastPhysics: BulletPhysics? = null
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -352,7 +352,7 @@ class RenderView(
 
         clock.stop("initialization", 0.05)
 
-        prepareDrawScene(w / 2f, h / 2f, w, h, aspect, camera, camera, 1f)
+        prepareDrawScene(w, h, aspect, camera, camera, 1f, true)
         if (pipeline.hasTooManyLights() || useBloom) useDeferredRendering = true
 
         clock.stop("preparing", 0.05)
@@ -409,6 +409,7 @@ class RenderView(
 
         if (!isFinalRendering) {
             showShadowMapDebug()
+            showCameraRendering(x0, y0, x1, y1)
         }
 
         // clock.total("drawing the scene", 0.1)
@@ -755,6 +756,27 @@ class RenderView(
         }
     }
 
+    private fun showCameraRendering(x0: Int, y0: Int, x1: Int, y1: Int) {
+        val camera = library.selection
+            .filterIsInstance<Entity>()
+            .mapNotNull { e -> e.getComponentsInChildren(CameraComponent::class).firstOrNull() }
+            .firstOrNull()
+        if (camera != null && !isShiftDown) {
+            // calculate size of sub camera
+            val w = (x1 - x0 + 1) / 3
+            val h = (y1 - y0 + 1) / 3
+            val buffer = base1Buffer
+            val renderer = pbrRenderer
+            val useDeferredRendering = false
+            prepareDrawScene(w, h, w.toFloat() / h, camera, camera, 0f, false)
+            drawScene(w, h, camera, camera, 1f, renderer, buffer, true, !useDeferredRendering)
+            drawTexture(x1 - w, y1, w, -h, buffer.getColor0(), true, -1, null)
+            // prepareDrawScene needs to be reset afterwards, because we seem to have a kind-of-bug somewhere
+            val camera2 = editorCamera
+            prepareDrawScene(this.w, this.h, this.w.toFloat() / this.h, camera2, camera2, 0f, false)
+        }
+    }
+
     fun resolveClick(
         px: Float,
         py: Float
@@ -811,23 +833,22 @@ class RenderView(
         pipeline.stages.add(stage0)
     }
 
-    var entityBaseClickId = 0
+    private var entityBaseClickId = 0
 
     private val tmpRot0 = Quaternionf()
     private val tmpRot1 = Quaternionf()
     private fun prepareDrawScene(
-        centerX: Float,
-        centerY: Float,
         width: Int,
         height: Int,
         aspectRatio: Float,
         camera: CameraComponent,
         previousCamera: CameraComponent,
         blending: Float,
+        update: Boolean
     ) {
 
         val world = getWorld()
-        if (world is Entity) {
+        if (update && world is Entity) {
             world.invalidateVisibility()
         }
 
@@ -854,6 +875,9 @@ class RenderView(
         val fovYRadians = toRadians(fov)
         Companion.fovYRadians = fovYRadians
 
+        val centerX = mix(previousCamera.center.x, camera.center.x, blendF)
+        val centerY = mix(previousCamera.center.x, camera.center.y, blendF)
+
         // this needs to be separate from the stack
         // (for normal calculations and such)
         Perspective.setPerspective(
@@ -861,7 +885,8 @@ class RenderView(
             fovYRadians,
             aspectRatio,
             (near * worldScale).toFloat(),
-            (far * worldScale).toFloat()
+            (far * worldScale).toFloat(),
+            centerX, centerY
         )
         cameraMatrix.rotate(rot)
         if (!cameraMatrix.isFinite) throw RuntimeException(
@@ -882,13 +907,13 @@ class RenderView(
         camDirection.normalize()
 
         // camera matrix and mouse position to ray direction
-        getMouseRayDirection(Input.mouseX, Input.mouseY, mouseDir)
+        if (update) getMouseRayDirection(Input.mouseX, Input.mouseY, mouseDir)
 
         // debugPoints.add(DebugPoint(Vector3d(camDirection).mul(20.0).add(camPosition), 0xff0000, -1))
 
         currentInstance = this
 
-        if (world is Entity) {
+        if (update && world is Entity) {
 
             world.update()
 
@@ -928,7 +953,7 @@ class RenderView(
         pipeline.stages.forEach { it.depthMode = depthMode }
     }
 
-    val depthMode get() = if (reverseDepth) DepthMode.GREATER else DepthMode.FORWARD_LESS
+    private val depthMode get() = if (reverseDepth) DepthMode.GREATER else DepthMode.FORWARD_LESS
 
     private fun setClearColor(
         renderer: Renderer,
@@ -988,6 +1013,7 @@ class RenderView(
                 Frame.bind()
 
                 RenderState.depthMode.use(depthMode) {
+                    setClearDepth()
                     setClearColor(renderer, previousCamera, camera, blending, doDrawGizmos)
                     glClear(if (specialClear) GL_DEPTH_BUFFER_BIT else GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
                 }
@@ -1009,6 +1035,7 @@ class RenderView(
             if (!preDrawDepth) {
                 Frame.bind()
                 RenderState.depthMode.use(depthMode) {
+                    setClearDepth()
                     setClearColor(renderer, previousCamera, camera, blending, doDrawGizmos)
                     glClear(if (specialClear) GL_DEPTH_BUFFER_BIT else GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
                 }
@@ -1145,7 +1172,7 @@ class RenderView(
                     val components = entity.components
                     for (i in components.indices) {
                         val component = components[i]
-                        if (component !is MeshBaseComponent && component.isEnabled) {
+                        if (component.isEnabled && component !is MeshBaseComponent) {
                             // mesh components already got their id
                             val componentClickId = clickId++
                             component.clickId = componentClickId
@@ -1225,7 +1252,7 @@ class RenderView(
         rays.removeIf { it.timeOfDeath < time }
     }
 
-    fun drawDebugPoint(p: Vector3d, color: Int) {
+    private fun drawDebugPoint(p: Vector3d, color: Int) {
         val d = p.distance(camPosition) * 0.01
         LineBuffer.putRelativeLine(
             p.x - d, p.y, p.z, p.x + d, p.y, p.z,
@@ -1241,13 +1268,15 @@ class RenderView(
         )
     }
 
+    /**
+     * get the mouse direction from this camera
+     * todo for other cameras: can be used for virtual mice
+     * */
     fun getMouseRayDirection(
         cx: Float = Input.mouseX,
         cy: Float = Input.mouseY,
         dst: Vector3d = Vector3d()
     ): Vector3d {
-        // todo normalize with aspect ratio
-        // todo normalize with fov
         val rx = (cx - x) / w * +2f - 1f
         val ry = (cy - y) / h * -2f + 1f
         val tan = tan(fovYRadians * 0.5f)

@@ -115,20 +115,13 @@ object Grid {
         x1: Float, y1: Float,
         x: Int, y: Int,
         w: Int, h: Int, color: Int, alpha: Float
-    ) {
+    ) = drawLine0W(x0 - x, y0 - y, x1 - x, y1 - y, w, h, color, alpha)
 
-        drawLine0W(x0 - x, y0 - y, x1 - x, y1 - y, w, h, color, alpha)
-
-    }
 
     fun drawLine0W(
         x0: Float, y0: Float, x1: Float, y1: Float,
         w: Int, h: Int, color: Int, alpha: Float
-    ) {
-
-        drawLine11((x0 + x1) / w - 1f, 1f - (y0 + y1) / h, x1 * 2f / w - 1f, 1f - 2f * y1 / h, color, alpha)
-
-    }
+    ) = drawLine11((x0 + x1) / w - 1f, 1f - (y0 + y1) / h, x1 * 2f / w - 1f, 1f - 2f * y1 / h, color, alpha)
 
     private fun defaultUniforms(shader: Shader, color: Vector4fc) {
         GFX.shaderColor(shader, "tint", color)

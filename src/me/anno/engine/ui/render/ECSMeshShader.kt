@@ -188,7 +188,7 @@ class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                         "normal = normalize(normal);\n" + // here? nah ^^
                         "gl_Position = transform * vec4(finalPosition, 1.0);\n" +
                         "uv = uvs;\n" +
-                        "vertexColor = hasVertexColors ? colors : vec4(1);\n" +
+                        "vertexColor = hasVertexColors ? colors : vec4(1.0);\n" +
                         ShaderLib.positionPostProcessing
             )
         )
@@ -246,10 +246,10 @@ class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 ),
                 "" +
                         "" +
-                        "if(dot(vec4(finalPosition,1),reflectionCullingPlane) < 0) discard;\n" +
+                        "if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n" +
 
                         // step by step define all material properties
-                        "vec4 color = vec4(vertexColor.rgb, 1) * diffuseBase * texture(diffuseMap, uv);\n" +
+                        "vec4 color = vec4(vertexColor.rgb, 1.0) * diffuseBase * texture(diffuseMap, uv);\n" +
                         "if(color.a < ${1f/255f}) discard;\n" +
                         "finalColor = color.rgb;\n" +
                         "finalAlpha = color.a;\n" +
@@ -275,11 +275,11 @@ class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                         // use roughness instead?
                         // "   if(finalMetallic > 0.0) finalColor = mix(finalColor, texture(reflectionPlane,uv).rgb, finalMetallic);\n" +
                         "if(hasReflectionPlane){\n" +
-                        "   float effect = dot(reflectionPlaneNormal,finalNormal) * (1-finalRoughness);\n" +
-                        "   float factor = clamp((effect-.3)/.7,0,1);\n" +
-                        "   if(factor > 0){\n" +
-                        "       vec3 newColor = vec3(0);\n" +
-                        "       vec3 newEmissive = finalColor * texelFetch(reflectionPlane,ivec2(gl_FragCoord.xy),0).rgb;\n" +
+                        "   float effect = dot(reflectionPlaneNormal,finalNormal) * (1.0 - finalRoughness);\n" +
+                        "   float factor = clamp((effect-.3)/.7, 0.0, 1.0);\n" +
+                        "   if(factor > 0.0){\n" +
+                        "       vec3 newColor = vec3(0.0);\n" +
+                        "       vec3 newEmissive = finalColor * texelFetch(reflectionPlane, ivec2(gl_FragCoord.xy), 0).rgb;\n" +
                         // also multiply for mirror color <3
                         "       finalEmissive = mix(finalEmissive, newEmissive, factor);\n" +
                         // "       finalEmissive /= (1-finalEmissive);\n" + // only required, if tone mapping is applied
@@ -291,7 +291,7 @@ class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
                         // sheen calculation
                         "vec3 V0 = normalize(-finalPosition);\n" +
-                        "if(sheen > 0){\n" +
+                        "if(sheen > 0.0){\n" +
                         "   vec3 sheenNormal = finalNormal;\n" +
                         "   if(finalSheen * normalStrength.y > 0.0){\n" +
                         "      vec3 normalFromTex = texture(sheenNormalMap, uv).rgb * 2.0 - 1.0;\n" +
@@ -303,9 +303,9 @@ class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                         // calculate sheen
                         "   float sheenFresnel = 1.0 - abs(dot(sheenNormal,V0));\n" +
                         "   finalSheen = sheen * pow(sheenFresnel, 3.0);\n" +
-                        "} else finalSheen = 0;\n" +
+                        "} else finalSheen = 0.0;\n" +
 
-                        "if(finalClearCoat.w > 0){\n" +
+                        "if(finalClearCoat.w > 0.0){\n" +
                         // cheap clear coat effect
                         "   float fresnel = 1.0 - abs(dot(finalNormal,V0));\n" +
                         "   float clearCoatEffect = pow(fresnel, 3.0) * finalClearCoat.w;\n" +

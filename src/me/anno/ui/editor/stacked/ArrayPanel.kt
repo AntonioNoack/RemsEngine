@@ -46,9 +46,8 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
 
     fun set(panel: Panel, value: Any?) {
         val index = children.indexOf(panel) - 1
-        if (index >= 0) {
-            content[index] = value as EntryType
-        }
+        content[index] = value as EntryType
+        onChange()
     }
 
     fun getValues(): List<EntryType> = content

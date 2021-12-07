@@ -79,7 +79,7 @@ object ComponentUI {
     // todo mesh input, skeleton selection, animation selection, ...
 
     // todo position control+x is not working (reset on right click is working)
-    
+
     fun createUI2(
         name: String?,
         visibilityKey: String,
@@ -143,6 +143,7 @@ object ComponentUI {
                 val arrayType = getArrayType(property, value.iterator(), name) ?: return null
                 return object : AnyArrayPanel(title, visibilityKey, arrayType, style) {
                     override fun onChange() {
+                        println("setting list property")
                         property.set(this, content)
                     }
                 }.apply { setValues(value.toList()) }
@@ -184,15 +185,15 @@ object ComponentUI {
             }
         }
 
-        return createUI3(name, visibilityKey, property, type1, range, style)
+        return createUIByTypeName(name, visibilityKey, property, type1, range, style)
 
     }
 
-    fun warnDetectionIssue(name: String?) {
+    private fun warnDetectionIssue(name: String?) {
         LOGGER.warn("Could not detect type of $name")
     }
 
-    fun createUI3(
+    fun createUIByTypeName(
         name: String?,
         visibilityKey: String,
         property: IProperty<Any?>,
@@ -801,14 +802,17 @@ object ComponentUI {
                         // todo filter the types
                         // todo index all files of this type in the current project (plus customizable extra directories)
                         // todo and show them here, with their nice icons
-                        value as FileReference
-                        return FileInput(title, style, value, fileInputRightClickOptions).apply {
+                        val value0 = value as? FileReference ?: InvalidRef
+                        return FileInput(title, style, value0, fileInputRightClickOptions).apply {
                             property.init(this)
                             setResetListener {
                                 property.reset(this) as? FileReference
                                     ?: InvalidRef
                             }
                             setChangeListener {
+                                // todo check if this file is ok
+                                // todo if not, undo this change
+                                println("setting reference to $it")
                                 property.set(this, it)
                             }
                         }

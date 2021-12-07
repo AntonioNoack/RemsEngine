@@ -43,6 +43,7 @@ import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
+import org.lwjgl.opengl.GL43.GL_MAX_UNIFORM_LOCATIONS
 import org.lwjgl.opengl.GL45.GL_CONTEXT_LOST
 import java.lang.Math
 import java.nio.FloatBuffer
@@ -69,8 +70,10 @@ object GFX : GFXBase1() {
     var supportsAnisotropicFiltering = false
     var anisotropy = 1f
 
-    var maxFragmentUniforms = 0
-    var maxVertexUniforms = 0
+    var maxFragmentUniformComponents = 0
+    var maxVertexUniformComponents = 0
+    var maxUniforms = 0
+    var maxColorAttachments = 0
 
     lateinit var currentCamera: Camera
     var lastTouchedCamera: Camera? = null
@@ -252,7 +255,7 @@ object GFX : GFXBase1() {
         stack
             .perspective2(
                 Math.toRadians(fov.toDouble()).toFloat(),
-                windowWidth * 1f / windowHeight, near, far
+                windowWidth * 1f / windowHeight, near, far, 0f, 0f
             )
             .lookAt(position, lookAt, up.normalize())
         val scale = pow(1f / camera.orbitRadius[time], camera.orthographicness[time])
@@ -344,9 +347,13 @@ object GFX : GFXBase1() {
             val max = glGetFloat(EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
             anisotropy = min(max, DefaultConfig["gpu.filtering.anisotropic.max", 16f])
         }
-        maxVertexUniforms = glGetInteger(GL_MAX_VERTEX_UNIFORM_COMPONENTS)
-        maxFragmentUniforms = glGetInteger(GL20.GL_MAX_FRAGMENT_UNIFORM_COMPONENTS)
-        LOGGER.info("Max Uniform Components: [Vertex: $maxVertexUniforms, Fragment: $maxFragmentUniforms]")
+        maxVertexUniformComponents = glGetInteger(GL_MAX_VERTEX_UNIFORM_COMPONENTS)
+        maxFragmentUniformComponents = glGetInteger(GL20.GL_MAX_FRAGMENT_UNIFORM_COMPONENTS)
+        maxUniforms = glGetInteger(GL_MAX_UNIFORM_LOCATIONS)
+        maxColorAttachments = glGetInteger(GL_MAX_COLOR_ATTACHMENTS)
+        LOGGER.info("Max Uniform Components: [Vertex: $maxVertexUniformComponents, Fragment: $maxFragmentUniformComponents]")
+        LOGGER.info("Max Uniforms: $maxUniforms")
+        LOGGER.info("Max Color Attachments: $maxColorAttachments")
         tick.stop("render step zero")
         TextureLib.init()
         ShaderLib.init()

@@ -469,7 +469,7 @@ abstract class TextReaderBase : BaseReader() {
             "i8", "B" -> obj.readByte(name, readByte())
             "i16", "s" -> obj.readShort(name, readShort())
             "i32", "i" -> obj.readInt(name, readInt())
-            "u64", "l" -> obj.readLong(name, readLong())
+            "u64", "l", "i64" -> obj.readLong(name, readLong())
             "f32", "f" -> obj.readFloat(name, readFloat())
             "f64", "d" -> obj.readDouble(name, readDouble())
             "i1[]", "b[]" -> obj.readBooleanArray(

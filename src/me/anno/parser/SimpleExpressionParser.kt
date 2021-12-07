@@ -1,6 +1,5 @@
 package me.anno.parser
 
-import me.anno.utils.structures.lists.CountingList.Companion.isCounted
 import me.anno.parser.Functions.applyFunc0
 import me.anno.parser.Functions.applyFunc1
 import me.anno.parser.Functions.applyFunc2
@@ -15,12 +14,10 @@ import me.anno.parser.Functions.functions3
 import me.anno.parser.Functions.functions4
 import me.anno.parser.Functions.functions5
 import me.anno.utils.structures.lists.CountingList
+import me.anno.utils.structures.lists.CountingList.Companion.isCounted
 import org.apache.logging.log4j.LogManager
-import java.lang.Exception
-import java.lang.RuntimeException
 import java.lang.StrictMath.pow
 import java.util.*
-import kotlin.collections.HashSet
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -32,8 +29,6 @@ import kotlin.math.max
  * */
 object SimpleExpressionParser {
 
-    // todo make 0.5 + .1 work, .1 is not understood
-
     // todo give drivers access to global time and parent time?
     // todo give them access to the keyframes
     // todo node editor...
@@ -42,6 +37,27 @@ object SimpleExpressionParser {
     private val LOGGER = LogManager.getLogger(SimpleExpressionParser::class)
 
     fun preparse(str: String) = str.splitInternally()
+
+    private fun String.findExponent(j0: Int): Int {
+        var j = j0
+        j++
+        when (this.getOrNull(j)) {
+            '+', '-' -> j++
+            in '0'..'9' -> Unit
+            null -> throw RuntimeException("Number without full exponent!")
+        }
+        when (this.getOrNull(j)) {
+            in '0'..'9' -> j++
+            null -> throw RuntimeException("Number without full exponent!")
+        }
+        while (j < length) {
+            when (this[j]) {
+                in '0'..'9' -> j++
+                else -> return j
+            }
+        }
+        return j
+    }
 
     fun String.splitInternally(): CountingList {
 
@@ -61,37 +77,21 @@ object SimpleExpressionParser {
         while (++i < length) {
 
             when (val char = this[i]) {
-                in '0'..'9' -> {
+                in '0'..'9', '.' -> {
                     putRemaining()
                     var j = i
+                    var hadComma = char == '.'
                     searchDigits@ while (++j < length) {
                         when (this[j]) {
-                            in '0'..'9', '.' -> {
+                            in '0'..'9' -> {
+                            }
+                            '.' -> {
+                                if (hadComma) throw RuntimeException("Cannot have two commas in a number")
+                                hadComma = true
                             }
                             'e', 'E' -> {
-                                j++
-                                when (this.getOrNull(j)) {
-                                    '+', '-' -> {
-                                        j++
-                                    }
-                                    in '0'..'9' -> {
-                                    }
-                                    null -> throw RuntimeException("Number without full exponent!")
-                                }
-                                when (this.getOrNull(j)) {
-                                    in '0'..'9' -> {
-                                        j++
-                                    }
-                                    null -> throw RuntimeException("Number without full exponent!")
-                                }
-                                while (j < length) {
-                                    when (this[j]) {
-                                        in '0'..'9' -> {
-                                            j++
-                                        }
-                                        else -> break@searchDigits
-                                    }
-                                }
+                                j = findExponent(j)
+                                break@searchDigits
                             }
                             else -> break@searchDigits
                         }
@@ -426,7 +426,7 @@ object SimpleExpressionParser {
             parseDouble(expr.splitInternally(), additionalConstants)
         } catch (e: Exception) {
             LOGGER.warn(e.message ?: "")
-            // e.printStackTrace()
+            e.printStackTrace()
             null
         }
     }
@@ -510,7 +510,7 @@ object SimpleExpressionParser {
             )
         }
 
-        )
+    )
 
     fun simplify2(parts: CountingList): CountingList {
 

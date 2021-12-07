@@ -87,7 +87,7 @@ public class HDRImage extends Image {
         // The first line of the HDR file. If it is a HDR file, the first line should be "#?RADIANCE"
         // If not, we will throw a IllegalArgumentException.
         String isHDR = readLine(in);
-        if (!isHDR.equals("#?RADIANCE")) throw new IllegalArgumentException("Unrecognized format: " + isHDR);
+        if (!isHDR.equals(HDR_MAGIC)) throw new IllegalArgumentException("Unrecognized format: " + isHDR);
 
         // Besides the first line, there are serval lines describe the different information of this HDR file.
         // Maybe it will have the exposure time, format(Must be either"32-bit_rle_rgbe" or "32-bit_rle_xyze")
@@ -138,11 +138,10 @@ public class HDRImage extends Image {
             // For every line, we need check this kind of informatioin. And the starting four nums of every line is the same
             int a = din.readUnsignedByte();
             int b = din.readUnsignedByte();
-            int c = din.readUnsignedByte();
-            int d = din.readUnsignedByte();
             if (a != 2 || b != 2)
                 throw new IllegalArgumentException("Only HDRs with run length encoding are supported.");
-            if (((c << 8) + d) != width)
+            int checksum = din.readUnsignedShort();
+            if (checksum != width)
                 throw new IllegalArgumentException("Width-Checksum is incorrect. Is this file a true HDR?");
 
             // This inner loop is for the four channels. The way they compressed the data is in this way:
@@ -200,6 +199,130 @@ public class HDRImage extends Image {
             }
         }
         return bout.toString();
+    }
+
+    @Override
+    public void write(FileReference dst) throws IOException {
+        if ("hdr".equals(dst.getLcExtension())) {
+            throw new RuntimeException("Exporting HDR as HDR isn't yet implemented");
+        } else super.write(dst);
+    }
+
+    private static void bytesToFloats(byte r, byte g, byte b, byte a, float[] pixels, int index) {
+        int exp = a & 255;
+        if (exp > 0) {
+            float exponent = (float) Math.pow(2, exp - 128 - 8);
+            pixels[index] = (r & 255) * exponent;
+            pixels[index + 1] = (g & 255) * exponent;
+            pixels[index + 2] = (b & 255) * exponent;
+        }
+    }
+
+    public static void writeHDR(int w, int h, float[] pixels, OutputStream out0) throws IOException {
+        DataOutputStream out = new DataOutputStream(out0);
+        out.writeBytes(HDR_MAGIC);
+        // meta data, which seems to be required
+        out.writeBytes("\nFORMAT=32-bit_rle_rgbe\n\n");
+        out.writeBytes("-Y ");
+        out.writeBytes(Integer.toString(h));
+        out.writeBytes(" +X ");
+        out.writeBytes(Integer.toString(w));
+        out.writeByte('\n');
+        byte[] rowBytes = new byte[4 * (w + 2)];// +2 for seamless testing
+        for (int y = 0; y < h; y++) {
+            // bytes for RLE
+            out.writeByte(2);
+            out.writeByte(2);
+            // "checksum"
+            out.writeShort(w);
+            // collect bytes
+            // convert floats into bytes
+            for (int x = 0, i = 0, j = y * w * 3; x < w; x++) {
+                float r0 = pixels[j++];
+                float g0 = pixels[j++];
+                float b0 = pixels[j++];
+                float max = Math.max(Math.max(r0, g0), b0);
+                if (max > 0) {
+                    // Math.pow(2, exp - 128 - 8)
+                    double exp0 = Math.ceil(Math.log(max * 256.0 / 255.0) / Math.log(2));// +128
+                    if (exp0 < -128) exp0 = -128;
+                    if (exp0 > +127) exp0 = +127;
+                    float invPow = (float) Math.pow(2.0, -exp0 + 8);
+                    int r = Math.round(r0 * invPow);
+                    int g = Math.round(g0 * invPow);
+                    int b = Math.round(b0 * invPow);
+                    rowBytes[i++] = (byte) Math.max(0, Math.min(r, 255));
+                    rowBytes[i++] = (byte) Math.max(0, Math.min(g, 255));
+                    rowBytes[i++] = (byte) Math.max(0, Math.min(b, 255));
+                    rowBytes[i++] = (byte) (exp0 + 128);
+                } else {
+                    // just zeros; exponent could be the same as the old value,
+                    // but zero is rare probably anyways
+                    i += 4;
+                }
+            }
+            // compress byte stream with RLE
+            for (int channel = 0; channel < 4; channel++) {
+                // check how long the next run is, up to 128
+                // if the run is short (1 or 2), then find how long the run of different heterogeneous data is
+                for (int x = 0; x < w; ) {
+                    int i0 = channel + (x << 2);
+                    byte firstValue = rowBytes[i0];
+                    int length = 1;
+                    if (rowBytes[i0 + 4] == firstValue && rowBytes[i0 + 8] == firstValue) {// at least 3 bytes have the same value
+                        // find length of the same value
+                        int j0 = i0 + 4;
+                        while (length < 127 && x + length < w && rowBytes[j0] == firstValue) {
+                            length++;
+                            j0 += 4;
+                        }
+                        out.writeByte(length + 128);
+                        out.writeByte(firstValue);
+                    } else {
+                        // find length until there is a repeating value
+                        int indexI = i0 + 4;
+                        while (length < 128 && x + length < w) {
+                            byte valueI = rowBytes[indexI];
+                            if (rowBytes[indexI + 4] == valueI && rowBytes[indexI + 8] == valueI) {
+                                break;// found repeating strip
+                            } else {
+                                length++;
+                                indexI += 4;
+                            }
+                        }
+                        out.writeByte(length);
+                        int endIndex = i0 + 4 * length;
+                        for (; i0 < endIndex; i0 += 4) {
+                            out.writeByte(rowBytes[i0]);
+                        }
+                    }
+                    x += length;
+                }
+            }
+        }
+        out.close();
+    }
+
+    private static final String HDR_MAGIC = "#?RADIANCE";
+
+    public static void main(String[] args) throws IOException {
+        // test HDR writer using the working HDR reader
+        FileReference ref = FileReference.Companion.getReference("C:/XAMPP/htdocs/DigitalCampus/images/environment/kloofendal_38d_partly_cloudy_2k.hdr");
+        HDRImage correctInput = new HDRImage(ref);
+        ByteArrayOutputStream createdStream = new ByteArrayOutputStream(correctInput.width * correctInput.height * 4);
+        writeHDR(correctInput.width, correctInput.height, correctInput.pixels, createdStream);
+        byte[] createdBytes = createdStream.toByteArray();
+        ByteArrayInputStream testedInputStream = new ByteArrayInputStream(createdBytes);
+        HDRImage testedInput = new HDRImage(testedInputStream);
+        float[] correctPixels = correctInput.pixels;
+        float[] testedPixels = testedInput.pixels;
+        if (correctPixels.length != testedPixels.length) throw new RuntimeException("Size doesn't match!");
+        for (int i = 0; i < correctPixels.length; i++) {
+            if (correctPixels[i] != testedPixels[i]) {
+                throw new RuntimeException("Pixels don't match! " + correctPixels[i] + " vs " + testedPixels[i] + " at index " + i);
+            }
+        }
+        System.out.println("Test passed");
     }
 
 }

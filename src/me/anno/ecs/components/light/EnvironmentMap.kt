@@ -144,11 +144,8 @@ class EnvironmentMap : LightComponentBase() {
                 glClearColor(.7f, .9f, 1f, 1f)
                 glClear(GL_DEPTH_BUFFER_BIT or GL_COLOR_BUFFER_BIT)
                 Perspective.setPerspective(
-                    cameraMatrix,
-                    deg90.toFloat(),
-                    1f,
-                    near.toFloat(),
-                    far.toFloat()
+                    cameraMatrix, deg90.toFloat(), 1f,
+                    near.toFloat(), far.toFloat(), 0f, 0f
                 )
                 rotateForCubemap(rot3.identity(), side)
                 rot3.mul(rot2)
@@ -156,7 +153,8 @@ class EnvironmentMap : LightComponentBase() {
                 val rotation2 = rot3.invert()
                 pipeline.reset()
                 pipeline.frustum.definePerspective(
-                    near / worldScale, far / worldScale, deg90, resolution, resolution, 1.0,
+                    near / worldScale, far / worldScale, deg90,
+                    resolution, resolution, 1.0,
                     position, rotation2 // needs to be the inverse again
                 )
                 pipeline.applyToneMapping = false

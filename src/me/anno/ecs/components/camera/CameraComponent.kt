@@ -3,6 +3,8 @@ package me.anno.ecs.components.camera
 import me.anno.ecs.Component
 import me.anno.ecs.components.player.LocalPlayer.Companion.currentLocalPlayer
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.gui.LineShapes
+import org.joml.Vector2f
 import org.joml.Vector4f
 
 // like the studio camera,
@@ -36,6 +38,11 @@ class CameraComponent : Component() {
     val bloomStrength = 0.5f
     val bloomOffset = 10f
 
+    /**
+     * offset of the center relative to the screen center; in OpenGL coordinates [-1, +1]²
+     * */
+    var center = Vector2f()
+
     // function to blend to the next one
     fun use(blendingTime: Double) {
         val player = currentLocalPlayer!!
@@ -53,6 +60,11 @@ class CameraComponent : Component() {
         val clone = CameraComponent()
         copy(clone)
         return clone
+    }
+
+    override fun onDrawGUI() {
+        // todo draw camera symbol with all the properties
+        LineShapes.drawArrowZ(entity, 0.0, 1.0) // not showing up?
     }
 
     override fun copy(clone: PrefabSaveable) {

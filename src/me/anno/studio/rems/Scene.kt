@@ -200,7 +200,7 @@ object Scene {
                         "" +
                                 "\t\tcase ${it.id}: toneMapped = ${it.glslFuncName}(raw);break;\n"
                     } +
-                    "           default: toneMapped = vec3(1,0,1);\n" +
+                    "           default: toneMapped = vec3(1.0, 0.0, 1.0);\n" +
                     "       }" +
                     "       vec3 colorGraded = colorGrading(toneMapped);\n" +
                     // todo the grid is drawn with ^2 in raw8 mode, the rest is fine...

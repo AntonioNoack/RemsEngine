@@ -73,7 +73,7 @@ object ScreenSpaceReflections {
                     "   vec2  texSize  = vec2(texSizeI);\n" +
 
                     "   vec3 positionFrom     = texture(finalPosition, uv).xyz;\n" +
-                    "   vec3 normal           = normalize(texture(finalNormal, uv).xyz*2-1);\n" +
+                    "   vec3 normal           = normalize(texture(finalNormal, uv).xyz * 2.0 - 1.0);\n" +
                     "   vec3 pivot            = normalize(reflect(positionFrom, normal));\n" +
 
                     "   vec4  startView     = vec4(positionFrom, 1.0);\n" +
@@ -93,8 +93,8 @@ object ScreenSpaceReflections {
                     "   float delta     = (useX ? absDelta.x : absDelta.y) * resolution;\n" + // number of pixels / resolution
                     "   vec2  increment = deltaXY / delta;\n" +
 
-                    "   float fraction0 = 0;\n" +
-                    "   float fraction1 = 0;\n" +
+                    "   float fraction0 = 0.0;\n" +
+                    "   float fraction1 = 0.0;\n" +
 
                     "   int hit0 = 0;\n" +
 
@@ -168,8 +168,8 @@ object ScreenSpaceReflections {
                     "       * (1 + min(dot(normalize(positionFrom), pivot), 0))\n" + // [0,1]
                     "       * (1 - min(bestDepth / thickness, 1))\n" +
                     "       * (1 - sqrt(distanceSq / maxDistanceSq))\n" +
-                    "       * min(10.0 * (.5-abs(bestUV.x-0.5)), 1.0)\n" +
-                    "       * min(10.0 * (.5-abs(bestUV.y-0.5)), 1.0);\n" +
+                    "       * min(10.0 * (0.5 - abs(bestUV.x - 0.5)), 1.0)\n" +
+                    "       * min(10.0 * (0.5 - abs(bestUV.y - 0.5)), 1.0);\n" +
 
                     // reflected position * base color of mirror (for golden reflections)
                     "   vec3 color1 = texture(finalIlluminated, bestUV).rgb * texture(finalColor, uv).rgb;\n" +

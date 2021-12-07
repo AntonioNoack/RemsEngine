@@ -36,6 +36,7 @@ abstract class LightComponent(
     // todo lines of light: how?
     // todo circle/sphere of light: how?
 
+    @Range(0.0, 16.0)
     var shadowMapCascades = 0
         set(value) {
             if (field != value) {

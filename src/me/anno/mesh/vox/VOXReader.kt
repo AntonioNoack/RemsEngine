@@ -9,6 +9,7 @@ import me.anno.mesh.vox.format.VOXLayer
 import me.anno.mesh.vox.format.VOXNode
 import me.anno.mesh.vox.model.DenseVoxelModel
 import me.anno.mesh.vox.model.VoxelModel
+import me.anno.utils.maths.Maths.convertABGR2ARGB
 import me.anno.utils.structures.tuples.Quad
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3i
@@ -172,8 +173,8 @@ class VOXReader {
             RGBA -> {
                 palette = IntArray(256)
                 // color 0 is always transparent black
-                for (i in 0 until 255) {
-                    palette[i + 1] = bytes.int
+                for (i in 0 until 255) {// data seems to be ABGR
+                    palette[i + 1] = convertABGR2ARGB(bytes.int)
                 }
             }
             MATv1 -> {

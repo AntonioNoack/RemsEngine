@@ -96,9 +96,18 @@ class AnimGameItem(
     companion object {
 
         val matrixSize = 12
-        val maxBones = Maths.clamp((GFX.maxVertexUniforms - (matrixSize * 3)) / matrixSize, 4, 256)
+        val matrixUniforms = 4
+        val maxBonesByComponents = GFX.maxVertexUniformComponents / matrixSize - 40
+        val maxBonesByUniforms = GFX.maxUniforms / matrixUniforms - 12
+        val maxBones = Maths.clamp(min(maxBonesByComponents, maxBonesByUniforms), 4, 256)
         val matrixBuffer = MemoryUtil.memAllocFloat(matrixSize * maxBones)
         val tmpMatrices = Array(maxBones) { Matrix4x3f() }
+
+        private val LOGGER = LogManager.getLogger(AnimGameItem::class)
+
+        init {
+            LOGGER.info("Max Bones: $maxBones (by uniforms)")
+        }
 
         fun get(src: Matrix4x3f, dst: FloatBuffer) {
             src.get(dst)
@@ -191,8 +200,6 @@ class AnimGameItem(
             }
             return joint
         }
-
-        private val LOGGER = LogManager.getLogger(AnimGameItem::class)
 
     }
 

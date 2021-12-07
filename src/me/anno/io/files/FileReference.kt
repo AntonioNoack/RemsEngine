@@ -128,9 +128,7 @@ abstract class FileReference(val absolutePath: String) {
             val file0 = File(str)
             if (file0.exists()) return FileFileRef(file0)
             // split by /, and check when we need to enter a zip file
-            val parts = str.trim()
-                .replace('\\', '/')
-                .split('/')
+            val parts = str.trim().split('/', '\\')
             // binary search? let's do linear first
             for (i in parts.lastIndex downTo 0) {
                 val substr = parts.subList(0, i).joinToString("/")
@@ -169,11 +167,10 @@ abstract class FileReference(val absolutePath: String) {
 
         fun getReference(parent: FileReference?, name: String): FileReference {
             var result = parent ?: return InvalidRef
-            val name1 = name.replace('\\', '/')
-            if ('/' !in name1) {
+            if ('/' !in name && '\\' !in name) {
                 return result.getChild(name)
             } else {
-                val parts = name1.split('/')
+                val parts = name.split('/', '\\')
                 for (partialName in parts) {
                     if (!partialName.isBlank2()) {
                         result = if (partialName == "..") {

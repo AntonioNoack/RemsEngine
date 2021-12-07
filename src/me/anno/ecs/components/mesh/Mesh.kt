@@ -17,6 +17,10 @@ import me.anno.mesh.FindLines
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.objects.GFXTransform
 import me.anno.objects.meshes.MeshData
+import me.anno.utils.Color.a
+import me.anno.utils.Color.b
+import me.anno.utils.Color.g
+import me.anno.utils.Color.r
 import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.AABBs.set
 import org.apache.logging.log4j.LogManager
@@ -399,16 +403,16 @@ class Mesh : PrefabSaveable() {
 
         // not the safest, but well...
         val positions = positions ?: return
+
+        // if normals are null or have length 0, compute them
         if (normals == null)
             normals = FloatArray(positions.size)
 
-        if (tangents == null && uvs != null)
+        if (tangents == null && uvs != null) // tangents are only computable, if we have uvs
             tangents = FloatArray(positions.size)
 
-        // if normals are null or have length 0, calculate them
         val normals = normals!!
         val tangents = tangents
-
 
         val uvs = uvs
         val hasUVs = uvs != null && uvs.isNotEmpty()
@@ -490,7 +494,10 @@ class Mesh : PrefabSaveable() {
 
             if (hasColors) {
                 if (colors != null && colors.size > i) {
-                    buffer.putInt(colors[i])
+                    buffer.putByte(colors[i].r().toByte())
+                    buffer.putByte(colors[i].g().toByte())
+                    buffer.putByte(colors[i].b().toByte())
+                    buffer.putByte(colors[i].a().toByte())
                 } else buffer.putInt(-1)
             }
 

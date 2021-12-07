@@ -165,6 +165,9 @@ object ExtensionLoader {
     }
 
     fun load(ex: ExtensionInfo): Extension? {
+        val className = ex.mainClass
+            .replace('\\','.')
+            .replace('/','.')
         try {
             // create the main extension instance
             // load the classes
@@ -173,14 +176,14 @@ object ExtensionLoader {
                 if (exFile.exists) URLClassLoader(arrayOf(exFile.toUri().toURL()), javaClass.classLoader)
                 else ClassLoader.getSystemClassLoader()
             Thread.currentThread().contextClassLoader = urlClassLoader
-            val classToLoad = Class.forName(ex.mainClass, true, urlClassLoader)
+            val classToLoad = Class.forName(className, true, urlClassLoader)
             // call with arguments??..., e.g. config or StudioBase or sth...
             val ext = classToLoad.newInstance() as? Extension
             ext?.setInfo(ex)
             ext?.isRunning = true
             return ext
         } catch (e: Exception) {
-            LOGGER.error("Error while loading ${ex.file}", e)
+            LOGGER.error("Error while loading ${ex.file}, class '$className'", e)
         }
         return null
     }
@@ -278,7 +281,7 @@ object ExtensionLoader {
                     "author", "authors" -> authors = value
                     "moddependencies", "mod-dependencies",
                     "plugindependencies", "plugin-dependencies",
-                    "dependencies" -> dependencies += value
+                    "dependencies" -> dependencies += "$value, "
                     "plugin-uuid", "mod-uuid", "plugin-id", "mod-id", "uuid" -> uuid = value
                     "minversion", "min-version" -> minVersion = value.toIntOrNull() ?: minVersion
                     "maxversion", "max-version" -> maxVersion = value.toIntOrNull() ?: maxVersion

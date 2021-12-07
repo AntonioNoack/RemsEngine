@@ -19,6 +19,7 @@ import me.anno.utils.files.FileExplorerSelectWrapper
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.files.LocalFile.toLocalPath
 import me.anno.utils.hpc.Threads.threadWithName
+import org.apache.logging.log4j.LogManager
 import java.io.File
 
 class FileInput(
@@ -61,8 +62,7 @@ class FileInput(
                     // todo select the file using our own explorer (?), because ours may be better
                     FileExplorerSelectWrapper.selectFileOrFolder(file3, isDirectory) { file ->
                         if (file != null) {
-                            changeListener(getReference(file))
-                            base.setValue(file.toString2(), false)
+                            setFile(file)
                         }
                     }
                 }
@@ -76,6 +76,16 @@ class FileInput(
         val border = style.getPadding("borderSize", 2).left
         if (border > 0) this += SpacePanel(border, 0, style).apply { backgroundColor = 0 }
         this += base//ScrollPanelX(base, Padding(), style, AxisAlignment.MIN)
+    }
+
+    fun setFile(file: File) {
+        base.setValue(file.toString2(), false)
+        changeListener(getReference(file))
+    }
+
+    fun setFile(file: FileReference) {
+        base.setValue(file.toString2(), false)
+        changeListener(file)
     }
 
     private fun File.toString2() = toLocalPath()
@@ -113,6 +123,18 @@ class FileInput(
     fun setIsSelectedListener(listener: () -> Unit): FileInput {
         base.setIsSelectedListener(listener)
         return this
+    }
+
+    override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
+        if (files.size == 1) {
+            setFile(files[0])
+        } else {
+            LOGGER.warn("Can only paste a single file!, got $files")
+        }
+    }
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(FileInput::class)
     }
 
 }

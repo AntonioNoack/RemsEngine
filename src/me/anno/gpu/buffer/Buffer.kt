@@ -9,7 +9,6 @@ import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL33.glDrawArraysInstanced
 import org.lwjgl.opengl.GL33.glVertexAttribDivisor
-import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 
 abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :

@@ -19,7 +19,11 @@ import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.components.physics.Vehicle
 import me.anno.ecs.components.physics.VehicleWheel
 import me.anno.ecs.components.physics.constraints.*
+import me.anno.ecs.components.physics.fluidsim.FluidSim
+import me.anno.ecs.components.physics.fluidsim.setups.CircularDamBreak
+import me.anno.ecs.components.physics.fluidsim.setups.LinearDamBreak
 import me.anno.ecs.components.test.RaycastTestComponent
+import me.anno.ecs.components.test.TestVehicleController
 import me.anno.ecs.components.test.TypeTestComponent
 import me.anno.ecs.prefab.ChangeHistory
 import me.anno.ecs.prefab.Prefab
@@ -27,7 +31,6 @@ import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.scene.ScenePrefab
-import me.anno.ecs.components.test.TestVehicleController
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.TextureLib
@@ -110,6 +113,11 @@ object ECSRegistry {
         registerCustomClass(Vehicle())
         registerCustomClass(VehicleWheel())
 
+        // tsunami physics
+        registerCustomClass(FluidSim())
+        registerCustomClass(CircularDamBreak())
+        registerCustomClass(LinearDamBreak())
+
         // todo test scene for all these constraints
         // todo drag on physics to add forces/impulses
         // physics constraints
@@ -122,6 +130,7 @@ object ECSRegistry {
         // utils
         // currently a small thing, hopefully will become important and huge <3
         registerCustomClass(TriTerrain())
+        registerCustomClass(ManualProceduralMesh())
 
         if (Build.isDebug) {
             // test classes

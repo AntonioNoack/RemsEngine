@@ -8,25 +8,28 @@ import me.anno.utils.Color.r
 enum class DeferredLayerType(
     val glslName: String,
     val dimensions: Int,
-    val needsHighPrecision: Boolean,
+    val minimumQuality: BufferQuality,
     val highDynamicRange: Boolean,
     val defaultValueARGB: Int,
     val map01: String,
     val map10: String
 ) {
 
-    COLOR("finalColor", 3, false, false, 0x7799ff, "", ""),
-    EMISSIVE("finalEmissive", 3, false, true, 0, "", ""), // could need high precision...
+    COLOR("finalColor", 3, BufferQuality.LOW_8, false, 0x7799ff, "", ""),
+    EMISSIVE("finalEmissive", 3, BufferQuality.MEDIUM_12, true, 0, "", ""), // could need high precision...
 
-    // todo 12 bits per component? or sth like that?
-    NORMAL("finalNormal", 3, false, false, 0x77ff77, "*0.5+0.5", "*2.0-1.0"),
+    // todo this is special, integrate it somehow...
+    COLOR_EMISSIVE("finalColorEmissive", 4, BufferQuality.LOW_8, false, 0x007799ff, "", ""),
+
+    NORMAL("finalNormal", 3, BufferQuality.MEDIUM_12, false, 0x77ff77, "*0.5+0.5", "*2.0-1.0"),
 
     // todo do we need the tangent? it is calculated from uvs, so maybe for anisotropy...
-    TANGENT("finalTangent", 3, false, false, 0x7777ff, "*0.5+0.5", "*2.0-1.0"),
+    // high precision is required for curved metallic objects; otherwise we get banding
+    TANGENT("finalTangent", 3, BufferQuality.MEDIUM_12, false, 0x7777ff, "*0.5+0.5", "*2.0-1.0"),
 
     // may be in camera space, player space, or world space
     // the best probably would be player space: relative to the player, same rotation, scale, etc as world
-    POSITION("finalPosition", 3, true, true, 0, "", ""),
+    POSITION("finalPosition", 3, BufferQuality.HIGH_32, true, 0, "", ""),
 
     METALLIC("finalMetallic", 0),
     ROUGHNESS("finalRoughness", 0x11), // roughness = 1-reflectivity
@@ -63,10 +66,10 @@ enum class DeferredLayerType(
     ;
 
     constructor(glslName: String, defaultValueARGB: Int) :
-            this(glslName, 1, false, false, defaultValueARGB, "", "")
+            this(glslName, 1, BufferQuality.LOW_8, false, defaultValueARGB, "", "")
 
     constructor(glslName: String, dimensions: Int, defaultValueARGB: Int) :
-            this(glslName, dimensions, false, false, defaultValueARGB, "", "")
+            this(glslName, dimensions, BufferQuality.LOW_8, false, defaultValueARGB, "", "")
 
     fun appendDefinition(fragment: StringBuilder) {
         fragment.append(DeferredSettingsV2.glslTypes[dimensions - 1])

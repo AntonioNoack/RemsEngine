@@ -63,7 +63,7 @@ class SpotLight() : LightComponent(LightType.SPOT) {
         val far = 1.0
         val coneAngle = coneAngle * cascadeScale
         val fovYRadians = 2.0 * atan(coneAngle)
-        setPerspective2(cameraMatrix, coneAngle.toFloat(), near.toFloat(), far.toFloat())
+        setPerspective2(cameraMatrix, coneAngle.toFloat(), near.toFloat(), far.toFloat(), 0f, 0f)
         cameraMatrix.rotate(Quaternionf(rotation).invert())
         pipeline.frustum.definePerspective(
             near / worldScale, far / worldScale, fovYRadians, resolution, resolution,

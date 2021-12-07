@@ -166,7 +166,7 @@ class BulletPhysics() : Component() {
     override fun onCreate() {
         raycastVehicles = HashMap()
         nonStaticRigidBodies = HashMap()
-        world = createBulletWorldWithGroundNGravity()
+        world = createBulletWorldWithGravity()
         rigidBodies = HashMap()
     }
 
@@ -733,7 +733,7 @@ class BulletPhysics() : Component() {
         return world
     }
 
-    private fun createBulletWorldWithGroundNGravity(): DiscreteDynamicsWorld {
+    private fun createBulletWorldWithGravity(): DiscreteDynamicsWorld {
         val world = createBulletWorld()
         world.setGravity(Vector3d(0.0, -9.81, 0.0))
         return world

@@ -1,6 +1,7 @@
 package me.anno.utils.types
 
 import me.anno.graph.knn.Heap
+import kotlin.math.max
 
 object Lists {
 
@@ -225,5 +226,72 @@ object Lists {
         return list
     }
 
+    fun <V> createArrayList(size: Int, createElement: (index: Int) -> V): ArrayList<V> {
+        val result = ArrayList<V>(size)
+        for (i in 0 until size) result.add(createElement(i))
+        return result
+    }
+
+    fun <V> List<List<V>>.transposed(): List<List<V>> {
+        if (isEmpty()) return emptyList()
+        val m = size
+        val n = maxByOrNull { it.size }!!.size
+        return createArrayList(n) { i ->
+            createArrayList(m) { j ->
+                this[j].getOrNull(i) as V // could be null, V may be nullable,
+                // so indeed this could introduce errors, when not all lists are long enough
+            }
+        }
+    }
+
+    fun <V> MutableList<ArrayList<V>>.transpose(): MutableList<ArrayList<V>> {
+        // to do function, which is in-place-transpose?
+        if (isEmpty()) return this
+        val m = size
+        val n = maxByOrNull { it.size }!!.size
+        // make pseudo square: enough for both formats
+        // ensure size
+        for (i in m until n) {
+            add(ArrayList())
+        }
+        // in all sub-lists, ensure size
+        for (i in 0 until n) {
+            val listI = this[i]
+            for (j in listI.size until m) {
+                listI.add(null as V)
+            }
+        }
+        // transpose
+        for (i in 1 until max(m, n)) {
+            for (j in 0 until i) {
+                val thisI = this[i]
+                val thisJ = this[j]
+                // this[j][i] = this[i].set(j, this[j][i]) ^^
+                val t = thisJ.getOrNull(i) as V
+                if (i < thisJ.size) thisJ[i] = thisI.getOrNull(j) as V
+                thisI[j] = t
+            }
+        }
+        // remove all unnecessary lists
+        for (i in size - 1 downTo n) {
+            removeAt(i)
+        }
+        // in all sub-lists, remove the unnecessary items
+        for (i in 0 until n) {
+            val listI = this[i]
+            for (j in listI.size - 1 downTo m) {
+                listI.removeAt(j)
+            }
+        }
+        return this
+    }
+
+    @JvmStatic
+    fun main(args: Array<String>) {
+        val l0 = arrayListOf(arrayListOf(1, 2, 3), arrayListOf(9, 8, 7))
+        println(l0)
+        println(l0.transpose())
+        println(l0.transpose())
+    }
 
 }

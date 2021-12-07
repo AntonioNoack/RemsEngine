@@ -3,9 +3,13 @@ package me.anno.gpu.pipeline
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.light.*
+import me.anno.engine.pbr.PBRLibraryGLTF.microfacetDistribution
+import me.anno.engine.pbr.PBRLibraryGLTF.specularAttenuation
+import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColor
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColorEnd
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColorStart
+import me.anno.engine.pbr.PBRLibraryGLTF.specularReflectance
 import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
@@ -20,10 +24,8 @@ import me.anno.gpu.pipeline.M4x3Delta.m4x3x
 import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBatchSize
 import me.anno.gpu.pipeline.PipelineStage.Companion.setupLocalTransform
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.builder.ShaderBuilder
-import me.anno.gpu.shader.builder.ShaderStage
-import me.anno.gpu.shader.builder.Variable
-import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.shader.builder.*
+import me.anno.gpu.shader.builder.Function
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.io.Saveable
@@ -255,7 +257,7 @@ class LightPipelineStage(
                         Variable("vec4", "light", VariableMode.OUT)
                     ), "" +
                             // light calculation including shadows if !instanced
-                            "vec3 diffuseLight, specularLight = vec3(0);\n" +
+                            "vec3 diffuseLight, specularLight;\n" +
                             "bool hasSpecular = finalMetallic > 0.0;\n" +
                             "vec3 V = normalize(-finalPosition);\n" +
                             "float NdotV = abs(dot(finalNormal,V));\n" +
@@ -266,20 +268,20 @@ class LightPipelineStage(
                             "vec3 dir = WStoLightSpace * vec4(finalPosition, 1.0);\n" +
                             "vec3 localNormal = normalize(WStoLightSpace * vec4(finalNormal, 0.0));\n" +
                             "float NdotL;\n" + // normal dot light
-                            "vec3 effectiveDiffuse, effectiveSpecular,lightPosition, lightDirWS;\n" +
+                            "vec3 effectiveDiffuse, effectiveSpecular, lightPosition, lightDirWS;\n" +
                             coreFragment +
                             "if(hasSpecular && dot(effectiveSpecular, vec3(NdotL)) > ${0.5 / 255.0}){\n" +
                             "    vec3 H = normalize(V + lightDirWS);\n" +
                             specularBRDFv2NoColorStart +
                             specularBRDFv2NoColor +
-                            "    specularLight = effectiveSpecular * computeSpecularBRDF;\n" +
+                            "    specularLight = clamp(effectiveSpecular * computeSpecularBRDF, 0.0, 1e6);\n" +
                             specularBRDFv2NoColorEnd +
-                            "}\n" +
+                            "} else specularLight = vec3(0.0);\n" +
                             // translucency; looks good and approximately correct
                             // sheen is a fresnel effect, which adds light at the edge, e.g. for clothing
                             "NdotL = mix(NdotL, 0.23, finalTranslucency) + finalSheen;\n" +
                             "diffuseLight += effectiveDiffuse * clamp(NdotL, 0.0, 1.0);\n" +
-                            "light = vec4(mix(diffuseLight, specularLight, finalMetallic), 1.0);\n" //
+                            "light = vec4(mix(diffuseLight, specularLight, finalMetallic), 1.0);\n"
                 )
 
                 // deferred inputs

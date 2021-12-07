@@ -31,8 +31,8 @@ object FSR {
     private val vertex = ShaderLib.simpleVertexShader
 
     val code = lazy {
-        val defines = ResourceHelper.loadText("shader/fsr/ffx_a.h")
-        val functions = ResourceHelper.loadText("shader/fsr/ffx_fsr1.h")
+        val defines = ResourceHelper.loadText("shader/fsr2/ffx_a.h")
+        val functions = ResourceHelper.loadText("shader/fsr2/ffx_fsr1.h")
         defines to functions
     }
 

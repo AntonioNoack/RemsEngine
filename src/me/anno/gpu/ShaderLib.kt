@@ -285,7 +285,7 @@ object ShaderLib {
             "u4x4 transform;\n"
 
     val flatNormal = "" +
-            "   normal = vec3(0,0,1);\n"
+            "   normal = vec3(0.0, 0.0, 1.0);\n"
 
     val v3D = v3DBase +
             "a3 attr0;\n" +
@@ -746,7 +746,7 @@ object ShaderLib {
                 "   return value >= minMax.x && value <= minMax.y;\n" +
                 "}\n" + // sqrt and ² for better color mixing
                 "vec4 mix(vec4 a, vec4 b, float stop, vec2 stops){\n" +
-                "   float f = clamp((stop-stops.x)/(stops.y-stops.x), 0, 1);\n" +
+                "   float f = clamp((stop-stops.x)/(stops.y-stops.x), 0.0, 1.0);\n" +
                 "   return vec4(sqrt(mix(a.rgb*a.rgb, b.rgb*b.rgb, f)), mix(a.a, b.a, f));\n" +
                 "}\n" +
                 "void main(){\n" +
@@ -910,7 +910,7 @@ object ShaderLib {
         shaderAssimp.glslVersion = 330
 
         monochromeModelShader = createShaderPlus(
-            "model",
+            "monochrome-model",
             assimpVertex, assimpVarying, "" +
                     "uniform vec4 tint;\n" +
                     "uniform sampler2D tex;\n" +

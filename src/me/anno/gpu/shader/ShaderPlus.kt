@@ -23,15 +23,15 @@ object ShaderPlus {
                 "uniform int drawMode;\n" +
                 (if (hasTint) "" else "uniform vec4 tint;\n") +
                 "" + raw.substring(0, raw.length - 1) + "" +
-                (if (hasZDistance) "" else "float zDistance = 0;\n") +
+                (if (hasZDistance) "" else "float zDistance = 0.0;\n") +
                 (if (hasFinalColor) "" else "vec3 finalColor = gl_FragColor.rgb;float finalAlpha = gl_FragColor.a;\n") +
                 "switch(drawMode){\n" +
                 "       case ${DrawMode.COLOR_SQUARED.id}:\n" +
                 "           vec3 tmpCol = ${if (hasTint) "finalColor" else "finalColor * tint.rgb"};\n" +
-                "           gl_FragColor = vec4(tmpCol * tmpCol, clamp(finalAlpha, 0, 1) * tint.a);\n" +
+                "           gl_FragColor = vec4(tmpCol * tmpCol, clamp(finalAlpha, 0.0, 1.0) * tint.a);\n" +
                 "           break;\n" +
                 "       case ${DrawMode.COLOR.id}:\n" +
-                "           gl_FragColor = vec4(${if (hasTint) "finalColor" else "finalColor * tint.rgb"}, clamp(finalAlpha, 0, 1) * tint.a);\n" +
+                "           gl_FragColor = vec4(${if (hasTint) "finalColor" else "finalColor * tint.rgb"}, clamp(finalAlpha, 0.0, 1.0) * tint.a);\n" +
                 "           break;\n" +
                 "       case ${DrawMode.ID.id}:\n" +
                 "           if(finalAlpha < 0.01) discard;\n" +
@@ -71,10 +71,10 @@ object ShaderPlus {
                 "switch(drawMode){\n" +
                 "    case ${DrawMode.COLOR_SQUARED.id}:\n" +
                 "        vec3 tmpCol = ${if (hasTint) "finalColor" else "finalColor * tint.rgb"};\n" +
-                "        fragColor = vec4(tmpCol * tmpCol, clamp(finalAlpha, 0, 1) * tint.a);\n" +
+                "        fragColor = vec4(tmpCol * tmpCol, clamp(finalAlpha, 0.0, 1.0) * tint.a);\n" +
                 "        break;\n" +
                 "    case ${DrawMode.COLOR.id}:\n" +
-                "        fragColor = vec4(${if (hasTint) "finalColor" else "finalColor * tint.rgb"}, clamp(finalAlpha, 0, 1) * tint.a);\n" +
+                "        fragColor = vec4(${if (hasTint) "finalColor" else "finalColor * tint.rgb"}, clamp(finalAlpha, 0.0, 1.0) * tint.a);\n" +
                 "        break;\n" +
                 "    case ${DrawMode.ID.id}:\n" +
                 "        if(finalAlpha < 0.01) discard;\n" +

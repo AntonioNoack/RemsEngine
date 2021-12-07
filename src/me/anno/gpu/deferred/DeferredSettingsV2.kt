@@ -8,7 +8,6 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Texture2D
-import me.anno.utils.LOGGER
 import org.joml.Vector4f
 import kotlin.math.max
 
@@ -69,7 +68,7 @@ class DeferredSettingsV2(
 
         val maxTextures = layerTypes.size
         val spaceInLayers = IntArray(maxTextures) { 4 }
-        val needsHighPrecision = BooleanArray(maxTextures)
+        val needsHighPrecision = Array(maxTextures) { BufferQuality.LOW_8 }
         var usedTextures0 = -1
 
         for (layerType in layerTypes) {
@@ -81,7 +80,7 @@ class DeferredSettingsV2(
             layers.add(layer)
             spaceInLayers[layerIndex] -= dimensions
             usedTextures0 = max(usedTextures0, layerIndex)
-            if (layerType.needsHighPrecision) needsHighPrecision[layerIndex] = true
+            needsHighPrecision[layerIndex] = needsHighPrecision[layerIndex].max(layerType.minimumQuality)
         }
         usedTextures0++
 
@@ -89,8 +88,12 @@ class DeferredSettingsV2(
         for (i in 0 until usedTextures0) {
             val layer2 = DeferredLayer(
                 "vec4", "defLayer$i",
-                if (needsHighPrecision[i]) TargetType.FloatTarget4
-                else TargetType.UByteTarget4
+                when (needsHighPrecision[i]) {
+                    BufferQuality.LOW_8 -> TargetType.UByteTarget4
+                    BufferQuality.MEDIUM_12 -> TargetType.Normal12Target4
+                    BufferQuality.HIGH_16 -> TargetType.HalfFloatTarget4
+                    else -> TargetType.FloatTarget4
+                }
             )
             layers2.add(layer2)
         }

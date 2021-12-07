@@ -48,6 +48,7 @@ abstract class MeshBaseComponent : CollidingComponent() {
         clone as MeshBaseComponent
         clone.castShadows = castShadows
         clone.receiveShadows = receiveShadows
+        clone.isInstanced = isInstanced
     }
 
 }

@@ -12,9 +12,10 @@ object Perspective {
         aspectRatio: Float,
         near: Float,
         far: Float, // only respected if !reverseDepth, because typically there is no real use for it...
+        cx: Float, cy: Float,
         reverseDepth: Boolean = RenderState.depthMode.currentValue.reversedDepth
     ): Matrix4f {
-        setPerspective(this, fovYRadians, aspectRatio, near, far, reverseDepth)
+        setPerspective(this, fovYRadians, aspectRatio, near, far, cx, cy, reverseDepth)
         return this
     }
 
@@ -24,6 +25,7 @@ object Perspective {
         aspectRatio: Float,
         near: Float,
         far: Float, // only respected if !reverseDepth, because typically there is no real use for it...
+        cx: Float, cy: Float,
         reverseDepth: Boolean = RenderState.depthMode.currentValue.reversedDepth
     ) {
         viewTransform.identity()
@@ -39,20 +41,20 @@ object Perspective {
                 x, 0f, 0f, 0f,
                 0f, y, 0f, 0f,
                 0f, 0f, 0f, -1f,
-                0f, 0f, near, 0f
+                cx, cy, near, 0f
             )
         } else {
             // c = (zFar + zNear) / (zNear - zFar), ~ -1
             // d = (zFar + zFar) * zNear / (zNear - zFar), ~ -n
-            //  x  0  0  0
-            //  0  y  0  0
-            //  0  0  c  d
-            //  0  0 -1  0
+            //  x   0   0   0
+            //  0   y   0   0
+            //  0   0   c   d
+            //  cx  cy -1   0
             viewTransform.perspective(
                 fovYRadians,
                 aspectRatio,
                 near, far
-            )
+            ).m30(cx).m31(cy)
         }
     }
 
@@ -62,6 +64,7 @@ object Perspective {
         fy: Float,
         near: Float,
         far: Float, // only respected if !reverseDepth, because typically there is no real use for it...
+        cx: Float, cy: Float,
         reverseDepth: Boolean = RenderState.depthMode.currentValue.reversedDepth
     ) {
         viewTransform.identity()
@@ -76,12 +79,12 @@ object Perspective {
                 y, 0f, 0f, 0f,
                 0f, y, 0f, 0f,
                 0f, 0f, 0f, -1f,
-                0f, 0f, near, 0f
+                cx, cy, near, 0f
             )
         } else {
             // fy = Math.tan(fovYRadians * 0.5f)
             val fov = atan(fy) * 2f
-            setPerspective(viewTransform, fov, 1f, near, far, false)
+            setPerspective(viewTransform, fov, 1f, near, far, cx, cy, false)
         }
     }
 

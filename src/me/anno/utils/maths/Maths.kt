@@ -164,6 +164,14 @@ object Maths {
         return clamp(mix((a shr shift) and 0xff, (b shr shift) and 0xff, f), 0, 255) shl shift
     }
 
+    fun convertARGB2RGBA(i: Int): Int {
+        return i.shl(8) or i.shr(24).and(255)
+    }
+
+    fun convertABGR2ARGB(i: Int): Int {
+        return i.and(0xff00ff00.toInt()) or i.and(0xff0000).shr(16) or i.and(0xff).shl(16)
+    }
+
     fun mixAngle(a: Float, b: Float, f: Float): Float {
         val d = a - b
         return when {

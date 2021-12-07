@@ -8,6 +8,7 @@ import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.ecs.components.physics.BulletPhysics
 import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.components.physics.constraints.Constraint
+import me.anno.ecs.components.physics.fluidsim.FluidSim
 import me.anno.ecs.components.ui.UIEvent
 import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.prefab.PrefabInspector
@@ -363,9 +364,11 @@ class Entity() : PrefabSaveable(), Inspectable {
     }
 
     fun update(): Boolean {
-        val hasUpdate = executeOptimizedEvent({ it.hasOnUpdate }, { it.update() }) {
-            it.callUpdate()
-        }
+        val hasUpdate = executeOptimizedEvent(
+            { it.hasOnUpdate },
+            Entity::update,
+            Component::callUpdate
+        )
         this.hasOnUpdate = hasUpdate
         return hasUpdate
     }
@@ -382,9 +385,11 @@ class Entity() : PrefabSaveable(), Inspectable {
     }*/
 
     fun updateVisible(): Boolean {
-        val hasUpdate = executeOptimizedEvent({ it.hasOnVisibleUpdate }, { it.updateVisible() }) {
-            it.onVisibleUpdate()
-        }
+        val hasUpdate = executeOptimizedEvent(
+            { it.hasOnVisibleUpdate },
+            Entity::updateVisible,
+            Component::onVisibleUpdate
+        )
         this.hasOnVisibleUpdate = hasUpdate
         return hasUpdate
     }

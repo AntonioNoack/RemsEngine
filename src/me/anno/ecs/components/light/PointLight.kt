@@ -95,7 +95,7 @@ class PointLight : LightComponent(LightType.POINT) {
             texture.draw(resolution, Renderer.depthOnlyRenderer) { side ->
                 Frame.bind()
                 GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT)
-                setPerspective(cameraMatrix, deg90.toFloat(), 1f, near.toFloat(), far.toFloat())
+                setPerspective(cameraMatrix, deg90.toFloat(), 1f, near.toFloat(), far.toFloat(), 0f, 0f)
                 EnvironmentMap.rotateForCubemap(rot3.identity(), side)
                 rot3.mul(rotInvert)
                 cameraMatrix.rotate2(rot3)
@@ -174,7 +174,7 @@ class PointLight : LightComponent(LightType.POINT) {
                             // should be more visible in the specular case...
                             // in the ideal case, we move the light such that it best aligns the sphere...
                             "   vec3 idealLightDirWS = normalize(reflect(finalPosition, finalNormal));\n" +
-                            "   lightDirWS = normalize(mix(lightDirWS, idealLightDirWS, clamp(lightRadius/(length(lightPosition-finalPosition)),0,1)));\n" +
+                            "   lightDirWS = normalize(mix(lightDirWS, idealLightDirWS, clamp(lightRadius/(length(lightPosition-finalPosition)),0.0,1.0)));\n" +
                             "}\n" else "") +
                     "NdotL = dot(lightDirWS, finalNormal);\n" +
                     // shadow maps

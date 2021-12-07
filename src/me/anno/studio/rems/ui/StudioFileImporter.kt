@@ -179,6 +179,7 @@ object StudioFileImporter : FileContentImporter<Transform>() {
     fun addText(name: String, parent: Transform?, text: String, doSelect: Boolean, callback: (Transform) -> Unit) {
         // important ;)
         // should maybe be done sometimes in object as well ;)
+        RuntimeException("Trying to read as text").printStackTrace()
         if (text.length > 500) {
             addEvent {
                 ask(

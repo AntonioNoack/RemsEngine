@@ -32,14 +32,17 @@ object ConfigBasics {
         return getReference(configFolder, localFileName)
     }
 
+    @Throws(IOException::class)
     fun save(file: FileReference, data: String) {
-        val parentFile = file.getParent()!!
+        val parentFile = file.getParent() ?: return
         if (!parentFile.exists) parentFile.mkdirs()
         file.writeText(data, utf8Charset)
     }
 
+    @Throws(IOException::class)
     fun save(localFileName: String, data: String) = save(getConfigFile(localFileName), data)
 
+    @Throws(IOException::class)
     fun load(file: FileReference, saveIfMissing: Boolean, getDefault: () -> String): String {
         val value = if (file.exists) {
             try {

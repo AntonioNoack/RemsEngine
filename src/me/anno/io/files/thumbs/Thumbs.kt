@@ -17,7 +17,6 @@ import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshBaseComponent
-import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.shapes.Icosahedron
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
@@ -508,7 +507,7 @@ object Thumbs {
 
     private fun createPerspective(y: Float, aspectRatio: Float, stack: Matrix4f) {
 
-        setPerspective(stack, 0.7f, aspectRatio, 0.001f, 10f)
+        setPerspective(stack, 0.7f, aspectRatio, 0.001f, 10f, 0f, 0f)
         stack.translate(0f, 0f, -1f)// move the camera back a bit
         stack.rotateX(toRadians(15f))// rotate it into a nice viewing angle
         stack.rotateY(toRadians(y))

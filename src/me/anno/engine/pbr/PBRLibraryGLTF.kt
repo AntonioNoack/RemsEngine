@@ -28,7 +28,7 @@ object PBRLibraryGLTF {
      * roughness. This implementation is based on the description in [1], which
      * is supposed to be a summary of [3], although I didn't do the maths...
      */
-    private const val microfacetDistribution = "" +
+    const val microfacetDistribution = "" +
             "float computeMicrofacetDistribution(vec3 H, vec3 N, float roughness){\n" +
             "    \n" +
             "    float alpha = roughness * roughness;\n" +
@@ -38,7 +38,7 @@ object PBRLibraryGLTF {
             "    float NdotH_squared = NdotH * NdotH;\n" +
             "    \n" +
             "    float x = NdotH_squared * (alpha_squared - 1.0) + 1.0;\n" +
-            "    return alpha_squared / (M_PI * x * x);\n" +
+            "    return alpha_squared / (${Math.PI} * x * x);\n" +
             "}"
 
     /**
@@ -46,7 +46,7 @@ object PBRLibraryGLTF {
      * described in [4]. It receives the specular color, the
      * direction from the surface point to the viewer V, and the half-vector H.
      * */
-    private const val specularReflectance = "" +
+    const val specularReflectance = "" +
             "vec3 computeSpecularReflectance(vec3 specularColor, vec3 V, vec3 H){\n" +
             "    float HdotV = clamp(dot(H, V), 0.0, 1.0);\n" +
             "    return specularColor + (1.0 - specularColor) * pow(1.0 - HdotV, 5.0);\n" +
@@ -63,7 +63,7 @@ object PBRLibraryGLTF {
      * the vector from the surface to the viewer V, the vector from the
      * surface to the light L, and the half vector H
      * */
-    private const val specularAttenuation = "" +
+    const val specularAttenuation = "" +
             "float computeSpecularAttenuation(float roughness, vec3 V, vec3 N, vec3 L, vec3 H){\n" +
             "    float NdotL = dot(N, L);\n" + // guaranteed to be > 0
             "    float NdotV = abs(dot(N, V));\n" + // back face gets same shading (if < 0)
@@ -222,7 +222,9 @@ object PBRLibraryGLTF {
             //"    float Gx = NdotL;\n" +
             // NdotL is already in the light equation, NdotV is in G
             // also we don't need two divisions, we can use one
-            "#define computeSpecularBRDF NdotL/(x*x*t.x*t.y)\n"
+            // todo 1. where is our bug, that we need to limit the value
+            // todo 2. why can we set the limit so high? how is it processed further?
+            "#define computeSpecularBRDF NdotL / (x * x * t.x * t.y)\n"
 
     val specularBRDFv2NoColorEnd = "specularLight *= DxPi4;\n"
 

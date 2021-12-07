@@ -10,8 +10,6 @@ import me.anno.utils.LOGGER
 import me.anno.utils.types.Vectors.print
 import org.joml.Vector4f
 
-// todo audio is very unstable, rarely gets to play... is it that expensive?
-
 fun main() {
 
     DefaultConfig.init()

@@ -31,7 +31,7 @@ class SplineControlPoint : Component() {
 
     fun invalidate(){
         entity?.parentEntity?.getComponent(SplineMesh::class)
-            ?.invalidate()
+            ?.invalidateMesh()
     }
 
     fun getP0(dst: Vector3d): Vector3d {

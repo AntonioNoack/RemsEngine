@@ -59,6 +59,10 @@ object ScenePrefab : InnerPrefabFile(
         // sample mesh //
         ////////////////
         val world = root.added(names[0], 0, 'e')
+
+        val testCamera = addE(this, world, "Camera")
+        addC(this, testCamera, "CameraComponent")
+
         val truck = addE(this, world, "VOX/Truck", OS.downloads.getChild("MagicaVoxel/vox/truck.vox"))
         val truckBody0 = truck.added("", 0, 'e')
         addC(this, truckBody0, "MeshCollider")
@@ -150,6 +154,12 @@ object ScenePrefab : InnerPrefabFile(
         // physics tests //
         //////////////////
         val physics = addE(this, world, "Physics")
+
+        // fluid dynamics
+        val fluidSimObject = addE(this, physics, "FluidSim")
+        addC(this, fluidSimObject, "FluidSim")
+        addC(this, fluidSimObject, "ManualProceduralMesh")
+        // todo set second mesh from FluidSim somehow...
 
         // vehicle
         val vehicle = addE(this, physics, "Vehicle")

@@ -10,7 +10,7 @@ fun main(){
 
     val logger = LogManager.getLogger()
 
-    val m = Matrix4f().perspective2(1f, 1f, 0.5f, 10f)
+    val m = Matrix4f().perspective2(1f, 1f, 0.5f, 10f, 0f, 0f)
 
     logger.info(m.toString())
     logger.info(m.transformProject(Vector4f(0f, 0f, -1f, 1f)).print())

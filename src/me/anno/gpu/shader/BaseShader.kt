@@ -237,7 +237,7 @@ open class BaseShader(
                     "   vec3 a = gl_in[0].gl_Position.xyz / gl_in[0].gl_Position.w;\n" +
                     "   vec3 b = gl_in[1].gl_Position.xyz / gl_in[1].gl_Position.w;\n" +
                     "   vec3 c = gl_in[2].gl_Position.xyz / gl_in[2].gl_Position.w;\n" +
-                    "   vec4 color = vec4(cross(b-a,c-a).z < 0.0 ? vec3(1,0,0) : vec3(0,0,1), 1.0);\n" +
+                    "   vec4 color = vec4(cross(b-a,c-a).z < 0.0 ? vec3(1.0, 0.0, 0.0) : vec3(0.0, 0.0, 1.0), 1.0);\n" +
                     "   for(int i=0;i<3;i++){\n" +
                     "       #copy[i]\n" +
                     "       f_vertexColor = color;\n" +

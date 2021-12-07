@@ -63,7 +63,7 @@ enum class Interpolation(
     LINEAR_BOUNDED(
         1, "/",
         "Linear",
-        "Straight curve segments, mix(a,b,clamp(t,0,1))", "linear"
+        "Straight curve segments, mix(a,b,clamp(t,0.0,1.0))", "linear"
     ) {
 
         override fun getWeights(

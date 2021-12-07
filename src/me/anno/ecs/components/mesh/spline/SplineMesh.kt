@@ -24,7 +24,7 @@ class SplineMesh : ProceduralMesh() {
         set(value) {
             if (field != value) {
                 field = value
-                invalidate()
+                invalidateMesh()
             }
         }
 
@@ -48,7 +48,7 @@ class SplineMesh : ProceduralMesh() {
         set(value) {
             if (field != value) {
                 field = value
-                invalidate()
+                invalidateMesh()
             }
         }
 
@@ -56,7 +56,7 @@ class SplineMesh : ProceduralMesh() {
         set(value) {
             if (field != value) {
                 field = value
-                invalidate()
+                invalidateMesh()
             }
         }
 
@@ -64,7 +64,7 @@ class SplineMesh : ProceduralMesh() {
         set(value) {
             if (field != value) {
                 field = value
-                invalidate()
+                invalidateMesh()
             }
         }
 
@@ -72,7 +72,7 @@ class SplineMesh : ProceduralMesh() {
         set(value) {
             if (field != value) {
                 field = value
-                invalidate()
+                invalidateMesh()
             }
         }
 
@@ -101,7 +101,7 @@ class SplineMesh : ProceduralMesh() {
             for (i in children.indices) {
                 val child = children[i]
                 if (child.hasComponent(SplineControlPoint::class) && child === lastSelection) {
-                    invalidate()
+                    invalidateMesh()
                     return 1
                 }
             }

@@ -8,15 +8,15 @@ import kotlin.concurrent.thread
 object OS {// the os is important for some things, e.g. the allowed file names, and the home directory
 
     val data = System.getProperty("os.name")
-    val isWindows = data.contains("windows", true)
-    val isLinux = !isWindows // ^^
-    val isMac = false // ^^
-    val isIPhoneOS = false // ^^
-    val isIPadOS = false // ^^
+    var isWindows = data.contains("windows", true)
+    var isLinux = !isWindows // ^^
+    var isMac = false // ^^
+    var isIPhoneOS = false // ^^
+    var isIPadOS = false // ^^
 
     // we haven't implemented a mobile version yet (because that needs different controls),
     // and idk about performance
-    val isAndroid = isLinux
+    var isAndroid = isLinux
 
     val home = getReference(System.getProperty("user.home"))
     val downloads = getReference(home, "Downloads")
