@@ -102,23 +102,23 @@ open class BaseShader(
         get() {
             val renderer = RenderState.currentRenderer
             val instanced = RenderState.instanced.currentValue
-            return if (renderer == Renderer.depthOnlyRenderer) {
+            val shader= if (renderer == Renderer.depthOnlyRenderer) {
                 depthShader.value[instanced.toInt()]
             } else when (val deferred = renderer.deferredSettings) {
                 null -> {
                     val geoMode = RenderState.geometryShader.currentValue
-                    val shader = flatShader.getOrPut(renderer, instanced, geoMode) { r, i, g ->
+                    flatShader.getOrPut(renderer, instanced, geoMode) { r, i, g ->
                         val shader = createFlatShader(r.getPostProcessing(), i, g)
                         r.uploadDefaultUniforms(shader)
                         // LOGGER.info(shader.fragmentSource)
                         shader
                     }
-                    shader.use()
-                    shader.v1("drawMode", renderer.drawMode.id)
-                    shader
                 }
                 else -> get(deferred, instanced, RenderState.geometryShader.currentValue)
             }
+            shader.use()
+            shader.v1("drawMode", renderer.drawMode.id)
+            return shader
         }
 
     fun ignoreUniformWarnings(warnings: Collection<String>) {

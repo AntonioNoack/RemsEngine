@@ -9,9 +9,17 @@ import org.lwjgl.system.MemoryUtil
 
 class IndexBuffer(
     val base: Buffer,
-    val indices: IntArray,
+    indices: IntArray,
     val usage: Int = GL15.GL_STATIC_DRAW
 ) : ICacheData, Drawable {
+
+    var indices: IntArray = indices
+        set(value) {
+            if (field !== value) {
+                field = value
+                invalidate()
+            }
+        }
 
     var elementVBO = -1
     var elementsType = GL11.GL_UNSIGNED_INT
@@ -46,6 +54,7 @@ class IndexBuffer(
             hasWarned = true
             LOGGER.warn("VAO does not have attribute!, ${base.attributes}, ${shader.vertexSource}")
         }
+
         // disable all attributes, which were not bound
         // not required
         updateElementBuffer()
@@ -136,6 +145,10 @@ class IndexBuffer(
         }
     }
 
+    private fun invalidate() {
+        lastShader = null
+    }
+
     private var lastShader: Shader? = null
     private fun bindBufferAttributes(shader: Shader) {
         GFX.check()
@@ -209,18 +222,15 @@ class IndexBuffer(
     }
 
     override fun destroy() {
-        destroyIndexBuffer()
-    }
-
-    private fun destroyIndexBuffer() {
         val buffer = elementVBO
         if (buffer >= 0) {
             GFX.addGPUTask(1) {
                 Buffer.onDestroyBuffer(buffer)
                 GL15.glDeleteBuffers(buffer)
             }
+            elementVBO = -1
+            locallyAllocated2 = Buffer.allocate(locallyAllocated2, 0)
         }
-        elementVBO = -1
     }
 
 }

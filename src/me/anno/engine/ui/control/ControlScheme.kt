@@ -111,17 +111,21 @@ open class ControlScheme(val camera: CameraComponent, val library: EditorState, 
         invalidateDrawing()
         if (control?.onMouseMoved(x, y, dx, dy) == true) return
         if (editMode?.onEditMove(x, y, dx, dy) == true) return
-        if (isSelected && 1 in Input.mouseKeysDown) {
-            // right mouse key down -> move the camera
-            val speed = -500f / Maths.max(GFX.height, h)
-            val rotation = view.rotation
-            // less than 90, so we always know forward when computing movement
-            val limit = 90.0 - 0.0001
-            rotation.x = Maths.clamp(rotation.x + dy * speed, -limit, limit)
-            rotation.y += dx * speed
-            view.updateEditorCameraTransform()
-            invalidateDrawing()
+        if (isSelected && Input.isRightDown) {
+            moveCamera(dx, dy)
         }
+    }
+
+    fun moveCamera(dx: Float, dy: Float) {
+        // right mouse key down -> move the camera
+        val speed = -500f / Maths.max(GFX.height, h)
+        val rotation = view.rotation
+        // less than 90, so we always know forward when computing movement
+        val limit = 90.0 - 0.0001
+        rotation.x = Maths.clamp(rotation.x + dy * speed, -limit, limit)
+        rotation.y += dx * speed
+        view.updateEditorCameraTransform()
+        invalidateDrawing()
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {

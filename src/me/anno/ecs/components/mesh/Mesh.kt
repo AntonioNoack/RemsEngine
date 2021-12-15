@@ -7,6 +7,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.*
+import me.anno.gpu.buffer.Attribute.Companion.computeOffsets
 import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.shader.Shader
 import me.anno.io.base.BaseWriter
@@ -26,7 +27,6 @@ import me.anno.utils.types.AABBs.set
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL11.GL_LINES
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -169,6 +169,7 @@ class Mesh : PrefabSaveable() {
         clone.hasVertexColors = hasVertexColors
         clone.hasBonesInBuffer = hasBonesInBuffer
         clone.helperMeshes = helperMeshes
+        clone.hasHighPrecisionNormals = hasHighPrecisionNormals
         // aabb
         clone.aabb.set(aabb)
         clone.ignoreStrayPointsInAABB = ignoreStrayPointsInAABB
@@ -395,6 +396,40 @@ class Mesh : PrefabSaveable() {
 
     val numTriangles get() = indices?.run { size / 3 } ?: positions?.run { size / 9 } ?: 0
 
+    var hasHighPrecisionNormals = false
+
+    private fun replaceBuffer(attributes: List<Attribute>, vertexCount: Int, oldValue: StaticBuffer?): StaticBuffer {
+        if (oldValue != null) {
+            // offsets are compared, so they need to be consistent
+            computeOffsets(attributes)
+            computeOffsets(oldValue.attributes)
+            if (oldValue.attributes == attributes && oldValue.vertexCount == vertexCount) {
+                return oldValue
+            } else {
+                oldValue.destroy()
+            }
+        }
+        return StaticBuffer(attributes, vertexCount)
+    }
+
+    private fun replaceBuffer(base: Buffer, indices: IntArray?, oldValue: IndexBuffer?): IndexBuffer? {
+        return if (indices != null) {
+            if (oldValue != null) {
+                if (base === oldValue.base) {
+                    oldValue.indices = indices
+                    return oldValue
+                } else {
+                    println("needed to change buffer, $base !== ${oldValue.base}, ${base.buffer} vs ${oldValue.base.buffer}")
+                    oldValue.destroy()
+                }
+            }
+            IndexBuffer(base, indices)
+        } else {
+            oldValue?.destroy()
+            null
+        }
+    }
+
     private fun updateMesh() {
 
         needsMeshUpdate = false
@@ -425,21 +460,27 @@ class Mesh : PrefabSaveable() {
         val boneWeights = boneWeights
         val boneIndices = boneIndices
 
-        val pointCount = positions.size / 3
+        val vertexCount = positions.size / 3
         val indices = indices
 
         val hasBones = boneWeights != null && boneWeights.isNotEmpty()
         hasBonesInBuffer = hasBones
 
         // todo missing attributes cause issues... why??
-        val hasColors = true || colors != null && colors.isNotEmpty()
+        val hasColors = colors != null && colors.isNotEmpty()
         hasVertexColors = hasColors
 
+        val hasHighPrecisionNormals = hasHighPrecisionNormals
 
         val attributes = arrayListOf(
             Attribute("coords", 3),
-            Attribute("normals", AttributeType.SINT8_NORM, 4),
         )
+
+        attributes += if (hasHighPrecisionNormals) {
+            Attribute("normals", AttributeType.FLOAT, 3)
+        } else {
+            Attribute("normals", AttributeType.SINT8_NORM, 4)
+        }
 
         if (hasUVs) {
             attributes += Attribute("uvs", 2)
@@ -455,11 +496,12 @@ class Mesh : PrefabSaveable() {
             attributes += Attribute("indices", AttributeType.UINT8, MAX_WEIGHTS, true)
         }
 
-        // todo reuse the old buffer, if the size matches
-        val buffer = StaticBuffer(attributes, pointCount)
-        val triBuffer = if (indices != null) IndexBuffer(buffer, indices) else null
+        val buffer = replaceBuffer(attributes, vertexCount, buffer)
+        this.buffer = buffer
 
-        for (i in 0 until pointCount) {
+        triBuffer = replaceBuffer(buffer, indices, triBuffer)
+
+        for (i in 0 until vertexCount) {
 
             // upload all data of one vertex
 
@@ -471,10 +513,16 @@ class Mesh : PrefabSaveable() {
             buffer.put(positions[i3 + 1])
             buffer.put(positions[i3 + 2])
 
-            buffer.putByte(normals[i3])
-            buffer.putByte(normals[i3 + 1])
-            buffer.putByte(normals[i3 + 2])
-            buffer.putByte(0) // alignment
+            if (hasHighPrecisionNormals) {
+                buffer.put(normals[i3])
+                buffer.put(normals[i3 + 1])
+                buffer.put(normals[i3 + 2])
+            } else {
+                buffer.putByte(normals[i3])
+                buffer.putByte(normals[i3 + 1])
+                buffer.putByte(normals[i3 + 2])
+                buffer.putByte(0) // alignment
+            }
 
             if (hasUVs) {
 
@@ -551,24 +599,11 @@ class Mesh : PrefabSaveable() {
 
         // LOGGER.info("Flags($name): size: ${buffer.vertexCount}, colors? $hasColors, uvs? $hasUVs, bones? $hasBones")
 
-        val lineBuffer = if (drawLines) {
-            val lineIndices = lineIndices ?: FindLines.findLines(indices, positions)
-            if (lineIndices != null) {
-                this.lineIndices = lineIndices
-                // todo reuse old buffer as well
-                val lineBuffer = IndexBuffer(buffer, lineIndices)
-                lineBuffer.drawMode = GL_LINES
-                lineBuffer
-            } else null
+        lineIndices = if (drawLines) {
+            lineIndices ?: FindLines.findLines(indices, positions)
         } else null
 
-        this.lineBuffer?.destroy()
-        this.lineBuffer = lineBuffer
-
-        this.buffer?.destroy()
-        this.buffer = buffer
-        this.triBuffer?.destroy()
-        this.triBuffer = triBuffer
+        lineBuffer = replaceBuffer(buffer, lineIndices, lineBuffer)
 
     }
 
@@ -633,7 +668,13 @@ class Mesh : PrefabSaveable() {
         super.destroy()
         // todo only if we were not cloned...
         destroyHelperMeshes()
-        // todo destroy buffer?
+        // destroy buffers
+        buffer?.destroy()
+        triBuffer?.destroy()
+        lineBuffer?.destroy()
+        buffer = null
+        triBuffer = null
+        lineBuffer = null
     }
 
     /**

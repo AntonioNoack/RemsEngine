@@ -102,6 +102,19 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             return null
         }
 
+        fun register(signature: Signature) {
+            // alternatively could find the correct insert index
+            // still would be O(n)
+            signatures.add(signature)
+            signatures.sortByDescending { it.signature.size }
+        }
+
+        fun unregister(signature: Signature) {
+            // could use binary search to find signature
+            // still would be O(n)
+            signatures.remove(signature)
+        }
+
         fun findName(fileReference: FileReference) = find(fileReference)?.name
         fun find(fileReference: FileReference): Signature? {
             if (!fileReference.exists) return null
@@ -166,6 +179,7 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             Signature("ico", 0, listOf(0x00, 0x00, 0x01, 0x00, 0x01)),// ico with 1 "image"
             Signature("ico", 0, listOf(0x00, 0x00, 0x02, 0x00, 0x01)),// cursor with 1 "image"
             Signature("dds", 0, "DDS "), // direct x image file format
+            Signature("gif", 0, "GIF8"), // graphics interchange format, often animated
             // other
             Signature("xml", 0, "<?xml"), // plus other variations with UTF16, UTF32, ...
             Signature("exe", 0, "MZ"),
@@ -198,7 +212,7 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             // json, kind of
             Signature("json", 0, "["),
             Signature("json", 0, "{"),
-            Signature("sims", 0, "DBPF"),
+            Signature("sims", 0, "DBPF")
         ).apply {
             // first long ones, then short ones; to be more specific first
             sortByDescending { it.signature.size }

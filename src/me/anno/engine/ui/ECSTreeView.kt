@@ -12,9 +12,12 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX.windowStack
+import me.anno.io.ISaveable
 import me.anno.io.text.TextReader
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.menu.Menu.askName
+import me.anno.ui.base.menu.Menu.openMenu
+import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.treeView.TreeView
@@ -22,6 +25,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.Color.normARGB
 import me.anno.utils.maths.Maths.length
 import me.anno.utils.maths.Maths.mixARGB
+import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.lists.UpdatingList
 import me.anno.utils.types.AABBs.deltaX
@@ -248,19 +252,43 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
     }
 
     override fun openAddMenu(parent: PrefabSaveable) {
-        // todo open add menu for often created entities: camera, light, nodes, ...
-        // we could use which prefabs were most often created :)
         // temporary solution:
         val prefab = parent.prefab!!
         if (prefab.isWritable) {
-            askName(NameDesc("Name"), "Entity", NameDesc(), { -1 }) {
-                val path = prefab.add(parent.prefabPath!!, 'e', "Entity", it)
-                val child = Entity()
-                child.prefabPath = path
-                child.prefab = prefab
-                parent.addChild(child)
-                PropertyInspector.invalidateUI()
-            }
+            // open add menu for often created entities: camera, light, nodes, ...
+            // we could use which prefabs were most often created :)
+            val classes = ISaveable.objectTypeRegistry
+                .entries
+                .filter { (_, it) ->
+                    val sample = it.sampleInstance
+                    sample is Component || sample is Entity
+                }
+                .toSortedSet { a, b -> a.key.compareTo(b.key) }
+            openMenu(
+                classes.map { (className, value) ->
+                    val title = className.camelCaseToTitle()
+                    MenuOption(NameDesc(title)) {
+                        askName(
+                            NameDesc("Name for $title"),
+                            title,
+                            NameDesc("Append"),
+                            { -1 }) { name ->
+                            val path = prefab.add(
+                                parent.prefabPath!!,
+                                if (value.sampleInstance is Entity) 'e' else 'c',
+                                className,
+                                name
+                            )
+                            val child = value.generator() as PrefabSaveable
+                            child.prefabPath = path
+                            child.prefab = prefab
+                            child.name = name
+                            parent.addChild(child)
+                            PropertyInspector.invalidateUI()
+                        }
+                    }
+                }
+            )
         } else LOGGER.warn("Prefab is not writable!")
     }
 

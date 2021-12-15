@@ -27,7 +27,14 @@ object FileExplorerSelectWrapper {
 
     fun selectFile(lastFile: File?, callback: (File?) -> Unit) {
         // FileExplorerSelect.selectFile(lastFile, callback)
-        method?.invoke(null, lastFile, false, callback) ?: LOGGER.info("JavaFX is not available")
+        val method = method
+        if (method != null) {
+            method.invoke(null, lastFile, false, callback)
+        } else {
+            // todo use JFileChooser
+            // or via OpenFileDialog
+            LOGGER.info("JavaFX is not available")
+        }
     }
 
     fun selectFolder(lastFile: File?, callback: (File?) -> Unit) {

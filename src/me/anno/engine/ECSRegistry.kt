@@ -19,9 +19,6 @@ import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.components.physics.Vehicle
 import me.anno.ecs.components.physics.VehicleWheel
 import me.anno.ecs.components.physics.constraints.*
-import me.anno.ecs.components.physics.fluidsim.FluidSim
-import me.anno.ecs.components.physics.fluidsim.setups.CircularDamBreak
-import me.anno.ecs.components.physics.fluidsim.setups.LinearDamBreak
 import me.anno.ecs.components.test.RaycastTestComponent
 import me.anno.ecs.components.test.TestVehicleController
 import me.anno.ecs.components.test.TypeTestComponent
@@ -112,11 +109,6 @@ object ECSRegistry {
         registerCustomClass(Rigidbody())
         registerCustomClass(Vehicle())
         registerCustomClass(VehicleWheel())
-
-        // tsunami physics
-        registerCustomClass(FluidSim())
-        registerCustomClass(CircularDamBreak())
-        registerCustomClass(LinearDamBreak())
 
         // todo test scene for all these constraints
         // todo drag on physics to add forces/impulses

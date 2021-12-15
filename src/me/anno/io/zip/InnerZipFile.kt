@@ -73,7 +73,7 @@ class InnerZipFile(
 
         fun createZipRegistryV2(
             zipFileLocation: FileReference,
-            getStream: () -> ZipFile
+            getStream: () -> ZipFile = { fileFromStreamV2(zipFileLocation) }
         ): InnerFolder {
             val (file, registry) = createMainFolder(zipFileLocation)
             var hasReadEntry = false

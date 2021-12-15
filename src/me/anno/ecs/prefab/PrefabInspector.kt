@@ -182,8 +182,12 @@ class PrefabInspector(val prefab: Prefab) {
         }
 
         if (instance is CustomEditMode) {
-            list.add(TextButton("Enable Edit Mode", false, style)
-                .addLeftClickListener { EditorState.editMode = instance })
+            list.add(TextButton("Toggle Edit Mode", false, style)
+                .addLeftClickListener {
+                    EditorState.editMode =
+                        if (EditorState.editMode === instance) null
+                        else instance
+                })
         }
 
         val reflections = instance.getReflections()

@@ -43,6 +43,17 @@ class Attribute(val name: String, val type: AttributeType, val components: Int, 
             addPrefix(if (isInt) "i" else null, if (sub == 1) "float" else "vec$sub")
         }
 
+        fun computeOffsets(attributes: List<Attribute>): Int {
+            var offset = 0L
+            val stride = attributes.sumOf { it.byteSize }
+            attributes.forEach {
+                it.offset = offset
+                it.stride = stride
+                offset += it.byteSize
+            }
+            return stride
+        }
+
     }
 
 }

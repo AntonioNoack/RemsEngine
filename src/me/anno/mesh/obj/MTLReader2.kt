@@ -125,7 +125,7 @@ class MTLReader2(val file: FileReference) : OBJMTLReader(file.inputStream()) {
 
     companion object {
 
-        fun readAsFolder(file: FileReference, dstFolder: InnerFolder = InnerFolder(file)): InnerFile {
+        fun readAsFolder(file: FileReference, dstFolder: InnerFolder = InnerFolder(file)): InnerFolder {
             val materials = MTLReader2(file).materials
             for ((name, material) in materials) {
                 dstFolder.createPrefabChild("$name.json", material)

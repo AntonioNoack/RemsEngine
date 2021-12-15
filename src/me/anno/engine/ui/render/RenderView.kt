@@ -77,6 +77,7 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.style.Style
 import me.anno.utils.Clock
+import me.anno.utils.Tabs
 import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.maths.Maths.mix
 import me.anno.utils.maths.Maths.sq
@@ -86,6 +87,7 @@ import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.joml.Math.toRadians
+import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL45.*
 import kotlin.math.max
 import kotlin.math.tan
@@ -287,6 +289,16 @@ class RenderView(
             if (lastPhysics != world.physics) {
                 library.syncMaster.nextSession()
                 lastPhysics = world.physics
+            }
+        }
+
+        if (isKeyDown(GLFW.GLFW_KEY_PAUSE)) {
+            getWorld().simpleTraversal(false) {
+                if (it is Entity && it.hasComponentInChildren(MeshBaseComponent::class)) {
+                    val transform = it.transform
+                    println("${Tabs.spaces(2 * it.depthInHierarchy)}'${it.name}':\n${transform.localTransform}\n${transform.globalTransform}")
+                }
+                false
             }
         }
 

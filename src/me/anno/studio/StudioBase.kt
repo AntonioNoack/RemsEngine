@@ -125,9 +125,9 @@ abstract class StudioBase(
 
         Cursor.init()
 
-        createUI()
-
         ExtensionLoader.load()
+
+        createUI()
 
     }
 
@@ -250,12 +250,12 @@ abstract class StudioBase(
     }
 
     fun processMouseMovement() {
-        if (lastMouseX == Input.mouseX && lastMouseY == Input.mouseY) {
+        if (!Input.hadMouseMovement) {
             ActionManager.onMouseIdle()
-        } else {
-            lastMouseX = Input.mouseX
-            lastMouseY = Input.mouseY
         }
+        lastMouseX = Input.mouseX
+        lastMouseY = Input.mouseY
+        Input.hadMouseMovement = false
     }
 
     fun updateHoveredAndCursor() {

@@ -62,6 +62,8 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
+// todo when the aspect ratio is extreme (e.g. > 50), stretch the image artificially to maybe 10 aspect ratio
+
 // todo cannot enter mtl file
 
 // todo when is audio, and hovered, we need to draw the loading animation continuously as well

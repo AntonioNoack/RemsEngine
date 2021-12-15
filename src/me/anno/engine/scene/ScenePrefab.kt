@@ -25,7 +25,7 @@ object ScenePrefab : InnerPrefabFile(
     FileRootRef,
     Prefab("Entity").apply {
 
-        val clock = Clock()
+        // val clock = Clock()
 
         ensureMutableLists()
 
@@ -33,22 +33,22 @@ object ScenePrefab : InnerPrefabFile(
         set(Path.ROOT_PATH, "description", "Contains the major components")
         set(Path.ROOT_PATH, "isCollapsed", false)
 
-        val names = listOf("Globally Shared", "Player Prefab", "Locally Shared", "Local Players", "Remote Players")
-        val descriptions = listOf(
-            "The world, which is shared",
-            "What a player in the global world looks like",
-            "If there is UI to be shared for local multiplayer, define it here",
-            "Populated at runtime with the players on this PC; can be trusted",
-            "Populated at runtime with players from different PCs, states, continents; may not be trusted"
+        val coreComponents = listOf(
+            "Globally Shared" to "The world, which is shared",
+            "Player Prefab" to "What a player in the global world looks like",
+            "Locally Shared" to "If there is UI to be shared for local multiplayer, define it here",
+            "Local Players" to "Populated at runtime with the players on this PC; can be trusted",
+            "Remote Players" to "Populated at runtime with players from different PCs, states, continents; may not be trusted"
         )
 
         val root = Path.ROOT_PATH
-        for (i in names.indices) {
-            val e = addE(this, root, names[i])
-            set(e, "description", descriptions[i])
+        for ((name, description) in coreComponents) {
+            val e = addE(this, root, name)
+            set(e, "description", description)
             set(e, "isCollapsed", false)
         }
 
+        /*
         // root has bullet physics, because the players need physics as well
         addC(this, root, "BulletPhysics")
 
@@ -154,12 +154,6 @@ object ScenePrefab : InnerPrefabFile(
         // physics tests //
         //////////////////
         val physics = addE(this, world, "Physics")
-
-        // fluid dynamics
-        val fluidSimObject = addE(this, physics, "FluidSim")
-        addC(this, fluidSimObject, "FluidSim")
-        addC(this, fluidSimObject, "ManualProceduralMesh")
-        // todo set second mesh from FluidSim somehow...
 
         // vehicle
         val vehicle = addE(this, physics, "Vehicle")
@@ -273,7 +267,7 @@ object ScenePrefab : InnerPrefabFile(
             val sphere = addE(this, planets, "Sphere 1e$i", spherePath)
             set(sphere, "position", Vector3d(0.0, 0.0, 3.0 * size))
             set(sphere, "scale", Vector3d(size))
-        }*/
+        }*/*/
 
     }) {
 

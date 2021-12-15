@@ -1,5 +1,6 @@
 package me.anno.image;
 
+import me.anno.cache.data.ICacheData;
 import me.anno.gpu.texture.Texture2D;
 import me.anno.image.raw.IntImage;
 import me.anno.io.files.FileReference;
@@ -13,7 +14,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
-public abstract class Image {
+public abstract class Image implements ICacheData {
 
     int numChannels;
     public boolean hasAlphaChannel;
@@ -170,6 +171,10 @@ public abstract class Image {
 
     public static int argb(int a, int r, int g, int b) {
         return (a << 24) + (r << 16) + (g << 8) + b;
+    }
+
+    @Override
+    public void destroy() {
     }
 
 }

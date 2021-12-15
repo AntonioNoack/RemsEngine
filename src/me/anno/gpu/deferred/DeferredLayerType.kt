@@ -21,6 +21,7 @@ enum class DeferredLayerType(
     // todo this is special, integrate it somehow...
     COLOR_EMISSIVE("finalColorEmissive", 4, BufferQuality.LOW_8, false, 0x007799ff, "", ""),
 
+    // todo we should add randomness like with finalColor, maybe to all buffers for random rounding
     NORMAL("finalNormal", 3, BufferQuality.MEDIUM_12, false, 0x77ff77, "*0.5+0.5", "*2.0-1.0"),
 
     // todo do we need the tangent? it is calculated from uvs, so maybe for anisotropy...

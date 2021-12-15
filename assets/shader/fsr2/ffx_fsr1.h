@@ -286,12 +286,12 @@ AF4 FsrRcasLoadF(ASU2 p);
   // Immediate constants for peak range.
   AF2 peakC=AF2(1.0,-1.0*4.0);
   // Limiters, these need to be high precision RCPs.
-  AH1 hitMinR=min(mn4R,eR)*ARcpH1(AH1_(4.0)*mx4R);
-  AH1 hitMinG=min(mn4G,eG)*ARcpH1(AH1_(4.0)*mx4G);
-  AH1 hitMinB=min(mn4B,eB)*ARcpH1(AH1_(4.0)*mx4B);
-  AH1 hitMaxR=(peakC.x-max(mx4R,eR))*ARcpH1(AH1_(4.0)*mn4R+peakC.y);
-  AH1 hitMaxG=(peakC.x-max(mx4G,eG))*ARcpH1(AH1_(4.0)*mn4G+peakC.y);
-  AH1 hitMaxB=(peakC.x-max(mx4B,eB))*ARcpH1(AH1_(4.0)*mn4B+peakC.y);
+  AF1 hitMinR=min(mn4R,eR)*ARcpF1(AF1_(4.0)*mx4R);
+  AF1 hitMinG=min(mn4G,eG)*ARcpF1(AF1_(4.0)*mx4G);
+  AF1 hitMinB=min(mn4B,eB)*ARcpF1(AF1_(4.0)*mx4B);
+  AF1 hitMaxR=(peakC.x-max(mx4R,eR))*ARcpF1(AF1_(4.0)*mn4R+peakC.y);
+  AF1 hitMaxG=(peakC.x-max(mx4G,eG))*ARcpF1(AF1_(4.0)*mn4G+peakC.y);
+  AF1 hitMaxB=(peakC.x-max(mx4B,eB))*ARcpF1(AF1_(4.0)*mn4B+peakC.y);
   AF1 lobeR=max(-hitMinR,hitMaxR);
   AF1 lobeG=max(-hitMinG,hitMaxG);
   AF1 lobeB=max(-hitMinB,hitMaxB);

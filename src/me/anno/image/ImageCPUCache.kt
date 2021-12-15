@@ -23,54 +23,63 @@ object ImageCPUCache : CacheSection("BufferedImages") {
 
     private val LOGGER = LogManager.getLogger(ImageCPUCache::class)
 
+    private val byteReaders = HashMap<String, (ByteArray) -> Image?>()
+    private val fileReaders = HashMap<String, (FileReference) -> Image?>()
+    private val streamReaders = HashMap<String, (InputStream) -> Image?>()
+
+    fun registerReader(
+        signature: String,
+        byteReader: (ByteArray) -> Image?,
+        fileReader: (FileReference) -> Image?,
+        streamReader: (InputStream) -> Image?
+    ) {
+        byteReaders[signature] = byteReader
+        fileReaders[signature] = fileReader
+        streamReaders[signature] = streamReader
+    }
+
+    fun registerStreamReader(
+        signature: String,
+        streamReader: (InputStream) -> Image?
+    ) {
+        byteReaders[signature] = { streamReader(it.inputStream()) }
+        fileReaders[signature] = { streamReader(it.inputStream()) }
+        streamReaders[signature] = streamReader
+    }
+
+    init {
+        registerStreamReader("hdr") { HDRImage(it) }
+        registerStreamReader("tga") { TGAImage.read(it, false) }
+        registerStreamReader("ico") { tryIco(it) }
+    }
+
     // eps: like svg, we could implement it, but we don't really need it that dearly...
 
-    fun getImage(file: FileReference,async: Boolean): Image? {
+    fun getImage(file: FileReference, async: Boolean): Image? {
         return getImage(file, 10_000, async)
     }
 
     fun getImage(file: FileReference, timeout: Long, async: Boolean): Image? {
-        val data = getEntry(file, timeout, async) {
+        return getEntry(file, timeout, async) {
             if (file is ImageReadable) {
                 CacheData(file.readImage())
             } else {
                 if (file.length() < 1e7) { // < 10MB -> read directly
                     val bytes = file.readBytes()
-                    CacheData(
-                        when (Signature.findName(bytes)) {
-                            "hdr" -> HDRImage(bytes.inputStream())
-                            "tga" -> TGAImage.read(bytes.inputStream(), false)
-                            "ico" -> tryIco(bytes.inputStream())
-                            "dds", "media" -> tryFFMPEG(file)
-                            null -> when (file.lcExtension) {
-                                "tga" -> TGAImage.read(bytes.inputStream(), false)
-                                "webp" -> tryFFMPEG(file)
-                                "ico" -> tryIco(bytes.inputStream())
-                                else -> tryGeneric(file, bytes)
-                            }
-                            else -> tryGeneric(file, bytes)
-                        }
-                    )
+                    val signature = Signature.findName(bytes)
+                    if (signature == "dds" || signature == "media" || file.lcExtension == "webp") {
+                        tryFFMPEG(file)
+                    } else {
+                        val reader = byteReaders[signature] ?: byteReaders[file.lcExtension]
+                        if (reader != null) reader(bytes) else tryGeneric(file, bytes)
+                    }
                 } else {
-                    CacheData(
-                        when (Signature.findName(file)) {
-                            "hdr" -> HDRImage(file.inputStream())
-                            "tga" -> TGAImage.read(file.inputStream(), false)
-                            "ico" -> tryIco(file.inputStream())
-                            "dds", "media" -> tryFFMPEG(file)
-                            null -> when (file.lcExtension) {
-                                "tga" -> TGAImage.read(file.inputStream(), false)
-                                "webp" -> tryFFMPEG(file)
-                                "ico" -> tryIco(file.inputStream())
-                                else -> tryGeneric(file)
-                            }
-                            else -> tryGeneric(file)
-                        }
-                    )
+                    val signature = Signature.findName(file)
+                    val reader = fileReaders[signature] ?: fileReaders[file.lcExtension]
+                    if (reader != null) reader(file) else tryGeneric(file)
                 }
             }
-        } as? CacheData<*>
-        return data?.value as? Image
+        } as? Image
     }
 
     private fun tryFFMPEG(file: FileReference): Image {

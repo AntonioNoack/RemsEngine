@@ -2,6 +2,7 @@ package me.anno.gpu.buffer
 
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
+import me.anno.gpu.buffer.Attribute.Companion.computeOffsets
 import me.anno.gpu.shader.Shader
 import me.anno.utils.LOGGER
 import org.lwjgl.opengl.GL11
@@ -16,15 +17,7 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
 
     constructor(attributes: List<Attribute>) : this(attributes, GL15.GL_STATIC_DRAW)
 
-    init {
-        var offset = 0L
-        val stride = attributes.sumOf { it.byteSize }
-        attributes.forEach {
-            it.offset = offset
-            it.stride = stride
-            offset += it.byteSize
-        }
-    }
+    val stride = computeOffsets(attributes)
 
     var drawMode = GL_TRIANGLES
     var nioBuffer: ByteBuffer? = null
@@ -53,7 +46,6 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
         bindBuffer(GL_ARRAY_BUFFER, buffer)
 
         val nio = nioBuffer!!
-        val stride = attributes.first().stride
         val newLimit = nio.position().toLong()
         drawLength = (newLimit / stride).toInt()
         nio.flip()

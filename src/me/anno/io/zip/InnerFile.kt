@@ -63,7 +63,7 @@ abstract class InnerFile(
 
     open fun getLc(path: String): FileReference? {
         if (path.isEmpty()) return ZipCache.unzip(this, false)
-        val m = ZipCache.unzip(this, false) as? InnerFile
+        val m = ZipCache.unzip(this, false)
         return m?.getLc(path)
     }
 

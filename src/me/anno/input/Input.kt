@@ -83,6 +83,7 @@ object Input {
 
     var mouseMovementSinceMouseDown = 0f
     val maxClickDistance = 5f
+    var hadMouseMovement = false
 
     var isLeftDown = false
     var isMiddleDown = false
@@ -156,6 +157,7 @@ object Input {
                 val dy = newY - mouseY
 
                 mouseMovementSinceMouseDown += length(dx, dy)
+                hadMouseMovement = true
 
                 mouseX = newX
                 mouseY = newY
@@ -644,6 +646,10 @@ object Input {
 
     fun isKeyDown(key: Char): Boolean {
         return key.uppercaseChar().code in keysDown
+    }
+
+    fun isKeyDown(key: Int): Boolean {
+        return key in keysDown
     }
 
 }

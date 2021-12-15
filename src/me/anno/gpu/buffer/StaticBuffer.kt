@@ -156,6 +156,7 @@ open class StaticBuffer(attributes: List<Attribute>, val vertexCount: Int, usage
     }
 
     override fun destroy() {
+        super.destroy()
         ByteBufferPool.free(nioBuffer)
         nioBuffer = null
     }

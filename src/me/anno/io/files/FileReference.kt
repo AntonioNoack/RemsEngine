@@ -2,6 +2,7 @@ package me.anno.io.files
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
+import me.anno.cache.data.ICacheData
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.gpu.GFX.windowStack
 import me.anno.io.windows.WindowsShortcut
@@ -35,7 +36,7 @@ import java.nio.charset.Charset
  * also this can be used to navigate to "pseudo"-files, like files inside zip containers,
  * files on the web, or local resources
  * */
-abstract class FileReference(val absolutePath: String) {
+abstract class FileReference(val absolutePath: String) : ICacheData {
 
     // done if there is a !!, it's into a zip file -> it only needs to be a slash;
     // all zip files should be detected automatically
@@ -376,44 +377,33 @@ abstract class FileReference(val absolutePath: String) {
 
     open fun isSerializedFolder(): Boolean {
         // only read the first bytes
-        return when (val signature = Signature.findName(this)) {
-            "zip", "rar", "7z", "bz2", "lz4", "xar", "oar", "gzip", "tar" -> {
-                LOGGER.info("Checking $absolutePath for zip file, matches signature")
-                true
-            }
-            "pdf" -> true
-            // todo all mesh extensions
-            "fbx", "vox", "obj", "mtl", "gltf", "dae", "yaml", "blend", "draco",
-            "md2", "md5mesh" -> {
-                LOGGER.info("Checking $absolutePath for mesh file, matches signature")
-                true
-            }
-            "png", "jpg", "bmp", "pds", "hdr", "webp", "ico", "tga", "dds" -> {
-                LOGGER.info("Checking $absolutePath for image file, matches signature")
-                true
-            }
-            null, "xml", "json", "media" -> return try {// maybe something unknown, that we understand anyways
+        val signature = Signature.findName(this)
+        if (ZipCache.hasReaderForFileExtension(lcExtension)) {
+            LOGGER.info("Checking $absolutePath for zip/similar file, matches extension")
+            return true
+        }
+        if (ZipCache.hasReaderForSignature(signature)) {
+            LOGGER.info("Checking $absolutePath for zip/similar file, matches signature")
+            return true
+        }
+        return when (signature) {
+            null, "xml", "json" -> {// maybe something unknown, that we understand anyways
                 // dae is xml
                 when (lcExtension) {
-                    "fbx", "vox", "obj", "mtl", "gltf", "glb", "dae", "blend",
                     "mat", "prefab", "unity", "asset", "controller", "json" -> {
                         LOGGER.info("Checking $absolutePath for mesh file, matches extension")
                         true
                     }
-                    "png", "jpg", "bmp", "pds", "hdr", "webp", "tga", "dds" -> {
-                        LOGGER.info("Checking $absolutePath for image file, matches extension")
-                        true
-                    }
-                    else -> {
+                    else -> try {
                         val zis = createZipFile(this)
                         val result = zis.entries.hasMoreElements()
                         LOGGER.info("Checking $absolutePath for zip file, success")
                         result
+                    } catch (e: IOException) {
+                        LOGGER.info("Checking $absolutePath for zip file, ${e.message}")
+                        false
                     }
                 }
-            } catch (e: IOException) {
-                LOGGER.info("Checking $absolutePath for zip file, ${e.message}")
-                false
             }
             else -> {
                 LOGGER.info("Checking $absolutePath for zip file, other signature: $signature")
@@ -513,6 +503,9 @@ abstract class FileReference(val absolutePath: String) {
                 child.printTree(depth + 1)
             }
         }
+    }
+
+    override fun destroy() {
     }
 
     // todo support for ffmpeg to read all zip files

@@ -186,8 +186,12 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        super.onMouseMoved(x, y, dx, dy)
-        if (Input.isLeftDown && isSelected) {
+        if (EditorState.control?.onMouseMoved(x, y, dx, dy) == true) return
+        if (EditorState.editMode?.onEditMove(x, y, dx, dy) == true) return
+        // super.onMouseMoved(x, y, dx, dy)
+        if (isSelected && Input.isRightDown) {
+            moveCamera(dx, dy)
+        } else if (isSelected && Input.isLeftDown) {
             val targets = selectedEntities
             if (targets.isNotEmpty() && mode != Mode.NOTHING) {
 

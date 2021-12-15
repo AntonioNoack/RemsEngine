@@ -6,6 +6,18 @@ import org.joml.Vector3f
 
 object TerrainUtils {
 
+    interface ColorMap {
+        operator fun get(it: Int): Int
+    }
+
+    interface HeightMap {
+        operator fun get(it: Int): Float
+    }
+
+    interface NormalMap {
+        fun get(x: Int, y: Int, i: Int, dst: Vector3f)
+    }
+
     fun generateRegularQuadHeightMesh(
         width: Int,
         height: Int,
@@ -13,9 +25,9 @@ object TerrainUtils {
         stride: Int,
         cellSizeMeters: Float,
         mesh: Mesh,
-        getHeight: (index: Int) -> Float,
-        getNormal: (x: Int, y: Int, i: Int, dst: Vector3f) -> Unit,
-        getColor: (index: Int) -> Int
+        heightMap: HeightMap,
+        normalMap: NormalMap,
+        colorMap: ColorMap
     ) {
 
         ////////////////////////////////
@@ -80,14 +92,14 @@ object TerrainUtils {
         for (y in 0 until height) {
             var i = y * stride + offset
             for (x in 0 until width) {
-                getNormal(x, y, i, normal)
+                normalMap.get(x, y, i, normal)
                 normals[j] = normal.x
                 vertices[j++] = (x - centerX) * cellSizeMeters
                 normals[j] = normal.y
-                vertices[j++] = getHeight(i)
+                vertices[j++] = heightMap[i]
                 normals[j] = normal.z
                 vertices[j++] = (y - centerY) * cellSizeMeters
-                colors[l++] = getColor(i)
+                colors[l++] = colorMap[i]
                 i++
             }
         }

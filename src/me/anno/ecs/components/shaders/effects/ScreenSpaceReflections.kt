@@ -197,7 +197,7 @@ object ScreenSpaceReflections {
         dst: Framebuffer = FBStack["ss-reflections", buffer.w, buffer.h, 4, true, 1, false]
     ): Texture2D {
         useFrame(dst, Renderer.copyRenderer) {
-            val fineSteps = 5 // 10 are enough, if there are only rough surfaces
+            val fineSteps = 10 // 10 are enough, if there are only rough surfaces
             val maxDistance = 8f
             val shader = shader.value
             shader.use()
