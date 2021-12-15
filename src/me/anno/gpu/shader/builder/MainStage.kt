@@ -1,6 +1,7 @@
 package me.anno.gpu.shader.builder
 
 import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.Shader
 
 class MainStage {
@@ -222,7 +223,7 @@ class MainStage {
             }
         }
 
-        for (variable in attributes.sortedBy { it.size }) variable.appendGlsl(code, Shader.attributeName)
+        for (variable in attributes.sortedBy { it.size }) variable.appendGlsl(code, OpenGLShader.attributeName)
         if (attributes.isNotEmpty()) code.append('\n')
 
         if (isFragmentStage) {

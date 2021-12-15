@@ -26,7 +26,7 @@ open class BaseShader(
 
     constructor() : this("", "", emptyList(), "")
 
-    var glslVersion = Shader.DefaultGLSLVersion
+    var glslVersion = OpenGLShader.DefaultGLSLVersion
     var textures: List<String>? = null
     var ignoredUniforms = HashSet<String>()
 

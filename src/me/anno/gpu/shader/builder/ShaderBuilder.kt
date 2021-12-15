@@ -4,6 +4,7 @@ import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.GeoShader
+import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.Shader
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
@@ -28,7 +29,7 @@ class ShaderBuilder(val name: String) {
 
     var outputs: DeferredSettingsV2? = null
 
-    var glslVersion = Shader.DefaultGLSLVersion
+    var glslVersion = OpenGLShader.DefaultGLSLVersion
 
     val ignored = HashSet<String>()
 

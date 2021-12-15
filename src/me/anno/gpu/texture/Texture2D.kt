@@ -20,6 +20,7 @@ import org.lwjgl.opengl.GL13.GL_TEXTURE0
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL32.GL_TEXTURE_2D_MULTISAMPLE
 import org.lwjgl.opengl.GL32.glTexImage2DMultisample
+import org.lwjgl.opengl.GL43
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
 import java.nio.ByteBuffer
@@ -797,6 +798,8 @@ open class Texture2D(
 
     companion object {
 
+        var wasModifiedInComputePipeline = false
+
         fun BufferedImage.hasAlphaChannel() = colorModel.hasAlpha()
 
         val bufferPool = ByteBufferPool(64, false)
@@ -832,6 +835,10 @@ open class Texture2D(
          * */
         fun bindTexture(mode: Int, pointer: Int): Boolean {
             if (pointer < 0) throw IllegalArgumentException("Pointer must be valid")
+            if (wasModifiedInComputePipeline) {
+                GL43.glMemoryBarrier(GL43.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
+                wasModifiedInComputePipeline = false
+            }
             return if (boundTextures[boundTextureSlot] != pointer) {
                 boundTextures[boundTextureSlot] = pointer
                 glBindTexture(mode, pointer)
