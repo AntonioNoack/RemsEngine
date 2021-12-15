@@ -258,7 +258,6 @@ object Raycast {
                 }
 
                 if (localEnd2 < originalLocalEnd) {
-                    val oldDistance = result.distance
                     result.setFromLocal(globalTransform, localPosition, localNormal, start, direction, end)
                 }
 

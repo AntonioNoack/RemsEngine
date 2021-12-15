@@ -1,4 +1,4 @@
- // Input callback prototypes, need to be implemented by calling shader
+// Input callback prototypes, need to be implemented by calling shader
  AF4 FsrEasuRF(AF2 p);
  AF4 FsrEasuGF(AF2 p);
  AF4 FsrEasuBF(AF2 p);

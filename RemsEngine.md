@@ -23,7 +23,7 @@ I am writing the game engine in this same repository as Rem's Studio, because
 - currently, the engine needs to be based on the video editor
 - when I started the engine, the video studio already was a huge project
 
-### Features
+## Features
 
 - entity - component based system
     - because I like the system from Unity more than that of Godot (still imperfect)
@@ -57,7 +57,7 @@ I am writing the game engine in this same repository as Rem's Studio, because
 - bare-bones support for .blend files from Blender, so you don't have to export manually
 - automatic file reload, on file change
 
-### Planned Features
+## Planned Features
 - nice UI system
 - easy local multiplayer
 - environment maps as lights
@@ -67,7 +67,7 @@ I am writing the game engine in this same repository as Rem's Studio, because
 - transparent meshes
 - export to Windows/Linux
 
-### Maybe Later Features
+## Maybe Later Features
 - export to Web
 - export to Android <!--
 videos on Android using https://stackoverflow.com/questions/9375598/android-how-play-video-on-surfaceopengl?
@@ -82,3 +82,7 @@ videos on Android using https://stackoverflow.com/questions/9375598/android-how-
 - support separate mice / keyboards for local multiplayer?
 - support controller + mouse/keyboard for one more local player
 - when we have no videos, we could ship without ffmpeg
+
+## Build
+
+The project can be built similar to the video studio, just the main class now is me.anno.engine.RemsEngine.
