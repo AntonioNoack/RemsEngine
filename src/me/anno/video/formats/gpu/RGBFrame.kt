@@ -30,6 +30,7 @@ open class RGBFrame(w: Int, h: Int) : GPUFrame(w, h, -1) {
             data.put(-1) // offset is required
         }
         data.position(0)
+        blankDetector.putRGBA(data)
         creationLimiter.acquire()
         GFX.addGPUTask(w, h) {
             rgb.createRGB(data, true)

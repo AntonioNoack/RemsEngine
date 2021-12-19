@@ -1,5 +1,6 @@
 package me.anno.gpu
 
+import me.anno.Engine
 import me.anno.audio.AudioStream
 import me.anno.config.DefaultConfig
 import me.anno.engine.ui.render.ECSShaderLib
@@ -407,6 +408,12 @@ object GFX : GFXBase1() {
     fun workGPUTasks(all: Boolean) {
         if (workQueue(gpuTasks, 1f / 60f, all)) {
             workQueue(lowPriorityGPUTasks, 1f / 120f, all)
+        }
+    }
+
+    fun workGPUTasksUntilShutdown() {
+        while (!Engine.shutdown) {
+            workGPUTasks(true)
         }
     }
 

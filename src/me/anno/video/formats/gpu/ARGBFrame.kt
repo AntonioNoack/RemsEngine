@@ -15,6 +15,7 @@ class ARGBFrame(w: Int, h: Int) : GPUFrame(w, h, 0) {
     override fun load(input: InputStream) {
         val s0 = w * h * 4
         val data = input.readNBytes2(s0, Texture2D.bufferPool)
+        blankDetector.putRGBA(data)
         creationLimiter.acquire()
         GFX.addGPUTask(w, h) {
             // the data actually still is argb and shuffling is needed

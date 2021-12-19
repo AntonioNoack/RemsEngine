@@ -13,38 +13,35 @@ import java.io.InputStream
 class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 2) {
 
     private val y = Texture2D("i444-y-frame", w, h, 1)
-    private val u = Texture2D("i444-u-frame", w, h, 1)
-    private val v = Texture2D("i444-v-frame", w, h, 1)
+    private val uv = Texture2D("i444-uv-frame", w, h, 1)
 
     override fun load(input: InputStream) {
         val s0 = w * h
         val yData = input.readNBytes2(s0, Texture2D.bufferPool)
+        blankDetector.putChannel(yData, 0)
         creationLimiter.acquire()
         GFX.addGPUTask(w, h) {
             y.createMonochrome(yData, true)
             creationLimiter.release()
         }
         val uData = input.readNBytes2(s0, Texture2D.bufferPool)
-        creationLimiter.acquire()
-        GFX.addGPUTask(w, h) {
-            u.createMonochrome(uData, true)
-            creationLimiter.release()
-        }
+        blankDetector.putChannel(uData, 1)
         val vData = input.readNBytes2(s0, Texture2D.bufferPool)
+        blankDetector.putChannel(vData, 2)
+        // merge the u and v planes
+        val interlaced = interlaceReplace(uData, vData)
+        // create the uv texture
         creationLimiter.acquire()
         GFX.addGPUTask(w, h) {
-            v.createMonochrome(vData, true)
+            uv.createRG(interlaced, true)
             creationLimiter.release()
-            // tasks are executed in order, so this is true
-            // (if no exception happened)
         }
     }
 
-    override fun getTextures(): List<Texture2D> = listOf(y, u, v)
+    override fun getTextures(): List<Texture2D> = listOf(y, uv)
 
     override fun bind(offset: Int, nearestFiltering: GPUFiltering, clamping: Clamping) {
-        v.bind(offset + 2, nearestFiltering, clamping)
-        u.bind(offset + 1, nearestFiltering, clamping)
+        uv.bind(offset + 1, nearestFiltering, clamping)
         y.bind(offset, nearestFiltering, clamping)
     }
 

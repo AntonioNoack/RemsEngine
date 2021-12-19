@@ -8,6 +8,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
+import me.anno.objects.effects.BlankFrameDetector
 import me.anno.utils.OS.desktop
 import me.anno.utils.Sleep.waitForGFXThread
 import me.anno.utils.files.Files.findNextFile
@@ -23,6 +24,16 @@ abstract class GPUFrame(
 
     val isCreated: Boolean get() = getTextures().all { it.isCreated && !it.isDestroyed }
     val isDestroyed: Boolean get() = getTextures().any { it.isDestroyed }
+
+    val blankDetector = BlankFrameDetector()
+
+    fun isBlankFrame(
+        f0: GPUFrame, f4: GPUFrame, outlierThreshold: Float = 1f
+    ): Boolean {
+        return blankDetector.isBlankFrame(
+            f0.blankDetector, f4.blankDetector, outlierThreshold
+        )
+    }
 
     abstract fun get3DShader(): BaseShader
 
@@ -62,6 +73,19 @@ abstract class GPUFrame(
             dst.put(b[i])
         }
         dst.flip()
+        return dst
+    }
+
+    fun interlaceReplace(a: ByteBuffer, b: ByteBuffer): ByteBuffer {
+        val dst = Texture2D.bufferPool[a.remaining() * 2, false]
+        val size = a.limit()
+        for (i in 0 until size) {
+            dst.put(a[i])
+            dst.put(b[i])
+        }
+        dst.flip()
+        Texture2D.bufferPool.returnBuffer(a)
+        Texture2D.bufferPool.returnBuffer(b)
         return dst
     }
 

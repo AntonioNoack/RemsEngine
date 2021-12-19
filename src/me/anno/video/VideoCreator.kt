@@ -1,8 +1,12 @@
 package me.anno.video
 
+import me.anno.Engine
 import me.anno.gpu.GFX
+import me.anno.gpu.RenderState.useFrame
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.packAlignment
 import me.anno.io.files.FileReference
 import me.anno.studio.rems.RemsStudio.project
@@ -172,7 +176,68 @@ class VideoCreator(
     }
 
     companion object {
+
         private val LOGGER = LogManager.getLogger(VideoCreator::class)
+
+        /**
+         * render a video from a framebuffer
+         * */
+        fun renderVideo(w: Int, h: Int, fps: Double, dst: FileReference, numUpdates: Int, fb: Framebuffer, update: (callback: () -> Unit) -> Unit) {
+            val creator = VideoCreator(
+                w, h, fps, numUpdates + 1L, FFMPEGEncodingBalance.S1,
+                FFMPEGEncodingType.DEFAULT, dst
+            )
+            creator.init()
+            var frameCount = 0
+            fun writeFrame() {
+                creator.writeFrame(fb, frameCount.toLong()) {
+                    if (++frameCount <= numUpdates) {
+                        GFX.addGPUTask(1) {
+                            update(::writeFrame)
+                        }
+                    } else {
+                        creator.close()
+                        Engine.shutdown()
+                    }
+                }
+            }
+            GFX.addGPUTask(1) { writeFrame() }
+            GFX.workGPUTasksUntilShutdown()
+        }
+
+        /**
+         * render a video from a set of textures
+         * */
+        fun renderVideo(w: Int, h: Int, fps: Double, dst: FileReference, numFrames: Long, getNextFrame: (callback: (Texture2D) -> Unit) -> Unit) {
+            val creator = VideoCreator(
+                w, h, fps, numFrames, FFMPEGEncodingBalance.S1,
+                FFMPEGEncodingType.DEFAULT, dst
+            )
+            creator.init()
+            var frameCount = 0
+            val fb = Framebuffer("frame", w, h, 1, 1, false, DepthBufferType.NONE)
+            fun writeFrame() {
+                getNextFrame { texture ->
+                    useFrame(fb){
+                        texture.bind(0)
+                        GFX.copyNoAlpha()
+                    }
+                    creator.writeFrame(fb, frameCount.toLong()) {
+                        if (++frameCount <= numFrames) {
+                            GFX.addGPUTask(1) {
+                                writeFrame()
+                            }
+                        } else {
+                            creator.close()
+                            Engine.shutdown()
+                        }
+                    }
+                }
+            }
+            GFX.addGPUTask(1) { writeFrame() }
+            GFX.workGPUTasksUntilShutdown()
+        }
+
     }
 
 }

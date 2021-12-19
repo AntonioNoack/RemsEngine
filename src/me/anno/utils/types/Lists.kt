@@ -136,6 +136,16 @@ object Lists {
         return result
     }
 
+    fun <A, B, C> List<A>.crossMap(other: List<B>, map: (a: A, b: B) -> C): List<C> {
+        val result = ArrayList<C>(size * other.size)
+        for (a in this) {
+            for (b in other) {
+                result += map(a, b)
+            }
+        }
+        return result
+    }
+
     fun <A, B, C> List<A>.cross(other: List<B>, other2: List<C>): List<Triple<A, B, C>> {
         val result = ArrayList<Triple<A, B, C>>(size * other.size * other2.size)
         for (a in this) {

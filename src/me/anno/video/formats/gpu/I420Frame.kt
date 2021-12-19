@@ -21,19 +21,21 @@ class I420Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 2) {
     override fun load(input: InputStream) {
         val s0 = w * h
         val s1 = w2 * h2
+        // load and create y plane
         val yData = input.readNBytes2(s0, bufferPool)
-        // writeMonochromeDebugImage(w, h, yData)
+        blankDetector.putChannel(yData, 0)
         creationLimiter.acquire()
         GFX.addGPUTask(w, h) {
             y.createMonochrome(yData, true)
             creationLimiter.release()
         }
-        // merge the u and v planes
+        // merge and create u/v planes
         val uData = input.readNBytes2(s1, bufferPool)
+        blankDetector.putChannel(uData, 1)
         val vData = input.readNBytes2(s1, bufferPool)
-        val interlaced = interlace(uData, vData, bufferPool[s1 * 2, false])
-        bufferPool.returnBuffer(uData)
-        bufferPool.returnBuffer(vData)
+        blankDetector.putChannel(vData, 2)
+        // merge the u and v planes
+        val interlaced = interlaceReplace(uData, vData)
         // create the uv texture
         creationLimiter.acquire()
         GFX.addGPUTask(w2, h2) {
