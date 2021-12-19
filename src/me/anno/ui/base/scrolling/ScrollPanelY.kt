@@ -12,6 +12,8 @@ import me.anno.ui.style.Style
 import me.anno.utils.maths.Maths.clamp
 import kotlin.math.max
 
+// todo scroll smoothing
+// todo for x as well
 open class ScrollPanelY(
     child: Panel, padding: Padding,
     style: Style,

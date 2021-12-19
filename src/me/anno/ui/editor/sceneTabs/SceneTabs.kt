@@ -7,7 +7,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.Dict
 import me.anno.studio.StudioBase.Companion.dragged
-import me.anno.studio.rems.RemsStudio.root
+import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.ui.StudioFileImporter.addChildFromFile
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
@@ -86,7 +86,7 @@ object SceneTabs : ScrollPanelX(DefaultConfig.style) {
         if (currentTab == sceneTab) return
         synchronized(this) {
             currentTab = sceneTab
-            root = sceneTab.root
+            RemsStudio.root = sceneTab.scene
             if (sceneTab !in children3) {
                 content += sceneTab
             }
@@ -109,7 +109,8 @@ object SceneTabs : ScrollPanelX(DefaultConfig.style) {
         children2.clear()
     }
 
-    fun save(writer: BaseWriter) {
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
         children3.forEach {
             writer.add(SceneTabData(it))
         }

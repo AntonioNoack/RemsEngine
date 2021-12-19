@@ -6,6 +6,8 @@ import me.anno.ui.style.Style
 
 /**
  * Panel that draws a gpu.Texture2D, e.g. for icons, showing images, ...
+ * todo there should be different modes on how the image is aligned:
+ * todo stretch x/y?, keep aspect ratio?, show inner part only?, show all?
  * */
 abstract class ImagePanel(style: Style): Panel(style){
 

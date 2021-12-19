@@ -7,6 +7,7 @@ import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.shader.Renderer
 import me.anno.objects.Camera
+import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.Scene
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.nullCamera
@@ -131,7 +132,7 @@ class ScenePreview(style: Style) : PanelList(null, style.getChild("sceneView")),
 
         drawRect(x + dx, y + dy, rw, rh, black)
         Scene.draw(
-            camera, root,
+            camera, RemsStudio.root,
             x + dx, y + dy,
             goodW, goodH,
             editorTime, false,

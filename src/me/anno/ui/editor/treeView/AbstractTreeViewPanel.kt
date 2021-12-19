@@ -49,7 +49,7 @@ class AbstractTreeViewPanel<V>(
 
     val accentColor = style.getColor("accentColor", black or 0xff0000)
 
-    val symbol: TextPanel? = if (showSymbol) {
+    val uiSymbol: TextPanel? = if (showSymbol) {
         object : TextPanel("", style) {
 
             init {
@@ -76,32 +76,32 @@ class AbstractTreeViewPanel<V>(
     }
 
     init {
-        if (symbol != null) {
-            symbol.enableHoverColor = true
-            this += symbol
+        if (uiSymbol != null) {
+            uiSymbol.enableHoverColor = true
+            this += uiSymbol
         }
         text.enableHoverColor = true
         this += text
     }
 
     fun setText(symbol: String, name: String) {
-        this.symbol?.text = symbol
+        this.uiSymbol?.text = symbol
         this.text.text = name
     }
 
     var showAddIndex: Int? = null
 
     var textColor
-        get() = (symbol ?: text).textColor
+        get() = (uiSymbol ?: text).textColor
         set(value) {
-            symbol?.textColor = value
+            uiSymbol?.textColor = value
             text.textColor = value
             text.focusTextColor = value
         }
 
     // override val effectiveTextColor: Int get() = textColor
-    val hoverColor get() = (symbol ?: text).hoverColor
-    val font get() = (symbol ?: text).font
+    val hoverColor get() = (uiSymbol ?: text).hoverColor
+    val font get() = (uiSymbol ?: text).font
 
     fun Int.scaleRGB(f: Float): Int {
         return rgba((r() * f).roundToInt(), (g() * f).roundToInt(), (b() * f).roundToInt(), a())
@@ -121,7 +121,7 @@ class AbstractTreeViewPanel<V>(
         } else null
         if (this.showAddIndex != showAddIndex) invalidateDrawing()
         this.showAddIndex = showAddIndex
-        val isInFocus = isInFocus || text.isInFocus || (symbol?.isInFocus == true) || selectedTransform == transform
+        val isInFocus = isInFocus || text.isInFocus || (uiSymbol?.isInFocus == true) || selectedTransform == transform
         val textColor = treeView.getLocalColor(transform, isHovered, isInFocus).scaleRGB(180 / 255f)
         val colorDifference = sq(textColor.r() - backgroundColor.r()) +
                 sq(textColor.g() - backgroundColor.g()) +
@@ -132,7 +132,7 @@ class AbstractTreeViewPanel<V>(
         } else originalBGColor
         this.textColor = textColor
         text.backgroundColor = backgroundColor
-        symbol?.backgroundColor = backgroundColor
+        uiSymbol?.backgroundColor = backgroundColor
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -174,7 +174,7 @@ class AbstractTreeViewPanel<V>(
     }
 
     private fun isMouseOnSymbol(x: Float): Boolean {
-        return symbol != null && x <= symbol.lx1
+        return uiSymbol != null && x <= uiSymbol.lx1
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {

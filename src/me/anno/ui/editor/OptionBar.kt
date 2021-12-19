@@ -2,11 +2,11 @@ package me.anno.ui.editor
 
 import me.anno.input.MouseButton
 import me.anno.language.translation.NameDesc
-import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.style.Style
 
 class OptionBar(style: Style) : PanelListX(null, style.getChild("options")) {
@@ -15,7 +15,11 @@ class OptionBar(style: Style) : PanelListX(null, style.getChild("options")) {
         spacing = style.getSize("fontSize", 12) / 2
     }
 
-    class Major(val name: String, val action: (() -> Unit)?, style: Style) : TextPanel(name, style) {
+    class Major(name: String, val action: (() -> Unit)?, style: Style) : TextPanel(name, style) {
+
+        init {
+            this.name = name
+        }
 
         val actions = HashMap<String, Minor>()
         val actionList = ArrayList<Pair<String, Minor>>()
@@ -57,7 +61,7 @@ class OptionBar(style: Style) : PanelListX(null, style.getChild("options")) {
 
     fun addAction(major: String, minor: String, action: () -> Unit) = addAction(major, minor, minor, action)
     fun addAction(major: String, minor: String, name: String, action: () -> Unit) {
-        addMajor(major,null).addMinor(Minor(name, action), minor)
+        addMajor(major, null).addMinor(Minor(name, action), minor)
     }
 
     val majors = HashMap<String, Major>()

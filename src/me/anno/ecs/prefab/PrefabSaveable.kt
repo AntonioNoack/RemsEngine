@@ -84,8 +84,8 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     // e.g. "ec" for child entities + child components
     open fun listChildTypes(): String = ""
     open fun getChildListByType(type: Char): List<PrefabSaveable> = emptyList()
-    open fun getChildListNiceName(type: Char): String = ""
-    open fun addChildByType(index: Int, type: Char, instance: PrefabSaveable) {}
+    open fun getChildListNiceName(type: Char): String = "Children"
+    open fun addChildByType(index: Int, type: Char, child: PrefabSaveable) {}
     open fun getOptionsByType(type: Char): List<Option>? = null
 
     override fun add(child: PrefabSaveable) {

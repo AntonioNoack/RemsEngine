@@ -14,7 +14,7 @@ class AlphaBar(chooser: ColorChooser, style: Style): HSVBox(chooser,
     { opacity, _ ->
         chooser.setHSL(chooser.hue, chooser.saturation, chooser.lightness, clamp(opacity, 0f, 1f), chooser.colorSpace, true)
     }) {
-    override fun invalidateDrawing() { parent?.invalidateDrawing() }
+    override fun invalidateDrawing() { uiParent?.invalidateDrawing() }
     override fun getVisualState(): Any = chooser.opacity
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val dragX = clamp(x0 + ((x1 - x0) * chooser.opacity).roundToInt(), x0, x1-1)

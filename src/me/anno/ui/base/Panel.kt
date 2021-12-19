@@ -1,6 +1,7 @@
 package me.anno.ui.base
 
 import me.anno.config.DefaultStyle.black
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.gpu.Window
 import me.anno.gpu.drawing.DrawRectangles.drawRect
@@ -20,7 +21,7 @@ import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import kotlin.math.roundToInt
 
-open class Panel(val style: Style) {
+open class Panel(val style: Style) : PrefabSaveable() {
 
     // wished size and placement
     var minX = 0
@@ -28,7 +29,7 @@ open class Panel(val style: Style) {
     var minW = 1
     var minH = 1
 
-    val depth: Int get() = 1 + (parent?.depth ?: 0)
+    val depth: Int get() = 1 + (uiParent?.depth ?: 0)
 
     var alignmentX = AxisAlignment.MIN
     var alignmentY = AxisAlignment.MIN
@@ -43,7 +44,7 @@ open class Panel(val style: Style) {
         set(value) {
             if (value.isFinite() && field != value) {
                 field = value
-                parent?.invalidateLayout()
+                uiParent?.invalidateLayout()
             }
         }
 
@@ -58,7 +59,7 @@ open class Panel(val style: Style) {
     var window: Window? = null
         get() {
             if (field != null) return field
-            field = parent?.window
+            field = uiParent?.window
             return field
         }
 
@@ -93,7 +94,7 @@ open class Panel(val style: Style) {
 
     // layout
     open fun invalidateLayout() {
-        val parent = parent
+        val parent = uiParent
         if (parent == null) {
             val window = window
             window?.needsLayout?.add(this)
@@ -176,7 +177,9 @@ open class Panel(val style: Style) {
 
     val originalBGColor = backgroundColor
 
-    var parent: PanelGroup? = null
+    val uiParent: PanelGroup?
+        get() = parent as? PanelGroup
+
     val layoutConstraints = ArrayList<Constraint>()
 
     var w = 258
@@ -191,7 +194,7 @@ open class Panel(val style: Style) {
     var isHovered = false
     var wasInFocus = false
 
-    val rootPanel: Panel get() = parent?.rootPanel ?: this
+    val rootPanel: Panel get() = uiParent?.rootPanel ?: this
 
     open val onMovementHideTooltip = true
     var tooltip: String? = null
@@ -219,7 +222,7 @@ open class Panel(val style: Style) {
 
     fun updateVisibility(mx: Int, my: Int) {
         isInFocus = false
-        canBeSeen = (parent?.canBeSeen != false) &&
+        canBeSeen = (uiParent?.canBeSeen != false) &&
                 visibility == Visibility.VISIBLE &&
                 lx1 > lx0 && ly1 > ly0
         isHovered = mx in lx0 until lx1 && my in ly0 until ly1
@@ -345,8 +348,8 @@ open class Panel(val style: Style) {
         return this
     }
 
-    fun removeFromParent() {
-        parent?.remove(this)
+    override fun removeFromParent() {
+        uiParent?.remove(this)
     }
 
     /**
@@ -382,86 +385,86 @@ open class Panel(val style: Style) {
     }
 
     open fun onMouseDown(x: Float, y: Float, button: MouseButton) {
-        parent?.onMouseDown(x, y, button)
+        uiParent?.onMouseDown(x, y, button)
     }
 
     open fun onMouseUp(x: Float, y: Float, button: MouseButton) {
-        parent?.onMouseUp(x, y, button)
+        uiParent?.onMouseUp(x, y, button)
     }
 
     open fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         for (l in onClickListeners) {
             if (l(x, y, button, long)) return
         }
-        parent?.onMouseClicked(x, y, button, long)
+        uiParent?.onMouseClicked(x, y, button, long)
     }
 
     open fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
         for (l in onClickListeners) {
             if (l(x, y, button, false)) return
         }
-        parent?.onDoubleClick(x, y, button)
+        uiParent?.onDoubleClick(x, y, button)
     }
 
     open fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        parent?.onMouseMoved(x, y, dx, dy)
+        uiParent?.onMouseMoved(x, y, dx, dy)
     }
 
     open fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
-        parent?.onMouseWheel(x, y, dx, dy, byMouse)
+        uiParent?.onMouseWheel(x, y, dx, dy, byMouse)
     }
 
     open fun onKeyDown(x: Float, y: Float, key: Int) {
-        parent?.onKeyDown(x, y, key)
+        uiParent?.onKeyDown(x, y, key)
     }
 
     open fun onKeyUp(x: Float, y: Float, key: Int) {
-        parent?.onKeyUp(x, y, key)
+        uiParent?.onKeyUp(x, y, key)
     }
 
     open fun onKeyTyped(x: Float, y: Float, key: Int) {
-        parent?.onKeyTyped(x, y, key)
+        uiParent?.onKeyTyped(x, y, key)
     }
 
     open fun onCharTyped(x: Float, y: Float, key: Int) {
-        parent?.onCharTyped(x, y, key)
+        uiParent?.onCharTyped(x, y, key)
     }
 
     open fun onEmpty(x: Float, y: Float) {
-        parent?.onEmpty(x, y)
+        uiParent?.onEmpty(x, y)
     }
 
     open fun onPaste(x: Float, y: Float, data: String, type: String) {
-        parent?.onPaste(x, y, data, type)
+        uiParent?.onPaste(x, y, data, type)
     }
 
     open fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
-        parent?.onPasteFiles(x, y, files) ?: LOGGER.warn("Paste Ignored! $files, ${javaClass.simpleName}")
+        uiParent?.onPasteFiles(x, y, files) ?: LOGGER.warn("Paste Ignored! $files, ${javaClass.simpleName}")
     }
 
-    open fun onCopyRequested(x: Float, y: Float): Any? = parent?.onCopyRequested(x, y)
+    open fun onCopyRequested(x: Float, y: Float): Any? = uiParent?.onCopyRequested(x, y)
 
     open fun onSelectAll(x: Float, y: Float) {
-        parent?.onSelectAll(x, y)
+        uiParent?.onSelectAll(x, y)
     }
 
     open fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean =
         false
 
     open fun onBackSpaceKey(x: Float, y: Float) {
-        parent?.onBackSpaceKey(x, y)
+        uiParent?.onBackSpaceKey(x, y)
     }
 
     open fun onEnterKey(x: Float, y: Float) {
-        parent?.onEnterKey(x, y)
+        uiParent?.onEnterKey(x, y)
     }
 
     open fun onDeleteKey(x: Float, y: Float) {
-        parent?.onDeleteKey(x, y)
+        uiParent?.onDeleteKey(x, y)
     }
 
     open fun onEscapeKey(x: Float, y: Float) {
-        parent?.onEscapeKey(x, y)
+        uiParent?.onEscapeKey(x, y)
     }
 
     /**
@@ -470,18 +473,18 @@ open class Panel(val style: Style) {
      * I like these keys ;)
      * */
     open fun onMouseForwardKey(x: Float, y: Float) {
-        parent?.onMouseForwardKey(x, y)
+        uiParent?.onMouseForwardKey(x, y)
     }
 
     open fun onMouseBackKey(x: Float, y: Float) {
-        parent?.onMouseBackKey(x, y)
+        uiParent?.onMouseBackKey(x, y)
     }
 
-    open fun getCursor(): Long? = parent?.getCursor() ?: 0L
+    open fun getCursor(): Long? = uiParent?.getCursor() ?: 0L
 
     var tooltipPanel: Panel? = null
     open fun getTooltipPanel(x: Float, y: Float): Panel? = tooltipPanel
-    open fun getTooltipText(x: Float, y: Float): String? = tooltip ?: parent?.getTooltipText(x, y)
+    open fun getTooltipText(x: Float, y: Float): String? = tooltip ?: uiParent?.getTooltipText(x, y)
 
     fun setTooltip(tooltipText: String?): Panel {
         tooltip = tooltipText
@@ -509,7 +512,7 @@ open class Panel(val style: Style) {
     //, so we can use the last one
     open fun getOverlayParent(): Panel? {
         if (drawsOverlaysOverChildren(lx0, ly0, lx1, ly1)) return this
-        return parent?.getOverlayParent()
+        return uiParent?.getOverlayParent()
     }
 
     /**
@@ -519,30 +522,28 @@ open class Panel(val style: Style) {
     open fun isKeyInput() = false
     open fun acceptsChar(char: Int) = true
 
-    fun listOfHierarchy(callback: (Panel) -> Unit) {
-        parent?.listOfHierarchy(callback)
+    fun listOfPanelHierarchy(callback: (Panel) -> Unit) {
+        uiParent?.listOfPanelHierarchy(callback)
         callback(this)
     }
 
-    fun listOfHierarchyReversed(callback: (Panel) -> Unit) {
+    fun listOfPanelHierarchyReversed(callback: (Panel) -> Unit) {
         callback(this)
-        parent?.listOfHierarchy(callback)
+        uiParent?.listOfPanelHierarchy(callback)
     }
 
-    val listOfHierarchy: Sequence<Panel>
+    val listOfPanelHierarchy: Sequence<Panel>
         get() = sequence {
-            parent?.apply {
-                yieldAll(listOfHierarchy)
-            }
+            val p = uiParent
+            if(p != null) yieldAll(p.listOfPanelHierarchy)
             yield(this@Panel)
         }
 
-    val listOfHierarchyReversed: Sequence<Panel>
+    val listOfPanelHierarchyReversed: Sequence<Panel>
         get() = sequence {
             yield(this@Panel)
-            parent?.apply {
-                yieldAll(listOfHierarchy)
-            }
+            val p = uiParent
+            if(p != null) yieldAll(p.listOfPanelHierarchyReversed)
         }
 
     fun listOfVisible(callback: (Panel) -> Unit) {
@@ -550,7 +551,7 @@ open class Panel(val style: Style) {
             callback(this)
             if (this is PanelGroup) {
                 for (child in children) {
-                    child.forAll(callback)
+                    child.forAllPanels(callback)
                 }
             }
         }
@@ -568,21 +569,21 @@ open class Panel(val style: Style) {
             }
         }
 
-    fun forAll(callback: (Panel) -> Unit) {
+    fun forAllPanels(callback: (Panel) -> Unit) {
         callback(this)
         if (this is PanelGroup) {
             val children = children
             for (i in children.indices) {
-                children[i].forAll(callback)
+                children[i].forAllPanels(callback)
             }
         }
     }
 
-    fun forAll(array: ExpandingGenericArray<Panel>) {
+    fun forAllPanels(array: ExpandingGenericArray<Panel>) {
         array += this
         if (this is PanelGroup) {
             for (child in children) {
-                child.forAll(array)
+                child.forAllPanels(array)
             }
         }
     }
@@ -598,7 +599,7 @@ open class Panel(val style: Style) {
         return null
     }
 
-    val listOfAll: Sequence<Panel>
+    override val listOfAll: Sequence<Panel>
         get() = sequence {
             yield(this@Panel)
             if (this@Panel is PanelGroup) {
@@ -630,15 +631,29 @@ open class Panel(val style: Style) {
      * isn't really meant to be concatenated as a function
      * (multiselect inside multiselect)
      * */
-    open fun getMultiSelectablePanel(): Panel? = parent?.getMultiSelectablePanel()
+    open fun getMultiSelectablePanel(): Panel? = uiParent?.getMultiSelectablePanel()
 
-    /**
-     * get the index in our parent; or -1, if we have no parent (are the root element)
-     * */
-    val indexInParent get() = parent?.children?.indexOf(this) ?: -1
-    val isRootElement get() = parent == null
+    val isRootElement get() = uiParent == null
 
-    open val className: String get() = javaClass.simpleName
+    override fun clone(): PrefabSaveable {
+        // todo clone all properties
+        val clone = Panel(style)
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        // todo copy all properties
+        clone as Panel
+        clone.minX = minX
+        clone.minY = minY
+        clone.w = w
+        clone.h = h
+        clone.tooltip = tooltip
+        clone.tooltipPanel = clone.tooltipPanel // could create issues, should be found in parent or cloned
+
+    }
 
     companion object {
         private val LOGGER = LogManager.getLogger(Panel::class)

@@ -1,8 +1,10 @@
 package me.anno.ui.base.groups
 
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
+import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
 import kotlin.math.max
@@ -10,8 +12,19 @@ import kotlin.math.min
 
 abstract class PanelGroup(style: Style) : Panel(style) {
 
-    abstract val children: List<Panel>
+    abstract override val children: List<Panel>
     abstract fun remove(child: Panel)
+
+    override fun listChildTypes(): String = "p"
+    override fun getChildListByType(type: Char) = children
+    override fun addChildByType(index: Int, type: Char, child: PrefabSaveable) {
+        val children = children
+        if (child is Panel && children is MutableList) children.add(index, child)
+    }
+
+    override fun getOptionsByType(type: Char): List<Option>? {
+        TODO("list all types of children: go into ISaveable for that")
+    }
 
     // override fun getLayoutState(): Any? = children.count { it.visibility == Visibility.VISIBLE }
 

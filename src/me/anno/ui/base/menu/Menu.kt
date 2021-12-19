@@ -230,7 +230,7 @@ object Menu {
         window.x = Maths.clamp(x, 0, max(GFX.width - container.w, 0))
         window.y = Maths.clamp(y, 0, max(GFX.height - container.h, 0))
 
-        container.forAll { it.window = window }
+        container.forAllPanels { it.window = window }
 
         GFX.windowStack.add(window)
         GFX.loadTexturesSync.pop()

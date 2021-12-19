@@ -390,8 +390,10 @@ object Input {
                     val maxIndex = max(index0, index1)
                     for (index in minIndex..maxIndex) {
                         val child = joinedParent!!.children[index]
-                        inFocus += child
-                        child.invalidateDrawing()
+                        if (child is Panel) {
+                            inFocus += child
+                            child.invalidateDrawing()
+                        }
                     }
                 }
                 false

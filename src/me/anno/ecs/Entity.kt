@@ -131,9 +131,9 @@ class Entity() : PrefabSaveable(), Inspectable {
         }
     }
 
-    override fun addChildByType(index: Int, type: Char, instance: PrefabSaveable) {
-        if (type == 'c') addComponent(index, instance as Component)
-        else addEntity(index, instance as Entity)
+    override fun addChildByType(index: Int, type: Char, child: PrefabSaveable) {
+        if (type == 'c') addComponent(index, child as Component)
+        else addEntity(index, child as Entity)
     }
 
     override fun getChildListByType(type: Char): List<PrefabSaveable> = if (type == 'c') components else children

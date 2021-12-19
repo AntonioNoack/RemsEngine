@@ -46,7 +46,7 @@ open class ControlScheme(val camera: CameraComponent, val library: EditorState, 
 
     val selectedTransforms get() = selectedEntities.map { it.transform }
 
-    val isSelected get() = parent!!.children.any { it.isInFocus }
+    val isSelected get() = uiParent!!.children.any { it.isInFocus }
 
     private val hit = RayHit()
 

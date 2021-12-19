@@ -15,7 +15,7 @@ class SceneTabData() : Saveable() {
 
     constructor(tab: SceneTab) : this() {
         file = tab.file
-        transform = tab.root
+        transform = tab.scene
         history = tab.history
     }
 
@@ -26,7 +26,7 @@ class SceneTabData() : Saveable() {
     fun apply(tab: SceneTab) {
         tab.file = file
         val read by lazy { TextReader.read(file!!) }
-        tab.root = transform ?: read.filterIsInstance<Transform>().firstOrNull() ?: Transform().run {
+        tab.scene = transform ?: read.filterIsInstance<Transform>().firstOrNull() ?: Transform().run {
             // todo translate
             name = "Root"
             comment = "Error loading $file!"

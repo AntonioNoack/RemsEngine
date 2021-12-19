@@ -14,7 +14,6 @@ import me.anno.objects.Transform.Companion.toTransform
 import me.anno.objects.effects.MaskLayer
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.nullCamera
-import me.anno.studio.rems.RemsStudio.root
 import me.anno.studio.rems.Selection
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
@@ -32,7 +31,7 @@ import java.util.*
 
 class StudioTreeView(style: Style) :
     TreeView<Transform>(
-        UpdatingList { listOf(nullCamera!!, root) },
+        UpdatingList { listOf(nullCamera!!, RemsStudio.root) },
         StudioFileImporter, true, style
     ) {
 
@@ -142,7 +141,7 @@ class StudioTreeView(style: Style) :
     private fun tryPasteTransform(data: String): Boolean {
         val transform = data.toTransform() ?: return false
         RemsStudio.largeChange("Pasted ${transform.name}") {
-            root.addChild(transform)
+            RemsStudio.root.addChild(transform)
         }
         return true
     }

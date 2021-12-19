@@ -10,10 +10,19 @@ import me.anno.objects.GFXTransform.Companion.uploadAttractors0
 import me.anno.objects.Transform
 import me.anno.objects.Video
 import me.anno.utils.maths.Maths.clamp
+import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 
 object GFXx2D {
+
+    // todo implement a global matrix here, which can be used to draw GUI element inside the world
+    // todo mesh or image backgrounds for panels
+    // todo create UI in editor from components somehow
+    // todo if we use this, we no longer can rely on clipping
+    // todo if we use this, we get subpixel errors, and need to switch to other rendering techniques
+
+    // val uiTransform = Matrix4f()
 
     fun drawBorder(x: Int, y: Int, w: Int, h: Int, color: Int, size: Int) {
         flatColor(color)

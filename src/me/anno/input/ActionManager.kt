@@ -130,7 +130,7 @@ object ActionManager {
                     }
                 }
             }
-            panel = panel.parent
+            panel = panel.uiParent
         }
     }
 
@@ -154,7 +154,7 @@ object ActionManager {
             }
         }
         for (window in GFX.windowStack) {
-            window.panel.forAll { panel ->
+            window.panel.forAllPanels { panel ->
                 executeLocally(dx, dy, isContinuous, panel, actions)
             }
         }

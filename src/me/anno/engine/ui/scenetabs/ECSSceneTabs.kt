@@ -2,9 +2,9 @@ package me.anno.engine.ui.scenetabs
 
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
+import me.anno.ecs.components.physics.BulletPhysics
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
-import me.anno.ecs.components.physics.BulletPhysics
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.RenderView
 import me.anno.io.base.BaseWriter
@@ -92,7 +92,7 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
         }
     }
 
-    fun open(file: FileReference, classNameIfNull: String = "Entity"){
+    fun open(file: FileReference, classNameIfNull: String = "Entity") {
         open(EditorState.syncMaster, file, classNameIfNull)
     }
 
@@ -167,7 +167,8 @@ object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
         children2.clear()
     }
 
-    fun save(writer: BaseWriter) {
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
         for (it in children3) {
             writer.writeFile("file", it.file)
         }

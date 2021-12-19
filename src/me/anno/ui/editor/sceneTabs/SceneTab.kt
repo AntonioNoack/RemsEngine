@@ -27,7 +27,7 @@ import me.anno.utils.maths.Maths.mixARGB
 import me.anno.utils.hpc.Threads.threadWithName
 import org.apache.logging.log4j.LogManager
 
-class SceneTab(var file: FileReference?, var root: Transform, history: History?) : TextPanel("", DefaultConfig.style) {
+class SceneTab(var file: FileReference?, var scene: Transform, history: History?) : TextPanel("", DefaultConfig.style) {
 
     companion object {
         const val maxDisplayNameLength = 15
@@ -40,7 +40,7 @@ class SceneTab(var file: FileReference?, var root: Transform, history: History?)
         History()
     }
 
-    private val longName get() = file?.name ?: root.name
+    private val longName get() = file?.name ?: scene.name
     private val shortName
         get() = longName.run {
             if (length > maxDisplayNameLength) {
@@ -91,13 +91,13 @@ class SceneTab(var file: FileReference?, var root: Transform, history: History?)
 
     fun save(dst: FileReference, onSuccess: () -> Unit) {
         if (dst.isDirectory) dst.deleteRecursively()
-        LOGGER.info("Saving $dst, ${root.listOfAll.joinToString { it.name }}")
+        LOGGER.info("Saving $dst, ${scene.listOfAll.joinToString { it.name }}")
         threadWithName("SaveScene") {
             try {
-                synchronized(root) {
+                synchronized(scene) {
                     dst.getParent()?.mkdirs()
                     val writer = TextWriter()
-                    writer.add(root)
+                    writer.add(scene)
                     writer.add(history)
                     writer.writeAllInList()
                     dst.writeText(writer.toString())
@@ -113,7 +113,7 @@ class SceneTab(var file: FileReference?, var root: Transform, history: History?)
 
     fun save(onSuccess: () -> Unit) {
         if (file == null) {
-            var name = root.name.trim()
+            var name = scene.name.trim()
             if (!name.endsWith(".json", true)) name = "$name.json"
             val name0 = name
             // todo replace /,\?,..

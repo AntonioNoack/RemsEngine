@@ -42,7 +42,7 @@ open class SettingCategory(
 
         override fun onCopyRequested(x: Float, y: Float): Any? {
             return if (canCopyTitleText) text
-            else parent?.onCopyRequested(x, y)
+            else uiParent?.onCopyRequested(x, y)
         }
     }
 

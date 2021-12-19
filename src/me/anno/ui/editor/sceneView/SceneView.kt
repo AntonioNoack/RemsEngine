@@ -37,7 +37,6 @@ import me.anno.studio.rems.RemsStudio.editorTimeDilation
 import me.anno.studio.rems.RemsStudio.isPaused
 import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.studio.rems.RemsStudio.project
-import me.anno.studio.rems.RemsStudio.root
 import me.anno.studio.rems.Scene
 import me.anno.studio.rems.Selection
 import me.anno.studio.rems.Selection.selectTransform
@@ -51,10 +50,10 @@ import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.simple.SimplePanel
 import me.anno.ui.style.Style
+import me.anno.utils.bugs.SumOf.sumOf
 import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.maths.Maths.length
 import me.anno.utils.maths.Maths.pow
-import me.anno.utils.bugs.SumOf.sumOf
 import me.anno.utils.types.Vectors.plus
 import me.anno.utils.types.Vectors.times
 import me.anno.utils.types.Vectors.toVec3f
@@ -171,7 +170,7 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
         ).setOnClickListener {
             val renderer = colorRenderer
             Screenshots.takeScreenshot(stableSize.stableWidth, stableSize.stableHeight, renderer) {
-                Scene.draw(camera, root, 0, 0, w, h, editorTime, true, renderer, this)
+                Scene.draw(camera, RemsStudio.root, 0, 0, w, h, editorTime, true, renderer, this)
             }
         }
     }
@@ -234,7 +233,7 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
         val et = editorTime
         val loadedTimeSeconds = 3.0
         // load the next 3 seconds of data
-        root.claimResources(et, et + loadedTimeSeconds * if (edt == 0.0) 1.0 else edt, 1f, 1f)
+        RemsStudio.root.claimResources(et, et + loadedTimeSeconds * if (edt == 0.0) 1.0 else edt, 1f, 1f)
     }
 
     private val stableSize = StableWindowSize()
@@ -269,7 +268,7 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
                 min(x1, x00 + rw), min(y1, y00 + rh)
             ) {
                 Scene.draw(
-                    camera, root,
+                    camera, RemsStudio.root,
                     x00, y00, wx, wy,
                     editorTime, false,
                     mode, this
@@ -305,6 +304,8 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
 
         val cXInt = clickX.toInt()
         val cYInt = clickY.toInt()
+
+        val root = RemsStudio.root
 
         val idBuffer = Screenshots.getPixels(diameter, dx, dy, cXInt, cYInt, buffer, Renderer.idRenderer) {
             Scene.draw(camera, root, dx, dy, width, height, editorTime, false, Renderer.idRenderer, this)
@@ -784,7 +785,8 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
     }
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
-        files.forEach { file -> addChildFromFile(root, file, FileContentImporter.SoftLinkMode.ASK, true) { } }
+        val mode = FileContentImporter.SoftLinkMode.ASK
+        files.forEach { file -> addChildFromFile(RemsStudio.root, file, mode, true) { } }
         invalidateDrawing()
     }
 

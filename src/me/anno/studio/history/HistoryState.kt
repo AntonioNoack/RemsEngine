@@ -55,7 +55,7 @@ class HistoryState() : Saveable() {
     fun apply() {
         val root = root ?: return
         RemsStudio.root = root
-        SceneTabs.currentTab?.root = root
+        SceneTabs.currentTab?.scene = root
         RemsStudio.editorTime = editorTime
         val listOfAll = root.listOfAll.toList()
         select(selectedUUID, selectedPropName)

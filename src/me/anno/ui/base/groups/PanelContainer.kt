@@ -19,7 +19,7 @@ open class PanelContainer(
         set(value) {
             if (field != value) {
                 child.parent = null
-                value.parent?.remove(value)
+                value.uiParent?.remove(value)
                 value.parent = this
                 field = value
                 invalidateLayout()

@@ -15,7 +15,7 @@ open class NineTilePanel(style: Style) : PanelGroup(style) {
 
     fun add(panel: Panel) {
         children.add(panel)
-        panel.parent?.remove(panel)
+        panel.uiParent?.remove(panel)
         panel.parent = this
     }
 

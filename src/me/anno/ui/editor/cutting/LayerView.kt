@@ -1,5 +1,6 @@
 package me.anno.ui.editor.cutting
 
+import me.anno.animation.Keyframe
 import me.anno.cache.CacheData
 import me.anno.cache.instances.VideoCache
 import me.anno.config.DefaultStyle.white4
@@ -18,27 +19,25 @@ import me.anno.io.text.TextReader
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
 import me.anno.objects.Video
-import me.anno.animation.Keyframe
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.isPlaying
-import me.anno.studio.rems.RemsStudio.root
 import me.anno.studio.rems.Selection.select
 import me.anno.studio.rems.Selection.selectTransform
 import me.anno.studio.rems.Selection.selectedTransform
+import me.anno.studio.rems.ui.StudioFileImporter.addChildFromFile
 import me.anno.ui.base.Panel
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.files.FileContentImporter
-import me.anno.studio.rems.ui.StudioFileImporter.addChildFromFile
 import me.anno.ui.style.Style
+import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.maths.Maths.mix
 import me.anno.utils.maths.Maths.sq
-import me.anno.utils.hpc.ProcessingQueue
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -208,6 +207,7 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
         if (drawn.isNotEmpty()) {
             var ctr = 0
             val globalTime = getTimeAt(x)
+            val root = RemsStudio.root
             root.lastLocalTime = root.getLocalTime(globalTime)
             root.updateLocalColor(white4, root.lastLocalTime)
             for (tr in computer.calculated) {
@@ -361,7 +361,7 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
             }
             return isRequired
         }
-        inspect(root)
+        inspect(RemsStudio.root)
         return list.reversed()
     }
 
@@ -375,6 +375,7 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
                 if (original != null) {
                     original.timelineSlot.value = timelineSlot
                 } else {
+                    val root = RemsStudio.root
                     root.addChild(child)
                     root.timelineSlot.value = timelineSlot
                     selectTransform(child)
@@ -389,7 +390,7 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         val time = getTimeAt(x)
         files.forEach { file ->
-            addChildFromFile(root, file, FileContentImporter.SoftLinkMode.ASK, true) {
+            addChildFromFile(RemsStudio.root, file, FileContentImporter.SoftLinkMode.ASK, true) {
                 it.timeOffset.value = time
                 it.timelineSlot.value = timelineSlot
             }

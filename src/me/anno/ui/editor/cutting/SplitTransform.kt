@@ -31,7 +31,7 @@ object SplitTransform {
             newRoot.addChild(second)
             RemsStudio.root = newRoot
             // needs to be updated
-            SceneTabs.currentTab?.root = newRoot
+            SceneTabs.currentTab?.scene = newRoot
         }
         // transform.color.addKeyframe(localTime-fadingTime/2, color)
         transform.color.checkThread()

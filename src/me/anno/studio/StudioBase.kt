@@ -69,7 +69,7 @@ abstract class StudioBase(
     val versionName =
         addSuffix("${versionNumber / 10000}.${(versionNumber / 100) % 100}.${versionNumber % 100}", versionSuffix)
 
-    open fun loadConfig(){
+    open fun loadConfig() {
         DefaultConfig.init()
     }
 
@@ -285,8 +285,8 @@ abstract class StudioBase(
         // which still happens...
         panel0.findMissingParents()
 
-        panel0.forAll { panel -> if (panel.canBeSeen) panel.tickUpdate() }
-        panel0.forAll { panel -> if (panel.canBeSeen) panel.tick() }
+        panel0.forAllPanels { panel -> if (panel.canBeSeen) panel.tickUpdate() }
+        panel0.forAllPanels { panel -> if (panel.canBeSeen) panel.tick() }
 
         validateLayouts(w, h, window, panel0)
 

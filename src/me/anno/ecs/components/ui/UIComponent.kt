@@ -12,6 +12,10 @@ import me.anno.ecs.Component
  * */
 class UIComponent : Component() {
 
+    // todo we could use an enum to specify the options, but then we won't have new ones available
+    // todo -> panels need to become PrefabSaveable or similar
+
+
     override fun clone(): UIComponent {
         TODO("Not yet implemented")
     }
