@@ -69,10 +69,6 @@ import kotlin.math.min
 
 // todo disable ui circles via some check-button at the top bar
 
-// todo search elements
-// todo search with tags
-// todo search properties
-
 // todo control click -> fullscreen view of this element?
 
 // todo right click on input to get context menu, e.g. to reset
@@ -96,10 +92,8 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
     }
 
     init {
-
         weight = 1f
         backgroundColor = 0
-
     }
 
     var camera = nullCamera ?: Camera()

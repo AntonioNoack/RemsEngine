@@ -20,6 +20,9 @@ import org.joml.Vector4f
 
 // todo select multiple elements, filter for common properties, and apply them all together :)
 
+// todo search elements
+// todo search with tags
+
 abstract class TreeView<V>(
     val sources: List<V>,
     val fileContentImporter: FileContentImporter<V>,

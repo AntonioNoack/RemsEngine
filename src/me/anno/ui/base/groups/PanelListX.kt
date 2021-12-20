@@ -10,8 +10,14 @@ import kotlin.math.roundToInt
 open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, style) {
     constructor(style: Style) : this(null, style)
 
-    var sumConst = 0
-    var sumWeight = 0f
+    private var sumConst = 0
+    private var sumWeight = 0f
+
+    override fun clone(): PanelListX {
+        val clone = PanelListX(sorter, style)
+        copy(clone)
+        return clone
+    }
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)

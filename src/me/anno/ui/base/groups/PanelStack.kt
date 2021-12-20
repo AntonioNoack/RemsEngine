@@ -34,6 +34,12 @@ open class PanelStack(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
         return children.count { it.visibility == Visibility.VISIBLE } > 1
     }
 
+    override fun clone(): PanelStack {
+        val clone = PanelStack(sorter, style)
+        copy(clone)
+        return clone
+    }
+
     // todo if they are overlapping, and the lower one can be placed inside the upper one,
     // todo draw only the necessary parts for it
 

@@ -5,16 +5,15 @@ import me.anno.language.translation.Dict
 import me.anno.objects.inspectable.Inspectable
 import me.anno.studio.rems.ui.StudioTreeView
 import me.anno.ui.base.Panel
+import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
+import me.anno.ui.editor.files.Search
 import me.anno.ui.editor.sceneView.ISceneView
 import me.anno.ui.editor.treeView.AbstractTreeViewPanel
-import me.anno.ui.input.ColorInput
-import me.anno.ui.input.FloatInput
-import me.anno.ui.input.TextInputML
-import me.anno.ui.input.VectorInput
+import me.anno.ui.input.*
 import me.anno.ui.input.components.Checkbox
 import me.anno.ui.style.Style
 import me.anno.utils.types.Strings.isBlank2
@@ -25,9 +24,24 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
     constructor(getInspectable: () -> Inspectable?, style: Style, ignored: Unit) :
             this({ getInspectable().run { if (this == null) emptyList() else listOf(this) } }, style)
 
-    val list = child as PanelListY
-    val secondaryList = PanelListY(style)
+    val list0 = child as PanelListY
+    val list1 = PanelListY(style)
     var lastSelected: List<Inspectable> = emptyList()
+
+    val searchPanel = TextInput("Search Properties", "", true, style)
+
+    init {
+        searchPanel.addChangeListener { searchTerms ->
+            // todo if an element is hidden by VisibilityKey, and it contains the search term, toggle that VisibilityKey
+            val search = Search(searchTerms)
+            for ((index, child) in list0.children.withIndex()) {
+                if (index > 0) {
+                    child.visibility = Visibility[child.fulfillsSearch(search)]
+                }
+            }
+        }
+    }
+
     private var needsUpdate = false
 
     fun invalidate() {
@@ -42,98 +56,103 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
         if (selected != lastSelected) {
             lastSelected = selected
             needsUpdate = false
-            list.clear()
+            list0.clear()
             if (selected.isNotEmpty()) {
-                createInspector(selected, list, style)
+                list0.add(searchPanel)
+                createInspector(selected, list0, style)
             }
         } else if (needsUpdate) {
-            invalidateDrawing()
-            lastSelected = selected
-            needsUpdate = false
-            secondaryList.clear()
-            if (selected.isNotEmpty()) {
-                createInspector(selected, secondaryList, style)
-            }
-            // is matching required? not really
-            val src = secondaryList.listOfAll.iterator()
-            val dst = list.listOfAll.iterator()
-            // works as long as the structure stays the same
-            while (src.hasNext() && dst.hasNext()) {
-                val s = src.next()
-                val d = dst.next()
-                // don't change the value while the user is editing it
-                // this would cause bad user experience:
-                // e.g. 0.0001 would be replaced with 1e-4
-                if (d.listOfAll.any { it.isInFocus }) continue
-                when (s) {
-                    is FloatInput -> {
-                        (d as? FloatInput)?.apply {
-                            d.setValue(s.lastValue, false)
-                        }
+            update(selected)
+        }
+    }
+
+    fun update(selected: List<Inspectable>) {
+        invalidateDrawing()
+        lastSelected = selected
+        needsUpdate = false
+        list1.clear()
+        if (selected.isNotEmpty()) {
+            createInspector(selected, list1, style)
+        }
+        // is matching required? not really
+        val src = list1.listOfAll.iterator()
+        val dst = list0.listOfAll.iterator()
+        if (src.hasNext()) src.next() // skip search panel
+        // works as long as the structure stays the same
+        while (src.hasNext() && dst.hasNext()) {
+            val s = src.next()
+            val d = dst.next()
+            // don't change the value while the user is editing it
+            // this would cause bad user experience:
+            // e.g. 0.0001 would be replaced with 1e-4
+            if (d.listOfAll.any { it.isInFocus }) continue
+            when (s) {
+                is FloatInput -> {
+                    (d as? FloatInput)?.apply {
+                        d.setValue(s.lastValue, false)
                     }
-                    is VectorInput -> {
-                        (d as? VectorInput)?.apply {
-                            d.setValue(s, false)
-                        }
+                }
+                is VectorInput -> {
+                    (d as? VectorInput)?.apply {
+                        d.setValue(s, false)
                     }
-                    is ColorInput -> {
-                        (d as? ColorInput)?.apply {
-                            d.setValue(s.getValue(), false)
-                        }
+                }
+                is ColorInput -> {
+                    (d as? ColorInput)?.apply {
+                        d.setValue(s.getValue(), false)
                     }
-                    is Checkbox -> {
-                        (d as? Checkbox)?.apply {
-                            d.isChecked = s.isChecked
-                        }
+                }
+                is Checkbox -> {
+                    (d as? Checkbox)?.apply {
+                        d.isChecked = s.isChecked
                     }
-                    is TextInputML -> {
-                        (d as? TextInputML)?.apply {
-                            d.setText(s.text, false)
-                        }
+                }
+                is TextInputML -> {
+                    (d as? TextInputML)?.apply {
+                        d.setText(s.text, false)
                     }
                 }
             }
-            if (src.hasNext() != dst.hasNext() && selected.isNotEmpty()) {
-                // we need to update the structure...
-                lastSelected = emptyList()
-                tickUpdate()
-            }
+        }
+        if (src.hasNext() != dst.hasNext() && selected.isNotEmpty()) {
+            // we need to update the structure...
+            lastSelected = emptyList()
+            tickUpdate()
         }
     }
 
     operator fun plusAssign(panel: Panel) {
-        list += panel
+        list0 += panel
     }
 
     companion object {
 
+        private fun createGroup(
+            title: String, description: String, dictSubPath: String,
+            list: PanelListY, groups: HashMap<String, SettingCategory>, style: Style
+        ): SettingCategory {
+            val cat = groups.getOrPut(dictSubPath) {
+                val group = SettingCategory(Dict[title, "obj.$dictSubPath"], style)
+                list += group
+                group
+            }
+            if (cat.tooltip?.isBlank2() != false) {
+                cat.tooltip = Dict[description, "obj.$dictSubPath.desc"]
+            }
+            return cat
+        }
+
         fun createInspector(ins: List<Inspectable>, list: PanelListY, style: Style) {
             val groups = HashMap<String, SettingCategory>()
             ins[0].createInspector(ins, list, style) { title, description, dictSubPath ->
-                groups.getOrPut(dictSubPath) {
-                    val group = SettingCategory(Dict[title, "obj.$dictSubPath"], style)
-                    list += group
-                    group
-                }.apply {
-                    if (tooltip?.isBlank2() != false) {
-                        tooltip = Dict[description, "obj.$dictSubPath.desc"]
-                    }
-                }
+                createGroup(title, description, dictSubPath, list, groups, style)
             }
         }
 
         fun createInspector(ins: Inspectable, list: PanelListY, style: Style) {
             val groups = HashMap<String, SettingCategory>()
             ins.createInspector(list, style) { title, description, dictSubPath ->
-                groups.getOrPut(dictSubPath) {
-                    val group = SettingCategory(Dict[title, "obj.$dictSubPath"], style)
-                    list += group
-                    group
-                }.apply {
-                    if (tooltip?.isBlank2() != false) {
-                        tooltip = Dict[description, "obj.$dictSubPath.desc"]
-                    }
-                }
+                createGroup(title, description, dictSubPath, list, groups, style)
             }
         }
 

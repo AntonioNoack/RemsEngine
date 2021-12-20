@@ -1,28 +1,26 @@
 package me.anno.ui.editor.files
 
-class Search(val term: String) {
+class Search(val terms: String) {
 
-    val expr = ArrayList<Any>()
+    private val expression = ArrayList<Any>()
 
     init {
-        parse()
-    }
-
-    fun parse() {
-        // parse expression
+        /**
+         * parse expression
+         * */
         var i = 0
-        while (i < term.length) {
-            when (val char = term[i]) {
+        while (i < terms.length) {
+            when (val char = terms[i]) {
                 '"', '\'' -> {
                     i++
                     var str = ""
-                    string@ while (i < term.length) {
-                        when (val char2 = term[i]) {
+                    string@ while (i < terms.length) {
+                        when (val char2 = terms[i]) {
                             char -> break@string
                             '\\' -> {
                                 i++
-                                if (i < term.length) {
-                                    str += when (val char3 = term[i]) {
+                                if (i < terms.length) {
+                                    str += when (val char3 = terms[i]) {
                                         '\\' -> '\\'
                                         else -> char3
                                     }
@@ -34,18 +32,18 @@ class Search(val term: String) {
                             }
                         }
                     }
-                    expr += str
+                    expression += str
                 }
                 '|', '&', '!' -> {
-                    expr += char
+                    expression += char
                     i++
                 }
                 '(', '[', '{' -> {
-                    expr += '('
+                    expression += '('
                     i++
                 }
                 ')', ']', '}' -> {
-                    expr += ')'
+                    expression += ')'
                     i++
                 }
                 ' ', '\t' -> {
@@ -54,8 +52,8 @@ class Search(val term: String) {
                 else -> {
                     // read string without escapes
                     var str = ""
-                    string@ while (i < term.length) {
-                        when (val char2 = term[i]) {
+                    string@ while (i < terms.length) {
+                        when (val char2 = terms[i]) {
                             '|', '&',
                             '(', '[', '{',
                             ')', ']', '}',
@@ -68,44 +66,37 @@ class Search(val term: String) {
                             }
                         }
                     }
-                    expr += str
+                    expression += str
                 }
             }
         }
 
-        compress()
-
-    }
-
-    fun compress() {
-        for (i in 0 until expr.size - 1) {
-            if (expr[i] == '|' && expr[i + 1] == '|') {
-                expr.removeAt(i + 1)
-                return compress()
+        /**
+         * remove || and &&, replace them with | and &
+         * */
+        var length = expression.size
+        i = 0
+        while (i < length) {
+            val element = expression[i]
+            if (element == '|' || element == '&') {
+                if (expression[i + 1] == element) {
+                    expression.removeAt(i + 1)
+                    length--
+                    continue
+                }
             }
-            if (expr[i] == '&' && expr[i + 1] == '&') {
-                expr.removeAt(i + 1)
-                return compress()
-            }
-            if (expr[i] == '|' && expr[i + 1] == '&') {
-                expr.removeAt(i + 1)
-                return compress()
-            }
-            if (expr[i] == '&' && expr[i + 1] == '|') {
-                expr.removeAt(i + 1)
-                return compress()
-            }
+            i++
         }
     }
 
-    fun isNotEmpty() = expr.isNotEmpty()
-    fun isEmpty() = expr.isEmpty()
+    fun isNotEmpty() = expression.isNotEmpty()
+    fun isEmpty() = expression.isEmpty()
     fun matchesAll() = isEmpty()
 
     fun matches(name: String?): Boolean {
         if (name == null) return false
-        if (expr.isEmpty()) return true
-        val expr = ArrayList(expr)
+        if (expression.isEmpty()) return true
+        val expr = ArrayList(expression)
         // replace all things
         for (i in expr.indices) {
             val term = expr[i] as? String ?: continue

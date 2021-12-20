@@ -13,6 +13,8 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.Constraint
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelGroup
+import me.anno.ui.base.text.TextPanel
+import me.anno.ui.editor.files.Search
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
 import me.anno.utils.strings.StringHelper.shorten
@@ -646,6 +648,19 @@ open class Panel(val style: Style) : PrefabSaveable() {
             }
             this
         } else null
+    }
+
+    fun fulfillsSearch(search: Search): Boolean {
+        // join all text (below a certain limit), and search that
+        // could be done more efficient
+        val joined = StringBuilder()
+        forAllPanels { panel ->
+            if (panel is TextPanel) {
+                joined.append(panel.text)
+                joined.append(' ')
+            }
+        }
+        return search.matches(joined.toString())
     }
 
     val isRootElement get() = uiParent == null

@@ -1,5 +1,6 @@
 package me.anno.ui.base.groups
 
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ui.base.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.style.Style
@@ -45,6 +46,15 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
             children.sortWith(sorter)
         }
         super.calculateSize(w, h)
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as PanelList
+        clone.spacing = spacing
+        clone.disableConstantSpaceForWeightedChildren = disableConstantSpaceForWeightedChildren
+        clone.children.clear()
+        clone.children.addAll(children.map { it.clone() })
     }
 
 }

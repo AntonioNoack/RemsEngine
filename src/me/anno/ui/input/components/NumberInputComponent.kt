@@ -79,9 +79,7 @@ open class NumberInputComponent(
                     }
                 }
             }
-            return
-        }
-        super.onMouseClicked(x, y, button, long)
+        } else super.onMouseClicked(x, y, button, long)
     }
 
     override fun onEmpty(x: Float, y: Float) {
