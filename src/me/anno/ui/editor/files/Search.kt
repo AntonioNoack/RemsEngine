@@ -1,7 +1,5 @@
 package me.anno.ui.editor.files
 
-import java.lang.RuntimeException
-
 class Search(val term: String) {
 
     val expr = ArrayList<Any>()
@@ -23,7 +21,7 @@ class Search(val term: String) {
                             char -> break@string
                             '\\' -> {
                                 i++
-                                if(i < term.length){
+                                if (i < term.length) {
                                     str += when (val char3 = term[i]) {
                                         '\\' -> '\\'
                                         else -> char3
@@ -50,12 +48,14 @@ class Search(val term: String) {
                     expr += ')'
                     i++
                 }
-                ' ', '\t' -> { i++ }
+                ' ', '\t' -> {
+                    i++
+                }
                 else -> {
                     // read string without escapes
                     var str = ""
-                    string@while(i < term.length){
-                        when(val char2 = term[i]){
+                    string@ while (i < term.length) {
+                        when (val char2 = term[i]) {
                             '|', '&',
                             '(', '[', '{',
                             ')', ']', '}',
@@ -77,22 +77,22 @@ class Search(val term: String) {
 
     }
 
-    fun compress(){
-        for(i in 0 until expr.size-1){
-            if(expr[i] == '|' && expr[i+1] == '|'){
-                expr.removeAt(i+1)
+    fun compress() {
+        for (i in 0 until expr.size - 1) {
+            if (expr[i] == '|' && expr[i + 1] == '|') {
+                expr.removeAt(i + 1)
                 return compress()
             }
-            if(expr[i] == '&' && expr[i+1] == '&'){
-                expr.removeAt(i+1)
+            if (expr[i] == '&' && expr[i + 1] == '&') {
+                expr.removeAt(i + 1)
                 return compress()
             }
-            if(expr[i] == '|' && expr[i+1] == '&'){
-                expr.removeAt(i+1)
+            if (expr[i] == '|' && expr[i + 1] == '&') {
+                expr.removeAt(i + 1)
                 return compress()
             }
-            if(expr[i] == '&' && expr[i+1] == '|'){
-                expr.removeAt(i+1)
+            if (expr[i] == '&' && expr[i + 1] == '|') {
+                expr.removeAt(i + 1)
                 return compress()
             }
         }
@@ -102,7 +102,8 @@ class Search(val term: String) {
     fun isEmpty() = expr.isEmpty()
     fun matchesAll() = isEmpty()
 
-    fun matches(name: String): Boolean {
+    fun matches(name: String?): Boolean {
+        if (name == null) return false
         if (expr.isEmpty()) return true
         val expr = ArrayList(expr)
         // replace all things
@@ -117,44 +118,44 @@ class Search(val term: String) {
     }
 
     fun matches(expr: ArrayList<Any>): Boolean {
-        for(i in 0 until expr.size-2){
-            if(expr[i] == '(' && expr[i+2] == ')'){
-                expr.removeAt(i+2)
+        for (i in 0 until expr.size - 2) {
+            if (expr[i] == '(' && expr[i + 2] == ')') {
+                expr.removeAt(i + 2)
                 expr.remove(i)
                 return matches(expr)
             }
         }
-        for(i in 0 until expr.size-1){
-            val b = expr[i+1]
-            if(expr[i] == '!' && b is Boolean){
+        for (i in 0 until expr.size - 1) {
+            val b = expr[i + 1]
+            if (expr[i] == '!' && b is Boolean) {
                 expr[i] = !b
-                expr.removeAt(i+1)
+                expr.removeAt(i + 1)
                 return matches(expr)
             }
         }
-        for(i in 0 until expr.size-1){
+        for (i in 0 until expr.size - 1) {
             val a = expr[i]
-            val b = expr[i+1]
-            if(a is Boolean && b is Boolean){
+            val b = expr[i + 1]
+            if (a is Boolean && b is Boolean) {
                 expr[i] = a && b
-                expr.removeAt(i+1)
+                expr.removeAt(i + 1)
                 return matches(expr)
             }
         }
-        for(i in 0 until expr.size-2){
-            if(expr[i+1] == '|'){
+        for (i in 0 until expr.size - 2) {
+            if (expr[i + 1] == '|') {
                 val a = expr[i] as? Boolean ?: continue
-                val b = expr[i+2] as? Boolean ?: continue
+                val b = expr[i + 2] as? Boolean ?: continue
                 expr[i] = a || b
-                expr.removeAt(i+2)
-                expr.removeAt(i+1)
+                expr.removeAt(i + 2)
+                expr.removeAt(i + 1)
                 return matches(expr)
             }
         }
-        for(i in 0 until expr.size){
-            if(expr[i] is String) throw RuntimeException()
+        for (i in 0 until expr.size) {
+            if (expr[i] is String) throw RuntimeException()
         }
-        if(expr.size >= 1) return expr[0] as? Boolean ?: true
+        if (expr.size >= 1) return expr[0] as? Boolean ?: true
         return true
     }
 

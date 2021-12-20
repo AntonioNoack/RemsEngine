@@ -4,7 +4,6 @@ import me.anno.config.DefaultStyle
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.drawing.DrawRectangles
-import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.language.spellcheck.Spellchecking
 import me.anno.language.spellcheck.Suggestion
@@ -24,9 +23,9 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
 
     override fun getVisualState(): Any? = suggestions
 
-    open val needsSuggestions = true
+    open val enableSpellcheck = true
     private val suggestions get() =
-        if (needsSuggestions && !isShowingPlaceholder){
+        if (enableSpellcheck && !isShowingPlaceholder){
             Spellchecking.check(text, allowFirstLowercase, this)
         } else null
 

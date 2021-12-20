@@ -39,7 +39,7 @@ class FileInput(
         base.setTooltip(f0.absolutePath)
         base.apply {
             this += WrapAlign.LeftCenter
-            setChangeListener {
+            addChangeListener {
                 val gf = it.toGlobalFile()
                 this@FileInput.changeListener(gf)
                 base.setTooltip(gf.absolutePath)

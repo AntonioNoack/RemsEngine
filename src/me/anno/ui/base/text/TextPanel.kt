@@ -2,6 +2,7 @@ package me.anno.ui.base.text
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.iconGray
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.loadTexturesSync
@@ -21,6 +22,10 @@ import me.anno.utils.types.Strings.isBlank2
 import kotlin.math.max
 
 open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
+
+    constructor(base: TextPanel) : this(base.text, base.style){
+        base.copy(this)
+    }
 
     var instantTextLoading = false
     var padding = style.getPadding("textPadding", 2)
@@ -122,7 +127,9 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         val heightLimit = -1
         if (widthLimit != textCacheKey.widthLimit || heightLimit != textCacheKey.heightLimit ||
             text != textCacheKey.text ||
-            font.isBold != textCacheKey.isBold() || font.isItalic != textCacheKey.isItalic()
+            font.name != textCacheKey.fontName ||
+            font.isBold != textCacheKey.isBold() ||
+            font.isItalic != textCacheKey.isItalic()
         ) {
             textCacheKey = TextCacheKey(text, font, widthLimit, heightLimit)
         }
@@ -179,6 +186,22 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
                 }
             }
         }
+    }
+
+    override fun clone() = TextPanel(this)
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as TextPanel
+        clone.instantTextLoading = instantTextLoading
+        clone.padding = padding
+        clone.font = font
+        clone.textColor = textColor
+        clone.focusTextColor = focusTextColor
+        clone.textAlignment = textAlignment
+        clone.textCacheKey = textCacheKey
+        clone.breaksIntoMultiline = breaksIntoMultiline
+        clone.disableCopy = disableCopy
     }
 
 }

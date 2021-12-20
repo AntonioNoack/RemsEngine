@@ -30,7 +30,6 @@ import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.editorTimeDilation
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.ui.base.Panel
-import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.debug.FrameTimes
 import me.anno.utils.Clock
 import me.anno.utils.maths.Maths.pow
@@ -202,7 +201,7 @@ object GFX : GFXBase1() {
         val stack = windowStack
         for (index in stack.size - 1 downTo 0) {
             val root = stack[index]
-            val panel = getPanelAt(root.panel, x, y)
+            val panel = root.panel.getPanelAt(x, y)
             if (panel != null) return panel to root
         }
         return null
@@ -213,26 +212,10 @@ object GFX : GFXBase1() {
         val windowStack = windowStack
         for (i in windowStack.size - 1 downTo 0) {
             val root = windowStack[i]
-            val panel = getPanelAt(root.panel, x, y)
+            val panel = root.panel.getPanelAt(x, y)
             if (panel != null) return panel
         }
         return null
-    }
-
-    fun getPanelAt(panel: Panel, x: Int, y: Int): Panel? {
-        return if (panel.canBeSeen && (x - panel.x) in 0 until panel.w && (y - panel.y) in 0 until panel.h) {
-            if (panel is PanelGroup) {
-                val children = panel.children
-                for (i in children.size - 1 downTo 0) {
-                    val child = children[i]
-                    val clickedByChild = getPanelAt(child, x, y)
-                    if (clickedByChild != null) {
-                        return clickedByChild
-                    }
-                }
-            }
-            panel
-        } else null
     }
 
     override fun addCallbacks() {

@@ -7,12 +7,14 @@ class MenuOption private constructor(val title: String, val description: String,
 
     constructor(title: NameDesc, action: () -> Unit) : this(title.name, title.desc, action)
 
+    fun onClick(button: MouseButton, isLong: Boolean): Boolean {
+        return if (button.isLeft && !isLong) {
+            action()
+            true
+        } else false
+    }
+
     fun toComplex(): ComplexMenuOption {
-        return ComplexMenuOption(title, description) { button: MouseButton, _: Boolean ->
-            if (button.isLeft) {
-                action()
-                true
-            } else false
-        }
+        return ComplexMenuOption(title, description, this::onClick)
     }
 }

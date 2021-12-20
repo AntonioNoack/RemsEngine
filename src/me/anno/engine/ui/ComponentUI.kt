@@ -364,7 +364,7 @@ object ComponentUI {
                         property.init(this)
                         setResetListener { property.reset(this).toString() }
                         askForReset(property) { setValue(it as String, false) }
-                        setChangeListener {
+                        addChangeListener {
                             property.set(this, it)
                         }
                     }

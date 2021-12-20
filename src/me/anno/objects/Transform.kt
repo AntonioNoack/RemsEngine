@@ -221,7 +221,7 @@ open class Transform() : Saveable(),
     ) {
 
         list += TextInput("Name ($className)", "", name, style)
-            .setChangeListener { name = if (it.isEmpty()) "-" else it }
+            .addChangeListener { name = if (it.isEmpty()) "-" else it }
             .setIsSelectedListener { show(null) }
         list += TextInputML("Comment", comment, style)
             .setChangeListener { comment = it }
@@ -244,7 +244,7 @@ open class Transform() : Saveable(),
         // - sort them?
         // - a field to add new ones
         list += TextInput("Tags", "", tags, style)
-            .setChangeListener { tags = it }
+            .addChangeListener { tags = it }
             .setIsSelectedListener { show(null) }
             .setTooltip("For Search | Not implemented yet")
 

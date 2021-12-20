@@ -11,9 +11,9 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.input.components.EnumValuePanel
 import me.anno.ui.style.Style
 
-class EnumInput(
-    private val title: String, withTitle: Boolean, startValue: String,
-    private val options: List<NameDesc>, style: Style
+open class EnumInput(
+    val title: String, withTitle: Boolean, startValue: String,
+    val options: List<NameDesc>, style: Style
 ) : PanelListX(style) {
 
     constructor(title: String, ttt: String, startValue: String, options: List<NameDesc>, style: Style) :
@@ -58,7 +58,7 @@ class EnumInput(
         }
     }
 
-    private var changeListener = { _: String, _: Int, _: List<NameDesc> -> }
+    var changeListener = { _: String, _: Int, _: List<NameDesc> -> }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val focused = titleView?.isInFocus == true || inputPanel.isInFocus

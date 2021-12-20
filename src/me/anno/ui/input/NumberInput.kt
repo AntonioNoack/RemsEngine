@@ -30,7 +30,7 @@ abstract class NumberInput(
     val inputPanel = object : NumberInputComponent(
         owningProperty, indexInProperty, this@NumberInput, style
     ) {
-        override val needsSuggestions: Boolean get() = false
+        override val enableSpellcheck: Boolean get() = false
         override var visibility: Visibility
             get() = InputVisibility[visibilityKey]
             set(_) {}

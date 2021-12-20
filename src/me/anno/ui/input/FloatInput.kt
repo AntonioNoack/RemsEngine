@@ -28,7 +28,7 @@ open class FloatInput(
 
     init {
         // todo only override text, if the users presses enter
-        inputPanel.setChangeListener {
+        inputPanel.addChangeListener {
             val newValue = parseValue(it)
             if (newValue != null) {
                 lastValue = newValue

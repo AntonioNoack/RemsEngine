@@ -21,10 +21,8 @@ object StringHelper {
 
     // by polyGeneLubricants, https://stackoverflow.com/a/2560017/4979303
     fun String.splitCamelCase(): String {
-        return replace(
-            splitCamelCaseRegex,
-            " "
-        )
+        return replace('_', ' ') // snake case replacements
+            .replace(splitCamelCaseRegex, " ") // camelCase -> camel Case
     }
 
     fun String.camelCaseToTitle(): String {

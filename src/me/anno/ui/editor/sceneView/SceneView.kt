@@ -169,7 +169,9 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
             iconSize
         ).setOnClickListener {
             val renderer = colorRenderer
-            Screenshots.takeScreenshot(stableSize.stableWidth, stableSize.stableHeight, renderer) {
+            val w = stableSize.stableWidth
+            val h = stableSize.stableHeight
+            Screenshots.takeScreenshot(w, h, renderer) {
                 Scene.draw(camera, RemsStudio.root, 0, 0, w, h, editorTime, true, renderer, this)
             }
         }

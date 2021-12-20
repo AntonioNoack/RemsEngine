@@ -28,7 +28,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
         instantTextLoading = true
     }
 
-    private var changeListener: (text: String) -> Unit = { _ -> }
+    private var changeListeners = ArrayList<(text: String) -> Unit>()
     private var resetListener: () -> String? = { null }
     private var enterListener: ((text: String) -> Unit)? = null
 
@@ -47,16 +47,22 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
         invalidateDrawing()
     }
 
+    private fun onChange(text: String){
+        for(listener in changeListeners){
+            listener(text)
+        }
+    }
+
     override fun updateChars(notify: Boolean) {
         characters.clear()
         characters.addAll(text.codePoints().toList())
-        if (notify) changeListener(text)
+        if (notify) onChange(text)
         invalidateLayout()
     }
 
     fun updateText(notify: Boolean) {
         text = characters.joinChars()
-        if (notify) changeListener(text)
+        if (notify) onChange(text)
         invalidateLayout()
         invalidateDrawing()
     }
@@ -264,8 +270,8 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
         insert(data)
     }
 
-    fun setChangeListener(listener: (String) -> Unit): PureTextInput {
-        changeListener = listener
+    fun addChangeListener(listener: (String) -> Unit): PureTextInput {
+        changeListeners += listener
         return this
     }
 

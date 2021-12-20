@@ -5,6 +5,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.config.DefaultStyle.black
 import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
+import me.anno.objects.text.TextInspector
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelList
@@ -46,17 +47,24 @@ class ContentCreator(
                 list += title.setTooltip(fullName).withPadding(pad, 0, 0, 0)
                 val body: Panel = when (value) {
                     is String -> {
-                        when (shortName) {
-                            "background", "color", "textColor" -> {
-                                ColorInput(style, "", "", (parseColor(value) ?: black).toVecRGBA(), true)
-                                    .setChangeListener { r, g, b, a ->
-                                        map[fullName] = Vector4f(r, g, b, a).toHexColor()
-                                    }
+                        if (fullName.contains("fontName") || fullName == "font") {
+                            // there is only a certain set of values available
+                            TextInspector.createFontInput(value, style) {
+                                map[fullName] = it
                             }
-                            else -> {
-                                TextInput("", "", false, style)
-                                    .setValue(value, false)
-                                    .setChangeListener { map[fullName] = it }
+                        } else {
+                            when (shortName) {
+                                "background", "color", "textColor" -> {
+                                    ColorInput(style, "", "", (parseColor(value) ?: black).toVecRGBA(), true)
+                                        .setChangeListener { r, g, b, a ->
+                                            map[fullName] = Vector4f(r, g, b, a).toHexColor()
+                                        }
+                                }
+                                else -> {
+                                    TextInput("", "", false, style)
+                                        .setValue(value, false)
+                                        .addChangeListener { map[fullName] = it }
+                                }
                             }
                         }
                     }

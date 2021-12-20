@@ -52,7 +52,7 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
             }
         }
         searchBar += searchInput.apply {
-            setChangeListener { query -> applySearch(query) }
+            addChangeListener { query -> applySearch(query) }
             weight = 1f
         }
         this += mainBox

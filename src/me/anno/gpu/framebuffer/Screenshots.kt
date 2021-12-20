@@ -2,23 +2,20 @@ package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
 import me.anno.gpu.RenderState
+import me.anno.gpu.copying.FramebufferToMemory.createImage
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D.Companion.packAlignment
+import me.anno.image.raw.IntImage
 import me.anno.language.translation.Dict
 import me.anno.ui.debug.ConsoleOutputPanel.Companion.formatFilePath
 import me.anno.utils.Color
-import me.anno.utils.Color.a
-import me.anno.utils.Color.b
-import me.anno.utils.Color.g
-import me.anno.utils.Color.r
 import me.anno.utils.OS
 import me.anno.utils.files.Files
 import me.anno.utils.hpc.Threads.threadWithName
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11
-import java.awt.image.BufferedImage
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.imageio.ImageIO
@@ -118,45 +115,27 @@ object Screenshots {
 
             GFX.check()
 
-            fun getPixels(renderer: Renderer): IntArray {
+            fun getPixels(renderer: Renderer): IntImage {
                 // draw only the clicked area?
-                val buffer = IntArray(w * h)
                 RenderState.useFrame(fb, renderer) {
                     GFX.check()
                     drawScene()
                     // Scene.draw(camera, RemsStudio.root, 0, 0, w, h, RemsStudio.editorTime, true, renderer, this)
                     fb.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                    RenderState.useFrame(fb.msBuffer) {
-                        Frame.bind()
-                        GL11.glFlush(); GL11.glFinish() // wait for everything to be drawn
-                        packAlignment(4 * w)
-                        GL11.glReadPixels(0, 0, w, h, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer)
-                        GFX.check()
-                    }
                 }
-                return buffer
+                return createImage(fb, false, false)
             }
 
             GFX.check()
 
-            val data = getPixels(renderer)
+            val image = getPixels(renderer)
             threadWithName("Save Screenshot") {
-
-                val image = BufferedImage(w, h, 1)
-
-                for (i in data.indices) {
-                    val abgr = data[i] // rgba, but little endian
-                    val argb = Color.rgba(abgr.b(), abgr.g(), abgr.r(), abgr.a())
-                    image.raster.dataBuffer.setElem(i, argb)
-                }
-
                 val file = folder.getChild(name)
-                Files.use(file.outputStream()) { ImageIO.write(image, "png", it) }
+                image.write(file)
                 LOGGER.info(
                     Dict["Saved screenshot to %1", "ui.sceneView.savedScreenshot"]
                         .replace("%1", formatFilePath(file))
                 )
-
             }
         }
 

@@ -27,7 +27,7 @@ open class IntInput(
     var changeListener: (value: Long) -> Unit = { }
 
     init {
-        inputPanel.setChangeListener {
+        inputPanel.addChangeListener {
             val newValue = parseValue(it)
             if (newValue != null) {
                 lastValue = newValue

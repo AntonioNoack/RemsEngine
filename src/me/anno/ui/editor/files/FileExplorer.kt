@@ -105,7 +105,7 @@ abstract class FileExplorer(
     abstract fun onDoubleClick(file: FileReference)
 
     val searchBar = TextInput("Search Term", "", false, style)
-        .setChangeListener {
+        .addChangeListener {
             searchTerm = it
             invalidate()
         }

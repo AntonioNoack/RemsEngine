@@ -2,11 +2,13 @@ package me.anno.ui.base.groups
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
+import me.anno.io.ISaveable
 import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
+import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import kotlin.math.max
 import kotlin.math.min
 
@@ -23,7 +25,9 @@ abstract class PanelGroup(style: Style) : Panel(style) {
     }
 
     override fun getOptionsByType(type: Char): List<Option>? {
-        TODO("list all types of children: go into ISaveable for that")
+        return ISaveable.objectTypeRegistry.filterValues { it.sampleInstance is Panel }.map { (key, value) ->
+            Option(key.camelCaseToTitle(), "") { value.generator() as Panel }
+        }
     }
 
     // override fun getLayoutState(): Any? = children.count { it.visibility == Visibility.VISIBLE }

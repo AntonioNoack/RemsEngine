@@ -157,14 +157,14 @@ class PrefabInspector(val prefab: Prefab) {
 
         list.add(TextInput("Name", "", instance.name, style).apply {
             setBold(isChanged(getPath(), "name"))
-            setChangeListener { setBold(); change(getPath(), "name", it); instance.name = it }
+            addChangeListener { setBold(); change(getPath(), "name", it); instance.name = it }
             setResetListener {
                 unsetBold(); reset(getPath(), "name")
                 instance.name = prefab?.name ?: ""; instance.name
             }
         })
         list.add(TextInput("Description", "", instance.description, style).apply {
-            setChangeListener { setBold(); change(getPath(), "description", it); instance.description = it }
+            addChangeListener { setBold(); change(getPath(), "description", it); instance.description = it }
             setResetListener {
                 unsetBold(); reset(getPath(), "description")
                 instance.description = prefab?.description ?: ""; instance.description
@@ -326,7 +326,7 @@ class PrefabInspector(val prefab: Prefab) {
 
                 override fun getOptionFromInspectable(inspectable: Inspectable): Option {
                     inspectable as Component
-                    return Option(inspectable.className, "") { inspectable }
+                    return Option(inspectable.className.camelCaseToTitle(), "") { inspectable }
                 }
             })
         }

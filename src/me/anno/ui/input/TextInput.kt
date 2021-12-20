@@ -12,10 +12,10 @@ import me.anno.ui.style.Style
 open class TextInput(
     title: String,
     val visibilityKey: String,
-    val enableSuggestions: Boolean, style: Style
+    val enableSpellcheck: Boolean, style: Style
 ) : PanelContainer(
     object : PureTextInput(style) {
-        override val needsSuggestions = enableSuggestions
+        override val enableSpellcheck = enableSpellcheck
     }, Padding(), style
 ), TextStyleable {
 
@@ -63,8 +63,8 @@ open class TextInput(
     fun deleteBefore() = base.deleteBefore()
     fun deleteAfter() = base.deleteAfter()
     fun ensureCursorBounds() = base.ensureCursorBounds()
-    fun setChangeListener(listener: (text: String) -> Unit): TextInput {
-        base.setChangeListener(listener)
+    fun addChangeListener(listener: (text: String) -> Unit): TextInput {
+        base.addChangeListener(listener)
         return this
     }
 

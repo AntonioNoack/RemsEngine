@@ -471,12 +471,8 @@ object Scene {
                         drawWithoutLUT(buffer!!, isFakeColorRendering, camera, cameraTime, w, h, flipY)
                     }
                 }
-
             }
-
-
         }
-
     }
 
     private fun drawWithLUT(

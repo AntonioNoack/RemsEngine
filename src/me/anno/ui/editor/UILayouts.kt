@@ -311,7 +311,7 @@ object UILayouts {
 
         updateFileInputColor()
 
-        nameInput.setChangeListener {
+        nameInput.addChangeListener {
             val newName = if (it.isBlank2()) "-" else it.trim()
             if (lastName == fileInput.file.name) {
                 fileInput.setText(getReference(fileInput.file.getParent(), newName).toString(), false)

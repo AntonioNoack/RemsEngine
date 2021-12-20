@@ -318,7 +318,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
     open fun calculateSize(w: Int, h: Int) {
         minW = 1
         minH = 1
-        // todo why is this required? this should not be a thing
+        // todo why is this required? this should not be needed
         this.w = w
         this.h = h
     }
@@ -365,8 +365,8 @@ open class Panel(val style: Style) : PrefabSaveable() {
     }
 
     fun addLeftClickListener(onClick: () -> Unit): Panel {
-        addOnClickListener { _, _, b, isLong ->
-            if (b.isLeft && !isLong) {
+        addOnClickListener { _, _, mouseButton, isLong ->
+            if (mouseButton.isLeft && !isLong) {
                 onClick()
                 true
             } else false
@@ -393,8 +393,8 @@ open class Panel(val style: Style) : PrefabSaveable() {
     }
 
     open fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-        for (l in onClickListeners) {
-            if (l(x, y, button, long)) return
+        for (listener in onClickListeners) {
+            if (listener(x, y, button, long)) return
         }
         uiParent?.onMouseClicked(x, y, button, long)
     }
@@ -535,7 +535,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
     val listOfPanelHierarchy: Sequence<Panel>
         get() = sequence {
             val p = uiParent
-            if(p != null) yieldAll(p.listOfPanelHierarchy)
+            if (p != null) yieldAll(p.listOfPanelHierarchy)
             yield(this@Panel)
         }
 
@@ -543,7 +543,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         get() = sequence {
             yield(this@Panel)
             val p = uiParent
-            if(p != null) yieldAll(p.listOfPanelHierarchyReversed)
+            if (p != null) yieldAll(p.listOfPanelHierarchyReversed)
         }
 
     fun listOfVisible(callback: (Panel) -> Unit) {
@@ -633,10 +633,24 @@ open class Panel(val style: Style) : PrefabSaveable() {
      * */
     open fun getMultiSelectablePanel(): Panel? = uiParent?.getMultiSelectablePanel()
 
+    fun getPanelAt(x: Int, y: Int): Panel? {
+        return if (canBeSeen && contains(x, y)) {
+            if (this is PanelGroup) {
+                val children = children
+                for (i in children.size - 1 downTo 0) {
+                    val clicked = children[i].getPanelAt(x, y)
+                    if (clicked != null) {
+                        return clicked
+                    }
+                }
+            }
+            this
+        } else null
+    }
+
     val isRootElement get() = uiParent == null
 
-    override fun clone(): PrefabSaveable {
-        // todo clone all properties
+    override fun clone(): Panel {
         val clone = Panel(style)
         copy(clone)
         return clone
@@ -644,15 +658,22 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
-        // todo copy all properties
         clone as Panel
         clone.minX = minX
         clone.minY = minY
+        clone.x = x
+        clone.y = y
         clone.w = w
         clone.h = h
         clone.tooltip = tooltip
         clone.tooltipPanel = clone.tooltipPanel // could create issues, should be found in parent or cloned
-
+        clone.weight = weight
+        clone.visibility = visibility
+        clone.backgroundColor = backgroundColor
+        clone.backgroundRadiusCorners = backgroundRadiusCorners
+        clone.backgroundRadiusX = backgroundRadiusX
+        clone.backgroundRadiusY
+        clone.layoutConstraints.addAll(layoutConstraints)
     }
 
     companion object {
