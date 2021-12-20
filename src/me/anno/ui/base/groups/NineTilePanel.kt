@@ -1,11 +1,18 @@
 package me.anno.ui.base.groups
 
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ui.base.Panel
 import me.anno.ui.style.Style
 
-// nine tile panel, which solves all constraints, and aligns the items appropriately
-// when there are multiple panels per tile, they will get stacked
+/**
+ * nine tile panel, which solves all constraints, and aligns the items appropriately
+ * when there are multiple panels per tile, they will get stacked
+ * */
 open class NineTilePanel(style: Style) : PanelGroup(style) {
+
+    constructor(base: NineTilePanel) : this(base.style) {
+        base.copy(this)
+    }
 
     override val children = ArrayList<Panel>()
 
@@ -38,13 +45,20 @@ open class NineTilePanel(style: Style) : PanelGroup(style) {
 
     override fun placeInParent(x: Int, y: Int) {
         super.placeInParent(x, y)
-
         for (child in children) {
             val cx = x + child.alignmentX.getOffset(w, child.w)
             val cy = y + child.alignmentY.getOffset(h, child.h)
             child.placeInParent(cx, cy)
         }
+    }
 
+    override fun clone() = NineTilePanel(this)
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as NineTilePanel
+        clone.children.clear()
+        clone.children.addAll(children.map { it.clone() })
     }
 
 }

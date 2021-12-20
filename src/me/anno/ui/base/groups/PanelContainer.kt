@@ -11,6 +11,10 @@ open class PanelContainer(
     style: Style
 ) : PanelGroup(style) {
 
+    constructor(base: PanelContainer) : this(base.child.clone(), base.padding, base.style) {
+        base.copy(this)
+    }
+
     init {
         onlyChild.parent = this
     }
@@ -43,6 +47,8 @@ open class PanelContainer(
         super.placeInParent(x, y)
         child.placeInParent(x + padding.left, y + padding.top)
     }
+
+    override fun clone() = PanelContainer(this)
 
     companion object {
         const val maxLength = 2_000_000_000 // max value, but also enough for any padding addition/subtraction

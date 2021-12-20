@@ -127,8 +127,4 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
 
     abstract val isShowingPlaceholder: Boolean
 
-    companion object {
-        private val LOGGER = LogManager.getLogger(CorrectingTextInput::class)
-    }
-
 }

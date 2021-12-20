@@ -1,5 +1,6 @@
 package me.anno.ui.base.groups
 
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.input.MouseButton
@@ -17,6 +18,10 @@ import me.anno.utils.structures.tuples.Quad
 import kotlin.math.max
 
 class PanelListMultiline(val sorter: Comparator<Panel>?, style: Style) : PanelGroup(style), ScrollableY {
+
+    constructor(base: PanelListMultiline): this(base.sorter, base.style){
+        base.copy(this)
+    }
 
     override val children = ArrayList<Panel>(256)
     override val child: Panel
@@ -63,8 +68,8 @@ class PanelListMultiline(val sorter: Comparator<Panel>?, style: Style) : PanelGr
 
     override val maxScrollPositionY get() = max(0, minH2 - h)
     val scrollbar = ScrollbarY(this, style)
-    val scrollbarWidth = style.getSize("scrollbarWidth", 8)
-    val scrollbarPadding = style.getSize("scrollbarPadding", 1)
+    var scrollbarWidth = style.getSize("scrollbarWidth", 8)
+    var scrollbarPadding = style.getSize("scrollbarPadding", 1)
 
     override fun calculateSize(w: Int, h: Int) {
 
@@ -248,6 +253,28 @@ class PanelListMultiline(val sorter: Comparator<Panel>?, style: Style) : PanelGr
             scrollbar.onMouseMoved(x, y, dx, dy)
             clampScrollPosition()
         } else super.onMouseMoved(x, y, dx, dy)
+    }
+
+    override fun clone() = PanelListMultiline(this)
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as PanelListMultiline
+        clone.childWidth = childWidth
+        clone.childHeight = childHeight
+        clone.scaleChildren = scaleChildren
+        clone.childAlignmentX = childAlignmentX
+        clone.rows = rows
+        clone.columns = columns
+        clone.spacing = spacing
+        clone.scrollPositionY = scrollPositionY
+        clone.isDownOnScrollbar = isDownOnScrollbar
+        clone.scrollbarWidth = scrollbarWidth
+        clone.scrollbarPadding = scrollbarPadding
+        clone.autoScrollEndTime = autoScrollEndTime
+        clone.autoScrollPerNano = autoScrollPerNano
+        clone.autoScrollLastUpdate = autoScrollLastUpdate
+        clone.autoScrollTargetPosition = autoScrollTargetPosition
     }
 
 }

@@ -84,7 +84,10 @@ object TextInspector {
                                     panel.font = panel.font.withName(panel.text)
                                     panel.tooltip = panel.text
                                 } else {
-                                    val text = "The quick brown fox jumps over the lazy dog."
+                                    val text = "" +
+                                            "the quick brown fox jumps over the lazy dog.\n" +
+                                            "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG.\n" +
+                                            panel.text
                                     val clone = panel.clone()
                                     panel.tooltipPanel = clone
                                     clone.font = panel.font

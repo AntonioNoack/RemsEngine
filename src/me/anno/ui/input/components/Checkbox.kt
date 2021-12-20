@@ -1,5 +1,6 @@
 package me.anno.ui.input.components
 
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.Texture2D
@@ -14,6 +15,10 @@ import kotlin.math.min
 open class Checkbox(startValue: Boolean, val defaultValue: Boolean, val size: Int, style: Style) :
     Panel(style.getChild("checkbox")) {
 
+    constructor(base: Checkbox) : this(base.isChecked, base.defaultValue, base.size, base.style) {
+        base.copy(this)
+    }
+
     // todo hover/toggle/focus color change
 
     companion object {
@@ -24,6 +29,7 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, val size: In
     var isChecked = startValue
 
     private var resetListener: () -> Boolean? = { defaultValue }
+    private var changeListener: ((Boolean) -> Unit)? = null
     private var wasHovered = false
 
     override fun calculateSize(w: Int, h: Int) {
@@ -65,10 +71,8 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, val size: In
 
     }
 
-    private var onCheckedChanged: ((Boolean) -> Unit)? = null
-
     fun setChangeListener(listener: (Boolean) -> Unit): Checkbox {
-        onCheckedChanged = listener
+        changeListener = listener
         return this
     }
 
@@ -76,7 +80,7 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, val size: In
         if (notify) {
             RemsStudio.largeChange("Toggled to ${!isChecked}") {
                 isChecked = !isChecked
-                onCheckedChanged?.invoke(isChecked)
+                changeListener?.invoke(isChecked)
             }
         } else isChecked = !isChecked
     }
@@ -111,5 +115,18 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, val size: In
 
     override fun acceptsChar(char: Int) = false // ^^
     override fun isKeyInput() = true
+
+    override fun clone() = Checkbox(this)
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as Checkbox
+        clone.isChecked = isChecked
+        // !! can be incorrect, if there is references within the listener
+        clone.resetListener = resetListener
+        // !! can be incorrect, if there is references within the listener
+        clone.changeListener = changeListener
+        clone.wasHovered = wasHovered
+    }
 
 }
