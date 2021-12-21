@@ -18,7 +18,7 @@ open class IntInput(
     style: Style,
     title: String,
     visibilityKey: String,
-    type: Type = Type.FLOAT,
+    type: Type = Type.INT,
     owningProperty: AnimatedProperty<*>?,
     indexInProperty: Int
 ) : NumberInput(style, title, visibilityKey, type, owningProperty, indexInProperty) {
@@ -35,6 +35,8 @@ open class IntInput(
             }
         }
     }
+
+    constructor(style: Style) : this(style, "", "", Type.INT, null, 0)
 
     constructor(
         title: String, visibilityKey: String,

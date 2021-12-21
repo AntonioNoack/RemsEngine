@@ -1,11 +1,12 @@
 package me.anno.studio.history
 
-import me.anno.gpu.GFX
+import me.anno.input.Input
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.objects.Camera
 import me.anno.objects.Transform
+import me.anno.studio.StudioBase.Companion.defaultWindowStack
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.studio.rems.Selection
@@ -16,8 +17,6 @@ import me.anno.ui.editor.sceneView.SceneView
 import me.anno.utils.types.Lists.join
 
 class HistoryState() : Saveable() {
-
-    private val windowStack get() = GFX.windowStack
 
     constructor(title: String, code: Any) : this() {
         this.title = title
@@ -59,7 +58,7 @@ class HistoryState() : Saveable() {
         RemsStudio.editorTime = editorTime
         val listOfAll = root.listOfAll.toList()
         select(selectedUUID, selectedPropName)
-        windowStack.map { window ->
+        defaultWindowStack.map { window ->
             var index = 0
             window.panel.forAll {
                 if (it is SceneView) {
@@ -91,7 +90,7 @@ class HistoryState() : Saveable() {
 
         state.title = title
         state.selectedUUID = Selection.selectedTransform?.getUUID() ?: -1
-        state.usedCameras = windowStack.map { window ->
+        state.usedCameras = defaultWindowStack.map { window ->
             window.panel.listOfAll.filterIsInstance<SceneView>().map { it.camera.getUUID() }.toList()
         }.join().toIntArray()
 

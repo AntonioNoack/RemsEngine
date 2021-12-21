@@ -4,12 +4,12 @@ import me.anno.cache.CacheSection
 import me.anno.cache.data.ICacheData
 import me.anno.cache.data.ImageData
 import me.anno.cache.data.LateinitTexture
-import me.anno.cache.instances.LastModifiedCache
 import me.anno.gpu.GFXBase1
 import me.anno.gpu.TextureLib
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
+import me.anno.image.raw.GPUImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
@@ -26,6 +26,9 @@ object ImageGPUCache : CacheSection("Images") {
     private val LOGGER = LogManager.getLogger(ImageGPUCache::class)
 
     fun hasImageOrCrashed(file: FileReference, timeout: Long, asyncGenerator: Boolean): Boolean {
+        if (file is ImageReadable && file.readImage() is GPUImage) {
+            return true
+        }
         if (file == InvalidRef) return true
         if (file.isDirectory || !file.exists) return true
         val entry = getEntry(file, timeout, asyncGenerator, ImageGPUCache::generateImageData)
@@ -40,6 +43,13 @@ object ImageGPUCache : CacheSection("Images") {
 
     fun getImage(file: FileReference, timeout: Long, asyncGenerator: Boolean): Texture2D? {
         if (file == InvalidRef) return null
+        if (file is ImageReadable) {
+            val image = file.readImage()
+            if (image is GPUImage) {
+                val texture = image.texture
+                return if (!texture.isDestroyed && texture.isCreated) texture else null
+            }
+        }
         if (file !is InnerFile) {
             if (file.isDirectory || !file.exists) return null
         } else if (file.isDirectory || !file.exists) {

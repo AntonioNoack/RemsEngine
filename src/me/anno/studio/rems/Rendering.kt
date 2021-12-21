@@ -13,6 +13,7 @@ import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.studio.rems.RemsStudio.shutterPercentage
 import me.anno.studio.rems.RemsStudio.targetOutputFile
+import me.anno.studio.rems.RemsStudio.windowStack
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.msg
 import me.anno.ui.base.menu.Menu.openMenu
@@ -172,18 +173,15 @@ object Rendering {
                 // we need to ask
                 else -> {
                     // todo ask which video is the right one
-                    openMenu(
-                        NameDesc(
-                            "Select the target video",
-                            "Where the video part is defined; will also decide the length",
-                            "ui.rendering.selectTargetVideo"
-                        ),
-                        videos.map {
-                            MenuOption(NameDesc(it.name.ifEmpty { it.file.name }, it.file.absolutePath, "")) {
-                                overrideAudio(it.file, ask, callback)
-                            }
+                    openMenu(windowStack, NameDesc(
+                        "Select the target video",
+                        "Where the video part is defined; will also decide the length",
+                        "ui.rendering.selectTargetVideo"
+                    ), videos.map {
+                        MenuOption(NameDesc(it.name.ifEmpty { it.file.name }, it.file.absolutePath, "")) {
+                            overrideAudio(it.file, ask, callback)
                         }
-                    )
+                    })
                 }
             }
         } else {
@@ -251,7 +249,7 @@ object Rendering {
 
     private fun onAlreadyRendering() {
         msg(
-            NameDesc(
+            windowStack, NameDesc(
                 "Rendering already in progress!",
                 "If you think, this is an error, please restart!",
                 "ui.warn.renderingInProgress"
@@ -260,7 +258,7 @@ object Rendering {
     }
 
     private fun askOverridingIsAllowed(targetOutputFile: FileReference, callback: () -> Unit) {
-        ask(NameDesc("Override %1?").with("%1", targetOutputFile.name), callback)
+        ask(windowStack, NameDesc("Override %1?").with("%1", targetOutputFile.name), callback)
     }
 
     enum class RenderType(

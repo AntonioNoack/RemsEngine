@@ -4,10 +4,10 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.data.ICacheData
 import me.anno.ecs.prefab.PrefabCache
-import me.anno.gpu.GFX.windowStack
 import me.anno.io.windows.WindowsShortcut
 import me.anno.io.zip.ZipCache
 import me.anno.studio.StudioBase
+import me.anno.studio.StudioBase.Companion.defaultWindowStack
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.openInExplorer
@@ -88,7 +88,8 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             // a little unspecific; works anyways
             val parent = getReference(absolutePath).getParent()
             if (parent != null) {
-                for (window in windowStack) {
+                // todo we should invalidate ALL windowStacks
+                for (window in defaultWindowStack) {
                     window.panel.forAll {
                         if (it is FileExplorer && it.folder.absolutePath.startsWith(parent.absolutePath)) {
                             it.invalidate()

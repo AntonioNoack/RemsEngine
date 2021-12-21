@@ -6,6 +6,8 @@ import me.anno.utils.maths.Maths.clamp
 class ConsoleInput(title: String, enableSuggestions: Boolean, style: Style) :
     TextInput(title, "", enableSuggestions, style) {
 
+    constructor(style: Style): this("", true, style)
+
     var actionListener: (String) -> Unit = {}
 
     var indexFromTop = 0

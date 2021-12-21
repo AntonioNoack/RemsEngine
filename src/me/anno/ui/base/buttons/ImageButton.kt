@@ -1,11 +1,11 @@
 package me.anno.ui.base.buttons
 
-import me.anno.image.ImageGPUCache.getInternalTexture
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.RenderState.renderDefault
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
+import me.anno.image.ImageGPUCache.getInternalTexture
 import me.anno.input.Input.mouseDownX
 import me.anno.input.Input.mouseDownY
 import me.anno.input.Input.mouseKeysDown
@@ -19,12 +19,14 @@ import kotlin.math.roundToInt
 // todo scale image down with subpixel rendering?
 
 class ImageButton(
-    val path: String,
-    val size: Int,
-    val padding: Padding,
+    var path: String,
+    var size: Int,
+    var padding: Padding,
     var square: Boolean = true,
     style: Style
 ) : Panel(style) {
+
+    constructor(style: Style) : this("", 16, Padding(5), true, style)
 
     // private val path = //if (imageName.startsWith("textures/")) imageName else "textures/ui/$imageName"
 

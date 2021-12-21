@@ -33,6 +33,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.translation.NameDesc
 import me.anno.objects.inspectable.Inspectable
+import me.anno.studio.StudioBase.Companion.defaultWindowStack
 import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.groups.TitledListY
@@ -61,11 +62,11 @@ object ComponentUI {
 
     val fileInputRightClickOptions = listOf(
         // todo create menu of files with same type in project, e.g. image files, meshes or sth like that
-        FileExplorerOption(NameDesc("Open Scene")) { ECSSceneTabs.open(it) },
+        FileExplorerOption(NameDesc("Open Scene")) { _, it -> ECSSceneTabs.open(it) },
         // create mutable scene, = import
-        FileExplorerOption(NameDesc("Import")) { it ->
+        FileExplorerOption(NameDesc("Import")) { panel, it ->
             val prefab = loadPrefab(it)
-            if (prefab == null) msg(NameDesc("Cannot import ${it.name}", "Because it cannot be loaded as a scene", ""))
+            if (prefab == null) msg(panel.windowStack, NameDesc("Cannot import ${it.name}", "Because it cannot be loaded as a scene", ""))
             else {
                 // todo import options: place it into which folder?
                 // todo create sub folders? for materials / meshes / animations (if that is relevant to the resource)
@@ -181,6 +182,12 @@ object ComponentUI {
 
             // is ISaveable -> { list all child properties }
             else -> {
+                if (value != null && value is Enum<*>) {
+                    val input = EnumInput.createInput(title, value, style)
+                    val values = value.javaClass.enumConstants
+                    input.setChangeListener { _, index, _ -> property.set(input, values[index]) }
+                    return input
+                }
                 return TextPanel("?? $title, ${value?.javaClass}", style)
             }
         }
@@ -903,7 +910,7 @@ object ComponentUI {
         addOnClickListener { _, _, button, _ ->
             if (button.isRight) {
                 // todo option to edit the parent... how will that work?
-                Menu.openMenu(listOf(MenuOption(NameDesc("Reset")) {
+                Menu.openMenu(defaultWindowStack, listOf(MenuOption(NameDesc("Reset")) {
                     callback(property.reset(this))
                 }))
                 true

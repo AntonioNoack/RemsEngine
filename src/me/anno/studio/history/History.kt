@@ -5,6 +5,7 @@ import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
+import me.anno.studio.StudioBase.Companion.defaultWindowStack
 import me.anno.studio.history.HistoryState.Companion.capture
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
@@ -86,7 +87,7 @@ class History : Saveable() {
     }
 
     fun display() {
-        openMenu(NameDesc("Inspect History", "", "ui.inspectHistory"), states.mapIndexed { index, change ->
+        openMenu(defaultWindowStack, NameDesc("Inspect History", "", "ui.inspectHistory"), states.mapIndexed { index, change ->
             val title = if (index == nextInsertIndex - 1) "* ${change.title}" else change.title
             MenuOption(NameDesc(title, Dict["Click to redo", "ui.history.clickToUndo"], "")) {
                 redo(index)

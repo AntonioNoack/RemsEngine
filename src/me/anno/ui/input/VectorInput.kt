@@ -44,6 +44,8 @@ class VectorInput(
     style: Style
 ) : PanelListY(style), TextStyleable {
 
+    constructor(style: Style) : this("", "", Type.FLOAT, null, style)
+
     constructor(title: String, property: AnimatedProperty<*>, time: Double, style: Style) :
             this(title, title, property.type, property, style) {
         when (val value = property[time]) {
@@ -296,10 +298,10 @@ class VectorInput(
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         var focused1 = titleView?.isInFocus == true
-        if(!focused1){// removing the need for an iterator
+        if (!focused1) {// removing the need for an iterator
             val children = valueList.children
-            for(i in children.indices){
-                if(children[i].isInFocus){
+            for (i in children.indices) {
+                if (children[i].isInFocus) {
                     focused1 = true
                     break
                 }

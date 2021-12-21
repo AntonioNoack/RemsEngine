@@ -37,7 +37,7 @@ import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.maths.Maths.sq
 import kotlin.math.roundToInt
 
-class AbstractTreeViewPanel<V>(
+class TreeViewPanel<V>(
     val getElement: () -> V,
     val getName: (V) -> String,
     val setName: (V, String) -> Unit,
@@ -66,13 +66,13 @@ class AbstractTreeViewPanel<V>(
             }
 
             override fun onCopyRequested(x: Float, y: Float) =
-                this@AbstractTreeViewPanel.onCopyRequested(x, y)
+                this@TreeViewPanel.onCopyRequested(x, y)
         }
     } else null
 
     val text = object : TextPanel("", style) {
         override fun onCopyRequested(x: Float, y: Float) =
-            this@AbstractTreeViewPanel.onCopyRequested(x, y)
+            this@TreeViewPanel.onCopyRequested(x, y)
     }
 
     init {
@@ -162,7 +162,7 @@ class AbstractTreeViewPanel<V>(
         RemsStudio.largeChange(if (isCollapsed) "Expanded $name" else "Collapsed $name") {
             val target = !isCollapsed
             // remove children from the selection???...
-            val targets = inFocus.filterIsInstance<AbstractTreeViewPanel<*>>()
+            val targets = inFocus.filterIsInstance<TreeViewPanel<*>>()
             for (it in targets) {
                 val element2 = it.getElement() as V
                 treeView.setCollapsed(element2, target)
@@ -297,7 +297,7 @@ class AbstractTreeViewPanel<V>(
             }
             "Rename" -> {
                 val e = getElement()
-                askName(x.toInt(), y.toInt(), NameDesc("Name"), getName(e), getColor = { -1 }, callback = { newName ->
+                askName(windowStack, x.toInt(), y.toInt(), NameDesc("Name"), getName(e), getColor = { -1 }, callback = { newName ->
                     setName(e, newName)
                 }, actionName = NameDesc("Change Name"))
             }

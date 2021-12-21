@@ -158,6 +158,16 @@ object Lists {
         return result
     }
 
+    fun <V> List<List<V>?>.flatten(): ArrayList<V> {
+        val list = ArrayList<V>(sumOf { it?.size ?: 0 })
+        for (partialList in this) {
+            if (partialList != null) {
+                list.addAll(partialList)
+            }
+        }
+        return list
+    }
+
     fun <X, Y : Comparable<Y>> List<X>.smallestKElementsBy(k: Int, getValue: (X) -> Y): List<X> {
         return if (size <= k) {
             this

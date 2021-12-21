@@ -12,6 +12,7 @@ import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.input.MouseButton
+import me.anno.io.serialization.NotSerializedProperty
 import me.anno.ui.base.Panel
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.style.Style
@@ -22,6 +23,8 @@ import me.anno.utils.types.Strings.isBlank2
 import kotlin.math.max
 
 open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
+
+    constructor(style: Style): this("", style)
 
     constructor(base: TextPanel) : this(base.text, base.style){
         base.copy(this)
@@ -55,6 +58,19 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
             }
         }
 
+    var breaksIntoMultiline = false
+
+    // can be disabled for parents to copy ALL lines, e.g. for a bug report :)
+    var disableCopy = false
+
+    @NotSerializedProperty
+    protected var minW2 = 0
+
+    @NotSerializedProperty
+    protected var minH2 = 0
+
+    open var enableHoverColor = false
+
     override fun setBold(bold: Boolean) {
         font = font.withBold(bold)
         invalidateDrawing()
@@ -66,32 +82,6 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         invalidateDrawing()
         invalidateLayout()
     }
-
-    // make this panel work without states, as states accumulate to 13% of the idle-allocations at runtime
-    // it seems to work...
-    /*override fun getLayoutState(): Any? {
-        val texture = if(canBeSeen){
-            // keep the texture loaded, in case we need it
-            val widthLimit = if(breaksIntoMultiline) w else -1
-            FontManager.getString(font, text, widthLimit)
-        } else null
-        val texWidth = texture?.w
-        return Pair(super.getLayoutState(), texWidth)
-    }
-
-    override fun getVisualState(): Any? {
-        val texture = if(canBeSeen){
-            // keep the texture loaded, in case we need it
-            val widthLimit = if(breaksIntoMultiline) w else -1
-            FontManager.getString(font, text, widthLimit)
-        } else null
-        return Triple(super.getVisualState(), (texture as? Texture2D)?.state, effectiveTextColor)
-    }*/
-
-    var breaksIntoMultiline = false
-
-    // can be disabled for parents to copy ALL lines, e.g. for a bug report :)
-    var disableCopy = false
 
     fun drawText(dx: Int, dy: Int, text: String, color: Int): Int {
         return DrawTexts.drawText(
@@ -112,9 +102,6 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         else textAlignment.getOffset(w, getMaxWidth())
         drawText(offset, 0, color)
     }
-
-    var minW2 = 0
-    var minH2 = 0
 
     open val widthLimit get() = if (breaksIntoMultiline) w - padding.width else -1
     open val heightLimit get() = -1
@@ -160,8 +147,6 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         return if (disableCopy) super.onCopyRequested(x, y) else text
     }
 
-    open var enableHoverColor = false
-
     open val effectiveTextColor
         get() =
             if (isHovered && enableHoverColor) hoverColor
@@ -203,5 +188,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         clone.breaksIntoMultiline = breaksIntoMultiline
         clone.disableCopy = disableCopy
     }
+
+    override val className: String = "TextPanel"
 
 }

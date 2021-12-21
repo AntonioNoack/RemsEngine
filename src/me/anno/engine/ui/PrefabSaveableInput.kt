@@ -37,7 +37,7 @@ class PrefabSaveableInput<Type : PrefabSaveable>(val title: String, val clazz: K
     init {
         // right click to reset it
         addRightClickListener {
-            openMenu(listOf(MenuOption(NameDesc("Reset")) {
+            openMenu(windowStack, listOf(MenuOption(NameDesc("Reset")) {
                 value = resetListener()
             }))
         }
@@ -65,7 +65,7 @@ class PrefabSaveableInput<Type : PrefabSaveable>(val title: String, val clazz: K
                         }
                     }
                     msg(
-                        NameDesc(
+                        windowStack, NameDesc(
                             "Incorrect type",
                             "${instance.name} is not instance of $clazz, and none of its direct children is either",
                             ""

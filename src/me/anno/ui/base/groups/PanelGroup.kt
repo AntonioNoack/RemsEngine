@@ -19,15 +19,10 @@ abstract class PanelGroup(style: Style) : Panel(style) {
 
     override fun listChildTypes(): String = "p"
     override fun getChildListByType(type: Char) = children
+    override fun getOptionsByType(type: Char) = getPanelOptions()
     override fun addChildByType(index: Int, type: Char, child: PrefabSaveable) {
         val children = children
         if (child is Panel && children is MutableList) children.add(index, child)
-    }
-
-    override fun getOptionsByType(type: Char): List<Option>? {
-        return ISaveable.objectTypeRegistry.filterValues { it.sampleInstance is Panel }.map { (key, value) ->
-            Option(key.camelCaseToTitle(), "") { value.generator() as Panel }
-        }
     }
 
     // override fun getLayoutState(): Any? = children.count { it.visibility == Visibility.VISIBLE }
@@ -78,6 +73,13 @@ abstract class PanelGroup(style: Style) : Panel(style) {
             GFX.inFocus.clear()
             GFX.inFocus.addAll(children.filter { it.getMultiSelectablePanel() == it })
         } else super.onSelectAll(x, y)
+    }
+
+    companion object {
+        fun getPanelOptions() =
+            ISaveable.objectTypeRegistry.filterValues { it.sampleInstance is Panel }.map { (key, value) ->
+                Option(key.camelCaseToTitle(), "") { value.generator() as Panel }
+            }
     }
 
 }

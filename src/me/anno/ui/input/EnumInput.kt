@@ -4,12 +4,15 @@ import me.anno.gpu.Cursor
 import me.anno.input.MouseButton
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
-import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.components.EnumValuePanel
 import me.anno.ui.style.Style
+import me.anno.utils.strings.StringHelper.camelCaseToTitle
+import kotlin.reflect.KProperty
+import kotlin.reflect.full.memberProperties
 
 open class EnumInput(
     val title: String, withTitle: Boolean, startValue: String,
@@ -21,12 +24,26 @@ open class EnumInput(
         setTooltip(ttt)
     }
 
-    constructor(title: String, ttt: String, dictPath: String, startValue: String, options: List<NameDesc>, style: Style) :
+    constructor(
+        title: String,
+        ttt: String,
+        dictPath: String,
+        startValue: String,
+        options: List<NameDesc>,
+        style: Style
+    ) :
             this(Dict[title, dictPath], true, startValue, options, style) {
         setTooltip(Dict[ttt, "$dictPath.desc"])
     }
 
-    constructor(title: String, ttt: String, dictPath: String, startValue: NameDesc, options: List<NameDesc>, style: Style) :
+    constructor(
+        title: String,
+        ttt: String,
+        dictPath: String,
+        startValue: NameDesc,
+        options: List<NameDesc>,
+        style: Style
+    ) :
             this(Dict[title, dictPath], true, startValue.name, options, style) {
         setTooltip(Dict[ttt, "$dictPath.desc"])
     }
@@ -74,8 +91,8 @@ open class EnumInput(
         this += inputPanel
     }
 
-    fun setOption(index: Int){
-        if(index < 0) return
+    fun setOption(index: Int) {
+        if (index < 0) return
         inputPanel.text = options[index].name
     }
 
@@ -92,7 +109,7 @@ open class EnumInput(
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         openMenu(
-            this.x, this.y,
+            windowStack, this.x, this.y,
             NameDesc("Select the %1", "", "ui.input.enum.menuTitle")
                 .with("%1", title),
             options.mapIndexed { index, option ->
@@ -106,5 +123,33 @@ open class EnumInput(
     }
 
     override fun getCursor(): Long = Cursor.drag
+
+    companion object {
+
+        fun createInput(title: String, value: Enum<*>, style: Style): EnumInput {
+            val values = getEnumConstants(value.javaClass)
+            val ttt = value.javaClass.simpleName.camelCaseToTitle()
+            val valueName = enumToNameDesc(value).name
+            return EnumInput(title, ttt, valueName, values.map { enumToNameDesc(it) }, style)
+        }
+
+        fun getEnumConstants(clazz: Class<*>): Array<out Any> {
+            return if (clazz.isEnum) clazz.enumConstants!!
+            else getEnumConstants(clazz.superclass)
+        }
+
+        fun enumToNameDesc(instance: Any): NameDesc {
+            val clazz = instance::class
+            val naming = clazz.memberProperties
+                .firstOrNull { it.name == "naming" }?.getter?.call(instance) as? NameDesc
+            if (naming != null) return naming
+            val desc = clazz.memberProperties
+                .firstOrNull { it.name == "desc" || it.name == "description" }
+                ?: return NameDesc(instance.toString())
+            val desc2 = (desc as KProperty<*>).getter.call(instance)?.toString() ?: ""
+            return NameDesc(instance.toString(), desc2, "")
+        }
+
+    }
 
 }

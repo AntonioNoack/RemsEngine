@@ -66,7 +66,7 @@ open class NumberInputComponent(
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         if (owningProperty != null && (!button.isLeft || long)) {
             val oldDriver = owningProperty.drivers[indexInProperty]
-            AnimationDriver.openDriverSelectionMenu(oldDriver) { driver ->
+            AnimationDriver.openDriverSelectionMenu(windowStack, oldDriver) { driver ->
                 RemsStudio.largeChange("Changed driver to ${driver?.className}") {
                     owningProperty.drivers[indexInProperty] = driver
                     if (driver != null) selectProperty(driver)

@@ -58,7 +58,7 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
         when {
             // todo when everything is working, use actions instead
             button.isRight -> {
-                openMenu(listOf(
+                openMenu(windowStack, listOf(
                     MenuOption(NameDesc("Add Entry")) {
                         val value = newValue()
                         content.add(value)

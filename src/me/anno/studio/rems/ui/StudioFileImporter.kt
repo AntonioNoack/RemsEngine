@@ -12,6 +12,7 @@ import me.anno.objects.meshes.MeshTransform
 import me.anno.objects.modes.UVProjection
 import me.anno.objects.text.Text
 import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.studio.StudioBase.Companion.defaultWindowStack
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.Selection.selectTransform
 import me.anno.ui.base.menu.Menu.ask
@@ -44,14 +45,15 @@ object StudioFileImporter : FileContentImporter<Transform>() {
         val name = file.name
         when (file.extension.getImportType()) {
             "Transform" -> when (useSoftLink) {
-                SoftLinkMode.ASK -> openMenu(listOf(
-                    MenuOption(NameDesc("Link")) {
-                        addChildFromFile(parent, file, SoftLinkMode.CREATE_LINK, doSelect, depth, callback)
-                    },
-                    MenuOption(NameDesc("Copy")) {
-                        addChildFromFile(parent, file, SoftLinkMode.COPY_CONTENT, doSelect, depth, callback)
-                    }
-                ))
+                SoftLinkMode.ASK -> openMenu(
+                    defaultWindowStack, listOf(
+                        MenuOption(NameDesc("Link")) {
+                            addChildFromFile(parent, file, SoftLinkMode.CREATE_LINK, doSelect, depth, callback)
+                        },
+                        MenuOption(NameDesc("Copy")) {
+                            addChildFromFile(parent, file, SoftLinkMode.COPY_CONTENT, doSelect, depth, callback)
+                        }
+                    ))
                 SoftLinkMode.CREATE_LINK -> {
                     val transform = SoftLink(file)
                     RemsStudio.largeChange("Added ${transform.name} to ${file.name}") {
@@ -183,6 +185,7 @@ object StudioFileImporter : FileContentImporter<Transform>() {
         if (text.length > 500) {
             addEvent {
                 ask(
+                    defaultWindowStack,
                     NameDesc("Text has %1 characters, import?", "", "obj.text.askLargeImport")
                         .with("%1", text.codePoints().count().toString())
                 ) {

@@ -1,34 +1,41 @@
 package me.anno.ui.base.text
 
-import me.anno.config.DefaultConfig
 import me.anno.gpu.Cursor
+import me.anno.input.Input.setClipboardContent
 import me.anno.input.MouseButton
+import me.anno.language.translation.NameDesc
+import me.anno.ui.base.menu.Menu.openMenu
+import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.style.Style
 import me.anno.utils.files.OpenInBrowser.openInBrowser
+import org.apache.logging.log4j.LogManager
 import java.net.URL
 
-open class LinkPanel(val link: URL, style: Style) : TextPanel(link.toString(), style.getChild("link")) {
+open class LinkPanel(link: String, style: Style) : TextPanel(link, style.getChild("link")) {
 
-    override val className get() = "LinkPanel"
+    constructor(style: Style) : this("", style)
+
+    constructor(link: URL, style: Style): this(link.toString(), style)
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         when {
-            button.isLeft -> {
-                open()
-            }
+            button.isLeft -> open()
             button.isRight -> {
-                // todo options:
-                // todo - copy link to clipboard
-                // todo - open link in browser
+                openMenu(windowStack, listOf(
+                    MenuOption(NameDesc("Copy to Clipboard")) { setClipboardContent(text) },
+                    MenuOption(NameDesc("Open in Browser")) { open() }
+                ))
             }
             else -> super.onMouseClicked(x, y, button, long)
         }
     }
 
-    fun open(){
-        link.openInBrowser()
+    fun open() {
+        URL(text).openInBrowser()
     }
 
     override fun getCursor(): Long? = Cursor.hand
+
+    override val className get() = "LinkPanel"
 
 }

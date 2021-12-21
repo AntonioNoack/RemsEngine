@@ -1,12 +1,14 @@
 package me.anno.ui.base
 
 import me.anno.config.DefaultStyle.black
+import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.gpu.Window
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
+import me.anno.io.serialization.NotSerializedProperty
 import me.anno.ui.base.components.Corner.drawRoundedRect
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
@@ -65,6 +67,8 @@ open class Panel(val style: Style) : PrefabSaveable() {
             return field
         }
 
+    val windowStack get() = window!!.windowStack
+
     fun toggleVisibility() {
         visibility = if (visibility == Visibility.VISIBLE) Visibility.GONE else Visibility.VISIBLE
         invalidateLayout()
@@ -116,54 +120,38 @@ open class Panel(val style: Style) : PrefabSaveable() {
         wasInFocus = isInFocus
     }
 
+    @NotSerializedProperty
     var lx0 = 0
+
+    @NotSerializedProperty
     var ly0 = 0
+
+    @NotSerializedProperty
     var lx1 = 0
+
+    @NotSerializedProperty
     var ly1 = 0
 
+    @NotSerializedProperty
     var llx0 = lx0
+
+    @NotSerializedProperty
     var lly0 = ly0
+
+    @NotSerializedProperty
     var llx1 = lx1
+
+    @NotSerializedProperty
     var lly1 = ly1
 
-    open fun getLayoutState(): Any? = null // Rect(lx0, ly0, lx1, ly1)
-    open fun getVisualState(): Any? = null
-
+    @NotSerializedProperty
     var oldLayoutState: Any? = null
+
+    @NotSerializedProperty
     var oldVisualState: Any? = null
 
+    @NotSerializedProperty
     var oldStateInt = 0
-    fun tick() {
-        val newLayoutState = getLayoutState()
-        if (newLayoutState != oldLayoutState) {
-            oldLayoutState = newLayoutState
-            oldVisualState = getVisualState()
-            invalidateLayout()
-        } else {
-            val newStateInt = isInFocus.toInt(1) + isHovered.toInt(2) + canBeSeen.toInt(4)
-            if (oldStateInt != newStateInt || llx0 != lx0 || lly0 != ly0 || llx1 != lx1 || lly1 != ly1) {
-                oldStateInt = newStateInt
-                llx0 = lx0
-                lly0 = ly0
-                llx1 = lx1
-                lly1 = ly1
-                oldVisualState = getVisualState()
-                invalidateDrawing()
-            } else {
-                val newVisualState = getVisualState()
-                if (newVisualState != oldVisualState) {
-                    oldVisualState = newVisualState
-                    invalidateDrawing()
-                }
-            }
-        }
-    }
-
-    /*var cachedVisuals = Framebuffer(
-        "panel", 1, 1, 1, 1, false,
-        Framebuffer.DepthBufferType.NONE
-    )
-    var renderOnRequestOnly = false*/
 
     var backgroundRadiusX = style.getSize("background.radius.x", 0)
     var backgroundRadiusY = style.getSize("background.radius.y", 0)
@@ -199,7 +187,41 @@ open class Panel(val style: Style) : PrefabSaveable() {
     val rootPanel: Panel get() = uiParent?.rootPanel ?: this
 
     open val onMovementHideTooltip = true
+
+    @Type("String?")
     var tooltip: String? = null
+
+    @Type("Panel?")
+    var tooltipPanel: Panel? = null
+
+    open fun getLayoutState(): Any? = null
+    open fun getVisualState(): Any? = null
+
+    fun tick() {
+        val newLayoutState = getLayoutState()
+        if (newLayoutState != oldLayoutState) {
+            oldLayoutState = newLayoutState
+            oldVisualState = getVisualState()
+            invalidateLayout()
+        } else {
+            val newStateInt = isInFocus.toInt(1) + isHovered.toInt(2) + canBeSeen.toInt(4)
+            if (oldStateInt != newStateInt || llx0 != lx0 || lly0 != ly0 || llx1 != lx1 || lly1 != ly1) {
+                oldStateInt = newStateInt
+                llx0 = lx0
+                lly0 = ly0
+                llx1 = lx1
+                lly1 = ly1
+                oldVisualState = getVisualState()
+                invalidateDrawing()
+            } else {
+                val newVisualState = getVisualState()
+                if (newVisualState != oldVisualState) {
+                    oldVisualState = newVisualState
+                    invalidateDrawing()
+                }
+            }
+        }
+    }
 
     open fun requestFocus() = GFX.requestFocus(this, true)
 
@@ -484,7 +506,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     open fun getCursor(): Long? = uiParent?.getCursor() ?: 0L
 
-    var tooltipPanel: Panel? = null
     open fun getTooltipPanel(x: Float, y: Float): Panel? = tooltipPanel
     open fun getTooltipText(x: Float, y: Float): String? = tooltip ?: uiParent?.getTooltipText(x, y)
 
@@ -622,7 +643,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
      * does this panel contain the coordinate (x,y)?
      * does not consider overlap
      *
-     * panels are aligned on full coordinates, so there is no advantange in calling this function
+     * panels are aligned on full coordinates, so there is no advantage in calling this function
      * */
     fun contains(x: Float, y: Float, margin: Int = 0) = contains(x.toInt(), y.toInt(), margin)
 
@@ -688,8 +709,11 @@ open class Panel(val style: Style) : PrefabSaveable() {
         clone.backgroundRadiusCorners = backgroundRadiusCorners
         clone.backgroundRadiusX = backgroundRadiusX
         clone.backgroundRadiusY
+        clone.layoutConstraints.clear()
         clone.layoutConstraints.addAll(layoutConstraints)
     }
+
+    override val className: String = "Panel"
 
     companion object {
         private val LOGGER = LogManager.getLogger(Panel::class)

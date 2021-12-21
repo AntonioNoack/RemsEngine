@@ -6,7 +6,6 @@ import me.anno.config.DefaultStyle.deepDark
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFX.deltaTime
-import me.anno.gpu.GFX.windowStack
 import me.anno.gpu.RenderState.renderDefault
 import me.anno.gpu.Window
 import me.anno.gpu.drawing.DrawRectangles.drawRect
@@ -679,8 +678,7 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
         // don't open, if it's already fullscreen
         if (windowStack.peek()?.panel !is SceneView) {
             val view = SceneView(this)
-            val window = Window(view)
-            windowStack.push(window)
+            windowStack.push(view)
         }
     }
 

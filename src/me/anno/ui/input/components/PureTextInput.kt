@@ -1,5 +1,6 @@
 package me.anno.ui.input.components
 
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.drawing.DrawRectangles.drawRect
@@ -11,6 +12,8 @@ import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseKeysDown
 import me.anno.input.MouseButton
+import me.anno.io.serialization.NotSerializedProperty
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.style.Style
 import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.types.Strings.getIndexFromText
@@ -105,7 +108,9 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
         }
     }
 
-    var lastChange = 0L
+    @NotSerializedProperty
+    private var lastChange = 0L
+
     val blinkVisible get() = (((GFX.gameTime - lastChange) / 500_000_000L).and(1) == 0L)
     val wasJustChanged get() = GFX.gameTime - lastChange < 200_000_000
 
@@ -383,6 +388,22 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
     override var enableHoverColor: Boolean
         get() = text.isNotEmpty()
         set(_) {}
+
+    override fun clone(): PureTextInput {
+        val clone = PureTextInput(style)
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as PureTextInput
+        clone.showBars = showBars
+        clone.cursor1 = cursor1
+        clone.cursor2 = cursor2
+        clone.placeholder = placeholder
+        clone.placeholderColor = placeholderColor
+    }
 
     override val className get() = "PureTextInput"
 

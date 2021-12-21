@@ -1,5 +1,6 @@
 package me.anno.ui.input
 
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.io.files.FileReference
 import me.anno.ui.base.Visibility
@@ -18,6 +19,8 @@ open class TextInput(
         override val enableSpellcheck = enableSpellcheck
     }, Padding(), style
 ), TextStyleable {
+
+    constructor(style: Style): this("", "", true, style)
 
     constructor(title: String, visibilityKey: String, v0: String?, style: Style) :
             this(title, visibilityKey, true, v0, style)
@@ -107,9 +110,23 @@ open class TextInput(
         base.requestFocus()
     }
 
-    override val className get() = "TextInput"
     override fun getCursor(): Long = Cursor.drag
+
     override fun isKeyInput() = true
 
+    override fun clone(): TextInput {
+        val clone = TextInput(style)
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as TextInput
+        clone.base.placeholder = base.placeholder
+        clone.base.backgroundColor = base.backgroundColor
+    }
+
+    override val className get() = "TextInput"
 
 }

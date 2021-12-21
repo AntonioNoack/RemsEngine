@@ -2,18 +2,15 @@ package me.anno.engine.ui.scenetabs
 
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
-import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshBaseComponent
-import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderView
-import me.anno.gpu.GFX.windowStack
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.ui.base.text.TextPanel
@@ -119,7 +116,7 @@ class ECSSceneTab(
             isFirstTime = false
             resetCamera(root)
         }
-        for (window in windowStack) {
+        for (window in window?.windowStack ?: emptyList()) {
             window.panel.forAll {
                 if (it is RenderView) {
                     it.radius = radius

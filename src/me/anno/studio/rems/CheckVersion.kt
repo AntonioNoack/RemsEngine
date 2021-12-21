@@ -4,11 +4,12 @@ import me.anno.installer.Installer
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.studio.StudioBase.Companion.defaultWindowStack
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.utils.OS
-import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.files.OpenInBrowser.openInBrowser
+import me.anno.utils.hpc.Threads.threadWithName
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.net.URI
@@ -26,6 +27,7 @@ object CheckVersion {
     private val url get() = "https://remsstudio.phychi.com/version.php?isWindows=${if (OS.isWindows) 1 else 0}"
 
     fun checkVersion() {
+        val windowStack = defaultWindowStack
         threadWithName("CheckVersion") {
             val latestVersion = checkVersion(URL(url))
             if (latestVersion > -1) {
@@ -36,7 +38,7 @@ object CheckVersion {
                         LOGGER.info("Found newer version: $name")
                         // wait for everything to be loaded xD
                         addEvent {
-                            Menu.openMenu(
+                            Menu.openMenu(windowStack,
                                 NameDesc("New Version Available!", "", "ui.newVersion"), listOf(
                                     MenuOption(NameDesc("See Download Options", "", "ui.newVersion.openLink")) {
                                         URI("https", "remsstudio.phychi.com", "/", "s=download").toURL().openInBrowser()
@@ -49,15 +51,14 @@ object CheckVersion {
                                         // download the file
                                         // RemsStudio_v1.00.00.jar ?
                                         Installer.download(name, dst) {
-                                            Menu.openMenu(
-                                                listOf(
-                                                    MenuOption(
-                                                        NameDesc("Downloaded file to %1", "", "")
-                                                            .with("%1", dst.toString())
-                                                    ) {
-                                                        dst.openInExplorer()
-                                                    }
-                                                )
+                                            Menu.openMenu(windowStack, listOf(
+                                                MenuOption(
+                                                    NameDesc("Downloaded file to %1", "", "")
+                                                        .with("%1", dst.toString())
+                                                ) {
+                                                    dst.openInExplorer()
+                                                }
+                                            )
                                             )
                                         }
                                     }
@@ -69,9 +70,11 @@ object CheckVersion {
                     }
                 } else {
                     LOGGER.info(
-                        "The newest version is in use: ${RemsStudio.versionName} (Server: ${formatVersion(
-                            latestVersion
-                        )})"
+                        "The newest version is in use: ${RemsStudio.versionName} (Server: ${
+                            formatVersion(
+                                latestVersion
+                            )
+                        })"
                     )
                 }
             }

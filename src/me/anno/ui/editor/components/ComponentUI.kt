@@ -4,15 +4,8 @@ import me.anno.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.blending.blendModes
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.Filtering
 import me.anno.io.files.FileReference
-import me.anno.language.Language
-import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
-import me.anno.objects.effects.MaskType
-import me.anno.objects.effects.ToneMappers
-import me.anno.objects.modes.*
 import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.Panel
 import me.anno.ui.input.*
@@ -169,38 +162,8 @@ object ComponentUI {
                     .setTooltip(ttt)
             }
             is Enum<*> -> {
-                val values = when (value) {
-                    is LoopingState -> LoopingState.values()
-                    is ToneMappers -> ToneMappers.values()
-                    is MaskType -> MaskType.values()
-                    is Filtering -> Filtering.values()
-                    is ArraySelectionMode -> ArraySelectionMode.values()
-                    is UVProjection -> UVProjection.values()
-                    is Clamping -> Clamping.values()
-                    is TransformVisibility -> TransformVisibility.values()
-                    is TextRenderMode -> TextRenderMode.values()
-                    is Language -> Language.values()
-                    else -> throw RuntimeException("Missing enum .values() implementation for UI in Transform.kt for $value")
-                }
-                val valueNames: List<Pair<Any, NameDesc>> = values.map {
-                    it to when (it) {
-                        is LoopingState -> it.naming
-                        is ToneMappers -> it.naming
-                        is MaskType -> it.naming
-                        is Filtering -> it.naming
-                        is ArraySelectionMode -> it.naming
-                        is UVProjection -> it.naming
-                        is Clamping -> it.naming
-                        is TransformVisibility -> it.naming
-                        is TextRenderMode -> it.naming
-                        is Language -> it.naming
-                        else -> NameDesc(it.name, "", "")
-                    }
-                }
-                EnumInput(
-                    title, true, valueNames.first { it.first == value }.second.name,
-                    valueNames.map { it.second }, style
-                )
+                val values = value.javaClass.enumConstants
+                EnumInput.createInput(title, value, style)
                     .setChangeListener { name, index, _ ->
                         RemsStudio.incrementalChange("Set $title to $name") {
                             setValue(values[index] as V)

@@ -1,13 +1,13 @@
 package me.anno.ui.editor.color
 
+import me.anno.animation.AnimatedProperty
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.input.Input
-import me.anno.animation.AnimatedProperty
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.ui.base.Panel
-import me.anno.ui.base.SpacePanel
+import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
@@ -30,7 +30,13 @@ import org.joml.Vector4f
 import org.joml.Vector4fc
 import kotlin.math.min
 
-class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: AnimatedProperty<*>?) : PanelListY(style) {
+class ColorChooser(
+    style: Style,
+    val withAlpha: Boolean,
+    val owningProperty: AnimatedProperty<*>?
+) : PanelListY(style) {
+
+    constructor(style: Style): this(style, true, null)
 
     // color section
     // bottom section:
@@ -49,7 +55,7 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
     var visualisation = lastVisualisation ?: ColorVisualisation.WHEEL
     var colorSpace = getDefaultColorSpace()
         set(value) {
-            if(field != value){
+            if (field != value) {
                 val rgb = field.toRGB(Vector3f(hue, saturation, lightness))
                 val newHSL = value.fromRGB(rgb)
                 field = value
@@ -62,7 +68,7 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
     var isDownInRing = false
     private val hslBox = HSVBoxMain(this, Vector3f(), Vector3f(0f, 1f, 0f), Vector3f(0f, 0f, 1f), style)
 
-    private val hueChooserSpace = SpacePanel(0, 2, style)
+    private val hueChooserSpace = SpacerPanel(0, 2, style)
     private val hueChooser = HueBar(this, style)
     private val alphaBar = if (withAlpha) AlphaBar(this, style) else null
 
@@ -95,12 +101,12 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
         this += spaceBox
         spaceBox += colorSpaceInput.setWeight(1f)
         spaceBox += styleInput
-        this += SpacePanel(0, 2, style)
+        this += SpacerPanel(0, 2, style)
         this += hslBox
         this += hueChooserSpace
         this += hueChooser
         if (alphaBar != null) {
-            this += SpacePanel(0, 2, style)
+            this += SpacerPanel(0, 2, style)
             this += alphaBar
         }
         this += colorPalette
@@ -212,7 +218,7 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
         val cssCompatible = DefaultConfig["editor.copyColorsCSS-compatible", false]
         val useAlpha = DefaultConfig["editor.copyColorsCSS-withAlpha", true]
         return if (cssCompatible != Input.isShiftDown) {
-            colorSpace.toRGB(hue, saturation, lightness, if(useAlpha) opacity else 1f).toHexColor()
+            colorSpace.toRGB(hue, saturation, lightness, if (useAlpha) opacity else 1f).toHexColor()
         } else {
             "${colorSpace.serializationName}(${hue.f3()},${saturation.f3()},${lightness.f3()},${opacity.f3()})"
         }
@@ -238,8 +244,11 @@ class ColorChooser(style: Style, val withAlpha: Boolean, val owningProperty: Ani
         var lastVisualisation: ColorVisualisation? = null
         var lastColorSpace: ColorSpace? = null
         fun getDefaultColorSpace(): ColorSpace {
-            return lastColorSpace ?: DefaultConfig["default.colorSpace", "HSLuv"].run { ColorSpace.list.value.firstOrNull{ it.serializationName == this } } ?: HSLuv
+            return lastColorSpace
+                ?: DefaultConfig["default.colorSpace", "HSLuv"].run { ColorSpace.list.value.firstOrNull { it.serializationName == this } }
+                ?: HSLuv
         }
+
         init {
             HSLuv.toString()
             HSV.toString()

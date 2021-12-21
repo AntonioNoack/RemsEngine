@@ -10,6 +10,8 @@ import me.anno.utils.types.Strings.isBlank2
 open class TitledListY(val title: String, val visibilityKey: String, sorter: Comparator<Panel>?, style: Style) :
     PanelListY(sorter, style), TextStyleable {
 
+    constructor(style: Style): this("", "", null, style)
+
     constructor(title: String, visibilityKey: String, style: Style) : this(title, visibilityKey, null, style)
 
     val titleView = if (title.isBlank2()) null else TextPanel(title, style)

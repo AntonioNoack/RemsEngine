@@ -1,5 +1,6 @@
 package me.anno.engine
 
+import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.ScriptComponent
@@ -22,6 +23,7 @@ import me.anno.ecs.components.physics.constraints.*
 import me.anno.ecs.components.test.RaycastTestComponent
 import me.anno.ecs.components.test.TestVehicleController
 import me.anno.ecs.components.test.TypeTestComponent
+import me.anno.ecs.components.ui.CanvasComponent
 import me.anno.ecs.prefab.ChangeHistory
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.CAdd
@@ -39,6 +41,23 @@ import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
 import me.anno.mesh.assimp.Bone
 import me.anno.studio.Build
+import me.anno.ui.base.Font
+import me.anno.ui.base.IconPanel
+import me.anno.ui.base.Panel
+import me.anno.ui.base.SpacerPanel
+import me.anno.ui.base.buttons.ImageButton
+import me.anno.ui.base.buttons.TextButton
+import me.anno.ui.base.components.Padding
+import me.anno.ui.base.groups.*
+import me.anno.ui.base.scrolling.ScrollPanelX
+import me.anno.ui.base.scrolling.ScrollPanelXY
+import me.anno.ui.base.scrolling.ScrollPanelY
+import me.anno.ui.base.text.LinkPanel
+import me.anno.ui.base.text.SimpleTextPanel
+import me.anno.ui.base.text.TextPanel
+import me.anno.ui.editor.color.ColorChooser
+import me.anno.ui.input.*
+import java.net.URL
 
 object ECSRegistry {
 
@@ -57,6 +76,43 @@ object ECSRegistry {
         registerCustomClass(Transform())
 
         registerCustomClass(CameraComponent())
+
+        // ui base
+        registerCustomClass(CanvasComponent())
+
+        // ui containers
+        val style = DefaultConfig.style
+        registerCustomClass { Font() }
+        registerCustomClass { Padding() }
+        registerCustomClass { Panel(style) }
+        registerCustomClass { PanelListX(style) }
+        registerCustomClass { PanelListY(style) }
+        registerCustomClass { PanelStack(style) }
+        registerCustomClass { ScrollPanelX(style) }
+        registerCustomClass { ScrollPanelY(style) }
+        registerCustomClass { ScrollPanelXY(style) }
+        registerCustomClass { NineTilePanel(style) }
+        registerCustomClass { TitledListY(style) }
+
+        // ui content
+        registerCustomClass { TextPanel(style) }
+        registerCustomClass { LinkPanel(style) }
+        registerCustomClass { SimpleTextPanel(style) }
+        registerCustomClass { IconPanel(style) }
+        registerCustomClass { TextButton(style) }
+        registerCustomClass { ImageButton(style) }
+        registerCustomClass { SpacerPanel(style) }
+        registerCustomClass { ColorChooser(style) }
+        registerCustomClass { BooleanInput(style) }
+        registerCustomClass { ColorInput(style) }
+        registerCustomClass { FloatInput(style) }
+        registerCustomClass { IntInput(style) }
+        registerCustomClass { TextInput(style) }
+        registerCustomClass { TextInputML(style) }
+        registerCustomClass { VectorInput(style) }
+        registerCustomClass { VectorIntInput(style) }
+        // not finished:
+        // registerCustomClass { ConsoleInput(style) }
 
         // meshes and rendering
         registerCustomClass(Mesh())

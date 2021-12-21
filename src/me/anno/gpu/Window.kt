@@ -4,16 +4,20 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
+import me.anno.ui.utils.WindowStack
 import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
 import kotlin.math.min
 
 open class Window(
-    val panel: Panel, val isFullscreen: Boolean, var x: Int, var y: Int
+    val panel: Panel,
+    val isFullscreen: Boolean,
+    val windowStack: WindowStack,
+    var x: Int, var y: Int
 ) {
 
-    constructor(panel: Panel) : this(panel, true, 0, 0)
-    constructor(panel: Panel, x: Int, y: Int) : this(panel, false, x, y)
+    constructor(panel: Panel, windowStack: WindowStack) : this(panel, true, windowStack, 0, 0)
+    constructor(panel: Panel, windowStack: WindowStack, x: Int, y: Int) : this(panel, false, windowStack, x, y)
 
     var canBeClosedByUser = true
 

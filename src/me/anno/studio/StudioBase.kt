@@ -36,6 +36,7 @@ import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.debug.FPSPanel
 import me.anno.ui.dragging.IDraggable
 import me.anno.ui.style.Style
+import me.anno.ui.utils.WindowStack
 import me.anno.utils.Clock
 import me.anno.utils.OS
 import me.anno.utils.maths.Maths.clamp
@@ -44,7 +45,9 @@ import me.anno.utils.types.Strings.filterAlphaNumeric
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11.*
 import java.io.File
+import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
+import kotlin.collections.ArrayList
 import kotlin.math.roundToInt
 
 abstract class StudioBase(
@@ -110,6 +113,8 @@ abstract class StudioBase(
     val showFPS get() = DefaultConfig["debug.ui.showFPS", Build.isDebug]
     val showRedraws get() = DefaultConfig["debug.ui.showRedraws", false]
 
+    val windowStack = WindowStack()
+
     open fun gameInit() {
 
         GFX.check()
@@ -136,10 +141,11 @@ abstract class StudioBase(
     fun setupNames() {
         GFX.title = title
         GFXBase0.projectName = configName
-        instance = this
     }
 
     open fun run() {
+
+        instance = this
 
         setupNames()
 
@@ -199,7 +205,6 @@ abstract class StudioBase(
 
             val sparseRedraw = DefaultConfig["ui.sparseRedraw", true]
 
-            val windowStack = GFX.windowStack
             val lastFullscreenIndex = windowStack.indexOfLast { it.isFullscreen }
             for (index in windowStack.indices) {
                 val window = windowStack[index]
@@ -259,7 +264,7 @@ abstract class StudioBase(
     }
 
     fun updateHoveredAndCursor() {
-        val hovered = GFX.getPanelAndWindowAt(Input.mouseX, Input.mouseY)
+        val hovered = windowStack.getPanelAndWindowAt(Input.mouseX, Input.mouseY)
         GFX.hoveredPanel = hovered?.first
         GFX.hoveredWindow = hovered?.second
         updateCursor(hovered?.first)
@@ -555,6 +560,8 @@ abstract class StudioBase(
         private val LOGGER = LogManager.getLogger(StudioBase::class.java)
 
         var dragged: IDraggable? = null
+
+        val defaultWindowStack get() = instance.windowStack
 
         fun updateAudio() {
             AudioTasks.addTask(100) {

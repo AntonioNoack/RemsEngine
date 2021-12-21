@@ -19,6 +19,7 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
+import me.anno.ui.utils.WindowStack
 import org.joml.Vector2d
 import org.joml.Vector3d
 import org.joml.Vector4d
@@ -121,7 +122,7 @@ abstract class AnimationDriver : Saveable(), Inspectable {
     }
 
     companion object {
-        fun openDriverSelectionMenu(oldDriver: AnimationDriver?, whenSelected: (AnimationDriver?) -> Unit) {
+        fun openDriverSelectionMenu(windowStack: WindowStack, oldDriver: AnimationDriver?, whenSelected: (AnimationDriver?) -> Unit) {
             fun add(create: () -> AnimationDriver): () -> Unit = { whenSelected(create()) }
             val options = arrayListOf(
                 MenuOption(NameDesc("Harmonics", "sin(pi*i*t)", "obj.driver.harmonics"), add { HarmonicDriver() }),
@@ -142,6 +143,7 @@ abstract class AnimationDriver : Saveable(), Inspectable {
                 ) { whenSelected(null) }
             }
             openMenu(
+                windowStack,
                 if (oldDriver == null) NameDesc("Add Driver", "", "driver.add")
                 else NameDesc("Change Driver", "", "driver.change"),
                 options

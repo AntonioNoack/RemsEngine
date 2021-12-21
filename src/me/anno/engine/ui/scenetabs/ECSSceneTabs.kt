@@ -1,6 +1,6 @@
 package me.anno.engine.ui.scenetabs
 
-import me.anno.config.DefaultConfig
+import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.physics.BulletPhysics
 import me.anno.ecs.prefab.Prefab
@@ -24,7 +24,7 @@ import org.apache.logging.log4j.LogManager
 
 // todo show the current scene with a different background color
 // todo the same for Rems Studio
-object ECSSceneTabs : ScrollPanelX(DefaultConfig.style) {
+object ECSSceneTabs : ScrollPanelX(style) {
 
     private val LOGGER = LogManager.getLogger(ECSSceneTabs::class)
 

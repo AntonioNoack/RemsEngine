@@ -19,6 +19,7 @@ import me.anno.studio.Build;
 import me.anno.studio.StudioBase;
 import me.anno.ui.base.Panel;
 import me.anno.ui.base.menu.Menu;
+import me.anno.ui.utils.WindowStack;
 import me.anno.utils.Clock;
 import me.anno.utils.io.ResourceHelper;
 import me.anno.utils.structures.maps.KeyPairMap;
@@ -625,14 +626,16 @@ public class GFXBase0 {
             } else {
                 glfwSetWindowShouldClose(window, false);
                 GFX.INSTANCE.addGPUTask(1, () -> {
-                    Menu.INSTANCE.ask(new NameDesc("Close %1?", "", "ui.closeProgram")
-                            .with("%1", projectName), () -> {
-                        shouldClose = true;
-                        glfwSetWindowShouldClose(window, true);
-                        return null;
-                    });
+                    WindowStack ws = StudioBase.instance.getWindowStack();
+                    Menu.INSTANCE.ask(ws,
+                            new NameDesc("Close %1?", "", "ui.closeProgram")
+                                    .with("%1", projectName), () -> {
+                                shouldClose = true;
+                                glfwSetWindowShouldClose(window, true);
+                                return null;
+                            });
                     Input.INSTANCE.invalidateLayout();
-                    GFX.INSTANCE.getWindowStack().peek().setAcceptsClickAway(false);
+                    ws.peek().setAcceptsClickAway(false);
                     return null;
                 });
             }

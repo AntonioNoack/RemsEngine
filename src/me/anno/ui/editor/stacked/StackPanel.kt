@@ -58,8 +58,7 @@ abstract class StackPanel(
     }
 
     fun showMenu() {
-        openMenu(
-            options.map { option ->
+        openMenu(windowStack, options.map { option ->
                 MenuOption(
                     NameDesc(
                         "Append %1", "Add an element at the end of the list",

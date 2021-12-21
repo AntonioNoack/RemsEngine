@@ -194,30 +194,6 @@ object GFX : GFXBase1() {
         }
     }
 
-    val windowStack = Stack<Window>()
-
-    fun getPanelAndWindowAt(x: Float, y: Float) = getPanelAndWindowAt(x.toInt(), y.toInt())
-    fun getPanelAndWindowAt(x: Int, y: Int): Pair<Panel, Window>? {
-        val stack = windowStack
-        for (index in stack.size - 1 downTo 0) {
-            val root = stack[index]
-            val panel = root.panel.getPanelAt(x, y)
-            if (panel != null) return panel to root
-        }
-        return null
-    }
-
-    fun getPanelAt(x: Float, y: Float) = getPanelAt(x.toInt(), y.toInt())
-    fun getPanelAt(x: Int, y: Int): Panel? {
-        val windowStack = windowStack
-        for (i in windowStack.size - 1 downTo 0) {
-            val root = windowStack[i]
-            val panel = root.panel.getPanelAt(x, y)
-            if (panel != null) return panel
-        }
-        return null
-    }
-
     override fun addCallbacks() {
         super.addCallbacks()
         Input.initForGLFW()

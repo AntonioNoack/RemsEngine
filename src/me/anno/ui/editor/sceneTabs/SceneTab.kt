@@ -23,8 +23,8 @@ import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.ui.editor.sceneTabs.SceneTabs.currentTab
 import me.anno.ui.editor.sceneTabs.SceneTabs.open
 import me.anno.ui.editor.sceneView.SceneTabData
-import me.anno.utils.maths.Maths.mixARGB
 import me.anno.utils.hpc.Threads.threadWithName
+import me.anno.utils.maths.Maths.mixARGB
 import org.apache.logging.log4j.LogManager
 
 class SceneTab(var file: FileReference?, var scene: Transform, history: History?) : TextPanel("", DefaultConfig.style) {
@@ -65,15 +65,15 @@ class SceneTab(var file: FileReference?, var scene: Transform, history: History?
     init {
         padding.top--
         padding.bottom--
-        addLeftClickListener { open(this)  }
+        addLeftClickListener { open(this) }
         addRightClickListener {
             if (hasChanged) {
-                openMenu(listOf(
+                openMenu(windowStack, listOf(
                     MenuOption(NameDesc("Close", "", "ui.sceneTab.closeSaved")) { save { close() } },
                     MenuOption(NameDesc("Close (Unsaved)", "", "ui.sceneTab.closeUnsaved")) { close() }
                 ))
             } else {
-                openMenu(listOf(
+                openMenu(windowStack, listOf(
                     MenuOption(NameDesc("Close", "", "ui.sceneTab.close")) { close() }
                 ))
             }
@@ -123,6 +123,7 @@ class SceneTab(var file: FileReference?, var scene: Transform, history: History?
                 if (dst.exists) {
                     // todo translate
                     ask(
+                        windowStack,
                         NameDesc("Override %1?", "Replaces the old file", "ui.file.override")
                             .with("%1", dst.name)
                     ) {
@@ -136,6 +137,7 @@ class SceneTab(var file: FileReference?, var scene: Transform, history: History?
                 }
             } else {
                 msg(
+                    windowStack,
                     NameDesc("'%1' is no valid file name, rename it!", "", "ui.file.invalidName")
                         .with("%1", name0)
                 )

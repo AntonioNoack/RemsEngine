@@ -114,7 +114,7 @@ class GraphPanel(var graph: Graph? = null, style: Style) : ScrollPanelXY(Content
             // todo reset graph? idk...
             // todo button to save graph (?)
             // todo button to create new sub function (?)
-            openMenu(listOf(
+            openMenu(windowStack, listOf(
                 MenuOption(NameDesc("New Node")) {
 
                 }

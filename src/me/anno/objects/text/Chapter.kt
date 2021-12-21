@@ -78,7 +78,7 @@ class Chapter(parent: Transform?) : GFXTransform(parent) {
         list += UpdatingTextPanel(500, style) { "Start time: ${createTimestamp(getChapterTime().roundToInt())}" }
         list += UpdatingTextPanel(500, style) { getNiceText() }
             .addRightClickListener {
-                openMenu(listOf(MenuOption(NameDesc("Copy to clipboard")) {
+                openMenu(list.windowStack, listOf(MenuOption(NameDesc("Copy to clipboard")) {
                     setClipboardContent(getNiceText())
                 }))
             }

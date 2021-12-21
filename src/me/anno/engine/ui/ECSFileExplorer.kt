@@ -86,7 +86,7 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
         val projectFolder = RemsEngine.instance2!!.currentProject.location
 
         if (current.absolutePath.startsWith(projectFolder.absolutePath)) {
-            openMenu(listOf(
+            openMenu(windowStack, listOf(
                 MenuOption(NameDesc("Import")) {
                     import(current, files)
                 },
@@ -248,12 +248,12 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
         val folderOptions = ArrayList<FileExplorerOption>()
 
         fun addOptionToCreateFile(name: String, fileContent: String) {
-            folderOptions.add(FileExplorerOption(NameDesc("Add $name")) { folder ->
+            folderOptions.add(FileExplorerOption(NameDesc("Add $name")) { p, folder ->
                 val file = findNextFile(folder, name, "json", 1, 0.toChar(), 0)
                 if (file == InvalidRef) {
-                    msg(NameDesc("Directory is not writable"))
+                    msg(p.windowStack, NameDesc("Directory is not writable"))
                 } else file.writeText(fileContent)
-                invalidateFileExplorers()
+                invalidateFileExplorers(p)
             })
         }
 

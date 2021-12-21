@@ -3,13 +3,10 @@ package me.anno.input
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.gameTime
-import me.anno.gpu.GFX.getPanelAndWindowAt
-import me.anno.gpu.GFX.getPanelAt
 import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.GFX.inFocus0
 import me.anno.gpu.GFX.requestFocus
 import me.anno.gpu.GFX.window
-import me.anno.gpu.GFX.windowStack
 import me.anno.gpu.Window
 import me.anno.input.MouseButton.Companion.toMouseButton
 import me.anno.input.Touch.Companion.onTouchDown
@@ -24,9 +21,10 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextWriter
 import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.studio.StudioBase.Companion.defaultWindowStack
 import me.anno.studio.StudioBase.Companion.instance
 import me.anno.ui.base.Panel
-import me.anno.ui.editor.treeView.AbstractTreeViewPanel
+import me.anno.ui.editor.treeView.TreeViewPanel
 import me.anno.utils.files.FileExplorerSelectWrapper
 import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.hpc.Threads.threadWithName
@@ -122,7 +120,7 @@ object Input {
                 }
                 addEvent {
                     framesSinceLastInteraction = 0
-                    requestFocus(getPanelAt(mouseX, mouseY), true)
+                    requestFocus(defaultWindowStack.getPanelAt(mouseX, mouseY), true)
                     inFocus0?.apply {
                         onPasteFiles(mouseX, mouseY, files.filterNotNull().map { getReference(it) })
                     }
@@ -213,7 +211,7 @@ object Input {
                             GLFW.GLFW_KEY_DELETE -> {
                                 // tree view selections need to be removed, because they would be illogical to keep
                                 // (because the underlying Transform changes)
-                                val inFocusTreeViews = inFocus.filterIsInstance<AbstractTreeViewPanel<*>>()
+                                val inFocusTreeViews = inFocus.filterIsInstance<TreeViewPanel<*>>()
                                 inFocus.forEach { it.onDeleteKey(mouseX, mouseY) }
                                 inFocus.removeAll(inFocusTreeViews)
                             }
@@ -250,10 +248,10 @@ object Input {
                                 }
                             }
                             GLFW.GLFW_KEY_ESCAPE -> {
-                                if (windowStack.size > 1) {
-                                    val window2 = windowStack.peek()
+                                if (defaultWindowStack.size > 1) {
+                                    val window2 = defaultWindowStack.peek()
                                     if (window2.canBeClosedByUser) {
-                                        windowStack.pop().destroy()
+                                        defaultWindowStack.pop().destroy()
                                     } else inFocus0?.onEscapeKey(mouseX, mouseY)
                                 } else inFocus0?.onEscapeKey(mouseX, mouseY)
                             }
@@ -310,7 +308,7 @@ object Input {
     fun onMouseWheel(dx: Float, dy: Float, byMouse: Boolean) {
         addEvent {
             framesSinceLastInteraction = 0
-            val clicked = getPanelAt(mouseX, mouseY)
+            val clicked = defaultWindowStack.getPanelAt(mouseX, mouseY)
             if (!byMouse && abs(dx) > abs(dy)) userCanScrollX = true // e.g. by touchpad: use can scroll x
             if (clicked != null) {
                 if (!userCanScrollX && byMouse && (isShiftDown || isControlDown)) {
@@ -338,10 +336,10 @@ object Input {
     fun onClickIntoWindow(button: Int, panelWindow: Pair<Panel, Window>?) {
         if (panelWindow != null) {
             val mouseButton = button.toMouseButton()
-            while (windowStack.isNotEmpty()) {
-                val peek = windowStack.peek()
+            while (defaultWindowStack.isNotEmpty()) {
+                val peek = defaultWindowStack.peek()
                 if (panelWindow.second == peek || !peek.acceptsClickAway(mouseButton)) break
-                windowStack.pop().destroy()
+                defaultWindowStack.pop().destroy()
                 windowWasClosed = true
             }
         }
@@ -365,13 +363,13 @@ object Input {
         }
 
         windowWasClosed = false
-        val panelWindow = getPanelAndWindowAt(mouseX, mouseY)
+        val panelWindow = defaultWindowStack.getPanelAndWindowAt(mouseX, mouseY)
         onClickIntoWindow(button, panelWindow)
 
         val singleSelect = isControlDown
         val multiSelect = isShiftDown
 
-        val mouseTarget = getPanelAt(mouseX, mouseY)
+        val mouseTarget = defaultWindowStack.getPanelAt(mouseX, mouseY)
         maySelectByClick = if (singleSelect || multiSelect) {
             val selectionTarget = mouseTarget?.getMultiSelectablePanel()
             val inFocusTarget = inFocus0?.getMultiSelectablePanel()
@@ -448,7 +446,7 @@ object Input {
         if (isClick) {
 
             if (maySelectByClick) {
-                val panelWindow = getPanelAndWindowAt(mouseX, mouseY)
+                val panelWindow = defaultWindowStack.getPanelAndWindowAt(mouseX, mouseY)
                 requestFocus(panelWindow?.first, true)
             }
 

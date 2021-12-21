@@ -1,6 +1,5 @@
 package me.anno.engine.ui
 
-import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.prefab.Hierarchy
@@ -11,7 +10,6 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.gpu.GFX.windowStack
 import me.anno.io.ISaveable
 import me.anno.io.text.TextReader
 import me.anno.language.translation.NameDesc
@@ -31,14 +29,11 @@ import me.anno.utils.structures.lists.UpdatingList
 import me.anno.utils.types.AABBs.deltaX
 import me.anno.utils.types.AABBs.deltaY
 import me.anno.utils.types.AABBs.deltaZ
+import me.anno.utils.types.Lists.flatten
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 
 // todo runtime and pre-runtime view
-// todo unity oriented
-// todo easily add stuff
-// todo add prefabs
-// todo generally: prefabs
 
 // todo easy scripting
 // todo support many languages at runtime via scripting
@@ -102,12 +97,12 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
 
     override fun addAfter(self: PrefabSaveable, sibling: Any) {
         // self.addAfter(sibling as Entity)
-        addChild(self.parent as Entity, sibling, self.indexInParent!! + 1)
+        addChild(self.parent as Entity, sibling, self.indexInParent + 1)
     }
 
     override fun addBefore(self: PrefabSaveable, sibling: Any) {
         // self.addBefore(sibling as Entity)
-        addChild(self.parent as Entity, sibling, self.indexInParent!!)
+        addChild(self.parent as Entity, sibling, self.indexInParent)
     }
 
     override fun removeChild(element: PrefabSaveable, child: PrefabSaveable) {
@@ -196,9 +191,18 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
     }
 
     override fun getChildren(element: PrefabSaveable): List<PrefabSaveable> {
-        return when (element) {
-            is Entity -> element.children + element.components
-            else -> emptyList()
+        val types = element.listChildTypes()
+        return when (types.length) {
+            0 -> emptyList()
+            1 -> element.getChildListByType(types[0])
+            else -> {
+                val childCount = types.sumOf { element.getChildListByType(it).size }
+                val joined = ArrayList<PrefabSaveable>(childCount)
+                for (type in types) {
+                    joined += element.getChildListByType(type)
+                }
+                joined
+            }
         }
     }
 
@@ -244,7 +248,7 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
 
     override fun getName(element: PrefabSaveable): String {
         val name = element.name
-        return if (name.isBlank2()) "Entity" else name
+        return if (name.isBlank2()) element.className.camelCaseToTitle() else name
     }
 
     override fun setName(element: PrefabSaveable, name: String) {
@@ -257,29 +261,29 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
         if (prefab.isWritable) {
             // open add menu for often created entities: camera, light, nodes, ...
             // we could use which prefabs were most often created :)
-            val classes = ISaveable.objectTypeRegistry
-                .entries
-                .filter { (_, it) ->
-                    val sample = it.sampleInstance
-                    sample is Component || sample is Entity
-                }
-                .toSortedSet { a, b -> a.key.compareTo(b.key) }
+            val classes = parent.listChildTypes().map { parent.getOptionsByType(it) }
+                .flatten()
+                .apply { sortBy { it.title } }
             openMenu(
-                classes.map { (className, value) ->
-                    val title = className.camelCaseToTitle()
+                windowStack,
+                classes.map { option ->
+                    val sampleInstance = option.generator() as ISaveable
+                    val className = sampleInstance.className
+                    val title = option.title
                     MenuOption(NameDesc(title)) {
                         askName(
+                            windowStack,
                             NameDesc("Name for $title"),
                             title,
                             NameDesc("Append"),
                             { -1 }) { name ->
                             val path = prefab.add(
                                 parent.prefabPath!!,
-                                if (value.sampleInstance is Entity) 'e' else 'c',
+                                if (sampleInstance is Entity) 'e' else 'c',
                                 className,
                                 name
                             )
-                            val child = value.generator() as PrefabSaveable
+                            val child = option.generator() as PrefabSaveable
                             child.prefabPath = path
                             child.prefab = prefab
                             child.name = name
@@ -297,7 +301,7 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
     }
 
     override fun canBeRemoved(element: PrefabSaveable): Boolean {
-        val indexInParent = element.indexInParent!!
+        val indexInParent = element.indexInParent
         val parent = element.parent!!
         val parentPrefab = parent.getOriginal()
         return parentPrefab == null || indexInParent >= parentPrefab.children.size
@@ -310,6 +314,7 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
     override fun focusOnElement(element: PrefabSaveable) {
         selectElement(element)
         // focus on the element by inverting the camera transform and such...
+        val windowStack = window!!.windowStack
         if (element is Entity) for (window in windowStack) {
             window.panel.forAll {
                 if (it is RenderView) {
@@ -341,8 +346,7 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
                 Hierarchy.add(root.prefab!!, Path.ROOT_PATH, element, Path.ROOT_PATH, root)
                 true
             }
-            is Entity -> TODO("paste entity somehow")
-            is Component -> TODO("paste component somehow")
+            is PrefabSaveable -> TODO("paste prefab saveable somehow")
             else -> {
                 LOGGER.warn("Unknown type ${element?.className}")
                 false
@@ -354,16 +358,6 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
 
     companion object {
         private val LOGGER = LogManager.getLogger(ECSTreeView::class)
-        /*fun listOfVisible(root: ECSWorld, isGaming: Boolean): List<Entity> {
-            return if (isGaming) listOf(
-                root.globallyShared,
-                root.playerPrefab,
-                root.locallyShared,
-                root.localPlayers,
-                root.remotePlayers
-            )
-            else listOf(root.globallyShared, root.playerPrefab, root.locallyShared)
-        }*/
     }
 
 }

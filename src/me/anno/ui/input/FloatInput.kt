@@ -23,6 +23,8 @@ open class FloatInput(
     indexInProperty: Int
 ) : NumberInput(style, title, visibilityKey, type, owningProperty, indexInProperty) {
 
+    constructor(style: Style) : this(style, "", "", Type.FLOAT, null, 0)
+
     var lastValue: Double = getValue(type.defaultValue)
     var changeListener: (value: Double) -> Unit = { }
 

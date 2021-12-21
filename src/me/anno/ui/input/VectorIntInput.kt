@@ -30,6 +30,8 @@ class VectorIntInput(
     private val owningProperty: AnimatedProperty<*>? = null
 ) : TitledListY(title, visibilityKey, style) {
 
+    constructor(style: Style): this(style, "", "", Type.INT, null)
+
     constructor(title: String, visibilityKey: String, property: AnimatedProperty<*>, time: Double, style: Style) :
             this(style, title, visibilityKey, property.type, property) {
         when (val value = property[time]) {

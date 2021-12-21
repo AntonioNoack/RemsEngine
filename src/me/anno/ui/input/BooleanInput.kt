@@ -17,6 +17,8 @@ import me.anno.utils.types.Strings.isBlank2
 class BooleanInput(val title: String, startValue: Boolean, defaultValue: Boolean, style: Style) : PanelListX(style),
     TextStyleable {
 
+    constructor(style: Style) : this("", false, false, style)
+
     constructor(
         title: String, description: String, dictPath: String,
         startValue: Boolean, defaultValue: Boolean, style: Style

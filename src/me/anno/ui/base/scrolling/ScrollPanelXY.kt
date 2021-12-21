@@ -1,9 +1,9 @@
 package me.anno.ui.base.scrolling
 
 import me.anno.input.MouseButton
+import me.anno.io.serialization.NotSerializedProperty
 import me.anno.ui.base.Panel
 import me.anno.ui.base.components.Padding
-import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY.Companion.scrollSpeed
@@ -11,36 +11,26 @@ import me.anno.ui.style.Style
 import me.anno.utils.maths.Maths.clamp
 import kotlin.math.max
 
-// todo make this class into its own class for less issues with the layout
+open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
+    PanelContainer(child, padding, style), ScrollableX, ScrollableY {
 
-open class ScrollPanelXY(
-    child: Panel, padding: Padding,
-    style: Style,
-    alignX: AxisAlignment
-) : PanelContainer(child, padding, style),
-    ScrollableX,
-    ScrollableY {
-
-    constructor(child: Panel, style: Style) : this(child, Padding(), style, AxisAlignment.MIN)
-    constructor(child: Panel, padding: Padding, style: Style) : this(child, padding, style, AxisAlignment.MIN)
-    constructor(padding: Padding, align: AxisAlignment, style: Style) : this(PanelListY(style), padding, style, align)
-    constructor(padding: Padding, style: Style) : this(
-        PanelListY(style), padding, style,
-        AxisAlignment.MIN
-    )
-
-    init {
-        // child += WrapAlign(alignX, AxisAlignment.MIN)
-        // weight = 0.0001f
-    }
+    constructor(style: Style) : this(Panel(style), style)
+    constructor(child: Panel, style: Style) : this(child, Padding(), style)
+    constructor(padding: Padding, style: Style) : this(PanelListY(style), padding, style)
 
     open val content get() = child
 
-    var lspX = -1f
-    var lspY = -1f
+    @NotSerializedProperty
+    private var lspX = -1f
 
-    var lmspX = -1
-    var lmspY = -1
+    @NotSerializedProperty
+    private var lspY = -1f
+
+    @NotSerializedProperty
+    private var lmspX = -1
+
+    @NotSerializedProperty
+    private var lmspY = -1
 
     override fun tickUpdate() {
         super.tickUpdate()
@@ -71,12 +61,12 @@ open class ScrollPanelXY(
     var isDownOnScrollbarX = false
     var isDownOnScrollbarY = false
 
-    val scrollbarX = ScrollbarX(this, style)
-    val scrollbarY = ScrollbarY(this, style)
+    private val scrollbarX = ScrollbarX(this, style)
+    private val scrollbarY = ScrollbarY(this, style)
 
-    val scrollbarWidth = style.getSize("scrollbarWidth", 8)
-    val scrollbarHeight = style.getSize("scrollbarWidth", 8)
-    val scrollbarPadding = style.getSize("scrollbarPadding", 1)
+    private val scrollbarWidth = style.getSize("scrollbarWidth", 8)
+    private val scrollbarHeight = style.getSize("scrollbarWidth", 8)
+    private val scrollbarPadding = style.getSize("scrollbarPadding", 1)
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
@@ -188,33 +178,12 @@ open class ScrollPanelXY(
         }
     }
 
+    override fun clone(): PanelContainer {
+        val clone = ScrollPanelXY(child.clone(), padding, style)
+        copy(clone)
+        return clone
+    }
+
+    override val className: String = "ScrollPanelXY"
+
 }
-
-
-/*open class ScrollPanelXY(
-    child: Panel, padding: Padding,
-    style: Style,
-    alignX: AxisAlignment,
-    alignY: AxisAlignment
-) :
-    ScrollPanelX(
-        ScrollPanelY(
-            child,
-            Padding(), style, alignY
-        ),
-        padding, style, alignX
-    ) {
-
-    constructor(child: Panel, style: Style) : this(
-        child, Padding(), style, AxisAlignment.MIN, AxisAlignment.MIN
-    )
-
-    constructor(padding: Padding, style: Style) : this(
-        PanelListY(style), padding, style,
-        AxisAlignment.MIN,
-        AxisAlignment.MIN
-    )
-
-    val content = (this.child as ScrollPanelY).child
-
-}*/

@@ -101,6 +101,7 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
     private fun getX(charIndex: Int) = x + padding.left + drawingOffset + if (charIndex <= 0) -1 else
         getTextSizeX(font, text.substring(0, min(charIndex, text.length)), -1, -1) - 1
 
+    // todo find synonyms by clicking on stuff, I think this library can do that
     // todo automatically show hints, when the user is typing
     private fun applySuggestion(suggestion: Suggestion, choice: String) {
         // todo the indexing still isn't completely correct... (example: Eine Löwenfuß -> Ein Löwenfußß)

@@ -21,6 +21,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.objects.Camera
 import me.anno.objects.text.Text
 import me.anno.studio.GFXSettings
+import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.StudioBase.Companion.instance
 import me.anno.studio.StudioBase.Companion.workspace
@@ -45,7 +46,7 @@ import me.anno.studio.rems.ui.StudioTreeView
 import me.anno.studio.rems.ui.StudioTreeView.Companion.openAddMenu
 import me.anno.studio.rems.ui.StudioUITypeLibrary
 import me.anno.ui.base.Panel
-import me.anno.ui.base.SpacePanel
+import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.Padding
@@ -79,8 +80,8 @@ import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FileInput
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
-import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.files.OpenInBrowser.openInBrowser
+import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import java.io.File
@@ -89,7 +90,7 @@ import kotlin.concurrent.thread
 
 object UILayouts {
 
-    private val windowStack get() = GFX.windowStack
+    private val windowStack get() = StudioBase.defaultWindowStack
 
     private val LOGGER = LogManager.getLogger(UILayouts::class)
 
@@ -151,12 +152,12 @@ object UILayouts {
             fun open() {// open zip?
                 if (project.file.exists && project.file.isDirectory) {
                     openProject(project.name, project.file)
-                } else msg(NameDesc("File not found!", "", "ui.recentProjects.fileNotFound"))
+                } else msg(windowStack, NameDesc("File not found!", "", "ui.recentProjects.fileNotFound"))
             }
 
             tp.addLeftClickListener { open() }
             tp.addRightClickListener {
-                openMenu(listOf(
+                openMenu(windowStack, listOf(
                     MenuOption(
                         NameDesc(
                             "Open",
@@ -180,7 +181,7 @@ object UILayouts {
                             "Removes the project from your drive!", "ui.recentProjects.delete"
                         )
                     ) {
-                        ask(NameDesc("Are you sure?", "", "")) {
+                        ask(windowStack, NameDesc("Are you sure?", "", "")) {
                             DefaultConfig.removeFromRecentProjects(project.file)
                             project.file.deleteRecursively()
                             tp.visibility = Visibility.GONE
@@ -213,7 +214,7 @@ object UILayouts {
         if (file != null) {
             openProject(nameInput.text, file)
         } else {
-            msg(NameDesc("Please choose a $dirNameEn!", "", "ui.newProject.pleaseChooseDir"))
+            msg(windowStack, NameDesc("Please choose a $dirNameEn!", "", "ui.newProject.pleaseChooseDir"))
         }
     }
 
@@ -350,15 +351,15 @@ object UILayouts {
             focusTextColor = textColor
         }
 
-        welcome += SpacePanel(0, 1, style)
+        welcome += SpacerPanel(0, 1, style)
 
         val recent = getRecentProjects()
 
         welcome += createRecentProjectsUI(style, recent)
-        welcome += SpacePanel(0, 1, style)
+        welcome += SpacerPanel(0, 1, style)
 
         welcome += createNewProjectUI(style)
-        welcome += SpacePanel(0, 1, style)
+        welcome += SpacerPanel(0, 1, style)
 
         val quickSettings = SettingCategory(Dict["Quick Settings", "ui.welcome.quickSettings.title"], style)
         quickSettings.show2()
@@ -410,9 +411,9 @@ object UILayouts {
         background2.backgroundColor = 0x77777777
 
         // todo some kind of colored border?
-        windowStack.push(Window(background))
-        windowStack.push(Window(background2, false, 0, 0))
-        val mainWindow = Window(scroll, false, 0, 0)
+        windowStack.push(background)
+        windowStack.push(background2, false, 0, 0)
+        val mainWindow = Window(scroll, false, windowStack, 0, 0)
         mainWindow.cannotClose()
         mainWindow.acceptsClickAway = {
             if (it.isLeft) {
@@ -435,7 +436,7 @@ object UILayouts {
 
     fun createReloadWindow(panel: Panel, fullscreen: Boolean, reload: () -> Unit): Window {
         return object : Window(
-            panel, fullscreen,
+            panel, fullscreen, windowStack,
             if (fullscreen) 0 else mouseX.toInt(),
             if (fullscreen) 0 else mouseY.toInt()
         ) {
@@ -495,7 +496,7 @@ object UILayouts {
             Dict["Change Language", ""]
         ) {
             val panel = ProjectSettings.createSpellcheckingPanel(style)
-            openMenuComplex2(NameDesc("Change Project Language"), listOf(panel))
+            openMenuComplex2(windowStack, NameDesc("Change Project Language"), listOf(panel))
         }
 
         options.addAction(projectTitle, Dict["Save", "ui.top.project.save"]) {
@@ -507,11 +508,11 @@ object UILayouts {
             val name = NameDesc("Load Project", "", "ui.loadProject")
             val openRecentProject = createRecentProjectsUI(menuStyle, getRecentProjects())
             val createNewProject = createNewProjectUI(menuStyle)
-            openMenuComplex2(name, listOf(openRecentProject, createNewProject))
+            openMenuComplex2(windowStack, name, listOf(openRecentProject, createNewProject))
         }
 
         options.addAction(projectTitle, Dict["Reset UI", "ui.top.resetUI"]) {
-            ask(NameDesc("Are you sure?", "", "")) {
+            ask(windowStack, NameDesc("Are you sure?", "", "")) {
                 project?.apply {
                     resetUIToDefault()
                     createEditorUI(false)
@@ -551,21 +552,24 @@ object UILayouts {
         options.addAction(helpTitle, "Version: $versionName") {}
         options.addAction(helpTitle, "About") {
             // to do more info
-            msg(NameDesc("Rem's Studio is created by Antonio Noack from Jena, Germany", "", ""))
+            msg(
+                windowStack,
+                NameDesc("Rem's Studio is created by Antonio Noack from Jena, Germany", "", "")
+            )
             // e.g. the info, why I created it
             // that it is Open Source
         }
 
         ui += options
         ui += SceneTabs
-        ui += SpacePanel(0, 1, style)
+        ui += SpacerPanel(0, 1, style)
 
         val project = project!!
         if (loadUI) project.loadUI()
 
         ui += project.mainUI
 
-        ui += SpacePanel(0, 1, style)
+        ui += SpacerPanel(0, 1, style)
 
         val bottom2 = PanelStack(style)
         bottom2 += RemsStudio.createConsole(style)
@@ -573,7 +577,7 @@ object UILayouts {
         ui += bottom2
 
         windowStack.clear()
-        windowStack += Window(ui)
+        windowStack.push(ui)
 
     }
 
@@ -615,7 +619,7 @@ object UILayouts {
      * */
     fun printLayout() {
         LOGGER.info("Layout:")
-        for (window1 in GFX.windowStack) {
+        for (window1 in windowStack) {
             window1.panel.printLayout(1)
         }
     }

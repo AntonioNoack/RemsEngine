@@ -11,7 +11,7 @@ import me.anno.ui.style.Style
 
 class ConsoleLogFullscreen(style: Style): ScrollPanelXY(Padding(5), style) {
     override fun onBackSpaceKey(x: Float, y: Float) {
-        GFX.windowStack.pop().destroy()
+        windowStack.pop().destroy()
     }
     override fun onSelectAll(x: Float, y: Float) {
         GFX.inFocus.clear()

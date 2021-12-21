@@ -8,6 +8,7 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.style.Style
 import me.anno.utils.maths.Maths.clamp
 import kotlin.math.max
@@ -20,6 +21,7 @@ open class ScrollPanelY(
     alignX: AxisAlignment
 ) : PanelContainer(child, padding, style), ScrollableY {
 
+    constructor(style: Style) : this(PanelListY(style), style)
     constructor(child: Panel, style: Style) : this(child, Padding(), style, AxisAlignment.MIN)
     constructor(child: Panel, padding: Padding, style: Style) : this(child, padding, style, AxisAlignment.MIN)
     constructor(padding: Padding, align: AxisAlignment, style: Style) : this(PanelListY(style), padding, style, align)

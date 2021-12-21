@@ -74,18 +74,18 @@ class Search(val terms: String) {
         /**
          * remove || and &&, replace them with | and &
          * */
-        var length = expression.size
-        i = 0
-        while (i < length) {
-            val element = expression[i]
+        var length = expression.size - 1
+        var j = 0
+        while (j < length) {
+            val element = expression[j]
             if (element == '|' || element == '&') {
-                if (expression[i + 1] == element) {
-                    expression.removeAt(i + 1)
+                if (expression[j + 1] == element) {
+                    expression.removeAt(j + 1)
                     length--
                     continue
                 }
             }
-            i++
+            j++
         }
     }
 

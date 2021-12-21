@@ -2,9 +2,12 @@ package me.anno.io.zip
 
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabReadable
+import me.anno.image.Image
+import me.anno.image.ImageReadable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextWriter
+import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -69,6 +72,35 @@ abstract class InnerTmpFile(id1: Int = id.incrementAndGet()) :
         override fun readPrefab(): Prefab {
             return prefab
         }
+
+    }
+
+    class InnerTmpImageFile(val image: Image) : InnerTmpFile(), ImageReadable {
+
+        init {
+            val size = Int.MAX_VALUE.toLong()
+            this.size = size
+            this.compressedSize = size
+        }
+
+        val text = lazy { "" } // we could write a text based image here
+        val bytes = lazy {
+            val bos = ByteArrayOutputStream(1024)
+            image.write(bos, "png")
+            bos.toByteArray()
+        }
+
+        override fun isSerializedFolder(): Boolean = false
+        override fun listChildren(): List<FileReference>? = null
+
+        override fun readText() = text.value
+        override fun readBytes() = bytes.value
+
+        override fun getInputStream(): InputStream {
+            return text.value.byteInputStream()
+        }
+
+        override fun readImage(): Image = image
 
     }
 

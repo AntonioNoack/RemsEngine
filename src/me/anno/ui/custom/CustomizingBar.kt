@@ -2,11 +2,11 @@ package me.anno.ui.custom
 
 import me.anno.gpu.Cursor
 import me.anno.input.Input
-import me.anno.ui.base.SpacePanel
+import me.anno.ui.base.SpacerPanel
 import me.anno.ui.style.Style
 import me.anno.utils.maths.Maths.mixARGB
 
-class CustomizingBar(var index: Int, sizeX: Int, sizeY: Int, style: Style): SpacePanel(sizeX, sizeY, style){
+class CustomizingBar(var index: Int, sizeX: Int, sizeY: Int, style: Style): SpacerPanel(sizeX, sizeY, style){
 
     override fun getCursor() = if(minW < minH) Cursor.vResize else Cursor.hResize
 

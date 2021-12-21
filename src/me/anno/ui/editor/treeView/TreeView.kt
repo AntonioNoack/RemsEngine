@@ -16,7 +16,6 @@ import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.style.Style
 import me.anno.utils.maths.Maths.fract
-import org.joml.Vector4f
 
 // todo select multiple elements, filter for common properties, and apply them all together :)
 
@@ -31,13 +30,20 @@ abstract class TreeView<V>(
 ) : ScrollPanelXY(Padding(5), style.getChild("treeView")) {
 
     val list = content as PanelList
-    val sample get() = list.children.first() as AbstractTreeViewPanel<*>
+    val sample get() = list.children.first() as TreeViewPanel<*>
 
     init {
         padding.top = 16
     }
 
     val elementByIndex = ArrayList<V>()
+
+    var inset = style.getSize("fontSize", 12) / 3
+    var collapsedSymbol = DefaultConfig["ui.symbol.collapsed", "\uD83D\uDDBF"]
+
+    var needsTreeUpdate = true
+    var focused: Panel? = null
+    var takenElement: Transform? = null
 
     // Selection.select(element, null)
     abstract fun selectElement(element: V?)
@@ -100,9 +106,6 @@ abstract class TreeView<V>(
         return -1
     }
 
-    private val inset = style.getSize("fontSize", 12) / 3
-    private val collapsedSymbol = DefaultConfig["ui.symbol.collapsed", "\uD83D\uDDBF"]
-
     private fun addToTreeList(element: V, depth: Int, index0: Int): Int {
         var index = index0
         val panel = getOrCreateChildPanel(index++, element)
@@ -144,8 +147,6 @@ abstract class TreeView<V>(
             child.visibility = Visibility.GONE
         }
     }
-
-    var needsTreeUpdate = true
 
     override fun invalidateLayout() {
         super.invalidateLayout()
@@ -214,18 +215,15 @@ abstract class TreeView<V>(
         } else super.onMouseClicked(x, y, button, long)
     }
 
-    var focused: Panel? = null
-    var takenElement: Transform? = null
-
-    private fun getOrCreateChildPanel(index: Int, element: V): AbstractTreeViewPanel<*> {
+    private fun getOrCreateChildPanel(index: Int, element: V): TreeViewPanel<*> {
         if (index < list.children.size) {
             elementByIndex[index] = element
-            val panel = list.children[index] as AbstractTreeViewPanel<*>
+            val panel = list.children[index] as TreeViewPanel<*>
             panel.visibility = Visibility.VISIBLE
             return panel
         }
         elementByIndex += element
-        val child = AbstractTreeViewPanel(
+        val child = TreeViewPanel(
             { elementByIndex[index] }, ::getName, ::setName, this::openAddMenu,
             fileContentImporter, showSymbols, this, style
         )

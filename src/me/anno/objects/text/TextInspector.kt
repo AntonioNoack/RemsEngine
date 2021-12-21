@@ -62,8 +62,7 @@ object TextInspector {
              * */
             override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
                 if (DefaultConfig["ui.fonts.previewInEnumInput.enable", true]) {
-                    val window = Menu.openMenu(
-                        this.x, this.y,
+                    val window = Menu.openMenu(windowStack, this.x, this.y,
                         NameDesc("Select the %1", "", "ui.input.enum.menuTitle")
                             .with("%1", title),
                         options.mapIndexed { index, option ->

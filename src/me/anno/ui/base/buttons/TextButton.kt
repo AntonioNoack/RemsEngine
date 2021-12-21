@@ -1,11 +1,11 @@
 package me.anno.ui.base.buttons
 
 import me.anno.config.DefaultStyle.black
-import me.anno.gpu.drawing.GFXx2D.getSizeX
-import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.getTextSize
+import me.anno.gpu.drawing.GFXx2D.getSizeX
+import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.input.Input
 import me.anno.input.Input.keysDown
 import me.anno.input.MouseButton
@@ -13,11 +13,17 @@ import me.anno.language.translation.Dict
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.style.Style
-import me.anno.utils.maths.Maths.mixARGB
 import me.anno.utils.input.Keys.isClickKey
+import me.anno.utils.maths.Maths.mixARGB
 import kotlin.math.max
 
-open class TextButton(title: String, val isSquare: Boolean, style: Style) : TextPanel(title, style.getChild("button")) {
+open class TextButton(
+    title: String,
+    var isSquare: Boolean,
+    style: Style
+) : TextPanel(title, style.getChild("button")) {
+
+    constructor(style: Style) : this("", false, style)
 
     constructor(title: String, description: String, isSquare: Boolean, style: Style) : this(title, isSquare, style) {
         setTooltip(description)

@@ -1,6 +1,5 @@
 package me.anno.ui.editor.config
 
-import me.anno.gpu.GFX.windowStack
 import me.anno.io.utils.StringMap
 import me.anno.language.translation.Dict
 import me.anno.ui.base.buttons.TextButton

@@ -1,6 +1,7 @@
 package me.anno.ui.input.components
 
 import me.anno.config.DefaultStyle.black
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
@@ -8,6 +9,7 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.input.Input
 import me.anno.input.MouseButton
+import me.anno.io.serialization.NotSerializedProperty
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListY
@@ -24,8 +26,8 @@ import kotlin.streams.toList
 
 class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
 
-    private var cursor1 = CursorPosition(0, 0)
-    private var cursor2 = CursorPosition(0, 0)
+    private val cursor1 = CursorPosition(0, 0)
+    private val cursor2 = CursorPosition(0, 0)
 
     var placeholder = ""
         set(value) {
@@ -34,15 +36,21 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
         }
 
     var text = ""
+
+    @NotSerializedProperty
     private var lastText = ""
+
+    @NotSerializedProperty
+    private var lastChangeTime = 0L
+
+    var changeListener: (text: String) -> Unit = { _ -> }
+
     private val lines: ArrayList<MutableList<Int>> = arrayListOf(mutableListOf())
     private val endCursor get() = CursorPosition(lines.last().size, lines.lastIndex)
     private val joinedText get() = lines.joinToString("\n") { list -> list.joinChars() }
     private val styleSample get() = actualChildren[0] as TextPanel
     private val actualChildren = (content as PanelListY).children
     private val scrollbarStartY get() = if (minW > w) actualChildren.last().run { y + h - 3 } else y + h
-
-    private var lastChangeTime = 0L
     private val wasJustChanged get() = abs(GFX.gameTime - lastChangeTime) < 200_000_000
 
     private fun updateLines() {
@@ -75,8 +83,8 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
 
                 override fun setCursor(position: Int) {
                     // set cursor after replacement
-                    cursor1 = CursorPosition(position, indexInParent)
-                    cursor2 = cursor1
+                    cursor1.set(position, indexInParent)
+                    cursor2.set(cursor1)
                 }
 
                 override fun updateChars(notify: Boolean) {
@@ -104,12 +112,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
         showBars = isInFocus && (blinkVisible || wasJustChanged)
     }
 
-    override fun getVisualState(): Any? = showBars to Quad(
-        super.getVisualState(),
-        cursor1,
-        cursor2,
-        text
-    )
+    override fun getVisualState() = Quad(showBars, cursor1, cursor2, text)
 
     override fun calculateSize(w: Int, h: Int) {
         loadTexturesSync.push(true)
@@ -212,8 +215,8 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     fun <V : Comparable<V>> max(a: V, b: V): V = if (a > b) a else b
 
     fun setCursorToEnd() {
-        cursor1 = endCursor
-        cursor2 = cursor1
+        cursor1.set(endCursor)
+        cursor2.set(cursor1)
     }
 
     //fun String.toLines() = split('\n')
@@ -264,8 +267,8 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
             val line = lines[min.y]
             lines[min.y] = (line.subList(0, min.x) + line.subList(max.x, line.size)).toMutableList()
         }
-        cursor1 = min
-        cursor2 = min
+        cursor1.set(min)
+        cursor2.set(min)
         updateText(true)
         return true
     }
@@ -313,8 +316,8 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
                     (findStartingWhitespace(line0) // help with spaces at the start
                             + line1).toMutableList()
                 )
-                cursor1 = CursorPosition(0, cursor1.y + 1)
-                cursor2 = cursor1
+                cursor1.set(0, cursor1.y + 1)
+                cursor2.set(cursor1)
             }
             '\r'.code -> {
             } // ignore, because it's useless ^^
@@ -322,8 +325,8 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
                 // just insert the key :)
                 val line = lines[cursor1.y]
                 line.add(cursor1.x, insertion)
-                cursor1 = CursorPosition(cursor1.x + 1, cursor1.y)
-                cursor2 = cursor1
+                cursor1.set(cursor1.x + 1, cursor1.y)
+                cursor2.set(cursor1)
             }
         }
         ensureCursorBounds()
@@ -341,13 +344,13 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
                 val joint = (line0 + lines[cursor1.y]).toMutableList()
                 lines[cursor1.y - 1] = joint
                 lines.removeAt(cursor1.y)
-                cursor1 = CursorPosition(line0.size, cursor1.y - 1)
+                cursor1.set(line0.size, cursor1.y - 1)
             } else {
                 // remove a char
                 lines[cursor1.y].removeAt(cursor1.x - 1)
-                cursor1 = CursorPosition(cursor1.x - 1, cursor1.y)
+                cursor1.set(cursor1.x - 1, cursor1.y)
             }
-            cursor2 = cursor1
+            cursor2.set(cursor1)
         }
         ensureCursorBounds()
         update(true)
@@ -359,8 +362,8 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     }
 
     fun ensureCursorBounds() {
-        cursor1 = ensureCursorBounds(cursor1)
-        cursor2 = ensureCursorBounds(cursor2)
+        cursor1.set(ensureCursorBounds(cursor1))
+        cursor2.set(ensureCursorBounds(cursor2))
     }
 
     private fun ensureCursorBounds(cursor0: CursorPosition): CursorPosition {
@@ -393,10 +396,10 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
             CursorPosition(0, min(oldCursor.y + 1, lines.lastIndex))
         }
         if (useC2) {
-            cursor2 = newCursor
+            cursor2.set(newCursor)
         } else {
-            cursor1 = newCursor
-            cursor2 = cursor1
+            cursor1.set(newCursor)
+            cursor2.set(cursor1)
         }
         ensureCursorBounds()
         lastChangeTime = GFX.gameTime
@@ -413,10 +416,10 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
             CursorPosition(0, max(0, oldCursor.y - 1))
         }
         if (useC2) {
-            cursor2 = newCursor
+            cursor2.set(newCursor)
         } else {
-            cursor1 = newCursor
-            cursor2 = cursor1
+            cursor1.set(newCursor)
+            cursor2.set(cursor1)
         }
         ensureCursorBounds()
         lastChangeTime = GFX.gameTime
@@ -429,10 +432,10 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
             getCursor(getLineWidth(lines[oldCursor.y], oldCursor.x, styleSample), oldCursor.y - 1, false)
         } else return // cannot move up
         if (useC2) {
-            cursor2 = newCursor
+            cursor2.set(newCursor)
         } else {
-            cursor1 = newCursor
-            cursor2 = cursor1
+            cursor1.set(newCursor)
+            cursor2.set(cursor1)
         }
         ensureCursorBounds()
         lastChangeTime = GFX.gameTime
@@ -445,10 +448,10 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
             getCursor(getLineWidth(lines[oldCursor.y], oldCursor.x, styleSample), oldCursor.y + 1, false)
         } else return // cannot move down
         if (useC2) {
-            cursor2 = newCursor
+            cursor2.set(newCursor)
         } else {
-            cursor1 = newCursor
-            cursor2 = cursor1
+            cursor1.set(newCursor)
+            cursor2.set(cursor1)
         }
         ensureCursorBounds()
         lastChangeTime = GFX.gameTime
@@ -476,8 +479,6 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
         insert(data)
     }
 
-    var changeListener: (text: String) -> Unit = { _ -> }
-
     private fun getLineIndex(y: Float): Int {
         // find the correct line index
         val yInt = y.toInt()
@@ -492,7 +493,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
                 val localX = x - ((content as PanelList).children.first().x + padding.left)
                 val line = lines[indexY]
                 val indexX = getIndexFromText(line, localX, styleSample)
-                cursor2 = CursorPosition(indexX, indexY)
+                cursor2.set(indexX, indexY)
                 ensureCursorBounds()
             }
         }
@@ -516,8 +517,8 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
             selectAll()
         } else {
             // find the correct location for the cursor
-            cursor1 = getCursor(x, indexY, true)
-            cursor2 = cursor1
+            cursor1.set(getCursor(x, indexY, true))
+            cursor2.set(cursor1)
             ensureCursorBounds()
         }
     }
@@ -536,8 +537,8 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     }
 
     private fun selectAll() {
-        cursor1 = CursorPosition(0, 0)
-        cursor2 = endCursor
+        cursor1.set(0, 0)
+        cursor2.set(endCursor)
         ensureCursorBounds()
     }
 
@@ -575,5 +576,22 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     init {
         update(false)
     }
+
+    override fun clone(): PureTextInputML {
+        val clone = PureTextInputML(style)
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as PureTextInputML
+        clone.text = text
+        clone.cursor1.set(cursor1)
+        clone.cursor2.set(cursor2)
+        clone.placeholder = placeholder
+    }
+
+    override val className: String = "PureTextInputML"
 
 }

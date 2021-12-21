@@ -536,10 +536,10 @@ class FileExplorerEntry(
             "Rename" -> {
                 val file = getReference(path)
                 val title = NameDesc("Rename To...", "", "ui.file.rename2")
-                askName(x.toInt(), y.toInt(), title, file.name, NameDesc("Rename"), { -1 }, ::renameTo)
+                askName(windowStack, x.toInt(), y.toInt(), title, file.name, NameDesc("Rename"), { -1 }, ::renameTo)
             }
             "OpenInExplorer" -> getReference(path).openInExplorer()
-            "Delete" -> deleteFileMaybe(getReference(path))
+            "Delete" -> deleteFileMaybe(this, getReference(path))
             "OpenOptions" -> explorer.openOptions(getReference(path))
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
@@ -552,7 +552,7 @@ class FileExplorerEntry(
             val file = getReference(path)
             val dst = file.getParent()!!.getChild(allowed)
             if (dst.exists && !allowed.equals(file.name, true)) {
-                ask(NameDesc("Override existing file?", "", "ui.file.override")) {
+                ask(windowStack, NameDesc("Override existing file?", "", "ui.file.override")) {
                     file.renameTo(dst)
                     explorer.invalidate()
                 }
@@ -582,7 +582,7 @@ class FileExplorerEntry(
         val files = inFocus.mapNotNull { if (it is FileExplorerEntry) getReference(it.path) else null }
         if (files.size <= 1) {
             // ask, then delete (or cancel)
-            deleteFileMaybe(file)
+            deleteFileMaybe(this, file)
         } else if (files.first() === file) {
             // ask, then delete all (or cancel)
             val title = NameDesc(
@@ -610,7 +610,7 @@ class FileExplorerEntry(
                 files.forEach { it.deleteRecursively() }
                 explorer.invalidate()
             }
-            openMenu(title, listOf(moveToTrash, dontDelete, deletePermanently))
+            openMenu(windowStack, title, listOf(moveToTrash, dontDelete, deletePermanently))
         }
     }
 
@@ -652,7 +652,7 @@ class FileExplorerEntry(
                 )
             ) {}
 
-        fun deleteFileMaybe(file: FileReference) {
+        fun deleteFileMaybe(panel: Panel, file: FileReference) {
             val title = NameDesc(
                 "Delete this file? (${file.length().formatFileSize()})",
                 "",
@@ -667,7 +667,7 @@ class FileExplorerEntry(
             ) {
                 val file2 = file.unsafeFile
                 moveToTrash(file2)
-                FileExplorer.invalidateFileExplorers()
+                FileExplorer.invalidateFileExplorers(panel)
                 LastModifiedCache.invalidate(file2)
             }
             val deletePermanently = MenuOption(
@@ -678,9 +678,10 @@ class FileExplorerEntry(
                 )
             ) {
                 file.deleteRecursively()
-                FileExplorer.invalidateFileExplorers()
+                FileExplorer.invalidateFileExplorers(panel)
             }
             openMenu(
+                panel.windowStack,
                 title, listOf(
                     moveToTrash,
                     dontDelete,

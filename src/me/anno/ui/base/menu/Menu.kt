@@ -7,7 +7,7 @@ import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.Panel
-import me.anno.ui.base.SpacePanel
+import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.Padding
@@ -20,6 +20,7 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.files.Search
 import me.anno.ui.input.TextInput
 import me.anno.ui.input.components.PureTextInput
+import me.anno.ui.utils.WindowStack
 import me.anno.utils.maths.Maths
 import kotlin.math.max
 import kotlin.math.min
@@ -30,21 +31,21 @@ object Menu {
     const val menuSeparator = "-----"
     val menuSeparator1 = MenuOption(NameDesc(menuSeparator, "", "")) {}
 
-    fun msg(title: NameDesc) {
-        openMenu(listOf(MenuOption(title) {}))
+    fun msg(windowStack: WindowStack, title: NameDesc) {
+        openMenu(windowStack, listOf(MenuOption(title) {}))
     }
 
-    fun ask(question: NameDesc, onYes: () -> Unit) {
+    fun ask(windowStack: WindowStack, question: NameDesc, onYes: () -> Unit) {
         openMenu(
-            Input.mouseX, Input.mouseY, question, listOf(
+            windowStack, Input.mouseX, Input.mouseY, question, listOf(
                 MenuOption(NameDesc("Yes", "", "ui.yes"), onYes),
                 MenuOption(NameDesc("No", "", "ui.no")) {}
             ))
     }
 
-    fun ask(question: NameDesc, onYes: () -> Unit, onNo: () -> Unit) {
+    fun ask(windowStack: WindowStack, question: NameDesc, onYes: () -> Unit, onNo: () -> Unit) {
         openMenu(
-            Input.mouseX, Input.mouseY, question, listOf(
+            windowStack, Input.mouseX, Input.mouseY, question, listOf(
                 MenuOption(NameDesc("Yes", "", "ui.yes"), onYes),
                 MenuOption(NameDesc("No", "", "ui.no"), onNo)
             )
@@ -52,6 +53,7 @@ object Menu {
     }
 
     fun askName(
+        windowStack: WindowStack,
         title: NameDesc,
         value0: String,
         actionName: NameDesc,
@@ -59,12 +61,14 @@ object Menu {
         callback: (String) -> Unit
     ) {
         askName(
+            windowStack,
             Input.mouseX.toInt(), Input.mouseY.toInt(),
             title, value0, actionName, getColor, callback
         )
     }
 
     fun askName(
+        windowStack: WindowStack,
         x: Int, y: Int,
         title: NameDesc,
         value0: String,
@@ -75,7 +79,7 @@ object Menu {
 
         lateinit var window: Window
         fun close() {
-            GFX.windowStack.remove(window)
+            windowStack.remove(window)
             window.destroy()
         }
 
@@ -107,13 +111,14 @@ object Menu {
         buttons += cancel
         buttons += submit
 
-        window = openMenuComplex2(x, y, title, listOf(panel, buttons))!!
+        window = openMenuComplex2(windowStack, x, y, title, listOf(panel, buttons))!!
 
         GFX.requestFocus(panel, true)
 
     }
 
     fun openMenuComplex(
+        windowStack: WindowStack,
         x: Int,
         y: Int,
         title: NameDesc,
@@ -125,7 +130,7 @@ object Menu {
 
         lateinit var window: Window
         fun close() {
-            GFX.windowStack.remove(window)
+            windowStack.remove(window)
             window.destroy()
         }
 
@@ -137,7 +142,7 @@ object Menu {
             val action = element.action
             if (name == menuSeparator) {
                 if (index != 0) {
-                    list += SpacePanel(0, 1, style)
+                    list += SpacerPanel(0, 1, style)
                 }
             } else {
                 val button = TextPanel(name, style)
@@ -155,15 +160,16 @@ object Menu {
             }
         }
 
-        window = openMenuComplex2(x, y, title, list)!!
+        window = openMenuComplex2(windowStack, x, y, title, list)!!
         return window
 
     }
 
-    fun openMenuComplex2(title: NameDesc, panels: List<Panel>) =
-        openMenuComplex2(Input.mouseX.toInt() - 10, Input.mouseY.toInt() - 10, title, panels)
+    fun openMenuComplex2(windowStack: WindowStack, title: NameDesc, panels: List<Panel>) =
+        openMenuComplex2(windowStack, Input.mouseX.toInt() - 10, Input.mouseY.toInt() - 10, title, panels)
 
     fun openMenuComplex2(
+        windowStack: WindowStack,
         x: Int,
         y: Int,
         title: NameDesc,
@@ -180,7 +186,7 @@ object Menu {
         val container = ScrollPanelY(list, Padding(1), style, AxisAlignment.MIN)
         container += WrapAlign.LeftTop
 
-        val window = Window(container, false, 1, 1)
+        val window = Window(container, false, windowStack, 1, 1)
 
         val padding = 4
         val titleValue = title.name
@@ -216,7 +222,7 @@ object Menu {
             titlePanel.padding.left = padding
             titlePanel.padding.right = padding
             list += titlePanel
-            list += SpacePanel(0, 1, style)
+            list += SpacerPanel(0, 1, style)
         }
 
         // todo automatically enter the search field, when this menu shows up
@@ -269,34 +275,38 @@ object Menu {
 
         container.forAllPanels { it.window = window }
 
-        GFX.windowStack.add(window)
+        windowStack.add(window)
         GFX.loadTexturesSync.pop()
 
         return window
 
     }
 
-    fun openMenuComplex(x: Float, y: Float, title: NameDesc, options: List<ComplexMenuOption>, delta: Int = 10) =
-        openMenuComplex(x.roundToInt() - delta, y.roundToInt() - delta, title, options)
+    fun openMenuComplex(
+        windowStack: WindowStack,
+        x: Float,
+        y: Float,
+        title: NameDesc,
+        options: List<ComplexMenuOption>,
+        delta: Int = 10
+    ) =
+        openMenuComplex(windowStack, x.roundToInt() - delta, y.roundToInt() - delta, title, options)
 
-    fun openMenu(options: List<MenuOption>) =
-        openMenu(Input.mouseX, Input.mouseY, NameDesc(), options)
+    fun openMenu(windowStack: WindowStack, options: List<MenuOption>) =
+        openMenu(windowStack, Input.mouseX, Input.mouseY, NameDesc(), options)
 
-    fun openMenu(title: NameDesc, options: List<MenuOption>) =
-        openMenu(Input.mouseX, Input.mouseY, title, options)
-
-    fun openMenu(x: Int, y: Int, title: NameDesc, options: List<MenuOption>, delta: Int = 10) =
-        openMenu(x.toFloat(), y.toFloat(), title, options, delta)
+    fun openMenu(windowStack: WindowStack, title: NameDesc, options: List<MenuOption>) =
+        openMenu(windowStack, Input.mouseX, Input.mouseY, title, options)
 
     fun openMenu(
-        x: Float, y: Float,
-        title: NameDesc,
-        options: List<MenuOption>,
-        delta: Int = 10
-    ) = openMenuComplex(
-        x.roundToInt() - delta,
-        y.roundToInt() - delta,
-        title,
+        windowStack: WindowStack,
+        x: Int, y: Int, title: NameDesc, options: List<MenuOption>, delta: Int = 10
+    ) = openMenu(windowStack, x.toFloat(), y.toFloat(), title, options, delta)
+
+    fun openMenu(
+        windowStack: WindowStack,
+        x: Float, y: Float, title: NameDesc, options: List<MenuOption>, delta: Int = 10
+    ) = openMenuComplex(windowStack, x.roundToInt() - delta, y.roundToInt() - delta, title,
         options.map { option -> option.toComplex() })
 
 }

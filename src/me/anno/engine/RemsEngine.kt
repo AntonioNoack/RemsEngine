@@ -8,7 +8,6 @@ import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.windowStack
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.Window
 import me.anno.input.ActionManager
@@ -171,8 +170,9 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         right.add(RuntimeInfoPlaceholder())
         bottom2.add(right)
         list.add(bottom2)
-        windowStack.add(Window(list))
+        windowStack.push(list)
 
+        ECSSceneTabs.window = windowStack.firstElement()
         StudioActions.register()
         ActionManager.init()
 

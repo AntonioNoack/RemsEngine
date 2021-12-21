@@ -1,7 +1,6 @@
 package me.anno.ui.debug
 
 import me.anno.config.DefaultConfig
-import me.anno.gpu.GFX.windowStack
 import me.anno.gpu.Window
 import me.anno.input.ActionManager
 import me.anno.studio.StudioBase
@@ -11,7 +10,7 @@ import me.anno.ui.base.Panel
 class TestStudio(val createMainPanel: () -> Panel) : StudioBase(false, "Test", 1) {
 
     override fun createUI() {
-        windowStack.add(Window(createMainPanel()))
+        windowStack.add(Window(createMainPanel(), windowStack))
     }
 
     override fun loadConfig() {

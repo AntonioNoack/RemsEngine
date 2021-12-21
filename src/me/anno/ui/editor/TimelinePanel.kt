@@ -305,7 +305,7 @@ open class TimelinePanel(style: Style) : Panel(style) {
                         jumpToT(targetDuration)
                     }
                 )
-                openMenu(options)
+                openMenu(windowStack, options)
             }
         }
     }

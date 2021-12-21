@@ -731,7 +731,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
                 if (selectedKeyframes.isEmpty()) {
                     super.onMouseClicked(x, y, button, long)
                 } else {
-                    openMenu(
+                    openMenu(windowStack,
                         NameDesc("Interpolation", "", "ui.graphEditor.interpolation.title"),
                         Interpolation.values().map { mode ->
                             MenuOption(NameDesc(mode.displayName, mode.description, "")) {

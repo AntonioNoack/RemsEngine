@@ -41,7 +41,7 @@ class OptionBar(style: Style) : PanelListX(null, style.getChild("options")) {
 
         override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
             action?.invoke()
-            openMenu(this.x, this.y + this.h, NameDesc(), actionList.map { (_, minor) ->
+            openMenu(windowStack, this.x, this.y + this.h, NameDesc(), actionList.map { (_, minor) ->
                 MenuOption(NameDesc(minor.name, "", "")) { minor.action() }
             })
         }

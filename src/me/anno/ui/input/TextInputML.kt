@@ -8,12 +8,15 @@ import me.anno.ui.input.components.PureTextInputML
 import me.anno.ui.style.Style
 
 // todo line numbers? :)
-open class TextInputML(title: String, style: Style): PanelContainer(
+open class TextInputML(title: String, style: Style) : PanelContainer(
     PureTextInputML(
         style.getChild("deep")
-    ), Padding(2), style.getChild("deep")) {
+    ), Padding(2), style.getChild("deep")
+) {
 
-    constructor(title: String, v0: String, style: Style): this(title, style){
+    constructor(style: Style) : this("", style)
+
+    constructor(title: String, v0: String, style: Style) : this(title, style) {
         setText(v0, false)
     }
 
@@ -53,7 +56,7 @@ open class TextInputML(title: String, style: Style): PanelContainer(
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
-        if(listOfVisible.any { it.isInFocus }){
+        if (listOfVisible.any { it.isInFocus }) {
             isSelectedListener?.invoke()
         }
     }

@@ -2,7 +2,6 @@ package me.anno.ui.editor.files
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.windowStack
 import me.anno.input.Input
 import me.anno.input.Input.setClipboardContent
 import me.anno.io.files.FileReference
@@ -14,6 +13,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.StudioBase.Companion.workspace
+import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
@@ -81,9 +81,9 @@ abstract class FileExplorer(
     abstract fun getRightClickOptions(): List<FileExplorerOption>
 
     open fun openOptions(file: FileReference) {
-        openMenu(getFileOptions().map {
+        openMenu(windowStack, getFileOptions().map {
             MenuOption(it.nameDesc) {
-                it.onClick(file)
+                it.onClick(this, file)
             }
         })
     }
@@ -91,14 +91,14 @@ abstract class FileExplorer(
     open fun getFileOptions(): List<FileExplorerOption> {
         // todo additional options for the game engine, e.g. create prefab, open as scene
         // todo add option to open json in specialized json editor...
-        val rename = FileExplorerOption(NameDesc("Rename", "Change the name of this file", "ui.file.rename")) {
+        val rename = FileExplorerOption(NameDesc("Rename", "Change the name of this file", "ui.file.rename")) { _, it ->
             onGotAction(0f, 0f, 0f, 0f, "Rename", false)
         }
-        val openInExplorer = FileExplorerOption(openInExplorerDesc) { it.openInExplorer() }
-        val copyPath = FileExplorerOption(copyPathDesc) { setClipboardContent(it.absolutePath) }
+        val openInExplorer = FileExplorerOption(openInExplorerDesc) { _, it -> it.openInExplorer() }
+        val copyPath = FileExplorerOption(copyPathDesc) { _, it -> setClipboardContent(it.absolutePath) }
         val delete = FileExplorerOption(
             NameDesc("Delete", "Delete this file", "ui.file.delete"),
-        ) { deleteFileMaybe(it) }
+        ) { p, it -> deleteFileMaybe(p, it) }
         return listOf(rename, openInExplorer, copyPath, delete)
     }
 
@@ -178,7 +178,7 @@ abstract class FileExplorer(
         // todo somehow a second menu is opening :/
         title.addRightClickListener {
             val shortCutFolders = getShortcutFolders()
-            openMenu(NameDesc("Switch To"), listOf(
+            openMenu(windowStack, NameDesc("Switch To"), listOf(
                 MenuOption(NameDesc("Add Current To This List")) {
                     DefaultConfig["files.shortcuts"] = (getShortcutFolders() + folder)
                         .joinToString("|") { it.toLocalPath() }
@@ -349,23 +349,22 @@ abstract class FileExplorer(
         if (files.size > 1) {
             copyIntoCurrent(files)
         } else {
-            openMenu(
-                listOf(
-                    MenuOption(NameDesc("Switch To")) {
-                        switchTo(files.first())
-                    },
-                    MenuOption(NameDesc("Copy")) {
-                        thread(name = "copying files") {
-                            copyIntoCurrent(files)
-                        }
-                    },
-                    MenuOption(NameDesc("Create Links")) {
-                        thread(name = "creating links") {
-                            createLinksIntoCurrent(files)
-                        }
-                    },
-                    MenuOption(NameDesc("Cancel")) {}
-                ))
+            openMenu(windowStack, listOf(
+                MenuOption(NameDesc("Switch To")) {
+                    switchTo(files.first())
+                },
+                MenuOption(NameDesc("Copy")) {
+                    thread(name = "copying files") {
+                        copyIntoCurrent(files)
+                    }
+                },
+                MenuOption(NameDesc("Create Links")) {
+                    thread(name = "creating links") {
+                        createLinksIntoCurrent(files)
+                    }
+                },
+                MenuOption(NameDesc("Cancel")) {}
+            ))
         }
     }
 
@@ -453,28 +452,27 @@ abstract class FileExplorer(
         when (action) {
             "OpenOptions" -> {
                 val home = folder
-                openMenu(
-                    listOf(
-                        MenuOption(NameDesc("Create Folder", "Creates a new directory", "ui.newFolder")) {
-                            askName(
-                                NameDesc("Name", "", "ui.newFolder.askName"),
-                                "",
-                                NameDesc("Create"),
-                                { -1 }) {
-                                val validName = it.toAllowedFilename()
-                                if (validName != null) {
-                                    getReference(home, validName).mkdirs()
-                                    invalidate()
-                                }
+                openMenu(windowStack, listOf(
+                    MenuOption(NameDesc("Create Folder", "Creates a new directory", "ui.newFolder")) {
+                        askName(windowStack,
+                            NameDesc("Name", "", "ui.newFolder.askName"),
+                            "",
+                            NameDesc("Create"),
+                            { -1 }) {
+                            val validName = it.toAllowedFilename()
+                            if (validName != null) {
+                                getReference(home, validName).mkdirs()
+                                invalidate()
                             }
-                        },
-                        MenuOption(openInExplorerDesc) { folder.openInExplorer() },
-                        MenuOption(copyPathDesc) { setClipboardContent(folder.absolutePath) }
-                    ) + getRightClickOptions().map {
-                        MenuOption(it.nameDesc) {
-                            it.onClick(folder)
                         }
-                    })
+                    },
+                    MenuOption(openInExplorerDesc) { folder.openInExplorer() },
+                    MenuOption(copyPathDesc) { setClipboardContent(folder.absolutePath) }
+                ) + getRightClickOptions().map {
+                    MenuOption(it.nameDesc) {
+                        it.onClick(this, folder)
+                    }
+                })
             }
             "Back", "Backward" -> back()
             "Forward" -> forward()
@@ -572,8 +570,8 @@ abstract class FileExplorer(
             DefaultConfig["files.forbiddenCharacters", "<>:\"/\\|?*"] + String(CharArray(32) { it.toChar() })
         val forbiddenCharacters = forbiddenConfig.toHashSet()
 
-        fun invalidateFileExplorers() {
-            windowStack.forEach { window ->
+        fun invalidateFileExplorers(panel: Panel) {
+            for (window in panel.windowStack) {
                 window.panel.forAll {
                     if (it is FileExplorer) {
                         it.invalidate()

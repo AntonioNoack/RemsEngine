@@ -3,6 +3,7 @@ package me.anno.ui.editor
 import me.anno.gpu.GFX
 import me.anno.language.translation.Dict
 import me.anno.objects.inspectable.Inspectable
+import me.anno.studio.StudioBase.Companion.defaultWindowStack
 import me.anno.studio.rems.ui.StudioTreeView
 import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
@@ -12,10 +13,11 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.editor.files.Search
 import me.anno.ui.editor.sceneView.ISceneView
-import me.anno.ui.editor.treeView.AbstractTreeViewPanel
+import me.anno.ui.editor.treeView.TreeViewPanel
 import me.anno.ui.input.*
 import me.anno.ui.input.components.Checkbox
 import me.anno.ui.style.Style
+import me.anno.ui.utils.WindowStack
 import me.anno.utils.types.Strings.isBlank2
 
 class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Style) :
@@ -156,10 +158,10 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
             }
         }
 
-        fun invalidateUI() {
+        fun invalidateUI(windowStack: WindowStack = defaultWindowStack) {
             // if(gameTime > 1e10) throw RuntimeException()
             // LOGGER.info("UpdateSceneViews ${gameTime / 1e9f}")
-            for (window in GFX.windowStack) {
+            for (window in windowStack) {
                 for (panel in window.panel.listOfVisible) {
                     when (panel) {
                         is StudioTreeView, is ISceneView, is TimelinePanel -> {
@@ -168,7 +170,7 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
                         is PropertyInspector -> {
                             panel.invalidate()
                         }
-                        is AbstractTreeViewPanel<*> -> {
+                        is TreeViewPanel<*> -> {
                             panel.invalidateLayout()
                         }
                     }

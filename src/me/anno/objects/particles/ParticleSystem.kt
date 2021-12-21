@@ -1,5 +1,9 @@
 package me.anno.objects.particles
 
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Integral.findIntegralX
+import me.anno.animation.Integral.getIntegral
+import me.anno.animation.Type
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.GFX.isFinalRendering
@@ -9,10 +13,6 @@ import me.anno.io.text.TextWriter
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
-import me.anno.animation.AnimatedProperty
-import me.anno.animation.Integral.findIntegralX
-import me.anno.animation.Integral.getIntegral
-import me.anno.animation.Type
 import me.anno.objects.distributions.*
 import me.anno.objects.forces.ForceField
 import me.anno.objects.forces.impl.BetweenParticleGravity
@@ -39,7 +39,6 @@ import org.joml.Vector4f
 import org.joml.Vector4fc
 import java.net.URL
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -270,7 +269,7 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
             dist.distribution.draw(stack, color)
         }
 
-        sumWeight = SumOf.sumOf(children.filterNot { it is ForceField }){ it.weight }// .sumOf { it.weight }
+        sumWeight = SumOf.sumOf(children.filterNot { it is ForceField }) { it.weight }// .sumOf { it.weight }
         if (needsChildren() && (time < 0f || children.isEmpty() || sumWeight <= 0.0)) return
 
         if (step(time)) {
@@ -321,6 +320,7 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
                 if (button.isRight || long) {
                     // show all options for different distributions
                     openMenu(
+                        list.windowStack,
                         NameDesc("Change Distribution", "", "obj.particles.changeDistribution"),
                         listDistributions().map { generator ->
                             val sample = generator()

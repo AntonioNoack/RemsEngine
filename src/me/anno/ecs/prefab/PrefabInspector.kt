@@ -1,28 +1,25 @@
 package me.anno.ecs.prefab
 
 import me.anno.config.DefaultStyle.black
-import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.interfaces.CustomEditMode
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
-import me.anno.engine.IProperty
 import me.anno.engine.ui.ComponentUI
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
+import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextWriter
 import me.anno.objects.inspectable.Inspectable
 import me.anno.studio.StudioBase.Companion.addEvent
-import me.anno.ui.base.Panel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
 import me.anno.ui.editor.stacked.Option
@@ -219,20 +216,26 @@ class PrefabInspector(val prefab: Prefab) {
             val list1 = PanelListX(style)
             list1.add(TextPanel("$title:", style))
             list1.add(UpdatingTextPanel(100L, style) { property.getter.call(instance).toString().shorten2Way(50) })
-            list1.addLeftClickListener {
-                // todo when clicked, a tracking graph/plot is displayed (real time)
+            // todo when clicked, a tracking graph/plot is displayed (real time)
+            /*list1.addLeftClickListener {
 
-            }
+            }*/
             list.add(list1)
         }
+
+        // todo form groups
+        // todo groups on a global or by-class level?
+
+        val allProperties = reflections.allProperties
 
         // bold/non bold for other properties
         for ((clazz, propertyNames) in reflections.propertiesByClass.value.reversed()) {
 
             var hadIntro = false
-            for (name in propertyNames) {
+            for (name in propertyNames
+                .sortedBy { allProperties[it]!!.order }) {
 
-                val property = reflections.allProperties[name]!!
+                val property = allProperties[name]!!
                 if (property.hideInInspector || !property.serialize) continue
 
                 if (!hadIntro) {
@@ -250,52 +253,15 @@ class PrefabInspector(val prefab: Prefab) {
                 // todo more indentation?
 
                 try {
-
-                    val panel = ComponentUI.createUI2(name, name, object : IProperty<Any?> {
-
-                        override fun init(panel: Panel?) {
-                            (panel as? TextStyleable)?.setBold(isChanged(getPath(), name))
-                        }
-
-                        override fun getDefault(): Any? {
-                            // info("default of $name: ${component.getDefaultValue(name)}")
-                            return instance.getDefaultValue(name)
-                        }
-
-                        override fun set(panel: Panel?, value: Any?) {
-                            (panel as? TextStyleable)?.setBold()
-                            // info("setting value of $name, ${panel is TextStyleable}")
-                            property[instance] = value
-                            change(getPath(), name, value)
-                        }
-
-                        override fun get(): Any? {
-                            return property[instance]
-                        }
-
-                        override fun reset(panel: Panel?): Any? {
-                            (panel as? TextStyleable)?.unsetBold()
-                            // info("reset $name")
-                            reset(getPath(), name)
-                            val value = getDefault()
-                            property[instance] = value
-                            return value
-                        }
-
-                        override val annotations: List<Annotation>
-                            get() = property.annotations
-
-                    }, property.range, style) ?: continue
+                    val property2 = PIProperty(this, instance, name, property)
+                    val panel = ComponentUI.createUI2(name, name, property2, property.range, style) ?: continue
                     if (panel.tooltip != null) panel.setTooltip(property.description)
                     list.add(panel)
-
                 } catch (e: Exception) {
                     LOGGER.error("Error $e from ${reflections.clazz}/$name")
                     e.printStackTrace()
                 }
-
             }
-
         }
 
         val types = instance.listChildTypes()
@@ -325,7 +291,7 @@ class PrefabInspector(val prefab: Prefab) {
                 }
 
                 override fun getOptionFromInspectable(inspectable: Inspectable): Option {
-                    inspectable as Component
+                    inspectable as ISaveable
                     return Option(inspectable.className.camelCaseToTitle(), "") { inspectable }
                 }
             })

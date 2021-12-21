@@ -162,11 +162,15 @@ public abstract class Image implements ICacheData {
     }
 
     public void write(FileReference dst) throws IOException {
-        BufferedImage image = createBufferedImage();
         String format = dst.getLcExtension();
         try (OutputStream out = dst.outputStream()) {
-            ImageIO.write(image, format, out);
+            write(out, format);
         }
+    }
+
+    public void write(OutputStream dst, String format) throws IOException {
+        BufferedImage image = createBufferedImage();
+        ImageIO.write(image, format, dst);
     }
 
     public static int argb(int a, int r, int g, int b) {

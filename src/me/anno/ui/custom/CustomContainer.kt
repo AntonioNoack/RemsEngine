@@ -18,8 +18,10 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
     PanelContainer(default, Padding(0), style) {
 
     init {
-        if (default is CustomContainer) me.anno.utils.LOGGER.warn("You added a custom container to a custom container." +
-                " You probably made a mistake!")
+        if (default is CustomContainer) me.anno.utils.LOGGER.warn(
+            "You added a custom container to a custom container." +
+                    " You probably made a mistake!"
+        )
     }
 
     override fun calculateSize(w: Int, h: Int) {
@@ -124,7 +126,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
         options += MenuOption(NameDesc("Add Panel Below", "", "ui.customize.addBelow")) {
             addPanel(true, firstThis = false)
         }
-        openMenu(x + w - 16, y, NameDesc("Customize UI", "", "ui.customize.title"), options)
+        openMenu(windowStack, x + w - 16, y, NameDesc("Customize UI", "", "ui.customize.title"), options)
     }
 
     private fun changeTo(panel: Panel) {

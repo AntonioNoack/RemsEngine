@@ -14,6 +14,7 @@ import me.anno.objects.Transform.Companion.toTransform
 import me.anno.objects.effects.MaskLayer
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.nullCamera
+import me.anno.studio.rems.RemsStudio.windowStack
 import me.anno.studio.rems.Selection
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
@@ -207,6 +208,7 @@ class StudioTreeView(style: Style) :
                     extras += additional
                 }
                 Menu.openMenu(
+                    windowStack,
                     Input.mouseX, Input.mouseY, NameDesc("Add Child", "", "ui.objects.add"),
                     options.entries
                         .sortedBy { (key, _) -> key.lowercase(Locale.getDefault()) }

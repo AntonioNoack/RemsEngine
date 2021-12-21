@@ -343,7 +343,7 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
                             SplitTransform.split(transform, localTime)
                         }
                     }
-                    openMenu(options)
+                    openMenu(windowStack, options)
                 } else super.onMouseClicked(x, y, button, long)
             }
             else -> super.onMouseClicked(x, y, button, long)

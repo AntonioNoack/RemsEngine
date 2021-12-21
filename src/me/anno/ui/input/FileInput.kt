@@ -6,7 +6,7 @@ import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
-import me.anno.ui.base.SpacePanel
+import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
@@ -74,7 +74,7 @@ class FileInput(
         this += button
         // for a symmetric border
         val border = style.getPadding("borderSize", 2).left
-        if (border > 0) this += SpacePanel(border, 0, style).apply { backgroundColor = 0 }
+        if (border > 0) this += SpacerPanel(border, 0, style).apply { backgroundColor = 0 }
         this += base//ScrollPanelX(base, Padding(), style, AxisAlignment.MIN)
     }
 
@@ -111,10 +111,10 @@ class FileInput(
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         when {
-            button.isRight -> openMenu(listOf(
+            button.isRight -> openMenu(windowStack, listOf(
                 MenuOption(openInExplorerDesc) { file.openInExplorer() }
             ) + extraRightClickOptions.map {
-                MenuOption(it.nameDesc) { it.onClick(file) }
+                MenuOption(it.nameDesc) { it.onClick(this, file) }
             })
             else -> super.onMouseClicked(x, y, button, long)
         }

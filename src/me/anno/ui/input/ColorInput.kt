@@ -1,12 +1,12 @@
 package me.anno.ui.input
 
+import me.anno.animation.AnimatedProperty
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Camera
-import me.anno.animation.AnimatedProperty
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.studio.rems.RemsStudio
@@ -43,6 +43,8 @@ class ColorInput(
     private val owningProperty: AnimatedProperty<*>? = null
 ) : PanelListX(style) {
 
+    constructor(style: Style) : this(style, "", "", Vector4f(), true, null)
+
     private val contentView = ColorChooser(style, withAlpha, owningProperty)
 
     private val titleView = TitlePanel(title, contentView, style)
@@ -70,10 +72,10 @@ class ColorInput(
         contentView.setRGBA(oldValue, false)
     }
 
-    fun openColorChooser(){
+    fun openColorChooser() {
         contentView.colorSpace = ColorChooser.getDefaultColorSpace()
         Menu.openMenuComplex2(
-            Input.mouseX.toInt(), Input.mouseY.toInt(), NameDesc(title), listOf(
+            windowStack, Input.mouseX.toInt(), Input.mouseY.toInt(), NameDesc(title), listOf(
                 SizeLimitingContainer(contentView, GFX.width / 5, -1, style)
             )
         )
@@ -82,11 +84,11 @@ class ColorInput(
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         when {
             button.isLeft -> {
-                if(long) openColorChooser()
+                if (long) openColorChooser()
                 else super.onMouseClicked(x, y, button, long)
             }
             button.isRight -> {
-                Menu.openMenu(listOf(
+                Menu.openMenu(windowStack, listOf(
                     // todo we could copy/paste all values :D
                     MenuOption(NameDesc("Copy Value")) { Input.copy(contentView) },
                     MenuOption(NameDesc("Paste Value")) { Input.paste(contentView) }

@@ -169,7 +169,7 @@ open class ControlScheme(val camera: CameraComponent, val library: EditorState, 
     }*/
 
     fun invalidateInspector() {
-        for (window in GFX.windowStack) {
+        for (window in windowStack) {
             for (panel in window.panel.listOfVisible) {
                 when (panel) {
                     is PropertyInspector -> {

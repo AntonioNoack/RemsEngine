@@ -14,7 +14,6 @@ import me.anno.ui.custom.UITypeLibrary
 import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.cutting.CuttingView
-import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.FileExplorer.Companion.invalidateFileExplorers
 import me.anno.ui.editor.files.FileExplorerOption
 import me.anno.ui.editor.files.toAllowedFilename
@@ -27,8 +26,9 @@ class StudioUITypeLibrary : UITypeLibrary(typeList) {
 
         val createTransform = FileExplorerOption(
             NameDesc("Create Component", "Create a new folder component", "ui.newComponent")
-        ) { folder ->
+        ) { p, folder ->
             askName(
+                p.windowStack,
                 NameDesc("Name", "", "ui.newComponent.askName"),
                 "",
                 NameDesc("Create"),
@@ -39,7 +39,7 @@ class StudioUITypeLibrary : UITypeLibrary(typeList) {
                         Transform()
                             .apply { name = it }
                             .toString())
-                    invalidateFileExplorers()
+                    invalidateFileExplorers(p)
                 }
             }
         }

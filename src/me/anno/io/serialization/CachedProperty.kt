@@ -1,8 +1,6 @@
 package me.anno.io.serialization
 
-import me.anno.ecs.annotations.Docs
-import me.anno.ecs.annotations.HideInInspector
-import me.anno.ecs.annotations.Range
+import me.anno.ecs.annotations.*
 import org.apache.logging.log4j.LogManager
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
@@ -22,6 +20,8 @@ class CachedProperty(
     val range = annotations.filterIsInstance<Range>().firstOrNull()
     val hideInInspector = annotations.any { it is HideInInspector }
     val description = annotations.filterIsInstance<Docs>().joinToString("\n") { it.description }
+    val order = annotations.filterIsInstance<Order>().firstOrNull()?.index ?: 0
+    val group = annotations.filterIsInstance<Group>().firstOrNull()?.name
 
     operator fun set(instance: Any, value: Any?): Boolean {
         return try {

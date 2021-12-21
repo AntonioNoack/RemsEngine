@@ -29,26 +29,25 @@ class OptionPanel(
         when {
             button.isRight -> {
                 val index = indexInParent
-                openMenu(
-                    stackPanel.options.map { option ->
-                        // todo translate
-                        MenuOption(
-                            NameDesc("Prepend %1", option.description, "ui.option.prepend").with(
-                                "%1",
-                                option.title
-                            )
-                        ) {
-                            stackPanel.addComponent(option, index, true)
-                        }
-                    } + MenuOption(
-                        NameDesc(
-                            "Remove Component",
-                            "Deletes the component",
-                            "ui.general.removeComponent"
+                openMenu(windowStack, stackPanel.options.map { option ->
+                    // todo translate
+                    MenuOption(
+                        NameDesc("Prepend %1", option.description, "ui.option.prepend").with(
+                            "%1",
+                            option.title
                         )
                     ) {
-                        stackPanel.removeComponent(value)
+                        stackPanel.addComponent(option, index, true)
                     }
+                } + MenuOption(
+                    NameDesc(
+                        "Remove Component",
+                        "Deletes the component",
+                        "ui.general.removeComponent"
+                    )
+                ) {
+                    stackPanel.removeComponent(value)
+                }
                 )
             }
             else -> super.onMouseClicked(x, y, button, long)

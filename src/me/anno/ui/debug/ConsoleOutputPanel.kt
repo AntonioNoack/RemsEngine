@@ -1,7 +1,6 @@
 package me.anno.ui.debug
 
 import me.anno.config.DefaultStyle
-import me.anno.gpu.GFX.windowStack
 import me.anno.gpu.Window
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
@@ -50,7 +49,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
                 panel.textColor = mixARGB(panel.textColor, color, 0.5f)
                 list += panel
             }
-            windowStack.add(Window(listPanel, true, 0, 0))
+            windowStack.add(Window(listPanel, true, windowStack, 0, 0))
         }
     }
 

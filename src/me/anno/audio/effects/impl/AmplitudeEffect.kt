@@ -6,7 +6,7 @@ import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
 import me.anno.audio.effects.Time
 import me.anno.objects.Audio
 import me.anno.objects.Camera
-import me.anno.ui.base.SpacePanel
+import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
@@ -59,7 +59,7 @@ class AmplitudeEffect : SoundEffect(Domain.TIME_DOMAIN, Domain.TIME_DOMAIN) {
         style: Style,
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
-        list += SpacePanel(0, 0, style) // nothing, but it must not be empty, soo...
+        list += SpacerPanel(0, 0, style) // nothing, but it must not be empty, soo...
     }
 
     override val displayName: String = "Amplitude"
