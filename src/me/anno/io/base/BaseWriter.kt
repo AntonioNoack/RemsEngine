@@ -12,6 +12,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.ObjectOutputStream
 import java.io.Serializable
+import kotlin.reflect.full.memberProperties
 
 abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
 
@@ -378,6 +379,24 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             is FileReference -> writeFile(name, value, forceSaving)
             // null
             null -> writeObject(self, name, null, forceSaving)
+            is Enum<*> -> {
+                /**
+                 * if there is an id, use it instead; must be Int
+                 * alternatively, we could write the enum as a string
+                 * this would be developer-friendlier :)
+                 * at the same time, it causes issues, when old save files are read
+                 * */
+                val id = value::class
+                    .memberProperties
+                    .firstOrNull { it.name == "id" }
+                    ?.getter?.call(value)
+                if (id is Int) {
+                    writeInt(name, id, forceSaving)
+                } else {
+                    LOGGER.warn("Enum class '${value::class}' is missing property 'id' of type Int for automatic serialization!")
+                    writeString(name, "${value.ordinal}/${value.name}", forceSaving)
+                }
+            }
             // java-serializable
             is Serializable -> {
                 // implement it?...

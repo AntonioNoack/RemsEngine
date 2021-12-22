@@ -2,7 +2,7 @@ package me.anno.io.files
 
 import me.anno.Engine
 import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.studio.Build
+import me.anno.Build
 import me.anno.utils.OS.desktop
 import org.apache.logging.log4j.LogManager
 import java.io.IOException

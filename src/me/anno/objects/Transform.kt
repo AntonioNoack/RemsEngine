@@ -224,7 +224,7 @@ open class Transform() : Saveable(),
             .addChangeListener { name = if (it.isEmpty()) "-" else it }
             .setIsSelectedListener { show(null) }
         list += TextInputML("Comment", comment, style)
-            .setChangeListener { comment = it }
+            .addChangeListener { comment = it }
             .setIsSelectedListener { show(null) }
 
         val warningPanel = UpdatingTextPanel(500, style) { lastWarning }

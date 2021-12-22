@@ -1,5 +1,6 @@
 package me.anno.engine.ui.render
 
+import me.anno.Build
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.white4
 import me.anno.ecs.Component
@@ -69,10 +70,8 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
-import me.anno.input.Input
 import me.anno.input.Input.isKeyDown
 import me.anno.input.Input.isShiftDown
-import me.anno.studio.Build
 import me.anno.ui.base.Panel
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.style.Style
@@ -919,7 +918,10 @@ class RenderView(
         camDirection.normalize()
 
         // camera matrix and mouse position to ray direction
-        if (update) getMouseRayDirection(Input.mouseX, Input.mouseY, mouseDir)
+        if (update) {
+            val window = window!!
+            getMouseRayDirection(window.mouseX, window.mouseY, mouseDir)
+        }
 
         // debugPoints.add(DebugPoint(Vector3d(camDirection).mul(20.0).add(camPosition), 0xff0000, -1))
 
@@ -1285,8 +1287,8 @@ class RenderView(
      * todo for other cameras: can be used for virtual mice
      * */
     fun getMouseRayDirection(
-        cx: Float = Input.mouseX,
-        cy: Float = Input.mouseY,
+        cx: Float = window!!.mouseX,
+        cy: Float = window!!.mouseY,
         dst: Vector3d = Vector3d()
     ): Vector3d {
         val rx = (cx - x) / w * +2f - 1f

@@ -2,9 +2,11 @@ package me.anno.ui.input
 
 import me.anno.animation.AnimatedProperty
 import me.anno.config.DefaultStyle.black
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.input.MouseButton
+import me.anno.io.serialization.NotSerializedProperty
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Camera
 import me.anno.studio.StudioBase.Companion.dragged
@@ -17,13 +19,16 @@ import me.anno.ui.base.constraints.SizeLimitingContainer
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
+import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.editor.color.ColorChooser
 import me.anno.ui.editor.color.PreviewField
 import me.anno.ui.input.components.TitlePanel
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toARGB
+import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.maths.Maths.pow
+import org.joml.Vector3f
 import org.joml.Vector4f
 import org.joml.Vector4fc
 import kotlin.math.max
@@ -41,12 +46,11 @@ class ColorInput(
     oldValue: Vector4fc,
     withAlpha: Boolean,
     private val owningProperty: AnimatedProperty<*>? = null
-) : PanelListX(style) {
+) : PanelListX(style), TextStyleable {
 
     constructor(style: Style) : this(style, "", "", Vector4f(), true, null)
 
     private val contentView = ColorChooser(style, withAlpha, owningProperty)
-
     private val titleView = TitlePanel(title, contentView, style)
     private val previewField = PreviewField(titleView, 2, style)
         .apply {
@@ -54,6 +58,7 @@ class ColorInput(
             color = oldValue.toARGB() or black
         }
 
+    @NotSerializedProperty
     private var mouseIsDown = false
 
     fun getValue() = contentView.getColor()
@@ -61,6 +66,14 @@ class ColorInput(
         previewField.color = color.toARGB()
         previewField.invalidateDrawing()
         contentView.setRGBA(color, notify)
+    }
+
+    override fun setBold(bold: Boolean) {
+        titleView.setBold(bold)
+    }
+
+    override fun setItalic(italic: Boolean) {
+        titleView.setItalic(italic)
     }
 
     init {
@@ -74,8 +87,9 @@ class ColorInput(
 
     fun openColorChooser() {
         contentView.colorSpace = ColorChooser.getDefaultColorSpace()
+        val window = window!!
         Menu.openMenuComplex2(
-            windowStack, Input.mouseX.toInt(), Input.mouseY.toInt(), NameDesc(title), listOf(
+            window.windowStack, window.mouseX.toInt(), window.mouseY.toInt(), NameDesc(title), listOf(
                 SizeLimitingContainer(contentView, GFX.width / 5, -1, style)
             )
         )
@@ -89,14 +103,12 @@ class ColorInput(
             }
             button.isRight -> {
                 Menu.openMenu(windowStack, listOf(
-                    // todo we could copy/paste all values :D
-                    MenuOption(NameDesc("Copy Value")) { Input.copy(contentView) },
-                    MenuOption(NameDesc("Paste Value")) { Input.paste(contentView) }
+                    MenuOption(NameDesc("Copy")) { Input.copy(contentView) },
+                    MenuOption(NameDesc("Paste")) { Input.paste(contentView) },
+                    MenuOption(NameDesc("Reset")) { setValue(resetListener(), true) }
                 ))
             }
-            else -> {
-                super.onMouseClicked(x, y, button, long)
-            }
+            else -> super.onMouseClicked(x, y, button, long)
         }
     }
 
@@ -161,5 +173,35 @@ class ColorInput(
         isSelectedListener = listener
         return this
     }
+
+    private var resetListener: () -> Vector4f = {
+        when (val default = owningProperty?.defaultValue) {
+            is Vector4f -> default
+            is Vector3f -> Vector4f(default, 1f)
+            is Int -> default.toVecRGBA()
+            is Long -> default.toInt().toVecRGBA()
+            else -> Vector4f(0f, 0f, 0f, 1f)
+        }
+    }
+
+    fun setResetListener(listener: () -> Vector4f) {
+        resetListener = listener
+    }
+
+    override fun clone(): ColorInput {
+        val clone = ColorInput(style)
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as ColorInput
+        // only works, if there is no references
+        clone.isSelectedListener = isSelectedListener
+        clone.resetListener = resetListener
+    }
+
+    override val className: String = "ColorInput"
 
 }

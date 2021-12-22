@@ -1,6 +1,6 @@
 package me.anno.gpu.shader.builder
 
-import me.anno.studio.Build
+import me.anno.Build
 
 class Function(
     val name: String,

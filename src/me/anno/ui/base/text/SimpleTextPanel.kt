@@ -1,6 +1,7 @@
 package me.anno.ui.base.text
 
 import me.anno.config.DefaultStyle
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.ui.base.Panel
@@ -13,7 +14,7 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
     var text = ""
         set(value) {
             val value2 = value.trim()
-            if(field != value2){
+            if (field != value2) {
                 field = value2
                 invalidateDrawing()
             }
@@ -35,10 +36,10 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         drawBackground()
         GFX.loadTexturesSync.push(true)
-        val offset = when(alignmentX){
+        val offset = when (alignmentX) {
             AxisAlignment.MIN -> 1
-            AxisAlignment.CENTER -> w/2
-            AxisAlignment.MAX -> w-1
+            AxisAlignment.CENTER -> w / 2
+            AxisAlignment.MAX -> w - 1
             else -> 1
         }
         DrawTexts.drawSimpleTextCharByChar(
@@ -47,5 +48,21 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
         )
         GFX.loadTexturesSync.pop()
     }
+
+    override fun clone(): SimpleTextPanel {
+        val clone = SimpleTextPanel(style)
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as SimpleTextPanel
+        clone.text = text
+        clone.textColor = textColor
+        clone.focusTextColor = focusTextColor
+    }
+
+    override val className: String = "SimpleTextPanel"
 
 }

@@ -34,7 +34,7 @@ object LinearHSI : ColorSpace(
 
     // https://www.vocal.com/video/rgb-and-hsvhsihsl-color-space-conversion/
 
-    override fun fromRGB(rgb: Vector3f): Vector3f {
+    override fun fromRGB(rgb: Vector3f, dst: Vector3f): Vector3f {
         val r = rgb.x
         val g = rgb.y
         val b = rgb.z
@@ -49,10 +49,10 @@ object LinearHSI : ColorSpace(
         if (h < 0f) h += 1f
         val i = (r + g + b) / 3
         val s = if (i == 0f) 0f else 1 - min / i
-        return Vector3f(h, s, max)
+        return dst.set(h, s, max)
     }
 
-    override fun toRGB(input: Vector3f): Vector3f {
+    override fun toRGB(input: Vector3f, dst: Vector3f): Vector3f {
         val h = input.x
         val s = input.y
         val i = input.z
@@ -82,7 +82,7 @@ object LinearHSI : ColorSpace(
                 // LOGGER.info("3 $g $b $r")
             }
         }
-        return Vector3f(r, g, b)
+        return dst.set(r, g, b)
     }
 
 }

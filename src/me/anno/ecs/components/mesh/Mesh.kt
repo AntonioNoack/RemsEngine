@@ -404,6 +404,7 @@ class Mesh : PrefabSaveable() {
             computeOffsets(attributes)
             computeOffsets(oldValue.attributes)
             if (oldValue.attributes == attributes && oldValue.vertexCount == vertexCount) {
+                oldValue.clear()
                 return oldValue
             } else {
                 oldValue.destroy()

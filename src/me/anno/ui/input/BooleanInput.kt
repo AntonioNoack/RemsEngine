@@ -1,5 +1,6 @@
 package me.anno.ui.input
 
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.language.translation.Dict
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
@@ -14,7 +15,7 @@ import me.anno.utils.types.Strings.isBlank2
  * in a Transform child class, all inputs should be created using the VI function, if possible,
  * because it forces the programmer to set a tool tip text
  * */
-class BooleanInput(val title: String, startValue: Boolean, defaultValue: Boolean, style: Style) : PanelListX(style),
+class BooleanInput(title: String, startValue: Boolean, defaultValue: Boolean, style: Style) : PanelListX(style),
     TextStyleable {
 
     constructor(style: Style) : this("", false, false, style)
@@ -79,5 +80,21 @@ class BooleanInput(val title: String, startValue: Boolean, defaultValue: Boolean
     }
 
     override fun onCopyRequested(x: Float, y: Float) = checkView.isChecked.toString()
+
+    override fun clone(): BooleanInput {
+        val clone = BooleanInput(style)
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as BooleanInput
+        clone.titleView?.text = titleView?.text ?: ""
+        // only works, if there is no references
+        clone.isSelectedListener = isSelectedListener
+    }
+
+    override val className: String = "BooleanInput"
 
 }

@@ -24,7 +24,7 @@ import me.anno.input.Input
 import me.anno.mesh.Point
 import me.anno.objects.Camera
 import me.anno.objects.Transform
-import me.anno.studio.Build.isDebug
+import me.anno.Build.isDebug
 import me.anno.studio.StudioBase.Companion.eventTasks
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.editorTimeDilation

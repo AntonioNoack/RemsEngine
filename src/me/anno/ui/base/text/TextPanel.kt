@@ -47,6 +47,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
 
     var textAlignment = AxisAlignment.MIN
 
+    @NotSerializedProperty
     var textCacheKey: TextCacheKey = TextCacheKey(text, font, 0, 0)
 
     open var text: String = text

@@ -2,6 +2,7 @@ package me.anno.ui.input
 
 import me.anno.animation.AnimatedProperty
 import me.anno.animation.Type
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.io.text.TextReader
 import me.anno.studio.StudioBase.Companion.warn
@@ -23,14 +24,14 @@ import me.anno.utils.types.AnyToInt.getInt
 import org.joml.*
 import kotlin.math.roundToInt
 
-class VectorIntInput(
+class IntVectorInput(
     style: Style, title: String,
     visibilityKey: String,
     val type: Type,
     private val owningProperty: AnimatedProperty<*>? = null
 ) : TitledListY(title, visibilityKey, style) {
 
-    constructor(style: Style): this(style, "", "", Type.INT, null)
+    constructor(style: Style) : this(style, "", "", Type.INT, null)
 
     constructor(title: String, visibilityKey: String, property: AnimatedProperty<*>, time: Double, style: Style) :
             this(style, title, visibilityKey, property.type, property) {
@@ -173,10 +174,10 @@ class VectorIntInput(
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         var focused1 = titleView?.isInFocus == true
-        if(!focused1){// removing the need for an iterator
+        if (!focused1) {// removing the need for an iterator
             val children = valueList.children
-            for(i in children.indices){
-                if(children[i].isInFocus){
+            for (i in children.indices) {
+                if (children[i].isInFocus) {
                     focused1 = true
                     break
                 }
@@ -222,7 +223,7 @@ class VectorIntInput(
         compW?.setValue(v.w(), notify)
     }
 
-    fun setValue(vi: VectorIntInput, notify: Boolean) {
+    fun setValue(vi: IntVectorInput, notify: Boolean) {
         compX.setValue(vi.vx, notify)
         compY.setValue(vi.vy, notify)
         compZ?.setValue(vi.vz, notify)
@@ -239,13 +240,13 @@ class VectorIntInput(
     var changeListener: (x: Int, y: Int, z: Int, w: Int) -> Unit = { _, _, _, _ ->
     }
 
-    fun setChangeListener(listener: (x: Int, y: Int, z: Int, w: Int) -> Unit): VectorIntInput {
+    fun setChangeListener(listener: (x: Int, y: Int, z: Int, w: Int) -> Unit): IntVectorInput {
         changeListener = listener
         return this
     }
 
     private var isSelectedListener: (() -> Unit)? = null
-    fun setIsSelectedListener(listener: () -> Unit): VectorIntInput {
+    fun setIsSelectedListener(listener: () -> Unit): IntVectorInput {
         isSelectedListener = listener
         return this
     }
@@ -306,5 +307,22 @@ class VectorIntInput(
     }
 
     override fun getCursor(): Long = Cursor.drag
+
+    override fun clone(): IntVectorInput {
+        val clone = IntVectorInput(style, title, visibilityKey, type, owningProperty)
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as IntVectorInput
+        // only works if there are no hard references
+        clone.changeListener = changeListener
+        clone.resetListener = resetListener
+        clone.setValue(vx, vy, vz, vw, false)
+    }
+
+    override val className: String = "IntVectorInput"
 
 }

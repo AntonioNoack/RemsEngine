@@ -1,4 +1,4 @@
-package me.anno.studio
+package me.anno
 
 import me.anno.ui.debug.ConsoleOutputPanel
 import java.io.OutputStream

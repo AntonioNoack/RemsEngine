@@ -1,5 +1,7 @@
 package me.anno.io
 
+import me.anno.Build
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.CachedReflections
@@ -204,16 +206,27 @@ interface ISaveable {
         @JvmStatic
         fun registerCustomClass(className: String, constructor: () -> ISaveable) {
             val instance0 = constructor()
+            checkInstance(instance0)
             objectTypeRegistry[className] = RegistryEntry(instance0, constructor)
             registerSuperClasses(instance0)
         }
 
         @JvmStatic
         fun registerCustomClass(instance0: ISaveable) {
+            checkInstance(instance0)
             val className = instance0.className
             val constructor = instance0.javaClass
             objectTypeRegistry[className] = RegistryEntry(instance0) { constructor.newInstance() }
             registerSuperClasses(instance0)
+        }
+
+        fun checkInstance(instance0: ISaveable) {
+            if (Build.isDebug && instance0 is PrefabSaveable) {
+                val clone = instance0.clone()
+                if (clone.javaClass != instance0.javaClass) {
+                    throw RuntimeException("${instance0.javaClass}.clone() is incorrect, returns ${clone.javaClass} instead")
+                }
+            }
         }
 
         fun registerSuperClasses(instance0: ISaveable) {
@@ -227,6 +240,7 @@ interface ISaveable {
         @JvmStatic
         fun registerCustomClass(constructor: () -> ISaveable) {
             val instance0 = constructor()
+            checkInstance(instance0)
             val className = instance0.className
             objectTypeRegistry[className] = RegistryEntry(instance0, constructor)
             registerSuperClasses(instance0)
@@ -236,6 +250,7 @@ interface ISaveable {
         fun registerCustomClass(clazz: Class<ISaveable>) {
             val constructor = clazz.getConstructor()
             val instance0 = constructor.newInstance()
+            checkInstance(instance0)
             val className = instance0.className
             objectTypeRegistry[className] = RegistryEntry(instance0) { constructor.newInstance() }
             registerSuperClasses(instance0)
@@ -245,6 +260,7 @@ interface ISaveable {
         fun registerCustomClass(className: String, clazz: Class<ISaveable>) {
             val constructor = clazz.getConstructor()
             val instance0 = constructor.newInstance()
+            checkInstance(instance0)
             objectTypeRegistry[className] = RegistryEntry(instance0) { constructor.newInstance() }
             registerSuperClasses(instance0)
         }

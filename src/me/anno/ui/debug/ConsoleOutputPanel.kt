@@ -5,7 +5,7 @@ import me.anno.gpu.Window
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
-import me.anno.studio.Logging
+import me.anno.Logging
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.text.SimpleTextPanel

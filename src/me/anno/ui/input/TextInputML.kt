@@ -1,5 +1,6 @@
 package me.anno.ui.input
 
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.io.files.FileReference
 import me.anno.ui.base.components.Padding
@@ -8,6 +9,7 @@ import me.anno.ui.input.components.PureTextInputML
 import me.anno.ui.style.Style
 
 // todo line numbers? :)
+// todo syntax highlighting
 open class TextInputML(title: String, style: Style) : PanelContainer(
     PureTextInputML(
         style.getChild("deep")
@@ -42,8 +44,8 @@ open class TextInputML(title: String, style: Style) : PanelContainer(
     fun deleteBefore() = base.deleteBefore()
     fun deleteAfter() = base.deleteAfter()
     fun ensureCursorBounds() = base.ensureCursorBounds()
-    fun setChangeListener(listener: (text: String) -> Unit): TextInputML {
-        base.changeListener = listener
+    fun addChangeListener(listener: (text: String) -> Unit): TextInputML {
+        base.changeListeners += listener
         return this
     }
 
@@ -74,5 +76,19 @@ open class TextInputML(title: String, style: Style) : PanelContainer(
 
     override fun getCursor(): Long = Cursor.drag
     override fun isKeyInput() = true
+
+    override fun clone(): TextInputML {
+        val clone = TextInputML(base.placeholder, text, style)
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as TextInputML
+        // ...
+    }
+
+    override val className: String = "TextInputML"
 
 }

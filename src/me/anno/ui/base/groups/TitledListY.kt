@@ -10,7 +10,7 @@ import me.anno.utils.types.Strings.isBlank2
 open class TitledListY(val title: String, val visibilityKey: String, sorter: Comparator<Panel>?, style: Style) :
     PanelListY(sorter, style), TextStyleable {
 
-    constructor(style: Style): this("", "", null, style)
+    constructor(style: Style) : this("", "", null, style)
 
     constructor(title: String, visibilityKey: String, style: Style) : this(title, visibilityKey, null, style)
 
@@ -41,5 +41,13 @@ open class TitledListY(val title: String, val visibilityKey: String, sorter: Com
         super.clear()
         if (titleView != null) add(titleView)
     }
+
+    override fun clone(): TitledListY {
+        val clone = TitledListY(title, visibilityKey, sorter, style)
+        copy(clone)
+        return clone
+    }
+
+    override val className: String = "TitledListY"
 
 }

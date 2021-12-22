@@ -59,7 +59,7 @@ import me.anno.mesh.assimp.AnimGameItem
 import me.anno.objects.Video
 import me.anno.objects.documents.pdf.PDFCache
 import me.anno.objects.meshes.MeshData
-import me.anno.studio.Build
+import me.anno.Build
 import me.anno.ui.base.Font
 import me.anno.utils.Color.hex4
 import me.anno.utils.Sleep.waitForGFXThread

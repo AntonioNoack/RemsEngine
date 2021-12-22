@@ -63,7 +63,7 @@ class Path(
     fun isNotEmpty() = size > 0
 
     fun setLast(name: String, index: Int, type: Char) {
-        if(size == 0) throw IllegalArgumentException("Cannot set last of root")
+        if (size == 0) throw IllegalArgumentException("Cannot set last of root")
         val i = size - 1
         names[i] = name
         indices[i] = index
@@ -141,7 +141,12 @@ class Path(
         return true
     }
 
-    override fun hashCode(): Int = (indices.hashCode() * 31 + types.hashCode()) * 31 + names.hashCode()
+    override fun hashCode(): Int {
+        var hash = indices.contentHashCode()
+        hash = hash * 31 + types.contentHashCode()
+        hash = hash * 31 + names.contentHashCode()
+        return hash
+    }
 
     override fun equals(other: Any?): Boolean {
         return other is Path && other.size == size && startsWith(other) && other.startsWith(this)

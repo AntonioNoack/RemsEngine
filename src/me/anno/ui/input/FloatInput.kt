@@ -2,10 +2,12 @@ package me.anno.ui.input
 
 import me.anno.animation.AnimatedProperty
 import me.anno.animation.Type
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.parser.SimpleExpressionParser
 import me.anno.parser.SimpleExpressionParser.toDouble
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
+import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
 import me.anno.utils.types.AnyToDouble.getDouble
 import me.anno.utils.types.AnyToFloat.getFloat
@@ -27,6 +29,8 @@ open class FloatInput(
 
     var lastValue: Double = getValue(type.defaultValue)
     var changeListener: (value: Double) -> Unit = { }
+
+    var allowInfinity = false
 
     init {
         // todo only override text, if the users presses enter
@@ -63,8 +67,6 @@ open class FloatInput(
             this(style, title, visibilityKey, type, null, 0) {
         setValue(value0, false)
     }
-
-    var allowInfinity = false
 
     fun parseValue(text: String): Double? {
         if (text.isBlank2()) return 0.0
@@ -186,5 +188,21 @@ open class FloatInput(
         hasValue = false
         setValue(lastValue, true)
     }
+
+    override fun clone(): FloatInput {
+        val clone = FloatInput(style, title, visibilityKey, type, owningProperty, indexInProperty)
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as FloatInput
+        // only works without hard references
+        clone.changeListener = changeListener
+        clone.allowInfinity = allowInfinity
+    }
+
+    override val className: String = "FloatInput"
 
 }

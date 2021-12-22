@@ -60,7 +60,7 @@ class TypeTestComponent : Component() {
     var someRotDouble = Quaterniond(0.707, 0.0, 0.0, 0.707).normalize()
 
     override fun clone(): TypeTestComponent {
-        TODO("Not yet implemented")
+        return TypeTestComponent()
     }
 
     override val className: String = "TypeTestComponent"

@@ -7,7 +7,6 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFX.deltaTime
 import me.anno.gpu.RenderState.renderDefault
-import me.anno.gpu.Window
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
@@ -20,8 +19,6 @@ import me.anno.input.Input
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseKeysDown
-import me.anno.input.Input.mouseX
-import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
 import me.anno.input.Touch.Companion.touches
 import me.anno.io.files.FileReference
@@ -535,8 +532,9 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
                 // todo transform rotation??? quaternions...
                 val centerX = x + w / 2
                 val centerY = y + h / 2
-                val mdx = (mouseX - centerX).toDouble()
-                val mdy = (mouseY - centerY).toDouble()
+                val window = window!!
+                val mdx = (window.mouseX - centerX).toDouble()
+                val mdy = (window.mouseY - centerY).toDouble()
                 val oldDegree = toDegrees(atan2(mdy - dy0, mdx - dx0)).toFloat()
                 val newDegree = toDegrees(atan2(mdy, mdx)).toFloat()
                 val deltaDegree = newDegree - oldDegree

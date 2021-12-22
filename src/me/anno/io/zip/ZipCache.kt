@@ -80,7 +80,7 @@ object ZipCache : CacheSection("ZipCache") {
         register("zip") { createZipRegistryV2(it) }
         // images
         // todo all image formats
-        val imageFormats = listOf("png", "jpg", "bmp", "pds", "hdr", "webp", "tga", "ico", "dds", "gif")
+        val imageFormats = listOf("png", "jpg", "bmp", "pds", "hdr", "webp", "tga", "ico", "dds", "gif", "exr")
         register(imageFormats, ImageReader::readAsFolder)
         register("media", ImageReader::readAsFolder) // correct for webp, not for videos
         // todo yaml for unity files

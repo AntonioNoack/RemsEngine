@@ -1,6 +1,8 @@
 package me.anno.ui.base.scrolling
 
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.input.MouseButton
+import me.anno.io.serialization.NotSerializedProperty
 import me.anno.ui.base.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
@@ -12,6 +14,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.maths.Maths.clamp
 import kotlin.math.max
 
+// todo if the mouse is over a scrollbar, change the cursor
 open class ScrollPanelX(
     child: Panel, padding: Padding,
     style: Style,
@@ -25,8 +28,12 @@ open class ScrollPanelX(
         weight = 0.0001f
     }
 
+    @NotSerializedProperty
     var lsp = -1f
+
+    @NotSerializedProperty
     var lmsp = -1
+
     override fun tickUpdate() {
         super.tickUpdate()
         if (scrollPositionX != lsp || maxScrollPositionX != lmsp) {
@@ -37,13 +44,17 @@ open class ScrollPanelX(
     }
 
     override var scrollPositionX = 0f
-    var wasActive = 1f
     var isDownOnScrollbar = false
 
     override val maxScrollPositionX get() = max(0, child.minW + padding.width - w)
     val scrollbar = ScrollbarX(this, style)
-    val scrollbarHeight = style.getSize("scrollbarHeight", 8)
-    val scrollbarPadding = style.getSize("scrollbarPadding", 1)
+
+    // todo these two properties need to be updated, when the style changes
+    @NotSerializedProperty
+    var scrollbarHeight = style.getSize("scrollbarHeight", 8)
+
+    @NotSerializedProperty
+    var scrollbarPadding = style.getSize("scrollbarPadding", 1)
 
     override fun drawsOverlaysOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
         return maxScrollPositionX > 0 && ly1 > this.ly1 - scrollbarHeight // overlaps on the bottom
@@ -119,5 +130,13 @@ open class ScrollPanelX(
             clampScrollPosition()
         } else super.onMouseMoved(x, y, dx, dy)
     }
+
+    override fun clone(): ScrollPanelX {
+        val clone = ScrollPanelX(child.clone(), padding, style, alignmentX)
+        copy(clone)
+        return clone
+    }
+
+    override val className: String = "ScrollPanelX"
 
 }

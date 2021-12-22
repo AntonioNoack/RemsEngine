@@ -36,16 +36,18 @@ object Menu {
     }
 
     fun ask(windowStack: WindowStack, question: NameDesc, onYes: () -> Unit) {
+        val window = windowStack.firstElement()
         openMenu(
-            windowStack, Input.mouseX, Input.mouseY, question, listOf(
+            windowStack, window.mouseX, window.mouseY, question, listOf(
                 MenuOption(NameDesc("Yes", "", "ui.yes"), onYes),
                 MenuOption(NameDesc("No", "", "ui.no")) {}
             ))
     }
 
     fun ask(windowStack: WindowStack, question: NameDesc, onYes: () -> Unit, onNo: () -> Unit) {
+        val window = windowStack.firstElement()
         openMenu(
-            windowStack, Input.mouseX, Input.mouseY, question, listOf(
+            windowStack, window.mouseX, window.mouseY, question, listOf(
                 MenuOption(NameDesc("Yes", "", "ui.yes"), onYes),
                 MenuOption(NameDesc("No", "", "ui.no"), onNo)
             )
@@ -60,9 +62,10 @@ object Menu {
         getColor: (String) -> Int,
         callback: (String) -> Unit
     ) {
+        val window = windowStack.firstElement()
         askName(
             windowStack,
-            Input.mouseX.toInt(), Input.mouseY.toInt(),
+            window.mouseX.toInt(), window.mouseY.toInt(),
             title, value0, actionName, getColor, callback
         )
     }
@@ -75,13 +78,7 @@ object Menu {
         actionName: NameDesc,
         getColor: (String) -> Int,
         callback: (String) -> Unit
-    ) {
-
-        lateinit var window: Window
-        fun close() {
-            windowStack.remove(window)
-            window.destroy()
-        }
+    ): Window {
 
         val style = DefaultConfig.style.getChild("menu")
         val panel = PureTextInput(style)
@@ -91,7 +88,7 @@ object Menu {
         panel.setTooltip(title.desc)
         panel.setEnterListener {
             callback(panel.text)
-            close()
+            close(panel)
         }
         panel.addChangeListener {
             panel.textColor = getColor(it)
@@ -101,20 +98,26 @@ object Menu {
             .setTooltip(actionName.desc)
             .addLeftClickListener {
                 callback(panel.text)
-                close()
+                close(panel)
             }
 
         val cancel = TextButton("Cancel", false, style)
-            .addLeftClickListener { close() }
+            .addLeftClickListener { close(panel) }
 
         val buttons = PanelListX(style)
         buttons += cancel
         buttons += submit
 
-        window = openMenuComplex2(windowStack, x, y, title, listOf(panel, buttons))!!
+        val window = openMenuComplex2(windowStack, x, y, title, listOf(panel, buttons))!!
+        panel.requestFocus()
+        return window
 
-        GFX.requestFocus(panel, true)
+    }
 
+    fun close(panel: Panel) {
+        val window = panel.window!!
+        window.windowStack.remove(window)
+        window.destroy()
     }
 
     fun openMenuComplex(
@@ -127,12 +130,6 @@ object Menu {
 
         if (options.isEmpty()) return null
         val style = DefaultConfig.style.getChild("menu")
-
-        lateinit var window: Window
-        fun close() {
-            windowStack.remove(window)
-            window.destroy()
-        }
 
         val list = ArrayList<Panel>()
 
@@ -148,7 +145,7 @@ object Menu {
                 val button = TextPanel(name, style)
                 button.addOnClickListener { _, _, mouseButton, long ->
                     if (action(mouseButton, long)) {
-                        close()
+                        close(button)
                         true
                     } else false
                 }
@@ -160,8 +157,7 @@ object Menu {
             }
         }
 
-        window = openMenuComplex2(windowStack, x, y, title, list)!!
-        return window
+        return openMenuComplex2(windowStack, x, y, title, list)!!
 
     }
 
@@ -293,10 +289,12 @@ object Menu {
         openMenuComplex(windowStack, x.roundToInt() - delta, y.roundToInt() - delta, title, options)
 
     fun openMenu(windowStack: WindowStack, options: List<MenuOption>) =
-        openMenu(windowStack, Input.mouseX, Input.mouseY, NameDesc(), options)
+        openMenu(windowStack, NameDesc(), options)
 
-    fun openMenu(windowStack: WindowStack, title: NameDesc, options: List<MenuOption>) =
-        openMenu(windowStack, Input.mouseX, Input.mouseY, title, options)
+    fun openMenu(windowStack: WindowStack, title: NameDesc, options: List<MenuOption>): Window? {
+        val window = windowStack.firstElement()
+        return openMenu(windowStack, window.mouseX, window.mouseY, title, options)
+    }
 
     fun openMenu(
         windowStack: WindowStack,

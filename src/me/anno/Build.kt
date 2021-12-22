@@ -1,4 +1,4 @@
-package me.anno.studio
+package me.anno
 
 object Build {
     val isDebug = true

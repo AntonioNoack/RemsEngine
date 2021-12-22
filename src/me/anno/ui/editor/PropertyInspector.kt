@@ -1,6 +1,5 @@
 package me.anno.ui.editor
 
-import me.anno.gpu.GFX
 import me.anno.language.translation.Dict
 import me.anno.objects.inspectable.Inspectable
 import me.anno.studio.StudioBase.Companion.defaultWindowStack
@@ -94,8 +93,8 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
                         d.setValue(s.lastValue, false)
                     }
                 }
-                is VectorInput -> {
-                    (d as? VectorInput)?.apply {
+                is FloatVectorInput -> {
+                    (d as? FloatVectorInput)?.apply {
                         d.setValue(s, false)
                     }
                 }

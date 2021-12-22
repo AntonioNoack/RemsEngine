@@ -3,6 +3,7 @@ package me.anno.ecs.components
 import me.anno.cache.CacheSection
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.OS
@@ -27,8 +28,16 @@ class ScriptComponent : Component() {
 
     var source: FileReference = InvalidRef
 
-    override fun clone(): Component {
-        TODO("Not yet implemented")
+    override fun clone(): ScriptComponent {
+        val clone = ScriptComponent()
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as ScriptComponent
+        clone.source = source
     }
 
     override val className get() = "ScriptComponent"
@@ -51,7 +60,7 @@ class ScriptComponent : Component() {
         }
 
         @JvmStatic
-        fun main(args: Array<String>){
+        fun main(args: Array<String>) {
             callLua(Entity(), OS.desktop)
         }
 

@@ -40,7 +40,7 @@ import me.anno.io.SaveableArray
 import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
 import me.anno.mesh.assimp.Bone
-import me.anno.studio.Build
+import me.anno.Build
 import me.anno.ui.base.Font
 import me.anno.ui.base.IconPanel
 import me.anno.ui.base.Panel
@@ -57,7 +57,6 @@ import me.anno.ui.base.text.SimpleTextPanel
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.color.ColorChooser
 import me.anno.ui.input.*
-import java.net.URL
 
 object ECSRegistry {
 
@@ -109,8 +108,8 @@ object ECSRegistry {
         registerCustomClass { IntInput(style) }
         registerCustomClass { TextInput(style) }
         registerCustomClass { TextInputML(style) }
-        registerCustomClass { VectorInput(style) }
-        registerCustomClass { VectorIntInput(style) }
+        registerCustomClass { FloatVectorInput(style) }
+        registerCustomClass { IntVectorInput(style) }
         // not finished:
         // registerCustomClass { ConsoleInput(style) }
 

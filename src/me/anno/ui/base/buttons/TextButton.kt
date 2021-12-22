@@ -1,6 +1,7 @@
 package me.anno.ui.base.buttons
 
 import me.anno.config.DefaultStyle.black
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.getTextSize
@@ -115,5 +116,19 @@ open class TextButton(
 
     override fun acceptsChar(char: Int) = char.isClickKey()
     override fun isKeyInput() = true
+
+    override fun clone(): TextButton {
+        val clone = TextButton(style)
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as TextButton
+        clone.isSquare = isSquare
+    }
+
+    override val className: String = "TextButton"
 
 }

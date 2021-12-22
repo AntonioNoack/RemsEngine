@@ -15,7 +15,7 @@ import me.anno.io.zip.InnerFolder;
 import me.anno.io.zip.InnerPrefabFile;
 import me.anno.language.translation.NameDesc;
 import me.anno.mesh.obj.OBJReader2;
-import me.anno.studio.Build;
+import me.anno.Build;
 import me.anno.studio.StudioBase;
 import me.anno.ui.base.Panel;
 import me.anno.ui.base.menu.Menu;

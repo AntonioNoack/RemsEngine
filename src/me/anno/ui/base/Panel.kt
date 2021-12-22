@@ -1,6 +1,8 @@
 package me.anno.ui.base
 
 import me.anno.config.DefaultStyle.black
+import me.anno.ecs.annotations.DebugProperty
+import me.anno.ecs.annotations.Group
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
@@ -60,6 +62,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
             }
         }
 
+    @NotSerializedProperty
     var window: Window? = null
         get() {
             if (field != null) return field
@@ -177,11 +180,22 @@ open class Panel(val style: Style) : PrefabSaveable() {
     var x = 0
     var y = 0
 
-    // is updated by StudioBase
+    // is updated by Window class
     // should make some computations easier :)
+    @DebugProperty
+    @NotSerializedProperty
     var canBeSeen = true
+
+    @DebugProperty
+    @NotSerializedProperty
     var isInFocus = false
+
+    @DebugProperty
+    @NotSerializedProperty
     var isHovered = false
+
+    @DebugProperty
+    @NotSerializedProperty
     var wasInFocus = false
 
     val rootPanel: Panel get() = uiParent?.rootPanel ?: this

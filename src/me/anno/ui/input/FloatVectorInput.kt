@@ -2,6 +2,7 @@ package me.anno.ui.input
 
 import me.anno.animation.AnimatedProperty
 import me.anno.animation.Type
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.input.Input.isControlDown
@@ -32,11 +33,10 @@ import me.anno.utils.types.AnyToFloat.getFloat
 import me.anno.utils.types.Floats.anyToDouble
 import me.anno.utils.types.Quaternions.toEulerAnglesDegrees
 import me.anno.utils.types.Strings.isBlank2
-import org.apache.logging.log4j.LogManager
 import org.joml.*
 import kotlin.math.max
 
-class VectorInput(
+class FloatVectorInput(
     val title: String,
     val visibilityKey: String,
     val type: Type,
@@ -161,11 +161,11 @@ class VectorInput(
             set(_) {}
 
         override fun onEnterKey(x: Float, y: Float) {
-            this@VectorInput.onEnterKey(x, y)
+            this@FloatVectorInput.onEnterKey(x, y)
         }
 
         override fun onEmpty(x: Float, y: Float) {
-            this@VectorInput.onEmpty(x, y)
+            this@FloatVectorInput.onEmpty(x, y)
         }
 
     }
@@ -219,7 +219,7 @@ class VectorInput(
         resetListener = listener
     }
 
-    override fun onCopyRequested(x: Float, y: Float): String? =
+    override fun onCopyRequested(x: Float, y: Float) =
         owningProperty?.toString()
             ?: "[${compX.lastValue}, ${compY.lastValue}, ${compZ?.lastValue ?: 0f}, ${compW?.lastValue ?: 0f}]"
 
@@ -384,7 +384,7 @@ class VectorInput(
         compW?.setValue(v.w(), notify)
     }
 
-    fun setValue(vi: VectorInput, notify: Boolean) {
+    fun setValue(vi: FloatVectorInput, notify: Boolean) {
         compX.setValue(vi.vx, notify)
         compY.setValue(vi.vy, notify)
         compZ?.setValue(vi.vz, notify)
@@ -403,13 +403,13 @@ class VectorInput(
         )
     }
 
-    fun setChangeListener(listener: (x: Double, y: Double, z: Double, w: Double) -> Unit): VectorInput {
+    fun setChangeListener(listener: (x: Double, y: Double, z: Double, w: Double) -> Unit): FloatVectorInput {
         changeListener = listener
         return this
     }
 
     private var isSelectedListener: (() -> Unit)? = null
-    fun setIsSelectedListener(listener: () -> Unit): VectorInput {
+    fun setIsSelectedListener(listener: () -> Unit): FloatVectorInput {
         isSelectedListener = listener
         return this
     }
@@ -554,10 +554,25 @@ class VectorInput(
 
     override fun getCursor(): Long = Cursor.drag
 
-    companion object {
-
-        private val LOGGER = LogManager.getLogger(VectorInput::class)
-
+    override fun clone(): FloatVectorInput {
+        val clone = FloatVectorInput(title, visibilityKey, type, owningProperty, style)
+        copy(clone)
+        return clone
     }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as FloatVectorInput
+        // only works if there are no hard references
+        clone.changeListener = changeListener
+        clone.resetListener = resetListener
+        clone.setValue(Vector4d(vxd, vyd, vzd, vwd), false)
+    }
+
+    override val className: String = "FloatVectorInput"
+
+    /*companion object {
+        private val LOGGER = LogManager.getLogger(VectorInput::class)
+    }*/
 
 }

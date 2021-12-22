@@ -14,11 +14,7 @@ import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.GFXx2D.drawBorder
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
-import me.anno.input.Input.mouseDownX
-import me.anno.input.Input.mouseDownY
 import me.anno.input.Input.mouseKeysDown
-import me.anno.input.Input.mouseX
-import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
@@ -230,10 +226,11 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
             drawRect(x - halfSize, clamp(y - halfSize, y0 - 1, y1), dotSize, dotSize, color)
         }
 
-        val minSelectX = min(mouseDownX, mouseX).toInt()
-        val maxSelectX = max(mouseDownX, mouseX).toInt()
-        val minSelectY = min(mouseDownY, mouseY).toInt()
-        val maxSelectY = max(mouseDownY, mouseY).toInt()
+        val window = window!!
+        val minSelectX = min(window.mouseDownX, window.mouseX).toInt()
+        val maxSelectX = max(window.mouseDownX, window.mouseX).toInt()
+        val minSelectY = min(window.mouseDownY, window.mouseY).toInt()
+        val maxSelectY = max(window.mouseDownY, window.mouseY).toInt()
         val selectX = minSelectX - halfSize..maxSelectX + halfSize
         val selectY = minSelectY - halfSize..maxSelectY + halfSize
 

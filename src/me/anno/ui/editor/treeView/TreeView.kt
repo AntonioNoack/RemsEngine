@@ -2,8 +2,6 @@ package me.anno.ui.editor.treeView
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.input.Input.mouseX
-import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.objects.Transform
@@ -178,8 +176,9 @@ abstract class TreeView<V>(
             // sample element, assumes that the height of all elements is the same
             // this will most likely be the case
             val h = focused.h
-            val mx = mouseX.toInt()
-            val my = mouseY.toInt()
+            val window = window!!
+            val mx = window.mouseX.toInt()
+            val my = window.mouseY.toInt()
             val my0 = list.children.firstOrNull()?.y ?: 0
             val hoveredTransformIndex = (my - my0).toFloat() / (h + list.spacing)
             val fractionalHTI = fract(hoveredTransformIndex)

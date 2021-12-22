@@ -4,33 +4,44 @@ import me.anno.config.DefaultConfig
 import me.anno.ecs.annotations.Group
 import me.anno.ecs.annotations.Order
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshBaseComponent
-import me.anno.ecs.prefab.Hierarchy
+import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.ui.render.RenderView
+import me.anno.gpu.GFX
 import me.anno.gpu.RenderState.useFrame
+import me.anno.gpu.Window
 import me.anno.gpu.framebuffer.DepthBufferType
+import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.image.raw.GPUImage
+import me.anno.io.ISaveable
+import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.zip.InnerTmpFile
 import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelGroup
-import me.anno.ui.base.text.TextPanel
+import me.anno.ui.utils.WindowStack
+import org.joml.Matrix4d
+import org.joml.Matrix4f
+import org.lwjgl.opengl.GL11.*
 
 // todo make ui elements Entities?
 // todo make them something special?
 // todo just make it so you can add components to panels? that would be a nice solution :),
 // todo then the parent will be a UI element, not an Entity
 
-// todo StudioBase/UIBase instead of Panel? Some UI elements have pop-ups, and we should support that.
 
-// todo we could use an enum to specify the options, but then we won't have new ones available
-// todo -> panels need to become PrefabSaveable or similar
+// todo focus / unfocus
+// todo interactions with that UI
+// todo enter ui, exit ui
 
-class CanvasComponent() : MeshBaseComponent() {
+// todo how can we automatically adjust the viewport to the camera?
+// todo how can we disable drawing depth and such, if camera space?
+
+class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
 
     constructor(base: CanvasComponent) : this() {
         base.copy(this)
@@ -39,24 +50,26 @@ class CanvasComponent() : MeshBaseComponent() {
     // this is a trick to continue the hierarchy using panels
     override fun listChildTypes(): String = "p"
     override fun getChildListNiceName(type: Char): String = "Panel"
-    override fun getChildListByType(type: Char): List<PrefabSaveable> {
-        val panel = panel
-        return if (panel == null) emptyList() else listOf(panel)
-    }
-
+    override fun getChildListByType(type: Char) = windowStack.map { it.panel }
     override fun getOptionsByType(type: Char) = PanelGroup.getPanelOptions()
     override fun addChildByType(index: Int, type: Char, child: PrefabSaveable) {
         add(child)
     }
 
     override fun add(child: PrefabSaveable) {
-        // todo somehow set it...
-        if (child === panel) return
-        panel = child as? Panel ?: return
-        // Hierarchy.add(root.prefab!!, prefabPath!!, this, child)
+        if (child !is Panel) return
+        child.prefabPath = prefabPath!! + Triple(child.name, 0, 'p')
+        windowStack.push(child)
+    }
+
+    override fun removeChild(child: PrefabSaveable) {
+        super.removeChild(child)
+        windowStack.removeAll { it.panel === child }
     }
 
     // different spaces like in Unity: world space, camera space
+    // todo best render camera space separately
+    // todo allow custom meshes (?)
     enum class Space {
         WORLD_SPACE,
         CAMERA_SPACE
@@ -66,12 +79,8 @@ class CanvasComponent() : MeshBaseComponent() {
 
     var style = DefaultConfig.style
 
-    @Type("Panel/PrefabSaveable")
-    var panel: Panel? = TextPanel(style)
-        set(value) {
-            field = value
-            value?.parent = this
-        }
+    @NotSerializedProperty
+    private val windowStack = WindowStack()
 
     @Group("Dimensions")
     @Range(0.0, 4096.0)
@@ -91,38 +100,46 @@ class CanvasComponent() : MeshBaseComponent() {
 
     init {
         // define shape
-        // todo can we somehow reuse its buffers?
         internalMesh.positions = floatArrayOf(
             -1f, -1f, 0f, -1f, +1f, 0f,
             +1f, -1f, 0f, +1f, +1f, 0f
         )
         internalMesh.indices = intArrayOf(
-            0, 1, 2, 2, 3, 0
+            0, 1, 2, 1, 2, 3,
+            1, 0, 2, 2, 1, 3
         )
     }
 
     override fun getMesh() = internalMesh
 
-    // todo focus / unfocus
-    // todo interactions with that UI
-    // todo enter ui, exit ui
-
-    // todo how can we automatically adjust the viewport to the camera?
-    // todo how can we disable drawing depth and such, if camera space?
+    fun updateMesh() {
+        val pos = internalMesh.positions!!
+        val x = width.toFloat() / height.toFloat()
+        val oldX = pos[0]
+        if (x != oldX) {
+            pos[0] = -x; pos[3] = -x
+            pos[6] = +x; pos[9] = +x
+            internalMesh.invalidateGeometry()
+        }
+    }
 
     override fun onVisibleUpdate(): Boolean {
-        // todo if we need to validate the layout, validate it
-        // todo if we need to redraw, redraw it
+        updateMesh()
+        render()
         return true
     }
 
+    // todo just set inFocus, then input works magically
+
     fun render() {
+        GFX.checkIsGFXThread()
+        GFX.check()
         var fb = framebuffer
         val width = width
         val height = height
-        if (fb == null || fb.w != width || fb.h != height) {
-            fb?.destroy()
-            fb = Framebuffer("", width, height, 1, 1, false, DepthBufferType.NONE)
+        if (fb == null) {
+            fb = Framebuffer("canvas", width, height, 1, 1, false, DepthBufferType.NONE)
+            useFrame(fb) {} // create textures
             val prefab = Prefab("Material")
             val image = GPUImage(fb.getColor0(), 4, true, hasOwnership = false)
             val texturePath = InnerTmpFile.InnerTmpImageFile(image)
@@ -131,9 +148,17 @@ class CanvasComponent() : MeshBaseComponent() {
             framebuffer = fb
             internalMesh.material = materialPath
         }
-        useFrame(fb) {
-            // todo draw ui onto frame
+        val rv = RenderView.currentInstance
+        val transform = Matrix4f(Matrix4d(RenderView.cameraMatrix).mul(entity!!.transform.globalTransform))
+            .invert() // I believe this should be correct: screen space = camera transform * world transform * world pos
+        windowStack.update(transform, rv.x, rv.y, rv.w, rv.h, 0, 0, width, height)
+        useFrame(width, height, true, fb) {
+            Frame.bind()
+            glClearColor(1f, 0f, 1f, 1f)
+            glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+            windowStack.draw(width, height, false, forceRedraw = true)
         }
+        GFX.check()
     }
 
     override fun clone() = CanvasComponent(this)
@@ -142,10 +167,11 @@ class CanvasComponent() : MeshBaseComponent() {
         super.copy(clone)
         clone as CanvasComponent
         clone.space = space
-        clone.panel = panel?.clone()
         clone.width = width
         clone.height = height
         clone.style = style
+        clone.windowStack.clear()
+        clone.windowStack.addAll(windowStack.map { Window(it.panel, it.isFullscreen, clone.windowStack, it.x, it.y) })
     }
 
     override fun onDestroy() {
@@ -153,9 +179,24 @@ class CanvasComponent() : MeshBaseComponent() {
         framebuffer?.destroy()
         framebuffer = null
         internalMesh.destroy()
+        windowStack.destroy()
+    }
+
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        writer.writeObjectList(this, "panels", windowStack.map { it.panel })
+    }
+
+    override fun readObjectArray(name: String, values: Array<ISaveable?>) {
+        when (name) {
+            "panels" -> {
+                windowStack.clear()
+                windowStack.addAll(values.filterIsInstance<Panel>().map { Window(it, windowStack, it.x, it.y) })
+            }
+            else -> super.readObjectArray(name, values)
+        }
     }
 
     override val className get() = "CanvasComponent"
-
 
 }

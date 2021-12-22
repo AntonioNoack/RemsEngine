@@ -2,7 +2,9 @@ package me.anno.ui.input
 
 import me.anno.animation.AnimatedProperty
 import me.anno.animation.Type
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
+import me.anno.io.serialization.NotSerializedProperty
 import me.anno.parser.SimpleExpressionParser
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.style.Style
@@ -25,6 +27,9 @@ open class IntInput(
 
     var lastValue: Long = getValue(type.defaultValue)
     var changeListener: (value: Long) -> Unit = { }
+
+    @NotSerializedProperty
+    private var savedDelta = 0f
 
     init {
         inputPanel.addChangeListener {
@@ -83,7 +88,6 @@ open class IntInput(
 
     fun stringify(v: Long): String = v.toString()
 
-    var savedDelta = 0f
     override fun changeValue(dx: Float, dy: Float) {
         val scale = 20f
         val size = scale * shiftSlowdown / max(GFX.width, GFX.height)
@@ -192,5 +196,21 @@ open class IntInput(
         hasValue = false
         setValue(lastValue, true)
     }
+
+    override fun clone(): IntInput {
+        val clone = IntInput(style, title, visibilityKey, type, owningProperty, indexInProperty)
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as IntInput
+        // only works if there are no hard references
+        clone.changeListener = changeListener
+        clone.savedDelta = savedDelta // ^^
+    }
+
+    override val className: String = "IntInput"
 
 }

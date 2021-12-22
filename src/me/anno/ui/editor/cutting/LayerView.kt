@@ -10,8 +10,6 @@ import me.anno.input.Input
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.keysDown
 import me.anno.input.Input.mouseKeysDown
-import me.anno.input.Input.mouseX
-import me.anno.input.Input.mouseY
 import me.anno.input.Input.needsLayoutUpdate
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
@@ -103,8 +101,10 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
         Pair(
             super.getVisualState(),
             if ((isHovered && mouseKeysDown.isNotEmpty()) || isPlaying) visualStateCtr++
-            else if (isHovered) getTransformAt(mouseX, mouseY)
-            else null
+            else if (isHovered) {
+                val window = window!!
+                getTransformAt(window.mouseX, window.mouseY)
+            } else null
         )
 
     override fun tickUpdate() {
@@ -162,8 +162,9 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
         fun drawLines(transform: Transform) {
             val color = transform.color
             if (color.isAnimated) {
-                var ht0 = getTimeAt(mouseX - 5f)
-                var ht1 = getTimeAt(mouseX + 5f)
+                val window = window!!
+                var ht0 = getTimeAt(window.mouseX - 5f)
+                var ht1 = getTimeAt(window.mouseX + 5f)
                 val hx0 = getXAt(ht0)
                 val hx1 = getXAt(ht1)
                 val inheritance = transform.listOfInheritance.toList().reversed()
@@ -187,7 +188,8 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
 
         if (draggedTransform == null || draggedKeyframes == null) {
             if (isHovered) {
-                val hovered = getTransformAt(mouseX, mouseY)
+                val window = window!!
+                val hovered = getTransformAt(window.mouseX, window.mouseY)
                     ?: if (selectedTransform?.timelineSlot?.value == timelineSlot) selectedTransform else null
                 hoveredTransform = hovered
                 if (hovered != null) {

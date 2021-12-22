@@ -8,10 +8,6 @@ import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input
-import me.anno.input.Input.mouseDownX
-import me.anno.input.Input.mouseDownY
-import me.anno.input.Input.mouseX
-import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.io.text.TextReader
@@ -112,12 +108,13 @@ class TreeViewPanel<V>(
         val transform = getElement()
         val dragged = dragged
         var backgroundColor = originalBGColor
+        val window = window!!
         val showAddIndex = if (
-            mouseX.toInt() in lx0..lx1 &&
-            mouseY.toInt() in ly0..ly1 &&
+            window.mouseX.toInt() in lx0..lx1 &&
+            window.mouseY.toInt() in ly0..ly1 &&
             dragged is Draggable && dragged.getOriginal() is Transform
         ) {
-            clamp(((mouseY - this.y) / this.h * 3).toInt(), 0, 2)
+            clamp(((window.mouseY - this.y) / this.h * 3).toInt(), 0, 2)
         } else null
         if (this.showAddIndex != showAddIndex) invalidateDrawing()
         this.showAddIndex = showAddIndex
@@ -285,7 +282,8 @@ class TreeViewPanel<V>(
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         when (action) {
             "DragStart" -> {
-                if (contains(mouseDownX, mouseDownY)) {
+                val window = window!!
+                if (contains(window.mouseDownX, window.mouseDownY)) {
                     val element = getElement()
                     if (dragged?.getOriginal() != element) {
                         dragged = Draggable(
@@ -297,9 +295,18 @@ class TreeViewPanel<V>(
             }
             "Rename" -> {
                 val e = getElement()
-                askName(windowStack, x.toInt(), y.toInt(), NameDesc("Name"), getName(e), getColor = { -1 }, callback = { newName ->
-                    setName(e, newName)
-                }, actionName = NameDesc("Change Name"))
+                askName(
+                    windowStack,
+                    x.toInt(),
+                    y.toInt(),
+                    NameDesc("Name"),
+                    getName(e),
+                    getColor = { -1 },
+                    callback = { newName ->
+                        setName(e, newName)
+                    },
+                    actionName = NameDesc("Change Name")
+                )
             }
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }

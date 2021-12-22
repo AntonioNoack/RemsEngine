@@ -26,9 +26,7 @@ object ImageGPUCache : CacheSection("Images") {
     private val LOGGER = LogManager.getLogger(ImageGPUCache::class)
 
     fun hasImageOrCrashed(file: FileReference, timeout: Long, asyncGenerator: Boolean): Boolean {
-        if (file is ImageReadable && file.readImage() is GPUImage) {
-            return true
-        }
+        if (file is ImageReadable && file.readImage() is GPUImage) return true
         if (file == InvalidRef) return true
         if (file.isDirectory || !file.exists) return true
         val entry = getEntry(file, timeout, asyncGenerator, ImageGPUCache::generateImageData)

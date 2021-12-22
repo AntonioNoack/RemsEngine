@@ -29,8 +29,11 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.IProperty
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.ISaveable
+import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.text.TextReader
+import me.anno.io.text.TextWriter
 import me.anno.language.translation.NameDesc
 import me.anno.objects.inspectable.Inspectable
 import me.anno.studio.StudioBase.Companion.defaultWindowStack
@@ -45,6 +48,8 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.files.FileExplorerOption
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
+import me.anno.utils.Color.rgba
+import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.maths.Maths
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.structures.tuples.MutablePair
@@ -66,7 +71,10 @@ object ComponentUI {
         // create mutable scene, = import
         FileExplorerOption(NameDesc("Import")) { panel, it ->
             val prefab = loadPrefab(it)
-            if (prefab == null) msg(panel.windowStack, NameDesc("Cannot import ${it.name}", "Because it cannot be loaded as a scene", ""))
+            if (prefab == null) msg(
+                panel.windowStack,
+                NameDesc("Cannot import ${it.name}", "Because it cannot be loaded as a scene", "")
+            )
             else {
                 // todo import options: place it into which folder?
                 // todo create sub folders? for materials / meshes / animations (if that is relevant to the resource)
@@ -184,9 +192,15 @@ object ComponentUI {
             else -> {
                 if (value != null && value is Enum<*>) {
                     val input = EnumInput.createInput(title, value, style)
-                    val values = value.javaClass.enumConstants
+                    val values = EnumInput.getEnumConstants(value.javaClass)
                     input.setChangeListener { _, index, _ -> property.set(input, values[index]) }
                     return input
+                }
+                if (value is Saveable) {
+                    // todo serialize saveables, they may be simple
+                    // a first variant for editing may be a json editor
+                    return TextInputML(title, TextWriter.toText(value), style)
+                        .apply { addChangeListener { property.set(this, TextReader.read(it).firstOrNull()) } }
                 }
                 return TextPanel("?? $title, ${value?.javaClass}", style)
             }
@@ -288,15 +302,27 @@ object ComponentUI {
                 }
             }
             "Int", "Integer" -> {
-                val type = Type(default as Int,
-                    { Maths.clamp(it.toLong(), range.minInt().toLong(), range.maxInt().toLong()).toInt() }, { it })
-                return IntInput(style, title, visibilityKey, type, null, 0).apply {
-                    property.init(this)
-                    setValue(value as Int, false)
-                    askForReset(property) { setValue(it as Int, false) }
-                    setResetListener { property.reset(this).toString() }
-                    setChangeListener {
-                        property.set(this, it.toInt())
+                if (title.endsWith("color", true)) {
+                    value as Int
+                    return ColorInput(style, title, visibilityKey, value.toVecRGBA(), true, null).apply {
+                        property.init(this)
+                        askForReset(property) { it as Int; setValue(it.toVecRGBA(), false) }
+                        setResetListener { (property.reset(this) as Int).toVecRGBA() }
+                        setChangeListener { r, g, b, a ->
+                            property.set(this, rgba(r, g, b, a))
+                        }
+                    }
+                } else {
+                    val type = Type(default as Int,
+                        { Maths.clamp(it.toLong(), range.minInt().toLong(), range.maxInt().toLong()).toInt() }, { it })
+                    return IntInput(style, title, visibilityKey, type, null, 0).apply {
+                        property.init(this)
+                        setValue(value as Int, false)
+                        askForReset(property) { setValue(it as Int, false) }
+                        setResetListener { property.reset(this).toString() }
+                        setChangeListener {
+                            property.set(this, it.toInt())
+                        }
                     }
                 }
             }
@@ -383,7 +409,7 @@ object ComponentUI {
             "Vector2f" -> {
                 val type =
                     Type.VEC2.withDefault(default as? Vector2f ?: throw RuntimeException("$title is not Vector2f"))
-                return VectorInput(title, visibilityKey, value as Vector2f, type, style).apply {
+                return FloatVectorInput(title, visibilityKey, value as Vector2f, type, style).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector2f, false) }
@@ -395,7 +421,7 @@ object ComponentUI {
             "Vector3f" -> {
                 val type =
                     Type.VEC3.withDefault(default as? Vector3f ?: throw RuntimeException("$title is not Vector3f"))
-                return VectorInput(title, visibilityKey, value as Vector3f, type, style).apply {
+                return FloatVectorInput(title, visibilityKey, value as Vector3f, type, style).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector3f, false) }
@@ -406,7 +432,7 @@ object ComponentUI {
             }
             "Vector4f" -> {
                 val type = Type.VEC4.withDefault(default!!)
-                return VectorInput(title, visibilityKey, value as Vector4f, type, style).apply {
+                return FloatVectorInput(title, visibilityKey, value as Vector4f, type, style).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector4f, false) }
@@ -417,7 +443,7 @@ object ComponentUI {
             }
             "Vector2d" -> {
                 val type = Type.VEC2D.withDefault(default!!)
-                return VectorInput(title, visibilityKey, value as Vector2d, type, style).apply {
+                return FloatVectorInput(title, visibilityKey, value as Vector2d, type, style).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector2d, false) }
@@ -428,7 +454,7 @@ object ComponentUI {
             }
             "Vector3d" -> {
                 val type = Type.VEC3D.withDefault(default!!)
-                return VectorInput(title, visibilityKey, value as Vector3d, type, style).apply {
+                return FloatVectorInput(title, visibilityKey, value as Vector3d, type, style).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector3d, false) }
@@ -439,7 +465,7 @@ object ComponentUI {
             }
             "Vector4d" -> {
                 val type = Type.VEC4D.withDefault(default!!)
-                return VectorInput(title, visibilityKey, value as Vector4d, type, style).apply {
+                return FloatVectorInput(title, visibilityKey, value as Vector4d, type, style).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector4d, false) }
@@ -452,7 +478,7 @@ object ComponentUI {
             // int vectors
             "Vector2i" -> {
                 val type = Type(default!!, 2)
-                return VectorIntInput(style, title, visibilityKey, value as Vector2i, type).apply {
+                return IntVectorInput(style, title, visibilityKey, value as Vector2i, type).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector2i, false) }
@@ -463,7 +489,7 @@ object ComponentUI {
             }
             "Vector3i" -> {
                 val type = Type(default!!, 3)
-                return VectorIntInput(style, title, visibilityKey, value as Vector3i, type).apply {
+                return IntVectorInput(style, title, visibilityKey, value as Vector3i, type).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector3i, false) }
@@ -474,7 +500,7 @@ object ComponentUI {
             }
             "Vector4i" -> {
                 val type = Type(default!!, 4)
-                return VectorIntInput(style, title, visibilityKey, value as Vector4i, type).apply {
+                return IntVectorInput(style, title, visibilityKey, value as Vector4i, type).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector4i, false) }
@@ -489,7 +515,7 @@ object ComponentUI {
             "Quaternionf" -> {
                 value as Quaternionf
                 val type = Type.ROT_YXZ.withDefault((default as Quaternionf).toEulerAnglesDegrees())
-                return VectorInput(title, visibilityKey, value.toEulerAnglesDegrees(), type, style).apply {
+                return FloatVectorInput(title, visibilityKey, value.toEulerAnglesDegrees(), type, style).apply {
                     property.init(this)
                     askForReset(property) { setValue((it as Quaternionf).toEulerAnglesDegrees(), false) }
                     setResetListener { property.reset(this) }
@@ -502,7 +528,7 @@ object ComponentUI {
             "Quaterniond" -> {
                 value as Quaterniond
                 val type = Type.ROT_YXZ64.withDefault((default as Quaterniond).toEulerAnglesDegrees())
-                return VectorInput(title, visibilityKey, value.toEulerAnglesDegrees(), type, style).apply {
+                return FloatVectorInput(title, visibilityKey, value.toEulerAnglesDegrees(), type, style).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue((it as Quaterniondc).toEulerAnglesDegrees(), false) }
@@ -551,7 +577,7 @@ object ComponentUI {
                 // todo special types
                 // todo operations: translate, rotate, scale
                 for (i in 0 until 4) {
-                    panel.add(VectorInput("", visibilityKey, value.getRow(i, Vector4f()), Type.VEC4, style)
+                    panel.add(FloatVectorInput("", visibilityKey, value.getRow(i, Vector4f()), Type.VEC4, style)
                         .apply {
                             // todo correct change listener
                             setChangeListener { x, y, z, w ->
@@ -564,7 +590,7 @@ object ComponentUI {
                 panel.askForReset(property) {
                     it as Matrix4f
                     for (i in 0 until 4) {
-                        (panel.children[i + 1] as VectorInput)
+                        (panel.children[i + 1] as FloatVectorInput)
                             .setValue(it.getRow(i, Vector4f()), false)
                     }
                 }
@@ -577,7 +603,7 @@ object ComponentUI {
                 default as AABBf
                 val typeMin = Type.VEC3.withDefault(default.getMin2())
                 val pane = TitledListY(title, visibilityKey, style)
-                pane.add(VectorInput("", visibilityKey, value.getMin2(), typeMin, style).apply {
+                pane.add(FloatVectorInput("", visibilityKey, value.getMin2(), typeMin, style).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue((it as AABBf).getMin2(), false) }
@@ -587,7 +613,7 @@ object ComponentUI {
                     }
                 })
                 val typeMax = Type.VEC3D.withDefault(default.getMax2())
-                pane.add(VectorInput("", visibilityKey, value.getMax2(), typeMax, style).apply {
+                pane.add(FloatVectorInput("", visibilityKey, value.getMax2(), typeMax, style).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue((it as AABBf).getMax2(), false) }
@@ -603,7 +629,7 @@ object ComponentUI {
                 default as AABBd
                 val typeMin = Type.VEC3D.withDefault(default.getMin2())
                 val pane = TitledListY(title, visibilityKey, style)
-                pane.add(VectorInput("", visibilityKey, value.getMin2(), typeMin, style).apply {
+                pane.add(FloatVectorInput("", visibilityKey, value.getMin2(), typeMin, style).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue((it as AABBd).getMin2(), false) }
@@ -613,7 +639,7 @@ object ComponentUI {
                     }
                 })
                 val typeMax = Type.VEC3D.withDefault(default.getMax2())
-                pane.add(VectorInput("", visibilityKey, value.getMax2(), typeMax, style).apply {
+                pane.add(FloatVectorInput("", visibilityKey, value.getMax2(), typeMax, style).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue((it as AABBd).getMax2(), false) }
@@ -846,7 +872,7 @@ object ComponentUI {
 
                 LOGGER.warn("Missing knowledge to edit $type0, $title")
 
-                return TextPanel("?? $title : ${value?.javaClass?.simpleName}", style)
+                return TextPanel("?? $title : ${value?.javaClass?.simpleName}, type $type0", style)
             }
         }
 

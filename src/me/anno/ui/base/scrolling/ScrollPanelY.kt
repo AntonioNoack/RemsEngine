@@ -8,7 +8,6 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.base.text.TextPanel
 import me.anno.ui.style.Style
 import me.anno.utils.maths.Maths.clamp
 import kotlin.math.max
@@ -121,6 +120,14 @@ open class ScrollPanelY(
             invalidateLayout()
         } else super.onMouseMoved(x, y, dx, dy)
     }
+
+    override fun clone(): ScrollPanelY {
+        val clone = ScrollPanelY(child.clone(), padding, style, alignmentX)
+        copy(clone)
+        return clone
+    }
+
+    override val className: String = "ScrollPanelY"
 
     companion object {
         val scrollSpeed get() = DefaultConfig["ui.scroll.speed", 30f]

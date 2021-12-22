@@ -76,8 +76,9 @@ abstract class PanelGroup(style: Style) : Panel(style) {
     }
 
     companion object {
-        fun getPanelOptions() =
-            ISaveable.objectTypeRegistry.filterValues { it.sampleInstance is Panel }.map { (key, value) ->
+        fun getPanelOptions() = ISaveable.objectTypeRegistry
+            .filterValues { it.sampleInstance is Panel }
+            .map { (key, value) ->
                 Option(key.camelCaseToTitle(), "") { value.generator() as Panel }
             }
     }

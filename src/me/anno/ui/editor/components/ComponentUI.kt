@@ -73,7 +73,7 @@ object ComponentUI {
                 }
                 .setIsSelectedListener { self.show(null) }
                 .setTooltip(ttt)
-            is Vector2f -> VectorInput(title, title, value, type ?: Type.VEC2, style)
+            is Vector2f -> FloatVectorInput(title, title, value, type ?: Type.VEC2, style)
                 .setChangeListener { x, y, _, _ ->
                     RemsStudio.incrementalChange("Set $title to ($x,$y)", title) {
                         setValue(Vector2f(x.toFloat(), y.toFloat()) as V)
@@ -92,7 +92,7 @@ object ComponentUI {
                         .setIsSelectedListener { self.show(null) }
                         .setTooltip(ttt)
                 } else {
-                    VectorInput(title, title, value, type ?: Type.VEC3, style)
+                    FloatVectorInput(title, title, value, type ?: Type.VEC3, style)
                         .setChangeListener { x, y, z, _ ->
                             RemsStudio.incrementalChange("Set $title to ($x,$y,$z)", title) {
                                 setValue(Vector3f(x.toFloat(), y.toFloat(), z.toFloat()) as V)
@@ -112,7 +112,7 @@ object ComponentUI {
                         .setIsSelectedListener { self.show(null) }
                         .setTooltip(ttt)
                 } else {
-                    VectorInput(title, title, value, type, style)
+                    FloatVectorInput(title, title, value, type, style)
                         .setChangeListener { x, y, z, w ->
                             RemsStudio.incrementalChange("Set $title to ($x,$y,$z,$w)", title) {
                                 setValue(Vector4f(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()) as V)
@@ -122,7 +122,7 @@ object ComponentUI {
                         .setTooltip(ttt)
                 }
             }
-            is Quaternionf -> VectorInput(title, title, value, type ?: Type.QUATERNION, style)
+            is Quaternionf -> FloatVectorInput(title, title, value, type ?: Type.QUATERNION, style)
                 .setChangeListener { x, y, z, w ->
                     RemsStudio.incrementalChange(title) {
                         setValue(Quaternionf(x, y, z, w) as V)
@@ -131,7 +131,7 @@ object ComponentUI {
                 .setIsSelectedListener { self.show(null) }
                 .setTooltip(ttt)
             is String -> TextInputML(title, value, style)
-                .setChangeListener {
+                .addChangeListener {
                     RemsStudio.incrementalChange("Set $title to \"$it\"", title) {
                         setValue(it as V)
                     }
@@ -162,7 +162,7 @@ object ComponentUI {
                     .setTooltip(ttt)
             }
             is Enum<*> -> {
-                val values = value.javaClass.enumConstants
+                val values = EnumInput.getEnumConstants(value.javaClass)
                 EnumInput.createInput(title, value, style)
                     .setChangeListener { name, index, _ ->
                         RemsStudio.incrementalChange("Set $title to $name") {
@@ -221,7 +221,7 @@ object ComponentUI {
                 }
                 .setIsSelectedListener(sl)
                 .setTooltip(ttt)
-            is Vector2f -> VectorInput(title, values, time, style)
+            is Vector2f -> FloatVectorInput(title, values, time, style)
                 .setChangeListener { x, y, _, _ ->
                     RemsStudio.incrementalChange("Set $title to ($x,$y)", title) {
                         self.putValue(values, Vector2f(x.toFloat(), y.toFloat()), false)
@@ -240,7 +240,7 @@ object ComponentUI {
                         .setIsSelectedListener(sl)
                         .setTooltip(ttt)
                 } else {
-                    VectorInput(title, values, time, style)
+                    FloatVectorInput(title, values, time, style)
                         .setChangeListener { x, y, z, _ ->
                             RemsStudio.incrementalChange("Set $title to ($x,$y,$z)", title) {
                                 self.putValue(values, Vector3f(x.toFloat(), y.toFloat(), z.toFloat()), false)
@@ -260,7 +260,7 @@ object ComponentUI {
                         .setIsSelectedListener(sl)
                         .setTooltip(ttt)
                 } else {
-                    VectorInput(title, values, time, style)
+                    FloatVectorInput(title, values, time, style)
                         .setChangeListener { x, y, z, w ->
                             RemsStudio.incrementalChange("Set $title to ($x,$y,$z,$w)", title) {
                                 self.putValue(
@@ -275,14 +275,14 @@ object ComponentUI {
                 }
             }
             is String -> TextInputML(title, value, style)
-                .setChangeListener {
+                .addChangeListener {
                     RemsStudio.incrementalChange("Set $title to $it") {
                         self.putValue(values, it, false)
                     }
                 }
                 .setIsSelectedListener(sl)
                 .setTooltip(ttt)
-            is Quaternionf -> VectorInput(title, values, time, style)
+            is Quaternionf -> FloatVectorInput(title, values, time, style)
                 .setChangeListener { x, y, z, w ->
                     RemsStudio.incrementalChange("Set $title to ($x,$y,$z,$w)", title) {
                         self.putValue(values, Quaternionf(x, y, z, w), false)

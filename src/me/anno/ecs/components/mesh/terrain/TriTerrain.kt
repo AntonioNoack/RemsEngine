@@ -4,6 +4,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.OnEdgeCalculator
 import me.anno.ecs.interfaces.CustomEditMode
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.utils.maths.Maths.sq
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import org.joml.AABBf
@@ -303,9 +304,17 @@ class TriTerrain : Component(), CustomEditMode {
         data.add(chunk)
     }
 
-    override fun clone(): Component {
+    override fun clone(): TriTerrain {
+        val clone = TriTerrain()
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as TriTerrain
         // copy or clone the data?
-        TODO("Not yet implemented")
+        // todo copy everything
     }
 
     override val className = "TriTerrain"

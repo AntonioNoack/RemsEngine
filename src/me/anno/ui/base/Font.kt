@@ -1,12 +1,13 @@
 package me.anno.ui.base
 
-import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.fonts.FontManager
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.GFXx2D
+import me.anno.io.Saveable
+import me.anno.io.base.BaseWriter
 import kotlin.math.roundToInt
 
-class Font(name: String, size: Float, isBold: Boolean, isItalic: Boolean) : PrefabSaveable() {
+class Font(name: String, size: Float, isBold: Boolean, isItalic: Boolean) : Saveable() {
 
     constructor() : this("Verdana", 24, false, false)
 
@@ -19,7 +20,7 @@ class Font(name: String, size: Float, isBold: Boolean, isItalic: Boolean) : Pref
         val height = GFXx2D.getSizeY(size)
     }
 
-    override var name = name
+    var name = name
         set(value) {
             if (field != value) {
                 field = value
@@ -84,19 +85,30 @@ class Font(name: String, size: Float, isBold: Boolean, isItalic: Boolean) : Pref
     override fun toString() =
         "$name $size${if (isBold) if (isItalic) " bold italic" else " bold" else if (isItalic) " italic" else ""}"
 
-    override fun clone(): PrefabSaveable {
-        val clone = Font(name, size, isBold, isItalic)
-        copy(clone)
-        return clone
+    override fun readFloat(name: String, value: Float) {
+        if (name == "size") size = value
+        else super.readFloat(name, value)
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as Font
-        clone.name = name
-        clone.size = size
-        clone.isBold = isBold
-        clone.isItalic = isItalic
+    override fun readString(name: String, value: String?) {
+        if (name == "name") this.name = value ?: ""
+        else super.readString(name, value)
+    }
+
+    override fun readBoolean(name: String, value: Boolean) {
+        when (name) {
+            "isBold" -> isBold = value
+            "isItalic" -> isItalic = value
+            else -> super.readBoolean(name, value)
+        }
+    }
+
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        writer.writeString("name", name)
+        writer.writeFloat("size", size)
+        writer.writeBoolean("isBold", isBold)
+        writer.writeBoolean("isItalic", isItalic)
     }
 
     override val className: String = "Font"

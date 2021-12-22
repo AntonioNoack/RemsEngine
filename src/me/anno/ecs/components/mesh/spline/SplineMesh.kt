@@ -6,7 +6,7 @@ import me.anno.ecs.components.mesh.spline.Splines.interpolate
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.EditorState
 import me.anno.image.ImageWriter.writeImageCurve
-import me.anno.studio.Build
+import me.anno.Build
 import me.anno.utils.maths.Maths.mix
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Vectors.toVector3f

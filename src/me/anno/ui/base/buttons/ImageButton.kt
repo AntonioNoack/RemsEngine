@@ -1,6 +1,7 @@
 package me.anno.ui.base.buttons
 
 import me.anno.config.DefaultStyle.black
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.RenderState.renderDefault
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.texture.Clamping
@@ -22,7 +23,7 @@ class ImageButton(
     var path: String,
     var size: Int,
     var padding: Padding,
-    var square: Boolean = true,
+    var isSquare: Boolean = true,
     style: Style
 ) : Panel(style) {
 
@@ -44,7 +45,7 @@ class ImageButton(
     override fun calculateSize(w: Int, h: Int) {
         val icon = icon ?: return
         minW = ((size + padding.width) * guiScale).toInt()
-        minH = if (square) ((size) * guiScale + padding.height).toInt() else {
+        minH = if (isSquare) ((size) * guiScale + padding.height).toInt() else {
             ((icon.h * size / icon.w) * guiScale + padding.height).toInt()
         }
     }
@@ -65,5 +66,22 @@ class ImageButton(
             DrawTextures.drawTexture(x + (w - iw) / 2, y + (h - ih) / 2, iw, ih, icon, tint, null)
         }
     }
+
+    override fun clone(): ImageButton {
+        val clone = ImageButton(style)
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as ImageButton
+        clone.path = path
+        clone.padding = padding
+        clone.size = size
+        clone.isSquare = isSquare
+    }
+
+    override val className: String = "ImageButton"
 
 }

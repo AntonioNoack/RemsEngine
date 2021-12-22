@@ -2,9 +2,11 @@ package me.anno.ui.editor.color
 
 import me.anno.animation.AnimatedProperty
 import me.anno.config.DefaultConfig
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.input.Input
+import me.anno.io.serialization.NotSerializedProperty
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.ui.base.Panel
 import me.anno.ui.base.SpacerPanel
@@ -36,13 +38,22 @@ class ColorChooser(
     val owningProperty: AnimatedProperty<*>?
 ) : PanelListY(style) {
 
-    constructor(style: Style): this(style, true, null)
+    constructor(style: Style) : this(style, true, null)
 
     // color section
     // bottom section:
     // hue
     // check box for hsl/hsluv
     // field(?) to enter rgb codes
+
+    var hue = 0.5f
+    var saturation = 0.5f
+    var lightness = 0.5f
+    var opacity = 1.0f
+
+
+    @NotSerializedProperty
+    var isDownInRing = false
 
     private val maxWidth = style.getSize("colorChooser.maxWidth", 500)
     override fun calculateSize(w: Int, h: Int) {
@@ -51,7 +62,9 @@ class ColorChooser(
 
     override fun getVisualState() = Quad(hue, saturation, lightness, opacity)
 
+    val rgb = Vector3f()
     val rgba get() = Vector4f(colorSpace.toRGB(Vector3f(hue, saturation, lightness)), opacity)
+
     var visualisation = lastVisualisation ?: ColorVisualisation.WHEEL
     var colorSpace = getDefaultColorSpace()
         set(value) {
@@ -65,7 +78,6 @@ class ColorChooser(
             }
         }
 
-    var isDownInRing = false
     private val hslBox = HSVBoxMain(this, Vector3f(), Vector3f(0f, 1f, 0f), Vector3f(0f, 0f, 1f), style)
 
     private val hueChooserSpace = SpacerPanel(0, 2, style)
@@ -113,7 +125,9 @@ class ColorChooser(
         colorPalette.onColorSelected = { setARGB(it, true) }
     }
 
-    var lastTime = editorTime
+    @NotSerializedProperty
+    private var lastTime = editorTime
+
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         if (lastTime != editorTime && owningProperty != null) {
             lastTime = editorTime
@@ -128,11 +142,6 @@ class ColorChooser(
         hueChooserSpace.visibility = needsHueChooser
         super.onDraw(x0, y0, x1, y1)
     }
-
-    var hue = 0.5f
-    var saturation = 0.5f
-    var lightness = 0.5f
-    var opacity = 1.0f
 
     fun setARGB(argb: Int, notify: Boolean) {
         setRGBA(
@@ -150,17 +159,15 @@ class ColorChooser(
         setHSL(hsl.x, hsl.y, hsl.z, clamp(a, 0f, 1f), colorSpace, notify)
     }
 
-    var rgb = Vector3f()
-
     fun setHSL(h: Float, s: Float, l: Float, a: Float, newColorSpace: ColorSpace, notify: Boolean) {
         hue = h
         saturation = s
         lightness = l
         opacity = clamp(a, 0f, 1f)
         this.colorSpace = newColorSpace
-        rgb = colorSpace.toRGB(Vector3f(hue, saturation, lightness))
+        colorSpace.toRGB(Vector3f(hue, saturation, lightness), rgb)
         if (notify) {
-            changeRGBListener(rgb.x, rgb.y, rgb.z, opacity)
+            changeListener(rgb.x, rgb.y, rgb.z, opacity)
         }
     }
 
@@ -208,9 +215,9 @@ class ColorChooser(
         }
     }
 
-    var changeRGBListener: (x: Float, y: Float, z: Float, w: Float) -> Unit = { _, _, _, _ -> }
+    private var changeListener: (x: Float, y: Float, z: Float, w: Float) -> Unit = { _, _, _, _ -> }
     fun setChangeRGBListener(listener: (x: Float, y: Float, z: Float, w: Float) -> Unit): ColorChooser {
-        changeRGBListener = listener
+        changeListener = listener
         return this
     }
 
@@ -237,6 +244,29 @@ class ColorChooser(
         val default = owningProperty?.defaultValue ?: Vector4f(0f)
         setRGBA(default[0], default[1], default[2], default[3], true)
     }
+
+    override fun clone(): ColorChooser {
+        val clone = ColorChooser(style, withAlpha, owningProperty)
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as ColorChooser
+        clone.colorSpace = colorSpace
+        clone.visualisation = visualisation
+        clone.hue = hue
+        clone.saturation = saturation
+        clone.lightness = lightness
+        clone.opacity = opacity
+        // only works, if there is no reference involved
+        clone.changeListener = changeListener
+        clone.rgb.set(rgb)
+        clone.rgba.set(rgba)
+    }
+
+    override val className: String = "ColorChooser"
 
     companion object {
         private val LOGGER = LogManager.getLogger(ColorChooser::class)

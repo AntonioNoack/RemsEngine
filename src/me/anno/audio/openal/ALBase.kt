@@ -1,6 +1,6 @@
 package me.anno.audio.openal
 
-import me.anno.studio.Build.isDebug
+import me.anno.Build.isDebug
 import org.lwjgl.openal.AL10.*
 
 object ALBase {

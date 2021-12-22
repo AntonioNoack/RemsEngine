@@ -116,8 +116,8 @@ abstract class ColorSpace(
         return newShader
     }
 
-    abstract fun fromRGB(rgb: Vector3f): Vector3f
-    abstract fun toRGB(input: Vector3f): Vector3f
+    abstract fun fromRGB(rgb: Vector3f, dst: Vector3f = Vector3f()): Vector3f
+    abstract fun toRGB(input: Vector3f, dst: Vector3f = Vector3f()): Vector3f
 
     fun toRGB(x: Float, y: Float, z: Float, a: Float) = Vector4f(toRGB(Vector3f(x, y, z)), a)
     fun toRGB(x: Double, y: Double, z: Double, a: Double) = toRGB(x.toFloat(), y.toFloat(), z.toFloat(), a.toFloat())

@@ -1,6 +1,8 @@
 package me.anno.studio
 
+import me.anno.Build
 import me.anno.Engine
+import me.anno.Logging
 import me.anno.audio.openal.ALBase
 import me.anno.audio.openal.AudioManager
 import me.anno.audio.openal.AudioTasks
@@ -11,15 +13,10 @@ import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.Cursor
 import me.anno.gpu.Cursor.useCursor
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.GFX.isMinimized
 import me.anno.gpu.GFXBase0
-import me.anno.gpu.RenderState.renderDefault
 import me.anno.gpu.RenderState.useFrame
-import me.anno.gpu.Window
-import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.shader.Renderer
 import me.anno.input.ActionManager
 import me.anno.input.Input
@@ -43,11 +40,8 @@ import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.types.Strings.addSuffix
 import me.anno.utils.types.Strings.filterAlphaNumeric
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL11.*
 import java.io.File
-import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
-import kotlin.collections.ArrayList
 import kotlin.math.roundToInt
 
 abstract class StudioBase(
@@ -111,7 +105,6 @@ abstract class StudioBase(
 
     val showTutorialKeys get() = DefaultConfig["ui.tutorial.showKeys", true]
     val showFPS get() = DefaultConfig["debug.ui.showFPS", Build.isDebug]
-    val showRedraws get() = DefaultConfig["debug.ui.showRedraws", false]
 
     val windowStack = WindowStack()
 
@@ -203,15 +196,8 @@ abstract class StudioBase(
         // when the frame is minimized, nothing needs to be drawn
         if (!isMinimized) {
 
-            val sparseRedraw = DefaultConfig["ui.sparseRedraw", true]
-
-            val lastFullscreenIndex = windowStack.indexOfLast { it.isFullscreen }
-            for (index in windowStack.indices) {
-                val window = windowStack[index]
-                if (index >= lastFullscreenIndex) {
-                    didSomething = drawWindow(w, h, window, sparseRedraw, didSomething)
-                }
-            }
+            windowStack.update()
+            didSomething = windowStack.draw(w, h, didSomething, shallDraw(didSomething))
 
             Input.framesSinceLastInteraction++
 
@@ -272,202 +258,6 @@ abstract class StudioBase(
 
     fun updateCursor(hoveredPanel: Panel?) {
         hoveredPanel?.getCursor()?.useCursor()
-    }
-
-    fun drawWindow(
-        w: Int, h: Int, window: Window,
-        sparseRedraw: Boolean,
-        didSomething0: Boolean
-    ): Boolean {
-
-        var didSomething = didSomething0
-        val panel0 = window.panel
-
-        panel0.updateVisibility(lastMouseX.toInt(), lastMouseY.toInt())
-        for (panel in inFocus) panel.isInFocus = true
-
-        // resolve missing parents...
-        // which still happens...
-        panel0.findMissingParents()
-
-        panel0.forAllPanels { panel -> if (panel.canBeSeen) panel.tickUpdate() }
-        panel0.forAllPanels { panel -> if (panel.canBeSeen) panel.tick() }
-
-        validateLayouts(w, h, window, panel0)
-
-        if (panel0.w > 0 && panel0.h > 0) {
-
-            // overlays get missing...
-            // this somehow needs to be circumvented...
-            if (sparseRedraw) {
-                didSomething = sparseRedraw(w, h, window, panel0, didSomething)
-            } else {
-                if (shallDraw(didSomething)) {
-                    window.needsRedraw.clear()
-                    fullRedraw(w, h, window, panel0)
-                }// else no buffer needs to be updated
-            }
-        }
-
-        return didSomething
-
-    }
-
-    private fun validateLayouts(w: Int, h: Int, window: Window, panel0: Panel) {
-        val needsLayout = window.needsLayout
-        if (panel0 in needsLayout || window.lastW != w || window.lastH != h) {
-            window.lastW = w
-            window.lastH = h
-            window.calculateFullLayout(w, h, isFirstFrame)
-            window.needsRedraw.add(panel0)
-            needsLayout.clear()
-        } else {
-            while (needsLayout.isNotEmpty()) {
-                val panel = needsLayout.minByOrNull { it.depth }!!
-                // recalculate layout
-                panel.calculateSize(panel.lx1 - panel.lx0, panel.ly1 - panel.ly0)
-                panel.place(panel.lx0, panel.ly0, panel.lx1 - panel.lx0, panel.ly1 - panel.ly0)
-                needsLayout.removeAll(panel.listOfAll.toList())
-                window.addNeedsRedraw(panel)
-            }
-        }
-    }
-
-    private fun fullRedraw(
-        w: Int, h: Int, window: Window,
-        panel0: Panel
-    ) {
-
-        GFX.ensureEmptyStack()
-        // Framebuffer.stack.push(null)
-        Frame.reset()
-
-        GFX.loadTexturesSync.clear()
-        GFX.loadTexturesSync.push(false)
-        if (Input.needsLayoutUpdate()) {
-            window.calculateFullLayout(w, h, isFirstFrame)
-        }
-
-        useFrame(panel0.x, panel0.y, panel0.w, panel0.h, false, null, Renderer.colorRenderer) {
-            panel0.canBeSeen = true
-            panel0.draw(panel0.x, panel0.y, panel0.x + panel0.w, panel0.y + panel0.h)
-        }
-
-    }
-
-    fun sparseRedraw(
-        w: Int, h: Int, window: Window,
-        panel0: Panel,
-        didSomething0: Boolean
-    ): Boolean {
-
-        var didSomething = didSomething0
-
-        val wasRedrawn = ArrayList<Panel>()
-        val needsRedraw = window.needsRedraw
-
-        if (needsRedraw.isNotEmpty()) {
-
-            didSomething = true
-
-            GFX.ensureEmptyStack()
-            Frame.reset()
-
-            GFX.deltaX = panel0.x
-            GFX.deltaY = panel0.y
-
-            renderDefault {
-
-                val buffer = window.buffer
-                if (panel0 in needsRedraw) {
-
-                    wasRedrawn += panel0
-
-                    GFX.loadTexturesSync.clear()
-                    GFX.loadTexturesSync.push(true)
-
-                    useFrame(panel0.x, panel0.y, panel0.w, panel0.h, true, buffer, Renderer.colorRenderer) {
-                        Frame.bind()
-                        glClearColor(0f, 0f, 0f, 0f)
-                        glClear(GL_COLOR_BUFFER_BIT)
-                        panel0.canBeSeen = true
-                        panel0.draw(panel0.x, panel0.y, panel0.x + panel0.w, panel0.y + panel0.h)
-                    }
-
-                } else {
-
-                    while (needsRedraw.isNotEmpty()) {
-                        val panel = needsRedraw.minByOrNull { it.depth }!!
-                        GFX.loadTexturesSync.clear()
-                        GFX.loadTexturesSync.push(false)
-                        if (panel.canBeSeen) {
-                            useFrame(
-                                panel.lx0, panel.ly0,
-                                panel.lx1 - panel.lx0,
-                                panel.ly1 - panel.ly0,
-                                false, buffer,
-                                Renderer.colorRenderer
-                            ) { panel.redraw() }
-                        }
-                        wasRedrawn += panel
-                        panel.forAll {
-                            needsRedraw.remove(it)
-                        }
-                    }
-
-                }
-
-                window.needsRedraw.clear()
-
-            }
-
-            GFX.deltaX = 0
-            GFX.deltaY = 0
-
-        }
-
-        if (shallDraw(didSomething)) {
-            drawCachedImage(w, h, window, panel0, wasRedrawn)
-        }// else no buffer needs to be updated
-
-        return didSomething
-
-    }
-
-    open fun drawCachedImage(w: Int, h: Int, window: Window, panel0: Panel, wasRedrawn: Collection<Panel>) {
-        /*useFrame(panel0.x, h - (panel0.y + panel0.h), panel0.w, panel0.h, false, null) {
-            renderDefault {
-
-                window.buffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                GFX.copy()
-
-                if (showRedraws) {
-                    showRedraws(wasRedrawn)
-                }
-            }
-        }*/
-        useFrame(panel0.x, panel0.y, panel0.w, panel0.h, false, null) {
-            renderDefault {
-
-                GFX.copy(window.buffer)
-
-                if (showRedraws) {
-                    showRedraws(wasRedrawn)
-                }
-            }
-        }
-    }
-
-    open fun showRedraws(wasRedrawn: Collection<Panel>) {
-        for (panel in wasRedrawn) {
-            drawRect(
-                panel.lx0,
-                panel.ly0,
-                panel.lx1 - panel.lx0,
-                panel.ly1 - panel.ly0,
-                0x33ff0000
-            )
-        }
     }
 
     open fun drawUIOverlay(w: Int, h: Int): Boolean {

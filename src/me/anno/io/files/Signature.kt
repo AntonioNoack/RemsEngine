@@ -180,6 +180,9 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             Signature("ico", 0, listOf(0x00, 0x00, 0x02, 0x00, 0x01)),// cursor with 1 "image"
             Signature("dds", 0, "DDS "), // direct x image file format
             Signature("gif", 0, "GIF8"), // graphics interchange format, often animated
+            // https://openexr.readthedocs.io/en/latest/OpenEXRFileLayout.html
+            // todo exr reader
+            Signature("exr", 0, listOf(0x76, 0x2f, 0x31, 0x01)), // HDR image format, can be exported from Blender
             // other
             Signature("xml", 0, "<?xml"), // plus other variations with UTF16, UTF32, ...
             Signature("exe", 0, "MZ"),

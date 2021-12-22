@@ -43,7 +43,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     @NotSerializedProperty
     private var lastChangeTime = 0L
 
-    var changeListener: (text: String) -> Unit = { _ -> }
+    val changeListeners = ArrayList<(text: String) -> Unit>()
 
     private val lines: ArrayList<MutableList<Int>> = arrayListOf(mutableListOf())
     private val endCursor get() = CursorPosition(lines.last().size, lines.lastIndex)
@@ -244,7 +244,11 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
         text = joinedText
         if (text != lastText) {
             lastText = text
-            if (notify) changeListener(text)
+            if (notify) {
+                for (changeListener in changeListeners) {
+                    changeListener(text)
+                }
+            }
         }
     }
 

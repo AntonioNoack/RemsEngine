@@ -8,14 +8,13 @@ import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.style.Style
 import me.anno.utils.files.OpenInBrowser.openInBrowser
-import org.apache.logging.log4j.LogManager
 import java.net.URL
 
 open class LinkPanel(link: String, style: Style) : TextPanel(link, style.getChild("link")) {
 
     constructor(style: Style) : this("", style)
 
-    constructor(link: URL, style: Style): this(link.toString(), style)
+    constructor(link: URL, style: Style) : this(link.toString(), style)
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         when {
@@ -35,6 +34,12 @@ open class LinkPanel(link: String, style: Style) : TextPanel(link, style.getChil
     }
 
     override fun getCursor(): Long? = Cursor.hand
+
+    override fun clone(): LinkPanel {
+        val clone = LinkPanel(text, style)
+        copy(clone)
+        return clone
+    }
 
     override val className get() = "LinkPanel"
 
