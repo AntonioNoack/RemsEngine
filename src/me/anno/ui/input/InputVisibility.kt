@@ -28,6 +28,6 @@ object InputVisibility {
         panel?.invalidateLayout()
     }
 
-    private val LOGGER = LogManager.getLogger(InputVisibility::class)
+    // private val LOGGER = LogManager.getLogger(InputVisibility::class)
 
 }

@@ -6,7 +6,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.toRadians
-import me.anno.gpu.RenderState
+import me.anno.gpu.OpenGL
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.drawing.GFXx3D.draw3DCircle
 import me.anno.gpu.shader.ShaderPlus
@@ -422,7 +422,7 @@ open class Transform() : Saveable(),
         }
 
         if (doBlending) {
-            RenderState.blendMode.use(blendMode) {
+            OpenGL.blendMode.use(blendMode) {
                 onDraw(stack, time, color)
                 drawChildren(stack, time, color, parentColor)
             }

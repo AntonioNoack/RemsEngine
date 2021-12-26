@@ -31,8 +31,10 @@ open class Shader(
 
         val varyings = varying.map { Varying(if (it.isFlat) "flat" else "", it.type, it.name) }
 
-        program = glCreateProgram()
-        val versionString = formatVersion(glslVersion)
+        val program = glCreateProgram()
+        updateSession()
+
+        val versionString = formatVersion(glslVersion) + "\n// $shaderName\n"
         val geometryShader = if (geometry != null) {
             for (v in varyings) v.makeDifferent()
             var geo = versionString + geometry
@@ -87,6 +89,8 @@ open class Shader(
         postPossibleError(shaderName, program, false, vertexSource, fragmentSource)
 
         GFX.check()
+
+        this.program = program // only assign the program, when no error happened
 
     }
 

@@ -8,8 +8,8 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
-import me.anno.gpu.RenderState
-import me.anno.gpu.RenderState.useFrame
+import me.anno.gpu.OpenGL
+import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.pipeline.Pipeline
@@ -151,7 +151,7 @@ class PlanarReflection : LightComponentBase() {
         // todo is perspective then depends on camera
 
         val buffer = FBStack["mirror", w, h, 4, usesFP, samples, true]
-        RenderState.depthMode.use(DepthMode.GREATER) {
+        OpenGL.depthMode.use(DepthMode.GREATER) {
             useFrame(w, h, true, buffer, pbrRenderer) {
                 Frame.bind()
                 glClearStencil(0)
@@ -171,7 +171,7 @@ class PlanarReflection : LightComponentBase() {
                     val x1 = min(((aabb.maxX * .5f + .5f) * w).toInt(), w)
                     val y1 = min(((aabb.maxY * .5f + .5f) * h).toInt(), h)
                     if (x1 > x0 && y1 > y0) {
-                        RenderState.scissorTest.use(true) {
+                        OpenGL.scissorTest.use(true) {
                             glScissor(x0, y0, x1 - x0, y1 - y0)
                             // glClearColor(1f, 0f, 0f, 1f)
                             // glClear(GL_COLOR_BUFFER_BIT)

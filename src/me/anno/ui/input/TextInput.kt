@@ -18,7 +18,7 @@ open class TextInput(
     object : PureTextInput(style) {
         override val enableSpellcheck = enableSpellcheck
     }, Padding(), style
-), TextStyleable {
+), InputPanel<String>, TextStyleable {
 
     constructor(style: Style): this("", "", true, style)
 
@@ -76,10 +76,10 @@ open class TextInput(
         return this
     }
 
-    val text get() = base.text
+    override val lastValue: String get() = base.text
 
-    fun setValue(text: String, notify: Boolean): TextInput {
-        base.text = text
+    override fun setValue(value: String, notify: Boolean): TextInput {
+        base.text = value
         updateChars(notify)
         return this
     }

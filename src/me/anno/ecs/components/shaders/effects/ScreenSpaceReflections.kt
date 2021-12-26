@@ -2,7 +2,7 @@ package me.anno.ecs.components.shaders.effects
 
 import me.anno.engine.ui.render.Renderers.toneMapping
 import me.anno.gpu.GFX.flat01
-import me.anno.gpu.RenderState.useFrame
+import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.ShaderLib.simplestVertexShader
 import me.anno.gpu.ShaderLib.uvList
 import me.anno.gpu.deferred.DeferredLayerType
@@ -88,7 +88,7 @@ object ScreenSpaceReflections {
                     "   vec2 dstUV = uv;\n" +
 
                     "   vec2  deltaXY   = endUV - uv;\n" +
-                    "   vec2  absDelta = abs(deltaXY * texSize);\n" +
+                    "   vec2  absDelta  = abs(deltaXY * texSize);\n" +
                     "   bool  useX      = absDelta.x >= absDelta.y;\n" +
                     "   float delta     = (useX ? absDelta.x : absDelta.y) * resolution;\n" + // number of pixels / resolution
                     "   vec2  increment = deltaXY / delta;\n" +
@@ -102,9 +102,9 @@ object ScreenSpaceReflections {
                     "   vec3 positionTo;\n" +
 
                     // calculate the number of pixels to the edge of the screen
-                    "   int maxLinearSteps = int(min(delta * $testMaxDistanceRatio, useX ? " +
-                    "       (deltaXY.x < 0.0 ? uv.x : 1-uv.x) * resolution * texSize.x : " +
-                    "       (deltaXY.y < 0.0 ? uv.y : 1-uv.y) * resolution * texSize.y" +
+                    "   int maxLinearSteps = int(min(delta * $testMaxDistanceRatio.0, useX ? " +
+                    "       (deltaXY.x < 0.0 ? uv.x : 1.0 - uv.x) * resolution * texSize.x : " +
+                    "       (deltaXY.y < 0.0 ? uv.y : 1.0 - uv.y) * resolution * texSize.y" +
                     "   ));\n" +
                     "   for (int i = 0; i <= maxLinearSteps; i++){\n" +
 
@@ -116,7 +116,7 @@ object ScreenSpaceReflections {
                     "       viewDistance = (startDistance * endDistance) / mix(endDistance, startDistance, fraction1);\n" +
                     "       depth        = viewDistance - length(positionTo);\n" +
 
-                    "       if (depth > 0 && depth < thickness) {\n" +
+                    "       if (depth > 0.0 && depth < thickness) {\n" +
                     // we found something between fraction0 and fraction1
                     "           hit0 = 1;\n" +
                     "           break;\n" +
@@ -147,7 +147,7 @@ object ScreenSpaceReflections {
                     "       viewDistance = (startDistance * endDistance) / mix(endDistance, startDistance, fractionI);\n" +
                     "       depth        = viewDistance - length(positionTo);\n" +
 
-                    "       if (depth > 0 && depth < bestDepth) {\n" +
+                    "       if (depth > 0.0 && depth < bestDepth) {\n" +
                     "           bestDepth = depth;\n" +
                     "           bestUV = dstUV;\n" +
                     "           bestPositionTo = positionTo;\n" +
@@ -157,7 +157,7 @@ object ScreenSpaceReflections {
 
                     "   vec3 distanceDelta = bestPositionTo - positionFrom;\n" +
                     "   float distanceSq = dot(distanceDelta, distanceDelta);\n" +
-                    "   if(distanceSq >= maxDistanceSq || bestUV.x < 0 || bestUV.x > 1 || bestUV.y < 0 || bestUV.y > 1){\n" +
+                    "   if(distanceSq >= maxDistanceSq || bestUV.x < 0.0 || bestUV.x > 1.0 || bestUV.y < 0.0 || bestUV.y > 1.0){\n" +
                     "       fragColor = vec4(applyToneMapping ? toneMapping(color0) : color0, 1.0);\n" +
                     // debug color
                     // "       fragColor = vec4(0,0,0,1);\n" +
@@ -165,9 +165,9 @@ object ScreenSpaceReflections {
                     "   }\n" +
 
                     "   float visibility = reflectivity\n" +
-                    "       * (1 + min(dot(normalize(positionFrom), pivot), 0))\n" + // [0,1]
-                    "       * (1 - min(bestDepth / thickness, 1))\n" +
-                    "       * (1 - sqrt(distanceSq / maxDistanceSq))\n" +
+                    "       * (1.0 + min(dot(normalize(positionFrom), pivot), 0.0))\n" + // [0,1]
+                    "       * (1.0 - min(bestDepth / thickness, 1.0))\n" +
+                    "       * (1.0 - sqrt(distanceSq / maxDistanceSq))\n" +
                     "       * min(10.0 * (0.5 - abs(bestUV.x - 0.5)), 1.0)\n" +
                     "       * min(10.0 * (0.5 - abs(bestUV.y - 0.5)), 1.0);\n" +
 

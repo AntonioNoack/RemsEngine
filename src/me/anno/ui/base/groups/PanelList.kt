@@ -13,7 +13,10 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
 
     val padding = Padding(0)
 
-    open fun clear() = children.clear()
+    open fun clear() {
+        children.clear()
+        invalidateLayout()
+    }
 
     fun isEmpty() = children.isEmpty()
 

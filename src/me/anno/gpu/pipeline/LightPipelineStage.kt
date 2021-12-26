@@ -3,17 +3,13 @@ package me.anno.gpu.pipeline
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.light.*
-import me.anno.engine.pbr.PBRLibraryGLTF.microfacetDistribution
-import me.anno.engine.pbr.PBRLibraryGLTF.specularAttenuation
-import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColor
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColorEnd
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColorStart
-import me.anno.engine.pbr.PBRLibraryGLTF.specularReflectance
 import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
-import me.anno.gpu.RenderState
+import me.anno.gpu.OpenGL
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
@@ -25,7 +21,6 @@ import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBatchSize
 import me.anno.gpu.pipeline.PipelineStage.Companion.setupLocalTransform
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.*
-import me.anno.gpu.shader.builder.Function
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.io.Saveable
@@ -122,8 +117,8 @@ class LightPipelineStage(
                             "       float occlusion = finalOcclusion * texture(ambientOcclusion, uv).r;\n" +
                             "       color3 = finalColor * light * occlusion + finalEmissive;\n" +
                             "   } else color3 = finalColor + finalEmissive;\n" + // sky
-                            "   if(applyToneMapping) color3 = color3/(1+color3);\n" +
-                            "   color = vec4(color3, 1);\n"
+                            "   if(applyToneMapping) color3 = color3/(1.0+color3);\n" +
+                            "   color = vec4(color3, 1.0);\n"
                 )
 
                 // deferred inputs
@@ -156,7 +151,7 @@ class LightPipelineStage(
 
         private val shaderCache = HashMap<Pair<DeferredSettingsV2, Int>, Shader>()
         fun getShader(settingsV2: DeferredSettingsV2, type: LightType): Shader {
-            val isInstanced = RenderState.instanced.currentValue
+            val isInstanced = OpenGL.instanced.currentValue
             val key = type.ordinal * 2 + isInstanced.toInt()
             return shaderCache.getOrPut(settingsV2 to key) {
                 /*
@@ -457,10 +452,10 @@ class LightPipelineStage(
 
     fun bindDraw(source: Framebuffer, cameraMatrix: Matrix4fc, cameraPosition: Vector3d, worldScale: Double) {
         if (instanced.isNotEmpty() || nonInstanced.isNotEmpty()) {
-            RenderState.blendMode.use(blendMode) {
-                RenderState.depthMode.use(depthMode) {
-                    RenderState.depthMask.use(writeDepth) {
-                        RenderState.cullMode.use(cullMode) {
+            OpenGL.blendMode.use(blendMode) {
+                OpenGL.depthMode.use(depthMode) {
+                    OpenGL.depthMask.use(writeDepth) {
+                        OpenGL.cullMode.use(cullMode) {
                             draw(source, cameraMatrix, cameraPosition, worldScale)
                         }
                     }
@@ -584,7 +579,7 @@ class LightPipelineStage(
             this.cameraMatrix = cameraMatrix
             this.cameraPosition = cameraPosition
             this.worldScale = worldScale
-            RenderState.instanced.use(true) {
+            OpenGL.instanced.use(true) {
                 instanced.forEachType(::drawBatches)
             }
         }

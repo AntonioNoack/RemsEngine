@@ -1,8 +1,8 @@
 package me.anno.objects.effects
 
 import me.anno.gpu.GFX
-import me.anno.gpu.RenderState.renderPurely
-import me.anno.gpu.RenderState.useFrame
+import me.anno.gpu.OpenGL.renderPurely
+import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer

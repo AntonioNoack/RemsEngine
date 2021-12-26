@@ -115,6 +115,10 @@ object Maths {
         return if (a < b) a else b
     }
 
+    fun min(a: Int, b: Int, c: Int): Int {
+        return min(a, min(b, c))
+    }
+
     fun min(a: Float, b: Float): Float {
         return if (a < b) a else b
     }

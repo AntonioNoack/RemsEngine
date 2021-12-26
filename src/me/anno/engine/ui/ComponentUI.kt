@@ -100,7 +100,7 @@ object ComponentUI {
         val title = name?.camelCaseToTitle() ?: ""
 
         val type0 = property.annotations.filterIsInstance<me.anno.ecs.annotations.Type>().firstOrNull()?.type
-        val type1 = type0 ?: when (val value = property.get()) {// todo better, not sample-depending check for the type
+        val type1 = type0 ?: when (val value = property.get()) {
 
             // native types
             is Boolean,
@@ -180,13 +180,7 @@ object ComponentUI {
                 }
             }
 
-            // todo sort list/map by key or property of the users choice
-            // todo array & list inputs of any kind
-            // todo map inputs: a list of pairs of key & value
-            // todo tables for structs?
-            // todo show changed values with bold font
-            // todo ISaveable-s
-
+            // todo tables for structs? (database table type)
 
             // is ISaveable -> { list all child properties }
             else -> {
@@ -196,7 +190,7 @@ object ComponentUI {
                     input.setChangeListener { _, index, _ -> property.set(input, values[index]) }
                     return input
                 }
-                if (value is Saveable) {
+                if (value is ISaveable) {
                     // todo serialize saveables, they may be simple
                     // a first variant for editing may be a json editor
                     return TextInputML(title, TextWriter.toText(value), style)
@@ -222,6 +216,16 @@ object ComponentUI {
         range: Range?,
         style: Style
     ): Panel {
+
+        // nullable types
+        if (type0.endsWith('?') || type0.endsWith("?/PrefabSaveable")) {
+            val i0 = type0.lastIndexOf('?')
+            val type1 = type0.substring(0, i0) + type0.substring(i0 + 1)
+            val notNullable = createUIByTypeName(name, visibilityKey, property, type1, range, style)
+            return if (notNullable is InputPanel<*>) {
+                NullableInput(notNullable, property, style)
+            } else notNullable // some error has happened, e.g. unknown type
+        }
 
         val title = name?.camelCaseToTitle() ?: ""
         val ttt = "" // we could use annotations for that :)
@@ -393,7 +397,7 @@ object ComponentUI {
             }
             "String" -> {
                 return TitledListY(title, visibilityKey, style).add(
-                    TextInput(title, visibilityKey, value as String, style.getChild("deep")).apply {
+                    TextInput(title, visibilityKey, value as? String ?: "", style.getChild("deep")).apply {
                         property.init(this)
                         setResetListener { property.reset(this).toString() }
                         askForReset(property) { setValue(it as String, false) }
@@ -407,8 +411,7 @@ object ComponentUI {
             // float vectors
             // todo ranges for vectors (?)
             "Vector2f" -> {
-                val type =
-                    Type.VEC2.withDefault(default as? Vector2f ?: throw RuntimeException("$title is not Vector2f"))
+                val type = Type.VEC2.withDefault(default as? Vector2f ?: Vector2f())
                 return FloatVectorInput(title, visibilityKey, value as Vector2f, type, style).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
@@ -419,8 +422,7 @@ object ComponentUI {
                 }
             }
             "Vector3f" -> {
-                val type =
-                    Type.VEC3.withDefault(default as? Vector3f ?: throw RuntimeException("$title is not Vector3f"))
+                val type = Type.VEC3.withDefault(default as? Vector3f ?: Vector3f())
                 return FloatVectorInput(title, visibilityKey, value as Vector3f, type, style).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
@@ -431,7 +433,7 @@ object ComponentUI {
                 }
             }
             "Vector4f" -> {
-                val type = Type.VEC4.withDefault(default!!)
+                val type = Type.VEC4.withDefault(default as? Vector4f ?: Vector4f())
                 return FloatVectorInput(title, visibilityKey, value as Vector4f, type, style).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
@@ -442,7 +444,7 @@ object ComponentUI {
                 }
             }
             "Vector2d" -> {
-                val type = Type.VEC2D.withDefault(default!!)
+                val type = Type.VEC2D.withDefault(default as? Vector2d ?: Vector2d())
                 return FloatVectorInput(title, visibilityKey, value as Vector2d, type, style).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
@@ -453,7 +455,7 @@ object ComponentUI {
                 }
             }
             "Vector3d" -> {
-                val type = Type.VEC3D.withDefault(default!!)
+                val type = Type.VEC3D.withDefault(default as? Vector3d ?: Vector3d())
                 return FloatVectorInput(title, visibilityKey, value as Vector3d, type, style).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
@@ -464,7 +466,7 @@ object ComponentUI {
                 }
             }
             "Vector4d" -> {
-                val type = Type.VEC4D.withDefault(default!!)
+                val type = Type.VEC4D.withDefault(default as? Vector4d ?: Vector4d())
                 return FloatVectorInput(title, visibilityKey, value as Vector4d, type, style).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
@@ -477,7 +479,7 @@ object ComponentUI {
 
             // int vectors
             "Vector2i" -> {
-                val type = Type(default!!, 2)
+                val type = Type(default as? Vector2i ?: Vector2i(), 2)
                 return IntVectorInput(style, title, visibilityKey, value as Vector2i, type).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
@@ -488,7 +490,7 @@ object ComponentUI {
                 }
             }
             "Vector3i" -> {
-                val type = Type(default!!, 3)
+                val type = Type(default as? Vector3i ?: Vector3i(), 3)
                 return IntVectorInput(style, title, visibilityKey, value as Vector3i, type).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
@@ -499,7 +501,7 @@ object ComponentUI {
                 }
             }
             "Vector4i" -> {
-                val type = Type(default!!, 4)
+                val type = Type(default as? Vector4i ?: Vector4i(), 4)
                 return IntVectorInput(style, title, visibilityKey, value as Vector4i, type).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
@@ -745,13 +747,6 @@ object ComponentUI {
                 return list
             }
 
-            "PrefabSaveable", "Material", "Mesh", "MorphTarget", "Skeleton" -> {
-                value as? PrefabSaveable
-                // todo just a reference with a type limiter
-
-                return TextPanel("todo: prefab saveable, ${value?.javaClass?.name}", style)
-            }
-
             // todo nice ui inputs for array types and maps
 
             /*is Map<*, *> -> {
@@ -831,7 +826,7 @@ object ComponentUI {
                         }
                     }
                     type0.endsWith("/Reference", true) -> {
-                        val type1 = type0.substring(0, type0.lastIndexOf('/'))
+                        // val type1 = type0.substring(0, type0.lastIndexOf('/'))
                         // todo filter the types
                         // todo index all files of this type in the current project (plus customizable extra directories)
                         // todo and show them here, with their nice icons

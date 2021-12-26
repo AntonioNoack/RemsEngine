@@ -2,7 +2,7 @@ package me.anno.ecs.components.shaders.effects
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.flat01
-import me.anno.gpu.RenderState.useFrame
+import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.ShaderLib.uvList
 import me.anno.gpu.TextureLib
@@ -11,7 +11,6 @@ import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
@@ -62,9 +61,9 @@ object FSR {
                     "void main(){\n" +
                     "   vec3 color;\n" +
                     "   float alpha = texture(source,uv).a;\n" +
-                    "   ivec2 coords = ivec2(uv*dstWH);\n" +
-                    "   FsrEasuF(color,coords,con0,con1,con2,con3);\n" +
-                    "   glFragColor = vec4(color,alpha>.01 ? 1.0 : 0.0);\n" +
+                    "   vec2 coords = uv * dstWH;\n" +
+                    "   FsrEasuF(color, coords, con0, con1, con2, con3);\n" +
+                    "   glFragColor = vec4(color, alpha > .01 ? 1.0 : 0.0);\n" +
                     "}", true
         )
         shader.glslVersion = 420 // for int->float->int ops, which are used for fast sqrt and such
@@ -88,7 +87,7 @@ object FSR {
                     "#define ANNO 1\n" +
                     defines +
                     "#define FSR_RCAS_F 1\n" +
-                    "AF4 FsrRcasLoadF(ivec2 p){ return texelFetch(source,p,0); }\n" +
+                    "vec4 FsrRcasLoadF(ivec2 p){ return texelFetch(source,p,0); }\n" +
                     // optional input transform
                     "void FsrRcasInputF(inout AF1 r,inout AF1 g,inout AF1 b){}\n" +
                     functions +
@@ -191,7 +190,7 @@ object FSR {
 
         HiddenOpenGLContext.createOpenGL(1024)
 
-        val src = getReference(OS.pictures, "bg,f8f8f8-flat,750x,075,f-pad,750x1000,f8f8f8.u4.jpg")
+        val src = getReference(OS.pictures, "rem-original.jpg")
         val texture = ImageGPUCache.getImage(src, 10000, false)!!
 
         ShaderLib.init()

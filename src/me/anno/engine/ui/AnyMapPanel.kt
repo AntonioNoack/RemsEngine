@@ -8,6 +8,7 @@ import me.anno.ui.editor.stacked.ArrayPanel
 import me.anno.ui.style.Style
 import me.anno.utils.structures.tuples.MutablePair
 
+// todo sort list/map by key or property of the users choice
 open class AnyMapPanel(
     title: String,
     visibilityKey: String,

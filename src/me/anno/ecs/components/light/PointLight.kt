@@ -7,7 +7,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.gui.LineShapes.drawBox
 import me.anno.engine.gui.LineShapes.drawSphere
 import me.anno.gpu.DepthMode
-import me.anno.gpu.RenderState
+import me.anno.gpu.OpenGL
 import me.anno.gpu.drawing.Perspective.setPerspective
 import me.anno.gpu.framebuffer.CubemapFramebuffer
 import me.anno.gpu.framebuffer.Frame
@@ -91,7 +91,7 @@ class PointLight : LightComponent(LightType.POINT) {
 
         val cameraMatrix = JomlPools.mat4f.create()
         val root = entity.getRoot(Entity::class)
-        RenderState.depthMode.use(DepthMode.GREATER) {
+        OpenGL.depthMode.use(DepthMode.GREATER) {
             texture.draw(resolution, Renderer.depthOnlyRenderer) { side ->
                 Frame.bind()
                 GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT)

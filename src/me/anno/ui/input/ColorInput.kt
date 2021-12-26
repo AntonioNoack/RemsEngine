@@ -46,7 +46,7 @@ class ColorInput(
     oldValue: Vector4fc,
     withAlpha: Boolean,
     private val owningProperty: AnimatedProperty<*>? = null
-) : PanelListX(style), TextStyleable {
+) : PanelListX(style), InputPanel<Vector4f>, TextStyleable {
 
     constructor(style: Style) : this(style, "", "", Vector4f(), true, null)
 
@@ -61,11 +61,22 @@ class ColorInput(
     @NotSerializedProperty
     private var mouseIsDown = false
 
+    // todo drawing & ignoring inputs
+    private var _isEnabled = true
+    override var isEnabled: Boolean
+        get() = _isEnabled
+        set(value) {
+            _isEnabled = value; invalidateDrawing()
+        }
+
     fun getValue() = contentView.getColor()
-    fun setValue(color: Vector4f, notify: Boolean) {
-        previewField.color = color.toARGB()
+    override val lastValue: Vector4f get() = getValue()
+
+    override fun setValue(value: Vector4f, notify: Boolean): ColorInput {
+        previewField.color = value.toARGB()
         previewField.invalidateDrawing()
-        contentView.setRGBA(color, notify)
+        contentView.setRGBA(value, notify)
+        return this
     }
 
     override fun setBold(bold: Boolean) {
@@ -88,7 +99,7 @@ class ColorInput(
     fun openColorChooser() {
         contentView.colorSpace = ColorChooser.getDefaultColorSpace()
         val window = window!!
-        Menu.openMenuComplex2(
+        Menu.openMenuByPanels(
             window.windowStack, window.mouseX.toInt(), window.mouseY.toInt(), NameDesc(title), listOf(
                 SizeLimitingContainer(contentView, GFX.width / 5, -1, style)
             )

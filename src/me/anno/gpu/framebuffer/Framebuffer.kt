@@ -1,19 +1,23 @@
 package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
+import me.anno.gpu.OpenGL
+import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
+import me.anno.utils.maths.Maths
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL32
+import org.lwjgl.opengl.GL45.glCheckNamedFramebufferStatus
 import kotlin.system.exitProcess
 
 class Framebuffer(
     var name: String,
     override var w: Int, override var h: Int,
-    override val samples: Int, val targets: Array<TargetType>,
+    samples: Int, val targets: Array<TargetType>,
     val depthBufferType: DepthBufferType
 ) : IFramebuffer {
 
@@ -27,6 +31,8 @@ class Framebuffer(
             Array(targetCount) { TargetType.FloatTarget4 } else
             Array(targetCount) { TargetType.UByteTarget4 }, depthBufferType
     )
+
+    override val samples: Int = Maths.clamp(samples, 1, GFX.maxSamples)
 
     // todo test this, does this work?
     /**
@@ -55,12 +61,23 @@ class Framebuffer(
         Framebuffer("$name.ms", w, h, 1, targets, depthBufferType) else null
 
     override var pointer = -1
+    var session = 0
+
     var internalDepthTexture = -1
     override var depthTexture: Texture2D? = null
 
     lateinit var textures: Array<Texture2D>
 
+    fun checkSession() {
+        if (session != OpenGL.session) {
+            session = OpenGL.session
+            pointer = -1
+            needsBlit = true
+        }
+    }
+
     override fun ensure() {
+        checkSession()
         if (pointer < 0) create()
     }
 
@@ -69,7 +86,7 @@ class Framebuffer(
 
     private fun bind(viewport: Boolean) {
         needsBlit = true
-        if (pointer < 0) create()
+        ensure()
         glBindFramebuffer(GL_FRAMEBUFFER, pointer)
         Frame.lastPtr = pointer
         if (viewport) glViewport(0, 0, w, h)
@@ -106,8 +123,10 @@ class Framebuffer(
         Frame.invalidate()
         // LOGGER.info("w: $w, h: $h, samples: $samples, targets: $targetCount x fp32? $fpTargets")
         GFX.check()
-        pointer = glGenFramebuffers()
-        if (pointer < 0) throw RuntimeException()
+        val pointer = glGenFramebuffers()
+        if (pointer <= 0) throw OutOfMemoryError("Could not generate OpenGL framebuffer")
+        session = OpenGL.session
+        DebugGPUStorage.fbs.add(this)
         glBindFramebuffer(GL_FRAMEBUFFER, pointer)
         Frame.lastPtr = pointer
         //stack.push(this)
@@ -138,8 +157,8 @@ class Framebuffer(
             DepthBufferType.NONE -> {
             }
             DepthBufferType.ATTACHMENT -> {
-                val pointer = depthAttachment!!.depthTexture!!.pointer
-                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, tex2D, pointer, 0)
+                val texPointer = depthAttachment!!.depthTexture!!.pointer
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, tex2D, texPointer, 0)
             }
             DepthBufferType.INTERNAL -> createDepthBuffer()
             DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {
@@ -150,7 +169,8 @@ class Framebuffer(
             }
         }
         GFX.check()
-        check()
+        check(pointer)
+        this.pointer = pointer
     }
 
     /*fun createColorBuffer(){
@@ -231,10 +251,10 @@ class Framebuffer(
         }
     }
 
-    private fun check() {
-        val state = glCheckFramebufferStatus(GL_FRAMEBUFFER)
+    private fun check(pointer: Int) {
+        val state = glCheckNamedFramebufferStatus(pointer, GL_FRAMEBUFFER)
         if (state != GL_FRAMEBUFFER_COMPLETE) {
-            throw RuntimeException("Framebuffer is incomplete: $state")
+            throw RuntimeException("Framebuffer is incomplete: ${GFX.getErrorTypeName(state)}")
         }
     }
 
@@ -294,6 +314,7 @@ class Framebuffer(
         if (pointer > -1) {
             glDeleteFramebuffers(pointer)
             Frame.invalidate()
+            DebugGPUStorage.fbs.remove(this)
             pointer = -1
             for (it in textures) {
                 it.destroy()

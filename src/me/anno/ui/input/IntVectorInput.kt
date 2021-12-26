@@ -9,6 +9,7 @@ import me.anno.studio.StudioBase.Companion.warn
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.Selection.selectedProperty
+import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
@@ -29,7 +30,7 @@ class IntVectorInput(
     visibilityKey: String,
     val type: Type,
     private val owningProperty: AnimatedProperty<*>? = null
-) : TitledListY(title, visibilityKey, style) {
+) : TitledListY(title, visibilityKey, style), InputPanel<Vector4i> {
 
     constructor(style: Style) : this(style, "", "", Type.INT, null)
 
@@ -69,6 +70,30 @@ class IntVectorInput(
 
     private var resetListener: (() -> Any?)? = null
 
+    private val valueList = PanelListX(style)
+
+    init {
+
+        if (type == Type.COLOR) warn("VectorInput should be replaced with ColorInput for type color!")
+
+        valueList += WrapAlign.TopFill
+        this += valueList
+
+    }
+
+    override val lastValue: Vector4i
+        get() = Vector4i(
+            compX.lastValue.toInt(),
+            compY.lastValue.toInt(),
+            compZ?.lastValue?.toInt() ?: 0,
+            compW?.lastValue?.toInt() ?: 0
+        )
+
+    override fun setValue(value: Vector4i, notify: Boolean): Panel {
+        setValue(value as Vector4ic, notify)
+        return this
+    }
+
     fun setResetListener(listener: (() -> Any?)?) {
         resetListener = listener
     }
@@ -79,17 +104,6 @@ class IntVectorInput(
         valueList += pseudo.setWeight(1f)
         valueFields += pseudo
         return pseudo
-    }
-
-    private val valueList = PanelListX(style)
-
-    init {
-
-        if (type == Type.COLOR) warn("VectorInput should be replaced with ColorInput for type color!")
-
-        valueList += WrapAlign.TopFill
-        this += valueList
-
     }
 
     override fun onCopyRequested(x: Float, y: Float): String? =
@@ -137,6 +151,7 @@ class IntVectorInput(
             compY.setValue(allComponents, true)
             compZ?.setValue(allComponents, true)
             compW?.setValue(allComponents, true)
+            Unit
         } else null
     }
 

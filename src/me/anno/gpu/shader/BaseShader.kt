@@ -1,7 +1,7 @@
 package me.anno.gpu.shader
 
 import me.anno.gpu.GFX
-import me.anno.gpu.RenderState
+import me.anno.gpu.OpenGL
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.builder.ShaderStage
@@ -100,13 +100,13 @@ open class BaseShader(
 
     val value: Shader
         get() {
-            val renderer = RenderState.currentRenderer
-            val instanced = RenderState.instanced.currentValue
+            val renderer = OpenGL.currentRenderer
+            val instanced = OpenGL.instanced.currentValue
             val shader= if (renderer == Renderer.depthOnlyRenderer) {
                 depthShader.value[instanced.toInt()]
             } else when (val deferred = renderer.deferredSettings) {
                 null -> {
-                    val geoMode = RenderState.geometryShader.currentValue
+                    val geoMode = OpenGL.geometryShader.currentValue
                     flatShader.getOrPut(renderer, instanced, geoMode) { r, i, g ->
                         val shader = createFlatShader(r.getPostProcessing(), i, g)
                         r.uploadDefaultUniforms(shader)
@@ -114,7 +114,7 @@ open class BaseShader(
                         shader
                     }
                 }
-                else -> get(deferred, instanced, RenderState.geometryShader.currentValue)
+                else -> get(deferred, instanced, OpenGL.geometryShader.currentValue)
             }
             shader.use()
             shader.v1("drawMode", renderer.drawMode.id)

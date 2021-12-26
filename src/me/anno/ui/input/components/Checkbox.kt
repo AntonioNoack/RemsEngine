@@ -8,12 +8,13 @@ import me.anno.image.ImageGPUCache.getInternalTexture
 import me.anno.input.MouseButton
 import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.Panel
+import me.anno.ui.input.InputPanel
 import me.anno.ui.style.Style
 import org.lwjgl.glfw.GLFW
 import kotlin.math.min
 
 open class Checkbox(startValue: Boolean, val defaultValue: Boolean, val size: Int, style: Style) :
-    Panel(style.getChild("checkbox")) {
+    Panel(style.getChild("checkbox")), InputPanel<Boolean> {
 
     constructor(base: Checkbox) : this(base.isChecked, base.defaultValue, base.size, base.style) {
         base.copy(this)
@@ -27,6 +28,8 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, val size: In
     }
 
     var isChecked = startValue
+
+    override val lastValue: Boolean get() = isChecked
 
     private var resetListener: () -> Boolean? = { defaultValue }
     private var changeListener: ((Boolean) -> Unit)? = null
@@ -48,7 +51,7 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, val size: In
 
     override fun getVisualState(): Any? = getImage(isChecked)?.state
 
-    fun setValue(value: Boolean, notify: Boolean): Checkbox {
+    override fun setValue(value: Boolean, notify: Boolean): Checkbox {
         if (isChecked != value) toggle(notify)
         return this
     }

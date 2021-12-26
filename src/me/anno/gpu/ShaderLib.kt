@@ -95,7 +95,7 @@ object ShaderLib {
             "}\n" +
             "vec4 textureBicubic(sampler2D sampler, vec2 texCoords){\n" +
 
-            "   vec2 texSize = textureSize(sampler, 0);\n" +
+            "   vec2 texSize = vec2(textureSize(sampler, 0));\n" +
             "   vec2 invTexSize = 1.0 / texSize;\n" +
 
             "   texCoords = texCoords * texSize - 0.5;\n" +

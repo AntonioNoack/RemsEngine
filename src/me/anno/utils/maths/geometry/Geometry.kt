@@ -1,4 +1,4 @@
-package me.anno.gpu.geometry
+package me.anno.utils.maths.geometry
 
 object Geometry {
 

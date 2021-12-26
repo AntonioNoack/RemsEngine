@@ -17,7 +17,7 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
-import me.anno.ui.base.groups.PanelListMultiline
+import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu.askName
@@ -123,7 +123,7 @@ abstract class FileExplorer(
     val minEntrySize = 32f
 
     val uContent = PanelListX(style)
-    val content = PanelListMultiline({ a, b ->
+    val content = PanelList2D({ a, b ->
         // define the order for the file entries:
         // first .., then folders, then files
         // first a, then z, ...

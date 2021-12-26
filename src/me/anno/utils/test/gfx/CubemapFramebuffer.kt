@@ -60,7 +60,7 @@ fun main() {
     GFX.check()
     val state = GL30.glCheckFramebufferStatus(GL30.GL_FRAMEBUFFER)
     if (state != GL30.GL_FRAMEBUFFER_COMPLETE) {
-        throw RuntimeException("Framebuffer is incomplete: $state")
+        throw RuntimeException("Framebuffer is incomplete: ${GFX.getErrorTypeName(state)}")
     }
 
     GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, pointer)

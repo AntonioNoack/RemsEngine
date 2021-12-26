@@ -46,6 +46,13 @@ class IndexedStaticBuffer(
     var isUpToDate2 = false
     var locallyAllocated2 = 0L
 
+    override fun onSessionChange() {
+        super.onSessionChange()
+        elementVBO = -1
+        isUpToDate2 = false
+        locallyAllocated2 = allocate(locallyAllocated2, 0L)
+    }
+
     init {
         createNioBuffer()
     }
@@ -68,7 +75,8 @@ class IndexedStaticBuffer(
         val indices = indices
         if (indices.isEmpty()) return
 
-        if (elementVBO < 0) elementVBO = glGenBuffers()
+        if (elementVBO <= 0) elementVBO = glGenBuffers()
+        if (elementVBO <= 0) throw OutOfMemoryError("Failed to generate OpenGL buffer")
         bindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementVBO)
 
         if (isUpToDate2) return
@@ -114,6 +122,7 @@ class IndexedStaticBuffer(
     }
 
     override fun draw(mode: Int, first: Int, length: Int) {
+        checkSession()
         glDrawElements(mode, indices.size, elementsType, 0)
     }
 
@@ -122,18 +131,19 @@ class IndexedStaticBuffer(
     }
 
     override fun drawInstanced(shader: Shader, instanceData: Buffer, mode: Int) {
+        checkSession()
         instanceData.ensureBuffer()
         bindInstanced(shader, instanceData)
         GL33.glDrawElementsInstanced(mode, indices.size, elementsType, 0, instanceData.drawLength)
         // GL33.glDrawArraysInstanced(mode, 0, base.drawLength, drawLength)
-        unbind()
+        unbind(shader)
     }
 
     override fun drawSimpleInstanced(shader: Shader, mode: Int, count: Int) {
         bind(shader) // defines drawLength
         if (drawLength > 0) {
             glDrawElementsInstanced(mode, indices.size, elementsType, 0, count)
-            unbind()
+            unbind(shader)
             GFX.check()
         }
     }

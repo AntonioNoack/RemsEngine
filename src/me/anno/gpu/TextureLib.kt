@@ -20,12 +20,24 @@ object TextureLib {
     val normalTexture = IndestructibleTexture2D("normal", 1, 1)
     val blackTexture = IndestructibleTexture2D("black", 1, 1)
 
+    private var session = 0
+
     object nullTexture : ICacheData {
         override fun destroy() {}
     }
 
     fun init() {
         val tick = Clock()
+        if (session != OpenGL.session) {
+            session = OpenGL.session
+            // mark all textures as not-yet-created
+            invisibleTexture.createdW = 0
+            whiteTexture.createdW = 0
+            stripeTexture.createdW = 0
+            colorShowTexture.createdW = 0
+            normalTexture.createdW = 0
+            blackTexture.createdW = 0
+        }
         invisibleTexture.createRGBA(ByteArray(4) { 0.toByte() }, false)
         whiteTexture.createRGBA(
             byteArrayOf(255.toByte(), 255.toByte(), 255.toByte(), 255.toByte()), false

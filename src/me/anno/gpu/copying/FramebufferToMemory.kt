@@ -2,7 +2,7 @@ package me.anno.gpu.copying
 
 import me.anno.engine.ECSRegistry
 import me.anno.gpu.GFX
-import me.anno.gpu.RenderState.useFrame
+import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.drawing.DrawGradients
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.framebuffer.FBStack
@@ -10,7 +10,6 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.packAlignment
-import me.anno.gpu.texture.Texture2D.Companion.unpackAlignment
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.Color

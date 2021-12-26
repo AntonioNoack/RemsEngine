@@ -17,9 +17,11 @@ import me.anno.utils.maths.Maths.mix
 import me.anno.utils.structures.tuples.Quad
 import kotlin.math.max
 
-class PanelListMultiline(val sorter: Comparator<Panel>?, style: Style) : PanelGroup(style), ScrollableY {
+class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, style), ScrollableY {
 
-    constructor(base: PanelListMultiline): this(base.sorter, base.style){
+    constructor(style: Style): this(null, style)
+
+    constructor(base: PanelList2D): this(base.sorter, base.style){
         base.copy(this)
     }
 
@@ -60,8 +62,6 @@ class PanelListMultiline(val sorter: Comparator<Panel>?, style: Style) : PanelGr
     var calcChildWidth = 0
     var calcChildHeight = 0
     var minH2 = 0
-
-    var spacing = style.getSize("childSpacing", 1)
 
     override var scrollPositionY = 0f
     var isDownOnScrollbar = false
@@ -138,18 +138,6 @@ class PanelListMultiline(val sorter: Comparator<Panel>?, style: Style) : PanelGr
         val ly = y - this.y + scrollPositionY - spacing
         val itemY = ly * rows / h
         return fract(itemY)
-    }
-
-    fun clear() = children.clear()
-    operator fun plusAssign(child: Panel) {
-        children.plusAssign(child)
-        child.parent = this
-        invalidateLayout()
-    }
-
-    override fun remove(child: Panel) {
-        children.remove(child)
-        invalidateLayout()
     }
 
     private fun updateCount() {
@@ -255,11 +243,11 @@ class PanelListMultiline(val sorter: Comparator<Panel>?, style: Style) : PanelGr
         } else super.onMouseMoved(x, y, dx, dy)
     }
 
-    override fun clone() = PanelListMultiline(this)
+    override fun clone() = PanelList2D(this)
 
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
-        clone as PanelListMultiline
+        clone as PanelList2D
         clone.childWidth = childWidth
         clone.childHeight = childHeight
         clone.scaleChildren = scaleChildren

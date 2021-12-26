@@ -2,6 +2,7 @@ package me.anno.gpu.buffer
 
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
+import me.anno.gpu.OpenGL
 import me.anno.gpu.buffer.Attribute.Companion.computeOffsets
 import me.anno.gpu.shader.Shader
 import me.anno.utils.LOGGER
@@ -11,6 +12,7 @@ import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL33.glDrawArraysInstanced
 import org.lwjgl.opengl.GL33.glVertexAttribDivisor
 import java.nio.ByteBuffer
+import kotlin.math.max
 
 abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
     ICacheData, Drawable {
@@ -24,7 +26,9 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
 
     var drawLength = 0
 
-    var buffer = -1
+    var pointer = -1
+    var session = 0
+
     var isUpToDate = false
 
     fun getName() = getName(0)
@@ -32,7 +36,23 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
 
     var locallyAllocated = 0L
 
+    fun checkSession() {
+        if (session != OpenGL.session) {
+            session = OpenGL.session
+            onSessionChange()
+        }
+    }
+
+    open fun onSessionChange() {
+        pointer = -1
+        isUpToDate = false
+        locallyAllocated = allocate(locallyAllocated, 0L)
+        vao = -1
+    }
+
     fun upload(allowResize: Boolean = true) {
+
+        checkSession()
 
         GFX.check()
 
@@ -40,21 +60,21 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
             createNioBuffer()
         }
 
-        if (buffer <= 0) buffer = glGenBuffers()
-        if (buffer <= 0) throw IllegalStateException()
+        if (pointer <= 0) pointer = glGenBuffers()
+        if (pointer <= 0) throw OutOfMemoryError("Could not generate OpenGL Buffer")
 
-        bindBuffer(GL_ARRAY_BUFFER, buffer)
+        bindBuffer(GL_ARRAY_BUFFER, pointer)
 
         val nio = nioBuffer!!
-        val newLimit = nio.position().toLong()
-        drawLength = (newLimit / stride).toInt()
-        nio.flip()
-        val minAcceptedSize = if (allowResize) locallyAllocated / 2 else 0
-        if (locallyAllocated > 0 && newLimit in minAcceptedSize..locallyAllocated) {
+        val newLimit = nio.position()
+        drawLength = max(drawLength, newLimit / stride)
+        nio.position(0)
+        nio.limit(drawLength * stride)
+        if (allowResize && locallyAllocated > 0 && newLimit in locallyAllocated / 2..locallyAllocated) {
             // just keep the buffer
             GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, 0, nio)
         } else {
-            locallyAllocated = allocate(locallyAllocated, newLimit)
+            locallyAllocated = allocate(locallyAllocated, newLimit.toLong())
             GL15.glBufferData(GL15.GL_ARRAY_BUFFER, nio, usage)
         }
 
@@ -78,8 +98,10 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
     private var vao = -1
 
     private fun ensureVAO() {
-        if (vao <= 0) vao = glGenVertexArrays()
-        if (vao <= 0) throw IllegalStateException()
+        if (useVAOs) {
+            if (vao <= 0) vao = glGenVertexArrays()
+            if (vao <= 0) throw IllegalStateException()
+        }
     }
 
     private var hasWarned = false
@@ -90,7 +112,7 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
         ensureVAO()
 
         bindVAO(vao)
-        bindBuffer(GL_ARRAY_BUFFER, buffer)
+        bindBuffer(GL_ARRAY_BUFFER, pointer)
         var hasAttr = false
         val attributes = attributes
         for (index in attributes.indices) {
@@ -109,14 +131,14 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
         ensureBuffer()
 
         bindVAO(vao)
-        bindBuffer(GL_ARRAY_BUFFER, buffer)
+        bindBuffer(GL_ARRAY_BUFFER, pointer)
         // first the instanced attributes, so the function can be called with super.createVAOInstanced without binding the buffer again
         for (attr in attributes) {
             bindAttribute(shader, attr, false)
         }
 
         instanceData.ensureBuffer()
-        bindBuffer(GL_ARRAY_BUFFER, instanceData.buffer)
+        bindBuffer(GL_ARRAY_BUFFER, instanceData.pointer)
         for (attr in instanceData.attributes) {
             bindAttribute(shader, attr, true)
         }
@@ -139,7 +161,7 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
     private fun bindBufferAttributesInstanced(shader: Shader, instanceData: Buffer) {
         GFX.check()
         shader.potentiallyUse()
-        if (vao < 0 ||
+        if (vao <= 0 ||
             attributes != baseAttributes ||
             instanceAttributes != instanceData.attributes ||
             shader !== lastShader
@@ -157,21 +179,29 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
         bind(shader) // defines drawLength
         if (drawLength > 0) {
             draw(mode, 0, drawLength)
-            unbind()
+            unbind(shader)
             GFX.check()
         }
     }
 
-    open fun unbind() {
+    open fun unbind(shader: Shader) {
         // bindBuffer(GL_ARRAY_BUFFER, 0)
         // bindVAO(0)
+        if (!useVAOs) {
+            for (attr in attributes) {
+                val loc = shader.getAttributeLocation(attr.name)
+                if (loc >= 0) glDisableVertexAttribArray(loc)
+            }
+        }
     }
 
     fun ensureBuffer() {
+        checkSession()
         if (!isUpToDate) upload()
     }
 
     fun ensureBufferWithoutResize() {
+        checkSession()
         if (!isUpToDate) upload(false)
     }
 
@@ -184,10 +214,11 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
         instanceData.ensureBuffer()
         bindInstanced(shader, instanceData)
         glDrawArraysInstanced(mode, 0, drawLength, instanceData.drawLength)
-        unbind()
+        unbind(shader)
     }
 
     fun bind(shader: Shader) {
+        checkSession()
         if (!isUpToDate) upload()
         // else if (drawLength > 0) bindBuffer(GL15.GL_ARRAY_BUFFER, buffer)
         if (drawLength > 0) {
@@ -196,6 +227,7 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
     }
 
     fun bindInstanced(shader: Shader, instanceData: Buffer) {
+        checkSession()
         if (!isUpToDate) upload()
         // else if (drawLength > 0) bindBuffer(GL15.GL_ARRAY_BUFFER, buffer)
         if (drawLength > 0) {
@@ -215,13 +247,13 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
         bind(shader) // defines drawLength
         if (drawLength > 0) {
             glDrawArraysInstanced(mode, 0, drawLength, count)
-            unbind()
+            unbind(shader)
             GFX.check()
         }
     }
 
     override fun destroy() {
-        val buffer = buffer
+        val buffer = pointer
         val vao = vao
         if (buffer > -1) {
             GFX.addGPUTask(1) {
@@ -234,7 +266,7 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
                 locallyAllocated = allocate(locallyAllocated, 0L)
             }
         }
-        this.buffer = -1
+        this.pointer = -1
         this.vao = -1
         if (nioBuffer != null) {
             // todo does this still crash?
@@ -244,6 +276,9 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
     }
 
     companion object {
+
+        var useVAOs = true
+        var alwaysBindBuffer = false
 
         fun bindAttribute(shader: Shader, attr: Attribute, instanced: Boolean): Boolean {
             val instanceDivisor = if (instanced) 1 else 0
@@ -270,7 +305,7 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
 
         var boundVAO = -1
         fun bindVAO(vao: Int) {
-            if (boundVAO != vao) {
+            if (useVAOs && (alwaysBindBuffer || boundVAO != vao)) {
                 boundVAO = vao
                 glBindVertexArray(vao)
             }
@@ -279,13 +314,15 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
         var boundBuffers = IntArray(2) { 0 }
         fun bindBuffer(slot: Int, buffer: Int, force: Boolean = false) {
             val index = slot - GL_ARRAY_BUFFER
-            if (index in boundBuffers.indices) {
+            if (alwaysBindBuffer || index !in boundBuffers.indices) {
+                glBindBuffer(slot, buffer)
+            } else {
                 if (boundBuffers[index] != buffer || force) {
                     if (buffer < 0) throw IllegalArgumentException("Buffer is invalid!")
                     boundBuffers[index] = buffer
                     glBindBuffer(slot, buffer)
                 }
-            } else glBindBuffer(slot, buffer) // unknown buffer, probably used rarely anyways ^^
+            }
         }
 
         fun onDestroyBuffer(buffer: Int) {

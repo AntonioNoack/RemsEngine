@@ -15,7 +15,7 @@ import me.anno.gpu.Cursor.useCursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isMinimized
 import me.anno.gpu.GFXBase0
-import me.anno.gpu.RenderState.useFrame
+import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.Renderer
 import me.anno.input.ActionManager

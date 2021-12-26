@@ -5,7 +5,7 @@ import me.anno.config.DefaultStyle.black
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.toRadians
-import me.anno.gpu.RenderState.depthMode
+import me.anno.gpu.OpenGL.depthMode
 import me.anno.gpu.ShaderLib.shader3D
 import me.anno.gpu.TextureLib.bindWhite
 import me.anno.gpu.buffer.Attribute

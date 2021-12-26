@@ -7,7 +7,6 @@ import me.anno.gpu.GFX
 import me.anno.parser.SimpleExpressionParser
 import me.anno.parser.SimpleExpressionParser.toDouble
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
-import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
 import me.anno.utils.types.AnyToDouble.getDouble
 import me.anno.utils.types.AnyToFloat.getFloat
@@ -23,11 +22,11 @@ open class FloatInput(
     type: Type = Type.FLOAT,
     owningProperty: AnimatedProperty<*>?,
     indexInProperty: Int
-) : NumberInput(style, title, visibilityKey, type, owningProperty, indexInProperty) {
+) : NumberInput<Double>(style, title, visibilityKey, type, owningProperty, indexInProperty) {
 
     constructor(style: Style) : this(style, "", "", Type.FLOAT, null, 0)
 
-    var lastValue: Double = getValue(type.defaultValue)
+    override var lastValue: Double = getValue(type.defaultValue)
     var changeListener: (value: Double) -> Unit = { }
 
     var allowInfinity = false
@@ -151,7 +150,7 @@ open class FloatInput(
         }
     }
 
-    fun setChangeListener(listener: (value: Double) -> Unit): NumberInput {
+    fun setChangeListener(listener: (value: Double) -> Unit): FloatInput {
         changeListener = listener
         return this
     }
@@ -163,13 +162,14 @@ open class FloatInput(
         }
     }
 
-    fun setValue(v: Double, notify: Boolean) {
-        if (v != lastValue || !hasValue) {
+    override fun setValue(value: Double, notify: Boolean): FloatInput {
+        if (value != lastValue || !hasValue) {
             hasValue = true
-            lastValue = v
-            if (notify) changeListener(v)
-            setText(stringify(v))
+            lastValue = value
+            if (notify) changeListener(value)
+            setText(stringify(value))
         }
+        return this
     }
 
     fun updateValueMaybe() {

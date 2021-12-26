@@ -3,9 +3,9 @@ package me.anno.video
 import me.anno.animation.AnimatedProperty
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
-import me.anno.gpu.RenderState.blendMode
-import me.anno.gpu.RenderState.depthMode
-import me.anno.gpu.RenderState.useFrame
+import me.anno.gpu.OpenGL.blendMode
+import me.anno.gpu.OpenGL.depthMode
+import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack

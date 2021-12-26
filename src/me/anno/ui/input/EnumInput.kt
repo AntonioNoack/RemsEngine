@@ -4,6 +4,7 @@ import me.anno.gpu.Cursor
 import me.anno.input.MouseButton
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
+import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
@@ -17,7 +18,7 @@ import kotlin.reflect.full.memberProperties
 open class EnumInput(
     val title: String, withTitle: Boolean, startValue: String,
     val options: List<NameDesc>, style: Style
-) : PanelListX(style) {
+) : PanelListX(style), InputPanel<NameDesc> {
 
     constructor(title: String, ttt: String, startValue: String, options: List<NameDesc>, style: Style) :
             this(title, true, startValue, options, style) {
@@ -62,6 +63,22 @@ open class EnumInput(
         titleView?.enableHoverColor = true
         inputPanel.enableHoverColor = true
     }
+
+    override val lastValue: NameDesc
+        get() = TODO("Not yet implemented")
+
+    override fun setValue(value: NameDesc, notify: Boolean): EnumInput {
+        TODO("Not yet implemented")
+        return this
+    }
+
+    // todo drawing & ignoring inputs
+    private var _isEnabled = true
+    override var isEnabled: Boolean
+        get() = _isEnabled
+        set(value) {
+            _isEnabled = value; invalidateDrawing()
+        }
 
     fun moveDown(direction: Int) {
         val oldValue = inputPanel.text

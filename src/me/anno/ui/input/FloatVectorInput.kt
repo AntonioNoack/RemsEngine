@@ -42,7 +42,7 @@ class FloatVectorInput(
     val type: Type,
     private val owningProperty: AnimatedProperty<*>? = null,
     style: Style
-) : PanelListY(style), TextStyleable {
+) : PanelListY(style), InputPanel<Vector4d>, TextStyleable {
 
     constructor(style: Style) : this("", "", Type.FLOAT, null, style)
 
@@ -198,12 +198,25 @@ class FloatVectorInput(
 
     }
 
+    override val lastValue: Vector4d
+        get() = Vector4d(
+            compX.lastValue,
+            compY.lastValue,
+            compZ?.lastValue ?: 0.0,
+            compW?.lastValue ?: 0.0
+        )
+
     override fun setBold(bold: Boolean) {
         titleView?.setBold(bold)
     }
 
     override fun setItalic(italic: Boolean) {
         titleView?.setItalic(italic)
+    }
+
+    override fun setValue(value: Vector4d, notify: Boolean): FloatVectorInput {
+        setValue(value as Vector4dc, notify)
+        return this
     }
 
     private fun addComponent(i: Int, title: String): FloatInput {
@@ -259,6 +272,7 @@ class FloatVectorInput(
             compY.setValue(allComponents, true)
             compZ?.setValue(allComponents, true)
             compW?.setValue(allComponents, true)
+            Unit
         } else null
     }
 

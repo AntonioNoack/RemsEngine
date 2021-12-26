@@ -1,7 +1,7 @@
 package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
-import me.anno.gpu.RenderState
+import me.anno.gpu.OpenGL
 import me.anno.gpu.copying.FramebufferToMemory.createImage
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
@@ -10,15 +10,12 @@ import me.anno.gpu.texture.Texture2D.Companion.packAlignment
 import me.anno.image.raw.IntImage
 import me.anno.language.translation.Dict
 import me.anno.ui.debug.ConsoleOutputPanel.Companion.formatFilePath
-import me.anno.utils.Color
 import me.anno.utils.OS
-import me.anno.utils.files.Files
 import me.anno.utils.hpc.Threads.threadWithName
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11
 import java.text.SimpleDateFormat
 import java.util.*
-import javax.imageio.ImageIO
 import kotlin.math.max
 import kotlin.math.min
 
@@ -34,7 +31,7 @@ object Screenshots {
     ): IntArray {
         val localYOpenGL = GFX.height - localY
         val buffer = IntArray(diameter * diameter)
-        RenderState.useFrame(startX, startY, fb.w, fb.h, false, fb, renderer) {
+        OpenGL.useFrame(startX, startY, fb.w, fb.h, false, fb, renderer) {
             val radius = diameter shr 1
             val x0 = max(localX - radius, 0)
             val y0 = max(localYOpenGL - radius, 0)
@@ -44,7 +41,7 @@ object Screenshots {
             if (x1 > x0 && y1 > y0) {
                 Frame.bind()
                 // draw only the clicked area
-                RenderState.scissorTest.use(true) {
+                OpenGL.scissorTest.use(true) {
                     GL11.glScissor(x0, y0, x1 - x0, y1 - y0)
                     drawScene()
                     GL11.glFlush(); GL11.glFinish() // wait for everything to be drawn
@@ -60,7 +57,7 @@ object Screenshots {
         diameter: Int,
         idBuffer: IntArray,
         depthBuffer: IntArray,
-        depthImportance: Int = if (RenderState.depthMode.currentValue.reversedDepth) -10 else +10
+        depthImportance: Int = if (OpenGL.depthMode.currentValue.reversedDepth) -10 else +10
     ): Int {
 
         var bestDistance = Int.MAX_VALUE
@@ -117,7 +114,7 @@ object Screenshots {
 
             fun getPixels(renderer: Renderer): IntImage {
                 // draw only the clicked area?
-                RenderState.useFrame(fb, renderer) {
+                OpenGL.useFrame(fb, renderer) {
                     GFX.check()
                     drawScene()
                     // Scene.draw(camera, RemsStudio.root, 0, 0, w, h, RemsStudio.editorTime, true, renderer, this)

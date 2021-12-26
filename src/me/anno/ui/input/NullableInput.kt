@@ -1,21 +1,37 @@
 package me.anno.ui.input
 
-import me.anno.ui.base.IconPanel
+import me.anno.engine.IProperty
 import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelListX
+import me.anno.ui.input.components.Checkbox
 import me.anno.ui.style.Style
 
-class NullableInput(val content: Panel, style: Style) : PanelListX(style) {
+class NullableInput(val content: Panel, val property: IProperty<*>, style: Style) : PanelListX(style) {
 
     init {
+        val value0 = property.get()
+        val default = property.getDefault()
         add(content)
-        add(IconPanel("cross", style).apply {
+        val checkbox = Checkbox(
+            value0 != null, default != null,
+            style.getSize("fontSize", 10), style
+        )
+        add(checkbox.apply {
             tooltip = "Toggle Null"
-            addLeftClickListener {
-                // todo if is null, reset to non-null
-                // todo if not null, hide input panel, or gray it out (click = enable it)
+            setChangeListener { isNotNull ->
+                property as IProperty<Any?>
+                content as InputPanel<Any?>
+                content.isEnabled = isNotNull
+                if (isNotNull) {
+                    content.setValue(content.lastValue, true)
+                } else {
+                    property.set(content, null)
+                }
             }
         })
     }
+
+    var changeListener = {}
+    var resetListener = {}
 
 }

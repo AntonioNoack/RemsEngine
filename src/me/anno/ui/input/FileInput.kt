@@ -27,7 +27,7 @@ class FileInput(
     f0: FileReference,
     val extraRightClickOptions: List<FileExplorerOption>,
     val isDirectory: Boolean = false
-) : PanelListX(style) {
+) : PanelListX(style), InputPanel<FileReference> {
 
     val button = TextButton(DefaultConfig["ui.symbol.folder", "\uD83D\uDCC1"], true, style)
     val base = TextInput(title, "", false, f0.toString2(), style)
@@ -62,7 +62,7 @@ class FileInput(
                     // todo select the file using our own explorer (?), because ours may be better
                     FileExplorerSelectWrapper.selectFileOrFolder(file3, isDirectory) { file ->
                         if (file != null) {
-                            setFile(file)
+                            setValue(file)
                         }
                     }
                 }
@@ -78,21 +78,25 @@ class FileInput(
         this += base//ScrollPanelX(base, Padding(), style, AxisAlignment.MIN)
     }
 
-    fun setFile(file: File) {
+    fun setValue(file: File, notify: Boolean = false): FileInput {
         base.setValue(file.toString2(), false)
-        changeListener(getReference(file))
+        if(notify) changeListener(getReference(file))
+        return this
     }
 
-    fun setFile(file: FileReference) {
-        base.setValue(file.toString2(), false)
-        changeListener(file)
+    override fun setValue(value: FileReference, notify: Boolean): FileInput {
+        base.setValue(value.toString2(), false)
+        if(notify) changeListener(value)
+        return this
     }
 
     private fun File.toString2() = toLocalPath()
     private fun FileReference.toString2() = toLocalPath()
     // toString().replace('\\', '/') // / is easier to type
 
-    val file get(): FileReference = base.text.toGlobalFile()
+    val file get(): FileReference = base.lastValue.toGlobalFile()
+
+    override val lastValue: FileReference get() = file
 
     var changeListener = { _: FileReference -> }
     fun setChangeListener(listener: (FileReference) -> Unit): FileInput {
@@ -127,7 +131,7 @@ class FileInput(
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         if (files.size == 1) {
-            setFile(files[0])
+            setValue(files[0], true)
         } else {
             LOGGER.warn("Can only paste a single file!, got $files")
         }

@@ -1,18 +1,45 @@
 package me.anno.gpu
 
+import me.anno.cache.instances.VideoCache
 import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.buffer.Buffer
+import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.GeoShader
+import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.colorRenderer
+import me.anno.gpu.texture.Texture2D
+import me.anno.image.ImageGPUCache
+import me.anno.utils.OS
 import me.anno.utils.structures.stacks.SecureBoolStack
 import me.anno.utils.structures.stacks.SecureIntStack
 import me.anno.utils.structures.stacks.SecureStack
 import org.lwjgl.opengl.GL20.GL_LOWER_LEFT
 import org.lwjgl.opengl.GL45.*
 
-object RenderState {
+object OpenGL {
+
+    var session = 0
+        private set
+
+    /**
+     * in OpenGL ES (e.g. on Android),
+     * the context can be destroyed, when the app
+     * is closed temporarily to save resources & energy
+     * then all loaded memory has become invalid
+     * */
+    fun newSession() {
+        session++
+        GFX.gpuTasks.clear() // they all have become invalid
+        OpenGLShader.invalidateBinding()
+        Texture2D.invalidateBinding()
+        Buffer.invalidateBinding()
+        VideoCache.clear()
+        ImageGPUCache.clear()
+        FBStack.clear()
+    }
 
     // the renderer is set per framebuffer; makes the most sense
     // additionally, it would be possible to set the blend-mode and depth there in a game setting
@@ -48,8 +75,15 @@ object RenderState {
                 glEnable(GL_DEPTH_TEST)
                 glDepthFunc(newValue.func)
                 val reversedDepth = newValue.reversedDepth
-                glClearDepth(if (reversedDepth) 0.0 else 1.0)
-                glClipControl(GL_LOWER_LEFT, if (reversedDepth) GL_ZERO_TO_ONE else GL_NEGATIVE_ONE_TO_ONE)
+                val supportsClipControl = !OS.isAndroid
+                if (supportsClipControl) {
+                    glClearDepth(if (reversedDepth) 0.0 else 1.0)
+                    glClipControl(GL_LOWER_LEFT, if (reversedDepth) GL_ZERO_TO_ONE else GL_NEGATIVE_ONE_TO_ONE)
+                } else {
+                    // does this work??
+                    glClearDepth(if (reversedDepth) 0.0 else 1.0)
+                    glDepthRange(0.0, 1.0)
+                }
                 // glDepthRange(-1.0, 1.0)
                 // glDepthFunc(GL_LESS)
             } else {
@@ -84,9 +118,9 @@ object RenderState {
         }
     }
 
-    val stencilTest = object: SecureBoolStack(false){
+    val stencilTest = object : SecureBoolStack(false) {
         override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
-            if(newValue) glEnable(GL_STENCIL_TEST)
+            if (newValue) glEnable(GL_STENCIL_TEST)
             else glDisable(GL_STENCIL_TEST)
         }
     }
@@ -182,7 +216,15 @@ object RenderState {
     inline fun useFrame(x: Int, y: Int, w: Int, h: Int, changeSize: Boolean, render: () -> Unit) =
         useFrame(x, y, w, h, changeSize, currentBuffer, currentRenderer, render)
 
-    inline fun useFrame(x: Int, y: Int, w: Int, h: Int, changeSize: Boolean, buffer: IFramebuffer?, render: () -> Unit) =
+    inline fun useFrame(
+        x: Int,
+        y: Int,
+        w: Int,
+        h: Int,
+        changeSize: Boolean,
+        buffer: IFramebuffer?,
+        render: () -> Unit
+    ) =
         useFrame(x, y, w, h, changeSize, buffer, currentRenderer, render)
 
 }

@@ -2,6 +2,7 @@ package me.anno.gpu.texture
 
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
+import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.framebuffer.TargetType
 import org.lwjgl.opengl.ARBDepthBufferFloat.GL_DEPTH_COMPONENT32F
@@ -48,8 +49,9 @@ class CubemapTexture(
             // many textures can be created by the console log and the fps viewer constantly xD
             // maybe we should use allocation free versions there xD
             GFX.check()
+            if (pointer < 0) throw RuntimeException("Could not allocate texture pointer")
+            DebugGPUStorage.texCd.add(this)
         }
-        if (pointer <= 0) throw RuntimeException("Could not allocate texture pointer")
     }
 
     private fun bindBeforeUpload() {
@@ -196,19 +198,17 @@ class CubemapTexture(
         isDestroyed = true
         val pointer = pointer
         if (pointer > -1) {
-            if (!GFX.isGFXThread()) {
-                GFX.addGPUTask(1) {
-                    Texture2D.invalidateBinding()
-                    locallyAllocated = Texture2D.allocate(locallyAllocated, 0L)
-                    Texture2D.texturesToDelete.add(pointer)
-                }
-            } else {
-                Texture2D.invalidateBinding()
-                locallyAllocated = Texture2D.allocate(locallyAllocated, 0L)
-                Texture2D.texturesToDelete.add(pointer)
-            }
+            if (GFX.isGFXThread()) destroy(pointer)
+            else GFX.addGPUTask(1) { destroy(pointer) }
         }
         this.pointer = -1
+    }
+
+    private fun destroy(pointer: Int) {
+        DebugGPUStorage.texCd.remove(this)
+        Texture2D.invalidateBinding()
+        locallyAllocated = Texture2D.allocate(locallyAllocated, 0L)
+        Texture2D.texturesToDelete.add(pointer)
     }
 
 }

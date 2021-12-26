@@ -5,11 +5,15 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isGFXThread
 import me.anno.gpu.GFX.loadTexturesSync
+import me.anno.gpu.OpenGL
+import me.anno.gpu.buffer.Buffer
+import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.buffer.Buffer.Companion.bindBuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.image.Image
 import me.anno.objects.modes.RotateJPEG
 import me.anno.utils.hpc.Threads.threadWithName
+import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.pooling.ByteArrayPool
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.IntArrayPool
@@ -32,13 +36,15 @@ open class Texture2D(
     val name: String,
     override var w: Int,
     override var h: Int,
-    val samples: Int
+    samples: Int
 ) : ICacheData, ITexture2D {
 
     constructor(img: BufferedImage, checkRedundancy: Boolean) : this("img", img.width, img.height, 1) {
         create(img, true, checkRedundancy)
         filtering(GPUFiltering.NEAREST)
     }
+
+    val samples = clamp(samples, 1, GFX.maxSamples)
 
     override fun toString() = "$name $w $h $samples"
 
@@ -48,6 +54,17 @@ open class Texture2D(
     val state get(): Int = pointer * 4 + isDestroyed.toInt(2) + isCreated.toInt(1)
 
     var pointer = -1
+    var session = 0
+
+    fun checkSession() {
+        if (session != OpenGL.session) {
+            session = OpenGL.session
+            pointer = -1
+            isCreated = false
+            isDestroyed = false
+            locallyAllocated = allocate(locallyAllocated, 0L)
+        }
+    }
 
     var isCreated = false
     var isDestroyed = false
@@ -71,10 +88,12 @@ open class Texture2D(
     }
 
     fun ensurePointer() {
+        checkSession()
         if (isDestroyed) throw RuntimeException("Texture was destroyed")
         if (pointer <= 0) {
             GFX.check()
             pointer = createTexture()
+            DebugGPUStorage.tex2d.add(this)
             // many textures can be created by the console log and the fps viewer constantly xD
             // maybe we should use allocation free versions there xD
             GFX.check()
@@ -770,11 +789,13 @@ open class Texture2D(
         if (pointer > -1) {
             if (!isGFXThread()) {
                 GFX.addGPUTask(1) {
+                    DebugGPUStorage.tex2d.remove(this)
                     invalidateBinding()
                     locallyAllocated = allocate(locallyAllocated, 0L)
                     texturesToDelete.add(pointer)
                 }
             } else {
+                DebugGPUStorage.tex2d.remove(this)
                 invalidateBinding()
                 locallyAllocated = allocate(locallyAllocated, 0L)
                 texturesToDelete.add(pointer)
@@ -857,13 +878,15 @@ open class Texture2D(
 
         // val isLittleEndian = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN
 
+        private var creationSession = -1
         private var creationIndex = 0
         private val creationIndices = IntArray(16)
 
         fun createTexture(): Int {
             GFX.checkIsGFXThread()
-            if (creationIndex == 0 || creationIndex == creationIndices.size) {
+            if (creationSession != OpenGL.session || creationIndex == creationIndices.size) {
                 creationIndex = 0
+                creationSession = OpenGL.session
                 glGenTextures(creationIndices)
                 GFX.check()
             }

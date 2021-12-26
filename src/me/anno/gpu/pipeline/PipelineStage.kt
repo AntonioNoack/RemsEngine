@@ -17,7 +17,7 @@ import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.shaderColor
-import me.anno.gpu.RenderState
+import me.anno.gpu.OpenGL
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
@@ -108,10 +108,10 @@ class PipelineStage(
     val instancedMeshes = KeyPairMap<Mesh, Int, InstancedStack>()
 
     fun bindDraw(pipeline: Pipeline, cameraMatrix: Matrix4fc, cameraPosition: Vector3d, worldScale: Double) {
-        RenderState.blendMode.use(blendMode) {
-            RenderState.depthMode.use(depthMode) {
-                RenderState.depthMask.use(writeDepth) {
-                    RenderState.cullMode.use(cullMode) {
+        OpenGL.blendMode.use(blendMode) {
+            OpenGL.depthMode.use(depthMode) {
+                OpenGL.depthMask.use(writeDepth) {
+                    OpenGL.cullMode.use(cullMode) {
                         GFX.check()
                         draw(pipeline, cameraMatrix, cameraPosition, worldScale)
                         GFX.check()
@@ -413,7 +413,7 @@ class PipelineStage(
         val batchSize = instancedBatchSize
         val buffer = meshInstanceBuffer
         val aabb = tmpAABBd
-        RenderState.instanced.use(true) {
+        OpenGL.instanced.use(true) {
             for ((mesh, list) in instancedMeshes.values) {
                 for ((materialIndex, values) in list) {
                     if (values.isNotEmpty()) {
@@ -529,7 +529,7 @@ class PipelineStage(
         // draw instanced meshes
         val batchSize = instancedBatchSize
         val buffer = meshInstanceBuffer
-        RenderState.instanced.use(true) {
+        OpenGL.instanced.use(true) {
             val shader2 = defaultShader.value
             shader2.use()
             initShader(shader2, cameraMatrix, pipeline)

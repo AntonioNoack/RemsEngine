@@ -23,9 +23,9 @@ open class IntInput(
     type: Type = Type.INT,
     owningProperty: AnimatedProperty<*>?,
     indexInProperty: Int
-) : NumberInput(style, title, visibilityKey, type, owningProperty, indexInProperty) {
+) : NumberInput<Long>(style, title, visibilityKey, type, owningProperty, indexInProperty) {
 
-    var lastValue: Long = getValue(type.defaultValue)
+    override var lastValue: Long = getValue(type.defaultValue)
     var changeListener: (value: Long) -> Unit = { }
 
     @NotSerializedProperty
@@ -159,7 +159,7 @@ open class IntInput(
         }
     }
 
-    fun setChangeListener(listener: (value: Long) -> Unit): NumberInput {
+    fun setChangeListener(listener: (value: Long) -> Unit): IntInput {
         changeListener = listener
         return this
     }
@@ -171,13 +171,14 @@ open class IntInput(
         }
     }
 
-    fun setValue(v: Long, notify: Boolean) {
-        if (v != lastValue || !hasValue) {
+    override fun setValue(value: Long, notify: Boolean): IntInput {
+        if (value != lastValue || !hasValue) {
             hasValue = true
-            lastValue = v
-            if (notify) changeListener(v)
-            setText(stringify(v))
+            lastValue = value
+            if (notify) changeListener(value)
+            setText(stringify(value))
         }
+        return this
     }
 
     fun updateValueMaybe() {

@@ -5,6 +5,7 @@ import me.anno.gpu.Cursor
 import me.anno.io.files.FileReference
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
+import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.PureTextInputML
 import me.anno.ui.style.Style
 
@@ -14,12 +15,12 @@ open class TextInputML(title: String, style: Style) : PanelContainer(
     PureTextInputML(
         style.getChild("deep")
     ), Padding(2), style.getChild("deep")
-) {
+), InputPanel<String>, TextStyleable {
 
     constructor(style: Style) : this("", style)
 
     constructor(title: String, v0: String, style: Style) : this(title, style) {
-        setText(v0, false)
+        base.setText(v0, false)
     }
 
     val base = child as PureTextInputML
@@ -37,6 +38,12 @@ open class TextInputML(title: String, style: Style) : PanelContainer(
         return this
     }
 
+    override val lastValue: String get() = base.text
+    override fun setValue(value: String, notify: Boolean): TextInputML {
+        base.setText(value, notify)
+        return this
+    }
+
     fun deleteKeys() = base.deleteSelection()
     fun addKey(codePoint: Int) = base.addKey(codePoint)
     fun insert(insertion: String) = base.insert(insertion)
@@ -46,13 +53,6 @@ open class TextInputML(title: String, style: Style) : PanelContainer(
     fun ensureCursorBounds() = base.ensureCursorBounds()
     fun addChangeListener(listener: (text: String) -> Unit): TextInputML {
         base.changeListeners += listener
-        return this
-    }
-
-    fun setText(text: String, notify: Boolean): TextInputML {
-        base.setText(text, notify)
-        /*base.text = text
-        updateChars()*/
         return this
     }
 
@@ -71,7 +71,7 @@ open class TextInputML(title: String, style: Style) : PanelContainer(
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         val keyFile = files.firstOrNull() ?: return
-        setText(keyFile.toString(), true)
+        setValue(keyFile.toString(), true)
     }
 
     override fun getCursor(): Long = Cursor.drag

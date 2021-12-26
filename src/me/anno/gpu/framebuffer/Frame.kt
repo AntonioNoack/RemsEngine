@@ -1,8 +1,7 @@
 package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
-import me.anno.gpu.RenderState
-import org.apache.logging.log4j.LogManager
+import me.anno.gpu.OpenGL
 import org.lwjgl.opengl.GL11.glViewport
 import java.lang.IllegalArgumentException
 import kotlin.math.abs
@@ -10,14 +9,14 @@ import kotlin.math.abs
 object Frame {
 
     fun bind() {
-        val index = RenderState.framebuffer.size - 1
+        val index = OpenGL.framebuffer.size - 1
         bind(
-            RenderState.currentBuffer,
-            RenderState.changeSizes[index],
-            RenderState.xs[index],
-            RenderState.ys[index],
-            RenderState.ws[index],
-            RenderState.hs[index]
+            OpenGL.currentBuffer,
+            OpenGL.changeSizes[index],
+            OpenGL.xs[index],
+            OpenGL.ys[index],
+            OpenGL.ws[index],
+            OpenGL.hs[index]
         )
     }
 

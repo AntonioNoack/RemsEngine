@@ -11,7 +11,7 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
-import me.anno.gpu.RenderState.useFrame
+import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.Window
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame

@@ -1,12 +1,11 @@
 package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
-import me.anno.gpu.RenderState.useFrame
+import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.GPUFiltering
-import me.anno.utils.LOGGER
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL30.*
@@ -155,7 +154,7 @@ class CubemapFramebuffer(
     private fun check() {
         val state = glCheckFramebufferStatus(GL_FRAMEBUFFER)
         if (state != GL_FRAMEBUFFER_COMPLETE) {
-            throw RuntimeException("Framebuffer is incomplete: $state")
+            throw RuntimeException("Framebuffer is incomplete: ${GFX.getErrorTypeName(state)}")
         }
     }
 

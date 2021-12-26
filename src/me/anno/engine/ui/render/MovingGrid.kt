@@ -4,7 +4,7 @@ import me.anno.engine.gui.LineShapes
 import me.anno.engine.ui.render.GridColors.colorX
 import me.anno.engine.ui.render.GridColors.colorY
 import me.anno.engine.ui.render.GridColors.colorZ
-import me.anno.gpu.RenderState
+import me.anno.gpu.OpenGL
 import me.anno.gpu.blending.BlendMode
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.utils.maths.Maths
@@ -25,11 +25,11 @@ object MovingGrid {
         // done move the grid
         // done fix the scaling issues of the grid:
         // when we are out of 1e30, or 1e-30, we should still draw it
-        RenderState.blendMode.use(BlendMode.ADD) {
+        OpenGL.blendMode.use(BlendMode.ADD) {
             // draw grid
             // scale it based on the radius (movement speed)
             // don't write depth, we want to stack it
-            RenderState.depthMask.use(false) {
+            OpenGL.depthMask.use(false) {
 
                 val log = log10(distance)
                 val f = (log - floor(log)).toFloat()

@@ -1,5 +1,6 @@
 package me.anno.input
 
+import me.anno.Build
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.gameTime
@@ -8,6 +9,7 @@ import me.anno.gpu.GFX.inFocus0
 import me.anno.gpu.GFX.requestFocus
 import me.anno.gpu.GFX.window
 import me.anno.gpu.Window
+import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.input.MouseButton.Companion.toMouseButton
 import me.anno.input.Touch.Companion.onTouchDown
 import me.anno.input.Touch.Companion.onTouchMove
@@ -273,6 +275,7 @@ object Input {
                                             GLFW.GLFW_KEY_I -> import()
                                             GLFW.GLFW_KEY_H -> instance.openHistory()
                                             GLFW.GLFW_KEY_A -> inFocus0?.onSelectAll(mouseX, mouseY)
+                                            GLFW.GLFW_KEY_M -> if (Build.isDebug) DebugGPUStorage.openMenu()
                                         }
                                     }
                                 }
@@ -479,6 +482,7 @@ object Input {
     }
 
     fun empty() {
+        println("[Input] emptying, $inFocus0, ${inFocus0?.javaClass}")
         inFocus0?.onEmpty(mouseX, mouseY)
     }
 

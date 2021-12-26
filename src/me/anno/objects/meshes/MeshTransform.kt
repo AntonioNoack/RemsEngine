@@ -13,7 +13,7 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.gpu.GFX.isFinalRendering
-import me.anno.gpu.RenderState
+import me.anno.gpu.OpenGL
 import me.anno.gpu.shader.BaseShader.Companion.cullFaceColoringGeometry
 import me.anno.gpu.shader.BaseShader.Companion.lineGeometry
 import me.anno.input.Input
@@ -180,7 +180,7 @@ class MeshTransform(var file: FileReference, parent: Transform?) : GFXTransform(
                         animation[time], true, centerMesh, normalizeScale, false
                     )
                     Input.isKeyDown('l') -> {// line debugging
-                        RenderState.geometryShader.use(lineGeometry) {
+                        OpenGL.geometryShader.use(lineGeometry) {
                             data.drawAssimp(
                                 false, this, stack, time, color,
                                 animation[time], true, centerMesh, normalizeScale, false
@@ -188,7 +188,7 @@ class MeshTransform(var file: FileReference, parent: Transform?) : GFXTransform(
                         }
                     }
                     Input.isKeyDown('n') -> {// normal debugging
-                        RenderState.geometryShader.use(cullFaceColoringGeometry) {
+                        OpenGL.geometryShader.use(cullFaceColoringGeometry) {
                             data.drawAssimp(
                                 false, this, stack, time, color,
                                 animation[time], true, centerMesh, normalizeScale, false

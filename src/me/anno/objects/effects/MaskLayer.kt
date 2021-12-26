@@ -4,11 +4,9 @@ import me.anno.animation.AnimatedProperty
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
-import me.anno.gpu.RenderState.renderDefault
+import me.anno.gpu.OpenGL.renderDefault
 import me.anno.gpu.drawing.GFXx3D
-import me.anno.gpu.RenderState.renderPurely
-import me.anno.gpu.RenderState.useFrame
-import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer

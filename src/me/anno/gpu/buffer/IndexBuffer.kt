@@ -2,6 +2,7 @@ package me.anno.gpu.buffer
 
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
+import me.anno.gpu.OpenGL
 import me.anno.gpu.shader.Shader
 import me.anno.utils.LOGGER
 import org.lwjgl.opengl.*
@@ -21,10 +22,11 @@ class IndexBuffer(
             }
         }
 
-    var elementVBO = -1
+    var pointer = -1
     var elementsType = GL11.GL_UNSIGNED_INT
     var isUpToDate = false
-    var locallyAllocated2 = 0L
+    var session = 0
+    var locallyAllocated = 0L
 
     var drawMode = -1
 
@@ -32,9 +34,21 @@ class IndexBuffer(
 
     private var vao = -1
 
+    fun checkSession() {
+        if (session != OpenGL.session) {
+            session = OpenGL.session
+            pointer = -1
+            isUpToDate = false
+            locallyAllocated = Buffer.allocate(locallyAllocated, 0L)
+            vao = -1
+        }
+    }
+
     private fun ensureVAO() {
-        if (vao <= 0) vao = GL30.glGenVertexArrays()
-        if (vao <= 0) throw OutOfMemoryError("Could not allocate vertex array")
+        if (Buffer.useVAOs) {
+            if (vao <= 0) vao = GL30.glGenVertexArrays()
+            if (vao <= 0) throw OutOfMemoryError("Could not allocate vertex array")
+        }
     }
 
     fun createVAO(shader: Shader) {
@@ -44,7 +58,7 @@ class IndexBuffer(
         ensureVAO()
 
         Buffer.bindVAO(vao)
-        Buffer.bindBuffer(GL30.GL_ARRAY_BUFFER, base.buffer)
+        Buffer.bindBuffer(GL30.GL_ARRAY_BUFFER, base.pointer)
         var hasAttr = false
         val attributes = base.attributes
         for (index in attributes.indices) {
@@ -58,6 +72,7 @@ class IndexBuffer(
         // disable all attributes, which were not bound
         // not required
         updateElementBuffer()
+
     }
 
     fun createVAOInstanced(shader: Shader, instanceData: Buffer) {
@@ -66,14 +81,14 @@ class IndexBuffer(
         base.ensureBuffer()
 
         Buffer.bindVAO(vao)
-        Buffer.bindBuffer(GL30.GL_ARRAY_BUFFER, base.buffer)
+        Buffer.bindBuffer(GL30.GL_ARRAY_BUFFER, base.pointer)
         // first the instanced attributes, so the function can be called with super.createVAOInstanced without binding the buffer again
         for (attr in base.attributes) {
             Buffer.bindAttribute(shader, attr, false)
         }
 
         instanceData.ensureBuffer()
-        Buffer.bindBuffer(GL30.GL_ARRAY_BUFFER, instanceData.buffer)
+        Buffer.bindBuffer(GL30.GL_ARRAY_BUFFER, instanceData.pointer)
         for (attr in instanceData.attributes) {
             Buffer.bindAttribute(shader, attr, true)
         }
@@ -89,8 +104,11 @@ class IndexBuffer(
         val indices = indices
         if (indices.isEmpty()) return
 
-        if (elementVBO < 0) elementVBO = GL15.glGenBuffers()
-        Buffer.bindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, elementVBO)
+        val target = GL30.GL_ELEMENT_ARRAY_BUFFER
+
+        if (pointer <= 0) pointer = GL15.glGenBuffers()
+        if (pointer <= 0) throw OutOfMemoryError("Could not generate OpenGL buffer")
+        Buffer.bindBuffer(target, pointer)
 
         if (isUpToDate) return
         isUpToDate = true
@@ -114,22 +132,22 @@ class IndexBuffer(
                 val buffer = MemoryUtil.memAllocShort(indices.size)
                 for (i in indices) buffer.put(i.toShort())
                 buffer.flip()
-                if (indices.size * 2L == locallyAllocated2) {
-                    GL30.glBufferSubData(GL30.GL_ELEMENT_ARRAY_BUFFER, 0, buffer)
+                if (indices.size * 2L == locallyAllocated) {
+                    GL30.glBufferSubData(target, 0, buffer)
                 } else {
-                    GL30.glBufferData(GL30.GL_ELEMENT_ARRAY_BUFFER, buffer, usage)
+                    GL30.glBufferData(target, buffer, usage)
                 }
-                locallyAllocated2 = Buffer.allocate(locallyAllocated2, indices.size * 2L)
+                locallyAllocated = Buffer.allocate(locallyAllocated, indices.size * 2L)
                 MemoryUtil.memFree(buffer)
             }
             else -> {
                 elementsType = GL11.GL_UNSIGNED_INT
-                if (indices.size * 4L == locallyAllocated2) {
-                    GL30.glBufferSubData(GL30.GL_ELEMENT_ARRAY_BUFFER, 0, indices)
+                if (indices.size * 4L == locallyAllocated) {
+                    GL30.glBufferSubData(target, 0, indices)
                 } else {
-                    GL30.glBufferData(GL30.GL_ELEMENT_ARRAY_BUFFER, indices, usage)
+                    GL30.glBufferData(target, indices, usage)
                 }
-                locallyAllocated2 = Buffer.allocate(locallyAllocated2, indices.size * 4L)
+                locallyAllocated = Buffer.allocate(locallyAllocated, indices.size * 4L)
             }
         }
         // GFX.check()
@@ -153,6 +171,7 @@ class IndexBuffer(
     private fun bindBufferAttributes(shader: Shader) {
         GFX.check()
         shader.potentiallyUse()
+        checkSession()
         // todo cache vao by shader? typically, we only need 4 shaders for a single mesh
         // todo alternatively, we could specify the location in the shader
         if (vao <= 0 || shader !== lastShader) createVAO(shader)
@@ -167,7 +186,8 @@ class IndexBuffer(
     private fun bindBufferAttributesInstanced(shader: Shader, instanceData: Buffer) {
         GFX.check()
         shader.potentiallyUse()
-        if (vao < 0 ||
+        checkSession()
+        if (vao <= 0 ||
             lastInstanceBuffer !== instanceData ||
             shader !== lastShader ||
             base.attributes != baseAttributes ||
@@ -183,6 +203,7 @@ class IndexBuffer(
     }
 
     fun bind(shader: Shader) {
+        checkSession()
         if (!base.isUpToDate) base.upload()
         if (base.drawLength > 0) {
             bindBufferAttributes(shader)
@@ -190,6 +211,7 @@ class IndexBuffer(
     }
 
     fun bindInstanced(shader: Shader, instanceData: Buffer) {
+        checkSession()
         if (!base.isUpToDate) base.upload()
         if (base.drawLength > 0) {
             bindBufferAttributesInstanced(shader, instanceData)
@@ -222,14 +244,14 @@ class IndexBuffer(
     }
 
     override fun destroy() {
-        val buffer = elementVBO
+        val buffer = pointer
         if (buffer >= 0) {
             GFX.addGPUTask(1) {
                 Buffer.onDestroyBuffer(buffer)
                 GL15.glDeleteBuffers(buffer)
             }
-            elementVBO = -1
-            locallyAllocated2 = Buffer.allocate(locallyAllocated2, 0)
+            pointer = -1
+            locallyAllocated = Buffer.allocate(locallyAllocated, 0)
         }
     }
 

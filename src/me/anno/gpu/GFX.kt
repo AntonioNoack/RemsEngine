@@ -1,13 +1,14 @@
 package me.anno.gpu
 
+import me.anno.Build.isDebug
 import me.anno.Engine
 import me.anno.audio.AudioStream
 import me.anno.config.DefaultConfig
 import me.anno.engine.ui.render.ECSShaderLib
-import me.anno.gpu.RenderState.blendMode
-import me.anno.gpu.RenderState.currentRenderer
-import me.anno.gpu.RenderState.depthMode
-import me.anno.gpu.RenderState.useFrame
+import me.anno.gpu.OpenGL.blendMode
+import me.anno.gpu.OpenGL.currentRenderer
+import me.anno.gpu.OpenGL.depthMode
+import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.ShaderLib.copyShader
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Buffer
@@ -15,6 +16,7 @@ import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.drawing.Perspective.perspective2
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.Renderer.Companion.idRenderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
@@ -24,7 +26,6 @@ import me.anno.input.Input
 import me.anno.mesh.Point
 import me.anno.objects.Camera
 import me.anno.objects.Transform
-import me.anno.Build.isDebug
 import me.anno.studio.StudioBase.Companion.eventTasks
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.editorTimeDilation
@@ -69,6 +70,7 @@ object GFX : GFXBase1() {
 
     var supportsAnisotropicFiltering = false
     var anisotropy = 1f
+    var maxSamples = 1
 
     var maxFragmentUniformComponents = 0
     var maxVertexUniformComponents = 0
@@ -311,9 +313,11 @@ object GFX : GFXBase1() {
         maxFragmentUniformComponents = glGetInteger(GL20.GL_MAX_FRAGMENT_UNIFORM_COMPONENTS)
         maxUniforms = glGetInteger(GL_MAX_UNIFORM_LOCATIONS)
         maxColorAttachments = glGetInteger(GL_MAX_COLOR_ATTACHMENTS)
+        maxSamples = max(1, glGetInteger(GL_MAX_SAMPLES))
         LOGGER.info("Max Uniform Components: [Vertex: $maxVertexUniformComponents, Fragment: $maxFragmentUniformComponents]")
         LOGGER.info("Max Uniforms: $maxUniforms")
         LOGGER.info("Max Color Attachments: $maxColorAttachments")
+        LOGGER.info("Max Samples: $maxSamples")
         tick.stop("render step zero")
         TextureLib.init()
         ShaderLib.init()
@@ -388,6 +392,7 @@ object GFX : GFXBase1() {
 
     override fun renderStep() {
 
+        OpenGLShader.invalidateBinding()
         Texture2D.destroyTextures()
         Texture2D.invalidateBinding()
         Buffer.invalidateBinding()
@@ -527,6 +532,13 @@ object GFX : GFXBase1() {
             GL_INVALID_FRAMEBUFFER_OPERATION -> "invalid framebuffer operation"
             GL_CONTEXT_LOST -> "context lost"
             GL_TABLE_TOO_LARGE -> "table too large (arb imaging)"
+            GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT -> "incomplete attachment"
+            GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT -> "missing attachment"
+            GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER -> "incomplete draw buffer"
+            GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER -> "incomplete read buffer"
+            GL_FRAMEBUFFER_UNSUPPORTED -> "framebuffer unsupported"
+            GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE -> "incomplete multisample"
+            GL_FRAMEBUFFER_UNDEFINED -> "framebuffer undefined"
             else -> "$error"
         }
     }

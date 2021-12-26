@@ -2,10 +2,9 @@ package me.anno.objects
 
 import me.anno.animation.AnimatedProperty
 import me.anno.animation.Type
-import me.anno.cache.instances.LastModifiedCache
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX.isFinalRendering
-import me.anno.gpu.RenderState.useFrame
+import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.drawing.GFXx3D.draw3DVideo
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame

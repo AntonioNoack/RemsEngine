@@ -16,17 +16,15 @@ open class StaticBuffer(attributes: List<Attribute>, val vertexCount: Int, usage
         attributes,
         vertices.size
     ) {
-        vertices.forEach {
-            points[it].forEach { v ->
-                put(v)
+        for (v in vertices) {
+            for (p in points[v]) {
+                put(p)
             }
         }
     }
 
-    constructor(floats: FloatArray, attributes: List<Attribute>) : this(
-        attributes,
-        floats.size / attributes.sumOf { it.components }
-    ) {
+    constructor(floats: FloatArray, attributes: List<Attribute>) :
+            this(attributes, floats.size / attributes.sumOf { it.components }) {
         put(floats)
     }
 
@@ -147,6 +145,7 @@ open class StaticBuffer(attributes: List<Attribute>, val vertexCount: Int, usage
         buffer.position(0)
         buffer.limit(buffer.capacity())
         isUpToDate = false
+        drawLength = 0
     }
 
     final override fun createNioBuffer() {

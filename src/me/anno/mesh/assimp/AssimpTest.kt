@@ -122,8 +122,8 @@ fun processBuffer(buffer: AIVector3D.Buffer): StaticBuffer {
             Attribute("", 3)
         ), buffer.remaining()
     )
-    buffer2.buffer = glGenBuffers()
-    bindBuffer(GL_ARRAY_BUFFER, buffer2.buffer)
+    buffer2.pointer = glGenBuffers()
+    bindBuffer(GL_ARRAY_BUFFER, buffer2.pointer)
     nglBufferData(// very efficient upload
         GL_ARRAY_BUFFER, AIVector3D.SIZEOF * buffer.remaining().toLong(),
         buffer.address(), GL_STATIC_DRAW

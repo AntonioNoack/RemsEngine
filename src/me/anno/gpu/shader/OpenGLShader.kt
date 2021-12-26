@@ -2,6 +2,7 @@ package me.anno.gpu.shader
 
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
+import me.anno.gpu.OpenGL
 import me.anno.gpu.framebuffer.Frame
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.ui.editor.files.toAllowedFilename
@@ -32,6 +33,10 @@ abstract class OpenGLShader(
         const val UniformCacheSizeX4 = UniformCacheSize * 4
         var safeShaderBinding = false
         var lastProgram = -1
+
+        fun invalidateBinding() {
+            lastProgram = -1
+        }
 
         fun formatVersion(version: Int): String {
             return if (OS.isAndroid) "#version $version es\n" else "#version $version\n"
@@ -89,6 +94,19 @@ abstract class OpenGLShader(
     var glslVersion = DefaultGLSLVersion
 
     var program = -1
+    var session = 0
+
+    fun use(): Boolean {
+        GFX.check()
+        Frame.bindMaybe()
+        GFX.check()
+        if (program == -1 || session != OpenGL.session) init()
+        return if (program != lastProgram) {
+            glUseProgram(program)
+            lastProgram = program
+            true
+        } else false
+    }
 
     private val uniformLocations = HashMap<String, Int>()
     private val attributeLocations = HashMap<String, Int>()
@@ -104,6 +122,13 @@ abstract class OpenGLShader(
 
     val pointer get() = program
     private val ignoredNames = HashSet<String>()
+
+    fun updateSession(){
+        session = OpenGL.session
+        attributeLocations.clear()
+        uniformLocations.clear()
+        uniformCache.fill(Float.NaN)
+    }
 
     fun printLocationsAndValues() {
         for ((key, value) in attributeLocations.entries.sortedBy { it.value }) {
@@ -223,18 +248,6 @@ abstract class OpenGLShader(
             LOGGER.warn("Attribute location \"$name\" not found in shader $shaderName")
         }
         return loc
-    }
-
-    fun use(): Boolean {
-        GFX.check()
-        Frame.bindMaybe()
-        GFX.check()
-        if (program == -1) init()
-        return if (program != lastProgram) {
-            glUseProgram(program)
-            lastProgram = program
-            true
-        } else false
     }
 
     fun potentiallyUse() {

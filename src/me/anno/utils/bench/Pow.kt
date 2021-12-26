@@ -2,8 +2,8 @@ package me.anno.utils.bench
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.flat01
-import me.anno.gpu.RenderState
-import me.anno.gpu.RenderState.useFrame
+import me.anno.gpu.OpenGL
+import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.ShaderLib.simplestVertexShader
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame
@@ -43,7 +43,7 @@ fun main() {
 
     useFrame(buffer, Renderer.colorRenderer) {
 
-        RenderState.blendMode.use(me.anno.gpu.blending.BlendMode.ADD) {
+        OpenGL.blendMode.use(me.anno.gpu.blending.BlendMode.ADD) {
 
             for (power in 2 until 100) {
 

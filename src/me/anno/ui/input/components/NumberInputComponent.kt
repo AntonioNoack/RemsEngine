@@ -17,13 +17,18 @@ import me.anno.utils.types.AnyToFloat.get
 open class NumberInputComponent(
     val owningProperty: AnimatedProperty<*>?,
     val indexInProperty: Int,
-    val numberInput: NumberInput,
+    val numberInput: NumberInput<*>,
     style: Style
 ) : PureTextInput(style.getChild("deep")) {
 
     val driver get() = owningProperty?.drivers?.get(indexInProperty)
     val hasDriver get() = driver != null
     var lastTime = editorTime
+
+    init {
+        // todo change to default value
+        setResetListener { "0.0" }
+    }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val editorTime = editorTime
@@ -83,10 +88,9 @@ open class NumberInputComponent(
     }
 
     override fun onEmpty(x: Float, y: Float) {
-        if (hasDriver) {
-            owningProperty?.drivers?.set(indexInProperty, null)
-        }
-        numberInput.onEmpty(x, y)
+        if (hasDriver && owningProperty != null) {
+            owningProperty.drivers[indexInProperty] = null
+        } else super.onEmpty(x, y)
     }
 
     override fun acceptsChar(char: Int): Boolean {

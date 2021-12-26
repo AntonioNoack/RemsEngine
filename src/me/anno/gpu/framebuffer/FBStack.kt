@@ -2,6 +2,8 @@ package me.anno.gpu.framebuffer
 
 import me.anno.cache.CacheSection
 import me.anno.cache.data.ICacheData
+import me.anno.gpu.GFX
+import me.anno.utils.maths.Maths.clamp
 import org.apache.logging.log4j.LogManager
 
 object FBStack : CacheSection("FBStack") {
@@ -75,27 +77,42 @@ object FBStack : CacheSection("FBStack") {
     }
 
     fun getValue(w: Int, h: Int, channels: Int, usesFP: Boolean, samples: Int, withDepth: Boolean): FBStackData {
-        val key = FBKey1(w, h, channels, usesFP, samples, withDepth)
+        val key = FBKey1(w, h, channels, usesFP, clamp(samples, 1, GFX.maxSamples), withDepth)
         return getEntry(key, 2100, false) {
             FBStackData1(it)
         } as FBStackData
     }
 
     fun getValue(w: Int, h: Int, targetType: TargetType, samples: Int, withDepth: Boolean): FBStackData {
-        val key = FBKey2(w, h, targetType, samples, withDepth)
+        val key = FBKey2(w, h, targetType, clamp(samples, 1, GFX.maxSamples), withDepth)
         return getEntry(key, 2100, false) {
             FBStackData2(it)
         } as FBStackData
     }
 
-    operator fun get(name: String, w: Int, h: Int, channels: Int, usesFP: Boolean, samples: Int, withDepth: Boolean): Framebuffer {
+    operator fun get(
+        name: String,
+        w: Int,
+        h: Int,
+        channels: Int,
+        usesFP: Boolean,
+        samples: Int,
+        withDepth: Boolean
+    ): Framebuffer {
         val value = getValue(w, h, channels, usesFP, samples, withDepth)
         synchronized(value) {
             return value.getFrame(name)
         }
     }
 
-    operator fun get(name: String, w: Int, h: Int, targetType: TargetType, samples: Int, withDepth: Boolean): Framebuffer {
+    operator fun get(
+        name: String,
+        w: Int,
+        h: Int,
+        targetType: TargetType,
+        samples: Int,
+        withDepth: Boolean
+    ): Framebuffer {
         val value = getValue(w, h, targetType, samples, withDepth)
         synchronized(value) {
             return value.getFrame(name)

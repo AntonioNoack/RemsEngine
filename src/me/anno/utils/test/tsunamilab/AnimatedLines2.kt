@@ -4,7 +4,7 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
-import me.anno.gpu.RenderState.useFrame
+import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.framebuffer.DepthBufferType

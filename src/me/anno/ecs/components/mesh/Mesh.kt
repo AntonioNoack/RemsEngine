@@ -420,7 +420,7 @@ class Mesh : PrefabSaveable() {
                     oldValue.indices = indices
                     return oldValue
                 } else {
-                    println("needed to change buffer, $base !== ${oldValue.base}, ${base.buffer} vs ${oldValue.base.buffer}")
+                    println("needed to change buffer, $base !== ${oldValue.base}, ${base.pointer} vs ${oldValue.base.pointer}")
                     oldValue.destroy()
                 }
             }

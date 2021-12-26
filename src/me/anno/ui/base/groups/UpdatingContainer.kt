@@ -18,7 +18,11 @@ class UpdatingContainer(updateMillis: Long, val getter: () -> Panel?, style: Sty
         if (abs(lastUpdate - time) >= updateNanos) {
             val value = getter()
             visibility = Visibility[value != null]
-            if (value != null) child = value
+            if (value != null) {
+                child = value
+                child.parent = this
+                child.window = window
+            }
             lastUpdate = time
         }
         super.tickUpdate()

@@ -108,7 +108,7 @@ object Menu {
         buttons += cancel
         buttons += submit
 
-        val window = openMenuComplex2(windowStack, x, y, title, listOf(panel, buttons))!!
+        val window = openMenuByPanels(windowStack, x, y, title, listOf(panel, buttons))!!
         panel.requestFocus()
         return window
 
@@ -157,14 +157,14 @@ object Menu {
             }
         }
 
-        return openMenuComplex2(windowStack, x, y, title, list)!!
+        return openMenuByPanels(windowStack, x, y, title, list)!!
 
     }
 
-    fun openMenuComplex2(windowStack: WindowStack, title: NameDesc, panels: List<Panel>) =
-        openMenuComplex2(windowStack, Input.mouseX.toInt() - 10, Input.mouseY.toInt() - 10, title, panels)
+    fun openMenuByPanels(windowStack: WindowStack, title: NameDesc, panels: List<Panel>) =
+        openMenuByPanels(windowStack, Input.mouseX.toInt() - 10, Input.mouseY.toInt() - 10, title, panels)
 
-    fun openMenuComplex2(
+    fun openMenuByPanels(
         windowStack: WindowStack,
         x: Int,
         y: Int,

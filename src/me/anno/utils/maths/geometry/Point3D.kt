@@ -1,4 +1,4 @@
-package me.anno.gpu.geometry
+package me.anno.utils.maths.geometry
 
 import me.anno.utils.maths.Maths
 import org.joml.Vector2f

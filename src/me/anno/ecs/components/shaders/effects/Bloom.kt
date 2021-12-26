@@ -1,9 +1,9 @@
 package me.anno.ecs.components.shaders.effects
 
 import me.anno.gpu.GFX.flat01
-import me.anno.gpu.RenderState
-import me.anno.gpu.RenderState.renderPurely
-import me.anno.gpu.RenderState.useFrame
+import me.anno.gpu.OpenGL
+import me.anno.gpu.OpenGL.renderPurely
+import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.ShaderLib.brightness
 import me.anno.gpu.ShaderLib.simplestVertexShader
@@ -91,7 +91,7 @@ object Bloom {
         shader.use()
         shader.v1("am1", 0f)
         var previous = tmpForward[steps - 1]!!
-        RenderState.blendMode.use(BlendMode.PURE_ADD) {
+        OpenGL.blendMode.use(BlendMode.PURE_ADD) {
             for (i in steps - 2 downTo 0) {// render onto that layer
                 val nextSrc = tmpForward[i]!! // large
                 useFrame(nextSrc, copyRenderer) {
@@ -147,8 +147,8 @@ object Bloom {
                     "   return length > offset ? col * (length-offset) / length : vec3(0);\n" +
                     "}\n" +
                     "void main(){\n" +
-                    "   ivec2 p = ivec2(gl_FragCoord.x${if (dx == 0) "" else "*2"},gl_FragCoord.y${if (dy == 0) "" else "*2"});\n" +
-                    "   fragColor = vec4($blur,1);\n" +
+                    "   ivec2 p = ivec2(gl_FragCoord.x${if (dx == 0) "" else "*2.0"},gl_FragCoord.y${if (dy == 0) "" else "*2.0"});\n" +
+                    "   fragColor = vec4($blur, 1.0);\n" +
                     "}\n"
         )
     }
@@ -179,9 +179,9 @@ object Bloom {
                     "   vec4 color0 = texture(base,uv);\n" +
                     "   vec3 color = color0.rgb + strength * texture(bloom, uv).rgb;\n" +
                     "   if(applyToneMapping){\n" +
-                    "       color = color/(1+color) - random(uv) * ${1.0 / 255.0};\n" +
+                    "       color = color/(1.0+color) - random(uv) * ${1.0 / 255.0};\n" +
                     "   }\n" +
-                    "   fragColor = vec4(color.rgb,1.0);\n" +
+                    "   fragColor = vec4(color.rgb, 1.0);\n" +
                     "}\n"
         ).apply { setTextureIndices(listOf("base", "bloom")) }
     }

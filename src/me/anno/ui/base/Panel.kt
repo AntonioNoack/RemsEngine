@@ -205,7 +205,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
     @Type("String?")
     var tooltip: String? = null
 
-    @Type("Panel?")
+    @Type("Panel?/PrefabSaveable")
     var tooltipPanel: Panel? = null
 
     open fun getLayoutState(): Any? = null

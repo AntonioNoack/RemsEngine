@@ -1,5 +1,6 @@
 package me.anno.gpu.shader
 
+import me.anno.gpu.GFX
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.maths.Maths.ceilDiv
@@ -23,7 +24,10 @@ class ComputeShader(
             this(shaderName, 430, localSize, source)
 
     override fun init() {
-        program = glCreateProgram()
+
+        val program = glCreateProgram()
+        updateSession()
+
         checkGroupSizeBounds()
         val source = "" +
                 "#version $version\n" +
@@ -33,6 +37,11 @@ class ComputeShader(
         glLinkProgram(program)
         postPossibleError(shaderName, program, false, source)
         glDeleteShader(shader)
+
+        GFX.check()
+
+        this.program = program // only assign this value, when no error has occurred
+
     }
 
     override fun sourceContainsWord(word: String): Boolean {

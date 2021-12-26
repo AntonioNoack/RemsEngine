@@ -27,7 +27,7 @@ object Renderers {
 
     // and banding prevention
     val toneMapping =
-        "vec3 toneMapping(vec3 color){ return (color)/(1+color) - random(gl_FragCoord.xy) * ${1f / 255f}; }\n"
+        "vec3 toneMapping(vec3 color){ return (color)/(1.0+color) - random(gl_FragCoord.xy) * ${1f / 255f}; }\n"
 
     val overdrawRenderer = object : Renderer("overdraw", true, ShaderPlus.DrawMode.COLOR) {
         override fun getPostProcessing(): ShaderStage {

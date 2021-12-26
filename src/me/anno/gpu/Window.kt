@@ -169,7 +169,7 @@ open class Window(
             calculateFullLayout(w, h)
         }
 
-        RenderState.useFrame(panel0.x, panel0.y, panel0.w, panel0.h, false, null, Renderer.colorRenderer) {
+        OpenGL.useFrame(panel0.x, panel0.y, panel0.w, panel0.h, false, null, Renderer.colorRenderer) {
             panel0.canBeSeen = true
             panel0.draw(panel0.x, panel0.y, panel0.x + panel0.w, panel0.y + panel0.h)
         }
@@ -196,7 +196,7 @@ open class Window(
             GFX.deltaX = panel0.x
             GFX.deltaY = panel0.y
 
-            RenderState.renderDefault {
+            OpenGL.renderDefault {
 
                 val buffer = buffer
                 if (panel0 in needsRedraw) {
@@ -206,7 +206,7 @@ open class Window(
                     GFX.loadTexturesSync.clear()
                     GFX.loadTexturesSync.push(true)
 
-                    RenderState.useFrame(panel0.x, panel0.y, panel0.w, panel0.h, true, buffer, Renderer.colorRenderer) {
+                    OpenGL.useFrame(panel0.x, panel0.y, panel0.w, panel0.h, true, buffer, Renderer.colorRenderer) {
                         Frame.bind()
                         GL11.glClearColor(0f, 0f, 0f, 0f)
                         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
@@ -221,7 +221,7 @@ open class Window(
                         GFX.loadTexturesSync.clear()
                         GFX.loadTexturesSync.push(false)
                         if (panel.canBeSeen) {
-                            RenderState.useFrame(
+                            OpenGL.useFrame(
                                 panel.lx0, panel.ly0,
                                 panel.lx1 - panel.lx0,
                                 panel.ly1 - panel.ly0,
@@ -255,8 +255,8 @@ open class Window(
     }
 
     fun drawCachedImage(panel: Panel, wasRedrawn: Collection<Panel>) {
-        RenderState.useFrame(panel.x, panel.y, panel.w, panel.h, false, null) {
-            RenderState.renderDefault {
+        OpenGL.useFrame(panel.x, panel.y, panel.w, panel.h, false, null) {
+            OpenGL.renderDefault {
                 GFX.copy(buffer)
                 if (showRedraws) {
                     showRedraws(wasRedrawn)

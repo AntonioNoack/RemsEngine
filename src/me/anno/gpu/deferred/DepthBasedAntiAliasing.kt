@@ -132,7 +132,7 @@ object DepthBasedAntiAliasing {
                     "}\n" +
                     // we don't need clamp
                     "float smoothstep(float x){\n" +
-                    "   return pow(x,2)*(3-2*x);\n" +
+                    "   return pow(x,2.0)*(3-2*x);\n" +
                     "}\n" +
                     "void main(){\n" +
                     "   ivec2 p = ivec2(gl_FragCoord.xy);\n" +
@@ -235,7 +235,7 @@ object DepthBasedAntiAliasing {
                     "}\n" +
                     // we don't need clamp
                     "float smoothstep(float x){\n" +
-                    "   return pow(x,2)*(3-2*x);\n" +
+                    "   return pow(x,2.0)*(3.0-2.0*x);\n" +
                     "}\n" +
                     "void main(){\n" +
                     "   ivec2 p = ivec2(gl_FragCoord.xy);\n" +
@@ -284,7 +284,7 @@ object DepthBasedAntiAliasing {
                     "           if(!needsBlur(p2)) break;\n" +
                     "       }\n" +
                     "       float fraction = (float(pos)-0.5)/float(pos+neg-1);\n" +
-                    "       float blur = min(1-fraction,fraction);\n" +
+                    "       float blur = min(1.0-fraction,fraction);\n" +
                     "       blur = smoothstep(blur);\n" + // sharpen the edge from 2 wide to 1 wide
                     "       int other = (dirX?" +
                     "           abs(d1-d0) > abs(d3-d0) : " +
@@ -293,7 +293,7 @@ object DepthBasedAntiAliasing {
                     // "       fragColor = vec4(vec3(fraction),1);\n" +
                     // "       fragColor = vec4(vec3(blur),1);\n" +
                     "       vec4 baseColor = texelFetch(color,p,0);\n" +
-                    "       vec2 offset = rbOffset * other;\n" +
+                    "       vec2 offset = rbOffset * float(other);\n" +
                     "       if(dirX){\n" +
                     "           vec2 ga = mix(baseColor.ga, mixColor.ga, blur);\n" +
                     "           float r = mix(baseColor.r,  mixColor.r,  max(blur-offset.x, 0.0));\n" +

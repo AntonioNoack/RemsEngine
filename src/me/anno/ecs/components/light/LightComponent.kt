@@ -6,10 +6,9 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
-import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.DepthMode
-import me.anno.gpu.RenderState
-import me.anno.gpu.RenderState.useFrame
+import me.anno.gpu.OpenGL
+import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.*
 import me.anno.gpu.pipeline.Pipeline
@@ -188,7 +187,7 @@ abstract class LightComponent(
             )
             val root = entity.getRoot(Entity::class)
             pipeline.fillDepth(root, position, worldScale)
-            RenderState.depthMode.use(depthMode) {
+            OpenGL.depthMode.use(depthMode) {
                 useFrame(resolution, resolution, true, texture, renderer) {
                     Frame.bind()
                     glClear(GL_DEPTH_BUFFER_BIT)

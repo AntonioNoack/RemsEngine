@@ -5,10 +5,9 @@ import me.anno.ecs.annotations.Range
 import me.anno.engine.gui.LineShapes.drawBox
 import me.anno.engine.gui.LineShapes.drawCross
 import me.anno.engine.ui.render.ECSShaderLib
-import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.gpu.DepthMode
-import me.anno.gpu.RenderState
+import me.anno.gpu.OpenGL
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.framebuffer.CubemapFramebuffer
@@ -138,7 +137,7 @@ class EnvironmentMap : LightComponentBase() {
 
         val cameraMatrix = JomlPools.mat4f.create()
         val root = entity.getRoot(Entity::class)
-        RenderState.depthMode.use(DepthMode.GREATER) {
+        OpenGL.depthMode.use(DepthMode.GREATER) {
             texture.draw(resolution, pbrRenderer) { side ->
                 Frame.bind()
                 glClearColor(.7f, .9f, 1f, 1f)

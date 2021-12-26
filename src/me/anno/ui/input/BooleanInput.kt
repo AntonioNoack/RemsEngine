@@ -15,8 +15,12 @@ import me.anno.utils.types.Strings.isBlank2
  * in a Transform child class, all inputs should be created using the VI function, if possible,
  * because it forces the programmer to set a tool tip text
  * */
-class BooleanInput(title: String, startValue: Boolean, defaultValue: Boolean, style: Style) : PanelListX(style),
-    TextStyleable {
+class BooleanInput(
+    title: String,
+    startValue: Boolean,
+    defaultValue: Boolean,
+    style: Style
+) : PanelListX(style), InputPanel<Boolean>, TextStyleable {
 
     constructor(style: Style) : this("", false, false, style)
 
@@ -45,6 +49,16 @@ class BooleanInput(title: String, startValue: Boolean, defaultValue: Boolean, st
         this += checkView
         this += WrapAlign.LeftTop
     }
+
+    override val lastValue: Boolean get() = checkView.lastValue
+
+    // todo drawing & ignoring inputs
+    private var _isEnabled = true
+    override var isEnabled: Boolean
+        get() = _isEnabled
+        set(value) {
+            _isEnabled = value; invalidateDrawing()
+        }
 
     override fun setBold(bold: Boolean) {
         titleView?.setBold(bold)
@@ -75,8 +89,9 @@ class BooleanInput(title: String, startValue: Boolean, defaultValue: Boolean, st
         return this
     }
 
-    fun setValue(value: Boolean, notify: Boolean) {
+    override fun setValue(value: Boolean, notify: Boolean): BooleanInput {
         checkView.setValue(value, notify)
+        return this
     }
 
     override fun onCopyRequested(x: Float, y: Float) = checkView.isChecked.toString()

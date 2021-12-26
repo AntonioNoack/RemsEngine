@@ -110,7 +110,7 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
                 }
                 is TextInputML -> {
                     (d as? TextInputML)?.apply {
-                        d.setText(s.text, false)
+                        d.setValue(s.text, false)
                     }
                 }
             }

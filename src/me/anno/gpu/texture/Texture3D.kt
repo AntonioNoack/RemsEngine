@@ -2,7 +2,9 @@ package me.anno.gpu.texture
 
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
+import me.anno.gpu.OpenGL
 import me.anno.gpu.TextureLib.invisibleTexture
+import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.texture.Texture2D.Companion.activeSlot
 import me.anno.gpu.texture.Texture2D.Companion.bindTexture
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
@@ -26,12 +28,26 @@ class Texture3D(val w: Int, val h: Int, val d: Int) : ICacheData {
     }
 
     var pointer = -1
+    var session = -1
+
     var isCreated = false
+    var isDestroyed = false
     var isFilteredNearest = GPUFiltering.NEAREST
 
+    fun ensureSession() {
+        if (session != OpenGL.session) {
+            session = OpenGL.session
+            pointer = -1
+            isCreated = false
+            isDestroyed = false
+        }
+    }
+
     fun ensurePointer() {
-        if (pointer < 0) pointer = glGenTextures()
+        if (pointer < 0) pointer = Texture2D.createTexture()
         if (pointer < 0) throw RuntimeException("Could not generate texture")
+        DebugGPUStorage.tex3d.add(this)
+        isDestroyed = false
     }
 
     fun create() {
@@ -201,12 +217,17 @@ class Texture3D(val w: Int, val h: Int, val d: Int) : ICacheData {
     override fun destroy() {
         val pointer = pointer
         if (pointer > -1) {
-            GFX.addGPUTask(1) {
-                glDeleteTextures(pointer)
-                Texture2D.invalidateBinding()
-            }
+            if (GFX.isGFXThread()) destroy(pointer)
+            else GFX.addGPUTask(1) { destroy(pointer) }
         }
         this.pointer = -1
+    }
+
+    private fun destroy(pointer: Int) {
+        DebugGPUStorage.tex3d.remove(this)
+        glDeleteTextures(pointer)
+        Texture2D.invalidateBinding()
+        isDestroyed = true
     }
 
 }

@@ -26,9 +26,9 @@ import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.fonts.FontManager
 import me.anno.gpu.*
 import me.anno.gpu.GFX.isGFXThread
-import me.anno.gpu.RenderState.depthMode
-import me.anno.gpu.RenderState.renderPurely
-import me.anno.gpu.RenderState.useFrame
+import me.anno.gpu.OpenGL.depthMode
+import me.anno.gpu.OpenGL.renderPurely
+import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.TextureLib.whiteTexture
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.copying.FramebufferToMemory.createBufferedImage
@@ -389,7 +389,7 @@ object Thumbs {
         GFX.check()
 
         val fb2 = Framebuffer(
-            "generateVideoFrame", w, h, 4, 1, false,
+            srcFile.name, w, h, 4, 1, false,
             if (withDepth) DepthBufferType.TEXTURE else DepthBufferType.NONE
         )
 
@@ -695,7 +695,7 @@ object Thumbs {
         mesh.material = srcFile
         waitForTextures(material)
         renderToBufferedImage(InvalidRef, dstFile, true, previewRenderer, true, callback, size, size) {
-            RenderState.blendMode.use(BlendMode.DEFAULT) {
+            OpenGL.blendMode.use(BlendMode.DEFAULT) {
                 mesh.drawAssimp(materialCamTransform, useMaterials = true, centerMesh = false, normalizeScale = false)
             }
         }
@@ -731,7 +731,7 @@ object Thumbs {
             dstFile, materials.size, size, false,
             previewRenderer, callback
         ) { it, _ ->
-            RenderState.blendMode.use(BlendMode.DEFAULT) {
+            OpenGL.blendMode.use(BlendMode.DEFAULT) {
                 val mesh = sphereMesh.clone()
                 mesh.material = materials[it]
                 mesh.drawAssimp(
@@ -765,8 +765,8 @@ object Thumbs {
             InvalidRef, dstFile, true, renderer0, true,
             callback, w, h
         ) {
-            val frame = RenderState.currentBuffer!!
-            val renderer = RenderState.currentRenderer
+            val frame = OpenGL.currentBuffer!!
+            val renderer = OpenGL.currentRenderer
             for (i in 0 until count) {
                 val ix = i % sx
                 val iy = i / sx

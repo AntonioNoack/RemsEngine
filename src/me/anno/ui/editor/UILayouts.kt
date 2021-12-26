@@ -59,7 +59,7 @@ import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.msg
 import me.anno.ui.base.menu.Menu.openMenu
-import me.anno.ui.base.menu.Menu.openMenuComplex2
+import me.anno.ui.base.menu.Menu.openMenuByPanels
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.base.scrolling.ScrollPanelY
@@ -212,7 +212,7 @@ object UILayouts {
     fun loadNewProject(usableFile: FileReference?, nameInput: TextInput) {
         val file = usableFile
         if (file != null) {
-            openProject(nameInput.text, file)
+            openProject(nameInput.lastValue, file)
         } else {
             msg(windowStack, NameDesc("Please choose a $dirNameEn!", "", "ui.newProject.pleaseChooseDir"))
         }
@@ -301,14 +301,11 @@ object UILayouts {
         nameInput = TextInput("Title", "", Dict["New Project", "ui.newProject.defaultName"], style)
         nameInput.setEnterListener { loadNewProject(usableFile, nameInput) }
 
-        var lastName = nameInput.text
-        fileInput =
-            FileInput(
-                Dict["Project Location", "ui.newProject.location"],
-                style,
-                getReference(workspace, nameInput.text),
-                emptyList()
-            )
+        var lastName = nameInput.lastValue
+        fileInput = FileInput(
+            Dict["Project Location", "ui.newProject.location"], style,
+            getReference(workspace, lastName), emptyList()
+        )
 
         updateFileInputColor()
 
@@ -496,7 +493,7 @@ object UILayouts {
             Dict["Change Language", ""]
         ) {
             val panel = ProjectSettings.createSpellcheckingPanel(style)
-            openMenuComplex2(windowStack, NameDesc("Change Project Language"), listOf(panel))
+            openMenuByPanels(windowStack, NameDesc("Change Project Language"), listOf(panel))
         }
 
         options.addAction(projectTitle, Dict["Save", "ui.top.project.save"]) {
@@ -508,7 +505,7 @@ object UILayouts {
             val name = NameDesc("Load Project", "", "ui.loadProject")
             val openRecentProject = createRecentProjectsUI(menuStyle, getRecentProjects())
             val createNewProject = createNewProjectUI(menuStyle)
-            openMenuComplex2(windowStack, name, listOf(openRecentProject, createNewProject))
+            openMenuByPanels(windowStack, name, listOf(openRecentProject, createNewProject))
         }
 
         options.addAction(projectTitle, Dict["Reset UI", "ui.top.resetUI"]) {

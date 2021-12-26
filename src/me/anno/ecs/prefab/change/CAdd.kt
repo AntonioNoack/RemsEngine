@@ -94,13 +94,12 @@ class CAdd() : Change(2) {
         var newInstance = loadedInstance
         if (newInstance == null) {
             val maybe = ISaveable.createOrNull(clazzName ?: return)
-            if (maybe is PrefabSaveable) {
-                newInstance = maybe
-            } else {
-                throw RuntimeException("Class $clazzName is not PrefabSaveable")
+            when (maybe) {
+                is PrefabSaveable -> newInstance = maybe
+                null -> throw RuntimeException("Class '$clazzName' is unknown / hasn't been registered")
+                else -> throw RuntimeException("Class '$clazzName' does not extend PrefabSaveable")
             }
         }
-
 
         val prefab = instance.prefab
         val index = instance.getChildListByType(type).size

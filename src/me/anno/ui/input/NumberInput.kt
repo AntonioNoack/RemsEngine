@@ -12,14 +12,14 @@ import me.anno.ui.input.components.TitlePanel
 import me.anno.ui.style.Style
 import me.anno.utils.types.Strings.isBlank2
 
-abstract class NumberInput(
+abstract class NumberInput<BaseType>(
     style: Style,
     val title: String,
     val visibilityKey: String,
     val type: Type = Type.FLOAT,
     val owningProperty: AnimatedProperty<*>?,
     val indexInProperty: Int
-) : PanelListY(style), TextStyleable {
+) : PanelListY(style), InputPanel<BaseType>, TextStyleable {
 
     var hasValue = false
     var mouseIsDown = false
@@ -82,12 +82,12 @@ abstract class NumberInput(
         inputPanel.hide()
     }
 
-    fun setIsSelectedListener(listener: () -> Unit): NumberInput {
+    fun setIsSelectedListener(listener: () -> Unit): NumberInput<BaseType> {
         isSelectedListener = listener
         return this
     }
 
-    fun setResetListener(listener: () -> String): NumberInput {
+    fun setResetListener(listener: () -> String): NumberInput<BaseType> {
         inputPanel.setResetListener(listener)
         return this
     }

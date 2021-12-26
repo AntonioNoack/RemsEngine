@@ -6,7 +6,7 @@ import me.anno.config.DefaultStyle.deepDark
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFX.deltaTime
-import me.anno.gpu.RenderState.renderDefault
+import me.anno.gpu.OpenGL.renderDefault
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer

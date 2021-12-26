@@ -2,7 +2,7 @@ package me.anno.ecs.components.shaders.effects
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.RenderState.useFrame
+import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.ShaderLib
 import me.anno.gpu.ShaderLib.uvList
 import me.anno.gpu.TextureLib.whiteTexture
@@ -92,22 +92,23 @@ object ScreenSpaceAmbientOcclusion {
                     "void main(){\n" +
                     "   vec3 origin = texture(finalPosition, uv).xyz;\n" +
                     // "  float originDepth = length(origin);\n" +
-                    "   vec3 normal = texture(finalNormal, uv).xyz*2-1;\n" +
+                    "   vec3 normal = texture(finalNormal, uv).xyz * 2.0 - 1.0;\n" +
                     // reverse back sides, e.g. for plants
                     // could be done by the material as well...
                     "   if(dot(origin,normal) > 0.0) normal = -normal;\n" +
-                    "   vec3 randomVector = texelFetch(random4x4, ivec2(gl_FragCoord.xy) & 3, 0).xyz*2-1;\n" +
+                    "   vec3 randomVector = texelFetch(random4x4, ivec2(gl_FragCoord.xy) & 3, 0).xyz * 2.0 - 1.0;\n" +
                     "   vec3 tangent = normalize(randomVector - normal * dot(normal, randomVector));\n" +
                     "   vec3 bitangent = cross(normal, tangent);\n" +
                     "   mat3 tbn = mat3(tangent, bitangent, normal);\n" +
-                    "   float occlusion = 0;\n" +
+                    "   float occlusion = 0.0;\n" +
                     "   for(int i=0;i<numSamples;i++){\n" +
-                    "       vec3 sample = tbn * sampleKernel[i] * radius + origin;\n" +
-                    "      float sampleTheoDepth = length(sample);\n" +
+                    // "sample" seems to be a reserved keyword for the emulator
+                    "      vec3 position = tbn * sampleKernel[i] * radius + origin;\n" +
+                    "      float sampleTheoDepth = length(position);\n" +
                     // project sample position... mmmh...
-                    "       vec4 offset = transform * vec4(sample, 1);\n" +
+                    "       vec4 offset = transform * vec4(position, 1.0);\n" +
                     "       offset.xy /= offset.w;\n" +
-                    "       offset.xy = offset.xy * .5 + .5;\n" +
+                    "       offset.xy = offset.xy * 0.5 + 0.5;\n" +
                     "       bool isInside = offset.x >= 0.0 && offset.x <= 1.0 && offset.y >= 0.0 && offset.y <= 1.0;\n" +
                     "       if(!isInside) continue;\n" +
                     "       float sampleDepth = length(texture(finalPosition, offset.xy));\n" +
@@ -115,7 +116,7 @@ object ScreenSpaceAmbientOcclusion {
                     // introduces a radius (when radius = 1), where occlusion appears exclusively
                     // && abs(originDepth - sampleDepth) < radius
                     // without it, the result looks approx. the same :)
-                    "       occlusion += isInside ? sampleDepth < sampleTheoDepth ? 1 : 0 : 0.5;\n" +
+                    "       occlusion += isInside ? sampleDepth < sampleTheoDepth ? 1.0 : 0.0 : 0.5;\n" +
                     "   }\n" +
                     "   glFragColor = clamp(1.0 - strength * occlusion/float(numSamples), 0.0, 1.0);\n" +
                     "}"

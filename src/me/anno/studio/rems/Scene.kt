@@ -7,12 +7,12 @@ import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFX.isFinalRendering
-import me.anno.gpu.RenderState
-import me.anno.gpu.RenderState.blendMode
-import me.anno.gpu.RenderState.depthMode
-import me.anno.gpu.RenderState.renderDefault
-import me.anno.gpu.RenderState.renderPurely
-import me.anno.gpu.RenderState.useFrame
+import me.anno.gpu.OpenGL
+import me.anno.gpu.OpenGL.blendMode
+import me.anno.gpu.OpenGL.depthMode
+import me.anno.gpu.OpenGL.renderDefault
+import me.anno.gpu.OpenGL.renderPurely
+import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.ShaderLib.ascColorDecisionList
 import me.anno.gpu.ShaderLib.brightness
 import me.anno.gpu.ShaderLib.createShader
@@ -373,7 +373,7 @@ object Scene {
 
         var buffer: Framebuffer? =
             if (needsTemporaryBuffer) FBStack["Scene-Main", w, h, 4, usesFPBuffers, samples, camera.useDepth]
-            else RenderState.currentBuffer as Framebuffer?
+            else OpenGL.currentBuffer as Framebuffer?
 
         // LOGGER.info("$needsTemporaryBuffer ? $buffer")
 
