@@ -1,7 +1,6 @@
-package me.anno.gpu
+package me.anno.gpu.shader
 
 import me.anno.config.DefaultConfig
-import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Filtering
 import me.anno.mesh.assimp.AnimGameItem

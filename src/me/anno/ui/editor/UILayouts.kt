@@ -90,7 +90,7 @@ import kotlin.concurrent.thread
 
 object UILayouts {
 
-    private val windowStack get() = StudioBase.defaultWindowStack
+    private val windowStack get() = StudioBase.defaultWindowStack!!
 
     private val LOGGER = LogManager.getLogger(UILayouts::class)
 
@@ -497,7 +497,7 @@ object UILayouts {
         }
 
         options.addAction(projectTitle, Dict["Save", "ui.top.project.save"]) {
-            instance.save()
+            instance?.save()
             LOGGER.info("Saved the project")
         }
 

@@ -3,8 +3,8 @@ package me.anno.gpu
 import me.anno.config.DefaultConfig
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.drawing.GFXx2D.defineAdvancedGraphicalFeatures
-import me.anno.gpu.drawing.GFXx3D.colorGradingUniforms
 import me.anno.gpu.drawing.GFXx3D.shader3DUniforms
+import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D

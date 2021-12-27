@@ -45,7 +45,7 @@ class RemsVersionFeatures(oldVersion: Int) : VersionFeatures(oldVersion) {
             addInstance(config, "Chapter", Chapter())
         }
 
-        config["version"] = StudioBase.instance.versionNumber
+        config["version"] = StudioBase.instance?.versionNumber ?: 0
 
     }
 

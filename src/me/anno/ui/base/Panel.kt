@@ -299,7 +299,9 @@ open class Panel(val style: Style) : PrefabSaveable() {
         ly0 = y0
         lx1 = x1
         ly1 = y1
+        GFX.check()
         onDraw(x0, y0, x1, y1)
+        GFX.check()
         wasInFocus = isInFocus
     }
 

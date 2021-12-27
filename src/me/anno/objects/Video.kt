@@ -11,8 +11,8 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.SVGxGFX
-import me.anno.gpu.TextureLib
-import me.anno.gpu.TextureLib.colorShowTexture
+import me.anno.gpu.texture.TextureLib
+import me.anno.gpu.texture.TextureLib.colorShowTexture
 import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.drawing.GFXx3D.draw3D
 import me.anno.gpu.drawing.GFXx3D.draw3DVideo

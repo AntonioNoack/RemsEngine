@@ -1,8 +1,8 @@
 package me.anno.ui.utils
 
 import me.anno.config.DefaultConfig
-import me.anno.gpu.GFX
 import me.anno.gpu.Window
+import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.Input
 import me.anno.ui.base.Panel
 import org.joml.Matrix4f
@@ -53,7 +53,7 @@ class WindowStack : Stack<Window>() {
         return null
     }
 
-    fun update(){
+    fun update() {
         viewTransform.identity()
         mouseX = Input.mouseX
         mouseY = Input.mouseY
@@ -83,17 +83,15 @@ class WindowStack : Stack<Window>() {
         mouseDownX = x1 + (tmp.x * .5f + .5f) * w1
         mouseDownY = y1 + (tmp.y * .5f + .5f) * h1
 
-        // todo where are our touch positions stored? transform them as well
-
     }
 
-    fun draw(w: Int, h: Int, didSomething0: Boolean, forceRedraw: Boolean): Boolean {
+    fun draw(w: Int, h: Int, didSomething0: Boolean, forceRedraw: Boolean, dstBuffer: Framebuffer?): Boolean {
         val sparseRedraw = DefaultConfig["ui.sparseRedraw", true]
         var didSomething = didSomething0
         val windowStack = this
         val lastFullscreenIndex = max(windowStack.indexOfLast { it.isFullscreen }, 0)
         for (index in lastFullscreenIndex until windowStack.size) {
-            didSomething = windowStack[index].draw(w, h, sparseRedraw, didSomething, forceRedraw)
+            didSomething = windowStack[index].draw(w, h, sparseRedraw, didSomething, forceRedraw, dstBuffer)
         }
         return didSomething
     }

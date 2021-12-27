@@ -92,6 +92,8 @@ open class Shader(
 
         this.program = program // only assign the program, when no error happened
 
+        setTextureIndicesIfExisting()
+
     }
 
 }

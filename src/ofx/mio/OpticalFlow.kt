@@ -2,8 +2,8 @@ package ofx.mio
 
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.OpenGL.useFrame
-import me.anno.gpu.ShaderLib.createShader
-import me.anno.gpu.ShaderLib.simplestVertexShader
+import me.anno.gpu.shader.ShaderLib.createShader
+import me.anno.gpu.shader.ShaderLib.simplestVertexShader
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer

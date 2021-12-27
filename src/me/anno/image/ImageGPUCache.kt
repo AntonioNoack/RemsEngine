@@ -5,7 +5,7 @@ import me.anno.cache.data.ICacheData
 import me.anno.cache.data.ImageData
 import me.anno.cache.data.LateinitTexture
 import me.anno.gpu.GFXBase1
-import me.anno.gpu.TextureLib
+import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D

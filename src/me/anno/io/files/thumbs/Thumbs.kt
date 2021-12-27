@@ -29,7 +29,7 @@ import me.anno.gpu.GFX.isGFXThread
 import me.anno.gpu.OpenGL.depthMode
 import me.anno.gpu.OpenGL.renderPurely
 import me.anno.gpu.OpenGL.useFrame
-import me.anno.gpu.TextureLib.whiteTexture
+import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.copying.FramebufferToMemory.createBufferedImage
 import me.anno.gpu.drawing.DrawTextures.drawTexture
@@ -60,6 +60,7 @@ import me.anno.objects.Video
 import me.anno.objects.documents.pdf.PDFCache
 import me.anno.objects.meshes.MeshData
 import me.anno.Build
+import me.anno.gpu.drawing.DrawRectangles
 import me.anno.ui.base.Font
 import me.anno.utils.Color.hex4
 import me.anno.utils.Sleep.waitForGFXThread
@@ -409,20 +410,17 @@ object Thumbs {
                 if (withDepth) {
                     depthMode.use(DepthMode.GREATER) {
                         Frame.bind()
-                        glClearColor(0f, 0f, 0f, 0f)
+                        glClearColor(0f, 1f, 1f, 1f)
                         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
                         render()
                     }
-                } else {
-                    render()
-                }
+                } else render()
             }
 
-            fb2.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-            val dst = createBufferedImage(w, h, fb2, flipY, true)
-            saveNUpload(srcFile, dstFile, dst, callback)
-
         }
+
+        val dst = createBufferedImage(w, h, fb2, flipY, true)
+        saveNUpload(srcFile, dstFile, dst, callback)
 
     }
 
@@ -640,11 +638,18 @@ object Thumbs {
         waitForTextures(data)
         entity.validateTransform()
         val drawSkeletons = !entity.hasComponent(MeshBaseComponent::class)
+        val meshes = entity.getComponentsInChildren(MeshBaseComponent::class).joinToString { it.getMesh()?.positions?.size?.toString() ?: "null" }
+        println("drawing data $entity, $size pixels, skeletons? $drawSkeletons, meshes: $meshes")
         renderToBufferedImage(InvalidRef, dstFile, true, previewRenderer, true, callback, size, size) {
-            data.drawAssimp(
-                true, null, createPerspectiveList(defaultAngleY, 1f), 0.0, white4, "",
-                useMaterials = true, centerMesh = true, normalizeScale = true, drawSkeletons = drawSkeletons
-            )
+            OpenGL.cullMode.use(0){
+                depthMode.use(DepthMode.ALWAYS){
+                    DrawRectangles.drawRect(0, 0, 10, 10, -1)
+                    data.drawAssimp(
+                        true, null, createPerspectiveList(defaultAngleY, 1f), 0.0, white4, "",
+                        useMaterials = true, centerMesh = true, normalizeScale = true, drawSkeletons = drawSkeletons
+                    )
+                }
+            }
         }
     }
 

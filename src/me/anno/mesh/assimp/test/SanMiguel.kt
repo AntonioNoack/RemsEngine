@@ -3,8 +3,8 @@ package me.anno.mesh.assimp.test
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.ECSShaderLib
-import me.anno.gpu.ShaderLib
-import me.anno.gpu.TextureLib
+import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.mesh.assimp.StaticMeshesLoader
@@ -19,7 +19,6 @@ fun main() {
     HiddenOpenGLContext.createOpenGL()
 
     ShaderLib.init()
-    TextureLib.init()
     ECSShaderLib.init()
 
     ECSRegistry.init()

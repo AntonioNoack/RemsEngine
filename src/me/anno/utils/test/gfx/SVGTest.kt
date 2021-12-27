@@ -4,7 +4,7 @@ import me.anno.cache.instances.MeshCache
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle
 import me.anno.gpu.SVGxGFX
-import me.anno.gpu.TextureLib
+import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.texture.Filtering
 import me.anno.io.files.FileReference
 import me.anno.objects.Video

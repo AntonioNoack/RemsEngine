@@ -154,7 +154,7 @@ object ActionManager {
                 return
             }
         }
-        for (window in StudioBase.instance.windowStack) {
+        for (window in StudioBase.defaultWindowStack!!) {
             window.panel.forAllPanels { panel ->
                 executeLocally(dx, dy, isContinuous, panel, actions)
             }

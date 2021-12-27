@@ -1,13 +1,12 @@
 package me.anno.objects.models
 
 import me.anno.gpu.GFX
-import me.anno.gpu.ShaderLib
+import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.studio.rems.RemsStudio
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
-import org.joml.Vector4f
 import org.joml.Vector4fc
 import kotlin.math.tan
 

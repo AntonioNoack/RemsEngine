@@ -148,18 +148,22 @@ object PrefabCache : CacheSection("Prefab") {
                 val prefab = loadUnityFile(file)
                 if (prefab != null) return prefab
             } catch (e: Exception) {
-
             }
         }
         val folder = ZipCache.unzip(file, false) ?: return null
-        val scene = folder.getChild("Scene.json") as? PrefabReadable ?: return null
-        return scene.readPrefab()
+        val scene = folder.getChild("Scene.json") as? PrefabReadable
+        val scene2 = scene ?: folder.listChildren()?.filterIsInstance<PrefabReadable>()?.firstOrNull() ?: return null
+        return scene2.readPrefab()
     }
 
-    fun getPrefabPair(resource: FileReference?, chain: MutableSet<FileReference>?, async: Boolean = false): FileReadPrefabData? {
+    fun getPrefabPair(
+        resource: FileReference?,
+        chain: MutableSet<FileReference>?,
+        async: Boolean = false
+    ): FileReadPrefabData? {
         resource ?: return null
         return if (resource != InvalidRef && resource.exists && !resource.isDirectory) {
-            return getFileEntry(resource, false, prefabTimeout, async) { file, _ ->
+            val entry = getFileEntry(resource, false, prefabTimeout, async) { file, _ ->
                 val loaded = loadPrefab3(file)
                 if (loaded != null) {
                     FileWatch.addWatchDog(file)
@@ -169,11 +173,18 @@ object PrefabCache : CacheSection("Prefab") {
                         else loaded, file
                     )
                 } else CacheData(null)
-            } as? FileReadPrefabData
+            }
+            if (entry is CacheData<*> && entry.value == null)
+                throw RuntimeException("Could not load $resource as prefab")
+            return entry as? FileReadPrefabData
         } else null
     }
 
-    fun loadPrefab(resource: FileReference?, chain: MutableSet<FileReference>? = null, async: Boolean = false): Prefab? {
+    fun loadPrefab(
+        resource: FileReference?,
+        chain: MutableSet<FileReference>? = null,
+        async: Boolean = false
+    ): Prefab? {
         return getPrefabPair(resource, chain, async)?.prefab
     }
 

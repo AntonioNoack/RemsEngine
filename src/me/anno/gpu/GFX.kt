@@ -9,7 +9,7 @@ import me.anno.gpu.OpenGL.blendMode
 import me.anno.gpu.OpenGL.currentRenderer
 import me.anno.gpu.OpenGL.depthMode
 import me.anno.gpu.OpenGL.useFrame
-import me.anno.gpu.ShaderLib.copyShader
+import me.anno.gpu.shader.ShaderLib.copyShader
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.buffer.SimpleBuffer
@@ -19,9 +19,11 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.Renderer.Companion.idRenderer
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureLib
 import me.anno.input.Input
 import me.anno.mesh.Point
 import me.anno.objects.Camera
@@ -319,7 +321,6 @@ object GFX : GFXBase1() {
         LOGGER.info("Max Color Attachments: $maxColorAttachments")
         LOGGER.info("Max Samples: $maxSamples")
         tick.stop("render step zero")
-        TextureLib.init()
         ShaderLib.init()
         ECSShaderLib.init()
     }

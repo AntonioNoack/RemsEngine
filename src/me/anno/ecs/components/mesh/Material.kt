@@ -6,7 +6,7 @@ import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ECSRegistry
-import me.anno.gpu.TextureLib
+import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader

@@ -5,6 +5,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL
 import me.anno.gpu.buffer.Attribute.Companion.computeOffsets
 import me.anno.gpu.shader.Shader
+import me.anno.input.Input
 import me.anno.utils.LOGGER
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15
@@ -150,7 +151,7 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
         shader.potentiallyUse()
         // todo cache vao by shader? typically, we only need 4-8 shaders for a single mesh
         // todo alternatively, we could specify the location in the shader
-        if (vao <= 0 || shader !== lastShader) createVAO(shader)
+        if (vao <= 0 || shader !== lastShader || !useVAOs) createVAO(shader)
         else bindVAO(vao)
         lastShader = shader
         GFX.check()
@@ -164,7 +165,7 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
         if (vao <= 0 ||
             attributes != baseAttributes ||
             instanceAttributes != instanceData.attributes ||
-            shader !== lastShader
+            shader !== lastShader || !useVAOs
         ) {
             lastShader = shader
             baseAttributes = attributes
@@ -185,8 +186,8 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
     }
 
     open fun unbind(shader: Shader) {
-        // bindBuffer(GL_ARRAY_BUFFER, 0)
-        // bindVAO(0)
+        bindBuffer(GL_ARRAY_BUFFER, 0)
+        bindVAO(0)
         if (!useVAOs) {
             for (attr in attributes) {
                 val loc = shader.getAttributeLocation(attr.name)
@@ -277,7 +278,12 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
 
     companion object {
 
-        var useVAOs = true
+        // todo monkey & stuff is invisible with vaos
+
+        var useVAOs
+            get() = Input.isShiftDown
+            set(value) {}
+
         var alwaysBindBuffer = false
 
         fun bindAttribute(shader: Shader, attr: Attribute, instanced: Boolean): Boolean {

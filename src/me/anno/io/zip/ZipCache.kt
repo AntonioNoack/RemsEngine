@@ -75,9 +75,11 @@ object ZipCache : CacheSection("ZipCache") {
         register(listOf("fbx", "gltf", "dae", "draco", "md2", "md5mesh"), AnimatedMeshesLoader::readAsFolder)
         register("blend", BlenderReader::readAsFolder)
         register("obj", OBJReader2::readAsFolder)
-        register("mtl") { MTLReader2.readAsFolder(it) }
+        register("mtl", MTLReader2::readAsFolder)
         register("vox", VOXReader::readAsFolder)
-        register("zip") { createZipRegistryV2(it) }
+        register("zip", ::createZipRegistryV2)
+        // cannot be read by assimp anyways
+        // registerFileExtension("max", AnimatedMeshesLoader::readAsFolder) // 3ds max file, idk about it's file signature
         // images
         // todo all image formats
         val imageFormats = listOf("png", "jpg", "bmp", "pds", "hdr", "webp", "tga", "ico", "dds", "gif", "exr")
@@ -94,10 +96,10 @@ object ZipCache : CacheSection("ZipCache") {
     fun unzip(file: FileReference, async: Boolean): InnerFile? {
         return getFileEntry(file, false, timeout, async) { file1, _ ->
             val signature = Signature.findName(file1)
-            if (signature == "json" && file1.lcExtension == "json") nullCacheData
+            val ext = file1.lcExtension
+            if (signature == "json" && ext == "json") nullCacheData
             else {
-                val reader = readerBySignature[signature] ?: readerBySignature[file1.lcExtension]
-                ?: readerByFileExtension[file1.lcExtension]
+                val reader = readerBySignature[signature] ?: readerBySignature[ext] ?: readerByFileExtension[ext]
                 if (reader != null) reader(file1) else createZipRegistryV2(file1)
             }
         } as? InnerFile

@@ -5,6 +5,7 @@
 package me.anno.gpu;
 
 import kotlin.Unit;
+import me.anno.Build;
 import me.anno.config.DefaultConfig;
 import me.anno.ecs.prefab.Prefab;
 import me.anno.ecs.prefab.change.Path;
@@ -15,7 +16,6 @@ import me.anno.io.zip.InnerFolder;
 import me.anno.io.zip.InnerPrefabFile;
 import me.anno.language.translation.NameDesc;
 import me.anno.mesh.obj.OBJReader2;
-import me.anno.Build;
 import me.anno.studio.StudioBase;
 import me.anno.ui.base.Panel;
 import me.anno.ui.base.menu.Menu;
@@ -476,8 +476,15 @@ public class GFXBase0 {
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
 
-        float aspect = (float) width / height;
-        glOrtho(-aspect, aspect, -1f, +1f, -1f, +1f);
+        // extend space left+right/top+bottom (zooming out a little)
+        if (width > height) {
+            float dx = (float) width / height;
+            glOrtho(-dx, dx, -1f, +1f, -1f, +1f);
+        } else {
+            float dy = (float) height / width;
+            glOrtho(-1f, +1f, -dy, dy, -1f, +1f);
+        }
+
         c = frame0IconColor;
         glColor3f(((c >> 16) & 255) / 255f, ((c >> 8) & 255) / 255f, (c & 255) / 255f);
 
@@ -559,6 +566,13 @@ public class GFXBase0 {
         mouseTargetY = y;
     }
 
+    public void updateMousePosition() {
+        double[] xs = new double[1];
+        double[] ys = new double[1];
+        glfwGetCursorPos(window, xs, ys);
+        Input.INSTANCE.onMouseMove((float) xs[0], (float) ys[0]);
+    }
+
     void windowLoop() {
 
         Thread.currentThread().setName("GLFW");
@@ -621,12 +635,12 @@ public class GFXBase0 {
                 // or mouse input is received
             }
             // close tests
-            if (DefaultConfig.INSTANCE.get("window.close.directly", false)) {
+            WindowStack ws = StudioBase.Companion.getDefaultWindowStack();
+            if (ws == null || DefaultConfig.INSTANCE.get("window.close.directly", false)) {
                 break;
             } else {
                 glfwSetWindowShouldClose(window, false);
                 GFX.INSTANCE.addGPUTask(1, () -> {
-                    WindowStack ws = StudioBase.instance.getWindowStack();
                     Menu.INSTANCE.ask(ws,
                             new NameDesc("Close %1?", "", "ui.closeProgram")
                                     .with("%1", projectName), () -> {

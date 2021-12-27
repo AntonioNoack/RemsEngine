@@ -4,7 +4,7 @@ import me.anno.config.DefaultStyle.black
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawGradients.drawRectGradient
 import me.anno.gpu.drawing.DrawTextures.drawTexture
-import me.anno.gpu.TextureLib
+import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.input.MouseButton

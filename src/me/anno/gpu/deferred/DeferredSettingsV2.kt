@@ -1,6 +1,6 @@
 package me.anno.gpu.deferred
 
-import me.anno.gpu.ShaderLib.uvList
+import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.BaseShader

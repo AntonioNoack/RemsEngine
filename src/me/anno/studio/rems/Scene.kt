@@ -13,10 +13,10 @@ import me.anno.gpu.OpenGL.depthMode
 import me.anno.gpu.OpenGL.renderDefault
 import me.anno.gpu.OpenGL.renderPurely
 import me.anno.gpu.OpenGL.useFrame
-import me.anno.gpu.ShaderLib.ascColorDecisionList
-import me.anno.gpu.ShaderLib.brightness
-import me.anno.gpu.ShaderLib.createShader
-import me.anno.gpu.ShaderLib.simplestVertexShader
+import me.anno.gpu.shader.ShaderLib.ascColorDecisionList
+import me.anno.gpu.shader.ShaderLib.brightness
+import me.anno.gpu.shader.ShaderLib.createShader
+import me.anno.gpu.shader.ShaderLib.simplestVertexShader
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.framebuffer.FBStack

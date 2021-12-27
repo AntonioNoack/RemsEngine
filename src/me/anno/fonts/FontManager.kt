@@ -7,7 +7,7 @@ import me.anno.fonts.keys.FontKey
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
-import me.anno.gpu.TextureLib
+import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.texture.ITexture2D
 import me.anno.utils.Clock

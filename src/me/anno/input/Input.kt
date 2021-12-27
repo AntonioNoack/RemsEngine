@@ -8,6 +8,7 @@ import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.GFX.inFocus0
 import me.anno.gpu.GFX.requestFocus
 import me.anno.gpu.GFX.window
+import me.anno.gpu.OpenGL
 import me.anno.gpu.Window
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.input.MouseButton.Companion.toMouseButton
@@ -122,7 +123,7 @@ object Input {
                 }
                 addEvent {
                     framesSinceLastInteraction = 0
-                    requestFocus(defaultWindowStack.getPanelAt(mouseX, mouseY), true)
+                    requestFocus(defaultWindowStack?.getPanelAt(mouseX, mouseY), true)
                     inFocus0?.apply {
                         onPasteFiles(mouseX, mouseY, files.filterNotNull().map { getReference(it) })
                     }
@@ -138,34 +139,11 @@ object Input {
 
         // key typed callback
         GLFW.glfwSetCharModsCallback(window) { _, codepoint, mods ->
-            addEvent {
-                framesSinceLastInteraction = 0
-                inFocus0?.onCharTyped(mouseX, mouseY, codepoint)
-                keyModState = mods
-            }
+            addEvent { onCharTyped(codepoint, mods) }
         }
 
         GLFW.glfwSetCursorPosCallback(window) { _, xPosition, yPosition ->
-            addEvent {
-
-                if (keysDown.isNotEmpty()) framesSinceLastInteraction = 0
-
-                val newX = xPosition.toFloat()
-                val newY = yPosition.toFloat()
-
-                val dx = newX - mouseX
-                val dy = newY - mouseY
-
-                mouseMovementSinceMouseDown += length(dx, dy)
-                hadMouseMovement = true
-
-                mouseX = newX
-                mouseY = newY
-
-                inFocus0?.onMouseMoved(mouseX, mouseY, dx, dy)
-                ActionManager.onMouseMoved(dx, dy)
-
-            }
+            addEvent { onMouseMove(xPosition.toFloat(), yPosition.toFloat()) }
         }
 
         GLFW.glfwSetMouseButtonCallback(window) { _, button, action, mods ->
@@ -180,11 +158,13 @@ object Input {
         }
 
         GLFW.glfwSetScrollCallback(window) { _, xOffset, yOffset ->
-            onMouseWheel(xOffset.toFloat(), yOffset.toFloat(), true)
+            addEvent { onMouseWheel(xOffset.toFloat(), yOffset.toFloat(), true) }
         }
 
         GLFW.glfwSetKeyCallback(window) { window, key, scancode, action, mods ->
             if (window != GFX.window) {
+                // touch events are hacked into GLFW for Windows 7+
+                framesSinceLastInteraction = 0
                 // val pressure = max(1, mods)
                 val x = scancode * 0.01f
                 val y = action * 0.01f
@@ -195,123 +175,157 @@ object Input {
                         else -> onTouchMove(key, x, y)
                     }
                 }
-            } else
-                addEvent {
-                    framesSinceLastInteraction = 0
-                    fun keyTyped(key: Int) {
-
-                        ActionManager.onKeyTyped(key)
-
-                        when (key) {
-                            GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER -> {
-                                if (isShiftDown || isControlDown) {
-                                    inFocus0?.onCharTyped(mouseX, mouseY, '\n'.code)
-                                } else {
-                                    inFocus0?.onEnterKey(mouseX, mouseY)
-                                }
-                            }
-                            GLFW.GLFW_KEY_DELETE -> {
-                                // tree view selections need to be removed, because they would be illogical to keep
-                                // (because the underlying Transform changes)
-                                val inFocusTreeViews = inFocus.filterIsInstance<TreeViewPanel<*>>()
-                                inFocus.forEach { it.onDeleteKey(mouseX, mouseY) }
-                                inFocus.removeAll(inFocusTreeViews)
-                            }
-                            GLFW.GLFW_KEY_BACKSPACE -> {
-                                inFocus0?.onBackSpaceKey(mouseX, mouseY)
-                            }
-                            GLFW.GLFW_KEY_TAB -> {
-                                val inFocus0 = inFocus0
-                                if (inFocus0 != null) {
-                                    if (isShiftDown || isControlDown
-                                        || !inFocus0.isKeyInput()
-                                        || !inFocus0.acceptsChar('\t'.code)
-                                    ) {
-                                        // switch between input elements
-                                        val root = inFocus0.rootPanel
-                                        // todo make groups, which are not empty, inputs?
-                                        val list = root.listOfAll.filter { it.canBeSeen && it.isKeyInput() }.toList()
-                                        val index = list.indexOf(inFocus0)
-                                        if (index > -1) {
-                                            var next = list
-                                                .subList(index + 1, list.size)
-                                                .firstOrNull()
-                                            if (next == null) {
-                                                // LOGGER.info("no more text input found, starting from top")
-                                                // restart from top
-                                                next = list.firstOrNull()
-                                            }// else LOGGER.info(next)
-                                            if (next != null) {
-                                                inFocus.clear()
-                                                inFocus += next
-                                            }
-                                        }// else error, child missing
-                                    } else inFocus0.onCharTyped(mouseX, mouseY, '\t'.code)
-                                }
-                            }
-                            GLFW.GLFW_KEY_ESCAPE -> {
-                                if (defaultWindowStack.size > 1) {
-                                    val window2 = defaultWindowStack.peek()
-                                    if (window2.canBeClosedByUser) {
-                                        defaultWindowStack.pop().destroy()
-                                    } else inFocus0?.onEscapeKey(mouseX, mouseY)
-                                } else inFocus0?.onEscapeKey(mouseX, mouseY)
-                            }
-                            else -> {
-                                if (isControlDown) {
-                                    if (action == GLFW.GLFW_PRESS) {
-                                        when (key) {
-                                            GLFW.GLFW_KEY_S -> instance.save()
-                                            GLFW.GLFW_KEY_V -> paste()
-                                            GLFW.GLFW_KEY_C -> copy()
-                                            GLFW.GLFW_KEY_D -> {// duplicate selection
-                                                copy()
-                                                paste()
-                                            }
-                                            GLFW.GLFW_KEY_X -> {// cut
-                                                copy()
-                                                empty()
-                                            }
-                                            GLFW.GLFW_KEY_I -> import()
-                                            GLFW.GLFW_KEY_H -> instance.openHistory()
-                                            GLFW.GLFW_KEY_A -> inFocus0?.onSelectAll(mouseX, mouseY)
-                                            GLFW.GLFW_KEY_M -> if (Build.isDebug) DebugGPUStorage.openMenu()
-                                        }
-                                    }
-                                }
-                                // LOGGER.info("typed by $action")
-                                inFocus0?.onKeyTyped(mouseX, mouseY, key)
-                                // inFocus?.onCharTyped(mx,my,key)
-                            }
-                        }
-                    }
-                    when (action) {
-                        GLFW.GLFW_PRESS -> {
-                            keysDown[key] = gameTime
-                            inFocus0?.onKeyDown(mouseX, mouseY, key) // 264
-                            ActionManager.onKeyDown(key)
-                            keyTyped(key)
-                        }
-                        GLFW.GLFW_RELEASE -> {
-                            keyUpCtr++
-                            inFocus0?.onKeyUp(mouseX, mouseY, key)
-                            ActionManager.onKeyUp(key)
-                            keysDown.remove(key)
-                        } // 265
-                        GLFW.GLFW_REPEAT -> keyTyped(key)
-                    }
-                    // LOGGER.info("event $key $scancode $action $mods")
-                    keyModState = mods
+            } else addEvent {
+                when (action) {
+                    GLFW.GLFW_PRESS -> onKeyPressed(key)
+                    GLFW.GLFW_RELEASE -> onKeyReleased(key)
+                    GLFW.GLFW_REPEAT -> onKeyTyped(action, key)
                 }
+                // LOGGER.info("event $key $scancode $action $mods")
+                keyModState = mods
+            }
         }
+
+    }
+
+    fun onCharTyped(codepoint: Int, mods: Int) {
+        framesSinceLastInteraction = 0
+        inFocus0?.onCharTyped(mouseX, mouseY, codepoint)
+        keyModState = mods
+    }
+
+    fun onKeyPressed(key: Int) {
+        framesSinceLastInteraction = 0
+        keysDown[key] = gameTime
+        inFocus0?.onKeyDown(mouseX, mouseY, key) // 264
+        ActionManager.onKeyDown(key)
+        onKeyTyped(GLFW.GLFW_PRESS, key)
+    }
+
+    fun onKeyReleased(key: Int) {
+        framesSinceLastInteraction = 0
+        keyUpCtr++
+        inFocus0?.onKeyUp(mouseX, mouseY, key)
+        ActionManager.onKeyUp(key)
+        keysDown.remove(key)
+    }
+
+    fun onKeyTyped(action: Int, key: Int) {
+
+        framesSinceLastInteraction = 0
+
+        ActionManager.onKeyTyped(key)
+
+        when (key) {
+            GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER -> {
+                if (isShiftDown || isControlDown) {
+                    inFocus0?.onCharTyped(mouseX, mouseY, '\n'.code)
+                } else {
+                    inFocus0?.onEnterKey(mouseX, mouseY)
+                }
+            }
+            GLFW.GLFW_KEY_DELETE -> {
+                // tree view selections need to be removed, because they would be illogical to keep
+                // (because the underlying Transform changes)
+                val inFocusTreeViews = inFocus.filterIsInstance<TreeViewPanel<*>>()
+                inFocus.forEach { it.onDeleteKey(mouseX, mouseY) }
+                inFocus.removeAll(inFocusTreeViews)
+            }
+            GLFW.GLFW_KEY_BACKSPACE -> {
+                inFocus0?.onBackSpaceKey(mouseX, mouseY)
+            }
+            GLFW.GLFW_KEY_TAB -> {
+                val inFocus0 = inFocus0
+                if (inFocus0 != null) {
+                    if (isShiftDown || isControlDown
+                        || !inFocus0.isKeyInput()
+                        || !inFocus0.acceptsChar('\t'.code)
+                    ) {
+                        // switch between input elements
+                        val root = inFocus0.rootPanel
+                        // todo make groups, which are not empty, inputs?
+                        val list = root.listOfAll.filter { it.canBeSeen && it.isKeyInput() }.toList()
+                        val index = list.indexOf(inFocus0)
+                        if (index > -1) {
+                            var next = list
+                                .subList(index + 1, list.size)
+                                .firstOrNull()
+                            if (next == null) {
+                                // LOGGER.info("no more text input found, starting from top")
+                                // restart from top
+                                next = list.firstOrNull()
+                            }// else LOGGER.info(next)
+                            if (next != null) {
+                                inFocus.clear()
+                                inFocus += next
+                            }
+                        }// else error, child missing
+                    } else inFocus0.onCharTyped(mouseX, mouseY, '\t'.code)
+                }
+            }
+            GLFW.GLFW_KEY_ESCAPE -> {
+                val ws = defaultWindowStack!!
+                if (ws.size > 1) {
+                    val window2 = ws.peek()
+                    if (window2.canBeClosedByUser) {
+                        ws.pop().destroy()
+                    } else inFocus0?.onEscapeKey(mouseX, mouseY)
+                } else inFocus0?.onEscapeKey(mouseX, mouseY)
+            }
+            else -> {
+                if (isControlDown) {
+                    if (action == GLFW.GLFW_PRESS) {
+                        when (key) {
+                            GLFW.GLFW_KEY_S -> instance?.save()
+                            GLFW.GLFW_KEY_V -> paste()
+                            GLFW.GLFW_KEY_C -> copy()
+                            GLFW.GLFW_KEY_D -> {// duplicate selection
+                                copy()
+                                paste()
+                            }
+                            GLFW.GLFW_KEY_X -> {// cut
+                                copy()
+                                empty()
+                            }
+                            GLFW.GLFW_KEY_I -> import()
+                            GLFW.GLFW_KEY_H -> instance?.openHistory()
+                            GLFW.GLFW_KEY_A -> inFocus0?.onSelectAll(mouseX, mouseY)
+                            GLFW.GLFW_KEY_M -> if (Build.isDebug) DebugGPUStorage.openMenu()
+                            GLFW.GLFW_KEY_L -> addEvent { OpenGL.newSession() }
+                        }
+                    }
+                }
+                // LOGGER.info("typed by $action")
+                inFocus0?.onKeyTyped(mouseX, mouseY, key)
+                // inFocus?.onCharTyped(mx,my,key)
+            }
+        }
+    }
+
+    fun onMouseMove(newX: Float, newY: Float) {
+
+        if (keysDown.isNotEmpty()) framesSinceLastInteraction = 0
+
+        val dx = newX - mouseX
+        val dy = newY - mouseY
+
+        val length = length(dx, dy)
+        mouseMovementSinceMouseDown += length
+        if (length > 0f) hadMouseMovement = true
+
+        mouseX = newX
+        mouseY = newY
+
+        inFocus0?.onMouseMoved(mouseX, mouseY, dx, dy)
+        ActionManager.onMouseMoved(dx, dy)
 
     }
 
     var userCanScrollX = false
     fun onMouseWheel(dx: Float, dy: Float, byMouse: Boolean) {
+        if (length(dx, dy) > 0f) framesSinceLastInteraction = 0
         addEvent {
-            framesSinceLastInteraction = 0
-            val clicked = defaultWindowStack.getPanelAt(mouseX, mouseY)
+            val clicked = defaultWindowStack?.getPanelAt(mouseX, mouseY)
             if (!byMouse && abs(dx) > abs(dy)) userCanScrollX = true // e.g. by touchpad: use can scroll x
             if (clicked != null) {
                 if (!userCanScrollX && byMouse && (isShiftDown || isControlDown)) {
@@ -339,10 +353,11 @@ object Input {
     fun onClickIntoWindow(button: Int, panelWindow: Pair<Panel, Window>?) {
         if (panelWindow != null) {
             val mouseButton = button.toMouseButton()
-            while (defaultWindowStack.isNotEmpty()) {
-                val peek = defaultWindowStack.peek()
+            val ws = defaultWindowStack ?: return
+            while (ws.isNotEmpty()) {
+                val peek = ws.peek()
                 if (panelWindow.second == peek || !peek.acceptsClickAway(mouseButton)) break
-                defaultWindowStack.pop().destroy()
+                ws.pop().destroy()
                 windowWasClosed = true
             }
         }
@@ -366,13 +381,14 @@ object Input {
         }
 
         windowWasClosed = false
-        val panelWindow = defaultWindowStack.getPanelAndWindowAt(mouseX, mouseY)
+        val ws = defaultWindowStack!!
+        val panelWindow = ws.getPanelAndWindowAt(mouseX, mouseY)
         onClickIntoWindow(button, panelWindow)
 
         val singleSelect = isControlDown
         val multiSelect = isShiftDown
 
-        val mouseTarget = defaultWindowStack.getPanelAt(mouseX, mouseY)
+        val mouseTarget = ws.getPanelAt(mouseX, mouseY)
         maySelectByClick = if (singleSelect || multiSelect) {
             val selectionTarget = mouseTarget?.getMultiSelectablePanel()
             val inFocusTarget = inFocus0?.getMultiSelectablePanel()
@@ -449,7 +465,7 @@ object Input {
         if (isClick) {
 
             if (maySelectByClick) {
-                val panelWindow = defaultWindowStack.getPanelAndWindowAt(mouseX, mouseY)
+                val panelWindow = defaultWindowStack?.getPanelAndWindowAt(mouseX, mouseY)
                 requestFocus(panelWindow?.first, true)
             }
 
@@ -488,12 +504,12 @@ object Input {
 
     fun import() {
         threadWithName("Ctrl+I") {
-            if (lastFile == InvalidRef) lastFile = instance.getDefaultFileLocation()
+            if (lastFile == InvalidRef) lastFile = instance!!.getDefaultFileLocation()
             FileExplorerSelectWrapper.selectFile((lastFile as? FileFileRef)?.file) { file ->
                 if (file != null) {
                     val fileRef = getReference(file)
                     lastFile = fileRef
-                    instance.importFile(fileRef)
+                    instance?.importFile(fileRef)
                 }
             }
         }
@@ -604,7 +620,7 @@ object Input {
         }
         try {
             val data = clipboard.getData(imageFlavor) as RenderedImage
-            val folder = instance.getPersistentStorage()
+            val folder = instance!!.getPersistentStorage()
             val file0 = folder.getChild("PastedImage.png")
             val file1 = findNextFile(file0, 3, '-', 1)
             file1.outputStream().use { ImageIO.write(data, "png", it) }

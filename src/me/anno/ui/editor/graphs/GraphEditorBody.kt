@@ -7,7 +7,7 @@ import me.anno.animation.Type
 import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.white
 import me.anno.gpu.GFX
-import me.anno.gpu.TextureLib.colorShowTexture
+import me.anno.gpu.texture.TextureLib.colorShowTexture
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTextures.drawTexture

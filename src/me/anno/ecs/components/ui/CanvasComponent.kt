@@ -10,9 +10,12 @@ import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderView
+import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
+import me.anno.gpu.OpenGL
 import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.Window
+import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
@@ -156,7 +159,13 @@ class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
             Frame.bind()
             glClearColor(1f, 0f, 1f, 1f)
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
-            windowStack.draw(width, height, false, forceRedraw = true)
+            OpenGL.depthMode.use(DepthMode.ALWAYS) {
+                OpenGL.blendMode.use(BlendMode.DEFAULT) {
+                    OpenGL.cullMode.use(0) {
+                        windowStack.draw(width, height, false, forceRedraw = true, fb)
+                    }
+                }
+            }
         }
         GFX.check()
     }

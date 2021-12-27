@@ -157,7 +157,7 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
             }
         }
 
-        fun invalidateUI(windowStack: WindowStack = defaultWindowStack) {
+        fun invalidateUI(windowStack: WindowStack = defaultWindowStack!!) {
             // if(gameTime > 1e10) throw RuntimeException()
             // LOGGER.info("UpdateSceneViews ${gameTime / 1e9f}")
             for (window in windowStack) {

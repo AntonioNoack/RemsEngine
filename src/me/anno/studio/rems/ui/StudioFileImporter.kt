@@ -46,7 +46,7 @@ object StudioFileImporter : FileContentImporter<Transform>() {
         when (file.extension.getImportType()) {
             "Transform" -> when (useSoftLink) {
                 SoftLinkMode.ASK -> openMenu(
-                    defaultWindowStack, listOf(
+                    defaultWindowStack!!, listOf(
                         MenuOption(NameDesc("Link")) {
                             addChildFromFile(parent, file, SoftLinkMode.CREATE_LINK, doSelect, depth, callback)
                         },
@@ -185,7 +185,7 @@ object StudioFileImporter : FileContentImporter<Transform>() {
         if (text.length > 500) {
             addEvent {
                 ask(
-                    defaultWindowStack,
+                    defaultWindowStack!!,
                     NameDesc("Text has %1 characters, import?", "", "obj.text.askLargeImport")
                         .with("%1", text.codePoints().count().toString())
                 ) {

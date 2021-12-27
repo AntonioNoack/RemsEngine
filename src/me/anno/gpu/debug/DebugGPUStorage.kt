@@ -109,7 +109,7 @@ object DebugGPUStorage {
     }
 
     fun openMenu() {
-        Menu.openMenu(defaultWindowStack, listOf(
+        Menu.openMenu(defaultWindowStack!!, listOf(
             MenuOption(NameDesc("Texture2Ds")) {
                 createListOfPanels("Texture2Ds"){ list ->
                     for (tex in tex2d) {
@@ -154,7 +154,7 @@ object DebugGPUStorage {
         list.childHeight *= 2
         fillList(list)
         Menu.openMenuByPanels(
-            defaultWindowStack,
+            defaultWindowStack!!,
             Input.mouseX.toInt(),
             Input.mouseY.toInt(),
             NameDesc(title),

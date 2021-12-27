@@ -215,9 +215,13 @@ object Spellchecking : CacheSection("Spellchecking") {
                 }
             } else {
                 // we cannot execute jar files -> have to have the library bundled
-                val clazz = javaClass.classLoader.loadClass("me.anno.language.spellcheck.BundledSpellcheck")
-                val method = clazz.getMethod("runInstance", Language::class.java, ConcurrentHashMap::class.java)
-                method.invoke(null, language, queue)
+                try {
+                    val clazz = javaClass.classLoader.loadClass("me.anno.language.spellcheck.BundledSpellcheck")
+                    val method = clazz.getMethod("runInstance", Language::class.java, ConcurrentHashMap::class.java)
+                    method.invoke(null, language, queue)
+                } catch (e: ClassNotFoundException) {
+                    LOGGER.warn(e)
+                }
             }
         }
         return queue

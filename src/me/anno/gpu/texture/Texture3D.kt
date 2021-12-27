@@ -3,7 +3,7 @@ package me.anno.gpu.texture
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL
-import me.anno.gpu.TextureLib.invisibleTexture
+import me.anno.gpu.texture.TextureLib.invisibleTexture
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.texture.Texture2D.Companion.activeSlot
 import me.anno.gpu.texture.Texture2D.Companion.bindTexture

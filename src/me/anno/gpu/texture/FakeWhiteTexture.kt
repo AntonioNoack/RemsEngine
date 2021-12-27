@@ -1,6 +1,6 @@
 package me.anno.gpu.texture
 
-import me.anno.gpu.TextureLib.bindWhite
+import me.anno.gpu.texture.TextureLib.bindWhite
 
 class FakeWhiteTexture(override var w: Int, override var h: Int) : ITexture2D {
     // override fun bind(nearest: GPUFiltering, clamping: Clamping) = whiteTexture.bind(nearest, whiteTexture.clamping)

@@ -45,7 +45,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.OpenGL
 import me.anno.gpu.OpenGL.useFrame
-import me.anno.gpu.TextureLib.whiteTexture
+import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.deferred.DeferredLayerType
@@ -990,7 +990,6 @@ class RenderView(
     }
 
     private fun clearDeferred() {
-        // if (renderer === DeferredRenderer) {
         Frame.bind()
         OpenGL.blendMode.use(null) {
             OpenGL.depthMode.use(DepthMode.ALWAYS) {
@@ -1016,6 +1015,8 @@ class RenderView(
         changeSize: Boolean,
         doDrawGizmos: Boolean
     ) {
+
+        GFX.check()
 
         val isDeferred = dst.targets.size > 1
         val specialClear = isDeferred && renderer === DeferredRenderer

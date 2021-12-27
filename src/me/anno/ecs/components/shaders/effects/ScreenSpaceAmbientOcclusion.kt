@@ -3,9 +3,9 @@ package me.anno.ecs.components.shaders.effects
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL.useFrame
-import me.anno.gpu.ShaderLib
-import me.anno.gpu.ShaderLib.uvList
-import me.anno.gpu.TextureLib.whiteTexture
+import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.ShaderLib.uvList
+import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.FBStack
@@ -16,6 +16,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.maths.Maths.max
 import me.anno.utils.maths.Maths.min
 import me.anno.utils.maths.Maths.roundDiv
 import org.joml.Matrix4f
@@ -26,23 +27,22 @@ import kotlin.math.sqrt
 
 object ScreenSpaceAmbientOcclusion {
 
-    private const val MAX_SAMPLES = 512
-
-    private val vertex = ShaderLib.simplestVertexShader
+    // could be set lower for older hardware, would need restart
+    private val MAX_SAMPLES = max(4, DefaultConfig["gpu.ssao.maxSamples", 512])
 
     private val sampleKernel = ByteBuffer
         .allocateDirect(4 * MAX_SAMPLES * 3)
         .order(ByteOrder.nativeOrder())
         .asFloatBuffer()
 
-    private val random = Random(1234L)
 
-    private fun generateSampleKernel(samples: Int) {
+    private fun generateSampleKernel(samples: Int, seed: Long = 1234L) {
+        val random = Random(seed)
         sampleKernel.position(0)
         for (i in 0 until samples) {
             val f01 = i / (samples - 1f)
-            val x = random.nextFloat() * 2 - 1
-            val y = random.nextFloat() * 2 - 1
+            val x = random.nextFloat() * 2f - 1f
+            val y = random.nextFloat() * 2f - 1f
             val z = random.nextFloat() // half sphere
             val scale = f01 * f01 * 0.9f + 0.1f
             val f = scale / sqrt(x * x + y * y + z * z)
@@ -70,19 +70,18 @@ object ScreenSpaceAmbientOcclusion {
             data.put(z.toInt().toByte())
         }
         data.flip()
-        val tex = Texture2D("noise", w, h, 1)
+        val tex = Texture2D("ssao-noise", w, h, 1)
         tex.createRGB(data, false)
         return tex
     }
 
-    private val random4x4 = lazy {
-        generateRandomTexture(Random(1234L), 4)
-    }
+    private var random4x4: Texture2D? = null
 
     // 2 passes: occlusion factor, then blurring
     private val occlusionShader = lazy {
         Shader(
-            "ssao-occlusion", null, vertex, uvList, "" +
+            "ssao-occlusion", null,
+            ShaderLib.simplestVertexShader, uvList, "" +
                     "layout(location=0) out float glFragColor;\n" +
                     "uniform float radius, strength;\n" +
                     "uniform int numSamples;\n" +
@@ -128,7 +127,8 @@ object ScreenSpaceAmbientOcclusion {
 
     private val blurShader = lazy {
         Shader(
-            "ssao-blur", null, vertex, uvList, "" +
+            "ssao-blur", null,
+            ShaderLib.simplestVertexShader, uvList, "" +
                     "layout(location=0) out float glFragColor;\n" +
                     "uniform sampler2D source;\n" +
                     "uniform vec2 delta;\n" +
@@ -155,6 +155,12 @@ object ScreenSpaceAmbientOcclusion {
         strength: Float,
         samples: Int
     ): Framebuffer {
+        var random4x4 = random4x4
+        random4x4?.checkSession()
+        if (random4x4 == null || !random4x4.isCreated) {
+            random4x4 = generateRandomTexture(Random(1234L), 4)
+            this.random4x4 = random4x4
+        }
         // resolution can be halved to improve performance
         val div = clamp(DefaultConfig["gpu.ssao.div10", 10], 10, 100)
         val dst = FBStack["ssao-1st", roundDiv(data.w * 10, div), roundDiv(data.h * 10, div), 1, false, 1, false]
@@ -165,7 +171,7 @@ object ScreenSpaceAmbientOcclusion {
             // bind all textures
             val position = settingsV2.findTexture(data, DeferredLayerType.POSITION)!!
             val normal = settingsV2.findTexture(data, DeferredLayerType.NORMAL)!!
-            random4x4.value.bind(2)
+            random4x4.bind(2)
             normal.bind(1)
             position.bind(0)
             if (lastSamples != samples) { // || Input.isShiftDown

@@ -4,10 +4,10 @@ import me.anno.gpu.GFX.flat01
 import me.anno.gpu.OpenGL
 import me.anno.gpu.OpenGL.renderPurely
 import me.anno.gpu.OpenGL.useFrame
-import me.anno.gpu.ShaderLib
-import me.anno.gpu.ShaderLib.brightness
-import me.anno.gpu.ShaderLib.simplestVertexShader
-import me.anno.gpu.ShaderLib.uvList
+import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.ShaderLib.brightness
+import me.anno.gpu.shader.ShaderLib.simplestVertexShader
+import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer

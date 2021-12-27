@@ -2,8 +2,8 @@ package me.anno.studio.cli
 
 import me.anno.cache.Cache
 import me.anno.gpu.GFX
-import me.anno.gpu.ShaderLib
-import me.anno.gpu.TextureLib
+import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.texture.Texture2D
@@ -203,7 +203,6 @@ object RemsCLI {
         // good size? mmh...
         HiddenOpenGLContext.setSize(2048, 2048)
         HiddenOpenGLContext.createOpenGL()
-        TextureLib.init()
         ShaderLib.init()
     }
 

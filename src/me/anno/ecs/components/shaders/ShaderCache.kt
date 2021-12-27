@@ -2,7 +2,7 @@ package me.anno.ecs.components.shaders
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
-import me.anno.gpu.ShaderLib.createShader
+import me.anno.gpu.shader.ShaderLib.createShader
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.builder.Variable
 

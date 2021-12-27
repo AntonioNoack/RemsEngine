@@ -4,7 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.fonts.FontManager
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX
-import me.anno.gpu.ShaderLib
+import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
@@ -73,7 +73,6 @@ object DrawTexts {
         FrameTimes.backgroundColor, alignment
     )
 
-
     fun drawSimpleTextCharByChar(
         x0: Int, y0: Int,
         padding: Int,
@@ -82,7 +81,7 @@ object DrawTexts {
         backgroundColor: Int = FrameTimes.backgroundColor,
         alignment: AxisAlignment = AxisAlignment.MIN
     ) {
-
+        GFX.check()
         val font = monospaceFont.value
         val keys = monospaceKeys.value
         val charWidth = font.sampleWidth
@@ -238,7 +237,9 @@ object DrawTexts {
         val h = texture.h
         // done if pixel is on the border of the drawn rectangle, make it grayscale, so we see no color seams
         if (texture !is Texture2D || texture.isCreated) {
+            GFX.check()
             texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+            GFX.check()
             val shader = ShaderLib.subpixelCorrectTextShader.value
             shader.use()
             val xWithOffset = x - when (alignment) {

@@ -3,7 +3,6 @@ package me.anno.objects.meshes
 import me.anno.cache.data.ICacheData
 import me.anno.ecs.Entity
 import me.anno.ecs.components.cache.MaterialCache
-import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.ecs.components.mesh.AnimRenderer
 import me.anno.ecs.components.mesh.Mesh
@@ -12,7 +11,7 @@ import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.gpu.GFX
-import me.anno.gpu.ShaderLib.shaderAssimp
+import me.anno.gpu.shader.ShaderLib.shaderAssimp
 import me.anno.gpu.drawing.GFXx3D.shader3DUniforms
 import me.anno.gpu.drawing.GFXx3D.transformUniform
 import me.anno.gpu.shader.Shader
@@ -135,20 +134,18 @@ open class MeshData : ICacheData {
             if (useMaterials) {
                 entity.anyComponent(MeshBaseComponent::class) { comp ->
                     val mesh = comp.getMesh()
-                    if (mesh == null) {
-                        if (comp is MeshComponent && comp.mesh != InvalidRef) {
-                            LOGGER.warn("Mesh ${comp.mesh} is missing")
-                        }
-                    } else {
+                    if (mesh != null) {
+                        mesh.checkCompleteness()
                         mesh.ensureBuffer()
                         shader.v1("hasVertexColors", mesh.hasVertexColors)
                         val materials = mesh.materials
+                        println("drawing mesh '${comp.name}' with ${mesh.numMaterials} materials")
                         for (index in 0 until mesh.numMaterials) {
                             val material = MaterialCache[materials.getOrNull(index), defaultMaterial]
                             material.defineShader(shader)
                             mesh.draw(shader, index)
                         }
-                    }
+                    } else warnMissingMesh(comp)
                     false
                 }
             } else {
@@ -156,17 +153,14 @@ open class MeshData : ICacheData {
                 material.defineShader(shader)
                 entity.anyComponent(MeshBaseComponent::class) { comp ->
                     val mesh = comp.getMesh()
-                    if (mesh == null) {
-                        if (comp is MeshComponent && comp.mesh != InvalidRef) {
-                            LOGGER.warn("Mesh ${comp.mesh} is missing")
-                        }
-                    } else {
+                    if (mesh != null) {
+                        mesh.checkCompleteness()
                         mesh.ensureBuffer()
                         shader.v1("hasVertexColors", mesh.hasVertexColors)
                         for (i in 0 until mesh.numMaterials) {
                             mesh.draw(shader, i)
                         }
-                    }
+                    } else warnMissingMesh(comp)
                     false
                 }
             }
@@ -185,6 +179,14 @@ open class MeshData : ICacheData {
         }
 
         stack.popMatrix()
+    }
+
+    fun warnMissingMesh(comp: MeshBaseComponent) {
+        if (comp is MeshComponent && comp.mesh != InvalidRef) {
+            LOGGER.warn("Mesh ${comp.mesh} is missing")
+        } else {
+            LOGGER.warn("MeshBaseComponent has no mesh $comp")
+        }
     }
 
     override fun destroy() {

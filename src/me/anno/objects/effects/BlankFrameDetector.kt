@@ -3,7 +3,7 @@ package me.anno.objects.effects
 import me.anno.cache.instances.VideoCache
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL.useFrame
-import me.anno.gpu.ShaderLib
+import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer

@@ -116,7 +116,8 @@ object ExtensionLoader {
 
     private fun checkExtensionRequirements(info: ExtensionInfo): Boolean {
         val instance = StudioBase.instance
-        if (instance.versionNumber in info.minVersion until info.maxVersion) {
+        val instanceVersion = instance?.versionNumber ?: 0
+        if (instanceVersion in info.minVersion until info.maxVersion) {
             // check if the mod was not disabled
             val isDisabled = DefaultConfig["extensions.isDisabled.${info.uuid}", false]
             if (isDisabled) {
@@ -125,8 +126,8 @@ object ExtensionLoader {
         } else {
             LOGGER.warn(
                 "Extension \"${info.name}\" is incompatible " +
-                        "with ${instance.title} version ${instance.versionName}!, " +
-                        "${info.minVersion} <= ${instance.versionNumber} < ${info.maxVersion}"
+                        "with ${instance?.title} version ${instance?.versionName}!, " +
+                        "${info.minVersion} <= $instanceVersion < ${info.maxVersion}"
             )
         }
         return false

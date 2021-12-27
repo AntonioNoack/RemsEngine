@@ -1,7 +1,7 @@
 package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
-import me.anno.gpu.ShaderLib
+import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.GFXx3D.draw3DCircle
 import me.anno.gpu.shader.Shader
@@ -10,7 +10,6 @@ import me.anno.objects.GFXTransform.Companion.uploadAttractors0
 import me.anno.objects.Transform
 import me.anno.objects.Video
 import me.anno.utils.maths.Maths.clamp
-import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 

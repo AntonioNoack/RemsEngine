@@ -99,7 +99,8 @@ open class Window(
         w: Int, h: Int,
         sparseRedraw: Boolean,
         didSomething0: Boolean,
-        forceRedraw: Boolean
+        forceRedraw: Boolean,
+        dstBuffer: Framebuffer?
     ): Boolean {
 
         var didSomething = didSomething0
@@ -123,11 +124,11 @@ open class Window(
             // overlays get missing...
             // this somehow needs to be circumvented...
             if (sparseRedraw) {
-                didSomething = sparseRedraw(panel, didSomething, forceRedraw)
+                didSomething = sparseRedraw(panel, didSomething, forceRedraw, dstBuffer)
             } else {
                 if (didSomething || forceRedraw) {
                     needsRedraw.clear()
-                    fullRedraw(w, h, panel)
+                    fullRedraw(w, h, panel, dstBuffer)
                 }// else no buffer needs to be updated
             }
         }
@@ -156,12 +157,9 @@ open class Window(
 
     private fun fullRedraw(
         w: Int, h: Int,
-        panel0: Panel
+        panel0: Panel,
+        dstBuffer: Framebuffer?
     ) {
-
-        GFX.ensureEmptyStack()
-        // Framebuffer.stack.push(null)
-        Frame.reset()
 
         GFX.loadTexturesSync.clear()
         GFX.loadTexturesSync.push(false)
@@ -169,7 +167,7 @@ open class Window(
             calculateFullLayout(w, h)
         }
 
-        OpenGL.useFrame(panel0.x, panel0.y, panel0.w, panel0.h, false, null, Renderer.colorRenderer) {
+        OpenGL.useFrame(panel0.x, panel0.y, panel0.w, panel0.h, false, dstBuffer, Renderer.colorRenderer) {
             panel0.canBeSeen = true
             panel0.draw(panel0.x, panel0.y, panel0.x + panel0.w, panel0.y + panel0.h)
         }
@@ -178,7 +176,8 @@ open class Window(
 
     fun sparseRedraw(
         panel0: Panel, didSomething0: Boolean,
-        forceRedraw: Boolean
+        forceRedraw: Boolean,
+        dstBuffer: Framebuffer?
     ): Boolean {
 
         var didSomething = didSomething0
@@ -221,10 +220,10 @@ open class Window(
                         GFX.loadTexturesSync.clear()
                         GFX.loadTexturesSync.push(false)
                         if (panel.canBeSeen) {
+                            val w = panel.lx1 - panel.lx0
+                            val h = panel.ly1 - panel.ly0
                             OpenGL.useFrame(
-                                panel.lx0, panel.ly0,
-                                panel.lx1 - panel.lx0,
-                                panel.ly1 - panel.ly0,
+                                panel.lx0, panel.ly0, w, h,
                                 false, buffer,
                                 Renderer.colorRenderer
                             ) { panel.redraw() }
@@ -247,15 +246,15 @@ open class Window(
         }
 
         if (didSomething || forceRedraw) {
-            drawCachedImage(panel0, wasRedrawn)
+            drawCachedImage(panel0, wasRedrawn, dstBuffer)
         }// else no buffer needs to be updated
 
         return didSomething
 
     }
 
-    fun drawCachedImage(panel: Panel, wasRedrawn: Collection<Panel>) {
-        OpenGL.useFrame(panel.x, panel.y, panel.w, panel.h, false, null) {
+    fun drawCachedImage(panel: Panel, wasRedrawn: Collection<Panel>, dstBuffer: Framebuffer?) {
+        OpenGL.useFrame(panel.x, panel.y, panel.w, panel.h, false, dstBuffer) {
             OpenGL.renderDefault {
                 GFX.copy(buffer)
                 if (showRedraws) {

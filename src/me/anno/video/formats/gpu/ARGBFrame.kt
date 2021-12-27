@@ -1,7 +1,7 @@
 package me.anno.video.formats.gpu
 
 import me.anno.gpu.GFX
-import me.anno.gpu.ShaderLib.shader3DARGB
+import me.anno.gpu.shader.ShaderLib.shader3DARGB
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D

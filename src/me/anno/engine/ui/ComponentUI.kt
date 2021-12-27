@@ -931,7 +931,7 @@ object ComponentUI {
         addOnClickListener { _, _, button, _ ->
             if (button.isRight) {
                 // todo option to edit the parent... how will that work?
-                Menu.openMenu(defaultWindowStack, listOf(MenuOption(NameDesc("Reset")) {
+                Menu.openMenu(defaultWindowStack!!, listOf(MenuOption(NameDesc("Reset")) {
                     callback(property.reset(this))
                 }))
                 true

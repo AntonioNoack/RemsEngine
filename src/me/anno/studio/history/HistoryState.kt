@@ -58,7 +58,7 @@ class HistoryState() : Saveable() {
         RemsStudio.editorTime = editorTime
         val listOfAll = root.listOfAll.toList()
         select(selectedUUID, selectedPropName)
-        defaultWindowStack.map { window ->
+        defaultWindowStack?.forEach { window ->
             var index = 0
             window.panel.forAll {
                 if (it is SceneView) {
@@ -90,7 +90,7 @@ class HistoryState() : Saveable() {
 
         state.title = title
         state.selectedUUID = Selection.selectedTransform?.getUUID() ?: -1
-        state.usedCameras = defaultWindowStack.map { window ->
+        state.usedCameras = defaultWindowStack!!.map { window ->
             window.panel.listOfAll.filterIsInstance<SceneView>().map { it.camera.getUUID() }.toList()
         }.join().toIntArray()
 

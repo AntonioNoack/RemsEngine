@@ -1,8 +1,12 @@
 package me.anno.input
 
-class Touch(val touchId: Int, var x: Float, var y: Float): Comparable<Touch> {
+import me.anno.gpu.GFX
+import me.anno.ui.utils.WindowStack
+import org.joml.Vector3f
 
-    val t0 = System.nanoTime()
+class Touch(var x: Float, var y: Float) {
+
+    val t0 = GFX.gameTime
     val x0 = x
     val y0 = y
     var dx = 0f
@@ -10,61 +14,82 @@ class Touch(val touchId: Int, var x: Float, var y: Float): Comparable<Touch> {
     var lastX = x
     var lastY = y
 
-    override fun compareTo(other: Touch): Int = touchId - other.touchId
-
-    fun update(){
+    fun update() {
         lastX = x
         lastY = y
     }
 
-    fun update(x: Float, y: Float){
+    fun update(x: Float, y: Float) {
         dx = x - this.x
         dy = y - this.y
         this.x = x
         this.y = y
     }
 
+    interface TouchListener {
+        fun onTouchDown(touch: Touch)
+        fun onTouchUp(touch: Touch)
+        fun onTouchMove(touch: Touch)
+    }
+
     companion object {
 
-        val maxTouches = 16
-        val touches = ArrayList<Touch>()
+        val touches = HashMap<Int, Touch>()
 
-        fun onTouchDown(touchId: Int, x: Float, y: Float){
-            val touch = Touch(touchId, x, y)
-            if(touches.size < maxTouches){
-                touches.add(touch)
-            } else {
-                // find the minimum id
-                val min = touches.withIndex().minByOrNull { it.value.touchId }!!
-                val minIndex = min.index
-                onTouchUp(min.value) // up, even if it isn't...
-                touches[minIndex] = touch
+        fun getNumTouches() = touches.size
+        fun getTouchIds() = touches.keys
+
+        fun getTouchPosition(ws: WindowStack, touchId: Int, dst: Vector3f = Vector3f()): Vector3f {
+            val touch = touches[touchId] ?: return dst
+            ws.viewTransform.transformProject(dst.set(touch.x, touch.y, 0f), dst)
+            return dst
+        }
+
+        fun getLastTouchPosition(ws: WindowStack, touchId: Int, dst: Vector3f = Vector3f()): Vector3f {
+            val touch = touches[touchId] ?: return dst
+            ws.viewTransform.transformProject(dst.set(touch.lastX, touch.lastY, 0f), dst)
+            return dst
+        }
+
+        fun getTouchDelta(ws: WindowStack, touchId: Int, dst: Vector3f = Vector3f()): Vector3f {
+            val touch = touches[touchId] ?: return dst
+            // transform delta properly?
+            ws.viewTransform.transformDirection(dst.set(touch.dx, touch.dy, 0f), dst)
+            return dst
+        }
+
+        private val listeners = ArrayList<TouchListener>()
+
+        fun registerListener(listener: TouchListener) {
+            listeners.add(listener)
+        }
+
+        fun unregisterListener(listener: TouchListener) {
+            listeners.remove(listener)
+        }
+
+        fun onTouchDown(touchId: Int, x: Float, y: Float) {
+            val touch = Touch(x, y)
+            touches[touchId] = touch
+            for (listener in listeners) {
+                listener.onTouchDown(touch)
             }
-            touches.sort()
-            onTouchDown(touch)
         }
 
-        fun onTouchDown(touch: Touch){
-
-        }
-
-        fun onTouchMove(touchId: Int, x: Float, y: Float){
-            val touch = touches.firstOrNull { it.touchId == touchId } ?: return
+        fun onTouchMove(touchId: Int, x: Float, y: Float) {
+            val touch = touches[touchId] ?: return
             touch.update(x, y)
+            for (listener in listeners) {
+                listener.onTouchMove(touch)
+            }
         }
 
-        fun onTouchUp(touchId: Int, x: Float, y: Float){
-            val index = touches.binarySearch { it.touchId - touchId }
-            if(index < 0) return
-            val touch = touches[index]
-            // move the last element forward
-            touches.removeAt(index)
+        fun onTouchUp(touchId: Int, x: Float, y: Float) {
+            val touch = touches.remove(touchId) ?: return
             touch.update(x, y)
-            onTouchUp(touch)
-        }
-
-        fun onTouchUp(touch: Touch){
-
+            for (listener in listeners) {
+                listener.onTouchUp(touch)
+            }
         }
 
     }

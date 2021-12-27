@@ -4,7 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.a
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.gpu.ShaderLib
+import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import kotlin.math.PI

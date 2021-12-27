@@ -1,7 +1,7 @@
 package me.anno.engine.ui.render
 
 import me.anno.gpu.GFX
-import me.anno.gpu.ShaderLib
+import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GeoShader

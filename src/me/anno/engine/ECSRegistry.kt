@@ -31,8 +31,8 @@ import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.scene.ScenePrefab
 import me.anno.engine.ui.render.ECSShaderLib
-import me.anno.gpu.ShaderLib
-import me.anno.gpu.TextureLib
+import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.BaseShader
 import me.anno.io.ISaveable.Companion.registerCustomClass
@@ -190,7 +190,6 @@ object ECSRegistry {
     fun initWithGFX(w: Int, h: Int = w) {
         HiddenOpenGLContext.createOpenGL(w, h)
         ShaderLib.init()
-        TextureLib.init()
         ECSShaderLib.init()
         init()
     }

@@ -6,9 +6,8 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isGFXThread
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.OpenGL
-import me.anno.gpu.buffer.Buffer
-import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.buffer.Buffer.Companion.bindBuffer
+import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.image.Image
 import me.anno.objects.modes.RotateJPEG
@@ -771,6 +770,7 @@ open class Texture2D(
     }*/
 
     override fun bind(index: Int, nearest: GPUFiltering, clamping: Clamping): Boolean {
+        checkSession()
         if (pointer > 0 && isCreated) {
             if (isBoundToSlot(index)) return false
             activeSlot(index)
@@ -819,6 +819,7 @@ open class Texture2D(
 
     companion object {
 
+        var alwaysBindTexture = false
         var wasModifiedInComputePipeline = false
 
         fun BufferedImage.hasAlphaChannel() = colorModel.hasAlpha()
@@ -845,7 +846,7 @@ open class Texture2D(
         }
 
         fun activeSlot(index: Int) {
-            if (index != boundTextureSlot) {
+            if (alwaysBindTexture || index != boundTextureSlot) {
                 glActiveTexture(GL_TEXTURE0 + index)
                 boundTextureSlot = index
             }
@@ -860,7 +861,7 @@ open class Texture2D(
                 GL43.glMemoryBarrier(GL43.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
                 wasModifiedInComputePipeline = false
             }
-            return if (boundTextures[boundTextureSlot] != pointer) {
+            return if (alwaysBindTexture || boundTextures[boundTextureSlot] != pointer) {
                 boundTextures[boundTextureSlot] = pointer
                 glBindTexture(mode, pointer)
                 true

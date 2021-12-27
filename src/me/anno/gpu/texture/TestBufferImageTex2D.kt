@@ -1,8 +1,7 @@
 package me.anno.gpu.texture
 
 import me.anno.config.DefaultConfig
-import me.anno.gpu.ShaderLib
-import me.anno.gpu.TextureLib
+import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.framebuffer.Frame
@@ -23,7 +22,6 @@ fun main() {
     HiddenOpenGLContext.createOpenGL()
 
     ShaderLib.init()
-    TextureLib.init()
 
     // todo load or create small test image
 

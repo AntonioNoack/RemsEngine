@@ -235,7 +235,7 @@ class Mesh : PrefabSaveable() {
         val positions = positions
         val normals = normals
         val uvs = uvs
-        if (positions == null) throw IllegalStateException("Missing positions")
+        if (positions == null) throw IllegalStateException("Missing positions, normals? ${normals?.size}, uvs? ${uvs?.size}")
         if (positions.size % 3 != 0) throw IllegalStateException("Positions must be a vector of vec3, but ${positions.size} % 3 != 0, it's ${positions.size % 3}")
         if (normals != null && normals.size != positions.size) throw IllegalStateException("Size of normals doesn't match size of positions")
         if (uvs != null) {
@@ -691,12 +691,13 @@ class Mesh : PrefabSaveable() {
         ensureBuffer()
         // respect the material index: only draw what belongs to the material
         val helperMeshes = helperMeshes
-        if (helperMeshes != null) {
-            helperMeshes
-                .getOrNull(materialIndex)
-                ?.draw(shader, 0)
-        } else {
-            if (materialIndex == 0) {
+        when {
+            helperMeshes != null -> {
+                helperMeshes
+                    .getOrNull(materialIndex)
+                    ?.draw(shader, 0)
+            }
+            materialIndex == 0 -> {
                 (triBuffer ?: buffer)?.draw(shader)
                 lineBuffer?.draw(shader)
             }

@@ -2,6 +2,7 @@ package me.anno.image
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
+import me.anno.cache.data.ICacheData
 import me.anno.image.raw.BIImage
 import me.anno.image.tar.TGAImage
 import me.anno.io.files.FileFileRef
@@ -59,12 +60,12 @@ object ImageCPUCache : CacheSection("BufferedImages") {
         return getImage(file, 10_000, async)
     }
 
-    fun getImage(file: FileReference, timeout: Long, async: Boolean): Image? {
-        return getEntry(file, timeout, async) {
+    fun getImage(file0: FileReference, timeout: Long, async: Boolean): Image? {
+        val data = getFileEntry(file0, false, timeout, async) { file, _ ->
             if (file is ImageReadable) {
                 CacheData(file.readImage())
             } else {
-                if (file.length() < 1e7) { // < 10MB -> read directly
+                val image = if (file.length() < 1e7) { // < 10MB -> read directly
                     val bytes = file.readBytes()
                     val signature = Signature.findName(bytes)
                     if (signature == "dds" || signature == "media" || file.lcExtension == "webp") {
@@ -78,8 +79,15 @@ object ImageCPUCache : CacheSection("BufferedImages") {
                     val reader = fileReaders[signature] ?: fileReaders[file.lcExtension]
                     if (reader != null) reader(file) else tryGeneric(file)
                 }
+                if (image is ICacheData) image
+                else CacheData(image)
             }
-        } as? Image
+        }
+        return when (data) {
+            is Image -> data
+            is CacheData<*> -> data.value as? Image
+            else -> null
+        }
     }
 
     private fun tryFFMPEG(file: FileReference): Image {

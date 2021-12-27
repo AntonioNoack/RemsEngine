@@ -20,6 +20,7 @@ import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseKeysDown
 import me.anno.input.MouseButton
+import me.anno.input.Touch
 import me.anno.input.Touch.Companion.touches
 import me.anno.io.files.FileReference
 import me.anno.objects.Camera
@@ -391,17 +392,17 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
         val size = -20f * shiftSlowdown / GFX.height
         when (touches.size) {
             2 -> {
-                val first = touches.first()
+                val first = touches[0]!!
                 if (contains(first.x, first.y)) {
                     // this gesture started on this view -> this is our gesture
                     // rotating is the hardest on a touchpad, because we need to click right
                     // -> rotation
                     // axes: angle, zoom,
-                    val dx = sumOf(touches) { it.x - it.lastX } * size * 0.5f
-                    val dy = sumOf(touches) { it.y - it.lastY } * size * 0.5f
+                    val dx = touches.values.sumOf { (it.x - it.lastX).toDouble() }.toFloat() * size * 0.5f
+                    val dy = touches.values.sumOf { (it.y - it.lastY).toDouble() }.toFloat() * size * 0.5f
 
-                    val t0 = touches[0]
-                    val t1 = touches[1]
+                    val t0 = touches[0]!!
+                    val t1 = touches[1]!!
 
                     val d1 = length(t1.x - t0.x, t1.y - t0.y)
                     val d0 = length(t1.lastX - t0.lastX, t1.lastY - t0.lastY)
@@ -426,20 +427,20 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
                     } else {
                         // move camera? completely ignore, what is selected
                     }
-                    touches.forEach { it.update() }
+                    touches.forEach { it.value.update() }
                     invalidateDrawing()
                 }
             }
             3 -> {
                 // very slow... but we can move around with a single finger, so it shouldn't matter...
                 // move the camera around
-                val first = touches.first()
+                val first = touches.values.first()
                 val speed = 10f / 3f
                 if (contains(first.x, first.y)) {
-                    val dx = speed * sumOf(touches) { it.x - it.lastX } * size
-                    val dy = speed * sumOf(touches) { it.y - it.lastY } * size
+                    val dx = speed * touches.values.sumOf { (it.x - it.lastX).toDouble() }.toFloat()* size
+                    val dy = speed * touches.values.sumOf { (it.y - it.lastY).toDouble() }.toFloat() * size
                     move(camera, dx, dy)
-                    touches.forEach { it.update() }
+                    touches.forEach { it.value.update() }
                     invalidateDrawing()
                 }
             }

@@ -5,7 +5,7 @@ import me.anno.animation.Type
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.windowHeight
 import me.anno.gpu.GFX.windowWidth
-import me.anno.gpu.TextureLib.colorShowTexture
+import me.anno.gpu.texture.TextureLib.colorShowTexture
 import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering

@@ -137,6 +137,11 @@ abstract class ChunkSystem<Chunk, Element>(val bitsX: Int, val bitsY: Int, val b
         }
     }
 
+    /**
+     * @param loadingDistance in this radius, new chunks are created
+     * @param unloadingDistance outside this radius, chunks are destroyed
+     * @param players basis for loading & unloading chunks
+     * */
     fun updateVisibility(
         loadingDistance: Double,
         unloadingDistance: Double,
@@ -175,7 +180,7 @@ abstract class ChunkSystem<Chunk, Element>(val bitsX: Int, val bitsY: Int, val b
                 Vector3i(0, 0, -1),
                 Vector3i(0, 0, +1),
             )
-            chunks.forEach { (pos, _) ->
+            for((pos, _) in chunks) {
                 val px = (pos.x shl bitsX) + sx2
                 val py = (pos.y shl bitsY) + sy2
                 val pz = (pos.z shl bitsZ) + sz2
@@ -197,9 +202,15 @@ abstract class ChunkSystem<Chunk, Element>(val bitsX: Int, val bitsY: Int, val b
         }
     }
 
-    fun onCreateChunk(chunk: Chunk, chunkX: Int, chunkY: Int, chunkZ: Int) {}
+    open fun onCreateChunk(chunk: Chunk, chunkX: Int, chunkY: Int, chunkZ: Int) {}
 
-    fun onDestroyChunk(chunk: Chunk, chunkX: Int, chunkY: Int, chunkZ: Int) {}
+    open fun onDestroyChunk(chunk: Chunk, chunkX: Int, chunkY: Int, chunkZ: Int) {}
+
+    inline fun forAllChunks(run: (chunk: Chunk) -> Boolean) {
+        for (chunk in chunks.values) {
+            if (run(chunk)) return
+        }
+    }
 
     operator fun Vector3i.component1() = x
     operator fun Vector3i.component2() = y

@@ -190,14 +190,14 @@ abstract class StudioBase(
         if (isFirstFrame) tick("before window drawing")
 
         // be sure that always something is drawn
-        var didSomething = GFX.needsRefresh
+        var didSomething = GFX.needsRefresh || Input.needsLayoutUpdate()
         GFX.needsRefresh = false
 
         // when the frame is minimized, nothing needs to be drawn
         if (!isMinimized) {
 
             windowStack.update()
-            didSomething = windowStack.draw(w, h, didSomething, shallDraw(didSomething))
+            didSomething = windowStack.draw(w, h, didSomething, shallDraw(didSomething), null)
 
             Input.framesSinceLastInteraction++
 
@@ -242,7 +242,12 @@ abstract class StudioBase(
 
     fun processMouseMovement() {
         if (!Input.hadMouseMovement) {
-            ActionManager.onMouseIdle()
+            // if our window doesn't have focus or the cursor is outside,
+            // we need to ask for updates manually
+            GFX.updateMousePosition()
+            if (!Input.hadMouseMovement) {
+                ActionManager.onMouseIdle()
+            }
         }
         lastMouseX = Input.mouseX
         lastMouseY = Input.mouseY
@@ -343,7 +348,7 @@ abstract class StudioBase(
 
         var shallStop = false
 
-        lateinit var instance: StudioBase
+        var instance: StudioBase? = null
 
         var workspace = OS.documents
 
@@ -351,7 +356,7 @@ abstract class StudioBase(
 
         var dragged: IDraggable? = null
 
-        val defaultWindowStack get() = instance.windowStack
+        val defaultWindowStack get() = instance?.windowStack
 
         fun updateAudio() {
             AudioTasks.addTask(100) {
@@ -375,6 +380,7 @@ abstract class StudioBase(
 
         fun addProgressBar(unit: String, total: Double): ProgressBar {
             val bar = ProgressBar(unit, total)
+            val instance = instance ?: return bar
             synchronized(instance.progressBars) {
                 instance.progressBars.add(bar)
             }

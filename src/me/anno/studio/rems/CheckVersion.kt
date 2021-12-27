@@ -38,7 +38,7 @@ object CheckVersion {
                         LOGGER.info("Found newer version: $name")
                         // wait for everything to be loaded xD
                         addEvent {
-                            Menu.openMenu(windowStack,
+                            Menu.openMenu(windowStack!!,
                                 NameDesc("New Version Available!", "", "ui.newVersion"), listOf(
                                     MenuOption(NameDesc("See Download Options", "", "ui.newVersion.openLink")) {
                                         URI("https", "remsstudio.phychi.com", "/", "s=download").toURL().openInBrowser()

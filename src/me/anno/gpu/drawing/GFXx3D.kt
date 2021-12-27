@@ -4,9 +4,9 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.windowHeight
 import me.anno.gpu.GFX.windowWidth
 import me.anno.gpu.OpenGL.renderPurely
-import me.anno.gpu.ShaderLib
-import me.anno.gpu.ShaderLib.maxOutlineColors
-import me.anno.gpu.TextureLib
+import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.ShaderLib.maxOutlineColors
+import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01Cube
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01CubeX10

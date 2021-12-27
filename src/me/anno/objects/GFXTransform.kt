@@ -1,8 +1,8 @@
 package me.anno.objects
 
-import me.anno.gpu.ShaderLib.colorForceFieldBuffer
-import me.anno.gpu.ShaderLib.maxColorForceFields
-import me.anno.gpu.ShaderLib.uvForceFieldBuffer
+import me.anno.gpu.shader.ShaderLib.colorForceFieldBuffer
+import me.anno.gpu.shader.ShaderLib.maxColorForceFields
+import me.anno.gpu.shader.ShaderLib.uvForceFieldBuffer
 import me.anno.gpu.shader.Shader
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter

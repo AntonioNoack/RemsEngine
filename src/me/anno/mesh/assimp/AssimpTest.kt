@@ -2,8 +2,8 @@ package me.anno.mesh.assimp
 
 import me.anno.ecs.components.anim.Skeleton
 import me.anno.engine.ui.render.ECSShaderLib
-import me.anno.gpu.ShaderLib
-import me.anno.gpu.TextureLib
+import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.Buffer.Companion.bindBuffer
 import me.anno.gpu.buffer.StaticBuffer
@@ -32,7 +32,6 @@ import java.nio.IntBuffer
 fun main() {
 
     HiddenOpenGLContext.createOpenGL()
-    TextureLib.init()
     ShaderLib.init()
     ECSShaderLib.init()
     Thumbs.useCacheFolder = true

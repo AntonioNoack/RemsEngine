@@ -1,5 +1,6 @@
 package me.anno.gpu
 
+import me.anno.cache.instances.TextCache
 import me.anno.cache.instances.VideoCache
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Buffer
@@ -36,9 +37,11 @@ object OpenGL {
         OpenGLShader.invalidateBinding()
         Texture2D.invalidateBinding()
         Buffer.invalidateBinding()
+        // clear all caches, which contain gpu data
+        FBStack.clear()
+        TextCache.clear()
         VideoCache.clear()
         ImageGPUCache.clear()
-        FBStack.clear()
     }
 
     // the renderer is set per framebuffer; makes the most sense
@@ -50,6 +53,7 @@ object OpenGL {
         // could be optimized
         override fun onChangeValue(newValue: BlendMode?, oldValue: BlendMode?) {
             // LOGGER.info("Blending: $newValue <- $oldValue")
+            GFX.check()
             if (newValue == null) {
                 glDisable(GL_BLEND)
             } else {
@@ -71,6 +75,7 @@ object OpenGL {
 
     val depthMode = object : SecureStack<DepthMode>(DepthMode.ALWAYS) {
         override fun onChangeValue(newValue: DepthMode, oldValue: DepthMode) {
+            GFX.check()
             if (newValue != DepthMode.ALWAYS) {
                 glEnable(GL_DEPTH_TEST)
                 glDepthFunc(newValue.func)
@@ -94,6 +99,7 @@ object OpenGL {
 
     val depthMask = object : SecureStack<Boolean>(true) {
         override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
+            GFX.check()
             glDepthMask(newValue)
         }
     }
@@ -109,6 +115,7 @@ object OpenGL {
 
     val cullMode = object : SecureIntStack(0) {
         override fun onChangeValue(newValue: Int, oldValue: Int) {
+            GFX.check()
             if (newValue != 0) {
                 glEnable(GL_CULL_FACE)
                 glCullFace(newValue)

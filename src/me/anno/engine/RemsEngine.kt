@@ -8,8 +8,7 @@ import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX
-import me.anno.gpu.ShaderLib
-import me.anno.gpu.Window
+import me.anno.gpu.shader.ShaderLib
 import me.anno.input.ActionManager
 import me.anno.language.translation.Dict
 import me.anno.studio.StudioBase
@@ -180,7 +179,7 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
     class RuntimeInfoPlaceholder : Panel(style) {
         override fun calculateSize(w: Int, h: Int) {
-            minW = if (instance.showFPS) FrameTimes.width else 0
+            minW = if (instance?.showFPS == true) FrameTimes.width else 0
             minH = 1
         }
     }

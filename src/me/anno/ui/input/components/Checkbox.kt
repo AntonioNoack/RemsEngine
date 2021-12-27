@@ -1,7 +1,7 @@
 package me.anno.ui.input.components
 
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.TextureLib.whiteTexture
+import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.ImageGPUCache.getInternalTexture

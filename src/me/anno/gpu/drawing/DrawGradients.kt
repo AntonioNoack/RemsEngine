@@ -1,8 +1,8 @@
 package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
-import me.anno.gpu.ShaderLib
-import me.anno.gpu.TextureLib.bindWhite
+import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.texture.TextureLib.bindWhite
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.video.formats.gpu.GPUFrame

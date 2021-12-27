@@ -87,7 +87,7 @@ class History : Saveable() {
     }
 
     fun display() {
-        openMenu(defaultWindowStack, NameDesc("Inspect History", "", "ui.inspectHistory"), states.mapIndexed { index, change ->
+        openMenu(defaultWindowStack!!, NameDesc("Inspect History", "", "ui.inspectHistory"), states.mapIndexed { index, change ->
             val title = if (index == nextInsertIndex - 1) "* ${change.title}" else change.title
             MenuOption(NameDesc(title, Dict["Click to redo", "ui.history.clickToUndo"], "")) {
                 redo(index)

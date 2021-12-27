@@ -1,16 +1,16 @@
 package me.anno.gpu.deferred
 
 import me.anno.gpu.GFX.flat01
-import me.anno.gpu.ShaderLib.simplestVertexShader
-import me.anno.gpu.ShaderLib.uvList
+import me.anno.gpu.shader.ShaderLib.simplestVertexShader
+import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.monitor.SubpixelLayout
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.ITexture2D
+import me.anno.image.ImageWriter
+import me.anno.image.ImageWriter.MSAAx8
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
 import me.anno.utils.LOGGER
-import me.anno.image.ImageWriter
-import me.anno.image.ImageWriter.MSAAx8
 import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.maths.Maths.max
 import me.anno.utils.maths.Maths.min
@@ -31,6 +31,11 @@ import kotlin.math.abs
  * -> use edge detection by walking along the edge, and find the interpolation values
  * */
 object DepthBasedAntiAliasing {
+
+    val smoothstep1 = "" +
+            "float smoothstep1(float x){\n" +
+            "   return pow(x,2.0)*(3.0-2.0*x);\n" +
+            "}\n"
 
     // only works for flat sections -> we need edge detection
     /*val shader0 = lazy {
@@ -131,9 +136,7 @@ object DepthBasedAntiAliasing {
                     "   return COLOR_STRENGTH*dot(dc,dc)*threshold;\n" +
                     "}\n" +
                     // we don't need clamp
-                    "float smoothstep(float x){\n" +
-                    "   return pow(x,2.0)*(3-2*x);\n" +
-                    "}\n" +
+                    smoothstep +
                     "void main(){\n" +
                     "   ivec2 p = ivec2(gl_FragCoord.xy);\n" +
                     "   if(disableEffect){\n" +
@@ -184,7 +187,7 @@ object DepthBasedAntiAliasing {
                     "       }\n" +
                     "       float fraction = (float(pos)-0.5)/float(pos+neg-1);\n" +
                     "       float blur = min(1-fraction,fraction);\n" +
-                    "       blur = smoothstep(blur);\n" + // sharpen the edge from 2 wide to 1 wide
+                    "       blur = smoothstep1(blur);\n" + // sharpen the edge from 2 wide to 1 wide
                     "       int other = (dirX?" +
                     "           abs(d1-d0)+dC1(p,ivec2(-1,0)) > abs(d3-d0)+dC1(p,ivec2(1,0)) : " +
                     "           abs(d2-d0)+dC1(p,ivec2(0,-1)) > abs(d4-d0)+dC1(p,ivec2(0,1))) ? -1 : +1;\n" +
@@ -214,7 +217,7 @@ object DepthBasedAntiAliasing {
 */
     val shaderNoColor = lazy {
         Shader(
-            "Depth-Based MSAA", null,
+            "Depth-Based FXAA", null,
             simplestVertexShader, uvList,
             "out vec4 fragColor;\n" +
                     // use color instead of depth?
@@ -233,10 +236,7 @@ object DepthBasedAntiAliasing {
                     "   float sobel = 4.0-(d1+d2+d3+d4)/d0;\n" +
                     "   return abs(sobel) > threshold;\n" +
                     "}\n" +
-                    // we don't need clamp
-                    "float smoothstep(float x){\n" +
-                    "   return pow(x,2.0)*(3.0-2.0*x);\n" +
-                    "}\n" +
+                    smoothstep1 +
                     "void main(){\n" +
                     "   ivec2 p = ivec2(gl_FragCoord.xy);\n" +
                     "   if(disableEffect){\n" +
@@ -285,7 +285,7 @@ object DepthBasedAntiAliasing {
                     "       }\n" +
                     "       float fraction = (float(pos)-0.5)/float(pos+neg-1);\n" +
                     "       float blur = min(1.0-fraction,fraction);\n" +
-                    "       blur = smoothstep(blur);\n" + // sharpen the edge from 2 wide to 1 wide
+                    "       blur = smoothstep1(blur);\n" + // sharpen the edge from 2 wide to 1 wide
                     "       int other = (dirX?" +
                     "           abs(d1-d0) > abs(d3-d0) : " +
                     "           abs(d2-d0) > abs(d4-d0)) ? -1 : +1;\n" +

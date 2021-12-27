@@ -1,7 +1,7 @@
 package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
-import me.anno.gpu.ShaderLib
+import me.anno.gpu.shader.ShaderLib
 import org.joml.Vector4fc
 
 object DrawRectangles {

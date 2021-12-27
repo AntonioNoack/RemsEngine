@@ -3,8 +3,8 @@ package me.anno.ecs.components.shaders.effects
 import me.anno.engine.ui.render.Renderers.toneMapping
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.OpenGL.useFrame
-import me.anno.gpu.ShaderLib.simplestVertexShader
-import me.anno.gpu.ShaderLib.uvList
+import me.anno.gpu.shader.ShaderLib.simplestVertexShader
+import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.deferred.DeferredSettingsV2.Companion.singleToVector

@@ -116,6 +116,15 @@ abstract class OpenGLShader(
     abstract fun init()
     abstract fun sourceContainsWord(word: String): Boolean
 
+    fun setTextureIndicesIfExisting() {
+        for ((key, index) in textureIndices) {
+            val location = getUniformLocation(key)
+            if (location >= 0) {
+                glUniform1i(location, index)
+            }
+        }
+    }
+
     fun getTextureIndex(name: String): Int {
         return textureIndices[name] ?: -1
     }
@@ -123,7 +132,7 @@ abstract class OpenGLShader(
     val pointer get() = program
     private val ignoredNames = HashSet<String>()
 
-    fun updateSession(){
+    fun updateSession() {
         session = OpenGL.session
         attributeLocations.clear()
         uniformLocations.clear()
