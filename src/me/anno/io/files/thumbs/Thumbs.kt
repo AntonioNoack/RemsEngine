@@ -1,5 +1,6 @@
 package me.anno.io.files.thumbs
 
+import me.anno.Build
 import me.anno.cache.data.ImageData
 import me.anno.cache.data.LateinitTexture
 import me.anno.cache.instances.MeshCache
@@ -24,12 +25,14 @@ import me.anno.ecs.prefab.PrefabReadable
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.fonts.FontManager
-import me.anno.gpu.*
+import me.anno.gpu.DepthMode
+import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isGFXThread
+import me.anno.gpu.OpenGL
 import me.anno.gpu.OpenGL.depthMode
 import me.anno.gpu.OpenGL.renderPurely
 import me.anno.gpu.OpenGL.useFrame
-import me.anno.gpu.texture.TextureLib.whiteTexture
+import me.anno.gpu.SVGxGFX
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.copying.FramebufferToMemory.createBufferedImage
 import me.anno.gpu.drawing.DrawTextures.drawTexture
@@ -38,11 +41,16 @@ import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.gpu.drawing.Perspective.setPerspective
 import me.anno.gpu.framebuffer.DepthBufferType
+import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.colorRenderer
-import me.anno.gpu.texture.*
+import me.anno.gpu.texture.Filtering
+import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureLib
+import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.*
 import me.anno.image.ImageScale.scale
 import me.anno.image.tar.TGAImage
@@ -59,8 +67,6 @@ import me.anno.mesh.assimp.AnimGameItem
 import me.anno.objects.Video
 import me.anno.objects.documents.pdf.PDFCache
 import me.anno.objects.meshes.MeshData
-import me.anno.Build
-import me.anno.gpu.drawing.DrawRectangles
 import me.anno.ui.base.Font
 import me.anno.utils.Color.hex4
 import me.anno.utils.Sleep.waitForGFXThread
@@ -389,10 +395,7 @@ object Thumbs {
     ) {
         GFX.check()
 
-        val fb2 = Framebuffer(
-            srcFile.name, w, h, 4, 1, false,
-            if (withDepth) DepthBufferType.TEXTURE else DepthBufferType.NONE
-        )
+        val fb2 = FBStack[srcFile.name, w, h, 4, false, 4, withDepth]
 
         renderPurely {
 
@@ -410,7 +413,7 @@ object Thumbs {
                 if (withDepth) {
                     depthMode.use(DepthMode.GREATER) {
                         Frame.bind()
-                        glClearColor(0f, 1f, 1f, 1f)
+                        glClearColor(0f, 0f, 0f, 0f)
                         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
                         render()
                     }
@@ -638,18 +641,11 @@ object Thumbs {
         waitForTextures(data)
         entity.validateTransform()
         val drawSkeletons = !entity.hasComponent(MeshBaseComponent::class)
-        val meshes = entity.getComponentsInChildren(MeshBaseComponent::class).joinToString { it.getMesh()?.positions?.size?.toString() ?: "null" }
-        println("drawing data $entity, $size pixels, skeletons? $drawSkeletons, meshes: $meshes")
         renderToBufferedImage(InvalidRef, dstFile, true, previewRenderer, true, callback, size, size) {
-            OpenGL.cullMode.use(0){
-                depthMode.use(DepthMode.ALWAYS){
-                    DrawRectangles.drawRect(0, 0, 10, 10, -1)
-                    data.drawAssimp(
-                        true, null, createPerspectiveList(defaultAngleY, 1f), 0.0, white4, "",
-                        useMaterials = true, centerMesh = true, normalizeScale = true, drawSkeletons = drawSkeletons
-                    )
-                }
-            }
+            data.drawAssimp(
+                true, null, createPerspectiveList(defaultAngleY, 1f), 0.0, white4, "",
+                useMaterials = true, centerMesh = true, normalizeScale = true, drawSkeletons = drawSkeletons
+            )
         }
     }
 

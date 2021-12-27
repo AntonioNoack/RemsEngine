@@ -451,7 +451,7 @@ class Mesh : PrefabSaveable() {
         val tangents = tangents
 
         val uvs = uvs
-        val hasUVs = uvs != null && uvs.isNotEmpty()
+        val hasUVs = true // uvs != null && uvs.isNotEmpty()
         this.hasUVs = hasUVs
 
         NormalCalculator.checkNormals(positions, normals, indices)
@@ -467,8 +467,13 @@ class Mesh : PrefabSaveable() {
         val hasBones = boneWeights != null && boneWeights.isNotEmpty()
         hasBonesInBuffer = hasBones
 
-        // todo missing attributes cause issues... why??
-        val hasColors = colors != null && colors.isNotEmpty()
+        // todo missing attributes cause issues
+        // todo probably because the VAO state doesn't have information about color and such, and grabs null
+        // we could update all shaders to only use the given subset of attributes,
+        // but that would cause all shaders to require to know about the mesh,
+        // and currently that makes things messy...
+        // todo instead, we could allocate large buffers with default values for those... might be better...
+        val hasColors = true // || colors != null && colors.isNotEmpty()
         hasVertexColors = hasColors
 
         val hasHighPrecisionNormals = hasHighPrecisionNormals

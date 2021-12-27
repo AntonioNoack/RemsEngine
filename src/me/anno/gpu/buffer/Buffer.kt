@@ -12,6 +12,7 @@ import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL33.glDrawArraysInstanced
 import org.lwjgl.opengl.GL33.glVertexAttribDivisor
+import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import kotlin.math.max
 
@@ -109,11 +110,11 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
     open fun createVAO(shader: Shader) {
 
         ensureBuffer()
-
         ensureVAO()
 
         bindVAO(vao)
         bindBuffer(GL_ARRAY_BUFFER, pointer)
+
         var hasAttr = false
         val attributes = attributes
         for (index in attributes.indices) {
@@ -123,7 +124,9 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
             hasWarned = true
             LOGGER.warn("VAO does not have attribute!, $attributes, ${shader.vertexSource}")
         }
+
         // disable all attributes, which were not bound? no, not required
+
     }
 
     open fun createVAOInstanced(shader: Shader, instanceData: Buffer) {
@@ -149,6 +152,7 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
     private fun bindBufferAttributes(shader: Shader) {
         GFX.check()
         shader.potentiallyUse()
+        GFX.check()
         // todo cache vao by shader? typically, we only need 4-8 shaders for a single mesh
         // todo alternatively, we could specify the location in the shader
         if (vao <= 0 || shader !== lastShader || !useVAOs) createVAO(shader)
@@ -165,7 +169,7 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
         if (vao <= 0 ||
             attributes != baseAttributes ||
             instanceAttributes != instanceData.attributes ||
-            shader !== lastShader || !useVAOs
+            shader !== lastShader || !useVAOs || renewVAOs
         ) {
             lastShader = shader
             baseAttributes = attributes
@@ -284,7 +288,9 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
             get() = Input.isShiftDown
             set(value) {}
 
-        var alwaysBindBuffer = false
+        var renewVAOs = true
+
+        var alwaysBindBuffer = true
 
         fun bindAttribute(shader: Shader, attr: Attribute, instanced: Boolean): Boolean {
             val instanceDivisor = if (instanced) 1 else 0
@@ -309,15 +315,18 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
             } else false
         }
 
-        var boundVAO = -1
+        private var boundVAO = -1
         fun bindVAO(vao: Int) {
-            if (useVAOs && (alwaysBindBuffer || boundVAO != vao)) {
-                boundVAO = vao
-                glBindVertexArray(vao)
+            val vao2 = if(useVAOs) vao else 0
+            if (vao2 >= 0 && (alwaysBindBuffer || boundVAO != vao)) {
+                boundVAO = vao2
+                glBindVertexArray(vao2)
             }
         }
 
-        var boundBuffers = IntArray(2) { 0 }
+        // element buffer is stored in VAO -> cannot cache it here
+        // (at least https://www.khronos.org/opengl/wiki/Vertex_Specification says so)
+        var boundBuffers = IntArray(1) { 0 }
         fun bindBuffer(slot: Int, buffer: Int, force: Boolean = false) {
             val index = slot - GL_ARRAY_BUFFER
             if (alwaysBindBuffer || index !in boundBuffers.indices) {

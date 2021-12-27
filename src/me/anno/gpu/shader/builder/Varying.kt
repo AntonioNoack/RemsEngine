@@ -1,4 +1,4 @@
-package me.anno.gpu.shader
+package me.anno.gpu.shader.builder
 
 class Varying(val modifiers: String, val type: String, val name: String) {
     var vShaderName = name

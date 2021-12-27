@@ -4,6 +4,7 @@ import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL
 import me.anno.gpu.framebuffer.Frame
+import me.anno.gpu.shader.builder.Varying
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.OS

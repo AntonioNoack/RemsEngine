@@ -174,8 +174,9 @@ class IndexBuffer(
         checkSession()
         // todo cache vao by shader? typically, we only need 4 shaders for a single mesh
         // todo alternatively, we could specify the location in the shader
-        if (vao <= 0 || shader !== lastShader) createVAO(shader)
-        else Buffer.bindVAO(vao)
+        if (vao <= 0 || shader !== lastShader || !Buffer.useVAOs) {
+            createVAO(shader)
+        } else Buffer.bindVAO(vao)
         lastShader = shader
         GFX.check()
     }
@@ -191,7 +192,8 @@ class IndexBuffer(
             lastInstanceBuffer !== instanceData ||
             shader !== lastShader ||
             base.attributes != baseAttributes ||
-            instanceAttributes != instanceData.attributes
+            instanceAttributes != instanceData.attributes ||
+            !Buffer.useVAOs || Buffer.renewVAOs
         ) {
             lastShader = shader
             baseAttributes = base.attributes

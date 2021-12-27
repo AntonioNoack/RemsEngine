@@ -1,12 +1,9 @@
 package me.anno.gpu.shader.builder
 
-import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
-import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.GeoShader
 import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.Shader
-import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 
 class ShaderBuilder(val name: String) {

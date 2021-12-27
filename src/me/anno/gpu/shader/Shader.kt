@@ -1,7 +1,9 @@
 package me.anno.gpu.shader
 
 import me.anno.gpu.GFX
+import me.anno.gpu.shader.builder.Attribute
 import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.Varying
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER
 

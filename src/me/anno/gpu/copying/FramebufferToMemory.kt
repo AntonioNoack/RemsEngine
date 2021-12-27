@@ -48,16 +48,18 @@ object FramebufferToMemory {
     }
 
     fun createBufferedImage(w: Int, h: Int, texture: Texture2D, flipY: Boolean, withAlpha: Boolean): BufferedImage {
-        return createBufferedImage(w, h, null, flipY, withAlpha) { x2, y2, _, _ ->
+        return createBufferedImage(w, h, zero, flipY, withAlpha) { x2, y2, _, _ ->
             DrawTextures.drawTexturePure(-x2, -y2, w, h, texture, !withAlpha)
         }
     }
 
     fun createImage(w: Int, h: Int, texture: Texture2D, flipY: Boolean, withAlpha: Boolean): IntImage {
-        return createImage(w, h, null, flipY, withAlpha) { x2, y2, _, _ ->
+        return createImage(w, h, zero, flipY, withAlpha) { x2, y2, _, _ ->
             DrawTextures.drawTexturePure(-x2, -y2, w, h, texture, !withAlpha)
         }
     }
+
+    private val zero = Vector4f(0f)
 
     /**
      * copies a framebuffer into a buffered image;

@@ -157,7 +157,7 @@ class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
         windowStack.update(transform, rv.x, rv.y, rv.w, rv.h, 0, 0, width, height)
         useFrame(width, height, true, fb) {
             Frame.bind()
-            glClearColor(1f, 0f, 1f, 1f)
+            glClearColor(0f, 0f, 0f, 1f)
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
             OpenGL.depthMode.use(DepthMode.ALWAYS) {
                 OpenGL.blendMode.use(BlendMode.DEFAULT) {
