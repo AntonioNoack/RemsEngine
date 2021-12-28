@@ -144,7 +144,7 @@ object Packer {
                 e.printStackTrace()
             }
             zos.closeEntry()
-            if (createMap) map!![resource] = InnerZipFile("$absolute/$name", getStream, name, dst)
+            if (createMap) map!![resource] = InnerZipFile("$absolute/$name", dst, getStream, name, dst)
         }
         zos.close()
         return map ?: emptyMap()

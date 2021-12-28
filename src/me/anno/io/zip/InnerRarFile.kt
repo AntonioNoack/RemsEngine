@@ -7,10 +7,9 @@ import com.github.junrar.io.IReadOnlyAccess
 import com.github.junrar.rarfile.FileHeader
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
+import me.anno.io.files.Signature
 import java.io.ByteArrayOutputStream
 import java.io.IOException
-import java.io.InputStream
-import javax.naming.OperationNotSupportedException
 
 class InnerRarFile(
     absolutePath: String,
@@ -18,9 +17,7 @@ class InnerRarFile(
     _parent: FileReference
 ) : InnerFile(absolutePath, relativePath, false, _parent) {
 
-    override fun getInputStream(): InputStream {
-        throw OperationNotSupportedException()
-    }
+    override fun getInputStream() = data!!.inputStream()
 
     class ZipReadOnlyAccess(val bytes: ByteArray) : IReadOnlyAccess {
 
@@ -137,7 +134,10 @@ class InnerRarFile(
                     val bos = ByteArrayOutputStream()
                     archive.extractFile(header, bos)
                     bos.close()
-                    file.data = bos.toByteArray()
+                    val data = bos.toByteArray()
+                    file.data = data
+                    file as SignatureFile
+                    file.signature = Signature.find(data)
                 }
             }
             return file

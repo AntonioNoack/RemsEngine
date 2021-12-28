@@ -12,6 +12,8 @@ import java.io.IOException
 object ImageReader {
 
     // todo the color of the fox switches...
+    // todo display monochrome textures as monochrome
+    // todo images must not be kept in memory forever
 
     // easy interface to read any image as rgba and individual channels
 

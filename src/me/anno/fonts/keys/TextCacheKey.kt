@@ -57,6 +57,7 @@ class TextCacheKey(
         return true
     }
 
+    override fun toString(): String = "$fontName, $properties, $widthLimit, $heightLimit, '$text'"
 
     companion object {
         fun getProperties(fontSizeIndex: Int, font: Font): Int {

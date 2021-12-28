@@ -2,6 +2,7 @@ package me.anno.io.files
 
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.io.zip.InnerByteFile
+import me.anno.io.zip.SignatureFile
 import java.nio.ByteBuffer
 import kotlin.math.min
 
@@ -82,6 +83,10 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
 
     companion object {
 
+        val sampleSize = 128
+
+        val bmp = Signature("bmp", 0, "BM")
+
         fun findName(bytes: ByteBuffer) = find(bytes)?.name
         fun find(bytes: ByteBuffer): Signature? {
             for (signature in signatures) {
@@ -117,6 +122,7 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
 
         fun findName(fileReference: FileReference) = find(fileReference)?.name
         fun find(fileReference: FileReference): Signature? {
+            if(fileReference is SignatureFile) return fileReference.signature
             if (!fileReference.exists) return null
             return when (fileReference) {
                 is PrefabReadable -> signatures.first { it.name == "json" }
@@ -127,7 +133,7 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
                     // some formats are easy, others require more effort
                     // maybe we could read them piece by piece...
                     fileReference.inputStream().use { input ->
-                        find(ByteArray(128) { input.read().toByte() })
+                        find(ByteArray(sampleSize) { input.read().toByte() })
                     }
                 }
             }
@@ -173,7 +179,7 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             Signature("jpg", 0, listOf(0xFF, 0xD8, 0xFF, 0xE0)),
             Signature("jpg", 0, listOf(0xFF, 0xD8, 0xFF, 0xEE)),
             Signature("jpg", 0, listOf(0xFF, 0xD8, 0xFF, 0xE1)),
-            Signature("bmp", 0, "BM"),
+            bmp,
             Signature("psd", 0, "8BPS"), // photoshop image format
             Signature("hdr", 0, "#?RADIANCE"), // high dynamic range
             Signature("ico", 0, listOf(0x00, 0x00, 0x01, 0x00, 0x01)),// ico with 1 "image"

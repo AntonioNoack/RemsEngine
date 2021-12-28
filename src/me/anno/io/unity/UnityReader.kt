@@ -4,12 +4,13 @@ import me.anno.cache.CacheData
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabReadable
-import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.engine.ECSRegistry
+import me.anno.image.ImageCPUCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.json.JsonFormatter
 import me.anno.io.unity.UnityProject.Companion.invalidProject
 import me.anno.io.unity.UnityProject.Companion.isValidUUID
 import me.anno.io.yaml.YAMLNode
@@ -23,10 +24,15 @@ import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.FileExplorerOption
 import me.anno.utils.OS
-import me.anno.utils.types.Vectors.toVector3d
+import me.anno.utils.OS.desktop
+import me.anno.utils.OS.downloads
+import me.anno.utils.files.Files.formatFileSize
+import me.anno.utils.test.gfx.testMaterial
 import org.apache.logging.log4j.LogManager
-import org.joml.*
-import kotlin.math.abs
+import org.joml.Quaterniond
+import org.joml.Vector2f
+import org.joml.Vector3d
+import kotlin.concurrent.thread
 
 object UnityReader {
 
@@ -62,6 +68,8 @@ object UnityReader {
     }
 
     fun findUnityProject(file: FileReference): UnityProject? {
+        // println("$file, ${file.exists}, ${file.isDirectory}, ${file.listChildren()}, ${file.length()}")
+        if(!file.exists) return null
         val key = "/Assets/"
         val abs = file.absolutePath
         if (file.isDirectory) {
@@ -158,147 +166,7 @@ object UnityReader {
         // LOGGER.info("Material $guid/$fileId: ${prefab.changes}")
     }
 
-    private fun readUnityObject(node: YAMLNode, guid: String, fileId: String, project: UnityProject): Prefab? {
-        val clazz = node.key
-        if (!isValidUUID(clazz)) throw IllegalArgumentException("Invalid class $clazz")
-        if (!isValidUUID(guid)) throw IllegalArgumentException("Invalid guid $guid")
-        when (clazz) {
-            "Material" -> {
-                val prefab = Prefab("Material")
-                val name = node["Name"]?.value
-                if (name != null) prefab.setProperty("name", name)
-                readMaterial(node, guid, prefab, project)
-                return prefab
-            }
-            "Prefab" -> {
-
-                val changes = node["Modification"]?.get("Modifications")?.children ?: emptyList()
-
-                var name = fileId
-                val position = Vector3f()
-                val scale = Vector3f(1f)
-                val rotation = Quaternionf()
-                for (change in changes) {
-
-                    val target = decodePath(guid, change["Target"]?.value, project)
-
-                    // e.g. m_LocalPosition.x -> LocalPosition.x,
-                    // m_Name -> Name, ...
-                    // RootOrder?
-                    // LocalRotation.x/y/z/w
-                    // LocalEulerAnglesHint.x/y/z?
-                    val path = beautify(change["PropertyPath"]!!.value.toString())
-                    val value = change["Value"]?.value // e.g. 1.723
-                    val objectReference = decodePath(guid, change["ObjectReference"]?.value, project) // ?
-
-                    when (path) {
-                        "Name" -> name = value ?: continue
-                        // position
-                        "LocalPosition.x" -> position.x = value?.toFloatOrNull() ?: continue
-                        "LocalPosition.y" -> position.y = value?.toFloatOrNull() ?: continue
-                        "LocalPosition.z" -> position.z = value?.toFloatOrNull() ?: continue
-                        // rotation
-                        "LocalRotation.x" -> rotation.x = value?.toFloatOrNull() ?: continue
-                        "LocalRotation.y" -> rotation.y = value?.toFloatOrNull() ?: continue
-                        "LocalRotation.z" -> rotation.z = value?.toFloatOrNull() ?: continue
-                        "LocalRotation.w" -> rotation.w = value?.toFloatOrNull() ?: continue
-                        // scale
-                        "LocalScale.x" -> scale.x = value?.toFloatOrNull() ?: continue
-                        "LocalScale.y" -> scale.y = value?.toFloatOrNull() ?: continue
-                        "LocalScale.z" -> scale.z = value?.toFloatOrNull() ?: continue
-                        // mmh... maybe for rotations with large angle?
-                        "LocalEulerAnglesHint.x", "LocalEulerAnglesHint.y", "LocalEulerAnglesHint.z" -> {
-                        }
-                        "RootOrder" -> {
-                        } // idk...
-                        /*"Materials.Array.data[0]" -> {
-                            // todo set the material somehow... is it a material?
-                        }*/
-                        else -> LOGGER.info("$target, Change: $path, value: $value, ref: $objectReference")
-                    }
-
-                }
-
-                /**
-                --- !u!4 &3260095 stripped
-                Transform:
-                m_PrefabParentObject: {fileID: 4001237703748626, guid: 31dd6d847d998664db4d2466ae3ac2b4,
-                type: 2}
-                m_PrefabInternal: {fileID: 3324434}
-                then there is another instance, which seems to have the actual data...
-                --- !u!1001 &3324434
-                Prefab:
-                m_ObjectHideFlags: 0
-                serializedVersion: 2
-                 * */
-
-            }
-            /**
-            --- !u!65 &65012021841241252
-            BoxCollider:
-            m_ObjectHideFlags: 1
-            m_PrefabParentObject: {fileID: 0}
-            m_PrefabInternal: {fileID: 100100000}
-            m_GameObject: {fileID: 1352954537195680}
-            m_Material: {fileID: 0}
-            m_IsTrigger: 0
-            m_Enabled: 1
-            serializedVersion: 2
-            m_Size: {x: 1.9708383, y: 1.4273263, z: 0.14620924}
-            m_Center: {x: 0.00000014901161, y: 0, z: 0}
-             * */
-            "BoxCollider" -> {
-                // todo set isTrigger somehow...
-                val center = node.getColorAsVector3f("Center")
-                val size = node.getColorAsVector3f("Size")
-                // todo half the size??
-                val isEnabled = node.getBool("Enabled")
-                return if (center == null || (abs(center.x) < 1e-5 && abs(center.y) < 1e-5 && abs(center.z) < 1e-5)) {
-                    val prefab = Prefab("BoxCollider")
-                    if (isEnabled == false) prefab.setProperty("isEnabled", isEnabled)
-                    if (size != null) prefab.setProperty("halfExtends", size.toVector3d())
-                    prefab
-                } else {
-                    val prefab = Prefab("Entity")
-                    if (isEnabled == false) prefab.setProperty("isEnabled", isEnabled)
-                    prefab.setProperty("position", center.toVector3d())
-                    val collider = prefab.add(Path.ROOT_PATH, 'c', "BoxCollider", 0)
-                    if (size != null) prefab.set(collider, "halfExtends", size.toVector3d())
-                    if (center.x != 0f || center.y != 0f || center.z != 0f) {
-                        LOGGER.warn("Non-null offset in BoxCollider")
-                    }
-                    prefab
-                }
-            }
-            /**
-             * --- !u!64 &799111319
-            MeshCollider:
-            m_ObjectHideFlags: 0
-            m_PrefabParentObject: {fileID: 0}
-            m_PrefabInternal: {fileID: 0}
-            m_GameObject: {fileID: 799111318}
-            m_Material: {fileID: 0}
-            m_IsTrigger: 0
-            m_Enabled: 0
-            serializedVersion: 2
-            m_Convex: 1
-            m_InflateMesh: 0
-            m_SkinWidth: 0.01
-            m_Mesh: {fileID: 43786602751171120, guid: 0c1d93d6dbb32814b886cda43492c302, type: 2}
-            --- !u!64 &799111320
-             * */
-            else -> {
-                LOGGER.warn("todo: read $clazz/$guid/$fileId")
-            }
-        }
-        return null
-    }
-
-    fun addGameObject2Transform(prefab: Prefab, node: YAMLNode) {
-
-    }
-
-    fun addPrefab2Transform(prefab: Prefab, node: YAMLNode, guid: String, project: UnityProject) {
+    fun applyTransformOnPrefab(prefab: Prefab, node: YAMLNode, guid: String, project: UnityProject) {
 
         val changes = node["Modification"]?.get("Modifications")?.children ?: emptyList()
 
@@ -361,10 +229,6 @@ object UnityReader {
         }
     }
 
-    fun defineTransform(prefab: Prefab, node: YAMLNode) {
-
-    }
-
     fun defineMaterial(prefab: Prefab, node: YAMLNode, guid: String, project: UnityProject) {
         prefab.clazzName = "Material"
         val name = node["Name"]?.value
@@ -393,7 +257,7 @@ object UnityReader {
         val isTrigger = node.getBool("IsTrigger")
         val isEnabled = node.getBool("Enabled")
         if (isEnabled == false) prefab.setProperty("isEnabled", isEnabled)
-        val path = if (center == null) {
+        val path = if (center != null) {
             prefab.clazzName = "Entity"
             prefab.set(ROOT_PATH, "position", center)
             prefab.add(ROOT_PATH, 'c', "BoxCollider", 0)
@@ -431,7 +295,7 @@ object UnityReader {
         val isConvex = node.getBool("Convex")
         if (isConvex == false) prefab.set(ROOT_PATH, "isConvex", isConvex)
         val mesh = decodePath(guid, node["Mesh"], project)
-        if(mesh != InvalidRef) prefab.set(ROOT_PATH, "mesh", mesh)
+        if (mesh != InvalidRef) prefab.set(ROOT_PATH, "meshFile", mesh)
     }
 
     fun defineMeshFilter(prefab: Prefab, node: YAMLNode, guid: String, project: UnityProject): String {
@@ -446,36 +310,32 @@ object UnityReader {
         if (!isValidUUID(guid)) return InvalidRef
         root.children ?: return InvalidRef
 
-
         // first the members all need to be registered as files
-        forAllUnityObjects(root) { fileId, _ ->
+        forAllUnityObjects(root) { fileId, node ->
             folder.getOrPut(fileId) {
                 val prefab = Prefab("Entity")
                 val file = InnerPrefabFile(folder.absolutePath + "/" + fileId, fileId, folder, prefab)
                 prefab.source = file
+                prefab.setProperty("desc", node.key)
                 file
             }
         }
 
         val meshesByGameObject = HashMap<String, ArrayList<Prefab>>()
-        val transformsByGameObject = HashMap<FileReference, Prefab>()
-        val prefabsByRef = HashMap<String, YAMLNode>()
+        val transformsByGameObject = HashMap<FileReference, YAMLNode>()
 
         // parse all instances roughly, except relations
         forAllUnityObjects(root) { fileId, node ->
             val file = folder.get(fileId) as InnerPrefabFile
             val prefab = file.readPrefab()
+            // LOGGER.info("rough parsing $fileId -> ${node.key}")
             when (node.key) {
                 "Transform" -> {
-                    defineTransform(prefab, node)
                     val gameObject = decodePath(guid, node["GameObject"], project)
-                    // {fileID: 1420934846718150}
                     if (gameObject != InvalidRef) {
-                        transformsByGameObject[gameObject] = prefab
-                    }
-                    transformsByGameObject[decodePath(guid, fileId, project)] = prefab
+                        transformsByGameObject[gameObject] = node
+                    } else LOGGER.warn("Could not find game object for transform")
                 }
-                "Prefab" -> prefabsByRef[fileId] = node
                 "Material" -> defineMaterial(prefab, node, guid, project)
                 "BoxCollider" -> defineBoxCollider(prefab, node)
                 "MeshCollider" -> defineMeshCollider(prefab, node, guid, project)
@@ -488,11 +348,11 @@ object UnityReader {
         }
 
         // add their transforms / prefabs / changes
-        forAllUnityObjects(root) { fileId, node ->
-            val file = folder.get(fileId) as InnerPrefabFile
-            val prefab = file.readPrefab()
+        forAllUnityObjects(root) { _, node ->
+            // val file = folder.get(fileId) as InnerPrefabFile
+            // val prefab = file.readPrefab()
             when (node.key) {
-                "Transform" -> {
+                /*"Transform" -> {
                     val prefabRef = decodePath(guid, node["PrefabInternal"], project)
                     if (prefabRef != InvalidRef) {
                         val prefabNode = prefabsByRef[prefabRef.name]
@@ -500,7 +360,7 @@ object UnityReader {
                             addPrefab2Transform(prefab, prefabNode, guid, project)
                         } else LOGGER.warn("Missing prefab ${prefabRef.name}, only got ${prefabsByRef.keys}")
                     }
-                }
+                }*/
                 "MeshRenderer" -> {
                     val gameObjectKey = node["GameObject"].toString()
                     // todo parse list of materials, and assign them to all meshes
@@ -528,9 +388,9 @@ object UnityReader {
                     }
                     val rootGameObject = node["RootGameObject"]
                     if (rootGameObject != null) {
-                        // todo replace file with link instead
-                        prefab.prefab = transformsByGameObject[decodePath(guid, rootGameObject, project)]?.source
-                            ?: InvalidRef
+                        val link = decodePath(guid, rootGameObject, project)
+                        // LOGGER.info("set root object of $fileId to $link")
+                        prefab.prefab = link
                     }
                 }
                 "GameObject" -> {
@@ -538,10 +398,10 @@ object UnityReader {
                     val key = decodePath(guid, fileId, project)
                     val transform = transformsByGameObject[key]
                     if (transform != null) {
-                        prefab.prefab = transform.source
                         // if not active, then disable the entity prefab
                         val isActive = node.getBool("IsActive")
-                        if (isActive == false) transform.setProperty("isEnabled", false)
+                        if (isActive == false) prefab.setProperty("isEnabled", false)
+                        applyTransformOnPrefab(prefab, transform, guid, project)
                         // find all components, and add them
                         /**
                         m_Component:
@@ -550,28 +410,44 @@ object UnityReader {
                         - component: {fileID: 23400600892312946}
                         - component: {fileID: 64583973720899574}
                          * */
-                        val components = node["Component"]
-                        if (components != null) {
-                            val paths = components.children?.map {
-                                decodePath(guid, it.children!!.first().value, project)
-                            } ?: emptyList()
-                            for (path in paths) {
-                                path as PrefabReadable
-                                val child = path.readPrefab()
+                    } else LOGGER.warn("Missing transform $key, only got ${transformsByGameObject.keys}")
+                    val components = node["Component"]
+                    if (components != null) {
+                        components.children?.forEach { listNode ->
+                            val path = decodePath(guid, listNode.children!!.first().value, project)
+                            path as PrefabReadable
+                            val child = path.readPrefab()
+                            val type2 = child.getProperty("desc") as? String
+                            if (type2 != "Transform") {
                                 // they may be entities under-cover, so be careful
                                 val type = if (child.clazzName == "Entity") 'e' else 'c'
                                 val name = child.instanceName ?: child.clazzName
-                                // println("would add $name/$path to ${transform.source}")
-                                transform.add(ROOT_PATH, type, child.clazzName, name, path)
+                                // LOGGER.info("would add $name/$path to ${prefab.source}")
+                                prefab.add(ROOT_PATH, type, child.clazzName, name, path)
                             }
                         }
-                    } else LOGGER.warn("Missing transform $key, only got ${transformsByGameObject.keys}")
+                    }
                 }
             }
         }
 
-        // todo somehow find global object
-        // todo then create Scene.json from that object (LinkNode ofc)
+        // find root, and create Scene.json-link with that
+        var hasFoundRoot = false
+        forAllUnityObjects(root) { _, node ->
+            if (!hasFoundRoot) {
+                val root2 = node["RootGameObject"]
+                if (root2 != null) {
+                    val path = decodePath(guid, root2, project)
+                    if (path != InvalidRef) {
+                        val fileName = "Scene.json"
+                        folder.getOrPut(fileName) {
+                            InnerLinkFile(folder.absolutePath + "/" + fileName, fileName, folder, path)
+                        }
+                        hasFoundRoot = true
+                    }
+                }
+            }
+        }
 
         return folder
 
@@ -691,11 +567,37 @@ object UnityReader {
 
     }
 
+    fun inspectAsset(asset: FileReference) {
+        for (file in asset.listChildren()!!.filterIsInstance<InnerLinkFile>().sortedBy { -it.readText().length }) {
+            LOGGER.info(file.name + " links to " + file.link)
+        }
+        for (file in asset.listChildren()!!.filter { it !is InnerLinkFile }.sortedBy { -it.readText().length }) {
+            LOGGER.info(file.name + ", " + file.readText().length.toLong().formatFileSize())
+            LOGGER.info(JsonFormatter.format(file.readText()))
+        }
+    }
+
     @JvmStatic
     fun main(args: Array<String>) {
 
-        val fastProject = getReference(OS.downloads, "up/PolygonSciFiCity_Unity_Project_2017_4.unitypackage")
-        val assets = getReference(fastProject, "Assets")
+        val projectPath = getReference(downloads, "up/PolygonSciFiCity_Unity_Project_2017_4.unitypackage")
+
+        ImageCPUCache.getImage(getReference(projectPath,"Assets/PolygonSciFiCity/Textures/LineTex 4.png"), false)!!
+            .write(desktop.getChild("LineTex4.png"))
+
+        // circular sample
+        // inspectAsset(getReference(projectPath, "f3ffd5a2a26fdf04e93bfde173e2b50d"))
+
+        // blank sample
+        /*val blankSample =
+            getReference(projectPath, "Assets/PolygonSciFiCity/Prefabs/Buildings/SM_Building_Shack_01.prefab")
+        inspectAsset(blankSample)
+        ECSRegistry.initWithGFX(512)
+        testEntityMeshFrame(blankSample)
+        Engine.shutdown()*/
+
+
+        val assets = getReference(projectPath, "Assets")
         val main = getReference(assets, "PolygonSciFiCity")
 
         //parseYAML(getReference(main, "Materials/Alternates/PolygonScifi_03_B.mat").readText())
@@ -708,7 +610,6 @@ object UnityReader {
 
         parseYAML(getReference(OS.downloads, "up/SM_Prop_DiningTable_01.fbx.meta"))
 
-        LOGGER.info(readAsAsset(getReference(OS.downloads, "up/mat/PolygonScifi_03_A.mat")).readText())
 
         val meshMeta = getReference(main, "Models/Flame_Mesh.fbx")
         val material = getReference(main, "Materials/PolygonSciFi_01_A.mat")
@@ -717,7 +618,18 @@ object UnityReader {
         /*readAsAsset(meshMeta)
         readAsAsset(scene)*/
 
+        val sampleMaterial = getReference(OS.downloads, "up/mat/PolygonScifi_03_A.mat")
+        LOGGER.info(readAsAsset(sampleMaterial).readText())
+
         ECSRegistry.initNoGFX()
+
+        // todo somehow all background images are missing
+        // todo it looks like there is some kind of dead-lock...
+
+        thread {
+            Thread.sleep(100)
+            testMaterial(sampleMaterial)
+        }
 
         testUI {
             object : FileExplorer(getReference(main, "Prefabs/Buildings/SM_Bld_Advanced_01.prefab"), style) {

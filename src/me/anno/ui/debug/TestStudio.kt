@@ -1,16 +1,22 @@
 package me.anno.ui.debug
 
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultConfig.style
 import me.anno.gpu.Window
 import me.anno.input.ActionManager
 import me.anno.studio.StudioBase
 import me.anno.studio.rems.StudioActions
 import me.anno.ui.base.Panel
+import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.groups.PanelStack
 
-class TestStudio(val createMainPanel: () -> Panel) : StudioBase(false, "Test", 1) {
+class TestStudio(val createMainPanel: () -> Panel) : StudioBase(true, "Test", 1) {
 
     override fun createUI() {
-        windowStack.add(Window(createMainPanel(), windowStack))
+        val ui = PanelListY(style)
+        ui.add(ConsoleOutputPanel.createConsoleWithStats(false, style)) // todo somehow missing in layout for UnityReader
+        ui.add(createMainPanel())
+        windowStack.add(Window(ui, windowStack))
     }
 
     override fun loadConfig() {

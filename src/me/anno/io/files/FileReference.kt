@@ -42,6 +42,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     // all zip files should be detected automatically
     // done if res:// at the start, then it's a local resource
     // todo other protocols as well, so like an URI replacement?
+    // todo file references seem to never be cleared...
 
     companion object {
 
@@ -50,7 +51,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         private val staticReferences = HashMap<String, FileReference>()
 
         private val fileCache = CacheSection("Files")
-        private val fileTimeout = 60_000L
+        private val fileTimeout = 20_000L
 
         /**
          * removes old references
@@ -61,6 +62,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
 
         fun register(ref: FileReference): FileReference {
+            if (ref is FileFileRef) return ref
             fileCache.override(ref.absolutePath, CacheData(ref), fileTimeout)
             return ref
         }
@@ -77,6 +79,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         fun invalidate(
             absolutePath: String
         ) {
+            LOGGER.info("Invalidating $absolutePath")
             val path = absolutePath.replace('\\', '/')
             synchronized(fileCache) {
                 fileCache.remove {
@@ -113,7 +116,8 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             if (str == null || str.isBlank2()) return InvalidRef
             // root
             if (str == "root") return FileRootRef
-            val data = fileCache.getEntry(str, fileTimeout, false) {
+            val str2 = str.replace('\\', '/')
+            val data = fileCache.getEntry(str2, fileTimeout, false) {
                 CacheData(createReference(it))
             } as CacheData<*>
             return data.value as FileReference

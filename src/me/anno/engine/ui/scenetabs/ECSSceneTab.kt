@@ -50,7 +50,7 @@ class ECSSceneTab(
             this(syncMaster, inspector, inspector.reference)
 
     init {
-        LOGGER.info("Created tab with ${inspector.prefab.countTotalChanges()} changes")
+        LOGGER.info("Created tab with ${inspector.prefab.countTotalChanges(true)}+ changes")
     }
 
     // different tabs have different "cameras"

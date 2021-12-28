@@ -19,6 +19,7 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.groups.PanelStack
+import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.debug.FrameTimes
 import me.anno.ui.debug.RuntimeInfoPanel
 import me.anno.ui.editor.OptionBar
@@ -27,9 +28,11 @@ import me.anno.ui.editor.config.ConfigPanel
 import me.anno.utils.OS
 import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
+import java.io.Console
 
-// todo fix: tree view, adding entities is no longer working
-// todo also the main object randomly just shrinks down
+// todo unity project meshes have no data...
+
+// todo also the main object randomly just shrinks down (pool & truck)
 
 // todo fix: tooltip texts of properties are not being displayed
 
@@ -157,18 +160,7 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         val editUI = DefaultLayout.createDefaultMainUI(projectFile, syncMaster, isGaming, style)
         list.add(editUI)
 
-        val bottom2 = PanelStack(style)
-        bottom2 += RemsStudio.createConsole(style)
-        val right = PanelListX(style)
-        right.makeBackgroundTransparent()
-        right.add(RuntimeInfoPanel(style).apply {
-            alignmentX = AxisAlignment.MAX
-            makeBackgroundOpaque()
-            setWeight(1f)
-        })
-        right.add(RuntimeInfoPlaceholder())
-        bottom2.add(right)
-        list.add(bottom2)
+        list.add(ConsoleOutputPanel.createConsoleWithStats(true, style))
         windowStack.push(list)
 
         ECSSceneTabs.window = windowStack.firstElement()

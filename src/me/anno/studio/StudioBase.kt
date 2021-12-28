@@ -333,15 +333,6 @@ abstract class StudioBase(
 
     fun check() = GFX.check()
 
-    fun createConsole(style: Style): ConsoleOutputPanel {
-        val console = ConsoleOutputPanel(style.getChild("small"))
-        // console.fontName = "Segoe UI"
-        Logging.console = console
-        console.setTooltip("Double-click to open history")
-        console.text = Logging.lastConsoleLines.lastOrNull() ?: ""
-        return console
-    }
-
     val progressBars = ArrayList<ProgressBar>()
 
     companion object {

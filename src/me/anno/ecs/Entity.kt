@@ -148,7 +148,7 @@ class Entity() : PrefabSaveable(), Inspectable {
 
     override fun getOptionsByType(type: Char): List<Option>? {
         return if (type == 'c') Component.getComponentOptions(this)
-        else null
+        else entityOptionList
     }
 
 
@@ -945,6 +945,7 @@ class Entity() : PrefabSaveable(), Inspectable {
 
     companion object {
         private val tmpAABB = AABBd()
+        private val entityOptionList = listOf(Option("Entity", "Create a child entity") { Entity() })
     }
 
 }

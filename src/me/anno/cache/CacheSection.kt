@@ -26,9 +26,10 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     fun clear() {
+        LOGGER.warn("Clearing cache $name")
         GFX.checkIsGFXThread()
         synchronized(cache) {
-            cache.values.forEach { it.destroy() }
+            for(it in cache.values) it.destroy()
             cache.clear()
         }
     }
@@ -113,7 +114,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     fun override(key: Any, data: ICacheData?, timeout: Long) {
         checkKey(key)
         val oldValue = synchronized(cache) {
-            val entry = CacheEntry(timeout, gameTime)
+            val entry = CacheEntry(timeout)
             entry.data = data
             cache.put(key, entry)
         }
@@ -217,17 +218,17 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         // new, async cache
         // only the key needs to be locked, not the whole cache
 
-        var needsGenerator = false
         val entry = synchronized(dualCache) {
-            dualCache.getOrPut(key0, key1) { _, _ ->
-                needsGenerator = true
-                CacheEntry(timeout, gameTime)
-            }
+            val entry = dualCache.getOrPut(key0, key1) { _, _ -> CacheEntry(timeout) }
+            if (entry.hasBeenDestroyed) entry.reset(timeout)
+            entry
         }
 
+        val needsGenerator = entry.needsGenerator
         entry.lastUsed = gameTime
 
         if (needsGenerator) {
+            entry.hasGenerator = true
             if (asyncGenerator) {
                 threadWithName("$name<$key0,$key1>") {
                     val value = generateSafely(key0, key1, generator)
@@ -246,7 +247,10 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             }
         } else ifNotGenerating?.invoke()
 
-        if (!asyncGenerator) entry.waitForValue()
+        if (!asyncGenerator) {
+            LOGGER.warn("Waiting for $name[$key0, $key1] from thread ${Thread.currentThread().name}")
+            entry.waitForValue(key0 to key1)
+        }
         return if (entry.hasBeenDestroyed) {
             getEntryWithCallback(key0, key1, timeout, asyncGenerator, generator, null)
         } else entry.data
@@ -266,23 +270,17 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         // new, async cache
         // only the key needs to be locked, not the whole cache
 
-        var needsGenerator = false
         val entry = synchronized(cache) {
-            var entry = cache.getOrPut(key) {
-                needsGenerator = true
-                CacheEntry(timeout, gameTime)
-            }
-            if (entry.hasBeenDestroyed) {
-                entry = CacheEntry(timeout, gameTime)
-                cache[key] = entry
-                needsGenerator = true
-            }
+            val entry = cache.getOrPut(key) { CacheEntry(timeout) }
+            if (entry.hasBeenDestroyed) entry.reset(timeout)
             entry
         }
 
+        val needsGenerator = entry.needsGenerator
         entry.lastUsed = gameTime
 
         if (needsGenerator) {
+            entry.hasGenerator = true
             if (asyncGenerator) {
                 threadWithName("$name<$key>") {
                     val value = generateSafely(key, generator)
@@ -301,8 +299,12 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             }
         } else ifNotGenerating?.invoke()
 
-        if (!asyncGenerator) entry.waitForValue()
+        if (!asyncGenerator) {
+            LOGGER.warn("Waiting for $name[$key] from thread ${Thread.currentThread().name}")
+            entry.waitForValue(key)
+        }
         return if (entry.hasBeenDestroyed) {
+            LOGGER.warn("Entry for $name[$key] has been destroyed, retrying")
             // if (maxDepth < 0) throw RuntimeException("Cache for key '$key' is broken, always is destroyed!")
             getEntryWithCallback(key, timeout, asyncGenerator, generator, null)
         } else entry.data
@@ -318,17 +320,18 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
         // new, async cache
         // only the key needs to be locked, not the whole cache
-        var needsGenerator = false
+
         val entry = synchronized(cache) {
-            cache.getOrPut(key) {
-                needsGenerator = true
-                CacheEntry(timeout, gameTime)
-            }
+            val entry = cache.getOrPut(key) { CacheEntry(timeout) }
+            if (entry.hasBeenDestroyed) entry.reset(timeout)
+            entry
         }
 
+        val needsGenerator = entry.needsGenerator
         entry.lastUsed = gameTime
 
         if (needsGenerator) {
+            entry.hasGenerator = true
             if (queue != null) {
                 queue += {
                     val value = generateSafely(key, generator)
@@ -346,7 +349,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             }
         } else ifNotGenerating?.invoke()
 
-        if (queue == null) entry.waitForValue()
+        if (queue == null) entry.waitForValue(key)
         return if (entry.hasBeenDestroyed) {
             getEntryWithCallback(key, timeout, queue, generator, null)
         } else entry.data

@@ -26,6 +26,8 @@ open class InnerFolder(
 
     val children = HashMap<String, InnerFile>()
 
+    operator fun contains(fileName: String) = fileName in children
+
     override fun listChildren(): List<FileReference> = children.values.toList()
 
     override fun invalidate() {

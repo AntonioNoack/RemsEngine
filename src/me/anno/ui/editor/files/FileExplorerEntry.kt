@@ -10,7 +10,6 @@ import me.anno.fonts.FontManager
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.clip2Dual
 import me.anno.gpu.GFX.inFocus
-import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.GFXx2D
@@ -19,9 +18,10 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.ImageGPUCache.getInternalTexture
 import me.anno.image.ImageReadable
-import me.anno.image.ImageScale.scale
+import me.anno.image.ImageScale.scaleMax
 import me.anno.input.Input
 import me.anno.input.Input.mouseDownX
 import me.anno.input.Input.mouseDownY
@@ -30,6 +30,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.trash.TrashManager.moveToTrash
+import me.anno.io.zip.InnerLinkFile
 import me.anno.language.translation.NameDesc
 import me.anno.objects.Audio
 import me.anno.objects.Camera
@@ -52,6 +53,7 @@ import me.anno.utils.maths.Maths.mixARGB
 import me.anno.utils.maths.Maths.sq
 import me.anno.utils.strings.StringHelper.setNumber
 import me.anno.utils.types.Strings.getImportType
+import me.anno.utils.types.Strings.isBlank2
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.formats.gpu.GPUFrame
 import org.apache.logging.log4j.LogManager
@@ -75,6 +77,10 @@ class FileExplorerEntry(
     private val explorer: FileExplorer,
     val isParent: Boolean, file: FileReference, style: Style
 ) : PanelGroup(style.getChild("fileEntry")) {
+
+    // todo small file type (signature) icons
+    // todo use search bar for sort parameters :)
+    // todo or right click menu for sorting
 
     val path = file.absolutePath
 
@@ -138,10 +144,13 @@ class FileExplorerEntry(
         }
     }
 
-
     private val titlePanel = TextPanel(
-        if (isParent) ".." else if (file.name.isEmpty()) file.toString() else file.name,
-        style
+        when {
+            isParent -> ".."
+            file.nameWithoutExtension.isBlank2() && file.name.isBlank2() -> file.toString()
+            file.nameWithoutExtension.isBlank2() -> file.name
+            else -> file.nameWithoutExtension
+        }, style
     )
 
     override val children: List<Panel> = listOf(titlePanel)
@@ -263,7 +272,7 @@ class FileExplorerEntry(
     private fun drawTexture(x0: Int, y0: Int, x1: Int, y1: Int, image: ITexture2D) {
         val w = x1 - x0
         val h = y1 - y0
-        val (iw, ih) = scale(image.w, image.h, w, h)
+        val (iw, ih) = scaleMax(image.w, image.h, w, h)
         // todo if texture is HDR, then use reinhard tonemapping for preview, with factor of 5
         // we can use FSR to upsample the images LOL
         val x = x0 + (w - iw) / 2
@@ -418,27 +427,31 @@ class FileExplorerEntry(
 
         } else {
 
-            val file = getReference(path)
-            when {
-                file.isDirectory -> {
-                    // todo add number of children?
-                    tooltip = file.name
-                }
-                file is PrefabReadable -> {
-                    val prefab = file.readPrefab()
-                    tooltip = file.name + "\n" +
-                            "${prefab.clazzName}, ${prefab.countTotalChangesAsync()} Changes"
-                }
-                file is ImageReadable -> {
-                    val image = file.readImage()
-                    tooltip = file.name + "\n" +
-                            "${image.width} x ${image.height}"
-                }
-                else -> {
-                    tooltip = file.name + "\n" +
-                            file.length().formatFileSize()
+            fun getTooltip(file: FileReference): String {
+                return when {
+                    file.isDirectory -> {
+                        // todo add number of children?
+                        file.name
+                    }
+                    file is InnerLinkFile -> "Link to " + getTooltip(file.link)
+                    file is PrefabReadable -> {
+                        val prefab = file.readPrefab()
+                        file.name + "\n" +
+                                "${prefab.clazzName}, ${prefab.countTotalChanges(true)} Changes"
+                    }
+                    file is ImageReadable -> {
+                        val image = file.readImage()
+                        file.name + "\n" +
+                                "${image.width} x ${image.height}"
+                    }
+                    else -> {
+                        file.name + "\n" +
+                                file.length().formatFileSize()
+                    }
                 }
             }
+
+            tooltip = getTooltip(getReference(path))
 
         }
     }
@@ -447,7 +460,9 @@ class FileExplorerEntry(
     private var padding = 0
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
-        updateTooltip()
+        if (isHovered || isInFocus) {
+            updateTooltip()
+        }
 
         drawBackground()
 

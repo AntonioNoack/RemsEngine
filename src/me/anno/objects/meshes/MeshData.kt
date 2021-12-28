@@ -139,7 +139,7 @@ open class MeshData : ICacheData {
                         mesh.ensureBuffer()
                         shader.v1("hasVertexColors", mesh.hasVertexColors)
                         val materials = mesh.materials
-                        println("drawing mesh '${comp.name}' with ${mesh.numMaterials} materials")
+                        // LOGGER.info("drawing mesh '${comp.name}' with ${mesh.numMaterials} materials")
                         for (index in 0 until mesh.numMaterials) {
                             val material = MaterialCache[materials.getOrNull(index), defaultMaterial]
                             material.defineShader(shader)

@@ -5,12 +5,15 @@ import me.anno.image.ImageReadable
 import me.anno.image.bmp.BMPWriter
 import me.anno.image.bmp.BMPWriter.createBMP
 import me.anno.io.files.FileReference
+import me.anno.io.files.Signature
 import java.io.InputStream
 
 class InnerImageFile(
     absolutePath: String, relativePath: String, _parent: FileReference,
     val content: Image
-) : InnerFile(absolutePath, relativePath, false, _parent), ImageReadable {
+) : InnerFile(absolutePath, relativePath, false, _parent), ImageReadable, SignatureFile {
+
+    override var signature: Signature? = Signature.bmp
 
     constructor(folder: InnerFolder, name: String, content: Image) : this(
         "${folder.absolutePath}/$name",

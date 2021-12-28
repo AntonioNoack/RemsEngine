@@ -3,7 +3,8 @@ package me.anno.gpu.framebuffer
 import org.lwjgl.opengl.GL30.*
 
 data class TargetType(
-    val type0: Int, val type1: Int,
+    val internalFormat: Int,
+    val uploadFormat: Int,
     val fillType: Int,
     val bytesPerPixel: Int,
     val isHDR: Boolean

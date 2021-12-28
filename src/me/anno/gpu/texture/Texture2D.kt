@@ -45,6 +45,8 @@ open class Texture2D(
 
     val samples = clamp(samples, 1, GFX.maxSamples)
 
+    var internalFormat = 0
+
     override fun toString() = "$name $w $h $samples"
 
     private val withMultisampling = samples > 1
@@ -100,15 +102,16 @@ open class Texture2D(
         if (pointer <= 0) throw RuntimeException("Could not allocate texture pointer")
     }
 
-    fun texImage2D(type0: Int, type1: Int, fillType: Int, data: ByteBuffer?) {
+    fun texImage2D(internalFormat: Int, dataFormat: Int, dataType: Int, data: ByteBuffer?) {
         val w = w
         val h = h
         unpackAlignment(w)
         if (createdW == w && createdH == h) {
             if (data == null) return
-            glTexSubImage2D(tex2D, 0, 0, 0, w, h, type1, fillType, data)
+            glTexSubImage2D(tex2D, 0, 0, 0, w, h, dataFormat, dataType, data)
         } else {
-            glTexImage2D(tex2D, 0, type0, w, h, 0, type1, fillType, data)
+            glTexImage2D(tex2D, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
+            this.internalFormat = internalFormat
             createdW = w
             createdH = h
         }
@@ -121,9 +124,10 @@ open class Texture2D(
         unpackAlignment(w)
         if (createdW == w && createdH == h) {
             if (data == null) return
-            glTexSubImage2D(tex2D, 0, 0, 0, w, h, type.type1, type.fillType, data)
+            glTexSubImage2D(tex2D, 0, 0, 0, w, h, type.uploadFormat, type.fillType, data)
         } else {
-            glTexImage2D(tex2D, 0, type.type0, w, h, 0, type.type1, type.fillType, data)
+            glTexImage2D(tex2D, 0, type.internalFormat, w, h, 0, type.uploadFormat, type.fillType, data)
+            internalFormat = type.internalFormat
             createdW = w
             createdH = h
         }
@@ -140,7 +144,7 @@ open class Texture2D(
     fun create(type: TargetType) {
         beforeUpload(0, 0)
         if (withMultisampling) {
-            glTexImage2DMultisample(tex2D, samples, type.type0, w, h, false)
+            glTexImage2DMultisample(tex2D, samples, type.internalFormat, w, h, false)
         } else texImage2D(type, null)
         afterUpload(type.isHDR, type.bytesPerPixel)
     }
@@ -509,7 +513,8 @@ open class Texture2D(
         unpackAlignment(4 * w)
         // uses bgra instead of rgba to save the swizzle
         // glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, ints2)
-        glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, ints2)
+        internalFormat = GL_RGBA8
+        glTexImage2D(tex2D, 0, internalFormat, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, ints2)
         afterUpload(false, 4)
     }
 
@@ -525,7 +530,8 @@ open class Texture2D(
         // because the number of channels from the input and internal format differ
         // glTexImage2D(tex2D, 0, GL_RGB8, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, ints2)
         unpackAlignment(4 * w)
-        glTexImage2D(tex2D, 0, GL_RGB8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, ints2)
+        internalFormat = GL_RGB8
+        glTexImage2D(tex2D, 0, internalFormat, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, ints2)
         afterUpload(false, 3)
     }
 
@@ -533,7 +539,8 @@ open class Texture2D(
         beforeUpload(3, floats.size)
         val floats2 = if (checkRedundancy) checkRedundancy(floats) else floats
         unpackAlignment(12 * w)
-        glTexImage2D(tex2D, 0, GL_RGB32F, w, h, 0, GL_RGB, GL_FLOAT, floats2)
+        internalFormat = GL_RGB32F
+        glTexImage2D(tex2D, 0, internalFormat, w, h, 0, GL_RGB, GL_FLOAT, floats2)
         afterUpload(true, 12)
     }
 
@@ -541,7 +548,8 @@ open class Texture2D(
         beforeUpload(3, floats.capacity())
         if (checkRedundancy) checkRedundancy(floats)
         unpackAlignment(12 * w)
-        glTexImage2D(tex2D, 0, GL_RGB32F, w, h, 0, GL_RGB, GL_FLOAT, floats)
+        internalFormat = GL_RGB32F
+        glTexImage2D(tex2D, 0, internalFormat, w, h, 0, GL_RGB, GL_FLOAT, floats)
         afterUpload(true, 12)
     }
 
@@ -551,7 +559,8 @@ open class Texture2D(
         val buffer = bufferPool[data2.size, false]
         buffer.put(data2).flip()
         unpackAlignment(3 * w)
-        glTexImage2D(tex2D, 0, GL_RGB8, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer)
+        internalFormat = GL_RGB8
+        glTexImage2D(tex2D, 0, internalFormat, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer)
         bufferPool.returnBuffer(buffer)
         afterUpload(false, 3)
     }
@@ -561,6 +570,7 @@ open class Texture2D(
         if (checkRedundancy) checkRedundancy(ints)
         if (ints.order() != ByteOrder.nativeOrder()) throw RuntimeException("Byte order must be native!")
         unpackAlignment(4 * w)
+        internalFormat = GL_RGB8
         glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, ints)
         afterUpload(false, 4)
     }
@@ -570,6 +580,7 @@ open class Texture2D(
         if (checkRedundancy) checkRedundancy(ints)
         if (ints.order() != ByteOrder.nativeOrder()) throw RuntimeException("Byte order must be native!")
         unpackAlignment(4 * w)
+        internalFormat = GL_RGB8
         glTexImage2D(tex2D, 0, GL_RGB8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, ints)
         afterUpload(false, 4)
     }
@@ -608,7 +619,8 @@ open class Texture2D(
         beforeUpload(1, data.remaining())
         if (checkRedundancy) checkRedundancyMonochrome(data)
         unpackAlignment(4 * w)
-        glTexImage2D(tex2D, 0, GL_R32F, w, h, 0, GL_RED, GL_FLOAT, data)
+        internalFormat = GL_R32F
+        glTexImage2D(tex2D, 0, internalFormat, w, h, 0, GL_RED, GL_FLOAT, data)
         afterUpload(true, 4)
     }
 
@@ -693,18 +705,19 @@ open class Texture2D(
         if (checkRedundancy) checkRedundancy(buffer, true)
         // texImage2D(TargetType.UByteTarget3, buffer)
         unpackAlignment(3 * w)
-        glTexImage2D(tex2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer)
+        internalFormat = GL_RGB8
+        glTexImage2D(tex2D, 0, internalFormat, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer)
         bufferPool.returnBuffer(buffer)
         afterUpload(false, 3)
     }
 
     fun createDepth(lowQuality: Boolean = false) {
         beforeUpload()
-        val format = if (lowQuality) GL_DEPTH_COMPONENT16 else GL_DEPTH_COMPONENT32F
+        internalFormat = if (lowQuality) GL_DEPTH_COMPONENT16 else GL_DEPTH_COMPONENT32F
         if (withMultisampling) {
-            glTexImage2DMultisample(tex2D, samples, format, w, h, false)
+            glTexImage2DMultisample(tex2D, samples, internalFormat, w, h, false)
         } else {
-            glTexImage2D(tex2D, 0, format, w, h, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0)
+            glTexImage2D(tex2D, 0, internalFormat, w, h, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0)
         }
         afterUpload(false, if (lowQuality) 2 else 4)
     }

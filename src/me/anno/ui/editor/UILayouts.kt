@@ -27,7 +27,6 @@ import me.anno.studio.StudioBase.Companion.instance
 import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.studio.rems.ProjectSettings
 import me.anno.studio.rems.RemsStudio
-import me.anno.studio.rems.RemsStudio.createConsole
 import me.anno.studio.rems.RemsStudio.gfxSettings
 import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.studio.rems.RemsStudio.project
@@ -55,7 +54,6 @@ import me.anno.ui.base.constraints.SizeLimitingContainer
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.msg
 import me.anno.ui.base.menu.Menu.openMenu
@@ -66,7 +64,7 @@ import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.custom.CustomContainer
 import me.anno.ui.custom.CustomList
-import me.anno.ui.debug.RuntimeInfoPanel
+import me.anno.ui.debug.ConsoleOutputPanel.Companion.createConsoleWithStats
 import me.anno.ui.editor.config.ConfigPanel
 import me.anno.ui.editor.cutting.CuttingView
 import me.anno.ui.editor.files.FileExplorer.Companion.openInExplorerDesc
@@ -394,7 +392,7 @@ object UILayouts {
         ).setChangeListener { DefaultConfig["debug.ui.showFPS"] = it }
 
         val fontSize = style.getSize("fontSize", 15)
-        val spx = ScrollPanelX(createConsole(style), Padding.Zero, style, AxisAlignment.MIN)
+        val spx = ScrollPanelX(createConsoleWithStats(true, style), Padding.Zero, style, AxisAlignment.MIN)
         val slc = SizeLimitingContainer(spx, fontSize * 25, -1, style)
         slc.padding.top = fontSize / 2
         welcome += slc
@@ -565,13 +563,8 @@ object UILayouts {
         if (loadUI) project.loadUI()
 
         ui += project.mainUI
-
         ui += SpacerPanel(0, 1, style)
-
-        val bottom2 = PanelStack(style)
-        bottom2 += RemsStudio.createConsole(style)
-        bottom2 += RuntimeInfoPanel(style).apply { alignmentX = AxisAlignment.MAX }.setWeight(1f)
-        ui += bottom2
+        ui += createConsoleWithStats(true, style)
 
         windowStack.clear()
         windowStack.push(ui)

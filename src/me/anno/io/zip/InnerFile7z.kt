@@ -2,29 +2,54 @@ package me.anno.io.zip
 
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
+import me.anno.io.files.Signature
+import me.anno.io.zip.SignatureFile.Companion.setDataAndSignature
+import me.anno.utils.Sleep.waitUntilDefined
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry
 import org.apache.commons.compress.archivers.sevenz.SevenZFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
-import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStream
 import java.util.zip.ZipException
 
 class InnerFile7z(
     absolutePath: String,
+    val zipFile: FileReference,
     val getZipStream: () -> SevenZFile,
     relativePath: String,
     _parent: FileReference
-) : InnerFile(absolutePath, relativePath, false, _parent) {
+) : InnerFile(absolutePath, relativePath, false, _parent), SignatureFile {
+
+    override var signature: Signature? = null
+
+    class Iterate7z(val file: SevenZFile) : NextEntryIterator<SevenZArchiveEntry>() {
+        override fun nextEntry(): SevenZArchiveEntry? = file.nextEntry
+    }
 
     override fun getInputStream(): InputStream {
-        val zis = getZipStream()
-        val entry = zis.entries.firstOrNull { it.name == relativePath }
-        if (entry != null) {
-            // target found
-            return zis.getInputStream(entry)
-        }
-        throw FileNotFoundException(relativePath)
+        var bytes: ByteArray? = null
+        HeavyIterator.iterate(zipFile, object : IHeavyIterable<SevenZArchiveEntry, Iterate7z, ByteArray> {
+            override fun openStream(source: FileReference) = Iterate7z(getZipStream())
+            override fun hasInterest(stream: Iterate7z, item: SevenZArchiveEntry) =
+                item.name == relativePath
+
+            override fun process(
+                stream: Iterate7z,
+                item: SevenZArchiveEntry,
+                previous: ByteArray?,
+                index: Int,
+                total: Int
+            ): ByteArray? {
+                bytes = previous ?: stream.file.getInputStream(item).readBytes()
+                return bytes
+            }
+
+            override fun closeStream(source: FileReference, stream: Iterate7z) {
+                stream.file.close()
+            }
+
+        })
+        return waitUntilDefined(true) { bytes }.inputStream()
     }
 
     companion object {
@@ -49,7 +74,7 @@ class InnerFile7z(
                 while (true) {
                     val entry = zis.nextEntry ?: break
                     hasReadEntry = true
-                    createEntry7z(zipFileLocation.absolutePath, entry, getStream, registry)
+                    createEntry7z(zis, zipFileLocation, entry, getStream, registry)
                 }
                 zis.close()
             } catch (e2: IOException) {
@@ -63,23 +88,25 @@ class InnerFile7z(
         }
 
         fun createEntry7z(
-            zipFileLocation: String,
+            zis: SevenZFile,
+            zipFile: FileReference,
             entry: SevenZArchiveEntry,
             getStream: () -> SevenZFile,
             registry: HashMap<String, InnerFile>
         ): InnerFile {
             val (parent, path) = ZipCache.splitParent(entry.name)
             val file = registry.getOrPut(path) {
+                val zipFileLocation = zipFile.absolutePath
                 if (entry.isDirectory) {
                     InnerFolder("$zipFileLocation/$path", path, registry[parent]!!)
                 } else {
-                    InnerFile7z("$zipFileLocation/$path", getStream, path, registry[parent]!!)
+                    InnerFile7z("$zipFileLocation/$path", zipFile, getStream, path, registry[parent]!!)
                 }
             }
             file.lastModified = entry.lastModifiedDate?.time ?: 0L
             file.lastAccessed = if (entry.hasAccessDate) entry.accessDate!!.time else 0L
             file.size = entry.size
-            file.data = null
+            setDataAndSignature(file) { zis.getInputStream(entry) }
             return file
         }
 

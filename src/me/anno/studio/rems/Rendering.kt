@@ -60,9 +60,11 @@ object Rendering {
 
     fun renderVideo(width: Int, height: Int, ask: Boolean, callback: () -> Unit) {
 
-        if (width % div != 0 || height % div != 0) return renderVideo(
-            width / div * div,
-            height / div * div,
+        val divW = width % div
+        val divH = height % div
+        if (divW != 0 || divH != 0) return renderVideo(
+            width - divW,
+            height - divH,
             ask, callback
         )
 

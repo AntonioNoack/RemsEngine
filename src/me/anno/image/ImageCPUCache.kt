@@ -9,6 +9,7 @@ import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.Signature
+import me.anno.io.zip.SignatureFile
 import me.anno.utils.Sleep
 import me.anno.utils.maths.Maths.min
 import me.anno.video.FFMPEGMetadata
@@ -65,7 +66,7 @@ object ImageCPUCache : CacheSection("BufferedImages") {
             if (file is ImageReadable) {
                 CacheData(file.readImage())
             } else {
-                val image = if (file.length() < 1e7) { // < 10MB -> read directly
+                val image = if (file.length() < 1e7 && file !is SignatureFile) { // < 10MB -> read directly
                     val bytes = file.readBytes()
                     val signature = Signature.findName(bytes)
                     if (signature == "dds" || signature == "media" || file.lcExtension == "webp") {

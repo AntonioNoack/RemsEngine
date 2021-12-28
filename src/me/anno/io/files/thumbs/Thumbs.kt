@@ -2,7 +2,6 @@ package me.anno.io.files.thumbs
 
 import me.anno.Build
 import me.anno.cache.data.ImageData
-import me.anno.cache.data.LateinitTexture
 import me.anno.cache.instances.MeshCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultConfig
@@ -40,7 +39,6 @@ import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.gpu.drawing.Perspective.setPerspective
-import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
@@ -52,7 +50,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.*
-import me.anno.image.ImageScale.scale
+import me.anno.image.ImageScale.scaleMax
 import me.anno.image.tar.TGAImage
 import me.anno.io.ISaveable
 import me.anno.io.config.ConfigBasics
@@ -69,6 +67,7 @@ import me.anno.objects.documents.pdf.PDFCache
 import me.anno.objects.meshes.MeshData
 import me.anno.ui.base.Font
 import me.anno.utils.Color.hex4
+import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.waitForGFXThread
 import me.anno.utils.Sleep.waitForGFXThreadUntilDefined
 import me.anno.utils.Sleep.waitUntilDefined
@@ -86,7 +85,6 @@ import org.joml.Math.toRadians
 import org.lwjgl.opengl.GL11.*
 import sun.awt.shell.ShellFolder
 import java.awt.image.BufferedImage
-import java.util.concurrent.Semaphore
 import javax.imageio.ImageIO
 import javax.swing.ImageIcon
 import javax.swing.filechooser.FileSystemView
@@ -96,13 +94,13 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-
 /**
  * creates and caches small versions of image and video resources
  * */
 object Thumbs {
 
     // todo right click option in file explorer to invalidate a thumbs image
+    // todo right click option for images: open large image viewer panel
 
     private val LOGGER = LogManager.getLogger(Thumbs::class)
 
@@ -155,24 +153,17 @@ object Thumbs {
         val size = getSize(neededSize)
         val key = ThumbnailKey(file, file.lastModified, file.isDirectory, size)
 
-        // if async, and we cannot acquire, just return the sample without generator
-        // this prevents a build-up of requests, that are async only anyways
-        if (async && !hasFreeCreationSlot()) {
-            val tex = ImageGPUCache.getEntryWithoutGenerator(key) as? LateinitTexture
-            return tex?.texture
-        }
-
-        return ImageGPUCache.getLateinitTexture(key, timeout, async) { callback ->
+        return ImageGPUCache.getLateinitTextureLimited(key, timeout, async, 4) { callback ->
             if (async) {
                 thread(name = "Thumbs/${key.file.name}") {
-                    creationLimiter.acquire()
                     try {
-                        LOGGER.info("Loading $file")
+                        // LOGGER.info("Loading $file")
                         generate(file, size, callback)
+                    } catch (e: ShutdownException) {
+                        // don't care
                     } catch (e: Throwable) {
                         e.printStackTrace()
                     }
-                    creationLimiter.release()
                 }
             } else generate(file, size, callback)
         }?.texture
@@ -209,15 +200,6 @@ object Thumbs {
         return if (neededSize < neededSizes.size) {
             neededSizes[neededSize]
         } else sizes.last()
-    }
-
-    private val creationLimiter = Semaphore(4)
-
-    private fun hasFreeCreationSlot(): Boolean {
-        return if (creationLimiter.tryAcquire()) {
-            creationLimiter.release()
-            true
-        } else false
     }
 
     private fun upload(srcFile: FileReference, dst: Image, callback: (Texture2D) -> Unit) {
@@ -317,7 +299,7 @@ object Thumbs {
             // return generate(srcFile, size / 2, callback)
         }
 
-        val (w, h) = scale(sw, sh, size)
+        val (w, h) = scaleMax(sw, sh, size)
         if (min(w, h) < 1) return
         if (w == sw && h == sh) {
             saveNUpload(srcFile, dstFile, src, callback)
@@ -349,7 +331,7 @@ object Thumbs {
             // return generate(srcFile, size / 2, callback)
         }
 
-        val (w, h) = scale(sw, sh, size)
+        val (w, h) = scaleMax(sw, sh, size)
         if (min(w, h) < 1) return
         if (w == sw && h == sh) {
             saveNUpload(srcFile, dstFile, src, callback)
@@ -455,7 +437,7 @@ object Thumbs {
         val sw = meta.videoWidth / scale
         val sh = meta.videoHeight / scale
 
-        val (w, h) = scale(sw, sh, size)
+        val (w, h) = scaleMax(sw, sh, size)
         if (w < 2 || h < 2) return
 
         val fps = min(5.0, meta.videoFPS)
@@ -962,7 +944,7 @@ object Thumbs {
             dstFile = srcFile.getCacheFile(size)
             if (returnIfExists(srcFile, dstFile, callback)) return null
         }
-        val (w, h) = scale(sw, sh, size)
+        val (w, h) = scaleMax(sw, sh, size)
         if (w < 2 || h < 2) return null
         return src.createBufferedImage(w, h)
     }
@@ -1201,12 +1183,14 @@ object Thumbs {
         callback: (Texture2D) -> Unit
     ) {
         // small timeout, because we need that image shortly only
-        val tries = 200
+        val totalMillis = 30_000L
+        val smallStep = 5L
+        val tries = totalMillis / smallStep
         var image: Image? = null
         for (i in 0 until tries) {
             image = ImageCPUCache.getImage(srcFile, 50, true)
             if (image != null) break
-            Thread.sleep(5)
+            Thread.sleep(smallStep)
         }
         if (image == null) {
             val ext = srcFile.lcExtension

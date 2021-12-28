@@ -32,6 +32,18 @@ object Sleep {
     }
 
     @Throws(ShutdownException::class)
+    inline fun waitUntil(canBeKilled: Boolean, limit: Long, key: Any?, condition: () -> Boolean) {
+        if (limit < 0) return waitUntil(canBeKilled, condition)
+        val startTime = System.nanoTime()
+        while (!condition()) {
+            if (canBeKilled && shutdown) throw ShutdownException
+            val time = System.nanoTime() - startTime
+            if (time > limit) throw RuntimeException("Time limit exceeded for $key")
+            sleepABit(canBeKilled)
+        }
+    }
+
+    @Throws(ShutdownException::class)
     fun waitOnGFXThread(canBeKilled: Boolean, condition: () -> Boolean) {
         // the texture was forced to be loaded -> wait for it
         waitUntil(canBeKilled) {

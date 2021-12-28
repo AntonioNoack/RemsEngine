@@ -5,6 +5,7 @@ import me.anno.cache.CacheSection
 import me.anno.image.ImageReader
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
+import me.anno.io.unity.UnityReader
 import me.anno.io.zip.InnerFile7z.Companion.createZipRegistry7z
 import me.anno.io.zip.InnerFile7z.Companion.fileFromStream7z
 import me.anno.io.zip.InnerRarFile.Companion.createZipRegistryRar
@@ -17,6 +18,7 @@ import me.anno.mesh.obj.MTLReader2
 import me.anno.mesh.obj.OBJReader2
 import me.anno.mesh.vox.VOXReader
 import me.anno.objects.documents.pdf.PDFCache
+import org.apache.logging.log4j.LogManager
 
 object ZipCache : CacheSection("ZipCache") {
 
@@ -86,6 +88,7 @@ object ZipCache : CacheSection("ZipCache") {
         register(imageFormats, ImageReader::readAsFolder)
         register("media", ImageReader::readAsFolder) // correct for webp, not for videos
         // todo yaml for unity files
+        registerFileExtension("prefab") { UnityReader.readAsFolder(it) as InnerFolder }
     }
 
     fun unzipMaybe(file: FileReference): InnerFolder? {
@@ -100,7 +103,10 @@ object ZipCache : CacheSection("ZipCache") {
             if (signature == "json" && ext == "json") nullCacheData
             else {
                 val reader = readerBySignature[signature] ?: readerBySignature[ext] ?: readerByFileExtension[ext]
-                if (reader != null) reader(file1) else createZipRegistryV2(file1)
+                // LOGGER.info("Reading $file1 with $reader")
+                val result = if (reader != null) reader(file1) else createZipRegistryV2(file1)
+                // LOGGER.info("Result: $result")
+                result
             }
         } as? InnerFile
     }
@@ -120,5 +126,7 @@ object ZipCache : CacheSection("ZipCache") {
     val sizeLimit = 20_000_000L
 
     val nullCacheData = CacheData(null)
+
+    private val LOGGER = LogManager.getLogger(ZipCache::class)
 
 }

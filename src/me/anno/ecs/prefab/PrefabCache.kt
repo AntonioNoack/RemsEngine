@@ -14,6 +14,7 @@ import me.anno.io.files.Signature
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.io.unity.UnityReader
+import me.anno.io.zip.InnerLinkFile
 import me.anno.io.zip.InnerPrefabFile
 import me.anno.io.zip.ZipCache
 import me.anno.mesh.assimp.AnimatedMeshesLoader
@@ -161,23 +162,30 @@ object PrefabCache : CacheSection("Prefab") {
         chain: MutableSet<FileReference>?,
         async: Boolean = false
     ): FileReadPrefabData? {
-        resource ?: return null
-        return if (resource != InvalidRef && resource.exists && !resource.isDirectory) {
-            val entry = getFileEntry(resource, false, prefabTimeout, async) { file, _ ->
-                val loaded = loadPrefab3(file)
-                if (loaded != null) {
-                    FileWatch.addWatchDog(file)
-                    FileReadPrefabData(
-                        loaded as? Prefab,
-                        if (loaded is Prefab) loaded.getSampleInstance(chain ?: HashSet())
-                        else loaded, file
-                    )
-                } else CacheData(null)
+        // LOGGER.info("get prefab from $resource, ${resource?.exists}, ${resource?.isDirectory}")
+        return when {
+            resource == null || resource == InvalidRef -> null
+            resource is InnerLinkFile -> getPrefabPair(resource.link, chain, async)
+            resource.exists && !resource.isDirectory -> {
+                val entry = getFileEntry(resource, false, prefabTimeout, async) { file, _ ->
+                    val loaded = loadPrefab3(file)
+                    // LOGGER.info("loaded $file, got ${loaded?.className}")
+                    // if (loaded is Prefab) LOGGER.info(loaded)
+                    if (loaded != null) {
+                        FileWatch.addWatchDog(file)
+                        FileReadPrefabData(
+                            loaded as? Prefab,
+                            if (loaded is Prefab) loaded.getSampleInstance(chain ?: HashSet())
+                            else loaded, file
+                        )
+                    } else CacheData(null)
+                }
+                if (entry is CacheData<*> && entry.value == null)
+                    throw RuntimeException("Could not load $resource as prefab")
+                return entry as? FileReadPrefabData
             }
-            if (entry is CacheData<*> && entry.value == null)
-                throw RuntimeException("Could not load $resource as prefab")
-            return entry as? FileReadPrefabData
-        } else null
+            else -> null
+        }
     }
 
     fun loadPrefab(

@@ -6,7 +6,8 @@ import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.image.raw.BIImage
 import java.awt.image.BufferedImage
 
-class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) : Image(src.width, src.height, 1, false) {
+class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
+    Image(src.width, src.height, 1, false) {
 
     val shift = when (channel) {
         'r' -> 16

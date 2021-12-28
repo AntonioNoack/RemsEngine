@@ -112,8 +112,8 @@ class CubemapTexture(
         Buffer.bindBuffer(GL30.GL_PIXEL_UNPACK_BUFFER, 0)
         for (i in 0 until 6) {
             glTexImage2D(
-                getTarget(i), 0, type.type0, size, size,
-                0, type.type1, type.fillType, null as ByteBuffer?
+                getTarget(i), 0, type.internalFormat, size, size,
+                0, type.uploadFormat, type.fillType, null as ByteBuffer?
             )
         }
         afterUpload(type.bytesPerPixel)

@@ -17,13 +17,13 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.engine.ui.render.ECSShaderLib
-import me.anno.gpu.shader.ShaderLib
-import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.ShaderLib
 import me.anno.image.ImageCPUCache
 import me.anno.image.ImageGPUCache
+import me.anno.image.ImageScale.scaleMax
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
@@ -44,11 +44,87 @@ import me.anno.utils.OS.downloads
 import java.io.FileNotFoundException
 import javax.imageio.ImageIO
 
+val size = 128
+
+fun FileReference.dst() = desktop.getChild("$nameWithoutExtension.png")
+fun FileReference.dst2() = desktop.getChild("$nameWithoutExtension-2.png")
+fun FileReference.dst3() = desktop.getChild("$nameWithoutExtension-3.png")
+
+fun init() {
+    Thumbs.useCacheFolder = true
+}
+
+fun testAssimpMeshFrame(file: FileReference) {
+    init()
+    if (!file.exists) throw FileNotFoundException("$file does not exist")
+    generateAssimpMeshFrame(file, file.dst(), size) { }
+}
+
+fun testEntityMeshFrame(file: FileReference) {
+    init()
+    if (!file.exists) throw FileNotFoundException("$file does not exist")
+    val entity = PrefabCache.getPrefabPair(file, null)!!.instance as Entity
+    generateEntityFrame(file.dst(), size, entity) {}
+}
+
+fun testSkeletonFrame(file: FileReference) {
+    init()
+    if (!file.exists) throw FileNotFoundException("$file does not exist")
+    val skeleton = SkeletonCache[file]!!
+    generateSkeletonFrame(file.dst(), skeleton, size) {}
+}
+
+fun testImage(file: FileReference) {
+    init()
+    if (!file.exists) throw FileNotFoundException("$file does not exist")
+    val image = ImageCPUCache.getImage(file, false)!!
+    val (w, h) = scaleMax(image.width, image.height, size)
+    // test cpu loading
+    if (file != file.dst()) file.dst().outputStream().use {
+        ImageIO.write(image.createBufferedImage(w, h), "png", it)
+    }
+    file.dst3().outputStream().use {
+        val smaller = image.createBufferedImage(w, h)
+        ImageIO.write(smaller, "png", it)
+    }
+    // also write image to the gpu, and then get it back to test the uploading
+    Thumbs.renderToBufferedImage(file, file.dst2(), false, Renderer.colorRenderer, true, {}, w, h) {
+        val texture = ImageGPUCache.getImage(file, 10_000, false)!!
+        drawTexture(0, 0, w, h, texture, -1, null)
+    }
+    //val tex2 = Thumbs.getThumbnail(file,size,false)
+    //println("texture from thumbs: ${tex2.toString()}")
+}
+
+fun testFFMPEGImage(file: FileReference) {
+    if (!file.exists) throw FileNotFoundException("$file does not exist")
+    generateVideoFrame(file, file.dst(), size, {}, 0.0)
+}
+
+fun testSVG(file: FileReference) {
+    if (!file.exists) throw FileNotFoundException("$file does not exist")
+    generateSVGFrame(file, file.dst(), size) {}
+}
+
+fun testMeshFrame(file: FileReference) {
+    if (!file.exists) throw FileNotFoundException("$file does not exist")
+    val mesh = MeshCache[file]!!
+    generateMeshFrame(file.dst(), size, mesh) {}
+}
+
+fun testMaterial(file: FileReference) {
+    generateMaterialFrame(file, desktop.getChild(file.nameWithoutExtension + ".png"), size) {}
+}
+
+fun testVOXMeshFrame(file: FileReference) {
+    if (!file.exists) throw FileNotFoundException("$file does not exist")
+    generateVOXMeshFrame(file, file.dst(), size) {}
+}
+
+
 fun main() {
 
     val clock = Clock()
-
-    val size = 128
 
     DefaultConfig.init()
 
@@ -81,61 +157,6 @@ fun main() {
     registerCustomClass(BoneByBoneAnimation())
 
     clock.stop("Registry")
-
-    Thumbs.useCacheFolder = true
-
-    fun FileReference.dst() = desktop.getChild("$nameWithoutExtension.png")
-    fun FileReference.dst2() = desktop.getChild("$nameWithoutExtension-2.png")
-    fun FileReference.dst3() = desktop.getChild("$nameWithoutExtension-3.png")
-
-    fun testAssimpMeshFrame(file: FileReference) {
-        if (!file.exists) throw FileNotFoundException("$file does not exist")
-        generateAssimpMeshFrame(file, file.dst(), size) {}
-    }
-
-    fun testEntityMeshFrame(file: FileReference) {
-        if (!file.exists) throw FileNotFoundException("$file does not exist")
-        val entity = PrefabCache.getPrefabPair(file, null)!!.instance as Entity
-        generateEntityFrame(file.dst(), size, entity) {}
-    }
-
-    fun testSkeletonFrame(file: FileReference) {
-        if (!file.exists) throw FileNotFoundException("$file does not exist")
-        val skeleton = SkeletonCache[file]!!
-        generateSkeletonFrame(file.dst(), skeleton, size) {}
-    }
-
-    fun testImage(file: FileReference) {
-        if (!file.exists) throw FileNotFoundException("$file does not exist")
-        val image = ImageCPUCache.getImage(file, false)!!
-        val w = image.width / 4
-        val h = image.height / 4
-        // test cpu loading
-        if (file != file.dst()) file.dst().outputStream().use {
-            ImageIO.write(image.createBufferedImage(w, h), "png", it)
-        }
-        file.dst3().outputStream().use {
-            val smaller = image.createBufferedImage(w, h)
-            ImageIO.write(smaller, "png", it)
-        }
-        // also write image to the gpu, and then get it back to test the uploading
-        Thumbs.renderToBufferedImage(file, file.dst2(), false, Renderer.colorRenderer, true, {}, w, h) {
-            val texture = ImageGPUCache.getImage(file, 10_000, false)!!
-            drawTexture(0, 0, w, h, texture, -1, null)
-        }
-        //val tex2 = Thumbs.getThumbnail(file,size,false)
-        //println("texture from thumbs: ${tex2.toString()}")
-    }
-
-    fun testFFMPEGImage(file: FileReference) {
-        if (!file.exists) throw FileNotFoundException("$file does not exist")
-        generateVideoFrame(file, file.dst(), size, {}, 0.0)
-    }
-
-    fun testSVG(file: FileReference) {
-        if (!file.exists) throw FileNotFoundException("$file does not exist")
-        generateSVGFrame(file, file.dst(), size) {}
-    }
 
     testEntityMeshFrame(getReference(documents, "CuteGhost.obj"))
 
@@ -189,33 +210,14 @@ fun main() {
     testAssimpMeshFrame(getReference(downloads, "fbx/free meshes/simple small lowpoly bridge_better.fbx"))*/
     // testEntityMeshFrame(getReference(desktop, "Scene.json"))
 
-    fun testVOXMeshFrame(file: FileReference) {
-        if (!file.exists) throw FileNotFoundException("$file does not exist")
-        clock.stop("loading ${file.name}")
-        generateVOXMeshFrame(file, file.dst(), size) {}
-        clock.stop("rendering ${file.name}")
-    }
-
     // testVOXMeshFrame(getReference(downloads, "MagicaVoxel/vox/room.vox"))
     // testVOXMeshFrame(getReference(downloads, "MagicaVoxel/vox/birch2Small31.vox"))
 
-    fun testMeshFrame(file: FileReference) {
-        if (!file.exists) throw FileNotFoundException("$file does not exist")
-        val mesh = MeshCache[file]!!
-        clock.stop("loading ${file.name}")
-        generateMeshFrame(file.dst(), size, mesh) {}
-        clock.stop("rendering ${file.name}")
-    }
 
     // testMeshFrame(desktop.getChild("Object_0.json")) // from the fox
     // testMeshFrame(desktop.getChild("Object_1.json")) // from the fox, without materials, normals, and animation
     // testMeshFrame(desktop.getChild("Lights.json")) // problematic invisible mesh
 
-    fun testMaterial(file: FileReference) {
-        clock.stop("loading ${file.name}")
-        generateMaterialFrame(file, desktop.getChild(file.nameWithoutExtension + ".png"), size) {}
-        clock.stop("rendering ${file.name}")
-    }
 
     testMaterial(getReference(desktop, "fox_material.json"))
 

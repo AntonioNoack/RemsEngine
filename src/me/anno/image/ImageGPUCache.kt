@@ -109,6 +109,22 @@ object ImageGPUCache : CacheSection("Images") {
         } as? LateinitTexture
     }
 
+    fun getLateinitTextureLimited(
+        key: Any,
+        timeout: Long,
+        async: Boolean,
+        limit: Int,
+        generator: (callback: (ITexture2D?) -> Unit) -> Unit
+    ): LateinitTexture? {
+        return getEntryLimited(key, timeout, async, limit) {
+            LateinitTexture().apply {
+                generator {
+                    texture = it
+                }
+            }
+        } as? LateinitTexture
+    }
+
     fun getLUT(file: FileReference, asyncGenerator: Boolean, timeout: Long = 5000): Texture3D? {
         val texture = getEntry("LUT" to file, timeout, asyncGenerator, ImageGPUCache::generateLUT) as? Texture3D
         return if (texture?.isCreated == true) texture else null

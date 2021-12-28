@@ -1,13 +1,18 @@
 package me.anno.ui.debug
 
+import me.anno.Logging
 import me.anno.config.DefaultStyle
+import me.anno.engine.RemsEngine
 import me.anno.gpu.Window
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
-import me.anno.Logging
+import me.anno.ui.base.Panel
 import me.anno.ui.base.buttons.TextButton
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelList
+import me.anno.ui.base.groups.PanelListX
+import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.base.text.SimpleTextPanel
 import me.anno.ui.debug.console.COLine
 import me.anno.ui.debug.console.ConsoleLogFullscreen
@@ -54,10 +59,40 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
     }
 
     companion object {
+
         fun formatFilePath(file: FileReference) = formatFilePath(file.absolutePath)
         fun formatFilePath(file: String): String {
             return "file://${file.replace(" ", "%20")}"
         }
+
+        fun createConsole(style: Style): ConsoleOutputPanel {
+            val console = ConsoleOutputPanel(style.getChild("small"))
+            // console.fontName = "Segoe UI"
+            Logging.console = console
+            console.setTooltip("Double-click to open history")
+            console.text = Logging.lastConsoleLines.lastOrNull() ?: ""
+            return console
+        }
+
+        fun createConsoleWithStats(bottom: Boolean = true, style: Style): Panel {
+
+            val group = PanelStack(style)
+            group += createConsole(style)
+
+            val right = PanelListX(style)
+            val rip = RuntimeInfoPanel(style)
+            rip.alignmentX = AxisAlignment.MAX
+            rip.makeBackgroundOpaque()
+            rip.setWeight(1f)
+            right.add(rip)
+            right.makeBackgroundTransparent()
+            if (bottom) right.add(RemsEngine.RuntimeInfoPlaceholder())
+            group.add(right)
+
+            return group
+
+        }
+
     }
 
 }

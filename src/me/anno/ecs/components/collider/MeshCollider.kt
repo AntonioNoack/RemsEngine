@@ -6,9 +6,13 @@ import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Type
+import me.anno.ecs.components.cache.MeshCache
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.gui.LineShapes
+import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import org.joml.Vector3d
@@ -24,8 +28,15 @@ class MeshCollider() : Collider() {
     @SerializedProperty
     var isConvex = true
 
-    @Type("MeshBaseComponent/PrefabSaveable")
-    var mesh: MeshBaseComponent? = null
+    @Type("Mesh/PrefabSaveable")
+    var mesh: Mesh? = null
+
+    @Type("MeshComponent/Reference")
+    var meshFile: FileReference = InvalidRef
+        set(value) {
+            field = value
+            mesh = MeshCache[value] ?: mesh
+        }
 
     @HideInInspector
     @NotSerializedProperty
@@ -41,17 +52,17 @@ class MeshCollider() : Collider() {
     }
 
     @DebugProperty
-    val info = "hull: $hull, ${mesh?.getMesh()?.positions?.size} positions"
+    val info = "hull: $hull, ${mesh?.positions?.size} positions"
 
     override fun createBulletShape(scale: Vector3d): CollisionShape {
 
         isValid = true
 
         if (mesh == null) {
-            mesh = entity?.getComponentInChildren(MeshBaseComponent::class, false)
+            mesh = entity?.getComponentInChildren(MeshBaseComponent::class, false)?.getMesh()
         }
 
-        val mesh = mesh?.getMesh() ?: return SphereShape(0.5)
+        val mesh = mesh ?: return SphereShape(0.5)
 
         val positions = mesh.positions
         if (positions == null) {
@@ -156,7 +167,8 @@ class MeshCollider() : Collider() {
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as MeshCollider
-        clone.mesh = mesh
+        clone.mesh = mesh //  getInClone(mesh, clone)
+        clone.meshFile = meshFile
         clone.isConvex = isConvex
         clone.hull = hull
     }

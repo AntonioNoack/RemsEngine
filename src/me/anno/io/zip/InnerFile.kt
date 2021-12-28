@@ -25,7 +25,7 @@ abstract class InnerFile(
 
     init {
         if (_parent is InnerFolder) {
-            val old = _parent.children.put(lcName, this)
+            val old = _parent.children.put(name, this)
             if (old != null) LOGGER.warn("Overrode $old")
         }
     }

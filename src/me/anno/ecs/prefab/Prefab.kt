@@ -75,27 +75,19 @@ class Prefab : Saveable {
 
     fun getPrefabOrSource() = prefab.nullIfUndefined() ?: source
 
-    fun countTotalChanges(): Int {
-        var sum = adds.size
-        if (prefab != InvalidRef) sum += loadPrefab(prefab)?.countTotalChanges() ?: 0
+    fun countTotalChanges(async: Boolean): Int {
+        var sum = adds.size + sets.size
+        if (prefab != InvalidRef) {
+            val prefab = loadPrefab(prefab, HashSet(), async)
+            if (prefab != null) sum += prefab.countTotalChanges(async)
+        }
         for (change in adds) {
-            if (change.prefab != InvalidRef) {
-                sum += loadPrefab(change.prefab, HashSet())?.countTotalChanges() ?: 0
+            val childPrefab = change.prefab
+            if (childPrefab != InvalidRef) {
+                val prefab = loadPrefab(childPrefab, HashSet(), async)
+                if (prefab != null) sum += prefab.countTotalChanges(async)
             }
         }
-        sum += sets.size
-        return sum
-    }
-
-    fun countTotalChangesAsync(): Int {
-        var sum = adds.size
-        if (prefab != InvalidRef) sum += loadPrefab(prefab, HashSet(), true)?.countTotalChanges() ?: 0
-        for (change in adds) {
-            if (change.prefab != InvalidRef) {
-                sum += loadPrefab(change.prefab, HashSet(), true)?.countTotalChanges() ?: 0
-            }
-        }
-        sum += sets.size
         return sum
     }
 
@@ -202,6 +194,10 @@ class Prefab : Saveable {
 
     fun setProperty(name: String, value: Any?) {
         set(ROOT_PATH, name, value)
+    }
+
+    fun getProperty(name: String): Any? {
+        return sets[ROOT_PATH, name]
     }
 
     private var sampleInstance: PrefabSaveable? = null

@@ -10,6 +10,7 @@ import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.ui.base.Panel
 import me.anno.ui.utils.WindowStack
+import me.anno.utils.structures.lists.LimitedList
 import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11
@@ -47,8 +48,8 @@ open class Window(
         return this
     }
 
-    val needsRedraw = HashSet<Panel>()
-    val needsLayout = HashSet<Panel>()
+    val needsRedraw = LimitedList<Panel>(16)
+    val needsLayout = LimitedList<Panel>(16)
 
     fun addNeedsRedraw(panel: Panel) {
         if (panel.canBeSeen) {
@@ -137,7 +138,7 @@ open class Window(
 
     private fun validateLayouts(w: Int, h: Int, panel: Panel) {
         val needsLayout = needsLayout
-        if (panel in needsLayout || lastW != w || lastH != h) {
+        if (lastW != w || lastH != h || panel in needsLayout || needsLayout.isFull()) {
             lastW = w
             lastH = h
             calculateFullLayout(w, h)
@@ -149,7 +150,7 @@ open class Window(
                 // recalculate layout
                 p.calculateSize(p.lx1 - p.lx0, p.ly1 - p.ly0)
                 p.place(p.lx0, p.ly0, p.lx1 - p.lx0, p.ly1 - p.ly0)
-                needsLayout.removeAll(p.listOfAll.toList())
+                needsLayout.removeAll(p.listOfAll)
                 addNeedsRedraw(p)
             }
         }
@@ -198,7 +199,7 @@ open class Window(
             OpenGL.renderDefault {
 
                 val buffer = buffer
-                if (panel0 in needsRedraw) {
+                if (panel0 in needsRedraw || needsRedraw.isFull()) {
 
                     wasRedrawn += panel0
 

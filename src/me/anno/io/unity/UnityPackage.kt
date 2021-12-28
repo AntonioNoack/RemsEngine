@@ -16,10 +16,9 @@ object UnityPackage {
         val getStream = { TarArchiveInputStream(GZIPInputStream(parent.inputStream())) }
         val rawArchive = InnerTarFile.createZipRegistryArchive(parent, getStream)
         try {
-            val absolutePath = parent.absolutePath
             val unityArchive = UnityPackageFolder(parent)
             val registry = createRegistry(unityArchive)
-            for ((_, value) in rawArchive.children) {
+            for (value in rawArchive.listChildren()) {
                 // the name of the file is the guid (unique unity resource id)
                 val pathname0 = value.getChild("pathname")
                 if (pathname0.exists && pathname0.length() in 1 until 1024) {
@@ -27,11 +26,11 @@ object UnityPackage {
                     val name = String(pathname0.readBytes())
                     val meta = value.getChild("asset.meta")
                     val metaFile = if (meta is InnerTarFile) {
-                        createEntryArchive(absolutePath, "$name.meta", meta, registry)
+                        createEntryArchive(parent, "$name.meta", meta, registry)
                     } else null
                     val asset = value.getChild("asset")
                     val assetFile = if (asset is InnerTarFile) {
-                        createEntryArchive(absolutePath, name, asset, registry)
+                        createEntryArchive(parent, name, asset, registry)
                     } else null
                     if (metaFile != null && assetFile != null) {
                         unityArchive.project.register(guid, metaFile, assetFile)
@@ -55,7 +54,7 @@ object UnityPackage {
     }
 
     fun createEntryArchive(
-        zipFileLocation: String,
+        zipFile: FileReference,
         name: String,
         original: InnerTarFile,
         registry: HashMap<String, InnerFile>
@@ -63,10 +62,11 @@ object UnityPackage {
         val (parent, path) = ZipCache.splitParent(name)
         val getStream = original.getZipStream
         val file = registry.getOrPut(path) {
+            val zipFileLocation = zipFile.absolutePath
             val parent2 = registry.getOrPut(parent) {
                 InnerTarFile.createFolderEntryTar(zipFileLocation, parent, registry)
             }
-            InnerTarFile("$zipFileLocation/$path", getStream, path, parent2, original.readingPath)
+            InnerTarFile("$zipFileLocation/$path", zipFile, getStream, path, parent2, original.readingPath)
         }
         file.lastModified = original.lastModified
         file.size = original.size

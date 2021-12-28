@@ -150,4 +150,21 @@ class Search(val terms: String) {
         return true
     }
 
+    companion object {
+
+        @JvmStatic
+        fun main(args: Array<String>) {
+
+            fun assert(b: Boolean) {
+                if (!b) throw RuntimeException()
+            }
+
+            val s = Search("!.png")
+            assert(!s.matches("nemo.png"))
+            assert(s.matches("nemo.jpg"))
+
+        }
+
+    }
+
 }

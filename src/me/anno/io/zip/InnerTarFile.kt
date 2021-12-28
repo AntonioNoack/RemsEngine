@@ -1,7 +1,10 @@
 package me.anno.io.zip
 
 import me.anno.io.files.FileReference
+import me.anno.io.files.Signature
 import me.anno.io.unity.UnityPackage.unpack
+import me.anno.io.zip.SignatureFile.Companion.setDataAndSignature
+import me.anno.utils.Sleep
 import org.apache.commons.compress.archivers.ArchiveEntry
 import org.apache.commons.compress.archivers.ArchiveInputStream
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
@@ -13,23 +16,39 @@ import java.util.zip.ZipException
 
 class InnerTarFile(
     absolutePath: String,
+    val zipFile: FileReference,
     val getZipStream: () -> ArchiveInputStream,
     relativePath: String,
     _parent: FileReference,
     val readingPath: String = relativePath
-) : InnerFile(absolutePath, relativePath, false, _parent) {
+) : InnerFile(absolutePath, relativePath, false, _parent), SignatureFile {
+
+    override var signature: Signature? = null
 
     override fun length(): Long = size
 
+    class ZipArchiveIterator(val file: ArchiveInputStream) : NextEntryIterator<ArchiveEntry>() {
+        override fun nextEntry(): ArchiveEntry? = file.nextEntry
+    }
+
     override fun getInputStream(): InputStream {
-        val zis = getZipStream()
-        while (true) {
-            val entry = zis.nextEntry ?: break
-            if (entry.name == readingPath) {
-                return zis
+        var bytes: ByteArray? = null
+        HeavyIterator.iterate(zipFile, object : IHeavyIterable<ArchiveEntry, ZipArchiveIterator, ByteArray> {
+            override fun openStream(source: FileReference) = ZipArchiveIterator(getZipStream())
+            override fun closeStream(source: FileReference, stream: ZipArchiveIterator) = stream.file.close()
+            override fun hasInterest(stream: ZipArchiveIterator, item: ArchiveEntry) = item.name == readingPath
+
+            override fun process(
+                stream: ZipArchiveIterator,
+                item: ArchiveEntry, previous: ByteArray?,
+                index: Int, total: Int
+            ): ByteArray? {
+                bytes = previous ?: stream.file.readBytes()
+                return bytes
             }
-        }
-        throw IOException("Not found")
+
+        })
+        return Sleep.waitUntilDefined(true) { bytes }.inputStream()
     }
 
     override fun outputStream(): OutputStream {
@@ -60,7 +79,7 @@ class InnerTarFile(
                 while (true) {
                     val entry = zis.nextEntry ?: break
                     hasReadEntry = true
-                    createEntryArchive(zipFileLocation.absolutePath, entry, zis, getStream, registry)
+                    createEntryArchive(zipFileLocation, entry, zis, getStream, registry)
                 }
                 zis.close()
             } catch (e2: IOException) {
@@ -72,7 +91,7 @@ class InnerTarFile(
         }
 
         fun createEntryArchive(
-            zipFileLocation: String,
+            zipFile: FileReference,
             entry: ArchiveEntry,
             zis: ArchiveInputStream,
             getStream: () -> ArchiveInputStream,
@@ -80,18 +99,28 @@ class InnerTarFile(
         ): InnerFile {
             val (parent, path) = ZipCache.splitParent(entry.name)
             val file = registry.getOrPut(path) {
+                val zipFileLocation = zipFile.absolutePath
                 val absolutePath = "$zipFileLocation/$path"
                 val parent2 = registry.getOrPut(parent) {
                     createFolderEntryTar(zipFileLocation, parent, registry)
                 }
                 if (entry.isDirectory) InnerFolder(absolutePath, path, parent2)
-                else InnerTarFile(absolutePath, getStream, path, parent2)
+                else InnerTarFile(absolutePath, zipFile, getStream, path, parent2)
             }
             file.lastModified = entry.lastModifiedDate?.time ?: 0L
             file.size = entry.size
-            file.data = if (!file.isDirectory && file.size in 1..ZipCache.sizeLimit) {
-                zis.readBytes()
-            } else null
+            setDataAndSignature(file) {
+                // stream must not be closed
+                object : InputStream() {
+                    override fun read(): Int = zis.read()
+                    override fun read(p0: ByteArray): Int {
+                        return zis.read(p0)
+                    }
+                    override fun read(p0: ByteArray, p1: Int, p2: Int): Int {
+                        return zis.read(p0, p1, p2)
+                    }
+                }
+            }
             return file
         }
 

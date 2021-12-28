@@ -303,6 +303,7 @@ object GFX : GFXBase1() {
 
     override fun renderStep0() {
         super.renderStep0()
+        glThread = Thread.currentThread()
         val tick = Clock()
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1) // OpenGL is evil ;), for optimizations, we might set it back
         supportsAnisotropicFiltering = GL.getCapabilities().GL_EXT_texture_filter_anisotropic
