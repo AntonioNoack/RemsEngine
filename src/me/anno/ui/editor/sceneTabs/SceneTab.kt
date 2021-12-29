@@ -108,7 +108,6 @@ class SceneTab(var file: FileReference?, var scene: Transform, history: History?
     }
 
     fun save(onSuccess: () -> Unit) {
-        println("got save request")
         if (file == null) {
             var name = scene.name.trim()
             if (!name.endsWith(".json", true)) name = "$name.json"

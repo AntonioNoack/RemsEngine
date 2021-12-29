@@ -198,8 +198,8 @@ object Strings {
     }
 
     fun writeEscaped(value: String, data: TextWriterBase) {
-        for (i in value.indices) {
-            when (val char = value[i]) {
+        for (index in value.indices) {
+            when (val char = value[index]) {
                 '\\' -> {
                     data.append('\\')
                     data.append('\\')

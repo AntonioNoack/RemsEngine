@@ -1,24 +1,30 @@
 package me.anno.io.text
 
-import me.anno.io.json.ObjectMapper.write
 import java.io.OutputStream
+import java.io.OutputStreamWriter
 
 class TextStreamWriter(val data: OutputStream) : TextWriterBase() {
 
+    private val writer = OutputStreamWriter(data)
+    private val c = CharArray(1)
+
     override fun append(v: Char) {
-        data.write(v)
+        // a character may be part of a smiley, so
+        // we have to use a Writer instead of an OutputStream
+        c[0] = v
+        writer.write(c)
     }
 
     override fun append(v: Int) {
-        data.write(v.toString())
+        writer.write(v.toString())
     }
 
     override fun append(v: Long) {
-        data.write(v.toString())
+        writer.write(v.toString())
     }
 
     override fun append(v: String) {
-        data.write(v)
+        writer.write(v)
     }
 
 }

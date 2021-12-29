@@ -341,7 +341,6 @@ open class TimelinePanel(style: Style) : Panel(style) {
         val normalizedX = (x - w / 2) / (w / 2)
         centralTime += normalizedX * dtHalfLength * (1f - scale)
         dtHalfLength *= scale
-
         centralTime += dtHalfLength * 20f * dy / w
 
         clampTime()

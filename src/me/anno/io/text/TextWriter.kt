@@ -3,6 +3,10 @@ package me.anno.io.text
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.objects.text.Text
+import me.anno.studio.rems.RemsRegistry
+import java.io.File
 
 class TextWriter(initialCapacity: Int) : TextWriterBase() {
 
@@ -39,7 +43,7 @@ class TextWriter(initialCapacity: Int) : TextWriterBase() {
 
     companion object {
 
-        fun toText(data: List<ISaveable>): String {
+        fun toText(data: Collection<ISaveable>): String {
             val writer = TextWriter()
             for (entry in data) writer.add(entry)
             writer.writeAllInList()
@@ -61,7 +65,7 @@ class TextWriter(initialCapacity: Int) : TextWriterBase() {
             }
         }
 
-        fun save(data: List<ISaveable>, file: FileReference) {
+        fun save(data: Collection<ISaveable>, file: FileReference) {
             file.outputStream().useBuffered().use {
                 val writer = TextStreamWriter(it)
                 for (entry in data) writer.add(entry)
@@ -75,6 +79,28 @@ class TextWriter(initialCapacity: Int) : TextWriterBase() {
             writer.writeAllInList()
             return writer.data
         }
+
+        /* a test, because smileys were not written correctly
+        @JvmStatic
+        fun main(args: Array<String>) {
+            // smileys were not saved correctly, why?
+            // because the input stream reader was reading bytes, not chars
+            RemsRegistry.init()
+            val smiley = "🤔"
+            val text = Text(smiley)
+            text.text.set(smiley)
+            val asString = toText(text)
+            println(asString)
+            val asText = TextReader.read(asString).first() as Text
+            println("Decoded text: ${asText.text[0.0]}, ${asText.text[0.0].length}")
+            // this works so far...
+            val tmp = File.createTempFile("smiley", ".tmp")
+            val ref = getReference(tmp.absolutePath)
+            ref.writeText(asString)
+            println(ref.readText())
+            println(tmp)
+            // tmp.delete()
+        }*/
 
     }
 

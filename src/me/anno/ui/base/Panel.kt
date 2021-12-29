@@ -2,7 +2,6 @@ package me.anno.ui.base
 
 import me.anno.config.DefaultStyle.black
 import me.anno.ecs.annotations.DebugProperty
-import me.anno.ecs.annotations.Group
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
@@ -614,6 +613,18 @@ open class Panel(val style: Style) : PrefabSaveable() {
             val children = children
             for (i in children.indices) {
                 children[i].forAllPanels(callback)
+            }
+        }
+    }
+
+    fun forAllVisiblePanels(callback: (Panel) -> Unit) {
+        if (canBeSeen) {
+            callback(this)
+            if (this is PanelGroup) {
+                val children = children
+                for (i in children.indices) {
+                    children[i].forAllPanels(callback)
+                }
             }
         }
     }

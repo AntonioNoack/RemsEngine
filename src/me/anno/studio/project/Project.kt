@@ -104,7 +104,7 @@ class Project(var name: String, val file: FileReference) : Saveable() {
                 } else {
                     GFX.addGPUTask(1) {
                         SceneTabs.closeAll()
-                        sceneTabs.forEach { tabData ->
+                        for (tabData in sceneTabs) {
                             val tab = SceneTab(null, Transform(), null)
                             tabData.apply(tab)
                             SceneTabs.open(tab)
@@ -187,7 +187,7 @@ class Project(var name: String, val file: FileReference) : Saveable() {
             val writer = JsonWriter(fos)
             val cdc = mainUI as CustomList
             fun write(c: Panel, w: Float) {
-                when(c) {
+                when (c) {
                     is CustomContainer -> write(c.child, w)
                     is CustomList -> {
                         writer.open(true)
@@ -262,15 +262,9 @@ class Project(var name: String, val file: FileReference) : Saveable() {
     }
 
     fun save() {
-        println("saving config")
         saveConfig()
-        println("saving current tab")
-        SceneTabs.currentTab?.save {
-            println("saved current tab")
-        }
-        println("saving ui")
+        SceneTabs.currentTab?.save {}
         saveUI()
-        println("done saving ui & config")
     }
 
     fun createNullCamera(camera: Camera?): Camera {

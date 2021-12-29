@@ -115,8 +115,8 @@ open class Window(
         // which still happens...
         panel.findMissingParents()
 
-        panel.forAllPanels { p -> if (p.canBeSeen) p.tickUpdate() }
-        panel.forAllPanels { p -> if (p.canBeSeen) p.tick() }
+        panel.forAllVisiblePanels { p -> p.tickUpdate() }
+        panel.forAllVisiblePanels { p -> p.tick() }
 
         validateLayouts(w, h, panel)
 

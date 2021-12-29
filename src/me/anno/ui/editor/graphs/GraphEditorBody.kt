@@ -7,11 +7,11 @@ import me.anno.animation.Type
 import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.white
 import me.anno.gpu.GFX
-import me.anno.gpu.texture.TextureLib.colorShowTexture
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.GFXx2D.drawBorder
+import me.anno.gpu.texture.TextureLib.colorShowTexture
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseKeysDown
@@ -706,11 +706,14 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
-        val scale = pow(1.05f, dx)
-        dvHalfHeight *= scale
-        clampValues()
-        if (dy != 0f) {
-            super.onMouseWheel(x, y, 0f, dy, byMouse)
+        if (selectedProperty == null) super.onMouseWheel(x, y, dx, dy, byMouse)
+        else {
+            val scale = pow(1.05f, dx)
+            dvHalfHeight *= scale
+            clampValues()
+            if (dy != 0f) {
+                super.onMouseWheel(x, y, 0f, dy, byMouse)
+            }
         }
     }
 

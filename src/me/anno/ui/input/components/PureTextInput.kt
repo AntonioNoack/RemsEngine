@@ -23,6 +23,8 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.streams.toList
 
+// todo bug: cannot select text, or preview-rendering is broken
+
 open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edit")) {
 
     private val characters = IntArrayList(16)
@@ -47,7 +49,6 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
         cursor1 = characters.size
         cursor2 = cursor1
         invalidateLayout()
-        invalidateDrawing()
     }
 
     private fun onChange(text: String) {
@@ -67,7 +68,6 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
         text = characters.joinChars().toString()
         if (notify) onChange(text)
         invalidateLayout()
-        invalidateDrawing()
     }
 
     override fun calculateSize(w: Int, h: Int) {
@@ -121,9 +121,11 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
     }
 
     override fun tickUpdate() {
-        val lastShowBars = showBars
+        super.tickUpdate()
+        // val lastShowBars = showBars
         showBars = isInFocus && blinkVisible
-        if (showBars != lastShowBars) invalidateDrawing()
+        // if (showBars != lastShowBars) invalidateDrawing()
+        if(isInFocus) invalidateDrawing()
     }
 
     override val isShowingPlaceholder: Boolean

@@ -2,11 +2,14 @@ package me.anno.io.text
 
 import java.io.EOFException
 import java.io.InputStream
+import java.io.InputStreamReader
 
 /**
  * reads a JSON-similar format from a text file
  * */
-class TextStreamReader(val data: InputStream) : TextReaderBase() {
+class TextStreamReader(data: InputStream) : TextReaderBase() {
+
+    private val reader = InputStreamReader(data)
 
     override fun next(): Char {
         if (tmpChar != -1) {
@@ -14,7 +17,7 @@ class TextStreamReader(val data: InputStream) : TextReaderBase() {
             tmpChar = -1
             return v.toChar()
         }
-        val x = data.read()
+        val x = reader.read()
         if (x < 0) throw EOFException()
         return x.toChar()
     }
@@ -30,7 +33,7 @@ class TextStreamReader(val data: InputStream) : TextReaderBase() {
             }
         }
         while (true) {
-            when (val next = data.read()) {
+            when (val next = reader.read()) {
                 '\r'.code, '\n'.code, '\t'.code, ' '.code -> {
                 }
                 -1 -> throw EOFException()
@@ -40,15 +43,3 @@ class TextStreamReader(val data: InputStream) : TextReaderBase() {
     }
 
 }
-
-/*fun main() { // a test, because I had a bug
-    val readTest = OS.desktop.getChild("fbx.yaml")
-    val fakeString = TextReader.InputStreamCharSequence(readTest.inputStream(), readTest.length().toInt())
-    var i = 0
-    while (i < fakeString.length) {
-        val char = fakeString[i++]
-        print(char)
-    }
-    logger.info()
-    logger.info("characters: $i")
-}*/
