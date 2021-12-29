@@ -10,6 +10,7 @@ import me.anno.objects.attractors.EffectMorphing
 import me.anno.objects.modes.TextRenderMode
 import me.anno.studio.rems.Selection
 import me.anno.ui.editor.sceneView.Grid
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Vectors.mulAlpha
 import me.anno.utils.types.Vectors.times
@@ -86,8 +87,10 @@ object TextRenderer {
             val shadowOffset = element.shadowOffset[time] * (1f / TextMesh.DEFAULT_FONT_HEIGHT)
             stack.next {
                 stack.translate(shadowOffset)
+                val tintedShadowColor = JomlPools.vec4f.create()
+                    .set(color).mul(shadowColor)
                 draw(
-                    element, stack, time, color * shadowColor,
+                    element, stack, time, tintedShadowColor,
                     lineSegmentsWithStyle, drawMeshes, drawSDFTextures,
                     keys, exampleLayout,
                     width, lineOffset,
@@ -95,6 +98,7 @@ object TextRenderer {
                     startCursor, endCursor,
                     false, shadowSmoothness
                 )
+                JomlPools.vec4f.sub(1)
             }
         }
 

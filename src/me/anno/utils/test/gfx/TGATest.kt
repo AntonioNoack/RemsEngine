@@ -1,11 +1,5 @@
 package me.anno.utils.test.gfx
 
-import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.utils.OS
-import org.apache.commons.imaging.Imaging
-import java.io.File
-import javax.imageio.ImageIO
-
 
 fun main() {
 

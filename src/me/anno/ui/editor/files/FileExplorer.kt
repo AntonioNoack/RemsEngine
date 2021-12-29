@@ -81,11 +81,13 @@ abstract class FileExplorer(
     abstract fun getRightClickOptions(): List<FileExplorerOption>
 
     open fun openOptions(file: FileReference) {
-        openMenu(windowStack, getFileOptions().map {
-            MenuOption(it.nameDesc) {
-                it.onClick(this, file)
-            }
-        })
+        if (file.exists) {
+            openMenu(windowStack, getFileOptions().map {
+                MenuOption(it.nameDesc) {
+                    it.onClick(this, file)
+                }
+            })
+        } else LOGGER.warn("File cannot be accessed currently")
     }
 
     open fun getFileOptions(): List<FileExplorerOption> {

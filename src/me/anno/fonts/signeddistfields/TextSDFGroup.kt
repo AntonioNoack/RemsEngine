@@ -14,7 +14,7 @@ import java.awt.Font
  * custom character-character alignment maps by font for faster calculation
  * */
 class TextSDFGroup(
-    font: Font, text: String,
+    font: Font, text: CharSequence,
     charSpacing: Float
 ) : TextGroup(
     font, text, charSpacing.toDouble()

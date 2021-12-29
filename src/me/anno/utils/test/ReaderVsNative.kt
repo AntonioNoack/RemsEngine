@@ -27,7 +27,7 @@ fun test(){
     val readerText = measure("Reader-create"){
         TextWriter().apply {
             writeStringArray("strings", (0 until lines).map { genName() }.toTypedArray())
-        }.data.toString()
+        }.toString()
     }
     // readerFile.writeText(readerText)
     // LOGGER.info(readerText)

@@ -47,10 +47,10 @@ object SignedDistanceField {
 
     private fun vec2d(x: Float, y: Float) = Vector2f(x, y)
 
-    fun createTexture(font: me.anno.ui.base.Font, text: String, round: Boolean) =
+    fun createTexture(font: me.anno.ui.base.Font, text: CharSequence, round: Boolean) =
         createTexture(getFont(font), text, round)
 
-    fun createTexture(font: AWTFont, text: String, round: Boolean) = createTexture(font.font, text, round)
+    fun createTexture(font: AWTFont, text: CharSequence, round: Boolean) = createTexture(font.font, text, round)
 
     fun calculateDistances(
         w: Int, h: Int,
@@ -115,7 +115,7 @@ object SignedDistanceField {
 
     }
 
-    fun calculateContours(font: Font, text: String): List<Contour> {
+    fun calculateContours(font: Font, text: CharSequence): List<Contour> {
 
         val contours = ArrayList<Contour>()
         var segments = ArrayList<EdgeSegment>()
@@ -123,7 +123,7 @@ object SignedDistanceField {
         val ctx = FontRenderContext(null, true, true)
 
         val shape = GeneralPath()
-        val layout = TextLayout(text, font, ctx)
+        val layout = TextLayout(text.toString(), font, ctx)
 
         val outline = layout.getOutline(null)
         shape.append(outline, true)
@@ -247,7 +247,7 @@ object SignedDistanceField {
 
     }
 
-    fun createTexture(font: Font, text: String, roundEdges: Boolean): TextSDF {
+    fun createTexture(font: Font, text: CharSequence, roundEdges: Boolean): TextSDF {
 
         val contours = calculateContours(font, text)
 

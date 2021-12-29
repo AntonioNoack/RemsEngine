@@ -17,6 +17,7 @@ import me.anno.utils.maths.Maths.mix
 import me.anno.utils.structures.tuples.Quad
 import kotlin.math.max
 
+// todo if all children can be aligned in a single line, add no padding
 class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, style), ScrollableY {
 
     constructor(style: Style): this(null, style)

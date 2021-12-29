@@ -17,8 +17,11 @@ import me.anno.ui.base.text.SimpleTextPanel
 import me.anno.ui.debug.console.COLine
 import me.anno.ui.debug.console.ConsoleLogFullscreen
 import me.anno.ui.style.Style
+import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.maths.Maths.mixARGB
 import org.apache.logging.log4j.LogManager
+import kotlin.concurrent.thread
+import kotlin.math.max
 
 // todo second console output panel, which has the default font?
 
@@ -96,8 +99,19 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             rip.setWeight(1f)
             rip.tooltip = "Click to invoke garbage collector"
             rip.addLeftClickListener {
+                val runtime = Runtime.getRuntime()
+                val oldMemory = runtime.totalMemory() - runtime.freeMemory()
                 System.gc()
-                LOGGER.info("Called Garbage Collector")
+                thread {// System.gc() is just a hint, so we wait a short moment, and then see whether sth changed
+                    Thread.sleep(10)
+                    val newMemory = runtime.totalMemory() - runtime.freeMemory()
+                    LOGGER.info(
+                        "Called Garbage Collector\n" +
+                                "  old: ${oldMemory.formatFileSize()}\n" +
+                                "  new: ${newMemory.formatFileSize()}\n" +
+                                "  freed ${max(0L, oldMemory - newMemory).formatFileSize()}"
+                    )
+                }
             }
             right.add(rip)
             right.makeBackgroundTransparent()

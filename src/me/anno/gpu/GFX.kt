@@ -9,7 +9,6 @@ import me.anno.gpu.OpenGL.blendMode
 import me.anno.gpu.OpenGL.currentRenderer
 import me.anno.gpu.OpenGL.depthMode
 import me.anno.gpu.OpenGL.useFrame
-import me.anno.gpu.shader.ShaderLib.copyShader
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.buffer.SimpleBuffer
@@ -20,10 +19,10 @@ import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.Renderer.Companion.idRenderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.ShaderLib.copyShader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.TextureLib
 import me.anno.input.Input
 import me.anno.mesh.Point
 import me.anno.objects.Camera
@@ -37,9 +36,11 @@ import me.anno.ui.debug.FrameTimes
 import me.anno.utils.Clock
 import me.anno.utils.maths.Maths.pow
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.Vectors.minus
 import org.apache.logging.log4j.LogManager
-import org.joml.*
+import org.joml.Matrix4f
+import org.joml.Matrix4fArrayList
+import org.joml.Vector3fc
+import org.joml.Vector4fc
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.ARBImaging.GL_TABLE_TOO_LARGE
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
@@ -48,7 +49,6 @@ import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL43.GL_MAX_UNIFORM_LOCATIONS
 import org.lwjgl.opengl.GL45.GL_CONTEXT_LOST
-import java.lang.Math
 import java.nio.FloatBuffer
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -213,17 +213,20 @@ object GFX : GFXBase1() {
         val fov = camera.getEffectiveFOV(time, offset)
         val near = camera.getEffectiveNear(time, offset)
         val far = camera.getEffectiveFar(time, offset)
-        val position = cameraTransform2.transformProject(Vector3f(0f, 0f, 0f))
-        val up = cameraTransform2.transformProject(Vector3f(0f, 1f, 0f)) - position
-        val lookAt = cameraTransform2.transformProject(Vector3f(0f, 0f, -1f))
-        stack
-            .perspective2(
-                Math.toRadians(fov.toDouble()).toFloat(),
-                windowWidth * 1f / windowHeight, near, far, 0f, 0f
-            )
-            .lookAt(position, lookAt, up.normalize())
+        val tmp0 = JomlPools.vec3f.create()
+        val tmp1 = JomlPools.vec3f.create()
+        val tmp2 = JomlPools.vec3f.create()
+        val position = cameraTransform2.transformProject(tmp0.set(0f, 0f, 0f))
+        val up = cameraTransform2.transformProject(tmp1.set(0f, 1f, 0f))
+            .sub(position).normalize()
+        val lookAt = cameraTransform2.transformProject(tmp2.set(0f, 0f, -1f))
+        stack.perspective2(
+            Math.toRadians(fov.toDouble()).toFloat(),
+            windowWidth * 1f / windowHeight, near, far, 0f, 0f
+        ).lookAt(position, lookAt, up)
         val scale = pow(1f / camera.orbitRadius[time], camera.orthographicness[time])
         if (scale != 0f && scale.isFinite()) stack.scale(scale)
+        JomlPools.vec3f.sub(3)
     }
 
     fun shaderColor(shader: Shader, name: String, color: Int) {

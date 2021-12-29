@@ -59,7 +59,7 @@ object FontManager {
 
     fun limitWidth(
         font: me.anno.ui.base.Font,
-        text: String,
+        text: CharSequence,
         widthLimit: Int,
         heightLimit: Int
     ): Int {
@@ -85,7 +85,7 @@ object FontManager {
 
     fun limitHeight(
         font: me.anno.ui.base.Font,
-        text: String,
+        text: CharSequence,
         widthLimit2: Int,
         heightLimit: Int
     ): Int {
@@ -112,7 +112,7 @@ object FontManager {
 
     fun getSize(
         font: me.anno.ui.base.Font,
-        text: String,
+        text: CharSequence,
         widthLimit: Int,
         heightLimit: Int
     ): Int {

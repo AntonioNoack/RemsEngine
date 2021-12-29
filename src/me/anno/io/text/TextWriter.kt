@@ -8,7 +8,12 @@ class TextWriter(initialCapacity: Int) : TextWriterBase() {
 
     constructor() : this(32)
 
-    val data = StringBuilder(initialCapacity)
+    private val data = StringBuilder(initialCapacity)
+
+    /** you should not use this function
+     * if you use it, your file no longer will be readable (probably)
+     * */
+    fun getFoolishWriteAccess() = data
 
     override fun append(v: Char) {
         data.append(v)
@@ -26,6 +31,10 @@ class TextWriter(initialCapacity: Int) : TextWriterBase() {
         data.append(v)
     }
 
+    /**
+     * returns the result as a string;
+     * only call it, if all writing operations have finished!
+     * */
     override fun toString(): String = data.toString()
 
     companion object {

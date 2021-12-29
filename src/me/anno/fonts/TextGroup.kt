@@ -14,7 +14,8 @@ import java.awt.font.TextLayout
  * custom character-character alignment maps by font for faster calculation
  * */
 abstract class TextGroup(
-    val font: Font, val text: String,
+    val font: Font,
+    val text: CharSequence,
     charSpacing: Double
 ) : TextRepBase() {
 

@@ -30,6 +30,7 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.TimelinePanel
 import me.anno.ui.editor.sceneView.Grid.drawSmoothLine
 import me.anno.ui.style.Style
+import me.anno.utils.Color.mulAlpha
 import me.anno.utils.Color.toARGB
 import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.maths.Maths.length
@@ -389,7 +390,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
                             Vector4f(kf.value as Vector3fc, 1f)
                         else kf.value as Vector4f
                     val color = colorVector.toARGB()
-                    val color2 = Vector4f(colorVector).mul(1f, 1f, 1f, 0.25f).toARGB()
+                    val color2 = color.mulAlpha(0.25f)
                     if (h > dotSize * 4) {
                         val border = dotSize
                         drawRect(x, y0, width, border, color2)

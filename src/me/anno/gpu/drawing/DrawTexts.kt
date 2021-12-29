@@ -113,7 +113,7 @@ object DrawTexts {
     fun drawTextCharByChar(
         x: Int, y: Int,
         font: Font,
-        text: String,
+        text: CharSequence,
         color: Int,
         backgroundColor: Int,
         widthLimit: Int,
@@ -319,13 +319,13 @@ object DrawTexts {
 
     }
 
-    fun getTextSizeX(font: Font, text: String, widthLimit: Int, heightLimit: Int) =
+    fun getTextSizeX(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int) =
         GFXx2D.getSizeX(getTextSize(font, text, widthLimit, heightLimit))
 
-    fun getTextSizeY(font: Font, text: String, widthLimit: Int, heightLimit: Int) =
+    fun getTextSizeY(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int) =
         GFXx2D.getSizeY(getTextSize(font, text, widthLimit, heightLimit))
 
-    fun getTextSize(font: Font, text: String, widthLimit: Int, heightLimit: Int) =
+    fun getTextSize(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int) =
         FontManager.getSize(font, text, widthLimit, heightLimit)
 
     fun getTextSize(key: TextCacheKey) =

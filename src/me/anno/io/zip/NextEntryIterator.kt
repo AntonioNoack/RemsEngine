@@ -11,8 +11,8 @@ abstract class NextEntryIterator<V> : Iterator<V> {
     }
 
     override fun next(): V {
-        val v = next!!
-        next = null
-        return v
+        val v = next
+        next = nextEntry()
+        return v as V
     }
 }

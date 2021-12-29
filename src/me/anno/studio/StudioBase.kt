@@ -29,10 +29,8 @@ import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.Panel
 import me.anno.ui.base.Tooltips
 import me.anno.ui.base.progress.ProgressBar
-import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.debug.FPSPanel
 import me.anno.ui.dragging.IDraggable
-import me.anno.ui.style.Style
 import me.anno.ui.utils.WindowStack
 import me.anno.utils.Clock
 import me.anno.utils.OS

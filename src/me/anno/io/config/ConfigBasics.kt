@@ -19,7 +19,6 @@ import java.nio.charset.Charset
 object ConfigBasics {
 
     val LOGGER = LogManager.getLogger(ConfigBasics::class)!!
-    private val utf8Charset: Charset = Charset.forName("UTF-8")
 
     // this value is often requested!, it must not be changed
     private val configFolderI = CachedValue { getReference(OS.home, ".config/$projectName") }
@@ -36,7 +35,7 @@ object ConfigBasics {
     fun save(file: FileReference, data: String) {
         val parentFile = file.getParent() ?: return
         if (!parentFile.exists) parentFile.mkdirs()
-        file.writeText(data, utf8Charset)
+        file.writeText(data)
     }
 
     @Throws(IOException::class)
@@ -46,7 +45,7 @@ object ConfigBasics {
     fun load(file: FileReference, saveIfMissing: Boolean, getDefault: () -> String): String {
         val value = if (file.exists) {
             try {
-                file.readText(utf8Charset)
+                file.readText()
             } catch (e: IOException) {
                 e.printStackTrace()
                 null

@@ -83,8 +83,10 @@ class IndexedStaticBuffer(
         isUpToDate2 = true
 
         val maxIndex = indices.maxOrNull() ?: 0
-        when {// optimize the size usage on the gpu side
-            // todo how do we find out, what is optimal?
+        when {
+            // optimize the size usage on the gpu side
+            // how do we find out, what is optimal?
+            // TheCherno discord server member said that both u16 and u32 should be optimal :)
             // RX 580 Message:
             // glDrawElements uses element index type 'GL_UNSIGNED_BYTE' that is not optimal for the current hardware configuration;
             // consider using 'GL_UNSIGNED_SHORT' instead, source: API, type: PERFORMANCE, id: 102, severity: MEDIUM

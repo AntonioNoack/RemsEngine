@@ -103,6 +103,8 @@ abstract class BaseReader {
         fun error(msg: String, appended: Any?): Nothing = throw InvalidFormatException("[BaseReader] $msg $appended")
 
         fun getNewClassInstance(clazz: String): ISaveable {
+            // from old Rem's Studio times
+            if (clazz.startsWith("AnimatedProperty<")) return getNewClassInstance("AnimatedProperty")
             return ISaveable.objectTypeRegistry[clazz]?.generate() ?: throw UnknownClassException(clazz)
         }
     }

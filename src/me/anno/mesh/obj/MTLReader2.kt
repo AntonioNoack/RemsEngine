@@ -3,7 +3,6 @@ package me.anno.mesh.obj
 import me.anno.ecs.prefab.Prefab
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.io.zip.InnerFile
 import me.anno.io.zip.InnerFolder
 import me.anno.mesh.assimp.StaticMeshesLoader.Companion.shininessToRoughness
 import org.apache.logging.log4j.LogManager

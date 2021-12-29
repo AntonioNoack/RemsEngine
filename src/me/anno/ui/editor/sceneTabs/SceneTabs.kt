@@ -22,13 +22,13 @@ object SceneTabs : ScrollPanelX(DefaultConfig.style) {
     private val LOGGER = LogManager.getLogger(SceneTabs::class)
 
     val content = child as PanelList
-    val children2 = content.children
-    val children3 get() = children2.filterIsInstance<SceneTab>()
+    val panelChildren = content.children
+    val sceneTabs get() = panelChildren.filterIsInstance<SceneTab>()
 
     var currentTab: SceneTab? = null
 
     fun open(file: FileReference) {
-        val opened = children3.firstOrNull { it.file == file }
+        val opened = sceneTabs.firstOrNull { it.file == file }
         if (opened != null) {
             open(opened)
         } else {
@@ -65,14 +65,14 @@ object SceneTabs : ScrollPanelX(DefaultConfig.style) {
                 val tab = dragged!!.getOriginal() as SceneTab
                 if (!tab.contains(x, y)) {
                     val oldIndex = tab.indexInParent
-                    val newIndex = children2.map { it.x + it.w / 2 }.count { it < x }
+                    val newIndex = panelChildren.map { it.x + it.w / 2 }.count { it < x }
                     // LOGGER.info("$oldIndex -> $newIndex, $x ${children2.map { it.x + it.w/2 }}")
                     if (oldIndex < newIndex) {
-                        children2.add(newIndex, tab)
-                        children2.removeAt(oldIndex)
+                        panelChildren.add(newIndex, tab)
+                        panelChildren.removeAt(oldIndex)
                     } else if (oldIndex > newIndex) {
-                        children2.removeAt(oldIndex)
-                        children2.add(newIndex, tab)
+                        panelChildren.removeAt(oldIndex)
+                        panelChildren.add(newIndex, tab)
                     }
                     invalidateLayout()
                 }// else done
@@ -87,7 +87,7 @@ object SceneTabs : ScrollPanelX(DefaultConfig.style) {
         synchronized(this) {
             currentTab = sceneTab
             RemsStudio.root = sceneTab.scene
-            if (sceneTab !in children3) {
+            if (sceneTab !in sceneTabs) {
                 content += sceneTab
             }
         }
@@ -95,23 +95,22 @@ object SceneTabs : ScrollPanelX(DefaultConfig.style) {
 
     fun close(sceneTab: SceneTab) {
         if (currentTab === sceneTab) {
-            if (children2.size == 1) {
+            if (panelChildren.size == 1) {
                 LOGGER.warn(Dict["Cannot close last element", "ui.sceneTabs.cannotCloseLast"])
             } else {
                 val index = sceneTab.indexInParent
                 sceneTab.removeFromParent()
-                open(children2.getOrPrevious(index) as SceneTab)
+                open(panelChildren.getOrPrevious(index) as SceneTab)
             }
         } else sceneTab.removeFromParent()
     }
 
     fun closeAll() {
-        children2.clear()
+        panelChildren.clear()
     }
 
-    override fun save(writer: BaseWriter) {
-        super.save(writer)
-        children3.forEach {
+    fun saveTabs(writer: BaseWriter) {
+        for(it in sceneTabs) {
             writer.add(SceneTabData(it))
         }
     }

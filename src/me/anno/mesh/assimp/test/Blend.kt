@@ -1,7 +1,6 @@
 package me.anno.mesh.assimp.test
 
 import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.io.zip.InnerFolder
 import me.anno.utils.OS
 /*import org.blender.dna.ListBase
 import org.blender.dna.Mesh

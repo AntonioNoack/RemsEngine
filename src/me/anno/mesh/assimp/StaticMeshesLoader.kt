@@ -2,8 +2,6 @@ package me.anno.mesh.assimp
 
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
-import me.anno.ecs.prefab.change.CAdd
-import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.prefab.Prefab
 import me.anno.image.raw.ByteImage

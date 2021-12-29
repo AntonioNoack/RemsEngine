@@ -38,7 +38,7 @@ class AWTFont(val font: Font) {
         fontMetrics = unused.fontMetrics
     }
 
-    private fun String.containsSpecialChar(): Boolean {
+    private fun CharSequence.containsSpecialChar(): Boolean {
         val limit = 127.toChar()
         for (ci in indices) {
             val cp = get(ci)
@@ -47,24 +47,24 @@ class AWTFont(val font: Font) {
         return false
     }
 
-    private fun String.countLines() = count { it == '\n' } + 1
+    private fun CharSequence.countLines() = count { it == '\n' } + 1
 
     private fun getStringWidth(group: TextMeshGroup) = group.offsets.last() - group.offsets.first()
 
-    private fun getGroup(text: String) = TextMeshGroup(font, text, 0f, true)
+    private fun getGroup(text: CharSequence) = TextMeshGroup(font, text, 0f, true)
 
     /**
      * like gfx.drawText, however this method is respecting the ideal character distances,
      * so there are no awkward spaces between T and e
      * */
-    private fun drawString(gfx: Graphics2D, text: String, group: TextMeshGroup?, y: Int) =
+    private fun drawString(gfx: Graphics2D, text: CharSequence, group: TextMeshGroup?, y: Int) =
         drawString(gfx, text, group, 0f, y.toFloat())
 
     /**
      * like gfx.drawText, however this method is respecting the ideal character distances,
      * so there are no awkward spaces between T and e
      * */
-    private fun drawString(gfx: Graphics2D, text: String, group: TextMeshGroup?, x: Float, y: Float) {
+    private fun drawString(gfx: Graphics2D, text: CharSequence, group: TextMeshGroup?, x: Float, y: Float) {
         val group2 = group ?: getGroup(text)
         // some distances still are awkward, because it is using the closest position, not float
         // (useful for 'I's)
@@ -93,7 +93,7 @@ class AWTFont(val font: Font) {
 
     fun spaceBetweenLines(fontSize: Float) = (0.5f * fontSize).roundToInt()
 
-    fun calculateSize(text: String, fontSize: Float, widthLimit: Int, heightLimit: Int): Int {
+    fun calculateSize(text: CharSequence, fontSize: Float, widthLimit: Int, heightLimit: Int): Int {
 
         if (text.isEmpty()) return GFXx2D.getSize(0, fontSize.toInt())
         if (text.containsSpecialChar() || widthLimit > 0) {
@@ -112,7 +112,7 @@ class AWTFont(val font: Font) {
     }
 
     fun generateTexture(
-        text: String,
+        text: CharSequence,
         fontSize: Float,
         widthLimit: Int,
         heightLimit: Int,
@@ -203,7 +203,7 @@ class AWTFont(val font: Font) {
     }
 
     fun splitParts(
-        text: String,
+        text: CharSequence,
         fontSize: Float,
         relativeTabSize: Float,
         relativeCharSpacing: Float,
@@ -268,8 +268,8 @@ class AWTFont(val font: Font) {
             // calculation is expensive
             val listOfWidths = ExpensiveList(lastSplitIndex - firstSplitIndex) {
                 val splitIndex = firstSplitIndex + it
-                val substring2 = chars.subList(index0, splitIndex).joinChars()
-                val advance2 = TextLayout(substring2, font, renderContext).advance
+                val substring2 = chars.joinChars(index0, splitIndex)
+                val advance2 = TextLayout(substring2.toString(), font, renderContext).advance
                 advance2 + (splitIndex - index0) * charSpacing // width
             }
 
@@ -334,9 +334,9 @@ class AWTFont(val font: Font) {
 
         fun display() {
             if (index1 > index0) {
-                val substring = chars.subList(index0, index1).joinChars()
+                val substring = chars.joinChars(index0, index1)
                 val font = fonts[lastSupportLevel]
-                val layout = TextLayout(substring, font, renderContext)
+                val layout = TextLayout(substring.toString(), font, renderContext)
                 val advance = layout.advance
                 // if multiple chars and advance > lineWidth, then break line
                 val nextX = currentX + advance + (index1 - index0) * charSpacing
@@ -399,7 +399,12 @@ class AWTFont(val font: Font) {
 
     }
 
-    private fun generateSizeV3(text: String, fontSize: Float, lineBreakWidth: Float, textBreakHeight: Float): Int {
+    private fun generateSizeV3(
+        text: CharSequence,
+        fontSize: Float,
+        lineBreakWidth: Float,
+        textBreakHeight: Float
+    ): Int {
 
         val parts = splitParts(text, fontSize, 4f, 0f, lineBreakWidth, textBreakHeight)
 
@@ -411,7 +416,7 @@ class AWTFont(val font: Font) {
     }
 
     private fun generateTextureV3(
-        text: String,
+        text: CharSequence,
         fontSize: Float,
         lineBreakWidth: Float,
         textBreakHeight: Float,

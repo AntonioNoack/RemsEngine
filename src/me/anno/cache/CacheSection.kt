@@ -247,16 +247,8 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             }
         } else ifNotGenerating?.invoke()
 
-        if (!asyncGenerator) {
-            if (entry.waitForValue2()) {
-                LOGGER.warn("Waiting for $name[$key0, $key1] from thread ${Thread.currentThread().name}")
-                entry.waitForValue(key0 to key1)
-            }
-        }
-        return if (entry.hasBeenDestroyed) {
-            if (asyncGenerator) null
-            else getEntryWithCallback(key0, key1, timeout, asyncGenerator, generator, null)
-        } else entry.data
+        waitMaybe(asyncGenerator, entry, key0, key1)
+        return if (entry.hasBeenDestroyed) null else entry.data
 
     }
 
@@ -302,21 +294,33 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             }
         } else ifNotGenerating?.invoke()
 
-        if (!asyncGenerator) {
+        waitMaybe(asyncGenerator, entry, key, null)
+        return if (entry.hasBeenDestroyed) null else entry.data
+    }
+
+    fun waitMaybe(async: Boolean, entry: CacheEntry, key0: Any, key1: Any?) {
+        if (!async && entry.generatorThread != Thread.currentThread()) {
+            // else no need/sense in waiting
             if (entry.waitForValue2()) {
-                LOGGER.warn("Waiting for $name[$key] from thread ${Thread.currentThread().name}")
+                val key = if (key1 == null) key0 else key0 to key1
+                onLongWaitStart(key, entry)
                 entry.waitForValue(key)
+                onLongWaitEnd(key, entry)
             }
         }
-        return if (entry.hasBeenDestroyed) {
-            if (asyncGenerator) null
-            else {
-                LOGGER.warn("Entry for $name[$key] has been destroyed, retrying")
-                // if (maxDepth < 0) throw RuntimeException("Cache for key '$key' is broken, always is destroyed!")
-                getEntryWithCallback(key, timeout, asyncGenerator, generator, null)
-            }
-        } else entry.data
+    }
 
+    fun onLongWaitStart(key: Any, entry: CacheEntry) {
+        val msg = "Waiting for $name[$key] by ${entry.generatorThread.name} from ${Thread.currentThread().name}"
+        if (Thread.currentThread() == GFX.glThread) println(msg) // extra warning
+        LOGGER.warn(msg)
+    }
+
+    fun onLongWaitEnd(key: Any, entry: CacheEntry) {
+        val msg =
+            "Finished waiting for $name[$key] by ${entry.generatorThread.name} from ${Thread.currentThread().name}"
+        if (Thread.currentThread() == GFX.glThread) println(msg) // extra warning
+        LOGGER.warn(msg)
     }
 
     fun <V> getEntryWithCallback(
@@ -358,11 +362,8 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             }
         } else ifNotGenerating?.invoke()
 
-        if (queue == null) entry.waitForValue(key)
-        return if (entry.hasBeenDestroyed) {
-            if (async) null
-            else getEntryWithCallback(key, timeout, queue, generator, null)
-        } else entry.data
+        if (queue == null && entry.generatorThread != Thread.currentThread()) entry.waitForValue(key)
+        return if (entry.hasBeenDestroyed) null else entry.data
 
     }
 
@@ -385,11 +386,9 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     fun update() {
-        val minTimeout = 1L
-        val time = gameTime
-        val millisToNanos = 1_000_000
         synchronized(cache) {
-            cache.entries.removeIf { (_, entry) ->
+            if (cache.isNotEmpty()) cache.entries.removeIf { (_, entry) ->
+                val time = gameTime
                 val remove = time - entry.lastUsed > max(entry.timeout, minTimeout) * millisToNanos
                 if (remove) try {
                     entry.destroy()
@@ -400,7 +399,8 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             }
         }
         synchronized(dualCache) {
-            dualCache.removeIf { _, _, entry ->
+            if (dualCache.isNotEmpty()) dualCache.removeIf { _, _, entry ->
+                val time = gameTime
                 val remove = time - entry.lastUsed > max(entry.timeout, minTimeout) * millisToNanos
                 if (remove) try {
                     entry.destroy()
@@ -419,6 +419,8 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     companion object {
 
         private val caches = ConcurrentSkipListSet<CacheSection>()
+        private const val millisToNanos = 1_000_000
+        private const val minTimeout = 1L
 
         fun updateAll() {
             for (cache in caches) cache.update()

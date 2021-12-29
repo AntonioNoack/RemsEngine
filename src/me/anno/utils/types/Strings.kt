@@ -9,6 +9,7 @@ import me.anno.ui.base.Font
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.maths.Maths.fract
+import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.ExpensiveList
 import me.anno.utils.types.Floats.f1
 import java.util.*
@@ -18,7 +19,13 @@ import kotlin.math.min
 
 object Strings {
 
-    fun List<Int>.joinChars() = joinToString("") { String(Character.toChars(it)) }
+    fun List<Int>.joinChars(startIndex: Int = 0, endIndex: Int = size): CharSequence {
+        val builder = StringBuilder(endIndex - startIndex)
+        for (i in startIndex until endIndex) {
+            builder.append(Character.toChars(get(i)))
+        }
+        return builder
+    }
 
     fun getLineWidth(line: List<Int>, endIndex: Int, tp: TextPanel) =
         getLineWidth(line, endIndex, tp.font)
@@ -27,11 +34,27 @@ object Strings {
         return if (endIndex == 0) 0f
         else {
             loadTexturesSync.push(true)
-            val stringValue = line.subList(0, min(endIndex, line.size)).joinChars()
+            val stringValue = line.joinChars(0, min(endIndex, line.size))
             val width = getTextSizeX(font, stringValue, -1, -1)
             loadTexturesSync.pop()
             width.toFloat()
         }
+    }
+
+    fun getIndexFromText(characters: IntArrayList, localX: Float, tp: TextPanel) =
+        getIndexFromText(characters, localX, tp.font)
+
+    fun getIndexFromText(characters: IntArrayList, localX: Float, font: Font): Int {
+        val list = ExpensiveList(characters.size + 1) {
+            getLineWidth(characters, it, font)
+        }
+        var index = list.binarySearch { it.compareTo(localX) }
+        if (index < 0) index = -1 - index
+        // find the closer neighbor
+        if (index > 0 && index < characters.size && abs(list[index - 1] - localX) < abs(list[index] - localX)) {
+            index--
+        }
+        return index
     }
 
     fun getIndexFromText(characters: List<Int>, localX: Float, tp: TextPanel) =
@@ -211,7 +234,7 @@ object Strings {
     }
 
     // the normal isBlank() allocates memory, even though it's just a test
-    fun String.isBlank2(): Boolean {
+    fun CharSequence.isBlank2(): Boolean {
         for (index in 0 until length) {
             when (this[index]) {
                 '\u0009', in '\u000a'..'\u000d',
@@ -249,7 +272,6 @@ object Strings {
         // very complex -> currently just say no
         return false
     }
-
 
 
 }

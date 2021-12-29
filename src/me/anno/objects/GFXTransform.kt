@@ -1,12 +1,12 @@
 package me.anno.objects
 
+import me.anno.animation.AnimatedProperty
+import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.colorForceFieldBuffer
 import me.anno.gpu.shader.ShaderLib.maxColorForceFields
 import me.anno.gpu.shader.ShaderLib.uvForceFieldBuffer
-import me.anno.gpu.shader.Shader
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.animation.AnimatedProperty
 import me.anno.objects.attractors.EffectColoring
 import me.anno.objects.attractors.EffectMorphing
 import me.anno.ui.base.groups.PanelListY
@@ -69,12 +69,18 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
         // has no ability to display them
         if (shader["forceFieldUVCount"] < 0) return
 
+        if (children.none { it is EffectMorphing }) {
+            shader.v1("forceFieldUVCount", 0)
+            return
+        }
+
         var attractors = children
             .filterIsInstance<EffectMorphing>()
 
-        attractors.forEach {
-            it.lastLocalTime = it.getLocalTime(time)
-            it.lastInfluence = it.influence[it.lastLocalTime]
+        for (index in attractors.indices) {
+            val attr = attractors[index]
+            attr.lastLocalTime = attr.getLocalTime(time)
+            attr.lastInfluence = attr.influence[attr.lastLocalTime]
         }
 
         attractors = attractors.filter {
@@ -128,6 +134,11 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
 
         // has no ability to display them
         if (shader["forceFieldColorCount"] < 0) return
+
+        if (children.none { it is EffectColoring }) {
+            shader.v1("forceFieldColorCount", 0)
+            return
+        }
 
         var attractors = children
             .filterIsInstance<EffectColoring>()
@@ -188,7 +199,7 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
 
     companion object {
 
-        fun uploadAttractors(transform: GFXTransform?, shader: Shader, time: Double){
+        fun uploadAttractors(transform: GFXTransform?, shader: Shader, time: Double) {
             transform?.uploadAttractors(shader, time) ?: uploadAttractors0(shader)
         }
 

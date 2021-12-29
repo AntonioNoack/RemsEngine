@@ -226,6 +226,6 @@ class StudioTreeView(style: Style) :
         }
     }
 
-    override val className get() = "TreeView"
+    override val className get() = "StudioTreeView"
 
 }

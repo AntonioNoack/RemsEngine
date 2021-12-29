@@ -6,12 +6,12 @@ import me.anno.ui.base.Visibility
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.base.scrolling.ScrollPanelXY
+import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.style.Style
 
 class GraphEditor(style: Style) : PanelListY(style) {
 
-    val controls = ScrollPanelXY(PanelListY(style), style)
+    val controls = ScrollPanelX(style)
     val body = GraphEditorBody(style)
 
     init {
@@ -54,5 +54,7 @@ class GraphEditor(style: Style) : PanelListY(style) {
         children[0].visibility = Visibility[selectedProperty?.isAnimated == true]
 
     }
+
+    override val className: String = "GraphEditor"
 
 }

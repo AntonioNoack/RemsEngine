@@ -4,10 +4,10 @@ import me.anno.config.DefaultConfig.defaultFont
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL.renderDefault
-import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.drawing.DrawTexts.getTextSize
+import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.maths.Maths.mix
@@ -84,33 +84,30 @@ object ShowKeys {
             }
         }
 
-        activeKeys.removeAll(
-            activeKeys.filter { key ->
-                key.time = if (key.time > 1f) 1f else key.time - GFX.deltaTime * decaySpeed
-                val becameOutdated = key.time < 0f
-                if (becameOutdated) activeKeysMap.remove(key.keyCode)
-                becameOutdated
-            }
-        )
+        activeKeys.removeIf { key ->
+            key.time = if (key.time > 1f) 1f else key.time - GFX.deltaTime * decaySpeed
+            val becameOutdated = key.time < 0f
+            if (becameOutdated) activeKeysMap.remove(key.keyCode)
+            becameOutdated
+        }
 
         activeKeys.sortBy { !it.isSuperKey }
 
         if (activeKeys.isNotEmpty()) {
-
             renderDefault {
-
                 var x0 = x
-                for (key in activeKeys) {
+                for (index in activeKeys.indices) {
+                    val key = activeKeys[index]
                     val alpha = key.time
                     val text0 = KeyCombination.keyMapping.reverse[key.keyCode]
                     val text = text0 ?: key.keyCode.toString()
                     x0 = drawKey(text, alpha, x0, h - y)
                 }
-
             }
-            return true
         }
-        return false
+
+        return activeKeys.isNotEmpty()
+
     }
 
 }

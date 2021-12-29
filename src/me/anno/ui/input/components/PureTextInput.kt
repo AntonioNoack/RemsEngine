@@ -13,9 +13,9 @@ import me.anno.input.Input.isShiftDown
 import me.anno.input.Input.mouseKeysDown
 import me.anno.input.MouseButton
 import me.anno.io.serialization.NotSerializedProperty
-import me.anno.ui.base.text.TextPanel
 import me.anno.ui.style.Style
 import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Strings.getIndexFromText
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
@@ -25,7 +25,7 @@ import kotlin.streams.toList
 
 open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edit")) {
 
-    private val characters = ArrayList<Int>()
+    private val characters = IntArrayList(16)
 
     init {
         instantTextLoading = true
@@ -50,8 +50,8 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
         invalidateDrawing()
     }
 
-    private fun onChange(text: String){
-        for(listener in changeListeners){
+    private fun onChange(text: String) {
+        for (listener in changeListeners) {
             listener(text)
         }
     }
@@ -64,7 +64,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
     }
 
     fun updateText(notify: Boolean) {
-        text = characters.joinChars()
+        text = characters.joinChars().toString()
         if (notify) onChange(text)
         invalidateLayout()
         invalidateDrawing()
@@ -93,8 +93,8 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
 
     fun deleteSelection(): Boolean {
         synchronized(this) {
-            val min = min(cursor1, cursor2)
-            val max = max(cursor1, cursor2)
+            val min = max(min(cursor1, cursor2), 0)
+            val max = min(max(cursor1, cursor2), characters.size)
             if (max != min) {
                 for (i in max - 1 downTo min) {
                     characters.removeAt(i)
@@ -145,10 +145,10 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
             // to do cache sizes... (low priority, because it has to be in focus for this calculation, so this calculation is rather rare)
             val cursorX1 =
                 if (cursor1 == 0) -1
-                else getTextSizeX(font, characters.subList(0, cursor1).joinChars(), -1, -1) - 1
+                else getTextSizeX(font, characters.joinChars(0, cursor1), -1, -1) - 1
             if (cursor1 != cursor2) {
                 val cursorX2 = if (cursor2 == 0) -1
-                else getTextSizeX(font, characters.subList(0, cursor2).joinChars(), -1, -1) - 1
+                else getTextSizeX(font, characters.joinChars(0, cursor2), -1, -1) - 1
                 val min = min(cursorX1, cursorX2)
                 val max = max(cursorX1, cursorX2)
                 drawRect(
@@ -268,7 +268,7 @@ open class PureTextInput(style: Style) : CorrectingTextInput(style.getChild("edi
 
     override fun onCopyRequested(x: Float, y: Float): String? {
         if (isNothingSelected() || isEverythingSelected()) return text
-        return characters.subList(min(cursor1, cursor2), max(cursor1, cursor2)).joinChars()
+        return characters.joinChars(min(cursor1, cursor2), max(cursor1, cursor2)).toString()
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {

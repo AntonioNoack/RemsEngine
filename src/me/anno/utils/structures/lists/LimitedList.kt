@@ -1,5 +1,6 @@
 package me.anno.utils.structures.lists
 
+import me.anno.io.zip.NextEntryIterator
 import kotlin.math.min
 
 class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
@@ -23,15 +24,13 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
     }
 
     override fun remove(element: V): Boolean {
-        var writeIndex = 0
-        val oldSize = size
-        for (i in 0 until oldSize) {
-            val e = data[i]
-            if (e != element) {
-                data[writeIndex++] = e
-            } else size--
+        val index = indexOf(element)
+        if (index >= 0) {
+            size--
+            data[index] = data[size]
+            data[size] = null
         }
-        return writeIndex < oldSize || oldSize > data.size
+        return index >= 0
     }
 
     override fun removeAll(elements: Collection<V>): Boolean {
@@ -70,10 +69,12 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
     }
 
     override fun iterator(): MutableIterator<V> {
-        return object : MutableIterator<V> {
+        return object : NextEntryIterator<V>(), MutableIterator<V> {
             private var i = 0
-            override fun hasNext() = i < size && i < data.size
-            override fun next(): V = data[i++] as V
+            override fun nextEntry(): V? {
+                return data.getOrNull(i++) as? V
+            }
+
             override fun remove() {
                 remove(data[i - 1])
             }

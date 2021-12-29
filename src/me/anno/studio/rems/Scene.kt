@@ -271,6 +271,8 @@ object Scene {
 
         useFrame(renderer) {
 
+            drawRect(x, y, w, h, black)
+
             usesFPBuffers = sceneView?.usesFPBuffers ?: camera.toneMapping != ToneMappers.RAW8
 
             val isFakeColorRendering = renderer.isFakeColor

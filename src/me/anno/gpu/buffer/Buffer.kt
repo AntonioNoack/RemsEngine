@@ -12,7 +12,6 @@ import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL33.glDrawArraysInstanced
 import org.lwjgl.opengl.GL33.glVertexAttribDivisor
-import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import kotlin.math.max
 
@@ -193,7 +192,8 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
         bindBuffer(GL_ARRAY_BUFFER, 0)
         bindVAO(0)
         if (!useVAOs) {
-            for (attr in attributes) {
+            for (index in attributes.indices) {
+                val attr = attributes[index]
                 val loc = shader.getAttributeLocation(attr.name)
                 if (loc >= 0) glDisableVertexAttribArray(loc)
             }
@@ -282,7 +282,8 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
 
     companion object {
 
-        // todo monkey & stuff is invisible with vaos
+        // monkey & stuff is invisible with vaos
+        // because VAOs need default values (probably)
 
         var useVAOs
             get() = Input.isShiftDown
@@ -317,7 +318,7 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
 
         private var boundVAO = -1
         fun bindVAO(vao: Int) {
-            val vao2 = if(useVAOs) vao else 0
+            val vao2 = if (useVAOs) vao else 0
             if (vao2 >= 0 && (alwaysBindBuffer || boundVAO != vao)) {
                 boundVAO = vao2
                 glBindVertexArray(vao2)

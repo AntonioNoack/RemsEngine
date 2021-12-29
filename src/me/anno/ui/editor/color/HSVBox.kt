@@ -16,8 +16,11 @@ open class HSVBox(
     val onValueChanged: (Float, Float) -> Unit
 ) : Panel(style) {
 
-    init {
-        minH = (size * style.getSize("fontSize", 14)).toInt()
+    val minH1 = (size * style.getSize("fontSize", 14)).toInt()
+
+    override fun calculateSize(w: Int, h: Int) {
+        minH = minH1
+        minW = w
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {

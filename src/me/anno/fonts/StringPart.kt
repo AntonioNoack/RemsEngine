@@ -1,15 +1,14 @@
 package me.anno.fonts
 
-import org.joml.Vector2f
 import java.awt.Font
 
 class StringPart(
     val xPos: Float,
     val yPos: Float,
-    val text: String,
+    val text: CharSequence,
     val font: Font,
     var lineWidth: Float,
-    val codepointLength: Int = text.codePointCount(0, text.length)
+    val codepointLength: Int = text.toString().codePointCount(0, text.length)
 ) {
     fun plus(dy: Float) = StringPart(
         xPos, yPos + dy, text, font, lineWidth, codepointLength

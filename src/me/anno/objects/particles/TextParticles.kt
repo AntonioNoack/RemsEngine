@@ -40,7 +40,7 @@ class TextParticles : ParticleSystem() {
 
         val char = text2.codePoints().toList().getOrNull(index) ?: return null
 
-        val str = listOf(char).joinChars()
+        val str = listOf(char).joinChars().toString()
         val clone = text.clone() as Text
         clone.text.set(str)
 

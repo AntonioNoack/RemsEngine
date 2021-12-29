@@ -32,4 +32,6 @@ class CuttingView(style: Style) : ScrollPanelY(Padding(0), AxisAlignment.MIN, st
         layers.children.add(addLayerButton)
     }
 
+    override val className: String = "CuttingView"
+
 }

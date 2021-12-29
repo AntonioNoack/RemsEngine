@@ -348,4 +348,6 @@ open class TimelinePanel(style: Style) : Panel(style) {
 
     }
 
+    override val className: String = "TimelinePanel"
+
 }

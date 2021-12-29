@@ -5,7 +5,6 @@ import me.anno.gpu.GFX
 import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.input.Modifiers
-import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.utils.StringMap
 import me.anno.objects.modes.TransformVisibility
@@ -179,9 +178,9 @@ object StudioActions {
         keyMap["HSVBox.left.down"] = "selectColor"
         keyMap["HSVBox.left.press-unsafe"] = "selectColor"
 
-        keyMap["SceneView.right.p"] = "Turn"
-        keyMap["SceneView.left.p"] = "MoveObject"
-        keyMap["SceneView.left.p.${Modifiers[false, true]}"] = "MoveObjectAlternate"
+        keyMap["StudioSceneView.right.p"] = "Turn"
+        keyMap["StudioSceneView.left.p"] = "MoveObject"
+        keyMap["StudioSceneView.left.p.${Modifiers[false, true]}"] = "MoveObjectAlternate"
 
         for (i in 0 until 10) {
             // keyMap["SceneView.$i.down"] = "Cam$i"
@@ -190,16 +189,16 @@ object StudioActions {
             keyMap["SceneView.numpad$i.down.${Modifiers[true, false]}"] = "Cam$i"
         }
 
-        keyMap["SceneView.w.p"] = "MoveForward"
-        keyMap["SceneView.a.p"] = "MoveLeft"
-        keyMap["SceneView.s.p"] = "MoveBackward"
-        keyMap["SceneView.d.p"] = "MoveRight"
-        keyMap["SceneView.q.p"] = "MoveDown"
-        keyMap["SceneView.e.p"] = "MoveUp"
-        keyMap["SceneView.r.p"] = "SetMode(MOVE)"
-        keyMap["SceneView.t.p"] = "SetMode(ROTATE)"
-        keyMap["SceneView.z.p"] = "SetMode(SCALE)"
-        keyMap["SceneView.y.p"] = "SetMode(SCALE)"
+        keyMap["StudioSceneView.w.p"] = "MoveForward"
+        keyMap["StudioSceneView.a.p"] = "MoveLeft"
+        keyMap["StudioSceneView.s.p"] = "MoveBackward"
+        keyMap["StudioSceneView.d.p"] = "MoveRight"
+        keyMap["StudioSceneView.q.p"] = "MoveDown"
+        keyMap["StudioSceneView.e.p"] = "MoveUp"
+        keyMap["StudioSceneView.r.p"] = "SetMode(MOVE)"
+        keyMap["StudioSceneView.t.p"] = "SetMode(ROTATE)"
+        keyMap["StudioSceneView.z.p"] = "SetMode(SCALE)"
+        keyMap["StudioSceneView.y.p"] = "SetMode(SCALE)"
 
         keyMap["PureTextInputML.delete.typed"] = "DeleteAfter"
         keyMap["PureTextInputML.backspace.typed"] = "DeleteBefore"

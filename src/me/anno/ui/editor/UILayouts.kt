@@ -49,7 +49,6 @@ import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.Padding
-import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.SizeLimitingContainer
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
@@ -59,7 +58,6 @@ import me.anno.ui.base.menu.Menu.msg
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.Menu.openMenuByPanels
 import me.anno.ui.base.menu.MenuOption
-import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.custom.CustomContainer
@@ -392,8 +390,7 @@ object UILayouts {
         ).setChangeListener { DefaultConfig["debug.ui.showFPS"] = it }
 
         val fontSize = style.getSize("fontSize", 15)
-        val spx = ScrollPanelX(createConsoleWithStats(true, style), Padding.Zero, style, AxisAlignment.MIN)
-        val slc = SizeLimitingContainer(spx, fontSize * 25, -1, style)
+        val slc = SizeLimitingContainer(createConsoleWithStats(true, style), fontSize * 25, -1, style)
         slc.padding.top = fontSize / 2
         welcome += slc
 

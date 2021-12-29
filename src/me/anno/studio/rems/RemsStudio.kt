@@ -26,6 +26,9 @@ import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.sceneTabs.SceneTabs.currentTab
 import me.anno.utils.OS
 
+// todo bug: signed distance field texts are missing / not rendering
+// todo bug: cutting view elements are green
+
 // todo isolate and remove certain frequencies from audio
 // todo visualize audio frequency, always!!!, from 25Hz to 48kHz
 // inspiration: https://www.youtube.com/watch?v=RA5UiLYWdbM&ab_channel=TomScott

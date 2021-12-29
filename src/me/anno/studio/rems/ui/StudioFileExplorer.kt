@@ -48,6 +48,6 @@ class StudioFileExplorer(file: FileReference?, style: Style) : FileExplorer(file
         return true
     }
 
-    override val className: String = "FileExplorer"
+    override val className: String = "StudioFileExplorer"
 
 }

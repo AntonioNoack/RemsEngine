@@ -1,12 +1,9 @@
 package me.anno.utils.test.files
 
 import me.anno.image.ImageCPUCache
-import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.LOGGER
 import me.anno.utils.OS.downloads
-import me.anno.video.FFMPEGMetadata.Companion.getMeta
-import java.io.File
 
 fun main() {
 

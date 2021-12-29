@@ -1,6 +1,5 @@
 package me.anno.utils.structures.maps
 
-import me.anno.ecs.prefab.change.Path
 import me.anno.utils.structures.lists.PairArrayList
 import org.apache.logging.log4j.LogManager
 
@@ -125,7 +124,8 @@ class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
 
     override fun iterator() = values.values.iterator()
 
-    fun isEmpty() = size == 0
+    fun isEmpty() = size <= 0
+    fun isNotEmpty() = size > 0
 
     companion object {
         private val LOGGER = LogManager.getLogger(KeyPairMap::class)

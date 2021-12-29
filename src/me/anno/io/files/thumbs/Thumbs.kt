@@ -48,7 +48,6 @@ import me.anno.gpu.shader.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.*
 import me.anno.image.ImageScale.scaleMax

@@ -99,7 +99,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
         }
         lines.forEachIndexed { index, chars ->
             val panel = children[index] as TextPanel
-            panel.text = if (needsPlaceholder) placeholder else chars.joinChars()
+            panel.text = if (needsPlaceholder) placeholder else chars.joinChars().toString()
             panel.textColor = (panel.textColor and 0xffffff) or (if (needsPlaceholder) 70 else 255).shl(24)
             panel.focusTextColor = panel.textColor
         }
@@ -135,12 +135,12 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
             val padding = textSize / 4
             val panel1 = children[cursor1.y] as TextPanel
             val line1 = lines[cursor1.y]
-            val cursor1Text = line1.subList(0, cursor1.x).joinChars()
+            val cursor1Text = line1.joinChars(0, cursor1.x)
             val cursorX1 = if (cursor1.x == 0) 0 else getTextSizeX(font, cursor1Text, -1, -1) - 1
             if (cursor1 != cursor2) {
                 val panel2 = children[cursor2.y] as TextPanel
                 val line2 = lines[cursor2.y]
-                val cursor2Text = line2.subList(0, cursor2.x).joinChars()
+                val cursor2Text = line2.joinChars(0, cursor2.x)
                 val cursorX2 = if (cursor2.x == 0) 0 else getTextSizeX(font, cursor2Text, -1, -1) - 1
                 val minCursor = min(cursor1, cursor2)
                 val maxCursor = max(cursor1, cursor2)
@@ -466,16 +466,16 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
         val min = min(cursor1, cursor2)
         val max = max(cursor1, cursor2)
         if (cursor1.y == cursor2.y) {
-            return lines[cursor1.y].subList(min.x, max.x).joinChars()
+            return lines[cursor1.y].joinChars(min.x, max.x).toString()
         }
         val answer = StringBuilder((max.y - min.y + 1))
         val line0 = lines[min.y]
         val line1 = lines[max.y]
-        answer.append(line0.subList(min.x, line0.size).joinChars())
+        answer.append(line0.joinChars(min.x, line0.size))
         for (lineY in min.y + 1 until max.y) {
             answer.append(lines[lineY].joinChars())
         }
-        answer.append(line1.subList(0, max.x).joinChars())
+        answer.append(line1.joinChars(0, max.x))
         return answer.toString()
     }
 

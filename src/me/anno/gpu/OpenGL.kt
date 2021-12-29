@@ -224,14 +224,13 @@ object OpenGL {
         useFrame(x, y, w, h, changeSize, currentBuffer, currentRenderer, render)
 
     inline fun useFrame(
-        x: Int,
-        y: Int,
-        w: Int,
-        h: Int,
-        changeSize: Boolean,
-        buffer: IFramebuffer?,
-        render: () -> Unit
-    ) =
-        useFrame(x, y, w, h, changeSize, buffer, currentRenderer, render)
+        x: Int, y: Int, w: Int, h: Int, changeSize: Boolean,
+        buffer: IFramebuffer?, render: () -> Unit
+    ) = useFrame(x, y, w, h, changeSize, buffer, currentRenderer, render)
+
+    inline fun useFrame(
+        x: Int, y: Int, w: Int, h: Int, changeSize: Boolean,
+        renderer: Renderer, render: () -> Unit
+    ) = useFrame(x, y, w, h, changeSize, currentBuffer, renderer, render)
 
 }

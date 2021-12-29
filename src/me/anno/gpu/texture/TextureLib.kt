@@ -55,7 +55,7 @@ object TextureLib {
     }
 
     fun bindWhite(index: Int): Boolean {
-        return whiteTexture.bind(index, whiteTexture.filtering, whiteTexture.clamping!!)
+        return whiteTexture.bind(index, whiteTexture.filtering, whiteTexture.clamping ?: Clamping.CLAMP)
     }
 
     fun destroy() {

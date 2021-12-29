@@ -96,11 +96,7 @@ class SceneTab(var file: FileReference?, var scene: Transform, history: History?
             try {
                 synchronized(scene) {
                     dst.getParent()?.mkdirs()
-                    val writer = TextWriter()
-                    writer.add(scene)
-                    writer.add(history)
-                    writer.writeAllInList()
-                    dst.writeText(writer.toString())
+                    TextWriter.save(listOf(scene, history), dst)
                     file = dst
                     hasChanged = false
                     onSuccess()
@@ -112,6 +108,7 @@ class SceneTab(var file: FileReference?, var scene: Transform, history: History?
     }
 
     fun save(onSuccess: () -> Unit) {
+        println("got save request")
         if (file == null) {
             var name = scene.name.trim()
             if (!name.endsWith(".json", true)) name = "$name.json"

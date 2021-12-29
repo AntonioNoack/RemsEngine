@@ -9,7 +9,6 @@ import me.anno.utils.OS.downloads
 import me.anno.utils.maths.Maths.length
 import me.anno.utils.maths.Maths.max
 import me.anno.utils.types.Vectors.f2
-import me.anno.utils.types.Vectors.print
 import org.joml.Matrix4x3f
 import kotlin.math.sqrt
 

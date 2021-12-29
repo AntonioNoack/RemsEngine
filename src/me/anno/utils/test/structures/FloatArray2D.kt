@@ -12,9 +12,9 @@ fun main() {
 
     val writer = TextWriter()
     writer.writeFloatArray2D("x", Array(5) { FloatArray(5) { if (it < 3) it.toFloat() else 0f } })
-    logger.info(writer.data.toString())
+    logger.info(writer.toString())
 
-    val reader = TextReader(writer.data.toString())
+    val reader = TextReader(writer.toString())
     reader.readProperty(object : Saveable() {
 
         override fun readFloatArray2D(name: String, values: Array<FloatArray>) {

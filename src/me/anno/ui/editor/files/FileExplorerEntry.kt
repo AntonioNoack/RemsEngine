@@ -28,6 +28,8 @@ import me.anno.input.Input.mouseDownY
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.FileReference.Companion.getReferenceAsync
+import me.anno.io.files.InvalidRef
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.trash.TrashManager.moveToTrash
 import me.anno.io.zip.InnerLinkFile
@@ -215,7 +217,7 @@ class FileExplorerEntry(
         }*/
 
         // needs to be disabled in the future, I think
-        if (getReference(path).isHidden) {
+        if (ref?.isHidden == true) {
             visibility = Visibility.GONE
         }
 
@@ -289,11 +291,13 @@ class FileExplorerEntry(
 
     private fun getDefaultIcon() = getInternalTexture(iconPath, true)
 
+    private fun getImage(): Any? {
+        val ref = ref ?: return null
+        val thumb = Thumbs.getThumbnail(ref, w, true)
+        return thumb ?: getDefaultIcon()
+    }
+
     private fun getTexKey(): Any? {
-        fun getImage(): Any? {
-            val thumb = Thumbs.getThumbnail(getReference(path), w, true)
-            return thumb ?: getDefaultIcon()
-        }
         return when (importType) {
             "Video", "Audio" -> {
                 val meta = meta
@@ -309,10 +313,12 @@ class FileExplorerEntry(
         }
     }
 
+    val ref get() = getReferenceAsync(path)
+
     private fun drawImageOrThumb(x0: Int, y0: Int, x1: Int, y1: Int) {
         val w = x1 - x0
         val h = y1 - y0
-        val image = Thumbs.getThumbnail(getReference(path), w, true) ?: getDefaultIcon() ?: whiteTexture
+        val image = Thumbs.getThumbnail(ref ?: InvalidRef, w, true) ?: getDefaultIcon() ?: whiteTexture
         val rot = (image as? Texture2D)?.rotation
         image.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
         if (rot == null) {
@@ -334,7 +340,7 @@ class FileExplorerEntry(
     }
 
     fun getFrame(offset: Int) = getVideoFrame(
-        getReference(path), scale, frameIndex + offset,
+        ref ?: InvalidRef, scale, frameIndex + offset,
         videoBufferLength, previewFPS, 1000, true
     )
 
@@ -455,7 +461,8 @@ class FileExplorerEntry(
                 }
             }
 
-            tooltip = getTooltip(getReference(path))
+            val ref = ref
+            tooltip = if (ref != null) getTooltip(ref) else "Loading..."
 
         }
     }
@@ -634,12 +641,11 @@ class FileExplorerEntry(
     }
 
     override fun onCopyRequested(x: Float, y: Float): String? {
-        val file = getReference(path)
         val files = if (this in inFocus) {// multiple files maybe
             inFocus.filterIsInstance<FileExplorerEntry>().map {
                 getReference(it.path)
             }
-        } else listOf(file)
+        } else listOf(getReference(path))
         Input.copyFiles(files)
         return null
     }

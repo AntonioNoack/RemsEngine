@@ -126,6 +126,8 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
         list0 += panel
     }
 
+    override val className: String = "PropertyInspector"
+
     companion object {
 
         private fun createGroup(

@@ -560,7 +560,7 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
         val dx0 = dx * size
         val dy0 = dy * size
         // move stuff, if mouse is down and no touch is down
-        if (0 in mouseKeysDown && touches.size < 2) {
+        if (Input.isLeftDown && touches.size < 2) {
             // move the object
             val selected = selectedTransform
             if (selected != null && selected != camera) {
@@ -803,5 +803,7 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
             }
         }
     }
+
+    override val className: String = "SceneView"
 
 }

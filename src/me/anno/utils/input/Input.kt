@@ -45,7 +45,7 @@ object Input {
         // we could allocate a little, temporary buffer...
         var i = 0
         while (i < n) {
-            val numReadChars = read(tmp)
+            val numReadChars = read(tmp, 0, min(n - i, tmp.size))
             if (numReadChars < 0) {
                 if (throwEOF) throw EOFException()
                 else break

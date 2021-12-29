@@ -10,11 +10,6 @@ import me.anno.utils.Color.rgba
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
 import me.anno.utils.hpc.HeavyProcessing
-import org.lwjgl.PointerBuffer
-import org.lwjgl.assimp.*
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import java.nio.IntBuffer
 import kotlin.math.roundToInt
 
 fun main() {

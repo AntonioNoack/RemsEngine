@@ -4,7 +4,6 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.shader.ShaderLib
-import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.mesh.assimp.StaticMeshesLoader

@@ -3,14 +3,13 @@ package me.anno.ecs.components.shaders.effects
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.OpenGL.useFrame
-import me.anno.gpu.shader.ShaderLib
-import me.anno.gpu.shader.ShaderLib.uvList
-import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.copying.FramebufferToMemory
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
@@ -155,7 +154,7 @@ object FSR {
         flat01.draw(shader)
     }
 
-    fun tiling(shader: Shader, flipY: Boolean){
+    fun tiling(shader: Shader, flipY: Boolean) {
         shader.v4("tiling", 1f, if (flipY) -1f else +1f, 0f, 0f)
     }
 

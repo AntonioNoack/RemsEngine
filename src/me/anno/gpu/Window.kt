@@ -217,7 +217,7 @@ open class Window(
                 } else {
 
                     while (needsRedraw.isNotEmpty()) {
-                        val panel = needsRedraw.minByOrNull { it.depth }!!
+                        val panel = needsRedraw.minByOrNull { it.depth } ?: break
                         GFX.loadTexturesSync.clear()
                         GFX.loadTexturesSync.push(false)
                         if (panel.canBeSeen) {

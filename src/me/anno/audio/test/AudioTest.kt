@@ -7,7 +7,7 @@ import me.anno.utils.OS
 import me.anno.video.FFMPEGStream
 import org.joml.Vector3f
 
-fun main(){
+fun main() {
 
     AudioManager.init()
 
@@ -18,7 +18,7 @@ fun main(){
         SoundListener.setOrientation(Vector3f(0f, 0f, 1f), Vector3f(0f, 1f, 0f))
 
         testStream()
-        while(true){
+        while (true) {
             AudioTasks.workQueue()
         }
         // testSingleBuffer()
@@ -48,16 +48,16 @@ fun main(){
 
 val file = getReference(OS.videos, "Captures\\cool cops\\Watch_Dogs 2 2019-10-14 15-26-49.mp4")
 
-fun testStream(){
+fun testStream() {
     // AudioStreamOpenAL(file, LoopingState.PLAY_LOOP, 0.0, FFMPEGMetadata(file), Camera()).start()
 }
 
-fun testSingleBuffer(){
+fun testSingleBuffer() {
     val buffer2 = FFMPEGStream.getAudioSequence(file, 0.0, 10.0, 48000)
     var buffer2a: SoundBuffer?
-    while(true){
+    while (true) {
         buffer2a = buffer2.soundBuffer
-        if(buffer2a != null) break
+        if (buffer2a != null) break
         // work on the queue
         AudioTasks.workQueue()
     }

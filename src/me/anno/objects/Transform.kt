@@ -672,8 +672,8 @@ open class Transform() : Saveable(),
         return getLocalTime(parentTime)
     }
 
-    fun getGlobalTransformTime(globalTime: Double): Pair<Matrix4f, Double> {
-        val (parentTransform, parentTime) = parent?.getGlobalTransformTime(globalTime) ?: Matrix4f() to globalTime
+    fun getGlobalTransformTime(globalTime: Double, dst: Matrix4f = Matrix4f()): Pair<Matrix4f, Double> {
+        val (parentTransform, parentTime) = parent?.getGlobalTransformTime(globalTime, dst) ?: dst to globalTime
         val localTime = getLocalTime(parentTime)
         applyTransformLT(parentTransform, localTime)
         return parentTransform to localTime

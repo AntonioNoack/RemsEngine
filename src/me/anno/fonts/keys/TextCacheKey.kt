@@ -5,7 +5,7 @@ import me.anno.ui.base.Font
 import me.anno.utils.types.Booleans.toInt
 
 class TextCacheKey(
-    val text: String,
+    val text: CharSequence,
     val fontName: String,
     val properties: Int,
     val widthLimit: Int,

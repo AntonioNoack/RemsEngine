@@ -11,7 +11,8 @@ import kotlin.math.min
  * custom character-character alignment maps by font for faster calculation
  * */
 class TextMeshGroup(
-    font: Font, text: String,
+    font: Font,
+    text: CharSequence,
     charSpacing: Float,
     forceVariableBuffer: Boolean,
     debugPieces: Boolean = false

@@ -34,17 +34,17 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
     override fun outputStream() = file.outputStream().buffered()
 
     override fun writeText(text: String) {
-        super.writeText(text)
+        file.writeText(text)
         LastModifiedCache.invalidate(file)
     }
 
     override fun writeBytes(bytes: ByteArray) {
-        super.writeBytes(bytes)
+        file.writeBytes(bytes)
         LastModifiedCache.invalidate(file)
     }
 
     override fun writeText(text: String, charset: Charset) {
-        super.writeText(text, charset)
+        file.writeText(text, charset)
         LastModifiedCache.invalidate(file)
     }
 

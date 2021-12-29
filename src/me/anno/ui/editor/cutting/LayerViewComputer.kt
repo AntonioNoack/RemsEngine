@@ -79,7 +79,9 @@ class LayerViewComputer(val view: LayerView) {
             parentIndices[i] = transformMap[transforms[i].parent]!!
         }
 
-        val drawnIndices = drawn.map { transformMap[it]!! }
+        val drawnIndices = IntArray(drawn.size)
+        var k = 0
+        for (entry in drawn) drawnIndices[k++] = transformMap[entry]!!
 
         for (x in x0 until x1 step stepSize) {
 

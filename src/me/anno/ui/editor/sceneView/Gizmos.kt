@@ -17,6 +17,7 @@ import me.anno.gpu.pipeline.M4x3Delta.m4x3delta
 import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference
 import me.anno.objects.Transform
+import me.anno.utils.pooling.JomlPools
 import org.joml.*
 
 object Gizmos {
@@ -85,7 +86,7 @@ object Gizmos {
     }
 
     // avoid unnecessary allocations ;)
-    private val tmpDistances = FloatArray(3)
+    private val tmp3fs = Array(3) { Vector3f() }
     fun drawGizmo(cameraTransform: Matrix4f, x0: Int, y0: Int, w: Int, h: Int) {
 
         /**
@@ -93,16 +94,26 @@ object Gizmos {
          * todo beautify a little, take inspiration from Blender maybe ;)
          * */
 
-        val vx = cameraTransform.transformDirection(Transform.xAxis, Vector3f())
-        val vy = cameraTransform.transformDirection(Transform.yAxis, Vector3f())
-        val vz = cameraTransform.transformDirection(Transform.zAxis, Vector3f())
+        val vx = cameraTransform.transformDirection(Transform.xAxis, tmp3fs[0])
+        val vy = cameraTransform.transformDirection(Transform.yAxis, tmp3fs[1])
+        cameraTransform.transformDirection(Transform.zAxis, tmp3fs[2])
 
         val gizmoSize = 50f
         val gizmoPadding = 10f
         val gx = x0 + w - gizmoSize - gizmoPadding
         val gy = y0 + gizmoSize + gizmoPadding
 
-        fun drawCircle(x: Float, y: Float, z: Float, color: Int) {
+        tmp3fs.sortByDescending { it.z }
+
+        for (v in tmp3fs) {
+            val x = v.x
+            val y = v.y
+            val z = v.z
+            val color = when {
+                v === vx -> 0xff7777
+                v === vy -> 0x77ff77
+                else -> 0x7777ff
+            }
             val lx = gx - x0
             val ly = gy - y0
             Grid.drawLine0W(
@@ -115,18 +126,6 @@ object Gizmos {
                 gy - gizmoSize * y - rectSize * 0.5f,
                 rectSize, rectSize, color or DefaultStyle.black
             )
-        }
-
-        tmpDistances[0] = vx.z
-        tmpDistances[1] = vy.z
-        tmpDistances[2] = vz.z
-
-        tmpDistances.sortDescending()
-
-        for (d in tmpDistances) {
-            if (d == vx.z) drawCircle(vx.x, vx.y, vx.z, 0xff7777)
-            if (d == vy.z) drawCircle(vy.x, vy.y, vy.z, 0x77ff77)
-            if (d == vz.z) drawCircle(vz.x, vz.y, vz.z, 0x7777ff)
         }
 
     }

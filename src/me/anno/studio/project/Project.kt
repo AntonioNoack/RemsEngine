@@ -20,8 +20,8 @@ import me.anno.studio.history.History
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.ui.StudioFileExplorer
-import me.anno.studio.rems.ui.StudioUITypeLibrary
 import me.anno.studio.rems.ui.StudioTreeView
+import me.anno.studio.rems.ui.StudioUITypeLibrary
 import me.anno.ui.base.Panel
 import me.anno.ui.custom.CustomContainer
 import me.anno.ui.custom.CustomList
@@ -137,10 +137,8 @@ class Project(var name: String, val file: FileReference) : Saveable() {
     }
 
     fun saveTabs() {
-        val writer = TextWriter()
-        SceneTabs.save(writer)
-        writer.writeAllInList()
-        tabsFile.writeText(writer.data.toString())
+        val data = SceneTabs.sceneTabs.map { SceneTabData(it) }
+        TextWriter.save(data, tabsFile)
     }
 
     fun loadUI2(): Panel? {
@@ -189,23 +187,25 @@ class Project(var name: String, val file: FileReference) : Saveable() {
             val writer = JsonWriter(fos)
             val cdc = mainUI as CustomList
             fun write(c: Panel, w: Float) {
-                if (c is CustomContainer) {
-                    return write(c.child, w)
-                }
-                writer.open(true)
-                if (c is CustomList) {
-                    writer.write(if (c.isY) "CustomListY" else "CustomListX")
-                } else {
-                    writer.write(c.className)
-                }
-                writer.write((w * 1000f).roundToInt())
-                if (c is CustomList) {
-                    val weightSum = SumOf.sumOf(c.customChildren) { it.weight }
-                    for (chi in c.customChildren) {
-                        write(chi, chi.weight / weightSum)
+                when(c) {
+                    is CustomContainer -> write(c.child, w)
+                    is CustomList -> {
+                        writer.open(true)
+                        writer.write(if (c.isY) "CustomListY" else "CustomListX")
+                        writer.write((w * 1000f).roundToInt())
+                        val weightSum = SumOf.sumOf(c.customChildren) { it.weight }
+                        for (chi in c.customChildren) {
+                            write(chi, chi.weight / weightSum)
+                        }
+                        writer.close(true)
+                    }
+                    else -> {
+                        writer.open(true)
+                        writer.write(c.className)
+                        writer.write((w * 1000f).roundToInt())
+                        writer.close(true)
                     }
                 }
-                writer.close(true)
             }
             write(cdc, 1f)
         }
@@ -250,7 +250,7 @@ class Project(var name: String, val file: FileReference) : Saveable() {
         config["target.motionBlur.shutterPercentage"] = shutterPercentage
         config["target.sampleRate"] = targetSampleRate
         config["target.output"] = targetOutputFile.toString()
-        config["recent.files"] = SceneTabs.children3
+        config["recent.files"] = SceneTabs.sceneTabs
             .filter { it.file != null }
             .joinToString("\n") { it.file.toString() }
         config["camera.null"] = nullCamera
@@ -262,9 +262,15 @@ class Project(var name: String, val file: FileReference) : Saveable() {
     }
 
     fun save() {
+        println("saving config")
         saveConfig()
-        SceneTabs.currentTab?.save {}
+        println("saving current tab")
+        SceneTabs.currentTab?.save {
+            println("saved current tab")
+        }
+        println("saving ui")
         saveUI()
+        println("done saving ui & config")
     }
 
     fun createNullCamera(camera: Camera?): Camera {

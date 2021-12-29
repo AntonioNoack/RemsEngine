@@ -118,14 +118,27 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             if (str == "root") return FileRootRef
             val str2 = str.replace('\\', '/')
             val data = fileCache.getEntry(str2, fileTimeout, false) {
-                CacheData(createReference(it))
-            } as CacheData<*>
-            return data.value as FileReference
+                createReference(it)
+            } as? FileReference // result may be null for unknown reasons; when this happens, use plan B
+            return data ?: createReference(str)
+        }
+
+        fun getReferenceAsync(str: String?): FileReference? {
+            // invalid
+            if (str == null || str.isBlank2()) return InvalidRef
+            // root
+            if (str == "root") return FileRootRef
+            val str2 = str.replace('\\', '/')
+            return fileCache.getEntry(str2, fileTimeout, true) {
+                createReference(it)
+            } as? FileReference
         }
 
         private fun createReference(str: String): FileReference {
             // internal resource
-            if (str.startsWith(BundledRef.prefix)) return BundledRef.parse(str)
+            if (str.startsWith(BundledRef.prefix)) {
+                return BundledRef.parse(str)
+            }
             // static references
             val static = staticReferences[str]
             if (static != null) return static
@@ -146,6 +159,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             }
             // somehow, we could not find the correct file
             // it probably just is new
+            LOGGER.warn("Could not find correct sub file for $str")
             return FileFileRef(file0)
         }
 

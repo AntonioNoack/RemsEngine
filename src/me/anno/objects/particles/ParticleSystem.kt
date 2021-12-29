@@ -448,9 +448,9 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
         writer.add(spawnColor)
         writer.add(spawnOpacity)
         writer.add(spawnSize)
-        val builder = writer.data
+        val builder = writer.getFoolishWriteAccess()
         builder.append(simulationStepI.value)
-        children.forEach {
+        for(it in children) {
             if (it is ForceField) {
                 it.parent = null
                 writer.add(it)
@@ -460,7 +460,7 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
             }
         }
         writer.writeAllInList()
-        children.forEach {
+        for(it in children) {
             if (it is ForceField) {
                 it.parent = this
             }
