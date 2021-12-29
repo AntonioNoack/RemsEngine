@@ -1,6 +1,7 @@
 package me.anno.image;
 
 import me.anno.gpu.texture.Texture2D;
+import me.anno.image.raw.IntImage;
 import me.anno.io.files.FileReference;
 
 import java.io.*;
@@ -67,6 +68,27 @@ public class HDRImage extends Image {
         g = g / (g + 1f) * 255f;
         b = b / (b + 1f) * 255f;
         return rgb((int) r, (int) g, (int) b);
+    }
+
+    public IntImage createIntImage() {
+        // accelerated version without that many function calls
+        // and member calls
+        int width = getWidth();
+        int height = getHeight();
+        int size = width * height;
+        int[] data = new int[size];
+        float[] pixels = this.pixels;
+        float delta = typicalBrightness;
+        for (int i = 0, i0 = 0; i < size; i++) {
+            float r = pixels[i0++] * delta;
+            float g = pixels[i0++] * delta;
+            float b = pixels[i0++] * delta;
+            r = r / (r + 1f) * 255f;
+            g = g / (g + 1f) * 255f;
+            b = b / (b + 1f) * 255f;
+            data[i] = rgb((int) r, (int) g, (int) b);
+        }
+        return new IntImage(width, height, data, hasAlphaChannel);
     }
 
     // with the reinhard tonemapping, the average brightness of pixels is expected to be

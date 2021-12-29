@@ -8,6 +8,7 @@ package me.anno.image.tar;
 
 import me.anno.gpu.texture.Texture2D;
 import me.anno.image.Image;
+import me.anno.image.raw.IntImage;
 import me.anno.io.BufferedIO;
 
 import java.awt.image.BufferedImage;
@@ -46,6 +47,9 @@ public class TGAImage extends Image {
             case 1:
                 texture.createMonochrome(data, checkRedundancy);
                 break;
+            case 2:
+                texture.createRG(data, checkRedundancy);
+                break;
             case 3:
                 texture.createBGR(data, checkRedundancy);
                 break;
@@ -61,7 +65,7 @@ public class TGAImage extends Image {
     public int getRGB(int index) {
         switch (getNumChannels()) {
             case 1:
-                return 0x10101 * (int) data[index];
+                return 0x10101 * ((int) data[index] & 255);
             case 2:// green and blue only, green comes first
                 int j = index * 2;
                 return rgba(0, data[j], data[j + 1], 255);
@@ -72,40 +76,76 @@ public class TGAImage extends Image {
                 j = index * 4;
                 return rgba(data[j], data[j + 1], data[j + 2], data[j + 3]);
             default:
-                throw new RuntimeException("" + getNumChannels() + " channels?");
+                throw new RuntimeException(getNumChannels() + " is not supported for TGA images");
         }
     }
 
     @Override
     public BufferedImage createBufferedImage() {
+        int width = getWidth();
+        int height = getHeight();
+        int channels = getNumChannels();
+        if (channels == 2) return super.createBufferedImage();
         BufferedImage image = new BufferedImage(
                 width, height,
-                getNumChannels() > 3 ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB
+                channels > 3 ?
+                        BufferedImage.TYPE_INT_ARGB :
+                        BufferedImage.TYPE_INT_RGB
         );
         DataBuffer buffer = image.getRaster().getDataBuffer();
-        int channels = getNumChannels();
-        for (int y = 0, i = 0, j = 0; y < height; y++) {
-            for (int x = 0; x < width; x++, i++, j += channels) {
-                int color;
-                switch (channels) {
-                    case 1:
-                        color = 0x10101 * (int) data[j];
-                        break;
-                    case 3:
-                        color = rgba(data[j], data[j + 1], data[j + 2], 255);
-                        break;
-                    case 4:
-                        color = rgba(data[j], data[j + 1], data[j + 2], data[j + 3]);
-                        break;
-                    default:
-                        throw new RuntimeException("" + channels + " channels?");
+        int size = width * height;
+        byte[] data = this.data;
+        switch (channels) {
+            case 1:
+                for (int i = 0, j = 0; i < size; i++, j++) {
+                    buffer.setElem(i, 0x10101 * ((int) data[j] & 255));
                 }
-                buffer.setElem(i, color);
-            }
+                break;
+            case 3:
+                for (int i = 0, j = 0; i < size; i++, j += 3) {
+                    buffer.setElem(i, rgba(data[j], data[j + 1], data[j + 2], 255));
+                }
+                break;
+            case 4:
+                for (int i = 0, j = 0; i < size; i++, j += 4) {
+                    buffer.setElem(i, rgba(data[j], data[j + 1], data[j + 2], data[j + 3]));
+                }
+                break;
+            default:
+                throw new RuntimeException(channels + " channels is not supported for TGA images");
         }
         return image;
     }
 
+    @Override
+    public IntImage createIntImage() {
+        int width = getWidth();
+        int height = getHeight();
+        int channels = getNumChannels();
+        if (channels != 1 && channels != 3 && channels != 4)
+            return super.createIntImage();
+        int size = width * height;
+        byte[] data = this.data;
+        int[] dst = new int[size];
+        switch (channels) {
+            case 1:
+                for (int i = 0, j = 0; i < size; i++, j++) {
+                    dst[i] = 0x10101 * ((int) data[j] & 255);
+                }
+                break;
+            case 3:
+                for (int i = 0, j = 0; i < size; i++, j += 3) {
+                    dst[i] = rgba(data[j], data[j + 1], data[j + 2], 255);
+                }
+                break;
+            case 4:
+                for (int i = 0, j = 0; i < size; i++, j += 4) {
+                    dst[i] = rgba(data[j], data[j + 1], data[j + 2], data[j + 3]);
+                }
+                break;
+        }
+        return new IntImage(width, height, dst, hasAlphaChannel);
+    }
 
     // 0 - no image data in file
     public static final int TYPE_NO_IMAGE = 0;

@@ -9,11 +9,11 @@ import java.awt.image.BufferedImage
 /**
  * when you don't want to store references in memory all the time, use this class
  * */
-class CachedImage(val src: FileReference, numChannels: Int, w: Int, h: Int, hasAlpha: Boolean) :
-    Image(numChannels, w, h, hasAlpha) {
+class CachedImage(val src: FileReference, w: Int, h: Int, numChannels: Int, hasAlpha: Boolean) :
+    Image(w, h, numChannels, hasAlpha) {
 
     constructor(src: FileReference, image: Image) :
-            this(src, image.numChannels, image.width, image.height, image.hasAlphaChannel)
+            this(src, image.width, image.height, image.numChannels, image.hasAlphaChannel)
 
     /** cache timeout in milli seconds */
     var timeout = 50L
