@@ -60,13 +60,17 @@ object ImageCPUCache : CacheSection("BufferedImages") {
         return getImage(file, 50, async)
     }
 
+    fun shouldUseFFMPEG(signature: String?, file: FileReference): Boolean {
+        return signature == "dds" || signature == "media" || file.lcExtension == "webp"
+    }
+
     fun getImage(file0: FileReference, timeout: Long, async: Boolean): Image? {
         if (file0 is ImageReadable) return file0.readImage()
         val data = getFileEntry(file0, false, timeout, async) { file, _ ->
-            if (file.length() < 1e7 && file !is SignatureFile) { // < 10MB -> read directly
+            if (file !is SignatureFile && file.length() < 1e7) { // < 10MB -> read directly
                 val bytes = file.readBytes()
                 val signature = Signature.findName(bytes)
-                if (signature == "dds" || signature == "media" || file.lcExtension == "webp") {
+                if (shouldUseFFMPEG(signature, file)) {
                     tryFFMPEG(file)
                 } else {
                     val reader = byteReaders[signature] ?: byteReaders[file.lcExtension]
@@ -74,8 +78,12 @@ object ImageCPUCache : CacheSection("BufferedImages") {
                 }
             } else {
                 val signature = Signature.findName(file)
-                val reader = fileReaders[signature] ?: fileReaders[file.lcExtension]
-                if (reader != null) reader(file) else tryGeneric(file)
+                if (shouldUseFFMPEG(signature, file)) {
+                    tryFFMPEG(file)
+                } else {
+                    val reader = fileReaders[signature] ?: fileReaders[file.lcExtension]
+                    if (reader != null) reader(file) else tryGeneric(file)
+                }
             }
         }
         return when (data) {
@@ -119,16 +127,14 @@ object ImageCPUCache : CacheSection("BufferedImages") {
             null
         }
         if (image == null) {
-            LOGGER.debug("ImageIO failed for $file")
+            // LOGGER.debug("ImageIO failed for $file")
             try {
                 image = Imaging.getBufferedImage(file.inputStream())
             } catch (e: Exception) {
                 // e.printStackTrace()
             }
         }
-        if (image == null) {
-            LOGGER.debug("Imaging failed for $file")
-        }
+        if (image == null) LOGGER.debug("Imaging & ImageIO failed for $file, ${Signature.find(file)?.name}")
         return if (image == null) null else BIImage(image)
     }
 

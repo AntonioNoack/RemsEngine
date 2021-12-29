@@ -205,6 +205,7 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             Signature("media", 0, listOf(0x00, 0x00, 0x01, 0xBA)), // m2p, vob, mpg, mpeg
             Signature("media", 0, listOf(0x00, 0x00, 0x01, 0xB3)),// mpg, mpeg
             Signature("media", 4, "ftypisom"), // mp4
+            Signature("media", 4, "ftypmp42"), // mp4
             // meshes
             Signature("vox", 0, "VOX "),
             Signature("fbx", 0, "Kaydara FBX Binary"),

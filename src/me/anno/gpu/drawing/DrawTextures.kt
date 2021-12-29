@@ -1,12 +1,13 @@
 package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
-import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.drawing.GFXx2D.defineAdvancedGraphicalFeatures
+import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.*
 import me.anno.objects.modes.UVProjection
 import me.anno.video.formats.gpu.GPUFrame
 import org.joml.Matrix4fArrayList
+import org.joml.Vector4f
 import org.joml.Vector4fc
 
 object DrawTextures {
@@ -82,6 +83,12 @@ object DrawTextures {
 
     fun drawTexture(x: Int, y: Int, w: Int, h: Int, texture: ITexture2D, color: Int, tiling: Vector4fc?) {
         drawTexture(x, y, w, h, texture, false, color, tiling)
+    }
+
+    private val tiling = Vector4f()
+    fun drawTransparentBackground(x: Int, y: Int, w: Int, h: Int, numVerticalStripes: Float = 5f) {
+        tiling.set(numVerticalStripes * h.toFloat() / w.toFloat(), numVerticalStripes, 0f, 0f)
+        drawTexture(x, y, w, h, TextureLib.colorShowTexture, -1, tiling)
     }
 
     fun drawTexture(matrix: Matrix4fArrayList, w: Int, h: Int, texture: Texture2D, color: Int, tiling: Vector4fc?) {

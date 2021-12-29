@@ -43,6 +43,21 @@ object Sleep {
         }
     }
 
+    /**
+     * returns if you need to keep waiting
+     * */
+    @Throws(ShutdownException::class)
+    inline fun waitUntil2(canBeKilled: Boolean, limit: Long, condition: () -> Boolean): Boolean {
+        val startTime = System.nanoTime()
+        while (!condition()) {
+            if (canBeKilled && shutdown) return true
+            val time = System.nanoTime() - startTime
+            if (time > limit) return true
+            sleepABit(canBeKilled)
+        }
+        return false
+    }
+
     @Throws(ShutdownException::class)
     fun waitOnGFXThread(canBeKilled: Boolean, condition: () -> Boolean) {
         // the texture was forced to be loaded -> wait for it

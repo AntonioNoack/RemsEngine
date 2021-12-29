@@ -248,11 +248,14 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         } else ifNotGenerating?.invoke()
 
         if (!asyncGenerator) {
-            LOGGER.warn("Waiting for $name[$key0, $key1] from thread ${Thread.currentThread().name}")
-            entry.waitForValue(key0 to key1)
+            if (entry.waitForValue2()) {
+                LOGGER.warn("Waiting for $name[$key0, $key1] from thread ${Thread.currentThread().name}")
+                entry.waitForValue(key0 to key1)
+            }
         }
         return if (entry.hasBeenDestroyed) {
-            getEntryWithCallback(key0, key1, timeout, asyncGenerator, generator, null)
+            if (asyncGenerator) null
+            else getEntryWithCallback(key0, key1, timeout, asyncGenerator, generator, null)
         } else entry.data
 
     }
@@ -300,13 +303,18 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         } else ifNotGenerating?.invoke()
 
         if (!asyncGenerator) {
-            LOGGER.warn("Waiting for $name[$key] from thread ${Thread.currentThread().name}")
-            entry.waitForValue(key)
+            if (entry.waitForValue2()) {
+                LOGGER.warn("Waiting for $name[$key] from thread ${Thread.currentThread().name}")
+                entry.waitForValue(key)
+            }
         }
         return if (entry.hasBeenDestroyed) {
-            LOGGER.warn("Entry for $name[$key] has been destroyed, retrying")
-            // if (maxDepth < 0) throw RuntimeException("Cache for key '$key' is broken, always is destroyed!")
-            getEntryWithCallback(key, timeout, asyncGenerator, generator, null)
+            if (asyncGenerator) null
+            else {
+                LOGGER.warn("Entry for $name[$key] has been destroyed, retrying")
+                // if (maxDepth < 0) throw RuntimeException("Cache for key '$key' is broken, always is destroyed!")
+                getEntryWithCallback(key, timeout, asyncGenerator, generator, null)
+            }
         } else entry.data
 
     }
@@ -330,6 +338,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         val needsGenerator = entry.needsGenerator
         entry.lastUsed = gameTime
 
+        val async = queue != null
         if (needsGenerator) {
             entry.hasGenerator = true
             if (queue != null) {
@@ -351,7 +360,8 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
         if (queue == null) entry.waitForValue(key)
         return if (entry.hasBeenDestroyed) {
-            getEntryWithCallback(key, timeout, queue, generator, null)
+            if (async) null
+            else getEntryWithCallback(key, timeout, queue, generator, null)
         } else entry.data
 
     }

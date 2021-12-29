@@ -10,6 +10,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
+import me.anno.gpu.texture.TextureLib
 import me.anno.input.Input
 import me.anno.language.translation.NameDesc
 import me.anno.studio.StudioBase.Companion.defaultWindowStack
@@ -21,6 +22,7 @@ import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
+import org.joml.Vector4f
 import kotlin.math.min
 
 /**
@@ -59,10 +61,11 @@ object DebugGPUStorage {
         override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
             super.onDraw(x0, y0, x1, y1)
             if (tex.isCreated && !tex.isDestroyed) {
-                // todo transparent-like-background
                 val scale = min(w.toFloat() / tex.w, (h - fontSize).toFloat() / tex.h)
                 val w = (tex.w * scale).toInt()
                 val h = (tex.h * scale).toInt()
+                // transparency-showing background
+                DrawTextures. drawTransparentBackground(x, y + fontSize, w, h - fontSize)
                 DrawTextures.drawTexture(x, y + fontSize, w, h, tex, -1, null)
                 DrawTexts.drawSimpleTextCharByChar(x, y, 2, "$name, ${tex.w} x ${tex.h}")
             } else visibility = Visibility.GONE
@@ -98,10 +101,10 @@ object DebugGPUStorage {
         override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
             super.onDraw(x0, y0, x1, y1)
             if (tex.isCreated && !tex.isDestroyed) {
-                // todo transparent-like-background
                 val scale = min(w.toFloat() / tex.w, (h - fontSize).toFloat() / tex.h)
                 val w = (tex.w * scale).toInt()
                 val h = (tex.h * scale).toInt()
+                DrawTextures.drawTransparentBackground(x, y + fontSize, w, h - fontSize)
                 DrawTextures.drawProjection(x, y + fontSize, w, h, tex, false, -1)
                 DrawTexts.drawSimpleTextCharByChar(x, y, 2, "$name, ${tex.w} x ${tex.h}")
             } else visibility = Visibility.GONE
@@ -111,7 +114,7 @@ object DebugGPUStorage {
     fun openMenu() {
         Menu.openMenu(defaultWindowStack!!, listOf(
             MenuOption(NameDesc("Texture2Ds")) {
-                createListOfPanels("Texture2Ds"){ list ->
+                createListOfPanels("Texture2Ds") { list ->
                     for (tex in tex2d) {
                         list.add(TexturePanel(tex.name, tex))
                     }
@@ -123,14 +126,14 @@ object DebugGPUStorage {
             },
             MenuOption(NameDesc("CubemapTextures")) {
                 // todo test this in Rem's Studio
-                createListOfPanels("CubemapTextures"){ list ->
+                createListOfPanels("CubemapTextures") { list ->
                     for (tex in texCd) {
                         list.add(TexturePanel3D("", tex))
                     }
                 }
             },
             MenuOption(NameDesc("Framebuffers")) {
-                createListOfPanels("Framebuffers"){ list ->
+                createListOfPanels("Framebuffers") { list ->
                     for (fb in fbs) {
                         for (tex in fb.textures) {
                             list.add(TexturePanel(tex.name, tex))

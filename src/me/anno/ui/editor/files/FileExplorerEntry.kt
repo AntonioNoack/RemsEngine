@@ -418,6 +418,8 @@ class FileExplorerEntry(
 
     private fun updateTooltip() {
 
+        // todo add created & modified information
+
         // if is selected, and there are multiple files selected, show group stats
         if (isInFocus && inFocus.count { it is FileExplorerEntry } > 1) {
 
@@ -432,7 +434,7 @@ class FileExplorerEntry(
             fun getTooltip(file: FileReference): String {
                 return when {
                     file.isDirectory -> {
-                        // todo add number of children?
+                        // todo add number of children?, or summed size
                         file.name
                     }
                     file is InnerLinkFile -> "Link to " + getTooltip(file.link)

@@ -241,7 +241,7 @@ abstract class StudioBase(
     }
 
     fun processMouseMovement() {
-        if (!Input.hadMouseMovement) {
+        if (!Input.hadMouseMovement && GFX.isInFocus) {
             // if our window doesn't have focus or the cursor is outside,
             // we need to ask for updates manually
             GFX.updateMousePosition()

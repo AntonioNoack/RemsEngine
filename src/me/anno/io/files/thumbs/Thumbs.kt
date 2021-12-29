@@ -35,6 +35,7 @@ import me.anno.gpu.SVGxGFX
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.copying.FramebufferToMemory.createBufferedImage
 import me.anno.gpu.drawing.DrawTextures.drawTexture
+import me.anno.gpu.drawing.DrawTextures.drawTransparentBackground
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
@@ -383,11 +384,7 @@ object Thumbs {
 
             if (!withDepth) {
                 useFrame(0, 0, w, h, false, fb2, colorRenderer) {
-                    drawTexture(
-                        0, 0, w, h,
-                        TextureLib.colorShowTexture,
-                        -1, Vector4f(4f * w.toFloat() / h, 4f, 0f, 0f)
-                    )
+                    drawTransparentBackground(0, 0, w, h)
                 }
             }
 
