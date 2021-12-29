@@ -3,6 +3,7 @@ package me.anno.ui.editor.cutting
 import me.anno.config.DefaultStyle
 import me.anno.objects.Transform
 import me.anno.objects.Video
+import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.rems.RemsStudio
 import me.anno.ui.editor.TimelinePanel
 import org.joml.Vector4f
@@ -32,8 +33,6 @@ class LayerViewComputer(val view: LayerView) {
             }
         }
 
-        this.calculated = transforms
-
         val timelineSlot = view.timelineSlot
         val drawn = transforms.filter { it.timelineSlot.value == timelineSlot }.reversed()
         view.drawn = drawn
@@ -46,12 +45,15 @@ class LayerViewComputer(val view: LayerView) {
             list.removeIf { !it.needsDrawn() }
         }
 
-        view.solution = solution
-        view.invalidateDrawing()
+        addEvent {
+            this.calculated = transforms
+            view.solution = solution
+            view.invalidateDrawing()
+        }
 
     }
 
-    fun compute(
+    private fun compute(
         x0: Int, x1: Int,
         root: Transform, transforms: List<Transform>, drawn: List<Transform>,
         stripes: Array<ArrayList<Gradient>>
@@ -115,11 +117,9 @@ class LayerViewComputer(val view: LayerView) {
                 }
             }
         }
-
-
     }
 
-    fun process(
+    private fun process(
         x: Int, stepSize: Int,
         tr: Transform, color: Vector4f, time: Double,
         stripes: Array<ArrayList<Gradient>>, lineIndex: Int

@@ -258,7 +258,12 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             if (i < sortedPointers.size) writeListSeparator()
         }
         writeListEnd()
+        flush()
     }
+
+    open fun flush() {}
+
+    open fun close() {}
 
     /**
      * this is a general function to save a value

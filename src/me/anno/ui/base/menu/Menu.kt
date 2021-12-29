@@ -82,8 +82,7 @@ object Menu {
 
         val style = DefaultConfig.style.getChild("menu")
         val panel = PureTextInput(style)
-        panel.text = value0
-        panel.updateChars(false)
+        panel.setText(value0, false)
         panel.placeholder = title.name
         panel.setTooltip(title.desc)
         panel.setEnterListener {
@@ -93,7 +92,6 @@ object Menu {
         panel.addChangeListener {
             panel.textColor = getColor(it)
         }
-
         val submit = TextButton(actionName.name, false, style)
             .setTooltip(actionName.desc)
             .addLeftClickListener {

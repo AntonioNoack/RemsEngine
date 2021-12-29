@@ -3,7 +3,7 @@ package me.anno.ui.input
 import me.anno.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.gpu.Cursor
-import me.anno.input.MouseButton
+import me.anno.input.Input.isLeftDown
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextStyleable
@@ -22,7 +22,6 @@ abstract class NumberInput<BaseType>(
 ) : PanelListY(style), InputPanel<BaseType>, TextStyleable {
 
     var hasValue = false
-    var mouseIsDown = false
 
     val titleView = if (title.isBlank2()) null else TitlePanel(title, this, style)
     var isSelectedListener: (() -> Unit)? = null
@@ -92,30 +91,21 @@ abstract class NumberInput<BaseType>(
         return this
     }
 
-    override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
-        super.onMouseDown(x, y, button)
-        mouseIsDown = true
-    }
+    private val mouseIsDown get() = isAnyChildInFocus && isLeftDown
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         // super.onMouseMoved(x, y, dx, dy)
         if (mouseIsDown) {
             changeValue(dx, dy)
-        }
+        } else super.onMouseMoved(x, y, dx, dy)
     }
 
     abstract fun changeValue(dx: Float, dy: Float)
 
-    override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
-        super.onMouseUp(x, y, button)
-        mouseIsDown = false
-    }
-
-    fun setText(newText: String) {
+    fun setText(newText: String, notify: Boolean) {
         val oldText = inputPanel.text
         if (oldText == newText) return
-        inputPanel.text = newText
-        inputPanel.updateChars(false)
+        inputPanel.setText(newText, notify)
         if (oldText.length != newText.length) {
             inputPanel.setCursorToEnd()
         }

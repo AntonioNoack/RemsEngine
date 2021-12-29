@@ -20,7 +20,7 @@ open class TextInput(
     }, Padding(), style
 ), InputPanel<String>, TextStyleable {
 
-    constructor(style: Style): this("", "", true, style)
+    constructor(style: Style) : this("", "", true, style)
 
     constructor(title: String, visibilityKey: String, v0: String?, style: Style) :
             this(title, visibilityKey, true, v0, style)
@@ -43,8 +43,6 @@ open class TextInput(
         set(value) {}
 
     fun setCursorToEnd() = base.setCursorToEnd()
-    fun updateChars(notify: Boolean) = base.updateChars(notify)
-    fun updateText(notify: Boolean) = base.updateText(notify)
 
     fun setPlaceholder(text: String): TextInput {
         base.placeholder = text
@@ -79,8 +77,7 @@ open class TextInput(
     override val lastValue: String get() = base.text
 
     override fun setValue(value: String, notify: Boolean): TextInput {
-        base.text = value
-        updateChars(notify)
+        base.setText(value, notify)
         return this
     }
 

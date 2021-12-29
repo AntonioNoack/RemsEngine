@@ -109,7 +109,17 @@ open class Window(
 
         // panel0.updateVisibility(lastMouseX.toInt(), lastMouseY.toInt())
         panel.updateVisibility(Input.mouseX.toInt(), Input.mouseY.toInt())
-        for (p in GFX.inFocus) p.isInFocus = true
+
+        for (p in GFX.inFocus) {
+            if (p.window == this) {
+                p.isInFocus = true
+                var pi: Panel? = p
+                while (pi != null) {
+                    pi.isAnyChildInFocus = true
+                    pi = pi.parent as? Panel
+                }
+            }
+        }
 
         // resolve missing parents...
         // which still happens...

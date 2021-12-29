@@ -1,5 +1,6 @@
 package me.anno.ui.input.components
 
+import me.anno.config.DefaultStyle
 import me.anno.config.DefaultStyle.black
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
@@ -8,6 +9,8 @@ import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.input.Input
+import me.anno.input.Input.isControlDown
+import me.anno.input.Input.isLeftDown
 import me.anno.input.MouseButton
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.ui.base.components.Padding
@@ -15,6 +18,7 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.base.text.TextPanel
+import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.style.Style
 import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.structures.tuples.Quad
@@ -24,7 +28,8 @@ import me.anno.utils.types.Strings.joinChars
 import kotlin.math.abs
 import kotlin.streams.toList
 
-class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
+open class PureTextInputML(style: Style) :
+    ScrollPanelXY(Padding(0), style), TextStyleable {
 
     private val cursor1 = CursorPosition(0, 0)
     private val cursor2 = CursorPosition(0, 0)
@@ -37,13 +42,55 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
 
     var text = ""
 
+    var isDragging = false
+
+    var lineLimit = Int.MAX_VALUE
+
+    // todo update all children, when this is overridden
+    var textColor = style.getColor("textColor", DefaultStyle.iconGray)
+
+    // todo update all children, when this is overridden
+    var focusTextColor = style.getColor("textColorFocused", -1)
+
+    // todo update all children, when this is overridden
+    open val enableSpellcheck = true
+
+    // todo use these listeners
+    // todo call them: enter when limit is reached, or shift is pressed with enter
+    private var enterListener: ((text: String) -> Unit)? = null
+    private var resetListener: (() -> String?)? = null
+
+    fun setEnterListener(listener: (text: String) -> Unit) {
+        enterListener = listener
+    }
+
+    fun setResetListener(listener: () -> String?) {
+        resetListener = listener
+    }
+
+    fun addChangeListener(listener: (text: String) -> Unit) {
+        changeListeners += listener
+    }
+
+    override fun setBold(bold: Boolean) {
+        for (p in actualChildren) {
+            (p as TextStyleable).setBold(bold)
+        }
+    }
+
+    override fun setItalic(italic: Boolean) {
+        for (p in actualChildren) {
+            (p as TextStyleable).setItalic(italic)
+        }
+    }
+
     @NotSerializedProperty
     private var lastText = ""
 
     @NotSerializedProperty
     private var lastChangeTime = 0L
 
-    val changeListeners = ArrayList<(text: String) -> Unit>()
+    private val changeListeners = ArrayList<(text: String) -> Unit>()
 
     private val lines: ArrayList<MutableList<Int>> = arrayListOf(mutableListOf())
     private val endCursor get() = CursorPosition(lines.last().size, lines.lastIndex)
@@ -56,17 +103,21 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     private fun updateLines() {
         val needsPlaceholder = text.isEmpty()
         val children = actualChildren
-        if (lines.isEmpty()) {
+        if (lines.isEmpty()) {// at least one line always needs to be available
             lines.add(mutableListOf())
         }
-        while (lines.size < children.size) {
+        while (lines.size < children.size) {// remove no longer needed TextInput panels
             children.removeAt(children.lastIndex)
         }
         val content = content as PanelList
-        while (lines.size > children.size) {
+        while (lines.size > children.size) {// add new TextInput panels
             val panel = object : CorrectingTextInput(style) {
                 override val isShowingPlaceholder: Boolean
                     get() = this@PureTextInputML.text.isEmpty()
+
+                override fun onBackSpaceKey(x: Float, y: Float) {
+                    this@PureTextInputML.onBackSpaceKey(x, y)
+                }
 
                 // override fun onBackKey(x: Float, y: Float) = this@PureTextInputML.onBackKey(x, y)
                 // override fun onCharTyped(x: Float, y: Float, key: Int) = this@PureTextInputML.onCharTyped(x, y, key)
@@ -80,6 +131,8 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
                 override fun onCopyRequested(x: Float, y: Float): String? = this@PureTextInputML.onCopyRequested(x, y)
                 override fun onCharTyped2(x: Float, y: Float, key: Int) = this@PureTextInputML.onCharTyped(x, y, key)
                 override fun onEnterKey2(x: Float, y: Float) = this@PureTextInputML.onEnterKey(x, y)
+                override fun onDeleteKey(x: Float, y: Float) = this@PureTextInputML.onDeleteKey(x, y)
+                override fun onEmpty(x: Float, y: Float) = this@PureTextInputML.onEmpty(x, y)
 
                 override fun setCursor(position: Int) {
                     // set cursor after replacement
@@ -97,7 +150,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
             children.add(panel)
             panel.parent = content
         }
-        lines.forEachIndexed { index, chars ->
+        for ((index, chars) in lines.withIndex()) {
             val panel = children[index] as TextPanel
             panel.text = if (needsPlaceholder) placeholder else chars.joinChars().toString()
             panel.textColor = (panel.textColor and 0xffffff) or (if (needsPlaceholder) 70 else 255).shl(24)
@@ -110,6 +163,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
         val blinkVisible = ((GFX.gameTime / 500_000_000L) % 2L == 0L)
         val isInFocus = isInFocus || content.isInFocus || (content as PanelList).children.any { it.isInFocus }
         showBars = isInFocus && (blinkVisible || wasJustChanged)
+        if (isInFocus) invalidateDrawing()
     }
 
     override fun getVisualState() = Quad(showBars, cursor1, cursor2, text)
@@ -282,11 +336,15 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     fun insert(insertion: String) {
         if (insertion.isNotEmpty()) {
             lastChangeTime = GFX.gameTime
-            insertion.codePoints().forEach {
-                insert(it, false)
+            for (cp in insertion.codePoints()) {
+                insert(cp, false)
             }
             update(true)
         }
+    }
+
+    fun insert(keyCode: Int) {
+        insert(String(Character.toChars(keyCode)))
     }
 
     fun update(notify: Boolean) {
@@ -312,16 +370,21 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
         when (insertion) {
             '\n'.code -> {
                 // split the line here
-                val line0 = lines[cursor1.y]
-                val line1 = line0.subList(cursor1.x, line0.size)
-                lines[cursor1.y] = line0.subList(0, cursor1.x)
-                lines.add(
-                    cursor1.y + 1,
-                    (findStartingWhitespace(line0) // help with spaces at the start
-                            + line1).toMutableList()
-                )
-                cursor1.set(0, cursor1.y + 1)
-                cursor2.set(cursor1)
+                if (lines.size + 1 < lineLimit) {
+                    val line0 = lines[cursor1.y]
+                    val line1 = line0.subList(cursor1.x, line0.size)
+                    lines[cursor1.y] = line0.subList(0, cursor1.x)
+                    lines.add(
+                        cursor1.y + 1,
+                        (findStartingWhitespace(line0) // help with spaces at the start
+                                + line1).toMutableList()
+                    )
+                    cursor1.set(0, cursor1.y + 1)
+                    cursor2.set(cursor1)
+                } else {// ^^
+                    insert('\\'.code, notify)
+                    insert('n'.code, notify)
+                }
             }
             '\r'.code -> {
             } // ignore, because it's useless ^^
@@ -492,8 +555,12 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     }
 
     fun onMouseMoved(x: Float, indexY: Int) {
-        if (!Input.isControlDown) {
-            if (0 in Input.mouseKeysDown) {
+
+        isDragging = !isControlDown && isLeftDown
+        invalidateDrawing()
+
+        if (!isControlDown) {
+            if (isLeftDown) {
                 val localX = x - ((content as PanelList).children.first().x + padding.left)
                 val line = lines[indexY]
                 val indexX = getIndexFromText(line, localX, styleSample)
@@ -517,7 +584,7 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     }
 
     fun onMouseDown(x: Float, indexY: Int) {
-        if (Input.isControlDown) {
+        if (isControlDown) {
             selectAll()
         } else {
             // find the correct location for the cursor
@@ -547,8 +614,28 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
     }
 
     override fun onEmpty(x: Float, y: Float) {
-        deleteSelection()
-        update(true)
+        if (isNothingSelected() || isEverythingSelected()) {
+            clear()
+        } else {
+            deleteSelection()
+            update(true)
+        }
+    }
+
+    fun isNothingSelected(): Boolean {
+        return cursor1 == cursor2
+    }
+
+    fun isEverythingSelected(): Boolean {
+        val min = min(cursor1, cursor2)
+        val max = max(cursor1, cursor2)
+        val end = endCursor
+        return min.x == 0 && min.y == 0 && max.x == end.x && max.y == end.y
+    }
+
+    fun clear() {
+        setText(resetListener?.invoke() ?: "", true)
+        setCursorToEnd()
     }
 
     private fun clearText() {
@@ -570,15 +657,25 @@ class PureTextInputML(style: Style) : ScrollPanelXY(Padding(0), style) {
         return true
     }
 
-    override fun onEnterKey(x: Float, y: Float) {
-        insert('\n'.code, true)
-    }
-
     override fun getCursor() = Cursor.editText
     override fun isKeyInput() = true
 
     init {
         update(false)
+    }
+
+    override fun onBackSpaceKey(x: Float, y: Float) {
+        deleteBefore()
+    }
+
+    override fun onEnterKey(x: Float, y: Float) {
+        if (lines.size + 1 < lineLimit) insert('\n'.code, true)
+        else enterListener?.invoke(text)
+        invalidateDrawing()
+    }
+
+    override fun onDeleteKey(x: Float, y: Float) {
+        deleteAfter()
     }
 
     override fun clone(): PureTextInputML {

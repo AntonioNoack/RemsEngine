@@ -52,13 +52,13 @@ open class TextInputML(title: String, style: Style) : PanelContainer(
     fun deleteAfter() = base.deleteAfter()
     fun ensureCursorBounds() = base.ensureCursorBounds()
     fun addChangeListener(listener: (text: String) -> Unit): TextInputML {
-        base.changeListeners += listener
+        base.addChangeListener(listener)
         return this
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
-        if (listOfVisible.any { it.isInFocus }) {
+        if (isAnyChildInFocus) {
             isSelectedListener?.invoke()
         }
     }

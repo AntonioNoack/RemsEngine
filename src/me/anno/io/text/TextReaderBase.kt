@@ -55,17 +55,13 @@ abstract class TextReaderBase : BaseReader() {
 
     override fun readAllInList() {
         assert(skipSpace(), '[')
-        try {
-            while (true) {
-                when (val next = skipSpace()) {
-                    ',' -> Unit // nothing to do
-                    '{' -> readObject()
-                    ']' -> return
-                    else -> throw InvalidFormatException("Unexpected char $next, ${next.code}")
-                }
+        while (true) {
+            when (val next = skipSpace()) {
+                ',' -> Unit // nothing to do
+                '{' -> readObject()
+                ']' -> return
+                else -> throw InvalidFormatException("Unexpected char $next, ${next.code}")
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 

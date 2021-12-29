@@ -107,7 +107,7 @@ public class GFXBase0 {
     public void loadRenderDoc() {
         // must be executed before OpenGL-init
         String renderDocPath = DefaultConfig.INSTANCE.get("debug.renderdoc.path", "C:/Program Files/RenderDoc/renderdoc.dll");
-        boolean renderDocEnabled = DefaultConfig.INSTANCE.get("debug.renderdoc.enabled", Build.INSTANCE.isDebug());
+        boolean renderDocEnabled = true || DefaultConfig.INSTANCE.get("debug.renderdoc.enabled", Build.INSTANCE.isDebug());
         if (renderDocEnabled) {
             try {
                 // if renderdoc is install on linux, or given in the path, we could use it as well with loadLibrary()

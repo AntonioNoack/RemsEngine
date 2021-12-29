@@ -191,6 +191,10 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     @DebugProperty
     @NotSerializedProperty
+    var isAnyChildInFocus = false
+
+    @DebugProperty
+    @NotSerializedProperty
     var isHovered = false
 
     @DebugProperty
@@ -259,6 +263,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     fun updateVisibility(mx: Int, my: Int) {
         isInFocus = false
+        isAnyChildInFocus = false
         canBeSeen = (uiParent?.canBeSeen != false) &&
                 visibility == Visibility.VISIBLE &&
                 lx1 > lx0 && ly1 > ly0

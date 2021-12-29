@@ -169,7 +169,7 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
     }
 
     init {
-        controls.forEach {
+        for(it in controls) {
             children += it.drawable
         }
     }

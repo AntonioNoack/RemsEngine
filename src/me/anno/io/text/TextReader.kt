@@ -1,9 +1,9 @@
 package me.anno.io.text
 
+import me.anno.Engine
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
-import me.anno.utils.strings.StringHelper.shorten
 import org.apache.logging.log4j.LogManager
 import java.io.EOFException
 import java.io.InputStream
@@ -54,6 +54,8 @@ class TextReader(val data: CharSequence) : TextReaderBase() {
 
     companion object {
 
+        private val LOGGER = LogManager.getLogger(TextReader::class)
+
         fun read(data: CharSequence): List<ISaveable> {
             val reader = TextReader(data)
             reader.readAllInList()
@@ -61,14 +63,29 @@ class TextReader(val data: CharSequence) : TextReaderBase() {
             return reader.sortedContent
         }
 
-        fun read(input: FileReference): List<ISaveable> {
+        fun read(file: FileReference): List<ISaveable> {
             // buffered is very important and delivers an improvement of 5x
-            return input.inputStream().useBuffered().use { read(it) }
+            return file.inputStream().useBuffered().use {
+                try {
+                    println("reading $file")
+                    read(it, false)
+                } catch (e: Throwable) {
+                    println("$e by $file")
+                    Engine.shutdown()
+                    throw e
+                }
+            }
         }
 
-        fun read(data: InputStream): List<ISaveable> {
+        fun read(data: InputStream, safely: Boolean): List<ISaveable> {
             val reader = TextStreamReader(data)
-            reader.readAllInList()
+            if (safely) {
+                try {
+                    reader.readAllInList()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            } else reader.readAllInList()
             // sorting is very important
             return reader.sortedContent
         }

@@ -372,7 +372,7 @@ object ShaderLib {
                     "   uv = mix(uvs.xy, uvs.zw, attr0);\n" +
                     "}", listOf(Variable("vec2", "uv"), Variable("vec4", "color")), "" +
                     "uniform int code;\n" +
-                    "uniform sampler2D tex0,tex1,tex2;\n" +
+                    "uniform sampler2D tex0,tex1;\n" +
                     yuv2rgb +
                     "void main(){\n" +
                     "   vec4 texColor;\n" +
@@ -381,7 +381,7 @@ object ShaderLib {
                     "           case 0: texColor = texture(tex0, uv).gbar;break;\n" + // ARGB
                     "           case 1: texColor = texture(tex0, uv).bgra;break;\n" + // BGRA
                     "           case 2: \n" +
-                    "               vec3 yuv = vec3(texture(tex0, uv).r, texture(tex1, uv).r, texture(tex2, uv).r);\n" +
+                    "               vec3 yuv = vec3(texture(tex0, uv).r, texture(tex1, uv).xy);\n" +
                     "               texColor = vec4(yuv2rgb(yuv), 1.0);\n" +
                     "               break;\n" + // 420
                     "           default: texColor = texture(tex0, uv);\n" +
@@ -389,7 +389,7 @@ object ShaderLib {
                     "   }\n" +
                     "   else texColor = vec4(1.0);\n" +
                     "   gl_FragColor = color * texColor;\n" +
-                    "}", listOf("tex0", "tex1", "tex2")
+                    "}", listOf("tex0", "tex1")
         )
 
         flatShaderTexture = BaseShader(

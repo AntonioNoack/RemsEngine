@@ -159,47 +159,43 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
         val draggedTransform = draggedTransform
         val draggedKeyframes = draggedKeyframes
 
-        fun drawLines(transform: Transform) {
-            val color = transform.color
-            if (color.isAnimated) {
-                val window = window!!
-                var ht0 = getTimeAt(window.mouseX - 5f)
-                var ht1 = getTimeAt(window.mouseX + 5f)
-                val hx0 = getXAt(ht0)
-                val hx1 = getXAt(ht1)
-                val inheritance = transform.listOfInheritance.toList().reversed()
-                inheritance.forEach {
-                    ht0 = it.getLocalTime(ht0)
-                    ht1 = it.getLocalTime(ht1)
-                }
-                val keyframes = draggedKeyframes ?: color[ht0, ht1]
-                hoveredKeyframes = keyframes
-                var x = x0 - 1
-                keyframes.forEach {
-                    val relativeTime = (it.time - ht0) / (ht1 - ht0)
-                    val x2 = mix(hx0, hx1, relativeTime).toInt()
-                    if (x2 > x) {
-                        drawRect(x2, y0, 1, y1 - y0, accentColor)
-                        x = x2
-                    }
-                }
-            } else hoveredKeyframes = null
-        }
-
         if (draggedTransform == null || draggedKeyframes == null) {
             if (isHovered) {
                 val window = window!!
                 val hovered = getTransformAt(window.mouseX, window.mouseY)
                     ?: if (selectedTransform?.timelineSlot?.value == timelineSlot) selectedTransform else null
                 hoveredTransform = hovered
-                if (hovered != null) {
-                    drawLines(hovered)
+                if (hovered != null) drawLines(x0, y0, x1, y1, hovered)
+            }
+        } else drawLines(x0, y0, x1, y1, draggedTransform)
+
+    }
+
+    private fun drawLines(x0: Int, y0: Int, x1: Int, y1: Int, transform: Transform) {
+        val color = transform.color
+        if (color.isAnimated) {
+            val window = window!!
+            var ht0 = getTimeAt(window.mouseX - 5f)
+            var ht1 = getTimeAt(window.mouseX + 5f)
+            val hx0 = getXAt(ht0)
+            val hx1 = getXAt(ht1)
+            val inheritance = transform.listOfInheritance.toList().reversed()
+            inheritance.forEach {
+                ht0 = it.getLocalTime(ht0)
+                ht1 = it.getLocalTime(ht1)
+            }
+            val keyframes = draggedKeyframes ?: color[ht0, ht1]
+            hoveredKeyframes = keyframes
+            var x = x0 - 1
+            keyframes.forEach {
+                val relativeTime = (it.time - ht0) / (ht1 - ht0)
+                val x2 = mix(hx0, hx1, relativeTime).toInt()
+                if (x2 > x) {
+                    drawRect(x2, y0, 1, y1 - y0, accentColor)
+                    x = x2
                 }
             }
-        } else {
-            drawLines(draggedTransform)
-        }
-
+        } else hoveredKeyframes = null
     }
 
     private fun getTransformAt(x: Float, y: Float): Transform? {

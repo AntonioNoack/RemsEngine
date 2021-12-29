@@ -176,7 +176,7 @@ open class IntInput(
             hasValue = true
             lastValue = value
             if (notify) changeListener(value)
-            setText(stringify(value))
+            setText(stringify(value), notify)
         }
         return this
     }

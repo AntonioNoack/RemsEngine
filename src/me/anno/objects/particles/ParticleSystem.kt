@@ -310,7 +310,7 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
             val group = getGroup(getName(), "", "$viCtr")
             group.setTooltip(description)
             group.add(SpyPanel(style) {
-                if (group.listOfVisible.any { it.isInFocus }) {
+                if (group.isAnyChildInFocus) {
                     val needsUpdate = selectedDistribution !== property
                     selectedDistribution = property
                     if (needsUpdate) invalidateUI()
@@ -450,7 +450,7 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
         writer.add(spawnSize)
         val builder = writer.getFoolishWriteAccess()
         builder.append(simulationStepI.value)
-        for(it in children) {
+        for (it in children) {
             if (it is ForceField) {
                 it.parent = null
                 writer.add(it)
@@ -460,7 +460,7 @@ open class ParticleSystem(parent: Transform? = null) : Transform(parent) {
             }
         }
         writer.writeAllInList()
-        for(it in children) {
+        for (it in children) {
             if (it is ForceField) {
                 it.parent = this
             }

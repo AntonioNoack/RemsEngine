@@ -35,6 +35,7 @@ object ConfigBasics {
     fun save(file: FileReference, data: String) {
         val parentFile = file.getParent() ?: return
         if (!parentFile.exists) parentFile.mkdirs()
+        println("saving ${data.length} chars to $file as config, old value: ${file.length()}")
         file.writeText(data)
     }
 

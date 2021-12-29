@@ -27,7 +27,6 @@ import me.anno.ui.editor.sceneTabs.SceneTabs.currentTab
 import me.anno.utils.OS
 
 // todo bug: signed distance field texts are missing / not rendering
-// todo bug: cutting view elements are green
 
 // todo isolate and remove certain frequencies from audio
 // todo visualize audio frequency, always!!!, from 25Hz to 48kHz
@@ -217,8 +216,13 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
     val selection = ArrayList<String>()
 
     override fun onGameLoopStart() {
-        saveStateMaybe()
+    }
+
+    override fun onGameLoop(w: Int, h: Int): Boolean {
+        DefaultConfig.saveMaybe("main.config")
+        baseTheme.values.saveMaybe("style.config")
         Selection.update()
+        return super.onGameLoop(w, h)
     }
 
     override fun onGameLoopEnd() {
@@ -227,11 +231,6 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
 
     override fun onGameClose() {
 
-    }
-
-    fun saveStateMaybe() {
-        DefaultConfig.saveMaybe("main.config")
-        baseTheme.values.saveMaybe("style.config")
     }
 
     private var lastCode: Any? = null

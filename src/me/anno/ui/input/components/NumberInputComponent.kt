@@ -3,6 +3,7 @@ package me.anno.ui.input.components
 import me.anno.animation.AnimatedProperty
 import me.anno.animation.drivers.AnimationDriver
 import me.anno.input.Input.isControlDown
+import me.anno.input.Input.isLeftDown
 import me.anno.input.Input.mouseKeysDown
 import me.anno.input.MouseButton
 import me.anno.studio.rems.RemsStudio
@@ -45,8 +46,7 @@ open class NumberInputComponent(
         if (driver != null) {
             val driverName = driver.getDisplayName()
             if (text != driverName) {
-                text = driverName
-                updateChars(false)
+                setText(text, true)
             }
         }
         super.onDraw(x0, y0, x1, y1)
@@ -65,7 +65,7 @@ open class NumberInputComponent(
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         if (!hasDriver) numberInput.onMouseMoved(x, y, dx, dy)
-        isDragging = !isControlDown && 0 in mouseKeysDown
+        isDragging = !isControlDown && isLeftDown
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {

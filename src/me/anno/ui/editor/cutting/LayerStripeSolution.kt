@@ -26,7 +26,10 @@ import kotlin.math.floor
 import kotlin.math.roundToInt
 
 class LayerStripeSolution(
-    val x0: Int, var y0: Int, val x1: Int, var y1: Int,
+    val x0: Int,
+    var y0: Int,
+    val x1: Int,
+    var y1: Int,
     private val referenceTime: Double
 ) {
 
@@ -106,7 +109,7 @@ class LayerStripeSolution(
                     video!!
                     meta!!
 
-                    val frameWidth = (h * (1f + relativeVideoBorder) * video.lastW / video.lastH).roundToInt()
+                    val frameWidth = (h * (1f + relativeVideoBorder) * meta.videoWidth / meta.videoHeight).roundToInt()
 
                     var frameOffset = timeOffset % frameWidth
                     if (frameOffset < 0) frameOffset += frameWidth
