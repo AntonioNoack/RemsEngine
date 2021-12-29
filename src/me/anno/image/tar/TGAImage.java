@@ -32,10 +32,8 @@ public class TGAImage extends Image {
     public byte[] data;
 
     public TGAImage(byte[] data, int width, int height, int channels) {
-        super(channels, channels > 3);
+        super(width, height, channels, channels > 3);
         this.data = data;
-        this.width = width;
-        this.height = height;
     }
 
     private static int rgba(int b, int g, int r, int a) {

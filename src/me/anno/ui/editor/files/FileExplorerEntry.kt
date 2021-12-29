@@ -64,6 +64,8 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
+// todo right click, "Switch To", add option "Switch To Folder" for files, which are no folders
+
 // todo when the aspect ratio is extreme (e.g. > 50), stretch the image artificially to maybe 10 aspect ratio
 
 // todo cannot enter mtl file

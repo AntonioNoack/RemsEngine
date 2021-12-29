@@ -1,12 +1,10 @@
 package me.anno.image
 
 import me.anno.image.raw.GrayscaleImage
+import me.anno.image.raw.CachedImage
 import me.anno.image.raw.OpaqueImage
 import me.anno.io.files.FileReference
 import me.anno.io.zip.InnerFolder
-import java.awt.image.BufferedImage
-import java.awt.image.DataBufferByte
-import java.awt.image.DataBufferInt
 import java.io.IOException
 
 object ImageReader {
@@ -25,24 +23,25 @@ object ImageReader {
         val hasG = image.numChannels > 1
         val hasB = image.numChannels > 2
         val hasA = image.hasAlphaChannel
+        val ori = CachedImage(file, image)
 
         // normal components
-        createComponent(image, folder, "r.png", "r", false)
-        if (hasG) createComponent(image, folder, "g.png", "g", false)
-        if (hasB) createComponent(image, folder, "b.png", "b", false)
-        if (hasA) createComponent(image, folder, "a.png", "a", false)
+        createComponent(ori, folder, "r.png", "r", false)
+        if (hasG) createComponent(ori, folder, "g.png", "g", false)
+        if (hasB) createComponent(ori, folder, "b.png", "b", false)
+        if (hasA) createComponent(ori, folder, "a.png", "a", false)
 
         // inverted components
-        createComponent(image, folder, "1-r.png", "r", true)
-        if (hasG) createComponent(image, folder, "1-g.png", "g", true)
-        if (hasB) createComponent(image, folder, "1-b.png", "b", true)
-        if (hasA) createComponent(image, folder, "1-a.png", "a", true)
+        createComponent(ori, folder, "1-r.png", "r", true)
+        if (hasG) createComponent(ori, folder, "1-g.png", "g", true)
+        if (hasB) createComponent(ori, folder, "1-b.png", "b", true)
+        if (hasA) createComponent(ori, folder, "1-a.png", "a", true)
 
         // grayscale, if not only a single channel
-        if (hasG) createComponent(folder, "grayscale.png", GrayscaleImage(image))
+        if (hasG) createComponent(folder, "grayscale.png", GrayscaleImage(ori))
 
         // rgb without alpha, if alpha exists
-        if (hasA) createComponent(folder, "rgb1.png", OpaqueImage(image))
+        if (hasA) createComponent(folder, "rgb1.png", OpaqueImage(ori))
 
         return folder
     }

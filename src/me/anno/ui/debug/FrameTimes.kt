@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.ui.base.Panel
 import me.anno.ui.base.text.TextPanel
+import me.anno.utils.maths.Maths.mixARGB
 import kotlin.math.max
 
 object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
@@ -45,6 +46,8 @@ object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
         draw(x, y, x + w, y + h)
     }
 
+    var drawInts = false
+
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         drawBackground()
 
@@ -61,21 +64,41 @@ object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
             val barColor = container.color
             val indexOffset = nextIndex - 1 + width
 
-            var lastX = x0
-            var lastBarHeight = 0
+            if (drawInts) {
 
-            for (x in x0 until x1) {
-                val i = x - this.x
-                val v = values[(indexOffset + i) % width]
-                val barHeight = (height * v / maxValue).toInt()
-                if (barHeight != lastBarHeight) {
-                    drawLine(lastX, x, lastBarHeight, barColor)
-                    lastX = x
-                    lastBarHeight = barHeight
+                var lastX = x0
+                var lastBarHeight = 0
+
+                for (x in x0 until x1) {
+                    val i = x - this.x
+                    val v = values[(indexOffset + i) % width]
+                    val barHeight = (height * v / maxValue).toInt()
+                    if (barHeight != lastBarHeight) {
+                        drawLine(lastX, x, lastBarHeight, barColor)
+                        lastX = x
+                        lastBarHeight = barHeight
+                    }
                 }
-            }
 
-            drawLine(lastX, x1, lastBarHeight, barColor)
+                drawLine(lastX, x1, lastBarHeight, barColor)
+
+            } else {
+
+                val yMax = y + height
+                val bgc = backgroundColor
+                for (x in x0 until x1) {
+                    val i = x - this.x
+                    val v = values[(indexOffset + i) % width]
+                    val hf = height * v / maxValue
+                    if (hf > 0f) {
+                        val hi = hf.toInt()
+                        drawLine(x, x + 1, hi, barColor)
+                        drawRect(x, yMax - hi, 1, hi, barColor)
+                        drawRect(x, yMax - hi - 1, 1, 1, mixARGB(bgc, barColor, hf - hi))
+                    }
+                }
+
+            }
 
         }
 

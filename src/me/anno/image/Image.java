@@ -19,15 +19,11 @@ public abstract class Image implements ICacheData {
     int numChannels;
     public boolean hasAlphaChannel;
 
-    public Image(int numChannels, boolean hasAlphaChannel) {
+    public Image(int width, int height, int numChannels, boolean hasAlphaChannel) {
         this.numChannels = numChannels;
         this.hasAlphaChannel = hasAlphaChannel;
-    }
-
-    public Image(int w, int h, int numChannels, boolean hasAlphaChannel) {
-        this(numChannels, hasAlphaChannel);
-        width = w;
-        height = h;
+        this.width = width;
+        this.height = height;
     }
 
     public int width, height;
@@ -73,18 +69,6 @@ public abstract class Image implements ICacheData {
             }
         }
         return image;
-    }
-
-    public void createRGBFrom3StridedData(Texture2D texture, boolean checkRedundancy, byte[] data) {
-        // add a padding for alpha, because OpenGL needs it that way
-        ByteBuffer buffer = Texture2D.Companion.getBufferPool().get(width * height * 4, false);
-        for (int j = 0, k = 0, l = width * height * 3; k < l; ) {
-            buffer.put(j++, (byte) 255);// a
-            buffer.put(j++, data[k++]);// r
-            buffer.put(j++, data[k++]);// g
-            buffer.put(j++, data[k++]);// b
-        }
-        texture.createRGB(buffer, checkRedundancy);
     }
 
     public abstract int getRGB(int index);
@@ -175,6 +159,18 @@ public abstract class Image implements ICacheData {
 
     public static int argb(int a, int r, int g, int b) {
         return (a << 24) + (r << 16) + (g << 8) + b;
+    }
+
+    public static void createRGBFrom3StridedData(Texture2D texture, int width, int height, boolean checkRedundancy, byte[] data) {
+        // add a padding for alpha, because OpenGL needs it that way
+        ByteBuffer buffer = Texture2D.Companion.getBufferPool().get(width * height * 4, false);
+        for (int j = 0, k = 0, l = width * height * 3; k < l; ) {
+            buffer.put(j++, (byte) 255);// a
+            buffer.put(j++, data[k++]);// r
+            buffer.put(j++, data[k++]);// g
+            buffer.put(j++, data[k++]);// b
+        }
+        texture.createRGB(buffer, checkRedundancy);
     }
 
     @Override

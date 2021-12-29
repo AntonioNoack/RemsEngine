@@ -18,6 +18,7 @@ import me.anno.ui.debug.console.COLine
 import me.anno.ui.debug.console.ConsoleLogFullscreen
 import me.anno.ui.style.Style
 import me.anno.utils.maths.Maths.mixARGB
+import org.apache.logging.log4j.LogManager
 
 // todo second console output panel, which has the default font?
 
@@ -60,6 +61,8 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
 
     companion object {
 
+        private val LOGGER = LogManager.getLogger(ConsoleOutputPanel::class)
+
         fun formatFilePath(file: FileReference) = formatFilePath(file.absolutePath)
         fun formatFilePath(file: String): String {
             return "file://${file.replace(" ", "%20")}"
@@ -84,6 +87,10 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             rip.alignmentX = AxisAlignment.MAX
             rip.makeBackgroundOpaque()
             rip.setWeight(1f)
+            rip.addLeftClickListener {
+                System.gc()
+                LOGGER.info("Called Garbage Collector")
+            }
             right.add(rip)
             right.makeBackgroundTransparent()
             if (bottom) right.add(RemsEngine.RuntimeInfoPlaceholder())

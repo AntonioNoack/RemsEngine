@@ -12,25 +12,17 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.input.ActionManager
 import me.anno.language.translation.Dict
 import me.anno.studio.StudioBase
-import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.StudioActions
 import me.anno.ui.base.Panel
-import me.anno.ui.base.constraints.AxisAlignment
-import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.debug.FrameTimes
-import me.anno.ui.debug.RuntimeInfoPanel
 import me.anno.ui.editor.OptionBar
 import me.anno.ui.editor.UILayouts.createReloadWindow
 import me.anno.ui.editor.config.ConfigPanel
 import me.anno.utils.OS
 import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
-import java.io.Console
-
-// todo unity project meshes have no data...
 
 // todo also the main object randomly just shrinks down (pool & truck)
 

@@ -29,7 +29,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         LOGGER.warn("Clearing cache $name")
         GFX.checkIsGFXThread()
         synchronized(cache) {
-            for(it in cache.values) it.destroy()
+            for (it in cache.values) it.destroy()
             cache.clear()
         }
     }
@@ -67,7 +67,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         allowDirectories: Boolean,
         timeout: Long,
         asyncGenerator: Boolean,
-        generator: (FileReference, Long) -> ICacheData
+        generator: (FileReference, Long) -> ICacheData?
     ): ICacheData? {
         if (!file.exists || (!allowDirectories && file.isDirectory)) return null
         return getEntry(file, file.lastModified, timeout, asyncGenerator, generator)
@@ -79,7 +79,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         key: V,
         timeout: Long,
         asyncGenerator: Boolean,
-        generator: (FileReference, V) -> ICacheData
+        generator: (FileReference, V) -> ICacheData?
     ): ICacheData? {
         if (!file.exists || (!allowDirectories && file.isDirectory)) return null
         return getEntry(file, key, timeout, asyncGenerator, generator)
@@ -91,7 +91,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         sub: Int,
         timeout: Long,
         asyncGenerator: Boolean,
-        generator: (Triple<String, String, Int>) -> ICacheData
+        generator: (Triple<String, String, Int>) -> ICacheData?
     ): ICacheData? {
         return getEntry(Triple(major, minor, sub), timeout, asyncGenerator, generator)
     }
@@ -375,19 +375,29 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     fun update() {
-        val minTimeout = 300L
+        val minTimeout = 1L
         val time = gameTime
+        val millisToNanos = 1_000_000
         synchronized(cache) {
-            val toRemove =
-                cache.filter { (_, entry) -> time - entry.lastUsed > max(entry.timeout, minTimeout) * 1_000_000 }
-            for (it in toRemove) {
-                val v2 = cache.remove(it.key)
-                    ?: throw IllegalStateException("This cannot be null, except we have race-conditions")
-                try {
-                    v2.destroy()
+            cache.entries.removeIf { (_, entry) ->
+                val remove = time - entry.lastUsed > max(entry.timeout, minTimeout) * millisToNanos
+                if (remove) try {
+                    entry.destroy()
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
+                remove
+            }
+        }
+        synchronized(dualCache) {
+            dualCache.removeIf { _, _, entry ->
+                val remove = time - entry.lastUsed > max(entry.timeout, minTimeout) * millisToNanos
+                if (remove) try {
+                    entry.destroy()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                remove
             }
         }
     }

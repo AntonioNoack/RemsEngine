@@ -10,12 +10,7 @@ open class ByteImage(
     val channelsInData: Int,
     val data: ByteArray = ByteArray(width * height * channelsInData),
     hasAlphaChannel: Boolean = channelsInData > 3
-) : Image(channelsInData, hasAlphaChannel) {
-
-    init {
-        this.width = width
-        this.height = height
-    }
+) : Image(width, height, channelsInData, hasAlphaChannel) {
 
     override fun getRGB(index: Int): Int {
         return when (channelsInData) {
@@ -63,7 +58,7 @@ open class ByteImage(
         when (channelsInData) {
             1 -> texture.createMonochrome(data, checkRedundancy)
             2 -> texture.createRG(data, checkRedundancy)
-            3 -> createRGBFrom3StridedData(texture, checkRedundancy, data)
+            3 -> createRGBFrom3StridedData(texture, width, height, checkRedundancy, data)
             4 -> {
                 if (hasAlphaChannel) {
                     texture.createRGBA(data, checkRedundancy)

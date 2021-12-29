@@ -2,7 +2,6 @@ package me.anno.image
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
-import me.anno.cache.data.ICacheData
 import me.anno.image.raw.BIImage
 import me.anno.image.tar.TGAImage
 import me.anno.io.files.FileFileRef
@@ -58,30 +57,25 @@ object ImageCPUCache : CacheSection("BufferedImages") {
     // eps: like svg, we could implement it, but we don't really need it that dearly...
 
     fun getImage(file: FileReference, async: Boolean): Image? {
-        return getImage(file, 10_000, async)
+        return getImage(file, 50, async)
     }
 
     fun getImage(file0: FileReference, timeout: Long, async: Boolean): Image? {
+        if (file0 is ImageReadable) return file0.readImage()
         val data = getFileEntry(file0, false, timeout, async) { file, _ ->
-            if (file is ImageReadable) {
-                CacheData(file.readImage())
-            } else {
-                val image = if (file.length() < 1e7 && file !is SignatureFile) { // < 10MB -> read directly
-                    val bytes = file.readBytes()
-                    val signature = Signature.findName(bytes)
-                    if (signature == "dds" || signature == "media" || file.lcExtension == "webp") {
-                        tryFFMPEG(file)
-                    } else {
-                        val reader = byteReaders[signature] ?: byteReaders[file.lcExtension]
-                        if (reader != null) reader(bytes) else tryGeneric(file, bytes)
-                    }
+            if (file.length() < 1e7 && file !is SignatureFile) { // < 10MB -> read directly
+                val bytes = file.readBytes()
+                val signature = Signature.findName(bytes)
+                if (signature == "dds" || signature == "media" || file.lcExtension == "webp") {
+                    tryFFMPEG(file)
                 } else {
-                    val signature = Signature.findName(file)
-                    val reader = fileReaders[signature] ?: fileReaders[file.lcExtension]
-                    if (reader != null) reader(file) else tryGeneric(file)
+                    val reader = byteReaders[signature] ?: byteReaders[file.lcExtension]
+                    if (reader != null) reader(bytes) else tryGeneric(file, bytes)
                 }
-                if (image is ICacheData) image
-                else CacheData(image)
+            } else {
+                val signature = Signature.findName(file)
+                val reader = fileReaders[signature] ?: fileReaders[file.lcExtension]
+                if (reader != null) reader(file) else tryGeneric(file)
             }
         }
         return when (data) {

@@ -14,28 +14,28 @@ public class HDRImage extends Image {
     private float[] pixels;
 
     public HDRImage(int width, int height, int numChannels) {
-        super(numChannels, numChannels > 3);
+        super(0, 0, numChannels, numChannels > 3);
         this.width = width;
         this.height = height;
         this.pixels = new float[width * height * numChannels];
     }
 
     public HDRImage(InputStream input) throws IOException {
-        super(3, false);
+        super(0, 0, 3, false);
         try (InputStream in = optimizeStream(input)) {
             read(in);
         }
     }
 
     public HDRImage(FileReference file) throws IOException {
-        super(3, false);
+        super(0, 0, 3, false);
         try (InputStream in = optimizeStream(file.inputStream())) {
             read(in);
         }
     }
 
     public HDRImage(File file) throws IOException {
-        super(3, false);
+        super(0, 0, 3, false);
         try (InputStream in = optimizeStream(new FileInputStream(file))) {
             read(in);
         }
