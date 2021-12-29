@@ -19,17 +19,16 @@ import me.anno.utils.pooling.IntArrayPool
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
+import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL32.GL_TEXTURE_2D_MULTISAMPLE
 import org.lwjgl.opengl.GL32.glTexImage2DMultisample
+import org.lwjgl.opengl.GL33.GL_TEXTURE_SWIZZLE_RGBA
 import org.lwjgl.opengl.GL43
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import java.nio.FloatBuffer
-import java.nio.IntBuffer
+import java.nio.*
 
 open class Texture2D(
     val name: String,
@@ -51,7 +50,7 @@ open class Texture2D(
 
     private val withMultisampling = samples > 1
 
-    private val tex2D = if (withMultisampling) GL_TEXTURE_2D_MULTISAMPLE else GL_TEXTURE_2D
+    private val target = if (withMultisampling) GL_TEXTURE_2D_MULTISAMPLE else GL_TEXTURE_2D
     val state get(): Int = pointer * 4 + isDestroyed.toInt(2) + isCreated.toInt(1)
 
     var pointer = -1
@@ -88,6 +87,14 @@ open class Texture2D(
         h = height
     }
 
+    fun swizzleMonochrome() {
+        tmp4i[0] = GL_RED
+        tmp4i[1] = GL_RED
+        tmp4i[2] = GL_RED
+        tmp4i[3] = GL_ONE
+        GL11.glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, tmp4i)
+    }
+
     fun ensurePointer() {
         checkSession()
         if (isDestroyed) throw RuntimeException("Texture was destroyed")
@@ -102,58 +109,98 @@ open class Texture2D(
         if (pointer <= 0) throw RuntimeException("Could not allocate texture pointer")
     }
 
-    fun texImage2D(internalFormat: Int, dataFormat: Int, dataType: Int, data: ByteBuffer?) {
+    private fun unbindUnpackBuffer() {
+        bindBuffer(GL_PIXEL_UNPACK_BUFFER, 0)
+    }
+
+    fun setAlignmentAndBuffer(w: Int, dataFormat: Int, dataType: Int) {
+        val typeSize = when (dataType) {
+            GL_UNSIGNED_BYTE, GL_BYTE -> 1
+            GL_UNSIGNED_SHORT, GL_SHORT -> 2
+            GL_UNSIGNED_INT, GL_INT, GL_FLOAT -> 4
+            GL_DOUBLE -> 8
+            else -> {
+                LOGGER.warn("Unknown data type $dataType")
+                RuntimeException().printStackTrace()
+                1
+            }
+        }
+        val numChannels = when (dataFormat) {
+            GL_R, GL_RED -> 1
+            GL_RG -> 2
+            GL_RGB, GL_BGR -> 3
+            GL_RGBA, GL_BGRA -> 4
+            else -> {
+                LOGGER.warn("Unknown data format $dataFormat")
+                RuntimeException().printStackTrace()
+                1
+            }
+        }
+        unpackAlignment(w * typeSize * numChannels)
+        unbindUnpackBuffer()
+    }
+
+    fun texImage2D(internalFormat: Int, dataFormat: Int, dataType: Int, data: Any?) {
         val w = w
         val h = h
-        unpackAlignment(w)
-        if (createdW == w && createdH == h) {
-            if (data == null) return
-            glTexSubImage2D(tex2D, 0, 0, 0, w, h, dataFormat, dataType, data)
+        if (createdW == w && createdH == h && data != null && !withMultisampling) {
+            setAlignmentAndBuffer(w, dataFormat, dataType)
+            when (data) {
+                is ByteBuffer -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
+                is ShortBuffer -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
+                is IntBuffer -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
+                is FloatBuffer -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
+                is DoubleBuffer -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
+                is IntArray -> glTexSubImage2D(target, 0, 0, 0, w, h, dataFormat, dataType, data)
+                else -> throw RuntimeException("${data.javaClass}")
+            }
         } else {
-            glTexImage2D(tex2D, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
+            if (withMultisampling) {
+                glTexImage2DMultisample(target, samples, internalFormat, w, h, false)
+            } else {
+                if (data != null) setAlignmentAndBuffer(w, dataFormat, dataType)
+                when (data) {
+                    is ByteBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
+                    is ShortBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
+                    is IntBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
+                    is FloatBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
+                    is DoubleBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
+                    is IntArray -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
+                    null -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, null as ByteBuffer?)
+                    else -> throw RuntimeException("${data.javaClass}")
+                }
+            }
             this.internalFormat = internalFormat
+            when (internalFormat) {
+                GL_R8, GL_R8I, GL_R8UI,
+                GL_R16F, GL_R16I, GL_R16UI,
+                GL_R32F, GL_R32I, GL_R32UI -> swizzleMonochrome()
+            }
             createdW = w
             createdH = h
         }
+        GFX.check()
     }
 
     fun texImage2D(type: TargetType, data: ByteBuffer?) {
-        val w = w
-        val h = h
-        bindBuffer(GL_PIXEL_UNPACK_BUFFER, 0)
-        unpackAlignment(w)
-        if (createdW == w && createdH == h) {
-            if (data == null) return
-            glTexSubImage2D(tex2D, 0, 0, 0, w, h, type.uploadFormat, type.fillType, data)
-        } else {
-            glTexImage2D(tex2D, 0, type.internalFormat, w, h, 0, type.uploadFormat, type.fillType, data)
-            internalFormat = type.internalFormat
-            createdW = w
-            createdH = h
-        }
+        texImage2D(type.internalFormat, type.uploadFormat, type.fillType, data)
     }
 
     fun create() {
         beforeUpload(0, 0)
-        if (withMultisampling) {
-            glTexImage2DMultisample(tex2D, samples, GL_RGBA8, w, h, false)
-        } else texImage2D(TargetType.UByteTarget4, null)
+        texImage2D(TargetType.UByteTarget4, null)
         afterUpload(false, 4 * samples)
     }
 
     fun create(type: TargetType) {
         beforeUpload(0, 0)
-        if (withMultisampling) {
-            glTexImage2DMultisample(tex2D, samples, type.internalFormat, w, h, false)
-        } else texImage2D(type, null)
+        texImage2D(type, null)
         afterUpload(type.isHDR, type.bytesPerPixel)
     }
 
     fun createFP32() {
         beforeUpload(0, 0)
-        if (withMultisampling) {
-            glTexImage2DMultisample(tex2D, samples, GL_RGBA32F, w, h, false)
-        } else texImage2D(TargetType.FloatTarget4, null)
+        texImage2D(TargetType.FloatTarget4, null)
         afterUpload(true, 4 * 4 * samples)
     }
 
@@ -512,9 +559,7 @@ open class Texture2D(
         switchRGB2BGR(ints2)
         unpackAlignment(4 * w)
         // uses bgra instead of rgba to save the swizzle
-        // glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, ints2)
-        internalFormat = GL_RGBA8
-        glTexImage2D(tex2D, 0, internalFormat, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, ints2)
+        texImage2D(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, ints2)
         afterUpload(false, 4)
     }
 
@@ -530,8 +575,7 @@ open class Texture2D(
         // because the number of channels from the input and internal format differ
         // glTexImage2D(tex2D, 0, GL_RGB8, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, ints2)
         unpackAlignment(4 * w)
-        internalFormat = GL_RGB8
-        glTexImage2D(tex2D, 0, internalFormat, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, ints2)
+        texImage2D(GL_RGB8, GL_RGBA, GL_UNSIGNED_BYTE, ints2)
         afterUpload(false, 3)
     }
 
@@ -539,8 +583,7 @@ open class Texture2D(
         beforeUpload(3, floats.size)
         val floats2 = if (checkRedundancy) checkRedundancy(floats) else floats
         unpackAlignment(12 * w)
-        internalFormat = GL_RGB32F
-        glTexImage2D(tex2D, 0, internalFormat, w, h, 0, GL_RGB, GL_FLOAT, floats2)
+        texImage2D(GL_RGB32F, GL_RGB, GL_FLOAT, floats2)
         afterUpload(true, 12)
     }
 
@@ -548,8 +591,7 @@ open class Texture2D(
         beforeUpload(3, floats.capacity())
         if (checkRedundancy) checkRedundancy(floats)
         unpackAlignment(12 * w)
-        internalFormat = GL_RGB32F
-        glTexImage2D(tex2D, 0, internalFormat, w, h, 0, GL_RGB, GL_FLOAT, floats)
+        texImage2D(GL_RGB32F, GL_RGB, GL_FLOAT, floats)
         afterUpload(true, 12)
     }
 
@@ -559,8 +601,7 @@ open class Texture2D(
         val buffer = bufferPool[data2.size, false]
         buffer.put(data2).flip()
         unpackAlignment(3 * w)
-        internalFormat = GL_RGB8
-        glTexImage2D(tex2D, 0, internalFormat, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer)
+        texImage2D(GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE, buffer)
         bufferPool.returnBuffer(buffer)
         afterUpload(false, 3)
     }
@@ -570,8 +611,7 @@ open class Texture2D(
         if (checkRedundancy) checkRedundancy(ints)
         if (ints.order() != ByteOrder.nativeOrder()) throw RuntimeException("Byte order must be native!")
         unpackAlignment(4 * w)
-        internalFormat = GL_RGB8
-        glTexImage2D(tex2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, ints)
+        texImage2D(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, ints)
         afterUpload(false, 4)
     }
 
@@ -580,8 +620,7 @@ open class Texture2D(
         if (checkRedundancy) checkRedundancy(ints)
         if (ints.order() != ByteOrder.nativeOrder()) throw RuntimeException("Byte order must be native!")
         unpackAlignment(4 * w)
-        internalFormat = GL_RGB8
-        glTexImage2D(tex2D, 0, GL_RGB8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, ints)
+        texImage2D(GL_RGB8, GL_RGBA, GL_UNSIGNED_BYTE, ints)
         afterUpload(false, 4)
     }
 
@@ -619,8 +658,7 @@ open class Texture2D(
         beforeUpload(1, data.remaining())
         if (checkRedundancy) checkRedundancyMonochrome(data)
         unpackAlignment(4 * w)
-        internalFormat = GL_R32F
-        glTexImage2D(tex2D, 0, internalFormat, w, h, 0, GL_RED, GL_FLOAT, data)
+        texImage2D(GL_R32F, GL_RED, GL_FLOAT, data)
         afterUpload(true, 4)
     }
 
@@ -705,20 +743,14 @@ open class Texture2D(
         if (checkRedundancy) checkRedundancy(buffer, true)
         // texImage2D(TargetType.UByteTarget3, buffer)
         unpackAlignment(3 * w)
-        internalFormat = GL_RGB8
-        glTexImage2D(tex2D, 0, internalFormat, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer)
+        texImage2D(GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE, buffer)
         bufferPool.returnBuffer(buffer)
         afterUpload(false, 3)
     }
 
     fun createDepth(lowQuality: Boolean = false) {
         beforeUpload()
-        internalFormat = if (lowQuality) GL_DEPTH_COMPONENT16 else GL_DEPTH_COMPONENT32F
-        if (withMultisampling) {
-            glTexImage2DMultisample(tex2D, samples, internalFormat, w, h, false)
-        } else {
-            glTexImage2D(tex2D, 0, internalFormat, w, h, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0)
-        }
+        texImage2D(if (lowQuality) GL_DEPTH_COMPONENT16 else GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, null)
         afterUpload(false, if (lowQuality) 2 else 4)
     }
 
@@ -735,8 +767,8 @@ open class Texture2D(
         if (!withMultisampling && this.clamping != clamping) {
             this.clamping = clamping
             val type = clamping.mode
-            glTexParameteri(tex2D, GL_TEXTURE_WRAP_S, type)
-            glTexParameteri(tex2D, GL_TEXTURE_WRAP_T, type)
+            glTexParameteri(target, GL_TEXTURE_WRAP_S, type)
+            glTexParameteri(target, GL_TEXTURE_WRAP_T, type)
         }
     }
 
@@ -750,20 +782,20 @@ open class Texture2D(
             return
         }
         if (!hasMipmap && nearest.needsMipmap && (w > 1 || h > 1)) {
-            glGenerateMipmap(tex2D)
+            glGenerateMipmap(target)
             hasMipmap = true
             if (GFX.supportsAnisotropicFiltering) {
                 val anisotropy = GFX.anisotropy
-                glTexParameteri(tex2D, GL_TEXTURE_LOD_BIAS, 0)
-                glTexParameterf(tex2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy)
+                glTexParameteri(target, GL_TEXTURE_LOD_BIAS, 0)
+                glTexParameterf(target, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy)
             }
             // whenever the base mipmap is changed, the mipmaps will be updated :)
-            glTexParameteri(tex2D, GL_GENERATE_MIPMAP, if (autoUpdateMipmaps) GL_TRUE else GL_FALSE)
+            glTexParameteri(target, GL_GENERATE_MIPMAP, if (autoUpdateMipmaps) GL_TRUE else GL_FALSE)
             // is called afterwards anyways
             // glTexParameteri(tex2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
         }
-        glTexParameteri(tex2D, GL_TEXTURE_MIN_FILTER, nearest.min)
-        glTexParameteri(tex2D, GL_TEXTURE_MAG_FILTER, nearest.mag)
+        glTexParameteri(target, GL_TEXTURE_MIN_FILTER, nearest.min)
+        glTexParameteri(target, GL_TEXTURE_MAG_FILTER, nearest.mag)
         this.filtering = nearest
     }
 
@@ -771,7 +803,7 @@ open class Texture2D(
 
     private fun bindBeforeUpload() {
         if (pointer <= -1) throw RuntimeException("Pointer must be defined")
-        bindTexture(tex2D, pointer)
+        bindTexture(target, pointer)
     }
 
     /*override fun bind(nearest: GPUFiltering, clamping: Clamping): Boolean {
@@ -787,7 +819,7 @@ open class Texture2D(
         if (pointer > 0 && isCreated) {
             if (isBoundToSlot(index)) return false
             activeSlot(index)
-            val result = bindTexture(tex2D, pointer)
+            val result = bindTexture(target, pointer)
             ensureFilterAndClamping(nearest, clamping)
             return result
         } else throw IllegalStateException("Cannot bind non-created texture!")
@@ -849,6 +881,7 @@ open class Texture2D(
 
         var boundTextureSlot = 0
         val boundTextures = IntArray(64) { -1 }
+        val tmp4i = IntArray(4)
 
         fun invalidateBinding() {
             boundTextureSlot = -1
