@@ -86,4 +86,6 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
 
     }
 
+    override val className: String = "PanelListY"
+
 }

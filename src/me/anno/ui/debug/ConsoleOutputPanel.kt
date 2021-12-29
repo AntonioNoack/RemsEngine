@@ -26,6 +26,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
 
     override fun tickUpdate() {
         invalidateDrawing()
+        tooltip = text
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
@@ -80,9 +81,15 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
         fun createConsoleWithStats(bottom: Boolean = true, style: Style): Panel {
 
             val group = PanelStack(style)
-            group += createConsole(style)
+            val console = createConsole(style)
+            group += console
 
-            val right = PanelListX(style)
+            val right = object : PanelListX(style) {
+                override fun tickUpdate() {
+                    super.tickUpdate()
+                    tooltip = console.text
+                }
+            }
             val rip = RuntimeInfoPanel(style)
             rip.alignmentX = AxisAlignment.MAX
             rip.makeBackgroundOpaque()

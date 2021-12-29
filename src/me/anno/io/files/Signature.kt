@@ -140,6 +140,7 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
         }
 
         // source: https://en.wikipedia.org/wiki/List_of_file_signatures
+        // https://www.garykessler.net/library/file_sigs.html
         val signatures = arrayListOf(
             Signature("bz2", 0, "BZh"),
             Signature("rar", 0, "Rar!", byteArrayOf(0x1a, 0x07)),
@@ -206,6 +207,7 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             Signature("media", 0, listOf(0x00, 0x00, 0x01, 0xB3)),// mpg, mpeg
             Signature("media", 4, "ftypisom"), // mp4
             Signature("media", 4, "ftypmp42"), // mp4
+            Signature("media", 0, listOf(0x30, 0x26, 0xb2, 0x75, 0x8e, 0x66, 0xcf, 0x11)), // wmv, wma, asf (Windows Media file)
             // meshes
             Signature("vox", 0, "VOX "),
             Signature("fbx", 0, "Kaydara FBX Binary"),

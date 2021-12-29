@@ -425,8 +425,7 @@ object Thumbs {
         wantedTime: Double
     ) {
 
-        // todo this is a bad option
-        val meta = getMeta(srcFile, false)!!
+        val meta = getMeta(srcFile, false) ?: throw RuntimeException("Could not load metadata for $srcFile")
         if (max(meta.videoWidth, meta.videoHeight) < size) return generate(srcFile, size / 2, callback)
 
         val scale = floor(max(meta.videoWidth, meta.videoHeight).toFloat() / size).toInt()
@@ -1023,6 +1022,7 @@ object Thumbs {
             "lua-bytecode" -> {
             }
             "exe" -> generateSystemIcon(srcFile, dstFile, size, callback)
+            "media" -> generateVideoFrame(srcFile, dstFile, size, callback, 1.0)
             else -> try {
                 when (srcFile.lcExtension) {
 
