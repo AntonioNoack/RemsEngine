@@ -14,7 +14,6 @@ import me.anno.utils.maths.Maths.length
 import me.anno.utils.types.Strings.isBlank2
 import kotlin.math.abs
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 object Tooltips {
 
@@ -23,7 +22,7 @@ object Tooltips {
 
     var lastMovementTime = 0L
 
-    val style  = DefaultConfig.style.getChild("tooltip")
+    val style = DefaultConfig.style.getChild("tooltip")
 
     val textPanel = TextPanel("", style).apply {
         breaksIntoMultiline = true
@@ -37,14 +36,21 @@ object Tooltips {
 
     var lastPanel: Panel? = null
 
-    fun draw(panel: Panel) {
+    fun draw(sourcePanel: Panel, panel: Panel) {
         val w = GFX.width
         val h = GFX.height
-        val availableW = min(w, (textPanel.font.size * 20).toInt())
+        val fontSize = textPanel.font.sizeInt
+        val availableW = min(w, fontSize * 20)
         panel.calculateSize(availableW, h)
         // container.applyConstraints()
-        val x = min(mouseX.roundToInt() + 10, w - panel.minW)
-        val y = min(mouseY.roundToInt() - 20, h - panel.minH)
+        val x = min(mouseX.toInt() + fontSize, w - panel.minW)
+        val y = if (sourcePanel.y < fontSize) {
+            // if panel is at the top, draw ttt below it, not above,
+            // because it would cover the panel itself
+            min(mouseY.toInt() + fontSize / 2, h - panel.minH)
+        } else {
+            min(mouseY.toInt() - fontSize, h - panel.minH)
+        }
         panel.placeInParent(x, y)
         panel.applyPlacement(panel.minW, panel.minH)
         panel.draw(panel.x, panel.y, panel.x + panel.w, panel.y + panel.h)
@@ -68,32 +74,27 @@ object Tooltips {
         }
 
         val delta = abs(time - lastMovementTime) / 1_000_000
-
         if (delta >= tooltipReactionTime || lastPanel?.onMovementHideTooltip == false) {
+            val hovered = hoveredPanel
+            if (hovered != null) {
 
-            val panel = hoveredPanel?.getTooltipPanel(mouseX, mouseY)
-            lastPanel = panel
+                val panel = hovered.getTooltipPanel(mouseX, mouseY)
+                lastPanel = panel
 
-            if (panel != null) {
-
-                draw(panel)
-                return true
-
-            } else {
-
-                val tooltipText = hoveredPanel?.getTooltipText(mouseX, mouseY)
-                if (tooltipText != null && !tooltipText.isBlank2()) {
-                    textPanel.text = tooltipText
-                    draw(container)
+                if (panel != null) {
+                    draw(hovered, panel)
                     return true
+                } else {
+                    val tooltipText = hovered.getTooltipText(mouseX, mouseY)
+                    if (tooltipText != null && !tooltipText.isBlank2()) {
+                        textPanel.text = tooltipText
+                        draw(hovered, container)
+                        return true
+                    }
                 }
-
             }
-
         } else lastPanel = null
-
         return false
-
     }
 
 }

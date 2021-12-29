@@ -87,6 +87,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             rip.alignmentX = AxisAlignment.MAX
             rip.makeBackgroundOpaque()
             rip.setWeight(1f)
+            rip.tooltip = "Click to invoke garbage collector"
             rip.addLeftClickListener {
                 System.gc()
                 LOGGER.info("Called Garbage Collector")
