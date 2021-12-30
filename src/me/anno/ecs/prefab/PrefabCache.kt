@@ -22,6 +22,7 @@ import me.anno.mesh.blender.BlenderReader
 import me.anno.mesh.obj.OBJReader2
 import me.anno.mesh.vox.VOXReader
 import me.anno.utils.structures.maps.KeyPairMap
+import me.anno.utils.types.Lists.firstInstanceOrNull
 import org.apache.logging.log4j.LogManager
 
 object PrefabCache : CacheSection("Prefab") {
@@ -79,7 +80,7 @@ object PrefabCache : CacheSection("Prefab") {
             is PrefabReadable -> resource.readPrefab()
             else -> {
                 try {
-                    val read = TextReader.read(resource)
+                    val read = TextReader.read(resource, true)
                     val prefab = read.firstOrNull()
                     if (prefab == null) LOGGER.warn("No Prefab found in $resource:${resource::class.simpleName}! $read")
                     // else LOGGER.info("Read ${prefab.changes?.size} changes from $resource")
@@ -139,7 +140,7 @@ object PrefabCache : CacheSection("Prefab") {
     private fun loadPrefab3(file: FileReference): ISaveable? {
         if (file is PrefabReadable) return file.readPrefab()
         try {
-            val pure = TextReader.read(file).firstOrNull()
+            val pure = TextReader.read(file, true).firstOrNull()
             if (pure != null) return pure
         } catch (e: Exception) {
         }
@@ -153,7 +154,7 @@ object PrefabCache : CacheSection("Prefab") {
         }
         val folder = ZipCache.unzip(file, false) ?: return null
         val scene = folder.getChild("Scene.json") as? PrefabReadable
-        val scene2 = scene ?: folder.listChildren()?.filterIsInstance<PrefabReadable>()?.firstOrNull() ?: return null
+        val scene2 = scene ?: folder.listChildren()?.firstInstanceOrNull<PrefabReadable>() ?: return null
         return scene2.readPrefab()
     }
 

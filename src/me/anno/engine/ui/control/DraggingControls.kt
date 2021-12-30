@@ -18,6 +18,7 @@ import me.anno.ui.editor.sceneView.Gizmos
 import me.anno.ui.input.EnumInput
 import me.anno.utils.maths.Maths.pow
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Lists.firstInstanceOrNull
 import me.anno.utils.types.Matrices.distance
 import org.apache.logging.log4j.LogManager
 import org.joml.Math
@@ -303,7 +304,7 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                 "Entity" -> {
                     // add this to the scene
                     // where? selected / root
-                    val root = library.selection.filterIsInstance<PrefabSaveable>().firstOrNull() ?: library.world
+                    val root = library.selection.firstInstanceOrNull<PrefabSaveable>() ?: library.world
                     if (root is Entity) PrefabInspector.currentInspector!!.addEntityChild(root, prefab)
                 }
                 // todo general listener in the components, which listens for drag events? they could be useful for custom stuff...

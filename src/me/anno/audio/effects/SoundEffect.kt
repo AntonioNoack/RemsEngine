@@ -29,7 +29,7 @@ abstract class SoundEffect(val inputDomain: Domain, val outputDomain: Domain) : 
     abstract val displayName: String
     abstract val description: String
 
-    open fun clone() = TextReader.read(toString()).first() as SoundEffect
+    open fun clone() = TextReader.read(toString(), true).first() as SoundEffect
 
     override val approxSize = 10
     override fun isDefaultValue() = false

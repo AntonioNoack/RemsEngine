@@ -59,7 +59,7 @@ fun main() {
 
     ECSRegistry.initNoGFX()
 
-    val asObject = TextReader.read(raw).first()
+    val asObject = TextReader.read(raw, false).first()
     val asString = TextWriter.toText(asObject)
 
     LOGGER.info(JsonFormatter.format(asString))

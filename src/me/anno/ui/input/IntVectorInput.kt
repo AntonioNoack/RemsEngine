@@ -158,7 +158,8 @@ class IntVectorInput(
     private fun pasteAnimated(data: String): Unit? {
         return try {
             val editorTime = editorTime
-            val animProperty = TextReader.read(data).firstOrNull() as? AnimatedProperty<*>
+            val animProperty = TextReader.read(data, true)
+                .firstOrNull() as? AnimatedProperty<*>
             if (animProperty != null) {
                 if (owningProperty != null) {
                     owningProperty.copyFrom(animProperty)

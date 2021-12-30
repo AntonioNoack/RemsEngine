@@ -862,7 +862,7 @@ open class Transform() : Saveable(),
 
         val nextClickId = AtomicInteger()
 
-        fun String.toTransform() = TextReader.read(this).first() as? Transform
+        fun String.toTransform() = TextReader.read(this, true).first() as? Transform
 
         const val minAlpha = 0.5f / 255f
         private val LOGGER = LogManager.getLogger(Transform::class)

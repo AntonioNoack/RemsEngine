@@ -14,6 +14,7 @@ import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.utils.hpc.SyncMaster
+import me.anno.utils.types.Lists.firstInstanceOrNull
 import me.anno.utils.types.Lists.getOrPrevious
 import org.apache.logging.log4j.LogManager
 
@@ -175,7 +176,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
     }
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
-        val syncMaster = rootPanel.listOfAll.filterIsInstance<RenderView>().firstOrNull()?.library?.syncMaster
+        val syncMaster = rootPanel.listOfAll.firstInstanceOrNull<RenderView>()?.library?.syncMaster
         if (syncMaster != null) {
             try {
                 open(syncMaster, files.first(), "Entity")

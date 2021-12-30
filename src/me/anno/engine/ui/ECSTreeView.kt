@@ -340,7 +340,7 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
      * returns true on success
      * */
     private fun tryPaste(data: String): Boolean {
-        return when (val element = TextReader.read(data).firstOrNull()) {
+        return when (val element = TextReader.read(data, true).firstOrNull()) {
             is Prefab -> {
                 val root = library.world
                 Hierarchy.add(root.prefab!!, Path.ROOT_PATH, element, Path.ROOT_PATH, root)

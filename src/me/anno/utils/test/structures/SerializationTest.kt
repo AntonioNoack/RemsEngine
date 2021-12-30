@@ -53,7 +53,7 @@ fun main() {
     logger.info(text)
 
     ISaveable.registerCustomClass("Test") { TestClass() }
-    val copiedInstance = TextReader.read(text)
+    val copiedInstance = TextReader.read(text, false)
     logger.info(copiedInstance)
 
 }

@@ -384,7 +384,7 @@ class Controller(val id: Int) {
         fun loadCalibration(guid: String): ControllerCalibration? {
             val file = getReference(ConfigBasics.configFolder, "controller/${formatGuid(guid)}.json")
             if (!file.exists || file.isDirectory) return null
-            return TextReader.read(file).firstOrNull() as? ControllerCalibration
+            return TextReader.readFirstOrNull<ControllerCalibration>(file)
         }
 
         fun saveCalibration(guid: String, calibration: ControllerCalibration) {

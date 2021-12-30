@@ -61,7 +61,7 @@ fun test1() {
     val text = TextWriter.toText(prefab)
     println(text)
 
-    val copied = TextReader.read(text).first() as Prefab
+    val copied = TextReader.read(text, true).first() as Prefab
     println(copied.getSampleInstance())
 }
 
@@ -78,7 +78,7 @@ fun test2() {
     val text = TextWriter.toText(prefab)
     println(JsonFormatter.format(text))
 
-    val copied = TextReader.read(text).first() as Prefab
+    val copied = TextReader.read(text, false).first() as Prefab
     println(copied.getSampleInstance())
 
 }

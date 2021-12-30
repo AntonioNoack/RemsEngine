@@ -78,6 +78,7 @@ import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.utils.files.OpenInBrowser.openInBrowser
 import me.anno.utils.hpc.Threads.threadWithName
+import me.anno.utils.types.Lists.firstInstanceOrNull
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import java.io.File
@@ -515,9 +516,7 @@ object UILayouts {
         options.addAction(selectTitle, "Inspector Camera") { selectTransform(nullCamera) }
         options.addAction(selectTitle, "Root") { selectTransform(root) }
         options.addAction(selectTitle, "First Camera") {
-            selectTransform(
-                root.listOfAll.filterIsInstance<Camera>().firstOrNull()
-            )
+            selectTransform(root.listOfAll.firstInstanceOrNull<Camera>())
         }
 
         options.addAction(debugTitle, "Reload Cache (Ctrl+F5)") { CacheSection.clearAll() }

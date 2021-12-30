@@ -20,8 +20,10 @@ import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
 import java.io.IOException
 import java.io.OutputStream
+import java.nio.ByteBuffer
 import java.util.*
 import kotlin.concurrent.thread
+import kotlin.math.min
 
 class VideoCreator(
     val w: Int, val h: Int,
@@ -123,7 +125,6 @@ class VideoCreator(
     }
 
     private val pixelByteCount = w * h * 3
-    private val byteArrayBuffer = ByteArray(pixelByteCount)
 
     private val buffer1 = BufferUtils.createByteBuffer(pixelByteCount)
     private val buffer2 = BufferUtils.createByteBuffer(pixelByteCount)
@@ -139,7 +140,7 @@ class VideoCreator(
         val buffer = if (frameIndex % 2 == 0L) buffer1 else buffer2
 
         buffer.position(0)
-        packAlignment(w)
+        packAlignment(w * 3)
         glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, buffer)
         buffer.position(0)
 
@@ -148,8 +149,7 @@ class VideoCreator(
         thread(name = "FrameDataCopy[$frameIndex]") {// offload to other thread
             try {
                 synchronized(videoOut) {
-                    buffer.get(byteArrayBuffer)
-                    videoOut.write(byteArrayBuffer)
+                    write(videoOut, buffer)
                     callback()
                 }
             } catch (e: IOException) {
@@ -162,6 +162,19 @@ class VideoCreator(
             }
         }
 
+    }
+
+    private val byteArrayBuffer = ByteArray(min(pixelByteCount, 2048))
+    fun write(output: OutputStream, data: ByteBuffer) {
+        var i = 0
+        val tmp = byteArrayBuffer
+        val n = pixelByteCount
+        while (i < n) {
+            val di = min(n - i, tmp.size)
+            data.get(tmp, 0, di)
+            output.write(tmp, 0, di)
+            i += di
+        }
     }
 
     var wasClosed = false
@@ -182,7 +195,15 @@ class VideoCreator(
         /**
          * render a video from a framebuffer
          * */
-        fun renderVideo(w: Int, h: Int, fps: Double, dst: FileReference, numUpdates: Int, fb: Framebuffer, update: (callback: () -> Unit) -> Unit) {
+        fun renderVideo(
+            w: Int,
+            h: Int,
+            fps: Double,
+            dst: FileReference,
+            numUpdates: Int,
+            fb: Framebuffer,
+            update: (callback: () -> Unit) -> Unit
+        ) {
             val creator = VideoCreator(
                 w, h, fps, numUpdates + 1L, FFMPEGEncodingBalance.S1,
                 FFMPEGEncodingType.DEFAULT, dst
@@ -208,7 +229,14 @@ class VideoCreator(
         /**
          * render a video from a set of textures
          * */
-        fun renderVideo(w: Int, h: Int, fps: Double, dst: FileReference, numFrames: Long, getNextFrame: (callback: (Texture2D) -> Unit) -> Unit) {
+        fun renderVideo(
+            w: Int,
+            h: Int,
+            fps: Double,
+            dst: FileReference,
+            numFrames: Long,
+            getNextFrame: (callback: (Texture2D) -> Unit) -> Unit
+        ) {
             val creator = VideoCreator(
                 w, h, fps, numFrames, FFMPEGEncodingBalance.S1,
                 FFMPEGEncodingType.DEFAULT, dst
@@ -218,7 +246,7 @@ class VideoCreator(
             val fb = Framebuffer("frame", w, h, 1, 1, false, DepthBufferType.NONE)
             fun writeFrame() {
                 getNextFrame { texture ->
-                    useFrame(fb){
+                    useFrame(fb) {
                         texture.bind(0)
                         GFX.copyNoAlpha()
                     }

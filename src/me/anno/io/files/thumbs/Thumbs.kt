@@ -1048,7 +1048,7 @@ object Thumbs {
                                         generateSomething(decoded.readPrefab(), srcFile, dstFile, size, callback)
                                     decoded.length() > 0 -> {
                                         // try to read the file as an asset
-                                        val sth = TextReader.read(decoded).firstOrNull()
+                                        val sth = TextReader.read(decoded, true).firstOrNull()
                                         generateSomething(sth, srcFile, dstFile, size, callback)
                                     }
                                     else -> LOGGER.warn("File $decoded is empty")

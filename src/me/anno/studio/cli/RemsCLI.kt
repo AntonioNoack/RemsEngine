@@ -2,9 +2,9 @@ package me.anno.studio.cli
 
 import me.anno.cache.Cache
 import me.anno.gpu.GFX
-import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.hidden.HiddenOpenGLContext
+import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.bindTexture
 import me.anno.installer.Installer.checkInstall
@@ -84,9 +84,8 @@ object RemsCLI {
         init()
 
         val scene = try {
-            TextReader.read(sceneSource)
-                .filterIsInstance<Transform>()
-                .firstOrNull() ?: return error("Could not find scene")
+            TextReader.readFirstOrNull<Transform>(sceneSource, true)
+                ?: return error("Could not find scene")
         } catch (e: RuntimeException) {
             e.printStackTrace()
             return error("Error in input file")

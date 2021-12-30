@@ -31,6 +31,7 @@ import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.json.JsonFormatter
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.language.translation.NameDesc
@@ -54,6 +55,7 @@ import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.structures.tuples.MutablePair
 import me.anno.utils.types.AABBs.getMax2
 import me.anno.utils.types.AABBs.getMin2
+import me.anno.utils.types.Lists.firstInstanceOrNull
 import me.anno.utils.types.Quaternions.toEulerAnglesDegrees
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import org.apache.logging.log4j.LogManager
@@ -98,7 +100,7 @@ object ComponentUI {
 
         val title = name?.camelCaseToTitle() ?: ""
 
-        val type0 = property.annotations.filterIsInstance<me.anno.ecs.annotations.Type>().firstOrNull()?.type
+        val type0 = property.annotations.firstInstanceOrNull<me.anno.ecs.annotations.Type>()?.type
         val type1 = type0 ?: when (val value = property.get()) {
 
             // native types
@@ -166,7 +168,7 @@ object ComponentUI {
             }
 
             is Map<*, *> -> {
-                val annotation = property.annotations.filterIsInstance<MapType>().firstOrNull()
+                val annotation = property.annotations.firstInstanceOrNull<MapType>()
                 val keyType = annotation?.keyType ?: getType(value.keys.iterator(), name) ?: return null
                 val valueType = annotation?.valueType ?: getType(value.values.iterator(), name) ?: return null
                 return object : AnyMapPanel(title, visibilityKey, keyType, valueType, style) {
@@ -191,8 +193,13 @@ object ComponentUI {
                 if (value is ISaveable) {
                     // todo serialize saveables, they may be simple
                     // a first variant for editing may be a json editor
-                    return TextInputML(title, TextWriter.toText(value), style)
-                        .apply { addChangeListener { property.set(this, TextReader.read(it).firstOrNull()) } }
+                    val value0 = JsonFormatter.format(TextWriter.toText(value))
+                    val input = TextInputML(title, value0, style)
+                    input.addChangeListener {
+                        val value2 = TextReader.read(it, true).firstOrNull()
+                        property.set(input, value2)
+                    }
+                    return input
                 }
                 return TextPanel("?? $title, ${value?.javaClass}", style)
             }
@@ -881,7 +888,7 @@ object ComponentUI {
     // if we were using a language, which doesn't discard type information at runtime, we would not have this
     // issue
     fun getArrayType(property: IProperty<Any?>, value: Iterator<Any?>, warnName: String? = null): String? {
-        var arrayType = property.annotations.filterIsInstance<ListType>().firstOrNull()?.valueType
+        var arrayType = property.annotations.firstInstanceOrNull<ListType>()?.valueType
         while (arrayType == null && value.hasNext()) arrayType = getTypeFromSample(value.next())
         if (warnName != null && arrayType == null) warnDetectionIssue(warnName)
         return arrayType

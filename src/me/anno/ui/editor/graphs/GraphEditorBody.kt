@@ -675,7 +675,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
             val time0 = getTimeAt(x)
             val target = selectedProperty ?: return super.onPaste(x, y, data, type)
             val targetType = target.type
-            val parsedKeyframes = TextReader.read(data).filterIsInstance<Keyframe<*>>()
+            val parsedKeyframes = TextReader.read(data, true).filterIsInstance<Keyframe<*>>()
             if (parsedKeyframes.isNotEmpty()) {
                 RemsStudio.largeChange("Pasted Keyframes") {
                     parsedKeyframes.forEach { sth ->

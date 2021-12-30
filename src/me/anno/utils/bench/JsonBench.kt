@@ -43,11 +43,11 @@ fun main() {
     // I would have expected the FileFileRef allocations to take time, but it looks like, they don't...
 
     // warm-up
-    TextReader.read(text)
+    TextReader.read(text, false)
     timer.start()
 
     for (i in 0 until tries) {
-        TextReader.read(text)
+        TextReader.read(text, false)
     }
 
     timer.stop("custom")

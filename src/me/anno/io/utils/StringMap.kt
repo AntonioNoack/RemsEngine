@@ -88,9 +88,7 @@ open class StringMap(
     override operator fun set(key: String, value: Any?): Boolean {
         synchronized(this) {
             onSyncAccess()
-            val hadKey = key in map
             val old = map.put(key, value)
-            if (hadKey) println("setting $key to $value, was $old")
             if (old != value) wasChanged = true
         }
         return true

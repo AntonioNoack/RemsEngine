@@ -68,7 +68,7 @@ abstract class Change(val priority: Int) : Saveable(), Cloneable {
                 CAdd(path, 'x', "Entity")
             )) {
                 LOGGER.info(sample)
-                val clone = TextReader.read(TextWriter.toText(sample)).first()
+                val clone = TextReader.read(TextWriter.toText(sample), true).first()
                 LOGGER.info(clone)
             }
         }

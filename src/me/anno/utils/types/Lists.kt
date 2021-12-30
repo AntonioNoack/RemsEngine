@@ -306,6 +306,12 @@ object Lists {
         return this
     }
 
+    inline fun <reified Type> Iterable<*>.firstInstanceOrNull() =
+        firstOrNull { it is Type } as? Type
+
+    inline fun <reified Type> Sequence<*>.firstInstanceOrNull() =
+        firstOrNull { it is Type } as? Type
+
     @JvmStatic
     fun main(args: Array<String>) {
         val l0 = arrayListOf(arrayListOf(1, 2, 3), arrayListOf(9, 8, 7))

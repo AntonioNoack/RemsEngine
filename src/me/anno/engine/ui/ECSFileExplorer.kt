@@ -199,7 +199,7 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
 
     fun pastePrefab(data: String): Boolean {
         try {
-            val read = TextReader.read(data)
+            val read = TextReader.read(data, true)
             val saveable = read.getOrNull(0) ?: return false
             when (saveable) {
                 is Prefab -> {

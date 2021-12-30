@@ -82,7 +82,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         val animations = asFolder.first.getChild("animations")
             .listChildren()?.associate {
                 val text = it.readText()
-                val animation = TextReader.read(text).first() as Animation
+                val animation = TextReader.read(text, true).first() as Animation
                 it.nameWithoutExtension to animation
             } ?: emptyMap()
         return AnimGameItem(instance, animations)

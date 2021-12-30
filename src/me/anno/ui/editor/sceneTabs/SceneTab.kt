@@ -35,7 +35,7 @@ class SceneTab(var file: FileReference?, var scene: Transform, history: History?
     }
 
     var history = history ?: try {
-        TextReader.read(file!!).filterIsInstance<History>().first()
+        TextReader.readFirstOrNull<History>(file!!)!!
     } catch (e: java.lang.Exception) {
         History()
     }

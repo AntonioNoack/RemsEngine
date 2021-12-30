@@ -10,6 +10,7 @@ import me.anno.objects.Transform
 import me.anno.studio.history.History
 import me.anno.ui.editor.sceneTabs.SceneTab
 import me.anno.utils.files.LocalFile.toGlobalFile
+import me.anno.utils.types.Lists.firstInstanceOrNull
 
 class SceneTabData() : Saveable() {
 
@@ -25,14 +26,14 @@ class SceneTabData() : Saveable() {
 
     fun apply(tab: SceneTab) {
         tab.file = file
-        val read by lazy { TextReader.read(file!!) }
-        tab.scene = transform ?: read.filterIsInstance<Transform>().firstOrNull() ?: Transform().run {
+        val read by lazy { TextReader.read(file!!, true) }
+        tab.scene = transform ?: read.firstInstanceOrNull<Transform>() ?: Transform().run {
             // todo translate
             name = "Root"
             comment = "Error loading $file!"
             this
         }
-        tab.history = history ?: read.filterIsInstance<History>().firstOrNull() ?: tab.history
+        tab.history = history ?: read.firstInstanceOrNull<History>() ?: tab.history
     }
 
     override fun save(writer: BaseWriter) {

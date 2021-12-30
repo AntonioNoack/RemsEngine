@@ -367,7 +367,7 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         if (!data.startsWith("[")) return super.onPaste(x, y, data, type)
         try {
-            val childMaybe = TextReader.read(data).firstOrNull { it is Transform } as? Transform
+            val childMaybe = TextReader.read(data, true).firstOrNull { it is Transform } as? Transform
             val child = childMaybe ?: return super.onPaste(x, y, data, type)
             val original = (StudioBase.dragged as? Draggable)?.getOriginal() as? Transform
             RemsStudio.largeChange("Pasted Component / Changed Timeline Slot") {

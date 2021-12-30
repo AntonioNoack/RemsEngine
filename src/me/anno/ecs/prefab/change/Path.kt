@@ -250,7 +250,7 @@ class Path(
 
             ECSRegistry.initNoGFX()
             LOGGER.info(path)
-            val cloned = TextReader.read(TextWriter.toText(path)).first()
+            val cloned = TextReader.read(TextWriter.toText(path), false).first()
             LOGGER.info(cloned)
             LOGGER.info(cloned == path)
 
