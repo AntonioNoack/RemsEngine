@@ -64,9 +64,7 @@ abstract class StudioBase(
     val versionName =
         addSuffix("${versionNumber / 10000}.${(versionNumber / 100) % 100}.${versionNumber % 100}", versionSuffix)
 
-    open fun loadConfig() {
-        DefaultConfig.init()
-    }
+    open fun loadConfig() {}
 
     abstract fun createUI()
 
@@ -132,6 +130,7 @@ abstract class StudioBase(
     fun setupNames() {
         GFX.title = title
         GFXBase0.projectName = configName
+        DefaultConfig["init"]
     }
 
     open fun run() {

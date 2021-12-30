@@ -15,7 +15,7 @@ class RemsVersionFeatures(oldVersion: Int) : VersionFeatures(oldVersion) {
 
     fun addInstance(config: StringMap, name: String, value: Transform) {
         val list = config["createNewInstancesList"] as? StringMap ?: return
-        list[name] = value.toString()
+        list[name, value]
     }
 
     fun removeInstance(config: StringMap, name: String) {

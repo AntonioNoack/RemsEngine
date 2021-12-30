@@ -10,8 +10,6 @@ fun main() {
 
     val file = OS.documents.getChild("RemsStudio\\Image Tests\\Scenes\\Benchmark.json")
 
-    DefaultConfig.init()
-
     // Thread.sleep(10000)
 
     val tries = 20

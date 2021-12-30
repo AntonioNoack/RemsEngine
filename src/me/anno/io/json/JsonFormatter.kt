@@ -3,76 +3,94 @@ package me.anno.io.json
 object JsonFormatter {
 
     @Throws(IndexOutOfBoundsException::class)
-    fun format(str: String, spaces: Int = 2, spaceChar: Char = ' ', maxCompressedEnds: Int = 1): String {
+    fun format(str: String, indentation: String = "  ", lineBreakLength: Int = 10): String {
 
         val size = str.length
         val sizeGuess = size * 2
         val res = StringBuilder(sizeGuess)
+        val eoo = StringBuilder(16)
 
+        var shouldSwitchLine = false
         var depth = 0
+        var lineStartIndex = 0
+        var closingBracketsInLine = 0
+
         fun breakLine() {
-            if (maxCompressedEnds > 1 && (res.endsWith(']') || res.endsWith('}'))) {
-                // remove 2 tabs at the start of this last line
-                val startOfLastLine = res.lastIndexOf('\n') + 1
-                val endsOfTabs = res.lastIndexOf(spaceChar)
-                if (res.length - endsOfTabs <= maxCompressedEnds) {
-                    var done = 0
-                    for (j in startOfLastLine until res.length) {
-                        if (res[j] == spaceChar) {
-                            res.replace(j, j + 1, "")
-                            // correct?? mmh...
-                            // I think we should subtract j by one...
-                            done++
-                            if (done > spaces) break
-                        } else break
-                    }
-                    return
-                }// else would compress to strictly
+            shouldSwitchLine = false
+            res.append('\n')
+            for (j in 0 until depth) {
+                res.append(indentation)
             }
-            if (!res.endsWith("},")) {
-                res.append('\n')
-                for (j in 0 until spaces * depth) {
-                    res.append(spaceChar)
-                }
-            } else res.append(spaceChar)
+            lineStartIndex = res.length
+            closingBracketsInLine = 0
+        }
+
+        fun handleEOO() {
+            if (eoo.isNotEmpty()) {
+                breakLine()
+                res.append(eoo)
+                closingBracketsInLine = eoo.length
+                eoo.clear()
+            }
         }
 
         var i = 0
+
+        fun handleString(char: Char) {
+            handleEOO()
+            if (shouldSwitchLine || closingBracketsInLine > 1) breakLine()
+            else if (res.endsWith(',')) res.append(' ')
+            res.append(char)
+            while (i < size) {
+                when (val c2 = str[i++]) {
+                    char -> break
+                    // just skip the next '"', could throw an IndexOutOfBoundsException
+                    '\\' -> {
+                        res.append(c2)
+                        res.append(str[i++])
+                    }
+                    else -> res.append(c2)
+                }
+            }
+            res.append(char)
+        }
+
         while (i < size) {
             when (val char = str[i++]) {
                 '[', '{' -> {
-                    // todo if ends with ]/} and spaces, just append it there
+                    if (res.endsWith(',')) res.append(' ')
                     res.append(char)
                     depth++
-                    breakLine()
+                    // quicker ascent than directly switching lines
+                    shouldSwitchLine = true
                 }
                 ']', '}' -> {
+                    // quicker descent
+                    if (eoo.length > 1) handleEOO()
+                    eoo.append(char)
                     depth--
-                    breakLine()
-                    res.append(char)
                 }
-                ' ', '\t', '\r' -> {
+                ' ', '\t', '\r', '\n' -> {
                 } // skip, done automatically
                 ':' -> res.append(": ")
-                '"' -> {
-                    res.append('"')
-                    while (i < size) {
-                        when (val c2 = str[i++]) {
-                            '"' -> break
-                            // just skip the next '"', could throw an IndexOutOfBoundsException
-                            '\\' -> res.append(str[i++])
-                            else -> res.append(c2)
-                        }
-                    }
-                    res.append('"')
-                }
+                '"', '\'' -> handleString(char)
                 ',' -> {
+                    handleEOO()
                     res.append(char)
-                    breakLine()
+                    if (res.length - lineStartIndex > lineBreakLength) {
+                        shouldSwitchLine = true
+                    }
                 }
-                else -> res.append(char)
+                else -> {
+                    handleEOO()
+                    if (shouldSwitchLine) breakLine()
+                    else if (res.endsWith(',')) res.append(' ')
+                    res.append(char)
+                }
             }
         }
+
+        handleEOO()
 
         return res.toString()
 
@@ -94,7 +112,14 @@ object JsonFormatter {
                     "{\"v3d:position\":[0.9965685024139616,-4.998401793503934,3.8464554916186247]},{\"Path:path\":{\"S:v\":\"c1,BulletPhysics\"},\"d:automaticDeathHeight\":-5}," +
                     "{\"Path:path\":{\"S:v\":\"c2,Rigidbody\"},\"d:mass\":1},{\"Path:path\":32,\"v3d:gravity\":[0,1,0]},{\"Path:path\":{\"S:v\":\"e0,Entity\"},\"v3d:position\":" +
                     "[-1.8121681560740845,-0.022380086565996216,-2.405396522738568]},{\"Path:path\":35,\"q4d:rotation\":[0,0,0,1]},{\"Path:path\":35,\"v3d:scale\":[1]}]}]"
-        println(format(src))
+
+        val f1 = format(src)
+        val f2 = format(f1)
+
+        println(f1)
+
+        if (f1 == f2) println("format² matches format :)")
+        else println(f2)
 
     }
 

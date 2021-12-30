@@ -16,8 +16,6 @@ import javax.imageio.ImageIO
 
 fun main() {
 
-    DefaultConfig.init()
-
     HiddenOpenGLContext.setSize(3000, 200)
     HiddenOpenGLContext.createOpenGL()
 

@@ -3,14 +3,13 @@ package me.anno.io.config
 import me.anno.gpu.GFXBase0.projectName
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.json.JsonFormatter
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.io.utils.StringMap
 import me.anno.utils.OS
-import me.anno.utils.structures.CachedValue
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
-import java.nio.charset.Charset
 
 /**
  * max file size: 2GB, because of Javas internal String and array limitations
@@ -20,30 +19,26 @@ object ConfigBasics {
 
     val LOGGER = LogManager.getLogger(ConfigBasics::class)!!
 
-    // this value is often requested!, it must not be changed
-    private val configFolderI = CachedValue { getReference(OS.home, ".config/$projectName") }
-    private val cachedFolderI = CachedValue { getReference(OS.home, ".cache/$projectName") }
-
-    val configFolder get() = configFolderI.value
-    val cacheFolder get() = cachedFolderI.value
+    val configFolder get() = getReference(OS.home, ".config/$projectName")
+    val cacheFolder get() = getReference(OS.home, ".cache/$projectName")
 
     fun getConfigFile(localFileName: String): FileReference {
         return getReference(configFolder, localFileName)
     }
 
     @Throws(IOException::class)
-    fun save(file: FileReference, data: String) {
-        val parentFile = file.getParent() ?: return
+    fun save(file: FileReference, data: String): String {
+        val parentFile = file.getParent() ?: return data
         if (!parentFile.exists) parentFile.mkdirs()
-        println("saving ${data.length} chars to $file as config, old value: ${file.length()}")
-        file.writeText(data)
+        file.writeText(JsonFormatter.format(data))
+        return data
     }
 
     @Throws(IOException::class)
     fun save(localFileName: String, data: String) = save(getConfigFile(localFileName), data)
 
     @Throws(IOException::class)
-    fun load(file: FileReference, saveIfMissing: Boolean, getDefault: () -> String): String {
+    inline fun load(file: FileReference, saveIfMissing: Boolean, getDefault: () -> String): String {
         val value = if (file.exists) {
             try {
                 file.readText()
@@ -52,17 +47,15 @@ object ConfigBasics {
                 null
             }
         } else null
-        return if (value != null) value
-        else {
+        return if (value == null){
             val default = getDefault()
             if (saveIfMissing) save(file, default)
-            default
-        }
+            else default
+        } else value
     }
 
-    fun load(localFileName: String, saveIfMissing: Boolean, getDefault: () -> String) =
+    inline fun load(localFileName: String, saveIfMissing: Boolean, getDefault: () -> String) =
         load(getConfigFile(localFileName), saveIfMissing, getDefault)
-
 
     fun loadConfig(file: FileReference, defaultValue: StringMap, saveIfMissing: Boolean): StringMap {
         val read = load(file, saveIfMissing) {
@@ -108,14 +101,14 @@ object ConfigBasics {
             } else false
         }
 
-        loaded.forEach { entry ->
-            (entry as? ConfigEntry)?.apply {
-                addIfNewest(this)
+        for (entry in loaded) {
+            if (entry is ConfigEntry) {
+                addIfNewest(entry)
             }
         }
 
         var wasAugmentedByDefault = false
-        defaultValue.forEach { entry ->
+        for (entry in defaultValue) {
             if (addIfNewest(entry)) {
                 wasAugmentedByDefault = true
             }

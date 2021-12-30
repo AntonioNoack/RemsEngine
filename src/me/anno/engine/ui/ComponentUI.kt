@@ -29,7 +29,6 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.IProperty
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.ISaveable
-import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextReader
@@ -152,7 +151,6 @@ object ComponentUI {
                 val arrayType = getArrayType(property, value.iterator(), name) ?: return null
                 return object : AnyArrayPanel(title, visibilityKey, arrayType, style) {
                     override fun onChange() {
-                        println("setting list property")
                         property.set(this, content)
                     }
                 }.apply { setValues(value.toList()) }
@@ -840,7 +838,6 @@ object ComponentUI {
                             setChangeListener {
                                 // todo check if this file is ok
                                 // todo if not, undo this change
-                                println("setting reference to $it")
                                 property.set(this, it)
                             }
                         }

@@ -279,8 +279,8 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
                     val dt = shiftSlowdown * dilation * dx * dtHalfLength * 2 / w
                     if (dt != 0.0) {
                         RemsStudio.incrementalChange("Move Keyframes") {
-                            draggedKeyframes.forEach {
-                                it.time += dt
+                            for(kf in draggedKeyframes) {
+                                kf.time += dt
                             }
                         }
                     }
@@ -297,7 +297,8 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
                             val factor = clamp(1f - shiftSlowdown * dx / w, 0.01f, 100f)
                             transform.timeDilation.value *= factor
                         } else {
-                            val dt = shiftSlowdown * dilation * dx * dtHalfLength * 2 / w
+                            // todo use parent dilation?...
+                            val dt = shiftSlowdown * dx * dtHalfLength * 2 / w
                             transform.timeOffset.value += dt
                         }
                     }

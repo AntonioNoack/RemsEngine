@@ -12,8 +12,6 @@ import org.joml.Vector4f
 
 fun main() {
 
-    DefaultConfig.init()
-
     registerCustomClass(Text())
     registerCustomClass(Keyframe<Int>())
     registerCustomClass(AnimatedProperty.any())

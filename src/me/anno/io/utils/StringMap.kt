@@ -49,12 +49,14 @@ open class StringMap(
 
     override fun readSomething(name: String, value: Any?) {
         if (name != "notice") synchronized(this) {
+            onSyncAccess()
             map[name] = value
         }
     }
 
-    operator fun get(key: String, addIfMissing: () -> StringMap): StringMap {
+    open operator fun get(key: String, addIfMissing: () -> StringMap): StringMap {
         synchronized(this) {
+            onSyncAccess()
             val value = map[key]
             return if (value !is StringMap) {
                 val value2 = addIfMissing()
@@ -65,8 +67,9 @@ open class StringMap(
         }
     }
 
-    operator fun get(key: String, addIfMissing: Any?): Any? {
+    open operator fun get(key: String, addIfMissing: Any?): Any? {
         synchronized(this) {
+            onSyncAccess()
             val value = map[key]
             return if (value == null) {
                 map[key] = addIfMissing
@@ -75,17 +78,37 @@ open class StringMap(
         }
     }
 
-    override operator fun get(key: String): Any? = synchronized(this) { map[key] }
+    override operator fun get(key: String): Any? {
+        synchronized(this) {
+            onSyncAccess()
+            return map[key]
+        }
+    }
+
     override operator fun set(key: String, value: Any?): Boolean {
         synchronized(this) {
-            wasChanged = true
-            map[key] = value
+            onSyncAccess()
+            val hadKey = key in map
+            val old = map.put(key, value)
+            if (hadKey) println("setting $key to $value, was $old")
+            if (old != value) wasChanged = true
         }
         return true
     }
 
-    override fun containsKey(key: String) = synchronized(this) { map.containsKey(key) }
-    override fun containsValue(value: Any?) = synchronized(this) { map.containsValue(value) }
+    override fun containsKey(key: String): Boolean {
+        synchronized(this) {
+            onSyncAccess()
+            return map.containsKey(key)
+        }
+    }
+
+    override fun containsValue(value: Any?): Boolean {
+        synchronized(this) {
+            onSyncAccess()
+            return map.containsValue(value)
+        }
+    }
 
     override val entries get() = map.entries
     override val keys get() = map.keys
@@ -93,35 +116,47 @@ open class StringMap(
     override val size get() = map.size
 
     override fun clear() {
-        wasChanged = isNotEmpty()
-        synchronized(this) { map.clear() }
+        synchronized(this) {
+            onSyncAccess()
+            if (isNotEmpty()) wasChanged = true
+            map.clear()
+        }
     }
 
     override fun isEmpty() = synchronized(this) { map.isEmpty() }
 
     override fun put(key: String, value: Any?) {
-        wasChanged = true
-        synchronized(this) { map.put(key, value) }
+        synchronized(this) {
+            onSyncAccess()
+            val old = map.put(key, value)
+            if (old != value) wasChanged = true
+        }
     }
 
     override fun putAll(from: Map<out String, Any?>) {
-        wasChanged = true
-        synchronized(this) { map.putAll(from) }
+        if (from.isEmpty() || from === this) return
+        synchronized(this) {
+            wasChanged = true
+            onSyncAccess()
+            map.putAll(from)
+        }
     }
 
     override fun remove(key: String): Any? = synchronized(this) {
-        wasChanged = true
         synchronized(this) {
-            map.remove(key)
+            onSyncAccess()
+            if (key in map) {
+                map.remove(key)
+                wasChanged = true
+            }
         }
     }
 
     fun removeAll(keys: Collection<String>) {
-        wasChanged = true
         synchronized(this) {
-            for (key in keys) {
-                map.remove(key)
-            }
+            onSyncAccess()
+            val changed = map.entries.removeIf { it.key in keys }
+            if (changed) wasChanged = true
         }
     }
 
@@ -134,6 +169,10 @@ open class StringMap(
             }
             else -> value.toString()
         }
+    }
+
+    open fun onSyncAccess() {
+
     }
 
     fun parseFile(str0: String): File {
@@ -341,8 +380,11 @@ open class StringMap(
     }
 
     fun save(name: String) {
-        wasChanged = false
-        ConfigBasics.save(name, this.toString())
+        val str = synchronized(this) {
+            wasChanged = false
+            this.toString()
+        }
+        ConfigBasics.save(name, str)
     }
 
     override fun isDefaultValue() = false

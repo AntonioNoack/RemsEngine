@@ -126,8 +126,6 @@ fun main() {
 
     val clock = Clock()
 
-    DefaultConfig.init()
-
     /*for (i in 1 until 128) {
         val s = Thumbs.split(i)
         println("$i: ${GFXx2D.getSizeX(s)} x ${GFXx2D.getSizeY(s)}")

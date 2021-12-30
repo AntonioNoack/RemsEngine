@@ -29,7 +29,7 @@ open class HSVBox(
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         when (action) {
-            "selectColor" -> {
+            "SelectColor" -> {
                 if (dragged == null) {
                     onValueChanged((x - this.x) / w, 1f - (y - this.y) / h)
                 }

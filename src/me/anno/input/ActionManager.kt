@@ -1,7 +1,6 @@
 package me.anno.input
 
 import me.anno.config.DefaultConfig
-import me.anno.gpu.GFX
 import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.GFX.inFocus
 import me.anno.io.utils.StringMap
@@ -10,7 +9,7 @@ import me.anno.ui.base.Panel
 import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
 
-object ActionManager {
+object ActionManager : StringMap() {
 
     private val LOGGER = LogManager.getLogger(ActionManager::class)
 
@@ -28,18 +27,13 @@ object ActionManager {
         keyMap = DefaultConfig["ui.keyMap", { StringMap() }]
         // this should be fine
         // if an action is supposed to do nothing, then it should be set to ""
-        for ((key, value) in createDefaultKeymap()) {
-            if (key !in keyMap) {
-                keyMap[key] = value
-            }
-        }
+        createDefaultKeymap(keyMap)
         parseConfig(keyMap)
 
     }
 
-    var createDefaultKeymap = {
+    var createDefaultKeymap: (StringMap) -> Unit = {
         LOGGER.warn("Using default keymap... this should not happen!")
-        StringMap()
     }
 
     fun parseConfig(config: StringMap) {

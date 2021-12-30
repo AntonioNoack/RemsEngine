@@ -119,7 +119,8 @@ object StudioActions {
                 } else false
             }
         )
-        actions.forEach { (name, action) ->
+
+        for ((name, action) in actions) {
             ActionManager.registerGlobalAction(name, action)
         }
 
@@ -127,7 +128,7 @@ object StudioActions {
 
     }
 
-    fun createKeymap(): StringMap {
+    fun createKeymap(keyMap: StringMap) {
 
         /**
          * types:
@@ -137,81 +138,78 @@ object StudioActions {
          * - up -> up
          * */
 
-        val keyMap = StringMap()
-        keyMap["global.space.down.${Modifiers[false, false]}"] = "Play|Pause"
-        keyMap["global.space.down.${Modifiers[false, true]}"] = "PlaySlow|Pause"
-        keyMap["global.space.down.${Modifiers[true, false]}"] = "PlayReversed|Pause"
-        keyMap["global.space.down.${Modifiers[true, true]}"] = "PlayReversedSlow|Pause"
-        keyMap["global.f11.down"] = "ToggleFullscreen"
-        keyMap["global.print.down"] = "PrintLayout"
-        keyMap["global.left.up"] = "DragEnd"
-        keyMap["global.f5.down.${Modifiers[true, false]}"] = "ClearCache"
-        keyMap["global.arrowLeft.t"] = "PreviousStep"
-        keyMap["global.arrowRight.t"] = "NextStep"
-        keyMap["global.arrowLeft.down.c"] = "Jump2Start"
-        keyMap["global.arrowRight.down.c"] = "Jump2End"
-        keyMap["global.comma.t"] = "PreviousFrame"
-        keyMap["global.dot.t"] = "NextFrame"
-        keyMap["global.z.t.${Modifiers[true, false]}"] = "Undo"
-        keyMap["global.z.t.${Modifiers[true, true]}"] = "Redo"
-        keyMap["global.y.t.${Modifiers[true, false]}"] = "Undo"
-        keyMap["global.y.t.${Modifiers[true, true]}"] = "Redo"
-        keyMap["global.h.t.${Modifiers[false, false, true]}"] = "ShowAllObjects"
-        keyMap["global.h.t"] = "ToggleHideObject"
+        keyMap["global.space.down.${Modifiers[false, false]}", "Play|Pause"]
+        keyMap["global.space.down.${Modifiers[false, true]}", "PlaySlow|Pause"]
+        keyMap["global.space.down.${Modifiers[true, false]}", "PlayReversed|Pause"]
+        keyMap["global.space.down.${Modifiers[true, true]}", "PlayReversedSlow|Pause"]
+        keyMap["global.f11.down", "ToggleFullscreen"]
+        keyMap["global.print.down", "PrintLayout"]
+        keyMap["global.left.up", "DragEnd"]
+        keyMap["global.f5.down.${Modifiers[true, false]}", "ClearCache"]
+        keyMap["global.arrowLeft.t", "PreviousStep"]
+        keyMap["global.arrowRight.t", "NextStep"]
+        keyMap["global.arrowLeft.down.c", "Jump2Start"]
+        keyMap["global.arrowRight.down.c", "Jump2End"]
+        keyMap["global.comma.t", "PreviousFrame"]
+        keyMap["global.dot.t", "NextFrame"]
+        keyMap["global.z.t.${Modifiers[true, false]}", "Undo"]
+        keyMap["global.z.t.${Modifiers[true, true]}", "Redo"]
+        keyMap["global.y.t.${Modifiers[true, false]}", "Undo"]
+        keyMap["global.y.t.${Modifiers[true, true]}", "Redo"]
+        keyMap["global.h.t.${Modifiers[false, false, true]}", "ShowAllObjects"]
+        keyMap["global.h.t", "ToggleHideObject"]
 
         // press instead of down for the delay
-        keyMap["ColorPaletteEntry.left.press"] = "DragStart"
-        keyMap["SceneTab.left.press"] = "DragStart"
-        keyMap["FileEntry.left.press"] = "DragStart"
-        keyMap["FileEntry.left.double"] = "Enter|Open"
-        keyMap["FileEntry.f2.down"] = "Rename"
+        keyMap["ColorPaletteEntry.left.press", "DragStart"]
+        keyMap["SceneTab.left.press", "DragStart"]
+        keyMap["FileEntry.left.press", "DragStart"]
+        keyMap["FileEntry.left.double", "Enter|Open"]
+        keyMap["FileEntry.f2.down", "Rename"]
         // todo only when clicked...
-        keyMap["FileEntry.right.down"] = "OpenOptions"
-        keyMap["FileExplorer.right.down"] = "OpenOptions"
-        keyMap["FileExplorer.mouseBackward.down"] = "Back"
-        keyMap["FileExplorer.mouseForward.down"] = "Forward"
-        keyMap["FileExplorerEntry.left.double"] = "Enter"
-        keyMap["TreeViewPanel.left.press"] = "DragStart"
-        keyMap["TreeViewPanel.f2.down"] = "Rename"
-        keyMap["StackPanel.left.press"] = "DragStart"
+        keyMap["FileEntry.right.down", "OpenOptions"]
+        keyMap["FileExplorer.right.down", "OpenOptions"]
+        keyMap["FileExplorer.mouseBackward.down", "Back"]
+        keyMap["FileExplorer.mouseForward.down", "Forward"]
+        keyMap["FileExplorerEntry.left.double", "Enter"]
+        keyMap["TreeViewPanel.left.press", "DragStart"]
+        keyMap["TreeViewPanel.f2.down", "Rename"]
+        keyMap["StackPanel.left.press", "DragStart"]
 
-        keyMap["HSVBox.left.down"] = "selectColor"
-        keyMap["HSVBox.left.press-unsafe"] = "selectColor"
+        keyMap["HSVBox.left.down", "SelectColor"]
+        keyMap["HSVBox.left.press-unsafe", "SelectColor"]
 
-        keyMap["StudioSceneView.right.p"] = "Turn"
-        keyMap["StudioSceneView.left.p"] = "MoveObject"
-        keyMap["StudioSceneView.left.p.${Modifiers[false, true]}"] = "MoveObjectAlternate"
+        keyMap["StudioSceneView.right.p", "Turn"]
+        keyMap["StudioSceneView.left.p", "MoveObject"]
+        keyMap["StudioSceneView.left.p.${Modifiers[false, true]}", "MoveObjectAlternate"]
 
         for (i in 0 until 10) {
-            // keyMap["SceneView.$i.down"] = "Cam$i"
-            keyMap["SceneView.numpad$i.down"] = "Cam$i"
-            // keyMap["SceneView.$i.down.${Modifiers[true, false]}"] = "Cam$i"
-            keyMap["SceneView.numpad$i.down.${Modifiers[true, false]}"] = "Cam$i"
+            // keyMap["SceneView.$i.down", "Cam$i"]
+            keyMap["SceneView.numpad$i.down", "Cam$i"]
+            // keyMap["SceneView.$i.down.${Modifiers[true, false]}", "Cam$i"]
+            keyMap["SceneView.numpad$i.down.${Modifiers[true, false]}", "Cam$i"]
         }
 
-        keyMap["StudioSceneView.w.p"] = "MoveForward"
-        keyMap["StudioSceneView.a.p"] = "MoveLeft"
-        keyMap["StudioSceneView.s.p"] = "MoveBackward"
-        keyMap["StudioSceneView.d.p"] = "MoveRight"
-        keyMap["StudioSceneView.q.p"] = "MoveDown"
-        keyMap["StudioSceneView.e.p"] = "MoveUp"
-        keyMap["StudioSceneView.r.p"] = "SetMode(MOVE)"
-        keyMap["StudioSceneView.t.p"] = "SetMode(ROTATE)"
-        keyMap["StudioSceneView.z.p"] = "SetMode(SCALE)"
-        keyMap["StudioSceneView.y.p"] = "SetMode(SCALE)"
+        keyMap["StudioSceneView.w.p", "MoveForward"]
+        keyMap["StudioSceneView.a.p", "MoveLeft"]
+        keyMap["StudioSceneView.s.p", "MoveBackward"]
+        keyMap["StudioSceneView.d.p", "MoveRight"]
+        keyMap["StudioSceneView.q.p", "MoveDown"]
+        keyMap["StudioSceneView.e.p", "MoveUp"]
+        keyMap["StudioSceneView.r.p", "SetMode(MOVE)"]
+        keyMap["StudioSceneView.t.p", "SetMode(ROTATE)"]
+        keyMap["StudioSceneView.z.p", "SetMode(SCALE)"]
+        keyMap["StudioSceneView.y.p", "SetMode(SCALE)"]
 
-        keyMap["PureTextInputML.delete.typed"] = "DeleteAfter"
-        keyMap["PureTextInputML.backspace.typed"] = "DeleteBefore"
-        keyMap["PureTextInputML.leftArrow.typed"] = "MoveLeft"
-        keyMap["PureTextInputML.rightArrow.typed"] = "MoveRight"
-        keyMap["PureTextInputML.upArrow.typed"] = "MoveUp"
-        keyMap["PureTextInputML.downArrow.typed"] = "MoveDown"
-        keyMap["PureTextInput.leftArrow.typed"] = "MoveLeft"
-        keyMap["PureTextInput.rightArrow.typed"] = "MoveRight"
-        keyMap["ConsoleInput.upArrow.typed"] = "MoveUp"
-        keyMap["ConsoleInput.downArrow.typed"] = "MoveDown"
-
-        return keyMap
+        keyMap["PureTextInputML.delete.typed", "DeleteAfter"]
+        keyMap["PureTextInputML.backspace.typed", "DeleteBefore"]
+        keyMap["PureTextInputML.leftArrow.typed", "MoveLeft"]
+        keyMap["PureTextInputML.rightArrow.typed", "MoveRight"]
+        keyMap["PureTextInputML.upArrow.typed", "MoveUp"]
+        keyMap["PureTextInputML.downArrow.typed", "MoveDown"]
+        keyMap["PureTextInput.leftArrow.typed", "MoveLeft"]
+        keyMap["PureTextInput.rightArrow.typed", "MoveRight"]
+        keyMap["ConsoleInput.upArrow.typed", "MoveUp"]
+        keyMap["ConsoleInput.downArrow.typed", "MoveDown"]
 
     }
 

@@ -8,35 +8,33 @@ object RemsConfig {
 
     fun init() {
 
-        DefaultConfig.createDefaults = {
-            it.apply {
+        DefaultConfig.apply {
 
-                this["ffmpeg.path"] =
-                    getReference(OS.downloads, "lib\\ffmpeg\\bin\\ffmpeg.exe") // I'm not sure about that one ;)
-                this["lastUsed.fonts.count"] = 5
-                this["default.video.nearest"] = false
-                this["default.image.nearest"] = false
+            // I'm not sure about that one ;)
+            this["ffmpeg.path", getReference(OS.downloads, "lib\\ffmpeg\\bin\\ffmpeg.exe")]
 
-                this["format.svg.stepsPerDegree"] = 0.1f
-                this["objects.polygon.maxEdges"] = 1000
+            this["lastUsed.fonts.count", 5]
+            this["default.video.nearest", false]
+            this["default.image.nearest", false]
 
-                this["rendering.resolutions.default"] = "1920x1080"
-                this["rendering.resolutions.defaultValues"] = "1920x1080,1920x1200,720x480,2560x1440,3840x2160"
-                this["rendering.resolutions.sort"] = 1 // 1 = ascending order, -1 = descending order, 0 = don't sort
-                this["rendering.frameRates"] = "24,30,60,90,120,144,240,300,360"
+            this["format.svg.stepsPerDegree", 0.1f]
+            this["objects.polygon.maxEdges", 1000]
 
-                this["rendering.useMSAA"] = true // should not be deactivated, unless... idk...
-                // this["ui.editor.useMSAA"] = true // can be deactivated for really weak GPUs
+            this["rendering.resolutions.default", "1920x1080"]
+            this["rendering.resolutions.defaultValues", "1920x1080,1920x1200,720x480,2560x1440,3840x2160"]
+            this["rendering.resolutions.sort", 1] // 1 = ascending order, -1 = descending order, 0 = don't sort
+            this["rendering.frameRates", "24,30,60,90,120,144,240,300,360"]
 
-                defineDefaultFileAssociations()
-                addImportMappings("Transform", "json")
-                this["import.mapping.*"] = "Text"
+            this["rendering.useMSAA", true] // should not be deactivated, unless... idk...
+            this["ui.editor.useMSAA", true] // can be deactivated for really weak GPUs
 
-                newInstances()
-            }
+            defineDefaultFileAssociations()
+            addImportMappings("Transform", "json")
+            this["import.mapping.*", "Text"]
+
+            newInstances()
         }
 
-        DefaultConfig.init()
         RemsVersionFeatures(DefaultConfig).addNewPackages(DefaultConfig)
 
     }

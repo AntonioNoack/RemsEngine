@@ -1,6 +1,7 @@
 package me.anno.config
 
 import me.anno.config.DefaultStyle.baseTheme
+import me.anno.gpu.GFXBase0.projectName
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.SaveableArray
 import me.anno.io.config.ConfigBasics
@@ -26,7 +27,6 @@ import me.anno.ui.base.Font
 import me.anno.ui.style.Style
 import me.anno.utils.Clock
 import me.anno.utils.OS
-import me.anno.utils.Warning
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 import java.io.File
@@ -37,13 +37,19 @@ object DefaultConfig : StringMap() {
 
     var style: Style = Style("", "")
 
-    var createDefaults: (config: DefaultConfig) -> Unit = {}
+    private var lastProjectName: String? = null
 
-    var hasInit = false
+    override fun onSyncAccess() {
+        super.onSyncAccess()
+        if (projectName != lastProjectName) {
+            lastProjectName = projectName
+            init()
+        }
+    }
 
-    fun init() {
+    private fun init() {
 
-        hasInit = true
+        clear()
 
         val tick = Clock()
 
@@ -51,9 +57,7 @@ object DefaultConfig : StringMap() {
         registerCustomClass(StringMap())
         registerCustomClass(SaveableArray())
 
-        this["style"] = "dark"
-
-        createDefaults(this)
+        this["style", "dark"]
 
         var newConfig: StringMap = this
         try {
@@ -97,11 +101,6 @@ object DefaultConfig : StringMap() {
         addImportMappings("Asset", "json", "mat", "prefab", "unity", "controller")
         addImportMappings("Executable", "exe", "lib", "dll", "pyd", "jar")
 
-    }
-
-    override fun get(key: String): Any? {
-        if (!hasInit) Warning.warn("Too early access of DefaultConfig[$key]")
-        return super.get(key)
     }
 
     /*fun save() {
@@ -154,9 +153,8 @@ object DefaultConfig : StringMap() {
             "Effect: Morphing" to EffectMorphing()
         )
 
-        this["createNewInstancesList"] =
-            StringMap(16, false)
-                .addAll(newInstances)
+        val value = StringMap(16, false).addAll(newInstances)
+        this["createNewInstancesList", value]
 
         tick.stop("new instances list")
 
@@ -242,7 +240,8 @@ object DefaultConfig : StringMap() {
 
     fun addImportMappings(result: String, vararg extensions: String) {
         for (extension in extensions) {
-            this["import.mapping.$extension"] = result
+            // get or set default
+            this["import.mapping.$extension", result]
         }
     }
 

@@ -51,7 +51,6 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
     override fun loadConfig() {
         DefaultConfig.defineDefaultFileAssociations()
-        DefaultConfig.init()
     }
 
     override fun onGameInit() {

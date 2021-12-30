@@ -71,22 +71,22 @@ object DefaultStyle {
 
         set("spacer.width", 0)
         set("spacer.menu.width", 1)
-        set("treeView.inset", fontSize/2)
+        set("treeView.inset", fontSize / 2)
 
         set("textPadding", 2)
 
-        for((key, value) in loadStyle("style.config")){
-            baseTheme.values[key] = value
+        for ((key, value) in loadStyle("style.config")) {
+            baseTheme.values[key, value]
         }
     }
 
-    operator fun set(key: String, both: Any){
+    operator fun set(key: String, both: Any) {
         set(key, both, both)
     }
 
-    operator fun set(key: String, dark: Any, light: Any){
-        baseTheme.values["$key.dark"] = dark
-        baseTheme.values["$key.light"] = light
+    operator fun set(key: String, dark: Any, light: Any) {
+        baseTheme.values["$key.dark", dark]
+        baseTheme.values["$key.light", light]
     }
 
     fun loadStyle(path: String): StringMap {
