@@ -176,7 +176,7 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
         val maxLength = 100
         val warn = getWarning(element)
         if (warn != null) return warn
-        val desc = element.description.shorten(maxLength)
+        val desc = element.description.shorten(maxLength).toString()
         val descLn = if (desc.isEmpty()) desc else desc + "\n"
         return when {
             element !is Entity -> desc

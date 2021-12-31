@@ -1,7 +1,6 @@
 package me.anno.gpu.shader
 
 import me.anno.gpu.GFX
-import me.anno.gpu.shader.builder.Attribute
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.Varying
 import org.lwjgl.opengl.GL20.*
@@ -34,7 +33,9 @@ open class Shader(
         val varyings = varying.map { Varying(if (it.isFlat) "flat" else "", it.type, it.name) }
 
         val program = glCreateProgram()
+        GFX.check()
         updateSession()
+        GFX.check()
 
         val versionString = formatVersion(glslVersion) + "\n// $shaderName\n"
         val geometryShader = if (geometry != null) {
@@ -81,6 +82,8 @@ open class Shader(
                 ).replaceShortCuts(disableShorts)
         val fragmentShader = compile(shaderName, program, GL_FRAGMENT_SHADER, fragmentSource)
 
+        GFX.check()
+
         glLinkProgram(program)
         // these could be reused...
         glDeleteShader(vertexShader)
@@ -94,7 +97,12 @@ open class Shader(
 
         this.program = program // only assign the program, when no error happened
 
-        setTextureIndicesIfExisting()
+        if (textureNames.isNotEmpty()) {
+            lastProgram = program
+            glUseProgram(program)
+            setTextureIndicesIfExisting()
+            GFX.check()
+        }
 
     }
 

@@ -4,15 +4,15 @@ import me.anno.gpu.GFX.flat01
 import me.anno.gpu.OpenGL
 import me.anno.gpu.OpenGL.renderPurely
 import me.anno.gpu.OpenGL.useFrame
-import me.anno.gpu.shader.ShaderLib
-import me.anno.gpu.shader.ShaderLib.brightness
-import me.anno.gpu.shader.ShaderLib.simplestVertexShader
-import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.ShaderLib.brightness
+import me.anno.gpu.shader.ShaderLib.simplestVertexShader
+import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
@@ -54,7 +54,7 @@ object Bloom {
 
         for (i in 0 until maxSteps) {
 
-            if (wi shr 1 < minSize || hi shr 1 < minSize) return i
+            if (i > 0 && (wi shr 1 < minSize || hi shr 1 < minSize)) return i
 
             // x blur pass
             wi = wi shr 1

@@ -49,10 +49,14 @@ import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL43.GL_MAX_UNIFORM_LOCATIONS
 import org.lwjgl.opengl.GL45.GL_CONTEXT_LOST
+import org.lwjgl.opengl.GL46
 import java.nio.FloatBuffer
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.*
+import kotlin.reflect.KClass
+import kotlin.reflect.full.staticProperties
+import kotlin.reflect.full.superclasses
 
 // todo split the rendering in two parts:
 // todo - without blending (no alpha, video or polygons)
@@ -78,6 +82,7 @@ object GFX : GFXBase1() {
     var maxVertexUniformComponents = 0
     var maxUniforms = 0
     var maxColorAttachments = 0
+    var maxTextureSize = 0
 
     lateinit var currentCamera: Camera
     var lastTouchedCamera: Camera? = null
@@ -320,10 +325,12 @@ object GFX : GFXBase1() {
         maxUniforms = glGetInteger(GL_MAX_UNIFORM_LOCATIONS)
         maxColorAttachments = glGetInteger(GL_MAX_COLOR_ATTACHMENTS)
         maxSamples = max(1, glGetInteger(GL_MAX_SAMPLES))
+        maxTextureSize = max(256, glGetInteger(GL_MAX_TEXTURE_SIZE))
         LOGGER.info("Max Uniform Components: [Vertex: $maxVertexUniformComponents, Fragment: $maxFragmentUniformComponents]")
         LOGGER.info("Max Uniforms: $maxUniforms")
         LOGGER.info("Max Color Attachments: $maxColorAttachments")
         LOGGER.info("Max Samples: $maxSamples")
+        LOGGER.info("Max Texture Size: $maxTextureSize")
         tick.stop("render step zero")
         ShaderLib.init()
         ECSShaderLib.init()
@@ -517,9 +524,6 @@ object GFX : GFXBase1() {
             checkIsGFXThread()
             val error = glGetError()
             if (error != 0) {
-                /*Framebuffer.stack.forEach {
-                    LOGGER.info(it.toString())
-                }*/
                 val title = "GLException: ${getErrorTypeName(error)}"
                 throw RuntimeException(title)
             }
@@ -544,8 +548,34 @@ object GFX : GFXBase1() {
             GL_FRAMEBUFFER_UNSUPPORTED -> "framebuffer unsupported"
             GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE -> "incomplete multisample"
             GL_FRAMEBUFFER_UNDEFINED -> "framebuffer undefined"
-            else -> "$error"
+            else -> glConstants[error]?.lowercase() ?: "$error"
         }
+    }
+
+    fun getName(i: Int) = glConstants[i] ?: "$i"
+
+    private val glConstants = HashMap<Int, String>()
+
+    private fun discoverOpenGLTypeNames() {
+        var clazz: KClass<*> = GL46::class
+        while (true) {
+            for (p in clazz.staticProperties) {
+                if (p.name.length > 3 &&
+                    p.name.startsWith("GL_")
+                ) {
+                    val value = p.get()
+                    if (value is Int) {
+                        glConstants[value] = p.name.substring(3)
+                    }
+                }
+            }
+            clazz = clazz.superclasses
+                .firstOrNull() ?: break
+        }
+    }
+
+    init {
+        discoverOpenGLTypeNames()
     }
 
     //override fun cleanUp() {

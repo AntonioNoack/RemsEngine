@@ -267,6 +267,7 @@ open class Window(
     fun drawCachedImage(panel: Panel, wasRedrawn: Collection<Panel>, dstBuffer: Framebuffer?) {
         OpenGL.useFrame(panel.x, panel.y, panel.w, panel.h, false, dstBuffer) {
             OpenGL.renderDefault {
+                buffer.checkSession()
                 GFX.copy(buffer)
                 if (showRedraws) {
                     showRedraws(wasRedrawn)

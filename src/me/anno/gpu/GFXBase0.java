@@ -114,6 +114,7 @@ public class GFXBase0 {
                 // if renderdoc is install on linux, or given in the path, we could use it as well with loadLibrary()
                 // at least this is the default location for RenderDoc
                 if (new File(renderDocPath).exists()) {
+                    LOGGER.info("Loading RenderDoc");
                     System.load(renderDocPath);
                 } else LOGGER.warn("Did not find RenderDoc, searched '" + renderDocPath + "'");
             } catch (Exception e) {

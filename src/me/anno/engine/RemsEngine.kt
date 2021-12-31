@@ -24,6 +24,8 @@ import me.anno.utils.OS
 import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
 
+// todo panel: console output of multiple lines, with filters
+
 // todo also the main object randomly just shrinks down (pool & truck)
 
 // todo fix: tooltip texts of properties are not being displayed

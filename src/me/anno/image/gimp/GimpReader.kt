@@ -3,156 +3,57 @@ package me.anno.image.gimp
 import me.anno.image.HDRImage
 import me.anno.image.Image
 import me.anno.image.raw.ByteImage
+import me.anno.image.raw.IntImage
+import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.zip.InnerFolder
+import me.anno.mesh.sims.Sims3Reader.skip
+import me.anno.utils.Color.a
+import me.anno.utils.Color.b
+import me.anno.utils.Color.g
+import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
-import me.anno.utils.LOGGER
 import me.anno.utils.OS
 import me.anno.utils.OS.desktop
+import me.anno.utils.maths.Maths.ceilDiv
+import me.anno.utils.maths.Maths.clamp
+import me.anno.utils.maths.Maths.max
+import me.anno.utils.types.Booleans.toInt
+import org.apache.logging.log4j.LogManager
+import java.io.DataInputStream
 import java.io.IOException
+import java.io.InputStream
+import java.nio.BufferUnderflowException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.min
+import kotlin.math.roundToInt
 
+/**
+ * Gimp is a painting program, we regularly use,
+ * and reading its files would be nice, so here is
+ * the official Gimp implementation ported from C to Java.
+ * If only supports layer with the format U8-linear
+ * @see <a href="https://github.com/GNOME/gimp/">Gimp Repository</a>
+ * */
 object GimpReader {
 
-    // the internal gimp format looks quite complicated :/
+    private val LOGGER = LogManager.getLogger(GimpReader::class)
 
-    private const val GIMP_RGB = 0
-    private const val GIMP_GRAY = 1
-    private const val GIMP_INDEXED = 2
+    private const val TILE_SIZE = 64
+    const val MAGIC = "gimp xcf "
 
-    private const val GIMP_RGB_IMAGE = 0
-    private const val GIMP_RGBA_IMAGE = 1
-    private const val GIMP_GRAY_IMAGE = 2
-    private const val GIMP_GRAYA_IMAGE = 3
-    private const val GIMP_INDEXED_IMAGE = 4
-    private const val GIMP_INDEXEDA_IMAGE = 5
-
-    private const val COMPRESS_NONE = 0
-    private const val COMPRESS_RLE = 1
-    private const val COMPRESS_ZLIB = 2 // unused, the code says
-    private const val COMPRESS_FRACTAL = 3 // unused, the code says
-
-    private const val GIMP_PRECISION_U8_LINEAR = 100
-    private const val GIMP_PRECISION_U8_NON_LINEAR = 150
-    private const val GIMP_PRECISION_U8_PERCEPTUAL = 175
-    private const val GIMP_PRECISION_U16_LINEAR = 200
-    private const val GIMP_PRECISION_U16_NON_LINEAR = 250
-    private const val GIMP_PRECISION_U16_PERCEPTUAL = 275
-    private const val GIMP_PRECISION_U32_LINEAR = 300
-    private const val GIMP_PRECISION_U32_NON_LINEAR = 350
-    private const val GIMP_PRECISION_U32_PERCEPTUAL = 375
-    private const val GIMP_PRECISION_HALF_LINEAR = 500
-    private const val GIMP_PRECISION_HALF_NON_LINEAR = 550
-    private const val GIMP_PRECISION_HALF_PERCEPTUAL = 575
-    private const val GIMP_PRECISION_FLOAT_LINEAR = 600
-    private const val GIMP_PRECISION_FLOAT_NON_LINEAR = 650
-    private const val GIMP_PRECISION_FLOAT_PERCEPTUAL = 675
-    private const val GIMP_PRECISION_DOUBLE_LINEAR = 700
-    private const val GIMP_PRECISION_DOUBLE_NON_LINEAR = 750
-    private const val GIMP_PRECISION_DOUBLE_PERCEPTUAL = 775
-
-    fun createImage(width: Int, height: Int, format: Int): Image {
+    fun createImage(width: Int, height: Int, imageType: ImageType, format: DataType, hasAlpha: Boolean): Image {
+        val channels = imageType.channels + hasAlpha.toInt(1)
         return when (format) {
-            GIMP_PRECISION_U8_LINEAR,
-            GIMP_PRECISION_U8_NON_LINEAR,
-            GIMP_PRECISION_U8_PERCEPTUAL -> ByteImage(width, height, 1)
+            DataType.U8_LINEAR,
+            DataType.U8_NON_LINEAR,
+            DataType.U8_PERCEPTUAL -> ByteImage(width, height, channels, hasAlpha)
             else -> {
                 LOGGER.warn("Got format $format, just using float image")
                 HDRImage(width, height, 1)
             }
         }
-    }
-
-    fun getBBP(format: Int): Int {
-        return when (format) {
-            GIMP_PRECISION_U8_LINEAR,
-            GIMP_PRECISION_U8_NON_LINEAR,
-            GIMP_PRECISION_U8_PERCEPTUAL -> 1
-            GIMP_PRECISION_U16_LINEAR,
-            GIMP_PRECISION_U16_NON_LINEAR,
-            GIMP_PRECISION_U16_PERCEPTUAL -> 2
-            GIMP_PRECISION_U32_LINEAR,
-            GIMP_PRECISION_U32_NON_LINEAR,
-            GIMP_PRECISION_U32_PERCEPTUAL -> 4
-            GIMP_PRECISION_HALF_LINEAR,
-            GIMP_PRECISION_HALF_NON_LINEAR,
-            GIMP_PRECISION_HALF_PERCEPTUAL -> 2
-            GIMP_PRECISION_FLOAT_LINEAR,
-            GIMP_PRECISION_FLOAT_NON_LINEAR,
-            GIMP_PRECISION_FLOAT_PERCEPTUAL -> 4
-            GIMP_PRECISION_DOUBLE_LINEAR,
-            GIMP_PRECISION_DOUBLE_NON_LINEAR,
-            GIMP_PRECISION_DOUBLE_PERCEPTUAL -> 8
-            else -> throw RuntimeException("Illegal format $format")
-        }
-    }
-
-    private const val PROP_END = 0
-    private const val PROP_COLORMAP = 1
-    private const val PROP_ACTIVE_LAYER = 2
-    private const val PROP_ACTIVE_CHANNEL = 3
-    private const val PROP_SELECTION = 4
-    private const val PROP_FLOATING_SELECTION = 5
-    private const val PROP_OPACITY = 6
-    private const val PROP_MODE = 7
-    private const val PROP_VISIBLE = 8
-    private const val PROP_LINKED = 9
-    private const val PROP_LOCK_ALPHA = 10
-    private const val PROP_APPLY_MASK = 11
-    private const val PROP_EDIT_MASK = 12
-    private const val PROP_SHOW_MASK = 13
-    private const val PROP_SHOW_MASKED = 14
-    private const val PROP_OFFSETS = 15
-    private const val PROP_COLOR = 16
-    private const val PROP_COMPRESSION = 17
-    private const val PROP_GUIDES = 18
-    private const val PROP_RESOLUTION = 19
-    private const val PROP_TATTOO = 20
-    private const val PROP_PARASITES = 21
-    private const val PROP_UNIT = 22
-    private const val PROP_PATHS = 23
-    private const val PROP_USER_UNIT = 24
-    private const val PROP_VECTORS = 25
-    private const val PROP_TEXT_LAYER_FLAGS = 26
-    private const val PROP_OLD_SAMPLE_POINTS = 27
-    private const val PROP_LOCK_CONTENT = 28
-    private const val PROP_GROUP_ITEM = 29
-    private const val PROP_ITEM_PATH = 30
-    private const val PROP_GROUP_ITEM_FLAGS = 31
-    private const val PROP_LOCK_POSITION = 32
-    private const val PROP_FLOAT_OPACITY = 33
-    private const val PROP_COLOR_TAG = 34
-    private const val PROP_COMPOSITE_MODE = 35
-    private const val PROP_COMPOSITE_SPACE = 36
-    private const val PROP_BLEND_SPACE = 37
-    private const val PROP_FLOAT_COLOR = 38
-    private const val PROP_SAMPLE_POINTS = 39
-
-    // Gimp is a program we regularly use, and reading its files would be nice :)
-
-    class GimpInfo {
-
-        var fileVersion = 0
-        var bytesPerOffset = 4
-        var compression = 0 // none
-        var precision = 0
-
-        var width = 0
-        var height = 0
-        var imageType = 0
-
-        var propType = 0
-        var propSize = 0
-
-        var colorMap: IntArray? = null
-
-        var tmp: ByteBuffer? = null
-
-    }
-
-    private fun readString(data: ByteBuffer, length: Int): String {
-        return String(ByteArray(length) { data.get() })
     }
 
     private fun readString(data: ByteBuffer): String {
@@ -163,97 +64,110 @@ object GimpReader {
         return str
     }
 
-    private fun expectString(data: ByteBuffer, str: String) {
-        for (char in str) {
-            if (data.get() != char.code.toByte()) throw IOException()
+    fun findSize(data: InputStream): Pair<Int, Int> {
+
+        for (char in MAGIC) {
+            if (data.read() != char.code) throw IOException("Magic doesn't match")
         }
+
+        // could be made more efficient, but probably doesn't matter
+        val fileThing = String(ByteArray(5) { data.read().toByte() })
+        if (!fileThing.startsWith("file") && !(fileThing[0] == 'v' && fileThing[4] == 0.toChar())) {
+            throw IOException("Expected 'file' or 'v'-version")
+        }
+
+        // could be made more efficient as well, but probably doesn't matter
+        val dis = DataInputStream(data)
+        val width = dis.readInt()
+        val height = dis.readInt()
+        if (width <= 0 || height <= 0) throw IOException("Image must not be empty $width x $height")
+
+        return width to height
+
     }
 
-    private fun loadStream(data: ByteBuffer) {
+    private fun readImage(data: ByteBuffer): GimpImage {
 
-        expectString(data, "gimp xcf ")
-        val info = GimpInfo()
-        val fileThing = readString(data, 5)
+        for (char in MAGIC) {
+            if (data.get() != char.code.toByte()) throw IOException("Magic doesn't match")
+        }
+
+        val image = GimpImage()
+        val fileThing = String(ByteArray(5) { data.get() })
         if (fileThing.startsWith("file")) {
-            info.fileVersion = 0
+            image.fileVersion = 0
         } else if (fileThing[0] == 'v' && fileThing[4] == 0.toChar()) {
-            info.fileVersion = fileThing.substring(1, 4).toInt()
-        } else throw IOException()
+            image.fileVersion = fileThing.substring(1, 4).toInt()
+        } else throw IOException("Expected 'file' or 'v'-version")
 
-        if (info.fileVersion >= 11) {
-            info.bytesPerOffset = 8
+        if (image.fileVersion >= 11) {
+            image.bytesPerOffset = 8
         }
 
-        loadImage(info, data)
-
-    }
-
-    private fun loadImage(info: GimpInfo, data: ByteBuffer) {
         val width = data.int
         val height = data.int
         if (width <= 0 || height <= 0) throw IOException("Image must not be empty $width x $height")
-        info.width = width
-        info.height = height
-        val imageType = data.int
-        if (imageType !in GIMP_RGB..GIMP_INDEXED) throw IOException("Unknown image type $imageType")
-        info.imageType = imageType
-        info.precision = if (info.fileVersion >= 4) {
+
+        image.width = width
+        image.height = height
+
+        image.imageType = ImageType.values2.getOrNull(data.int) ?: throw IOException("Unknown image type")
+
+        image.precision = if (image.fileVersion >= 4) {
             val p = data.int
-            when (info.fileVersion) {
+            when (image.fileVersion) {
                 4 -> when (p) {
-                    0 -> GIMP_PRECISION_U8_NON_LINEAR
-                    1 -> GIMP_PRECISION_U16_NON_LINEAR
-                    2 -> GIMP_PRECISION_U32_LINEAR
-                    3 -> GIMP_PRECISION_HALF_LINEAR
-                    4 -> GIMP_PRECISION_FLOAT_LINEAR
+                    0 -> DataType.U8_NON_LINEAR
+                    1 -> DataType.U16_NON_LINEAR
+                    2 -> DataType.U32_LINEAR
+                    3 -> DataType.HALF_LINEAR
+                    4 -> DataType.FLOAT_LINEAR
                     else -> throw IOException()
                 }
                 5, 6 -> {
                     when (p) {
-                        100 -> GIMP_PRECISION_U8_LINEAR
-                        150 -> GIMP_PRECISION_U8_NON_LINEAR
-                        200 -> GIMP_PRECISION_U16_LINEAR
-                        250 -> GIMP_PRECISION_U16_NON_LINEAR
-                        300 -> GIMP_PRECISION_U32_LINEAR
-                        350 -> GIMP_PRECISION_U32_NON_LINEAR
-                        400 -> GIMP_PRECISION_HALF_LINEAR
-                        450 -> GIMP_PRECISION_HALF_NON_LINEAR
-                        500 -> GIMP_PRECISION_FLOAT_LINEAR
-                        550 -> GIMP_PRECISION_FLOAT_NON_LINEAR
+                        100 -> DataType.U8_LINEAR
+                        150 -> DataType.U8_NON_LINEAR
+                        200 -> DataType.U16_LINEAR
+                        250 -> DataType.U16_NON_LINEAR
+                        300 -> DataType.U32_LINEAR
+                        350 -> DataType.U32_NON_LINEAR
+                        400 -> DataType.HALF_LINEAR
+                        450 -> DataType.HALF_NON_LINEAR
+                        500 -> DataType.FLOAT_LINEAR
+                        550 -> DataType.FLOAT_NON_LINEAR
                         else -> throw IOException()
                     }
                 }
-                else -> p
+                else -> DataType.valueById[p] ?: throw IOException()
             }
-        } else GIMP_PRECISION_U8_NON_LINEAR
+        } else DataType.U8_NON_LINEAR
 
         // just creates a new, empty instance
         // val image = createImage(width, height, imageType, precision, false)
 
-        loadImageProps(info, data)
+        loadImageProps(image, data)
 
-        val layers = ArrayList<Layer>()
-
+        // read layers
         while (true) {
-            val offset = readOffset(info, data)
+            val offset = readOffset(image, data)
             if (offset == 0) break // end of list
             val savedPosition = data.position()
             data.position(offset)
-            val layer = loadLayer(info, data)
-            if (layer != null) layers.add(layer)
+            val layer = loadLayer(image, data)
+            if (layer != null) image.layers.add(layer)
             data.position(savedPosition)
         }
 
-        val channels = ArrayList<Channel>()
-
+        // read channels
         while (true) {
-            val offset = readOffset(info, data)
+            val offset = readOffset(image, data)
             if (offset == 0) break
             val savedPosition = data.position()
             data.position(offset)
-            val channel = loadChannel(info, data)
+            val channel = loadChannel(image, data)
             // add channel to image
-            if (channel != null) channels.add(channel)
+            if (channel != null) image.channels.add(channel)
             data.position(savedPosition)
         }
 
@@ -261,61 +175,23 @@ object GimpReader {
 
         // pretty much done
 
-        println("$width x $height, type $imageType, ${info.precision} precision, ${info.compression} compression")
+        return image
 
     }
 
-    class Layer(
-        val width: Int, val height: Int, val name: String,
-        val baseType: Int, val hasAlpha: Boolean
-    ) {
-        var x = 0
-        var y = 0
-        var opacity = 1f
-        var blendSpace = 0
-    }
+    private fun loadLayer(info: GimpImage, data: ByteBuffer): Layer? {
 
-    class Channel(
-        val width: Int, val height: Int, val name: String
-    ) {
-        var opacity = 1f
-        var color = 0
-        var colorTag = 0
-    }
-
-    private fun loadLayer(info: GimpInfo, data: ByteBuffer): Layer? {
-
-        val width = data.int
-        val height = data.int
+        var width = data.int
+        var height = data.int
         val type = data.int
         val name = readString(data)
 
-        var hasAlpha = false
-        var baseType = GIMP_RGB
-
-        println("loading layer $name, $width x $height, type $type")
-
-        when (type) {
-            GIMP_RGB_IMAGE -> {
-            }
-            GIMP_RGBA_IMAGE -> {
-                hasAlpha = true
-            }
-            GIMP_GRAY_IMAGE -> {
-                baseType = GIMP_GRAY
-            }
-            GIMP_GRAYA_IMAGE -> {
-                baseType = GIMP_GRAY
-                hasAlpha = true
-            }
-            GIMP_INDEXED_IMAGE -> {
-                baseType = GIMP_INDEXED
-            }
-            GIMP_INDEXEDA_IMAGE -> {
-                baseType = GIMP_INDEXED
-                hasAlpha = true
-            }
-            else -> return null
+        val hasAlpha = type.and(1) != 0
+        val baseType = when (type) {
+            0, 1 -> ImageType.RGB
+            2, 3 -> ImageType.GRAY
+            4, 5 -> ImageType.INDEXED
+            else -> throw IOException()
         }
 
         val layer = Layer(width, height, name, baseType, hasAlpha)
@@ -324,7 +200,7 @@ object GimpReader {
             var isGroupLayer = false
             var isTextLayer = false
             val savedPosition = data.position()
-            TODO("check layer props")
+            LOGGER.warn("check layer props")
             if (isTextLayer || isGroupLayer) {
                 data.position(savedPosition)
                 width = 1
@@ -336,11 +212,11 @@ object GimpReader {
         loadLayerProps(info, data, layer)
 
         val hierarchyOffset = readOffset(info, data)
-        val layerMaskOffset = readOffset(info, data)
+        // val layerMaskOffset = readOffset(info, data)
 
         // if sth
         data.position(hierarchyOffset)
-        loadBuffer(info, data, layer)
+        layer.image = loadBuffer(info, data, layer)
 
         // and stuff...
 
@@ -348,71 +224,42 @@ object GimpReader {
 
     }
 
-    private fun loadLayerProps(info: GimpInfo, data: ByteBuffer, layer: Layer) {
-        while (true) {
-            loadProp(info, data)
-            when (info.propType) {
-                PROP_END -> break
-                PROP_OFFSETS -> {
-                    layer.x = data.int
-                    layer.y = data.int
-                }
-                PROP_OPACITY -> layer.opacity = data.int / 255f
-                PROP_FLOAT_OPACITY -> layer.opacity = data.float
-                PROP_BLEND_SPACE -> {
-                    var bs = data.int
-                    if (bs < 0) {// auto
-                        // mmh, complicated
-                        // not completely implemented here
-                        bs = -bs
-                    }
-                    layer.blendSpace = bs
-                }
-                PROP_COLOR_TAG -> {
-                    // ??
-                    skipUnknownProperty(info, data)
-                }
-                else -> skipUnknownProperty(info, data)
-            }
-        }
-    }
-
-    private fun loadBuffer(info: GimpInfo, data: ByteBuffer, channel: Layer) {
-        val width = data.int
+    private fun loadBuffer(info: GimpImage, data: ByteBuffer, layer: Layer): Image? {
+        /*val width = data.int
         val height = data.int
-        val bpp = data.int
+        val bpp = data.int*/
+        data.skip(12)
         val offset = readOffset(info, data)
         data.position(offset)
-        val format = GIMP_PRECISION_U8_LINEAR // idk...
-        val image = loadLevel(info, data, format) ?: return
-        // todo print the image
-        image.write(getReference(desktop, "${System.nanoTime()}.png"))
+        val format = DataType.U8_LINEAR // idk...
+        return loadLevel(info, data, format, layer)
     }
 
-    private fun loadBuffer(info: GimpInfo, data: ByteBuffer, channel: Channel) {
-        val width = data.int
+    private fun loadBuffer(info: GimpImage, data: ByteBuffer, channel: Channel) {
+        /*val width = data.int
         val height = data.int
-        val bpp = data.int
+        val bpp = data.int*/
+        data.skip(12)
         val offset = readOffset(info, data)
         data.position(offset)
         loadLevel(info, data, channel)
     }
 
-    private const val TILE_SIZE = 64
-
-    private fun loadLevel(info: GimpInfo, data: ByteBuffer, format: Int): Image? {
-        val bpp = getBBP(format)
+    private fun loadLevel(info: GimpImage, data: ByteBuffer, dataType: DataType, layer: Layer): Image? {
+        val bpp = getBpp(dataType, layer.baseType, layer.hasAlpha)
         val width = data.int
         val height = data.int
-        val image = createImage(width, height, format)
+        val image = createImage(width, height, layer.baseType, dataType, layer.hasAlpha)
         // first tile offset
         var offset = readOffset(info, data)
         if (offset == 0) return null // empty
-        val tileRows = (height + TILE_SIZE - 1) / TILE_SIZE
-        val tileCols = (width + TILE_SIZE - 1) / TILE_SIZE
-        val tiles = tileRows * tileCols
+        val tileXs = ceilDiv(width, TILE_SIZE)
+        val tileYs = ceilDiv(height, TILE_SIZE)
+        val tiles = tileXs * tileYs
         val maxDataLength = bpp * TILE_SIZE * TILE_SIZE * 3 / 2
-        info.tmp = ByteBuffer.allocate(maxDataLength)
+        if (info.tmp == null || info.tmp!!.size < maxDataLength) {
+            info.tmp = ByteArray(maxDataLength)
+        }
         for (tileIndex in 0 until tiles) {
             if (offset == 0) throw IOException("Not enough tiles found")
             val savedPosition = data.position()
@@ -420,18 +267,18 @@ object GimpReader {
             // "if the offset is 0 then we need to read in the maximum possible
             // allowing for negative compression"
             if (offset2 == 0) offset2 = offset + maxDataLength
-            data.position(offset)
             if (offset2 < offset || offset2 - offset > maxDataLength) {
-                LOGGER.warn("Invalid tile data length in tile $tileIndex/$tiles: $offset2 < $offset || $offset2 - $offset > $maxDataLength")
+                LOGGER.warn("Invalid tile data length in tile $tileIndex/$tiles: $offset2 < $offset || $offset2 - $offset (${offset2 - offset}) > $maxDataLength")
                 return image
             }
+            data.position(offset)
             // get rect...
-            val x0 = (tileIndex / tileRows) * TILE_SIZE
-            val y0 = (tileIndex % tileRows) * TILE_SIZE
+            val x0 = (tileIndex % tileXs) * TILE_SIZE
+            val y0 = (tileIndex / tileXs) * TILE_SIZE
             val dataLength = offset2 - offset
             when (info.compression) {
-                COMPRESS_NONE -> loadTile(info, data, image, format, x0, y0, dataLength)
-                COMPRESS_RLE -> loadTileRLE(info, data, image, format, x0, y0, dataLength)
+                Compression.NONE -> loadTile(info, data, image, layer.baseType, dataType, x0, y0)
+                Compression.RLE -> loadTileRLE(info, data, image, layer.baseType, dataType, x0, y0, dataLength)
                 else -> throw IOException("Compression not supported")
             }
             data.position(savedPosition)
@@ -441,75 +288,143 @@ object GimpReader {
         return image
     }
 
-    fun loadTile(info: GimpInfo, data: ByteBuffer, image: Image, format: Int, x0: Int, y0: Int, dataLength: Int) {
-        TODO()
+    private fun readComponents(
+        info: GimpImage,
+        bppDivComponents: Int,
+        tileData: ByteArray,
+        tileSizeDivBppXComponents: Int
+    ) {
+        LOGGER.warn("todo: readComponents")
     }
 
-    fun loadTileRLE(info: GimpInfo, data: ByteBuffer, image: Image, format: Int, x0: Int, y0: Int, dataLength: Int) {
-        val bpp = getBBP(format)
+    private fun readFromBE(
+        bppDivComponents: Int,
+        tileData: ByteArray,
+        tileSizeDivBppXComponents: Int
+    ) {
+        LOGGER.warn("todo: readFromBE")
+    }
+
+    private fun getBpp(dataType: DataType, imageType: ImageType, hasAlpha: Boolean): Int {
+        return dataType.bpp * (imageType.channels + hasAlpha.toInt(1))
+    }
+
+    private fun loadTile(
+        info: GimpImage, data: ByteBuffer, image: Image,
+        imageType: ImageType, dataType: DataType, x0: Int, y0: Int
+    ) {
+
+        val bpp = getBpp(dataType, imageType, image.hasAlphaChannel)
         val tileWidth = min(TILE_SIZE, image.width - x0)
         val tileHeight = min(TILE_SIZE, image.height - y0)
         val tileSize = bpp * tileWidth * tileHeight
+
+        // just read the data
+        // todo we probably need to convert the format from rgba to argb
+        LOGGER.warn("Colors probably need to be converted from rgba to argb")
+        val tileData = info.tmp!!
+        for (i in 0 until tileSize) {
+            tileData[i] = data.get()
+        }
+
+        if (info.fileVersion >= 12) {
+            readComponents(info, dataType.bpp, tileData, tileWidth * tileHeight)
+        }
+
+        fillTileIntoImage(dataType, image, x0, y0, tileWidth, tileHeight, bpp, tileData)
+
+    }
+
+    private fun mapChannel(c: Int, hasAlpha: Boolean): Int {
+        // rgba -> argb
+        return if (hasAlpha) (c + 1).and(3) else c
+    }
+
+    private fun loadTileRLE(
+        info: GimpImage, data: ByteBuffer, image: Image,
+        imageType: ImageType, format: DataType, x0: Int, y0: Int, dataLength: Int
+    ) {
+        val bpp = getBpp(format, imageType, image.hasAlphaChannel)
+        val tileWidth = min(TILE_SIZE, image.width - x0)
+        val tileHeight = min(TILE_SIZE, image.height - y0)
         if (dataLength <= 0) return
-        val tmp = info.tmp!!
-        for (i in 0 until bpp) {
-            tmp.position(i)
-            var size = tileWidth * tileHeight
-            var count = 0
-            while (size > 0) {
-                var length = data.get().toInt() and 255
-                if (length >= 128) {
-                    length = 256 - length
-                    if (length == 128) length = data.short.toInt() and 0xffff
-                    count += length
-                    size -= length
-                    while (length-- > 0) {
-                        tmp.put(data.get())
-                        tmp.position(tmp.position() + bpp - 1)
-                    }
-                } else {
-                    length++
-                    if (length == 128) length = data.short.toInt() and 0xffff
-                    count += length
-                    size -= length
-                    val value = data.get()
-                    for (j in 0 until length) {
-                        tmp.put(value)
-                        tmp.position(tmp.position() + bpp - 1)
+
+        val tileData = info.tmp!!
+        try {
+            for (i in 0 until bpp) {
+                var size = tileWidth * tileHeight
+                var count = 0
+                var k = mapChannel(i, image.hasAlphaChannel)
+                while (size > 0) {
+                    var length = data.get().toInt() and 255
+                    if (length >= 128) {
+                        length = 256 - length
+                        if (length == 128) length = data.short.toInt() and 0xffff
+                        count += length
+                        size -= length
+                        while (length-- > 0) {
+                            tileData[k] = data.get()
+                            k += bpp
+                        }
+                    } else {
+                        length++
+                        if (length == 128) length = data.short.toInt() and 0xffff
+                        count += length
+                        size -= length
+                        val value = data.get()
+                        for (j in 0 until length) {
+                            tileData[k] = value
+                            k += bpp
+                        }
                     }
                 }
             }
+        } catch (e: ArrayIndexOutOfBoundsException) {
+            LOGGER.warn("", e)
+        } catch (e: BufferUnderflowException) {
+            LOGGER.warn("", e)
         }
-        tmp.position(0)
+
+        if (info.fileVersion >= 12) {
+            readFromBE(format.bpp, tileData, tileWidth * tileHeight)
+        }
+
+        fillTileIntoImage(format, image, x0, y0, tileWidth, tileHeight, bpp, tileData)
+
+    }
+
+    private fun fillTileIntoImage(
+        format: DataType, image: Image,
+        x0: Int, y0: Int, dx: Int, dy: Int,
+        bpp: Int, tileData: ByteArray
+    ) {
         when (format) {
-            GIMP_PRECISION_U8_LINEAR -> {
+            DataType.U8_LINEAR -> {
                 image as ByteImage
                 val dst = image.data
-                var i = 0
-                for (y in 0 until tileHeight) {
-                    for (x in 0 until tileWidth) {
-                        dst[i++] = tmp.get()
+                var readIndex = 0
+                for (y in y0 until y0 + dy) {
+                    var writeIndex = (x0 + y * image.width) * bpp
+                    for (x in 0 until dx * bpp) {
+                        dst[writeIndex++] = tileData[readIndex++]
                     }
                 }
             }
             else -> TODO("fill the decoded data into the image, format $format")
         }
-
     }
 
-    fun loadLevel(info: GimpInfo, data: ByteBuffer, channel: Channel) {
-        TODO()
+    private fun loadLevel(info: GimpImage, data: ByteBuffer, channel: Channel) {
+        LOGGER.warn("todo: loadLevel")
     }
 
-    private fun loadChannel(info: GimpInfo, data: ByteBuffer): Channel? {
+    private fun loadChannel(info: GimpImage, data: ByteBuffer): Channel? {
 
         val width = data.int
         val height = data.int
         if (width <= 0 || height <= 0) return null
 
         val name = readString(data)
-
-        println("channel $name, $width x $height")
 
         val channel = Channel(width, height, name)
         loadChannelProps(info, data, channel)
@@ -523,36 +438,50 @@ object GimpReader {
 
     }
 
-    private fun loadChannelProps(info: GimpInfo, data: ByteBuffer, channel: Channel) {
-        while (true) {
-            loadProp(info, data)
-            when (info.propType) {
-                PROP_OPACITY -> channel.opacity = data.int / 255f
-                PROP_FLOAT_OPACITY -> channel.opacity = data.float
-                PROP_COLOR_TAG -> channel.colorTag = data.int
-                PROP_COLOR -> channel.color = rgba(data.get(), data.get(), data.get(), -1)
-                PROP_FLOAT_COLOR -> channel.color = rgba(data.float, data.float, data.float, 1f)
-                else -> skipUnknownProperty(info, data)
-            }
-        }
-    }
-
-    private fun readOffset(info: GimpInfo, data: ByteBuffer): Int {
+    private fun readOffset(info: GimpImage, data: ByteBuffer): Int {
         return if (info.bytesPerOffset == 4) data.int else data.long.toInt()
     }
 
-    private fun loadProp(info: GimpInfo, data: ByteBuffer) {
-        info.propType = data.int
+    private fun loadProp(info: GimpImage, data: ByteBuffer) {
+        info.propType = PropertyType.values2[data.int]
         info.propSize = data.int
-        println("prop ${info.propType}, size ${info.propSize}")
     }
 
-    private fun loadImageProps(info: GimpInfo, data: ByteBuffer) {
+    private fun loadLayerProps(info: GimpImage, data: ByteBuffer, layer: Layer) {
         while (true) {
             loadProp(info, data)
+            val position = data.position()
             when (info.propType) {
-                PROP_END -> break
-                PROP_COLORMAP -> {
+                PropertyType.END -> break
+                PropertyType.OFFSETS -> {
+                    layer.x = data.int
+                    layer.y = data.int
+                }
+                PropertyType.OPACITY -> layer.opacity = clamp(data.int, 0, 255)
+                PropertyType.FLOAT_OPACITY -> layer.opacity = clamp((data.float * 255).roundToInt(), 0, 255)
+                PropertyType.BLEND_SPACE -> {
+                    var bs = data.int
+                    if (bs < 0) {// auto
+                        // mmh, complicated
+                        // not completely implemented here
+                        bs = -bs
+                    }
+                    layer.blendSpace = bs
+                }
+                PropertyType.VISIBLE -> layer.isVisible = data.int != 0
+                else -> printUnknownProperty(info, data, "layer-prop")
+            }
+            data.position(position + info.propSize)
+        }
+    }
+
+    private fun loadImageProps(info: GimpImage, data: ByteBuffer) {
+        while (true) {
+            loadProp(info, data)
+            val position = data.position()
+            when (info.propType) {
+                PropertyType.END -> break
+                PropertyType.COLORMAP -> {
                     val size = data.int
                     val colors = if (info.fileVersion == 0) {
                         data.position(data.position() + size)
@@ -563,34 +492,141 @@ object GimpReader {
                             rgba(data.get(), data.get(), data.get(), 255.toByte())
                         }
                     }
-                    if (info.imageType == GIMP_INDEXED) {
+                    if (info.imageType == ImageType.INDEXED) {
                         info.colorMap = colors
                     }
                 }
-                PROP_COMPRESSION -> {
-                    when (val type = data.get().toInt()) {
-                        COMPRESS_NONE, COMPRESS_RLE, COMPRESS_ZLIB,
-                        COMPRESS_FRACTAL -> info.compression = type
-                        else -> throw IOException("Unknown compression")
-                    }
+                PropertyType.COMPRESSION -> {
+                    val ti = data.get().toInt()
+                    info.compression = Compression.values2.getOrNull(ti)
+                        ?: throw IOException("Unknown compression $ti")
                 }
-                else -> {
-                    skipUnknownProperty(info, data)
-                }
+                else -> printUnknownProperty(info, data, "image-prop")
             }
+            data.position(position + info.propSize)
         }
     }
 
-    private fun skipUnknownProperty(info: GimpInfo, data: ByteBuffer) {
-        data.position(data.position() + info.propSize)
+    private fun loadChannelProps(info: GimpImage, data: ByteBuffer, channel: Channel) {
+        while (true) {
+            loadProp(info, data)
+            val position = data.position()
+            when (info.propType) {
+                PropertyType.OPACITY -> channel.opacity = data.int / 255f
+                PropertyType.FLOAT_OPACITY -> channel.opacity = data.float
+                PropertyType.COLOR_TAG -> channel.colorTag = data.int
+                PropertyType.COLOR -> channel.color = rgba(data.get(), data.get(), data.get(), -1)
+                PropertyType.FLOAT_COLOR -> channel.color = rgba(data.float, data.float, data.float, 1f)
+                else -> printUnknownProperty(info, data, "channel-prop")
+            }
+            data.position(position + info.propSize)
+        }
+    }
+
+    private fun printUnknownProperty(info: GimpImage, data: ByteBuffer, type: String) {
+        /*if (info.propSize == 4)
+            LOGGER.debug("$type ${info.propType}, ${data.getInt(data.position())}/${data.getFloat(data.position())}")
+        else LOGGER.debug("$type ${info.propType}, size ${info.propSize}")*/
     }
 
     @JvmStatic
     fun main(args: Array<String>) {
-        val bytes = getReference(OS.documents, "Watch Dogs 2 Background.xcf").readByteBuffer()
-            .order(ByteOrder.BIG_ENDIAN)
-        loadStream(bytes)
+        val file = getReference(OS.documents, "stupla-ws2122.xcf")
+        createThumbnail(file)
+            .write(getReference(desktop, file.name + ".png"))
     }
 
+    fun readImage(file: FileReference): GimpImage {
+        val data = file.readByteBuffer()
+            .order(ByteOrder.BIG_ENDIAN)
+        return readImage(data)
+    }
+
+    fun readImage(input: InputStream): GimpImage {
+        val bytes = input.readBytes()
+        val data = ByteBuffer.wrap(bytes)
+            .order(ByteOrder.BIG_ENDIAN)
+        return readImage(data)
+    }
+
+    fun createThumbnail(file: FileReference, maxSize: Int = Int.MAX_VALUE): Image {
+        val info = readImage(file)
+        return createThumbnail(info, maxSize)
+    }
+
+    fun createThumbnail(input: InputStream, maxSize: Int = Int.MAX_VALUE): Image {
+        val info = readImage(input)
+        return createThumbnail(info, maxSize)
+    }
+
+    fun createThumbnail(info: GimpImage, maxSize: Int = max(info.width, info.height)): Image {
+        val hasAlpha = info.layers.any {
+            val image = it.image
+            image != null && (image.hasAlphaChannel || it.opacity < 255)
+        }
+        val w = info.width
+        val h = info.height
+        // todo if the source has HDR contents, use HDR here as well
+        val result = IntImage(w, h, hasAlpha)
+        val dst = result.data
+        for (layer in info.layers) {
+            val image = layer.image
+            if (layer.isVisible && image != null && layer.opacity > 0) {
+                val dx = layer.x
+                val dy = layer.y
+                val x0 = max(dx, 0)
+                val y0 = max(dy, 0)
+                val x1 = min(dx + layer.width, w)
+                val y1 = min(dy + layer.height, h)
+                if (x1 <= x0 || y1 <= x0) continue
+                val opacity = layer.opacity
+                if (image.hasAlphaChannel || opacity < 255) {
+                    for (y in y0 until y1) {
+                        var dstIndex = x0 + y * w
+                        var srcIndex = (x0 - dx) + (y - dy) * layer.width
+                        for (x in x0 until x1) {
+                            // todo theoretically, we would need to apply the correct blending function here
+                            val color = image.getRGB(srcIndex++)
+                            dst[dstIndex] = blendBackToFront(dst[dstIndex], color, opacity)
+                            dstIndex++
+                        }
+                    }
+                } else {
+                    for (y in y0 until y1) {
+                        var dstIndex = x0 + y * w
+                        var srcIndex = (x0 - dx) + (y - dy) * layer.width
+                        for (x in x0 until x1) {
+                            dst[dstIndex++] = image.getRGB(srcIndex++)
+                        }
+                    }
+                }
+            }
+        }
+        return result
+    }
+
+    private fun blendBackToFront(dst: Int, src: Int, opacity: Int): Int {
+        val aa = dst.a()
+        val iaa = 255 - aa
+        val ba = (src.a() * opacity * iaa) / (255 * 255)// ^1
+        val alpha = aa + ba // ^1
+        if (alpha == 0) return 0 // prevent division by zero
+        val nr = (dst.r() * aa + src.r() * ba) / alpha
+        val ng = (dst.g() * aa + src.g() * ba) / alpha
+        val nb = (dst.b() * aa + src.b() * ba) / alpha
+        return rgba(nr, ng, nb, alpha)
+    }
+
+    fun readAsFolder(file: FileReference): InnerFolder {
+        val info = readImage(file)
+        val folder = InnerFolder(file)
+        for (layer in info.layers) {
+            val image = layer.image
+            if (image != null) {
+                folder.createImageChild(layer.name + ".png", image)
+            }
+        }
+        return folder
+    }
 
 }

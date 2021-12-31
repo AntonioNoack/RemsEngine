@@ -9,6 +9,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferInt;
 import java.awt.image.Raster;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -49,10 +50,10 @@ public abstract class Image implements ICacheData {
     }
 
     public IntImage createIntImage() {
-        int[] data = new int[width * height];
-        IntImage image = new IntImage(width, height, data, hasAlphaChannel);
         int width = getWidth();
         int height = getHeight();
+        int[] data = new int[width * height];
+        IntImage image = new IntImage(width, height, data, hasAlphaChannel);
         for (int i = 0, size = width * height; i < size; i++) {
             data[i] = getRGB(i);
         }
@@ -60,13 +61,13 @@ public abstract class Image implements ICacheData {
     }
 
     public BufferedImage createBufferedImage() {
-        BufferedImage image = new BufferedImage(width, height, hasAlphaChannel ? 2 : 1);
         int width = getWidth();
         int height = getHeight();
-        for (int y = 0, i = 0; y < height; y++) {
-            for (int x = 0; x < width; x++, i++) {
-                image.setRGB(x, y, getRGB(i));
-            }
+        BufferedImage image = new BufferedImage(width, height, hasAlphaChannel ? 2 : 1);
+        DataBufferInt dataBuffer = (DataBufferInt) image.getRaster().getDataBuffer();
+        int[] data = dataBuffer.getData();
+        for (int i = 0, size = width * height; i < size; i++) {
+            data[i] = getRGB(i);
         }
         return image;
     }

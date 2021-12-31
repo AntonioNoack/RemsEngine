@@ -3,6 +3,8 @@ package me.anno.gpu.texture
 import me.anno.cache.data.ICacheData
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.check
+import me.anno.gpu.GFX.getName
 import me.anno.gpu.GFX.isGFXThread
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.OpenGL
@@ -63,6 +65,8 @@ open class Texture2D(
             isCreated = false
             isDestroyed = false
             locallyAllocated = allocate(locallyAllocated, 0L)
+            createdW = 0
+            createdH = 0
         }
     }
 
@@ -92,7 +96,9 @@ open class Texture2D(
         tmp4i[1] = GL_RED
         tmp4i[2] = GL_RED
         tmp4i[3] = GL_ONE
+        check()
         GL11.glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, tmp4i)
+        check()
     }
 
     fun ensurePointer() {
@@ -157,6 +163,7 @@ open class Texture2D(
         } else {
             if (withMultisampling) {
                 glTexImage2DMultisample(target, samples, internalFormat, w, h, false)
+                check()
             } else {
                 if (data != null) setAlignmentAndBuffer(w, dataFormat, dataType)
                 when (data) {
@@ -169,6 +176,7 @@ open class Texture2D(
                     null -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, null as ByteBuffer?)
                     else -> throw RuntimeException("${data.javaClass}")
                 }
+                check()
             }
             this.internalFormat = internalFormat
             when (internalFormat) {
@@ -179,7 +187,6 @@ open class Texture2D(
             createdW = w
             createdH = h
         }
-        GFX.check()
     }
 
     fun texImage2D(type: TargetType, data: ByteBuffer?) {
@@ -269,9 +276,9 @@ open class Texture2D(
                 buffer as DataBufferInt
                 val data = buffer.data
                 if (sync && isGFXThread()) {
-                    createRGBA(data, checkRedundancy)
+                    createRGBASwizzle(data, checkRedundancy)
                 } else GFX.addGPUTask(w, h) {
-                    createRGBA(data, checkRedundancy)
+                    createRGBASwizzle(data, checkRedundancy)
                 }
             }
             BufferedImage.TYPE_INT_RGB -> {
@@ -316,10 +323,10 @@ open class Texture2D(
             }
         } else {
             if (sync && isGFXThread()) {
-                createRGBA(intData, checkRedundancy)
+                createRGBASwizzle(intData, checkRedundancy)
                 intArrayPool.returnBuffer(intData)
             } else GFX.addGPUTask(w, h) {
-                createRGBA(intData, checkRedundancy)
+                createRGBASwizzle(intData, checkRedundancy)
                 intArrayPool.returnBuffer(intData)
             }
         }
@@ -553,7 +560,7 @@ open class Texture2D(
         data.limit(2)
     }
 
-    fun createRGBA(ints: IntArray, checkRedundancy: Boolean) {
+    fun createRGBASwizzle(ints: IntArray, checkRedundancy: Boolean) {
         beforeUpload(1, ints.size)
         val ints2 = if (checkRedundancy) checkRedundancy(ints) else ints
         switchRGB2BGR(ints2)
@@ -822,7 +829,7 @@ open class Texture2D(
             val result = bindTexture(target, pointer)
             ensureFilterAndClamping(nearest, clamping)
             return result
-        } else throw IllegalStateException("Cannot bind non-created texture!")
+        } else throw IllegalStateException("Cannot bind non-created texture!, $name")
     }
 
     fun bind(index: Int) = bind(index, filtering, clamping ?: Clamping.REPEAT)

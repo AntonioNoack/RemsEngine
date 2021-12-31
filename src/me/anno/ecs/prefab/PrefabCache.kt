@@ -140,7 +140,7 @@ object PrefabCache : CacheSection("Prefab") {
     private fun loadPrefab3(file: FileReference): ISaveable? {
         if (file is PrefabReadable) return file.readPrefab()
         try {
-            val pure = TextReader.read(file, true).firstOrNull()
+            val pure = TextReader.read(file, false).firstOrNull()
             if (pure != null) return pure
         } catch (e: Exception) {
         }

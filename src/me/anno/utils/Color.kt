@@ -22,6 +22,19 @@ object Color {
     fun Int.mulARGB(other: Int): Int =
         rgba(r() * other.r() / 255, g() * other.g() / 255, b() * other.b() / 255, a() * other.a() / 255)
 
+    fun rgb(r: Byte, g: Byte, b: Byte): Int = r.toInt().and(255).shl(16) or
+            g.toInt().and(255).shl(8) or
+            b.toInt().and(255) or
+            0xff.shl(24)
+
+    fun rgb(r: Int, g: Int, b: Int): Int = clamp(r, 0, 255).shl(16) or
+            clamp(g, 0, 255).shl(8) or
+            clamp(b, 0, 255) or
+            0xff.shl(24)
+
+    fun rgb(r: Float, g: Float, b: Float): Int =
+        rgb((r * 255).roundToInt(), (g * 255).roundToInt(), (b * 255).roundToInt())
+
     fun rgba(r: Byte, g: Byte, b: Byte, a: Byte): Int = r.toInt().and(255).shl(16) or
             g.toInt().and(255).shl(8) or
             b.toInt().and(255) or

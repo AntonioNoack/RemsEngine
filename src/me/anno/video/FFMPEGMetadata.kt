@@ -2,8 +2,10 @@ package me.anno.video
 
 import me.anno.cache.CacheSection
 import me.anno.cache.data.ICacheData
+import me.anno.image.gimp.GimpReader
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.Signature
 import me.anno.io.json.JsonArray
 import me.anno.io.json.JsonObject
 import me.anno.io.json.JsonReader
@@ -15,28 +17,48 @@ import kotlin.math.roundToInt
 
 class FFMPEGMetadata(val file: FileReference) : ICacheData {
 
-    val duration: Double
+    var duration = 0.0
 
-    val hasAudio: Boolean
-    val hasVideo: Boolean
+    var hasAudio = false
+    var hasVideo = false
 
-    val audioStartTime: Double
-    val audioSampleRate: Int
-    val audioDuration: Double
-    val audioSampleCount: Long // 24h * 3600s/h * 48k = 4B -> Long
+    var audioStartTime = 0.0
+    var audioSampleRate = 0
+    var audioDuration = 0.0
+    var audioSampleCount = 0L // 24h * 3600s/h * 48k = 4B -> Long
 
-    val videoStartTime: Double
-    var videoFPS: Double
-    var videoDuration: Double
-    val videoWidth: Int
-    val videoHeight: Int
-    var videoFrameCount: Int
+    var videoStartTime = 0.0
+    var videoFPS = 0.0
+    var videoDuration = 0.0
+    var videoWidth = 0
+    var videoHeight = 0
+    var videoFrameCount = 0
 
     override fun toString(): String {
         return "FFMPEGMetadata(file: $file, audio: $hasAudio, video: $hasVideo, $videoWidth x $videoHeight, $videoFrameCount)"
     }
 
+    private fun isGimpFile(): Boolean {
+        return Signature.find(file)?.name == "gimp"
+    }
+
     init {
+
+        if (isGimpFile()) {
+
+            // Gimp files are a special case, which is not covered by FFMPEG
+            val (w, h) = file.inputStream().use { GimpReader.findSize(it) }
+            hasVideo = true
+            videoWidth = w
+            videoHeight = h
+
+        } else {
+            loadFFMPEG()
+        }
+
+    }
+
+    fun loadFFMPEG() {
 
         val args = listOf(
             "-v", "quiet",
@@ -102,40 +124,47 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
             (it as JsonObject)["codec_type"]?.asText().equals("audio", true)
         } as? JsonObject
 
-        hasAudio = audio != null
-        audioStartTime = audio?.get("start_time")?.asText()?.toDouble() ?: 0.0
-        audioDuration = audio?.get("duration")?.asText()?.toDouble() ?: duration
-        audioSampleRate = audio?.get("sample_rate")?.asText()?.toInt() ?: 20
-        audioSampleCount = audio?.get("duration_ts")?.asText()?.toLong() ?: (audioSampleRate * audioDuration).toLong()
+        if (audio != null) {
+            hasAudio = true
+            audioStartTime = audio.get("start_time")?.asText()?.toDouble() ?: 0.0
+            audioDuration = audio.get("duration")?.asText()?.toDouble() ?: duration
+            audioSampleRate = audio.get("sample_rate")?.asText()?.toInt() ?: 20
+            audioSampleCount = audio.get("duration_ts")?.asText()?.toLong() ?: (audioSampleRate * audioDuration).toLong()
+        }
 
         val video = streams.firstOrNull {
             (it as JsonObject)["codec_type"]?.asText().equals("video", true)
         } as? JsonObject
 
-        hasVideo = video != null
-        videoStartTime = video?.get("start_time")?.asText()?.toDouble() ?: 0.0
-        videoDuration = video?.get("duration")?.asText()?.toDouble() ?: duration
-        videoFrameCount = video?.get("nb_frames")?.asText()?.toInt() ?: 0
-        videoWidth = video?.get("width")?.asText()?.toInt() ?: 0
-        videoHeight = video?.get("height")?.asText()?.toInt() ?: 0
-        videoFPS = video?.get("r_frame_rate")?.asText()?.parseFraction() ?: 30.0
+        if(video != null){
 
-        if (videoFrameCount == 0) {
-            if (videoDuration > 0.0) {
-                videoFrameCount = ceil(videoDuration * videoFPS).toInt()
-                LOGGER.info("Frame count was 0, corrected it to $videoFrameCount = $videoDuration * $videoFPS")
+            hasVideo = true
+            videoStartTime = video.get("start_time")?.asText()?.toDouble() ?: 0.0
+            videoDuration = video.get("duration")?.asText()?.toDouble() ?: duration
+            videoFrameCount = video.get("nb_frames")?.asText()?.toInt() ?: 0
+            videoWidth = video.get("width")?.asText()?.toInt() ?: 0
+            videoHeight = video.get("height")?.asText()?.toInt() ?: 0
+            videoFPS = video.get("r_frame_rate")?.asText()?.parseFraction() ?: 30.0
+
+            if (videoFrameCount == 0) {
+                if (videoDuration > 0.0) {
+                    videoFrameCount = ceil(videoDuration * videoFPS).toInt()
+                    LOGGER.info("Frame count was 0, corrected it to $videoFrameCount = $videoDuration * $videoFPS")
+                }
+            } else {
+                val expectedFrameCount = (videoDuration * videoFPS).roundToInt()
+                if (expectedFrameCount * 10 !in videoFrameCount * 9..videoFrameCount * 11) {
+                    // something is wrong
+                    // nb_frames is probably correct
+                    LOGGER.warn("$file: Frame Count / Frame Rate / Video Duration incorrect! $videoDuration s * $videoFPS fps is not $videoFrameCount frames")
+                    videoDuration = duration // could be incorrect
+                    videoFPS = videoFrameCount / videoDuration
+                    LOGGER.warn("$file: Corrected by setting duration to $duration s and fps to $videoFPS")
+                }
             }
-        } else {
-            val expectedFrameCount = (videoDuration * videoFPS).roundToInt()
-            if (expectedFrameCount * 10 !in videoFrameCount * 9..videoFrameCount * 11) {
-                // something is wrong
-                // nb_frames is probably correct
-                LOGGER.warn("$file: Frame Count / Frame Rate / Video Duration incorrect! $videoDuration s * $videoFPS fps is not $videoFrameCount frames")
-                videoDuration = duration // could be incorrect
-                videoFPS = videoFrameCount / videoDuration
-                LOGGER.warn("$file: Corrected by setting duration to $duration s and fps to $videoFPS")
-            }
+
         }
+
         LOGGER.info("Loaded info about $file: $duration * $videoFPS = $videoFrameCount frames / $audioDuration * $audioSampleRate = $audioSampleCount samples")
 
     }

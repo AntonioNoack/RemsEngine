@@ -54,9 +54,12 @@ import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.maths.Maths.mixARGB
 import me.anno.utils.maths.Maths.sq
 import me.anno.utils.strings.StringHelper.setNumber
+import me.anno.utils.types.Floats.f1
+import me.anno.utils.types.Strings.formatTime
 import me.anno.utils.types.Strings.getImportType
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.video.FFMPEGMetadata
+import me.anno.video.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.formats.gpu.GPUFrame
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4fArrayList
@@ -455,8 +458,21 @@ class FileExplorerEntry(
                                 "${image.width} x ${image.height}"
                     }
                     else -> {
-                        file.name + "\n" +
-                                file.length().formatFileSize()
+                        val meta = getMeta(path, true)
+                        var ttt = "${file.name}\n${file.length().formatFileSize()}"
+                        if (meta != null) {
+                            if (meta.hasVideo) {
+                                ttt += "\n${meta.videoWidth} x ${meta.videoHeight}"
+                                if (meta.videoFrameCount > 1) ttt += " @" + meta.videoFPS.f1() + " fps"
+                            }
+                            if (meta.hasAudio) {
+                                ttt += "\n${meta.audioSampleRate / 1000} kHz"
+                            }
+                            if (meta.duration > 0 && (meta.hasAudio || (meta.hasVideo && meta.videoFrameCount > 1))) {
+                                ttt += "\n${meta.duration.formatTime()}"
+                            }
+                        }
+                        ttt
                     }
                 }
             }

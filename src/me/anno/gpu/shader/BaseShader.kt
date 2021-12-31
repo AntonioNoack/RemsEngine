@@ -116,8 +116,11 @@ open class BaseShader(
                 }
                 else -> get(deferred, instanced, OpenGL.geometryShader.currentValue)
             }
+            GFX.check()
             shader.use()
+            GFX.check()
             shader.v1("drawMode", renderer.drawMode.id)
+            GFX.check()
             return shader
         }
 

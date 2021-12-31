@@ -2,6 +2,7 @@ package me.anno.image
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
+import me.anno.image.gimp.GimpReader
 import me.anno.image.raw.BIImage
 import me.anno.image.tar.TGAImage
 import me.anno.io.files.FileFileRef
@@ -43,8 +44,8 @@ object ImageCPUCache : CacheSection("BufferedImages") {
         signature: String,
         streamReader: (InputStream) -> Image?
     ) {
-        byteReaders[signature] = { streamReader(it.inputStream()) }
-        fileReaders[signature] = { streamReader(it.inputStream()) }
+        byteReaders[signature] = { it.inputStream().use(streamReader) }
+        fileReaders[signature] = { it.inputStream().use(streamReader) }
         streamReaders[signature] = streamReader
     }
 
@@ -52,6 +53,7 @@ object ImageCPUCache : CacheSection("BufferedImages") {
         registerStreamReader("hdr") { HDRImage(it) }
         registerStreamReader("tga") { TGAImage.read(it, false) }
         registerStreamReader("ico") { tryIco(it) }
+        registerStreamReader("gimp") { GimpReader.createThumbnail(it) }
     }
 
     // eps: like svg, we could implement it, but we don't really need it that dearly...

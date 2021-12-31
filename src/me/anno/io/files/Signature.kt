@@ -1,6 +1,7 @@
 package me.anno.io.files
 
 import me.anno.ecs.prefab.PrefabReadable
+import me.anno.image.gimp.GimpReader
 import me.anno.io.zip.InnerByteFile
 import me.anno.io.zip.SignatureFile
 import java.nio.ByteBuffer
@@ -187,6 +188,7 @@ class Signature(val name: String, val offset: Int, val signature: ByteArray) {
             Signature("ico", 0, listOf(0x00, 0x00, 0x02, 0x00, 0x01)),// cursor with 1 "image"
             Signature("dds", 0, "DDS "), // direct x image file format
             Signature("gif", 0, "GIF8"), // graphics interchange format, often animated
+            Signature("gimp", 0, GimpReader.MAGIC), // gimp file
             // https://openexr.readthedocs.io/en/latest/OpenEXRFileLayout.html
             // todo exr reader
             Signature("exr", 0, listOf(0x76, 0x2f, 0x31, 0x01)), // HDR image format, can be exported from Blender

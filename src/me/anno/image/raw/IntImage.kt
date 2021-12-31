@@ -21,7 +21,7 @@ open class IntImage(
     override fun createTexture(texture: Texture2D, checkRedundancy: Boolean) {
         // data cloning is required, because the function in Texture2D switches the red and blue channels
         if (hasAlphaChannel) {
-            texture.createRGBA(cloneData(), checkRedundancy)
+            texture.createRGBASwizzle(cloneData(), checkRedundancy)
         } else {
             texture.createRGBSwizzle(cloneData(), checkRedundancy)
         }

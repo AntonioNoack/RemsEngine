@@ -69,10 +69,19 @@ class Framebuffer(
     lateinit var textures: Array<Texture2D>
 
     fun checkSession() {
-        if (session != OpenGL.session) {
+        if (pointer > 0 && session != OpenGL.session) {
+            GFX.check()
             session = OpenGL.session
             pointer = -1
             needsBlit = true
+            msBuffer?.checkSession()
+            depthTexture?.checkSession()
+            for (texture in textures) {
+                texture.checkSession()
+            }
+            GFX.check()
+            // validate it
+            create()
         }
     }
 
@@ -259,14 +268,17 @@ class Framebuffer(
     }
 
     fun bindTexture0(offset: Int = 0, nearest: GPUFiltering, clamping: Clamping) {
+        checkSession()
         bindTextureI(0, offset, nearest, clamping)
     }
 
     fun bindTextureI(index: Int, offset: Int) {
+        checkSession()
         bindTextureI(index, offset, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
     }
 
     fun bindTextureI(index: Int, offset: Int, nearest: GPUFiltering, clamping: Clamping) {
+        checkSession()
         if (withMultisampling) {
             val msBuffer = msBuffer!!
             resolveTo(msBuffer)

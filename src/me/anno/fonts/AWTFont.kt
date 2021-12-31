@@ -2,6 +2,7 @@ package me.anno.fonts
 
 import me.anno.config.DefaultConfig
 import me.anno.fonts.mesh.TextMeshGroup
+import me.anno.gpu.GFX
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.texture.FakeWhiteTexture
 import me.anno.gpu.texture.ITexture2D
@@ -9,6 +10,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
 import me.anno.utils.OS
 import me.anno.utils.files.Files.use
+import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.lists.ExpensiveList
 import me.anno.utils.types.Strings.incrementTab
 import me.anno.utils.types.Strings.isBlank2
@@ -139,6 +141,11 @@ class AWTFont(val font: Font) {
         val height = fontHeight * lineCount + (lineCount - 1) * spaceBetweenLines + 2 * extraPadding
 
         if (width < 1 || height < 1) return null
+        if (max(width, height) > GFX.maxTextureSize) {
+            LOGGER.warn("Texture for text is too large! $width x $height > ${GFX.maxTextureSize}, " +
+                    "${text.length} chars, ${font.name} $fontSize px, ${text.toString().shorten(200)}")
+            return null
+        }
         if (text.isBlank2()) {
             // we need some kind of wrapper around texture2D
             // and return an empty/blank texture

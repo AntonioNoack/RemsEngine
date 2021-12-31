@@ -101,9 +101,13 @@ abstract class OpenGLShader(
         GFX.check()
         Frame.bindMaybe()
         GFX.check()
-        if (program == -1 || session != OpenGL.session) init()
+        if (program <= 0 || session != OpenGL.session) {
+            init()
+        }
+        if (program <= 0) throw IllegalStateException()
         return if (program != lastProgram) {
             glUseProgram(program)
+            GFX.check()
             lastProgram = program
             true
         } else false
@@ -112,13 +116,13 @@ abstract class OpenGLShader(
     private val uniformLocations = HashMap<String, Int>()
     private val attributeLocations = HashMap<String, Int>()
     private val uniformCache = FloatArray(UniformCacheSizeX4) { Float.NaN }
-    private val textureIndices = HashMap<String, Int>()
+    var textureNames: List<String> = emptyList()
 
     abstract fun init()
     abstract fun sourceContainsWord(word: String): Boolean
 
     fun setTextureIndicesIfExisting() {
-        for ((key, index) in textureIndices) {
+        for ((index, key) in textureNames.withIndex()) {
             val location = getUniformLocation(key)
             if (location >= 0) {
                 glUniform1i(location, index)
@@ -127,7 +131,7 @@ abstract class OpenGLShader(
     }
 
     fun getTextureIndex(name: String): Int {
-        return textureIndices[name] ?: -1
+        return textureNames.indexOf(name)
     }
 
     val pointer get() = program
@@ -182,13 +186,11 @@ abstract class OpenGLShader(
     fun setTextureIndices(textures: List<String>?) {
         use()
         if (textures == null) return
+        textureNames = textures
         for ((index, name) in textures.withIndex()) {
             if (',' in name) throw IllegalArgumentException("Name must not contain comma!")
             val texName = getUniformLocation(name)
-            textureIndices[name] = if (texName >= 0) {
-                glUniform1i(texName, index)
-                index
-            } else -1
+            if (texName >= 0) glUniform1i(texName, index)
         }
     }
 

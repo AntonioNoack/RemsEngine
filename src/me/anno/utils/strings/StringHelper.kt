@@ -42,9 +42,9 @@ object StringHelper {
         }
     }
 
-    fun String.shorten(maxLength: Int, cutLines: Boolean = true): String {
-        var str = if (length > maxLength) substring(0, maxLength - 3) + "..." else this
-        if (cutLines && '\n' in this) str = str.replace("\n", "\\n")
+    fun CharSequence.shorten(maxLength: Int, cutLines: Boolean = true): CharSequence {
+        val str = if (length > maxLength) substring(0, maxLength - 3) + "..." else this
+        if (cutLines && '\n' in this) return str.toString().replace("\n", "\\n")
         return str
     }
 

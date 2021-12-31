@@ -40,6 +40,8 @@ object Frame {
 
     fun bind(buffer: IFramebuffer?, changeSize: Boolean, x: Int, y: Int, w0: Int, h0: Int) {
 
+        GFX.check()
+
         if (buffer != null && buffer.pointer <= 0) {
             buffer.ensure()
         }
@@ -102,6 +104,9 @@ object Frame {
             GFX.windowHeight = h
 
         }
+
+        GFX.check()
+
     }
 
 

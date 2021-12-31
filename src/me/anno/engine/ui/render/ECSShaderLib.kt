@@ -43,7 +43,7 @@ object ECSShaderLib {
         shader.setTextureIndices(textures)
         shader.glslVersion = 330
 
-        clearingPbrModelShader = BaseShader(
+        val shader2 = BaseShader(
             "clear-pbr", "" +
                     "attribute vec3 coords;\n" +
                     "uniform mat4 transform;\n" +
@@ -60,6 +60,8 @@ object ECSShaderLib {
                     "   vec3 finalPosition = finalNormal * 1e35;\n" + // 1e38 is max for float
                     "}"
         )
+        shader2.glslVersion = 330
+        clearingPbrModelShader = shader2
 
     }
 
