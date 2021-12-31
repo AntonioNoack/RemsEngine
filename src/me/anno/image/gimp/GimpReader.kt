@@ -587,7 +587,7 @@ object GimpReader {
                         for (x in x0 until x1) {
                             // todo theoretically, we would need to apply the correct blending function here
                             val color = image.getRGB(srcIndex++)
-                            dst[dstIndex] = blendBackToFront(dst[dstIndex], color, opacity)
+                            dst[dstIndex] = blend(dst[dstIndex], color, opacity)
                             dstIndex++
                         }
                     }
@@ -605,10 +605,10 @@ object GimpReader {
         return result
     }
 
-    private fun blendBackToFront(dst: Int, src: Int, opacity: Int): Int {
+    private fun blend(dst: Int, src: Int, opacity: Int): Int {
         val aa = dst.a()
         val iaa = 255 - aa
-        val ba = (src.a() * opacity * iaa) / (255 * 255)// ^1
+        val ba = (src.a() * opacity * iaa) / (255 * 255) // ^1
         val alpha = aa + ba // ^1
         if (alpha == 0) return 0 // prevent division by zero
         val nr = (dst.r() * aa + src.r() * ba) / alpha

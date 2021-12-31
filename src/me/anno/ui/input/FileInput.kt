@@ -12,7 +12,10 @@ import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
+import me.anno.ui.editor.files.FileExplorer
+import me.anno.ui.editor.files.FileExplorer.Companion.editInStandardProgramDesc
 import me.anno.ui.editor.files.FileExplorer.Companion.openInExplorerDesc
+import me.anno.ui.editor.files.FileExplorer.Companion.openInStandardProgramDesc
 import me.anno.ui.editor.files.FileExplorerOption
 import me.anno.ui.style.Style
 import me.anno.utils.files.FileExplorerSelectWrapper
@@ -116,7 +119,9 @@ class FileInput(
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         when {
             button.isRight -> openMenu(windowStack, listOf(
-                MenuOption(openInExplorerDesc) { file.openInExplorer() }
+                MenuOption(openInExplorerDesc) { file.openInExplorer() },
+                MenuOption(openInStandardProgramDesc) { file.openInStandardProgram() },
+                MenuOption(editInStandardProgramDesc) { file.editInStandardProgram() },
             ) + extraRightClickOptions.map {
                 MenuOption(it.nameDesc) { it.onClick(this, file) }
             })

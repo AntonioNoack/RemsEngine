@@ -581,6 +581,8 @@ class FileExplorerEntry(
                 askName(windowStack, x.toInt(), y.toInt(), title, file.name, NameDesc("Rename"), { -1 }, ::renameTo)
             }
             "OpenInExplorer" -> getReference(path).openInExplorer()
+            "OpenInStandardProgram" -> getReference(path).openInStandardProgram()
+            "EditInStandardProgram" -> getReference(path).editInStandardProgram()
             "Delete" -> deleteFileMaybe(this, getReference(path))
             "OpenOptions" -> explorer.openOptions(getReference(path))
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)

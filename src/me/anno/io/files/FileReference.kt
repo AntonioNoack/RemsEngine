@@ -17,6 +17,7 @@ import me.anno.utils.types.Strings.isBlank2
 import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
 import org.apache.logging.log4j.LogManager
+import java.awt.Desktop
 import java.io.*
 import java.net.URI
 import java.nio.ByteBuffer
@@ -349,8 +350,27 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     abstract fun length(): Long
 
+    fun toFile() = File(absolutePath.replace("!!", "/"))
+
     // fun length() = if (isInsideCompressed) zipFile?.size ?: 0L else file.length()
-    fun openInExplorer() = File(absolutePath.replace("!!", "/")).openInExplorer()
+    fun openInExplorer() = toFile().openInExplorer()
+
+    fun openInStandardProgram() {
+        try {
+            Desktop.getDesktop().open(toFile())
+        } catch (e: Exception) {
+            LOGGER.warn(e)
+        }
+    }
+
+    fun editInStandardProgram() {
+        try {
+            Desktop.getDesktop().edit(toFile())
+        } catch (e: Exception) {
+            LOGGER.warn(e.message)
+            openInStandardProgram()
+        }
+    }
 
     abstract fun delete(): Boolean
     abstract fun mkdirs(): Boolean

@@ -136,7 +136,11 @@ class LoggerImpl(val prefix: String?) : Logger, Log {
     }
 
     override fun warn(o: Any?) {
-        warn(o.toString())
+        if (o is Throwable) {
+            warn("", o)
+        } else {
+            warn(o.toString())
+        }
     }
 
     override fun warn(o: Any?, throwable: Throwable?) {

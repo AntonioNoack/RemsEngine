@@ -97,11 +97,13 @@ abstract class FileExplorer(
             onGotAction(0f, 0f, 0f, 0f, "Rename", false)
         }
         val openInExplorer = FileExplorerOption(openInExplorerDesc) { _, it -> it.openInExplorer() }
+        val openInStandard = FileExplorerOption(openInStandardProgramDesc) { _, it -> it.openInStandardProgram() }
+        val editInStandard = FileExplorerOption(editInStandardProgramDesc) { _, it -> it.editInStandardProgram() }
         val copyPath = FileExplorerOption(copyPathDesc) { _, it -> setClipboardContent(it.absolutePath) }
         val delete = FileExplorerOption(
             NameDesc("Delete", "Delete this file", "ui.file.delete"),
         ) { p, it -> deleteFileMaybe(p, it) }
-        return listOf(rename, openInExplorer, copyPath, delete)
+        return listOf(rename, openInExplorer, openInStandard, editInStandard, copyPath, delete)
     }
 
     abstract fun onDoubleClick(file: FileReference)
@@ -469,6 +471,8 @@ abstract class FileExplorer(
                         }
                     },
                     MenuOption(openInExplorerDesc) { folder.openInExplorer() },
+                    MenuOption(openInStandardProgramDesc) { folder.openInStandardProgram() },
+                    MenuOption(editInStandardProgramDesc) { folder.editInStandardProgram() },
                     MenuOption(copyPathDesc) { setClipboardContent(folder.absolutePath) }
                 ) + getRightClickOptions().map {
                     MenuOption(it.nameDesc) {
@@ -586,6 +590,18 @@ abstract class FileExplorer(
             "Open In Explorer",
             "Show the file in your default file explorer",
             "ui.file.openInExplorer"
+        )
+
+        val openInStandardProgramDesc = NameDesc(
+            "Show In Standard Program",
+            "Open the file using your default viewer",
+            "ui.file.openInStandardProgram"
+        )
+
+        val editInStandardProgramDesc = NameDesc(
+            "Edit In Standard Program",
+            "Edit the file using your default editor",
+            "ui.file.editInStandardProgram"
         )
 
         val copyPathDesc = NameDesc(
