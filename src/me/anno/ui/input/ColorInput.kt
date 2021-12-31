@@ -42,6 +42,7 @@ import kotlin.math.max
 class ColorInput(
     style: Style,
     val title: String,
+    @Suppress("UNUSED_PARAMETER")
     visibilityKey: String,
     oldValue: Vector4fc,
     withAlpha: Boolean,

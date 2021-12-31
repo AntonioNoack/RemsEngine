@@ -163,6 +163,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent), SplittableEle
             val keys = createKeys(segments)
             CacheData(segments to keys)
         } as CacheData<*>
+        @Suppress("UNCHECKED_CAST")
         return data.value as Pair<PartResult, List<TextSegmentKey>>
     }
 
@@ -299,7 +300,10 @@ open class Text(parent: Transform? = null) : GFXTransform(parent), SplittableEle
     ) = createInspectorWithoutSuperImpl(list, style, getGroup)
 
     fun getSelfWithShadows() = getShadows() + this
+
+    @Suppress("UNCHECKED_CAST")
     fun getShadows() = children.filter { it.name.contains("shadow", true) && it is Text } as List<Text>
+
     override fun passesOnColor() = false // otherwise white shadows of black text wont work
 
     override val className get() = "Text"

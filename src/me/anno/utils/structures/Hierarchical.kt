@@ -43,6 +43,7 @@ interface Hierarchical<V : Hierarchical<V>> {
             Thread.currentThread() != GFX.glThread &&
             this in RemsStudio.root.listOfAll
         ) throw RuntimeException("Called from wrong thread!")*/
+        @Suppress("UNCHECKED_CAST")
         if (child.contains(this as V)) throw RuntimeException("this cannot contain its parent!")
         child.parent?.removeChild(child)
         child.parent = this
@@ -65,16 +66,19 @@ interface Hierarchical<V : Hierarchical<V>> {
     }
 
     fun removeFromParent() {
+        @Suppress("UNCHECKED_CAST")
         parent?.removeChild(this as V)
         parent = null
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun <V : Any> getRoot(type: KClass<V>): V {
         val parent = parent ?: return this as V
         return if (type.isInstance(parent)) parent.getRoot(type)
         else this as V
     }
 
+    @Suppress("UNCHECKED_CAST")
     val root: V get() = parent?.root ?: this as V
 
     fun onDestroy()
@@ -84,6 +88,7 @@ interface Hierarchical<V : Hierarchical<V>> {
         onDestroy()
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun listOfHierarchy(callback: (V) -> Unit) {
         parent?.listOfHierarchy(callback)
         callback(this as V)
@@ -95,6 +100,7 @@ interface Hierarchical<V : Hierarchical<V>> {
             return parent.depthInHierarchy + 1
         }
 
+    @Suppress("UNCHECKED_CAST")
     fun forAllInHierarchy(lambda: (V) -> Unit) {
         var v = this as V
         while (true) {
@@ -103,6 +109,7 @@ interface Hierarchical<V : Hierarchical<V>> {
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun allInHierarchy(lambda: (V) -> Boolean): Boolean {
         var v = this as V
         while (true) {
@@ -111,6 +118,7 @@ interface Hierarchical<V : Hierarchical<V>> {
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun anyInHierarchy(lambda: (V) -> Boolean): Boolean {
         var v = this as V
         while (true) {
@@ -126,6 +134,7 @@ interface Hierarchical<V : Hierarchical<V>> {
                 parent?.apply {
                     yieldAll(listOfHierarchy)
                 }
+                @Suppress("UNCHECKED_CAST")
                 yield(self as V)
             }
         }
@@ -134,6 +143,7 @@ interface Hierarchical<V : Hierarchical<V>> {
         get() {
             val self = this
             return sequence {
+                @Suppress("UNCHECKED_CAST")
                 yield(self as V)
                 parent?.apply {
                     yieldAll(listOfHierarchy)
@@ -143,6 +153,7 @@ interface Hierarchical<V : Hierarchical<V>> {
 
     val listOfAll: Sequence<V>
         get() = sequence {
+            @Suppress("UNCHECKED_CAST")
             yield(this@Hierarchical as V)
             children.forEach { child ->
                 yieldAll(child.listOfAll)
@@ -150,6 +161,7 @@ interface Hierarchical<V : Hierarchical<V>> {
         }
 
     fun findFirstInAll(callback: (element: V) -> Boolean): V? {
+        @Suppress("UNCHECKED_CAST")
         if (callback(this as V)) return this
         val children = children
         for (index in children.indices) {
@@ -190,6 +202,7 @@ interface Hierarchical<V : Hierarchical<V>> {
     }*/
 
     fun depthFirstTraversal(processDisabled: Boolean, func: (V) -> Boolean): V? {
+        @Suppress("UNCHECKED_CAST")
         this as V
         if (processDisabled || isEnabled) {
             if (func(this)) return this
@@ -209,6 +222,7 @@ interface Hierarchical<V : Hierarchical<V>> {
         if (processDisabled || isEnabled) {
             val queue = ArrayList<V>()
             val wasExplored = HashSet<V>()
+            @Suppress("UNCHECKED_CAST")
             queue.add(this as V)
             wasExplored.add(this)
             var readIndex = 0

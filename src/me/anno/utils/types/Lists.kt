@@ -252,6 +252,7 @@ object Lists {
         return result
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun <V> List<List<V>>.transposed(): List<List<V>> {
         if (isEmpty()) return emptyList()
         val m = size
@@ -278,11 +279,13 @@ object Lists {
         for (i in 0 until n) {
             val listI = this[i]
             for (j in listI.size until m) {
+                @Suppress("UNCHECKED_CAST")
                 listI.add(null as V)
             }
         }
         // transpose
         for (i in 1 until max(m, n)) {
+            @Suppress("UNCHECKED_CAST")
             for (j in 0 until i) {
                 val thisI = this[i]
                 val thisJ = this[j]

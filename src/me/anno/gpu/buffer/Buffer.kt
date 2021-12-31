@@ -285,9 +285,10 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
         // monkey & stuff is invisible with vaos
         // because VAOs need default values (probably)
 
+        // todo change back to use it constantly, or to be configurable
         var useVAOs
             get() = Input.isShiftDown
-            set(value) {}
+            set(_) {}
 
         var renewVAOs = true
 

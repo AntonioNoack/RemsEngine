@@ -16,8 +16,6 @@ fun main() {
     Frame.invalidate()
 
     val w = 512
-    val h = 512
-    val samples = 1
 
     val layers = Array(6) { GL13.GL_TEXTURE_CUBE_MAP_POSITIVE_X + it }
 

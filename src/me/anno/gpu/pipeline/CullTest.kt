@@ -26,7 +26,7 @@ fun imageTest(frustum: Frustum) {
     )
 
     for (z in -5 until 0) {
-        writeImageInt(w, h, false, "cull$z.png", 1024) { x, y, i ->
+        writeImageInt(w, h, false, "cull$z.png", 1024) { x, y, _ ->
             val aabb = AABBd()
             val xf = (x - w / 2) * 5.0 / w
             val yf = (y - h / 2) * 5.0 / h

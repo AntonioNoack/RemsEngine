@@ -53,12 +53,14 @@ class PrefabSaveableInput<Type : PrefabSaveable>(val title: String, val clazz: K
             "PrefabSaveable" -> {
                 val instance = dragged!!.getOriginal() as PrefabSaveable
                 if (clazz.isInstance(instance)) {
+                    @Suppress("UNCHECKED_CAST")
                     value = instance as Type
                 } else {
                     // check all children, if there is any match
                     for (childType in instance.listChildTypes()) {
                         for (child in instance.getChildListByType(childType)) {
                             if (clazz.isInstance(child)) {
+                                @Suppress("UNCHECKED_CAST")
                                 value = child as Type
                                 return
                             }

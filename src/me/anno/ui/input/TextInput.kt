@@ -40,7 +40,7 @@ open class TextInput(
 
     override var visibility: Visibility
         get() = InputVisibility[visibilityKey]
-        set(value) {}
+        set(_) {}
 
     fun setCursorToEnd() = base.setCursorToEnd()
 

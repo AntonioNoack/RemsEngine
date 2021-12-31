@@ -96,6 +96,7 @@ class Path(
 
     fun <V : Change> getSubPathIfMatching(change: V, extraDepth: Int): V? {
         val subPath = getSubPathIfMatching(change.path, extraDepth) ?: return null
+        @Suppress("UNCHECKED_CAST")
         val clone = change.clone() as V
         clone.path = subPath
         return clone

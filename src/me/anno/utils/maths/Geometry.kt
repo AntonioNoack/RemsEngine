@@ -74,6 +74,7 @@ object Geometry {
         }
 
         fun add(v: Any, node: Node) {
+            @Suppress("UNCHECKED_CAST")
             val compare = (v as Comparable<Any>).compareTo(value)
             return when {
                 compare < 0 -> {
@@ -128,6 +129,7 @@ object Geometry {
         }
 
         fun find(v: Any): Node? {
+            @Suppress("UNCHECKED_CAST")
             val compare = (v as Comparable<Any>).compareTo(value)
             return when {
                 compare < 0 -> left?.find(v)

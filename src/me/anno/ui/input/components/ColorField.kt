@@ -72,6 +72,7 @@ class ColorField(
         return color.toHexColor()
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun setARGB(color: Int, notify: Boolean) {
         // todo notify & allow undo
         this.color = color

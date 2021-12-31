@@ -35,6 +35,7 @@ object HeavyIterator {
                     false
                 } else {
                     lockedFiles.add(source)
+                    @Suppress("UNCHECKED_CAST")
                     waiting = waitingRequests.remove(source) as List<IHeavyIterable<Item, Stream, Processable>>?
                     true
                 }
@@ -94,6 +95,7 @@ object HeavyIterator {
         if (waiting != null) {
             // new thread, because our original is finished anyways
             thread(name = "HeavyIterator.process($source)") {
+                @Suppress("UNCHECKED_CAST")
                 process(source, waiting as List<IHeavyIterable<Item, Stream, Processable>>)
             }
         }

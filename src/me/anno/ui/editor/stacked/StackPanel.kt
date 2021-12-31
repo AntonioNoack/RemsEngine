@@ -11,6 +11,7 @@ import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.style.Style
+import me.anno.utils.Warning.unused
 
 /**
  * done allow the user to add fields
@@ -118,6 +119,7 @@ abstract class StackPanel(
             "CopyPaste" -> {
                 val dragged = dragged!!
                 val content = dragged.getContent()
+                unused(content)
                 // todo find the correct spot
                 // todo place/insert it there
             }

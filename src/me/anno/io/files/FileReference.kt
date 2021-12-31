@@ -355,7 +355,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     abstract fun length(): Long
 
-    fun toFile() = File(absolutePath.replace("!!", "/"))
+    open fun toFile() = File(absolutePath.replace("!!", "/"))
 
     // fun length() = if (isInsideCompressed) zipFile?.size ?: 0L else file.length()
     fun openInExplorer() = toFile().openInExplorer()
@@ -473,14 +473,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     override fun toString(): String {
         return absolutePath
     }
-
-    @Deprecated(
-        "This function only is defined, if the reference is an actual file",
-        ReplaceWith("inputStream(),outputStream()")
-    )
-
-    val unsafeFile
-        get() = (this as FileFileRef).file
 
     fun toLocalPath(workspace: FileReference? = StudioBase.workspace): String {
         return absolutePath.toLocalPath(workspace)

@@ -22,7 +22,7 @@ import me.anno.utils.types.Strings.isBlank2
 class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Style) :
     ScrollPanelY(Padding(3), AxisAlignment.MIN, style.getChild("propertyInspector")) {
 
-    constructor(getInspectable: () -> Inspectable?, style: Style, ignored: Unit) :
+    constructor(getInspectable: () -> Inspectable?, style: Style, @Suppress("UNUSED_PARAMETER") ignored: Unit) :
             this({ getInspectable().run { if (this == null) emptyList() else listOf(this) } }, style)
 
     val list0 = child as PanelListY

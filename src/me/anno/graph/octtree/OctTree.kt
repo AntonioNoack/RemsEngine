@@ -80,6 +80,7 @@ abstract class OctTree<Point>(
                 }
             }
         } else {
+            @Suppress("UNCHECKED_CAST")
             newAny as OctTree<Point>
             val index = newAny.getIndex(splitPoint!!)
             val oldNode = children[index]

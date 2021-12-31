@@ -86,7 +86,7 @@ class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
         return changed
     }
 
-    inline fun removeMajorIf(noinline run: (k1: KManifold) -> Boolean): Boolean {
+    fun removeMajorIf(run: (k1: KManifold) -> Boolean): Boolean {
         return if (values.keys.removeIf(run)) {
             size = values.values.sumOf { it.size }
             true

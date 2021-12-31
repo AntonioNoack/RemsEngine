@@ -59,7 +59,7 @@ object Integral {
                     for (kf in keyframes) {
                         if (kf.time > time) break // we are done
                         if (kf.time > lastTime) {// a new value
-                            val value = max(minValue, (kf.value as N).toDouble())
+                            val value = max(minValue, kf.value.toDouble())
                             sum += (lastValue + value) * (kf.time - lastTime) * 0.5
                             lastValue = value
                             lastTime = kf.time

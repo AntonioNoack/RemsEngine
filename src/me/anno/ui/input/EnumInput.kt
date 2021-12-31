@@ -69,7 +69,7 @@ open class EnumInput(
 
     override fun setValue(value: NameDesc, notify: Boolean): EnumInput {
         TODO("Not yet implemented")
-        return this
+        // return this
     }
 
     // todo drawing & ignoring inputs

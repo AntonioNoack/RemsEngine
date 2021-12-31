@@ -59,7 +59,7 @@ object PDFCache : CacheSection("PDFCache") {
         return value
     }
 
-    fun readAsFolder(src: FileReference, imageIOFormat: String = "jpg"): InnerFolder {
+    fun readAsFolder(src: FileReference): InnerFolder {
         val ref = getDocumentRef(src, borrow = true, async = false)!!
         val doc = ref.doc
         val folder = InnerFolder(src)

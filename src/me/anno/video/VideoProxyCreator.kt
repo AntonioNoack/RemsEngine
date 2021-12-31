@@ -46,7 +46,7 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
         if (isInitialized) return
         isInitialized = true
         info = ConfigBasics.loadConfig(configName, StringMap(), false)
-        proxyFolder = ConfigBasics.cacheFolder.getChild("proxies")!!.apply { mkdirs() }
+        proxyFolder = ConfigBasics.cacheFolder.getChild("proxies").apply { mkdirs() }
         deleteOldProxies()
     }
 

@@ -46,6 +46,7 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
 
     fun set(panel: Panel, value: Any?) {
         val index = children.indexOf(panel) - 1
+        @Suppress("UNCHECKED_CAST")
         content[index] = value as EntryType
         onChange()
     }

@@ -98,6 +98,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         return valueFractions.minByOrNull { abs(it - value) }!!
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun drawValueAxis(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         val font = DrawTexts.monospaceFont.value

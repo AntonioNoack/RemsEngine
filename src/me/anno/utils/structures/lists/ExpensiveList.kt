@@ -20,6 +20,7 @@ class ExpensiveList<V: Comparable<V>>(val length: Int, val generator: (Int) -> V
             v = generator(index)
             cache[index] = v
         }
+        @Suppress("UNCHECKED_CAST")
         return v as V
     }
 

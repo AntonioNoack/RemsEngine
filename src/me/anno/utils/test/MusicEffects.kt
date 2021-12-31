@@ -16,7 +16,7 @@ import kotlin.math.sin
 
 fun main() {
 
-    val file = OS.downloads.getChild("Aitana 11 Raizones.mp4")!!
+    val file = OS.downloads.getChild("Aitana 11 Raizones.mp4")
     if (!file.exists) throw RuntimeException("Missing file!")
 
     val bufferSize = 1024

@@ -9,6 +9,7 @@ import me.anno.io.files.Signature
 import me.anno.io.json.JsonArray
 import me.anno.io.json.JsonObject
 import me.anno.io.json.JsonReader
+import me.anno.utils.Warning.unused
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.types.Strings.parseTime
 import org.apache.logging.log4j.LogManager
@@ -209,16 +210,17 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
         private val LOGGER = LogManager.getLogger(FFMPEGMetadata::class)
         private val metadataCache = CacheSection("Metadata")
 
-        private fun createMetadata(file: FileReference, i: Long) = FFMPEGMetadata(file)
+        private fun createMetadata(file: FileReference, i: Long): FFMPEGMetadata {
+            unused(i)
+            return FFMPEGMetadata(file)
+        }
 
         fun getMeta(path: String, async: Boolean): FFMPEGMetadata? {
             return getMeta(getReference(path), async)
         }
 
         fun getMeta(file: FileReference, async: Boolean): FFMPEGMetadata? {
-            if (file.isDirectory || !file.exists) return null
-            // if (!async) GFX.checkIsNotGFXThread()
-            return metadataCache.getEntry(file, file.lastModified, 300_000, async, ::createMetadata) as? FFMPEGMetadata
+            return metadataCache.getFileEntry(file, false, 300_000, async, ::createMetadata) as? FFMPEGMetadata
         }
     }
 

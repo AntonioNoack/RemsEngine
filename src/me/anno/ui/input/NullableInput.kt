@@ -18,6 +18,7 @@ class NullableInput(val content: Panel, val property: IProperty<*>, style: Style
         )
         add(checkbox.apply {
             tooltip = "Toggle Null"
+            @Suppress("UNCHECKED_CAST")
             setChangeListener { isNotNull ->
                 property as IProperty<Any?>
                 content as InputPanel<Any?>

@@ -171,6 +171,7 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
 
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun drawLines(x0: Int, y0: Int, x1: Int, y1: Int, transform: Transform) {
         val color = transform.color
         if (color.isAnimated) {

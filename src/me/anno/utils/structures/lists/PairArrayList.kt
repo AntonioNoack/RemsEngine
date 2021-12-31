@@ -23,6 +23,7 @@ class PairArrayList<A, B>(capacity: Int = 16) : Iterable<MutablePair<A, B>> {
 
     fun byA(a: A): B? {
         for (i in 0 until elementSize step 2) {
+            @Suppress("UNCHECKED_CAST")
             if (array[i] == a) return array[i + 1] as B
         }
         return null
@@ -30,6 +31,7 @@ class PairArrayList<A, B>(capacity: Int = 16) : Iterable<MutablePair<A, B>> {
 
     fun byB(b: B): A? {
         for (i in 1 until elementSize step 2) {
+            @Suppress("UNCHECKED_CAST")
             if (array[i] == b) return array[i - 1] as A
         }
         return null
@@ -85,6 +87,7 @@ class PairArrayList<A, B>(capacity: Int = 16) : Iterable<MutablePair<A, B>> {
 
     fun replaceBs(run: (a: A, b: B) -> B): Int {
         var changed = 0
+        @Suppress("UNCHECKED_CAST")
         for (i in 0 until elementSize step 2) {
             val oldValue = array[i + 1] as B
             val newValue = run(array[i] as A, oldValue)
@@ -98,9 +101,11 @@ class PairArrayList<A, B>(capacity: Int = 16) : Iterable<MutablePair<A, B>> {
 
     override fun iterator(): Iterator<MutablePair<A, B>> {
         return object : Iterator<MutablePair<A, B>> {
+            @Suppress("UNCHECKED_CAST")
             val pair = MutablePair(null as A, null as B)
             var index = 0
             override fun hasNext(): Boolean = index < elementSize
+            @Suppress("UNCHECKED_CAST")
             override fun next(): MutablePair<A, B> {
                 pair.first = array[index++] as A
                 pair.second = array[index++] as B
@@ -113,6 +118,7 @@ class PairArrayList<A, B>(capacity: Int = 16) : Iterable<MutablePair<A, B>> {
         var result = 0
         var i = 0
         while (i < elementSize) {
+            @Suppress("UNCHECKED_CAST")
             if (run(array[i] as A, array[i + 1] as B)) {
                 removeAt(i)
                 result++

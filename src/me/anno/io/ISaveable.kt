@@ -233,6 +233,7 @@ interface ISaveable {
             var clazz = instance0::class
             while (true) {
                 superTypeRegistry[clazz.simpleName!!] = clazz
+                @Suppress("UNCHECKED_CAST")
                 clazz = clazz.superclasses.firstOrNull() as? KClass<out ISaveable> ?: break
             }
         }

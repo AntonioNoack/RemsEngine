@@ -200,6 +200,7 @@ class BulletPhysics() : Component() {
         // only collect colliders, which are appropriate for this: stop at any other rigidbody
         return sequence {
             // todo also only collect physics colliders, not click-colliders
+            @Suppress("UNCHECKED_CAST")
             yieldAll(entity.components.filter { it.isEnabled && clazz.isInstance(it) } as List<V>)
             for (child in entity.children) {
                 if (child.isEnabled && !child.hasComponent(Rigidbody::class, false)) {

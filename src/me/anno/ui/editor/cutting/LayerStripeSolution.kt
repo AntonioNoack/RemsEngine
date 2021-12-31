@@ -298,6 +298,7 @@ class LayerStripeSolution(
         }
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun keepFrameLoaded(
         x0: Int, x1: Int, y: Int, h: Int,
         c0: Int, c1: Int,

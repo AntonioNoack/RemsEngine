@@ -364,10 +364,10 @@ object UnityReader {
                 "MeshRenderer" -> {
                     val gameObjectKey = node["GameObject"].toString()
                     // todo parse list of materials, and assign them to all meshes
-                    val castShadows = node.getBool("CastShadows") ?: true
-                    val receiveShadows = node.getBool("ReceiveShadows") ?: true
+                    // val castShadows = node.getBool("CastShadows") ?: true
+                    // val receiveShadows = node.getBool("ReceiveShadows") ?: true
                     val isEnabled = node.getBool("Enabled") ?: true
-                    val materials = node["Materials"]
+                    // val materials = node["Materials"]
                     for (mesh in meshesByGameObject[gameObjectKey] ?: emptyList()) {
                         if (!isEnabled) mesh.setProperty("isEnabled", false)
 

@@ -667,6 +667,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         for (i in components.indices) {
             val component = components[i]
             if ((includingDisabled || component.isEnabled) && clazz.isInstance(component)) {
+                @Suppress("UNCHECKED_CAST")
                 return component as V
             }
         }
@@ -692,6 +693,7 @@ class Entity() : PrefabSaveable(), Inspectable {
     }
 
     fun <V : Component> getComponents(clazz: KClass<V>, includingDisabled: Boolean = false): List<V> {
+        @Suppress("UNCHECKED_CAST")
         return components.filter { (includingDisabled || it.isEnabled) && clazz.isInstance(it) } as List<V>
     }
 
@@ -703,6 +705,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         val components = components
         for (index in components.indices) {
             val c = components[index]
+            @Suppress("UNCHECKED_CAST")
             if ((includingDisabled || c.isEnabled) && clazz.isInstance(c) && !lambda(c as V))
                 return false
         }
@@ -730,6 +733,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         val components = components
         for (index in components.indices) {
             val c = components[index]
+            @Suppress("UNCHECKED_CAST")
             if ((includingDisabled || c.isEnabled) && clazz.isInstance(c) && test(c as V))
                 return true
         }
@@ -749,6 +753,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         for (i in components.indices) {
             val component = components[i]
             if (clazz.isInstance(component)) {
+                @Suppress("UNCHECKED_CAST")
                 dst.add(component as V)
             }
         }
@@ -769,6 +774,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         for (i in components.indices) {
             val component = components[i]
             if (clazz.isInstance(component)) {
+                @Suppress("UNCHECKED_CAST")
                 component as V
                 if (action(component)) return component
             }

@@ -161,6 +161,7 @@ class TreeViewPanel<V>(
             // remove children from the selection???...
             val targets = inFocus.filterIsInstance<TreeViewPanel<*>>()
             for (it in targets) {
+                @Suppress("UNCHECKED_CAST")
                 val element2 = it.getElement() as V
                 treeView.setCollapsed(element2, target)
             }

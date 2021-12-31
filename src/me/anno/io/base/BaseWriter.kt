@@ -171,6 +171,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
         force: Boolean = false
     ) {
         if (force || values?.isNotEmpty() == true) {
+            @Suppress("UNCHECKED_CAST")
             writeObjectArray(self, name, if (values == null) emptyArray<Any>() as Array<V> else
                 Array<ISaveable>(values.size) { values[it] } as Array<V>, force)
         }
@@ -183,6 +184,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
         force: Boolean = false
     ) {
         if (force || values?.isNotEmpty() == true) {
+            @Suppress("UNCHECKED_CAST")
             writeNullableObjectArray(
                 self, name, if (values == null) emptyArray<Any>() as Array<V> else
                     Array<ISaveable?>(values.size) { values[it] }, force
@@ -305,6 +307,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             }
             is Array<*> -> {
                 if (value.isNotEmpty()) {
+                    @Suppress("UNCHECKED_CAST")
                     when (val sample = value[0]) {
 
                         is String -> writeStringArray(name, cast(value), forceSaving)
@@ -436,6 +439,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
 
     // makes the code a little nicer
     fun <V> cast(input: Any): V {
+        @Suppress("UNCHECKED_CAST")
         return input as V
     }
 

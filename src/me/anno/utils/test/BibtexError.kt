@@ -8,7 +8,7 @@ fun main() {
     // the error was missing(?) \url tags... in bibtex
     // why ever you have to set them in JabRef... I've the feeling it should be done automatically
 
-    val file = OS.desktop.getChild("test.txt")!!
+    val file = OS.desktop.getChild("test.txt")
     val str = file.readText()
 
     var i = 0

@@ -12,8 +12,10 @@ abstract class ArrayChunkSystem<Element>(
 
     override fun createChunk(chunkX: Int, chunkY: Int, chunkZ: Int, size: Int): Array<Element> {
         val data = if (defaultElement == null) {
+            @Suppress("UNCHECKED_CAST")
             arrayOfNulls<Any?>(size) as Array<Element>
         } else {
+            @Suppress("UNCHECKED_CAST")
             Array<Any?>(size) { defaultElement } as Array<Element>
         }
         generateChunk(chunkX, chunkY, chunkZ, data)

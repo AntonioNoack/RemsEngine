@@ -128,8 +128,8 @@ fun convert() {
     val combined = downloads.getChild("heights-combined-jena.zip")
     val children = combined.listChildren()!!
     HeavyProcessing.processUnbalanced(0, children.size, true) { ix0, ix1 ->
-        for (i in ix0 until ix1) {
-            val zip = children[i]
+        for (ci in ix0 until ix1) {
+            val zip = children[ci]
             val name = zip.name.split('_')
             val x0 = (name[1].toInt() - 680) * 1000
             val y0 = (name[2].toInt() - 5644) * 1000

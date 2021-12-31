@@ -34,7 +34,7 @@ abstract class AnimationDriver : Saveable(), Inspectable {
         getValue(time, keyframeValue, index).toFloat()
 
     fun getValue(time: Double, keyframeValue: Double, index: Int) =
-        getValue0(time * frequency, keyframeValue, 0) * amplitude[time]
+        getValue0(time * frequency, keyframeValue, index) * amplitude[time]
 
     open fun getValue(time: Double, keyframeValue: Vector2d): Vector2d {
         return Vector2d(

@@ -29,6 +29,7 @@ object SiteSelection : CacheSection("SiteSelection") {
                 .filter { !it.isEmpty() }
             CacheData(list)
         } as CacheData<*>
+        @Suppress("UNCHECKED_CAST")
         return cacheData.value as List<IntRange>
     }
 

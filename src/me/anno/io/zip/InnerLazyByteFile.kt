@@ -23,7 +23,7 @@ class InnerLazyByteFile(
 
     override var signature: Signature?
         get() = Signature.find(content.value)
-        set(value) {}
+        set(_) {}
 
     override fun readBytes(): ByteArray {
         return content.value

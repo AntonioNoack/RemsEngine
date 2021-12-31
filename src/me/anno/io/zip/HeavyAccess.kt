@@ -29,6 +29,7 @@ object HeavyAccess {
                     false
                 } else {
                     lockedFiles.add(source)
+                    @Suppress("UNCHECKED_CAST")
                     waiting = waitingRequests.remove(source) as List<IHeavyAccess<Stream>>?
                     true
                 }
@@ -66,6 +67,7 @@ object HeavyAccess {
         if (waiting != null) {
             // new thread, because our original is finished anyways
             thread(name = "HeavyAccess.process($source)") {
+                @Suppress("UNCHECKED_CAST")
                 process(source, waiting as List<IHeavyAccess<Stream>>)
             }
         }

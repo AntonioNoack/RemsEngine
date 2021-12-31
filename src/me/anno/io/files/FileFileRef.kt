@@ -29,6 +29,8 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
 
     }
 
+    override fun toFile(): File = file
+
     override fun inputStream() = file.inputStream().buffered()
 
     override fun outputStream() = file.outputStream().buffered()

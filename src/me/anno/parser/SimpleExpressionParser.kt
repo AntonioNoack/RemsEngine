@@ -530,6 +530,7 @@ object SimpleExpressionParser {
                     for (j in 0 until condSize) {
                         val cond = condition[j]
                         val here = parts[i0 + j]
+                        @Suppress("UNCHECKED_CAST")
                         if (cond == here ||
                             (cond is Function1<*, *> && (cond as Function1<Any, Boolean>)(here))
                         ) {

@@ -194,7 +194,7 @@ open class StringMap(
     operator fun get(key: String, default: File): File {
         return when (val value = this[key]) {
             is File -> value
-            is FileReference -> value.unsafeFile
+            is FileReference -> value.toFile()
             is String -> parseFile(value)
             null -> {
                 set(key, default)
@@ -333,6 +333,7 @@ open class StringMap(
         val v = when (val value = this[key]) {
             is AnimatedProperty<*> -> {
                 return if (value.type == type) {
+                    @Suppress("UNCHECKED_CAST")
                     value as AnimatedProperty<V>
                 } else {
                     val v2 = AnimatedProperty<V>(type)
@@ -350,6 +351,7 @@ open class StringMap(
             else -> value
         }
         val v2 = AnimatedProperty<V>(type)
+        @Suppress("UNCHECKED_CAST")
         v2.set(v as V)
         set(key, v2)
         return v2

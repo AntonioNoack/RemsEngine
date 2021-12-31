@@ -6,7 +6,7 @@ import kotlin.math.min
 /**
  * UnsafeArrayList with the ability to remove items
  * */
-class UnsafeSkippingArrayList<V>() : MutableList<V> {
+class UnsafeSkippingArrayList<V> : MutableList<V> {
 
     var backend = arrayOfNulls<Any?>(1024)
     var removed = BooleanArray(1024)
@@ -25,6 +25,7 @@ class UnsafeSkippingArrayList<V>() : MutableList<V> {
     }
 
     override fun get(index: Int): V {
+        @Suppress("UNCHECKED_CAST")
         return backend[index] as V
     }
 
@@ -101,6 +102,7 @@ class UnsafeSkippingArrayList<V>() : MutableList<V> {
 
             override fun previous(): V  {
                 nextIndex = findPreviousIndex(nextIndex)
+                @Suppress("UNCHECKED_CAST")
                 return backend[nextIndex] as V
             }
 
@@ -113,6 +115,7 @@ class UnsafeSkippingArrayList<V>() : MutableList<V> {
             override fun hasNext(): Boolean = nextIndex < size
 
             override fun next(): V {
+                @Suppress("UNCHECKED_CAST")
                 val obj = backend[nextIndex] as V
                 nextIndex = findNextIndex(nextIndex)
                 return obj
@@ -144,6 +147,7 @@ class UnsafeSkippingArrayList<V>() : MutableList<V> {
     }
 
     override fun removeAt(index: Int): V {
+        @Suppress("UNCHECKED_CAST")
         val obj = backend[index] as V
         removed[index] = true
         backend[index] = null // for GC ;)
@@ -167,6 +171,7 @@ class UnsafeSkippingArrayList<V>() : MutableList<V> {
         val old = backend[index]
         backend[index] = element
         startIndex = min(startIndex, index)
+        @Suppress("UNCHECKED_CAST")
         return old as V
     }
 

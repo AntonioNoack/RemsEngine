@@ -641,7 +641,7 @@ class FileExplorerEntry(
                     "ui.file.delete.yes"
                 )
             ) {
-                moveToTrash(files.map { it.unsafeFile }.toTypedArray())
+                moveToTrash(files.map { it.toFile() }.toTypedArray())
                 explorer.invalidate()
             }
             val deletePermanently = MenuOption(
@@ -708,7 +708,7 @@ class FileExplorerEntry(
                     "ui.file.delete.yes"
                 )
             ) {
-                val file2 = file.unsafeFile
+                val file2 = file.toFile()
                 moveToTrash(file2)
                 FileExplorer.invalidateFileExplorers(panel)
                 LastModifiedCache.invalidate(file2)

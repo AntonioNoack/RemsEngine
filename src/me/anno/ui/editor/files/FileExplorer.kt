@@ -93,7 +93,7 @@ abstract class FileExplorer(
     open fun getFileOptions(): List<FileExplorerOption> {
         // todo additional options for the game engine, e.g. create prefab, open as scene
         // todo add option to open json in specialized json editor...
-        val rename = FileExplorerOption(NameDesc("Rename", "Change the name of this file", "ui.file.rename")) { _, it ->
+        val rename = FileExplorerOption(NameDesc("Rename", "Change the name of this file", "ui.file.rename")) { _, _ ->
             onGotAction(0f, 0f, 0f, 0f, "Rename", false)
         }
         val openInExplorer = FileExplorerOption(openInExplorerDesc) { _, it -> it.openInExplorer() }

@@ -94,6 +94,7 @@ fun main() {
                 val lineData = cache.getFileEntry(file, false, 10_000, true) { file, _ ->
                     CacheData(CSVReader.readNumerical(file.readText(), ',', '\n', 0.0))
                 } as? CacheData<*> ?: return null
+                @Suppress("UNCHECKED_CAST")
                 return lineData.value as? Map<String, DoubleArray>
             }
 

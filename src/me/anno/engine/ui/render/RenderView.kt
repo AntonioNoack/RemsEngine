@@ -1179,7 +1179,7 @@ class RenderView(
                     // only draw the circle, if its size is larger than ~ a single pixel
                     if (doDrawCircle) {
                         scale = globalTransform.getScale(scaleV).dot(0.3, 0.3, 0.3)
-                        val ringColor = if (entity == EditorState.lastSelection) selectedColor else white4
+                        // val ringColor = if (entity == EditorState.lastSelection) selectedColor else white4
                         // PlaneShapes.drawCircle(globalTransform, ringColor.toARGB())
                         // Transform.drawUICircle(stack, 0.5f / scale.toFloat(), 0.7f, ringColor)
                     }

@@ -240,7 +240,7 @@ object BlenderReader {
         val indices = ExpandingIntArray(polygons.size * 3)
         var matIndex = 0
         for (i in polygons.indices) {
-            val polygon = polygons[i] as MPoly
+            val polygon = polygons[i]
             val loopStart = polygon.loopStart
             val materialIndex = polygon.materialIndex.toUShort().toInt()
             when (val loopSize = polygon.loopSize) {
@@ -329,6 +329,8 @@ object BlenderReader {
         val file = BlenderFile(binaryFile)
         clock.stop("read blender file")
         // data.printTypes()
+
+        @Suppress("UNCHECKED_CAST")
         val materialsInFile = file.instances["Material"] as? List<BMaterial> ?: emptyList()
 
         // find where the materials are referenced
@@ -489,7 +491,7 @@ object BlenderReader {
         return paths.getOrPut(obj) {
             val name = obj.id.name.substring(2)
             val parent = makeObject(prefab, obj.parent!!, paths)
-            val childIndex = prefab.adds!!.count { it.path == parent && it.type == 'e' }
+            val childIndex = prefab.adds.count { it.path == parent && it.type == 'e' }
             val path = Path(parent, name, childIndex, 'e')
             createObject(prefab, obj, path)
             path

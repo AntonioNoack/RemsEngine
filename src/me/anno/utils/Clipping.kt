@@ -25,7 +25,8 @@ object Clipping {
         }
     }
 
-    inline fun lerpMaybe(v0: Vector4fc, v1: Vector4fc, val0: Float, val1: Float, getValue: (Vector4f) -> Float): Vector4f? {
+    inline fun lerpMaybe(v0: Vector4fc, v1: Vector4fc, val0: Float, val1: Float,
+                         @Suppress("UNUSED_PARAMETER") getValue: (Vector4f) -> Float): Vector4f? {
         if ((val0 > 1f && val1 > 1f) || (val0 < -1f && val1 < -1f)) return null // impossible
         val cuttingPoint = if (val0 < 0f) -1f else 1f
         // linear combination, such that the new value is cuttingPoint

@@ -72,6 +72,7 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
         return object : NextEntryIterator<V>(), MutableIterator<V> {
             private var i = 0
             override fun nextEntry(): V? {
+                @Suppress("UNCHECKED_CAST")
                 return data.getOrNull(i++) as? V
             }
 

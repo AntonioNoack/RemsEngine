@@ -8,6 +8,7 @@ class Keyframe<V>(
     var interpolation: Interpolation
 ) : TimeValue<V>(time,value), Comparable<Keyframe<V>> {
 
+    @Suppress("UNCHECKED_CAST")
     constructor() : this(0.0, 0f as V, Interpolation.SPLINE)
     constructor(time: Double, value: V) : this(time, value, Interpolation.SPLINE)
 

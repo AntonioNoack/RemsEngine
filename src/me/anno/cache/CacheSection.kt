@@ -58,7 +58,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
     fun removeEntry(key: Any) {
         synchronized(cache) {
-            cache.remove(cache)?.destroy()
+            cache.remove(key)?.destroy()
         }
     }
 

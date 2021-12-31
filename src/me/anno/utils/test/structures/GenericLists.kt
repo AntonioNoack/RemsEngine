@@ -1,5 +1,7 @@
 package me.anno.utils.test.structures
 
+import me.anno.utils.Warning.unused
+
 fun main() {
     testList(listOf(1, 2, 3))
     testList(listOf("a", "b", "c"))
@@ -16,5 +18,6 @@ fun testList(list: List<*>) {
 
 // todo our own kotlin derivative & language with explicit type information?
 inline fun <reified T> secondTest(sample: List<T>) {
+    unused(sample)
     println(T::class)
 }

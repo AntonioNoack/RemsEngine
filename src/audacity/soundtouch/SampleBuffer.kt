@@ -16,7 +16,8 @@ class SampleBuffer {
     val backend = FloatArrayList(1024)
 
     fun ptrBegin() = FloatPtrArrList(backend, bufferPos * channels)
-    fun ptrEnd(slackCapacity: Int): FloatPtr {
+
+    fun ptrEnd(@Suppress("UNUSED_PARAMETER") slackCapacity: Int): FloatPtr {
         // ensureCapacity(samplesInBuffer + slackCapacity)
         return FloatPtrArrList(backend, samplesInBuffer * channels)
     }
@@ -27,7 +28,7 @@ class SampleBuffer {
 
     fun numSamples() = samplesInBuffer
 
-    fun putSamples(samples: Int){
+    fun putSamples(samples: Int) {
         // ensureCapacity(samplesInBuffer + samples)
         samplesInBuffer += samples
     }
@@ -69,14 +70,14 @@ class SampleBuffer {
     fun receiveSamples(output: FloatPtr, maxSamples: Int): Int {
         val num = min(maxSamples, samplesInBuffer)
         val ptrBegin = ptrBegin()
-        for(i in 0 until channels*num){
+        for (i in 0 until channels * num) {
             output[i] = ptrBegin[i]
         }
         return receiveSamples(num)
     }
 
     fun receiveSamples(maxSamples: Int): Int {
-        if(maxSamples >= samplesInBuffer){
+        if (maxSamples >= samplesInBuffer) {
             val tmp = samplesInBuffer
             samplesInBuffer = 0
             return tmp

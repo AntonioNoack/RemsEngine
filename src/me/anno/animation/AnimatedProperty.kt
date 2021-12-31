@@ -10,8 +10,8 @@ import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.studio.rems.RemsStudio.root
-import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.WrongClassType
+import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.structures.lists.UnsafeArrayList
 import me.anno.utils.types.AnyToDouble.getDouble
 import org.apache.logging.log4j.LogManager
@@ -22,9 +22,10 @@ import kotlin.math.min
 
 class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
 
+    @Suppress("UNCHECKED_CAST")
     constructor(type: Type) : this(type, type.defaultValue as V)
 
-    constructor(): this(Type.ANY)
+    constructor() : this(Type.ANY)
 
     companion object {
 
@@ -84,13 +85,15 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
     val keyframes = UnsafeArrayList<Keyframe<V>>()
 
     fun ensureCorrectType(v: Any?): V {
+        @Suppress("UNCHECKED_CAST")
         return type.acceptOrNull(v!!) as V ?: throw RuntimeException("got $v for $type")
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun clampAny(value: Any) = clamp(value as V)
-    fun clamp(value: V): V {
-        return type.clampFunc?.invoke(value) as V ?: value
-    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun clamp(value: V): V = type.clampFunc?.invoke(value) as V ?: value
 
     fun set(value: V): AnimatedProperty<V> {
         synchronized(this) {
@@ -108,6 +111,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
     fun addKeyframe(time: Double, value: Any, equalityDt: Double): Keyframe<V>? {
         val value2 = type.acceptOrNull(value)
         return if (value2 != null) {
+            @Suppress("UNCHECKED_CAST")
             addKeyframeInternal(time, clamp(value2 as V), equalityDt)
         } else {
             LOGGER.warn("Value $value is not accepted by type $type!")
@@ -237,6 +241,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
         val v2 = getDouble(v, 2)
         val v3 = getDouble(v, 3)
         // replace the components, which have drivers, with the driver values
+        @Suppress("UNCHECKED_CAST")
         return when (animatedValue) {
             is Int -> drivers[0]?.getValue(time, v0, 0)?.toInt() ?: animatedValue
             is Long -> drivers[0]?.getValue(time, v0, 0)?.toLong() ?: animatedValue
@@ -341,6 +346,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
                 values.filterIsInstance<Keyframe<*>>().forEach { value ->
                     val castValue = type.acceptOrNull(value.value!!)
                     if (castValue != null) {
+                        @Suppress("UNCHECKED_CAST")
                         addKeyframe(value.time, clamp(castValue as V) as Any, 0.0)?.apply {
                             interpolation = value.interpolation
                         }
@@ -357,6 +363,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
                 if (value is Keyframe<*>) {
                     val castValue = type.acceptOrNull(value.value!!)
                     if (castValue != null) {
+                        @Suppress("UNCHECKED_CAST")
                         addKeyframe(value.time, clamp(castValue as V) as Any, 0.0)?.apply {
                             interpolation = value.interpolation
                         }
@@ -389,6 +396,7 @@ class AnimatedProperty<V>(var type: Type, var defaultValue: V) : Saveable() {
             for (src in obj.keyframes) {
                 val castValue = type.acceptOrNull(src.value!!)
                 if (castValue != null) {
+                    @Suppress("UNCHECKED_CAST")
                     val dst = Keyframe(src.time, clamp(castValue as V), src.interpolation)
                     keyframes.add(dst)
                 } else LOGGER.warn("${src.value} is not accepted by $type")

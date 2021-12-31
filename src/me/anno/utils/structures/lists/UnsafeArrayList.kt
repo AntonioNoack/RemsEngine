@@ -29,6 +29,7 @@ class UnsafeArrayList<V>(capacity0: Int = 16) : MutableList<V> {
     }
 
     override fun get(index: Int): V {
+        @Suppress("UNCHECKED_CAST")
         return backend[index] as V
     }
 
@@ -96,6 +97,7 @@ class UnsafeArrayList<V>(capacity0: Int = 16) : MutableList<V> {
             override fun hasPrevious(): Boolean = index2 > 0
             override fun nextIndex(): Int = index2
 
+            @Suppress("UNCHECKED_CAST")
             override fun previous(): V = backend[--index2] as V
 
             override fun previousIndex(): Int = index2 - 1
@@ -106,6 +108,7 @@ class UnsafeArrayList<V>(capacity0: Int = 16) : MutableList<V> {
 
             override fun hasNext(): Boolean = index2 < size
 
+            @Suppress("UNCHECKED_CAST")
             override fun next(): V = backend[index2++] as V
 
             override fun remove() {
@@ -130,6 +133,7 @@ class UnsafeArrayList<V>(capacity0: Int = 16) : MutableList<V> {
         var writeIndex = 0
         for (readIndex in 0 until size) {
             val element = backend[readIndex]
+            @Suppress("UNCHECKED_CAST")
             if (!p0.test(element as V)) {
                 backend[writeIndex++] = element
             }// else writeIndex not increasing
@@ -158,6 +162,7 @@ class UnsafeArrayList<V>(capacity0: Int = 16) : MutableList<V> {
         for (i in index until size) {
             backend[i] = backend[i + 1]
         }
+        @Suppress("UNCHECKED_CAST")
         return element as V
     }
 
@@ -175,6 +180,7 @@ class UnsafeArrayList<V>(capacity0: Int = 16) : MutableList<V> {
     }
 
     override fun set(index: Int, element: V): V {
+        @Suppress("UNCHECKED_CAST")
         val old = backend[index] as V
         backend[index] = element
         return old

@@ -28,7 +28,10 @@ open class TimeValue<V>(var time: Double, var value: V) : Saveable() {
 
     override fun readSomething(name: String, value: Any?) {
         when (name) {
-            "value" -> this.value = value as V
+            "value" -> {
+                @Suppress("UNCHECKED_CAST")
+                this.value = value as V
+            }
             else -> super.readSomething(name, value)
         }
     }

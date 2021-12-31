@@ -17,6 +17,7 @@ object Files {
         parent: FileReference,
         nameWithoutExtension: String,
         extension: String,
+        @Suppress("UNUSED_PARAMETER")
         digitsLength: Int,
         colonSymbol: Char,
         startingNumber: Long = 1
