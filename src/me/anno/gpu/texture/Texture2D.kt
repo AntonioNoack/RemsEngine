@@ -420,14 +420,14 @@ open class Texture2D(
     private fun beforeUpload(channels: Int, size: Int) {
         if (isDestroyed) throw RuntimeException("Texture is already destroyed, call reset() if you want to stream it")
         checkSize(channels, size)
-        GFX.check()
+        check()
         ensurePointer()
         bindBeforeUpload()
     }
 
     private fun beforeUpload() {
         if (isDestroyed) throw RuntimeException("Texture is already destroyed, call reset() if you want to stream it")
-        GFX.check()
+        check()
         ensurePointer()
         bindBeforeUpload()
     }

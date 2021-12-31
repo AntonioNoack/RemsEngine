@@ -1025,8 +1025,8 @@ object Thumbs {
             else -> try {
                 when (srcFile.lcExtension) {
 
-                    // todo start exe files from explorer
-                    // todo preview icon for exe files / links
+                    // done start exe files from explorer
+                    // done preview icon for exe files / links using generateSystemIcon
 
                     // done thumbnails and import for .vox files (MagicaVoxel voxel meshes)
 

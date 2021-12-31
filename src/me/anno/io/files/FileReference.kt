@@ -43,7 +43,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     // all zip files should be detected automatically
     // done if res:// at the start, then it's a local resource
     // todo other protocols as well, so like an URI replacement?
-    // todo file references seem to never be cleared...
 
     companion object {
 
@@ -137,8 +136,14 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
         private fun createReference(str: String): FileReference {
             // internal resource
-            if (str.startsWith(BundledRef.prefix)) {
+            if (str.startsWith(BundledRef.prefix, true)) {
                 return BundledRef.parse(str)
+            }
+            if (str.startsWith("http://", true) ||
+                str.startsWith("https://", true)
+            ) {
+                // str may already contain parameters
+                return WebRef(str, emptyMap())
             }
             // static references
             val static = staticReferences[str]

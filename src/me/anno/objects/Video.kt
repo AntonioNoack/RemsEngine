@@ -76,6 +76,8 @@ import kotlin.math.*
 // game, where everything is explicitly rendered on 5-10 cubemaps first? lol
 // sadly this doesn't make for any content yet, so it's this raw just a bad idea
 
+// todo AMD FSR as interpolation method
+
 // todo auto-exposure correction by calculating the exposure, and adjusting the brightness
 
 // todo feature tracking on videos as anchors, e.g. for easy blurry signs, or text above heads (marker on head/eyes)

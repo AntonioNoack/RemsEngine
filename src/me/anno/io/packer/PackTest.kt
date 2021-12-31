@@ -11,7 +11,7 @@ fun main() {
         OS.downloads.getChild("warning.png"),
         OS.documents.getChild("sphere.obj"),
         OS.downloads.getChild("vampire.zip/dancing_vampire.dae"),
-        // todo test online resources, when we support them
+        // todo test online (http/https) resources, when we support them
         // todo ftp/sftp resources?
     )
 
