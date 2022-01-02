@@ -457,7 +457,7 @@ class BulletPhysics() : Component() {
         this.time += dt
 
         // is not correct for the physics, but we use it for gfx only anyways
-        val time = GFX.gameTime
+        // val time = GFX.gameTime
 
         val tmpTransform = Transform()
         val deadEntities = ArrayList<Entity>()

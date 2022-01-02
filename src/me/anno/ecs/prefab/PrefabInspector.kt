@@ -29,6 +29,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.process.DelayedTask
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.strings.StringHelper.shorten2Way
+import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 
@@ -223,29 +224,49 @@ class PrefabInspector(val prefab: Prefab) {
             list.add(list1)
         }
 
-        // todo form groups
-        // todo groups on a global or by-class level?
-
         val allProperties = reflections.allProperties
+
+        fun applyGroupStyle(tp: TextPanel): TextPanel {
+            tp.textColor = tp.textColor and 0x7fffffff
+            tp.focusTextColor = tp.textColor
+            tp.setItalic()
+            return tp
+        }
+
+        // todo place actions into these groups
 
         // bold/non bold for other properties
         for ((clazz, propertyNames) in reflections.propertiesByClass.value.reversed()) {
 
             var hadIntro = false
+            val defaultGroup = ""
+            var lastGroup = ""
+
             for (name in propertyNames
-                .sortedBy { allProperties[it]!!.order }) {
+                .sortedWith { a, b ->
+                    val pa = allProperties[a]!!
+                    val pb = allProperties[b]!!
+                    val ga = pa.group ?: defaultGroup
+                    val gb = pb.group ?: defaultGroup
+                    ga.compareTo(gb)
+                        .ifSame { pa.order.compareTo(pb.order) }
+                }) {
 
                 val property = allProperties[name]!!
                 if (property.hideInInspector || !property.serialize) continue
 
+                val group = property.group ?: ""
+                if (group != lastGroup) {
+                    lastGroup = group
+                    // add title for group
+                    // todo add children to lists instead of this
+                    list.add(applyGroupStyle(TextPanel(group.camelCaseToTitle(), style)))
+                }
+
                 if (!hadIntro) {
                     hadIntro = true
                     val className = clazz.simpleName
-                    list.add(TextPanel(className ?: "Anonymous", style).apply {
-                        textColor = textColor and 0x7fffffff
-                        focusTextColor = textColor
-                        setItalic()
-                    })
+                    list.add(applyGroupStyle(TextPanel(className ?: "Anonymous", style)))
                 }
 
                 // todo mesh input, skeleton selection, animation selection, ...

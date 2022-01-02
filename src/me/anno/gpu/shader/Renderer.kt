@@ -3,8 +3,6 @@ package me.anno.gpu.shader
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.builder.ShaderStage
 
-// todo define the types of flat rendering here? would be a nice idea, so it stays customizable
-
 open class Renderer(
 
     val name: String,

@@ -210,7 +210,9 @@ class TreeViewPanel<V>(
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         try {
             val child0 = TextReader.read(data, true).firstOrNull()
+            @Suppress("UNCHECKED_CAST")
             val child = child0 as? V ?: return super.onPaste(x, y, data, type)
+            @Suppress("UNCHECKED_CAST")
             val original = (dragged as? Draggable)?.getOriginal() as? V
             val relativeY = (y - this.y) / this.h
             val element = getElement()

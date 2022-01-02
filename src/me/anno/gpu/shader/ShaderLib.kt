@@ -474,7 +474,7 @@ object ShaderLib {
                     "   vec3 mixing = brightness(textColor) > brightness(backgroundColor) ? textMask.rgb : textMask.rgb;\n" +
                     "   mixing *= textColor.a;\n" +
                     "   float mixingAlpha = brightness(mixing);\n" +
-                    // todo we only need to check the axis, which is affected by subpixel-rendering, e.g. x on my screen
+                    // theoretically, we only need to check the axis, which is affected by subpixel-rendering, e.g. x on my screen
                     "   if(position.x < 1.0 || position.y < 1.0 || position.x > windowSize.x - 1.0 || position.y > windowSize.y - 1.0)\n" +
                     "       mixing = vec3(mixingAlpha);\n" + // on the border; color seams would become apparent here
                     "   vec4 color = mix(backgroundColor, textColor, vec4(mixing, mixingAlpha));\n" +

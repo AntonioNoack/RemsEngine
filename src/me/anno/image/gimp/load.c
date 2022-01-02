@@ -616,7 +616,7 @@ xcf_load_image(Gimp *gimp,
         /* add the channel to the image if its not the selection */
         if (channel != gimp_image_get_mask(image))
             gimp_image_add_channel(image, channel,
-                                   NULL, /* FIXME tree */
+                                   NULL, /* FIX ME tree */
                                    gimp_container_get_n_children(gimp_image_get_channels(image)),
                                    FALSE);
 
@@ -2675,7 +2675,7 @@ static gboolean xcf_load_vectors(XcfInfo *info,
         if (!xcf_load_vector(info, image))
             return FALSE;
 
-    /* FIXME tree */
+    /* FIX ME tree */
     active_vectors =
         GIMP_VECTORS(gimp_container_get_child_by_index(gimp_image_get_vectors(image),
                                                        active_index));
@@ -2834,7 +2834,7 @@ static gboolean xcf_load_vector(XcfInfo *info,
     }
 
     gimp_image_add_vectors(image, vectors,
-                           NULL, /* FIXME tree */
+                           NULL, /* FIX ME tree */
                            gimp_container_get_n_children(gimp_image_get_vectors(image)),
                            FALSE);
 

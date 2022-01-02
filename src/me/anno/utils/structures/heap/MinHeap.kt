@@ -105,10 +105,12 @@ class MinHeap<Value>(
         val popped = values[i]
         values[i] = values[--size]
         if (i < size) minHeapify(i)
+        @Suppress("UNCHECKED_CAST")
         return popped as Value
     }
 
     fun peak(): Value? {
+        @Suppress("UNCHECKED_CAST")
         return values[0] as? Value
     }
 

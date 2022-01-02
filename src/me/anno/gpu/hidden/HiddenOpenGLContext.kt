@@ -5,7 +5,7 @@ import me.anno.gpu.GFXBase0
 import me.anno.utils.Clock
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.Version
-import org.lwjgl.glfw.GLFW
+import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GLCapabilities
@@ -31,7 +31,7 @@ object HiddenOpenGLContext {
         GFX.height = h
     }
 
-    fun createOpenGL(w: Int, h: Int = w){
+    fun createOpenGL(w: Int, h: Int = w) {
         setSize(w, h)
         createOpenGL()
     }
@@ -41,25 +41,29 @@ object HiddenOpenGLContext {
         LOGGER.info("Using LWJGL Version " + Version.getVersion())
 
         val tick = Clock()
-        GLFW.glfwSetErrorCallback(GLFWErrorCallback.createPrint(System.err).also { errorCallback = it })
+        glfwSetErrorCallback(GLFWErrorCallback.createPrint(System.err).also { errorCallback = it })
         tick.stop("error callback")
 
-        check(GLFW.glfwInit()) { "Unable to initialize GLFW" }
+        check(glfwInit()) { "Unable to initialize GLFW" }
 
         tick.stop("GLFW initialization")
 
-        GLFW.glfwDefaultWindowHints()
-        GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE)
-        GLFW.glfwWindowHint(GLFW.GLFW_DECORATED, GLFW.GLFW_FALSE)
+        glfwDefaultWindowHints()
+        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
+        glfwWindowHint(GLFW_DECORATED, GLFW_FALSE)
+        // should allow OpenGL to run without a window in the background
+        // some people on Github said it only would use software rendering,
+        // so that's of no use to us
+        // glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_OSMESA_CONTEXT_API)
 
         // removes scaling options -> how could we replace them?
-        window = GLFW.glfwCreateWindow(width, height, GFXBase0.projectName, MemoryUtil.NULL, MemoryUtil.NULL)
+        window = glfwCreateWindow(width, height, GFXBase0.projectName, MemoryUtil.NULL, MemoryUtil.NULL)
         if (window == MemoryUtil.NULL) throw RuntimeException("Failed to create the GLFW window")
 
         tick.stop("create window")
 
-        GLFW.glfwMakeContextCurrent(window)
-        GLFW.glfwSwapInterval(1)
+        glfwMakeContextCurrent(window)
+        glfwSwapInterval(1)
         capabilities = GL.createCapabilities()
 
         GFX.check()

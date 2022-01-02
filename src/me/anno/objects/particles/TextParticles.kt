@@ -61,8 +61,9 @@ class TextParticles : ParticleSystem() {
             } as CacheData<*>
             val dataValue = data.value as Pair<*, *>
 
-            val lineSegmentsWithStyle = dataValue.first as PartResult
+            @Suppress("UNCHECKED_CAST")
             val keys = dataValue.second as List<TextSegmentKey>
+            val lineSegmentsWithStyle = dataValue.first as PartResult
 
             val exampleLayout = lineSegmentsWithStyle.exampleLayout
             val scaleX = TextMesh.DEFAULT_LINE_HEIGHT / (exampleLayout.ascent + exampleLayout.descent)

@@ -6,6 +6,7 @@ import me.anno.input.Input
 import me.anno.input.Input.setClipboardContent
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.FileReference.Companion.getReferenceAsync
 import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
 import me.anno.io.zip.ZipCache
@@ -43,7 +44,7 @@ import me.anno.utils.hpc.UpdatingTask
 import me.anno.utils.maths.Maths.clamp
 import me.anno.utils.maths.Maths.pow
 import me.anno.utils.process.BetterProcessBuilder
-import me.anno.utils.structures.Compare.ifDifferent
+import me.anno.utils.structures.Compare.ifSame
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import kotlin.concurrent.thread
@@ -134,12 +135,14 @@ abstract class FileExplorer(
         // not all folders may be sorted
         a as FileExplorerEntry
         b as FileExplorerEntry
-        (b.isParent.compareTo(a.isParent)).ifDifferent {
-            val af = getReference(a.path)
-            val bf = getReference(b.path)
-            bf.isDirectory.compareTo(af.isDirectory).ifDifferent {
-                af.name.compareTo(bf.name, true)
-            }
+        (b.isParent.compareTo(a.isParent)).ifSame {
+            val af = getReferenceAsync(a.path)
+            val bf = getReferenceAsync(b.path)
+            if (af != null && bf != null) {
+                bf.isDirectory.compareTo(af.isDirectory).ifSame {
+                    af.name.compareTo(bf.name, true)
+                }
+            } else 0
         }
     }, style)
 

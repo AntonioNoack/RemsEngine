@@ -66,7 +66,7 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
                 if (!proxyFile.exists) {
                     createProxy(
                         src, proxyFile, uuid,
-                        proxyFolder.getChild(proxyFile.nameWithoutExtension + ".tmp.${proxyFile.extension}")!!
+                        proxyFolder.getChild(proxyFile.nameWithoutExtension + ".tmp.${proxyFile.extension}")
                     ) { data.value = proxyFile }
                 } else {
                     markUsed(uuid)

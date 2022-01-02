@@ -2,68 +2,25 @@ package me.anno.image.webp
 
 import me.anno.image.Image
 import me.anno.image.raw.IntImage
-import me.anno.image.webp.LZ77.codeLengthCodeOrder
 import me.anno.image.webp.LZ77.lz77DistanceOffsets
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
 import me.anno.utils.LOGGER
+import me.anno.utils.OS.desktop
+import me.anno.utils.OS.pictures
 import java.io.IOException
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import kotlin.math.abs
 import kotlin.math.max
 
-class WebpReader {
-
-    val HUFF_IDX_GREEN = 0
-    val HUFF_IDX_RED = 1
-    val HUFF_IDX_BLUE = 2
-    val HUFF_IDX_ALPHA = 3
-    val HUFF_IDX_DIST = 4
-    val HUFFMAN_CODES_PER_META_CODE = 5
-
-    val NUM_CODE_LENGTH_CODES = 19
-
-    class BitReader(val buffer: ByteBuffer) {
-        var remaining = 0
-        var data = 0L
-        fun read1(): Boolean = read(1) != 0
-        fun read(n: Int): Int {
-            while (n > remaining) {
-                remaining += 8
-                data = (data shl 8) + buffer.get()
-            }
-            val delta = remaining - n
-            val mask = ((1 shl n) - 1)
-            val value = (data shr delta).toInt() and mask
-            remaining -= n
-            return value
-        }
-    }
-
-    class BitReader2(val buffer: IntArray, var offset: Int) {
-        var remaining = 0
-        var data = 0L
-        fun read1(): Boolean = read(1) != 0
-        fun read(n: Int): Int {
-            while (n > remaining) {
-                remaining += 32
-                data = (data shl 32) + buffer[offset++]
-            }
-            val delta = remaining - n
-            val mask = ((1 shl n) - 1)
-            val value = (data shr delta).toInt() and mask
-            remaining -= n
-            return value
-        }
-    }
-
-    fun vp8LossyDecodeFrame(data: ByteBuffer): Image {
-        // format: 420p
-        TODO()
-    }
+// translated from
+// https://github.com/FFmpeg/FFmpeg/blob/master/libavcodec/webp.c
+class WebPReader {
 
     var image: IntImage? = null
     var predictor: Image? = null
@@ -72,6 +29,85 @@ class WebpReader {
 
     var w = 0
     var h = 0
+
+    var numberTransforms = 0
+
+    var indexing: IntImage? = null
+    var indexingSizeReduction = 0
+
+    var colorTransform: IntImage? = null
+    var colorTransformSizeReduction = 0
+
+    // idk... but blue must be 2...
+    val b = 2
+    val g = 3
+    val r = 1
+    val a = 0
+
+    var blocksW = 0
+    var blocksH = 0
+    var blockBits = 0
+
+    var indexingReducedWidth = 0
+
+    var entropy: IntImage? = null
+    var entropySizeReduction = 0
+    var numHuffmanGroups = 1
+
+    var reducedWidth = 0
+
+    val alphabetSizes = intArrayOf(
+        NUM_LITERAL_CODES + NUM_LENGTH_CODES,
+        NUM_LITERAL_CODES, NUM_LITERAL_CODES, NUM_LITERAL_CODES,
+        NUM_DISTANCE_CODES
+    )
+
+    fun vp8DecodeInit() {
+        TODO()
+    }
+
+    fun vp8LossyDecodeFrame(
+        ctx: AVCodecContext,
+        p: Image?,
+        data: ByteBuffer,
+        dataSize: Int
+    ): Image {
+
+        val s = ctx.privData!!
+
+        // format: 420p
+        // get some context
+        if (!s.isInited) {
+            vp8DecodeInit()
+            s.isInited = true
+            s.actuallyWebp = true
+        }
+
+        // AV_PIX_FMT_YUVA420P : AV_PIX_FMT_YUV420P
+        val format = s.hasAlpha
+        s.lossless = false // mmh
+
+        // av_packet_unref???
+        vp8DecodeFrame(ctx, p, data)
+
+        // update canvas size??
+
+        if (s.hasAlpha) {
+            // vp8LossyDecodeAlpha()
+        }
+
+        return p!!
+
+    }
+
+    fun vp8DecodeFrame(ctx: AVCodecContext, p: Image?, data: ByteBuffer) {
+        // vp78DecodeFrame() with IS_VP8
+        val s = ctx.privData!!
+        // av_uninit?
+        // vp8DecodeFrameHeader(s, 0)
+        // pixel format is set
+
+    }
 
     fun vp8LosslessDecodeFrame(
         data: ByteBuffer,
@@ -138,18 +174,6 @@ class WebpReader {
 
     }
 
-    var indexing: IntImage? = null
-    var indexingSizeReduction = 0
-
-    var colorTransform: IntImage? = null
-    var colorTransformSizeReduction = 0
-
-    // idk... but blue must be 2...
-    val b = 2
-    val g = 3
-    val r = 1
-    val a = 0
-
     fun parseTransformPredictor(bits: BitReader) {
         parseBlockSize(w, bits)
         predictor = decodeEntropyEncodedImage(bits, blocksW, blocksH, false)
@@ -162,12 +186,6 @@ class WebpReader {
     fun colorTransformDelta(predicate: Int, color: Int): Int {
         return (makeByteSigned(predicate) * makeByteSigned(color)) shr 5
     }
-
-    var blocksW = 0
-    var blocksH = 0
-    var blockBits = 0
-
-    var indexingReducedWidth = 0
 
     fun align(w: Int, w2: Int): Int {
         return (w + w2 - 1) / w2 * w2
@@ -218,59 +236,10 @@ class WebpReader {
 
     }
 
-    var numHuffmanGroups = 1
-
-    var reducedWidth = 0
-
-    val NUM_LITERAL_CODES = 256
-    val NUM_LENGTH_CODES = 24
-    val NUM_DISTANCE_CODES = 40
-    val NUM_SHORT_DISTANCES = 20
-    val MAX_HUFFMAN_CODE_LENGTH = 15
-
-    val alphabetSizes = intArrayOf(
-        NUM_LITERAL_CODES + NUM_LENGTH_CODES,
-        NUM_LITERAL_CODES, NUM_LITERAL_CODES, NUM_LITERAL_CODES,
-        NUM_DISTANCE_CODES
-    )
-
-    class VLC {
-
-    }
-
-    class HuffReader {
-        var simple = true
-        var numSymbols = 0
-        var simpleSymbol0 = 0
-        var simpleSymbol1 = 0
-        var table: VLC? = null
-    }
-
-    fun webpGetVLC(bits: BitReader, table: VLC): Int {
-
-
-        TODO()
-    }
-
-    fun huffReaderGetSymbol(r: HuffReader, bits: BitReader): Int {
-        return if (r.simple) {
-            when {
-                r.numSymbols == 1 -> {
-                    r.simpleSymbol0
-                }
-                bits.read1() -> r.simpleSymbol1
-                else -> r.simpleSymbol0
-            }
-        } else webpGetVLC(bits, r.table!!)
-    }
-
     fun colorCachePut(cache: IntArray, colorCacheBits: Int, c: Int) {
         val cacheIndex = (0x1E35A7BD * c) shr (32 - colorCacheBits)
         cache[cacheIndex] = c
     }
-
-    var entropy: IntImage? = null
-    var entropySizeReduction = 0
 
     fun getHuffmanGroup(x: Int, y: Int): Int {
         val entropy = entropy!!
@@ -281,105 +250,6 @@ class WebpReader {
             group = entropy.getRGB(groupX, groupY)
         }
         return group
-    }
-
-    fun readHuffmanCodeSimple(bits: BitReader, hc: HuffReader) {
-        hc.numSymbols = bits.read(1) + 1
-        hc.simpleSymbol0 = if (bits.read1()) {
-            bits.read(8)
-        } else {
-            bits.read(1)
-        }
-        if (hc.numSymbols == 2) {
-            hc.simpleSymbol1 = bits.read(8)
-        }
-        hc.simple = true
-    }
-
-    fun readHuffmanCodeNormal(bits: BitReader, hc: HuffReader, alphabetSize: Int) {
-        val codeLenHC = HuffReader()
-        val codeLengthCodeLengths = IntArray(NUM_CODE_LENGTH_CODES)
-        val numCodes = 4 + bits.read(4)
-        if (numCodes > NUM_CODE_LENGTH_CODES) throw IOException("Invalid data")
-        for (i in 0 until numCodes) {
-            codeLengthCodeLengths[codeLengthCodeOrder[i]] = bits.read(3)
-        }
-
-        huffReaderBuildCanonical(codeLenHC, codeLengthCodeLengths, NUM_CODE_LENGTH_CODES)
-
-        val codeLengths = IntArray(alphabetSize)
-        var maxSymbol = 0
-        if (bits.read1()) {
-            val bits0 = 2 + 2 * bits.read(3)
-            maxSymbol = 2 + bits.read(bits0)
-            if (maxSymbol > alphabetSize) throw IOException("Max Symbol > alphabet size")
-        } else maxSymbol = alphabetSize
-
-        var prevCodeLen = 8
-        var symbol = 0
-        while (symbol < alphabetSize) {
-            val codeLen = huffReaderGetSymbol(codeLenHC, bits)
-            if (codeLen < 16) {
-                // literal code length
-                codeLengths[symbol++] = codeLen
-                if (codeLen != 0) prevCodeLen = codeLen
-            } else {
-                var repeat = 0
-                var length = 0
-                when (codeLen) {
-                    16 -> {
-                        repeat = 3 + bits.read(2)
-                        length = prevCodeLen
-                    }
-                    17 -> repeat = 3 + bits.read(3)
-                    18 -> repeat = 11 + bits.read(7)
-                }
-                if (symbol + repeat > alphabetSize) throw IOException("Invalid symbol + repeat > alphabet size")
-                for (i in 0 until repeat) {
-                    codeLengths[symbol++] = length
-                }
-            }
-        }
-
-        huffReaderBuildCanonical(hc, codeLengths, alphabetSize)
-
-    }
-
-    fun huffReaderBuildCanonical(r: HuffReader, codeLengths: IntArray, alphabetSize: Int) {
-        var len = 0
-        var code = 0
-        for (sym in 0 until alphabetSize) {
-            if (codeLengths[sym] > 0) {
-                len++
-                code = sym
-                if (len > 1) break
-            }
-        }
-        if (len == 1) {
-            r.numSymbols = 1
-            r.simpleSymbol0 = code
-            r.simple = true
-            return
-        }
-        var maxCodeLength = 0
-        for (sym in 0 until alphabetSize) {
-            maxCodeLength = max(maxCodeLength, codeLengths[sym])
-        }
-        if (maxCodeLength == 0 || maxCodeLength > MAX_HUFFMAN_CODE_LENGTH) throw IOException()
-        val codes = IntArray(alphabetSize)
-        code = 0
-        r.numSymbols = 0
-        for (len2 in 1..maxCodeLength) {
-            for (sym in 0 until alphabetSize) {
-                if (codeLengths[sym] != len2) continue
-                codes[sym] = code++
-                r.numSymbols++
-            }
-            code = code shl 1
-        }
-        if (r.numSymbols == 0) throw IOException("Invalid data")
-        TODO()//initVLC(r.table, 8, alphabetSize, codeLengths, codes, 0)
-        r.simple = false
     }
 
     fun decodeEntropyImage(bits: BitReader) {
@@ -417,9 +287,7 @@ class WebpReader {
             // numHuffmanGroups = s.numHuffmanGroups
         }
 
-        val huffmanGroups = Array(numHuffmanGroups * HUFFMAN_CODES_PER_META_CODE) {
-            HuffReader()
-        }
+        val huffmanGroups = Array(numHuffmanGroups * HUFFMAN_CODES_PER_META_CODE) { HuffReader() }
 
         for (i in 0 until numHuffmanGroups) {
             val i2 = i * HUFFMAN_CODES_PER_META_CODE
@@ -430,9 +298,9 @@ class WebpReader {
                 }
                 val hg = huffmanGroups[i2 + j]
                 if (bits.read1()) {
-                    readHuffmanCodeSimple(bits, hg)
+                    hg.readSimple(bits)
                 } else {
-                    readHuffmanCodeNormal(bits, hg, alphabetSize)
+                    hg.readNormal(bits, alphabetSize)
                 }
             }
         }
@@ -447,14 +315,14 @@ class WebpReader {
         val height = h
         while (y < height) {
             val i2 = getHuffmanGroup(x, y) * HUFFMAN_CODES_PER_META_CODE
-            val v = huffReaderGetSymbol(huffmanGroups[i2 + HUFF_IDX_GREEN], bits)
+            val v = huffmanGroups[i2 + HUFF_IDX_GREEN].getSymbol(bits)
             if (v < NUM_LITERAL_CODES) {
                 // literal pixel values
                 val idx = x + y * width
                 val p2 = v + 0
-                val p1 = huffReaderGetSymbol(huffmanGroups[i2 + HUFF_IDX_RED], bits)
-                val p3 = huffReaderGetSymbol(huffmanGroups[i2 + HUFF_IDX_BLUE], bits)
-                val p0 = huffReaderGetSymbol(huffmanGroups[i2 + HUFF_IDX_ALPHA], bits)
+                val p1 = huffmanGroups[i2 + HUFF_IDX_RED].getSymbol(bits)
+                val p3 = huffmanGroups[i2 + HUFF_IDX_BLUE].getSymbol(bits)
+                val p0 = huffmanGroups[i2 + HUFF_IDX_ALPHA].getSymbol(bits)
                 val color = rgba(p1, p3, p2, p0)
                 data[idx] = color
                 if (colorCacheBits > 0) {
@@ -475,7 +343,7 @@ class WebpReader {
                     val offset = (2 + (prefixCode and 1)) shl extraBits
                     offset + bits.read(extraBits) + 1
                 }
-                prefixCode = huffReaderGetSymbol(huffmanGroups[i2 + HUFF_IDX_DIST], bits)
+                prefixCode = huffmanGroups[i2 + HUFF_IDX_DIST].getSymbol(bits)
                 if (prefixCode > 39) throw IOException("Distance prefix code too large: $prefixCode")
                 var distance = if (prefixCode < 4) {
                     prefixCode + 1
@@ -633,62 +501,61 @@ class WebpReader {
         val top = image.getRGB(x, y - 1)
         val topRight = if (x == w - 1) image.getRGB(0, y) else image.getRGB(x + 1, y - 1)
         val pixel = when (mode) {
-            0 -> 0xff shl 24
-            1 -> left
-            2 -> top
-            3 -> topRight
-            4 -> topLeft
-            5 -> rgba(
+            PRED_MODE_BLACK -> 0xff shl 24
+            PRED_MODE_L -> left
+            PRED_MODE_T -> top
+            PRED_MODE_TR -> topRight
+            PRED_MODE_TL -> topLeft
+            PRED_MODE_AVG_T_AVG_L_TR -> rgba(
                 (top.r() + (left.r() + topRight.r()).shr(1)).shr(1),
                 (top.g() + (left.g() + topRight.g()).shr(1)).shr(1),
                 (top.b() + (left.b() + topRight.b()).shr(1)).shr(1),
                 (top.a() + (left.a() + topRight.a()).shr(1)).shr(1),
             )
-            6 -> rgba(
-                (top.r() + topLeft.r()).shr(1),
-                (top.g() + topLeft.g()).shr(1),
-                (top.b() + topLeft.b()).shr(1),
-                (top.a() + topLeft.a()).shr(1),
+            PRED_MODE_AVG_L_TL -> rgba(
+                (left.r() + topLeft.r()).shr(1),
+                (left.g() + topLeft.g()).shr(1),
+                (left.b() + topLeft.b()).shr(1),
+                (left.a() + topLeft.a()).shr(1),
             )
-            7 -> rgba(
-                (topLeft.r() + top.r()).shr(1),
-                (topLeft.g() + top.g()).shr(1),
-                (topLeft.b() + top.b()).shr(1),
-                (topLeft.a() + top.a()).shr(1),
+            PRED_MODE_AVG_L_T -> rgba(
+                (left.r() + top.r()).shr(1),
+                (left.g() + top.g()).shr(1),
+                (left.b() + top.b()).shr(1),
+                (left.a() + top.a()).shr(1),
             )
-            8 -> rgba(
+            PRED_MODE_AVG_TL_T -> rgba(
                 (topLeft.r() + top.r()).shr(1),
                 (topLeft.g() + top.g()).shr(1),
                 (topLeft.b() + top.b()).shr(1),
                 (topLeft.a() + top.a()).shr(1)
             )
-            9 -> rgba(
+            PRED_MODE_AVG_T_TR -> rgba(
                 (top.r() + topRight.r()).shr(1),
                 (top.g() + topRight.g()).shr(1),
                 (top.b() + topRight.b()).shr(1),
                 (top.a() + topRight.a()).shr(1)
             )
-            10 -> rgba(
+            PRED_MODE_AVG_AVG_L_TL_AVG_T_TR -> rgba(
                 ((left.r() + topLeft.r()).shr(1) + (top.r() + topRight.r()).shr(1)).shr(1),
                 ((left.g() + topLeft.g()).shr(1) + (top.g() + topRight.g()).shr(1)).shr(1),
                 ((left.b() + topLeft.b()).shr(1) + (top.b() + topRight.b()).shr(1)).shr(1),
                 ((left.a() + topLeft.a()).shr(1) + (top.a() + topRight.a()).shr(1)).shr(1),
             )
-            11 -> {
+            PRED_MODE_SELECT -> {
                 val diff = abs(left.r() - topLeft.r()) - abs(top.r() - topLeft.r()) +
                         abs(left.g() - topLeft.g()) - abs(top.g() - topLeft.g()) +
                         abs(left.b() - topLeft.b()) - abs(top.b() - topLeft.b()) +
                         abs(left.a() - topLeft.a()) - abs(top.a() - topLeft.a())
-                if (diff <= 0) top
-                else left
+                if (diff <= 0) top else left
             }
-            12 -> rgba(
+            PRED_MODE_ADD_SUBTRACT_FULL -> rgba(
                 clip8(left.r() + top.r() - topLeft.r()),
                 clip8(left.g() + top.g() - topLeft.g()),
                 clip8(left.b() + top.b() - topLeft.b()),
                 clip8(left.a() + top.a() - topLeft.a()),
             )
-            13 -> rgba(
+            PRED_MODE_ADD_SUBTRACT_HALF -> rgba(
                 clampAddSubHalf(left.r(), top.r(), topLeft.r()),
                 clampAddSubHalf(left.g(), top.g(), topLeft.g()),
                 clampAddSubHalf(left.b(), top.b(), topLeft.b()),
@@ -728,15 +595,6 @@ class WebpReader {
         }
     }
 
-    val PRED_MODE_BLACK = 0
-    val PRED_MODE_L = 1
-    val PRED_MODE_T = 2
-
-    val PREDICTOR_TRANSFORM = 0
-    val COLOR_TRANSFORM = 1
-    val SUBTRACT_GREEN = 2
-    val COLOR_INDEXING_TRANSFORM = 3
-
     fun getLE24(data: ByteBuffer): Int {
         return data.get().toInt().and(255) or
                 data.get().toInt().and(255).shl(8) or
@@ -745,7 +603,13 @@ class WebpReader {
 
     fun read(data: ByteBuffer): Image? {
 
-        if (data.int != RIFF) throw IOException("Missing RIFF Tag")
+        // important!
+        data.order(ByteOrder.LITTLE_ENDIAN)
+
+        if (data.remaining() < 12)
+            throw IOException("File is too small")
+
+        if (data.int != RIFF) throw IOException("Incorrect MAGIC: Missing RIFF Tag")
 
         var chunkSize = data.int
         if (data.remaining() < chunkSize) throw IOException("Invalid data")
@@ -765,16 +629,22 @@ class WebpReader {
             val chunkType = data.int
             chunkSize = data.int
 
+            println("Reading tag ${tag(chunkType)} of size $chunkSize")
+
             if (chunkSize == -1) throw IOException("Invalid data")
 
             chunkSize += chunkSize.and(1)
 
-            if (data.remaining() < chunkSize) throw IOException("Invalid data")
+            if (data.remaining() < chunkSize) {
+                // trailing data
+                LOGGER.info("Found trailing data")
+                break
+            }
 
             val endPosition = data.position() + chunkSize
 
             when (chunkType) {
-                VP8 -> if (image == null) image = vp8LossyDecodeFrame(data)
+                VP8 -> if (image == null) TODO("vp8 is not supported, as it's pretty complicated") // image = vp8LossyDecodeFrame(data, null, data, 0)
                 VP8L -> if (image == null) vp8LosslessDecodeFrame(data, false)
                 VP8X -> {
                     if (image == null && width == 0 && height == 0) {
@@ -809,20 +679,75 @@ class WebpReader {
 
     companion object {
 
-        val RIFF = leTag("RIFF")
-        val WEBP = leTag("WEBP")
-        val VP8 = leTag("VP8 ")
-        val VP8L = leTag("VP8L")
-        val VP8X = leTag("VP8X")
-        val ALPHA_CHUNK = leTag("ALPH")
-        val EXIF = leTag("EXIF")
-        val ICCP = leTag("ICCP")
-        val ANIM = leTag("ANIM")
-        val ANIX = leTag("ANMP")
-        val XMP = leTag("XMP ")
+        private const val PRED_MODE_BLACK = 0
+        private const val PRED_MODE_L = 1
+        private const val PRED_MODE_T = 2
+        private const val PRED_MODE_TR = 3
+        private const val PRED_MODE_TL = 4
+        private const val PRED_MODE_AVG_T_AVG_L_TR = 5
+        private const val PRED_MODE_AVG_L_TL = 6
+        private const val PRED_MODE_AVG_L_T = 7
+        private const val PRED_MODE_AVG_TL_T = 8
+        private const val PRED_MODE_AVG_T_TR = 9
+        private const val PRED_MODE_AVG_AVG_L_TL_AVG_T_TR = 10
+        private const val PRED_MODE_SELECT = 11
+        private const val PRED_MODE_ADD_SUBTRACT_FULL = 12
+        private const val PRED_MODE_ADD_SUBTRACT_HALF = 13
 
-        fun leTag(str: String): Int {
+        private const val HUFF_IDX_GREEN = 0
+        private const val HUFF_IDX_RED = 1
+        private const val HUFF_IDX_BLUE = 2
+        private const val HUFF_IDX_ALPHA = 3
+        private const val HUFF_IDX_DIST = 4
+        private const val HUFFMAN_CODES_PER_META_CODE = 5
+
+        const val NUM_CODE_LENGTH_CODES = 19
+
+        private const val NUM_LITERAL_CODES = 256
+        private const val NUM_LENGTH_CODES = 24
+        private const val NUM_DISTANCE_CODES = 40
+        private const val NUM_SHORT_DISTANCES = 20
+        const val MAX_HUFFMAN_CODE_LENGTH = 15
+
+        private const val PREDICTOR_TRANSFORM = 0
+        private const val COLOR_TRANSFORM = 1
+        private const val SUBTRACT_GREEN = 2
+        private const val COLOR_INDEXING_TRANSFORM = 3
+
+        val RIFF = tag("RIFF")
+        val WEBP = tag("WEBP")
+        val VP8 = tag("VP8 ")
+        val VP8L = tag("VP8L")
+        val VP8X = tag("VP8X")
+        val ALPHA_CHUNK = tag("ALPH")
+        val EXIF = tag("EXIF")
+        val ICCP = tag("ICCP")
+        val ANIM = tag("ANIM")
+        val ANIX = tag("ANMP")
+        val XMP = tag("XMP ")
+
+        /**
+         * little endian tag
+         * */
+        fun tag(str: String): Int {
             return str[0].code or str[1].code.shl(8) or str[2].code.shl(16) or str[3].code.shl(24)
+        }
+
+        fun tag(i: Int) = String(
+            charArrayOf(
+                i.shr(24).and(255).toChar(),
+                i.shr(16).and(255).toChar(),
+                i.shr(8).and(255).toChar(),
+                i.and(255).toChar()
+            )
+        )
+
+        @JvmStatic
+        fun main(args: Array<String>) {
+            val reader = WebPReader()
+            val ref = getReference(pictures, "Anime/gplus-1707798211.webp")
+            val image = reader.read(ref.readByteBuffer())!!
+            image.write(desktop.getChild(ref.name + ".png"))
         }
 
     }

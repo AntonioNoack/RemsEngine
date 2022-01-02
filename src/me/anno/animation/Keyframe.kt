@@ -31,6 +31,7 @@ class Keyframe<V>(
     }
 
     fun setValueUnsafe(value: Any?) {
+        @Suppress("UNCHECKED_CAST")
         this.value = value as V
     }
 

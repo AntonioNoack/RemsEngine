@@ -37,6 +37,7 @@ open class TimeValue<V>(var time: Double, var value: V) : Saveable() {
     }
 
     fun setValue(index: Int, v: Float, type: Type) {
+        @Suppress("UNCHECKED_CAST")
         value = type.clamp(
             when (val value = value) {
                 is Int -> v.toInt()

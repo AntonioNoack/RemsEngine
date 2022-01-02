@@ -94,7 +94,9 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
                 // todo we should invalidate ALL windowStacks
                 for (window in defaultWindowStack ?: emptyList()) {
                     window.panel.forAll {
-                        if (it is FileExplorer && it.folder.absolutePath.startsWith(parent.absolutePath)) {
+                        if (it is FileExplorer && it.folder
+                                .absolutePath
+                                .startsWith(parent.absolutePath)) {
                             it.invalidate()
                         }
                     }

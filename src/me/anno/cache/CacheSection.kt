@@ -232,9 +232,8 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             if (asyncGenerator) {
                 threadWithName("$name<$key0,$key1>") {
                     val value = generateSafely(key0, key1, generator)
-                    if (value is Exception) throw value
-                    value as? ICacheData
                     entry.data = value as? ICacheData
+                    if (value is Exception) throw value
                     if (entry.hasBeenDestroyed) {
                         LOGGER.warn("Value for $name<$key0,$key1> was directly destroyed")
                         entry.data?.destroy()
@@ -242,8 +241,8 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                 }
             } else {
                 val value = generateSafely(key0, key1, generator)
-                if (value is Exception) throw value
                 entry.data = value as? ICacheData
+                if (value is Exception) throw value
             }
         } else ifNotGenerating?.invoke()
 
@@ -362,7 +361,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             }
         } else ifNotGenerating?.invoke()
 
-        if (queue == null && entry.generatorThread != Thread.currentThread()) entry.waitForValue(key)
+        if (!async && entry.generatorThread != Thread.currentThread()) entry.waitForValue(key)
         return if (entry.hasBeenDestroyed) null else entry.data
 
     }

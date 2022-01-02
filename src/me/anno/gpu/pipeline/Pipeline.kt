@@ -3,7 +3,6 @@ package me.anno.gpu.pipeline
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.cache.MaterialCache
-import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.light.AmbientLight
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.PlanarReflection
@@ -26,7 +25,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.utils.LOGGER
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.sorting.MergeSort.mergeSort
-import me.anno.utils.structures.Compare.ifDifferent
+import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.lists.SmallestKList
 import me.anno.utils.types.AABBs.avgX
 import me.anno.utils.types.AABBs.avgY
@@ -226,7 +225,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
                 mergeSort(lights, 0, size) { a, b ->
                     val va = a!!.light
                     val vb = b!!.light
-                    va.hasShadow.compareTo(vb.hasShadow).ifDifferent {
+                    va.hasShadow.compareTo(vb.hasShadow).ifSame {
                         va.lightType.shadowMapType.compareTo(vb.lightType.shadowMapType)
                     }
                 }
@@ -245,7 +244,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
             mergeSort(lights, 0, smallest.size) { a, b ->
                 val va = a!!.light
                 val vb = b!!.light
-                va.hasShadow.compareTo(vb.hasShadow).ifDifferent {
+                va.hasShadow.compareTo(vb.hasShadow).ifSame {
                     va.lightType.shadowMapType.compareTo(vb.lightType.shadowMapType)
                 }
             }
