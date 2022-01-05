@@ -47,6 +47,7 @@ class ScriptComponent : Component() {
         val luaCache = CacheSection("Lua")
 
         // todo lua-script directory, from which files for "dofile" are loaded
+        // data types:
         // nil, boolean, number, string, userdata, function, thread, and table
 
         fun callLua(entity: Entity, source: FileReference) {

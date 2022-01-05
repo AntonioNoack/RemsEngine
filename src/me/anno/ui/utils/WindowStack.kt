@@ -5,6 +5,7 @@ import me.anno.gpu.Window
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.Input
 import me.anno.ui.base.Panel
+import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import java.util.*
@@ -53,20 +54,58 @@ class WindowStack : Stack<Window>() {
         return null
     }
 
-    fun update() {
+    private var x0 = 0
+    private var y0 = 0
+    private var w0 = 0
+    private var h0 = 0
+    private var x1 = 0
+    private var y1 = 0
+    private var w1 = 0
+    private var h1 = 0
+
+    fun updateTransform(w: Int, h: Int) {
+
         viewTransform.identity()
+
         mouseX = Input.mouseX
         mouseY = Input.mouseY
         mouseDownX = Input.mouseDownX
         mouseDownY = Input.mouseDownY
+
+        this.x0 = 0
+        this.y0 = 0
+        this.w0 = w
+        this.h0 = h
+        this.x1 = 0
+        this.y1 = 0
+        this.w1 = w
+        this.h1 = h
+
     }
 
-    fun update(transform: Matrix4f, x0: Int, y0: Int, w0: Int, h0: Int, x1: Int, y1: Int, w1: Int, h1: Int) {
+
+    fun updateTransform(transform: Matrix4f, x0: Int, y0: Int, w0: Int, h0: Int, x1: Int, y1: Int, w1: Int, h1: Int) {
 
         viewTransform.set(transform)
 
-        // update mouse position
-        val tmp = Vector3f()
+        this.x0 = x0
+        this.y0 = y0
+        this.w0 = w0
+        this.h0 = h0
+        this.x1 = x1
+        this.y1 = y1
+        this.w1 = w1
+        this.h1 = h1
+
+        updateMousePosition()
+
+    }
+
+
+    fun updateMousePosition() {
+
+        val tmp = JomlPools.vec3f.create()
+
         viewTransform.transformProject(
             (Input.mouseX - x0) / w0 * 2f - 1f,
             (Input.mouseY - y0) / h0 * 2f - 1f,
@@ -82,6 +121,8 @@ class WindowStack : Stack<Window>() {
         )
         mouseDownX = x1 + (tmp.x * .5f + .5f) * w1
         mouseDownY = y1 + (tmp.y * .5f + .5f) * h1
+
+        JomlPools.vec3f.sub(1)
 
     }
 

@@ -70,6 +70,7 @@ import me.anno.utils.Color.hex4
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.waitForGFXThread
 import me.anno.utils.Sleep.waitForGFXThreadUntilDefined
+import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.files.Files.use
 import me.anno.utils.input.Input.readNBytes2
@@ -1114,6 +1115,8 @@ object Thumbs {
                     // png, jpg, jpeg, ico, webp, mp4, ...
                     else -> generateImage(srcFile, dstFile, size, callback)
                 }
+            } catch (e: ShutdownException) {
+                // don't care
             } catch (e: Exception) {
                 e.printStackTrace()
                 LOGGER.warn("Could not load image from $srcFile: ${e.message}")
@@ -1179,14 +1182,15 @@ object Thumbs {
         callback: (Texture2D) -> Unit
     ) {
         // small timeout, because we need that image shortly only
-        val totalMillis = 30_000L
-        val smallStep = 5L
-        val tries = totalMillis / smallStep
+        val totalNanos = 30_000_000_000L
+        val timeout = 50L
         var image: Image? = null
-        for (i in 0 until tries) {
-            image = ImageCPUCache.getImage(srcFile, 50, true)
-            if (image != null) break
-            Thread.sleep(smallStep)
+        val startTime = System.nanoTime()
+        waitUntil(true) {
+            if (System.nanoTime() < startTime + totalNanos) {
+                image = ImageCPUCache.getImage(srcFile, timeout, true)
+                image != null || ImageCPUCache.hasFileEntry(srcFile, timeout)
+            } else true
         }
         if (image == null) {
             val ext = srcFile.lcExtension
@@ -1201,9 +1205,7 @@ object Thumbs {
                     generateTextImage(srcFile, size, callback)
                 }
             }
-        } else {
-            transformNSaveNUpload(srcFile, image, dstFile, size, callback)
-        }
+        } else transformNSaveNUpload(srcFile, image!!, dstFile, size, callback)
     }
 
     private fun generateSystemIcon(

@@ -121,15 +121,17 @@ class Controller(val id: Int) {
         }
     }
 
-    private fun mouseButtonUp(key: Int){
+    private fun mouseButtonUp(key: Int) {
         if (isMouseInWindow() && GFX.isInFocus) {
             Input.onMouseRelease(key)
         } else {
-            GFX.robot.mouseRelease(when (key) {
-                0 -> InputEvent.BUTTON1_MASK
-                1 -> InputEvent.BUTTON2_MASK
-                else -> InputEvent.BUTTON3_MASK
-            })
+            GFX.robot.mouseRelease(
+                when (key) {
+                    0 -> InputEvent.BUTTON1_MASK
+                    1 -> InputEvent.BUTTON2_MASK
+                    else -> InputEvent.BUTTON3_MASK
+                }
+            )
         }
     }
 
@@ -219,10 +221,10 @@ class Controller(val id: Int) {
                         buttonType(buttonId)
                     }
                     val timeSinceDown = time - buttonDownTime[buttonId]
-                    if (timeSinceDown > initialTypeDelay) {
+                    if (timeSinceDown > initialTypeDelayNanos) {
                         buttonDownTime[buttonId] = max(
-                            buttonDownTime[buttonId] + typeDelay, // reset
-                            time - initialTypeDelay - typeDelay * 2 // & we must not collect too many,
+                            buttonDownTime[buttonId] + typeDelayNanos, // reset
+                            time - initialTypeDelayNanos - typeDelayNanos * 2 // & we must not collect too many,
                             // when the window is not active
                         )
                         buttonType(buttonId)
@@ -406,13 +408,12 @@ class Controller(val id: Int) {
         const val MAX_NUM_BUTTONS = 32
         const val MAX_NUM_AXES = 32
 
-        // todo make these configurable
         // should get a place in the config
-        private val initialTypeDelay = 1_000_000_000L
-        private val typeDelay = 100_000_000L
+        private val initialTypeDelayNanos get() = DefaultConfig["controller.initialTypeDelayMillis", 1000] * 1_000_000L
+        private val typeDelayNanos get() = DefaultConfig["controller.typeDelayMillis", 100] * 1_000_000L
 
         // should probably get a place in the config as well
-        private val axisKeyTriggerPoint = 0.25f
+        private val axisKeyTriggerPoint get() = DefaultConfig["controller.axisKeyTriggerPoint", 0.25f]
 
         // private val minActivationPoint = 0.05f
         // private val maxActivationPoint = 0.95f

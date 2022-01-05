@@ -279,13 +279,27 @@ class FileExplorerEntry(
     private fun drawTexture(x0: Int, y0: Int, x1: Int, y1: Int, image: ITexture2D) {
         val w = x1 - x0
         val h = y1 - y0
-        val (iw, ih) = scaleMax(image.w, image.h, w, h)
+        // if aspect ratio is extreme, use a different scale
+        val (iw, ih) = when {
+            // not too tall or too wide
+            max(image.w, image.h) < 5 * min(image.w, image.h) -> {
+                scaleMax(image.w, image.h, w, h)
+            }
+            // wide
+            image.w > image.h -> {
+                scaleMax(5, 1, w, h)
+            }
+            // tall
+            else -> {
+                scaleMax(1, 5, w, h)
+            }
+        }
         // todo if texture is HDR, then use reinhard tonemapping for preview, with factor of 5
-        // we can use FSR to upsample the images LOL
+        // we can use FSR to upsample the images xD
         val x = x0 + (w - iw) / 2
         val y = y0 + (h - ih) / 2
         if (image is Texture2D) image.filtering = GPUFiltering.LINEAR
-        if (iw > image.w && ih > image.h) {
+        if (iw > image.w && ih > image.h) {// maybe use fsr only, when scaling < 4x
             FSR.upscale(image, x, y, iw, ih, false, backgroundColor)// ^^
         } else {
             drawTexture(x, y, iw, ih, image, -1, null)

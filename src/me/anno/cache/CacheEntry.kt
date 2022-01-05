@@ -1,25 +1,28 @@
 package me.anno.cache
 
 import me.anno.cache.data.ICacheData
-import me.anno.gpu.GFX
+import me.anno.gpu.GFX.gameTime
 import me.anno.utils.Sleep
+import kotlin.math.max
 
 class CacheEntry private constructor(
-    var timeout: Long,
-    var lastUsed: Long,
+    var timeoutTime: Long,
     var generatorThread: Thread
 ) {
 
-    constructor(timeout: Long) : this(timeout, GFX.gameTime, Thread.currentThread())
+    constructor(timeout: Long) : this(gameTime + timeout, Thread.currentThread())
 
     val needsGenerator get() = generatorThread == Thread.currentThread() && (!hasGenerator || hasBeenDestroyed)
 
     fun reset(timeout: Long) {
-        this.timeout = timeout
-        this.lastUsed = GFX.gameTime
+        this.timeoutTime = gameTime + timeout
         this.generatorThread = Thread.currentThread()
         hasBeenDestroyed = false
         hasValue = false
+    }
+
+    fun update(timeout: Long) {
+        timeoutTime = max(timeoutTime, gameTime + max(0L, timeout))
     }
 
     var data: ICacheData? = null

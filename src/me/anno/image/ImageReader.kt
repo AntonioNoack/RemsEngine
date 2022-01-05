@@ -8,8 +8,6 @@ import java.io.IOException
 
 object ImageReader {
 
-    // todo the color of the fox switches...
-
     // easy interface to read any image as rgba and individual channels
 
     fun readAsFolder(file: FileReference): InnerFolder {

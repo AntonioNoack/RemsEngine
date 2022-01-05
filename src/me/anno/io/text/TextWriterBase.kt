@@ -451,7 +451,11 @@ abstract class TextWriterBase : BaseWriter(true) {
     }
 
     override fun writeQuaternionfArray2D(name: String, values: Array<Array<Quaternionf>>, force: Boolean) {
-        TODO("Not yet implemented")
+        writeArray(name, values, force, "q4[][]") { qs ->
+            writeArray(qs.size, qs.size) {
+                writeQuaternion(qs[it])
+            }
+        }
     }
 
     private fun writeVector2d(value: Vector2dc) {

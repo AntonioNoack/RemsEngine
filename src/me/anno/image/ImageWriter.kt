@@ -1,6 +1,8 @@
 package me.anno.image
 
 import me.anno.image.BoxBlur.gaussianBlur
+import me.anno.image.colormap.ColorMap
+import me.anno.image.colormap.LinearColorMap
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
@@ -9,7 +11,6 @@ import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
 import me.anno.utils.LOGGER
-import me.anno.utils.OS
 import me.anno.utils.OS.desktop
 import me.anno.utils.files.Files.use
 import me.anno.utils.hpc.HeavyProcessing.processBalanced
@@ -27,6 +28,7 @@ object ImageWriter {
         return getReference(desktop, name2)
     }
 
+    @Suppress("UNUSED")
     inline fun writeRGBImageByte3(
         w: Int,
         h: Int,
@@ -40,6 +42,7 @@ object ImageWriter {
         }
     }
 
+    @Suppress("UNUSED")
     inline fun writeRGBImageInt3(
         w: Int,
         h: Int,
@@ -73,39 +76,23 @@ object ImageWriter {
         writeImageInt(w, h, true, name, minPerThread, getRGB)
     }
 
-    val zeroColor = 255 shl 24
-    val minColor = 0xff0000 or zeroColor
-    val maxColor = 0xffffff or zeroColor
-    val nanColor = 0x7700ff or zeroColor
-
     fun writeImageFloat(
         w: Int, h: Int, name: String,
         normalize: Boolean, values: FloatArray
-    ) {
-        writeImageFloat(w, h, name, normalize, minColor, zeroColor, maxColor, nanColor, values)
-    }
+    ) = writeImageFloat(w, h, name, normalize, LinearColorMap.default, values)
 
     fun writeImageFloat(
         w: Int, h: Int, name: String,
         normalize: Boolean,
-        minColor: Int,
-        zeroColor: Int,
-        maxColor: Int,
-        nanColor: Int,
+        colorMap: ColorMap,
         values: FloatArray
     ) {
-        if (normalize) normalizeValues(values)
+        val cm = if (normalize) colorMap.normalized(values) else colorMap
         val imgData = IntArray(w * h)
         for (i in 0 until w * h) {
-            val v = values[i]
-            val color = when {
-                v.isFinite() -> mixARGB(zeroColor, if (v < 0) minColor else maxColor, abs(v))
-                v.isNaN() -> nanColor
-                else -> if (v < 0f) minColor else maxColor // todo special colors for infinity?
-            }
-            imgData[i] = color
+            imgData[i] = cm.getColor(values[i])
         }
-        val file = OS.desktop.getChild(name)
+        val file = desktop.getChild(name)
         file.getParent()?.mkdirs()
         use(file.outputStream()) {
             val img = IntImage(w, h, imgData, false)
@@ -118,39 +105,21 @@ object ImageWriter {
         offset: Int, stride: Int,
         name: String,
         normalize: Boolean,
-        minColor: Int,
-        zeroColor: Int,
-        maxColor: Int,
-        nanColor: Int,
+        colorMap: ColorMap,
         values: FloatArray
     ) {
-        if (normalize) normalizeValues(values)
+        val cm = if (normalize) colorMap.normalized(values) else colorMap
         val imgData = IntArray(w * h)
         var j = offset
         for (y in 0 until h) {
             val i0 = y * h
             val i1 = i0 + h
             for (i in i0 until i1) {
-                val v = values[j++]
-                val color = when {
-                    v.isFinite() -> mixARGB(zeroColor, if (v < 0) minColor else maxColor, abs(v))
-                    v.isNaN() -> nanColor
-                    else -> if (v < 0f) minColor else maxColor // todo special colors for infinity?
-                }
-                imgData[i] = color
+                imgData[i] = cm.getColor(values[j++])
             }
             j += stride - h
         }
-        /*for (i in 0 until w * h) {
-            val v = values[i]
-            val color = when {
-                v.isFinite() -> mixARGB(zeroColor, if (v < 0) minColor else maxColor, abs(v))
-                v.isNaN() -> nanColor
-                else -> if (v < 0f) minColor else maxColor // todo special colors for infinity?
-            }
-            imgData[i] = color
-        }*/
-        val file = OS.desktop.getChild(name)
+        val file = desktop.getChild(name)
         file.getParent()?.mkdirs()
         use(file.outputStream()) {
             val img = IntImage(w, h, imgData, false)
@@ -161,14 +130,11 @@ object ImageWriter {
     fun writeImageFloatMSAA(
         w: Int, h: Int, name: String,
         normalize: Boolean,
-        minColor: Int,
-        zeroColor: Int,
-        maxColor: Int,
-        nanColor: Int,
+        colorMap: ColorMap,
         samples: Int,
         values: FloatArray
     ) {
-        if (normalize) normalizeValues(values)
+        val cm = if (normalize) colorMap.normalized(values) else colorMap
         val img = BufferedImage(w, h, 1)
         val buffer = img.data.dataBuffer
         for (i in 0 until w * h) {
@@ -177,17 +143,12 @@ object ImageWriter {
             var b = 0
             val j = i * samples
             for (sample in 0 until samples) {
-                val v = values[j + sample]
-                val color = when {
-                    v.isFinite() -> mixARGB(zeroColor, if (v < 0) minColor else maxColor, abs(v))
-                    v.isNaN() -> nanColor
-                    else -> if (v < 0f) minColor else maxColor
-                }
+                val color = cm.getColor(values[j + sample])
                 r += color.r()
                 g += color.g()
                 b += color.b()
             }
-            buffer.setElem(i, rgba(r, g, b, 255))
+            buffer.setElem(i, rgba(r / samples, g / samples, b / samples, 255))
         }
         val file = getFile(name)
         use(file.outputStream()) {
@@ -195,14 +156,12 @@ object ImageWriter {
         }
     }
 
+    @Suppress("UNUSED")
     inline fun writeImageFloat(
         w: Int, h: Int, name: String,
         minPerThread: Int,
         normalize: Boolean,
-        minColor: Int = 0xff0000,
-        zeroColor: Int = 0,
-        maxColor: Int = 0xffffff,
-        nanColor: Int = 0x0077ff,
+        colorMap: ColorMap,
         crossinline getRGB: (x: Int, y: Int, i: Int) -> Float
     ) {
         val values = FloatArray(w * h)
@@ -222,7 +181,7 @@ object ImageWriter {
                 }
             }
         }
-        return writeImageFloat(w, h, name, normalize, minColor, zeroColor, maxColor, nanColor, values)
+        return writeImageFloat(w, h, name, normalize, colorMap, values)
     }
 
     val MSAAx8 = floatArrayOf(
@@ -240,10 +199,14 @@ object ImageWriter {
         w: Int, h: Int, name: String,
         minPerThread: Int,
         normalize: Boolean,
-        minColor: Int = 0xff0000,
-        zeroColor: Int = 0,
-        maxColor: Int = 0xffffff,
-        nanColor: Int = 0x0077ff,
+        crossinline getRGB: (x: Float, y: Float) -> Float
+    ) = writeImageFloatMSAA(w, h, name, minPerThread, normalize, LinearColorMap.default, getRGB)
+
+    inline fun writeImageFloatMSAA(
+        w: Int, h: Int, name: String,
+        minPerThread: Int,
+        normalize: Boolean,
+        colorMap: ColorMap,
         crossinline getRGB: (x: Float, y: Float) -> Float
     ) {
         val samples = 8
@@ -280,7 +243,7 @@ object ImageWriter {
                 }
             }
         }
-        return writeImageFloatMSAA(w, h, name, normalize, minColor, zeroColor, maxColor, nanColor, samples, values)
+        return writeImageFloatMSAA(w, h, name, normalize, colorMap, samples, values)
     }
 
     fun getColor(x: Float): Int {
@@ -297,23 +260,8 @@ object ImageWriter {
         return when {
             v.isFinite() -> mixARGB(zeroColor, if (v < 0) minColor else maxColor, abs(v))
             v.isNaN() -> nanColor
-            else -> if (v < 0f) minColor else maxColor
-        }
-    }
-
-    fun normalizeValues(values: FloatArray) {
-        var max = 0f
-        for (i in values.indices) {
-            val v = values[i]
-            if (v.isFinite()) {
-                max = max(max, abs(v))
-            }
-        }
-        if (max > 0f) {
-            max = 1f / max
-            for (i in values.indices) {
-                values[i] *= max
-            }
+            v < 0f -> minColor
+            else -> maxColor
         }
     }
 
@@ -354,7 +302,7 @@ object ImageWriter {
     }
 
     fun writeImageCurve(
-        wr: Int, hr: Int, c0: Int, c1: Int,
+        wr: Int, hr: Int, minColor: Int, maxColor: Int,
         thickness: Int,
         points: List<Vector2f>, name: String
     ) {
@@ -407,12 +355,8 @@ object ImageWriter {
         // ~ 24ns/px for everything, including copy;
         // for 2048² pixels, and thickness = 75
         LOGGER.info("${(t1 - t0).toFloat() / (w * h)}ns/px")
-        // writeImageFloat(w, h, "$name-2.png", false, 0, c0, c1, 0, image)
-        writeImageFloatWithOffsetAndStride(
-            wr, hr, thickness * (w + 1), w,
-            name, false, 0, c0, c1, 0, image
-        )
+        val cm = LinearColorMap(0, minColor, maxColor)
+        writeImageFloatWithOffsetAndStride(wr, hr, thickness * (w + 1), w, name, false, cm, image)
     }
-
 
 }

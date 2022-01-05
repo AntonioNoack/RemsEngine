@@ -18,6 +18,10 @@ object OS {// the os is important for some things, e.g. the allowed file names, 
     // and idk about performance
     var isAndroid = isLinux
 
+    var isWeb = false
+
+    val supportsNetworkUDP get() = !isWeb
+
     val home = getReference(System.getProperty("user.home"))
     val downloads = getReference(home, "Downloads")
     val desktop = getReference(home, "Desktop")

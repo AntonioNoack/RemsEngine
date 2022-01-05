@@ -2,6 +2,7 @@ package me.anno.io.zip
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
+import me.anno.config.DefaultConfig
 import me.anno.image.ImageReader
 import me.anno.image.gimp.GimpReader
 import me.anno.io.files.FileReference
@@ -22,8 +23,6 @@ import me.anno.objects.documents.pdf.PDFCache
 import org.apache.logging.log4j.LogManager
 
 object ZipCache : CacheSection("ZipCache") {
-
-    // private val LOGGER = LogManager.getLogger(ZipCache::class)
 
     // done cache the whole content? if less than a certain file size
     // done cache the whole hierarchy [? only less than a certain depth level - not done]
@@ -102,7 +101,7 @@ object ZipCache : CacheSection("ZipCache") {
         return getFileEntry(file, false, timeout, async) { file1, _ ->
             val signature = Signature.findName(file1)
             val ext = file1.lcExtension
-            if (signature == "json" && ext == "json") nullCacheData
+            if (signature == "json" && ext == "json") null
             else {
                 val reader = readerBySignature[signature] ?: readerBySignature[ext] ?: readerByFileExtension[ext]
                 // LOGGER.info("Reading $file1 with $reader")
@@ -121,13 +120,11 @@ object ZipCache : CacheSection("ZipCache") {
         return parent to path
     }
 
-    val timeout = 60_000L
+    val timeout = DefaultConfig["zipCache.timeoutMillis", 60_000L]
 
     // opening a packed stream again would be really expensive for large packages
-    // todo is there a better strategy than this?? maybe index a few on every go to load something
-    val sizeLimit = 20_000_000L
-
-    val nullCacheData = CacheData(null)
+    // is there a better strategy than this?? maybe index a few on every go to load something
+    val sizeLimit = DefaultConfig["zipCache.autoLoadLimit", 20_000_000L]
 
     private val LOGGER = LogManager.getLogger(ZipCache::class)
 

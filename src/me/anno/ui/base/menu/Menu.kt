@@ -3,7 +3,6 @@ package me.anno.ui.base.menu
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.Window
-import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.Panel
@@ -28,6 +27,9 @@ import kotlin.math.roundToInt
 
 object Menu {
 
+    var paddingX = 10
+    var paddingY = 10
+
     const val menuSeparator = "-----"
     val menuSeparator1 = MenuOption(NameDesc(menuSeparator, "", "")) {}
 
@@ -36,18 +38,15 @@ object Menu {
     }
 
     fun ask(windowStack: WindowStack, question: NameDesc, onYes: () -> Unit) {
-        val window = windowStack.firstElement()
-        openMenu(
-            windowStack, window.mouseX, window.mouseY, question, listOf(
-                MenuOption(NameDesc("Yes", "", "ui.yes"), onYes),
-                MenuOption(NameDesc("No", "", "ui.no")) {}
-            ))
+        openMenu(windowStack, question, listOf(
+            MenuOption(NameDesc("Yes", "", "ui.yes"), onYes),
+            MenuOption(NameDesc("No", "", "ui.no")) {}
+        ))
     }
 
     fun ask(windowStack: WindowStack, question: NameDesc, onYes: () -> Unit, onNo: () -> Unit) {
-        val window = windowStack.firstElement()
         openMenu(
-            windowStack, window.mouseX, window.mouseY, question, listOf(
+            windowStack, question, listOf(
                 MenuOption(NameDesc("Yes", "", "ui.yes"), onYes),
                 MenuOption(NameDesc("No", "", "ui.no"), onNo)
             )
@@ -62,12 +61,7 @@ object Menu {
         getColor: (String) -> Int,
         callback: (String) -> Unit
     ) {
-        val window = windowStack.firstElement()
-        askName(
-            windowStack,
-            window.mouseX.toInt(), window.mouseY.toInt(),
-            title, value0, actionName, getColor, callback
-        )
+        askName(windowStack, title, value0, actionName, getColor, callback)
     }
 
     fun askName(
@@ -159,8 +153,16 @@ object Menu {
 
     }
 
-    fun openMenuByPanels(windowStack: WindowStack, title: NameDesc, panels: List<Panel>) =
-        openMenuByPanels(windowStack, Input.mouseX.toInt() - 10, Input.mouseY.toInt() - 10, title, panels)
+    fun openMenuByPanels(windowStack: WindowStack, title: NameDesc, panels: List<Panel>): Window? {
+        GFX.updateMousePosition()
+        windowStack.updateMousePosition()
+        return openMenuByPanels(
+            windowStack,
+            windowStack.mouseX.toInt() - paddingX,
+            windowStack.mouseY.toInt() - paddingY,
+            title, panels
+        )
+    }
 
     fun openMenuByPanels(
         windowStack: WindowStack,
@@ -281,17 +283,16 @@ object Menu {
         x: Float,
         y: Float,
         title: NameDesc,
-        options: List<ComplexMenuOption>,
-        delta: Int = 10
-    ) =
-        openMenuComplex(windowStack, x.roundToInt() - delta, y.roundToInt() - delta, title, options)
+        options: List<ComplexMenuOption>
+    ) = openMenuComplex(windowStack, x.roundToInt(), y.roundToInt(), title, options)
 
     fun openMenu(windowStack: WindowStack, options: List<MenuOption>) =
         openMenu(windowStack, NameDesc(), options)
 
     fun openMenu(windowStack: WindowStack, title: NameDesc, options: List<MenuOption>): Window? {
-        val window = windowStack.firstElement()
-        return openMenu(windowStack, window.mouseX, window.mouseY, title, options)
+        GFX.updateMousePosition() // just in case; this method should only be called from the GFX thread
+        windowStack.updateMousePosition()
+        return openMenu(windowStack, windowStack.mouseX - paddingX, windowStack.mouseY - paddingY, title, options)
     }
 
     fun openMenu(

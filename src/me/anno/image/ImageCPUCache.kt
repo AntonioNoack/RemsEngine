@@ -69,7 +69,7 @@ object ImageCPUCache : CacheSection("BufferedImages") {
     fun getImage(file0: FileReference, timeout: Long, async: Boolean): Image? {
         if (file0 is ImageReadable) return file0.readImage()
         val data = getFileEntry(file0, false, timeout, async) { file, _ ->
-            if (file !is SignatureFile && file.length() < 1e7) { // < 10MB -> read directly
+            if (file !is SignatureFile && file.length() < 10_000_000L) { // < 10MB -> read directly
                 val bytes = file.readBytes()
                 val signature = Signature.findName(bytes)
                 if (shouldUseFFMPEG(signature, file)) {

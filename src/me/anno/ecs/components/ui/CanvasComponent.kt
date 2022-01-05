@@ -154,7 +154,7 @@ class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
         val rv = RenderView.currentInstance
         val transform = Matrix4f(Matrix4d(RenderView.cameraMatrix).mul(entity!!.transform.globalTransform))
             .invert() // I believe this should be correct: screen space = camera transform * world transform * world pos
-        windowStack.update(transform, rv.x, rv.y, rv.w, rv.h, 0, 0, width, height)
+        windowStack.updateTransform(transform, rv.x, rv.y, rv.w, rv.h, 0, 0, width, height)
         useFrame(width, height, true, fb) {
             Frame.bind()
             glClearColor(0f, 0f, 0f, 1f)

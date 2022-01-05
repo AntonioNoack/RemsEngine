@@ -14,7 +14,6 @@ import org.apache.logging.log4j.LogManager
 import java.io.FileNotFoundException
 import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.math.max
 
 open class CacheSection(val name: String) : Comparable<CacheSection> {
 
@@ -100,10 +99,30 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
      * get the value, no matter whether it actually exists
      * useful for LODs, if others work as well, just are not as good
      * */
-    fun getEntryWithoutGenerator(key: Any): ICacheData? {
-        val value = synchronized(cache) { cache[key] } ?: return null
-        value.lastUsed = gameTime
-        return value.data
+    fun getEntryWithoutGenerator(key: Any, delta: Long = 1L): ICacheData? {
+        val entry = synchronized(cache) { cache[key] } ?: return null
+        if (delta > 0L) entry.update(delta)
+        return entry.data
+    }
+
+    /**
+     * get the value, no matter whether it actually exists
+     * useful for LODs, if others work as well, just are not as good
+     * */
+    fun hasEntry(key: Any, delta: Long = 1L): Boolean {
+        val entry = synchronized(cache) { cache[key] } ?: return false
+        if (delta > 0L) entry.update(delta)
+        return entry.hasValue
+    }
+
+    /**
+     * get the value, no matter whether it actually exists
+     * useful for LODs, if others work as well, just are not as good
+     * */
+    fun hasFileEntry(key: FileReference, delta: Long = 1L): Boolean {
+        val entry = synchronized(dualCache) { dualCache[key, key.lastModified] } ?: return false
+        if (delta > 0L) entry.update(delta)
+        return entry.hasValue
     }
 
     fun free(key: Any) {
@@ -225,7 +244,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
 
         val needsGenerator = entry.needsGenerator
-        entry.lastUsed = gameTime
+        entry.update(timeout)
 
         if (needsGenerator) {
             entry.hasGenerator = true
@@ -271,7 +290,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
 
         val needsGenerator = entry.needsGenerator
-        entry.lastUsed = gameTime
+        entry.update(timeout)
 
         if (needsGenerator) {
             entry.hasGenerator = true
@@ -339,7 +358,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
 
         val needsGenerator = entry.needsGenerator
-        entry.lastUsed = gameTime
+        entry.update(timeout)
 
         val async = queue != null
         if (needsGenerator) {
@@ -388,7 +407,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         synchronized(cache) {
             if (cache.isNotEmpty()) cache.entries.removeIf { (_, entry) ->
                 val time = gameTime
-                val remove = time - entry.lastUsed > max(entry.timeout, minTimeout) * millisToNanos
+                val remove = time > entry.timeoutTime
                 if (remove) try {
                     entry.destroy()
                 } catch (e: Exception) {
@@ -400,7 +419,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         synchronized(dualCache) {
             if (dualCache.isNotEmpty()) dualCache.removeIf { _, _, entry ->
                 val time = gameTime
-                val remove = time - entry.lastUsed > max(entry.timeout, minTimeout) * millisToNanos
+                val remove = time > entry.timeoutTime
                 if (remove) try {
                     entry.destroy()
                 } catch (e: Exception) {

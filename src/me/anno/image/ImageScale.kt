@@ -1,5 +1,7 @@
 package me.anno.image
 
+import kotlin.math.max
+
 object ImageScale {
 
     /**
@@ -7,9 +9,9 @@ object ImageScale {
      * */
     fun scaleMin(imageWidth: Int, imageHeight: Int, minSize: Int): Pair<Int, Int> {
         return if (imageWidth < imageHeight) {
-            Pair(minSize, (imageHeight * minSize + imageWidth / 2) / imageWidth)
+            Pair(minSize, max(1, (imageHeight * minSize + imageWidth / 2) / imageWidth))
         } else {
-            Pair((imageWidth * minSize + imageHeight / 2) / imageHeight, minSize)
+            Pair(max(1, (imageWidth * minSize + imageHeight / 2) / imageHeight), minSize)
         }
     }
 
@@ -19,10 +21,10 @@ object ImageScale {
     fun scaleMin(imageWidth: Int, imageHeight: Int, minWidth: Int, minHeight: Int): Pair<Int, Int> {
         return if (imageWidth * minHeight < imageHeight * minWidth) {
             // width is the limit
-            Pair(minWidth, (imageHeight * minWidth + imageWidth / 2) / imageWidth)
+            Pair(minWidth, max(1, (imageHeight * minWidth + imageWidth / 2) / imageWidth))
         } else {
             // height is the limit
-            Pair((imageWidth * minHeight + imageHeight / 2) / imageHeight, minHeight)
+            Pair(max(1, (imageWidth * minHeight + imageHeight / 2) / imageHeight), minHeight)
         }
     }
 
@@ -31,9 +33,9 @@ object ImageScale {
      * */
     fun scaleMax(imageWidth: Int, imageHeight: Int, maxSize: Int): Pair<Int, Int> {
         return if (imageWidth > imageHeight) {
-            Pair(maxSize, (imageHeight * maxSize + imageWidth / 2) / imageWidth)
+            Pair(maxSize, max(1, (imageHeight * maxSize + imageWidth / 2) / imageWidth))
         } else {
-            Pair((imageWidth * maxSize + imageHeight / 2) / imageHeight, maxSize)
+            Pair(max(1, (imageWidth * maxSize + imageHeight / 2) / imageHeight), maxSize)
         }
     }
 
@@ -43,10 +45,10 @@ object ImageScale {
     fun scaleMax(imageWidth: Int, imageHeight: Int, maxWidth: Int, maxHeight: Int): Pair<Int, Int> {
         return if (imageWidth * maxHeight > imageHeight * maxWidth) {
             // width is the limit
-            Pair(maxWidth, (imageHeight * maxWidth + imageWidth / 2) / imageWidth)
+            Pair(maxWidth, max(1, (imageHeight * maxWidth + imageWidth / 2) / imageWidth))
         } else {
             // height is the limit
-            Pair((imageWidth * maxHeight + imageHeight / 2) / imageHeight, maxHeight)
+            Pair(max(1, (imageWidth * maxHeight + imageHeight / 2) / imageHeight), maxHeight)
         }
     }
 

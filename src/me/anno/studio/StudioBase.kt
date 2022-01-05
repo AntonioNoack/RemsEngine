@@ -193,7 +193,7 @@ abstract class StudioBase(
         // when the frame is minimized, nothing needs to be drawn
         if (!isMinimized) {
 
-            windowStack.update()
+            windowStack.updateTransform(w, h)
             didSomething = windowStack.draw(w, h, didSomething, shallDraw(didSomething), null)
 
             Input.framesSinceLastInteraction++
