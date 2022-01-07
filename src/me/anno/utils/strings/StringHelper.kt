@@ -26,6 +26,7 @@ object StringHelper {
     fun String.splitCamelCase(): String {
         return replace('_', ' ') // snake case replacements
             .replace(splitCamelCaseRegex, " ") // camelCase -> camel Case
+            .replace("  ", " ")
     }
 
     fun String.camelCaseToTitle(): String {

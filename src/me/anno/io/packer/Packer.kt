@@ -16,6 +16,17 @@ import kotlin.math.abs
 
 object Packer {
 
+    // todo remove unnecessary classes, if possible
+    // todo e.g. we only need a few image formats,
+    // todo we don't need rar etc (except we export an editor), ...
+
+    // todo the best formats:
+    // images: png, jpg
+    // audio: mp3
+    // video: mp4
+    // documents: svg/pdf?
+
+
     private val LOGGER = LogManager.getLogger(Packer::class)
 
     // todo apply this to our engine

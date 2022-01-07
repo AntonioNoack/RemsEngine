@@ -4,7 +4,7 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
 import me.anno.image.ImageReader
-import me.anno.image.gimp.GimpReader
+import me.anno.image.gimp.GimpImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
 import me.anno.io.unity.UnityReader
@@ -86,7 +86,7 @@ object ZipCache : CacheSection("ZipCache") {
         // todo all image formats
         val imageFormats = listOf("png", "jpg", "bmp", "pds", "hdr", "webp", "tga", "ico", "dds", "gif", "exr")
         register(imageFormats, ImageReader::readAsFolder)
-        register("gimp", GimpReader::readAsFolder)
+        register("gimp", GimpImage::readAsFolder)
         register("media", ImageReader::readAsFolder) // correct for webp, not for videos
         // todo yaml for unity files
         registerFileExtension("prefab") { UnityReader.readAsFolder(it) as InnerFolder }

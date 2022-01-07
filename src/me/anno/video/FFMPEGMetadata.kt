@@ -2,7 +2,7 @@ package me.anno.video
 
 import me.anno.cache.CacheSection
 import me.anno.cache.data.ICacheData
-import me.anno.image.gimp.GimpReader
+import me.anno.image.gimp.GimpImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.Signature
@@ -48,7 +48,7 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
         if (isGimpFile()) {
 
             // Gimp files are a special case, which is not covered by FFMPEG
-            val (w, h) = file.inputStream().use { GimpReader.findSize(it) }
+            val (w, h) = file.inputStream().use { GimpImage.findSize(it) }
             hasVideo = true
             videoWidth = w
             videoHeight = h

@@ -4,7 +4,6 @@ import me.anno.cache.data.ICacheData
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.check
-import me.anno.gpu.GFX.getName
 import me.anno.gpu.GFX.isGFXThread
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.OpenGL
@@ -242,7 +241,9 @@ open class Texture2D(
         val requiredBudget = textureBudgetUsed + w * h
         if ((requiredBudget > textureBudgetTotal && !loadTexturesSync.peek()) || !isGFXThread()) {
             GFX.addGPUTask(1000) {
-                image.createTexture(this, checkRedundancy)
+                if (!isDestroyed) {
+                    image.createTexture(this, checkRedundancy)
+                } else LOGGER.warn("Image was already destroyed")
             }
         } else {
             textureBudgetUsed += requiredBudget

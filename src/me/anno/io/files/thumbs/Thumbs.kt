@@ -51,6 +51,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.*
 import me.anno.image.ImageScale.scaleMax
+import me.anno.image.hdr.HDRImage
 import me.anno.image.tar.TGAImage
 import me.anno.io.ISaveable
 import me.anno.io.config.ConfigBasics

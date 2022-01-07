@@ -13,10 +13,10 @@ import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
-import me.anno.image.HDRImage
 import me.anno.image.Image
 import me.anno.image.ImageCPUCache
 import me.anno.image.ImageReadable
+import me.anno.image.hdr.HDRImage
 import me.anno.image.raw.BIImage
 import me.anno.image.tar.TGAImage
 import me.anno.io.files.FileReference
@@ -110,6 +110,7 @@ class ImageData(file: FileReference) : ICacheData {
     }
 
     fun load(file: FileReference) {
+        if (texture.isCreated) texture.reset() // shouldn't really happen, I think
         if (file is ImageReadable) {
             texture.create("ImageData", file.readImage(), true)
         } else {

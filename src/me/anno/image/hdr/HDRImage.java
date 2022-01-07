@@ -1,6 +1,7 @@
-package me.anno.image;
+package me.anno.image.hdr;
 
 import me.anno.gpu.texture.Texture2D;
+import me.anno.image.Image;
 import me.anno.image.raw.IntImage;
 import me.anno.io.files.FileReference;
 

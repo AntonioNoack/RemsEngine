@@ -3,10 +3,8 @@ package me.anno.image.raw
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
-import me.anno.image.ComponentImage
-import me.anno.image.HDRImage
+import me.anno.image.hdr.HDRImage
 import me.anno.image.Image
-import me.anno.image.tar.TGAImage
 
 open class GrayscaleImage(
     val src: Image

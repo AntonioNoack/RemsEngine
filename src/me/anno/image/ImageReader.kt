@@ -1,5 +1,7 @@
 package me.anno.image
 
+import me.anno.image.raw.BGRAImage
+import me.anno.image.raw.ComponentImage
 import me.anno.image.raw.GrayscaleImage
 import me.anno.image.raw.OpaqueImage
 import me.anno.io.files.FileReference
@@ -24,6 +26,9 @@ object ImageReader {
         if (hasG) createComponent(image, folder, "g.png", "g", false)
         if (hasB) createComponent(image, folder, "b.png", "b", false)
         if (hasA) createComponent(image, folder, "a.png", "a", false)
+
+        // bgra
+        folder.createImageChild("bgra.png", BGRAImage(image))
 
         // inverted components
         createComponent(image, folder, "1-r.png", "r", true)

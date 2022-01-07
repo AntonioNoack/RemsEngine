@@ -20,7 +20,7 @@ class Keyframe<V>(
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeInt("mode", interpolation.code)
+        writer.writeInt("mode", interpolation.id)
     }
 
     override fun readInt(name: String, value: Int) {
