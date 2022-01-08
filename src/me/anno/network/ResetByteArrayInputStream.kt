@@ -4,12 +4,29 @@ import java.io.InputStream
 import kotlin.math.max
 import kotlin.math.min
 
-class ResetByteArrayInputStream(val buffer: ByteArray) : InputStream() {
+class ResetByteArrayInputStream(var buffer: ByteArray) : InputStream() {
 
-    private var pos = 0
+    constructor(size: Int) : this(ByteArray(size))
+
+    fun ensureCapacity(size: Int) {
+        if (buffer.size < size) {
+            buffer = ByteArray(size)
+        }
+    }
+
+    override fun reset() {
+        size = 0
+    }
+
+    override fun skip(delta: Long): Long {
+        size += delta.toInt()
+        return delta
+    }
+
+    private var size = 0
     override fun read(): Int {
-        return if (pos < buffer.size) {
-            buffer[pos].toInt() and 255
+        return if (size < buffer.size) {
+            buffer[size++].toInt() and 255
         } else -1
     }
 
@@ -18,17 +35,17 @@ class ResetByteArrayInputStream(val buffer: ByteArray) : InputStream() {
     }
 
     override fun read(dst: ByteArray, startIndex: Int, length: Int): Int {
-        val pos = pos
+        val pos = size
         val size = max(min(length, buffer.size - pos), 0)
         return if (length > 0 || size > 0) {
             System.arraycopy(buffer, pos, dst, startIndex, size)
-            this.pos += size
+            this.size += size
             size
         } else -1
     }
 
     override fun available(): Int {
-        return buffer.size - pos
+        return buffer.size - size
     }
 
 }

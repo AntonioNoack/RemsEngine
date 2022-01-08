@@ -1,4 +1,4 @@
-package me.anno.network
+package me.anno.network.test
 
 import java.net.DatagramPacket
 import java.net.DatagramSocket
@@ -6,7 +6,7 @@ import java.net.InetAddress
 import kotlin.concurrent.thread
 
 // https://stackoverflow.com/questions/1098897/what-is-the-largest-safe-udp-packet-size-on-the-internet
-val universalUDPPacketSizeLimit = 512
+// val universalUDPPacketSizeLimit = 512
 
 val port = 12345
 val limit = 256

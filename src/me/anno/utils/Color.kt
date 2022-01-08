@@ -48,6 +48,8 @@ object Color {
     fun rgba(r: Float, g: Float, b: Float, a: Float): Int =
         rgba((r * 255).roundToInt(), (g * 255).roundToInt(), (b * 255).roundToInt(), (a * 255).roundToInt())
 
+    fun argb(a: Int, r: Int, g: Int, b: Int) = rgba(r, g, b, a)
+
     fun normARGB(v: Vector3f): Int {
         val r = v.x
         val g = v.y
