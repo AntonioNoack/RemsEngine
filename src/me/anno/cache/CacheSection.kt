@@ -407,7 +407,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         synchronized(cache) {
             if (cache.isNotEmpty()) cache.entries.removeIf { (_, entry) ->
                 val time = gameTime
-                val remove = time > entry.timeoutTime
+                val remove = time > entry.timeoutNanoTime
                 if (remove) try {
                     entry.destroy()
                 } catch (e: Exception) {
@@ -419,7 +419,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         synchronized(dualCache) {
             if (dualCache.isNotEmpty()) dualCache.removeIf { _, _, entry ->
                 val time = gameTime
-                val remove = time > entry.timeoutTime
+                val remove = time > entry.timeoutNanoTime
                 if (remove) try {
                     entry.destroy()
                 } catch (e: Exception) {
@@ -437,8 +437,8 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     companion object {
 
         private val caches = ConcurrentSkipListSet<CacheSection>()
-        private const val millisToNanos = 1_000_000
         private const val minTimeout = 1L
+        const val millisToNanos = 1_000_000
 
         fun updateAll() {
             for (cache in caches) cache.update()

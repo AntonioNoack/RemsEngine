@@ -1,6 +1,7 @@
 package me.anno.engine.ui.render
 
 import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.Variable
 
 object ECSShaderLib {
@@ -52,7 +53,7 @@ object ECSShaderLib {
                     "   finalNormal = normalize(coords);\n" +
                     "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
                     "   finalPosition *= 1e5;\n" +
-                    "}", listOf(Variable("vec3", "finalNormal")), "" +
+                    "}", listOf(Variable(GLSLType.V3F, "finalNormal")), "" +
                     "void main(){\n" +
                     // tricking the detection for variable definitions,
                     // because it doesn't check the varyings, it seems

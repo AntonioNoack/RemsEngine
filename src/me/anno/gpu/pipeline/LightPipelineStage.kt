@@ -19,6 +19,7 @@ import me.anno.gpu.pipeline.M4x3Delta.m4x3delta
 import me.anno.gpu.pipeline.M4x3Delta.m4x3x
 import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBatchSize
 import me.anno.gpu.pipeline.PipelineStage.Companion.setupLocalTransform
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.*
 import me.anno.gpu.texture.Clamping
@@ -92,8 +93,8 @@ class LightPipelineStage(
                 builder.addVertex(
                     ShaderStage(
                         "v", listOf(
-                            Variable("vec2", "attr0", VariableMode.ATTR),
-                            Variable("vec2", "uv", VariableMode.OUT)
+                            Variable(GLSLType.V2F, "attr0", VariableMode.ATTR),
+                            Variable(GLSLType.V2F, "uv", VariableMode.OUT)
                         ), "gl_Position = vec4(attr0*2.0-1.0,0.5,1.0);\n" +
                                 "uv = attr0;\n"
                     )
@@ -101,15 +102,15 @@ class LightPipelineStage(
 
                 val fragment = ShaderStage(
                     "f", listOf(
-                        Variable("vec3", "finalColor"),
-                        Variable("vec3", "finalPosition"),
-                        Variable("float", "finalOcclusion"),
-                        Variable("vec3", "finalEmissive"),
-                        Variable("bool", "applyToneMapping"),
-                        Variable("sampler2D", "finalLight"),
-                        Variable("sampler2D", "ambientOcclusion"),
-                        Variable("vec3", "ambientLight"),
-                        Variable("vec4", "color", VariableMode.OUT)
+                        Variable(GLSLType.V3F, "finalColor"),
+                        Variable(GLSLType.V3F, "finalPosition"),
+                        Variable(GLSLType.V1F, "finalOcclusion"),
+                        Variable(GLSLType.V3F, "finalEmissive"),
+                        Variable(GLSLType.BOOL, "applyToneMapping"),
+                        Variable(GLSLType.S2D, "finalLight"),
+                        Variable(GLSLType.S2D, "ambientOcclusion"),
+                        Variable(GLSLType.V3F, "ambientLight"),
+                        Variable(GLSLType.V4F, "color", VariableMode.OUT)
                     ), "" +
                             "   vec3 color3;\n" +
                             "   if(length(finalPosition) < 1e34){\n" +
@@ -125,7 +126,7 @@ class LightPipelineStage(
                 // find deferred layers, which exist, and appear in the shader
                 val deferredCode = StringBuilder()
                 val deferredInputs = ArrayList<Variable>()
-                deferredInputs += Variable("vec2", "uv")
+                deferredInputs += Variable(GLSLType.V2F, "uv")
                 val imported = HashSet<String>()
                 for (layer in settingsV2.layers) {
                     // if this layer is present,
@@ -135,7 +136,7 @@ class LightPipelineStage(
                         layer.appendMapping(deferredCode, "Tmp", "uv", imported)
                     }
                 }
-                deferredInputs += imported.map { Variable("sampler2D", it, VariableMode.IN) }
+                deferredInputs += imported.map { Variable(GLSLType.S2D, it, VariableMode.IN) }
                 builder.addFragment(ShaderStage("deferred", deferredInputs, deferredCode.toString()))
                 builder.addFragment(fragment)
                 val shader = builder.create()
@@ -166,22 +167,22 @@ class LightPipelineStage(
                     if (isInstanced) {
                         ShaderStage(
                             "v", listOf(
-                                Variable("vec3", "coords", VariableMode.ATTR),
-                                Variable("vec4", "instanceTrans0", VariableMode.ATTR),
-                                Variable("vec4", "instanceTrans1", VariableMode.ATTR),
-                                Variable("vec4", "instanceTrans2", VariableMode.ATTR),
-                                Variable("vec4", "invInsTrans0", VariableMode.ATTR),
-                                Variable("vec4", "invInsTrans1", VariableMode.ATTR),
-                                Variable("vec4", "invInsTrans2", VariableMode.ATTR),
-                                Variable("vec4", "lightData0", VariableMode.ATTR),
-                                Variable("vec4", "lightData1", VariableMode.ATTR),
-                                Variable("vec4", "shadowData", VariableMode.ATTR),
-                                Variable("mat4", "transform", VariableMode.IN),
-                                Variable("vec4", "data0", VariableMode.OUT),
-                                Variable("vec4", "data1", VariableMode.OUT),
-                                Variable("vec4", "data2", VariableMode.OUT),
-                                Variable("mat4x3", "WStoLightSpace", VariableMode.OUT),
-                                Variable("vec3", "uvw", VariableMode.OUT)
+                                Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+                                Variable(GLSLType.V4F, "instanceTrans0", VariableMode.ATTR),
+                                Variable(GLSLType.V4F, "instanceTrans1", VariableMode.ATTR),
+                                Variable(GLSLType.V4F, "instanceTrans2", VariableMode.ATTR),
+                                Variable(GLSLType.V4F, "invInsTrans0", VariableMode.ATTR),
+                                Variable(GLSLType.V4F, "invInsTrans1", VariableMode.ATTR),
+                                Variable(GLSLType.V4F, "invInsTrans2", VariableMode.ATTR),
+                                Variable(GLSLType.V4F, "lightData0", VariableMode.ATTR),
+                                Variable(GLSLType.V4F, "lightData1", VariableMode.ATTR),
+                                Variable(GLSLType.V4F, "shadowData", VariableMode.ATTR),
+                                Variable(GLSLType.M4x4, "transform", VariableMode.IN),
+                                Variable(GLSLType.V4F, "data0", VariableMode.OUT),
+                                Variable(GLSLType.V4F, "data1", VariableMode.OUT),
+                                Variable(GLSLType.V4F, "data2", VariableMode.OUT),
+                                Variable(GLSLType.M4x3, "WStoLightSpace", VariableMode.OUT),
+                                Variable(GLSLType.V3F, "uvw", VariableMode.OUT)
                             ), "" +
                                     "data0 = lightData0;\n" +
                                     "data1 = lightData1;\n" +
@@ -199,11 +200,11 @@ class LightPipelineStage(
                     } else {
                         ShaderStage(
                             "v", listOf(
-                                Variable("vec3", "coords", VariableMode.ATTR),
-                                Variable("mat4", "transform", VariableMode.IN),
-                                Variable("mat4x3", "localTransform", VariableMode.IN),
-                                Variable("float", "cutoff", VariableMode.IN),
-                                Variable("vec3", "uvw", VariableMode.OUT)
+                                Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+                                Variable(GLSLType.M4x4, "transform", VariableMode.IN),
+                                Variable(GLSLType.M4x3, "localTransform", VariableMode.IN),
+                                Variable(GLSLType.V1F, "cutoff", VariableMode.IN),
+                                Variable(GLSLType.V3F, "uvw", VariableMode.OUT)
                             ), "" +
                                     // cutoff = 0 -> scale onto whole screen, has effect everywhere
                                     "if(${type == LightType.DIRECTIONAL} && cutoff <= 0.0){\n" +
@@ -218,8 +219,8 @@ class LightPipelineStage(
                 builder.addFragment(
                     ShaderStage(
                         "uv", listOf(
-                            Variable("vec3", "uvw", VariableMode.IN),
-                            Variable("vec2", "uv", VariableMode.OUT)
+                            Variable(GLSLType.V3F, "uvw", VariableMode.IN),
+                            Variable(GLSLType.V2F, "uv", VariableMode.OUT)
                         ), "uv = uvw.xy/uvw.z*.5+.5;\n"
                     )
                 )
@@ -232,24 +233,24 @@ class LightPipelineStage(
                 }
                 val fragment = ShaderStage(
                     "f", listOf(
-                        Variable("vec4", "data0"),
-                        Variable("vec4", "data1"),
-                        Variable("vec4", "data2"), // only if with shadows
+                        Variable(GLSLType.V4F, "data0"),
+                        Variable(GLSLType.V4F, "data1"),
+                        Variable(GLSLType.V4F, "data2"), // only if with shadows
                         // light maps for shadows
                         // - spot lights, directional lights
-                        Variable("sampler2D", "shadowMapPlanar", Renderers.MAX_PLANAR_LIGHTS),
+                        Variable(GLSLType.S2D, "shadowMapPlanar", Renderers.MAX_PLANAR_LIGHTS),
                         // - point lights
-                        Variable("samplerCube", "shadowMapCubic", 1),
-                        // Variable("vec3", "finalColor"), // not really required
-                        Variable("vec3", "finalPosition"),
-                        Variable("vec3", "finalNormal"),
-                        // Variable("float", "finalOcclusion"), post-process, including ambient
-                        Variable("float", "finalMetallic"),
-                        Variable("float", "finalRoughness"),
-                        Variable("float", "finalSheen"),
-                        Variable("float", "finalTranslucency"),
-                        Variable("mat4x3", "WStoLightSpace"), // invLightMatrices[i]
-                        Variable("vec4", "light", VariableMode.OUT)
+                        Variable(GLSLType.SCube, "shadowMapCubic", 1),
+                        // Variable(GLSLType.V3F, "finalColor"), // not really required
+                        Variable(GLSLType.V3F, "finalPosition"),
+                        Variable(GLSLType.V3F, "finalNormal"),
+                        // Variable(GLSLType.V1F, "finalOcclusion"), post-process, including ambient
+                        Variable(GLSLType.V1F, "finalMetallic"),
+                        Variable(GLSLType.V1F, "finalRoughness"),
+                        Variable(GLSLType.V1F, "finalSheen"),
+                        Variable(GLSLType.V1F, "finalTranslucency"),
+                        Variable(GLSLType.M4x3, "WStoLightSpace"), // invLightMatrices[i]
+                        Variable(GLSLType.V4F, "light", VariableMode.OUT)
                     ), "" +
                             // light calculation including shadows if !instanced
                             "vec3 diffuseLight, specularLight;\n" +
@@ -283,7 +284,7 @@ class LightPipelineStage(
                 // find deferred layers, which exist, and appear in the shader
                 val deferredCode = StringBuilder()
                 val deferredInputs = ArrayList<Variable>()
-                deferredInputs += Variable("vec2", "uv")
+                deferredInputs += Variable(GLSLType.V2F, "uv")
                 val imported = HashSet<String>()
                 for (layer in settingsV2.layers) {
                     // if this layer is present,
@@ -293,7 +294,7 @@ class LightPipelineStage(
                         layer.appendMapping(deferredCode, "Tmp", "uv", imported)
                     }
                 }
-                deferredInputs += imported.map { Variable("sampler2D", it, VariableMode.IN) }
+                deferredInputs += imported.map { Variable(GLSLType.S2D, it, VariableMode.IN) }
                 builder.addFragment(ShaderStage("deferred", deferredInputs, deferredCode.toString()))
                 builder.addFragment(fragment)
                 val shader = builder.create()

@@ -228,7 +228,7 @@ class Video(file: FileReference = InvalidRef, parent: Transform? = null) : Audio
         val closestDistance = min(unmapZ(zRange.first), unmapZ(zRange.second))
 
         // calculate the zoom level based on the distance
-        val pixelZoom = GFX.windowHeight * 1f / (closestDistance * h) // e.g. 0.1 for a window far away
+        val pixelZoom = GFX.viewportHeight * 1f / (closestDistance * h) // e.g. 0.1 for a window far away
         val availableRedundancy = 1f / pixelZoom // 0.1 zoom means that we only need every 10th pixel
 
         return max(1, availableRedundancy.toInt())

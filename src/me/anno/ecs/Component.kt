@@ -17,7 +17,6 @@ import org.joml.Matrix4x3d
 abstract class Component : PrefabSaveable(), Inspectable {
 
     override var isEnabled: Boolean = true
-        get() = super.isEnabled
         set(value) {
             if (field != value) {
                 field = value

@@ -56,7 +56,7 @@ object ShaderLib {
             "   uv = attr0;\n" +
             "}"
 
-    val uvList = listOf(Variable("vec2", "uv"))
+    val uvList = listOf(Variable(GLSLType.V2F, "uv"))
     val simpleVertexShader = "" +
             "attribute vec2 attr0;\n" +
             "uniform vec2 pos, size;\n" +
@@ -300,11 +300,11 @@ object ShaderLib {
             "}"
 
     val y3D = listOf(
-        Variable("vec2", "uv"),
-        Variable("vec3", "uvw"),
-        Variable("vec3", "finalPosition"),
-        Variable("float", "zDistance"),
-        Variable("vec3", "normal")
+        Variable(GLSLType.V2F, "uv"),
+        Variable(GLSLType.V3F, "uvw"),
+        Variable(GLSLType.V3F, "finalPosition"),
+        Variable(GLSLType.V1F, "zDistance"),
+        Variable(GLSLType.V3F, "normal")
     )
 
     val f3D = "" +
@@ -370,7 +370,7 @@ object ShaderLib {
                     "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
                     "   color = attr0.x < 0.5 ? lColor : rColor;\n" +
                     "   uv = mix(uvs.xy, uvs.zw, attr0);\n" +
-                    "}", listOf(Variable("vec2", "uv"), Variable("vec4", "color")), "" +
+                    "}", listOf(Variable(GLSLType.V2F, "uv"), Variable(GLSLType.V4F, "color")), "" +
                     "uniform int code;\n" +
                     "uniform sampler2D tex0,tex1;\n" +
                     yuv2rgb +
@@ -421,7 +421,7 @@ object ShaderLib {
                     "void main(){\n" +
                     "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
                     "   uv = (attr0 - 0.5) * vec2(${Math.PI * 2},${Math.PI});\n" +
-                    "}", listOf(Variable("vec2", "uv")), "" +
+                    "}", listOf(Variable(GLSLType.V2F, "uv")), "" +
                     "uniform samplerCube tex;\n" +
                     "u4 color;\n" +
                     "uniform bool ignoreTexAlpha;\n" +
@@ -444,7 +444,7 @@ object ShaderLib {
         )
 
         copyShader = createShader(
-            "copy", simplestVertexShader, listOf(Variable("vec2", "uv")), "" +
+            "copy", simplestVertexShader, listOf(Variable(GLSLType.V2F, "uv")), "" +
                     "uniform sampler2D tex;\n" +
                     "uniform float am1;\n" +
                     "void main(){\n" +
@@ -464,7 +464,7 @@ object ShaderLib {
                     "   gl_Position = vec4(localPos*2.0-1.0, 0.0, 1.0);\n" +
                     "   position = localPos * windowSize;\n" +
                     "   uv = attr0;\n" +
-                    "}", listOf(Variable("vec2", "uv"), Variable("vec2", "position")), "" +
+                    "}", listOf(Variable(GLSLType.V2F, "uv"), Variable(GLSLType.V2F, "position")), "" +
                     "uniform vec4 textColor, backgroundColor;\n" +
                     "uniform vec2 windowSize;\n" +
                     "uniform sampler2D tex;\n" +
@@ -500,7 +500,7 @@ object ShaderLib {
                     flatNormal +
                     positionPostProcessing +
                     "   vertexId = gl_VertexID;\n" +
-                    "}", y3D + listOf(Variable("int", "vertexId").flat()), "" +
+                    "}", y3D + listOf(Variable(GLSLType.V1I, "vertexId").flat()), "" +
                     noiseFunc +
                     getTextureLib +
                     getColorForceFieldLib +
@@ -592,9 +592,9 @@ object ShaderLib {
                 "}"
 
         val y3DMasked = listOf(
-            Variable("vec3", "uv"),
-            Variable("vec3", "finalPosition"),
-            Variable("float", "zDistance")
+            Variable(GLSLType.V3F, "uv"),
+            Variable(GLSLType.V3F, "finalPosition"),
+            Variable(GLSLType.V1F, "zDistance")
         )
 
         val f3DMasked = "" +
@@ -678,7 +678,7 @@ object ShaderLib {
 
         // somehow becomes dark for large |steps|-values
         shader3DBoxBlur = createShader(
-            "3d-blur", simplestVertexShader, listOf(Variable("vec2", "uv")), "" +
+            "3d-blur", simplestVertexShader, listOf(Variable(GLSLType.V2F, "uv")), "" +
                     "precision highp float;\n" +
                     "uniform sampler2D tex;\n" +
                     "uniform vec2 stepSize;\n" +
@@ -723,15 +723,15 @@ object ShaderLib {
                 "}"
 
         val ySVG = y3D + listOf(
-            Variable("vec4", "color0"),
-            Variable("vec4", "color1"),
-            Variable("vec4", "color2"),
-            Variable("vec4", "color3"),
-            Variable("vec4", "stops"),
-            Variable("vec4", "formula0"),
-            Variable("float", "formula1"),
-            Variable("float", "padding"),
-            Variable("vec2", "localPos2"),
+            Variable(GLSLType.V4F, "color0"),
+            Variable(GLSLType.V4F, "color1"),
+            Variable(GLSLType.V4F, "color2"),
+            Variable(GLSLType.V4F, "color3"),
+            Variable(GLSLType.V4F, "stops"),
+            Variable(GLSLType.V4F, "formula0"),
+            Variable(GLSLType.V1F, "formula1"),
+            Variable(GLSLType.V1F, "padding"),
+            Variable(GLSLType.V2F, "localPos2"),
         )
 
         val fSVG = "" +
@@ -830,7 +830,7 @@ object ShaderLib {
                     "   uv = uvs;\n" +
                     "   normal = normals;\n" +
                     positionPostProcessing +
-                    "}", y3D + listOf(Variable("vec3", "normal")), "" +
+                    "}", y3D + listOf(Variable(GLSLType.V3F, "normal")), "" +
                     "uniform sampler2D tex;\n" +
                     getTextureLib +
                     getColorForceFieldLib +
@@ -884,9 +884,9 @@ object ShaderLib {
                 "}"
 
         val assimpVarying = y3D + listOf(
-            Variable("vec3", "tangent"),
-            // Variable("vec4", "weight"),
-            Variable("vec4", "vertexColor")
+            Variable(GLSLType.V3F, "tangent"),
+            // Variable(GLSLType.V4F, "weight"),
+            Variable(GLSLType.V4F, "vertexColor")
         )
 
         shaderAssimp = createShaderPlus(
@@ -985,7 +985,7 @@ object ShaderLib {
                     "void main(){" +
                     "   gl_Position = transform * vec4(attr0, 1.0);\n" +
                     positionPostProcessing +
-                    "}", listOf(Variable("float", "zDistance")), "" +
+                    "}", listOf(Variable(GLSLType.V1F, "zDistance")), "" +
                     "uniform vec4 color;\n" +
                     "void main(){" +
                     "   gl_FragColor = color;\n" +

@@ -2,6 +2,7 @@ package me.anno.io.zip
 
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabReadable
+import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.image.ImageReadable
 import me.anno.io.files.FileReference

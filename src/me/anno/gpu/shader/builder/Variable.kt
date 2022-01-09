@@ -1,25 +1,26 @@
 package me.anno.gpu.shader.builder
 
 import me.anno.gpu.deferred.DeferredSettingsV2.Companion.glslTypes
+import me.anno.gpu.shader.GLSLType
 import kotlin.math.max
 
 class Variable(
-    val type: String,
+    val type: GLSLType,
     var name: String,
     var arraySize: Int,
     var inOutMode: VariableMode
 ) {
 
-    constructor(type: String, name: String, inOutMode: VariableMode) :
+    constructor(type: GLSLType, name: String, inOutMode: VariableMode) :
             this(type, name, -1, inOutMode)
 
-    constructor(type: String, name: String, arraySize: Int, isIn: Boolean) :
+    constructor(type: GLSLType, name: String, arraySize: Int, isIn: Boolean) :
             this(type, name, arraySize, if (isIn) VariableMode.IN else VariableMode.OUT)
 
-    constructor(type: String, name: String, isIn: Boolean) :
+    constructor(type: GLSLType, name: String, isIn: Boolean) :
             this(type, name, -1, if (isIn) VariableMode.IN else VariableMode.OUT)
 
-    constructor(type: String, name: String, arraySize: Int) :
+    constructor(type: GLSLType, name: String, arraySize: Int) :
             this(type, name, arraySize, VariableMode.IN)
 
     constructor(components: Int, name: String) :
@@ -31,7 +32,7 @@ class Variable(
     constructor(components: Int, name: String, arraySize: Int = -1) :
             this(glslTypes[components - 1], name, arraySize)
 
-    constructor(type: String, name: String) :
+    constructor(type: GLSLType, name: String) :
             this(type, name, -1, VariableMode.IN)
 
     fun flat(): Variable {
@@ -40,24 +41,24 @@ class Variable(
     }
 
     val size = when (type) {
-        "bool" -> 5
-        "int" -> 7
-        "float" -> 10
-        "vec2", "ivec2" -> 20
-        "vec3", "ivec3" -> 30
-        "vec4", "ivec4" -> 40
-        "mat3" -> 90
-        "mat4" -> 160
-        "mat4x3" -> 120
+        GLSLType.BOOL -> 5
+        GLSLType.V1I -> 7
+        GLSLType.V1F -> 10
+        GLSLType.V2I, GLSLType.V2F -> 20
+        GLSLType.V3I, GLSLType.V3F -> 30
+        GLSLType.V4I, GLSLType.V4F -> 40
+        GLSLType.M3x3 -> 90
+        GLSLType.M4x3 -> 120
+        GLSLType.M4x4 -> 160
         else -> 1000
     } * max(1, arraySize)
 
     fun appendGlsl(code: StringBuilder, prefix: String) {
-        if (prefix.startsWith("uniform") && arraySize > 0 && type.startsWith("sampler")) {
+        if (prefix.startsWith("uniform") && arraySize > 0 && type.glslName.startsWith("sampler")) {
             for (index in 0 until arraySize) {
                 code.append(prefix)
                 code.append(' ')
-                code.append(type)
+                code.append(type.glslName)
                 code.append(' ')
                 code.append(name)
                 code.append(index)
@@ -66,7 +67,7 @@ class Variable(
         } else {
             code.append(prefix)
             code.append(' ')
-            code.append(type)
+            code.append(type.glslName)
             code.append(' ')
             code.append(name)
             if (arraySize > 0) {
@@ -90,7 +91,7 @@ class Variable(
     }
 
     override fun toString(): String {
-        return "${inOutMode.glslName} $type $name"
+        return "${inOutMode.glslName} ${type.glslName} $name"
     }
 
     val isAttribute get() = inOutMode == VariableMode.ATTR

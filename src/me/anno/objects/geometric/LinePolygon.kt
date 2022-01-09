@@ -11,6 +11,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.animation.AnimatedProperty
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.Variable
 import me.anno.objects.attractors.EffectColoring
 import me.anno.objects.attractors.EffectMorphing
@@ -300,7 +301,7 @@ class LinePolygon(parent: Transform? = null) : GFXTransform(parent) {
                         "   uv = attr1;\n" +
                         "   uvw = attr0;\n" +
                         "   colX = mix(col0, col1, att.y);\n" +
-                        "}", y3D + Variable("vec4","colX"), "" +
+                        "}", y3D + Variable(GLSLType.V4F,"colX"), "" +
                         ShaderLib.getTextureLib +
                         ShaderLib.getColorForceFieldLib +
                         noiseFunc +

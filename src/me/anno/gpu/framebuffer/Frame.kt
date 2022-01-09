@@ -1,10 +1,12 @@
 package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.offsetX
+import me.anno.gpu.GFX.offsetY
 import me.anno.gpu.OpenGL
 import org.lwjgl.opengl.GL11.glViewport
-import java.lang.IllegalArgumentException
 import kotlin.math.abs
+import kotlin.math.min
 
 object Frame {
 
@@ -42,7 +44,7 @@ object Frame {
 
         GFX.check()
 
-        if (buffer != null && buffer.pointer <= 0) {
+        if (buffer != null && buffer.pointer <= 0 && (!changeSize || w0 < 0 || h0 < 0)) {
             buffer.ensure()
         }
 
@@ -62,7 +64,9 @@ object Frame {
         var ptr = -1
         if (buffer != null) ptr = buffer.pointer
 
-        if (ptr != lastPtr || lastX != x || lastY != y || lastW != w || lastH != h) {
+        if (ptr != lastPtr || lastX != x || lastY != y || lastW != w || lastH != h ||
+            (changeSize && buffer != null && (buffer.w != w || buffer.h != h))
+        ) {
 
             if (buffer != null) {
                 if (changeSize) {
@@ -74,8 +78,11 @@ object Frame {
                 Framebuffer.bindNullDirectly()
             }
 
-            val x1 = x - GFX.deltaX
-            val y1 = y - GFX.deltaY
+            val offsetX = if (buffer is Framebuffer) buffer.offsetX else offsetX
+            val offsetY = if (buffer is Framebuffer) buffer.offsetY else offsetY
+            val x1 = x - offsetX
+            val y1 = y - offsetY
+
 
             var availableWidth = GFX.width
             var availableHeight = GFX.height
@@ -84,13 +91,22 @@ object Frame {
                 availableHeight = buffer.h
             }
 
-            if (w > availableWidth || h > availableHeight){
-                IllegalArgumentException("Viewport cannot be larger than frame! $w > $availableWidth || $h > $availableHeight, change size: $changeSize, frame: $buffer")
-                    .printStackTrace()
+            val y2 = availableHeight - (y1 + h)
+            if (x1 + w > availableWidth || y2 + h > availableHeight) {
+                IllegalArgumentException(
+                    "Viewport cannot be larger than frame! $x1 + $w > $availableWidth || " +
+                            "$y2 + $h > $availableHeight, $x1 < 0 || $y2 < 0, " +
+                            "change size: $changeSize, frame: $buffer, ($x $y) += ($w $h) | - ($offsetX $offsetY), " +
+                            OpenGL.framebuffer.joinToString { (it as? Framebuffer)?.name.toString() } + ", ${buffer.toString()}"
+                ).printStackTrace()
             }
 
             // this is mirrored
-            glViewport(x1, availableHeight - (y1 + h), w, h)
+            glViewport(
+                x1, y2,
+                min(w, availableWidth),
+                min(h, availableHeight)
+            )
 
             lastX = x
             lastY = y
@@ -98,10 +114,10 @@ object Frame {
             lastH = h
             lastPtr = ptr
 
-            GFX.windowX = x
-            GFX.windowY = y
-            GFX.windowWidth = w
-            GFX.windowHeight = h
+            GFX.viewportX = x
+            GFX.viewportY = y
+            GFX.viewportWidth = w
+            GFX.viewportHeight = h
 
         }
 

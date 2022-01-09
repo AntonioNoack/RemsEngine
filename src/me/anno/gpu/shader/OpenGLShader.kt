@@ -17,7 +17,7 @@ import org.lwjgl.opengl.GL21.glUniformMatrix4x3fv
 import java.nio.FloatBuffer
 
 abstract class OpenGLShader(
-    val shaderName: String
+    val name: String
 ) : ICacheData {
 
     companion object {
@@ -195,8 +195,9 @@ abstract class OpenGLShader(
     }
 
     // this function probably could be made more efficient...
+    // by using proper word detection, and not using this in general...
     fun String.replaceShortCuts(disableShorts: Boolean) = if (disableShorts) this else this
-        .replace("\n", " \n ")
+        .replace("\n", "\n ")
         .replace(";", " ; ")
         .replace(" u1i ", " uniform int ")
         .replace(" u2i ", " uniform ivec2 ")
@@ -244,7 +245,7 @@ abstract class OpenGLShader(
             if (safeShaderBinding) use()
             val loc = glGetUniformLocation(program, name)
             if (loc < 0 && name !in ignoredNames && !sourceContainsWord(name)) {
-                LOGGER.warn("Uniform location \"$name\" not found in shader $shaderName")
+                LOGGER.warn("Uniform location \"$name\" not found in shader ${this.name}")
             }
             loc
         }
@@ -257,7 +258,7 @@ abstract class OpenGLShader(
         val loc = glGetAttribLocation(program, name)
         attributeLocations[name] = loc
         if (loc < 0 && name !in ignoredNames) {
-            LOGGER.warn("Attribute location \"$name\" not found in shader $shaderName")
+            LOGGER.warn("Attribute location \"$name\" not found in shader ${this.name}")
         }
         return loc
     }
@@ -265,7 +266,7 @@ abstract class OpenGLShader(
     fun potentiallyUse() {
         if (safeShaderBinding) {
             if (use()) {
-                throw IllegalStateException("Shader $shaderName wasn't bound!")
+                throw IllegalStateException("Shader $name wasn't bound!")
             }
         }
     }

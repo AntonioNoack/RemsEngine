@@ -10,6 +10,7 @@ import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2Start
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderPlus
@@ -33,8 +34,8 @@ object Renderers {
         override fun getPostProcessing(): ShaderStage {
             return ShaderStage(
                 "overdraw", listOf(
-                    Variable("vec3", "finalColor", false),
-                    Variable("float", "finalAlpha", false)
+                    Variable(GLSLType.V3F, "finalColor", false),
+                    Variable(GLSLType.V1F, "finalAlpha", false)
                 ), "" +
                         "finalColor = vec3(0.125);\n" +
                         "finalAlpha = 1.0;\n"
@@ -46,7 +47,7 @@ object Renderers {
         override fun getPostProcessing(): ShaderStage {
             return ShaderStage(
                 "cheap", listOf(
-                    Variable("vec3", "finalColor", false)
+                    Variable(GLSLType.V3F, "finalColor", false)
                 ), "finalColor = vec3(0.5);"
             )
         }
@@ -56,40 +57,40 @@ object Renderers {
         override fun getPostProcessing(): ShaderStage {
             return ShaderStage("pbr", listOf(
                 // rendering
-                Variable("bool", "applyToneMapping"),
+                Variable(GLSLType.BOOL, "applyToneMapping"),
                 // light data
-                Variable("vec3", "ambientLight"),
-                Variable("int", "numberOfLights"),
-                Variable("mat4x3", "invLightMatrices", RenderView.MAX_FORWARD_LIGHTS),
-                Variable("vec4", "lightData0", RenderView.MAX_FORWARD_LIGHTS),
-                Variable("vec4", "lightData1", RenderView.MAX_FORWARD_LIGHTS),
-                Variable("vec4", "shadowData", RenderView.MAX_FORWARD_LIGHTS),
+                Variable(GLSLType.V3F, "ambientLight"),
+                Variable(GLSLType.V1I, "numberOfLights"),
+                Variable(GLSLType.M4x3, "invLightMatrices", RenderView.MAX_FORWARD_LIGHTS),
+                Variable(GLSLType.V4F, "lightData0", RenderView.MAX_FORWARD_LIGHTS),
+                Variable(GLSLType.V4F, "lightData1", RenderView.MAX_FORWARD_LIGHTS),
+                Variable(GLSLType.V4F, "shadowData", RenderView.MAX_FORWARD_LIGHTS),
                 // light maps for shadows
                 // - spot lights, directional lights
-                Variable("sampler2D", "shadowMapPlanar", MAX_PLANAR_LIGHTS),
+                Variable(GLSLType.S2D, "shadowMapPlanar", MAX_PLANAR_LIGHTS),
                 // - point lights
-                Variable("samplerCube", "shadowMapCubic", MAX_CUBEMAP_LIGHTS),
+                Variable(GLSLType.SCube, "shadowMapCubic", MAX_CUBEMAP_LIGHTS),
                 // reflection plane for rivers or perfect mirrors
-                Variable("bool", "hasReflectionPlane"),
-                Variable("sampler2D", "reflectionPlane"),
+                Variable(GLSLType.BOOL, "hasReflectionPlane"),
+                Variable(GLSLType.S2D, "reflectionPlane"),
                 // reflection cubemap or irradiance map
-                Variable("samplerCube", "reflectionMap"),
+                Variable(GLSLType.SCube, "reflectionMap"),
                 // material properties
-                Variable("vec3", "finalEmissive"),
-                Variable("float", "finalMetallic"),
-                Variable("float", "finalRoughness"),
-                Variable("float", "finalOcclusion"),
-                Variable("float", "finalSheen"),
-                // Variable("vec3", "finalSheenNormal"),
-                // Variable("vec4", "finalClearCoat"),
-                // Variable("vec2", "finalClearCoatRoughMetallic"),
+                Variable(GLSLType.V3F, "finalEmissive"),
+                Variable(GLSLType.V1F, "finalMetallic"),
+                Variable(GLSLType.V1F, "finalRoughness"),
+                Variable(GLSLType.V1F, "finalOcclusion"),
+                Variable(GLSLType.V1F, "finalSheen"),
+                // Variable(GLSLType.V3F, "finalSheenNormal"),
+                // Variable(GLSLType.V4F, "finalClearCoat"),
+                // Variable(GLSLType.V2F, "finalClearCoatRoughMetallic"),
                 // if the translucency > 0, the normal map probably should be turned into occlusion ->
                 // no, or at max slightly, because the area around it will illuminate it
-                Variable("float", "finalTranslucency"),
-                Variable("float", "finalAlpha"),
-                Variable("vec3", "finalPosition"),
-                Variable("vec3", "finalNormal"),
-                Variable("vec3", "finalColor", VariableMode.INOUT),
+                Variable(GLSLType.V1F, "finalTranslucency"),
+                Variable(GLSLType.V1F, "finalAlpha"),
+                Variable(GLSLType.V3F, "finalPosition"),
+                Variable(GLSLType.V3F, "finalNormal"),
+                Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT),
             ), "" +
                     // define all light positions, radii, types, and colors
                     // use the lights to illuminate the model
@@ -165,9 +166,9 @@ object Renderers {
         override fun getPostProcessing(): ShaderStage {
             return ShaderStage(
                 "front-back", listOf(
-                    Variable("vec3", "finalPosition"),
-                    Variable("vec3", "finalNormal"),
-                    Variable("vec3", "finalColor", VariableMode.INOUT),
+                    Variable(GLSLType.V3F, "finalPosition"),
+                    Variable(GLSLType.V3F, "finalNormal"),
+                    Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT),
                 ), "" +
                         "finalColor = dot(finalNormal,finalPosition)>0.0 ? vec3(1,0,0) : vec3(0,.3,1);\n" +
                         "finalColor *= finalNormal.x * 0.4 + 0.6;\n" // some simple shading
@@ -212,17 +213,17 @@ object Renderers {
         override fun getPostProcessing(): ShaderStage {
             return ShaderStage(
                 "previewRenderer", listOf(
-                    Variable("vec4", "lightData", previewLights.size),
-                    Variable("vec3", "finalColor", VariableMode.INOUT),
-                    Variable("float", "finalAlpha", VariableMode.INOUT),
-                    Variable("float", "finalRoughness"),
-                    Variable("float", "finalMetallic"),
-                    Variable("float", "finalSheen"),
-                    Variable("vec3", "finalSheenNormal"),
-                    Variable("vec4", "finalClearCoat"),
-                    Variable("vec2", "finalClearCoatRoughMetallic"),
-                    Variable("vec3", "finalNormal"),
-                    Variable("vec3", "finalEmissive")
+                    Variable(GLSLType.V4F, "lightData", previewLights.size),
+                    Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT),
+                    Variable(GLSLType.V1F, "finalAlpha", VariableMode.INOUT),
+                    Variable(GLSLType.V1F, "finalRoughness"),
+                    Variable(GLSLType.V1F, "finalMetallic"),
+                    Variable(GLSLType.V1F, "finalSheen"),
+                    Variable(GLSLType.V3F, "finalSheenNormal"),
+                    Variable(GLSLType.V4F, "finalClearCoat"),
+                    Variable(GLSLType.V2F, "finalClearCoatRoughMetallic"),
+                    Variable(GLSLType.V3F, "finalNormal"),
+                    Variable(GLSLType.V3F, "finalEmissive")
                 ), "" +
                         // shared pbr data
                         "   vec3 V = normalize(-finalPosition);\n" +
@@ -281,10 +282,10 @@ object Renderers {
         override fun getPostProcessing(): ShaderStage {
             return ShaderStage(
                 "uiRenderer", listOf(
-                    Variable("vec3", "finalColor", VariableMode.INOUT),
-                    Variable("float", "finalAlpha", VariableMode.INOUT),
-                    Variable("vec3", "finalNormal"),
-                    Variable("vec3", "finalEmissive")
+                    Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT),
+                    Variable(GLSLType.V1F, "finalAlpha", VariableMode.INOUT),
+                    Variable(GLSLType.V3F, "finalNormal"),
+                    Variable(GLSLType.V3F, "finalEmissive")
                 ), "" +
                         "finalColor *= 0.6 - 0.4 * normalize(finalNormal).x;\n" +
                         "finalColor += finalEmissive;\n"
@@ -298,11 +299,11 @@ object Renderers {
                 override fun getPostProcessing(): ShaderStage {
                     return ShaderStage(
                         type.name, if (type == DeferredLayerType.COLOR) {
-                            listOf(Variable("vec3", "finalColor", VariableMode.INOUT))
+                            listOf(Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT))
                         } else {
                             listOf(
                                 Variable(DeferredSettingsV2.glslTypes[type.dimensions - 1], type.glslName, true),
-                                Variable("vec3", "finalColor", false)
+                                Variable(GLSLType.V3F, "finalColor", false)
                             )
                         },
                         if (type == DeferredLayerType.COLOR) {

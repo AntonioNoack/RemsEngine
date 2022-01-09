@@ -60,12 +60,12 @@ object ShaderPlus {
     fun createShaderStage(hasTint: Boolean = true): ShaderStage {
         val callName = "applyShaderPlus"
         val variables = listOf(
-            Variable("float", "zDistance"),
-            Variable("vec4", "tint"),
-            Variable("vec3", "finalColor"),
-            Variable("float", "finalAlpha"),
-            Variable("int", "drawMode"),
-            Variable("vec4", "fragColor", false),
+            Variable(GLSLType.V1F, "zDistance"),
+            Variable(GLSLType.V4F, "tint"),
+            Variable(GLSLType.V3F, "finalColor"),
+            Variable(GLSLType.V1F, "finalAlpha"),
+            Variable(GLSLType.V1I, "drawMode"),
+            Variable(GLSLType.V4F, "fragColor", false),
         )
         val code = "" +
                 "switch(drawMode){\n" +

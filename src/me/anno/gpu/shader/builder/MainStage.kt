@@ -1,8 +1,8 @@
 package me.anno.gpu.shader.builder
 
 import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.OpenGLShader
-import me.anno.gpu.shader.Shader
 
 class MainStage {
 
@@ -53,7 +53,9 @@ class MainStage {
             for (variable in stage.parameters) {
                 if (variable.isInput && !variable.isAttribute) {
                     if (variable !in defined) {
-                        if (variable in definedByPrevious) {
+                        if (variable in definedByPrevious &&
+                            !variable.type.glslName.startsWith("sampler")
+                        ) {
                             // we need this variable
                             imported.add(variable)
                             previous?.exported?.add(variable)
@@ -76,10 +78,10 @@ class MainStage {
     }
 
     fun defineUniformSamplerArrayFunctions(code: StringBuilder, uniform: Variable) {
-        val isMoreThanOne = uniform.arraySize > 1 // if there is only one value, we can optimize it
-        val isCubemap = uniform.type.startsWith("samplerCube")
-        val name = uniform.name
 
+        val isMoreThanOne = uniform.arraySize > 1 // if there is only one value, we can optimize it
+        val isCubemap = uniform.type == GLSLType.SCube
+        val name = uniform.name
 
         // base color function
         code.append("vec4 texture_array_")
@@ -223,7 +225,9 @@ class MainStage {
             }
         }
 
-        for (variable in attributes.sortedBy { it.size }) variable.appendGlsl(code, OpenGLShader.attributeName)
+        for (variable in attributes.sortedBy { it.size }) {
+            variable.appendGlsl(code, OpenGLShader.attributeName)
+        }
         if (attributes.isNotEmpty()) code.append('\n')
 
         if (isFragmentStage) {
@@ -240,7 +244,9 @@ class MainStage {
         // define the missing variables
         // sorted by size, so small uniforms get a small location,
         // which in return allows them to be cached
-        for (variable in uniforms.sortedBy { it.size }) variable.appendGlsl(code, "uniform")
+        for (variable in uniforms.sortedBy { it.size }) {
+            variable.appendGlsl(code, "uniform")
+        }
         if (uniforms.isNotEmpty()) code.append('\n')
 
         // define all required functions
@@ -249,7 +255,7 @@ class MainStage {
 
         // for all uniforms, which are sampler arrays, define the appropriate access function
         for (uniform in uniforms) {
-            if (uniform.arraySize > 0 && uniform.type.startsWith("sampler")) {
+            if (uniform.arraySize > 0 && uniform.type.glslName.startsWith("sampler")) {
                 defineUniformSamplerArrayFunctions(code, uniform)
             }
         }
@@ -295,15 +301,7 @@ class MainStage {
                 // use last layer, if defined
                 val lastLayer = stages.lastOrNull()
                 val lastOutputs = lastLayer?.parameters?.filter { it.isOutput } ?: emptyList()
-                val outputSum = lastOutputs.sumOf {
-                    when (it.type) {
-                        "float" -> 1
-                        "vec2" -> 2
-                        "vec3" -> 3
-                        "vec4" -> 4
-                        else -> Int.MAX_VALUE
-                    }
-                }
+                val outputSum = lastOutputs.sumOf { it.type.components }
                 when {
                     outputSum == 0 -> {
                         code.append("glFragColor = vec4(1.0);\n")

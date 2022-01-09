@@ -7,6 +7,7 @@ import me.anno.gpu.shader.ShaderLib.simplestVertexShader
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Clamping
@@ -83,7 +84,7 @@ object OpticalFlow {
     val flowShader = lazy {
         createShader(
             "flow", simplestVertexShader,
-            listOf(Variable("vec2", "uv")), "" +
+            listOf(Variable(GLSLType.V2F, "uv")), "" +
                     "uniform sampler2D tex0, tex1;\n" +
                     "uniform vec2 scale, offset;\n" +
                     "uniform float lambda;\n" +
@@ -126,7 +127,7 @@ object OpticalFlow {
     val blurShader = lazy {
         createShader(
             "blur", "" + simplestVertexShader,
-            listOf(Variable("vec2", "uv")), "" +
+            listOf(Variable(GLSLType.V2F, "uv")), "" +
                     "uniform sampler2D tex;\n" +
                     "uniform vec2 texOffset;\n" +
                     "\n" +
@@ -187,7 +188,7 @@ object OpticalFlow {
     val repositionShader = lazy {
         createShader(
             "reposition", "" +
-                    simplestVertexShader, listOf(Variable("vec2", "uv")), "" +
+                    simplestVertexShader, listOf(Variable(GLSLType.V2F, "uv")), "" +
                     "uniform vec2 amt;\n" +
                     "uniform sampler2D tex0, tex1;\n" +
                     "vec2 get2DOff(sampler2D tex, vec2 coord) {\n" +

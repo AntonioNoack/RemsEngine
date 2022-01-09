@@ -137,7 +137,6 @@ class IndexedStaticBuffer(
         instanceData.ensureBuffer()
         bindInstanced(shader, instanceData)
         GL33.glDrawElementsInstanced(mode, indices.size, elementsType, 0, instanceData.drawLength)
-        // GL33.glDrawArraysInstanced(mode, 0, base.drawLength, drawLength)
         unbind(shader)
     }
 

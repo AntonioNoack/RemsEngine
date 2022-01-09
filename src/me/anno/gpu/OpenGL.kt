@@ -165,7 +165,6 @@ object OpenGL {
 
     val framebuffer = object : SecureStack<IFramebuffer?>(null) {
         override fun onChangeValue(newValue: IFramebuffer?, oldValue: IFramebuffer?) {
-            val index = size - 1
             Frame.bind(newValue, changeSizes[index], xs[index], ys[index], ws[index], hs[index])
         }
     }
@@ -174,16 +173,7 @@ object OpenGL {
         buffer: IFramebuffer?,
         renderer: Renderer,
         render: () -> Unit
-    ) {
-        val index = framebuffer.size
-        xs[index] = 0//xs[index - 1]
-        ys[index] = 0//ys[index - 1]
-        ws[index] = -1
-        hs[index] = -1
-        changeSizes[index] = false
-        renderers[index] = renderer
-        framebuffer.use(buffer, render)
-    }
+    ) = useFrame(0, 0, -1, -1, false, buffer, renderer, render)
 
     inline fun useFrame(
         x: Int, y: Int, w: Int, h: Int,
@@ -192,6 +182,7 @@ object OpenGL {
         renderer: Renderer,
         render: () -> Unit
     ) {
+
         val index = framebuffer.size
         xs[index] = x
         ys[index] = y

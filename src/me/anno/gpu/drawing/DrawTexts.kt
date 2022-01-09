@@ -181,10 +181,10 @@ object DrawTexts {
                     val x2 = fx + (w - sizeFirst) / 2
                     shader.v2(
                         "pos",
-                        (x2 - GFX.windowX).toFloat() / GFX.windowWidth,
-                        1f - (y - GFX.windowY).toFloat() / GFX.windowHeight
+                        (x2 - GFX.viewportX).toFloat() / GFX.viewportWidth,
+                        1f - (y - GFX.viewportY).toFloat() / GFX.viewportHeight
                     )
-                    shader.v2("size", sizeFirst.toFloat() / GFX.windowWidth, -h.toFloat() / GFX.windowHeight)
+                    shader.v2("size", sizeFirst.toFloat() / GFX.viewportWidth, -h.toFloat() / GFX.viewportHeight)
                     GFX.flat01.draw(shader)
                     GFX.check()
                 } else {
@@ -247,12 +247,12 @@ object DrawTexts {
                 AxisAlignment.CENTER -> w / 2
                 AxisAlignment.MAX -> w
             }
-            val windowWidth = GFX.windowWidth.toFloat()
-            val windowHeight = GFX.windowHeight.toFloat()
+            val windowWidth = GFX.viewportWidth.toFloat()
+            val windowHeight = GFX.viewportHeight.toFloat()
             shader.v2(
                 "pos",
-                (xWithOffset - GFX.windowX) / windowWidth,
-                1f - (y - GFX.windowY) / windowHeight
+                (xWithOffset - GFX.viewportX) / windowWidth,
+                1f - (y - GFX.viewportY) / windowHeight
             )
             shader.v2("size", w / windowWidth, -h / windowHeight)
             shader.v2("windowSize", windowWidth, windowHeight)

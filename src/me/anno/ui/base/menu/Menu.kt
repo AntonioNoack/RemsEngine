@@ -61,7 +61,14 @@ object Menu {
         getColor: (String) -> Int,
         callback: (String) -> Unit
     ) {
-        askName(windowStack, title, value0, actionName, getColor, callback)
+        GFX.updateMousePosition()
+        windowStack.updateMousePosition()
+        askName(
+            windowStack,
+            windowStack.mouseX.toInt() - paddingX,
+            windowStack.mouseY.toInt() - paddingY,
+            title, value0, actionName, getColor, callback
+        )
     }
 
     fun askName(

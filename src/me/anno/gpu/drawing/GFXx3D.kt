@@ -1,8 +1,8 @@
 package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.windowHeight
-import me.anno.gpu.GFX.windowWidth
+import me.anno.gpu.GFX.viewportHeight
+import me.anno.gpu.GFX.viewportWidth
 import me.anno.gpu.OpenGL.renderPurely
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.maxOutlineColors
@@ -134,10 +134,10 @@ object GFXx3D {
         shader.v1("useMaskColor", useMaskColor)
         shader.v1("invertMask", isInverted)
         shader.v1("maskType", maskType.id)
-        shader.v2("pixelating", pixelSize * windowHeight / windowWidth, pixelSize)
+        shader.v2("pixelating", pixelSize * viewportHeight / viewportWidth, pixelSize)
         shader.v4("settings", settings)
         shader.v2("offset", offset)
-        shader.v2("windowSize", windowWidth.toFloat(), windowHeight.toFloat())
+        shader.v2("windowSize", viewportWidth.toFloat(), viewportHeight.toFloat())
         val buffer = if (isFullscreen) SimpleBuffer.flatLarge else SimpleBuffer.flat11
         buffer.draw(shader)
         GFX.check()

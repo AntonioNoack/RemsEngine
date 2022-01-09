@@ -3,8 +3,8 @@ package me.anno.objects.documents.pdf
 import me.anno.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.gpu.GFX.isFinalRendering
-import me.anno.gpu.GFX.windowHeight
-import me.anno.gpu.GFX.windowWidth
+import me.anno.gpu.GFX.viewportHeight
+import me.anno.gpu.GFX.viewportWidth
 import me.anno.gpu.texture.TextureLib.colorShowTexture
 import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.texture.Clamping
@@ -80,7 +80,7 @@ open class PDFDocument(var file: FileReference, parent: Transform?) : GFXTransfo
         val pageCount = doc.numberOfPages
         val referenceScale = (0 until min(10, pageCount)).map {
             doc.getPage(it).mediaBox.run {
-                if (windowWidth > windowHeight) height else width
+                if (viewportWidth > viewportHeight) height else width
             }
         }.median(0f)
         if (pageCount < 1) {

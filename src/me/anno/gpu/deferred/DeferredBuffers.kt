@@ -16,14 +16,18 @@ object DeferredBuffers {
     fun getBaseBuffer(settings: DeferredSettingsV1): Framebuffer {
         val layers = settings.layers
         return Framebuffer(
-            "main", 1, 1, 1,
+            "DeferredBuffers-main", 1, 1, 1,
             Array(layers.size) { layers[it].type },
             DepthBufferType.TEXTURE
         )
     }
 
     fun getLightBuffer(settings: DeferredSettingsV1): Framebuffer {
-        return Framebuffer("light", 1, 1, 1, 1, settings.fpLights, DepthBufferType.NONE)
+        return Framebuffer(
+            "DeferredBuffers-light", 1, 1, 1,
+            1, settings.fpLights,
+            DepthBufferType.NONE
+        )
     }
 
     val defaultLayers = listOf(

@@ -87,9 +87,13 @@ class EnvironmentMap : LightComponentBase() {
 
     override fun onVisibleUpdate(): Boolean {
         if (type != SourceType.TEXTURE) {
-            if(texture == null || texture?.samples != samples){
+            if (texture == null || texture?.samples != samples) {
                 texture?.destroy()
-                texture = CubemapFramebuffer("", resolution, samples, 1, true, DepthBufferType.TEXTURE_16)
+                texture = CubemapFramebuffer(
+                    "EnvironmentMap",
+                    resolution, samples, 1,
+                    true, DepthBufferType.TEXTURE_16
+                )
                 needsUpdate = true
             }
         } else {

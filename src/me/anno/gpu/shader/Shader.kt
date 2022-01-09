@@ -37,7 +37,7 @@ open class Shader(
         updateSession()
         GFX.check()
 
-        val versionString = formatVersion(glslVersion) + "\n// $shaderName\n"
+        val versionString = formatVersion(glslVersion) + "\n// $name\n"
         val geometryShader = if (geometry != null) {
             for (v in varyings) v.makeDifferent()
             var geo = versionString + geometry
@@ -51,28 +51,28 @@ open class Shader(
                     "\t${it.fShaderName} = ${it.vShaderName}[$indexVar];"
                 } + geo.substring(copyIndex + "#copy[i]".length)
             }
-            geo = geo.replace("#varying", varyings.joinToString("\n") { "\t${it.type} ${it.name};" })
+            geo = geo.replace("#varying", varyings.joinToString("\n") { "\t${it.type.glslName} ${it.name};" })
             geo = geo.replace("#inOutVarying", varyings.joinToString("") {
                 "" +
-                        "${it.modifiers} in  ${it.type} ${it.vShaderName}[];\n" +
-                        "${it.modifiers} out ${it.type} ${it.fShaderName};\n"
+                        "${it.modifiers} in  ${it.type.glslName} ${it.vShaderName}[];\n" +
+                        "${it.modifiers} out ${it.type.glslName} ${it.fShaderName};\n"
             })
-            compile(shaderName, program, GL_GEOMETRY_SHADER, geo)
+            compile(name, program, GL_GEOMETRY_SHADER, geo)
         } else -1
 
         // the shaders are like a C compilation process, .o-files: after linking, they can be removed
         vertexSource = (versionString +
                 // todo only specify mediump float, if we really don't need highp, and there is no common uniforms (issue in OpenGL ES)
                 "precision mediump float;\n" +
-                varyings.joinToString("\n") { "${it.modifiers} out ${it.type} ${it.vShaderName};" } +
+                varyings.joinToString("\n") { "${it.modifiers} out ${it.type.glslName} ${it.vShaderName};" } +
                 "\n" +
                 vertex.replaceVaryingNames(true, varyings)
                 ).replaceShortCuts(disableShorts)
-        val vertexShader = compile(shaderName, program, GL_VERTEX_SHADER, vertexSource)
+        val vertexShader = compile(name, program, GL_VERTEX_SHADER, vertexSource)
 
         fragmentSource = (versionString +
                 "precision mediump float;\n" +
-                varyings.joinToString("\n") { "${it.modifiers} in  ${it.type} ${it.fShaderName};" } +
+                varyings.joinToString("\n") { "${it.modifiers} in  ${it.type.glslName} ${it.fShaderName};" } +
                 "\n" +
                 (if (!fragment.contains("out ") && glslVersion == DefaultGLSLVersion && fragment.contains("gl_FragColor")) {
                     "" +
@@ -80,7 +80,7 @@ open class Shader(
                             fragment.replace("gl_FragColor", "glFragColor")
                 } else fragment).replaceVaryingNames(false, varyings)
                 ).replaceShortCuts(disableShorts)
-        val fragmentShader = compile(shaderName, program, GL_FRAGMENT_SHADER, fragmentSource)
+        val fragmentShader = compile(name, program, GL_FRAGMENT_SHADER, fragmentSource)
 
         GFX.check()
 
@@ -89,9 +89,9 @@ open class Shader(
         glDeleteShader(vertexShader)
         glDeleteShader(fragmentShader)
         if (geometryShader >= 0) glDeleteShader(geometryShader)
-        logShader(shaderName, vertexSource, fragmentSource)
+        logShader(name, vertexSource, fragmentSource)
 
-        postPossibleError(shaderName, program, false, vertexSource, fragmentSource)
+        postPossibleError(name, program, false, vertexSource, fragmentSource)
 
         GFX.check()
 

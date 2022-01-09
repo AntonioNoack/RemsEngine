@@ -7,11 +7,11 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.maths.Maths
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL13
-import org.lwjgl.opengl.GL30.*
-import org.lwjgl.opengl.GL32
-import org.lwjgl.opengl.GL45.glCheckNamedFramebufferStatus
+import org.apache.logging.log4j.LogManager
+import org.lwjgl.opengl.GL13C.GL_MULTISAMPLE
+import org.lwjgl.opengl.GL30C.*
+import org.lwjgl.opengl.GL32C.GL_TEXTURE_2D_MULTISAMPLE
+import org.lwjgl.opengl.GL45C.glCheckNamedFramebufferStatus
 import kotlin.system.exitProcess
 
 class Framebuffer(
@@ -46,10 +46,13 @@ class Framebuffer(
         return fb
     }
 
+    var offsetX = 0
+    var offsetY = 0
+
     // the source of our depth texture
     var depthAttachment: Framebuffer? = null
 
-    val tex2D = if (withMultisampling) GL32.GL_TEXTURE_2D_MULTISAMPLE else GL_TEXTURE_2D
+    val target = if (withMultisampling) GL_TEXTURE_2D_MULTISAMPLE else GL_TEXTURE_2D
 
     // multiple targets, layout=x require shader version 330+
     // use glBindFragDataLocation instead
@@ -101,9 +104,9 @@ class Framebuffer(
         if (viewport) glViewport(0, 0, w, h)
         //stack.push(this)
         if (withMultisampling) {
-            GL11.glEnable(GL13.GL_MULTISAMPLE)
+            glEnable(GL_MULTISAMPLE)
         } else {
-            GL11.glDisable(GL13.GL_MULTISAMPLE)
+            glDisable(GL_MULTISAMPLE)
         }
     }
 
@@ -134,6 +137,7 @@ class Framebuffer(
         GFX.check()
         val pointer = glGenFramebuffers()
         if (pointer <= 0) throw OutOfMemoryError("Could not generate OpenGL framebuffer")
+        LOGGER.debug("Creating $pointer: $name $w $h $samples ${targets.joinToString { it.name }} $depthBufferType")
         session = OpenGL.session
         DebugGPUStorage.fbs.add(this)
         glBindFramebuffer(GL_FRAMEBUFFER, pointer)
@@ -153,13 +157,13 @@ class Framebuffer(
         val textures = textures
         for (index in textures.indices) {
             val texture = textures[index]
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, tex2D, texture.pointer, 0)
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, texture.target, texture.pointer, 0)
         }
         GFX.check()
         when (targets.size) {
             0 -> glDrawBuffer(GL_NONE)
             1 -> glDrawBuffer(GL_COLOR_ATTACHMENT0)
-            else -> glDrawBuffers(textures.indices.map { it + GL_COLOR_ATTACHMENT0 }.toIntArray())
+            else -> glDrawBuffers(textures.indices.map { GL_COLOR_ATTACHMENT0 + it }.toIntArray())
         }
         GFX.check()
         when (depthBufferType) {
@@ -167,13 +171,19 @@ class Framebuffer(
             }
             DepthBufferType.ATTACHMENT -> {
                 val texPointer = depthAttachment!!.depthTexture!!.pointer
-                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, tex2D, texPointer, 0)
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, target, texPointer, 0)
             }
             DepthBufferType.INTERNAL -> createDepthBuffer()
             DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {
                 val depthTexture = Texture2D("$name-depth", w, h, samples)
                 depthTexture.createDepth(depthBufferType == DepthBufferType.TEXTURE_16)
-                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, tex2D, depthTexture.pointer, 0)
+                glFramebufferTexture2D(
+                    GL_FRAMEBUFFER,
+                    GL_DEPTH_ATTACHMENT,
+                    depthTexture.target,
+                    depthTexture.pointer,
+                    0
+                )
                 this.depthTexture = depthTexture
             }
         }
@@ -245,7 +255,7 @@ class Framebuffer(
                 0, 0, w, h,
                 // we may want to GL_STENCIL_BUFFER_BIT, if present
                 bits,
-                GL11.GL_NEAREST
+                GL_NEAREST
             )
 
             GFX.check()
@@ -346,9 +356,12 @@ class Framebuffer(
     var depthAllocated = 0L
 
     override fun destroy() {
-        msBuffer?.destroy()
-        destroyFramebuffer()
-        destroyInternalDepth()
+        if (pointer >= 0) {
+            LOGGER.debug("Destroying framebuffer $pointer")
+            msBuffer?.destroy()
+            destroyFramebuffer()
+            destroyInternalDepth()
+        }
     }
 
     fun getColor0(): Texture2D {
@@ -360,7 +373,7 @@ class Framebuffer(
 
     companion object {
 
-        // private val LOGGER = LogManager.getLogger(Framebuffer::class)!!
+        private val LOGGER = LogManager.getLogger(Framebuffer::class)
 
         fun bindNullDirectly() = bindNull()
 

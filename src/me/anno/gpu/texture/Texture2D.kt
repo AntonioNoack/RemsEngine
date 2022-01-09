@@ -51,7 +51,7 @@ open class Texture2D(
 
     private val withMultisampling = samples > 1
 
-    private val target = if (withMultisampling) GL_TEXTURE_2D_MULTISAMPLE else GL_TEXTURE_2D
+    val target = if (withMultisampling) GL_TEXTURE_2D_MULTISAMPLE else GL_TEXTURE_2D
     val state get(): Int = pointer * 4 + isDestroyed.toInt(2) + isCreated.toInt(1)
 
     var pointer = -1
@@ -439,7 +439,7 @@ open class Texture2D(
         this.isHDR = isHDR
         filtering(filtering)
         clamping(clamping ?: Clamping.REPEAT)
-        GFX.check()
+        check()
         if (isDestroyed) destroy()
     }
 
@@ -758,8 +758,11 @@ open class Texture2D(
 
     fun createDepth(lowQuality: Boolean = false) {
         beforeUpload()
-        texImage2D(if (lowQuality) GL_DEPTH_COMPONENT16 else GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT, null)
-        afterUpload(false, if (lowQuality) 2 else 4)
+        texImage2D(
+            if (lowQuality) GL_DEPTH_COMPONENT16 else GL_DEPTH_COMPONENT32F,
+            GL_DEPTH_COMPONENT, GL_FLOAT, null
+        )
+        afterUpload(!lowQuality, if (lowQuality) 2 else 4)
     }
 
     /**

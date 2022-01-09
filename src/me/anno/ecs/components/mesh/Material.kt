@@ -1,24 +1,26 @@
 package me.anno.ecs.components.mesh
 
-import me.anno.image.ImageGPUCache
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ECSRegistry
-import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureLib
+import me.anno.image.ImageGPUCache
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
-import me.anno.utils.LOGGER
 import me.anno.utils.OS
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -111,32 +113,39 @@ class Material : PrefabSaveable() {
     val timeout = 1000L
     fun getTex(image: FileReference) = ImageGPUCache.getImage(image, timeout, true)
 
+    fun bindTexture(shader: Shader, name: String, file: FileReference, default: Texture2D): Texture2D? {
+        val index = shader.getTextureIndex(name)
+        return if (index >= 0) {
+            val filtering = GPUFiltering.LINEAR
+            val clamping = Clamping.REPEAT
+            val tex = getTex(file)
+            (tex ?: default).bind(index, filtering, clamping)
+            tex
+        } else {
+            LOGGER.warn("Didn't find texture $name in ${shader.name}")
+            null
+        }
+    }
+
     fun defineShader(shader: Shader) {
         // todo there will be shadow maps: find the correct texture indices!
         // all the data, the shader needs to know from the material
 
         // todo allow swizzling for alpha, roughness, metallic and such
-        val metallicTex = getTex(metallicMap)
-        val roughnessTex = getTex(roughnessMap)
-        val emissiveTex = getTex(emissiveMap)
-        val normalTex = getTex(normalMap)
-        val diffuseTex = getTex(diffuseMap)
-        val occlusionTex = getTex(occlusionMap)
-        val sheenNormalTex = getTex(sheenNormalMap)
 
         val white = TextureLib.whiteTexture
         val black = TextureLib.blackTexture
         val n001 = TextureLib.normalTexture
-        val filtering = GPUFiltering.LINEAR
-        val clamping = Clamping.REPEAT
 
-        (sheenNormalTex ?: white).bind(6, filtering, clamping)
-        (occlusionTex ?: white).bind(5, filtering, clamping)
-        (metallicTex ?: white).bind(4, filtering, clamping)
-        (roughnessTex ?: white).bind(3, filtering, clamping)
-        (emissiveTex ?: black).bind(2, filtering, clamping)
-        (normalTex ?: n001).bind(1, filtering, clamping)
-        (diffuseTex ?: white).bind(0, filtering, clamping)
+        val sheenNormalTex =
+            bindTexture(shader, "sheenNormalMap", sheenNormalMap, white)
+        bindTexture(shader, "occlusionMap", occlusionMap, white)
+        bindTexture(shader, "metallicMap", metallicMap, white)
+        bindTexture(shader, "roughnessMap", roughnessMap, white)
+        bindTexture(shader, "emissiveMap", emissiveMap, black)
+        val normalTex =
+            bindTexture(shader, "normalMap", normalMap, n001)
+        bindTexture(shader, "diffuseMap", diffuseMap, white)
 
         shader.v4("diffuseBase", diffuseBase)
         shader.v2(
@@ -259,6 +268,8 @@ class Material : PrefabSaveable() {
     override val className: String = "Material"
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(Material::class)
 
         @JvmStatic
         fun main(args: Array<String>) {

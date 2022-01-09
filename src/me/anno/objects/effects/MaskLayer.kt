@@ -94,8 +94,8 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
 
             if (size > 0f) {
 
-                val w = GFX.windowWidth
-                val h = GFX.windowHeight
+                val w = GFX.viewportWidth
+                val h = GFX.viewportHeight
                 mask = FBStack["mask", w, h, 4, true, samples, true]
                 masked = FBStack["masked", w, h, 4, true, samples, true]
 
@@ -231,8 +231,8 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
         val pixelSize = effectSize[time]
         val isInverted = if (isInverted) 1f else 0f
 
-        val w = GFX.windowWidth
-        val h = GFX.windowHeight
+        val w = GFX.viewportWidth
+        val h = GFX.viewportHeight
 
         val offset0 = effectOffset[time]
         val offset = Vector2f(offset0)

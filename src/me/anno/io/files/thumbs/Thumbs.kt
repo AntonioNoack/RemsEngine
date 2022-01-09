@@ -49,7 +49,10 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.image.*
+import me.anno.image.Image
+import me.anno.image.ImageCPUCache
+import me.anno.image.ImageGPUCache
+import me.anno.image.ImageReadable
 import me.anno.image.ImageScale.scaleMax
 import me.anno.image.hdr.HDRImage
 import me.anno.image.tar.TGAImage
@@ -85,8 +88,8 @@ import org.joml.*
 import org.joml.Math.sqrt
 import org.joml.Math.toRadians
 import org.lwjgl.opengl.GL11.*
-import sun.awt.shell.ShellFolder
 import java.awt.image.BufferedImage
+import java.io.File
 import javax.imageio.ImageIO
 import javax.swing.ImageIcon
 import javax.swing.filechooser.FileSystemView
@@ -1217,8 +1220,14 @@ object Thumbs {
     ) {
         val icon = srcFile.toFile {
             try {
-                val sf = ShellFolder.getShellFolder(it)
-                ImageIcon(sf.getIcon(true))
+                val shellFolder = javaClass.classLoader.loadClass("sun.awt.shell.ShellFolder")
+                val shellMethod = shellFolder.getMethod("getShellFolder", File::class.java)
+                // val sf = ShellFolder.getShellFolder(it)
+                val sf = shellMethod.invoke(null, it)
+                val iconMethod = shellFolder.getMethod("getIcon", Boolean::class.java)
+                // val icon = sf.getIcon(true)
+                val icon = iconMethod.invoke(sf, true) as java.awt.Image
+                ImageIcon(icon)
             } catch (e: Exception) {
                 FileSystemView.getFileSystemView().getSystemIcon(it)
             }

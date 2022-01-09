@@ -9,6 +9,7 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.hidden.HiddenOpenGLContext
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
@@ -22,7 +23,7 @@ fun main() {
 
     fun createShader(code: String) = Shader(
         "", null, simplestVertexShader,
-        listOf(Variable("vec2", "uv")), "void main(){$code}"
+        listOf(Variable(GLSLType.V2F, "uv")), "void main(){$code}"
     )
 
     fun repeat(code: String, times: Int): String {
@@ -37,7 +38,7 @@ fun main() {
     HiddenOpenGLContext.setSize(size, size)
     HiddenOpenGLContext.createOpenGL()
 
-    val buffer = Framebuffer("", size, size, 1, 1, true, DepthBufferType.NONE)
+    val buffer = Framebuffer("pow", size, size, 1, 1, true, DepthBufferType.NONE)
 
     println("Power,Multiplications,GFlops-multiplication,GFlops-floats,GFlops-ints,GFlops-power,Speedup")
 

@@ -1,9 +1,11 @@
 package me.anno.gpu.shader.builder
 
 import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.GeoShader
 import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.Shader
+import me.anno.utils.LOGGER
 import kotlin.math.max
 
 class ShaderBuilder(val name: String) {
@@ -17,7 +19,7 @@ class ShaderBuilder(val name: String) {
     // output colors can be further and further processed
 
     val vertex = MainStage().apply {
-        define(Variable("vec4", "gl_Position", true))
+        define(Variable(GLSLType.V4F, "gl_Position", true))
     }
 
     val fragment = MainStage()
@@ -38,6 +40,21 @@ class ShaderBuilder(val name: String) {
         fragment.add(stage ?: return)
     }
 
+    private fun collectTextureIndices(textureIndices: MutableList<String>, uniforms: Collection<Variable>) {
+        for (uniform in uniforms) {
+            if (uniform.type == GLSLType.S2D || uniform.type == GLSLType.SCube) {
+                if (uniform.arraySize > 0) {
+                    for (i in 0 until uniform.arraySize) {
+                        // todo with brackets or without?
+                        textureIndices.add(uniform.name + i)
+                    }
+                } else {
+                    textureIndices.add(uniform.name)
+                }
+            }
+        }
+    }
+
     fun create(): Shader {
         // combine the code
         // find imports
@@ -49,6 +66,11 @@ class ShaderBuilder(val name: String) {
         val varying = (vertex.imported + vertex.exported).toList()
         val shader = Shader(name, geometry?.code, vertCode, varying, fragCode)
         shader.glslVersion = max(330, max(glslVersion, shader.glslVersion))
+        val textureIndices = ArrayList<String>()
+        collectTextureIndices(textureIndices, vertex.uniforms)
+        collectTextureIndices(textureIndices, fragment.uniforms)
+        LOGGER.info("Textures($name): $textureIndices")
+        shader.setTextureIndices(textureIndices)
         shader.ignoreUniformWarnings(ignored)
         /*for (stage in vertex.stages) ignore(shader, stage)
         for (stage in fragment.stages) ignore(shader, stage)*/
@@ -57,7 +79,7 @@ class ShaderBuilder(val name: String) {
 
     fun ignore(shader: Shader, stage: ShaderStage) {
         for (param in stage.parameters.filter { !it.isAttribute }) {
-            if (param.arraySize > 0 && param.type.startsWith("sampler")) {
+            if (param.arraySize > 0 && param.type.glslName.startsWith("sampler")) {
                 for (i in 0 until param.arraySize) {
                     shader.ignoreUniformWarning(param.name + i)
                 }
@@ -77,25 +99,25 @@ class ShaderBuilder(val name: String) {
             test.vertex.add(
                 ShaderStage(
                     "stage0", listOf(
-                        Variable("vec4", "attr1"),
-                        Variable("vec2", "attr0", false)
+                        Variable(GLSLType.V4F, "attr1"),
+                        Variable(GLSLType.V2F, "attr0", false)
                     ), "attr0 = attr1.xy;\n"
                 )
             )
             test.vertex.add(
                 ShaderStage(
                     "vert", listOf(
-                        Variable("vec2", "attr0"),
-                        // Variable("vec4", "gl_Position", false) // built-in, must not be redefined
+                        Variable(GLSLType.V2F, "attr0"),
+                        // Variable(GLSLType.V4F, "gl_Position", false) // built-in, must not be redefined
                     ), "gl_Position = vec4(attr0,0,1);\n"
                 )
             )
             test.fragment.add(
                 ShaderStage(
                     "func0", listOf(
-                        Variable("vec3", "tint", true),
-                        Variable("vec3", "finalColor", false),
-                        Variable("float", "finalAlpha", false)
+                        Variable(GLSLType.V3F, "tint", true),
+                        Variable(GLSLType.V3F, "finalColor", false),
+                        Variable(GLSLType.V1F, "finalAlpha", false)
                     ), "finalColor = tint;\n" +
                             "finalAlpha = 0.5;\n"
                 )

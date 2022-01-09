@@ -37,10 +37,10 @@ object DrawTextures {
         GFX.check()
         val shader = ShaderLib.flatShaderTexture.value
         shader.use()
-        val posX = (x - GFX.windowX).toFloat() / GFX.windowWidth
-        val posY = (y - GFX.windowY).toFloat() / GFX.windowHeight
-        val relW = +w.toFloat() / GFX.windowWidth
-        val relH = +h.toFloat() / GFX.windowHeight
+        val posX = (x - GFX.viewportX).toFloat() / GFX.viewportWidth
+        val posY = (y - GFX.viewportY).toFloat() / GFX.viewportHeight
+        val relW = +w.toFloat() / GFX.viewportWidth
+        val relH = +h.toFloat() / GFX.viewportHeight
         shader.v2("pos", posX, posY)
         shader.v2("size", relW, relH)
         defineAdvancedGraphicalFeatures(shader)
@@ -92,7 +92,7 @@ object DrawTextures {
     }
 
     fun drawTexture(matrix: Matrix4fArrayList, w: Int, h: Int, texture: Texture2D, color: Int, tiling: Vector4fc?) {
-        matrix.scale(w.toFloat() / GFX.windowWidth, h.toFloat() / GFX.windowHeight, 1f)
+        matrix.scale(w.toFloat() / GFX.viewportWidth, h.toFloat() / GFX.viewportHeight, 1f)
         GFXx3D.draw3D(
             matrix, texture, color,
             Filtering.LINEAR, Clamping.CLAMP, tiling, UVProjection.Planar
@@ -101,7 +101,7 @@ object DrawTextures {
 
     fun drawTexture(w: Int, h: Int, texture: GPUFrame, color: Int, tiling: Vector4fc?) {
         val matrix = Matrix4fArrayList()
-        matrix.scale(w.toFloat() / GFX.windowWidth, h.toFloat() / GFX.windowHeight, 1f)
+        matrix.scale(w.toFloat() / GFX.viewportWidth, h.toFloat() / GFX.viewportHeight, 1f)
         GFXx3D.draw3D(
             matrix, texture, color,
             Filtering.LINEAR, Clamping.CLAMP, tiling, UVProjection.Planar

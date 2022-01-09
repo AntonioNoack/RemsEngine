@@ -608,8 +608,8 @@ public class GFXBase0 {
                     }
                     float x = Input.INSTANCE.getMouseX();
                     float y = Input.INSTANCE.getMouseY();
-                    float centerX = GFX.INSTANCE.getWindowWidth() * 0.5f;
-                    float centerY = GFX.INSTANCE.getWindowHeight() * 0.5f;
+                    float centerX = GFX.INSTANCE.getViewportWidth() * 0.5f;
+                    float centerY = GFX.INSTANCE.getViewportHeight() * 0.5f;
                     float dx = x - centerX;
                     float dy = y - centerY;
                     if (dx * dx + dy * dy > trapMouseRadius * trapMouseRadius) {

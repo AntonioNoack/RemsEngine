@@ -1,6 +1,5 @@
 package me.anno.studio.rems
 
-import me.anno.image.ImageGPUCache.getLUT
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.DepthMode
@@ -13,22 +12,24 @@ import me.anno.gpu.OpenGL.depthMode
 import me.anno.gpu.OpenGL.renderDefault
 import me.anno.gpu.OpenGL.renderPurely
 import me.anno.gpu.OpenGL.useFrame
-import me.anno.gpu.shader.ShaderLib.ascColorDecisionList
-import me.anno.gpu.shader.ShaderLib.brightness
-import me.anno.gpu.shader.ShaderLib.createShader
-import me.anno.gpu.shader.ShaderLib.simplestVertexShader
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib.ascColorDecisionList
+import me.anno.gpu.shader.ShaderLib.brightness
+import me.anno.gpu.shader.ShaderLib.createShader
+import me.anno.gpu.shader.ShaderLib.simplestVertexShader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture3D
+import me.anno.image.ImageGPUCache.getLUT
 import me.anno.objects.Camera
 import me.anno.objects.Camera.Companion.DEFAULT_VIGNETTE_STRENGTH
 import me.anno.objects.Transform
@@ -50,7 +51,10 @@ import me.anno.video.MissingFrameException
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL11.glClear
+import org.lwjgl.opengl.GL11.glClearColor
+import org.lwjgl.opengl.GL11C.GL_COLOR_BUFFER_BIT
+import org.lwjgl.opengl.GL11C.GL_DEPTH_BUFFER_BIT
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
@@ -150,7 +154,7 @@ object Scene {
                     "   vec2 coords = attr0*2.0-1.0;\n" +
                     "   gl_Position = vec4(coords.x, coords.y * ySign, 0.0, 1.0);\n" +
                     "   uv = attr0;\n" +
-                    "}", listOf(Variable("vec2","uv")), "" +
+                    "}", listOf(Variable(GLSLType.V2F, "uv")), "" +
                     "uniform sampler2D tex;\n" +
                     "uniform vec3 fxScale;\n" +
                     "uniform vec2 chromaticAberration;" +
@@ -215,7 +219,7 @@ object Scene {
         // todo Tone Mapping on Video objects for performance improvements (doesn't need fp framebuffer)
 
         lutShader = createShader(
-            "lut", simplestVertexShader, listOf(Variable("vec2","uv")), "" +
+            "lut", simplestVertexShader, listOf(Variable(GLSLType.V2F, "uv")), "" +
                     "uniform sampler2D tex;\n" +
                     "uniform sampler3D lut;\n" +
                     // "uniform float time;\n" +
@@ -228,7 +232,7 @@ object Scene {
         )
 
         addBloomShader = createShader(
-            "addBloom", simplestVertexShader, listOf(Variable("vec2","uv")), "" +
+            "addBloom", simplestVertexShader, listOf(Variable(GLSLType.V2F, "uv")), "" +
                     "uniform sampler2D original, blurred;\n" +
                     "uniform float intensity;\n" +
                     "void main(){" +
@@ -383,7 +387,7 @@ object Scene {
         val y = if (needsTemporaryBuffer) 0 else y0// GFX.height - (y0 + h)
 
         blendMode.use(if (isFakeColorRendering) null else BlendMode.DEFAULT) {
-            depthMode.use(if(camera.useDepth) DepthMode.GREATER else DepthMode.ALWAYS) {
+            depthMode.use(if (camera.useDepth) DepthMode.GREATER else DepthMode.ALWAYS) {
 
                 useFrame(x, y, w, h, false, buffer) {
 
@@ -466,13 +470,19 @@ object Scene {
                     buffer = applyBloom(buffer!!, w, h, bloomSize, bloomIntensity, bloomThreshold)
                 }
 
-                useFrame(x0, y0, w, h, false) {
+                if (lut != null) {
+                    drawWithLUT(buffer!!, isFakeColorRendering, camera, cameraTime, w, h, flipY, lut)
+                } else {
+                    drawWithoutLUT(buffer!!, isFakeColorRendering, camera, cameraTime, w, h, flipY)
+                }
+
+                /*useFrame(x0, y0, w, h, false) {
                     if (lut != null) {
                         drawWithLUT(buffer!!, isFakeColorRendering, camera, cameraTime, w, h, flipY, lut)
                     } else {
                         drawWithoutLUT(buffer!!, isFakeColorRendering, camera, cameraTime, w, h, flipY)
                     }
-                }
+                }*/
             }
         }
     }

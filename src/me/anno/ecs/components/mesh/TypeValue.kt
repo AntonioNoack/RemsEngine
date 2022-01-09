@@ -1,14 +1,25 @@
 package me.anno.ecs.components.mesh
 
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureLib.whiteTexture
+import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL21
 
 class TypeValue(val type: GLSLType, val value: Any) {
 
+    companion object {
+        private val LOGGER = LogManager.getLogger(TypeValue::class)
+    }
+
     fun bind(shader: Shader, uniformName: String) {
-        val location = shader[uniformName]
+        val location = when (type) {
+            GLSLType.S2D, GLSLType.SCube -> shader.getTextureIndex(uniformName)
+            else -> shader[uniformName]
+        }
         if (location >= 0) bind(shader, location)
     }
 
@@ -34,7 +45,16 @@ class TypeValue(val type: GLSLType, val value: Any) {
             GLSLType.M3x3 -> shader.m3x3(location, value as Matrix3fc)
             GLSLType.M4x3 -> shader.m4x3(location, value as Matrix4x3fc)
             GLSLType.M4x4 -> shader.m4x4(location, value as Matrix4fc)
-            // else -> LOGGER.warn("Type ${valueType.type} is not yet supported")
+            GLSLType.S2D -> {
+                value as Texture2D
+                if (value.isCreated) {
+                    value.bind(location)
+                } else {
+                    whiteTexture.bind(location)
+                    LOGGER.warn("Texture ${value.name} has not been created")
+                }
+            }
+            else -> LOGGER.warn("Type $type is not yet supported")
         }
     }
 

@@ -195,11 +195,11 @@ class FileExplorerEntry(
         super.tickUpdate()
 
         val meta = meta
-        val tex = when (val tex = getTexKey()) {
+        val tex = if (canBeSeen) when (val tex = getTexKey()) {
             is GPUFrame -> if (tex.isCreated) tex else null
             is Texture2D -> tex.state
             else -> tex
-        }
+        } else null
         if (lastMeta !== meta || lastTex !== tex) {
             lastTex = tex
             lastMeta = meta
@@ -236,7 +236,7 @@ class FileExplorerEntry(
     private fun updatePlaybackTime() {
         when (importType) {
             "Video", "Audio" -> {
-                val meta = FFMPEGMetadata.getMeta(path, true)
+                val meta = getMeta(path, true)
                 this.meta = meta
                 if (meta != null) {
                     val w = w
@@ -371,7 +371,7 @@ class FileExplorerEntry(
         if (frameIndex > 0) getFrame(videoBufferLength)
         if (image != null && image.isCreated) {
             drawTexture(
-                GFX.windowWidth, GFX.windowHeight,
+                GFX.viewportWidth, GFX.viewportHeight,
                 image, -1, null
             )
             drawCircle(x0, y0, x1, y1)

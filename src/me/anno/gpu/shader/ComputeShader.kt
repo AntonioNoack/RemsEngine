@@ -33,9 +33,9 @@ class ComputeShader(
                 "#version $version\n" +
                 "layout(local_size_x = ${groupSize.x}, local_size_y = ${groupSize.y}, local_size_z = ${groupSize.z}) in;\n" +
                 source
-        val shader = compile(shaderName, program, GL_COMPUTE_SHADER, source)
+        val shader = compile(name, program, GL_COMPUTE_SHADER, source)
         glLinkProgram(program)
-        postPossibleError(shaderName, program, false, source)
+        postPossibleError(name, program, false, source)
         glDeleteShader(shader)
 
         GFX.check()

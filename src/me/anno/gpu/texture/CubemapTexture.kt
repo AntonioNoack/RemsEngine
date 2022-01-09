@@ -39,7 +39,7 @@ class CubemapTexture(
         get() = size
         set(_) {}
 
-    private val tex2D = GL_TEXTURE_CUBE_MAP
+    private val target = GL_TEXTURE_CUBE_MAP
 
     private fun ensurePointer() {
         if (isDestroyed) throw RuntimeException("Texture was destroyed")
@@ -56,7 +56,7 @@ class CubemapTexture(
 
     private fun bindBeforeUpload() {
         if (pointer == -1) throw RuntimeException("Pointer must be defined")
-        Texture2D.bindTexture(tex2D, pointer)
+        Texture2D.bindTexture(target, pointer)
     }
 
     private fun checkSize(channels: Int, size0: Int) {
@@ -153,7 +153,7 @@ class CubemapTexture(
         if (pointer > 0 && isCreated) {
             if (isBoundToSlot(index)) return false
             Texture2D.activeSlot(index)
-            val result = Texture2D.bindTexture(tex2D, pointer)
+            val result = Texture2D.bindTexture(target, pointer)
             ensureFilterAndClamping(nearest)
             return result
         } else throw IllegalStateException("Cannot bind non-created texture!")
@@ -170,17 +170,17 @@ class CubemapTexture(
 
     private fun filtering(nearest: GPUFiltering) {
         if (!hasMipmap && nearest.needsMipmap && samples <= 1) {
-            GL30.glGenerateMipmap(tex2D)
+            GL30.glGenerateMipmap(target)
             hasMipmap = true
             if (GFX.supportsAnisotropicFiltering) {
                 val anisotropy = GFX.anisotropy
-                glTexParameteri(tex2D, GL30.GL_TEXTURE_LOD_BIAS, 0)
-                glTexParameterf(tex2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy)
+                glTexParameteri(target, GL30.GL_TEXTURE_LOD_BIAS, 0)
+                glTexParameterf(target, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy)
             }
-            glTexParameteri(tex2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
+            glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
         }
-        glTexParameteri(tex2D, GL_TEXTURE_MIN_FILTER, nearest.min)
-        glTexParameteri(tex2D, GL_TEXTURE_MAG_FILTER, nearest.mag)
+        glTexParameteri(target, GL_TEXTURE_MIN_FILTER, nearest.min)
+        glTexParameteri(target, GL_TEXTURE_MAG_FILTER, nearest.mag)
         this.filtering = nearest
     }
 

@@ -687,7 +687,7 @@ class RenderView(
                     }
 
                     // anti-aliasing
-                    dstBuffer = FBStack["dst", w, h, 4, false, 1, false]
+                    dstBuffer = FBStack["RenderView-dst", w, h, 4, false, 1, false]
                     useFrame(w, h, true, dstBuffer) {
                         DepthBasedAntiAliasing.render(dstBuffer0.getColor0(), buffer.depthTexture!!)
                     }

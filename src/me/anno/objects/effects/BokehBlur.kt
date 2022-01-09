@@ -9,6 +9,7 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
@@ -146,7 +147,7 @@ object BokehBlur {
                 "   return texture(filterTexture, vec2(x, 0));\n" +
                 "}\n"
 
-        val varyingShader = listOf(Variable("vec2", "uv"))
+        val varyingShader = listOf(Variable(GLSLType.V2F, "uv"))
 
         perChannelShader = createShaderNoShorts(
             "bokeh-perChannel", vertexShader, varyingShader, "" +

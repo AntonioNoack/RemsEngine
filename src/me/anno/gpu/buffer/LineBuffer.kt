@@ -3,6 +3,7 @@ package me.anno.gpu.buffer
 import me.anno.engine.ui.render.RenderView.Companion.camPosition
 import me.anno.engine.ui.render.RenderView.Companion.worldScale
 import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.utils.Color.b
@@ -35,7 +36,7 @@ object LineBuffer {
                 "void main(){" +
                 "   gl_Position = transform * vec4(position, 1);\n" +
                 "   vColor = color;\n" +
-                "}", listOf(Variable("vec4", "vColor")), "" +
+                "}", listOf(Variable(GLSLType.V4F, "vColor")), "" +
                 "void main(){\n" +
                 "   vec3 finalColor = vColor.rgb;\n" +
                 "   float finalAlpha = vColor.a;\n" +

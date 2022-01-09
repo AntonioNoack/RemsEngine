@@ -4,6 +4,7 @@ import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -171,7 +172,7 @@ class DeferredSettingsV2(
 
     fun getLayerOutputVariables(): List<Variable> {
         return settingsV1.layers.map { type ->
-            Variable("vec4", type.name, VariableMode.OUT)
+            Variable(GLSLType.V4F, type.name, VariableMode.OUT)
         }
     }
 
@@ -283,7 +284,7 @@ class DeferredSettingsV2(
 
     companion object {
 
-        val glslTypes = listOf("float", "vec2", "vec3", "vec4")
+        val glslTypes = listOf(GLSLType.V1F, GLSLType.V2F, GLSLType.V3F, GLSLType.V4F)
 
         val singleToVector = mapOf(
             "r" to Vector4f(1f, 0f, 0f, 0f),

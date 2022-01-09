@@ -1,5 +1,6 @@
 package me.anno.ui.editor.color
 
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.language.translation.NameDesc
@@ -35,7 +36,7 @@ abstract class ColorSpace(
                 "   gl_Position = vec4((pos + attr0 * size)*2.-1., 0.0, 1.0);\n" +
                 "   uv = attr0;\n" +
                 "}"
-        val varyingShader = listOf(Variable("vec2", "uv"))
+        val varyingShader = listOf(Variable(GLSLType.V2F, "uv"))
         val fragmentShader = when (type) {
             ColorVisualisation.WHEEL -> {
                 "" +

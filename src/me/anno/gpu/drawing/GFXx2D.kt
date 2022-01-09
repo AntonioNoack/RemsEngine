@@ -53,12 +53,12 @@ object GFXx2D {
         radiusX: Float, radiusY: Float, innerRadius: Float, startDegrees: Float, endDegrees: Float, color: Vector4f
     ) {
 
-        val rx = (x - GFX.windowX).toFloat() / GFX.windowWidth * 2 - 1
-        val ry = (y - GFX.windowY).toFloat() / GFX.windowHeight * 2 - 1
+        val rx = (x - GFX.viewportX).toFloat() / GFX.viewportWidth * 2 - 1
+        val ry = (y - GFX.viewportY).toFloat() / GFX.viewportHeight * 2 - 1
 
         val stack = Matrix4fArrayList()
         stack.translate(rx, ry, 0f)
-        stack.scale(2f * radiusX / GFX.windowWidth, 2f * radiusY / GFX.windowHeight, 1f)
+        stack.scale(2f * radiusX / GFX.viewportWidth, 2f * radiusY / GFX.viewportHeight, 1f)
 
         // GFX.drawMode = ShaderPlus.DrawMode.COLOR
         // RenderSettings.renderer.use(Renderer.colorRenderer) {
@@ -69,7 +69,7 @@ object GFXx2D {
         for (dx in 0 until 5) {
             for (dy in 0 until 5) {
                 stack.pushMatrix()
-                stack.translate((dx - 2f) / (2.5f * GFX.windowWidth), (dy - 2f) / (2.5f * GFX.windowHeight), 0f)
+                stack.translate((dx - 2f) / (2.5f * GFX.viewportWidth), (dy - 2f) / (2.5f * GFX.viewportHeight), 0f)
                 draw3DCircle(null, 0.0, stack, innerRadius, startDegrees, endDegrees, color)
                 stack.popMatrix()
             }
@@ -78,19 +78,19 @@ object GFXx2D {
     }
 
     fun posSize(shader: Shader, x: Int, y: Int, w: Int, h: Int) {
-        val posX = (x - GFX.windowX).toFloat() / GFX.windowWidth
-        val posY = 1f - (y - GFX.windowY).toFloat() / GFX.windowHeight
-        val relW = +w.toFloat() / GFX.windowWidth
-        val relH = -h.toFloat() / GFX.windowHeight
+        val posX = (x - GFX.viewportX).toFloat() / GFX.viewportWidth
+        val posY = 1f - (y - GFX.viewportY).toFloat() / GFX.viewportHeight
+        val relW = +w.toFloat() / GFX.viewportWidth
+        val relH = -h.toFloat() / GFX.viewportHeight
         shader.v2("pos", posX, posY)
         shader.v2("size", relW, relH)
     }
 
     fun posSize(shader: Shader, x: Float, y: Float, w: Float, h: Float) {
-        val posX = (x - GFX.windowX) / GFX.windowWidth
-        val posY = 1f - (y - GFX.windowY) / GFX.windowHeight
-        val relW = +w / GFX.windowWidth
-        val relH = -h / GFX.windowHeight
+        val posX = (x - GFX.viewportX) / GFX.viewportWidth
+        val posY = 1f - (y - GFX.viewportY) / GFX.viewportHeight
+        val relW = +w / GFX.viewportWidth
+        val relH = -h / GFX.viewportHeight
         shader.v2("pos", posX, posY)
         shader.v2("size", relW, relH)
     }

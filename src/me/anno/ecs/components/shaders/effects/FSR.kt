@@ -162,7 +162,7 @@ object FSR {
         val shader = sharpenShader.value
         shader.use()
         shader.v1("sharpness", sharpness)
-        texelOffset(shader, GFX.windowY, GFX.windowHeight)
+        texelOffset(shader, GFX.viewportY, GFX.viewportHeight)
         tiling(shader, flipY)
         posSize(shader, 0f, 0f, 1f, 1f)
         flat01.draw(shader)

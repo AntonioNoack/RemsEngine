@@ -39,7 +39,7 @@ class StableWindowSize {
 
         if (stableWidth == 0 || stableHeight == 0 || // not initialized yet
             // the window has changed its size -> we have to update nonetheless
-            stableWidth > GFX.windowWidth || stableHeight > GFX.windowHeight
+            stableWidth > GFX.viewportWidth || stableHeight > GFX.viewportHeight
         ) {
             stableWidth = width
             stableHeight = height

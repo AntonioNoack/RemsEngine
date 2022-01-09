@@ -1,6 +1,8 @@
 package me.anno.gpu
 
 import me.anno.config.DefaultConfig
+import me.anno.gpu.OpenGL.renderDefault
+import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame
@@ -14,6 +16,7 @@ import me.anno.utils.structures.lists.LimitedList
 import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11
+import kotlin.math.max
 import kotlin.math.min
 
 open class Window(
@@ -62,7 +65,7 @@ open class Window(
 
     // the graphics may want to draw directly on the panel in 3D, so we need a depth texture
     // we could use multiple samples, but for performance reasons, let's not do that, when it's not explicitly requested
-    val buffer = Framebuffer("window-${panel.className}", 1, 1, 1, 1, false, DepthBufferType.TEXTURE)
+    val buffer = Framebuffer("window-${panel.className}", 0, 0, 1, 1, false, DepthBufferType.TEXTURE)
 
     init {
         panel.window = this
@@ -178,14 +181,14 @@ open class Window(
             calculateFullLayout(w, h)
         }
 
-        OpenGL.useFrame(panel0.x, panel0.y, panel0.w, panel0.h, false, dstBuffer, Renderer.colorRenderer) {
+        useFrame(panel0.x, panel0.y, panel0.w, panel0.h, false, dstBuffer, Renderer.colorRenderer) {
             panel0.canBeSeen = true
             panel0.draw(panel0.x, panel0.y, panel0.x + panel0.w, panel0.y + panel0.h)
         }
 
     }
 
-    fun sparseRedraw(
+    private fun sparseRedraw(
         panel0: Panel, didSomething0: Boolean,
         forceRedraw: Boolean,
         dstBuffer: Framebuffer?
@@ -203,56 +206,64 @@ open class Window(
             GFX.ensureEmptyStack()
             Frame.reset()
 
-            GFX.deltaX = panel0.x
-            GFX.deltaY = panel0.y
+            val buffer = buffer
+            GFX.useWindowXY(panel0.x, panel0.y, buffer){
+                renderDefault {
 
-            OpenGL.renderDefault {
+                    val x0 = max(panel0.x, 0)
+                    val y0 = max(panel0.y, 0)
+                    // we don't need to draw more than is visible
+                    val x1 = min(panel0.x + panel0.w, GFX.width)
+                    val y1 = min(panel0.y + panel0.h, GFX.height)
 
-                val buffer = buffer
-                if (panel0 in needsRedraw || needsRedraw.isFull()) {
+                    if (panel0 in needsRedraw || needsRedraw.isFull()) {
 
-                    wasRedrawn += panel0
+                        wasRedrawn += panel0
 
-                    GFX.loadTexturesSync.clear()
-                    GFX.loadTexturesSync.push(true)
-
-                    OpenGL.useFrame(panel0.x, panel0.y, panel0.w, panel0.h, true, buffer, Renderer.colorRenderer) {
-                        Frame.bind()
-                        GL11.glClearColor(0f, 0f, 0f, 0f)
-                        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
-                        panel0.canBeSeen = true
-                        panel0.draw(panel0.x, panel0.y, panel0.x + panel0.w, panel0.y + panel0.h)
-                    }
-
-                } else {
-
-                    while (needsRedraw.isNotEmpty()) {
-                        val panel = needsRedraw.minByOrNull { it.depth } ?: break
                         GFX.loadTexturesSync.clear()
-                        GFX.loadTexturesSync.push(false)
-                        if (panel.canBeSeen) {
-                            val w = panel.lx1 - panel.lx0
-                            val h = panel.ly1 - panel.ly0
-                            OpenGL.useFrame(
-                                panel.lx0, panel.ly0, w, h,
-                                false, buffer,
-                                Renderer.colorRenderer
-                            ) { panel.redraw() }
+                        GFX.loadTexturesSync.push(true)
+
+                        useFrame(
+                            x0, y0, x1 - x0, y1 - y0,
+                            true, buffer, Renderer.colorRenderer
+                        ) {
+                            Frame.bind()
+                            GL11.glClearColor(0f, 0f, 0f, 0f)
+                            GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
+                            panel0.canBeSeen = true
+                            panel0.draw(x0, y0, x1, y1)
                         }
-                        wasRedrawn += panel
-                        panel.forAll {
-                            needsRedraw.remove(it)
+
+                    } else {
+
+                        while (needsRedraw.isNotEmpty()) {
+                            val panel = needsRedraw.minByOrNull { it.depth } ?: break
+                            GFX.loadTexturesSync.clear()
+                            GFX.loadTexturesSync.push(false)
+                            if (panel.canBeSeen) {
+                                val x2 = panel.lx0
+                                val y2 = panel.ly0
+                                val x3 = panel.lx1 - panel.lx0
+                                val y3 = panel.ly1 - panel.ly0
+                                useFrame(
+                                    x2, y2, x3, y3,
+                                    false, buffer,
+                                    Renderer.colorRenderer,
+                                    panel::redraw
+                                )
+                            }
+                            wasRedrawn += panel
+                            panel.forAll {
+                                needsRedraw.remove(it)
+                            }
                         }
+
                     }
+
+                    needsRedraw.clear()
 
                 }
-
-                needsRedraw.clear()
-
             }
-
-            GFX.deltaX = 0
-            GFX.deltaY = 0
 
         }
 
@@ -264,9 +275,9 @@ open class Window(
 
     }
 
-    fun drawCachedImage(panel: Panel, wasRedrawn: Collection<Panel>, dstBuffer: Framebuffer?) {
-        OpenGL.useFrame(panel.x, panel.y, panel.w, panel.h, false, dstBuffer) {
-            OpenGL.renderDefault {
+    private fun drawCachedImage(panel: Panel, wasRedrawn: Collection<Panel>, dstBuffer: Framebuffer?) {
+        useFrame(panel.x, panel.y, panel.w, panel.h, false, dstBuffer) {
+            renderDefault {
                 buffer.checkSession()
                 GFX.copy(buffer)
                 if (showRedraws) {
@@ -276,7 +287,7 @@ open class Window(
         }
     }
 
-    fun showRedraws(wasRedrawn: Collection<Panel>) {
+    private fun showRedraws(wasRedrawn: Collection<Panel>) {
         for (panel in wasRedrawn) {
             DrawRectangles.drawRect(
                 panel.lx0,

@@ -44,7 +44,6 @@ import org.joml.Vector4fc
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.ARBImaging.GL_TABLE_TOO_LARGE
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
-import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL43.GL_MAX_UNIFORM_LOCATIONS
@@ -119,13 +118,45 @@ object GFX : GFXBase1() {
         loadTexturesSync.push(false)
     }
 
-    var deltaX = 0
-    var deltaY = 0
+    /**
+     * location of the current default framebuffer
+     * */
+    var offsetX = 0
+    var offsetY = 0
 
-    var windowX = 0
-    var windowY = 0
-    var windowWidth = 0
-    var windowHeight = 0
+    inline fun useWindowXY(x: Int, y: Int, buffer: Framebuffer?, process: () -> Unit){
+       if(buffer == null){
+           val ox = offsetX
+           val oy = offsetY
+           offsetX = x
+           offsetY = y
+           try {
+               process()
+           } finally {
+               offsetX = ox
+               offsetY = oy
+           }
+       } else {
+           val ox = buffer.offsetX
+           val oy = buffer.offsetY
+           buffer.offsetX = x
+           buffer.offsetY = y
+           try {
+               process()
+           } finally {
+               buffer.offsetX = ox
+               buffer.offsetY = oy
+           }
+       }
+    }
+
+    /**
+     * location & size of the current panel
+     * */
+    var viewportX = 0
+    var viewportY = 0
+    var viewportWidth = 0
+    var viewportHeight = 0
 
     val flat01 = SimpleBuffer.flat01
 
@@ -227,7 +258,7 @@ object GFX : GFXBase1() {
         val lookAt = cameraTransform2.transformProject(tmp2.set(0f, 0f, -1f))
         stack.perspective2(
             Math.toRadians(fov.toDouble()).toFloat(),
-            windowWidth * 1f / windowHeight, near, far, 0f, 0f
+            viewportWidth * 1f / viewportHeight, near, far, 0f, 0f
         ).lookAt(position, lookAt, up)
         val scale = pow(1f / camera.orbitRadius[time], camera.orthographicness[time])
         if (scale != 0f && scale.isFinite()) stack.scale(scale)
@@ -313,8 +344,10 @@ object GFX : GFXBase1() {
         super.renderStep0()
         glThread = Thread.currentThread()
         val tick = Clock()
+        LOGGER.info("OpenGL Version " + glGetString(GL_VERSION))
+        LOGGER.info("GLSL Version " + glGetString(GL_SHADING_LANGUAGE_VERSION))
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1) // OpenGL is evil ;), for optimizations, we might set it back
-        supportsAnisotropicFiltering = GL.getCapabilities().GL_EXT_texture_filter_anisotropic
+        supportsAnisotropicFiltering = capabilities.GL_EXT_texture_filter_anisotropic
         LOGGER.info("OpenGL supports Anisotropic Filtering? $supportsAnisotropicFiltering")
         if (supportsAnisotropicFiltering) {
             val max = glGetFloat(EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
