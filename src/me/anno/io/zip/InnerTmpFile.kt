@@ -12,8 +12,10 @@ import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.util.concurrent.atomic.AtomicInteger
 
-abstract class InnerTmpFile(id1: Int = id.incrementAndGet()) :
-    InnerFile("fake/$id1", "fake/$id1", false, InvalidRef) {
+abstract class InnerTmpFile private constructor(name: String) :
+    InnerFile(name, name, false, InvalidRef) {
+
+    constructor(): this("tmp://${id.incrementAndGet()}")
 
     class InnerTmpByteFile(bytes: ByteArray) : InnerTmpFile() {
 

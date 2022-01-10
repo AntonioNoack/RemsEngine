@@ -23,6 +23,7 @@ object TerrainUtils {
         height: Int,
         offset: Int,
         stride: Int,
+        flipY: Boolean,
         cellSizeMeters: Float,
         mesh: Mesh,
         heightMap: HeightMap,
@@ -49,13 +50,27 @@ object TerrainUtils {
                 val i10 = i00 + width
                 val i11 = i01 + width
 
-                indices[k++] = i00
-                indices[k++] = i10
-                indices[k++] = i11
+                if (flipY) {
 
-                indices[k++] = i11
-                indices[k++] = i01
-                indices[k++] = i00
+                    indices[k++] = i00
+                    indices[k++] = i11
+                    indices[k++] = i10
+
+                    indices[k++] = i01
+                    indices[k++] = i11
+                    indices[k++] = i00
+
+                } else {
+
+                    indices[k++] = i00
+                    indices[k++] = i10
+                    indices[k++] = i11
+
+                    indices[k++] = i11
+                    indices[k++] = i01
+                    indices[k++] = i00
+
+                }
 
                 i00++
             }
@@ -68,15 +83,16 @@ object TerrainUtils {
         val vertexCount = width * height
         var vertices = mesh.positions
         var normals = mesh.normals
-        if (vertices?.size != vertexCount * 3 || normals == null) {
-            vertices = FloatArray(vertexCount * 3)
-            normals = FloatArray(vertexCount * 3)
+        val verticesSize = vertexCount * 3
+        if (vertices == null || normals == null || vertices.size != verticesSize) {
+            vertices = FloatArray(verticesSize)
+            normals = FloatArray(verticesSize)
             mesh.positions = vertices
             mesh.normals = normals
         }
 
         var colors = mesh.color0
-        if (colors?.size != vertexCount) {
+        if (colors == null || colors.size != vertexCount) {
             colors = IntArray(vertexCount)
             mesh.color0 = colors
         }

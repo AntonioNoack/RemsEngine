@@ -1,6 +1,7 @@
 package me.anno.image
 
 import kotlin.math.max
+import kotlin.math.min
 
 object ImageScale {
 
@@ -49,6 +50,23 @@ object ImageScale {
         } else {
             // height is the limit
             Pair(max(1, (imageWidth * maxHeight + imageHeight / 2) / imageHeight), maxHeight)
+        }
+    }
+
+    fun scaleMaxPreview(imageWidth: Int, imageHeight: Int, w: Int, h: Int, maxAspectRatio: Int = 5): Pair<Int, Int> {
+        return when {
+            // not too tall or too wide
+            max(imageWidth, imageHeight) < maxAspectRatio * min(imageWidth, imageHeight) -> {
+                scaleMax(imageWidth, imageHeight, w, h)
+            }
+            // wide
+            imageWidth > imageHeight -> {
+                scaleMax(maxAspectRatio, 1, w, h)
+            }
+            // tall
+            else -> {
+                scaleMax(1, maxAspectRatio, w, h)
+            }
         }
     }
 

@@ -22,6 +22,7 @@ import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.ImageGPUCache.getInternalTexture
 import me.anno.image.ImageReadable
 import me.anno.image.ImageScale.scaleMax
+import me.anno.image.ImageScale.scaleMaxPreview
 import me.anno.input.Input
 import me.anno.input.Input.mouseDownX
 import me.anno.input.Input.mouseDownY
@@ -280,20 +281,7 @@ class FileExplorerEntry(
         val w = x1 - x0
         val h = y1 - y0
         // if aspect ratio is extreme, use a different scale
-        val (iw, ih) = when {
-            // not too tall or too wide
-            max(image.w, image.h) < 5 * min(image.w, image.h) -> {
-                scaleMax(image.w, image.h, w, h)
-            }
-            // wide
-            image.w > image.h -> {
-                scaleMax(5, 1, w, h)
-            }
-            // tall
-            else -> {
-                scaleMax(1, 5, w, h)
-            }
-        }
+        val (iw, ih) = scaleMaxPreview(image.w, image.h, w, h, 5)
         // todo if texture is HDR, then use reinhard tonemapping for preview, with factor of 5
         // we can use FSR to upsample the images xD
         val x = x0 + (w - iw) / 2
@@ -379,7 +367,7 @@ class FileExplorerEntry(
 
         // show video progress on playback, e.g. hh:mm:ss/hh:mm:ss
         if (h >= 3 * titlePanel.font.sizeInt) {
-            val meta = FFMPEGMetadata.getMeta(path, true)
+            val meta = getMeta(path, true)
             if (meta != null) {
 
                 val totalSeconds = (meta.videoDuration).roundToInt()

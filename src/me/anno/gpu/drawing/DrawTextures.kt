@@ -87,7 +87,7 @@ object DrawTextures {
 
     private val tiling = Vector4f()
     fun drawTransparentBackground(x: Int, y: Int, w: Int, h: Int, numVerticalStripes: Float = 5f) {
-        tiling.set(numVerticalStripes * h.toFloat() / w.toFloat(), numVerticalStripes, 0f, 0f)
+        tiling.set(numVerticalStripes * w.toFloat() / h.toFloat(), numVerticalStripes, 0f, 0f)
         drawTexture(x, y, w, h, TextureLib.colorShowTexture, -1, tiling)
     }
 

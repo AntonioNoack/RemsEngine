@@ -10,7 +10,8 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
-import me.anno.gpu.texture.TextureLib
+import me.anno.image.ImageScale.scaleMax
+import me.anno.image.ImageScale.scaleMaxPreview
 import me.anno.input.Input
 import me.anno.language.translation.NameDesc
 import me.anno.studio.StudioBase.Companion.defaultWindowStack
@@ -21,8 +22,6 @@ import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import org.apache.logging.log4j.LogManager
-import org.joml.Vector2f
-import org.joml.Vector4f
 import kotlin.math.min
 
 /**
@@ -42,73 +41,58 @@ object DebugGPUStorage {
 
     val fontSize get() = monospaceFont.value.sizeInt
 
-    class TexturePanel(name: String, val tex: Texture2D) : Panel(style) {
+    abstract class TexturePanelBase(val title: String) : Panel(style) {
 
-        init {
-            this.name = name
-            tooltip = name
-        }
+        abstract fun getTexW(): Int
+        abstract fun getTexH(): Int
+        abstract fun isFine(): Boolean
 
         override fun calculateSize(w: Int, h: Int) {
             super.calculateSize(w, h)
-            val sx = min(w, GFX.width).toFloat() / tex.w
-            val sy = min(h, GFX.height).toFloat() / tex.h
-            val scale = min(sx, sy)
-            minW = (tex.w * scale).toInt()
-            minH = (tex.h * scale).toInt() + fontSize
+            val (sw, sh) = scaleMaxPreview(getTexW(), getTexH(), min(w, GFX.width), min(h, GFX.height) - fontSize)
+            minW = sw
+            minH = sh + fontSize
         }
 
         override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
             super.onDraw(x0, y0, x1, y1)
-            if (tex.isCreated && !tex.isDestroyed) {
-                val scale = min(w.toFloat() / tex.w, (h - fontSize).toFloat() / tex.h)
-                val w = (tex.w * scale).toInt()
-                val h = (tex.h * scale).toInt()
+            if (isFine()) {
+                val (w, h) = scaleMaxPreview(getTexW(), getTexH(), w, h - fontSize)
+                val xi = x + (this.w - w) / 2
+                val yi = y + fontSize + (this.h - fontSize - h) / 2
                 // transparency-showing background
-                DrawTextures. drawTransparentBackground(x, y + fontSize, w, h - fontSize)
-                DrawTextures.drawTexture(x, y + fontSize, w, h, tex, -1, null)
-                DrawTexts.drawSimpleTextCharByChar(x, y, 2, "$name, ${tex.w} x ${tex.h}")
+                DrawTextures.drawTransparentBackground(xi, yi, w, h)
+                drawTexture(xi, yi, w, h)
+                DrawTexts.drawSimpleTextCharByChar(x, y, 2, title)
             } else visibility = Visibility.GONE
         }
+
+        abstract fun drawTexture(x: Int, y: Int, w: Int, h: Int)
+
     }
 
-    class TexturePanel3D(name: String, val tex: CubemapTexture) : Panel(style) {
+    class TexturePanel(name: String, val tex: Texture2D) : TexturePanelBase("$name, ${tex.w} x ${tex.h}") {
 
-        init {
-            this.name = name
-            tooltip = name
+        override fun getTexW(): Int = tex.w
+        override fun getTexH(): Int = tex.h
+        override fun isFine(): Boolean = tex.isCreated && !tex.isDestroyed
+
+        override fun drawTexture(x: Int, y: Int, w: Int, h: Int) {
+            DrawTextures.drawTexture(x, y, w, h, tex, -1, null)
         }
 
-        val rotation = Vector2f()
+    }
 
-        override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-            if (Input.isLeftDown) {
-                val scale = 5f / min(w, h)
-                rotation.x += scale * dx
-                rotation.y += scale * dy
-            } else super.onMouseMoved(x, y, dx, dy)
+    class TexturePanel3D(name: String, val tex: CubemapTexture) : TexturePanelBase("$name, ${tex.w} x ${tex.h}") {
+
+        override fun getTexW(): Int = tex.w
+        override fun getTexH(): Int = tex.h
+        override fun isFine(): Boolean = tex.isCreated && !tex.isDestroyed
+
+        override fun drawTexture(x: Int, y: Int, w: Int, h: Int) {
+            DrawTextures.drawProjection(x, y, w, h, tex, false, -1)
         }
 
-        override fun calculateSize(w: Int, h: Int) {
-            super.calculateSize(w, h)
-            val sx = min(w, GFX.width).toFloat() / tex.w
-            val sy = min(h, GFX.height).toFloat() / tex.h
-            val scale = min(sx, sy)
-            minW = (tex.w * scale).toInt()
-            minH = (tex.h * scale).toInt() + fontSize
-        }
-
-        override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-            super.onDraw(x0, y0, x1, y1)
-            if (tex.isCreated && !tex.isDestroyed) {
-                val scale = min(w.toFloat() / tex.w, (h - fontSize).toFloat() / tex.h)
-                val w = (tex.w * scale).toInt()
-                val h = (tex.h * scale).toInt()
-                DrawTextures.drawTransparentBackground(x, y + fontSize, w, h - fontSize)
-                DrawTextures.drawProjection(x, y + fontSize, w, h, tex, false, -1)
-                DrawTexts.drawSimpleTextCharByChar(x, y, 2, "$name, ${tex.w} x ${tex.h}")
-            } else visibility = Visibility.GONE
-        }
     }
 
     fun openMenu() {

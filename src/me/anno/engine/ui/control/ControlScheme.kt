@@ -13,6 +13,7 @@ import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.EditorState.control
 import me.anno.engine.ui.EditorState.editMode
+import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.camPosition
 import me.anno.engine.ui.render.RenderView.Companion.mouseDir
@@ -254,7 +255,7 @@ open class ControlScheme(val camera: CameraComponent, val library: EditorState, 
     // to do call events before we draw the scene? that way we would not get the 1-frame delay
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         // no background
-        if (view.renderMode == RenderView.RenderMode.RAY_TEST) {
+        if (view.renderMode == RenderMode.RAY_TEST) {
             testHits()
         }
         backgroundColor = backgroundColor and 0xffffff

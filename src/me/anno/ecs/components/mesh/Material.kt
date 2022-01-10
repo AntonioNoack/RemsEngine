@@ -27,6 +27,9 @@ import org.joml.Vector4f
 
 class Material : PrefabSaveable() {
 
+    // todo most properties here should be defined by the shader, not this class
+    // todo we then somehow must display them dynamically
+
     @SerializedProperty
     var shaderOverrides = HashMap<String, TypeValue>()
 

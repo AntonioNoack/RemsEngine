@@ -6,6 +6,7 @@ import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.EditorState
+import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.camDirection
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
@@ -54,9 +55,9 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
         val topLeft = PanelListX(style)
         topLeft.add(EnumInput(
             "Draw Mode", "", view.renderMode.name,
-            RenderView.RenderMode.values().map { NameDesc(it.name) }, style
+            RenderMode.values().map { NameDesc(it.name) }, style
         ).setChangeListener { _, index, _ ->
-            view.renderMode = RenderView.RenderMode.values()[index]
+            view.renderMode = RenderMode.values()[index]
         })
         topLeft.add(TextButton("Play", "Start the game", false, style)
             .addLeftClickListener {
@@ -276,8 +277,7 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         val hovered = lazy { // get hovered element
-            val (e, c) = view.resolveClick(x, y)
-            c
+            view.resolveClick(x, y).second
         }
         for (file in files) {
             // todo load as prefab (?)

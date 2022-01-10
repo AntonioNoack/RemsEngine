@@ -10,6 +10,7 @@ import me.anno.gpu.OpenGL
 import me.anno.gpu.buffer.Buffer.Companion.bindBuffer
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.shader.Shader
 import me.anno.image.Image
 import me.anno.objects.modes.RotateJPEG
 import me.anno.utils.hpc.Threads.threadWithName
@@ -911,6 +912,7 @@ open class Texture2D(
 
         /**
          * bind the texture, the slot doesn't matter
+         * @return whether the texture was actively bound
          * */
         fun bindTexture(mode: Int, pointer: Int): Boolean {
             if (pointer < 0) throw IllegalArgumentException("Pointer must be valid")

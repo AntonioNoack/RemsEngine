@@ -3,6 +3,7 @@ package me.anno.gpu.framebuffer
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL
 import me.anno.gpu.debug.DebugGPUStorage
+import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
@@ -274,6 +275,14 @@ class Framebuffer(
         val state = glCheckNamedFramebufferStatus(pointer, GL_FRAMEBUFFER)
         if (state != GL_FRAMEBUFFER_COMPLETE) {
             throw RuntimeException("Framebuffer is incomplete: ${GFX.getErrorTypeName(state)}")
+        }
+    }
+
+    fun bindTexture0(shader: Shader, texName: String, nearest: GPUFiltering, clamping: Clamping) {
+        val index = shader.getTextureIndex(texName)
+        if (index >= 0) {
+            checkSession()
+            bindTextureI(0, index, nearest, clamping)
         }
     }
 

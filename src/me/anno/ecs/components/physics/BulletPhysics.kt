@@ -29,6 +29,7 @@ import me.anno.ecs.components.physics.events.FallenOutOfWorld
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.physics.BulletDebugDraw
 import me.anno.engine.ui.render.DrawAABB
+import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.camPosition
 import me.anno.engine.ui.render.RenderView.Companion.cameraMatrix
@@ -524,7 +525,7 @@ class BulletPhysics() : Component() {
         debugDraw.worldScale = worldScale
         debugDraw.cam.set(camPosition)
 
-        if (view.renderMode == RenderView.RenderMode.PHYSICS) {
+        if (view.renderMode == RenderMode.PHYSICS) {
             drawContactPoints(view)
             drawAABBs(view)
             drawVehicles(view)

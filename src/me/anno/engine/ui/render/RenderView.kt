@@ -2,7 +2,6 @@ package me.anno.engine.ui.render
 
 import me.anno.Build
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultStyle.white4
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.CameraComponent
@@ -48,7 +47,6 @@ import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.LineBuffer
-import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DepthBasedAntiAliasing
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTextures.drawProjection
@@ -135,64 +133,15 @@ import kotlin.math.tan
 //  - however it would limit us to a single renderer...
 // -> first just draw a single scene and later todo make it multiplayer
 
+// todo make shaders of materials be references via a file? this will allow for visual shaders in the future
+
+// todo define the render pipeline from the editor? maybe from the code in an elegant way? top level element?
+
 class RenderView(
     val library: EditorState,
-    val mode: Mode,
+    val mode: PlayMode,
     style: Style
 ) : Panel(style) {
-
-    enum class Mode {
-        EDITING,
-        PLAY_TESTING,
-        PLAYING
-    }
-
-    enum class RenderMode(val dlt: DeferredLayerType? = null) {
-        DEFAULT,
-        WITHOUT_POST_PROCESSING,
-        CLICK_IDS,
-        DEPTH,
-        FORCE_DEFERRED,
-        FORCE_NON_DEFERRED,
-        ALL_DEFERRED_LAYERS,
-        ALL_DEFERRED_BUFFERS,
-
-        COLOR(DeferredLayerType.COLOR),
-        NORMAL(DeferredLayerType.NORMAL),
-        EMISSIVE(DeferredLayerType.EMISSIVE),
-        ROUGHNESS(DeferredLayerType.ROUGHNESS),
-        METALLIC(DeferredLayerType.METALLIC),
-        POSITION(DeferredLayerType.POSITION),
-        TRANSLUCENCY(DeferredLayerType.TRANSLUCENCY),
-        OCCLUSION(DeferredLayerType.OCCLUSION),
-        SHEEN(DeferredLayerType.SHEEN),
-        ANISOTROPY(DeferredLayerType.ANISOTROPIC),
-
-        // ALPHA, // currently not defined
-        LIGHT_SUM, // todo implement dust-light-spilling for impressive fog
-        LIGHT_COUNT,
-
-        SSAO,
-        SS_REFLECTIONS,
-
-        INVERSE_DEPTH,
-        OVERDRAW, // todo overdraw seems to be missing all cubes... why?
-        MSAA_X8,
-        WITH_PRE_DRAW_DEPTH,
-        MONO_WORLD_SCALE,
-        GHOSTING_DEBUG,
-        FSR_SQRT2,
-        FSR_X2,
-        FSR_X4,
-        NEAREST_X4,
-        LINES, FRONT_BACK,
-
-        SHOW_AABB,
-        PHYSICS,
-
-        RAY_TEST,
-
-    }
 
     private var bloomStrength = 0.5f
     private var bloomOffset = 10f
@@ -211,7 +160,7 @@ class RenderView(
     var editorCamera = CameraComponent()
     val editorCameraNode = Entity(editorCamera)
 
-    val isFinalRendering get() = mode != Mode.EDITING
+    val isFinalRendering get() = mode != PlayMode.EDITING
 
     var renderMode = RenderMode.DEFAULT
 
@@ -633,8 +582,8 @@ class RenderView(
                             shader.v3("ambientLight", pipeline.ambient)
 
                             buffer.bindTextures(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                            ssao.bind(1, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                            lightBuffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                            ssao.bind(shader, "ambientOcclusion", GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                            lightBuffer.bindTexture0(shader, "finalLight", GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
 
                             flat01.draw(shader)
 
@@ -672,8 +621,8 @@ class RenderView(
                                 shader.v1("applyToneMapping", true)
 
                                 buffer.bindTextures(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                                ssao.bind(1, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                                lightBuffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                                ssao.bind(shader, "ambientOcclusion", GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                                lightBuffer.bindTexture0(shader, "finalLight", GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
 
                                 flat01.draw(shader)
 

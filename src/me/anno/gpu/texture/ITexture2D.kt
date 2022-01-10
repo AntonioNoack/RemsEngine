@@ -1,6 +1,7 @@
 package me.anno.gpu.texture
 
 import me.anno.cache.data.ICacheData
+import me.anno.gpu.shader.Shader
 
 interface ITexture2D : ICacheData {
 
@@ -15,6 +16,13 @@ interface ITexture2D : ICacheData {
     fun bind(index: Int, nearest: GPUFiltering, clamping: Clamping): Boolean
     fun bind(index: Int, filtering: Filtering, clamping: Clamping): Boolean {
         return bind(index, if (filtering.baseIsNearest) GPUFiltering.NEAREST else GPUFiltering.LINEAR, clamping)
+    }
+
+    fun bind(shader: Shader, texName: String, nearest: GPUFiltering, clamping: Clamping): Boolean {
+        val index = shader.getTextureIndex(texName)
+        return if (index >= 0) {
+            bind(index, nearest, clamping)
+        } else false
     }
 
     fun bindTrulyNearest(index: Int) = bind(index, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
