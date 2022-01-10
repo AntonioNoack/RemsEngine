@@ -2,6 +2,7 @@ package me.anno.ecs.prefab
 
 import me.anno.config.DefaultStyle.black
 import me.anno.ecs.Entity
+import me.anno.ecs.annotations.DebugTitle
 import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.interfaces.CustomEditMode
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
@@ -30,6 +31,7 @@ import me.anno.utils.process.DelayedTask
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.strings.StringHelper.shorten2Way
 import me.anno.utils.structures.Compare.ifSame
+import me.anno.utils.types.Lists.firstInstanceOrNull
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 
@@ -170,9 +172,11 @@ class PrefabInspector(val prefab: Prefab) {
         })
 
         // for debugging
-        list.add(TextButton("Copy", false, style).addLeftClickListener {
-            LOGGER.info("Copy: ${TextWriter.toText(instance)}")
-        })
+        /*list.add(TextButton("Copy Internal Data", false, style).addLeftClickListener {
+            val text = TextWriter.toText(instance)
+            setClipboardContent(text)
+            LOGGER.info("Copy: $text")
+        })*/
 
         if (instance is ControlReceiver) {
             list.add(TextButton("Test Controls", false, style)
@@ -204,7 +208,8 @@ class PrefabInspector(val prefab: Prefab) {
             /* for (param in action.parameters) {
                      param.kind
             } */
-            list.add(TextButton(action.name.camelCaseToTitle(), false, style)
+            val title = action.annotations.firstInstanceOrNull<DebugTitle>()?.title ?: action.name.camelCaseToTitle()
+            list.add(TextButton(title, false, style)
                 .addLeftClickListener {
                     action.call(instance)
                     invalidateUI() // typically sth would have changed -> show that automatically
