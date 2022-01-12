@@ -1,5 +1,6 @@
 package me.anno.ecs.prefab
 
+import me.anno.Engine
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabCache.getPrefab
 import me.anno.ecs.prefab.change.CAdd
@@ -210,7 +211,10 @@ object Hierarchy {
         val sets = prefab.sets
         // sets as MutableList
 
-        LOGGER.info("Removing ${sets.count { k1, _, _ -> k1.startsWith(path) }} sets")
+        LOGGER.info("Removing ${sets.count { k1, _, _ -> k1.startsWith(path) }}, " +
+                "sets: ${sets.filterMajor { k1 -> k1.startsWith(path) }.entries.joinToString { it.key.toString() }}, " +
+                "all start with $path"
+        )
         sets.removeMajorIf { it.startsWith(path) }
         // sets.removeIf { it.path.startsWith(path) }
         prefab.isValid = false
@@ -268,6 +272,11 @@ object Hierarchy {
 
     }
 
+    class UniqueWrapper(val v: Any) {
+        override fun hashCode(): Int = v.hashCode()
+        override fun equals(other: Any?) = other is UniqueWrapper && v === other.v
+    }
+
     private fun testAdd() {
         // test
         val scene = Prefab("Entity", ScenePrefab)
@@ -294,9 +303,9 @@ object Hierarchy {
 
     private fun testRenumberRemove() {
         val prefab = Prefab("Entity")
-        val elementA = prefab.add(Path.ROOT_PATH, 'e', "Entity", "A",0)
-        val elementB = prefab.add(Path.ROOT_PATH, 'e', "Entity", "B",1)
-        val elementC = prefab.add(elementB, 'e', "Entity", "C",0)
+        val elementA = prefab.add(Path.ROOT_PATH, 'e', "Entity", "A", 0)
+        val elementB = prefab.add(Path.ROOT_PATH, 'e', "Entity", "B", 1)
+        val elementC = prefab.add(elementB, 'e', "Entity", "C", 0)
         prefab.set(elementC, "position", Vector3d())
         // Root
         // - A
@@ -369,11 +378,52 @@ object Hierarchy {
         return changedArrays
     }
 
+    fun assert(boolean: Boolean) {
+        if (!boolean) throw RuntimeException()
+    }
+
+    fun assert(a: Any?, b: Any?) {
+        if (a != b) throw RuntimeException("$a != $b")
+    }
+
+    fun testRemoval2() {
+        val prefab = Prefab("Entity")
+        val clazz = "PointLight"
+        val n = 100
+        val names = Array(n) { "child$it" }
+        for (i in 0 until n) {
+            val child = prefab.add(Path.ROOT_PATH, 'c', clazz, names[i])
+            prefab.setProperty(child, "description", "desc$i")
+            prefab.setProperty(child, "lightSize", i.toDouble())
+        }
+        assert(prefab.adds.size, n)
+        assert(prefab.sets.size, 2 * n)
+        val tested = intArrayOf(3, 7, 17, 38, 80)
+        for (i in tested.sortedDescending()) {
+            val sample = prefab.getSampleInstance() as Entity
+            removePathFromPrefab(prefab, sample.components[i])
+        }
+        // test prefab
+        assert(prefab.adds.size, n - tested.size)
+        assert(prefab.sets.size, 2 * (n - tested.size))
+        // test result
+        val sample = prefab.getSampleInstance() as Entity
+        assert(sample.components.size, n - tested.size)
+        for (i in 0 until n) {
+            // test that exactly those still exist, that we didn't remove
+            assert(sample.components.count { it.name == names[i] }, if (i in tested) 0 else 1)
+        }
+        Engine.requestShutdown()
+    }
+
     @JvmStatic
     fun main(args: Array<String>) {
         ECSRegistry.initNoGFX()
+        testRemoval2()
         testAdd()
         testRenumberRemove()
     }
+
+    // todo when you remove multiple elements, not all paths are renamed, and then incorrect sets are deleted
 
 }

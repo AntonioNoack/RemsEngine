@@ -59,6 +59,7 @@ class CSet() : Change(5) {
 
     override fun applyChange(instance: PrefabSaveable, chain: MutableSet<FileReference>?) {
         applyChange(instance, path, name!!, value)
+        path = instance.prefabPath ?: path // remove a few superfluous instances
     }
 
     override val approxSize: Int = 10

@@ -54,7 +54,7 @@ class Transform() : Saveable() {
 
     fun checkTransform(drawTransform: Matrix4x3d) {
         if (!drawTransform.isFinite) {
-            Engine.shutdown()
+            Engine.requestShutdown()
             Thread.sleep(100)
             throw RuntimeException("Transform became invalid")
         }

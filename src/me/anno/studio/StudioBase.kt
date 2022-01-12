@@ -166,11 +166,11 @@ abstract class StudioBase(
         shallStop = true
         ExtensionLoader.unload()
         Cursor.destroy()
-        Engine.shutdown()
+        Engine.requestShutdown()
         onGameClose()
     }
 
-    open fun onGameLoop(w: Int, h: Int): Boolean {
+    open fun onGameLoop(w: Int, h: Int) {
 
         check()
 
@@ -221,8 +221,6 @@ abstract class StudioBase(
         CacheSection.updateAll()
 
         onGameLoopEnd()
-
-        return false
 
     }
 

@@ -134,7 +134,7 @@ class VideoCreator(
         GFX.check()
 
         if (frame.w != w || frame.h != h) throw RuntimeException("Resolution does not match!")
-        frame.bindDirectly(false)
+        frame.bindDirectly()
         Frame.invalidate()
 
         val buffer = if (frameIndex % 2 == 0L) buffer1 else buffer2
@@ -218,7 +218,7 @@ class VideoCreator(
                         }
                     } else {
                         creator.close()
-                        Engine.shutdown()
+                        Engine.requestShutdown()
                     }
                 }
             }
@@ -257,7 +257,7 @@ class VideoCreator(
                             }
                         } else {
                             creator.close()
-                            Engine.shutdown()
+                            Engine.requestShutdown()
                         }
                     }
                 }

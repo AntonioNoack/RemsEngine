@@ -25,7 +25,7 @@ object ScenePrefab : InnerPrefabFile(
     FileRootRef,
     Prefab("Entity").apply {
 
-        // val clock = Clock()
+        val clock = Clock()
 
         ensureMutableLists()
 
@@ -42,13 +42,15 @@ object ScenePrefab : InnerPrefabFile(
         )
 
         val root = Path.ROOT_PATH
+        val instances = ArrayList<Path>()
         for ((name, description) in coreComponents) {
             val e = addE(this, root, name)
             set(e, "description", description)
             set(e, "isCollapsed", false)
+            instances.add(e)
         }
 
-        /*
+
         // root has bullet physics, because the players need physics as well
         addC(this, root, "BulletPhysics")
 
@@ -58,7 +60,7 @@ object ScenePrefab : InnerPrefabFile(
         //////////////////
         // sample mesh //
         ////////////////
-        val world = root.added(names[0], 0, 'e')
+        val world = instances[0]
 
         val testCamera = addE(this, world, "Camera")
         addC(this, testCamera, "CameraComponent")
@@ -119,7 +121,7 @@ object ScenePrefab : InnerPrefabFile(
         set(dlp, "shadowMapCascades", 1)
         set(dlp, "color", Vector3f(70f))*/
 
-        if (false) {
+        if (true) {
             val ringOfLights = addE(this, lights, "Ring Of Lights")
             val superRings = 35
             val rlc0 = RenderView.MAX_FORWARD_LIGHTS - 4
@@ -128,17 +130,20 @@ object ScenePrefab : InnerPrefabFile(
             val numColors = 3
             val colors = Array(numColors) {
                 val angle = it / numColors.toFloat()
-                HSLuv.toRGB(Vector3f(angle, 1f, 0.7f)).mul(lightLevel)
+                val vec = Vector3f(angle, 1f, 0.7f)
+                HSLuv.toRGB(vec, vec).mul(lightLevel)
             }
             val scale = Vector3d(elementSize)
-            val instanceNames = Array(10) { "Light[$it]" }
+            fun getRadius(j: Int) = 50.0 * (1.0 + j * 0.1)
+            fun getLightCount(radius: Double) = (radius * 0.5).toInt()
+            val instanceNames = Array(getLightCount(getRadius(superRings - 1))) { "Light[$it]" }
             for (j in 0 until superRings) {
                 val superRing = if (superRings > 1) addE(this, ringOfLights, "Ring[$j]") else ringOfLights
-                val radius = 50.0 * (1.0 + j * 0.1)
-                val ringLightCount = (radius * 0.5).toInt()
+                val radius = getRadius(j)
+                val ringLightCount = getLightCount(radius)
                 for (i in 0 until ringLightCount) {
                     val angle = 6.2830 * i.toDouble() / ringLightCount
-                    val light = addE(this, superRing, instanceNames.getOrNull(i) ?: "Light[..]")
+                    val light = addE(this, superRing, instanceNames[i])
                     val position = Vector3d(radius * cos(angle), elementSize * 0.5, radius * sin(angle))
                     set(light, "position", position)
                     set(light, "scale", scale)
@@ -267,7 +272,7 @@ object ScenePrefab : InnerPrefabFile(
             val sphere = addE(this, planets, "Sphere 1e$i", spherePath)
             set(sphere, "position", Vector3d(0.0, 0.0, 3.0 * size))
             set(sphere, "scale", Vector3d(size))
-        }*/*/
+        }*/ // */
 
     }) {
 

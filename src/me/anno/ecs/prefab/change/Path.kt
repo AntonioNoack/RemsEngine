@@ -96,6 +96,7 @@ class Path(
 
     fun <V : Change> getSubPathIfMatching(change: V, extraDepth: Int): V? {
         val subPath = getSubPathIfMatching(change.path, extraDepth) ?: return null
+
         @Suppress("UNCHECKED_CAST")
         val clone = change.clone() as V
         clone.path = subPath
@@ -142,10 +143,13 @@ class Path(
         return true
     }
 
+    private var hashCode = 0
     override fun hashCode(): Int {
-        var hash = indices.contentHashCode()
-        hash = hash * 31 + types.contentHashCode()
+        if (hashCode != 0) return hashCode
+        // indices must not be part of the hash, as they can change
+        var hash = types.contentHashCode()
         hash = hash * 31 + names.contentHashCode()
+        hashCode = hash
         return hash
     }
 
@@ -227,6 +231,8 @@ class Path(
     override fun isDefaultValue(): Boolean = isEmpty()
 
     companion object {
+
+        private val pathCache = HashMap<String, Path>()
 
         val emptyIntArray = IntArray(0)
         val emptyCharArray = CharArray(0)

@@ -210,14 +210,12 @@ object PrefabCache : CacheSection("Prefab") {
         instance.changePaths(prefab, Path.ROOT_PATH)
         // val changes2 = (changes0 ?: emptyList()).groupBy { it.className }.map { "${it.value.size}x ${it.key}" }
         // LOGGER.info("  creating entity instance from ${changes0?.size ?: 0} changes, $changes2")
-        if (adds != null) {
-            for ((index, add) in adds.withIndex()) {
-                try {
-                    add.apply(instance, HashSet(chain))
-                } catch (e: Exception) {
-                    LOGGER.warn("Change $index, $add failed")
-                    throw e
-                }
+        adds?.forEachIndexed { index, add ->
+            try {
+                add.apply(instance, HashSet(chain))
+            } catch (e: Exception) {
+                LOGGER.warn("Change $index, $add failed")
+                throw e
             }
         }
         sets?.forEach { k1, k2, v ->

@@ -82,9 +82,9 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         GameEngine.scaledTime = GameEngine.scaledNanos * 1e-9
     }
 
-    override fun onGameLoop(w: Int, h: Int): Boolean {
+    override fun onGameLoop(w: Int, h: Int) {
         DefaultConfig.saveMaybe("main.config")
-        return super.onGameLoop(w, h)
+        super.onGameLoop(w, h)
     }
 
     override fun save() {

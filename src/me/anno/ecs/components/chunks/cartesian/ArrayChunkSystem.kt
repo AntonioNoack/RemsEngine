@@ -1,12 +1,13 @@
-package me.anno.ecs.components.chunks
+package me.anno.ecs.components.chunks.cartesian
 
 /**
  * a typical implementation for a chunk system would be an array backend
  * */
 abstract class ArrayChunkSystem<Element>(
     bitsX: Int, bitsY: Int, bitsZ: Int,
-    val defaultElement: Element
-) : ChunkSystem<Array<Element>, Element>(bitsX, bitsY, bitsZ) {
+    val defaultElement: Element,
+    initialCapacity: Int = 256
+) : ChunkSystem<Array<Element>, Element>(bitsX, bitsY, bitsZ, initialCapacity) {
 
     abstract fun generateChunk(chunkX: Int, chunkY: Int, chunkZ: Int, chunk: Array<Element>)
 

@@ -1,3 +1,7 @@
 package me.anno.ecs.components.chunks
 
-class PlayerLocation(var x: Int, var y: Int, var z: Int, var distanceMultiplier: Double = 1.0)
+class PlayerLocation(
+    var x: Double, var y: Double, var z: Double,
+    var loadMultiplier: Double = 1.0,
+    var unloadMultiplier: Double = 1.0
+)

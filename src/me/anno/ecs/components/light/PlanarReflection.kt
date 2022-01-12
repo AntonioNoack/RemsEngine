@@ -15,6 +15,7 @@ import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.texture.ITexture2D
 import me.anno.io.serialization.NotSerializedProperty
+import me.anno.mesh.Shapes
 import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.AABBs.transformUnion
 import me.anno.utils.types.Matrices.mirror
@@ -77,7 +78,7 @@ class PlanarReflection : LightComponentBase() {
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
         // todo if not both-sided, use half-cubes
-        val mesh = PointLight.cubeMesh
+        val mesh = Shapes.cube
         mesh.ensureBuffer()
         mesh.aabb.transformUnion(globalTransform, aabb)
         return true

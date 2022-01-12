@@ -1,7 +1,6 @@
 package me.anno.utils.test.gfx
 
 import me.anno.Engine
-import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.BoneByBoneAnimation
 import me.anno.ecs.components.anim.ImportedAnimation
@@ -229,6 +228,6 @@ fun main() {
 
     clock.total("")
 
-    Engine.shutdown()
+    Engine.requestShutdown()
 
 }

@@ -182,7 +182,6 @@ object OpenGL {
         renderer: Renderer,
         render: () -> Unit
     ) {
-
         val index = framebuffer.size
         xs[index] = x
         ys[index] = y

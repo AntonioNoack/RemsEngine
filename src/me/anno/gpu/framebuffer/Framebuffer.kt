@@ -56,7 +56,7 @@ class Framebuffer(
     val target = if (withMultisampling) GL_TEXTURE_2D_MULTISAMPLE else GL_TEXTURE_2D
 
     // multiple targets, layout=x require shader version 330+
-    // use glBindFragDataLocation instead
+    // use bindFragDataLocation instead
 
     var needsBlit = true
 
@@ -91,19 +91,19 @@ class Framebuffer(
 
     override fun ensure() {
         checkSession()
-        if (pointer < 0) create()
+        if (pointer <= 0) create()
     }
 
-    override fun bindDirectly(viewport: Boolean) = bind(viewport)
-    override fun bindDirectly(w: Int, h: Int, viewport: Boolean) = bind(w, h, viewport)
+    override fun bindDirectly() = bind()
+    override fun bindDirectly(w: Int, h: Int) {
+        ensureSize(w, h)
+        bind()
+    }
 
-    private fun bind(viewport: Boolean) {
+    fun bind() {
         needsBlit = true
         ensure()
-        glBindFramebuffer(GL_FRAMEBUFFER, pointer)
-        Frame.lastPtr = pointer
-        if (viewport) glViewport(0, 0, w, h)
-        //stack.push(this)
+        bindFramebuffer(GL_FRAMEBUFFER, pointer)
         if (withMultisampling) {
             glEnable(GL_MULTISAMPLE)
         } else {
@@ -111,8 +111,7 @@ class Framebuffer(
         }
     }
 
-    private fun bind(newWidth: Int, newHeight: Int, viewport: Boolean = true) {
-        needsBlit = true
+    private fun ensureSize(newWidth: Int, newHeight: Int) {
         if (newWidth != w || newHeight != h) {
             w = newWidth
             h = newHeight
@@ -120,43 +119,32 @@ class Framebuffer(
             destroy()
             GFX.check()
             create()
-            if (viewport) {
-                // not done by create...
-                glViewport(0, 0, newWidth, newHeight)
-            }
-            GFX.check()
-        } else {
-            GFX.check()
-            bind(viewport)
             GFX.check()
         }
     }
 
-    private fun create() {
+    fun create() {
         Frame.invalidate()
-        // LOGGER.info("w: $w, h: $h, samples: $samples, targets: $targetCount x fp32? $fpTargets")
         GFX.check()
         val pointer = glGenFramebuffers()
         if (pointer <= 0) throw OutOfMemoryError("Could not generate OpenGL framebuffer")
         LOGGER.debug("Creating $pointer: $name $w $h $samples ${targets.joinToString { it.name }} $depthBufferType")
         session = OpenGL.session
         DebugGPUStorage.fbs.add(this)
-        glBindFramebuffer(GL_FRAMEBUFFER, pointer)
+        bindFramebuffer(GL_FRAMEBUFFER, pointer)
         Frame.lastPtr = pointer
-        //stack.push(this)
+        val w = w
+        val h = h
         GFX.check()
         textures = Array(targets.size) { index ->
             val texture = Texture2D("$name-tex[$index]", w, h, samples)
             texture.create(targets[index])
-            // if (fpTargets) texture.createFP32()
-            // else texture.create()
-            // LOGGER.info("create/textures-array $w $h $samples $fpTargets")
             GFX.check()
             texture
         }
         GFX.check()
         val textures = textures
-        for (index in textures.indices) {
+        for (index in targets.indices) {
             val texture = textures[index]
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, texture.target, texture.pointer, 0)
         }
@@ -189,6 +177,7 @@ class Framebuffer(
             }
         }
         GFX.check()
+        println("created $pointer as $w x $h")
         check(pointer)
         this.pointer = pointer
     }
@@ -203,7 +192,7 @@ class Framebuffer(
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderBuffer)
     }*/
 
-    private fun createDepthBuffer() {
+    fun createDepthBuffer() {
         val renderBuffer = glGenRenderbuffers()
         if (renderBuffer < 0) throw RuntimeException("Failed to create renderbuffer")
         internalDepthTexture = renderBuffer
@@ -231,18 +220,18 @@ class Framebuffer(
 
             // ensure that we exist
             if (pointer < 0) {
-                bind(w, h)
+                ensureSize(w, h)
             }
 
             // ensure that it exists
             // + bind it, it seems important
-            target.bind(w, h)
+            target.ensureSize(w, h)
 
             GFX.check()
 
             // LOGGER.info("Blit: $pointer -> ${target.pointer}")
-            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, target.pointer)
-            glBindFramebuffer(GL_READ_FRAMEBUFFER, pointer)
+            bindFramebuffer(GL_DRAW_FRAMEBUFFER, target.pointer)
+            bindFramebuffer(GL_READ_FRAMEBUFFER, pointer)
             // if(target == null) glDrawBuffer(GL_BACK)?
 
             GFX.check()
@@ -271,7 +260,7 @@ class Framebuffer(
         }
     }
 
-    private fun check(pointer: Int) {
+    fun check(pointer: Int) {
         val state = glCheckNamedFramebufferStatus(pointer, GL_FRAMEBUFFER)
         if (state != GL_FRAMEBUFFER_COMPLETE) {
             throw RuntimeException("Framebuffer is incomplete: ${GFX.getErrorTypeName(state)}")
@@ -365,7 +354,7 @@ class Framebuffer(
     var depthAllocated = 0L
 
     override fun destroy() {
-        if (pointer >= 0) {
+        if (pointer > 0) {
             LOGGER.debug("Destroying framebuffer $pointer")
             msBuffer?.destroy()
             destroyFramebuffer()
@@ -387,8 +376,13 @@ class Framebuffer(
         fun bindNullDirectly() = bindNull()
 
         private fun bindNull() {
-            glBindFramebuffer(GL_FRAMEBUFFER, 0)
+            bindFramebuffer(GL_FRAMEBUFFER, 0)
             Frame.lastPtr = 0
+        }
+
+        fun bindFramebuffer(target: Int, pointer: Int) {
+            glBindFramebuffer(target, pointer)
+            Frame.lastPtr = pointer
         }
 
     }

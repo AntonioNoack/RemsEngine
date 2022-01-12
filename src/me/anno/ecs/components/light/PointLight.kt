@@ -14,6 +14,7 @@ import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Renderer
 import me.anno.io.serialization.SerializedProperty
+import me.anno.mesh.Shapes
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.getScaleLength
 import me.anno.utils.types.Matrices.rotate2
@@ -127,7 +128,7 @@ class PointLight : LightComponent(LightType.POINT) {
         drawSphere(entity, 1.0)
     }
 
-    override fun getLightPrimitive(): Mesh = cubeMesh
+    override fun getLightPrimitive(): Mesh = Shapes.cube
 
     override val className: String = "PointLight"
 
@@ -135,29 +136,6 @@ class PointLight : LightComponent(LightType.POINT) {
 
         private const val cutoff = 0.1
         const val falloff = "max(0.0, 1.0/(1.0+9.0*dot(dir,dir)) - $cutoff)*${1.0 / (1.0 - cutoff)}"
-
-        val cubeMesh = Mesh()
-
-        init {
-            cubeMesh.positions = floatArrayOf(
-                -1f, -1f, -1f,
-                -1f, -1f, +1f,
-                -1f, +1f, -1f,
-                -1f, +1f, +1f,
-                +1f, -1f, -1f,
-                +1f, -1f, +1f,
-                +1f, +1f, -1f,
-                +1f, +1f, +1f,
-            )
-            cubeMesh.indices = intArrayOf(
-                0, 1, 3, 3, 2, 0,
-                1, 5, 7, 7, 3, 1,
-                2, 3, 7, 7, 6, 2,
-                4, 0, 2, 2, 6, 4,
-                4, 6, 7, 7, 5, 4,
-                1, 0, 4, 4, 5, 1
-            )
-        }
 
         fun getShaderCode(cutoffContinue: String?, withShadows: Boolean, hasLightRadius: Boolean): String {
             return "" +

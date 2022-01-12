@@ -68,7 +68,7 @@ abstract class PanelGroup(style: Style) : Panel(style) {
     }
 
     override fun onSelectAll(x: Float, y: Float) {
-        if (children.any { it.getMultiSelectablePanel() == it }) {
+        if (children.any { it.visibility == Visibility.VISIBLE && it.getMultiSelectablePanel() == it }) {
             // select all panels, which are multi-selectable
             GFX.inFocus.clear()
             GFX.inFocus.addAll(children.filter { it.getMultiSelectablePanel() == it })

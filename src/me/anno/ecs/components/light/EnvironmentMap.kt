@@ -23,6 +23,7 @@ import me.anno.image.ImageGPUCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
+import me.anno.mesh.Shapes
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AABBs.transformUnion
 import me.anno.utils.types.Matrices.rotate2
@@ -79,7 +80,7 @@ class EnvironmentMap : LightComponentBase() {
     var samples = 1
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
-        val mesh = PointLight.cubeMesh
+        val mesh = Shapes.cube
         mesh.ensureBuffer()
         mesh.aabb.transformUnion(globalTransform, aabb)
         return true

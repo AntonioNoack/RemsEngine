@@ -48,6 +48,6 @@ fun main() {
 
     LOGGER.info("Used $delta seconds")
 
-    Engine.shutdown()
+    Engine.requestShutdown()
 
 }

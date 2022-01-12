@@ -1,6 +1,9 @@
 package me.anno.utils.types
 
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.f2s
+import me.anno.utils.types.Triangles.subCross
+import me.anno.utils.types.Triangles.subCrossDot
 import org.joml.*
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -55,8 +58,27 @@ object Vectors {
     fun avg(a: Vector3fc, b: Vector3fc, c: Vector3fc) =
         Vector3f((a.x() + b.x() + c.x()) / 3f, (a.y() + b.y() + c.y()) / 3f, (a.z() + b.z() + c.z()) / 3f)
 
+    fun avg(a: Vector3dc, b: Vector3dc, c: Vector3dc) =
+        Vector3d((a.x() + b.x() + c.x()) / 3.0, (a.y() + b.y() + c.y()) / 3.0, (a.z() + b.z() + c.z()) / 3.0)
+
     fun Vector2fc.print(pts: List<Vector2fc>) = "${pts.indexOf(this)}"
     fun Vector2dc.print(pts: List<Vector2dc>) = "${pts.indexOf(this)}"
+
+    fun getSideSign(px: Float, py: Float, ax: Float, ay: Float, bx: Float, by: Float): Float {
+        val dx0 = ax - px
+        val dy0 = ay - py
+        val dx1 = bx - px
+        val dy1 = by - py
+        return dx1 * dy0 - dy1 * dx0
+    }
+
+    fun getSideSign(px: Double, py: Double, ax: Double, ay: Double, bx: Double, by: Double): Double {
+        val dx0 = ax - px
+        val dy0 = ay - py
+        val dx1 = bx - px
+        val dy1 = by - py
+        return dx1 * dy0 - dy1 * dx0
+    }
 
     fun Vector2fc.getSideSign(b: Vector2fc, c: Vector2fc): Float {
         val bx = b.x() - x()
@@ -159,7 +181,8 @@ object Vectors {
     fun rayTriangleIntersection(
         origin: Vector3fc, direction: Vector3fc,
         a: Vector3fc, b: Vector3fc, c: Vector3fc,
-        maxDistance: Float
+        maxDistance: Float,
+        allowBackside: Boolean
     ): Pair<Vector3fc, Float>? {
         val ba = b - a
         val ca = c - a
@@ -168,10 +191,49 @@ object Vectors {
         val t = (d - n.dot(origin)) / n.dot(direction)
         if (t < 0f || t >= maxDistance) return null
         val q = origin + direction * t
-        if ((b - a).cross(q - a).dot(n) < 0) return null
-        if ((c - b).cross(q - b).dot(n) < 0) return null
-        if ((a - c).cross(q - c).dot(n) < 0) return null
-        return q to t
+        var sum = 0
+        if (subCrossDot(a, b, q, n) < 0.0) sum++
+        if (subCrossDot(b, c, q, n) < 0.0) sum++
+        if (subCrossDot(c, a, q, n) < 0.0) sum++
+        return if(sum == 0 || (allowBackside && sum == 3)) q to t else null
+    }
+
+    fun rayTriangleIntersect(
+        origin: Vector3fc, direction: Vector3fc,
+        a: Vector3fc, b: Vector3fc, c: Vector3fc,
+        maxDistance: Float,
+        allowBackside: Boolean
+    ): Boolean {
+        val ba = b - a
+        val ca = c - a
+        val n = ba.cross(ca, JomlPools.vec3f.borrow())
+        val d = n.dot(a)
+        val t = (d - n.dot(origin)) / n.dot(direction)
+        if (t < 0f || t >= maxDistance) return false
+        val q = origin + direction * t
+        var sum = 0
+        if (subCrossDot(a, b, q, n) < 0.0) sum++
+        if (subCrossDot(b, c, q, n) < 0.0) sum++
+        if (subCrossDot(c, a, q, n) < 0.0) sum++
+        return sum == 0 || (allowBackside && sum == 3)
+    }
+
+    fun rayTriangleIntersect(
+        origin: Vector3dc, direction: Vector3dc,
+        a: Vector3dc, b: Vector3dc, c: Vector3dc,
+        maxDistance: Double,
+        allowBackside: Boolean
+    ): Boolean {
+        val n = subCross(a, b, c, JomlPools.vec3d.borrow())
+        val d = n.dot(a)
+        val t = (d - n.dot(origin)) / n.dot(direction)
+        if (t < 0.0 || t >= maxDistance) return false
+        val q = origin + direction * t
+        var sum = 0
+        if (subCrossDot(a, b, q, n) < 0.0) sum++
+        if (subCrossDot(b, c, q, n) < 0.0) sum++
+        if (subCrossDot(c, a, q, n) < 0.0) sum++
+        return sum == 0 || (allowBackside && sum == 3)
     }
 
     fun Int.byteToHex() = (256 or this).toString(16).substring(1)

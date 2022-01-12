@@ -1,12 +1,12 @@
 package me.anno.ecs.components.light
 
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.components.light.PointLight.Companion.cubeMesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.gui.LineShapes.drawArrowZ
 import me.anno.engine.gui.LineShapes.drawBox
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.mesh.Shapes
 import me.anno.utils.types.AABBs.all
 import me.anno.utils.types.AABBs.transformUnion
 import me.anno.utils.types.Matrices.set2
@@ -55,7 +55,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
         pipeline.frustum.defineOrthographic(drawTransform, resolution, position, rotation)
     }
 
-    override fun getLightPrimitive(): Mesh = cubeMesh
+    override fun getLightPrimitive(): Mesh = Shapes.cube
 
     // v0 is not used
     override fun getShaderV1(): Float = shadowMapPower.toFloat()

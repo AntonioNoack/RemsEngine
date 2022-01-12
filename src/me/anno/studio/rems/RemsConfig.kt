@@ -2,7 +2,22 @@ package me.anno.studio.rems
 
 import me.anno.config.DefaultConfig
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.utils.StringMap
+import me.anno.objects.*
+import me.anno.objects.attractors.EffectColoring
+import me.anno.objects.attractors.EffectMorphing
+import me.anno.objects.effects.MaskLayer
+import me.anno.objects.geometric.Circle
+import me.anno.objects.geometric.Polygon
+import me.anno.objects.meshes.MeshTransform
+import me.anno.objects.modes.UVProjection
+import me.anno.objects.particles.ParticleSystem
+import me.anno.objects.particles.TextParticles
+import me.anno.objects.text.Text
+import me.anno.objects.text.Timer
+import me.anno.utils.Clock
 import me.anno.utils.OS
+import org.joml.Vector3f
 
 object RemsConfig {
 
@@ -36,6 +51,56 @@ object RemsConfig {
         }
 
         RemsVersionFeatures(DefaultConfig).addNewPackages(DefaultConfig)
+
+    }
+
+    fun newInstances() {
+
+        val tick = Clock()
+
+        val newInstances: Map<String, Transform> = mapOf(
+            "Mesh" to MeshTransform(getReference(OS.documents, "monkey.obj"), null),
+            "Array" to GFXArray(),
+            "Image / Audio / Video" to Video(),
+            "Polygon" to Polygon(null),
+            "Rectangle" to Rectangle.create(),
+            "Circle" to Circle(null),
+            "Folder" to Transform(),
+            // "Linked Object" to SoftLink(), // non-default, can be created using drag n drop
+            "Mask" to MaskLayer.create(null, null),
+            "Text" to Text("Text"),
+            "Timer" to Timer(),
+            "Cubemap" to run {
+                val cube = Video()
+                cube.uvProjection *= UVProjection.TiledCubemap
+                cube.scale.set(Vector3f(1000f, 1000f, 1000f))
+                cube
+            },
+            "Cube" to run {
+                val cube = Polygon()
+                cube.name = "Cube"
+                cube.autoAlign = true
+                cube.is3D = true
+                cube.vertexCount.set(4)
+                cube
+            },
+            "Camera" to Camera(),
+            "Particle System" to run {
+                val ps = ParticleSystem()
+                ps.name = "Particles"
+                Circle(ps)
+                ps.timeOffset.value = -5.0
+                ps
+            },
+            "Text Particles" to TextParticles(),
+            "Effect: Coloring" to EffectColoring(),
+            "Effect: Morphing" to EffectMorphing()
+        )
+
+        val value = StringMap(16, false).addAll(newInstances)
+        DefaultConfig["createNewInstancesList", value]
+
+        tick.stop("new instances list")
 
     }
 }

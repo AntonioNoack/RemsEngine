@@ -1,14 +1,23 @@
-package me.anno.ecs.components.chunks
+package me.anno.ecs.components.chunks.cartesian
 
+import me.anno.ecs.components.chunks.PlayerLocation
+import org.joml.Vector3d.lengthSquared
 import org.joml.Vector3i
-import org.joml.Vector3i.lengthSquared
 import kotlin.math.max
 import kotlin.math.min
 
-// todo we could use such a system with LODs as well :)
-abstract class ChunkSystem<Chunk, Element>(val bitsX: Int, val bitsY: Int, val bitsZ: Int) {
+/**
+ * general chunk system,
+ * LODs can be generated e.g. with OctTree
+ * */
+abstract class ChunkSystem<Chunk, Element>(
+    val bitsX: Int,
+    val bitsY: Int,
+    val bitsZ: Int,
+    initialCapacity: Int = 256
+) : Iterable<MutableMap.MutableEntry<Vector3i, Chunk>> {
 
-    val chunks = HashMap<Vector3i, Chunk>()
+    val chunks = HashMap<Vector3i, Chunk>(initialCapacity)
 
     val sizeX = 1 shl bitsX
     val sizeY = 1 shl bitsY
@@ -46,6 +55,13 @@ abstract class ChunkSystem<Chunk, Element>(val bitsX: Int, val bitsY: Int, val b
                 }
             }
         } else chunks[key]
+    }
+
+    fun getChunkAt(globalX: Double, globalY: Double, globalZ: Double, generateIfMissing: Boolean): Chunk? {
+        val cx = globalX.toInt() shr bitsX
+        val cy = globalY.toInt() shr bitsY
+        val cz = globalZ.toInt() shr bitsZ
+        return getChunk(cx, cy, cz, generateIfMissing)
     }
 
     fun getChunkAt(globalX: Int, globalY: Int, globalZ: Int, generateIfMissing: Boolean): Chunk? {
@@ -155,19 +171,16 @@ abstract class ChunkSystem<Chunk, Element>(val bitsX: Int, val bitsY: Int, val b
         // unload chunks, which no longer need to be loaded
         // use sth like k nearest neighbors for this (??)...
         synchronized(chunks) {
-            val sx2 = sizeX / 2
-            val sy2 = sizeY / 2
-            val sz2 = sizeZ / 2
+            val sx2 = sizeX * 0.5
+            val sy2 = sizeY * 0.5
+            val sz2 = sizeZ * 0.5
             chunks.entries.removeIf { (pos, chunk) ->
                 val px = (pos.x shl bitsX) + sx2
                 val py = (pos.y shl bitsY) + sy2
                 val pz = (pos.z shl bitsZ) + sz2
                 val shallRemove = players.all {
-                    lengthSquared(
-                        px - it.x,
-                        py - it.y,
-                        pz - it.z
-                    ) * it.distanceMultiplier > unloadingDistance
+                    val dist = lengthSquared(px - it.x, py - it.y, pz - it.z)
+                    dist * it.unloadMultiplier > unloadingDistance
                 }
                 if (shallRemove) onDestroyChunk(chunk, pos.x, pos.y, pos.z)
                 shallRemove
@@ -180,7 +193,7 @@ abstract class ChunkSystem<Chunk, Element>(val bitsX: Int, val bitsY: Int, val b
                 Vector3i(0, 0, -1),
                 Vector3i(0, 0, +1),
             )
-            for((pos, _) in chunks) {
+            for ((pos, _) in chunks) {
                 val px = (pos.x shl bitsX) + sx2
                 val py = (pos.y shl bitsY) + sy2
                 val pz = (pos.z shl bitsZ) + sz2
@@ -189,11 +202,8 @@ abstract class ChunkSystem<Chunk, Element>(val bitsX: Int, val bitsY: Int, val b
                     val cy = py + dy * sizeY
                     val cz = pz + dz * sizeZ
                     if (players.any { p ->
-                            lengthSquared(
-                                cx - p.x,
-                                cy - p.y,
-                                cz - p.z
-                            ) * p.distanceMultiplier < loadingDistance
+                            val dist = lengthSquared(cx - p.x, cy - p.y, cz - p.z)
+                            dist * p.loadMultiplier < loadingDistance
                         }) {
                         getChunk(pos.x + dx, pos.y + dy, pos.z + dz, true)
                     }
@@ -206,11 +216,7 @@ abstract class ChunkSystem<Chunk, Element>(val bitsX: Int, val bitsY: Int, val b
 
     open fun onDestroyChunk(chunk: Chunk, chunkX: Int, chunkY: Int, chunkZ: Int) {}
 
-    inline fun forAllChunks(run: (chunk: Chunk) -> Boolean) {
-        for (chunk in chunks.values) {
-            if (run(chunk)) return
-        }
-    }
+    override fun iterator() = chunks.iterator()
 
     operator fun Vector3i.component1() = x
     operator fun Vector3i.component2() = y

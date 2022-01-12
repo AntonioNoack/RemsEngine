@@ -9,7 +9,6 @@ import me.anno.ecs.components.light.EnvironmentMap
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.light.PlanarReflection
-import me.anno.ecs.components.light.PointLight.Companion.cubeMesh
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.ecs.components.physics.BulletPhysics
@@ -70,6 +69,7 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.input.Input.isKeyDown
 import me.anno.input.Input.isShiftDown
+import me.anno.mesh.Shapes
 import me.anno.ui.base.Panel
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.style.Style
@@ -948,7 +948,7 @@ class RenderView(
                     val shader = clearingPbrModelShader.value
                     shader.use()
                     shader.m4x4("transform", cameraMatrix)
-                    cubeMesh.draw(shader, 0)
+                    Shapes.cube.draw(shader, 0)
                 }
             }
         }
@@ -1157,6 +1157,8 @@ class RenderView(
 
                     }
 
+                    LineBuffer.drawIf1M(cameraMatrix)
+
                 }
 
                 JomlPools.vec3d.sub(1)
@@ -1201,11 +1203,8 @@ class RenderView(
             val color = ray.color
             val length = radius * 100.0
             drawDebugPoint(pos, color)
-            LineBuffer.putRelativeLine(
-                pos,
-                pos.x + dir.x * length,
-                pos.y + dir.y * length,
-                pos.z + dir.z * length,
+            LineBuffer.putRelativeVector(
+                pos, dir, length,
                 camPosition, worldScale,
                 color
             )

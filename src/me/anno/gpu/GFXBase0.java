@@ -6,6 +6,7 @@ package me.anno.gpu;
 
 import kotlin.Unit;
 import me.anno.Build;
+import me.anno.Engine;
 import me.anno.config.DefaultConfig;
 import me.anno.ecs.prefab.Prefab;
 import me.anno.ecs.prefab.change.Path;
@@ -110,17 +111,24 @@ public class GFXBase0 {
         String renderDocPath = DefaultConfig.INSTANCE.get("debug.renderdoc.path", "C:/Program Files/RenderDoc/renderdoc.dll");
         boolean renderDocEnabled = DefaultConfig.INSTANCE.get("debug.renderdoc.enabled", Build.INSTANCE.isDebug());
         if (renderDocEnabled) {
-            try {
-                // if renderdoc is install on linux, or given in the path, we could use it as well with loadLibrary()
-                // at least this is the default location for RenderDoc
-                if (new File(renderDocPath).exists()) {
-                    LOGGER.info("Loading RenderDoc");
-                    System.load(renderDocPath);
-                } else LOGGER.warn("Did not find RenderDoc, searched '" + renderDocPath + "'");
-            } catch (Exception e) {
-                LOGGER.warn("Could not initialize RenderDoc");
-                e.printStackTrace();
-            }
+            doLoadRenderDoc(renderDocPath);
+        }
+    }
+
+    public void doLoadRenderDoc(String renderDocPath) {
+        if (renderDocPath == null) {
+            renderDocPath = DefaultConfig.INSTANCE.get("debug.renderdoc.path", "C:/Program Files/RenderDoc/renderdoc.dll");
+        }
+        try {
+            // if renderdoc is install on linux, or given in the path, we could use it as well with loadLibrary()
+            // at least this is the default location for RenderDoc
+            if (new File(renderDocPath).exists()) {
+                LOGGER.info("Loading RenderDoc");
+                System.load(renderDocPath);
+            } else LOGGER.warn("Did not find RenderDoc, searched '" + renderDocPath + "'");
+        } catch (Exception e) {
+            LOGGER.warn("Could not initialize RenderDoc");
+            e.printStackTrace();
         }
     }
 
@@ -155,7 +163,7 @@ public class GFXBase0 {
         }
     }
 
-    void init() {
+    public void init() {
 
         LOGGER.info("Using LWJGL Version " + Version.getVersion());
 
@@ -331,7 +339,7 @@ public class GFXBase0 {
 
         long lastTime = System.nanoTime();
 
-        while (!destroyed) {
+        while (!destroyed && !Engine.INSTANCE.getShutdown()) {
 
             synchronized (openglLock) {
                 renderStep();
@@ -574,7 +582,7 @@ public class GFXBase0 {
         Input.INSTANCE.onMouseMove((float) xs[0], (float) ys[0]);
     }
 
-    void windowLoop() {
+    public void windowLoop() {
 
         Thread.currentThread().setName("GLFW");
 
@@ -593,8 +601,8 @@ public class GFXBase0 {
             requestExit();
         }).start();*/
 
-        while (!shouldClose) {
-            while (!glfwWindowShouldClose(window) && !shouldClose) {
+        while (!shouldClose && !Engine.INSTANCE.getShutdown()) {
+            while (!glfwWindowShouldClose(window) && !shouldClose && !Engine.INSTANCE.getShutdown()) {
                 // update title, if necessary
                 if (newTitle != null) {
                     setNewTitle(newTitle);

@@ -10,6 +10,7 @@ import me.anno.gpu.buffer.*
 import me.anno.gpu.buffer.Attribute.Companion.computeOffsets
 import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.shader.Shader
+import me.anno.input.Input
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
@@ -27,6 +28,8 @@ import me.anno.utils.types.AABBs.set
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL11.GL_LINES
+import java.io.InputStream
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -392,8 +395,6 @@ class Mesh : PrefabSaveable() {
     var hasVertexColors = false
     var hasBonesInBuffer = false
 
-    var drawLines = false
-
     val numTriangles get() = indices?.run { size / 3 } ?: positions?.run { size / 9 } ?: 0
 
     var hasHighPrecisionNormals = false
@@ -503,6 +504,7 @@ class Mesh : PrefabSaveable() {
         this.buffer = buffer
 
         triBuffer = replaceBuffer(buffer, indices, triBuffer)
+        triBuffer?.drawMode = drawMode
 
         for (i in 0 until vertexCount) {
 
@@ -602,11 +604,9 @@ class Mesh : PrefabSaveable() {
 
         // LOGGER.info("Flags($name): size: ${buffer.vertexCount}, colors? $hasColors, uvs? $hasUVs, bones? $hasBones")
 
-        lineIndices = if (drawLines) {
-            lineIndices ?: FindLines.findLines(indices, positions)
-        } else null
-
+        lineIndices = lineIndices ?: FindLines.findLines(indices, positions)
         lineBuffer = replaceBuffer(buffer, lineIndices, lineBuffer)
+        lineBuffer?.drawMode = GL_LINES
 
     }
 
@@ -700,23 +700,24 @@ class Mesh : PrefabSaveable() {
                     ?.draw(shader, 0)
             }
             materialIndex == 0 -> {
-                (triBuffer ?: buffer)?.draw(shader)
-                lineBuffer?.draw(shader)
+                if (drawLines) {
+                    lineBuffer?.draw(shader)
+                } else {
+                    (triBuffer ?: buffer)?.draw(shader)
+                }
             }
         }
     }
-
-    /*fun drawLines(shader: Shader, materialIndex: Int) {
-        ensureBuffer()
-        lineBuffer?.draw(shader)
-    }*/
 
     fun drawDepth(shader: Shader) {
         // all materials are assumed to behave the same
         // when we have vertex shaders by material, this will become wrong...
         ensureBuffer()
-        // buffer?.draw(shader)
-        (triBuffer ?: buffer)?.draw(shader)
+        if (drawLines) {
+            lineBuffer?.draw(shader)
+        } else {
+            (triBuffer ?: buffer)?.draw(shader)
+        }
     }
 
     fun drawInstanced(shader: Shader, materialIndex: Int, instanceData: Buffer) {
@@ -728,8 +729,10 @@ class Mesh : PrefabSaveable() {
             helperMeshes
                 .getOrNull(materialIndex)
                 ?.drawInstanced(shader, 0, instanceData)
-        } else {
-            if (materialIndex == 0) {
+        } else if (materialIndex == 0) {
+            if (drawLines) {
+                lineBuffer?.drawInstanced(shader, instanceData)
+            } else {
                 (triBuffer ?: buffer)?.drawInstanced(shader, instanceData)
             }
         }
@@ -740,7 +743,11 @@ class Mesh : PrefabSaveable() {
         // draw all materials
         GFX.check()
         ensureBuffer()
-        (triBuffer ?: buffer)?.drawInstanced(shader, instanceData)
+        if (drawLines) {
+            lineBuffer?.drawInstanced(shader, instanceData)
+        } else {
+            (triBuffer ?: buffer)?.drawInstanced(shader, instanceData)
+        }
         GFX.check()
     }
 
@@ -810,6 +817,8 @@ class Mesh : PrefabSaveable() {
     }
 
     companion object {
+
+        val drawLines get() = Input.isShiftDown
 
         val defaultMaterial = Material()
         private val defaultMaterials = emptyList<FileReference>()

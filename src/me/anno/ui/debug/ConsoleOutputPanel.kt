@@ -63,6 +63,8 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
         }
     }
 
+    override val className: String = "ConsoleOutputPanel"
+
     companion object {
 
         private val LOGGER = LogManager.getLogger(ConsoleOutputPanel::class)

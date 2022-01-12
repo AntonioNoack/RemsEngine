@@ -73,7 +73,7 @@ class FrameTask(
 
         GFX.check()
 
-        frame.bindDirectly(false)
+        frame.bindDirectly()
         Frame.invalidate()
 
         // val t0 = Clock()

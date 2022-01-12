@@ -1,6 +1,7 @@
 package org.hsluv;
 
 import org.joml.Vector2d;
+import org.joml.Vector3d;
 
 public class HSLuvColorSpace {
 
@@ -87,7 +88,7 @@ public class HSLuvColorSpace {
     private static double maxChromaForLH(double L, double H) {
         double hRadians = H / 360 * Math.PI * 2;
 
-        Vector2d[] bounds = getBounds(L,6);
+        Vector2d[] bounds = getBounds(L, 6);
         double min = Double.MAX_VALUE;
 
         for (Vector2d bound : bounds) {
@@ -278,6 +279,10 @@ public class HSLuvColorSpace {
         double max = maxChromaForLH(L, H);
         double C = max * 0.01 * S;
 
+        tuple[0] = L;
+        tuple[1] = C;
+        tuple[2] = H;
+
         return new double[]{L, C, H};
 
     }
@@ -351,8 +356,16 @@ public class HSLuvColorSpace {
         return lchToRgb(hsluvToLch(tuple));
     }
 
+    public static Vector3d hsluvToRgb(Vector3d tuple) {
+        return tuple.set(hsluvToRgb(new double[]{tuple.x, tuple.y, tuple.z}));
+    }
+
     public static double[] rgbToHsluv(double[] tuple) {
         return lchToHsluv(rgbToLch(tuple));
+    }
+
+    public static Vector3d rgbToHsluv(Vector3d tuple) {
+        return tuple.set(rgbToHsluv(new double[]{tuple.x, tuple.y, tuple.z}));
     }
 
     public static double[] hpluvToRgb(double[] tuple) {

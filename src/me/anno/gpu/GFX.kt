@@ -41,7 +41,6 @@ import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3fc
 import org.joml.Vector4fc
-import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.ARBImaging.GL_TABLE_TOO_LARGE
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL20
@@ -49,7 +48,6 @@ import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL43.GL_MAX_UNIFORM_LOCATIONS
 import org.lwjgl.opengl.GL45.GL_CONTEXT_LOST
 import org.lwjgl.opengl.GL46
-import java.nio.FloatBuffer
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.*
@@ -109,14 +107,11 @@ object GFX : GFXBase1() {
     }
 
     lateinit var gameInit: () -> Unit
-    lateinit var gameLoop: (w: Int, h: Int) -> Boolean
+    lateinit var gameLoop: (w: Int, h: Int) -> Unit
     lateinit var onShutdown: () -> Unit
 
     val loadTexturesSync = Stack<Boolean>()
-
-    init {
-        loadTexturesSync.push(false)
-    }
+        .apply { push(false) }
 
     /**
      * location of the current default framebuffer
@@ -124,30 +119,30 @@ object GFX : GFXBase1() {
     var offsetX = 0
     var offsetY = 0
 
-    inline fun useWindowXY(x: Int, y: Int, buffer: Framebuffer?, process: () -> Unit){
-       if(buffer == null){
-           val ox = offsetX
-           val oy = offsetY
-           offsetX = x
-           offsetY = y
-           try {
-               process()
-           } finally {
-               offsetX = ox
-               offsetY = oy
-           }
-       } else {
-           val ox = buffer.offsetX
-           val oy = buffer.offsetY
-           buffer.offsetX = x
-           buffer.offsetY = y
-           try {
-               process()
-           } finally {
-               buffer.offsetX = ox
-               buffer.offsetY = oy
-           }
-       }
+    inline fun useWindowXY(x: Int, y: Int, buffer: Framebuffer?, process: () -> Unit) {
+        if (buffer == null) {
+            val ox = offsetX
+            val oy = offsetY
+            offsetX = x
+            offsetY = y
+            try {
+                process()
+            } finally {
+                offsetX = ox
+                offsetY = oy
+            }
+        } else {
+            val ox = buffer.offsetX
+            val oy = buffer.offsetY
+            buffer.offsetX = x
+            buffer.offsetY = y
+            try {
+                process()
+            } finally {
+                buffer.offsetX = ox
+                buffer.offsetY = oy
+            }
+        }
     }
 
     /**
@@ -159,9 +154,6 @@ object GFX : GFXBase1() {
     var viewportHeight = 0
 
     val flat01 = SimpleBuffer.flat01
-
-    val matrixBufferFBX: FloatBuffer =
-        BufferUtils.createFloatBuffer(16 * 256)
 
     var rawDeltaTime = 0f
     var deltaTime = 0f
@@ -445,6 +437,15 @@ object GFX : GFXBase1() {
         Texture2D.bufferPool.freeUnusedEntries()
         AudioStream.bufferPool.freeUnusedEntries()
 
+        OpenGL.apply {
+            // this should be the state for the default framebuffer
+            xs[0] = 0
+            ys[0] = 0
+            ws[0] = GFX.width
+            hs[0] = GFX.height
+            changeSizes[0] = false
+        }
+
         JomlPools.reset()
         Point.stack.reset()
 
@@ -585,7 +586,12 @@ object GFX : GFXBase1() {
         }
     }
 
-    fun getName(i: Int) = glConstants[i] ?: "$i"
+    fun getName(i: Int): String {
+        if (glConstants.isEmpty()) {
+            discoverOpenGLTypeNames()
+        }
+        return glConstants[i] ?: "$i"
+    }
 
     private val glConstants = HashMap<Int, String>()
 
@@ -605,10 +611,6 @@ object GFX : GFXBase1() {
             clazz = clazz.superclasses
                 .firstOrNull() ?: break
         }
-    }
-
-    init {
-        discoverOpenGLTypeNames()
     }
 
     //override fun cleanUp() {

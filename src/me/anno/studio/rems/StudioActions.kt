@@ -211,6 +211,11 @@ object StudioActions {
         keyMap["ConsoleInput.upArrow.typed", "MoveUp"]
         keyMap["ConsoleInput.downArrow.typed", "MoveDown"]
 
+        keyMap["PanelListX.leftArrow.typed", "Previous"]
+        keyMap["PanelListX.rightArray.typed", "Next"]
+        keyMap["PanelListY.upArrow.typed", "Previous"]
+        keyMap["PanelListY.downArrow.typed", "Next"]
+
     }
 
 }

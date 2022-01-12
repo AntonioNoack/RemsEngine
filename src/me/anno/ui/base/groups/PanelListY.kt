@@ -86,6 +86,15 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
 
     }
 
+    override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
+        return when (action) {
+            // todo scroll if in scroll list
+            "Previous", "Up" -> selectPrevious()
+            "Next", "Down" -> selectNext()
+            else -> super.onGotAction(x, y, dx, dy, action, isContinuous)
+        }
+    }
+
     override val className: String = "PanelListY"
 
 }

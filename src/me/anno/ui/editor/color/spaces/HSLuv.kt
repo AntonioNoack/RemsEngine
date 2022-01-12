@@ -3,7 +3,8 @@ package me.anno.ui.editor.color.spaces
 import me.anno.language.translation.NameDesc
 import me.anno.ui.editor.color.ColorSpace
 import me.anno.utils.io.ResourceHelper.loadText
-import me.anno.utils.types.Vectors.toVec3
+import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Vectors.toVector3f
 import org.hsluv.HSLuvColorSpace
 import org.joml.Vector3f
 
@@ -15,15 +16,17 @@ object HSLuv : ColorSpace(
             "}\n", Vector3f(0f, 1f, 0.5f)
 ) {
     override fun fromRGB(rgb: Vector3f, dst: Vector3f): Vector3f {
-        return HSLuvColorSpace.rgbToHsluv(
-            doubleArrayOf(
-                rgb.x.toDouble(), rgb.y.toDouble(), rgb.z.toDouble()
-            )
-        ).toVec3().mul(1f / 360f, 0.01f, 0.01f)
+        val v3 = JomlPools.vec3d.borrow()
+        return HSLuvColorSpace
+            .rgbToHsluv(v3.set(rgb))
+            .toVector3f(dst)
+            .mul(1f / 360f, 0.01f, 0.01f)
     }
 
     override fun toRGB(input: Vector3f, dst: Vector3f): Vector3f {
-        val v = HSLuvColorSpace.hsluvToRgb(doubleArrayOf(input.x * 360.0, input.y * 100.0, input.z * 100.0))
-        return dst.set(v[0], v[1], v[2])
+        val v3 = JomlPools.vec3d.borrow()
+        return HSLuvColorSpace
+            .hsluvToRgb(v3.set(input.x * 360.0, input.y * 100.0, input.z * 100.0))
+            .toVector3f(dst)
     }
 }

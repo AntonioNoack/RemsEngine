@@ -290,8 +290,12 @@ class PrefabInspector(val prefab: Prefab) {
             }
         }
 
+        // todo either
+        //  - only create UI when it is visible,
+        //  - show a preview
+        //  - hide this
         val types = instance.listChildTypes()
-        for (i in types.indices) {
+        if (false) for (i in types.indices) {
             val type = types[i]
 
             val options = instance.getOptionsByType(type) ?: continue

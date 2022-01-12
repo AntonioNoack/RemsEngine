@@ -137,19 +137,22 @@ open class Window(
 
             // overlays get missing...
             // this somehow needs to be circumvented...
-            if (sparseRedraw) {
-                didSomething = sparseRedraw(panel, didSomething, forceRedraw, dstBuffer)
-            } else {
-                if (didSomething || forceRedraw) {
+            when {
+                sparseRedraw -> {
+                    didSomething = sparseRedraw(panel, didSomething, forceRedraw, dstBuffer)
+                }
+                didSomething || forceRedraw -> {
                     needsRedraw.clear()
                     fullRedraw(w, h, panel, dstBuffer)
-                }// else no buffer needs to be updated
+                    didSomething = true
+                }
+                // else no buffer needs to be updated
             }
         }
         return didSomething
     }
 
-    private fun validateLayouts(w: Int, h: Int, panel: Panel) {
+    fun validateLayouts(w: Int, h: Int, panel: Panel) {
         val needsLayout = needsLayout
         if (lastW != w || lastH != h || panel in needsLayout || needsLayout.isFull()) {
             lastW = w
@@ -169,7 +172,7 @@ open class Window(
         }
     }
 
-    private fun fullRedraw(
+    fun fullRedraw(
         w: Int, h: Int,
         panel0: Panel,
         dstBuffer: Framebuffer?
@@ -188,7 +191,7 @@ open class Window(
 
     }
 
-    private fun sparseRedraw(
+    fun sparseRedraw(
         panel0: Panel, didSomething0: Boolean,
         forceRedraw: Boolean,
         dstBuffer: Framebuffer?
@@ -207,61 +210,9 @@ open class Window(
             Frame.reset()
 
             val buffer = buffer
-            GFX.useWindowXY(panel0.x, panel0.y, buffer){
+            GFX.useWindowXY(panel0.x, panel0.y, buffer) {
                 renderDefault {
-
-                    val x0 = max(panel0.x, 0)
-                    val y0 = max(panel0.y, 0)
-                    // we don't need to draw more than is visible
-                    val x1 = min(panel0.x + panel0.w, GFX.width)
-                    val y1 = min(panel0.y + panel0.h, GFX.height)
-
-                    if (panel0 in needsRedraw || needsRedraw.isFull()) {
-
-                        wasRedrawn += panel0
-
-                        GFX.loadTexturesSync.clear()
-                        GFX.loadTexturesSync.push(true)
-
-                        useFrame(
-                            x0, y0, x1 - x0, y1 - y0,
-                            true, buffer, Renderer.colorRenderer
-                        ) {
-                            Frame.bind()
-                            GL11.glClearColor(0f, 0f, 0f, 0f)
-                            GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
-                            panel0.canBeSeen = true
-                            panel0.draw(x0, y0, x1, y1)
-                        }
-
-                    } else {
-
-                        while (needsRedraw.isNotEmpty()) {
-                            val panel = needsRedraw.minByOrNull { it.depth } ?: break
-                            GFX.loadTexturesSync.clear()
-                            GFX.loadTexturesSync.push(false)
-                            if (panel.canBeSeen) {
-                                val x2 = panel.lx0
-                                val y2 = panel.ly0
-                                val x3 = panel.lx1 - panel.lx0
-                                val y3 = panel.ly1 - panel.ly0
-                                useFrame(
-                                    x2, y2, x3, y3,
-                                    false, buffer,
-                                    Renderer.colorRenderer,
-                                    panel::redraw
-                                )
-                            }
-                            wasRedrawn += panel
-                            panel.forAll {
-                                needsRedraw.remove(it)
-                            }
-                        }
-
-                    }
-
-                    needsRedraw.clear()
-
+                    sparseRedraw2(panel0, wasRedrawn)
                 }
             }
 
@@ -273,6 +224,65 @@ open class Window(
 
         return didSomething
 
+    }
+
+    fun sparseRedraw2(panel0: Panel, wasRedrawn: MutableCollection<Panel>) {
+
+        val x0 = max(panel0.x, 0)
+        val y0 = max(panel0.y, 0)
+        // we don't need to draw more than is visible
+        val x1 = min(panel0.x + panel0.w, GFX.width)
+        val y1 = min(panel0.y + panel0.h, GFX.height)
+
+        if (x1 > x0 && y1 > y0) {
+
+            if (panel0 in needsRedraw || needsRedraw.isFull()) {
+
+                wasRedrawn += panel0
+
+                GFX.loadTexturesSync.clear()
+                GFX.loadTexturesSync.push(true)
+
+                useFrame(
+                    x0, y0, x1 - x0, y1 - y0,
+                    true, buffer, Renderer.colorRenderer
+                ) {
+                    Frame.bind()
+                    GL11.glClearColor(0f, 0f, 0f, 0f)
+                    GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
+                    panel0.canBeSeen = true
+                    panel0.draw(x0, y0, x1, y1)
+                }
+
+            } else {
+
+                while (needsRedraw.isNotEmpty()) {
+                    val panel = needsRedraw.minByOrNull { it.depth } ?: break
+                    GFX.loadTexturesSync.clear()
+                    GFX.loadTexturesSync.push(false)
+                    if (panel.canBeSeen) {
+                        val x2 = panel.lx0
+                        val y2 = panel.ly0
+                        val x3 = panel.lx1 - panel.lx0
+                        val y3 = panel.ly1 - panel.ly0
+                        useFrame(
+                            x2, y2, x3, y3,
+                            false, buffer,
+                            Renderer.colorRenderer,
+                            panel::redraw
+                        )
+                    }
+                    wasRedrawn += panel
+                    panel.forAll {
+                        needsRedraw.remove(it)
+                    }
+                }
+
+            }
+
+            needsRedraw.clear()
+
+        }
     }
 
     private fun drawCachedImage(panel: Panel, wasRedrawn: Collection<Panel>, dstBuffer: Framebuffer?) {

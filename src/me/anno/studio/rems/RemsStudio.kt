@@ -218,11 +218,11 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
     override fun onGameLoopStart() {
     }
 
-    override fun onGameLoop(w: Int, h: Int): Boolean {
+    override fun onGameLoop(w: Int, h: Int) {
         DefaultConfig.saveMaybe("main.config")
         baseTheme.values.saveMaybe("style.config")
         Selection.update()
-        return super.onGameLoop(w, h)
+        super.onGameLoop(w, h)
     }
 
     override fun onGameLoopEnd() {

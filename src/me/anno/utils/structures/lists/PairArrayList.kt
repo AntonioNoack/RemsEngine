@@ -75,14 +75,18 @@ class PairArrayList<A, B>(capacity: Int = 16) : Iterable<MutablePair<A, B>> {
         return false
     }
 
-    fun replaceOrAddMap(a: A, b: B) {
+    /**
+     * @return whether an element was added
+     * */
+    fun replaceOrAddMap(a: A, b: B): Boolean {
         for (i in 0 until elementSize step 2) {
             if (array[i] == a) {
                 array[i + 1] = b
-                return
+                return false
             }
         }
         add(a, b)
+        return true
     }
 
     fun replaceBs(run: (a: A, b: B) -> B): Int {
@@ -105,6 +109,7 @@ class PairArrayList<A, B>(capacity: Int = 16) : Iterable<MutablePair<A, B>> {
             val pair = MutablePair(null as A, null as B)
             var index = 0
             override fun hasNext(): Boolean = index < elementSize
+
             @Suppress("UNCHECKED_CAST")
             override fun next(): MutablePair<A, B> {
                 pair.first = array[index++] as A
@@ -114,6 +119,9 @@ class PairArrayList<A, B>(capacity: Int = 16) : Iterable<MutablePair<A, B>> {
         }
     }
 
+    /**
+     * @return how many elements were removed
+     * */
     fun removeIf(run: (a: A, b: B) -> Boolean): Int {
         var result = 0
         var i = 0

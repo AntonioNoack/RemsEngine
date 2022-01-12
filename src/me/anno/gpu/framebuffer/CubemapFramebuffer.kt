@@ -2,6 +2,7 @@ package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.framebuffer.Framebuffer.Companion.bindFramebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.CubemapTexture
@@ -45,36 +46,30 @@ class CubemapFramebuffer(
         if (pointer < 0) create()
     }
 
-    override fun bindDirectly(viewport: Boolean) = bind(viewport)
-    override fun bindDirectly(w: Int, h: Int, viewport: Boolean) {
-        bindDirectly(w, viewport)
+    override fun bindDirectly() = bind()
+    override fun bindDirectly(w: Int, h: Int) {
+        bindDirectly(w)
     }
 
-    fun bindDirectly(size: Int, viewport: Boolean) = bind(size, viewport)
+    fun bindDirectly(size: Int) {
+        checkSize(size)
+        bind()
+    }
 
-    private fun bind(viewport: Boolean) {
+    private fun bind() {
         if (pointer < 0) create()
-        glBindFramebuffer(GL_FRAMEBUFFER, pointer)
+        bindFramebuffer(GL_FRAMEBUFFER, pointer)
         Frame.lastPtr = pointer
-        if (viewport) glViewport(0, 0, size, size)
         GL11.glDisable(GL13.GL_MULTISAMPLE)
     }
 
-    private fun bind(newSize: Int, viewport: Boolean = true) {
+    private fun checkSize(newSize: Int) {
         if (newSize != size) {
             size = newSize
             GFX.check()
             destroy()
             GFX.check()
             create()
-            if (viewport) {
-                // not done by create...
-                glViewport(0, 0, newSize, newSize)
-            }
-            GFX.check()
-        } else {
-            GFX.check()
-            bind(viewport)
             GFX.check()
         }
     }
@@ -85,7 +80,7 @@ class CubemapFramebuffer(
         GFX.check()
         pointer = glGenFramebuffers()
         if (pointer < 0) throw RuntimeException()
-        glBindFramebuffer(GL_FRAMEBUFFER, pointer)
+        bindFramebuffer(GL_FRAMEBUFFER, pointer)
         Frame.lastPtr = pointer
         //stack.push(this)
         GFX.check()

@@ -135,7 +135,7 @@ object FileWatch {
         Thread.sleep(100)
         tmpFile.delete() // should not be registered
         Thread.sleep(100)
-        Engine.shutdown()
+        Engine.requestShutdown()
     }
 
 }

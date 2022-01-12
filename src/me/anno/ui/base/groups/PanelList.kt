@@ -2,6 +2,7 @@ package me.anno.ui.base.groups
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ui.base.Panel
+import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.style.Style
 
@@ -49,6 +50,38 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
             children.sortWith(sorter)
         }
         super.calculateSize(w, h)
+    }
+
+    fun selectPrevious(): Boolean {
+        if (!isAnyChildInFocus) return false
+        val childIndex = children.indexOfFirst { it.visibility == Visibility.VISIBLE && it.isInFocus }
+        val newChild = if (childIndex >= 0) {
+            children.subList(0, childIndex)
+                .lastOrNull { it.visibility == Visibility.VISIBLE }
+        } else null
+        if (newChild != null) {
+            // todo call click event?
+            children[childIndex].invalidateDrawing()
+            newChild.requestFocus()
+            newChild.invalidateDrawing()
+        }
+        return newChild != null
+    }
+
+    fun selectNext(): Boolean {
+        if (!isAnyChildInFocus) return false
+        val childIndex = children.indexOfFirst { it.visibility == Visibility.VISIBLE && it.isAnyChildInFocus }
+        val newChild = if (childIndex >= 0) {
+            children.subList(childIndex + 1, children.size)
+                .firstOrNull { it.visibility == Visibility.VISIBLE }
+        } else null
+        if (newChild != null) {
+            // todo call click event?
+            children[childIndex].invalidateDrawing()
+            newChild.requestFocus()
+            newChild.invalidateDrawing()
+        }
+        return newChild != null
     }
 
     override fun copy(clone: PrefabSaveable) {

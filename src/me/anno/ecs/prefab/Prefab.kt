@@ -103,7 +103,7 @@ class Prefab : Saveable {
     }
 
     fun set(path: Path, name: String, value: Any?) {
-        add(CSet(path, name, value))
+        // add(CSet(path, name, value))
         if (!isWritable) throw ImmutablePrefabException(source)
         sets[path, name] = value
         // apply to sample instance to keep it valid
@@ -194,6 +194,10 @@ class Prefab : Saveable {
 
     fun setProperty(name: String, value: Any?) {
         set(ROOT_PATH, name, value)
+    }
+
+    fun setProperty(path: Path, name: String, value: Any?){
+        set(path, name, value)
     }
 
     fun getProperty(name: String): Any? {

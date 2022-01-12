@@ -2,7 +2,6 @@ package me.anno.ui.editor
 
 import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultConfig.getRecentProjects
 import me.anno.config.DefaultStyle.black
 import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.GFX
@@ -25,19 +24,19 @@ import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.StudioBase.Companion.instance
 import me.anno.studio.StudioBase.Companion.workspace
-import me.anno.studio.rems.ProjectSettings
-import me.anno.studio.rems.RemsStudio
+import me.anno.studio.rems.*
+import me.anno.studio.rems.Projects.addToRecentProjects
+import me.anno.studio.rems.Projects.getRecentProjects
+import me.anno.studio.rems.Projects.removeFromRecentProjects
 import me.anno.studio.rems.RemsStudio.gfxSettings
 import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.studio.rems.RemsStudio.project
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.studio.rems.RemsStudio.versionName
-import me.anno.studio.rems.RenderSettings
 import me.anno.studio.rems.Rendering.overrideAudio
 import me.anno.studio.rems.Rendering.renderAudio
 import me.anno.studio.rems.Rendering.renderPart
 import me.anno.studio.rems.Rendering.renderSetPercent
-import me.anno.studio.rems.Selection
 import me.anno.studio.rems.Selection.selectTransform
 import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.studio.rems.ui.StudioFileExplorer
@@ -103,7 +102,7 @@ object UILayouts {
                 windowStack.clear()
                 createEditorUI()
             }
-            DefaultConfig.addToRecentProjects(project!!)
+            addToRecentProjects(project!!)
         }
     }
 
@@ -114,11 +113,11 @@ object UILayouts {
                 windowStack.clear()
                 createEditorUI()
             }
-            DefaultConfig.addToRecentProjects(project!!)
+            addToRecentProjects(project!!)
         }
     }
 
-    fun createRecentProjectsUI(style: Style, recent: List<DefaultConfig.ProjectHeader>): Panel {
+    fun createRecentProjectsUI(style: Style, recent: List<ProjectHeader>): Panel {
 
         val recentProjects =
             SettingCategory(
@@ -169,7 +168,7 @@ object UILayouts {
                             "ui.recentProjects.hide"
                         )
                     ) {
-                        DefaultConfig.removeFromRecentProjects(project.file)
+                        removeFromRecentProjects(project.file)
                         tp.visibility = Visibility.GONE
                     },
                     MenuOption(
@@ -179,7 +178,7 @@ object UILayouts {
                         )
                     ) {
                         ask(windowStack, NameDesc("Are you sure?", "", "")) {
-                            DefaultConfig.removeFromRecentProjects(project.file)
+                            removeFromRecentProjects(project.file)
                             project.file.deleteRecursively()
                             tp.visibility = Visibility.GONE
                         }
@@ -197,7 +196,7 @@ object UILayouts {
 
     fun loadLastProject(
         usableFile: FileReference?, nameInput: TextInput,
-        recent: List<DefaultConfig.ProjectHeader>
+        recent: List<ProjectHeader>
     ) {
         if (recent.isEmpty()) loadNewProject(usableFile, nameInput)
         else {

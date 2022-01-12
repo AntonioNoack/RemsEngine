@@ -9,7 +9,7 @@ import org.joml.Vector4fc
 import org.lwjgl.opengl.GL15.GL_STATIC_DRAW
 import kotlin.math.roundToInt
 
-open class StaticBuffer(attributes: List<Attribute>, val vertexCount: Int, usage: Int = GL_STATIC_DRAW) :
+open class StaticBuffer(attributes: List<Attribute>, var vertexCount: Int, usage: Int = GL_STATIC_DRAW) :
     Buffer(attributes, usage) {
 
     constructor(points: List<List<Float>>, attributes: List<Attribute>, vertices: IntArray) : this(

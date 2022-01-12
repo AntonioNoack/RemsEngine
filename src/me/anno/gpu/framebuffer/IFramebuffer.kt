@@ -13,9 +13,9 @@ interface IFramebuffer {
 
     fun ensure()
 
-    fun bindDirectly(viewport: Boolean)
+    fun bindDirectly()
 
-    fun bindDirectly(w: Int, h: Int, viewport: Boolean)
+    fun bindDirectly(w: Int, h: Int)
 
     fun destroy()
 

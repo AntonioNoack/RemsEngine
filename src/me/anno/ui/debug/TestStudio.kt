@@ -25,9 +25,9 @@ class TestStudio(val createMainPanel: () -> Panel) : StudioBase(true, "Test", 1)
         ActionManager.init()
     }
 
-    override fun onGameLoop(w: Int, h: Int): Boolean {
+    override fun onGameLoop(w: Int, h: Int) {
         DefaultConfig.saveMaybe("main.config")
-        return super.onGameLoop(w, h)
+        super.onGameLoop(w, h)
     }
 
     companion object {

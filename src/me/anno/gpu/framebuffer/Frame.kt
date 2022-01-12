@@ -61,7 +61,7 @@ object Frame {
             }
         }
 
-        var ptr = -1
+        var ptr = 0
         if (buffer != null) ptr = buffer.pointer
 
         if (ptr != lastPtr || lastX != x || lastY != y || lastW != w || lastH != h ||
@@ -70,9 +70,9 @@ object Frame {
 
             if (buffer != null) {
                 if (changeSize) {
-                    buffer.bindDirectly(w, h, false)
+                    buffer.bindDirectly(w, h)
                 } else {
-                    buffer.bindDirectly(false)
+                    buffer.bindDirectly()
                 }
             } else {
                 Framebuffer.bindNullDirectly()
@@ -102,11 +102,7 @@ object Frame {
             }
 
             // this is mirrored
-            glViewport(
-                x1, y2,
-                min(w, availableWidth),
-                min(h, availableHeight)
-            )
+            glViewport(x1, y2, w, h)
 
             lastX = x
             lastY = y

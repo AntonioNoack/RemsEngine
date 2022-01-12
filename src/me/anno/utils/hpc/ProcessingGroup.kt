@@ -110,7 +110,7 @@ class ProcessingGroup(name: String, val numThreads: Int) : ProcessingQueue(name)
             for (i in threads.indices) {
                 if (!threads[i]) throw RuntimeException("Thread #${i - 1} didn't work!")
             }
-            Engine.shutdown()
+            Engine.requestShutdown()
         }
 
     }
