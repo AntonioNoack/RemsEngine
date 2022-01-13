@@ -1,8 +1,5 @@
 package me.anno.gpu.pipeline
 
-import me.anno.config.DefaultConfig
-import me.anno.gpu.framebuffer.DepthBufferType
-import me.anno.gpu.framebuffer.Framebuffer
 import org.lwjgl.Version
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
@@ -11,7 +8,10 @@ import org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT
 import org.lwjgl.opengl.GL11.glClear
 import org.lwjgl.opengl.GL30C
 import org.lwjgl.opengl.GL30C.glBindFramebuffer
+import org.lwjgl.opengl.GL45C
+import org.lwjgl.opengl.GL46
 import org.lwjgl.system.MemoryUtil
+import kotlin.reflect.full.staticProperties
 
 fun main() {
 
@@ -24,9 +24,17 @@ fun main() {
     val height = 700
 
     // still crashes, the easiest case I found
+    for (p in GL46::class.staticProperties) {
+        if (p.name.length > 3 &&
+            p.name.startsWith("GL_")
+        ) {
+            val value = p.get()
+            if (value is Int) {
+                println("${p.name} = $value")
+            }
+        }
+    }
 
-    // if the default config is not accessed, then renderdoc does not crash!!! WTF!!!
-    DefaultConfig["debug.renderdoc.path", "C:/Program Files/RenderDoc/renderdoc.dll"]
     System.load("C:/Program Files/RenderDoc/renderdoc.dll")
 
     println("Using LWJGL Version " + Version.getVersion())
@@ -36,7 +44,6 @@ fun main() {
     check(GLFW.glfwInit()) { "Unable to initialize GLFW" }
 
     GLFW.glfwDefaultWindowHints()
-    GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_DEBUG_CONTEXT, GLFW.GLFW_TRUE)
 
     val window = GLFW.glfwCreateWindow(width, height, title, MemoryUtil.NULL, MemoryUtil.NULL)
 
@@ -46,83 +53,40 @@ fun main() {
     GLFW.glfwMakeContextCurrent(window)
     GL.createCapabilities()
 
+    val w = 4
+    val h = 4
+
+    val pointer = GL30C.glGenFramebuffers()
+    glBindFramebuffer(GL30C.GL_FRAMEBUFFER, pointer)
+    GL30C.glDrawBuffer(GL30C.GL_NONE)
+    val renderBuffer = GL30C.glGenRenderbuffers()
+    GL30C.glBindRenderbuffer(GL30C.GL_RENDERBUFFER, renderBuffer)
+    val format = GL30C.GL_DEPTH_COMPONENT // application chooses bytes/pixel
+    GL30C.glRenderbufferStorage(GL30C.GL_RENDERBUFFER, format, w, h)
+    GL30C.glFramebufferRenderbuffer(
+        GL30C.GL_FRAMEBUFFER,
+        GL30C.GL_DEPTH_ATTACHMENT,
+        GL30C.GL_RENDERBUFFER,
+        renderBuffer
+    )
+
+    val state = GL45C.glCheckNamedFramebufferStatus(pointer, GL30C.GL_FRAMEBUFFER)
+    if (state != GL30C.GL_FRAMEBUFFER_COMPLETE)
+        throw RuntimeException("Framebuffer is incomplete: $state")
+
     while (true) {
 
-        Thread.sleep(500)
+        // press the print key to crash the program
+
+        GLFW.glfwWaitEventsTimeout(1.0 / 240.0)
 
         GLFW.glfwSwapBuffers(window)
-
-        val w = 4
-        val h = 4
-
-        val buffer = Framebuffer(
-            "x", w, h,
-            1, 0,
-            false, // doesn't matter
-            DepthBufferType.INTERNAL // doesn't matter (texture/none/internal)
-        )
-
-        val pointer = GL30C.glGenFramebuffers()
-        Framebuffer.bindFramebuffer(GL30C.GL_FRAMEBUFFER, pointer)
-        GL30C.glDrawBuffer(GL30C.GL_NONE)
-        val renderBuffer = GL30C.glGenRenderbuffers()
-        GL30C.glBindRenderbuffer(GL30C.GL_RENDERBUFFER, renderBuffer)
-        val format = GL30C.GL_DEPTH_COMPONENT // application chooses bytes/pixel
-        GL30C.glRenderbufferStorage(GL30C.GL_RENDERBUFFER, format, w, h)
-        GL30C.glFramebufferRenderbuffer(
-            GL30C.GL_FRAMEBUFFER,
-            GL30C.GL_DEPTH_ATTACHMENT,
-            GL30C.GL_RENDERBUFFER,
-            renderBuffer
-        )
-        buffer.check(pointer)
 
         glBindFramebuffer(GL30C.GL_FRAMEBUFFER, pointer)
         glClear(GL_DEPTH_BUFFER_BIT)
 
+        Thread.sleep(30)
+
     }
-
-    /*class TestStudio :
-        StudioBase(false, "RenderDoc Crash Test", 1) {
-
-        override fun createUI() {}
-
-        override fun onGameLoop(w: Int, h: Int) {
-
-            val w = 4
-            val h = 4
-
-            val buffer = Framebuffer(
-                "x", w, h,
-                1, 0,
-                false, // doesn't matter
-                DepthBufferType.INTERNAL // doesn't matter (texture/none/internal)
-            )
-
-            val pointer = GL30C.glGenFramebuffers()
-            Framebuffer.bindFramebuffer(GL30C.GL_FRAMEBUFFER, pointer)
-            GL30C.glDrawBuffer(GL30C.GL_NONE)
-            val renderBuffer = GL30C.glGenRenderbuffers()
-            GL30C.glBindRenderbuffer(GL30C.GL_RENDERBUFFER, renderBuffer)
-            val format = GL30C.GL_DEPTH_COMPONENT // application chooses bytes/pixel
-            GL30C.glRenderbufferStorage(GL30C.GL_RENDERBUFFER, format, w, h)
-            GL30C.glFramebufferRenderbuffer(
-                GL30C.GL_FRAMEBUFFER,
-                GL30C.GL_DEPTH_ATTACHMENT,
-                GL30C.GL_RENDERBUFFER,
-                renderBuffer
-            )
-            buffer.check(pointer)
-
-            glBindFramebuffer(GL30C.GL_FRAMEBUFFER, pointer)
-            glClear(GL_DEPTH_BUFFER_BIT)
-            glBindFramebuffer(GL30C.GL_FRAMEBUFFER, 0)
-
-            Thread.sleep(500)
-
-        }
-    }
-
-    TestStudio().run()*/
 
 }
