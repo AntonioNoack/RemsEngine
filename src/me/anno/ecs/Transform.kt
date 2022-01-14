@@ -4,7 +4,7 @@ import me.anno.Engine
 import me.anno.gpu.GFX
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
-import me.anno.utils.maths.Maths
+import me.anno.maths.Maths
 import org.joml.*
 
 class Transform() : Saveable() {

@@ -9,7 +9,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.gui.LineShapes
 import me.anno.engine.gui.LineShapes.drawCone
 import me.anno.io.serialization.SerializedProperty
-import me.anno.utils.maths.Maths.length
+import me.anno.maths.Maths.length
 import me.anno.utils.types.Vectors.setAxis
 import org.joml.AABBd
 import org.joml.Matrix4x3d

@@ -1,6 +1,5 @@
 package me.anno.ui.base.scrolling
 
-import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.input.MouseButton
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.ui.base.Panel
@@ -11,7 +10,7 @@ import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.scrolling.ScrollPanelY.Companion.scrollSpeed
 import me.anno.ui.style.Style
-import me.anno.utils.maths.Maths.clamp
+import me.anno.maths.Maths.clamp
 import kotlin.math.max
 
 // todo if the mouse is over a scrollbar, change the cursor

@@ -1,6 +1,6 @@
-package me.anno.utils.maths
+package me.anno.maths
 
-import me.anno.utils.maths.Maths.sq
+import me.anno.maths.Maths.sq
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 

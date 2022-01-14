@@ -12,7 +12,7 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.Signature
 import me.anno.io.zip.SignatureFile
 import me.anno.utils.Sleep
-import me.anno.utils.maths.Maths.min
+import me.anno.maths.Maths.min
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGStream
 import net.sf.image4j.codec.ico.ICODecoder

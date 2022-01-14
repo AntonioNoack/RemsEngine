@@ -15,7 +15,7 @@ import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.style.Style
 import me.anno.utils.input.Keys.isClickKey
-import me.anno.utils.maths.Maths.mixARGB
+import me.anno.maths.Maths.mixARGB
 import kotlin.math.max
 
 open class TextButton(

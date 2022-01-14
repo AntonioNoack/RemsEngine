@@ -12,9 +12,9 @@ import me.anno.animation.AnimatedProperty
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import me.anno.utils.maths.Maths.clamp
-import me.anno.utils.maths.Maths.mix
-import me.anno.utils.maths.Maths.pow
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.pow
 import me.anno.utils.hpc.HeavyProcessing.processBalanced
 import kotlin.math.abs
 import kotlin.math.log2

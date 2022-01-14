@@ -19,7 +19,7 @@ import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.studio.rems.Scene
-import me.anno.utils.maths.Maths.length
+import me.anno.maths.Maths.length
 import me.anno.utils.pooling.ByteBufferPool
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL20

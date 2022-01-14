@@ -7,7 +7,7 @@ import me.anno.objects.forces.ForceField
 import me.anno.objects.inspectable.InspectableAnimProperty
 import me.anno.objects.particles.Particle
 import me.anno.objects.particles.ParticleState
-import me.anno.utils.maths.Maths.pow
+import me.anno.maths.Maths.pow
 import me.anno.utils.types.Vectors.minus
 import me.anno.utils.types.Vectors.times
 import org.joml.Matrix4fArrayList

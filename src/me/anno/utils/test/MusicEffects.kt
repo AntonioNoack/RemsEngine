@@ -7,7 +7,7 @@ import me.anno.audio.effects.impl.EqualizerEffect
 import me.anno.objects.Camera
 import me.anno.objects.Video
 import me.anno.utils.LOGGER
-import me.anno.utils.maths.Maths.pow
+import me.anno.maths.Maths.pow
 import me.anno.utils.OS
 import kotlin.math.roundToInt
 import kotlin.math.sin

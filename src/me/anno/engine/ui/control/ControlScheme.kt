@@ -22,7 +22,7 @@ import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.ui.base.groups.NineTilePanel
 import me.anno.ui.editor.PropertyInspector
-import me.anno.utils.maths.Maths
+import me.anno.maths.Maths
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import me.anno.utils.types.Vectors.safeNormalize
 import org.apache.logging.log4j.LogManager

@@ -38,7 +38,7 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import me.anno.utils.files.LocalFile.toGlobalFile
-import me.anno.utils.maths.Maths.pow
+import me.anno.maths.Maths.pow
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4fc

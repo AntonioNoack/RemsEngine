@@ -3,7 +3,7 @@ package me.anno.utils.process
 import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.utils.OS
-import me.anno.utils.maths.Maths.clamp
+import me.anno.maths.Maths.clamp
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 import kotlin.concurrent.thread

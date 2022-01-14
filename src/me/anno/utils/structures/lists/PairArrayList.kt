@@ -135,6 +135,11 @@ class PairArrayList<A, B>(capacity: Int = 16) : Iterable<MutablePair<A, B>> {
         return result
     }
 
+    override fun toString(): String {
+        return (0 until size)
+            .joinToString { "(${array[it * 2]}, ${array[it * 2 + 1]})" }
+    }
+
     companion object {
         private val LOGGER = LogManager.getLogger(PairArrayList::class)
     }

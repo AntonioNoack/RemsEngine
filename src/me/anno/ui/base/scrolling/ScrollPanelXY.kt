@@ -8,7 +8,7 @@ import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY.Companion.scrollSpeed
 import me.anno.ui.style.Style
-import me.anno.utils.maths.Maths.clamp
+import me.anno.maths.Maths.clamp
 import kotlin.math.max
 
 open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :

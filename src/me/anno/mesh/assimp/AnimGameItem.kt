@@ -5,7 +5,7 @@ import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.Shader
-import me.anno.utils.maths.Maths
+import me.anno.maths.Maths
 import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.AABBs.set
 import me.anno.utils.types.AABBs.transformProjectUnion

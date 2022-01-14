@@ -9,8 +9,8 @@ import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.drawing.DrawTexts.getTextSize
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.ui.base.text.TextPanel
-import me.anno.utils.maths.Maths.clamp
-import me.anno.utils.maths.Maths.mix
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.mix
 import org.lwjgl.glfw.GLFW
 
 object ShowKeys {

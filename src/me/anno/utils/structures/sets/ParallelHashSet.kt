@@ -12,8 +12,7 @@ class ParallelHashSet<V>(initialCapacity: Int = 16) {
         }
     }
 
-    // inline?
-    fun process2x(callback: (V, first: Boolean) -> Unit) {
+    fun process2x(first: (V) -> Unit, second: (V) -> Unit) {
         val removable = synchronized(this) {
             val tmp = addable
             addable = removable
@@ -22,10 +21,10 @@ class ParallelHashSet<V>(initialCapacity: Int = 16) {
         }
         synchronized(removable) {
             for (entry in removable) {
-                callback(entry, true)
+                first(entry)
             }
             for (entry in removable) {
-                callback(entry, false)
+                second(entry)
             }
             removable.clear()
         }

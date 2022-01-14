@@ -251,11 +251,13 @@ public class GFXBase0 {
         });
         glfwSetFramebufferSizeCallback(window, fsCallback = new GLFWFramebufferSizeCallback() {
             public void invoke(long window, int w, int h) {
-                if (w > 0 && h > 0 && (w != width || h != height)) {
+                if (w > 0 && h > 0) {
                     StudioBase.Companion.addEvent(() -> {
-                        width = w;
-                        height = h;
-                        Input.INSTANCE.invalidateLayout();
+                        if (w != width || h != height) {
+                            width = w;
+                            height = h;
+                            Input.INSTANCE.invalidateLayout();
+                        }
                         return Unit.INSTANCE;
                     });
                 }

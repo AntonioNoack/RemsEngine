@@ -7,6 +7,7 @@ import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.scene.ScenePrefab
 import me.anno.io.ISaveable
+import me.anno.io.InvalidFormatException
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileWatch
 import me.anno.io.files.InvalidRef
@@ -142,7 +143,11 @@ object PrefabCache : CacheSection("Prefab") {
         try {
             val pure = TextReader.read(file, false).firstOrNull()
             if (pure != null) return pure
+        } catch (e: InvalidFormatException) {
+            // don't care
         } catch (e: Exception) {
+            // might be interesting
+            e.printStackTrace()
         }
         val signature = Signature.findName(file)
         if (signature == "yaml") {

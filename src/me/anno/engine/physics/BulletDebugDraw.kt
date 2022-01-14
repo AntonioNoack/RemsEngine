@@ -2,7 +2,6 @@ package me.anno.engine.physics
 
 import com.bulletphysics.linearmath.IDebugDraw
 import me.anno.engine.gui.LineShapes
-import me.anno.engine.physics.Vectors2.set2
 import me.anno.gpu.buffer.LineBuffer.putRelativeLine
 import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
@@ -12,7 +11,12 @@ import javax.vecmath.Vector3d
 class BulletDebugDraw : IDebugDraw() {
 
     companion object {
+
         private val LOGGER = LogManager.getLogger(BulletDebugDraw::class)
+
+        fun org.joml.Vector3d.set2(v: Vector3d): org.joml.Vector3d {
+            return this.set(v.x, v.y, v.z)
+        }
     }
 
     var stack = Matrix4f()

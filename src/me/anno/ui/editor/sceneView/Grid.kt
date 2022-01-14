@@ -16,10 +16,10 @@ import me.anno.objects.Transform.Companion.xAxis
 import me.anno.objects.Transform.Companion.yAxis
 import me.anno.objects.Transform.Companion.zAxis
 import me.anno.utils.Color.withAlpha
-import me.anno.utils.maths.Maths.distance
-import me.anno.utils.maths.Maths.length
-import me.anno.utils.maths.Maths.pow
-import me.anno.utils.maths.Maths.sq
+import me.anno.maths.Maths.distance
+import me.anno.maths.Maths.length
+import me.anno.maths.Maths.pow
+import me.anno.maths.Maths.sq
 import me.anno.utils.types.Vectors.avg
 import me.anno.utils.types.Vectors.minus
 import org.joml.*

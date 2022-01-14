@@ -1,6 +1,6 @@
 package me.anno.graph.types.flow.maths
 
-import me.anno.utils.maths.Maths
+import me.anno.maths.Maths
 
 enum class FloatMathsBinary(
     val glsl: String,

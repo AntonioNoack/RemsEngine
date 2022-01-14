@@ -13,7 +13,7 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.style.Style
-import me.anno.utils.maths.Maths.fract
+import me.anno.maths.Maths.fract
 
 // todo select multiple elements, filter for common properties, and apply them all together :)
 

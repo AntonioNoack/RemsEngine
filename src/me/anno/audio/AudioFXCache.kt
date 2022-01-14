@@ -17,7 +17,7 @@ import me.anno.io.files.FileReference
 import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.modes.LoopingState
-import me.anno.utils.maths.Maths.clamp
+import me.anno.maths.Maths.clamp
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.video.AudioCreator.Companion.playbackSampleRate
 import me.anno.video.FFMPEGMetadata

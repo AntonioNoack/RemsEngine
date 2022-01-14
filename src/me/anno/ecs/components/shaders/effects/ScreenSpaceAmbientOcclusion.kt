@@ -15,10 +15,10 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
-import me.anno.utils.maths.Maths.clamp
-import me.anno.utils.maths.Maths.max
-import me.anno.utils.maths.Maths.min
-import me.anno.utils.maths.Maths.roundDiv
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.max
+import me.anno.maths.Maths.min
+import me.anno.maths.Maths.roundDiv
 import org.joml.Matrix4f
 import java.nio.ByteBuffer
 import java.nio.ByteOrder

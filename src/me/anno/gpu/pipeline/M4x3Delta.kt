@@ -1,7 +1,7 @@
 package me.anno.gpu.pipeline
 
 import me.anno.gpu.shader.Shader
-import me.anno.utils.maths.Maths
+import me.anno.maths.Maths
 import org.joml.Matrix4f
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f

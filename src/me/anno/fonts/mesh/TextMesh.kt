@@ -5,7 +5,7 @@ import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.ui.base.DefaultRenderingHints
-import me.anno.utils.maths.Maths.distance
+import me.anno.maths.Maths.distance
 import me.anno.utils.OS
 import me.anno.utils.files.Files.use
 import me.anno.utils.types.Vectors.avg

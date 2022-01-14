@@ -1,6 +1,6 @@
 package me.anno.audio
 
-import me.anno.utils.maths.Maths.mix
+import me.anno.maths.Maths.mix
 import me.anno.utils.types.Floats.f2
 
 open class AudioTransfer(var l2l: Float, var r2r: Float, var l2r: Float, var r2l: Float) {

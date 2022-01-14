@@ -1,8 +1,8 @@
 package me.anno.utils
 
 import me.anno.config.DefaultStyle.black
-import me.anno.utils.maths.Maths
-import me.anno.utils.maths.Maths.clamp
+import me.anno.maths.Maths
+import me.anno.maths.Maths.clamp
 import org.joml.Vector3f
 import org.joml.Vector3fc
 import org.joml.Vector4f

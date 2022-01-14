@@ -2,7 +2,7 @@ package me.anno.utils.hpc
 
 import me.anno.Engine
 import me.anno.utils.Sleep.waitUntil
-import me.anno.utils.maths.Maths
+import me.anno.maths.Maths
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.max
 import kotlin.math.roundToInt

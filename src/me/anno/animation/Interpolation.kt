@@ -1,9 +1,9 @@
 package me.anno.animation
 
 import me.anno.language.translation.Dict
-import me.anno.utils.maths.Maths.clamp
-import me.anno.utils.maths.Maths.mix
-import me.anno.utils.maths.Maths.pow
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.pow
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import org.joml.Vector4d
 import kotlin.math.*

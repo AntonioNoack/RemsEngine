@@ -10,12 +10,17 @@ import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.ui.EditorState
+import me.anno.engine.ui.play.PlayView
 import me.anno.engine.ui.render.RenderView
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
+import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths.length
+import me.anno.ui.base.menu.Menu.openMenu
+import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.hpc.SyncMaster
-import me.anno.utils.maths.Maths.length
 import me.anno.utils.types.AABBs.avgX
 import me.anno.utils.types.AABBs.avgY
 import me.anno.utils.types.AABBs.avgZ
@@ -93,7 +98,7 @@ class ECSSceneTab(
 
     private fun resetCamera(aabb: AABBf, translate: Boolean) {
         if (aabb.avgX().isFinite() && aabb.avgY().isFinite() && aabb.avgZ().isFinite()) {
-            position.set(aabb.avgX().toDouble(), aabb.avgY().toDouble(), aabb.avgZ().toDouble())
+            if (translate) position.set(aabb.avgX().toDouble(), aabb.avgY().toDouble(), aabb.avgZ().toDouble())
             radius = length(aabb.deltaX(), aabb.deltaY(), aabb.deltaZ()).toDouble()
         }
     }
@@ -148,7 +153,24 @@ class ECSSceneTab(
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         when {
             button.isLeft -> ECSSceneTabs.open(this)
-            button.isRight -> ECSSceneTabs.close(this) // todo open menu instead
+            button.isRight -> {
+                openMenu(windowStack, listOf(
+                    MenuOption(NameDesc("Play")) {
+                        // todo open scene in new tab in play-mode
+                        // todo play-mode-tabs probably shouldn't be saved
+                    },
+                    MenuOption(NameDesc("Play Fullscreen")) {
+                        // opens window with fullscreen attribute
+                        val panel = PlayView(EditorState, style)
+                        // todo define source file & such
+                        // todo create instance copy, so no state change is permanent
+                        windowStack.push(panel)
+                    },
+                    MenuOption(NameDesc("Close")) {
+                        ECSSceneTabs.close(this)
+                    }
+                ))
+            } // todo open menu instead
             else -> super.onMouseClicked(x, y, button, long)
         }
     }

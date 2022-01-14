@@ -7,7 +7,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.TextInputML
 import me.anno.ui.style.Style
-import me.anno.utils.maths.Maths.fract
+import me.anno.maths.Maths.fract
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4fc
 import java.net.URL

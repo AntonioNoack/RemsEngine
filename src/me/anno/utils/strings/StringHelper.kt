@@ -1,6 +1,6 @@
 package me.anno.utils.strings
 
-import me.anno.utils.maths.Maths.min
+import me.anno.maths.Maths.min
 import kotlin.math.abs
 
 object StringHelper {

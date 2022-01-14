@@ -1,5 +1,6 @@
 package me.anno.ecs.prefab.change
 
+import me.anno.Build
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.ISaveable
@@ -7,8 +8,9 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.files.LocalFile.toGlobalFile
+import org.apache.logging.log4j.LogManager
 
-class CAdd() : Change(2) {
+class CAdd() : Change() {
 
     constructor(
         parentPath: Path,
@@ -21,7 +23,7 @@ class CAdd() : Change(2) {
         this.type = type
         this.clazzName = clazzName
         this.prefab = prefab
-        this.name = name
+        this.nameId = name
     }
 
     constructor(
@@ -32,16 +34,16 @@ class CAdd() : Change(2) {
     ) : this(parentPath, type, clazzName, clazzName, prefab)
 
     override fun withPath(path: Path): Change {
-        return CAdd(path, type, clazzName!!, name, prefab)
+        return CAdd(path, type, clazzName!!, nameId, prefab)
     }
 
     fun getChildPath(index: Int): Path {
-        return path.added(name!!, index, type)
+        return path.added(nameId!!, index, type)
     }
 
     var type: Char = ' '
     var clazzName: String? = null
-    var name: String? = null
+    var nameId: String? = null
     var prefab: FileReference = InvalidRef
 
     override fun clone(): Change {
@@ -50,14 +52,14 @@ class CAdd() : Change(2) {
         clone.type = type
         clone.clazzName = clazzName
         clone.prefab = prefab
-        clone.name = name
+        clone.nameId = nameId
         return clone
     }
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeChar("type", type)
-        writer.writeString("name", name)
+        writer.writeString("name", nameId)
         writer.writeString("className", clazzName)
         writer.writeString("prefab", prefab.toString())
     }
@@ -73,7 +75,7 @@ class CAdd() : Change(2) {
         when (name) {
             "className" -> clazzName = value
             "prefab" -> prefab = value?.toGlobalFile() ?: InvalidRef
-            "name" -> this.name = value ?: return
+            "name" -> this.nameId = value ?: return
             else -> super.readString(name, value)
         }
     }
@@ -87,7 +89,7 @@ class CAdd() : Change(2) {
 
     override fun applyChange(instance: PrefabSaveable, chain: MutableSet<FileReference>?) {
 
-        // LOGGER.info("adding $clazzName with type $type")
+        // LOGGER.info("adding $clazzName/$nameId with type $type to $path; to ${instance.prefabPath}, ${path == instance.prefabPath}")
         if (prefab != InvalidRef && chain?.add(prefab) == false) throw RuntimeException("Circular Reference on $chain: $prefab")
 
         val loadedInstance = loadPrefab(prefab, chain)?.createInstance()
@@ -101,14 +103,20 @@ class CAdd() : Change(2) {
             }
         }
 
+        val type = type
         val prefab = instance.prefab
         val index = instance.getChildListByType(type).size
-        val name = name; if (name != null) newInstance.name = name
-        val path = instance.prefabPath!!.added(name ?: className, index, type)
+        val nameId = nameId!!
+        if (nameId.isNotEmpty() && nameId[0] != '#') {
+            // an actual name; names in fbx files and such should not start with # if possible xD
+            newInstance.name = nameId
+        }
+
+        val path = instance.prefabPath!!.added(nameId, index, type)
 
         newInstance.changePaths(prefab, path)
 
-        newInstance.forAll {
+        if (Build.isDebug) newInstance.forAll {
             if (it.prefab !== prefab) {
                 throw IllegalStateException("Incorrectly changed paths")
             }
@@ -121,5 +129,9 @@ class CAdd() : Change(2) {
     override val className: String = "CAdd"
     override val approxSize: Int = 10
     override fun isDefaultValue(): Boolean = false
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(CAdd::class)
+    }
 
 }

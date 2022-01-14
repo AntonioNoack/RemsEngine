@@ -12,7 +12,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.ui.base.Font
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.debug.FrameTimes
-import me.anno.utils.maths.Maths
+import me.anno.maths.Maths
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import kotlin.math.roundToInt

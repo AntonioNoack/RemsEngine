@@ -7,9 +7,9 @@ import me.anno.input.Input
 import me.anno.ui.base.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.style.Style
-import me.anno.utils.maths.Maths.clamp
-import me.anno.utils.maths.Maths.length
-import me.anno.utils.maths.Maths.mix
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.length
+import me.anno.maths.Maths.mix
 import kotlin.math.*
 
 // todo test it

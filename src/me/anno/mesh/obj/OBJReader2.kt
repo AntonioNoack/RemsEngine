@@ -9,8 +9,8 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.zip.InnerFolder
 import me.anno.mesh.Point
 import me.anno.utils.files.Files.findNextFileName
-import me.anno.utils.maths.Maths.clamp
-import me.anno.utils.maths.Maths.pow
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.pow
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import org.apache.logging.log4j.LogManager

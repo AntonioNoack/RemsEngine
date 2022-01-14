@@ -1,7 +1,7 @@
 package me.anno.ecs.components.mesh
 
-import me.anno.utils.maths.Maths.length
-import me.anno.utils.maths.Maths.max
+import me.anno.maths.Maths.length
+import me.anno.maths.Maths.max
 import org.joml.Vector3f
 import kotlin.math.abs
 

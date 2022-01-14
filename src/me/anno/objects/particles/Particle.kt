@@ -3,7 +3,7 @@ package me.anno.objects.particles
 import me.anno.gpu.GFX
 import me.anno.objects.Transform
 import me.anno.objects.forces.ForceField
-import me.anno.utils.maths.Maths
+import me.anno.maths.Maths
 import me.anno.utils.structures.lists.UnsafeArrayList
 import me.anno.utils.types.Floats.f2
 import me.anno.utils.types.Floats.toRadians

@@ -15,12 +15,10 @@ class PIProperty(
 
     private fun getPath(): Path {
         val path = instance.prefabPath!!
-        val pathIndices = path.indices
-
         // the index may not be set in the beginning
-        val li = pathIndices.lastIndex
-        if (li >= 0 && pathIndices[li] < 0) {
-            pathIndices[li] = instance.parent!!.getIndexOf(instance)
+        val li = path.size - 1
+        if (li >= 0 && path.lastIndex() < 0) {
+            path.index = instance.parent!!.getIndexOf(instance)
         }
         return path
     }

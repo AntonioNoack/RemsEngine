@@ -29,8 +29,8 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
-import me.anno.utils.maths.Maths.clamp
-import me.anno.utils.maths.Maths.sq
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.sq
 import kotlin.math.roundToInt
 
 class TreeViewPanel<V>(

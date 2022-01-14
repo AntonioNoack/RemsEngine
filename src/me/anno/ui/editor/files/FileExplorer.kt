@@ -41,8 +41,8 @@ import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.files.Files.listFiles2
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.hpc.UpdatingTask
-import me.anno.utils.maths.Maths.clamp
-import me.anno.utils.maths.Maths.pow
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.pow
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.structures.Compare.ifSame
 import org.apache.logging.log4j.LogManager

@@ -7,7 +7,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
-import me.anno.utils.maths.Maths
+import me.anno.maths.Maths
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL13C.GL_MULTISAMPLE
 import org.lwjgl.opengl.GL30C.*
@@ -128,7 +128,6 @@ class Framebuffer(
         GFX.check()
         val pointer = glGenFramebuffers()
         if (pointer <= 0) throw OutOfMemoryError("Could not generate OpenGL framebuffer")
-        LOGGER.debug("Creating $pointer: $name $w $h $samples ${targets.joinToString { it.name }} $depthBufferType")
         session = OpenGL.session
         DebugGPUStorage.fbs.add(this)
         bindFramebuffer(GL_FRAMEBUFFER, pointer)
@@ -177,7 +176,6 @@ class Framebuffer(
             }
         }
         GFX.check()
-        println("created $pointer as $w x $h")
         check(pointer)
         this.pointer = pointer
     }
@@ -219,16 +217,16 @@ class Framebuffer(
             GFX.check()
 
             // ensure that we exist
-            if (pointer < 0) {
-                ensureSize(w, h)
-            }
+            ensure()
 
             // ensure that it exists
             // + bind it, it seems important
             target.ensureSize(w, h)
+            target.ensure()
 
             GFX.check()
 
+            if (pointer <= 0 || target.pointer <= 0) throw RuntimeException("Something went wrong $this -> $target")
             // LOGGER.info("Blit: $pointer -> ${target.pointer}")
             bindFramebuffer(GL_DRAW_FRAMEBUFFER, target.pointer)
             bindFramebuffer(GL_READ_FRAMEBUFFER, pointer)
@@ -355,7 +353,6 @@ class Framebuffer(
 
     override fun destroy() {
         if (pointer > 0) {
-            LOGGER.debug("Destroying framebuffer $pointer")
             msBuffer?.destroy()
             destroyFramebuffer()
             destroyInternalDepth()

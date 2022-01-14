@@ -21,7 +21,7 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.treeView.TreeView
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toARGB
-import me.anno.utils.maths.Maths.clamp
+import me.anno.maths.Maths.clamp
 import me.anno.utils.structures.lists.UpdatingList
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f

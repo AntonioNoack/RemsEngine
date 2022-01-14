@@ -150,7 +150,7 @@ object ECSRegistry {
         registerCustomClass(BoneByBoneAnimation())
 
         // prefab system
-        registerCustomClass(Path())
+        registerCustomClass(Path.ROOT_PATH)
         registerCustomClass(ChangeHistory())
         registerCustomClass(CAdd())
         registerCustomClass(CSet())

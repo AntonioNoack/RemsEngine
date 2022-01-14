@@ -20,8 +20,8 @@ import me.anno.studio.rems.Scene.noiseFunc
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import me.anno.utils.maths.Maths
-import me.anno.utils.maths.Maths.fract
+import me.anno.maths.Maths
+import me.anno.maths.Maths.fract
 import me.anno.utils.types.Vectors.minus
 import me.anno.utils.types.Vectors.mulAlpha
 import me.anno.utils.types.Vectors.times

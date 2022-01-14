@@ -50,7 +50,7 @@ import me.anno.ui.input.*
 import me.anno.ui.style.Style
 import me.anno.utils.Color.rgba
 import me.anno.utils.Color.toVecRGBA
-import me.anno.utils.maths.Maths
+import me.anno.maths.Maths
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.structures.tuples.MutablePair
 import me.anno.utils.types.AABBs.getMax2

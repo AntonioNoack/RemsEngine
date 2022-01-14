@@ -17,7 +17,7 @@ import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.editor.sceneView.Gizmos
 import me.anno.ui.input.EnumInput
-import me.anno.utils.maths.Maths.pow
+import me.anno.maths.Maths.pow
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Lists.firstInstanceOrNull
 import me.anno.utils.types.Matrices.distance

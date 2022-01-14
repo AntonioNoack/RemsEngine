@@ -13,14 +13,16 @@ import me.anno.io.text.TextWriter
 import org.apache.logging.log4j.LogManager
 import java.text.ParseException
 
-abstract class Change(val priority: Int) : Saveable(), Cloneable {
+abstract class Change : Saveable(), Cloneable {
 
     var path: Path = ROOT_PATH
 
     abstract fun withPath(path: Path): Change
 
     fun apply(instance0: PrefabSaveable, chain: MutableSet<FileReference>?) {
+        if (instance0.prefabPath != ROOT_PATH) throw RuntimeException("Root instance must have root path, got ${instance0.prefabPath}")
         val instance = Hierarchy.getInstanceAt(instance0, path) ?: return
+        if (instance.prefabPath != path) throw RuntimeException("Path does not match! ${instance.prefabPath} != $path")
         applyChange(instance, chain)
     }
 
@@ -61,8 +63,10 @@ abstract class Change(val priority: Int) : Saveable(), Cloneable {
         fun main(args: Array<String>) {
             registerCustomClass(CAdd())
             registerCustomClass(CSet())
-            registerCustomClass(Path())
-            val path = Path(arrayOf("k", "l", "m"), intArrayOf(4, 5, 6), charArrayOf('x', 'y', 'z'))
+            registerCustomClass(ROOT_PATH)
+            val p0 = Path(ROOT_PATH, "k", 4, 'x')
+            val p1 = Path(p0, "l", 5, 'y')
+            val path = Path(p1, "m", 6, 'z')
             for (sample in listOf(
                 CSet(path, "path", "z"),
                 CAdd(path, 'x', "Entity")

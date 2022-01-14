@@ -3,9 +3,8 @@ package me.anno.fonts
 import me.anno.fonts.mesh.TextMesh
 import me.anno.fonts.mesh.TextMeshGroup.Companion.getAlignments
 import me.anno.fonts.mesh.TextRepBase
-import me.anno.utils.maths.Maths.clamp
+import me.anno.maths.Maths.clamp
 import me.anno.utils.structures.arrays.DoubleArrays.accumulate
-import me.anno.utils.types.Lists.accumulate
 import java.awt.Font
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout

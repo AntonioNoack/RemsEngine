@@ -1,7 +1,7 @@
 package me.anno.graph.types.flow.maths
 
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.median
-import me.anno.utils.maths.Maths.clamp
+import me.anno.maths.Maths.clamp
 
 enum class FloatMathsTernary(
     val glsl: String,

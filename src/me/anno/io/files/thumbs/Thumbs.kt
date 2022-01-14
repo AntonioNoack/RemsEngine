@@ -78,7 +78,7 @@ import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.files.Files.use
 import me.anno.utils.input.Input.readNBytes2
-import me.anno.utils.maths.Maths.clamp
+import me.anno.maths.Maths.clamp
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.FFMPEGMetadata.Companion.getMeta

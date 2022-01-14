@@ -50,10 +50,10 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import me.anno.utils.Clipping
-import me.anno.utils.maths.Maths.clamp
-import me.anno.utils.maths.Maths.fract
-import me.anno.utils.maths.Maths.mix
-import me.anno.utils.maths.Maths.pow
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.fract
+import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.pow
 import me.anno.utils.structures.ValueWithDefault
 import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
 import me.anno.utils.structures.maps.BiMap

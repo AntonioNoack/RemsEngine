@@ -3,8 +3,8 @@ package me.anno.ui.base.progress
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.utils.maths.Maths.clamp
-import me.anno.utils.maths.Maths.mix
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.mix
 
 class ProgressBar(val unit: String, var total: Double) {
 

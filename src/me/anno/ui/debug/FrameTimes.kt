@@ -4,7 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.ui.base.Panel
 import me.anno.ui.base.text.TextPanel
-import me.anno.utils.maths.Maths.mixARGB
+import me.anno.maths.Maths.mixARGB
 import kotlin.math.max
 
 object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {

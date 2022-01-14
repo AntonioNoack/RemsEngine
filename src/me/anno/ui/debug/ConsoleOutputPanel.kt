@@ -18,7 +18,7 @@ import me.anno.ui.debug.console.COLine
 import me.anno.ui.debug.console.ConsoleLogFullscreen
 import me.anno.ui.style.Style
 import me.anno.utils.files.Files.formatFileSize
-import me.anno.utils.maths.Maths.mixARGB
+import me.anno.maths.Maths.mixARGB
 import org.apache.logging.log4j.LogManager
 import kotlin.concurrent.thread
 import kotlin.math.max

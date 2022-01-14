@@ -3,7 +3,7 @@ package me.anno.gpu.framebuffer
 import me.anno.cache.CacheSection
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
-import me.anno.utils.maths.Maths.clamp
+import me.anno.maths.Maths.clamp
 import org.apache.logging.log4j.LogManager
 
 object FBStack : CacheSection("FBStack") {

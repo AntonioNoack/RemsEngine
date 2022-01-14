@@ -38,7 +38,7 @@ import me.anno.gpu.buffer.LineBuffer
 import me.anno.input.Input
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
-import me.anno.utils.maths.Maths.clamp
+import me.anno.maths.Maths.clamp
 import me.anno.utils.structures.sets.ParallelHashSet
 import me.anno.utils.types.AABBs.set
 import org.apache.logging.log4j.LogManager
@@ -53,6 +53,10 @@ import kotlin.math.max
 import kotlin.reflect.KClass
 
 class BulletPhysics() : Component() {
+
+    // todo onPreEnable() // before all children
+    // todo onPostEnable() // after all children
+    // -> components can be registered before/after enable :)
 
     constructor(base: BulletPhysics) : this() {
         base.copy(this)
@@ -133,33 +137,31 @@ class BulletPhysics() : Component() {
 
     private fun validate() {
         // LOGGER.debug("validating ${System.identityHashCode(this)}")
-        invalidEntities.process2x { entity, first ->
-            if (first) {
-                remove(entity, false)
-                // will be re-added by addOrGet
-                // todo add to invalidEntities somehow? mmh...
-                entity.allComponents(Constraint::class) {
-                    val other = it.other?.entity
-                    if (other != null) {
-                        remove(other, false)
-                    }
-                    false
+        invalidEntities.process2x({ entity ->
+            remove(entity, false)
+            // will be re-added by addOrGet
+            // todo add to invalidEntities somehow? mmh...
+            entity.allComponents(Constraint::class) {
+                val other = it.other?.entity
+                if (other != null) {
+                    remove(other, false)
                 }
-            } else {
-                val rigidbody = addOrGet(entity)
-                entity.isPhysicsControlled = rigidbody != null
+                false
             }
-        }
+        }, { entity ->
+            val rigidbody = addOrGet(entity)
+            entity.isPhysicsControlled = rigidbody != null
+        })
     }
 
     @NotSerializedProperty
     private lateinit var world: DiscreteDynamicsWorld
 
     @NotSerializedProperty
-    private lateinit var rigidBodies: HashMap<Entity, Pair<org.joml.Vector3d, RigidBody>?>
+    private lateinit var rigidBodies: HashMap<Entity, BodyWithScale<RigidBody>?>
 
     @NotSerializedProperty
-    private lateinit var nonStaticRigidBodies: HashMap<Entity, Pair<org.joml.Vector3d, RigidBody>>
+    private lateinit var nonStaticRigidBodies: HashMap<Entity, BodyWithScale<RigidBody>>
 
     @NotSerializedProperty
     private lateinit var raycastVehicles: HashMap<Entity, RaycastVehicle>
@@ -194,7 +196,7 @@ class BulletPhysics() : Component() {
             appendsExtras(entity, rigidBody, bodyWithScale)
             LOGGER.debug("+ ${entity.prefabPath}")
         }
-        return bodyWithScale?.second
+        return bodyWithScale?.body
     }
 
     private fun <V : Component> getValidComponents(entity: Entity, clazz: KClass<V>): Sequence<V> {
@@ -226,7 +228,7 @@ class BulletPhysics() : Component() {
         }
     }
 
-    private fun createRawRigidbody(entity: Entity, base: Rigidbody): Pair<org.joml.Vector3d, RigidBody>? {
+    private fun createRawRigidbody(entity: Entity, base: Rigidbody): BodyWithScale<RigidBody>? {
 
         val colliders = getValidComponents(entity, Collider::class).toList()
         return if (colliders.isNotEmpty()) {
@@ -263,7 +265,7 @@ class BulletPhysics() : Component() {
             rb.deactivationTime = base.sleepingTimeThreshold
             BulletGlobals.setDeactivationTime(1.0)
 
-            scale to rb
+            BodyWithScale(rb, scale)
 
         } else null
 
@@ -293,9 +295,9 @@ class BulletPhysics() : Component() {
         raycastVehicles[entity] = vehicle
     }
 
-    private fun appendsExtras(entity: Entity, rigidbody: Rigidbody, bodyWithScale: Pair<org.joml.Vector3d, RigidBody>) {
+    private fun appendsExtras(entity: Entity, rigidbody: Rigidbody, bodyWithScale: BodyWithScale<RigidBody>) {
 
-        val (_, body) = bodyWithScale
+        val body = bodyWithScale.body
 
         if (rigidbody is Vehicle) {
             defineVehicle(entity, rigidbody, body)
@@ -372,7 +374,7 @@ class BulletPhysics() : Component() {
         val rigid = rigidBodies.remove(entity) ?: return
         LOGGER.debug("- ${entity.prefabPath}")
         nonStaticRigidBodies.remove(entity)
-        world.removeRigidBody(rigid.second)
+        world.removeRigidBody(rigid.body)
         entity.allComponents(Constraint::class) {
             val bi = it.bulletInstance
             if (bi != null) {
@@ -466,7 +468,7 @@ class BulletPhysics() : Component() {
 
         for ((entity, rigidbodyWithScale) in nonStaticRigidBodies) {
 
-            val (scale, rigidbody) = rigidbodyWithScale
+            val (rigidbody, scale) = rigidbodyWithScale
             if (!rigidbody.isActive) continue
 
             // set the global transform
@@ -506,7 +508,7 @@ class BulletPhysics() : Component() {
 
         // update the local transforms last, so all global transforms have been completely updated
         for ((entity, bodyWithScale) in nonStaticRigidBodies) {
-            if (!bodyWithScale.second.isActive) continue
+            if (!bodyWithScale.body.isActive) continue
             // val dst = entity.transform
             // dst.calculateLocalTransform((entity.parent as? Entity)?.transform)
             entity.invalidateAABBsCompletely()

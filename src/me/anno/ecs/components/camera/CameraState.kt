@@ -3,7 +3,7 @@ package me.anno.ecs.components.camera
 import me.anno.ecs.Component
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
-import me.anno.utils.maths.Maths.clamp
+import me.anno.maths.Maths.clamp
 
 class CameraState : Component() {
 

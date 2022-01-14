@@ -34,7 +34,7 @@ import me.anno.ui.dragging.IDraggable
 import me.anno.ui.utils.WindowStack
 import me.anno.utils.Clock
 import me.anno.utils.OS
-import me.anno.utils.maths.Maths.clamp
+import me.anno.maths.Maths.clamp
 import me.anno.utils.types.Strings.addSuffix
 import me.anno.utils.types.Strings.filterAlphaNumeric
 import org.apache.logging.log4j.LogManager

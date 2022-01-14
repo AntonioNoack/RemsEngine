@@ -20,7 +20,7 @@ import me.anno.ui.editor.files.Search
 import me.anno.ui.input.TextInput
 import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.utils.WindowStack
-import me.anno.utils.maths.Maths
+import me.anno.maths.Maths
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt

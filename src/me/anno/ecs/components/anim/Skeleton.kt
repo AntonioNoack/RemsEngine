@@ -12,8 +12,8 @@ import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.mesh.assimp.Bone
-import me.anno.utils.maths.Maths.length
-import me.anno.utils.maths.Maths.min
+import me.anno.maths.Maths.length
+import me.anno.maths.Maths.min
 import me.anno.utils.types.AABBs.deltaX
 import me.anno.utils.types.AABBs.deltaY
 import me.anno.utils.types.AABBs.deltaZ

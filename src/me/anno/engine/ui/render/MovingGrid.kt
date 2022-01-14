@@ -7,7 +7,7 @@ import me.anno.engine.ui.render.GridColors.colorZ
 import me.anno.gpu.OpenGL
 import me.anno.gpu.blending.BlendMode
 import me.anno.ui.editor.sceneView.Grid
-import me.anno.utils.maths.Maths
+import me.anno.maths.Maths
 import kotlin.math.floor
 import kotlin.math.log10
 

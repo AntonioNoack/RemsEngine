@@ -2,7 +2,7 @@ package me.anno.objects.distributions
 
 import me.anno.objects.models.CubemapModel.cubemapLineModel
 import me.anno.ui.editor.sceneView.Grid
-import me.anno.utils.maths.Maths.max
+import me.anno.maths.Maths.max
 import org.joml.*
 import kotlin.math.abs
 

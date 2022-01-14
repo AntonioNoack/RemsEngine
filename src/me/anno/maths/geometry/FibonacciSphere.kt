@@ -1,4 +1,4 @@
-package me.anno.utils.maths.geometry
+package me.anno.maths.geometry
 
 import me.anno.utils.types.Vectors.print
 import org.joml.Vector3f

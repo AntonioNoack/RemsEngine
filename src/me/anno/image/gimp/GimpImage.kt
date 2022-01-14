@@ -15,9 +15,9 @@ import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
 import me.anno.utils.OS
 import me.anno.utils.OS.desktop
-import me.anno.utils.maths.Maths.ceilDiv
-import me.anno.utils.maths.Maths.clamp
-import me.anno.utils.maths.Maths.max
+import me.anno.maths.Maths.ceilDiv
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.max
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import java.io.DataInputStream

@@ -8,7 +8,7 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.parser.SimpleExpressionParser
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.style.Style
-import me.anno.utils.maths.Maths.pow
+import me.anno.maths.Maths.pow
 import org.joml.Vector2i
 import org.joml.Vector3i
 import org.joml.Vector4i

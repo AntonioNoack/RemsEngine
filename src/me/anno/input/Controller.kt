@@ -6,9 +6,9 @@ import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
-import me.anno.utils.maths.Maths.clamp
-import me.anno.utils.maths.Maths.min
-import me.anno.utils.maths.Maths.sq
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.min
+import me.anno.maths.Maths.sq
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWGamepadState

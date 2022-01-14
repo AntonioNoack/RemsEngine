@@ -8,7 +8,7 @@ import me.anno.io.text.TextWriterBase
 import me.anno.ui.base.Font
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.files.Files.formatFileSize
-import me.anno.utils.maths.Maths.fract
+import me.anno.maths.Maths.fract
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.ExpensiveList
 import me.anno.utils.types.Floats.f1

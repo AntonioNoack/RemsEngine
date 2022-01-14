@@ -6,13 +6,11 @@ import me.anno.input.Input.isShiftDown
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.Panel
 import me.anno.ui.base.components.Padding
-import me.anno.ui.base.constraints.AxisAlignment
-import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.style.Style
-import me.anno.utils.maths.Maths.pow
+import me.anno.maths.Maths.pow
 import org.joml.Vector3d
 
 class GraphPanel(var graph: Graph? = null, style: Style) :

@@ -7,7 +7,7 @@ import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.studio.rems.RemsStudio
-import me.anno.utils.maths.Maths.clamp
+import me.anno.maths.Maths.clamp
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.video.Codecs.audioCodecByExtension
 import me.anno.video.FFMPEGUtils.processOutput

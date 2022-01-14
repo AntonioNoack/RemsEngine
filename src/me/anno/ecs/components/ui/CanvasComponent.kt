@@ -1,6 +1,7 @@
 package me.anno.ecs.components.ui
 
 import me.anno.config.DefaultConfig
+import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.Group
 import me.anno.ecs.annotations.Order
 import me.anno.ecs.annotations.Range
@@ -115,7 +116,7 @@ class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
 
     override fun getMesh() = internalMesh
 
-    fun updateMesh() {
+    private fun defineMesh() {
         val pos = internalMesh.positions!!
         val x = width.toFloat() / height.toFloat()
         val oldX = pos[0]
@@ -127,12 +128,17 @@ class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
     }
 
     override fun onVisibleUpdate(): Boolean {
-        updateMesh()
+        defineMesh()
         render()
         return true
     }
 
     // todo just set inFocus, then input works magically
+
+    @DebugAction
+    fun requestFocus() {
+        windowStack[0].panel.requestFocus()
+    }
 
     fun render() {
         GFX.checkIsGFXThread()

@@ -8,7 +8,7 @@ import me.anno.io.files.FileReference
 import me.anno.utils.strings.StringHelper.shorten2Way
 import org.apache.logging.log4j.LogManager
 
-class CSet() : Change(5) {
+class CSet() : Change() {
 
     constructor(path: Path, name: String?, value: Any?) : this() {
         this.path = path

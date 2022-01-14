@@ -1,6 +1,6 @@
 package me.anno.utils.types
 
-import me.anno.utils.maths.Maths.sq
+import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
 import org.joml.*
 import kotlin.math.sqrt

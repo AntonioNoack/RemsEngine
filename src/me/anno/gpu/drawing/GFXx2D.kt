@@ -9,7 +9,7 @@ import me.anno.objects.GFXTransform
 import me.anno.objects.GFXTransform.Companion.uploadAttractors0
 import me.anno.objects.Transform
 import me.anno.objects.Video
-import me.anno.utils.maths.Maths.clamp
+import me.anno.maths.Maths.clamp
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 

@@ -1,6 +1,6 @@
 package me.anno.ecs.components.mesh.spline
 
-import me.anno.utils.maths.Maths
+import me.anno.maths.Maths
 import me.anno.utils.types.Vectors
 import org.joml.Vector3d
 import kotlin.math.asin

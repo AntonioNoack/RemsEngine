@@ -12,7 +12,7 @@ import me.anno.ui.base.constraints.AspectRatioConstraint
 import me.anno.ui.editor.color.ColorChooser.Companion.CircleBarRatio
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toVecRGBA
-import me.anno.utils.maths.Maths.length
+import me.anno.maths.Maths.length
 import org.joml.Vector3f
 import org.joml.Vector3fc
 import org.joml.Vector4f

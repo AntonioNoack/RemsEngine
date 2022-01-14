@@ -1,6 +1,6 @@
 package me.anno.gpu.buffer
 
-import me.anno.utils.maths.Maths.pow
+import me.anno.maths.Maths.pow
 import org.joml.Vector2f
 
 class SimpleBuffer(val vertices: Array<Vector2f>, name: String) : StaticBuffer(

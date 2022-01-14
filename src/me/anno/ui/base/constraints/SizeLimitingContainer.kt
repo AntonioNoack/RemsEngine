@@ -4,7 +4,7 @@ import me.anno.ui.base.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.style.Style
-import me.anno.utils.maths.Maths
+import me.anno.maths.Maths
 import kotlin.math.min
 
 class SizeLimitingContainer(child: Panel, var sizeX: Int, var sizeY: Int, style: Style) :

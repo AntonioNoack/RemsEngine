@@ -4,8 +4,8 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.utils.maths.Maths.absMax
-import me.anno.utils.maths.Maths.min
+import me.anno.maths.Maths.absMax
+import me.anno.maths.Maths.min
 import me.anno.utils.types.Strings
 import me.anno.utils.types.Strings.isBlank2
 import org.joml.*

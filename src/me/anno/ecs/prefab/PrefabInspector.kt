@@ -138,13 +138,10 @@ class PrefabInspector(val prefab: Prefab) {
             return
         }
 
-        val pathIndices = path.indices
-
         // the index may not be set in the beginning
         fun getPath(): Path {
-            val li = pathIndices.lastIndex
-            if (li >= 0 && pathIndices[li] < 0) {
-                pathIndices[li] = instance.parent!!.getIndexOf(instance)
+            if (path.lastIndex() < 0) {
+                path.index = instance.parent!!.getIndexOf(instance)
             }
             return path
         }

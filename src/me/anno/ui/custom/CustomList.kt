@@ -6,7 +6,7 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.style.Style
 import me.anno.utils.bugs.SumOf
-import me.anno.utils.maths.Maths.clamp
+import me.anno.maths.Maths.clamp
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt

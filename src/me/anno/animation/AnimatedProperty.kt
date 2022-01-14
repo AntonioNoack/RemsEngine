@@ -11,7 +11,7 @@ import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.utils.WrongClassType
-import me.anno.utils.maths.Maths.clamp
+import me.anno.maths.Maths.clamp
 import me.anno.utils.structures.lists.UnsafeArrayList
 import me.anno.utils.types.AnyToDouble.getDouble
 import org.apache.logging.log4j.LogManager

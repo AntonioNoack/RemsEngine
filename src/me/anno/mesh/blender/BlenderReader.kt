@@ -465,7 +465,7 @@ object BlenderReader {
                 // add a pseudo root
                 roots.forEachIndexed { index, bObject ->
                     val name = bObject.id.name.substring(2)
-                    val path = Path(name, index, 'e')
+                    val path = Path(Path.ROOT_PATH, name, index, 'e')
                     paths[bObject] = path
                     createObject(prefab, bObject, path)
                 }
@@ -500,7 +500,7 @@ object BlenderReader {
 
     fun createObject(prefab: Prefab, obj: BObject, path: Path) {
         if (path != Path.ROOT_PATH) {
-            prefab.add(path.getParent(), 'e', "Entity")
+            prefab.add(path.parent ?: Path.ROOT_PATH, 'e', "Entity")
         }
         // add position relative to parent
         // par * self = ws
@@ -517,6 +517,7 @@ object BlenderReader {
         val scale = localMatrix.getScale2().switchYZ()
         if (scale.x != 1.0 || scale.y != 1.0 || scale.z != 1.0)
             prefab.setUnsafe(path, "scale", scale)
+        // todo get names...
         when (BObject.objectTypeById[obj.type.toInt()]) {
             BObject.BObjectType.OB_EMPTY -> { // done
             }

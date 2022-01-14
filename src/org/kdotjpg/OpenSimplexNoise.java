@@ -18,6 +18,8 @@ package org.kdotjpg;
 
 public class OpenSimplexNoise {
 
+    // todo add 1d simplex noise?
+
     private static final double STRETCH_CONSTANT_2D = -0.211324865405187;    // (1/Math.sqrt(2+1)-1)/2;
     private static final double SQUISH_CONSTANT_2D = 0.366025403784439;      // (Math.sqrt(2+1)-1)/2;
     private static final double STRETCH_CONSTANT_3D = -1.0 / 6;              // (1/Math.sqrt(3+1)-1)/3;
@@ -29,25 +31,26 @@ public class OpenSimplexNoise {
     private static final double NORM_CONSTANT_3D = 103;
     private static final double NORM_CONSTANT_4D = 30;
 
-    // private static final long DEFAULT_SEED = 0;
+    private static final long DEFAULT_SEED = 0;
 
     private final short[] perm;
     private final short[] permGradIndex3D;
-	
-	/*public OpenSimplexNoise() {
-		this(DEFAULT_SEED);
-	}
-	
-	public OpenSimplexNoise(short[] perm) {
-		this.perm = perm;
-		permGradIndex3D = new short[256];
-		for (int i = 0; i < 256; i++) {
-			// Since 3D has 24 gradients, simple bitmask won't work, so precompute modulo array.
-			permGradIndex3D[i] = (short)((perm[i] % (gradients3D.length / 3)) * 3);
-		}
-	}*/
 
     public final long seed;
+
+    public OpenSimplexNoise() {
+        this(DEFAULT_SEED);
+    }
+
+    public OpenSimplexNoise(short[] perm) {
+        this.seed = -1;// cannot be easily found using perm
+        this.perm = perm;
+        permGradIndex3D = new short[256];
+        for (int i = 0; i < 256; i++) {
+            // Since 3D has 24 gradients, simple bitmask won't work, so precompute modulo array.
+            permGradIndex3D[i] = (short) ((perm[i] % (gradients3D.length / 3)) * 3);
+        }
+    }
 
     // Initializes the class using a permutation array generated from a 64-bit seed.
     // Generates a proper permutation (i.e. doesn't merely perform N successive pair swaps on a base array)
@@ -343,14 +346,14 @@ public class OpenSimplexNoise {
             // Contribution (0,1,0)
             double dx2 = dx0 - 0 - SQUISH_CONSTANT_3D;
             double dy2 = dy0 - 1 - SQUISH_CONSTANT_3D;
-			double attn2 = 2 - dx2 * dx2 - dy2 * dy2 - dz1 * dz1;
+            double attn2 = 2 - dx2 * dx2 - dy2 * dy2 - dz1 * dz1;
             if (attn2 > 0) {
                 attn2 *= attn2;
                 value += attn2 * attn2 * extrapolate(xsb, ysb + 1, zsb, dx2, dy2, dz1);
             }
 
             // Contribution (0,0,1)
-			double dz3 = dz0 - 1 - SQUISH_CONSTANT_3D;
+            double dz3 = dz0 - 1 - SQUISH_CONSTANT_3D;
             double attn3 = 2 - dx2 * dx2 - dy1 * dy1 - dz3 * dz3;
             if (attn3 > 0) {
                 attn3 *= attn3;
@@ -459,23 +462,20 @@ public class OpenSimplexNoise {
             }
 
             // Contribution (1,0,1)
-            double dx2 = dx3;
             double dy2 = dy0 - 0 - 2 * SQUISH_CONSTANT_3D;
             double dz2 = dz0 - 1 - 2 * SQUISH_CONSTANT_3D;
-            double attn2 = 2 - dx2 * dx2 - dy2 * dy2 - dz2 * dz2;
+            double attn2 = 2 - dx3 * dx3 - dy2 * dy2 - dz2 * dz2;
             if (attn2 > 0) {
                 attn2 *= attn2;
-                value += attn2 * attn2 * extrapolate(xsb + 1, ysb, zsb + 1, dx2, dy2, dz2);
+                value += attn2 * attn2 * extrapolate(xsb + 1, ysb, zsb + 1, dx3, dy2, dz2);
             }
 
             // Contribution (0,1,1)
             double dx1 = dx0 - 0 - 2 * SQUISH_CONSTANT_3D;
-            double dy1 = dy3;
-            double dz1 = dz2;
-            double attn1 = 2 - dx1 * dx1 - dy1 * dy1 - dz1 * dz1;
+            double attn1 = 2 - dx1 * dx1 - dy3 * dy3 - dz2 * dz2;
             if (attn1 > 0) {
                 attn1 *= attn1;
-                value += attn1 * attn1 * extrapolate(xsb, ysb + 1, zsb + 1, dx1, dy1, dz1);
+                value += attn1 * attn1 * extrapolate(xsb, ysb + 1, zsb + 1, dx1, dy3, dz2);
             }
 
             // Contribution (1,1,1)
@@ -524,7 +524,6 @@ public class OpenSimplexNoise {
             if (p3 > 1) {
                 double score = p3 - 1;
                 if (aScore <= bScore && aScore < score) {
-                    aScore = score;
                     aPoint = 0x06;
                     aIsFurtherSide = true;
                 } else if (aScore > bScore && bScore < score) {
@@ -535,11 +534,9 @@ public class OpenSimplexNoise {
             } else {
                 double score = 1 - p3;
                 if (aScore <= bScore && aScore < score) {
-                    aScore = score;
                     aPoint = 0x01;
                     aIsFurtherSide = false;
                 } else if (aScore > bScore && bScore < score) {
-                    bScore = score;
                     bPoint = 0x01;
                     bIsFurtherSide = false;
                 }
@@ -682,14 +679,14 @@ public class OpenSimplexNoise {
             // Contribution (0,1,0)
             double dx2 = dx0 - 0 - SQUISH_CONSTANT_3D;
             double dy2 = dy0 - 1 - SQUISH_CONSTANT_3D;
-			double attn2 = 2 - dx2 * dx2 - dy2 * dy2 - dz1 * dz1;
+            double attn2 = 2 - dx2 * dx2 - dy2 * dy2 - dz1 * dz1;
             if (attn2 > 0) {
                 attn2 *= attn2;
                 value += attn2 * attn2 * extrapolate(xsb, ysb + 1, zsb, dx2, dy2, dz1);
             }
 
             // Contribution (0,0,1)
-			double dz3 = dz0 - 1 - SQUISH_CONSTANT_3D;
+            double dz3 = dz0 - 1 - SQUISH_CONSTANT_3D;
             double attn3 = 2 - dx2 * dx2 - dy1 * dy1 - dz3 * dz3;
             if (attn3 > 0) {
                 attn3 *= attn3;
@@ -707,7 +704,7 @@ public class OpenSimplexNoise {
             }
 
             // Contribution (1,0,1)
-			double dy5 = dy0 - 0 - 2 * SQUISH_CONSTANT_3D;
+            double dy5 = dy0 - 0 - 2 * SQUISH_CONSTANT_3D;
             double dz5 = dz0 - 1 - 2 * SQUISH_CONSTANT_3D;
             double attn5 = 2 - dx4 * dx4 - dy5 * dy5 - dz5 * dz5;
             if (attn5 > 0) {
@@ -717,7 +714,7 @@ public class OpenSimplexNoise {
 
             // Contribution (0,1,1)
             double dx6 = dx0 - 0 - 2 * SQUISH_CONSTANT_3D;
-			double attn6 = 2 - dx6 * dx6 - dy4 * dy4 - dz5 * dz5;
+            double attn6 = 2 - dx6 * dx6 - dy4 * dy4 - dz5 * dz5;
             if (attn6 > 0) {
                 attn6 *= attn6;
                 value += attn6 * attn6 * extrapolate(xsb, ysb + 1, zsb + 1, dx6, dy4, dz5);
@@ -952,34 +949,26 @@ public class OpenSimplexNoise {
             // Contribution (0,1,0,0)
             double dx2 = dx0 - 0 - SQUISH_CONSTANT_4D;
             double dy2 = dy0 - 1 - SQUISH_CONSTANT_4D;
-            double dz2 = dz1;
-            double dw2 = dw1;
-            double attn2 = 2 - dx2 * dx2 - dy2 * dy2 - dz2 * dz2 - dw2 * dw2;
+            double attn2 = 2 - dx2 * dx2 - dy2 * dy2 - dz1 * dz1 - dw1 * dw1;
             if (attn2 > 0) {
                 attn2 *= attn2;
-                value += attn2 * attn2 * extrapolate(xsb, ysb + 1, zsb, wsb, dx2, dy2, dz2, dw2);
+                value += attn2 * attn2 * extrapolate(xsb, ysb + 1, zsb, wsb, dx2, dy2, dz1, dw1);
             }
 
             // Contribution (0,0,1,0)
-            double dx3 = dx2;
-            double dy3 = dy1;
             double dz3 = dz0 - 1 - SQUISH_CONSTANT_4D;
-            double dw3 = dw1;
-            double attn3 = 2 - dx3 * dx3 - dy3 * dy3 - dz3 * dz3 - dw3 * dw3;
+            double attn3 = 2 - dx2 * dx2 - dy1 * dy1 - dz3 * dz3 - dw1 * dw1;
             if (attn3 > 0) {
                 attn3 *= attn3;
-                value += attn3 * attn3 * extrapolate(xsb, ysb, zsb + 1, wsb, dx3, dy3, dz3, dw3);
+                value += attn3 * attn3 * extrapolate(xsb, ysb, zsb + 1, wsb, dx2, dy1, dz3, dw1);
             }
 
             // Contribution (0,0,0,1)
-            double dx4 = dx2;
-            double dy4 = dy1;
-            double dz4 = dz1;
             double dw4 = dw0 - 1 - SQUISH_CONSTANT_4D;
-            double attn4 = 2 - dx4 * dx4 - dy4 * dy4 - dz4 * dz4 - dw4 * dw4;
+            double attn4 = 2 - dx2 * dx2 - dy1 * dy1 - dz1 * dz1 - dw4 * dw4;
             if (attn4 > 0) {
                 attn4 *= attn4;
-                value += attn4 * attn4 * extrapolate(xsb, ysb, zsb, wsb + 1, dx4, dy4, dz4, dw4);
+                value += attn4 * attn4 * extrapolate(xsb, ysb, zsb, wsb + 1, dx2, dy1, dz1, dw4);
             }
         } else if (inSum >= 3) { // We're inside the pentachoron (4-Simplex) at (1,1,1,1)
             // Determine which two of (1,1,1,0), (1,1,0,1), (1,0,1,1), (0,1,1,1) are closest.
@@ -1136,36 +1125,28 @@ public class OpenSimplexNoise {
             }
 
             // Contribution (1,1,0,1)
-            double dx3 = dx4;
-            double dy3 = dy4;
             double dz3 = dz0 - 3 * SQUISH_CONSTANT_4D;
             double dw3 = dw0 - 1 - 3 * SQUISH_CONSTANT_4D;
-            double attn3 = 2 - dx3 * dx3 - dy3 * dy3 - dz3 * dz3 - dw3 * dw3;
+            double attn3 = 2 - dx4 * dx4 - dy4 * dy4 - dz3 * dz3 - dw3 * dw3;
             if (attn3 > 0) {
                 attn3 *= attn3;
-                value += attn3 * attn3 * extrapolate(xsb + 1, ysb + 1, zsb, wsb + 1, dx3, dy3, dz3, dw3);
+                value += attn3 * attn3 * extrapolate(xsb + 1, ysb + 1, zsb, wsb + 1, dx4, dy4, dz3, dw3);
             }
 
             // Contribution (1,0,1,1)
-            double dx2 = dx4;
             double dy2 = dy0 - 3 * SQUISH_CONSTANT_4D;
-            double dz2 = dz4;
-            double dw2 = dw3;
-            double attn2 = 2 - dx2 * dx2 - dy2 * dy2 - dz2 * dz2 - dw2 * dw2;
+            double attn2 = 2 - dx4 * dx4 - dy2 * dy2 - dz4 * dz4 - dw3 * dw3;
             if (attn2 > 0) {
                 attn2 *= attn2;
-                value += attn2 * attn2 * extrapolate(xsb + 1, ysb, zsb + 1, wsb + 1, dx2, dy2, dz2, dw2);
+                value += attn2 * attn2 * extrapolate(xsb + 1, ysb, zsb + 1, wsb + 1, dx4, dy2, dz4, dw3);
             }
 
             // Contribution (0,1,1,1)
             double dx1 = dx0 - 3 * SQUISH_CONSTANT_4D;
-            double dz1 = dz4;
-            double dy1 = dy4;
-            double dw1 = dw3;
-            double attn1 = 2 - dx1 * dx1 - dy1 * dy1 - dz1 * dz1 - dw1 * dw1;
+            double attn1 = 2 - dx1 * dx1 - dy4 * dy4 - dz4 * dz4 - dw3 * dw3;
             if (attn1 > 0) {
                 attn1 *= attn1;
-                value += attn1 * attn1 * extrapolate(xsb, ysb + 1, zsb + 1, wsb + 1, dx1, dy1, dz1, dw1);
+                value += attn1 * attn1 * extrapolate(xsb, ysb + 1, zsb + 1, wsb + 1, dx1, dy4, dz4, dw3);
             }
 
             // Contribution (1,1,1,1)
@@ -1264,11 +1245,9 @@ public class OpenSimplexNoise {
             // Decide if (0,0,0,1) is closer.
             double p4 = 2 - inSum + wins;
             if (aScore >= bScore && p4 > bScore) {
-                bScore = p4;
                 bPoint = 0x08;
                 bIsBiggerSide = false;
             } else if (aScore < bScore && p4 > aScore) {
-                aScore = p4;
                 aPoint = 0x08;
                 aIsBiggerSide = false;
             }
@@ -1509,34 +1488,26 @@ public class OpenSimplexNoise {
             // Contribution (0,1,0,0)
             double dx2 = dx0 - 0 - SQUISH_CONSTANT_4D;
             double dy2 = dy0 - 1 - SQUISH_CONSTANT_4D;
-            double dz2 = dz1;
-            double dw2 = dw1;
-            double attn2 = 2 - dx2 * dx2 - dy2 * dy2 - dz2 * dz2 - dw2 * dw2;
+            double attn2 = 2 - dx2 * dx2 - dy2 * dy2 - dz1 * dz1 - dw1 * dw1;
             if (attn2 > 0) {
                 attn2 *= attn2;
-                value += attn2 * attn2 * extrapolate(xsb, ysb + 1, zsb, wsb, dx2, dy2, dz2, dw2);
+                value += attn2 * attn2 * extrapolate(xsb, ysb + 1, zsb, wsb, dx2, dy2, dz1, dw1);
             }
 
             // Contribution (0,0,1,0)
-            double dx3 = dx2;
-            double dy3 = dy1;
             double dz3 = dz0 - 1 - SQUISH_CONSTANT_4D;
-            double dw3 = dw1;
-            double attn3 = 2 - dx3 * dx3 - dy3 * dy3 - dz3 * dz3 - dw3 * dw3;
+            double attn3 = 2 - dx2 * dx2 - dy1 * dy1 - dz3 * dz3 - dw1 * dw1;
             if (attn3 > 0) {
                 attn3 *= attn3;
-                value += attn3 * attn3 * extrapolate(xsb, ysb, zsb + 1, wsb, dx3, dy3, dz3, dw3);
+                value += attn3 * attn3 * extrapolate(xsb, ysb, zsb + 1, wsb, dx2, dy1, dz3, dw1);
             }
 
             // Contribution (0,0,0,1)
-            double dx4 = dx2;
-            double dy4 = dy1;
-            double dz4 = dz1;
             double dw4 = dw0 - 1 - SQUISH_CONSTANT_4D;
-            double attn4 = 2 - dx4 * dx4 - dy4 * dy4 - dz4 * dz4 - dw4 * dw4;
+            double attn4 = 2 - dx2 * dx2 - dy1 * dy1 - dz1 * dz1 - dw4 * dw4;
             if (attn4 > 0) {
                 attn4 *= attn4;
-                value += attn4 * attn4 * extrapolate(xsb, ysb, zsb, wsb + 1, dx4, dy4, dz4, dw4);
+                value += attn4 * attn4 * extrapolate(xsb, ysb, zsb, wsb + 1, dx2, dy1, dz1, dw4);
             }
 
             // Contribution (1,1,0,0)
@@ -1690,11 +1661,9 @@ public class OpenSimplexNoise {
             // Decide if (1,1,1,0) is closer.
             double p4 = 3 - inSum + wins;
             if (aScore <= bScore && p4 < bScore) {
-                bScore = p4;
                 bPoint = 0x07;
                 bIsBiggerSide = false;
             } else if (aScore > bScore && p4 < aScore) {
-                aScore = p4;
                 aPoint = 0x07;
                 aIsBiggerSide = false;
             }
@@ -1923,36 +1892,28 @@ public class OpenSimplexNoise {
             }
 
             // Contribution (1,1,0,1)
-            double dx3 = dx4;
-            double dy3 = dy4;
             double dz3 = dz0 - 3 * SQUISH_CONSTANT_4D;
             double dw3 = dw0 - 1 - 3 * SQUISH_CONSTANT_4D;
-            double attn3 = 2 - dx3 * dx3 - dy3 * dy3 - dz3 * dz3 - dw3 * dw3;
+            double attn3 = 2 - dx4 * dx4 - dy4 * dy4 - dz3 * dz3 - dw3 * dw3;
             if (attn3 > 0) {
                 attn3 *= attn3;
-                value += attn3 * attn3 * extrapolate(xsb + 1, ysb + 1, zsb, wsb + 1, dx3, dy3, dz3, dw3);
+                value += attn3 * attn3 * extrapolate(xsb + 1, ysb + 1, zsb, wsb + 1, dx4, dy4, dz3, dw3);
             }
 
             // Contribution (1,0,1,1)
-            double dx2 = dx4;
             double dy2 = dy0 - 3 * SQUISH_CONSTANT_4D;
-            double dz2 = dz4;
-            double dw2 = dw3;
-            double attn2 = 2 - dx2 * dx2 - dy2 * dy2 - dz2 * dz2 - dw2 * dw2;
+            double attn2 = 2 - dx4 * dx4 - dy2 * dy2 - dz4 * dz4 - dw3 * dw3;
             if (attn2 > 0) {
                 attn2 *= attn2;
-                value += attn2 * attn2 * extrapolate(xsb + 1, ysb, zsb + 1, wsb + 1, dx2, dy2, dz2, dw2);
+                value += attn2 * attn2 * extrapolate(xsb + 1, ysb, zsb + 1, wsb + 1, dx4, dy2, dz4, dw3);
             }
 
             // Contribution (0,1,1,1)
             double dx1 = dx0 - 3 * SQUISH_CONSTANT_4D;
-            double dz1 = dz4;
-            double dy1 = dy4;
-            double dw1 = dw3;
-            double attn1 = 2 - dx1 * dx1 - dy1 * dy1 - dz1 * dz1 - dw1 * dw1;
+            double attn1 = 2 - dx1 * dx1 - dy4 * dy4 - dz4 * dz4 - dw3 * dw3;
             if (attn1 > 0) {
                 attn1 *= attn1;
-                value += attn1 * attn1 * extrapolate(xsb, ysb + 1, zsb + 1, wsb + 1, dx1, dy1, dz1, dw1);
+                value += attn1 * attn1 * extrapolate(xsb, ysb + 1, zsb + 1, wsb + 1, dx1, dy4, dz4, dw3);
             }
 
             // Contribution (1,1,0,0)

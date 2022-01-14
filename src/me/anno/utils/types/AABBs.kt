@@ -1,6 +1,6 @@
 package me.anno.utils.types
 
-import me.anno.utils.maths.Maths
+import me.anno.maths.Maths
 import org.joml.*
 import kotlin.math.abs
 import kotlin.math.max

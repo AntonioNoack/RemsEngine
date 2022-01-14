@@ -1,8 +1,8 @@
 package me.anno.mesh.assimp
 
 import me.anno.mesh.assimp.AssimpTree.convert
-import me.anno.utils.maths.Maths.min
-import me.anno.utils.maths.Maths.mix
+import me.anno.maths.Maths.min
+import me.anno.maths.Maths.mix
 import me.anno.utils.search.BinarySearch.binarySearch
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3f

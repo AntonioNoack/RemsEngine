@@ -21,7 +21,7 @@ import me.anno.ui.input.components.ColorPalette
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.ColorParsing.parseColorComplex
-import me.anno.utils.maths.Maths.clamp
+import me.anno.maths.Maths.clamp
 import me.anno.utils.structures.tuples.Quad
 import me.anno.utils.types.AnyToFloat.get
 import me.anno.utils.types.Floats.f3

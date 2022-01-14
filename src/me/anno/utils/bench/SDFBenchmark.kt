@@ -2,7 +2,7 @@ package me.anno.utils.bench
 
 import me.anno.fonts.FontManager
 import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField
-import me.anno.utils.maths.Maths.sq
+import me.anno.maths.Maths.sq
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayOutputStream

@@ -12,8 +12,8 @@ import me.anno.image.svg.gradient.RadialGradient
 import me.anno.io.xml.XMLElement
 import me.anno.utils.OS
 import me.anno.utils.files.Files.use
-import me.anno.utils.maths.Maths.clamp
-import me.anno.utils.maths.Maths.length
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.length
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.*

@@ -6,7 +6,7 @@ import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.utils.maths.Maths
+import me.anno.maths.Maths
 import org.joml.Matrix4x3f
 
 // todo blend animations...

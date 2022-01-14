@@ -3,7 +3,7 @@ package me.anno.ecs.components.anim
 import me.anno.ecs.Entity
 import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.io.base.BaseWriter
-import me.anno.utils.maths.Maths.mix
+import me.anno.maths.Maths.mix
 import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4x3f
 import org.joml.Quaternionf

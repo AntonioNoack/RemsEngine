@@ -5,7 +5,7 @@ import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.objects.Transform
 import me.anno.ui.editor.sceneView.Grid
-import me.anno.utils.maths.Maths
+import me.anno.maths.Maths
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import kotlin.math.abs

@@ -7,7 +7,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.image.ImageGPUCache
 import me.anno.io.files.FileReference
 import me.anno.io.zip.InnerFolder
-import me.anno.utils.maths.Maths
+import me.anno.maths.Maths
 import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.structures.tuples.Quad
 import org.apache.logging.log4j.LogManager

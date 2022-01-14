@@ -21,7 +21,6 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.ImageGPUCache.getInternalTexture
 import me.anno.image.ImageReadable
-import me.anno.image.ImageScale.scaleMax
 import me.anno.image.ImageScale.scaleMaxPreview
 import me.anno.input.Input
 import me.anno.input.Input.mouseDownX
@@ -52,8 +51,8 @@ import me.anno.ui.dragging.Draggable
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
-import me.anno.utils.maths.Maths.mixARGB
-import me.anno.utils.maths.Maths.sq
+import me.anno.maths.Maths.mixARGB
+import me.anno.maths.Maths.sq
 import me.anno.utils.strings.StringHelper.setNumber
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Strings.formatTime

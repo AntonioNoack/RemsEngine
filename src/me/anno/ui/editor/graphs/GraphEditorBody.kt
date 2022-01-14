@@ -32,10 +32,10 @@ import me.anno.ui.editor.sceneView.Grid.drawSmoothLine
 import me.anno.ui.style.Style
 import me.anno.utils.Color.mulAlpha
 import me.anno.utils.Color.toARGB
-import me.anno.utils.maths.Maths.clamp
-import me.anno.utils.maths.Maths.length
-import me.anno.utils.maths.Maths.mix
-import me.anno.utils.maths.Maths.pow
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.length
+import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.pow
 import me.anno.utils.types.AnyToFloat.get
 import org.apache.logging.log4j.LogManager
 import org.joml.*

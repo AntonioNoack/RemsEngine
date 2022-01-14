@@ -13,6 +13,7 @@ import me.anno.utils.Tabs
 import me.anno.utils.files.Files.openInExplorer
 import me.anno.utils.files.Files.use
 import me.anno.utils.files.LocalFile.toLocalPath
+import me.anno.utils.structures.lists.ExpensiveList
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
@@ -96,7 +97,8 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
                     window.panel.forAll {
                         if (it is FileExplorer && it.folder
                                 .absolutePath
-                                .startsWith(parent.absolutePath)) {
+                                .startsWith(parent.absolutePath)
+                        ) {
                             it.invalidate()
                         }
                     }
@@ -156,6 +158,19 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             if (file0.exists()) return FileFileRef(file0)
             // split by /, and check when we need to enter a zip file
             val parts = str.trim().split('/', '\\')
+
+            // todo correct binary search here
+            /*val cache = ExpensiveList(parts.size) { i ->
+                val substr = parts.subList(0, i)
+                    .joinToString("/")
+                val file = File(substr)
+                Pair(file, file.exists())
+            }
+            // we're searching for 0, but that will never be found
+            val firstVirtualIndex = cache.findInsertIndex { if (it.second) -1 else +1 }
+            val fileExists = cache[firstVirtualIndex - 1]
+            if (fileExists.second) return appendPath(fileExists.first, firstVirtualIndex, parts)*/
+
             // binary search? let's do linear first
             for (i in parts.lastIndex downTo 0) {
                 val substr = parts.subList(0, i).joinToString("/")

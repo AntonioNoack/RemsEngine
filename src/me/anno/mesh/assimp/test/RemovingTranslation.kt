@@ -6,8 +6,8 @@ import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.engine.ECSRegistry
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS.downloads
-import me.anno.utils.maths.Maths.length
-import me.anno.utils.maths.Maths.max
+import me.anno.maths.Maths.length
+import me.anno.maths.Maths.max
 import me.anno.utils.types.Vectors.f2
 import org.joml.Matrix4x3f
 import kotlin.math.sqrt

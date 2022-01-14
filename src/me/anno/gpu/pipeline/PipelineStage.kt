@@ -30,7 +30,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.Saveable
-import me.anno.utils.maths.Maths.min
+import me.anno.maths.Maths.min
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.AABBs.transformUnion

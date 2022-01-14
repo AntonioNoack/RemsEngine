@@ -25,7 +25,7 @@ import me.anno.gpu.shader.builder.*
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.io.Saveable
-import me.anno.utils.maths.Maths.min
+import me.anno.maths.Maths.min
 import me.anno.utils.structures.lists.SmallestKList
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Matrix4fc

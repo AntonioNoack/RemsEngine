@@ -1,6 +1,6 @@
 package me.anno.image.colormap
 
-import me.anno.utils.maths.Maths.mixARGB
+import me.anno.maths.Maths.mixARGB
 import kotlin.math.abs
 import kotlin.math.max
 

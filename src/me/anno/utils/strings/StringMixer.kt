@@ -1,8 +1,8 @@
 package me.anno.utils.strings
 
-import me.anno.utils.maths.Maths
-import me.anno.utils.maths.Maths.clamp
-import me.anno.utils.maths.Maths.max
+import me.anno.maths.Maths
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.max
 import kotlin.math.roundToInt
 import kotlin.streams.toList
 

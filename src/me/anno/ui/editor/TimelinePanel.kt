@@ -27,11 +27,11 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.custom.CustomContainer.Companion.isCross
 import me.anno.ui.style.Style
 import me.anno.utils.Color.mulAlpha
-import me.anno.utils.maths.Maths.clamp
-import me.anno.utils.maths.Maths.fract
-import me.anno.utils.maths.Maths.mix
-import me.anno.utils.maths.Maths.mixARGB
-import me.anno.utils.maths.Maths.pow
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.fract
+import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.mixARGB
+import me.anno.maths.Maths.pow
 import me.anno.utils.structures.tuples.Quad
 import me.anno.utils.types.Strings.formatTime
 import kotlin.collections.set

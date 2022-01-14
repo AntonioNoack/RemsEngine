@@ -31,7 +31,7 @@ import me.anno.ui.editor.treeView.TreeViewPanel
 import me.anno.utils.files.FileExplorerSelectWrapper
 import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.hpc.Threads.threadWithName
-import me.anno.utils.maths.Maths.length
+import me.anno.maths.Maths.length
 import me.anno.utils.types.Strings.isArray
 import me.anno.utils.types.Strings.isName
 import me.anno.utils.types.Strings.isNumber

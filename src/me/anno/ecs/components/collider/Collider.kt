@@ -2,15 +2,14 @@ package me.anno.ecs.components.collider
 
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.linearmath.Transform
-import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.CollidingComponent
 import me.anno.ecs.components.physics.BulletPhysics.Companion.convertMatrix
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.serialization.SerializedProperty
-import me.anno.utils.maths.Maths
-import me.anno.utils.maths.Maths.SQRT1_2
+import me.anno.maths.Maths
+import me.anno.maths.Maths.SQRT1_2
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
 import org.joml.Matrix4x3d

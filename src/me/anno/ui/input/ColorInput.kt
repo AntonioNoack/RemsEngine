@@ -26,8 +26,8 @@ import me.anno.ui.input.components.TitlePanel
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toARGB
 import me.anno.utils.Color.toVecRGBA
-import me.anno.utils.maths.Maths.clamp
-import me.anno.utils.maths.Maths.pow
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.pow
 import org.joml.Vector3f
 import org.joml.Vector4f
 import org.joml.Vector4fc

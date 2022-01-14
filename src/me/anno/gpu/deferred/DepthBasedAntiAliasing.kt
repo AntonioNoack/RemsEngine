@@ -11,11 +11,11 @@ import me.anno.image.ImageWriter.MSAAx8
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
 import me.anno.utils.LOGGER
-import me.anno.utils.maths.Maths.clamp
-import me.anno.utils.maths.Maths.max
-import me.anno.utils.maths.Maths.min
-import me.anno.utils.maths.Maths.mix
-import me.anno.utils.maths.Maths.mixARGB
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.max
+import me.anno.maths.Maths.min
+import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.mixARGB
 import org.joml.Matrix2f
 import org.joml.Vector2f
 import org.joml.Vector3f

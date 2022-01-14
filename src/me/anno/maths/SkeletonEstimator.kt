@@ -1,7 +1,4 @@
-package me.anno.utils.maths
-
-import me.anno.ecs.components.mesh.Mesh
-import org.joml.Vector4f
+package me.anno.maths
 
 object SkeletonEstimator {
 

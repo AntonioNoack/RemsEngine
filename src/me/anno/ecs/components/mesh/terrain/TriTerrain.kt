@@ -5,7 +5,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.OnEdgeCalculator
 import me.anno.ecs.interfaces.CustomEditMode
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.utils.maths.Maths.sq
+import me.anno.maths.Maths.sq
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import org.joml.AABBf
 import org.joml.Matrix3f

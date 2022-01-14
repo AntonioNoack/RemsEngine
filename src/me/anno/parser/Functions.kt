@@ -1,6 +1,6 @@
 package me.anno.parser
 
-import me.anno.utils.maths.Maths.clamp
+import me.anno.maths.Maths.clamp
 import org.kdotjpg.OpenSimplexNoise
 import java.lang.StrictMath.cbrt
 import java.util.*

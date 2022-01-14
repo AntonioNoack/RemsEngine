@@ -13,7 +13,7 @@ import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.ISaveable
 import me.anno.io.text.TextReader
 import me.anno.language.translation.NameDesc
-import me.anno.ui.base.menu.Menu.askName
+import me.anno.ui.base.Panel
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.PropertyInspector
@@ -21,8 +21,8 @@ import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.treeView.TreeView
 import me.anno.ui.style.Style
 import me.anno.utils.Color.normARGB
-import me.anno.utils.maths.Maths.length
-import me.anno.utils.maths.Maths.mixARGB
+import me.anno.maths.Maths.length
+import me.anno.maths.Maths.mixARGB
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.lists.UpdatingList
@@ -63,7 +63,7 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
         addChild(element, child, index)
     }
 
-    fun addChild(element: Entity, child: Any, index: Int) {
+    fun addChild(element: PrefabSaveable, child: Any, index: Int) {
         when (child) {
             is Prefab -> {
                 val elementRoot = element.root
@@ -80,7 +80,11 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
                 val childRoot = child.root
                 val elementRoot = element.root
                 val dstPath = element.prefabPath!!
-                dstPath.setLast(child.name, index, element.getTypeOf(child))
+                // dstPath.setLast(child.name, index, element.getTypeOf(child))
+                // name must never change,
+                // type must never change
+                // index can change
+                dstPath.index = index
                 Hierarchy.add(
                     childRoot.prefab!!,
                     child.prefabPath!!,
@@ -97,16 +101,17 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
 
     override fun addAfter(self: PrefabSaveable, sibling: Any) {
         // self.addAfter(sibling as Entity)
-        addChild(self.parent as Entity, sibling, self.indexInParent + 1)
+        addChild(self.parent as PrefabSaveable, sibling, self.indexInParent + 1)
     }
 
     override fun addBefore(self: PrefabSaveable, sibling: Any) {
         // self.addBefore(sibling as Entity)
-        addChild(self.parent as Entity, sibling, self.indexInParent)
+        addChild(self.parent as PrefabSaveable, sibling, self.indexInParent)
     }
 
     override fun removeChild(element: PrefabSaveable, child: PrefabSaveable) {
-        if (element !is Entity) return
+        // todo somehow the window element cannot be removed
+        LOGGER.info("Trying to remove element")
         Hierarchy.removePathFromPrefab(element.root.prefab!!, child)
     }
 
@@ -179,6 +184,7 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
         val desc = element.description.shorten(maxLength).toString()
         val descLn = if (desc.isEmpty()) desc else desc + "\n"
         return when {
+            element is Panel -> element.tooltip ?: desc
             element !is Entity -> desc
             element.children.isEmpty() -> when (element.components.size) {
                 0 -> desc
@@ -271,25 +277,19 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
                     val className = sampleInstance.className
                     val title = option.title
                     MenuOption(NameDesc(title)) {
-                        askName(
-                            windowStack,
-                            NameDesc("Name for $title"),
-                            title,
-                            NameDesc("Append"),
-                            { -1 }) { name ->
-                            val path = prefab.add(
-                                parent.prefabPath!!,
-                                if (sampleInstance is Entity) 'e' else 'c',
-                                className,
-                                name
-                            )
-                            val child = option.generator() as PrefabSaveable
-                            child.prefabPath = path
-                            child.prefab = prefab
-                            child.name = name
-                            parent.addChild(child)
-                            PropertyInspector.invalidateUI()
-                        }
+                        val nameId = Path.generateRandomId()
+                        val path = prefab.add(
+                            parent.prefabPath!!,
+                            if (sampleInstance is Entity) 'e' else 'c',
+                            className,
+                            nameId
+                        )
+                        val child = option.generator() as PrefabSaveable
+                        child.prefabPath = path
+                        child.prefab = prefab
+                        child.name = nameId
+                        parent.addChild(child)
+                        PropertyInspector.invalidateUI()
                     }
                 }
             )

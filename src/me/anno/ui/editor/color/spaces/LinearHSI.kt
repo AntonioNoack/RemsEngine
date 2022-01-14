@@ -2,7 +2,7 @@ package me.anno.ui.editor.color.spaces
 
 import me.anno.language.translation.NameDesc
 import me.anno.ui.editor.color.ColorSpace
-import me.anno.utils.maths.Maths
+import me.anno.maths.Maths
 import org.joml.Vector3f
 import kotlin.math.PI
 import kotlin.math.cos

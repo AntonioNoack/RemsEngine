@@ -14,8 +14,8 @@ import me.anno.utils.LOGGER
 import me.anno.utils.OS.desktop
 import me.anno.utils.files.Files.use
 import me.anno.utils.hpc.HeavyProcessing.processBalanced
-import me.anno.utils.maths.Maths.mix
-import me.anno.utils.maths.Maths.mixARGB
+import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.mixARGB
 import org.joml.Vector2f
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO

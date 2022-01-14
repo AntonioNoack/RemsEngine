@@ -75,9 +75,9 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.style.Style
 import me.anno.utils.Clock
 import me.anno.utils.Tabs
-import me.anno.utils.maths.Maths.clamp
-import me.anno.utils.maths.Maths.mix
-import me.anno.utils.maths.Maths.sq
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AABBs
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
@@ -775,7 +775,7 @@ class RenderView(
 
     }
 
-    private fun getWorld(): PrefabSaveable {
+    fun getWorld(): PrefabSaveable {
         return library.world
     }
 

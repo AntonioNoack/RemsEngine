@@ -1,10 +1,10 @@
-package me.anno.utils.maths
+package me.anno.maths
 
-import me.anno.utils.maths.LinearAlgebra.inv
-import me.anno.utils.maths.LinearAlgebra.mulNT
-import me.anno.utils.maths.LinearAlgebra.mulNV
-import me.anno.utils.maths.LinearAlgebra.mulTN
-import me.anno.utils.maths.LinearAlgebra.mulTV
+import me.anno.maths.LinearAlgebra.inv
+import me.anno.maths.LinearAlgebra.mulNT
+import me.anno.maths.LinearAlgebra.mulNV
+import me.anno.maths.LinearAlgebra.mulTN
+import me.anno.maths.LinearAlgebra.mulTV
 import org.joml.Matrix4d
 import org.joml.Vector2d
 import org.joml.Vector3d

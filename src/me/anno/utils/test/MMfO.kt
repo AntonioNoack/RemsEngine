@@ -2,7 +2,7 @@ package me.anno.utils.test
 
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS
-import me.anno.utils.maths.Optimization.simplexAlgorithm
+import me.anno.maths.Optimization.simplexAlgorithm
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 

@@ -1,4 +1,4 @@
-package me.anno.utils.maths.geometry
+package me.anno.maths.geometry
 
 object Geometry {
 

@@ -1,7 +1,7 @@
 package me.anno.engine.ui.render
 
 import me.anno.gpu.buffer.LineBuffer
-import me.anno.utils.maths.Maths.sq
+import me.anno.maths.Maths.sq
 import me.anno.utils.types.AABBs.isEmpty
 import org.joml.*
 import kotlin.math.*

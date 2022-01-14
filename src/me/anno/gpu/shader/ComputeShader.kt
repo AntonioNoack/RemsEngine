@@ -3,7 +3,7 @@ package me.anno.gpu.shader
 import me.anno.gpu.GFX
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.texture.Texture2D
-import me.anno.utils.maths.Maths.ceilDiv
+import me.anno.maths.Maths.ceilDiv
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2i
 import org.joml.Vector3i

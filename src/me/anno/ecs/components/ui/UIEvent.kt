@@ -3,20 +3,28 @@ package me.anno.ecs.components.ui
 import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.input.MouseButton
 
-class UIEvent {
+class UIEvent(
+    var x: Float,
+    var y: Float,
+    var dx: Float,
+    var dy: Float,
+    var key: Int,
+    var byMouse: Boolean,
+    var button: MouseButton,
+    var isLong: Boolean,
+    var type: UIEventType
+) {
 
-    var x = 0f
-    var y = 0f
-    var dx = 0f
-    var dy = 0f
+    constructor(x: Float, y: Float, key: Int, type: UIEventType) :
+            this(x, y, 0f, 0f, key, false, MouseButton.UNKNOWN, false, type)
 
-    var key = 0
-    var byMouse = false
+    constructor() : this(
+        0f, 0f, 0f, 0f, 0, false,
+        MouseButton.UNKNOWN, false, UIEventType.MOUSE_WHEEL
+    )
 
-    var button = MouseButton.LEFT
-    var isLong = false
-
-    var type = UIEventType.MOUSE_WHEEL
+    constructor(x: Float, y: Float, byMouse: Boolean, button: MouseButton, type: UIEventType) :
+            this(x, y, 0f,0f, 0, byMouse, button, false, type)
 
     fun call(r: ControlReceiver): Boolean {
         return when (type) {
@@ -32,16 +40,5 @@ class UIEvent {
         }
     }
 
-    enum class UIEventType {
-        MOUSE_WHEEL,
-        MOUSE_MOVE,
-        MOUSE_DOWN,
-        MOUSE_UP,
-        MOUSE_CLICK,
-        KEY_DOWN,
-        KEY_UP,
-        KEY_TYPED,
-        CHAR_TYPED,
-    }
 
 }

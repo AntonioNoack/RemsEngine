@@ -18,9 +18,7 @@ import me.anno.gpu.shader.Renderer.Companion.colorSqRenderer
 import me.anno.input.Input
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
-import me.anno.input.Input.mouseKeysDown
 import me.anno.input.MouseButton
-import me.anno.input.Touch
 import me.anno.input.Touch.Companion.touches
 import me.anno.io.files.FileReference
 import me.anno.objects.Camera
@@ -47,10 +45,9 @@ import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.simple.SimplePanel
 import me.anno.ui.style.Style
-import me.anno.utils.bugs.SumOf.sumOf
-import me.anno.utils.maths.Maths.clamp
-import me.anno.utils.maths.Maths.length
-import me.anno.utils.maths.Maths.pow
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.length
+import me.anno.maths.Maths.pow
 import me.anno.utils.types.Vectors.plus
 import me.anno.utils.types.Vectors.times
 import me.anno.utils.types.Vectors.toVec3f

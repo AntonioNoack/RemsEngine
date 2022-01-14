@@ -8,7 +8,7 @@ import me.anno.animation.Type
 import me.anno.ui.base.Panel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import me.anno.utils.maths.Maths.clamp
+import me.anno.maths.Maths.clamp
 import org.kdotjpg.OpenSimplexNoise
 import kotlin.math.min
 

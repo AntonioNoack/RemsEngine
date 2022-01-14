@@ -10,11 +10,10 @@ import me.anno.gpu.OpenGL
 import me.anno.gpu.buffer.Buffer.Companion.bindBuffer
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.gpu.shader.Shader
 import me.anno.image.Image
 import me.anno.objects.modes.RotateJPEG
 import me.anno.utils.hpc.Threads.threadWithName
-import me.anno.utils.maths.Maths.clamp
+import me.anno.maths.Maths.clamp
 import me.anno.utils.pooling.ByteArrayPool
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.IntArrayPool

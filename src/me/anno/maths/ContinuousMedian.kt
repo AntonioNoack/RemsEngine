@@ -1,9 +1,9 @@
-package me.anno.utils.maths
+package me.anno.maths
 
 import me.anno.utils.LOGGER
-import me.anno.utils.maths.Maths.clamp
-import me.anno.utils.maths.Maths.mix
-import me.anno.utils.maths.Maths.sq
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.sq
 import me.anno.utils.types.Floats.f6
 import me.anno.utils.types.Floats.f6s
 import me.anno.utils.types.Strings.withLength

@@ -6,6 +6,7 @@ import me.anno.gpu.GFX.offsetY
 import me.anno.gpu.OpenGL
 import org.lwjgl.opengl.GL11.glViewport
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.min
 
 object Frame {
@@ -83,7 +84,6 @@ object Frame {
             val x1 = x - offsetX
             val y1 = y - offsetY
 
-
             var availableWidth = GFX.width
             var availableHeight = GFX.height
             if (buffer != null) {
@@ -91,18 +91,26 @@ object Frame {
                 availableHeight = buffer.h
             }
 
-            val y2 = availableHeight - (y1 + h)
-            if (x1 + w > availableWidth || y2 + h > availableHeight) {
-                IllegalArgumentException(
+            var x2 = x1
+            var y2 = availableHeight - (y1 + h)
+            if (x1 + w > availableWidth || y2 + h > availableHeight || x1 < 0 || y2 < 0) {
+                val exception = IllegalArgumentException(
                     "Viewport cannot be larger than frame! $x1 + $w > $availableWidth || " +
                             "$y2 + $h > $availableHeight, $x1 < 0 || $y2 < 0, " +
                             "change size: $changeSize, frame: $buffer, ($x $y) += ($w $h) | - ($offsetX $offsetY), " +
                             OpenGL.framebuffer.joinToString { (it as? Framebuffer)?.name.toString() } + ", ${buffer.toString()}"
-                ).printStackTrace()
+                )
+                if (buffer == null) {
+                    x2 = max(x1, 0)
+                    y2 = max(y1, 0)
+                    w = min(w, availableWidth - y2)
+                    h = min(h, availableHeight - x2)
+                    exception.printStackTrace()
+                } else throw exception
             }
 
             // this is mirrored
-            glViewport(x1, y2, w, h)
+            glViewport(x2, y2, w, h)
 
             lastX = x
             lastY = y

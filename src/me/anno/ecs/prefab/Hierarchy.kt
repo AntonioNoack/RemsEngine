@@ -2,19 +2,20 @@ package me.anno.ecs.prefab
 
 import me.anno.Engine
 import me.anno.ecs.Entity
+import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.prefab.PrefabCache.getPrefab
 import me.anno.ecs.prefab.change.CAdd
-import me.anno.ecs.prefab.change.Change
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
 import me.anno.engine.scene.ScenePrefab
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.ISaveable
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.json.JsonFormatter
 import me.anno.io.text.TextWriter
 import me.anno.io.zip.InnerTmpFile
-import me.anno.utils.structures.StartsWith.startsWith
-import me.anno.utils.structures.maps.KeyPairMap
+import me.anno.utils.OS.documents
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
 
@@ -80,33 +81,34 @@ object Hierarchy {
     fun getInstanceAt(instance0: PrefabSaveable, path: Path): PrefabSaveable? {
 
         var instance = instance0
-        for (pathIndex in 0 until path.size) {
+        try {
+            path.fromRootToThis(false) { pathIndex, pathI ->
 
-            // we can go deeper :)
-            val chars = instance.listChildTypes()
-            val childName = path.getName(pathIndex)
-            val childIndex = path.getIndex(pathIndex)
-            val childType = path.getType(pathIndex, chars[0])
+                val childType = pathI.type
+                val components = instance.getChildListByType(childType)
 
-            val components = instance.getChildListByType(childType)
-
-            instance = if (components.getOrNull(childIndex)?.name == childName) {
-                // bingo, easiest way: name and index are matching
-                components[childIndex]
-            } else {
-                val matchesName = components.firstOrNull { it.name == childName }
-                when {
-                    matchesName != null -> matchesName
-                    childIndex in components.indices -> components[childIndex]
-                    else -> {
+                val childIndex = pathI.index
+                instance = if (
+                    childIndex in components.indices &&
+                    components[childIndex].prefabPath == pathI
+                ) {
+                    // bingo, easiest way: path is matching
+                    components[childIndex]
+                } else {
+                    val match = components.firstOrNull { it.prefabPath == pathI }
+                    if (match != null) match
+                    else {
                         LOGGER.warn(
-                            "Missing path at index $pathIndex, '$childName','$childType',${childIndex} in $this, " +
-                                    "only ${components.size} $childType available ${components.joinToString { "'${it["name"]}'" }}"
+                            "Missing path $path[$pathIndex] (${path.getNames()}, ${path.getTypes()}, ${path.getIndices()}) in $instance, " +
+                                    "only ${components.size} $childType available ${components.joinToString { "'${it.name}'" }}"
                         )
-                        return null
+                        throw Path.EXIT
                     }
                 }
             }
+        } catch (e: Throwable) {
+            if (e === Path.EXIT) return null
+            throw e
         }
         return instance
     }
@@ -161,10 +163,16 @@ object Hierarchy {
         child: PrefabSaveable,
     ) {
         if (!dstPrefab.isWritable) throw ImmutablePrefabException(dstPrefab.source)
-        val type = dstPath.types.last()
+        val type = dstPath.lastType()
         val name = child.name.ifEmpty { child.className }
         val dstPath2 =
-            dstPrefab.add(dstPath.getParent(), type, child.className, name, child.prefab?.source ?: InvalidRef)
+            dstPrefab.add(
+                dstPath.parent ?: Path.ROOT_PATH,
+                type,
+                child.className,
+                name,
+                child.prefab?.source ?: InvalidRef
+            )
         if (dstPath2 != dstPath) throw IllegalStateException("Could not add child at index, $dstPath vs $dstPath2")
         val sample = ISaveable.getSample(child.className)!!
         for ((pName, field) in child.getReflections().allProperties) {
@@ -178,7 +186,7 @@ object Hierarchy {
             }
         }
         // hopefully correct...
-        parent.addChildByType(dstPath2.indices.last(), type, child)
+        parent.addChildByType(dstPath2.lastIndex(), type, child)
         ECSSceneTabs.updatePrefab(dstPrefab)
         // val index = dstPath.indices.last()
         // parent.addChildByType(index, type, child)
@@ -219,7 +227,7 @@ object Hierarchy {
         // sets.removeIf { it.path.startsWith(path) }
         prefab.isValid = false
 
-        val parentPath = path.getParent()
+        val parentPath = path.parent
 
         val adds = prefab.adds
 
@@ -233,17 +241,17 @@ object Hierarchy {
         }
 
         val parent = child.parent!!
-        val type = path.types.last()
+        val type = path.lastType()
         val indexInParent = parent.getChildListByType(type).indexOf(child)
         if (indexInParent < 0) {
             LOGGER.warn("Could not find child in parent! Internal error!!")
             return
         }
 
-        val name = path.names.last()
+        val name = path.lastName()
         val lambda = { it: CAdd ->
             it.path == parentPath && it.type == type &&
-                    it.clazzName == clazzName && it.name == name
+                    it.clazzName == clazzName && it.nameId == name
         }
         val matches = adds.filter(lambda)
         when (matches.size) {
@@ -261,20 +269,16 @@ object Hierarchy {
                 // remove all following things
                 adds.removeAt(adds.indexOfFirst(lambda))
                 adds.removeIf { it.path.startsWith(path) }
-                val t = HashSet<IntArray>()
-                renumber(path.indices.last(), -1, path, adds, t)
-                renumber(path.indices.last(), -1, path, sets, t)
+                // todo renumber stuff
+                // val t = HashSet<IntArray>()
+                // renumber(path.lastIndex(), -1, path, adds, t)
+                // renumber(path.lastIndex(), -1, path, sets, t)
                 prefab.invalidateInstance()
             }
         }
 
         ECSSceneTabs.updatePrefab(prefab)
 
-    }
-
-    class UniqueWrapper(val v: Any) {
-        override fun hashCode(): Int = v.hashCode()
-        override fun equals(other: Any?) = other is UniqueWrapper && v === other.v
     }
 
     private fun testAdd() {
@@ -303,79 +307,30 @@ object Hierarchy {
 
     private fun testRenumberRemove() {
         val prefab = Prefab("Entity")
-        val elementA = prefab.add(Path.ROOT_PATH, 'e', "Entity", "A", 0)
-        val elementB = prefab.add(Path.ROOT_PATH, 'e', "Entity", "B", 1)
-        val elementC = prefab.add(elementB, 'e', "Entity", "C", 0)
+        val elementA = prefab.add(Path.ROOT_PATH, 'e', "Entity", "A")
+        val elementB = prefab.add(Path.ROOT_PATH, 'e', "Entity", "B")
+        val elementC = prefab.add(elementB, 'e', "Entity", "C")
         prefab.set(elementC, "position", Vector3d())
         // Root
         // - A
         // - B
         // - - C
         val sample0 = prefab.getSampleInstance() as Entity
-        val numElements = sample0.sizeOfHierarchy
-        if (numElements != 4) throw IllegalStateException()
+        val numElements1 = sample0.sizeOfHierarchy
+        if (numElements1 != 4) throw IllegalStateException("incorrect number of elements: $numElements1")
         removePathFromPrefab(prefab, elementA, "Entity")
         val sample1 = prefab.getSampleInstance() as Entity
         val numElements2 = sample1.sizeOfHierarchy
-        if (numElements2 != 3) throw IllegalStateException("number of elements: $numElements2")
-        if (prefab.adds.any { it.path.isNotEmpty() && it.path.indices[0] > 0 }) {
-            LOGGER.warn(sample1)
-            LOGGER.warn(prefab.adds)
+        if (numElements2 != 3) throw IllegalStateException("incorrect number of elements: $numElements2")
+        // renumbering is currently disabled, because it only is a hint
+        /*if (prefab.adds.any { it.path.isNotEmpty() && it.path.firstIndex() > 0 }) {
+            LOGGER.warn(JsonFormatter.format(sample1.toString()))
+            for (add in prefab.adds) {
+                LOGGER.warn(add)
+            }
             LOGGER.warn(prefab.sets)
-            throw IllegalStateException()
-        }
-    }
-
-    /**
-     * renumber all changes, which are relevant to the components
-     * */
-    private fun renumber(
-        from: Int, delta: Int, path0: Path, changes: List<Change>,
-        changedArrays: HashSet<IntArray> = HashSet()
-    ): HashSet<IntArray> {
-        val targetSize = path0.indices.size
-        val targetIndex = targetSize - 1
-        for (change in changes) {
-            val path = change.path
-            val indices = path.indices
-            val types = path.types
-            if (path.size >= targetSize &&
-                indices[targetIndex] >= from &&
-                indices !in changedArrays &&
-                indices.startsWith(path0.indices, 0, targetIndex) &&
-                types.startsWith(path0.types, 0, targetIndex)
-            ) {
-                val str0 = path.toString()
-                indices[targetIndex] += delta
-                changedArrays.add(indices)
-                LOGGER.info("Renumbered $str0 to $path")
-            }
-        }
-        return changedArrays
-    }
-
-    private fun renumber(
-        from: Int, delta: Int, path0: Path, changes: KeyPairMap<Path, String, Any?>,
-        changedArrays: HashSet<IntArray> = HashSet()
-    ): HashSet<IntArray> {
-        val targetSize = path0.indices.size
-        val targetIndex = targetSize - 1
-        changes.forEach { path, _, _ ->
-            val indices = path.indices
-            val types = path.types
-            if (path.size >= targetSize &&
-                indices[targetIndex] >= from &&
-                indices !in changedArrays &&
-                indices.startsWith(path0.indices, 0, targetIndex) &&
-                types.startsWith(path0.types, 0, targetIndex)
-            ) {
-                val str0 = path.toString()
-                indices[targetIndex] += delta
-                changedArrays.add(indices)
-                LOGGER.info("Renumbered $str0 to $path")
-            }
-        }
-        return changedArrays
+            throw IllegalStateException("there still is adds, which are non-empty and the firstIndex > 0")
+        }*/
     }
 
     fun assert(boolean: Boolean) {
@@ -389,7 +344,7 @@ object Hierarchy {
     fun testRemoval2() {
         val prefab = Prefab("Entity")
         val clazz = "PointLight"
-        val n = 100
+        val n = 10
         val names = Array(n) { "child$it" }
         for (i in 0 until n) {
             val child = prefab.add(Path.ROOT_PATH, 'c', clazz, names[i])
@@ -398,7 +353,7 @@ object Hierarchy {
         }
         assert(prefab.adds.size, n)
         assert(prefab.sets.size, 2 * n)
-        val tested = intArrayOf(3, 7, 17, 38, 80)
+        val tested = intArrayOf(1, 2, 3, 5, 7)
         for (i in tested.sortedDescending()) {
             val sample = prefab.getSampleInstance() as Entity
             removePathFromPrefab(prefab, sample.components[i])
@@ -416,14 +371,36 @@ object Hierarchy {
         Engine.requestShutdown()
     }
 
+    fun testCreator() {
+        val ref = getReference(documents, "RemsEngine/SampleProject/Scene.json")
+        val prefab = PrefabCache.loadPrefab(ref)
+        println(JsonFormatter.format(prefab.toString()))
+    }
+
+    fun testPrefab() {
+        val prefab = Prefab("Entity")
+        val sample1 = prefab.getSampleInstance()
+        assert(sample1 is Entity)
+        val child = prefab.add(Path.ROOT_PATH, 'c', "PointLight")
+        prefab.set(child, "lightSize", Math.PI)
+        val sample2 = prefab.getSampleInstance()
+        assert(sample2 is Entity)
+        sample2 as Entity
+        assert(sample2.components.count { it is PointLight }, 1)
+        val light1 = getInstanceAt(sample2, child)
+        println("found ${light1?.prefabPath} at $child")
+        assert(light1 is PointLight)
+        assert((light1 as PointLight).lightSize == Math.PI)
+    }
+
     @JvmStatic
     fun main(args: Array<String>) {
         ECSRegistry.initNoGFX()
+        testPrefab()
         testRemoval2()
         testAdd()
         testRenumberRemove()
+        testCreator()
     }
-
-    // todo when you remove multiple elements, not all paths are renamed, and then incorrect sets are deleted
 
 }

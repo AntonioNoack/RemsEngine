@@ -7,7 +7,7 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.toARGB
-import me.anno.utils.maths.Maths.mix
+import me.anno.maths.Maths.mix
 import org.joml.Vector4f
 
 class Gradient(

@@ -1,7 +1,7 @@
 package me.anno.gpu.buffer
 
 import me.anno.image.svg.SVGMesh
-import me.anno.utils.maths.Maths.clamp
+import me.anno.maths.Maths.clamp
 import me.anno.utils.pooling.ByteBufferPool
 import org.joml.Vector2fc
 import org.joml.Vector3fc

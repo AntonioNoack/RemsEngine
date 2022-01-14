@@ -6,12 +6,11 @@ import me.anno.gpu.GFX.deltaTime
 import me.anno.gpu.GFX.hoveredPanel
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
-import me.anno.studio.StudioBase.Companion.defaultWindowStack
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.text.TextPanel
-import me.anno.utils.maths.Maths.length
+import me.anno.maths.Maths.length
 import me.anno.utils.types.Strings.isBlank2
 import kotlin.math.abs
 import kotlin.math.min

@@ -1,6 +1,6 @@
 package me.anno.ui.debug
 
-import me.anno.utils.maths.Maths.clamp
+import me.anno.maths.Maths.clamp
 import kotlin.math.max
 
 class TimeContainer(val width: Int, val color: Int): Comparable<TimeContainer> {

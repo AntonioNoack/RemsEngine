@@ -1,6 +1,6 @@
-package me.anno.utils.maths.geometry
+package me.anno.maths.geometry
 
-import me.anno.utils.maths.Maths
+import me.anno.maths.Maths
 import org.joml.Vector2f
 import org.joml.Vector3f
 

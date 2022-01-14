@@ -26,8 +26,8 @@ import me.anno.ui.input.components.VectorInputComponent
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing
-import me.anno.utils.maths.Maths.clamp
-import me.anno.utils.maths.Maths.pow
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.pow
 import me.anno.utils.types.AnyToDouble.getDouble
 import me.anno.utils.types.AnyToFloat.getFloat
 import me.anno.utils.types.Floats.anyToDouble

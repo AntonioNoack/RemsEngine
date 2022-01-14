@@ -9,7 +9,7 @@ import me.anno.mesh.vox.format.VOXLayer
 import me.anno.mesh.vox.format.VOXNode
 import me.anno.mesh.vox.model.DenseVoxelModel
 import me.anno.mesh.vox.model.VoxelModel
-import me.anno.utils.maths.Maths.convertABGR2ARGB
+import me.anno.maths.Maths.convertABGR2ARGB
 import me.anno.utils.structures.tuples.Quad
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3i

@@ -139,6 +139,10 @@ class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
     fun isEmpty() = size <= 0
     fun isNotEmpty() = size > 0
 
+    override fun toString(): String {
+        return values.toString()
+    }
+
     companion object {
         private val LOGGER = LogManager.getLogger(KeyPairMap::class)
     }

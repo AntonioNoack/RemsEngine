@@ -34,7 +34,7 @@ import me.anno.studio.rems.RemsStudio.root
 import me.anno.ui.base.Panel
 import me.anno.ui.debug.FrameTimes
 import me.anno.utils.Clock
-import me.anno.utils.maths.Maths.pow
+import me.anno.maths.Maths.pow
 import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
