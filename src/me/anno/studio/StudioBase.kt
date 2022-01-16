@@ -15,6 +15,7 @@ import me.anno.gpu.Cursor.useCursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isMinimized
 import me.anno.gpu.GFXBase0
+import me.anno.gpu.OpenGL.framebuffer
 import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.Renderer
@@ -24,6 +25,7 @@ import me.anno.input.ShowKeys
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
+import me.anno.maths.Maths.clamp
 import me.anno.studio.project.Project
 import me.anno.studio.rems.RemsStudio
 import me.anno.ui.base.Panel
@@ -34,12 +36,12 @@ import me.anno.ui.dragging.IDraggable
 import me.anno.ui.utils.WindowStack
 import me.anno.utils.Clock
 import me.anno.utils.OS
-import me.anno.maths.Maths.clamp
 import me.anno.utils.types.Strings.addSuffix
 import me.anno.utils.types.Strings.filterAlphaNumeric
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.util.concurrent.ConcurrentLinkedQueue
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 abstract class StudioBase(
@@ -264,10 +266,6 @@ abstract class StudioBase(
 
         var didSomething = false
 
-        if (Tooltips.draw()) {
-            didSomething = true
-        }
-
         if (showFPS) {
             FPSPanel.showFPS()
         }
@@ -276,6 +274,10 @@ abstract class StudioBase(
             if (ShowKeys.draw(0, 0, GFX.height)) {
                 didSomething = true
             }
+        }
+
+        if (Tooltips.draw()) {
+            didSomething = true
         }
 
         synchronized(progressBars) {
@@ -295,12 +297,12 @@ abstract class StudioBase(
         // dragging files for example
         val dragged = dragged
         if (dragged != null) {
-            val (rw, rh) = dragged.getSize(GFX.width / 5, GFX.height / 5)
+            val (rw, rh) = dragged.getSize(w / 5, h / 5)
             var x = Input.mouseX.roundToInt() - rw / 2
             var y = Input.mouseY.roundToInt() - rh / 2
-            x = clamp(x, 0, GFX.width - rw)
-            y = clamp(y, 0, GFX.height - rh)
-            GFX.clip(x, y, w, h) {
+            x = clamp(x, 0, w - rw)
+            y = clamp(y, 0, h - rh)
+            GFX.clip(x, y, min(rw, w), min(rh, h)) {
                 dragged.draw(x, y)
                 didSomething = true
             }

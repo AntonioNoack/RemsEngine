@@ -35,6 +35,7 @@ import me.anno.io.json.JsonFormatter
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths
 import me.anno.objects.inspectable.Inspectable
 import me.anno.studio.StudioBase.Companion.defaultWindowStack
 import me.anno.ui.base.Panel
@@ -50,7 +51,6 @@ import me.anno.ui.input.*
 import me.anno.ui.style.Style
 import me.anno.utils.Color.rgba
 import me.anno.utils.Color.toVecRGBA
-import me.anno.maths.Maths
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.structures.tuples.MutablePair
 import me.anno.utils.types.AABBs.getMax2
@@ -195,9 +195,23 @@ object ComponentUI {
                     // a first variant for editing may be a json editor
                     val value0 = JsonFormatter.format(TextWriter.toText(value))
                     val input = TextInputML(title, value0, style)
+                    val textColor = input.base.textColor
                     input.addChangeListener {
-                        val value2 = TextReader.read(it, true).firstOrNull()
-                        property.set(input, value2)
+                        if(it == "null"){
+                            property.set(input, null)
+                        } else {
+                           try {
+                               val value2 = TextReader.read(it, false).firstOrNull()
+                               if (value2 != null) {
+                                   property.set(input, value2)
+                                   input.base.textColor = textColor
+                               } else {
+                                   input.base.textColor = 0xffff77 or 0xff.shl(24)
+                               }
+                           } catch (e: Exception){
+                               input.base.textColor = 0xff7733 or 0xff.shl(24)
+                           }
+                        }
                     }
                     return input
                 }

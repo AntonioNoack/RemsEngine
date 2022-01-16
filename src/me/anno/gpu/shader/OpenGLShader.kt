@@ -22,7 +22,8 @@ abstract class OpenGLShader(
 
     companion object {
 
-        private var logShaders = false
+        var logShaders = false
+
         private val LOGGER = LogManager.getLogger(OpenGLShader::class)
         const val attributeName = "in"
         private val matrixBuffer = BufferUtils.createFloatBuffer(16)
@@ -88,6 +89,18 @@ abstract class OpenGLShader(
             }
         }
 
+        fun logShader(shaderName: String, comp: String) {
+            if (logShaders) {
+                val folder = OS.desktop.getChild("shaders")
+                folder.mkdirs()
+                fun print(ext: String, data: String) {
+                    val name = "$shaderName.$ext".toAllowedFilename() ?: return
+                    getReference(folder, name).writeText(data)
+                }
+                print("comp", comp)
+            }
+        }
+
     }
 
     val safeShaderBinding = Companion.safeShaderBinding
@@ -99,7 +112,7 @@ abstract class OpenGLShader(
 
     fun use(): Boolean {
         GFX.check()
-        Frame.bindMaybe()
+        // Frame.bindMaybe()
         GFX.check()
         if (program <= 0 || session != OpenGL.session) {
             init()

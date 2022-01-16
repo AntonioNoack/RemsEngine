@@ -103,8 +103,8 @@ object Frame {
                 if (buffer == null) {
                     x2 = max(x1, 0)
                     y2 = max(y1, 0)
-                    w = min(w, availableWidth - y2)
-                    h = min(h, availableHeight - x2)
+                    w = min(w, availableWidth - x2)
+                    h = min(h, availableHeight - y2)
                     exception.printStackTrace()
                 } else throw exception
             }

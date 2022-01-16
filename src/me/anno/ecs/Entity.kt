@@ -21,12 +21,12 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
-import me.anno.utils.LOGGER
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AABBs.all
 import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.AABBs.set
 import me.anno.utils.types.Floats.f2s
+import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Quaterniond
@@ -132,8 +132,11 @@ class Entity() : PrefabSaveable(), Inspectable {
     }
 
     override fun addChildByType(index: Int, type: Char, child: PrefabSaveable) {
-        if (type == 'c') addComponent(index, child as Component)
-        else addEntity(index, child as Entity)
+        when (child) {
+            is Component -> addComponent(index, child)
+            is Entity -> addEntity(index, child)
+            else -> LOGGER.warn("Cannot add ${child.className} to Entity")
+        }
     }
 
     override fun getChildListByType(type: Char): List<PrefabSaveable> = if (type == 'c') components else children
@@ -950,6 +953,7 @@ class Entity() : PrefabSaveable(), Inspectable {
     }
 
     companion object {
+        private val LOGGER = LogManager.getLogger(Entity::class)
         private val tmpAABB = AABBd()
         private val entityOptionList = listOf(Option("Entity", "Create a child entity") { Entity() })
     }

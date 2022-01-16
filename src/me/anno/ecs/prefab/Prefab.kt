@@ -46,7 +46,11 @@ class Prefab : Saveable {
     var source: FileReference = InvalidRef
 
     fun invalidateInstance() {
-        isValid = false
+        synchronized(this) {
+            sampleInstance?.destroy()
+            sampleInstance = null
+            isValid = false
+        }
         // todo all child prefab instances would need to be invalidated as well
     }
 
@@ -196,7 +200,7 @@ class Prefab : Saveable {
         set(ROOT_PATH, name, value)
     }
 
-    fun setProperty(path: Path, name: String, value: Any?){
+    fun setProperty(path: Path, name: String, value: Any?) {
         set(path, name, value)
     }
 
@@ -239,7 +243,10 @@ class Prefab : Saveable {
                 adds = values.filterIsInstance<CAdd>()
                 for (v in values) {
                     if (v is CSet) {
-                        sets[v.path, v.name!!] = v.value
+                        val vName = v.name
+                        if (vName != null) {
+                            sets[v.path, vName] = v.value
+                        }
                     }
                 }
             }
@@ -247,7 +254,10 @@ class Prefab : Saveable {
             "sets" -> {
                 for (v in values) {
                     if (v is CSet) {
-                        sets[v.path, v.name!!] = v.value
+                        val vName = v.name
+                        if (vName != null) {
+                            sets[v.path, vName] = v.value
+                        }
                     }
                 }
             }

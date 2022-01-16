@@ -31,7 +31,7 @@ class LinearColorMap(
 
     override fun clone(min: Float, max: Float): ColorMap {
         return LinearColorMap(
-            1f / max(-min, max),
+            1f / max(1e-38f, max(-min, max)),
             negInf, this.min, zero, this.max, posInf, nan
         )
     }

@@ -45,6 +45,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.structures.Compare.ifSame
+import me.anno.utils.structures.History
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import kotlin.concurrent.thread
@@ -116,10 +117,8 @@ abstract class FileExplorer(
         }
         .setWeight(1f)
 
-    var historyIndex = 0
-    val history = arrayListOf(initialLocation ?: OS.documents)
-
-    val folder get() = history[historyIndex]
+    val history = History(initialLocation ?: documents)
+    val folder get() = history.value
 
     var searchTerm = ""
     var isValid = 0f
@@ -491,21 +490,12 @@ abstract class FileExplorer(
     }
 
     fun back() {
-        if (historyIndex > 0) {
-            historyIndex--
-            invalidate()
-        } else {
-            val element = folder.getParent() ?: return
-            history.clear()
-            history.add(element)
-            historyIndex = 0
-            invalidate()
-        }
+        history.back { folder.getParent() }
+        invalidate()
     }
 
     fun forward() {
-        if (historyIndex + 1 < history.size) {
-            historyIndex++
+        if(history.forward()){
             invalidate()
         } else {
             LOGGER.info("End of history reached!")
@@ -525,9 +515,7 @@ abstract class FileExplorer(
         } else if (!canSensiblyEnter(folder)) {
             switchTo(folder.getParent())
         } else {
-            while (history.lastIndex > historyIndex) history.removeAt(history.lastIndex)
             history.add(folder)
-            historyIndex++
             invalidate()
         }
     }

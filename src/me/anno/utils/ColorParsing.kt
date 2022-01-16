@@ -1,12 +1,13 @@
 package me.anno.utils
 
 import me.anno.config.DefaultStyle.black
+import me.anno.io.InvalidFormatException
+import me.anno.maths.Maths.sq
 import me.anno.ui.editor.color.ColorSpace
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.toHexColor
-import me.anno.maths.Maths.sq
 import me.anno.utils.structures.maps.BiMap
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -59,19 +60,33 @@ object ColorParsing {
         return parseColor(name)
     }
 
-    fun parseColor(name: String): Int? {
-        if (name.startsWith("#")) {
-            return when (name.length) {
-                4 -> (hex[name[1].code] * 0x110000 + hex[name[2].code] * 0x1100 + hex[name[3].code] * 0x11) or black
-                5 -> (hex[name[1].code] * 0x11000000 + hex[name[1].code] * 0x110000 + hex[name[2].code] * 0x1100 + hex[name[3].code] * 0x11)
-                7 -> name.substring(1).toInt(16) or black
-                9 -> name.substring(1).toLong(16).toInt()
-                else -> throw RuntimeException("Unknown color $name")
-            }
+    /**
+     * @param name color in with hex characters only
+     * @return argb color code
+     * @throws RuntimeException if term could not be parsed
+     * */
+    fun parseHex(name: String): Int {
+        return when (name.length) {
+            3 -> (hex[name[0].code] * 0x110000 + hex[name[1].code] * 0x1100 + hex[name[2].code] * 0x11) or black
+            4 -> (hex[name[0].code] * 0x11000000 + hex[name[1].code] * 0x110000 + hex[name[2].code] * 0x1100 + hex[name[3].code] * 0x11)
+            6 -> name.toInt(16) or black
+            8 -> name.toLong(16).toInt()
+            else -> throw InvalidFormatException("Unknown color $name")
         }
-        val lcName = name.trim().lowercase(Locale.getDefault())
-        return if (lcName == "none") null
-        else colorMap[lcName]?.or(black) ?: throw RuntimeException("Unknown color $name")
+    }
+
+    /**
+     * @return null for "none", else argb color code
+     * @throws RuntimeException if term could not be parsed
+     * */
+    fun parseColor(name: String): Int? {
+        return when {
+            name.startsWith('#') -> parseHex(name.substring(1))
+            name.startsWith("0x") -> parseHex(name.substring(2))
+            name.equals("none", true) -> null
+            else -> colorMap[name.trim().lowercase(Locale.getDefault())]?.or(black)
+                ?: throw InvalidFormatException("Unknown color $name")
+        }
     }
 
     private val hex by lazy {
@@ -103,6 +118,9 @@ object ColorParsing {
         }!!.key
     }
 
+    /**
+     * officially supported colors from the web (CSS/HTML)
+     * */
     private val colorMap by lazy {
         val map = BiMap<String, Int>(148)
         fun put(k: String, v: Int) = map.put(k, v)

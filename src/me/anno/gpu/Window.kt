@@ -97,6 +97,7 @@ open class Window(
 
     open fun destroy() {
         buffer.destroy()
+        panel.destroy()
     }
 
     fun draw(

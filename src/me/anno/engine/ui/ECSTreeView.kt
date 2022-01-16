@@ -287,7 +287,6 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
                         val child = option.generator() as PrefabSaveable
                         child.prefabPath = path
                         child.prefab = prefab
-                        child.name = nameId
                         parent.addChild(child)
                         PropertyInspector.invalidateUI()
                     }

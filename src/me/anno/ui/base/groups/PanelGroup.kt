@@ -75,6 +75,13 @@ abstract class PanelGroup(style: Style) : Panel(style) {
         } else super.onSelectAll(x, y)
     }
 
+    override fun destroy() {
+        super.destroy()
+        for (child in children) {
+            child.destroy()
+        }
+    }
+
     companion object {
         fun getPanelOptions() = ISaveable.objectTypeRegistry
             .filterValues { it.sampleInstance is Panel }

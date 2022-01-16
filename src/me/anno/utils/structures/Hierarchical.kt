@@ -146,7 +146,7 @@ interface Hierarchical<V : Hierarchical<V>> {
                 @Suppress("UNCHECKED_CAST")
                 yield(self as V)
                 parent?.apply {
-                    yieldAll(listOfHierarchy)
+                    yieldAll(listOfHierarchyReversed)
                 }
             }
         }

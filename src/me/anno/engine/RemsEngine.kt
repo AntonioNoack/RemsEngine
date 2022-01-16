@@ -24,6 +24,10 @@ import me.anno.utils.OS
 import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
 
+// todo color input sometimes janky... why?
+// todo bug: text panel cannot be deleted from CanvasComponent
+// todo bug: text input panel ml deletes two chars on first delete, why?
+
 // todo panel: console output of multiple lines, with filters
 
 // todo also the main object randomly just shrinks down (pool & truck)

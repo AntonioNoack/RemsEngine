@@ -31,6 +31,14 @@ open class TextInputML(title: String, style: Style) : PanelContainer(
         base.backgroundColor = backgroundColor
     }
 
+    override fun setBold(bold: Boolean) {
+        base.setBold(bold)
+    }
+
+    override fun setItalic(italic: Boolean) {
+        base.setItalic(italic)
+    }
+
     fun setCursorToEnd() = base.setCursorToEnd()
 
     fun setPlaceholder(text: String): TextInputML {

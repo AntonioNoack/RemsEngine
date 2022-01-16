@@ -46,12 +46,6 @@ class CSet() : Change() {
         }
     }
 
-    override fun readObject(name: String, value: ISaveable?) {
-        if (name == "path" && value is Path) {
-            path = value
-        } else super.readObject(name, value)
-    }
-
     override fun readSomething(name: String, value: Any?) {
         this.name = name
         this.value = value

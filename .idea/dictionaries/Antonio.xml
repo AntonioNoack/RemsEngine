@@ -130,6 +130,7 @@
       <w>iter</w>
       <w>ivec</w>
       <w>jacobian</w>
+      <w>janky</w>
       <w>jemalloc</w>
       <w>joinable</w>
       <w>joml</w>

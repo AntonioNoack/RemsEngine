@@ -17,6 +17,7 @@ import me.anno.ecs.components.shaders.effects.Bloom
 import me.anno.ecs.components.shaders.effects.FSR
 import me.anno.ecs.components.shaders.effects.ScreenSpaceAmbientOcclusion
 import me.anno.ecs.components.shaders.effects.ScreenSpaceReflections
+import me.anno.ecs.components.ui.CanvasComponent
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.debug.DebugShapes.debugLines
 import me.anno.engine.debug.DebugShapes.debugPoints
@@ -43,7 +44,6 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.OpenGL
 import me.anno.gpu.OpenGL.useFrame
-import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.deferred.DepthBasedAntiAliasing
@@ -67,17 +67,18 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Input.isKeyDown
 import me.anno.input.Input.isShiftDown
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.sq
 import me.anno.mesh.Shapes
 import me.anno.ui.base.Panel
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.style.Style
 import me.anno.utils.Clock
 import me.anno.utils.Tabs
-import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.mix
-import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AABBs
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
@@ -165,6 +166,10 @@ class RenderView(
     var renderMode = RenderMode.DEFAULT
 
     var radius = 50.0
+        set(value) {
+            field = clamp(value, 1e-5, 1e5)
+        }
+
     val worldScale get() = if (renderMode == RenderMode.MONO_WORLD_SCALE) 1.0 else 1.0 / radius
     var position = Vector3d()
     var rotation = Vector3d(-20.0, 0.0, 0.0)
@@ -180,6 +185,33 @@ class RenderView(
     // val lightBuffer = baseBuffer.attachFramebufferToDepth(1, deferred.settingsV1.fpLights)//deferred.createLightBuffer()
     // no depth is currently required on this layer
     private val lightBuffer = Framebuffer("lights", w, h, 1, 1, deferred.settingsV1.fpLights, DepthBufferType.NONE)
+
+    private val clock = Clock()
+    private var lastPhysics: BulletPhysics? = null
+
+    private var entityBaseClickId = 0
+
+    val pipeline = Pipeline(deferred)
+    private val stage0 = PipelineStage(
+        "default", Sorting.NO_SORTING, MAX_FORWARD_LIGHTS,
+        null, DepthMode.GREATER, true, GL_BACK,
+        pbrModelShader
+    )
+
+    init {
+        pipeline.defaultStage = stage0
+        pipeline.stages.add(stage0)
+    }
+
+    override fun destroy() {
+        super.destroy()
+        // all framebuffers that we own need to be freed
+        base1Buffer.destroy()
+        baseNBuffer.destroy()
+        baseSameDepth.destroy()
+        editorCameraNode.destroy()
+        lightBuffer.destroy()
+    }
 
     fun updateEditorCameraTransform() {
 
@@ -219,9 +251,6 @@ class RenderView(
         // we could optimize that: if not has updated in some time, don't redraw
         invalidateDrawing()
     }
-
-    private val clock = Clock()
-    private var lastPhysics: BulletPhysics? = null
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
@@ -370,6 +399,19 @@ class RenderView(
         if (!isFinalRendering) {
             showShadowMapDebug()
             showCameraRendering(x0, y0, x1, y1)
+        }
+
+        if (world is Entity && mode != PlayMode.EDITING) {
+            world.getComponentsInChildren(CanvasComponent::class, false) { comp ->
+                if (comp.space == CanvasComponent.Space.CAMERA_SPACE) {
+                    comp.width = x1 - x0
+                    comp.height = y1 - y0
+                    comp.render()
+                    val texture = comp.framebuffer!!.getColor0()
+                    drawTexture(x0, y1, x1 - x0, y0 - y1, texture, -1, null)
+                }
+                false
+            }
         }
 
         // clock.total("drawing the scene", 0.1)
@@ -622,7 +664,12 @@ class RenderView(
 
                                 buffer.bindTextures(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                                 ssao.bind(shader, "ambientOcclusion", GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                                lightBuffer.bindTexture0(shader, "finalLight", GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                                lightBuffer.bindTexture0(
+                                    shader,
+                                    "finalLight",
+                                    GPUFiltering.TRULY_NEAREST,
+                                    Clamping.CLAMP
+                                )
 
                                 flat01.draw(shader)
 
@@ -781,20 +828,6 @@ class RenderView(
 
     private val tmp4f = Vector4f()
 
-    val pipeline = Pipeline(deferred)
-    private val stage0 = PipelineStage(
-        "default", Sorting.NO_SORTING, MAX_FORWARD_LIGHTS,
-        null, DepthMode.GREATER, true, GL_BACK,
-        pbrModelShader
-    )
-
-    init {
-        pipeline.defaultStage = stage0
-        pipeline.stages.add(stage0)
-    }
-
-    private var entityBaseClickId = 0
-
     private val tmpRot0 = Quaternionf()
     private val tmpRot1 = Quaternionf()
     private fun prepareDrawScene(
@@ -840,12 +873,18 @@ class RenderView(
 
         // this needs to be separate from the stack
         // (for normal calculations and such)
+        RenderView.near = near
+        RenderView.far = far
+        val scaledNear = (near * worldScale)
+        val scaledFar = (far * worldScale)
+        RenderView.scaledNear = scaledNear
+        RenderView.scaledFar = scaledFar
         Perspective.setPerspective(
             cameraMatrix,
             fovYRadians,
             aspectRatio,
-            (near * worldScale).toFloat(),
-            (far * worldScale).toFloat(),
+            scaledNear.toFloat(),
+            scaledFar.toFloat(),
             centerX, centerY
         )
         cameraMatrix.rotate(rot)
@@ -1080,9 +1119,9 @@ class RenderView(
 
     }
 
-    private val selectedColor = Vector4f(1f, 1f, 0.7f, 1f)
-
     private fun drawGizmos(camPosition: Vector3d, drawGridLines: Boolean) {
+
+        if (mode != PlayMode.EDITING) return
 
         // draw UI
 
@@ -1270,6 +1309,13 @@ class RenderView(
         val stack = Matrix4fArrayList()
 
         var fovYRadians = 1f
+
+        var near = 1e-10
+        var scaledNear = 1e-10
+
+        // infinity
+        var far = 1e10
+        var scaledFar = 1e10
 
         val cameraMatrix = Matrix4f()
 

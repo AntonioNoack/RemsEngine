@@ -134,7 +134,7 @@ open class MeshData : ICacheData {
             if (useMaterials) {
                 entity.anyComponent(MeshBaseComponent::class) { comp ->
                     val mesh = comp.getMesh()
-                    if (mesh != null) {
+                    if (mesh?.positions != null) {
                         mesh.checkCompleteness()
                         mesh.ensureBuffer()
                         shader.v1("hasVertexColors", mesh.hasVertexColors)
@@ -153,7 +153,7 @@ open class MeshData : ICacheData {
                 material.defineShader(shader)
                 entity.anyComponent(MeshBaseComponent::class) { comp ->
                     val mesh = comp.getMesh()
-                    if (mesh != null) {
+                    if (mesh?.positions != null) {
                         mesh.checkCompleteness()
                         mesh.ensureBuffer()
                         shader.v1("hasVertexColors", mesh.hasVertexColors)

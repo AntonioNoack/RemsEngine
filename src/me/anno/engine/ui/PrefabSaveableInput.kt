@@ -8,6 +8,7 @@ import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.style.Style
+import org.apache.logging.log4j.LogManager
 import kotlin.reflect.KClass
 
 // todo click, then open tree view to select it (?)
@@ -51,8 +52,10 @@ class PrefabSaveableInput<Type : PrefabSaveable>(val title: String, val clazz: K
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         when (type) {
             "PrefabSaveable" -> {
-                val instance = dragged!!.getOriginal() as PrefabSaveable
-                if (clazz.isInstance(instance)) {
+                val instance = dragged!!.getOriginal() as? PrefabSaveable
+                if (instance == null) {
+                    LOGGER.warn("Dragged instance was not PrefabSaveable")
+                } else if (clazz.isInstance(instance)) {
                     @Suppress("UNCHECKED_CAST")
                     value = instance as Type
                 } else {
@@ -77,6 +80,10 @@ class PrefabSaveableInput<Type : PrefabSaveable>(val title: String, val clazz: K
             }
             else -> super.onPaste(x, y, data, type)
         }
+    }
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(PrefabSaveableInput::class)
     }
 
 }

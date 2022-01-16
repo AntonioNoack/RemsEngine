@@ -37,7 +37,7 @@ object Perspective {
             //  0  0  0  n
             //  0  0 -1  0
             viewTransform.set(
-                // column major, so this is transposed-ly written
+                // column major, so this is written transposed
                 x, 0f, 0f, 0f,
                 0f, y, 0f, 0f,
                 0f, 0f, 0f, -1f,
@@ -57,7 +57,6 @@ object Perspective {
             ).m30(cx).m31(cy)
         }
     }
-
 
     fun setPerspective2(
         viewTransform: Matrix4f,

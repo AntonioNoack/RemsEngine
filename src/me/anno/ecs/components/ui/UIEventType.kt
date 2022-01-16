@@ -9,5 +9,6 @@ enum class UIEventType {
     KEY_DOWN,
     KEY_UP,
     KEY_TYPED,
-    CHAR_TYPED
+    CHAR_TYPED,
+    ACTION
 }

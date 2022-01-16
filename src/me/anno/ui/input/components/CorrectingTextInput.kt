@@ -49,7 +49,7 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
             }
             if(isHovered && !isInFocus){
                 requestFocus()
-                setCursor(text.length)
+                // setCursor(text.length)
             }
         }
         if (!isHovered) lastSuggestion = null

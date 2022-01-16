@@ -13,6 +13,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.play.PlayView
 import me.anno.engine.ui.render.RenderView
+import me.anno.gpu.Window
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
@@ -161,10 +162,18 @@ class ECSSceneTab(
                     },
                     MenuOption(NameDesc("Play Fullscreen")) {
                         // opens window with fullscreen attribute
-                        val panel = PlayView(EditorState, style)
                         // todo define source file & such
                         // todo create instance copy, so no state change is permanent
-                        windowStack.push(panel)
+                        // todo still show debug information
+                        val panel = PlayView(EditorState, true, style)
+                        val window = object : Window(panel, windowStack) {
+                            override fun destroy() {
+                                super.destroy()
+                                // reset state
+                                inspector.prefab.invalidateInstance()
+                            }
+                        }
+                        windowStack.push(window)
                     },
                     MenuOption(NameDesc("Close")) {
                         ECSSceneTabs.close(this)

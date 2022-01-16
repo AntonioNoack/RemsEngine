@@ -292,12 +292,14 @@ class PrefabInspector(val prefab: Prefab) {
         //  - show a preview
         //  - hide this
         val types = instance.listChildTypes()
-        if (false) for (i in types.indices) {
+        for (i in types.indices) {
             val type = types[i]
 
             val options = instance.getOptionsByType(type) ?: continue
             val niceName = instance.getChildListNiceName(type)
             val children = instance.getChildListByType(type)
+
+            if (niceName.equals("children", true)) continue
 
             val nicerName = niceName.camelCaseToTitle()
             list.add(object : StackPanel(
@@ -307,8 +309,10 @@ class PrefabInspector(val prefab: Prefab) {
 
                 override fun onAddComponent(component: Inspectable, index: Int) {
                     component as PrefabSaveable
-                    val newPath = instance.prefabPath!!.added(component.className, index, type)
-                    Hierarchy.add(this@PrefabInspector.prefab, newPath, instance, component)
+                    if (component.prefabPath == null) {
+                        val newPath = instance.prefabPath!!.added(Path.generateRandomId(), index, type)
+                        Hierarchy.add(this@PrefabInspector.prefab, newPath, instance, component)
+                    } else LOGGER.warn("Component had prefab path already")
                 }
 
                 override fun onRemoveComponent(component: Inspectable) {

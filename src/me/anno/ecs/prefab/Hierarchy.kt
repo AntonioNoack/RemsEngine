@@ -40,7 +40,8 @@ object Hierarchy {
         val collDepth = element.depthInHierarchy
         prefab.set(Path.ROOT_PATH, "name", element.name)
         // setters.add(CSet(Path.ROOT_PATH, "name", element.name))
-        if (!copyPasteRoot) someParent = someParent.parent!!
+        // todo why can it's parent be null?
+        if (!copyPasteRoot && someParent.parent != null) someParent = someParent.parent!!
         val startIndex = if (copyPasteRoot) collDepth else collDepth - 1
         for (depth in startIndex downTo 0) {// from element to root
             LOGGER.info("Checking depth $depth/$collDepth, ${someParent.name}")

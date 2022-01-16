@@ -1,4 +1,4 @@
-## Game Engine: Rem's Engine
+# Game Engine: Rem's Engine
 
 Parallel to this video editor, I am developing my own game engine. I have often written the beginnings of small games,
 but they always had much in common, so I decided to write my own engine.
@@ -22,6 +22,32 @@ I am writing the game engine in this same repository as Rem's Studio, because
 - I want to base the video studio on the engine in the future
 - currently, the engine needs to be based on the video editor
 - when I started the engine, the video studio already was a huge project
+
+## Project Plan
+<!-- the following graph should work starting Jan-Mar 2022 -->
+<!-- TB = top-bottom, LR = left-right -->
+```mermaid
+graph TB
+    A(Older Kotlin/Java Projects)
+    B(Rem's Studio)
+    B2(Studio relatively stable)
+    C(Rem's Studio/Engine)
+    X1(Windows/Linux Export)
+    C2(Engine relatively stable)
+    X2(Android Export)
+    W(Engine is production ready)
+    W1(Rem's Engine)
+    W2(Rem's Studio ''Game'')
+    A -- Q1 2020 --> B
+    B -- Q2 2021 --> B2
+    B -- Q2 2021 --> C
+    C -- TODO --> C2
+    C -- TODO --> X1
+    C -- TBD --> X2
+    C2 -- TODO --> W
+    W --> W1
+    W --> W2
+```
 
 ## Features
 
@@ -82,6 +108,7 @@ videos on Android using https://stackoverflow.com/questions/9375598/android-how-
 - support separate mice / keyboards for local multiplayer?
 - support controller + mouse/keyboard for one more local player
 - when we have no videos, we could ship without ffmpeg
+- additional 2d physics engine
 
 ## Build
 

@@ -37,6 +37,7 @@ class ComputeShader(
         glLinkProgram(program)
         postPossibleError(name, program, false, source)
         glDeleteShader(shader)
+        logShader(name, source)
 
         GFX.check()
 

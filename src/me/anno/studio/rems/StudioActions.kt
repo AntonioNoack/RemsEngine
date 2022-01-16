@@ -177,6 +177,12 @@ object StudioActions {
 
         keyMap["HSVBox.left.down", "SelectColor"]
         keyMap["HSVBox.left.press-unsafe", "SelectColor"]
+        keyMap["AlphaBar.left.down", "SelectColor"]
+        keyMap["AlphaBar.left.press-unsafe", "SelectColor"]
+        keyMap["HueBar.left.down", "SelectColor"]
+        keyMap["HueBar.left.press-unsafe", "SelectColor"]
+        keyMap["HSVBoxMain.left.down", "SelectColor"]
+        keyMap["HSVBoxMain.left.press-unsafe", "SelectColor"]
 
         keyMap["StudioSceneView.right.p", "Turn"]
         keyMap["StudioSceneView.left.p", "MoveObject"]

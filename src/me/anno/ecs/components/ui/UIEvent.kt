@@ -12,7 +12,8 @@ class UIEvent(
     var byMouse: Boolean,
     var button: MouseButton,
     var isLong: Boolean,
-    var type: UIEventType
+    var type: UIEventType,
+    var action: String = ""
 ) {
 
     constructor(x: Float, y: Float, key: Int, type: UIEventType) :
@@ -24,7 +25,7 @@ class UIEvent(
     )
 
     constructor(x: Float, y: Float, byMouse: Boolean, button: MouseButton, type: UIEventType) :
-            this(x, y, 0f,0f, 0, byMouse, button, false, type)
+            this(x, y, 0f, 0f, 0, byMouse, button, false, type)
 
     fun call(r: ControlReceiver): Boolean {
         return when (type) {
@@ -37,6 +38,7 @@ class UIEvent(
             UIEventType.KEY_UP -> r.onKeyUp(key)
             UIEventType.KEY_TYPED -> r.onKeyTyped(key)
             UIEventType.CHAR_TYPED -> r.onCharTyped(key)
+            UIEventType.ACTION -> r.onGotAction(x, y, dx, dy, action)
         }
     }
 

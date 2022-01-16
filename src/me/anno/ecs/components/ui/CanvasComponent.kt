@@ -5,11 +5,13 @@ import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.Group
 import me.anno.ecs.annotations.Order
 import me.anno.ecs.annotations.Range
+import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
@@ -21,6 +23,7 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.image.raw.GPUImage
+import me.anno.input.MouseButton
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
@@ -28,24 +31,31 @@ import me.anno.io.zip.InnerTmpFile
 import me.anno.ui.base.Panel
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.utils.WindowStack
+import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4d
-import org.joml.Matrix4f
 import org.lwjgl.opengl.GL11.*
 
-// todo make ui elements Entities?
-// todo make them something special?
-// todo just make it so you can add components to panels? that would be a nice solution :),
-// todo then the parent will be a UI element, not an Entity
+// done make ui elements Entities?
+// done make them something special?
+// done just make it so you can add components to panels? that would be a nice solution :),
+// done then the parent will be a UI element, not an Entity
 
 
 // todo focus / unfocus
 // todo interactions with that UI
 // todo enter ui, exit ui
 
-// todo how can we automatically adjust the viewport to the camera?
-// todo how can we disable drawing depth and such, if camera space?
+// todo just set inFocus, then input works magically
+
+// done how can we automatically adjust the viewport to the camera?
+// done how can we disable drawing depth and such, if camera space?
+
+// todo remove subpixel rendering in world space here
 
 class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
+
+    // todo clamp texture coordinates
+    // todo this element always need glCullFace, or you see the back when it's transparent
 
     constructor(base: CanvasComponent) : this() {
         base.copy(this)
@@ -62,7 +72,6 @@ class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
 
     override fun add(child: PrefabSaveable) {
         if (child !is Panel) return
-        child.prefabPath = prefabPath!! + Triple(child.name, 0, 'p')
         windowStack.push(child)
     }
 
@@ -72,7 +81,6 @@ class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
     }
 
     // different spaces like in Unity: world space, camera space
-    // todo best render camera space separately
     // todo allow custom meshes (?)
     enum class Space {
         WORLD_SPACE,
@@ -80,6 +88,18 @@ class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
     }
 
     var space = Space.CAMERA_SPACE
+        set(value) {
+            if (field != value) {
+                field = value
+                val p = internalMesh.positions
+                if (p != null) {
+                    val pt = positionTemplate
+                    for (i in pt.indices) {
+                        p[i] = pt[i]
+                    }
+                }
+            }
+        }
 
     var style = DefaultConfig.style
 
@@ -87,12 +107,12 @@ class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
     private val windowStack = WindowStack()
 
     @Group("Dimensions")
-    @Range(0.0, 4096.0)
+    @Range(1.0, 4096.0)
     @Order(-2)
     var width = 540
 
     @Group("Dimensions")
-    @Range(0.0, 4096.0)
+    @Range(1.0, 4096.0)
     @Order(-1)
     var height = 360
 
@@ -100,45 +120,49 @@ class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
     var framebuffer: Framebuffer? = null
 
     @NotSerializedProperty
+    var lastPointer: Int = -1
+
+    @NotSerializedProperty
     val internalMesh = Mesh()
 
     init {
         // define shape
-        internalMesh.positions = floatArrayOf(
-            -1f, -1f, 0f, -1f, +1f, 0f,
-            +1f, -1f, 0f, +1f, +1f, 0f
-        )
-        internalMesh.indices = intArrayOf(
-            0, 1, 2, 1, 2, 3,
-            1, 0, 2, 2, 1, 3
-        )
+        val pt = positionTemplate
+        internalMesh.positions = FloatArray(pt.size) { pt[it] }
+        internalMesh.uvs = uvs
+        internalMesh.indices = indices
     }
 
     override fun getMesh() = internalMesh
 
     private fun defineMesh() {
+        val aspectRatio = width.toFloat() / height.toFloat()
         val pos = internalMesh.positions!!
-        val x = width.toFloat() / height.toFloat()
-        val oldX = pos[0]
-        if (x != oldX) {
-            pos[0] = -x; pos[3] = -x
-            pos[6] = +x; pos[9] = +x
+        if (pos[0] != aspectRatio) {
+            pos[0] = -aspectRatio; pos[3] = -aspectRatio
+            pos[6] = +aspectRatio; pos[9] = +aspectRatio
+            pos[12] = -aspectRatio; pos[15] = -aspectRatio
+            pos[18] = +aspectRatio; pos[21] = +aspectRatio
             internalMesh.invalidateGeometry()
         }
     }
 
     override fun onVisibleUpdate(): Boolean {
-        defineMesh()
-        render()
+        if (space == Space.WORLD_SPACE ||
+            RenderView.currentInstance.mode == PlayMode.EDITING
+        ) {
+            defineMesh()
+            render()
+        }
         return true
     }
-
-    // todo just set inFocus, then input works magically
 
     @DebugAction
     fun requestFocus() {
         windowStack[0].panel.requestFocus()
     }
+
+    var material: Material? = null
 
     fun render() {
         GFX.checkIsGFXThread()
@@ -146,34 +170,55 @@ class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
         var fb = framebuffer
         val width = width
         val height = height
-        if (fb == null) {
+        if (width < 1 || height < 1) return
+        if (fb == null || fb.pointer != lastPointer) {
             fb = Framebuffer("canvas", width, height, 1, 1, false, DepthBufferType.NONE)
             useFrame(fb) {} // create textures
+            lastPointer = fb.pointer
             val prefab = Prefab("Material")
-            val image = GPUImage(fb.getColor0(), 4, true, hasOwnership = false)
+            val texture = fb.getColor0()
+            val image = GPUImage(texture, 4, true, hasOwnership = false)
             val texturePath = InnerTmpFile.InnerTmpImageFile(image)
             val materialPath = InnerTmpFile.InnerTmpPrefabFile(prefab)
             prefab.setProperty("diffuseMap", texturePath)
+            prefab.setProperty("emissiveMap", texturePath)
+            val materialInstance = prefab.getSampleInstance() as Material
+            this.material = materialInstance
             framebuffer = fb
             internalMesh.material = materialPath
         }
-        val rv = RenderView.currentInstance
-        val transform = Matrix4f(Matrix4d(RenderView.cameraMatrix).mul(entity!!.transform.globalTransform))
-            .invert() // I believe this should be correct: screen space = camera transform * world transform * world pos
-        windowStack.updateTransform(transform, rv.x, rv.y, rv.w, rv.h, 0, 0, width, height)
         useFrame(width, height, true, fb) {
             Frame.bind()
-            glClearColor(0f, 0f, 0f, 1f)
+            glClearColor(0f, 0f, 0f, 0f)
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
             OpenGL.depthMode.use(DepthMode.ALWAYS) {
                 OpenGL.blendMode.use(BlendMode.DEFAULT) {
                     OpenGL.cullMode.use(0) {
-                        windowStack.draw(width, height, false, forceRedraw = true, fb)
+                        render(width, height, fb)
                     }
                 }
             }
         }
         GFX.check()
+    }
+
+    fun render(width: Int, height: Int, fb: Framebuffer?) {
+        OpenGL.depthMode.use(DepthMode.ALWAYS) {
+            OpenGL.blendMode.use(BlendMode.DEFAULT) {
+                OpenGL.cullMode.use(0) {
+                    val rv = RenderView.currentInstance
+                    val transform = JomlPools.mat4f.create()
+                    if (space == Space.WORLD_SPACE) {
+                        // I believe this should be correct: screen space = camera transform * world transform * world pos
+                        transform.set(Matrix4d(RenderView.cameraMatrix).mul(entity!!.transform.globalTransform))
+                        transform.invert()
+                    }
+                    windowStack.updateTransform(transform, rv.x, rv.y, rv.w, rv.h, 0, 0, width, height)
+                    windowStack.draw(width, height, true, forceRedraw = true, fb)
+                    JomlPools.mat4f.sub(1)
+                }
+            }
+        }
     }
 
     override fun clone() = CanvasComponent(this)
@@ -212,6 +257,74 @@ class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
         }
     }
 
+    private inline fun findPanel(callback: (panel: Panel, x: Float, y: Float) -> Unit): Boolean {
+        val x = windowStack.mouseX
+        val y = windowStack.mouseY
+        val xi = x.toInt()
+        val yi = y.toInt()
+        for (window in windowStack.reversed()) {
+            val panel = window.panel.getPanelAt(xi, yi)
+            if (panel != null) {
+                callback(panel, x, y)
+                return true
+            }
+        }
+        return false
+    }
+
+    // todo do this like in ActionManager
+
+    override fun onKeyDown(key: Int): Boolean {
+        return findPanel { panel, x, y -> panel.onKeyDown(x, y, key) }
+    }
+
+    override fun onKeyUp(key: Int): Boolean {
+        return findPanel { panel, x, y -> panel.onKeyUp(x, y, key) }
+    }
+
+    override fun onKeyTyped(key: Int): Boolean {
+        return findPanel { panel, x, y -> panel.onKeyTyped(x, y, key) }
+    }
+
+    override fun onMouseDown(button: MouseButton): Boolean {
+        return findPanel { panel, x, y -> panel.onMouseDown(x, y, button) }
+    }
+
+    override fun onMouseUp(button: MouseButton): Boolean {
+        return findPanel { panel, x, y -> panel.onMouseUp(x, y, button) }
+    }
+
+    override fun onMouseClicked(button: MouseButton, long: Boolean): Boolean {
+        return findPanel { panel, x, y -> panel.onMouseClicked(x, y, button, long) }
+    }
+
     override val className get() = "CanvasComponent"
+
+    companion object {
+        // a small z value against z-fighting
+        private const val z = .001f
+        val positionTemplate = floatArrayOf(
+            // front
+            -1f, -1f, +z, -1f, +1f, +z,
+            +1f, -1f, +z, +1f, +1f, +z,
+            // back
+            -1f, -1f, -z, -1f, +1f, -z,
+            +1f, -1f, -z, +1f, +1f, -z,
+        )
+        val uvs = floatArrayOf(
+            // front
+            0f, 1f, 0f, 0f,
+            1f, 1f, 1f, 0f,
+            // back
+            1f, 1f, 1f, 0f,
+            0f, 1f, 0f, 0f
+        )
+        val indices = intArrayOf(
+            // front
+            0, 2, 1, 1, 2, 3,
+            // back
+            5, 6, 4, 6, 5, 7
+        )
+    }
 
 }

@@ -7,7 +7,6 @@ import me.anno.input.Input
 import me.anno.ui.base.Panel
 import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4f
-import org.joml.Vector3f
 import java.util.*
 import kotlin.math.max
 
@@ -24,8 +23,10 @@ class WindowStack : Stack<Window>() {
     var mouseDownX = 0f
     var mouseDownY = 0f
 
-    fun push(panel: Panel) {
-        push(Window(panel, this))
+    fun push(panel: Panel): Window {
+        val window = Window(panel, this)
+        push(window)
+        return window
     }
 
     fun push(panel: Panel, fullscreen: Boolean, x: Int, y: Int) {

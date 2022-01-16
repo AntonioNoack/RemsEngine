@@ -51,4 +51,13 @@ class PlayControls(renderer: RenderView) : ControlScheme(renderer) {
         callEvent(UIEvent(x, y, key, UIEventType.CHAR_TYPED))
     }
 
+    override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
+        callEvent(UIEvent(x, y, dx, dy, 0, false, MouseButton.UNKNOWN, false, UIEventType.ACTION, action))
+        return true
+    }
+
+    override fun checkMovement() {
+        // no pre-defined movement
+    }
+
 }
