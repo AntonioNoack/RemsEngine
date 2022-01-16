@@ -24,9 +24,11 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
+import me.anno.maths.Maths.pow
 import me.anno.mesh.Point
 import me.anno.objects.Camera
 import me.anno.objects.Transform
+import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.StudioBase.Companion.eventTasks
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.editorTimeDilation
@@ -34,7 +36,6 @@ import me.anno.studio.rems.RemsStudio.root
 import me.anno.ui.base.Panel
 import me.anno.ui.debug.FrameTimes
 import me.anno.utils.Clock
-import me.anno.maths.Maths.pow
 import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
@@ -183,6 +184,7 @@ object GFX : GFXBase1() {
     val inFocus0 get() = inFocus.firstOrNull()
 
     fun requestFocus(panel: Panel?, exclusive: Boolean) {
+        if (dragged != null) return
         if (exclusive) {
             for (p in inFocus) p.invalidateDrawing()
             inFocus.clear()

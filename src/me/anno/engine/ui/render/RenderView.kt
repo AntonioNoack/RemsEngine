@@ -167,7 +167,7 @@ class RenderView(
 
     var radius = 50.0
         set(value) {
-            field = clamp(value, 1e-5, 1e5)
+            field = clamp(value, 1e-10, 1e10)
         }
 
     val worldScale get() = if (renderMode == RenderMode.MONO_WORLD_SCALE) 1.0 else 1.0 / radius

@@ -29,7 +29,6 @@ import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.GL_LINES
-import java.io.InputStream
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -48,6 +47,13 @@ class Mesh : PrefabSaveable() {
 
     // todo also we need a renderer, which can handle morphing
     // todo or we need to compute it on the cpu
+
+    /**
+     * when this property is > 0, then all vertex data will be ignored;
+     * please set positions to a float array (e.g. empty) anyways
+     * */
+    var proceduralLength = 0
+
     @HideInInspector
     var positions: FloatArray? = null
 
@@ -234,6 +240,7 @@ class Mesh : PrefabSaveable() {
      * if this succeeds, then the drawing routine should not crash
      * */
     fun checkCompleteness() {
+        if (proceduralLength > 0) return
         // check whether all variables are set correctly
         val positions = positions
         val normals = normals
@@ -430,6 +437,8 @@ class Mesh : PrefabSaveable() {
     }
 
     private fun updateMesh() {
+
+        if (proceduralLength > 0) return
 
         needsMeshUpdate = false
 
@@ -690,20 +699,24 @@ class Mesh : PrefabSaveable() {
     }
 
     fun draw(shader: Shader, materialIndex: Int) {
-        ensureBuffer()
-        // respect the material index: only draw what belongs to the material
-        val helperMeshes = helperMeshes
-        when {
-            helperMeshes != null -> {
-                helperMeshes
-                    .getOrNull(materialIndex)
-                    ?.draw(shader, 0)
-            }
-            materialIndex == 0 -> {
-                if (drawLines) {
-                    lineBuffer?.draw(shader)
-                } else {
-                    (triBuffer ?: buffer)?.draw(shader)
+        if (proceduralLength > 0) {
+            StaticBuffer.drawArraysNull(shader, drawMode, proceduralLength)
+        } else {
+            ensureBuffer()
+            // respect the material index: only draw what belongs to the material
+            val helperMeshes = helperMeshes
+            when {
+                helperMeshes != null -> {
+                    helperMeshes
+                        .getOrNull(materialIndex)
+                        ?.draw(shader, 0)
+                }
+                materialIndex == 0 -> {
+                    if (drawLines) {
+                        lineBuffer?.draw(shader)
+                    } else {
+                        (triBuffer ?: buffer)?.draw(shader)
+                    }
                 }
             }
         }
@@ -712,43 +725,55 @@ class Mesh : PrefabSaveable() {
     fun drawDepth(shader: Shader) {
         // all materials are assumed to behave the same
         // when we have vertex shaders by material, this will become wrong...
-        ensureBuffer()
-        if (drawLines) {
-            lineBuffer?.draw(shader)
+        if (proceduralLength > 0) {
+            StaticBuffer.drawArraysNull(shader, drawMode, proceduralLength)
         } else {
-            (triBuffer ?: buffer)?.draw(shader)
+            ensureBuffer()
+            if (drawLines) {
+                lineBuffer?.draw(shader)
+            } else {
+                (triBuffer ?: buffer)?.draw(shader)
+            }
         }
     }
 
     fun drawInstanced(shader: Shader, materialIndex: Int, instanceData: Buffer) {
-        GFX.check()
-        ensureBuffer()
-        // respect the material index: only draw what belongs to the material
-        val helperMeshes = helperMeshes
-        if (helperMeshes != null) {
-            helperMeshes
-                .getOrNull(materialIndex)
-                ?.drawInstanced(shader, 0, instanceData)
-        } else if (materialIndex == 0) {
+        if (proceduralLength > 0) {
+            LOGGER.warn("Instanced rendering not yet implemented")
+        } else {
+            GFX.check()
+            ensureBuffer()
+            // respect the material index: only draw what belongs to the material
+            val helperMeshes = helperMeshes
+            if (helperMeshes != null) {
+                helperMeshes
+                    .getOrNull(materialIndex)
+                    ?.drawInstanced(shader, 0, instanceData)
+            } else if (materialIndex == 0) {
+                if (drawLines) {
+                    lineBuffer?.drawInstanced(shader, instanceData)
+                } else {
+                    (triBuffer ?: buffer)?.drawInstanced(shader, instanceData)
+                }
+            }
+            GFX.check()
+        }
+    }
+
+    fun drawInstancedDepth(shader: Shader, instanceData: Buffer) {
+        if(proceduralLength > 0){
+            LOGGER.warn("Instanced rendering not yet implemented")
+        } else {
+            // draw all materials
+            GFX.check()
+            ensureBuffer()
             if (drawLines) {
                 lineBuffer?.drawInstanced(shader, instanceData)
             } else {
                 (triBuffer ?: buffer)?.drawInstanced(shader, instanceData)
             }
+            GFX.check()
         }
-        GFX.check()
-    }
-
-    fun drawInstancedDepth(shader: Shader, instanceData: Buffer) {
-        // draw all materials
-        GFX.check()
-        ensureBuffer()
-        if (drawLines) {
-            lineBuffer?.drawInstanced(shader, instanceData)
-        } else {
-            (triBuffer ?: buffer)?.drawInstanced(shader, instanceData)
-        }
-        GFX.check()
     }
 
     /**

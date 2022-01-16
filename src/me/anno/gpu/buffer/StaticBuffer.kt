@@ -1,12 +1,16 @@
 package me.anno.gpu.buffer
 
+import me.anno.gpu.GFX
+import me.anno.gpu.shader.Shader
 import me.anno.image.svg.SVGMesh
 import me.anno.maths.Maths.clamp
 import me.anno.utils.pooling.ByteBufferPool
 import org.joml.Vector2fc
 import org.joml.Vector3fc
 import org.joml.Vector4fc
-import org.lwjgl.opengl.GL15.GL_STATIC_DRAW
+import org.lwjgl.opengl.GL15.*
+import org.lwjgl.opengl.GL30
+import org.lwjgl.opengl.GL33
 import kotlin.math.roundToInt
 
 open class StaticBuffer(attributes: List<Attribute>, var vertexCount: Int, usage: Int = GL_STATIC_DRAW) :
@@ -161,6 +165,35 @@ open class StaticBuffer(attributes: List<Attribute>, var vertexCount: Int, usage
     }
 
     companion object {
+
+        private val nullBuffer = StaticBuffer(
+            listOf(Attribute("nothing0", AttributeType.UINT8_NORM, 4)),
+            4
+        ).apply {
+            putInt(0)
+            putInt(1)
+            putInt(2)
+            putInt(3)
+        }
+
+        fun drawArraysNull(shader: Shader, mode: Int, length: Int) {
+            // we need a null array, or bind bogus data, because drivers don't like this
+            // https://stackoverflow.com/questions/8039929/opengl-drawarrays-without-binding-vbo
+            nullBuffer.drawMode = mode
+            nullBuffer.ensureBuffer()
+            nullBuffer.apply {
+                val baseLength = when (mode) {
+                    GL_LINE, GL_LINES -> 2
+                    GL_TRIANGLES -> 3
+                    GL_QUADS -> 4
+                    else -> throw RuntimeException("DrawMode ${GFX.getName(mode)} is not supported")
+                }
+                bind(shader)
+                GL33.glDrawArraysInstanced(mode, 0, baseLength, length)
+                unbind(shader)
+            }
+        }
+
         fun join(buffers: List<StaticBuffer>): StaticBuffer? {
             if (buffers.isEmpty()) return null
             val vertexCount = buffers.sumOf { it.vertexCount }

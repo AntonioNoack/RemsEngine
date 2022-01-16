@@ -13,6 +13,8 @@ import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isLeftDown
 import me.anno.input.MouseButton
 import me.anno.io.serialization.NotSerializedProperty
+import me.anno.maths.Maths.clamp
+import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListY
@@ -20,7 +22,6 @@ import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.style.Style
-import me.anno.maths.Maths.clamp
 import me.anno.utils.structures.tuples.Quad
 import me.anno.utils.types.Strings.getIndexFromText
 import me.anno.utils.types.Strings.getLineWidth
@@ -544,6 +545,7 @@ open class PureTextInputML(style: Style) :
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         insert(data)
+        dragged = null
     }
 
     private fun getLineIndex(y: Float): Int {
@@ -555,6 +557,8 @@ open class PureTextInputML(style: Style) :
     }
 
     fun onMouseMoved(x: Float, indexY: Int) {
+
+        if (dragged != null) return
 
         isDragging = !isControlDown && isLeftDown
         invalidateDrawing()
