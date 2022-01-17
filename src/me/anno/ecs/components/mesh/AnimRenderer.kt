@@ -7,7 +7,6 @@ import me.anno.ecs.components.cache.AnimationCache
 import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
-import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
@@ -16,7 +15,6 @@ import me.anno.io.serialization.SerializedProperty
 import me.anno.mesh.assimp.AnimGameItem
 import org.joml.Matrix4x3f
 import org.lwjgl.opengl.GL21
-import kotlin.math.max
 import kotlin.math.min
 
 class AnimRenderer : MeshComponent() {
@@ -34,7 +32,7 @@ class AnimRenderer : MeshComponent() {
 
         val skeleton = SkeletonCache[skeleton]
         if (skeleton == null) {
-            shader.v1("hasAnimation", false)
+            shader.v1b("hasAnimation", false)
             return
         }
 
@@ -53,7 +51,7 @@ class AnimRenderer : MeshComponent() {
         }
 
         if (animationWeights.isEmpty() || location <= 0) {
-            shader.v1("hasAnimation", false)
+            shader.v1b("hasAnimation", false)
             return
         }
 
@@ -85,7 +83,7 @@ class AnimRenderer : MeshComponent() {
             sumWeight += weight
         }
 
-        shader.v1("hasAnimation", true)
+        shader.v1b("hasAnimation", true)
 
         // upload the matrices
         upload(location, matrices)

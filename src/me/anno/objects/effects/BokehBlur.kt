@@ -89,10 +89,10 @@ object BokehBlur {
 
     private fun uniforms(shader: Shader, w: Int, h: Int, normRadius: Float) {
         val radius = normRadius * KERNEL_RADIUS
-        shader.v2("stepVal", radius / w, radius / h)
+        shader.v2f("stepVal", radius / w, radius / h)
         val radiusI = clamp(radius.roundToInt(), KERNEL_RADIUS, 64)
-        shader.v1("radius", radiusI)
-        shader.v1("multiplier", KERNEL_RADIUS.toFloat() / radiusI)
+        shader.v1i("radius", radiusI)
+        shader.v1f("multiplier", KERNEL_RADIUS.toFloat() / radiusI)
     }
 
     fun drawY(
@@ -124,7 +124,7 @@ object BokehBlur {
     fun drawChannel(shader: Shader, target: Framebuffer, w: Int, h: Int, channel: Vector4f) {
         useFrame(0, 0, w, h, true, target, Renderer.colorRenderer) {
             Frame.bind()
-            shader.v4("channelSelection", channel)
+            shader.v4f("channelSelection", channel)
             flat01.draw(shader)
         }
     }

@@ -27,7 +27,7 @@ class VignetteComponent : Component(), FragmentShaderComponent {
 
     override fun bindUniforms(shader: Shader, env: ShaderEnvironment, time: Double) {
         shader.v3X(env[this, "color", VariableType.UNIFORM_V3], color[time])
-        shader.v1(env[this, "strength", VariableType.UNIFORM_V1], strength[time])
+        shader.v1f(env[this, "strength", VariableType.UNIFORM_V1], strength[time])
     }
 
     /*override fun createInspector(

@@ -9,8 +9,6 @@ import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib
 import me.anno.image.ImageGPUCache
@@ -119,10 +117,8 @@ class Material : PrefabSaveable() {
     fun bindTexture(shader: Shader, name: String, file: FileReference, default: Texture2D): Texture2D? {
         val index = shader.getTextureIndex(name)
         return if (index >= 0) {
-            val filtering = GPUFiltering.LINEAR
-            val clamping = Clamping.REPEAT
             val tex = getTex(file)
-            (tex ?: default).bind(index, filtering, clamping)
+            (tex ?: default).bind(index)
             tex
         } else {
             LOGGER.warn("Didn't find texture $name in ${shader.name}")
@@ -150,25 +146,25 @@ class Material : PrefabSaveable() {
             bindTexture(shader, "normalMap", normalMap, n001)
         bindTexture(shader, "diffuseMap", diffuseMap, white)
 
-        shader.v4("diffuseBase", diffuseBase)
-        shader.v2(
+        shader.v4f("diffuseBase", diffuseBase)
+        shader.v2f(
             "normalStrength",
             if (normalTex == null) 0f else normalStrength,
             if (sheenNormalTex == null) 0f else 1f
         )
-        shader.v3("emissiveBase", emissiveBase)
-        shader.v2("roughnessMinMax", roughnessMinMax)
-        shader.v2("metallicMinMax", metallicMinMax)
-        shader.v1("occlusionStrength", occlusionStrength)
-        shader.v1("finalTranslucency", translucency)
-        shader.v1("finalSheen", sheen)
-        shader.v1("sheen", sheen)
+        shader.v3f("emissiveBase", emissiveBase)
+        shader.v2f("roughnessMinMax", roughnessMinMax)
+        shader.v2f("metallicMinMax", metallicMinMax)
+        shader.v1f("occlusionStrength", occlusionStrength)
+        shader.v1f("finalTranslucency", translucency)
+        shader.v1f("finalSheen", sheen)
+        shader.v1f("sheen", sheen)
 
         if (clearCoatColor.w > 0f) {
-            shader.v4("finalClearCoat", clearCoatColor)
-            shader.v2("finalClearCoatRoughMetallic", clearCoatRoughness, clearCoatMetallic)
+            shader.v4f("finalClearCoat", clearCoatColor)
+            shader.v2f("finalClearCoatRoughMetallic", clearCoatRoughness, clearCoatMetallic)
         } else {
-            shader.v4("finalClearCoat", 0f)
+            shader.v4f("finalClearCoat", 0f)
         }
 
         for ((uniformName, valueType) in shaderOverrides) {

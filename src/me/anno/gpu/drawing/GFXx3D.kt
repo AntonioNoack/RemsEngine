@@ -58,15 +58,15 @@ object GFXx3D {
         }
 
         transformUniform(shader, stack)
-        shader.v1("filtering", filtering.id)
-        shader.v2("textureDeltaUV", 1f / w, 1f / h)
+        shader.v1i("filtering", filtering.id)
+        shader.v2f("textureDeltaUV", 1f / w, 1f / h)
 
         stack.popMatrix()
 
-        if (tiling != null) shader.v4("tiling", tiling)
-        else shader.v4("tiling", 1f, 1f, 0f, 0f)
-        shader.v1("drawMode", GFX.drawMode.id)
-        shader.v1("uvProjection", uvProjection?.id ?: UVProjection.Planar.id)
+        if (tiling != null) shader.v4f("tiling", tiling)
+        else shader.v4f("tiling", 1f, 1f, 0f, 0f)
+        shader.v1i("drawMode", GFX.drawMode.id)
+        shader.v1i("uvProjection", uvProjection?.id ?: UVProjection.Planar.id)
 
     }
 
@@ -102,15 +102,15 @@ object GFXx3D {
     fun shader3DUniforms(shader: Shader, stack: Matrix4f?, color: Int) {
         transformUniform(shader, stack)
         GFX.shaderColor(shader, "tint", color)
-        shader.v4("tiling", 1f, 1f, 0f, 0f)
-        shader.v1("drawMode", GFX.drawMode.id)
+        shader.v4f("tiling", 1f, 1f, 0f, 0f)
+        shader.v1i("drawMode", GFX.drawMode.id)
     }
 
     fun shader3DUniforms(shader: Shader, stack: Matrix4f, color: Vector4fc) {
         transformUniform(shader, stack)
         GFX.shaderColor(shader, "tint", color)
-        shader.v4("tiling", 1f, 1f, 0f, 0f)
-        shader.v1("drawMode", GFX.drawMode.id)
+        shader.v4f("tiling", 1f, 1f, 0f, 0f)
+        shader.v1i("drawMode", GFX.drawMode.id)
     }
 
     fun transformUniform(shader: Shader, stack: Matrix4fc?) {
@@ -131,13 +131,13 @@ object GFXx3D {
         val shader = ShaderLib.shader3DMasked.value
         shader.use()
         shader3DUniforms(shader, stack, color)
-        shader.v1("useMaskColor", useMaskColor)
-        shader.v1("invertMask", isInverted)
-        shader.v1("maskType", maskType.id)
-        shader.v2("pixelating", pixelSize * viewportHeight / viewportWidth, pixelSize)
-        shader.v4("settings", settings)
-        shader.v2("offset", offset)
-        shader.v2("windowSize", viewportWidth.toFloat(), viewportHeight.toFloat())
+        shader.v1f("useMaskColor", useMaskColor)
+        shader.v1f("invertMask", isInverted)
+        shader.v1i("maskType", maskType.id)
+        shader.v2f("pixelating", pixelSize * viewportHeight / viewportWidth, pixelSize)
+        shader.v4f("settings", settings)
+        shader.v2f("offset", offset)
+        shader.v2f("windowSize", viewportWidth.toFloat(), viewportHeight.toFloat())
         val buffer = if (isFullscreen) SimpleBuffer.flatLarge else SimpleBuffer.flat11
         buffer.draw(shader)
         GFX.check()
@@ -150,7 +150,7 @@ object GFXx3D {
         val shader = ShaderLib.shader3DforText.value
         shader.use()
         shader3DUniforms(shader, stack, color)
-        shader.v3("offset", offset)
+        shader.v3f("offset", offset)
         GFXTransform.uploadAttractors(that, shader, time)
         buffer.draw(shader)
         GFX.check()
@@ -162,7 +162,7 @@ object GFXx3D {
     ) {
         val shader = ShaderLib.shader3DforText.value
         shader.use()
-        shader.v3("offset", offset)
+        shader.v3f("offset", offset)
         buffer.draw(shader)
     }
 
@@ -171,17 +171,17 @@ object GFXx3D {
     private val tmp2 = Vector4f()
     fun colorGradingUniforms(video: Video?, time: Double, shader: Shader) {
         if (video == null) {
-            shader.v3("cgOffset", 0f)
-            shader.v3("cgSlope", 1f)
-            shader.v3("cgPower", 1f)
-            shader.v1("cgSaturation", 1f)
+            shader.v3f("cgOffset", 0f)
+            shader.v3f("cgSlope", 1f)
+            shader.v3f("cgPower", 1f)
+            shader.v1f("cgSaturation", 1f)
         } else {
             tmp0.set(video.cgOffsetAdd[time, tmp0])
             tmp1.set(video.cgOffsetSub[time, tmp1])
-            shader.v3("cgOffset", tmp0.sub(tmp1))
+            shader.v3f("cgOffset", tmp0.sub(tmp1))
             shader.v3X("cgSlope", video.cgSlope[time, tmp2])
             shader.v3X("cgPower", video.cgPower[time, tmp2])
-            shader.v1("cgSaturation", video.cgSaturation[time])
+            shader.v1f("cgSaturation", video.cgSaturation[time])
         }
     }
 
@@ -196,7 +196,7 @@ object GFXx3D {
         shader.use()
         polygon.uploadAttractors(shader, time)
         shader3DUniforms(shader, stack, texture.w, texture.h, color, null, filtering, null)
-        shader.v1("inset", inset)
+        shader.v1f("inset", inset)
         texture.bind(0, filtering, clamping)
         buffer.draw(shader)
         GFX.check()
@@ -342,7 +342,7 @@ object GFXx3D {
 
         GFX.shaderColor(shader, "tint", color)
 
-        shader.v1("drawMode", GFX.drawMode.id)
+        shader.v1i("drawMode", GFX.drawMode.id)
 
         val cc = min(colorCount, maxOutlineColors)
         /**
@@ -367,8 +367,8 @@ object GFXx3D {
         }
         outlineStatsBuffer.position(0)
         shader.v2Array("distSmoothness", outlineStatsBuffer)
-        shader.v1("colorCount", cc)
-        shader.v1("depth", depth * 0.00001f)
+        shader.v1i("colorCount", cc)
+        shader.v1f("depth", depth * 0.00001f)
 
         drawOutlinedText(stack, offset, scale, texture, hasUVAttractors)
 
@@ -384,8 +384,8 @@ object GFXx3D {
         val shader = ShaderLib.shaderSDFText.value
         shader.use()
         transformUniform(shader, stack)
-        shader.v2("offset", offset)
-        shader.v2("scale", scale)
+        shader.v2f("offset", offset)
+        shader.v2f("scale", scale)
         texture.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
         // if we have a force field applied, subdivide the geometry
         val buffer = if (hasUVAttractors) flat01CubeX10.value else flat01Cube
@@ -416,10 +416,10 @@ object GFXx3D {
         val shader = ShaderLib.shader3DGaussianBlur.value
         shader.use()
         transformUniform(shader, stack)
-        if (isFirst) shader.v2("stepSize", 0f, 1f / h)
-        else shader.v2("stepSize", 1f / w, 0f)
-        shader.v1("steps", size * h)
-        shader.v1("threshold", threshold)
+        if (isFirst) shader.v2f("stepSize", 0f, 1f / h)
+        else shader.v2f("stepSize", 1f / w, 0f)
+        shader.v1f("steps", size * h)
+        shader.v1f("threshold", threshold)
         val buffer = if (isFullscreen) SimpleBuffer.flatLarge else SimpleBuffer.flat11
         buffer.draw(shader)
         GFX.check()
@@ -434,11 +434,11 @@ object GFXx3D {
         shader.use()
         transformUniform(shader, stack)
         if (isFirst) {
-            shader.v2("stepSize", 0f, 1f / h)
-            shader.v1("steps", steps)
+            shader.v2f("stepSize", 0f, 1f / h)
+            shader.v1i("steps", steps)
         } else {
-            shader.v2("stepSize", 1f / w, 0f)
-            shader.v1("steps", steps)
+            shader.v2f("stepSize", 1f / w, 0f)
+            shader.v1i("steps", steps)
         }
         GFX.flat01.draw(shader)
         GFX.check()
@@ -472,7 +472,7 @@ object GFXx3D {
         }
         val angle0 = GFX.toRadians(a0)
         val angle1 = GFX.toRadians(a1)
-        shader.v3("circleParams", 1f - innerRadius, angle0, angle1)
+        shader.v3f("circleParams", 1f - innerRadius, angle0, angle1)
         Circle.drawBuffer(shader)
         GFX.check()
     }

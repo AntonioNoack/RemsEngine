@@ -543,7 +543,7 @@ object Scene {
         useFrame(bloomed) {
             val shader = addBloomShader.value
             shader.use()
-            shader.v1("intensity", bloomIntensity)
+            shader.v1f("intensity", bloomIntensity)
             flat01.draw(shader)
         }
 
@@ -569,11 +569,11 @@ object Scene {
         // then apply tonemapping
         val shader = sqrtToneMappingShader.value
         shader.use()
-        shader.v1("ySign", if (flipY) -1f else 1f)
+        shader.v1f("ySign", if (flipY) -1f else 1f)
         val colorDepth = DefaultConfig["gpu.display.colorDepth", 8]
 
         val minValue = if (isFakeColorRendering) -1f else 1f / (1 shl colorDepth)
-        shader.v1("minValue", minValue)
+        shader.v1f("minValue", minValue)
 
         uploadCameraUniforms(shader, isFakeColorRendering, camera, cameraTime, w, h)
 
@@ -610,29 +610,29 @@ object Scene {
             val ca = chromaticAberration * chromaticScale
             val cao = camera.chromaticOffset[cameraTime] * chromaticScale
             val angle = (camera.chromaticAngle[cameraTime] * 2 * Math.PI).toFloat()
-            shader.v2("chromaticAberration", cos(angle) * ca / fxScaleX, sin(angle) * ca / fxScaleY)
-            shader.v2("chromaticOffset", cao)
+            shader.v2f("chromaticAberration", cos(angle) * ca / fxScaleX, sin(angle) * ca / fxScaleY)
+            shader.v2f("chromaticOffset", cao)
         }
 
         // avg brightness: exp avg(log (luminance + offset4black)) (Reinhard tone mapping paper)
         // middle gray = 0.18?
 
         // distortion
-        shader.v3("fxScale", fxScaleX, fxScaleY, 1f + distortion.z())
-        shader.v2("distortion", distortion.x(), distortion.y())
-        shader.v2("distortionOffset", distortionOffset)
+        shader.v3f("fxScale", fxScaleX, fxScaleY, 1f + distortion.z())
+        shader.v2f("distortion", distortion.x(), distortion.y())
+        shader.v2f("distortionOffset", distortionOffset)
         if (!isFakeColorRendering) {
             // vignette
-            shader.v1("vignetteStrength", DEFAULT_VIGNETTE_STRENGTH * vignetteStrength)
-            shader.v3("vignetteColor", camera.vignetteColor[cameraTime])
+            shader.v1f("vignetteStrength", DEFAULT_VIGNETTE_STRENGTH * vignetteStrength)
+            shader.v3f("vignetteColor", camera.vignetteColor[cameraTime])
             // randomness against banding
             // tone mapping
-            shader.v1("toneMapper", toneMapping.id)
+            shader.v1i("toneMapper", toneMapping.id)
             // color grading
-            shader.v3("cgOffset", cgOffset)
+            shader.v3f("cgOffset", cgOffset)
             shader.v3X("cgSlope", cgSlope)
             shader.v3X("cgPower", cgPower)
-            shader.v1("cgSaturation", cgSaturation)
+            shader.v1f("cgSaturation", cgSaturation)
         }
 
     }

@@ -36,7 +36,7 @@ abstract class MeshBaseComponent : CollidingComponent() {
     }
 
     open fun defineVertexTransform(shader: Shader, entity: Entity, mesh: Mesh) {
-        shader.v1("hasAnimation", false)
+        shader.v1b("hasAnimation", false)
     }
 
     fun draw(shader: Shader, materialIndex: Int) {

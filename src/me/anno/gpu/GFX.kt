@@ -262,29 +262,29 @@ object GFX : GFXBase1() {
     fun shaderColor(shader: Shader, name: String, color: Int) {
         when (currentRenderer) {
             idRenderer -> shaderId(shader, name)
-            else -> shader.v4(name, color)
+            else -> shader.v4f(name, color)
         }
     }
 
     fun shaderColor(shader: Shader, name: String, color: Vector4fc?) {
         when {
             currentRenderer == idRenderer -> shaderId(shader, name)
-            color != null -> shader.v4(name, color)
-            else -> shader.v4(name, 1f)
+            color != null -> shader.v4f(name, color)
+            else -> shader.v4f(name, 1f)
         }
     }
 
     fun shaderColor(shader: Shader, name: String, color: Vector3fc?) {
         when {
             currentRenderer == idRenderer -> shaderId(shader, name)
-            color != null -> shader.v4(name, color, 1f)
-            else -> shader.v4(name, 1f)
+            color != null -> shader.v4f(name, color, 1f)
+            else -> shader.v4f(name, 1f)
         }
     }
 
     fun shaderId(shader: Shader, name: String) {
         val id = drawnId
-        shader.v4(name, id.b() / 255f, id.g() / 255f, id.r() / 255f, 1f)
+        shader.v4f(name, id.b() / 255f, id.g() / 255f, id.r() / 255f, 1f)
     }
 
     fun toRadians(f: Float) = Math.toRadians(f.toDouble()).toFloat()
@@ -300,7 +300,7 @@ object GFX : GFXBase1() {
         check()
         val shader = copyShader.value
         shader.use()
-        shader.v1("am1", 1f - alpha)
+        shader.v1f("am1", 1f - alpha)
         flat01.draw(shader)
         check()
     }
@@ -309,7 +309,7 @@ object GFX : GFXBase1() {
         check()
         val shader = copyShader.value
         shader.use()
-        shader.v1("am1", 0f)
+        shader.v1f("am1", 0f)
         flat01.draw(shader)
         check()
     }
@@ -327,7 +327,7 @@ object GFX : GFXBase1() {
             depthMode.use(DepthMode.ALWAYS) {
                 val shader = copyShader.value
                 shader.use()
-                shader.v1("am1", 0f)
+                shader.v1f("am1", 0f)
                 flat01.draw(shader)
             }
         }

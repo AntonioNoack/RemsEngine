@@ -495,7 +495,7 @@ class LightPipelineStage(
             val shader = getShader(type, false)
             shader.use()
 
-            shader.v4("tint", -1)
+            shader.v4f("tint", -1)
 
             initShader(shader, cameraMatrix)
 
@@ -514,7 +514,7 @@ class LightPipelineStage(
 
                 val transform = request.transform
 
-                shader.v1("fullscreen", light is DirectionalLight && light.cutoff <= 0.0)
+                shader.v1b("fullscreen", light is DirectionalLight && light.cutoff <= 0.0)
 
                 setupLocalTransform(shader, transform, cameraPosition, worldScale, time)
 
@@ -523,10 +523,10 @@ class LightPipelineStage(
                 // define the light data
                 // data0: color, type
                 // type is ignored by the shader -> just use 1
-                shader.v4("data0", light.color, 1f)
+                shader.v4f("data0", light.color, 1f)
 
                 // data1: camera position, shader specific value (cone angle / size)
-                shader.v4(
+                shader.v4f(
                     "data1",
                     ((m.m30() - cameraPosition.x) * worldScale).toFloat(),
                     ((m.m31() - cameraPosition.y) * worldScale).toFloat(),
@@ -534,7 +534,7 @@ class LightPipelineStage(
                     light.getShaderV0(m, worldScale)
                 )
 
-                if (light is DirectionalLight) shader.v1("cutoff", light.cutoff)
+                if (light is DirectionalLight) shader.v1f("cutoff", light.cutoff)
 
                 shader.m4x3("WStoLightSpace", light.invWorldMatrix)
 
@@ -568,7 +568,7 @@ class LightPipelineStage(
                 }
 
                 val shadowIdx0 = 0f
-                shader.v4("data2", shadowIdx0, shadowIdx1.toFloat(), light.getShaderV1(), light.getShaderV2())
+                shader.v4f("data2", shadowIdx0, shadowIdx1.toFloat(), light.getShaderV1(), light.getShaderV2())
 
                 mesh.draw(shader, 0)
 
@@ -603,7 +603,7 @@ class LightPipelineStage(
         val shader = getShader(type, true)
         shader.use()
 
-        shader.v1("isDirectional", type == LightType.DIRECTIONAL)
+        shader.v1b("isDirectional", type == LightType.DIRECTIONAL)
 
         val cameraMatrix = cameraMatrix!!
         val cameraPosition = cameraPosition!!

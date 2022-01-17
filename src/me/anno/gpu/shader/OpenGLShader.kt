@@ -3,7 +3,6 @@ package me.anno.gpu.shader
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL
-import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.shader.builder.Varying
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.ui.editor.files.toAllowedFilename
@@ -209,10 +208,12 @@ abstract class OpenGLShader(
 
     // this function probably could be made more efficient...
     // by using proper word detection, and not using this in general...
+    // todo declare attributes differently, best as a list
+    // todo then remove this function
     fun String.replaceShortCuts(disableShorts: Boolean) = if (disableShorts) this else this
         .replace("\n", "\n ")
         .replace(";", " ; ")
-        .replace(" u1i ", " uniform int ")
+        /*.replace(" u1i ", " uniform int ")
         .replace(" u2i ", " uniform ivec2 ")
         .replace(" u3i ", " uniform ivec3 ")
         .replace(" u4i ", " uniform ivec4 ")
@@ -228,7 +229,7 @@ abstract class OpenGLShader(
         .replace(" u3x3 ", " uniform mat3 ")
         .replace(" u4x4 ", " uniform mat4 ")
         .replace(" u4x3 ", " uniform mat4x3 ")
-        .replace(" u3x4 ", " uniform mat3x4 ")
+        .replace(" u3x4 ", " uniform mat3x4 ")*/
         .replace(" a1 ", " $attributeName float ")
         .replace(" a2 ", " $attributeName vec2 ")
         .replace(" a3 ", " $attributeName vec3 ")
@@ -237,13 +238,13 @@ abstract class OpenGLShader(
         .replace(" ai2 ", " $attributeName ivec2 ")
         .replace(" ai3 ", " $attributeName ivec3 ")
         .replace(" ai4 ", " $attributeName ivec4 ")
-        .replace(" v1 ", " float ")
+        /*.replace(" v1 ", " float ")
         .replace(" v2 ", " vec2 ")
         .replace(" v3 ", " vec3 ")
         .replace(" v4 ", " vec4 ")
         .replace(" m2 ", " mat2 ")
         .replace(" m3 ", " mat3 ")
-        .replace(" m4 ", " mat4 ")
+        .replace(" m4 ", " mat4 ")*/
 
     fun ignoreUniformWarnings(names: Collection<String>) {
         ignoredNames += names
@@ -284,34 +285,37 @@ abstract class OpenGLShader(
         }
     }
 
-    fun v1(name: String, x: Boolean) = v1(name, if (x) 1 else 0)
-    fun v1(name: String, x: Int) = v1(getUniformLocation(name), x)
-    fun v1(loc: Int, x: Int) {
+    fun v1b(name: String, x: Boolean) = v1i(name, if (x) 1 else 0)
+    fun v1b(loc: Int, x: Boolean) = v1i(loc, if (x) 1 else 0)
+    fun v1i(name: String, x: Int) = v1i(getUniformLocation(name), x)
+    fun v1i(loc: Int, x: Int) {
         if (loc > -1) {
-            val asFloat = x.toFloat()
-            when {
-                asFloat.toInt() != x -> {
-                    // cannot be represented as a float -> cannot currently be cached
-                    if (loc < UniformCacheSize) uniformCache[loc * 4] = Float.NaN
-                    potentiallyUse()
-                    glUniform1i(loc, x)
-                }
-                loc >= UniformCacheSize -> {
-                    potentiallyUse()
-                    glUniform1i(loc, x)
-                }
-                uniformCache[loc * 4] != asFloat -> {
-                    // it has changed
-                    uniformCache[loc * 4] = asFloat
-                    potentiallyUse()
-                    glUniform1i(loc, x)
+            if (loc >= UniformCacheSize) {
+                potentiallyUse()
+                glUniform1i(loc, x)
+            } else {
+                val xf = x.toFloat()
+                val index0 = loc * 4
+                when {
+                    xf.toInt() != x -> {
+                        // cannot be represented as a float -> cannot currently be cached
+                        uniformCache[index0] = Float.NaN
+                        potentiallyUse()
+                        glUniform1i(loc, x)
+                    }
+                    uniformCache[index0] != xf -> {
+                        // it has changed
+                        uniformCache[index0] = xf
+                        potentiallyUse()
+                        glUniform1i(loc, x)
+                    }
                 }
             }
         }
     }
 
-    fun v1(name: String, x: Float) = v1(getUniformLocation(name), x)
-    fun v1(loc: Int, x: Float) {
+    fun v1f(name: String, x: Float) = v1f(getUniformLocation(name), x)
+    fun v1f(loc: Int, x: Float) {
         if (loc > -1) {
             if (loc >= UniformCacheSize) {
                 potentiallyUse()
@@ -327,8 +331,8 @@ abstract class OpenGLShader(
         }
     }
 
-    fun v2(name: String, x: Float, y: Float) = v2(getUniformLocation(name), x, y)
-    fun v2(loc: Int, x: Float, y: Float) {
+    fun v2f(name: String, x: Float, y: Float) = v2f(getUniformLocation(name), x, y)
+    fun v2f(loc: Int, x: Float, y: Float) {
         if (loc > -1) {
             if (loc >= UniformCacheSize) {
                 potentiallyUse()
@@ -348,8 +352,38 @@ abstract class OpenGLShader(
         }
     }
 
-    fun v3(name: String, x: Float, y: Float, z: Float) = v3(getUniformLocation(name), x, y, z)
-    fun v3(loc: Int, x: Float, y: Float, z: Float) {
+    fun v2i(name: String, x: Int, y: Int = x) = v2i(getUniformLocation(name), x, y)
+    fun v2i(loc: Int, x: Int, y: Int = x) {
+        if (loc > -1) {
+            if (loc >= UniformCacheSize) {
+                potentiallyUse()
+                glUniform2i(loc, x, y)
+            } else {
+                val xf = x.toFloat()
+                val yf = y.toFloat()
+                val i0 = loc * 4
+                when {
+                    uniformCache[i0] != xf || uniformCache[i0 + 1] != yf  -> {
+                        // cannot be represented as a float -> cannot currently be cached
+                        uniformCache[i0] = Float.NaN
+                        uniformCache[i0 + 1] = Float.NaN
+                        potentiallyUse()
+                        glUniform2i(loc, x, y)
+                    }
+                    uniformCache[i0] != xf -> {
+                        // it has changed
+                        uniformCache[i0] = xf
+                        uniformCache[i0 + 1] = yf
+                        potentiallyUse()
+                        glUniform2i(loc, x, y)
+                    }
+                }
+            }
+        }
+    }
+
+    fun v3f(name: String, x: Float, y: Float, z: Float) = v3f(getUniformLocation(name), x, y, z)
+    fun v3f(loc: Int, x: Float, y: Float, z: Float) {
         if (loc > -1) {
             if (loc >= UniformCacheSize) {
                 potentiallyUse()
@@ -371,17 +405,17 @@ abstract class OpenGLShader(
         }
     }
 
-    fun v3X(loc: Int, x: Float, y: Float, z: Float, w: Float) = v3(loc, x / w, y / w, z / w)
-    fun v3X(name: String, x: Float, y: Float, z: Float, w: Float) = v3(name, x / w, y / w, z / w)
-    fun v3X(loc: Int, v: Vector4f) = v3(loc, v.x / v.w, v.y / v.w, v.z / v.w)
-    fun v3X(name: String, v: Vector4f) = v3(name, v.x / v.w, v.y / v.w, v.z / v.w)
+    fun v3X(loc: Int, x: Float, y: Float, z: Float, w: Float) = v3f(loc, x / w, y / w, z / w)
+    fun v3X(name: String, x: Float, y: Float, z: Float, w: Float) = v3f(name, x / w, y / w, z / w)
+    fun v3X(loc: Int, v: Vector4f) = v3f(loc, v.x / v.w, v.y / v.w, v.z / v.w)
+    fun v3X(name: String, v: Vector4f) = v3f(name, v.x / v.w, v.y / v.w, v.z / v.w)
 
     fun v3X(loc: Int, v: Vector4fc) = v3X(loc, v.x(), v.y(), v.z(), v.w())
     fun v3X(name: String, v: Vector4fc) = v3X(name, v.x(), v.y(), v.z(), v.w())
 
-    fun v3(name: String, color: Int) = v3(getUniformLocation(name), color)
-    fun v3(loc: Int, color: Int) {
-        v3(
+    fun v3f(name: String, color: Int) = v3f(getUniformLocation(name), color)
+    fun v3f(loc: Int, color: Int) {
+        v3f(
             loc,
             (color.shr(16) and 255) / 255f,
             (color.shr(8) and 255) / 255f,
@@ -389,8 +423,43 @@ abstract class OpenGLShader(
         )
     }
 
-    fun v4(name: String, x: Float, y: Float, z: Float, w: Float) = v4(getUniformLocation(name), x, y, z, w)
-    fun v4(loc: Int, x: Float, y: Float, z: Float, w: Float) {
+    fun v3i(name: String, x: Int, y: Int, z: Int) = v3i(getUniformLocation(name), x, y, z)
+    fun v3i(loc: Int, x: Int, y: Int, z: Int) {
+        if (loc > -1) {
+            if (loc >= UniformCacheSize) {
+                potentiallyUse()
+                glUniform3i(loc, x, y, z)
+            } else {
+                val xf = x.toFloat()
+                val yf = y.toFloat()
+                val zf = z.toFloat()
+                val i0 = loc * 4
+                when {
+                    xf.toInt() != x || yf.toInt() != y -> {
+                        // cannot be represented as a float -> cannot currently be cached
+                        uniformCache[i0] = Float.NaN
+                        uniformCache[i0 + 1] = Float.NaN
+                        uniformCache[i0 + 2] = Float.NaN
+                        potentiallyUse()
+                        glUniform3i(loc, x, y, z)
+                    }
+                    uniformCache[i0] != xf || uniformCache[i0 + 1] != yf ||
+                            uniformCache[i0 + 2] != zf -> {
+                        // it has changed
+                        uniformCache[i0] = xf
+                        uniformCache[i0 + 1] = yf
+                        uniformCache[i0 + 2] = zf
+                        potentiallyUse()
+                        glUniform3i(loc, x, y, z)
+                    }
+                }
+            }
+        }
+    }
+
+    fun v4f(name: String, x: Float, y: Float, z: Float, w: Float) =
+        v4f(getUniformLocation(name), x, y, z, w)
+    fun v4f(loc: Int, x: Float, y: Float, z: Float, w: Float) {
         if (loc > -1) {
             if (loc >= UniformCacheSize) {
                 potentiallyUse()
@@ -414,9 +483,9 @@ abstract class OpenGLShader(
         }
     }
 
-    fun v4(name: String, color: Int) = v4(getUniformLocation(name), color)
-    fun v4(loc: Int, color: Int) {
-        v4(
+    fun v4f(name: String, color: Int) = v4f(getUniformLocation(name), color)
+    fun v4f(loc: Int, color: Int) {
+        v4f(
             loc,
             (color.shr(16) and 255) / 255f,
             (color.shr(8) and 255) / 255f,
@@ -425,12 +494,13 @@ abstract class OpenGLShader(
         )
     }
 
-    fun v4(name: String, color: Vector3fc, alpha: Float) = v4(getUniformLocation(name), color, alpha)
-    fun v4(loc: Int, color: Vector3fc, alpha: Float) = v4(loc, color.x(), color.y(), color.z(), alpha)
+    fun v4f(name: String, color: Vector3fc, alpha: Float) = v4f(getUniformLocation(name), color, alpha)
+    fun v4f(loc: Int, color: Vector3fc, alpha: Float) =
+        v4f(loc, color.x(), color.y(), color.z(), alpha)
 
-    fun v4(name: String, color: Int, alpha: Float) = v4(getUniformLocation(name), color, alpha)
-    fun v4(loc: Int, color: Int, alpha: Float) {
-        v4(
+    fun v4f(name: String, color: Int, alpha: Float) = v4f(getUniformLocation(name), color, alpha)
+    fun v4f(loc: Int, color: Int, alpha: Float) {
+        v4f(
             loc,
             color.shr(16).and(255) / 255f,
             color.shr(8).and(255) / 255f,
@@ -438,22 +508,72 @@ abstract class OpenGLShader(
         )
     }
 
-    fun v2(loc: Int, all: Float) = v2(loc, all, all)
-    fun v3(loc: Int, all: Float) = v3(loc, all, all, all)
-    fun v4(loc: Int, all: Float) = v4(loc, all, all, all, all)
+    fun v4i(name: String, x: Int, y: Int, z: Int, w: Int) = v4i(getUniformLocation(name), x, y, z, w)
+    fun v4i(loc: Int, x: Int, y: Int, z: Int, w: Int) {
+        if (loc > -1) {
+            if (loc >= UniformCacheSize) {
+                potentiallyUse()
+                glUniform4i(loc, x, y, z, w)
+            } else {
+                val xf = x.toFloat()
+                val yf = y.toFloat()
+                val zf = z.toFloat()
+                val wf = w.toFloat()
+                val i0 = loc * 4
+                when {
+                    xf.toInt() != x || yf.toInt() != y || zf.toInt() != z || wf.toInt() != w -> {
+                        // cannot be represented as a float -> cannot currently be cached
+                        uniformCache[i0] = Float.NaN
+                        uniformCache[i0 + 1] = Float.NaN
+                        uniformCache[i0 + 2] = Float.NaN
+                        uniformCache[i0 + 3] = Float.NaN
+                        potentiallyUse()
+                        glUniform4i(loc, x, y, z, w)
+                    }
+                    uniformCache[i0] != xf || uniformCache[i0 + 1] != yf ||
+                            uniformCache[i0 + 2] != zf || uniformCache[i0 + 3] != wf -> {
+                        // it has changed
+                        uniformCache[i0] = xf
+                        uniformCache[i0 + 1] = yf
+                        uniformCache[i0 + 2] = zf
+                        uniformCache[i0 + 3] = wf
+                        potentiallyUse()
+                        glUniform4i(loc, x, y, z, w)
+                    }
+                }
+            }
+        }
+    }
 
-    fun v2(loc: Int, v: Vector2fc) = v2(loc, v.x(), v.y())
-    fun v3(loc: Int, v: Vector3fc) = v3(loc, v.x(), v.y(), v.z())
-    fun v4(loc: Int, v: Vector4fc) = v4(loc, v.x(), v.y(), v.z(), v.w())
+    fun v2f(loc: Int, all: Float) = v2f(loc, all, all)
+    fun v3f(loc: Int, all: Float) = v3f(loc, all, all, all)
+    fun v4f(loc: Int, all: Float) = v4f(loc, all, all, all, all)
 
-    fun v2(name: String, all: Float) = v2(name, all, all)
-    fun v3(name: String, all: Float) = v3(name, all, all, all)
-    fun v4(name: String, all: Float) = v4(name, all, all, all, all)
+    fun v2i(loc: Int, all: Int) = v2i(loc, all, all)
+    fun v3i(loc: Int, all: Int) = v3i(loc, all, all, all)
+    fun v4i(loc: Int, all: Int) = v4i(loc, all, all, all, all)
 
-    fun v2(name: String, v: Vector2fc) = v2(name, v.x(), v.y())
-    fun v3(name: String, v: Vector3fc) = v3(name, v.x(), v.y(), v.z())
-    fun v4(name: String, v: Vector4fc) = v4(name, v.x(), v.y(), v.z(), v.w())
-    fun v4f(name: String, v: Vector4dc) = v4(name, v.x().toFloat(), v.y().toFloat(), v.z().toFloat(), v.w().toFloat())
+    fun v2f(loc: Int, v: Vector2fc) = v2f(loc, v.x(), v.y())
+    fun v3f(loc: Int, v: Vector3fc) = v3f(loc, v.x(), v.y(), v.z())
+    fun v4f(loc: Int, v: Vector4fc) = v4f(loc, v.x(), v.y(), v.z(), v.w())
+
+    fun v2i(loc: Int, v: Vector2ic) = v2i(loc, v.x(), v.y())
+    fun v3i(loc: Int, v: Vector3ic) = v3i(loc, v.x(), v.y(), v.z())
+    fun v4i(loc: Int, v: Vector4ic) = v4i(loc, v.x(), v.y(), v.z(), v.w())
+
+    fun v2f(name: String, all: Float) = v2f(name, all, all)
+    fun v3f(name: String, all: Float) = v3f(name, all, all, all)
+    fun v4f(name: String, all: Float) = v4f(name, all, all, all, all)
+
+    fun v2i(name: String, all: Int) = v2i(name, all, all)
+    fun v3i(name: String, all: Int) = v3i(name, all, all, all)
+    fun v4i(name: String, all: Int) = v4i(name, all, all, all, all)
+
+    fun v2f(name: String, v: Vector2fc) = v2f(name, v.x(), v.y())
+    fun v3f(name: String, v: Vector3fc) = v3f(name, v.x(), v.y(), v.z())
+    fun v4f(name: String, v: Vector4fc) = v4f(name, v.x(), v.y(), v.z(), v.w())
+    fun v4f(name: String, v: Vector4dc) =
+        v4f(name, v.x().toFloat(), v.y().toFloat(), v.z().toFloat(), v.w().toFloat())
 
     fun m3x3(name: String, value: Matrix3fc?) = m3x3(getUniformLocation(name), value)
     fun m3x3(loc: Int, value: Matrix3fc? = identity3) {

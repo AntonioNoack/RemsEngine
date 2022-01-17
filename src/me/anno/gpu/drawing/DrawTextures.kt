@@ -22,8 +22,8 @@ object DrawTextures {
         shader.use()
         GFXx2D.posSize(shader, x, y, w, h)
         defineAdvancedGraphicalFeatures(shader)
-        shader.v4("color", color)
-        shader.v1("ignoreTexAlpha", if (ignoreAlpha) 1 else 0)
+        shader.v4f("color", color)
+        shader.v1b("ignoreTexAlpha", ignoreAlpha)
         texture.bind(0, texture.filtering, Clamping.CLAMP)
         GFX.flat01.draw(shader)
         GFX.check()
@@ -41,12 +41,12 @@ object DrawTextures {
         val posY = (y - GFX.viewportY).toFloat() / GFX.viewportHeight
         val relW = +w.toFloat() / GFX.viewportWidth
         val relH = +h.toFloat() / GFX.viewportHeight
-        shader.v2("pos", posX, posY)
-        shader.v2("size", relW, relH)
+        shader.v2f("pos", posX, posY)
+        shader.v2f("size", relW, relH)
         defineAdvancedGraphicalFeatures(shader)
-        shader.v4("color", -1)
-        shader.v1("ignoreTexAlpha", if (ignoreAlpha) 1 else 0)
-        shader.v4("tiling", 1f, 1f, 0f, 0f)
+        shader.v4f("color", -1)
+        shader.v1b("ignoreTexAlpha", ignoreAlpha)
+        shader.v4f("tiling", 1f, 1f, 0f, 0f)
         val tex = texture as? Texture2D
         texture.bind(
             0,
@@ -67,10 +67,10 @@ object DrawTextures {
         shader.use()
         GFXx2D.posSize(shader, x, y, w, h)
         defineAdvancedGraphicalFeatures(shader)
-        shader.v4("color", color)
-        shader.v1("ignoreTexAlpha", if (ignoreAlpha) 1 else 0)
-        if (tiling != null) shader.v4("tiling", tiling)
-        else shader.v4("tiling", 1f, 1f, 0f, 0f)
+        shader.v4f("color", color)
+        shader.v1b("ignoreTexAlpha", ignoreAlpha)
+        if (tiling != null) shader.v4f("tiling", tiling)
+        else shader.v4f("tiling", 1f, 1f, 0f, 0f)
         val tex = texture as? Texture2D
         texture.bind(
             0,

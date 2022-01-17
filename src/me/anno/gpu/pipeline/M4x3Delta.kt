@@ -18,14 +18,14 @@ object M4x3Delta {
     fun Shader.v3delta(location: String, a: Matrix4x3d, b: Vector3d) {
         val uniformIndex = this[location]
         if (uniformIndex >= 0) {
-            v3(uniformIndex, (a.m30() - b.x).toFloat(), (a.m31() - b.y).toFloat(), (a.m32() - b.z).toFloat())
+            v3f(uniformIndex, (a.m30() - b.x).toFloat(), (a.m31() - b.y).toFloat(), (a.m32() - b.z).toFloat())
         }
     }
 
     fun Shader.v3delta(location: String, a: Vector3d, b: Vector3d) {
         val uniformIndex = this[location]
         if (uniformIndex >= 0) {
-            v3(uniformIndex, (a.x - b.x).toFloat(), (a.y - b.y).toFloat(), (a.z - b.z).toFloat())
+            v3f(uniformIndex, (a.x - b.x).toFloat(), (a.y - b.y).toFloat(), (a.z - b.z).toFloat())
         }
     }
 

@@ -17,7 +17,6 @@ import me.anno.gpu.pipeline.M4x3Delta.m4x3delta
 import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference
 import me.anno.objects.Transform
-import me.anno.utils.pooling.JomlPools
 import org.joml.*
 
 object Gizmos {
@@ -78,10 +77,10 @@ object Gizmos {
         local.scale(scale)
         shader.m4x3delta("localTransform", local, camPosition, worldScale)
         material.defineShader(shader)
-        shader.v4("diffuseBase", color or (255 shl 24))
+        shader.v4f("diffuseBase", color or (255 shl 24))
         shaderColor(shader, "tint", color or (255 shl 24))
-        shader.v1("hasAnimation", false)
-        shader.v1("hasVertexColors", false)
+        shader.v1b("hasAnimation", false)
+        shader.v1b("hasVertexColors", false)
         mesh.draw(shader, 0)
     }
 

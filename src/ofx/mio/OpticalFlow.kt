@@ -29,9 +29,9 @@ object OpticalFlow {
             Frame.bind()
             val flow = flowShader.value.value
             flow.use()
-            flow.v2("scale", 1f, 1f)
-            flow.v2("offset", 1f / w, 1f / h)
-            flow.v1("lambda", lambda)
+            flow.v2f("scale", 1f, 1f)
+            flow.v2f("offset", 1f / w, 1f / h)
+            flow.v1f("lambda", lambda)
             t0.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
             t1.bind(1, GPUFiltering.LINEAR, Clamping.CLAMP)
             flat01.draw(flow)
@@ -41,15 +41,15 @@ object OpticalFlow {
 
         val blur = blurShader.value.value
         blur.use()
-        blur.v1("blurSize", blurAmount)
-        blur.v1("sigma", blurAmount * 0.5f)
-        blur.v2("texOffset", 2f, 2f)
+        blur.v1f("blurSize", blurAmount)
+        blur.v1f("sigma", blurAmount * 0.5f)
+        blur.v2f("texOffset", 2f, 2f)
 
         val blurH = FBStack["blurH", w, h, 4, false, 1, false]
         useFrame(blurH, Renderer.colorRenderer) {
             Frame.bind()
             flowT.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-            blur.v1("horizontalPass", 1f)
+            blur.v1f("horizontalPass", 1f)
             flat01.draw(blur)
         }
 
@@ -57,7 +57,7 @@ object OpticalFlow {
         useFrame(blurV, Renderer.colorRenderer) {
             Frame.bind()
             blurH.bindTexture0(0, GPUFiltering.LINEAR, Clamping.CLAMP)
-            blur.v1("horizontalPass", 0f)
+            blur.v1f("horizontalPass", 0f)
             flat01.draw(blur)
         }
 
@@ -69,7 +69,7 @@ object OpticalFlow {
             // reposition
             val repos = repositionShader.value.value
             repos.use()
-            repos.v2("amt", displacement * 0.25f)
+            repos.v2f("amt", displacement * 0.25f)
 
             t0.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
             blurV.bindTextures(1, GPUFiltering.LINEAR, Clamping.CLAMP)

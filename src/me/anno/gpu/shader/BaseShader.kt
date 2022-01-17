@@ -92,8 +92,8 @@ open class BaseShader(
         shader.glslVersion = glslVersion
         shader.setTextureIndices(textures)
         shader.ignoreUniformWarnings(ignoredUniforms)
-        shader.v1("drawMode", ShaderPlus.DrawMode.COLOR.id)
-        shader.v4("tint", 1f, 1f, 1f, 1f)
+        shader.v1i("drawMode", ShaderPlus.DrawMode.COLOR.id)
+        shader.v4f("tint", 1f, 1f, 1f, 1f)
         GFX.check()
         return shader
     }
@@ -119,7 +119,7 @@ open class BaseShader(
             GFX.check()
             shader.use()
             GFX.check()
-            shader.v1("drawMode", renderer.drawMode.id)
+            shader.v1i("drawMode", renderer.drawMode.id)
             GFX.check()
             return shader
         }
@@ -150,8 +150,8 @@ open class BaseShader(
         shader.use()
         shader.setTextureIndices(textures)
         shader.ignoreUniformWarnings(ignoredUniforms)
-        shader.v1("drawMode", ShaderPlus.DrawMode.COLOR.id)
-        shader.v4("tint", 1f, 1f, 1f, 1f)
+        shader.v1i("drawMode", ShaderPlus.DrawMode.COLOR.id)
+        shader.v4f("tint", 1f, 1f, 1f, 1f)
         GFX.check()
     }
 

@@ -47,7 +47,7 @@ class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 2) {
 
     override fun bindUVCorrection(shader: Shader) {
         // all buffers are the same size, no correction required
-        shader.v2("uvCorrection", 1f, 1f)
+        shader.v2f("uvCorrection", 1f, 1f)
     }
 
     override fun get3DShader() = shader3DYUV

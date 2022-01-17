@@ -201,13 +201,13 @@ object ScreenSpaceReflections {
             val maxDistance = 8f
             val shader = shader.value
             shader.use()
-            shader.v1("applyToneMapping", applyToneMapping)
-            shader.v1("testDistance", maxDistance / testMaxDistanceRatio)
-            shader.v1("maxDistanceSq", maxDistance * maxDistance)
-            shader.v1("resolution", 1f / fineSteps)
-            shader.v1("steps", fineSteps)
-            shader.v1("maskSharpness", 2f)
-            shader.v1("thickness", 0.2f) // thickness, when we are under something
+            shader.v1b("applyToneMapping", applyToneMapping)
+            shader.v1f("testDistance", maxDistance / testMaxDistanceRatio)
+            shader.v1f("maxDistanceSq", maxDistance * maxDistance)
+            shader.v1f("resolution", 1f / fineSteps)
+            shader.v1i("steps", fineSteps)
+            shader.v1f("maskSharpness", 2f)
+            shader.v1f("thickness", 0.2f) // thickness, when we are under something
             shader.m4x4("transform", transform)
             val n = GPUFiltering.TRULY_LINEAR
             val c = Clamping.CLAMP
@@ -216,8 +216,8 @@ object ScreenSpaceReflections {
             val metallicName = metallicLayer.mapping
             val roughnessLayer = deferred.findLayer(DeferredLayerType.ROUGHNESS)!!
             val roughnessName = roughnessLayer.mapping
-            shader.v4("metallicMask", singleToVector[metallicName]!!)
-            shader.v4("roughnessMask", singleToVector[roughnessName]!!)
+            shader.v4f("metallicMask", singleToVector[metallicName]!!)
+            shader.v4f("roughnessMask", singleToVector[roughnessName]!!)
             illuminated.bindTexture0(5, n, c)
             deferred.findTexture(buffer, roughnessLayer)!!.bind(4, n, c)
             deferred.findTexture(buffer, metallicLayer)!!.bind(3, n, c)

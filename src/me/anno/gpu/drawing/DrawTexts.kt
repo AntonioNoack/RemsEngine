@@ -160,8 +160,8 @@ object DrawTexts {
 
         val shader = ShaderLib.subpixelCorrectTextShader.value
         shader.use()
-        shader.v4("textColor", color)
-        shader.v4("backgroundColor", backgroundColor)
+        shader.v4f("textColor", color)
+        shader.v4f("backgroundColor", backgroundColor)
 
         GFX.loadTexturesSync.push(true)
 
@@ -179,12 +179,12 @@ object DrawTexts {
                 if (texture != null && (texture !is Texture2D || texture.isCreated)) {
                     texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                     val x2 = fx + (w - sizeFirst) / 2
-                    shader.v2(
+                    shader.v2f(
                         "pos",
                         (x2 - GFX.viewportX).toFloat() / GFX.viewportWidth,
                         1f - (y - GFX.viewportY).toFloat() / GFX.viewportHeight
                     )
-                    shader.v2("size", sizeFirst.toFloat() / GFX.viewportWidth, -h.toFloat() / GFX.viewportHeight)
+                    shader.v2f("size", sizeFirst.toFloat() / GFX.viewportWidth, -h.toFloat() / GFX.viewportHeight)
                     GFX.flat01.draw(shader)
                     GFX.check()
                 } else {
@@ -249,15 +249,15 @@ object DrawTexts {
             }
             val windowWidth = GFX.viewportWidth.toFloat()
             val windowHeight = GFX.viewportHeight.toFloat()
-            shader.v2(
+            shader.v2f(
                 "pos",
                 (xWithOffset - GFX.viewportX) / windowWidth,
                 1f - (y - GFX.viewportY) / windowHeight
             )
-            shader.v2("size", w / windowWidth, -h / windowHeight)
-            shader.v2("windowSize", windowWidth, windowHeight)
-            shader.v4("textColor", color)
-            shader.v4("backgroundColor", backgroundColor)
+            shader.v2f("size", w / windowWidth, -h / windowHeight)
+            shader.v2f("windowSize", windowWidth, windowHeight)
+            shader.v4f("textColor", color)
+            shader.v4f("backgroundColor", backgroundColor)
             GFX.flat01.draw(shader)
             GFX.check()
         }

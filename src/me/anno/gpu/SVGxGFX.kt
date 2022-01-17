@@ -34,7 +34,7 @@ object SVGxGFX {
             shader3DUniforms(shader, stack, texture.w, texture.h, color, null, filtering, null)
             defineAdvancedGraphicalFeatures(shader, video, time)
             // x2 just for security...
-            shader.v4("uvLimits", -2f * sx, -2f, 2f * sx, 2f)
+            shader.v4f("uvLimits", -2f * sx, -2f, 2f * sx, 2f)
             GFX.check()
             texture.bind(0, filtering, clamping)
             GFX.check()
@@ -109,7 +109,7 @@ object SVGxGFX {
                         shader.use()
                         shader3DUniforms(shader, stack, texture.w, texture.h, color, null, filtering, null)
                         defineAdvancedGraphicalFeatures(shader, video, time)
-                        shader.v4("uvLimits", sx * a0, b0, sx * a1, b1)
+                        shader.v4f("uvLimits", sx * a0, b0, sx * a1, b1)
                         texture.bind(0, filtering, clamping)
                         buffer.draw(shader)
                         GFX.check()

@@ -129,6 +129,7 @@ class PipelineStage(
         setupLights(pipeline, shader, cameraPosition, worldScale, request.entity.aabb)
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun setupPlanarReflection(
         pipeline: Pipeline, shader: Shader,
         cameraPosition: Vector3d, worldScale: Double,
@@ -139,7 +140,7 @@ class PipelineStage(
 
         val ti = shader.getTextureIndex("reflectionPlane")
         if (ti < 0) {
-            shader.v1("hasReflectionPlane", false)
+            shader.v1b("hasReflectionPlane", false)
             return
         }
         // todo find the by-angle-and-position best matching planar reflection
@@ -148,12 +149,12 @@ class PipelineStage(
             val lb = it.lastBuffer as Texture2D?
             lb != null && lb.pointer >= 0
         }
-        shader.v1("hasReflectionPlane", bestPr != null)
+        shader.v1b("hasReflectionPlane", bestPr != null)
         if (bestPr != null) {
             val tex = bestPr.lastBuffer!!
             tex.bindTrulyNearest(ti)
             val normal = bestPr.globalNormal
-            shader.v3("reflectionPlaneNormal", normal.x.toFloat(), normal.y.toFloat(), normal.z.toFloat())
+            shader.v3f("reflectionPlaneNormal", normal.x.toFloat(), normal.y.toFloat(), normal.z.toFloat())
         }
     }
 
@@ -171,7 +172,7 @@ class PipelineStage(
             val maxNumberOfLights = RenderView.MAX_FORWARD_LIGHTS
             val lights = pipeline.lights
             val numberOfLights = pipeline.getClosestRelevantNLights(aabb, maxNumberOfLights, lights)
-            shader.v1(numberOfLightsPtr, numberOfLights)
+            shader.v1i(numberOfLightsPtr, numberOfLights)
             if (numberOfLights > 0) {
                 val invLightMatrices = shader["invLightMatrices"]
                 val buffer = buffer16x256
@@ -297,8 +298,8 @@ class PipelineStage(
         // add all things, the shader needs to know, e.g. light direction, strength, ...
         // (for the cheap shaders, which are not deferred)
         shader.m4x4("transform", cameraMatrix)
-        shader.v3("ambientLight", pipeline.ambient)
-        shader.v1("applyToneMapping", pipeline.applyToneMapping)
+        shader.v3f("ambientLight", pipeline.ambient)
+        shader.v1b("applyToneMapping", pipeline.applyToneMapping)
     }
 
     fun draw(pipeline: Pipeline, cameraMatrix: Matrix4fc, cameraPosition: Vector3d, worldScale: Double) {
@@ -394,14 +395,14 @@ class PipelineStage(
             if (entity !== lastEntity || lastMesh !== mesh || lastShader !== shader) {
                 if (renderer is MeshBaseComponent && mesh.hasBonesInBuffer)
                     renderer.defineVertexTransform(shader, entity, mesh)
-                else shader.v1("hasAnimation", false)
+                else shader.v1b("hasAnimation", false)
                 lastEntity = entity
                 lastMesh = mesh
                 lastShader = shader
             }
 
             shaderColor(shader, "tint", -1)
-            shader.v1("hasVertexColors", mesh.hasVertexColors)
+            shader.v1b("hasVertexColors", mesh.hasVertexColors)
 
             mesh.draw(shader, materialIndex)
 
@@ -438,9 +439,9 @@ class PipelineStage(
                         }
                         material.defineShader(shader)
                         shaderColor(shader, "tint", -1)
-                        shader.v1("drawMode", GFX.drawMode.id)
-                        shader.v1("hasAnimation", false)
-                        shader.v1("hasVertexColors", mesh.hasVertexColors)
+                        shader.v1i("drawMode", GFX.drawMode.id)
+                        shader.v1b("hasAnimation", false)
+                        shader.v1b("hasVertexColors", mesh.hasVertexColors)
                         GFX.check()
                         // draw them in batches of size <= batchSize
                         val size = values.size
@@ -512,13 +513,13 @@ class PipelineStage(
             if (entity !== lastEntity || lastMesh !== mesh) {
                 if (renderer is MeshBaseComponent && mesh.hasBonesInBuffer)
                     renderer.defineVertexTransform(shader, entity, mesh)
-                else shader.v1("hasAnimation", false)
+                else shader.v1b("hasAnimation", false)
                 lastEntity = entity
                 lastMesh = mesh
             }
 
             shaderColor(shader, "tint", -1)
-            shader.v1("hasVertexColors", mesh.hasVertexColors)
+            shader.v1b("hasVertexColors", mesh.hasVertexColors)
 
             mesh.drawDepth(shader)
 
@@ -537,8 +538,8 @@ class PipelineStage(
                 for ((_, values) in list) {
                     if (values.isNotEmpty()) {
                         mesh.ensureBuffer()
-                        shader2.v1("hasAnimation", false)
-                        shader2.v1("hasVertexColors", mesh.hasVertexColors)
+                        shader2.v1b("hasAnimation", false)
+                        shader2.v1b("hasVertexColors", mesh.hasVertexColors)
                         val size = values.size
                         for (baseIndex in 0 until size step batchSize) {
                             buffer.clear()

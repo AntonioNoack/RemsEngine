@@ -34,7 +34,7 @@ object GFXx2D {
     fun flatColor(color: Int) {
         val shader = ShaderLib.flatShader.value
         shader.use()
-        shader.v4("color", color)
+        shader.v4f("color", color)
     }
 
     // the background color is important for correct subpixel rendering, because we can't blend per channel
@@ -82,8 +82,8 @@ object GFXx2D {
         val posY = 1f - (y - GFX.viewportY).toFloat() / GFX.viewportHeight
         val relW = +w.toFloat() / GFX.viewportWidth
         val relH = -h.toFloat() / GFX.viewportHeight
-        shader.v2("pos", posX, posY)
-        shader.v2("size", relW, relH)
+        shader.v2f("pos", posX, posY)
+        shader.v2f("size", relW, relH)
     }
 
     fun posSize(shader: Shader, x: Float, y: Float, w: Float, h: Float) {
@@ -91,8 +91,8 @@ object GFXx2D {
         val posY = 1f - (y - GFX.viewportY) / GFX.viewportHeight
         val relW = +w / GFX.viewportWidth
         val relH = -h / GFX.viewportHeight
-        shader.v2("pos", posX, posY)
-        shader.v2("size", relW, relH)
+        shader.v2f("pos", posX, posY)
+        shader.v2f("size", relW, relH)
     }
 
     fun defineAdvancedGraphicalFeatures(shader: Shader) {
@@ -105,12 +105,12 @@ object GFXx2D {
     }
 
     fun disableAdvancedGraphicalFeatures(shader: Shader) {
-        shader.v1("forceFieldUVCount", 0)
-        shader.v1("forceFieldColorCount", 0)
-        shader.v3("cgSlope", 1f)
-        shader.v3("cgOffset", 0f)
-        shader.v3("cgPower", 1f)
-        shader.v1("cgSaturation", 1f)
+        shader.v1i("forceFieldUVCount", 0)
+        shader.v1i("forceFieldColorCount", 0)
+        shader.v3f("cgSlope", 1f)
+        shader.v3f("cgOffset", 0f)
+        shader.v3f("cgPower", 1f)
+        shader.v1f("cgSaturation", 1f)
     }
 
 

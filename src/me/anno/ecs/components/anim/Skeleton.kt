@@ -66,12 +66,12 @@ class Skeleton : PrefabSaveable() {
         if (skinningMatrices != null) {
             val location = shader["jointTransforms"]
             val shaderSupportsSkinning = location >= 0
-            shader.v1("hasAnimation", shaderSupportsSkinning)
+            shader.v1b("hasAnimation", shaderSupportsSkinning)
             if (shaderSupportsSkinning) {
                 AnimRenderer.upload(location, skinningMatrices)
             }
         } else {
-            shader.v1("hasAnimation", false)
+            shader.v1b("hasAnimation", false)
         }
 
         defaultMaterial.defineShader(shader)

@@ -34,8 +34,8 @@ class ColorGradingComponent : Component(), FragmentShaderComponent {
     override fun bindUniforms(shader: Shader, env: ShaderEnvironment, time: Double) {
         shader.v3X(env[this, "slope", VariableType.UNIFORM_V3], slope[time])
         shader.v3X(env[this, "power", VariableType.UNIFORM_V3], power[time])
-        shader.v3(env[this, "offset", VariableType.UNIFORM_V3], offset[time])
-        shader.v1(env[this, "saturation", VariableType.UNIFORM_V1], saturation[time])
+        shader.v3f(env[this, "offset", VariableType.UNIFORM_V3], offset[time])
+        shader.v1f(env[this, "saturation", VariableType.UNIFORM_V1], saturation[time])
     }
 
     /*override fun createInspector(

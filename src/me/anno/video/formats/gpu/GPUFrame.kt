@@ -97,7 +97,7 @@ abstract class GPUFrame(
     open fun bindUVCorrection(shader: Shader) {
         val w = w
         val h = h
-        shader.v2("uvCorrection", w.toFloat() / ((w + 1) / 2 * 2), h.toFloat() / ((h + 1) / 2 * 2))
+        shader.v2f("uvCorrection", w.toFloat() / ((w + 1) / 2 * 2), h.toFloat() / ((h + 1) / 2 * 2))
     }
 
     fun writeMonochromeDebugImage(w: Int, h: Int, buffer: ByteBuffer) {

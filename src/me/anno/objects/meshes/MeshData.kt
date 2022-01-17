@@ -62,7 +62,7 @@ open class MeshData : ICacheData {
         val skinningMatrices = if (animation != null) {
             model0.uploadJointMatrices(shader, animation, time)
         } else null
-        shader.v1("hasAnimation", skinningMatrices != null)
+        shader.v1b("hasAnimation", skinningMatrices != null)
 
         val localStack = Matrix4x3fArrayList()
 
@@ -137,7 +137,7 @@ open class MeshData : ICacheData {
                     if (mesh?.positions != null) {
                         mesh.checkCompleteness()
                         mesh.ensureBuffer()
-                        shader.v1("hasVertexColors", mesh.hasVertexColors)
+                        shader.v1b("hasVertexColors", mesh.hasVertexColors)
                         val materials = mesh.materials
                         // LOGGER.info("drawing mesh '${comp.name}' with ${mesh.numMaterials} materials")
                         for (index in 0 until mesh.numMaterials) {
@@ -156,7 +156,7 @@ open class MeshData : ICacheData {
                     if (mesh?.positions != null) {
                         mesh.checkCompleteness()
                         mesh.ensureBuffer()
-                        shader.v1("hasVertexColors", mesh.hasVertexColors)
+                        shader.v1b("hasVertexColors", mesh.hasVertexColors)
                         for (i in 0 until mesh.numMaterials) {
                             mesh.draw(shader, i)
                         }

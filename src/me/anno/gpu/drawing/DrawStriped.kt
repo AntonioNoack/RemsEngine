@@ -11,7 +11,7 @@ object DrawStriped {
         if (w == 0 || h == 0) return
         val shader = ShaderLib.flatShaderStriped.value
         shader.use()
-        shader.v4("color", color)
+        shader.v4f("color", color)
         drawRectStriped(x, y, w, h, offset, stride, shader)
     }
 
@@ -19,7 +19,7 @@ object DrawStriped {
         if (w == 0 || h == 0) return
         val shader = ShaderLib.flatShaderStriped.value
         shader.use()
-        shader.v4("color", color)
+        shader.v4f("color", color)
         drawRectStriped(x, y, w, h, offset, stride, shader)
     }
 
@@ -29,8 +29,8 @@ object DrawStriped {
         GFXx2D.posSize(shader, x, y, w, h)
         var o = offset % stride
         if (o < 0) o += stride
-        shader.v1("offset", o)
-        shader.v1("stride", stride)
+        shader.v1i("offset", o)
+        shader.v1i("stride", stride)
         GFX.flat01.draw(shader)
         GFX.check()
     }

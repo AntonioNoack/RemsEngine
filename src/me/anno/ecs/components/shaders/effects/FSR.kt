@@ -111,7 +111,7 @@ object FSR {
         tiling(shader, flipY)
         texelOffset(shader, w, h)
         posSize(shader, x, y, w, h)
-        shader.v4("background", 0)
+        shader.v4f("background", 0)
         flat01.draw(shader)
     }
 
@@ -123,15 +123,15 @@ object FSR {
         tiling(shader, flipY)
         texelOffset(shader, w, h)
         posSize(shader, x, y, w, h)
-        shader.v4("background", backgroundColor or (255 shl 24))
+        shader.v4f("background", backgroundColor or (255 shl 24))
         flat01.draw(shader)
     }
 
     private fun fsrConfig(shader: Shader, iw: Int, ih: Int, ow: Int, oh: Int) {
-        shader.v4("con0", iw.toFloat() / ow, ih.toFloat() / oh, 0.5f * iw / ow - 0.5f, 0.5f * ih / oh - 0.5f)
-        shader.v4("con1", 1f / iw, 1f / ih, 1f / iw, -1f / ih)
-        shader.v4("con2", -1f / iw, 2f / ih, 1f / iw, 2f / ih)
-        shader.v4("con3", 0f, 4f / ih, 0f, 0f)
+        shader.v4f("con0", iw.toFloat() / ow, ih.toFloat() / oh, 0.5f * iw / ow - 0.5f, 0.5f * ih / oh - 0.5f)
+        shader.v4f("con1", 1f / iw, 1f / ih, 1f / iw, -1f / ih)
+        shader.v4f("con2", -1f / iw, 2f / ih, 1f / iw, 2f / ih)
+        shader.v4f("con3", 0f, 4f / ih, 0f, 0f)
     }
 
     fun upscale(source: ITexture2D, x: Int, y: Int, w: Int, h: Int, flipY: Boolean) {
@@ -147,7 +147,7 @@ object FSR {
     fun sharpen(sharpness: Float, x: Int, y: Int, w: Int, h: Int, flipY: Boolean) {
         val shader = sharpenShader.value
         shader.use()
-        shader.v1("sharpness", sharpness)
+        shader.v1f("sharpness", sharpness)
         texelOffset(shader, w, h)
         tiling(shader, flipY)
         posSize(shader, x, y, w, h)
@@ -155,13 +155,13 @@ object FSR {
     }
 
     fun tiling(shader: Shader, flipY: Boolean) {
-        shader.v4("tiling", 1f, if (flipY) -1f else +1f, 0f, 0f)
+        shader.v4f("tiling", 1f, if (flipY) -1f else +1f, 0f, 0f)
     }
 
     fun sharpen(sharpness: Float, flipY: Boolean) {
         val shader = sharpenShader.value
         shader.use()
-        shader.v1("sharpness", sharpness)
+        shader.v1f("sharpness", sharpness)
         texelOffset(shader, GFX.viewportY, GFX.viewportHeight)
         tiling(shader, flipY)
         posSize(shader, 0f, 0f, 1f, 1f)
@@ -169,7 +169,7 @@ object FSR {
     }
 
     fun texelOffset(shader: Shader, w: Int, h: Int) {
-        shader.v2("dstWH", w.toFloat(), h.toFloat())
+        shader.v2f("dstWH", w.toFloat(), h.toFloat())
     }
 
     fun sharpen(source: ITexture2D, sharpness: Float, x: Int, y: Int, w: Int, h: Int, flipY: Boolean) {

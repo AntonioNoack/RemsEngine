@@ -6,8 +6,6 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import org.apache.logging.log4j.LogManager
 import org.joml.*
-import org.lwjgl.opengl.GL20
-import org.lwjgl.opengl.GL21
 
 class TypeValue(val type: GLSLType, val value: Any) {
 
@@ -25,23 +23,15 @@ class TypeValue(val type: GLSLType, val value: Any) {
 
     fun bind(shader: Shader, location: Int) {
         when (type) {
-            GLSLType.V1I -> shader.v1(location, value as Int)
-            GLSLType.V2I -> {
-                value as Vector2ic
-                GL21.glUniform2i(location, value.x(), value.y())
-            }
-            GLSLType.V3I -> {
-                value as Vector3ic
-                GL20.glUniform3i(location, value.x(), value.y(), value.z())
-            }
-            GLSLType.V4I -> {
-                value as Vector4ic
-                GL20.glUniform4i(location, value.x(), value.y(), value.z(), value.w())
-            }
-            GLSLType.V1F -> shader.v1(location, value as Float)
-            GLSLType.V2F -> shader.v2(location, value as Vector2fc)
-            GLSLType.V3F -> shader.v3(location, value as Vector3fc)
-            GLSLType.V4F -> shader.v4(location, value as Vector4fc)
+            GLSLType.BOOL -> shader.v1b(location, value as Boolean)
+            GLSLType.V1I -> shader.v1i(location, value as Int)
+            GLSLType.V2I -> shader.v2i(location, value as Vector2ic)
+            GLSLType.V3I -> shader.v3i(location, value as Vector3ic)
+            GLSLType.V4I -> shader.v4i(location, value as Vector4ic)
+            GLSLType.V1F -> shader.v1f(location, value as Float)
+            GLSLType.V2F -> shader.v2f(location, value as Vector2fc)
+            GLSLType.V3F -> shader.v3f(location, value as Vector3fc)
+            GLSLType.V4F -> shader.v4f(location, value as Vector4fc)
             GLSLType.M3x3 -> shader.m3x3(location, value as Matrix3fc)
             GLSLType.M4x3 -> shader.m4x3(location, value as Matrix4x3fc)
             GLSLType.M4x4 -> shader.m4x4(location, value as Matrix4fc)

@@ -70,7 +70,7 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
         if (shader["forceFieldUVCount"] < 0) return
 
         if (children.none { it is EffectMorphing }) {
-            shader.v1("forceFieldUVCount", 0)
+            shader.v1i("forceFieldUVCount", 0)
             return
         }
 
@@ -92,7 +92,7 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
                 .sortedByDescending { it.lastInfluence }
                 .subList(0, maxColorForceFields)
 
-        shader.v1("forceFieldUVCount", attractors.size)
+        shader.v1i("forceFieldUVCount", attractors.size)
         if (attractors.isNotEmpty()) {
             val loc1 = shader["forceFieldUVs"]
             val buffer = uvForceFieldBuffer
@@ -136,7 +136,7 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
         if (shader["forceFieldColorCount"] < 0) return
 
         if (children.none { it is EffectColoring }) {
-            shader.v1("forceFieldColorCount", 0)
+            shader.v1i("forceFieldColorCount", 0)
             return
         }
 
@@ -153,9 +153,9 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
                 .sortedByDescending { it.lastInfluence }
                 .subList(0, maxColorForceFields)
 
-        shader.v1("forceFieldColorCount", attractors.size)
+        shader.v1i("forceFieldColorCount", attractors.size)
         if (attractors.isNotEmpty()) {
-            shader.v4("forceFieldBaseColor", attractorBaseColor[time])
+            shader.v4f("forceFieldBaseColor", attractorBaseColor[time])
             val buffer = colorForceFieldBuffer
             buffer.position(0)
             for (attractor in attractors) {
@@ -206,8 +206,8 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
         fun uploadAttractors0(shader: Shader) {
 
             // localScale, localOffset not needed
-            shader.v1("forceFieldColorCount", 0)
-            shader.v1("forceFieldUVCount", 0)
+            shader.v1i("forceFieldColorCount", 0)
+            shader.v1i("forceFieldUVCount", 0)
 
         }
     }

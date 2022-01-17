@@ -12,7 +12,7 @@ object DrawRectangles {
         val shader = ShaderLib.flatShader.value
         shader.use()
         GFXx2D.posSize(shader, x, y, w, h)
-        shader.v4("color", color)
+        shader.v4f("color", color)
         GFX.flat01.draw(shader)
         GFX.check()
     }
@@ -23,7 +23,7 @@ object DrawRectangles {
         val shader = ShaderLib.flatShader.value
         shader.use()
         GFXx2D.posSize(shader, x, y, w, h)
-        shader.v4("color", color)
+        shader.v4f("color", color)
         GFX.flat01.draw(shader)
         GFX.check()
     }
@@ -41,7 +41,7 @@ object DrawRectangles {
         val shader = ShaderLib.flatShader.value
         shader.use()
         GFXx2D.posSize(shader, x, y, w, h)
-        shader.v4("color", color)
+        shader.v4f("color", color)
         GFX.flat01.draw(shader)
         GFX.check()
     }
@@ -51,7 +51,7 @@ object DrawRectangles {
         val shader = ShaderLib.flatShader.value
         shader.use()
         GFXx2D.posSize(shader, x, y, w, h)
-        shader.v4("color", color)
+        shader.v4f("color", color)
         GFX.flat01.draw(shader)
         GFX.check()
     }

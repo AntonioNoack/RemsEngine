@@ -94,7 +94,7 @@ object Corner {
         val shader = ShaderLib.flatShader.value
         shader.use()
         GFXx2D.posSize(shader, x, y, w, h)
-        shader.v4("color", color)
+        shader.v4f("color", color)
         corner.draw(shader)
         GFX.check()
     }

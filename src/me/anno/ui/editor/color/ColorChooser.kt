@@ -192,23 +192,23 @@ class ColorChooser(
         val sharpness = min(w, h) * 0.25f + 1f
         when (spaceStyle) {
             ColorVisualisation.WHEEL -> {
-                shader.v3("v0", d0.x() + hue * dh, d0.y(), d0.z())
-                shader.v3("du", du)
-                shader.v3("dv", dv)
+                shader.v3f("v0", d0.x() + hue * dh, d0.y(), d0.z())
+                shader.v3f("du", du)
+                shader.v3f("dv", dv)
                 val hue0 = colorSpace.hue0
-                shader.v2("ringSL", hue0.y(), hue0.z())
-                shader.v1("sharpness", sharpness)
+                shader.v2f("ringSL", hue0.y(), hue0.z())
+                shader.v1f("sharpness", sharpness)
                 GFX.flat01.draw(shader)
             }
             ColorVisualisation.CIRCLE -> {
-                shader.v1("lightness", lightness)
-                shader.v1("sharpness", sharpness)
+                shader.v1f("lightness", lightness)
+                shader.v1f("sharpness", sharpness)
                 GFX.flat01.draw(shader)
             }
             ColorVisualisation.BOX -> {
-                shader.v3("v0", d0.x() + hue * dh, d0.y(), d0.z())
-                shader.v3("du", du)
-                shader.v3("dv", dv)
+                shader.v3f("v0", d0.x() + hue * dh, d0.y(), d0.z())
+                shader.v3f("du", du)
+                shader.v3f("dv", dv)
                 // shader.v1("sharpness", sharpness)
                 GFX.flat01.draw(shader)
             }

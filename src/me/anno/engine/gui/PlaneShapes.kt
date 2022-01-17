@@ -5,12 +5,8 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.RenderView
-import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
-import me.anno.gpu.pipeline.M4x3Delta
 import me.anno.gpu.pipeline.PipelineStage
-import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBatchSize
-import me.anno.gpu.pipeline.Sorting
 import org.joml.Matrix4x3d
 import kotlin.math.cos
 import kotlin.math.sin
@@ -76,6 +72,7 @@ object PlaneShapes {
         drawCircle(m.m30(), m.m31(), m.m32(), color)
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun drawCircle(x: Double, y: Double, z: Double, color: Int) {
         /*val stride = buffer.attributes[0].stride
         val buffer = buffer.nioBuffer!!
@@ -103,10 +100,10 @@ object PlaneShapes {
         val cameraMatrix = RenderView.cameraMatrix
         GFX.shaderColor(shader, "tint", -1)
         shader.m4x4("transform", cameraMatrix)
-        shader.v3("ambientLight", 1f)
-        shader.v1("hasVertexColors", mesh.hasVertexColors)
-        shader.v1("hasAnimation", false)
-        shader.v1("numberOfLightsPtr", 0)
+        shader.v3f("ambientLight", 1f)
+        shader.v1b("hasVertexColors", mesh.hasVertexColors)
+        shader.v1b("hasAnimation", false)
+        shader.v1i("numberOfLightsPtr", 0)
         material.defineShader(shader)
         // update buffer
         buffer.isUpToDate = false

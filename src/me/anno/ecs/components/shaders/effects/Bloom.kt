@@ -48,7 +48,7 @@ object Bloom {
         val shaderY = forwardShaderY
 
         shaderX.use()
-        shaderX.v1("offset", offset)
+        shaderX.v1f("offset", offset)
 
         val renderer = copyRenderer
 
@@ -89,7 +89,7 @@ object Bloom {
     private fun backwardPass(steps: Int): ITexture2D {
         val shader = ShaderLib.copyShader.value
         shader.use()
-        shader.v1("am1", 0f)
+        shader.v1f("am1", 0f)
         var previous = tmpForward[steps - 1]!!
         OpenGL.blendMode.use(BlendMode.PURE_ADD) {
             for (i in steps - 2 downTo 0) {// render onto that layer
@@ -156,8 +156,8 @@ object Bloom {
     private fun addBloom(source: ITexture2D, bloom: ITexture2D, strength: Float, applyToneMapping: Boolean) {
         val shader = compositionShader.value
         shader.use()
-        shader.v1("applyToneMapping", applyToneMapping)
-        shader.v1("strength", strength)
+        shader.v1b("applyToneMapping", applyToneMapping)
+        shader.v1f("strength", strength)
         source.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
         bloom.bind(1, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
         flat01.draw(shader)

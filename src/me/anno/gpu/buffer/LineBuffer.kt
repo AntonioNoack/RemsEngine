@@ -353,7 +353,7 @@ object LineBuffer {
     fun finish(camTransform: Matrix4f) {
         val shader = shader.value
         shader.use()
-        shader.v4("tint", -1)
+        shader.v4f("tint", -1)
         finish(camTransform, shader)
     }
 

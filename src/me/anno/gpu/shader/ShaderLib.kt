@@ -289,7 +289,7 @@ object ShaderLib {
     val v3D = v3DBase +
             "a3 attr0;\n" +
             "a2 attr1;\n" +
-            "u4 tiling;\n" +
+            "uniform vec4 tiling;\n" +
             "void main(){\n" +
             "   finalPosition = attr0;\n" +
             "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
@@ -331,7 +331,7 @@ object ShaderLib {
             "flatShader",
             "" +
                     "a2 attr0;\n" +
-                    "u2 pos, size;\n" +
+                    "uniform vec2 pos, size;\n" +
                     "void main(){\n" +
                     "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
                     "}", emptyList(), "" +
@@ -345,11 +345,11 @@ object ShaderLib {
             "flatShader",
             "" +
                     "a2 attr0;\n" +
-                    "u2 pos, size;\n" +
+                    "uniform vec2 pos, size;\n" +
                     "void main(){\n" +
                     "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
                     "}", emptyList(), "" +
-                    "u4 color;\n" +
+                    "uniform vec4 color;\n" +
                     "uniform int offset, stride;\n" +
                     "void main(){\n" +
                     "   int x = int(gl_FragCoord.x);\n" +
@@ -362,10 +362,10 @@ object ShaderLib {
             "flatShaderGradient",
             "" +
                     "a2 attr0;\n" +
-                    "u2 pos, size;\n" +
-                    "u4 uvs;\n" +
+                    "uniform vec2 pos, size;\n" +
+                    "uniform vec4 uvs;\n" +
                     yuv2rgb +
-                    "u4 lColor, rColor;\n" +
+                    "uniform vec4 lColor, rColor;\n" +
                     "void main(){\n" +
                     "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
                     "   color = attr0.x < 0.5 ? lColor : rColor;\n" +
@@ -397,7 +397,7 @@ object ShaderLib {
             "" +
                     simpleVertexShader, uvList, "" +
                     "uniform sampler2D tex;\n" +
-                    "u4 color;\n" +
+                    "uniform vec4 color;\n" +
                     "uniform bool ignoreTexAlpha;\n" +
                     "void main(){\n" +
                     "   vec4 col = color;\n" +
@@ -417,7 +417,7 @@ object ShaderLib {
             "flatShaderCubemap",
             "" +
                     "a2 attr0;\n" +
-                    "u2 pos, size;\n" +
+                    "uniform vec2 pos, size;\n" +
                     "void main(){\n" +
                     "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
                     "   uv = (attr0 - 0.5) * vec2(${Math.PI * 2},${Math.PI});\n" +
@@ -490,7 +490,7 @@ object ShaderLib {
             "3d-text", v3DBase +
                     "a3 attr0;\n" +
                     "a2 attr1;\n" +
-                    "u3 offset;\n" +
+                    "uniform vec3 offset;\n" +
                     getUVForceFieldLib +
                     "void main(){\n" +
                     "   vec3 localPos0 = attr0 + offset;\n" +
@@ -516,7 +516,7 @@ object ShaderLib {
             "3d-text-withOutline", v3DBase +
                     "a3 attr0;\n" +
                     "a2 attr1;\n" +
-                    "u2 offset, scale;\n" +
+                    "uniform vec2 offset, scale;\n" +
                     getUVForceFieldLib +
                     "void main(){\n" +
                     "   uv = attr0.xy * 0.5 + 0.5;\n" +
@@ -789,7 +789,7 @@ object ShaderLib {
 
         val v3DCircle = v3DBase +
                 "a2 attr0;\n" + // angle, inner/outer
-                "u3 circleParams;\n" + // 1 - inner r, start, end
+                "uniform vec3 circleParams;\n" + // 1 - inner r, start, end
                 "void main(){\n" +
                 "   float angle = mix(circleParams.y, circleParams.z, attr0.x);\n" +
                 "   vec2 betterUV = vec2(cos(angle), -sin(angle)) * (1.0 - circleParams.x * attr0.y);\n" +

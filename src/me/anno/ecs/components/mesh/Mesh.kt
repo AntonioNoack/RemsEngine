@@ -816,7 +816,7 @@ class Mesh : PrefabSaveable() {
             localStack
         } else null
 
-        shader.v1("hasAnimation", false)
+        shader.v1b("hasAnimation", false)
         shader.m4x4("transform", stack)
         shader.m4x3("localTransform", localStack)
 

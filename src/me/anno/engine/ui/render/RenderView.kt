@@ -506,7 +506,7 @@ class RenderView(
                         OpenGL.depthMask.use(false) {
                             val shader = LightPipelineStage.getPostShader(deferred)
                             shader.use()
-                            shader.v1("applyToneMapping", !useBloom)
+                            shader.v1b("applyToneMapping", !useBloom)
                             buffer.bindTextures(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                             whiteTexture.bind(1, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP) // ssao
                             lightBuffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
@@ -620,8 +620,8 @@ class RenderView(
 
                             val shader = LightPipelineStage.getPostShader(deferred)
                             shader.use()
-                            shader.v1("applyToneMapping", false)
-                            shader.v3("ambientLight", pipeline.ambient)
+                            shader.v1b("applyToneMapping", false)
+                            shader.v3f("ambientLight", pipeline.ambient)
 
                             buffer.bindTextures(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                             ssao.bind(shader, "ambientOcclusion", GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
@@ -660,7 +660,7 @@ class RenderView(
 
                                 val shader = LightPipelineStage.getPostShader(deferred)
                                 shader.use()
-                                shader.v1("applyToneMapping", true)
+                                shader.v1b("applyToneMapping", true)
 
                                 buffer.bindTextures(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                                 ssao.bind(shader, "ambientOcclusion", GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)

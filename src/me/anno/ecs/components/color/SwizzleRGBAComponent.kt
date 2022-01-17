@@ -5,7 +5,6 @@ import me.anno.ecs.Component
 import me.anno.ecs.components.shaders.FragmentShaderComponent
 import me.anno.ecs.components.shaders.ShaderEnvironment
 import me.anno.ecs.components.shaders.VariableType
-import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.Shader
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -108,7 +107,7 @@ class SwizzleRGBAComponent : Component(), FragmentShaderComponent {
     override fun getShaderCodeState(): Any = listOf(swizzleR.value, swizzleG.value, swizzleB.value, swizzleA.value)
 
     override fun bindUniforms(shader: Shader, env: ShaderEnvironment, time: Double) {
-        shader.v1(env[this, "strength", VariableType.UNIFORM_V1], strength[time])
+        shader.v1f(env[this, "strength", VariableType.UNIFORM_V1], strength[time])
     }
 
     override fun clone(): Component {

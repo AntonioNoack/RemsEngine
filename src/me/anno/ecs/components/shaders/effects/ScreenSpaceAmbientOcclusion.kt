@@ -183,10 +183,10 @@ object ScreenSpaceAmbientOcclusion {
                 shader.v3Array("sampleKernel", sampleKernel)
             }
             // define all uniforms
-            shader.v1("radius", radius)
+            shader.v1f("radius", radius)
             shader.m4x4("transform", transform)
-            shader.v1("numSamples", samples)
-            shader.v1("strength", strength)
+            shader.v1i("numSamples", samples)
+            shader.v1f("strength", strength)
             // draw
             GFX.flat01.draw(shader)
             GFX.check()
@@ -204,7 +204,7 @@ object ScreenSpaceAmbientOcclusion {
             val shader = blurShader.value
             shader.use()
             data.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-            shader.v2("delta", 1f / w, 1f / h)
+            shader.v2f("delta", 1f / w, 1f / h)
             GFX.flat01.draw(shader)
             GFX.check()
         }
