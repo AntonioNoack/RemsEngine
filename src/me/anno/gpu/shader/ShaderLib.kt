@@ -335,7 +335,7 @@ object ShaderLib {
                     "void main(){\n" +
                     "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
                     "}", emptyList(), "" +
-                    "u4 color;\n" +
+                    "uniform vec4 color;\n" +
                     "void main(){\n" +
                     "   gl_FragColor = color;\n" +
                     "}"
@@ -423,7 +423,7 @@ object ShaderLib {
                     "   uv = (attr0 - 0.5) * vec2(${Math.PI * 2},${Math.PI});\n" +
                     "}", listOf(Variable(GLSLType.V2F, "uv")), "" +
                     "uniform samplerCube tex;\n" +
-                    "u4 color;\n" +
+                    "uniform vec4 color;\n" +
                     "uniform bool ignoreTexAlpha;\n" +
                     // "uniform mat3 rotation;\n" +
                     "void main(){\n" +

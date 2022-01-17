@@ -190,7 +190,7 @@ class DeferredSettingsV2(
     ): Shader {
         val vertex = "" +
                 "a2 attr0;\n" +
-                "u2 pos, size;\n" +
+                "uniform vec2 pos, size;\n" +
                 "void main(){\n" +
                 "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
                 "   uv = attr0;\n" +

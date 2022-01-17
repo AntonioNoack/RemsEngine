@@ -224,12 +224,12 @@ abstract class OpenGLShader(
         .replace(" u1f ", " uniform float ")
         .replace(" u2f ", " uniform vec2 ")
         .replace(" u3f ", " uniform vec3 ")
-        .replace(" u4f ", " uniform vec4 ")
+        .replace(" u4f ", " uniform vec4 ")*/
         .replace(" u2x2 ", " uniform mat2 ")
         .replace(" u3x3 ", " uniform mat3 ")
         .replace(" u4x4 ", " uniform mat4 ")
         .replace(" u4x3 ", " uniform mat4x3 ")
-        .replace(" u3x4 ", " uniform mat3x4 ")*/
+        .replace(" u3x4 ", " uniform mat3x4 ")
         .replace(" a1 ", " $attributeName float ")
         .replace(" a2 ", " $attributeName vec2 ")
         .replace(" a3 ", " $attributeName vec3 ")

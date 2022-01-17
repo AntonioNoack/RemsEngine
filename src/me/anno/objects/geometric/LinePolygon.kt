@@ -289,9 +289,9 @@ class LinePolygon(parent: Transform? = null) : GFXTransform(parent) {
                 "linePolygon", ShaderLib.v3DBase +
                         "a3 attr0;\n" +
                         "a2 attr1;\n" +
-                        "u4 tiling;\n" +
-                        "u3 pos0, pos1, pos2, pos3;\n" +
-                        "u4 col0, col1;\n" +
+                        "uniform vec4 tiling;\n" +
+                        "uniform vec3 pos0, pos1, pos2, pos3;\n" +
+                        "uniform vec4 col0, col1;\n" +
                         "void main(){\n" +
                         "   vec2 att = attr0.xy*0.5+0.5;\n" +
                         "   localPosition = mix(mix(pos0, pos1, att.x), mix(pos2, pos3, att.x), att.y);\n" +
