@@ -44,11 +44,13 @@ class ShaderBuilder(val name: String) {
         for (uniform in uniforms) {
             if (uniform.type == GLSLType.S2D || uniform.type == GLSLType.SCube) {
                 if (uniform.arraySize > 0) {
-                    for (i in 0 until uniform.arraySize) {
-                        // todo with brackets or without?
-                        textureIndices.add(uniform.name + i)
+                    if ("${uniform.name}0" !in textureIndices) {
+                        for (i in 0 until uniform.arraySize) {
+                            // todo with brackets or without?
+                            textureIndices.add(uniform.name + i)
+                        }
                     }
-                } else {
+                } else if (uniform.name !in textureIndices) {
                     textureIndices.add(uniform.name)
                 }
             }
@@ -58,8 +60,8 @@ class ShaderBuilder(val name: String) {
     fun create(): Shader {
         // combine the code
         // find imports
-        val vi = vertex.findImportsAndDefineValues(null, null)
-        fragment.findImportsAndDefineValues(vertex, vi)
+        val (vi, ui) = vertex.findImportsAndDefineValues(null, emptySet(), emptySet())
+        fragment.findImportsAndDefineValues(vertex, vi, ui)
         // create the code
         val vertCode = vertex.createCode(false, outputs)
         val fragCode = fragment.createCode(true, outputs)
@@ -89,47 +91,6 @@ class ShaderBuilder(val name: String) {
     }
 
     companion object {
-
-        /*private val LOGGER = LogManager.getLogger(ShaderBuilder::class)
-
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val sett = DeferredSettingsV2(listOf(DeferredLayerType.POSITION, DeferredLayerType.COLOR), false)
-            val test = ShaderBuilder("test", sett)
-            test.vertex.add(
-                ShaderStage(
-                    "stage0", listOf(
-                        Variable(GLSLType.V4F, "attr1"),
-                        Variable(GLSLType.V2F, "attr0", false)
-                    ), "attr0 = attr1.xy;\n"
-                )
-            )
-            test.vertex.add(
-                ShaderStage(
-                    "vert", listOf(
-                        Variable(GLSLType.V2F, "attr0"),
-                        // Variable(GLSLType.V4F, "gl_Position", false) // built-in, must not be redefined
-                    ), "gl_Position = vec4(attr0,0,1);\n"
-                )
-            )
-            test.fragment.add(
-                ShaderStage(
-                    "func0", listOf(
-                        Variable(GLSLType.V3F, "tint", true),
-                        Variable(GLSLType.V3F, "finalColor", false),
-                        Variable(GLSLType.V1F, "finalAlpha", false)
-                    ), "finalColor = tint;\n" +
-                            "finalAlpha = 0.5;\n"
-                )
-            )
-            HiddenOpenGLContext.createOpenGL()
-            val shader = test.create()
-            LOGGER.info("// ---- vertex shader ----")
-            LOGGER.info(indent(shader.vertex))
-            LOGGER.info("// --- fragment shader ---")
-            LOGGER.info(indent(shader.fragment))
-            shader.use()
-        }*/
 
         // a little auto-formatting
         fun indent(text: String): String {

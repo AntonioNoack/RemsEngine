@@ -29,6 +29,8 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Quaterniond
 import org.joml.Vector3d
 
+// todo touch controls
+
 open class ControlScheme(val camera: CameraComponent, val library: EditorState, val view: RenderView) :
     NineTilePanel(style) {
 

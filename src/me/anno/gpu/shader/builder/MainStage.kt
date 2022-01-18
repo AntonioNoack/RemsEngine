@@ -33,20 +33,17 @@ class MainStage {
     }
 
     fun findImportsAndDefineValues(
-        previous: MainStage?, previousDefined: Set<Variable>?
-    ): Set<Variable> {
+        previous: MainStage?,
+        previousDefined: Set<Variable>,
+        previousUniforms: Set<Variable>
+    ): Pair<Set<Variable>, Set<Variable>> {
 
         val defined = HashSet(defined)
         defined.addAll(attributes)
 
-        val definedByPrevious = HashSet<Variable>()
-        if (previousDefined != null) {
-            for (value in previousDefined) {
-                if (value !in defined) {
-                    definedByPrevious += value
-                }
-            }
-        }
+        val definedByPrevious = HashSet<Variable>(
+            previousDefined.filter { it !in defined }
+        )
 
         uniforms.clear()
         for (stage in stages) {
@@ -54,7 +51,8 @@ class MainStage {
                 if (variable.isInput && !variable.isAttribute) {
                     if (variable !in defined) {
                         if (variable in definedByPrevious &&
-                            !variable.type.glslName.startsWith("sampler")
+                            !variable.type.glslName.startsWith("sampler") &&
+                            variable !in previousUniforms
                         ) {
                             // we need this variable
                             imported.add(variable)
@@ -74,7 +72,9 @@ class MainStage {
                 }
             }
         }
-        return defined
+
+        return Pair(defined, uniforms)
+
     }
 
     fun defineUniformSamplerArrayFunctions(code: StringBuilder, uniform: Variable) {
