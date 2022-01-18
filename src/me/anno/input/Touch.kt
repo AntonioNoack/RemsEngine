@@ -1,8 +1,14 @@
 package me.anno.input
 
 import me.anno.gpu.GFX
+import me.anno.maths.Maths.distance
+import me.anno.maths.Maths.length
 import me.anno.ui.utils.WindowStack
+import me.anno.utils.bugs.SumOf
+import org.joml.Vector2d.lengthSquared
 import org.joml.Vector3f
+import kotlin.math.max
+import kotlin.math.sqrt
 
 class Touch(var x: Float, var y: Float) {
 
@@ -13,8 +19,12 @@ class Touch(var x: Float, var y: Float) {
     var dy = 0f
     var lastX = x
     var lastY = y
+    var lastX2 = x
+    var lastY2 = y
 
     fun update() {
+        lastX2 = lastX
+        lastY2 = lastY
         lastX = x
         lastY = y
     }
@@ -38,6 +48,35 @@ class Touch(var x: Float, var y: Float) {
 
         fun getNumTouches() = touches.size
         fun getTouchIds() = touches.keys
+
+        fun update() {
+            for (touch in touches.values) {
+                touch.update()
+            }
+        }
+
+        fun getZoomFactor(): Float {
+            return when (val size = touches.size) {
+                0, 1 -> 1f
+                else -> {
+                    val cx = SumOf.sumOf(touches.values) { it.x } / size
+                    val cy = SumOf.sumOf(touches.values) { it.y } / size
+                    val clx = SumOf.sumOf(touches.values) { it.lastX } / size
+                    val cly = SumOf.sumOf(touches.values) { it.lastY } / size
+                    val d0 = SumOf.sumOf(touches.values) { length(it.x - cx, it.y - cy) } / size
+                    val d1 = SumOf.sumOf(touches.values) { length(it.lastX - clx, it.lastY - cly) } / size
+                    if (d0 > 0f && d1 > 0f)
+                        d0 / d1
+                    else 0f
+                }
+            }
+        }
+
+        fun sumDeltaX(): Float = SumOf.sumOf(touches.values) { it.x - it.lastX }
+        fun sumDeltaY(): Float = SumOf.sumOf(touches.values) { it.y - it.lastY }
+
+        fun avgDeltaX(): Float = SumOf.sumOf(touches.values) { it.x - it.lastX } / max(1, touches.size)
+        fun avgDeltaY(): Float = SumOf.sumOf(touches.values) { it.y - it.lastY } / max(1, touches.size)
 
         fun getTouchPosition(ws: WindowStack, touchId: Int, dst: Vector3f = Vector3f()): Vector3f {
             val touch = touches[touchId] ?: return dst

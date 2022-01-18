@@ -20,14 +20,19 @@ import me.anno.engine.ui.render.RenderView.Companion.mouseDir
 import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.input.MouseButton
+import me.anno.input.Touch
 import me.anno.ui.base.groups.NineTilePanel
 import me.anno.ui.editor.PropertyInspector
 import me.anno.maths.Maths
+import me.anno.maths.Maths.clamp
+import me.anno.studio.StudioBase
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import me.anno.utils.types.Vectors.safeNormalize
 import org.apache.logging.log4j.LogManager
 import org.joml.Quaterniond
 import org.joml.Vector3d
+import org.joml.Vector3f
+import kotlin.math.sign
 
 // todo touch controls
 
@@ -115,20 +120,35 @@ open class ControlScheme(val camera: CameraComponent, val library: EditorState, 
         if (control?.onMouseMoved(x, y, dx, dy) == true) return
         if (editMode?.onEditMove(x, y, dx, dy) == true) return
         if (isSelected && Input.isRightDown) {
-            moveCamera(dx, dy)
+            rotateCamera(dx, dy)
         }
     }
 
-    fun moveCamera(dx: Float, dy: Float) {
+    fun rotateCamera(dx: Float, dy: Float) {
         // right mouse key down -> move the camera
         val speed = -500f / Maths.max(GFX.height, h)
-        val rotation = view.rotation
-        // less than 90, so we always know forward when computing movement
-        val limit = 90.0 - 0.0001
-        rotation.x = Maths.clamp(rotation.x + dy * speed, -limit, limit)
-        rotation.y += dx * speed
+        rotateCamera(dy * speed, dx * speed)
+    }
+
+    // less than 90, so we always know forward when computing movement
+    val limit = 90.0 - 0.0001
+
+    fun rotateCameraTo(v: Vector3f) {
+        view.rotation.set(v)
         view.updateEditorCameraTransform()
         invalidateDrawing()
+    }
+
+    fun rotateCamera(vx: Float, vy: Float, vz: Float) {
+        view.rotation.apply {
+            set(clamp(x + vx, -limit, +limit), y + vy, z + vz)
+        }
+        view.updateEditorCameraTransform()
+        invalidateDrawing()
+    }
+
+    fun rotateCamera(v: Vector3f) {
+        rotateCamera(v.x, v.y, v.z)
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
@@ -226,6 +246,16 @@ open class ControlScheme(val camera: CameraComponent, val library: EditorState, 
             if (Input.isKeyDown('q')) velocity.y -= s
             if (Input.isKeyDown('e')) velocity.y += s
         }
+        moveCamera(velocity.x * dt, velocity.y * dt, velocity.z * dt)
+        val position = view.position
+        if (!position.isFinite) {
+            LOGGER.warn("Invalid position $position from $velocity * mat($dirX, $dirY, $dirZ)")
+            position.set(0.0)
+            Thread.sleep(100)
+        }
+    }
+
+    fun moveCamera(dx: Double, dy: Double, dz: Double) {
         val normXZ = !Input.isShiftDown // todo use UI toggle instead
         val rotQuad = view.rotation
             .toQuaternionDegrees(rotQuad)
@@ -243,15 +273,11 @@ open class ControlScheme(val camera: CameraComponent, val library: EditorState, 
         } else {
             rotQuad.transform(dirY)
         }
-        val position = view.position
-        position.x += velocity.dot(dirX) * dt
-        position.y += velocity.dot(dirY) * dt
-        position.z += velocity.dot(dirZ) * dt
-        if (!position.isFinite) {
-            LOGGER.warn("Invalid position $position from $velocity * mat($dirX, $dirY, $dirZ)")
-            position.set(0.0)
-            Thread.sleep(100)
-        }
+        view.position.add(
+            dirX.dot(dx, dy, dz),
+            dirY.dot(dx, dy, dz),
+            dirZ.dot(dx, dy, dz)
+        )
     }
 
     // to do call events before we draw the scene? that way we would not get the 1-frame delay
@@ -260,9 +286,59 @@ open class ControlScheme(val camera: CameraComponent, val library: EditorState, 
         if (view.renderMode == RenderMode.RAY_TEST) {
             testHits()
         }
+        parseTouchInput()
         backgroundColor = backgroundColor and 0xffffff
         super.onDraw(x0, y0, x1, y1)
         checkMovement()
+    }
+
+    fun parseTouchInput() {
+
+        val first = Touch.touches.values.firstOrNull()
+        if (first != null && contains(first.x0, first.y0)) {
+
+            when (Touch.touches.size) {
+                0, 1 -> {
+                } // handled like a mouse
+                2 -> {
+
+                    val speed = -120f * StudioBase.shiftSlowdown / GFX.height
+                    // this gesture started on this view -> this is our gesture
+                    // rotating is the hardest on a touchpad, because we need to click right
+                    // -> rotation
+                    val dx = Touch.sumDeltaX() * speed
+                    val dy = Touch.sumDeltaY() * speed
+                    rotateCamera(dy, dx, 0f)
+
+                    // zoom in/out
+                    val r = Touch.getZoomFactor()
+                    view.radius *= r * r * sign(r) // power 1 is too slow
+
+                    Touch.update()
+
+                }
+                else -> {
+
+                    // move the camera around
+                    val speed = -3f * view.radius / GFX.height
+
+                    val dx = Touch.avgDeltaX() * speed
+                    val dy = Touch.avgDeltaY() * speed
+                    if (Input.isShiftDown)
+                        moveCamera(dx, -dy, 0.0)
+                    else
+                        moveCamera(dx, 0.0, dy)
+
+                    // zoom in/out
+                    val r = Touch.getZoomFactor()
+                    view.radius *= r * r * sign(r) // power 1 is too slow
+
+                    Touch.update()
+
+                }
+            }
+        }
+
     }
 
     companion object {

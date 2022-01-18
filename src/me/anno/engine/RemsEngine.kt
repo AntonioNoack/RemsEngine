@@ -2,6 +2,7 @@ package me.anno.engine
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
+import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache.loadScenePrefab
 import me.anno.engine.ui.DefaultLayout
 import me.anno.engine.ui.EditorState
@@ -10,6 +11,7 @@ import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.ShaderLib
 import me.anno.input.ActionManager
+import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
 import me.anno.studio.StudioBase
 import me.anno.studio.rems.StudioActions
@@ -21,8 +23,11 @@ import me.anno.ui.editor.OptionBar
 import me.anno.ui.editor.UILayouts.createReloadWindow
 import me.anno.ui.editor.config.ConfigPanel
 import me.anno.utils.OS
+import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
+import java.io.FileReader
+import java.io.IOException
 
 // todo color input sometimes janky... why?
 // todo bug: text panel cannot be deleted from CanvasComponent
@@ -95,6 +100,23 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         ECSSceneTabs.currentTab?.save()
     }
 
+    fun loadSafely(file: FileReference): Prefab {
+        if (file.exists && !file.isDirectory) {
+            return try {
+                loadScenePrefab(file)
+            } catch (e: Exception) {
+                val nextName = findNextFileName(file, 1, '-')
+                LOGGER.warn("Could not open $file", e)
+                val newFile = file.getSibling(nextName)
+                return loadSafely(newFile)
+            }
+        } else {
+            val prefab = Prefab("Entity")
+            prefab.source = file
+            return prefab
+        }
+    }
+
     override fun createUI() {
 
         val projectFile = OS.documents.getChild("RemsEngine").getChild("SampleProject")
@@ -118,7 +140,7 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
         // for testing directly jump in the editor
 
-        val editScene = loadScenePrefab(projectFile.getChild("Scene.json"))
+        val editScene = loadSafely(projectFile.getChild("Scene.json"))
 
         val style = style
 

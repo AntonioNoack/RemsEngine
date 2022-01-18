@@ -11,6 +11,7 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.camDirection
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.input.Input
+import me.anno.input.Touch
 import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.buttons.TextButton
@@ -173,16 +174,6 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
         return super.onGotAction(x, y, dx, dy, action, isContinuous)
     }
 
-    fun rotateCameraTo(v: Vector3f) {
-        view.rotation.set(v)
-        view.updateEditorCameraTransform()
-    }
-
-    fun rotateCamera(v: Vector3f) {
-        view.rotation.add(v)
-        view.updateEditorCameraTransform()
-    }
-
     fun turn(dx: Float, dy: Float) {
         // todo turn the camera
     }
@@ -190,9 +181,10 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         if (EditorState.control?.onMouseMoved(x, y, dx, dy) == true) return
         if (EditorState.editMode?.onEditMove(x, y, dx, dy) == true) return
+        if (Touch.touches.size > 1) return // handled separately
         // super.onMouseMoved(x, y, dx, dy)
         if (isSelected && Input.isRightDown) {
-            moveCamera(dx, dy)
+            rotateCamera(dx, dy)
         } else if (isSelected && Input.isLeftDown) {
             val targets = selectedEntities
             if (targets.isNotEmpty() && mode != Mode.NOTHING) {
