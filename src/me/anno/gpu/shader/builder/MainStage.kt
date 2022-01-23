@@ -226,7 +226,7 @@ class MainStage {
         }
 
         for (variable in attributes.sortedBy { it.size }) {
-            variable.appendGlsl(code, OpenGLShader.attributeName)
+            variable.appendGlsl(code, OpenGLShader.attribute)
         }
         if (attributes.isNotEmpty()) code.append('\n')
 

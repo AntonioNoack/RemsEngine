@@ -24,7 +24,7 @@ abstract class OpenGLShader(
         var logShaders = false
 
         private val LOGGER = LogManager.getLogger(OpenGLShader::class)
-        const val attributeName = "in"
+        const val attribute = "in"
         private val matrixBuffer = BufferUtils.createFloatBuffer(16)
         private val identity3: Matrix3fc = Matrix3f()
         private val identity4: Matrix4fc = Matrix4f()
@@ -158,10 +158,10 @@ abstract class OpenGLShader(
 
     fun printLocationsAndValues() {
         for ((key, value) in attributeLocations.entries.sortedBy { it.value }) {
-            LOGGER.info("attribute $key = $value")
+            LOGGER.info("Attribute $key = $value")
         }
         for ((key, value) in uniformLocations.entries.sortedBy { it.value }) {
-            LOGGER.info("uniform $key[$value] = (${uniformCache[value * 4]},${uniformCache[value * 4 + 1]},${uniformCache[value * 4 + 2]},${uniformCache[value * 4 + 3]})")
+            LOGGER.info("Uniform $key[$value] = (${uniformCache[value * 4]},${uniformCache[value * 4 + 1]},${uniformCache[value * 4 + 2]},${uniformCache[value * 4 + 3]})")
         }
     }
 
@@ -230,14 +230,14 @@ abstract class OpenGLShader(
         .replace(" u4x4 ", " uniform mat4 ")
         .replace(" u4x3 ", " uniform mat4x3 ")
         .replace(" u3x4 ", " uniform mat3x4 ")
-        .replace(" a1 ", " $attributeName float ")
-        .replace(" a2 ", " $attributeName vec2 ")
-        .replace(" a3 ", " $attributeName vec3 ")
-        .replace(" a4 ", " $attributeName vec4 ")
-        .replace(" ai1 ", " $attributeName int ")
-        .replace(" ai2 ", " $attributeName ivec2 ")
-        .replace(" ai3 ", " $attributeName ivec3 ")
-        .replace(" ai4 ", " $attributeName ivec4 ")
+        .replace(" a1 ", " $attribute float ")
+        .replace(" a2 ", " $attribute vec2 ")
+        .replace(" a3 ", " $attribute vec3 ")
+        .replace(" a4 ", " $attribute vec4 ")
+        .replace(" ai1 ", " $attribute int ")
+        .replace(" ai2 ", " $attribute ivec2 ")
+        .replace(" ai3 ", " $attribute ivec3 ")
+        .replace(" ai4 ", " $attribute ivec4 ")
         /*.replace(" v1 ", " float ")
         .replace(" v2 ", " vec2 ")
         .replace(" v3 ", " vec3 ")

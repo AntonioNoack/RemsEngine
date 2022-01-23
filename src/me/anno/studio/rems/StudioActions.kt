@@ -222,6 +222,8 @@ object StudioActions {
         keyMap["PanelListY.upArrow.typed", "Previous"]
         keyMap["PanelListY.downArrow.typed", "Next"]
 
+        keyMap["FileExplorer.f5.typed", "Refresh"]
+
     }
 
 }

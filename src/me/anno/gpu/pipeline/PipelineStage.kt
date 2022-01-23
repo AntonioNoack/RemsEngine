@@ -403,6 +403,12 @@ class PipelineStage(
 
             shaderColor(shader, "tint", -1)
             shader.v1b("hasVertexColors", mesh.hasVertexColors)
+            val component = request.component
+            shader.v2i(
+                "randomIdData",
+                if (mesh.proceduralLength > 0) 3 else 0,
+                if (component is MeshBaseComponent) component.randomTriangleId else 0
+            )
 
             mesh.draw(shader, materialIndex)
 
@@ -442,6 +448,7 @@ class PipelineStage(
                         shader.v1i("drawMode", GFX.drawMode.id)
                         shader.v1b("hasAnimation", false)
                         shader.v1b("hasVertexColors", mesh.hasVertexColors)
+                        shader.v2i("randomIdData", mesh.numTriangles, 0)
                         GFX.check()
                         // draw them in batches of size <= batchSize
                         val size = values.size

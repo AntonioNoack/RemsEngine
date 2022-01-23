@@ -1,8 +1,8 @@
 package me.anno.utils.hpc
 
 import me.anno.Engine
-import me.anno.utils.Sleep.waitUntil
 import me.anno.maths.Maths
+import me.anno.utils.Sleep.waitUntil
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -68,17 +68,15 @@ class ProcessingGroup(name: String, val numThreads: Int) : ProcessingQueue(name)
             val doneCounter = AtomicInteger(1)
             for (threadId in 1 until threadCount) {
                 plusAssign {
-                    val startIndex = i0 + threadId * count / threadCount
-                    val endIndex = i0 + (threadId + 1) * count / threadCount
+                    val startIndex = i0 + HeavyProcessing.partition(threadId, count, threadCount)
+                    val endIndex = i0 + HeavyProcessing.partition(threadId + 1, count, threadCount)
                     func(startIndex, endIndex)
                     doneCounter.incrementAndGet()
                 }
             }
-            // process last
-            val threadId = 0
-            val startIndex = i0 + threadId * count / threadCount
-            val endIndex = i0 + (threadId + 1) * count / threadCount
-            func(startIndex, endIndex)
+            // process first
+            val endIndex = i0 + HeavyProcessing.partition(1, count, threadCount)
+            func(i0, endIndex)
             waitUntil(true) { doneCounter.get() >= threadCount }
         }
     }

@@ -23,6 +23,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextWriter
+import me.anno.maths.Maths.length
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.StudioBase.Companion.defaultWindowStack
 import me.anno.studio.StudioBase.Companion.instance
@@ -31,7 +32,6 @@ import me.anno.ui.editor.treeView.TreeViewPanel
 import me.anno.utils.files.FileExplorerSelectWrapper
 import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.hpc.Threads.threadWithName
-import me.anno.maths.Maths.length
 import me.anno.utils.types.Strings.isArray
 import me.anno.utils.types.Strings.isName
 import me.anno.utils.types.Strings.isNumber
@@ -70,6 +70,8 @@ object Input {
     var mouseKeysDown = HashSet<Int>()
 
     val keysDown = HashMap<Int, Long>()
+    val keysWentDown = HashSet<Int>()
+    val keysWentUp = HashSet<Int>()
 
     var lastShiftDown = 0L
 
@@ -188,6 +190,11 @@ object Input {
 
     }
 
+    fun resetFrameSpecificKeyStates() {
+        keysWentDown.clear()
+        keysWentUp.clear()
+    }
+
     fun onCharTyped(codepoint: Int, mods: Int) {
         framesSinceLastInteraction = 0
         inFocus0?.onCharTyped(mouseX, mouseY, codepoint)
@@ -197,6 +204,7 @@ object Input {
     fun onKeyPressed(key: Int) {
         framesSinceLastInteraction = 0
         keysDown[key] = gameTime
+        keysWentDown += key
         inFocus0?.onKeyDown(mouseX, mouseY, key) // 264
         ActionManager.onKeyDown(key)
         onKeyTyped(GLFW.GLFW_PRESS, key)
@@ -205,6 +213,7 @@ object Input {
     fun onKeyReleased(key: Int) {
         framesSinceLastInteraction = 0
         keyUpCtr++
+        keysWentUp += key
         inFocus0?.onKeyUp(mouseX, mouseY, key)
         ActionManager.onKeyUp(key)
         keysDown.remove(key)
@@ -373,6 +382,7 @@ object Input {
         mouseDownX = mouseX
         mouseDownY = mouseY
         mouseMovementSinceMouseDown = 0f
+        keysWentDown += button
 
         when (button) {
             0 -> isLeftDown = true
@@ -446,6 +456,7 @@ object Input {
     fun onMouseRelease(button: Int) {
 
         keyUpCtr++
+        keysWentUp += button
 
         when (button) {
             0 -> isLeftDown = false
@@ -664,12 +675,28 @@ object Input {
             .setContents(FileTransferable(files), null)
     }
 
-    fun isKeyDown(key: Char): Boolean {
-        return key.uppercaseChar().code in keysDown
-    }
-
     fun isKeyDown(key: Int): Boolean {
         return key in keysDown
+    }
+
+    fun isKeyDown(key: Char): Boolean {
+        return isKeyDown(key.uppercaseChar().code)
+    }
+
+    fun wasKeyPressed(key: Int): Boolean {
+        return key in keysWentDown
+    }
+
+    fun wasKeyPressed(key: Char): Boolean {
+        return wasKeyPressed(key.uppercaseChar().code)
+    }
+
+    fun wasKeyReleased(key: Int): Boolean {
+        return key in keysWentUp
+    }
+
+    fun wasKeyReleased(key: Char): Boolean {
+        return wasKeyReleased(key.uppercaseChar().code)
     }
 
 }

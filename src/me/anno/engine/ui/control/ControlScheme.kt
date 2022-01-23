@@ -127,7 +127,7 @@ open class ControlScheme(val camera: CameraComponent, val library: EditorState, 
     fun rotateCamera(dx: Float, dy: Float) {
         // right mouse key down -> move the camera
         val speed = -500f / Maths.max(GFX.height, h)
-        rotateCamera(dy * speed, dx * speed)
+        rotateCamera(dy * speed, dx * speed, 0f)
     }
 
     // less than 90, so we always know forward when computing movement

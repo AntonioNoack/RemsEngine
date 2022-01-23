@@ -55,6 +55,8 @@ class Framebuffer(
 
     val target = if (withMultisampling) GL_TEXTURE_2D_MULTISAMPLE else GL_TEXTURE_2D
 
+    var autoUpdateMipmaps = true
+
     // multiple targets, layout=x require shader version 330+
     // use bindFragDataLocation instead
 
@@ -137,6 +139,7 @@ class Framebuffer(
         GFX.check()
         textures = Array(targets.size) { index ->
             val texture = Texture2D("$name-tex[$index]", w, h, samples)
+            texture.autoUpdateMipmaps = autoUpdateMipmaps
             texture.create(targets[index])
             GFX.check()
             texture
@@ -164,6 +167,7 @@ class Framebuffer(
             DepthBufferType.INTERNAL -> createDepthBuffer()
             DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {
                 val depthTexture = Texture2D("$name-depth", w, h, samples)
+                depthTexture.autoUpdateMipmaps = autoUpdateMipmaps
                 depthTexture.createDepth(depthBufferType == DepthBufferType.TEXTURE_16)
                 glFramebufferTexture2D(
                     GL_FRAMEBUFFER,

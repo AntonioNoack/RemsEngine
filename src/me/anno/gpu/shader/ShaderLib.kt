@@ -1,6 +1,7 @@
 package me.anno.gpu.shader
 
 import me.anno.config.DefaultConfig
+import me.anno.gpu.shader.OpenGLShader.Companion.attribute
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Filtering
 import me.anno.mesh.assimp.AnimGameItem
@@ -50,7 +51,7 @@ object ShaderLib {
     const val maxOutlineColors = 6
 
     val simplestVertexShader =  "" +
-            "attribute vec2 attr0;\n" +
+            "$attribute vec2 attr0;\n" +
             "void main(){\n" +
             "   gl_Position = vec4(attr0*2.0-1.0,0.5,1.0);\n" +
             "   uv = attr0;\n" +
@@ -58,7 +59,7 @@ object ShaderLib {
 
     val uvList = listOf(Variable(GLSLType.V2F, "uv"))
     val simpleVertexShader = "" +
-            "attribute vec2 attr0;\n" +
+            "$attribute vec2 attr0;\n" +
             "uniform vec2 pos, size;\n" +
             "uniform vec4 tiling;\n" +
             "void main(){\n" +

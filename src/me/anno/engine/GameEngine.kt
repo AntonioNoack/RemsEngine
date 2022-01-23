@@ -3,7 +3,8 @@ package me.anno.engine
 object GameEngine {
 
     // todo most relevant todos:
-    // todo - playing mode, with input events
+    // done - playing mode, with input events
+    // todo test input events
     // done - drop things into scene folder -> create assets
     // todo - index all assets, sorted by type, of the current project
     // todo - use this indexed data to create search functions for materials, skeletons, ...

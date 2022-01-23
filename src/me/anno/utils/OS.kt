@@ -16,7 +16,7 @@ object OS {// the os is important for some things, e.g. the allowed file names, 
 
     // we haven't implemented a mobile version yet (because that needs different controls),
     // and idk about performance
-    var isAndroid = isLinux
+    var isAndroid = false
 
     var isWeb = false
 

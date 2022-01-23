@@ -482,6 +482,7 @@ abstract class FileExplorer(
                     }
                 })
             }
+            "Refresh" -> invalidate()
             "Back", "Backward" -> back()
             "Forward" -> forward()
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)

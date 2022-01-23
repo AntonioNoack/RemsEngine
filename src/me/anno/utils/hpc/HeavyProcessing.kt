@@ -7,6 +7,10 @@ import kotlin.math.max
 
 object HeavyProcessing {
 
+    fun partition(a: Int, b: Int, c: Int): Int {
+        return (a.toLong() * b.toLong() / c.toLong()).toInt()
+    }
+
     private val queues = HashMap<String, ProcessingQueue>()
     fun addTask(queueGroup: String, task: () -> Unit) {
         val queue = queues.getOrPut(queueGroup) { ProcessingQueue(queueGroup) }
@@ -61,13 +65,13 @@ object HeavyProcessing {
             func(i0, i1)
         } else {
             val otherThreads = Array(threadCount - 1) { threadId ->
-                val startIndex = i0 + threadId * count / threadCount
-                val endIndex = i0 + (threadId + 1) * count / threadCount
+                val startIndex = i0 + partition(threadId, count, threadCount)
+                val endIndex = i0 + partition(threadId + 1, count, threadCount)
                 thread(name = "Balanced[$threadId]") { func(startIndex, endIndex) }
             }
             // process last
             val threadId = threadCount - 1
-            val startIndex = i0 + threadId * count / threadCount
+            val startIndex = i0 + partition(threadId, count, threadCount)
             func(startIndex, i1)
             for (thread in otherThreads) thread.join()
         }

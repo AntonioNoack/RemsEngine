@@ -14,6 +14,9 @@ import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 
+// todo all components should have some test scene
+// todo chunk system as well, maybe just all features
+
 abstract class Component : PrefabSaveable(), Inspectable {
 
     override var isEnabled: Boolean = true

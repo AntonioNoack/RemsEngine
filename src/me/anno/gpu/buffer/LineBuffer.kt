@@ -5,6 +5,7 @@ import me.anno.engine.ui.render.RenderView.Companion.worldScale
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.OpenGLShader.Companion.attribute
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.utils.Color.b
@@ -31,8 +32,8 @@ object LineBuffer {
 
     val shader = BaseShader(
         "DebugLines", "" +
-                "attribute vec3 position;\n" +
-                "attribute vec4 color;\n" +
+                "$attribute vec3 position;\n" +
+                "$attribute vec4 color;\n" +
                 "uniform mat4 transform;\n" +
                 "void main(){" +
                 "   gl_Position = transform * vec4(position, 1);\n" +

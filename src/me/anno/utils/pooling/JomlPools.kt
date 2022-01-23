@@ -4,12 +4,15 @@ import org.joml.*
 
 object JomlPools {
 
+    val vec2i = Stack { Vector2i() }
     val vec2f = Stack { Vector2f() }
     val vec2d = Stack { Vector2d() }
 
+    val vec3i = Stack { Vector3i() }
     val vec3f = Stack { Vector3f() }
     val vec3d = Stack { Vector3d() }
 
+    val vec4i = Stack { Vector4i() }
     val vec4f = Stack { Vector4f() }
     val vec4d = Stack { Vector4d() }
 
@@ -27,11 +30,17 @@ object JomlPools {
 
     fun reset() {
 
+        vec2i.reset()
         vec2f.reset()
         vec2d.reset()
 
+        vec3i.reset()
         vec3f.reset()
         vec3d.reset()
+
+        vec4i.reset()
+        vec4f.reset()
+        vec4d.reset()
 
         quat4f.reset()
         quat4d.reset()

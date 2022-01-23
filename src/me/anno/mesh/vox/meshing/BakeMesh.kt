@@ -3,7 +3,6 @@ package me.anno.mesh.vox.meshing
 import me.anno.mesh.vox.meshing.BlockBuffer.addQuad
 import me.anno.mesh.vox.meshing.MergeBlocks.mergeBlocks
 import me.anno.mesh.vox.model.VoxelModel
-import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 
 object BakeMesh {
@@ -13,7 +12,8 @@ object BakeMesh {
     fun bakeMesh(
         model: VoxelModel,
         side: BlockSide,
-        dst: VoxelMeshBuildInfo
+        dst: VoxelMeshBuildInfo,
+        outsideIsSolid: ((x: Int, y: Int, z: Int) -> Boolean)?
     ): Float {
 
         val colors = IntArray(model.size)
@@ -21,7 +21,7 @@ object BakeMesh {
 
         val isSolid = BooleanArray(model.size)
         for (i in isSolid.indices) isSolid[i] = colors[i] != 0
-        val removed = removeSolidInnerBlocks(model, side, colors, isSolid)
+        val removed = removeSolidInnerBlocks(model, side, colors, isSolid, outsideIsSolid)
 
         lateinit var blockSizes: IntArray
 
@@ -96,7 +96,8 @@ object BakeMesh {
         model: VoxelModel,
         blockSide: BlockSide,
         colors: IntArray,
-        isSolid: BooleanArray
+        isSolid: BooleanArray,
+        outsideIsSolid: ((x: Int, y: Int, z: Int) -> Boolean)?
     ): Float {
         val dx = model.getIndex(1, 0, 0)
         val dy = model.getIndex(0, 1, 0)
@@ -131,6 +132,50 @@ object BakeMesh {
                         }
                     }
                     index += dz
+                }
+            }
+        }
+        // yxz
+        if (outsideIsSolid != null) {
+            when (blockSide) {
+                BlockSide.NX, BlockSide.PX -> {
+                    val negative = blockSide == BlockSide.NX
+                    val i0 = if (negative) 0 else model.sizeX - 1
+                    val i1 = if (negative) -1 else model.sizeX
+                    for (y in y0 until y1) {
+                        for (z in z0 until z1) {
+                            val index = model.getIndex(i0, y, z)
+                            if (colors[index] != 0 && outsideIsSolid(i1, y, z)) {
+                                colors[index] = 0
+                            }
+                        }
+                    }
+                }
+                BlockSide.NY, BlockSide.PY -> {
+                    val negative = blockSide == BlockSide.NY
+                    val i0 = if (negative) 0 else model.sizeY - 1
+                    val i1 = if (negative) -1 else model.sizeY
+                    for (x in x0 until x1) {
+                        for (z in z0 until z1) {
+                            val index = model.getIndex(x, i0, z)
+                            if (colors[index] != 0 && outsideIsSolid(x, i1, z)) {
+                                colors[index] = 0
+                            }
+                        }
+                    }
+                }
+                BlockSide.NZ, BlockSide.PZ -> {
+                    val negative = blockSide == BlockSide.NZ
+                    val i0 = if (negative) 0 else model.sizeZ - 1
+                    val i1 = if (negative) -1 else model.sizeZ
+                    for (y in y0 until y1) {
+                        for (x in x0 until x1) {
+                            val index = model.getIndex(x, y, i0)
+                            if (colors[index] != 0 && outsideIsSolid(x, y, i1)) {
+                                colors[index] = 0
+                            }
+                        }
+                    }
                 }
             }
         }

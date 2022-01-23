@@ -306,6 +306,7 @@ class RenderView(
             RenderMode.INVERSE_DEPTH,
             RenderMode.WITHOUT_POST_PROCESSING,
             RenderMode.LINES, RenderMode.FRONT_BACK,
+            RenderMode.SHOW_TRIANGLES,
             RenderMode.MSAA_X8 -> false
             else -> true
         }
@@ -360,6 +361,10 @@ class RenderView(
             RenderMode.FRONT_BACK -> {
                 useDeferredRendering = false
                 frontBackRenderer
+            }
+            RenderMode.SHOW_TRIANGLES -> {
+                useDeferredRendering = false
+                Renderer.randomIdRenderer
             }
             else -> if (useDeferredRendering)
                 DeferredRenderer else pbrRenderer

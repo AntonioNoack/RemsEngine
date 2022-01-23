@@ -60,7 +60,11 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
         return i
     }
 
-    fun createMesh(palette: IntArray): Mesh {
+    fun createMesh(
+        palette: IntArray,
+        outsideIsSolid: ((x: Int, y: Int, z: Int) -> Boolean)?,
+        mesh: Mesh = Mesh()
+    ): Mesh {
 
         // create a mesh
         // merge voxels of the same color
@@ -73,7 +77,6 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
         // guess the number of required points
         val vertexPointGuess = max(size * 6, 18)
 
-        val mesh = Mesh()
         val vertices = ExpandingFloatArray(vertexPointGuess)
         val colors = ExpandingIntArray(vertexPointGuess / 3 + 1)
         val normals = ExpandingFloatArray(vertexPointGuess)
@@ -86,16 +89,18 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
         for (side in BlockSide.values) {
             info.setNormal(side)
             // an estimate
-            removed += BakeMesh.bakeMesh(this, side, info)
+            removed += BakeMesh.bakeMesh(this, side, info, outsideIsSolid)
         }
         removed = removed * 100f / 6f
         val numberOfBlocks = countBlocks()
         val triangleCount = vertices.size / 9
-        LOGGER.info(
-            "" +
-                    "Removed ${removed.roundToInt()}% of $numberOfBlocks blocks, " +
-                    "created $triangleCount triangles, ${(triangleCount.toFloat() / numberOfBlocks).f2()}/block"
-        )
+        if (numberOfBlocks > 0) {
+            LOGGER.info(
+                "" +
+                        "Removed ${removed.roundToInt()}% of $numberOfBlocks blocks, " +
+                        "created $triangleCount triangles, ${(triangleCount.toFloat() / numberOfBlocks).f2()}/block"
+            )
+        }
 
         mesh.positions = vertices.toFloatArray()
         mesh.normals = normals.toFloatArray()
@@ -107,7 +112,7 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
 
     fun createMeshPrefab(palette: IntArray): Prefab {
 
-        val mesh = createMesh(palette)
+        val mesh = createMesh(palette, null)
         val prefab = Prefab("Mesh")
 
         prefab.setProperty("positions", mesh.positions)

@@ -29,6 +29,12 @@ import org.apache.logging.log4j.LogManager
 import java.io.FileReader
 import java.io.IOException
 
+
+// todo runtime-components/hierarchy: must be displayed
+// todo must have warning
+// todo must be editable -> no CSet/CAdd, just instance changes
+
+
 // todo color input sometimes janky... why?
 // todo bug: text panel cannot be deleted from CanvasComponent
 // todo bug: text input panel ml deletes two chars on first delete, why?
@@ -38,6 +44,10 @@ import java.io.IOException
 // todo also the main object randomly just shrinks down (pool & truck)
 
 // todo fix: tooltip texts of properties are not being displayed
+
+// todo to reduce the size of the engine, physics engines could be turned into mods
+// todo libraries like jpeg2000, pdf and such should become mods as well
+// todo spellchecking could then become a mod :)
 
 
 // todo right click on a path:

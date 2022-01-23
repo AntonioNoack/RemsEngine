@@ -18,9 +18,19 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         return builder
     }
 
+    open fun createRandomIdStage(): ShaderStage {
+        return ShaderStage(
+            "randomId", listOf(
+                Variable(GLSLType.V2I, "randomIdData", VariableMode.IN), // vertices/instance, random offset
+                Variable(GLSLType.V1I, "randomId", VariableMode.OUT)
+            ), "randomId = (gl_VertexID + gl_InstanceID * randomIdData.x + randomIdData.y) & 0xffff;\n"
+        )
+    }
+
     open fun createBase(instanced: Boolean, colors: Boolean): ShaderBuilder {
         val builder = createBuilder()
         builder.addVertex(createVertexStage(instanced, colors))
+        builder.addVertex(createRandomIdStage())
         builder.addFragment(createFragmentStage(instanced))
         return builder
     }
@@ -266,6 +276,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
         val builder = createBuilder()
         builder.addVertex(createVertexStage(instanced, false))
+        // no random id required
 
         // for the future, we could respect transparency from textures :)
         // base.addFragment(ShaderStage("material", emptyList(), ""))

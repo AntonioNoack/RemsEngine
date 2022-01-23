@@ -43,6 +43,9 @@ enum class RenderMode(val dlt: DeferredLayerType? = null) {
     NEAREST_X4,
     LINES, FRONT_BACK,
 
+    /** visualized the triangle structure by giving each triangle its own color */
+    SHOW_TRIANGLES,
+
     SHOW_AABB,
     PHYSICS,
 

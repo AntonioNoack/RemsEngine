@@ -7,6 +7,8 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
+import me.anno.utils.types.AABBs.clear
+import me.anno.utils.types.AABBs.set
 import me.anno.utils.types.AABBs.transformUnion
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -36,6 +38,14 @@ abstract class ProceduralMesh : MeshBaseComponent() {
     val numberOfTriangles
         get() = (mesh2.indices?.size ?: (mesh2.positions?.size ?: -9) / 3) / 3
 
+    @DebugProperty
+    @NotSerializedProperty
+    val localAABB = AABBd()
+
+    @DebugProperty
+    @NotSerializedProperty
+    val globalAABB = AABBd()
+
     @DebugAction
     fun invalidateMesh() {
         needsUpdate = true
@@ -55,7 +65,10 @@ abstract class ProceduralMesh : MeshBaseComponent() {
         // add aabb of that mesh with the transform
         ensureBuffer()
         mesh2.ensureBuffer()
-        mesh2.aabb.transformUnion(globalTransform, aabb)
+        localAABB.set(mesh2.aabb)
+        globalAABB.clear()
+        mesh2.aabb.transformUnion(globalTransform, globalAABB)
+        aabb.union(globalAABB)
         return true
     }
 

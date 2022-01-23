@@ -13,8 +13,8 @@ class PIProperty(
     val property: CachedProperty
 ) : IProperty<Any?> {
 
-    private fun getPath(): Path {
-        val path = instance.prefabPath!!
+    private fun getPath(): Path? {
+        val path = instance.prefabPath ?: return null
         // the index may not be set in the beginning
         val li = path.size - 1
         if (li >= 0 && path.lastIndex() < 0) {
@@ -36,7 +36,7 @@ class PIProperty(
         (panel as? TextStyleable)?.setBold()
         // info("setting value of $name, ${panel is TextStyleable}")
         property[instance] = value
-        pi.change(getPath(), name, value)
+        pi.change(getPath(), instance, name, value)
     }
 
     override fun get(): Any? {

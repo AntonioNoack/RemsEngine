@@ -26,7 +26,8 @@ open class Renderer(
         val depthRenderer01 = Renderer("depth01", true, ShaderPlus.DrawMode.DEPTH_LOG2_01, null)
         val depthRenderer = Renderer("depth", true, ShaderPlus.DrawMode.DEPTH_LOG2, null)
         val copyRenderer = Renderer("copy", false, ShaderPlus.DrawMode.COPY, null)
-        val depthOnlyRenderer = Renderer("", true, ShaderPlus.DrawMode.DEPTH_LOG2, null)
+        val depthOnlyRenderer = Renderer("depthOnly", true, ShaderPlus.DrawMode.DEPTH_LOG2, null)
+        val randomIdRenderer = Renderer("randomId", true, ShaderPlus.DrawMode.RANDOM_ID, null)
     }
 
 }

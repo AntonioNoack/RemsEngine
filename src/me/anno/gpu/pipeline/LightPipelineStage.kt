@@ -20,6 +20,7 @@ import me.anno.gpu.pipeline.M4x3Delta.m4x3x
 import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBatchSize
 import me.anno.gpu.pipeline.PipelineStage.Companion.setupLocalTransform
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.OpenGLShader.Companion.attribute
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.*
 import me.anno.gpu.texture.Clamping
@@ -313,7 +314,7 @@ class LightPipelineStage(
         val visualizeLightCountShader = lazy {
             Shader(
                 "visualize-light-count", null, "" +
-                        "attribute vec3 coords;\n" +
+                        "$attribute vec3 coords;\n" +
                         "uniform mat4 transform;\n" +
                         "uniform mat4x3 localTransform;\n" +
                         "uniform bool fullscreen;\n" +
@@ -333,11 +334,11 @@ class LightPipelineStage(
         val visualizeLightCountShaderInstanced = lazy {
             Shader(
                 "visualize-light-count-instanced", null, "" +
-                        "attribute vec3 coords;\n" +
-                        "attribute vec4 instanceTrans0;\n" +
-                        "attribute vec4 instanceTrans1;" +
-                        "attribute vec4 instanceTrans2;\n" +
-                        "attribute vec4 shadowData;\n" +
+                        "$attribute vec3 coords;\n" +
+                        "$attribute vec4 instanceTrans0;\n" +
+                        "$attribute vec4 instanceTrans1;" +
+                        "$attribute vec4 instanceTrans2;\n" +
+                        "$attribute vec4 shadowData;\n" +
                         "uniform mat4 transform;\n" +
                         "uniform bool isDirectional;\n" +
                         "void main(){\n" +

@@ -14,11 +14,11 @@ import me.anno.input.Input
 import me.anno.input.Touch
 import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths.pow
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.editor.sceneView.Gizmos
 import me.anno.ui.input.EnumInput
-import me.anno.maths.Maths.pow
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Lists.firstInstanceOrNull
 import me.anno.utils.types.Matrices.distance
@@ -256,12 +256,14 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
     private fun onChangeTransform(entity: Entity) {
         // save changes to file
         val root = entity.getRoot(Entity::class)
-        val prefab = root.prefab!!
-        val path = entity.prefabPath!!
+        val prefab = root.prefab
+        val path = entity.prefabPath
         val transform = entity.transform
-        prefab.set(path, "position", transform.localPosition)
-        prefab.set(path, "rotation", transform.localRotation)
-        prefab.set(path, "scale", transform.localScale)
+        if (prefab != null && path != null) {
+            prefab.set(path, "position", transform.localPosition)
+            prefab.set(path, "rotation", transform.localRotation)
+            prefab.set(path, "scale", transform.localScale)
+        }
         // entity.invalidateAABBsCompletely()
         // entity.invalidateChildTransforms()
         invalidateInspector()

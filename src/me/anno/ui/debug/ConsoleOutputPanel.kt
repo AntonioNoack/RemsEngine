@@ -30,6 +30,17 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
     override fun tickUpdate() {
         invalidateDrawing()
         tooltip = text
+        textColor = getTextColor(text) and 0x77ffffff
+    }
+
+    fun getTextColor(msg: String): Int {
+        return when {
+            msg.startsWith("[INF") -> textColor
+            msg.startsWith("[WAR") -> 0xffff00
+            msg.startsWith("[ERR") -> 0xff0000
+            msg.startsWith("[DEB") || msg.startsWith("[FIN") -> 0x77ff77
+            else -> -1
+        } or DefaultStyle.black
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
@@ -46,13 +57,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             for (i in lcl.lastIndex downTo 0) {
                 val msg = lcl[i]
                 val panel = COLine(list, msg, style)
-                val color = when {
-                    msg.startsWith("[INF") -> panel.textColor
-                    msg.startsWith("[WAR") -> 0xffff00
-                    msg.startsWith("[ERR") -> 0xff0000
-                    msg.startsWith("[DEB") || msg.startsWith("[FIN") -> 0x77ff77
-                    else -> -1
-                } or DefaultStyle.black
+                val color = getTextColor(msg)
                 // todo if line contains file, then add a section for that
                 // todo styled simple text panel: colors, and actions for sections of text
                 panel.focusTextColor = color

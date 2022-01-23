@@ -24,6 +24,10 @@ open class TextButton(
     style: Style
 ) : TextPanel(title, style.getChild("button")) {
 
+    init {
+        tooltip = title
+    }
+
     constructor(style: Style) : this("", false, style)
 
     constructor(title: String, description: String, isSquare: Boolean, style: Style) : this(title, isSquare, style) {

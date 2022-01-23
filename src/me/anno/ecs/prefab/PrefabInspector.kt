@@ -11,6 +11,7 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ui.ComponentUI
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
+import me.anno.gpu.drawing.DrawRectangles
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -82,7 +83,9 @@ class PrefabInspector(val prefab: Prefab) {
         savingTask.update()
     }
 
-    fun reset(path: Path) {
+    fun reset(path: Path?) {
+        // todo if path is null, we could remember the original values :)
+        path ?: return
         if (!prefab.isWritable) throw ImmutablePrefabException(prefab.source)
         // if (sets.removeIf { it.path == path }) {
         if (sets.removeMajorIf { it == path }) {
@@ -92,7 +95,8 @@ class PrefabInspector(val prefab: Prefab) {
         }
     }
 
-    fun reset(path: Path, name: String) {
+    fun reset(path: Path?, name: String) {
+        path ?: return
         if (!prefab.isWritable) throw ImmutablePrefabException(prefab.source)
         // if (sets.removeIf { it.path == path && it.name == name }) {
         if (sets.contains(path, name)) {
@@ -108,19 +112,22 @@ class PrefabInspector(val prefab: Prefab) {
         return oldChange != null
     }*/
 
-    fun isChanged(path: Path, name: String): Boolean {
+    fun isChanged(path: Path?, name: String): Boolean {
+        path ?: return false
         val oldChange = sets[path, name] // .firstOrNull { it.path == path && it.name == name }
         return oldChange != null
     }
 
-    fun change(path: Path, name: String, value: Any?) {
+    fun change(path: Path?, instance: PrefabSaveable, name: String, value: Any?) {
+        instance[name] = value
+        path?:return
         prefab.set(path, name, value)
         onChange()
     }
 
     fun inspect(instance: PrefabSaveable, list: PanelListY, style: Style) {
 
-        if (instance.prefab !== prefab)
+        if (instance.prefab !== prefab && instance.prefab != null)
             LOGGER.warn(
                 "Component ${instance.name}:${instance.className} " +
                         "is not part of tree ${root.name}:${root.className}, " +
@@ -129,17 +136,18 @@ class PrefabInspector(val prefab: Prefab) {
             )
 
         val path = instance.prefabPath
-        if (path == null) {
+        /*if (path == null) {
             LOGGER.error(
                 "Missing path for " +
                         "[${instance.listOfHierarchy.joinToString { "${it.className}:${it.name}" }}], " +
                         "prefab: '${instance.prefab?.source}', root prefab: '${instance.root.prefab?.source}'"
             )
             return
-        }
+        }*/
 
         // the index may not be set in the beginning
-        fun getPath(): Path {
+        fun getPath(): Path? {
+            path ?: return null
             if (path.lastIndex() < 0) {
                 path.index = instance.parent!!.getIndexOf(instance)
             }
@@ -154,14 +162,14 @@ class PrefabInspector(val prefab: Prefab) {
 
         list.add(TextInput("Name", "", instance.name, style).apply {
             setBold(isChanged(getPath(), "name"))
-            addChangeListener { setBold(); change(getPath(), "name", it); instance.name = it }
+            addChangeListener { setBold(); change(getPath(), instance, "name", it) }
             setResetListener {
                 unsetBold(); reset(getPath(), "name")
                 instance.name = prefab?.name ?: ""; instance.name
             }
         })
         list.add(TextInput("Description", "", instance.description, style).apply {
-            addChangeListener { setBold(); change(getPath(), "description", it); instance.description = it }
+            addChangeListener { setBold(); change(getPath(), instance, "description", it) }
             setResetListener {
                 unsetBold(); reset(getPath(), "description")
                 instance.description = prefab?.description ?: ""; instance.description
@@ -181,12 +189,31 @@ class PrefabInspector(val prefab: Prefab) {
         }
 
         if (instance is CustomEditMode) {
-            list.add(TextButton("Toggle Edit Mode", false, style)
-                .addLeftClickListener {
-                    EditorState.editMode =
-                        if (EditorState.editMode === instance) null
-                        else instance
-                })
+            list.add(object : TextButton("Toggle Edit Mode", false, style) {
+
+                var borderColor = 0
+
+                override fun tickUpdate() {
+                    super.tickUpdate()
+                    val newBorderColor = if (EditorState.editMode === instance) {
+                        instance.getEditModeBorderColor()
+                    } else 0
+                    if (newBorderColor != borderColor) {
+                        borderColor = newBorderColor
+                        invalidateDrawing()
+                    }
+                }
+
+                override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+                    super.onDraw(x0, y0, x1, y1)
+                    DrawRectangles.drawBorder(x, y, w, h, borderColor, 2)
+                }
+
+            }.addLeftClickListener {
+                EditorState.editMode =
+                    if (EditorState.editMode === instance) null
+                    else instance
+            })
         }
 
         val reflections = instance.getReflections()

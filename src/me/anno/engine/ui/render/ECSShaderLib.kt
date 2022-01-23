@@ -2,6 +2,7 @@ package me.anno.engine.ui.render
 
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.OpenGLShader.Companion.attribute
 import me.anno.gpu.shader.builder.Variable
 
 object ECSShaderLib {
@@ -46,7 +47,7 @@ object ECSShaderLib {
 
         val shader2 = BaseShader(
             "clear-pbr", "" +
-                    "attribute vec3 coords;\n" +
+                    "$attribute vec3 coords;\n" +
                     "uniform mat4 transform;\n" +
                     "void main(){\n" +
                     "   vec3 finalPosition = coords;\n" +

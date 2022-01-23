@@ -30,7 +30,7 @@ open class Shader(
 
         // LOGGER.debug("$shaderName\nGEOMETRY:\n$geometry\nVERTEX:\n$vertex\nVARYING:\n$varying\nFRAGMENT:\n$fragment")
 
-        val varyings = varying.map { Varying(if (it.isFlat) "flat" else "", it.type, it.name) }
+        val varyings = varying.map { Varying(if (it.isFlat || it.type.isFlat) "flat" else "", it.type, it.name) }
 
         val program = glCreateProgram()
         GFX.check()
@@ -54,7 +54,7 @@ open class Shader(
             geo = geo.replace("#varying", varyings.joinToString("\n") { "\t${it.type.glslName} ${it.name};" })
             geo = geo.replace("#inOutVarying", varyings.joinToString("") {
                 "" +
-                        "${it.modifiers} in  ${it.type.glslName} ${it.vShaderName}[];\n" +
+                        "${it.modifiers} in ${it.type.glslName} ${it.vShaderName}[];\n" +
                         "${it.modifiers} out ${it.type.glslName} ${it.fShaderName};\n"
             })
             compile(name, program, GL_GEOMETRY_SHADER, geo)

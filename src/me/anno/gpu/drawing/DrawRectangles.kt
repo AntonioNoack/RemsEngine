@@ -2,6 +2,7 @@ package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.ShaderLib
+import me.anno.utils.Color.a
 import org.joml.Vector4fc
 
 object DrawRectangles {
@@ -54,6 +55,14 @@ object DrawRectangles {
         shader.v4f("color", color)
         GFX.flat01.draw(shader)
         GFX.check()
+    }
+
+    fun drawBorder(x: Int, y: Int, w: Int, h: Int, color: Int, thicknessX: Int = 1, thicknessY: Int = thicknessX) {
+        if (color.a() == 0) return
+        drawRect(x, y, w, thicknessY, color)
+        drawRect(x, y + h - thicknessY, w, thicknessY, color)
+        drawRect(x, y, thicknessX, h, color)
+        drawRect(x + w - thicknessX, y, thicknessX, h, color)
     }
 
 }

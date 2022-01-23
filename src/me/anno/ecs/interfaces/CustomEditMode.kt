@@ -1,18 +1,13 @@
 package me.anno.ecs.interfaces
 
+import me.anno.config.DefaultStyle.black
 import me.anno.input.MouseButton
 
 interface CustomEditMode {
 
-    // todo right click: on, catchable
-    // todo middle click: ok, awkward
-    // todo left click: only if in special mode, escape with esc?
-    // todo     - show border, that in special edit mode
-    // todo left drag: move stuff -> overrideable (?)
+    // functions return whether they consumed the event
 
-    // todo functions return whether they consumed the event (?)
-
-    fun getEditModeBorderColor(): Int = 0x00ff00
+    fun getEditModeBorderColor(): Int = 0x00ff00 or black
 
     fun onEditClick(button: MouseButton, long: Boolean): Boolean = false
     fun onEditClick(button: Int) = false

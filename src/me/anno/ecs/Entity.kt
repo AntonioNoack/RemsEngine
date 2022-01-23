@@ -1,5 +1,7 @@
 package me.anno.ecs
 
+import me.anno.ecs.annotations.DebugAction
+import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.components.CollidingComponent
 import me.anno.ecs.components.collider.Collider
@@ -21,7 +23,6 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
-import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AABBs.all
 import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.AABBs.set
@@ -63,25 +64,32 @@ class Entity() : PrefabSaveable(), Inspectable {
         }
     }
 
+    @DebugProperty
     @NotSerializedProperty
     var hasValidCollisionMask = false
 
+    @DebugProperty
     @NotSerializedProperty
     var hasSpaceFillingComponents = false
 
     // renderable-cache for faster rendering
+    @DebugProperty
     @NotSerializedProperty
     var hasRenderables = false
 
+    @DebugProperty
     @NotSerializedProperty
     var hasOnUpdate = true
 
+    @DebugProperty
     @NotSerializedProperty
     var hasOnVisibleUpdate = true
 
+    @DebugProperty
     @NotSerializedProperty
     var hasControlReceiver = false
 
+    @DebugProperty
     @NotSerializedProperty
     var isCreated = false
     fun create() {
@@ -156,20 +164,25 @@ class Entity() : PrefabSaveable(), Inspectable {
 
 
     // aabb cache for faster rendering and collision checks
+    @DebugProperty
     @NotSerializedProperty
     val aabb = AABBd()
 
+    @DebugProperty
     @NotSerializedProperty
     var hasValidAABB = false
 
     // is set by the engine
+    @DebugProperty
     @NotSerializedProperty
     var isPhysicsControlled = false
 
+    @DebugProperty
     @NotSerializedProperty
     var hasBeenVisible = false
 
     // collision mask for faster collision checks
+    @DebugProperty
     @NotSerializedProperty
     var collisionMask = 0
 
@@ -246,6 +259,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         }
     }
 
+    @DebugAction
     fun invalidateAABBsCompletely() {
         invalidateOwnAABB()
         invalidateChildAABBs()
@@ -269,6 +283,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         }
     }
 
+    @DebugAction
     fun invalidateCollisionMask() {
         parentEntity?.invalidateCollisionMask()
         hasValidCollisionMask = false
@@ -365,6 +380,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         return hasEventReceiver
     }
 
+    @DebugAction
     fun update(): Boolean {
         val hasUpdate = executeOptimizedEvent(
             { it.hasOnUpdate },
@@ -386,6 +402,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         return hasDrawGUI
     }*/
 
+    @DebugAction
     fun updateVisible(): Boolean {
         val hasUpdate = executeOptimizedEvent(
             { it.hasOnVisibleUpdate },
@@ -510,7 +527,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         // formalities
         if (oldParent != null) {
             oldParent.remove(this)
-            oldParent.invalidateOwnAABB()
+            oldParent.invalidateAABBsCompletely()
             oldParent.invalidateCollisionMask()
         }
 
@@ -521,6 +538,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         transformUpdate(keepWorldTransform)
         // collision mask
         parent.invalidateCollisionMask()
+        invalidateAABBsCompletely()
 
         checkNeedsPhysics()
 
@@ -568,11 +586,9 @@ class Entity() : PrefabSaveable(), Inspectable {
         val parent = parent as? Entity
         if (parent != null) {
             parent.internalChildren.remove(this)
-            val tmpMat = JomlPools.mat4x3d.create()
-            if (anyComponent { it.fillSpace(tmpMat, tmpAABB) }) {
+            if (anyComponent { it.fillSpace(transform.globalTransform, tmpAABB) }) {
                 parent.invalidateCollisionMask()
             }
-            JomlPools.mat4x3d.sub(1)
             parent.invalidateOwnAABB()
         }
     }
@@ -611,19 +627,19 @@ class Entity() : PrefabSaveable(), Inspectable {
                 invalidateRigidbody()
             }
             is MeshBaseComponent -> {
-                invalidateOwnAABB()
                 invalidateCollisionMask()
+                component.ensureBuffer()
             }
-            is LightComponentBase -> invalidateOwnAABB()
         }
         hasRenderables = hasComponent(MeshBaseComponent::class, false) ||
                 hasComponent(LightComponentBase::class, false)
         val tmpAABB = tmpAABB.all()
-        val globalTransform = transform.globalTransform
+        val fillsSpace = component.fillSpace(transform.globalTransform, tmpAABB)
+        if (fillsSpace) invalidateOwnAABB()
         hasSpaceFillingComponents = hasRenderables ||
                 anyComponent {
                     it !is MeshBaseComponent && it !is LightComponentBase &&
-                            it.fillSpace(globalTransform, tmpAABB)
+                            it.fillSpace(transform.globalTransform, tmpAABB)
                 }
     }
 
