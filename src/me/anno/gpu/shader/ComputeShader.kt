@@ -85,15 +85,16 @@ class ComputeShader(
             intArrayOf(sx, sy, sz, maxUnitsPerGroup)
         }
 
-        fun bindTexture(slot: Int, texture: Texture2D, mode: ComputeTextureMode) {
-            glBindImageTexture(slot, texture.pointer, 0, true, 0, mode.code, GL_RGBA32F)
+        // todo this type could be derived from the shader or texture
+        fun bindTexture(slot: Int, texture: Texture2D, mode: ComputeTextureMode, type: Int = GL_RGBA32F) {
+            glBindImageTexture(slot, texture.pointer, 0, true, 0, mode.code, type)
         }
 
         /**
          * for array textures to bind a single layer
          * */
-        fun bindTexture(slot: Int, texture: Texture2D, mode: ComputeTextureMode, layer: Int) {
-            glBindImageTexture(slot, texture.pointer, 0, false, layer, mode.code, GL_RGBA32F)
+        fun bindTexture(slot: Int, texture: Texture2D, mode: ComputeTextureMode, type: Int, layer: Int) {
+            glBindImageTexture(slot, texture.pointer, 0, false, layer, mode.code, type)
         }
 
     }
