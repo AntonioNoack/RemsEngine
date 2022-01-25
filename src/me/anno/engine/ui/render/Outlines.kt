@@ -79,7 +79,7 @@ object Outlines {
         scaledMax.sub(scaledMin)
 
         if (scaledMax.x.isNaN()) {
-            LOGGER.warn("Outlines issue: $scaledMax from \n${RenderView.cameraMatrix} * translate($camPosition) * $transform")
+            // LOGGER.warn("Outlines issue: $scaledMax from \n${RenderView.cameraMatrix} * translate($camPosition) * $transform")
             return
         }
 

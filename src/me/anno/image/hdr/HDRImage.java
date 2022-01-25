@@ -59,7 +59,7 @@ public class HDRImage extends Image {
 
     @Override
     public int getRGB(int index) {
-        int i0 = index * 3;
+        int i0 = index * getNumChannels();
         float delta = typicalBrightness;
         float r = pixels[i0] * delta;
         float g = pixels[i0 + 1] * delta;
@@ -80,14 +80,16 @@ public class HDRImage extends Image {
         int[] data = new int[size];
         float[] pixels = this.pixels;
         float delta = typicalBrightness;
+        int pixelStride = getNumChannels() - 2;
         for (int i = 0, i0 = 0; i < size; i++) {
             float r = pixels[i0++] * delta;
             float g = pixels[i0++] * delta;
-            float b = pixels[i0++] * delta;
+            float b = pixels[i0] * delta;
             r = r / (r + 1f) * 255f;
             g = g / (g + 1f) * 255f;
             b = b / (b + 1f) * 255f;
             data[i] = rgb((int) r, (int) g, (int) b);
+            i0 += pixelStride;
         }
         return new IntImage(width, height, data, hasAlphaChannel);
     }

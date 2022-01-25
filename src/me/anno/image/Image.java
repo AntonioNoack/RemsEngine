@@ -29,6 +29,12 @@ public abstract class Image implements ICacheData {
 
     public int width, height;
 
+    public int getIndex(int x, int y) {
+        x = Math.max(Math.min(x, width - 1), 0);
+        y = Math.max(Math.min(y, height - 1), 0);
+        return x + y * width;
+    }
+
     public int getNumChannels() {
         return numChannels;
     }
@@ -79,11 +85,7 @@ public abstract class Image implements ICacheData {
     }
 
     public int getSafeRGB(int x, int y) {
-        if (x < 0) x = 0;
-        else if (x >= width) x = width - 1;
-        if (y < 0) y = 0;
-        else if (y >= height) y = height - 1;
-        return getRGB(x + y * width);
+        return getRGB(getIndex(x, y));
     }
 
     public void createTexture(Texture2D texture, boolean checkRedundancy) {
