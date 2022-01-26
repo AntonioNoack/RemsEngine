@@ -3,6 +3,7 @@ package me.anno.maths
 import org.joml.*
 import kotlin.math.*
 
+@Suppress("unused")
 object Maths {
 
     const val SQRT1_2 = 0.7071067811865476
@@ -53,6 +54,7 @@ object Maths {
     fun length(dx: Double, dy: Double, dz: Double) = sqrt(dx * dx + dy * dy + dz * dz)
     fun distance(x0: Float, y0: Float, x1: Float, y1: Float) = length(x1 - x0, y1 - y0)
     fun distance(x0: Double, y0: Double, x1: Double, y1: Double) = length(x1 - x0, y1 - y0)
+
     fun mix(a: Short, b: Short, f: Double): Double {
         return a * (1f - f) + b * f
     }
@@ -67,6 +69,14 @@ object Maths {
 
     fun mix(a: Double, b: Double, f: Double): Double {
         return a * (1f - f) + b * f
+    }
+
+    fun unmix(a: Float, b: Float, f: Float): Float {
+        return (f - a) / (b - a)
+    }
+
+    fun unmix(a: Double, b: Double, f: Double): Double {
+        return (f - a) / (b - a)
     }
 
     fun mix(a: Int, b: Int, f: Float): Int {

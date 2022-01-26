@@ -8,6 +8,7 @@ import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.style.Style
+import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import org.apache.logging.log4j.LogManager
 import kotlin.reflect.KClass
 
@@ -16,13 +17,13 @@ import kotlin.reflect.KClass
  * input panel for drag-dropping references to instances in the same scene
  * */
 class PrefabSaveableInput<Type : PrefabSaveable>(val title: String, val clazz: KClass<*>, value0: Type?, style: Style) :
-    TextPanel("$title: ${value0?.name}", style) {
+    TextPanel("$title: ${getName(value0)}", style) {
 
     var value = value0
         set(value) {
             field = value
+            text = "$title: ${getName(value)}"
             changeListener(value)
-            update(value)
         }
 
     private var changeListener: (v: Type?) -> Unit = {}
@@ -42,11 +43,6 @@ class PrefabSaveableInput<Type : PrefabSaveable>(val title: String, val clazz: K
                 value = resetListener()
             }))
         }
-    }
-
-    fun update(value0: Type?) {
-        text = "$title: ${value0?.name}"
-        invalidateDrawing()
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
@@ -83,6 +79,12 @@ class PrefabSaveableInput<Type : PrefabSaveable>(val title: String, val clazz: K
     }
 
     companion object {
+
+        fun getName(value: PrefabSaveable?): String {
+            value ?: return "null"
+            return value.name.ifEmpty { value.className.camelCaseToTitle() }
+        }
+
         private val LOGGER = LogManager.getLogger(PrefabSaveableInput::class)
     }
 

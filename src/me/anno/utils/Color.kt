@@ -50,6 +50,12 @@ object Color {
 
     fun argb(a: Int, r: Int, g: Int, b: Int) = rgba(r, g, b, a)
 
+    fun Int.hasAlpha() = this.ushr(24) != 255
+
+    fun Vector3fc.hasAlpha() = false
+
+    fun Vector4fc.hasAlpha() = w() < 1f
+
     fun normARGB(v: Vector3f): Int {
         val r = v.x
         val g = v.y

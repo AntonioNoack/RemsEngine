@@ -6,6 +6,11 @@ import me.anno.image.colormap.LinearColorMap
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.mixARGB
+import me.anno.maths.Maths.unmix
+import me.anno.ui.base.components.Padding
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
@@ -14,8 +19,6 @@ import me.anno.utils.LOGGER
 import me.anno.utils.OS.desktop
 import me.anno.utils.files.Files.use
 import me.anno.utils.hpc.HeavyProcessing.processBalanced
-import me.anno.maths.Maths.mix
-import me.anno.maths.Maths.mixARGB
 import org.joml.Vector2f
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
@@ -271,11 +274,12 @@ object ImageWriter {
         crossinline getRGB: (x: Int, y: Int, i: Int) -> Int
     ) {
         val img = BufferedImage(w, h, if (alpha) 2 else 1)
+        val buffer = img.raster.dataBuffer
         if (minPerThread !in 0 until w * h) {// multi-threading is forbidden
             for (y in 0 until h) {
                 for (x in 0 until w) {
                     val i = x + y * w
-                    img.setRGB(x, y, getRGB(x, y, i))
+                    buffer.setElem(i, getRGB(x, y, i))
                 }
             }
         } else {
@@ -283,8 +287,26 @@ object ImageWriter {
                 for (i in i0 until i1) {
                     val x = i % w
                     val y = i / w
-                    img.setRGB(x, y, getRGB(x, y, i))
+                    buffer.setElem(i, getRGB(x, y, i))
                 }
+            }
+        }
+        use(getFile(name).outputStream()) {
+            ImageIO.write(img, if (name.endsWith(".jpg")) "jpg" else "png", it)
+        }
+    }
+
+    fun writeImageInt(
+        w: Int, h: Int, alpha: Boolean,
+        name: String,
+        pixels: IntArray
+    ) {
+        val img = BufferedImage(w, h, if (alpha) 2 else 1)
+        val buffer = img.raster.dataBuffer
+        for (y in 0 until h) {
+            for (x in 0 until w) {
+                val i = x + y * w
+                buffer.setElem(i, pixels[i])
             }
         }
         use(getFile(name).outputStream()) {
@@ -357,6 +379,62 @@ object ImageWriter {
         LOGGER.info("${(t1 - t0).toFloat() / (w * h)}ns/px")
         val cm = LinearColorMap(0, minColor, maxColor)
         writeImageFloatWithOffsetAndStride(wr, hr, thickness * (w + 1), w, name, false, cm, image)
+    }
+
+    fun writeImageProfile(
+        values: FloatArray, h: Int,
+        name: String,
+        normalize: Boolean,
+        map: ColorMap = LinearColorMap.default,
+        background: Int = -1,
+        foreground: Int = 0xff shl 24,
+        alpha: Boolean = false,
+        padding: Padding = Padding((values.size + h) / 50 + 2)
+    ) {
+        val map2 = if (normalize) map.normalized(values) else map
+        writeImageProfile(values, h, name, map2, background, foreground, alpha, padding)
+    }
+
+    fun writeImageProfile(
+        values: FloatArray, h: Int,
+        name: String,
+        map: ColorMap,
+        background: Int = -1,
+        foreground: Int = 0xff shl 24,
+        alpha: Boolean = false,
+        padding: Padding = Padding((values.size + h) / 50 + 2)
+    ) {
+        // todo different backgrounds for positive & negative values?
+        // todo on steep sections, use more points
+        // todo option to make the colored line thicker
+        // to do write x and y axis notations? (currently prefer no)
+        // define padding
+        // todo support stretching (interpolation/averaging) of values?
+        val w = values.size
+        val w2 = w + padding.width
+        val h2 = h + padding.height
+        val pixels = IntArray(w2 * h2)
+        val min = map.min
+        val max = map.max
+        // to do better (memory aligned) writes?
+        val my = h - 1
+        pixels.fill(background)
+        for (x in 0 until w) {
+            val offset = x + padding.left + padding.top * w2
+            val v = values[x]
+            if (v in min..max) {
+                val color = map.getColor(v)
+                val cy = clamp((unmix(max, min, v) * h).toInt(), 0, my)
+                // draw background until there ... done automatically
+                // draw colored pixel
+                pixels[offset + cy * w2] = color
+                // draw foreground from there
+                for (y in cy + 1 until h) {
+                    pixels[offset + y * w2] = foreground
+                }
+            }
+        }
+        writeImageInt(w2, h2, alpha, name, pixels)
     }
 
 }

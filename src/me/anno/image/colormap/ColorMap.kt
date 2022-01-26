@@ -2,6 +2,11 @@ package me.anno.image.colormap
 
 interface ColorMap {
 
+    val min: Float
+    val max: Float
+
+    val hasAlpha: Boolean
+
     fun getColor(v: Float): Int
 
     fun clone(min: Float, max: Float): ColorMap
@@ -16,7 +21,7 @@ interface ColorMap {
                 if (v > max) max = v
             }
         }
-        return clone(-max, max)
+        return clone(min, max)
     }
 
 }

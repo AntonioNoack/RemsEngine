@@ -22,7 +22,7 @@ class ContentPanel(style: Style) : PanelGroup(style) {
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
 
-        val cw = (p.defaultNodeSize * p.zoom).toInt()
+        val cw = (p.defaultNodeSize * p.scale).toInt()
         val doneNodes = HashSet<Node>()
         for (node in p.graph?.nodes ?: emptyList()) {
             if (doneNodes.add(node)) {
@@ -57,7 +57,7 @@ class ContentPanel(style: Style) : PanelGroup(style) {
         super.placeInParent(x, y)
 
         // place all children
-        val cw = p.defaultNodeSize * p.zoom
+        val cw = p.defaultNodeSize * p.scale
         val center = p.center
         for (child in p.childrenMap.values) {
             val node = child.node
