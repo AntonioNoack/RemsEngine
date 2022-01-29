@@ -5,10 +5,10 @@ import me.anno.cache.data.ICacheData
 import me.anno.cache.data.ImageData
 import me.anno.cache.data.LateinitTexture
 import me.anno.gpu.GFXBase1
-import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
+import me.anno.gpu.texture.TextureLib
 import me.anno.image.raw.GPUImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
@@ -81,9 +81,9 @@ object ImageGPUCache : CacheSection("Images") {
     private fun generateInternalTexture(name: String): ICacheData {
         return try {
             val img = GFXBase1.loadAssetsImage(name)
-            val tex = Texture2D("internal-texture", img.width, img.height, 1)
-            tex.create(img, sync = false, checkRedundancy = true)
-            tex
+            val texture = Texture2D("internal-texture", img.width, img.height, 1)
+            texture.create(img, sync = false, checkRedundancy = true)
+            texture
         } catch (e: FileNotFoundException) {
             LOGGER.warn("Internal texture $name not found!")
             TextureLib.nullTexture
@@ -101,11 +101,9 @@ object ImageGPUCache : CacheSection("Images") {
         generator: (callback: (ITexture2D?) -> Unit) -> Unit
     ): LateinitTexture? {
         return getEntry(key, timeout, async) {
-            LateinitTexture().apply {
-                generator {
-                    texture = it
-                }
-            }
+            val textureContainer = LateinitTexture()
+            generator { textureContainer.texture = it }
+            textureContainer
         } as? LateinitTexture
     }
 
@@ -117,11 +115,9 @@ object ImageGPUCache : CacheSection("Images") {
         generator: (callback: (ITexture2D?) -> Unit) -> Unit
     ): LateinitTexture? {
         return getEntryLimited(key, timeout, async, limit) {
-            LateinitTexture().apply {
-                generator {
-                    texture = it
-                }
-            }
+            val textureContainer = LateinitTexture()
+            generator { textureContainer.texture = it }
+            textureContainer
         } as? LateinitTexture
     }
 

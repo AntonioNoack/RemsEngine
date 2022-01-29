@@ -5,16 +5,19 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.OpenGL.renderDefault
-import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
+import me.anno.image.ImageCPUCache
+import me.anno.image.ImageWriter
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
+import me.anno.maths.Maths.clamp
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.objects.geometric.Circle
@@ -26,10 +29,8 @@ import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import org.joml.Matrix4fArrayList
-import org.joml.Vector2f
-import org.joml.Vector4f
-import org.joml.Vector4fc
+import me.anno.utils.OS.documents
+import org.joml.*
 import org.lwjgl.opengl.GL11.*
 import java.net.URL
 

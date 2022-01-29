@@ -1,4 +1,4 @@
-package me.anno.objects.effects.types
+package me.anno.objects.effects
 
 import me.anno.utils.io.ResourceHelper
 import me.anno.utils.io.Streams.readText

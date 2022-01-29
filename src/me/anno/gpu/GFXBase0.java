@@ -256,7 +256,9 @@ public class GFXBase0 {
                         if (w != width || h != height) {
                             width = w;
                             height = h;
+                            // todo why is the screen becoming black for a few frames after changing the size?
                             Input.INSTANCE.invalidateLayout();
+                            Input.INSTANCE.setFramesSinceLastInteraction(0);
                         }
                         return Unit.INSTANCE;
                     });

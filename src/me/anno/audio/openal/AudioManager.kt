@@ -1,5 +1,6 @@
 package me.anno.audio.openal
 
+import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.objects.Audio
 import me.anno.objects.Transform
 import me.anno.studio.StudioBase.Companion.shallStop
@@ -9,7 +10,6 @@ import me.anno.studio.rems.RemsStudio.editorTimeDilation
 import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.studio.rems.RemsStudio.root
 import me.anno.utils.Sleep.sleepABit
-import me.anno.utils.Sleep.sleepShortly
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.openal.AL
 import org.lwjgl.openal.ALC
@@ -56,7 +56,7 @@ object AudioManager {
                 if (RemsStudio.isPlaying && ctr++ > 15) {
                     ctr = 0; checkTree(root)
                 }
-                if (RemsStudio.isPlaying && needsUpdate && abs(time - lastUpdate) > 200 * 1_000_000) {
+                if (RemsStudio.isPlaying && needsUpdate && abs(time - lastUpdate) > 200 * MILLIS_TO_NANOS) {
                     // ensure 200 ms delay between changing the time / dilation
                     // for performance reasons
                     lastUpdate = time
@@ -79,7 +79,7 @@ object AudioManager {
     private fun checkIsDestroyed() {
         // todo detect if the primary audio device was changed by the user...
         val time = System.nanoTime()
-        if (abs(time - lastCheckedTime) > 100_000_000) {
+        if (abs(time - lastCheckedTime) > 100 * MILLIS_TO_NANOS) {
             lastCheckedTime = time
             // 0.1ms -> it would be fine to even check it every time
             // we could consider only playback devices, but realistically the audio config shouldn't change often

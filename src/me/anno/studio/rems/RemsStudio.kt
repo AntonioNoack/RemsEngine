@@ -42,9 +42,6 @@ import java.io.File
 // todo visualize audio frequency, always!!!, from 25Hz to 48kHz
 // inspiration: https://www.youtube.com/watch?v=RA5UiLYWdbM&ab_channel=TomScott
 
-// todo test rendering
-// todo background needs to be black again
-
 // todo triangle pixelation instead of quad pixelation, looks nicer (e.g. hex pattern)
 
 // todo use YouTube videos as a video source?

@@ -37,7 +37,6 @@ import org.apache.logging.log4j.LogManager
 import java.io.File
 import kotlin.math.roundToInt
 
-// todo save the position on the timeline and the scale
 // todo option to reset the timeline
 class Project(var name: String, val file: FileReference) : Saveable() {
 

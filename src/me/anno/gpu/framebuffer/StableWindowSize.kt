@@ -1,7 +1,6 @@
 package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
-import me.anno.studio.rems.RemsStudio
 
 class StableWindowSize {
 
@@ -16,7 +15,11 @@ class StableWindowSize {
 
     private var lastSizeUpdate = 0L
 
-    fun updateSize(width: Int, height: Int, onlyShowTarget: Boolean) {
+    fun updateSize(width: Int, height: Int) {
+        updateSize(width, height, -1, -1)
+    }
+
+    fun updateSize(width: Int, height: Int, targetWidth: Int, targetHeight: Int) {
 
         var stableWidth = 0
         var stableHeight = 0
@@ -46,13 +49,13 @@ class StableWindowSize {
         }
 
         // must be first for the frame to be centered
-        if (onlyShowTarget) {
-            if (stableWidth * RemsStudio.targetHeight > RemsStudio.targetWidth * stableHeight) {
-                stableWidth = stableHeight * RemsStudio.targetWidth / RemsStudio.targetHeight
+        if (targetWidth > 0 && targetHeight > 0) {
+            if (stableWidth * targetHeight > targetWidth * stableHeight) {
+                stableWidth = stableHeight * targetWidth / targetHeight
                 dx = (width - stableWidth) / 2
                 dy = 0
             } else {
-                stableHeight = stableWidth * RemsStudio.targetHeight / RemsStudio.targetWidth
+                stableHeight = stableWidth * targetHeight / targetWidth
                 dy = (height - stableHeight) / 2
                 dx = 0
             }

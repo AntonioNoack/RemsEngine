@@ -20,9 +20,6 @@ import me.anno.ui.editor.stacked.Option
 import me.anno.ui.editor.stacked.StackPanel
 import me.anno.ui.style.Style
 import org.jtransforms.fft.FloatFFT_1D
-import kotlin.math.abs
-import kotlin.math.exp
-import kotlin.math.max
 
 class SoundPipeline() : Saveable(), Inspectable {
 

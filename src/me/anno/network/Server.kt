@@ -33,7 +33,7 @@ open class Server : Closeable {
 
     var shutdown = false
 
-    val nextRandomId = Random(System.nanoTime() shl 32)
+    val nextRandomId = Random(System.nanoTime() xor System.currentTimeMillis())
 
     val clients = HashSet<TCPClient>(1024)
 

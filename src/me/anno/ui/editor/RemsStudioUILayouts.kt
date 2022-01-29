@@ -162,13 +162,13 @@ object RemsStudioUILayouts {
         // todo shortcuts, which can be set for all actions??...
 
         val callback = { GFX.requestAttentionMaybe() }
-        options.addAction(renderTitle, "Settings") { selectTransform(RenderSettings) }
-        options.addAction(renderTitle, "Set%") { renderSetPercent(true, callback) }
-        options.addAction(renderTitle, "Full") { renderPart(1, true, callback) }
-        options.addAction(renderTitle, "Half") { renderPart(2, true, callback) }
-        options.addAction(renderTitle, "Quarter") { renderPart(4, true, callback) }
-        options.addAction(renderTitle, "Override Audio") { overrideAudio(InvalidRef, true, callback) }
-        options.addAction(renderTitle, "Audio") { renderAudio(true, callback) }
+        options.addAction(renderTitle, Dict["Settings", "ui.top.render.settings"]) { selectTransform(RenderSettings) }
+        options.addAction(renderTitle, Dict["Set%", "ui.top.render.topPercent"]) { renderSetPercent(true, callback) }
+        options.addAction(renderTitle, Dict["Full", "ui.top.render.full"]) { renderPart(1, true, callback) }
+        options.addAction(renderTitle, Dict["Half", "ui.top.render.half"]) { renderPart(2, true, callback) }
+        options.addAction(renderTitle, Dict["Quarter", "ui.top.render.quarter"]) { renderPart(4, true, callback) }
+        options.addAction(renderTitle, Dict["Override Audio", "ui.top.render.overrideAudio"]) { overrideAudio(InvalidRef, true, callback) }
+        options.addAction(renderTitle, Dict["Audio Only", "ui.top.audioOnly"]) { renderAudio(true, callback) }
 
         options.addAction(helpTitle, "Tutorials") {
             URL("https://remsstudio.phychi.com/?s=learn").openInBrowser()

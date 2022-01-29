@@ -406,6 +406,17 @@ object GFX : GFXBase1() {
         }
     }
 
+    fun setFrameNullSize(){
+        OpenGL.apply {
+            // this should be the state for the default framebuffer
+            xs[0] = 0
+            ys[0] = 0
+            ws[0] = GFX.width
+            hs[0] = GFX.height
+            changeSizes[0] = false
+        }
+    }
+
     override fun renderStep() {
 
         OpenGLShader.invalidateBinding()
@@ -416,14 +427,7 @@ object GFX : GFXBase1() {
         Texture2D.bufferPool.freeUnusedEntries()
         AudioStream.bufferPool.freeUnusedEntries()
 
-        OpenGL.apply {
-            // this should be the state for the default framebuffer
-            xs[0] = 0
-            ys[0] = 0
-            ws[0] = GFX.width
-            hs[0] = GFX.height
-            changeSizes[0] = false
-        }
+        setFrameNullSize()
 
         JomlPools.reset()
         Point.stack.reset()
@@ -447,6 +451,8 @@ object GFX : GFXBase1() {
         Input.pollControllers()
 
         workEventTasks()
+
+        setFrameNullSize()
 
         Texture2D.resetBudget()
 

@@ -29,8 +29,10 @@ import me.anno.video.formats.gpu.GPUFrame
 import ofx.mio.OpticalFlow
 import org.joml.*
 import org.lwjgl.BufferUtils
+import java.nio.FloatBuffer
 import kotlin.math.min
 
+@Suppress("unused")
 object GFXx3D {
 
     fun getScale(w: Int, h: Int): Float = getScale(w.toFloat(), h.toFloat())
@@ -318,7 +320,7 @@ object GFXx3D {
         GFX.check()
     }
 
-    val outlineStatsBuffer = BufferUtils.createFloatBuffer(maxOutlineColors * 4)
+    private val outlineStatsBuffer: FloatBuffer = BufferUtils.createFloatBuffer(maxOutlineColors * 4)
     fun drawOutlinedText(
         that: GFXTransform?,
         time: Double,
@@ -350,23 +352,24 @@ object GFXx3D {
          * u2[ maxColors ] distSmooth
          * uniform int colorCount
          * */
-        outlineStatsBuffer.position(0)
+        val buffer = outlineStatsBuffer
+        buffer.position(0)
         for (i in 0 until cc) {
             val colorI = colors[i]
-            outlineStatsBuffer.put(colorI.x())
-            outlineStatsBuffer.put(colorI.y())
-            outlineStatsBuffer.put(colorI.z())
-            outlineStatsBuffer.put(colorI.w())
+            buffer.put(colorI.x())
+            buffer.put(colorI.y())
+            buffer.put(colorI.z())
+            buffer.put(colorI.w())
         }
-        outlineStatsBuffer.position(0)
-        shader.v4Array("colors", outlineStatsBuffer)
-        outlineStatsBuffer.position(0)
+        buffer.position(0)
+        shader.v4Array("colors", buffer)
+        buffer.position(0)
         for (i in 0 until cc) {
-            outlineStatsBuffer.put(distances[i])
-            outlineStatsBuffer.put(smoothness[i])
+            buffer.put(distances[i])
+            buffer.put(smoothness[i])
         }
-        outlineStatsBuffer.position(0)
-        shader.v2Array("distSmoothness", outlineStatsBuffer)
+        buffer.position(0)
+        shader.v2Array("distSmoothness", buffer)
         shader.v1i("colorCount", cc)
         shader.v1f("depth", depth * 0.00001f)
 

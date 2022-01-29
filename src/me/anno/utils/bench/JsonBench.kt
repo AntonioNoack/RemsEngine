@@ -1,7 +1,6 @@
 package me.anno.utils.bench
 
 // import com.fasterxml.jackson.databind.ObjectMapper
-import me.anno.config.DefaultConfig
 import me.anno.io.text.TextReader
 import me.anno.utils.Clock
 import me.anno.utils.OS

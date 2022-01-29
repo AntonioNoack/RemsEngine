@@ -188,7 +188,10 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
     }
 
     fun updateStableSize() {
-        stableSize.updateSize(w - 2 * borderThickness, h - 2 * borderThickness, camera.onlyShowTarget)
+        stableSize.updateSize(
+            w - 2 * borderThickness, h - 2 * borderThickness,
+            if (camera.onlyShowTarget) RemsStudio.targetWidth else -1, RemsStudio.targetHeight
+        )
     }
 
     var mode = SceneDragMode.MOVE

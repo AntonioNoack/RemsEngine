@@ -14,6 +14,7 @@ import me.anno.io.text.TextReader
 import me.anno.objects.Transform
 import me.anno.studio.StudioBase
 import me.anno.studio.cli.CommandLines.parseDouble
+import me.anno.studio.cli.CommandLines.parseFloat
 import me.anno.studio.cli.CommandLines.parseInt
 import me.anno.studio.rems.Project
 import me.anno.studio.rems.RemsConfig
@@ -98,9 +99,8 @@ object RemsCLI {
         RemsStudio.project = project
 
         project.targetFPS = line.parseDouble("fps", project.targetFPS)
-        // todo re-enable shutter percentage & motion blur steps
-        // project.shutterPercentage.set(line.parseFloat("shutter", project.shutterPercentage))
-        // project.motionBlurSteps.set(line.parseInt("motionBlurSteps", project.motionBlurSteps))
+        project.shutterPercentage.set(line.parseFloat("shutter", project.shutterPercentage[0.0]))
+        project.motionBlurSteps.set(line.parseInt("motionBlurSteps", project.motionBlurSteps[0.0]))
         project.targetVideoQuality = line.parseInt("constantRateFactor", project.targetVideoQuality)
         project.targetSampleRate = line.parseInt("sampleRate", project.targetSampleRate)
 

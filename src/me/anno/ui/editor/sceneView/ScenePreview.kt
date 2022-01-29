@@ -6,19 +6,20 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.shader.Renderer
+import me.anno.maths.Maths.clamp01
+import me.anno.maths.Maths.length
+import me.anno.maths.Maths.min
+import me.anno.maths.Maths.mixAngle
 import me.anno.objects.Camera
 import me.anno.studio.rems.RemsStudio
-import me.anno.studio.rems.Scene
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.studio.rems.RemsStudio.targetHeight
 import me.anno.studio.rems.RemsStudio.targetWidth
+import me.anno.studio.rems.Scene
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.style.Style
 import me.anno.utils.types.Floats.toDegrees
-import me.anno.maths.Maths.clamp01
-import me.anno.maths.Maths.length
-import me.anno.maths.Maths.mixAngle
 import me.anno.utils.types.Vectors.minus
 import me.anno.utils.types.Vectors.times
 import org.joml.Vector3f
@@ -56,8 +57,8 @@ class ScenePreview(style: Style) : PanelList(null, style.getChild("sceneView")),
     var target = Vector3f()
     var pos = Vector3f()
 
-    private val movementSpeed = if(isLocked2D) 1f else 0.1f
-    private val rotationSpeed get() = if(isLocked2D) 1f else 0.1f
+    private val movementSpeed = if (isLocked2D) 1f else 0.1f
+    private val rotationSpeed get() = if (isLocked2D) 1f else 0.1f
 
     fun updatePosition() {
         val radius = 1.5f
@@ -76,9 +77,9 @@ class ScenePreview(style: Style) : PanelList(null, style.getChild("sceneView")),
         val diff = pos - (target * 0.5f)
         val r0 = camera.rotationYXZ[0.0]
         val x0 = r0.x()
-        val x1 = if(isLocked2D) 0f else 0.3f * atan2(diff.y, length(diff.x, diff.z)).toDegrees()
+        val x1 = if (isLocked2D) 0f else 0.3f * atan2(diff.y, length(diff.x, diff.z)).toDegrees()
         val y0 = r0.y()
-        val y1 = if(isLocked2D) 0f else atan2(diff.x, diff.z).toDegrees()
+        val y1 = if (isLocked2D) 0f else atan2(diff.x, diff.z).toDegrees()
         val rs = clamp01(rotationSpeed * deltaTime)
         camera.rotationYXZ.set(Vector3f(mixAngle(x0, x1, rs), mixAngle(y0, y1, rs), 0f))
         pos.lerp(target, relativeMovement)
@@ -92,6 +93,9 @@ class ScenePreview(style: Style) : PanelList(null, style.getChild("sceneView")),
         updatePosition()
 
         drawRect(x, y, w, h, deepDark)
+
+        w = min(w, GFX.width - x)
+        h = min(h, GFX.height - y)
 
         var dx = 0
         var dy = 0
@@ -128,6 +132,10 @@ class ScenePreview(style: Style) : PanelList(null, style.getChild("sceneView")),
             goodW = rw
             goodH = rh
         }
+
+        // prevent us drawing over the size of the frame
+        goodW = min(goodW, GFX.width - (x + dx))
+        goodH = min(goodH, GFX.height - (y + dy))
 
         drawRect(x + dx, y + dy, rw, rh, black)
         Scene.draw(

@@ -6,7 +6,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Filtering
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.objects.effects.MaskType
-import me.anno.objects.effects.types.GLSLLib
+import me.anno.objects.effects.GLSLLib
 import me.anno.objects.modes.UVProjection
 import me.anno.studio.rems.Scene.noiseFunc
 import me.anno.utils.Clock
@@ -615,17 +615,19 @@ object ShaderLib {
                 "float minV3(vec3 rgb){return min(rgb.r, min(rgb.g, rgb.b));}\n" +
                 "void main(){\n" +
                 "   vec2 uv1 = uv.xy/uv.z;\n" +
-                "   vec2 uv2 = uv1 * 0.5 + 0.5;\n" +
+                "   vec2 uv2 = uv1 * 0.5 + 0.5, uv3, uv4;\n" +
                 "   vec4 mask = texture(maskTex, uv2);\n" +
                 "   vec4 color;\n" +
                 "   float effect, inverseEffect;\n" +
                 "   switch(maskType){\n" +
-                GLSLLib.case(MaskType.MASKING.id, "me/anno/objects/effects/types/Masking.glsl") +
-                GLSLLib.case(MaskType.TRANSITION.id, "me/anno/objects/effects/types/Transition.glsl") +
-                GLSLLib.case(MaskType.PIXELATING.id, "me/anno/objects/effects/types/Pixelating.glsl") +
-                GLSLLib.case(MaskType.RADIAL_BLUR_1.id, "me/anno/objects/effects/types/RadialBlur1.glsl") +
-                GLSLLib.case(MaskType.RADIAL_BLUR_2.id, "me/anno/objects/effects/types/RadialBlur2.glsl") +
-                GLSLLib.case(MaskType.GREEN_SCREEN.id, "me/anno/objects/effects/types/GreenScreen.glsl") +
+                GLSLLib.case(MaskType.MASKING.id, "shader/mask-effects/Masking.glsl") +
+                GLSLLib.case(MaskType.TRANSITION.id, "shader/mask-effects/Transition.glsl") +
+                GLSLLib.case(MaskType.QUAD_PIXELATION.id, "shader/mask-effects/QuadPixelating.glsl") +
+                GLSLLib.case(MaskType.TRI_PIXELATION.id, "shader/mask-effects/TriPixelating.glsl") +
+                GLSLLib.case(MaskType.HEX_PIXELATION.id, "shader/mask-effects/HexPixelating.glsl") +
+                GLSLLib.case(MaskType.RADIAL_BLUR_1.id, "shader/mask-effects/RadialBlur1.glsl") +
+                GLSLLib.case(MaskType.RADIAL_BLUR_2.id, "shader/mask-effects/RadialBlur2.glsl") +
+                GLSLLib.case(MaskType.GREEN_SCREEN.id, "shader/mask-effects/GreenScreen.glsl") +
                 "       case ${MaskType.GAUSSIAN_BLUR.id}:\n" +
                 "       case ${MaskType.BOKEH_BLUR.id}:\n" +
                 "       case ${MaskType.BLOOM.id}:\n" + // just mix two images
