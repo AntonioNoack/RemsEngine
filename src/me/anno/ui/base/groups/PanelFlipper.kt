@@ -4,7 +4,7 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.input.Input
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.style.Style
 import me.anno.maths.Maths.clamp

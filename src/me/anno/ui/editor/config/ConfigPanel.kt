@@ -3,7 +3,7 @@ package me.anno.ui.editor.config
 import me.anno.io.utils.StringMap
 import me.anno.language.translation.Dict
 import me.anno.ui.base.buttons.TextButton
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY

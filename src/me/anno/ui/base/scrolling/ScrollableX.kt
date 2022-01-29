@@ -1,6 +1,6 @@
 package me.anno.ui.base.scrolling
 
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import kotlin.math.max
 
 interface ScrollableX {

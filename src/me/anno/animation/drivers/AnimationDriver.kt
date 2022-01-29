@@ -12,7 +12,7 @@ import me.anno.objects.inspectable.Inspectable
 import me.anno.studio.rems.Selection.select
 import me.anno.studio.rems.Selection.selectProperty
 import me.anno.studio.rems.Selection.selectedTransform
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption

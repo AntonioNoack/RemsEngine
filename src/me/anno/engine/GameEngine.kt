@@ -20,7 +20,13 @@ object GameEngine {
     var scaledTime = 0.0
     var scaledDeltaTime = 1.0
 
-    // todo grand theft waifu:
-    // todo shoulder half press = target, shoulder full press = shoot
+    // todo sky cubemap
+    // todo sky shaders
+
+    // todo recursive ray-tracing like convergence rendering for photo-realistic results
+    //  - close patches are shaded the same way, modulated by their PBR properties (sharing the same cubemap)
+    //  - = a lot of cubemaps for every section of the image + pixel clustering for assignment of cubemap-rendering-spots
+    //  - more distant cubemaps need less resolution (pixel buffers + geometry)
+
 
 }

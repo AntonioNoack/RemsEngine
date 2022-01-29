@@ -2,7 +2,7 @@ package me.anno.ui.base.scrolling
 
 import me.anno.gpu.GFX.deltaTime
 import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.style.Style
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix

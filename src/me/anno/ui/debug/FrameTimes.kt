@@ -2,7 +2,7 @@ package me.anno.ui.debug
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.text.TextPanel
 import me.anno.maths.Maths.mixARGB
 import kotlin.math.max

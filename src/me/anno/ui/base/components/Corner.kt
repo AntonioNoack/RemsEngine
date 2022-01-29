@@ -1,12 +1,12 @@
 package me.anno.ui.base.components
 
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.a
-import me.anno.gpu.drawing.GFXx2D
-import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.gpu.drawing.DrawRectangles.drawRect
+import me.anno.gpu.drawing.GFXx2D
+import me.anno.gpu.shader.ShaderLib
+import me.anno.utils.Color.a
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -14,19 +14,24 @@ import kotlin.math.sin
 object Corner {
 
     private fun corner(mx: Boolean, my: Boolean): StaticBuffer {
-        val sides = 10
+
+        val sides = 50
         val buffer = StaticBuffer(cornerAttr, 3 * sides)
         fun put(x: Float, y: Float) {
             buffer.put(if (mx) 1 - x else x, if (my) 1 - y else y)
         }
+
+        val angle = (PI * 0.5).toFloat()
         for (i in 0 until sides) {
-            val a0 = (i * PI / sides).toFloat()
-            val a1 = ((i + 1) * PI / sides).toFloat()
+            val a0 = i * angle / sides
+            val a1 = (i + 1) * angle / sides
             put(0f, 0f)
             put(cos(a0), sin(a0))
             put(cos(a1), sin(a1))
         }
+
         return buffer
+
     }
 
     private val cornerAttr = listOf(Attribute("attr0", 2))

@@ -1,15 +1,15 @@
 package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
-import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.GFXx3D.draw3DCircle
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib
+import me.anno.maths.Maths.clamp
 import me.anno.objects.GFXTransform
 import me.anno.objects.GFXTransform.Companion.uploadAttractors0
 import me.anno.objects.Transform
 import me.anno.objects.Video
-import me.anno.maths.Maths.clamp
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 
@@ -50,11 +50,14 @@ object GFXx2D {
 
     fun drawCircle(
         x: Int, y: Int,
-        radiusX: Float, radiusY: Float, innerRadius: Float, startDegrees: Float, endDegrees: Float, color: Vector4f
+        radiusX: Float, radiusY: Float,
+        innerRadius: Float,
+        startDegrees: Float, endDegrees: Float,
+        color: Vector4f
     ) {
 
         val rx = (x - GFX.viewportX).toFloat() / GFX.viewportWidth * 2 - 1
-        val ry = (y - GFX.viewportY).toFloat() / GFX.viewportHeight * 2 - 1
+        val ry = (1f - (y - GFX.viewportY).toFloat() / GFX.viewportHeight) * 2 - 1
 
         val stack = Matrix4fArrayList()
         stack.translate(rx, ry, 0f)

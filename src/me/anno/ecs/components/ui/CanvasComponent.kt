@@ -17,7 +17,7 @@ import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL
 import me.anno.gpu.OpenGL.useFrame
-import me.anno.gpu.Window
+import me.anno.ui.Window
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame
@@ -28,7 +28,7 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.zip.InnerTmpFile
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.utils.WindowStack
 import me.anno.utils.pooling.JomlPools

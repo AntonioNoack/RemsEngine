@@ -1,6 +1,6 @@
 package me.anno.ui.base.constraints
 
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.style.Style

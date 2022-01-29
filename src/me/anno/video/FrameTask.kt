@@ -141,7 +141,7 @@ class FrameTask(
 
                 var i = 0
                 while (i++ < motionBlurSteps && !needsMoreSources) {
-                    FBStack.clear(width, height)
+                    FBStack.reset(width, height)
                     useFrame(partialFrame, renderer) {
                         try {
                             Scene.draw(

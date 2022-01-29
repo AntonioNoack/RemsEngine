@@ -32,7 +32,6 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.engine.scene.ScenePrefab
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.shader.ShaderLib
-import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.BaseShader
 import me.anno.io.ISaveable.Companion.registerCustomClass
@@ -43,7 +42,7 @@ import me.anno.mesh.assimp.Bone
 import me.anno.Build
 import me.anno.ui.base.Font
 import me.anno.ui.base.IconPanel
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.ImageButton
 import me.anno.ui.base.buttons.TextButton

@@ -129,7 +129,9 @@ class SoftLink(var file: FileReference) : GFXTransform(null) {
         val wasFinalRendering = isFinalRendering
         isFinalRendering = true
         Scene.draw(
-            camera, softChild, 0, 0, w, h, time, true,
+            camera, softChild,
+            0, 0, w, h,
+            time, true,
             Renderer.colorRenderer, null
         )
         isFinalRendering = wasFinalRendering

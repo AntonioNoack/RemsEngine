@@ -4,7 +4,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.input.MouseButton
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.scrolling.ScrollPanelY.Companion.scrollSpeed

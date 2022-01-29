@@ -1,7 +1,7 @@
 package me.anno.ui.base.groups
 
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.style.Style
 
 /**

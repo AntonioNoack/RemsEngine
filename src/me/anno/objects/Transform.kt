@@ -25,7 +25,7 @@ import me.anno.studio.rems.Scene
 import me.anno.studio.rems.Selection.select
 import me.anno.studio.rems.Selection.selectTransform
 import me.anno.studio.rems.Selection.selectedTransform
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.LinkPanel
 import me.anno.ui.base.text.UpdatingTextPanel

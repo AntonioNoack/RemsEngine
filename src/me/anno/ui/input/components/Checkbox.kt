@@ -7,7 +7,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.image.ImageGPUCache.getInternalTexture
 import me.anno.input.MouseButton
 import me.anno.studio.rems.RemsStudio
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.input.InputPanel
 import me.anno.ui.style.Style
 import org.lwjgl.glfw.GLFW

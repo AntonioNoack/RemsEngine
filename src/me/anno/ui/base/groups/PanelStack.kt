@@ -1,9 +1,7 @@
 package me.anno.ui.base.groups
 
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
-import me.anno.ui.base.constraints.SizeLimitingContainer
-import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.style.Style
 import kotlin.math.max
 

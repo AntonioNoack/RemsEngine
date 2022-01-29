@@ -1,7 +1,7 @@
 package me.anno.ui.input.components
 
 import me.anno.input.MouseButton
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.style.Style
 

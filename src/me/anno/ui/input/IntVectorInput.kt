@@ -9,7 +9,7 @@ import me.anno.studio.StudioBase.Companion.warn
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.Selection.selectedProperty
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX

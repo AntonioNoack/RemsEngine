@@ -24,6 +24,12 @@ class TCPClient(val socket: Socket, var randomId: Int) : Closeable {
 
     var maxPacketSize = 1 shl 20
 
+    /**
+     * client time minus own system time,
+     * so how many nano seconds, the clock of the client is ahead
+     * */
+    var localTimeNanos = 0L
+
     val isClosed get() = socket.isClosed || !socket.isConnected || !socket.isBound
 
     fun send(server: Server?, packet: Packet) {

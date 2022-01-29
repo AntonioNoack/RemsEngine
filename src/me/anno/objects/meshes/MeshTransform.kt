@@ -30,7 +30,7 @@ import me.anno.mesh.assimp.StaticMeshesLoader
 import me.anno.mesh.vox.VOXReader
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.groups.UpdatingContainer
 import me.anno.ui.base.text.TextPanel

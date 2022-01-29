@@ -16,6 +16,10 @@ abstract class NodeConnector : NamedSaveable {
         this.node = node
     }
 
+    constructor(type: String, name: String, node: Node) : this(type, node) {
+        this.name = name
+    }
+
     var type = "Any?"
 
     var value: Any? = null
@@ -44,7 +48,9 @@ abstract class NodeConnector : NamedSaveable {
     var node: Node? = null
     var others: List<NodeConnector> = emptyList()
 
-    open fun invalidate(){
+    val connectorPosition = Vector3d()
+
+    open fun invalidate() {
 
     }
 

@@ -5,11 +5,15 @@ import me.anno.animation.Type
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.white4
 import me.anno.gpu.GFX
+import me.anno.gpu.drawing.Perspective.perspective2
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.translation.Dict
+import me.anno.maths.Maths
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.pow
 import me.anno.objects.effects.ToneMappers
 import me.anno.objects.models.CameraModel.drawCamera
 import me.anno.studio.rems.RemsStudio
@@ -18,14 +22,11 @@ import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.pow
 import me.anno.utils.files.LocalFile.toGlobalFile
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Casting.castToFloat2
-import org.joml.Matrix4fArrayList
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4fc
+import org.joml.*
+import java.lang.Math
 
 class Camera(parent: Transform? = null) : Transform(parent) {
 
@@ -280,6 +281,34 @@ class Camera(parent: Transform? = null) : Transform(parent) {
             "toneMapping" -> toneMapping = ToneMappers.values().firstOrNull { it.id == value } ?: toneMapping
             else -> super.readInt(name, value)
         }
+    }
+
+    fun applyTransform(time: Double, cameraTransform: Matrix4f, stack: Matrix4fArrayList) {
+        val offset = getEffectiveOffset(time)
+        val orbitRadius = orbitRadius[time]
+        val tmpMatrix0 = JomlPools.mat4f.create()
+        cameraTransform.translate(0f, 0f, orbitRadius)
+        val cameraTransform2 = if (offset != 0f) {
+            tmpMatrix0.set(cameraTransform).translate(0f, 0f, offset)
+        } else cameraTransform
+        val fov = getEffectiveFOV(time, offset)
+        val near = getEffectiveNear(time, offset)
+        val far = getEffectiveFar(time, offset)
+        val tmp0 = JomlPools.vec3f.create()
+        val tmp1 = JomlPools.vec3f.create()
+        val tmp2 = JomlPools.vec3f.create()
+        val position = cameraTransform2.transformProject(tmp0.set(0f, 0f, 0f))
+        val up = cameraTransform2.transformProject(tmp1.set(0f, 1f, 0f))
+            .sub(position).normalize()
+        val lookAt = cameraTransform2.transformProject(tmp2.set(0f, 0f, -1f))
+        stack.perspective2(
+            Math.toRadians(fov.toDouble()).toFloat(),
+            GFX.viewportWidth * 1f / GFX.viewportHeight, near, far, 0f, 0f
+        ).lookAt(position, lookAt, up)
+        val scale = pow(1f / orbitRadius, orthographicness[time])
+        if (scale != 0f && scale.isFinite()) stack.scale(scale)
+        JomlPools.vec3f.sub(3)
+        JomlPools.mat4f.sub(1)
     }
 
     override val className get() = "Camera"

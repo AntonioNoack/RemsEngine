@@ -74,7 +74,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.sq
 import me.anno.mesh.Shapes
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.style.Style
 import me.anno.utils.Clock

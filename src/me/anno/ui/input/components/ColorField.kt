@@ -9,7 +9,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.input.MouseButton
 import me.anno.studio.StudioBase
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toARGB

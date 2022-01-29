@@ -117,7 +117,6 @@ class SceneTab(var file: FileReference?, var scene: Transform, history: History?
             if (name.isEmpty()) {
                 val dst = getReference(project!!.scenes, name)
                 if (dst.exists) {
-                    // todo translate
                     ask(
                         windowStack,
                         NameDesc("Override %1?", "Replaces the old file", "ui.file.override")

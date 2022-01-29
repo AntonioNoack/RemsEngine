@@ -1,5 +1,6 @@
 package me.anno.ui.base
 
+import me.anno.ui.Panel
 import me.anno.ui.style.Style
 
 open class SpyPanel(style: Style, val update: () -> Unit): Panel(style) {

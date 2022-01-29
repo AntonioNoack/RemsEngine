@@ -12,7 +12,7 @@ import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.buffer.SimpleBuffer
-import me.anno.gpu.drawing.Perspective.perspective2
+import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.OpenGLShader
@@ -24,7 +24,6 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
-import me.anno.maths.Maths.pow
 import me.anno.mesh.Point
 import me.anno.objects.Camera
 import me.anno.objects.Transform
@@ -33,13 +32,15 @@ import me.anno.studio.StudioBase.Companion.eventTasks
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.editorTimeDilation
 import me.anno.studio.rems.RemsStudio.root
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
+import me.anno.ui.Window
 import me.anno.ui.debug.FrameTimes
 import me.anno.utils.Clock
+import me.anno.utils.Color.b
+import me.anno.utils.Color.g
+import me.anno.utils.Color.r
 import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix4f
-import org.joml.Matrix4fArrayList
 import org.joml.Vector3fc
 import org.joml.Vector4fc
 import org.lwjgl.opengl.ARBImaging.GL_TABLE_TOO_LARGE
@@ -233,32 +234,6 @@ object GFX : GFXBase1() {
         Input.initForGLFW()
     }
 
-    private val tmpMatrix0 = Matrix4f()
-    fun applyCameraTransform(camera: Camera, time: Double, cameraTransform: Matrix4f, stack: Matrix4fArrayList) {
-        val offset = camera.getEffectiveOffset(time)
-        cameraTransform.translate(0f, 0f, camera.orbitRadius[time])
-        val cameraTransform2 = if (offset != 0f) {
-            tmpMatrix0.set(cameraTransform).translate(0f, 0f, offset)
-        } else cameraTransform
-        val fov = camera.getEffectiveFOV(time, offset)
-        val near = camera.getEffectiveNear(time, offset)
-        val far = camera.getEffectiveFar(time, offset)
-        val tmp0 = JomlPools.vec3f.create()
-        val tmp1 = JomlPools.vec3f.create()
-        val tmp2 = JomlPools.vec3f.create()
-        val position = cameraTransform2.transformProject(tmp0.set(0f, 0f, 0f))
-        val up = cameraTransform2.transformProject(tmp1.set(0f, 1f, 0f))
-            .sub(position).normalize()
-        val lookAt = cameraTransform2.transformProject(tmp2.set(0f, 0f, -1f))
-        stack.perspective2(
-            Math.toRadians(fov.toDouble()).toFloat(),
-            viewportWidth * 1f / viewportHeight, near, far, 0f, 0f
-        ).lookAt(position, lookAt, up)
-        val scale = pow(1f / camera.orbitRadius[time], camera.orthographicness[time])
-        if (scale != 0f && scale.isFinite()) stack.scale(scale)
-        JomlPools.vec3f.sub(3)
-    }
-
     fun shaderColor(shader: Shader, name: String, color: Int) {
         when (currentRenderer) {
             idRenderer -> shaderId(shader, name)
@@ -391,7 +366,8 @@ object GFX : GFXBase1() {
             if (workDone >= workTodo && !all) return false
             val workTime1 = System.nanoTime()
             val workTime = abs(workTime1 - workTime0) * 1e-9f
-            if (workTime > timeLimit && !all) return false// too much work
+            if (workTime > timeLimit && !all) return false // too much work
+            FBStack.reset() // so we can reuse resources in different tasks
         }
 
     }
@@ -405,6 +381,7 @@ object GFX : GFXBase1() {
             exitProcess(1)*/
         }
         Framebuffer.stack.clear()*/
+        FBStack.reset()
     }
 
     fun workGPUTasks(all: Boolean) {

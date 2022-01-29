@@ -6,7 +6,7 @@ import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.image.ImageGPUCache.getInternalTexture
 import me.anno.input.MouseButton
 import me.anno.language.translation.NameDesc
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.menu.Menu.openMenu

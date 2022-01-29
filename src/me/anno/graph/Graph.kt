@@ -55,7 +55,11 @@ open class Graph : NamedSaveable() {
         for (i in 0 until size) {
             val x = i % width
             val y = i / width
-            nodes[i].position.set((x - (width-1) * 0.5) * 2.0, (y - (height-1) * 0.5) * 1.25, 0.0)
+            nodes[i].position.set(
+                (x - (width-1) * 0.5) * 2.0,
+                (y - (height-1) * 0.5) * 1.25,
+                0.0
+            ).mul(700.0)
         }
 
     }

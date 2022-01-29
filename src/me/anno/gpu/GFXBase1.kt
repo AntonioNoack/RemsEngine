@@ -1,7 +1,6 @@
 package me.anno.gpu
 
 import me.anno.utils.io.ResourceHelper.loadResource
-import org.joml.Vector4f
 import org.lwjgl.BufferUtils
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFW.glfwSetWindowIcon
@@ -51,12 +50,6 @@ open class GFXBase1 : GFXBase0() {
         }
 
     }
-
-    fun Int.r() = shr(16).and(255)
-    fun Int.g() = shr(8).and(255)
-    fun Int.b() = shr(0).and(255)
-    fun Int.a() = shr(24).and(255)
-    fun Int.v4() = Vector4f(r() / 255f, g() / 255f, b() / 255f, a() / 255f)
 
     var savedWidth = 300
     var savedHeight = 300

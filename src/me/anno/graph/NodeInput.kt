@@ -12,6 +12,7 @@ class NodeInput : NodeConnector {
     constructor() : super()
     constructor(type: String) : super(type)
     constructor(type: String, node: Node) : super(type, node)
+    constructor(type: String, name: String, node: Node) : super(type, name, node)
 
     // ofc not thread-safe
     // for multi-thread-operation, copy the graphs
@@ -42,6 +43,23 @@ class NodeInput : NodeConnector {
             "Double" -> AnyToDouble.getDouble(value, 0, 0.0)
             "String" -> value.toString()
             "Any?", "", "?" -> value
+            "Boolean" -> when (val v = value) {
+                is Collection<*> -> v.isNotEmpty()
+                is Array<*> -> v.isNotEmpty()
+                is ByteArray -> v.isNotEmpty()
+                is ShortArray -> v.isNotEmpty()
+                is IntArray -> v.isNotEmpty()
+                is LongArray -> v.isNotEmpty()
+                is FloatArray -> v.isNotEmpty()
+                is DoubleArray -> v.isNotEmpty()
+                is Int -> v != 0
+                is Long -> v != 0L
+                is Float -> v.isFinite() && v != 0f
+                is Double -> v.isFinite() && v != 0.0
+                is String -> v.isNotEmpty()
+                is Boolean -> v
+                else -> v != null
+            }
             else -> TODO("type $type")
         }
         return value

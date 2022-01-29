@@ -3,11 +3,11 @@ package me.anno.ui.debug
 import me.anno.Logging
 import me.anno.config.DefaultStyle
 import me.anno.engine.RemsEngine
-import me.anno.gpu.Window
+import me.anno.ui.Window
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelList

@@ -13,7 +13,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.Input
 import me.anno.io.csv.CSVReader
 import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.utils.Color.b

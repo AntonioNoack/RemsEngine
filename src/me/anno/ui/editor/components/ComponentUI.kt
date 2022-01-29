@@ -7,7 +7,7 @@ import me.anno.gpu.blending.blendModes
 import me.anno.io.files.FileReference
 import me.anno.objects.Transform
 import me.anno.studio.rems.RemsStudio
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toHexColor

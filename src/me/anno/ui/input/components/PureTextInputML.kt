@@ -96,10 +96,10 @@ open class PureTextInputML(style: Style) :
     private val lines: ArrayList<MutableList<Int>> = arrayListOf(mutableListOf())
     private val endCursor get() = CursorPosition(lines.last().size, lines.lastIndex)
     private val joinedText get() = lines.joinToString("\n") { list -> list.joinChars() }
-    private val styleSample get() = actualChildren[0] as TextPanel
     private val actualChildren = (content as PanelListY).children
     private val scrollbarStartY get() = if (minW > w) actualChildren.last().run { y + h - 3 } else y + h
     private val wasJustChanged get() = abs(GFX.gameTime - lastChangeTime) < 200_000_000
+    val styleSample get() = actualChildren[0] as TextPanel
 
     private fun updateLines() {
         val needsPlaceholder = text.isEmpty()

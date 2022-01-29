@@ -2,7 +2,7 @@ package me.anno.engine.ui
 
 import me.anno.engine.ui.render.SceneView
 import me.anno.io.files.FileReference
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.custom.CustomContainer
 import me.anno.ui.custom.CustomList
 import me.anno.ui.editor.PropertyInspector

@@ -25,7 +25,7 @@ import me.anno.studio.rems.Selection.select
 import me.anno.studio.rems.Selection.selectTransform
 import me.anno.studio.rems.Selection.selectedTransform
 import me.anno.studio.rems.ui.StudioFileImporter.addChildFromFile
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.dragging.Draggable

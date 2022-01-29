@@ -2,13 +2,12 @@ package me.anno.ui.debug
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
-import me.anno.gpu.Window
+import me.anno.ui.Window
 import me.anno.input.ActionManager
 import me.anno.studio.StudioBase
 import me.anno.studio.rems.StudioActions
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.base.groups.PanelStack
 
 class TestStudio(val createMainPanel: () -> Panel) : StudioBase(true, "Test", 1) {
 

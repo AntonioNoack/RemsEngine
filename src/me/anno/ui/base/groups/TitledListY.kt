@@ -1,6 +1,6 @@
 package me.anno.ui.base.groups
 
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.InputVisibility

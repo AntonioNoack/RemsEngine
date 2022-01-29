@@ -39,7 +39,7 @@ import me.anno.objects.Camera
 import me.anno.objects.Video
 import me.anno.objects.modes.LoopingState
 import me.anno.studio.StudioBase
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.menu.Menu.ask

@@ -10,6 +10,9 @@ abstract class FlowGraphNode : Node {
 
     constructor(name: String) : super(name)
 
+    constructor(name: String, inputs: List<String>, outputs: List<String>) :
+            super(name, inputs, outputs)
+
     fun getInput(graph: FlowGraph, index: Int): Any? {
         return inputs!![index].castGetValue(graph, graph.validId)
     }
@@ -17,5 +20,10 @@ abstract class FlowGraphNode : Node {
     abstract fun execute(graph: FlowGraph): NodeOutput?
 
     override val className: String = javaClass.simpleName
+
+    companion object {
+        val beforeName = "Before"
+        val afterName = "After"
+    }
 
 }

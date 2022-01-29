@@ -1,7 +1,7 @@
 package me.anno.ui.editor.color
 
 import me.anno.gpu.drawing.DrawRectangles
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.style.Style
 
 class PreviewField(private val refSize: Panel, val padding: Int, style: Style) : Panel(style) {

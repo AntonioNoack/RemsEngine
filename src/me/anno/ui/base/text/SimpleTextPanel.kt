@@ -4,7 +4,7 @@ import me.anno.config.DefaultStyle
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawTexts
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.style.Style
 import kotlin.math.max

@@ -8,7 +8,7 @@ class NameDesc(
     private val dictPath: String
 ) {
 
-    constructor(name: String): this(name, "", "")
+    constructor(name: String) : this(name, "", "")
     constructor() : this("", "", "")
 
     private val iName = name
@@ -38,6 +38,19 @@ class NameDesc(
             value = value.replace(src, dst)
         }
         return value
+    }
+
+    companion object {
+
+        fun translate(name: String, dictPath: String) = translateName(name, dictPath)
+
+        fun translateName(name: String, dictPath: String): String {
+            return Dict[name, dictPath]
+        }
+
+        fun translateDescription(desc: String, dictPath: String): String {
+            return Dict[desc, "$dictPath.desc"]
+        }
     }
 
 }

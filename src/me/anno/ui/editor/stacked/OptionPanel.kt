@@ -6,7 +6,7 @@ import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.language.translation.NameDesc
 import me.anno.objects.inspectable.Inspectable
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.PropertyInspector

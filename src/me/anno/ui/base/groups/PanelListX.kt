@@ -1,6 +1,6 @@
 package me.anno.ui.base.groups
 
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.style.Style
 import kotlin.math.max
@@ -56,7 +56,6 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
         super.placeInParent(x, y)
 
         var perWeight = 0f
-        val perConst = 1f // could be used to force elements into the available space
 
         val availableW = w - padding.width
         val availableH = h - padding.height
@@ -72,7 +71,7 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
         for (i in children.indices) {
             val child = children[i]
             if (child.visibility != Visibility.GONE) {
-                var childW = (perConst * child.minW + perWeight * max(0f, child.weight)).roundToInt()
+                var childW = (child.minW + perWeight * max(0f, child.weight)).roundToInt()
                 val currentW = currentX - x
                 val remainingW = availableW - currentW
                 childW = min(childW, remainingW)

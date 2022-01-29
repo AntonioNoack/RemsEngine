@@ -4,7 +4,7 @@ import me.anno.language.translation.Dict
 import me.anno.objects.inspectable.Inspectable
 import me.anno.studio.StudioBase.Companion.defaultWindowStack
 import me.anno.studio.rems.ui.StudioTreeView
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment

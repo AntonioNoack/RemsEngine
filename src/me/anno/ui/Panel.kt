@@ -1,15 +1,15 @@
-package me.anno.ui.base
+package me.anno.ui
 
 import me.anno.config.DefaultStyle.black
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
-import me.anno.gpu.Window
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
+import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Corner.drawRoundedRect
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment

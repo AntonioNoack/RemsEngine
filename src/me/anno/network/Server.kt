@@ -208,6 +208,14 @@ open class Server : Closeable {
         return null
     }
 
+    fun broadcast(packet: Packet) {
+        synchronized(clients) {
+            for (client in clients) {
+                client.send(this, packet)
+            }
+        }
+    }
+
     companion object {
 
         private val LOGGER = LogManager.getLogger(Server::class)

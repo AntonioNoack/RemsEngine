@@ -1,6 +1,6 @@
 package me.anno.ui.custom
 
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListX

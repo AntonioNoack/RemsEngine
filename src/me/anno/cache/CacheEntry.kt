@@ -1,8 +1,8 @@
 package me.anno.cache
 
-import me.anno.cache.CacheSection.Companion.millisToNanos
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX.gameTime
+import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.utils.Sleep
 import kotlin.math.max
 
@@ -16,14 +16,14 @@ class CacheEntry private constructor(
     val needsGenerator get() = generatorThread == Thread.currentThread() && (!hasGenerator || hasBeenDestroyed)
 
     fun reset(timeoutMillis: Long) {
-        this.timeoutNanoTime = gameTime + timeoutMillis * millisToNanos
+        this.timeoutNanoTime = gameTime + timeoutMillis * MILLIS_TO_NANOS
         this.generatorThread = Thread.currentThread()
         hasBeenDestroyed = false
         hasValue = false
     }
 
     fun update(timeout: Long) {
-        val secondTime = gameTime + max(0L, timeout) * millisToNanos
+        val secondTime = gameTime + max(0L, timeout) * MILLIS_TO_NANOS
         timeoutNanoTime = max(timeoutNanoTime, secondTime)
     }
 

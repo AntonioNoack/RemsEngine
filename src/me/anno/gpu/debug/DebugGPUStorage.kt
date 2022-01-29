@@ -10,12 +10,11 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
-import me.anno.image.ImageScale.scaleMax
 import me.anno.image.ImageScale.scaleMaxPreview
 import me.anno.input.Input
 import me.anno.language.translation.NameDesc
 import me.anno.studio.StudioBase.Companion.defaultWindowStack
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelList2D

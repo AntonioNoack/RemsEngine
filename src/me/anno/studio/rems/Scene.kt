@@ -267,13 +267,15 @@ object Scene {
     // rendering must be done in sync with the rendering thread (OpenGL limitation) anyways, so one object is enough
     val stack = Matrix4fArrayList()
     fun draw(
-        camera: Camera, scene: Transform, x: Int, y: Int, w: Int, h: Int, time: Double,
+        camera: Camera, scene: Transform,
+        x: Int, y: Int, w: Int, h: Int,
+        time: Double,
         flipY: Boolean, renderer: Renderer, sceneView: ISceneView?
     ) {
 
         GFX.currentCamera = camera
 
-        useFrame(renderer) {
+        useFrame(x, y, w, h, false, renderer) {
 
             drawRect(x, y, w, h, black)
 
@@ -285,8 +287,6 @@ object Scene {
             drawScene(scene, camera, time, x, y, w, h, flipY, isFakeColorRendering, sceneView)
 
         }
-
-
     }
 
     fun clearColors(
@@ -399,10 +399,7 @@ object Scene {
                     nearZ = camera.nearZ[cameraTime]
                     farZ = camera.farZ[cameraTime]
 
-                    GFX.applyCameraTransform(
-                        camera, cameraTime, cameraTransform,
-                        stack
-                    )
+                    camera.applyTransform(cameraTime, cameraTransform, stack)
 
                     // val white = Vector4f(1f, 1f, 1f, 1f)
                     val white = Vector4f(camera.color[cameraTime])

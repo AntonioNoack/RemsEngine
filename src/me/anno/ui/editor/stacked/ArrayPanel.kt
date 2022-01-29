@@ -2,7 +2,7 @@ package me.anno.ui.editor.stacked
 
 import me.anno.input.MouseButton
 import me.anno.language.translation.NameDesc
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.groups.TitledListY
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption

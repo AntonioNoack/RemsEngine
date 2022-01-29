@@ -7,7 +7,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.objects.Transform
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.Selection
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.custom.Type
 import me.anno.ui.custom.UITypeLibrary

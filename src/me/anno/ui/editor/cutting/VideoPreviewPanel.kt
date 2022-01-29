@@ -2,7 +2,7 @@ package me.anno.ui.editor.cutting
 
 import me.anno.gpu.drawing.DrawGradients
 import me.anno.objects.Video
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.style.Style
 import org.joml.Vector4f
 

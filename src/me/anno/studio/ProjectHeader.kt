@@ -1,4 +1,4 @@
-package me.anno.studio.rems
+package me.anno.studio
 
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference

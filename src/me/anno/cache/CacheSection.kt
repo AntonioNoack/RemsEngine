@@ -297,7 +297,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             if (asyncGenerator) {
                 threadWithName("$name<$key>") {
                     val value = generateSafely(key, generator)
-                    if (value is Exception) throw value
+                    if (value is Exception && value !is ShutdownException) throw value
                     value as? ICacheData
                     entry.data = value as? ICacheData
                     if (entry.hasBeenDestroyed) {
@@ -437,8 +437,6 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     companion object {
 
         private val caches = ConcurrentSkipListSet<CacheSection>()
-        private const val minTimeout = 1L
-        const val millisToNanos = 1_000_000
 
         fun updateAll() {
             for (cache in caches) cache.update()

@@ -3,9 +3,7 @@ package me.anno.studio
 import me.anno.Build
 import me.anno.Engine
 import me.anno.Logging
-import me.anno.audio.openal.ALBase
 import me.anno.audio.openal.AudioManager
-import me.anno.audio.openal.AudioTasks
 import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
@@ -15,7 +13,6 @@ import me.anno.gpu.Cursor.useCursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isMinimized
 import me.anno.gpu.GFXBase0
-import me.anno.gpu.OpenGL.framebuffer
 import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.Renderer
@@ -23,12 +20,9 @@ import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.input.ShowKeys
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.clamp
-import me.anno.studio.project.Project
-import me.anno.studio.rems.RemsStudio
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.Tooltips
 import me.anno.ui.base.progress.ProgressBar
 import me.anno.ui.debug.FPSPanel
@@ -39,10 +33,11 @@ import me.anno.utils.OS
 import me.anno.utils.types.Strings.addSuffix
 import me.anno.utils.types.Strings.filterAlphaNumeric
 import org.apache.logging.log4j.LogManager
-import java.io.File
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.min
 import kotlin.math.roundToInt
+
+// todo which parts of the engine can be split into modules? would be good for compile times
 
 abstract class StudioBase(
     val needsAudio: Boolean,
@@ -105,6 +100,13 @@ abstract class StudioBase(
     val showFPS get() = DefaultConfig["debug.ui.showFPS", Build.isDebug]
 
     val windowStack = WindowStack()
+
+    var gfxSettings = GFXSettings.LOW
+        set(value) {
+            field = value
+            DefaultConfig["editor.gfx"] = value.id
+            DefaultConfig.putAll(value.data)
+        }
 
     open fun gameInit() {
 
@@ -312,19 +314,6 @@ abstract class StudioBase(
 
     }
 
-    fun loadProject(name: String, folder: File) {
-        loadProject(name, getReference(folder))
-    }
-
-    fun loadProject(name: String, folder: FileReference) {
-        val project = Project(name.trim(), folder)
-        RemsStudio.project = project
-        project.open()
-        GFX.addGPUTask(1) {
-            GFX.setTitle("Rem's Studio: ${project.name}")
-        }
-    }
-
     private var isFirstFrame = true
     var hideUnusedProperties = false
 
@@ -345,18 +334,6 @@ abstract class StudioBase(
         var dragged: IDraggable? = null
 
         val defaultWindowStack get() = instance?.windowStack
-
-        fun updateAudio() {
-            AudioTasks.addTask(100) {
-                // update the audio player...
-                if (RemsStudio.isPlaying) {
-                    AudioManager.requestUpdate()
-                } else {
-                    AudioManager.stop()
-                }
-                ALBase.check()
-            }
-        }
 
         fun addEvent(event: () -> Unit) {
             eventTasks += event

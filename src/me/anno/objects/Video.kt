@@ -39,7 +39,7 @@ import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.studio.rems.RemsStudio.targetHeight
 import me.anno.studio.rems.RemsStudio.targetWidth
 import me.anno.studio.rems.Scene
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.SpyPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.buttons.TextButton

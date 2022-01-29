@@ -1,6 +1,6 @@
 package me.anno.ui.simple
 
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import kotlin.math.abs
 
 /**

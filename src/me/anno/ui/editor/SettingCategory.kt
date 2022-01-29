@@ -2,7 +2,7 @@ package me.anno.ui.editor
 
 import me.anno.input.MouseButton
 import me.anno.language.translation.Dict
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelGroup

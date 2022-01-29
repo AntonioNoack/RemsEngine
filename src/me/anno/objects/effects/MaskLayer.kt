@@ -20,7 +20,7 @@ import me.anno.objects.Transform
 import me.anno.objects.geometric.Circle
 import me.anno.objects.geometric.Polygon
 import me.anno.studio.rems.Scene.mayUseMSAA
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.SpyPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY

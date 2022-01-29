@@ -2,7 +2,7 @@ package me.anno.ui.base.scrolling
 
 import me.anno.config.DefaultConfig
 import me.anno.input.MouseButton
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign
@@ -27,7 +27,7 @@ open class ScrollPanelY(
 
     init {
         child += WrapAlign(alignX, AxisAlignment.MIN)
-        weight = 0.0001f
+        setWeight(0.0001f)
     }
 
     var lsp = -1f

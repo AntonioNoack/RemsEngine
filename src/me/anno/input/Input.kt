@@ -9,7 +9,7 @@ import me.anno.gpu.GFX.inFocus0
 import me.anno.gpu.GFX.requestFocus
 import me.anno.gpu.GFX.window
 import me.anno.gpu.OpenGL
-import me.anno.gpu.Window
+import me.anno.ui.Window
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.input.MouseButton.Companion.toMouseButton
 import me.anno.input.Touch.Companion.onTouchDown
@@ -27,7 +27,7 @@ import me.anno.maths.Maths.length
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.StudioBase.Companion.defaultWindowStack
 import me.anno.studio.StudioBase.Companion.instance
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.editor.treeView.TreeViewPanel
 import me.anno.utils.files.FileExplorerSelectWrapper
 import me.anno.utils.files.Files.findNextFile

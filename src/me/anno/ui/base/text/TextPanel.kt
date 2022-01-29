@@ -13,7 +13,8 @@ import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.input.MouseButton
 import me.anno.io.serialization.NotSerializedProperty
-import me.anno.ui.base.Panel
+import me.anno.language.translation.NameDesc
+import me.anno.ui.Panel
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.style.Style
 import me.anno.utils.input.Keys.isClickKey
@@ -28,6 +29,10 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
 
     constructor(base: TextPanel) : this(base.text, base.style){
         base.copy(this)
+    }
+
+    constructor(nameDesc: NameDesc, style: Style): this(nameDesc.name, style){
+        tooltip = nameDesc.desc
     }
 
     var instantTextLoading = false

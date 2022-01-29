@@ -8,13 +8,10 @@ import java.io.IOException
 
 class FileTransferable(val files: List<File>) : Transferable {
 
-    override fun getTransferDataFlavors(): Array<DataFlavor?>? {
-        return arrayOf(DataFlavor.javaFileListFlavor)
-    }
+    private val tdf = arrayOf(DataFlavor.javaFileListFlavor)
 
-    override fun isDataFlavorSupported(flavor: DataFlavor?): Boolean {
-        return DataFlavor.javaFileListFlavor.equals(flavor)
-    }
+    override fun getTransferDataFlavors() = tdf
+    override fun isDataFlavorSupported(flavor: DataFlavor?) = tdf.any { it == flavor }
 
     @Throws(UnsupportedFlavorException::class, IOException::class)
     override fun getTransferData(flavor: DataFlavor?): Any? {

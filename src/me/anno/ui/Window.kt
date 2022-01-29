@@ -1,6 +1,7 @@
-package me.anno.gpu
+package me.anno.ui
 
 import me.anno.config.DefaultConfig
+import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL.renderDefault
 import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.drawing.DrawRectangles
@@ -10,7 +11,6 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.input.Input
 import me.anno.input.MouseButton
-import me.anno.ui.base.Panel
 import me.anno.ui.utils.WindowStack
 import me.anno.utils.structures.lists.LimitedList
 import me.anno.utils.types.Floats.f3
@@ -258,7 +258,8 @@ open class Window(
             } else {
 
                 while (needsRedraw.isNotEmpty()) {
-                    val panel = needsRedraw.minByOrNull { it.depth } ?: break
+                    val panel1 = needsRedraw.minByOrNull { it.depth } ?: break
+                    val panel = panel1.getOverlayParent() ?: panel1
                     GFX.loadTexturesSync.clear()
                     GFX.loadTexturesSync.push(false)
                     if (panel.canBeSeen) {
@@ -275,8 +276,13 @@ open class Window(
                     }
                     wasRedrawn += panel
                     panel.forAll {
-                        needsRedraw.remove(it)
+                        if (it is Panel)
+                            needsRedraw.remove(it)
                     }
+                    // doesn't work somehow...
+                    /*needsRedraw.removeIf { pi ->
+                        pi === panel || pi.anyInHierarchy { it === panel }
+                    }*/
                 }
 
             }

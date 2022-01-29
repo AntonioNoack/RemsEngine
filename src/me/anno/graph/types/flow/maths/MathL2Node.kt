@@ -7,10 +7,11 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 
-class MathL2Node() : ValueNode("Math", listOf("Long", "Long"), listOf("Long")) {
+class MathL2Node() : ValueNode("Math", inputs, outputs) {
 
     constructor(type: IntMathType) : this() {
         this.type = type
+        name = type.name
     }
 
     var type: IntMathType = IntMathType.ADD
@@ -29,6 +30,11 @@ class MathL2Node() : ValueNode("Math", listOf("Long", "Long"), listOf("Long")) {
         val c = type.long(a, b)
         // LOGGER.info("$a $type $b = $c")
         setOutput(c, 0)
+    }
+
+    companion object {
+        val inputs = listOf("Long", "A", "Long", "B")
+        val outputs = listOf("Long", "Result")
     }
 
 }

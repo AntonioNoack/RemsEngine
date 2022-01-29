@@ -21,6 +21,9 @@ import me.anno.input.Input.isShiftDown
 import me.anno.input.MouseButton
 import me.anno.input.Touch.Companion.touches
 import me.anno.io.files.FileReference
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.length
+import me.anno.maths.Maths.pow
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.objects.effects.ToneMappers
@@ -45,9 +48,6 @@ import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.simple.SimplePanel
 import me.anno.ui.style.Style
-import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.length
-import me.anno.maths.Maths.pow
 import me.anno.utils.types.Vectors.plus
 import me.anno.utils.types.Vectors.times
 import me.anno.utils.types.Vectors.toVec3f
@@ -166,7 +166,7 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
     }
 
     init {
-        for(it in controls) {
+        for (it in controls) {
             children += it.drawable
         }
     }
@@ -253,17 +253,12 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
         val x00 = x + dx
         val y00 = y + dy
         if (rw > 0 && rh > 0) {
-            GFX.clip2(// why just -1*bt instead of -2*bt???
-                max(x0, x00), max(y0, y00),
-                min(x1, x00 + rw), min(y1, y00 + rh)
-            ) {
-                Scene.draw(
-                    camera, RemsStudio.root,
-                    x00, y00, wx, wy,
-                    editorTime, false,
-                    mode, this
-                )
-            }
+            Scene.draw(
+                camera, RemsStudio.root,
+                x00, y00, wx, wy,
+                editorTime, false,
+                mode, this
+            )
         }
 
         GFX.clip2(x0, y0, x1, y1) {
@@ -274,7 +269,7 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
                 }
             }
 
-            super.onDraw(x0, y0, x1, y1)
+            drawChildren(x0, y0, x1, y1)
 
         }
 
@@ -434,7 +429,7 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
                 val first = touches.values.first()
                 val speed = 10f / 3f
                 if (contains(first.x, first.y)) {
-                    val dx = speed * touches.values.sumOf { (it.x - it.lastX).toDouble() }.toFloat()* size
+                    val dx = speed * touches.values.sumOf { (it.x - it.lastX).toDouble() }.toFloat() * size
                     val dy = speed * touches.values.sumOf { (it.y - it.lastY).toDouble() }.toFloat() * size
                     move(camera, dx, dy)
                     touches.forEach { it.value.update() }
@@ -461,7 +456,7 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
         val (camera2global, cameraTime) = camera.getGlobalTransformTime(editorTime)
 
         global2normUI.clear()
-        GFX.applyCameraTransform(camera, cameraTime, camera2global, global2normUI)
+        camera.applyTransform(cameraTime, camera2global, global2normUI)
 
         // val inverse = Matrix4f(global2normUI).invert()
 

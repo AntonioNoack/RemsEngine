@@ -15,7 +15,7 @@ import me.anno.objects.Transform
 import me.anno.studio.StudioBase
 import me.anno.studio.cli.CommandLines.parseDouble
 import me.anno.studio.cli.CommandLines.parseInt
-import me.anno.studio.project.Project
+import me.anno.studio.rems.Project
 import me.anno.studio.rems.RemsConfig
 import me.anno.studio.rems.RemsRegistry
 import me.anno.studio.rems.RemsStudio

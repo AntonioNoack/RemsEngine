@@ -7,10 +7,11 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 
-class MathD2Node() : ValueNode("Math", listOf("Double", "Double"), listOf("Double")) {
+class MathD2Node() : ValueNode("Math", inputs, outputs) {
 
     constructor(type: FloatMathsBinary) : this() {
         this.type = type
+        name = type.glsl
     }
 
     var type: FloatMathsBinary = FloatMathsBinary.ADD
@@ -29,6 +30,11 @@ class MathD2Node() : ValueNode("Math", listOf("Double", "Double"), listOf("Doubl
         val c = type.double(a, b)
         // logger.info("$a $type $b = $c")
         setOutput(c, 0)
+    }
+
+    companion object {
+        val inputs = listOf("Double", "A", "Double", "B")
+        val outputs = listOf("Double", "C")
     }
 
 }

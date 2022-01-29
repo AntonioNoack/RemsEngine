@@ -1,6 +1,9 @@
 package me.anno.studio.rems
 
 import me.anno.animation.AnimatedProperty
+import me.anno.audio.openal.ALBase
+import me.anno.audio.openal.AudioManager
+import me.anno.audio.openal.AudioTasks
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.baseTheme
 import me.anno.gpu.GFX
@@ -14,17 +17,24 @@ import me.anno.io.files.InvalidRef
 import me.anno.language.translation.Dict
 import me.anno.objects.Camera
 import me.anno.objects.Transform
+import me.anno.objects.text.Text
 import me.anno.studio.GFXSettings
 import me.anno.studio.StudioBase
 import me.anno.studio.cli.RemsCLI
-import me.anno.studio.project.Project
 import me.anno.studio.rems.CheckVersion.checkVersion
 import me.anno.studio.rems.ui.StudioFileImporter
+import me.anno.ui.Panel
+import me.anno.ui.base.groups.PanelListX
+import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
-import me.anno.ui.editor.UILayouts
+import me.anno.ui.editor.RemsStudioUILayouts
+import me.anno.ui.editor.WelcomeUI
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.sceneTabs.SceneTabs.currentTab
+import me.anno.ui.editor.sceneView.ScenePreview
+import me.anno.ui.style.Style
 import me.anno.utils.OS
+import java.io.File
 
 // todo bug: signed distance field texts are missing / not rendering
 
@@ -144,19 +154,38 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
         checkVersion()
     }
 
+    lateinit var welcomeUI: WelcomeUI
+
     override fun createUI() {
         Dict.loadDefault()
-        UILayouts.createWelcomeUI()
+        welcomeUI = object : WelcomeUI() {
+            override fun loadProject(name: String, folder: FileReference): Pair<String, FileReference> {
+                val project = this@RemsStudio.loadProject(name, folder)
+                return Pair(project.name, project.file)
+            }
+
+            override fun createProjectUI() {
+                RemsStudioUILayouts.createEditorUI(welcomeUI)
+            }
+        }
+        welcomeUI.createWelcomeUI(this, ::createBackground)
         StudioActions.register()
         ActionManager.init()
     }
 
-    var gfxSettings = GFXSettings.LOW
-        set(value) {
-            field = value
-            DefaultConfig["editor.gfx"] = value.id
-            DefaultConfig.putAll(value.data)
+    fun loadProject(name: String, folder: File) {
+        loadProject(name, getReference(folder))
+    }
+
+    fun loadProject(name: String, folder: FileReference): Project {
+        val project = Project(name.trim(), folder)
+        RemsStudio.project = project
+        project.open()
+        GFX.addGPUTask(1) {
+            GFX.setTitle("Rem's Studio: ${project.name}")
         }
+        return project
+    }
 
     override fun openHistory() {
         history?.display()
@@ -270,6 +299,37 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
     override fun run() {
         RemsRegistry.init()
         super.run()
+    }
+
+    private fun createBackground(style: Style): Panel {
+        val background = ScenePreview(style)
+        val grayPlane = PanelListX(style).apply { backgroundColor = 0x55777777 }
+        val panel = PanelStack(style)
+            .apply {
+                add(background)
+                add(grayPlane)
+            }
+        root.children.clear()
+        Text("Rem's Studio", root).apply {
+            blockAlignmentX.set(0f)
+            blockAlignmentY.set(0f)
+            textAlignment.set(0f)
+            relativeCharSpacing = 0.12f
+            invalidate()
+        }
+        return panel
+    }
+
+    fun updateAudio() {
+        AudioTasks.addTask(100) {
+            // update the audio player...
+            if (isPlaying) {
+                AudioManager.requestUpdate()
+            } else {
+                AudioManager.stop()
+            }
+            ALBase.check()
+        }
     }
 
     // UI with traditional editor?

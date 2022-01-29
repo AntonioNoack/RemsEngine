@@ -5,11 +5,7 @@ import me.anno.graph.types.FlowGraph
 abstract class CalculationNode : ValueNode {
 
     constructor(name: String) : super(name)
-
-    constructor(name: String, inputTypes: List<String>, outputTypes: List<String>) : super(name, inputTypes, outputTypes)
-
-    constructor(name: String, inputType: String, inputCount: Int, outputType: String, outputCount: Int) :
-            this(name, Array(inputCount) { inputType }.toList(), Array(outputCount) { outputType }.toList())
+    constructor(name: String, inputs: List<String>, outputs: List<String>, ) : super(name, inputs, outputs)
 
     abstract fun calculate(graph: FlowGraph): Any?
 

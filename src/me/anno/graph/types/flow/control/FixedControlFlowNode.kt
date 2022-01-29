@@ -7,15 +7,11 @@ abstract class FixedControlFlowNode : ControlFlowNode {
 
     constructor(name: String) : super(name)
 
-    constructor(name: String, inputs: List<String>, outputs: List<String>) : super(name, inputs, outputs)
-
     constructor(
         name: String,
-        numFlowInputs: Int,
-        otherInputs: List<String>,
-        numFlowOutputs: Int,
-        otherOutputs: List<String>
-    ) : super(name, numFlowInputs, otherInputs, numFlowOutputs, otherOutputs)
+        inputs: List<String>,
+        outputs: List<String>,
+    ) : super(name, inputs, outputs)
 
     fun getOutputNodes(index: Int): NodeOutput {
         val c = outputs!![index] // NodeOutputs

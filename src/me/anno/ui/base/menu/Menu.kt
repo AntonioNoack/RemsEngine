@@ -2,10 +2,10 @@ package me.anno.ui.base.menu
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.Window
+import me.anno.ui.Window
 import me.anno.input.MouseButton
 import me.anno.language.translation.NameDesc
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.buttons.TextButton

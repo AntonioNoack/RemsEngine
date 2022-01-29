@@ -1,4 +1,4 @@
-package me.anno.studio.project
+package me.anno.studio.rems
 
 import me.anno.animation.Type
 import me.anno.config.DefaultConfig.style
@@ -17,15 +17,14 @@ import me.anno.language.Language
 import me.anno.objects.Camera
 import me.anno.objects.Transform
 import me.anno.studio.history.History
-import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.ui.StudioFileExplorer
 import me.anno.studio.rems.ui.StudioTreeView
 import me.anno.studio.rems.ui.StudioUITypeLibrary
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.custom.CustomContainer
 import me.anno.ui.custom.CustomList
-import me.anno.ui.editor.UILayouts.createDefaultMainUI
+import me.anno.ui.editor.RemsStudioUILayouts.createDefaultMainUI
 import me.anno.ui.editor.sceneTabs.SceneTab
 import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.editor.sceneView.SceneTabData
@@ -271,12 +270,11 @@ class Project(var name: String, val file: FileReference) : Saveable() {
         return (camera ?: Camera(null).apply {
             name = "Inspector Camera"
             onlyShowTarget = false
-        })
-            .apply {
-                // higher far value to allow other far values to be seen
-                farZ.defaultValue = 5000f
-                timeDilation.setDefault(0.0) // the camera has no time, so no motion can be recorded
-            }
+        }).apply {
+            // higher far value to allow other far values to be seen
+            farZ.defaultValue = 5000f
+            timeDilation.setDefault(0.0) // the camera has no time, so no motion can be recorded
+        }
     }
 
     companion object {

@@ -1,7 +1,7 @@
 package me.anno.ui.dragging
 
 import me.anno.gpu.GFX.loadTexturesSync
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.constraints.WrapAlign
 
 class Draggable(

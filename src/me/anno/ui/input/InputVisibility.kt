@@ -1,8 +1,7 @@
 package me.anno.ui.input
 
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
-import org.apache.logging.log4j.LogManager
 
 object InputVisibility {
 

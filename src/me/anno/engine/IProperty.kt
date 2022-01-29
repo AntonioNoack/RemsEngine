@@ -1,6 +1,6 @@
 package me.anno.engine
 
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 
 interface IProperty<V> {
 

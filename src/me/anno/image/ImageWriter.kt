@@ -24,6 +24,7 @@ import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 import kotlin.math.*
 
+@Suppress("unused")
 object ImageWriter {
 
     fun getFile(name: String): FileReference {
@@ -31,7 +32,6 @@ object ImageWriter {
         return getReference(desktop, name2)
     }
 
-    @Suppress("UNUSED")
     inline fun writeRGBImageByte3(
         w: Int,
         h: Int,
@@ -45,7 +45,6 @@ object ImageWriter {
         }
     }
 
-    @Suppress("UNUSED")
     inline fun writeRGBImageInt3(
         w: Int,
         h: Int,
@@ -159,7 +158,6 @@ object ImageWriter {
         }
     }
 
-    @Suppress("UNUSED")
     inline fun writeImageFloat(
         w: Int, h: Int, name: String,
         minPerThread: Int,

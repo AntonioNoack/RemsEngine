@@ -1,10 +1,10 @@
 package me.anno.ui.utils
 
 import me.anno.config.DefaultConfig
-import me.anno.gpu.Window
+import me.anno.ui.Window
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.Input
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4f
 import java.util.*

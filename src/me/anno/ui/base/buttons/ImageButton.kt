@@ -10,7 +10,7 @@ import me.anno.image.ImageGPUCache.getInternalTexture
 import me.anno.input.Input.mouseDownX
 import me.anno.input.Input.mouseDownY
 import me.anno.input.Input.mouseKeysDown
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.style.Style

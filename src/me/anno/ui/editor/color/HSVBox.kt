@@ -1,7 +1,7 @@
 package me.anno.ui.editor.color
 
 import me.anno.studio.StudioBase.Companion.dragged
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.style.Style
 import org.joml.Vector3fc
 

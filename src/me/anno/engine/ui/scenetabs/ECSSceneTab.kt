@@ -13,7 +13,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.play.PlayView
 import me.anno.engine.ui.render.RenderView
-import me.anno.gpu.Window
+import me.anno.ui.Window
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc

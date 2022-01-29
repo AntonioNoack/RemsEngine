@@ -9,8 +9,13 @@ import org.joml.Vector3d
 
 abstract class Node() : NamedSaveable() {
 
-    constructor(name: String): this(){
+    constructor(name: String) : this() {
         this.name = name
+    }
+
+    constructor(name: String, inputs: List<String>, outputs: List<String>) : this(name) {
+        this.inputs = Array(inputs.size / 2) { NodeInput(inputs[it * 2], inputs[it * 2 + 1], this) }
+        this.outputs = Array(outputs.size / 2) { NodeOutput(outputs[it * 2], outputs[it * 2 + 1], this) }
     }
 
     abstract fun createUI(list: PanelListY, style: Style)

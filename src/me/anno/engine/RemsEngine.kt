@@ -15,19 +15,17 @@ import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
 import me.anno.studio.StudioBase
 import me.anno.studio.rems.StudioActions
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.debug.FrameTimes
 import me.anno.ui.editor.OptionBar
-import me.anno.ui.editor.UILayouts.createReloadWindow
+import me.anno.ui.editor.RemsStudioUILayouts.createReloadWindow
 import me.anno.ui.editor.config.ConfigPanel
 import me.anno.utils.OS
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
-import java.io.FileReader
-import java.io.IOException
 
 
 // todo runtime-components/hierarchy: must be displayed
@@ -129,6 +127,9 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
     override fun createUI() {
 
+        // todo select project view, like Rem's Studio
+        // todo what do we use as a background?
+
         val projectFile = OS.documents.getChild("RemsEngine").getChild("SampleProject")
         currentProject = GameEngineProject.readOrCreate(projectFile)!!
         currentProject.init()
@@ -136,7 +137,6 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         ShaderLib.init()
         ECSShaderLib.init()
 
-        // todo select project view, like Rem's Studio
         // todo select scene
         // todo show scene, and stuff, like Rem's Studio
 
@@ -150,7 +150,7 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
         // for testing directly jump in the editor
 
-        val editScene = loadSafely(projectFile.getChild("Scene.json"))
+        val editScene = loadSafely(currentProject.lastScene)
 
         val style = style
 

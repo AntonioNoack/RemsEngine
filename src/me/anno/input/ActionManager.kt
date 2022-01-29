@@ -5,7 +5,7 @@ import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.GFX.inFocus
 import me.anno.io.utils.StringMap
 import me.anno.studio.StudioBase
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
 

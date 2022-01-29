@@ -3,7 +3,7 @@ package me.anno.ui.base.groups
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.io.ISaveable
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
@@ -29,6 +29,10 @@ abstract class PanelGroup(style: Style) : Panel(style) {
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
+        drawChildren(x0, y0, x1, y1)
+    }
+
+    fun drawChildren(x0: Int, y0: Int, x1: Int, y1: Int) {
         val children = children
         children@ for (index in children.indices) {
             val child = children[index]

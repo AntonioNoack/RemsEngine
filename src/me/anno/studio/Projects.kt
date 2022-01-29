@@ -1,11 +1,9 @@
-package me.anno.studio.rems
+package me.anno.studio
 
 import me.anno.config.DefaultConfig
 import me.anno.io.files.FileReference
 import me.anno.io.text.TextReader
 import me.anno.io.utils.StringMap
-import me.anno.studio.StudioBase
-import me.anno.studio.project.Project
 import org.apache.logging.log4j.LogManager
 
 object Projects {
@@ -64,14 +62,14 @@ object Projects {
         updateRecentProjects(recent)
     }
 
-    fun updateRecentProjects(recent: List<ProjectHeader>) {
+    fun updateRecentProjects(recentHeaders: List<ProjectHeader>) {
         val usedFiles = HashSet<FileReference>()
         var i = 0
-        for (projectI in recent) {
-            if (projectI.file !in usedFiles) {
-                DefaultConfig["recent.projects[$i].name"] = projectI.name
-                DefaultConfig["recent.projects[$i].file"] = projectI.file.absolutePath
-                usedFiles += projectI.file
+        for (header in recentHeaders) {
+            if (header.file !in usedFiles) {
+                DefaultConfig["recent.projects[$i].name"] = header.name
+                DefaultConfig["recent.projects[$i].file"] = header.file.absolutePath
+                usedFiles += header.file
                 if (++i > recentProjectCount) break
             }
         }
@@ -82,8 +80,8 @@ object Projects {
         DefaultConfig.save("main.config")
     }
 
-    fun addToRecentProjects(project: Project) {
-        addToRecentProjects(ProjectHeader(project.name, project.file))
+    fun addToRecentProjects(name: String, file: FileReference) {
+        addToRecentProjects(ProjectHeader(name, file))
     }
 
 }

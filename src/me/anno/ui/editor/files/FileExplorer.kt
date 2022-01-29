@@ -14,7 +14,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.StudioBase.Companion.workspace
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment

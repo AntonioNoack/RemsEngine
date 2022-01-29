@@ -9,6 +9,7 @@ import org.apache.logging.log4j.LogManager
 object FBStack : CacheSection("FBStack") {
 
     private val LOGGER = LogManager.getLogger(FBStack::class)
+    private const val timeout = 2100L
 
     abstract class FBStackData(
         val w: Int,
@@ -78,14 +79,14 @@ object FBStack : CacheSection("FBStack") {
 
     fun getValue(w: Int, h: Int, channels: Int, usesFP: Boolean, samples: Int, withDepth: Boolean): FBStackData {
         val key = FBKey1(w, h, channels, usesFP, clamp(samples, 1, GFX.maxSamples), withDepth)
-        return getEntry(key, 2100, false) {
+        return getEntry(key, timeout, false) {
             FBStackData1(it)
         } as FBStackData
     }
 
     fun getValue(w: Int, h: Int, targetType: TargetType, samples: Int, withDepth: Boolean): FBStackData {
         val key = FBKey2(w, h, targetType, clamp(samples, 1, GFX.maxSamples), withDepth)
-        return getEntry(key, 2100, false) {
+        return getEntry(key, timeout, false) {
             FBStackData2(it)
         } as FBStackData
     }
@@ -137,7 +138,7 @@ object FBStack : CacheSection("FBStack") {
         }
     }
 
-    fun clear(w: Int, h: Int) {
+    fun reset(w: Int, h: Int) {
         synchronized(cache) {
             for (value in cache.values) {
                 val data = value.data

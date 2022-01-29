@@ -11,6 +11,8 @@ import me.anno.utils.files.LocalFile.toGlobalFile
 
 class GameEngineProject() : NamedSaveable() {
 
+    // todo save the config, if something changes
+
     companion object {
         fun readOrCreate(location: FileReference?): GameEngineProject? {
             location ?: return null
@@ -42,8 +44,6 @@ class GameEngineProject() : NamedSaveable() {
 
     var location: FileReference = InvalidRef // a folder
     var lastScene: FileReference = InvalidRef
-
-    // todo save the config, if something changes
 
     fun init() {
         StudioBase.workspace = location

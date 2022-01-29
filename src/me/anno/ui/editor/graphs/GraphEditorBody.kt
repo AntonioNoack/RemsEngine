@@ -19,10 +19,14 @@ import me.anno.input.MouseButton
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.language.translation.NameDesc
-import me.anno.studio.StudioBase.Companion.updateAudio
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.length
+import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.pow
 import me.anno.studio.rems.RemsStudio
 import me.anno.studio.rems.RemsStudio.editorTime
 import me.anno.studio.rems.RemsStudio.isPaused
+import me.anno.studio.rems.RemsStudio.updateAudio
 import me.anno.studio.rems.Selection.selectedProperty
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.menu.Menu.openMenu
@@ -32,10 +36,6 @@ import me.anno.ui.editor.sceneView.Grid.drawSmoothLine
 import me.anno.ui.style.Style
 import me.anno.utils.Color.mulAlpha
 import me.anno.utils.Color.toARGB
-import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.length
-import me.anno.maths.Maths.mix
-import me.anno.maths.Maths.pow
 import me.anno.utils.types.AnyToFloat.get
 import org.apache.logging.log4j.LogManager
 import org.joml.*

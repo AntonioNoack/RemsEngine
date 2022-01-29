@@ -10,7 +10,7 @@ import me.anno.io.utils.StringMap
 import me.anno.objects.modes.TransformVisibility
 import me.anno.studio.StudioBase
 import me.anno.ui.editor.TimelinePanel
-import me.anno.ui.editor.UILayouts
+import me.anno.ui.editor.RemsStudioUILayouts
 import kotlin.math.round
 
 object StudioActions {
@@ -32,15 +32,15 @@ object StudioActions {
             "PlayReversed" to { setEditorTimeDilation(-1.0) },
             "PlayReversedSlow" to { setEditorTimeDilation(-0.2) },
             "ToggleFullscreen" to { GFX.toggleFullscreen(); true },
-            "PrintLayout" to { UILayouts.printLayout();true },
+            "PrintLayout" to { RemsStudioUILayouts.printLayout();true },
             "NextFrame" to {
                 RemsStudio.editorTime = (round(RemsStudio.editorTime * RemsStudio.targetFPS) + 1) / RemsStudio.targetFPS
-                StudioBase.updateAudio()
+                RemsStudio.updateAudio()
                 true
             },
             "PreviousFrame" to {
                 RemsStudio.editorTime = (round(RemsStudio.editorTime * RemsStudio.targetFPS) - 1) / RemsStudio.targetFPS
-                StudioBase.updateAudio()
+                RemsStudio.updateAudio()
                 true
             },
             "NextStep" to {
@@ -53,12 +53,12 @@ object StudioActions {
             },
             "Jump2Start" to {
                 RemsStudio.editorTime = 0.0
-                StudioBase.updateAudio()
+                RemsStudio.updateAudio()
                 true
             },
             "Jump2End" to {
                 RemsStudio.editorTime = RemsStudio.project?.targetDuration ?: 10.0
-                StudioBase.updateAudio()
+                RemsStudio.updateAudio()
                 true
             },
             "DragEnd" to {

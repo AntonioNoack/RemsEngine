@@ -1,6 +1,7 @@
 package me.anno.ui.base
 
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ui.Panel
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.style.Style
 

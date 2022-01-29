@@ -131,7 +131,7 @@ class VideoBackgroundTask(
 
                 var i = 0
                 while (i++ < motionBlurSteps && !needsMoreSources) {
-                    FBStack.clear(video.w, video.h)
+                    FBStack.reset(video.w, video.h)
                     useFrame(partialFrame, drawMode) {
                         try {
                             Scene.draw(

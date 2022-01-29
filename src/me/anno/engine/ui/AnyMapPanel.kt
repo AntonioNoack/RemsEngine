@@ -2,7 +2,7 @@ package me.anno.engine.ui
 
 import me.anno.engine.IProperty
 import me.anno.engine.Ptr
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.editor.stacked.ArrayPanel
 import me.anno.ui.style.Style

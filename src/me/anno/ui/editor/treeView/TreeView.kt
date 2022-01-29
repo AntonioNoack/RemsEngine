@@ -6,7 +6,7 @@ import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.objects.Transform
 import me.anno.studio.rems.Selection
-import me.anno.ui.base.Panel
+import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelList
