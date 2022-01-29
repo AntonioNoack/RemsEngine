@@ -19,7 +19,7 @@ import me.anno.utils.Sleep.sleepABit10
 import me.anno.utils.Sleep.sleepShortly
 import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.io.Streams.listen
-import me.anno.utils.io.Streams.readLine2
+import me.anno.utils.io.Streams.readLine
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.strings.StringHelper.titlecase
 import me.anno.utils.types.Strings.isBlank2
@@ -154,7 +154,8 @@ object Spellchecking : CacheSection("Spellchecking") {
                     val reader = input.bufferedReader()
                     process.errorStream.listen("Spellchecking-Listener ${language.code}") { msg -> LOGGER.warn(msg) }
                     val output = process.outputStream.bufferedWriter()
-                    LOGGER.info(input.readLine2(reader))
+                    val startMessage = input.readLine(reader)
+                    if (startMessage != null) LOGGER.info(startMessage)
                     try {
                         while (!shutdown) {
                             if (queue.isEmpty()) sleepShortly(true)
@@ -177,10 +178,10 @@ object Spellchecking : CacheSection("Spellchecking") {
                                 output.flush()
                                 var suggestionsString = ""
                                 while ((suggestionsString.isEmpty() || !suggestionsString.startsWith("[")) && !shutdown) {
-                                    suggestionsString = input.readLine2(reader) ?: break
+                                    suggestionsString = input.readLine(reader) ?: break
                                     // a random, awkward case, when "Program" or "Transform" is requested in German
                                     if (suggestionsString.startsWith("[COMPOUND")) {
-                                        suggestionsString = "[" + input.readLine2(reader)
+                                        suggestionsString = "[" + (input.readLine(reader) ?: break)
                                     }
                                 }
                                 try {
@@ -192,10 +193,13 @@ object Spellchecking : CacheSection("Spellchecking") {
                                         val message = suggestion["message"]!!.asText()
                                         val shortMessage = suggestion["shortMessage"]!!.asText()
                                         val improvements = suggestion["suggestions"] as JsonArray
-                                        val result = Suggestion(
-                                            start, end, message, shortMessage,
-                                            improvements.map { it as String }
-                                        )
+                                        val result =
+                                            Suggestion(
+                                                start,
+                                                end,
+                                                message,
+                                                shortMessage,
+                                                improvements.map { it as String })
                                         result
                                     }
                                     nextTask.callback(suggestionsList)

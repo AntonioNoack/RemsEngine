@@ -2,6 +2,7 @@ package me.anno.video.formats.gpu
 
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
+import me.anno.utils.Sleep
 import java.io.EOFException
 import java.io.InputStream
 
@@ -26,7 +27,7 @@ class RGBAFrame(w: Int, h: Int) : RGBFrame(w, h) {
             data.put(a.toByte()) // offset is required
         }
         data.position(0)
-        creationLimiter.acquire()
+        Sleep.acquire(true, creationLimiter)
         GFX.addGPUTask(w, h) {
             rgb.createRGBA(data, true)
             creationLimiter.release()

@@ -6,6 +6,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
+import me.anno.utils.Sleep
 import me.anno.utils.input.Input.readNBytes2
 import java.io.InputStream
 
@@ -19,7 +20,7 @@ class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 2) {
         val s0 = w * h
         val yData = input.readNBytes2(s0, Texture2D.bufferPool)
         blankDetector.putChannel(yData, 0)
-        creationLimiter.acquire()
+        Sleep.acquire(true, creationLimiter)
         GFX.addGPUTask(w, h) {
             y.createMonochrome(yData, true)
             creationLimiter.release()
@@ -31,7 +32,7 @@ class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 2) {
         // merge the u and v planes
         val interlaced = interlaceReplace(uData, vData)
         // create the uv texture
-        creationLimiter.acquire()
+        Sleep.acquire(true, creationLimiter)
         GFX.addGPUTask(w, h) {
             uv.createRG(interlaced, true)
             creationLimiter.release()

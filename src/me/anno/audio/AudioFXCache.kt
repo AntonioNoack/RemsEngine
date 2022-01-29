@@ -18,6 +18,7 @@ import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.modes.LoopingState
 import me.anno.maths.Maths.clamp
+import me.anno.utils.Sleep.acquire
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.video.AudioCreator.Companion.playbackSampleRate
 import me.anno.video.FFMPEGMetadata
@@ -196,7 +197,7 @@ object AudioFXCache : CacheSection("AudioFX") {
         key: PipelineKey
     ): AudioData {
         // we cannot simply return null from this function, so getEntryLimited isn't an option
-        rawDataLimiter.acquire()
+        acquire(true, rawDataLimiter)
         val entry = getEntry(key to "", timeout, false) {
             val stream = AudioStreamRaw(
                 key.file, key.repeat,

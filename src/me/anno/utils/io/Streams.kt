@@ -1,6 +1,7 @@
 package me.anno.utils.io
 
 import me.anno.Engine
+import me.anno.utils.Sleep.sleepShortly
 import me.anno.utils.hpc.Threads.threadWithName
 import java.io.InputStream
 import java.io.OutputStream
@@ -8,7 +9,7 @@ import java.io.Reader
 
 object Streams {
 
-    fun InputStream.readLine2(reader: Reader): String? {
+    fun InputStream.readLine(reader: Reader): String? {
         val builder = StringBuilder()
         while (!Engine.shutdown) {
             if (available() > 0) {
@@ -22,7 +23,7 @@ object Streams {
                     '\r'.code -> {}
                     else -> builder.append(char.toChar())
                 }
-            }
+            } else sleepShortly(false)
         }
         return null
     }

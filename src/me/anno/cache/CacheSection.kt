@@ -146,8 +146,6 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             data = generator(key)
         } catch (e: FileNotFoundException) {
             LOGGER.warn("FileNotFoundException: ${e.message}")
-        } catch (e: ShutdownException) {
-            throw e
         } catch (e: Exception) {
             return e
         }
@@ -309,9 +307,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                 }
             } else {
                 val value = generateSafely(key, generator)
-                if (value is Exception &&
-                    value !is ShutdownException
-                ) throw value
+                if (value is Exception) throw value
                 entry.data = value as? ICacheData
             }
         } else ifNotGenerating?.invoke()

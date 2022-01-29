@@ -177,14 +177,14 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
     fun devNull(name: String, stream: InputStream) {
         thread(name = "devNull-$name") {
-            stream.use {
-                try {
-                    waitUntil(true) {// wait for the end
+            try {
+                stream.use {
+                    waitUntil(true) {// wait until we are done
                         stream.available() > 0 && stream.read() < 0
                     }
-                } catch (e: ShutdownException) {
-                    // nothing to be done
                 }
+            } catch (e: ShutdownException) {
+                // ignored
             }
         }
     }

@@ -2,6 +2,7 @@ package me.anno.video.formats.gpu
 
 import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
+import me.anno.utils.ShutdownException
 import me.anno.video.LastFrame
 import me.anno.video.formats.FrameReader
 import java.io.IOException
@@ -37,6 +38,8 @@ class GPUFrameReader(
         } catch (e: LastFrame) {
 
         } catch (e: IOException) {
+
+        } catch (e: ShutdownException) {
 
         } catch (e: Exception) {
             e.printStackTrace()

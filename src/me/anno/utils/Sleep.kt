@@ -9,34 +9,26 @@ object Sleep {
 
     @Throws(ShutdownException::class)
     fun sleepShortly(canBeKilled: Boolean) {
-        if (canBeKilled && shutdown) throw ShutdownException
+        if (canBeKilled && shutdown) throw ShutdownException()
         Thread.sleep(0, 100_000)
     }
 
     @Throws(ShutdownException::class)
     fun sleepABit(canBeKilled: Boolean) {
-        if (canBeKilled && shutdown) throw ShutdownException
+        if (canBeKilled && shutdown) throw ShutdownException()
         Thread.sleep(1)
     }
 
     @Throws(ShutdownException::class)
     fun sleepABit10(canBeKilled: Boolean) {
-        if (canBeKilled && shutdown) throw ShutdownException
+        if (canBeKilled && shutdown) throw ShutdownException()
         Thread.sleep(10)
     }
 
     @Throws(ShutdownException::class)
     inline fun waitUntil(canBeKilled: Boolean, condition: () -> Boolean) {
         while (!condition()) {
-            if (canBeKilled && shutdown) throw ShutdownException
-            sleepABit(canBeKilled)
-        }
-    }
-
-    @Throws(ShutdownException::class)
-    fun acquire(canBeKilled: Boolean, semaphore: Semaphore, numPermits: Int = 1) {
-        while (!semaphore.tryAcquire(numPermits, 1, TimeUnit.MILLISECONDS)) {
-            if (canBeKilled && shutdown) throw ShutdownException
+            if (canBeKilled && shutdown) throw ShutdownException()
             sleepABit(canBeKilled)
         }
     }
@@ -46,7 +38,7 @@ object Sleep {
         if (limit < 0) return waitUntil(canBeKilled, condition)
         val startTime = System.nanoTime()
         while (!condition()) {
-            if (canBeKilled && shutdown) throw ShutdownException
+            if (canBeKilled && shutdown) throw ShutdownException()
             val time = System.nanoTime() - startTime
             if (time > limit) throw RuntimeException("Time limit exceeded for $key")
             sleepABit(canBeKilled)
@@ -66,6 +58,10 @@ object Sleep {
             sleepABit(canBeKilled)
         }
         return false
+    }
+
+    fun acquire(canBeKilled: Boolean, semaphore: Semaphore, permits: Int = 1) {
+        waitUntil(canBeKilled) { semaphore.tryAcquire(permits, 10L, TimeUnit.MILLISECONDS) }
     }
 
     @Throws(ShutdownException::class)

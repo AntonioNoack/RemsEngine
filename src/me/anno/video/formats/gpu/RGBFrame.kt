@@ -5,6 +5,7 @@ import me.anno.gpu.shader.ShaderLib.shader3DRGBA
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
+import me.anno.utils.Sleep
 import java.io.EOFException
 import java.io.InputStream
 
@@ -31,7 +32,7 @@ open class RGBFrame(w: Int, h: Int) : GPUFrame(w, h, -1) {
         }
         data.position(0)
         blankDetector.putRGBA(data)
-        creationLimiter.acquire()
+        Sleep.acquire(true, creationLimiter)
         GFX.addGPUTask(w, h) {
             rgb.createRGB(data, true)
             creationLimiter.release()
