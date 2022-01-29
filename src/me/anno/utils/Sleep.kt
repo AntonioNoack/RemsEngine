@@ -2,6 +2,8 @@ package me.anno.utils
 
 import me.anno.Engine.shutdown
 import me.anno.gpu.GFX
+import java.util.concurrent.Semaphore
+import java.util.concurrent.TimeUnit
 
 object Sleep {
 
@@ -26,6 +28,14 @@ object Sleep {
     @Throws(ShutdownException::class)
     inline fun waitUntil(canBeKilled: Boolean, condition: () -> Boolean) {
         while (!condition()) {
+            if (canBeKilled && shutdown) throw ShutdownException
+            sleepABit(canBeKilled)
+        }
+    }
+
+    @Throws(ShutdownException::class)
+    fun acquire(canBeKilled: Boolean, semaphore: Semaphore, numPermits: Int = 1) {
+        while (!semaphore.tryAcquire(numPermits, 1, TimeUnit.MILLISECONDS)) {
             if (canBeKilled && shutdown) throw ShutdownException
             sleepABit(canBeKilled)
         }

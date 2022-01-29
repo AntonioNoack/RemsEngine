@@ -1,8 +1,8 @@
 package me.anno.io.files
 
+import me.anno.Build
 import me.anno.Engine
 import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.Build
 import me.anno.utils.OS.desktop
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
@@ -113,6 +113,11 @@ object FileWatch {
 
                     }
 
+                }
+            }
+            synchronized(watched) {
+                for ((key, _) in watched.values) {
+                    key.cancel()
                 }
             }
         }

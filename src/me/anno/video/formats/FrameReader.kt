@@ -1,8 +1,10 @@
 package me.anno.video.formats
 
+import me.anno.Engine
 import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.waitUntil
+import me.anno.utils.io.Streams.readLine2
 import me.anno.video.FFMPEGMetaParser
 import me.anno.video.FFMPEGStream
 import me.anno.video.IsFFMPEGOnly.isFFMPEGOnlyExtension
@@ -20,33 +22,39 @@ abstract class FrameReader<FrameType>(
 
     override fun process(process: Process, arguments: List<String>) {
         thread(name = "${file?.name}:error-stream") {
-            val out = process.errorStream.bufferedReader()
-            val parser = FFMPEGMetaParser()
-            try {
-                while (true) {
-                    val line = out.readLine() ?: break
-                    // if('!' in line || "Error" in line) LOGGER.warn("ffmpeg $frame0 ${arguments.joinToString(" ")}: $line")
-                    parser.parseLine(line, this)
+            process.errorStream.use { input ->
+                val reader = input.bufferedReader()
+                val parser = FFMPEGMetaParser()
+                try {
+                    while (!Engine.shutdown) {
+                        val line = input.readLine2(reader) ?: break
+                        // if('!' in line || "Error" in line) LOGGER.warn("ffmpeg $frame0 ${arguments.joinToString(" ")}: $line")
+                        parser.parseLine(line, this)
+                    }
+                } catch (e: ShutdownException) {
+                    // ...
                 }
-            } catch (e: ShutdownException) {
-                // ...
             }
         }
         thread(name = "${file?.name}:input-stream") {
-            val frameCount = arguments[arguments.indexOf("-vframes") + 1].toInt()
-            val input = process.inputStream
+            // todo why is this throwing ShutdownExceptions???
             try {
-                readFrame(input)
-                for (i in 1 until frameCount) {
+                val frameCount = arguments[arguments.indexOf("-vframes") + 1].toInt()
+                val input = process.inputStream
+                input.use {
                     readFrame(input)
-                    if (isFinished) break
+                    for (i in 1 until frameCount) {
+                        readFrame(input)
+                        if (isFinished) break
+                    }
                 }
             } catch (e: OutOfMemoryError) {
                 LOGGER.warn("Engine has run out of memory!!")
             } catch (e: ShutdownException) {
                 // ...
+            } catch (e: Throwable) {
+                LOGGER.error(e)
             }
-            input.close()
         }
     }
 

@@ -1,8 +1,10 @@
 package me.anno.video
 
 import me.anno.gpu.GFX
-import me.anno.io.TimeoutInputStream.Companion.withTimeout
 import me.anno.io.files.FileReference
+import me.anno.utils.ShutdownException
+import me.anno.utils.Sleep.acquire
+import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.hpc.HeavyProcessing.numThreads
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.process.BetterProcessBuilder
@@ -15,7 +17,6 @@ import java.io.File
 import java.io.InputStream
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -136,7 +137,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
     fun run(arguments: List<String>): FFMPEGStream {
 
-        if (isProcessCountLimited) processLimiter.acquire()
+        if (isProcessCountLimited) acquire(true, processLimiter)
 
         LOGGER.info("${(GFX.gameTime * 1e-9f).f3()} ${arguments.joinToString(" ")}")
 
@@ -175,16 +176,16 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
     var srcH = 0
 
     fun devNull(name: String, stream: InputStream) {
-        val stream2 = stream.withTimeout(5000)
         thread(name = "devNull-$name") {
-            try {
-                while (true) {
-                    val read = stream2.read()
-                    if (read < 0) break
+            stream.use {
+                try {
+                    waitUntil(true) {// wait for the end
+                        stream.available() > 0 && stream.read() < 0
+                    }
+                } catch (e: ShutdownException) {
+                    // nothing to be done
                 }
-            } catch (e: TimeoutException) {
             }
-            stream2.close()
         }
     }
 

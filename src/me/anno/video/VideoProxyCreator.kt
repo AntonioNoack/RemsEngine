@@ -10,6 +10,7 @@ import me.anno.io.utils.StringMap
 import me.anno.studio.rems.RemsConfig
 import me.anno.studio.rems.RemsStudio
 import me.anno.utils.OS
+import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.files.Files.formatFileSize
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
@@ -107,7 +108,7 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
                 // filter information, that we don't need (don't spam the console that much, rather create an overview for it)
                 devNull("error", process.errorStream)
                 devNull("input", process.inputStream)
-                process.waitFor()
+                waitUntil(true) { !process.isAlive }
                 if (tmp.exists) {
                     if (dst.exists) dst.deleteRecursively()
                     tmp.renameTo(dst)
