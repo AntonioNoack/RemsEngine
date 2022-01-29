@@ -42,34 +42,12 @@ import java.io.File
 // todo visualize audio frequency, always!!!, from 25Hz to 48kHz
 // inspiration: https://www.youtube.com/watch?v=RA5UiLYWdbM&ab_channel=TomScott
 
-// todo triangle pixelation instead of quad pixelation, looks nicer (e.g. hex pattern)
-
 // todo use YouTube videos as a video source?
 
 // todo when rendering low-res images: for nearest-interpolated textures use interpolation on the edges of pixels
 
 // todo scripting?...
 // todo gizmos
-
-// todo for game engines: easy way to call C/C++, maybe other languages as well, like JavaScript or Lua (as a game engine)
-// todo text file editor with syntax highlighting??..
-
-// todo shared code and mesh base, and the engine/compiler collects all required resources for the exported scenes?
-// could be a really nice system :)
-
-// todo games, which we want to develop:
-//  - city builder
-//          on a globe would be cool
-//          with districts, giant world, connecting multiple cities together
-//  - underground survival after apocalypse/crash: many dungeons, water einbrüche, food resources, building electricity system,
-//          and resource management
-//  - minecraft like game with easy modding and plugin support, without version barriers, with Minecraft-Mod support
-//  - gta / grand theft waifu,
-//          money/car/heist stealing game with 3rd person shooting and car driving as main game loop
-//          low poly style, because that's the only possible way for a hobby programmer
-//  - GTA x Minecraft? it would be nice to build in such a world... low poly could allow that by placing assets, and then
-//          creating personal levels or bases with that
-
 
 // Launch4j
 
@@ -124,17 +102,13 @@ import java.io.File
 
 // to do Mod with "hacked"-text effect for text: swizzle characters and introduce others?
 
-// todo cutting (control+x) only cuts one
+// todo bug: cutting (control+x) only cuts one
 
 // todo zoom in on point in 2D using mouse position
 
 // todo when playing video, and the time hasn't been touched manually, slide the time panel, when the time reaches the end: slide by 1x window width
 
-
-// todo signed field to split meshes
-// todo with option for face subdivisions
-
-// todo a play button
+// todo signed field to split meshes with option for face subdivisions
 
 object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
 

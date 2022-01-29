@@ -178,7 +178,7 @@ object RemsStudioUILayouts {
             // to do more info
             msg(
                 windowStack,
-                NameDesc("Rem's Studio is created by Antonio Noack from Jena, Germany", "", "")
+                NameDesc("Rem's Studio is being developed\nby Antonio Noack\nfrom Jena, Germany", "", "")
             )
             // e.g. the info, why I created it
             // that it is Open Source

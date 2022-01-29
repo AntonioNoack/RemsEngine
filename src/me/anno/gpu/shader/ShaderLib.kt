@@ -625,6 +625,7 @@ object ShaderLib {
                 GLSLLib.case(MaskType.QUAD_PIXELATION.id, "shader/mask-effects/QuadPixelating.glsl") +
                 GLSLLib.case(MaskType.TRI_PIXELATION.id, "shader/mask-effects/TriPixelating.glsl") +
                 GLSLLib.case(MaskType.HEX_PIXELATION.id, "shader/mask-effects/HexPixelating.glsl") +
+                GLSLLib.case(MaskType.VORONOI_PIXELATION.id, "shader/mask-effects/VoronoiPixelating.glsl") +
                 GLSLLib.case(MaskType.RADIAL_BLUR_1.id, "shader/mask-effects/RadialBlur1.glsl") +
                 GLSLLib.case(MaskType.RADIAL_BLUR_2.id, "shader/mask-effects/RadialBlur2.glsl") +
                 GLSLLib.case(MaskType.GREEN_SCREEN.id, "shader/mask-effects/GreenScreen.glsl") +

@@ -62,6 +62,27 @@ import org.apache.logging.log4j.LogManager
 // could not reproduce it lately -> was it fixed?
 // to do bug: long text field is broken...
 
+
+// todo games, which we want to develop:
+//  - city builder
+//          on a globe would be cool
+//          with districts, giant world, connecting multiple cities together
+//  - underground survival after apocalypse/crash: many dungeons, water einbrüche, food resources, building electricity system,
+//          and resource management
+//  - minecraft like game with easy modding and plugin support, without version barriers, with Minecraft-Mod support
+//  - gta / grand theft waifu,
+//          money/car/heist stealing game with 3rd person shooting and car driving as main game loop
+//          low poly style, because that's the only possible way for a hobby programmer
+//  - GTA x Minecraft? it would be nice to build in such a world... low poly could allow that by placing assets, and then
+//          creating personal levels or bases with that
+
+// todo for game engines: easy way to call C/C++, maybe other languages as well, like JavaScript or Lua (as a game engine)
+// todo text file editor with syntax highlighting??..
+
+
+// todo a play button
+
+
 class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
     lateinit var currentProject: GameEngineProject
