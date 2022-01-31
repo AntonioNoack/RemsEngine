@@ -45,6 +45,19 @@ class Prefab : Saveable {
     var wasCreatedFromJson = false
     var source: FileReference = InvalidRef
 
+    val instanceName get() = sets[ROOT_PATH, "name"]?.toString()
+
+    // for the game runtime, we could save the prefab instance here
+    // or maybe even just add the changes, and merge them
+    // (we don't need to override twice or more times)
+
+    var history: ChangeHistory? = null
+    var isValid = false
+
+    @NotSerializedProperty
+    var isWritable = true
+        private set
+
     fun invalidateInstance() {
         synchronized(this) {
             sampleInstance?.destroy()
@@ -53,12 +66,6 @@ class Prefab : Saveable {
         }
         // todo all child prefab instances would need to be invalidated as well
     }
-
-    val instanceName get() = sets[ROOT_PATH, "name"]?.toString()
-
-    @NotSerializedProperty
-    var isWritable = true
-        private set
 
     fun sealFromModifications() {
         isWritable = false
@@ -94,13 +101,6 @@ class Prefab : Saveable {
         }
         return sum
     }
-
-    // for the game runtime, we could save the prefab instance here
-    // or maybe even just add the changes, and merge them
-    // (we don't need to override twice or more times)
-
-    var history: ChangeHistory? = null
-    var isValid = false
 
     fun add(change: CAdd, index: Int): Path {
         return add(change).getChildPath(index)

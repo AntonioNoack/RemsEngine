@@ -22,7 +22,7 @@ abstract class History2<V> : Saveable() {
             field = max(value, 0)
         }
 
-    private val states = ArrayList<V>()
+    val states = ArrayList<V>()
 
     fun isEmpty() = states.isEmpty()
 
@@ -68,13 +68,17 @@ abstract class History2<V> : Saveable() {
     }
 
     fun display() {
-        openMenu(defaultWindowStack!!, NameDesc("Inspect History", "", "ui.inspectHistory"), states.mapIndexed { index, change ->
-            val title0 = getTitle(change)
-            val title = if (index == nextInsertIndex - 1) "* $title0" else title0
-            MenuOption(NameDesc(title, Dict["Click to redo", "ui.history.clickToUndo"], "")) {
-                redo(index)
-            }
-        }.reversed())
+        openMenu(
+            defaultWindowStack!!,
+            NameDesc("Inspect History", "", "ui.inspectHistory"),
+            states.mapIndexed { index, change ->
+                val title0 = getTitle(change)
+                val title = if (index == nextInsertIndex - 1) "* $title0" else title0
+                MenuOption(NameDesc(title, Dict["Click to redo", "ui.history.clickToUndo"], "")) {
+                    redo(index)
+                }
+            }.reversed()
+        )
     }
 
     override fun readInt(name: String, value: Int) {
@@ -99,12 +103,25 @@ abstract class History2<V> : Saveable() {
         super.save(writer)
         writer.writeInt("nextInsertIndex", nextInsertIndex)
         synchronized(states) {
-            /*for (state in states) {
-                writer.writeSomething(null, "state", state, true)
-            }*/
-            writer.writeSomething(null, "states", states, true)
+            if (states.isNotEmpty()) {
+                var previous = states[0]
+                if (saveCompressed(writer, previous, null)) {
+                    // save compressed
+                    for (i in 1 until states.size) {
+                        val instance = states[i]
+                        if (instance != previous) {
+                            saveCompressed(writer, instance, previous)
+                        }
+                        previous = instance
+                    }
+                } else {
+                    writer.writeSomething(null, "states", states, true)
+                }
+            }
         }
     }
+
+    open fun saveCompressed(writer: BaseWriter, instance: V, previousInstance: V?): Boolean = false
 
     override val approxSize get() = 1_500_000_000
     override fun isDefaultValue(): Boolean = false

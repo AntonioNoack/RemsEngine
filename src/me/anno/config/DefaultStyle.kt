@@ -4,6 +4,7 @@ import me.anno.io.config.ConfigBasics
 import me.anno.io.utils.StringMap
 import me.anno.ui.style.Style
 import me.anno.maths.Maths.mixARGB
+import me.anno.utils.OS
 import org.joml.Vector3f
 import org.joml.Vector3fc
 import org.joml.Vector4f
@@ -36,7 +37,10 @@ object DefaultStyle {
 
     init {
 
-        val fontSize = 15
+        val fontSize = when {
+            OS.isAndroid -> 25
+            else -> 15
+        }
 
         set("fontName", "Verdana")
         set("fontSize", fontSize)

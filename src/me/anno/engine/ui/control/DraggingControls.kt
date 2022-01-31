@@ -183,71 +183,83 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
         if (EditorState.editMode?.onEditMove(x, y, dx, dy) == true) return
         if (Touch.touches.size > 1) return // handled separately
         // super.onMouseMoved(x, y, dx, dy)
-        if (isSelected && Input.isRightDown) {
-            rotateCamera(dx, dy)
-        } else if (isSelected && Input.isLeftDown) {
-            val targets = selectedEntities
-            if (targets.isNotEmpty() && mode != Mode.NOTHING) {
-
-                val prefab = targets.first().root.prefab!!
-                if (!prefab.isWritable) {
-                    LOGGER.warn("Prefab from '${prefab.source}' cannot be directly modified, inherit from it")
-                    return
-                }
-
-                // drag the selected object
-                // for that transform dx,dy into global space,
-                // and then update the local space
+        when {
+            isSelected && Input.isRightDown -> {
+                rotateCamera(dx, dy)
+            }
+            isSelected && Input.isMiddleDown -> {
+                // move camera
                 val fovYRadians = view.editorCamera.fovY
-                val speed = Math.tan(fovYRadians * 0.5) / h // todo include fov in this calculation
-                val camTransform = camera.transform!!.globalTransform
-                val offset = camTransform.transformDirection(Vector3d(dx * speed, -dy * speed, 0.0))
-                val sorted = targets.sortedBy { it.depthInHierarchy }
-                val mode = mode
+                val speed = Math.tan(fovYRadians * 0.5) * view.radius / h
+                val camTransform = camera.transform!!
+                val globalCamTransform = camTransform.globalTransform
+                val offset = globalCamTransform.transformDirection(Vector3d(dx * speed, -dy * speed, 0.0))
+                view.position.sub(offset)
+            }
+            isSelected && Input.isLeftDown -> {
+                val targets = selectedEntities
+                if (targets.isNotEmpty() && mode != Mode.NOTHING) {
 
-                // rotate around the direction
-                // we could use the average mouse position as center; this probably would be easier
-                val dir = camDirection
-                val rx = (x - (this.x + this.w * 0.5)) / h
-                val ry = (y - (this.y + this.h * 0.5)) / h // [-.5,+.5]
-                val rotationAngle = rx * dy - ry * dx
+                    val prefab = targets.first().root.prefab!!
+                    if (!prefab.isWritable) {
+                        LOGGER.warn("Prefab from '${prefab.source}' cannot be directly modified, inherit from it")
+                        return
+                    }
 
-                val tmpQ = JomlPools.quat4d.borrow()
+                    // drag the selected object
+                    // for that transform dx,dy into global space,
+                    // and then update the local space
+                    val fovYRadians = view.editorCamera.fovY
+                    val speed = Math.tan(fovYRadians * 0.5) / h
+                    val camTransform = camera.transform!!.globalTransform
+                    val offset = camTransform.transformDirection(Vector3d(dx * speed, -dy * speed, 0.0))
+                    val sorted = targets.sortedBy { it.depthInHierarchy }
+                    val mode = mode
 
-                for (entity in sorted) {// for correct transformation when parent and child are selected together
-                    val transform = entity.transform
-                    val global = transform.globalTransform
-                    when (mode) {
-                        Mode.TRANSLATING -> {
-                            val distance = camTransform.distance(global)
-                            if (distance > 0.0) {
-                                global.translateLocal(// correct
-                                    offset.x * distance,
-                                    offset.y * distance,
-                                    offset.z * distance
-                                )
+                    // rotate around the direction
+                    // we could use the average mouse position as center; this probably would be easier
+                    val dir = camDirection
+                    val rx = (x - (this.x + this.w * 0.5)) / h
+                    val ry = (y - (this.y + this.h * 0.5)) / h // [-.5,+.5]
+                    val rotationAngle = rx * dy - ry * dx
+
+                    val tmpQ = JomlPools.quat4d.borrow()
+
+                    for (entity in sorted) {// for correct transformation when parent and child are selected together
+                        val transform = entity.transform
+                        val global = transform.globalTransform
+                        when (mode) {
+                            Mode.TRANSLATING -> {
+                                val distance = camTransform.distance(global)
+                                if (distance > 0.0) {
+                                    global.translateLocal(// correct
+                                        offset.x * distance,
+                                        offset.y * distance,
+                                        offset.z * distance
+                                    )
+                                }
+                            }
+                            Mode.ROTATING -> {
+                                tmpQ.identity()
+                                    .fromAxisAngleDeg(dir.x, dir.y, dir.z, rotationAngle)
+                                global.rotate(tmpQ)// correct
+
+                            }
+                            Mode.SCALING -> {
+                                val scale = pow(2.0, (dx - dy).toDouble() / h)
+                                global.scale(scale, scale, scale) // correct
+                            }
+                            Mode.NOTHING -> {
                             }
                         }
-                        Mode.ROTATING -> {
-                            tmpQ.identity()
-                                .fromAxisAngleDeg(dir.x, dir.y, dir.z, rotationAngle)
-                            global.rotate(tmpQ)// correct
-
-                        }
-                        Mode.SCALING -> {
-                            val scale = pow(2.0, (dx - dy).toDouble() / h)
-                            global.scale(scale, scale, scale) // correct
-                        }
-                        Mode.NOTHING -> {
-                        }
                     }
-                }
-                for (entity in sorted) {
-                    val transform = entity.transform
-                    transform.invalidateLocal()
-                    transform.teleportUpdate()
-                    transform.validate()
-                    onChangeTransform(entity)
+                    for (entity in sorted) {
+                        val transform = entity.transform
+                        transform.invalidateLocal()
+                        transform.teleportUpdate()
+                        transform.validate()
+                        onChangeTransform(entity)
+                    }
                 }
             }
         }

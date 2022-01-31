@@ -154,7 +154,7 @@ class AWTFont(val font: Font) {
             return FakeWhiteTexture(width, height)
         }
 
-        val texture = Texture2D("awt-font", width, height, 1)
+        val texture = Texture2D("awt-text", width, height, 1)
         texture.create2("AWTFont.generateTexture", {
 
             val image = BufferedImage(width, height, 1)

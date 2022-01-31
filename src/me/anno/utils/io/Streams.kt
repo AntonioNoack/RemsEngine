@@ -9,12 +9,11 @@ import java.io.Reader
 
 object Streams {
 
-    fun InputStream.readLine(reader: Reader): String? {
-        val builder = StringBuilder()
+    fun InputStream.readLine(reader: Reader, builder: StringBuilder = StringBuilder()): String? {
         while (!Engine.shutdown) {
             if (available() > 0) {
                 when (val char = reader.read()) {
-                    -1 -> break
+                    -1 -> return null
                     '\n'.code -> {
                         val line = builder.toString()
                         builder.clear()
@@ -33,19 +32,8 @@ object Streams {
             reader().use { reader ->
                 val builder = StringBuilder()
                 while (!Engine.shutdown) {
-                    if (available() > 0) {
-                        when (val char = reader.read()) {
-                            -1 -> break
-                            '\n'.code -> {
-                                callback(builder.toString())
-                                builder.clear()
-                            }
-                            '\r'.code -> {}
-                            else -> builder.append(char.toChar())
-                        }
-                    }
+                    callback(readLine(reader, builder) ?: break)
                 }
-                callback(builder.toString())
             }
         }
     }
