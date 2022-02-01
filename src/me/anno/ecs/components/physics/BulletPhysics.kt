@@ -22,25 +22,19 @@ import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.physics.constraints.Constraint
 import me.anno.ecs.components.physics.events.FallenOutOfWorld
-import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.physics.BulletDebugDraw
 import me.anno.engine.ui.render.DrawAABB
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.camPosition
 import me.anno.engine.ui.render.RenderView.Companion.cameraMatrix
-import me.anno.gpu.GFX
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.input.Input
 import me.anno.io.serialization.NotSerializedProperty
-import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.clamp
-import me.anno.utils.structures.sets.ParallelHashSet
-import me.anno.utils.types.AABBs.set
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -49,38 +43,10 @@ import org.lwjgl.glfw.GLFW
 import javax.vecmath.Matrix4d
 import javax.vecmath.Quat4d
 import javax.vecmath.Vector3d
+import kotlin.collections.set
 import kotlin.math.max
-import kotlin.reflect.KClass
 
-class BulletPhysics() : Component() {
-
-    // todo onPreEnable() // before all children
-    // todo onPostEnable() // after all children
-    // -> components can be registered before/after enable :)
-
-    constructor(base: BulletPhysics) : this() {
-        base.copy(this)
-    }
-
-    // I use jBullet2, however I have modified it to use doubles for everything
-    // this may be bad for performance, but it also allows our engine to run much larger worlds
-    // if we need top-notch-performance, I just should switch to a native implementation
-
-    // todo ideally for bullet, we would need a non-symmetric collision matrix:
-    // this would allow for pushing, ignoring, and such
-    //
-    //   t y p e s
-    // t
-    // y
-    // p  whether it can be moved by the other
-    // e
-    // s
-
-    /*@DebugAction
-    fun reset() {
-        // todo reset everything...
-        // todo index whole world...
-    }*/
+class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
 
     companion object {
 
@@ -118,99 +84,47 @@ class BulletPhysics() : Component() {
         }
     }
 
-    // entities outside these bounds will be killed
-    @SerializedProperty
-    var allowedSpace = AABBd()
-        .setMin(-1e300, -100.0, -1e300)
-        .setMax(+1e300, 1e300, +1e300)
+    // todo onPreEnable() // before all children
+    // todo onPostEnable() // after all children
+    // -> components can be registered before/after enable :)
+
+    constructor(base: BulletPhysics) : this() {
+        base.copy(this)
+    }
+
+    // I use jBullet2, however I have modified it to use doubles for everything
+    // this may be bad for performance, but it also allows our engine to run much larger worlds
+    // if we need top-notch-performance, I just should switch to a native implementation
+
+    // todo ideally for bullet, we would need a non-symmetric collision matrix:
+    // this would allow for pushing, ignoring, and such
+    //
+    //   t y p e s
+    // t
+    // y
+    // p  whether it can be moved by the other
+    // e
+    // s
+
+    /*@DebugAction
+    fun reset() {
+        // todo reset everything...
+        // todo index whole world...
+    }*/
 
     @NotSerializedProperty
     private val sampleWheels = ArrayList<WheelInfo>()
 
     @NotSerializedProperty
-    private val invalidEntities = ParallelHashSet<Entity>(256)
-
-    fun invalidate(entity: Entity) {
-        // LOGGER.debug("invalidated ${System.identityHashCode(this)}")
-        invalidEntities.add(entity)
-    }
-
-    private fun validate() {
-        // LOGGER.debug("validating ${System.identityHashCode(this)}")
-        invalidEntities.process2x({ entity ->
-            remove(entity, false)
-            // will be re-added by addOrGet
-            // todo add to invalidEntities somehow? mmh...
-            entity.allComponents(Constraint::class) {
-                val other = it.other?.entity
-                if (other != null) {
-                    remove(other, false)
-                }
-                false
-            }
-        }, { entity ->
-            val rigidbody = addOrGet(entity)
-            entity.isPhysicsControlled = rigidbody != null
-        })
-    }
-
-    @NotSerializedProperty
     private lateinit var world: DiscreteDynamicsWorld
-
-    @NotSerializedProperty
-    private lateinit var rigidBodies: HashMap<Entity, BodyWithScale<RigidBody>?>
-
-    @NotSerializedProperty
-    private lateinit var nonStaticRigidBodies: HashMap<Entity, BodyWithScale<RigidBody>>
 
     @NotSerializedProperty
     private lateinit var raycastVehicles: HashMap<Entity, RaycastVehicle>
 
     override fun onCreate() {
+        super.onCreate()
         raycastVehicles = HashMap()
-        nonStaticRigidBodies = HashMap()
         world = createBulletWorldWithGravity()
-        rigidBodies = HashMap()
-    }
-
-    private fun getRigidbody(rigidBody: Rigidbody): RigidBody? {
-
-        // todo when a rigidbody is invalidated, also re-create all constrained rigidbodies!
-        // todo otherwise we'll get issues, where one partner no longer is part of the world...
-
-        // todo possible solution: instead of recreating the rigidbody instance, just clear all properties,
-        // todo and write them again :)
-
-        // todo also we need to somehow ensure, that constrained rigidbodies are enabled as well
-        // todo we can't have constraints between two static rigidbodies
-
-        val entity = rigidBody.entity!!
-        var newlyCreated = false
-        val bodyWithScale = rigidBodies.getOrPut(entity) {
-            newlyCreated = true
-            createRawRigidbody(entity, rigidBody)
-        }
-        if (newlyCreated && bodyWithScale != null) {
-            // after creating and registering, so
-            // it works for circular constraint dependencies
-            appendsExtras(entity, rigidBody, bodyWithScale)
-            LOGGER.debug("+ ${entity.prefabPath}")
-        }
-        return bodyWithScale?.body
-    }
-
-    private fun <V : Component> getValidComponents(entity: Entity, clazz: KClass<V>): Sequence<V> {
-        // only collect colliders, which are appropriate for this: stop at any other rigidbody
-        return sequence {
-            // todo also only collect physics colliders, not click-colliders
-            @Suppress("UNCHECKED_CAST")
-            yieldAll(entity.components.filter { it.isEnabled && clazz.isInstance(it) } as List<V>)
-            for (child in entity.children) {
-                if (child.isEnabled && !child.hasComponent(Rigidbody::class, false)) {
-                    yieldAll(getValidComponents(child, clazz))
-                }
-            }
-        }
     }
 
     private fun createCollider(entity: Entity, colliders: List<Collider>, scale: org.joml.Vector3d): CollisionShape {
@@ -228,7 +142,7 @@ class BulletPhysics() : Component() {
         }
     }
 
-    private fun createRawRigidbody(entity: Entity, base: Rigidbody): BodyWithScale<RigidBody>? {
+    override fun createRigidbody(entity: Entity, rigidBody: Rigidbody): BodyWithScale<RigidBody>? {
 
         val colliders = getValidComponents(entity, Collider::class).toList()
         return if (colliders.isNotEmpty()) {
@@ -240,29 +154,29 @@ class BulletPhysics() : Component() {
             // copy all knowledge from ecs to bullet
             val jointCollider = createCollider(entity, colliders, scale)
 
-            val mass = max(0.0, base.mass)
+            val mass = max(0.0, rigidBody.mass)
             val inertia = Vector3d()
             if (mass > 0) jointCollider.calculateLocalInertia(mass, inertia)
 
             val bulletTransform = Transform(convertMatrix(globalTransform, scale))
 
             // convert the center of mass to a usable transform
-            val com0 = base.centerOfMass
+            val com0 = rigidBody.centerOfMass
             val com1 = Vector3d(com0.x, com0.y, com0.z)
             val com2 = Transform(Matrix4d(Quat4d(0.0, 0.0, 0.0, 1.0), com1, 1.0))
 
             // create the motion state
             val motionState = DefaultMotionState(bulletTransform, com2)
             val rbInfo = RigidBodyConstructionInfo(mass, motionState, jointCollider, inertia)
-            rbInfo.friction = base.friction
-            rbInfo.restitution = base.restitution
-            rbInfo.linearDamping = base.linearDamping
-            rbInfo.angularDamping = base.angularDamping
-            rbInfo.linearSleepingThreshold = base.linearSleepingThreshold
-            rbInfo.angularSleepingThreshold = base.angularSleepingThreshold
+            rbInfo.friction = rigidBody.friction
+            rbInfo.restitution = rigidBody.restitution
+            rbInfo.linearDamping = rigidBody.linearDamping
+            rbInfo.angularDamping = rigidBody.angularDamping
+            rbInfo.linearSleepingThreshold = rigidBody.linearSleepingThreshold
+            rbInfo.angularSleepingThreshold = rigidBody.angularSleepingThreshold
 
             val rb = RigidBody(rbInfo)
-            rb.deactivationTime = base.sleepingTimeThreshold
+            rb.deactivationTime = rigidBody.sleepingTimeThreshold
             BulletGlobals.setDeactivationTime(1.0)
 
             BodyWithScale(rb, scale)
@@ -295,15 +209,17 @@ class BulletPhysics() : Component() {
         raycastVehicles[entity] = vehicle
     }
 
-    private fun appendsExtras(entity: Entity, rigidbody: Rigidbody, bodyWithScale: BodyWithScale<RigidBody>) {
+    override fun onCreateRigidbody(entity: Entity, rigidbody: Rigidbody, bodyWithScale: BodyWithScale<RigidBody>) {
 
         val body = bodyWithScale.body
 
+        // vehicle stuff
         if (rigidbody is Vehicle) {
             defineVehicle(entity, rigidbody, body)
-        } else {
-            if (rigidbody.activeByDefault) body.activationState = ACTIVE_TAG
         }
+
+        // activate
+        if (rigidbody.activeByDefault) body.activationState = ACTIVE_TAG
 
         world.addRigidBody(body, clamp(rigidbody.group, 0, 15).toShort(), rigidbody.collisionMask)
 
@@ -362,19 +278,8 @@ class BulletPhysics() : Component() {
         }
     }
 
-    fun addOrGet(entity: Entity): RigidBody? {
-        // LOGGER.info("adding ${entity.name} maybe, ${entity.getComponent(Rigidbody::class, false)}")
-        val rigidbody = entity.getComponent(Rigidbody::class, false) ?: return null
-        return if (rigidbody.isEnabled) {
-            getRigidbody(rigidbody)
-        } else null
-    }
-
-    fun remove(entity: Entity, fallenOutOfWorld: Boolean) {
-        val rigid = rigidBodies.remove(entity) ?: return
-        LOGGER.debug("- ${entity.prefabPath}")
-        nonStaticRigidBodies.remove(entity)
-        world.removeRigidBody(rigid.body)
+    override fun remove(entity: Entity, fallenOutOfWorld: Boolean) {
+        super.remove(entity, fallenOutOfWorld)
         entity.allComponents(Constraint::class) {
             val bi = it.bulletInstance
             if (bi != null) {
@@ -402,123 +307,59 @@ class BulletPhysics() : Component() {
             if (rigid2 != null) {
                 // when something falls of the world, often it's nice to directly destroy the object,
                 // because it will no longer be needed
+                // call event, so e.g. we could add it back to a pool of entities, or respawn it
+                entity.allComponents(Component::class) {
+                    if (it is FallenOutOfWorld) it.onFallOutOfWorld()
+                    false
+                }
                 if (rigid2.deleteWhenKilledByDepth) {
                     entity.parentEntity?.deleteChild(entity)
-                } else {
-                    // else call event, so e.g. we could add it back to a pool of entities, or respawn it
-                    entity.allComponents(Component::class) {
-                        if (it is FallenOutOfWorld) it.onFallOutOfWorld()
-                        false
-                    }
                 }
             }
         }
     }
 
-    @SerializedProperty
-    var targetUpdatesPerSecond = 30.0
-
-    // val clock = Clock()
-
-    @NotSerializedProperty
-    var time = 0L
-
-    fun callUpdates() {
-        /* val tmp = Stack.borrowTrans()
-        for ((body, scaledBody) in rigidBodies) {
-            val physics = scaledBody.second
-            physics.clearForces() // needed???...
-            // testing force: tornado
-            physics.getWorldTransform(tmp)
-            val f = 1.0 + 0.01 * sq(tmp.origin.x, tmp.origin.z)
-            physics.applyCentralForce(Vector3d(tmp.origin.z / f, 0.0, -tmp.origin.x / f))
-        }*/
-        for (body in rigidBodies.keys) {
-            body.physicsUpdate()
-        }
-    }
-
-    fun step(dt: Long, printSlack: Boolean) {
-
-        // clock.start()
-
+    override fun step(dt: Long, printSlack: Boolean) {
         // just in case
         Stack.reset(printSlack)
+        super.step(dt, printSlack)
+    }
 
-        // val oldSize = rigidBodies.size
-        validate()
-        // val newSize = rigidBodies.size
-        // clock.stop("added ${newSize - oldSize} entities")
-
-        callUpdates()
-
-        val step = dt * 1e-9
+    override fun worldStepSimulation(step: Double) {
         world.stepSimulation(step, 1, step)
+    }
 
-        // clock.stop("calculated changes, step ${dt * 1e-9}", 0.1)
+    override fun isActive(rigidbody: RigidBody): Boolean {
+        return rigidbody.isActive
+    }
 
-        this.time += dt
+    override fun worldRemoveRigidbody(rigidbody: RigidBody) {
+        world.removeRigidBody(rigidbody)
+    }
 
-        // is not correct for the physics, but we use it for gfx only anyways
-        // val time = GFX.gameTime
+    override fun convertTransformMatrix(rigidbody: RigidBody, scale: org.joml.Vector3d, dstTransform: Matrix4x3d) {
 
-        val tmpTransform = Transform()
-        val deadEntities = ArrayList<Entity>()
-        val deadRigidBodies = ArrayList<RigidBody>()
+        val tmpTransform = Stack.borrowTrans()
+        // set the global transform
+        rigidbody.getWorldTransform(tmpTransform)
 
-        for ((entity, rigidbodyWithScale) in nonStaticRigidBodies) {
+        val basis = tmpTransform.basis
+        val origin = tmpTransform.origin
+        // bullet/javax uses normal ij indexing, while joml uses ji indexing
+        val sx = scale.x
+        val sy = scale.y
+        val sz = scale.z
 
-            val (rigidbody, scale) = rigidbodyWithScale
-            if (!rigidbody.isActive) continue
-
-            // set the global transform
-            rigidbody.getWorldTransform(tmpTransform)
-            val tmpOrigin = tmpTransform.origin
-            if (!allowedSpace.testPoint(tmpOrigin.x, tmpOrigin.y, tmpOrigin.z)) {
-                // delete the entity
-                deadEntities.add(entity)
-                deadRigidBodies.add(rigidbody)
-                continue
-            }
-
-            val dst = entity.transform
-            val basis = tmpTransform.basis
-            val origin = tmpTransform.origin
-            // bullet/javax uses normal ij indexing, while joml uses ji indexing
-            val sx = scale.x
-            val sy = scale.y
-            val sz = scale.z
-
-            dst.globalTransform.set(
-                basis.m00 * sx, basis.m10 * sy, basis.m20 * sz,
-                basis.m01 * sx, basis.m11 * sy, basis.m21 * sz,
-                basis.m02 * sx, basis.m12 * sy, basis.m22 * sz,
-                origin.x, origin.y, origin.z
-            )
-
-            dst.setStateAfterUpdate(me.anno.ecs.Transform.State.VALID_GLOBAL)
-            // dst.update(time, entity, true)
-
-        }
-
-        for (i in deadEntities.indices) {
-            remove(deadEntities[i], true)
-            world.removeRigidBody(deadRigidBodies[i])
-        }
-
-        // update the local transforms last, so all global transforms have been completely updated
-        for ((entity, bodyWithScale) in nonStaticRigidBodies) {
-            if (!bodyWithScale.body.isActive) continue
-            // val dst = entity.transform
-            // dst.calculateLocalTransform((entity.parent as? Entity)?.transform)
-            entity.invalidateAABBsCompletely()
-        }
-
-        // clock.total("physics step", 0.1)
+        dstTransform.set(
+            basis.m00 * sx, basis.m10 * sy, basis.m20 * sz,
+            basis.m01 * sx, basis.m11 * sy, basis.m21 * sz,
+            basis.m02 * sx, basis.m12 * sy, basis.m22 * sz,
+            origin.x, origin.y, origin.z
+        )
 
     }
 
-    fun drawDebug(view: RenderView, worldScale: Double) {
+    private fun drawDebug(view: RenderView, worldScale: Double) {
 
         val debugDraw = debugDraw ?: return
 
@@ -637,70 +478,19 @@ class BulletPhysics() : Component() {
 
     }
 
-    override fun onUpdate(): Int {
-        // todo call this async, and when the step is done
-        step((GFX.deltaTime * 1e9f).toLong(), false)
-        return 1
-    }
-
-    @HideInInspector
-    @NotSerializedProperty
-    fun startWork() {
-        /*val syncMaster = ECSTypeLibrary.syncMaster
-        var first = true
-        syncMaster.addThread("Physics", {
-
-            if (first) {
-                Thread.sleep(2000)
-                this.time = GFX.gameTime
-                first = false
-                LOGGER.warn("Starting physics")
-            }
-
-            val targetUPS = targetUpdatesPerSecond
-            val targetStep = 1.0 / targetUPS
-            val targetStepNanos = (targetStep * 1e9).toLong()
-
-            //  todo if too far back in time, just simulate that we are good
-
-            val targetTime = GFX.gameTime
-            val absMinimumTime = targetTime - targetStepNanos * 2
-
-            if (this.time < absMinimumTime) {
-                // todo report this value somehow...
-                // todo there may be lots and lots of warnings, if the calculations are too slow
-                // val delta = absMinimumTime - this.time
-                this.time = absMinimumTime
-                // LOGGER.warn("Physics skipped ${(delta * 1e-9)}s")
-            }
-
-            if (this.time > targetTime) {
-                // done :), sleep
-                (this.time - targetTime) / 2
-            } else {
-                // there is still work to do
-                val t0 = System.nanoTime()
-                val debug = false //GFX.gameTime > 10e9 // wait 10s
-                if (debug) {
-                    Stack.printClassUsage()
-                    Stack.printSizes()
-                }
-                step(targetStepNanos, debug)
-                val t1 = System.nanoTime()
-                addEvent { FrameTimes.putValue((t1 - t0) * 1e-9f, 0xffff99 or black) }
-                0
-            }
-
-        }, { debugDraw })*/
-    }
-
-
     private var debugDraw: BulletDebugDraw? = null
     override fun onDrawGUI() {
         super.onDrawGUI()
-
         val view = RenderView.currentInstance
         drawDebug(view, view.worldScale)
+    }
+
+    override fun onUpdate(): Int {
+        testVehicleControls()
+        return 1
+    }
+
+    private fun testVehicleControls() {
 
         var steering = 0.0
         var engineForce = 0.0
@@ -739,17 +529,19 @@ class BulletPhysics() : Component() {
 
     private fun createBulletWorldWithGravity(): DiscreteDynamicsWorld {
         val world = createBulletWorld()
-        world.setGravity(Vector3d(0.0, -9.81, 0.0))
+        val tmp = Stack.borrowVec()
+        tmp.set(gravity.x, gravity.y, gravity.z)
+        world.setGravity(tmp)
         return world
     }
 
-    override fun clone() = BulletPhysics(this)
-
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as BulletPhysics
-        clone.allowedSpace.set(allowedSpace)
+    override fun updateGravity() {
+        val tmp = Stack.borrowVec()
+        tmp.set(gravity.x, gravity.y, gravity.z)
+        world.setGravity(tmp)
     }
+
+    override fun clone() = BulletPhysics(this)
 
     override val className: String = "BulletPhysics"
 

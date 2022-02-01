@@ -159,8 +159,6 @@ class VehicleWheel : Component() {
         super.copy(clone)
         clone as VehicleWheel
         clone.radius = radius
-        // clone.wheelAxle = wheelAxle
-        // clone.wheelDirection = wheelDirection
         clone.brakeForce = brakeForce
         clone.engineForce = engineForce
         clone.isFront = isFront

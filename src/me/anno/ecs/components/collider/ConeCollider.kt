@@ -18,7 +18,7 @@ import org.joml.Vector3f
 
 class ConeCollider : Collider() {
 
-    // which axis the height is for, x = 0, y = 1, z = 2
+    /** which axis the height is for, x = 0, y = 1, z = 2 */
     @Range(0.0, 2.0)
     @SerializedProperty
     var axis = 1

@@ -26,6 +26,7 @@ class Vehicle : Rigidbody() {
 
     var brakeForcePerWheel = 0.0
 
+    @Suppress("unused")
     val wheels get() = entity!!.getComponents(VehicleWheel::class)
 
     override fun onPhysicsUpdate(): Boolean {

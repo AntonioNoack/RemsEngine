@@ -53,13 +53,14 @@ class CapsuleCollider : Collider() {
     }
 
     override fun drawShape() {
-        // todo test this
+        // todo test this (behaviour == visuals?)
         // todo only draw if selected or collider debug mode
         // todo color based on physics / trigger (?)
         val h = height * 0.5
         val r = radius
         when (axis) {
             0 -> {
+                // todo draw half spheres, not full spheres
                 LineShapes.drawLine(entity, -h, -r, 0.0, +h, -r, 0.0)
                 LineShapes.drawLine(entity, -h, +r, 0.0, +h, +r, 0.0)
                 LineShapes.drawLine(entity, -h, 0.0, -r, +h, 0.0, -r)
@@ -68,6 +69,7 @@ class CapsuleCollider : Collider() {
                 LineShapes.drawSphere(entity, r, Vector3d(+h, 0.0, 0.0))
             }
             1 -> {
+                // todo draw half spheres, not full spheres
                 LineShapes.drawLine(entity, -r, -h, 0.0, -r, +h, 0.0)
                 LineShapes.drawLine(entity, +r, -h, 0.0, +r, +h, 0.0)
                 LineShapes.drawLine(entity, 0.0, -h, -r, 0.0, +h, -r)
@@ -76,6 +78,7 @@ class CapsuleCollider : Collider() {
                 LineShapes.drawSphere(entity, r, Vector3d(0.0, +h, 0.0))
             }
             2 -> {
+                // todo draw half spheres, not full spheres
                 LineShapes.drawLine(entity, -r, 0.0, -h, -r, 0.0, +h)
                 LineShapes.drawLine(entity, +r, 0.0, -h, +r, 0.0, +h)
                 LineShapes.drawLine(entity, 0.0, -r, -h, 0.0, -r, +h)

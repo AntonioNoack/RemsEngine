@@ -3,6 +3,7 @@ package me.anno.ecs.components.collider
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.SphereShape
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.gui.LineShapes.drawSphere
 import me.anno.io.serialization.SerializedProperty
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -62,7 +63,7 @@ class SphereCollider : Collider() {
     }
 
     override fun drawShape() {
-        // todo draw sphere
+        drawSphere(entity, radius)
     }
 
     override val className get() = "SphereCollider"

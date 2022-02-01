@@ -6,6 +6,8 @@ import com.bulletphysics.collision.shapes.CylinderShapeX
 import com.bulletphysics.collision.shapes.CylinderShapeZ
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.gui.LineShapes
+import me.anno.engine.gui.LineShapes.drawCircle
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.length
 import org.joml.AABBd
@@ -16,7 +18,7 @@ import kotlin.math.abs
 
 class CylinderCollider : Collider() {
 
-    // which axis the height is for, x = 0, y = 1, z = 2
+    /** which axis the height is for, x = 0, y = 1, z = 2 */
     @Range(0.0, 2.0)
     @SerializedProperty
     var axis = 1
@@ -59,7 +61,35 @@ class CylinderCollider : Collider() {
     }
 
     override fun drawShape() {
-        // todo draw cylinder
+        val h = height * 0.5
+        val r = radius
+        val e = entity
+        when(axis){
+            0 -> {
+                LineShapes.drawLine(e, -h, -r, 0.0, +h, -r, 0.0)
+                LineShapes.drawLine(e, -h, +r, 0.0, +h, +r, 0.0)
+                LineShapes.drawLine(e, -h, 0.0, -r, +h, 0.0, -r)
+                LineShapes.drawLine(e, -h, 0.0, +r, +h, 0.0, +r)
+                drawCircle(e, r, 1, 2, +h)
+                drawCircle(e, r, 1, 2, -h)
+            }
+            1 -> {
+                LineShapes.drawLine(e, -r, -h, 0.0, -r, +h, 0.0)
+                LineShapes.drawLine(e, +r, -h, 0.0, +r, +h, 0.0)
+                LineShapes.drawLine(e, 0.0, -h, -r, 0.0, +h, -r)
+                LineShapes.drawLine(e, 0.0, -h, +r, 0.0, +h, +r)
+                drawCircle(e, r, 0, 2, +h)
+                drawCircle(e, r, 0, 2, -h)
+            }
+            2 -> {
+                LineShapes.drawLine(e, -r, 0.0, -h, -r, 0.0, +h)
+                LineShapes.drawLine(e, +r, 0.0, -h, +r, 0.0, +h)
+                LineShapes.drawLine(e, 0.0, -r, -h, 0.0, -r, +h)
+                LineShapes.drawLine(e, 0.0, +r, -h, 0.0, +r, +h)
+                drawCircle(e, r, 0, 1, +h)
+                drawCircle(e, r, 0, 1, -h)
+            }
+        }
     }
 
     override fun clone(): CylinderCollider {
