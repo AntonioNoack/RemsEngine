@@ -1,6 +1,5 @@
 package me.anno.studio.history
 
-import me.anno.input.Input
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
@@ -14,7 +13,7 @@ import me.anno.studio.rems.Selection.select
 import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
 import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.editor.sceneView.SceneView
-import me.anno.utils.types.Lists.join
+import me.anno.utils.structures.lists.Lists.join
 
 class HistoryState() : Saveable() {
 

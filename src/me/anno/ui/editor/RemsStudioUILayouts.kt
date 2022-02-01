@@ -50,7 +50,7 @@ import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.editor.sceneView.SceneView
 import me.anno.ui.style.Style
 import me.anno.utils.files.OpenInBrowser.openInBrowser
-import me.anno.utils.types.Lists.firstInstanceOrNull
+import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import org.apache.logging.log4j.LogManager
 import java.net.URL
 

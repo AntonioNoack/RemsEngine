@@ -32,7 +32,7 @@ import me.anno.utils.process.DelayedTask
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.strings.StringHelper.shorten2Way
 import me.anno.utils.structures.Compare.ifSame
-import me.anno.utils.types.Lists.firstInstanceOrNull
+import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 

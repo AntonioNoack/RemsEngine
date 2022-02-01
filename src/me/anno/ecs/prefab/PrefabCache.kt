@@ -23,7 +23,7 @@ import me.anno.mesh.blender.BlenderReader
 import me.anno.mesh.obj.OBJReader2
 import me.anno.mesh.vox.VOXReader
 import me.anno.utils.structures.maps.KeyPairMap
-import me.anno.utils.types.Lists.firstInstanceOrNull
+import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import org.apache.logging.log4j.LogManager
 
 object PrefabCache : CacheSection("Prefab") {

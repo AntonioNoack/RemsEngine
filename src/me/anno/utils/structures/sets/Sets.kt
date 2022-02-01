@@ -1,4 +1,4 @@
-package me.anno.utils.types
+package me.anno.utils.structures.sets
 
 object Sets {
 

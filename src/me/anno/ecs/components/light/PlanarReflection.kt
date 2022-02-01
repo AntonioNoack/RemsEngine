@@ -131,7 +131,7 @@ class PlanarReflection : LightComponentBase() {
         val root = getRoot(Entity::class)
         pipeline.ignoredEntity = entity
         // todo define the correct frustum using the correct rotation & position
-        pipeline.frustum.all(reflectedCameraPosition, camRot)
+        pipeline.frustum.setToEverything(reflectedCameraPosition, camRot)
         // defineFrustum(camPos, camRot)
         // pipeline.frustum.applyTransform(mirror)
         pipeline.fill(root, reflectedCameraPosition, RenderView.worldScale)

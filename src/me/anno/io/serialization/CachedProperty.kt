@@ -2,7 +2,7 @@ package me.anno.io.serialization
 
 import me.anno.ecs.annotations.*
 import me.anno.ui.input.EnumInput
-import me.anno.utils.types.Lists.firstInstanceOrNull
+import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import org.apache.logging.log4j.LogManager
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1

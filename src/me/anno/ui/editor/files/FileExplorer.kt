@@ -5,12 +5,14 @@ import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.input.Input.setClipboardContent
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.FileReference.Companion.getReferenceAsync
+import me.anno.io.files.FileReference.Companion.getReferenceOrTimeout
 import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
 import me.anno.io.zip.ZipCache
 import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.StudioBase.Companion.workspace
@@ -41,8 +43,6 @@ import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.files.Files.listFiles2
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.hpc.UpdatingTask
-import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.pow
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.History
@@ -332,7 +332,7 @@ abstract class FileExplorer(
 
                 val fe = content.children.filterIsInstance<FileExplorerEntry>()
                 for (it in fe) {
-                    it.visibility = Visibility[search.matches(getReference(it.path).name)]
+                    it.visibility = Visibility[search.matches(getReferenceOrTimeout(it.path).name)]
                 }
 
             }
@@ -467,7 +467,7 @@ abstract class FileExplorer(
                             { -1 }) {
                             val validName = it.toAllowedFilename()
                             if (validName != null) {
-                                getReference(home, validName).mkdirs()
+                                home.getChild(validName).mkdirs()
                                 invalidate()
                             }
                         }
@@ -482,7 +482,10 @@ abstract class FileExplorer(
                     }
                 })
             }
-            "Refresh" -> invalidate()
+            "Refresh" -> {
+                LOGGER.info("Refreshing")
+                invalidate()
+            }
             "Back", "Backward" -> back()
             "Forward" -> forward()
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
@@ -496,7 +499,7 @@ abstract class FileExplorer(
     }
 
     fun forward() {
-        if(history.forward()){
+        if (history.forward()) {
             invalidate()
         } else {
             LOGGER.info("End of history reached!")
@@ -507,7 +510,7 @@ abstract class FileExplorer(
         folder ?: return
         val windowsLink = folder.windowsLnk.value
         if (windowsLink != null) {
-            val dst = getReference(windowsLink.absolutePath)
+            val dst = getReferenceOrTimeout(windowsLink.absolutePath)
             if (dst.exists) {
                 switchTo(dst)
             } else {

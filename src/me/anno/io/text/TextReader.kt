@@ -3,7 +3,7 @@ package me.anno.io.text
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
-import me.anno.utils.types.Lists.firstInstanceOrNull
+import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import org.apache.logging.log4j.LogManager
 import java.io.EOFException
 import java.io.InputStream

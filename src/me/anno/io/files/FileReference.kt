@@ -6,6 +6,7 @@ import me.anno.cache.data.ICacheData
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.io.windows.WindowsShortcut
 import me.anno.io.zip.ZipCache
+import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.defaultWindowStack
 import me.anno.ui.editor.files.FileExplorer
@@ -13,7 +14,6 @@ import me.anno.utils.Tabs
 import me.anno.utils.files.Files.openInExplorer
 import me.anno.utils.files.Files.use
 import me.anno.utils.files.LocalFile.toLocalPath
-import me.anno.utils.structures.lists.ExpensiveList
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
@@ -90,8 +90,8 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             }
             // go over all file explorers, and invalidate them, if they contain it, or are inside
             // a little unspecific; works anyways
-            val parent = getReference(absolutePath).getParent()
-            if (parent != null) {
+            val parent = getReferenceOrTimeout(absolutePath).getParent()
+            if (parent != null && parent != InvalidRef) {
                 // todo we should invalidate ALL windowStacks
                 for (window in defaultWindowStack ?: emptyList()) {
                     window.panel.forAll {
@@ -125,6 +125,16 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
                 createReference(it)
             } as? FileReference // result may be null for unknown reasons; when this happens, use plan B
             return data ?: createReference(str)
+        }
+
+        fun getReferenceOrTimeout(str: String?, timeout: Long = 10_000): FileReference {
+            if (str == null || str.isBlank2()) return InvalidRef
+            val t1 = System.nanoTime() + timeout * MILLIS_TO_NANOS
+            while (System.nanoTime() < t1) {
+                val ref = getReferenceAsync(str)
+                if (ref != null) return ref
+            }
+            return createReference(str)
         }
 
         fun getReferenceAsync(str: String?): FileReference? {
@@ -518,7 +528,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         // if the file is not a directory, then list the parent?
         // todo mark this child somehow?...
         val str = link.absolutePath.replace('\\', '/')
-        val ref = getReference(str)
+        val ref = getReferenceOrTimeout(str)
         return listOf(
             if (link.isDirectory) {
                 ref.getParent() ?: ref

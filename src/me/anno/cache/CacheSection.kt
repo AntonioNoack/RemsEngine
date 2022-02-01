@@ -10,6 +10,7 @@ import me.anno.utils.ShutdownException
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.structures.maps.KeyPairMap
+import me.anno.utils.structures.maps.Maps.removeIf
 import org.apache.logging.log4j.LogManager
 import java.io.FileNotFoundException
 import java.util.concurrent.ConcurrentSkipListSet
@@ -31,20 +32,24 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             for (it in cache.values) it.destroy()
             cache.clear()
         }
-    }
-
-    fun remove(filter: (Map.Entry<Any, CacheEntry>) -> Boolean): Int {
-        synchronized(cache) {
-            val toRemove = cache.filter(filter)
-            cache.remove(toRemove)
-            for (value in toRemove.values) {
-                value.destroy()
-            }
-            return toRemove.values.size
+        synchronized(dualCache) {
+            dualCache.forEach { _, _, v -> v.destroy() }
+            dualCache.clear()
         }
     }
 
-    fun removeDual(filter: (Any, Any, CacheEntry) -> Boolean): Int {
+    inline fun remove(filter: (Map.Entry<Any, CacheEntry>) -> Boolean): Int {
+        synchronized(cache) {
+            return cache.removeIf {
+                if (filter(it)) {
+                    it.value.destroy()
+                    true
+                } else false
+            }
+        }
+    }
+
+    inline fun removeDual(crossinline filter: (Any, Any, CacheEntry) -> Boolean): Int {
         synchronized(dualCache) {
             return dualCache.removeIf { k1, k2, v ->
                 if (filter(k1, k2, v)) {
@@ -58,6 +63,17 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     fun removeEntry(key: Any) {
         synchronized(cache) {
             cache.remove(key)?.destroy()
+        }
+    }
+
+    fun removeDualEntry(key1: Any, key2: Any) {
+        synchronized(dualCache) {
+            dualCache.removeIf { k1, k2, v ->
+                if (k1 == key1 && k2 == key2) {
+                    v.destroy()
+                    true
+                } else false
+            }
         }
     }
 
@@ -119,15 +135,18 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
      * get the value, no matter whether it actually exists
      * useful for LODs, if others work as well, just are not as good
      * */
-    fun hasFileEntry(key: FileReference, delta: Long = 1L): Boolean {
-        val entry = synchronized(dualCache) { dualCache[key, key.lastModified] } ?: return false
+    fun hasDualEntry(key1: Any, key2: Any, delta: Long = 1L): Boolean {
+        val entry = synchronized(dualCache) { dualCache[key1, key2] } ?: return false
         if (delta > 0L) entry.update(delta)
         return entry.hasValue
     }
 
-    fun free(key: Any) {
-        val entry = synchronized(cache) { cache.remove(key) }
-        entry?.destroy()
+    /**
+     * get the value, no matter whether it actually exists
+     * useful for LODs, if others work as well, just are not as good
+     * */
+    fun hasFileEntry(key: FileReference, delta: Long = 1L): Boolean {
+        return hasDualEntry(key, key.lastModified, delta)
     }
 
     fun override(key: Any, data: ICacheData?, timeout: Long) {
@@ -316,7 +335,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         return if (entry.hasBeenDestroyed) null else entry.data
     }
 
-    fun waitMaybe(async: Boolean, entry: CacheEntry, key0: Any, key1: Any?) {
+    private fun waitMaybe(async: Boolean, entry: CacheEntry, key0: Any, key1: Any?) {
         if (!async && entry.generatorThread != Thread.currentThread()) {
             // else no need/sense in waiting
             if (entry.waitForValue2()) {
@@ -328,15 +347,16 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
     }
 
-    fun onLongWaitStart(key: Any, entry: CacheEntry) {
-        val msg = "Waiting for $name[$key] by ${entry.generatorThread.name} from ${Thread.currentThread().name}"
+    private fun onLongWaitStart(key: Any, entry: CacheEntry) {
+        val msg = "Waiting for $name[$key] by ${entry.generatorThread.name} " +
+                "from ${Thread.currentThread().name}"
         if (Thread.currentThread() == GFX.glThread) println(msg) // extra warning
         LOGGER.warn(msg)
     }
 
-    fun onLongWaitEnd(key: Any, entry: CacheEntry) {
-        val msg =
-            "Finished waiting for $name[$key] by ${entry.generatorThread.name} from ${Thread.currentThread().name}"
+    private fun onLongWaitEnd(key: Any, entry: CacheEntry) {
+        val msg = "Finished waiting for $name[$key] by ${entry.generatorThread.name} " +
+                "from ${Thread.currentThread().name}"
         if (Thread.currentThread() == GFX.glThread) println(msg) // extra warning
         LOGGER.warn(msg)
     }
@@ -404,30 +424,9 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     fun update() {
-        synchronized(cache) {
-            if (cache.isNotEmpty()) cache.entries.removeIf { (_, entry) ->
-                val time = gameTime
-                val remove = time > entry.timeoutNanoTime
-                if (remove) try {
-                    entry.destroy()
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-                remove
-            }
-        }
-        synchronized(dualCache) {
-            if (dualCache.isNotEmpty()) dualCache.removeIf { _, _, entry ->
-                val time = gameTime
-                val remove = time > entry.timeoutNanoTime
-                if (remove) try {
-                    entry.destroy()
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-                remove
-            }
-        }
+        val time = gameTime
+        remove { (_, entry) -> time > entry.timeoutNanoTime }
+        removeDual { _, _, entry -> time > entry.timeoutNanoTime }
     }
 
     init {

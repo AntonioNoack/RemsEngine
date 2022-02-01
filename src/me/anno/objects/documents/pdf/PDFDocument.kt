@@ -26,7 +26,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.Clipping
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.types.Floats.toRadians
-import me.anno.utils.types.Lists.median
+import me.anno.utils.structures.lists.Lists.median
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.apache.pdfbox.pdmodel.PDDocument

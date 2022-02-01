@@ -50,7 +50,7 @@ class DependencyManager {
 
     fun free(resource: Resource) {
         val cache = resource.cache
-        cache.free(resource.key)
+        cache.removeEntry(resource.key)
     }
 
     fun nextStep(){

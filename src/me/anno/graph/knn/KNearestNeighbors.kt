@@ -1,6 +1,6 @@
 package me.anno.graph.knn
 
-import me.anno.utils.types.Lists.smallestKElementsBy
+import me.anno.utils.structures.lists.Lists.smallestKElementsBy
 import org.joml.Vector3d
 
 // todo generally: oct trees for fast finding of things

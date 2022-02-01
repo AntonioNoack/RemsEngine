@@ -19,6 +19,9 @@ object JomlPools {
     val quat4f = Stack { Quaternionf() }
     val quat4d = Stack { Quaterniond() }
 
+    val mat2f = Stack { Matrix2f() }
+    val mat2d = Stack { Matrix2d() }
+
     val mat3f = Stack { Matrix4f() }
     val mat3d = Stack { Matrix4d() }
 
@@ -27,6 +30,9 @@ object JomlPools {
 
     val mat4x3f = Stack { Matrix4x3f() }
     val mat4x3d = Stack { Matrix4x3d() }
+
+    val aabbf = Stack { AABBf() }
+    val aabbd = Stack { AABBd() }
 
     fun reset() {
 
@@ -45,6 +51,9 @@ object JomlPools {
         quat4f.reset()
         quat4d.reset()
 
+        mat2f.reset()
+        mat2d.reset()
+
         mat3f.reset()
         mat3d.reset()
 
@@ -53,6 +62,9 @@ object JomlPools {
 
         mat4x3f.reset()
         mat4x3d.reset()
+
+        aabbf.reset()
+        aabbd.reset()
 
     }
 

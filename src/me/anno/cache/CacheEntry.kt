@@ -18,7 +18,7 @@ class CacheEntry private constructor(
     fun reset(timeoutMillis: Long) {
         this.timeoutNanoTime = gameTime + timeoutMillis * MILLIS_TO_NANOS
         this.generatorThread = Thread.currentThread()
-        hasBeenDestroyed = false
+        deletingThreadName = null
         hasValue = false
     }
 
@@ -34,7 +34,7 @@ class CacheEntry private constructor(
         }
 
     var hasValue = false
-    var hasBeenDestroyed = false
+    val hasBeenDestroyed get() = deletingThreadName != null
     var hasGenerator = false
 
     fun waitForValue(key: Any?, limitNanos: Long = 60_000_000_000) {
@@ -49,13 +49,15 @@ class CacheEntry private constructor(
         return Sleep.waitUntil2(true, limitNanos) { hasValue || hasBeenDestroyed }
     }
 
+    var deletingThreadName: String? = null
+
     fun destroy() {
-        if (!hasBeenDestroyed) {
-            hasBeenDestroyed = true
+        if (deletingThreadName == null) {
+            deletingThreadName = Thread.currentThread().name
             data?.destroy()
             data = null
         } else {
-            RuntimeException("Cannot destroy things twice!")
+            RuntimeException("Cannot destroy things twice! ${this::class.qualifiedName}, by ${deletingThreadName} from ${Thread.currentThread().name}")
                 .printStackTrace()
         }
     }

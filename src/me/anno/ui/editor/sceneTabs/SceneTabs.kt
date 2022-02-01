@@ -13,7 +13,7 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.sceneView.SceneTabData
-import me.anno.utils.types.Lists.getOrPrevious
+import me.anno.utils.structures.lists.Lists.getOrPrevious
 import org.apache.logging.log4j.LogManager
 
 // may there only be once instance? yes

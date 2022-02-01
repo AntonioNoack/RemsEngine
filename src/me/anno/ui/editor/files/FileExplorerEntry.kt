@@ -27,13 +27,15 @@ import me.anno.input.Input.mouseDownX
 import me.anno.input.Input.mouseDownY
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.FileReference.Companion.getReferenceAsync
+import me.anno.io.files.FileReference.Companion.getReferenceOrTimeout
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.trash.TrashManager.moveToTrash
 import me.anno.io.zip.InnerLinkFile
 import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths.mixARGB
+import me.anno.maths.Maths.sq
 import me.anno.objects.Audio
 import me.anno.objects.Camera
 import me.anno.objects.Video
@@ -51,8 +53,6 @@ import me.anno.ui.dragging.Draggable
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
-import me.anno.maths.Maths.mixARGB
-import me.anno.maths.Maths.sq
 import me.anno.utils.strings.StringHelper.setNumber
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Strings.formatTime
@@ -248,7 +248,7 @@ class FileExplorerEntry(
                         invalidateDrawing()
                         if (startTime == 0L) {
                             startTime = GFX.gameTime
-                            val audio = Video(getReference(path))
+                            val audio = Video(getReferenceOrTimeout(path))
                             audio.isLooping.value = LoopingState.PLAY_LOOP
                             audio.update()// sets audio.type, which is required for startPlayback
                             this.audio = audio
@@ -434,7 +434,7 @@ class FileExplorerEntry(
         if (isInFocus && inFocus.count { it is FileExplorerEntry } > 1) {
 
             val files = inFocus.mapNotNull { (it as? FileExplorerEntry)?.path }
-                .map { getReference(it) }
+                .mapNotNull { getReferenceAsync(it) }
 
             tooltip = "${files.count { it.isDirectory }} folders + ${files.count { !it.isDirectory }} files\n" +
                     files.sumOf { it.length() }.formatFileSize()
@@ -555,9 +555,9 @@ class FileExplorerEntry(
         when (action) {
             "DragStart" -> {
                 // todo select the file, if the mouse goes up, not down
-                val file = getReference(path)
+                val file = getReferenceOrTimeout(path)
                 if (inFocus.any { it.contains(mouseDownX, mouseDownY) } && StudioBase.dragged?.getOriginal() != file) {
-                    val inFocus = inFocus.filterIsInstance<FileExplorerEntry>().map { getReference(it.path) }
+                    val inFocus = inFocus.filterIsInstance<FileExplorerEntry>().map { getReferenceOrTimeout(it.path) }
                     if (inFocus.size == 1) {
                         val textPanel = TextPanel(file.nameWithoutExtension, style)
                         val draggable = Draggable(file.toString(), "File", file, textPanel)
@@ -571,21 +571,21 @@ class FileExplorerEntry(
                 }
             }
             "Enter" -> {
-                val file = getReference(path)
+                val file = getReferenceOrTimeout(path)
                 if (explorer.canSensiblyEnter(file)) {
                     explorer.switchTo(file)
                 } else return false
             }
             "Rename" -> {
-                val file = getReference(path)
+                val file = getReferenceOrTimeout(path)
                 val title = NameDesc("Rename To...", "", "ui.file.rename2")
                 askName(windowStack, x.toInt(), y.toInt(), title, file.name, NameDesc("Rename"), { -1 }, ::renameTo)
             }
-            "OpenInExplorer" -> getReference(path).openInExplorer()
-            "OpenInStandardProgram" -> getReference(path).openInStandardProgram()
-            "EditInStandardProgram" -> getReference(path).editInStandardProgram()
-            "Delete" -> deleteFileMaybe(this, getReference(path))
-            "OpenOptions" -> explorer.openOptions(getReference(path))
+            "OpenInExplorer" -> getReferenceOrTimeout(path).openInExplorer()
+            "OpenInStandardProgram" -> getReferenceOrTimeout(path).openInStandardProgram()
+            "EditInStandardProgram" -> getReferenceOrTimeout(path).editInStandardProgram()
+            "Delete" -> deleteFileMaybe(this, getReferenceOrTimeout(path))
+            "OpenOptions" -> explorer.openOptions(getReferenceOrTimeout(path))
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
         return true
@@ -594,7 +594,7 @@ class FileExplorerEntry(
     fun renameTo(newName: String) {
         val allowed = newName.toAllowedFilename()
         if (allowed != null) {
-            val file = getReference(path)
+            val file = getReferenceOrTimeout(path)
             val dst = file.getParent()!!.getChild(allowed)
             if (dst.exists && !allowed.equals(file.name, true)) {
                 ask(windowStack, NameDesc("Override existing file?", "", "ui.file.override")) {
@@ -610,7 +610,7 @@ class FileExplorerEntry(
 
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
         if (button.isLeft) {
-            val file = getReference(path)
+            val file = getReferenceOrTimeout(path)
             if (explorer.canSensiblyEnter(file)) {
                 LOGGER.info("Can enter ${file.name}? Yes!")
                 explorer.switchTo(file)
@@ -622,9 +622,9 @@ class FileExplorerEntry(
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
-        val file = getReference(path)
+        val file = getReferenceOrTimeout(path)
         // todo in Rem's Engine, we first should check, whether there are prefabs, which depend on this file
-        val files = inFocus.mapNotNull { if (it is FileExplorerEntry) getReference(it.path) else null }
+        val files = inFocus.mapNotNull { if (it is FileExplorerEntry) getReferenceOrTimeout(it.path) else null }
         if (files.size <= 1) {
             // ask, then delete (or cancel)
             deleteFileMaybe(this, file)
@@ -662,9 +662,9 @@ class FileExplorerEntry(
     override fun onCopyRequested(x: Float, y: Float): String? {
         val files = if (this in inFocus) {// multiple files maybe
             inFocus.filterIsInstance<FileExplorerEntry>().map {
-                getReference(it.path)
+                getReferenceOrTimeout(it.path)
             }
-        } else listOf(getReference(path))
+        } else listOf(getReferenceOrTimeout(path))
         Input.copyFiles(files)
         return null
     }
@@ -673,7 +673,7 @@ class FileExplorerEntry(
 
     override fun printLayout(tabDepth: Int) {
         super.printLayout(tabDepth)
-        println("${Tabs.spaces(tabDepth * 2 + 2)} ${getReference(path).name}")
+        println("${Tabs.spaces(tabDepth * 2 + 2)} ${getReferenceOrTimeout(path).name}")
     }
 
     override val className get() = "FileEntry"

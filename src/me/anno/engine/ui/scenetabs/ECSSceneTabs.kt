@@ -14,8 +14,8 @@ import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.utils.hpc.SyncMaster
-import me.anno.utils.types.Lists.firstInstanceOrNull
-import me.anno.utils.types.Lists.getOrPrevious
+import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
+import me.anno.utils.structures.lists.Lists.getOrPrevious
 import org.apache.logging.log4j.LogManager
 
 // todo just like the original in Rem's Studio

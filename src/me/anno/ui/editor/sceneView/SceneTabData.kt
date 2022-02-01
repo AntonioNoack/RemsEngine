@@ -10,7 +10,7 @@ import me.anno.objects.Transform
 import me.anno.studio.history.History
 import me.anno.ui.editor.sceneTabs.SceneTab
 import me.anno.utils.files.LocalFile.toGlobalFile
-import me.anno.utils.types.Lists.firstInstanceOrNull
+import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 
 class SceneTabData() : Saveable() {
 

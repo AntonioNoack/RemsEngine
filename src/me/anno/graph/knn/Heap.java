@@ -1,6 +1,6 @@
 package me.anno.graph.knn;
 
-import me.anno.utils.types.Lists;
+import me.anno.utils.structures.lists.Lists;
 
 import java.util.ArrayList;
 import java.util.Comparator;

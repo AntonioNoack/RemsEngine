@@ -8,46 +8,31 @@ import kotlin.math.*
 
 class Frustum {
 
+    // this class might be replaceable with org.joml.FrustumIntersection,
+    // if we replace those floats with doubles
+
     // todo define a 7th plane for reflection culling
 
-    val planes = Array(6) { Vector4d() }
-    val normals = Array(6) { Vector3d() }
-    val positions = Array(6) { Vector3d() }
+    private val planes = Array(6) { Vector4d() }
+    private val normals = Array(6) { Vector3d() }
+    private val positions = Array(6) { Vector3d() }
 
     // frustum information, for the size estimation
     private val cameraPosition = Vector3d()
     private val cameraRotation = Matrix3d()
 
-    var sizeThreshold = 0.01
-    var isPerspective = false
+    private var sizeThreshold = 0.01
+    private var isPerspective = false
 
     // 1.0 is nearly not noticeable
     // 3.0 is noticeable, if you look at it, and have a static scene
     // we may get away with 10-20, if we just fade them in and out
-    var minObjectSizePixels = 1.0
+    private var minObjectSizePixels = 1.0
 
     // todo for size thresholding, it would be great, if we could fade the objects in and out
 
-    fun applyTransform(m: Matrix4d) {
-        m.transformPosition(cameraPosition)
-        // m.mul(cameraRotation, cameraRotation) // todo apply transform on rotation
-        // minObjectSize needs to be transformed, when m contains a scale
-        for (i in 0 until 6) {
-            m.transformDirection(planes[i])
-        }
-    }
-
-    fun Matrix4d.transformDirection(dest: Vector4d): Vector4d? {
-        return dest.set(
-            m00() * dest.x + m10() * dest.y + m20() * dest.z,
-            m01() * dest.x + m11() * dest.y + m21() * dest.z,
-            m02() * dest.x + m12() * dest.y + m22() * dest.z,
-            dest.z
-        )
-    }
-
     // for debugging, when the pipeline seems to be empty for unknown reasons
-    fun all(cameraPosition: Vector3d, cameraRotation: Quaterniond) {
+    fun setToEverything(cameraPosition: Vector3d, cameraRotation: Quaterniond) {
 
         planes[0].set(-1.0, 0.0, 0.0, -1e30)
         planes[1].set(+1.0, 0.0, 0.0, -1e30)

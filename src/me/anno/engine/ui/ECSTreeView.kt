@@ -29,7 +29,7 @@ import me.anno.utils.structures.lists.UpdatingList
 import me.anno.utils.types.AABBs.deltaX
 import me.anno.utils.types.AABBs.deltaY
 import me.anno.utils.types.AABBs.deltaZ
-import me.anno.utils.types.Lists.flatten
+import me.anno.utils.structures.lists.Lists.flatten
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 

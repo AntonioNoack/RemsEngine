@@ -9,6 +9,11 @@ class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
     val values = HashMap<KManifold, PairArrayList<KFewOnly, Value>>(capacity)
     var size = 0
 
+    fun clear() {
+        values.clear()
+        size = 0
+    }
+
     operator fun get(
         k1: KManifold,
         k2: KFewOnly

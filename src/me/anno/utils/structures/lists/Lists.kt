@@ -1,4 +1,4 @@
-package me.anno.utils.types
+package me.anno.utils.structures.lists
 
 import me.anno.graph.knn.Heap
 import kotlin.math.max

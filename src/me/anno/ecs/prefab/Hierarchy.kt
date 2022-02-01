@@ -372,7 +372,7 @@ object Hierarchy {
         Engine.requestShutdown()
     }
 
-    fun testCreator() {
+    private fun testJsonFormatter() {
         val ref = getReference(documents, "RemsEngine/SampleProject/Scene.json")
         val prefab = PrefabCache.loadPrefab(ref)
         println(JsonFormatter.format(prefab.toString()))
@@ -401,7 +401,8 @@ object Hierarchy {
         testRemoval2()
         testAdd()
         testRenumberRemove()
-        testCreator()
+        // testJsonFormatter()
+        Engine.requestShutdown()
     }
 
 }
