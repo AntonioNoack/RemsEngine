@@ -57,6 +57,12 @@ object ShaderLib {
             "   uv = attr0;\n" +
             "}"
 
+    val simplestVertexShader2 =  "" +
+            "$attribute vec2 attr0;\n" +
+            "void main(){\n" +
+            "   gl_Position = vec4(attr0*2.0-1.0,0.5,1.0);\n" +
+            "}"
+
     val uvList = listOf(Variable(GLSLType.V2F, "uv"))
     val simpleVertexShader = "" +
             "$attribute vec2 attr0;\n" +

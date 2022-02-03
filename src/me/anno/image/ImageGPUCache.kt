@@ -39,6 +39,10 @@ object ImageGPUCache : CacheSection("Images") {
         }
     }
 
+    fun getImage(file: FileReference, asyncGenerator: Boolean): Texture2D? {
+        return getImage(file, 1000L, asyncGenerator)
+    }
+
     fun getImage(file: FileReference, timeout: Long, asyncGenerator: Boolean): Texture2D? {
         if (file == InvalidRef) return null
         if (file is ImageReadable) {

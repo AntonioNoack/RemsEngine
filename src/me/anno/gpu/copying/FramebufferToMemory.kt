@@ -8,6 +8,7 @@ import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.packAlignment
 import me.anno.image.raw.IntImage
@@ -31,11 +32,11 @@ object FramebufferToMemory {
         return createImage(framebuffer.w, framebuffer.h, framebuffer, flipY, withAlpha)
     }
 
-    fun createBufferedImage(texture: Texture2D, flipY: Boolean, withAlpha: Boolean): BufferedImage {
+    fun createBufferedImage(texture: ITexture2D, flipY: Boolean, withAlpha: Boolean): BufferedImage {
         return createBufferedImage(texture.w, texture.h, texture, flipY, withAlpha)
     }
 
-    fun createImage(texture: Texture2D, flipY: Boolean, withAlpha: Boolean): IntImage {
+    fun createImage(texture: ITexture2D, flipY: Boolean, withAlpha: Boolean): IntImage {
         return createImage(texture.w, texture.h, texture, flipY, withAlpha)
     }
 
@@ -47,13 +48,13 @@ object FramebufferToMemory {
         return createImage(w, h, framebuffer.getColor0(), flipY, withAlpha)
     }
 
-    fun createBufferedImage(w: Int, h: Int, texture: Texture2D, flipY: Boolean, withAlpha: Boolean): BufferedImage {
+    fun createBufferedImage(w: Int, h: Int, texture: ITexture2D, flipY: Boolean, withAlpha: Boolean): BufferedImage {
         return createBufferedImage(w, h, zero, flipY, withAlpha) { x2, y2, _, _ ->
             DrawTextures.drawTexturePure(-x2, -y2, w, h, texture, !withAlpha)
         }
     }
 
-    fun createImage(w: Int, h: Int, texture: Texture2D, flipY: Boolean, withAlpha: Boolean): IntImage {
+    fun createImage(w: Int, h: Int, texture: ITexture2D, flipY: Boolean, withAlpha: Boolean): IntImage {
         return createImage(w, h, zero, flipY, withAlpha) { x2, y2, _, _ ->
             DrawTextures.drawTexturePure(-x2, -y2, w, h, texture, !withAlpha)
         }

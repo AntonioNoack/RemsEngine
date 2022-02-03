@@ -87,7 +87,11 @@ class ComputeShader(
 
         // todo this type could be derived from the shader or texture
         fun bindTexture(slot: Int, texture: Texture2D, mode: ComputeTextureMode, type: Int = GL_RGBA32F) {
-            glBindImageTexture(slot, texture.pointer, 0, true, 0, mode.code, type)
+            if(texture.internalFormat == 0){
+                LOGGER.warn("Internal format is 0!, using $type")
+                texture.internalFormat = type
+            }
+            glBindImageTexture(slot, texture.pointer, 0, true, 0, mode.code, texture.internalFormat)
         }
 
         /**
