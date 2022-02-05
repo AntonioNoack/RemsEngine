@@ -1,7 +1,6 @@
 package me.anno.fonts.signeddistfields.edges
 
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossProduct
-import me.anno.fonts.signeddistfields.algorithm.SDFMaths.dotProduct
 import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
 import me.anno.utils.pooling.JomlPools
@@ -20,10 +19,20 @@ abstract class EdgeSegment {
 
     abstract fun union(bounds: AABBf, tmp: FloatArray)
 
-    abstract fun signedDistance(origin: Vector2fc, param: FloatPtr, dst: SignedDistance): SignedDistance
+    abstract fun signedDistance(
+        origin: Vector2fc,
+        param: FloatPtr,
+        tmp: FloatArray,
+        dst: SignedDistance
+    ): SignedDistance
 
-    fun trueSignedDistance(origin: Vector2f, tmpParam: FloatPtr, tmp: SignedDistance): Float {
-        val distance = signedDistance(origin, tmpParam, tmp)
+    fun trueSignedDistance(
+        origin: Vector2f,
+        tmpParam: FloatPtr,
+        tmp2: FloatArray,
+        tmp: SignedDistance
+    ): Float {
+        val distance = signedDistance(origin, tmpParam, tmp2, tmp)
         distanceToPseudoDistance(distance, origin, tmpParam.value)
         return distance.distance
     }
@@ -45,7 +54,7 @@ abstract class EdgeSegment {
         } else if (param > 1) {
             val dir = direction(1f, v0).normalize()
             val bq = v2.set(origin).sub(point(1f, v1))
-            val ts = dotProduct(bq, dir)
+            val ts = bq.dot(dir)
             if (ts > 0) {
                 val pseudoDistance = crossProduct(bq, dir)
                 if (abs(pseudoDistance) <= abs(distance.distance)) {

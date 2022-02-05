@@ -35,6 +35,9 @@ object Maths {
     fun clamp(x: Double) = if (x < 0.0) 0.0 else if (x < 1.0) x else 1.0
     fun clamp(x: Float) = if (x < 0f) 0f else if (x < 1f) x else 1f
 
+    fun median(a: Float, b: Float, c: Float): Float = max(min(a, b), min(max(a, b), c))
+    fun median(a: Double, b: Double, c: Double): Double = max(min(a, b), min(max(a, b), c))
+
     fun smoothStep(x: Float): Float {
         return when {
             x <= 0f -> 0f

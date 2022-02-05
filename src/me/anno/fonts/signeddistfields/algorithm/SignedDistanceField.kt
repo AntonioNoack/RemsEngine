@@ -17,6 +17,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
 import me.anno.utils.OS.desktop
 import me.anno.utils.pooling.ByteBufferPool
+import me.anno.utils.types.AABBs.clear
 import org.joml.AABBf
 import org.joml.Vector2f
 import java.awt.Font
@@ -36,9 +37,9 @@ object SignedDistanceField {
     // todo char spacing for joint strips
 
     class Contour(val segments: ArrayList<EdgeSegment>) {
-        var bounds = AABBf()
+        val bounds = AABBf()
         fun updateBounds() {
-            bounds = AABBf()
+            bounds.clear()
             val tmp = FloatArray(2)
             for (segment in segments) segment.union(bounds, tmp)
         }
@@ -71,17 +72,20 @@ object SignedDistanceField {
         val tmpDistance = SignedDistance()
         val origin = Vector2f()
         val ptr = FloatPtr()
-        val tmpV3 = FloatArray(3)
+        val tmpArray = FloatArray(3)
         val tmpParam = FloatPtr()
+
+        val invH = 1f / (h - 1f)
+        val invW = 1f / (w - 1f)
 
         for (y in 0 until h) {
 
-            val ry = y / (h - 1f)
+            val ry = y * invH
             val ly = mix(maxY, minY, ry) // mirrored y for OpenGL
+            var index = y * w
             for (x in 0 until w) {
 
-                val index = x + y * w
-                val rx = x / (w - 1f)
+                val rx = x * invW
                 val lx = mix(minX, maxX, rx)
 
                 origin.set(lx, ly)
@@ -92,10 +96,13 @@ object SignedDistanceField {
                 pointBounds.setMin(lx - maxDistance, ly - maxDistance, -1f)
                 pointBounds.setMax(lx + maxDistance, ly + maxDistance, +1f)
 
-                for (contour in contours) {
+                for (ci in contours.indices) {
+                    val contour = contours[ci]
                     if (contour.bounds.testAABB(pointBounds)) {// this test brings down the complexity from O(chars²) to O(chars)
-                        for (edge in contour.segments) {
-                            val distance = edge.signedDistance(origin, ptr, tmpDistance)
+                        val edges = contour.segments
+                        for (edgeIndex in edges.indices) {
+                            val edge = edges[edgeIndex]
+                            val distance = edge.signedDistance(origin, ptr, tmpArray, tmpDistance)
                             if (distance < minDistance) {
                                 minDistance.set(distance)
                                 closestEdge = edge
@@ -107,10 +114,11 @@ object SignedDistanceField {
                 val trueDistance = if (closestEdge != null) {
                     if (roundEdges) {
                         minDistance.distance
-                    } else closestEdge.trueSignedDistance(origin, tmpParam, tmpDistance)
+                    } else closestEdge.trueSignedDistance(origin, tmpParam, tmpArray, tmpDistance)
                 } else 100f
 
                 buffer.put(index, clamp(trueDistance, -maxDistance, +maxDistance) * sdfResolution)
+                index++
 
             }
         }
@@ -136,8 +144,7 @@ object SignedDistanceField {
 
         val path = shape.getPathIterator(null)
 
-        var x0 = 0f
-        var y0 = 0f
+        var p0 = Vector2f()
         val coordinates = FloatArray(6)
         while (!path.isDone) {
 
@@ -153,63 +160,30 @@ object SignedDistanceField {
             val y3 = coordinates[5]
 
             when (type) {
+                PathIterator.SEG_LINETO -> {
+                    val p1 = Vector2f(x1, y1)
+                    segments.add(LinearSegment(p0, p1))
+                    p0 = p1
+                }
                 PathIterator.SEG_QUADTO -> {
-
-                    segments.add(
-                        QuadraticSegment(
-                            Vector2f(x0, y0),
-                            Vector2f(x1, y1),
-                            Vector2f(x2, y2)
-                        )
-                    )
-
-                    x0 = x2
-                    y0 = y2
-
+                    val p2 = Vector2f(x2, y2)
+                    segments.add(QuadraticSegment(p0, Vector2f(x1, y1), p2))
+                    p0 = p2
                 }
                 PathIterator.SEG_CUBICTO -> {
-
-                    segments.add(
-                        CubicSegment(
-                            Vector2f(x0, y0),
-                            Vector2f(x1, y1),
-                            Vector2f(x2, y2),
-                            Vector2f(x3, y3)
-                        )
-                    )
-
-                    x0 = x3
-                    y0 = y3
-
-                }
-                PathIterator.SEG_LINETO -> {
-
-                    segments.add(
-                        LinearSegment(
-                            Vector2f(x0, y0),
-                            Vector2f(x1, y1)
-                        )
-                    )
-
-                    x0 = x1
-                    y0 = y1
-
+                    val p3 = Vector2f(x3, y3)
+                    segments.add(CubicSegment(p0, Vector2f(x1, y1), Vector2f(x2, y2), p3))
+                    p0 = p3
                 }
                 PathIterator.SEG_MOVETO -> {
-
                     if (segments.isNotEmpty()) throw RuntimeException("move to is only allowed after close or at the start...")
-
-                    x0 = x1
-                    y0 = y1
-
+                    p0 = Vector2f(x1, y1) // is one move too much...
                 }
                 PathIterator.SEG_CLOSE -> {
-
                     if (segments.isNotEmpty()) {
                         contours.add(Contour(segments))
                     }
                     segments = ArrayList()
-
                 }
             }
 

@@ -7,15 +7,12 @@ import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absDotNormalized
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absDotNormalizedXYY
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossProduct
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossProductXYY
-import me.anno.fonts.signeddistfields.algorithm.SDFMaths.dotProduct
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.mix
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.nonZeroSign
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.union
 import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.Vectors.minus
-import me.anno.utils.types.Vectors.times
 import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector2fc
@@ -105,7 +102,12 @@ class CubicSegment(
 
     }
 
-    override fun signedDistance(origin: Vector2fc, param: FloatPtr, dst: SignedDistance): SignedDistance {
+    override fun signedDistance(
+        origin: Vector2fc,
+        param: FloatPtr,
+        tmp: FloatArray,
+        dst: SignedDistance
+    ): SignedDistance {
 
         val qa = JomlPools.vec2f.create()
         val ab = JomlPools.vec2f.create()
@@ -124,13 +126,14 @@ class CubicSegment(
         direction(0f, epDir)
         var minDistance = nonZeroSign(crossProduct(epDir, qa)) * qa.length() // distance from A
 
-        param.value = -dotProduct(qa, epDir) / dotProduct(epDir, epDir)
+        param.value = -qa.dot(epDir) / epDir.lengthSquared()
 
         direction(1f, epDir)
         val distance = p3.distance(origin) // distance from B
         if (distance < abs(minDistance)) {
             minDistance = nonZeroSign(crossProductXYY(epDir, p3, origin)) * distance
-            param.value = dotProduct(epDir - (p3 - origin), epDir) / epDir.lengthSquared()
+            val dotProduct = epDir.lengthSquared() - p3.dot(epDir) + origin.dot(epDir)
+            param.value = dotProduct / epDir.lengthSquared()
         }
 
         // Iterative minimum distance search
@@ -144,7 +147,7 @@ class CubicSegment(
                     .add(ab.x, ab.y)
                     .mul(3f) // az * (3f * t * t) + br * (6f * t) + ab * 3f
                 d2.set(az).mul(t).add(br).mul(6f) // az * (6f * t) + br * 6f
-                t -= dotProduct(qe, d1) / (d1.lengthSquared() + dotProduct(qe, d2))
+                t -= qe.dot(d1) / (d1.lengthSquared() + qe.dot(d2))
                 if (t <= 0f || t >= 1f) break
                 setQe(qe, qa, ab, br, az, t)
                 val distance2 = qe.length()
@@ -180,8 +183,5 @@ class CubicSegment(
             .add(br.x * f1, br.y * f1)
             .add(az.x * f2, az.y * f2)
     }
-
-    operator fun Int.times(p: Vector2f) = p * this.toFloat()
-    operator fun Float.times(p: Vector2f) = p * this
 
 }
