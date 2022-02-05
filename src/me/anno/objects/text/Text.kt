@@ -1,5 +1,7 @@
 package me.anno.objects.text
 
+import me.anno.animation.AnimatedProperty
+import me.anno.animation.Type
 import me.anno.cache.CacheData
 import me.anno.cache.instances.TextCache
 import me.anno.cache.keys.TextSegmentKey
@@ -14,10 +16,9 @@ import me.anno.fonts.signeddistfields.TextSDFGroup
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
+import me.anno.maths.Maths.mix
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
-import me.anno.animation.AnimatedProperty
-import me.anno.animation.Type
 import me.anno.objects.lists.Element
 import me.anno.objects.lists.SplittableElement
 import me.anno.objects.modes.TextMode
@@ -29,7 +30,6 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import me.anno.maths.Maths.mix
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -125,7 +125,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent), SplittableEle
         Triple(renderingMode, roundSDFCorners, charSpacing)
     )
 
-    val shallLoadAsync get() = !forceVariableBuffer
+    private val shallLoadAsync get() = !forceVariableBuffer
     fun getTextMesh(key: TextSegmentKey): TextRepBase? {
         return TextCache.getEntry(key, textMeshTimeout, shallLoadAsync) { keyInstance ->
             TextMeshGroup(keyInstance.font, keyInstance.text, keyInstance.charSpacing, forceVariableBuffer)
@@ -310,7 +310,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent), SplittableEle
     override val defaultDisplayName = // text can be null!!!
         if (text == null) Dict["Text", "obj.text"]
         else (text.keyframes.maxByOrNull { it.value.length }?.value
-                ?: text.defaultValue).ifBlank { Dict["Text", "obj.text"] }
+            ?: text.defaultValue).ifBlank { Dict["Text", "obj.text"] }
 
     override val symbol get() = DefaultConfig["ui.symbol.text", "\uD83D\uDCC4"]
 
@@ -320,7 +320,7 @@ open class Text(parent: Transform? = null) : GFXTransform(parent), SplittableEle
         val lineBreakType = Type.FLOAT_PLUS.withDefaultValue(0f)
 
         val textMeshTimeout = 5000L
-        val lastUsedFonts = arrayOfNulls<String>(max(0, DefaultConfig["lastUsed.fonts.count", 5]))
+        val lastUsedFonts by lazy { arrayOfNulls<String>(max(0, DefaultConfig["lastUsed.fonts.count", 5])) }
 
         /**
          * saves the most recently used fonts

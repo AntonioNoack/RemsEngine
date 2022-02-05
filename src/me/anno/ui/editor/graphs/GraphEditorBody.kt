@@ -44,8 +44,6 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-// todo major and minor x, maybe y lines
-
 // todo make music x times calmer, if another audio line (voice) is on as an optional feature
 // todo move multiple keyframes at a time
 
@@ -98,7 +96,9 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
         return valueFractions.minByOrNull { abs(it - value) }!!
     }
 
-    @Suppress("UNUSED_PARAMETER")
+    override val canDrawOverBorders: Boolean = true
+
+    @Suppress("unused_parameter")
     private fun drawValueAxis(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         val font = DrawTexts.monospaceFont.value
@@ -126,11 +126,16 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
 
             val text = getValueString(value, valueStep)
             val width = font.sampleWidth * text.length
-            drawRect(x + width + 2, y, w - width - 2, 1, fontColor and 0x3fffffff)
-            DrawTexts.drawSimpleTextCharByChar(
-                x + 2, y - yOffset, 0,
-                text, fontColor, backgroundColor, AxisAlignment.MIN
-            )
+
+            if (y + yOffset >= y0 && y - yOffset < y1) {
+                if (y in y0 until y1) {
+                    drawRect(x + width + 2, y, w - width - 2, 1, fontColor and 0x3fffffff)
+                }
+                DrawTexts.drawSimpleTextCharByChar(
+                    x + 2, y - yOffset, 0,
+                    text, fontColor, backgroundColor, AxisAlignment.MIN
+                )
+            }
 
         }
 
@@ -175,7 +180,7 @@ class GraphEditorBody(style: Style) : TimelinePanel(style.getChild("deep")) {
 
         drawnStrings.clear()
 
-        drawBackground()
+        drawBackground(x0, y0, x1, y1)
 
         val targetUnitScale = selectedProperty?.type?.unitScale ?: lastUnitScale
         if (lastUnitScale != targetUnitScale) {

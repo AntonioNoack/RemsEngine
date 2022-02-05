@@ -28,6 +28,7 @@ import me.anno.ui.editor.RemsStudioUILayouts.createDefaultMainUI
 import me.anno.ui.editor.sceneTabs.SceneTab
 import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.editor.sceneView.SceneTabData
+import me.anno.ui.editor.sceneView.StudioSceneView
 import me.anno.utils.bugs.SumOf
 import me.anno.utils.files.Files.use
 import me.anno.utils.types.Casting.castToFloat
@@ -154,6 +155,7 @@ class Project(var name: String, val file: FileReference) : Saveable() {
                         "CustomListY" -> CustomList(true, style)
                         "TreeView" -> StudioTreeView(style)
                         "FileExplorer" -> StudioFileExplorer(RemsStudio.project?.scenes, style)
+                        "SceneView", "StudioSceneView" -> StudioSceneView(style)
                         else -> types[type]?.constructor?.invoke()
                     }
                     if (obj == null) {

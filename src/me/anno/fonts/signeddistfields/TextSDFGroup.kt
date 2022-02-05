@@ -61,9 +61,9 @@ class TextSDFGroup(
             val codePoint = codepoints[index]
             val offset = (offsets[index] * baseScale).toFloat()
             val key = SDFCharKey(font, codePoint, roundCorners)
-            val cacheData = ImageGPUCache.getEntry(key, sdfTimeout, queue) {
-                val charAsText = String(Character.toChars(it.codePoint))
-                val texture = SignedDistanceField.createTexture(it.font, charAsText, it.roundCorners)
+            val cacheData = ImageGPUCache.getEntry(key, sdfTimeout, queue) { key2 ->
+                val charAsText = String(Character.toChars(key2.codePoint))
+                val texture = SignedDistanceField.createTexture(key2.font, charAsText, key2.roundCorners)
                 CacheData(texture)
             } as? CacheData<*>
             if (isFinalRendering && cacheData == null) throw MissingFrameException("")

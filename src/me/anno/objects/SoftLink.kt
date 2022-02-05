@@ -28,6 +28,7 @@ import me.anno.ui.style.Style
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.ValueWithDefault
 import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
+import me.anno.utils.structures.ValueWithDefaultFunc
 import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector2f
@@ -56,7 +57,7 @@ class SoftLink(var file: FileReference) : GFXTransform(null) {
     val clampMode = ValueWithDefault(Clamping.MIRRORED_REPEAT)
 
     // filtering
-    val filtering = ValueWithDefault(DefaultConfig["default.video.nearest", Filtering.LINEAR])
+    val filtering = ValueWithDefaultFunc { DefaultConfig["default.video.nearest", Filtering.LINEAR] }
 
     var resolution = AnimatedProperty.vec2(Vector2f(1920f, 1080f))
 

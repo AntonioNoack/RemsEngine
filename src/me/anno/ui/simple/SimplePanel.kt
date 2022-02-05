@@ -2,6 +2,8 @@ package me.anno.ui.simple
 
 import me.anno.ui.Panel
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * simple controls
@@ -54,7 +56,10 @@ class SimplePanel(
         if (hideModeX.shallDraw(abs(deltaX + sizeX / 2), w) &&
             hideModeY.shallDraw(abs(deltaY + sizeY / 2), h)
         ) {
-            drawable.draw(x0, y0, x1, y1)
+            drawable.draw(
+                max(x0, px), max(y0, py),
+                min(x1, px + sizeX), min(y1, py + sizeY)
+            )
         }
     }
 

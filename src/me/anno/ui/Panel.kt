@@ -242,23 +242,26 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     open fun requestFocus() = GFX.requestFocus(this, true)
 
-    fun drawBackground() {
+    val hasRoundedCorners get() = backgroundRadiusX > 0 && backgroundRadiusY > 0 && backgroundRadiusCorners != 0
+
+    open val canDrawOverBorders get() = hasRoundedCorners
+
+    fun drawBackground(x0: Int, y0: Int, x1: Int, y1: Int) {
         // if the children are overlapping, this is incorrect
         // this however, should rarely happen...
-        if (backgroundRadiusX > 0 && backgroundRadiusY > 0 && backgroundRadiusCorners != 0) {
-            drawRoundedRect(
-                x, y, w, h, backgroundRadiusX, backgroundRadiusY, backgroundColor,
-                backgroundRadiusCorners and 1 != 0,
-                backgroundRadiusCorners and 2 != 0,
-                backgroundRadiusCorners and 4 != 0,
-                backgroundRadiusCorners and 8 != 0
-            )
-        } else {
-            drawRect(x, y, w, h, backgroundColor)
+        if (backgroundColor.ushr(24) > 0) {
+            if (hasRoundedCorners) {
+                drawRoundedRect(
+                    x, y, w, h, backgroundRadiusX, backgroundRadiusY, backgroundColor,
+                    backgroundRadiusCorners and 1 != 0,
+                    backgroundRadiusCorners and 2 != 0,
+                    backgroundRadiusCorners and 4 != 0,
+                    backgroundRadiusCorners and 8 != 0
+                )
+            } else {
+                drawRect(x0, y0, x1 - x0, y1 - y0, backgroundColor)
+            }
         }
-        /*if(parent?.backgroundColor != backgroundColor){
-            drawRect(x, y, w, h, backgroundColor)
-        }*/
     }
 
     fun updateVisibility(mx: Int, my: Int) {
@@ -310,7 +313,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
     }
 
     open fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        drawBackground()
+        drawBackground(x0, y0, x1, y1)
     }
 
     /**

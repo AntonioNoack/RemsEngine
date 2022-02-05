@@ -12,7 +12,7 @@ import me.anno.studio.rems.Selection
 import me.anno.studio.rems.Selection.select
 import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
 import me.anno.ui.editor.sceneTabs.SceneTabs
-import me.anno.ui.editor.sceneView.SceneView
+import me.anno.ui.editor.sceneView.StudioSceneView
 import me.anno.utils.structures.lists.Lists.join
 
 class HistoryState() : Saveable() {
@@ -60,7 +60,7 @@ class HistoryState() : Saveable() {
         defaultWindowStack?.forEach { window ->
             var index = 0
             window.panel.forAll {
-                if (it is SceneView) {
+                if (it is StudioSceneView) {
                     it.camera = if (index in usedCameras.indices) {
                         val cameraIndex = usedCameras[index]
                         listOfAll.firstOrNull { camera -> camera.getUUID() == cameraIndex } as? Camera ?: nullCamera!!
@@ -90,7 +90,7 @@ class HistoryState() : Saveable() {
         state.title = title
         state.selectedUUID = Selection.selectedTransform?.getUUID() ?: -1
         state.usedCameras = defaultWindowStack!!.map { window ->
-            window.panel.listOfAll.filterIsInstance<SceneView>().map { it.camera.getUUID() }.toList()
+            window.panel.listOfAll.filterIsInstance<StudioSceneView>().map { it.camera.getUUID() }.toList()
         }.join().toIntArray()
 
     }

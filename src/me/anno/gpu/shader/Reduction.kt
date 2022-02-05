@@ -51,7 +51,10 @@ object Reduction {
     val MAX_ABS = Operation("max-abs", 0f, "max(abs(a),abs(b))", false) { a, b -> max(abs(a), abs(b)) }
 
     /** finds the maximum amplitude, but keeps the sign */
-    val MAX_ABS_SIGNED = Operation("max-abs-signed", 0f, "abs(a)>abs(b)?a:b", false) { a, b -> if(abs(a) > abs(b)) a else b }
+    val MAX_ABS_SIGNED = Operation(
+        "max-abs-signed", 0f,
+        "abs(a)>abs(b)?a:b", false
+    ) { a, b -> if (abs(a) > abs(b)) a else b }
 
     /** finds the average value/color */
     val AVG = Operation("avg", 0f, "a+b", true) { a, b -> a + b }

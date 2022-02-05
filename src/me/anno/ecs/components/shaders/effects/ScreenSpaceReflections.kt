@@ -27,7 +27,7 @@ object ScreenSpaceReflections {
     // position + normal + metallic/reflectivity + maybe-roughness + illuminated image -> illuminated + reflections
     val shader = lazy {
         Shader(
-            "ss-reflections", null, simplestVertexShader, uvList, "" +
+            "ss-reflections", simplestVertexShader, uvList, "" +
 
                     "out vec4 fragColor;\n" +
 

@@ -11,14 +11,14 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.SVGxGFX
-import me.anno.gpu.texture.TextureLib
-import me.anno.gpu.texture.TextureLib.colorShowTexture
 import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.drawing.GFXx3D.draw3D
 import me.anno.gpu.drawing.GFXx3D.draw3DVideo
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureLib
+import me.anno.gpu.texture.TextureLib.colorShowTexture
 import me.anno.image.ImageGPUCache
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -26,6 +26,10 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.fract
+import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.pow
 import me.anno.objects.lists.Element
 import me.anno.objects.lists.SplittableElement
 import me.anno.objects.models.SpeakerModel.drawSpeakers
@@ -50,12 +54,9 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import me.anno.utils.Clipping
-import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.fract
-import me.anno.maths.Maths.mix
-import me.anno.maths.Maths.pow
 import me.anno.utils.structures.ValueWithDefault
 import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
+import me.anno.utils.structures.ValueWithDefaultFunc
 import me.anno.utils.structures.maps.BiMap
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.f2
@@ -98,10 +99,10 @@ class Video(file: FileReference = InvalidRef, parent: Transform? = null) : Audio
     val clampMode = ValueWithDefault(Clamping.MIRRORED_REPEAT)
 
     // filtering
-    val filtering = ValueWithDefault(DefaultConfig["default.video.nearest", Filtering.CUBIC])
+    val filtering = ValueWithDefaultFunc { DefaultConfig["default.video.nearest", Filtering.CUBIC] }
 
     // resolution
-    val videoScale = ValueWithDefault(DefaultConfig["default.video.scale", 1])
+    val videoScale = ValueWithDefaultFunc { DefaultConfig["default.video.scale", 1] }
 
     var lastFile: FileReference? = null
     var lastDuration = 10.0

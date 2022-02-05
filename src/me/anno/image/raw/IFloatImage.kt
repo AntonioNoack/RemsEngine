@@ -78,6 +78,8 @@ abstract class IFloatImage(
      * */
     abstract fun setValue(index: Int, channel: Int, value: Float): Float
 
+    abstract fun normalize(): IFloatImage
+
     fun getColor(f: Float) = clamp(f * 255f, 0f, 255f).toInt()
 
     override fun getRGB(index: Int): Int {

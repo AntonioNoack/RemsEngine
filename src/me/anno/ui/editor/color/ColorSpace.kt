@@ -1,6 +1,7 @@
 package me.anno.ui.editor.color
 
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.OpenGLShader.Companion.attribute
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.language.translation.NameDesc
@@ -30,7 +31,7 @@ abstract class ColorSpace(
         val oldShader = shaders[type]
         if (oldShader != null) return oldShader
         val vertexShader = "" +
-                "in vec2 attr0;\n" +
+                "$attribute vec2 attr0;\n" +
                 "uniform vec2 pos, size;\n" +
                 "void main(){\n" +
                 "   gl_Position = vec4((pos + attr0 * size)*2.-1., 0.0, 1.0);\n" +
@@ -107,11 +108,9 @@ abstract class ColorSpace(
         }
         val newShader = Shader(
             "$naming-${type.naming}",
-            null,
             vertexShader,
             varyingShader,
-            fragmentShader,
-            disableShorts = true
+            fragmentShader
         )
         shaders[type] = newShader
         return newShader

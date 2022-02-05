@@ -19,6 +19,7 @@ import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.OpenGLShader.Companion.attribute
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.ascColorDecisionList
@@ -148,7 +149,7 @@ object Scene {
 
         sqrtToneMappingShader = BaseShader("sqrt/tone-mapping",
             "" +
-                    "in vec2 attr0;\n" +
+                    "$attribute vec2 attr0;\n" +
                     "uniform float ySign;\n" +
                     "void main(){" +
                     "   vec2 coords = attr0*2.0-1.0;\n" +

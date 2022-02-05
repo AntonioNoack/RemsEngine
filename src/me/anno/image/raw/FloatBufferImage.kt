@@ -2,6 +2,7 @@ package me.anno.image.raw
 
 import me.anno.image.colormap.ColorMap
 import me.anno.image.colormap.LinearColorMap
+import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import java.nio.FloatBuffer
 
@@ -53,6 +54,23 @@ class FloatBufferImage(
             data[i] = ownData[i]
         }
         return FloatImage(width, height, numChannels, data, map)
+    }
+
+    override fun normalize(): FloatBufferImage {
+        var min = 0f
+        var max = 0f
+        for (i in 0 until data.capacity()) {
+            val v = data[i]
+            if (v < min) min = v
+            if (v > max) max = v
+        }
+        if (min < 0f || max > 0f) {
+            val div = 1f / max(-min, max)
+            for (i in 0 until data.capacity()) {
+                data.put(i, data[i] * div)
+            }
+        }
+        return this
     }
 
 }

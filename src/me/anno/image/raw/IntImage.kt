@@ -9,11 +9,17 @@ open class IntImage(
     hasAlphaChannel: Boolean
 ) : Image(width, height, if (hasAlphaChannel) 4 else 3, hasAlphaChannel) {
 
-    constructor(width: Int, height: Int, hasAlphaChannel: Boolean):
-            this(width, height, IntArray(width*height), hasAlphaChannel)
+    constructor(width: Int, height: Int, hasAlphaChannel: Boolean) :
+            this(width, height, IntArray(width * height), hasAlphaChannel)
 
     fun setRGB(x: Int, y: Int, rgb: Int) {
         data[x + y * width] = rgb
+    }
+
+    fun setRGBSafely(x: Int, y: Int, rgb: Int) {
+        if (x in 0 until width && y in 0 until height) {
+            data[x + y * width] = rgb
+        }
     }
 
     override fun getRGB(index: Int): Int = data[index]

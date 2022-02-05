@@ -14,7 +14,7 @@ class CustomizingBar(var index: Int, sizeX: Int, sizeY: Int, style: Style): Spac
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         backgroundColor = if(isHovered) hoverColor else originalBGColor
-        drawBackground()
+        drawBackground(x0, y0, x1, y1)
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {

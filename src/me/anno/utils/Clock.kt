@@ -85,5 +85,11 @@ class Clock(
 
     companion object {
         private val LOGGER = LogManager.getLogger(Clock::class)
+        fun print(t0: Long, times: List<Pair<Long, String>>) {
+            for ((time, title) in times) {
+                val dt = (time - t0) * 1e-9
+                LOGGER.info("Used ${dt.f3()}s for $title")
+            }
+        }
     }
 }

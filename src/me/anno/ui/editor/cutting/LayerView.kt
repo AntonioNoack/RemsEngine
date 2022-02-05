@@ -121,7 +121,7 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
 
         // val t0 = System.nanoTime()
         // 80-100µ for background and time axis
-        drawBackground()
+        drawBackground(x0, y0, x1, y1)
         drawTimeAxis(x0, y0, x1, y1, timelineSlot == 0)
 
         // val t1 = System.nanoTime()

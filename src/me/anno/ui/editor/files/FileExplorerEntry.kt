@@ -492,7 +492,7 @@ class FileExplorerEntry(
             updateTooltip()
         }
 
-        drawBackground()
+        drawBackground(x0, y0, x1, y1)
 
         val font0 = titlePanel.font
         val font1 = FontManager.getFont(font0)

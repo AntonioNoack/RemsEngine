@@ -12,6 +12,9 @@ class IntArrayList(val capacity: Int) : List<Int> {
 
     override operator fun get(index: Int) = buffers[index / capacity][index % capacity]
 
+    /** better: no conversion to Java object ... */
+    fun getValue(index: Int) = buffers[index / capacity][index % capacity]
+
     operator fun plusAssign(value: Int) {
         val bufferIndex = size / capacity
         if (bufferIndex >= buffers.size) buffers.add(IntArray(capacity))

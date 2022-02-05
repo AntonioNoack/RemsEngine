@@ -76,8 +76,7 @@ class AWTFont(val font: Font) {
             for (codepoint in text.codePoints()) {
                 gfx.drawString(
                     String(Character.toChars(codepoint)),
-                    x + group2.offsets[index].toFloat(),
-                    y
+                    x + group2.offsets[index].toFloat(), y
                 )
                 index++
             }
@@ -86,8 +85,7 @@ class AWTFont(val font: Font) {
                 val char = text[index]
                 gfx.drawString(
                     asciiStrings[char.code],
-                    x + group2.offsets[index].toFloat(),
-                    y
+                    x + group2.offsets[index].toFloat(), y
                 )
             }
         }
@@ -142,8 +140,10 @@ class AWTFont(val font: Font) {
 
         if (width < 1 || height < 1) return null
         if (max(width, height) > GFX.maxTextureSize) {
-            LOGGER.warn("Texture for text is too large! $width x $height > ${GFX.maxTextureSize}, " +
-                    "${text.length} chars, ${font.name} $fontSize px, ${text.toString().shorten(200)}")
+            LOGGER.warn(
+                "Texture for text is too large! $width x $height > ${GFX.maxTextureSize}, " +
+                        "${text.length} chars, ${font.name} $fontSize px, ${text.toString().shorten(200)}"
+            )
             return null
         }
         if (text.isBlank2()) {
@@ -160,14 +160,20 @@ class AWTFont(val font: Font) {
             val image = BufferedImage(width, height, 1)
 
             val gfx = image.graphics as Graphics2D
+
             gfx.prepareGraphics(font, portableImages)
             gfx.background = Color(backgroundColor)
+
             if (backgroundColor.and(0xffffff) != 0) {
                 // fill background with that color
                 gfx.color = Color(backgroundColor)
                 gfx.fillRect(0, 0, width, height)
             }
-            gfx.translate(extraPadding, extraPadding)
+
+            if (extraPadding != 0) {
+                gfx.translate(extraPadding, extraPadding)
+            }
+
             gfx.color = Color(textColor)
 
             val y = fontMetrics.ascent

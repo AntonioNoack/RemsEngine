@@ -372,15 +372,7 @@ object GFX : GFXBase1() {
 
     }
 
-    fun ensureEmptyStack() {
-        /*if (Framebuffer.stack.size > 0) {
-            /*Framebuffer.stack.forEach {
-                LOGGER.infoit)
-            }
-            throw RuntimeException("Catched ${Framebuffer.stack.size} items on the Framebuffer.stack")
-            exitProcess(1)*/
-        }
-        Framebuffer.stack.clear()*/
+    fun resetFBStack() {
         FBStack.reset()
     }
 
@@ -432,11 +424,11 @@ object GFX : GFXBase1() {
         JomlPools.reset()
         Point.stack.reset()
 
-        ensureEmptyStack()
+        resetFBStack()
 
         workGPUTasks(false)
 
-        ensureEmptyStack()
+        resetFBStack()
 
         // rendering and editor section
 
@@ -467,7 +459,7 @@ object GFX : GFXBase1() {
 
         check()
 
-        ensureEmptyStack()
+        resetFBStack()
 
         try {
             gameLoop(width, height)
@@ -475,7 +467,7 @@ object GFX : GFXBase1() {
             e.printStackTrace()
         }
 
-        ensureEmptyStack()
+        resetFBStack()
 
         check()
 

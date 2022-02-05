@@ -8,14 +8,29 @@ import org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER
 
 // todo locations for the varyings: for debugging with RenderDoc
 
+// todo replace attributes & uniforms to lists everywhere
+
 open class Shader(
     shaderName: String,
-    val geometry: String? = null,
+    val geometry: String?,
+    val attributes: List<Variable>,
+    val vsUniforms: List<Variable>,
     val vertex: String,
     val varying: List<Variable>,
-    val fragment: String,
-    private val disableShorts: Boolean = false
+    val fsUniforms: List<Variable>,
+    val fragment: String
 ) : OpenGLShader(shaderName) {
+
+    constructor(
+        shaderName: String, attributes: List<Variable>, vsUniforms: List<Variable>, vertex: String,
+        varying: List<Variable>, fsUniforms: List<Variable>, fragment: String
+    ) : this(shaderName, null, attributes, vsUniforms, vertex, varying, fsUniforms, fragment)
+
+    constructor(shaderName: String, geometry: String?, vertex: String, varying: List<Variable>, fragment: String) :
+            this(shaderName, geometry, emptyList(), emptyList(), vertex, varying, emptyList(), fragment)
+
+    constructor(shaderName: String, vertex: String, varying: List<Variable>, fragment: String) :
+            this(shaderName, null, vertex, varying, fragment)
 
     var vertexSource = ""
     var fragmentSource = ""
@@ -61,25 +76,74 @@ open class Shader(
         } else -1
 
         // the shaders are like a C compilation process, .o-files: after linking, they can be removed
-        vertexSource = (versionString +
-                // todo only specify mediump float, if we really don't need highp, and there is no common uniforms (issue in OpenGL ES)
-                "precision mediump float;\n" +
-                varyings.joinToString("\n") { "${it.modifiers} out ${it.type.glslName} ${it.vShaderName};" } +
-                "\n" +
-                vertex.replaceVaryingNames(true, varyings)
-                ).replaceShortCuts(disableShorts)
+        val builder = StringBuilder()
+        builder.append(versionString)
+        // todo only set them, if not already specified
+        builder.append("precision mediump float;\n")
+        builder.append("precision mediump int;\n")
+        for (v in attributes) {
+            builder.append(attribute)
+            builder.append(' ')
+            builder.append(v.type.glslName)
+            builder.append(' ')
+            builder.append(v.name)
+            builder.append(';')
+            builder.append('\n')
+        }
+        for (v in vsUniforms) {
+            builder.append("uniform ")
+            builder.append(v.type.glslName)
+            builder.append(' ')
+            builder.append(v.name)
+            builder.append(';')
+            builder.append('\n')
+        }
+        for (v in varyings) {
+            builder.append(v.modifiers)
+            builder.append(" out ")
+            builder.append(v.type.glslName)
+            builder.append(' ')
+            builder.append(v.vShaderName)
+            builder.append(';')
+            builder.append('\n')
+        }
+        builder.append(vertex.replaceVaryingNames(true, varyings))
+        vertexSource = builder.toString()
+        builder.clear()
+
         val vertexShader = compile(name, program, GL_VERTEX_SHADER, vertexSource)
 
-        fragmentSource = (versionString +
-                "precision mediump float;\n" +
-                varyings.joinToString("\n") { "${it.modifiers} in  ${it.type.glslName} ${it.fShaderName};" } +
-                "\n" +
-                (if (!fragment.contains("out ") && glslVersion == DefaultGLSLVersion && fragment.contains("gl_FragColor")) {
-                    "" +
-                            "out vec4 glFragColor;" +
-                            fragment.replace("gl_FragColor", "glFragColor")
-                } else fragment).replaceVaryingNames(false, varyings)
-                ).replaceShortCuts(disableShorts)
+        builder.append(versionString)
+        builder.append("precision mediump float;\n")
+        builder.append("precision mediump int;\n")
+        for (v in varyings) {
+            builder.append(v.modifiers)
+            builder.append(" in ")
+            builder.append(v.type.glslName)
+            builder.append(' ')
+            builder.append(v.fShaderName)
+            builder.append(';')
+            builder.append('\n')
+        }
+        for (v in fsUniforms) {
+            builder.append("uniform ")
+            builder.append(v.type.glslName)
+            builder.append(' ')
+            builder.append(v.name)
+            builder.append(';')
+            builder.append('\n')
+        }
+        val base =
+            (if (!fragment.contains("out ") && glslVersion == DefaultGLSLVersion && fragment.contains("gl_FragColor")) {
+                "" +
+                        "out vec4 glFragColor;" +
+                        fragment.replace("gl_FragColor", "glFragColor")
+            } else fragment)
+        builder.append(base.replaceVaryingNames(false, varyings))
+
+        fragmentSource = builder.toString()
+        builder.clear()
+
         val fragmentShader = compile(name, program, GL_FRAGMENT_SHADER, fragmentSource)
 
         GFX.check()

@@ -8,8 +8,8 @@ import kotlin.math.sqrt
 
 object EquationSolver {
 
-    const val TOO_LARGE_RATIO = 1e9 // idk...
-    const val M_PI = Math.PI.toFloat()
+    private const val TOO_LARGE_RATIO = 1e9 // idk...
+    private const val M_PI = Math.PI.toFloat()
 
     fun solveQuadratic(x: FloatArray, a: Float, b: Float, c: Float): Int {
         // a = 0 -> linear equation
@@ -22,15 +22,19 @@ object EquationSolver {
             return 1
         }
         var dscr = b * b - 4 * a * c
-        return if (dscr > 0) {
-            dscr = sqrt(dscr)
-            x[0] = (-b + dscr) / (2 * a)
-            x[1] = (-b - dscr) / (2 * a)
-            2
-        } else if (dscr == 0f) {
-            x[0] = -b / (2 * a)
-            1
-        } else 0
+        return when {
+            dscr > 0f -> {
+                dscr = sqrt(dscr)
+                x[0] = (-b + dscr) / (2 * a)
+                x[1] = (-b - dscr) / (2 * a)
+                2
+            }
+            dscr == 0f -> {
+                x[0] = -b / (2 * a)
+                1
+            }
+            else -> 0
+        }
     }
 
     fun solveCubicNormed(x: FloatArray, a0: Float, b: Float, c: Float): Int {

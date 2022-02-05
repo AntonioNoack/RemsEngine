@@ -207,7 +207,7 @@ open class Window(
 
             didSomething = true
 
-            GFX.ensureEmptyStack()
+            GFX.resetFBStack()
             Frame.reset()
 
             val buffer = buffer

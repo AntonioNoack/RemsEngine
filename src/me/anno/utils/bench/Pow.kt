@@ -22,7 +22,7 @@ import kotlin.math.roundToInt
 fun main() {
 
     fun createShader(code: String) = Shader(
-        "", null, simplestVertexShader,
+        "", simplestVertexShader,
         listOf(Variable(GLSLType.V2F, "uv")), "void main(){$code}"
     )
 

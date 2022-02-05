@@ -313,7 +313,7 @@ class LightPipelineStage(
 
         val visualizeLightCountShader = lazy {
             Shader(
-                "visualize-light-count", null, "" +
+                "visualize-light-count", "" +
                         "$attribute vec3 coords;\n" +
                         "uniform mat4 transform;\n" +
                         "uniform mat4x3 localTransform;\n" +
@@ -333,7 +333,7 @@ class LightPipelineStage(
 
         val visualizeLightCountShaderInstanced = lazy {
             Shader(
-                "visualize-light-count-instanced", null, "" +
+                "visualize-light-count-instanced", "" +
                         "$attribute vec3 coords;\n" +
                         "$attribute vec4 instanceTrans0;\n" +
                         "$attribute vec4 instanceTrans1;" +

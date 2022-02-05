@@ -1,14 +1,18 @@
 package me.anno.fonts.signeddistfields.edges
 
 import me.anno.fonts.signeddistfields.algorithm.EquationSolver.solveCubic
-import me.anno.fonts.signeddistfields.algorithm.EquationSolver.solveQuadratic
+import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absDotNormalized
+import me.anno.fonts.signeddistfields.algorithm.SDFMaths.absDotNormalizedXYY
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossProduct
+import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossProductXYY
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.dotProduct
-import me.anno.fonts.signeddistfields.algorithm.SDFMaths.mix
+import me.anno.fonts.signeddistfields.algorithm.SDFMaths.dotProductXXY
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.nonZeroSign
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.union
 import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
+import me.anno.maths.Maths.sq
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Vectors.minus
 import me.anno.utils.types.Vectors.plus
 import me.anno.utils.types.Vectors.times
@@ -19,29 +23,39 @@ import kotlin.math.abs
 import kotlin.math.ln
 import kotlin.math.sqrt
 
-class QuadraticSegment(var p0: Vector2fc, p10: Vector2fc, var p2: Vector2fc) : EdgeSegment() {
+class QuadraticSegment(val p0: Vector2fc, p10: Vector2fc, val p2: Vector2fc) : EdgeSegment() {
 
-    var p1 = if (p0 == p10 || p10 == p2) (p0 + p2) * 0.5f else p10
+    val p1 = if (p0 == p10 || p10 == p2) (p0 + p2) * 0.5f else p10
 
     override fun toString() = "[$p0 $p1 $p2]"
 
-    override fun clone() = QuadraticSegment(p0, p1, p2)
-    override fun point(param: Float): Vector2f {
-        return mix(mix(p0, p1, param), mix(p1, p2, param), param)
+    override fun point(param: Float, dst: Vector2f): Vector2f {
+        val f0 = sq(1f - param)
+        val f1 = 2f * (1f - param) * param
+        val f2 = param * param
+        return dst.set(p0).mul(f0)
+            .add(p1.x() * f1, p1.y() * f1)
+            .add(p2.x() * f2, p2.y() * f2)
     }
 
-    override fun direction(param: Float): Vector2f {
-        val tangent = mix(p1 - p0, p2 - p1, param)
-        if (tangent.length() == 0f) return p2 - p0
-        return tangent
+    override fun direction(param: Float, dst: Vector2f): Vector2f {
+        val b = 1f - param
+        val b2 = b * b
+        val a2 = param * param
+        val ba = b - param
+        dst.set(p0).mul(-b2)
+            .add(p1.x() * ba, p1.y() * ba)
+            .add(p2.x() * a2, p2.y() * a2)
+        if (dst.length() == 0f) return dst.set(p2).sub(p0)
+        return dst
     }
 
     override fun length(): Float {
         val ab: Vector2f = p1 - p0
         val br: Vector2f = p2 - p1 - ab
-        val abab = ab.dot(ab)
+        val abab = p0.distanceSquared(p1)
         val abbr = ab.dot(br)
-        val brbr = br.dot(br)
+        val brbr = br.lengthSquared()
         val abLen = sqrt(abab)
         val brLen = sqrt(brbr)
         val crs = crossProduct(ab, br)
@@ -50,111 +64,37 @@ class QuadraticSegment(var p0: Vector2fc, p10: Vector2fc, var p2: Vector2fc) : E
                 crs * crs * ln((brLen * h + abbr + brbr) / (brLen * abLen + abbr))) / (brbr * brLen)
     }
 
-    override fun reverse() {
-        val t = p0
-        p0 = p2
-        p2 = t
-    }
+    override fun union(bounds: AABBf, tmp: FloatArray) {
 
-    override fun union(bounds: AABBf) {
         union(bounds, p0)
         union(bounds, p1)
-        val bot = (p1 - p0) - (p2 - p1)
+
+        val bot = JomlPools.vec2f.create()
+            .set(p1).add(p1)
+            .sub(p0).sub(p2)
+
         if (bot.x != 0f) {
             val param = (p1.x() - p0.x()) / bot.x
-            if (param > 0 && param < 1) union(bounds, point(param))
+            if (param > 0 && param < 1) union(bounds, point(param, bot))
         } else {
             val param = (p1.y() - p0.y()) / bot.y
-            if (param > 0 && param < 1) union(bounds, point(param))
+            if (param > 0 && param < 1) union(bounds, point(param, bot))
         }
+
+        JomlPools.vec2f.sub(1)
+
     }
 
-    override fun moveStartPoint(to: Vector2f) {
-        val origSDir = p0 - p1
-        val origP1 = p1
-        p1 += (p2 - p1) * (crossProduct(p0 - p1, to - p0) / crossProduct(p0 - p1, p2 - p1))
-        p0 = to
-        if (dotProduct(origSDir, p0 - p1) < 0) {
-            p1 = origP1
-        }
-    }
+    override fun signedDistance(origin: Vector2fc, param: FloatPtr, dst: SignedDistance): SignedDistance {
 
-    override fun splitInThirds(parts: Array<EdgeSegment?>, a: Int, b: Int, c: Int) {
-        parts[a] = QuadraticSegment(p0, mix(p0, p1, 1f / 3f), point(1f / 3f))
-        parts[b] = QuadraticSegment(
-            point(1f / 3f), mix(
-                mix(p0, p1, 5f / 9f),
-                mix(p1, p2, 4f / 9f),
-                0.5f
-            ), point(2f / 3f)
-        )
-        parts[c] = QuadraticSegment(point(2f / 3f), mix(p1, p2, 2f / 3f), p2)
-    }
+        val qa = JomlPools.vec2f.create()
+        val ab = JomlPools.vec2f.create()
+        val br = JomlPools.vec2f.create()
 
-    override fun scanlineIntersections(x: FloatArray, dy: IntArray, y: Float): Int {
-        var total = 0
-        var nextDY = if (y > p0.y()) 1 else -1
-        x[total] = p0.x()
-        if (p0.y() == y) {
-            if (p0.y() < p1.y() || (p0.y() == p1.y() && p0.y() < p2.y()))
-                dy[total++] = 1
-            else
-                nextDY = 1
-        }
+        qa.set(p0).sub(origin)
+        ab.set(p1).sub(p0)
+        br.set(p2).sub(p1).sub(ab)
 
-        val ab = p1 - p0
-        val br = p2 - p1 - ab
-        val t = FloatArray(2)
-        val solutions = solveQuadratic(t, br.y, 2 * ab.y, p0.y() - y)
-        // Sort solutions
-        if (solutions >= 2 && t[0] > t[1]) {
-            val tmp = t[0]
-            t[0] = t[1]
-            t[1] = tmp
-        }
-        for (i in 0 until solutions) {
-            if (total < 2) {
-                if (t[i] in 0.0..1.0) {
-                    x[total] = p0.x() + 2 * t[i] * ab.x + t[i] * t[i] * br.x
-                    if (nextDY * (ab.y + t[i] * br.y) >= 0) {
-                        dy[total++] = nextDY
-                        nextDY = -nextDY
-                    }
-                }
-            } else break
-        }
-
-        if (p2.y() == y) {
-            if (nextDY > 0 && total > 0) {
-                total--
-                nextDY = -1
-            }
-            if ((p2.y() < p1.y() || (p2.y() == p1.y() && p2.y() < p0.y())) && total < 2) {
-                x[total] = p2.x()
-                if (nextDY < 0) {
-                    dy[total++] = -1
-                    nextDY = 1
-                }
-            }
-        }
-        if (nextDY != (if (y >= p2.y()) 1 else -1)) {
-            if (total > 0) {
-                total--
-            } else {
-                if (abs(p2.y() - y) < abs(p0.y() - y)) {
-                    x[total] = p2.x()
-                }
-                dy[total++] = nextDY
-            }
-        }
-        return total
-    }
-
-    override fun signedDistance(origin: Vector2fc, param: FloatPtr): SignedDistance {
-
-        val qa = p0 - origin
-        val ab = p1 - p0
-        val br = p2 - p1 - ab
         val a = dotProduct(br, br)
         val b = 3 * dotProduct(ab, br)
         val c = 2 * dotProduct(ab, ab) + dotProduct(qa, br)
@@ -162,16 +102,18 @@ class QuadraticSegment(var p0: Vector2fc, p10: Vector2fc, var p2: Vector2fc) : E
         val t = FloatArray(3)
         val solutions = solveCubic(t, a, b, c, d)
 
-        var epDir = direction(0f)
+        val epDir = JomlPools.vec2f.create()
+
+        direction(0f, epDir)
         var minDistance = nonZeroSign(crossProduct(epDir, qa)) * qa.length() // distance from A
         param.value = -dotProduct(qa, epDir) / dotProduct(epDir, epDir)
 
-        epDir = direction(1f)
-        val distance = p2.distance(origin); // distance from B
+        direction(1f, epDir)
+        val distance = p2.distance(origin) // distance from B
         if (distance < abs(minDistance)) {
-            val cross = crossProduct(epDir, p2 - origin)
+            val cross = crossProductXYY(epDir, p2, origin)
             minDistance = if (cross >= 0f) +distance else -distance
-            param.value = dotProduct(origin - p1, epDir) / dotProduct(epDir, epDir)
+            param.value = dotProductXXY(origin, p1, epDir) / dotProduct(epDir, epDir)
         }
 
         for (i in 0 until solutions) {
@@ -179,32 +121,25 @@ class QuadraticSegment(var p0: Vector2fc, p10: Vector2fc, var p2: Vector2fc) : E
                 val qe = p0 + ab * (2 * t[i]) + br * (t[i] * t[i]) - origin
                 val distance2 = qe.length()
                 if (distance2 <= abs(minDistance)) {
-                    val cross = crossProduct(direction(t[i]), qe)
+                    val cross = crossProduct(direction(t[i], Vector2f()), qe)
                     minDistance = if (cross >= 0f) distance2 else -distance2
                     param.value = t[i]
                 }
             }
         }
 
-        return when {
-            param.value in 0.0..1.0 -> SignedDistance(minDistance, 0f)
-            param.value < .5 -> SignedDistance(minDistance, abs(normalizedDot(direction(0), qa)))
-            else -> SignedDistance(minDistance, abs(dotProduct(direction(1).normalize(), (p2 - origin).normalize())))
-        }
+        dst.set(
+            minDistance, when {
+                param.value in 0f..1f -> 0f
+                param.value < .5f -> absDotNormalized(direction(0f, epDir), qa)
+                else -> absDotNormalizedXYY(direction(1f, epDir), p2, origin)
+            }
+        )
+
+        JomlPools.vec2f.sub(4)
+
+        return dst
     }
 
-    fun normalizedDot(a: Vector2f, b: Vector2f): Float {
-        val ax = a.x
-        val ay = a.y
-        val bx = b.x
-        val by = b.y
-        return (ax * bx + ay * by) / sqrt((ax * ax + ay * ay) * (bx * bx + by * by))
-    }
-
-    fun convertToCubic() = CubicSegment(p0, mix(p0, p1, 2f / 3f), mix(p1, p2, 1f / 3f), p2)
-
-    override fun directionChange(param: Float): Vector2f {
-        return (p2 - p1) - (p1 - p0)
-    }
 
 }

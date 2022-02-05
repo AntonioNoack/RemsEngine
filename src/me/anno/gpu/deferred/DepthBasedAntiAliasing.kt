@@ -217,7 +217,7 @@ object DepthBasedAntiAliasing {
 */
     val shaderNoColor = lazy {
         Shader(
-            "Depth-Based FXAA", null,
+            "Depth-Based FXAA",
             simplestVertexShader, uvList,
             "out vec4 fragColor;\n" +
                     // use color instead of depth?

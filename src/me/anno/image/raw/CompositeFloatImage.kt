@@ -3,9 +3,6 @@ package me.anno.image.raw
 import me.anno.image.colormap.ColorMap
 import me.anno.image.colormap.LinearColorMap
 import me.anno.maths.Maths
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import java.nio.FloatBuffer
 
 @Suppress("unused")
 class CompositeFloatImage(
@@ -29,6 +26,26 @@ class CompositeFloatImage(
         val previous = channel1[index]
         channel1[index] = value
         return previous
+    }
+
+    override fun normalize(): IFloatImage {
+        var min = 0f
+        var max = 0f
+        for (channel in channels) {
+            for (v in channel) {
+                if (v < min) min = v
+                if (v > max) max = v
+            }
+        }
+        if (min < 0f || max > 0f) {
+            val div = 1f / Maths.max(-min, max)
+            for (channel in channels) {
+                for (i in channel.indices) {
+                    channel[i] *= div
+                }
+            }
+        }
+        return this
     }
 
 }

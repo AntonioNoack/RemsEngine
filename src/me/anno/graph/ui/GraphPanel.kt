@@ -158,7 +158,7 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        drawBackground()
+        drawBackground(x0, y0, x1, y1)
         drawNodeConnections(x0, y0, x1, y1)
         drawChildren(x0, y0, x1, y1)
         drawSimpleTextCharByChar(x, y, 2, "scale: $scale")

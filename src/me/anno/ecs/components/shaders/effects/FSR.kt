@@ -40,7 +40,7 @@ object FSR {
         val functions = code.value.second
 
         val shader = Shader(
-            "upscale", null, vertex, uvList, "" +
+            "upscale", vertex, uvList, "" +
                     "uniform vec2 dstWH;\n" +
                     "uniform vec4 background;\n" +
                     "uniform sampler2D source;\n" +
@@ -63,7 +63,7 @@ object FSR {
                     "   vec2 coords = uv * dstWH;\n" +
                     "   FsrEasuF(color, coords, con0, con1, con2, con3);\n" +
                     "   glFragColor = vec4(color, alpha > .01 ? 1.0 : 0.0);\n" +
-                    "}", true
+                    "}"
         )
         shader.glslVersion = 420 // for int->float->int ops, which are used for fast sqrt and such
         shader
@@ -75,7 +75,7 @@ object FSR {
         val functions = code.value.second
 
         val shader = Shader(
-            "upscale", null, vertex, uvList, "" +
+            "upscale", vertex, uvList, "" +
                     "out vec4 glFragColor;\n" +
                     "uniform vec2 dstWH;\n" +
                     "uniform float sharpness;\n" +
@@ -95,7 +95,7 @@ object FSR {
                     "   ivec2 coords = ivec2(uv*dstWH);\n" +
                     "   FsrRcasF(color.r,color.g,color.b,color.a,coords,sharpness);\n" +
                     "   glFragColor = color;\n" +
-                    "}", true
+                    "}"
         )
         shader.glslVersion = 420 // for int->float->int ops, which are used for fast sqrt and such
         shader.use()

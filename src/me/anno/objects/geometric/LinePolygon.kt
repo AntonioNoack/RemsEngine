@@ -12,6 +12,7 @@ import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.animation.AnimatedProperty
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.OpenGLShader.Companion.attribute
 import me.anno.gpu.shader.builder.Variable
 import me.anno.objects.attractors.EffectColoring
 import me.anno.objects.attractors.EffectMorphing
@@ -287,8 +288,8 @@ class LinePolygon(parent: Transform? = null) : GFXTransform(parent) {
         val shader = lazy {
             ShaderLib.createShaderPlus(
                 "linePolygon", ShaderLib.v3DBase +
-                        "a3 attr0;\n" +
-                        "a2 attr1;\n" +
+                        "$attribute vec3 attr0;\n" +
+                        "$attribute vec2 attr1;\n" +
                         "uniform vec4 tiling;\n" +
                         "uniform vec3 pos0, pos1, pos2, pos3;\n" +
                         "uniform vec4 col0, col1;\n" +

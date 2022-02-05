@@ -46,7 +46,11 @@ abstract class PanelGroup(style: Style) : Panel(style) {
         val x12 = min(child.x + child.w, x1)
         val y12 = min(child.y + child.h, y1)
         return if (x12 > x02 && y12 > y02) {
-            GFX.clip2(x02, y02, x12, y12) {
+            if (child.canDrawOverBorders) {
+                GFX.clip2(x02, y02, x12, y12) {
+                    child.draw(x02, y02, x12, y12)
+                }
+            } else {
                 child.draw(x02, y02, x12, y12)
             }
             true

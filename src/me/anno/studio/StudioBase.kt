@@ -131,10 +131,9 @@ abstract class StudioBase(
 
     var didNothingCounter = 0
 
-    fun setupNames() {
+    open fun setupNames() {
         GFX.title = title
         GFXBase0.projectName = configName
-        DefaultConfig["init"]
     }
 
     open fun run() {

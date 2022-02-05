@@ -24,7 +24,10 @@ abstract class OpenGLShader(
         var logShaders = false
 
         private val LOGGER = LogManager.getLogger(OpenGLShader::class)
-        const val attribute = "in"
+
+        /** how attributes are called; might be "attribute" in WebGL */
+        var attribute = "in"
+
         private val matrixBuffer = BufferUtils.createFloatBuffer(16)
         private val identity3: Matrix3fc = Matrix3f()
         private val identity4: Matrix4fc = Matrix4f()
@@ -102,7 +105,7 @@ abstract class OpenGLShader(
 
     }
 
-    val safeShaderBinding = Companion.safeShaderBinding
+    var safeShaderBinding = Companion.safeShaderBinding
 
     var glslVersion = DefaultGLSLVersion
 
@@ -205,46 +208,6 @@ abstract class OpenGLShader(
             if (texName >= 0) glUniform1i(texName, index)
         }
     }
-
-    // this function probably could be made more efficient...
-    // by using proper word detection, and not using this in general...
-    // todo declare attributes differently, best as a list
-    // todo then remove this function
-    fun String.replaceShortCuts(disableShorts: Boolean) = if (disableShorts) this else this
-        .replace("\n", "\n ")
-        .replace(";", " ; ")
-        /*.replace(" u1i ", " uniform int ")
-        .replace(" u2i ", " uniform ivec2 ")
-        .replace(" u3i ", " uniform ivec3 ")
-        .replace(" u4i ", " uniform ivec4 ")
-        .replace(" u1 ", " uniform float ")
-        .replace(" u2 ", " uniform vec2 ")
-        .replace(" u3 ", " uniform vec3 ")
-        .replace(" u4 ", " uniform vec4 ")
-        .replace(" u1f ", " uniform float ")
-        .replace(" u2f ", " uniform vec2 ")
-        .replace(" u3f ", " uniform vec3 ")
-        .replace(" u4f ", " uniform vec4 ")*/
-        .replace(" u2x2 ", " uniform mat2 ")
-        .replace(" u3x3 ", " uniform mat3 ")
-        .replace(" u4x4 ", " uniform mat4 ")
-        .replace(" u4x3 ", " uniform mat4x3 ")
-        .replace(" u3x4 ", " uniform mat3x4 ")
-        .replace(" a1 ", " $attribute float ")
-        .replace(" a2 ", " $attribute vec2 ")
-        .replace(" a3 ", " $attribute vec3 ")
-        .replace(" a4 ", " $attribute vec4 ")
-        .replace(" ai1 ", " $attribute int ")
-        .replace(" ai2 ", " $attribute ivec2 ")
-        .replace(" ai3 ", " $attribute ivec3 ")
-        .replace(" ai4 ", " $attribute ivec4 ")
-        /*.replace(" v1 ", " float ")
-        .replace(" v2 ", " vec2 ")
-        .replace(" v3 ", " vec3 ")
-        .replace(" v4 ", " vec4 ")
-        .replace(" m2 ", " mat2 ")
-        .replace(" m3 ", " mat3 ")
-        .replace(" m4 ", " mat4 ")*/
 
     fun ignoreUniformWarnings(names: Collection<String>) {
         ignoredNames += names

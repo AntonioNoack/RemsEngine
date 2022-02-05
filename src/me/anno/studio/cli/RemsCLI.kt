@@ -172,7 +172,7 @@ object RemsCLI {
         // update loop (cache, GFX tasks)
         while (!isDone) {
             Texture2D.destroyTextures()
-            GFX.ensureEmptyStack()
+            GFX.resetFBStack()
             GFX.updateTime()
             Cache.update()
             bindTexture(GL30.GL_TEXTURE_2D, 0)

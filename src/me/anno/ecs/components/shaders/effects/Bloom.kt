@@ -137,7 +137,7 @@ object Bloom {
             else blur.append("),0).rgb)\n")
         }
         return Shader(
-            "bloom0", null, simplestVertexShader, uvList, "" +
+            "bloom0", simplestVertexShader, uvList, "" +
                     "out vec4 fragColor;\n" +
                     "uniform float offset;\n" +
                     "uniform sampler2D tex;\n" +
@@ -169,7 +169,7 @@ object Bloom {
 
     private val compositionShader = lazy {
         Shader(
-            "bloom", null, simplestVertexShader, uvList, "" +
+            "bloom", simplestVertexShader, uvList, "" +
                     "out vec4 fragColor;\n" +
                     "uniform float strength;\n" +
                     "uniform bool applyToneMapping;\n" +

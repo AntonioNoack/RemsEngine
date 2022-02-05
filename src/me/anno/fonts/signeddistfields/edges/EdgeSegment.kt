@@ -1,10 +1,10 @@
 package me.anno.fonts.signeddistfields.edges
 
-import me.anno.fonts.signeddistfields.structs.FloatPtr
-import me.anno.fonts.signeddistfields.structs.SignedDistance
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.crossProduct
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.dotProduct
-import me.anno.utils.types.Vectors.minus
+import me.anno.fonts.signeddistfields.structs.FloatPtr
+import me.anno.fonts.signeddistfields.structs.SignedDistance
+import me.anno.utils.pooling.JomlPools
 import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector2fc
@@ -12,55 +12,48 @@ import kotlin.math.abs
 
 abstract class EdgeSegment {
 
-    abstract fun clone(): EdgeSegment
-    abstract fun point(param: Float): Vector2f
+    abstract fun point(param: Float, dst: Vector2f): Vector2f
 
-    fun point(param: Int) = point(param.toFloat())
-
-    abstract fun direction(param: Float): Vector2f
-
-    fun direction(param: Int) = direction(param.toFloat())
+    abstract fun direction(param: Float, dst: Vector2f): Vector2f
 
     abstract fun length(): Float
-    abstract fun reverse()
-    abstract fun union(bounds: AABBf)
-    abstract fun moveStartPoint(to: Vector2f)
-    abstract fun splitInThirds(parts: Array<EdgeSegment?>, a: Int, b: Int, c: Int)
-    abstract fun scanlineIntersections(x: FloatArray, dy: IntArray, y: Float): Int
-    abstract fun signedDistance(origin: Vector2fc, param: FloatPtr): SignedDistance
-    abstract fun directionChange(param: Float): Vector2f
 
-    fun trueSignedDistance(origin: Vector2f): Float {
-        val param = FloatPtr()
-        val distance = signedDistance(origin, param)
-        distanceToPseudoDistance(distance, origin, param.value)
+    abstract fun union(bounds: AABBf, tmp: FloatArray)
+
+    abstract fun signedDistance(origin: Vector2fc, param: FloatPtr, dst: SignedDistance): SignedDistance
+
+    fun trueSignedDistance(origin: Vector2f, tmpParam: FloatPtr, tmp: SignedDistance): Float {
+        val distance = signedDistance(origin, tmpParam, tmp)
+        distanceToPseudoDistance(distance, origin, tmpParam.value)
         return distance.distance
     }
 
-    fun distanceToPseudoDistance(distance: SignedDistance, origin: Vector2fc, param: Float) {
+    private fun distanceToPseudoDistance(distance: SignedDistance, origin: Vector2fc, param: Float) {
+        val v0 = JomlPools.vec2f.create()
+        val v1 = JomlPools.vec2f.create()
+        val v2 = JomlPools.vec2f.create()
         if (param < 0) {
-            val dir = direction(0).normalize()
-            val aq = origin - point(0)
+            val dir = direction(0f, v0).normalize()
+            val aq = v2.set(origin).sub(point(0f, v1))
             val ts = aq.dot(dir)
             if (ts < 0) {
                 val pseudoDistance = crossProduct(aq, dir)
                 if (abs(pseudoDistance) <= abs(distance.distance)) {
-                    distance.distance = pseudoDistance
-                    distance.dot = 0f
+                    distance.set(pseudoDistance, 0f)
                 }
             }
         } else if (param > 1) {
-            val dir = direction(1).normalize()
-            val bq = origin - point(1)
+            val dir = direction(1f, v0).normalize()
+            val bq = v2.set(origin).sub(point(1f, v1))
             val ts = dotProduct(bq, dir)
             if (ts > 0) {
                 val pseudoDistance = crossProduct(bq, dir)
                 if (abs(pseudoDistance) <= abs(distance.distance)) {
-                    distance.distance = pseudoDistance
-                    distance.dot = 0f
+                    distance.set(pseudoDistance, 0f)
                 }
             }
         }
+        JomlPools.vec2f.sub(3)
     }
 
 }

@@ -4,8 +4,8 @@ import me.anno.fonts.signeddistfields.TextSDF
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.ui.base.DefaultRenderingHints
 import me.anno.maths.Maths.distance
+import me.anno.ui.base.DefaultRenderingHints
 import me.anno.utils.OS
 import me.anno.utils.files.Files.use
 import me.anno.utils.types.Vectors.avg
@@ -28,7 +28,11 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) : TextRepBase() {
+class TextMesh(
+    val font: Font,
+    val text: String,
+    debugPieces: Boolean = false
+) : TextRepBase() {
 
     val name get() = "${font.name},${font.style}-$text"
 
@@ -180,17 +184,16 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
 
         fragments.sortByDescending { it.size }
         gfx?.apply {
-            fragments.forEach {
-                it.apply {
-                    color = Color.RED
-                    drawTriangles(gfx, 0, triangles)
-                    color = Color.WHITE
-                    drawOutline(gfx, ring)
-                }
+            for (fragment in fragments) {
+                color = Color.RED
+                drawTriangles(gfx, 0, fragment.triangles)
+                color = Color.WHITE
+                drawOutline(gfx, fragment.ring)
             }
         }
 
-        fragments.forEachIndexed { index1, fragment ->
+        for (index1 in fragments.indices) {
+            val fragment = fragments[index1]
             if (!fragment.isInside) {
                 val tri = fragment.triangles
                 // find all fragments, which need to be removed from this one
@@ -228,7 +231,7 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         }
 
         var wasChanged = false
-        outerFragments.forEach { outer ->
+        for (outer in outerFragments) {
             outer.apply {
                 if (needingRemoval.isNotEmpty()) {
                     mergeRings2(ring, needingRemoval.map { it.ring })
@@ -251,15 +254,15 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         if (wasChanged) {
             gfx?.apply {
                 gfx.dispose()
-                use(OS.desktop.getChild("text2.png").outputStream()){
+                use(OS.desktop.getChild("text2.png").outputStream()) {
                     ImageIO.write(img, "png", it)
                 }
             }
         }
 
         val triangles = ArrayList<Vector2f>(outerFragments.sumOf { it.triangles.size })
-        outerFragments.forEach {
-            triangles += it.triangles
+        for (outer in outerFragments) {
+            triangles += outer.triangles
         }
 
         buffer = StaticBuffer(attributes, triangles.size)
@@ -276,10 +279,9 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         // center the text, ignore the characters themselves
 
         val baseScale = DEFAULT_LINE_HEIGHT / (layout.ascent + layout.descent)
-
-        for(it in triangles) {
-            buffer.put(it.x * baseScale)
-            buffer.put(it.y * baseScale)
+        for (point in triangles) {
+            buffer.put(point.x * baseScale)
+            buffer.put(point.y * baseScale)
         }
 
         minX *= baseScale * 0.5f
@@ -366,23 +368,25 @@ class TextMesh(val font: Font, val text: String, debugPieces: Boolean = false) :
         )
 
         const val DEFAULT_LINE_HEIGHT = 0.2f
-        const val DEFAULT_FONT_HEIGHT = 20f
+        const val DEFAULT_FONT_HEIGHT = 100f
 
-        fun mergeRings2(outer: MutableList<Vector2f>, innerList: List<List<Vector2f>>) {
-            innerList.sortedBy { it.minOfOrNull { p -> p.x }!! }.forEach { inner ->
+        private fun mergeRings2(outer: MutableList<Vector2f>, innerList: List<List<Vector2f>>) {
+            for (inner in innerList.sortedBy { it.minOfOrNull { p -> p.x }!! }) {
                 mergeRings(outer, inner)
             }
         }
 
-        fun mergeRings(outer: MutableList<Vector2f>, inner: List<Vector2f>) {
+        private fun mergeRings(outer: MutableList<Vector2f>, inner: List<Vector2f>) {
 
             // find the closest pair
             var bestDistance = Float.POSITIVE_INFINITY
             var bestOuterIndex = 0
             var bestInnerIndex = 0
 
-            outer.forEachIndexed { outerIndex, o ->
-                inner.forEachIndexed { innerIndex, i ->
+            for (outerIndex in outer.indices) {
+                val o = outer[outerIndex]
+                for (innerIndex in inner.indices) {
+                    val i = inner[innerIndex]
                     val distance = o.distanceSquared(i)
                     if (distance < bestDistance) {
                         bestOuterIndex = outerIndex

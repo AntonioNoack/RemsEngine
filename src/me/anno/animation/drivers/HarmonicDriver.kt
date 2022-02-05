@@ -21,8 +21,10 @@ class HarmonicDriver : AnimationDriver() {
 
     // make them animated? no xD
     var harmonicsFormula = "1/n"
-    val harmonics = FloatArray(maxHarmonics) {
-        1f / (it + 1f)
+    val harmonics by lazy {
+        FloatArray(maxHarmonics) {
+            1f / (it + 1f)
+        }
     }
 
     override fun createInspector(

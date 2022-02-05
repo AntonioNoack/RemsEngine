@@ -80,7 +80,7 @@ object ScreenSpaceAmbientOcclusion {
     // 2 passes: occlusion factor, then blurring
     private val occlusionShader = lazy {
         Shader(
-            "ssao-occlusion", null,
+            "ssao-occlusion",
             ShaderLib.simplestVertexShader, uvList, "" +
                     "layout(location=0) out float glFragColor;\n" +
                     "uniform float radius, strength;\n" +
@@ -127,7 +127,7 @@ object ScreenSpaceAmbientOcclusion {
 
     private val blurShader = lazy {
         Shader(
-            "ssao-blur", null,
+            "ssao-blur",
             ShaderLib.simplestVertexShader, uvList, "" +
                     "layout(location=0) out float glFragColor;\n" +
                     "uniform sampler2D source;\n" +

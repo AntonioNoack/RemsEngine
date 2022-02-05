@@ -73,16 +73,16 @@ import kotlin.math.min
 // then say the number + change axis
 // then press enter to apply the change
 
-open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")), ISceneView {
+open class StudioSceneView(style: Style) : PanelList(null, style.getChild("sceneView")), ISceneView {
 
-    constructor(sceneView: SceneView) : this(DefaultConfig.style) {
-        camera = sceneView.camera
-        isLocked2D = sceneView.isLocked2D
-        mode = sceneView.mode
+    constructor(base: StudioSceneView) : this(DefaultConfig.style) {
+        camera = base.camera
+        isLocked2D = base.isLocked2D
+        mode = base.mode
     }
 
     companion object {
-        private val LOGGER = LogManager.getLogger(SceneView::class)
+        private val LOGGER = LogManager.getLogger(StudioSceneView::class)
     }
 
     init {
@@ -130,7 +130,7 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
             controls += SimplePanel(
                 object : TextButton(mode.displayName, true, style) {
                     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-                        draw(isHovered, mouseDown || mode == this@SceneView.mode)
+                        draw(x0, y0, x1, y1, isHovered, mouseDown || mode == this@StudioSceneView.mode)
                     }
                 }.apply {
                     setTooltip(mode.description)
@@ -567,8 +567,14 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
     }
 
     fun turn(dx: Float, dy: Float) {
-        if (!mayControlCamera) return
-        if (isLocked2D) return
+        if (!mayControlCamera) {
+            if (length(dx, dy) > 0f) LOGGER.warn("Cannot control camera")
+            return
+        }
+        if (isLocked2D) {
+            if (length(dx, dy) > 0f) LOGGER.warn("Rotation is locked")
+            return
+        }
         // move the camera
         val size = 20f * shiftSlowdown * (if (selectedTransform is Camera) -1f else 1f) / max(GFX.width, GFX.height)
         val dx0 = dx * size
@@ -670,8 +676,8 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
 
     fun goFullscreen() {
         // don't open, if it's already fullscreen
-        if (windowStack.peek()?.panel !is SceneView) {
-            val view = SceneView(this)
+        if (windowStack.peek()?.panel !is StudioSceneView) {
+            val view = StudioSceneView(this)
             windowStack.push(view)
         }
     }
@@ -774,7 +780,9 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         val mode = FileContentImporter.SoftLinkMode.ASK
-        files.forEach { file -> addChildFromFile(RemsStudio.root, file, mode, true) { } }
+        for (file in files) {
+            addChildFromFile(RemsStudio.root, file, mode, true) { }
+        }
         invalidateDrawing()
     }
 
@@ -799,6 +807,6 @@ open class SceneView(style: Style) : PanelList(null, style.getChild("sceneView")
         }
     }
 
-    override val className: String = "SceneView"
+    override val className: String = "StudioSceneView"
 
 }

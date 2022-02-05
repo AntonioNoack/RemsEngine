@@ -5,6 +5,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.OpenGLShader.Companion.attribute
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -189,7 +190,7 @@ class DeferredSettingsV2(
         textures: List<String>?
     ): Shader {
         val vertex = "" +
-                "a2 attr0;\n" +
+                "$attribute vec2 attr0;\n" +
                 "uniform vec2 pos, size;\n" +
                 "void main(){\n" +
                 "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +

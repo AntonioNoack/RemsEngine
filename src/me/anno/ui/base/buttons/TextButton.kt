@@ -77,12 +77,12 @@ open class TextButton(
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        draw(isHovered, mouseDown)
+        draw(x0, y0, x1, y1, isHovered, mouseDown)
     }
 
-    fun draw(isHovered: Boolean, mouseDown: Boolean) {
+    fun draw(x0: Int, y0: Int, x1: Int, y1: Int, isHovered: Boolean, mouseDown: Boolean) {
 
-        drawBackground()
+        drawBackground(x0, y0, x1, y1)
 
         val widthLimit = if (breaksIntoMultiline) this.w else -1
         val size = getTextSize(font, text, widthLimit, heightLimit)

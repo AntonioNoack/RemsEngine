@@ -47,7 +47,7 @@ import me.anno.ui.editor.config.ConfigPanel
 import me.anno.ui.editor.cutting.CuttingView
 import me.anno.ui.editor.graphs.GraphEditor
 import me.anno.ui.editor.sceneTabs.SceneTabs
-import me.anno.ui.editor.sceneView.SceneView
+import me.anno.ui.editor.sceneView.StudioSceneView
 import me.anno.ui.style.Style
 import me.anno.utils.files.OpenInBrowser.openInBrowser
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
@@ -214,7 +214,7 @@ object RemsStudioUILayouts {
         treeFiles += CustomContainer(StudioTreeView(style), library, style)
         treeFiles += CustomContainer(StudioFileExplorer(project?.scenes, style), library, style)
         animationWindow.add(CustomContainer(treeFiles, library, style), 0.5f)
-        animationWindow.add(CustomContainer(SceneView(style), library, style), 2f)
+        animationWindow.add(CustomContainer(StudioSceneView(style), library, style), 2f)
         animationWindow.add(
             CustomContainer(
                 PropertyInspector({ Selection.selectedInspectable }, style, Unit),

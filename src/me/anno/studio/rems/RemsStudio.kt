@@ -115,6 +115,7 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
     // private val LOGGER = LogManager.getLogger(RemsStudio::class)
 
     override fun loadConfig() {
+        RemsRegistry.init()
         RemsConfig.init()
     }
 
@@ -265,11 +266,6 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
         }
         run()
         history.put(title, code)
-    }
-
-    override fun run() {
-        RemsRegistry.init()
-        super.run()
     }
 
     private fun createBackground(style: Style): Panel {

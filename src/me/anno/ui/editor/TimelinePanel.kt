@@ -53,7 +53,7 @@ open class TimelinePanel(style: Style) : Panel(style) {
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         drawnStrings.clear()
-        drawBackground()
+        drawBackground(x0, y0, x1, y1)
         drawTimeAxis(x0, y0, x1, y1, true)
     }
 

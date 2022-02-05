@@ -56,7 +56,7 @@ class ImageButton(
             isHovered -> black or 0xaaaaaa
             else -> -1
         }
-        drawBackground()
+        drawBackground(x0, y0, x1, y1)
         val icon = icon ?: return
         renderDefault {
             icon.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)

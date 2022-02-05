@@ -18,7 +18,7 @@ import me.anno.ui.editor.files.FileExplorer.Companion.invalidateFileExplorers
 import me.anno.ui.editor.files.FileExplorerOption
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.ui.editor.graphs.GraphEditor
-import me.anno.ui.editor.sceneView.SceneView
+import me.anno.ui.editor.sceneView.StudioSceneView
 
 class StudioUITypeLibrary : UITypeLibrary(typeList) {
 
@@ -45,7 +45,7 @@ class StudioUITypeLibrary : UITypeLibrary(typeList) {
         }
 
         val typeList = listOf<Pair<String, () -> Panel>>(
-            Dict["Scene View", "ui.customize.sceneView"] to { SceneView(DefaultConfig.style) },
+            Dict["Scene View", "ui.customize.sceneView"] to { StudioSceneView(DefaultConfig.style) },
             Dict["Tree View", "ui.customize.treeView"] to { StudioTreeView(DefaultConfig.style) },
             Dict["Properties", "ui.customize.inspector"] to
                     { PropertyInspector({ Selection.selectedInspectable }, DefaultConfig.style, Unit) },

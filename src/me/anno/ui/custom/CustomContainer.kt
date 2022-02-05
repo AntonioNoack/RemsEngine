@@ -11,7 +11,7 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.ui.editor.sceneView.SceneView
+import me.anno.ui.editor.sceneView.StudioSceneView
 import me.anno.ui.style.Style
 
 class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) :
@@ -52,7 +52,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
 
     private fun addBefore(index: Int, parent: CustomList) {
         val children = parent.children
-        val view = CustomContainer(SceneView(style), library, style)
+        val view = CustomContainer(StudioSceneView(style), library, style)
         val bar = CustomizingBar(0, 3, 0, style)
         bar.parent = parent
         view.parent = parent
@@ -64,7 +64,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
 
     private fun addAfter(index: Int, parent: CustomList) {
         val children = parent.children
-        val view = CustomContainer(SceneView(style), library, style)
+        val view = CustomContainer(StudioSceneView(style), library, style)
         val bar = CustomizingBar(0, 3, 0, style)
         bar.parent = parent
         view.parent = parent
@@ -82,9 +82,9 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
         replaced.weight = this.weight
         if (firstThis) {
             replaced.add(this)
-            replaced.add(CustomContainer(SceneView(style), library, style))
+            replaced.add(CustomContainer(StudioSceneView(style), library, style))
         } else {
-            replaced.add(CustomContainer(SceneView(style), library, style))
+            replaced.add(CustomContainer(StudioSceneView(style), library, style))
             replaced.add(this)
         }
         parent.update()
@@ -137,7 +137,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         when (action) {
             "ChangeType" -> changeType()
-            "ChangeType(SceneView)" -> changeTo(SceneView(style))
+            "ChangeType(SceneView)" -> changeTo(StudioSceneView(style))
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
         return true

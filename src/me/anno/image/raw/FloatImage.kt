@@ -61,4 +61,20 @@ class FloatImage(
         return FloatBufferImage(width, height, numChannels, data, map)
     }
 
+    override fun normalize(): IFloatImage {
+        var min = 0f
+        var max = 0f
+        for (v in data) {
+            if (v < min) min = v
+            if (v > max) max = v
+        }
+        if (min < 0f || max > 0f) {
+            val div = 1f / Maths.max(-min, max)
+            for (i in data.indices) {
+                data[i] *= div
+            }
+        }
+        return this
+    }
+
 }

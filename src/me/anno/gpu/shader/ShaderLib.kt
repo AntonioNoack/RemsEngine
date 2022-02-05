@@ -288,14 +288,14 @@ object ShaderLib {
     //"   gl_Position.z *= gl_Position.w;"
 
     val v3DBase = "" +
-            "u4x4 transform;\n"
+            "uniform mat4 transform;\n"
 
     val flatNormal = "" +
             "   normal = vec3(0.0, 0.0, 1.0);\n"
 
     val v3D = v3DBase +
-            "a3 attr0;\n" +
-            "a2 attr1;\n" +
+            "$attribute vec3 attr0;\n" +
+            "$attribute vec2 attr1;\n" +
             "uniform vec4 tiling;\n" +
             "void main(){\n" +
             "   finalPosition = attr0;\n" +
@@ -337,7 +337,7 @@ object ShaderLib {
         flatShader = BaseShader(
             "flatShader",
             "" +
-                    "a2 attr0;\n" +
+                    "$attribute vec2 attr0;\n" +
                     "uniform vec2 pos, size;\n" +
                     "void main(){\n" +
                     "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
@@ -351,7 +351,7 @@ object ShaderLib {
         flatShaderStriped = BaseShader(
             "flatShader",
             "" +
-                    "a2 attr0;\n" +
+                    "$attribute vec2 attr0;\n" +
                     "uniform vec2 pos, size;\n" +
                     "void main(){\n" +
                     "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
@@ -368,7 +368,7 @@ object ShaderLib {
         flatShaderGradient = createShader(
             "flatShaderGradient",
             "" +
-                    "a2 attr0;\n" +
+                    "$attribute vec2 attr0;\n" +
                     "uniform vec2 pos, size;\n" +
                     "uniform vec4 uvs;\n" +
                     yuv2rgb +
@@ -423,7 +423,7 @@ object ShaderLib {
         flatShaderCubemap = BaseShader(
             "flatShaderCubemap",
             "" +
-                    "a2 attr0;\n" +
+                    "$attribute vec2 attr0;\n" +
                     "uniform vec2 pos, size;\n" +
                     "void main(){\n" +
                     "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
@@ -463,7 +463,7 @@ object ShaderLib {
         subpixelCorrectTextShader = BaseShader(
             "subpixelCorrectTextShader",
             "" +
-                    "a2 attr0;\n" +
+                    "$attribute vec2 attr0;\n" +
                     "uniform vec2 pos, size;\n" +
                     "uniform vec2 windowSize;\n" +
                     "void main(){\n" +
@@ -495,8 +495,8 @@ object ShaderLib {
         shader3D = createShaderPlus("3d", v3D, y3D, f3D, listOf("tex"))
         shader3DforText = createShaderPlus(
             "3d-text", v3DBase +
-                    "a3 attr0;\n" +
-                    "a2 attr1;\n" +
+                    "$attribute vec3 attr0;\n" +
+                    "$attribute vec2 attr1;\n" +
                     "uniform vec3 offset;\n" +
                     getUVForceFieldLib +
                     "void main(){\n" +
@@ -521,8 +521,8 @@ object ShaderLib {
 
         shaderSDFText = createShaderPlus(
             "3d-text-withOutline", v3DBase +
-                    "a3 attr0;\n" +
-                    "a2 attr1;\n" +
+                    "$attribute vec3 attr0;\n" +
+                    "$attribute vec2 attr1;\n" +
                     "uniform vec2 offset, scale;\n" +
                     getUVForceFieldLib +
                     "void main(){\n" +
@@ -556,10 +556,11 @@ object ShaderLib {
                     "       color = mix(color, colorHere, mixingFactor);\n" +
                     "   }\n" +
                     "   if(depth != 0.0) gl_FragDepth = gl_FragCoord.z * (1.0 + distance * depth);\n" +
-                    "   if(color.a <= 0.001) discard;\n" +
+                    // todo re-enable alpha
+                    // "   if(color.a <= 0.001) discard;\n" +
                     "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                     "   vec3 finalColor = color.rgb;\n" +
-                    "   float finalAlpha = color.a;\n" +
+                    "   float finalAlpha = 1.0;//color.a;\n" +
                     "}", listOf("tex")
         )
         shaderSDFText.ignoreUniformWarnings(
@@ -574,8 +575,8 @@ object ShaderLib {
         )
 
         val v3DPolygon = v3DBase +
-                "a3 attr0;\n" +
-                "in vec2 attr1;\n" +
+                "$attribute vec3 attr0;\n" +
+                "$attribute vec2 attr1;\n" +
                 "uniform float inset;\n" +
                 "void main(){\n" +
                 "   vec2 betterUV = attr0.xy;\n" +
@@ -590,7 +591,7 @@ object ShaderLib {
         shader3DPolygon.ignoreUniformWarnings(listOf("tiling", "forceFieldUVCount"))
 
         val v3DMasked = v3DBase +
-                "a2 attr0;\n" +
+                "$attribute vec2 attr0;\n" +
                 "void main(){\n" +
                 "   finalPosition = vec3(attr0*2.0-1.0, 0.0);\n" +
                 "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
@@ -709,13 +710,13 @@ object ShaderLib {
         )
 
         val vSVG = v3DBase +
-                "a3 aLocalPosition;\n" +
-                "a2 aLocalPos2;\n" +
-                "a4 aFormula0;\n" +
-                "a1 aFormula1;\n" +
-                "a4 aColor0, aColor1, aColor2, aColor3;\n" +
-                "a4 aStops;\n" +
-                "a1 aPadding;\n" +
+                "$attribute vec3 aLocalPosition;\n" +
+                "$attribute vec2 aLocalPos2;\n" +
+                "$attribute vec4 aFormula0;\n" +
+                "$attribute float aFormula1;\n" +
+                "$attribute vec4 aColor0, aColor1, aColor2, aColor3;\n" +
+                "$attribute vec4 aStops;\n" +
+                "$attribute float aPadding;\n" +
                 "void main(){\n" +
                 "   finalPosition = aLocalPosition;\n" +
                 "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
@@ -798,7 +799,7 @@ object ShaderLib {
         shader3DSVG = createShaderPlus("3d-svg", vSVG, ySVG, fSVG, listOf("tex"))
 
         val v3DCircle = v3DBase +
-                "a2 attr0;\n" + // angle, inner/outer
+                "$attribute vec2 attr0;\n" + // angle, inner/outer
                 "uniform vec3 circleParams;\n" + // 1 - inner r, start, end
                 "void main(){\n" +
                 "   float angle = mix(circleParams.y, circleParams.z, attr0.x);\n" +
@@ -831,9 +832,9 @@ object ShaderLib {
         shaderObjMtl = createShaderPlus(
             "obj/mtl",
             v3DBase +
-                    "a3 coords;\n" +
-                    "a2 uvs;\n" +
-                    "a3 normals;\n" +
+                    "$attribute vec3 coords;\n" +
+                    "$attribute vec2 uvs;\n" +
+                    "$attribute vec3 normals;\n" +
                     "void main(){\n" +
                     "   finalPosition = coords;\n" +
                     "   gl_Position = transform * vec4(coords, 1.0);\n" +
@@ -855,13 +856,13 @@ object ShaderLib {
 
         val maxBones = AnimGameItem.maxBones
         val assimpVertex = v3DBase +
-                "a3 coords;\n" +
-                "a2 uvs;\n" +
-                "a3 normals;\n" +
-                "a3 tangents;\n" +
-                "a4 colors;\n" +
-                "a4 weights;\n" +
-                "ai4 indices;\n" +
+                "$attribute vec3 coords;\n" +
+                "$attribute vec2 uvs;\n" +
+                "$attribute vec3 normals;\n" +
+                "$attribute vec3 tangents;\n" +
+                "$attribute vec4 colors;\n" +
+                "$attribute vec4 weights;\n" +
+                "$attribute ivec4 indices;\n" +
                 "uniform bool hasAnimation;\n" +
                 "uniform mat4x3 localTransform;\n" +
                 "uniform mat4x3 jointTransforms[$maxBones];\n" +
@@ -990,7 +991,7 @@ object ShaderLib {
 
         lineShader3D = BaseShader(
             "3d-lines",
-            "in vec3 attr0;\n" +
+            "$attribute vec3 attr0;\n" +
                     "uniform mat4 transform;\n" +
                     "void main(){" +
                     "   gl_Position = transform * vec4(attr0, 1.0);\n" +

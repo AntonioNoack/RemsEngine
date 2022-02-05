@@ -9,7 +9,6 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.utils.structures.maps.KeyTripleMap
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.isBlank2
-import java.lang.RuntimeException
 
 /**
  * converts a shader with color, normal, tint and such into
@@ -35,9 +34,9 @@ open class BaseShader(
     private val depthShader = lazy { Array(2) { createDepthShader(it > 0) } }
 
     open fun createDepthShader(instanced: Boolean): Shader {
-        if(vertexSource.isBlank2()) throw RuntimeException()
+        if (vertexSource.isBlank2()) throw RuntimeException()
         val vertex = if (instanced) "#define INSTANCED\n$vertexSource" else vertexSource
-        return Shader(name, null, vertex, emptyList(), "void main(){}")
+        return Shader(name, vertex, emptyList(), "void main(){}")
     }
 
     open fun createFlatShader(postProcessing: ShaderStage?, instanced: Boolean, geoShader: GeoShader?): Shader {
@@ -102,7 +101,7 @@ open class BaseShader(
         get() {
             val renderer = OpenGL.currentRenderer
             val instanced = OpenGL.instanced.currentValue
-            val shader= if (renderer == Renderer.depthOnlyRenderer) {
+            val shader = if (renderer == Renderer.depthOnlyRenderer) {
                 depthShader.value[instanced.toInt()]
             } else when (val deferred = renderer.deferredSettings) {
                 null -> {
@@ -145,7 +144,7 @@ open class BaseShader(
         return shader
     }
 
-    fun finish(shader: Shader){
+    fun finish(shader: Shader) {
         shader.glslVersion = glslVersion
         shader.use()
         shader.setTextureIndices(textures)

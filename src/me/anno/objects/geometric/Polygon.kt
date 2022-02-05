@@ -1,28 +1,28 @@
 package me.anno.objects.geometric
 
 import me.anno.animation.AnimatedProperty
-import me.anno.image.ImageGPUCache.getImage
 import me.anno.cache.instances.MeshCache
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.toRadians
-import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.drawing.GFXx3D.draw3DPolygon
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
+import me.anno.gpu.texture.TextureLib.whiteTexture
+import me.anno.image.ImageGPUCache.getImage
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.translation.Dict
+import me.anno.maths.Maths.clamp
 import me.anno.objects.GFXTransform
 import me.anno.objects.Transform
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import me.anno.maths.Maths.clamp
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.video.MissingFrameException
 import org.joml.*
@@ -177,7 +177,7 @@ open class Polygon(parent: Transform? = null) : GFXTransform(parent) {
         val sqrt2 = sqrt(2f)
         val meshTimeout = 1000L
         private const val minEdges = 3
-        private val maxEdges = DefaultConfig["objects.polygon.maxEdges", 1000]
+        private val maxEdges by lazy { DefaultConfig["objects.polygon.maxEdges", 1000] }
 
         fun getBuffer(n: Int, hasDepth: Boolean): StaticBuffer {
             if (n < minEdges) return getBuffer(minEdges, hasDepth)

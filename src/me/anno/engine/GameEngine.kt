@@ -20,6 +20,12 @@ object GameEngine {
     var scaledTime = 0.0
     var scaledDeltaTime = 1.0
 
+    // todo make everything more modular:
+    //  - so it can be excluded from an export, e.g. assimp is probably not needed in the final build, nor pdf stuff
+    //  - they can be plugins or mods
+    // todo export screen:
+    //  - would give you a checkbox-list, of what to include in your export
+
     // todo sky cubemap
     // todo sky shaders
 

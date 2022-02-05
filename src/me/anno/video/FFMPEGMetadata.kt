@@ -9,10 +9,13 @@ import me.anno.io.files.Signature
 import me.anno.io.json.JsonArray
 import me.anno.io.json.JsonObject
 import me.anno.io.json.JsonReader
+import me.anno.utils.OS
 import me.anno.utils.Warning.unused
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.types.Strings.parseTime
 import org.apache.logging.log4j.LogManager
+import java.net.ServerSocket
+import java.net.Socket
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 
@@ -53,7 +56,7 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
             videoWidth = w
             videoHeight = h
 
-        } else {
+        } else if (!OS.isAndroid) {// Android doesn't have FFMPEG
             loadFFMPEG()
         }
 
@@ -130,14 +133,15 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
             audioStartTime = audio.get("start_time")?.asText()?.toDouble() ?: 0.0
             audioDuration = audio.get("duration")?.asText()?.toDouble() ?: duration
             audioSampleRate = audio.get("sample_rate")?.asText()?.toInt() ?: 20
-            audioSampleCount = audio.get("duration_ts")?.asText()?.toLong() ?: (audioSampleRate * audioDuration).toLong()
+            audioSampleCount =
+                audio.get("duration_ts")?.asText()?.toLong() ?: (audioSampleRate * audioDuration).toLong()
         }
 
         val video = streams.firstOrNull {
             (it as JsonObject)["codec_type"]?.asText().equals("video", true)
         } as? JsonObject
 
-        if(video != null){
+        if (video != null) {
 
             hasVideo = true
             videoStartTime = video.get("start_time")?.asText()?.toDouble() ?: 0.0
