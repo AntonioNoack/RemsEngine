@@ -1,4 +1,4 @@
-package me.anno.studio.cli
+package me.anno.studio
 
 import org.apache.commons.cli.CommandLine
 import org.apache.logging.log4j.LogManager

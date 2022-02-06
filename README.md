@@ -52,7 +52,7 @@ To build Rem's Studio, I am using Intellij Idea (the community edition is free).
 you just need to add all libraries. In Intellij Idea set the memory of the compiler (Settings/Build/Compiler) to more
 than 700 MB, as it becomes awfully slow with that amount, or even crashes.
 
-The main class for starting the video editor is me.anno.studio.Runner.
+The main class for starting the video editor is me.anno.remsstudio.Runner.
 
 ## Rem's Engine
 

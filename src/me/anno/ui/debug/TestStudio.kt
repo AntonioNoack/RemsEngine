@@ -5,7 +5,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.ui.Window
 import me.anno.input.ActionManager
 import me.anno.studio.StudioBase
-import me.anno.studio.rems.StudioActions
+import me.anno.remsstudio.StudioActions
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelListY
 

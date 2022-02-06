@@ -4,7 +4,7 @@ import me.anno.io.base.BaseWriter
 import kotlin.math.max
 import kotlin.math.min
 
-abstract class StringHistory : History2<String>() {
+abstract class StringHistory : History<String>() {
 
     override fun getTitle(v: String): String {
         return "X${v.length}"

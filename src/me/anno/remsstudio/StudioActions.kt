@@ -1,4 +1,4 @@
-package me.anno.studio.rems
+package me.anno.remsstudio
 
 import me.anno.cache.CacheSection
 import me.anno.gpu.GFX
@@ -8,11 +8,8 @@ import me.anno.input.Modifiers
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.utils.StringMap
 import me.anno.remsstudio.objects.modes.TransformVisibility
-import me.anno.remsstudio.RemsStudio
-import me.anno.remsstudio.Selection
 import me.anno.studio.StudioBase
 import me.anno.remsstudio.ui.editor.TimelinePanel
-import me.anno.remsstudio.RemsStudioUILayouts
 import me.anno.ui.utils.WindowStack.Companion.printLayout
 import kotlin.math.round
 

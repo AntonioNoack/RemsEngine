@@ -37,6 +37,7 @@ import me.anno.remsstudio.objects.lists.Element
 import me.anno.remsstudio.objects.lists.SplittableElement
 import me.anno.remsstudio.objects.models.SpeakerModel.drawSpeakers
 import me.anno.animation.LoopingState
+import me.anno.cache.data.ImageData.Companion.imageTimeout
 import me.anno.gpu.drawing.UVProjection
 import me.anno.remsstudio.objects.modes.VideoType
 import me.anno.remsstudio.objects.modes.editorFPS
@@ -983,8 +984,6 @@ class Video(file: FileReference = InvalidRef, parent: Transform? = null) : Audio
 
         val videoFrameTimeout get() = if (isFinalRendering) 2000L else 10000L
         val tiling16x9 = Vector4f(8f, 4.5f, 0f, 0f)
-
-        val imageTimeout get() = DefaultConfig["ui.image.frameTimeout", 5000L]
 
     }
 

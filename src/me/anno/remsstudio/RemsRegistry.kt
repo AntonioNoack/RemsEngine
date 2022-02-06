@@ -32,8 +32,8 @@ import me.anno.remsstudio.objects.particles.TextParticles
 import me.anno.remsstudio.objects.text.Chapter
 import me.anno.remsstudio.objects.text.Text
 import me.anno.remsstudio.objects.text.Timer
-import me.anno.studio.history.History
-import me.anno.studio.history.HistoryState
+import me.anno.remsstudio.history.History
+import me.anno.remsstudio.history.HistoryState
 import me.anno.ui.editor.sceneView.SceneTabData
 
 object RemsRegistry {

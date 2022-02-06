@@ -20,11 +20,10 @@ import me.anno.remsstudio.objects.Transform
 import me.anno.remsstudio.objects.text.Text
 import me.anno.studio.GFXSettings
 import me.anno.studio.StudioBase
-import me.anno.studio.cli.RemsCLI
+import me.anno.remsstudio.cli.RemsCLI
 import me.anno.remsstudio.CheckVersion.checkVersion
 import me.anno.remsstudio.audio.AudioManager2
 import me.anno.remsstudio.ui.StudioFileImporter
-import me.anno.studio.rems.StudioActions
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelStack

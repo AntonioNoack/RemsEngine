@@ -1,4 +1,4 @@
-package me.anno.studio.cli
+package me.anno.remsstudio.cli
 
 import me.anno.cache.Cache
 import me.anno.gpu.GFX
@@ -13,9 +13,9 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.text.TextReader
 import me.anno.remsstudio.objects.Transform
 import me.anno.studio.StudioBase
-import me.anno.studio.cli.CommandLines.parseDouble
-import me.anno.studio.cli.CommandLines.parseFloat
-import me.anno.studio.cli.CommandLines.parseInt
+import me.anno.studio.CommandLines.parseDouble
+import me.anno.studio.CommandLines.parseFloat
+import me.anno.studio.CommandLines.parseInt
 import me.anno.remsstudio.Project
 import me.anno.remsstudio.RemsConfig
 import me.anno.remsstudio.RemsRegistry

@@ -2,6 +2,7 @@ package me.anno.io.files.thumbs
 
 import me.anno.Build
 import me.anno.cache.data.ImageData
+import me.anno.cache.data.ImageData.Companion.imageTimeout
 import me.anno.cache.instances.MeshCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultConfig
@@ -65,6 +66,7 @@ import me.anno.io.files.Signature
 import me.anno.io.text.TextReader
 import me.anno.io.unity.UnityReader
 import me.anno.io.zip.ZipCache
+import me.anno.maths.Maths.clamp
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.remsstudio.objects.Video
 import me.anno.remsstudio.objects.documents.pdf.PDFCache
@@ -78,7 +80,6 @@ import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.files.Files.use
 import me.anno.utils.input.Input.readNBytes2
-import me.anno.maths.Maths.clamp
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
@@ -465,7 +466,7 @@ object Thumbs {
         callback: (Texture2D) -> Unit
     ) {
 
-        val buffer = MeshCache.getSVG(srcFile, Video.imageTimeout, false)!!
+        val buffer = MeshCache.getSVG(srcFile, imageTimeout, false)!!
 
         val maxSize = max(buffer.maxX, buffer.maxY)
         val w = (size * buffer.maxX / maxSize).roundToInt()

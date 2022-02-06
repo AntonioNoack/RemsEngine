@@ -10,7 +10,7 @@ import me.anno.io.text.TextWriter
 import me.anno.language.translation.NameDesc
 import me.anno.remsstudio.objects.Transform
 import me.anno.studio.StudioBase.Companion.dragged
-import me.anno.studio.history.History
+import me.anno.remsstudio.history.History
 import me.anno.remsstudio.RemsStudio.project
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.msg

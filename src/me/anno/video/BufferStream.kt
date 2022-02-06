@@ -16,7 +16,9 @@ class BufferStream(
     private val filledBuffers = ArrayList<ShortBuffer?>()
     private val gettingIndex = AtomicInteger()
 
-    // todo whoever calls this function must return the buffer!!
+    /**
+     * whoever calls this function must return the buffer!!
+     * */
     fun getAndReplace(): ShortBuffer {
         val index = gettingIndex.getAndIncrement()
         waitUntil(true) { filledBuffers.size > index }

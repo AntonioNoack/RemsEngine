@@ -1,4 +1,4 @@
-package me.anno.studio.history
+package me.anno.remsstudio.history
 
 import me.anno.io.ISaveable
 import me.anno.io.Saveable

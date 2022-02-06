@@ -7,7 +7,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextReader
 import me.anno.remsstudio.objects.Transform
-import me.anno.studio.history.History
+import me.anno.remsstudio.history.History
 import me.anno.ui.editor.sceneTabs.SceneTab
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull

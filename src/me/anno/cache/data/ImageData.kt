@@ -3,6 +3,7 @@ package me.anno.cache.data
 import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.exif.ExifIFD0Directory
 import me.anno.cache.instances.VideoCache.getVideoFrame
+import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL.renderPurely
 import me.anno.gpu.OpenGL.useFrame
@@ -22,7 +23,6 @@ import me.anno.image.tar.TGAImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
-import me.anno.remsstudio.objects.Video.Companion.imageTimeout
 import me.anno.image.RotateJPEG
 import me.anno.utils.Nullable.tryOrException
 import me.anno.utils.Nullable.tryOrNull
@@ -44,6 +44,8 @@ class ImageData(file: FileReference) : ICacheData {
     var hasFailed = false
 
     companion object {
+
+        val imageTimeout get() = DefaultConfig["ui.image.frameTimeout", 5000L]
 
         private val LOGGER = LogManager.getLogger(ImageData::class)
 

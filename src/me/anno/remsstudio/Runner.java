@@ -1,4 +1,4 @@
-package me.anno.studio;
+package me.anno.remsstudio;
 
 // currently most important topics:
 // done file manager
@@ -9,7 +9,7 @@ package me.anno.studio;
 // done particle systems
 // done move entries in tree
 
-import me.anno.studio.cli.RemsCLI;
+import me.anno.remsstudio.cli.RemsCLI;
 import me.anno.remsstudio.RemsStudio;
 
 public class Runner {

@@ -16,7 +16,7 @@ import me.anno.io.utils.StringMap
 import me.anno.language.Language
 import me.anno.remsstudio.objects.Camera
 import me.anno.remsstudio.objects.Transform
-import me.anno.studio.history.History
+import me.anno.remsstudio.history.History
 import me.anno.remsstudio.RemsStudio.editorTime
 import me.anno.remsstudio.ui.StudioFileExplorer
 import me.anno.remsstudio.ui.StudioTreeView
