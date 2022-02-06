@@ -1,4 +1,4 @@
-package me.anno.ui.editor.graphs
+package me.anno.remsstudio.ui.graphs
 
 import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Interpolation

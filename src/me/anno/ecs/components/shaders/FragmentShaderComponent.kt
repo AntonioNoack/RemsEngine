@@ -8,6 +8,6 @@ interface FragmentShaderComponent {
 
     fun getShaderCodeState(): Any?
 
-    fun bindUniforms(shader: Shader, env: ShaderEnvironment, time: Double)
+    fun bindUniforms(shader: Shader, env: ShaderEnvironment)
 
 }

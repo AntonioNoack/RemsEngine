@@ -16,7 +16,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.language.translation.Dict
-import me.anno.remsstudio.objects.inspectable.Inspectable
+import me.anno.studio.Inspectable
 import me.anno.remsstudio.objects.modes.TransformVisibility
 import me.anno.remsstudio.objects.particles.ParticleSystem
 import me.anno.remsstudio.RemsStudio

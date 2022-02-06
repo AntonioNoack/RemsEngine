@@ -1,7 +1,7 @@
 package me.anno.ui.editor
 
 import me.anno.language.translation.Dict
-import me.anno.remsstudio.objects.inspectable.Inspectable
+import me.anno.studio.Inspectable
 import me.anno.studio.StudioBase.Companion.defaultWindowStack
 import me.anno.remsstudio.ui.StudioTreeView
 import me.anno.remsstudio.ui.editor.TimelinePanel

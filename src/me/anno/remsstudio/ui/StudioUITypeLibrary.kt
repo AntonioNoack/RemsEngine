@@ -14,11 +14,11 @@ import me.anno.ui.custom.UITypeLibrary
 import me.anno.ui.editor.PropertyInspector
 import me.anno.remsstudio.ui.editor.TimelinePanel
 import me.anno.remsstudio.ui.editor.cutting.LayerViewContainer
+import me.anno.remsstudio.ui.scene.StudioSceneView
 import me.anno.ui.editor.files.FileExplorer.Companion.invalidateFileExplorers
 import me.anno.ui.editor.files.FileExplorerOption
 import me.anno.ui.editor.files.toAllowedFilename
-import me.anno.ui.editor.graphs.GraphEditor
-import me.anno.ui.editor.sceneView.StudioSceneView
+import me.anno.remsstudio.ui.graphs.GraphEditor
 
 class StudioUITypeLibrary : UITypeLibrary(typeList) {
 

@@ -4,7 +4,7 @@ import me.anno.config.VersionFeatures
 import me.anno.io.utils.StringMap
 import me.anno.remsstudio.objects.FourierTransform
 import me.anno.remsstudio.objects.Transform
-import me.anno.remsstudio.objects.documents.pdf.PDFDocument
+import me.anno.remsstudio.objects.documents.PDFDocument
 import me.anno.remsstudio.objects.geometric.LinePolygon
 import me.anno.remsstudio.objects.text.Chapter
 import me.anno.studio.StudioBase

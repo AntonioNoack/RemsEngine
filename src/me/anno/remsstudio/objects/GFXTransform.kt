@@ -1,5 +1,6 @@
 package me.anno.remsstudio.objects
 
+import me.anno.gpu.drawing.GFXx3D.uploadAttractors0
 import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.colorForceFieldBuffer
@@ -198,17 +199,8 @@ abstract class GFXTransform(parent: Transform?) : Transform(parent) {
     }
 
     companion object {
-
         fun uploadAttractors(transform: GFXTransform?, shader: Shader, time: Double) {
             transform?.uploadAttractors(shader, time) ?: uploadAttractors0(shader)
-        }
-
-        fun uploadAttractors0(shader: Shader) {
-
-            // localScale, localOffset not needed
-            shader.v1i("forceFieldColorCount", 0)
-            shader.v1i("forceFieldUVCount", 0)
-
         }
     }
 

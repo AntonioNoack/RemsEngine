@@ -1,4 +1,4 @@
-package me.anno.utils.test.gfx
+package me.anno.remsstudio.test
 
 import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Keyframe

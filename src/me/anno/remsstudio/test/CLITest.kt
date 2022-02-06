@@ -1,4 +1,4 @@
-package me.anno.utils.test
+package me.anno.remsstudio.test
 
 import me.anno.remsstudio.RemsStudio
 import me.anno.utils.OS

@@ -1,4 +1,4 @@
-package me.anno.ui.editor.sceneView
+package me.anno.remsstudio.ui.scene
 
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
@@ -8,7 +8,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextReader
 import me.anno.remsstudio.objects.Transform
 import me.anno.remsstudio.history.History
-import me.anno.ui.editor.sceneTabs.SceneTab
+import me.anno.remsstudio.ui.sceneTabs.SceneTab
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 

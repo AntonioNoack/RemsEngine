@@ -1,4 +1,4 @@
-package me.anno.ui.editor.sceneView
+package me.anno.remsstudio.ui.scene
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
@@ -46,6 +46,7 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.custom.CustomContainer
 import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
 import me.anno.ui.editor.files.FileContentImporter
+import me.anno.ui.editor.sceneView.ISceneView
 import me.anno.ui.simple.SimplePanel
 import me.anno.ui.style.Style
 import me.anno.utils.types.Vectors.plus

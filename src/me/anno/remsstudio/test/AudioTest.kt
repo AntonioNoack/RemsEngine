@@ -1,4 +1,4 @@
-package me.anno.utils.test
+package me.anno.remsstudio.test
 
 import me.anno.audio.AudioFXCache
 import me.anno.io.files.FileReference.Companion.getReference

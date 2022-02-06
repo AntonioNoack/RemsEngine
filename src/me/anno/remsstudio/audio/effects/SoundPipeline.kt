@@ -12,7 +12,7 @@ import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.remsstudio.objects.Audio
 import me.anno.remsstudio.objects.Camera
-import me.anno.remsstudio.objects.inspectable.Inspectable
+import me.anno.studio.Inspectable
 import me.anno.remsstudio.RemsStudio
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory

@@ -1,16 +1,13 @@
 package me.anno.ecs.components.color
 
-import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.ecs.Component
 import me.anno.ecs.components.shaders.FragmentShaderComponent
 import me.anno.ecs.components.shaders.ShaderEnvironment
 import me.anno.ecs.components.shaders.VariableType
 import me.anno.gpu.shader.Shader
-import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.utils.structures.ValueWithDefault
 import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
-import java.lang.RuntimeException
 
 class SwizzleRGBAComponent : Component(), FragmentShaderComponent {
 
@@ -47,7 +44,7 @@ class SwizzleRGBAComponent : Component(), FragmentShaderComponent {
     val swizzleB = ValueWithDefault(Swizzle.B)
     val swizzleA = ValueWithDefault(Swizzle.A)
 
-    val strength = AnimatedProperty.float(1f)
+    var strength = 1f
 
     override val className get() = "SwizzleRGBAComponent"
 
@@ -69,7 +66,7 @@ class SwizzleRGBAComponent : Component(), FragmentShaderComponent {
         writer.writeMaybe(this, "swizzleG", swizzleG)
         writer.writeMaybe(this, "swizzleB", swizzleB)
         writer.writeMaybe(this, "swizzleA", swizzleA)
-        writer.writeObject(this, "strength", strength)
+        writer.writeFloat("strength", strength)
     }
 
     override fun readInt(name: String, value: Int) {
@@ -82,10 +79,10 @@ class SwizzleRGBAComponent : Component(), FragmentShaderComponent {
         }
     }
 
-    override fun readObject(name: String, value: ISaveable?) {
+    override fun readFloat(name: String, value: Float) {
         when (name) {
-            "strength" -> strength.copyFrom(value)
-            else -> super.readObject(name, value)
+            "strength" -> strength = value
+            else -> super.readFloat(name, value)
         }
     }
 
@@ -106,12 +103,12 @@ class SwizzleRGBAComponent : Component(), FragmentShaderComponent {
 
     override fun getShaderCodeState(): Any = listOf(swizzleR.value, swizzleG.value, swizzleB.value, swizzleA.value)
 
-    override fun bindUniforms(shader: Shader, env: ShaderEnvironment, time: Double) {
-        shader.v1f(env[this, "strength", VariableType.UNIFORM_V1], strength[time])
+    override fun bindUniforms(shader: Shader, env: ShaderEnvironment) {
+        shader.v1f(env[this, "strength", VariableType.UNIFORM_V1], strength)
     }
 
     override fun clone(): Component {
-       throw RuntimeException("Not yet implemented")
+        throw RuntimeException("Not yet implemented")
     }
 
 }

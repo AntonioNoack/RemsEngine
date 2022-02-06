@@ -3,11 +3,11 @@ package me.anno.gpu.drawing
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.GFXx3D.draw3DCircle
+import me.anno.gpu.drawing.GFXx3D.uploadAttractors0
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.maths.Maths.clamp
 import me.anno.remsstudio.objects.GFXTransform
-import me.anno.remsstudio.objects.GFXTransform.Companion.uploadAttractors0
 import me.anno.remsstudio.objects.Transform
 import me.anno.remsstudio.objects.Video
 import org.joml.Matrix4fArrayList

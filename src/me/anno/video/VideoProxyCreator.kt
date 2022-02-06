@@ -7,9 +7,6 @@ import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.utils.StringMap
-import me.anno.remsstudio.RemsConfig
-import me.anno.remsstudio.RemsStudio
-import me.anno.utils.OS
 import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.video.ffmpeg.FFMPEGMetadata
@@ -35,14 +32,6 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
 
     // check all last instances, which can be deleted...
     lateinit var proxyFolder: FileReference
-
-    @JvmStatic
-    fun main(args: Array<String>) {
-        // test for a video file
-        RemsStudio.setupNames()
-        RemsConfig.init()
-        getProxyFile(getReference(OS.videos, "GodRays.mp4"))
-    }
 
     var isInitialized = false
     fun init() {

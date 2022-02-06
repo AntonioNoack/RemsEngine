@@ -1,7 +1,7 @@
 package me.anno.cache.data
 
 import me.anno.io.files.FileReference
-import me.anno.remsstudio.RemsStudio.gfxSettings
+import me.anno.studio.StudioBase
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import me.anno.video.ffmpeg.FFMPEGStream
 import org.apache.logging.log4j.LogManager
@@ -50,7 +50,7 @@ class VideoData(
         // * 128 = 200 MB
         // this is less efficient for large amounts of videos,
         // but it's better for fast loading of video, because the encoder is already loaded etc...
-        val framesPerContainer get() = gfxSettings.getInt("video.frames.perContainer")
+        val framesPerContainer get() = StudioBase.instance!!.gfxSettings.getInt("video.frames.perContainer")
     }
 
 }

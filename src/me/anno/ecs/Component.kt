@@ -6,7 +6,7 @@ import me.anno.engine.ui.EditorState
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
-import me.anno.remsstudio.objects.inspectable.Inspectable
+import me.anno.studio.Inspectable
 import me.anno.ui.editor.stacked.Option
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.structures.lists.UpdatingList

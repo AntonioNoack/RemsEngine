@@ -30,8 +30,8 @@ import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
 import me.anno.ui.editor.WelcomeUI
 import me.anno.ui.editor.files.FileContentImporter
-import me.anno.ui.editor.sceneTabs.SceneTabs.currentTab
-import me.anno.ui.editor.sceneView.ScenePreview
+import me.anno.remsstudio.ui.sceneTabs.SceneTabs.currentTab
+import me.anno.remsstudio.ui.scene.ScenePreview
 import me.anno.ui.style.Style
 import me.anno.utils.OS
 import java.io.File
@@ -298,6 +298,11 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
             }
             ALBase.check()
         }
+    }
+
+    override fun clearAll() {
+        super.clearAll()
+        root.findFirstInAll { it.clearCache(); false }
     }
 
     // UI with traditional editor?

@@ -20,7 +20,6 @@ import me.anno.gpu.shader.builder.Function
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.remsstudio.Scene
 import me.anno.maths.Maths.length
 import me.anno.utils.pooling.ByteBufferPool
 import org.joml.Vector4f

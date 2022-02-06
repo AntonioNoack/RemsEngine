@@ -2,7 +2,7 @@ package me.anno.remsstudio.ui.editor.cutting
 
 import me.anno.remsstudio.objects.Transform
 import me.anno.remsstudio.RemsStudio
-import me.anno.ui.editor.sceneTabs.SceneTabs
+import me.anno.remsstudio.ui.sceneTabs.SceneTabs
 import me.anno.utils.files.Naming
 import org.joml.Vector4f
 

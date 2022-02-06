@@ -1,8 +1,8 @@
 package me.anno.utils.bench
 
-import me.anno.utils.test.measure
 import me.anno.utils.structures.lists.Lists.buildMinHeap
 import me.anno.utils.structures.lists.Lists.extractMin
+import me.anno.utils.test.measure
 
 fun main() {
 

@@ -1,11 +1,9 @@
 package me.anno.cache
 
 import me.anno.cache.data.ICacheData
-import me.anno.cache.instances.LastModifiedCache
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.gameTime
 import me.anno.io.files.FileReference
-import me.anno.remsstudio.RemsStudio.root
 import me.anno.utils.ShutdownException
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.hpc.Threads.threadWithName
@@ -443,8 +441,6 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
         fun clearAll() {
             for (cache in caches) cache.clear()
-            root.findFirstInAll { it.clearCache(); false }
-            LastModifiedCache.clear()
         }
 
         private val LOGGER = LogManager.getLogger(CacheSection::class)

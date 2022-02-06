@@ -11,8 +11,8 @@ import me.anno.remsstudio.RemsStudio.nullCamera
 import me.anno.remsstudio.Selection
 import me.anno.remsstudio.Selection.select
 import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
-import me.anno.ui.editor.sceneTabs.SceneTabs
-import me.anno.ui.editor.sceneView.StudioSceneView
+import me.anno.remsstudio.ui.sceneTabs.SceneTabs
+import me.anno.remsstudio.ui.scene.StudioSceneView
 import me.anno.utils.structures.lists.Lists.join
 
 class HistoryState() : Saveable() {

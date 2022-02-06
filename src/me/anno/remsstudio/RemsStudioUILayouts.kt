@@ -1,10 +1,8 @@
 package me.anno.remsstudio
 
-import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
 import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.GFX
-import me.anno.ui.Window
 import me.anno.input.Input.mouseX
 import me.anno.input.Input.mouseY
 import me.anno.input.MouseButton
@@ -44,9 +42,9 @@ import me.anno.remsstudio.ui.editor.cutting.LayerViewContainer
 import me.anno.ui.editor.OptionBar
 import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.WelcomeUI
-import me.anno.ui.editor.graphs.GraphEditor
-import me.anno.ui.editor.sceneTabs.SceneTabs
-import me.anno.ui.editor.sceneView.StudioSceneView
+import me.anno.remsstudio.ui.graphs.GraphEditor
+import me.anno.remsstudio.ui.sceneTabs.SceneTabs
+import me.anno.remsstudio.ui.scene.StudioSceneView
 import me.anno.ui.style.Style
 import me.anno.ui.utils.WindowStack.Companion.createReloadWindow
 import me.anno.utils.files.OpenInBrowser.openInBrowser
@@ -140,7 +138,7 @@ object RemsStudioUILayouts {
             selectTransform(root.listOfAll.firstInstanceOrNull<Camera>())
         }
 
-        options.addAction(debugTitle, "Reload Cache (Ctrl+F5)") { CacheSection.clearAll() }
+        options.addAction(debugTitle, "Reload Cache (Ctrl+F5)") { RemsStudio.clearAll() }
         options.addAction(debugTitle, "Clear Cache") { ConfigBasics.cacheFolder.deleteRecursively() }
         options.addAction(debugTitle, "Reload Plugins") { ExtensionLoader.reloadPlugins() }
         // todo overview to show plugins & mods

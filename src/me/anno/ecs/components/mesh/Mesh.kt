@@ -9,6 +9,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.buffer.*
 import me.anno.gpu.buffer.Attribute.Companion.computeOffsets
 import me.anno.gpu.drawing.GFXx3D
+import me.anno.gpu.drawing.GFXx3D.uploadAttractors0
 import me.anno.gpu.shader.Shader
 import me.anno.input.Input
 import me.anno.io.base.BaseWriter
@@ -16,9 +17,8 @@ import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.mesh.FindLines
+import me.anno.mesh.MeshUtils.centerMesh
 import me.anno.mesh.assimp.AnimGameItem
-import me.anno.remsstudio.objects.GFXTransform
-import me.anno.remsstudio.objects.meshes.MeshData
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
@@ -761,7 +761,7 @@ class Mesh : PrefabSaveable() {
     }
 
     fun drawInstancedDepth(shader: Shader, instanceData: Buffer) {
-        if(proceduralLength > 0){
+        if (proceduralLength > 0) {
             LOGGER.warn("Instanced rendering not yet implemented")
         } else {
             // draw all materials
@@ -801,8 +801,9 @@ class Mesh : PrefabSaveable() {
 
         val shader = ECSShaderLib.pbrModelShader.value
         shader.use()
+
         GFXx3D.shader3DUniforms(shader, stack, -1)
-        GFXTransform.uploadAttractors(null, shader, 0.0)
+        uploadAttractors0(shader)
 
         val localStack = if (normalizeScale || centerMesh) {
             val localStack = Matrix4x3f()
@@ -811,7 +812,7 @@ class Mesh : PrefabSaveable() {
                 localStack.scale(scale)
             }
             if (centerMesh) {
-                MeshData.centerMesh(stack, localStack, this)
+                centerMesh(stack, localStack, this)
             }
             localStack
         } else null

@@ -1,4 +1,4 @@
-package me.anno.ui.editor.sceneTabs
+package me.anno.remsstudio.ui.sceneTabs
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
@@ -12,7 +12,7 @@ import me.anno.remsstudio.ui.StudioFileImporter.addChildFromFile
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.editor.files.FileContentImporter
-import me.anno.ui.editor.sceneView.SceneTabData
+import me.anno.remsstudio.ui.scene.SceneTabData
 import me.anno.utils.structures.lists.Lists.getOrPrevious
 import org.apache.logging.log4j.LogManager
 

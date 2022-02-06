@@ -1,4 +1,4 @@
-package me.anno.remsstudio.objects.inspectable
+package me.anno.studio
 
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory

@@ -1,4 +1,4 @@
-package me.anno.utils.test.tsunamilab
+package me.anno.remsstudio.test
 
 import me.anno.animation.Interpolation
 import me.anno.io.csv.CSVReader

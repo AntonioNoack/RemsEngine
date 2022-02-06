@@ -1,18 +1,17 @@
 package me.anno.ecs.components.color
 
-import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.ecs.Component
 import me.anno.ecs.components.shaders.FragmentShaderComponent
 import me.anno.ecs.components.shaders.ShaderEnvironment
 import me.anno.ecs.components.shaders.VariableType
 import me.anno.gpu.shader.Shader
-import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
+import org.joml.Vector4f
 
 class VignetteComponent : Component(), FragmentShaderComponent {
 
-    val color = AnimatedProperty.color()
-    val strength = AnimatedProperty.float(1f)
+    val color = Vector4f()
+    var strength = 1f
 
     override fun getShaderComponent(env: ShaderEnvironment): String {
         // "       float rSq = dot(nuv,nuv);\n" + needs to be added to the general shader...
@@ -25,9 +24,9 @@ class VignetteComponent : Component(), FragmentShaderComponent {
 
     override fun getShaderCodeState(): Any? = null
 
-    override fun bindUniforms(shader: Shader, env: ShaderEnvironment, time: Double) {
-        shader.v3X(env[this, "color", VariableType.UNIFORM_V3], color[time])
-        shader.v1f(env[this, "strength", VariableType.UNIFORM_V1], strength[time])
+    override fun bindUniforms(shader: Shader, env: ShaderEnvironment) {
+        shader.v3X(env[this, "color", VariableType.UNIFORM_V3], color)
+        shader.v1f(env[this, "strength", VariableType.UNIFORM_V1], strength)
     }
 
     /*override fun createInspector(
@@ -42,13 +41,13 @@ class VignetteComponent : Component(), FragmentShaderComponent {
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeObject(this, "strength", strength)
+        writer.writeFloat("strength", strength)
     }
 
-    override fun readObject(name: String, value: ISaveable?) {
+    override fun readFloat(name: String, value: Float) {
         when (name) {
-            "strength" -> strength.copyFrom(value)
-            else -> super.readObject(name, value)
+            "strength" -> strength = value
+            else -> super.readFloat(name, value)
         }
     }
 

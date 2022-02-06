@@ -480,4 +480,12 @@ object GFXx3D {
         GFX.check()
     }
 
+    fun uploadAttractors0(shader: Shader) {
+
+        // localScale, localOffset not needed
+        shader.v1i("forceFieldColorCount", 0)
+        shader.v1i("forceFieldUVCount", 0)
+
+    }
+
 }

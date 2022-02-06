@@ -1,7 +1,8 @@
-package me.anno.remsstudio.objects.documents.pdf
+package me.anno.remsstudio.objects.documents
 
 import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Type
+import me.anno.cache.instances.PDFCache
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.viewportHeight
 import me.anno.gpu.GFX.viewportWidth
@@ -16,7 +17,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.remsstudio.objects.GFXTransform
 import me.anno.remsstudio.objects.Transform
 import me.anno.remsstudio.objects.documents.SiteSelection.parseSites
-import me.anno.remsstudio.objects.documents.pdf.PDFCache.getTexture
+import me.anno.cache.instances.PDFCache.getTexture
 import me.anno.remsstudio.objects.lists.Element
 import me.anno.remsstudio.objects.lists.SplittableElement
 import me.anno.gpu.drawing.UVProjection

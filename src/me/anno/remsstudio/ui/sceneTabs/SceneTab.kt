@@ -1,4 +1,4 @@
-package me.anno.ui.editor.sceneTabs
+package me.anno.remsstudio.ui.sceneTabs
 
 import me.anno.config.DefaultConfig
 import me.anno.input.ActionManager
@@ -20,9 +20,9 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.toAllowedFilename
-import me.anno.ui.editor.sceneTabs.SceneTabs.currentTab
-import me.anno.ui.editor.sceneTabs.SceneTabs.open
-import me.anno.ui.editor.sceneView.SceneTabData
+import me.anno.remsstudio.ui.sceneTabs.SceneTabs.currentTab
+import me.anno.remsstudio.ui.sceneTabs.SceneTabs.open
+import me.anno.remsstudio.ui.scene.SceneTabData
 import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.maths.Maths.mixARGB
 import org.apache.logging.log4j.LogManager

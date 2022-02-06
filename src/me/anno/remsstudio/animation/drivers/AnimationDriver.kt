@@ -8,7 +8,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.remsstudio.objects.Transform
 import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Type
-import me.anno.remsstudio.objects.inspectable.Inspectable
+import me.anno.studio.Inspectable
 import me.anno.remsstudio.Selection.select
 import me.anno.remsstudio.Selection.selectProperty
 import me.anno.remsstudio.Selection.selectedTransform

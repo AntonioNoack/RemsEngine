@@ -26,10 +26,10 @@ import me.anno.ui.custom.CustomContainer
 import me.anno.ui.custom.CustomList
 import me.anno.remsstudio.RemsStudioUILayouts.createDefaultMainUI
 import me.anno.remsstudio.ui.editor.cutting.LayerViewContainer
-import me.anno.ui.editor.sceneTabs.SceneTab
-import me.anno.ui.editor.sceneTabs.SceneTabs
-import me.anno.ui.editor.sceneView.SceneTabData
-import me.anno.ui.editor.sceneView.StudioSceneView
+import me.anno.remsstudio.ui.sceneTabs.SceneTab
+import me.anno.remsstudio.ui.sceneTabs.SceneTabs
+import me.anno.remsstudio.ui.scene.SceneTabData
+import me.anno.remsstudio.ui.scene.StudioSceneView
 import me.anno.utils.bugs.SumOf
 import me.anno.utils.files.Files.use
 import me.anno.utils.types.Casting.castToFloat

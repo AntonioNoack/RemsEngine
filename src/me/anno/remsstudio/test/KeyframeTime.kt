@@ -1,4 +1,4 @@
-package me.anno.utils.test
+package me.anno.remsstudio.test
 
 import me.anno.io.text.TextReader
 import me.anno.remsstudio.animation.AnimatedProperty

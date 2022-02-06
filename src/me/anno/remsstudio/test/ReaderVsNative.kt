@@ -1,29 +1,22 @@
-package me.anno.utils.test
+package me.anno.remsstudio.test
 
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.remsstudio.objects.Transform
-import me.anno.utils.Clock
-
-fun <V> measure(name: String, func: () -> V): V {
-    val c = Clock()
-    val value = func()
-    c.stop(name)
-    return value
-}
+import me.anno.utils.test.measure
 
 fun main() {
-   for(i in 0 until 100){
-       test()
-   }
+    for (i in 0 until 100) {
+        test()
+    }
 }
 
-fun test(){
+fun test() {
     // ratios aren't too great, but not too bad either
     val lines = 1_000_000
     val genName = { Math.random().toString() }
     // val readerFile = File.createTempFile("RemsStudio", ".tmp")
-    val readerText = measure("Reader-create"){
+    val readerText = measure("Reader-create") {
         TextWriter().apply {
             writeStringArray("strings", (0 until lines).map { genName() }.toTypedArray())
         }.toString()

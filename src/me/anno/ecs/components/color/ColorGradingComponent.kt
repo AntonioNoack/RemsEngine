@@ -1,6 +1,5 @@
 package me.anno.ecs.components.color
 
-import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.ecs.Component
 import me.anno.ecs.components.shaders.FragmentShaderComponent
 import me.anno.ecs.components.shaders.ShaderEnvironment
@@ -12,10 +11,10 @@ import org.joml.Vector4f
 
 class ColorGradingComponent : Component(), FragmentShaderComponent {
 
-    val slope = AnimatedProperty.color(Vector4f(1f))
-    val offset = AnimatedProperty.color3(Vector3f(0f))
-    val power = AnimatedProperty.color(Vector4f(1f))
-    val saturation = AnimatedProperty.float(1f)
+    val slope = Vector4f(1f)
+    val offset = Vector3f(0f)
+    val power = Vector4f(1f)
+    var saturation = 1f
 
     override val className get() = "ColorGradingComponent"
 
@@ -31,11 +30,11 @@ class ColorGradingComponent : Component(), FragmentShaderComponent {
                 "color.rgb = mix(vec3($grayTmp), $colorTmp, $saturation);\n"
     }
 
-    override fun bindUniforms(shader: Shader, env: ShaderEnvironment, time: Double) {
-        shader.v3X(env[this, "slope", VariableType.UNIFORM_V3], slope[time])
-        shader.v3X(env[this, "power", VariableType.UNIFORM_V3], power[time])
-        shader.v3f(env[this, "offset", VariableType.UNIFORM_V3], offset[time])
-        shader.v1f(env[this, "saturation", VariableType.UNIFORM_V1], saturation[time])
+    override fun bindUniforms(shader: Shader, env: ShaderEnvironment) {
+        shader.v3X(env[this, "slope", VariableType.UNIFORM_V3], slope)
+        shader.v3X(env[this, "power", VariableType.UNIFORM_V3], power)
+        shader.v3f(env[this, "offset", VariableType.UNIFORM_V3], offset)
+        shader.v1f(env[this, "saturation", VariableType.UNIFORM_V1], saturation)
     }
 
     /*override fun createInspector(
@@ -51,10 +50,10 @@ class ColorGradingComponent : Component(), FragmentShaderComponent {
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeObject(this, "slope", slope)
-        writer.writeObject(this, "offset", offset)
-        writer.writeObject(this, "power", power)
-        writer.writeObject(this, "saturation", saturation)
+        writer.writeVector4f("slope", slope)
+        writer.writeVector3f("offset", offset)
+        writer.writeVector4f("power", power)
+        writer.writeFloat("saturation", saturation)
     }
 
     override fun getShaderCodeState(): Any? = null

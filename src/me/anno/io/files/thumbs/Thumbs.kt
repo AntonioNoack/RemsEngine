@@ -69,7 +69,7 @@ import me.anno.io.zip.ZipCache
 import me.anno.maths.Maths.clamp
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.remsstudio.objects.Video
-import me.anno.remsstudio.objects.documents.pdf.PDFCache
+import me.anno.cache.instances.PDFCache
 import me.anno.remsstudio.objects.meshes.MeshData
 import me.anno.ui.base.Font
 import me.anno.utils.Color.hex4

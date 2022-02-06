@@ -16,7 +16,7 @@ import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextWriter
-import me.anno.remsstudio.objects.inspectable.Inspectable
+import me.anno.studio.Inspectable
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListX

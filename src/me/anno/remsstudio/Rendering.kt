@@ -4,16 +4,16 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.translation.NameDesc
-import me.anno.remsstudio.objects.Audio
-import me.anno.remsstudio.objects.Transform
-import me.anno.remsstudio.objects.Video
-import me.anno.remsstudio.objects.modes.VideoType
 import me.anno.remsstudio.RemsStudio.motionBlurSteps
 import me.anno.remsstudio.RemsStudio.project
 import me.anno.remsstudio.RemsStudio.root
 import me.anno.remsstudio.RemsStudio.shutterPercentage
 import me.anno.remsstudio.RemsStudio.targetOutputFile
 import me.anno.remsstudio.RemsStudio.windowStack
+import me.anno.remsstudio.objects.Audio
+import me.anno.remsstudio.objects.Transform
+import me.anno.remsstudio.objects.Video
+import me.anno.remsstudio.objects.modes.VideoType
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.msg
 import me.anno.ui.base.menu.Menu.openMenu
@@ -21,10 +21,14 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.types.Strings.defaultImportType
 import me.anno.utils.types.Strings.getImportType
-import me.anno.video.*
-import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
+import me.anno.video.AudioCreator
+import me.anno.video.FrameTask
+import me.anno.video.VideoAudioCreator
+import me.anno.video.VideoCreator
+import me.anno.video.VideoCreator.Companion.defaultQuality
 import me.anno.video.ffmpeg.FFMPEGEncodingBalance
 import me.anno.video.ffmpeg.FFMPEGEncodingType
+import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import kotlin.math.max
@@ -89,6 +93,7 @@ object Rendering {
         val fps = RemsStudio.targetFPS
         val totalFrameCount = max(1, (fps * duration).toLong() + 1)
         val sampleRate = max(1, RemsStudio.targetSampleRate)
+        val project = project
 
         val scene = root.clone()
 
@@ -101,6 +106,7 @@ object Rendering {
         val videoCreator = VideoCreator(
             width, height,
             RemsStudio.targetFPS, totalFrameCount, balance, type,
+            project?.targetVideoQuality ?: defaultQuality,
             if (audioSources.isEmpty()) targetOutputFile else tmpFile
         )
 

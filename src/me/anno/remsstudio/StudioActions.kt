@@ -1,6 +1,5 @@
 package me.anno.remsstudio
 
-import me.anno.cache.CacheSection
 import me.anno.gpu.GFX
 import me.anno.input.ActionManager
 import me.anno.input.Input
@@ -8,8 +7,8 @@ import me.anno.input.Modifiers
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.utils.StringMap
 import me.anno.remsstudio.objects.modes.TransformVisibility
-import me.anno.studio.StudioBase
 import me.anno.remsstudio.ui.editor.TimelinePanel
+import me.anno.studio.StudioBase
 import me.anno.ui.utils.WindowStack.Companion.printLayout
 import kotlin.math.round
 
@@ -86,7 +85,7 @@ object StudioActions {
                 } else false
             },
             "ClearCache" to {
-                CacheSection.clearAll()
+                StudioBase.instance?.clearAll()
                 true
             },
             "Redo" to {

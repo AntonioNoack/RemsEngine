@@ -5,7 +5,7 @@ import me.anno.remsstudio.objects.Transform.Companion.toTransform
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.FileExplorerOption
 import me.anno.ui.editor.files.toAllowedFilename
-import me.anno.ui.editor.sceneTabs.SceneTabs
+import me.anno.remsstudio.ui.sceneTabs.SceneTabs
 import me.anno.ui.style.Style
 import me.anno.utils.files.Files
 

@@ -1,6 +1,5 @@
 package me.anno.engine
 
-import me.anno.cache.CacheSection
 import me.anno.gpu.GFX
 import me.anno.input.ActionManager
 import me.anno.input.Input
@@ -42,7 +41,7 @@ object EngineActions {
                 } else false
             },
             "ClearCache" to {
-                CacheSection.clearAll()
+                StudioBase.instance?.clearAll()
                 true
             },
             "Redo" to {

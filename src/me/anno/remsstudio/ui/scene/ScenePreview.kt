@@ -1,4 +1,4 @@
-package me.anno.ui.editor.sceneView
+package me.anno.remsstudio.ui.scene
 
 import me.anno.config.DefaultStyle.black
 import me.anno.config.DefaultStyle.deepDark
@@ -18,6 +18,7 @@ import me.anno.remsstudio.RemsStudio.targetHeight
 import me.anno.remsstudio.RemsStudio.targetWidth
 import me.anno.remsstudio.Scene
 import me.anno.ui.base.groups.PanelList
+import me.anno.ui.editor.sceneView.ISceneView
 import me.anno.ui.style.Style
 import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Vectors.minus

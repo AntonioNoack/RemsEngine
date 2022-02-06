@@ -6,26 +6,22 @@ import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.OpenGL.depthMode
-import me.anno.gpu.shader.ShaderLib.shader3D
-import me.anno.gpu.texture.TextureLib.bindWhite
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.gpu.drawing.GFXx3D.uploadAttractors0
 import me.anno.gpu.shader.Shader
-import me.anno.remsstudio.objects.GFXTransform
-import me.anno.remsstudio.objects.Transform.Companion.xAxis
-import me.anno.remsstudio.objects.Transform.Companion.yAxis
-import me.anno.remsstudio.objects.Transform.Companion.zAxis
-import me.anno.utils.Color.withAlpha
+import me.anno.gpu.shader.ShaderLib.shader3D
+import me.anno.gpu.texture.TextureLib.bindWhite
 import me.anno.maths.Maths.distance
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.pow
 import me.anno.maths.Maths.sq
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.types.Vectors.avg
 import me.anno.utils.types.Vectors.minus
 import org.joml.*
 import org.lwjgl.opengl.GL20.GL_LINES
 import kotlin.math.*
-
 
 // todo grid add mode is broken
 // todo color input window is broken
@@ -138,12 +134,12 @@ object Grid {
     ) {
         val shader = shader3D.value
         shader.use()
-        GFXTransform.uploadAttractors0(shader)
+        uploadAttractors0(shader)
         val stack = stack
         stack.identity()
         stack.translate(x0, y0, 0f)
         val angle = atan2(y1 - y0, x1 - x0)
-        stack.rotate(angle, zAxis)
+        stack.rotateZ(angle)
         stack.scale(distance(x0, y0, x1, y1))
         shader.m4x4("transform", stack)
         defaultUniforms(shader, color, alpha)
@@ -165,7 +161,7 @@ object Grid {
 
             val shader = shader3D.value
             shader.use()
-            GFXTransform.uploadAttractors0(shader)
+            uploadAttractors0(shader)
             shader.m4x4("transform", stack)
             defaultUniforms(shader, color)
             bindWhite(0)
@@ -178,7 +174,7 @@ object Grid {
 
         val shader = shader3D.value
         shader.use()
-        GFXTransform.uploadAttractors0(shader)
+        uploadAttractors0(shader)
         shader.m4x4("transform", stack)
         defaultUniforms(shader, color, alpha)
         bindWhite(0)
@@ -210,13 +206,13 @@ object Grid {
 
             drawGrid(stack, gridAlpha * f)
 
-            stack.rotate(toRadians(90f), xAxis)
+            stack.rotateX(toRadians(90f))
             drawLine(stack, xAxisColor, 0.15f) // x
 
-            stack.rotate(toRadians(90f), yAxis)
+            stack.rotateY(toRadians(90f))
             drawLine(stack, yAxisColor, 0.15f) // y
 
-            stack.rotate(toRadians(90f), zAxis)
+            stack.rotateZ(toRadians(90f))
             drawLine(stack, zAxisColor, 0.15f) // z
 
         }
@@ -241,7 +237,7 @@ object Grid {
 
         val shader = shader3D.value
         shader.use()
-        GFXTransform.uploadAttractors0(shader)
+        uploadAttractors0(shader)
         shader.m4x4("transform", stack)
         defaultUniforms(shader, color)
         bindWhite(0)
@@ -255,7 +251,7 @@ object Grid {
 
         val shader = shader3D.value
         shader.use()
-        GFXTransform.uploadAttractors0(shader)
+        uploadAttractors0(shader)
         shader.m4x4("transform", stack)
         defaultUniforms(shader, -1, alpha)
         bindWhite(0)

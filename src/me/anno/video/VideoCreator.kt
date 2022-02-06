@@ -9,7 +9,6 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.packAlignment
 import me.anno.io.files.FileReference
-import me.anno.remsstudio.RemsStudio.project
 import me.anno.remsstudio.Rendering.isRendering
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.video.Codecs.videoCodecByExtension
@@ -34,6 +33,7 @@ class VideoCreator(
     val totalFrameCount: Long,
     val balance: FFMPEGEncodingBalance,
     val type: FFMPEGEncodingType,
+    val quality: Int,
     val output: FileReference
 ) {
 
@@ -63,7 +63,7 @@ class VideoCreator(
         val size = "${w}x${h}"
         val rawFormat = "rgb24"
         val encoding = videoCodecByExtension(extension) // "libx264"
-        val constantRateFactor = project?.targetVideoQuality?.toString() ?: "23"
+        val constantRateFactor = quality.toString()
 
         // Incompatible pixel format 'yuv420p' for codec 'gif', auto-selecting format 'bgr8'
         val dstFormat = if (isGIF) "bgr8" else "yuv420p"
@@ -194,6 +194,7 @@ class VideoCreator(
     companion object {
 
         private val LOGGER = LogManager.getLogger(VideoCreator::class)
+        val defaultQuality = 23
 
         /**
          * render a video from a framebuffer
@@ -209,7 +210,7 @@ class VideoCreator(
         ) {
             val creator = VideoCreator(
                 w, h, fps, numUpdates + 1L, FFMPEGEncodingBalance.S1,
-                FFMPEGEncodingType.DEFAULT, dst
+                FFMPEGEncodingType.DEFAULT, defaultQuality, dst
             )
             creator.init()
             var frameCount = 0
@@ -242,7 +243,7 @@ class VideoCreator(
         ) {
             val creator = VideoCreator(
                 w, h, fps, numFrames, FFMPEGEncodingBalance.S1,
-                FFMPEGEncodingType.DEFAULT, dst
+                FFMPEGEncodingType.DEFAULT, defaultQuality, dst
             )
             creator.init()
             var frameCount = 0

@@ -20,7 +20,7 @@ import me.anno.remsstudio.objects.*
 import me.anno.remsstudio.objects.attractors.EffectColoring
 import me.anno.remsstudio.objects.attractors.EffectMorphing
 import me.anno.remsstudio.objects.distributions.*
-import me.anno.remsstudio.objects.documents.pdf.PDFDocument
+import me.anno.remsstudio.objects.documents.PDFDocument
 import me.anno.remsstudio.objects.effects.MaskLayer
 import me.anno.remsstudio.objects.forces.impl.*
 import me.anno.remsstudio.objects.geometric.Circle
@@ -34,7 +34,7 @@ import me.anno.remsstudio.objects.text.Text
 import me.anno.remsstudio.objects.text.Timer
 import me.anno.remsstudio.history.History
 import me.anno.remsstudio.history.HistoryState
-import me.anno.ui.editor.sceneView.SceneTabData
+import me.anno.remsstudio.ui.scene.SceneTabData
 
 object RemsRegistry {
 
