@@ -4,7 +4,7 @@ import me.anno.audio.openal.*
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.studio.StudioBase
 import me.anno.utils.OS
-import me.anno.video.FFMPEGStream
+import me.anno.video.ffmpeg.FFMPEGStream
 import org.joml.Vector3f
 
 fun main() {

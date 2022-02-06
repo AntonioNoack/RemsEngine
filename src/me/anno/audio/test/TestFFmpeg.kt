@@ -2,7 +2,7 @@ package me.anno.audio.test
 
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS
-import me.anno.video.FFMPEGStream
+import me.anno.video.ffmpeg.FFMPEGStream
 
 fun main2() {
     val frequency = 44100

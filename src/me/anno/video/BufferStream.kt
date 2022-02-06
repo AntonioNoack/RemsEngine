@@ -1,8 +1,8 @@
 package me.anno.video
 
 import me.anno.audio.AudioStream
-import me.anno.objects.Audio
-import me.anno.objects.Camera
+import me.anno.remsstudio.objects.Audio
+import me.anno.remsstudio.objects.Camera
 import me.anno.utils.Sleep.waitUntil
 import java.nio.ByteBuffer
 import java.nio.ShortBuffer

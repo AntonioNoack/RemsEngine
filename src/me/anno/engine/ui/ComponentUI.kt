@@ -36,7 +36,7 @@ import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
-import me.anno.objects.inspectable.Inspectable
+import me.anno.remsstudio.objects.inspectable.Inspectable
 import me.anno.studio.StudioBase.Companion.defaultWindowStack
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelListY

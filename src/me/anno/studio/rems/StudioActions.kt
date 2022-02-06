@@ -7,10 +7,13 @@ import me.anno.input.Input
 import me.anno.input.Modifiers
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.utils.StringMap
-import me.anno.objects.modes.TransformVisibility
+import me.anno.remsstudio.objects.modes.TransformVisibility
+import me.anno.remsstudio.RemsStudio
+import me.anno.remsstudio.Selection
 import me.anno.studio.StudioBase
-import me.anno.ui.editor.TimelinePanel
-import me.anno.ui.editor.RemsStudioUILayouts
+import me.anno.remsstudio.ui.editor.TimelinePanel
+import me.anno.remsstudio.RemsStudioUILayouts
+import me.anno.ui.utils.WindowStack.Companion.printLayout
 import kotlin.math.round
 
 object StudioActions {
@@ -32,7 +35,7 @@ object StudioActions {
             "PlayReversed" to { setEditorTimeDilation(-1.0) },
             "PlayReversedSlow" to { setEditorTimeDilation(-0.2) },
             "ToggleFullscreen" to { GFX.toggleFullscreen(); true },
-            "PrintLayout" to { RemsStudioUILayouts.printLayout();true },
+            "PrintLayout" to { printLayout();true },
             "NextFrame" to {
                 RemsStudio.editorTime = (round(RemsStudio.editorTime * RemsStudio.targetFPS) + 1) / RemsStudio.targetFPS
                 RemsStudio.updateAudio()

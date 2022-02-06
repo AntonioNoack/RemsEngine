@@ -3,10 +3,6 @@ package me.anno.io.text
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.objects.text.Text
-import me.anno.studio.rems.RemsRegistry
-import java.io.File
 
 class TextWriter(initialCapacity: Int) : TextWriterBase() {
 

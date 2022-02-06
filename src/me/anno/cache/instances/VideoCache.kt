@@ -7,19 +7,20 @@ import me.anno.config.DefaultStyle.black
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.clamp
-import me.anno.video.FFMPEGMetadata
-import me.anno.video.FFMPEGMetadata.Companion.getMeta
+import me.anno.video.BlankFrameDetector
+import me.anno.video.ffmpeg.FFMPEGMetadata
+import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.VideoProxyCreator
 import me.anno.video.formats.gpu.GPUFrame
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 object VideoCache : CacheSection("Videos") {
 
     enum class Status(val color: Int) {
         FULL_SCALE_READY(0x24ff2c),
         READY(0xbbe961),
+        BLANK(0x000000),
         WAIT_FOR_GPU_UPLOAD(0x61e9e3),
         BUFFER_LOADING(0xe9e561),
         DESTROYED(0xca55e7),
@@ -39,6 +40,7 @@ object VideoCache : CacheSection("Videos") {
     fun drawLoadingStatus(
         x0: Int, y0: Int, x1: Int, y1: Int,
         file: FileReference, fps: Double = 0.0,
+        blankFrameThreshold: Float,
         timeMapper: (x: Int) -> Double,
         bufferLength: Int = VideoData.framesPerContainer
     ) {
@@ -48,34 +50,53 @@ object VideoCache : CacheSection("Videos") {
             if (meta.videoFrameCount < 2) {
                 var bestStatus = Status.MISSING
                 for (scale in 1 until maxScale) {
-                    val status = getFrameStatus(file, scale, 0, 1, 1.0)
+                    val status = getFrameStatus(file, scale, 0, 1, 1.0, blankFrameThreshold)
                     if (status.ordinal < bestStatus.ordinal) bestStatus = status
                 }
                 drawStatus(x0, y0, x1 - x0, y1 - y0, bestStatus)
             } else {
                 val fps2 = if (fps > 0.0) fps else meta.videoFPS
+                var lastFrameIndex = -1
+                var lastX = x0
+                var lastStatus = Status.INVALID_SCALE
                 // from left to right query all video data
                 for (xi in x0 until x1) {
                     val time = timeMapper(xi)
                     var bestStatus = Status.MISSING
                     if (time >= 0.0) {
-                        val frameIndex =
-                            (time * meta.videoFrameCount / meta.videoDuration).roundToInt() % meta.videoFrameCount
-                        for (scale in 1 until maxScale) {
-                            val status = getFrameStatus(file, scale, frameIndex, bufferLength, fps2)
-                            if (status.ordinal < bestStatus.ordinal) bestStatus = status
-                            if (status == Status.READY && scale == 1) bestStatus = Status.FULL_SCALE_READY
+                        val frameIndex = (time * meta.videoFrameCount / meta.videoDuration)
+                            .toInt() % meta.videoFrameCount
+                        // if frame index is same as previously, don't request again
+                        if (frameIndex == lastFrameIndex) {
+                            bestStatus = lastStatus
+                        } else {
+                            lastFrameIndex = frameIndex
+                            for (scale in 1 until maxScale) {
+                                var status =
+                                    getFrameStatus(file, scale, frameIndex, bufferLength, fps2, blankFrameThreshold)
+                                if (status == Status.READY && scale == 1) status = Status.FULL_SCALE_READY
+                                if (status.ordinal < bestStatus.ordinal) bestStatus = status
+                            }
                         }
                     } else bestStatus = Status.NO_FRAME_NEEDED
-                    drawStatus(xi, y0, 1, y1 - y0, bestStatus)
+                    // optimize drawing routine: draw blocks as one
+                    if (bestStatus != lastStatus && xi > x0) {
+                        // draw previous stripe
+                        drawStatus(lastX, y0, xi - lastX, y1 - y0, lastStatus)
+                        lastX = xi
+                    }
+                    lastStatus = bestStatus
                 }
+                // draw last stripe
+                drawStatus(lastX, y0, x1 - lastX, y1 - y0, lastStatus)
             }
         } else drawStatus(x0, y0, x1 - x0, y1 - y0, Status.META_LOADING)
     }
 
     fun getFrameStatus(
         file: FileReference, scale: Int,
-        frameIndex: Int, bufferLength: Int, fps: Double
+        frameIndex: Int, bufferLength: Int, fps: Double,
+        blankFrameThreshold: Float
     ): Status {
         if (frameIndex < 0) return Status.INVALID_INDEX
         if (scale < 1) return Status.INVALID_SCALE
@@ -87,7 +108,10 @@ object VideoCache : CacheSection("Videos") {
         return when {
             frame == null -> Status.BUFFER_LOADING
             frame.isDestroyed -> Status.DESTROYED
-            frame.isCreated -> Status.READY
+            frame.isCreated -> {
+                if (BlankFrameDetector.isBlankFrame2(file, scale, frameIndex, bufferLength, fps, blankFrameThreshold))
+                    Status.BLANK else Status.READY
+            }
             else -> Status.WAIT_FOR_GPU_UPLOAD
         }
     }

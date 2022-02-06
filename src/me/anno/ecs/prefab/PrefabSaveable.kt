@@ -6,7 +6,7 @@ import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
-import me.anno.objects.inspectable.Inspectable
+import me.anno.remsstudio.objects.inspectable.Inspectable
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option

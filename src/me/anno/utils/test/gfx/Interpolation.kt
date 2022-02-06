@@ -2,10 +2,9 @@ package me.anno.utils.test.gfx
 
 import me.anno.animation.AnimatedProperty
 import me.anno.animation.Keyframe
-import me.anno.config.DefaultConfig
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.text.TextReader
-import me.anno.objects.text.Text
+import me.anno.remsstudio.objects.text.Text
 import me.anno.utils.LOGGER
 import me.anno.utils.types.Vectors.print
 import org.joml.Vector4f

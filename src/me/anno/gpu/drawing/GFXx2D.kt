@@ -6,10 +6,10 @@ import me.anno.gpu.drawing.GFXx3D.draw3DCircle
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.maths.Maths.clamp
-import me.anno.objects.GFXTransform
-import me.anno.objects.GFXTransform.Companion.uploadAttractors0
-import me.anno.objects.Transform
-import me.anno.objects.Video
+import me.anno.remsstudio.objects.GFXTransform
+import me.anno.remsstudio.objects.GFXTransform.Companion.uploadAttractors0
+import me.anno.remsstudio.objects.Transform
+import me.anno.remsstudio.objects.Video
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 

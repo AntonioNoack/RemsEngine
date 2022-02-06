@@ -1,6 +1,6 @@
 package me.anno.video
 
-import me.anno.objects.Video
+import me.anno.remsstudio.objects.Video
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import org.apache.logging.log4j.LogManager

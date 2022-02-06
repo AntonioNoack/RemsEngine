@@ -5,7 +5,7 @@ import me.anno.cache.instances.LastModifiedCache
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.gameTime
 import me.anno.io.files.FileReference
-import me.anno.studio.rems.RemsStudio.root
+import me.anno.remsstudio.RemsStudio.root
 import me.anno.utils.ShutdownException
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.hpc.Threads.threadWithName

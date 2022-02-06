@@ -2,11 +2,11 @@ package me.anno.audio.openal
 
 import me.anno.audio.AudioStream
 import me.anno.io.files.FileReference
-import me.anno.objects.Audio
-import me.anno.objects.Camera
-import me.anno.objects.modes.LoopingState
+import me.anno.remsstudio.objects.Audio
+import me.anno.remsstudio.objects.Camera
+import me.anno.remsstudio.objects.modes.LoopingState
 import me.anno.video.AudioCreator.Companion.playbackSampleRate
-import me.anno.video.FFMPEGMetadata
+import me.anno.video.ffmpeg.FFMPEGMetadata
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.openal.AL10.*
 import java.nio.ByteBuffer

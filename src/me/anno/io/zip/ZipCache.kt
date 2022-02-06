@@ -19,7 +19,7 @@ import me.anno.mesh.blender.BlenderReader
 import me.anno.mesh.obj.MTLReader2
 import me.anno.mesh.obj.OBJReader2
 import me.anno.mesh.vox.VOXReader
-import me.anno.objects.documents.pdf.PDFCache
+import me.anno.remsstudio.objects.documents.pdf.PDFCache
 import org.apache.logging.log4j.LogManager
 
 object ZipCache : CacheSection("ZipCache") {

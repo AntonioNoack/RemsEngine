@@ -1,8 +1,8 @@
 package me.anno.language.spellcheck
 
 import me.anno.language.Language
-import me.anno.studio.rems.Project
-import me.anno.studio.rems.RemsStudio.project
+import me.anno.remsstudio.Project
+import me.anno.remsstudio.RemsStudio.project
 import me.anno.utils.LOGGER
 import me.anno.utils.OS
 

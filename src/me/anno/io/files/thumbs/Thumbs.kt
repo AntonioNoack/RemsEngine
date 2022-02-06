@@ -66,9 +66,9 @@ import me.anno.io.text.TextReader
 import me.anno.io.unity.UnityReader
 import me.anno.io.zip.ZipCache
 import me.anno.mesh.assimp.AnimGameItem
-import me.anno.objects.Video
-import me.anno.objects.documents.pdf.PDFCache
-import me.anno.objects.meshes.MeshData
+import me.anno.remsstudio.objects.Video
+import me.anno.remsstudio.objects.documents.pdf.PDFCache
+import me.anno.remsstudio.objects.meshes.MeshData
 import me.anno.ui.base.Font
 import me.anno.utils.Color.hex4
 import me.anno.utils.ShutdownException
@@ -81,7 +81,7 @@ import me.anno.utils.input.Input.readNBytes2
 import me.anno.maths.Maths.clamp
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.types.Strings.getImportType
-import me.anno.video.FFMPEGMetadata.Companion.getMeta
+import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
 import net.boeckling.crc.CRC64
 import org.apache.logging.log4j.LogManager
 import org.joml.*

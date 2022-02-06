@@ -6,8 +6,8 @@ import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
 import me.anno.audio.effects.Time
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.objects.Audio
-import me.anno.objects.Camera
+import me.anno.remsstudio.objects.Audio
+import me.anno.remsstudio.objects.Camera
 import me.anno.animation.AnimatedProperty
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory

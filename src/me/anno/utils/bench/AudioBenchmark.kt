@@ -3,8 +3,8 @@ package me.anno.utils.bench
 import me.anno.Engine
 import me.anno.audio.AudioFXCache
 import me.anno.audio.AudioFXCache.SPLITS
-import me.anno.objects.Camera
-import me.anno.objects.Video
+import me.anno.remsstudio.objects.Camera
+import me.anno.remsstudio.objects.Video
 import me.anno.maths.Maths.mix
 import me.anno.utils.OS
 import me.anno.utils.Sleep

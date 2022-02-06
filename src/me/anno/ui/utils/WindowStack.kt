@@ -1,11 +1,14 @@
 package me.anno.ui.utils
 
 import me.anno.config.DefaultConfig
-import me.anno.ui.Window
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.Input
+import me.anno.remsstudio.RemsStudioUILayouts
+import me.anno.studio.StudioBase
 import me.anno.ui.Panel
+import me.anno.ui.Window
 import me.anno.utils.pooling.JomlPools
+import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import java.util.*
 import kotlin.math.max
@@ -141,6 +144,34 @@ class WindowStack : Stack<Window>() {
     fun destroy() {
         forEach { it.destroy() }
         clear()
+    }
+
+    companion object {
+
+        private val LOGGER = LogManager.getLogger(WindowStack::class.java)
+
+        /**
+         * prints the layout for UI debugging
+         * */
+        fun printLayout() {
+            LOGGER.info("Layout:")
+            for (window1 in StudioBase.instance!!.windowStack) {
+                window1.panel.printLayout(1)
+            }
+        }
+
+        fun createReloadWindow(panel: Panel, fullscreen: Boolean, reload: () -> Unit): Window {
+            return object : Window(
+                panel, fullscreen, StudioBase.instance!!.windowStack,
+                if (fullscreen) 0 else Input.mouseX.toInt(),
+                if (fullscreen) 0 else Input.mouseY.toInt()
+            ) {
+                override fun destroy() {
+                    reload()
+                }
+            }
+        }
+
     }
 
 

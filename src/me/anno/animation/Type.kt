@@ -63,6 +63,7 @@ class Type(
         val LONG = Type(0L, 1, 1f, true, true, null, ::castToLong)
         val FLOAT = Type(0f, 1, 1f, true, true, null, ::castToFloat)
         val FLOAT_01 = Type(0f, 1, 1f, true, true, { clamp(castToFloat2(it), 0f, 1f) }, ::castToFloat)
+        val FLOAT_03 = Type(0f, 1, 1f, true, true, { clamp(castToFloat2(it), 0f, 3f) }, ::castToFloat)
         val FLOAT_01_EXP = Type(0f, 1, 1f, false, true, { clamp(castToFloat2(it), 0f, 1f) }, ::castToFloat)
         val FLOAT_PLUS = Type(0f, 1, 1f, true, true, { max(castToFloat2(it), 0f) }, ::castToFloat)
         val FLOAT_PLUS_EXP = Type(0f, 1, 1f, false, true, { max(castToFloat2(it), 0f) }, ::castToFloat)

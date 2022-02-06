@@ -1,14 +1,14 @@
 package me.anno.audio.openal
 
 import me.anno.maths.Maths.MILLIS_TO_NANOS
-import me.anno.objects.Audio
-import me.anno.objects.Transform
+import me.anno.remsstudio.objects.Audio
+import me.anno.remsstudio.objects.Transform
 import me.anno.studio.StudioBase.Companion.shallStop
-import me.anno.studio.rems.RemsStudio
-import me.anno.studio.rems.RemsStudio.editorTime
-import me.anno.studio.rems.RemsStudio.editorTimeDilation
-import me.anno.studio.rems.RemsStudio.nullCamera
-import me.anno.studio.rems.RemsStudio.root
+import me.anno.remsstudio.RemsStudio
+import me.anno.remsstudio.RemsStudio.editorTime
+import me.anno.remsstudio.RemsStudio.editorTimeDilation
+import me.anno.remsstudio.RemsStudio.nullCamera
+import me.anno.remsstudio.RemsStudio.root
 import me.anno.utils.Sleep.sleepABit
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.openal.AL

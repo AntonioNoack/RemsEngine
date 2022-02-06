@@ -11,7 +11,7 @@ import me.anno.io.json.JsonObject
 import me.anno.io.json.JsonReader
 import me.anno.language.Language
 import me.anno.language.translation.Dict
-import me.anno.studio.rems.RemsStudio.project
+import me.anno.remsstudio.RemsStudio.project
 import me.anno.utils.Color.hex8
 import me.anno.utils.OS
 import me.anno.utils.ShutdownException

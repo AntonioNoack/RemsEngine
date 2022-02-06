@@ -36,10 +36,10 @@ import me.anno.io.zip.InnerLinkFile
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.mixARGB
 import me.anno.maths.Maths.sq
-import me.anno.objects.Audio
-import me.anno.objects.Camera
-import me.anno.objects.Video
-import me.anno.objects.modes.LoopingState
+import me.anno.remsstudio.objects.Audio
+import me.anno.remsstudio.objects.Camera
+import me.anno.remsstudio.objects.Video
+import me.anno.remsstudio.objects.modes.LoopingState
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
@@ -58,8 +58,8 @@ import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Strings.formatTime
 import me.anno.utils.types.Strings.getImportType
 import me.anno.utils.types.Strings.isBlank2
-import me.anno.video.FFMPEGMetadata
-import me.anno.video.FFMPEGMetadata.Companion.getMeta
+import me.anno.video.ffmpeg.FFMPEGMetadata
+import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.formats.gpu.GPUFrame
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4fArrayList

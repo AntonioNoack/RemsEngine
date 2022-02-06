@@ -3,8 +3,6 @@ package me.anno.ecs.components.shaders.effects
 import me.anno.engine.ui.render.Renderers.toneMapping
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.OpenGL.useFrame
-import me.anno.gpu.shader.ShaderLib.simplestVertexShader
-import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.deferred.DeferredSettingsV2.Companion.singleToVector
@@ -12,10 +10,12 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
+import me.anno.gpu.shader.ShaderLib.simplestVertexShader
+import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
-import me.anno.studio.rems.Scene
 import org.joml.Matrix4f
 
 // https://lettier.github.io/3d-game-shaders-for-beginners/screen-space-reflection.html
@@ -50,7 +50,7 @@ object ScreenSpaceReflections {
 
                     "uniform bool applyToneMapping;\n" +
 
-                    Scene.noiseFunc +
+                    noiseFunc +
                     toneMapping +
 
                     "void main() {\n" +

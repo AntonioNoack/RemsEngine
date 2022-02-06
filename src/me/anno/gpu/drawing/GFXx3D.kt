@@ -18,13 +18,13 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
-import me.anno.objects.GFXTransform
-import me.anno.objects.Video
-import me.anno.objects.effects.MaskType
-import me.anno.objects.geometric.Circle
-import me.anno.objects.geometric.Polygon
-import me.anno.objects.modes.UVProjection
-import me.anno.studio.rems.RemsStudio
+import me.anno.remsstudio.objects.GFXTransform
+import me.anno.remsstudio.objects.Video
+import me.anno.remsstudio.objects.effects.MaskType
+import me.anno.remsstudio.objects.geometric.Circle
+import me.anno.remsstudio.objects.geometric.Polygon
+import me.anno.remsstudio.objects.modes.UVProjection
+import me.anno.remsstudio.RemsStudio
 import me.anno.video.formats.gpu.GPUFrame
 import ofx.mio.OpticalFlow
 import org.joml.*
@@ -171,6 +171,7 @@ object GFXx3D {
     private val tmp0 = Vector3f()
     private val tmp1 = Vector3f()
     private val tmp2 = Vector4f()
+
     fun colorGradingUniforms(video: Video?, time: Double, shader: Shader) {
         if (video == null) {
             shader.v3f("cgOffset", 0f)

@@ -3,12 +3,12 @@ package me.anno.audio
 import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
 import me.anno.audio.effects.Time
 import me.anno.io.files.FileReference
-import me.anno.objects.Audio
-import me.anno.objects.Camera
-import me.anno.objects.modes.LoopingState
+import me.anno.remsstudio.objects.Audio
+import me.anno.remsstudio.objects.Camera
+import me.anno.remsstudio.objects.modes.LoopingState
 import me.anno.utils.pooling.ByteBufferPool
-import me.anno.video.FFMPEGMetadata
-import me.anno.video.FFMPEGMetadata.Companion.getMeta
+import me.anno.video.ffmpeg.FFMPEGMetadata
+import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.ShortBuffer

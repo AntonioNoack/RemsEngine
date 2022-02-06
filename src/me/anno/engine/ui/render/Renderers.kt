@@ -13,12 +13,14 @@ import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
+import me.anno.gpu.shader.ShaderFuncLib.reinhardToneMapping
 import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.shader.builder.Function
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.studio.rems.Scene
+import me.anno.remsstudio.Scene
 import me.anno.maths.Maths.length
 import me.anno.utils.pooling.ByteBufferPool
 import org.joml.Vector4f
@@ -156,7 +158,7 @@ object Renderers {
                     "       finalColor = toneMapping(finalColor);\n" +
                     "   }\n"
             ).apply {
-                val src = Scene.noiseFunc + toneMapping
+                val src = noiseFunc + toneMapping
                 functions.add(Function(src))
             }
         }
@@ -271,8 +273,7 @@ object Renderers {
                         // "finalAlpha = clamp(finalAlpha + 10.0 * fresnel3, 0.0, 1.0);\n"
                         ""
             ).apply {
-                val src = Scene.reinhardToneMapping +
-                        Scene.noiseFunc
+                val src = reinhardToneMapping + noiseFunc
                 functions.add(Function(src))
             }
         }

@@ -5,8 +5,8 @@ import me.anno.config.DefaultConfig.style
 import me.anno.config.DefaultStyle.black
 import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
-import me.anno.objects.text.TextInspector
-import me.anno.studio.rems.RemsStudio.root
+import me.anno.remsstudio.objects.text.TextInspector
+import me.anno.remsstudio.RemsStudio.root
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.text.TextPanel

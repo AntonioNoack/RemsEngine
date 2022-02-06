@@ -8,7 +8,7 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
-import me.anno.objects.GFXTransform
+import me.anno.remsstudio.objects.GFXTransform
 import me.anno.maths.Maths.fract
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4fc

@@ -17,8 +17,8 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.mesh.FindLines
 import me.anno.mesh.assimp.AnimGameItem
-import me.anno.objects.GFXTransform
-import me.anno.objects.meshes.MeshData
+import me.anno.remsstudio.objects.GFXTransform
+import me.anno.remsstudio.objects.meshes.MeshData
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g

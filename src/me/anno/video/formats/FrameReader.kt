@@ -3,9 +3,9 @@ package me.anno.video.formats
 import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.waitUntil
-import me.anno.video.FFMPEGMetaParser
-import me.anno.video.FFMPEGStream
-import me.anno.video.IsFFMPEGOnly.isFFMPEGOnlyExtension
+import me.anno.video.ffmpeg.FFMPEGMetaParser
+import me.anno.video.ffmpeg.FFMPEGStream
+import me.anno.video.ffmpeg.IsFFMPEGOnly.isFFMPEGOnlyExtension
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 import kotlin.concurrent.thread

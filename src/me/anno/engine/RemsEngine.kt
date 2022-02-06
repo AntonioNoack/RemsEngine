@@ -14,19 +14,17 @@ import me.anno.input.ActionManager
 import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
 import me.anno.studio.StudioBase
-import me.anno.studio.rems.StudioActions
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.debug.FrameTimes
 import me.anno.ui.editor.OptionBar
-import me.anno.ui.editor.RemsStudioUILayouts.createReloadWindow
 import me.anno.ui.editor.config.ConfigPanel
+import me.anno.ui.utils.WindowStack.Companion.createReloadWindow
 import me.anno.utils.OS
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
-
 
 // todo runtime-components/hierarchy: must be displayed
 // todo must have warning
@@ -214,7 +212,7 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         windowStack.push(list)
 
         ECSSceneTabs.window = windowStack.firstElement()
-        StudioActions.register()
+        EngineActions.register()
         ActionManager.init()
 
     }

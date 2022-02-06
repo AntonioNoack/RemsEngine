@@ -7,7 +7,7 @@ import me.anno.gpu.SVGxGFX
 import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.texture.Filtering
 import me.anno.io.files.FileReference
-import me.anno.objects.Video
+import me.anno.remsstudio.objects.Video
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestStudio
 import me.anno.utils.OS

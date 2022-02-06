@@ -11,10 +11,10 @@ import me.anno.gpu.texture.TextureLib.bindWhite
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.Shader
-import me.anno.objects.GFXTransform
-import me.anno.objects.Transform.Companion.xAxis
-import me.anno.objects.Transform.Companion.yAxis
-import me.anno.objects.Transform.Companion.zAxis
+import me.anno.remsstudio.objects.GFXTransform
+import me.anno.remsstudio.objects.Transform.Companion.xAxis
+import me.anno.remsstudio.objects.Transform.Companion.yAxis
+import me.anno.remsstudio.objects.Transform.Companion.zAxis
 import me.anno.utils.Color.withAlpha
 import me.anno.maths.Maths.distance
 import me.anno.maths.Maths.length

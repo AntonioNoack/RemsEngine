@@ -7,7 +7,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.SceneView
 import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
-import me.anno.objects.inspectable.Inspectable
+import me.anno.remsstudio.objects.inspectable.Inspectable
 import me.anno.ui.Panel
 import me.anno.ui.custom.Type
 import me.anno.ui.custom.UITypeLibrary

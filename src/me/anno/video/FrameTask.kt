@@ -15,8 +15,8 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D.Companion.packAlignment
 import me.anno.io.files.FileReference
-import me.anno.objects.Transform
-import me.anno.studio.rems.Scene
+import me.anno.remsstudio.objects.Transform
+import me.anno.remsstudio.Scene
 import me.anno.utils.Color.rgba
 import me.anno.utils.hpc.Threads.threadWithName
 import org.apache.logging.log4j.LogManager

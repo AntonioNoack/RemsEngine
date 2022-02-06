@@ -4,10 +4,10 @@ import me.anno.animation.Interpolation
 import me.anno.io.csv.CSVReader
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.text.TextWriter
-import me.anno.objects.Transform
-import me.anno.objects.geometric.Circle
-import me.anno.objects.geometric.LinePolygon
-import me.anno.studio.rems.RemsRegistry
+import me.anno.remsstudio.objects.Transform
+import me.anno.remsstudio.objects.geometric.Circle
+import me.anno.remsstudio.objects.geometric.LinePolygon
+import me.anno.remsstudio.RemsRegistry
 import me.anno.utils.OS
 import org.joml.Vector3f
 

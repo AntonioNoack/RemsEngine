@@ -4,8 +4,8 @@ import me.anno.audio.AudioFXCache
 import me.anno.audio.effects.Domain
 import me.anno.audio.effects.Time
 import me.anno.audio.effects.impl.EqualizerEffect
-import me.anno.objects.Camera
-import me.anno.objects.Video
+import me.anno.remsstudio.objects.Camera
+import me.anno.remsstudio.objects.Video
 import me.anno.utils.LOGGER
 import me.anno.maths.Maths.pow
 import me.anno.utils.OS

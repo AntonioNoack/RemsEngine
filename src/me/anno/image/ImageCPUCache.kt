@@ -13,8 +13,8 @@ import me.anno.io.files.Signature
 import me.anno.io.zip.SignatureFile
 import me.anno.utils.Sleep
 import me.anno.maths.Maths.min
-import me.anno.video.FFMPEGMetadata
-import me.anno.video.FFMPEGStream
+import me.anno.video.ffmpeg.FFMPEGMetadata
+import me.anno.video.ffmpeg.FFMPEGStream
 import net.sf.image4j.codec.ico.ICODecoder
 import org.apache.commons.imaging.Imaging
 import org.apache.logging.log4j.LogManager

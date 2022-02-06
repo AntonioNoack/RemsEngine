@@ -2,9 +2,8 @@ package me.anno.utils.test
 
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
-import me.anno.objects.Transform
+import me.anno.remsstudio.objects.Transform
 import me.anno.utils.Clock
-import java.io.File
 
 fun <V> measure(name: String, func: () -> V): V {
     val c = Clock()

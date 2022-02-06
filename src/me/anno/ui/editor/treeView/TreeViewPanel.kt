@@ -12,10 +12,10 @@ import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.io.text.TextReader
 import me.anno.language.translation.NameDesc
-import me.anno.objects.Transform
+import me.anno.remsstudio.objects.Transform
 import me.anno.studio.StudioBase.Companion.dragged
-import me.anno.studio.rems.RemsStudio
-import me.anno.studio.rems.Selection.selectedTransform
+import me.anno.remsstudio.RemsStudio
+import me.anno.remsstudio.Selection.selectedTransform
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListX

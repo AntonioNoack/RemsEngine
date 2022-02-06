@@ -6,9 +6,9 @@ import me.anno.utils.OS
 import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.types.Strings.formatDownload
 import me.anno.utils.types.Strings.formatDownloadEnd
-import me.anno.video.FFMPEG
-import me.anno.video.FFMPEG.ffmpegPath
-import me.anno.video.FFMPEG.ffprobePath
+import me.anno.video.ffmpeg.FFMPEG
+import me.anno.video.ffmpeg.FFMPEG.ffmpegPath
+import me.anno.video.ffmpeg.FFMPEG.ffprobePath
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.net.HttpURLConnection

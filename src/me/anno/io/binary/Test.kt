@@ -2,13 +2,13 @@ package me.anno.io.binary
 
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.text.TextWriter
-import me.anno.objects.Camera
-import me.anno.objects.Transform
-import me.anno.objects.Video
-import me.anno.objects.geometric.Circle
-import me.anno.objects.geometric.Polygon
-import me.anno.objects.particles.ParticleSystem
-import me.anno.objects.text.Text
+import me.anno.remsstudio.objects.Camera
+import me.anno.remsstudio.objects.Transform
+import me.anno.remsstudio.objects.Video
+import me.anno.remsstudio.objects.geometric.Circle
+import me.anno.remsstudio.objects.geometric.Polygon
+import me.anno.remsstudio.objects.particles.ParticleSystem
+import me.anno.remsstudio.objects.text.Text
 import me.anno.utils.OS
 import me.anno.utils.files.Files.use
 import org.apache.logging.log4j.LogManager

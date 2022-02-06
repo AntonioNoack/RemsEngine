@@ -2,9 +2,9 @@ package me.anno.audio.effects
 
 import me.anno.io.Saveable
 import me.anno.io.text.TextReader
-import me.anno.objects.Audio
-import me.anno.objects.Camera
-import me.anno.objects.inspectable.Inspectable
+import me.anno.remsstudio.objects.Audio
+import me.anno.remsstudio.objects.Camera
+import me.anno.remsstudio.objects.inspectable.Inspectable
 
 abstract class SoundEffect(val inputDomain: Domain, val outputDomain: Domain) : Saveable(),
     Inspectable {

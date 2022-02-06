@@ -8,12 +8,12 @@ import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.language.translation.NameDesc
-import me.anno.objects.Camera
+import me.anno.remsstudio.objects.Camera
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
-import me.anno.studio.rems.RemsStudio
-import me.anno.studio.rems.Selection.selectedProperty
-import me.anno.studio.rems.Selection.selectedTransform
+import me.anno.remsstudio.RemsStudio
+import me.anno.remsstudio.Selection.selectedProperty
+import me.anno.remsstudio.Selection.selectedTransform
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.SizeLimitingContainer
 import me.anno.ui.base.groups.PanelListX

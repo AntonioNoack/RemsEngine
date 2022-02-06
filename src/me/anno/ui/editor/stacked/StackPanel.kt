@@ -2,7 +2,7 @@ package me.anno.ui.editor.stacked
 
 import me.anno.input.MouseButton
 import me.anno.language.translation.NameDesc
-import me.anno.objects.inspectable.Inspectable
+import me.anno.remsstudio.objects.inspectable.Inspectable
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer

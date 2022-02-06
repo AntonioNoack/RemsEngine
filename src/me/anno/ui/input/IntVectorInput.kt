@@ -6,9 +6,9 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.io.text.TextReader
 import me.anno.studio.StudioBase.Companion.warn
-import me.anno.studio.rems.RemsStudio
-import me.anno.studio.rems.RemsStudio.editorTime
-import me.anno.studio.rems.Selection.selectedProperty
+import me.anno.remsstudio.RemsStudio
+import me.anno.remsstudio.RemsStudio.editorTime
+import me.anno.remsstudio.Selection.selectedProperty
 import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.WrapAlign

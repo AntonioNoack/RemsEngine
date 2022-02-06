@@ -1,7 +1,7 @@
 package me.anno.ui.input.components
 
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.studio.rems.RemsStudio.project
+import me.anno.remsstudio.RemsStudio.project
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.style.Style

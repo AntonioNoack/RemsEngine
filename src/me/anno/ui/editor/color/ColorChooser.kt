@@ -7,7 +7,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.input.Input
 import me.anno.io.serialization.NotSerializedProperty
-import me.anno.studio.rems.RemsStudio.editorTime
+import me.anno.remsstudio.RemsStudio.editorTime
 import me.anno.ui.Panel
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.Visibility

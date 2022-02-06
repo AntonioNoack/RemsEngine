@@ -7,8 +7,8 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.Dict
 import me.anno.studio.StudioBase.Companion.dragged
-import me.anno.studio.rems.RemsStudio
-import me.anno.studio.rems.ui.StudioFileImporter.addChildFromFile
+import me.anno.remsstudio.RemsStudio
+import me.anno.remsstudio.ui.StudioFileImporter.addChildFromFile
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.editor.files.FileContentImporter

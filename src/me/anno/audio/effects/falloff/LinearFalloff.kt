@@ -1,7 +1,6 @@
 package me.anno.audio.effects.falloff
 
 import me.anno.audio.effects.SoundEffect
-import me.anno.objects.Audio
 import kotlin.math.max
 
 class LinearFalloff() : Falloff() {

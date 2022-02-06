@@ -1,6 +1,6 @@
 package me.anno.utils.test
 
-import me.anno.studio.rems.RemsStudio
+import me.anno.remsstudio.RemsStudio
 import me.anno.utils.OS
 
 fun main() {

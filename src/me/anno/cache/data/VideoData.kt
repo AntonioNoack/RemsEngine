@@ -1,9 +1,9 @@
 package me.anno.cache.data
 
 import me.anno.io.files.FileReference
-import me.anno.studio.rems.RemsStudio.gfxSettings
-import me.anno.video.FFMPEGMetadata
-import me.anno.video.FFMPEGStream
+import me.anno.remsstudio.RemsStudio.gfxSettings
+import me.anno.video.ffmpeg.FFMPEGMetadata
+import me.anno.video.ffmpeg.FFMPEGStream
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 

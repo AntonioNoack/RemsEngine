@@ -10,7 +10,7 @@ package me.anno.studio;
 // done move entries in tree
 
 import me.anno.studio.cli.RemsCLI;
-import me.anno.studio.rems.RemsStudio;
+import me.anno.remsstudio.RemsStudio;
 
 public class Runner {
 

@@ -9,7 +9,7 @@ import me.anno.gpu.GFX.glThread
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
-import me.anno.studio.rems.RemsStudio.root
+import me.anno.remsstudio.RemsStudio.root
 import me.anno.utils.WrongClassType
 import me.anno.maths.Maths.clamp
 import me.anno.utils.structures.lists.UnsafeArrayList

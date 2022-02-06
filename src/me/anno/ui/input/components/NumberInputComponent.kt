@@ -4,11 +4,10 @@ import me.anno.animation.AnimatedProperty
 import me.anno.animation.drivers.AnimationDriver
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isLeftDown
-import me.anno.input.Input.mouseKeysDown
 import me.anno.input.MouseButton
-import me.anno.studio.rems.RemsStudio
-import me.anno.studio.rems.RemsStudio.editorTime
-import me.anno.studio.rems.Selection.selectProperty
+import me.anno.remsstudio.RemsStudio
+import me.anno.remsstudio.RemsStudio.editorTime
+import me.anno.remsstudio.Selection.selectProperty
 import me.anno.ui.input.FloatInput
 import me.anno.ui.input.IntInput
 import me.anno.ui.input.NumberInput

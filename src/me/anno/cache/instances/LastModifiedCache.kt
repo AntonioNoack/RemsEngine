@@ -3,6 +3,7 @@ package me.anno.cache.instances
 import me.anno.gpu.GFX.gameTime
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
+import me.anno.maths.Maths.MILLIS_TO_NANOS
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
@@ -77,6 +78,6 @@ object LastModifiedCache {
         values.clear()
     }
 
-    const val timeoutNanos = 20_000_000_000L
+    const val timeoutNanos = 20L * MILLIS_TO_NANOS
 
 }

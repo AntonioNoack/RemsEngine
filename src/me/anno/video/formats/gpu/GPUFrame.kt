@@ -8,7 +8,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
-import me.anno.objects.effects.BlankFrameDetector
+import me.anno.video.BlankFrameDetector
 import me.anno.utils.OS.desktop
 import me.anno.utils.Sleep.waitForGFXThread
 import me.anno.utils.files.Files.findNextFile

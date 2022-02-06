@@ -14,9 +14,9 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
-import me.anno.objects.Camera
-import me.anno.objects.Transform
-import me.anno.studio.rems.Scene
+import me.anno.remsstudio.objects.Camera
+import me.anno.remsstudio.objects.Transform
+import me.anno.remsstudio.Scene
 import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.video.FrameTask.Companion.missingResource
 import org.lwjgl.opengl.GL11.*

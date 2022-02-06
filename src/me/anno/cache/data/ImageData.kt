@@ -22,8 +22,8 @@ import me.anno.image.tar.TGAImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
-import me.anno.objects.Video.Companion.imageTimeout
-import me.anno.objects.modes.RotateJPEG
+import me.anno.remsstudio.objects.Video.Companion.imageTimeout
+import me.anno.remsstudio.objects.modes.RotateJPEG
 import me.anno.utils.Nullable.tryOrException
 import me.anno.utils.Nullable.tryOrNull
 import me.anno.utils.Sleep.waitUntilDefined
