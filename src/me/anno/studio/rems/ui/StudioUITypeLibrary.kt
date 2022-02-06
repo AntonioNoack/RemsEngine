@@ -13,7 +13,7 @@ import me.anno.ui.custom.Type
 import me.anno.ui.custom.UITypeLibrary
 import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.TimelinePanel
-import me.anno.ui.editor.cutting.CuttingView
+import me.anno.ui.editor.cutting.LayerViewContainer
 import me.anno.ui.editor.files.FileExplorer.Companion.invalidateFileExplorers
 import me.anno.ui.editor.files.FileExplorerOption
 import me.anno.ui.editor.files.toAllowedFilename
@@ -49,7 +49,7 @@ class StudioUITypeLibrary : UITypeLibrary(typeList) {
             Dict["Tree View", "ui.customize.treeView"] to { StudioTreeView(DefaultConfig.style) },
             Dict["Properties", "ui.customize.inspector"] to
                     { PropertyInspector({ Selection.selectedInspectable }, DefaultConfig.style, Unit) },
-            Dict["Cutting Panel", "ui.customize.cuttingPanel"] to { CuttingView(DefaultConfig.style) },
+            Dict["Cutting Panel", "ui.customize.cuttingPanel"] to { LayerViewContainer(DefaultConfig.style) },
             Dict["Timeline", "ui.customize.timeline"] to { TimelinePanel(DefaultConfig.style) },
             Dict["Animations", "ui.customize.graphEditor"] to { GraphEditor(DefaultConfig.style) },
             Dict["Files", "ui.customize.fileExplorer"] to

@@ -5,7 +5,7 @@ import org.joml.Vector4f
 
 fun main(){
 
-    val g = Gradient(null,
+    val g = LayerViewGradient(null,
         0, 2,
         Vector4f(0f, 0f, 0f, 0f), Vector4f(0.2f, 0f, 0f, 0.2f)
     )
@@ -26,7 +26,7 @@ fun t1(){
 
     val logger = LogManager.getLogger("TestLinear")
 
-    val g = Gradient(null,
+    val g = LayerViewGradient(null,
         0, 1,
         Vector4f(0f), Vector4f(1f)
     )

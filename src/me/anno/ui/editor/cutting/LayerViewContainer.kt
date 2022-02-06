@@ -7,8 +7,9 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.style.Style
 
-class CuttingView(style: Style) : ScrollPanelY(Padding(0), AxisAlignment.MIN, style) {
+class LayerViewContainer(style: Style) : ScrollPanelY(Padding(0), AxisAlignment.MIN, style) {
 
+    // todo this could be more beautiful, maybe automatically managed or sth like that...
     private val addLayerButton = TextButton("+", true, style)
         .addLeftClickListener { addLayer() }
 
@@ -32,6 +33,6 @@ class CuttingView(style: Style) : ScrollPanelY(Padding(0), AxisAlignment.MIN, st
         layers.children.add(addLayerButton)
     }
 
-    override val className: String = "CuttingView"
+    override val className: String = "LayerViewContainer"
 
 }

@@ -44,7 +44,7 @@ import me.anno.ui.custom.CustomContainer
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.ConsoleOutputPanel.Companion.createConsoleWithStats
 import me.anno.ui.editor.config.ConfigPanel
-import me.anno.ui.editor.cutting.CuttingView
+import me.anno.ui.editor.cutting.LayerViewContainer
 import me.anno.ui.editor.graphs.GraphEditor
 import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.editor.sceneView.StudioSceneView
@@ -226,7 +226,7 @@ object RemsStudioUILayouts {
         val timeline = GraphEditor(style)
         customUI.add(CustomContainer(timeline, library, style), 0.25f)
 
-        val linear = CuttingView(style)
+        val linear = LayerViewContainer(style)
         customUI.add(CustomContainer(linear, library, style), 0.25f)
 
         return customUI

@@ -3,20 +3,94 @@ package me.anno.cache.instances
 import me.anno.cache.CacheSection
 import me.anno.cache.data.VideoData
 import me.anno.cache.keys.VideoFramesKey
+import me.anno.config.DefaultStyle.black
+import me.anno.gpu.drawing.DrawRectangles
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.clamp
 import me.anno.video.FFMPEGMetadata
 import me.anno.video.FFMPEGMetadata.Companion.getMeta
-import me.anno.video.formats.gpu.GPUFrame
 import me.anno.video.VideoProxyCreator
+import me.anno.video.formats.gpu.GPUFrame
 import kotlin.math.max
 import kotlin.math.min
-
-// todo visualize, what is loaded (resolution, audio & video) for future debugging
+import kotlin.math.roundToInt
 
 object VideoCache : CacheSection("Videos") {
 
+    enum class Status(val color: Int) {
+        FULL_SCALE_READY(0x24ff2c),
+        READY(0xbbe961),
+        WAIT_FOR_GPU_UPLOAD(0x61e9e3),
+        BUFFER_LOADING(0xe9e561),
+        DESTROYED(0xca55e7),
+        NO_FRAME_NEEDED(0xa09da1),
+        MISSING(0x9b634e),
+        INVALID_INDEX(0xe73838),
+        INVALID_SCALE(0xe73845),
+        META_LOADING(0x442d24)
+    }
+
     private val videoGenLimit = 16
+
+    private fun drawStatus(x: Int, y: Int, w: Int, h: Int, status: Status) {
+        DrawRectangles.drawRect(x, y, w, h, status.color or black)
+    }
+
+    fun drawLoadingStatus(
+        x0: Int, y0: Int, x1: Int, y1: Int,
+        file: FileReference, fps: Double = 0.0,
+        timeMapper: (x: Int) -> Double,
+        bufferLength: Int = VideoData.framesPerContainer
+    ) {
+        val meta = getMeta(file, true)
+        val maxScale = 32
+        if (meta != null) {
+            if (meta.videoFrameCount < 2) {
+                var bestStatus = Status.MISSING
+                for (scale in 1 until maxScale) {
+                    val status = getFrameStatus(file, scale, 0, 1, 1.0)
+                    if (status.ordinal < bestStatus.ordinal) bestStatus = status
+                }
+                drawStatus(x0, y0, x1 - x0, y1 - y0, bestStatus)
+            } else {
+                val fps2 = if (fps > 0.0) fps else meta.videoFPS
+                // from left to right query all video data
+                for (xi in x0 until x1) {
+                    val time = timeMapper(xi)
+                    var bestStatus = Status.MISSING
+                    if (time >= 0.0) {
+                        val frameIndex =
+                            (time * meta.videoFrameCount / meta.videoDuration).roundToInt() % meta.videoFrameCount
+                        for (scale in 1 until maxScale) {
+                            val status = getFrameStatus(file, scale, frameIndex, bufferLength, fps2)
+                            if (status.ordinal < bestStatus.ordinal) bestStatus = status
+                            if (status == Status.READY && scale == 1) bestStatus = Status.FULL_SCALE_READY
+                        }
+                    } else bestStatus = Status.NO_FRAME_NEEDED
+                    drawStatus(xi, y0, 1, y1 - y0, bestStatus)
+                }
+            }
+        } else drawStatus(x0, y0, x1 - x0, y1 - y0, Status.META_LOADING)
+    }
+
+    fun getFrameStatus(
+        file: FileReference, scale: Int,
+        frameIndex: Int, bufferLength: Int, fps: Double
+    ): Status {
+        if (frameIndex < 0) return Status.INVALID_INDEX
+        if (scale < 1) return Status.INVALID_SCALE
+        val bufferIndex = frameIndex / bufferLength
+        val localIndex = frameIndex % bufferLength
+        val videoData = getVideoFramesWithoutGenerator(file, scale, bufferIndex, bufferLength, fps)
+            ?: return Status.MISSING
+        val frame = videoData.frames.getOrNull(localIndex)
+        return when {
+            frame == null -> Status.BUFFER_LOADING
+            frame.isDestroyed -> Status.DESTROYED
+            frame.isCreated -> Status.READY
+            else -> Status.WAIT_FOR_GPU_UPLOAD
+        }
+    }
 
     private fun getVideoFrames(
         file: FileReference, scale: Int,
@@ -54,11 +128,11 @@ object VideoCache : CacheSection("Videos") {
 
     fun getFrame(
         file: FileReference, scale: Int,
-        index: Int, bufferIndex: Int, bufferLength: Int,
+        frameIndex: Int, bufferIndex: Int, bufferLength: Int,
         fps: Double, timeout: Long, async: Boolean,
         needsToBeCreated: Boolean = true
     ): GPUFrame? {
-        val localIndex = index % bufferLength
+        val localIndex = frameIndex % bufferLength
         val videoData = getVideoFrames(file, scale, bufferIndex, bufferLength, fps, timeout, async) ?: return null
         val frame = videoData.frames.getOrNull(localIndex)
         return if (!needsToBeCreated || frame?.isCreated == true) frame else null
@@ -66,11 +140,11 @@ object VideoCache : CacheSection("Videos") {
 
     fun getFrameWithoutGenerator(
         file: FileReference, scale: Int,
-        index: Int, bufferIndex: Int, bufferLength: Int,
+        frameIndex: Int, bufferIndex: Int, bufferLength: Int,
         fps: Double
     ): GPUFrame? {
         val videoData = getVideoFramesWithoutGenerator(file, scale, bufferIndex, bufferLength, fps) ?: return null
-        val frame = videoData.frames.getOrNull(index % bufferLength)
+        val frame = videoData.frames.getOrNull(frameIndex % bufferLength)
         return if (frame?.isCreated == true) frame else null
     }
 
@@ -132,26 +206,26 @@ object VideoCache : CacheSection("Videos") {
     fun getVideoFrame(
         file: FileReference,
         scale: Int,
-        index: Int,
+        frameIndex: Int,
         bufferLength0: Int,
         fps: Double,
         timeout: Long,
         async: Boolean
     ): GPUFrame? {
-        if (index < 0) return null
+        if (frameIndex < 0) return null
         if (scale < 1) throw IllegalArgumentException("Scale must not be < 1")
         val bufferLength = max(1, bufferLength0)
-        val bufferIndex = index / bufferLength
+        val bufferIndex = frameIndex / bufferLength
         // if scale >= 4 && width >= 200 create a smaller version in case using ffmpeg
         if (bufferLength0 > 1 && scale >= 4 && (getMeta(file, async)?.run {
                 min(videoWidth, videoHeight) >= VideoProxyCreator.minSizeForScaling
             } == true)) {
             val file2 = VideoProxyCreator.getProxyFile(file)
             if (file2 != null) {
-                return getVideoFrame(file2, (scale + 2) / 4, index, bufferLength0, fps, timeout, async)
+                return getVideoFrame(file2, (scale + 2) / 4, frameIndex, bufferLength0, fps, timeout, async)
             }
         }
-        return getFrame(file, scale, index, bufferIndex, bufferLength, fps, timeout, async)
+        return getFrame(file, scale, frameIndex, bufferIndex, bufferLength, fps, timeout, async)
     }
 
 

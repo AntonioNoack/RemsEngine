@@ -1,5 +1,6 @@
 package me.anno.ui.custom
 
+import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.white
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
@@ -14,9 +15,13 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.sceneView.StudioSceneView
 import me.anno.ui.style.Style
 import org.apache.logging.log4j.LogManager
+import kotlin.math.roundToInt
 
 class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) :
     PanelContainer(default, Padding(0), style) {
+
+    // todo when dragging on the cross, or maybe left corners as well, split UI there like Blender
+    // todo but also allow merging
 
     init {
         if (default is CustomContainer) me.anno.utils.LOGGER.warn(
@@ -44,13 +49,15 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
     }
 
     override fun drawsOverlaysOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
-        return this.lx1 - lx1 < customContainerCrossSize && ly0 - this.ly0 < customContainerCrossSize
+        val crossSize = getCrossSize(style)
+        return this.lx1 - lx1 < crossSize && ly0 - this.ly0 < crossSize
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
         val icon = getInternalTexture("cross.png", true) ?: whiteTexture
-        drawTexture(x + w - 14, y + 2, 12, 12, icon, white, null)
+        val crossSize = getCrossSize(style).roundToInt()
+        drawTexture(x + w - (crossSize + 2), y + 2, crossSize, crossSize, icon, white, null)
     }
 
     private fun addBefore(index: Int, parent: CustomList) {
@@ -159,10 +166,18 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
     }
 
     companion object {
+
         private val LOGGER = LogManager.getLogger(CustomContainer::class)
-        val customContainerCrossSize = 16f
-        fun Panel.isCross(x: Float, y: Float) =
-            x - (this.x + w - 16f) in 0f..customContainerCrossSize && y - this.y in 0f..customContainerCrossSize
+
+        fun getCrossSize(style: Style): Float {
+            val fontSize = style.getSize("text.fontSize", DefaultConfig.defaultFont.size.toInt())
+            return style.getSize("customizable.crossSize", fontSize).toFloat()
+        }
+
+        fun Panel.isCross(x: Float, y: Float): Boolean {
+            val crossSize = getCrossSize(style) + 4f // +4f for 2*padding
+            return x - (this.x + w - crossSize) in 0f..crossSize && y - this.y in 0f..crossSize
+        }
     }
 
 }

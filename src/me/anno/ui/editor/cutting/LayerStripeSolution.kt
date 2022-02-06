@@ -1,12 +1,19 @@
 package me.anno.ui.editor.cutting
 
+import me.anno.Build
 import me.anno.audio.AudioFXCache
 import me.anno.audio.AudioFXCache.SPLITS
 import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
+import me.anno.cache.instances.VideoCache
+import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.drawing.DrawGradients.drawRectGradient
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawStriped.drawRectStriped
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.max
+import me.anno.maths.Maths.mixARGB
+import me.anno.maths.Maths.nonNegativeModulo
 import me.anno.objects.Transform
 import me.anno.objects.Video
 import me.anno.objects.modes.LoopingState
@@ -14,10 +21,6 @@ import me.anno.studio.rems.RemsStudio.nullCamera
 import me.anno.ui.editor.TimelinePanel.Companion.centralTime
 import me.anno.ui.editor.TimelinePanel.Companion.dtHalfLength
 import me.anno.ui.editor.cutting.LayerView.Companion.maxLines
-import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.max
-import me.anno.maths.Maths.mixARGB
-import me.anno.maths.Maths.nonNegativeModulo
 import me.anno.video.FFMPEGMetadata
 import org.joml.Vector4f
 import kotlin.math.abs
@@ -37,12 +40,11 @@ class LayerStripeSolution(
 
     val w = x1 - x0
     val lines = Array(maxLines) {
-        ArrayList<Gradient>(w / 2)
+        ArrayList<LayerViewGradient>(w / 2)
     }
 
     private val relativeVideoBorder = 0.1f
     private val stripeColorSelected = 0x33ffffff
-    private val stripeColorWarning = 0x33ffff77
     private val stripeColorError = 0xffff7777.toInt()
 
     // draw a stripe of the current image, or a symbol or sth...
@@ -296,9 +298,16 @@ class LayerStripeSolution(
                 )
             }
         }
+        val size = DefaultConfig["debug.ui.layerView.showFrameStatus", if (Build.isDebug) 4 else 0]
+        if (size > 0) {
+            VideoCache.drawLoadingStatus(x0, y + h - size, x1, y + h, video.file, 0.0, { x ->
+                val timeAtX = getTimeAt(x)
+                clampTime(video.getLocalTimeFromRoot(timeAtX, false), video)
+            })
+        }
     }
 
-    @Suppress("UNUSED_PARAMETER")
+    @Suppress("unused_parameter")
     private fun keepFrameLoaded(
         x0: Int, x1: Int, y: Int, h: Int,
         c0: Int, c1: Int,

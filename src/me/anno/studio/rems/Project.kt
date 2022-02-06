@@ -25,6 +25,7 @@ import me.anno.ui.Panel
 import me.anno.ui.custom.CustomContainer
 import me.anno.ui.custom.CustomList
 import me.anno.ui.editor.RemsStudioUILayouts.createDefaultMainUI
+import me.anno.ui.editor.cutting.LayerViewContainer
 import me.anno.ui.editor.sceneTabs.SceneTab
 import me.anno.ui.editor.sceneTabs.SceneTabs
 import me.anno.ui.editor.sceneView.SceneTabData
@@ -155,6 +156,7 @@ class Project(var name: String, val file: FileReference) : Saveable() {
                         "CustomListY" -> CustomList(true, style)
                         "TreeView" -> StudioTreeView(style)
                         "FileExplorer" -> StudioFileExplorer(RemsStudio.project?.scenes, style)
+                        "CuttingView", "LayerViewContainer" -> LayerViewContainer(style)
                         "SceneView", "StudioSceneView" -> StudioSceneView(style)
                         else -> types[type]?.constructor?.invoke()
                     }

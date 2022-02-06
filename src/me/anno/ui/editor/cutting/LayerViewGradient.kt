@@ -10,7 +10,7 @@ import me.anno.utils.Color.toARGB
 import me.anno.maths.Maths.mix
 import org.joml.Vector4f
 
-class Gradient(
+class LayerViewGradient(
     val owner: Any?,
     val x0: Int, var x1: Int,
     val c0: Int, var c1: Int

@@ -10,6 +10,12 @@ import org.joml.Vector4f
 
 class LayerViewComputer(val view: LayerView) {
 
+    companion object {
+        private const val CONTINUE = 0
+        private const val BREAK_LINE = 1
+        private const val OUT_OF_SPACE = 2
+    }
+
     var isCalculating = false
     lateinit var calculated: List<Transform>
 
@@ -56,7 +62,7 @@ class LayerViewComputer(val view: LayerView) {
     private fun compute(
         x0: Int, x1: Int,
         root: Transform, transforms: List<Transform>, drawn: List<Transform>,
-        stripes: Array<ArrayList<Gradient>>
+        stripes: Array<ArrayList<LayerViewGradient>>
     ) {
 
         val stepSize = 1
@@ -112,8 +118,8 @@ class LayerViewComputer(val view: LayerView) {
                 val time = localTime[index]
 
                 when (process(x, stepSize, tr, color, time, stripes, lineIndex)) {
-                    5 -> break@trs
-                    10 -> lineIndex++
+                    OUT_OF_SPACE -> break@trs
+                    BREAK_LINE -> lineIndex++
                 }
             }
         }
@@ -122,41 +128,33 @@ class LayerViewComputer(val view: LayerView) {
     private fun process(
         x: Int, stepSize: Int,
         tr: Transform, color: Vector4f, time: Double,
-        stripes: Array<ArrayList<Gradient>>, lineIndex: Int
+        stripes: Array<ArrayList<LayerViewGradient>>, lineIndex: Int
     ): Int {
-
         val alpha = color.w * view.alphaMultiplier
+        return when {
+            !tr.isVisible(time) -> CONTINUE
+            alpha >= LayerView.minAlpha -> {
+                color.w = alpha
 
-        if (!tr.isVisible(time)) return 0
-
-        if (alpha >= LayerView.minAlpha) {
-
-            color.w = alpha
-
-            val list = stripes[lineIndex]
-            if (list.isEmpty()) {
-                if (alpha > LayerView.minAlpha) {
-                    list += Gradient(tr, x, x, color, color)
-                } // else not worth it
-            } else {
-                val last = list.last()
-                if (last.owner === tr && last.x1 + stepSize >= x && last.isLinear(x, stepSize, color)) {
-                    last.setEnd(x, stepSize, color)
+                val list = stripes[lineIndex]
+                if (list.isEmpty()) {
+                    if (alpha > LayerView.minAlpha) {
+                        list += LayerViewGradient(tr, x, x, color, color)
+                    } // else not worth it
                 } else {
-                    list += Gradient(tr, x - stepSize + 1, x, color, color)
+                    val last = list.last()
+                    if (last.owner === tr && last.x1 + stepSize >= x && last.isLinear(x, stepSize, color)) {
+                        last.setEnd(x, stepSize, color)
+                    } else {
+                        list += LayerViewGradient(tr, x - stepSize + 1, x, color, color)
+                    }
                 }
+
+                if (lineIndex + 1 >= LayerView.maxLines) OUT_OF_SPACE
+                else BREAK_LINE
             }
-
-            if (lineIndex + 1 >= LayerView.maxLines) {
-                return 5
-            }
-
-            return 10
-
+            else -> CONTINUE
         }
-
-        return 0
-
     }
 
 }

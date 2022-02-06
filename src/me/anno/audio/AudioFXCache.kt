@@ -425,20 +425,6 @@ object AudioFXCache : CacheSection("AudioFX") {
         return (index + fraction) * bufferSize.toDouble() / sampleRate
     }
 
-    /*fun printFloats(floats: FloatArray) {
-        var str = "${floats.size}x ["
-        if (floats.isNotEmpty()) {
-            val first = floats.first()
-            val last = floats.last()
-            val firstIndex = floats.indexOfFirst { it != first }
-            val lastIndex = floats.indexOfLast { it != last }
-            str += "$firstIndex * $first, [${lastIndex - firstIndex}, avg: ${floats.average()}], ${floats.size - lastIndex} * $last"
-        }
-        str += "]"
-        logger.info(str)
-    }*/
-
     private const val timeout = 20_000L // audio needs few memory, so we can keep all recent audio
-    private val LOGGER = LogManager.getLogger(AudioFXCache::class)
 
 }

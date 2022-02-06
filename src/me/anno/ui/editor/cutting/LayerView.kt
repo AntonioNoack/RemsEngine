@@ -64,7 +64,7 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
     var drawn: List<Transform>? = null
     val computer = LayerViewComputer(this)
 
-    lateinit var cuttingView: CuttingView
+    lateinit var cuttingView: LayerViewContainer
 
     val alphaMultiplier = 0.7f
 
@@ -86,7 +86,6 @@ class LayerView(val timelineSlot: Int, style: Style) : TimelinePanel(style) {
         val minAlphaInt = 1
         val minAlpha = minAlphaInt / 255f
         val minDistSq = sq(3f / 255f)
-        val minDistSqInt = 9f
         val maxLines = 5
         val defaultLayerCount = 8
         val taskQueue = ProcessingQueue("LayerView::calculateSolution")
