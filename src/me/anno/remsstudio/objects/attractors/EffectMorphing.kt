@@ -1,6 +1,6 @@
 package me.anno.remsstudio.objects.attractors
 
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.config.DefaultConfig
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter

@@ -1,6 +1,6 @@
 package me.anno.video
 
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL.blendMode

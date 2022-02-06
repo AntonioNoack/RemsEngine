@@ -1,6 +1,6 @@
 package me.anno.ui.editor.graphs
 
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Interpolation
 import me.anno.animation.Keyframe
 import me.anno.animation.Type

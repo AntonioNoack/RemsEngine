@@ -1,4 +1,4 @@
-package me.anno.remsstudio.objects.modes
+package me.anno.animation
 
 import me.anno.language.translation.NameDesc
 

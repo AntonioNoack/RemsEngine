@@ -1,6 +1,6 @@
 package me.anno.remsstudio
 
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.io.ISaveable
 import me.anno.io.find.PropertyFinder
 import me.anno.remsstudio.objects.Transform

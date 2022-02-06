@@ -1,6 +1,6 @@
 package me.anno.remsstudio.objects.geometric
 
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.cache.instances.MeshCache
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX

@@ -1,6 +1,6 @@
 package me.anno.remsstudio.objects.documents.pdf
 
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.viewportHeight
@@ -19,7 +19,7 @@ import me.anno.remsstudio.objects.documents.SiteSelection.parseSites
 import me.anno.remsstudio.objects.documents.pdf.PDFCache.getTexture
 import me.anno.remsstudio.objects.lists.Element
 import me.anno.remsstudio.objects.lists.SplittableElement
-import me.anno.remsstudio.objects.modes.UVProjection
+import me.anno.gpu.drawing.UVProjection
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style

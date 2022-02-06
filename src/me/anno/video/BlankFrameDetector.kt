@@ -11,7 +11,7 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.io.files.FileReference
-import me.anno.remsstudio.objects.modes.UVProjection
+import me.anno.gpu.drawing.UVProjection
 import me.anno.utils.OS.downloads
 import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.video.VideoCreator.Companion.renderVideo

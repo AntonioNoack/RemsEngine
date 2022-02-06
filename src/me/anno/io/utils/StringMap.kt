@@ -1,7 +1,7 @@
 package me.anno.io.utils
 
 import me.anno.Engine
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.texture.Filtering

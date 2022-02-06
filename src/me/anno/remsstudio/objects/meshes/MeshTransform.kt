@@ -1,6 +1,6 @@
 package me.anno.remsstudio.objects.meshes
 
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.cache.instances.MeshCache.getMesh
 import me.anno.config.DefaultConfig

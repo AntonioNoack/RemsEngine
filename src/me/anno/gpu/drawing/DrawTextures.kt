@@ -4,7 +4,6 @@ import me.anno.gpu.GFX
 import me.anno.gpu.drawing.GFXx2D.defineAdvancedGraphicalFeatures
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.*
-import me.anno.remsstudio.objects.modes.UVProjection
 import me.anno.video.formats.gpu.GPUFrame
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f

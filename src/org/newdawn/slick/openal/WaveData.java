@@ -16,9 +16,7 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 import me.anno.utils.pooling.ByteBufferPool;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLUtil;
-import me.anno.audio.format.WaveReader;
 
 // still used for loading wav files
 // (when not working with ffmpeg)

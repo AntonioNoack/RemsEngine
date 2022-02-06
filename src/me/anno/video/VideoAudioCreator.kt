@@ -1,6 +1,6 @@
 package me.anno.video
 
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.io.files.FileReference
 import me.anno.remsstudio.objects.Audio
 import me.anno.remsstudio.objects.Transform

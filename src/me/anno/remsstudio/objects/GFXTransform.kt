@@ -1,6 +1,6 @@
 package me.anno.remsstudio.objects
 
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.colorForceFieldBuffer
 import me.anno.gpu.shader.ShaderLib.maxColorForceFields

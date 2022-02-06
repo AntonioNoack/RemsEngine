@@ -1,6 +1,6 @@
 package me.anno.ui.editor.color
 
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.config.DefaultConfig
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX

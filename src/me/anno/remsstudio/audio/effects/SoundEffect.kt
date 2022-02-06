@@ -1,4 +1,4 @@
-package me.anno.audio.effects
+package me.anno.remsstudio.audio.effects
 
 import me.anno.io.Saveable
 import me.anno.io.text.TextReader

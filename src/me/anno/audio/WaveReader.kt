@@ -1,4 +1,4 @@
-package me.anno.audio.format
+package me.anno.audio
 
 import me.anno.utils.input.Input.readNBytes2
 import me.anno.utils.pooling.ByteBufferPool

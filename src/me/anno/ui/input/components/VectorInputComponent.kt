@@ -1,6 +1,6 @@
 package me.anno.ui.input.components
 
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.ui.input.FloatInput
 import me.anno.ui.input.IntInput

@@ -1,6 +1,6 @@
-package me.anno.audio.effects.test
+package me.anno.remsstudio.audio.effects.test
 
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.utils.OS

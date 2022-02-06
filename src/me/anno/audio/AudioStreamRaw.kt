@@ -1,14 +1,13 @@
 package me.anno.audio
 
 import me.anno.audio.AudioPools.FAPool
-import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
 import me.anno.audio.openal.SoundBuffer
 import me.anno.cache.instances.AudioCache
 import me.anno.cache.keys.AudioSliceKey
 import me.anno.io.files.FileReference
 import me.anno.remsstudio.objects.Audio
 import me.anno.remsstudio.objects.Transform
-import me.anno.remsstudio.objects.modes.LoopingState
+import me.anno.animation.LoopingState
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
 import me.anno.utils.Sleep.waitUntilDefined
@@ -35,6 +34,8 @@ class AudioStreamRaw(
     // should be as short as possible for fast calculation
     // should be at least as long as the ffmpeg response time (0.3s for the start of a FHD video)
     companion object {
+        // 1024 (48Hz .. 48kHz) or 2048? (24Hz .. 48kHz)
+        val bufferSize = 4096
         val playbackSliceDuration = bufferSize.toDouble() / playbackSampleRate
         val minPerceptibleAmplitude = 1f / 32500f
         val ffmpegSliceSampleDuration = 30.0 // seconds, 10s of music

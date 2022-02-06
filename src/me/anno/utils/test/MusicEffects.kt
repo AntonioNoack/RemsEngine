@@ -1,9 +1,9 @@
 package me.anno.utils.test
 
 import me.anno.audio.AudioFXCache
-import me.anno.audio.effects.Domain
-import me.anno.audio.effects.Time
-import me.anno.audio.effects.impl.EqualizerEffect
+import me.anno.remsstudio.audio.effects.Domain
+import me.anno.remsstudio.audio.effects.Time
+import me.anno.remsstudio.audio.effects.impl.EqualizerEffect
 import me.anno.remsstudio.objects.Camera
 import me.anno.remsstudio.objects.Video
 import me.anno.utils.LOGGER

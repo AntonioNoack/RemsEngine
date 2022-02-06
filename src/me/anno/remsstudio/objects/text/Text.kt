@@ -1,6 +1,6 @@
 package me.anno.remsstudio.objects.text
 
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.cache.CacheData
 import me.anno.cache.instances.TextCache

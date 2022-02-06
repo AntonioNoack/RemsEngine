@@ -1,6 +1,6 @@
 package me.anno.remsstudio.objects
 
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX.isFinalRendering
@@ -16,7 +16,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.translation.Dict
-import me.anno.remsstudio.objects.modes.UVProjection
+import me.anno.gpu.drawing.UVProjection
 import me.anno.remsstudio.objects.text.Text
 import me.anno.remsstudio.Scene
 import me.anno.remsstudio.ui.StudioFileImporter.addChildFromFile

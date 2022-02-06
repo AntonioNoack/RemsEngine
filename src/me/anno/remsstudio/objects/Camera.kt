@@ -1,6 +1,6 @@
 package me.anno.remsstudio.objects
 
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.white4

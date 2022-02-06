@@ -11,8 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger
 class BufferStream(
     val audio: Audio, sampleRate: Int,
     listener: Camera
-) :
-    AudioStream(audio, 1.0, 0.0, sampleRate, listener) {
+) : AudioStream(audio, 1.0, 0.0, sampleRate, listener) {
 
     private val filledBuffers = ArrayList<ShortBuffer?>()
     private val gettingIndex = AtomicInteger()

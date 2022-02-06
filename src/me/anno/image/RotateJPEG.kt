@@ -1,4 +1,4 @@
-package me.anno.remsstudio.objects.modes
+package me.anno.image
 
 import me.anno.remsstudio.objects.Transform
 import org.joml.Matrix4f

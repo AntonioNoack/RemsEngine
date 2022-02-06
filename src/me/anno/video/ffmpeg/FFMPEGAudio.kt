@@ -1,7 +1,7 @@
 package me.anno.video.ffmpeg
 
 import me.anno.audio.openal.SoundBuffer
-import me.anno.audio.format.WaveReader
+import me.anno.audio.WaveReader
 import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
 import kotlin.concurrent.thread

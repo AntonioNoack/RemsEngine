@@ -34,13 +34,6 @@ open class SimpleTransfer(l2l: Float, r2r: Float) : AudioTransfer(l2l, r2r, 0f, 
         return this
     }
 
-    fun set1100() {
-        l2l = 1f
-        r2r = 1f
-        l2r = 0f
-        r2l = 0f
-    }
-
     override fun isZero(): Boolean = l2l == 0f && r2r == 0f
 
 }

@@ -1,7 +1,7 @@
 package me.anno.utils.test
 
 import me.anno.io.text.TextReader
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Interpolation
 import me.anno.utils.LOGGER
 

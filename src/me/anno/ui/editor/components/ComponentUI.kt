@@ -1,6 +1,6 @@
 package me.anno.ui.editor.components
 
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.blending.blendModes

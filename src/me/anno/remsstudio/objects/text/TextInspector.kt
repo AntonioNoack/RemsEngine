@@ -1,6 +1,6 @@
 package me.anno.remsstudio.objects.text
 
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.config.DefaultConfig
 import me.anno.fonts.FontManager
 import me.anno.input.MouseButton

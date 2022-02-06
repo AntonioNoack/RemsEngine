@@ -105,6 +105,12 @@ class StudioTreeView(style: Style) :
         Selection.selectTransform(element)
     }
 
+    override fun selectElementMaybe(element: Transform?) {
+        // if already selected, don't inspect that property/driver
+        if (Selection.selectedTransform == element) Selection.clear()
+        selectElement(element)
+    }
+
     override fun focusOnElement(element: Transform) {
         zoomToObject(element)
     }

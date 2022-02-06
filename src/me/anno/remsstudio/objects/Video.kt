@@ -1,6 +1,6 @@
 package me.anno.remsstudio.objects
 
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.audio.openal.AudioManager
 import me.anno.audio.openal.AudioTasks
@@ -36,8 +36,8 @@ import me.anno.video.BlankFrameDetector
 import me.anno.remsstudio.objects.lists.Element
 import me.anno.remsstudio.objects.lists.SplittableElement
 import me.anno.remsstudio.objects.models.SpeakerModel.drawSpeakers
-import me.anno.remsstudio.objects.modes.LoopingState
-import me.anno.remsstudio.objects.modes.UVProjection
+import me.anno.animation.LoopingState
+import me.anno.gpu.drawing.UVProjection
 import me.anno.remsstudio.objects.modes.VideoType
 import me.anno.remsstudio.objects.modes.editorFPS
 import me.anno.studio.StudioBase

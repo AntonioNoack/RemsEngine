@@ -1,9 +1,13 @@
-package me.anno.animation
+package me.anno.remsstudio.animation
 
+import me.anno.animation.AnimationMaths
 import me.anno.animation.AnimationMaths.mul
 import me.anno.animation.AnimationMaths.mulAdd
+import me.anno.animation.Interpolation
 import me.anno.animation.Interpolation.Companion.getWeights
-import me.anno.animation.drivers.AnimationDriver
+import me.anno.animation.Keyframe
+import me.anno.animation.Type
+import me.anno.remsstudio.animation.drivers.AnimationDriver
 import me.anno.config.DefaultStyle.black3
 import me.anno.gpu.GFX.glThread
 import me.anno.io.ISaveable

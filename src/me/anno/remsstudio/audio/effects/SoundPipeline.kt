@@ -1,12 +1,12 @@
-package me.anno.audio.effects
+package me.anno.remsstudio.audio.effects
 
-import me.anno.audio.effects.falloff.ExponentialFalloff
-import me.anno.audio.effects.falloff.LinearFalloff
-import me.anno.audio.effects.falloff.SquareFalloff
-import me.anno.audio.effects.impl.AmplitudeEffect
-import me.anno.audio.effects.impl.EchoEffect
-import me.anno.audio.effects.impl.EqualizerEffect
-import me.anno.audio.effects.impl.PitchEffect
+import me.anno.remsstudio.audio.effects.falloff.ExponentialFalloff
+import me.anno.remsstudio.audio.effects.falloff.LinearFalloff
+import me.anno.remsstudio.audio.effects.falloff.SquareFalloff
+import me.anno.remsstudio.audio.effects.impl.AmplitudeEffect
+import me.anno.remsstudio.audio.effects.impl.EchoEffect
+import me.anno.remsstudio.audio.effects.impl.EqualizerEffect
+import me.anno.remsstudio.audio.effects.impl.PitchEffect
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
@@ -144,9 +144,6 @@ class SoundPipeline() : Saveable(), Inspectable {
             }
             return fft
         }
-
-        // 1024 (48Hz .. 48kHz) or 2048? (24Hz .. 48kHz)
-        val bufferSize = 4096
 
         fun option(generator: () -> SoundEffect): Option {
             val sample = generator()

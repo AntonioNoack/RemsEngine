@@ -23,7 +23,6 @@ import me.anno.remsstudio.objects.Video
 import me.anno.remsstudio.objects.effects.MaskType
 import me.anno.remsstudio.objects.geometric.Circle
 import me.anno.remsstudio.objects.geometric.Polygon
-import me.anno.remsstudio.objects.modes.UVProjection
 import me.anno.remsstudio.RemsStudio
 import me.anno.video.formats.gpu.GPUFrame
 import ofx.mio.OpticalFlow

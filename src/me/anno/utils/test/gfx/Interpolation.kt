@@ -1,6 +1,6 @@
 package me.anno.utils.test.gfx
 
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Keyframe
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.text.TextReader

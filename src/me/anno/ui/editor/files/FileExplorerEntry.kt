@@ -39,7 +39,7 @@ import me.anno.maths.Maths.sq
 import me.anno.remsstudio.objects.Audio
 import me.anno.remsstudio.objects.Camera
 import me.anno.remsstudio.objects.Video
-import me.anno.remsstudio.objects.modes.LoopingState
+import me.anno.animation.LoopingState
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.base.Visibility

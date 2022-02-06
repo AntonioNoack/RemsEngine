@@ -15,7 +15,6 @@ import me.anno.utils.types.Casting.castToVector3d
 import me.anno.utils.types.Casting.castToVector3f
 import me.anno.utils.types.Casting.castToVector4d
 import me.anno.utils.types.Casting.castToVector4f
-import org.apache.logging.log4j.LogManager
 import org.joml.*
 import kotlin.math.max
 
@@ -55,8 +54,6 @@ class Type(
 
     companion object {
 
-        private val LOGGER = LogManager.getLogger(Type::class)
-
         val ANY = Type(0, 16, 1f, true, true, null) { it }
         val INT = Type(0, 1, 1f, true, true, null, ::castToInt)
         val INT_PLUS = Type(0, 1, 1f, true, true, { max(castToInt2(it), 0) }, ::castToInt)
@@ -91,8 +88,10 @@ class Type(
         val ROT_Y = Type(0f, 1, 90f, true, true, null, ::castToFloat)
         val ROT_XZ = Type(Vector3f(), 2, 90f, true, true, null, ::castToVector2f)
         val SKEW_2D = Type(Vector2f(), 2, 1f, true, true, null, ::castToVector2f)
-        val QUATERNION = Type(Quaternionf(), 4, 1f, true, true, null) { if (it is Quaternionfc || it is Quaterniondc) it else null }
-        val QUATERNIOND = Type(Quaterniond(), 4, 1f, true, true, null) { if (it is Quaternionfc || it is Quaterniondc) it else null }
+        val QUATERNION =
+            Type(Quaternionf(), 4, 1f, true, true, null) { if (it is Quaternionfc || it is Quaterniondc) it else null }
+        val QUATERNIOND =
+            Type(Quaterniond(), 4, 1f, true, true, null) { if (it is Quaternionfc || it is Quaterniondc) it else null }
         val COLOR = Type(Vector4f(1f, 1f, 1f, 1f), 4, 1f, true, true, {
             when (it) {
                 is Vector4f -> {

@@ -1,9 +1,9 @@
-package me.anno.audio.effects.impl
+package me.anno.remsstudio.audio.effects.impl
 
-import me.anno.audio.effects.Domain
-import me.anno.audio.effects.SoundEffect
-import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
-import me.anno.audio.effects.Time
+import me.anno.audio.AudioStreamRaw.Companion.bufferSize
+import me.anno.remsstudio.audio.effects.Domain
+import me.anno.remsstudio.audio.effects.SoundEffect
+import me.anno.remsstudio.audio.effects.Time
 import me.anno.remsstudio.objects.Audio
 import me.anno.remsstudio.objects.Camera
 import me.anno.ui.base.SpacerPanel

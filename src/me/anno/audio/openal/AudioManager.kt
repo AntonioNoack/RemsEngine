@@ -1,14 +1,7 @@
 package me.anno.audio.openal
 
 import me.anno.maths.Maths.MILLIS_TO_NANOS
-import me.anno.remsstudio.objects.Audio
-import me.anno.remsstudio.objects.Transform
 import me.anno.studio.StudioBase.Companion.shallStop
-import me.anno.remsstudio.RemsStudio
-import me.anno.remsstudio.RemsStudio.editorTime
-import me.anno.remsstudio.RemsStudio.editorTimeDilation
-import me.anno.remsstudio.RemsStudio.nullCamera
-import me.anno.remsstudio.RemsStudio.root
 import me.anno.utils.Sleep.sleepABit
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.openal.AL
@@ -40,6 +33,9 @@ object AudioManager {
     var lastUpdate = 0L
     var ctr = 0
     var runningThread: Thread? = null
+
+    var onUpdate: (time: Long) -> Unit = {}
+
     fun startRunning() {
         runningThread = thread(name = "AudioManager") {
             init()
@@ -53,16 +49,7 @@ object AudioManager {
                     e.printStackTrace()
                 }
                 ALBase.check()
-                if (RemsStudio.isPlaying && ctr++ > 15) {
-                    ctr = 0; checkTree(root)
-                }
-                if (RemsStudio.isPlaying && needsUpdate && abs(time - lastUpdate) > 200 * MILLIS_TO_NANOS) {
-                    // ensure 200 ms delay between changing the time / dilation
-                    // for performance reasons
-                    lastUpdate = time
-                    needsUpdate = false
-                    updateTime(editorTime, editorTimeDilation, root)
-                }
+                onUpdate(time)
                 ALBase.check()
                 if (!shallStop) {
                     // shall be destroyed by OpenAL itself -> false
@@ -113,37 +100,8 @@ object AudioManager {
         init()
     }
 
-    fun stop(transform: Transform = root) {
-        if (transform is Audio) {
-            transform.stopPlayback()
-        }
-        transform.children.forEach {
-            stop(it)
-        }
-    }
-
     fun requestUpdate() {
         needsUpdate = true
-    }
-
-    val camera by lazy { nullCamera!! }
-    fun updateTime(time: Double, dilation: Double, transform: Transform) {
-        if (transform is Audio) {
-            transform.startPlayback(time, dilation, camera)
-        }
-        transform.children.forEach {
-            updateTime(time, dilation, it)
-        }
-    }
-
-    fun checkTree(transform: Transform) {
-        if (transform is Audio && transform.needsUpdate) {
-            transform.needsUpdate = false
-            transform.startPlayback(editorTime, editorTimeDilation, camera)
-        }
-        transform.children.forEach {
-            checkTree(it)
-        }
     }
 
     fun init() {

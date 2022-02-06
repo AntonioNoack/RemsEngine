@@ -1,6 +1,6 @@
-package me.anno.audio.effects.falloff
+package me.anno.remsstudio.audio.effects.falloff
 
-import me.anno.audio.effects.SoundEffect
+import me.anno.remsstudio.audio.effects.SoundEffect
 import kotlin.math.max
 
 class LinearFalloff() : Falloff() {

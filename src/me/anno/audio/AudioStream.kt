@@ -1,11 +1,11 @@
 package me.anno.audio
 
-import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
-import me.anno.audio.effects.Time
+import me.anno.remsstudio.audio.effects.Time
 import me.anno.io.files.FileReference
 import me.anno.remsstudio.objects.Audio
 import me.anno.remsstudio.objects.Camera
-import me.anno.remsstudio.objects.modes.LoopingState
+import me.anno.animation.LoopingState
+import me.anno.audio.AudioStreamRaw.Companion.bufferSize
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta

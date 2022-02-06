@@ -1,11 +1,8 @@
 package me.anno.ui.editor.treeView
 
 import me.anno.config.DefaultConfig
-import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
-import me.anno.remsstudio.objects.Transform
-import me.anno.remsstudio.Selection
 import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
@@ -13,7 +10,6 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.style.Style
-import me.anno.maths.Maths.fract
 
 // todo select multiple elements, filter for common properties, and apply them all together :)
 
@@ -41,7 +37,6 @@ abstract class TreeView<V>(
 
     var needsTreeUpdate = true
     var focused: Panel? = null
-    var takenElement: Transform? = null
 
     // Selection.select(element, null)
     abstract fun selectElement(element: V?)
@@ -94,9 +89,7 @@ abstract class TreeView<V>(
 
     abstract fun getDragType(element: V): String
 
-    fun selectElementMaybe(element: V?) {
-        // if already selected, don't inspect that property/driver
-        if (Selection.selectedTransform == element) Selection.clear()
+    open fun selectElementMaybe(element: V?) {
         selectElement(element)
     }
 
@@ -159,52 +152,8 @@ abstract class TreeView<V>(
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.onDraw(x0, y0, x1, y1)
         updateTree()
-        drawLineOfTakenElement(x0, y0, x1, y1)
-    }
-
-    private fun drawLineOfTakenElement(x0: Int, y0: Int, x1: Int, y1: Int) {
-
-        val focused = focused
-        if (focused?.isInFocus != true) {
-            takenElement = null
-            return
-        }
-
-        if (takenElement != null) {
-            // sample element, assumes that the height of all elements is the same
-            // this will most likely be the case
-            val h = focused.h
-            val window = window!!
-            val mx = window.mouseX.toInt()
-            val my = window.mouseY.toInt()
-            val my0 = list.children.firstOrNull()?.y ?: 0
-            val hoveredTransformIndex = (my - my0).toFloat() / (h + list.spacing)
-            val fractionalHTI = fract(hoveredTransformIndex)
-            if (fractionalHTI in 0.25f..0.75f) {
-                // on top
-                // add as child
-                val targetY = my - 1 + h / 2 - (fractionalHTI * h).toInt()
-                drawRect(this.x + 2, targetY, 3, 1, -1)
-            } else {
-                // in between
-                // add in between elements
-                val targetY = my - 1 + h / 2 - (fract(hoveredTransformIndex + 0.5f) * h).toInt()
-                drawRect(this.x + 2, targetY, 3, 1, -1)
-            }
-            drawDraggedElement(focused, x0, y0, x1, y1, mx, my)
-        }
-    }
-
-    private fun drawDraggedElement(focused: Panel, x0: Int, y0: Int, x1: Int, y1: Int, mx: Int, my: Int) {
-        val x = focused.x
-        val y = focused.y
-        focused.x = mx - focused.w / 2
-        focused.y = my - focused.h / 2
-        focused.draw(x0, y0, x1, y1)
-        focused.x = x
-        focused.y = y
+        super.onDraw(x0, y0, x1, y1)
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {

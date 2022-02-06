@@ -11,7 +11,7 @@ import me.anno.gpu.buffer.Buffer.Companion.bindBuffer
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.image.Image
-import me.anno.remsstudio.objects.modes.RotateJPEG
+import me.anno.image.RotateJPEG
 import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.maths.Maths.clamp
 import me.anno.utils.pooling.ByteArrayPool

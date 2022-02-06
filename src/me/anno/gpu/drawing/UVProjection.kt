@@ -1,4 +1,4 @@
-package me.anno.remsstudio.objects.modes
+package me.anno.gpu.drawing
 
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01Cube
 import me.anno.gpu.buffer.StaticBuffer

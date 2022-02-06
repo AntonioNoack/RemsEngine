@@ -2,12 +2,11 @@ package me.anno.audio
 
 import me.anno.audio.AudioPools.FAPool
 import me.anno.audio.AudioPools.SAPool
-import me.anno.audio.effects.Domain
-import me.anno.audio.effects.SoundEffect
-import me.anno.audio.effects.SoundEffect.Companion.copy
-import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
-import me.anno.audio.effects.SoundPipeline.Companion.changeDomain
-import me.anno.audio.effects.Time
+import me.anno.remsstudio.audio.effects.Domain
+import me.anno.remsstudio.audio.effects.SoundEffect
+import me.anno.remsstudio.audio.effects.SoundEffect.Companion.copy
+import me.anno.remsstudio.audio.effects.SoundPipeline.Companion.changeDomain
+import me.anno.remsstudio.audio.effects.Time
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.data.ICacheData
@@ -16,7 +15,8 @@ import me.anno.gpu.GFX.gameTime
 import me.anno.io.files.FileReference
 import me.anno.remsstudio.objects.Audio
 import me.anno.remsstudio.objects.Camera
-import me.anno.remsstudio.objects.modes.LoopingState
+import me.anno.animation.LoopingState
+import me.anno.audio.AudioStreamRaw.Companion.bufferSize
 import me.anno.maths.Maths.clamp
 import me.anno.utils.Sleep.acquire
 import me.anno.utils.hpc.ProcessingQueue
@@ -38,9 +38,13 @@ object AudioFXCache : CacheSection("AudioFX") {
 
     data class PipelineKey(
         val file: FileReference,
-        val time0: Time, val time1: Time, val bufferSize: Int,
+        val time0: Time,
+        val time1: Time,
+        val bufferSize: Int,
         val is3D: Boolean,
-        val audioAlphaSerialized: String, val repeat: LoopingState, val effectKey: EffectKey?
+        val audioAlphaSerialized: String,
+        val repeat: LoopingState,
+        val effectKey: EffectKey?
     ) {
 
         val hashCode = calculateHashCode()
@@ -50,7 +54,6 @@ object AudioFXCache : CacheSection("AudioFX") {
 
         val previousKey = if (effectKey == null) null
         else PipelineKey(
-
             file, time0, time1, bufferSize, is3D,
             audioAlphaSerialized, repeat, effectKey.previous
         )

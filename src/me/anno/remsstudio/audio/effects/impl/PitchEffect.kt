@@ -1,14 +1,14 @@
-package me.anno.audio.effects.impl
+package me.anno.remsstudio.audio.effects.impl
 
 import audacity.soundtouch.TimeDomainStretch
-import me.anno.audio.effects.Domain
-import me.anno.audio.effects.SoundEffect
-import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
-import me.anno.audio.effects.Time
+import me.anno.remsstudio.audio.effects.Domain
+import me.anno.remsstudio.audio.effects.SoundEffect
+import me.anno.remsstudio.audio.effects.Time
 import me.anno.io.base.BaseWriter
 import me.anno.remsstudio.objects.Audio
 import me.anno.remsstudio.objects.Camera
 import me.anno.animation.Type
+import me.anno.audio.AudioStreamRaw.Companion.bufferSize
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style

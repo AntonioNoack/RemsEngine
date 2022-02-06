@@ -1,6 +1,6 @@
 package me.anno.remsstudio
 
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.audio.openal.ALBase
 import me.anno.audio.openal.AudioManager
 import me.anno.audio.openal.AudioTasks
@@ -22,6 +22,7 @@ import me.anno.studio.GFXSettings
 import me.anno.studio.StudioBase
 import me.anno.studio.cli.RemsCLI
 import me.anno.remsstudio.CheckVersion.checkVersion
+import me.anno.remsstudio.audio.AudioManager2
 import me.anno.remsstudio.ui.StudioFileImporter
 import me.anno.studio.rems.StudioActions
 import me.anno.ui.Panel
@@ -124,6 +125,7 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
         workspace = DefaultConfig["workspace.dir", getReference(OS.documents, configName)]
         checkInstall()
         checkVersion()
+        AudioManager2.init()
     }
 
     lateinit var welcomeUI: WelcomeUI
@@ -293,7 +295,7 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
             if (isPlaying) {
                 AudioManager.requestUpdate()
             } else {
-                AudioManager.stop()
+                AudioManager2.stop()
             }
             ALBase.check()
         }

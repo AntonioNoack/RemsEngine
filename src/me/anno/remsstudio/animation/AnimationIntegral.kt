@@ -1,8 +1,8 @@
-package me.anno.animation
+package me.anno.remsstudio.animation
 
 import kotlin.math.max
 
-object Integral {
+object AnimationIntegral {
 
     /**
      * find the position, where I[t1]-I[t0] = target

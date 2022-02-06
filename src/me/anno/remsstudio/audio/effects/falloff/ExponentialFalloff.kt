@@ -1,4 +1,4 @@
-package me.anno.audio.effects.falloff
+package me.anno.remsstudio.audio.effects.falloff
 
 import me.anno.maths.Maths.pow
 

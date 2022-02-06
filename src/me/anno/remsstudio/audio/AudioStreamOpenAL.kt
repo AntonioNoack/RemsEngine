@@ -1,10 +1,14 @@
-package me.anno.audio.openal
+package me.anno.remsstudio.audio
 
 import me.anno.audio.AudioStream
 import me.anno.io.files.FileReference
 import me.anno.remsstudio.objects.Audio
 import me.anno.remsstudio.objects.Camera
-import me.anno.remsstudio.objects.modes.LoopingState
+import me.anno.animation.LoopingState
+import me.anno.audio.openal.ALBase
+import me.anno.audio.openal.AudioTasks
+import me.anno.audio.openal.SoundBuffer
+import me.anno.audio.openal.SoundSource
 import me.anno.video.AudioCreator.Companion.playbackSampleRate
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import org.apache.logging.log4j.LogManager

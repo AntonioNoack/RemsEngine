@@ -7,7 +7,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Filtering
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.remsstudio.objects.effects.MaskType
-import me.anno.remsstudio.objects.modes.UVProjection
+import me.anno.gpu.drawing.UVProjection
 import me.anno.utils.Clock
 import me.anno.utils.pooling.ByteBufferPool
 import java.nio.ByteBuffer

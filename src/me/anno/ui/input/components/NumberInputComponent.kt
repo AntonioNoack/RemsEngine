@@ -1,7 +1,7 @@
 package me.anno.ui.input.components
 
-import me.anno.animation.AnimatedProperty
-import me.anno.animation.drivers.AnimationDriver
+import me.anno.remsstudio.animation.AnimatedProperty
+import me.anno.remsstudio.animation.drivers.AnimationDriver
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isLeftDown
 import me.anno.input.MouseButton

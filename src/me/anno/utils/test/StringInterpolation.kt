@@ -1,6 +1,6 @@
 package me.anno.utils.test
 
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Interpolation
 import org.apache.logging.log4j.LogManager
 

@@ -3,7 +3,6 @@ package me.anno.remsstudio.ui.editor.cutting
 import me.anno.Build
 import me.anno.audio.AudioFXCache
 import me.anno.audio.AudioFXCache.SPLITS
-import me.anno.audio.effects.SoundPipeline.Companion.bufferSize
 import me.anno.cache.instances.VideoCache
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
@@ -16,7 +15,8 @@ import me.anno.maths.Maths.mixARGB
 import me.anno.maths.Maths.nonNegativeModulo
 import me.anno.remsstudio.objects.Transform
 import me.anno.remsstudio.objects.Video
-import me.anno.remsstudio.objects.modes.LoopingState
+import me.anno.animation.LoopingState
+import me.anno.audio.AudioStreamRaw.Companion.bufferSize
 import me.anno.remsstudio.RemsStudio.nullCamera
 import me.anno.remsstudio.ui.editor.TimelinePanel.Companion.centralTime
 import me.anno.remsstudio.ui.editor.TimelinePanel.Companion.dtHalfLength

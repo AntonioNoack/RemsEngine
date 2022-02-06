@@ -1,4 +1,4 @@
-package me.anno.animation.drivers
+package me.anno.remsstudio.animation.drivers
 
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
@@ -6,7 +6,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.remsstudio.objects.Transform
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.remsstudio.objects.inspectable.Inspectable
 import me.anno.remsstudio.Selection.select

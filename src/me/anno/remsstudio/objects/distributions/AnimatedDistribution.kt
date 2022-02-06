@@ -5,7 +5,7 @@ import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.remsstudio.objects.inspectable.InspectableVector
 import me.anno.remsstudio.objects.Transform
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style

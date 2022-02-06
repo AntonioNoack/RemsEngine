@@ -1,10 +1,10 @@
 package me.anno.remsstudio.objects
 
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.audio.AudioFXCache
-import me.anno.audio.effects.Domain
-import me.anno.audio.effects.Time
+import me.anno.remsstudio.audio.effects.Domain
+import me.anno.remsstudio.audio.effects.Time
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.drawing.GFXx2D.getSize
 import me.anno.gpu.drawing.GFXx2D.getSizeX
@@ -13,7 +13,7 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.remsstudio.objects.modes.LoopingState
+import me.anno.animation.LoopingState
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style

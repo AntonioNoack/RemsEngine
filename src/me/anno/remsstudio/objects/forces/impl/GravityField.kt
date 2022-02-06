@@ -3,7 +3,7 @@ package me.anno.remsstudio.objects.forces.impl
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.remsstudio.objects.inspectable.InspectableAnimProperty
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.remsstudio.objects.forces.types.RelativeForceField
 import me.anno.maths.Maths.pow
 import me.anno.utils.types.Vectors.times

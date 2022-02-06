@@ -1,6 +1,6 @@
 package me.anno.remsstudio.objects
 
-import me.anno.animation.AnimatedProperty
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.ui.Panel
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
