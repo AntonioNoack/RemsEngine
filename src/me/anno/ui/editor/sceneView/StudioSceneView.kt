@@ -249,12 +249,12 @@ open class StudioSceneView(style: Style) : PanelList(null, style.getChild("scene
         drawRect(x + bth, y + bth, w - 2 * bth, h - 2 * bth, black)
         drawRect(x + bt, y + bt, w - 2 * bt, h - 2 * bt, deepDark)
 
-        val wx = stableSize.stableWidth
-        val wy = stableSize.stableHeight
-        val rw = min(wx, w - 2 * bt)
-        val rh = min(wy, h - 2 * bt)
         val x00 = x + dx
         val y00 = y + dy
+        val wx = min(stableSize.stableWidth, GFX.width - x00)
+        val wy = min(stableSize.stableHeight, GFX.height - y00)
+        val rw = min(wx, w - 2 * bt)
+        val rh = min(wy, h - 2 * bt)
         if (rw > 0 && rh > 0) {
             Scene.draw(
                 camera, RemsStudio.root,

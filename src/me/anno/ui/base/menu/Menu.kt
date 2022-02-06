@@ -2,10 +2,12 @@ package me.anno.ui.base.menu
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.ui.Window
 import me.anno.input.MouseButton
 import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths
+import me.anno.maths.Maths.mixARGB
 import me.anno.ui.Panel
+import me.anno.ui.Window
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.buttons.TextButton
@@ -20,7 +22,6 @@ import me.anno.ui.editor.files.Search
 import me.anno.ui.input.TextInput
 import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.utils.WindowStack
-import me.anno.maths.Maths
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -133,26 +134,39 @@ object Menu {
         val list = ArrayList<Panel>()
 
         val padding = 4
-        for ((index, element) in options.withIndex()) {
-            val name = element.title
-            val action = element.action
-            if (name == menuSeparator) {
-                if (index != 0) {
-                    list += SpacerPanel(0, 1, style)
+        for (index in options.indices) {
+            val option = options[index]
+            val name = option.title
+            val action = option.action
+            when {
+                name == menuSeparator -> {
+                    if (index != 0) {
+                        list += SpacerPanel(0, 1, style)
+                    }
                 }
-            } else {
-                val button = TextPanel(name, style)
-                button.addOnClickListener { _, _, mouseButton, long ->
-                    if (action(mouseButton, long)) {
-                        close(button)
-                        true
-                    } else false
+                option.isEnabled -> {
+                    val button = TextPanel(name, style)
+                    button.addOnClickListener { _, _, mouseButton, long ->
+                        if (action(mouseButton, long)) {
+                            close(button)
+                            true
+                        } else false
+                    }
+                    button.setTooltip(option.description)
+                    button.enableHoverColor = true
+                    button.padding.left = padding
+                    button.padding.right = padding
+                    list += button
                 }
-                button.setTooltip(element.description)
-                button.enableHoverColor = true
-                button.padding.left = padding
-                button.padding.right = padding
-                list += button
+                else -> {
+                    val button = TextPanel(name, style)
+                    button.textColor = mixARGB(button.textColor, 0x77777777, 0.5f)
+                    button.focusTextColor = button.textColor
+                    button.setTooltip(option.description)
+                    button.padding.left = padding
+                    button.padding.right = padding
+                    list += button
+                }
             }
         }
 

@@ -1,12 +1,13 @@
 package me.anno.ui.custom
 
+import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.style.Style
 import me.anno.utils.bugs.SumOf
-import me.anno.maths.Maths.clamp
+import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -32,8 +33,11 @@ open class CustomList(val isY: Boolean, style: Style) : PanelListX(style) {
     }
 
     fun update() {
-        children.forEachIndexed { index, panel ->
-            (panel as? CustomizingBar)?.index = index
+        for (index in children.indices) {
+            val panel = children[index]
+            if (panel is CustomizingBar) {
+                panel.index = index
+            }
         }
     }
 
@@ -48,8 +52,12 @@ open class CustomList(val isY: Boolean, style: Style) : PanelListX(style) {
             }
             update()
         } else {
-            // todo remove the last child -> remove this from our parent
-            (parent as? CustomList)?.remove(indexInParent)
+            val parent = parent
+            if (parent is CustomList) {
+                parent.remove(indexInParent)
+            } else {
+                LOGGER.warn("Cannot remove root of custom UI hierarchy")
+            }
         }
         invalidateLayout()
     }
@@ -103,13 +111,6 @@ open class CustomList(val isY: Boolean, style: Style) : PanelListX(style) {
         add(panel)
     }
 
-    override fun calculateSize(w: Int, h: Int) {
-        this.w = w
-        this.h = h
-        minW = 10
-        minH = 10
-    }
-
     override fun placeInParent(x: Int, y: Int) {
 
         this.x = x
@@ -152,6 +153,10 @@ open class CustomList(val isY: Boolean, style: Style) : PanelListX(style) {
                 )
             }
         }
+    }
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(CustomList::class)
     }
 
 }

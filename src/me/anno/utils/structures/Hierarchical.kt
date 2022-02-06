@@ -79,7 +79,8 @@ interface Hierarchical<V : Hierarchical<V>> {
     }
 
     @Suppress("UNCHECKED_CAST")
-    val root: V get() = parent?.root ?: this as V
+    val root: V
+        get() = parent?.root ?: this as V
 
     fun onDestroy()
 
@@ -171,10 +172,11 @@ interface Hierarchical<V : Hierarchical<V>> {
         return null
     }
 
-    val indexInParent: Int get(){
-        val parent = parent ?: return -1
-        return parent.children.indexOf(this)
-    }
+    val indexInParent: Int
+        get() {
+            val parent = parent ?: return -1
+            return parent.children.indexOf(this)
+        }
 
     fun simpleTraversal(processDisabled: Boolean, func: (V) -> Boolean): V? {
         return depthFirstTraversal(processDisabled, func)

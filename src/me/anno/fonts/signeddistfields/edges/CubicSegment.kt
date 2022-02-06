@@ -50,7 +50,7 @@ class CubicSegment(
     override fun direction(param: Float, dst: Vector2f): Vector2f {
         val b = 1f - param
         val a2 = param * param
-        val ab2 = 2 * param * b
+        val ab2 = 2f * param * b
         val b2 = b * b
         val f1 = b2 - ab2
         val f2 = ab2 - a2

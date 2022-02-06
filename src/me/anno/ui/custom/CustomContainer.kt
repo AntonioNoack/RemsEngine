@@ -1,8 +1,8 @@
 package me.anno.ui.custom
 
 import me.anno.config.DefaultStyle.white
-import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.gpu.drawing.DrawTextures.drawTexture
+import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.ImageGPUCache.getInternalTexture
 import me.anno.input.MouseButton
 import me.anno.language.translation.NameDesc
@@ -13,6 +13,7 @@ import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.sceneView.StudioSceneView
 import me.anno.ui.style.Style
+import org.apache.logging.log4j.LogManager
 
 class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) :
     PanelContainer(default, Padding(0), style) {
@@ -28,6 +29,8 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
         child.calculateSize(w, h)
         minW = child.minW
         minH = child.minH
+        this.w = child.w
+        this.h = child.h
     }
 
     override fun placeInParent(x: Int, y: Int) {
@@ -108,12 +111,13 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
         val options = library.typeList
             .map { MenuOption(NameDesc(it.displayName, "", ""), action { it.constructor() }) }
             .toMutableList()
+        val parent = parent
+        val warningForLast = "Cannot remove root of custom UI hierarchy"
         options += MenuOption(NameDesc("Remove This Element", "", "ui.customize.remove")) {
-            (parent as? CustomList)?.apply {
-                remove(indexInParent)
-            }
-            Unit
-        }
+            if (parent is CustomList) {
+                parent.remove(indexInParent)
+            } else LOGGER.warn(warningForLast)
+        }.setEnabled(parent is CustomList && (parent.children.size > 1 || parent.parent is CustomList), warningForLast)
         options += MenuOption(NameDesc("Add Panel Before", "", "ui.customize.addBefore")) {
             addPanel(false, firstThis = false)
         }
@@ -155,6 +159,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
     }
 
     companion object {
+        private val LOGGER = LogManager.getLogger(CustomContainer::class)
         val customContainerCrossSize = 16f
         fun Panel.isCross(x: Float, y: Float) =
             x - (this.x + w - 16f) in 0f..customContainerCrossSize && y - this.y in 0f..customContainerCrossSize

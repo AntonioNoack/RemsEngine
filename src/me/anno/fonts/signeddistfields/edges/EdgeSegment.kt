@@ -41,21 +41,21 @@ abstract class EdgeSegment {
         val v0 = JomlPools.vec2f.create()
         val v1 = JomlPools.vec2f.create()
         val v2 = JomlPools.vec2f.create()
-        if (param < 0) {
+        if (param < 0f) {
             val dir = direction(0f, v0).normalize()
             val aq = v2.set(origin).sub(point(0f, v1))
             val ts = aq.dot(dir)
-            if (ts < 0) {
+            if (ts < 0f) {
                 val pseudoDistance = crossProduct(aq, dir)
                 if (abs(pseudoDistance) <= abs(distance.distance)) {
                     distance.set(pseudoDistance, 0f)
                 }
             }
-        } else if (param > 1) {
+        } else if (param > 1f) {
             val dir = direction(1f, v0).normalize()
             val bq = v2.set(origin).sub(point(1f, v1))
             val ts = bq.dot(dir)
-            if (ts > 0) {
+            if (ts > 0f) {
                 val pseudoDistance = crossProduct(bq, dir)
                 if (abs(pseudoDistance) <= abs(distance.distance)) {
                     distance.set(pseudoDistance, 0f)
