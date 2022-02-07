@@ -6,7 +6,6 @@ import me.anno.cache.instances.PDFCache.getTexture
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.viewportHeight
 import me.anno.gpu.GFX.viewportWidth
-import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.drawing.UVProjection
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering

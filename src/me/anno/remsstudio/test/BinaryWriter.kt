@@ -1,5 +1,7 @@
-package me.anno.io.binary
+package me.anno.remsstudio.test
 
+import me.anno.io.binary.BinaryReader
+import me.anno.io.binary.BinaryWriter
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.text.TextWriter
 import me.anno.remsstudio.objects.Camera

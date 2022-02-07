@@ -22,6 +22,8 @@ import me.anno.input.Input
 import me.anno.input.ShowKeys
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.language.Language
+import me.anno.language.translation.Dict
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
 import me.anno.ui.base.Tooltips
@@ -327,6 +329,8 @@ abstract class StudioBase(
     }
 
     open fun isSelected(obj: Any?) = false
+
+    open var language = Language.get(Dict["en-US", "lang.spellcheck"])
 
     companion object {
 

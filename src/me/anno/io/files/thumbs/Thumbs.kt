@@ -70,7 +70,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.remsstudio.objects.Video
 import me.anno.cache.instances.PDFCache
-import me.anno.remsstudio.objects.meshes.MeshData
+import me.anno.mesh.MeshData
 import me.anno.ui.base.Font
 import me.anno.utils.Color.hex4
 import me.anno.utils.ShutdownException
@@ -525,7 +525,7 @@ object Thumbs {
         if (waitForTextures) waitForTextures(data)
         renderToBufferedImage(InvalidRef, dstFile, true, renderer, true, callback, size, size) {
             data.drawAssimp(
-                true, null, createPerspectiveList(defaultAngleY, 1f), 0.0, white4, "",
+                true, createPerspectiveList(defaultAngleY, 1f), 0.0, white4, "",
                 useMaterials = true, centerMesh = true, normalizeScale = true, drawSkeletons = false
             )
         }
@@ -625,7 +625,7 @@ object Thumbs {
         val drawSkeletons = !entity.hasComponent(MeshBaseComponent::class)
         renderToBufferedImage(InvalidRef, dstFile, true, previewRenderer, true, callback, size, size) {
             data.drawAssimp(
-                true, null, createPerspectiveList(defaultAngleY, 1f), 0.0, white4, "",
+                true, createPerspectiveList(defaultAngleY, 1f), 0.0, white4, "",
                 useMaterials = true, centerMesh = true, normalizeScale = true, drawSkeletons = drawSkeletons
             )
         }

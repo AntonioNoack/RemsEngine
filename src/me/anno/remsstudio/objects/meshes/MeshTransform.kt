@@ -39,6 +39,8 @@ import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.maths.Maths.pow
+import me.anno.mesh.MeshData
+import me.anno.remsstudio.objects.meshes.MeshDataV2.drawAssimp2
 import me.anno.video.MissingFrameException
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4fc
@@ -175,13 +177,13 @@ class MeshTransform(var file: FileReference, parent: Transform?) : GFXTransform(
                 // (see thumbnail generator)
 
                 when {
-                    isFinalRendering -> data.drawAssimp(
+                    isFinalRendering -> data.drawAssimp2(
                         false, this, stack, time, color,
                         animation[time], true, centerMesh, normalizeScale, false
                     )
                     Input.isKeyDown('l') -> {// line debugging
                         OpenGL.geometryShader.use(lineGeometry) {
-                            data.drawAssimp(
+                            data.drawAssimp2(
                                 false, this, stack, time, color,
                                 animation[time], true, centerMesh, normalizeScale, false
                             )
@@ -189,13 +191,13 @@ class MeshTransform(var file: FileReference, parent: Transform?) : GFXTransform(
                     }
                     Input.isKeyDown('n') -> {// normal debugging
                         OpenGL.geometryShader.use(cullFaceColoringGeometry) {
-                            data.drawAssimp(
+                            data.drawAssimp2(
                                 false, this, stack, time, color,
                                 animation[time], true, centerMesh, normalizeScale, false
                             )
                         }
                     }
-                    else -> data.drawAssimp(
+                    else -> data.drawAssimp2(
                         false, this, stack, time, color,
                         animation[time], true, centerMesh, normalizeScale, true
                     )

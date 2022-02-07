@@ -13,6 +13,7 @@ import me.anno.installer.Installer.checkInstall
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
+import me.anno.language.Language
 import me.anno.language.translation.Dict
 import me.anno.remsstudio.CheckVersion.checkVersion
 import me.anno.remsstudio.animation.AnimatedProperty
@@ -119,6 +120,12 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
 
     lateinit var currentCamera: Camera
     var lastTouchedCamera: Camera? = null
+
+    override var language: Language
+        get() = project?.language ?: super.language
+        set(value) {
+            project?.language = value
+        }
 
     fun updateLastLocalTime(parent: Transform, time: Double) {
 

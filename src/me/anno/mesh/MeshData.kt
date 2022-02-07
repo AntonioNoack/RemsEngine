@@ -1,38 +1,28 @@
-package me.anno.remsstudio.objects.meshes
+package me.anno.mesh
 
 import me.anno.cache.data.ICacheData
 import me.anno.ecs.Entity
 import me.anno.ecs.components.cache.MaterialCache
 import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.ecs.components.mesh.AnimRenderer
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.gpu.GFX
-import me.anno.gpu.shader.ShaderLib.shaderAssimp
 import me.anno.gpu.drawing.GFXx3D.shader3DUniforms
 import me.anno.gpu.drawing.GFXx3D.transformUniform
+import me.anno.gpu.drawing.GFXx3D.uploadAttractors0
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib.shaderAssimp
 import me.anno.io.files.InvalidRef
 import me.anno.mesh.MeshUtils.centerMesh
 import me.anno.mesh.assimp.AnimGameItem
-import me.anno.mesh.assimp.AnimGameItem.Companion.centerStackFromAABB
 import me.anno.mesh.assimp.AnimGameItem.Companion.getScaleFromAABB
 import me.anno.remsstudio.objects.GFXTransform
 import me.anno.remsstudio.objects.GFXTransform.Companion.uploadAttractors
-import me.anno.remsstudio.objects.Transform
-import me.anno.utils.types.AABBs.avgX
-import me.anno.utils.types.AABBs.avgY
-import me.anno.utils.types.AABBs.deltaX
-import me.anno.utils.types.AABBs.deltaY
-import me.anno.utils.types.AABBs.isEmpty
-import me.anno.utils.types.AABBs.set
 import org.apache.logging.log4j.LogManager
 import org.joml.*
-import kotlin.math.abs
-import kotlin.math.max
 
 open class MeshData : ICacheData {
 
@@ -41,7 +31,6 @@ open class MeshData : ICacheData {
 
     fun drawAssimp(
         useECSShader: Boolean,
-        transform: GFXTransform?,
         stack: Matrix4fArrayList,
         time: Double,
         color: Vector4fc,
@@ -56,7 +45,7 @@ open class MeshData : ICacheData {
         val shader = baseShader.value
         shader.use()
         shader3DUniforms(shader, stack, color)
-        uploadAttractors(transform, shader, time)
+        uploadAttractors0(shader)
 
         val model0 = assimpModel!!
         val animation = model0.animations[animationName]
@@ -73,7 +62,7 @@ open class MeshData : ICacheData {
         }
 
         if (centerMesh) {
-            centerMesh(transform, stack, localStack, model0)
+            centerMesh(null, stack, localStack, model0)
         }
 
         transformUniform(shader, stack)

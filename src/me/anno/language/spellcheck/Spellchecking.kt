@@ -12,6 +12,7 @@ import me.anno.io.json.JsonReader
 import me.anno.language.Language
 import me.anno.language.translation.Dict
 import me.anno.remsstudio.RemsStudio.project
+import me.anno.studio.StudioBase
 import me.anno.utils.Color.hex8
 import me.anno.utils.OS
 import me.anno.utils.ShutdownException
@@ -31,7 +32,7 @@ object Spellchecking : CacheSection("Spellchecking") {
 
     private val path = DefaultConfig["spellchecking.path", getReference(OS.downloads, "lib\\spellchecking")]
 
-    private val language get() = project?.language ?: Language.get(Dict["en-US", "lang.spellcheck"])
+    private val language get() = StudioBase.instance?.language ?: Language.get(Dict["en-US", "lang.spellcheck"])
 
     fun check(sentence: String, allowFirstLowercase: Boolean, key: Any): List<Suggestion>? {
         val language = language
