@@ -706,6 +706,8 @@ open class Panel(val style: Style) : PrefabSaveable() {
         } else null
     }
 
+    open fun onPropertiesChanged() {}
+
     fun fulfillsSearch(search: Search): Boolean {
         // join all text (below a certain limit), and search that
         // could be done more efficient

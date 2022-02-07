@@ -25,13 +25,13 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.mesh.Point
+import me.anno.remsstudio.RemsStudio.editorTime
+import me.anno.remsstudio.RemsStudio.editorTimeDilation
+import me.anno.remsstudio.RemsStudio.root
 import me.anno.remsstudio.objects.Camera
 import me.anno.remsstudio.objects.Transform
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.StudioBase.Companion.eventTasks
-import me.anno.remsstudio.RemsStudio.editorTime
-import me.anno.remsstudio.RemsStudio.editorTimeDilation
-import me.anno.remsstudio.RemsStudio.root
 import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.debug.FrameTimes
@@ -398,7 +398,7 @@ object GFX : GFXBase1() {
         }
     }
 
-    fun setFrameNullSize(){
+    fun setFrameNullSize() {
         OpenGL.apply {
             // this should be the state for the default framebuffer
             xs[0] = 0

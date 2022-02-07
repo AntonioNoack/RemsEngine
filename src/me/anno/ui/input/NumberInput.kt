@@ -1,10 +1,8 @@
 package me.anno.ui.input
 
-import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.gpu.Cursor
 import me.anno.input.Input.isLeftDown
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.NumberInputComponent
@@ -17,27 +15,15 @@ abstract class NumberInput<BaseType>(
     val title: String,
     val visibilityKey: String,
     val type: Type = Type.FLOAT,
-    val owningProperty: AnimatedProperty<*>?,
-    val indexInProperty: Int
+    inputPanel0: NumberInputComponent?
 ) : PanelListY(style), InputPanel<BaseType>, TextStyleable {
 
     var hasValue = false
 
+    val inputPanel = inputPanel0 ?: NumberInputComponent(visibilityKey, style)
+
     val titleView = if (title.isBlank2()) null else TitlePanel(title, this, style)
     var isSelectedListener: (() -> Unit)? = null
-
-    val inputPanel = object : NumberInputComponent(
-        owningProperty, indexInProperty, this@NumberInput, style
-    ) {
-        override val enableSpellcheck: Boolean get() = false
-        override var visibility: Visibility
-            get() = InputVisibility[visibilityKey]
-            set(_) {}
-
-        override fun onEnterKey(x: Float, y: Float) {
-            this@NumberInput.onEnterKey(x, y)
-        }
-    }
 
     override fun setBold(bold: Boolean) {
         titleView?.setBold(bold)

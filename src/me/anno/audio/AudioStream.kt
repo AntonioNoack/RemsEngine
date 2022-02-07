@@ -1,14 +1,11 @@
 package me.anno.audio
 
-import me.anno.remsstudio.audio.effects.Time
-import me.anno.io.files.FileReference
-import me.anno.remsstudio.objects.Audio
-import me.anno.remsstudio.objects.Camera
 import me.anno.animation.LoopingState
 import me.anno.audio.AudioStreamRaw.Companion.bufferSize
+import me.anno.io.files.FileReference
+import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.video.ffmpeg.FFMPEGMetadata
-import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.ShortBuffer
@@ -37,8 +34,6 @@ abstract class AudioStream(
     val repeat: LoopingState,
     var startIndex: Long,
     val meta: FFMPEGMetadata,
-    val source: Audio,
-    val destination: Camera,
     val speed: Double,
     val playbackSampleRate: Int = 48000
 ) {
@@ -46,6 +41,8 @@ abstract class AudioStream(
     // should be as short as possible for fast calculation
     // should be at least as long as the ffmpeg response time (0.3s for the start of a FHD video)
     companion object {
+
+        val taskQueue = ProcessingGroup("AudioStream", 0.5f)
 
         val bufferPool = ByteBufferPool(32, true)
 
@@ -61,46 +58,26 @@ abstract class AudioStream(
 
     }
 
-    constructor(audio: Audio, speed: Double, globalTime: Double, playbackSampleRate: Int, listener: Camera) :
-            this(
-                audio.file,
-                audio.isLooping.value,
-                getIndex(globalTime, speed, playbackSampleRate),
-                getMeta(audio.file, false)!!,
-                audio,
-                listener,
-                speed,
-                playbackSampleRate
-            )
-
-    init {
-        source.pipeline.audio = source
-    }
-
-    fun getTime(index: Long): Time = getTime((index * bufferSize * speed).toDouble() / playbackSampleRate)
-    private fun getTime(globalTime: Double): Time = Time(globalToLocalTime(globalTime), globalTime)
-
-    // todo is this correct with the speed?
-    private fun globalToLocalTime(time: Double) = source.getGlobalTime(time * speed)
+    open fun getTimeD(index: Long): Double = (index * bufferSize * speed) / playbackSampleRate
 
     var isWaitingForBuffer = AtomicBoolean(false)
 
     var isPlaying = false
 
+    open fun getBuffer(bufferIndex: Long): Pair<FloatArray, FloatArray> {
+        return AudioFXCache.getBuffer(bufferIndex, this, false)!!
+    }
+
     fun requestNextBuffer(bufferIndex: Long, session: Int) {
 
         isWaitingForBuffer.set(true)
-        AudioStreamRaw.taskQueue += {// load all data async
+        taskQueue += {// load all data async
 
             val sb0 = bufferPool[bufferSize * 2 * 2, false]
                 .order(ByteOrder.nativeOrder())
             val stereoBuffer = sb0.asShortBuffer()
 
-            val floats = AudioFXCache.getBuffer(bufferIndex, this, false)!!
-
-            val left = floats.first
-            val right = floats.second
-
+            val (left, right) = getBuffer(bufferIndex)
             for (i in 0 until bufferSize) {
                 stereoBuffer.put(floatToShort(left[i]))
                 stereoBuffer.put(floatToShort(right[i]))

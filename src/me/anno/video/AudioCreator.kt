@@ -1,6 +1,6 @@
 package me.anno.video
 
-import me.anno.audio.AudioStreamRaw.Companion.playbackSliceDuration
+import me.anno.remsstudio.audio.AudioStreamRaw2.Companion.playbackSliceDuration
 import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
 import me.anno.remsstudio.objects.Audio

@@ -1,17 +1,18 @@
 package me.anno.ui.input
 
-import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.parser.SimpleExpressionParser
 import me.anno.parser.SimpleExpressionParser.toDouble
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
+import me.anno.ui.input.components.NumberInputComponent
 import me.anno.ui.style.Style
-import me.anno.utils.types.AnyToDouble.getDouble
-import me.anno.utils.types.AnyToFloat.getFloat
 import me.anno.utils.types.Strings.isBlank2
-import org.joml.*
+import org.joml.Quaternionf
+import org.joml.Vector2fc
+import org.joml.Vector3fc
+import org.joml.Vector4fc
 import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
@@ -20,11 +21,10 @@ open class FloatInput(
     style: Style, title: String,
     visibilityKey: String,
     type: Type = Type.FLOAT,
-    owningProperty: AnimatedProperty<*>?,
-    indexInProperty: Int
-) : NumberInput<Double>(style, title, visibilityKey, type, owningProperty, indexInProperty) {
+    private val inputPanel0: NumberInputComponent? = null
+) : NumberInput<Double>(style, title, visibilityKey, type, inputPanel0) {
 
-    constructor(style: Style) : this(style, "", "", Type.FLOAT, null, 0)
+    constructor(style: Style) : this(style, "", "", Type.FLOAT)
 
     override var lastValue: Double = getValue(type.defaultValue)
     var changeListener: (value: Double) -> Unit = { }
@@ -42,28 +42,13 @@ open class FloatInput(
         }
     }
 
-    constructor(
-        title: String,
-        visibilityKey: String,
-        owningProperty: AnimatedProperty<*>,
-        indexInProperty: Int,
-        time: Double,
-        style: Style
-    ) : this(style, title, visibilityKey, owningProperty.type, owningProperty, indexInProperty) {
-        when (val value = owningProperty[time]) {
-            is Float -> setValue(value, false)
-            is Double -> setValue(value, false)
-            else -> throw RuntimeException("Unknown type $value for ${javaClass.simpleName}")
-        }
-    }
-
     constructor(title: String, visibilityKey: String, value0: Float, type: Type, style: Style) :
-            this(style, title, visibilityKey, type, null, 0) {
+            this(style, title, visibilityKey, type) {
         setValue(value0, false)
     }
 
     constructor(title: String, visibilityKey: String, value0: Double, type: Type, style: Style) :
-            this(style, title, visibilityKey, type, null, 0) {
+            this(style, title, visibilityKey, type) {
         setValue(value0, false)
     }
 
@@ -135,17 +120,13 @@ open class FloatInput(
         }
     }
 
-    fun getValue(value: Any): Double {
+    open fun getValue(value: Any): Double {
         return when (value) {
             is Boolean -> value.toDouble()
             is Float -> value.toDouble()
             is Double -> value
             is Int -> value.toDouble()
             is Long -> value.toDouble()
-            is Vector2fc, is Vector3fc, is Vector4fc,
-            is Quaternionf -> getFloat(value, indexInProperty).toDouble()
-            is Vector2dc, is Vector3dc, is Vector4dc,
-            is Quaterniond -> getDouble(value, indexInProperty)
             else -> throw RuntimeException("Unknown type $value for ${value.javaClass.simpleName}")
         }
     }
@@ -156,7 +137,7 @@ open class FloatInput(
     }
 
     override fun onEmpty(x: Float, y: Float) {
-        val newValue = getValue(owningProperty?.defaultValue ?: type.defaultValue)
+        val newValue = getValue(type.defaultValue)
         if (newValue != lastValue) {
             setValue(newValue, true)
         }
@@ -190,7 +171,7 @@ open class FloatInput(
     }
 
     override fun clone(): FloatInput {
-        val clone = FloatInput(style, title, visibilityKey, type, owningProperty, indexInProperty)
+        val clone = FloatInput(style, title, visibilityKey, type, inputPanel0?.clone())
         copy(clone)
         return clone
     }

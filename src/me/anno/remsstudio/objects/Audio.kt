@@ -2,7 +2,7 @@ package me.anno.remsstudio.objects
 
 import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.remsstudio.audio.effects.SoundPipeline
-import me.anno.remsstudio.audio.AudioStreamOpenAL
+import me.anno.remsstudio.audio.AudioStreamOpenAL2
 import me.anno.audio.openal.AudioTasks
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -38,7 +38,7 @@ abstract class Audio(var file: FileReference = InvalidRef, parent: Transform? = 
     val forcedMeta get() = getMeta(file, false)
 
     var needsUpdate = true
-    var component: AudioStreamOpenAL? = null
+    var component: AudioStreamOpenAL2? = null
 
     /**
      * is synchronized with the audio thread
@@ -49,7 +49,7 @@ abstract class Audio(var file: FileReference = InvalidRef, parent: Transform? = 
         stopPlayback()
         val meta = forcedMeta
         if (meta?.hasAudio == true) {
-            val component = AudioStreamOpenAL(this, speed, globalTime, camera)
+            val component = AudioStreamOpenAL2(this, speed, globalTime, camera)
             this.component = component
             component.start()
         } else component = null

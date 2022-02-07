@@ -9,7 +9,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.input.MouseButton
 import me.anno.ui.base.constraints.AspectRatioConstraint
-import me.anno.ui.editor.color.ColorChooser.Companion.CircleBarRatio
+import me.anno.ui.editor.color.ColorChooser.Companion.circleBarRatio
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toVecRGBA
 import me.anno.maths.Maths.length
@@ -45,7 +45,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3fc, du: Vector3fc, dv: Vector
                     }
                 }
                 ColorVisualisation.CIRCLE -> {
-                    val x2 = x * (1f + CircleBarRatio)
+                    val x2 = x * (1f + circleBarRatio)
                     if (isDownInRing) {// alias x2 < 1f
                         // the wheel
                         val s2 = x2 * 2 - 1
@@ -94,7 +94,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3fc, du: Vector3fc, dv: Vector
                 chooser.isDownInRing = dst >= 0.62
             }
             ColorVisualisation.CIRCLE -> {
-                chooser.isDownInRing = (rx * (1f + CircleBarRatio) <= 1f)
+                chooser.isDownInRing = (rx * (1f + circleBarRatio) <= 1f)
             }
         }
     }

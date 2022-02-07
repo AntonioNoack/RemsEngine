@@ -10,26 +10,28 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
+import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.text.TextReader
 import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths.length
+import me.anno.maths.Maths.mixARGB
 import me.anno.ui.Panel
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.treeView.TreeView
+import me.anno.ui.editor.treeView.TreeViewPanel
 import me.anno.ui.style.Style
 import me.anno.utils.Color.normARGB
-import me.anno.maths.Maths.length
-import me.anno.maths.Maths.mixARGB
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.strings.StringHelper.shorten
+import me.anno.utils.structures.lists.Lists.flatten
 import me.anno.utils.structures.lists.UpdatingList
 import me.anno.utils.types.AABBs.deltaX
 import me.anno.utils.types.AABBs.deltaY
 import me.anno.utils.types.AABBs.deltaZ
-import me.anno.utils.structures.lists.Lists.flatten
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 
@@ -55,6 +57,25 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
     ) {
 
     val inspector get() = currentInspector!!
+
+    override fun isValidElement(element: Any?): Boolean {
+        return element is PrefabSaveable
+    }
+
+    override fun toggleCollapsed(element: PrefabSaveable) {
+        val isCollapsed = isCollapsed(element)
+        val target = !isCollapsed
+        // remove children from the selection???...
+        val targets = GFX.inFocus.filterIsInstance<TreeViewPanel<*>>()
+        if (targets.isEmpty()) {
+            setCollapsed(element, target)
+        } else {
+            for (it in targets) {
+                val element2 = it.getElement()
+                if (element2 is PrefabSaveable) setCollapsed(element2, target)
+            }
+        }
+    }
 
     override fun addChild(element: PrefabSaveable, child: Any) {
         if (element !is Entity) return

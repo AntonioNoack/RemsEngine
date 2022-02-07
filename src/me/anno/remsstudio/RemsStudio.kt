@@ -1,6 +1,5 @@
 package me.anno.remsstudio
 
-import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.audio.openal.ALBase
 import me.anno.audio.openal.AudioManager
 import me.anno.audio.openal.AudioTasks
@@ -15,23 +14,24 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.translation.Dict
+import me.anno.remsstudio.CheckVersion.checkVersion
+import me.anno.remsstudio.animation.AnimatedProperty
+import me.anno.remsstudio.audio.AudioManager2
+import me.anno.remsstudio.cli.RemsCLI
 import me.anno.remsstudio.objects.Camera
 import me.anno.remsstudio.objects.Transform
 import me.anno.remsstudio.objects.text.Text
+import me.anno.remsstudio.ui.StudioFileImporter
+import me.anno.remsstudio.ui.scene.ScenePreview
+import me.anno.remsstudio.ui.sceneTabs.SceneTabs.currentTab
 import me.anno.studio.GFXSettings
 import me.anno.studio.StudioBase
-import me.anno.remsstudio.cli.RemsCLI
-import me.anno.remsstudio.CheckVersion.checkVersion
-import me.anno.remsstudio.audio.AudioManager2
-import me.anno.remsstudio.ui.StudioFileImporter
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.editor.PropertyInspector.Companion.invalidateUI
 import me.anno.ui.editor.WelcomeUI
 import me.anno.ui.editor.files.FileContentImporter
-import me.anno.remsstudio.ui.sceneTabs.SceneTabs.currentTab
-import me.anno.remsstudio.ui.scene.ScenePreview
 import me.anno.ui.style.Style
 import me.anno.utils.OS
 import java.io.File
@@ -128,6 +128,12 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
     }
 
     lateinit var welcomeUI: WelcomeUI
+
+    override fun isSelected(obj: Any?): Boolean {
+        return obj == Selection.selectedInspectable ||
+                obj == Selection.selectedProperty ||
+                obj == Selection.selectedTransform
+    }
 
     override fun createUI() {
         Dict.loadDefault()

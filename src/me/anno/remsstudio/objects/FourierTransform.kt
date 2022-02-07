@@ -2,7 +2,7 @@ package me.anno.remsstudio.objects
 
 import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Type
-import me.anno.audio.AudioFXCache
+import me.anno.remsstudio.audio.AudioFXCache2
 import me.anno.remsstudio.audio.effects.Domain
 import me.anno.remsstudio.audio.effects.Time
 import me.anno.gpu.GFX.isFinalRendering
@@ -118,11 +118,11 @@ class FourierTransform : Transform() {
                 // get the two nearest fourier transforms, and interpolate them
                 val meta = forcedMeta
                 if (meta != null) {
-                    val bufferIndex = AudioFXCache.getIndex(time, bufferSize, sampleRate)
+                    val bufferIndex = AudioFXCache2.getIndex(time, bufferSize, sampleRate)
                     val bufferIndex0 = floor(bufferIndex).toLong()
-                    val bufferTime0 = Time(AudioFXCache.getTime(bufferIndex0 - 1, bufferSize, sampleRate))
-                    val bufferTime1 = Time(AudioFXCache.getTime(bufferIndex0 + 0, bufferSize, sampleRate))
-                    val bufferTime2 = Time(AudioFXCache.getTime(bufferIndex0 + 1, bufferSize, sampleRate))
+                    val bufferTime0 = Time(AudioFXCache2.getTime(bufferIndex0 - 1, bufferSize, sampleRate))
+                    val bufferTime1 = Time(AudioFXCache2.getTime(bufferIndex0 + 0, bufferSize, sampleRate))
+                    val bufferTime2 = Time(AudioFXCache2.getTime(bufferIndex0 + 1, bufferSize, sampleRate))
                     val buff0 = getBuffer(meta, bufferTime0, bufferTime1)
                     val buff1 = getBuffer(meta, bufferTime1, bufferTime2)
                     if (buff0 != null && buff1 != null) {
@@ -218,15 +218,15 @@ class FourierTransform : Transform() {
     var loopingState = LoopingState.PLAY_LOOP
     // todo option to change the domain? may be nice, but otherwise, it's really fast...
 
-    fun getKey(sampleIndex0: Long, half: Boolean): AudioFXCache.PipelineKey {
+    fun getKey(sampleIndex0: Long, half: Boolean): AudioFXCache2.PipelineKey {
         val fraction = if (half) 0.5 else 0.0
-        val t0 = Time(AudioFXCache.getTime(sampleIndex0 + 0, fraction, bufferSize, sampleRate))
-        val t1 = Time(AudioFXCache.getTime(sampleIndex0 + 1, fraction, bufferSize, sampleRate))
+        val t0 = Time(AudioFXCache2.getTime(sampleIndex0 + 0, fraction, bufferSize, sampleRate))
+        val t1 = Time(AudioFXCache2.getTime(sampleIndex0 + 1, fraction, bufferSize, sampleRate))
         return getKey(t0, t1)
     }
 
-    fun getKey(sampleTime0: Time, sampleTime1: Time): AudioFXCache.PipelineKey {
-        return AudioFXCache.PipelineKey(
+    fun getKey(sampleTime0: Time, sampleTime1: Time): AudioFXCache2.PipelineKey {
+        return AudioFXCache2.PipelineKey(
             file, sampleTime0, sampleTime1, bufferSize, false, "",
             loopingState, null
         )
@@ -237,7 +237,7 @@ class FourierTransform : Transform() {
         sampleTime0: Time,
         sampleTime1: Time
     ): Pair<FloatArray, FloatArray>? {
-        val data = AudioFXCache.getBuffer0(meta, getKey(sampleTime0, sampleTime1), false)
+        val data = AudioFXCache2.getBuffer0(meta, getKey(sampleTime0, sampleTime1), false)
         if (isFinalRendering && data == null) throw MissingFrameException(file)
         if (data == null) return null
         return data.getBuffersOfDomain(Domain.FREQUENCY_DOMAIN)

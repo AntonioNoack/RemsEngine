@@ -32,7 +32,7 @@ import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.remsstudio.ui.editor.TimelinePanel
 import me.anno.remsstudio.ui.editor.TimelinePanel.Companion.global2Kf
-import me.anno.ui.editor.components.ComponentUI
+import me.anno.remsstudio.ui.ComponentUIV2
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.input.TextInput
 import me.anno.ui.input.TextInputML
@@ -740,7 +740,7 @@ open class Transform() : Saveable(),
         type: Type?, value: V,
         style: Style, setValue: (V) -> Unit
     ): Panel {
-        return ComponentUI.vi(this, title, ttt, type, value, style, setValue)
+        return ComponentUIV2.vi(this, title, ttt, type, value, style, setValue)
     }
 
     fun vi(title: String, ttt: String, dictSubPath: String, values: AnimatedProperty<*>, style: Style): Panel {
@@ -753,7 +753,7 @@ open class Transform() : Saveable(),
      * modifies the AnimatedProperty-Object, so no callback is needed
      * */
     fun vi(title: String, ttt: String, values: AnimatedProperty<*>, style: Style): Panel {
-        return ComponentUI.vi(this, title, ttt, values, style)
+        return ComponentUIV2.vi(this, title, ttt, values, style)
     }
 
     override fun onDestroy() {

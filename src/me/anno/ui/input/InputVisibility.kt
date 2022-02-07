@@ -13,7 +13,7 @@ object InputVisibility {
 
     fun toggle(visibilityKey: String, panel: Panel?) {
         // LOGGER.debug("Toggle $visibilityKey")
-        visible[visibilityKey] = if (this[visibilityKey] != Visibility.VISIBLE) Visibility.VISIBLE else Visibility.GONE
+        visible[visibilityKey] = Visibility[this[visibilityKey] != Visibility.VISIBLE]
         panel?.invalidateLayout()
     }
 

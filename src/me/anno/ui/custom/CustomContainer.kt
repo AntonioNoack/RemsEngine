@@ -12,7 +12,6 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.remsstudio.ui.scene.StudioSceneView
 import me.anno.ui.style.Style
 import org.apache.logging.log4j.LogManager
 import kotlin.math.roundToInt
@@ -62,7 +61,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
 
     private fun addBefore(index: Int, parent: CustomList) {
         val children = parent.children
-        val view = CustomContainer(StudioSceneView(style), library, style)
+        val view = CustomContainer(library.createDefault(), library, style)
         val bar = CustomizingBar(0, 3, 0, style)
         bar.parent = parent
         view.parent = parent
@@ -74,7 +73,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
 
     private fun addAfter(index: Int, parent: CustomList) {
         val children = parent.children
-        val view = CustomContainer(StudioSceneView(style), library, style)
+        val view = CustomContainer(library.createDefault(), library, style)
         val bar = CustomizingBar(0, 3, 0, style)
         bar.parent = parent
         view.parent = parent
@@ -90,11 +89,12 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
         replaced.parent = parent
         children[index] = replaced
         replaced.weight = this.weight
+        val newInstance = CustomContainer(library.createDefault(), library, style)
         if (firstThis) {
             replaced.add(this)
-            replaced.add(CustomContainer(StudioSceneView(style), library, style))
+            replaced.add(newInstance)
         } else {
-            replaced.add(CustomContainer(StudioSceneView(style), library, style))
+            replaced.add(newInstance)
             replaced.add(this)
         }
         parent.update()
@@ -146,9 +146,17 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
-        when (action) {
+        val prefix = "ChangeType("
+        if (action.startsWith(prefix)) {
+            val typeName = action.substring(prefix.length, action.lastIndex)
+            val type = library.types[typeName]
+            if (type != null) {
+                changeTo(type.constructor())
+            } else {
+                changeType()
+            }
+        } else when (action) {
             "ChangeType" -> changeType()
-            "ChangeType(SceneView)" -> changeTo(StudioSceneView(style))
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
         return true

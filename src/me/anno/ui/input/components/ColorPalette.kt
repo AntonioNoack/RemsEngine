@@ -1,23 +1,17 @@
 package me.anno.ui.input.components
 
+import me.anno.config.DefaultConfig
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.remsstudio.RemsStudio.project
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.style.Style
 
 // maximum size???...
-class ColorPalette(
+open class ColorPalette(
     private val dimX: Int,
     private val dimY: Int,
     style: Style
 ) : PanelGroup(style) {
-
-    constructor(base: ColorPalette) : this(base.dimX, base.dimY, base.style) {
-        base.copy(this)
-    }
-
-    override val className get() = "ColorPalette"
 
     override val children: List<Panel> = Array(dimX * dimY) {
         ColorField(this, it % dimX, it / dimX, 0, style)
@@ -51,14 +45,23 @@ class ColorPalette(
         }
     }
 
-    fun getColor(x: Int, y: Int) = project?.config?.get("color.$x.$y", 0) ?: 0
-    fun setColor(x: Int, y: Int, value: Int) {
-        project?.config?.set("color.$x.$y", value)
+    private fun getKey(x: Int, y: Int) = "ui.palette.color[$x,$y]"
+
+    open fun getColor(x: Int, y: Int): Int {
+        return DefaultConfig[getKey(x, y), 0]
+    }
+
+    open fun setColor(x: Int, y: Int, color: Int) {
+        DefaultConfig[getKey(x, y)] = color
     }
 
     private fun getIndex(x: Int, y: Int): Int = x + y * dimX
 
-    override fun clone() = ColorPalette(this)
+    override fun clone(): ColorPalette {
+        val clone = ColorPalette(dimX, dimY, style)
+        copy(clone)
+        return clone
+    }
 
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
@@ -66,5 +69,7 @@ class ColorPalette(
         // !! this can be incorrect, if the function references this special instance
         clone.onColorSelected = onColorSelected
     }
+
+    override val className: String = "ColorPalette"
 
 }

@@ -1,14 +1,11 @@
-package me.anno.remsstudio.audio
+package me.anno.audio
 
-import me.anno.audio.AudioStream
-import me.anno.io.files.FileReference
-import me.anno.remsstudio.objects.Audio
-import me.anno.remsstudio.objects.Camera
 import me.anno.animation.LoopingState
 import me.anno.audio.openal.ALBase
 import me.anno.audio.openal.AudioTasks
 import me.anno.audio.openal.SoundBuffer
 import me.anno.audio.openal.SoundSource
+import me.anno.io.files.FileReference
 import me.anno.video.AudioCreator.Companion.playbackSampleRate
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import org.apache.logging.log4j.LogManager
@@ -30,27 +27,18 @@ class AudioStreamOpenAL(
     repeat: LoopingState,
     var startTime: Double,
     meta: FFMPEGMetadata,
-    sender: Audio,
-    listener: Camera,
     speed: Double
-) : AudioStream(file, repeat, getIndex(startTime, speed, playbackSampleRate), meta, sender, listener, speed) {
-
-    constructor(audio: Audio, speed: Double, globalTime: Double, listener: Camera) :
-            this(
-                audio.file, audio.isLooping.value, globalTime,
-                FFMPEGMetadata.getMeta(audio.file, false)!!,
-                audio, listener, speed
-            )
+) : AudioStream(file, repeat, getIndex(startTime, speed, playbackSampleRate), meta, speed) {
 
     companion object {
         private val LOGGER = LogManager.getLogger(AudioStreamOpenAL::class)
     }
 
-    val startTime0 = startTime
+    private val startTime0 = startTime
 
     var startTimeNanos = 0L
     var realStartTimeNanos = 0L
-    var alSource = SoundSource(false, true)
+    val alSource by lazy { SoundSource(false, true) }
 
     var queued = AtomicLong()
     var processed = 0

@@ -1,6 +1,5 @@
 package me.anno.ui.input
 
-import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.config.DefaultStyle.black
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
@@ -8,13 +7,10 @@ import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.language.translation.NameDesc
-import me.anno.remsstudio.objects.Camera
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
-import me.anno.remsstudio.RemsStudio
-import me.anno.remsstudio.Selection.selectedProperty
-import me.anno.remsstudio.Selection.selectedTransform
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.SizeLimitingContainer
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu
@@ -22,13 +18,10 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.editor.color.ColorChooser
 import me.anno.ui.editor.color.PreviewField
+import me.anno.ui.input.components.ColorPalette
 import me.anno.ui.input.components.TitlePanel
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toARGB
-import me.anno.utils.Color.toVecRGBA
-import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.pow
-import org.joml.Vector3f
 import org.joml.Vector4f
 import org.joml.Vector4fc
 import kotlin.math.max
@@ -39,20 +32,19 @@ import kotlin.math.max
 // todo - add controls on the bottom, or somewhere..., with a preview of the color
 // todo - select on click, or when dragging + enter then
 
-class ColorInput(
+open class ColorInput(
     style: Style,
     val title: String,
-    @Suppress("UNUSED_PARAMETER")
+    @Suppress("unused_parameter")
     visibilityKey: String,
     oldValue: Vector4fc,
     withAlpha: Boolean,
-    private val owningProperty: AnimatedProperty<*>? = null
+    val contentView: ColorChooser = ColorChooser(style, withAlpha, ColorPalette(8, 4, style))
 ) : PanelListX(style), InputPanel<Vector4f>, TextStyleable {
 
-    constructor(style: Style) : this(style, "", "", Vector4f(), true, null)
+    constructor(style: Style) : this(style, "", "", Vector4f(), true)
 
-    private val contentView = ColorChooser(style, withAlpha, owningProperty)
-    private val titleView = TitlePanel(title, contentView, style)
+    val titleView = TitlePanel(title, contentView, style)
     private val previewField = PreviewField(titleView, 2, style)
         .apply {
             addLeftClickListener { openColorChooser() }
@@ -117,7 +109,7 @@ class ColorInput(
                 Menu.openMenu(windowStack, listOf(
                     MenuOption(NameDesc("Copy")) { Input.copy(contentView) },
                     MenuOption(NameDesc("Paste")) { Input.paste(contentView) },
-                    MenuOption(NameDesc("Reset")) { setValue(resetListener(), true) }
+                    MenuOption(NameDesc("Reset")) { setValue(contentView.resetListener(), true) }
                 ))
             }
             else -> super.onMouseClicked(x, y, button, long)
@@ -145,11 +137,8 @@ class ColorInput(
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         super.onMouseMoved(x, y, dx, dy)
         if (mouseIsDown && dragged == null) {
-            val scale2 = 20f * shiftSlowdown
-            val size = scale2 * (if (selectedTransform is Camera) -1f else 1f) / max(GFX.width, GFX.height)
-            val dx0 = dx * size
-            val dy0 = dy * size
-            val delta = dx0 - dy0
+            val speed = 20f * shiftSlowdown / max(GFX.width, GFX.height)
+            val delta = (dx - dy) * speed
             val scaleFactor = 1.10f
             val scale = pow(scaleFactor, delta)
             contentView.apply {
@@ -165,10 +154,6 @@ class ColorInput(
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val focused1 = titleView.isInFocus || contentView.listOfAll.any { it.isInFocus }
         if (focused1) isSelectedListener?.invoke()
-        if (RemsStudio.hideUnusedProperties) {
-            val focused2 = focused1 || (owningProperty == selectedProperty && owningProperty != null)
-            contentView.visibility = if (focused2) Visibility.VISIBLE else Visibility.GONE
-        }
         super.onDraw(x0, y0, x1, y1)
     }
 
@@ -186,18 +171,9 @@ class ColorInput(
         return this
     }
 
-    private var resetListener: () -> Vector4f = {
-        when (val default = owningProperty?.defaultValue) {
-            is Vector4f -> default
-            is Vector3f -> Vector4f(default, 1f)
-            is Int -> default.toVecRGBA()
-            is Long -> default.toInt().toVecRGBA()
-            else -> Vector4f(0f, 0f, 0f, 1f)
-        }
-    }
-
-    fun setResetListener(listener: () -> Vector4f) {
-        resetListener = listener
+    fun setResetListener(listener: () -> Vector4f): ColorInput {
+        contentView.setResetListener(listener)
+        return this
     }
 
     override fun clone(): ColorInput {
@@ -211,7 +187,7 @@ class ColorInput(
         clone as ColorInput
         // only works, if there is no references
         clone.isSelectedListener = isSelectedListener
-        clone.resetListener = resetListener
+        clone.setResetListener(contentView.resetListener)
     }
 
     override val className: String = "ColorInput"

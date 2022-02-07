@@ -326,6 +326,8 @@ abstract class StudioBase(
         LastModifiedCache.clear()
     }
 
+    open fun isSelected(obj: Any?) = false
+
     companion object {
 
         var shallStop = false

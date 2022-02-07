@@ -12,10 +12,10 @@ import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.io.text.TextReader
 import me.anno.language.translation.NameDesc
-import me.anno.remsstudio.objects.Transform
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.sq
+import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.dragged
-import me.anno.remsstudio.RemsStudio
-import me.anno.remsstudio.Selection.selectedTransform
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
@@ -29,12 +29,13 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
-import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.sq
 import kotlin.math.roundToInt
 
 class TreeViewPanel<V>(
     val getElement: () -> V,
+    val isValidElement: (Any?) -> Boolean,
+    val toggleCollapsed: (V) -> Unit,
+    val moveChange: (run: () -> Unit) -> Unit,
     val getName: (V) -> String,
     val setName: (V, String) -> Unit,
     val openAddMenu: (parent: V) -> Unit,
@@ -112,13 +113,14 @@ class TreeViewPanel<V>(
         val showAddIndex = if (
             window.mouseX.toInt() in lx0..lx1 &&
             window.mouseY.toInt() in ly0..ly1 &&
-            dragged is Draggable && dragged.getOriginal() is Transform
+            dragged is Draggable && isValidElement(dragged.getOriginal())
         ) {
             clamp(((window.mouseY - this.y) / this.h * 3).toInt(), 0, 2)
         } else null
         if (this.showAddIndex != showAddIndex) invalidateDrawing()
         this.showAddIndex = showAddIndex
-        val isInFocus = isInFocus || text.isInFocus || (uiSymbol?.isInFocus == true) || selectedTransform == transform
+        val isInFocus =
+            isInFocus || text.isInFocus || (uiSymbol?.isInFocus == true) || StudioBase.instance?.isSelected(transform) == true
         val textColor = treeView.getLocalColor(transform, isHovered, isInFocus).scaleRGB(180 / 255f)
         val colorDifference = sq(textColor.r() - backgroundColor.r()) +
                 sq(textColor.g() - backgroundColor.g()) +
@@ -150,27 +152,6 @@ class TreeViewPanel<V>(
         }
     }
 
-    private fun toggleCollapsed() {
-        val element = getElement()
-        val name = treeView.getName(element)
-        val isCollapsed = treeView.isCollapsed(element)
-        // todo obviously, this RemsStudio must be removed
-        // todo and instead we need to use the general history/...
-        RemsStudio.largeChange(if (isCollapsed) "Expanded $name" else "Collapsed $name") {
-            val target = !isCollapsed
-            // remove children from the selection???...
-            val targets = inFocus.filterIsInstance<TreeViewPanel<*>>()
-            for (it in targets) {
-                @Suppress("UNCHECKED_CAST")
-                val element2 = it.getElement() as V
-                treeView.setCollapsed(element2, target)
-            }
-            if (targets.isEmpty()) {
-                treeView.setCollapsed(element, target)
-            }
-        }
-    }
-
     private fun isMouseOnSymbol(x: Float): Boolean {
         return uiSymbol != null && x <= uiSymbol.lx1
     }
@@ -186,7 +167,7 @@ class TreeViewPanel<V>(
                 // todo collapse / expand multiple elements at the same time
                 // todo edit multiple elements at the same time
                 if ((Input.isShiftDown && inFocus.size < 2) || isMouseOnSymbol(x)) {
-                    toggleCollapsed()
+                    toggleCollapsed(getElement())
                 } else {
                     treeView.selectElementMaybe(element)
                 }
@@ -210,13 +191,15 @@ class TreeViewPanel<V>(
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         try {
             val child0 = TextReader.read(data, true).firstOrNull()
-            @Suppress("UNCHECKED_CAST")
+
+            @Suppress("unchecked_cast")
             val child = child0 as? V ?: return super.onPaste(x, y, data, type)
-            @Suppress("UNCHECKED_CAST")
+
+            @Suppress("unchecked_cast")
             val original = (dragged as? Draggable)?.getOriginal() as? V
             val relativeY = (y - this.y) / this.h
             val element = getElement()
-            RemsStudio.largeChange("Moved Component") {
+            moveChange {
                 if (relativeY < 0.33f) {
                     // paste on top
                     if (element.parent != null) {
@@ -318,18 +301,6 @@ class TreeViewPanel<V>(
 
     override fun onEmpty(x: Float, y: Float) {
         onDeleteKey(x, y)
-    }
-
-    override fun onDeleteKey(x: Float, y: Float) {
-        val element = getElement()
-        val parent = treeView.getParent(element)
-        if (parent != null) {
-            // todo only in Rem's Studio...
-            RemsStudio.largeChange("Deleted Component ${treeView.getName(getElement())}") {
-                treeView.removeChild(parent, element)
-                for (it in element.listOfAll.toList()) treeView.destroy(it)
-            }
-        }
     }
 
     override fun onBackSpaceKey(x: Float, y: Float) = onDeleteKey(x, y)

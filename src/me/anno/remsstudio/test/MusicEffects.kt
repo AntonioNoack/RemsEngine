@@ -1,6 +1,6 @@
 package me.anno.remsstudio.test
 
-import me.anno.audio.AudioFXCache
+import me.anno.remsstudio.audio.AudioFXCache2
 import me.anno.remsstudio.audio.effects.Domain
 import me.anno.remsstudio.audio.effects.Time
 import me.anno.remsstudio.audio.effects.impl.EqualizerEffect
@@ -51,7 +51,7 @@ fun main() {
 
     val t0 = Time(0.0, 0.0)
     val t1 = Time(time, time)
-    val result = AudioFXCache.getBuffer(audio, camera, t0, t1, bufferSize, Domain.TIME_DOMAIN, false)
+    val result = AudioFXCache2.getBuffer(audio, camera, t0, t1, bufferSize, Domain.TIME_DOMAIN, false)
     print(result)
 
 }

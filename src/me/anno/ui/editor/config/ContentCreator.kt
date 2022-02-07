@@ -5,11 +5,10 @@ import me.anno.config.DefaultConfig.style
 import me.anno.config.DefaultStyle.black
 import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
-import me.anno.remsstudio.objects.text.TextInspector
-import me.anno.remsstudio.RemsStudio.root
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.text.TextPanel
+import me.anno.ui.editor.FontListMenu.createFontInput
 import me.anno.ui.input.*
 import me.anno.utils.Color.rgba
 import me.anno.utils.Color.toHexColor
@@ -49,7 +48,7 @@ class ContentCreator(
                     is String -> {
                         if (fullName.contains("fontName") || fullName == "font") {
                             // there is only a certain set of values available
-                            TextInspector.createFontInput(value, style) {
+                            createFontInput(value, style) {
                                 map[fullName] = it
                             }
                         } else {
@@ -90,7 +89,8 @@ class ContentCreator(
                         .setChangeListener { map[fullName] = it }
                     else -> {
                         LOGGER.warn("Missing type implementation ${value.javaClass.simpleName}")
-                        root.vi(shortTitle, fullName, null, value, style) { map[fullName] = value }
+                        // ComponentUI.vi(null, shortTitle, fullName, null, value, style) { map[fullName] = value }
+                        return
                     }
                 }
                 list += body.withPadding(pad * 2, 0, 0, 0)

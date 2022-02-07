@@ -1,8 +1,8 @@
 package me.anno.remsstudio.ui.editor.cutting
 
 import me.anno.Build
-import me.anno.audio.AudioFXCache
-import me.anno.audio.AudioFXCache.SPLITS
+import me.anno.remsstudio.audio.AudioFXCache2
+import me.anno.remsstudio.audio.AudioFXCache2.SPLITS
 import me.anno.cache.instances.VideoCache
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
@@ -207,7 +207,7 @@ class LayerStripeSolution(
                         // speed: Double,
                         // domain: Domain,
                         // async: Boolean
-                        val range = AudioFXCache.getRange(bufferSize, t0, t1, identifier, audio, camera)
+                        val range = AudioFXCache2.getRange(bufferSize, t0, t1, identifier, audio, camera)
                         if (range != null && drawAudio) {
                             for (dx in 0 until SPLITS) {
                                 val x = xi + dx

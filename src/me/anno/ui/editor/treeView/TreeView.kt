@@ -97,6 +97,10 @@ abstract class TreeView<V>(
         return -1
     }
 
+    override fun onPropertiesChanged() {
+        invalidateLayout()
+    }
+
     private fun addToTreeList(element: V, depth: Int, index0: Int): Int {
         var index = index0
         val panel = getOrCreateChildPanel(index++, element)
@@ -172,7 +176,8 @@ abstract class TreeView<V>(
         }
         elementByIndex += element
         val child = TreeViewPanel(
-            { elementByIndex[index] }, ::getName, ::setName, this::openAddMenu,
+            { elementByIndex[index] }, ::isValidElement, ::toggleCollapsed, ::moveChange,
+            ::getName, ::setName, this::openAddMenu,
             fileContentImporter, showSymbols, this, style
         )
         child.padding.left = 4
@@ -180,6 +185,14 @@ abstract class TreeView<V>(
         list += child
         return child
     }
+
+    open fun moveChange(run: () -> Unit) {
+        run()
+    }
+
+    abstract fun isValidElement(element: Any?): Boolean
+
+    abstract fun toggleCollapsed(element: V)
 
     // done display, where we'd move it
     // done between vs at the end vs at the start

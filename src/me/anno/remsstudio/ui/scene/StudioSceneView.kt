@@ -103,6 +103,10 @@ open class StudioSceneView(style: Style) : PanelList(null, style.getChild("scene
 
     val borderThickness = style.getSize("blackWhiteBorderThickness", 2)
 
+    override fun onPropertiesChanged(){
+        invalidateDrawing()
+    }
+
     // we need the depth for post processing effects like dof
 
     init {

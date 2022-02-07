@@ -69,6 +69,10 @@ open class TimelinePanel(style: Style) : Panel(style) {
         GFX.loadTexturesSync.pop()
     }
 
+    override fun onPropertiesChanged() {
+        invalidateDrawing()
+    }
+
     companion object {
 
         var centralValue = 0f

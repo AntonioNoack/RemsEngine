@@ -118,6 +118,11 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         GameEngine.scaledTime = GameEngine.scaledNanos * 1e-9
     }
 
+    override fun isSelected(obj: Any?): Boolean {
+        return EditorState.selection.contains(obj) ||
+                EditorState.fineSelection.contains(obj)
+    }
+
     override fun onGameLoop(w: Int, h: Int) {
         DefaultConfig.saveMaybe("main.config")
         super.onGameLoop(w, h)

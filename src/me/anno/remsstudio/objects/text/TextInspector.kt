@@ -1,21 +1,14 @@
 package me.anno.remsstudio.objects.text
 
-import me.anno.remsstudio.animation.AnimatedProperty
-import me.anno.config.DefaultConfig
-import me.anno.fonts.FontManager
-import me.anno.input.MouseButton
-import me.anno.language.translation.NameDesc
 import me.anno.remsstudio.RemsStudio
 import me.anno.remsstudio.Selection
+import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.base.menu.Menu
-import me.anno.ui.base.menu.MenuOption
-import me.anno.ui.base.text.TextPanel
+import me.anno.ui.editor.FontListMenu.createFontInput
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.ui.input.BooleanInput
-import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
@@ -24,87 +17,6 @@ import org.joml.Vector4f
 object TextInspector {
 
     private val LOGGER = LogManager.getLogger(TextInspector::class)
-
-    fun createFontInput(oldValue: String, style: Style, onChange: (String) -> Unit): EnumInput {
-        val fontList = ArrayList<NameDesc>()
-        fontList += NameDesc(oldValue)
-        fontList += NameDesc(Menu.menuSeparator)
-
-        fun sortFavourites() {
-            fontList.sortBy { it.name }
-            val lastUsedSet = Text.lastUsedFonts.toHashSet()
-            fontList.sortByDescending { if (it.name == Menu.menuSeparator) 1 else if (it.name in lastUsedSet) 2 else 0 }
-        }
-
-        FontManager.requestFontList { systemFonts ->
-            synchronized(fontList) {
-                fontList += systemFonts
-                    .filter { it != oldValue }
-                    .map { NameDesc(it) }
-            }
-        }
-
-        // todo Consolas is not correctly centered?
-
-        // todo general favourites for all enum types?
-        // todo at least a generalized form to make it simpler?
-
-        return object : EnumInput(
-            "Font Name",
-            "The style of the text",
-            "obj.font.name",
-            oldValue, fontList,
-            style
-        ) {
-            /**
-             * this menu is overridden, so we can set each font name to its respective font :3
-             * this could be a bad idea, if the user has thousands of fonts installed
-             * */
-            override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-                if (DefaultConfig["ui.fonts.previewInEnumInput.enable", true]) {
-                    val window = Menu.openMenu(windowStack, this.x, this.y,
-                        NameDesc("Select the %1", "", "ui.input.enum.menuTitle")
-                            .with("%1", title),
-                        options.mapIndexed { index, option ->
-                            MenuOption(option) {
-                                inputPanel.text = option.name
-                                inputPanel.tooltip = option.desc
-                                lastIndex = index
-                                changeListener(option.name, index, options)
-                            }
-                        })
-                    if (window != null) {
-                        LOGGER.warn("Looking up all fonts, engine might lag")
-                        val fontNames = fontList.map { it.englishName }.toSet()
-                        window.panel.forAllPanels { panel ->
-                            if (panel is TextPanel && panel.text in fontNames) {
-                                if (DefaultConfig["ui.fonts.previewInEnumInput.direct", false]) {
-                                    // this is expensive
-                                    panel.font = panel.font.withName(panel.text)
-                                    panel.tooltip = panel.text
-                                } else {
-                                    val text = "" +
-                                            "the quick brown fox jumps over the lazy dog.\n" +
-                                            "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG.\n" +
-                                            panel.text
-                                    val clone = panel.clone()
-                                    panel.tooltipPanel = clone
-                                    clone.font = panel.font
-                                        .withName(panel.text)
-                                        .withSize(panel.font.size * 2)
-                                    clone.text = text
-                                }
-                            }
-                        }
-                    }
-                } else super.onMouseClicked(x, y, button, long)
-            }
-        }.setChangeListener { it, _, _ ->
-            onChange(it)
-            Text.putLastUsedFont(it)
-            sortFavourites()
-        }
-    }
 
     fun Text.createInspectorWithoutSuperImpl(
         list: PanelListY,

@@ -1,6 +1,5 @@
 package me.anno.ui.input
 
-import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
@@ -8,92 +7,38 @@ import me.anno.gpu.GFX
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
 import me.anno.input.MouseButton
-import me.anno.io.text.TextReader
-import me.anno.remsstudio.objects.Camera
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.studio.StudioBase.Companion.warn
-import me.anno.remsstudio.RemsStudio
-import me.anno.remsstudio.RemsStudio.editorTime
-import me.anno.remsstudio.Selection.selectedProperty
-import me.anno.remsstudio.Selection.selectedTransform
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
-import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.groups.TitledListY
 import me.anno.ui.base.text.TextStyleable
-import me.anno.ui.input.components.TitlePanel
-import me.anno.ui.input.components.VectorInputComponent
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing
-import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.pow
 import me.anno.utils.types.AnyToDouble.getDouble
-import me.anno.utils.types.AnyToFloat.getFloat
 import me.anno.utils.types.Floats.anyToDouble
 import me.anno.utils.types.Quaternions.toEulerAnglesDegrees
-import me.anno.utils.types.Strings.isBlank2
 import org.joml.*
 import kotlin.math.max
 
-class FloatVectorInput(
-    val title: String,
-    val visibilityKey: String,
+open class FloatVectorInput(
+    title: String,
+    visibilityKey: String,
     val type: Type,
-    private val owningProperty: AnimatedProperty<*>? = null,
-    style: Style
-) : PanelListY(style), InputPanel<Vector4d>, TextStyleable {
+    style: Style,
+    component0: FloatInput? = null
+) : TitledListY(title, visibilityKey, style), InputPanel<Vector4d>, TextStyleable {
 
-    constructor(style: Style) : this("", "", Type.FLOAT, null, style)
-
-    constructor(title: String, property: AnimatedProperty<*>, time: Double, style: Style) :
-            this(title, title, property.type, property, style) {
-        when (val value = property[time]) {
-            is Vector2f -> setValue(value, false)
-            is Vector3f -> setValue(value, false)
-            is Vector4f -> setValue(value, false)
-            is Quaternionf -> setValue(value, false)
-            else -> throw RuntimeException("Type $value not yet supported!")
-        }
-    }
-
-    constructor(
-        title: String, visibilityKey: String, value: Vector2fc, type: Type,
-        owningProperty: AnimatedProperty<*>?, style: Style
-    ) : this(title, visibilityKey, type, owningProperty, style) {
-        setValue(value, false)
-    }
-
-    constructor(
-        title: String, visibilityKey: String, value: Vector2fc, type: Type, style: Style
-    ) : this(title, visibilityKey, value, type, null, style)
-
-    constructor(
-        title: String, visibilityKey: String, value: Vector3fc, type: Type,
-        owningProperty: AnimatedProperty<*>?, style: Style
-    ) : this(title, visibilityKey, type, owningProperty, style) {
-        setValue(value, false)
-    }
-
-    constructor(
-        title: String, visibilityKey: String, value: Vector3fc, type: Type, style: Style
-    ) : this(title, visibilityKey, value, type, null, style)
-
-    constructor(
-        title: String, visibilityKey: String, value: Vector4fc, type: Type,
-        owningProperty: AnimatedProperty<*>? = null, style: Style
-    ) : this(title, visibilityKey, type, owningProperty, style) {
-        setValue(value, false)
-    }
-
-    constructor(
-        title: String, visibilityKey: String, value: Vector4fc, type: Type, style: Style
-    ) : this(title, visibilityKey, value, type, null, style)
+    constructor(style: Style) : this("", "", Type.FLOAT, style)
 
     constructor(
         title: String, visibilityKey: String, value: Quaternionf,
         type: Type = Type.QUATERNION, style: Style
-    ) : this(title, visibilityKey, type, null, style) {
+    ) : this(title, visibilityKey, type, style) {
         if (type.components == 3) {
             // if type is Type.ROT_YXZ, we need to transform the value to angles, and to degrees
             val value2 = value.toEulerAnglesDegrees()
@@ -104,58 +49,55 @@ class FloatVectorInput(
     }
 
     constructor(
-        title: String, visibilityKey: String, value: Vector2dc, type: Type,
-        owningProperty: AnimatedProperty<*>?, style: Style
-    ) : this(title, visibilityKey, type, owningProperty, style) {
+        title: String, visibilityKey: String, value: Vector2fc,
+        type: Type = Type.VEC2, style: Style
+    ) : this(title, visibilityKey, type, style) {
         setValue(value, false)
     }
 
     constructor(
-        title: String, visibilityKey: String, value: Vector2dc, type: Type, style: Style
-    ) : this(title, visibilityKey, value, type, null, style)
-
-    constructor(
-        title: String, visibilityKey: String, value: Vector3dc, type: Type,
-        owningProperty: AnimatedProperty<*>?, style: Style
-    ) : this(title, visibilityKey, type, owningProperty, style) {
+        title: String, visibilityKey: String, value: Vector3fc,
+        type: Type = Type.VEC3, style: Style
+    ) : this(title, visibilityKey, type, style) {
         setValue(value, false)
     }
 
     constructor(
-        title: String, visibilityKey: String, value: Vector3dc, type: Type, style: Style
-    ) : this(title, visibilityKey, value, type, null, style)
-
-    constructor(
-        title: String, visibilityKey: String, value: Vector4dc, type: Type,
-        owningProperty: AnimatedProperty<*>?, style: Style
-    ) : this(title, visibilityKey, type, owningProperty, style) {
+        title: String, visibilityKey: String, value: Vector4fc,
+        type: Type = Type.VEC4, style: Style
+    ) : this(title, visibilityKey, type, style) {
         setValue(value, false)
     }
 
     constructor(
-        title: String, visibilityKey: String, value: Vector4dc, type: Type, style: Style
-    ) : this(title, visibilityKey, value, type, null, style)
+        title: String, visibilityKey: String, value: Vector2dc,
+        type: Type = Type.VEC2D, style: Style
+    ) : this(title, visibilityKey, type, style) {
+        setValue(value, false)
+    }
 
     constructor(
-        title: String, visibilityKey: String, value: Quaterniond,
-        type: Type = Type.QUATERNIOND, style: Style
-    ) : this(title, visibilityKey, type, null, style) {
-        if (type.components == 3) {
-            // if type is Type.ROT_YXZ, we need to transform the value to angles, and to degrees
-            val value2 = value.toEulerAnglesDegrees()
-            setValue(value2, false)
-        } else {
-            setValue(value, false)
-        }
+        title: String, visibilityKey: String, value: Vector3dc,
+        type: Type = Type.VEC3D, style: Style
+    ) : this(title, visibilityKey, type, style) {
+        setValue(value, false)
     }
+
+    constructor(
+        title: String, visibilityKey: String, value: Vector4dc,
+        type: Type = Type.VEC4D, style: Style
+    ) : this(title, visibilityKey, type, style) {
+        setValue(value, false)
+    }
+
+    val component0 = component0 ?: FloatInput(style, title, visibilityKey, type)
 
     private val components: Int = type.components
     private val valueFields = ArrayList<FloatInput>(components)
 
     private var resetListener: (() -> Any?)? = null
 
-    // val titleList = PanelListX(style)
-    private val valueList = object : PanelListX(style) {
+    val valueList = object : PanelListX(style) {
         override var visibility: Visibility
             get() = InputVisibility[visibilityKey]
             set(_) {}
@@ -167,31 +109,17 @@ class FloatVectorInput(
         override fun onEmpty(x: Float, y: Float) {
             this@FloatVectorInput.onEmpty(x, y)
         }
-
     }
 
     init {
         valueList.disableConstantSpaceForWeightedChildren = true
     }
 
-    private val titleView = if (!title.isBlank2()) TitlePanel(title, this, style) else null
-
     init {
 
         if (type == Type.COLOR) warn("VectorInput should be replaced with ColorInput for type color!")
 
-        // titleList += WrapAlign.Top
         valueList += WrapAlign.TopFill
-
-        if (titleView != null) {
-            this += titleView
-            titleView.enableHoverColor = true
-            titleView.setWeight(1f)
-            titleView.focusTextColor = titleView.textColor
-            titleView.addLeftClickListener {
-                InputVisibility.toggle(visibilityKey, this)
-            }
-        }
 
         this += valueList
         if (titleView != null) valueList.hide()
@@ -220,7 +148,7 @@ class FloatVectorInput(
     }
 
     private fun addComponent(i: Int, title: String): FloatInput {
-        val pseudo = VectorInputComponent("", visibilityKey, type, owningProperty, i, this, style)
+        val pseudo = if (i == 0) component0 else component0.clone()
         // val input = pseudo.inputPanel
         pseudo.inputPanel.tooltip = title
         valueList += pseudo.setWeight(1f)
@@ -233,18 +161,16 @@ class FloatVectorInput(
     }
 
     override fun onCopyRequested(x: Float, y: Float) =
-        owningProperty?.toString()
-            ?: "[${compX.lastValue}, ${compY.lastValue}, ${compZ?.lastValue ?: 0f}, ${compW?.lastValue ?: 0f}]"
+        "[${compX.lastValue}, ${compY.lastValue}, ${compZ?.lastValue ?: 0f}, ${compW?.lastValue ?: 0f}]"
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         pasteVector(data)
             ?: pasteScalar(data)
             ?: pasteColor(data)
-            ?: pasteAnimated(data)
             ?: super.onPaste(x, y, data, type)
     }
 
-    private fun pasteVector(data: String): Unit? {
+    fun pasteVector(data: String): Unit? {
         return if (data.startsWith("[") && data.endsWith("]") && data.indexOf('{') < 0) {
             val values = data.substring(1, data.lastIndex).split(',').map { it.trim().toDoubleOrNull() }
             if (values.size in 1..4) {
@@ -257,7 +183,7 @@ class FloatVectorInput(
         } else null
     }
 
-    private fun pasteColor(data: String): Unit? {
+    fun pasteColor(data: String): Unit? {
         return when (val color = ColorParsing.parseColorComplex(data)) {
             is Int -> setValue(color.toVecRGBA(), true)
             is Vector4f -> setValue(color, true)
@@ -265,7 +191,7 @@ class FloatVectorInput(
         }
     }
 
-    private fun pasteScalar(data: String): Unit? {
+    fun pasteScalar(data: String): Unit? {
         val allComponents = data.toDoubleOrNull()
         return if (allComponents != null && allComponents.isFinite()) {
             compX.setValue(allComponents, true)
@@ -274,41 +200,6 @@ class FloatVectorInput(
             compW?.setValue(allComponents, true)
             Unit
         } else null
-    }
-
-    private fun pasteAnimated(data: String): Unit? {
-        return try {
-            val editorTime = editorTime
-            val animProperty = TextReader.read(data, true)
-                .firstOrNull() as? AnimatedProperty<*>
-            if (animProperty != null) {
-                if (owningProperty != null) {
-                    owningProperty.copyFrom(animProperty)
-                    when (val value = owningProperty[editorTime]) {
-                        is Vector2f -> setValue(value, true)
-                        is Vector3f -> setValue(value, true)
-                        is Vector4f -> setValue(value, true)
-                        is Quaternionf -> setValue(value, true)
-                        else -> warn("Unknown pasted data type $value")
-                    }
-                } else {
-                    // get the default value? no, the current value? yes.
-                    val atTime = animProperty[editorTime]!!
-                    setValue(
-                        Vector4f(
-                            getFloat(atTime, 0, vx),
-                            getFloat(atTime, 1, vy),
-                            getFloat(atTime, 2, vz),
-                            getFloat(atTime, 3, vw)
-                        ), true
-                    )
-                }
-            }
-            Unit
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -323,10 +214,6 @@ class FloatVectorInput(
             }
         }
         if (focused1) isSelectedListener?.invoke()
-        if (RemsStudio.hideUnusedProperties) {
-            val focused2 = focused1 || owningProperty == selectedProperty
-            valueList.visibility = if (focused2) Visibility.VISIBLE else Visibility.GONE
-        }
         super.onDraw(x0, y0, x1, y1)
         compX.updateValueMaybe()
         compY.updateValueMaybe()
@@ -438,7 +325,7 @@ class FloatVectorInput(
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         super.onMouseMoved(x, y, dx, dy)
         if (mouseIsDown) {
-            val size = 20f * shiftSlowdown * (if (selectedTransform is Camera) -1f else 1f) / max(GFX.width, GFX.height)
+            val size = 20f * shiftSlowdown / max(GFX.width, GFX.height)
             val dx0 = dx * size
             val dy0 = dy * size
             val delta = dx0 - dy0
@@ -517,8 +404,8 @@ class FloatVectorInput(
 
     override fun onEmpty(x: Float, y: Float) {
         val resetListener = resetListener
-        if (owningProperty != null || resetListener == null) {
-            onEmpty2(owningProperty?.defaultValue ?: type.defaultValue)
+        if (resetListener == null) {
+            onEmpty2(type.defaultValue)
         } else {
             // onChange is not required, and wrong, because we set a listener, so we need to handle this ourselves
             // also we decided the value ourselves, so we know the value
@@ -555,7 +442,7 @@ class FloatVectorInput(
 
     }
 
-    private fun onEmpty2(defaultValue: Any) {
+    fun onEmpty2(defaultValue: Any) {
         valueFields.forEachIndexed { index, pureTextInput ->
             val double = getDouble(defaultValue, index)
             pureTextInput.setValue(double, false)// = double.toString()
@@ -570,7 +457,7 @@ class FloatVectorInput(
     override fun getCursor(): Long = Cursor.drag
 
     override fun clone(): FloatVectorInput {
-        val clone = FloatVectorInput(title, visibilityKey, type, owningProperty, style)
+        val clone = FloatVectorInput(title, visibilityKey, type, style, component0.clone())
         copy(clone)
         return clone
     }
@@ -585,9 +472,5 @@ class FloatVectorInput(
     }
 
     override val className: String = "FloatVectorInput"
-
-    /*companion object {
-        private val LOGGER = LogManager.getLogger(VectorInput::class)
-    }*/
 
 }

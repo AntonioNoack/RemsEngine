@@ -1,12 +1,11 @@
 package me.anno.ui.input.components
 
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.ImageGPUCache.getInternalTexture
 import me.anno.input.MouseButton
-import me.anno.remsstudio.RemsStudio
 import me.anno.ui.Panel
 import me.anno.ui.input.InputPanel
 import me.anno.ui.style.Style
@@ -81,10 +80,8 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, val size: In
 
     fun toggle(notify: Boolean) {
         if (notify) {
-            RemsStudio.largeChange("Toggled to ${!isChecked}") {
-                isChecked = !isChecked
-                changeListener?.invoke(isChecked)
-            }
+            isChecked = !isChecked
+            changeListener?.invoke(isChecked)
         } else isChecked = !isChecked
     }
 

@@ -1,13 +1,12 @@
 package me.anno.ui.editor.color
 
-import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.config.DefaultConfig
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.input.Input
 import me.anno.io.serialization.NotSerializedProperty
-import me.anno.remsstudio.RemsStudio.editorTime
+import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.Visibility
@@ -21,9 +20,7 @@ import me.anno.ui.input.components.ColorPalette
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.ColorParsing.parseColorComplex
-import me.anno.maths.Maths.clamp
 import me.anno.utils.structures.tuples.Quad
-import me.anno.utils.types.AnyToFloat.get
 import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
@@ -32,13 +29,17 @@ import org.joml.Vector4f
 import org.joml.Vector4fc
 import kotlin.math.min
 
-class ColorChooser(
+open class ColorChooser(
     style: Style,
     val withAlpha: Boolean,
-    val owningProperty: AnimatedProperty<*>?
+    val palette: ColorPalette
 ) : PanelListY(style) {
 
-    constructor(style: Style) : this(style, true, null)
+    constructor(style: Style, palette: ColorPalette) : this(style, true, palette)
+    constructor(style: Style) : this(style, true, object : ColorPalette(1, 1, style) {
+        override fun setColor(x: Int, y: Int, color: Int) {}
+        override fun getColor(x: Int, y: Int) = 0
+    })
 
     // color section
     // bottom section:
@@ -50,7 +51,6 @@ class ColorChooser(
     var saturation = 0.5f
     var lightness = 0.5f
     var opacity = 1.0f
-
 
     @NotSerializedProperty
     var isDownInRing = false
@@ -106,8 +106,6 @@ class ColorChooser(
         lastVisualisation = visualisation
     }.setTooltip("Style, does not change values")
 
-    private val colorPalette = ColorPalette(8, 4, style)
-
     init {
         val spaceBox = PanelListX(style)
         this += spaceBox
@@ -121,22 +119,11 @@ class ColorChooser(
             this += SpacerPanel(0, 2, style)
             this += alphaBar
         }
-        this += colorPalette
-        colorPalette.onColorSelected = { setARGB(it, true) }
+        this += palette
+        palette.onColorSelected = { setARGB(it, true) }
     }
 
-    @NotSerializedProperty
-    private var lastTime = editorTime
-
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        if (lastTime != editorTime && owningProperty != null) {
-            lastTime = editorTime
-            when (val c = owningProperty[editorTime]) {
-                is Vector3f -> setRGBA(c.x, c.y, c.z, 1f, false)
-                is Vector4f -> setRGBA(c, false)
-                else -> throw RuntimeException()
-            }
-        }
         val needsHueChooser = Visibility[visualisation.needsHueChooser]
         hueChooser.visibility = needsHueChooser
         hueChooserSpace.visibility = needsHueChooser
@@ -215,6 +202,14 @@ class ColorChooser(
         }
     }
 
+    var resetListener: () -> Vector4f = { Vector4f(0f, 0f, 0f, 1f) }
+        private set
+
+    fun setResetListener(listener: () -> Vector4f): ColorChooser {
+        resetListener = listener
+        return this
+    }
+
     private var changeListener: (x: Float, y: Float, z: Float, w: Float) -> Unit = { _, _, _, _ -> }
     fun setChangeRGBListener(listener: (x: Float, y: Float, z: Float, w: Float) -> Unit): ColorChooser {
         changeListener = listener
@@ -241,12 +236,15 @@ class ColorChooser(
     }
 
     override fun onEmpty(x: Float, y: Float) {
-        val default = owningProperty?.defaultValue ?: Vector4f(0f)
-        setRGBA(default[0], default[1], default[2], default[3], true)
+        val default = resetListener()
+        setRGBA(default.x, default.y, default.z, default.w, true)
     }
 
     override fun clone(): ColorChooser {
-        val clone = ColorChooser(style, withAlpha, owningProperty)
+        val clone = ColorChooser(
+            style, withAlpha,
+            palette.clone() as ColorPalette
+        )
         copy(clone)
         return clone
     }
@@ -270,7 +268,7 @@ class ColorChooser(
 
     companion object {
         private val LOGGER = LogManager.getLogger(ColorChooser::class)
-        val CircleBarRatio = 0.2f
+        val circleBarRatio = 0.2f
         var lastVisualisation: ColorVisualisation? = null
         var lastColorSpace: ColorSpace? = null
         fun getDefaultColorSpace(): ColorSpace {

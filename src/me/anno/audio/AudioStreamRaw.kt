@@ -1,32 +1,24 @@
 package me.anno.audio
 
+import me.anno.animation.LoopingState
 import me.anno.audio.AudioPools.FAPool
 import me.anno.audio.openal.SoundBuffer
 import me.anno.cache.instances.AudioCache
 import me.anno.cache.keys.AudioSliceKey
 import me.anno.io.files.FileReference
-import me.anno.remsstudio.objects.Audio
-import me.anno.remsstudio.objects.Transform
-import me.anno.animation.LoopingState
-import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
 import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.video.AudioCreator.Companion.playbackSampleRate
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import me.anno.video.ffmpeg.FFMPEGStream.Companion.getAudioSequence
-import org.joml.Vector3f
-import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
 class AudioStreamRaw(
     val file: FileReference,
     val repeat: LoopingState,
-    val meta: FFMPEGMetadata,
-    val is3D: Boolean,
-    val source: Audio?,
-    val destination: Transform?
+    val meta: FFMPEGMetadata
 ) {
 
     // todo if out of bounds, and not recoverable, just stop
@@ -36,37 +28,13 @@ class AudioStreamRaw(
     companion object {
         // 1024 (48Hz .. 48kHz) or 2048? (24Hz .. 48kHz)
         val bufferSize = 4096
-        val playbackSliceDuration = bufferSize.toDouble() / playbackSampleRate
-        val minPerceptibleAmplitude = 1f / 32500f
         val ffmpegSliceSampleDuration = 30.0 // seconds, 10s of music
-        val taskQueue = ProcessingGroup("AudioStream", 0.5f)
-    }
-
-    fun globalToLocalTime(time: Double): Double {
-        if (source == null) return time
-        return source.getLocalTimeFromRoot(time, false)
-    }
-
-    fun localAmplitude(time: Double): Float {
-        if (source == null) return 1f
-        return source.amplitude[time] * clamp(source.color[time].w(), 0f, 1f)
     }
 
     val ffmpegSampleRate = meta.audioSampleRate
     val maxSampleIndex = meta.audioSampleCount
 
     val ffmpegSliceSampleCount = (ffmpegSampleRate * ffmpegSliceSampleDuration).toInt()
-
-    /*class FloatPair(var left: Float, var right: Float) {
-
-        constructor() : this(0f, 0f)
-
-        fun set(left: Float, right: Float): FloatPair {
-            this.left = left
-            this.right = right
-            return this
-        }
-    }*/
 
     class ShortPair(var left: Short, var right: Short) {
 
@@ -118,130 +86,26 @@ class AudioStreamRaw(
 
     }
 
-    private val v0 = Vector3f()
-    private val v1 = Vector3f()
-
-    private fun calculateLoudness(globalTime: Double, t0: SimpleTransfer): AudioTransfer {
-
-        // todo decide on loudness depending on speaker orientation and size (e.g. Nierencharcteristik)
-        // todo mix left and right channel depending on orientation and speaker size
-        // todo top/bottom (tested from behind) sounds different: because I could hear it
-
-        val localTime = globalToLocalTime(globalTime)
-        val amplitude = abs(localAmplitude(localTime))
-        if (amplitude < minPerceptibleAmplitude) {
-            return t0.set(0f, 0f)
-        }
-
-        if (!is3D) return t0.set(amplitude, amplitude)
-
-        source!!
-        destination!!
-
-        val (dstLocal2Global, _) = destination.getGlobalTransformTime(globalTime)
-        val (srcLocal2Global, _) = source.getGlobalTransformTime(globalTime)
-        val dstGlobalPos = dstLocal2Global.transformPosition(Vector3f())
-        val srcGlobalPos = srcLocal2Global.transformPosition(Vector3f())
-        val dirGlobal = dstGlobalPos.sub(srcGlobalPos).normalize() // in global space
-        val leftDirGlobal = dstLocal2Global.transformDirection(v0.set(+1f, 0f, -0.1f)).normalize()
-        val rightDirGlobal = dstLocal2Global.transformDirection(v1.set(-1f, 0f, -0.1f)).normalize()
-        // val distance = camGlobalPos.distance(srcGlobalPos)
-
-        val left1 = leftDirGlobal.dot(dirGlobal) * 0.48f + 0.52f
-        val right1 = rightDirGlobal.dot(dirGlobal) * 0.48f + 0.52f
-        return t0.set(left1 * amplitude, right1 * amplitude)
-
-    }
-
     fun getBuffer(
         bufferSize: Int,
         time0: Double,
         time1: Double
     ): Pair<FloatArray, FloatArray> {
 
-        // "[INFO:AudioStream] Working on buffer $queued"
-        // LOGGER.info("$startTime/$bufferIndex")
+        val index0 = ffmpegSampleRate * time0
+        val index1 = ffmpegSampleRate * time1
 
-        // todo speed up for 1:1 playback
-        // todo cache sound buffer for 1:1 playback
-        // (superfluous calculations)
-
-        // time += dt
-        val sampleCount = bufferSize
-
-        // todo get higher/lower quality, if it's sped up/slowed down?
-        // rare use-case...
-        // slow motion may be a use case, for which it's worth to request 96kHz or more
-        // sound recorded at 0.01x speed is really rare, and at the edge (10Hz -> 10.000Hz)
-        // slower frequencies can't be that easily recorded (besides the song/noise of wind (alias air pressure zones changing))
-
-        val dtx = (time1 - time0) / sampleCount
-        val ffmpegSampleRate = ffmpegSampleRate
-
-        val local0 = globalToLocalTime(time0)
-        var index0 = ffmpegSampleRate * local0
-
-        val transfer0 = SimpleTransfer(0f, 0f)
-
-        // linear approximation, if possible
-        // this is possible, if the time is linear, and the amplitude not too crazy, I guess
-
-        val updateInterval = min(bufferSize, 1024)
-
-        val leftBuffer = FAPool[sampleCount, true]
-        val rightBuffer = FAPool[sampleCount, true]
+        val leftBuffer = FAPool[bufferSize, true]
+        val rightBuffer = FAPool[bufferSize, true]
 
         val s0 = ShortPair()
         val s1 = ShortPair()
         val s2 = ShortPair()
 
-        // will be in first iteration
-        var local1: Double
-        var index1 = index0
-        val transfer1 = calculateLoudness(time0, SimpleTransfer(0f, 0f)) as SimpleTransfer
+        var indexI = index0
+        for (sampleIndex in 0 until bufferSize) {
 
-        var fraction = 0.0
-        val deltaFraction = 1.0 / updateInterval
-
-        var sampleIndex = -1
-        var indexI = ffmpegSampleRate * local0
-
-        while (++sampleIndex < sampleCount) {
-
-            if (sampleIndex % updateInterval == 0) {
-
-                // load loudness from camera
-
-                transfer0.set(transfer1)
-                index0 = index1
-
-                val global1 = time0 + (sampleIndex + updateInterval + 1) * dtx
-                local1 = globalToLocalTime(global1)
-
-                transfer1.set(calculateLoudness(global1, transfer1))
-                index1 = ffmpegSampleRate * local1
-
-                if (transfer0.isZero() && transfer1.isZero()) {
-
-                    // there is no audio here -> skip this interval
-                    sampleIndex += updateInterval - 1
-                    continue
-
-                } else {
-
-                    indexI = index0
-                    fraction = deltaFraction
-
-                }
-
-            } else {
-
-                fraction += deltaFraction
-
-            }
-
-            // todo inc by dv instead of mixing
-            val indexJ = mix(index0, index1, fraction)
+            val indexJ = mix(index0, index1, sampleIndex.toDouble() / bufferSize)
 
             // average values from index0 to index1
             val mni = min(indexI, indexJ)
@@ -287,11 +151,9 @@ class AudioStreamRaw(
                 }
             }
 
-            val approxFraction = (sampleIndex % updateInterval) * 1f / updateInterval
-
             // write the data
-            leftBuffer[sampleIndex] = transfer0.getLeft(a0, a1, approxFraction, transfer1)
-            rightBuffer[sampleIndex] = transfer0.getRight(a0, a1, approxFraction, transfer1)
+            leftBuffer[sampleIndex] = a0
+            rightBuffer[sampleIndex] = a1
 
             indexI = indexJ
 

@@ -1,6 +1,6 @@
 package me.anno.remsstudio.test
 
-import me.anno.audio.AudioFXCache
+import me.anno.remsstudio.audio.AudioFXCache2
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.remsstudio.objects.FourierTransform
 import me.anno.utils.OS
@@ -14,7 +14,7 @@ fun main() {
 
     val logger = LogManager.getLogger("AudioTest")
 
-    val cache = AudioFXCache
+    val cache = AudioFXCache2
     val fourier = FourierTransform()
 
     fourier.file = getReference(OS.downloads, "Aitana 11 Raizones.mp4")

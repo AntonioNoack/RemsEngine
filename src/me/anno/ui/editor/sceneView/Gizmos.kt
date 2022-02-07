@@ -16,7 +16,6 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.pipeline.M4x3Delta.m4x3delta
 import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference
-import me.anno.remsstudio.objects.Transform
 import org.joml.*
 
 object Gizmos {
@@ -86,6 +85,9 @@ object Gizmos {
 
     // avoid unnecessary allocations ;)
     private val tmp3fs = Array(3) { Vector3f() }
+    private val xAxis = Vector3f(1f, 0f, 0f)
+    private val yAxis = Vector3f(0f, 1f, 0f)
+    private val zAxis = Vector3f(0f, 0f, 1f)
     fun drawGizmo(cameraTransform: Matrix4f, x0: Int, y0: Int, w: Int, h: Int) {
 
         /**
@@ -93,9 +95,9 @@ object Gizmos {
          * todo beautify a little, take inspiration from Blender maybe ;)
          * */
 
-        val vx = cameraTransform.transformDirection(Transform.xAxis, tmp3fs[0])
-        val vy = cameraTransform.transformDirection(Transform.yAxis, tmp3fs[1])
-        cameraTransform.transformDirection(Transform.zAxis, tmp3fs[2])
+        cameraTransform.transformDirection(xAxis, tmp3fs[0])
+        cameraTransform.transformDirection(yAxis, tmp3fs[1])
+        cameraTransform.transformDirection(zAxis, tmp3fs[2])
 
         val gizmoSize = 50f
         val gizmoPadding = 10f
@@ -109,8 +111,8 @@ object Gizmos {
             val y = v.y
             val z = v.z
             val color = when {
-                v === vx -> 0xff7777
-                v === vy -> 0x77ff77
+                v === tmp3fs[0] -> 0xff7777
+                v === tmp3fs[1] -> 0x77ff77
                 else -> 0x7777ff
             }
             val lx = gx - x0

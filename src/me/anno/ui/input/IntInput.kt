@@ -1,14 +1,14 @@
 package me.anno.ui.input
 
-import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.io.serialization.NotSerializedProperty
+import me.anno.maths.Maths.pow
 import me.anno.parser.SimpleExpressionParser
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
+import me.anno.ui.input.components.NumberInputComponent
 import me.anno.ui.style.Style
-import me.anno.maths.Maths.pow
 import org.joml.Vector2i
 import org.joml.Vector3i
 import org.joml.Vector4i
@@ -21,9 +21,8 @@ open class IntInput(
     title: String,
     visibilityKey: String,
     type: Type = Type.INT,
-    owningProperty: AnimatedProperty<*>?,
-    indexInProperty: Int
-) : NumberInput<Long>(style, title, visibilityKey, type, owningProperty, indexInProperty) {
+    inputPanel0: NumberInputComponent? = null
+) : NumberInput<Long>(style, title, visibilityKey, type, inputPanel0) {
 
     override var lastValue: Long = getValue(type.defaultValue)
     var changeListener: (value: Long) -> Unit = { }
@@ -41,36 +40,25 @@ open class IntInput(
         }
     }
 
-    constructor(style: Style) : this(style, "", "", Type.INT, null, 0)
-
-    constructor(
-        title: String, visibilityKey: String,
-        owningProperty: AnimatedProperty<*>, indexInProperty: Int, time: Double, style: Style
-    ) : this(style, title, visibilityKey, owningProperty.type, owningProperty, indexInProperty) {
-        when (val value = owningProperty[time]) {
-            is Int -> setValue(value, false)
-            is Long -> setValue(value, false)
-            else -> throw RuntimeException("Unknown type $value for ${javaClass.simpleName}")
-        }
-    }
+    constructor(style: Style) : this(style, "", "", Type.INT)
 
     constructor(title: String, visibilityKey: String, value0: Int, type: Type, style: Style) :
-            this(style, title, visibilityKey, type, null, 0) {
+            this(style, title, visibilityKey, type) {
         setValue(value0, false)
     }
 
     constructor(title: String, visibilityKey: String, value0: Long, type: Type, style: Style) :
-            this(style, title, visibilityKey, type, null, 0) {
+            this(style, title, visibilityKey, type) {
         setValue(value0, false)
     }
 
     constructor(title: String, visibilityKey: String, value0: Int, style: Style) :
-            this(style, title, visibilityKey, Type.FLOAT, null, 0) {
+            this(style, title, visibilityKey, Type.FLOAT) {
         setValue(value0, false)
     }
 
     constructor(title: String, visibilityKey: String, value0: Long, style: Style) :
-            this(style, title, visibilityKey, Type.DOUBLE, null, 0) {
+            this(style, title, visibilityKey, Type.DOUBLE) {
         setValue(value0, false)
     }
 
@@ -134,7 +122,7 @@ open class IntInput(
         }
     }
 
-    fun getValue(value: Any): Long {
+    open fun getValue(value: Any): Long {
         return when (value) {
             is Boolean -> if (value) 1L else 0L
             is Byte -> value.toLong()
@@ -144,9 +132,9 @@ open class IntInput(
             is Long -> value
             is Float -> value.toLong()
             is Double -> value.toLong()
-            is Vector2i -> value[indexInProperty].toLong()
-            is Vector3i -> value[indexInProperty].toLong()
-            is Vector4i -> value[indexInProperty].toLong()
+            is Vector2i -> value.x.toLong()
+            is Vector3i -> value.x.toLong()
+            is Vector4i -> value.x.toLong()
             else -> throw RuntimeException("Unknown type $value for ${javaClass.simpleName}")
         }
     }
@@ -165,7 +153,7 @@ open class IntInput(
     }
 
     override fun onEmpty(x: Float, y: Float) {
-        val newValue = getValue(owningProperty?.defaultValue ?: type.defaultValue)
+        val newValue = getValue(type.defaultValue)
         if (newValue != lastValue) {
             setValue(newValue, true)
         }
@@ -199,7 +187,7 @@ open class IntInput(
     }
 
     override fun clone(): IntInput {
-        val clone = IntInput(style, title, visibilityKey, type, owningProperty, indexInProperty)
+        val clone = IntInput(style, title, visibilityKey, type)
         copy(clone)
         return clone
     }

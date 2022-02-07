@@ -7,21 +7,22 @@ import me.anno.io.text.TextWriter
 import me.anno.io.utils.StringMap
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths.clamp
+import me.anno.remsstudio.RemsStudio
+import me.anno.remsstudio.RemsStudio.nullCamera
+import me.anno.remsstudio.RemsStudio.windowStack
+import me.anno.remsstudio.Selection
 import me.anno.remsstudio.objects.Camera
 import me.anno.remsstudio.objects.Rectangle
 import me.anno.remsstudio.objects.Transform
 import me.anno.remsstudio.objects.Transform.Companion.toTransform
 import me.anno.remsstudio.objects.effects.MaskLayer
-import me.anno.remsstudio.RemsStudio
-import me.anno.remsstudio.RemsStudio.nullCamera
-import me.anno.remsstudio.RemsStudio.windowStack
-import me.anno.remsstudio.Selection
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.treeView.TreeView
+import me.anno.ui.editor.treeView.TreeViewPanel
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toARGB
-import me.anno.maths.Maths.clamp
 import me.anno.utils.structures.lists.UpdatingList
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
@@ -153,6 +154,42 @@ class StudioTreeView(style: Style) :
         return true
     }
 
+    override fun onDeleteKey(x: Float, y: Float) {
+        val panel = list.children.firstOrNull { it.contains(x, y) }
+        if (panel is TreeViewPanel<*>) {
+            val element = panel.getElement() as Transform
+            val parent = getParent(element)
+            if (parent != null) {
+                RemsStudio.largeChange("Deleted Component ${getName(element)}") {
+                    removeChild(parent, element)
+                    for (it in element.listOfAll.toList()) destroy(it)
+                }
+            }
+        }
+    }
+
+    override fun isValidElement(element: Any?): Boolean {
+        return element is Transform
+    }
+
+    override fun toggleCollapsed(element: Transform) {
+        val name = getName(element)
+        val isCollapsed = isCollapsed(element)
+        RemsStudio.largeChange(if (isCollapsed) "Expanded $name" else "Collapsed $name") {
+            val target = !isCollapsed
+            // remove children from the selection???...
+            val targets = GFX.inFocus.filterIsInstance<TreeViewPanel<*>>()
+            for (it in targets) {
+                @Suppress("unchecked_cast")
+                val element2 = it.getElement() as Transform
+                setCollapsed(element2, target)
+            }
+            if (targets.isEmpty()) {
+                setCollapsed(element, target)
+            }
+        }
+    }
+
     companion object {
 
         fun zoomToObject(obj: Transform) {
@@ -230,6 +267,10 @@ class StudioTreeView(style: Style) :
                 )
             } else LOGGER.warn(Dict["Reset the config to enable this menu!", "config.warn.needsReset.forMenu"])
         }
+    }
+
+    override fun moveChange(run: () -> Unit) {
+        RemsStudio.largeChange("Moved Component", run)
     }
 
     override val className get() = "StudioTreeView"

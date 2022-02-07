@@ -5,7 +5,7 @@ import me.anno.gpu.shader.OpenGLShader.Companion.attribute
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.language.translation.NameDesc
-import me.anno.ui.editor.color.ColorChooser.Companion.CircleBarRatio
+import me.anno.ui.editor.color.ColorChooser.Companion.circleBarRatio
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.ui.editor.color.spaces.HSV
 import org.joml.Vector3f
@@ -70,14 +70,14 @@ abstract class ColorSpace(
                         "void main(){\n" +
                         "   vec3 rgb;\n" +
                         "   float alpha = 1.0;\n" +
-                        "   vec2 nuv = vec2(uv.x * ${1f + CircleBarRatio}, uv.y) - 0.5;\n" + // normalized + bar
+                        "   vec2 nuv = vec2(uv.x * ${1f + circleBarRatio}, uv.y) - 0.5;\n" + // normalized + bar
                         "   if(nuv.x > 0.5){\n" +
                         "       // a simple brightness bar \n" +
                         "       rgb = vec3(uv.y);\n" +
                         "       alpha = clamp(min(" +
                         "           min(" +
                         "               nuv.x-0.515," +
-                        "               ${0.5f + CircleBarRatio}-nuv.x" +
+                        "               ${0.5f + circleBarRatio}-nuv.x" +
                         "           ), min(" +
                         "               nuv.y+0.5," +
                         "               0.5-nuv.y" +

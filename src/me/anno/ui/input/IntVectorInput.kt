@@ -1,20 +1,13 @@
 package me.anno.ui.input
 
-import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
-import me.anno.io.text.TextReader
 import me.anno.studio.StudioBase.Companion.warn
-import me.anno.remsstudio.RemsStudio
-import me.anno.remsstudio.RemsStudio.editorTime
-import me.anno.remsstudio.Selection.selectedProperty
 import me.anno.ui.Panel
-import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.TitledListY
-import me.anno.ui.input.components.VectorInputIntComponent
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
@@ -25,52 +18,41 @@ import me.anno.utils.types.AnyToInt.getInt
 import org.joml.*
 import kotlin.math.roundToInt
 
-class IntVectorInput(
+open class IntVectorInput(
     style: Style, title: String,
     visibilityKey: String,
     val type: Type,
-    private val owningProperty: AnimatedProperty<*>? = null
+    component0: IntInput? = null
 ) : TitledListY(title, visibilityKey, style), InputPanel<Vector4i> {
 
-    constructor(style: Style) : this(style, "", "", Type.INT, null)
-
-    constructor(title: String, visibilityKey: String, property: AnimatedProperty<*>, time: Double, style: Style) :
-            this(style, title, visibilityKey, property.type, property) {
-        when (val value = property[time]) {
-            is Vector2i -> setValue(value, false)
-            is Vector3i -> setValue(value, false)
-            is Vector4i -> setValue(value, false)
-            else -> throw RuntimeException("Type $value not yet supported!")
-        }
-    }
+    constructor(style: Style) : this(style, "", "", Type.INT)
 
     constructor(
-        style: Style, title: String, visibilityKey: String, value: Vector2ic, type: Type,
-        owningProperty: AnimatedProperty<*>? = null
-    ) : this(style, title, visibilityKey, type, owningProperty) {
+        style: Style, title: String, visibilityKey: String, value: Vector2ic, type: Type
+    ) : this(style, title, visibilityKey, type) {
         setValue(value, false)
     }
 
     constructor(
-        style: Style, title: String, visibilityKey: String, value: Vector3ic, type: Type,
-        owningProperty: AnimatedProperty<*>? = null
-    ) : this(style, title, visibilityKey, type, owningProperty) {
+        style: Style, title: String, visibilityKey: String, value: Vector3ic, type: Type
+    ) : this(style, title, visibilityKey, type) {
         setValue(value, false)
     }
 
     constructor(
-        style: Style, title: String, visibilityKey: String, value: Vector4ic, type: Type,
-        owningProperty: AnimatedProperty<*>? = null
-    ) : this(style, title, visibilityKey, type, owningProperty) {
+        style: Style, title: String, visibilityKey: String, value: Vector4ic, type: Type
+    ) : this(style, title, visibilityKey, type) {
         setValue(value, false)
     }
+
+    val component0 = component0 ?: IntInput("", visibilityKey, 0, type, style)
 
     private val components: Int = type.components
     private val valueFields = ArrayList<IntInput>(components)
 
     private var resetListener: (() -> Any?)? = null
 
-    private val valueList = PanelListX(style)
+    val valueList = PanelListX(style)
 
     init {
 
@@ -99,7 +81,8 @@ class IntVectorInput(
     }
 
     private fun addComponent(i: Int, title: String): IntInput {
-        val pseudo = VectorInputIntComponent(this.title, visibilityKey, type, owningProperty, i, this, style)
+        val pseudo = if(i == 0) component0 else component0.clone()
+        pseudo.parent = valueList
         pseudo.inputPanel.tooltip = title
         valueList += pseudo.setWeight(1f)
         valueFields += pseudo
@@ -107,18 +90,16 @@ class IntVectorInput(
     }
 
     override fun onCopyRequested(x: Float, y: Float): String? =
-        owningProperty?.toString()
-            ?: "[${compX.lastValue}, ${compY.lastValue}, ${compZ?.lastValue ?: 0f}, ${compW?.lastValue ?: 0f}]"
+        "[${compX.lastValue}, ${compY.lastValue}, ${compZ?.lastValue ?: 0f}, ${compW?.lastValue ?: 0f}]"
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         pasteVector(data)
             ?: pasteScalar(data)
             ?: pasteColor(data)
-            ?: pasteAnimated(data)
             ?: super.onPaste(x, y, data, type)
     }
 
-    private fun pasteVector(data: String): Unit? {
+    fun pasteVector(data: String): Unit? {
         return if (data.startsWith("[") && data.endsWith("]") && data.indexOf('{') < 0) {
             val values = data.substring(1, data.lastIndex).split(',').map { it.trim().toIntOrNull() }
             if (values.size in 1..4) {
@@ -131,7 +112,7 @@ class IntVectorInput(
         } else null
     }
 
-    private fun pasteColor(data: String): Unit? {
+    fun pasteColor(data: String): Unit? {
         return when (val color = ColorParsing.parseColorComplex(data)) {
             is Int -> setValue(color.r(), color.g(), color.b(), color.a(), true)
             is Vector4fc -> setValue(
@@ -144,7 +125,7 @@ class IntVectorInput(
         }
     }
 
-    private fun pasteScalar(data: String): Unit? {
+    fun pasteScalar(data: String): Unit? {
         val allComponents = data.toIntOrNull()
         return if (allComponents != null) {
             compX.setValue(allComponents, true)
@@ -153,39 +134,6 @@ class IntVectorInput(
             compW?.setValue(allComponents, true)
             Unit
         } else null
-    }
-
-    private fun pasteAnimated(data: String): Unit? {
-        return try {
-            val editorTime = editorTime
-            val animProperty = TextReader.read(data, true)
-                .firstOrNull() as? AnimatedProperty<*>
-            if (animProperty != null) {
-                if (owningProperty != null) {
-                    owningProperty.copyFrom(animProperty)
-                    when (val value = owningProperty[editorTime]) {
-                        is Vector2i -> setValue(value, true)
-                        is Vector3i -> setValue(value, true)
-                        is Vector4i -> setValue(value, true)
-                        else -> warn("Unknown pasted data type $value")
-                    }
-                } else {
-                    // get the default value? no, the current value? yes.
-                    val atTime = animProperty[editorTime]!!
-                    setValue(
-                        getInt(atTime, 0, vx),
-                        getInt(atTime, 1, vy),
-                        getInt(atTime, 2, vz),
-                        getInt(atTime, 3, vw),
-                        true
-                    )
-                }
-            }
-            Unit
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -200,10 +148,6 @@ class IntVectorInput(
             }
         }
         if (focused1) isSelectedListener?.invoke()
-        if (RemsStudio.hideUnusedProperties) {
-            val focused2 = focused1 || owningProperty == selectedProperty
-            valueList.visibility = if (focused2) Visibility.VISIBLE else Visibility.GONE
-        }
         super.onDraw(x0, y0, x1, y1)
         compX.updateValueMaybe()
         compY.updateValueMaybe()
@@ -297,8 +241,8 @@ class IntVectorInput(
 
     override fun onEmpty(x: Float, y: Float) {
         val resetListener = resetListener
-        if (owningProperty != null || resetListener == null) {
-            onEmpty2(owningProperty?.defaultValue ?: type.defaultValue)
+        if (resetListener == null) {
+            onEmpty2(type.defaultValue)
         } else {
             onEmpty2(resetListener() ?: 0)
         }
@@ -313,7 +257,7 @@ class IntVectorInput(
         )
     }
 
-    private fun onEmpty2(defaultValue: Any) {
+    fun onEmpty2(defaultValue: Any) {
         valueFields.forEachIndexed { index, pureTextInput ->
             pureTextInput.setValue(getInt(defaultValue, index), false)
         }
@@ -325,7 +269,7 @@ class IntVectorInput(
     override fun getCursor(): Long = Cursor.drag
 
     override fun clone(): IntVectorInput {
-        val clone = IntVectorInput(style, title, visibilityKey, type, owningProperty)
+        val clone = IntVectorInput(style, title, visibilityKey, type)
         copy(clone)
         return clone
     }

@@ -1,6 +1,6 @@
 package me.anno.video
 
-import me.anno.audio.AudioStream
+import me.anno.remsstudio.audio.AudioStream2
 import me.anno.remsstudio.objects.Audio
 import me.anno.remsstudio.objects.Camera
 import me.anno.utils.Sleep.waitUntil
@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger
 class BufferStream(
     val audio: Audio, sampleRate: Int,
     listener: Camera
-) : AudioStream(audio, 1.0, 0.0, sampleRate, listener) {
+) : AudioStream2(audio, 1.0, 0.0, sampleRate, listener) {
 
     private val filledBuffers = ArrayList<ShortBuffer?>()
     private val gettingIndex = AtomicInteger()

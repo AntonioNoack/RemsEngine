@@ -3,8 +3,6 @@ package me.anno.ui.editor
 import me.anno.language.translation.Dict
 import me.anno.studio.Inspectable
 import me.anno.studio.StudioBase.Companion.defaultWindowStack
-import me.anno.remsstudio.ui.StudioTreeView
-import me.anno.remsstudio.ui.editor.TimelinePanel
 import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
@@ -12,8 +10,6 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.editor.files.Search
-import me.anno.ui.editor.sceneView.ISceneView
-import me.anno.ui.editor.treeView.TreeViewPanel
 import me.anno.ui.input.*
 import me.anno.ui.input.components.Checkbox
 import me.anno.ui.style.Style
@@ -127,6 +123,10 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
         list0 += panel
     }
 
+    override fun onPropertiesChanged() {
+        invalidate()
+    }
+
     override val className: String = "PropertyInspector"
 
     companion object {
@@ -161,21 +161,9 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
         }
 
         fun invalidateUI(windowStack: WindowStack = defaultWindowStack!!) {
-            // if(gameTime > 1e10) throw RuntimeException()
-            // LOGGER.info("UpdateSceneViews ${gameTime / 1e9f}")
             for (window in windowStack) {
                 for (panel in window.panel.listOfVisible) {
-                    when (panel) {
-                        is StudioTreeView, is ISceneView, is TimelinePanel -> {
-                            panel.invalidateDrawing()
-                        }
-                        is PropertyInspector -> {
-                            panel.invalidate()
-                        }
-                        is TreeViewPanel<*> -> {
-                            panel.invalidateLayout()
-                        }
-                    }
+                    panel.onPropertiesChanged()
                 }
             }
         }

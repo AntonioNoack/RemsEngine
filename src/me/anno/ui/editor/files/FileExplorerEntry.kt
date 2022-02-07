@@ -1,5 +1,7 @@
 package me.anno.ui.editor.files
 
+import me.anno.animation.LoopingState
+import me.anno.audio.AudioStreamOpenAL
 import me.anno.audio.openal.AudioTasks
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
@@ -36,10 +38,6 @@ import me.anno.io.zip.InnerLinkFile
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.mixARGB
 import me.anno.maths.Maths.sq
-import me.anno.remsstudio.objects.Audio
-import me.anno.remsstudio.objects.Camera
-import me.anno.remsstudio.objects.Video
-import me.anno.animation.LoopingState
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
@@ -107,8 +105,6 @@ class FileExplorerEntry(
     // todo load separate fbx animations
     // todo play them together
 
-    private var audio: Audio? = null
-
     private var startTime = 0L
 
     var time = 0.0
@@ -169,11 +165,13 @@ class FileExplorerEntry(
         titlePanel.instantTextLoading = true
     }
 
+    private var audio: AudioStreamOpenAL? = null
+
     fun stopPlayback() {
         val audio = audio
-        if (audio != null && audio.component?.isPlaying == true) {
+        if (audio != null && audio.isPlaying) {
+            AudioTasks.addTask(1) { audio.stop() }
             this.audio = null
-            AudioTasks.addTask(1) { audio.stopPlayback() }
         }
     }
 
@@ -248,12 +246,16 @@ class FileExplorerEntry(
                         invalidateDrawing()
                         if (startTime == 0L) {
                             startTime = GFX.gameTime
-                            val audio = Video(getReferenceOrTimeout(path))
-                            audio.isLooping.value = LoopingState.PLAY_LOOP
-                            audio.update()// sets audio.type, which is required for startPlayback
-                            this.audio = audio
-                            AudioTasks.addTask(5) {
-                                audio.startPlayback(-hoverPlaybackDelay, 1.0, Camera())
+                            val file = getReferenceOrTimeout(path)
+                            stopPlayback()
+                            if (meta.hasAudio) {
+                                this.audio = AudioStreamOpenAL(
+                                    file, LoopingState.PLAY_LOOP,
+                                    -hoverPlaybackDelay, meta, 1.0
+                                )
+                                AudioTasks.addTask(5) {
+                                    audio?.start()
+                                }
                             }
                             0
                         } else {

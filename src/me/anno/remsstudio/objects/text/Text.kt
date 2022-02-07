@@ -44,6 +44,15 @@ import kotlin.streams.toList
 
 open class Text(parent: Transform? = null) : GFXTransform(parent), SplittableElement {
 
+    companion object {
+
+        val tabSpaceType = Type.FLOAT_PLUS.withDefaultValue(4f)
+        val lineBreakType = Type.FLOAT_PLUS.withDefaultValue(0f)
+
+        val textMeshTimeout = 5000L
+
+    }
+
     constructor(text: String) : this(null) {
         this.text.set(text)
     }
@@ -313,31 +322,6 @@ open class Text(parent: Transform? = null) : GFXTransform(parent), SplittableEle
             ?: text.defaultValue).ifBlank { Dict["Text", "obj.text"] }
 
     override val symbol get() = DefaultConfig["ui.symbol.text", "\uD83D\uDCC4"]
-
-    companion object {
-
-        val tabSpaceType = Type.FLOAT_PLUS.withDefaultValue(4f)
-        val lineBreakType = Type.FLOAT_PLUS.withDefaultValue(0f)
-
-        val textMeshTimeout = 5000L
-        val lastUsedFonts by lazy { arrayOfNulls<String>(max(0, DefaultConfig["lastUsed.fonts.count", 5])) }
-
-        /**
-         * saves the most recently used fonts
-         * */
-        fun putLastUsedFont(font: String) {
-            if (lastUsedFonts.isNotEmpty()) {
-                for (i in lastUsedFonts.indices) {
-                    if (lastUsedFonts[i] == font) return
-                }
-                for (i in 0 until lastUsedFonts.lastIndex) {
-                    lastUsedFonts[i] = lastUsedFonts[i + 1]
-                }
-                lastUsedFonts[lastUsedFonts.lastIndex] = font
-            }
-        }
-
-    }
 
     override fun getSplittingModes(): List<String> {
         return listOf("Letters", "Words", "Sentences", "Lines")

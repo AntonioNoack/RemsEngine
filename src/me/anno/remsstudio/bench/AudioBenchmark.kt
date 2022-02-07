@@ -1,8 +1,8 @@
 package me.anno.remsstudio.bench
 
 import me.anno.Engine
-import me.anno.audio.AudioFXCache
-import me.anno.audio.AudioFXCache.SPLITS
+import me.anno.remsstudio.audio.AudioFXCache2
+import me.anno.remsstudio.audio.AudioFXCache2.SPLITS
 import me.anno.remsstudio.objects.Camera
 import me.anno.remsstudio.objects.Video
 import me.anno.maths.Maths.mix
@@ -35,9 +35,9 @@ fun main() {
         val f1 = (i + 1).toDouble() / steps
         val i1 = mix(t0, t1, f1)
         if(async){
-            AudioFXCache.getRange(bufferSize, i0, i1, identifier, audio, camera, true)
+            AudioFXCache2.getRange(bufferSize, i0, i1, identifier, audio, camera, true)
         } else {
-            while (AudioFXCache.getRange(bufferSize, i0, i1, identifier, audio, camera, false) == null){
+            while (AudioFXCache2.getRange(bufferSize, i0, i1, identifier, audio, camera, false) == null){
                 Sleep.sleepShortly(true)
             }
         }
