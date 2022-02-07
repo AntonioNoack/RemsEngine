@@ -9,7 +9,6 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.packAlignment
 import me.anno.io.files.FileReference
-import me.anno.remsstudio.Rendering.isRendering
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.video.Codecs.videoCodecByExtension
 import me.anno.video.ffmpeg.FFMPEGStream.Companion.logOutput
@@ -27,7 +26,7 @@ import java.util.*
 import kotlin.concurrent.thread
 import kotlin.math.min
 
-class VideoCreator(
+open class VideoCreator(
     val w: Int, val h: Int,
     val fps: Double,
     val totalFrameCount: Long,
@@ -119,7 +118,9 @@ class VideoCreator(
         process = builder.start()
         logOutput(null, process.inputStream, true)
         thread(name = "VideoCreatorOutput") {
-            processOutput(LOGGER, "Video", startTime, fps, totalFrameCount, process.errorStream)
+            processOutput(LOGGER, "Video", startTime, fps, totalFrameCount, process.errorStream){
+                close()
+            }
         }
 
         videoOut = process.outputStream.buffered()
@@ -158,7 +159,6 @@ class VideoCreator(
             } catch (e: IOException) {
                 if (!wasClosed) {
                     LOGGER.error("Closing because of ${e.message}")
-                    isRendering = false
                     e.printStackTrace()
                     close()
                 }
@@ -181,7 +181,7 @@ class VideoCreator(
     }
 
     var wasClosed = false
-    fun close() {
+    open fun close() {
         wasClosed = true
         synchronized(videoOut) {
             videoOut.flush()

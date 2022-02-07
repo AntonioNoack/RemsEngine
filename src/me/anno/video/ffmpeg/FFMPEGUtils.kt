@@ -1,7 +1,6 @@
 package me.anno.video.ffmpeg
 
 import me.anno.gpu.GFX
-import me.anno.remsstudio.Rendering
 import me.anno.maths.Maths
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Strings.formatTime2
@@ -19,7 +18,8 @@ object FFMPEGUtils {
         startTime: Long,
         targetFPS: Double,
         totalFrameCount: Long,
-        stream: InputStream
+        stream: InputStream,
+        onFailure: () -> Unit
     ) {
         val out = stream.bufferedReader()
         var lastTime = GFX.gameTime
@@ -37,7 +37,7 @@ object FFMPEGUtils {
                     line.contains("error", true) ||
                     line.contains("failed", true)
                 ) {
-                    Rendering.isRendering = false
+                    onFailure()
                     hasFailed = true
                 }
             }

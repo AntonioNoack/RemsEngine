@@ -1,45 +1,20 @@
-package me.anno.audio
+package me.anno.audio.streams
 
-import me.anno.animation.LoopingState
-import me.anno.audio.AudioStreamRaw.Companion.bufferSize
-import me.anno.io.files.FileReference
+import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
+import me.anno.utils.Sleep
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.pooling.ByteBufferPool
-import me.anno.video.ffmpeg.FFMPEGMetadata
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.ShortBuffer
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
-// only play once, then destroy; it makes things easier
-// (on user input and when finally rendering only)
-
-// done viewing the audio levels is more important than effects
-// done especially editing the audio levels is important (amplitude)
-
-
-// idk does not work, if the buffers aren't filled fast enough -> always fill them fast enough...
-// idk or restart playing...
-
-/**
- * todo audio effects:
- * done better echoing ;)
- * todo velocity frequency change
- * done pitch
- * todo losing high frequencies in the distance
- * done audio becoming quiet in the distance
- * */
 abstract class AudioStream(
-    val file: FileReference,
-    val repeat: LoopingState,
-    var startIndex: Long,
-    val meta: FFMPEGMetadata,
     val speed: Double,
     val playbackSampleRate: Int = 48000
 ) {
 
-    // should be as short as possible for fast calculation
-    // should be at least as long as the ffmpeg response time (0.3s for the start of a FHD video)
     companion object {
 
         val taskQueue = ProcessingGroup("AudioStream", 0.5f)
@@ -57,16 +32,31 @@ abstract class AudioStream(
         }
 
     }
+    private val filledBuffers = ArrayList<ShortBuffer?>(8)
+    private val gettingIndex = AtomicInteger()
 
-    open fun getTimeD(index: Long): Double = (index * bufferSize * speed) / playbackSampleRate
+    /**
+     * waits until a new buffer is available;
+     * whoever calls this function must return the buffer!!
+     * */
+    fun getNextBuffer(): ShortBuffer {
+        val index = gettingIndex.getAndIncrement()
+        Sleep.waitUntil(true) { filledBuffers.size > index }
+        return filledBuffers.set(index, null)!!
+    }
+
+    open fun onBufferFilled(stereoBuffer: ShortBuffer, sb0: ByteBuffer, bufferIndex: Long, session: Int): Boolean {
+        filledBuffers.add(stereoBuffer)
+        return false
+    }
+
+    open fun frameIndexToTime(index: Long): Double = (index * bufferSize * speed) / playbackSampleRate
 
     var isWaitingForBuffer = AtomicBoolean(false)
 
     var isPlaying = false
 
-    open fun getBuffer(bufferIndex: Long): Pair<FloatArray, FloatArray> {
-        return AudioFXCache.getBuffer(bufferIndex, this, false)!!
-    }
+    abstract fun getBuffer(bufferIndex: Long): Pair<FloatArray, FloatArray>
 
     fun requestNextBuffer(bufferIndex: Long, session: Int) {
 
@@ -105,10 +95,5 @@ abstract class AudioStream(
             else -> -32768
         }
     }
-
-    /**
-     * has to return, whether the buffer can be freed
-     * */
-    abstract fun onBufferFilled(stereoBuffer: ShortBuffer, sb0: ByteBuffer, bufferIndex: Long, session: Int): Boolean
 
 }

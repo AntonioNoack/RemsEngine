@@ -16,7 +16,7 @@ import me.anno.io.files.FileReference
 import me.anno.remsstudio.objects.Audio
 import me.anno.remsstudio.objects.Camera
 import me.anno.animation.LoopingState
-import me.anno.audio.AudioStreamRaw.Companion.bufferSize
+import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
 import me.anno.maths.Maths.clamp
 import me.anno.utils.Sleep.acquire
 import me.anno.utils.hpc.ProcessingQueue
@@ -282,7 +282,7 @@ object AudioFXCache2 : CacheSection("AudioFX-RS") {
         async: Boolean
     ) = getBuffer(source, destination, getKey(source, destination, time0, time1, bufferSize), domain, async)
 
-    fun getBuffer(index: Long, stream: AudioStream2, async: Boolean): Pair<FloatArray, FloatArray>? {
+    fun getBuffer(index: Long, stream: AudioFileStream2, async: Boolean): Pair<FloatArray, FloatArray>? {
         val t0 = stream.getTime(index)
         val t1 = stream.getTime(index + 1)
         return getBuffer(stream.source, stream.destination, t0, t1, bufferSize, Domain.TIME_DOMAIN, async)

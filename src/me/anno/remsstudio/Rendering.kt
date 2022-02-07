@@ -10,10 +10,14 @@ import me.anno.remsstudio.RemsStudio.root
 import me.anno.remsstudio.RemsStudio.shutterPercentage
 import me.anno.remsstudio.RemsStudio.targetOutputFile
 import me.anno.remsstudio.RemsStudio.windowStack
+import me.anno.remsstudio.audio.AudioCreatorV2
 import me.anno.remsstudio.objects.Audio
+import me.anno.remsstudio.objects.Camera
 import me.anno.remsstudio.objects.Transform
 import me.anno.remsstudio.objects.Video
 import me.anno.remsstudio.objects.modes.VideoType
+import me.anno.remsstudio.video.FrameTaskV2
+import me.anno.remsstudio.video.VideoAudioCreatorV2
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.msg
 import me.anno.ui.base.menu.Menu.openMenu
@@ -22,8 +26,6 @@ import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.types.Strings.defaultImportType
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.AudioCreator
-import me.anno.video.FrameTask
-import me.anno.video.VideoAudioCreator
 import me.anno.video.VideoCreator
 import me.anno.video.VideoCreator.Companion.defaultQuality
 import me.anno.video.ffmpeg.FFMPEGEncodingBalance
@@ -110,8 +112,8 @@ object Rendering {
             if (audioSources.isEmpty()) targetOutputFile else tmpFile
         )
 
-        val creator = VideoAudioCreator(
-            videoCreator, scene, duration, sampleRate, audioSources,
+        val creator = VideoAudioCreatorV2(
+            videoCreator, scene, findCamera(scene), duration, sampleRate, audioSources,
             motionBlurSteps, shutterPercentage, targetOutputFile
         )
 
@@ -142,16 +144,23 @@ object Rendering {
 
         LOGGER.info("Rendering frame at $time, $width x $height")
 
-        FrameTask(
+        val scene = root.clone() // so that changed don't influence the result
+        val camera = findCamera(scene)
+        FrameTaskV2(
             width, height,
             RemsStudio.targetFPS,
-            root.clone(),
+            scene, camera,
             motionBlurSteps[time],
             shutterPercentage[time],
             time,
             targetOutputFile
         ).start(callback)
 
+    }
+
+    fun findCamera(scene: Transform): Camera {
+        val cameras = scene.listOfAll.filterIsInstance<Camera>()
+        return cameras.firstOrNull() ?: RemsStudio.nullCamera ?: Camera()
     }
 
     fun overrideAudio(video: FileReference, ask: Boolean, callback: () -> Unit) {
@@ -210,7 +219,7 @@ object Rendering {
             // if empty, skip?
             LOGGER.info("Found ${audioSources.size} audio sources")
 
-            AudioCreator(scene, duration, sampleRate, audioSources).apply {
+            AudioCreatorV2(scene, findCamera(scene), audioSources, duration, sampleRate).apply {
                 onFinished = {
                     isRendering = false
                     callback()
@@ -245,7 +254,7 @@ object Rendering {
 
         // todo if is empty, send a warning instead of doing something
 
-        AudioCreator(scene, duration, sampleRate, audioSources).apply {
+        AudioCreatorV2(scene, findCamera(scene), audioSources, duration, sampleRate).apply {
             onFinished = {
                 isRendering = false
                 callback()

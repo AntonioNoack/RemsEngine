@@ -70,6 +70,7 @@ import me.anno.utils.types.Strings.getImportType
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.ImageSequenceMeta
+import me.anno.video.ImageSequenceMeta.Companion.imageSequenceIdentifier
 import me.anno.video.ffmpeg.IsFFMPEGOnly.isFFMPEGOnlyExtension
 import me.anno.video.MissingFrameException
 import me.anno.video.formats.gpu.GPUFrame
@@ -968,7 +969,6 @@ class Video(file: FileReference = InvalidRef, parent: Transform? = null) : Audio
 
         private val LOGGER = LogManager.getLogger(Video::class)
 
-        val imageSequenceIdentifier get() = DefaultConfig["video.imageSequence.identifier", "%"]
         private val forceAutoScale get() = DefaultConfig["rendering.video.forceAutoScale", true]
         private val forceFullScale get() = DefaultConfig["rendering.video.forceFullScale", false]
 

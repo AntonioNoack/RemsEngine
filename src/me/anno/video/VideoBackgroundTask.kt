@@ -1,6 +1,5 @@
 package me.anno.video
 
-import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL.blendMode
@@ -14,21 +13,17 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
-import me.anno.remsstudio.objects.Camera
-import me.anno.remsstudio.objects.Transform
-import me.anno.remsstudio.Scene
 import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.video.FrameTask.Companion.missingResource
 import org.lwjgl.opengl.GL11.*
 import java.util.concurrent.atomic.AtomicLong
 
-class VideoBackgroundTask(
-    val video: VideoCreator,
-    val scene: Transform,
-    val camera: Camera,
-    val motionBlurSteps: AnimatedProperty<Int>,
-    val shutterPercentage: AnimatedProperty<Float>
+abstract class VideoBackgroundTask(
+    val video: VideoCreator
 ) {
+
+    abstract fun getMotionBlurSteps(time: Double): Int
+    abstract fun getShutterPercentage(time: Double): Float
 
     private val partialFrame = Framebuffer(
         "VideoBackgroundTask-partial", video.w, video.h, 1, 1,
@@ -102,19 +97,16 @@ class VideoBackgroundTask(
         GFX.isFinalRendering = true
 
         // is this correct??? mmh...
-        val drawMode = Renderer.colorRenderer
+        val renderer = Renderer.colorRenderer
 
         var needsMoreSources = false
-        val motionBlurSteps = motionBlurSteps[time]
-        val shutterPercentage = shutterPercentage[time]
+        val motionBlurSteps = getMotionBlurSteps(time)
+        val shutterPercentage = getShutterPercentage(time)
 
         if (motionBlurSteps < 2 || shutterPercentage <= 1e-3f) {
-            useFrame(0, 0, video.w, video.h, false, averageFrame, drawMode) {
+            useFrame(0, 0, video.w, video.h, false, averageFrame, renderer) {
                 try {
-                    Scene.draw(
-                        camera, scene, 0, 0, video.w, video.h,
-                        time, true, drawMode, null
-                    )
+                    renderScene(time, true, renderer)
                     if (!GFX.isFinalRendering) throw RuntimeException()
                 } catch (e: MissingFrameException) {
                     // e.printStackTrace()
@@ -132,12 +124,11 @@ class VideoBackgroundTask(
                 var i = 0
                 while (i++ < motionBlurSteps && !needsMoreSources) {
                     FBStack.reset(video.w, video.h)
-                    useFrame(partialFrame, drawMode) {
+                    useFrame(partialFrame, renderer) {
                         try {
-                            Scene.draw(
-                                camera, scene, 0, 0, video.w, video.h,
+                            renderScene(
                                 time + (i - motionBlurSteps / 2f) * shutterPercentage / (video.fps * motionBlurSteps),
-                                true, drawMode, null
+                                true, renderer
                             )
                             if (!GFX.isFinalRendering) throw RuntimeException()
                         } catch (e: MissingFrameException) {
@@ -148,8 +139,8 @@ class VideoBackgroundTask(
                     }
                     if (!needsMoreSources) {
                         partialFrame.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                        blendMode.use(BlendMode.PURE_ADD){
-                            depthMode.use(DepthMode.ALWAYS){
+                        blendMode.use(BlendMode.PURE_ADD) {
+                            depthMode.use(DepthMode.ALWAYS) {
                                 // write with alpha 1/motionBlurSteps
                                 GFX.copy(1f / motionBlurSteps)
                             }
@@ -170,6 +161,8 @@ class VideoBackgroundTask(
         return true
 
     }
+
+    abstract fun renderScene(time: Double, flipY: Boolean, renderer: Renderer)
 
     private fun destroy() {
         GFX.addGPUTask(video.w, video.h) {

@@ -15,8 +15,6 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D.Companion.packAlignment
 import me.anno.io.files.FileReference
-import me.anno.remsstudio.objects.Transform
-import me.anno.remsstudio.Scene
 import me.anno.utils.Color.rgba
 import me.anno.utils.hpc.Threads.threadWithName
 import org.apache.logging.log4j.LogManager
@@ -26,24 +24,27 @@ import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 import kotlin.math.abs
 
-
-class FrameTask(
+abstract class FrameTask(
     val width: Int,
     val height: Int,
-    val fps: Double,
-    scene: Transform,
-    val motionBlurSteps: Int,
-    val shutterPercentage: Float,
-    val time: Double,
-    val dst: FileReference
-) : AudioCreator(scene, 0.0, 1, emptyList()) {
+    private val fps: Double,
+    private val motionBlurSteps: Int,
+    private val shutterPercentage: Float,
+    private val time: Double,
+    private val dst: FileReference
+) {
 
-    val partialFrame = Framebuffer(
+    abstract fun renderScene(
+        time: Double,
+        flipY: Boolean, renderer: Renderer
+    )
+
+    private val partialFrame = Framebuffer(
         "VideoBackgroundTask-partial", width, height, 1, 1,
         false, DepthBufferType.TEXTURE
     )
 
-    val averageFrame = Framebuffer(
+    private val averageFrame = Framebuffer(
         "VideoBackgroundTask-sum", width, height, 1, 1,
         true, DepthBufferType.TEXTURE
     )
@@ -121,10 +122,7 @@ class FrameTask(
         if (motionBlurSteps < 2 || shutterPercentage <= 1e-3f) {
             useFrame(0, 0, width, height, false, averageFrame) {
                 try {
-                    Scene.draw(
-                        camera, scene, 0, 0, width, height,
-                        time, true, renderer, null
-                    )
+                    renderScene(time, true, renderer)
                     if (!GFX.isFinalRendering) throw RuntimeException()
                 } catch (e: MissingFrameException) {
                     // e.printStackTrace()
@@ -144,10 +142,10 @@ class FrameTask(
                     FBStack.reset(width, height)
                     useFrame(partialFrame, renderer) {
                         try {
-                            Scene.draw(
-                                camera, scene, 0, 0, width, height,
+                            renderScene(
                                 time + (i - motionBlurSteps / 2f) * shutterPercentage / (fps * motionBlurSteps),
-                                true, renderer, null
+                                true,
+                                renderer
                             )
                             if (!GFX.isFinalRendering) throw RuntimeException()
                         } catch (e: MissingFrameException) {

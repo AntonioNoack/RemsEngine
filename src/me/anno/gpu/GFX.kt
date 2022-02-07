@@ -2,7 +2,7 @@ package me.anno.gpu
 
 import me.anno.Build.isDebug
 import me.anno.Engine
-import me.anno.audio.AudioStream
+import me.anno.audio.streams.AudioStream
 import me.anno.config.DefaultConfig
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.OpenGL.blendMode

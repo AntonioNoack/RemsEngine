@@ -1,12 +1,11 @@
 package me.anno.video
 
-import me.anno.remsstudio.objects.Video
+import me.anno.config.DefaultConfig
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import kotlin.math.min
-
 
 class ImageSequenceMeta(file: FileReference) {
 
@@ -14,7 +13,7 @@ class ImageSequenceMeta(file: FileReference) {
 
     init {
         val key = file.name
-        val identifier = Video.imageSequenceIdentifier
+        val identifier = imageSequenceIdentifier
         val i0 = key.indexOf(identifier)
         val i1 = i0 + identifier.length
         val prefix = key.substring(0, i0)
@@ -59,6 +58,8 @@ class ImageSequenceMeta(file: FileReference) {
     override fun toString() = "$duration: $matches"
 
     companion object {
+
+        val imageSequenceIdentifier get() = DefaultConfig["video.imageSequence.identifier", "%"]
 
         private val LOGGER = LogManager.getLogger(ImageSequenceMeta::class)
 

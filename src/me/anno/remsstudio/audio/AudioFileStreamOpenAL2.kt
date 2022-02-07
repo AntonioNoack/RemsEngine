@@ -1,4 +1,4 @@
-package me.anno.audio
+package me.anno.remsstudio.audio
 
 import me.anno.animation.LoopingState
 import me.anno.audio.openal.ALBase
@@ -6,6 +6,8 @@ import me.anno.audio.openal.AudioTasks
 import me.anno.audio.openal.SoundBuffer
 import me.anno.audio.openal.SoundSource
 import me.anno.io.files.FileReference
+import me.anno.remsstudio.objects.Audio
+import me.anno.remsstudio.objects.Camera
 import me.anno.video.AudioCreator.Companion.playbackSampleRate
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import org.apache.logging.log4j.LogManager
@@ -22,16 +24,29 @@ import kotlin.math.max
 // done? to fix "AL lib: (EE) ALCwasapiPlayback_mixerProc: Failed to get padding: 0x88890004"
 // we fixed sth like that
 
-class AudioStreamOpenAL(
+class AudioFileStreamOpenAL2(
     file: FileReference,
     repeat: LoopingState,
     var startTime: Double,
     meta: FFMPEGMetadata,
+    sender: Audio,
+    listener: Camera,
     speed: Double
-) : AudioStream(file, repeat, getIndex(startTime, speed, playbackSampleRate), meta, speed) {
+) : AudioFileStream2(
+    file, repeat,
+    getIndex(startTime, speed, playbackSampleRate),
+    meta, sender, listener, speed, playbackSampleRate
+) {
+
+    constructor(audio: Audio, speed: Double, globalTime: Double, listener: Camera) :
+            this(
+                audio.file, audio.isLooping.value, globalTime,
+                FFMPEGMetadata.getMeta(audio.file, false)!!,
+                audio, listener, speed
+            )
 
     companion object {
-        private val LOGGER = LogManager.getLogger(AudioStreamOpenAL::class)
+        private val LOGGER = LogManager.getLogger(AudioFileStreamOpenAL2::class)
     }
 
     private val startTime0 = startTime

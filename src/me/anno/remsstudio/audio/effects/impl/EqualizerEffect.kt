@@ -1,6 +1,6 @@
 package me.anno.remsstudio.audio.effects.impl
 
-import me.anno.audio.AudioStreamRaw.Companion.bufferSize
+import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
 import me.anno.remsstudio.audio.effects.Domain
 import me.anno.remsstudio.audio.effects.SoundEffect
 import me.anno.remsstudio.audio.effects.Time

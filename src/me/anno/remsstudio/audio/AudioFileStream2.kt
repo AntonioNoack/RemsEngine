@@ -1,7 +1,7 @@
 package me.anno.remsstudio.audio
 
 import me.anno.animation.LoopingState
-import me.anno.audio.AudioStream
+import me.anno.audio.streams.AudioFileStream
 import me.anno.io.files.FileReference
 import me.anno.remsstudio.audio.effects.Time
 import me.anno.remsstudio.objects.Audio
@@ -27,7 +27,7 @@ import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
  * todo losing high frequencies in the distance
  * done audio becoming quiet in the distance
  * */
-abstract class AudioStream2(
+open class AudioFileStream2(
     file: FileReference,
     repeat: LoopingState,
     startIndex: Long,
@@ -36,7 +36,7 @@ abstract class AudioStream2(
     val destination: Camera,
     speed: Double,
     playbackSampleRate: Int = 48000
-) : AudioStream(file, repeat, startIndex, meta, speed, playbackSampleRate) {
+) : AudioFileStream(file, repeat, startIndex, meta, speed, playbackSampleRate) {
 
     constructor(audio: Audio, speed: Double, globalTime: Double, playbackSampleRate: Int, listener: Camera) :
             this(
@@ -54,7 +54,7 @@ abstract class AudioStream2(
         source.pipeline.audio = source
     }
 
-    fun getTime(index: Long): Time = getTime(getTimeD(index))
+    fun getTime(index: Long): Time = getTime(frameIndexToTime(index))
     private fun getTime(globalTime: Double): Time = Time(globalToLocalTime(globalTime), globalTime)
 
     override fun getBuffer(bufferIndex: Long): Pair<FloatArray, FloatArray> {

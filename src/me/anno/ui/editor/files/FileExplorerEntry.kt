@@ -1,7 +1,7 @@
 package me.anno.ui.editor.files
 
 import me.anno.animation.LoopingState
-import me.anno.audio.AudioStreamOpenAL
+import me.anno.audio.streams.AudioFileStreamOpenAL
 import me.anno.audio.openal.AudioTasks
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
@@ -165,7 +165,7 @@ class FileExplorerEntry(
         titlePanel.instantTextLoading = true
     }
 
-    private var audio: AudioStreamOpenAL? = null
+    private var audio: AudioFileStreamOpenAL? = null
 
     fun stopPlayback() {
         val audio = audio
@@ -249,7 +249,7 @@ class FileExplorerEntry(
                             val file = getReferenceOrTimeout(path)
                             stopPlayback()
                             if (meta.hasAudio) {
-                                this.audio = AudioStreamOpenAL(
+                                this.audio = AudioFileStreamOpenAL(
                                     file, LoopingState.PLAY_LOOP,
                                     -hoverPlaybackDelay, meta, 1.0
                                 )

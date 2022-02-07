@@ -36,6 +36,8 @@ import me.anno.ui.style.Style
 import me.anno.utils.OS
 import java.io.File
 
+// todo bug: runtime stats are missing :/
+
 // todo bug: signed distance field texts are missing / not rendering
 
 // todo isolate and remove certain frequencies from audio

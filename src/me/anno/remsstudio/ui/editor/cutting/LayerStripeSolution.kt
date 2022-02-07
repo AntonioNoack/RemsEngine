@@ -16,7 +16,7 @@ import me.anno.maths.Maths.nonNegativeModulo
 import me.anno.remsstudio.objects.Transform
 import me.anno.remsstudio.objects.Video
 import me.anno.animation.LoopingState
-import me.anno.audio.AudioStreamRaw.Companion.bufferSize
+import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
 import me.anno.remsstudio.RemsStudio.nullCamera
 import me.anno.remsstudio.ui.editor.TimelinePanel.Companion.centralTime
 import me.anno.remsstudio.ui.editor.TimelinePanel.Companion.dtHalfLength

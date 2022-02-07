@@ -1,41 +1,43 @@
 package me.anno.video
 
-import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.io.files.FileReference
-import me.anno.remsstudio.objects.Audio
-import me.anno.remsstudio.objects.Transform
 import me.anno.utils.Sleep.waitUntil
 import org.apache.logging.log4j.LogManager
 import kotlin.concurrent.thread
 
-class VideoAudioCreator(
+open class VideoAudioCreator(
     val videoCreator: VideoCreator,
-    scene: Transform,
-    durationSeconds: Double, sampleRate: Int, audioSources: List<Audio>,
-    val motionBlurSteps: AnimatedProperty<Int>, val shutterPercentage: AnimatedProperty<Float>,
-    val output: FileReference
-) : AudioCreator(scene, durationSeconds, sampleRate, audioSources) {
+    val videoBackgroundTask: VideoBackgroundTask,
+    val audioCreator: AudioCreator,
+    val output: FileReference,
+) {
 
     fun start() {
         thread(name = "VideoAudioCreator") { run() }
     }
 
     fun run() {
-        val vbt = VideoBackgroundTask(videoCreator, scene, camera, motionBlurSteps, shutterPercentage)
-        vbt.start()
+        val videoTask = videoBackgroundTask
+        videoTask.start()
         // wait for the task to finish
-        waitUntil(true) { vbt.isDone }
-        if (audioSources.isEmpty()) {
+        waitUntil(true) { videoTask.isDone }
+        if (audioCreator.hasStreams()) {
+            audioCreator.createOrAppendAudio(output, videoCreator.output, true)
+        } else {
             if (output != videoCreator.output) {
                 output.delete()
                 videoCreator.output.renameTo(output)
             }
             LOGGER.info("No audio found, saved result to $output.")
-            onFinished()
-        } else {
-            createOrAppendAudio(output, videoCreator.output, true)
+            audioCreator.onFinished()
         }
     }
+
+    var onFinished: () -> Unit
+        get() = audioCreator.onFinished
+        set(value) {
+            audioCreator.onFinished = value
+        }
 
     companion object {
         private val LOGGER = LogManager.getLogger(VideoAudioCreator::class)

@@ -1,7 +1,7 @@
 package me.anno.audio.openal
 
-import me.anno.audio.AudioStream.Companion.bufferPool
 import me.anno.audio.openal.AudioManager.openALSession
+import me.anno.audio.streams.AudioStream.Companion.bufferPool
 import me.anno.cache.data.ICacheData
 import me.anno.utils.pooling.ByteBufferPool
 import org.lwjgl.openal.AL10.*

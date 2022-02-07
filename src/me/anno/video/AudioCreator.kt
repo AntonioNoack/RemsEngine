@@ -1,12 +1,9 @@
 package me.anno.video
 
-import me.anno.remsstudio.audio.AudioStreamRaw2.Companion.playbackSliceDuration
+import me.anno.audio.streams.AudioStream
+import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
 import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
-import me.anno.remsstudio.objects.Audio
-import me.anno.remsstudio.objects.Camera
-import me.anno.remsstudio.objects.Transform
-import me.anno.remsstudio.RemsStudio
 import me.anno.maths.Maths.clamp
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.video.Codecs.audioCodecByExtension
@@ -18,24 +15,19 @@ import java.io.IOException
 import java.util.*
 import kotlin.concurrent.thread
 import kotlin.math.ceil
+import kotlin.math.roundToInt
 
-open class AudioCreator(
-    val scene: Transform,
+abstract class AudioCreator(
     private val durationSeconds: Double,
-    private val sampleRate: Int,
-    val audioSources: List<Audio>
+    val sampleRate: Int
 ) {
 
     val startTime = GFX.gameTime
-
     var onFinished = {}
 
-    val camera: Camera
+    abstract fun hasStreams(): Boolean
 
-    init {
-        val cameras = scene.listOfAll.filterIsInstance<Camera>()
-        camera = cameras.firstOrNull() ?: RemsStudio.nullCamera ?: Camera()
-    }
+    abstract fun createStreams(): List<AudioStream>
 
     fun createOrAppendAudio(output: FileReference, videoCreatorOutput: FileReference?, deleteVCO: Boolean) {
 
@@ -84,7 +76,9 @@ open class AudioCreator(
         val targetFPS = 60.0
         val totalFrameCount = (targetFPS * durationSeconds).toLong()
         thread(name = "AudioOutputListener") {
-            processOutput(LOGGER, "Audio", startTime, targetFPS, totalFrameCount, process.errorStream)
+            processOutput(LOGGER, "Audio", startTime, targetFPS, totalFrameCount, process.errorStream) {
+                onFinished()
+            }
         }
 
         val audioOutput = DataOutputStream(process.outputStream.buffered())
@@ -114,26 +108,55 @@ open class AudioCreator(
 
         try {
 
+
             val sliceDuration = playbackSliceDuration
+            val bufferSize = (sliceDuration * sampleRate * 2).roundToInt()
             val bufferCount = ceil(durationSeconds / sliceDuration).toLong()
 
-            val streams = audioSources.map { BufferStream(it, sampleRate, camera) }
+            val streams = createStreams()
+
+            var intBuffer: IntArray? = null
 
             for (bufferIndex in 0 until bufferCount) {
-                streams.forEach { it.requestNextBuffer(bufferIndex, 0) }
-                val buffers = streams.map { it.getAndReplace() }
-                val buffer = buffers.first()
-                // write the data to ffmpeg
-                val size = buffer.capacity()
-                if (buffers.size == 1) {// no sum required
-                    for (i in 0 until size) {
+                for (stream in streams) {
+                    stream.requestNextBuffer(bufferIndex, 0)
+                }
+                if (streams.size == 1) {
+                    // no sum required
+                    // write the data to ffmpeg
+                    val buffer = streams[0].getNextBuffer()
+                    for (i in 0 until buffer.capacity()) {
                         audioOutput.writeShort(buffer[i].toInt())
                     }
                 } else {
-                    for (i in 0 until size) {
-                        val sum = buffers.sumOf { it[i].toInt() }
-                        audioOutput.writeShort(clamp(sum, Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()))
+                    for (j in streams.indices) {
+                        val buffer = streams[j].getNextBuffer()
+                        if (j == 0) {
+                            if (intBuffer == null || intBuffer.size != buffer.capacity()) {
+                                intBuffer = IntArray(buffer.capacity())
+                            } else {
+                                intBuffer.fill(0)
+                            }
+                        }
+                        intBuffer!!
+                        if (buffer.capacity() != bufferSize) throw RuntimeException("${buffer.capacity()} vs $bufferSize")
+                        for (i in 0 until bufferSize) {
+                            intBuffer[i] += buffer[i].toInt()
+                        }
                     }
+                    if (intBuffer != null) {
+                        val min = Short.MIN_VALUE.toInt()
+                        val max = Short.MAX_VALUE.toInt()
+                        for (i in 0 until bufferSize) {
+                            audioOutput.writeShort(clamp(intBuffer[i], min, max))
+                        }
+                    } else {
+                        // no stream was available
+                        for (i in 0 until bufferSize) {
+                            audioOutput.writeShort(0)
+                        }
+                    }
+
                 }
             }
 
@@ -146,15 +169,16 @@ open class AudioCreator(
             // this really isn't an issue xD
             if ("pipe has been ended" !in msg.lowercase(Locale.getDefault()) &&
                 "pipe is being closed" !in msg.lowercase(Locale.getDefault())
-            ) {
-                throw e
-            }
+            ) throw e
         }
 
     }
 
     companion object {
         const val playbackSampleRate = 48000
+
+        // 1024 (48Hz .. 48kHz) or 2048? (24Hz .. 48kHz)
+        val playbackSliceDuration = bufferSize.toDouble() / playbackSampleRate
         private val LOGGER = LogManager.getLogger(AudioCreator::class)
     }
 

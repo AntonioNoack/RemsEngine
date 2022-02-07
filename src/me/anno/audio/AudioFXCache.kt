@@ -2,7 +2,9 @@ package me.anno.audio
 
 import me.anno.animation.LoopingState
 import me.anno.audio.AudioPools.SAPool
-import me.anno.audio.AudioStreamRaw.Companion.bufferSize
+import me.anno.audio.streams.AudioFileStream
+import me.anno.audio.streams.AudioStreamRaw
+import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.data.ICacheData
@@ -125,10 +127,7 @@ object AudioFXCache : CacheSection("AudioFX0") {
         // we cannot simply return null from this function, so getEntryLimited isn't an option
         acquire(true, rawDataLimiter)
         val entry = getEntry(key to "", timeout, false) {
-            val stream = AudioStreamRaw(
-                key.file, key.repeat,
-                meta
-            )
+            val stream = AudioStreamRaw(key.file, key.repeat, meta)
             val pair = stream.getBuffer(key.bufferSize, key.time0, key.time1)
             AudioData(key, pair.first, pair.second)
         } as AudioData
@@ -166,11 +165,11 @@ object AudioFXCache : CacheSection("AudioFX0") {
 
     fun getBuffer(
         index: Long,
-        stream: AudioStream,
+        stream: AudioFileStream,
         async: Boolean
     ): Pair<FloatArray, FloatArray>? {
-        val t0 = stream.getTimeD(index)
-        val t1 = stream.getTimeD(index + 1)
+        val t0 = stream.frameIndexToTime(index)
+        val t1 = stream.frameIndexToTime(index + 1)
         return getBuffer(stream.file, t0, t1, bufferSize, stream.repeat, async)
     }
 
