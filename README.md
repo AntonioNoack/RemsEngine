@@ -114,9 +114,34 @@ videos on Android using https://stackoverflow.com/questions/9375598/android-how-
 - when we have no videos, we could ship without ffmpeg
 - additional 2d physics engine
 
+## Used libraries
+
+* [LWJGL](https://www.lwjgl.org/) (Graphics and Audio; OpenGL + GLFW + OpenAL + stb + jemalloc)
+* [Assimp](https://github.com/assimp/assimp) (loading 3d meshes, from LWJGL)
+* [JOML](https://github.com/JOML-CI/JOML) (Matrix calculations and transforms for rendering)
+* [FFMpeg](https://ffmpeg.org/) (Video/Image/Audio Import & Export)
+* [HSLuv](https://github.com/hsluv/hsluv-java) (HSL alternative with constant brightness)
+* [OpenSimplexNoise](https://gist.github.com/KdotJPG/b1270127455a94ac5d19) (Noise Generator)
+* [LanguageTool](https://languagetool.org/) (Spellchecking)
+* [JTransforms](https://sites.google.com/site/piotrwendykier/software/jtransforms) (Fast Fourier Transform)
+* [Apache Imaging](https://commons.apache.org/proper/commons-imaging/) (More supported image formats, like .ico)
+* [Apache CLI](https://commons.apache.org/proper/commons-cli/) (Basics of Command Line Interface)
+* [Metadata Extractor](https://github.com/drewnoakes/metadata-extractor) (Detecting rotated JPEG files)
+* [JNA Platform](https://github.com/java-native-access/jna) (Moving files to trash)
+* [Apache PDFBox](https://pdfbox.apache.org/) (Rendering PDFs)
+* [JAI ImageIO Core](https://github.com/jai-imageio/jai-imageio-core) (More image formats for PDFs)
+* [JAI ImageIO JPEG2000](https://github.com/jai-imageio/jai-imageio-jpeg2000) (JPEG 2000 support for PDFs)
+* [jUnRAR](https://github.com/edmund-wagner/junrar)
+  , [Apache VFS](https://search.maven.org/artifact/org.apache.commons/commons-vfs2/2.8.0/jar) (Reading RAR files)
+* [Image4j](https://github.com/imcdonagh/image4j) (Reading ICO images)
+* [Bullet](http://jbullet.advel.cz/) (3d Physics, adjusted to be FP64 instead of FP32)
+* [Box2d](https://github.com/jbox2d/jbox2d) (2d Physics, still FP32)
+
+
 ## Build
 
 The project can be built similar to [Rem's Studio](https://github.com/AntonioNoack/RemsStudio), just the main class now is me.anno.engine.RemsEngine.
+All listed libraries need to be added to the project in some way.
 
 ## Wiki
 
