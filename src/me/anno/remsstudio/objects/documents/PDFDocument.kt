@@ -1,33 +1,34 @@
 package me.anno.remsstudio.objects.documents
 
-import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.cache.instances.PDFCache
+import me.anno.cache.instances.PDFCache.getTexture
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.GFX.viewportHeight
 import me.anno.gpu.GFX.viewportWidth
-import me.anno.gpu.texture.TextureLib.colorShowTexture
 import me.anno.gpu.drawing.GFXx3D
+import me.anno.gpu.drawing.UVProjection
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
+import me.anno.gpu.texture.TextureLib.colorShowTexture
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.remsstudio.animation.AnimatedProperty
+import me.anno.remsstudio.gpu.drawing.GFXx3Dv2
 import me.anno.remsstudio.objects.GFXTransform
 import me.anno.remsstudio.objects.Transform
 import me.anno.remsstudio.objects.documents.SiteSelection.parseSites
-import me.anno.cache.instances.PDFCache.getTexture
 import me.anno.remsstudio.objects.lists.Element
 import me.anno.remsstudio.objects.lists.SplittableElement
-import me.anno.gpu.drawing.UVProjection
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
 import me.anno.utils.Clipping
 import me.anno.utils.files.LocalFile.toGlobalFile
-import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.structures.lists.Lists.median
+import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.apache.pdfbox.pdmodel.PDDocument
@@ -140,13 +141,13 @@ open class PDFDocument(var file: FileReference, parent: Transform?) : GFXTransfo
                         if (texture === colorShowTexture) {
                             stack.next {
                                 stack.scale(x, 1f, 1f)
-                                GFXx3D.draw3DVideo(
+                                GFXx3Dv2.draw3DVideo(
                                     this, time, stack, texture, color,
                                     Filtering.NEAREST, Clamping.CLAMP, null, UVProjection.Planar
                                 )
                             }
                         } else {
-                            GFXx3D.draw3DVideo(
+                            GFXx3Dv2.draw3DVideo(
                                 this, time, stack, texture, color,
                                 Filtering.LINEAR, Clamping.CLAMP, null, UVProjection.Planar
                             )
@@ -278,15 +279,10 @@ open class PDFDocument(var file: FileReference, parent: Transform?) : GFXTransfo
     }
 
     companion object {
-
-        private val LOGGER = LogManager.getLogger(PDFDocument::class)
-        val timeout = 20_000L
-
         init {
             // spams the output with it's drawing calls; using the error stream...
             LogManager.disableLogger("GlyphRenderer")
         }
-
     }
 
 }

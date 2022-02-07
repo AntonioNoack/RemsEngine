@@ -9,6 +9,7 @@ import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.remsstudio.RemsStudio
+import me.anno.remsstudio.RemsStudio.lastTouchedCamera
 import me.anno.remsstudio.RemsStudio.nullCamera
 import me.anno.remsstudio.RemsStudio.windowStack
 import me.anno.remsstudio.Selection
@@ -196,7 +197,7 @@ class StudioTreeView(style: Style) :
             // instead of asking for the name, move the camera towards the target
             // todo also zoom in/out correctly to match the object...
             // identify the currently used camera
-            val camera = GFX.lastTouchedCamera ?: nullCamera ?: return
+            val camera = lastTouchedCamera ?: nullCamera ?: return
             val time = RemsStudio.editorTime
             // calculate the movement, which would be necessary
             val cameraToWorld = camera.parent?.getGlobalTransform(time)

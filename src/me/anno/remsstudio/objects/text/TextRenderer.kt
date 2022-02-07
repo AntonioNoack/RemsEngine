@@ -9,6 +9,7 @@ import me.anno.gpu.drawing.GFXx3D
 import me.anno.remsstudio.objects.attractors.EffectMorphing
 import me.anno.remsstudio.objects.modes.TextRenderMode
 import me.anno.remsstudio.Selection
+import me.anno.remsstudio.gpu.drawing.GFXx3Dv2
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Strings.isBlank2
@@ -308,7 +309,7 @@ object TextRenderer {
 
                     val outlineDepth = element.outlineDepth[time]
 
-                    GFXx3D.drawOutlinedText(
+                    GFXx3Dv2.drawOutlinedText(
                         element, time,
                         stack, offset, scale,
                         texture, color, 5,
@@ -353,7 +354,7 @@ object TextRenderer {
             buffer!!
             val offset = Vector3f(lineDeltaX + xOffset, lineDeltaY, 0f)
             if (firstTimeDrawing) {
-                GFXx3D.draw3DText(element, time, offset, stack, buffer, color)
+                GFXx3Dv2.draw3DText(element, time, offset, stack, buffer, color)
                 firstTimeDrawing = false
             } else {
                 GFXx3D.draw3DTextWithOffset(buffer, offset)

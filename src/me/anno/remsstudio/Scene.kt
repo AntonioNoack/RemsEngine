@@ -40,6 +40,7 @@ import me.anno.remsstudio.objects.Transform
 import me.anno.remsstudio.objects.Transform.Companion.drawUICircle
 import me.anno.remsstudio.objects.Transform.Companion.xAxis
 import me.anno.gpu.shader.effects.GaussianBlur
+import me.anno.remsstudio.RemsStudio.currentCamera
 import me.anno.remsstudio.objects.effects.ToneMappers
 import me.anno.remsstudio.RemsStudio.gfxSettings
 import me.anno.remsstudio.RemsStudio.nullCamera
@@ -211,7 +212,7 @@ object Scene {
         flipY: Boolean, renderer: Renderer, sceneView: ISceneView?
     ) {
 
-        GFX.currentCamera = camera
+        currentCamera = camera
 
         useFrame(x, y, w, h, false, renderer) {
 

@@ -1,13 +1,11 @@
 package me.anno.remsstudio.objects.geometric
 
-import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.cache.instances.MeshCache
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.toRadians
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.gpu.drawing.GFXx3D.draw3DPolygon
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureLib.whiteTexture
@@ -18,6 +16,8 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.translation.Dict
 import me.anno.maths.Maths.clamp
+import me.anno.remsstudio.animation.AnimatedProperty
+import me.anno.remsstudio.gpu.drawing.GFXx3Dv2.draw3DPolygon
 import me.anno.remsstudio.objects.GFXTransform
 import me.anno.remsstudio.objects.Transform
 import me.anno.ui.base.groups.PanelListY

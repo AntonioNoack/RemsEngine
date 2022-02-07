@@ -1,8 +1,8 @@
 package me.anno.ui.editor.files
 
 import me.anno.animation.LoopingState
-import me.anno.audio.streams.AudioFileStreamOpenAL
 import me.anno.audio.openal.AudioTasks
+import me.anno.audio.streams.AudioFileStreamOpenAL
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultStyle.black
@@ -749,7 +749,7 @@ class FileExplorerEntry(
 
         fun drawLoadingCircle(stack: Matrix4fArrayList, relativeTime: Float) {
             GFXx3D.draw3DCircle(
-                null, 0.0, stack, 0f,
+                stack, 0f,
                 relativeTime * 360f * 4 / 3,
                 relativeTime * 360f * 2,
                 Vector4f(1f, 1f, 1f, 0.2f)

@@ -13,6 +13,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.remsstudio.RemsStudio
+import me.anno.remsstudio.gpu.shader.ShaderLibV2
 import me.anno.remsstudio.objects.GFXTransform
 import me.anno.remsstudio.objects.Video
 import me.anno.remsstudio.objects.geometric.Polygon
@@ -274,7 +275,7 @@ object GFXx3Dv2 {
         isFullscreen: Boolean,
         settings: Vector4f
     ) {
-        val shader = ShaderLib.shader3DMasked.value
+        val shader = ShaderLibV2.shader3DMasked.value
         shader.use()
         GFXx3D.shader3DUniforms(shader, stack, color)
         shader.v1f("useMaskColor", useMaskColor)
@@ -289,13 +290,21 @@ object GFXx3Dv2 {
         GFX.check()
     }
 
-    fun colorGradingUniforms(video: Video, time: Double, shader: Shader) {
-        GFXx3D.tmp0.set(video.cgOffsetAdd[time, GFXx3D.tmp0])
-        GFXx3D.tmp1.set(video.cgOffsetSub[time, GFXx3D.tmp1])
-        shader.v3f("cgOffset", GFXx3D.tmp0.sub(GFXx3D.tmp1))
-        shader.v3X("cgSlope", video.cgSlope[time, GFXx3D.tmp2])
-        shader.v3X("cgPower", video.cgPower[time, GFXx3D.tmp2])
-        shader.v1f("cgSaturation", video.cgSaturation[time])
+    private val tmp0 = Vector3f()
+    private val tmp1 = Vector3f()
+    private val tmp2 = Vector4f()
+
+    fun colorGradingUniforms(video: Video?, time: Double, shader: Shader) {
+        if (video != null) {
+            tmp0.set(video.cgOffsetAdd[time, tmp0])
+            tmp1.set(video.cgOffsetSub[time, tmp1])
+            shader.v3f("cgOffset", tmp0.sub(tmp1))
+            shader.v3X("cgSlope", video.cgSlope[time, tmp2])
+            shader.v3X("cgPower", video.cgPower[time, tmp2])
+            shader.v1f("cgSaturation", video.cgSaturation[time])
+        } else {
+            GFXx3D.colorGradingUniforms(shader)
+        }
     }
 
 }

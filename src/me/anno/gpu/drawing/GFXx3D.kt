@@ -12,6 +12,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.maxOutlineColors
 import me.anno.gpu.texture.*
+import me.anno.remsstudio.gpu.shader.ShaderLibV2
 import me.anno.video.formats.gpu.GPUFrame
 import org.joml.*
 import org.lwjgl.BufferUtils
@@ -126,10 +127,6 @@ object GFXx3D {
         shader.v3f("offset", offset)
         buffer.draw(shader)
     }
-
-    val tmp0 = Vector3f()
-    val tmp1 = Vector3f()
-    val tmp2 = Vector4f()
 
     fun colorGradingUniforms(shader: Shader) {
         shader.v3f("cgOffset", 0f)
@@ -286,7 +283,7 @@ object GFXx3D {
         threshold: Float, isFirst: Boolean,
         isFullscreen: Boolean
     ) {
-        val shader = ShaderLib.shader3DGaussianBlur.value
+        val shader = ShaderLibV2.shader3DGaussianBlur.value
         shader.use()
         transformUniform(shader, stack)
         if (isFirst) shader.v2f("stepSize", 0f, 1f / h)

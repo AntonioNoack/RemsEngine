@@ -33,6 +33,7 @@ import me.anno.remsstudio.RemsStudio
 import me.anno.remsstudio.RemsStudio.editorTime
 import me.anno.remsstudio.RemsStudio.editorTimeDilation
 import me.anno.remsstudio.RemsStudio.isPaused
+import me.anno.remsstudio.RemsStudio.lastTouchedCamera
 import me.anno.remsstudio.RemsStudio.nullCamera
 import me.anno.remsstudio.RemsStudio.project
 import me.anno.remsstudio.Scene
@@ -177,7 +178,7 @@ open class StudioSceneView(style: Style) : PanelList(null, style.getChild("scene
     }
 
     open fun onInteraction() {
-        GFX.lastTouchedCamera = camera
+        lastTouchedCamera = camera
     }
 
     override fun getVisualState(): Any =

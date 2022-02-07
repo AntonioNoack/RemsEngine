@@ -1,6 +1,5 @@
 package me.anno.remsstudio.objects
 
-import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
@@ -16,29 +15,30 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.language.translation.Dict
-import me.anno.studio.Inspectable
-import me.anno.remsstudio.objects.modes.TransformVisibility
-import me.anno.remsstudio.objects.particles.ParticleSystem
+import me.anno.maths.Maths.clamp
 import me.anno.remsstudio.RemsStudio
 import me.anno.remsstudio.RemsStudio.editorTime
 import me.anno.remsstudio.Scene
 import me.anno.remsstudio.Selection.select
 import me.anno.remsstudio.Selection.selectTransform
 import me.anno.remsstudio.Selection.selectedTransform
+import me.anno.remsstudio.animation.AnimatedProperty
+import me.anno.remsstudio.objects.modes.TransformVisibility
+import me.anno.remsstudio.objects.particles.ParticleSystem
+import me.anno.remsstudio.ui.ComponentUIV2
+import me.anno.remsstudio.ui.editor.TimelinePanel
+import me.anno.remsstudio.ui.editor.TimelinePanel.Companion.global2Kf
+import me.anno.studio.Inspectable
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.LinkPanel
 import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.editor.SettingCategory
-import me.anno.remsstudio.ui.editor.TimelinePanel
-import me.anno.remsstudio.ui.editor.TimelinePanel.Companion.global2Kf
-import me.anno.remsstudio.ui.ComponentUIV2
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.input.TextInput
 import me.anno.ui.input.TextInputML
 import me.anno.ui.style.Style
 import me.anno.utils.Color.mulARGB
-import me.anno.maths.Maths.clamp
 import me.anno.utils.structures.Hierarchical
 import me.anno.utils.structures.ValueWithDefault
 import me.anno.utils.structures.ValueWithDefault.Companion.writeMaybe
@@ -848,7 +848,7 @@ open class Transform() : Saveable(),
                 stack.m10(0f);stack.m11(scale);stack.m12(0f)
                 stack.m20(0f);stack.m21(0f);stack.m22(scale)*/
                 stack.scale(scale)
-                draw3DCircle(null, 0.0, stack, inner, 0f, 360f, color)
+                draw3DCircle(stack, inner, 0f, 360f, color)
                 stack.popMatrix()
             }
         }
