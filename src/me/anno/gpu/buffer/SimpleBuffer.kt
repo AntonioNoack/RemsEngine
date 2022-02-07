@@ -1,5 +1,6 @@
 package me.anno.gpu.buffer
 
+import me.anno.gpu.shader.Shader
 import me.anno.maths.Maths.pow
 import org.joml.Vector2f
 
@@ -97,7 +98,7 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) : StaticBuffer(
             intArrayOf(0, 1, 2, 0, 2, 3)
         )
 
-        val flat01CubeX10 = lazy {
+        val flat01CubeX10 by lazy {
 
             // create a fine grid
             val sizeX = 20
@@ -162,6 +163,25 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) : StaticBuffer(
                 Vector2f(1f, -1f)
             ), intArrayOf(0, 1, 2, 0, 2, 3), "attr0"
         )
+
+        val circleBuffer by lazy {
+            val n = 36 * 4
+            // angle, scaling
+            val buffer = StaticBuffer(listOf(Attribute("attr0", 2)), 3 * 2 * n)
+            fun put(index: Int, scaling: Float) {
+                buffer.put(index.toFloat() / n, scaling)
+            }
+            for (i in 0 until n) {
+                val j = i + 1
+                put(i, 0f)
+                put(i, 1f)
+                put(j, 1f)
+                put(i, 0f)
+                put(j, 1f)
+                put(j, 0f)
+            }
+            buffer
+        }
 
         fun destroy() {
             flat01.destroy()

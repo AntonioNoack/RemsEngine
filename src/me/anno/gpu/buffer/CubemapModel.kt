@@ -1,14 +1,15 @@
-package me.anno.remsstudio.objects.models
+package me.anno.gpu.buffer
 
-import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.StaticBuffer
-import me.anno.remsstudio.objects.Transform
 import me.anno.utils.types.Vectors.plus
 import me.anno.utils.types.Vectors.times
 import org.joml.Vector3f
 import org.joml.Vector3fc
 
 object CubemapModel {
+
+    private val xAxis = Vector3f(1f, 0f, 0f)
+    private val yAxis = Vector3f(0f, 1f, 0f)
+    private val zAxis = Vector3f(0f, 0f, 1f)
 
     val cubemapModel = StaticBuffer(
         listOf(
@@ -33,12 +34,12 @@ object CubemapModel {
         val myAxis = Vector3f(0f, -1f, 0f)
         val mzAxis = Vector3f(0f, 0f, -1f)
 
-        addFace(1, 1, mzAxis, mxAxis, Transform.yAxis) // center, front
-        addFace(0, 1, mxAxis, Transform.zAxis, Transform.yAxis) // left, left
-        addFace(2, 1, Transform.xAxis, mzAxis, Transform.yAxis) // right, right
-        addFace(3, 1, Transform.zAxis, Transform.xAxis, Transform.yAxis) // 2x right, back
+        addFace(1, 1, mzAxis, mxAxis, yAxis) // center, front
+        addFace(0, 1, mxAxis, zAxis, yAxis) // left, left
+        addFace(2, 1, xAxis, mzAxis, yAxis) // right, right
+        addFace(3, 1, zAxis, xAxis, yAxis) // 2x right, back
         addFace(1, 0, myAxis, mxAxis, mzAxis) // top
-        addFace(1, 2, Transform.yAxis, mxAxis, Transform.zAxis) // bottom
+        addFace(1, 2, yAxis, mxAxis, zAxis) // bottom
 
         quads()
 
@@ -71,18 +72,18 @@ object CubemapModel {
         val myAxis = Vector3f(0f, -1f, 0f)
         val mzAxis = Vector3f(0f, 0f, -1f)
 
-        addFace(1, 1, mzAxis, mxAxis, Transform.yAxis) // center, front
-        addFace(0, 1, mxAxis, Transform.zAxis, Transform.yAxis) // left, left
-        addFace(2, 1, Transform.xAxis, mzAxis, Transform.yAxis) // right, right
-        addFace(3, 1, Transform.zAxis, Transform.xAxis, Transform.yAxis) // 2x right, back
+        addFace(1, 1, mzAxis, mxAxis, yAxis) // center, front
+        addFace(0, 1, mxAxis, zAxis, yAxis) // left, left
+        addFace(2, 1, xAxis, mzAxis, yAxis) // right, right
+        addFace(3, 1, zAxis, xAxis, yAxis) // 2x right, back
         addFace(1, 0, myAxis, mxAxis, mzAxis) // top
-        addFace(1, 2, Transform.yAxis, mxAxis, Transform.zAxis) // bottom
+        addFace(1, 2, yAxis, mxAxis, zAxis) // bottom
 
         quads()
 
     }
 
-    fun destroy(){
+    fun destroy() {
         cubemapLineModel.destroy()
         cubemapModel.destroy()
     }

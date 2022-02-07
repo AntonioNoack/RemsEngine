@@ -1,9 +1,9 @@
 package me.anno.gpu.drawing
 
+import me.anno.gpu.buffer.CubemapModel.cubemapModel
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01Cube
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.language.translation.NameDesc
-import me.anno.remsstudio.objects.models.CubemapModel.cubemapModel
 
 enum class UVProjection(val id: Int, val doScale: Boolean, val naming: NameDesc) {
     Planar(0, true, NameDesc("Planar", "Simple plane, e.g. for 2D video", "")) {

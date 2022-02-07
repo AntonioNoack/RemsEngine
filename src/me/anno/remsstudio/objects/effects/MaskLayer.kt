@@ -1,12 +1,10 @@
 package me.anno.remsstudio.objects.effects
 
-import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.OpenGL.renderDefault
 import me.anno.gpu.OpenGL.useFrame
-import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
@@ -17,18 +15,24 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
+import me.anno.remsstudio.Scene
+import me.anno.remsstudio.Scene.mayUseMSAA
+import me.anno.remsstudio.animation.AnimatedProperty
+import me.anno.remsstudio.gpu.drawing.GFXx3Dv2.draw3DMasked
 import me.anno.remsstudio.objects.GFXTransform
 import me.anno.remsstudio.objects.Transform
 import me.anno.remsstudio.objects.geometric.Circle
 import me.anno.remsstudio.objects.geometric.Polygon
-import me.anno.remsstudio.Scene.mayUseMSAA
 import me.anno.ui.Panel
 import me.anno.ui.base.SpyPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.style.Style
-import org.joml.*
+import org.joml.Matrix4fArrayList
+import org.joml.Vector2f
+import org.joml.Vector4f
+import org.joml.Vector4fc
 import org.lwjgl.opengl.GL11.*
 import java.net.URL
 
@@ -257,9 +261,9 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
 
                 GFX.check()
 
-                GFXx3D.draw3DMasked(
+                draw3DMasked(
                     stack, color,
-                    type, useMaskColor[time],
+                    type.id, useMaskColor[time],
                     pixelSize, offset, isInverted,
                     isFullscreen,
                     settings
@@ -273,15 +277,15 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
                 val src0 = masked
                 src0.bindTexture0(0, src0.textures[0].filtering, src0.textures[0].clamping!!)
                 val srcBuffer = src0.msBuffer ?: src0
-                BokehBlur.draw(srcBuffer.textures[0], temp, pixelSize)
+                BokehBlur.draw(srcBuffer.textures[0], temp, pixelSize, Scene.usesFPBuffers)
 
                 temp.bindTexture0(2, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                 masked.bindTexture0(1, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                 mask.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
 
-                GFXx3D.draw3DMasked(
+                draw3DMasked(
                     stack, color,
-                    type, useMaskColor[time],
+                    type.id, useMaskColor[time],
                     0f, offset, isInverted,
                     isFullscreen,
                     settings
@@ -316,9 +320,9 @@ open class MaskLayer(parent: Transform? = null) : GFXTransform(parent) {
                 GFX.check()
                 mask.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                 GFX.check()
-                GFXx3D.draw3DMasked(
+                draw3DMasked(
                     stack, color,
-                    type, useMaskColor[time],
+                    type.id, useMaskColor[time],
                     pixelSize, offset, isInverted,
                     isFullscreen,
                     settings

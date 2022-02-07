@@ -203,6 +203,8 @@ class RenderView(
         pipeline.stages.add(stage0)
     }
 
+    override val canDrawOverBorders: Boolean = true
+
     override fun destroy() {
         super.destroy()
         // all framebuffers that we own need to be freed

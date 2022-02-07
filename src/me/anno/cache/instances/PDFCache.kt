@@ -8,7 +8,6 @@ import me.anno.image.ImageGPUCache
 import me.anno.io.files.FileReference
 import me.anno.io.zip.InnerFolder
 import me.anno.maths.Maths
-import me.anno.remsstudio.objects.documents.PDFDocument
 import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.structures.tuples.Quad
 import org.apache.logging.log4j.LogManager
@@ -102,7 +101,7 @@ object PDFCache : CacheSection("PDFCache") {
         val qualityFloat = qualityInt * 0.5f
         val tex = ImageGPUCache.getLateinitTexture(
             Triple(src, qualityInt, pageNumber),
-            PDFDocument.timeout,
+            20_000L,
             false
         ) { callback ->
             threadWithName("PDFCache::getTexture") {

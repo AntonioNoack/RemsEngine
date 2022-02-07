@@ -9,10 +9,7 @@ import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.input.components.NumberInputComponent
 import me.anno.ui.style.Style
 import me.anno.utils.types.Strings.isBlank2
-import org.joml.Quaternionf
-import org.joml.Vector2fc
-import org.joml.Vector3fc
-import org.joml.Vector4fc
+import org.joml.*
 import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
@@ -127,6 +124,15 @@ open class FloatInput(
             is Double -> value
             is Int -> value.toDouble()
             is Long -> value.toDouble()
+            is Vector2ic -> value.x().toDouble()
+            is Vector3ic -> value.x().toDouble()
+            is Vector4ic -> value.x().toDouble()
+            is Vector2fc -> value.x().toDouble()
+            is Vector3fc -> value.x().toDouble()
+            is Vector4fc -> value.x().toDouble()
+            is Vector2dc -> value.x()
+            is Vector3dc -> value.x()
+            is Vector4dc -> value.x()
             else -> throw RuntimeException("Unknown type $value for ${value.javaClass.simpleName}")
         }
     }

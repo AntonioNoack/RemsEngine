@@ -478,7 +478,6 @@ object Thumbs {
         transform.scale((buffer.maxY / buffer.maxX).toFloat(), 1f, 1f)
         renderToBufferedImage(InvalidRef, dstFile, false, colorRenderer, true, callback, w, h) {
             SVGxGFX.draw3DSVG(
-                null, 0.0,
                 transform, buffer, whiteTexture,
                 white4, Filtering.NEAREST,
                 whiteTexture.clamping!!, null

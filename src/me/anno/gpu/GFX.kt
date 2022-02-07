@@ -25,11 +25,6 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.mesh.Point
-import me.anno.remsstudio.RemsStudio.editorTime
-import me.anno.remsstudio.RemsStudio.editorTimeDilation
-import me.anno.remsstudio.RemsStudio.root
-import me.anno.remsstudio.objects.Camera
-import me.anno.remsstudio.objects.Transform
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.StudioBase.Companion.eventTasks
 import me.anno.ui.Panel
@@ -52,7 +47,9 @@ import org.lwjgl.opengl.GL45.GL_CONTEXT_LOST
 import org.lwjgl.opengl.GL46
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.reflect.KClass
 import kotlin.reflect.full.staticProperties
 import kotlin.reflect.full.superclasses
@@ -82,9 +79,6 @@ object GFX : GFXBase1() {
     var maxUniforms = 0
     var maxColorAttachments = 0
     var maxTextureSize = 0
-
-    lateinit var currentCamera: Camera
-    var lastTouchedCamera: Camera? = null
 
     var hoveredPanel: Panel? = null
     var hoveredWindow: Window? = null
@@ -175,9 +169,6 @@ object GFX : GFXBase1() {
     val gameTime get() = lastTime - startTime
 
     var editorHoverTime = 0.0
-
-    var smoothSin = 0.0
-    var smoothCos = 0.0
 
     var drawnId = 0
 
@@ -434,10 +425,6 @@ object GFX : GFXBase1() {
 
         updateTime()
 
-        // updating the local times must be done before the events, because
-        // the worker thread might have invalidated those
-        updateLastLocalTime(root, editorTime)
-
         Input.resetFrameSpecificKeyStates()
 
         Input.pollControllers()
@@ -473,16 +460,6 @@ object GFX : GFXBase1() {
 
     }
 
-    fun updateLastLocalTime(parent: Transform, time: Double) {
-        val localTime = parent.getLocalTime(time)
-        parent.lastLocalTime = localTime
-        val children = parent.children
-        for (i in children.indices) {
-            val child = children[i]
-            updateLastLocalTime(child, localTime)
-        }
-    }
-
     fun updateTime() {
 
         val thisTime = System.nanoTime()
@@ -493,15 +470,6 @@ object GFX : GFXBase1() {
         val newFPS = 1f / rawDeltaTime
         currentEditorFPS = min(currentEditorFPS + (newFPS - currentEditorFPS) * 0.05f, newFPS)
         lastTime = thisTime
-
-        editorTime += deltaTime * editorTimeDilation
-        if (editorTime <= 0.0 && editorTimeDilation < 0.0) {
-            editorTimeDilation = 0.0
-            editorTime = 0.0
-        }
-
-        smoothSin = sin(editorTime)
-        smoothCos = cos(editorTime)
 
     }
 

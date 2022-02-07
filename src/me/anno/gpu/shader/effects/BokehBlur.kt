@@ -3,8 +3,6 @@ package me.anno.gpu.shader.effects
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.OpenGL.renderPurely
 import me.anno.gpu.OpenGL.useFrame
-import me.anno.gpu.shader.ShaderLib.createShaderNoShorts
-import me.anno.gpu.shader.ShaderLib.simplestVertexShader
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
@@ -12,11 +10,12 @@ import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib.createShaderNoShorts
+import me.anno.gpu.shader.ShaderLib.simplestVertexShader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
-import me.anno.remsstudio.Scene
 import me.anno.maths.Maths.clamp
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.*
@@ -37,7 +36,7 @@ object BokehBlur {
 
     private val filterTexture = Texture2D("bokeh", KERNEL_COUNT, 1, 1)
 
-    fun draw(srcTexture: Texture2D, target: Framebuffer, relativeToH: Float) {
+    fun draw(srcTexture: Texture2D, target: Framebuffer, relativeToH: Float, fp: Boolean) {
 
         val w = srcTexture.w
         val h = srcTexture.h
@@ -45,8 +44,6 @@ object BokehBlur {
         if (compositionShader == null) init()
 
         renderPurely {
-
-            val fp = Scene.usesFPBuffers
 
             val r = FBStack["bokeh-r", w, h, 4, fp, 1, false]
             val g = FBStack["bokeh-g", w, h, 4, fp, 1, false]

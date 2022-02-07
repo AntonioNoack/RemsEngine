@@ -1,9 +1,10 @@
 package me.anno.remsstudio.objects
 
-import me.anno.remsstudio.animation.AnimatedProperty
+import me.anno.animation.LoopingState
 import me.anno.animation.Type
 import me.anno.audio.openal.AudioManager
 import me.anno.audio.openal.AudioTasks
+import me.anno.cache.data.ImageData.Companion.imageTimeout
 import me.anno.cache.data.VideoData.Companion.framesPerContainer
 import me.anno.cache.instances.MeshCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
@@ -12,10 +13,8 @@ import me.anno.config.DefaultConfig
 import me.anno.ecs.annotations.Range
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.isFinalRendering
-import me.anno.gpu.SVGxGFX
-import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.drawing.GFXx3D.draw3D
-import me.anno.gpu.drawing.GFXx3D.draw3DVideo
+import me.anno.gpu.drawing.UVProjection
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
@@ -32,21 +31,21 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.pow
-import me.anno.video.BlankFrameDetector
-import me.anno.remsstudio.objects.lists.Element
-import me.anno.remsstudio.objects.lists.SplittableElement
-import me.anno.remsstudio.objects.models.SpeakerModel.drawSpeakers
-import me.anno.animation.LoopingState
-import me.anno.cache.data.ImageData.Companion.imageTimeout
-import me.anno.gpu.drawing.UVProjection
-import me.anno.remsstudio.objects.modes.VideoType
-import me.anno.remsstudio.objects.modes.editorFPS
-import me.anno.studio.StudioBase
 import me.anno.remsstudio.RemsStudio.isPaused
 import me.anno.remsstudio.RemsStudio.nullCamera
 import me.anno.remsstudio.RemsStudio.targetHeight
 import me.anno.remsstudio.RemsStudio.targetWidth
 import me.anno.remsstudio.Scene
+import me.anno.remsstudio.animation.AnimatedProperty
+import me.anno.remsstudio.gpu.drawing.GFXx3Dv2
+import me.anno.remsstudio.gpu.drawing.GFXx3Dv2.draw3DVideo
+import me.anno.remsstudio.gpu.drawing.GFXxSVGv2
+import me.anno.remsstudio.objects.lists.Element
+import me.anno.remsstudio.objects.lists.SplittableElement
+import me.anno.remsstudio.objects.models.SpeakerModel.drawSpeakers
+import me.anno.remsstudio.objects.modes.VideoType
+import me.anno.remsstudio.objects.modes.editorFPS
+import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.base.SpyPanel
 import me.anno.ui.base.Visibility
@@ -67,12 +66,13 @@ import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.f2
 import me.anno.utils.types.Strings.formatTime2
 import me.anno.utils.types.Strings.getImportType
-import me.anno.video.ffmpeg.FFMPEGMetadata
-import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
+import me.anno.video.BlankFrameDetector
 import me.anno.video.ImageSequenceMeta
 import me.anno.video.ImageSequenceMeta.Companion.imageSequenceIdentifier
-import me.anno.video.ffmpeg.IsFFMPEGOnly.isFFMPEGOnlyExtension
 import me.anno.video.MissingFrameException
+import me.anno.video.ffmpeg.FFMPEGMetadata
+import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
+import me.anno.video.ffmpeg.IsFFMPEGOnly.isFFMPEGOnlyExtension
 import me.anno.video.formats.gpu.GPUFrame
 import org.apache.logging.log4j.LogManager
 import org.joml.*
@@ -378,7 +378,7 @@ class Video(file: FileReference = InvalidRef, parent: Transform? = null) : Audio
         val sourceFPS = meta.videoFPS
 
         if (sourceFPS > 0.0) {
-            val scale = GFXx3D.getScale(meta.videoWidth, meta.videoHeight)
+            val scale = GFXx3Dv2.getScale(meta.videoWidth, meta.videoHeight)
             val isVisible = Clipping.isPlaneVisible(stack, meta.videoWidth * scale, meta.videoHeight * scale)
             if (time >= 0.0 && (isLooping != LoopingState.PLAY_ONCE || time <= duration) && isVisible) {
 
@@ -495,7 +495,7 @@ class Video(file: FileReference = InvalidRef, parent: Transform? = null) : Audio
                 val bufferData = MeshCache.getSVG(file, imageTimeout, true)
                 if (bufferData == null) onMissingImageOrFrame(0)
                 else {
-                    SVGxGFX.draw3DSVG(
+                    GFXxSVGv2.draw3DSVG(
                         this, time,
                         stack, bufferData, TextureLib.whiteTexture,
                         color, Filtering.NEAREST, clampMode.value, tiling[time]

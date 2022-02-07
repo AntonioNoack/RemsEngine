@@ -3,13 +3,9 @@ package me.anno.gpu.drawing
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.GFXx3D.draw3DCircle
-import me.anno.gpu.drawing.GFXx3D.uploadAttractors0
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.maths.Maths.clamp
-import me.anno.remsstudio.objects.GFXTransform
-import me.anno.remsstudio.objects.Transform
-import me.anno.remsstudio.objects.Video
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 
@@ -73,7 +69,7 @@ object GFXx2D {
             for (dy in 0 until 5) {
                 stack.pushMatrix()
                 stack.translate((dx - 2f) / (2.5f * GFX.viewportWidth), (dy - 2f) / (2.5f * GFX.viewportHeight), 0f)
-                draw3DCircle(null, 0.0, stack, innerRadius, startDegrees, endDegrees, color)
+                draw3DCircle(stack, innerRadius, startDegrees, endDegrees, color)
                 stack.popMatrix()
             }
         }
@@ -100,11 +96,6 @@ object GFXx2D {
 
     fun defineAdvancedGraphicalFeatures(shader: Shader) {
         disableAdvancedGraphicalFeatures(shader)
-    }
-
-    fun defineAdvancedGraphicalFeatures(shader: Shader, transform: Transform?, time: Double) {
-        (transform as? GFXTransform)?.uploadAttractors(shader, time) ?: uploadAttractors0(shader)
-        GFXx3D.colorGradingUniforms(transform as? Video, time, shader)
     }
 
     fun disableAdvancedGraphicalFeatures(shader: Shader) {

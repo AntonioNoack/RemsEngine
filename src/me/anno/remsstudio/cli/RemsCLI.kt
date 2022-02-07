@@ -11,16 +11,13 @@ import me.anno.installer.Installer.checkInstall
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.text.TextReader
+import me.anno.remsstudio.*
+import me.anno.remsstudio.gpu.shader.ShaderLibV2
 import me.anno.remsstudio.objects.Transform
-import me.anno.studio.StudioBase
 import me.anno.studio.CommandLines.parseDouble
 import me.anno.studio.CommandLines.parseFloat
 import me.anno.studio.CommandLines.parseInt
-import me.anno.remsstudio.Project
-import me.anno.remsstudio.RemsConfig
-import me.anno.remsstudio.RemsRegistry
-import me.anno.remsstudio.RemsStudio
-import me.anno.remsstudio.Rendering
+import me.anno.studio.StudioBase
 import me.anno.utils.Sleep.sleepABit
 import me.anno.utils.types.Strings.getImportType
 import me.anno.utils.types.Strings.isBlank2
@@ -202,6 +199,7 @@ object RemsCLI {
         HiddenOpenGLContext.setSize(2048, 2048)
         HiddenOpenGLContext.createOpenGL()
         ShaderLib.init()
+        ShaderLibV2.init()
     }
 
     fun init() {

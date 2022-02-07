@@ -55,6 +55,9 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     @NotSerializedProperty
     var textCacheKey: TextCacheKey = TextCacheKey(text, font, 0, 0)
 
+    // only really, if it might...
+    override val canDrawOverBorders: Boolean = true
+
     open var text: String = text
         set(value) {
             if (field != value) {

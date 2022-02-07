@@ -1,31 +1,18 @@
 package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.viewportHeight
-import me.anno.gpu.GFX.viewportWidth
-import me.anno.gpu.OpenGL.renderPurely
-import me.anno.gpu.shader.ShaderLib
-import me.anno.gpu.shader.ShaderLib.maxOutlineColors
-import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.buffer.SimpleBuffer
+import me.anno.gpu.buffer.SimpleBuffer.Companion.circleBuffer
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01Cube
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01CubeX10
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.drawing.GFXx2D.defineAdvancedGraphicalFeatures
 import me.anno.gpu.drawing.GFXx2D.disableAdvancedGraphicalFeatures
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.Filtering
-import me.anno.gpu.texture.GPUFiltering
-import me.anno.gpu.texture.Texture2D
-import me.anno.remsstudio.objects.GFXTransform
-import me.anno.remsstudio.objects.Video
-import me.anno.remsstudio.objects.effects.MaskType
-import me.anno.remsstudio.objects.geometric.Circle
-import me.anno.remsstudio.objects.geometric.Polygon
-import me.anno.remsstudio.RemsStudio
+import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.ShaderLib.maxOutlineColors
+import me.anno.gpu.texture.*
 import me.anno.video.formats.gpu.GPUFrame
-import ofx.mio.OpticalFlow
 import org.joml.*
 import org.lwjgl.BufferUtils
 import java.nio.FloatBuffer
@@ -34,10 +21,8 @@ import kotlin.math.min
 @Suppress("unused")
 object GFXx3D {
 
-    fun getScale(w: Int, h: Int): Float = getScale(w.toFloat(), h.toFloat())
-    fun getScale(w: Float, h: Float): Float {
-        return if (w * RemsStudio.targetHeight > h * RemsStudio.targetWidth) RemsStudio.targetWidth / (w * RemsStudio.targetHeight) else 1f / h
-    }
+    fun getScale(w: Int, h: Int) = 1f
+    fun getScale(w: Float, h: Float) = 1f
 
     fun shader3DUniforms(
         shader: Shader, stack: Matrix4fArrayList,
@@ -119,40 +104,15 @@ object GFXx3D {
         shader.m4x4("transform", stack)
     }
 
-    fun draw3DMasked(
-        stack: Matrix4fArrayList, color: Vector4fc,
-        maskType: MaskType,
-        useMaskColor: Float,
-        pixelSize: Float,
-        offset: Vector2fc,
-        isInverted: Float,
-        isFullscreen: Boolean,
-        settings: Vector4f
-    ) {
-        val shader = ShaderLib.shader3DMasked.value
-        shader.use()
-        shader3DUniforms(shader, stack, color)
-        shader.v1f("useMaskColor", useMaskColor)
-        shader.v1f("invertMask", isInverted)
-        shader.v1i("maskType", maskType.id)
-        shader.v2f("pixelating", pixelSize * viewportHeight / viewportWidth, pixelSize)
-        shader.v4f("settings", settings)
-        shader.v2f("offset", offset)
-        shader.v2f("windowSize", viewportWidth.toFloat(), viewportHeight.toFloat())
-        val buffer = if (isFullscreen) SimpleBuffer.flatLarge else SimpleBuffer.flat11
-        buffer.draw(shader)
-        GFX.check()
-    }
-
     fun draw3DText(
-        that: GFXTransform?, time: Double, offset: Vector3fc,
+        offset: Vector3fc,
         stack: Matrix4fArrayList, buffer: StaticBuffer, color: Vector4fc
     ) {
         val shader = ShaderLib.shader3DforText.value
         shader.use()
         shader3DUniforms(shader, stack, color)
         shader.v3f("offset", offset)
-        GFXTransform.uploadAttractors(that, shader, time)
+        uploadAttractors0(shader)
         buffer.draw(shader)
         GFX.check()
     }
@@ -167,41 +127,15 @@ object GFXx3D {
         buffer.draw(shader)
     }
 
-    private val tmp0 = Vector3f()
-    private val tmp1 = Vector3f()
-    private val tmp2 = Vector4f()
+    val tmp0 = Vector3f()
+    val tmp1 = Vector3f()
+    val tmp2 = Vector4f()
 
-    fun colorGradingUniforms(video: Video?, time: Double, shader: Shader) {
-        if (video == null) {
-            shader.v3f("cgOffset", 0f)
-            shader.v3f("cgSlope", 1f)
-            shader.v3f("cgPower", 1f)
-            shader.v1f("cgSaturation", 1f)
-        } else {
-            tmp0.set(video.cgOffsetAdd[time, tmp0])
-            tmp1.set(video.cgOffsetSub[time, tmp1])
-            shader.v3f("cgOffset", tmp0.sub(tmp1))
-            shader.v3X("cgSlope", video.cgSlope[time, tmp2])
-            shader.v3X("cgPower", video.cgPower[time, tmp2])
-            shader.v1f("cgSaturation", video.cgSaturation[time])
-        }
-    }
-
-    fun draw3DPolygon(
-        polygon: Polygon, time: Double,
-        stack: Matrix4fArrayList, buffer: StaticBuffer,
-        texture: Texture2D, color: Vector4fc,
-        inset: Float,
-        filtering: Filtering, clamping: Clamping
-    ) {
-        val shader = ShaderLib.shader3DPolygon.value
-        shader.use()
-        polygon.uploadAttractors(shader, time)
-        shader3DUniforms(shader, stack, texture.w, texture.h, color, null, filtering, null)
-        shader.v1f("inset", inset)
-        texture.bind(0, filtering, clamping)
-        buffer.draw(shader)
-        GFX.check()
+    fun colorGradingUniforms(shader: Shader) {
+        shader.v3f("cgOffset", 0f)
+        shader.v3f("cgSlope", 1f)
+        shader.v3f("cgPower", 1f)
+        shader.v1f("cgSaturation", 1f)
     }
 
     fun draw3D(
@@ -233,55 +167,6 @@ object GFXx3D {
         texture.bindUVCorrection(shader)
         uvProjection.getBuffer().draw(shader)
         GFX.check()
-    }
-
-    fun draw3DVideo(
-        video: GFXTransform, time: Double,
-        stack: Matrix4fArrayList, texture: GPUFrame, color: Vector4fc,
-        filtering: Filtering, clamping: Clamping, tiling: Vector4fc?, uvProjection: UVProjection
-    ) {
-        if (!texture.isCreated) throw RuntimeException("Frame must be loaded to be rendered!")
-        val shader0 = texture.get3DShader()
-        val shader = shader0.value
-        shader.use()
-        defineAdvancedGraphicalFeatures(shader, video, time)
-        shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
-        texture.bind(0, filtering, clamping)
-        texture.bindUVCorrection(shader)
-        uvProjection.getBuffer().draw(shader)
-        GFX.check()
-    }
-
-    fun draw3DVideo(
-        video: GFXTransform, time: Double,
-        stack: Matrix4fArrayList, v0: GPUFrame, v1: GPUFrame, interpolation: Float, color: Vector4fc,
-        filtering: Filtering, clamping: Clamping, tiling: Vector4fc?, uvProjection: UVProjection
-    ) {
-
-        if (!v0.isCreated || !v1.isCreated) throw RuntimeException("Frame must be loaded to be rendered!")
-
-        val t0 = v0.getTextures()
-        val t1 = v1.getTextures()
-
-        val lambda = 0.01f
-        val blurAmount = 0.05f
-
-        renderPurely {
-            // interpolate all textures
-            val interpolated = t0.zip(t1).map { (x0, x1) -> OpticalFlow.run(lambda, blurAmount, interpolation, x0, x1) }
-            // bind them
-            v0.bind2(0, filtering, clamping, interpolated)
-        }
-
-        val shader0 = v0.get3DShader()
-        val shader = shader0.value
-        shader.use()
-        defineAdvancedGraphicalFeatures(shader, video, time)
-        shader3DUniforms(shader, stack, v0.w, v0.h, color, tiling, filtering, uvProjection)
-        v0.bindUVCorrection(shader)
-        uvProjection.getBuffer().draw(shader)
-        GFX.check()
-
     }
 
     fun draw3D(
@@ -320,10 +205,8 @@ object GFXx3D {
         GFX.check()
     }
 
-    private val outlineStatsBuffer: FloatBuffer = BufferUtils.createFloatBuffer(maxOutlineColors * 4)
+    val outlineStatsBuffer: FloatBuffer = BufferUtils.createFloatBuffer(maxOutlineColors * 4)
     fun drawOutlinedText(
-        that: GFXTransform?,
-        time: Double,
         stack: Matrix4fArrayList,
         offset: Vector2fc,
         scale: Vector2fc,
@@ -340,13 +223,14 @@ object GFXx3D {
         val shader = ShaderLib.shaderSDFText.value
         shader.use()
 
-        defineAdvancedGraphicalFeatures(shader, that, time)
+        defineAdvancedGraphicalFeatures(shader)
 
         GFX.shaderColor(shader, "tint", color)
 
         shader.v1i("drawMode", GFX.drawMode.id)
 
         val cc = min(colorCount, maxOutlineColors)
+
         /**
          * u4[ maxColors ] colors
          * u2[ maxColors ] distSmooth
@@ -391,22 +275,8 @@ object GFXx3D {
         shader.v2f("scale", scale)
         texture.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
         // if we have a force field applied, subdivide the geometry
-        val buffer = if (hasUVAttractors) flat01CubeX10.value else flat01Cube
+        val buffer = if (hasUVAttractors) flat01CubeX10 else flat01Cube
         buffer.draw(shader)
-        GFX.check()
-    }
-
-    fun draw3DVideo(
-        video: GFXTransform, time: Double,
-        stack: Matrix4fArrayList, texture: Texture2D, color: Vector4fc,
-        filtering: Filtering, clamping: Clamping, tiling: Vector4fc?, uvProjection: UVProjection
-    ) {
-        val shader = ShaderLib.shader3DRGBA.value
-        shader.use()
-        defineAdvancedGraphicalFeatures(shader, video, time)
-        shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
-        texture.bind(0, filtering, clamping)
-        uvProjection.getBuffer().draw(shader)
         GFX.check()
     }
 
@@ -448,7 +318,6 @@ object GFXx3D {
     }
 
     fun draw3DCircle(
-        that: GFXTransform?, time: Double,
         stack: Matrix4fArrayList,
         innerRadius: Float,
         startDegrees: Float,
@@ -457,7 +326,7 @@ object GFXx3D {
     ) {
         val shader = ShaderLib.shader3DCircle.value
         shader.use()
-        defineAdvancedGraphicalFeatures(shader, that, time)
+        defineAdvancedGraphicalFeatures(shader)
         shader3DUniforms(shader, stack, 1, 1, color, null, Filtering.NEAREST, null)
         var a0 = startDegrees
         var a1 = endDegrees
@@ -476,7 +345,7 @@ object GFXx3D {
         val angle0 = GFX.toRadians(a0)
         val angle1 = GFX.toRadians(a1)
         shader.v3f("circleParams", 1f - innerRadius, angle0, angle1)
-        Circle.drawBuffer(shader)
+        circleBuffer.draw(shader)
         GFX.check()
     }
 

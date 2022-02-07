@@ -1,6 +1,6 @@
 package me.anno.remsstudio.objects.distributions
 
-import me.anno.remsstudio.objects.models.CubemapModel.cubemapLineModel
+import me.anno.gpu.buffer.CubemapModel.cubemapLineModel
 import me.anno.ui.editor.sceneView.Grid
 import me.anno.maths.Maths.max
 import org.joml.*

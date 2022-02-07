@@ -18,6 +18,7 @@ import me.anno.remsstudio.CheckVersion.checkVersion
 import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.remsstudio.audio.AudioManager2
 import me.anno.remsstudio.cli.RemsCLI
+import me.anno.remsstudio.gpu.shader.ShaderLibV2
 import me.anno.remsstudio.objects.Camera
 import me.anno.remsstudio.objects.Transform
 import me.anno.remsstudio.objects.text.Text
@@ -116,6 +117,27 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
 
     // private val LOGGER = LogManager.getLogger(RemsStudio::class)
 
+    lateinit var currentCamera: Camera
+    var lastTouchedCamera: Camera? = null
+
+    fun updateLastLocalTime(parent: Transform, time: Double) {
+
+        val localTime = parent.getLocalTime(time)
+        parent.lastLocalTime = localTime
+        val children = parent.children
+        for (i in children.indices) {
+            val child = children[i]
+            updateLastLocalTime(child, localTime)
+        }
+
+        editorTime += GFX.deltaTime * editorTimeDilation
+        if (editorTime <= 0.0 && editorTimeDilation < 0.0) {
+            editorTimeDilation = 0.0
+            editorTime = 0.0
+        }
+
+    }
+
     override fun loadConfig() {
         RemsRegistry.init()
         RemsConfig.init()
@@ -127,6 +149,7 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
         checkInstall()
         checkVersion()
         AudioManager2.init()
+        ShaderLibV2.init()
     }
 
     lateinit var welcomeUI: WelcomeUI
@@ -226,6 +249,7 @@ object RemsStudio : StudioBase(true, "Rem's Studio", 10105) {
     val selection = ArrayList<String>()
 
     override fun onGameLoopStart() {
+        updateLastLocalTime(root, editorTime)
     }
 
     override fun onGameLoop(w: Int, h: Int) {

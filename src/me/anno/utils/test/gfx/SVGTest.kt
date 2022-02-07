@@ -30,7 +30,6 @@ fun main() {
                 transform.scale((buffer.maxY / buffer.maxX).toFloat(), 1f, 1f)
                 val white = TextureLib.whiteTexture
                 SVGxGFX.draw3DSVG(
-                    null, 1.0,
                     transform, buffer, white,
                     DefaultStyle.white4, Filtering.NEAREST,
                     white.clamping!!, null
