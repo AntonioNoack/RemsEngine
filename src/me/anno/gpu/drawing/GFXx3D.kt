@@ -12,7 +12,6 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.maxOutlineColors
 import me.anno.gpu.texture.*
-import me.anno.remsstudio.gpu.shader.ShaderLibV2
 import me.anno.video.formats.gpu.GPUFrame
 import org.joml.*
 import org.lwjgl.BufferUtils
@@ -22,8 +21,8 @@ import kotlin.math.min
 @Suppress("unused")
 object GFXx3D {
 
-    fun getScale(w: Int, h: Int) = 1f
-    fun getScale(w: Float, h: Float) = 1f
+    fun getScale(w: Int, h: Int) = 1f / h
+    fun getScale(w: Float, h: Float) = 1f / h
 
     fun shader3DUniforms(
         shader: Shader, stack: Matrix4fArrayList,
@@ -283,7 +282,7 @@ object GFXx3D {
         threshold: Float, isFirst: Boolean,
         isFullscreen: Boolean
     ) {
-        val shader = ShaderLibV2.shader3DGaussianBlur.value
+        val shader = ShaderLib.shader3DGaussianBlur.value
         shader.use()
         transformUniform(shader, stack)
         if (isFirst) shader.v2f("stepSize", 0f, 1f / h)

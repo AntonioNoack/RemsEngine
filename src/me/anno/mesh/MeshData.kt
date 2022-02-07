@@ -19,8 +19,6 @@ import me.anno.io.files.InvalidRef
 import me.anno.mesh.MeshUtils.centerMesh
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.mesh.assimp.AnimGameItem.Companion.getScaleFromAABB
-import me.anno.remsstudio.objects.GFXTransform
-import me.anno.remsstudio.objects.GFXTransform.Companion.uploadAttractors
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 

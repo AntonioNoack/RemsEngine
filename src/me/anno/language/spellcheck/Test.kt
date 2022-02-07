@@ -1,20 +1,13 @@
 package me.anno.language.spellcheck
 
-import me.anno.language.Language
-import me.anno.remsstudio.Project
-import me.anno.remsstudio.RemsStudio.project
 import me.anno.utils.LOGGER
-import me.anno.utils.OS
 
-fun main(){
-
-    project = Project("", OS.downloads)
-    project?.language = Language.AmericanEnglish
+fun main() {
 
     Spellchecking.check("I love you", true, 0)
 
     var answer: List<*>? = null
-    while (answer == null){
+    while (answer == null) {
         answer = Spellchecking.check("I love you", true, 0)
         Thread.sleep(10)
     }

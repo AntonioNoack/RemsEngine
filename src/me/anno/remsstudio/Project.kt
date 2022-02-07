@@ -30,6 +30,7 @@ import me.anno.remsstudio.ui.sceneTabs.SceneTab
 import me.anno.remsstudio.ui.sceneTabs.SceneTabs
 import me.anno.remsstudio.ui.scene.SceneTabData
 import me.anno.remsstudio.ui.scene.StudioSceneView
+import me.anno.remsstudio.utils.Utils.getAnimated
 import me.anno.utils.bugs.SumOf
 import me.anno.utils.files.Files.use
 import me.anno.utils.types.Casting.castToFloat
@@ -41,8 +42,6 @@ import kotlin.math.roundToInt
 
 // todo option to reset the timeline
 class Project(var name: String, val file: FileReference) : Saveable() {
-
-    constructor(name: String, file: File) : this(name, getReference(file))
 
     val configFile = getReference(file, "config.json")
     val uiFile = getReference(file, "ui.json")

@@ -1,30 +1,17 @@
 package me.anno.remsstudio.gpu.shader
 
-import me.anno.gpu.shader.*
-import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.GLSLLib
+import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.ShaderLib.v3DMasked
+import me.anno.gpu.shader.ShaderLib.y3DMasked
 import me.anno.remsstudio.objects.effects.MaskType
 
 object ShaderLibV2 {
 
     lateinit var shader3DMasked: BaseShader
-    lateinit var shader3DGaussianBlur: BaseShader
 
     fun init() {
-
-        val v3DMasked = ShaderLib.v3DBase +
-                "${OpenGLShader.attribute} vec2 attr0;\n" +
-                "void main(){\n" +
-                "   finalPosition = vec3(attr0*2.0-1.0, 0.0);\n" +
-                "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
-                "   uv = gl_Position.xyw;\n" +
-                ShaderLib.positionPostProcessing +
-                "}"
-
-        val y3DMasked = listOf(
-            Variable(GLSLType.V3F, "uv"),
-            Variable(GLSLType.V3F, "finalPosition"),
-            Variable(GLSLType.V1F, "zDistance")
-        )
 
         val f3DMasked = "" +
                 "precision highp float;\n" +
@@ -77,37 +64,6 @@ object ShaderLibV2 {
         shader3DMasked =
             ShaderLib.createShaderPlus("3d-masked", v3DMasked, y3DMasked, f3DMasked, listOf("maskTex", "tex", "tex2"))
         shader3DMasked.ignoreUniformWarnings(listOf("tiling"))
-
-        val f3DGaussianBlur = "" +
-                "uniform sampler2D tex;\n" +
-                "uniform vec2 stepSize;\n" +
-                "uniform float steps;\n" +
-                "uniform float threshold;\n" +
-                ShaderLib.brightness +
-                "void main(){\n" +
-                "   vec2 uv2 = uv.xy/uv.z * 0.5 + 0.5;\n" +
-                "   vec4 color;\n" +
-                "   float sum = 0.0;\n" +
-                // test all steps for -pixelating*2 .. pixelating*2, then average
-                "   int iSteps = max(0, int(2.7 * steps));\n" +
-                "   if(iSteps == 0){\n" +
-                "       color = texture(tex, uv2);\n" +
-                "   } else {\n" +
-                "       color = vec4(0.0);\n" +
-                "       for(int i=-iSteps;i<=iSteps;i++){\n" +
-                "           float fi = float(i);\n" +
-                "           float relativeX = fi/steps;\n" +
-                "           vec4 colorHere = texture(tex, uv2 + fi * stepSize);\n" +
-                "           float weight = i == 0 ? 1.0 : exp(-relativeX*relativeX);\n" +
-                "           sum += weight;\n" +
-                "           color += vec4(max(vec3(0.0), colorHere.rgb - threshold), colorHere.a) * weight;\n" +
-                "       }\n" +
-                "       color /= sum;\n" +
-                "   }\n" +
-                "   gl_FragColor = color;\n" +
-                "}"
-        shader3DGaussianBlur =
-            ShaderLib.createShader("3d-blur", v3DMasked, y3DMasked, f3DGaussianBlur, listOf("tex"))
 
 
     }

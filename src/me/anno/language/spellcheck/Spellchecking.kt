@@ -11,7 +11,6 @@ import me.anno.io.json.JsonObject
 import me.anno.io.json.JsonReader
 import me.anno.language.Language
 import me.anno.language.translation.Dict
-import me.anno.remsstudio.RemsStudio.project
 import me.anno.studio.StudioBase
 import me.anno.utils.Color.hex8
 import me.anno.utils.OS
@@ -47,8 +46,9 @@ object Spellchecking : CacheSection("Spellchecking") {
         } as? SuggestionData
         return if (sentence != sentence2) {
             data?.value?.run {
-                val offset =
-                    sentence.withIndex().indexOfFirst { (index, _) -> !sentence.substring(0, index + 1).isBlank2() }
+                val offset = sentence
+                    .withIndex()
+                    .indexOfFirst { (index, _) -> !sentence.substring(0, index + 1).isBlank2() }
                 map {
                     Suggestion(it.start + offset, it.end + offset, it.message, it.shortMessage, it.improvements)
                 }
@@ -194,13 +194,10 @@ object Spellchecking : CacheSection("Spellchecking") {
                                         val message = suggestion["message"]!!.asText()
                                         val shortMessage = suggestion["shortMessage"]!!.asText()
                                         val improvements = suggestion["suggestions"] as JsonArray
-                                        val result =
-                                            Suggestion(
-                                                start,
-                                                end,
-                                                message,
-                                                shortMessage,
-                                                improvements.map { it as String })
+                                        val result = Suggestion(
+                                            start, end, message, shortMessage,
+                                            improvements.map { it as String }
+                                        )
                                         result
                                     }
                                     nextTask.callback(suggestionsList)

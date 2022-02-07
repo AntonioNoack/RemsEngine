@@ -1,7 +1,6 @@
 package me.anno.io.utils
 
 import me.anno.Engine
-import me.anno.remsstudio.animation.AnimatedProperty
 import me.anno.animation.Type
 import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.texture.Filtering
@@ -327,34 +326,6 @@ open class StringMap(
     fun addAll(map: Map<String, Any>): StringMap {
         putAll(map)
         return this
-    }
-
-    fun <V> getAnimated(key: String, type: Type): AnimatedProperty<V> {
-        val v = when (val value = this[key]) {
-            is AnimatedProperty<*> -> {
-                return if (value.type == type) {
-                    @Suppress("UNCHECKED_CAST")
-                    value as AnimatedProperty<V>
-                } else {
-                    val v2 = AnimatedProperty<V>(type)
-                    v2.copyFrom(type)
-                    set(key, v2)
-                    v2
-                }
-            }
-            is Int -> value
-            is Long -> value
-            is Float -> value
-            is Double -> value
-            is String -> value
-            null -> type.defaultValue
-            else -> value
-        }
-        val v2 = AnimatedProperty<V>(type)
-        @Suppress("UNCHECKED_CAST")
-        v2.set(v as V)
-        set(key, v2)
-        return v2
     }
 
     private val saveDelay = 1_000_000_000L

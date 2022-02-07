@@ -4,6 +4,7 @@ import me.anno.Build
 import me.anno.cache.data.ImageData
 import me.anno.cache.data.ImageData.Companion.imageTimeout
 import me.anno.cache.instances.MeshCache
+import me.anno.cache.instances.PDFCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.white4
@@ -67,10 +68,8 @@ import me.anno.io.text.TextReader
 import me.anno.io.unity.UnityReader
 import me.anno.io.zip.ZipCache
 import me.anno.maths.Maths.clamp
-import me.anno.mesh.assimp.AnimGameItem
-import me.anno.remsstudio.objects.Video
-import me.anno.cache.instances.PDFCache
 import me.anno.mesh.MeshData
+import me.anno.mesh.assimp.AnimGameItem
 import me.anno.ui.base.Font
 import me.anno.utils.Color.hex4
 import me.anno.utils.ShutdownException
@@ -85,9 +84,12 @@ import me.anno.utils.types.Strings.getImportType
 import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
 import net.boeckling.crc.CRC64
 import org.apache.logging.log4j.LogManager
-import org.joml.*
 import org.joml.Math.sqrt
 import org.joml.Math.toRadians
+import org.joml.Matrix4f
+import org.joml.Matrix4fArrayList
+import org.joml.Matrix4x3f
+import org.joml.Vector3f
 import org.lwjgl.opengl.GL11.*
 import java.awt.image.BufferedImage
 import java.io.File
@@ -411,17 +413,6 @@ object Thumbs {
 
     }
 
-    private fun loadVideo(srcFile: FileReference) {
-        if (isGFXThread()) {
-            val video = Video(srcFile)
-            for (i in 0 until 20) {
-                video.draw(Matrix4fArrayList(), 1.0, Vector4f(1f), Vector4f(1f))
-                GFX.workGPUTasks(false)
-                Thread.sleep(10)
-            }
-        }
-    }
-
     fun generateVideoFrame(
         srcFile: FileReference,
         dstFile: FileReference,
@@ -444,8 +435,6 @@ object Thumbs {
         val fps = min(5.0, meta.videoFPS)
         val time = max(min(wantedTime, meta.videoDuration - 1 / fps), 0.0)
         val index = (time * fps).roundToInt()
-
-        loadVideo(srcFile)
 
         val src = waitForGFXThreadUntilDefined(true) {
             getVideoFrame(srcFile, scale, index, 0, fps, 1000L, true)

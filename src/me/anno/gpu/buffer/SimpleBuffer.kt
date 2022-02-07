@@ -1,6 +1,5 @@
 package me.anno.gpu.buffer
 
-import me.anno.gpu.shader.Shader
 import me.anno.maths.Maths.pow
 import org.joml.Vector2f
 

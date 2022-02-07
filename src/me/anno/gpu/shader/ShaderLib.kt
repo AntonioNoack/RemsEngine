@@ -36,6 +36,7 @@ object ShaderLib {
     lateinit var shader3DBoxBlur: BaseShader
     lateinit var shaderObjMtl: BaseShader
     lateinit var shaderAssimp: BaseShader
+    lateinit var shader3DGaussianBlur: BaseShader
     lateinit var monochromeModelShader: BaseShader
 
     // lateinit var shaderFBX: BaseShader
@@ -321,6 +322,20 @@ object ShaderLib {
             "   float finalAlpha = color.a;\n" +
             "}"
 
+    val v3DMasked = ShaderLib.v3DBase +
+            "${OpenGLShader.attribute} vec2 attr0;\n" +
+            "void main(){\n" +
+            "   finalPosition = vec3(attr0*2.0-1.0, 0.0);\n" +
+            "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
+            "   uv = gl_Position.xyw;\n" +
+            ShaderLib.positionPostProcessing +
+            "}"
+
+    val y3DMasked = listOf(
+        Variable(GLSLType.V3F, "uv"),
+        Variable(GLSLType.V3F, "finalPosition"),
+        Variable(GLSLType.V1F, "zDistance")
+    )
 
     fun init() {
 
@@ -902,6 +917,37 @@ object ShaderLib {
                     "}"
 
         )
+
+        val f3DGaussianBlur = "" +
+                "uniform sampler2D tex;\n" +
+                "uniform vec2 stepSize;\n" +
+                "uniform float steps;\n" +
+                "uniform float threshold;\n" +
+                ShaderLib.brightness +
+                "void main(){\n" +
+                "   vec2 uv2 = uv.xy/uv.z * 0.5 + 0.5;\n" +
+                "   vec4 color;\n" +
+                "   float sum = 0.0;\n" +
+                // test all steps for -pixelating*2 .. pixelating*2, then average
+                "   int iSteps = max(0, int(2.7 * steps));\n" +
+                "   if(iSteps == 0){\n" +
+                "       color = texture(tex, uv2);\n" +
+                "   } else {\n" +
+                "       color = vec4(0.0);\n" +
+                "       for(int i=-iSteps;i<=iSteps;i++){\n" +
+                "           float fi = float(i);\n" +
+                "           float relativeX = fi/steps;\n" +
+                "           vec4 colorHere = texture(tex, uv2 + fi * stepSize);\n" +
+                "           float weight = i == 0 ? 1.0 : exp(-relativeX*relativeX);\n" +
+                "           sum += weight;\n" +
+                "           color += vec4(max(vec3(0.0), colorHere.rgb - threshold), colorHere.a) * weight;\n" +
+                "       }\n" +
+                "       color /= sum;\n" +
+                "   }\n" +
+                "   gl_FragColor = color;\n" +
+                "}"
+        shader3DGaussianBlur =
+            createShader("3d-blur", v3DMasked, y3DMasked, f3DGaussianBlur, listOf("tex"))
 
         tick.stop("creating default shaders")
 
