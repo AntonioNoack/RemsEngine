@@ -19,7 +19,7 @@ quick to develop in, like a tool box.
 
 ## Project Plan
 
-I was writing the game engine in this same repository as Rem's Studio, because
+I was writing the game engine in this same repository as [Rem's Studio](https://github.com/AntonioNoack/RemsStudio), because
 
 - they share a lot of code,
 - I want to base the video studio on the engine in the future
@@ -116,4 +116,8 @@ videos on Android using https://stackoverflow.com/questions/9375598/android-how-
 
 ## Build
 
-The project can be built similar to the video studio, just the main class now is me.anno.engine.RemsEngine.
+The project can be built similar to [Rem's Studio](https://github.com/AntonioNoack/RemsStudio), just the main class now is me.anno.engine.RemsEngine.
+
+## Wiki
+
+Since both projects originate from the same base, the Wiki currently is located at Rem's Studio's repository.
