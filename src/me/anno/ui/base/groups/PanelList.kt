@@ -8,6 +8,8 @@ import me.anno.ui.style.Style
 
 abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGroup(style) {
 
+    constructor(style: Style): this(null, style)
+
     override val children = ArrayList<Panel>()
     var spacing = style.getSize("spacer.width", 0)
     var disableConstantSpaceForWeightedChildren = false

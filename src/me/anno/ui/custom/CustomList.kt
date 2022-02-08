@@ -4,7 +4,6 @@ import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelList
-import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.style.Style
 import me.anno.utils.bugs.SumOf
 import org.apache.logging.log4j.LogManager
@@ -12,7 +11,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-open class CustomList(val isY: Boolean, style: Style) : PanelListX(style) {
+open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
 
     init {
         spacing = style.getSize("custom.drag.size", 4)
@@ -86,10 +85,9 @@ open class CustomList(val isY: Boolean, style: Style) : PanelListX(style) {
     override fun add(child: Panel): PanelList {
         val index = children.size
         if (index > 0) {
-            super.add(
-                if (isY) CustomizingBar(index, 0, spacing, style)
-                else CustomizingBar(index, spacing, 0, style)
-            )
+            val sx = if (isY) 0 else spacing
+            val sy = if (isY) spacing else 0
+            super.add(CustomizingBar(index, sx, sy, style))
         }
         if (child.weight <= 0f) child.weight = 1f
         child.parent = this
@@ -107,8 +105,10 @@ open class CustomList(val isY: Boolean, style: Style) : PanelListX(style) {
         return this
     }
 
-    fun addChild(panel: Panel) {
-        add(panel)
+    override fun calculateSize(w: Int, h: Int) {
+        super.calculateSize(w, h)
+        minH = 10
+        minW = 10
     }
 
     override fun placeInParent(x: Int, y: Int) {
