@@ -16,7 +16,7 @@ fun testList(list: List<*>) {
     println(clazz)
 }
 
-// todo our own kotlin derivative & language with explicit type information?
+// to do idea: our own kotlin derivative & language with explicit type information?
 inline fun <reified T> secondTest(sample: List<T>) {
     unused(sample)
     println(T::class)

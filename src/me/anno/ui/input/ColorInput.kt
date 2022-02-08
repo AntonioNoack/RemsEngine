@@ -15,7 +15,6 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
-import me.anno.ui.base.ImagePanel
 import me.anno.ui.base.constraints.SizeLimitingContainer
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu
@@ -130,7 +129,7 @@ open class ColorInput(
             fb.ensure()
             windowStack.draw(fb.w, fb.h, true, true, fb)
             val imageData = FramebufferToMemory.createImage(fb, true, withAlpha = false)
-            windowStack.push(ColorPicker(fb, imageData, style).apply {
+            windowStack.push(ColorPicker(fb, imageData, true, style).apply {
                 callback = { color ->
                     contentView.setARGB(color, true)
                     this@ColorInput.invalidateDrawing()
@@ -216,13 +215,11 @@ open class ColorInput(
     override val className: String = "ColorInput"
 
     companion object {
-
         // test the UI
         @JvmStatic
         fun main(args: Array<String>) {
             testUI { ColorInput(style) }
         }
-
     }
 
 }

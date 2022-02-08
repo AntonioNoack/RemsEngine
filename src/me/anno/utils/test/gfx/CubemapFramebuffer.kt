@@ -9,8 +9,6 @@ import org.lwjgl.opengl.GL30
 
 fun main() {
 
-    // todo view to debug cubemap: small, rotatable cube
-
     HiddenOpenGLContext.createOpenGL()
 
     Frame.invalidate()

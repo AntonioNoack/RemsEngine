@@ -28,7 +28,7 @@ class CPUFrameReader(
                 // bw
                 "Y4" -> Y4Frame
                 "Y800" -> Y4Frame // seems correct, awkward, that it has the same name
-                // todo PAL
+                // todo PAL: todo find video with PAL output
                 else -> throw RuntimeException("Unsupported Codec $codec for $file")
             }
             return frame.load(w, h, input)

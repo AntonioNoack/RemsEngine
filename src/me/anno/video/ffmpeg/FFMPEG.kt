@@ -11,9 +11,8 @@ object FFMPEG {
     // Linux needs ffmpeg to be installed; on Windows just use and call the exe files
     val isInstalled = DefaultConfig["ffmpeg.isInstalled", !OS.isWindows]
 
-    // todo change them all to file references
     var ffmpegPath = if (isInstalled) getReference("ffmpeg") else
-        DefaultConfig["ffmpeg.path", getReference(OS.downloads, "lib\\ffmpeg\\bin\\ffmpeg.exe")]
+        DefaultConfig["ffmpeg.path", getReference(OS.downloads, "lib/ffmpeg/bin/ffmpeg.exe")]
     var ffprobePath = if (isInstalled) getReference("ffprobe") else
         DefaultConfig["ffmpeg.probe.path", getReference(ffmpegPath.getParent(), "ffprobe.exe")]
 

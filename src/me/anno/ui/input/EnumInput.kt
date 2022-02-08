@@ -63,12 +63,22 @@ open class EnumInput(
         inputPanel.enableHoverColor = true
     }
 
-    override val lastValue: NameDesc
-        get() = TODO("Not yet implemented")
+    override var lastValue = options.firstOrNull { it.name == startValue }
+        ?: options.firstOrNull { it.englishName == startValue }
+        ?: options.first()
+
+    fun setValue(option: NameDesc, index: Int, notify: Boolean = true) {
+        inputPanel.text = option.name
+        inputPanel.tooltip = option.desc
+        lastIndex = index
+        lastValue = option
+        if (notify) changeListener(option.name, index, options)
+    }
 
     override fun setValue(value: NameDesc, notify: Boolean): EnumInput {
-        TODO("Not yet implemented")
-        // return this
+        // what if the index is not found?
+        setValue(value, options.indexOf(value), notify)
+        return this
     }
 
     // todo drawing & ignoring inputs
@@ -82,12 +92,10 @@ open class EnumInput(
     fun moveDown(direction: Int) {
         val oldValue = inputPanel.text
         val index = lastIndex + direction
-        lastIndex = (index + 2 * options.size) % options.size
-        val newValue = options[lastIndex]
+        val index2 = (index + 2 * options.size) % options.size
+        val newValue = options[index2]
         if (oldValue != newValue.name) {
-            inputPanel.text = newValue.name
-            inputPanel.tooltip = newValue.desc
-            changeListener(newValue.name, lastIndex, options)
+            setValue(newValue, index2)
         }
     }
 
@@ -130,10 +138,7 @@ open class EnumInput(
                 .with("%1", title),
             options.mapIndexed { index, option ->
                 MenuOption(option) {
-                    inputPanel.text = option.name
-                    inputPanel.tooltip = option.desc
-                    lastIndex = index
-                    changeListener(option.name, index, options)
+                    setValue(option, index)
                 }
             })
     }

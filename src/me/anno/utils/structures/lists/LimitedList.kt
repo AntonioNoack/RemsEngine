@@ -34,12 +34,33 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
     }
 
     override fun removeAll(elements: Collection<V>): Boolean {
-        for (e in elements) remove(e)
-        return true
+        var writeIndex = 0
+        val oldSize = min(size, data.size)
+        for (readIndex in 0 until oldSize) {
+            val element = data[readIndex]
+            if (element !in elements) {
+                data[writeIndex++] = element
+            }
+        }
+        if (!isFull()) {
+            size = writeIndex
+        }
+        return writeIndex != oldSize || isFull()
     }
 
     override fun retainAll(elements: Collection<V>): Boolean {
-        TODO("Not yet implemented")
+        var writeIndex = 0
+        val oldSize = min(size, data.size)
+        for (readIndex in 0 until oldSize) {
+            val element = data[readIndex]
+            if (element in elements) {
+                data[writeIndex++] = element
+            }
+        }
+        if (!isFull()) {
+            size = writeIndex
+        }
+        return writeIndex != oldSize || isFull()
     }
 
     override fun addAll(elements: Collection<V>): Boolean {

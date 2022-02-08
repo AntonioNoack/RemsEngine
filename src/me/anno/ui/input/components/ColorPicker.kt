@@ -15,7 +15,12 @@ import me.anno.utils.Color.toHexColor
 import kotlin.math.max
 import kotlin.math.min
 
-class ColorPicker(val gpuData: Framebuffer, val cpuData: Image, style: Style) : ImagePanel(style) {
+class ColorPicker(
+    val gpuData: Framebuffer,
+    val cpuData: Image,
+    val ownsGPUData: Boolean,
+    style: Style
+) : ImagePanel(style) {
 
     // todo bug: when zoomed in (after window size change), the color preview is incorrect... why?
 
@@ -92,7 +97,7 @@ class ColorPicker(val gpuData: Framebuffer, val cpuData: Image, style: Style) : 
         Input.setClipboardContent(color.toHexColor())
         // hide window
         windowStack.remove(window!!)
-        gpuData.destroy()
+        if(ownsGPUData) gpuData.destroy()
     }
 
     var callback: (Int) -> Unit = {}

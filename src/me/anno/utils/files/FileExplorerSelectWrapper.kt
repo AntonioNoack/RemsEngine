@@ -2,6 +2,7 @@ package me.anno.utils.files
 
 import org.apache.logging.log4j.LogManager
 import java.io.File
+import javax.swing.JFileChooser
 
 object FileExplorerSelectWrapper {
 
@@ -20,31 +21,39 @@ object FileExplorerSelectWrapper {
             notAvailable(e)
         } catch (e: NoSuchMethodError) {
             notAvailable(e)
+        } catch (e: NoSuchMethodException) {
+            notAvailable(e)
         } catch (e: SecurityException) {
             notAvailable(e)
         }
     }
 
     fun selectFile(lastFile: File?, callback: (File?) -> Unit) {
-        // FileExplorerSelect.selectFile(lastFile, callback)
-        val method = method
-        if (method != null) {
-            method.invoke(null, lastFile, false, callback)
-        } else {
-            // todo use JFileChooser
-            // or via OpenFileDialog
-            LOGGER.info("JavaFX is not available")
-        }
+        selectFileOrFolder(lastFile, false, callback)
     }
 
     fun selectFolder(lastFile: File?, callback: (File?) -> Unit) {
-        // FileExplorerSelect.selectFolder(lastFile, callback)
-        method?.invoke(null, lastFile, true, callback) ?: LOGGER.info("JavaFX is not available")
+        selectFileOrFolder(lastFile, true, callback)
     }
 
     fun selectFileOrFolder(lastFile: File?, isDirectory: Boolean, callback: (File?) -> Unit) {
-        // FileExplorerSelect.selectFileOrFolder(lastFile, isDirectory, callback)
-        method?.invoke(null, lastFile, isDirectory, callback) ?: LOGGER.info("JavaFX is not available")
+        val method = method
+        if (method != null) {
+            method.invoke(null, lastFile, true, callback)
+        } else {
+            // use JFileChooser
+            // or via OpenFileDialog...
+            val jfc = if (lastFile != null) JFileChooser(lastFile) else JFileChooser()
+            jfc.fileSelectionMode = if (isDirectory) JFileChooser.DIRECTORIES_ONLY else JFileChooser.FILES_ONLY
+            val retCode = jfc.showOpenDialog(null)
+            if (retCode == JFileChooser.APPROVE_OPTION) {
+                val sf = jfc.selectedFile
+                if (sf.isDirectory == isDirectory) {
+                    callback(sf)
+                } else callback(null) // mmh
+            } else callback(null)
+            LOGGER.info("JavaFX is not available")
+        }
     }
 
     private val LOGGER = LogManager.getLogger(FileExplorerSelectWrapper::class)
