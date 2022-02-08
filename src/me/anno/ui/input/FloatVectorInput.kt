@@ -90,7 +90,7 @@ open class FloatVectorInput(
         setValue(value, false)
     }
 
-    val component0 = component0 ?: FloatInput(style, title, visibilityKey, type)
+    val component0 = component0 ?: FloatInput(style, "", visibilityKey, type)
 
     private val components: Int = type.components
     private val valueFields = ArrayList<FloatInput>(components)
@@ -147,13 +147,12 @@ open class FloatVectorInput(
         return this
     }
 
-    private fun addComponent(i: Int, title: String): FloatInput {
-        val pseudo = if (i == 0) component0 else component0.clone()
-        // val input = pseudo.inputPanel
-        pseudo.inputPanel.tooltip = title
-        valueList += pseudo.setWeight(1f)
-        valueFields += pseudo
-        return pseudo
+    private fun addComponent(index: Int, title: String): FloatInput {
+        val component = if (index == 0) component0 else component0.clone()
+        component.inputPanel.placeholder = title
+        valueList += component.setWeight(1f)
+        valueFields += component
+        return component
     }
 
     fun setResetListener(listener: (() -> Any?)?) {

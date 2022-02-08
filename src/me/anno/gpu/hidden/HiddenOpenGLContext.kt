@@ -42,7 +42,7 @@ object HiddenOpenGLContext {
 
         val tick = Clock()
         glfwSetErrorCallback(GLFWErrorCallback.createPrint(System.err).also { errorCallback = it })
-        tick.stop("error callback")
+        tick.stop("Error callback")
 
         check(glfwInit()) { "Unable to initialize GLFW" }
 
@@ -60,7 +60,7 @@ object HiddenOpenGLContext {
         window = glfwCreateWindow(width, height, GFXBase0.projectName, MemoryUtil.NULL, MemoryUtil.NULL)
         if (window == MemoryUtil.NULL) throw RuntimeException("Failed to create the GLFW window")
 
-        tick.stop("create window")
+        tick.stop("Create window")
 
         glfwMakeContextCurrent(window)
         glfwSwapInterval(1)

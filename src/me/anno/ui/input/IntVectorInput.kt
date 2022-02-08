@@ -82,7 +82,6 @@ open class IntVectorInput(
 
     private fun addComponent(i: Int, title: String): IntInput {
         val pseudo = if(i == 0) component0 else component0.clone()
-        pseudo.parent = valueList
         pseudo.inputPanel.tooltip = title
         valueList += pseudo.setWeight(1f)
         valueFields += pseudo

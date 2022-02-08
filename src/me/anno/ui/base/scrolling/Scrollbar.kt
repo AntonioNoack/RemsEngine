@@ -1,16 +1,18 @@
 package me.anno.ui.base.scrolling
 
-import me.anno.gpu.GFX.deltaTime
+import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.ui.Panel
-import me.anno.ui.style.Style
+import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
+import me.anno.ui.Panel
+import me.anno.ui.style.Style
+import kotlin.math.abs
 import kotlin.math.min
 
 open class Scrollbar(style: Style) : Panel(style.getChild("scrollbar")) {
 
-    // todo change color depending on hover x mouse down
+    // todo change color when the mouse is being pressed
 
     val activeAlpha = 0.2f
 
@@ -18,7 +20,23 @@ open class Scrollbar(style: Style) : Panel(style.getChild("scrollbar")) {
     val scrollColorAlpha = 0.3f
     val scrollBackground = -1
 
-    var wasActive = 0f
+    @NotSerializedProperty
+    var alpha = 0f
+
+    @NotSerializedProperty
+    var isBeingHovered = false
+
+    @NotSerializedProperty
+    var lastTime = 0L
+
+    fun updateAlpha(): Boolean {
+        val oldAlpha = alpha
+        val time = GFX.gameTime
+        val dt = abs(time - lastTime) * 1e-9f
+        lastTime = time
+        alpha = mix(oldAlpha, if (isBeingHovered) 1f else 0f, min(1f, 5f * dt))
+        return abs(alpha - oldAlpha) > 0.001f
+    }
 
     fun multiplyAlpha(color: Int, mAlpha: Float): Int {
         val alpha = mAlpha * color.shr(24).and(255)
@@ -26,13 +44,7 @@ open class Scrollbar(style: Style) : Panel(style.getChild("scrollbar")) {
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-
-        val window = window!!
-        val isActive = window.mouseX.toInt() in x0..x1 && window.mouseY.toInt() in y0..y1
-        wasActive = mix(wasActive, if (isActive) 1f else 0f, min(1f, 5f * deltaTime))
-
-        drawRect(x0, y0, x1 - x0, y1 - y0, multiplyAlpha(scrollBackground, activeAlpha * wasActive))
-
+        drawRect(x0, y0, x1 - x0, y1 - y0, multiplyAlpha(scrollBackground, activeAlpha * alpha))
     }
 
 }

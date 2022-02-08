@@ -169,7 +169,7 @@ public class GFXBase0 {
 
         Clock tick = new Clock();
         glfwSetErrorCallback(errorCallback = GLFWErrorCallback.createPrint(System.err));
-        tick.stop("error callback");
+        tick.stop("Error callback");
 
         if (!glfwInit())
             throw new IllegalStateException("Unable to initialize GLFW");
@@ -191,11 +191,11 @@ public class GFXBase0 {
         if (window == NULL)
             throw new RuntimeException("Failed to create the GLFW window");
 
-        tick.stop("create window");
+        tick.stop("Create window");
 
         addCallbacks();
 
-        tick.stop("adding callbacks");
+        tick.stop("Adding callbacks");
 
         GLFWVidMode videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
         if (videoMode != null)
@@ -207,7 +207,7 @@ public class GFXBase0 {
             height = framebufferSize.get(1);
         }
 
-        tick.stop("window position");
+        tick.stop("Window position");
 
         glfwSetWindowTitle(window, title);
 
@@ -215,11 +215,11 @@ public class GFXBase0 {
 
         glfwShowWindow(window);
 
-        tick.stop("show window");
+        tick.stop("Show window");
 
         GFXBase1.Companion.setIcon(window);
 
-        tick.stop("setting icon");
+        tick.stop("Setting icon");
 
         double[] x = new double[1], y = new double[1];
         glfwGetCursorPos(window, x, y);

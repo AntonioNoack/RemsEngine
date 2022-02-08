@@ -2,15 +2,16 @@ package me.anno.ui.base.scrolling
 
 import me.anno.input.MouseButton
 import me.anno.io.serialization.NotSerializedProperty
+import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListX
-import me.anno.ui.base.scrolling.ScrollPanelY.Companion.scrollSpeed
+import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.minWeight
+import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.scrollSpeed
 import me.anno.ui.style.Style
-import me.anno.maths.Maths.clamp
 import kotlin.math.max
 
 // todo if the mouse is over a scrollbar, change the cursor
@@ -24,7 +25,7 @@ open class ScrollPanelX(
 
     init {
         child += WrapAlign(AxisAlignment.MIN, alignY)
-        weight = 0.0001f
+        setWeight(minWeight)
     }
 
     @NotSerializedProperty
@@ -33,30 +34,42 @@ open class ScrollPanelX(
     @NotSerializedProperty
     var lmsp = -1
 
-    override fun tickUpdate() {
-        super.tickUpdate()
-        if (scrollPositionX != lsp || maxScrollPositionX != lmsp) {
-            lsp = scrollPositionX
-            lmsp = maxScrollPositionX
-            window!!.needsLayout += this
-        }
-    }
-
     override var scrollPositionX = 0f
-    var isDownOnScrollbar = false
+
+    @NotSerializedProperty
+    private var isDownOnScrollbar = false
 
     override val maxScrollPositionX get() = max(0, child.minW + padding.width - w)
     val scrollbar = ScrollbarX(this, style)
 
     // todo these two properties need to be updated, when the style changes
-    @NotSerializedProperty
-    var scrollbarHeight = style.getSize("scrollbarHeight", 8)
+    val scrollbarHeight = style.getSize("scrollbarHeight", 8)
+    val scrollbarPadding = style.getSize("scrollbarPadding", 1)
 
-    @NotSerializedProperty
-    var scrollbarPadding = style.getSize("scrollbarPadding", 1)
+    val interactionHeight = scrollbarHeight + 2 * interactionPadding
+
+    val hasScrollbar get() = maxScrollPositionX > 0f
+
+    override fun tickUpdate() {
+        super.tickUpdate()
+        val window = window!!
+        val mx = window.mouseX.toInt()
+        val my = window.mouseY.toInt()
+        scrollbar.isBeingHovered = drawsOverlaysOverChildren(mx, my)
+        if (scrollbar.updateAlpha()) invalidateDrawing()
+        if (scrollPositionX != lsp || maxScrollPositionX != lmsp) {
+            lsp = scrollPositionX
+            lmsp = maxScrollPositionX
+            window.needsLayout += this
+        }
+    }
 
     override fun drawsOverlaysOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
-        return maxScrollPositionX > 0 && ly1 > this.ly1 - scrollbarHeight // overlaps on the bottom
+        val sbHeight = interactionHeight + 2 * scrollbarPadding
+        return hasScrollbar && ScrollPanelXY.drawsOverX(
+            this.lx0, this.ly0, this.lx1, this.ly1, sbHeight,
+            lx0, ly0, lx1, ly1
+        )
     }
 
     override fun calculateSize(w: Int, h: Int) {
@@ -68,7 +81,7 @@ open class ScrollPanelX(
         minW = child.minW + padding.width
         minH = child.minH + padding.height
 
-        if (maxScrollPositionX > 0) minH += scrollbarHeight
+        if (hasScrollbar) minH += scrollbarHeight
 
     }
 
@@ -84,7 +97,7 @@ open class ScrollPanelX(
         clampScrollPosition()
         super.onDraw(x0, y0, x1, y1)
         // draw the scrollbar
-        if (maxScrollPositionX > 0f) {
+        if (hasScrollbar) {
             scrollbar.x = x + scrollbarPadding
             scrollbar.y = y1 - scrollbarHeight - scrollbarPadding
             scrollbar.w = w - 2 * scrollbarPadding
@@ -114,7 +127,7 @@ open class ScrollPanelX(
     }
 
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
-        isDownOnScrollbar = scrollbar.contains(x, y, scrollbarPadding * 2)
+        isDownOnScrollbar = drawsOverlaysOverChildren(x.toInt(), y.toInt())
         if (!isDownOnScrollbar) super.onMouseDown(x, y, button)
     }
 
@@ -125,8 +138,12 @@ open class ScrollPanelX(
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         if (isDownOnScrollbar) {
-            scrollbar.onMouseMoved(x, y, dx, dy)
-            clampScrollPosition()
+            if (dx != 0f) {
+                scrollbar.onMouseMoved(x, y, dx, 0f)
+                clampScrollPosition()
+            }
+            // dx was consumed
+            if (dy != 0f) super.onMouseMoved(x, y, 0f, dy)
         } else super.onMouseMoved(x, y, dx, dy)
     }
 

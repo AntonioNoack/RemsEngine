@@ -18,7 +18,7 @@ class ScrollbarY(val scrollable: ScrollableY, style: Style): Scrollbar(style){
         val barHeight = relativeSize * h
         val barY = y + relativePosition * h * (1f - relativeSize)
 
-        drawRect(x0, barY.toInt(), x1-x0, barHeight.toInt(), multiplyAlpha(scrollColor, scrollColorAlpha + activeAlpha * wasActive))
+        drawRect(x0, barY.toInt(), x1-x0, barHeight.toInt(), multiplyAlpha(scrollColor, scrollColorAlpha + activeAlpha * alpha))
 
     }
 

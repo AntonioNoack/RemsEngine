@@ -12,7 +12,7 @@ import me.anno.utils.types.Strings.isBlank2
 
 abstract class NumberInput<BaseType>(
     style: Style,
-    val title: String,
+    title: String,
     val visibilityKey: String,
     val type: Type = Type.FLOAT,
     inputPanel0: NumberInputComponent?
@@ -22,8 +22,19 @@ abstract class NumberInput<BaseType>(
 
     val inputPanel = inputPanel0 ?: NumberInputComponent(visibilityKey, style)
 
-    val titleView = if (title.isBlank2()) null else TitlePanel(title, this, style)
+    var titleView = if (title.isBlank2()) null else TitlePanel(title, this, style)
     var isSelectedListener: (() -> Unit)? = null
+
+    var title = title
+        set(value) {
+            field = value
+            if (titleView == null && !value.isBlank2()) {
+                val titleView = TitlePanel(title, this, style)
+                this.titleView = titleView
+                add(0, titleView)
+            }
+            titleView?.text = value
+        }
 
     override fun setBold(bold: Boolean) {
         titleView?.setBold(bold)
@@ -55,6 +66,7 @@ abstract class NumberInput<BaseType>(
     }
 
     init {
+        val titleView = titleView
         if (titleView != null) {
             add(titleView)
             titleView.enableHoverColor = true

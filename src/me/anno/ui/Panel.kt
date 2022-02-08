@@ -1,5 +1,6 @@
 package me.anno.ui
 
+import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Type
@@ -9,6 +10,7 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
+import me.anno.maths.Maths
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Corner.drawRoundedRect
 import me.anno.ui.base.components.Padding
@@ -552,6 +554,8 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     open fun drawsOverlaysOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int) = false
 
+    fun drawsOverlaysOverChildren(x: Int, y: Int) = drawsOverlaysOverChildren(x, y, x + 1, y + 1)
+
     // todo overlays don't work perfectly: the cross over the scrollbar is blinking when regularly redrawing...
     // first or null would be correct, however our overlays are all the same
     // (the small cross, which should be part of the ui instead)
@@ -559,6 +563,11 @@ open class Panel(val style: Style) : PrefabSaveable() {
     open fun getOverlayParent(): Panel? {
         if (drawsOverlaysOverChildren(lx0, ly0, lx1, ly1)) return this
         return uiParent?.getOverlayParent()
+    }
+
+    open fun getOverlayParent(x0: Int, y0: Int, x1: Int, y1: Int): Panel? {
+        if (drawsOverlaysOverChildren(x0, y0, x1, y1)) return this
+        return uiParent?.getOverlayParent(x0, y0, x1, y1)
     }
 
     /**
@@ -697,12 +706,12 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     fun getPanelAt(x: Int, y: Int): Panel? {
         return if (canBeSeen && contains(x, y)) {
-            if (this is PanelGroup) {
+            if (this is PanelGroup && !drawsOverlaysOverChildren(x, y, x + 1, y + 1)) {
                 val children = children
                 for (i in children.size - 1 downTo 0) {
-                    val clicked = children[i].getPanelAt(x, y)
-                    if (clicked != null) {
-                        return clicked
+                    val panelAt = children[i].getPanelAt(x, y)
+                    if (panelAt != null) {
+                        return panelAt
                     }
                 }
             }
@@ -758,6 +767,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     companion object {
         private val LOGGER = LogManager.getLogger(Panel::class)
+        val interactionPadding get() = Maths.max(0, DefaultConfig["ui.interactionPadding", 6])
     }
 
 }

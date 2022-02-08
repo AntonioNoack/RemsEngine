@@ -60,27 +60,11 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
     }
 
     private fun addBefore(index: Int, parent: CustomList) {
-        val children = parent.children
-        val view = CustomContainer(library.createDefault(), library, style)
-        val bar = CustomizingBar(0, 3, 0, style)
-        bar.parent = parent
-        view.parent = parent
-        children.add(index + 0, view)
-        children.add(index + 1, bar)
-        view.weight = 1f
-        parent.update()
+        parent.add(index, CustomContainer(library.createDefault(), library, style))
     }
 
     private fun addAfter(index: Int, parent: CustomList) {
-        val children = parent.children
-        val view = CustomContainer(library.createDefault(), library, style)
-        val bar = CustomizingBar(0, 3, 0, style)
-        bar.parent = parent
-        view.parent = parent
-        children.add(index + 1, bar)
-        children.add(index + 2, view)
-        view.weight = 1f
-        parent.update()
+        parent.add(index + 1, CustomContainer(library.createDefault(), library, style))
     }
 
     private fun replace(index: Int, parent: CustomList, isY: Boolean, firstThis: Boolean) {
@@ -97,7 +81,6 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
             replaced.add(newInstance)
             replaced.add(this)
         }
-        parent.update()
     }
 
     fun addPanel(isYAction: Boolean, firstThis: Boolean) {

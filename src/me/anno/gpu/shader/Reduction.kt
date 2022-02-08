@@ -14,15 +14,15 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.packAlignment
 import me.anno.image.ImageGPUCache
-import me.anno.io.files.FileReference
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
-import me.anno.utils.Clock
 import me.anno.utils.Color.toHexColor
+import me.anno.utils.LOGGER
 import me.anno.utils.OS
-import org.apache.logging.log4j.LogManager
+import me.anno.utils.pooling.JomlPools
 import org.joml.Vector4f
+import org.joml.Vector4fc
 import org.lwjgl.opengl.GL11C
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -32,32 +32,64 @@ object Reduction {
 
     data class Operation(
         val name: String,
-        val startValue: Float,
+        val startValue: Vector4fc,
         val function: String,
         val normalize: Boolean,
-        val kotlinImpl: (Float, Float) -> Float,
-    )
+        val kotlinImpl: (sum: Vector4f, addend: Vector4f) -> Unit,
+    ) {
+        constructor(
+            name: String, startValue: Float, function: String, normalize: Boolean,
+            kotlinImpl: (a: Vector4f, b: Vector4f) -> Unit
+        ) : this(name, Vector4f(startValue), function, normalize, kotlinImpl)
+
+        constructor(
+            name: String, startValue: Float, normalize: Boolean, function: String,
+            kotlinImpl: (a: Float, b: Float) -> Float
+        ) : this(name, Vector4f(startValue), function, normalize, { a, b ->
+            a.set(
+                kotlinImpl(a.x, b.x),
+                kotlinImpl(a.y, b.y),
+                kotlinImpl(a.z, b.z),
+                kotlinImpl(a.w, b.w)
+            )
+        })
+
+        constructor(
+            name: String, startValue: Float, function: String,
+            kotlinImpl: (a: Float, b: Float) -> Float
+        ) : this(name, Vector4f(startValue), function, false, { a, b ->
+            a.set(
+                kotlinImpl(a.x, b.x),
+                kotlinImpl(a.y, b.y),
+                kotlinImpl(a.z, b.z),
+                kotlinImpl(a.w, b.w)
+            )
+        })
+    }
 
     /** finds the maximum value of all, so the brightest pixel */
-    val MAX = Operation("max", 1e-38f, "max(a,b)", false) { a, b -> max(a, b) }
+    val MAX = Operation("max", 1e-38f, "max(a,b)") { a, b -> max(a, b) }
 
     /** finds the minimum value of all, so the darkest pixel */
-    val MIN = Operation("min", 1e38f, "min(a,b)", false) { a, b -> min(a, b) }
+    val MIN = Operation("min", 1e38f, "min(a,b)") { a, b -> min(a, b) }
 
     /** finds the sum of all pixels; use AVG, if you want to know the average */
-    val SUM = Operation("sum", 0f, "a+b", false) { a, b -> a + b }
+    val SUM = Operation("sum", 0f, "a+b") { a, b -> a + b }
 
     /** finds the maximum amplitude */
-    val MAX_ABS = Operation("max-abs", 0f, "max(abs(a),abs(b))", false) { a, b -> max(abs(a), abs(b)) }
+    val MAX_ABS = Operation("max-abs", 0f, "max(abs(a),abs(b))") { a, b -> max(abs(a), abs(b)) }
 
     /** finds the maximum amplitude, but keeps the sign */
     val MAX_ABS_SIGNED = Operation(
         "max-abs-signed", 0f,
-        "abs(a)>abs(b)?a:b", false
+        "vec4(abs(a.x)>abs(b.x)?a.x:b.x," +
+                "abs(a.y)>abs(b.y)?a.y:b.y," +
+                "abs(a.z)>abs(b.z)?a.z:b.z," +
+                "abs(a.w)>abs(b.w)?a.w:b.w)"
     ) { a, b -> if (abs(a) > abs(b)) a else b }
 
     /** finds the average value/color */
-    val AVG = Operation("avg", 0f, "a+b", true) { a, b -> a + b }
+    val AVG = Operation("avg", 0f, "a+b", true) { a, b -> a.add(b) }
 
     private const val reduction = 16
 
@@ -73,6 +105,7 @@ object Reduction {
 
         val buffer = buffer
         val shader = shaderByType.getOrPut(op) {
+            val v0 = "vec4(${op.startValue.x()}, ${op.startValue.y()}, ${op.startValue.z()}, ${op.startValue.w()})"
             Shader(
                 "reduce-${op.name}", null, simplestVertexShader2, emptyList(), "" +
                         "uniform sampler2D src;\n" +
@@ -81,12 +114,12 @@ object Reduction {
                         "   ivec2 uv = ivec2(gl_FragCoord.xy);\n" +
                         "   ivec2 inSize = ivec2(textureSize(src, 0));\n" +
                         "   ivec2 uv0 = uv * $reduction, uv1 = min(uv0 + $reduction, inSize);\n" +
-                        "   vec4 result = vec4(${op.startValue});\n" +
+                        "   vec4 result = $v0;\n" +
                         // strided access is more efficient on GPUs, so iterate over y
                         "   for(int x=uv0.x;x<uv1.x;x++){\n" +
                         // the reduction is split into a xy-hierarchy,
                         // so numerical issues accumulate slower (many small numbers would still be added with this approach)
-                        "       vec4 resultX = vec4(${op.startValue});\n" +
+                        "       vec4 resultX = $v0;\n" +
                         "       for(int y=uv0.y;y<uv1.y;y++){\n" +
                         "           vec4 value = texelFetch(src, ivec2(x,y), 0);\n" +
                         "           resultX = reduce(resultX, value);\n" +
@@ -137,34 +170,24 @@ object Reduction {
         GL11C.glGetTexImage(target, 0, GL11C.GL_RGBA, GL11C.GL_FLOAT, buffer)
         GFX.check()
 
-        var x = op.startValue
-        var y = op.startValue
-        var z = op.startValue
-        var w = op.startValue
-
         val impl = op.kotlinImpl
 
         // performance shouldn't matter, because IO between CPU and GPU will be SLOW
         val remainingPixels = srcTexture.w * srcTexture.h
+        dst.set(op.startValue)
+        val tmp = JomlPools.vec4f.create()
         for (i in 0 until remainingPixels) {
             val i4 = i * 4
-            x = impl(x, buffer[i4])
-            y = impl(y, buffer[i4 + 1])
-            z = impl(z, buffer[i4 + 2])
-            w = impl(w, buffer[i4 + 3])
+            tmp.set(buffer[i4], buffer[i4 + 1], buffer[i4 + 2], buffer[i4 + 3])
+            impl(dst, tmp)
         }
+        JomlPools.vec4f.sub(1)
 
         if (op.normalize) {
-            // 4 divisions should be slightly more accurate,
-            // and performance doesn't matter in this heavily-io-bound function
-            val size = (texture.w * texture.h).toFloat()
-            x /= size
-            y /= size
-            z /= size
-            w /= size
+            dst.div((texture.w * texture.h).toFloat())
         }
 
-        return dst.set(x, y, z, w)
+        return dst
     }
 
     /**
@@ -172,15 +195,10 @@ object Reduction {
      * */
     @JvmStatic
     fun main(args: Array<String>) {
-        val clock = Clock()
         HiddenOpenGLContext.createOpenGL()
-        val sourceImageReference: FileReference = OS.pictures.getChild("4k.jpg")
-        val image: Texture2D = ImageGPUCache.getImage(sourceImageReference, false)!!
-        val avgColor: Vector4f = reduce(image, AVG)
-        LogManager
-            .getLogger(Reduction::class)
-            .info("Average color: ${avgColor.toHexColor()}")
-        clock.stop("Calculating Average, Loading & Everything")
+        val fileReference = OS.pictures.getChild("4k.jpg")
+        val image = ImageGPUCache.getImage(fileReference, false)!!
+        LOGGER.info(reduce(image, AVG).toHexColor())
     }
 
 }

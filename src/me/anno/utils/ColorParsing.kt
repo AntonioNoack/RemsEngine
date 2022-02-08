@@ -7,6 +7,7 @@ import me.anno.ui.editor.color.ColorSpace
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
+import me.anno.utils.Color.rgba
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.structures.maps.BiMap
 import org.joml.Vector3f
@@ -84,6 +85,26 @@ object ColorParsing {
             name.startsWith('#') -> parseHex(name.substring(1))
             name.startsWith("0x") -> parseHex(name.substring(2))
             name.equals("none", true) -> null
+            name.startsWith("rgb(") && name.endsWith(")") -> {
+                val parts = name.substring(4, name.length - 1)
+                    .split(',')
+                    .map { it.trim() }
+                if (parts.size == 3) {
+                    val rgb = when {
+                        parts.all { it.endsWith('%') } -> {
+                            parts.map { it.substring(0, it.length - 1).toFloat() / 100f }
+                        }
+                        parts.all { it.toFloatOrNull() != null && it.toFloat() in 0f..1f } -> {
+                            parts.map { it.toFloat() }
+                        }
+                        parts.all { it.toIntOrNull() != null && it.toInt() in 0..255 } -> {
+                            parts.map { it.toInt() / 255f }
+                        }
+                        else -> throw InvalidFormatException("Unknown color $name")
+                    }
+                    rgba(rgb[0], rgb[1], rgb[2], 1f)
+                } else throw InvalidFormatException("Unknown color $name")
+            }
             else -> colorMap[name.trim().lowercase(Locale.getDefault())]?.or(black)
                 ?: throw InvalidFormatException("Unknown color $name")
         }

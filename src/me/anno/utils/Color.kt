@@ -46,7 +46,7 @@ object Color {
             clamp(a, 0, 255).shl(24)
 
     fun rgba(r: Float, g: Float, b: Float, a: Float): Int =
-        rgba((r * 255).roundToInt(), (g * 255).roundToInt(), (b * 255).roundToInt(), (a * 255).roundToInt())
+        rgba((r * 255f).roundToInt(), (g * 255f).roundToInt(), (b * 255f).roundToInt(), (a * 255f).roundToInt())
 
     fun argb(a: Int, r: Int, g: Int, b: Int) = rgba(r, g, b, a)
 

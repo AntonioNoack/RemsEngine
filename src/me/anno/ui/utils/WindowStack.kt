@@ -20,7 +20,20 @@ class WindowStack : Stack<Window>() {
     val viewTransform = Matrix4f()
 
     var mouseX = 0f
+        set(value) {
+            field = value
+            mouseXi = value.toInt()
+        }
     var mouseY = 0f
+        set(value) {
+            field = value
+            mouseYi = value.toInt()
+        }
+
+    var mouseXi = 0
+        private set
+    var mouseYi = 0
+        private set
 
     var mouseDownX = 0f
     var mouseDownY = 0f

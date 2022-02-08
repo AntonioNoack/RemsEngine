@@ -188,6 +188,7 @@ open class FloatInput(
         // only works without hard references
         clone.changeListener = changeListener
         clone.allowInfinity = allowInfinity
+        clone.tooltip = tooltip
     }
 
     override val className: String = "FloatInput"

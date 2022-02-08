@@ -31,6 +31,8 @@ open class Window(
 
     val mouseX get() = windowStack.mouseX
     val mouseY get() = windowStack.mouseY
+    val mouseXi get() = windowStack.mouseXi
+    val mouseYi get() = windowStack.mouseYi
     val mouseDownX get() = windowStack.mouseDownX
     val mouseDownY get() = windowStack.mouseDownY
 
