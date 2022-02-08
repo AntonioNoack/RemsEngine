@@ -25,7 +25,7 @@ class ScrollbarY(val scrollable: ScrollableY, style: Style): Scrollbar(style){
     val relativeSize get() = scrollable.h.toFloat() / scrollable.child.minH
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        if(0 in Input.mouseKeysDown){
+        if(Input.isLeftDown){
             scrollable.scrollPositionY += dy / relativeSize
         }// else super.onMouseMoved(x, y, dx, dy)
     }

@@ -1,6 +1,5 @@
 package me.anno.ui.base.scrolling
 
-import me.anno.config.DefaultConfig
 import me.anno.input.MouseButton
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp

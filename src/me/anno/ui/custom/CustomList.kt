@@ -20,14 +20,12 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
 
     init {
         spacing = style.getSize("customList.spacing", 4)
-        weight = 1f
+        setWeight(1f)
     }
 
     override fun invalidateLayout() {
         window?.needsLayout?.add(this)
     }
-
-    val customChildren = children
 
     val minSize get() = if (isY) 10f / h else 10f / w
 

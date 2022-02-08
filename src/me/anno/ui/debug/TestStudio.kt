@@ -13,12 +13,8 @@ class TestStudio(val createMainPanel: () -> Panel) : StudioBase(true, "Test", 1)
 
     override fun createUI() {
         val ui = PanelListY(style)
-        ui.add(
-            ConsoleOutputPanel.createConsoleWithStats(
-                false,
-                style
-            )
-        ) // todo somehow missing in layout for UnityReader
+        // todo somehow missing in layout for UnityReader
+        ui.add(ConsoleOutputPanel.createConsoleWithStats(false, style))
         ui.add(createMainPanel())
         windowStack.add(Window(ui, windowStack))
     }

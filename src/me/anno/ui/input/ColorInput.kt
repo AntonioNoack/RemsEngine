@@ -1,8 +1,12 @@
 package me.anno.ui.input
 
+import me.anno.config.DefaultConfig.style
 import me.anno.config.DefaultStyle.black
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
+import me.anno.gpu.copying.FramebufferToMemory
+import me.anno.gpu.framebuffer.DepthBufferType
+import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.io.serialization.NotSerializedProperty
@@ -11,26 +15,23 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
+import me.anno.ui.base.ImagePanel
 import me.anno.ui.base.constraints.SizeLimitingContainer
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextStyleable
+import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.editor.color.ColorChooser
 import me.anno.ui.editor.color.PreviewField
 import me.anno.ui.input.components.ColorPalette
+import me.anno.ui.input.components.ColorPicker
 import me.anno.ui.input.components.TitlePanel
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toARGB
 import org.joml.Vector4f
 import org.joml.Vector4fc
 import kotlin.math.max
-
-// todo color picker
-// todo - take screenshot of full screen; all screens? could be hard with multiples in non-regular config...
-// todo - open (new?) window in fullscreen
-// todo - add controls on the bottom, or somewhere..., with a preview of the color
-// todo - select on click, or when dragging + enter then
 
 open class ColorInput(
     style: Style,
@@ -109,10 +110,32 @@ open class ColorInput(
                 Menu.openMenu(windowStack, listOf(
                     MenuOption(NameDesc("Copy")) { Input.copy(contentView) },
                     MenuOption(NameDesc("Paste")) { Input.paste(contentView) },
+                    MenuOption(NameDesc("Pick Color")) { pickColor() },
                     MenuOption(NameDesc("Reset")) { setValue(contentView.resetListener(), true) }
                 ))
             }
             else -> super.onMouseClicked(x, y, button, long)
+        }
+    }
+
+    // todo button for color picker.. but where?
+    fun pickColor() {
+        // color picker
+        // todo - take screenshot of full screen; all screens? could be hard with multiples in non-regular config...
+        // todo - open (new?) window in fullscreen
+        // - add controls on the bottom, or somewhere..., with a preview of the color
+        // - select on click, or when dragging + enter then
+        GFX.addGPUTask(1) {// delay, so the original menu can disappear
+            val fb = Framebuffer("colorPicker", GFX.width, GFX.height, 1, 1, false, DepthBufferType.INTERNAL)
+            fb.ensure()
+            windowStack.draw(fb.w, fb.h, true, true, fb)
+            val imageData = FramebufferToMemory.createImage(fb, true, withAlpha = false)
+            windowStack.push(ColorPicker(fb, imageData, style).apply {
+                callback = { color ->
+                    contentView.setARGB(color, true)
+                    this@ColorInput.invalidateDrawing()
+                }
+            })
         }
     }
 
@@ -191,5 +214,15 @@ open class ColorInput(
     }
 
     override val className: String = "ColorInput"
+
+    companion object {
+
+        // test the UI
+        @JvmStatic
+        fun main(args: Array<String>) {
+            testUI { ColorInput(style) }
+        }
+
+    }
 
 }

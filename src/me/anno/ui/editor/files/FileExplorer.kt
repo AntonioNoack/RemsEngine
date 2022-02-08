@@ -58,6 +58,7 @@ import kotlin.math.roundToInt
 // issue: then the size is no longer constant
 // solution: can we get the image size quickly? using ffmpeg maybe, or implemented ourselves
 
+// todo list of standard folders
 
 // done the text size is quite small on my x360 -> get the font size for the ui from the OS :)
 // todo double click is not working in touch mode?

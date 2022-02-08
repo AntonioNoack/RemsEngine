@@ -18,8 +18,10 @@ import me.anno.utils.OS
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.glClearColor
+import org.lwjgl.opengl.GL11C.*
 import java.awt.image.BufferedImage
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import kotlin.math.min
 
 object FramebufferToMemory {
@@ -155,12 +157,13 @@ object FramebufferToMemory {
                     val partW = min(wi, width - x0)
                     val partH = min(hi, height - y0)
 
-                    if (clearColor != null) GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
+                    if (clearColor != null) glClear(GL_COLOR_BUFFER_BIT)
                     renderSection(x0, y0, wi, hi)
 
-                    GL11.glFlush(); GL11.glFinish() // wait for everything to be drawn
+                    glFlush()
+                    glFinish() // wait for everything to be drawn
                     buffer.position(0)
-                    GL11.glReadPixels(0, 0, partW, partH, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer)
+                    glReadPixels(0, 0, partW, partH, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
                     GFX.check()
 
                     for (y in 0 until partH) {

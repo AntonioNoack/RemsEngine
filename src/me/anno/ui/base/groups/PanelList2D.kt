@@ -7,17 +7,16 @@ import me.anno.input.MouseButton
 import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.AxisAlignment
-import me.anno.ui.base.scrolling.ScrollPanelY.Companion.scrollSpeed
 import me.anno.ui.base.scrolling.ScrollableY
 import me.anno.ui.base.scrolling.ScrollbarY
 import me.anno.ui.style.Style
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.mix
+import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.scrollSpeed
 import me.anno.utils.structures.tuples.Quad
 import kotlin.math.max
 
-// todo if all children can be aligned in a single line, add no padding
 class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, style), ScrollableY {
 
     constructor(style: Style): this(null, style)

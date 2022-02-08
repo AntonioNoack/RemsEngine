@@ -4,12 +4,11 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.input.Input
-import me.anno.ui.Panel
-import me.anno.ui.base.Visibility
-import me.anno.ui.style.Style
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mix
+import me.anno.ui.Panel
+import me.anno.ui.style.Style
 import kotlin.math.*
 
 // todo test it
@@ -116,7 +115,9 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
 
     // if they are overlapping, we need to redraw the others as well
     override fun drawsOverlaysOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
-        return children.count { it.visibility == Visibility.VISIBLE } > 1
+        return false // not really, I think...
+        // todo ok so?
+        // return children.count { it.visibility == Visibility.VISIBLE } > 1
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {

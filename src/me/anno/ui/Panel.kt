@@ -706,7 +706,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     fun getPanelAt(x: Int, y: Int): Panel? {
         return if (canBeSeen && contains(x, y)) {
-            if (this is PanelGroup && !drawsOverlaysOverChildren(x, y, x + 1, y + 1)) {
+            if (this is PanelGroup && !drawsOverlaysOverChildren(x, y)) {
                 val children = children
                 for (i in children.size - 1 downTo 0) {
                     val panelAt = children[i].getPanelAt(x, y)

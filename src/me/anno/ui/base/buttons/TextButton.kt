@@ -11,11 +11,11 @@ import me.anno.input.Input
 import me.anno.input.Input.keysDown
 import me.anno.input.MouseButton
 import me.anno.language.translation.Dict
+import me.anno.maths.Maths.mixARGB
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.style.Style
 import me.anno.utils.input.Keys.isClickKey
-import me.anno.maths.Maths.mixARGB
 import kotlin.math.max
 
 open class TextButton(
@@ -71,7 +71,7 @@ open class TextButton(
 
     override fun tickUpdate() {
         super.tickUpdate()
-        mouseDown = (isHovered && 0 in Input.mouseKeysDown) ||
+        mouseDown = (isHovered && Input.isLeftDown) ||
                 (isInFocus && keysDown.any { it.key.isClickKey() })
         backgroundColor = if (isHovered && !mouseDown) hoveredBackground else normalBackground
     }

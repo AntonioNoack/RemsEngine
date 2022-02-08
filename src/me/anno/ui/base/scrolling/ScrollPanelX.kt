@@ -14,7 +14,6 @@ import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.scrollSpeed
 import me.anno.ui.style.Style
 import kotlin.math.max
 
-// todo if the mouse is over a scrollbar, change the cursor
 open class ScrollPanelX(
     child: Panel, padding: Padding,
     style: Style,

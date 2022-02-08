@@ -33,7 +33,9 @@ open class PanelStack(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
 
     // if they are overlapping, we need to redraw the others as well
     override fun drawsOverlaysOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
-        return children.count { it.visibility == Visibility.VISIBLE } > 1
+        // todo fix!!, we need special event handling in this case
+        return false
+        // return children.count { it.visibility == Visibility.VISIBLE } > 1
     }
 
     override fun clone(): PanelStack {
