@@ -111,8 +111,8 @@ class TreeViewPanel<V>(
         var backgroundColor = originalBGColor
         val window = window!!
         val showAddIndex = if (
-            window.mouseX.toInt() in lx0..lx1 &&
-            window.mouseY.toInt() in ly0..ly1 &&
+            window.mouseXi in lx0..lx1 &&
+            window.mouseYi in ly0..ly1 &&
             dragged is Draggable && isValidElement(dragged.getOriginal())
         ) {
             clamp(((window.mouseY - this.y) / this.h * 3).toInt(), 0, 2)

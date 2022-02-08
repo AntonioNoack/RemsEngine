@@ -36,8 +36,8 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
     override fun tickUpdate() {
         super.tickUpdate()
         val window = window!!
-        val mx = window.mouseX.toInt()
-        val my = window.mouseY.toInt()
+        val mx = window.mouseXi
+        val my = window.mouseYi
         scrollbarX.isBeingHovered = drawsOverX(mx, my)
         scrollbarY.isBeingHovered = drawsOverY(mx, my)
         if (scrollbarX.updateAlpha()) invalidateDrawing()

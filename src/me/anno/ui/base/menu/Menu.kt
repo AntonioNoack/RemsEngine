@@ -66,8 +66,8 @@ object Menu {
         windowStack.updateMousePosition()
         askName(
             windowStack,
-            windowStack.mouseX.toInt() - paddingX,
-            windowStack.mouseY.toInt() - paddingY,
+            windowStack.mouseXi - paddingX,
+            windowStack.mouseYi - paddingY,
             title, value0, actionName, getColor, callback
         )
     }
@@ -179,8 +179,8 @@ object Menu {
         windowStack.updateMousePosition()
         return openMenuByPanels(
             windowStack,
-            windowStack.mouseX.toInt() - paddingX,
-            windowStack.mouseY.toInt() - paddingY,
+            windowStack.mouseXi - paddingX,
+            windowStack.mouseYi - paddingY,
             title, panels
         )
     }

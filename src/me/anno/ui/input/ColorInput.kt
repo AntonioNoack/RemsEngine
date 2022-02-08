@@ -93,7 +93,7 @@ open class ColorInput(
         contentView.colorSpace = ColorChooser.getDefaultColorSpace()
         val window = window!!
         Menu.openMenuByPanels(
-            window.windowStack, window.mouseX.toInt(), window.mouseY.toInt(), NameDesc(title), listOf(
+            window.windowStack, window.mouseXi, window.mouseYi, NameDesc(title), listOf(
                 SizeLimitingContainer(contentView, GFX.width / 5, -1, style)
             )
         )

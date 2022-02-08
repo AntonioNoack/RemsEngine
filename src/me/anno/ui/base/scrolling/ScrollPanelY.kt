@@ -64,8 +64,8 @@ open class ScrollPanelY(
     override fun tickUpdate() {
         super.tickUpdate()
         val window = window!!
-        val mx = window.mouseX.toInt()
-        val my = window.mouseY.toInt()
+        val mx = window.mouseXi
+        val my = window.mouseYi
         scrollbar.isBeingHovered = drawsOverlaysOverChildren(mx, my)
         if (scrollbar.updateAlpha()) invalidateDrawing()
         if (scrollPositionY != lsp || maxScrollPositionY != lmsp) {
