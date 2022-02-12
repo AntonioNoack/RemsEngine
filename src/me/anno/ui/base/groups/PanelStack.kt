@@ -1,7 +1,6 @@
 package me.anno.ui.base.groups
 
 import me.anno.ui.Panel
-import me.anno.ui.base.Visibility
 import me.anno.ui.style.Style
 import kotlin.math.max
 
@@ -32,10 +31,12 @@ open class PanelStack(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
     }
 
     // if they are overlapping, we need to redraw the others as well
-    override fun drawsOverlaysOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
-        // todo fix!!, we need special event handling in this case
+    override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
         return false
-        // return children.count { it.visibility == Visibility.VISIBLE } > 1
+    }
+
+    override fun drawsOverlayOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
+        return children.size > 1
     }
 
     override fun clone(): PanelStack {

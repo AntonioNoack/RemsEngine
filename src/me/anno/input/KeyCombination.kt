@@ -1,5 +1,6 @@
 package me.anno.input
 
+import me.anno.utils.strings.StringHelper.distance
 import me.anno.utils.structures.maps.BiMap
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW.*
@@ -43,10 +44,9 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type) {
 
         val keyMapping = BiMap<String, Int>(200)
         fun put(key: Int, vararg buttons: String) {
-            buttons.forEach {
-                keyMapping[it] = key
-                keyMapping[it.lowercase()] = key
-                keyMapping[it.uppercase()] = key
+            for (button in buttons) {
+                keyMapping[button] = key
+                keyMapping[button.lowercase()] = key
             }
         }
 
@@ -81,12 +81,13 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type) {
             put(GLFW_KEY_PAUSE, "pause")
             put(GLFW_KEY_GRAVE_ACCENT, "degrees", "^", "grave")
             for (i in 1..25) put(GLFW_KEY_F1 - 1 + i, "f$i")
-            put(GLFW_KEY_KP_ADD, "+")
-            put(GLFW_KEY_KP_SUBTRACT, "-")
-            put(GLFW_KEY_KP_MULTIPLY, "*")
-            put(GLFW_KEY_KP_DIVIDE, "/")
-            put(GLFW_KEY_KP_DECIMAL, ".")
-            put(GLFW_KEY_KP_ENTER, "r-enter", "kp-enter")
+            put(GLFW_KEY_KP_ADD, "kp+", "+")
+            put(GLFW_KEY_KP_SUBTRACT, "kp-", "-")
+            put(GLFW_KEY_KP_MULTIPLY, "kp*", "*")
+            put(GLFW_KEY_KP_DIVIDE, "kp/", "/")
+            put(GLFW_KEY_KP_DECIMAL, "kp,", "kp.", ".")
+            put(GLFW_KEY_KP_ENTER, "kpEnter", "kp\n", "kp\\n", "r-enter", "kp-enter")
+            put(GLFW_KEY_KP_EQUAL, "kp=", "=")
             put(GLFW_MOUSE_BUTTON_LEFT, "left")
             put(GLFW_MOUSE_BUTTON_RIGHT, "right")
             put(GLFW_MOUSE_BUTTON_MIDDLE, "middle")
@@ -111,25 +112,14 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type) {
         fun getButton(button: String): Int {
             val asKey = keyMapping[button] ?: keyMapping[button.lowercase()]
             if (asKey != null) return asKey
-            return when (button.lowercase()) {
-                // kp = key pad = num pad probably
-                "kp," -> GLFW_KEY_KP_DECIMAL
-                "kp/" -> GLFW_KEY_KP_DIVIDE
-                "kp*" -> GLFW_KEY_KP_MULTIPLY
-                "kp-" -> GLFW_KEY_KP_SUBTRACT
-                "kp+" -> GLFW_KEY_KP_ADD
-                "kpenter", "kp\n", "kp\\n" -> GLFW_KEY_KP_ENTER
-                "kp=" -> GLFW_KEY_KP_EQUAL
-                else -> {
-                    val asInt = button.toIntOrNull()
-                    if (asInt != null) return asInt
-                    LOGGER.warn("Button unknown: $button")
-                    -1
-                }
-            }
+            val asInt = button.toIntOrNull()
+            if (asInt != null) return asInt
+            val bestMatch = keyMapping.keys.minByOrNull { button.distance(it, true) }
+            LOGGER.warn("Button unknown: '$button', did you mean '$bestMatch'?")
+            return -1
         }
 
-        fun parse(button: String, event: String, modifiers: String): KeyCombination? {
+        fun parse(button: String, event: String, modifiers: String?): KeyCombination? {
             val key = getButton(button)
             if (key < 0) return null
             val type = when (event.lowercase()) {
@@ -142,7 +132,7 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type) {
                 else -> return null
             }
             var mods = 0
-            for (c in modifiers) {
+            if(modifiers != null) for (c in modifiers) {
                 when (c.lowercaseChar()) {
                     'c' -> mods = mods or GLFW_MOD_CONTROL
                     's' -> mods = mods or GLFW_MOD_SHIFT

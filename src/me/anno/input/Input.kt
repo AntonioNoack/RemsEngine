@@ -9,8 +9,8 @@ import me.anno.gpu.GFX.inFocus0
 import me.anno.gpu.GFX.requestFocus
 import me.anno.gpu.GFX.window
 import me.anno.gpu.OpenGL
-import me.anno.ui.Window
 import me.anno.gpu.debug.DebugGPUStorage
+import me.anno.input.KeyMap.inputMap
 import me.anno.input.MouseButton.Companion.toMouseButton
 import me.anno.input.Touch.Companion.onTouchDown
 import me.anno.input.Touch.Companion.onTouchMove
@@ -28,6 +28,7 @@ import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.StudioBase.Companion.defaultWindowStack
 import me.anno.studio.StudioBase.Companion.instance
 import me.anno.ui.Panel
+import me.anno.ui.Window
 import me.anno.ui.editor.treeView.TreeViewPanel
 import me.anno.utils.files.FileExplorerSelectWrapper
 import me.anno.utils.files.Files.findNextFile
@@ -195,10 +196,12 @@ object Input {
         keysWentUp.clear()
     }
 
+
     fun onCharTyped(codepoint: Int, mods: Int) {
         framesSinceLastInteraction = 0
         inFocus0?.onCharTyped(mouseX, mouseY, codepoint)
         keyModState = mods
+        KeyMap.onCharTyped(codepoint)
     }
 
     fun onKeyPressed(key: Int) {
@@ -509,7 +512,7 @@ object Input {
     }
 
     fun empty() {
-        println("[Input] emptying, $inFocus0, ${inFocus0?.javaClass}")
+        // LOGGER.info("[Input] emptying, $inFocus0, ${inFocus0?.javaClass}")
         inFocus0?.onEmpty(mouseX, mouseY)
     }
 

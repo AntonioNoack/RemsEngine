@@ -113,6 +113,31 @@ object Lists {
         return false
     }
 
+    fun <V> List<V>.binarySearch(compare: (V) -> Int): Int {
+        return binarySearch(0, size, compare)
+    }
+
+    fun <V> List<V>.binarySearch(fromIndex: Int = 0, toIndex: Int = size, compare: (V) -> Int): Int {
+
+        // if the list is reversed, this will still work
+        val sign = if (size > 1 && compare(get(0)) > compare(get(1))) -1 else +1
+
+        var low = fromIndex
+        var high = toIndex - 1
+
+        while (low <= high) {
+            val mid = (low + high).ushr(1) // safe from overflows
+            val midVal = get(mid)
+            val cmp = compare(midVal) * sign
+            when {
+                cmp < 0 -> low = mid + 1
+                cmp > 0 -> high = mid - 1
+                else -> return mid // key found
+            }
+        }
+        return -(low + 1)  // key not found
+    }
+
     fun <V> List<V>.indexOf2(v: V, i0: Int, minus1: Boolean): Int {
         for (i in i0 until size) {
             if (this[i] == v) return i

@@ -1,6 +1,5 @@
 package me.anno.ui.base.text
 
-import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.iconGray
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.fonts.keys.TextCacheKey
@@ -14,30 +13,33 @@ import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.input.MouseButton
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths.mixARGB
 import me.anno.ui.Panel
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.style.Style
+import me.anno.utils.Color.a
 import me.anno.utils.input.Keys.isClickKey
-import me.anno.maths.Maths.mixARGB
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.types.Strings.isBlank2
 import kotlin.math.max
 
 open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
 
-    constructor(style: Style): this("", style)
+    constructor(style: Style) : this("", style)
 
-    constructor(base: TextPanel) : this(base.text, base.style){
+    constructor(base: TextPanel) : this(base.text, base.style) {
         base.copy(this)
     }
 
-    constructor(nameDesc: NameDesc, style: Style): this(nameDesc.name, style){
+    constructor(nameDesc: NameDesc, style: Style) : this(nameDesc.name, style) {
         tooltip = nameDesc.desc
     }
 
     var instantTextLoading = false
+    var useMonospaceCharacters = false
+
     var padding = style.getPadding("textPadding", 2)
-    var font = style.getFont("text", DefaultConfig.defaultFont)
+    var font = style.getFont("text")
 
     var textColor = style.getColor("textColor", iconGray)
         set(value) {
@@ -93,17 +95,31 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     }
 
     fun drawText(dx: Int, dy: Int, text: String, color: Int): Int {
-        return DrawTexts.drawText(
-            this.x + dx + padding.left, this.y + dy + padding.top, font,
-            text, color, backgroundColor, widthLimit, heightLimit
-        )
+        val x = this.x + dx + padding.left
+        val y = this.y + dy + padding.top
+        return if (useMonospaceCharacters) {
+            DrawTexts.drawTextCharByChar(
+                x, y, font, text, color,
+                backgroundColor, widthLimit, heightLimit,
+                AxisAlignment.MIN, true
+            )
+        } else {
+            DrawTexts.drawText(x, y, font, text, color, backgroundColor, widthLimit, heightLimit)
+        }
     }
 
     fun drawText(dx: Int, dy: Int, color: Int): Int {
-        return DrawTexts.drawText(
-            this.x + dx + padding.left, this.y + dy + padding.top, font,
-            textCacheKey, color, backgroundColor
-        )
+        val x = this.x + dx + padding.left
+        val y = this.y + dy + padding.top
+        return if (useMonospaceCharacters) {
+            DrawTexts.drawTextCharByChar(
+                x, y, font, text, color,
+                backgroundColor, widthLimit, heightLimit,
+                AxisAlignment.MIN, true
+            )
+        } else {
+            DrawTexts.drawText(x, y, font, textCacheKey, color, backgroundColor)
+        }
     }
 
     fun drawText(color: Int = effectiveTextColor) {
@@ -114,6 +130,11 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
 
     open val widthLimit get() = if (breaksIntoMultiline) w - padding.width else -1
     open val heightLimit get() = -1
+
+    override fun isOpaqueAt(x: Int, y: Int): Boolean {
+        // todo this could be more pixel accurate...
+        return super.isOpaqueAt(x, y) || textColor.a() >= minOpaqueAlpha
+    }
 
     fun calculateSize(w: Int, h: Int, text: String) {
         val inst = instantTextLoading
@@ -129,6 +150,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         ) {
             textCacheKey = TextCacheKey(text, font, widthLimit, heightLimit)
         }
+        // todo if useMonospaceCharacters, calculate size based on them
         val size = getTextSize(textCacheKey)
         minW = max(1, getSizeX(size) + padding.width)
         minH = max(1, getSizeY(size) + padding.height)

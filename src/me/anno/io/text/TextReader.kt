@@ -104,6 +104,10 @@ class TextReader(val data: CharSequence) : TextReaderBase() {
             return read(data, safely).firstInstanceOrNull<Type>()
         }
 
+        inline fun <reified Type> readFirst(data: String, safely: Boolean = true): Type? {
+            return read(data, safely).firstInstanceOrNull<Type>()!!
+        }
+
         fun clone(element: ISaveable): ISaveable? {
             return read(TextWriter.toText(element), true).getOrNull(0)
         }

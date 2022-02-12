@@ -1,6 +1,5 @@
 package me.anno.utils
 
-import me.anno.config.DefaultStyle.black
 import me.anno.io.InvalidFormatException
 import me.anno.maths.Maths.sq
 import me.anno.ui.editor.color.ColorSpace
@@ -15,6 +14,8 @@ import org.joml.Vector4f
 import java.util.*
 
 object ColorParsing {
+
+    private const val black = 255 shl 24
 
     // https://www.december.com/html/spec/colorsvg.html +
     // https://stackoverflow.com/questions/5999209/how-to-get-the-background-color-code-of-an-element-in-hex =
@@ -76,6 +77,9 @@ object ColorParsing {
         }
     }
 
+    fun String.is255Int() = toIntOrNull() != null && toInt() in 0..255
+    fun String.is01Float() = toFloatOrNull() != null && toFloat() in 0f..1f
+
     /**
      * @return null for "none", else argb color code
      * @throws RuntimeException if term could not be parsed
@@ -97,12 +101,40 @@ object ColorParsing {
                         parts.all { it.toFloatOrNull() != null && it.toFloat() in 0f..1f } -> {
                             parts.map { it.toFloat() }
                         }
-                        parts.all { it.toIntOrNull() != null && it.toInt() in 0..255 } -> {
+                        parts.all { it.is255Int() } -> {
                             parts.map { it.toInt() / 255f }
                         }
                         else -> throw InvalidFormatException("Unknown color $name")
                     }
                     rgba(rgb[0], rgb[1], rgb[2], 1f)
+                } else throw InvalidFormatException("Unknown color $name")
+            }
+            name.startsWith("rgba(") && name.endsWith(")") -> {
+                val parts = name.substring(5, name.length - 1)
+                    .split(',')
+                    .map { it.trim() }
+                if (parts.size == 4) {
+                    val rgba = when {
+                        parts.all { it.endsWith('%') } -> {
+                            parts.map { it.substring(0, it.length - 1).toFloat() / 100f }
+                        }
+                        parts.all { it.toFloatOrNull() != null && it.toFloat() in 0f..1f } -> {
+                            parts.map { it.toFloat() }
+                        }
+                        parts.all { it.is255Int() } -> {
+                            parts.map { it.toInt() / 255f }
+                        }
+                        parts[0].is255Int() && parts[1].is255Int() && parts[2].is255Int() && parts[3].is01Float() -> {
+                            listOf(
+                                parts[0].toInt() / 255f,
+                                parts[1].toInt() / 255f,
+                                parts[2].toInt() / 255f,
+                                parts[3].toFloat(),
+                            )
+                        }
+                        else -> throw InvalidFormatException("Unknown color $name, $parts")
+                    }
+                    rgba(rgba[0], rgba[1], rgba[2], rgba[3])
                 } else throw InvalidFormatException("Unknown color $name")
             }
             else -> colorMap[name.trim().lowercase(Locale.getDefault())]?.or(black)

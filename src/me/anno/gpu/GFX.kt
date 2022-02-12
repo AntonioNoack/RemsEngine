@@ -324,7 +324,7 @@ object GFX : GFXBase1() {
         LOGGER.info("Max Color Attachments: $maxColorAttachments")
         LOGGER.info("Max Samples: $maxSamples")
         LOGGER.info("Max Texture Size: $maxTextureSize")
-        tick.stop("render step zero")
+        tick.stop("Checking OpenGL properties")
         ShaderLib.init()
         ECSShaderLib.init()
     }

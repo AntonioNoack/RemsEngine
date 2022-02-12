@@ -55,7 +55,7 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
     var defaultNodeSize = 250.0
     val baseTextSize get() = 20 * scale
 
-    var font = monospaceFont.value
+    var font = monospaceFont
 
     private val nodeToPanel = HashMap<Node, NodePanel>()
 

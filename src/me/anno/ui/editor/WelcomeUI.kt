@@ -2,6 +2,7 @@ package me.anno.ui.editor
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle
+import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFXBase0
 import me.anno.ui.Window
 import me.anno.io.files.FileFileRef
@@ -40,7 +41,11 @@ import kotlin.concurrent.thread
 
 abstract class WelcomeUI {
 
-    fun createWelcomeUI(studio: StudioBase, createBackground: (style: Style) -> Panel?) {
+    open fun createBackground(style: Style): Panel {
+        return Panel(style).apply { backgroundColor = black }
+    }
+
+    fun create(studio: StudioBase) {
 
         val windowStack = studio.windowStack
 
@@ -76,7 +81,7 @@ abstract class WelcomeUI {
         welcome += quickSettings
 
         quickSettings += Dict.selectLanguages(style) {
-            createWelcomeUI(studio, createBackground)
+            create(studio)
         }
 
         val gfxNames = GFXSettings.values().map { it.naming }
@@ -107,8 +112,8 @@ abstract class WelcomeUI {
         ).setChangeListener { DefaultConfig["debug.ui.showFPS"] = it }
 
         val fontSize = style.getSize("fontSize", 15)
-        val slc =
-            SizeLimitingContainer(ConsoleOutputPanel.createConsoleWithStats(true, style), fontSize * 25, -1, style)
+        val cop = ConsoleOutputPanel.createConsoleWithStats(true, style)
+        val slc = SizeLimitingContainer(cop, fontSize * 25, -1, style)
         slc.padding.top = fontSize / 2
         welcome += slc
 
@@ -116,7 +121,8 @@ abstract class WelcomeUI {
         scroll += WrapAlign.Center
 
         val background = createBackground(style)
-        if (background != null) windowStack.push(background)
+        windowStack.push(background)
+
         val mainWindow = Window(scroll, false, windowStack, 0, 0)
         mainWindow.cannotClose()
         mainWindow.acceptsClickAway = {
@@ -125,6 +131,7 @@ abstract class WelcomeUI {
                 usableFile != null
             } else false
         }
+
         windowStack.push(mainWindow)
 
     }
@@ -283,11 +290,11 @@ abstract class WelcomeUI {
             when {
                 !rootIsOk(file) -> {
                     state = "error"
-                    msg = translate("Root ${dirNameEn} does not exist!", "ui.project.rootMissing")
+                    msg = translate("Root $dirNameEn does not exist!", "ui.project.rootMissing")
                 }
                 file.getParent()?.exists != true -> {
                     state = "warning"
-                    msg = translate("Parent ${dirNameEn} does not exist!", "ui.project.parentMissing")
+                    msg = translate("Parent $dirNameEn does not exist!", "ui.project.parentMissing")
                 }
                 !fileNameIsOk(file) -> {
                     state = "error"

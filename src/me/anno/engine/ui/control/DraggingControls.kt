@@ -9,6 +9,7 @@ import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.camDirection
+import me.anno.gpu.GFX.clip2
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.input.Input
 import me.anno.input.Touch
@@ -81,7 +82,7 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                 else -> "X"
             }
         )
-        drawGizmos()
+        clip2(x0, y0, x1, y1, ::drawGizmos)
     }
 
     override fun drawGizmos() {

@@ -64,10 +64,10 @@ class Font(name: String, size: Float, isBold: Boolean, isItalic: Boolean) : Save
         sample = lazy { SampleSize(this) }
     }
 
-    fun withBold(bold: Boolean) = Font(name, size, bold, isItalic)
-    fun withItalic(italic: Boolean) = Font(name, size, isBold, italic)
-    fun withName(name: String) = Font(name, size, isBold, isItalic)
-    fun withSize(size: Float) = Font(name, size, isBold, isItalic)
+    fun withBold(bold: Boolean) = if (bold == isBold) this else Font(name, size, bold, isItalic)
+    fun withItalic(italic: Boolean) = if (italic == isItalic) this else Font(name, size, isBold, italic)
+    fun withName(name: String) = if (name == this.name) this else Font(name, size, isBold, isItalic)
+    fun withSize(size: Float) = if (size == this.size) this else Font(name, size, isBold, isItalic)
 
     override fun equals(other: Any?): Boolean {
         if (other !is Font) return false

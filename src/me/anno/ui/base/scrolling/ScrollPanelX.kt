@@ -54,7 +54,7 @@ open class ScrollPanelX(
         val window = window!!
         val mx = window.mouseXi
         val my = window.mouseYi
-        scrollbar.isBeingHovered = drawsOverlaysOverChildren(mx, my)
+        scrollbar.isBeingHovered = capturesChildEvents(mx, my)
         if (scrollbar.updateAlpha()) invalidateDrawing()
         if (scrollPositionX != lsp || maxScrollPositionX != lmsp) {
             lsp = scrollPositionX
@@ -63,7 +63,7 @@ open class ScrollPanelX(
         }
     }
 
-    override fun drawsOverlaysOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
+    override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
         val sbHeight = interactionHeight + 2 * scrollbarPadding
         return hasScrollbar && ScrollPanelXY.drawsOverX(
             this.lx0, this.ly0, this.lx1, this.ly1, sbHeight,
@@ -126,7 +126,7 @@ open class ScrollPanelX(
     }
 
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
-        isDownOnScrollbar = drawsOverlaysOverChildren(x.toInt(), y.toInt())
+        isDownOnScrollbar = capturesChildEvents(x.toInt(), y.toInt())
         if (!isDownOnScrollbar) super.onMouseDown(x, y, button)
     }
 

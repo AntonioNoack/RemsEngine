@@ -1,5 +1,6 @@
 package me.anno.ui.style
 
+import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
 import me.anno.io.utils.StringMap
 import me.anno.ui.base.Font
@@ -102,7 +103,7 @@ class Style(val prefix: String?, val suffix: String?) {
     fun getSize(name: String, defaultValue: Int): Int = getValue(getFullName(name), defaultValue)
     fun getColor(name: String, defaultValue: Int): Int = getValue(getFullName(name), defaultValue)
     fun getString(name: String, defaultValue: String): String = getValue(getFullName(name), defaultValue)
-    fun getFont(name: String, defaultValue: Font): Font {
+    fun getFont(name: String, defaultValue: Font = DefaultConfig.defaultFont): Font {
         val type = getString("$name.fontName", defaultValue.name)
         val size = getSize("$name.fontSize", defaultValue.size.toInt()).toFloat()
         val isBold = getBoolean("$name.fontBold", defaultValue.isBold)

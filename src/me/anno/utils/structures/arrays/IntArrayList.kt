@@ -14,6 +14,15 @@ class IntArrayList(val capacity: Int) : List<Int> {
 
     /** better: no conversion to Java object ... */
     fun getValue(index: Int) = buffers[index / capacity][index % capacity]
+    fun getUnsafe(index: Int) = buffers[index / capacity][index % capacity]
+
+    fun inc(index: Int) {
+        buffers[index / capacity][index % capacity]++
+    }
+
+    fun dec(index: Int) {
+        buffers[index / capacity][index % capacity]++
+    }
 
     operator fun plusAssign(value: Int) {
         val bufferIndex = size / capacity
@@ -48,11 +57,11 @@ class IntArrayList(val capacity: Int) : List<Int> {
         }
     }
 
-    private fun setUnsafe(index: Int, element: Int) {
+    fun setUnsafe(index: Int, element: Int) {
         buffers[index / capacity][index % capacity] = element
     }
 
-    fun set(index: Int, element: Int) {
+    operator fun set(index: Int, element: Int) {
         val bufferIndex = index / capacity
         while (bufferIndex >= buffers.size) buffers.add(IntArray(capacity))
         buffers[bufferIndex][index % capacity] = element
@@ -164,6 +173,10 @@ class IntArrayList(val capacity: Int) : List<Int> {
             override fun previous() = get(--idx)
             override fun previousIndex() = idx - 1
         }
+    }
+
+    override fun toString(): String {
+        return (0 until size).joinToString(",", "[", "]") { this[it].toString() }
     }
 
 }

@@ -269,8 +269,8 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
         return if (element.root.prefab?.isWritable == false) "\uD83D\uDD12" else "⚪"
     }
 
-    override fun getParent(element: PrefabSaveable): Entity? {
-        return element.parent as? Entity
+    override fun getParent(element: PrefabSaveable): PrefabSaveable? {
+        return element.parent
     }
 
     override fun getName(element: PrefabSaveable): String {

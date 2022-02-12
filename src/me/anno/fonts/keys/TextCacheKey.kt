@@ -20,6 +20,8 @@ class TextCacheKey(
     constructor(text: String, font: Font, widthLimit: Int, heightLimit: Int) :
             this(text, font.name, getProperties(font.sizeIndex, font), widthLimit, heightLimit)
 
+    constructor(text: String, font: Font): this(text, font, -1, -1)
+
     fun fontSizeIndex() = properties.shr(3)
     fun isItalic() = properties.and(4) != 0
     fun isBold() = properties.and(2) != 0

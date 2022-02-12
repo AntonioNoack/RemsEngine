@@ -5,10 +5,10 @@ import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.io.files.FileReference
 import me.anno.io.text.TextWriterBase
+import me.anno.maths.Maths.fract
 import me.anno.ui.base.Font
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.files.Files.formatFileSize
-import me.anno.maths.Maths.fract
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.ExpensiveList
 import me.anno.utils.types.Floats.f1
@@ -18,6 +18,10 @@ import kotlin.math.floor
 import kotlin.math.min
 
 object Strings {
+
+    fun Int.joinChars(): CharSequence {
+        return String(Character.toChars(this))
+    }
 
     fun List<Int>.joinChars(startIndex: Int = 0, endIndex: Int = size): CharSequence {
         val builder = StringBuilder(endIndex - startIndex)

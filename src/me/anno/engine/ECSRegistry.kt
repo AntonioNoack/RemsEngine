@@ -1,5 +1,6 @@
 package me.anno.engine
 
+import me.anno.Build
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
@@ -31,18 +32,17 @@ import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.scene.ScenePrefab
 import me.anno.engine.ui.render.ECSShaderLib
-import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.ShaderLib
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.SaveableArray
 import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
 import me.anno.mesh.assimp.Bone
-import me.anno.Build
+import me.anno.ui.Panel
 import me.anno.ui.base.Font
 import me.anno.ui.base.IconPanel
-import me.anno.ui.Panel
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.ImageButton
 import me.anno.ui.base.buttons.TextButton
@@ -56,6 +56,9 @@ import me.anno.ui.base.text.SimpleTextPanel
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.color.ColorChooser
 import me.anno.ui.input.*
+import me.anno.ui.input.components.PureTextInput
+import me.anno.ui.input.components.PureTextInputML
+import me.anno.utils.types.Floats.f3
 
 object ECSRegistry {
 
@@ -101,14 +104,16 @@ object ECSRegistry {
         registerCustomClass { ImageButton(style) }
         registerCustomClass { SpacerPanel(style) }
         registerCustomClass { ColorChooser(style) }
-        registerCustomClass { BooleanInput(style) }
         registerCustomClass { ColorInput(style) }
+        registerCustomClass { BooleanInput(style) }
         registerCustomClass { FloatInput(style) }
+        registerCustomClass { FloatVectorInput(style) }
         registerCustomClass { IntInput(style) }
+        registerCustomClass { IntVectorInput(style) }
         registerCustomClass { TextInput(style) }
         registerCustomClass { TextInputML(style) }
-        registerCustomClass { FloatVectorInput(style) }
-        registerCustomClass { IntVectorInput(style) }
+        registerCustomClass { PureTextInput(style) }
+        registerCustomClass { PureTextInputML(style) }
         // not finished:
         // registerCustomClass { ConsoleInput(style) }
 
@@ -196,6 +201,21 @@ object ECSRegistry {
     fun initNoGFX() {
         ECSShaderLib.pbrModelShader = BaseShader()
         init()
+    }
+
+    @JvmStatic
+    fun main(args: Array<String>) {
+        val tx = System.nanoTime()
+        ECSShaderLib.pbrModelShader = BaseShader()
+        val t0 = System.nanoTime()
+        init()
+        val t1 = System.nanoTime()
+        hasBeenInited = false
+        init()
+        val t2 = System.nanoTime()
+        println("Used 1st ${((t1 - t0) * 1e-9).f3()} / " +
+                "2nd ${((t2 - t1) * 1e-9).f3()} s, " +
+                "base: ${((t0 - tx) * 1e-9).f3()}")
     }
 
 }

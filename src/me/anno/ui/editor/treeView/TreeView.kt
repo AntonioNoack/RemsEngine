@@ -3,6 +3,7 @@ package me.anno.ui.editor.treeView
 import me.anno.config.DefaultConfig
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
+import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
@@ -10,6 +11,7 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.style.Style
+import org.apache.logging.log4j.LogManager
 
 // todo select multiple elements, filter for common properties, and apply them all together :)
 
@@ -118,6 +120,9 @@ abstract class TreeView<V>(
             val children = getChildren(element)
             for (i in children.indices) {
                 val child = children[i]
+                if (getParent(child) != element) {
+                    LOGGER.warn("${className}.getParent($child) is incorrect")
+                }
                 index = addToTreeList(child, depth + 1, index)
             }
         }// todo else show that it's collapsed, if there is no symbol
@@ -194,6 +199,31 @@ abstract class TreeView<V>(
 
     abstract fun toggleCollapsed(element: V)
 
+    override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
+        return when (action) {
+            "Delete" -> {
+                moveChange {
+                    var ctr = 0
+                    val studioBase = StudioBase.instance!!
+                    for (child in list.children) {
+                        if (child is TreeViewPanel<*>) {
+                            @Suppress("unchecked_cast")
+                            val element = child.getElement() as V
+                            val parent = getParent(element)
+                            if (parent != null && studioBase.isSelected(element)) {
+                                removeChild(parent, element)
+                                ctr++
+                            }
+                        }
+                    }
+                    invalidateLayout()
+                }
+                true
+            }
+            else -> super.onGotAction(x, y, dx, dy, action, isContinuous)
+        }
+    }
+
     // done display, where we'd move it
     // done between vs at the end vs at the start
     // todo we'd need a selection mode with the arrow keys, too...
@@ -207,6 +237,10 @@ abstract class TreeView<V>(
                 true
             ) {}
         }
+    }
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(TreeView::class)
     }
 
 }

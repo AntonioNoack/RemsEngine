@@ -44,8 +44,6 @@ class TreeViewPanel<V>(
     val treeView: TreeView<V>, style: Style
 ) : PanelListX(style) {
 
-    val accentColor = style.getColor("accentColor", black or 0xff0000)
-
     val uiSymbol: TextPanel? = if (showSymbol) {
         object : TextPanel("", style) {
 
@@ -96,8 +94,6 @@ class TreeViewPanel<V>(
             text.focusTextColor = value
         }
 
-    // override val effectiveTextColor: Int get() = textColor
-    val hoverColor get() = (uiSymbol ?: text).hoverColor
     val font get() = (uiSymbol ?: text).font
 
     fun Int.scaleRGB(f: Float): Int {
@@ -157,7 +153,6 @@ class TreeViewPanel<V>(
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-
         val element = getElement()
         when {
             button.isLeft -> {
@@ -299,11 +294,6 @@ class TreeViewPanel<V>(
         return true
     }
 
-    override fun onEmpty(x: Float, y: Float) {
-        onDeleteKey(x, y)
-    }
-
-    override fun onBackSpaceKey(x: Float, y: Float) = onDeleteKey(x, y)
     override fun getCursor() = Cursor.drag
 
     override fun getTooltipText(x: Float, y: Float): String? {

@@ -57,6 +57,9 @@ object StringHelper {
         return str
     }
 
+    fun String.levenshtein(other: String, ignoreCase: Boolean) =
+        distance(other, ignoreCase)
+
     /**
      * Levenshtein distance / edit distance,
      * O(|this| * |other|), so quite expensive for long strings
@@ -72,13 +75,13 @@ object StringHelper {
         if (m <= 1 && n <= 1) return 1
         val stride = m + 1
         val d = IntArray(stride * (n + 1))
-        for (i in 1..n) d[i] = i
-        for (i in 1..m) d[i * stride] = i
-        for (i in 1..m) {
-            val ci = this[i - 1]
-            var k = i * stride + 1
-            for (j in 1..n) {
-                val cj = other[j - 1]
+        for (i in 1..m) d[i] = i
+        for (j in 1..n) d[j * stride] = j
+        for (j in 1..n) {
+            var k = j * stride + 1
+            val cj = other[j - 1]
+            for (i in 1..m) {
+                val ci = this[i - 1]
                 d[k] = when {
                     ci.equals(cj, ignoreCase) -> d[k - 1 - stride]
                     i > 1 && j > 1 &&
@@ -96,5 +99,11 @@ object StringHelper {
 
     // by polyGeneLubricants, https://stackoverflow.com/a/2560017/4979303
     private val splitCamelCaseRegex = Regex("(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])")
+
+    @JvmStatic
+    fun main(args: Array<String>) {
+        println("abc".distance("abcdef"))
+        println("abcdef".distance("abc"))
+    }
 
 }

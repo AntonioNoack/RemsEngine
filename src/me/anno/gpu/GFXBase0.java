@@ -333,13 +333,21 @@ public class GFXBase0 {
 
         setupDebugging();
 
+        tick.stop("Debugging Setup");
+
         renderFrame0();
+
+        tick.stop("Render frame zero");
 
         glfwSwapBuffers(window);
 
         renderStep0();
 
+        tick.stop("Render step zero");
+
         GFX.gameInit.invoke();
+
+        tick.stop("Game Init");
 
         long lastTime = System.nanoTime();
 

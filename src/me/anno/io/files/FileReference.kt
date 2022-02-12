@@ -3,6 +3,7 @@ package me.anno.io.files
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.data.ICacheData
+import me.anno.cache.instances.LastModifiedCache
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.io.windows.WindowsShortcut
 import me.anno.io.zip.ZipCache
@@ -121,6 +122,8 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             // root
             if (str == "root") return FileRootRef
             val str2 = str.replace('\\', '/')
+            // the cache can be a large issue -> avoid if possible
+            if (LastModifiedCache.exists(str2)) return createReference(str2)
             val data = fileCache.getEntry(str2, fileTimeout, false) {
                 createReference(it)
             } as? FileReference // result may be null for unknown reasons; when this happens, use plan B
@@ -143,6 +146,8 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             // root
             if (str == "root") return FileRootRef
             val str2 = str.replace('\\', '/')
+            // the cache can be a large issue -> avoid if possible
+            if (LastModifiedCache.exists(str2)) return createReference(str2)
             return fileCache.getEntry(str2, fileTimeout, true) {
                 createReference(it)
             } as? FileReference
@@ -164,8 +169,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             if (static != null) return static
             // real or compressed files
             // check whether it exists -> easy then :)
-            val file0 = File(str)
-            if (file0.exists()) return FileFileRef(file0)
+            if (LastModifiedCache.exists(str)) return FileFileRef(File(str))
             // split by /, and check when we need to enter a zip file
             val parts = str.trim().split('/', '\\')
 
@@ -184,16 +188,15 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             // binary search? let's do linear first
             for (i in parts.lastIndex downTo 0) {
                 val substr = parts.subList(0, i).joinToString("/")
-                val fileI = File(substr)
-                if (fileI.exists()) {
+                if (LastModifiedCache.exists(substr)) {
                     // great :), now go into that file
-                    return appendPath(fileI, i, parts)
+                    return appendPath(File(substr), i, parts)
                 }
             }
             // somehow, we could not find the correct file
             // it probably just is new
             LOGGER.warn("Could not find correct sub file for $str")
-            return FileFileRef(file0)
+            return FileFileRef(File(str))
         }
 
         fun appendPath(parent: String, name: String): String {

@@ -115,13 +115,15 @@ abstract class StudioBase(
 
         GFX.check()
 
+        tick("Pre game init")
+
         onGameInit()
 
-        tick("game init")
+        tick("Game init")
 
         if (needsAudio) {
             AudioManager.startRunning()
-            tick("audio manager")
+            tick("Audio manager")
         }
 
         Cursor.init()
@@ -182,7 +184,7 @@ abstract class StudioBase(
 
         onGameLoopStart()
 
-        if (isFirstFrame) tick("game loop")
+        if (isFirstFrame) tick("Game loop")
 
         if (Math.random() < 0.1) FileReference.updateCache()
 
@@ -190,7 +192,7 @@ abstract class StudioBase(
         updateHoveredAndCursor()
         processMouseMovement()
 
-        if (isFirstFrame) tick("before window drawing")
+        if (isFirstFrame) tick("Before window drawing")
 
         // be sure that always something is drawn
         var didSomething = GFX.needsRefresh || Input.needsLayoutUpdate()
@@ -204,7 +206,7 @@ abstract class StudioBase(
 
             Input.framesSinceLastInteraction++
 
-            if (isFirstFrame) tick("window drawing")
+            if (isFirstFrame) tick("Window drawing")
 
             useFrame(0, 0, w, h, false, null, Renderer.colorRenderer) {
                 if (drawUIOverlay(w, h)) didSomething = true
@@ -220,7 +222,7 @@ abstract class StudioBase(
         check()
 
         if (isFirstFrame) {
-            startClock.total("first frame finished")
+            startClock.total("First frame finished")
             isFirstFrame = false
         }
 

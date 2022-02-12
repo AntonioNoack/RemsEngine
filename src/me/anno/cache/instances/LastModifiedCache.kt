@@ -4,6 +4,7 @@ import me.anno.gpu.GFX.gameTime
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.MILLIS_TO_NANOS
+import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
@@ -62,22 +63,45 @@ object LastModifiedCache {
         return values.getOrPut(absolutePath) { Result(file) }
     }
 
-    operator fun get(file: File): Result = get(file, file.absolutePath)
+    operator fun get(absolutePath: String): Result {
+        val time = gameTime
+        // todo partial reload only, like a cache section, just that the entries decay
+        // todo randomness in decay time
+        if (abs(time - lastChecked) > timeoutNanos) {
+            lastChecked = time
+            // if (values.isNotEmpty()) LOGGER.warn("Cleared file cache \n${values.keys.joinToString("\n")}")
+            values.clear()
+        }
+        return values.getOrPut(absolutePath) { Result(File(absolutePath)) }
+    }
+
+    operator fun get(file: File): Result = get(
+        file, file.absolutePath.replace('\\', '/')
+    )
 
     fun isDirectory(ref: FileReference): Boolean {
-        return if (ref is FileFileRef) this[ref.file].exists
+        return if (ref is FileFileRef) this[ref.absolutePath].exists
         else ref.isDirectory
     }
 
     fun exists(ref: FileReference): Boolean {
-        return if (ref is FileFileRef) this[ref.file].exists
+        return if (ref is FileFileRef) this[ref.absolutePath].exists
         else ref.exists
+    }
+
+    fun exists(file: File): Boolean {
+        return this[file].exists
+    }
+
+    fun exists(absolutePath: String): Boolean {
+        return this[absolutePath].exists
     }
 
     fun clear() {
         values.clear()
     }
 
-    const val timeoutNanos = 20L * MILLIS_TO_NANOS
+    private const val timeoutNanos = 20_000L * MILLIS_TO_NANOS
+    private val LOGGER = LogManager.getLogger(LastModifiedCache::class)
 
 }

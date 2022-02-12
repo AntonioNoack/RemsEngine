@@ -36,7 +36,7 @@ abstract class CPUFrame {
 
     fun yuv2rgb(y: Int, u: Int, v: Int): Int {
         // 1024 * all values
-        val y2 = 1192 * (y - 16) // [0,255] * 1024
+        val y2 = 1192 * (y - 16) + 512 // [0,255] * 1024, +512 for rounding
         val u2 = u.shl(1) - 255 // [0,255] * 2
         val v2 = v.shl(1) - 255 // [0,255] * 2
         var r = (y2 + 817 * v2).shr(10)

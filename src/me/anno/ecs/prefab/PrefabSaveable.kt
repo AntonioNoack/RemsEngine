@@ -103,7 +103,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         list.remove(child)
     }
 
-    fun <V: PrefabSaveable> getInClone(thing: V?, clone: PrefabSaveable): V? {
+    fun <V : PrefabSaveable> getInClone(thing: V?, clone: PrefabSaveable): V? {
         thing ?: return null
         val path = thing.prefabPath ?: return null
         val instance = Hierarchy.getInstanceAt(clone.root, path)
@@ -166,7 +166,8 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     companion object {
         private val LOGGER = LogManager.getLogger(PrefabSaveable::class)
         private fun getSuperInstance(className: String): PrefabSaveable {
-            return ISaveable.getSample(className) as PrefabSaveable
+            return ISaveable.getSample(className) as? PrefabSaveable
+                ?: throw RuntimeException("No super instance was found for class '$className'")
         }
     }
 

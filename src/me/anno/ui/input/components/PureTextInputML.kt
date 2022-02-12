@@ -120,20 +120,8 @@ open class PureTextInputML(style: Style) :
                     this@PureTextInputML.onBackSpaceKey(x, y)
                 }
 
-                // override fun onBackKey(x: Float, y: Float) = this@PureTextInputML.onBackKey(x, y)
-                // override fun onCharTyped(x: Float, y: Float, key: Int) = this@PureTextInputML.onCharTyped(x, y, key)
-                // override fun onEnterKey(x: Float, y: Float) = this@PureTextInputML.onEnterKey(x, y)
-                override fun onMouseDown(x: Float, y: Float, button: MouseButton) =
-                    this@PureTextInputML.onMouseDown(x, indexInParent)
-
-                override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) =
-                    this@PureTextInputML.onMouseMoved(x, y, dx, dy)
-
-                override fun onCopyRequested(x: Float, y: Float): String? = this@PureTextInputML.onCopyRequested(x, y)
                 override fun onCharTyped2(x: Float, y: Float, key: Int) = this@PureTextInputML.onCharTyped(x, y, key)
                 override fun onEnterKey2(x: Float, y: Float) = this@PureTextInputML.onEnterKey(x, y)
-                override fun onDeleteKey(x: Float, y: Float) = this@PureTextInputML.onDeleteKey(x, y)
-                override fun onEmpty(x: Float, y: Float) = this@PureTextInputML.onEmpty(x, y)
 
                 override fun setCursor(position: Int) {
                     // set cursor after replacement
@@ -148,8 +136,7 @@ open class PureTextInputML(style: Style) :
                     this@PureTextInputML.update(true)
                 }
             }
-            children.add(panel)
-            panel.parent = content
+            content.add(panel)
         }
         for ((index, chars) in lines.withIndex()) {
             val panel = children[index] as TextPanel
@@ -668,9 +655,10 @@ open class PureTextInputML(style: Style) :
         update(false)
     }
 
-    override fun onBackSpaceKey(x: Float, y: Float) {
+    // done by actions
+    /*override fun onBackSpaceKey(x: Float, y: Float) {
         deleteBefore()
-    }
+    }*/
 
     override fun onEnterKey(x: Float, y: Float) {
         if (lines.size + 1 < lineLimit) insert('\n'.code, true)
@@ -694,6 +682,7 @@ open class PureTextInputML(style: Style) :
         clone.text = text
         clone.cursor1.set(cursor1)
         clone.cursor2.set(cursor2)
+        clone.lineLimit = lineLimit
         clone.placeholder = placeholder
     }
 

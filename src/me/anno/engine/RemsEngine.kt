@@ -19,6 +19,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.debug.FrameTimes
 import me.anno.ui.editor.OptionBar
+import me.anno.ui.editor.WelcomeUI
 import me.anno.ui.editor.config.ConfigPanel
 import me.anno.ui.utils.WindowStack.Companion.createReloadWindow
 import me.anno.utils.OS
@@ -26,20 +27,21 @@ import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
 
+// todo bug: VRAM/C/... flickering (because drawsOverlaysOverChildren returns false for children, but if it was to return true, events would get lost)
+// todo bug: vector inputs only showing text of first component
+// todo bug: tooltip texts of properties are not being displayed
+
 // todo runtime-components/hierarchy: must be displayed
 // todo must have warning
 // todo must be editable -> no CSet/CAdd, just instance changes
 
 
 // todo color input sometimes janky... why?
-// todo bug: text panel cannot be deleted from CanvasComponent
-// todo bug: text input panel ml deletes two chars on first delete, why?
 
 // todo panel: console output of multiple lines, with filters
 
 // todo also the main object randomly just shrinks down (pool & truck)
 
-// todo fix: tooltip texts of properties are not being displayed
 
 // todo to reduce the size of the engine, physics engines could be turned into mods
 // todo libraries like jpeg2000, pdf and such should become mods as well
@@ -52,9 +54,8 @@ import org.apache.logging.log4j.LogManager
 
 // todo drop in meshes
 // todo drop in ui maybe...
-// todo key listeners (?)...
 
-// todo reduce animations to a single translation plus rotations only?
+// todo reduce skeletal animations to a single translation plus rotations only?
 // todo animation matrices then can be reduced to rotation + translation
 
 // could not reproduce it lately -> was it fixed?
@@ -65,7 +66,7 @@ import org.apache.logging.log4j.LogManager
 //  - city builder
 //          on a globe would be cool
 //          with districts, giant world, connecting multiple cities together
-//  - underground survival after apocalypse/crash: many dungeons, water einbrüche, food resources, building electricity system,
+//  - underground survival after apocalypse/crash: many dungeons, water break-ins, food resources, building electricity system,
 //          and resource management
 //  - minecraft like game with easy modding and plugin support, without version barriers, with Minecraft-Mod support
 //  - gta / grand theft waifu,
@@ -73,13 +74,8 @@ import org.apache.logging.log4j.LogManager
 //          low poly style, because that's the only possible way for a hobby programmer
 //  - GTA x Minecraft? it would be nice to build in such a world... low poly could allow that by placing assets, and then
 //          creating personal levels or bases with that
-
-// todo for game engines: easy way to call C/C++, maybe other languages as well, like JavaScript or Lua (as a game engine)
-// todo text file editor with syntax highlighting??..
-
-
-// todo a play button
-
+//  - Sims like game, just low-poly style
+//          simlish should be easy ^^
 
 class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
@@ -95,8 +91,10 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
         // CommandLineReader.start()
         ECSRegistry.init()
+        startClock.stop("ECS Registry")
 
         Dict.loadDefault()
+        startClock.stop("Dictionary")
 
         // pdf stuff
         LogManager.disableLogger("PDICCBased")
@@ -108,6 +106,7 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         LogManager.disableLogger("ScratchFileBuffer")
         LogManager.disableLogger("FontFileFinder")
         LogManager.disableLogger("PDFObjectStreamParser")
+        startClock.stop("Disable some loggers")
 
     }
 
@@ -151,70 +150,64 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
     override fun createUI() {
 
-        // todo select project view, like Rem's Studio
-        // todo what do we use as a background?
+        workspace = OS.documents.getChild("RemsEngine")
+        workspace.mkdirs()
 
-        val projectFile = OS.documents.getChild("RemsEngine").getChild("SampleProject")
-        currentProject = GameEngineProject.readOrCreate(projectFile)!!
-        currentProject.init()
+        object : WelcomeUI() {
+            override fun createProjectUI() {
+
+                val editScene = loadSafely(currentProject.lastScene)
+
+                val style = style
+
+                val list = PanelListY(style)
+
+                val isGaming = false
+                EditorState.syncMaster = syncMaster
+                EditorState.projectFile = editScene.source
+
+                ECSSceneTabs.open(syncMaster, editScene)
+
+                val options = OptionBar(style)
+
+                val configTitle = Dict["Config", "ui.top.config"]
+                options.addAction(configTitle, Dict["Settings", "ui.top.config.settings"]) {
+                    val panel = ConfigPanel(DefaultConfig, false, style)
+                    val window = createReloadWindow(panel, true) { createUI() }
+                    panel.create()
+                    windowStack.push(window)
+                }
+
+                options.addAction(configTitle, Dict["Style", "ui.top.config.style"]) {
+                    val panel = ConfigPanel(DefaultConfig.style.values, true, style)
+                    val window = createReloadWindow(panel, true) { createUI() }
+                    panel.create()
+                    windowStack.push(window)
+                }
+
+                list.add(options)
+
+                list.add(ECSSceneTabs)
+
+                val editUI = DefaultLayout.createDefaultMainUI(currentProject.location, syncMaster, isGaming, style)
+                list.add(editUI)
+
+                list.add(ConsoleOutputPanel.createConsoleWithStats(true, style))
+                windowStack.push(list)
+            }
+
+            override fun loadProject(name: String, folder: FileReference): Pair<String, FileReference> {
+                currentProject = GameEngineProject.readOrCreate(folder)!!
+                currentProject.init()
+                return name to folder
+            }
+        }.create(this)
 
         ShaderLib.init()
         ECSShaderLib.init()
 
-        // todo select scene
-        // todo show scene, and stuff, like Rem's Studio
-
         // todo different editing modes like Blender?, e.g. animating stuff, scripting, ...
         // todo and always be capable to change stuff
-
-        // todo create our editor, where we can drag stuff into the scene, view it in 3D, move around, and such
-        // todo play the scene
-
-        // todo base shaders, which can be easily made touch-able
-
-        // for testing directly jump in the editor
-
-        val editScene = loadSafely(currentProject.lastScene)
-
-        val style = style
-
-        val list = PanelListY(style)
-
-        val isGaming = false
-        EditorState.syncMaster = syncMaster
-        EditorState.projectFile = editScene.source
-
-        ECSSceneTabs.open(syncMaster, editScene)
-        // ECSSceneTabs.add(syncMaster, projectFile.getChild("2ndScene.json"))
-
-
-        val options = OptionBar(style)
-
-
-        val configTitle = Dict["Config", "ui.top.config"]
-        options.addAction(configTitle, Dict["Settings", "ui.top.config.settings"]) {
-            val panel = ConfigPanel(DefaultConfig, false, style)
-            val window = createReloadWindow(panel, true) { createUI() }
-            panel.create()
-            windowStack.push(window)
-        }
-
-        options.addAction(configTitle, Dict["Style", "ui.top.config.style"]) {
-            val panel = ConfigPanel(DefaultConfig.style.values, true, style)
-            val window = createReloadWindow(panel, true) { createUI() }
-            panel.create()
-            windowStack.push(window)
-        }
-
-        list.add(options)
-
-        list.add(ECSSceneTabs)
-
-        val editUI = DefaultLayout.createDefaultMainUI(projectFile, syncMaster, isGaming, style)
-        list.add(editUI)
-
-        list.add(ConsoleOutputPanel.createConsoleWithStats(true, style))
-        windowStack.push(list)
 
         ECSSceneTabs.window = windowStack.firstElement()
         EngineActions.register()

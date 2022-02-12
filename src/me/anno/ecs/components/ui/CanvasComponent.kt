@@ -17,7 +17,6 @@ import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL
 import me.anno.gpu.OpenGL.useFrame
-import me.anno.ui.Window
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame
@@ -29,6 +28,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.zip.InnerTmpFile
 import me.anno.ui.Panel
+import me.anno.ui.Window
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.utils.WindowStack
 import me.anno.utils.pooling.JomlPools
@@ -72,12 +72,18 @@ class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
 
     override fun add(child: PrefabSaveable) {
         if (child !is Panel) return
+        child.parent = this
         windowStack.push(child)
     }
 
     override fun removeChild(child: PrefabSaveable) {
         super.removeChild(child)
-        windowStack.removeAll { it.panel === child }
+        windowStack.removeAll {
+            if (it.panel === child) {
+                it.panel.parent = null
+                true
+            } else false
+        }
     }
 
     // different spaces like in Unity: world space, camera space
@@ -231,7 +237,11 @@ class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
         clone.height = height
         clone.style = style
         clone.windowStack.clear()
-        clone.windowStack.addAll(windowStack.map { Window(it.panel, it.isFullscreen, clone.windowStack, it.x, it.y) })
+        clone.windowStack.addAll(windowStack.map {
+            val newPanel = it.panel.clone()
+            newPanel.parent = clone
+            Window(newPanel, it.isFullscreen, clone.windowStack, it.x, it.y)
+        })
     }
 
     override fun onDestroy() {
@@ -251,7 +261,13 @@ class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
         when (name) {
             "panels" -> {
                 windowStack.clear()
-                windowStack.addAll(values.filterIsInstance<Panel>().map { Window(it, windowStack, it.x, it.y) })
+                windowStack.addAll(
+                    values.filterIsInstance<Panel>()
+                        .map {
+                            it.parent = this
+                            Window(it, windowStack, it.x, it.y)
+                        }
+                )
             }
             else -> super.readObjectArray(name, values)
         }

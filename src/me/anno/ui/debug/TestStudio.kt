@@ -16,6 +16,7 @@ class TestStudio(val createMainPanel: () -> Panel) : StudioBase(true, "Test", 1)
         // todo somehow missing in layout for UnityReader
         ui.add(ConsoleOutputPanel.createConsoleWithStats(false, style))
         ui.add(createMainPanel())
+        ui.setWeight(1f)
         windowStack.add(Window(ui, windowStack))
     }
 

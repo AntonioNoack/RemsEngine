@@ -24,7 +24,7 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
     var focusTextColor = style.getColor("textColorFocused", -1)
 
     override fun calculateSize(w: Int, h: Int) {
-        val font = DrawTexts.monospaceFont.value
+        val font = DrawTexts.monospaceFont
         val text = text.ifEmpty { "." }
         super.calculateSize(w, h)
         val w2 = font.sampleWidth * text.length + 4

@@ -37,14 +37,14 @@ class ChangeHistory : StringHistory() {
             hist.put("that was le world")
 
             val str = TextWriter.toText(hist)
-            println(str)
+            LOGGER.info(str)
 
             val hist2 = TextReader.readFirstOrNull<ChangeHistory>(str)!!
 
             val str2 = TextWriter.toText(hist2)
 
             if (str != str2) {
-                println(str2)
+                LOGGER.info(str2)
                 throw RuntimeException()
             }
 

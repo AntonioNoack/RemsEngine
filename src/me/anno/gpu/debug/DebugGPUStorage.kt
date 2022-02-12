@@ -38,7 +38,7 @@ object DebugGPUStorage {
 
     val buffers = HashSet<Buffer>()
 
-    val fontSize get() = monospaceFont.value.sizeInt
+    val fontSize get() = monospaceFont.sizeInt
 
     abstract class TexturePanelBase(val title: String) : Panel(style) {
 

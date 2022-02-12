@@ -41,6 +41,8 @@ open class ControlScheme(val camera: CameraComponent, val library: EditorState, 
 
     constructor(view: RenderView) : this(view.editorCamera, view.library, view)
 
+    override fun isOpaqueAt(x: Int, y: Int): Boolean = true
+
     val cameraNode = camera.entity!!
 
     val selectedEntities

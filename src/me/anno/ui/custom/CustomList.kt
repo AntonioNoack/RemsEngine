@@ -146,13 +146,13 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         }
     }
 
-    override fun drawsOverlaysOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
+    override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
         for (i in 1 until children.size) {
             if (touchesBar(i, lx0, ly0, lx1, ly1)) {
                 return true
             }
         }
-        return super.drawsOverlaysOverChildren(lx0, ly0, lx1, ly1)
+        return super.capturesChildEvents(lx0, ly0, lx1, ly1)
     }
 
     var isDownIndex = -1

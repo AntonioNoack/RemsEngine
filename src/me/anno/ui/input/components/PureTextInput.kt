@@ -8,6 +8,12 @@ open class PureTextInput(style: Style) : PureTextInputML(style.getChild("edit"))
         lineLimit = 1
     }
 
+    override fun clone(): PureTextInput {
+        val clone = PureTextInput(style)
+        copy(clone)
+        return clone
+    }
+
     override val className get() = "PureTextInput"
 
 }

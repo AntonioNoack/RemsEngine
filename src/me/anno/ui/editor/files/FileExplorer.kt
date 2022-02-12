@@ -553,7 +553,7 @@ abstract class FileExplorer(
             content.childWidth = esi
             // define the aspect ratio by 2 lines of space for the name
             val sample = content.firstOfAll { it is TextPanel } as? TextPanel
-            val sampleFont = sample?.font ?: style.getFont("text", DefaultConfig.defaultFont)
+            val sampleFont = sample?.font ?: style.getFont("text")
             val textSize = sampleFont.sizeInt
             content.childHeight = esi + (textSize * 2.5f).roundToInt()
             // scroll to hoverItemIndex, hoverFractionY

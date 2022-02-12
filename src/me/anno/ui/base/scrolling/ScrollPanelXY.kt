@@ -81,7 +81,7 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
     private val hasScrollbarX get() = maxScrollPositionX > 0f
     private val hasScrollbarY get() = maxScrollPositionY > 0f
 
-    override fun drawsOverlaysOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
+    override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
         return drawsOverX(lx0, ly0, lx1, ly1) || drawsOverY(lx0, ly0, lx1, ly1)
     }
 

@@ -23,13 +23,14 @@ open class FloatInput(
 
     constructor(style: Style) : this(style, "", "", Type.FLOAT)
 
-    override var lastValue: Double = getValue(type.defaultValue)
+    override var lastValue: Double = 0.0
     var changeListener: (value: Double) -> Unit = { }
 
     var allowInfinity = false
 
     init {
         // todo only override text, if the users presses enter
+        setText("0.0", false)
         inputPanel.addChangeListener {
             val newValue = parseValue(it)
             if (newValue != null) {

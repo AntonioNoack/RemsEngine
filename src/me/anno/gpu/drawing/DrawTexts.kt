@@ -22,9 +22,17 @@ object DrawTexts {
     private val LOGGER = LogManager.getLogger(DrawTexts::class)
 
     val simpleChars = Array('z'.code + 1) { it.toChar().toString() }
-    var monospaceFont = lazy { Font("Consolas", DefaultConfig.style.getSize("fontSize", 12), false, false) }
-    val monospaceKeys =
-        lazy { Array(simpleChars.size) { FontManager.getTextCacheKey(monospaceFont.value, simpleChars[it], -1, -1) } }
+
+    val monospaceFont by lazy {
+        val size = DefaultConfig.style.getSize("fontSize", 12)
+        Font("Consolas", size, false, false)
+    }
+
+    val monospaceKeys by lazy {
+        Array(simpleChars.size) {
+            FontManager.getTextCacheKey(monospaceFont, simpleChars[it], -1, -1)
+        }
+    }
 
     fun drawSimpleTextCharByChar(
         x0: Int, y0: Int,
@@ -34,8 +42,8 @@ object DrawTexts {
         backgroundColor: Int = FrameTimes.backgroundColor,
         alignmentX: AxisAlignment = AxisAlignment.MIN
     ) {
-        val font = monospaceFont.value
-        val keys = monospaceKeys.value
+        val font = monospaceFont
+        val keys = monospaceKeys
         val charWidth = font.sampleWidth
         val size = text.size
         val width = charWidth * size
@@ -68,7 +76,7 @@ object DrawTexts {
         padding: Int,
         text: String,
         alignment: AxisAlignment = AxisAlignment.MIN
-    ): Unit = drawSimpleTextCharByChar(
+    ): Int = drawSimpleTextCharByChar(
         x0, y0, padding, text, FrameTimes.textColor,
         FrameTimes.backgroundColor, alignment
     )
@@ -80,10 +88,10 @@ object DrawTexts {
         textColor: Int = FrameTimes.textColor,
         backgroundColor: Int = FrameTimes.backgroundColor,
         alignment: AxisAlignment = AxisAlignment.MIN
-    ) {
+    ): Int {
         GFX.check()
-        val font = monospaceFont.value
-        val keys = monospaceKeys.value
+        val font = monospaceFont
+        val keys = monospaceKeys
         val charWidth = font.sampleWidth
         val size = text.length
         val width = charWidth * size
@@ -108,6 +116,7 @@ object DrawTexts {
                 )
             }
         }
+        return width
     }
 
     fun drawTextCharByChar(
@@ -277,12 +286,8 @@ object DrawTexts {
         val charByChar = tex0 == null || tex0 !is Texture2D || !tex0.isCreated
         if (charByChar) {
             return drawTextCharByChar(
-                x,
-                y,
-                font,
-                key.text,
-                color,
-                backgroundColor,
+                x, y, font, key.text,
+                color, backgroundColor,
                 key.widthLimit,
                 key.heightLimit,
                 alignmentX,

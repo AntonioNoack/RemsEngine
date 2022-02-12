@@ -47,7 +47,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
         window!!.needsLayout += this
     }
 
-    override fun drawsOverlaysOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
+    override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
         val crossSize = getCrossSize(style)
         return this.lx1 - lx1 < crossSize && ly0 - this.ly0 < crossSize
     }

@@ -114,7 +114,7 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
     }
 
     // if they are overlapping, we need to redraw the others as well
-    override fun drawsOverlaysOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
+    override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
         return false // not really, I think...
         // todo ok so?
         // return children.count { it.visibility == Visibility.VISIBLE } > 1

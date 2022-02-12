@@ -4,4 +4,5 @@ data class Suggestion(val start: Int, val end: Int, val message: String, val sho
     val clearMessage = message
         .replace("<suggestion>","")
         .replace("</suggestion>","")
+    operator fun contains(index: Int) = index in start until end
 }

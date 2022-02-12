@@ -200,25 +200,13 @@ interface ISaveable {
             return instance::class
         }
 
+        fun getByClass(clazz: KClass<*>): RegistryEntry? {
+            return objectTypeByClass[clazz]
+        }
+
         val objectTypeRegistry = HashMap<String, RegistryEntry>()
-        val superTypeRegistry = HashMap<String, KClass<out ISaveable>>()
-
-        @JvmStatic
-        fun registerCustomClass(className: String, constructor: () -> ISaveable) {
-            val instance0 = constructor()
-            checkInstance(instance0)
-            objectTypeRegistry[className] = RegistryEntry(instance0, constructor)
-            registerSuperClasses(instance0)
-        }
-
-        @JvmStatic
-        fun registerCustomClass(instance0: ISaveable) {
-            checkInstance(instance0)
-            val className = instance0.className
-            val constructor = instance0.javaClass
-            objectTypeRegistry[className] = RegistryEntry(instance0) { constructor.newInstance() }
-            registerSuperClasses(instance0)
-        }
+        private val objectTypeByClass = HashMap<Any, RegistryEntry>()
+        private val superTypeRegistry = HashMap<String, KClass<out ISaveable>>()
 
         fun checkInstance(instance0: ISaveable) {
             if (Build.isDebug && instance0 is PrefabSaveable) {
@@ -229,8 +217,8 @@ interface ISaveable {
             }
         }
 
-        fun registerSuperClasses(instance0: ISaveable) {
-            var clazz = instance0::class
+        fun registerSuperClasses(clazz0: KClass<out ISaveable>) {
+            var clazz = clazz0
             while (true) {
                 superTypeRegistry[clazz.simpleName!!] = clazz
                 @Suppress("UNCHECKED_CAST")
@@ -239,12 +227,26 @@ interface ISaveable {
         }
 
         @JvmStatic
+        fun registerCustomClass(className: String, constructor: () -> ISaveable) {
+            val instance0 = constructor()
+            checkInstance(instance0)
+            register(className, RegistryEntry(instance0, constructor))
+        }
+
+        @JvmStatic
+        fun registerCustomClass(instance0: ISaveable) {
+            checkInstance(instance0)
+            val className = instance0.className
+            val constructor = instance0.javaClass
+            register(className, RegistryEntry(instance0) { constructor.newInstance() })
+        }
+
+        @JvmStatic
         fun registerCustomClass(constructor: () -> ISaveable) {
             val instance0 = constructor()
             checkInstance(instance0)
             val className = instance0.className
-            objectTypeRegistry[className] = RegistryEntry(instance0, constructor)
-            registerSuperClasses(instance0)
+            register(className, RegistryEntry(instance0, constructor))
         }
 
         @JvmStatic
@@ -253,8 +255,7 @@ interface ISaveable {
             val instance0 = constructor.newInstance()
             checkInstance(instance0)
             val className = instance0.className
-            objectTypeRegistry[className] = RegistryEntry(instance0) { constructor.newInstance() }
-            registerSuperClasses(instance0)
+            register(className, RegistryEntry(instance0) { constructor.newInstance() })
         }
 
         @JvmStatic
@@ -262,8 +263,14 @@ interface ISaveable {
             val constructor = clazz.getConstructor()
             val instance0 = constructor.newInstance()
             checkInstance(instance0)
-            objectTypeRegistry[className] = RegistryEntry(instance0) { constructor.newInstance() }
-            registerSuperClasses(instance0)
+            register(className, RegistryEntry(instance0) { constructor.newInstance() })
+        }
+
+        private fun register(className: String, entry: RegistryEntry) {
+            val clazz = entry.sampleInstance::class
+            objectTypeRegistry[className] = entry
+            objectTypeByClass[clazz] = entry
+            registerSuperClasses(clazz)
         }
 
     }

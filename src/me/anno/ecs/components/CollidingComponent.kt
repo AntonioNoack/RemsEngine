@@ -1,12 +1,14 @@
 package me.anno.ecs.components
 
 import me.anno.ecs.Component
+import me.anno.ecs.annotations.DebugTitle
 import me.anno.ecs.prefab.PrefabSaveable
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 
 abstract class CollidingComponent : Component() {
 
+    @DebugTitle("What objects it should collide with, bit mask")
     var collisionMask: Int = 1
 
     fun canCollide(collisionMask: Int): Boolean {

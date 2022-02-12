@@ -88,6 +88,21 @@ abstract class PanelGroup(style: Style) : Panel(style) {
         }
     }
 
+    override fun getPanelAt(x: Int, y: Int): Panel? {
+        return if (canBeSeen && contains(x, y) && isOpaqueAt(x, y)) {
+            if (!capturesChildEvents(x, y)) {
+                val children = children
+                for (i in children.size - 1 downTo 0) {
+                    val panelAt = children[i].getPanelAt(x, y)
+                    if (panelAt != null) {
+                        return panelAt
+                    }
+                }
+            }
+            this
+        } else null
+    }
+
     companion object {
         fun getPanelOptions() = ISaveable.objectTypeRegistry
             .filterValues { it.sampleInstance is Panel }

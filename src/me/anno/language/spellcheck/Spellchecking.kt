@@ -19,12 +19,12 @@ import me.anno.utils.Sleep.sleepABit10
 import me.anno.utils.Sleep.sleepShortly
 import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.io.Streams.listen
-import me.anno.utils.io.Streams.readLine
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.strings.StringHelper.titlecase
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.streams.toList
 
 object Spellchecking : CacheSection("Spellchecking") {
@@ -33,19 +33,21 @@ object Spellchecking : CacheSection("Spellchecking") {
 
     private val language get() = StudioBase.instance?.language ?: Language.get(Dict["en-US", "lang.spellcheck"])
 
-    fun check(sentence: String, allowFirstLowercase: Boolean, key: Any): List<Suggestion>? {
+    fun check(sentence: CharSequence, allowFirstLowercase: Boolean, key: Any): List<Suggestion>? {
         val language = language
         if (language == Language.None || sentence.isBlank2()) return null
         var sentence2 = sentence.trim()
-        if (allowFirstLowercase) sentence2 = sentence2.titlecase()
+        if (allowFirstLowercase) sentence2 = sentence2.toString().titlecase()
         if (sentence2 == "#quit") return null
         val data = getEntry(Pair(sentence2, language), timeout, true) {
             val answer = SuggestionData(null)
-            getValue(sentence2, language, key) { answer.value = it }
+            getValue(sentence2, language, key) {
+                answer.value = it
+            }
             answer
-        } as? SuggestionData
+        } as? SuggestionData ?: return null
         return if (sentence != sentence2) {
-            data?.value?.run {
+            data.value?.run {
                 val offset = sentence
                     .withIndex()
                     .indexOfFirst { (index, _) -> !sentence.substring(0, index + 1).isBlank2() }
@@ -54,16 +56,14 @@ object Spellchecking : CacheSection("Spellchecking") {
                 }
             }
         } else {
-            data?.value
+            data.value
         }
     }
 
-    fun getValue(sentence: String, language: Language, key: Any, callback: (List<Suggestion>) -> Unit) {
+    fun getValue(sentence: CharSequence, language: Language, key: Any, callback: (List<Suggestion>) -> Unit) {
         synchronized(this) {
-            val queue = queues.getOrPut(language) {
-                start(language)
-            }
-            queue[key] = Request(sentence, key, callback)
+            val queue = queues.getOrPut(language) { start(language) }
+            queue.add(Request(sentence, key, callback))
         }
     }
 
@@ -96,14 +96,10 @@ object Spellchecking : CacheSection("Spellchecking") {
             }
         }
         val dst = getReference(path, fileName!!)
-        val answer = if (dst in requestedDownloads) {
-            true
-        } else {
-            requestedDownloads += dst; false
-        }
-        if (answer) {
+        if (dst in requestedDownloads) {
             waitForDownload(dst, callback)
         } else {
+            requestedDownloads += dst
             download(dst, callback)
         }
     }
@@ -140,8 +136,8 @@ object Spellchecking : CacheSection("Spellchecking") {
      * then it will spellcheck all following lines individually.
      * \n and non-ascii symbols should be escaped with \\n or \Uxxxx
      * */
-    fun start(language: Language): ConcurrentHashMap<Any, Request> {
-        val queue = ConcurrentHashMap<Any, Request>()
+    fun start(language: Language): ConcurrentLinkedQueue<Request> {
+        val queue = ConcurrentLinkedQueue<Request>()
         threadWithName("Spellchecking ${language.code}") {
             if (!OS.isAndroid) {
                 getExecutable(language) { executable ->
@@ -155,18 +151,15 @@ object Spellchecking : CacheSection("Spellchecking") {
                     val reader = input.bufferedReader()
                     process.errorStream.listen("Spellchecking-Listener ${language.code}") { msg -> LOGGER.warn(msg) }
                     val output = process.outputStream.bufferedWriter()
-                    val startMessage = input.readLine(reader)
+                    val startMessage = reader.readLine()
                     if (startMessage != null) LOGGER.info(startMessage)
                     try {
                         while (!shutdown) {
                             if (queue.isEmpty()) sleepShortly(true)
                             else {
-                                val nextTask: Request
-                                synchronized(this) {
-                                    val key = queue.keys().nextElement()
-                                    nextTask = queue.remove(key)!!
-                                }
+                                val nextTask = queue.poll()
                                 var lines = nextTask.sentence
+                                    .toString()
                                     .replace("\\", "\\\\")
                                     .replace("\n", "\\n")
                                 val limitChar = 127.toChar()
@@ -179,10 +172,10 @@ object Spellchecking : CacheSection("Spellchecking") {
                                 output.flush()
                                 var suggestionsString = ""
                                 while ((suggestionsString.isEmpty() || !suggestionsString.startsWith("[")) && !shutdown) {
-                                    suggestionsString = input.readLine(reader) ?: break
+                                    suggestionsString = reader.readLine() ?: break
                                     // a random, awkward case, when "Program" or "Transform" is requested in German
                                     if (suggestionsString.startsWith("[COMPOUND")) {
-                                        suggestionsString = "[" + (input.readLine(reader) ?: break)
+                                        suggestionsString = "[" + (reader.readLine() ?: break)
                                     }
                                 }
                                 try {
@@ -228,7 +221,7 @@ object Spellchecking : CacheSection("Spellchecking") {
         return queue
     }
 
-    private val queues = HashMap<Language, ConcurrentHashMap<Any, Request>>()
+    private val queues = HashMap<Language, ConcurrentLinkedQueue<Request>>()
     private val LOGGER = LogManager.getLogger(Spellchecking::class)
 
     private const val timeout = 600_000L // 10 min

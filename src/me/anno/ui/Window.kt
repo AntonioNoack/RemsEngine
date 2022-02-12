@@ -164,7 +164,8 @@ open class Window(
             needsRedraw.add(panel)
             needsLayout.clear()
         } else {
-            while (needsLayout.isNotEmpty()) {
+            var i = 0
+            while (needsLayout.isNotEmpty() && i++ < needsLayout.size) {
                 val p = needsLayout.minByOrNull { it.depth }!!
                 // recalculate layout
                 p.calculateSize(p.lx1 - p.lx0, p.ly1 - p.ly0)
@@ -239,7 +240,11 @@ open class Window(
 
         if (x1 > x0 && y1 > y0) {
 
-            if (panel0 in needsRedraw || needsRedraw.isFull()) {
+            if (panel0 in needsRedraw || // if the main panel is here, all needs to be redrawn anyways
+                needsRedraw.isFull() || // needs redraw is full = we didn't save everything that needs redrawing
+                // if we would need to redraw more pixels than the whole screen, just redraw it, doesn't matter
+                needsRedraw.sumOf { max((it.lx1 - it.lx0) * (it.ly1 - it.ly0), 0) } >= panel0.w * panel0.h
+            ) {
 
                 wasRedrawn += panel0
 

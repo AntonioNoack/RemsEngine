@@ -1,6 +1,7 @@
 package me.anno.utils.structures.lists
 
 import me.anno.io.zip.NextEntryIterator
+import java.util.function.Predicate
 import kotlin.math.min
 
 class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
@@ -10,6 +11,8 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
     fun isFull() = size >= data.size
 
     override var size = 0
+
+    override fun isEmpty(): Boolean = size <= 0
 
     override fun clear() {
         size = 0
@@ -42,9 +45,24 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
                 data[writeIndex++] = element
             }
         }
-        if (!isFull()) {
+        // if (!isFull()) {
             size = writeIndex
+        // }
+        return writeIndex != oldSize || isFull()
+    }
+
+    override fun removeIf(p0: Predicate<in V>): Boolean {
+        var writeIndex = 0
+        val oldSize = min(size, data.size)
+        for (readIndex in 0 until oldSize) {
+            val element = data[readIndex]
+            if (!p0.test(element as V)) {
+                data[writeIndex++] = element
+            }
         }
+        // if (!isFull()) {
+            size = writeIndex
+        // }
         return writeIndex != oldSize || isFull()
     }
 
@@ -57,24 +75,25 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
                 data[writeIndex++] = element
             }
         }
-        if (!isFull()) {
+        // if (!isFull()) {
             size = writeIndex
-        }
+        // }
         return writeIndex != oldSize || isFull()
     }
 
     override fun addAll(elements: Collection<V>): Boolean {
         val targetSize = data.size + elements.size
+        var wasChanged = false
         for (e in elements) {
             if (!add(e)) {
                 size = targetSize
-                return false
+                return true
+            } else {
+                wasChanged = true
             }
         }
-        return size <= data.size
+        return wasChanged
     }
-
-    override fun isEmpty(): Boolean = size == 0
 
     override operator fun contains(element: V): Boolean {
         if (size > data.size) return true

@@ -21,6 +21,7 @@ import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.files.Search
 import me.anno.ui.style.Style
+import me.anno.utils.Color.a
 import me.anno.utils.Tabs
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.arrays.ExpandingGenericArray
@@ -552,21 +553,27 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     open fun getPrintSuffix(): String = "${style.prefix}"
 
-    open fun drawsOverlaysOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int) = false
+    open fun drawsOverlayOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int) =
+        capturesChildEvents(lx0, ly0, lx1, ly1) // the default behaviour
 
-    fun drawsOverlaysOverChildren(x: Int, y: Int) = drawsOverlaysOverChildren(x, y, x + 1, y + 1)
+    fun drawsOverlayOverChildren(x: Int, y: Int) =
+        drawsOverlayOverChildren(x, y, x + 1, y + 1)
+
+    open fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int) = false
+
+    fun capturesChildEvents(x: Int, y: Int) = capturesChildEvents(x, y, x + 1, y + 1)
 
     // todo overlays don't work perfectly: the cross over the scrollbar is blinking when regularly redrawing...
     // first or null would be correct, however our overlays are all the same
     // (the small cross, which should be part of the ui instead)
     //, so we can use the last one
     open fun getOverlayParent(): Panel? {
-        if (drawsOverlaysOverChildren(lx0, ly0, lx1, ly1)) return this
+        if (drawsOverlayOverChildren(lx0, ly0, lx1, ly1)) return this
         return uiParent?.getOverlayParent()
     }
 
     open fun getOverlayParent(x0: Int, y0: Int, x1: Int, y1: Int): Panel? {
-        if (drawsOverlaysOverChildren(x0, y0, x1, y1)) return this
+        if (drawsOverlayOverChildren(x0, y0, x1, y1)) return this
         return uiParent?.getOverlayParent(x0, y0, x1, y1)
     }
 
@@ -704,19 +711,13 @@ open class Panel(val style: Style) : PrefabSaveable() {
      * */
     open fun getMultiSelectablePanel(): Panel? = uiParent?.getMultiSelectablePanel()
 
-    fun getPanelAt(x: Int, y: Int): Panel? {
-        return if (canBeSeen && contains(x, y)) {
-            if (this is PanelGroup && !drawsOverlaysOverChildren(x, y)) {
-                val children = children
-                for (i in children.size - 1 downTo 0) {
-                    val panelAt = children[i].getPanelAt(x, y)
-                    if (panelAt != null) {
-                        return panelAt
-                    }
-                }
-            }
-            this
-        } else null
+    open fun isOpaqueAt(x: Int, y: Int): Boolean {
+        // todo check rounded corners
+        return backgroundColor.a() >= minOpaqueAlpha
+    }
+
+    open fun getPanelAt(x: Int, y: Int): Panel? {
+        return if (canBeSeen && contains(x, y) && isOpaqueAt(x, y)) this else null
     }
 
     open fun onPropertiesChanged() {}
@@ -768,6 +769,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
     companion object {
         private val LOGGER = LogManager.getLogger(Panel::class)
         val interactionPadding get() = Maths.max(0, DefaultConfig["ui.interactionPadding", 6])
+        val minOpaqueAlpha = 127
     }
 
 }

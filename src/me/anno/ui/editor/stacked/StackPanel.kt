@@ -4,6 +4,7 @@ import me.anno.input.MouseButton
 import me.anno.language.translation.NameDesc
 import me.anno.studio.Inspectable
 import me.anno.studio.StudioBase.Companion.dragged
+import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListY

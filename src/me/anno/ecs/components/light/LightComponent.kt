@@ -220,14 +220,15 @@ abstract class LightComponent(
 
     companion object {
 
-        val pipeline = Pipeline(DeferredSettingsV2(listOf(), false))
-
-        init {
-            pipeline.defaultStage = PipelineStage(
+        val pipeline by lazy {
+            val pl = Pipeline(DeferredSettingsV2(listOf(), false))
+            pl.defaultStage = PipelineStage(
                 "", Sorting.NO_SORTING, 0, null, DepthMode.GREATER,
                 true, 0, pbrModelShader
             )
+            pl
         }
+
     }
 
 }

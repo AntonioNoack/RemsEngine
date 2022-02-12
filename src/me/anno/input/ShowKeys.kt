@@ -1,6 +1,5 @@
 package me.anno.input
 
-import me.anno.config.DefaultConfig.defaultFont
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL.renderDefault
@@ -19,7 +18,7 @@ object ShowKeys {
     val activeKeysMap = HashMap<Int, Key>()
     val decaySpeed = 1f
 
-    val font = style.getFont("tutorialText", defaultFont)
+    val font = style.getFont("tutorialText")
     val colors = TextPanel("", style)
 
     class Key(val keyCode: Int, val isSuperKey: Boolean, var time: Float)
