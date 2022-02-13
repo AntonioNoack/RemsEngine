@@ -73,6 +73,7 @@ open class EnumInput(
         lastIndex = index
         lastValue = option
         if (notify) changeListener(option.name, index, options)
+        invalidateLayout() // layout, because the drawn length can change
     }
 
     override fun setValue(value: NameDesc, notify: Boolean): EnumInput {
@@ -141,6 +142,28 @@ open class EnumInput(
                     setValue(option, index)
                 }
             })
+    }
+
+    override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
+        println(action)
+        when (action) {
+            "Up" -> up()
+            "Down" -> down()
+            else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
+        }
+        return true
+    }
+
+    fun up() {
+        setIndex( (lastIndex - 1 + options.size) % options.size)
+    }
+
+    fun down() {
+       setIndex((lastIndex - 1 + options.size) % options.size)
+    }
+
+    fun setIndex(index: Int){
+        setValue(options[index], index, true)
     }
 
     override fun getCursor(): Long = Cursor.drag

@@ -16,18 +16,20 @@ class LanguageTheme(val styles: Array<LanguageStyle>) : Saveable() {
     fun getBold(tokenType: TokenType) = styles[tokenType.ordinal].bold
     fun getItalic(tokenType: TokenType) = styles[tokenType.ordinal].italic
 
+    var name = ""
+
     var backgroundColor = 0
 
-    var numbersColor = -1
+    var numbersColor = 0
     var numbersBGColor = 0
-    var numbersLineColor = 0x770000
+    var numbersLineColor = 0
 
     var selectedLineBGColor = 0
-    var selectedBGColor = 0x333333
-    var selectedSingleColor = 0x666666
-    var selectedMultipleColor = 0x999999
+    var selectedBGColor = 0
 
-    var cursorColor = 0x990000
+    var matchingBracketColor = 0
+
+    var cursorColor = 0
 
     var supportsStyleAlpha = false
 
@@ -42,14 +44,21 @@ class LanguageTheme(val styles: Array<LanguageStyle>) : Saveable() {
         } else {
             writer.writeIntArray("s", IntArray(styles.size) { styles[it].encode() })
         }
-        writer.writeInt("bg", backgroundColor, true)
-        writer.writeInt("nCol", numbersColor, true)
-        writer.writeInt("nBG0", numbersBGColor, true)
-        writer.writeInt("nLCol", numbersLineColor, true)
-        writer.writeInt("selBG", selectedBGColor, true)
-        writer.writeInt("selSin", selectedSingleColor, true)
-        writer.writeInt("selMul", selectedMultipleColor, true)
-        writer.writeInt("cursor", cursorColor, true)
+        writer.writeString("name", name)
+        writer.writeInt("bg", backgroundColor)
+        writer.writeInt("nCol", numbersColor)
+        writer.writeInt("nBG0", numbersBGColor)
+        writer.writeInt("nLCol", numbersLineColor)
+        writer.writeInt("selBG", selectedBGColor)
+        writer.writeInt("mbc", matchingBracketColor)
+        writer.writeInt("cursor", cursorColor)
+    }
+
+    override fun readString(name: String, value: String?) {
+        when (name) {
+            "name" -> this.name = value ?: return
+            else -> super.readString(name, value)
+        }
     }
 
     override fun readInt(name: String, value: Int) {
@@ -59,9 +68,8 @@ class LanguageTheme(val styles: Array<LanguageStyle>) : Saveable() {
             "numbersOddBG", "nBG0", "nBG", "nBG1" -> numbersBGColor = value
             "numbersLineColor", "nLCol" -> numbersLineColor = value
             "selectedBG", "selBG" -> selectedBGColor = value
-            "selectedSingle", "selSin" -> selectedSingleColor = value
-            "selectedMultiple", "selMul" -> selectedMultipleColor = value
             "cursorColor", "cursor" -> cursorColor = value
+            "matchingBracketColor", "mbc" -> matchingBracketColor = value
             else -> super.readInt(name, value)
         }
     }

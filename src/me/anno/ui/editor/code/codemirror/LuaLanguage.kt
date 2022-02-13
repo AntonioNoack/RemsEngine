@@ -136,13 +136,17 @@ class LuaLanguage(var customVariables: Set<String> = emptySet()) : Language {
             state.cur = bracketed(readBracket(stream), TokenType.STRING)
             return state.cur(stream, state)
         }
-        if (ch in '0'..'9') {
-            stream.eatWhile(Regex("/[\\w.%]/"))
-            return TokenType.NUMBER
-        }
-        if (Regex("/[\\w_]/").matches(ch.toString())) {
-            stream.eatWhile(Regex("/[\\w\\\\\\-_.]/"))
-            return TokenType.VARIABLE
+        when (ch) {
+            in '0'..'9' -> {
+                stream.eatWhile { it in '0'..'9' || it in "eE.+-" }
+                return TokenType.NUMBER
+            }
+            in 'A'..'Z', in 'a'..'z' -> {
+                stream.eatWhile { it in 'A'..'Z' || it in 'a'..'z' || it in '0'..'9' || it in "-_" }
+                return TokenType.VARIABLE
+            }
+            '(', ')' -> return TokenType.BRACKET
+            '=', '*', '+', '-', '/' -> return TokenType.OPERATOR
         }
         return TokenType.UNKNOWN
     }

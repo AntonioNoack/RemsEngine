@@ -10,6 +10,7 @@ import me.anno.gpu.texture.TextureLib
 import me.anno.io.files.FileReference
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestStudio
+import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.OS
 import org.joml.Matrix4fArrayList
 
@@ -17,7 +18,7 @@ fun main() {
 
     // what was the error?: 1) we renamed finalPosition to localPosition, but not everywhere...
 
-    TestStudio {
+    testUI {
         val srcFile = FileReference.getReference(OS.downloads, "tiger.svg")
         val panel = object : Panel(DefaultConfig.style) {
             override fun tickUpdate() {

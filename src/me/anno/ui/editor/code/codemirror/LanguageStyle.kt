@@ -2,6 +2,7 @@ package me.anno.ui.editor.code.codemirror
 
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.utils.Color.toHexColor
 import me.anno.utils.types.Booleans.toInt
 
 open class LanguageStyle(

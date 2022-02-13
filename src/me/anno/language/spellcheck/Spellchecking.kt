@@ -46,18 +46,13 @@ object Spellchecking : CacheSection("Spellchecking") {
             }
             answer
         } as? SuggestionData ?: return null
+        val value = data.value ?: return null
         return if (sentence != sentence2) {
-            data.value?.run {
-                val offset = sentence
-                    .withIndex()
-                    .indexOfFirst { (index, _) -> !sentence.substring(0, index + 1).isBlank2() }
-                map {
-                    Suggestion(it.start + offset, it.end + offset, it.message, it.shortMessage, it.improvements)
-                }
-            }
-        } else {
-            data.value
-        }
+            val offset = sentence
+                .withIndex()
+                .indexOfFirst { (index, _) -> !sentence.substring(0, index + 1).isBlank2() }
+            value.map { Suggestion(it.start + offset, it.end + offset, it.message, it.shortMessage, it.improvements) }
+        } else value
     }
 
     fun getValue(sentence: CharSequence, language: Language, key: Any, callback: (List<Suggestion>) -> Unit) {

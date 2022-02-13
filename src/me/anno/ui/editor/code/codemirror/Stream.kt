@@ -33,6 +33,12 @@ class Stream(val stream: IntSequence) {
         }
     }
 
+    fun eatWhile(test: (Char) -> Boolean) {
+        while (index < stream.length && test(stream[index].toChar())) {
+            index++
+        }
+    }
+
     fun peek() = stream.toDirtyCharSequence(index, stream.length)
 
 }

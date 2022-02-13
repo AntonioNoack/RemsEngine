@@ -12,16 +12,19 @@ import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.language.spellcheck.Suggestion
+import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.pow
+import me.anno.studio.StudioBase
 import me.anno.studio.history.StringHistory
 import me.anno.ui.Panel
 import me.anno.ui.base.Font
 import me.anno.ui.base.components.Padding
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestStudio.Companion.testUI2
 import me.anno.ui.editor.code.codemirror.*
+import me.anno.ui.input.EnumInput
 import me.anno.ui.input.components.CursorPosition
 import me.anno.ui.style.Style
 import me.anno.utils.structures.arrays.IntSequence
@@ -36,14 +39,21 @@ import kotlin.streams.toList
 // todo two new editors/viewers:
 //  - hex viewer
 //  - optimize for huge files
+
+// todo if on bracket, find matching bracket
+// todo collapsable blocks
+
+// todo for actual code, save this history :)
+
+// todo line wrapping
+
 open class CodeEditor(style: Style) : Panel(style) {
 
     private val content = LineSequence()
 
-    // todo for actual code, save this history :),
     val history = object : StringHistory() {
         override fun apply(v: String) {
-            setText(v, false, true)
+            setText(v, false, notify = true)
         }
     }
 
@@ -53,8 +63,15 @@ open class CodeEditor(style: Style) : Panel(style) {
 
     var language: Language = LuaLanguage()
 
-    var theme = LanguageThemeLib.Darcula
-    var styles = Array(0) { theme.styles[0] }
+    var theme = LanguageThemeLib.Twilight
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateDrawing()
+            }
+        }
+
+    var styles = ByteArray(0)
 
     var changeListener: (IntSequence) -> Unit = {}
 
@@ -77,19 +94,32 @@ open class CodeEditor(style: Style) : Panel(style) {
         onChangeText(updateHistory, notify)
     }
 
-    private val variableNames = ArrayList<VariableName>()
+    val padding = Padding(4)
+    var font = Font("Courier New", 16, false, false) // style.getFont("text", Font("Mono", 16, false, false))
+    val fonts = Array(4) {
+        font.withBold(it.and(1) > 0)
+            .withItalic(it.and(2) > 0)
+    }
+
+    val charWidth get() = font.sampleWidth
+    val lineHeight get() = font.sampleHeight
+
+    val cursor0 = CursorPosition()
+    val cursor1 = CursorPosition()
+
+    private val spellcheckedSections = ArrayList<TextSection>()
     fun recalculateColors() {
         val state = language.getStartState()
         val text = content
         val stream = Stream(text)
-        val styles = Array(content.length) { theme.styles[0] }
+        val styles = ByteArray(text.length) { TokenType.ERROR.ordinal.toByte() }
         this.styles = styles
         var variableNamesIndex = 0
         while (stream.index < text.length) {
             val token = language.getToken(stream, state)
             if (stream.startIndex == stream.index) break
             // color from startIndex to index
-            val style = theme.styles[token.ordinal]
+            val style = token.ordinal.toByte()
             for (index in stream.startIndex until stream.index) {
                 styles[index] = style
             }
@@ -105,14 +135,14 @@ open class CodeEditor(style: Style) : Panel(style) {
                     if (text[s1] == '\''.code || text[s1] == '"'.code) s1--
                     s1++
                     val partial = text.subSequence(s0, s1).toString()
-                    if (variableNamesIndex < variableNames.size) {
-                        val variable = variableNames[variableNamesIndex]
+                    if (variableNamesIndex < spellcheckedSections.size) {
+                        val variable = spellcheckedSections[variableNamesIndex]
                         variable.startIndex = s0
                         variable.endIndex = s1
                         variable.text = partial
                     } else {
-                        val variable = VariableName(s0, s1, partial)
-                        variableNames.add(variable)
+                        val variable = TextSection(s0, s1, partial)
+                        spellcheckedSections.add(variable)
                     }
                     variableNamesIndex++
                 }
@@ -120,25 +150,11 @@ open class CodeEditor(style: Style) : Panel(style) {
             }
             stream.startIndex = stream.index
         }
-        while (variableNamesIndex > variableNames.size) {
-            variableNames.removeAt(variableNames.lastIndex)
+        while (variableNamesIndex > spellcheckedSections.size) {
+            spellcheckedSections.removeAt(spellcheckedSections.lastIndex)
         }
         invalidateDrawing()
     }
-
-    var autoWrap = true
-    val padding = Padding(4)
-    var font = Font("Courier New", 16, false, false) // style.getFont("text", Font("Mono", 16, false, false))
-    val fonts = Array(4) {
-        font.withBold(it.and(1) > 0)
-            .withItalic(it.and(2) > 0)
-    }
-
-    val charWidth get() = font.sampleWidth
-    val lineHeight get() = font.sampleHeight
-
-    val cursor0 = CursorPosition()
-    val cursor1 = CursorPosition()
 
     private fun getCharsNeededForLineCount(lineCount: Int = content.lineCount): Int {
         return max(log10(lineCount.toFloat()).toInt(), 1) + 2
@@ -224,8 +240,6 @@ open class CodeEditor(style: Style) : Panel(style) {
     val minCursor get() = if (cursor0 < cursor1) cursor0 else cursor1
     val maxCursor get() = if (cursor0 > cursor1) cursor0 else cursor1
 
-    // todo line after 80 chars
-
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         var x = this.x + padding.left
@@ -240,8 +254,7 @@ open class CodeEditor(style: Style) : Panel(style) {
         drawBackground(x0, y0, x1, y1)
 
         // draw the selected lines with special color background
-        val selectedBGColor = (if (minCursor.y == maxCursor.y && minCursor.x + 1 >= maxCursor.x)
-            theme.selectedSingleColor else theme.selectedMultipleColor) or black
+        val selectedBGColor = theme.selectedBGColor or black
         val minSY = minCursor.y * lineHeight + y
         val maxSH = (maxCursor.y - minCursor.y + 1) * lineHeight
 
@@ -250,11 +263,10 @@ open class CodeEditor(style: Style) : Panel(style) {
         val lineNumberBGColor = theme.numbersBGColor or black
 
         // draw number line background color
-        drawRect(
-            x - padding.left, y - padding.top,
-            cn * charWidth + padding.left - charWidth / 2, h,
-            lineNumberBGColor
-        )
+        val nlb = this.x
+        val nlb2 = cn * charWidth + padding.left - charWidth / 2
+        drawRect(nlb, y0, nlb2, y1 - y0, lineNumberBGColor)
+        drawRect(nlb + nlb2, y0, 1, y1 - y0, theme.numbersLineColor or black)
 
         val selectedLineBGColor = theme.selectedLineBGColor or black
         val bg0 = max(x0, this.x + cn * charWidth + padding.left)
@@ -299,41 +311,43 @@ open class CodeEditor(style: Style) : Panel(style) {
         var varIndex = 0
         content.forEachChar(vx0, vy0, vx1, vy1) { charIndex, lineIndex, indexInLine, _ ->
             // draw character
-            val style = styles[charIndex]
+            val style = theme.styles[styles[charIndex].toInt()]
             val textColor = style.color
             val lineIsSelected = lineIndex in minCursor.y..maxCursor.y && cursor0 == cursor1
             val lineBGColor = if (lineIsSelected) selectedLineBGColor else theme.backgroundColor
             val isSelected = minCursor.contains(maxCursor, indexInLine, lineIndex)
             val background = if (isSelected) selectedBGColor else lineBGColor
             drawCharBackground(cn + indexInLine, drawnYi + lineIndex, background)
-            while (varIndex < variableNames.size &&
-                charIndex >= variableNames[varIndex].endIndex
+            while (varIndex < spellcheckedSections.size &&
+                charIndex >= spellcheckedSections[varIndex].endIndex
             ) {
                 varIndex++
             }
-            val variable = variableNames.getOrNull(varIndex)
+            val variable = spellcheckedSections.getOrNull(varIndex)
             val isIncorrectlySpelled = variable != null && charIndex in variable
                     && variable.check()?.any { suggestion -> (charIndex - variable.startIndex) in suggestion } == true
             val xi = x + indexInLine * charWidth
             val yi = y + lineIndex * lineHeight
-            if (style.squiggles || isIncorrectlySpelled) {
+            if (style.squiggles) {
                 // todo get text baseline for alignment...
-                // todo which thickness?
-                // todo which color?
-                // todo why not working???
-                drawSquiggles(xi, xi + charWidth, yi + lineHeight * 5 / 6, 3, textColor)
+                drawSquiggles(xi, xi + charWidth, yi + lineHeight * 5 / 6, squigglesHeight, textColor)
+            }
+            if (isIncorrectlySpelled) {
+                drawSquiggles(xi, xi + charWidth, yi + lineHeight * 5 / 6 + 1, squigglesHeight, black or 0xffff55)
             }
             if (style.underlined) {
-                // todo which thickness?
-                drawUnderline(xi, xi + charWidth, yi, 1, textColor)
+                drawUnderline(xi, xi + charWidth, yi, underlineThickness, textColor)
             }
         }
 
+        // line after 80 chars
+        drawRect(x + recommendedLineLengthLimit * charWidth, y, 1, h - padding.height, selectedLineBGColor)
+
         content.forEachChar(vx0, vy0, vx1, vy1) { charIndex, lineIndex, indexInLine, char ->
             // draw character
-            val style = styles[charIndex]
+            val style = theme.styles[styles[charIndex].toInt()]
             val textColor = style.color
-            val lineIsSelected = lineIndex in minCursor.y..maxCursor.y && cursor0 == cursor1
+            val lineIsSelected = lineIndex == minCursor.y && cursor0 == cursor1
             val lineBGColor = if (lineIsSelected) selectedLineBGColor else theme.backgroundColor
             val isSelected = minCursor.contains(maxCursor, indexInLine, lineIndex)
             val background = if (isSelected) selectedBGColor else lineBGColor
@@ -351,6 +365,11 @@ open class CodeEditor(style: Style) : Panel(style) {
         }
 
     }
+
+    var underlineThickness = 1
+    var squigglesHeight = 3
+
+    var recommendedLineLengthLimit = 80
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
         if (Input.isControlDown) {
@@ -480,7 +499,7 @@ open class CodeEditor(style: Style) : Panel(style) {
         val suggestion = lastSuggestion
         val variable = lastVariable
         if (key == '\t'.code && variable != null && suggestion?.improvements?.isNotEmpty() == true) {
-            applySuggestion(variable, suggestion, suggestion.improvements[0])
+            applySuggestion(variable, suggestion, suggestion.improvements.first())
             lastVariable = null
             lastSuggestion = null
         } else {
@@ -581,7 +600,7 @@ open class CodeEditor(style: Style) : Panel(style) {
     }
 
     // todo tab to apply correction & give hint about it
-    private var lastVariable: VariableName? = null
+    private var lastVariable: TextSection? = null
     private var lastSuggestion: Suggestion? = null
 
     override fun onEnterKey(x: Float, y: Float) {
@@ -596,10 +615,9 @@ open class CodeEditor(style: Style) : Panel(style) {
         }
     }
 
-    private fun applySuggestion(variableName: VariableName, suggestion: Suggestion, choice: String) {
-        // todo test the example: "Eine Löwenfuß" -> "Ein Löwenfußß"?
+    private fun applySuggestion(textSection: TextSection, suggestion: Suggestion, choice: String) {
         val cp = choice.codePoints().toList()
-        val si = variableName.startIndex
+        val si = textSection.startIndex
         val charIndex = si + suggestion.start
         // remove incorrect letters
         for (i in suggestion.end - suggestion.start - 1 downTo 0) {
@@ -620,10 +638,10 @@ open class CodeEditor(style: Style) : Panel(style) {
             // find which char is here
             val charIndex = content.getIndexAt(yi, xi)
             // binary search...
-            var variableIndex = variableNames.binarySearch { e -> e.startIndex.compareTo(charIndex) }
+            var variableIndex = spellcheckedSections.binarySearch { e -> e.startIndex.compareTo(charIndex) }
             if (variableIndex < 0) variableIndex = -2 - variableIndex
-            if (variableIndex in variableNames.indices) {
-                val variable = variableNames[variableIndex]
+            if (variableIndex in spellcheckedSections.indices) {
+                val variable = spellcheckedSections[variableIndex]
                 if (charIndex in variable) {
                     // check if there is a correction for it
                     val suggestions = variable.check()
@@ -640,6 +658,7 @@ open class CodeEditor(style: Style) : Panel(style) {
                     }
                 }
             }
+            return TokenType.values2[styles[charIndex].toInt()].name
         }
         lastSuggestion = null
         return null
@@ -661,8 +680,12 @@ open class CodeEditor(style: Style) : Panel(style) {
 
         @JvmStatic
         fun main(args: Array<String>) {
-            testUI {
-                DefaultConfig["debug.ui.enableVsync"] = false
+            testUI2 {
+
+                DefaultConfig["debug.ui.enableVsync"] = true
+
+                StudioBase.instance?.language = me.anno.language.Language.German
+
                 ActionManager.register("CodeEditor.upArrow.t", "Up")
                 ActionManager.register("CodeEditor.downArrow.t", "Down")
                 ActionManager.register("CodeEditor.leftArrow.t", "Left")
@@ -675,15 +698,27 @@ open class CodeEditor(style: Style) : Panel(style) {
                 ActionManager.register("CodeEditor.z.t.cs", "Redo")
                 ActionManager.register("CodeEditor.y.t.c", "Undo")
                 ActionManager.register("CodeEditor.y.t.cs", "Redo")
-                CodeEditor(style).apply {
-                    setText(
-                        "" +
-                                "if cnt == 1 and state == 0 then\n" +
-                                "  print('this is cool')\n" +
-                                "end\n" +
-                                " 4\n 5\n 6\n 7\n 8\n 9\n10\n"
-                    )
-                }
+                ActionManager.register("EnumInput.arrowUp.t", "Up")
+                ActionManager.register("EnumInput.arrowDown.t", "Down")
+
+                val editor = CodeEditor(style)
+                editor.setText(
+                    "" +
+                            "if cnt == 1 and state == 0 then\n" +
+                            "  print('this is cool')\n" +
+                            "end\n" +
+                            " 4\n 5\n 6\n 7\n 8\n 9\n10\n"
+                )
+
+                listOf(
+                    EnumInput(
+                        "Theme", "", editor.theme.name,
+                        LanguageThemeLib.listOfAll.map { NameDesc(it.name) }, style
+                    ).setChangeListener { _, index, _ ->
+                        editor.theme = LanguageThemeLib.listOfAll[index]
+                    },
+                    editor,
+                )
             }
         }
     }
