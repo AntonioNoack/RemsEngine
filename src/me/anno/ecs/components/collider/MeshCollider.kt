@@ -2,6 +2,7 @@ package me.anno.ecs.components.collider
 
 import com.bulletphysics.collision.shapes.*
 import com.bulletphysics.util.ObjectArrayList
+import me.anno.Engine
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.HideInInspector
@@ -10,11 +11,16 @@ import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.ECSRegistry
 import me.anno.engine.gui.LineShapes
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
+import me.anno.utils.OS.documents
+import org.apache.logging.log4j.LogManager
+import org.joml.AABBd
+import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -30,6 +36,11 @@ class MeshCollider() : Collider() {
 
     @Type("Mesh/PrefabSaveable")
     var mesh: Mesh? = null
+        get() {
+            if (field == null) field = MeshCache[meshFile]
+            if (field == null) field = entity?.getComponentInChildren(MeshBaseComponent::class, false)?.getMesh()
+            return field
+        }
 
     @Type("MeshComponent/Reference")
     var meshFile: FileReference = InvalidRef
@@ -57,10 +68,6 @@ class MeshCollider() : Collider() {
     override fun createBulletShape(scale: Vector3d): CollisionShape {
 
         isValid = true
-
-        if (mesh == null) {
-            mesh = entity?.getComponentInChildren(MeshBaseComponent::class, false)?.getMesh()
-        }
 
         val mesh = mesh ?: return SphereShape(0.5)
 
@@ -103,17 +110,26 @@ class MeshCollider() : Collider() {
 
             // we don't send the data to the gpu here, so we don't need to allocate directly
             // this has the advantage, that the jvm will free the memory itself
-
-            val indexCount = indices?.size ?: positions.size / 3
+            val vertexCount = positions.size / 3
+            val indexCount = indices?.size ?: vertexCount
             val indices3 = ByteBuffer.allocate(4 * indexCount)
                 .order(ByteOrder.nativeOrder())
+
+            val indices3i = indices3.asIntBuffer()
             if (indices == null) {
                 // 0 1 2 3 4 5 6 7 8 ...
                 for (i in 0 until indexCount) {
-                    indices3.putInt(i * 4, i)
+                    indices3i.put(i, i)
                 }
-            } else indices3.asIntBuffer().put(indices)
-            indices3.flip()
+            } else {
+                val illegalIndex = indices.indexOfFirst { it !in 0 until vertexCount }
+                if (illegalIndex >= 0) {
+                    LOGGER.warn("Out of bounds index: ${indices[illegalIndex]} " +
+                            "at position $illegalIndex !in 0 until $vertexCount")
+                }
+                indices3i.put(indices)
+            }
+            indices3i.flip()
 
             val vertexBase = ByteBuffer
                 .allocate(4 * positions.size)
@@ -132,14 +148,17 @@ class MeshCollider() : Collider() {
                         put(positions[i + 2] * sz)
                     }
                 }
+                flip()
             }
-            vertexBase.flip()
 
+            val triangleCount = indexCount / 3
             // int numTriangles, ByteBuffer triangleIndexBase, int triangleIndexStride, int numVertices, ByteBuffer vertexBase, int vertexStride
             // we can use floats, because we have extended the underlying class
-            val smi = TriangleIndexVertexArray(indexCount, indices3, 4, positions.size, vertexBase, 12)
+            val smi = TriangleIndexVertexArray(
+                triangleCount, indices3, 12,
+                vertexCount, vertexBase, 12
+            )
             return BvhTriangleMeshShape(smi, true, true)
-
         }
     }
 
@@ -160,6 +179,15 @@ class MeshCollider() : Collider() {
         }
     }
 
+    override fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
+        val mesh = mesh
+        if (mesh != null) {
+            mesh.forEachPoint(preferExact) { x, y, z ->
+                aabb.union(globalTransform.transformPosition(tmp.set(x.toDouble(), y.toDouble(), z.toDouble())))
+            }
+        } else super.union(globalTransform, aabb, tmp, preferExact)
+    }
+
     override fun clone(): MeshCollider {
         return MeshCollider(this)
     }
@@ -167,7 +195,9 @@ class MeshCollider() : Collider() {
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as MeshCollider
-        clone.mesh = mesh //  getInClone(mesh, clone)
+        // todo getInClone returns an error for thumbnail test on
+        // getReference("Downloads/up/PolygonSciFiCity_Unity_Project_2017_4.unitypackage/f9a80be48a6254344b5f885cfff4bbb0/64472554668277586.json")
+        clone.mesh = mesh // getInClone(mesh, clone)
         clone.meshFile = meshFile
         clone.isConvex = isConvex
         clone.hull = hull
@@ -176,7 +206,21 @@ class MeshCollider() : Collider() {
     override val className get() = "MeshCollider"
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(MeshCollider::class)
         val defaultShape = BoxShape(javax.vecmath.Vector3d(1.0, 1.0, 1.0))
+
+        @JvmStatic
+        fun main(args: Array<String>) {
+            ECSRegistry.initNoGFX()
+            val mesh = MeshCache[documents.getChild("redMonkey.glb")]!!
+            val collider = MeshCollider()
+            collider.mesh = mesh
+            collider.isConvex = false
+            collider.createBulletShape(Vector3d(1.0))
+            Engine.requestShutdown()
+        }
+
     }
 
 }

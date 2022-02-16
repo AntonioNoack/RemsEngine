@@ -10,11 +10,7 @@ import me.anno.io.zip.InnerFolder
 import me.anno.io.zip.InnerLinkFile
 import me.anno.utils.Clock
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.BufferUtils
-import org.lwjgl.system.MemoryUtil
 import java.io.IOException
-import java.nio.Buffer
-import java.nio.ByteBuffer
 
 /**
  * in a Unity file,
@@ -31,7 +27,7 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
     // guid -> folder file for the decoded instances
     val files = HashMap<String, InnerFolder>()
 
-    fun getYAML(file: FileReference): YAMLNode {
+    private fun getYAML(file: FileReference): YAMLNode {
         return synchronized(this) {
             yamlCache.getOrPut(file) {
                 if (file.lcExtension == "meta") file.hide()
@@ -65,7 +61,11 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
         synchronized(this) {
             var folder = files[guid]
             if (folder == null && isValidUUID(guid)) {
-                val guidObject = registry[guid] ?: return InvalidRef
+                val guidObject = registry[guid]
+                if (guidObject == null) {
+                    LOGGER.warn("GUID '$guid' was not found in registry!")
+                    return InvalidRef
+                }
                 val content = guidObject.contentFile
                 // this looks much nicer, because then we have the file name in the name, not just IDs
                 // folder = InnerFolder(content)
@@ -73,7 +73,7 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
                 folder = InnerFolder("${root.absolutePath}/$guid", guid, root)
                 files[guid] = folder
                 when (content.lcExtension) {
-                    "asset", "unity", "mat", "prefab" -> {
+                    in UnityReader.unityExtensions -> {
                         val node = getYAML(guidObject.contentFile)
                         parse(node, guid, folder)
                     }
@@ -86,10 +86,13 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
                         // todo use this data to create a prefab, which then links to the original file
                         val meta = getMeta(content)
                         val fileId = getMainId(meta)
-                        // LOGGER.info("fileId from $meta: $fileId")
+                        LOGGER.info("fileId from $meta: $fileId, created link")
                         InnerLinkFile(folder, fileId ?: content.name, content)
                     }
                 }
+            }
+            if (folder == null) {
+                LOGGER.warn("Could not find folder for GUID $guid")
             }
             return folder ?: InvalidRef
         }
@@ -140,6 +143,7 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
         )
         when {
             file.isDirectory -> {
+                println("found directory $file")
                 if (maxDepth <= 0) return
                 for (child in file.listChildren() ?: return) {
                     register(child, maxDepth - 1)
@@ -150,13 +154,12 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
                     "meta"/*, "mat", "prefab", "unity", "asset"*/ -> {
                         try {
                             val yaml = parseYAML(file.readText(), true)
-                            val guid = yaml["guid"]?.value
+                            val guid = yaml["Guid"]?.value
                             if (guid != null) {
-                                val content = if (file.extension == "meta") {
-                                    file.getSibling(file.nameWithoutExtension)
-                                } else null
-                                registry[guid] = GuidObject(yaml, file, content ?: InvalidRef)
-                            }
+                                LOGGER.info("Registered guid $file")
+                                val content = file.getSibling(file.nameWithoutExtension)
+                                registry[guid] = GuidObject(yaml, file, content)
+                            } else LOGGER.warn("Didn't find guid in $file")
                             yamlCache[file] = yaml
                         } catch (e: IOException) {
                             e.printStackTrace()

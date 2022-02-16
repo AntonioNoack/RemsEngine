@@ -86,7 +86,7 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
     private fun readObjectOrNull(): ISaveable? {
         return when (val subType = input.read().toChar()) {
             OBJECT_IMPL -> readObject()
-            OBJECT_PTR -> getByPointer(input.readInt())!!
+            OBJECT_PTR -> getByPointer(input.readInt(), true)
             OBJECT_NULL -> null
             else -> throw RuntimeException("Unknown sub-type $subType")
         }
@@ -96,7 +96,7 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
         return readArray {
             when (val subType = input.read().toChar()) {
                 OBJECT_IMPL -> readObject(type)
-                OBJECT_PTR -> getByPointer(input.readInt())!!
+                OBJECT_PTR -> getByPointer(input.readInt(), true)
                 OBJECT_NULL -> null
                 else -> throw RuntimeException("Unknown sub-type $subType")
             }
@@ -154,7 +154,7 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
                     OBJECT_IMPL -> obj.readObject(name, readObject())
                     OBJECT_PTR -> {
                         val ptr2 = input.readInt()
-                        val child = getByPointer(ptr2)
+                        val child = getByPointer(ptr2, false)
                         if (child == null) {
                             addMissingReference(obj, name, ptr2)
                         } else {

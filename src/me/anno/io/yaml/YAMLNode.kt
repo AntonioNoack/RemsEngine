@@ -16,6 +16,12 @@ class YAMLNode(
     var children: List<YAMLNode>? = null
 ) {
 
+    init {
+        val value = value
+        if (value != null && value.endsWith("}") && !value.startsWith("{"))
+            RuntimeException("Incorrect YAML Value '$value'").printStackTrace()
+    }
+
     fun add(node: YAMLNode) {
         val content = children
         if (content == null) this.children = arrayListOf(node)

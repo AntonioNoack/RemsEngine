@@ -155,7 +155,7 @@ class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
 
     override fun onVisibleUpdate(): Boolean {
         if (space == Space.WORLD_SPACE ||
-            RenderView.currentInstance.mode == PlayMode.EDITING
+            RenderView.currentInstance?.mode == PlayMode.EDITING
         ) {
             defineMesh()
             render()
@@ -212,7 +212,7 @@ class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
         OpenGL.depthMode.use(DepthMode.ALWAYS) {
             OpenGL.blendMode.use(BlendMode.DEFAULT) {
                 OpenGL.cullMode.use(0) {
-                    val rv = RenderView.currentInstance
+                    val rv = RenderView.currentInstance!!
                     val transform = JomlPools.mat4f.create()
                     if (space == Space.WORLD_SPACE) {
                         // I believe this should be correct: screen space = camera transform * world transform * world pos

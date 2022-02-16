@@ -7,7 +7,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import java.io.IOException
 import java.io.InputStream
-import kotlin.math.abs
 
 /**
  * a file, which is inside another file,
@@ -32,7 +31,7 @@ open class InnerFolder(
 
     override fun invalidate() {
         super.invalidate()
-        for(child in children.values) child.invalidate()
+        for (child in children.values) child.invalidate()
     }
 
     override fun getInputStream(): InputStream {
@@ -40,8 +39,12 @@ open class InnerFolder(
     }
 
     override fun getChild(name: String): FileReference {
-        val c0 = children.values.filter { it.name.equals(name, true) }
-        return c0.firstOrNull { it.name == name } ?: c0.firstOrNull() ?: InvalidRef
+        return if ('\\' in name || '/' in name) {
+            getReference(this, name)
+        } else {
+            val c0 = children.values.filter { it.name.equals(name, true) }
+            c0.firstOrNull { it.name == name } ?: c0.firstOrNull() ?: InvalidRef
+        }
     }
 
     override fun getLc(path: String): FileReference? {

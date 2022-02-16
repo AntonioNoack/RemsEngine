@@ -63,14 +63,14 @@ fun testEntityMeshFrame(file: FileReference) {
     init()
     if (!file.exists) throw FileNotFoundException("$file does not exist")
     val entity = PrefabCache.getPrefabPair(file, null)!!.instance as Entity
-    generateEntityFrame(file.dst(), size, entity) {}
+    generateEntityFrame(file, file.dst(), size, entity) {}
 }
 
 fun testSkeletonFrame(file: FileReference) {
     init()
     if (!file.exists) throw FileNotFoundException("$file does not exist")
     val skeleton = SkeletonCache[file]!!
-    generateSkeletonFrame(file.dst(), skeleton, size) {}
+    generateSkeletonFrame(file, file.dst(), skeleton, size) {}
 }
 
 fun testImage(file: FileReference) {
@@ -108,7 +108,7 @@ fun testSVG(file: FileReference) {
 fun testMeshFrame(file: FileReference) {
     if (!file.exists) throw FileNotFoundException("$file does not exist")
     val mesh = MeshCache[file]!!
-    generateMeshFrame(file.dst(), size, mesh) {}
+    generateMeshFrame(file, file.dst(), size, mesh) {}
 }
 
 fun testMaterial(file: FileReference) {

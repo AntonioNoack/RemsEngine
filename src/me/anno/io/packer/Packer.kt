@@ -18,13 +18,44 @@ object Packer {
 
     // todo remove unnecessary classes, if possible
     // todo e.g. we only need a few image formats,
-    // todo we don't need rar etc (except we export an editor), ...
+    // todo we don't need pdf etc (except we export an editor), ...
 
-    // todo the best formats:
-    // images: png, jpg
-    // audio: mp3
-    // video: mp4
-    // documents: svg/pdf?
+    //////////////////////////////////////////
+    //           features by size           //
+    //////////////////////////////////////////
+
+    // opengl          1.0  MB
+    // openal          0.6  MB/platform
+
+    // tar,7z,zip      0.6  MB
+    // rotated jpegs   0.86 MB (definitively can be reduced)
+    // xz              0.15 MB
+    // rar (+vfs)      0.66 MB
+    // psd,tiff,...    0.73 MB (Commons Imaging)
+
+    // pdf             5.59 MB
+    // JNA (trash)     2.88 MB
+
+    // box2d           0.35 MB
+    // bullet          0.76 MB
+
+    // assimp         ~3.0  MB/platform
+
+    // ogg (stb)       1.2  MB | 0.1 MB + 0.2MB/platform
+    // fft             1.5  MB | JTransforms.jar, currently only used in Rem's Studio + could be reduced
+
+    // ffmpeg         63.1  MB
+    // ffprobe        63.0  MB
+
+    // spellcheck    169.7  MB
+    // spellcheck-en  82.6  MB
+
+
+    // the best formats (probably)
+    // images  png, jpg
+    // audio  mp3
+    // video  mp4
+    // documents  svg/pdf?
 
 
     private val LOGGER = LogManager.getLogger(Packer::class)
@@ -34,7 +65,8 @@ object Packer {
     // in a game, there are assets, so
     // todo - we need to pack assets
     // done - it would be nice, if FileReferences could point to local files as well
-    // todo always ship the editor with the game? would make creating mods easier :)
+    // always ship the editor with the game? would make creating mods easier :)
+    // yes, low overhead + games should be able to be based on the editor
     // (and cheating, but there always will be cheaters, soo...)
 
     /**
@@ -43,30 +75,34 @@ object Packer {
      * */
     fun packWithReporting(
         resources: List<FileReference>,
-        ensurePrivacy: Boolean, dst: FileReference, createMap: Boolean,
+        ensurePrivacy: Boolean,
+        dst: FileReference,
+        createMap: Boolean,
         updatingMillis: Int = 500
     ): Map<FileReference, FileReference> {
         val startTime = System.nanoTime()
         var lastTime = startTime
         var lastSize = 0L
         val updatingNanos = updatingMillis * 1000_000L
-        val map = pack(resources, ensurePrivacy, dst, createMap) { size, total ->
-            if (size < total) {
-                val time = System.nanoTime()
-                if (lastTime == 0L || abs(time - lastTime) > updatingNanos) {
-                    val deltaSize = size - lastSize
-                    val deltaTime = time - lastTime
-                    val bandwidth =
-                        if (deltaTime == 0L) "NaN" else (deltaSize * 1e9 / deltaTime).toLong().formatFileSize()
-                    val percent = (size * 100.0) / total
-                    LOGGER.info(
-                        "Packing ${dst.name}, " +
-                                "${size.formatFileSize()}/${total.formatFileSize()}, " +
-                                "${percent.f1()}%, " +
-                                "$bandwidth/s"
-                    )
-                    lastSize = size
-                    lastTime = time
+        val map = pack(resources, ensurePrivacy, dst, createMap) { currentSize, totalSize ->
+            if (currentSize < totalSize) {
+                val currentTime = System.nanoTime()
+                if (lastTime == 0L || abs(currentTime - lastTime) > updatingNanos) {
+                    val deltaSize = currentSize - lastSize
+                    val deltaTime = currentTime - lastTime
+                    val builder = StringBuilder()
+                    builder
+                        .append("Packing ").append(dst.name).append(", ")
+                        .append(currentSize.formatFileSize()).append('/')
+                        .append(totalSize.formatFileSize()).append(", ")
+                        .append(((currentSize * 100.0) / totalSize).f1()).append("%, ")
+                    if (deltaTime > 0L) {
+                        builder.append((deltaSize * 1e9 / deltaTime).toLong().formatFileSize())
+                            .append("/s")
+                    }
+                    LOGGER.info(builder.toString())
+                    lastSize = currentSize
+                    lastTime = currentTime
                 }
             }
         }

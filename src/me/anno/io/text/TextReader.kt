@@ -2,7 +2,10 @@ package me.anno.io.text
 
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.ISaveable
+import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.files.FileReference
+import me.anno.io.utils.StringMap
+import me.anno.utils.OS
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import org.apache.logging.log4j.LogManager
 import java.io.EOFException
@@ -62,7 +65,17 @@ class TextReader(val data: CharSequence) : TextReaderBase() {
          * */
         @Throws(EOFException::class)
         fun read(data: CharSequence, safely: Boolean): List<ISaveable> {
+            return read(data, "", safely)
+        }
+
+        /**
+         * parses a Json* formatted string
+         * @param safely return current results on failure, else throws Exception
+         * */
+        @Throws(EOFException::class)
+        fun read(data: CharSequence, sourceName: String, safely: Boolean): List<ISaveable> {
             val reader = TextReader(data)
+            reader.sourceName = sourceName
             if (safely) {
                 try {
                     reader.readAllInList()
@@ -79,12 +92,18 @@ class TextReader(val data: CharSequence) : TextReaderBase() {
         @Throws(EOFException::class)
         fun read(file: FileReference, safely: Boolean): List<ISaveable> {
             // buffered is very important and delivers an improvement of 5x
-            return file.inputStream().useBuffered().use { read(it, safely) }
+            return file.inputStream().useBuffered().use { read(it, file.absolutePath, safely) }
         }
 
         @Throws(EOFException::class)
         fun read(data: InputStream, safely: Boolean): List<ISaveable> {
+            return read(data, "", safely)
+        }
+
+        @Throws(EOFException::class)
+        fun read(data: InputStream, sourceName: String, safely: Boolean): List<ISaveable> {
             val reader = TextStreamReader(data)
+            reader.sourceName = sourceName
             if (safely) {
                 try {
                     reader.readAllInList()
@@ -115,14 +134,12 @@ class TextReader(val data: CharSequence) : TextReaderBase() {
     }
 }
 
-/*fun main() { // a test, because I had a bug
-    val readTest = OS.desktop.getChild("fbx.yaml")
-    val fakeString = TextReader.InputStreamCharSequence(readTest.inputStream(), readTest.length().toInt())
-    var i = 0
-    while (i < fakeString.length) {
-        val char = fakeString[i++]
-        print(char)
+// testing for a warning that appeared
+/*fun main() {
+    registerCustomClass(StringMap())
+    val readTest = OS.home.getChild(".config/Test/main.config")
+    val result = TextReader.read(readTest, false)
+    for (entry in result) {
+        println(entry)
     }
-    logger.info()
-    logger.info("characters: $i")
 }*/

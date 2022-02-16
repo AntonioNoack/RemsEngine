@@ -668,7 +668,7 @@ abstract class TextReaderBase : BaseReader() {
                     when (val next = skipSpace()) {
                         'n' -> readNull()
                         '{' -> readObject()
-                        in '0'..'9' -> readPtr(next)
+                        in '0'..'9' -> readPtr(next, true)
                         else -> error("Missing { or ptr or null after starting object[], got '$next'")
                     }
                 }, { array, index, value -> array[index] = value })
@@ -681,7 +681,7 @@ abstract class TextReaderBase : BaseReader() {
                         when (val next = skipSpace()) {
                             'n' -> readNull()
                             '{' -> readObjectAndRegister(type)
-                            in '0'..'9' -> readPtr(next)
+                            in '0'..'9' -> readPtr(next, true)
                             else -> error("Missing { or ptr or null after starting object[], got '$next'")
                         }
                     }, { array, index, value -> array[index] = value })
@@ -695,7 +695,7 @@ abstract class TextReaderBase : BaseReader() {
                             val rawPtr = readNumber()
                             val ptr = rawPtr.toIntOrNull() ?: error("Invalid pointer: $rawPtr")
                             if (ptr > 0) {
-                                val child = getByPointer(ptr)
+                                val child = getByPointer(ptr, false)
                                 if (child == null) {
                                     addMissingReference(obj, name, ptr)
                                 } else {
@@ -711,9 +711,9 @@ abstract class TextReaderBase : BaseReader() {
         return obj
     }
 
-    private fun readPtr(next: Char): ISaveable? {
+    private fun readPtr(next: Char, warnIfMissing: Boolean): ISaveable? {
         tmpChar = next.code
-        return getByPointer(readInt())
+        return getByPointer(readInt(), warnIfMissing)
     }
 
     private fun readNull(): Nothing? {

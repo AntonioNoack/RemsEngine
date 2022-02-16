@@ -92,7 +92,15 @@ object Maths {
         return if (a > b) a else b
     }
 
+    fun max(a: Long, b: Long): Long {
+        return if (a > b) a else b
+    }
+
     fun max(a: Float, b: Float): Float {
+        return if (a > b) a else b
+    }
+
+    fun max(a: Double, b: Double): Double {
         return if (a > b) a else b
     }
 
@@ -127,6 +135,10 @@ object Maths {
     }
 
     fun min(a: Int, b: Int): Int {
+        return if (a < b) a else b
+    }
+
+    fun min(a: Long, b: Long): Long {
         return if (a < b) a else b
     }
 
@@ -250,7 +262,9 @@ object Maths {
         return y
     }
 
-    fun ceilDiv(a: Int, b: Int): Int = (a + b - 1) / b
+    fun ceilDiv(a: Int, b: Int) = (a + b - 1) / b
     fun roundDiv(a: Int, b: Int) = (a + b.shr(1)) / b
+    fun ceilDiv(a: Long, b: Long) = (a + b - 1L) / b
+    fun roundDiv(a: Long, b: Long) = (a + b.shr(1)) / b
 
 }

@@ -16,6 +16,16 @@ class InnerLinkFile(
         content
     )
 
+    init {
+        if (link is InnerFile) {
+            data = link.data
+            lastModified = link.lastModified
+            lastAccessed = link.lastAccessed
+            size = link.size
+            compressedSize = link.compressedSize
+        }
+    }
+
     override val isSomeKindOfDirectory: Boolean
         get() = link.isSomeKindOfDirectory
 
@@ -25,5 +35,7 @@ class InnerLinkFile(
     override fun readText() = link.readText()
 
     override fun length() = link.length()
+
+    override val exists: Boolean = link.exists
 
 }

@@ -8,6 +8,7 @@ import me.anno.ecs.prefab.PrefabByFileCache
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.utils.LOGGER
 
 object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
 
@@ -24,7 +25,10 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
                 if (comp is MeshComponent) getMesh(comp, ref, async)
                 else comp?.getMesh()
             }
-            else -> null
+            else -> {
+                LOGGER.warn("Requesting mesh from ${instance.className}, cannot extract it")
+                null
+            }
         }
     }
 

@@ -11,7 +11,6 @@ import me.anno.ecs.prefab.PrefabReadable
 import me.anno.fonts.FontManager
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.clip2Dual
-import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.GFXx2D
@@ -21,12 +20,11 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
+import me.anno.image.ImageCPUCache
 import me.anno.image.ImageGPUCache.getInternalTexture
 import me.anno.image.ImageReadable
 import me.anno.image.ImageScale.scaleMaxPreview
 import me.anno.input.Input
-import me.anno.input.Input.mouseDownX
-import me.anno.input.Input.mouseDownY
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReferenceAsync
@@ -66,6 +64,8 @@ import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+
+// todo when dragging files over the edge of the border, mark them as copied, or somehow make them draggable...
 
 // todo right click, "Switch To", add option "Switch To Folder" for files, which are no folders
 
@@ -433,11 +433,11 @@ class FileExplorerEntry(
         // todo add created & modified information
 
         // if is selected, and there are multiple files selected, show group stats
-        if (isInFocus && inFocus.count { it is FileExplorerEntry } > 1) {
-
-            val files = inFocus.mapNotNull { (it as? FileExplorerEntry)?.path }
+        if (isInFocus && siblings.count { (it.isInFocus && it is FileExplorerEntry) || it === this } > 1) {
+            val files = siblings
+                .filter { it.isInFocus || it === this }
+                .mapNotNull { (it as? FileExplorerEntry)?.path }
                 .mapNotNull { getReferenceAsync(it) }
-
             tooltip = "${files.count { it.isDirectory }} folders + ${files.count { !it.isDirectory }} files\n" +
                     files.sumOf { it.length() }.formatFileSize()
 
@@ -467,6 +467,11 @@ class FileExplorerEntry(
                             if (meta.hasVideo) {
                                 ttt += "\n${meta.videoWidth} x ${meta.videoHeight}"
                                 if (meta.videoFrameCount > 1) ttt += " @" + meta.videoFPS.f1() + " fps"
+                            } else {
+                                val image = ImageCPUCache.getImageWithoutGenerator(file)
+                                if (image != null) {
+                                    ttt += "\n${image.width} x ${image.height}"
+                                }
                             }
                             if (meta.hasAudio) {
                                 ttt += "\n${meta.audioSampleRate / 1000} kHz"
@@ -557,20 +562,16 @@ class FileExplorerEntry(
         when (action) {
             "DragStart" -> {
                 // todo select the file, if the mouse goes up, not down
-                val file = getReferenceOrTimeout(path)
-                if (inFocus.any { it.contains(mouseDownX, mouseDownY) } && StudioBase.dragged?.getOriginal() != file) {
-                    val inFocus = inFocus.filterIsInstance<FileExplorerEntry>().map { getReferenceOrTimeout(it.path) }
-                    if (inFocus.size == 1) {
-                        val textPanel = TextPanel(file.nameWithoutExtension, style)
-                        val draggable = Draggable(file.toString(), "File", file, textPanel)
-                        StudioBase.dragged = draggable
-                    } else {
-                        val textPanel = TextPanel(inFocus.joinToString("\n") { it.nameWithoutExtension }, style)
-                        val draggable =
-                            Draggable(inFocus.joinToString("\n") { it.toString() }, "File", inFocus, textPanel)
-                        StudioBase.dragged = draggable
-                    }
-                }
+                // why was that condition there?
+                // inFocus.any { it.contains(mouseDownX, mouseDownY) } && StudioBase.dragged?.getOriginal() != file
+                val selectedFiles = siblings
+                    .filterIsInstance<FileExplorerEntry>()
+                    .filter { it.isInFocus || it === this }
+                    .map { getReferenceOrTimeout(it.path) }
+                val title = selectedFiles.joinToString("\n") { it.nameWithoutExtension }
+                val stringContent = selectedFiles.joinToString("\n") { it.toString() }
+                val original: Any = if (selectedFiles.size == 1) selectedFiles[0] else selectedFiles
+                StudioBase.dragged = Draggable(stringContent, "File", original, title, style)
             }
             "Enter" -> {
                 val file = getReferenceOrTimeout(path)
@@ -626,14 +627,18 @@ class FileExplorerEntry(
     override fun onDeleteKey(x: Float, y: Float) {
         val file = getReferenceOrTimeout(path)
         // todo in Rem's Engine, we first should check, whether there are prefabs, which depend on this file
-        val files = inFocus.mapNotNull { if (it is FileExplorerEntry) getReferenceOrTimeout(it.path) else null }
+        val files = parent!!.children.mapNotNull {
+            if (it is FileExplorerEntry && it.isInFocus)
+                getReferenceOrTimeout(it.path) else null
+        }
         if (files.size <= 1) {
             // ask, then delete (or cancel)
             deleteFileMaybe(this, file)
         } else if (files.first() === file) {
             // ask, then delete all (or cancel)
+            val matches = siblings.count { (it is FileExplorerEntry && it.isInFocus) || it === this }
             val title = NameDesc(
-                "Delete these files? (${inFocus.size}x, ${
+                "Delete these files? (${matches}x, ${
                     files.sumOf { it.length() }.formatFileSize()
                 })", "", "ui.file.delete.ask.many"
             )
@@ -662,8 +667,8 @@ class FileExplorerEntry(
     }
 
     override fun onCopyRequested(x: Float, y: Float): String? {
-        val files = if (this in inFocus) {// multiple files maybe
-            inFocus.filterIsInstance<FileExplorerEntry>().map {
+        val files = if (isInFocus) {// multiple files maybe
+            siblings.filterIsInstance<FileExplorerEntry>().map {
                 getReferenceOrTimeout(it.path)
             }
         } else listOf(getReferenceOrTimeout(path))

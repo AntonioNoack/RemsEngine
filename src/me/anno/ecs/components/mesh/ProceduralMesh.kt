@@ -19,14 +19,6 @@ abstract class ProceduralMesh : MeshBaseComponent() {
 
     override fun getMesh() = mesh2
 
-    @SerializedProperty
-    @Type("List<Material/Reference>")
-    var materials: List<FileReference>
-        get() = mesh2.materials
-        set(value) {
-            mesh2.materials = value
-        }
-
     @NotSerializedProperty
     var needsUpdate = true
 

@@ -4,24 +4,24 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.input.MouseButton
-import me.anno.ui.Panel
-import me.anno.ui.base.Visibility
-import me.anno.ui.base.constraints.AxisAlignment
-import me.anno.ui.base.scrolling.ScrollableY
-import me.anno.ui.base.scrolling.ScrollbarY
-import me.anno.ui.style.Style
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.mix
+import me.anno.ui.Panel
+import me.anno.ui.base.Visibility
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.scrollSpeed
+import me.anno.ui.base.scrolling.ScrollableY
+import me.anno.ui.base.scrolling.ScrollbarY
+import me.anno.ui.style.Style
 import me.anno.utils.structures.tuples.Quad
 import kotlin.math.max
 
 class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, style), ScrollableY {
 
-    constructor(style: Style): this(null, style)
+    constructor(style: Style) : this(null, style)
 
-    constructor(base: PanelList2D): this(base.sorter, base.style){
+    constructor(base: PanelList2D) : this(base.sorter, base.style) {
         base.copy(this)
     }
 
@@ -63,10 +63,11 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
     var calcChildHeight = 0
     var minH2 = 0
 
-    override var scrollPositionY = 0f
+    override var scrollPositionY = 0.0
     var isDownOnScrollbar = false
 
-    override val maxScrollPositionY get() = max(0, minH2 - h)
+    override val maxScrollPositionY get(): Long = max(0, minH2 - h).toLong()
+
     val scrollbar = ScrollbarY(this, style)
     var scrollbarWidth = style.getSize("scrollbarWidth", 8)
     var scrollbarPadding = style.getSize("scrollbarPadding", 1)
@@ -89,7 +90,7 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
 
     }
 
-    var autoScrollTargetPosition = 0f
+    var autoScrollTargetPosition = 0.0
     var autoScrollEndTime = 0L
     var autoScrollPerNano = 1f
     var autoScrollLastUpdate = 0L
@@ -108,7 +109,7 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
             val delta = autoScrollPerNano * (GFX.gameTime - autoScrollLastUpdate)
             if (delta > 0L) {
                 scrollPositionY = if (autoScrollLastUpdate < autoScrollEndTime && delta < 1f) {
-                    mix(scrollPositionY, autoScrollTargetPosition, delta)
+                    mix(scrollPositionY, autoScrollTargetPosition, delta.toDouble())
                 } else autoScrollTargetPosition
                 clampScrollPosition()
                 invalidateLayout()
@@ -117,8 +118,8 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
         }
     }
 
-    fun smoothlyScrollTo(y: Float, duration: Float = 1f) {
-        autoScrollTargetPosition = clamp(y, 0f, maxScrollPositionY.toFloat())
+    fun smoothlyScrollTo(y: Double, duration: Float = 1f) {
+        autoScrollTargetPosition = clamp(y, 0.0, maxScrollPositionY.toDouble())
         autoScrollPerNano = 5e-9f / duration
         autoScrollEndTime = GFX.gameTime + (duration * 1e9f).toLong()
         autoScrollLastUpdate = GFX.gameTime
@@ -134,7 +135,7 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
         return clamp(itemX + itemY * columns, 0, children.lastIndex)
     }
 
-    fun getItemFractionY(y: Float): Float {
+    fun getItemFractionY(y: Float): Double {
         val ly = y - this.y + scrollPositionY - spacing
         val itemY = ly * rows / h
         return fract(itemY)
@@ -223,7 +224,7 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
     }
 
     private fun clampScrollPosition() {
-        scrollPositionY = clamp(scrollPositionY, 0f, maxScrollPositionY.toFloat())
+        scrollPositionY = clamp(scrollPositionY, 0.0, maxScrollPositionY.toDouble())
     }
 
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {

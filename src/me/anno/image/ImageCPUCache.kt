@@ -63,6 +63,15 @@ object ImageCPUCache : CacheSection("BufferedImages") {
         return getImage(file, 50, async)
     }
 
+    fun getImageWithoutGenerator(file: FileReference): Image? {
+        if (file is ImageReadable) return file.readImage()
+        return when (val data = getDualEntryWithoutGenerator(file, file.lastModified, 0)) {
+            is Image -> data
+            is CacheData<*> -> data.value as? Image
+            else -> null
+        }
+    }
+
     fun shouldUseFFMPEG(signature: String?, file: FileReference): Boolean {
         return signature == "dds" || signature == "media" || file.lcExtension == "webp"
     }

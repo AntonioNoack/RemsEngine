@@ -3,7 +3,6 @@ package me.anno.utils.hpc
 import me.anno.utils.LOGGER
 import me.anno.utils.Sleep
 import java.io.IOException
-import java.lang.Exception
 import kotlin.concurrent.thread
 
 class UpdatingTask(val threadName: String, val cleaning: () -> Unit) {
@@ -16,12 +15,12 @@ class UpdatingTask(val threadName: String, val cleaning: () -> Unit) {
         runningThread = thread(start = false, name = threadName) {
             try {
                 computation()
-            } catch (e: InterruptedException){
+            } catch (e: InterruptedException) {
                 // kill successful
-            } catch (e: IOException){
+            } catch (e: IOException) {
                 // e.g. IOException, because a channel was closed while waiting for the stream
                 LOGGER.warn("Catched ${e.message}")
-            } catch (e: Exception){
+            } catch (e: Exception) {
                 // e.g. IOException, because a channel was closed while waiting for the stream
                 LOGGER.warn("Catched ${e.message}")
             }
@@ -29,6 +28,11 @@ class UpdatingTask(val threadName: String, val cleaning: () -> Unit) {
         }
         cleaning()
         runningThread!!.start()
+    }
+
+    fun destroy() {
+        runningThread?.interrupt()
+        runningThread = null
     }
 
 }

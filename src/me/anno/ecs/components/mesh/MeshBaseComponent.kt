@@ -1,9 +1,13 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.ecs.Entity
+import me.anno.ecs.annotations.DebugTitle
+import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.CollidingComponent
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.Shader
+import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.types.AABBs.transformUnion
@@ -20,6 +24,11 @@ abstract class MeshBaseComponent : CollidingComponent() {
     var castShadows = true
 
     var isInstanced = false
+
+    @Type("List<Material/Reference>")
+    @DebugTitle("Overrides the original materials")
+    @SerializedProperty
+    var materials: List<FileReference> = emptyList()
 
     @NotSerializedProperty
     val randomTriangleId = (Math.random() * 1e9).toInt()
@@ -50,6 +59,7 @@ abstract class MeshBaseComponent : CollidingComponent() {
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as MeshBaseComponent
+        clone.materials = materials // clone list?
         clone.castShadows = castShadows
         clone.receiveShadows = receiveShadows
         clone.isInstanced = isInstanced

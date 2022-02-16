@@ -6,6 +6,6 @@ import kotlin.math.max
 interface ScrollableX {
     val w: Int
     val child: Panel
-    var scrollPositionX: Float
-    val maxScrollPositionX get() = max(0, child.minW - w)
+    var scrollPositionX: Double
+    val maxScrollPositionX get(): Long = max(0, child.minW - w).toLong()
 }

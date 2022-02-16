@@ -7,6 +7,23 @@ import java.util.*
 
 object XMLReader {
 
+    fun InputStream.skipN(n: Long): InputStream {
+        var done = 0L
+        while (done < n) {
+            val skipped = skip(n - done)
+            when {
+                skipped < 0L -> throw EOFException() // should not happen
+                skipped == 0L -> {
+                    val sample = read()
+                    if (sample < 0) throw EOFException()
+                    done++
+                }
+                else -> done += skipped
+            }
+        }
+        return this
+    }
+
     fun InputStream.skipSpaces(): Int {
         while (true) {
             when (val char = read()) {
@@ -221,7 +238,7 @@ object XMLReader {
 
     fun readString(first: Int, input: InputStream): String {
         val str = StringBuilder(20)
-        if(first != 0) str.append(first.toChar())
+        if (first != 0) str.append(first.toChar())
         while (true) {
             when (val char = input.read()) {
                 '\\'.code -> {

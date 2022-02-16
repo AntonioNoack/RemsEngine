@@ -29,6 +29,7 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.files.FileExplorerEntry.Companion.deleteFileMaybe
+import me.anno.ui.editor.files.FileExplorerEntry.Companion.drawLoadingCircle
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.utils.OS
@@ -39,6 +40,7 @@ import me.anno.utils.OS.home
 import me.anno.utils.OS.music
 import me.anno.utils.OS.pictures
 import me.anno.utils.OS.videos
+import me.anno.utils.ShutdownException
 import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.files.Files.listFiles2
 import me.anno.utils.files.LocalFile.toGlobalFile
@@ -128,23 +130,7 @@ abstract class FileExplorer(
     val minEntrySize = 32f
 
     val uContent = PanelListX(style)
-    val content = PanelList2D({ a, b ->
-        // define the order for the file entries:
-        // first .., then folders, then files
-        // first a, then z, ...
-        // not all folders may be sorted
-        a as FileExplorerEntry
-        b as FileExplorerEntry
-        (b.isParent.compareTo(a.isParent)).ifSame {
-            val af = getReferenceAsync(a.path)
-            val bf = getReferenceAsync(b.path)
-            if (af != null && bf != null) {
-                bf.isDirectory.compareTo(af.isDirectory).ifSame {
-                    af.name.compareTo(bf.name, true)
-                }
-            } else 0
-        }
-    }, style)
+    val content = PanelList2D(null, style)
 
     var lastFiles = emptyList<String>()
     var lastSearch = true
@@ -228,7 +214,30 @@ abstract class FileExplorer(
     // todo regularly sleep 0ms inside of it:
     // todo when the search term changes, kill the thread
 
+    val sorter2 = { a: Panel, b: Panel ->
+        // define the order for the file entries:
+        // first .., then folders, then files
+        // first a, then z, ...
+        // not all folders may be sorted
+        a as FileExplorerEntry
+        b as FileExplorerEntry
+        (b.isParent.compareTo(a.isParent)).ifSame {
+            val af = getReferenceAsync(a.path)
+            val bf = getReferenceAsync(b.path)
+            if (af != null && bf != null) {
+                bf.isDirectory.compareTo(af.isDirectory).ifSame {
+                    af.name.compareTo(bf.name, true)
+                }
+            } else 0
+        }
+    }
+
     val searchTask = UpdatingTask("FileExplorer-Query") {}
+
+    override fun onDestroy() {
+        super.onDestroy()
+        searchTask.destroy()
+    }
 
     fun createResults() {
         searchTask.compute {
@@ -330,24 +339,37 @@ abstract class FileExplorer(
                 Thread.sleep(0)
 
             } else {
-
                 val fe = content.children.filterIsInstance<FileExplorerEntry>()
                 for (it in fe) {
                     it.visibility = Visibility[search.matches(getReferenceOrTimeout(it.path).name)]
                 }
-
             }
         }
     }
 
-    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        super.onDraw(x0, y0, x1, y1)
+    var loading = 0L
+
+    override fun drawsOverlayOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
+        return loading != 0L
+    }
+
+    override fun tickUpdate() {
+        super.tickUpdate()
         if (isValid <= 0f) {
             isValid = 5f // depending on amount of files?
             title.file = folder// ?.toString() ?: "This Computer"
             title.tooltip = if (folder == FileRootRef) "This Computer" else folder.toString()
             createResults()
         } else isValid -= GFX.deltaTime
+        if (loading != 0L) invalidateDrawing()
+    }
+
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.onDraw(x0, y0, x1, y1)
+        if (loading != 0L) {
+            // todo why is the circle not showing up?
+            drawLoadingCircle((GFX.gameTime - loading) / 1e9f, x0, y0, x1, y1)
+        }
     }
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
@@ -510,18 +532,42 @@ abstract class FileExplorer(
     fun switchTo(folder: FileReference?) {
         folder ?: return
         val windowsLink = folder.windowsLnk.value
-        if (windowsLink != null) {
-            val dst = getReferenceOrTimeout(windowsLink.absolutePath)
-            if (dst.exists) {
-                switchTo(dst)
-            } else {
-                switchTo(folder.getParent())
+        when {
+            windowsLink != null -> {
+                val dst = getReferenceOrTimeout(windowsLink.absolutePath)
+                if (dst.exists) {
+                    switchTo(dst)
+                } else {
+                    switchTo(folder.getParent())
+                }
             }
-        } else if (!canSensiblyEnter(folder)) {
+            GFX.isGFXThread() -> {
+                loading = GFX.gameTime
+                invalidateDrawing()
+                thread(name = "switchTo($folder)") {
+                    try {
+                        switchTo1(folder)
+                    } catch (e: ShutdownException) {
+                        // ignored
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                    loading = 0L
+                    addEvent { invalidateDrawing() }
+                }
+            }
+            else -> switchTo1(folder)
+        }
+    }
+
+    private fun switchTo1(folder: FileReference) {
+        if (!canSensiblyEnter(folder)) {
             switchTo(folder.getParent())
         } else {
-            history.add(folder)
-            invalidate()
+            addEvent {
+                history.add(folder)
+                invalidate()
+            }
         }
     }
 
@@ -538,7 +584,7 @@ abstract class FileExplorer(
         if (!Input.isControlDown) {
             // find which item is being hovered
             hoveredItemIndex = content.getItemIndexAt(x, y)
-            hoverFractionY = clamp(content.getItemFractionY(y), 0.25f, 0.75f)
+            hoverFractionY = clamp(content.getItemFractionY(y).toFloat(), 0.25f, 0.75f)
         }
     }
 

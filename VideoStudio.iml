@@ -43,5 +43,7 @@
     <orderEntry type="library" name="JavaBlend-1.3.6-DNA-2.93.20" level="project" />
     <orderEntry type="library" name="luaj-jse-3.0.2" level="project" />
     <orderEntry type="library" name="JBox2d" level="project" />
+    <orderEntry type="library" name="org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0" level="project" />
+    <orderEntry type="library" name="Coroutines" level="project" />
   </component>
 </module>

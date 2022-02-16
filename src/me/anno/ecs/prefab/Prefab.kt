@@ -86,17 +86,19 @@ class Prefab : Saveable {
 
     fun getPrefabOrSource() = prefab.nullIfUndefined() ?: source
 
-    fun countTotalChanges(async: Boolean): Int {
+    fun countTotalChanges(async: Boolean, depth: Int = 20): Int {
         var sum = adds.size + sets.size
-        if (prefab != InvalidRef) {
-            val prefab = loadPrefab(prefab, HashSet(), async)
-            if (prefab != null) sum += prefab.countTotalChanges(async)
-        }
-        for (change in adds) {
-            val childPrefab = change.prefab
-            if (childPrefab != InvalidRef) {
-                val prefab = loadPrefab(childPrefab, HashSet(), async)
-                if (prefab != null) sum += prefab.countTotalChanges(async)
+        if (depth > 0) {
+            if (prefab != InvalidRef) {
+                val prefab = loadPrefab(prefab, HashSet(), async)
+                if (prefab != null) sum += prefab.countTotalChanges(async, depth - 1)
+            }
+            for (change in adds) {
+                val childPrefab = change.prefab
+                if (childPrefab != InvalidRef) {
+                    val prefab = loadPrefab(childPrefab, HashSet(), async)
+                    if (prefab != null) sum += prefab.countTotalChanges(async, depth - 1)
+                }
             }
         }
         return sum

@@ -2,23 +2,18 @@ package me.anno.ecs.components.mesh
 
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.components.cache.MaterialCache
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ui.render.ECSShaderLib
+import me.anno.engine.ui.render.RenderMode
+import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.*
 import me.anno.gpu.buffer.Attribute.Companion.computeOffsets
-import me.anno.gpu.drawing.GFXx3D
-import me.anno.gpu.drawing.GFXx3D.uploadAttractors0
 import me.anno.gpu.shader.Shader
-import me.anno.input.Input
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.mesh.FindLines
-import me.anno.mesh.MeshUtils.centerMesh
-import me.anno.mesh.assimp.AnimGameItem
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
@@ -26,7 +21,10 @@ import me.anno.utils.Color.r
 import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.AABBs.set
 import org.apache.logging.log4j.LogManager
-import org.joml.*
+import org.joml.AABBf
+import org.joml.Matrix4f
+import org.joml.Vector3d
+import org.joml.Vector3f
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.GL_LINES
 import kotlin.math.max
@@ -143,10 +141,17 @@ class Mesh : PrefabSaveable() {
 
     var ignoreStrayPointsInAABB = false
 
+    override fun clone(): Mesh {
+        // ensureBuffer() // saves buffers
+        val clone = Mesh()
+        copy(clone)
+        return clone
+    }
+
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as Mesh
-        ensureBuffer()
+        // ensureBuffer()
         // materials
         clone.materials = materials
         // mesh data
@@ -182,13 +187,6 @@ class Mesh : PrefabSaveable() {
         // aabb
         clone.aabb.set(aabb)
         clone.ignoreStrayPointsInAABB = ignoreStrayPointsInAABB
-    }
-
-    override fun clone(): Mesh {
-        ensureBuffer() // saves buffers
-        val clone = Mesh()
-        copy(clone)
-        return clone
     }
 
     override fun save(writer: BaseWriter) {
@@ -444,6 +442,8 @@ class Mesh : PrefabSaveable() {
 
         calculateAABB()
 
+        if (positions == null) throw RuntimeException("mesh has no positions")
+
         // not the safest, but well...
         val positions = positions ?: return
 
@@ -695,6 +695,7 @@ class Mesh : PrefabSaveable() {
     fun ensureBuffer() {
         synchronized(this) {
             if (needsMeshUpdate) updateMesh()
+            if (GFX.isGFXThread()) buffer?.ensureBuffer()
         }
     }
 
@@ -792,59 +793,9 @@ class Mesh : PrefabSaveable() {
         return aabb
     }
 
-    fun drawAssimp(
-        stack: Matrix4f,
-        useMaterials: Boolean,
-        centerMesh: Boolean,
-        normalizeScale: Boolean
-    ) {
-
-        val shader = ECSShaderLib.pbrModelShader.value
-        shader.use()
-
-        GFXx3D.shader3DUniforms(shader, stack, -1)
-        uploadAttractors0(shader)
-
-        val localStack = if (normalizeScale || centerMesh) {
-            val localStack = Matrix4x3f()
-            if (normalizeScale) {
-                val scale = AnimGameItem.getScaleFromAABB(aabb)
-                localStack.scale(scale)
-            }
-            if (centerMesh) {
-                centerMesh(stack, localStack, this)
-            }
-            localStack
-        } else null
-
-        shader.v1b("hasAnimation", false)
-        shader.m4x4("transform", stack)
-        shader.m4x3("localTransform", localStack)
-
-        val mesh = this
-        val materials = materials
-
-        GFX.shaderColor(shader, "tint", -1)
-
-        if (useMaterials && materials.isNotEmpty()) {
-            for (materialIndex in materials.indices) {
-                val materialRef = materials[materialIndex]
-                val material = MaterialCache[materialRef, defaultMaterial]
-                material.defineShader(shader)
-                mesh.draw(shader, materialIndex)
-            }
-        } else {
-            val material = defaultMaterial
-            material.defineShader(shader)
-            for (materialIndex in 0 until max(1, materials.size)) {
-                mesh.draw(shader, materialIndex)
-            }
-        }
-    }
-
     companion object {
 
-        val drawLines get() = Input.isShiftDown
+        val drawLines get() = RenderView.currentInstance?.renderMode == RenderMode.LINES
 
         val defaultMaterial = Material()
         private val defaultMaterials = emptyList<FileReference>()

@@ -22,6 +22,7 @@ import me.anno.gpu.pipeline.M4x3Delta.set4x3delta
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.FileReference
 import me.anno.utils.LOGGER
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.sorting.MergeSort.mergeSort
@@ -87,8 +88,11 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
     private fun addMesh(mesh: Mesh, renderer: MeshBaseComponent, entity: Entity, clickId: Int) {
         mesh.ensureBuffer()
         val materials = mesh.materials
+        val materialOverrides = renderer.materials
         for (index in 0 until mesh.numMaterials) {
-            val material = MaterialCache[materials.getOrNull(index), defaultMaterial]
+            val m0 = materialOverrides.getOrNull(index)?.nullIfUndefined()
+            val m1 = m0 ?: materials.getOrNull(index)
+            val material = MaterialCache[m1, defaultMaterial]
             val stage = material.pipelineStage ?: getDefaultStage(mesh, material)
             stage.add(renderer, mesh, entity, index, clickId)
         }
@@ -98,11 +102,14 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         defaultStage.add(renderer, mesh, entity, 0, 0)
     }
 
-    private fun addMeshInstanced(mesh: Mesh, entity: Entity, clickId: Int) {
+    private fun addMeshInstanced(mesh: Mesh, renderer: MeshBaseComponent, entity: Entity, clickId: Int) {
         mesh.ensureBuffer()
         val materials = mesh.materials
+        val materialOverrides = renderer.materials
         for (index in 0 until mesh.numMaterials) {
-            val material = MaterialCache[materials.getOrNull(index), defaultMaterial]
+            val m0 = materialOverrides.getOrNull(index)?.nullIfUndefined()
+            val m1 = m0 ?: materials.getOrNull(index)
+            val material = MaterialCache[m1, defaultMaterial]
             val stage = material.pipelineStage ?: defaultStage
             stage.addInstanced(mesh, entity, index, clickId)
         }
@@ -265,7 +272,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
                         if (mesh != null) {
                             component.clickId = clickId
                             if (component.isInstanced) {
-                                addMeshInstanced(mesh, entity, clickId)
+                                addMeshInstanced(mesh, component, entity, clickId)
                             } else {
                                 addMesh(mesh, component, entity, clickId)
                             }

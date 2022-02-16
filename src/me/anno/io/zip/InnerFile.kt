@@ -21,12 +21,18 @@ abstract class InnerFile(
     val _parent: FileReference
 ) : FileReference(absolutePath) {
 
+    var folder: InnerFile? = null
+
     val lcName = name.lowercase()
 
     init {
         if (_parent is InnerFolder) {
             val old = _parent.children.put(name, this)
-            if (old != null) LOGGER.warn("Overrode $old")
+            if (old != null){
+                old.folder = this
+                _parent.children[name] = old
+                // LOGGER.warn("Overrode $old")
+            }
         }
     }
 

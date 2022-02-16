@@ -47,7 +47,7 @@ object Icosahedron {
                 p[k++] = cv[v] * su[u]
                 // good like this?
                 uv[l++] = 1f - u.toFloat() / us // mirrored as well...
-                uv[l++] = 1f - v.toFloat() / vs // mirrored
+                uv[l++] = v.toFloat() / vs // mirrored
             }
         }
 

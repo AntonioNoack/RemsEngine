@@ -1337,7 +1337,7 @@ class RenderView(
         val scaledMax = Vector4d()
         val tmpVec4f = Vector4d()
 
-        lateinit var currentInstance: RenderView
+        var currentInstance: RenderView? = null
 
     }
 

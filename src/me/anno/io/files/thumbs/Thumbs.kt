@@ -16,6 +16,7 @@ import me.anno.ecs.components.anim.Skeleton.Companion.boneMeshVertices
 import me.anno.ecs.components.anim.Skeleton.Companion.generateSkeleton
 import me.anno.ecs.components.cache.MaterialCache
 import me.anno.ecs.components.cache.SkeletonCache
+import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshBaseComponent
@@ -64,6 +65,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
+import me.anno.io.files.thumbs.ThumbsExt.drawAssimp
 import me.anno.io.text.TextReader
 import me.anno.io.unity.UnityReader
 import me.anno.io.zip.ZipCache
@@ -388,13 +390,11 @@ object Thumbs {
         val fb2 = FBStack[srcFile.name, w, h, 4, false, 4, withDepth]
 
         renderPurely {
-
             if (!withDepth) {
                 useFrame(0, 0, w, h, false, fb2, colorRenderer) {
                     drawTransparentBackground(0, 0, w, h)
                 }
             }
-
             useFrame(0, 0, w, h, false, fb2, renderer) {
                 if (withDepth) {
                     depthMode.use(DepthMode.GREATER) {
@@ -405,7 +405,6 @@ object Thumbs {
                     }
                 } else render()
             }
-
         }
 
         val dst = createBufferedImage(w, h, fb2, flipY, true)
@@ -504,6 +503,7 @@ object Thumbs {
 
     // just render it using the simplest shader
     fun generateFrame(
+        srcFile: FileReference,
         dstFile: FileReference,
         data: MeshData,
         size: Int,
@@ -511,7 +511,7 @@ object Thumbs {
         waitForTextures: Boolean,
         callback: (Texture2D) -> Unit
     ) {
-        if (waitForTextures) waitForTextures(data)
+        if (waitForTextures) waitForTextures(data, srcFile)
         renderToBufferedImage(InvalidRef, dstFile, true, renderer, true, callback, size, size) {
             data.drawAssimp(
                 true, createPerspectiveList(defaultAngleY, 1f), 0.0, white4, "",
@@ -520,7 +520,23 @@ object Thumbs {
         }
     }
 
-    private fun waitForTextures(mesh: Mesh) {
+    private fun waitForTextures(comp: MeshBaseComponent, mesh: Mesh, srcFile: FileReference) {
+        // wait for all textures
+        val textures = HashSet<FileReference>()
+        iterateMaterials(comp.materials, mesh.materials) { material ->
+            textures += listTextures(material)
+        }
+        textures.removeIf { it == InvalidRef }
+        textures.removeIf {
+            if (!it.exists) {
+                LOGGER.warn("Missing texture $it by $srcFile")
+                true
+            } else false
+        }
+        waitForTextures(textures)
+    }
+
+    private fun waitForTextures(mesh: Mesh, file: FileReference) {
         // wait for all textures
         val textures = HashSet<FileReference>()
         for (material in mesh.materials) {
@@ -529,43 +545,44 @@ object Thumbs {
         textures.removeIf { it == InvalidRef }
         textures.removeIf {
             if (!it.exists) {
-                LOGGER.warn("Missing texture $it")
+                LOGGER.warn("Missing texture $it by $file")
                 true
             } else false
         }
-        // LOGGER.info("Textures: $textures")
         waitForTextures(textures)
-        // LOGGER.info("done waiting")
     }
 
-    private fun waitForTextures(data: MeshData) {
+    private fun waitForTextures(data: MeshData, srcFile: FileReference) {
         // wait for all textures
         val textures = HashSet<FileReference>()
         collectTextures(data.assimpModel!!.hierarchy, textures)
         textures.removeIf { it == InvalidRef }
         textures.removeIf {
             if (!it.exists) {
-                LOGGER.warn("Missing texture $it")
+                LOGGER.warn("Missing texture $it by $srcFile")
                 true
             } else false
         }
-        // LOGGER.info("Textures: $textures")
         waitForTextures(textures)
-        // LOGGER.info("done waiting")
     }
 
     private fun collectTextures(entity: Entity, textures: MutableSet<FileReference>) {
         for (comp in entity.getComponentsInChildren(MeshBaseComponent::class, false)) {
-            // LOGGER.info("mesh comp ${comp.name}")
             val mesh = comp.getMesh()
             if (mesh == null) {
                 LOGGER.warn("Missing mesh $comp")
                 continue
             }
-            // LOGGER.info("mesh ${comp.mesh} has the materials ${mesh.materials}")
-            for (material in mesh.materials) {
+            iterateMaterials(comp.materials, mesh.materials) { material ->
                 textures += listTextures(material)
             }
+        }
+    }
+
+    inline fun iterateMaterials(l0: List<FileReference>, l1: List<FileReference>, run: (FileReference) -> Unit) {
+        for (index in 0 until max(l0.size, l1.size)) {
+            val li = l0.getOrNull(index)?.nullIfUndefined() ?: l1.getOrNull(index)
+            if (li != null && li != InvalidRef) run(li)
         }
     }
 
@@ -583,7 +600,7 @@ object Thumbs {
             // loadAssimpStatic(srcFile, null)
         }.getSampleInstance() as Entity
         // generateFrame(dstFile, data, size, previewRenderer, true, callback)
-        generateEntityFrame(dstFile, size, data, callback)
+        generateEntityFrame(srcFile, dstFile, size, data, callback)
     }
 
     fun generateVOXMeshFrame(
@@ -597,10 +614,11 @@ object Thumbs {
             // loadVOX(srcFile, null)
         }.getSampleInstance() as Entity
         // generateFrame(dstFile, data, size, previewRenderer, true, callback)
-        generateEntityFrame(dstFile, size, data, callback)
+        generateEntityFrame(srcFile, dstFile, size, data, callback)
     }
 
     fun generateEntityFrame(
+        srcFile: FileReference,
         dstFile: FileReference,
         size: Int,
         entity: Entity,
@@ -609,7 +627,7 @@ object Thumbs {
         val data = MeshData()
         data.assimpModel = AnimGameItem(entity)
         // todo draw gui (colliders), entity positions
-        waitForTextures(data)
+        waitForTextures(data, srcFile)
         entity.validateTransform()
         val drawSkeletons = !entity.hasComponent(MeshBaseComponent::class)
         renderToBufferedImage(InvalidRef, dstFile, true, previewRenderer, true, callback, size, size) {
@@ -620,7 +638,22 @@ object Thumbs {
         }
     }
 
+    fun generateColliderFrame(
+        srcFile: FileReference,
+        dstFile: FileReference,
+        size: Int,
+        collider: Collider,
+        callback: (Texture2D) -> Unit
+    ) {
+        renderToBufferedImage(InvalidRef, dstFile, true, previewRenderer, true, callback, size, size) {
+            collider.drawAssimp(
+                createPerspectiveList(defaultAngleY, 1f), centerMesh = true, normalizeScale = true
+            )
+        }
+    }
+
     fun generateMeshFrame(
+        srcFile: FileReference,
         dstFile: FileReference,
         size: Int,
         mesh: Mesh,
@@ -628,12 +661,36 @@ object Thumbs {
     ) {
         mesh.checkCompleteness()
         mesh.ensureBuffer()
-        waitForTextures(mesh)
+        waitForTextures(mesh, srcFile)
         // sometimes black: because of vertex colors, which are black
         // render everything without color
         renderToBufferedImage(InvalidRef, dstFile, true, simpleNormalRenderer, true, callback, size, size) {
             mesh.drawAssimp(
                 createPerspective(defaultAngleY, 1f),
+                null,
+                useMaterials = true,
+                centerMesh = true,
+                normalizeScale = true
+            )
+        }
+    }
+
+    fun generateMeshFrame(
+        srcFile: FileReference,
+        dstFile: FileReference,
+        size: Int,
+        comp: MeshBaseComponent,
+        callback: (Texture2D) -> Unit
+    ) {
+        val mesh = comp.getMesh() ?: return
+        mesh.checkCompleteness()
+        mesh.ensureBuffer()
+        waitForTextures(comp, mesh, srcFile)
+        // sometimes black: because of vertex colors, which are black
+        // render everything without color
+        renderToBufferedImage(InvalidRef, dstFile, true, simpleNormalRenderer, true, callback, size, size) {
+            mesh.drawAssimp(
+                createPerspective(defaultAngleY, 1f), comp,
                 useMaterials = true,
                 centerMesh = true,
                 normalizeScale = true
@@ -668,7 +725,13 @@ object Thumbs {
         waitForTextures(material)
         renderToBufferedImage(InvalidRef, dstFile, true, previewRenderer, true, callback, size, size) {
             OpenGL.blendMode.use(BlendMode.DEFAULT) {
-                mesh.drawAssimp(materialCamTransform, useMaterials = true, centerMesh = false, normalizeScale = false)
+                mesh.drawAssimp(
+                    materialCamTransform,
+                    null,
+                    useMaterials = true,
+                    centerMesh = false,
+                    normalizeScale = false
+                )
             }
         }
     }
@@ -708,6 +771,7 @@ object Thumbs {
                 mesh.material = materials[it]
                 mesh.drawAssimp(
                     materialCamTransform,
+                    null,
                     useMaterials = true,
                     centerMesh = false,
                     normalizeScale = false
@@ -753,6 +817,7 @@ object Thumbs {
     }
 
     fun generateSkeletonFrame(
+        srcFile: FileReference,
         dstFile: FileReference,
         skeleton: Skeleton,
         size: Int,
@@ -772,7 +837,7 @@ object Thumbs {
         val bonePositions = Array(bones.size) { bones[it].bindPosition }
         generateSkeleton(bones, bonePositions, positions, null)
         mesh.positions = positions
-        generateMeshFrame(dstFile, size, mesh, callback)
+        generateMeshFrame(srcFile, dstFile, size, mesh, callback)
     }
 
     fun generateAnimationFrame(
@@ -809,6 +874,7 @@ object Thumbs {
             mesh.ensureBuffer()
             mesh.drawAssimp(
                 createPerspective(defaultAngleY, aspect),
+                null,
                 useMaterials = false,
                 centerMesh = true,
                 normalizeScale = true
@@ -856,6 +922,7 @@ object Thumbs {
     private fun waitForTextures(textures: Collection<FileReference>, timeout: Long = 25000) {
         // 25s timeout, because unzipping all can take its time
         // wait for textures
+        if (textures.isEmpty()) return
         val endTime = GFX.gameTime + timeout * 1e6.toLong()
         waitForGFXThread(true) {
             if (GFX.gameTime > endTime) {
@@ -876,17 +943,16 @@ object Thumbs {
         callback: (Texture2D) -> Unit
     ) {
         when (asset) {
-            is Mesh -> generateMeshFrame(dstFile, size, asset, callback)
+            is Mesh -> generateMeshFrame(srcFile, dstFile, size, asset, callback)
             is Material -> generateMaterialFrame(srcFile, dstFile, asset, size, callback)
-            is Skeleton -> generateSkeletonFrame(dstFile, asset, size, callback)
+            is Skeleton -> generateSkeletonFrame(srcFile, dstFile, asset, size, callback)
             is Animation -> generateAnimationFrame(dstFile, asset, size, callback)
-            is Entity -> generateEntityFrame(dstFile, size, asset, callback)
+            is Entity -> generateEntityFrame(srcFile, dstFile, size, asset, callback)
+            is MeshBaseComponent -> generateMeshFrame(srcFile, dstFile, size, asset, callback)
+            is Collider -> generateColliderFrame(srcFile, dstFile, size, asset, callback)
             is Component -> {
                 // todo render component somehow... just return an icon?
                 // todo render debug ui :)
-            }
-            is MeshBaseComponent -> {
-                generateMeshFrame(dstFile, size, asset.getMesh() ?: return, callback)
             }
             is Prefab -> {
                 val instance = asset.getSampleInstance()
@@ -1032,7 +1098,7 @@ object Thumbs {
                         // preview for mtl file? idk...
                         generateAssimpMeshFrame(srcFile, dstFile, size, callback)
                     }
-                    "mat", "prefab", "unity", "asset", "controller" -> {
+                    in UnityReader.unityExtensions -> {
                         try {
                             // parse unity files
                             val decoded = UnityReader.readAsAsset(srcFile)

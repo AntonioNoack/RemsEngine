@@ -3,6 +3,7 @@ package me.anno.io.base
 import me.anno.io.ISaveable
 import me.anno.io.InvalidFormatException
 import me.anno.io.Saveable
+import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import java.io.EOFException
 
@@ -13,16 +14,23 @@ abstract class BaseReader {
 
     val sortedContent: List<ISaveable> get() = (withPtr + withoutPtr).filter { it !== UnitSaveable }
 
+    var sourceName = ""
+
     private val missingReferences = HashMap<Int, ArrayList<Pair<Any, String>>>()
 
-    fun getByPointer(ptr: Int): ISaveable? {
+    fun getByPointer(ptr: Int, warnIfMissing: Boolean): ISaveable? {
         val index = ptr - 1
-        return if (index in 0 until withPtr.size) {
-            withPtr[index]
-        } else {
-            LOGGER.warn("Missing object *$ptr, only ${withPtr.size} available")
-            null
+        when {
+            index in withPtr.indices -> return withPtr[index]
+            warnIfMissing -> {
+                if (sourceName.isBlank2()) {
+                    LOGGER.warn("Missing object *$ptr, only ${withPtr.size} available")
+                } else {
+                    LOGGER.warn("Missing object *$ptr, only ${withPtr.size} available by '$sourceName'")
+                }
+            }
         }
+        return null
     }
 
     private fun setContent(ptr: Int, iSaveable: ISaveable) {
@@ -107,6 +115,7 @@ abstract class BaseReader {
             if (clazz.startsWith("AnimatedProperty<")) return getNewClassInstance("AnimatedProperty")
             return ISaveable.objectTypeRegistry[clazz]?.generate() ?: throw UnknownClassException(clazz)
         }
+
     }
 
 

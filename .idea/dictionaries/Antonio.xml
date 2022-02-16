@@ -98,6 +98,7 @@
       <w>fprobe</w>
       <w>fract</w>
       <w>framebuffers</w>
+      <w>fullscreen</w>
       <w>gainsboro</w>
       <w>gamepad</w>
       <w>gbar</w>
@@ -226,6 +227,7 @@
       <w>passthrough</w>
       <w>peachpuff</w>
       <w>perlin</w>
+      <w>personalizable</w>
       <w>pgfref</w>
       <w>phychi</w>
       <w>pickable</w>

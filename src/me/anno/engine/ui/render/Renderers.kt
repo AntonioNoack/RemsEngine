@@ -278,7 +278,7 @@ object Renderers {
         }
     }
 
-    val simpleNormalRenderer = object : Renderer("simple-normal", false, ShaderPlus.DrawMode.COLOR) {
+    val simpleNormalRenderer = object : Renderer("simple-color", false, ShaderPlus.DrawMode.COLOR) {
         override fun getPostProcessing(): ShaderStage {
             return ShaderStage(
                 "uiRenderer", listOf(

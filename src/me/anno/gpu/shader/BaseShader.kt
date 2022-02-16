@@ -99,6 +99,7 @@ open class BaseShader(
 
     val value: Shader
         get() {
+            GFX.check()
             val renderer = OpenGL.currentRenderer
             val instanced = OpenGL.instanced.currentValue
             val shader = if (renderer == Renderer.depthOnlyRenderer) {

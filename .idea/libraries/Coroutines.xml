@@ -1,0 +1,16 @@
+<component name="libraryTable">
+  <library name="Coroutines" type="repository">
+    <properties maven-id="org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0" />
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/maven/kotlinx-coroutines-core-1.6.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/maven/kotlinx-coroutines-core-jvm-1.6.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/maven/kotlin-stdlib-jdk8-1.6.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/maven/kotlin-stdlib-1.6.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/maven/annotations-13.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/maven/kotlin-stdlib-jdk7-1.6.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/maven/kotlin-stdlib-common-1.6.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

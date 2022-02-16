@@ -1,6 +1,7 @@
 package me.anno.utils.types
 
 import me.anno.maths.Maths
+import me.anno.utils.pooling.JomlPools
 import org.joml.*
 import kotlin.math.abs
 import kotlin.math.max
@@ -256,6 +257,11 @@ object AABBs {
         return dst
     }
 
+    fun AABBf.transformProject(m: Matrix4f, dst: AABBf = this): AABBf {
+        val tmp = JomlPools.aabbf.borrow()
+        tmp.clear()
+        return transformProjectUnion(m, tmp, dst)
+    }
 
     /**
      * transforms this matrix, then unions it with base, and places the result in dst
@@ -264,9 +270,9 @@ object AABBs {
         val mx = minX
         val my = minY
         val mz = minZ
-        val dx = this.maxX - mx
-        val dy = this.maxY - my
-        val dz = this.maxZ - mz
+        val xx = maxX
+        val xy = maxY
+        val xz = maxZ
         var minx = base.minX
         var miny = base.minY
         var minz = base.minZ
@@ -274,9 +280,9 @@ object AABBs {
         var maxy = base.maxY
         var maxz = base.maxZ
         for (i in 0..7) {
-            val x = mx + (i and 1).toFloat() * dx
-            val y = my + ((i shr 1) and 1).toFloat() * dy
-            val z = mz + ((i shr 2) and 1).toFloat() * dz
+            val x = if ((i.and(1) != 0)) xx else mx
+            val y = if ((i.and(2) != 0)) xy else my
+            val z = if ((i.and(4) != 0)) xz else mz
             val tw = m.m03() * x + m.m13() * y + m.m23() * z + m.m33()
             val tx = (m.m00() * x + m.m10() * y + m.m20() * z + m.m30()) / tw
             val ty = (m.m01() * x + m.m11() * y + m.m21() * z + m.m31()) / tw
@@ -305,9 +311,9 @@ object AABBs {
         val mx = minX.toDouble() * scale
         val my = minY.toDouble() * scale
         val mz = minZ.toDouble() * scale
-        val dx = this.maxX * scale - mx
-        val dy = this.maxY * scale - my
-        val dz = this.maxZ * scale - mz
+        val xx = maxX * scale
+        val xy = maxY * scale
+        val xz = maxZ * scale
         var minx = base.minX
         var miny = base.minY
         var minz = base.minZ
@@ -315,9 +321,9 @@ object AABBs {
         var maxy = base.maxY
         var maxz = base.maxZ
         for (i in 0..7) {
-            val x = mx + (i and 1).toDouble() * dx
-            val y = my + ((i shr 1) and 1).toDouble() * dy
-            val z = mz + ((i shr 2) and 1).toDouble() * dz
+            val x = if ((i.and(1) != 0)) xx else mx
+            val y = if ((i.and(2) != 0)) xy else my
+            val z = if ((i.and(4) != 0)) xz else mz
             val tx = m.m00() * x + m.m10() * y + m.m20() * z + m.m30()
             val ty = m.m01() * x + m.m11() * y + m.m21() * z + m.m31()
             val tz = m.m02() * x + m.m12() * y + m.m22() * z + m.m32()

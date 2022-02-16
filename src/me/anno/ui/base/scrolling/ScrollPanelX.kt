@@ -28,17 +28,17 @@ open class ScrollPanelX(
     }
 
     @NotSerializedProperty
-    var lsp = -1f
+    var lsp = -1.0
 
     @NotSerializedProperty
-    var lmsp = -1
+    var lmsp = -1L
 
-    override var scrollPositionX = 0f
+    override var scrollPositionX = 0.0
 
     @NotSerializedProperty
     private var isDownOnScrollbar = false
 
-    override val maxScrollPositionX get() = max(0, child.minW + padding.width - w)
+    override val maxScrollPositionX get() = max(0, child.minW + padding.width - w).toLong()
     val scrollbar = ScrollbarX(this, style)
 
     // todo these two properties need to be updated, when the style changes
@@ -122,7 +122,7 @@ open class ScrollPanelX(
     }
 
     private fun clampScrollPosition() {
-        scrollPositionX = clamp(scrollPositionX, 0f, maxScrollPositionX.toFloat())
+        scrollPositionX = clamp(scrollPositionX, 0.0, maxScrollPositionX.toDouble())
     }
 
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {

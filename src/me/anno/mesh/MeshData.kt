@@ -4,6 +4,7 @@ import me.anno.cache.data.ICacheData
 import me.anno.ecs.Entity
 import me.anno.ecs.components.cache.MaterialCache
 import me.anno.ecs.components.cache.SkeletonCache
+import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.AnimRenderer
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshBaseComponent
@@ -16,6 +17,7 @@ import me.anno.gpu.drawing.GFXx3D.uploadAttractors0
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.shaderAssimp
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.thumbs.ThumbsExt
 import me.anno.mesh.MeshUtils.centerMesh
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.mesh.assimp.AnimGameItem.Companion.getScaleFromAABB
@@ -29,7 +31,7 @@ open class MeshData : ICacheData {
 
     fun drawAssimp(
         useECSShader: Boolean,
-        stack: Matrix4fArrayList,
+        cameraMatrix: Matrix4fArrayList,
         time: Double,
         color: Vector4fc,
         animationName: String,
@@ -42,7 +44,7 @@ open class MeshData : ICacheData {
         val baseShader = if (useECSShader) pbrModelShader else shaderAssimp
         val shader = baseShader.value
         shader.use()
-        shader3DUniforms(shader, stack, color)
+        shader3DUniforms(shader, cameraMatrix, color)
         uploadAttractors0(shader)
 
         val model0 = assimpModel!!
@@ -60,13 +62,14 @@ open class MeshData : ICacheData {
         }
 
         if (centerMesh) {
-            centerMesh(null, stack, localStack, model0)
+            centerMesh(null, cameraMatrix, localStack, model0)
         }
 
-        transformUniform(shader, stack)
+        transformUniform(shader, cameraMatrix)
 
         drawHierarchy(
             shader,
+            cameraMatrix,
             localStack,
             skinningMatrices,
             color,
@@ -87,6 +90,7 @@ open class MeshData : ICacheData {
 
     fun drawHierarchy(
         shader: Shader,
+        cameraMatrix: Matrix4f,
         stack: Matrix4x3fArrayList,
         skinningMatrices: Array<Matrix4x3f>?,
         color: Vector4fc,
@@ -117,8 +121,6 @@ open class MeshData : ICacheData {
             shader.m4x3("localTransform", stack)
             GFX.shaderColor(shader, "tint", -1)
 
-            // LOGGER.info("use materials? $useMaterials")
-
             if (useMaterials) {
                 entity.anyComponent(MeshBaseComponent::class) { comp ->
                     val mesh = comp.getMesh()
@@ -126,10 +128,13 @@ open class MeshData : ICacheData {
                         mesh.checkCompleteness()
                         mesh.ensureBuffer()
                         shader.v1b("hasVertexColors", mesh.hasVertexColors)
+                        val materialOverrides = comp.materials
                         val materials = mesh.materials
-                        // LOGGER.info("drawing mesh '${comp.name}' with ${mesh.numMaterials} materials")
+                        // LOGGER.info("drawing mesh with material $materialOverrides x $materials")
                         for (index in 0 until mesh.numMaterials) {
-                            val material = MaterialCache[materials.getOrNull(index), defaultMaterial]
+                            val m0 = materialOverrides.getOrNull(index)?.nullIfUndefined()
+                            val m1 = m0 ?: materials.getOrNull(index)
+                            val material = MaterialCache[m1, defaultMaterial]
                             material.defineShader(shader)
                             mesh.draw(shader, index)
                         }
@@ -154,6 +159,14 @@ open class MeshData : ICacheData {
             }
         }
 
+        if (entity.sumComponents(Collider::class) { collider ->
+                collider.drawShape(); 1
+            } > 0) {
+            ThumbsExt.finishLines(cameraMatrix, stack)
+            // switch back to default shader
+            shader.use()
+        }
+
         if (drawSkeletons) {
             val animMeshRenderer = entity.getComponent(AnimRenderer::class, false)
             if (animMeshRenderer != null) {
@@ -163,7 +176,10 @@ open class MeshData : ICacheData {
 
         val children = entity.children
         for (i in children.indices) {
-            drawHierarchy(shader, stack, skinningMatrices, color, model0, children[i], useMaterials, drawSkeletons)
+            drawHierarchy(
+                shader, cameraMatrix, stack, skinningMatrices,
+                color, model0, children[i], useMaterials, drawSkeletons
+            )
         }
 
         stack.popMatrix()

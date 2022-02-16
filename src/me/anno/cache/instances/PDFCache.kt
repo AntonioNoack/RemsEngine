@@ -167,7 +167,7 @@ object PDFCache : CacheSection("PDFCache") {
         return renderer.renderImage(Maths.clamp(pageNumber, 0, numberOfPages - 1), dpi, ImageType.RGB)
     }
 
-    val timeout = 20_000L
+    private const val timeout = 20_000L
     private val LOGGER = LogManager.getLogger(PDFCache::class)
 
 }

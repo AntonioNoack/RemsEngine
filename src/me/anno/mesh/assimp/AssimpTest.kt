@@ -50,7 +50,8 @@ fun main() {
 
     // check what is the result using the animations
     loadSkeletonFromAnimations(aiScene, rootNode, createNodeCache(rootNode), boneList, boneMap)
-    Thumbs.generateSkeletonFrame(getReference(desktop, "byAnimation.png"), skeleton, size) {}
+    val dst0 = getReference(desktop, "byAnimation.png")
+    Thumbs.generateSkeletonFrame(dst0, dst0, skeleton, size) {}
     println("by animation: ${boneList.map { it.name }}")
 
 
@@ -60,7 +61,8 @@ fun main() {
     boneMap.clear()
 
     SkeletonAnimAndBones.loadSkeletonFromAnimationsAndBones(aiScene, rootNode, boneList, boneMap)
-    Thumbs.generateSkeletonFrame(getReference(desktop, "byTree.png"), skeleton, size) {}
+    val dst1 = getReference(desktop, "byTree.png")
+    Thumbs.generateSkeletonFrame(dst1, dst1, skeleton, size) {}
     println("by tree, full: ${boneList.map { it.name }}")
 
 

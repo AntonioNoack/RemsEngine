@@ -107,7 +107,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
             if (parent is CustomList) {
                 parent.remove(indexInParent)
             } else LOGGER.warn(warningForLast)
-        }.setEnabled(parent is CustomList && (parent.children.size > 1 || parent.parent is CustomList), warningForLast)
+        }.setEnabled(parent is CustomList && (siblings.size > 1 || parent.parent is CustomList), warningForLast)
         options += MenuOption(NameDesc("Add Panel Before", "", "ui.customize.addBefore")) {
             addPanel(false, firstThis = false)
         }

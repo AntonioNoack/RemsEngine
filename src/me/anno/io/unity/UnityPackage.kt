@@ -68,10 +68,13 @@ object UnityPackage {
             }
             InnerTarFile("$zipFileLocation/$path", zipFile, getStream, path, parent2, original.readingPath)
         }
+        file as InnerTarFile
         file.lastModified = original.lastModified
+        file.lastAccessed = original.lastAccessed
         file.size = original.size
         file.compressedSize = original.compressedSize
         file.data = original.data
+        file.signature = original.signature
         return file
     }
 

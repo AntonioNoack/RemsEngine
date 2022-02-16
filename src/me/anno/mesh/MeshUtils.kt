@@ -1,5 +1,6 @@
 package me.anno.mesh
 
+import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.io.ISaveable
 import me.anno.mesh.assimp.AnimGameItem
@@ -9,10 +10,8 @@ import me.anno.utils.types.AABBs.deltaX
 import me.anno.utils.types.AABBs.deltaY
 import me.anno.utils.types.AABBs.isEmpty
 import me.anno.utils.types.AABBs.set
-import org.joml.AABBd
-import org.joml.AABBf
-import org.joml.Matrix4f
-import org.joml.Matrix4x3f
+import me.anno.utils.types.AABBs.transformProject
+import org.joml.*
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -23,6 +22,16 @@ object MeshUtils {
     fun centerMesh(stack: Matrix4f, localStack: Matrix4x3f, mesh: Mesh, targetFrameUsage: Float = 0.95f) {
         mesh.ensureBuffer()
         centerMesh(stack, localStack, AABBd().set(mesh.aabb), { mesh.getBounds(it, false) }, targetFrameUsage)
+    }
+
+    fun centerMesh(stack: Matrix4f, localStack: Matrix4x3f, collider: Collider, targetFrameUsage: Float = 0.95f) {
+        val aabb = AABBd()
+        collider.fillSpace(Matrix4x3d(), aabb)
+        centerMesh(stack, localStack, aabb, { transform ->
+            val aabb2 = AABBd()
+            collider.fillSpace(Matrix4x3d(), aabb2)
+            AABBf().set(aabb2).transformProject(transform)
+        }, targetFrameUsage)
     }
 
     fun centerMesh(stack: Matrix4f, localStack: Matrix4x3f, model0: AnimGameItem, targetFrameUsage: Float = 0.95f) {
@@ -54,10 +63,13 @@ object MeshUtils {
         targetFrameUsage: Float = 0.95f
     ) {
 
+        if (aabb0.isEmpty()) return
+
         // rough approximation using bounding box
         AnimGameItem.centerStackFromAABB(localStack, aabb0)
 
         // todo whenever possible, this optimization should be on another thread
+        // (because for high-poly meshes, it is expensive)
 
         // Newton iterations to improve the result
         val matrix = Matrix4f()
@@ -103,15 +115,17 @@ object MeshUtils {
             val newtonX = -x0 / dx
             val newtonY = -y0 / dy
 
-            if (abs(newtonX) + abs(newtonY) > 5f) break // translation is too wrong... mmh...
+            if (abs(newtonX) + abs(newtonY) < 5f) {
 
-            // good enough for pixels
-            if (scaleIsGoodEnough && abs(newtonX) + abs(newtonY) < 1e-4f) break
+                // good enough for pixels
+                if (scaleIsGoodEnough && abs(newtonX) + abs(newtonY) < 1e-4f) break
 
-            stack.translateLocal(newtonX, newtonY, 0f)
-            stack.scaleLocal(scale, scale, scale)
+                stack.translateLocal(newtonX, newtonY, 0f)
+                stack.scaleLocal(scale, scale, scale)
 
-            // LOGGER.info("Tested[$i]: $epsilon, Used: Newton = (-($x0/$dx), -($y0/$dy)), Scale: $scale")
+                // LOGGER.info("Tested[$i]: $epsilon, Used: Newton = (-($x0/$dx=$newtonX), -($y0/$dy=$newtonY)), Scale: $scale")
+
+            } else break // translation is too wrong... mmh...
 
         }
 

@@ -1,6 +1,7 @@
 package me.anno.ui.utils
 
 import me.anno.config.DefaultConfig
+import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.Input
 import me.anno.studio.StudioBase
@@ -13,6 +14,9 @@ import java.util.*
 import kotlin.math.max
 
 class WindowStack : Stack<Window>() {
+
+    val inFocus = HashSet<Panel>()
+    val inFocus0 get() = inFocus.firstOrNull()
 
     /**
      * transforms the on-OS-window cursor position to local coordinates
@@ -37,6 +41,16 @@ class WindowStack : Stack<Window>() {
 
     var mouseDownX = 0f
     var mouseDownY = 0f
+
+    fun requestFocus(panel: Panel?, exclusive: Boolean) {
+        if (StudioBase.dragged != null) return
+        if (exclusive) {
+            for (p in inFocus) p.invalidateDrawing()
+            inFocus.clear()
+        }
+        if (panel != null) inFocus.add(panel)
+        panel?.invalidateDrawing()
+    }
 
     fun push(panel: Panel): Window {
         val window = Window(panel, this)

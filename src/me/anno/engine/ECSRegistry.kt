@@ -4,7 +4,6 @@ import me.anno.Build
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
-import me.anno.ecs.components.ScriptComponent
 import me.anno.ecs.components.anim.BoneByBoneAnimation
 import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.anim.Skeleton
@@ -21,6 +20,9 @@ import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.components.physics.Vehicle
 import me.anno.ecs.components.physics.VehicleWheel
 import me.anno.ecs.components.physics.constraints.*
+import me.anno.ecs.components.script.QuickInputScriptComponent
+import me.anno.ecs.components.script.QuickScriptComponent
+import me.anno.ecs.components.script.ScriptComponent
 import me.anno.ecs.components.test.RaycastTestComponent
 import me.anno.ecs.components.test.TestVehicleController
 import me.anno.ecs.components.test.TypeTestComponent
@@ -76,7 +78,13 @@ object ECSRegistry {
         registerCustomClass(Entity())
         registerCustomClass(Transform())
 
+        // camera
         registerCustomClass(CameraComponent())
+
+        // scripting
+        registerCustomClass(ScriptComponent())
+        registerCustomClass(QuickScriptComponent())
+        registerCustomClass(QuickInputScriptComponent())
 
         // ui base
         registerCustomClass(CanvasComponent())
@@ -133,9 +141,6 @@ object ECSRegistry {
         registerCustomClass(AmbientLight())
         registerCustomClass(EnvironmentMap())
         registerCustomClass(PlanarReflection())
-
-        // others
-        registerCustomClass(ScriptComponent())
 
         // colliders
         registerCustomClass(BoxCollider())
@@ -213,9 +218,11 @@ object ECSRegistry {
         hasBeenInited = false
         init()
         val t2 = System.nanoTime()
-        println("Used 1st ${((t1 - t0) * 1e-9).f3()} / " +
-                "2nd ${((t2 - t1) * 1e-9).f3()} s, " +
-                "base: ${((t0 - tx) * 1e-9).f3()}")
+        println(
+            "Used 1st ${((t1 - t0) * 1e-9).f3()} / " +
+                    "2nd ${((t2 - t1) * 1e-9).f3()} s, " +
+                    "base: ${((t0 - tx) * 1e-9).f3()}"
+        )
     }
 
 }

@@ -14,7 +14,7 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.base.text.SimpleTextPanel
-import me.anno.ui.debug.console.COLine
+import me.anno.ui.debug.console.ConsoleOutputLine
 import me.anno.ui.debug.console.ConsoleLogFullscreen
 import me.anno.ui.style.Style
 import me.anno.utils.files.Files.formatFileSize
@@ -56,7 +56,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             val lcl = Logging.lastConsoleLines
             for (i in lcl.lastIndex downTo 0) {
                 val msg = lcl[i]
-                val panel = COLine(list, msg, style)
+                val panel = ConsoleOutputLine(list, msg, style)
                 val color = getTextColor(msg)
                 // todo if line contains file, then add a section for that
                 // todo styled simple text panel: colors, and actions for sections of text

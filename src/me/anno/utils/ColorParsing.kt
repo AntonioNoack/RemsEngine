@@ -77,6 +77,10 @@ object ColorParsing {
         }
     }
 
+    fun parseHex(c0: Char, c1: Char): Int {
+        return hex[c0.code].shl(4) or hex[c1.code]
+    }
+
     fun String.is255Int() = toIntOrNull() != null && toInt() in 0..255
     fun String.is01Float() = toFloatOrNull() != null && toFloat() in 0f..1f
 

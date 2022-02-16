@@ -103,8 +103,8 @@ open class TextInput(
         setValue(keyFile.toString(), true)
     }
 
-    override fun requestFocus() {
-        base.requestFocus()
+    override fun requestFocus(exclusive: Boolean) {
+        base.requestFocus(exclusive)
     }
 
     override fun getCursor(): Long = Cursor.drag

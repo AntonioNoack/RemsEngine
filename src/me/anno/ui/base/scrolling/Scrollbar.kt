@@ -16,6 +16,8 @@ open class Scrollbar(style: Style) : Panel(style.getChild("scrollbar")) {
 
     val activeAlpha = 0.2f
 
+    var minSize = 5
+
     val scrollColor = -1
     val scrollColorAlpha = 0.3f
     val scrollBackground = -1

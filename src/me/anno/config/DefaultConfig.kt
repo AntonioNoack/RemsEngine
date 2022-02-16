@@ -5,6 +5,7 @@ import me.anno.gpu.GFXBase0.projectName
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.SaveableArray
 import me.anno.io.config.ConfigBasics
+import me.anno.io.unity.UnityReader
 import me.anno.io.utils.StringMap
 import me.anno.ui.base.Font
 import me.anno.ui.style.Style
@@ -76,7 +77,7 @@ object DefaultConfig : StringMap() {
         addImportMappings("Audio", "mp3", "wav", "m4a", "ogg")
         addImportMappings("URL", "url", "lnk", "desktop")
         addImportMappings("Container", "unitypackage", "zip", "7z", "tar", "gz", "xz", "rar", "bz2", "xar", "oar")
-        addImportMappings("Asset", "json", "mat", "prefab", "unity", "controller")
+        addImportMappings("Asset", *UnityReader.unityExtensions.toTypedArray())
         addImportMappings("Executable", "exe", "lib", "dll", "pyd", "jar")
 
     }

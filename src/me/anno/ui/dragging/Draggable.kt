@@ -3,13 +3,25 @@ package me.anno.ui.dragging
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.ui.Panel
 import me.anno.ui.base.constraints.WrapAlign
+import me.anno.ui.base.text.TextPanel
+import me.anno.ui.style.Style
 
 class Draggable(
     private val content: String,
     private val contentType: String,
     private val original: Any?,
     val ui: Panel
-): IDraggable {
+) : IDraggable {
+
+    constructor(
+        content: String, contentType: String, original: Any?,
+        title: String, style: Style
+    ) : this(content, contentType, original, TextPanel(title, style))
+
+    constructor(
+        content: String, contentType: String, original: Any?,
+        style: Style
+    ) : this(content, contentType, original, content, style)
 
     init {
         ui += WrapAlign.LeftTop

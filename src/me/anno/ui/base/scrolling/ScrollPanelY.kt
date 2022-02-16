@@ -40,12 +40,12 @@ open class ScrollPanelY(
     }
 
     @NotSerializedProperty
-    var lsp = -1f
+    var lsp = -1.0
 
     @NotSerializedProperty
-    var lmsp = -1
+    var lmsp = -1L
 
-    override var scrollPositionY = 0f
+    override var scrollPositionY = 0.0
 
     @NotSerializedProperty
     private var isDownOnScrollbar = false
@@ -58,7 +58,12 @@ open class ScrollPanelY(
 
     val hasScrollbar get() = maxScrollPositionY > 0
 
-    override val maxScrollPositionY get() = max(0, child.minH + padding.height - h)
+    override val maxScrollPositionY: Long
+        get() {
+            val child = child
+            val childH = if (child is LongScrollable) child.sizeY else child.minH.toLong()
+            return max(0, childH + padding.height - h)
+        }
 
     override fun tickUpdate() {
         super.tickUpdate()
@@ -91,8 +96,13 @@ open class ScrollPanelY(
 
     override fun placeInParent(x: Int, y: Int) {
         super.placeInParent(x, y)
-        val scroll = scrollPositionY.toInt()
+        val scroll0 = scrollPositionY.toLong()
+        val scroll = clamp(scroll0, 0L, (child.minH + padding.height - h).toLong()).toInt()
+        val child = child
         child.placeInParent(x + padding.left, y + padding.top - scroll)
+        if (child is LongScrollable) {
+            child.setExtraScrolling(0L, scroll0 - scroll)
+        }
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -124,7 +134,7 @@ open class ScrollPanelY(
     }
 
     fun clampScrollPosition() {
-        scrollPositionY = clamp(scrollPositionY, 0f, maxScrollPositionY.toFloat())
+        scrollPositionY = clamp(scrollPositionY, 0.0, maxScrollPositionY.toDouble())
     }
 
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {

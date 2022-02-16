@@ -107,7 +107,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         thing ?: return null
         val path = thing.prefabPath ?: return null
         val instance = Hierarchy.getInstanceAt(clone.root, path)
-        @Suppress("UNCHECKED_CAST")
+        @Suppress("unchecked_cast")
         return instance as V
     }
 

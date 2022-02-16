@@ -122,10 +122,13 @@ class LuaLanguage(var customVariables: Set<String> = emptySet()) : Language {
     fun normal(stream: Stream, state: State): TokenType {
         val ch = stream.next()
         if (ch == '-' && stream.eat('-')) {
+            // block comment
             if (stream.eat('[') && stream.eat('[')) {
                 state.cur = bracketed(readBracket(stream), TokenType.COMMENT)
                 return state.cur(stream, state)
             }
+            // line comment
+            stream.eatWhile { it != '\n' }
             return TokenType.COMMENT
         }
         if (ch == '"' || ch == '\'') {
@@ -180,7 +183,7 @@ class LuaLanguage(var customVariables: Set<String> = emptySet()) : Language {
         return state.indent0 + indentUnit * (state.indentDepth - isClosing.toInt())
     }
 
-    override val electricInput: Regex = Regex("/^\\s*(?:end|until|else|\\)|\\})\$/")
+    override val electricInput: Regex = Regex("/^\\s*(?:end|until|else|\\)|\\})\$/") // patterns, that change the line indentation (?)
     override val lineComment: String = "--"
     override val blockCommentStart: String = "--[["
     override val blockCommentEnd: String = "]]"

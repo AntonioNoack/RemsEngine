@@ -123,6 +123,16 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
      * get the value, no matter whether it actually exists
      * useful for LODs, if others work as well, just are not as good
      * */
+    fun getDualEntryWithoutGenerator(key1: Any, key2: Any, delta: Long = 1L): ICacheData? {
+        val entry = synchronized(dualCache) { dualCache[key1, key2] } ?: return null
+        if (delta > 0L) entry.update(delta)
+        return entry.data
+    }
+
+    /**
+     * get the value, no matter whether it actually exists
+     * useful for LODs, if others work as well, just are not as good
+     * */
     fun hasEntry(key: Any, delta: Long = 1L): Boolean {
         val entry = synchronized(cache) { cache[key] } ?: return false
         if (delta > 0L) entry.update(delta)

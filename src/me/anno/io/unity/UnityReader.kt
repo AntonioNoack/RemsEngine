@@ -1,15 +1,21 @@
 package me.anno.io.unity
 
+import me.anno.Engine
 import me.anno.cache.CacheData
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.engine.ECSRegistry
+import me.anno.engine.ui.render.ECSShaderLib
+import me.anno.gpu.hidden.HiddenOpenGLContext
+import me.anno.gpu.shader.ShaderLib
 import me.anno.image.ImageCPUCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.json.JsonFormatter
 import me.anno.io.unity.UnityProject.Companion.invalidProject
 import me.anno.io.unity.UnityProject.Companion.isValidUUID
@@ -23,18 +29,22 @@ import me.anno.io.zip.InnerPrefabFile
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.FileExplorerOption
-import me.anno.utils.OS
+import me.anno.utils.ColorParsing.parseHex
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
+import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
-import me.anno.utils.test.gfx.testMaterial
+import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.Quaterniond
 import org.joml.Vector2f
 import org.joml.Vector3d
-import kotlin.concurrent.thread
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 object UnityReader {
+
+    val unityExtensions = listOf("mat", "prefab", "unity", "asset", "controller", "meta")
 
     private val LOGGER = LogManager.getLogger(UnityReader::class)
 
@@ -50,9 +60,11 @@ object UnityReader {
                 val data = UnityProjectCache.getEntry(file, unityProjectTimeout, async) {
                     val root = file.getParent()!!
                     if (root is UnityPackageFolder) {
+                        LOGGER.info("Fastest indexing ever <3")
                         // fastest indexing ever <3
                         CacheData(root.project)
                     } else {
+                        LOGGER.info("Indexing files $root")
                         val project = UnityProject(root)
                         project.register(root.getChild("Assets"))
                         project.register(root.getChild("ProjectSettings"))
@@ -69,7 +81,7 @@ object UnityReader {
 
     fun findUnityProject(file: FileReference): UnityProject? {
         // println("$file, ${file.exists}, ${file.isDirectory}, ${file.listChildren()}, ${file.length()}")
-        if(!file.exists) return null
+        if (!file.exists) return null
         val key = "/Assets/"
         val abs = file.absolutePath
         if (file.isDirectory) {
@@ -117,8 +129,10 @@ object UnityReader {
     }
 
     private fun FileReference.getChildByNameOrFirst(name: String): FileReference? {
+        if (name.isBlank2()) return this
         val byName = getChild(name)
         if (byName != InvalidRef) return byName
+        LOGGER.warn("$name is missing from $this, only found ${listChildren()?.map { it.name }}")
         return if (isSomeKindOfDirectory) listChildren()?.firstOrNull() else null
     }
 
@@ -175,7 +189,7 @@ object UnityReader {
         val rotation = Quaterniond()
         for (change in changes) {
 
-            val target = decodePath(guid, change["Target"]?.value, project)
+            val target = decodePath(guid, change["Target"], project)
 
             // e.g. m_LocalPosition.x -> LocalPosition.x,
             // m_Name -> Name, ...
@@ -186,7 +200,7 @@ object UnityReader {
             val value = change["Value"]?.value // e.g. 1.723
             // a reference to a local object, when dragging sth onto another thing
             // value is then empty
-            val objectReference = decodePath(guid, change["ObjectReference"]?.value, project)
+            val objectReference = decodePath(guid, change["ObjectReference"], project)
 
             when (path) {
                 "Name" -> prefab.setProperty("name", value ?: continue)
@@ -208,9 +222,10 @@ object UnityReader {
                 }
                 "RootOrder" -> {
                 } // probably for changing the order of children
-                /*"Materials.Array.data[0]" -> {
+                "Materials.Array.data[0]" -> {
+                    println("todo set material ... $value")
                     // todo set the material somehow... is it a material?
-                }*/
+                }
                 else -> LOGGER.info("$target, Change: $path, value: $value, ref: $objectReference")
             }
 
@@ -254,7 +269,6 @@ object UnityReader {
         val center = node.getVector3d(1e-5)
         val size = node.getVector3dScale(1e-5)
         // physics material?
-        val isTrigger = node.getBool("IsTrigger")
         val isEnabled = node.getBool("Enabled")
         if (isEnabled == false) prefab.setProperty("isEnabled", isEnabled)
         val path = if (center != null) {
@@ -266,7 +280,9 @@ object UnityReader {
             ROOT_PATH
         }
         if (size != null) prefab.set(path, "halfExtends", size)
-        if (isTrigger != null) prefab.set(path, "isTrigger", isTrigger) // mmh...
+        // todo this is not known/supported...
+        // val isTrigger = node.getBool("IsTrigger")
+        // if (isTrigger != null) prefab.set(path, "isTrigger", isTrigger) // mmh...
     }
 
     fun defineMeshCollider(prefab: Prefab, node: YAMLNode, guid: String, project: UnityProject) {
@@ -288,12 +304,14 @@ object UnityReader {
          * */
         // physics material?
         prefab.clazzName = "MeshCollider"
-        val isTrigger = node.getBool("IsTrigger")
         val isEnabled = node.getBool("Enabled")
         if (isEnabled == false) prefab.setProperty("isEnabled", isEnabled)
-        if (isTrigger != null) prefab.set(ROOT_PATH, "isTrigger", isTrigger) // mmh...
+        // todo program triggers...
+        // val isTrigger = node.getBool("IsTrigger")
+        // if (isTrigger != null) prefab.set(ROOT_PATH, "isTrigger", isTrigger) // mmh...
         val isConvex = node.getBool("Convex")
         if (isConvex == false) prefab.set(ROOT_PATH, "isConvex", isConvex)
+        // todo is the mesh correct? from what i've found, it was just empty...
         val mesh = decodePath(guid, node["Mesh"], project)
         if (mesh != InvalidRef) prefab.set(ROOT_PATH, "meshFile", mesh)
     }
@@ -303,6 +321,79 @@ object UnityReader {
         prefab.clazzName = "MeshComponent"
         prefab.setProperty("mesh", decodePath(guid, node["Mesh"], project))
         return node["GameObject"].toString()
+    }
+
+    fun String.parseIndexBuffer(): IntArray {
+        /*
+        * 0b00 0400 0f00 0200 0100 0300 0100 02000900020004000900070001000900050007000900040006000a00060008000a00090004000a
+        * 00030006000b00060004000b00070000000c00000008000c00080006000c00070005000d00000007000d0008000000
+        * 0d00050009000d000a0008000d0009000a000d00030001000e00060003000e00010007000e000c0006000e0007000c000e000200
+        * 03000f00040002000f0003000b000f00
+        * */
+        val indices = IntArray(length / 4)
+        for (i in indices.indices) {
+            val o = i * 4
+            indices[i] = parseHex(this[o], this[o + 1]) or parseHex(this[o + 2], this[o + 3]).shl(8)
+        }
+        return indices
+    }
+
+    fun String.parseBuffer(): ByteBuffer {
+        val buffer = ByteBuffer.allocate(length / 2)
+            // byte order is defined by Unity's file format -> must not be changed!
+            .order(ByteOrder.LITTLE_ENDIAN)
+        for (i in 0 until length / 2) {
+            val o = i * 2
+            buffer.put(i, parseHex(this[o], this[o + 1]).toByte())
+        }
+        return buffer
+    }
+
+    fun defineMesh(prefab: Prefab, node: YAMLNode, guid: String, project: UnityProject) {
+        // sample: Military, SM_Veh_Rocket_Truck_01_Convex 1.asset
+        prefab.clazzName = "Mesh"
+        val indexBuffer = node["IndexBuffer"]?.value?.parseIndexBuffer()
+        if (indexBuffer != null) {
+            prefab.setProperty("indices", indexBuffer)
+        }
+        val vertexData = node["VertexData"]
+        if (vertexData != null) {
+            val vertexCount = vertexData["VertexCount"]?.value?.toInt() ?: 0
+            val dataSize = vertexData["DataSize"]?.value?.toInt() ?: 0
+            val data = vertexData["Typelessdata"]?.value?.parseBuffer() // dataSize bytes in hex
+            if (data == null) LOGGER.warn("typeless-data wasn't found! ${vertexData.children?.map { it.key }}")
+            // there are channels, and they probably define position,normal,...
+            // how many channels are actually filled with data (dimension > 0)
+            // val numChannels = vertexData["CurrentChannels"]?.value?.toInt()
+            // format 0 is little endian float
+            val channels = vertexData["Channels"]?.children ?: emptyList()
+            if (data != null && channels.isNotEmpty()) {
+                val format0 = channels[0]["Format"]?.value?.toInt()
+                val dimension0 = channels[0]["Dimension"]?.value?.toInt()
+                if (format0 == 0 && dimension0 == 3 && vertexCount > 0) {
+                    val stride = dataSize / vertexCount
+                    val offset = channels[0]["Offset"]?.value?.toInt() ?: 0
+                    val positions = FloatArray(vertexCount * 3)
+                    for (i in 0 until vertexCount) {
+                        val indexOut = i * 3
+                        val indexIn = i * stride + offset
+                        positions[indexOut + 0] = data.getFloat(indexIn)
+                        positions[indexOut + 1] = data.getFloat(indexIn + 4)
+                        positions[indexOut + 2] = data.getFloat(indexIn + 8)
+                    }
+                    prefab.setProperty("positions", positions)
+                }
+            }
+        }
+    }
+
+    fun addPrefabChild(prefab: Prefab, path: FileReference) {
+        if (path is PrefabReadable) {
+            val child = path.readPrefab()
+            val type = if (child.clazzName == "Entity") 'e' else 'c'
+            val name = child.instanceName ?: child.clazzName
+            prefab.add(ROOT_PATH, type, child.clazzName, name, path)
+        }
     }
 
     fun readUnityObjects(root: YAMLNode, guid: String, project: UnityProject, folder: InnerFolder): FileReference {
@@ -316,7 +407,7 @@ object UnityReader {
                 val prefab = Prefab("Entity")
                 val file = InnerPrefabFile(folder.absolutePath + "/" + fileId, fileId, folder, prefab)
                 prefab.source = file
-                prefab.setProperty("desc", node.key)
+                prefab.setProperty("description", node.key)
                 file
             }
         }
@@ -338,39 +429,71 @@ object UnityReader {
                 }
                 "Material" -> defineMaterial(prefab, node, guid, project)
                 "BoxCollider" -> defineBoxCollider(prefab, node)
+                "Mesh" -> defineMesh(prefab, node, guid, project)
                 "MeshCollider" -> defineMeshCollider(prefab, node, guid, project)
                 "MeshFilter" -> {
                     val gameObjectKey = defineMeshFilter(prefab, node, guid, project)
                     meshesByGameObject.getOrPut(gameObjectKey) { ArrayList() }
                         .add(prefab)
                 }
+                "MonoBehaviour" -> {
+                    // an unknown script plus properties
+                    // in the original without _ and without m_
+                    val script = decodePath(guid, node["Script"], project)
+                    if (script != InvalidRef) println(
+                        "script for behaviour: ${
+                            try {
+                                script.readText()
+                            } catch (e: Exception) {
+                                script
+                            }
+                        }"
+                    )
+                    /*for (child in node.children ?: emptyList()) {
+                        if (child.value?.startsWith("{fileID") == true) {
+                            addPrefabChild(prefab, decodePath(guid, child, project))
+                        }
+                        for (child2 in child.children ?: emptyList()) {
+                            if (child2.value?.startsWith("{fileID") == true) {
+                                addPrefabChild(prefab, decodePath(guid, child2, project))
+                            }
+                        }
+                    }*/
+                }
             }
         }
 
         // add their transforms / prefabs / changes
-        forAllUnityObjects(root) { _, node ->
-            // val file = folder.get(fileId) as InnerPrefabFile
+        val transformToGameObject = HashMap<FileReference, FileReference>()
+        forAllUnityObjects(root) { fileId, node ->
+            val file = folder.get(fileId) as InnerPrefabFile
             // val prefab = file.readPrefab()
             when (node.key) {
-                /*"Transform" -> {
-                    val prefabRef = decodePath(guid, node["PrefabInternal"], project)
-                    if (prefabRef != InvalidRef) {
-                        val prefabNode = prefabsByRef[prefabRef.name]
-                        if (prefabNode != null) {
-                            addPrefab2Transform(prefab, prefabNode, guid, project)
-                        } else LOGGER.warn("Missing prefab ${prefabRef.name}, only got ${prefabsByRef.keys}")
-                    }
-                }*/
                 "MeshRenderer" -> {
                     val gameObjectKey = node["GameObject"].toString()
-                    // todo parse list of materials, and assign them to all meshes
                     // val castShadows = node.getBool("CastShadows") ?: true
                     // val receiveShadows = node.getBool("ReceiveShadows") ?: true
                     val isEnabled = node.getBool("Enabled") ?: true
-                    // val materials = node["Materials"]
-                    for (mesh in meshesByGameObject[gameObjectKey] ?: emptyList()) {
-                        if (!isEnabled) mesh.setProperty("isEnabled", false)
-
+                    val materials = node["Materials"]
+                    val meshes = meshesByGameObject[gameObjectKey]
+                    if (meshes != null && meshes.isNotEmpty()) {
+                        val materialList = materials?.packListEntries()?.children
+                            ?.map { decodePath(guid, it, project) }
+                        for (mesh in meshes) {
+                            if (!isEnabled) mesh.setProperty("isEnabled", false)
+                            if (materials != null) mesh.setProperty("materials", materialList)
+                        }
+                    }
+                }
+                "Transform" -> {
+                    val goFile = decodePath(guid, node["GameObject"], project)
+                    if (goFile is PrefabReadable) {
+                        transformToGameObject[file] = goFile
+                    } else {
+                        val pi = decodePath(guid, node["PrefabInternal"], project)
+                        if (pi is PrefabReadable) {
+                            transformToGameObject[file] = pi
+                        }
                     }
                 }
             }
@@ -384,7 +507,19 @@ object UnityReader {
                 "Prefab" -> {
                     val children = node["Children"]
                     if (children != null) {
-                        LOGGER.info("todo parse children list, and add them as entities: $children")
+                        /*
+                          - {fileID: 861958571}
+                          - {fileID: 1586427708}
+                          - {fileID: 1067863450}
+                          - {fileID: 1166300874}
+                        * */
+                        val children2 = children.packListEntries().children
+                        if (children2 != null) {
+                            LOGGER.info("processing ${children2.size} children from prefab")
+                            for (childNode in children2) {
+                                addPrefabChild(prefab, decodePath(guid, childNode, project))
+                            }
+                        }
                     }
                     val rootGameObject = node["RootGameObject"]
                     if (rootGameObject != null) {
@@ -393,7 +528,34 @@ object UnityReader {
                         prefab.prefab = link
                     }
                 }
+                "Transform" -> {
+                    val children = node["Children"]
+                    if (children != null) {
+                        val file2 = transformToGameObject[file]
+                        if (file2 is PrefabReadable) {
+                            val prefab2 = file2.readPrefab()
+                            /*
+                             - {fileID: 861958571}
+                             - {fileID: 1586427708}
+                             - {fileID: 1067863450}
+                             - {fileID: 1166300874}
+                            */
+                            val children2 = children.packListEntries().children
+                            LOGGER.info("processing ${children2?.size} children from transform, adding to $file2")
+                            for (childNode in children2 ?: emptyList()) {
+                                val path0 = decodePath(guid, childNode, project)
+                                val path1 = transformToGameObject[path0] ?: path0
+                                addPrefabChild(prefab2, path1)
+                            }
+                        }
+                    }
+                }
                 "GameObject" -> {
+                    val prefab2 = node["PrefabParentObject"]
+                    val prefabPath = decodePath(guid, prefab2, project)
+                    if (prefabPath != InvalidRef) {
+                        prefab.prefab = prefabPath
+                    }
                     // find transform, which belongs to this GameObject
                     val key = decodePath(guid, fileId, project)
                     val transform = transformsByGameObject[key]
@@ -410,20 +572,17 @@ object UnityReader {
                         - component: {fileID: 23400600892312946}
                         - component: {fileID: 64583973720899574}
                          * */
-                    } else LOGGER.warn("Missing transform $key, only got ${transformsByGameObject.keys}")
+                    } else LOGGER.warn("GameObject $guid/$fileId has no transform")
                     val components = node["Component"]
                     if (components != null) {
                         components.children?.forEach { listNode ->
                             val path = decodePath(guid, listNode.children!!.first().value, project)
-                            path as PrefabReadable
-                            val child = path.readPrefab()
-                            val type2 = child.getProperty("desc") as? String
-                            if (type2 != "Transform") {
-                                // they may be entities under-cover, so be careful
-                                val type = if (child.clazzName == "Entity") 'e' else 'c'
-                                val name = child.instanceName ?: child.clazzName
-                                // LOGGER.info("would add $name/$path to ${prefab.source}")
-                                prefab.add(ROOT_PATH, type, child.clazzName, name, path)
+                            if (path is PrefabReadable) {
+                                val child = path.readPrefab()
+                                val type2 = child.getProperty("description") as? String
+                                if (type2 != "Transform") {
+                                    addPrefabChild(prefab, path)
+                                }
                             }
                         }
                     }
@@ -448,6 +607,11 @@ object UnityReader {
                 }
             }
         }
+
+        /*forAllUnityObjects(root) { fileId, _ ->
+            val file = folder.get(fileId) as InnerFile
+            file.lastModified++
+        }*/
 
         return folder
 
@@ -563,6 +727,7 @@ object UnityReader {
             return InvalidRef
         }
 
+        println("returning ${project.getGuidFolder(file)}")
         return project.getGuidFolder(file)
 
     }
@@ -577,12 +742,156 @@ object UnityReader {
         }
     }
 
+    fun FileReference.printTree(depth: Int, maxDepth: Int) {
+        if (!isHidden) {
+            println(Tabs.spaces(depth * 2) + name)
+            if (depth + 1 < maxDepth && (if (depth == 0) isSomeKindOfDirectory else isDirectory)) {
+                for (child in listChildren() ?: emptyList()) {
+                    child.printTree(depth + 1, maxDepth)
+                }
+            }
+        }
+    }
+
+    fun testRendering(file: FileReference, size: Int = 512) {
+        val prefab = PrefabCache.loadPrefab(file)!!
+        println(JsonFormatter.format(prefab.toString()))
+        val sample = prefab.createInstance()
+        println(sample)
+        Thumbs.generateSomething(
+            prefab, file,
+            desktop.getChild(sample::class.simpleName + ".png"), size
+        ) {}
+    }
+
+    fun smallRenderTest() {
+
+        val projectPath = getReference(downloads, "up/PolygonSciFiCity_Unity_Project_2017_4.unitypackage")
+        val colliderComponent = getReference(projectPath, "f9a80be48a6254344b5f885cfff4bbb0/64472554668277586.json")
+        val meshComponent = getReference(projectPath, "f9a80be48a6254344b5f885cfff4bbb0/33053279949580010.json")
+        val entityOfComponent = getReference(projectPath, "f9a80be48a6254344b5f885cfff4bbb0/1661159153272266.json")
+
+        HiddenOpenGLContext.createOpenGL()
+
+        ShaderLib.init()
+        ECSShaderLib.init()
+
+        ECSRegistry.init()
+
+        Thumbs.useCacheFolder = true
+        for (file in listOf(meshComponent, colliderComponent, entityOfComponent)) {
+            testRendering(file, 512)
+        }
+
+        Engine.requestShutdown()
+
+    }
+
+    fun sceneRenderTest() {
+
+        // todo the object with fileId 0 as parent is root
+        /*
+--- !u!1 &752095191
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 752095192}
+  m_Layer: 0
+  m_Name: Demo_Scene
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &752095192
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 752095191}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.066163585, y: 5.009288, z: 15.072274}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 1958462913}
+  - {fileID: 1721309181}
+  - {fileID: 1492832708}
+  ...
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+        * */
+
+        val projectPath = getReference(downloads, "up/PolygonSciFiCity_Unity_Project_2017_4.unitypackage")
+        val scene = projectPath.getChild("Assets/PolygonSciFiCity/Scenes/Demo_TriplanarDirt.unity/2130288114.json")
+
+        HiddenOpenGLContext.createOpenGL()
+
+        ShaderLib.init()
+        ECSShaderLib.init()
+
+        ECSRegistry.init()
+
+        Thumbs.useCacheFolder = true
+        for (file in listOf(scene)) {
+            testRendering(file, 1024)
+        }
+
+        Engine.requestShutdown()
+
+    }
+
     @JvmStatic
     fun main(args: Array<String>) {
 
+        // todo analyse triplanar scene & recreate complete tree structure from it
+
+        /*sceneRenderTest()
+        return*/
+
         val projectPath = getReference(downloads, "up/PolygonSciFiCity_Unity_Project_2017_4.unitypackage")
 
-        ImageCPUCache.getImage(getReference(projectPath,"Assets/PolygonSciFiCity/Textures/LineTex 4.png"), false)!!
+        val file = getReference("E:/Assets/POLYGON_Pirates_Pack_Unity_5_6_0.zip/PolygonPirates/Assets/PolygonPirates/Materials")
+        println("file exists? ${file.exists}, children: ${file.listChildren()}")
+        val projectPath2 = findUnityProject(file)
+        println("project from file? $projectPath2")
+
+        val file2 = file.getParent()!!.getChild("Prefabs/Vehicles/SM_Flag_British_01.prefab")
+        println("file2 exists? ${file2.exists}")
+        println(PrefabCache.getPrefab(file2))
+
+        return
+
+        /*val colliderComponent = getReference(projectPath, "f9a80be48a6254344b5f885cfff4bbb0/64472554668277586.json")
+        val meshComponent = getReference(projectPath, "f9a80be48a6254344b5f885cfff4bbb0/33053279949580010.json")
+        val entityOfComponent = getReference(projectPath, "f9a80be48a6254344b5f885cfff4bbb0/1661159153272266.json")
+
+        HiddenOpenGLContext.createOpenGL()*/
+
+        ShaderLib.init()
+        ECSShaderLib.init()
+
+        ECSRegistry.init()
+
+        /*Thumbs.useCacheFolder = true
+        for (file in listOf(meshComponent, colliderComponent, entityOfComponent)) {
+            val prefab = PrefabCache.loadPrefab(file)!!
+            println(JsonFormatter.format(prefab.toString()))
+            val sample = prefab.createInstance()
+            println(sample)
+            Thumbs.generateSomething(prefab, file,
+                desktop.getChild(sample::class.simpleName + ".png"), 512
+            ) {}
+        }
+
+        Engine.requestShutdown()
+
+        return*/
+
+        ImageCPUCache.getImage(getReference(projectPath, "Assets/PolygonSciFiCity/Textures/LineTex 4.png"), false)!!
             .write(desktop.getChild("LineTex4.png"))
 
         // circular sample
@@ -608,31 +917,21 @@ object UnityReader {
         LOGGER.info("Path: $path")
         // correct solution: main, Textures/PolygonSciFiCity_Texture_Normal.png
 
-        parseYAML(getReference(OS.downloads, "up/SM_Prop_DiningTable_01.fbx.meta"))
+        parseYAML(getReference(downloads, "up/SM_Prop_DiningTable_01.fbx.meta"))
 
 
-        val meshMeta = getReference(main, "Models/Flame_Mesh.fbx")
+        // val meshMeta = getReference(main, "Models/Flame_Mesh.fbx")
         val material = getReference(main, "Materials/PolygonSciFi_01_A.mat")
-        val scene = getReference(main, "Scenes/Demo.unity")
+        // val scene = getReference(main, "Scenes/Demo.unity")
         LOGGER.info(readAsAsset(material).readText())
-        /*readAsAsset(meshMeta)
-        readAsAsset(scene)*/
 
-        val sampleMaterial = getReference(OS.downloads, "up/mat/PolygonScifi_03_A.mat")
-        LOGGER.info(readAsAsset(sampleMaterial).readText())
+        // val sampleMaterial = getReference(downloads, "up/mat/PolygonScifi_03_A.mat")
+        // LOGGER.info(readAsAsset(sampleMaterial).readText())
 
-        ECSRegistry.initNoGFX()
-
-        // todo somehow all background images are missing
-        // todo it looks like there is some kind of dead-lock...
-
-        thread {
-            Thread.sleep(100)
-            testMaterial(sampleMaterial)
-        }
+        // ECSRegistry.initNoGFX()
 
         testUI {
-            object : FileExplorer(getReference(main, "Prefabs/Buildings/SM_Bld_Advanced_01.prefab"), style) {
+            object : FileExplorer(getReference(main, "Prefabs/Icons"), style) {
 
                 override fun getRightClickOptions(): List<FileExplorerOption> = emptyList()
 

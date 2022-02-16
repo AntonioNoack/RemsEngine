@@ -17,14 +17,17 @@ import me.anno.io.text.TextWriter
 import me.anno.io.unity.UnityReader
 import me.anno.io.zip.InnerLinkFile
 import me.anno.io.zip.InnerPrefabFile
+import me.anno.io.zip.SignatureFile
 import me.anno.io.zip.ZipCache
 import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.mesh.blender.BlenderReader
 import me.anno.mesh.obj.OBJReader2
 import me.anno.mesh.vox.VOXReader
+import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import org.apache.logging.log4j.LogManager
+import kotlin.math.sign
 
 object PrefabCache : CacheSection("Prefab") {
 
@@ -125,9 +128,7 @@ object PrefabCache : CacheSection("Prefab") {
                             loadAssimpModel(resource)
                         "blend" -> loadBlenderModel(resource)
                         "obj" -> loadObjModel(resource)
-                        "unity", "mat", "prefab", "asset", "meta", "controller" -> loadUnityFile(
-                            resource
-                        )
+                        in UnityReader.unityExtensions -> loadUnityFile(resource)
                         "mtl" -> null
                         else -> loadJson(resource)
                     }
@@ -141,8 +142,8 @@ object PrefabCache : CacheSection("Prefab") {
     private fun loadPrefab3(file: FileReference): ISaveable? {
         if (file is PrefabReadable) return file.readPrefab()
         try {
-            val pure = TextReader.read(file, false).firstOrNull()
-            if (pure != null) return pure
+            val prefab = TextReader.read(file, false).firstOrNull()
+            if (prefab != null) return prefab
         } catch (e: InvalidFormatException) {
             // don't care
         } catch (e: Exception) {
@@ -155,6 +156,8 @@ object PrefabCache : CacheSection("Prefab") {
                 val prefab = loadUnityFile(file)
                 if (prefab != null) return prefab
             } catch (e: Exception) {
+                LOGGER.warn("$file is yaml, but not from Unity")
+                e.printStackTrace()
             }
         }
         val folder = ZipCache.unzip(file, false) ?: return null
@@ -170,7 +173,7 @@ object PrefabCache : CacheSection("Prefab") {
     ): FileReadPrefabData? {
         // LOGGER.info("get prefab from $resource, ${resource?.exists}, ${resource?.isDirectory}")
         return when {
-            resource == null || resource == InvalidRef -> null
+            resource == null -> null
             resource is InnerLinkFile -> getPrefabPair(resource.link, chain, async)
             resource.exists && !resource.isDirectory -> {
                 val entry = getFileEntry(resource, false, prefabTimeout, async) { file, _ ->

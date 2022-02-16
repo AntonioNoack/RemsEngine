@@ -759,6 +759,22 @@ class Entity() : PrefabSaveable(), Inspectable {
         return false
     }
 
+    fun <V : Component> sumComponents(
+        clazz: KClass<V>,
+        includingDisabled: Boolean = false,
+        test: (V) -> Int
+    ): Int {
+        val components = components
+        var counter = 0
+        for (index in components.indices) {
+            val c = components[index]
+            @Suppress("UNCHECKED_CAST")
+            if ((includingDisabled || c.isEnabled) && clazz.isInstance(c))
+                counter += test(c as V)
+        }
+        return counter
+    }
+
     fun <V : Component> getComponentsInChildren(clazz: KClass<V>, includingDisabled: Boolean = false): List<V> {
         return getComponentsInChildren(clazz, includingDisabled, ArrayList())
     }

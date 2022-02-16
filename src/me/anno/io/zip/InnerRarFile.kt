@@ -15,7 +15,9 @@ class InnerRarFile(
     absolutePath: String,
     relativePath: String,
     _parent: FileReference
-) : InnerFile(absolutePath, relativePath, false, _parent) {
+) : InnerFile(absolutePath, relativePath, false, _parent), SignatureFile {
+
+    override var signature: Signature? = null
 
     override fun getInputStream() = data!!.inputStream()
 
@@ -107,7 +109,7 @@ class InnerRarFile(
             return if (hasReadEntry) file else throw e ?: IOException("Zip was empty")
         }
 
-        fun createEntryRar(
+        private fun createEntryRar(
             zipFileLocation: String,
             archive: Archive,
             header: FileHeader,
@@ -143,7 +145,7 @@ class InnerRarFile(
             return file
         }
 
-        fun createFolderEntryRar(
+        private fun createFolderEntryRar(
             zipFileLocation: String,
             entry: String,
             registry: HashMap<String, InnerFile>

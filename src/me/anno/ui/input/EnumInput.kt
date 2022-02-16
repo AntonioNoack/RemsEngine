@@ -14,6 +14,7 @@ import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.memberProperties
 
+@Suppress("MemberVisibilityCanBePrivate")
 open class EnumInput(
     val title: String, withTitle: Boolean, startValue: String,
     val options: List<NameDesc>, style: Style
@@ -145,7 +146,6 @@ open class EnumInput(
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
-        println(action)
         when (action) {
             "Up" -> up()
             "Down" -> down()

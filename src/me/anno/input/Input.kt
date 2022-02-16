@@ -4,13 +4,9 @@ import me.anno.Build
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.gameTime
-import me.anno.gpu.GFX.inFocus
-import me.anno.gpu.GFX.inFocus0
-import me.anno.gpu.GFX.requestFocus
 import me.anno.gpu.GFX.window
 import me.anno.gpu.OpenGL
 import me.anno.gpu.debug.DebugGPUStorage
-import me.anno.input.KeyMap.inputMap
 import me.anno.input.MouseButton.Companion.toMouseButton
 import me.anno.input.Touch.Companion.onTouchDown
 import me.anno.input.Touch.Companion.onTouchMove
@@ -126,9 +122,12 @@ object Input {
                 }
                 addEvent {
                     framesSinceLastInteraction = 0
-                    requestFocus(defaultWindowStack?.getPanelAt(mouseX, mouseY), true)
-                    inFocus0?.apply {
-                        onPasteFiles(mouseX, mouseY, files.filterNotNull().map { getReference(it) })
+                    val dws = defaultWindowStack
+                    if (dws != null) {
+                        dws.requestFocus(dws.getPanelAt(mouseX, mouseY), true)
+                        dws.inFocus0?.apply {
+                            onPasteFiles(mouseX, mouseY, files.filterNotNull().map { getReference(it) })
+                        }
                     }
                 }
             }
@@ -196,6 +195,7 @@ object Input {
         keysWentUp.clear()
     }
 
+    val inFocus0 get() = defaultWindowStack?.inFocus0
 
     fun onCharTyped(codepoint: Int, mods: Int) {
         framesSinceLastInteraction = 0
@@ -217,7 +217,7 @@ object Input {
         framesSinceLastInteraction = 0
         keyUpCtr++
         keysWentUp += key
-        inFocus0?.onKeyUp(mouseX, mouseY, key)
+        defaultWindowStack?.inFocus0?.onKeyUp(mouseX, mouseY, key)
         ActionManager.onKeyUp(key)
         keysDown.remove(key)
     }
@@ -228,26 +228,32 @@ object Input {
 
         ActionManager.onKeyTyped(key)
 
+        // just related to the top window-stack
+        val dws = defaultWindowStack
+        val inFocus = dws?.inFocus ?: mutableSetOf()
+        val inFocus0 = dws?.inFocus0
+
         when (key) {
             GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER -> {
-                if (isShiftDown || isControlDown) {
-                    inFocus0?.onCharTyped(mouseX, mouseY, '\n'.code)
-                } else {
-                    inFocus0?.onEnterKey(mouseX, mouseY)
+                if (inFocus0 != null) {
+                    if (isShiftDown || isControlDown) {
+                        inFocus0.onCharTyped(mouseX, mouseY, '\n'.code)
+                    } else {
+                        inFocus0.onEnterKey(mouseX, mouseY)
+                    }
                 }
             }
             GLFW.GLFW_KEY_DELETE -> {
                 // tree view selections need to be removed, because they would be illogical to keep
                 // (because the underlying Transform changes)
                 val inFocusTreeViews = inFocus.filterIsInstance<TreeViewPanel<*>>()
-                inFocus.forEach { it.onDeleteKey(mouseX, mouseY) }
+                for (it in inFocus) it.onDeleteKey(mouseX, mouseY)
                 inFocus.removeAll(inFocusTreeViews)
             }
             GLFW.GLFW_KEY_BACKSPACE -> {
                 inFocus0?.onBackSpaceKey(mouseX, mouseY)
             }
             GLFW.GLFW_KEY_TAB -> {
-                val inFocus0 = inFocus0
                 if (inFocus0 != null) {
                     if (isShiftDown || isControlDown
                         || !inFocus0.isKeyInput()
@@ -328,7 +334,7 @@ object Input {
         mouseX = newX
         mouseY = newY
 
-        inFocus0?.onMouseMoved(mouseX, mouseY, dx, dy)
+        defaultWindowStack?.inFocus0?.onMouseMoved(mouseX, mouseY, dx, dy)
         ActionManager.onMouseMoved(dx, dy)
 
     }
@@ -394,23 +400,24 @@ object Input {
         }
 
         windowWasClosed = false
-        val ws = defaultWindowStack!!
-        val panelWindow = ws.getPanelAndWindowAt(mouseX, mouseY)
+        val dws = defaultWindowStack!!
+        val panelWindow = dws.getPanelAndWindowAt(mouseX, mouseY)
         onClickIntoWindow(button, panelWindow)
 
         val singleSelect = isControlDown
         val multiSelect = isShiftDown
+        val inFocus0 = dws.inFocus0
 
-        val mouseTarget = ws.getPanelAt(mouseX, mouseY)
+        val mouseTarget = dws.getPanelAt(mouseX, mouseY)
         maySelectByClick = if (singleSelect || multiSelect) {
             val selectionTarget = mouseTarget?.getMultiSelectablePanel()
             val inFocusTarget = inFocus0?.getMultiSelectablePanel()
             val joinedParent = inFocusTarget?.parent
             if (selectionTarget != null && joinedParent == selectionTarget.parent) {
-                if (inFocus0 != inFocusTarget) requestFocus(inFocusTarget, true)
+                if (inFocus0 != inFocusTarget) dws.requestFocus(inFocusTarget, true)
                 if (singleSelect) {
-                    if (selectionTarget in inFocus) inFocus -= selectionTarget
-                    else inFocus += selectionTarget
+                    if (selectionTarget.isInFocus) dws.inFocus -= selectionTarget
+                    else selectionTarget.requestFocus(false)
                     selectionTarget.invalidateDrawing()
                 } else {
                     val index0 = inFocusTarget!!.indexInParent
@@ -421,25 +428,25 @@ object Input {
                     for (index in minIndex..maxIndex) {
                         val child = joinedParent!!.children[index]
                         if (child is Panel) {
-                            inFocus += child
+                            child.requestFocus(false)
                             child.invalidateDrawing()
                         }
                     }
                 }
                 false
             } else {
-                if (mouseTarget in inFocus) {
+                if (mouseTarget != null && mouseTarget.isInFocus) {
                     true
                 } else {
-                    requestFocus(mouseTarget, true)
+                    dws.requestFocus(mouseTarget, true)
                     false
                 }
             }
         } else {
-            if (mouseTarget in inFocus) {
+            if (mouseTarget != null && mouseTarget.isInFocus) {
                 true
             } else {
-                requestFocus(mouseTarget, true)
+                dws.requestFocus(mouseTarget, true)
                 false
             }
         }
@@ -479,8 +486,11 @@ object Input {
         if (isClick) {
 
             if (maySelectByClick) {
-                val panelWindow = defaultWindowStack?.getPanelAndWindowAt(mouseX, mouseY)
-                requestFocus(panelWindow?.first, true)
+                val dws = defaultWindowStack
+                if (dws != null) {
+                    val panelWindow = dws.getPanelAndWindowAt(mouseX, mouseY)
+                    dws.requestFocus(panelWindow?.first, true)
+                }
             }
 
             val longClickNanos = 1_000_000 * longClickMillis
@@ -530,11 +540,13 @@ object Input {
     }
 
     fun copy() {
-        val inFocus0 = inFocus0 ?: return
         val mx = mouseX
         val my = mouseY
+        val dws = defaultWindowStack ?: return
+        val inFocus = dws.inFocus
+        val inFocus0 = dws.inFocus0 ?: return
         when (inFocus.size) {
-            0 -> return // don't clear the clipboard xD, nobody wants that empty
+            0 -> return // should not happen
             1 -> setClipboardContent(inFocus0.onCopyRequested(mx, my)?.toString())
             else -> {
                 // combine them into an array

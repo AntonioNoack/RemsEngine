@@ -87,7 +87,7 @@ object YAMLReader {
                     trimmed = trimmed.substring(2)
                 }
                 // process the line
-                val colonIndex = trimmed.indexOf(':')
+                val colonIndex = if (trimmed.startsWith("{")) -1 else trimmed.indexOf(':')
                 var key: String = trimmed
                 var value: String? = null
                 if (colonIndex > 0) {
@@ -98,6 +98,10 @@ object YAMLReader {
                         // I have no idea, whether that is legal in YAML...
                         value += lines[++lineIndex].trim()
                     }
+                }
+                if (trimmed.startsWith("{")) {
+                    value = key
+                    key = ""
                 }
                 if (beautify) key = beautify(key)
                 add(depth, key, value)

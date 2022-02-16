@@ -22,16 +22,16 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
     open val content get() = child
 
     @NotSerializedProperty
-    private var lspX = -1f
+    private var lspX = -1.0
 
     @NotSerializedProperty
-    private var lspY = -1f
+    private var lspY = -1.0
 
     @NotSerializedProperty
-    private var lmspX = -1
+    private var lmspX = -1L
 
     @NotSerializedProperty
-    private var lmspY = -1
+    private var lmspY = -1L
 
     override fun tickUpdate() {
         super.tickUpdate()
@@ -56,11 +56,11 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         }
     }
 
-    override var scrollPositionX = 0f
-    override var scrollPositionY = 0f
+    override var scrollPositionX = 0.0
+    override var scrollPositionY = 0.0
 
-    override val maxScrollPositionX get() = max(0, child.minW + padding.width - w)
-    override val maxScrollPositionY get() = max(0, child.minH + padding.height - h)
+    override val maxScrollPositionX get() = max(0, child.minW + padding.width - w).toLong()
+    override val maxScrollPositionY get() = max(0, child.minH + padding.height - h).toLong()
 
     @NotSerializedProperty
     private var isDownOnScrollbarX = false
@@ -78,8 +78,8 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
     private val interactionWidth = scrollbarWidth + 2 * interactionPadding
     private val interactionHeight = scrollbarHeight + 2 * interactionPadding
 
-    private val hasScrollbarX get() = maxScrollPositionX > 0f
-    private val hasScrollbarY get() = maxScrollPositionY > 0f
+    private val hasScrollbarX get() = maxScrollPositionX > 0
+    private val hasScrollbarY get() = maxScrollPositionY > 0
 
     override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
         return drawsOverX(lx0, ly0, lx1, ly1) || drawsOverY(lx0, ly0, lx1, ly1)
@@ -175,8 +175,8 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
     }
 
     private fun clampScrollPosition() {
-        scrollPositionX = clamp(scrollPositionX, 0f, maxScrollPositionX.toFloat())
-        scrollPositionY = clamp(scrollPositionY, 0f, maxScrollPositionY.toFloat())
+        scrollPositionX = clamp(scrollPositionX, 0.0, maxScrollPositionX.toDouble())
+        scrollPositionY = clamp(scrollPositionY, 0.0, maxScrollPositionY.toDouble())
     }
 
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {

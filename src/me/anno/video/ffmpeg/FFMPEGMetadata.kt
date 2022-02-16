@@ -3,6 +3,7 @@ package me.anno.video.ffmpeg
 import me.anno.cache.CacheSection
 import me.anno.cache.data.ICacheData
 import me.anno.image.gimp.GimpImage
+import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.Signature
@@ -14,8 +15,12 @@ import me.anno.utils.Warning.unused
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.types.Strings.parseTime
 import org.apache.logging.log4j.LogManager
+import java.io.IOException
+import javax.imageio.ImageIO
+import javax.imageio.ImageReader
 import kotlin.math.ceil
 import kotlin.math.roundToInt
+
 
 class FFMPEGMetadata(val file: FileReference) : ICacheData {
 
@@ -28,6 +33,7 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
     var audioSampleRate = 0
     var audioDuration = 0.0
     var audioSampleCount = 0L // 24h * 3600s/h * 48k = 4B -> Long
+    var audioChannels = 0
 
     var videoStartTime = 0.0
     var videoFPS = 0.0
@@ -54,8 +60,29 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
             videoWidth = w
             videoHeight = h
 
-        } else if (!OS.isAndroid) {// Android doesn't have FFMPEG
+        } else if (!OS.isAndroid && file is FileFileRef) {// Android doesn't have FFMPEG
             loadFFMPEG()
+        } else {
+            // todo only try this for images...
+            val suffix = Signature.findName(file)
+            if (suffix != null) {
+                val iter: Iterator<ImageReader> = ImageIO.getImageReadersBySuffix(suffix)
+                while (iter.hasNext()) {
+                    val reader: ImageReader = iter.next()
+                    try {
+                        file.inputStream().use {
+                            reader.input = ImageIO.createImageInputStream(it)
+                            videoWidth = reader.getWidth(reader.minIndex)
+                            videoHeight = reader.getHeight(reader.minIndex)
+                            videoFrameCount = 1
+                            hasVideo = true
+                        }
+                    } catch (e: IOException) {
+                    } finally {
+                        reader.dispose()
+                    }
+                }
+            }
         }
 
     }
@@ -133,6 +160,7 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
             audioSampleRate = audio.get("sample_rate")?.asText()?.toInt() ?: 20
             audioSampleCount =
                 audio.get("duration_ts")?.asText()?.toLong() ?: (audioSampleRate * audioDuration).toLong()
+            audioChannels = audio.get("channels")?.asText()?.toInt() ?: 1
         }
 
         val video = streams.firstOrNull {

@@ -5,6 +5,7 @@ import me.anno.cache.CacheSection
 import me.anno.cache.data.ICacheData
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.ecs.prefab.PrefabCache
+import me.anno.io.unity.UnityReader
 import me.anno.io.windows.WindowsShortcut
 import me.anno.io.zip.ZipCache
 import me.anno.maths.Maths.MILLIS_TO_NANOS
@@ -461,10 +462,10 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             return true
         }
         return when (signature) {
-            null, "xml", "json" -> {// maybe something unknown, that we understand anyways
+            null, "xml", "json", "yaml" -> {// maybe something unknown, that we understand anyways
                 // dae is xml
                 when (lcExtension) {
-                    "mat", "prefab", "unity", "asset", "controller", "json" -> {
+                    in UnityReader.unityExtensions, "json" -> {
                         LOGGER.info("Checking $absolutePath for mesh file, matches extension")
                         true
                     }

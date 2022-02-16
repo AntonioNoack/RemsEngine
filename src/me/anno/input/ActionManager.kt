@@ -2,10 +2,10 @@ package me.anno.input
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX.gameTime
-import me.anno.gpu.GFX.inFocus
 import me.anno.io.ISaveable
 import me.anno.io.utils.StringMap
 import me.anno.studio.StudioBase
+import me.anno.studio.StudioBase.Companion.defaultWindowStack
 import me.anno.ui.Panel
 import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
@@ -137,8 +137,10 @@ object ActionManager : StringMap() {
         }
     }
 
+    // todo this maybe should exist on a per-windowStack basis,
+    // todo so all actions are redirected through a game-window
     fun onEvent(dx: Float, dy: Float, combination: KeyCombination, isContinuous: Boolean) {
-        var panel = inFocus.firstOrNull()
+        var panel = defaultWindowStack?.inFocus?.firstOrNull()
         // filter action keys, if they are typing keys and a typing field is in focus
         val isWriting = combination.isWritingKey && (panel?.isKeyInput() == true)
         // LOGGER.debug("is writing: $isWriting, combination: $combination, has value? ${combination in globalKeyCombinations}")

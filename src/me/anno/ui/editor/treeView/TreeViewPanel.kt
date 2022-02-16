@@ -5,7 +5,6 @@ import me.anno.config.DefaultStyle.midGray
 import me.anno.config.DefaultStyle.white
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.Cursor
-import me.anno.gpu.GFX.inFocus
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input
 import me.anno.input.MouseButton
@@ -161,7 +160,8 @@ class TreeViewPanel<V>(
 
                 // todo collapse / expand multiple elements at the same time
                 // todo edit multiple elements at the same time
-                if ((Input.isShiftDown && inFocus.size < 2) || isMouseOnSymbol(x)) {
+                val inFocusByParent = siblings.count { it is TreeViewPanel<*> && it.isInFocus }
+                if ((Input.isShiftDown && inFocusByParent < 2) || isMouseOnSymbol(x)) {
                     toggleCollapsed(getElement())
                 } else {
                     treeView.selectElementMaybe(element)

@@ -77,6 +77,13 @@ import org.apache.logging.log4j.LogManager
 //  - Sims like game, just low-poly style
 //          simlish should be easy ^^
 
+// stuff, which originated from Rem's Studio:
+// todo split the rendering in two parts:
+// todo - without blending (no alpha, video or polygons)
+// todo - with blending
+// todo enqueue all objects for rendering
+// todo sort blended objects by depth, if rendering with depth
+
 class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
     lateinit var currentProject: GameEngineProject

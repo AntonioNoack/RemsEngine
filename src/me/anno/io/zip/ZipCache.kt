@@ -2,6 +2,7 @@ package me.anno.io.zip
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
+import me.anno.cache.instances.PDFCache
 import me.anno.config.DefaultConfig
 import me.anno.image.ImageReader
 import me.anno.image.gimp.GimpImage
@@ -19,7 +20,6 @@ import me.anno.mesh.blender.BlenderReader
 import me.anno.mesh.obj.MTLReader2
 import me.anno.mesh.obj.OBJReader2
 import me.anno.mesh.vox.VOXReader
-import me.anno.cache.instances.PDFCache
 import org.apache.logging.log4j.LogManager
 
 object ZipCache : CacheSection("ZipCache") {
@@ -88,8 +88,8 @@ object ZipCache : CacheSection("ZipCache") {
         register(imageFormats, ImageReader::readAsFolder)
         register("gimp", GimpImage::readAsFolder)
         register("media", ImageReader::readAsFolder) // correct for webp, not for videos
-        // todo yaml for unity files
-        registerFileExtension("prefab") { UnityReader.readAsFolder(it) as InnerFolder }
+        // register yaml generally for unity files?
+        registerFileExtension(UnityReader.unityExtensions) { UnityReader.readAsFolder(it) as InnerFolder }
     }
 
     fun unzipMaybe(file: FileReference): InnerFolder? {
@@ -98,16 +98,21 @@ object ZipCache : CacheSection("ZipCache") {
     }
 
     fun unzip(file: FileReference, async: Boolean): InnerFile? {
+        if (file is InnerFile && file.folder != null) return file.folder
         return getFileEntry(file, false, timeout, async) { file1, _ ->
             val signature = Signature.findName(file1)
             val ext = file1.lcExtension
             if (signature == "json" && ext == "json") null
             else {
-                val reader = readerBySignature[signature] ?: readerBySignature[ext] ?: readerByFileExtension[ext]
-                // LOGGER.info("Reading $file1 with $reader")
-                val result = if (reader != null) reader(file1) else createZipRegistryV2(file1)
-                // LOGGER.info("Result: $result")
-                result
+                try {
+                    val reader = readerBySignature[signature] ?: readerBySignature[ext] ?: readerByFileExtension[ext]
+                    val folder = if (reader != null) reader(file1) else createZipRegistryV2(file1)
+                    if(file1 is InnerFile) file1.folder = folder
+                    folder
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    null
+                }
             }
         } as? InnerFile
     }

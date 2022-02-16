@@ -574,7 +574,10 @@ public class GFXBase0 {
     public double mouseTargetX = -1.0, mouseTargetY = -1.0;
 
     public boolean isMouseTrapped() {
-        return trapMousePanel != null && isInFocus && trapMousePanel == GFX.INSTANCE.getInFocus0();
+        StudioBase base = StudioBase.Companion.getInstance();
+        return trapMousePanel != null && base != null &&
+                isInFocus &&
+                trapMousePanel == base.getWindowStack().getInFocus0();
     }
 
     public void moveMouseTo(float x, float y) {

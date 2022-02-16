@@ -71,7 +71,7 @@ class ShaderBuilder(val name: String) {
         val textureIndices = ArrayList<String>()
         collectTextureIndices(textureIndices, vertex.uniforms)
         collectTextureIndices(textureIndices, fragment.uniforms)
-        LOGGER.info("Textures($name): $textureIndices")
+        // LOGGER.info("Textures($name): $textureIndices")
         shader.setTextureIndices(textureIndices)
         shader.ignoreUniformWarnings(ignored)
         /*for (stage in vertex.stages) ignore(shader, stage)

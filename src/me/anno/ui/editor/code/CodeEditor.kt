@@ -34,6 +34,7 @@ import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.joinChars
 import kotlin.math.log10
 import kotlin.math.max
+import kotlin.math.roundToInt
 import kotlin.streams.toList
 
 // todo two new editors/viewers:
@@ -47,6 +48,12 @@ import kotlin.streams.toList
 
 // todo line wrapping
 
+// todo placeholder
+
+// todo search & replace
+// todo refactoring (rename a variable)
+
+@Suppress("MemberVisibilityCanBePrivate")
 open class CodeEditor(style: Style) : Panel(style) {
 
     private val content = LineSequence()
@@ -74,6 +81,24 @@ open class CodeEditor(style: Style) : Panel(style) {
     var styles = ByteArray(0)
 
     var changeListener: (IntSequence) -> Unit = {}
+        private set
+
+    val padding = Padding(4)
+    var font = Font("Courier New", 16)
+    val fonts = Array(4) {
+        font.withBold(it.and(1) > 0)
+            .withItalic(it.and(2) > 0)
+    }
+
+    val charWidth get() = font.sampleWidth
+    val lineHeight get() = font.sampleHeight
+
+    val cursor0 = CursorPosition()
+    val cursor1 = CursorPosition()
+
+    fun setOnChangeListener(listener: (IntSequence) -> Unit) {
+        changeListener = listener
+    }
 
     open fun drawUnderline(x0: Int, x1: Int, y: Int, h: Int, color: Int) {
         drawRect(x0, y + lineHeight - 1, x1 - x0, h, color)
@@ -93,19 +118,6 @@ open class CodeEditor(style: Style) : Panel(style) {
         content.setText(text)
         onChangeText(updateHistory, notify)
     }
-
-    val padding = Padding(4)
-    var font = Font("Courier New", 16, false, false) // style.getFont("text", Font("Mono", 16, false, false))
-    val fonts = Array(4) {
-        font.withBold(it.and(1) > 0)
-            .withItalic(it.and(2) > 0)
-    }
-
-    val charWidth get() = font.sampleWidth
-    val lineHeight get() = font.sampleHeight
-
-    val cursor0 = CursorPosition()
-    val cursor1 = CursorPosition()
 
     private val spellcheckedSections = ArrayList<TextSection>()
     fun recalculateColors() {
@@ -580,7 +592,7 @@ open class CodeEditor(style: Style) : Panel(style) {
         val cn = getCharsNeededForLineCount()
         val ox = cursor.x
         val oy = cursor.y
-        cursor.x = ((x - (this.x + padding.left)) / charWidth).toInt() - cn
+        cursor.x = ((x - (this.x + padding.left)) / charWidth).roundToInt() - cn
         cursor.y = ((y - (this.y + padding.top)) / lineHeight).toInt()
         clampCursor(cursor)
         if (cursor.x != ox || cursor.y != oy) {
@@ -658,7 +670,7 @@ open class CodeEditor(style: Style) : Panel(style) {
                     }
                 }
             }
-            return TokenType.values2[styles[charIndex].toInt()].name
+            // return TokenType.values2[styles[charIndex].toInt()].name
         }
         lastSuggestion = null
         return null
@@ -698,6 +710,8 @@ open class CodeEditor(style: Style) : Panel(style) {
                 ActionManager.register("CodeEditor.z.t.cs", "Redo")
                 ActionManager.register("CodeEditor.y.t.c", "Undo")
                 ActionManager.register("CodeEditor.y.t.cs", "Redo")
+
+                // doesn't work somehow :/
                 ActionManager.register("EnumInput.arrowUp.t", "Up")
                 ActionManager.register("EnumInput.arrowDown.t", "Down")
 

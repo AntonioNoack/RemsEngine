@@ -4,8 +4,9 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.style.Style
+import kotlin.math.max
 
-open class ScrollbarX(val scrollable: ScrollableX, style: Style): Scrollbar(style){
+open class ScrollbarX(val scrollable: ScrollableX, style: Style) : Scrollbar(style) {
 
     init {
         parent = scrollable as PanelGroup
@@ -15,17 +16,23 @@ open class ScrollbarX(val scrollable: ScrollableX, style: Style): Scrollbar(styl
         super.onDraw(x0, y0, x1, y1)
 
         val relativePosition = scrollable.scrollPositionX / scrollable.maxScrollPositionX
-        val barW = relativeSize * w
-        val barX = x + relativePosition * w * (1f - relativeSize)
+        val barW = max(minSize.toDouble(), relativeSize * w)
+        val barX = x + relativePosition * (w - barW)
 
-        drawRect(barX.toInt(), y0, barW.toInt(), y1-y0, multiplyAlpha(scrollColor, scrollColorAlpha + activeAlpha * alpha))
+        val color = multiplyAlpha(scrollColor, scrollColorAlpha + activeAlpha * alpha)
+        drawRect(barX.toInt(), y0, barW.toInt(), y1 - y0, color)
 
     }
 
-    val relativeSize get() = scrollable.w.toFloat() / scrollable.child.minW
+    val relativeSize
+        get(): Double {
+            val child = scrollable.child
+            val minW = if (child is LongScrollable) child.sizeX else child.minW.toLong()
+            return scrollable.w.toDouble() / minW
+        }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        if(Input.isLeftDown){
+        if (Input.isLeftDown) {
             scrollable.scrollPositionX += dx / relativeSize
         }// else super.onMouseMoved(x, y, dx, dy)
     }

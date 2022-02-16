@@ -10,6 +10,7 @@ import kotlin.math.roundToInt
 class Font(name: String, size: Float, isBold: Boolean, isItalic: Boolean) : Saveable() {
 
     constructor() : this("Verdana", 24, false, false)
+    constructor(name: String, size: Int): this(name, size, isBold = false, isItalic = false)
 
     constructor(name: String, size: Int, isBold: Boolean, isItalic: Boolean) :
             this(name, size.toFloat(), isBold, isItalic)

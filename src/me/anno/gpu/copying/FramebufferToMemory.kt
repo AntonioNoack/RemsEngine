@@ -19,6 +19,7 @@ import org.joml.Vector4f
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.glClearColor
 import org.lwjgl.opengl.GL11C.*
+import org.lwjgl.opengl.GL30C
 import java.awt.image.BufferedImage
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -160,10 +161,15 @@ object FramebufferToMemory {
                     if (clearColor != null) glClear(GL_COLOR_BUFFER_BIT)
                     renderSection(x0, y0, wi, hi)
 
+                    // wait for everything to be drawn
                     glFlush()
-                    glFinish() // wait for everything to be drawn
+                    glFinish()
+
                     buffer.position(0)
+
+                    Framebuffer.bindFramebuffer(GL30C.GL_READ_FRAMEBUFFER, 0)
                     glReadPixels(0, 0, partW, partH, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
+
                     GFX.check()
 
                     for (y in 0 until partH) {

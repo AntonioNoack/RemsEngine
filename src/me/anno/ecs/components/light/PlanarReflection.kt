@@ -52,7 +52,7 @@ class PlanarReflection : LightComponentBase() {
 
     override fun onVisibleUpdate(): Boolean {
 
-        val instance = RenderView.currentInstance
+        val instance = RenderView.currentInstance!!
         val pipeline = instance.pipeline
 
         pipeline.reset()

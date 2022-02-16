@@ -20,7 +20,7 @@ open class PrefabByFileCache<V : ISaveable>(val clazz: KClass<V>) {
         if (ref == null || ref == InvalidRef) return null
         val pair = getPrefabPair(ref, HashSet(), async)
         val instance = pair?.instance ?: return null
-        @Suppress("UNCHECKED_CAST")
+        @Suppress("unchecked_cast")
         return if (clazz.isInstance(instance)) instance as V else null
     }
 

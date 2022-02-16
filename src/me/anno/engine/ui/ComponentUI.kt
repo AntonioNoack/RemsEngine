@@ -46,16 +46,17 @@ import me.anno.ui.base.menu.Menu.msg
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
+import me.anno.ui.editor.code.CodeEditor
 import me.anno.ui.editor.files.FileExplorerOption
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
 import me.anno.utils.Color.rgba
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
+import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.tuples.MutablePair
 import me.anno.utils.types.AABBs.getMax2
 import me.anno.utils.types.AABBs.getMin2
-import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Quaternions.toEulerAnglesDegrees
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import org.apache.logging.log4j.LogManager
@@ -197,20 +198,20 @@ object ComponentUI {
                     val input = TextInputML(title, value0, style)
                     val textColor = input.base.textColor
                     input.addChangeListener {
-                        if(it == "null"){
+                        if (it == "null") {
                             property.set(input, null)
                         } else {
-                           try {
-                               val value2 = TextReader.read(it, false).firstOrNull()
-                               if (value2 != null) {
-                                   property.set(input, value2)
-                                   input.base.textColor = textColor
-                               } else {
-                                   input.base.textColor = 0xffff77 or 0xff.shl(24)
-                               }
-                           } catch (e: Exception){
-                               input.base.textColor = 0xff7733 or 0xff.shl(24)
-                           }
+                            try {
+                                val value2 = TextReader.read(it, false).firstOrNull()
+                                if (value2 != null) {
+                                    property.set(input, value2)
+                                    input.base.textColor = textColor
+                                } else {
+                                    input.base.textColor = 0xffff77 or 0xff.shl(24)
+                                }
+                            } catch (e: Exception) {
+                                input.base.textColor = 0xff7733 or 0xff.shl(24)
+                            }
                         }
                     }
                     return input
@@ -880,6 +881,18 @@ object ComponentUI {
                                     property.set(this, it)
                                 }
                             }
+                    }
+                    type0.endsWith("/Code", true) -> {
+                        val type1 = type0.substring(0, type0.lastIndexOf('/'))
+                        if (!type1.equals("lua", true)) LOGGER.warn("Currently only Lua is supported")
+                        return TitledListY(title, visibilityKey, style).apply {
+                            add(CodeEditor(style).apply {
+                                setText(value.toString(), false)
+                                setOnChangeListener {
+                                    property.set(this, it.toString())
+                                }
+                            })
+                        }
                     }
                 }
 

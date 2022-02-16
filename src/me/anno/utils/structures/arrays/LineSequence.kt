@@ -244,7 +244,7 @@ class LineSequence : IntSequence {
 
     companion object {
 
-        private const val newLine = '\n'.code
+        private val newLine = '\n'.code
 
         @JvmStatic
         fun main(args: Array<String>) {

@@ -54,12 +54,6 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.staticProperties
 import kotlin.reflect.full.superclasses
 
-// todo split the rendering in two parts:
-// todo - without blending (no alpha, video or polygons)
-// todo - with blending
-// todo enqueue all objects for rendering
-// todo sort blended objects by depth, if rendering with depth
-
 object GFX : GFXBase1() {
 
     private val LOGGER = LogManager.getLogger(GFX::class)!!
@@ -86,22 +80,6 @@ object GFX : GFXBase1() {
     val gpuTasks = ConcurrentLinkedQueue<Task>()
     val lowPriorityGPUTasks = ConcurrentLinkedQueue<Task>()
 
-    fun addGPUTask(w: Int, h: Int, task: () -> Unit) {
-        addGPUTask(w, h, false, task)
-    }
-
-    fun addGPUTask(weight: Int, task: () -> Unit) {
-        addGPUTask(weight, false, task)
-    }
-
-    fun addGPUTask(w: Int, h: Int, lowPriority: Boolean, task: () -> Unit) {
-        addGPUTask((w * h / 1e5).toInt(), lowPriority, task)
-    }
-
-    fun addGPUTask(weight: Int, lowPriority: Boolean, task: () -> Unit) {
-        (if (lowPriority) lowPriorityGPUTasks else gpuTasks) += weight to task
-    }
-
     lateinit var gameInit: () -> Unit
     lateinit var gameLoop: (w: Int, h: Int) -> Unit
     lateinit var onShutdown: () -> Unit
@@ -114,32 +92,6 @@ object GFX : GFXBase1() {
      * */
     var offsetX = 0
     var offsetY = 0
-
-    inline fun useWindowXY(x: Int, y: Int, buffer: Framebuffer?, process: () -> Unit) {
-        if (buffer == null) {
-            val ox = offsetX
-            val oy = offsetY
-            offsetX = x
-            offsetY = y
-            try {
-                process()
-            } finally {
-                offsetX = ox
-                offsetY = oy
-            }
-        } else {
-            val ox = buffer.offsetX
-            val oy = buffer.offsetY
-            buffer.offsetX = x
-            buffer.offsetY = y
-            try {
-                process()
-            } finally {
-                buffer.offsetX = ox
-                buffer.offsetY = oy
-            }
-        }
-    }
 
     /**
      * location & size of the current panel
@@ -168,21 +120,50 @@ object GFX : GFXBase1() {
      * */
     val gameTime get() = lastTime - startTime
 
-    var editorHoverTime = 0.0
-
     var drawnId = 0
 
-    val inFocus = HashSet<Panel>()
-    val inFocus0 get() = inFocus.firstOrNull()
+    var glThread: Thread? = null
 
-    fun requestFocus(panel: Panel?, exclusive: Boolean) {
-        if (dragged != null) return
-        if (exclusive) {
-            for (p in inFocus) p.invalidateDrawing()
-            inFocus.clear()
+    fun addGPUTask(w: Int, h: Int, task: () -> Unit) {
+        addGPUTask(w, h, false, task)
+    }
+
+    fun addGPUTask(weight: Int, task: () -> Unit) {
+        addGPUTask(weight, false, task)
+    }
+
+    fun addGPUTask(w: Int, h: Int, lowPriority: Boolean, task: () -> Unit) {
+        addGPUTask((w * h / 1e5).toInt(), lowPriority, task)
+    }
+
+    fun addGPUTask(weight: Int, lowPriority: Boolean, task: () -> Unit) {
+        (if (lowPriority) lowPriorityGPUTasks else gpuTasks) += weight to task
+    }
+
+    inline fun useWindowXY(x: Int, y: Int, buffer: Framebuffer?, process: () -> Unit) {
+        if (buffer == null) {
+            val ox = offsetX
+            val oy = offsetY
+            offsetX = x
+            offsetY = y
+            try {
+                process()
+            } finally {
+                offsetX = ox
+                offsetY = oy
+            }
+        } else {
+            val ox = buffer.offsetX
+            val oy = buffer.offsetY
+            buffer.offsetX = x
+            buffer.offsetY = y
+            try {
+                process()
+            } finally {
+                buffer.offsetX = ox
+                buffer.offsetY = oy
+            }
         }
-        if (panel != null) inFocus += panel
-        panel?.invalidateDrawing()
     }
 
     inline fun clip(x: Int, y: Int, w: Int, h: Int, render: () -> Unit) {
@@ -472,8 +453,6 @@ object GFX : GFXBase1() {
         lastTime = thisTime
 
     }
-
-    var glThread: Thread? = null
 
     fun checkIsNotGFXThread() {
         if (isGFXThread()) {

@@ -116,7 +116,7 @@ open class Window(
         // panel0.updateVisibility(lastMouseX.toInt(), lastMouseY.toInt())
         panel.updateVisibility(Input.mouseX.toInt(), Input.mouseY.toInt())
 
-        for (p in GFX.inFocus) {
+        for (p in windowStack.inFocus) {
             if (p.window == this) {
                 p.isInFocus = true
                 var pi: Panel? = p

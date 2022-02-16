@@ -66,7 +66,7 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
         val isCollapsed = isCollapsed(element)
         val target = !isCollapsed
         // remove children from the selection???...
-        val targets = GFX.inFocus.filterIsInstance<TreeViewPanel<*>>()
+        val targets = content.children.filterIsInstance<TreeViewPanel<*>>().filter { it.isInFocus }
         if (targets.isEmpty()) {
             setCollapsed(element, target)
         } else {

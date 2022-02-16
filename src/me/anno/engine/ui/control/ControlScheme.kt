@@ -217,7 +217,7 @@ open class ControlScheme(val camera: CameraComponent, val library: EditorState, 
         // .add(camDirection.x * 20, camDirection.y * 20, camDirection.z * 20)
         // .add(Math.random()*20-10,Math.random()*20-10, Math.random()*20-10)
         val hit = Raycast.raycast(
-            world, cam, mouseDir, RenderView.currentInstance.radius * 1e3,
+            world, cam, mouseDir, view.radius * 1e3,
             Raycast.TypeMask.BOTH, -1, false, hit
         )
         if (hit == null) {
@@ -236,7 +236,7 @@ open class ControlScheme(val camera: CameraComponent, val library: EditorState, 
     open fun checkMovement() {
         val view = view
         val dt = GFX.deltaTime
-        val factor = Maths.clamp(20.0 * dt, 0.0, 1.0)
+        val factor = clamp(20.0 * dt, 0.0, 1.0)
         val velocity = velocity.mul(1.0 - factor)
         val radius = view.radius
         val s = factor * radius * 1.2

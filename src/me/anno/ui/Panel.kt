@@ -243,9 +243,11 @@ open class Panel(val style: Style) : PrefabSaveable() {
         }
     }
 
-    open fun requestFocus() = GFX.requestFocus(this, true)
+    open fun requestFocus(exclusive: Boolean = true) = windowStack.requestFocus(this, exclusive)
 
     val hasRoundedCorners get() = backgroundRadiusX > 0 && backgroundRadiusY > 0 && backgroundRadiusCorners != 0
+
+    val siblings get() = uiParent?.children ?: emptyList()
 
     open val canDrawOverBorders get() = hasRoundedCorners
 
