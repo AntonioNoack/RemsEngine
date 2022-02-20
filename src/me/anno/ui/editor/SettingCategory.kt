@@ -114,11 +114,11 @@ open class SettingCategory(
         }
     }
 
-    override fun placeInParent(x: Int, y: Int) {
-        super.placeInParent(x, y)
-        titlePanel.placeInParent(x, y)
+    override fun setPosition(x: Int, y: Int) {
+        super.setPosition(x, y)
+        titlePanel.setPosition(x, y)
         val panel2 = scrollbar ?: content
-        panel2.placeInParent(x + padding.left, y + titlePanel.minH + padding.top)
+        panel2.setPosition(x + padding.left, y + titlePanel.minH + padding.top)
     }
 
     fun add(child: Panel) {

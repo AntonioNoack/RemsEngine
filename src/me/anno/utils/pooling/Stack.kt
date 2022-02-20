@@ -44,9 +44,8 @@ class Stack<V : Any>(
         }
 
         fun sub(delta: Int) {
+            if (index - delta < localFloor) throw BufferUnderflowException()
             index -= delta
-            if (index < localFloor) throw BufferUnderflowException()
-            index = 0
         }
 
     }

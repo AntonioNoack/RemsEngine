@@ -1,8 +1,9 @@
 package me.anno.fonts
 
 import me.anno.config.DefaultConfig
-import me.anno.fonts.mesh.TextMeshGroup
+import me.anno.fonts.signeddistfields.TextSDF
 import me.anno.gpu.GFX
+import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.texture.FakeWhiteTexture
 import me.anno.gpu.texture.ITexture2D
@@ -51,22 +52,30 @@ class AWTFont(val font: Font) {
 
     private fun CharSequence.countLines() = count { it == '\n' } + 1
 
-    private fun getStringWidth(group: TextMeshGroup) = group.offsets.last() - group.offsets.first()
+    private fun getStringWidth(group: TextGroup) = group.offsets.last() - group.offsets.first()
 
-    private fun getGroup(text: CharSequence) = TextMeshGroup(font, text, 0f, true)
+    private fun getGroup(text: CharSequence) = object : TextGroup(font, text, 0.0) {
+        override fun draw(
+            startIndex: Int,
+            endIndex: Int,
+            drawBuffer: (StaticBuffer?, TextSDF?, offset: Float) -> Unit
+        ) {
+            throw RuntimeException("Operation not supported")
+        }
+    }
 
     /**
      * like gfx.drawText, however this method is respecting the ideal character distances,
      * so there are no awkward spaces between T and e
      * */
-    private fun drawString(gfx: Graphics2D, text: CharSequence, group: TextMeshGroup?, y: Int) =
+    private fun drawString(gfx: Graphics2D, text: CharSequence, group: TextGroup?, y: Int) =
         drawString(gfx, text, group, 0f, y.toFloat())
 
     /**
      * like gfx.drawText, however this method is respecting the ideal character distances,
      * so there are no awkward spaces between T and e
      * */
-    private fun drawString(gfx: Graphics2D, text: CharSequence, group: TextMeshGroup?, x: Float, y: Float) {
+    private fun drawString(gfx: Graphics2D, text: CharSequence, group: TextGroup?, x: Float, y: Float) {
         val group2 = group ?: getGroup(text)
         // some distances still are awkward, because it is using the closest position, not float
         // (useful for 'I's)

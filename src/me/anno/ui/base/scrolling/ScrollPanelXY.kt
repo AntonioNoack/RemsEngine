@@ -81,6 +81,16 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
     private val hasScrollbarX get() = maxScrollPositionX > 0
     private val hasScrollbarY get() = maxScrollPositionY > 0
 
+    override fun scrollX(delta: Double) {
+        scrollPositionX += delta
+        clampScrollPosition()
+    }
+
+    override fun scrollY(delta: Double) {
+        scrollPositionY += delta
+        clampScrollPosition()
+    }
+
     override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
         return drawsOverX(lx0, ly0, lx1, ly1) || drawsOverY(lx0, ly0, lx1, ly1)
     }
@@ -108,13 +118,13 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
 
     }
 
-    override fun placeInParent(x: Int, y: Int) {
-        super.placeInParent(x, y)
+    override fun setPosition(x: Int, y: Int) {
+        super.setPosition(x, y)
 
         val scrollX = scrollPositionX.toInt()
         val scrollY = scrollPositionY.toInt()
 
-        child.placeInParent(x + padding.left - scrollX, y + padding.top - scrollY)
+        child.setPosition(x + padding.left - scrollX, y + padding.top - scrollY)
 
     }
 

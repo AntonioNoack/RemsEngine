@@ -96,7 +96,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         minW = 10
     }
 
-    override fun placeInParent(x: Int, y: Int) {
+    override fun setPosition(x: Int, y: Int) {
 
         this.x = x
         this.y = y
@@ -105,8 +105,8 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         if (children.size == 1) {
 
             val child = children.first()
-            child.placeInParent(x, y)
-            child.applyPlacement(w, h)
+            child.setPosition(x, y)
+            child.setSize(w, h)
 
         } else {
 
@@ -120,24 +120,17 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
             for (index in children.indices) {
                 val child = children[index]
                 val weight = max(minWeight, child.weight)
-                /*val childSize = if (child is CustomizingBar)
-                    if (isY) child.minH else child.minW
-                else {
-                    val betterWeight = max(weight * weightScale, minSize)
-                    if (betterWeight != weight) child.weight = betterWeight
-                    (betterWeight / sumWeight * available).roundToInt()
-                }*/
                 val betterWeight = max(weight * weightScale, minSize)
                 if (betterWeight != weight) child.weight = betterWeight
-                val childSize = (betterWeight / sumWeight * available).roundToInt()
+                val childSize = (betterWeight * weightScale * available).roundToInt()
                 childPos += min(
                     childSize, if (isY) {
                         child.calculateSize(w, childSize)
-                        child.place(x, childPos, w, childSize)
+                        child.setPosSize(x, childPos, w, childSize)
                         child.h
                     } else {
                         child.calculateSize(childSize, h)
-                        child.place(childPos, y, childSize, h)
+                        child.setPosSize(childPos, y, childSize, h)
                         child.w
                     }
                 )
@@ -215,13 +208,20 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         drawBackground(x0, y0, x1, y1)
         drawChildren(x0, y0, x1, y1)
         ensureScrollbars()
-        for (i in scrollbars.indices) {
+        for (i in 0 until min(scrollbars.size, children.size - 1)) {
             val scrollbar = scrollbars[i]
             val child = children[i + 1]
-            scrollbar.x = if (isY) x else child.x - spacing
-            scrollbar.y = if (isY) child.y - spacing else y
-            scrollbar.w = if (isY) w else spacing
-            scrollbar.h = if (isY) spacing else h
+            if (isY) {
+                scrollbar.x = x
+                scrollbar.y = child.y - spacing
+                scrollbar.w = w
+                scrollbar.h = spacing
+            } else {
+                scrollbar.x = child.x - spacing
+                scrollbar.y = y
+                scrollbar.w = spacing
+                scrollbar.h = h
+            }
             updateScrollbar(scrollbar, i)
             drawChild(scrollbar, x0, y0, x1, y1)
         }
@@ -229,16 +229,32 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
 
     private val interactionHeight get() = spacing + 2 * interactionPadding
     private fun touchesBar(index: Int, lx0: Int, ly0: Int, lx1: Int = lx0 + 1, ly1: Int = ly0 + 1): Boolean {
+        if (index !in children.indices) return false
         val sbSize = interactionHeight
         val child = children[index]
-        val x = if (isY) x else child.x - spacing
-        val y = if (isY) child.y - spacing else y
-        val w = if (isY) w else spacing
-        val h = if (isY) spacing else h
+        val x: Int
+        val y: Int
+        val w: Int
+        val h: Int
+        val sbWidth: Int
+        val sbHeight: Int
+        if (isY) {
+            x = this.x
+            y = child.y - spacing
+            w = this.w
+            h = spacing
+            sbWidth = w
+            sbHeight = sbSize
+        } else {
+            x = child.x - spacing
+            y = this.y
+            w = spacing
+            h = this.h
+            sbWidth = sbSize
+            sbHeight = h
+        }
         val centerX = x * 2 + w
         val centerY = y * 2 + h
-        val sbWidth = if (isY) w else sbSize
-        val sbHeight = if (isY) sbSize else h
         return abs((lx0 + lx1) - centerX) < sbWidth && abs((ly0 + ly1) - centerY) < sbHeight
     }
 
@@ -246,6 +262,9 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         val size = children.size - 1
         while (scrollbars.size < size) {
             scrollbars.add(Scrollbar(style))
+        }
+        while (size > scrollbars.size) {
+            scrollbars.removeAt(scrollbars.lastIndex)
         }
     }
 

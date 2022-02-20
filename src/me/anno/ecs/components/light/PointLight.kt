@@ -14,6 +14,7 @@ import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Renderer
 import me.anno.io.serialization.SerializedProperty
+import me.anno.maths.Maths.SQRT3
 import me.anno.mesh.Shapes
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.getScaleLength
@@ -78,8 +79,7 @@ class PointLight : LightComponent(LightType.POINT) {
         val global = transform.globalTransform
         val position = global.getTranslation(JomlPools.vec3d.create())
         val rotation = global.getUnnormalizedRotation(JomlPools.quat4d.create())
-        val sqrt3 = 1.7320508075688772
-        val worldScale = sqrt3 / global.getScaleLength()
+        val worldScale = SQRT3 / global.getScaleLength()
         // only fill pipeline once?
 
         val texture = shadowTextures!![0] as CubemapFramebuffer

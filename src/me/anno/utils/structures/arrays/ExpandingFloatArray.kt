@@ -55,6 +55,16 @@ class ExpandingFloatArray(
         }
     }
 
+    fun ensureExtra(extra: Int) {
+        val array = array
+        if (array == null || size + extra > array.size) {
+            val newArray =
+                FloatArray(if (array == null) max(initCapacity, extra) else max(max(array.size * 2, 16), size + extra))
+            if (array != null) System.arraycopy(array, 0, newArray, 0, size)
+            this.array = newArray
+        }
+    }
+
     fun add(value: Float) {
         val array = array
         if (array == null || size + 1 >= array.size) {
@@ -76,21 +86,27 @@ class ExpandingFloatArray(
     }
 
     fun add(v: Vector3f) {
-        add(v.x)
-        add(v.y)
-        add(v.z)
+        ensureExtra(3)
+        val array = array!!
+        var size = size
+        array[size++] = v.x
+        array[size++] = v.y
+        array[size++] = v.z
+        this.size = size
     }
 
     fun add(v: FloatArray, startIndex: Int, length: Int) {
-        for (i in 0 until length) {
-            add(v[startIndex + i])
-        }
+        ensureExtra(length)
+        addUnsafe(v, startIndex, length)
     }
 
     fun addUnsafe(v: FloatArray, startIndex: Int, length: Int) {
+        val array = array!!
+        val size = size
         for (i in 0 until length) {
-            addUnsafe(v[startIndex + i])
+            array[size + i] = v[startIndex + i]
         }
+        this.size = size + length
     }
 
     operator fun get(index: Int) = array!![index]
@@ -99,21 +115,25 @@ class ExpandingFloatArray(
     }
 
     fun toFloatArray(): FloatArray {
-        if (size == array?.size) return array!!
+        val array = array
+        val size = size
+        if (array != null && size == array.size) return array
         val tmp = FloatArray(size)
         if (size > 0) System.arraycopy(array!!, 0, tmp, 0, size)
         return tmp
     }
 
     operator fun plusAssign(v: Vector2f) {
-        plusAssign(v.x)
-        plusAssign(v.y)
+        ensureExtra(2)
+        val array = array!!
+        var size = size
+        array[size++] = v.x
+        array[size++] = v.y
+        this.size = size
     }
 
     operator fun plusAssign(v: Vector3f) {
-        plusAssign(v.x)
-        plusAssign(v.y)
-        plusAssign(v.z)
+        add(v)
     }
 
 }

@@ -5,12 +5,15 @@ import me.anno.ecs.components.CollidingComponent
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshBaseComponent
+import me.anno.maths.Maths.SQRT3
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.AABBs.print
 import me.anno.utils.types.AABBs.set
 import me.anno.utils.types.AABBs.testLineAABB
 import me.anno.utils.types.AABBs.transformAABB
+import me.anno.utils.types.Matrices.getScaleLength
+import me.anno.utils.types.Triangles.computeConeInterpolation
 import me.anno.utils.types.Triangles.rayTriangleIntersection
 import me.anno.utils.types.Vectors.print
 import me.anno.utils.types.Vectors.toVector3f
@@ -18,6 +21,7 @@ import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Math
 import org.joml.Vector3d
+import kotlin.math.sqrt
 
 object Raycast {
 
@@ -28,10 +32,6 @@ object Raycast {
         COLLIDERS,
         BOTH
     }
-
-    // todo use bullet, and a fully static world? :)
-
-    // todo radius for the ray, like sphere-trace, e.g. for bullets
 
     // todo function for raycast collider (faster but less accurate for meshes)
 
@@ -44,6 +44,8 @@ object Raycast {
         entity: Entity,
         start: Vector3d,
         direction: Vector3d,
+        radiusAtOrigin: Double,
+        radiusPerUnit: Double,
         maxLength: Double,
         typeMask: TypeMask,
         collisionMask: Int = -1,
@@ -56,13 +58,14 @@ object Raycast {
         val end = Vector3d(direction).mul(maxLength).add(start)
         return raycastTriangles(
             entity, start, direction, end,
+            radiusAtOrigin, radiusPerUnit,
             typeMask, collisionMask,
             includeDisabled, result
         )
     }
 
     /**
-     * finds the minimum distance triangle
+     * finds the minimum distance triangle;
      * returns whether something was hit
      * */
     fun raycastTriangles(
@@ -70,6 +73,8 @@ object Raycast {
         start: Vector3d,
         direction: Vector3d,
         end: Vector3d,
+        radiusAtOrigin: Double,
+        radiusPerUnit: Double,
         typeMask: TypeMask,
         collisionMask: Int = -1,
         includeDisabled: Boolean = false,
@@ -86,13 +91,21 @@ object Raycast {
                 if (component is CollidingComponent && component.canCollide(collisionMask)) {
                     if (triangles && component is MeshBaseComponent) {
                         val mesh = component.getMesh()
-                        if (mesh != null && raycastTriangleMesh(entity, mesh, start, direction, end, result)) {
+                        if (mesh != null && raycastTriangleMesh(
+                                entity, mesh, start, direction, end,
+                                radiusAtOrigin, radiusPerUnit, result
+                            )
+                        ) {
                             result.mesh = mesh
                             result.component = component
                         }
                     }
                     if (colliders && component is Collider) {
-                        if (raycastCollider(entity, component, start, direction, end, result)) {
+                        if (raycastCollider(
+                                entity, component, start, direction, end,
+                                radiusAtOrigin, radiusPerUnit, result
+                            )
+                        ) {
                             result.collider = component
                         }
                     }
@@ -104,10 +117,11 @@ object Raycast {
         for (i in children.indices) {
             val child = children[i]
             if ((includeDisabled || child.isEnabled) && child.canCollide(collisionMask)) {
-                if (testLineAABB(child.aabb, start, end)) {
+                if (testLineAABB(child.aabb, start, direction, result.distance)) {
                     raycastTriangles(
-                        child, start, direction, end, typeMask,
-                        collisionMask, includeDisabled, result
+                        child, start, direction, end,
+                        radiusAtOrigin, radiusPerUnit,
+                        typeMask, collisionMask, includeDisabled, result
                     )
                 }
             }
@@ -118,28 +132,53 @@ object Raycast {
     fun raycastCollider(
         entity: Entity, collider: Collider,
         start: Vector3d, direction: Vector3d, end: Vector3d,
+        radiusAtOrigin: Double, radiusPerUnit: Double,
         result: RayHit
     ): Boolean {
 
-        val globalTransform = entity.transform.globalTransform // local -> global
-        val inverse = JomlPools.mat4x3d.create().set(globalTransform).invert()
+        val global = entity.transform.globalTransform // local -> global
+        val inverse = JomlPools.mat4x3d.create().set(global).invert()
 
-        val tmp = result.tmpVector3fs
+        // radius for the ray, like sphere-trace, e.g. for bullets + spread for the radius, so we can test cones
+        // (e.g. for inaccurate checks like a large beam)
+        // for that, just move towards the ray towards the origin of the collider by min(<radius>, <distance(ray, collider-origin)>)
+        val radiusScale = inverse.getScaleLength() / SQRT3
+        var testRadiusAtOrigin = (radiusAtOrigin * radiusScale).toFloat()
+        var testRadiusPerUnit = radiusPerUnit.toFloat() // like an angle -> stays the same for regular scales
+        val interpolation = if (collider.isConvex) {
+            testRadiusAtOrigin = 0f
+            testRadiusPerUnit = 0f
+            1f - computeConeInterpolation(
+                start, direction,
+                global.m30(), global.m31(), global.m32(),
+                radiusAtOrigin, radiusPerUnit
+            ).toFloat()
+        } else 1f
 
-        val localStart = inverse.transformPosition(Vector3d(start)).toVector3f(tmp[0])
-        val localEnd = inverse.transformPosition(Vector3d(end)).toVector3f(tmp[2])
-        val localDir = tmp[1].set(localEnd).sub(localStart).normalize()
+        val tmp3f = result.tmpVector3fs
+        val tmp3d = result.tmpVector3ds
+
+        val globalStart = tmp3d[0].set(start)
+        val globalDir = tmp3d[1].set(direction)
+
+        val localStart = inverse.transformPosition(globalStart).toVector3f(tmp3f[0])
+        if (interpolation < 1f) localStart.mul(interpolation)
+
+        val localDir = inverse.transformDirection(globalDir).toVector3f(tmp3f[1])
 
         JomlPools.mat4x3d.sub(1)
 
-        val maxDistance = localStart.distance(localEnd)
+        val maxDistance = sqrt(localDir.lengthSquared() / direction.lengthSquared()).toFloat()
 
-        val localNormal = tmp[3]
-        val localDistance = collider.raycast(localStart, localDir, localNormal, maxDistance)
+        val localNormal = tmp3f[3]
+        val localDistance = collider.raycast(
+            localStart, localDir, testRadiusAtOrigin, testRadiusPerUnit,
+            localNormal, maxDistance
+        )
         if (localDistance < maxDistance) {
             if (localDistance >= 0f || result.hitIfInside) {
                 result.setFromLocal(
-                    globalTransform,
+                    global,
                     localStart, localDir, localDistance, localNormal,
                     start, direction, end
                 )
@@ -200,8 +239,9 @@ object Raycast {
     }*/
 
     fun raycastTriangleMesh(
-        entity: Entity, mesh: Mesh,
+        entity: Entity?, mesh: Mesh,
         start: Vector3d, direction: Vector3d, end: Vector3d,
+        radiusAtOrigin: Double, radiusPerUnit: Double,
         result: RayHit,
     ): Boolean {
 
@@ -211,9 +251,12 @@ object Raycast {
         // todo if they lay outside, so more often we can use the faster method more often
 
         // transform the ray into local mesh coordinates
-        val globalTransform = entity.transform.globalTransform // local -> global
-        val inverse = JomlPools.mat3d.create()
-        inverse.set(globalTransform).invert()
+        val inverse = JomlPools.mat4x3d.create()
+        val globalTransform = JomlPools.mat4x3d.create()
+        if (entity != null) {
+            globalTransform.set(entity.transform.globalTransform) // local -> global
+            inverse.set(globalTransform).invert()
+        } else inverse.identity()
 
         val tmp0 = result.tmpVector3fs
         val tmp1 = result.tmpVector3ds
@@ -229,15 +272,20 @@ object Raycast {
 
         // the fast method only works, if the numbers have roughly the same order of magnitude
         val relativePositionsSquared = (localSrt.lengthSquared() + 1e-7f) / (localEnd.lengthSquared() + 1e-7f)
-        val orderOfMagnitudeIsFine = relativePositionsSquared in 0.001f..1000f
+        val orderOfMagnitudeIsFine = relativePositionsSquared in 1e-3f..1e3f
 
-        // todo if it is animated, we should ignore the aabb, and must apply the appropriate bone transforms
+        // todo if it is animated, we should ignore the aabb (or extend it), and must apply the appropriate bone transforms
         if (hasValidCoordinates && orderOfMagnitudeIsFine) {
 
             // LOGGER.info(Vector3f(localEnd).sub(localStart).normalize().dot(localDir))
+            // for that test, extend the radius at the start & end or sth like that
+            // calculate local radius & radius extend
+            val radiusScale = inverse.getScaleLength() / SQRT3 // a guess
+            val localRadiusAtOrigin = (radiusAtOrigin * radiusScale).toFloat()
+            val localRadiusPerUnit = radiusPerUnit.toFloat()
 
             // test whether we intersect the aabb of this mesh
-            if (testLineAABB(mesh.aabb, localSrt, localEnd)) {
+            if (testLineAABB(mesh.aabb, localSrt, localEnd, localRadiusAtOrigin, localRadiusPerUnit)) {
 
                 // test whether we intersect any triangle of this mesh
                 var localEnd2 = localSrt.distance(localEnd)
@@ -249,7 +297,11 @@ object Raycast {
 
                 mesh.forEachTriangle(tmp0[7], tmp0[8], tmp0[9]) { a, b, c ->
                     // check collision of localStart-localEnd with triangle a,b,c
-                    val localDistance = rayTriangleIntersection(localSrt, localDir, a, b, c, localEnd2, tmpNor, tmpPos)
+                    val localDistance = rayTriangleIntersection(
+                        localSrt, localDir, a, b, c,
+                        localRadiusAtOrigin, localRadiusPerUnit,
+                        localEnd2, tmpPos, tmpNor
+                    )
                     if (localDistance < localEnd2) {
                         localEnd2 = localDistance
                         localPosition.set(tmpPos)
@@ -272,7 +324,7 @@ object Raycast {
             val globalAABB = result.tmpAABBd.set(mesh.aabb)
             transformAABB(globalAABB, globalTransform)
 
-            if (testLineAABB(globalAABB, start, end)) {
+            if (testLineAABB(globalAABB, start, direction, result.distance)) {
 
                 val tmp = result.tmpVector3ds
                 mesh.forEachTriangle(tmp[2], tmp[3], tmp[4]) { a, b, c ->
@@ -282,19 +334,21 @@ object Raycast {
                     globalTransform.transformPosition(b)
                     globalTransform.transformPosition(c)
                     val maxDistance = result.distance
-                    val distance = rayTriangleIntersection(start, direction, a, b, c, maxDistance, tmpPos, tmpNor)
+                    val distance = rayTriangleIntersection(
+                        start, direction, a, b, c,
+                        radiusAtOrigin, radiusPerUnit,
+                        maxDistance, tmpPos, tmpNor
+                    )
                     if (distance < result.distance) {
                         result.distance = distance
                         result.positionWS.set(tmpPos)
                         result.normalWS.set(tmpNor)
                     }
                 }
-
             }
-
         }
 
-        JomlPools.mat3d.sub(1)
+        JomlPools.mat4x3d.sub(2)
 
         if (result.distance < original) {
             direction.mulAdd(result.distance, start, end) // end = start + distance * end, needed for colliders
@@ -318,12 +372,11 @@ object Raycast {
 
         val f = 1e-3
 
-        val l0 = Vector3d(-1e3, y, z)
-        val l1 = Vector3d(+1e3, y, z)
+        val start = Vector3d(-1e3, y, z)
+        val dir = Vector3d(1.0, 0.0, 0.0)
 
         val aabb = AABBd()
 
-        val logger = LogManager.getLogger("Raycast")
 
         for (i in 0 until 1000) {
 
@@ -333,12 +386,13 @@ object Raycast {
             aabb.union(x * (1 - f), y * (1 - f), z * (1 - f))
             aabb.union(x * (1 + f), y * (1 + f), z * (1 + f))
 
-            val result = testLineAABB(aabb, l0, l1)
-            if (!result) throw RuntimeException("${l0.print()} .. ${l1.print()} does not intersect ${aabb.print()}")
+            val result = testLineAABB(aabb, start, dir, 2e3)
+            if (!result) throw RuntimeException("${start.print()} + t * ${dir.print()} does not intersect ${aabb.print()}")
 
         }
 
-        logger.info("Finished simple test")
+        LogManager.getLogger("Raycast")
+            .info("Finished simple test")
 
     }
 
@@ -349,26 +403,26 @@ object Raycast {
 
         val f = 0.1
 
-        val l0 = Vector3d(-1e20, y, z)
-        val l1 = Vector3d(1e20, y, z)
+        val start = Vector3d(-1e20, y, z)
+        val dir = Vector3d(1.0, 0.0, 0.0)
 
         val aabb = AABBd()
-
-        val logger = LogManager.getLogger("Raycast")
 
         for (i in 0 until 1000) {
 
             val x = Math.random()
-            logger.info(x)
 
             aabb.clear()
             aabb.union(x * (1 - f), y * (1 - f), z * (1 - f))
             aabb.union(x * (1 + f), y * (1 + f), z * (1 + f))
 
-            val result = testLineAABB(aabb, l0, l1)
-            if (!result) throw RuntimeException("${l0.print()} .. ${l1.print()} does not intersect ${aabb.print()}")
+            val result = testLineAABB(aabb, start, dir, 2e20)
+            if (!result) throw RuntimeException("${start.print()} + t * ${dir.print()} does not intersect ${aabb.print()}")
 
         }
+
+        LogManager.getLogger("Raycast")
+            .info("Finished precision test")
 
     }
 

@@ -47,8 +47,8 @@ class NodePanel(
 
     }
 
-    override fun placeInParent(x: Int, y: Int) {
-        super.placeInParent(x, y)
+    override fun setPosition(x: Int, y: Int) {
+        super.setPosition(x, y)
         // calculate positions for connectors
         placeConnectors(node.inputs, gp.windowToCoordsX(this.x + baseTextSize))
         placeConnectors(node.outputs, gp.windowToCoordsX(this.x + this.w - baseTextSize))

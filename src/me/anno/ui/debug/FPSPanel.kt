@@ -18,7 +18,7 @@ object FPSPanel {
         val x0 = max(0, GFX.width - FrameTimes.width)
         val y0 = max(0, GFX.height - FrameTimes.height)
 
-        FrameTimes.place(x0, y0, FrameTimes.width, FrameTimes.height)
+        FrameTimes.setPosSize(x0, y0, FrameTimes.width, FrameTimes.height)
         FrameTimes.draw()
 
         GFX.loadTexturesSync.push(true)

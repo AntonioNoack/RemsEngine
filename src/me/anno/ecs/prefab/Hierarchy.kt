@@ -101,7 +101,7 @@ object Hierarchy {
                     else {
                         LOGGER.warn(
                             "Missing path $path[$pathIndex] (${path.getNames()}, ${path.getTypes()}, ${path.getIndices()}) in $instance, " +
-                                    "only ${components.size} $childType available ${components.joinToString { "'${it.name}'" }}"
+                                    "only ${components.size} $childType available ${components.joinToString { "'${it.name}':${it.prefabPath}" }}"
                         )
                         throw Path.EXIT
                     }

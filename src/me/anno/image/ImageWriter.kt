@@ -11,6 +11,7 @@ import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.mixARGB
 import me.anno.maths.Maths.unmix
 import me.anno.ui.base.components.Padding
+import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
@@ -26,6 +27,8 @@ import kotlin.math.*
 
 @Suppress("unused")
 object ImageWriter {
+
+    // todo maybe we should add noise (optionally) to make the visual results even nicer
 
     fun getFile(name: String): FileReference {
         val name2 = if (name.endsWith("png") || name.endsWith("jpg")) name else "$name.png"
@@ -137,25 +140,46 @@ object ImageWriter {
         values: FloatArray
     ) {
         val cm = if (normalize) colorMap.normalized(values) else colorMap
-        val img = BufferedImage(w, h, 1)
-        val buffer = img.data.dataBuffer
-        for (i in 0 until w * h) {
-            var r = 0
-            var g = 0
-            var b = 0
-            val j = i * samples
-            for (sample in 0 until samples) {
-                val color = cm.getColor(values[j + sample])
-                r += color.r()
-                g += color.g()
-                b += color.b()
+        val img = BufferedImage(w, h, if (colorMap.hasAlpha) 2 else 1)
+        val buffer = img.raster.dataBuffer
+        val alpha = if (colorMap.hasAlpha) 0 else (0xff shl 24)
+        if (samples <= 1) {
+            for (i in 0 until w * h) {
+                buffer.setElem(i, alpha or cm.getColor(values[i]))
             }
-            buffer.setElem(i, rgba(r / samples, g / samples, b / samples, 255))
+        } else {
+            for (i in 0 until w * h) {
+                var r = 0
+                var g = 0
+                var b = 0
+                var a = 0
+                val j = i * samples
+                for (sample in 0 until samples) {
+                    val color = cm.getColor(values[j + sample])
+                    r += color.r()
+                    g += color.g()
+                    b += color.b()
+                    a += color.a()
+                }
+                val color = alpha or rgba(r / samples, g / samples, b / samples, a / samples)
+                buffer.setElem(i, color)
+            }
         }
         val file = getFile(name)
+        file.getParent()?.mkdirs()
         use(file.outputStream()) {
             ImageIO.write(img, if (name.endsWith(".jpg")) "jpg" else "png", it)
         }
+    }
+
+
+    inline fun writeImageFloat(
+        w: Int, h: Int, name: String,
+        minPerThread: Int,
+        normalize: Boolean,
+        crossinline getRGB: (x: Int, y: Int, i: Int) -> Float
+    ) {
+        return writeImageFloat(w, h, name, minPerThread, normalize, LinearColorMap.default, getRGB)
     }
 
     inline fun writeImageFloat(
@@ -200,18 +224,17 @@ object ImageWriter {
         w: Int, h: Int, name: String,
         minPerThread: Int,
         normalize: Boolean,
-        crossinline getRGB: (x: Float, y: Float) -> Float
-    ) = writeImageFloatMSAA(w, h, name, minPerThread, normalize, LinearColorMap.default, getRGB)
+        crossinline getValue: (x: Float, y: Float) -> Float
+    ) = writeImageFloatMSAA(w, h, name, minPerThread, normalize, LinearColorMap.default, getValue)
 
     inline fun writeImageFloatMSAA(
         w: Int, h: Int, name: String,
         minPerThread: Int,
         normalize: Boolean,
         colorMap: ColorMap,
-        crossinline getRGB: (x: Float, y: Float) -> Float
+        crossinline getValue: (x: Float, y: Float) -> Float
     ) {
         val samples = 8
-        val positions = MSAAx8
         val values = FloatArray(w * h * samples)
         if (minPerThread < 0) {// multi-threading is forbidden
             for (y in 0 until h) {
@@ -220,9 +243,9 @@ object ImageWriter {
                     val k = (x + y * w) * samples
                     val xf = x.toFloat()
                     for (j in 0 until samples) {
-                        values[k + j] = getRGB(
-                            xf + positions[j * 2],
-                            yf + positions[j * 2 + 1]
+                        values[k + j] = getValue(
+                            xf + MSAAx8[j * 2],
+                            yf + MSAAx8[j * 2 + 1]
                         )
                     }
                 }
@@ -236,9 +259,9 @@ object ImageWriter {
                     val yf = y.toFloat()
                     val k = i * samples
                     for (j in 0 until samples) {
-                        values[k + j] = getRGB(
-                            xf + positions[j * 2],
-                            yf + positions[j * 2 + 1]
+                        values[k + j] = getValue(
+                            xf + MSAAx8[j * 2],
+                            yf + MSAAx8[j * 2 + 1]
                         )
                     }
                 }

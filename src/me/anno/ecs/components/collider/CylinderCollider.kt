@@ -24,21 +24,21 @@ class CylinderCollider : Collider() {
     var axis = 1
 
     @SerializedProperty
-    var height = 1.0
+    var halfHeight = 1.0
 
     @SerializedProperty
     var radius = 1.0
 
     override fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         // union the two rings
-        val h = height * 0.5
+        val h = halfHeight
         val r = radius
         unionRing(globalTransform, aabb, tmp, axis, r, +h, preferExact)
         unionRing(globalTransform, aabb, tmp, axis, r, -h, preferExact)
     }
 
     override fun getSignedDistance(deltaPos: Vector3f): Float {
-        val halfHeight = (height * 0.5).toFloat()
+        val halfHeight = halfHeight.toFloat()
         val radius = radius.toFloat()
         val circle = when (axis) {
             0 -> length(deltaPos.y, deltaPos.z)
@@ -53,15 +53,15 @@ class CylinderCollider : Collider() {
 
     override fun createBulletShape(scale: Vector3d): CollisionShape {
         return when (axis) {
-            0 -> CylinderShapeX(javax.vecmath.Vector3d(height * 0.5 * scale.x, radius * scale.y, radius * scale.z))
-            1 -> CylinderShape(javax.vecmath.Vector3d(radius * scale.x, height * 0.5 * scale.y, radius * scale.z))
-            2 -> CylinderShapeZ(javax.vecmath.Vector3d(radius * scale.x, radius * scale.y, height * 0.5 * scale.z))
+            0 -> CylinderShapeX(javax.vecmath.Vector3d(halfHeight * scale.x, radius * scale.y, radius * scale.z))
+            1 -> CylinderShape(javax.vecmath.Vector3d(radius * scale.x, halfHeight * scale.y, radius * scale.z))
+            2 -> CylinderShapeZ(javax.vecmath.Vector3d(radius * scale.x, radius * scale.y, halfHeight * scale.z))
             else -> throw RuntimeException()
         }
     }
 
     override fun drawShape() {
-        val h = height * 0.5
+        val h = halfHeight
         val r = radius
         val e = entity
         when(axis){
@@ -102,7 +102,7 @@ class CylinderCollider : Collider() {
         super.copy(clone)
         clone as CylinderCollider
         clone.axis = axis
-        clone.height = height
+        clone.halfHeight = halfHeight
         clone.radius = radius
     }
 

@@ -33,7 +33,7 @@ object BMPWriter {
         val width = img.width
         val height = img.height
         val dst = createBMPHeader(width, height)
-        val buffer = img.data.dataBuffer
+        val buffer = img.raster.dataBuffer
         // a lot of zeros
         var j = pixelDataStart
         for (i in 0 until width * height) {

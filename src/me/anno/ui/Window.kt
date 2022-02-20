@@ -73,15 +73,12 @@ open class Window(
         panel.window = this
     }
 
-    fun calculateFullLayout(w: Int, h: Int) {
+    private fun calculateFullLayout(w: Int, h: Int) {
         val window = this
         val t0 = System.nanoTime()
         panel.calculateSize(min(w - window.x, w), min(h - window.y, h))
-        // panel.applyPlacement(min(w - window.x, w), min(h - window.y, h))
-        // if(panel.w > w || panel.h > h) throw RuntimeException("Panel is too large...")
-        // panel.applyConstraints()
         val t1 = System.nanoTime()
-        panel.place(window.x, window.y, w, h)
+        panel.setPosSize(window.x, window.y, w, h)
         val t2 = System.nanoTime()
         val dt1 = (t1 - t0) * 1e-9f
         val dt2 = (t2 - t1) * 1e-9f
@@ -169,14 +166,14 @@ open class Window(
                 val p = needsLayout.minByOrNull { it.depth }!!
                 // recalculate layout
                 p.calculateSize(p.lx1 - p.lx0, p.ly1 - p.ly0)
-                p.place(p.lx0, p.ly0, p.lx1 - p.lx0, p.ly1 - p.ly0)
+                p.setPosSize(p.lx0, p.ly0, p.lx1 - p.lx0, p.ly1 - p.ly0)
                 needsLayout.removeAll(p.listOfAll)
                 addNeedsRedraw(p)
             }
         }
     }
 
-    fun fullRedraw(
+    private fun fullRedraw(
         w: Int, h: Int,
         panel0: Panel,
         dstBuffer: Framebuffer?
@@ -195,7 +192,7 @@ open class Window(
 
     }
 
-    fun sparseRedraw(
+    private fun sparseRedraw(
         panel0: Panel, didSomething0: Boolean,
         forceRedraw: Boolean,
         dstBuffer: Framebuffer?
@@ -230,7 +227,7 @@ open class Window(
 
     }
 
-    fun sparseRedraw2(panel0: Panel, wasRedrawn: MutableCollection<Panel>) {
+    private fun sparseRedraw2(panel0: Panel, wasRedrawn: MutableCollection<Panel>) {
 
         val x0 = max(panel0.x, 0)
         val y0 = max(panel0.y, 0)

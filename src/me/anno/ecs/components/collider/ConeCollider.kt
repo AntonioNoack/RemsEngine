@@ -9,12 +9,18 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.gui.LineShapes
 import me.anno.engine.gui.LineShapes.drawCone
 import me.anno.io.serialization.SerializedProperty
+import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
+import me.anno.maths.Maths.max
+import me.anno.maths.Maths.min
 import me.anno.utils.types.Vectors.setAxis
 import org.joml.AABBd
 import org.joml.Matrix4x3d
+import org.joml.Vector2f.lengthSquared
 import org.joml.Vector3d
 import org.joml.Vector3f
+import kotlin.math.sign
+import kotlin.math.sqrt
 
 class ConeCollider : Collider() {
 
@@ -40,27 +46,27 @@ class ConeCollider : Collider() {
 
     override fun getSignedDistance(deltaPos: Vector3f): Float {
 
-        val radius = radius.toFloat()
-        val height = height.toFloat()
-
-        val invScale = height
-        val scale = 1f / height
-        deltaPos.mul(scale)
-
-        val localY = height * scale * 0.5f - deltaPos[axis]
-
+        val roundness = roundness.toFloat()
+        val h = -height.toFloat() + roundness * 2f
+        val dist1D = deltaPos[axis] + h * 0.5f // centering
         val dist2D = when (axis) {
             0 -> length(deltaPos.y, deltaPos.z)
             1 -> length(deltaPos.x, deltaPos.z)
             else -> length(deltaPos.x, deltaPos.y)
         }
 
-        // theoretically, it's just a triangle, which has been rotated
-        // we don't even need the side on the middle axis
-        deltaPos.x = -localY // we could inverse the sign later
-        deltaPos.y = ((localY - 1f) * radius + dist2D * height) / length(radius, height)
+        // todo how can we include roundness here?
 
-        return and2SDFs(deltaPos, roundness.toFloat() * 0.5f) * invScale
+        val r = radius.toFloat() - roundness
+        val t = clamp((dist2D * r + dist1D * h) / (r * r + h * h))
+        val a2 = lengthSquared(r * t - dist2D, h * t - dist1D)
+        val b2 = lengthSquared(clamp(dist2D, 0f, r) - dist2D, h - dist1D)
+        val k = sign(h)
+        deltaPos.x = a2
+        deltaPos.y = b2
+        val d = min(a2, b2)
+        val s = max(k * (dist2D * h - dist1D * r), k * (dist1D - h))
+        return sqrt(d) * sign(s) - roundness
 
     }
 

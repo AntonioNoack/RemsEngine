@@ -16,13 +16,22 @@ class RaycastTestComponent : Component() {
     @SerializedProperty
     var maxLength = 1e3
 
+    @SerializedProperty
+    var radiusAtOrigin = 0.0
+
+    @SerializedProperty
+    var radiusPerUnit = 0.0
+
     override fun onVisibleUpdate(): Boolean {
         // throw ray cast, and draw the result
         val entity = entity!!
         val transform = entity.transform.globalTransform
         val start = transform.transformPosition(Vector3d())
         val direction = transform.transformDirection(Vector3d(0.0, 0.0, 1.0)).normalize()
-        val hit = Raycast.raycast(entity, start, direction, maxLength, Raycast.TypeMask.BOTH, colliderMask)
+        val hit = Raycast.raycast(
+            entity, start, direction, radiusAtOrigin, radiusPerUnit,
+            maxLength, Raycast.TypeMask.BOTH, colliderMask
+        )
         if (hit != null) {
             DebugShapes.debugLines.add(DebugLine(start, hit.positionWS, -1))
         } else {

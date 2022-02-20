@@ -342,25 +342,29 @@ open class Panel(val style: Style) : PrefabSaveable() {
         if (!b) throw RuntimeException(msg)
     }
 
-    fun place(x: Int, y: Int, w: Int, h: Int) {
-        placeInParent(x, y)
-        applyPlacement(w, h)
-        placeInParent(this.x, this.y)
+    fun setPosSize(x: Int, y: Int, w: Int, h: Int) {
+        setPosition(x, y)
+        setSize(w, h)
+        // todo why is the menu-window depending on this?
+        if (true || this.x != x || this.y != y) {
+            setPosition(this.x, this.y)
+        } // else is already placed
     }
 
-    open fun placeInParent(x: Int, y: Int) {
+    open fun setPosition(x: Int, y: Int) {
         this.x = x
         this.y = y
     }
 
-    open fun applyPlacement(w: Int, h: Int) {
+    open fun setSize(w: Int, h: Int) {
         this.w = w
         this.h = h
         val constraints = layoutConstraints
         for (i in constraints.indices) {
             val c = constraints[i]
             c.apply(this)
-            if (this.w > w || this.h > h) throw RuntimeException("${c.javaClass} isn't working properly: $w -> ${this.w}, $h -> ${this.h}")
+            if (this.w > w || this.h > h)
+                throw RuntimeException("Constraint ${c.javaClass} isn't working properly: $w -> ${this.w}, $h -> ${this.h}")
         }
     }
 

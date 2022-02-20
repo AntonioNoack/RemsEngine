@@ -10,6 +10,7 @@ object Maths {
 
     const val SQRT1_2 = 0.7071067811865476
     const val SQRT2 = 1.4142135623730951
+    const val SQRT3 = 1.7320508075688772
     const val GOLDEN_RATIO = 1.618033988749895
 
     const val GoldenRatio = 1.618033988749895f// (1f + sqrt(5f)) * 0.5f

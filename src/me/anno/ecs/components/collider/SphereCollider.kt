@@ -5,10 +5,13 @@ import com.bulletphysics.collision.shapes.SphereShape
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.gui.LineShapes.drawSphere
 import me.anno.io.serialization.SerializedProperty
+import me.anno.utils.types.Floats.step
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import org.joml.Vector3f
+import kotlin.math.abs
+import kotlin.math.sqrt
 
 class SphereCollider : Collider() {
 
@@ -35,7 +38,7 @@ class SphereCollider : Collider() {
             // outer ring != outer sphere, increase the radius once more!
             // val rEstimate = 1.13174 * r // estimated / visualized in Blender, approximated,
             // and then accurately calculated
-            val rExact = OUTER_SPHERE_RADIUS_X8 / INV_COSINE_22_5 * r // 1.1315167192268571
+            val rExact = OUTER_SPHERE_RADIUS_X8 * COSINE_22_5 * r // 1.1315167192268571
             for (axis in 0..2) {
                 unionRing(globalTransform, aabb, tmp, axis, rExact, 0.0, preferExact)
             }
@@ -44,10 +47,6 @@ class SphereCollider : Collider() {
             unionCube(globalTransform, aabb, tmp, r, r, r)
         }
     }
-
-    /*override fun getSignedDistance(deltaPosition: Vector3d, movement: Vector3d): Double {
-        return deltaPosition.length() - radius
-    }*/
 
     override fun getSignedDistance(deltaPos: Vector3f, outNormal: Vector3f): Float {
         outNormal.set(deltaPos).normalize()
@@ -62,10 +61,42 @@ class SphereCollider : Collider() {
         return SphereShape(radius * scale.dot(0.33, 0.34, 0.33))
     }
 
+    override fun raycast(
+        start: Vector3f, direction: Vector3f,
+        radiusAtOrigin: Float, radiusPerUnit: Float,
+        surfaceNormal: Vector3f?, maxDistance: Float
+    ): Float {
+        val radius = radius.toFloat()
+        val a = direction.lengthSquared()
+        val b = 2f * start.dot(direction)
+        val c = start.lengthSquared() - radius * radius
+        val disc = b * b - 4 * a * c
+        return if (disc < 0f) Float.POSITIVE_INFINITY
+        else (-b - sqrt(disc)) / (2f * a)
+    }
+
     override fun drawShape() {
         drawSphere(entity, radius)
     }
 
     override val className get() = "SphereCollider"
+
+    companion object {
+
+        /* correctness test for sphere collider ray tests */
+        @JvmStatic
+        fun main(args: Array<String>) {
+            val s = SphereCollider()
+            val offset = 1f
+            for (x in -2f..2f step 0.1f) {
+                val distance = s.raycast(
+                    Vector3f(x, 0f, -offset), Vector3f(0f, 0f, 1f),
+                    0f, 0f, null, 10f
+                )
+                val target = if (abs(x) > 1f) Float.POSITIVE_INFINITY else offset - sqrt(1f - x * x)
+                println("$x -> $distance, error: ${if(distance == target) "ok" else (distance - target) / distance}")
+            }
+        }
+    }
 
 }

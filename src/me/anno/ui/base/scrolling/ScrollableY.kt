@@ -8,4 +8,6 @@ interface ScrollableY {
     val child: Panel
     var scrollPositionY: Double
     val maxScrollPositionY get(): Long = max(0, child.minH - h).toLong()
+    fun scrollY(delta: Double)
+    fun scrollY(delta: Int) = scrollY(delta.toDouble())
 }

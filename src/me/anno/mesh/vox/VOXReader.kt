@@ -4,13 +4,16 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path
 import me.anno.io.files.FileReference
+import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.zip.InnerFolder
+import me.anno.maths.Maths.convertABGR2ARGB
 import me.anno.mesh.vox.format.VOXLayer
 import me.anno.mesh.vox.format.VOXNode
 import me.anno.mesh.vox.model.DenseVoxelModel
 import me.anno.mesh.vox.model.VoxelModel
-import me.anno.maths.Maths.convertABGR2ARGB
+import me.anno.utils.OS
 import me.anno.utils.structures.tuples.Quad
+import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3i
 import java.io.IOException
@@ -19,6 +22,11 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 class VOXReader {
+
+    private var idCtr = 0
+    private fun nextId(): String {
+        return "#${idCtr++}"
+    }
 
     fun read(file: FileReference): VOXReader {
         return file.inputStream().use { read(it) }
@@ -74,6 +82,7 @@ class VOXReader {
         }
         if (!isDefault) {
             // todo function to apply index mapping
+            // val oldMaterials = materials
             LOGGER.warn("index map not applied")
             LOGGER.info(indexMap.joinToString { (it.toInt() and 255).toString() })
         } else this.indexMap = null // done and pseudo-applied
@@ -112,7 +121,7 @@ class VOXReader {
     val models = ArrayList<VoxelModel>()
 
     var palette = defaultPalette
-    val materials = HashMap<Int, Material>()
+    val materials = ArrayList<Material>()
 
     // why ever this exists...
     var indexMap: ByteArray? = null
@@ -213,7 +222,10 @@ class VOXReader {
                     bytes.float
                 } else 0f // ?
                 val isTotalPower = (properties and 128) != 0
-                materials[matIndex] = Material().apply {
+                while (matIndex > materials.size) {
+                    materials.add(Material())
+                }
+                materials[matIndex].apply {
                     // todo set all relevant properties
                     // todo we should set the correct shader here as well :)
                 }
@@ -227,7 +239,9 @@ class VOXReader {
                 val node = getNode(nodeId)
 
                 val properties = readDict(bytes) ?: emptyMap() // can have _name
-                node.name = properties["_name"] ?: node.name
+                var name = properties["_name"] ?: node.name
+                if (name.isBlank2()) name = nextId()
+                node.name = name
 
                 val childNodeId = bytes.int
                 node.child = getNode(childNodeId)
@@ -328,7 +342,7 @@ class VOXReader {
             node.pz = -translation[1]
             node.py = +translation[2]
         }
-        node.ry = frame["_r"]?.toDoubleOrNull() ?: 0.0
+        node.rotation = frame["_r"]?.toIntOrNull() ?: node.rotation
     }
 
     /**
@@ -459,13 +473,17 @@ class VOXReader {
         @JvmStatic
         fun main(args: Array<String>) {
             // extremely complex:
-            // val file = OS.downloads.getChild("MagicaVoxel/vox/PrinceOfPersia.vox")
+            val file = OS.downloads.getChild("MagicaVoxel/vox/PrinceOfPersia.vox")
             // medium:
             // val file = OS.downloads.getChild("MagicaVoxel/vox/truck.vox")
+            // val file = OS.downloads.getChild("MagicaVoxel/vox/ForestHeavy.vox")
             // VOXReader().read(file)
             /*writeImageInt(6, 256 / 6, false, "vox.png", 256) { _, _, i ->
                 defaultPalette[i + 1]
             }*/
+            // time for debugger to attach
+            // for (i in 0 until 100) Thread.sleep(100)
+            Thumbs.testGeneration(file, this::readAsFolder)
         }
 
     }

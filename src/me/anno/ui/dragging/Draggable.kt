@@ -27,12 +27,12 @@ class Draggable(
         ui += WrapAlign.LeftTop
         loadTexturesSync.push(true)
         ui.calculateSize(300, 300)
-        ui.applyPlacement(300, 300)
+        ui.setSize(300, 300)
         loadTexturesSync.pop()
     }
 
     override fun draw(x: Int, y: Int) {
-        ui.placeInParent(x, y)
+        ui.setPosition(x, y)
         ui.draw(x, y, x + ui.w, y + ui.h)
     }
 

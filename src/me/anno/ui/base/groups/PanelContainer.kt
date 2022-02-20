@@ -43,9 +43,9 @@ open class PanelContainer(
         minH = child.minH + padding.height
     }
 
-    override fun placeInParent(x: Int, y: Int) {
-        super.placeInParent(x, y)
-        child.placeInParent(x + padding.left, y + padding.top)
+    override fun setPosition(x: Int, y: Int) {
+        super.setPosition(x, y)
+        child.setPosition(x + padding.left, y + padding.top)
     }
 
     override fun clone() = PanelContainer(this)

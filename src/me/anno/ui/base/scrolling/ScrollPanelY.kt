@@ -65,6 +65,11 @@ open class ScrollPanelY(
             return max(0, childH + padding.height - h)
         }
 
+    override fun scrollY(delta: Double) {
+        scrollPositionY += delta
+        clampScrollPosition()
+    }
+
     override fun tickUpdate() {
         super.tickUpdate()
         val window = window!!
@@ -87,6 +92,8 @@ open class ScrollPanelY(
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
 
+        val child = child
+        val padding = padding
         child.calculateSize(w - padding.width, maxLength - padding.height)
 
         minW = child.minW + padding.width
@@ -94,12 +101,14 @@ open class ScrollPanelY(
         if (hasScrollbar) minW += scrollbarWidth
     }
 
-    override fun placeInParent(x: Int, y: Int) {
-        super.placeInParent(x, y)
+    override fun setPosition(x: Int, y: Int) {
+        this.x = x
+        this.y = y
+        val child = child
+        val padding = padding
         val scroll0 = scrollPositionY.toLong()
         val scroll = clamp(scroll0, 0L, (child.minH + padding.height - h).toLong()).toInt()
-        val child = child
-        child.placeInParent(x + padding.left, y + padding.top - scroll)
+        child.setPosition(x + padding.left, y + padding.top - scroll)
         if (child is LongScrollable) {
             child.setExtraScrolling(0L, scroll0 - scroll)
         }
@@ -109,6 +118,7 @@ open class ScrollPanelY(
         clampScrollPosition()
         super.onDraw(x0, y0, x1, y1)
         if (hasScrollbar) {
+            val scrollbar = scrollbar
             scrollbar.x = x1 - scrollbarWidth - scrollbarPadding
             scrollbar.y = y + scrollbarPadding
             scrollbar.w = scrollbarWidth

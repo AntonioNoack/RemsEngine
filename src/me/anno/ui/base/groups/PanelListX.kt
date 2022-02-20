@@ -52,21 +52,23 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
 
     }
 
-    override fun placeInParent(x: Int, y: Int) {
-        super.placeInParent(x, y)
-
-        var perWeight = 0f
+    override fun setPosition(x: Int, y: Int) {
+        super.setPosition(x, y)
 
         val availableW = w - padding.width
         val availableH = h - padding.height
 
-        if (availableW > sumConst && sumWeight > 1e-16f) {
+        var perWeight = 0f
+        val sumWeight = sumWeight
+        val sumConst = sumConst
+        if (availableW > sumConst && sumWeight > 1e-7f) {
             val extraAvailable = availableW - sumConst
             perWeight = extraAvailable / sumWeight
         }
 
         var currentX = x + padding.left
         val childY = y + padding.top
+
         val children = children
         for (i in children.indices) {
             val child = children[i]
@@ -76,8 +78,7 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
                 val remainingW = availableW - currentW
                 childW = min(childW, remainingW)
                 child.calculateSize(childW, availableH)
-                child.placeInParent(currentX, childY)
-                child.applyPlacement(childW, availableH)
+                child.setPosSize(currentX, childY, childW, availableH)
                 currentX += childW + spacing
             }
         }
@@ -86,7 +87,6 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         return when (action) {
-            // todo scroll if in scroll list
             "Previous", "Left" -> selectPrevious()
             "Next", "Right" -> selectNext()
             else -> super.onGotAction(x, y, dx, dy, action, isContinuous)

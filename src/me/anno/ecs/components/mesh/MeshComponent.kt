@@ -63,8 +63,4 @@ open class MeshComponent() : MeshBaseComponent() {
 
     override val className get() = "MeshComponent"
 
-    companion object {
-        private val LOGGER = LogManager.getLogger(MeshComponent::class)
-    }
-
 }

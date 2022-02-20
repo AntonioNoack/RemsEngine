@@ -285,7 +285,7 @@ object Menu {
 
         // could we do the calculation on another thread?
         container.calculateSize(maxWidth, maxHeight)
-        container.applyPlacement(min(container.minW, maxWidth), min(container.minH, maxHeight))
+        container.setSize(min(container.minW, maxWidth), min(container.minH, maxHeight))
 
         window.x = Maths.clamp(x, 0, max(GFX.width - container.w, 0))
         window.y = Maths.clamp(y, 0, max(GFX.height - container.h, 0))

@@ -18,6 +18,7 @@ import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.AABBs.set
 import org.apache.logging.log4j.LogManager
@@ -209,8 +210,8 @@ class Mesh : PrefabSaveable() {
         // if the indices array is empty, it indicates a non-indexed array, so all values will be considered
         val positions = positions ?: return
         if (ignoreStrayPointsInAABB && indices != null && indices.isNotEmpty()) {
-            for (index in indices) {
-                val i3 = index * 3
+            for (i in indices.indices) {
+                val i3 = indices[i] * 3
                 val x = positions[i3]
                 val y = positions[i3 + 1]
                 val z = positions[i3 + 2]
@@ -297,7 +298,11 @@ class Mesh : PrefabSaveable() {
     }
 
     fun forEachTriangle(callback: (a: Vector3f, b: Vector3f, c: Vector3f) -> Unit) {
-        forEachTriangle(Vector3f(), Vector3f(), Vector3f(), callback)
+        val a = JomlPools.vec3f.create()
+        val b = JomlPools.vec3f.create()
+        val c = JomlPools.vec3f.create()
+        forEachTriangle(a, b, c, callback)
+        JomlPools.vec3f.sub(3)
     }
 
     fun forEachTriangleIndex(callback: (a: Int, b: Int, c: Int) -> Unit) {
@@ -698,6 +703,8 @@ class Mesh : PrefabSaveable() {
             if (GFX.isGFXThread()) buffer?.ensureBuffer()
         }
     }
+
+    fun hasBuffer() = !needsMeshUpdate
 
     fun draw(shader: Shader, materialIndex: Int) {
         if (proceduralLength > 0) {

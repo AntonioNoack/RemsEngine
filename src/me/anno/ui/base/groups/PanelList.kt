@@ -4,11 +4,13 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
+import me.anno.ui.base.scrolling.ScrollableX
+import me.anno.ui.base.scrolling.ScrollableY
 import me.anno.ui.style.Style
 
 abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGroup(style) {
 
-    constructor(style: Style): this(null, style)
+    constructor(style: Style) : this(null, style)
 
     override val children = ArrayList<Panel>()
     var spacing = style.getSize("spacer.width", 0)
@@ -66,6 +68,7 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
             children[childIndex].invalidateDrawing()
             newChild.requestFocus()
             newChild.invalidateDrawing()
+            onSelectNext(children[childIndex], newChild)
         }
         return newChild != null
     }
@@ -82,8 +85,15 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
             children[childIndex].invalidateDrawing()
             newChild.requestFocus()
             newChild.invalidateDrawing()
+            onSelectNext(children[childIndex], newChild)
         }
         return newChild != null
+    }
+
+    fun onSelectNext(prev: Panel, next: Panel) {
+        // todo test this, correct sign?
+        (firstInHierarchy { it is ScrollableX } as? ScrollableX)?.scrollX((next.x + next.w / 2) - (prev.x + prev.w / 2))
+        (firstInHierarchy { it is ScrollableY } as? ScrollableY)?.scrollY((next.x + next.w / 2) - (prev.y + prev.w / 2))
     }
 
     override fun copy(clone: PrefabSaveable) {

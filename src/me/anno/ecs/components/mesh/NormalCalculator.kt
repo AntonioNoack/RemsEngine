@@ -2,6 +2,7 @@ package me.anno.ecs.components.mesh
 
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
+import me.anno.utils.pooling.JomlPools
 import org.joml.Vector3f
 import kotlin.math.abs
 
@@ -42,9 +43,9 @@ object NormalCalculator {
     }
 
     private fun computeNormalsIndexed(positions: FloatArray, normals: FloatArray, indices: IntArray) {
-        val a = Vector3f()
-        val b = Vector3f()
-        val c = Vector3f()
+        val a = JomlPools.vec3f.create()
+        val b = JomlPools.vec3f.create()
+        val c = JomlPools.vec3f.create()
         val weights = IntArray(positions.size / 3)
         for (j in weights.indices) {
             val i = j * 3
@@ -87,12 +88,13 @@ object NormalCalculator {
                 normals[i + 2] *= weightInv
             }
         }
+        JomlPools.vec3f.sub(3)
     }
 
     private fun computeNormalsNonIndexed(positions: FloatArray, normals: FloatArray) {
-        val a = Vector3f()
-        val b = Vector3f()
-        val c = Vector3f()
+        val a = JomlPools.vec3f.create()
+        val b = JomlPools.vec3f.create()
+        val c = JomlPools.vec3f.create()
         // just go through the vertices
         // mode to calculate smooth shading by clustering points?
         for (i in positions.indices step 9) {
@@ -110,15 +112,17 @@ object NormalCalculator {
                 }
             }
         }
+        JomlPools.vec3f.sub(3)
     }
 
     fun checkNormals(positions: FloatArray, normals: FloatArray, indices: IntArray?) {
         // first an allocation free check
-        if (!needsNormalsComputation(normals)) return
-        if (indices == null) {
-            computeNormalsNonIndexed(positions, normals)
-        } else {
-            computeNormalsIndexed(positions, normals, indices)
+        if (needsNormalsComputation(normals)) {
+            if (indices == null) {
+                computeNormalsNonIndexed(positions, normals)
+            } else {
+                computeNormalsIndexed(positions, normals, indices)
+            }
         }
     }
 

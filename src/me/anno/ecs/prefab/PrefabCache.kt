@@ -17,17 +17,14 @@ import me.anno.io.text.TextWriter
 import me.anno.io.unity.UnityReader
 import me.anno.io.zip.InnerLinkFile
 import me.anno.io.zip.InnerPrefabFile
-import me.anno.io.zip.SignatureFile
 import me.anno.io.zip.ZipCache
 import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.mesh.blender.BlenderReader
 import me.anno.mesh.obj.OBJReader2
 import me.anno.mesh.vox.VOXReader
-import me.anno.utils.strings.StringHelper.shorten
-import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
+import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
-import kotlin.math.sign
 
 object PrefabCache : CacheSection("Prefab") {
 

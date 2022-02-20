@@ -10,6 +10,7 @@ import me.anno.maths.Maths.mix
 import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.scrollSpeed
 import me.anno.ui.base.scrolling.ScrollableY
 import me.anno.ui.base.scrolling.ScrollbarY
@@ -68,6 +69,11 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
 
     override val maxScrollPositionY get(): Long = max(0, minH2 - h).toLong()
 
+    override fun scrollY(delta: Double) {
+        scrollPositionY += delta
+        clampScrollPosition()
+    }
+
     val scrollbar = ScrollbarY(this, style)
     var scrollbarWidth = style.getSize("scrollbarWidth", 8)
     var scrollbarPadding = style.getSize("scrollbarPadding", 1)
@@ -84,7 +90,6 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
             val child = children[i]
             if (child.visibility != Visibility.GONE) {
                 child.calculateSize(calcChildWidth, calcChildHeight)
-                // child.applyConstraints()
             }
         }
 
@@ -105,6 +110,13 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
 
     override fun tickUpdate() {
         super.tickUpdate()
+        val window = window
+        if (window != null) {
+            val mx = window.mouseXi
+            val my = window.mouseYi
+            scrollbar.isBeingHovered = capturesChildEvents(mx, my)
+            if (scrollbar.updateAlpha()) invalidateDrawing()
+        }
         if (autoScrollLastUpdate < autoScrollEndTime) {
             val delta = autoScrollPerNano * (GFX.gameTime - autoScrollLastUpdate)
             if (delta > 0L) {
@@ -116,6 +128,17 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
                 autoScrollLastUpdate = GFX.gameTime
             }
         }
+    }
+
+    val interactionWidth = scrollbarWidth + 2 * interactionPadding
+    val hasScrollbar get() = maxScrollPositionY > 0
+
+    override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
+        val sbWidth = interactionWidth + 2 * scrollbarPadding
+        return hasScrollbar && ScrollPanelXY.drawsOverY(
+            this.lx0, this.ly0, this.lx1, this.ly1,
+            sbWidth, lx0, ly0, lx1, ly1
+        )
     }
 
     fun smoothlyScrollTo(y: Double, duration: Float = 1f) {
@@ -158,17 +181,16 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
         updateScale()
         minW = max(w, calcChildWidth)
         minH = max((calcChildHeight + spacing) * rows - spacing, h)
-        minH += childHeight / 6 /* Reserve, because somehow it's not enough... */
         minH2 = minH
     }
 
-    override fun applyPlacement(w: Int, h: Int) {
+    override fun setSize(w: Int, h: Int) {
         updateSize(w, h)
-        super.applyPlacement(w, h)
+        super.setSize(w, h)
     }
 
-    override fun placeInParent(x: Int, y: Int) {
-        super.placeInParent(x, y)
+    override fun setPosition(x: Int, y: Int) {
+        super.setPosition(x, y)
 
         val w = w - scrollbarWidth
         val contentW = columns * childWidth
@@ -187,7 +209,7 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
                 }
                 val cy = y + iy * (calcChildHeight + spacing) + spacing - scroll
                 // child.placeInParent(cx, cy)
-                child.place(cx, cy, calcChildWidth, calcChildHeight)
+                child.setPosSize(cx, cy, calcChildWidth, calcChildHeight)
                 i++
             }
         }
@@ -197,7 +219,7 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
         clampScrollPosition()
-        if (maxScrollPositionY > 0f) {
+        if (hasScrollbar) {
             scrollbar.x = x1 - scrollbarWidth - scrollbarPadding
             scrollbar.y = y + scrollbarPadding
             scrollbar.w = scrollbarWidth

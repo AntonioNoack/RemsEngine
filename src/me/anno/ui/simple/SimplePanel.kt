@@ -52,7 +52,7 @@ class SimplePanel(
         // hide if half/a third the size is not enough
         // todo avoid recalculation
         drawable.calculateSize(sizeX, sizeY)
-        drawable.placeInParent(px, py)
+        drawable.setPosition(px, py)
         if (hideModeX.shallDraw(abs(deltaX + sizeX / 2), w) &&
             hideModeY.shallDraw(abs(deltaY + sizeY / 2), h)
         ) {

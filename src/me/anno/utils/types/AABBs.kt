@@ -2,6 +2,7 @@ package me.anno.utils.types
 
 import me.anno.maths.Maths
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Triangles.linePointTFactor
 import org.joml.*
 import kotlin.math.abs
 import kotlin.math.max
@@ -343,6 +344,28 @@ object AABBs {
         return dst
     }
 
+    /**
+     * a test whether the line start-end crosses the aabb
+     * end may be far away, and it still works
+     * start should not be far away -> order matters!
+     * can deliver a few false-positives (in favor of not delivering false-negatives)
+     * */
+    fun testLineAABB(aabb: AABBd, start: Vector3d, dir: Vector3d, length: Double): Boolean {
+        if (aabb.isEmpty()) return false
+        // bring the line towards the aabb center, so the JOML check actually works correctly for huge numbers
+        var ox = (aabb.minX + aabb.maxX) * 0.5
+        var oy = (aabb.minY + aabb.maxY) * 0.5
+        var oz = (aabb.minZ + aabb.maxZ) * 0.5
+        if (ox.isNaN()) ox = 0.0
+        if (oy.isNaN()) oy = 0.0
+        if (oz.isNaN()) oz = 0.0
+        val c = linePointTFactor(start, dir, ox, oy, oz)
+        val sx = start.x + c * dir.x
+        val sy = start.y + c * dir.y
+        val sz = start.z + c * dir.z
+        return aabb.testRay(sx, sy, sz, dir.x, dir.y, dir.z) &&
+                distanceSquared(aabb, start) <= dir.lengthSquared() * length * length
+    }
 
     /**
      * a test whether the line start-end crosses the aabb
@@ -350,25 +373,20 @@ object AABBs {
      * start should not be far away -> order matters!
      * can deliver a few false-positives (in favor of not delivering false-negatives)
      * */
-    fun testLineAABB(aabb: AABBd, start: Vector3d, end: Vector3d): Boolean {
+    fun testLineAABB(aabb: AABBf, start: Vector3f, dir: Vector3f, length: Double): Boolean {
         if (aabb.isEmpty()) return false
-        // this didn't work because of the end
-        // the end typically won't be reached anyways
-        // test the end just by distance: distance(aabb,start) must be <= distance(start,end)
-        // println("${aabb.testRay(start.x, start.y, start.z, end.x - start.x, end.y - start.y, end.z - start.z)}")
-        // println("distance: ${distanceSquared(aabb, start)} <= ${start.distanceSquared(end)}")
-        return aabb.testRay(start.x, start.y, start.z, end.x - start.x, end.y - start.y, end.z - start.z) &&
-                true// distanceSquared(aabb, start) <= start.distanceSquared(end)
-    }
-
-    fun testLineAABB(aabb: AABBd, start: Vector3d, dir: Vector3d, length: Double): Boolean {
-        if (aabb.isEmpty()) return false
-        // this didn't work because of the end
-        // the end typically won't be reached anyways
-        // test the end just by distance: distance(aabb,start) must be <= distance(start,end)
-        // println("${aabb.testRay(start.x, start.y, start.z, end.x - start.x, end.y - start.y, end.z - start.z)}")
-        // println("distance: ${distanceSquared(aabb, start)} <= ${start.distanceSquared(end)}")
-        return aabb.testRay(start.x, start.y, start.z, dir.x, dir.y, dir.z) &&
+        // bring the line towards the aabb center, so the JOML check actually works correctly for huge numbers
+        var ox = (aabb.minX + aabb.maxX) * 0.5f
+        var oy = (aabb.minY + aabb.maxY) * 0.5f
+        var oz = (aabb.minZ + aabb.maxZ) * 0.5f
+        if (ox.isNaN()) ox = 0f
+        if (oy.isNaN()) oy = 0f
+        if (oz.isNaN()) oz = 0f
+        val c = linePointTFactor(start, dir, ox, oy, oz)
+        val sx = start.x + c * dir.x
+        val sy = start.y + c * dir.y
+        val sz = start.z + c * dir.z
+        return aabb.testRay(sx, sy, sz, dir.x, dir.y, dir.z) &&
                 distanceSquared(aabb, start) <= dir.lengthSquared() * length * length
     }
 
@@ -408,6 +426,19 @@ object AABBs {
 
     fun testLineAABB(aabb: AABBf, start: Vector3f, end: Vector3f): Boolean {
         if (aabb.isEmpty()) return false
+        return aabb.testRay(start.x, start.y, start.z, end.x - start.x, end.y - start.y, end.z - start.z) &&
+                distanceSquared(aabb, start) <= start.distanceSquared(end)
+    }
+
+    fun testLineAABB(
+        aabb: AABBf,
+        start: Vector3f,
+        end: Vector3f,
+        radiusAtOrigin: Float,
+        radiusPerUnit: Float
+    ): Boolean {
+        if (aabb.isEmpty()) return false
+        // todo respect extra radius & move ray towards aabb
         return aabb.testRay(start.x, start.y, start.z, end.x - start.x, end.y - start.y, end.z - start.z) &&
                 distanceSquared(aabb, start) <= start.distanceSquared(end)
     }

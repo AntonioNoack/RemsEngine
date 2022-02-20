@@ -23,10 +23,10 @@ open class PanelStack(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
         this.minH = minH
     }
 
-    override fun placeInParent(x: Int, y: Int) {
-        super.placeInParent(x, y)
+    override fun setPosition(x: Int, y: Int) {
+        super.setPosition(x, y)
         for (child in children) {
-            child.place(x, y, w, h)
+            child.setPosSize(x, y, w, h)
         }
     }
 

@@ -21,11 +21,12 @@ import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.input.Touch
-import me.anno.ui.base.groups.NineTilePanel
-import me.anno.ui.editor.PropertyInspector
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.max
 import me.anno.studio.StudioBase
+import me.anno.ui.base.groups.NineTilePanel
+import me.anno.ui.editor.PropertyInspector
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import me.anno.utils.types.Vectors.safeNormalize
 import org.apache.logging.log4j.LogManager
@@ -217,8 +218,8 @@ open class ControlScheme(val camera: CameraComponent, val library: EditorState, 
         // .add(camDirection.x * 20, camDirection.y * 20, camDirection.z * 20)
         // .add(Math.random()*20-10,Math.random()*20-10, Math.random()*20-10)
         val hit = Raycast.raycast(
-            world, cam, mouseDir, view.radius * 1e3,
-            Raycast.TypeMask.BOTH, -1, false, hit
+            world, cam, mouseDir, 0.0, 1.0 / max(h, 1),
+            view.radius * 1e3, Raycast.TypeMask.BOTH, -1, false, hit
         )
         if (hit == null) {
             // draw red point in front of the camera

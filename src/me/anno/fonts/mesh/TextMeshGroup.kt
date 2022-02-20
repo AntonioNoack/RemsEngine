@@ -3,7 +3,6 @@ package me.anno.fonts.mesh
 import me.anno.fonts.TextGroup
 import me.anno.fonts.signeddistfields.TextSDF
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.utils.structures.maps.KeyPairMap
 import java.awt.Font
 import kotlin.math.min
 
@@ -24,11 +23,9 @@ class TextMeshGroup(
         // ensure triangle buffers for all characters
         val buffers = alignment.buffers
         synchronized(buffers) {
-            codepoints.toSet().forEach { char ->
-                var buffer = buffers[char]
-                if (buffer == null) {
-                    buffer = TextMesh(font, String(Character.toChars(char)), debugPieces).buffer
-                    buffers[char] = buffer
+            for (char in codepoints) {
+                if (buffers[char] == null) {
+                    buffers[char] = TextMesh(font, String(Character.toChars(char)), debugPieces).buffer
                 }
             }
         }
@@ -95,17 +92,6 @@ class TextMeshGroup(
     override fun destroy() {
         buffer?.destroy()
         buffer = null
-    }
-
-    companion object {
-        private val alignments = HashMap<Font, AlignmentGroup>()
-        fun getAlignments(font: Font): AlignmentGroup {
-            var alignment = alignments[font]
-            if (alignment != null) return alignment
-            alignment = AlignmentGroup(KeyPairMap(), HashMap(), HashMap())
-            alignments[font] = alignment
-            return alignment
-        }
     }
 
 }

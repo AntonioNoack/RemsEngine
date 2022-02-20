@@ -32,6 +32,8 @@ abstract class Collider : CollidingComponent() {
     @SerializedProperty
     var roundness = 0.0
 
+    open val isConvex: Boolean = true
+
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
         val tmp = JomlPools.vec3d.create()
         union(globalTransform, aabb, tmp, false)
@@ -201,21 +203,23 @@ abstract class Collider : CollidingComponent() {
      *
      * also sets the surface normal
      * */
-    open fun raycast(start: Vector3f, direction: Vector3f, surfaceNormal: Vector3f?, maxDistance: Float): Float {
+    open fun raycast(
+        start: Vector3f, direction: Vector3f, radiusAtOrigin: Float, radiusPerUnit: Float,
+        surfaceNormal: Vector3f?, maxDistance: Float
+    ): Float {
         // todo check if the ray is inside the bounding box:
-        // todo I get many false - positives behind the object... why?
+        // todo I get many false-positives behind the object... why?
         // default implementation is slow, and not perfect:
         // ray casting
         var distance = 0f
         val pos = Vector3f(start)
-        val maxDist = maxDistance.toDouble()
         var isDone = 0
         var allowedStepDistance = 0f
         for (i in 0 until 16) { // max steps
             allowedStepDistance = getSignedDistance(pos)
             distance += allowedStepDistance
             // we have gone too far -> the ray does not intersect the collider
-            if (distance >= maxDist) {
+            if (distance >= maxDistance) {
                 return Float.POSITIVE_INFINITY
             } else {
                 // we are still in the sector
@@ -249,6 +253,7 @@ abstract class Collider : CollidingComponent() {
 
     companion object {
         var guiLineColor = 0x77ffff
+        const val COSINE_22_5 = 1.0/1.082392200292394 // 1.0/Math.cos(45*Math.PI/180/2)
         const val INV_COSINE_22_5 = 1.082392200292394 // 1.0/Math.cos(45*Math.PI/180/2)
         const val OUTER_SPHERE_RADIUS_X8 = 1.224744871391589 // sqrt(1.5),
         // what is the inverse of the inner radius of a sphere approximated by 3 rings of 8 segments each

@@ -6,6 +6,7 @@ import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.Shader
 import me.anno.maths.Maths
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.AABBs.set
 import me.anno.utils.types.AABBs.transformProjectUnion
@@ -177,6 +178,7 @@ class AnimGameItem(
         private fun calculateAABB(root: Entity): AABBd {
             val joint = AABBd()
             val local = AABBd()
+            val tmpM4 = JomlPools.mat4d.create()
             root.simpleTraversal(true) { entity ->
                 entity as Entity
                 // todo rendering all points is only a good idea, if there are no meshes
@@ -188,16 +190,22 @@ class AnimGameItem(
                         comp.ensureBuffer()
                         val mesh = comp.getMesh()
                         if (mesh != null) {
-                            mesh.ensureBuffer()
-                            local.union(mesh.aabb.toDouble())
+                            if (mesh.hasBuffer()) {
+                                local.union(mesh.aabb.toDouble())
+                            } else {
+                                mesh.forEachPoint(false) { x, y, z ->
+                                    local.union(x.toDouble(), y.toDouble(), z.toDouble())
+                                }
+                            }
                         }
                         false
                     }
-                    local.transform(Matrix4d(entity.transform.globalTransform))
+                    local.transform(tmpM4.set(entity.transform.globalTransform))
                     joint.union(local)
                 }
                 false
             }
+            JomlPools.mat4d.sub(1)
             return joint
         }
 

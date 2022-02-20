@@ -1,7 +1,7 @@
 package me.anno.fonts
 
+import me.anno.fonts.mesh.AlignmentGroup.Companion.getAlignments
 import me.anno.fonts.mesh.TextMesh
-import me.anno.fonts.mesh.TextMeshGroup.Companion.getAlignments
 import me.anno.fonts.mesh.TextRepBase
 import me.anno.maths.Maths.clamp
 import me.anno.utils.structures.arrays.DoubleArrays.accumulate

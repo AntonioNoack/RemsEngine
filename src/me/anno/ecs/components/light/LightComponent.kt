@@ -17,6 +17,7 @@ import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.Renderer
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
+import me.anno.maths.Maths.SQRT3
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AABBs.transformUnion
 import me.anno.utils.types.Matrices.getScaleLength
@@ -168,8 +169,7 @@ abstract class LightComponent(
         val global = transform.globalTransform
         val position = global.getTranslation(JomlPools.vec3d.create())
         val rotation = global.getUnnormalizedRotation(JomlPools.quat4d.create())
-        val sqrt3 = 1.7320508075688772
-        val worldScale = sqrt3 / global.getScaleLength()
+        val worldScale = SQRT3 / global.getScaleLength()
         val cameraMatrix = JomlPools.mat4f.create()
         val shadowTextures = shadowTextures
         val shadowMapPower = shadowMapPower

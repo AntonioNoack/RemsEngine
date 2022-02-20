@@ -63,6 +63,11 @@ open class ScrollPanelX(
         }
     }
 
+    override fun scrollX(delta: Double) {
+        scrollPositionX += delta
+        clampScrollPosition()
+    }
+
     override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
         val sbHeight = interactionHeight + 2 * scrollbarPadding
         return hasScrollbar && ScrollPanelXY.drawsOverX(
@@ -84,11 +89,11 @@ open class ScrollPanelX(
 
     }
 
-    override fun placeInParent(x: Int, y: Int) {
-        super.placeInParent(x, y)
+    override fun setPosition(x: Int, y: Int) {
+        super.setPosition(x, y)
 
         val scroll = scrollPositionX.toInt()
-        child.placeInParent(x + padding.left - scroll, y + padding.top)
+        child.setPosition(x + padding.left - scroll, y + padding.top)
 
     }
 

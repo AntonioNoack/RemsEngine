@@ -85,29 +85,29 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
         }
     }
 
-    override fun placeInParent(x: Int, y: Int) {
-        super.placeInParent(x, y)
+    override fun setPosition(x: Int, y: Int) {
+        super.setPosition(x, y)
         when (transitionType) {
             TransitionType.INSTANT -> {
                 val posIndex = position.roundToInt()
                 for ((index, child) in children.withIndex()) {
                     if (index == posIndex) {
-                        child.place(x, y, w, h)
+                        child.setPosSize(x, y, w, h)
                     } else {
-                        child.place(x, y, 0, 0)
+                        child.setPosSize(x, y, 0, 0)
                     }
                 }
             }
             TransitionType.SWIPE_HORIZONTAL, TransitionType.ROTATE_HORIZONTAL -> {
                 for ((index, child) in children.withIndex()) {
                     val offset = (w * (position - index)).roundToInt()
-                    child.place(x + offset, y, w, h)
+                    child.setPosSize(x + offset, y, w, h)
                 }
             }
             TransitionType.SWIPE_VERTICAL, TransitionType.ROTATE_VERTICAL -> {
                 for ((index, child) in children.withIndex()) {
                     val offset = (h * (position - index)).roundToInt()
-                    child.place(x, y + offset, w, h)
+                    child.setPosSize(x, y + offset, w, h)
                 }
             }
         }
@@ -122,7 +122,7 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         updatePosition()
-        placeInParent(x, y)
+        setPosition(x, y)
         super.onDraw(x0, y0, x1, y1)
     }
 

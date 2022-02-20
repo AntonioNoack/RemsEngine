@@ -43,12 +43,12 @@ open class NineTilePanel(style: Style) : PanelGroup(style) {
 
     }
 
-    override fun placeInParent(x: Int, y: Int) {
-        super.placeInParent(x, y)
+    override fun setPosition(x: Int, y: Int) {
+        super.setPosition(x, y)
         for (child in children) {
             val cx = x + child.alignmentX.getOffset(w, child.w)
             val cy = y + child.alignmentY.getOffset(h, child.h)
-            child.placeInParent(cx, cy)
+            child.setPosition(cx, cy)
         }
     }
 

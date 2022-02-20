@@ -1196,7 +1196,6 @@ class RenderView(
                     if (drawAABBs) {
                         val aabb = entity.aabb
                         if (AABBs.testLineAABB(aabb, camPosition, mouseDir, 1e10))
-                        // if (aabb.testRay(Rayd(camPosition, ControlScheme.mouseDir)))
                             drawAABB(aabb, worldScale, 1.0, 1.0, 1.0)
                         else
                             drawAABB(aabb, worldScale, 1.0, 0.7, 0.7)

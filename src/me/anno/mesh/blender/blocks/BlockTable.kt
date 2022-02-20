@@ -38,7 +38,7 @@ class BlockTable(val file: BlenderFile, val blocks: Array<Block>?, offHeapStruct
                 }
                 i++
             }
-            checkBlockOverlaps()
+            // checkBlockOverlaps()
         }
         if (sorted.isNotEmpty()) {
             val first = sorted.first()
@@ -47,6 +47,7 @@ class BlockTable(val file: BlenderFile, val blocks: Array<Block>?, offHeapStruct
     }
 
     fun checkBlockOverlaps() {
+        // O(n)
         for (i in 0 until sorted.size) {
             val bi = this.sorted[i]
             val endAddress = bi.header.address + bi.header.size

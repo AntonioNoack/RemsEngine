@@ -96,8 +96,8 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
         minH = h
     }
 
-    override fun placeInParent(x: Int, y: Int) {
-        super.placeInParent(x, y)
+    override fun setPosition(x: Int, y: Int) {
+        super.setPosition(x, y)
         ensureChildren()
         // place all children
         val graph = graph ?: return
@@ -105,7 +105,7 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
             val panel = nodeToPanel[node] ?: continue
             val xi = coordsToWindowX(node.position.x).toInt() - panel.w / 2
             val yi = coordsToWindowY(node.position.y).toInt()// - panel.h / 2
-            panel.placeInParent(xi, yi)
+            panel.setPosition(xi, yi)
         }
     }
 

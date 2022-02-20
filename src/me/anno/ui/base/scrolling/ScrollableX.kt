@@ -8,4 +8,6 @@ interface ScrollableX {
     val child: Panel
     var scrollPositionX: Double
     val maxScrollPositionX get(): Long = max(0, child.minW - w).toLong()
+    fun scrollX(delta: Double)
+    fun scrollX(delta: Int) = scrollX(delta.toDouble())
 }

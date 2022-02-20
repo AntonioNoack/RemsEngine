@@ -28,8 +28,8 @@ open class ColorPalette(
         this.h = minH
     }
 
-    override fun placeInParent(x: Int, y: Int) {
-        super.placeInParent(x, y)
+    override fun setPosition(x: Int, y: Int) {
+        super.setPosition(x, y)
         for (j in 0 until dimY) {
             val y2 = y + j * h / dimY
             val y3 = y + (j + 1) * h / dimY
@@ -38,7 +38,7 @@ open class ColorPalette(
                 val x3 = x + (i + 1) * w / dimX
                 val index = getIndex(i, j)
                 val child = children[index]
-                child.placeInParent(x2, y2)
+                child.setPosition(x2, y2)
                 child.w = x3 - x2
                 child.h = y3 - y2
             }

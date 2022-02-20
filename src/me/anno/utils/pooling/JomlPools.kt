@@ -22,8 +22,8 @@ object JomlPools {
     val mat2f = Stack { Matrix2f() }
     val mat2d = Stack { Matrix2d() }
 
-    val mat3f = Stack { Matrix4f() }
-    val mat3d = Stack { Matrix4d() }
+    val mat3f = Stack { Matrix3f() }
+    val mat3d = Stack { Matrix3d() }
 
     val mat4f = Stack { Matrix4f() }
     val mat4d = Stack { Matrix4d() }

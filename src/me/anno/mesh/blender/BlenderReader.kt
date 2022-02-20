@@ -1,11 +1,11 @@
 package me.anno.mesh.blender
 
+import me.anno.Engine
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
 import me.anno.fonts.mesh.Triangulation
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.zip.InnerFolder
@@ -14,6 +14,7 @@ import me.anno.mesh.blender.impl.*
 import me.anno.utils.Clock
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.documents
+import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.types.Matrices.getScale2
@@ -67,18 +68,24 @@ object BlenderReader {
         uvs: BInstantList<MLoopUV>,
         uv0: Int, uv1: Int, uv2: Int
     ) {
-        positions2.addUnsafe(positions, v0 * 3, 3)
-        positions2.addUnsafe(positions, v1 * 3, 3)
-        positions2.addUnsafe(positions, v2 * 3, 3)
-        normals2.addUnsafe(normals, v0 * 3, 3)
-        normals2.addUnsafe(normals, v1 * 3, 3)
-        normals2.addUnsafe(normals, v2 * 3, 3)
+        val v03 = v0 * 3
+        val v13 = v1 * 3
+        val v23 = v2 * 3
+        positions2.addUnsafe(positions, v03, 3)
+        positions2.addUnsafe(positions, v13, 3)
+        positions2.addUnsafe(positions, v23, 3)
+        normals2.addUnsafe(normals, v03, 3)
+        normals2.addUnsafe(normals, v13, 3)
+        normals2.addUnsafe(normals, v23, 3)
         val uv0x = uvs[uv0]
-        uvs2.addUnsafe(uv0x.u); uvs2.addUnsafe(uv0x.v)
+        uvs2.addUnsafe(uv0x.u)
+        uvs2.addUnsafe(uv0x.v)
         val uv1x = uvs[uv1]
-        uvs2.addUnsafe(uv1x.u); uvs2.addUnsafe(uv1x.v)
+        uvs2.addUnsafe(uv1x.u)
+        uvs2.addUnsafe(uv1x.v)
         val uv2x = uvs[uv2]
-        uvs2.addUnsafe(uv2x.u); uvs2.addUnsafe(uv2x.v)
+        uvs2.addUnsafe(uv2x.u)
+        uvs2.addUnsafe(uv2x.v)
     }
 
     fun joinPositionsAndUVs(
@@ -113,10 +120,8 @@ object BlenderReader {
                     addTriangle(
                         positions, positions2,
                         normals, normals2,
-                        uvs2,
-                        v, v, v,
-                        uvs,
-                        uv, uv, uv
+                        uvs2, v, v, v,
+                        uvs, uv, uv, uv
                     )
                     materialIndices?.set(matIndex++, materialIndex)
                 }
@@ -177,8 +182,10 @@ object BlenderReader {
                         uvs,
                         uv2, uv3, uv0
                     )
-                    materialIndices?.set(matIndex++, materialIndex)
-                    materialIndices?.set(matIndex++, materialIndex)
+                    if (materialIndices != null) {
+                        materialIndices[matIndex++] = materialIndex
+                        materialIndices[matIndex++] = materialIndex
+                    }
                 }
                 else -> {
                     //complexCtr++
@@ -216,7 +223,11 @@ object BlenderReader {
                             uvs,
                             uv0, uv1, uv2
                         )
-                        materialIndices?.set(matIndex++, materialIndex)
+                    }
+                    if (materialIndices != null) {
+                        for (idx0 in triangles.indices step 3) {
+                            materialIndices[matIndex++] = materialIndex
+                        }
                     }
                 }
             }
@@ -463,7 +474,8 @@ object BlenderReader {
             val paths = HashMap<BObject, Path>()
             if (roots.size > 1) {
                 // add a pseudo root
-                roots.forEachIndexed { index, bObject ->
+                for (index in roots.indices) {
+                    val bObject = roots[index]
                     val name = bObject.id.name.substring(2)
                     val path = Path(Path.ROOT_PATH, name, index, 'e')
                     paths[bObject] = path
@@ -500,7 +512,10 @@ object BlenderReader {
 
     fun createObject(prefab: Prefab, obj: BObject, path: Path) {
         if (path != Path.ROOT_PATH) {
-            prefab.add(path.parent ?: Path.ROOT_PATH, 'e', "Entity")
+            prefab.add(
+                path.parent ?: Path.ROOT_PATH,
+                path.type, "Entity", path.nameId
+            )
         }
         // add position relative to parent
         // par * self = ws
@@ -574,19 +589,12 @@ object BlenderReader {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        // Thread.sleep(10000) // time for the debugger to attach
-        val clock = Clock()
+        // time for debugger to attach
+        // for (i in 0 until 100) Thread.sleep(100)
         // val ref = getReference(documents, "Blender/Bedroom.blend")
-        val ref = getReference(documents, "Blender/MaterialTest.blend")
+        val ref = documents.getChild("Blender/MaterialTest-2.blend")
         // val ref = getReference("E:/Documents/Blender/Aerial Aircraft Carrier (CVNA-82)II.blend")
-        val folder = readAsFolder(ref)
-        clock.stop("read file")
-        ECSRegistry.initWithGFX(512)
-        clock.stop("inited opengl")
-        val scene = folder.getChild("Scene.json") as InnerPrefabFile
-        Thumbs.useCacheFolder = true
-        Thumbs.generateSomething(scene.prefab, ref, getReference(desktop, "test.png"), 512) {}
-        clock.stop("rendered & saved image")
+        Thumbs.testGeneration(ref, this::readAsFolder)
     }
 
 }

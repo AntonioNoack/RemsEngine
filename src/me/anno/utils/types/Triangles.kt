@@ -1,11 +1,16 @@
 package me.anno.utils.types
 
 import me.anno.image.ImageWriter
+import me.anno.maths.Maths.mix
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Vectors.minus
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.Vector3f
 import org.joml.Vector3fc
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 
 object Triangles {
 
@@ -42,6 +47,60 @@ object Triangles {
         val distance = (d - n.dot(origin)) / n.dot(direction) // distance to triangle
         if (distance < 0f || distance >= maxDistance) return Double.POSITIVE_INFINITY
         direction.mulAdd(distance, origin, dstPosition)
+        if (subCrossDot(a, b, dstPosition, n) < 0.0 ||
+            subCrossDot(b, c, dstPosition, n) < 0.0 ||
+            subCrossDot(c, a, dstPosition, n) < 0.0
+        ) return Double.POSITIVE_INFINITY
+        return distance
+    }
+
+    fun rayTriangleIntersection(
+        origin: Vector3fc, direction: Vector3fc,
+        a: Vector3fc, b: Vector3fc, c: Vector3fc,
+        radiusAtOrigin: Float, radiusPerUnit: Float,
+        maxDistance: Float,
+        dstPosition: Vector3f,
+        dstNormal: Vector3f,
+    ): Float {
+        val n = subCross(a, b, c, dstNormal) // to keep the magnitude of the calculations under control
+        val d = n.dot(a)
+        val cx = (a.x() + b.x() + c.x()) * thirdF
+        val cy = (a.y() + b.y() + c.y()) * thirdF
+        val cz = (a.z() + b.z() + c.z()) * thirdF
+        val f = computeConeInterpolation(origin, direction, cx, cy, cz, radiusAtOrigin, radiusPerUnit)
+        val ox = mix(origin.x(), cx, f)
+        val oy = mix(origin.y(), cy, f)
+        val oz = mix(origin.z(), cz, f)
+        val distance = (d - n.dot(ox, oy, oz)) / n.dot(direction) // distance to triangle
+        if (distance < 0f || distance >= maxDistance) return Float.POSITIVE_INFINITY
+        dstPosition.set(direction).mul(distance).add(ox, oy, oz)
+        if (subCrossDot(a, b, dstPosition, n) < 0f ||
+            subCrossDot(b, c, dstPosition, n) < 0f ||
+            subCrossDot(c, a, dstPosition, n) < 0f
+        ) return Float.POSITIVE_INFINITY
+        return distance
+    }
+
+    fun rayTriangleIntersection(
+        origin: Vector3dc, direction: Vector3dc,
+        a: Vector3dc, b: Vector3dc, c: Vector3dc,
+        radiusAtOrigin: Double, radiusPerUnit: Double,
+        maxDistance: Double,
+        dstPosition: Vector3d,
+        dstNormal: Vector3d,
+    ): Double {
+        val n = subCross(a, b, c, dstNormal) // to keep the magnitude of the calculations under control
+        val d = n.dot(a)
+        val cx = (a.x() + b.x() + c.x()) * thirdD
+        val cy = (a.y() + b.y() + c.y()) * thirdD
+        val cz = (a.z() + b.z() + c.z()) * thirdD
+        val f = computeConeInterpolation(origin, direction, cx, cy, cz, radiusAtOrigin, radiusPerUnit)
+        val ox = mix(origin.x(), cx, f)
+        val oy = mix(origin.y(), cy, f)
+        val oz = mix(origin.z(), cz, f)
+        val distance = (d - n.dot(ox, oy, oz)) / n.dot(direction) // distance to triangle
+        if (distance < 0.0 || distance >= maxDistance) return Double.POSITIVE_INFINITY
+        dstPosition.set(direction).mul(distance).add(ox, oy, oz)
         if (subCrossDot(a, b, dstPosition, n) < 0.0 ||
             subCrossDot(b, c, dstPosition, n) < 0.0 ||
             subCrossDot(c, a, dstPosition, n) < 0.0
@@ -117,6 +176,50 @@ object Triangles {
         return dst.set(rx, ry, rz)
     }
 
+    fun linePointDistance(start: Vector3fc, dir: Vector3fc, px: Float, py: Float, pz: Float): Float {
+        val tmp = JomlPools.vec3f.borrow()
+        return tmp.set(start).sub(px, py, pz)
+            .cross(dir).length()
+    }
+
+    fun linePointDistance(start: Vector3dc, dir: Vector3dc, px: Double, py: Double, pz: Double): Double {
+        val tmp = JomlPools.vec3d.borrow()
+        return tmp.set(start).sub(px, py, pz)
+            .cross(dir).length()
+    }
+
+    fun linePointTFactor(start: Vector3fc, dir: Vector3fc, px: Float, py: Float, pz: Float): Float {
+        return dir.dot(px, py, pz) - dir.dot(start)
+    }
+
+    fun linePointTFactor(start: Vector3dc, dir: Vector3dc, px: Double, py: Double, pz: Double): Double {
+        return dir.dot(px, py, pz) - dir.dot(start)
+    }
+
+    /**
+     * 0 = far away, 1 = hitting center guaranteed
+     * */
+    fun computeConeInterpolation(
+        origin: Vector3fc, direction: Vector3fc, px: Float, py: Float, pz: Float,
+        radiusAtOrigin: Float, radiusPerUnit: Float
+    ): Float {
+        val distance = abs(linePointTFactor(origin, direction, px, py, pz))
+        val radius = max(0f, radiusAtOrigin + distance * radiusPerUnit)
+        return min(radius / max(distance, 1e-38f), 1f) // 0 = far away, 1 = hitting center
+    }
+
+    /**
+     * 0 = far away, 1 = hitting center guaranteed
+     * */
+    fun computeConeInterpolation(
+        origin: Vector3dc, direction: Vector3dc, px: Double, py: Double, pz: Double,
+        radiusAtOrigin: Double, radiusPerUnit: Double
+    ): Double {
+        val distance = abs(linePointTFactor(origin, direction, px, py, pz))
+        val radius = max(0.0, radiusAtOrigin + distance * radiusPerUnit)
+        return min(radius / max(distance, 1e-308), 1.0) // 0 = far away, 1 = hitting center
+    }
+
     @JvmStatic
     fun main(args: Array<String>) {
         testSubCrossDot()
@@ -143,5 +246,8 @@ object Triangles {
         println((b - a).cross(c - a).dot(n))
         println(subCrossDot(a, b, c, n))
     }
+
+    const val thirdD = 1.0 / 3.0
+    const val thirdF = thirdD.toFloat()
 
 }

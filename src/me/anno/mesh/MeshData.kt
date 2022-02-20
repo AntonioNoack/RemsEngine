@@ -6,6 +6,7 @@ import me.anno.ecs.components.cache.MaterialCache
 import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.AnimRenderer
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.ecs.components.mesh.MeshComponent
@@ -138,7 +139,7 @@ open class MeshData : ICacheData {
                             material.defineShader(shader)
                             mesh.draw(shader, index)
                         }
-                    } else warnMissingMesh(comp)
+                    } else warnMissingMesh(comp, mesh)
                     false
                 }
             } else {
@@ -153,7 +154,7 @@ open class MeshData : ICacheData {
                         for (i in 0 until mesh.numMaterials) {
                             mesh.draw(shader, i)
                         }
-                    } else warnMissingMesh(comp)
+                    } else warnMissingMesh(comp, mesh)
                     false
                 }
             }
@@ -185,20 +186,27 @@ open class MeshData : ICacheData {
         stack.popMatrix()
     }
 
-    fun warnMissingMesh(comp: MeshBaseComponent) {
-        if (comp is MeshComponent && comp.mesh != InvalidRef) {
-            LOGGER.warn("Mesh ${comp.mesh} is missing")
-        } else {
-            LOGGER.warn("MeshBaseComponent has no mesh $comp")
-        }
-    }
-
     override fun destroy() {
         // destroy assimp data? no, it uses caches and is cleaned automatically
     }
 
     companion object {
         private val LOGGER = LogManager.getLogger(MeshData::class)
+        fun warnMissingMesh(comp: MeshBaseComponent, mesh: Mesh?) {
+            if(mesh == null){
+                if (comp is MeshComponent) {
+                    if(comp.mesh == InvalidRef){
+                        LOGGER.warn("MeshComponent '${comp.name} is missing path")
+                    } else {
+                        LOGGER.warn("Mesh '${comp.name}'/'${comp.mesh}' is missing from MeshComponent")
+                    }
+                } else {
+                    LOGGER.warn("Missing mesh $comp, ${comp::class.simpleName}")
+                }
+            } else {
+                LOGGER.warn("Missing positions ${comp.getMesh()}")
+            }
+        }
     }
 
 }

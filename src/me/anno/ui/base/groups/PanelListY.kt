@@ -28,7 +28,7 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
         var weightSum = 0f
 
         val availableW = w - padding.width
-        val availableH = h - padding.height
+        var availableH = h - padding.height
 
         val children = children
         for (i in children.indices) {
@@ -39,6 +39,7 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
                 constantSum += child.minH
                 maxX = max(maxX, child.x + child.minW)
                 weightSum += max(0f, child.weight)
+                availableH = max(0, availableH - child.minH)
             }
         }
 
@@ -52,15 +53,16 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
 
     }
 
-    override fun placeInParent(x: Int, y: Int) {
-        super.placeInParent(x, y)
-
-        var perWeight = 0f
+    override fun setPosition(x: Int, y: Int) {
+        super.setPosition(x, y)
 
         val availableW = w - padding.width
         val availableH = h - padding.height
 
-        if (availableH > sumConst && sumWeight > 0f) {
+        var perWeight = 0f
+        val sumWeight = sumWeight
+        val sumConst = sumConst
+        if (availableH > sumConst && sumWeight > 1e-7f) {
             val extraAvailable = availableH - sumConst
             perWeight = extraAvailable / sumWeight
         }
@@ -77,8 +79,7 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
                 val remainingH = availableH - currentH
                 childH = min(childH, remainingH)
                 child.calculateSize(availableW, childH)
-                child.placeInParent(childX, currentY)
-                child.applyPlacement(availableW, childH)
+                child.setPosSize(childX, currentY, availableW, childH)
                 currentY += childH + spacing
             }
         }
@@ -87,7 +88,6 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         return when (action) {
-            // todo scroll if in scroll list
             "Previous", "Up" -> selectPrevious()
             "Next", "Down" -> selectNext()
             else -> super.onGotAction(x, y, dx, dy, action, isContinuous)

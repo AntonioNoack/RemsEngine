@@ -37,8 +37,8 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
         this.h = child.h
     }
 
-    override fun placeInParent(x: Int, y: Int) {
-        child.placeInParent(x, y)
+    override fun setPosition(x: Int, y: Int) {
+        child.setPosition(x, y)
         this.x = x
         this.y = y
     }
