@@ -56,10 +56,6 @@ fun main() {
         return client
     }
 
-    // todo then send a few sample packets
-    // todo also test http protocol
-    // todo also send a udp packet
-
     createClient("A")
     createClient("B")
     createClient("C")

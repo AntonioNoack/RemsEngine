@@ -7,6 +7,7 @@ import kotlin.math.min
 
 /**
  * simple controls
+ * legacy, should be replaced with real panel soon
  * */
 class SimplePanel(
     val drawable: Panel,

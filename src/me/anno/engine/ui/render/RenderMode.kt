@@ -32,7 +32,7 @@ enum class RenderMode(val dlt: DeferredLayerType? = null) {
     SS_REFLECTIONS,
 
     INVERSE_DEPTH,
-    OVERDRAW, // todo overdraw seems to be missing all cubes... why?
+    OVERDRAW,
     MSAA_X8,
     WITH_PRE_DRAW_DEPTH,
     MONO_WORLD_SCALE,

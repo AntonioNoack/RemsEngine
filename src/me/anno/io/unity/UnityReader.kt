@@ -41,6 +41,7 @@ import org.joml.Vector2f
 import org.joml.Vector3d
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import kotlin.math.min
 
 object UnityReader {
 
@@ -91,16 +92,18 @@ object UnityReader {
         if (abs.endsWith("/Assets")) {
             return getUnityProject(file)
         } else {
-            val index = abs.lastIndexOf(key)
-            // todo if there are multiple indices, try all,
-            //  from back first?
-            if (index > 0) {
-                val file2 = getReference(abs.substring(0, index + key.length - 1))
-                // LOGGER.info("$file2, ${file2.isDirectory}, ${file2.exists}")
-                return getUnityProject(file2)
+            var endIndex = abs.lastIndex
+            while (true) {
+                val index = abs.lastIndexOf(key, endIndex)
+                // if there are multiple indices, try all, from back first
+                if (index > 0) {
+                    val file2 = getReference(abs.substring(0, index + key.length - 1))
+                    val project = getUnityProject(file2)
+                    if (project != null) return project
+                    endIndex = min(index - 1, endIndex - 3)// correct???
+                } else return null
             }
         }
-        return null
     }
 
     private fun decodePath(guid0: String, path: YAMLNode?, project: UnityProject): FileReference {
@@ -854,7 +857,8 @@ Transform:
 
         val projectPath = getReference(downloads, "up/PolygonSciFiCity_Unity_Project_2017_4.unitypackage")
 
-        val file = getReference("E:/Assets/POLYGON_Pirates_Pack_Unity_5_6_0.zip/PolygonPirates/Assets/PolygonPirates/Materials")
+        val file =
+            getReference("E:/Assets/POLYGON_Pirates_Pack_Unity_5_6_0.zip/PolygonPirates/Assets/PolygonPirates/Materials")
         println("file exists? ${file.exists}, children: ${file.listChildren()}")
         val projectPath2 = findUnityProject(file)
         println("project from file? $projectPath2")

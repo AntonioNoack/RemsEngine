@@ -5,7 +5,7 @@ object Geometry {
     /**
      * Clip a triangle against a plane knowing that
      * a to b crosses the clipping plane
-     * Reference: Exact Bouyancy for Polyhedra by Erin Catto in Game Programming Gems 6 &
+     * Reference: Exact Buoyancy for Polyhedra by Erin Catto in Game Programming Gems 6 &
      * https://gamedevelopment.tutsplus.com/tutorials/how-to-dynamically-slice-a-convex-shape--gamedev-14479
      * */
     fun splitTriangle(

@@ -22,6 +22,7 @@ import me.anno.utils.types.Matrices.getTranslation2
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.nio.ByteBuffer
+import kotlin.math.max
 
 
 // extract the relevant information from a blender file:
@@ -427,14 +428,14 @@ object BlenderReader {
                 // todo vertex colors
                 val hasUVs = uvs.isNotEmpty() && uvs.any { it.u != 0f || it.v != 0f }
                 // println("loop cols: " + mesh.loopColor?.size)
-                if (hasUVs) {// non-indexed, because we don't support separate uv and position indices
-                    val triCount = polygons.sumOf {
-                        when (val size = it.loopSize) {
-                            0 -> 0
-                            1, 2, 3 -> 1
-                            else -> size - 2
-                        }
+                val triCount = polygons.sumOf {
+                    when (val size = it.loopSize) {
+                        0 -> 0
+                        1, 2, 3 -> 1
+                        else -> size - 2
                     }
+                }
+                if (hasUVs) {// non-indexed, because we don't support separate uv and position indices
                     val materialIndices = if (materials.size > 1) IntArray(triCount) else null
                     joinPositionsAndUVs(
                         triCount * 3,
@@ -448,7 +449,7 @@ object BlenderReader {
                     )
                     if (materialIndices != null) prefab.setProperty("materialIndices", materialIndices)
                 } else {
-                    val materialIndices = if (materials.size > 1) IntArray(positions.size / 9) else null
+                    val materialIndices = if (materials.size > 1) IntArray(triCount) else null
                     collectIndices(positions, polygons, loopData, materialIndices, prefab)
                     if (materialIndices != null) prefab.setProperty("materialIndices", materialIndices)
                 }

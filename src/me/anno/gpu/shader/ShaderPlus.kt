@@ -38,7 +38,11 @@ object ShaderPlus {
                 "           break;\n" +
                 "       case ${DrawMode.ID.id}:\n" +
                 "           if(finalAlpha < 0.01) discard;\n" +
-                "           gl_FragColor.rgb = tint.rgb;\n" +
+                "           gl_FragColor = vec4(tint.rgb, 1.0);\n" +
+                "           break;\n" +
+                "       case ${DrawMode.ID_VIS.id}:\n" +
+                "           if(finalAlpha < 0.01) discard;\n" +
+                "           gl_FragColor = vec4(GET_RANDOM(tint.rg), GET_RANDOM(tint.gb), GET_RANDOM(100.0 - tint.br), 1.0);\n" +
                 "           break;\n" +
                 "       case ${DrawMode.DEPTH_LOG2_01.id}:\n" +
                 "           if(finalAlpha < 0.01) discard;\n" +
@@ -84,7 +88,11 @@ object ShaderPlus {
                 "       break;\n" +
                 "   case ${DrawMode.ID.id}:\n" +
                 "       if(finalAlpha < 0.01) discard;\n" +
-                "       fragColor.rgb = tint.rgb;\n" +
+                "       fragColor = vec4(tint.rgb, 1.0);\n" +
+                "       break;\n" +
+                "   case ${DrawMode.ID_VIS.id}:\n" +
+                "       if(finalAlpha < 0.01) discard;\n" +
+                "       fragColor = vec4(GET_RANDOM(tint.rg), GET_RANDOM(tint.gb), GET_RANDOM(100.0 - tint.br), 1.0);\n" +
                 "       break;\n" +
                 "   case ${DrawMode.DEPTH_LOG2_01.id}:\n" +
                 "       if(finalAlpha < 0.01) discard;\n" +
@@ -114,11 +122,12 @@ object ShaderPlus {
         COLOR_SQUARED(0),
         COLOR(1),
         ID(2),
-        DEPTH_LOG2_01(3), // does not need a float buffer
-        DEPTH_LOG2(4), // needs a float buffer
-        COPY(5),
-        TINT(6),
-        RANDOM_ID(7)
+        ID_VIS(3),
+        DEPTH_LOG2_01(4), // does not need a float buffer
+        DEPTH_LOG2(5), // needs a float buffer
+        COPY(6),
+        TINT(7),
+        RANDOM_ID(8)
     }
 
 }

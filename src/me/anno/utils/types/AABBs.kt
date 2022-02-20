@@ -1,6 +1,7 @@
 package me.anno.utils.types
 
 import me.anno.maths.Maths
+import me.anno.maths.Maths.clamp
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Triangles.linePointTFactor
 import org.joml.*
@@ -441,6 +442,31 @@ object AABBs {
         // todo respect extra radius & move ray towards aabb
         return aabb.testRay(start.x, start.y, start.z, end.x - start.x, end.y - start.y, end.z - start.z) &&
                 distanceSquared(aabb, start) <= start.distanceSquared(end)
+    }
+
+    fun testLineAABB(
+        aabb: AABBf,
+        start: Vector3f,
+        dir: Vector3f,
+        radiusAtOrigin: Float,
+        radiusPerUnit: Float,
+        maxDistance: Float,
+    ): Boolean {
+        if (aabb.isEmpty()) return false
+        /*
+        // todo respect extra radius & move ray towards aabb
+        // todo or general aabb-cone intersection
+        for (i in 0 until 8) {
+            val ox = if (i.and(1) != 0) aabb.minX else aabb.maxX
+            val oy = if (i.and(2) != 0) aabb.minY else aabb.maxY
+            val oz = if (i.and(4) != 0) aabb.minZ else aabb.maxZ
+        }
+        val c = clamp(linePointTFactor(start, dir, ox, oy, oz), 0f, maxDistance)
+        val sx = start.x + c * dir.x
+        val sy = start.y + c * dir.y
+        val sz = start.z + c * dir.z*/
+        return aabb.testRay(start.x, start.y, start.z, dir.x, dir.y, dir.z) &&
+                distanceSquared(aabb, start) <= maxDistance * maxDistance
     }
 
 

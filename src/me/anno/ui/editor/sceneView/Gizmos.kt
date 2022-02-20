@@ -88,6 +88,7 @@ object Gizmos {
     private val xAxis = Vector3f(1f, 0f, 0f)
     private val yAxis = Vector3f(0f, 1f, 0f)
     private val zAxis = Vector3f(0f, 0f, 1f)
+
     fun drawGizmo(cameraTransform: Matrix4f, x0: Int, y0: Int, w: Int, h: Int) {
 
         /**

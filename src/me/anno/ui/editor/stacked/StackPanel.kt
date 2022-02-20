@@ -37,17 +37,6 @@ abstract class StackPanel(
         init {
             focusTextColor = textColor
         }
-
-        override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-            /*if(button.isLeft && !long && !content.isEmpty()){
-                val isHidden = content.children.firstOrNull()?.visibility == Visibility.GONE
-                val visibility = if(isHidden) Visibility.VISIBLE else Visibility.GONE
-                content.children.forEach { panel ->
-                    panel.visibility = visibility
-                }
-            } else */
-            super.onMouseClicked(x, y, button, long)
-        }
     }
 
     init {

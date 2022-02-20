@@ -83,7 +83,6 @@ abstract class TreeView<V>(
 
     abstract fun stringifyForCopy(element: V): String
 
-    // todo define these functions
     // todo use these functions to show indicator colors
     // todo use these functions to actually forbid the action
     abstract fun canBeRemoved(element: V): Boolean

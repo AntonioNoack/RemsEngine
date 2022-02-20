@@ -19,8 +19,6 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, val size: In
         base.copy(this)
     }
 
-    // todo hover/toggle/focus color change
-
     companion object {
         fun getImage(checked: Boolean): Texture2D? =
             getInternalTexture(if (checked) "checked.png" else "unchecked.png", true)

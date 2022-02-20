@@ -29,13 +29,10 @@ import kotlin.math.max
  * */
 object SimpleExpressionParser {
 
-    // todo give drivers access to global time and parent time?
-    // todo give them access to the keyframes
-    // todo node editor...
-    // todo give them access to all attributes XD
-
     private val LOGGER = LogManager.getLogger(SimpleExpressionParser::class)
 
+    // used in Rem's Studio
+    @Suppress("unused")
     fun preparse(str: String) = str.splitInternally()
 
     private fun String.findExponent(j0: Int): Int {

@@ -91,19 +91,13 @@ class FileExplorerEntry(
 
     // todo when entering a json file, and leaving it, the icon should not be a folder!
 
-
-    // todo .lnk files for windows
-    // todo .url files
-    // todo icons from exe files
+    // todo check: do url files work (link + icon)?
 
     // done icons for 3d meshes
     // done icons for project files
     // done asset files like unity, and then icons for them? (we want a unity-like engine, just with Kotlin)
 
-
-    // done load fbx files
-    // todo load separate fbx animations
-    // todo play them together
+    // todo play mesh animations
 
     private var startTime = 0L
 

@@ -9,8 +9,6 @@ import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.PureTextInputML
 import me.anno.ui.style.Style
 
-// todo line numbers? :)
-// todo syntax highlighting
 open class TextInputML(title: String, style: Style) : PanelContainer(
     PureTextInputML(
         style.getChild("deep")

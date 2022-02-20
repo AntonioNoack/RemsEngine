@@ -63,6 +63,7 @@ import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Renderer.Companion.depthRenderer
 import me.anno.gpu.shader.Renderer.Companion.idRenderer
+import me.anno.gpu.shader.Renderer.Companion.idRendererVis
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.GPUFiltering
@@ -351,7 +352,7 @@ class RenderView(
 
         var renderer = when (renderMode) {
             RenderMode.OVERDRAW -> overdrawRenderer
-            RenderMode.CLICK_IDS -> idRenderer
+            RenderMode.CLICK_IDS -> idRendererVis
             RenderMode.FORCE_DEFERRED, RenderMode.SSAO, RenderMode.SS_REFLECTIONS -> {
                 useDeferredRendering = true
                 DeferredRenderer

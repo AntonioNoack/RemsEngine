@@ -18,8 +18,6 @@ package org.kdotjpg;
 
 public class OpenSimplexNoise {
 
-    // todo add 1d simplex noise?
-
     private static final double STRETCH_CONSTANT_2D = -0.211324865405187;    // (1/Math.sqrt(2+1)-1)/2;
     private static final double SQUISH_CONSTANT_2D = 0.366025403784439;      // (Math.sqrt(2+1)-1)/2;
     private static final double STRETCH_CONSTANT_3D = -1.0 / 6;              // (1/Math.sqrt(3+1)-1)/3;
@@ -77,6 +75,12 @@ public class OpenSimplexNoise {
             permGradIndex3D[i] = (short) ((perm[i] % (gradients3D.length / 3)) * 3);
             source[r] = source[i];
         }
+    }
+
+    // 1D OpenSimplex Noise ^^
+    // could be optimized ^^
+    public double eval(double x) {
+        return eval(x, 0.0);
     }
 
     // 2D OpenSimplex Noise.

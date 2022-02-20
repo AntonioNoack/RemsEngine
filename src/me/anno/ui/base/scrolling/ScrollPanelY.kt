@@ -107,7 +107,7 @@ open class ScrollPanelY(
         val child = child
         val padding = padding
         val scroll0 = scrollPositionY.toLong()
-        val scroll = clamp(scroll0, 0L, (child.minH + padding.height - h).toLong()).toInt()
+        val scroll = clamp(scroll0, 0L, max(0, child.minH + padding.height - h).toLong()).toInt()
         child.setPosition(x + padding.left, y + padding.top - scroll)
         if (child is LongScrollable) {
             child.setExtraScrolling(0L, scroll0 - scroll)

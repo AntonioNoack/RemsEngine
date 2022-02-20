@@ -283,12 +283,13 @@ object Raycast {
             val radiusScale = inverse.getScaleLength() / SQRT3 // a guess
             val localRadiusAtOrigin = (radiusAtOrigin * radiusScale).toFloat()
             val localRadiusPerUnit = radiusPerUnit.toFloat()
+            val localMaxDistance = localSrt.distance(localEnd)
 
             // test whether we intersect the aabb of this mesh
-            if (testLineAABB(mesh.aabb, localSrt, localEnd, localRadiusAtOrigin, localRadiusPerUnit)) {
+            if (testLineAABB(mesh.aabb, localSrt, localDir, localRadiusAtOrigin, localRadiusPerUnit, localMaxDistance)) {
 
                 // test whether we intersect any triangle of this mesh
-                var localEnd2 = localSrt.distance(localEnd)
+                var localEnd2 = localMaxDistance
                 val originalLocalEnd = localEnd2
                 val tmpPos = tmp0[3]
                 val tmpNor = tmp0[4]

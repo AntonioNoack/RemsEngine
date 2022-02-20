@@ -2,12 +2,13 @@ package me.anno.ui.input.components
 
 import me.anno.config.DefaultStyle.black
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.TextureLib
 import me.anno.input.MouseButton
+import me.anno.maths.Maths.mixARGB
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.dragging.Draggable
@@ -15,7 +16,6 @@ import me.anno.ui.style.Style
 import me.anno.utils.Color.toARGB
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.ColorParsing
-import me.anno.maths.Maths.mixARGB
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
 import org.joml.Vector4fc
@@ -54,6 +54,8 @@ class ColorField(
     val hoverColor = black or 0x777777
     val focusHoverColor = mixARGB(focusColor, hoverColor, 0.5f)
 
+    var changeListener: (ColorField, Int) -> Unit = { _, _ -> }
+
     override fun getVisualState(): Any? {
         return super.getVisualState() to Triple(isInFocus, isHovered, color)
     }
@@ -68,14 +70,13 @@ class ColorField(
         DrawRectangles.drawRect(x + 1, y + 1, w - 2, h - 2, color)
     }
 
-    override fun onCopyRequested(x: Float, y: Float): String? {
-        return color.toHexColor()
-    }
+    override fun onCopyRequested(x: Float, y: Float) = color.toHexColor()
 
-    @Suppress("UNUSED_PARAMETER")
+    @Suppress("unused_parameter")
     fun setARGB(color: Int, notify: Boolean) {
-        // todo notify & allow undo
+        // todo allow undo?
         this.color = color
+        if (notify) changeListener(this, color)
     }
 
     fun setRGBA(color: Vector4fc, notify: Boolean) {
@@ -98,7 +99,7 @@ class ColorField(
     }*/
 
     override fun onEmpty(x: Float, y: Float) {
-        color = 0
+        setARGB(0, true)
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
@@ -138,6 +139,8 @@ class ColorField(
         super.copy(clone)
         clone as ColorField
         clone.color = color
+        // only works if there are no references inside
+        clone.changeListener = changeListener
     }
 
     companion object {

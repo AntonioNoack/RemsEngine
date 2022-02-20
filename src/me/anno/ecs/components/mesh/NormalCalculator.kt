@@ -6,6 +6,7 @@ import me.anno.utils.pooling.JomlPools
 import org.joml.Vector3f
 import kotlin.math.abs
 
+// todo something seems to be incorrect... some blender meshes have broken normals
 object NormalCalculator {
 
     fun needsNormalsComputation(normals: FloatArray): Boolean {
@@ -20,11 +21,11 @@ object NormalCalculator {
     }
 
     fun normalIsInvalid(normals: FloatArray, offset: Int): Boolean {
-        // the smallest possible values:
-        // 1 for 1,0,0
-        // 1.73 for sqrt(1/3),sqrt(1/3),sqrt(1/3)
-        // we could do a better test here, but I want a little programmer freedom for error...
-        return abs(normals[offset]) + abs(normals[offset + 1]) + abs(normals[offset + 2]) < 0.3f
+        val nx = normals[offset]
+        val ny = normals[offset + 1]
+        val nz = normals[offset + 2]
+        val length = nx * nx + ny * ny + nz * nz
+        return !(length > 0.7f && length < 1.1f)
     }
 
     // calculate = pure arithmetics

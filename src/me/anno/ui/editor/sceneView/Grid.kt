@@ -23,10 +23,6 @@ import org.joml.*
 import org.lwjgl.opengl.GL20.GL_LINES
 import kotlin.math.*
 
-// todo grid add mode is broken
-// todo color input window is broken
-// todo the elk guy is broken somehow
-
 object Grid {
 
     val xAxisColor = style.getColor("grid.axis.x.color", 0xff7777 or black)

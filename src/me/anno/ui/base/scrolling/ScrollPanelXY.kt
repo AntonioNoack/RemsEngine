@@ -119,12 +119,23 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
     }
 
     override fun setPosition(x: Int, y: Int) {
-        super.setPosition(x, y)
 
-        val scrollX = scrollPositionX.toInt()
-        val scrollY = scrollPositionY.toInt()
+        this.x = x
+        this.y = y
 
-        child.setPosition(x + padding.left - scrollX, y + padding.top - scrollY)
+        val child = child
+        val padding = padding
+
+        val scrollX0 = scrollPositionX.toLong()
+        val scrollY0 = scrollPositionY.toLong()
+        val scrollX1 = clamp(scrollX0, 0L, max(0, child.minW + padding.width - w).toLong()).toInt()
+        val scrollY1 = clamp(scrollY0, 0L, max(0, child.minH + padding.height - h).toLong()).toInt()
+
+        child.setPosition(x + padding.left - scrollX1, y + padding.top - scrollY1)
+
+        if (child is LongScrollable) {
+            child.setExtraScrolling(scrollX0 - scrollX1, scrollY0 - scrollY1)
+        }
 
     }
 

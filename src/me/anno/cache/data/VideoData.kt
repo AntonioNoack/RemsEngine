@@ -44,8 +44,9 @@ class VideoData(
         // now that this is fixed,
         // we can use a larger buffer size like 128 instead of 16 frames
         // this is yuv (1 + 1/4 + 1/4 = 1.5) * 2 MB = 3 MB per frame
-        // todo the actual usage seems to be 3x higher -> correct calculation???
-        // todo maybe use rgb for yuv, just a different access method?
+        // todo re-measure memory usage
+        // to do the actual usage seems to be 3x higher -> correct calculation???
+        // to do maybe use rgb for yuv, just a different access method?
         // * 16 = 48 MB
         // * 128 = 200 MB
         // this is less efficient for large amounts of videos,

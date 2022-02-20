@@ -81,6 +81,7 @@ class BlockTable(val file: BlenderFile, val blocks: Array<Block>?, offHeapStruct
     fun getBlockAt(positionInFile: Int): Block {
         var index = blockList.binarySearch { it.positionInFile.compareTo(positionInFile) }
         if (index < 0) index = -index - 2 // -2, because we want the block before
+        if (index < 0) index = 0
         return blockList[index]
     }
 

@@ -50,7 +50,7 @@ class BoxCollider : Collider() {
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as BoxCollider
-        clone.halfExtends = halfExtends
+        clone.halfExtends.set(halfExtends)
     }
 
     override fun raycast(

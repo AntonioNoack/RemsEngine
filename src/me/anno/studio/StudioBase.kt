@@ -41,6 +41,7 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 
 // todo which parts of the engine can be split into modules? would be good for compile times
+// todo generate dependency graph visualization/computation? :)
 
 abstract class StudioBase(
     val needsAudio: Boolean,

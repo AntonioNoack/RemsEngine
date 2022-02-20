@@ -10,9 +10,6 @@ import me.anno.ui.style.Style
 import me.anno.utils.OS.documents
 import me.anno.utils.hpc.SyncMaster
 
-// todo offer to clip to a certain aspect ratio
-// todo zoom into to see the pixels
-
 object DefaultLayout {
 
     fun createDefaultMainUI(

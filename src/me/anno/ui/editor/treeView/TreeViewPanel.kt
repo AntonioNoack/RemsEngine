@@ -156,7 +156,7 @@ class TreeViewPanel<V>(
         when {
             button.isLeft -> {
 
-                // todo collapse, if you click on the symbol
+                // collapse, if you click on the symbol
 
                 // todo collapse / expand multiple elements at the same time
                 // todo edit multiple elements at the same time
