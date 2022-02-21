@@ -2,7 +2,7 @@ package me.anno.ui.editor.color.spaces
 
 import me.anno.language.translation.NameDesc
 import me.anno.ui.editor.color.ColorSpace
-import me.anno.utils.io.ResourceHelper.loadText
+import me.anno.io.ResourceHelper.loadText
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Vectors.toVector3f
 import org.hsluv.HSLuvColorSpace

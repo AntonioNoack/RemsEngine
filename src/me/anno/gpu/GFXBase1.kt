@@ -1,6 +1,6 @@
 package me.anno.gpu
 
-import me.anno.utils.io.ResourceHelper.loadResource
+import me.anno.io.ResourceHelper.loadResource
 import org.lwjgl.BufferUtils
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFW.glfwSetWindowIcon

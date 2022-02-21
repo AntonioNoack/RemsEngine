@@ -1,7 +1,7 @@
 package me.anno.gpu.shader
 
-import me.anno.utils.io.ResourceHelper
-import me.anno.utils.io.Streams.readText
+import me.anno.io.ResourceHelper
+import me.anno.io.Streams.readText
 
 object GLSLLib {
 

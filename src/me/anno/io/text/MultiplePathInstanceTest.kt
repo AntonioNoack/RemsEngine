@@ -1,9 +1,7 @@
-package me.anno.utils.test
+package me.anno.io.text
 
 import me.anno.engine.ECSRegistry
 import me.anno.io.json.JsonFormatter
-import me.anno.io.text.TextReader
-import me.anno.io.text.TextWriter
 import me.anno.utils.LOGGER
 
 fun main() {

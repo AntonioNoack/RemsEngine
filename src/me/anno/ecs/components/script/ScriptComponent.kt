@@ -1,5 +1,6 @@
 package me.anno.ecs.components.script
 
+import me.anno.Build
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.ecs.Component
@@ -10,11 +11,10 @@ import me.anno.io.NamedSaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
-import me.anno.utils.OS
 import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.types.Strings.isBlank2
-import org.luaj.vm2.Globals
-import org.luaj.vm2.LuaValue
+import org.luaj.vm2.*
+import org.luaj.vm2.lib.DebugLib
 import org.luaj.vm2.lib.OneArgFunction
 import org.luaj.vm2.lib.ZeroArgFunction
 import org.luaj.vm2.lib.jse.CoerceJavaToLua
@@ -23,7 +23,7 @@ import org.luaj.vm2.lib.jse.JsePlatform
 // https://github.com/luaj/luaj
 open class ScriptComponent : Component() {
 
-    // todo test-component:
+    // todo TestComponent:
     // todo record a piece of gameplay with exact input, and scene loading times
     // todo and then a test condition;
     // todo record it also as video
@@ -31,11 +31,10 @@ open class ScriptComponent : Component() {
 
     // lua starts indexing at 1? I may need to think over whether to choose lua as basic scripting language 😂
 
-    // todo src or content? both?
-    // todo languages supported?
-    // todo lua from Java/Kotlin?
     // todo JavaScript from Java/Kotlin?
     // todo or just our custom visual language? :)
+
+    var instructionLimit: Int = 1000
 
     var source: FileReference = InvalidRef
 
@@ -78,15 +77,17 @@ open class ScriptComponent : Component() {
         val luaCache = CacheSection("Lua")
         val timeout = 20_000L
 
-        fun getFunction(name: String, source: FileReference): LuaValue? {
-            val value = luaCache.getFileEntry(source, false, timeout, false) { file, date ->
+        fun getFunction(name: String, source: FileReference, instructionLimit: Int = 10_000): LuaValue? {
+            val value = luaCache.getFileEntry(source, false, timeout, false) { file, _ ->
                 val vm = defineVM()
                 val text = file.readText()
-                val code = vm.load(text).call()
+                val code0 = vm.load(text)
+                val code1 = if (Build.isDebug) wrapIntoLimited(code0, vm, instructionLimit) else code0
+                val code2 = code1.call()
                 println(text)
                 // val code = file.inputStream().use { LuaC.instance.compile(it, "${source.absolutePath}-$date") }
                 // val func = LuaClosure(code, global.get())
-                CacheData(code)
+                CacheData(code2)
             } as? CacheData<*> ?: return null
             val func = value.value as LuaValue
             return func.get(name)
@@ -151,32 +152,86 @@ open class ScriptComponent : Component() {
         }
 
         @Suppress("unchecked_cast")
-        inline fun getFunction(code: String, init: (scope: LuaValue) -> Unit): LuaValue {
-            if (code.isBlank2()) return LuaValue.NIL
+        fun getRawFunction(code: String): Any {
+            return getRawScopeAndFunction(code)?.second ?: LuaValue.NIL
+        }
+
+        @Suppress("unchecked_cast")
+        fun getRawScopeAndFunction(code: String): Pair<Globals, Any>? {
             val funcObj = luaCache.getEntry(code, timeout, false) { code1 ->
-                CacheData(
-                    try {
-                        val vm = global.get()
-                        Pair(vm, vm.load(code1))
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        null
-                    }
-                )
+                val vm = global.get()
+                val fn = try {
+                    vm.load(code1)
+                } catch (error: LuaError) {
+                    error
+                }
+                CacheData(Pair(vm, fn))
             }
             if (funcObj !is CacheData<*> || funcObj.value == null)
-                return LuaValue.NIL
-            val (globals, func) = funcObj.value as Pair<Globals, LuaValue>
-            if (func.isfunction()) {
+                return null
+            return funcObj.value as Pair<Globals, LuaValue>
+        }
+
+        @Suppress("unchecked_cast")
+        inline fun getFunction(code: String, init: (scope: LuaValue) -> Unit): LuaValue {
+            if (code.isBlank2()) return LuaValue.NIL
+            val (globals, func) = getRawScopeAndFunction(code) ?: return LuaValue.NIL
+            if (func is LuaValue && func.isfunction()) {
                 init(globals)
-                return func
+                return if (Build.isDebug) {
+                    wrapIntoLimited(func, globals, 10_000)
+                } else func
             }
             return LuaValue.NIL
         }
 
         @JvmStatic
         fun main(args: Array<String>) {
-            callLua(Entity(), OS.desktop)
+            val globals = global.get()
+            println(wrapIntoLimited(globals.load("while 1 > 0 do end"), globals).invoke())
+        }
+
+        object ErrorFunction : ZeroArgFunction() {
+            override fun call(): LuaValue {
+                throw Error("Script run out of limits.")
+            }
+        }
+
+        class SafeFunction(val thread: LuaThread) : ZeroArgFunction() {
+            override fun call(): LuaValue {
+                return thread.resume(LuaValue.NIL).arg(2)
+            }
+        }
+
+        fun wrapIntoLimited(
+            function: LuaValue,
+            globals: Globals,
+            instructionLimit: Int = 20
+        ): LuaValue {
+
+            globals.load(DebugLib())
+
+            val setHook = globals.get("debug").get("set" + "hook")
+            globals.set("debug", LuaValue.NIL)
+
+            val thread = LuaThread(globals, function)
+
+            setHook.invoke()
+            setHook.invoke(
+                varargs(
+                    thread,
+                    ErrorFunction,
+                    LuaValue.EMPTYSTRING,
+                    LuaValue.valueOf(instructionLimit)
+                )
+            )
+
+            return SafeFunction(thread)
+
+        }
+
+        fun varargs(vararg v: LuaValue): Varargs {
+            return LuaValue.varargsOf(v)
         }
 
     }

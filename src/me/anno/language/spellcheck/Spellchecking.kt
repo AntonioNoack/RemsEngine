@@ -10,7 +10,6 @@ import me.anno.io.json.JsonArray
 import me.anno.io.json.JsonObject
 import me.anno.io.json.JsonReader
 import me.anno.language.Language
-import me.anno.language.translation.Dict
 import me.anno.studio.StudioBase
 import me.anno.utils.Color.hex8
 import me.anno.utils.OS
@@ -18,7 +17,7 @@ import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.sleepABit10
 import me.anno.utils.Sleep.sleepShortly
 import me.anno.utils.hpc.Threads.threadWithName
-import me.anno.utils.io.Streams.listen
+import me.anno.io.Streams.listen
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.strings.StringHelper.titlecase
 import me.anno.utils.types.Strings.isBlank2
@@ -31,18 +30,24 @@ object Spellchecking : CacheSection("Spellchecking") {
 
     private val path = DefaultConfig["spellchecking.path", getReference(OS.downloads, "lib\\spellchecking")]
 
-    private val language get() = StudioBase.instance?.language ?: Language.get(Dict["en-US", "lang.spellcheck"])
+    var defaultLanguage = Language.AmericanEnglish
+    private val language get() = StudioBase.instance?.language ?: defaultLanguage
 
-    fun check(sentence: CharSequence, allowFirstLowercase: Boolean, key: Any): List<Suggestion>? {
+    fun check(
+        sentence: CharSequence,
+        allowFirstLowercase: Boolean,
+        key: Any,
+        async: Boolean = true
+    ): List<Suggestion>? {
         val language = language
         if (language == Language.None || sentence.isBlank2()) return null
         var sentence2 = sentence.trim()
         if (allowFirstLowercase) sentence2 = sentence2.toString().titlecase()
         if (sentence2 == "#quit") return null
-        val data = getEntry(Pair(sentence2, language), timeout, true) {
+        val data = getEntry(Pair(sentence2, language), timeout, async) {
             val answer = SuggestionData(null)
-            getValue(sentence2, language, key) {
-                answer.value = it
+            getValue(sentence2, language, key) { rawSuggestions ->
+                answer.value = rawSuggestions
             }
             answer
         } as? SuggestionData ?: return null
@@ -51,7 +56,7 @@ object Spellchecking : CacheSection("Spellchecking") {
             val offset = sentence
                 .withIndex()
                 .indexOfFirst { (index, _) -> !sentence.substring(0, index + 1).isBlank2() }
-            value.map { Suggestion(it.start + offset, it.end + offset, it.message, it.shortMessage, it.improvements) }
+            if (offset > 0) value.map { it.withOffset(offset) } else value
         } else value
     }
 

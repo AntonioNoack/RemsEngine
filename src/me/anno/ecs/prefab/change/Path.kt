@@ -8,7 +8,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.json.JsonFormatter
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
-import me.anno.utils.io.Base64.encodeBase64
+import me.anno.io.Base64.encodeBase64
 import org.apache.logging.log4j.LogManager
 import java.text.ParseException
 import kotlin.random.Random

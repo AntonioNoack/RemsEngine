@@ -1,6 +1,5 @@
-package me.anno.utils.test
+package me.anno.parser
 
-import me.anno.parser.SimpleExpressionParser
 import kotlin.math.abs
 import kotlin.math.max
 

@@ -24,6 +24,7 @@ import me.anno.ecs.annotations.Range.Companion.minUByte
 import me.anno.ecs.annotations.Range.Companion.minUInt
 import me.anno.ecs.annotations.Range.Companion.minULong
 import me.anno.ecs.annotations.Range.Companion.minUShort
+import me.anno.ecs.components.script.ScriptComponent
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.IProperty
@@ -61,6 +62,7 @@ import me.anno.utils.types.Quaternions.toEulerAnglesDegrees
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import org.apache.logging.log4j.LogManager
 import org.joml.*
+import org.luaj.vm2.LuaError
 import java.io.Serializable
 
 object ComponentUI {
@@ -888,8 +890,11 @@ object ComponentUI {
                         return TitledListY(title, visibilityKey, style).apply {
                             add(CodeEditor(style).apply {
                                 setText(value.toString(), false)
-                                setOnChangeListener {
-                                    property.set(this, it.toString())
+                                setOnChangeListener { ce, seq ->
+                                    val code = seq.toString()
+                                    val func = ScriptComponent.getRawFunction(code)
+                                    ce.tooltip = if(func is LuaError){ func.toString() } else null
+                                    property.set(this, code)
                                 }
                             })
                         }

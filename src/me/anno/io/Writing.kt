@@ -1,4 +1,4 @@
-package me.anno.utils.io
+package me.anno.io
 
 import org.joml.Vector3f
 import java.io.DataInputStream

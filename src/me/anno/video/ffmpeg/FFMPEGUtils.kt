@@ -31,7 +31,7 @@ object FFMPEGUtils {
             val line = out.readLine() ?: break
             lines += line
 
-            if(!hasFailed){
+            if (!hasFailed) {
                 if (line.contains("unable", true) ||
                     line.contains("null", true) ||
                     line.contains("error", true) ||
@@ -135,6 +135,9 @@ object FFMPEGUtils {
         }
     }
 
+    fun formatPercent(progress: Int, total: Int) = formatPercent(progress.toDouble() / total.toDouble())
+    fun formatPercent(progress: Long, total: Long) = formatPercent(progress.toDouble() / total.toDouble())
+    fun formatPercent(progress: Float) = formatPercent(progress.toDouble())
     fun formatPercent(progress: Double) = Maths.clamp(progress * 100, 0.0, 100.0).f1()
 
 }

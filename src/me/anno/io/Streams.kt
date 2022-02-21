@@ -1,4 +1,4 @@
-package me.anno.utils.io
+package me.anno.io
 
 import me.anno.Engine
 import me.anno.utils.Sleep.sleepShortly

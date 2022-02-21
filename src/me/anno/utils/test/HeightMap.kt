@@ -13,8 +13,8 @@ import me.anno.utils.hpc.HeavyProcessing
 import kotlin.math.roundToInt
 
 fun main() {
-    // convert()
-    createMesh()
+    convert()
+    // createMesh()
 }
 
 fun createMesh() {
@@ -25,83 +25,6 @@ fun createMesh() {
     val w = image.width
     val h = image.height
 
-    /*
-    val scene = AIScene.create()
-    val node = AINode.create()
-    scene.mRootNode(node)
-
-    val meshes = ByteBuffer.allocateDirect(4)
-        .order(ByteOrder.nativeOrder())
-        .asIntBuffer()
-    meshes.put(0, 0)
-    node.mMeshes(meshes)
-
-    val material = AIMaterial.create()
-    val materials = PointerBuffer.allocateDirect(1)
-    materials.put(0, material.address())
-    scene.mMaterials(materials)
-
-    val metadata = AIMetaData.create()
-    metadata.mKeys(AIString.calloc(1))
-    metadata.mValues(AIMetaDataEntry.calloc(1))
-    metadata.mNumProperties(0)
-    scene.mMetaData(metadata)
-
-    val mesh = AIMesh.create()
-    mesh.mMaterialIndex(0)
-    val meshesBuffer0 = ByteBuffer.allocateDirect(8)
-        .order(ByteOrder.nativeOrder())
-    meshesBuffer0.putLong(mesh.address())
-    val meshesBuffer = PointerBuffer.create(meshesBuffer0)
-    scene.mMeshes(meshesBuffer)
-
-    val vertices = AIVector3D.calloc(w * h)
-    var index = 0
-    while (vertices.hasRemaining()) {
-        val v = vertices.get()
-        val i = index % w
-        val j = index / w
-        val rgb = image.getRGB(i, j)
-        val y = (rgb.r() * 256 + rgb.g()) * 0.1f
-        v.x(i.toFloat())
-        v.y(y)
-        v.z(j.toFloat())
-        index++
-    }
-    vertices.flip()
-    mesh.mVertices(vertices)
-
-    val faces = AIFace.calloc((w - 1) * (h - 1))
-    index = 0
-    while (faces.hasRemaining()) {
-        val f = faces.get()
-        val x = index % (w - 1)
-        val y = index / (w - 1)
-        val i = x + y * w
-        val buffer = ByteBuffer.allocateDirect(4 * 4)
-            .order(ByteOrder.nativeOrder())
-            .asIntBuffer()
-        buffer.put(0, i)
-        buffer.put(1, i + 1)
-        buffer.put(2, i + 1 + w)
-        buffer.put(3, i + w)
-        f.mIndices(buffer)
-    }
-    faces.flip()
-    mesh.mFaces(faces)
-
-    for (i in 0 until Assimp.aiGetExportFormatCount()) {
-        println(Assimp.aiGetExportFormatDescription(i)!!.idString())
-    }
-
-    println("start writing")
-
-    val format = "fbx"
-    val dst = getReference(desktop, "${file.nameWithoutExtension}.fbx").absolutePath
-    val rep = Assimp.aiExportScene(scene, format, dst, 0)
-    println(rep)
-
-    return*/
     val fileOut = getReference(desktop, "${file.nameWithoutExtension}.obj")
     val out = fileOut.outputStream()
     for (j in 0 until h) {
@@ -165,7 +88,7 @@ fun convert() {
             }
         }
     }
-    /*ImageWriter.writeRGBImageInt(tw, th, "result3000", 16) { _, _, i ->
+    ImageWriter.writeRGBImageInt(tw, th, "result3000", 16) { _, _, i ->
         joined[i]
     }
     ImageWriter.writeRGBImageInt(tw / 2, th / 2, "result1500", 16) { x, y, _ ->
@@ -191,7 +114,7 @@ fun convert() {
         }
         h /= 16
         rgba(h.shr(8).and(255), h.and(255), 0, 255)
-    }*/
+    }
     ImageWriter.writeRGBImageInt(tw / 8, th / 8, "result375", 16) { x, y, _ ->
         val i = (x * 8) + (y * 8) * tw
         var h = 0

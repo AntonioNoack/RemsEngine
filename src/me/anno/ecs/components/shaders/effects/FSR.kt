@@ -16,7 +16,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.image.ImageGPUCache
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS
-import me.anno.utils.io.ResourceHelper
+import me.anno.io.ResourceHelper
 
 object FSR {
 

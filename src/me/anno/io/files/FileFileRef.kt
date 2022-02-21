@@ -1,7 +1,7 @@
 package me.anno.io.files
 
 import me.anno.cache.instances.LastModifiedCache
-import me.anno.utils.io.Streams.copy
+import me.anno.io.Streams.copy
 import java.io.File
 import java.net.URI
 import java.nio.charset.Charset

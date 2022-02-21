@@ -170,6 +170,16 @@ object Strings {
         else "$prefix$suffix"
     }
 
+    fun addPrefix(prefix: String?, mid: String, suffix: String): String {
+        return if (prefix == null) suffix
+        else "$prefix$mid$suffix"
+    }
+
+    fun addSuffix(prefix: String, mid: String, suffix: String?): String {
+        return if (suffix == null) prefix
+        else "$prefix$mid$suffix"
+    }
+
     fun filterAlphaNumeric(str: String): String {
         return str.filter { it in 'A'..'Z' || it in 'a'..'z' || it in '0'..'9' }
     }

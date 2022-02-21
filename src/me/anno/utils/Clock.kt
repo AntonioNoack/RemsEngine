@@ -91,5 +91,11 @@ class Clock(
                 LOGGER.info("Used ${dt.f3()}s for $title")
             }
         }
+        fun <V> measure(name: String, func: () -> V): V {
+            val c = Clock()
+            val value = func()
+            c.stop(name)
+            return value
+        }
     }
 }

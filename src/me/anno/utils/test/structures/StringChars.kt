@@ -1,6 +1,6 @@
 package me.anno.utils.test.structures
 
-import me.anno.utils.test.measure
+import me.anno.utils.Clock.Companion.measure
 import java.util.*
 
 fun main() {

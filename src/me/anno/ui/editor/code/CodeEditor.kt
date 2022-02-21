@@ -37,9 +37,8 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.streams.toList
 
-// todo two new editors/viewers:
-//  - hex viewer
-//  - optimize for huge files
+// todo feedback, what the result of the code is / what compiler errors happened
+// todo also add execution button
 
 // todo if on bracket, find matching bracket
 // todo collapsable blocks
@@ -52,6 +51,8 @@ import kotlin.streams.toList
 
 // todo search & replace
 // todo refactoring (rename a variable)
+
+// todo auto-formatting
 
 @Suppress("MemberVisibilityCanBePrivate")
 open class CodeEditor(style: Style) : Panel(style) {
@@ -80,7 +81,7 @@ open class CodeEditor(style: Style) : Panel(style) {
 
     var styles = ByteArray(0)
 
-    var changeListener: (IntSequence) -> Unit = {}
+    var changeListener: (CodeEditor, IntSequence) -> Unit = { _, _ -> }
         private set
 
     val padding = Padding(4)
@@ -96,7 +97,7 @@ open class CodeEditor(style: Style) : Panel(style) {
     val cursor0 = CursorPosition()
     val cursor1 = CursorPosition()
 
-    fun setOnChangeListener(listener: (IntSequence) -> Unit) {
+    fun setOnChangeListener(listener: (CodeEditor, IntSequence) -> Unit) {
         changeListener = listener
     }
 
@@ -202,11 +203,11 @@ open class CodeEditor(style: Style) : Panel(style) {
     var blinkingIntervalNanos = 500_000_000L
 
     override fun tickUpdate() {
-        // performance test
         val blinkVisible = ((GFX.gameTime - lastChangeTime) / blinkingIntervalNanos).and(1L) == 0L
         val sb = showCursor
         showCursor = isInFocus && blinkVisible
         if (sb != showCursor) invalidateDrawing()
+        if (!isInFocus) cursor0.set(cursor1)
     }
 
     fun drawChar(
@@ -300,7 +301,7 @@ open class CodeEditor(style: Style) : Panel(style) {
         x += cn * charWidth
 
         // draw selection background, which is wider than the text
-        if (minCursor.y < maxCursor.y) {
+        if (isInFocus && minCursor.y < maxCursor.y) {
             drawRect(x + (cn + minCursor.x), y + minCursor.y * lineHeight, w, lineHeight, selectedBGColor)
             if (minCursor.y + 1 < maxCursor.y) {
                 drawRect(
@@ -322,12 +323,12 @@ open class CodeEditor(style: Style) : Panel(style) {
 
         var varIndex = 0
         content.forEachChar(vx0, vy0, vx1, vy1) { charIndex, lineIndex, indexInLine, _ ->
-            // draw character
+            // draw character background
             val style = theme.styles[styles[charIndex].toInt()]
             val textColor = style.color
             val lineIsSelected = lineIndex in minCursor.y..maxCursor.y && cursor0 == cursor1
             val lineBGColor = if (lineIsSelected) selectedLineBGColor else theme.backgroundColor
-            val isSelected = minCursor.contains(maxCursor, indexInLine, lineIndex)
+            val isSelected = isInFocus && minCursor.contains(maxCursor, indexInLine, lineIndex)
             val background = if (isSelected) selectedBGColor else lineBGColor
             drawCharBackground(cn + indexInLine, drawnYi + lineIndex, background)
             while (varIndex < spellcheckedSections.size &&
@@ -361,7 +362,7 @@ open class CodeEditor(style: Style) : Panel(style) {
             val textColor = style.color
             val lineIsSelected = lineIndex == minCursor.y && cursor0 == cursor1
             val lineBGColor = if (lineIsSelected) selectedLineBGColor else theme.backgroundColor
-            val isSelected = minCursor.contains(maxCursor, indexInLine, lineIndex)
+            val isSelected = isInFocus && minCursor.contains(maxCursor, indexInLine, lineIndex)
             val background = if (isSelected) selectedBGColor else lineBGColor
             drawCharText(cn + indexInLine, drawnYi + lineIndex, char, textColor, background, style.bold, style.italic)
         }
@@ -553,7 +554,7 @@ open class CodeEditor(style: Style) : Panel(style) {
         invalidateLayout()
         lastChangeTime = GFX.gameTime
         if (updateHistory) history.put(content.toString())
-        if (notify) changeListener(content)
+        if (notify) changeListener(this, content)
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
@@ -673,7 +674,7 @@ open class CodeEditor(style: Style) : Panel(style) {
             // return TokenType.values2[styles[charIndex].toInt()].name
         }
         lastSuggestion = null
-        return null
+        return super.getTooltipText(x, y)
     }
 
     // accept tabs

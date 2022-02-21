@@ -1,6 +1,5 @@
-package me.anno.utils.test
+package me.anno.image
 
-import me.anno.image.ImageCPUCache
 import me.anno.io.files.FileReference.Companion.getReference
 
 fun main() {

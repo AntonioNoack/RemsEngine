@@ -1,5 +1,8 @@
-package me.anno.utils.test
+package me.anno.language.spellcheck
 
+import me.anno.maths.Maths.MILLIS_TO_NANOS
+import me.anno.utils.Sleep
+import me.anno.video.ffmpeg.FFMPEGUtils.formatPercent
 import org.apache.logging.log4j.LogManager
 import kotlin.math.min
 
@@ -9,29 +12,6 @@ fun main() {
     // with a dictionary, it could find words automatically
     // so it can just display all substrings in the field nicely,
     // which is already a great help
-    /*findWords(
-        listOf(
-            "012",
-            "345",
-            "678"
-        )
-    )*/
-    /*findWords(
-        listOf(
-            "012a",
-            "345b",
-            "678c"
-        )
-    )*/
-    /*findWords(
-        listOf(
-            "012",
-            "345",
-            "678",
-            "abc",
-            "def"
-        )
-    )*/
     // (homework of my (girl)friend)
     findWords(
         listOf(
@@ -75,6 +55,7 @@ fun findWords(text: List<String>) {
     checkCrossSections(lines, sizeX, sizeY)
     logger.info(3)
     checkCrossSections(lines.reversed(), sizeX, sizeY) // to go left
+    waitForResults()
 }
 
 fun checkCrossSections(lines: List<String>, sizeX: Int, sizeY: Int) {
@@ -103,7 +84,7 @@ fun checkSubWords(total: String) {
     val logger = LogManager.getLogger("FindWords")
     logger.info("V $total")
     logger.info("R ${total.reversed()}")
-    /*if (total.length == minLength) checkWord(total)
+    if (total.length == minLength) checkWord(total)
     else if (total.length > minLength) {
         for (startIndex in 0 until total.length - minLength) {
             for (endIndex in startIndex + minLength until total.length) {
@@ -113,14 +94,46 @@ fun checkSubWords(total: String) {
                 checkWord(word.reversed())
             }
         }
-    }*/
+    }
 }
 
 val processed = HashSet<String>()
 fun checkWord(word: String) {
-    val logger = LogManager.getLogger("FindWords")
     if (word !in processed) {
         processed += word
-        logger.info(word)
+    }
+}
+
+fun waitForResults(timeoutMillis: Long = 30_000) {
+    val logger = LogManager.getLogger("FindWords")
+    val done = HashSet<String>()
+    var timeSinceLastResult = System.nanoTime()
+    val timeoutNanos = timeoutMillis * MILLIS_TO_NANOS
+    val processed = ArrayList(processed.sortedBy { it.length })
+    val totalLength = processed.size
+    logger.info("Checking $totalLength 'words'")
+    while (processed.isNotEmpty()) {
+        for (word in processed) {
+            val list = Spellchecking.check(word, true, word)
+            if (list != null) {
+                // found answer :)
+                done.add(word)
+                if (list.isEmpty()) {
+                    logger.info("$word, ${formatPercent(totalLength - processed.size, totalLength)}%")
+                }
+            }
+        }
+        if (done.isEmpty()) {
+            val deltaTime = System.nanoTime() - timeSinceLastResult
+            if (deltaTime > timeoutNanos) {
+                logger.info("Reached timeout!")
+                break
+            }
+            Sleep.sleepShortly(false)
+        } else {
+            processed.removeAll(done)
+            done.clear()
+            timeSinceLastResult = System.nanoTime()
+        }
     }
 }

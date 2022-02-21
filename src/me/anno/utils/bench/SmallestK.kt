@@ -1,8 +1,8 @@
 package me.anno.utils.bench
 
+import me.anno.utils.Clock.Companion.measure
 import me.anno.utils.structures.lists.Lists.buildMinHeap
 import me.anno.utils.structures.lists.Lists.extractMin
-import me.anno.utils.test.measure
 
 fun main() {
 
@@ -17,33 +17,33 @@ fun main() {
     fun check(list: List<Int>) {
         if (list.size != k) throw RuntimeException("Size does not match")
         for (i in 0 until k) {
-            if(i !in list) throw RuntimeException("$i is missing in list $list")
+            if (i !in list) throw RuntimeException("$i is missing in list $list")
         }
     }
 
     // 233ms
     val tries = 10
     for (i in 0 until tries) {
-        measure("sort-sublist", elements) {
+        measure("sort-sublist") {
             check(elementList.sorted().subList(0, k))
-            0
         }
     }
 
     // 27ms
     for (i in 0 until tries) {
-        measure("heap", elements) {
+        measure("heap") {
             val comparator = { x: Int, y: Int -> x.compareTo(y) }
-            check(elementList
-                .buildMinHeap(comparator) // O(n)
-                .extractMin(k, comparator))
-            0
+            check(
+                elementList
+                    .buildMinHeap(comparator) // O(n)
+                    .extractMin(k, comparator)
+            )
         }
     }
 
     // 2.7-3.0ms
     for (i in 0 until tries) {
-        measure("n*k", elements) {
+        measure("n*k") {
             val topK = IntArray(k)
             for (j in 0 until k) topK[j] = elementList[j]
             topK.sort()
@@ -53,7 +53,7 @@ fun main() {
                 if (element < lastBest) {
                     var index = topK.binarySearch(element)
                     if (index < 0) index = -1 - index // insert index
-                    for (l in k-1 downTo index + 1) {
+                    for (l in k - 1 downTo index + 1) {
                         topK[l] = topK[l - 1]
                     }
                     topK[index] = element
@@ -61,7 +61,6 @@ fun main() {
                 }
             }
             check(topK.toList())
-            0
         }
     }
 

@@ -4,8 +4,8 @@ import me.anno.config.DefaultConfig
 import me.anno.io.config.ConfigBasics
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
-import me.anno.utils.io.ResourceHelper
-import me.anno.utils.io.Streams.readText
+import me.anno.io.ResourceHelper
+import me.anno.io.Streams.readText
 import org.apache.logging.log4j.LogManager
 import java.io.FileNotFoundException
 import java.io.IOException

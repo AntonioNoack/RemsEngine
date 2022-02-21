@@ -22,7 +22,7 @@ import me.anno.ui.Panel;
 import me.anno.ui.base.menu.Menu;
 import me.anno.ui.utils.WindowStack;
 import me.anno.utils.Clock;
-import me.anno.utils.io.ResourceHelper;
+import me.anno.io.ResourceHelper;
 import me.anno.utils.structures.maps.KeyPairMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

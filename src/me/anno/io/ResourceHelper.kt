@@ -1,6 +1,6 @@
-package me.anno.utils.io
+package me.anno.io
 
-import me.anno.utils.io.Streams.readText
+import me.anno.io.Streams.readText
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStream
