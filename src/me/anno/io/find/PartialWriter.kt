@@ -30,6 +30,10 @@ abstract class PartialWriter(canSkipDefaultValues: Boolean) : BaseWriter(canSkip
     override fun writeIntArray(name: String, values: IntArray, force: Boolean) {}
     override fun writeIntArray2D(name: String, values: Array<IntArray>, force: Boolean) {}
 
+    override fun writeColor(name: String, value: Int, force: Boolean) {}
+    override fun writeColorArray(name: String, values: IntArray, force: Boolean) {}
+    override fun writeColorArray2D(name: String, values: Array<IntArray>, force: Boolean) {}
+
     override fun writeLong(name: String, value: Long, force: Boolean) {}
     override fun writeLongArray(name: String, values: LongArray, force: Boolean) {}
     override fun writeLongArray2D(name: String, values: Array<LongArray>, force: Boolean) {}

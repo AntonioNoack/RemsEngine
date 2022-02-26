@@ -9,7 +9,7 @@ abstract class NamedVisual : NamedSaveable() {
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeInt("color", color)
+        writer.writeColor("color", color, false)
     }
 
     override fun readInt(name: String, value: Int) {

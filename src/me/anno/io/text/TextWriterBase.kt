@@ -157,7 +157,7 @@ abstract class TextWriterBase : BaseWriter(true) {
     override fun writeByte(name: String, value: Byte, force: Boolean) {
         if (force || value != 0.toByte()) {
             writeAttributeStart("B", name)
-            append(value.toString())
+            append(value.toInt())
         }
     }
 
@@ -165,7 +165,7 @@ abstract class TextWriterBase : BaseWriter(true) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart("B[]", name)
             writeArray(values.size, values.indexOfLast { it != 0.toByte() }) {
-                append(values[it].toString())
+                append(values[it].toInt())
             }
         }
     }
@@ -173,7 +173,7 @@ abstract class TextWriterBase : BaseWriter(true) {
     override fun writeByteArray2D(name: String, values: Array<ByteArray>, force: Boolean) {
         writeArray(name, values, force, "B[][]") { arr ->
             writeArray(arr.size, arr.indexOfLast { it != 0.toByte() }) {
-                append(arr[it].toString())
+                append(arr[it].toInt())
             }
         }
     }
@@ -189,7 +189,7 @@ abstract class TextWriterBase : BaseWriter(true) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart("s[]", name)
             writeArray(values.size, values.indexOfLast { it != 0.toShort() }) {
-                append(values[it].toString())
+                append(values[it].toInt())
             }
         }
     }
@@ -197,7 +197,7 @@ abstract class TextWriterBase : BaseWriter(true) {
     override fun writeShortArray2D(name: String, values: Array<ShortArray>, force: Boolean) {
         writeArray(name, values, force, "s[][]") { arr ->
             writeArray(arr.size, arr.indexOfLast { it != 0.toShort() }) {
-                append(arr[it].toString())
+                append(arr[it].toInt())
             }
         }
     }
@@ -205,7 +205,65 @@ abstract class TextWriterBase : BaseWriter(true) {
     override fun writeInt(name: String, value: Int, force: Boolean) {
         if (force || value != 0) {
             writeAttributeStart("i", name)
-            append(value.toString())
+            append(value)
+        }
+    }
+
+    private fun appendColor(color: Int){
+        // write color in optimal hex format
+        val c0 = color.and(0xf)
+        val c1 = color.shr(4).and(0xf)
+        val c2 = color.shr(8).and(0xf)
+        val c3 = color.shr(12).and(0xf)
+        val c4 = color.shr(16).and(0xf)
+        val c5 = color.shr(20).and(0xf)
+        val c6 = color.shr(24).and(0xf)
+        val c7 = color.shr(28).and(0xf)
+        val hex = hex
+        when {
+            c0 == c1 && c2 == c3 && c4 == c5 && c6 == c7 -> {
+                when {
+                    c0 == c2 && c0 == c4 && c6 == 15 -> {// #g
+                        append(hex[c0])
+                    }
+                    c6 == 15 -> { // #rgb
+                        append(hex[c4])
+                        append(hex[c2])
+                        append(hex[c0])
+                    }
+                    else -> { // #argb
+                        append(hex[c6])
+                        append(hex[c4])
+                        append(hex[c2])
+                        append(hex[c0])
+                    }
+                }
+            }
+            c6 == 15 && c7 == 15 -> { // #rrggbb
+                append(hex[c5])
+                append(hex[c4])
+                append(hex[c3])
+                append(hex[c2])
+                append(hex[c1])
+                append(hex[c0])
+            }
+            else -> { // #aarrggbb
+                append(hex[c7])
+                append(hex[c6])
+                append(hex[c5])
+                append(hex[c4])
+                append(hex[c3])
+                append(hex[c2])
+                append(hex[c1])
+                append(hex[c0])
+            }
+        }
+    }
+
+    override fun writeColor(name: String, value: Int, force: Boolean) {
+        if (force || value != 0) {
+            writeAttributeStart("col", name)
+            appendColor(value)
         }
     }
 
@@ -216,18 +274,16 @@ abstract class TextWriterBase : BaseWriter(true) {
             writeArray(values.size, values.indexOfLast { it != 0 }) {
                 append(values[it])
             }
-            /*open(true)
-            val data = data
-            val size = values.size
-            data.append(size)
-            val ',' = ','
-            val lastIndex = values.indexOfLast { it != 0 }
-            for (i in 0 until min(lastIndex + 1, size)) {
-                data.append(',')
-                data.append(',')
-                data.append(values[i])
+        }
+    }
+
+    override fun writeColorArray(name: String, values: IntArray, force: Boolean) {
+        if (force || values.isNotEmpty()) {
+            writeAttributeStart("col[]", name)
+            // 18-23ns/e
+            writeArray(values.size, values.indexOfLast { it != 0 }) {
+                appendColor(values[it])
             }
-            close(true)*/
         }
     }
 
@@ -235,6 +291,14 @@ abstract class TextWriterBase : BaseWriter(true) {
         writeArray(name, values, force, "i[][]") { arr ->
             writeArray(arr.size, arr.indexOfLast { it != 0 }) {
                 append(arr[it])
+            }
+        }
+    }
+
+    override fun writeColorArray2D(name: String, values: Array<IntArray>, force: Boolean) {
+        writeArray(name, values, force, "col[][]") { arr ->
+            writeArray(arr.size, arr.indexOfLast { it != 0 }) {
+                appendColor(arr[it])
             }
         }
     }
@@ -1019,6 +1083,10 @@ abstract class TextWriterBase : BaseWriter(true) {
     override fun writeAllInList() {
         findReferences()
         super.writeAllInList()
+    }
+
+    companion object {
+        private const val hex = "0123456789abcdef"
     }
 
 }

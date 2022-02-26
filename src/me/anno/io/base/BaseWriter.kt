@@ -44,6 +44,10 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     abstract fun writeIntArray(name: String, values: IntArray, force: Boolean = false)
     abstract fun writeIntArray2D(name: String, values: Array<IntArray>, force: Boolean = false)
 
+    abstract fun writeColor(name: String, value: Int, force: Boolean = true)
+    abstract fun writeColorArray(name: String, values: IntArray, force: Boolean = true)
+    abstract fun writeColorArray2D(name: String, values: Array<IntArray>, force: Boolean = true)
+
     abstract fun writeLong(name: String, value: Long, force: Boolean = false)
     abstract fun writeLongArray(name: String, values: LongArray, force: Boolean = false)
     abstract fun writeLongArray2D(name: String, values: Array<LongArray>, force: Boolean = false)
@@ -298,7 +302,13 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             is Char -> writeChar(name, value, forceSaving)
             is Byte -> writeByte(name, value, forceSaving)
             is Short -> writeShort(name, value, forceSaving)
-            is Int -> writeInt(name, value, forceSaving)
+            is Int -> {
+                if (name.endsWith("color", true)) {
+                    writeColor(name, value, forceSaving)
+                } else {
+                    writeInt(name, value, forceSaving)
+                }
+            }
             is Long -> writeLong(name, value, forceSaving)
             is Float -> writeFloat(name, value, forceSaving)
             is Double -> writeDouble(name, value, forceSaving)
@@ -377,7 +387,9 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             is CharArray -> writeCharArray(name, value, forceSaving)
             is ByteArray -> writeByteArray(name, value, forceSaving)
             is ShortArray -> writeShortArray(name, value, forceSaving)
-            is IntArray -> writeIntArray(name, value, forceSaving)
+            is IntArray -> if (name.endsWith("color", true) || name.endsWith("colors", true)) {
+                writeColorArray(name, value, forceSaving)
+            } else writeIntArray(name, value, forceSaving)
             is LongArray -> writeLongArray(name, value, forceSaving)
             is FloatArray -> writeFloatArray(name, value, forceSaving)
             is DoubleArray -> writeDoubleArray(name, value, forceSaving)

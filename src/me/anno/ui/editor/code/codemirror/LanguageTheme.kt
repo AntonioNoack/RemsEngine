@@ -37,21 +37,21 @@ class LanguageTheme(val styles: Array<LanguageStyle>) : Saveable() {
         super.save(writer)
         if (supportsStyleAlpha) {
             if (styles.all { it.isSimple() }) {
-                writer.writeIntArray("styles", IntArray(styles.size) { styles[it].color })
+                writer.writeColorArray("styles", IntArray(styles.size) { styles[it].color })
             } else {
                 writer.writeObjectArray(null, "styles", styles)
             }
         } else {
-            writer.writeIntArray("s", IntArray(styles.size) { styles[it].encode() })
+            writer.writeColorArray("s", IntArray(styles.size) { styles[it].encode() })
         }
         writer.writeString("name", name)
-        writer.writeInt("bg", backgroundColor)
-        writer.writeInt("nCol", numbersColor)
-        writer.writeInt("nBG0", numbersBGColor)
-        writer.writeInt("nLCol", numbersLineColor)
-        writer.writeInt("selBG", selectedBGColor)
-        writer.writeInt("mbc", matchingBracketColor)
-        writer.writeInt("cursor", cursorColor)
+        writer.writeColor("bg", backgroundColor)
+        writer.writeColor("nCol", numbersColor)
+        writer.writeColor("nBG0", numbersBGColor)
+        writer.writeColor("nLCol", numbersLineColor)
+        writer.writeColor("selBG", selectedBGColor)
+        writer.writeColor("mbc", matchingBracketColor)
+        writer.writeColor("cursor", cursorColor)
     }
 
     override fun readString(name: String, value: String?) {

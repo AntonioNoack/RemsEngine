@@ -180,12 +180,20 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
+    override fun writeColor(name: String, value: Int, force: Boolean) {
+        writeInt(name, value, force)
+    }
+
     override fun writeIntArray(name: String, values: IntArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, INT_ARRAY)
             output.writeInt(values.size)
             for (v in values) output.writeInt(v)
         }
+    }
+
+    override fun writeColorArray(name: String, values: IntArray, force: Boolean) {
+        writeIntArray(name, values, force)
     }
 
     override fun writeIntArray2D(name: String, values: Array<IntArray>, force: Boolean) {
@@ -197,6 +205,10 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
                 for (v in vs) output.writeInt(v)
             }
         }
+    }
+
+    override fun writeColorArray2D(name: String, values: Array<IntArray>, force: Boolean) {
+        writeIntArray2D(name, values, force)
     }
 
     override fun writeLong(name: String, value: Long, force: Boolean) {

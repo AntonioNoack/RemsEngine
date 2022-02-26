@@ -23,7 +23,7 @@ open class LanguageStyle(
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeInt("color", color, true)
+        writer.writeColor("color", color, true)
         writer.writeBoolean("squiggles", squiggles, false)
         writer.writeBoolean("underlined", underlined, false)
         writer.writeBoolean("bold", bold, false)

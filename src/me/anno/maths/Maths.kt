@@ -87,7 +87,11 @@ object Maths {
     }
 
     fun mix(a: Int, b: Int, f: Float): Int {
-        return (a * (1.0 - f) + b * f).roundToInt()
+        return (a * (1f - f) + b * f).roundToInt()
+    }
+
+    fun mixRandomly(a: Int, b: Int, f: Float): Int {
+        return (a * (1f - f) + b * f + Math.random()).toInt()
     }
 
     fun max(a: Int, b: Int): Int {
@@ -198,6 +202,12 @@ object Maths {
         return clamp(mix((a shr shift) and 0xff, (b shr shift) and 0xff, f), 0, 255) shl shift
     }
 
+    fun mixChannelRandomly(a: Int, b: Int, shift: Int, f: Float): Int {
+        val ai = (a shr shift) and 0xff
+        val bi = (b shr shift) and 0xff
+        return clamp(mixRandomly(ai, bi, f), 0, 255) shl shift
+    }
+
     fun convertARGB2RGBA(i: Int): Int {
         return i.shl(8) or i.shr(24).and(255)
     }
@@ -220,6 +230,13 @@ object Maths {
                 mixChannel(a, b, 16, f) or
                 mixChannel(a, b, 8, f) or
                 mixChannel(a, b, 0, f)
+    }
+
+    fun mixARGBRandomly(a: Int, b: Int, f: Float): Int {
+        return mixChannelRandomly(a, b, 24, f) or
+                mixChannelRandomly(a, b, 16, f) or
+                mixChannelRandomly(a, b, 8, f) or
+                mixChannelRandomly(a, b, 0, f)
     }
 
     fun mix(a: Vector2fc, b: Vector2fc, f: Float) = Vector2f(

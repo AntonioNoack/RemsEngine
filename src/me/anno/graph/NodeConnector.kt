@@ -57,7 +57,7 @@ abstract class NodeConnector : NamedSaveable {
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeObjectList(this, "others", others)
-        if (color != -1) writer.writeInt("color", color, true)
+        writer.writeColor("color", color, true)
         writer.writeString("type", type)
         writer.writeSomething(this, "value", value, true)
     }
