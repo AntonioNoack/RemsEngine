@@ -302,13 +302,8 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             is Char -> writeChar(name, value, forceSaving)
             is Byte -> writeByte(name, value, forceSaving)
             is Short -> writeShort(name, value, forceSaving)
-            is Int -> {
-                if (name.endsWith("color", true)) {
-                    writeColor(name, value, forceSaving)
-                } else {
-                    writeInt(name, value, forceSaving)
-                }
-            }
+            is Int -> if (name.endsWith("color", true))
+                writeColor(name, value, forceSaving) else writeInt(name, value, forceSaving)
             is Long -> writeLong(name, value, forceSaving)
             is Float -> writeFloat(name, value, forceSaving)
             is Double -> writeDouble(name, value, forceSaving)

@@ -211,6 +211,7 @@ abstract class TextWriterBase : BaseWriter(true) {
 
     private fun appendColor(color: Int){
         // write color in optimal hex format
+        append('#')
         val c0 = color.and(0xf)
         val c1 = color.shr(4).and(0xf)
         val c2 = color.shr(8).and(0xf)

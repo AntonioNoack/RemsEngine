@@ -413,14 +413,14 @@ abstract class TextReaderBase : BaseReader() {
                     numDigits++
                 }
                 in 'A'..'F' -> if (isColor) {
-                    number = base * number + (next.code - 65)
+                    number = base * number + (next.code - 55)
                     numDigits++
                 } else {
                     tmpChar = next.code
                     break@loop
                 }
                 in 'a'..'f' -> if (isColor) {
-                    number = base * number + (next.code - 97)
+                    number = base * number + (next.code - 87)
                     numDigits++
                 } else {
                     tmpChar = next.code
