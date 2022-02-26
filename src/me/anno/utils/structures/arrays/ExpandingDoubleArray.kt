@@ -8,7 +8,7 @@ class ExpandingDoubleArray(
 
     var size = 0
 
-    fun clear(){
+    fun clear() {
         size = 0
     }
 
@@ -17,6 +17,12 @@ class ExpandingDoubleArray(
     fun add(value: Double) = plusAssign(value)
     operator fun set(index: Int, value: Double) {
         array!![index] = value
+    }
+
+    fun toArray(): DoubleArray {
+        if (array == null) return DoubleArray(0)
+        val array = array!!
+        return DoubleArray(size) { array[it] }
     }
 
     operator fun get(index: Int) = array!![index]

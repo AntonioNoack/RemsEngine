@@ -28,7 +28,7 @@ object Engine {
         private set
 
     var gameTimeF = 0.0
-    private set
+        private set
 
     var shutdown = false
         private set
@@ -45,7 +45,7 @@ object Engine {
         lastTime = thisTime
 
         gameTime = lastTime - startTime
-        gameTimeF = gameTime.toDouble()
+        gameTimeF = gameTime * 1e-9
 
     }
 

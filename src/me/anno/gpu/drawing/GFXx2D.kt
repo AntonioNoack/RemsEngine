@@ -1,11 +1,12 @@
 package me.anno.gpu.drawing
 
+import me.anno.Engine
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.gpu.drawing.GFXx3D.draw3DCircle
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.maths.Maths.clamp
+import me.anno.utils.types.Floats.toRadians
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 
@@ -44,10 +45,10 @@ object GFXx2D {
     fun getSizeY(value: Int) = value.shr(16).and(0xffff)
     fun getSize(x: Int, y: Int) = clamp(x, 0, 0xffff) or clamp(y, 0, 0xffff).shl(16)
 
-    fun drawCircle(
+    private val circleStack = Matrix4fArrayList()
+    fun drawCircleOld(
         x: Int, y: Int,
-        radiusX: Float, radiusY: Float,
-        innerRadius: Float,
+        radiusX: Float, radiusY: Float, innerRadius: Float,
         startDegrees: Float, endDegrees: Float,
         color: Vector4f
     ) {
@@ -55,7 +56,8 @@ object GFXx2D {
         val rx = (x - GFX.viewportX).toFloat() / GFX.viewportWidth * 2 - 1
         val ry = (1f - (y - GFX.viewportY).toFloat() / GFX.viewportHeight) * 2 - 1
 
-        val stack = Matrix4fArrayList()
+        val stack = circleStack
+        stack.identity()
         stack.translate(rx, ry, 0f)
         stack.scale(2f * radiusX / GFX.viewportWidth, 2f * radiusY / GFX.viewportHeight, 1f)
 
@@ -69,10 +71,70 @@ object GFXx2D {
             for (dy in 0 until 5) {
                 stack.pushMatrix()
                 stack.translate((dx - 2f) / (2.5f * GFX.viewportWidth), (dy - 2f) / (2.5f * GFX.viewportHeight), 0f)
-                draw3DCircle(stack, innerRadius, startDegrees, endDegrees, color)
+                GFXx3D.draw3DCircle(stack, innerRadius, startDegrees, endDegrees, color)
                 stack.popMatrix()
             }
         }
+
+    }
+
+    fun drawCircle(
+        x: Int, y: Int,
+        radiusX: Float, radiusY: Float, innerRadius: Float,
+        startDegrees: Float, endDegrees: Float,
+        color: Vector4f
+    ) {
+
+        val shader = ShaderLib.shader2DCircle.value
+        shader.use()
+
+        posSize(shader, x - radiusX, y - radiusY, radiusX * 2f, radiusY * 2f)
+
+        shader.v1f("innerRadius", innerRadius)
+        if (innerRadius > 0f) {
+            shader.v4f("innerColor", 0f, 0f, 0f, 0f)
+        } else {
+            shader.v4f("innerColor", color)
+        }
+        shader.v4f("tiling", 1f, 1f, 0f, 0f)
+        shader.v4f("circleColor", color)
+        shader.v4f("backgroundColor", 0f, 0f, 0f, 0f)
+        shader.v2f("degrees", startDegrees.toRadians(), endDegrees.toRadians())
+        shader.v1f("smoothness", 1.5f)
+
+        GFX.flat01.draw(shader)
+
+    }
+
+
+    fun drawCircle(
+        x: Int, y: Int,
+        radiusX: Float, radiusY: Float, innerRadius: Float,
+        innerColor: Int,
+        circleColor: Int,
+        backgroundColor: Int,
+        smoothness: Float = 1.5f // 1f is perfect, but I prefer 1.5f
+    ) {
+
+        val shader = ShaderLib.shader2DCircle.value
+        shader.use()
+
+        // plus padding of 1 for better border smoothness
+        posSize(shader, x - radiusX - 1f, y - radiusY - 1f, radiusX * 2f + 2f, radiusY * 2f + 2f)
+
+        val factor = radiusX / (radiusX + 2f)
+        shader.v1f("outerRadius", factor)
+        shader.v1f("innerRadius", innerRadius * factor)
+        shader.v4f("innerColor", if (innerRadius > 0f) backgroundColor else innerColor)
+
+        shader.v4f("tiling", 1f, 1f, 0f, 0f)
+        shader.v4f("circleColor", circleColor)
+        shader.v4f("backgroundColor", backgroundColor)
+        val time = Engine.gameTimeF.toFloat()
+        shader.v2f("degrees", time % 6.28f, 6f)
+        shader.v1f("smoothness", smoothness)
+
+        GFX.flat01.draw(shader)
 
     }
 

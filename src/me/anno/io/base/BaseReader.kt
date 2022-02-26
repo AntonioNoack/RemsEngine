@@ -103,7 +103,7 @@ abstract class BaseReader {
 
     companion object {
 
-        private val UnitSaveable = object : Saveable() {}
+        private val UnitSaveable = Saveable()
 
         private val LOGGER = LogManager.getLogger(BaseReader::class)
 

@@ -6,7 +6,7 @@ import me.anno.io.text.TextWriter
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 
-abstract class Saveable : ISaveable {
+open class Saveable : ISaveable {
 
     override fun save(writer: BaseWriter) {}
 

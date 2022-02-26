@@ -50,6 +50,7 @@ import me.anno.ui.dragging.Draggable
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.strings.StringHelper.setNumber
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Strings.formatTime
@@ -739,11 +740,12 @@ class FileExplorerEntry(
         fun drawLoadingCircle(relativeTime: Float, x0: Int, x1: Int, y0: Int, y1: Int) {
             val r = 1f - sq(relativeTime * 2 - 1)
             val radius = min(y1 - y0, x1 - x0) / 2f
-            GFXx2D.drawCircle(
+            val color = JomlPools.vec4f.borrow()
+            GFXx2D.drawCircleOld(
                 (x0 + x1) / 2, (y0 + y1) / 2, radius, radius, 0f,
                 relativeTime * 360f * 4 / 3,
                 relativeTime * 360f * 2,
-                Vector4f(1f, 1f, 1f, r * 0.2f)
+                color.set(1f, 1f, 1f, r * 0.2f)
             )
         }
 

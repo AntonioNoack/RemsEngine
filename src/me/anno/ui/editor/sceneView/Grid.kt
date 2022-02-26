@@ -74,6 +74,17 @@ object Grid {
 
     fun drawSmoothLine(
         x0: Float, y0: Float, x1: Float, y1: Float,
+        color: Int, alpha: Float
+    ) {
+        val x = GFX.viewportX
+        val y = GFX.viewportY
+        val w = GFX.viewportWidth
+        val h = GFX.viewportHeight
+        drawSmoothLine(x0 - x, y0 - y, x1 - x, y1 - y, w, h, color, alpha)
+    }
+
+    fun drawSmoothLine(
+        x0: Float, y0: Float, x1: Float, y1: Float,
         x: Int, y: Int, w: Int, h: Int, color: Int, alpha: Float
     ) {
         drawSmoothLine(x0 - x, y0 - y, x1 - x, y1 - y, w, h, color, alpha)

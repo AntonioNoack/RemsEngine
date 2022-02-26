@@ -2,7 +2,8 @@ package me.anno.graph.ui
 
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
-import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
+import me.anno.gpu.GFX
+import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.graph.Graph
 import me.anno.graph.Node
@@ -12,8 +13,10 @@ import me.anno.graph.types.FlowGraph
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.distance
 import me.anno.maths.Maths.max
+import me.anno.maths.Maths.mixARGB
 import me.anno.maths.Maths.pow
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.menu.Menu.openMenu
@@ -23,18 +26,15 @@ import me.anno.ui.editor.sceneView.Grid.drawSmoothLine
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
 import org.joml.Vector3d
+import kotlin.math.*
 
 open class GraphPanel(var graph: Graph? = null, style: Style) :
     PanelList(null, style) {
 
-    // todo graphics: billboards: light only / override color
+    // todo graphics: billboards: light only / override color (decals)
     // todo rendered when point is visible, or always (for nice light camera-bug effects, e.g. stars with many blades)
 
-    // todo allow moving around
-    // todo zooming in and out
-    // todo show all nodes
     // todo reset transform to get back in case you are lost
-    // todo zoom onto a node?
 
     // todo add scroll bars, when the content goes over the borders
 
@@ -109,29 +109,25 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
         }
     }
 
+    val centerX get() = x + w / 2
+    val centerY get() = y + h / 2
+
     fun windowToCoordsDirX(wx: Double) = wx / scale
     fun windowToCoordsDirY(wy: Double) = wy / scale
-
-    fun windowToCoordsX(wx: Double) = (wx - x - w / 2) / scale + center.x
-    fun windowToCoordsY(wy: Double) = (wy - y - h / 2) / scale + center.y
-
-    fun coordsToWindowX(cx: Double) = x + ((cx - center.x) * scale) + w / 2
-    fun coordsToWindowY(cy: Double) = y + ((cy - center.y) * scale) + h / 2
 
     fun coordsToWindowDirX(cx: Double) = cx * scale
     fun coordsToWindowDirY(cy: Double) = cy * scale
 
-    // todo show soft coordinate lines
-    // todo powers of two
-    /*override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        // background
-        super.onDraw(x0, y0, x1, y1)
+    fun windowToCoordsX(wx: Double) = (wx - centerX) / scale + center.x
+    fun windowToCoordsY(wy: Double) = (wy - centerY) / scale + center.y
 
-    }*/
+    fun coordsToWindowX(cx: Double) = (cx - center.x) * scale + centerX
+    fun coordsToWindowY(cy: Double) = (cy - center.y) * scale + centerY
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         if (Input.isLeftDown) {
             if (dragged == null) {
+                // moving around
                 center.x -= dx / scale
                 center.y -= dy / scale
                 invalidateLayout()
@@ -143,29 +139,68 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
     }
 
     override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
-        dragged = null
+        if (dragged != null) {
+            dragged = null
+            invalidateDrawing()
+        }
     }
 
+    var minScale = 0.001
+    var maxScale = 2.0
+
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
+        val oldX = windowToCoordsX(x.toDouble())
+        val oldY = windowToCoordsY(y.toDouble())
         val multiplier = pow(1.05, dy.toDouble())
-        scale *= multiplier
+        scale = clamp(scale * multiplier, minScale, maxScale)
+        val newX = windowToCoordsX(x.toDouble())
+        val newY = windowToCoordsY(y.toDouble())
         // zoom in on the mouse pointer
-        val centerX = this.x + this.w / 2
-        val centerY = this.y + this.h / 2
-        center.x += (x - centerX) * (multiplier - 1.0)
-        center.y += (y - centerY) * (multiplier - 1.0)
+        center.x += (oldX - newX)
+        center.y += (oldY - newY)
         invalidateLayout()
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         drawBackground(x0, y0, x1, y1)
+        drawGrid(x0, y0, x1, y1)
         drawNodeConnections(x0, y0, x1, y1)
         drawChildren(x0, y0, x1, y1)
-        drawSimpleTextCharByChar(x, y, 2, "scale: $scale")
+    }
+
+    var gridColor = 0x10ffffff
+
+    fun drawGrid(x0: Int, y0: Int, x1: Int, y1: Int) {
+        val gridColor = mixARGB(backgroundColor, gridColor, gridColor.a() / 255f) or black
+        // what grid makes sense? power of 2
+        // what is a good grid? one stripe every 10-20 px maybe
+        val targetStripeDistancePx = 30.0
+        val gridSize = toPowerOf2(targetStripeDistancePx / scale)
+        val gridX0 = windowToCoordsX(x0.toDouble())
+        val gridX1 = windowToCoordsX(x1.toDouble())
+        val gridY0 = windowToCoordsY(y0.toDouble())
+        val gridY1 = windowToCoordsY(y1.toDouble())
+        val i0 = floor(gridX0 / gridSize).toLong()
+        val i1 = ceil(gridX1 / gridSize).toLong()
+        val j0 = floor(gridY0 / gridSize).toLong()
+        val j1 = ceil(gridY1 / gridSize).toLong()
+        for (i in i0 until i1) {
+            val gridX = i * gridSize
+            val windowX = coordsToWindowX(gridX).toInt()
+            if (windowX in x0 until x1) drawRect(windowX, y0, 1, y1 - y0, gridColor)
+        }
+        for (j in j0 until j1) {
+            val gridY = j * gridSize
+            val windowY = coordsToWindowY(gridY).toInt()
+            if (windowY in y0 until y1) drawRect(x0, windowY, x1 - x0, 1, gridColor)
+        }
+    }
+
+    private fun toPowerOf2(x: Double): Double {
+        return pow(2.0, round(log2(x)))
     }
 
     open fun drawNodeConnections(x0: Int, y0: Int, x1: Int, y1: Int) {
-        // todo draw connection lines
         // todo we could use different styles..
         // todo it would make sense to implement multiple styles, so this could be used in a game in the future as well
         val graph = graph ?: return
@@ -177,12 +212,12 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
                 val py0 = coordsToWindowY(outPosition.y).toFloat()
                 for (nodeInput in nodeOutput.others) {
                     if (nodeInput is NodeInput) {
-                        val inPosition = nodeInput.position
+                        val pos = nodeInput.position
                         val inNode = nodeInput.node
                         val inIndex = max(inNode?.inputs?.indexOf(nodeInput) ?: 0, 0)
                         // val inColor = nodeInput.color or black
-                        val px1 = coordsToWindowX(inPosition.x).toFloat()
-                        val py1 = coordsToWindowY(inPosition.y).toFloat()
+                        val px1 = coordsToWindowX(pos.x).toFloat()
+                        val py1 = coordsToWindowY(pos.y).toFloat()
                         if (distance(px0, py0, px1, py1) > 1f) {
                             connect(px0, py0, px1, py1, inIndex, outIndex, outColor)
                         }
@@ -210,12 +245,13 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
         }
     }
 
+    var lineThickness = max(1, sqrt(GFX.height / 120f).roundToInt())
+
     open fun connect(x0: Float, y0: Float, x1: Float, y1: Float, inIndex: Int, outIndex: Int, color: Int = -1) {
         val yc = (y0 + y1) * 0.5f
         val d0 = (30f + outIndex * 10f) * scale.toFloat()
         val d1 = (30f + inIndex * 10f) * scale.toFloat()
         // go back distance x, and draw around
-        // todo thicker line, maybe 3px on 1080p
         if (x1 - x0 < d0 + d1) {
             // right/left
             drawLine(x0, y0, x0 + d0, y0, color)
@@ -235,9 +271,20 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
     }
 
     fun drawLine(x0: Float, y0: Float, x1: Float, y1: Float, color: Int = -1) {
-        // todo thicker line, maybe 3px on 1080p
-        drawSmoothLine(x0, y0, x1, y1, x, y, w, h, color, color.a() / 255f)
+        if (x0 > x1 || y0 > y1) {
+            drawLine(min(x0, x1), min(y0, y1), max(x0, x1), max(y0, y1), color)
+        } else {
+            val lt = lineThickness
+            val lt2 = lt / 2
+            when {
+                x0 == x1 -> drawRect(x0.toInt() - lt2, y0.toInt() - lt2, lt, (y1 - y0).toInt() + lt, color)
+                y0 == y1 -> drawRect(x0.toInt() - lt2, y0.toInt() - lt2, (x1 - x0).toInt() + lt, lt, color)
+                else -> drawSmoothLine(x0, y0, x1, y1, color, color.a() / 255f)
+            }
+        }
     }
+
+    override val canDrawOverBorders: Boolean = true
 
     companion object {
         @JvmStatic

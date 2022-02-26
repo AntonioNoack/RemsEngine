@@ -1,6 +1,7 @@
 package me.anno.graph.ui
 
 import me.anno.config.DefaultStyle.black
+import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.drawing.GFXx2D.drawCircle
 import me.anno.graph.Node
@@ -9,7 +10,6 @@ import me.anno.input.MouseButton
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
-import org.joml.Vector4f
 import kotlin.math.max
 
 class NodePanel(
@@ -71,9 +71,24 @@ class NodePanel(
         drawBackground(x0, y0, x1, y1)
 
         val font = gp.font
+        val textSize = DrawTexts.getTextSizeY(font, "w", -1, -1)
 
-        val textSize = font.sizeInt * 3 / 4
-        drawText(x + w / 2, y + textSize, font, node.name, -1, backgroundColor, -1, -1, AxisAlignment.CENTER)
+        val backgroundColor = backgroundColor
+        val symbolColor = -1
+        val textColor = -1
+
+        // node title
+        drawText(
+            x + w / 2,
+            y + textSize / 2,
+            font,
+            node.name,
+            textColor,
+            backgroundColor,
+            w * 3 / 4,
+            -1,
+            AxisAlignment.CENTER
+        )
 
         // draw sockets, and their names
         val radius = baseTextSize.toFloat() * 0.7f
@@ -83,16 +98,36 @@ class NodePanel(
             val pos = con.position
             val px = gp.coordsToWindowX(pos.x).toInt()
             val py = gp.coordsToWindowY(pos.y).toInt()
-            drawCircle(px, py, radius, radius, innerRadius, 0f, 360f, Vector4f(1f))
-            drawText(px + dxTxt, py - textSize, font, con.name, -1, backgroundColor, -1, -1, AxisAlignment.MIN)
+            drawCircle(px, py, radius, radius, innerRadius, backgroundColor, symbolColor, backgroundColor)
+            drawText(
+                px + dxTxt,
+                py - textSize / 2,
+                font,
+                con.name,
+                textColor,
+                backgroundColor,
+                -1,
+                -1,
+                AxisAlignment.MIN
+            )
         }
 
         for (con in node.outputs ?: emptyArray()) {
             val pos = con.position
             val px = gp.coordsToWindowX(pos.x).toInt()
             val py = gp.coordsToWindowY(pos.y).toInt()
-            drawCircle(px, py, radius, radius, innerRadius, 0f, 360f, Vector4f(1f))
-            drawText(px - dxTxt, py - textSize, font, con.name, -1, backgroundColor, -1, -1, AxisAlignment.MAX)
+            drawCircle(px, py, radius, radius, innerRadius, backgroundColor, symbolColor, backgroundColor)
+            drawText(
+                px - dxTxt,
+                py - textSize / 2,
+                font,
+                con.name,
+                textColor,
+                backgroundColor,
+                -1,
+                -1,
+                AxisAlignment.MAX
+            )
         }
 
     }
@@ -154,6 +189,11 @@ class NodePanel(
             // todo if touches connector, and had connector, connect them
             gp.invalidateDrawing()
         } else super.onMouseUp(x, y, button)
+    }
+
+    override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
+        gp.center.set(node.position)
+        invalidateLayout()
     }
 
 }
