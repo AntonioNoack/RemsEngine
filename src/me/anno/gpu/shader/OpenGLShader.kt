@@ -81,7 +81,7 @@ abstract class OpenGLShader(
         fun logShader(shaderName: String, vertex: String, fragment: String) {
             if (logShaders) {
                 val folder = OS.desktop.getChild("shaders")
-                folder.mkdirs()
+                folder.tryMkdirs()
                 fun print(ext: String, data: String) {
                     val name = "$shaderName.$ext".toAllowedFilename() ?: return
                     getReference(folder, name).writeText(data)
@@ -94,7 +94,7 @@ abstract class OpenGLShader(
         fun logShader(shaderName: String, comp: String) {
             if (logShaders) {
                 val folder = OS.desktop.getChild("shaders")
-                folder.mkdirs()
+                folder.tryMkdirs()
                 fun print(ext: String, data: String) {
                     val name = "$shaderName.$ext".toAllowedFilename() ?: return
                     getReference(folder, name).writeText(data)

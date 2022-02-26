@@ -1,9 +1,9 @@
 package me.anno.input
 
 import me.anno.Build
+import me.anno.Engine.gameTime
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.gameTime
 import me.anno.gpu.GFX.window
 import me.anno.gpu.OpenGL
 import me.anno.gpu.debug.DebugGPUStorage
@@ -293,6 +293,7 @@ object Input {
             else -> {
                 if (isControlDown) {
                     if (action == GLFW.GLFW_PRESS) {
+                        // todo use the keymap to decide these things
                         when (key) {
                             GLFW.GLFW_KEY_S -> instance?.save()
                             GLFW.GLFW_KEY_V -> paste()

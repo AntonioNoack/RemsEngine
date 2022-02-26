@@ -1,8 +1,8 @@
 package me.anno.ecs.components.camera
 
+import me.anno.Engine
 import me.anno.ecs.Component
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.GFX
 import me.anno.maths.Maths.clamp
 
 class CameraState : Component() {
@@ -13,7 +13,7 @@ class CameraState : Component() {
     var cameraBlendingProgress = 0.0
 
     override fun onUpdate(): Int {
-        cameraBlendingProgress += GFX.deltaTime / clamp(cameraBlendingTime, 1e-6, 1e3)
+        cameraBlendingProgress += Engine.deltaTime / clamp(cameraBlendingTime, 1e-6, 1e3)
         return 1
     }
 

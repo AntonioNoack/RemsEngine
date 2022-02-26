@@ -1,7 +1,6 @@
 package org.apache.logging.log4j;
 
 import kotlin.reflect.KClass;
-import me.anno.logging.LoggerImpl;
 
 import java.util.HashMap;
 import java.util.HashSet;

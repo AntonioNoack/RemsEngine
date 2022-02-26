@@ -4,6 +4,7 @@ import com.bulletphysics.collision.dispatch.CollisionObject.*
 import com.bulletphysics.dynamics.RigidBody
 import cz.advel.stack.Stack
 import me.anno.ecs.Component
+import me.anno.ecs.Entity
 import me.anno.ecs.annotations.*
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.physics.BulletPhysics.Companion.castB
@@ -60,7 +61,8 @@ open class Rigidbody : Component() {
 
     @DebugWarning
     @NotSerializedProperty
-    val isMissingCollider: String? get() = if (entity!!.hasComponent(Collider::class)) null else "True"
+    val isMissingCollider: String?
+        get() = if (entity!!.hasComponent(Collider::class)) null else "True"
 
     @SerializedProperty
     var activeByDefault = true
@@ -210,6 +212,11 @@ open class Rigidbody : Component() {
                 if (mass < 1e-16) mass = 1.0
             }
         }
+
+    override fun onChangeStructure(entity: Entity) {
+        super.onChangeStructure(entity)
+        entity.physics?.invalidate(entity)
+    }
 
     /**
      * applies "rotation force"

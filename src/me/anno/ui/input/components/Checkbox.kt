@@ -38,15 +38,17 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, val size: In
         minH = size + 2
     }
 
+    private var lastImage = -1
     override fun tickUpdate() {
         super.tickUpdate()
-        if (wasHovered != isHovered) {
+        val leImage = getImage(isChecked)
+        val leImageState = leImage?.state ?: 0
+        if (wasHovered != isHovered || leImageState != lastImage) {
             wasHovered = isHovered
+            lastImage = leImageState
             invalidateDrawing()
         }
     }
-
-    override fun getVisualState(): Any? = getImage(isChecked)?.state
 
     override fun setValue(value: Boolean, notify: Boolean): Checkbox {
         if (isChecked != value) toggle(notify)

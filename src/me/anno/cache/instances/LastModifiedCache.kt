@@ -1,6 +1,6 @@
 package me.anno.cache.instances
 
-import me.anno.gpu.GFX.gameTime
+import me.anno.Engine.gameTime
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.MILLIS_TO_NANOS

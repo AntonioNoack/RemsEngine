@@ -9,7 +9,6 @@ import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.ecs.components.physics.BulletPhysics
 import me.anno.ecs.components.physics.Rigidbody
-import me.anno.ecs.components.physics.constraints.Constraint
 import me.anno.ecs.components.ui.UIEvent
 import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.prefab.PrefabInspector
@@ -23,6 +22,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AABBs.all
 import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.AABBs.set
@@ -42,6 +42,7 @@ import kotlin.reflect.KClass
 
 // done delta settings & control: only saves as values, what was changed from the prefab
 
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 class Entity() : PrefabSaveable(), Inspectable {
 
     constructor(parent: Entity?) : this() {
@@ -157,11 +158,10 @@ class Entity() : PrefabSaveable(), Inspectable {
         } else children.indexOf(child)
     }
 
-    override fun getOptionsByType(type: Char): List<Option>? {
+    override fun getOptionsByType(type: Char): List<Option> {
         return if (type == 'c') Component.getComponentOptions(this)
         else entityOptionList
     }
-
 
     // aabb cache for faster rendering and collision checks
     @DebugProperty
@@ -424,14 +424,13 @@ class Entity() : PrefabSaveable(), Inspectable {
         }
     }
 
-    // todo start the game, and then redirect all events to these functions
     fun onUIEvent(event: UIEvent): Boolean {
-        val hasUpdate = executeOptimizedEvent({ it.hasOnVisibleUpdate }, { it.updateVisible() }) {
+        val hasUpdate = executeOptimizedEvent({ it.hasControlReceiver }, { it.updateVisible() }, {
             if (it is ControlReceiver) {
                 event.call(it)
                 true
             } else false
-        }
+        })
         this.hasControlReceiver = hasUpdate
         return hasControlReceiver
     }
@@ -586,7 +585,8 @@ class Entity() : PrefabSaveable(), Inspectable {
         val parent = parent as? Entity
         if (parent != null) {
             parent.internalChildren.remove(this)
-            if (anyComponent { it.fillSpace(transform.globalTransform, tmpAABB) }) {
+            val tmpAABBd = JomlPools.aabbd.borrow()
+            if (anyComponent { it.fillSpace(transform.globalTransform, tmpAABBd) }) {
                 parent.invalidateCollisionMask()
             }
             parent.invalidateOwnAABB()
@@ -609,31 +609,15 @@ class Entity() : PrefabSaveable(), Inspectable {
 
     private fun onAddComponent(component: Component) {
         // if component is Collider or Rigidbody, update the physics
-        // todo isEnabled for Colliders and Rigidbody needs to have listeners as well
+        // todo isEnabled for Colliders and Rigidbody needs to have listeners as well [is this already done maybe? mmh]
         onChangeComponent(component)
         component.entity = this
     }
 
     fun onChangeComponent(component: Component) {
-        when (component) {
-            is Collider -> {
-                invalidateRigidbody()
-                invalidateCollisionMask()
-            }
-            is Rigidbody -> {
-                physics?.invalidate(this)
-            }
-            is Constraint<*> -> {
-                invalidateRigidbody()
-            }
-            is MeshBaseComponent -> {
-                invalidateCollisionMask()
-                component.ensureBuffer()
-            }
-        }
         hasRenderables = hasComponent(MeshBaseComponent::class, false) ||
                 hasComponent(LightComponentBase::class, false)
-        val tmpAABB = tmpAABB.all()
+        val tmpAABB = JomlPools.aabbd.create().all()
         val fillsSpace = component.fillSpace(transform.globalTransform, tmpAABB)
         if (fillsSpace) invalidateOwnAABB()
         hasSpaceFillingComponents = hasRenderables ||
@@ -641,6 +625,7 @@ class Entity() : PrefabSaveable(), Inspectable {
                     it !is MeshBaseComponent && it !is LightComponentBase &&
                             it.fillSpace(transform.globalTransform, tmpAABB)
                 }
+        JomlPools.aabbd.sub(1)
     }
 
     fun addEntity(child: Entity) {
@@ -950,7 +935,7 @@ class Entity() : PrefabSaveable(), Inspectable {
         // interpolation tests
         /*list += UpdatingTextPanel(50, style) {
             val t = transform
-            "1x/${(t.lastUpdateDt * 1e-9).f3()}s, ${((GFX.gameTime - t.lastUpdateTime) * 1e-9).f3()}s ago"
+            "1x/${(t.lastUpdateDt * 1e-9).f3()}s, ${((Engine.gameTime - t.lastUpdateTime) * 1e-9).f3()}s ago"
         }*/
         PrefabInspector.currentInspector!!.inspect(this, list, style)
     }
@@ -986,7 +971,6 @@ class Entity() : PrefabSaveable(), Inspectable {
 
     companion object {
         private val LOGGER = LogManager.getLogger(Entity::class)
-        private val tmpAABB = AABBd()
         private val entityOptionList = listOf(Option("Entity", "Create a child entity") { Entity() })
     }
 

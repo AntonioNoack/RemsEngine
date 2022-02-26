@@ -206,7 +206,7 @@ class AWTFont(val font: Font) {
     }
 
     fun debug(image: BufferedImage) {
-        OS.desktop.getChild("img").mkdirs()
+        OS.desktop.getChild("img").tryMkdirs()
         use(OS.desktop.getChild("img/${ctr++}.png").outputStream()) {
             ImageIO.write(image, "png", it)
         }

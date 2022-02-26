@@ -290,7 +290,7 @@ abstract class StudioBase(
         synchronized(progressBars) {
             if (progressBars.isNotEmpty()) {
                 val ph = style.getSize("progressbarHeight", 8)
-                val time = GFX.gameTime
+                val time = Engine.gameTime
                 for (index in progressBars.indices) {
                     val bar = progressBars[index]
                     bar.draw(0, ph * index, w, ph, time)

@@ -62,7 +62,9 @@ abstract class TextGroup(
                 ) * 0.667
                 return lengthWithoutSpaces + spacesLength
             }
-            return TextLayout(str, font, ctx).bounds.maxX
+            val bounds = TextLayout(str, font, ctx).bounds
+            // println("[TextLayout, '$str', ${font.size2D}, ${font.size}, ${font.name}] ${bounds.minX} .. ${bounds.maxX}")
+            return bounds.maxX// - bounds.minX
         }
 
         fun getCharLength(char: Int): Double {

@@ -1,5 +1,6 @@
 package me.anno.video
 
+import me.anno.Engine
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL.blendMode
@@ -190,8 +191,8 @@ abstract class FrameTask(
         var lastPrinted = 0L
         var missingResource = ""
             set(value) {
-                if (value.isNotEmpty() && abs(GFX.gameTime - lastPrinted) > 1000_000_000) {
-                    lastPrinted = GFX.gameTime
+                if (value.isNotEmpty() && abs(Engine.gameTime - lastPrinted) > 1000_000_000L) {
+                    lastPrinted = Engine.gameTime
                     LOGGER.info("Waiting for $value")
                 }
                 field = value

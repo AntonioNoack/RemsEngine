@@ -1,17 +1,17 @@
 package me.anno.ui.base
 
+import me.anno.Engine
+import me.anno.Engine.deltaTime
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.deltaTime
 import me.anno.gpu.GFX.hoveredPanel
-import me.anno.input.Input.mouseX
-import me.anno.input.Input.mouseY
+import me.anno.input.Input
+import me.anno.maths.Maths.length
+import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.text.TextPanel
-import me.anno.maths.Maths.length
-import me.anno.ui.Panel
 import me.anno.utils.types.Strings.isBlank2
 import kotlin.math.abs
 import kotlin.math.min
@@ -43,6 +43,9 @@ object Tooltips {
         val fontSize = textPanel.font.sizeInt
         val availableW = min(w, fontSize * 20)
         panel.calculateSize(availableW, h)
+        val window = panel.window
+        val mouseX = window?.mouseX ?: Input.mouseX
+        val mouseY = window?.mouseY ?: Input.mouseY
         // container.applyConstraints()
         val x = min(mouseX.toInt() + fontSize, w - panel.minW)
         val y = if (sourcePanel.y < fontSize) {
@@ -61,13 +64,16 @@ object Tooltips {
 
         if (tooltipReactionTime < 0) return false
 
+        val mouseX = Input.mouseX
+        val mouseY = Input.mouseY
+
         val dx = oldX - mouseX
         val dy = oldY - mouseY
 
         oldX = mouseX
         oldY = mouseY
 
-        val time = GFX.gameTime
+        val time = Engine.gameTime
 
         if (length(dx, dy) > deltaTime) {// 1px / s
             lastMovementTime = time

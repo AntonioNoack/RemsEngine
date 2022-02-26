@@ -1,5 +1,6 @@
 package me.anno.input
 
+import me.anno.Engine.deltaTime
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL.renderDefault
@@ -7,9 +8,9 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.drawing.DrawTexts.getTextSize
 import me.anno.gpu.drawing.GFXx2D.getSizeX
-import me.anno.ui.base.text.TextPanel
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
+import me.anno.ui.base.text.TextPanel
 import org.lwjgl.glfw.GLFW
 
 object ShowKeys {
@@ -33,7 +34,7 @@ object ShowKeys {
         } else {
             key.time =
                 if (key.time < lower) lower
-                else mix(key.time, lower, GFX.deltaTime * 5f)
+                else mix(key.time, lower, deltaTime * 5f)
         }
     }
 
@@ -84,7 +85,7 @@ object ShowKeys {
         }
 
         activeKeys.removeIf { key ->
-            key.time = if (key.time > 1f) 1f else key.time - GFX.deltaTime * decaySpeed
+            key.time = if (key.time > 1f) 1f else key.time - deltaTime * decaySpeed
             val becameOutdated = key.time < 0f
             if (becameOutdated) activeKeysMap.remove(key.keyCode)
             becameOutdated

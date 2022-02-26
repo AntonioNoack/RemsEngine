@@ -73,6 +73,7 @@ import me.anno.io.unity.UnityReader
 import me.anno.io.zip.InnerFolder
 import me.anno.io.zip.InnerPrefabFile
 import me.anno.io.zip.ZipCache
+import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.clamp
 import me.anno.mesh.MeshData
 import me.anno.mesh.MeshData.Companion.warnMissingMesh
@@ -86,6 +87,7 @@ import me.anno.utils.Sleep.waitForGFXThread
 import me.anno.utils.Sleep.waitForGFXThreadUntilDefined
 import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.Sleep.waitUntilDefined
+import me.anno.utils.Warning.unused
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.files.Files.use
 import me.anno.utils.input.Input.readNBytes2
@@ -150,8 +152,7 @@ object Thumbs {
 
     fun invalidate(file: FileReference, neededSize: Int) {
         val size = getSize(neededSize)
-        ImageGPUCache.remove {
-            val key = it.key
+        ImageGPUCache.remove { key, _ ->
             key is ThumbnailKey && key.file == file && key.size == size
         }
     }
@@ -259,7 +260,7 @@ object Thumbs {
         callback: (Texture2D) -> Unit
     ) {
         if (useCacheFolder) {
-            dstFile.getParent()!!.mkdirs()
+            dstFile.getParent()?.tryMkdirs()
             use(dstFile.outputStream()) { ImageIO.write(dst.createBufferedImage(), destinationFormat, it) }
         }
         upload(srcFile, dst, callback)
@@ -275,7 +276,7 @@ object Thumbs {
         if (useCacheFolder) {
             // don't wait to upload the image
             thread(name = "Writing ${dstFile.name} for cached thumbs") {
-                dstFile.getParent()!!.mkdirs()
+                dstFile.getParent()?.tryMkdirs()
                 use(dstFile.outputStream()) { ImageIO.write(dst, destinationFormat, it) }
             }
         }
@@ -291,7 +292,7 @@ object Thumbs {
         if (useCacheFolder) {
             // don't wait to upload the image
             thread(name = "Writing ${dstFile.name} for cached thumbs") {
-                dstFile.getParent()!!.mkdirs()
+                dstFile.getParent()?.tryMkdirs()
                 use(dstFile.outputStream()) { ImageIO.write(dst, destinationFormat, it) }
             }
         }
@@ -653,6 +654,7 @@ object Thumbs {
         collider: Collider,
         callback: (Texture2D) -> Unit
     ) {
+        unused(srcFile)
         renderToBufferedImage(InvalidRef, dstFile, true, previewRenderer, true, callback, size, size) {
             collider.drawAssimp(
                 createPerspectiveList(defaultAngleY, 1f), centerMesh = true, normalizeScale = true
@@ -931,9 +933,9 @@ object Thumbs {
         // 25s timeout, because unzipping all can take its time
         // wait for textures
         if (textures.isEmpty()) return
-        val endTime = GFX.gameTime + timeout * 1e6.toLong()
+        val endTime = Engine.gameTime + timeout * MILLIS_TO_NANOS
         waitForGFXThread(true) {
-            if (GFX.gameTime > endTime) {
+            if (Engine.gameTime > endTime) {
                 // textures may be missing; just ignore them, if they cannot be read
                 textures
                     .filter { !ImageGPUCache.hasImageOrCrashed(it, timeout, true) }

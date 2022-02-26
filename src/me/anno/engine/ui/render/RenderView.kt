@@ -1,6 +1,7 @@
 package me.anno.engine.ui.render
 
 import me.anno.Build
+import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -1255,7 +1256,7 @@ class RenderView(
                 color
             )
         }
-        val time = GFX.gameTime
+        val time = Engine.gameTime
         points.removeIf { it.timeOfDeath < time }
         lines.removeIf { it.timeOfDeath < time }
         rays.removeIf { it.timeOfDeath < time }

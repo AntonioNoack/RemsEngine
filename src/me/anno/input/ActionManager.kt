@@ -1,7 +1,7 @@
 package me.anno.input
 
+import me.anno.Engine.gameTime
 import me.anno.config.DefaultConfig
-import me.anno.gpu.GFX.gameTime
 import me.anno.io.ISaveable
 import me.anno.io.utils.StringMap
 import me.anno.studio.StudioBase

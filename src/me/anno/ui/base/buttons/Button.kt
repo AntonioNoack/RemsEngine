@@ -1,13 +1,8 @@
 package me.anno.ui.base.buttons
 
+import me.anno.Engine
 import me.anno.config.DefaultStyle.black
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.GFX
-import me.anno.gpu.OpenGL.renderDefault
-import me.anno.gpu.drawing.DrawTextures
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
-import me.anno.image.ImageGPUCache.getInternalTexture
 import me.anno.input.Input
 import me.anno.input.Input.mouseDownX
 import me.anno.input.Input.mouseDownY
@@ -15,13 +10,9 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.mixARGB
 import me.anno.ui.Panel
-import me.anno.ui.base.components.Padding
-import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.style.Style
 import kotlin.math.abs
-import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 open class Button(
     var isSquare: Boolean = true,
@@ -39,7 +30,7 @@ open class Button(
 
     override fun tickUpdate() {
         super.tickUpdate()
-        val time = GFX.gameTime
+        val time = Engine.gameTime
         val targetTint = when {
             Input.isLeftDown && contains(mouseDownX, mouseDownY) -> 0f
             isHovered -> 0.5f

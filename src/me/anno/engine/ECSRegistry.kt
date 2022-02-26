@@ -43,6 +43,9 @@ import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
 import me.anno.mesh.assimp.Bone
 import me.anno.ui.Panel
+import me.anno.ui.anim.AnimContainer
+import me.anno.ui.anim.MoveAnimation
+import me.anno.ui.anim.ScaleAnimation
 import me.anno.ui.base.Font
 import me.anno.ui.base.IconPanel
 import me.anno.ui.base.SpacerPanel
@@ -91,8 +94,8 @@ object ECSRegistry {
 
         // ui containers
         val style = DefaultConfig.style
-        registerCustomClass { Font() }
-        registerCustomClass { Padding() }
+        registerCustomClass(Font())
+        registerCustomClass(Padding())
         registerCustomClass { Panel(style) }
         registerCustomClass { PanelListX(style) }
         registerCustomClass { PanelListY(style) }
@@ -102,6 +105,11 @@ object ECSRegistry {
         registerCustomClass { ScrollPanelXY(style) }
         registerCustomClass { NineTilePanel(style) }
         registerCustomClass { TitledListY(style) }
+
+        // ui animations
+        registerCustomClass { AnimContainer(style) }
+        registerCustomClass(MoveAnimation())
+        registerCustomClass(ScaleAnimation())
 
         // ui content
         registerCustomClass { TextPanel(style) }

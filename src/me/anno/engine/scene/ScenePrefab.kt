@@ -51,6 +51,8 @@ object ScenePrefab : InnerPrefabFile(
             instances.add(e)
         }
 
+        // todo our saving system should be good enough now, that we can move the tests out of here
+
         if (false) {
 
             // root has bullet physics, because the players need physics as well
@@ -346,7 +348,7 @@ object ScenePrefab : InnerPrefabFile(
 
     fun removePlayer(entity: Entity, player: Entity) {
         for (child in entity.children) {
-            child.remove(entity)
+            child.remove(player)
         }
     }
 

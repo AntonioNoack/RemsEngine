@@ -1,5 +1,6 @@
 package me.anno.engine.ui.control
 
+import me.anno.Engine.deltaTime
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -236,7 +237,7 @@ open class ControlScheme(val camera: CameraComponent, val library: EditorState, 
 
     open fun checkMovement() {
         val view = view
-        val dt = GFX.deltaTime
+        val dt = deltaTime
         val factor = clamp(20.0 * dt, 0.0, 1.0)
         val velocity = velocity.mul(1.0 - factor)
         val radius = view.radius

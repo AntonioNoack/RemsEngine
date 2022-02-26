@@ -68,10 +68,6 @@ object PDFCache : CacheSection("PDFCache") {
             if (numberOfPages > 1) {
                 // not optimal, but finding sth optimal is hard anyways, because
                 // we can read a document only sequentially
-                // todo tell the folder, that is should not be sorted for the file explorer
-                // todo or specify a custom sorting
-                // todo or just sort with numbers in mind :)
-                // todo or append 0s..., maybe up to 6 digits?
                 for (i in 1..numberOfPages) {
                     // don't render them, create a sub-pdfs, which contain a single file each
                     val fileName = "$i.pdf"
@@ -90,6 +86,8 @@ object PDFCache : CacheSection("PDFCache") {
                 }
             } else {
                 // todo create pngs/jpegs of different resolution?
+                // todo create image type from it :)
+                // todo add attribute, that marks it as infinite resolution
             }
         }
         ref.returnInstance()

@@ -1,5 +1,6 @@
 package me.anno.ecs.components.mesh
 
+import me.anno.Engine
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.anim.Retargeting
@@ -7,7 +8,6 @@ import me.anno.ecs.components.cache.AnimationCache
 import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
-import me.anno.gpu.GFX
 import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -55,7 +55,7 @@ class AnimRenderer : MeshComponent() {
             return
         }
 
-        val time = GFX.gameTime / 1e9f
+        val time = Engine.gameTime / 1e9f
         // todo find retargeting from the skeleton to the new skeleton...
         // todo if not found, generate it automatically, and try our best to do it perfectly
         // todo retargeting probably needs to include a max/min-angle and angle multiplier and change of base matrices

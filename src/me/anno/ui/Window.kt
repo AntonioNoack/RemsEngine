@@ -3,6 +3,7 @@ package me.anno.ui
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL.renderDefault
+import me.anno.gpu.OpenGL.renderPurely
 import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -21,13 +22,17 @@ import kotlin.math.min
 
 open class Window(
     panel: Panel,
+    var isTransparent: Boolean,
     val isFullscreen: Boolean,
     val windowStack: WindowStack,
     var x: Int, var y: Int
 ) {
 
-    constructor(panel: Panel, windowStack: WindowStack) : this(panel, true, windowStack, 0, 0)
-    constructor(panel: Panel, windowStack: WindowStack, x: Int, y: Int) : this(panel, false, windowStack, x, y)
+    constructor(panel: Panel, isTransparent: Boolean, windowStack: WindowStack) :
+            this(panel, isTransparent, true, windowStack, 0, 0)
+
+    constructor(panel: Panel, isTransparent: Boolean, windowStack: WindowStack, x: Int, y: Int) :
+            this(panel, isTransparent, false, windowStack, x, y)
 
     val mouseX get() = windowStack.mouseX
     val mouseY get() = windowStack.mouseY
@@ -53,6 +58,7 @@ open class Window(
         return this
     }
 
+    // todo optimized way to request redraw-updates: e.g. for blinking cursors only a very small section actually changes
     val needsRedraw = LimitedList<Panel>(16)
     val needsLayout = LimitedList<Panel>(16)
 
@@ -67,7 +73,7 @@ open class Window(
 
     // the graphics may want to draw directly on the panel in 3D, so we need a depth texture
     // we could use multiple samples, but for performance reasons, let's not do that, when it's not explicitly requested
-    val buffer = Framebuffer("window-${panel.className}", 0, 0, 1, 1, false, DepthBufferType.TEXTURE)
+    val buffer = Framebuffer("window-${panel.className}", 1, 1, 1, 1, false, DepthBufferType.TEXTURE)
 
     init {
         panel.window = this
@@ -110,8 +116,7 @@ open class Window(
         var didSomething = didSomething0
         val panel = panel
 
-        // panel0.updateVisibility(lastMouseX.toInt(), lastMouseY.toInt())
-        panel.updateVisibility(Input.mouseX.toInt(), Input.mouseY.toInt())
+        panel.updateVisibility(mouseX.toInt(), mouseY.toInt())
 
         for (p in windowStack.inFocus) {
             if (p.window == this) {
@@ -181,17 +186,21 @@ open class Window(
 
         GFX.loadTexturesSync.clear()
         GFX.loadTexturesSync.push(false)
+
         if (Input.needsLayoutUpdate()) {
             calculateFullLayout(w, h)
         }
 
-        useFrame(panel0.x, panel0.y, panel0.w, panel0.h, false, dstBuffer, Renderer.colorRenderer) {
+        val w2 = min(panel0.w, w)
+        val h2 = min(panel0.h, h)
+        useFrame(panel0.x, panel0.y, w2, h2, false, dstBuffer, Renderer.colorRenderer) {
             panel0.canBeSeen = true
-            panel0.draw(panel0.x, panel0.y, panel0.x + panel0.w, panel0.y + panel0.h)
+            panel0.draw(panel0.x, panel0.y, panel0.x + w2, panel0.y + h2)
         }
 
     }
 
+    private val wasRedrawn = ArrayList<Panel>()
     private fun sparseRedraw(
         panel0: Panel, didSomething0: Boolean,
         forceRedraw: Boolean,
@@ -200,8 +209,9 @@ open class Window(
 
         var didSomething = didSomething0
 
-        val wasRedrawn = ArrayList<Panel>()
         val needsRedraw = needsRedraw
+        val wasRedrawn = wasRedrawn
+        wasRedrawn.clear()
 
         if (needsRedraw.isNotEmpty()) {
 
@@ -248,6 +258,7 @@ open class Window(
                 GFX.loadTexturesSync.clear()
                 GFX.loadTexturesSync.push(true)
 
+                // todo if the window is being rescaled, reuse the old fb
                 useFrame(
                     x0, y0, x1 - x0, y1 - y0,
                     true, buffer, Renderer.colorRenderer
@@ -298,11 +309,23 @@ open class Window(
 
     private fun drawCachedImage(panel: Panel, wasRedrawn: Collection<Panel>, dstBuffer: Framebuffer?) {
         useFrame(panel.x, panel.y, panel.w, panel.h, false, dstBuffer) {
-            renderDefault {
-                buffer.checkSession()
-                GFX.copy(buffer)
+            if (isTransparent) {
+                renderDefault {
+                    buffer.checkSession()
+                    GFX.copy(buffer)
+                    if (showRedraws) {
+                        showRedraws(wasRedrawn)
+                    }
+                }
+            } else {
+                renderPurely {
+                    buffer.checkSession()
+                    GFX.copy(buffer)
+                }
                 if (showRedraws) {
-                    showRedraws(wasRedrawn)
+                    renderDefault {
+                        showRedraws(wasRedrawn)
+                    }
                 }
             }
         }

@@ -1,18 +1,15 @@
 package me.anno.input
 
-import me.anno.gpu.GFX
-import me.anno.maths.Maths.distance
+import me.anno.Engine
 import me.anno.maths.Maths.length
 import me.anno.ui.utils.WindowStack
 import me.anno.utils.bugs.SumOf
-import org.joml.Vector2d.lengthSquared
 import org.joml.Vector3f
 import kotlin.math.max
-import kotlin.math.sqrt
 
 class Touch(var x: Float, var y: Float) {
 
-    val t0 = GFX.gameTime
+    val t0 = Engine.gameTime
     val x0 = x
     val y0 = y
     var dx = 0f

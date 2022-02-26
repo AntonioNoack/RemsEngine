@@ -1,7 +1,9 @@
 package me.anno.cache.keys
 
+import java.awt.Font
+
 data class TextSegmentKey(
-    val font: java.awt.Font,
+    val font: Font,
     val isBold: Boolean, val isItalic: Boolean,
     val text: CharSequence, val charSpacing: Float
 ) {
@@ -27,9 +29,7 @@ data class TextSegmentKey(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as TextSegmentKey
+        if (other !is TextSegmentKey) return false
 
         if (hashCode != other.hashCode) return false
         if (font.name != other.font.name) return false

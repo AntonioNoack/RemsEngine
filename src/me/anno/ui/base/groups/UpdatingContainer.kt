@@ -1,6 +1,6 @@
 package me.anno.ui.base.groups
 
-import me.anno.gpu.GFX
+import me.anno.Engine
 import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
@@ -14,7 +14,7 @@ class UpdatingContainer(updateMillis: Long, val getter: () -> Panel?, style: Sty
     var lastUpdate = 0L
 
     override fun tickUpdate() {
-        val time = GFX.gameTime
+        val time = Engine.gameTime
         if (abs(lastUpdate - time) >= updateNanos) {
             val value = getter()
             visibility = Visibility[value != null]

@@ -1,11 +1,11 @@
 package me.anno.ui.editor.files
 
+import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.input.Input.setClipboardContent
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReferenceAsync
 import me.anno.io.files.FileReference.Companion.getReferenceOrTimeout
 import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
@@ -46,7 +46,6 @@ import me.anno.utils.files.Files.listFiles2
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.hpc.UpdatingTask
 import me.anno.utils.process.BetterProcessBuilder
-import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.History
 import org.apache.logging.log4j.LogManager
 import java.io.File
@@ -210,28 +209,6 @@ abstract class FileExplorer(
         content.clear()
     }
 
-    // todo when searching, use a thread for that
-    // todo regularly sleep 0ms inside of it:
-    // todo when the search term changes, kill the thread
-
-    val sorter2 = { a: Panel, b: Panel ->
-        // define the order for the file entries:
-        // first .., then folders, then files
-        // first a, then z, ...
-        // not all folders may be sorted
-        a as FileExplorerEntry
-        b as FileExplorerEntry
-        (b.isParent.compareTo(a.isParent)).ifSame {
-            val af = getReferenceAsync(a.path)
-            val bf = getReferenceAsync(b.path)
-            if (af != null && bf != null) {
-                bf.isDirectory.compareTo(af.isDirectory).ifSame {
-                    af.name.compareTo(bf.name, true)
-                }
-            } else 0
-        }
-    }
-
     val searchTask = UpdatingTask("FileExplorer-Query") {}
 
     override fun onDestroy() {
@@ -360,7 +337,7 @@ abstract class FileExplorer(
             title.file = folder// ?.toString() ?: "This Computer"
             title.tooltip = if (folder == FileRootRef) "This Computer" else folder.toString()
             createResults()
-        } else isValid -= GFX.deltaTime
+        } else isValid -= Engine.deltaTime
         if (loading != 0L) invalidateDrawing()
     }
 
@@ -368,7 +345,7 @@ abstract class FileExplorer(
         super.onDraw(x0, y0, x1, y1)
         if (loading != 0L) {
             // todo why is the circle not showing up?
-            drawLoadingCircle((GFX.gameTime - loading) / 1e9f, x0, y0, x1, y1)
+            drawLoadingCircle((Engine.gameTime - loading) / 1e9f, x0, y0, x1, y1)
         }
     }
 
@@ -490,7 +467,7 @@ abstract class FileExplorer(
                             { -1 }) {
                             val validName = it.toAllowedFilename()
                             if (validName != null) {
-                                home.getChild(validName).mkdirs()
+                                home.getChild(validName).tryMkdirs()
                                 invalidate()
                             }
                         }
@@ -542,7 +519,7 @@ abstract class FileExplorer(
                 }
             }
             GFX.isGFXThread() -> {
-                loading = GFX.gameTime
+                loading = Engine.gameTime
                 invalidateDrawing()
                 thread(name = "switchTo($folder)") {
                     try {

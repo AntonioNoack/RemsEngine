@@ -40,7 +40,7 @@ open class VideoCreator(
         if (w % 2 != 0 || h % 2 != 0) throw RuntimeException("width and height must be divisible by 2")
     }
 
-    val startTime = GFX.gameTime
+    val startTime = Engine.gameTime
 
     private lateinit var videoOut: OutputStream
     private lateinit var process: Process
@@ -48,7 +48,7 @@ open class VideoCreator(
     fun init() {
 
         if (output.exists) output.delete()
-        else output.getParent()?.mkdirs()
+        else output.getParent()?.tryMkdirs()
 
         val extension = output.extension.lowercase(Locale.getDefault())
         val isGIF = extension == "gif"

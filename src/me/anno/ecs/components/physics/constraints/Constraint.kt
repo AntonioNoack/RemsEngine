@@ -3,6 +3,7 @@ package me.anno.ecs.components.physics.constraints
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.Transform
 import me.anno.ecs.Component
+import me.anno.ecs.Entity
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.DebugWarning
 import me.anno.ecs.annotations.Type
@@ -68,6 +69,11 @@ abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constrain
         t.origin.set(castB(otherPosition))
         t.basis.set(castB(otherRotation))
         return t
+    }
+
+    override fun onChangeStructure(entity: Entity) {
+        super.onChangeStructure(entity)
+        entity.invalidateRigidbody()
     }
 
     abstract fun createConstraint(a: RigidBody, b: RigidBody, ta: Transform, tb: Transform): TypedConstraint

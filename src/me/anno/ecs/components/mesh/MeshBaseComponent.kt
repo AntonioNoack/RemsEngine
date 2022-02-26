@@ -7,7 +7,6 @@ import me.anno.ecs.components.CollidingComponent
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
-import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.types.AABBs.transformUnion
@@ -36,6 +35,12 @@ abstract class MeshBaseComponent : CollidingComponent() {
     open fun ensureBuffer() {}
 
     abstract fun getMesh(): Mesh?
+
+    override fun onChangeStructure(entity: Entity) {
+        super.onChangeStructure(entity)
+        entity.invalidateCollisionMask()
+        ensureBuffer()
+    }
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
         ensureBuffer()

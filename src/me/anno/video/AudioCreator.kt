@@ -1,8 +1,8 @@
 package me.anno.video
 
+import me.anno.Engine
 import me.anno.audio.streams.AudioStream
 import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
-import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.clamp
 import me.anno.utils.process.BetterProcessBuilder
@@ -22,7 +22,7 @@ abstract class AudioCreator(
     val sampleRate: Int
 ) {
 
-    val startTime = GFX.gameTime
+    val startTime = Engine.gameTime
     var onFinished = {}
 
     abstract fun hasStreams(): Boolean

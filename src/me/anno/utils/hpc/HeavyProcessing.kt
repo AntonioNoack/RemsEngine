@@ -105,4 +105,23 @@ object HeavyProcessing {
         }
     }
 
+    /**
+     * groups execution by priority; high priorities get executed first
+     * */
+    inline fun <V> processStage(
+        entries: List<V>,
+        getPriority: (V) -> Double,
+        doIO: Boolean,
+        crossinline stage: (V) -> Unit
+    ) {
+        // may be expensive, if there is tons of extensions...
+        // however, most stuff is inited once only, so it shouldn't matter that much
+        val sortedByPriority = entries
+            .groupBy { getPriority(it) }
+            .entries.sortedByDescending { it.key }
+        for ((_, values) in sortedByPriority) {
+            processStage(values, doIO, stage)
+        }
+    }
+
 }

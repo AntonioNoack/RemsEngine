@@ -1,14 +1,14 @@
 package me.anno.cache
 
+import me.anno.Engine.gameTime
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.gameTime
 import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.structures.maps.KeyPairMap
-import me.anno.utils.structures.maps.Maps.removeIf
+import me.anno.utils.structures.maps.Maps.removeIf2
 import org.apache.logging.log4j.LogManager
 import java.io.FileNotFoundException
 import java.util.concurrent.ConcurrentSkipListSet
@@ -36,11 +36,11 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
     }
 
-    inline fun remove(filter: (Map.Entry<Any, CacheEntry>) -> Boolean): Int {
+    inline fun remove(crossinline filter: (Any, CacheEntry) -> Boolean): Int {
         synchronized(cache) {
-            return cache.removeIf {
-                if (filter(it)) {
-                    it.value.destroy()
+            return cache.removeIf2 { k, v ->
+                if (filter(k, v)) {
+                    v.destroy()
                     true
                 } else false
             }
@@ -433,7 +433,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
     fun update() {
         val time = gameTime
-        remove { (_, entry) -> time > entry.timeoutNanoTime }
+        remove { _, entry -> time > entry.timeoutNanoTime }
         removeDual { _, _, entry -> time > entry.timeoutNanoTime }
     }
 

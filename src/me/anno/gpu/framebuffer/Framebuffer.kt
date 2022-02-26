@@ -136,6 +136,7 @@ class Framebuffer(
         Frame.lastPtr = pointer
         val w = w
         val h = h
+        if (w * h < 1) throw RuntimeException("Invalid framebuffer size $w x $h")
         GFX.check()
         textures = Array(targets.size) { index ->
             val texture = Texture2D("$name-tex[$index]", w, h, samples)

@@ -1,6 +1,6 @@
 package me.anno.ui.debug
 
-import me.anno.gpu.GFX.gameTime
+import me.anno.Engine.gameTime
 import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.texture.Texture2D
 import me.anno.language.translation.Dict

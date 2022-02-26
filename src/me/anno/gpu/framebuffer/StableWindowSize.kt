@@ -1,5 +1,6 @@
 package me.anno.gpu.framebuffer
 
+import me.anno.Engine
 import me.anno.gpu.GFX
 
 class StableWindowSize {
@@ -28,14 +29,14 @@ class StableWindowSize {
         // because resizing all framebuffers is expensive (causes lag)
         val matchesSize = lastW == width && lastH == height
         // 100ms delay
-        val wasNotRecentlyUpdated = lastSizeUpdate + 100_000_000 < GFX.gameTime
+        val wasNotRecentlyUpdated = lastSizeUpdate + 100_000_000 < Engine.gameTime
         if (matchesSize) {
             if (wasNotRecentlyUpdated) {
                 stableWidth = width
                 stableHeight = height
             }
         } else {
-            lastSizeUpdate = GFX.gameTime
+            lastSizeUpdate = Engine.gameTime
             lastW = width
             lastH = height
         }

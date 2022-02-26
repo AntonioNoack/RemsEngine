@@ -1,5 +1,6 @@
 package me.anno.input
 
+import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.io.config.ConfigBasics
@@ -100,7 +101,7 @@ class Controller(val id: Int) {
         numButtons = 0
         numAxes = 0
         isActiveMaybe = 0f
-        lastTime = GFX.gameTime
+        lastTime = Engine.gameTime
     }
 
     private fun isMouseInWindow(): Boolean {
@@ -168,7 +169,7 @@ class Controller(val id: Int) {
 
     fun pollEvents(isFirst: Boolean): Boolean {
 
-        val time = GFX.gameTime
+        val time = Engine.gameTime
         val dt = clamp((time - lastTime) * 1e-9f, 1e-3f, 0.2f)
         lastTime = time
         isActiveMaybe *= (1f - dt)
@@ -209,7 +210,7 @@ class Controller(val id: Int) {
 
     private fun updateButtons(buttons: ByteBuffer? = glfwGetJoystickButtons(glfwId)) {
         if (buttons != null) {
-            val time = GFX.gameTime
+            val time = Engine.gameTime
             numButtons = min(buttons.remaining(), MAX_NUM_BUTTONS)
             for (buttonId in 0 until numButtons) {
                 val rawState = buttons.get()
@@ -242,7 +243,7 @@ class Controller(val id: Int) {
     private fun updateAxes(dt: Float, axes: FloatBuffer? = glfwGetJoystickAxes(glfwId)) {
         if (axes != null) {
 
-            val time = GFX.gameTime
+            val time = Engine.gameTime
             numAxes = min(axes.remaining(), MAX_NUM_AXES)
             for (axisId in 0 until numAxes) {
 
@@ -395,7 +396,7 @@ class Controller(val id: Int) {
                         "that has not actually been calibrated"
             )
             val file = getReference(ConfigBasics.configFolder, "controller/${formatGuid(guid)}.json")
-            file.getParent()?.mkdirs()
+            file.getParent()?.tryMkdirs()
             TextWriter.save(calibration, file)
         }
 

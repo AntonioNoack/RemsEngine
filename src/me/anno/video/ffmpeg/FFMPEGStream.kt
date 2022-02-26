@@ -1,6 +1,6 @@
 package me.anno.video.ffmpeg
 
-import me.anno.gpu.GFX
+import me.anno.Engine
 import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.acquire
@@ -24,9 +24,6 @@ import kotlin.math.roundToInt
 // ffmpeg requires 100MB RAM per instance -> do we really need multiple instances, or does one work fine
 // done keep only a certain amount of ffmpeg instances running
 abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited: Boolean) {
-
-    var sourceFPS = -1.0
-    var sourceLength = 0.0
 
     companion object {
 
@@ -133,13 +130,26 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
     }
 
+    var sourceFPS = -1.0
+    var sourceLength = 0.0
+
+    var codec = ""
+
+    var w = 0
+    var h = 0
+
+    var srcW = 0
+    var srcH = 0
+
+    abstract fun process(process: Process, arguments: List<String>)
+
     abstract fun destroy()
 
     fun run(arguments: List<String>): FFMPEGStream {
 
         if (isProcessCountLimited) acquire(true, processLimiter)
 
-        LOGGER.info("${(GFX.gameTime * 1e-9f).f3()} ${arguments.joinToString(" ")}")
+        LOGGER.info("${(Engine.gameTime * 1e-9f).f3()} ${arguments.joinToString(" ")}")
 
         val builder = BetterProcessBuilder(FFMPEG.ffmpegPathString, arguments.size + 1, true)
         if (arguments.isNotEmpty()) builder += "-hide_banner"
@@ -164,16 +174,6 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             }
         }
     }
-
-    abstract fun process(process: Process, arguments: List<String>)
-
-    var codec = ""
-
-    var w = 0
-    var h = 0
-
-    var srcW = 0
-    var srcH = 0
 
     fun devNull(name: String, stream: InputStream) {
         thread(name = "devNull-$name") {

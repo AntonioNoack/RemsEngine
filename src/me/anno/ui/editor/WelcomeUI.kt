@@ -123,7 +123,7 @@ abstract class WelcomeUI {
         val background = createBackground(style)
         windowStack.push(background)
 
-        val mainWindow = Window(scroll, false, windowStack, 0, 0)
+        val mainWindow = Window(scroll, isTransparent = true, isFullscreen = false, windowStack, 0, 0)
         mainWindow.cannotClose()
         mainWindow.acceptsClickAway = {
             if (it.isLeft) {

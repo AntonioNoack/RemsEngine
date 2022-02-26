@@ -9,8 +9,6 @@ import java.io.IOException
 import java.net.Socket
 import kotlin.math.abs
 
-// todo support different base protocols? idk...
-
 open class Protocol(val bigEndianMagic: Int, val networkProtocol: NetworkProtocol) {
 
     constructor(bigEndianMagic: String, networkProtocol: NetworkProtocol) :

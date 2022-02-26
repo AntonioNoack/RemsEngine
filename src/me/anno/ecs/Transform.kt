@@ -41,7 +41,7 @@ class Transform() : Saveable() {
     var lastDrawTime = 0L
     var lastUpdateDt = 0L
 
-    fun teleportUpdate(time: Long = GFX.gameTime) {
+    fun teleportUpdate(time: Long = Engine.gameTime) {
         lastUpdateTime = time
         lastUpdateDt = 1_000_000_000
         drawTransform.set(globalTransform)
@@ -60,7 +60,7 @@ class Transform() : Saveable() {
         }
     }
 
-    fun onChange(time: Long = GFX.gameTime) {
+    fun onChange(time: Long = Engine.gameTime) {
         val dt = time - lastUpdateTime
         if (dt > 0) {
             lastUpdateTime = time
@@ -68,7 +68,7 @@ class Transform() : Saveable() {
         }
     }
 
-    fun setStateAfterUpdate(state: State, time: Long = GFX.gameTime) {
+    fun setStateAfterUpdate(state: State, time: Long = Engine.gameTime) {
         this.state = state
         onChange(time)
     }
@@ -85,11 +85,11 @@ class Transform() : Saveable() {
         }
     }*/
 
-    fun getDrawMatrix(time: Long = GFX.gameTime): Matrix4x3d {
+    fun getDrawMatrix(time: Long = Engine.gameTime): Matrix4x3d {
         val drawTransform = drawTransform
         val factor = updateDrawingLerpFactor(time)
         if (factor > 0.0) {
-            val extrapolatedTime = (GFX.gameTime - lastUpdateTime).toDouble() / lastUpdateDt
+            val extrapolatedTime = (Engine.gameTime - lastUpdateTime).toDouble() / lastUpdateDt
             // needs to be changed, if the extrapolated time changes -> it changes if the phyisics engine is behind
             // its target -> in the physics engine, we send the game time instead of the physics time,
             // and this way, it's relatively guaranteed to be roughly within [0,1]
@@ -105,13 +105,13 @@ class Transform() : Saveable() {
         return drawTransform
     }
 
-    fun updateDrawingLerpFactor(time: Long = GFX.gameTime): Double {
+    fun updateDrawingLerpFactor(time: Long = Engine.gameTime): Double {
         val v = drawDrawingLerpFactor(time)
         lastDrawTime = time
         return v
     }
 
-    fun drawDrawingLerpFactor(time: Long = GFX.gameTime): Double {
+    fun drawDrawingLerpFactor(time: Long = Engine.gameTime): Double {
         return if (lastUpdateDt <= 0) {
             // hasn't happened -> no interpolation
             drawTransform.set(globalTransform)

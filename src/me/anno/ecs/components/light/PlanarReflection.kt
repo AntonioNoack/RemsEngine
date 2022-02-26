@@ -1,5 +1,6 @@
 package me.anno.ecs.components.light
 
+import me.anno.Engine
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.gui.LineShapes.drawArrowZ
@@ -91,7 +92,7 @@ class PlanarReflection : LightComponentBase() {
         defineFrustum: (camPosition: Vector3d, camRotation: Quaterniond) -> Unit
     ) {
 
-        val transform = transform!!.getDrawMatrix(GFX.gameTime)
+        val transform = transform!!.getDrawMatrix(Engine.gameTime)
         val mirrorPosition = transform.getTranslation(tmp0d)
 
         // local -> global = yes, this is the correct direction

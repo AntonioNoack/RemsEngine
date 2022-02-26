@@ -203,7 +203,7 @@ object Menu {
         val container = ScrollPanelY(list, Padding(1), style, AxisAlignment.MIN)
         container += WrapAlign.LeftTop
 
-        val window = Window(container, false, windowStack, 1, 1)
+        val window = Window(container, isTransparent = false, isFullscreen = false, windowStack, 1, 1)
 
         val padding = 4
         val titleValue = title.name

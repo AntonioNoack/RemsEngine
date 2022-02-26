@@ -1,5 +1,6 @@
 package me.anno.utils.types
 
+import me.anno.maths.Maths
 import org.joml.Vector2fc
 import org.joml.Vector3fc
 import org.joml.Vector4fc
@@ -80,6 +81,11 @@ object Floats {
     fun Double.f3s() = "% .3f".format(Locale.ENGLISH, this)
     fun Double.f2s() = "% .2f".format(Locale.ENGLISH, this)
     fun Double.f1s() = "% .1f".format(Locale.ENGLISH, this)
+
+    fun formatPercent(progress: Int, total: Int) = (progress.toDouble() / total.toDouble()).formatPercent()
+    fun formatPercent(progress: Long, total: Long) = (progress.toDouble() / total.toDouble()).formatPercent()
+    fun Float.formatPercent() = toDouble().formatPercent()
+    fun Double.formatPercent() = Maths.clamp(this * 100.0, 0.0, 100.0).f1()
 
     infix fun ClosedFloatingPointRange<Float>.step(step: Float): Iterator<Float> {
         return object : Iterator<Float> {

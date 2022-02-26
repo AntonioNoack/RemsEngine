@@ -64,7 +64,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
                 panel.textColor = mixARGB(panel.textColor, color, 0.5f)
                 list += panel
             }
-            windowStack.add(Window(listPanel, true, windowStack, 0, 0))
+            windowStack.add(Window(listPanel, isTransparent = false, windowStack))
         }
     }
 

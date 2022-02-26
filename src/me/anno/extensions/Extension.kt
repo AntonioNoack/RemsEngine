@@ -5,7 +5,6 @@ import me.anno.extensions.events.EventHandler
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 
-// todo priorities?...
 abstract class Extension {
 
     lateinit var name: String
@@ -15,6 +14,12 @@ abstract class Extension {
     lateinit var authors: String
 
     lateinit var dependencies: List<String>
+
+    /**
+     * extensions with the same priorities can be inited in parallel,
+     * default value: 0.0; high priorities get executed first
+     * */
+    var priority = 0.0
 
     private val listeners = HashMap<Class<*>, HashSet<ListenerData>>()
 
@@ -33,6 +38,7 @@ abstract class Extension {
         version = info.version
         authors = info.authors
         dependencies = info.dependencies
+        priority = info.priority
     }
 
     fun clearListeners() {

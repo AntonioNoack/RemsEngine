@@ -2,7 +2,7 @@ package me.anno.language.spellcheck
 
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.utils.Sleep
-import me.anno.video.ffmpeg.FFMPEGUtils.formatPercent
+import me.anno.utils.types.Floats.formatPercent
 import org.apache.logging.log4j.LogManager
 import kotlin.math.min
 
@@ -114,7 +114,7 @@ fun waitForResults(timeoutMillis: Long = 30_000) {
     logger.info("Checking $totalLength 'words'")
     while (processed.isNotEmpty()) {
         for (word in processed) {
-            val list = Spellchecking.check(word, true, word)
+            val list = Spellchecking.check(word, true)
             if (list != null) {
                 // found answer :)
                 done.add(word)

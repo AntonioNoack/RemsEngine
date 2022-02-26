@@ -1,7 +1,6 @@
 package me.anno.ui.utils
 
 import me.anno.config.DefaultConfig
-import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.Input
 import me.anno.studio.StudioBase
@@ -13,6 +12,7 @@ import org.joml.Matrix4f
 import java.util.*
 import kotlin.math.max
 
+@Suppress("MemberVisibilityCanBePrivate")
 class WindowStack : Stack<Window>() {
 
     val inFocus = HashSet<Panel>()
@@ -52,14 +52,14 @@ class WindowStack : Stack<Window>() {
         panel?.invalidateDrawing()
     }
 
-    fun push(panel: Panel): Window {
-        val window = Window(panel, this)
+    fun push(panel: Panel, isTransparent: Boolean = false): Window {
+        val window = Window(panel, isTransparent, this)
         push(window)
         return window
     }
 
-    fun push(panel: Panel, fullscreen: Boolean, x: Int, y: Int) {
-        push(Window(panel, fullscreen, this, x, y))
+    fun push(panel: Panel, isTransparent: Boolean, isFullscreen: Boolean, x: Int, y: Int) {
+        push(Window(panel, isTransparent, isFullscreen, this, x, y))
     }
 
     fun getPanelAndWindowAt(x: Float, y: Float) =
@@ -113,7 +113,6 @@ class WindowStack : Stack<Window>() {
 
     }
 
-
     fun updateTransform(transform: Matrix4f, x0: Int, y0: Int, w0: Int, h0: Int, x1: Int, y1: Int, w1: Int, h1: Int) {
 
         viewTransform.set(transform)
@@ -130,7 +129,6 @@ class WindowStack : Stack<Window>() {
         updateMousePosition()
 
     }
-
 
     fun updateMousePosition() {
 

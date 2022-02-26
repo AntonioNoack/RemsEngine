@@ -30,7 +30,7 @@ object Sims3Reader {
         val ref = getReference(folder, "Saves/Fiora.sims3/France_0x0859db50ExportDB.package")
 
         val dst = getReference(desktop, "Sims")
-        dst.mkdirs()
+        dst.tryMkdirs()
         // dst.listChildren()?.map { it.delete() }
         // DBPP would be encrypted data
 

@@ -89,6 +89,8 @@ abstract class Component : PrefabSaveable(), Inspectable {
 
     open fun onBeginPlay() {}
 
+    open fun onChangeStructure(entity: Entity) {}
+
     /**
      * called every x frames
      * return 0, if you don't need this event

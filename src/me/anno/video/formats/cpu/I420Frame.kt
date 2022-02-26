@@ -266,6 +266,7 @@ object I420Frame : CPUFrame() {
 
     @JvmStatic
     fun main(args: Array<String>) {
+        benchmark()
         ImageCPUCache.getImage(pictures.getChild("Anime/70697252_p4_master1200.webp"), false)!!
             .write(desktop.getChild("anime.png"))
     }

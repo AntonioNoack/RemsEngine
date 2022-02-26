@@ -1,5 +1,6 @@
 package me.anno.gpu.pipeline
 
+import me.anno.Engine
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
@@ -70,7 +71,7 @@ class PipelineStage(
 
         val tmpAABBd = AABBd()
 
-        fun getDrawMatrix(entity: Entity?, time: Long = GFX.gameTime): Matrix4x3d? {
+        fun getDrawMatrix(entity: Entity?, time: Long = Engine.gameTime): Matrix4x3d? {
             return entity?.transform?.getDrawMatrix(time)
         }
 
@@ -166,7 +167,7 @@ class PipelineStage(
 
         setupPlanarReflection(pipeline, shader, cameraPosition, worldScale, aabb)
 
-        val time = GFX.gameTime
+        val time = Engine.gameTime
         val numberOfLightsPtr = shader["numberOfLights"]
         if (numberOfLightsPtr >= 0) {
             val maxNumberOfLights = RenderView.MAX_FORWARD_LIGHTS
@@ -333,7 +334,7 @@ class PipelineStage(
         var lastMesh: Mesh? = null
         var lastShader: Shader? = null
 
-        val time = GFX.gameTime
+        val time = Engine.gameTime
 
         // we could theoretically cluster them to need fewer uploads
         // but that would probably be quite hard to implement reliably
@@ -493,7 +494,7 @@ class PipelineStage(
         var lastEntity: Entity? = null
         var lastMesh: Mesh? = null
 
-        val time = GFX.gameTime
+        val time = Engine.gameTime
 
         val shader = defaultShader.value
         shader.use()

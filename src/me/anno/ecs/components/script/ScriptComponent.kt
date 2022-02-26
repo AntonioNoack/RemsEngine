@@ -1,6 +1,7 @@
 package me.anno.ecs.components.script
 
 import me.anno.Build
+import me.anno.Engine
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.ecs.Component
@@ -110,7 +111,7 @@ open class ScriptComponent : Component() {
             val g = JsePlatform.standardGlobals()
             g.set("getTime", object : ZeroArgFunction() {
                 override fun call(): LuaValue {
-                    return LuaValue.valueOf(GFX.gameTime.toDouble() / 1e9)
+                    return LuaValue.valueOf(Engine.gameTime.toDouble() / 1e9)
                 }
             })
             g.set("getName", object : OneArgFunction() {

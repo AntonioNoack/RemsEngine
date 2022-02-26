@@ -267,6 +267,25 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
 
     open fun close() {}
 
+    fun writeEnum(name: String, value: Enum<*>, forceSaving: Boolean = true) {
+        /**
+         * if there is an id, use it instead; must be Int
+         * alternatively, we could write the enum as a string
+         * this would be developer-friendlier :)
+         * at the same time, it causes issues, when old save files are read
+         * */
+        val id = value::class
+            .memberProperties
+            .firstOrNull { it.name == "id" }
+            ?.getter?.call(value)
+        if (id is Int) {
+            writeInt(name, id, forceSaving)
+        } else {
+            LOGGER.warn("Enum class '${value::class}' is missing property 'id' of type Int for automatic serialization!")
+            writeString(name, "${value.ordinal}/${value.name}", forceSaving)
+        }
+    }
+
     /**
      * this is a general function to save a value
      * if you know the type, please use one of the other functions,
@@ -387,24 +406,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             is FileReference -> writeFile(name, value, forceSaving)
             // null
             null -> writeObject(self, name, null, forceSaving)
-            is Enum<*> -> {
-                /**
-                 * if there is an id, use it instead; must be Int
-                 * alternatively, we could write the enum as a string
-                 * this would be developer-friendlier :)
-                 * at the same time, it causes issues, when old save files are read
-                 * */
-                val id = value::class
-                    .memberProperties
-                    .firstOrNull { it.name == "id" }
-                    ?.getter?.call(value)
-                if (id is Int) {
-                    writeInt(name, id, forceSaving)
-                } else {
-                    LOGGER.warn("Enum class '${value::class}' is missing property 'id' of type Int for automatic serialization!")
-                    writeString(name, "${value.ordinal}/${value.name}", forceSaving)
-                }
-            }
+            is Enum<*> -> writeEnum(name, value, forceSaving)
             // java-serializable
             is Serializable -> {
                 // implement it?...

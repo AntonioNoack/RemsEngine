@@ -1,13 +1,13 @@
 package me.anno.engine.ui.control
 
+import me.anno.Engine
 import me.anno.ecs.Transform
 import me.anno.engine.ui.render.RenderView
-import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.input.Input.isShiftDown
 import me.anno.input.MouseButton
-import me.anno.parser.SimpleExpressionParser
 import me.anno.maths.Maths.length
+import me.anno.parser.SimpleExpressionParser
 import me.anno.utils.types.Vectors.safeNormalize
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
@@ -252,7 +252,7 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
         for ((index, transform) in selectedTransforms.withIndex()) {
             if (index >= old.size) break
             transform.setLocal(old[index])
-            transform.teleportUpdate(GFX.gameTime)
+            transform.teleportUpdate(Engine.gameTime)
         }
         old = emptyList()
         mode = Mode.NOTHING

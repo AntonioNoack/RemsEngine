@@ -153,14 +153,13 @@ object FBStack : CacheSection("FBStack") {
         resetFBStack()
     }
 
+    @Suppress("JavaMapForEach")
     private fun resetFBStack() {
         synchronized(cache) {
-            synchronized(cache) {
-                for (value in cache.values) {
-                    val data = value.data
-                    if (data is FBStackData) {
-                        data.nextIndex = 0
-                    }
+            cache.forEach { _, v ->
+                val data = v.data
+                if (data is FBStackData) {
+                    data.nextIndex = 0
                 }
             }
         }

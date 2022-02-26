@@ -166,7 +166,7 @@ class ECSSceneTab(
                         // todo create instance copy, so no state change is permanent
                         // todo still show debug information
                         val panel = PlayView(EditorState, true, style)
-                        val window = object : Window(panel, windowStack) {
+                        val window = object : Window(panel, false, windowStack) {
                             override fun destroy() {
                                 super.destroy()
                                 // reset state

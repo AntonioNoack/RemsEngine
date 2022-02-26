@@ -5,6 +5,7 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.ui.Panel
 import me.anno.ui.base.text.TextPanel
 import me.anno.maths.Maths.mixARGB
+import me.anno.utils.OS
 import kotlin.math.max
 
 object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
@@ -46,7 +47,7 @@ object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
         draw(x, y, x + w, y + h)
     }
 
-    var drawInts = false
+    val drawInts get() = OS.isAndroid
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         drawBackground(x0, y0, x1, y1)

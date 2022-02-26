@@ -96,7 +96,7 @@ object Screenshots {
     ) {
 
         val folder = OS.screenshots
-        folder.mkdirs()
+        folder.tryMkdirs()
 
         val format = SimpleDateFormat("yyyy-MM-dd_HH.mm.ss")
         var name = format.format(Date())

@@ -19,7 +19,7 @@ class TestStudio(val createMainPanel: () -> List<Panel>) : StudioBase(true, "Tes
             ui.add(panel)
         }
         ui.setWeight(1f)
-        windowStack.add(Window(ui, windowStack))
+        windowStack.add(Window(ui, false, windowStack))
     }
 
     override fun loadConfig() {

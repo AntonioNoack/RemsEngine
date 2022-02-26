@@ -13,13 +13,13 @@ import me.anno.utils.hpc.HeavyProcessing
 import kotlin.math.roundToInt
 
 fun main() {
-    convert()
-    // createMesh()
+    // convert()
+    createMesh()
 }
 
 fun createMesh() {
 
-    val file = getReference("C:/XAMPP/htdocs/DigitalCampus/images/map/h375.png")
+    val file = getReference("C:/XAMPP/htdocs/DigitalCampus/images/map/h750.png")
     val image = ImageCPUCache.getImage(file, false)!!
 
     val w = image.width

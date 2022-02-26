@@ -1,5 +1,6 @@
 package me.anno.ui.debug
 
+import me.anno.Engine
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import kotlin.math.max
@@ -24,7 +25,7 @@ object FPSPanel {
         GFX.loadTexturesSync.push(true)
 
         val maxTime = FrameTimes.timeContainer.maxValue
-        formatNumber(text, 0, 6, GFX.currentEditorFPS)
+        formatNumber(text, 0, 6, Engine.currentFPS)
         formatNumber(text, 13, 6, 1f / maxTime)
 
         drawSimpleTextCharByChar(x0, y0, 2, text)

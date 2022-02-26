@@ -97,6 +97,7 @@
       <w>forestgreen</w>
       <w>fprobe</w>
       <w>fract</w>
+      <w>framebuffer</w>
       <w>framebuffers</w>
       <w>fullscreen</w>
       <w>gainsboro</w>
@@ -306,6 +307,7 @@
       <w>upscaled</w>
       <w>usemtl</w>
       <w>uvec</w>
+      <w>uxxxx</w>
       <w>valencian</w>
       <w>vaos</w>
       <w>varyings</w>

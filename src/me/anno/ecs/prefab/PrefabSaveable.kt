@@ -75,8 +75,9 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     fun forAll(run: (PrefabSaveable) -> Unit) {
         run(this)
         for (type in listChildTypes()) {
-            for (child in getChildListByType(type)) {
-                child.forAll(run)
+            val childList = getChildListByType(type)
+            for (index in childList.indices) {
+                childList[index].forAll(run)
             }
         }
     }

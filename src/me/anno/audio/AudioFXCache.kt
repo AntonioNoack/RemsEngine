@@ -1,5 +1,6 @@
 package me.anno.audio
 
+import me.anno.Engine.gameTime
 import me.anno.animation.LoopingState
 import me.anno.audio.AudioPools.SAPool
 import me.anno.audio.streams.AudioFileStream
@@ -9,7 +10,6 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.gameTime
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.clamp
 import me.anno.utils.Sleep.acquire

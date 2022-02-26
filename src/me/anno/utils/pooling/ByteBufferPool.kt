@@ -1,6 +1,6 @@
 package me.anno.utils.pooling
 
-import me.anno.gpu.GFX
+import me.anno.Engine
 import org.lwjgl.system.MemoryUtil
 import java.nio.*
 import java.util.concurrent.atomic.AtomicLong
@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong
 open class ByteBufferPool(val size: Int, val exactMatchesOnly: Boolean, var entryTimeoutNanos: Long = 5_000_000_000L) {
 
     fun freeUnusedEntries() {
-        val time = GFX.gameTime
+        val time = Engine.gameTime
         for (i in 0 until size) {
             if (available[i] != null && time > lastUsed[i] + entryTimeoutNanos) {
                 free(i)
@@ -68,25 +68,25 @@ open class ByteBufferPool(val size: Int, val exactMatchesOnly: Boolean, var entr
     }
 
     // these cause issues, so always keep the original bytebuffer
-   /* fun returnBuffer(buffer: DoubleBuffer?){
-        buffer ?: return
-        returnBuffer(MemoryUtil.memByteBuffer(buffer))
-    }
+    /* fun returnBuffer(buffer: DoubleBuffer?){
+         buffer ?: return
+         returnBuffer(MemoryUtil.memByteBuffer(buffer))
+     }
 
-    fun returnBuffer(buffer: FloatBuffer?){
-        buffer ?: return
-        returnBuffer(MemoryUtil.memByteBuffer(buffer))
-    }
+     fun returnBuffer(buffer: FloatBuffer?){
+         buffer ?: return
+         returnBuffer(MemoryUtil.memByteBuffer(buffer))
+     }
 
-    fun returnBuffer(buffer: IntBuffer?){
-        buffer ?: return
-        returnBuffer(MemoryUtil.memByteBuffer(buffer))
-    }
+     fun returnBuffer(buffer: IntBuffer?){
+         buffer ?: return
+         returnBuffer(MemoryUtil.memByteBuffer(buffer))
+     }
 
-    fun returnBuffer(buffer: ShortBuffer?){
-        buffer ?: return
-        returnBuffer(MemoryUtil.memByteBuffer(buffer))
-    }*/
+     fun returnBuffer(buffer: ShortBuffer?){
+         buffer ?: return
+         returnBuffer(MemoryUtil.memByteBuffer(buffer))
+     }*/
 
     fun returnBuffer(buffer: ByteBuffer?) {
         buffer ?: return
@@ -101,7 +101,7 @@ open class ByteBufferPool(val size: Int, val exactMatchesOnly: Boolean, var entr
             for (i in 0 until size) {
                 if (available[i] == null) {
                     available[i] = buffer
-                    lastUsed[i] = GFX.gameTime
+                    lastUsed[i] = Engine.gameTime
                     return
                 }
             }

@@ -1,8 +1,7 @@
 package me.anno.video.ffmpeg
 
-import me.anno.gpu.GFX
-import me.anno.maths.Maths
-import me.anno.utils.types.Floats.f1
+import me.anno.Engine
+import me.anno.utils.types.Floats.formatPercent
 import me.anno.utils.types.Strings.formatTime2
 import me.anno.utils.types.Strings.withLength
 import org.apache.logging.log4j.Logger
@@ -22,7 +21,7 @@ object FFMPEGUtils {
         onFailure: () -> Unit
     ) {
         val out = stream.bufferedReader()
-        var lastTime = GFX.gameTime
+        var lastTime = Engine.gameTime
         var progressGuess = 0.0
         var hasFailed = false
         val lines = ArrayList<String>()
@@ -51,7 +50,7 @@ object FFMPEGUtils {
                 var fps = 0f
                 // var quality = 0f
                 // var size = 0
-                val thisTime = GFX.gameTime
+                val thisTime = Engine.gameTime
                 val deltaTime = thisTime - lastTime
                 lastTime = thisTime
                 val elapsedTime = (thisTime - startTime) * 1e-9
@@ -113,7 +112,7 @@ object FFMPEGUtils {
                         .formatTime2(0)
                 val progress =
                     if (frameIndex == totalFrameCount) " Done"
-                    else "${formatPercent(relativeProgress)}%".withLength(5)
+                    else "${relativeProgress.formatPercent()}%".withLength(5)
                 val fpsString = if (name == "Audio") "" else "fps: ${fps.toString().withLength(5)}, "
                 logger.info(
                     "$name-Progress: $progress, " +
@@ -134,10 +133,5 @@ object FFMPEGUtils {
                 logger.error(line)
         }
     }
-
-    fun formatPercent(progress: Int, total: Int) = formatPercent(progress.toDouble() / total.toDouble())
-    fun formatPercent(progress: Long, total: Long) = formatPercent(progress.toDouble() / total.toDouble())
-    fun formatPercent(progress: Float) = formatPercent(progress.toDouble())
-    fun formatPercent(progress: Double) = Maths.clamp(progress * 100, 0.0, 100.0).f1()
 
 }

@@ -8,6 +8,7 @@ import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.getTextSize
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
+import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.input.MouseButton
@@ -136,10 +137,9 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         return super.isOpaqueAt(x, y) || textColor.a() >= minOpaqueAlpha
     }
 
-    fun calculateSize(w: Int, h: Int, text: String) {
+    fun calculateSize(w: Int, text: String) {
         val inst = instantTextLoading
         if (inst) loadTexturesSync.push(true)
-        super.calculateSize(w, h)
         val widthLimit = if (breaksIntoMultiline) w - padding.width else -1
         val heightLimit = -1
         if (widthLimit != textCacheKey.widthLimit || heightLimit != textCacheKey.heightLimit ||
@@ -156,12 +156,15 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         minH = max(1, getSizeY(size) + padding.height)
         minW2 = minW
         minH2 = minH
+        // todo remove this, when it is no longer needed
+        this.w = minW
+        this.h = minH
         if (inst) loadTexturesSync.pop()
     }
 
     override fun calculateSize(w: Int, h: Int) {
         val text = if (text.isBlank2()) "." else text
-        calculateSize(w, h, text)
+        calculateSize(w, text)
     }
 
     fun getMaxWidth() = getTextSizeX(font, text, -1, -1) + padding.width

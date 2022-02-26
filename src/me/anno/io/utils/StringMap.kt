@@ -1,8 +1,7 @@
 package me.anno.io.utils
 
 import me.anno.Engine
-import me.anno.animation.Type
-import me.anno.gpu.GFX.gameTime
+import me.anno.Engine.gameTime
 import me.anno.gpu.texture.Filtering
 import me.anno.io.base.BaseWriter
 import me.anno.io.config.ConfigBasics

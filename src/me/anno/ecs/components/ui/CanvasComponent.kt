@@ -26,6 +26,7 @@ import me.anno.input.MouseButton
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
+import me.anno.io.serialization.SerializedProperty
 import me.anno.io.zip.InnerTmpFile
 import me.anno.ui.Panel
 import me.anno.ui.Window
@@ -124,6 +125,15 @@ class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
 
     @NotSerializedProperty
     var framebuffer: Framebuffer? = null
+
+    @SerializedProperty
+    var isTransparent: Boolean = true
+        set(value) {
+            if (field != value) {
+                field = value
+                windowStack.forEach { it.isTransparent = value }
+            }
+        }
 
     @NotSerializedProperty
     var lastPointer: Int = -1
@@ -240,7 +250,7 @@ class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
         clone.windowStack.addAll(windowStack.map {
             val newPanel = it.panel.clone()
             newPanel.parent = clone
-            Window(newPanel, it.isFullscreen, clone.windowStack, it.x, it.y)
+            Window(newPanel, isTransparent, it.isFullscreen, clone.windowStack, it.x, it.y)
         })
     }
 
@@ -265,7 +275,7 @@ class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
                     values.filterIsInstance<Panel>()
                         .map {
                             it.parent = this
-                            Window(it, windowStack, it.x, it.y)
+                            Window(it, isTransparent, windowStack, it.x, it.y)
                         }
                 )
             }

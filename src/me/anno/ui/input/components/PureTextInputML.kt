@@ -1,10 +1,10 @@
 package me.anno.ui.input.components
 
+import me.anno.Engine
 import me.anno.config.DefaultStyle
 import me.anno.config.DefaultStyle.black
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
-import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
@@ -22,7 +22,6 @@ import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.style.Style
-import me.anno.utils.structures.tuples.Quad
 import me.anno.utils.types.Strings.getIndexFromText
 import me.anno.utils.types.Strings.getLineWidth
 import me.anno.utils.types.Strings.joinChars
@@ -42,6 +41,12 @@ open class PureTextInputML(style: Style) :
         }
 
     var text = ""
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateLayout()
+            }
+        }
 
     var isDragging = false
 
@@ -90,6 +95,12 @@ open class PureTextInputML(style: Style) :
 
     @NotSerializedProperty
     private var lastChangeTime = 0L
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateDrawing()
+            }
+        }
 
     private val changeListeners = ArrayList<(text: String) -> Unit>()
 
@@ -98,7 +109,7 @@ open class PureTextInputML(style: Style) :
     private val joinedText get() = lines.joinToString("\n") { list -> list.joinChars() }
     private val actualChildren = (content as PanelListY).children
     private val scrollbarStartY get() = if (minW > w) actualChildren.last().run { y + h - 3 } else y + h
-    private val wasJustChanged get() = abs(GFX.gameTime - lastChangeTime) < 200_000_000
+    private val wasJustChanged get() = abs(Engine.gameTime - lastChangeTime) < 200_000_000
     val styleSample get() = actualChildren[0] as TextPanel
 
     private fun updateLines() {
@@ -125,8 +136,11 @@ open class PureTextInputML(style: Style) :
 
                 override fun setCursor(position: Int) {
                     // set cursor after replacement
-                    cursor1.set(position, indexInParent)
-                    cursor2.set(cursor1)
+                    if (cursor1 != cursor2 || cursor1.x != position || cursor1.y != indexInParent) {
+                        cursor1.set(position, indexInParent)
+                        cursor2.set(cursor1)
+                        this@PureTextInputML.invalidateDrawing()
+                    }
                 }
 
                 override fun updateChars(notify: Boolean) {
@@ -148,13 +162,12 @@ open class PureTextInputML(style: Style) :
 
     override fun tickUpdate() {
         super.tickUpdate()
-        val blinkVisible = ((GFX.gameTime / 500_000_000L) % 2L == 0L)
+        val blinkVisible = ((Engine.gameTime / 500_000_000L) % 2L == 0L)
         val isInFocus = isInFocus || content.isInFocus || (content as PanelList).children.any { it.isInFocus }
+        val oldShowBars = showBars
         showBars = isInFocus && (blinkVisible || wasJustChanged)
-        if (isInFocus) invalidateDrawing()
+        if (isInFocus || showBars != oldShowBars) invalidateDrawing()
     }
-
-    override fun getVisualState() = Quad(showBars, cursor1, cursor2, text)
 
     override fun calculateSize(w: Int, h: Int) {
         loadTexturesSync.push(true)
@@ -323,7 +336,7 @@ open class PureTextInputML(style: Style) :
 
     fun insert(insertion: String) {
         if (insertion.isNotEmpty()) {
-            lastChangeTime = GFX.gameTime
+            lastChangeTime = Engine.gameTime
             for (cp in insertion.codePoints()) {
                 insert(cp, false)
             }
@@ -353,7 +366,7 @@ open class PureTextInputML(style: Style) :
     }
 
     fun insert(insertion: Int, notify: Boolean) {
-        lastChangeTime = GFX.gameTime
+        lastChangeTime = Engine.gameTime
         deleteSelection()
         when (insertion) {
             '\n'.code -> {
@@ -391,7 +404,7 @@ open class PureTextInputML(style: Style) :
     }
 
     fun deleteBefore() {
-        lastChangeTime = GFX.gameTime
+        lastChangeTime = Engine.gameTime
         if (!deleteSelection() && cursor1.x + cursor1.y > 0) {
             if (cursor1.x == 0) {
                 // join lines
@@ -435,7 +448,7 @@ open class PureTextInputML(style: Style) :
     }
 
     override fun onCharTyped(x: Float, y: Float, key: Int) {
-        lastChangeTime = GFX.gameTime
+        lastChangeTime = Engine.gameTime
         addKey(key)
     }
 
@@ -457,7 +470,7 @@ open class PureTextInputML(style: Style) :
             cursor2.set(cursor1)
         }
         ensureCursorBounds()
-        lastChangeTime = GFX.gameTime
+        lastChangeTime = Engine.gameTime
     }
 
     private fun moveLeft() {
@@ -477,7 +490,7 @@ open class PureTextInputML(style: Style) :
             cursor2.set(cursor1)
         }
         ensureCursorBounds()
-        lastChangeTime = GFX.gameTime
+        lastChangeTime = Engine.gameTime
     }
 
     private fun moveUp() {
@@ -493,7 +506,7 @@ open class PureTextInputML(style: Style) :
             cursor2.set(cursor1)
         }
         ensureCursorBounds()
-        lastChangeTime = GFX.gameTime
+        lastChangeTime = Engine.gameTime
     }
 
     private fun moveDown() {
@@ -509,7 +522,7 @@ open class PureTextInputML(style: Style) :
             cursor2.set(cursor1)
         }
         ensureCursorBounds()
-        lastChangeTime = GFX.gameTime
+        lastChangeTime = Engine.gameTime
     }
 
     override fun onCopyRequested(x: Float, y: Float): String? {

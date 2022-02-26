@@ -1,7 +1,7 @@
 package me.anno.ui.base.progress
 
+import me.anno.Engine
 import me.anno.config.DefaultStyle.black
-import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
@@ -12,10 +12,10 @@ class ProgressBar(val unit: String, var total: Double) {
 
     private var finishTime = 0L
     private var cancelTime = 0L
-    private var lastUpdate = GFX.gameTime
+    private var lastUpdate = Engine.gameTime
 
     private var lastDrawnUpdate = 0.0
-    private var lastDraw = GFX.gameTime
+    private var lastDraw = Engine.gameTime
 
     fun add(deltaProgress: Int) = add(deltaProgress.toDouble())
     fun add(deltaProgress: Long) = add(deltaProgress.toDouble())
@@ -23,30 +23,30 @@ class ProgressBar(val unit: String, var total: Double) {
 
     fun add(deltaProgress: Double) {
         progress += deltaProgress
-        lastUpdate = GFX.gameTime
+        lastUpdate = Engine.gameTime
         checkFinish()
     }
 
     fun update(newProgress: Double) {
         progress = newProgress
-        lastUpdate = GFX.gameTime
+        lastUpdate = Engine.gameTime
         checkFinish()
     }
 
     fun checkFinish() {
         if (progress >= total) {
-            finishTime = GFX.gameTime
+            finishTime = Engine.gameTime
             progress = total
         }
     }
 
     fun finish() {
         progress = total
-        finishTime = GFX.gameTime
+        finishTime = Engine.gameTime
     }
 
     fun cancel() {
-        cancelTime = GFX.gameTime
+        cancelTime = Engine.gameTime
     }
 
     fun canBeRemoved(time: Long): Boolean {

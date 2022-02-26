@@ -1,5 +1,6 @@
 package me.anno.ui.base.groups
 
+import me.anno.Engine
 import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.style.Style
@@ -54,36 +55,46 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
     }
 
     override fun setPosition(x: Int, y: Int) {
-        super.setPosition(x, y)
+        // todo some elements don't like this shortcut either...
+        if (true || needsPosUpdate(x, y)) {
+            lastPosTime = Engine.gameTime
 
-        val availableW = w - padding.width
-        val availableH = h - padding.height
+            super.setPosition(x, y)
 
-        var perWeight = 0f
-        val sumWeight = sumWeight
-        val sumConst = sumConst
-        if (availableH > sumConst && sumWeight > 1e-7f) {
-            val extraAvailable = availableH - sumConst
-            perWeight = extraAvailable / sumWeight
-        }
+            val availableW = w - padding.width
+            val availableH = h - padding.height
 
-        var currentY = y + padding.top
-        val childX = x + padding.left
+            var perWeight = 0f
+            val sumWeight = sumWeight
+            val sumConst = sumConst
+            if (availableH > sumConst && sumWeight > 1e-7f) {
+                val extraAvailable = availableH - sumConst
+                perWeight = extraAvailable / sumWeight
+            }
 
-        val children = children
-        for (i in children.indices) {
-            val child = children[i]
-            if (child.visibility != Visibility.GONE) {
-                var childH = (child.minH + perWeight * max(0f, child.weight)).roundToInt()
-                val currentH = currentY - y
-                val remainingH = availableH - currentH
-                childH = min(childH, remainingH)
-                child.calculateSize(availableW, childH)
-                child.setPosSize(childX, currentY, availableW, childH)
-                currentY += childH + spacing
+            var currentY = y + padding.top
+            val childX = x + padding.left
+
+            val children = children
+            for (i in children.indices) {
+                val child = children[i]
+                if (child.visibility != Visibility.GONE) {
+                    var childH = (child.minH + perWeight * max(0f, child.weight)).roundToInt()
+                    val currentH = currentY - y
+                    val remainingH = availableH - currentH
+                    childH = min(childH, remainingH)
+                    if (child.w != availableW || child.h != childH) {
+                        // update the children, if they need to be updated
+                        child.calculateSize(availableW, childH)
+                    }
+                    //if (child.x != childX || child.y != currentY || child.w != availableW || child.h != childH) {
+                    // something changes, or constraints are used
+                    child.setPosSize(childX, currentY, availableW, childH)
+                    //}
+                    currentY += childH + spacing
+                }
             }
         }
-
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {

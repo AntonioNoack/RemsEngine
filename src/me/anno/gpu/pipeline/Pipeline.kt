@@ -1,5 +1,6 @@
 package me.anno.gpu.pipeline
 
+import me.anno.Engine
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.cache.MaterialCache
@@ -22,7 +23,6 @@ import me.anno.gpu.pipeline.M4x3Delta.set4x3delta
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
-import me.anno.io.files.FileReference
 import me.anno.utils.LOGGER
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.sorting.MergeSort.mergeSort
@@ -127,7 +127,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         // its drawn position probably should be smoothed -> we probably should use the drawnMatrix instead of the global one
         // we may want to set a timestamp, so we don't update it twice? no, we fill the pipeline only once
         val invWorldTransform = light.invWorldMatrix
-        val drawTransform = entity.transform.getDrawMatrix(GFX.gameTime)
+        val drawTransform = entity.transform.getDrawMatrix(Engine.gameTime)
         invWorldTransform
             .set4x3delta(drawTransform, cameraPosition, worldScale)
             .invert()

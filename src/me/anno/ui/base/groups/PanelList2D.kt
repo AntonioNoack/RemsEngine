@@ -1,5 +1,6 @@
 package me.anno.ui.base.groups
 
+import me.anno.Engine
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.input.Input
@@ -118,14 +119,14 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
             if (scrollbar.updateAlpha()) invalidateDrawing()
         }
         if (autoScrollLastUpdate < autoScrollEndTime) {
-            val delta = autoScrollPerNano * (GFX.gameTime - autoScrollLastUpdate)
+            val delta = autoScrollPerNano * (Engine.gameTime - autoScrollLastUpdate)
             if (delta > 0L) {
                 scrollPositionY = if (autoScrollLastUpdate < autoScrollEndTime && delta < 1f) {
                     mix(scrollPositionY, autoScrollTargetPosition, delta.toDouble())
                 } else autoScrollTargetPosition
                 clampScrollPosition()
                 invalidateLayout()
-                autoScrollLastUpdate = GFX.gameTime
+                autoScrollLastUpdate = Engine.gameTime
             }
         }
     }
@@ -144,8 +145,8 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
     fun smoothlyScrollTo(y: Double, duration: Float = 1f) {
         autoScrollTargetPosition = clamp(y, 0.0, maxScrollPositionY.toDouble())
         autoScrollPerNano = 5e-9f / duration
-        autoScrollEndTime = GFX.gameTime + (duration * 1e9f).toLong()
-        autoScrollLastUpdate = GFX.gameTime
+        autoScrollEndTime = Engine.gameTime + (duration * 1e9f).toLong()
+        autoScrollLastUpdate = Engine.gameTime
         if (duration <= 0f) scrollPositionY = autoScrollTargetPosition
         invalidateDrawing()
     }

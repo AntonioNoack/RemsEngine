@@ -1,5 +1,6 @@
 package me.anno.ecs.components.physics
 
+import me.anno.Engine
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.HideInInspector
@@ -25,7 +26,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(val irb
 
     // entities outside these bounds will be killed
     @SerializedProperty
-    var allowedSpace = AABBd()
+    var allowedSpace: AABBd = AABBd()
         .setMin(-1e300, -100.0, -1e300)
         .setMax(+1e300, 1e300, +1e300)
 
@@ -166,7 +167,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(val irb
 
     override fun onUpdate(): Int {
         // todo call this async, and when the step is done
-        step((GFX.deltaTime * 1e9f).toLong(), false)
+        step((Engine.deltaTime * 1e9f).toLong(), false)
         return 1
     }
 
@@ -179,7 +180,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(val irb
 
             if (first) {
                 Thread.sleep(2000)
-                this.time = GFX.gameTime
+                this.time = Engine.gameTime
                 first = false
                 LOGGER.warn("Starting physics")
             }
@@ -190,7 +191,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(val irb
 
             //  todo if too far back in time, just simulate that we are good
 
-            val targetTime = GFX.gameTime
+            val targetTime = Engine.gameTime
             val absMinimumTime = targetTime - targetStepNanos * 2
 
             if (this.time < absMinimumTime) {
@@ -207,7 +208,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(val irb
             } else {
                 // there is still work to do
                 val t0 = System.nanoTime()
-                val debug = false //GFX.gameTime > 10e9 // wait 10s
+                val debug = false //Engine.gameTime > 10e9 // wait 10s
                 if (debug) {
                     Stack.printClassUsage()
                     Stack.printSizes()
@@ -251,7 +252,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(val irb
         this.time += dt
 
         // is not correct for the physics, but we use it for gfx only anyways
-        // val time = GFX.gameTime
+        // val time = Engine.gameTime
 
         val deadEntities = ArrayList<Entity>()
         val deadRigidBodies = ArrayList<ExternalRigidBody>()

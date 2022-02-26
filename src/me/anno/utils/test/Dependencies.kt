@@ -41,12 +41,20 @@ fun main() {
                                 val startIndex0 = line.indexOfFirst { c -> c != ' ' && c != '\t' } + "import".length
                                 val startIndex1 = line.withIndex()
                                     .indexOfFirst { (index, c) -> index > startIndex0 && c != ' ' && c != '\t' }
-                                val endIndex = line.withIndex().indexOfFirst { (index, c) ->
+                                val endIndex1 = line.withIndex().indexOfFirst { (index, c) ->
                                     index > startIndex1 && c !in 'A'..'Z' && c !in 'a'..'z' && c !in '0'..'9' &&
                                             c !in ".*"
                                 }
-                                if (startIndex1 in (startIndex0 + 1) until endIndex) {
-                                    val importPath = line.substring(startIndex1, endIndex)
+                                if (startIndex1 in (startIndex0 + 1) until endIndex1) {
+                                    var importPath = line.substring(startIndex1, endIndex1)
+                                    if (importPath == "static") {
+                                        val startIndex2 = line.withIndex()
+                                            .indexOfFirst { (index, c) -> index > endIndex1 && c != ' ' && c != '\t' }
+                                        val endIndex2 = line.withIndex().indexOfFirst { (index, c) ->
+                                            index > startIndex2 && c !in 'A'..'Z' && c !in 'a'..'z' && c !in '0'..'9' && c !in ".*"
+                                        }
+                                        importPath = line.substring(startIndex2, endIndex2)
+                                    }
                                     if (ignoredPaths.none { importPath.startsWith(it) }) {
                                         /*if (importPath.startsWith(mainPath)) {
                                             importPath = importPath.substring(mainPath.length)
@@ -67,9 +75,26 @@ fun main() {
     // todo visualize graph?
     // todo find parts, which could be extracted
 
-    for ((name, node) in graph.toSortedMap()) {
-        // todo merge similar paths into stars
-        println("$name: ${node.sorted()}")
+    for ((nodeName, node) in graph.toSortedMap()) {
+        // todo merge similar paths into [Name1,Name2,Name3]
+        val byPrefix = HashMap<String, HashSet<String>>()
+        node.filter { !it.startsWith(nodeName) }
+            .forEach { pathName ->
+                val index = pathName.lastIndexOf('.')
+                if (index > 0) {
+                    val name = pathName.substring(index + 1)
+                    val path = pathName.substring(0, index)
+                    byPrefix.getOrPut(path) { HashSet() }
+                        .add(name)
+                }
+            }
+        println(
+            "$nodeName: [${
+                byPrefix.toSortedMap().entries.joinToString { (path, names) ->
+                    if (names.size == 1) "$path.${names.first()}" else "$path.${names.toSortedSet().joinToString("/")}"
+                }
+            }]"
+        )
     }
 
 }

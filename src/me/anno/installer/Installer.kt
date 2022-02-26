@@ -55,7 +55,7 @@ object Installer {
             try {
                 val con = URL(totalURL).openConnection() as HttpURLConnection
                 val input = con.inputStream.buffered()
-                dstFile.getParent()?.mkdirs()
+                dstFile.getParent()?.tryMkdirs()
                 val output = tmp.outputStream().buffered()
                 val totalLength = con.contentLength.toLong()
                 val buffer = ByteArray(DEFAULT_BUFFER_SIZE)

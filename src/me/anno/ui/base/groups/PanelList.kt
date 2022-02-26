@@ -1,5 +1,6 @@
 package me.anno.ui.base.groups
 
+import me.anno.Engine
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
@@ -17,6 +18,11 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
     var disableConstantSpaceForWeightedChildren = false
 
     val padding = Padding(0)
+    var lastPosTime = 0L
+
+    fun needsPosUpdate(x: Int, y: Int): Boolean {
+        return this.x != x || this.y != y || lastPosTime != Engine.gameTime
+    }
 
     open fun clear() {
         children.clear()

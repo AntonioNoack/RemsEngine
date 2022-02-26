@@ -151,7 +151,7 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
         for (srcFile in srcFolder.listChildren() ?: return) {
             if (srcFile.isDirectory) {
                 val dst2 = getReference(dstFolder, srcFile.name)
-                if (!dst2.exists) dst2.mkdirs()
+                if (!dst2.exists) dst2.tryMkdirs()
                 if (dst2.isDirectory) {
                     copyAssets(srcFile, dst2, false, result)
                 } else LOGGER.warn("Could not create directory $dst2 for $srcFile/${srcFile.name}")
@@ -187,7 +187,7 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
                         // todo compare the contents
                         dstFile = findNextFile(dstFolder, name, "json", 3, '-', 1)
                     }
-                    dstFile.getParent()?.mkdirs()
+                    dstFile.getParent()?.tryMkdirs()
                     dstFile.writeText(TextWriter.toText(newPrefab))
                     newPrefab.source = dstFile
                     result[srcFile] = newPrefab

@@ -1,7 +1,7 @@
 package me.anno.cache
 
+import me.anno.Engine.gameTime
 import me.anno.cache.data.ICacheData
-import me.anno.gpu.GFX.gameTime
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.utils.Sleep
 import kotlin.math.max

@@ -29,7 +29,7 @@ object ConfigBasics {
     @Throws(IOException::class)
     fun save(file: FileReference, data: String): String {
         val parentFile = file.getParent() ?: return data
-        if (!parentFile.exists) parentFile.mkdirs()
+        if (!parentFile.exists) parentFile.tryMkdirs()
         file.writeText(JsonFormatter.format(data))
         return data
     }

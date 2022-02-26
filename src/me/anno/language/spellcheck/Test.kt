@@ -4,11 +4,11 @@ import me.anno.utils.LOGGER
 
 fun main() {
 
-    Spellchecking.check("I love you", true, 0)
+    Spellchecking.check("I love you", true)
 
     var answer: List<*>? = null
     while (answer == null) {
-        answer = Spellchecking.check("I love you", true, 0)
+        answer = Spellchecking.check("I love you", true)
         Thread.sleep(10)
     }
 

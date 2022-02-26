@@ -1,5 +1,6 @@
 package me.anno.ui.base.scrolling
 
+import me.anno.Engine
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.io.serialization.NotSerializedProperty
@@ -33,7 +34,7 @@ open class Scrollbar(style: Style) : Panel(style.getChild("scrollbar")) {
 
     fun updateAlpha(): Boolean {
         val oldAlpha = alpha
-        val time = GFX.gameTime
+        val time = Engine.gameTime
         val dt = abs(time - lastTime) * 1e-9f
         lastTime = time
         alpha = mix(oldAlpha, if (isBeingHovered) 1f else 0f, min(1f, 5f * dt))

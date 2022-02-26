@@ -1,8 +1,8 @@
 package me.anno.video
 
+import me.anno.Engine.startDateTime
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
-import me.anno.gpu.GFX.startDateTime
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
@@ -38,7 +38,7 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
         if (isInitialized) return
         isInitialized = true
         info = ConfigBasics.loadConfig(configName, StringMap(), false)
-        proxyFolder = ConfigBasics.cacheFolder.getChild("proxies").apply { mkdirs() }
+        proxyFolder = ConfigBasics.cacheFolder.getChild("proxies").apply { tryMkdirs() }
         deleteOldProxies()
     }
 
@@ -93,7 +93,7 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
         val h = (meta.videoHeight / scale.toFloat()).roundToInt() and (1.inv())
         // ffmpeg -i input.avi -filter:vf scale=720:-1 -c:a copy output.mkv
         if (w < minSize || h < minSize) return
-        dst.getParent()?.mkdirs()
+        dst.getParent()?.tryMkdirs()
         object : FFMPEGStream(null, true) {
             override fun process(process: Process, arguments: List<String>) {
                 // filter information, that we don't need (don't spam the console that much, rather create an overview for it)

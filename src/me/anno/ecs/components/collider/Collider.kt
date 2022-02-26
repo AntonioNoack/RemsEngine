@@ -34,6 +34,12 @@ abstract class Collider : CollidingComponent() {
 
     open val isConvex: Boolean = true
 
+    override fun onChangeStructure(entity: Entity) {
+        super.onChangeStructure(entity)
+        entity.invalidateRigidbody()
+        entity.invalidateCollisionMask()
+    }
+
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
         val tmp = JomlPools.vec3d.create()
         union(globalTransform, aabb, tmp, false)
@@ -253,7 +259,7 @@ abstract class Collider : CollidingComponent() {
 
     companion object {
         var guiLineColor = 0x77ffff
-        const val COSINE_22_5 = 1.0/1.082392200292394 // 1.0/Math.cos(45*Math.PI/180/2)
+        const val COSINE_22_5 = 1.0 / 1.082392200292394 // 1.0/Math.cos(45*Math.PI/180/2)
         const val INV_COSINE_22_5 = 1.082392200292394 // 1.0/Math.cos(45*Math.PI/180/2)
         const val OUTER_SPHERE_RADIUS_X8 = 1.224744871391589 // sqrt(1.5),
         // what is the inverse of the inner radius of a sphere approximated by 3 rings of 8 segments each

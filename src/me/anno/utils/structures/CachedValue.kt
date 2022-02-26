@@ -1,6 +1,6 @@
 package me.anno.utils.structures
 
-import me.anno.gpu.GFX
+import me.anno.Engine
 import kotlin.math.abs
 
 class CachedValue<V>(val getter: () -> V) {
@@ -10,9 +10,9 @@ class CachedValue<V>(val getter: () -> V) {
 
     val value: V
         get() {
-            if (abs(lastUpdate - GFX.gameTime) > 1_000_000_000) {
+            if (abs(lastUpdate - Engine.gameTime) > 1_000_000_000L) {
                 internal = getter()
-                lastUpdate = GFX.gameTime
+                lastUpdate = Engine.gameTime
             }
             return internal
         }

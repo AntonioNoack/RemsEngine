@@ -5,7 +5,6 @@ import me.anno.image.colormap.ColorMap
 import me.anno.image.colormap.LinearColorMap
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.mixARGB
@@ -32,7 +31,23 @@ object ImageWriter {
 
     fun getFile(name: String): FileReference {
         val name2 = if (name.endsWith("png") || name.endsWith("jpg")) name else "$name.png"
-        return getReference(desktop, name2)
+        val file = desktop.getChild(name2)
+        file.getParent()?.tryMkdirs()
+        return file
+    }
+
+    fun writeImage(name: String, img: BufferedImage) {
+        val file = getFile(name)
+        use(file.outputStream()) {
+            ImageIO.write(img, if (name.endsWith(".jpg")) "jpg" else "png", it)
+        }
+    }
+
+    fun writeImage(name: String, img: Image) {
+        val file = getFile(name)
+        use(file.outputStream()) {
+            img.write(getFile(name))
+        }
     }
 
     inline fun writeRGBImageByte3(
@@ -97,12 +112,7 @@ object ImageWriter {
         for (i in 0 until w * h) {
             imgData[i] = cm.getColor(values[i])
         }
-        val file = desktop.getChild(name)
-        file.getParent()?.mkdirs()
-        use(file.outputStream()) {
-            val img = IntImage(w, h, imgData, false)
-            img.write(getFile(name))
-        }
+        writeImage(name, IntImage(w, h, imgData, false))
     }
 
     fun writeImageFloatWithOffsetAndStride(
@@ -124,12 +134,7 @@ object ImageWriter {
             }
             j += stride - h
         }
-        val file = desktop.getChild(name)
-        file.getParent()?.mkdirs()
-        use(file.outputStream()) {
-            val img = IntImage(w, h, imgData, false)
-            img.write(getFile(name))
-        }
+        writeImage(name, IntImage(w, h, imgData, false))
     }
 
     fun writeImageFloatMSAA(
@@ -165,13 +170,8 @@ object ImageWriter {
                 buffer.setElem(i, color)
             }
         }
-        val file = getFile(name)
-        file.getParent()?.mkdirs()
-        use(file.outputStream()) {
-            ImageIO.write(img, if (name.endsWith(".jpg")) "jpg" else "png", it)
-        }
+        writeImage(name, img)
     }
-
 
     inline fun writeImageFloat(
         w: Int, h: Int, name: String,
@@ -312,9 +312,7 @@ object ImageWriter {
                 }
             }
         }
-        use(getFile(name).outputStream()) {
-            ImageIO.write(img, if (name.endsWith(".jpg")) "jpg" else "png", it)
-        }
+        writeImage(name, img)
     }
 
     fun writeImageInt(
@@ -330,9 +328,7 @@ object ImageWriter {
                 buffer.setElem(i, pixels[i])
             }
         }
-        use(getFile(name).outputStream()) {
-            ImageIO.write(img, if (name.endsWith(".jpg")) "jpg" else "png", it)
-        }
+        writeImage(name, img)
     }
 
     private fun addPoint(image: FloatArray, w: Int, x: Int, y: Int, v: Float) {
@@ -419,7 +415,7 @@ object ImageWriter {
     fun writeImageProfile(
         values: FloatArray, h: Int,
         name: String,
-        map: ColorMap,
+        map: ColorMap = LinearColorMap.default,
         background: Int = -1,
         foreground: Int = 0xff shl 24,
         alpha: Boolean = false,

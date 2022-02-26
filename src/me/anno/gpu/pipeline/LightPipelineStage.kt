@@ -1,5 +1,6 @@
 package me.anno.gpu.pipeline
 
+import me.anno.Engine
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.light.*
@@ -484,7 +485,7 @@ class LightPipelineStage(
 
     fun draw(source: Framebuffer, cameraMatrix: Matrix4fc, cameraPosition: Vector3d, worldScale: Double) {
 
-        val time = GFX.gameTime
+        val time = Engine.gameTime
 
         source.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
 
@@ -612,7 +613,7 @@ class LightPipelineStage(
 
         initShader(shader, cameraMatrix)
 
-        val time = GFX.gameTime
+        val time = Engine.gameTime
 
         val buffer =
             if (visualizeLightCount) lightCountInstanceBuffer

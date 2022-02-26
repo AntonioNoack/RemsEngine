@@ -85,8 +85,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             LOGGER.info("Invalidating $absolutePath")
             val path = absolutePath.replace('\\', '/')
             synchronized(fileCache) {
-                fileCache.remove {
-                    val key = it.key
+                fileCache.remove { key, _ ->
                     key is String && key.startsWith(path)
                 }
             }
@@ -248,22 +247,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     }
 
-    abstract fun getChild(name: String): FileReference
-
-    open fun hasChildren(): Boolean = listChildren()?.isNotEmpty() == true
-
     private var isValid = true
-
-    open fun invalidate() {
-        LOGGER.info("Invalidated $absolutePath")
-        isValid = false
-        // if this has inner folders, replace all of their children as well
-        ZipCache.unzipMaybe(this)?.invalidate()
-    }
-
-    fun validate(): FileReference {
-        return if (isValid) this else getReference(absolutePath)
-    }
 
     /*constructor() : this("")
     constructor(parent: File, name: String) : this(File(parent, name))
@@ -305,6 +289,21 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     fun hide() {
         isHidden = true
+    }
+
+    abstract fun getChild(name: String): FileReference
+
+    open fun hasChildren(): Boolean = listChildren()?.isNotEmpty() == true
+
+    open fun invalidate() {
+        LOGGER.info("Invalidated $absolutePath")
+        isValid = false
+        // if this has inner folders, replace all of their children as well
+        ZipCache.unzipMaybe(this)?.invalidate()
+    }
+
+    fun validate(): FileReference {
+        return if (isValid) this else getReference(absolutePath)
     }
 
     /**

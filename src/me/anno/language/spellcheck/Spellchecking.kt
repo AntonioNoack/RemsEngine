@@ -4,6 +4,7 @@ import me.anno.Engine.shutdown
 import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
 import me.anno.installer.Installer
+import me.anno.io.Streams.listen
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.json.JsonArray
@@ -17,12 +18,10 @@ import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.sleepABit10
 import me.anno.utils.Sleep.sleepShortly
 import me.anno.utils.hpc.Threads.threadWithName
-import me.anno.io.Streams.listen
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.strings.StringHelper.titlecase
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.streams.toList
 
@@ -36,7 +35,6 @@ object Spellchecking : CacheSection("Spellchecking") {
     fun check(
         sentence: CharSequence,
         allowFirstLowercase: Boolean,
-        key: Any,
         async: Boolean = true
     ): List<Suggestion>? {
         val language = language
@@ -44,9 +42,9 @@ object Spellchecking : CacheSection("Spellchecking") {
         var sentence2 = sentence.trim()
         if (allowFirstLowercase) sentence2 = sentence2.toString().titlecase()
         if (sentence2 == "#quit") return null
-        val data = getEntry(Pair(sentence2, language), timeout, async) {
+        val data = getEntry(Pair(sentence2, language), timeout, async) { (seq, lang) ->
             val answer = SuggestionData(null)
-            getValue(sentence2, language, key) { rawSuggestions ->
+            getValue(seq, lang) { rawSuggestions ->
                 answer.value = rawSuggestions
             }
             answer
@@ -60,10 +58,10 @@ object Spellchecking : CacheSection("Spellchecking") {
         } else value
     }
 
-    fun getValue(sentence: CharSequence, language: Language, key: Any, callback: (List<Suggestion>) -> Unit) {
+    fun getValue(sentence: CharSequence, language: Language, callback: (List<Suggestion>) -> Unit) {
         synchronized(this) {
             val queue = queues.getOrPut(language) { start(language) }
-            queue.add(Request(sentence, key, callback))
+            queue.add(Request(sentence, callback))
         }
     }
 
@@ -211,7 +209,7 @@ object Spellchecking : CacheSection("Spellchecking") {
                 // we cannot execute jar files -> have to have the library bundled
                 try {
                     val clazz = javaClass.classLoader.loadClass("me.anno.language.spellcheck.BundledSpellcheck")
-                    val method = clazz.getMethod("runInstance", Language::class.java, ConcurrentHashMap::class.java)
+                    val method = clazz.getMethod("runInstance", Language::class.java, ConcurrentLinkedQueue::class.java)
                     method.invoke(null, language, queue)
                 } catch (e: ClassNotFoundException) {
                     LOGGER.warn(e)

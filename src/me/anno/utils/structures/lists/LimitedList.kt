@@ -6,7 +6,7 @@ import kotlin.math.min
 
 class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
 
-    private val data = arrayOfNulls<Any>(limit)
+    val data = arrayOfNulls<Any>(limit)
 
     fun isFull() = size >= data.size
 
@@ -26,14 +26,31 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
         return size <= data.size
     }
 
-    override fun remove(element: V): Boolean {
-        val index = indexOf(element)
-        if (index >= 0) {
-            size--
-            data[index] = data[size]
-            data[size] = null
+    fun indexOf(element: V): Int {
+        return data.indexOf(element)
+    }
+
+    // implemented to reduce allocations
+    @Suppress("unchecked_cast")
+    inline fun sumOf(run: (V) -> Int): Int {
+        var accumulator = 0
+        val data = data
+        for (i in 0 until size) {
+            accumulator += run(data[i] as V)
         }
-        return index >= 0
+        return accumulator
+    }
+
+    override fun remove(element: V): Boolean {
+        for (index in 0 until size) {
+            if (element == data[index]) {
+                size--
+                data[index] = data[size]
+                data[size] = null
+                return true
+            }
+        }
+        return false
     }
 
     override fun removeAll(elements: Collection<V>): Boolean {
@@ -46,7 +63,7 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
             }
         }
         // if (!isFull()) {
-            size = writeIndex
+        size = writeIndex
         // }
         return writeIndex != oldSize || isFull()
     }
@@ -56,12 +73,13 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
         val oldSize = min(size, data.size)
         for (readIndex in 0 until oldSize) {
             val element = data[readIndex]
+            @Suppress("unchecked_cast")
             if (!p0.test(element as V)) {
                 data[writeIndex++] = element
             }
         }
         // if (!isFull()) {
-            size = writeIndex
+        size = writeIndex
         // }
         return writeIndex != oldSize || isFull()
     }
@@ -76,7 +94,7 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
             }
         }
         // if (!isFull()) {
-            size = writeIndex
+        size = writeIndex
         // }
         return writeIndex != oldSize || isFull()
     }

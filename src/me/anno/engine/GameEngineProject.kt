@@ -39,7 +39,7 @@ class GameEngineProject() : NamedSaveable() {
 
     constructor(location: FileReference) : this() {
         this.location = location
-        location.mkdirs()
+        location.tryMkdirs()
     }
 
     var location: FileReference = InvalidRef // a folder

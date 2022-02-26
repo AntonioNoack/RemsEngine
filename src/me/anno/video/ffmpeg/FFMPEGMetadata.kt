@@ -77,6 +77,7 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
                             videoFrameCount = 1
                             hasVideo = true
                         }
+                        break
                     } catch (e: IOException) {
                     } finally {
                         reader.dispose()

@@ -1,5 +1,6 @@
 package me.anno.engine
 
+import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.prefab.Prefab
@@ -119,7 +120,7 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
     override fun onGameLoopStart() {
         super.onGameLoopStart()
-        GameEngine.scaledDeltaTime = GFX.deltaTime * GameEngine.timeFactor
+        GameEngine.scaledDeltaTime = Engine.gameTimeF * GameEngine.timeFactor
         GameEngine.scaledNanos += (GameEngine.scaledDeltaTime * 1e9).toLong()
         GameEngine.scaledTime = GameEngine.scaledNanos * 1e-9
     }
@@ -158,7 +159,7 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
     override fun createUI() {
 
         workspace = OS.documents.getChild("RemsEngine")
-        workspace.mkdirs()
+        workspace.tryMkdirs()
 
         object : WelcomeUI() {
             override fun createProjectUI() {

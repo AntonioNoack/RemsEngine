@@ -1,19 +1,16 @@
-package me.anno.logging
+package org.apache.logging.log4j
 
-import me.anno.gpu.GFX
+import me.anno.Engine
 import org.apache.commons.logging.Log
-import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.Logger
-import org.apache.logging.log4j.Marker
 import java.util.*
 import java.util.logging.Level
 
 class LoggerImpl(val prefix: String?) : Logger, Log {
 
-    val lastWarned = HashMap<String, Long>()
-    val warningTimeout = 10_000_000_000L
+    private val lastWarned = HashMap<String, Long>()
+    private val warningTimeoutNanos = 10e9.toLong()
 
-    fun interleave(msg: String, args: Array<out Any>): String {
+    private fun interleave(msg: String, args: Array<out Any>): String {
         if (args.isEmpty()) return msg
         return if (msg.contains("{}")) {
             val parts = msg.split("{}")
@@ -27,9 +24,9 @@ class LoggerImpl(val prefix: String?) : Logger, Log {
         }
     }
 
-    val suffix = if (prefix == null) "" else ":$prefix"
+    private val suffix = if (prefix == null) "" else ":$prefix"
 
-    fun getTimeStamp(): String {
+    private fun getTimeStamp(): String {
         val calendar = Calendar.getInstance()
         val seconds = calendar.get(Calendar.SECOND)
         val minutes = calendar.get(Calendar.MINUTE)
@@ -118,8 +115,8 @@ class LoggerImpl(val prefix: String?) : Logger, Log {
 
     override fun warn(msg: String) {
         synchronized(lastWarned) {
-            val time = GFX.gameTime
-            if (msg !in lastWarned || (lastWarned[msg]!! - time) > warningTimeout) {
+            val time = Engine.gameTime
+            if (msg !in lastWarned || (lastWarned[msg]!! - time) > warningTimeoutNanos) {
                 lastWarned[msg] = time
                 print("WARN", msg)
             }

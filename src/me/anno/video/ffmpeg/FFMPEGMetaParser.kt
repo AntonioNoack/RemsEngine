@@ -192,6 +192,4 @@ class FFMPEGMetaParser(): StringMap(){
         }
     }
 
-
-
 }

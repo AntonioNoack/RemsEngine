@@ -115,7 +115,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
     open fun invalidateDrawing() {
         val window = window
         window?.addNeedsRedraw(this)
-        // ?: throw RuntimeException("${javaClass.simpleName} is missing parent, state: $oldLayoutState/$oldVisualState")
     }
 
     open fun tickUpdate() {
@@ -334,7 +333,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
      * may not be fulfilled by container
      * */
     operator fun plusAssign(c: Constraint) {
-        layoutConstraints += c
+        layoutConstraints.add(c)
         layoutConstraints.sortBy { it.order }
     }
 

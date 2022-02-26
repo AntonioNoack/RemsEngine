@@ -25,7 +25,6 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.mesh.Point
-import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.StudioBase.Companion.eventTasks
 import me.anno.ui.Panel
 import me.anno.ui.Window
@@ -102,23 +101,6 @@ object GFX : GFXBase1() {
     var viewportHeight = 0
 
     val flat01 = SimpleBuffer.flat01
-
-    var rawDeltaTime = 0f
-    var deltaTime = 0f
-
-    var currentEditorFPS = 60f
-
-    val startTime = System.nanoTime()
-    private var lastTime = startTime
-
-    val startDateTime = System.currentTimeMillis()
-
-    /**
-     * time since the engine started;
-     * System.nanoTime() is relative to the start time of
-     * the computer anyways;
-     * */
-    val gameTime get() = lastTime - startTime
 
     var drawnId = 0
 
@@ -404,7 +386,7 @@ object GFX : GFXBase1() {
 
         // rendering and editor section
 
-        updateTime()
+        Engine.updateTime()
 
         Input.resetFrameSpecificKeyStates()
 
@@ -438,19 +420,6 @@ object GFX : GFXBase1() {
         resetFBStack()
 
         check()
-
-    }
-
-    fun updateTime() {
-
-        val thisTime = System.nanoTime()
-        rawDeltaTime = (thisTime - lastTime) * 1e-9f
-        deltaTime = min(rawDeltaTime, 0.1f)
-        FrameTimes.putTime(rawDeltaTime)
-
-        val newFPS = 1f / rawDeltaTime
-        currentEditorFPS = min(currentEditorFPS + (newFPS - currentEditorFPS) * 0.05f, newFPS)
-        lastTime = thisTime
 
     }
 

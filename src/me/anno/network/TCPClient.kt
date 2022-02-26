@@ -28,7 +28,7 @@ class TCPClient(val socket: Socket, var randomId: Int) : Closeable {
      * client time minus own system time,
      * so how many nano seconds, the clock of the client is ahead
      * */
-    var localTimeNanos = 0L
+    var localTimeOffset = 0L
 
     val isClosed get() = socket.isClosed || !socket.isConnected || !socket.isBound
 

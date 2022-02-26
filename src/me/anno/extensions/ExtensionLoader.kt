@@ -19,7 +19,8 @@ import java.util.zip.ZipInputStream
 
 object ExtensionLoader {
 
-    // todo do linux soft links work in mods/plugins folder?
+    // q: do linux soft links work in mods/plugins folder?
+    // a: they should, they will just appear as File.canonicalFile != File.absoluteFile
 
     lateinit var pluginsFolder: FileReference
     lateinit var modsFolder: FileReference
@@ -167,8 +168,8 @@ object ExtensionLoader {
 
     fun load(ex: ExtensionInfo): Extension? {
         val className = ex.mainClass
-            .replace('\\','.')
-            .replace('/','.')
+            .replace('\\', '.')
+            .replace('/', '.')
         try {
             // create the main extension instance
             // load the classes
@@ -246,6 +247,7 @@ object ExtensionLoader {
         var isPluginNotMod = true
         var dependencies = ""
         var uuid = ""
+        var priority = 0.0
         var minVersion = 0
         var maxVersion = Integer.MAX_VALUE
         while (true) {
@@ -286,6 +288,7 @@ object ExtensionLoader {
                     "plugin-uuid", "mod-uuid", "plugin-id", "mod-id", "uuid" -> uuid = value
                     "minversion", "min-version" -> minVersion = value.toIntOrNull() ?: minVersion
                     "maxversion", "max-version" -> maxVersion = value.toIntOrNull() ?: maxVersion
+                    "priority" -> priority = value.toDoubleOrNull() ?: priority
                 }
             }
         }
@@ -300,7 +303,8 @@ object ExtensionLoader {
                 uuid, file,
                 name, description, version, authors,
                 minVersion, maxVersion,
-                mainClass, isPluginNotMod, dependencyList
+                mainClass, isPluginNotMod,
+                priority, dependencyList
             )
         }
         return null

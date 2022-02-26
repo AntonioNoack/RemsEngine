@@ -25,7 +25,7 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
     open val enableSpellcheck = true
     private val suggestions get() =
         if (enableSpellcheck && !isShowingPlaceholder){
-            Spellchecking.check(text, allowFirstLowercase, this)
+            Spellchecking.check(text, allowFirstLowercase)
         } else null
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
