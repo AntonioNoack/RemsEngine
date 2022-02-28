@@ -447,10 +447,8 @@ class Mesh : PrefabSaveable() {
 
         calculateAABB()
 
-        if (positions == null) throw RuntimeException("mesh has no positions")
-
         // not the safest, but well...
-        val positions = positions ?: return
+        val positions = positions ?: return // throw RuntimeException("mesh has no positions")
 
         // if normals are null or have length 0, compute them
         if (normals == null)

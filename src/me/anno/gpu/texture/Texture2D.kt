@@ -12,8 +12,8 @@ import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.image.Image
 import me.anno.image.RotateJPEG
-import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.maths.Maths.clamp
+import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.pooling.ByteArrayPool
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.IntArrayPool
@@ -947,7 +947,7 @@ open class Texture2D(
                 creationIndex = 0
                 creationSession = OpenGL.session
                 glGenTextures(creationIndices)
-                GFX.check()
+                check()
             }
             return creationIndices[creationIndex++]
         }
@@ -965,6 +965,15 @@ open class Texture2D(
 
         fun destroyTextures() {
             if (texturesToDelete.isNotEmpty()) {
+                // unbind old textures
+                for (slot in boundTextures.indices) {
+                    val tex = boundTextures[slot]
+                    if (tex > 0 && tex in texturesToDelete) {
+                        activeSlot(slot)
+                        bindTexture(GL_TEXTURE_2D, 0)
+                        boundTextures[slot] = 0
+                    }
+                }
                 glDeleteTextures(texturesToDelete.toIntArray())
                 texturesToDelete.clear()
             }

@@ -1,9 +1,10 @@
 package me.anno.config
 
+import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.config.ConfigBasics
 import me.anno.io.utils.StringMap
-import me.anno.ui.style.Style
 import me.anno.maths.Maths.mixARGB
+import me.anno.ui.style.Style
 import me.anno.utils.OS
 import org.joml.Vector3f
 import org.joml.Vector3fc

@@ -6,6 +6,7 @@ import me.anno.fonts.signeddistfields.algorithm.SDFMaths.getOrthonormal
 import me.anno.fonts.signeddistfields.algorithm.SDFMaths.nonZeroSign
 import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
+import me.anno.maths.Maths
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBf
 import org.joml.Vector2f
@@ -60,6 +61,17 @@ class LinearSegment(val p0: Vector2fc, val p1: Vector2fc) : EdgeSegment() {
         JomlPools.vec2f.sub(3)
 
         return dst
+    }
+
+    companion object {
+        fun signedDistanceSq(px: Float, py: Float, ax: Float, ay: Float, bx: Float, by: Float): Float {
+            val pax = px - ax
+            val pay = py - ay
+            val bax = bx - ax
+            val bay = by - ay
+            val h = Maths.clamp((pax * bax + pay * bay) / Vector2f.lengthSquared(bax, bay))
+            return Vector2f.lengthSquared(pax - bax * h, pay - bay * h)
+        }
     }
 
 }

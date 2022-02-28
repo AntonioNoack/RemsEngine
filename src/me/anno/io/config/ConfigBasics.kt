@@ -1,6 +1,7 @@
 package me.anno.io.config
 
 import me.anno.gpu.GFXBase0.projectName
+import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.json.JsonFormatter
@@ -58,6 +59,7 @@ object ConfigBasics {
         load(getConfigFile(localFileName), saveIfMissing, getDefault)
 
     fun loadConfig(file: FileReference, defaultValue: StringMap, saveIfMissing: Boolean): StringMap {
+        ISaveable.registerCustomClass(StringMap())
         val read = load(file, saveIfMissing) {
             LOGGER.info("Didn't find $file, using default values")
             TextWriter.toText(defaultValue)

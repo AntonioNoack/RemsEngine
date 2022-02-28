@@ -14,4 +14,6 @@ class Dataset : NamedSaveable() {
     // todo graph / statistical visualization of properties, e.g. damage to quickly find distribution, outliers,...
     // todo generic data types, maybe best just saveables or named saveables :)
 
+    // todo real database system like sqlite as backend
+
 }

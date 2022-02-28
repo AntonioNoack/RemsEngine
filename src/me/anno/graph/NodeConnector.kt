@@ -24,10 +24,6 @@ abstract class NodeConnector : NamedSaveable {
 
     var value: Any? = null
 
-    // todo instead we could define a type, and let the graph ui render them
-    // todo we could have a start and end color
-    var color = -1
-
     // todo special node ui? would help with the layouts :)
     // todo we could add input- and output panels there :)
 
@@ -77,10 +73,17 @@ abstract class NodeConnector : NamedSaveable {
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
+        writer.writeObject(this, "node", node)
         writer.writeObjectList(this, "others", others)
-        writer.writeColor("color", color, true)
         writer.writeString("type", type)
         writer.writeSomething(this, "value", value, true)
+    }
+
+    override fun readObject(name: String, value: ISaveable?) {
+        when (name) {
+            "node" -> node = value as? Node
+            else -> super.readObject(name, value)
+        }
     }
 
     override fun readSomething(name: String, value: Any?) {
@@ -101,13 +104,6 @@ abstract class NodeConnector : NamedSaveable {
         when (name) {
             "others" -> others = values.filterIsInstance<NodeConnector>()
             else -> super.readObjectArray(name, values)
-        }
-    }
-
-    override fun readInt(name: String, value: Int) {
-        when (name) {
-            "color" -> color = value
-            else -> super.readInt(name, value)
         }
     }
 

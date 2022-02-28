@@ -38,6 +38,7 @@ import me.anno.ui.input.TextInput
 import me.anno.ui.input.components.Checkbox
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
+import me.anno.utils.structures.maps.Maps.removeIf
 import org.joml.Vector3d
 import kotlin.math.*
 
@@ -94,6 +95,10 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
                 children.add(panel)
                 panel
             }
+        }
+        if (nodeToPanel.size > graph.nodes.size) {
+            val set = graph.nodes.toSet()
+            nodeToPanel.removeIf { it.key !in set }
         }
     }
 
@@ -533,7 +538,7 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
                     .apply { setTextSize(font.size) }
             }
             "Bool", "Boolean" -> {
-                if(old is Checkbox) return old
+                if (old is Checkbox) return old
                     .apply { size = font.sizeInt }
                 return Checkbox(con.value == true, false, font.sizeInt, style)
             }

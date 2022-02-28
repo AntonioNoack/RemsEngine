@@ -11,7 +11,6 @@ import me.anno.gpu.shader.FlatShaders.copyShader
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
-import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.brightness
 import me.anno.gpu.shader.ShaderLib.simplestVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
@@ -19,6 +18,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.maths.Maths.log
+import me.anno.maths.Maths.max
 import me.anno.maths.Maths.sq
 import kotlin.math.exp
 
@@ -34,7 +34,7 @@ object Bloom {
     private const val maxSteps = 16 // equal to (65k)² pixels
 
     // minimum buffer size
-    private const val minSize = 4
+    private const val minSize = 8
 
     // temporary buffer for this object
     private val tmpForward = arrayOfNulls<Framebuffer>(maxSteps)
@@ -55,10 +55,10 @@ object Bloom {
 
         for (i in 0 until maxSteps) {
 
-            if (i > 0 && (wi shr 1 < minSize || hi shr 1 < minSize)) return i
+            if (i > 0 && (wi < minSize || hi < minSize)) return i
 
             // x blur pass
-            wi = wi shr 1
+            wi = max((wi + 1) shr 1, 1)
             shaderX.use()
             val bufferX = FBStack["bloomX", wi, hi, 4, true, 1, false]
             useFrame(bufferX, renderer) {
@@ -68,7 +68,7 @@ object Bloom {
             }
 
             // y blur pass
-            hi = hi shr 1
+            hi = max( (hi + 1) shr 1, 1)
             shaderY.use()
             val bufferY = FBStack["bloomY", wi, hi, 4, true, 1, false]
             useFrame(bufferY, renderer) {

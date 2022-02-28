@@ -74,6 +74,7 @@ import me.anno.input.Input.isKeyDown
 import me.anno.input.Input.isShiftDown
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.roundDiv
 import me.anno.maths.Maths.sq
 import me.anno.mesh.Shapes
 import me.anno.ui.Panel
@@ -90,6 +91,7 @@ import org.joml.Math.toRadians
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL45.*
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.tan
 
 
@@ -427,6 +429,10 @@ class RenderView(
 
     }
 
+    // be more conservative with framebuffer size changes,
+    // because they are expensive -> only change every 20th frame
+    val mayChangeSize get() = (Engine.frameIndex % 20 == 0)
+
     private fun drawScene(
         x0: Int, y0: Int, x1: Int, y1: Int,
         camera: CameraComponent,
@@ -441,19 +447,30 @@ class RenderView(
         when (renderMode) {
             RenderMode.FSR_SQRT2 -> {
                 // 12/17 ~ 0.706 ~ sqrt 1/2
-                w = w * 12 / 17
-                h = h * 12 / 17
+                w = roundDiv(w * 12, 17)
+                h = roundDiv(h * 12, 17)
             }
             RenderMode.FSR_X2 -> {
-                w /= 2
-                h /= 2
+                w = (w + 1) / 2
+                h = (h + 1) / 2
             }
             RenderMode.FSR_X4, RenderMode.NEAREST_X4 -> {
-                w /= 4
-                h /= 4
+                w = (w + 2) / 4
+                h = (h + 2) / 4
             }
             else -> {
             }
+        }
+
+        w = max(w, 1)
+        h = max(h, 1)
+
+        val s0 = w * h
+        val s1 = buffer.w * buffer.h
+        val mayChangeSize = mayChangeSize || (w * h < 1024) || min(s0, s1) * 2 <= max(s0, s1)
+        if (!mayChangeSize) {
+            w = buffer.w
+            h = buffer.h
         }
 
         // clock.stop("drawing scene", 0.05)

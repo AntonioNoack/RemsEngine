@@ -32,6 +32,9 @@ abstract class Node() : NamedSaveable() {
     var inputs: Array<NodeInput>? = null
     var outputs: Array<NodeOutput>? = null
 
+    // todo use this color, if defined
+    var color = 0
+
     abstract fun canAddInput(): Boolean
     abstract fun canAddOutput(): Boolean
     abstract fun canRemoveInput(): Boolean
@@ -73,8 +76,14 @@ abstract class Node() : NamedSaveable() {
 
     override fun readObjectArray(name: String, values: Array<ISaveable?>) {
         when (name) {
-            "inputs" -> inputs = values.filterIsInstance<NodeInput>().toTypedArray()
-            "outputs" -> outputs = values.filterIsInstance<NodeOutput>().toTypedArray()
+            "inputs" -> {
+                inputs = values.filterIsInstance<NodeInput>().toTypedArray()
+                inputs?.forEach { it.node = this }
+            }
+            "outputs" -> {
+                outputs = values.filterIsInstance<NodeOutput>().toTypedArray()
+                outputs?.forEach { it.node = this }
+            }
             else -> super.readObjectArray(name, values)
         }
     }

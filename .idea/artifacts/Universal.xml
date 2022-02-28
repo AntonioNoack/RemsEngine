@@ -72,6 +72,7 @@
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/compress/commons-compress-1.20.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/compress/xz-1.9.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/customized/javaFx/OpenWithExplorer.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lib/java/lua/luaj-jse-3.0.2.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>
