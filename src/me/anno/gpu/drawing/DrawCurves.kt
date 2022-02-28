@@ -1,6 +1,5 @@
 package me.anno.gpu.drawing
 
-import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.shader.BaseShader
@@ -8,8 +7,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.maths.Maths.length
-import me.anno.ui.Panel
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 
 // inspired by https://www.shadertoy.com/view/XdVBWd
 object DrawCurves {
@@ -112,6 +110,21 @@ object DrawCurves {
                 "}"
     )
 
+    fun drawLine(
+        x0: Float, y0: Float,
+        x1: Float, y1: Float,
+        thickness: Float,
+        color: Int, background: Int,
+        flatEnds: Boolean,
+        smoothness: Float = 1f
+    ) {
+        // a little overkill ^^, could use its own shader
+        drawQuadraticBezier(
+            x0, y0, (x0 + x1) * 0.5f, (y0 + y1) * 0.5f, x1, y1,
+            thickness, color, background, flatEnds, smoothness
+        )
+    }
+
     fun drawQuadraticBezier(
         x0: Float, y0: Float,
         x1: Float, y1: Float,
@@ -138,6 +151,7 @@ object DrawCurves {
             "tScale", if (flatEnds) 1f else
                 1f + (thickness + smoothness) * 2f / curveLength(x0, y0, x1, y1, x2, y2)
         )
+        // todo if the segment is short or straight, use less steps
         SimpleBuffer.flat11x50.draw(shader)
         GFX.check()
     }
@@ -170,6 +184,7 @@ object DrawCurves {
             "tScale", if (flatEnds) 1f else
                 1f + (thickness + smoothness) * 2f / curveLength(x0, y0, x1, y1, x2, y2, x3, y3)
         )
+        // todo if the segment is short or straight, use less steps
         SimpleBuffer.flat11x50.draw(shader)
         GFX.check()
     }
@@ -219,37 +234,29 @@ object DrawCurves {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        testUI {
-            object : Panel(style) {
-                override fun tickUpdate() {
-                    invalidateDrawing()
-                }
-
-                override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-                    drawBackground(x0, y0, x1, y1)
-                    val s = 300f
-                    val dx = (w - s) / 2f
-                    val dy = (h - s) / 2f
-                    drawCubicBezier(
-                        dx, dy,
-                        dx + s, dy,
-                        dx, dy + s,
-                        dx + s, dy + s,
-                        10f,
-                        -1, backgroundColor,
-                        false
-                    )
-                    drawQuadraticBezier(
-                        dx, dy,
-                        dx + s, dy,
-                        dx + s, dy + s,
-                        5f,
-                        backgroundColor,
-                        backgroundColor and 0xffffff,
-                        false
-                    )
-                }
-            }.setWeight(1f)
+        testDrawing {
+            val s = 300f
+            val dx = (it.w - s) / 2f
+            val dy = (it.h - s) / 2f
+            val bg = it.backgroundColor
+            drawCubicBezier(
+                dx, dy,
+                dx + s, dy,
+                dx, dy + s,
+                dx + s, dy + s,
+                10f,
+                -1, bg,
+                false
+            )
+            drawQuadraticBezier(
+                dx, dy,
+                dx + s, dy,
+                dx + s, dy + s,
+                5f,
+                bg,
+                bg and 0xffffff,
+                false
+            )
         }
     }
 
