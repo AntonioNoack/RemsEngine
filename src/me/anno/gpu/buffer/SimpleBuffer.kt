@@ -81,6 +81,42 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) : StaticBuffer(
             ), intArrayOf(0, 1, 2, 0, 2, 3), "attr0"
         )
 
+        fun splitIndices(numSegments: Int): IntArray {
+            val size = (numSegments - 1) * 6
+            val idx = IntArray(size)
+            var i = 0
+            for (xi in 0 until numSegments - 1) {
+                val o = xi * 2
+                idx[i++] = o
+                idx[i++] = o + 1
+                idx[i++] = o + 2
+                idx[i++] = o + 1
+                idx[i++] = o + 2
+                idx[i++] = o + 3
+            }
+            return idx
+        }
+
+        fun splitVertices(numSegments: Int, y0: Float, y1: Float): FloatArray {
+            val size = numSegments * 4
+            val idx = FloatArray(size)
+            var i = 0
+            for (xi in 0 until numSegments) {
+                val t = xi / (numSegments - 1f)
+                idx[i++] = t
+                idx[i++] = y0
+                idx[i++] = t
+                idx[i++] = y1
+            }
+            return idx
+        }
+
+        val flat11x50 = StaticBuffer(
+            splitVertices(50, -1f, +1f),
+            splitIndices(50),
+            listOf(Attribute("attr0", 2))
+        )
+
         val flatLarge = createFlatLarge()
 
         val flat01Cube = StaticBuffer(

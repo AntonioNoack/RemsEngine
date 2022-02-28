@@ -1,5 +1,6 @@
 package me.anno.gpu.shader
 
+import me.anno.gpu.shader.OpenGLShader.Companion.attribute
 import me.anno.gpu.shader.ShaderLib.blacklist
 import me.anno.gpu.shader.builder.Variable
 
@@ -18,7 +19,7 @@ object FlatShaders {
     // (can work on more complex shapes)
     val flatShader = BaseShader(
         "flatShader", "" +
-                "${OpenGLShader.attribute} vec2 attr0;\n" +
+                "$attribute vec2 attr0;\n" +
                 "uniform vec2 pos, size;\n" +
                 "void main(){\n" +
                 "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
@@ -32,7 +33,7 @@ object FlatShaders {
 
     val flatShaderStriped = BaseShader(
         "flatShader", "" +
-                "${OpenGLShader.attribute} vec2 attr0;\n" +
+                "$attribute vec2 attr0;\n" +
                 "uniform vec2 pos, size;\n" +
                 "void main(){\n" +
                 "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
@@ -48,7 +49,7 @@ object FlatShaders {
 
     val flatShaderGradient = ShaderLib.createShader(
         "flatShaderGradient", "" +
-                "${OpenGLShader.attribute} vec2 attr0;\n" +
+                "$attribute vec2 attr0;\n" +
                 "uniform vec2 pos, size;\n" +
                 "uniform vec4 uvs;\n" +
                 ShaderLib.yuv2rgb +
@@ -96,7 +97,7 @@ object FlatShaders {
 
     val flatShaderCubemap = BaseShader(
         "flatShaderCubemap", "" +
-                "${OpenGLShader.attribute} vec2 attr0;\n" +
+                "$attribute vec2 attr0;\n" +
                 "uniform vec2 pos, size;\n" +
                 "void main(){\n" +
                 "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +

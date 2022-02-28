@@ -9,20 +9,28 @@ import org.joml.Vector2fc
 import org.joml.Vector3fc
 import org.joml.Vector4fc
 import org.lwjgl.opengl.GL15.*
-import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL33
 import kotlin.math.roundToInt
 
 open class StaticBuffer(attributes: List<Attribute>, var vertexCount: Int, usage: Int = GL_STATIC_DRAW) :
     Buffer(attributes, usage) {
 
-    constructor(points: List<List<Float>>, attributes: List<Attribute>, vertices: IntArray) : this(
-        attributes,
-        vertices.size
-    ) {
+    constructor(points: List<List<Float>>, attributes: List<Attribute>, vertices: IntArray) :
+            this(attributes, vertices.size) {
         for (v in vertices) {
             for (p in points[v]) {
                 put(p)
+            }
+        }
+    }
+
+    constructor(points: FloatArray, vertices: IntArray, attributes: List<Attribute>) :
+            this(attributes, vertices.size) {
+        val dimPerPoint = attributes.sumOf { it.components }
+        for (v in vertices) {
+            val baseIndex = v * dimPerPoint
+            for (dOffset in 0 until dimPerPoint) {
+                put(points[baseIndex + dOffset])
             }
         }
     }
