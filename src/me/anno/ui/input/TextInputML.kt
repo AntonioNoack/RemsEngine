@@ -9,6 +9,7 @@ import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.PureTextInputML
 import me.anno.ui.style.Style
 
+@Suppress("unused")
 open class TextInputML(title: String, style: Style) : PanelContainer(
     PureTextInputML(
         style.getChild("deep")
@@ -27,6 +28,10 @@ open class TextInputML(title: String, style: Style) : PanelContainer(
     init {
         base.placeholder = title
         base.backgroundColor = backgroundColor
+    }
+
+    override fun setTextSize(size: Float) {
+        base.setTextSize(size)
     }
 
     override fun setBold(bold: Boolean) {

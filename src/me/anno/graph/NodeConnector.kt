@@ -83,6 +83,20 @@ abstract class NodeConnector : NamedSaveable {
         writer.writeSomething(this, "value", value, true)
     }
 
+    override fun readSomething(name: String, value: Any?) {
+        when (name) {
+            "value" -> this.value = value
+            else -> super.readSomething(name, value)
+        }
+    }
+
+    override fun readString(name: String, value: String?) {
+        when (name) {
+            "type" -> type = value ?: type
+            else -> super.readString(name, value)
+        }
+    }
+
     override fun readObjectArray(name: String, values: Array<ISaveable?>) {
         when (name) {
             "others" -> others = values.filterIsInstance<NodeConnector>()

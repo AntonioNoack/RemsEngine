@@ -5,6 +5,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL
 import me.anno.gpu.shader.builder.Varying
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.maths.Maths.sq
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.OS
 import me.anno.utils.types.Strings.isBlank2
@@ -326,7 +327,7 @@ abstract class OpenGLShader(
                 val yf = y.toFloat()
                 val i0 = loc * 4
                 when {
-                    uniformCache[i0] != xf || uniformCache[i0 + 1] != yf  -> {
+                    uniformCache[i0] != xf || uniformCache[i0 + 1] != yf -> {
                         // cannot be represented as a float -> cannot currently be cached
                         uniformCache[i0] = Float.NaN
                         uniformCache[i0 + 1] = Float.NaN
@@ -422,6 +423,7 @@ abstract class OpenGLShader(
 
     fun v4f(name: String, x: Float, y: Float, z: Float, w: Float) =
         v4f(getUniformLocation(name), x, y, z, w)
+
     fun v4f(loc: Int, x: Float, y: Float, z: Float, w: Float) {
         if (loc > -1) {
             if (loc >= UniformCacheSize) {
@@ -454,6 +456,17 @@ abstract class OpenGLShader(
             (color.shr(8) and 255) / 255f,
             color.and(255) / 255f,
             (color.shr(24) and 255) / 255f
+        )
+    }
+
+    fun v4fs(name: String, color: Int) = v4fs(getUniformLocation(name), color)
+    fun v4fs(loc: Int, color: Int) {
+        v4f(
+            loc,
+            sq((color.shr(16) and 255) / 255f),
+            sq((color.shr(8) and 255) / 255f),
+            sq(color.and(255) / 255f),
+            sq((color.shr(24) and 255) / 255f)
         )
     }
 

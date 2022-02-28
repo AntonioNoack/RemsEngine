@@ -37,6 +37,7 @@ import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.ShaderLib
+import me.anno.graph.types.NodeLibrary
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.SaveableArray
 import me.anno.io.files.FileReference
@@ -195,6 +196,8 @@ object ECSRegistry {
         // currently a small thing, hopefully will become important and huge <3
         registerCustomClass(TriTerrain())
         registerCustomClass(ManualProceduralMesh())
+
+        NodeLibrary.register()
 
         if (Build.isDebug) {
             // test classes

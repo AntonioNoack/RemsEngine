@@ -45,6 +45,23 @@ abstract class Node() : NamedSaveable() {
         node.others.forEach { it.invalidate() }
     }
 
+    fun delete(graph: Graph?) {
+        val inputs = inputs
+        if (inputs != null) for (con in inputs) {
+            con.disconnectAll()
+        }
+        val outputs = outputs
+        if (outputs != null) for (con in outputs) {
+            con.disconnectAll()
+        }
+        // todo you might not be allowed to delete this node
+        if (graph != null) {
+            graph.inputs.remove(this)
+            graph.outputs.remove(this)
+            graph.nodes.remove(this)
+        }
+    }
+
     // the node ofc needs to save its custom content and behaviour as well
     override fun save(writer: BaseWriter) {
         super.save(writer)

@@ -72,6 +72,10 @@ open class ColorInput(
         return this
     }
 
+    override fun setTextSize(size: Float) {
+        titleView.setTextSize(size)
+    }
+
     override fun setBold(bold: Boolean) {
         titleView.setBold(bold)
     }

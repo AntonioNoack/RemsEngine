@@ -146,6 +146,8 @@ object EngineActions {
             register["SceneView.numpad$i.down.${Modifiers[true, false]}", "Cam$i"]
         }
 
+        register["TextInput.backspace.typed", "DeleteBefore"]
+        register["TextInputML.backspace.typed", "DeleteBefore"]
         register["PureTextInputML.delete.typed", "DeleteAfter"]
         register["PureTextInputML.backspace.typed", "DeleteBefore"]
         register["PureTextInputML.leftArrow.typed", "MoveLeft"]

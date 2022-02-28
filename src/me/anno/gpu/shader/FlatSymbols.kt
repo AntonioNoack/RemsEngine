@@ -9,7 +9,7 @@ object FlatSymbols {
                 "uniform vec4 color, backgroundColor;\n" +
                 "uniform float smoothness;\n" +
                 "void main(){\n" +
-                "   float delta = smoothness * 2.0 * mix(dFdx(uv.x), -dFdy(uv.y), 0.667);\n" +
+                "   float delta = smoothness * mix(dFdx(uv.x), -dFdy(uv.y), 0.667);\n" +
                 "   float p0 = -0.5 + (uv.x - uv.y);\n" +
                 "   float p1 = -1.5 + (uv.x + uv.y);\n" +
                 "   float mn = max(p0, p1);\n" +

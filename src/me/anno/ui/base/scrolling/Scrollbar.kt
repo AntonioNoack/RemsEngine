@@ -6,6 +6,7 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.mulAlpha
 import me.anno.ui.Panel
 import me.anno.ui.style.Style
 import kotlin.math.abs
@@ -41,13 +42,8 @@ open class Scrollbar(style: Style) : Panel(style.getChild("scrollbar")) {
         return abs(alpha - oldAlpha) > 0.001f
     }
 
-    fun multiplyAlpha(color: Int, mAlpha: Float): Int {
-        val alpha = mAlpha * color.shr(24).and(255)
-        return color.and(0xffffff) or clamp(alpha.toInt(), 0, 255).shl(24)
-    }
-
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        drawRect(x0, y0, x1 - x0, y1 - y0, multiplyAlpha(scrollBackground, activeAlpha * alpha))
+        drawRect(x0, y0, x1 - x0, y1 - y0, mulAlpha(scrollBackground, activeAlpha * alpha))
     }
 
 }

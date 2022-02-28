@@ -90,6 +90,10 @@ object Maths {
         return (a * (1f - f) + b * f).roundToInt()
     }
 
+    fun mix(a: Int, b: Int, f: Int): Int {
+        return (a * (255 - f) + b * f) / 255
+    }
+
     fun mixRandomly(a: Int, b: Int, f: Float): Int {
         return (a * (1f - f) + b * f + Math.random()).toInt()
     }
@@ -208,6 +212,10 @@ object Maths {
         return clamp(mix((a shr shift) and 0xff, (b shr shift) and 0xff, f), 0, 255) shl shift
     }
 
+    fun mixChannel(a: Int, b: Int, shift: Int, f: Int): Int {
+        return clamp(mix((a shr shift) and 0xff, (b shr shift) and 0xff, f), 0, 255) shl shift
+    }
+
     fun mixChannelRandomly(a: Int, b: Int, shift: Int, f: Float): Int {
         val ai = (a shr shift) and 0xff
         val bi = (b shr shift) and 0xff
@@ -238,11 +246,23 @@ object Maths {
                 mixChannel(a, b, 0, f)
     }
 
+    fun mixARGB(a: Int, b: Int, f: Int): Int {
+        return mixChannel(a, b, 24, f) or
+                mixChannel(a, b, 16, f) or
+                mixChannel(a, b, 8, f) or
+                mixChannel(a, b, 0, f)
+    }
+
     fun mixARGBRandomly(a: Int, b: Int, f: Float): Int {
         return mixChannelRandomly(a, b, 24, f) or
                 mixChannelRandomly(a, b, 16, f) or
                 mixChannelRandomly(a, b, 8, f) or
                 mixChannelRandomly(a, b, 0, f)
+    }
+
+    fun mulAlpha(color: Int, factor: Float): Int {
+        val alpha = factor * color.shr(24).and(255)
+        return color.and(0xffffff) or clamp(alpha.toInt(), 0, 255).shl(24)
     }
 
     fun mix(a: Vector2fc, b: Vector2fc, f: Float) = Vector2f(

@@ -83,6 +83,12 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
 
     open var enableHoverColor = false
 
+    override fun setTextSize(size: Float) {
+        font = font.withSize(size)
+        invalidateDrawing()
+        invalidateLayout()
+    }
+
     override fun setBold(bold: Boolean) {
         font = font.withBold(bold)
         invalidateDrawing()

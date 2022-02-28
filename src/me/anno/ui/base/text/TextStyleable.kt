@@ -2,6 +2,8 @@ package me.anno.ui.base.text
 
 interface TextStyleable {
 
+    fun setTextSize(size: Float)
+
     // either these or the last two need to be implemented
     fun setBold(){
         setBold(true)

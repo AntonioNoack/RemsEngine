@@ -12,7 +12,7 @@ import me.anno.ui.style.Style
 import org.lwjgl.glfw.GLFW
 import kotlin.math.min
 
-open class Checkbox(startValue: Boolean, val defaultValue: Boolean, val size: Int, style: Style) :
+open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: Int, style: Style) :
     Panel(style.getChild("checkbox")), InputPanel<Boolean> {
 
     constructor(base: Checkbox) : this(base.isChecked, base.defaultValue, base.size, base.style) {

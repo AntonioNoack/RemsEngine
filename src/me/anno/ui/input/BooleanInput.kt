@@ -60,6 +60,10 @@ class BooleanInput(
             _isEnabled = value; invalidateDrawing()
         }
 
+    override fun setTextSize(size: Float) {
+        titleView?.setTextSize(size)
+    }
+
     override fun setBold(bold: Boolean) {
         titleView?.setBold(bold)
     }

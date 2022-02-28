@@ -49,6 +49,10 @@ open class TextInput(
         return this
     }
 
+    override fun setTextSize(size: Float) {
+        base.setTextSize(size)
+    }
+
     override fun setBold(bold: Boolean) {
         base.setBold(bold)
     }

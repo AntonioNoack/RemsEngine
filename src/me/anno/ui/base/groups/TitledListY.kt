@@ -29,6 +29,10 @@ open class TitledListY(val title: String, val visibilityKey: String, sorter: Com
         disableConstantSpaceForWeightedChildren = true
     }
 
+    override fun setTextSize(size: Float) {
+        titleView?.setTextSize(size)
+    }
+
     override fun setBold(bold: Boolean) {
         titleView?.setBold(bold)
     }

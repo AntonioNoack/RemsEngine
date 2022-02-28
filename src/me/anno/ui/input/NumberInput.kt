@@ -36,6 +36,12 @@ abstract class NumberInput<BaseType>(
             titleView?.text = value
         }
 
+    override fun setTextSize(size: Float) {
+        titleView?.setTextSize(size)
+        inputPanel.setTextSize(size)
+        invalidateLayout()
+    }
+
     override fun setBold(bold: Boolean) {
         titleView?.setBold(bold)
     }

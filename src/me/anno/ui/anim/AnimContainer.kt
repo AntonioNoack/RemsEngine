@@ -2,6 +2,7 @@ package me.anno.ui.anim
 
 import me.anno.Engine.deltaTime
 import me.anno.ecs.annotations.Type
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.input.Input
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
@@ -117,6 +118,19 @@ class AnimContainer(base: Panel, space: Padding, style: Style) : PanelContainer(
 
     operator fun plusAssign(animation: UIAnimation) {
         add(animation)
+    }
+
+    override fun clone(): AnimContainer {
+        val clone = AnimContainer(style)
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as AnimContainer
+        clone.speed = speed
+        clone.animations.addAll(animations.map { it.clone() })
     }
 
     override val className: String = "AnimContainer"

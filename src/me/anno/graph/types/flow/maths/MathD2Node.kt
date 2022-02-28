@@ -16,13 +16,6 @@ class MathD2Node() : ValueNode("Math", inputs, outputs) {
 
     var type: FloatMathsBinary = FloatMathsBinary.ADD
 
-    override fun createUI(list: PanelListY, style: Style) {
-        list += EnumInput("Type", true, type.name, FloatMathsBinary.values().map { NameDesc(it.name) }, style)
-            .setChangeListener { _, index, _ ->
-                type = FloatMathsBinary.values()[index]
-            }
-    }
-
     override fun compute(graph: FlowGraph) {
         val inputs = inputs!!
         val a = graph.getValue(inputs[0]) as Double
@@ -32,9 +25,17 @@ class MathD2Node() : ValueNode("Math", inputs, outputs) {
         setOutput(c, 0)
     }
 
+    override fun createUI(list: PanelListY, style: Style) {
+        super.createUI(list, style)
+        list += EnumInput("Type", true, type.name, FloatMathsBinary.values().map { NameDesc(it.name) }, style)
+            .setChangeListener { _, index, _ ->
+                type = FloatMathsBinary.values()[index]
+            }
+    }
+
     companion object {
         val inputs = listOf("Double", "A", "Double", "B")
-        val outputs = listOf("Double", "C")
+        val outputs = listOf("Double", "Result")
     }
 
 }

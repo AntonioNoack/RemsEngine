@@ -2,6 +2,7 @@ package me.anno.ui.base.scrolling
 
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input
+import me.anno.maths.Maths.mulAlpha
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.style.Style
 import kotlin.math.max
@@ -19,7 +20,7 @@ open class ScrollbarX(val scrollable: ScrollableX, style: Style) : Scrollbar(sty
         val barW = max(minSize.toDouble(), relativeSize * w)
         val barX = x + relativePosition * (w - barW)
 
-        val color = multiplyAlpha(scrollColor, scrollColorAlpha + activeAlpha * alpha)
+        val color = mulAlpha(scrollColor, scrollColorAlpha + activeAlpha * alpha)
         drawRect(barX.toInt(), y0, barW.toInt(), y1 - y0, color)
 
     }

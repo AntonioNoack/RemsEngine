@@ -78,6 +78,12 @@ open class PureTextInputML(style: Style) :
         changeListeners += listener
     }
 
+    override fun setTextSize(size: Float) {
+        for (p in actualChildren) {
+            (p as TextStyleable).setTextSize(size)
+        }
+    }
+
     override fun setBold(bold: Boolean) {
         for (p in actualChildren) {
             (p as TextStyleable).setBold(bold)

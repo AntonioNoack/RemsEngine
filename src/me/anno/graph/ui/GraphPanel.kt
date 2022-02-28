@@ -3,7 +3,10 @@ package me.anno.graph.ui
 import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle.black
+import me.anno.engine.ECSRegistry
 import me.anno.gpu.GFX
+import me.anno.gpu.drawing.DrawCurves.drawCubicBezier
+import me.anno.gpu.drawing.DrawCurves.drawQuartBezier
 import me.anno.gpu.drawing.DrawGradients.drawRectGradient
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
@@ -23,11 +26,16 @@ import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.mixARGB
 import me.anno.maths.Maths.pow
+import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.debug.TestStudio
 import me.anno.ui.editor.sceneView.Grid.drawSmoothLine
+import me.anno.ui.input.FloatInput
+import me.anno.ui.input.IntInput
+import me.anno.ui.input.TextInput
+import me.anno.ui.input.components.Checkbox
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
 import org.joml.Vector3d
@@ -295,29 +303,138 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
         val dragged = dragged
         if (dragged != null) {
             // done if hovers over a socket, bake it bigger
-            // todo if hovers over a socket, use its color as end color
             // draw dragged on mouse position
             val outPosition = dragged.position
             val px0 = coordsToWindowX(outPosition.x).toFloat()
             val py0 = coordsToWindowY(outPosition.y).toFloat()
             val ws = windowStack
-            val color = getTypeColor(dragged)
+            val startColor = getTypeColor(dragged)
+            val mx = ws.mouseX
+            val my = ws.mouseY
+            // if hovers over a socket, use its color as end color
+            val endSocket = children
+                .mapNotNull { if (it is NodePanel) it.getConnectorAt(mx, my) else null }
+                .firstOrNull()
+            val endColor = if (endSocket == null) startColor else getTypeColor(endSocket)
             val node = dragged.node
             val type = dragged.type
             if (dragged is NodeInput) {
                 val inIndex = max(0, node?.inputs?.indexOf(dragged) ?: 0)
                 val outIndex = 0
-                drawNodeConnection(ws.mouseX, ws.mouseY, px0, py0, inIndex, outIndex, color, color, type)
+                drawNodeConnection(mx, my, px0, py0, inIndex, outIndex, endColor, startColor, type)
             } else {
                 val inIndex = 0
                 val outIndex = max(0, node?.outputs?.indexOf(dragged) ?: 0)
-                drawNodeConnection(px0, py0, ws.mouseX, ws.mouseY, inIndex, outIndex, color, color, type)
+                drawNodeConnection(px0, py0, mx, my, inIndex, outIndex, startColor, endColor, type)
             }
         }
     }
 
-    // todo function to draw splines, so we can draw smoother curves easily
     open fun drawNodeConnection(
+        x0: Float, y0: Float, x1: Float, y1: Float,
+        inIndex: Int, outIndex: Int, c0: Int, c1: Int,
+        type: String
+    ) {
+        drawCurvyNodeConnectionV2(x0, y0, x1, y1, c0, c1, type)
+    }
+
+    fun drawCurvyNodeConnectionV2(
+        x0: Float, y0: Float, x1: Float, y1: Float,
+        c0: Int, c1: Int, type: String
+    ) {
+        val yc = (y0 + y1) * 0.5f
+        val d0 = 20f * scale.toFloat() + (abs(y1 - y0) + abs(x1 - x0)) / 8f
+        // line thickness depending on flow/non-flow
+        val lt = if (type == "Flow") lineThicknessBold else lineThickness
+        val xc = (x0 + x1) * 0.5f
+        drawQuartBezier(
+            x0, y0, c0,
+            x0 + d0, y0, mixARGB(c0, c1, 0.333f),
+            xc, yc, mixARGB(c0, c1, 0.5f),
+            x1 - d0, y1, mixARGB(c0, c1, 0.667f),
+            x1, y1, c1,
+            lt * 0.5f, 0,
+            true, 1.5f
+        )
+    }
+
+    fun drawCurvyNodeConnectionV1(// only good for forwards
+        x0: Float, y0: Float, x1: Float, y1: Float,
+        c0: Int, c1: Int, type: String
+    ) {
+        val lt = if (type == "Flow") lineThicknessBold else lineThickness
+        val xc = (x0 + x1) * 0.5f
+        // right, down, right
+        val s0 = abs(xc - x0)
+        val s1 = abs(y0 - y1)
+        val s2 = abs(xc - x1)
+        val ss = s0 + s1 + s2
+        if (ss > 0f) {
+            val ci1 = mixARGB(c0, c1, s0 / ss)
+            val ci2 = mixARGB(c0, c1, (s0 + s1) / ss)
+            drawCubicBezier(
+                x0, y0, c0,
+                xc, y0, ci1,
+                xc, y1, ci2,
+                x1, y1, c1,
+                lt * 0.5f, 0, true,
+                2f
+            )
+        }
+    }
+
+    fun drawCurvyNodeConnectionV0(
+        x0: Float, y0: Float, x1: Float, y1: Float,
+        c0: Int, c1: Int, type: String
+    ) {
+        val yc = (y0 + y1) * 0.5f
+        val d0 = 20f * scale.toFloat() + (abs(y1 - y0) + abs(x1 - x0)) / 8f
+        // line thickness depending on flow/non-flow
+        val lt = if (type == "Flow") lineThicknessBold else lineThickness
+        // go back distance x, and draw around
+        // to do make the transition between them smooth
+        if (x0 + d0 > x1 - d0) {
+            val cc = mixARGB(c0, c1, 0.5f)
+            val xc = (x0 + x1) * 0.5f
+            val yc0 = (yc + y0) * 0.5f
+            val yc1 = (yc + y1) * 0.5f
+            drawCubicBezier(
+                x0, y0, c0,
+                x0 + d0, y0, mixARGB(c0, c1, 0.1667f),
+                x0 + d0, yc0, mixARGB(c0, c1, 0.3333f),
+                xc, yc, cc,
+                lt * 0.5f, 0, true, 2f
+            )
+            drawCubicBezier(
+                x1, y1, c1,
+                x1 - d0, y1, mixARGB(c1, c0, 0.1667f),
+                x1 - d0, yc1, mixARGB(c1, c0, 0.3333f),
+                xc, yc, cc,
+                lt * 0.5f, 0, true, 2f
+            )
+        } else {
+            val xc = (x0 + x1) * 0.5f
+            // right, down, right
+            val s0 = abs(xc - x0)
+            val s1 = abs(y0 - y1)
+            val s2 = abs(xc - x1)
+            val ss = s0 + s1 + s2
+            if (ss > 0f) {
+                val ci1 = mixARGB(c0, c1, s0 / ss)
+                val ci2 = mixARGB(c0, c1, (s0 + s1) / ss)
+                drawCubicBezier(
+                    x0, y0, c0,
+                    xc, y0, ci1,
+                    xc, y1, ci2,
+                    x1, y1, c1,
+                    lt * 0.5f, 0, true,
+                    2f
+                )
+            }
+        }
+    }
+
+    fun drawStraightNodeConnection(
         x0: Float, y0: Float, x1: Float, y1: Float,
         inIndex: Int, outIndex: Int, c0: Int, c1: Int,
         type: String
@@ -387,6 +504,54 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
         }
     }
 
+    fun getInputField(con: NodeConnector, np: NodePanel, old: Panel?): Panel? {
+        if (!con.isEmpty()) return null
+        if (con !is NodeInput) return null
+        // todo text size is not updating...
+        when (con.type) {
+            "Double" -> {
+                if (old is FloatInput) return old
+                    .apply { setTextSize(font.size) }
+                return FloatInput(style)
+                    .setValue(con.value as? Double ?: 0.0, false)
+                    .setChangeListener { con.value = it }
+                    .apply { setTextSize(font.size) }
+            }
+            "Long" -> {
+                if (old is IntInput) return old
+                    .apply { setTextSize(font.size) }
+                return IntInput(style)
+                    .setValue(con.value as? Long ?: 0L, false)
+                    .setChangeListener { con.value = it }
+                    .apply { setTextSize(font.size) }
+            }
+            "String" -> {
+                if (old is TextInput) return old
+                    .apply { setTextSize(font.size) }
+                return TextInput("", "", con.value.toString(), style)
+                    .addChangeListener { con.value = it }
+                    .apply { setTextSize(font.size) }
+            }
+            "Bool", "Boolean" -> {
+                if(old is Checkbox) return old
+                    .apply { size = font.sizeInt }
+                return Checkbox(con.value == true, false, font.sizeInt, style)
+            }
+        }
+        // todo give int,float,bool input fields
+        // dx += inputWidth
+        // todo enum input for enums...
+        return null
+    }
+
+    override fun drawsOverlayOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
+        return true
+    }
+
+    override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
+        return false
+    }
+
     open fun getTypeColor(con: NodeConnector): Int {
         return when (con.type) {
             "Int", "Long" -> 0x1cdeaa
@@ -408,6 +573,7 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
+            ECSRegistry.initNoGFX()
             TestStudio.testUI {
                 val g = FlowGraph.testLocalVariables()
                 calculateNodePositions(g.nodes)

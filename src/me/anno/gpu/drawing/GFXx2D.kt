@@ -140,8 +140,8 @@ object GFXx2D {
     }
 
     fun drawHalfArrow(
-        x: Int, y: Int,
-        w: Int, h: Int,
+        x: Float, y: Float,
+        w: Float, h: Float,
         color: Int,
         backgroundColor: Int,
         smoothness: Float = 1f

@@ -423,7 +423,7 @@ object SimpleExpressionParser {
             parseDouble(expr.splitInternally(), additionalConstants)
         } catch (e: Exception) {
             LOGGER.warn(e.message ?: "")
-            e.printStackTrace()
+            // e.printStackTrace()
             null
         }
     }

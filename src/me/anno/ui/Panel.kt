@@ -159,9 +159,10 @@ open class Panel(val style: Style) : PrefabSaveable() {
     @NotSerializedProperty
     var oldStateInt = 0
 
-    var backgroundRadiusX = style.getSize("background.radius.x", 0)
-    var backgroundRadiusY = style.getSize("background.radius.y", 0)
-    var backgroundRadiusCorners = style.getInt("background.radius.sides", 15)
+    var backgroundOutlineColor = 0
+    var backgroundOutlineThickness = 0f
+    var backgroundRadius = style.getSize("background.radius", 0)
+    var backgroundRadiusCorners = style.getInt("background.radiusSides", 15)
 
     var backgroundColor = style.getColor("background", -1)
         set(value) {
@@ -246,7 +247,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     open fun requestFocus(exclusive: Boolean = true) = windowStack.requestFocus(this, exclusive)
 
-    val hasRoundedCorners get() = backgroundRadiusX > 0 && backgroundRadiusY > 0 && backgroundRadiusCorners != 0
+    val hasRoundedCorners get() = backgroundRadius > 0 && backgroundRadiusCorners != 0
 
     val siblings get() = uiParent?.children ?: emptyList()
 
@@ -255,15 +256,20 @@ open class Panel(val style: Style) : PrefabSaveable() {
     fun drawBackground(x0: Int, y0: Int, x1: Int, y1: Int, dx: Int = 0, dy: Int = dx) {
         // if the children are overlapping, this is incorrect
         // this however, should rarely happen...
-        if (backgroundColor.ushr(24) > 0) {
+        if (backgroundColor.a() > 0) {
             if (hasRoundedCorners) {
+                val uip = uiParent
+                val bg = if (uip == null) 0 else uip.backgroundColor and 0xffffff
+                val radius = backgroundRadius.toFloat()
                 drawRoundedRect(
                     x + dx, y + dy, w - 2 * dx, h - 2 * dy,
-                    backgroundRadiusX, backgroundRadiusY, backgroundColor,
-                    backgroundRadiusCorners and 1 != 0,
-                    backgroundRadiusCorners and 2 != 0,
-                    backgroundRadiusCorners and 4 != 0,
-                    backgroundRadiusCorners and 8 != 0
+                    if (backgroundRadiusCorners and 1 != 0) radius else 0f,
+                    if (backgroundRadiusCorners and 2 != 0) radius else 0f,
+                    if (backgroundRadiusCorners and 4 != 0) radius else 0f,
+                    if (backgroundRadiusCorners and 8 != 0) radius else 0f,
+                    backgroundOutlineThickness,
+                    backgroundColor, backgroundOutlineColor, bg,
+                    1f
                 )
             } else {
                 val x2 = max(x0, x + dx)
@@ -770,8 +776,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         clone.visibility = visibility
         clone.backgroundColor = backgroundColor
         clone.backgroundRadiusCorners = backgroundRadiusCorners
-        clone.backgroundRadiusX = backgroundRadiusX
-        clone.backgroundRadiusY
+        clone.backgroundRadius = backgroundRadius
         clone.layoutConstraints.clear()
         clone.layoutConstraints.addAll(layoutConstraints)
     }
@@ -781,7 +786,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
     companion object {
         private val LOGGER = LogManager.getLogger(Panel::class)
         val interactionPadding get() = Maths.max(0, DefaultConfig["ui.interactionPadding", 6])
-        val minOpaqueAlpha = 127
+        val minOpaqueAlpha = 63
     }
 
 }

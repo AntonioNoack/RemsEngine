@@ -3,6 +3,8 @@ package me.anno.ui.anim
 import me.anno.animation.Interpolation
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.text.TextReader
+import me.anno.io.text.TextWriter
 import me.anno.ui.Panel
 
 abstract class UIAnimation(
@@ -28,6 +30,8 @@ abstract class UIAnimation(
         writer.writeEnum("in", inInterpolation)
         writer.writeEnum("out", outInterpolation)
     }
+
+    fun clone() = TextReader.readFirst<UIAnimation>(TextWriter.toText(this))!!
 
     override val className: String = "UIAnimation"
 }

@@ -15,12 +15,15 @@ import me.anno.maths.Maths.distance
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mapClamped
 import me.anno.maths.Maths.mixARGB
+import me.anno.maths.Maths.mulAlpha
 import me.anno.ui.Panel
 import me.anno.ui.base.Font
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.style.Style
+import me.anno.utils.Color.a
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 class NodePanel(
@@ -29,18 +32,25 @@ class NodePanel(
     style: Style
 ) : PanelList(style) {
 
+    // todo bug: text size is only updating, when typing a character
+    // todo bug: backspace is not working :/
+
     var lineCount = 0
     val baseTextSize get() = gp.baseTextSize
 
     var lineSpacing = 0.5
 
     init {
-        backgroundColor = mixARGB(backgroundColor, black, 0.5f)
+        // slightly transparent, so covered connections can be seen
+        backgroundColor = mulAlpha(mixARGB(backgroundColor, black, 0.5f), 0.7f)
     }
 
     var isDragged = false
 
     val inputFields = HashMap<NodeConnector, Panel>()
+
+    var focusOutlineColor = -1
+    var focusOutlineThickness = 2f
 
     override fun calculateSize(w: Int, h: Int) {
 
@@ -53,18 +63,16 @@ class NodePanel(
         minW = (expectedChars * baseTextSize).toInt()
         minH = ((lineCount * (1.0 + lineSpacing) + lineSpacing) * baseTextSize).toInt()
 
-        // todo calculate how many lines, and space we need
-        // todo base that calculation on w maybe
+        // calculate how many lines, and space we need
+        // base that calculation on w maybe
 
-        val radius = w / 10
-        backgroundRadiusX = radius
-        backgroundRadiusY = radius
+        backgroundRadius = w / 10
 
         val inputs = node.inputs
         if (inputs != null) for (con in inputs) {
             // add all needed new input fields
             val oldField = inputFields[con]
-            val newField = getInputField(con, oldField)
+            val newField = gp.getInputField(con, this, oldField)
             if (newField !== oldField) {
                 if (oldField != null) remove(oldField)
                 if (newField != null) {
@@ -98,16 +106,8 @@ class NodePanel(
             val cx = gp.coordsToWindowX(pos.x).toInt()
             val cy = gp.coordsToWindowY(pos.y).toInt()
             // place to the right by radius
-            panel.setPosSize(cx + baseTextSize, cy - panel.minW / 2, panel.minW, panel.minH)
+            panel.setPosSize(cx + baseTextSize / 2, cy - panel.minH / 2, panel.minW, panel.minH)
         }
-    }
-
-    fun getInputField(con: NodeConnector, old: Panel?): Panel? {
-        if (!con.isEmpty()) return null
-        // todo give int,long,float,double,bool,string input fields
-        // dx += inputWidth
-        // todo enum input for enums...
-        return null
     }
 
     @NotSerializedProperty
@@ -137,30 +137,22 @@ class NodePanel(
         }
     }
 
-    var focusOutlineColor = -1
-    var focusOutlineThickness = 1
-
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
-        // draw whether the node is in focus, maybe will small outline
+        // draw whether the node is in focus
         if (isInFocus) {
-
-            val bc = backgroundColor
-            backgroundColor = focusOutlineColor
-            drawBackground(x0, y0, x1, y1)
-            backgroundColor = bc
-            drawBackground(x0, y0, x1, y1, focusOutlineThickness)
-
+            backgroundOutlineThickness = focusOutlineThickness
+            backgroundOutlineColor = focusOutlineColor
         } else {
-
-            drawBackground(x0, y0, x1, y1)
-
+            backgroundOutlineThickness = 0f
         }
 
+        drawBackground(x0, y0, x1, y1)
+
+        val backgroundColor = mixARGB(gp.backgroundColor, backgroundColor, backgroundColor.a()) and 0xffffff
         val font = gp.font
         val textSize = DrawTexts.getTextSizeY(font, "w", -1, -1)
 
-        val backgroundColor = backgroundColor
         val textColor = -1
 
         // node title
@@ -184,10 +176,7 @@ class NodePanel(
         if (inputs != null) for (con in inputs) {
             var dx = dxTxt
             val panel = inputFields[con]
-            if (panel != null) {
-                // todo plus padding
-                dx += panel.w
-            }
+            if (panel != null) dx += panel.w //+ baseTextSize.toInt()
             drawConnector(con, baseTextSize, mouseX, mouseY, dx, dyTxt, font, textColor)
         }
 
@@ -221,47 +210,48 @@ class NodePanel(
             0.9f * radius, 1.3f * radius,
             radius * 1.2f, radius
         )
-        val innerRadius = if (con.others.isEmpty()) 0.8f else 0f
+        val innerRadius = if (con.others.isEmpty()) min(0.8f, (radius - 2f) / radius) else 0f
+        val bg = mixARGB(gp.backgroundColor, backgroundColor, backgroundColor.a()) and 0xffffff
         if (con.type == "Flow") {
             // if the type is flow, draw an arrow instead of circle
-            val ry = radius2.toInt()
-            val rx = ry * 3 / 4
+            val rx = radius2 * 0.75f
             // apply inner radius
             drawHalfArrow(
-                pxi - rx, pyi - ry, 2 * rx, 2 * ry,
-                gp.getTypeColor(con), backgroundColor
+                pxi - rx, pyi - radius2, 2f * rx, 2f * radius2,
+                gp.getTypeColor(con), bg or black
             )
             if (innerRadius > 0f) {
-                val dx2 = ((1f - innerRadius) * ry).roundToInt()
+                val dx2 = ((1f - innerRadius) * radius2).roundToInt()
                 val rx2 = rx - dx2
-                val ry2 = ry - dx2 + 1
+                val ry2 = radius2 - dx2 + 1
                 drawHalfArrow(
                     pxi - rx2 - 1, pyi - ry2, 2 * rx2, 2 * ry2,
-                    backgroundColor, gp.getTypeColor(con)
+                    bg or black, gp.getTypeColor(con)
                 )
             }
         } else {
             drawCircle(
                 pxi, pyi, radius2, radius2, innerRadius,
-                backgroundColor, gp.getTypeColor(con), backgroundColor
+                bg, gp.getTypeColor(con), bg
             )
         }
         drawText(
             pxi + dx, pyi + dy, font, con.name, textColor,
-            backgroundColor, -1, -1,
+            bg, -1, -1,
             if (dx < 0) AxisAlignment.MAX else AxisAlignment.MIN
         )
     }
 
     fun getConnectorAt(x: Float, y: Float): NodeConnector? {
+        if (children.any { it.contains(x, y) }) return null
         val radius = baseTextSize * 0.5 + 5 // 5 for padding
         val radiusSq = radius * radius
         val cx = gp.windowToCoordsX(x.toDouble())
         val cy = gp.windowToCoordsY(y.toDouble())
-        var bestDistance =radiusSq
+        var bestDistance = radiusSq
         var bestCon: NodeConnector? = null
         val inputs = node.inputs
-        if(inputs != null) for (con in inputs) {
+        if (inputs != null) for (con in inputs) {
             val distance = con.position.distanceSquared(cx, cy, 0.0)
             if (distance < bestDistance) {
                 bestDistance = distance
@@ -269,7 +259,7 @@ class NodePanel(
             }
         }
         val outputs = node.outputs
-        if(outputs != null) for (con in outputs) {
+        if (outputs != null) for (con in outputs) {
             val distance = con.position.distanceSquared(cx, cy, 0.0)
             if (distance < bestDistance) {
                 bestDistance = distance
@@ -311,11 +301,15 @@ class NodePanel(
             val wx = gp.coordsToWindowX(node.position.x) + dx
             val wy = gp.coordsToWindowY(node.position.y) + dy
             gp.moveIfOnEdge(x, y)
-            node.position.set(
-                gp.windowToCoordsX(wx),
-                gp.windowToCoordsY(wy),
-                node.position.z
-            )
+            val dx2 = gp.windowToCoordsX(wx) - node.position.x
+            val dy2 = gp.windowToCoordsY(wy) - node.position.y
+            if (isInFocus) {
+                for (it in windowStack.inFocus) {
+                    if (it is NodePanel) {
+                        it.node.position.add(dx2, dy2, 0.0)
+                    }
+                }
+            } else node.position.add(dx2, dy2, 0.0)
             gp.invalidateLayout()
         } else super.onMouseMoved(x, y, dx, dy)
     }
@@ -324,6 +318,7 @@ class NodePanel(
         val con0 = gp.dragged
         val con1 = (gp.getPanelAt(x.toInt(), y.toInt()) as? NodePanel)?.getConnectorAt(x, y)
         val window = window
+        // todo forbid connections, that would create infinite calculation loops
         when {
             con0 != null && con1 != null && con0 !== con1 &&
                     con0::class != con1::class -> {
@@ -344,8 +339,21 @@ class NodePanel(
                     con0.connect(con1)
                 }
             }
+            con0 != null && con1 != null && con0 !== con1 /* && con0.node == con1.node */ -> {
+                // switch connections on these two nodes
+                // todo only if types are compatible
+                for (oi in con0.others) {
+                    oi.others = oi.others.map { if (it == con0) con1 else it }
+                }
+                for (oi in con1.others) {
+                    oi.others = oi.others.map { if (it == con1) con0 else it }
+                }
+                val o = con1.others
+                con1.others = con0.others
+                con0.others = o
+            }
             con0 != null && (window == null ||
-                    distance(window.mouseDownX, window.mouseDownY, window.mouseX, window.mouseY) < 50f) -> {
+                    distance(window.mouseDownX, window.mouseDownY, window.mouseX, window.mouseY) < w / 10f) -> {
                 // loosen this connection
                 con0.disconnectAll()
             }
@@ -354,6 +362,17 @@ class NodePanel(
         isDragged = false
         gp.dragged = null
         gp.invalidateDrawing()
+    }
+
+    override fun onDeleteKey(x: Float, y: Float) {
+        val graph = gp.graph
+        if (isInFocus) {
+            for (panel in windowStack.inFocus) {
+                if (panel is NodePanel) panel.node.delete(graph)
+            }
+        } else node.delete(graph)
+        gp.remove(this)
+        gp.invalidateLayout()
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
