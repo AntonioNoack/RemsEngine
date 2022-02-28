@@ -100,7 +100,7 @@ object Grid {
             val actualAlpha = alpha * 0.2f
             val nx = (y1 - y0)
             val ny = -(x1 - x0)
-            val len = 0.25f / sqrt(nx * nx + ny * ny)
+            val len = 0.25f / hypot(nx, ny)
             for (di in -2..2) {
                 val dx = nx * len * di
                 val dy = ny * len * di
@@ -164,7 +164,7 @@ object Grid {
             val dif = (p1 - p0).normalize()
             // this rotation is correct
             stack.rotateZ(+atan2(dif.y, dif.x))
-            stack.rotateY(-atan2(dif.z, sqrt(sq(dif.x, dif.y))))
+            stack.rotateY(-atan2(dif.z, hypot(dif.x, dif.y)))
 
             val shader = shader3D.value
             shader.use()

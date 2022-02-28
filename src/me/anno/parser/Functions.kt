@@ -4,7 +4,6 @@ import me.anno.maths.Maths.clamp
 import org.kdotjpg.OpenSimplexNoise
 import java.lang.StrictMath.cbrt
 import java.util.*
-import kotlin.collections.HashMap
 import kotlin.math.*
 
 object Functions {
@@ -70,7 +69,10 @@ object Functions {
             val x = this[i - 3] as? Double ?: continue
             val y = this[i - 1] as? Double ?: continue
             val function =
-                functions2[name] ?: functions2[name.lowercase(Locale.getDefault())] ?: throw UnknownFunction(name, "x,y")
+                functions2[name] ?: functions2[name.lowercase(Locale.getDefault())] ?: throw UnknownFunction(
+                    name,
+                    "x,y"
+                )
             for (j in 0 until 5) removeAt(i - j)
             this[i - 5] = function(x, y)
             applyFunc2()
@@ -90,7 +92,10 @@ object Functions {
             val y = this[i - 3] as? Double ?: continue
             val z = this[i - 1] as? Double ?: continue
             val function =
-                functions3[name] ?: functions3[name.lowercase(Locale.getDefault())] ?: throw UnknownFunction(name, "x,y,z")
+                functions3[name] ?: functions3[name.lowercase(Locale.getDefault())] ?: throw UnknownFunction(
+                    name,
+                    "x,y,z"
+                )
             for (j in 0 until 7) removeAt(i - j)
             this[i - 7] = function(x, y, z)
             applyFunc3()
@@ -112,7 +117,10 @@ object Functions {
             val z = this[i - 3] as? Double ?: continue
             val w = this[i - 1] as? Double ?: continue
             val function =
-                functions4[name] ?: functions4[name.lowercase(Locale.getDefault())] ?: throw UnknownFunction(name, "x,y,z,w")
+                functions4[name] ?: functions4[name.lowercase(Locale.getDefault())] ?: throw UnknownFunction(
+                    name,
+                    "x,y,z,w"
+                )
             for (j in 0 until 9) removeAt(i - j)
             this[i - 9] = function(x, y, z, w)
             applyFunc4()
@@ -142,7 +150,10 @@ object Functions {
             val d = this[i - 3] as? Double ?: continue
             val e = this[i - 1] as? Double ?: continue
             val function =
-                functions5[name] ?: functions5[name.lowercase(Locale.getDefault())] ?: throw UnknownFunction(name, "a,b,c,d,e")
+                functions5[name] ?: functions5[name.lowercase(Locale.getDefault())] ?: throw UnknownFunction(
+                    name,
+                    "a,b,c,d,e"
+                )
             for (j in 0 until 11) removeAt(i - j)
             this[i - 11] = function(a, b, c, d, e)
             applyFunc5()
@@ -210,7 +221,7 @@ object Functions {
         functions2["log"] = { x, base -> log(x, base) }
 
         functions1["length"] = { abs(it) }
-        functions2["length"] = { a, b -> sqrt(a * a + b * b) }
+        functions2["length"] = { a, b -> hypot(a, b) }
         functions3["length"] = { a, b, c -> sqrt(a * a + b * b + c * c) }
         functions4["length"] = { a, b, c, d -> sqrt(a * a + b * b + c * c + d * d) }
 

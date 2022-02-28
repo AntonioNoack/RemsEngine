@@ -50,6 +50,27 @@ abstract class NodeConnector : NamedSaveable {
 
     val connectorPosition = Vector3d()
 
+    fun isEmpty() = others.isEmpty()
+
+    fun connect(other: NodeConnector) {
+        others = others + other
+        other.others += this
+    }
+
+    fun disconnect(other: NodeConnector) {
+        other.others = other.others.filter { it != this }
+        others = others.filter { it != other }
+    }
+
+    fun disconnectAll() {
+        others.forEach { o -> o.others = o.others.filter { it != this } }
+        others = emptyList()
+    }
+
+    operator fun contains(other: NodeConnector): Boolean {
+        return other in others
+    }
+
     open fun invalidate() {
 
     }

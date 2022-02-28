@@ -3,6 +3,8 @@ package me.anno.graph
 import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.text.TextReader
+import me.anno.io.text.TextWriter
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.style.Style
 import org.joml.Vector3d
@@ -18,7 +20,7 @@ abstract class Node() : NamedSaveable() {
         this.outputs = Array(outputs.size / 2) { NodeOutput(outputs[it * 2], outputs[it * 2 + 1], this) }
     }
 
-    abstract fun createUI(list: PanelListY, style: Style)
+    open fun createUI(list: PanelListY, style: Style) {}
 
     val position = Vector3d()
 
@@ -34,6 +36,8 @@ abstract class Node() : NamedSaveable() {
     abstract fun canAddOutput(): Boolean
     abstract fun canRemoveInput(): Boolean
     abstract fun canRemoveOutput(): Boolean
+    abstract fun supportsMultipleInputs(con: NodeConnector): Boolean
+    abstract fun supportsMultipleOutputs(con: NodeConnector): Boolean
 
     fun setOutput(value: Any?, index: Int) {
         val node = outputs!![index]
@@ -115,6 +119,10 @@ abstract class Node() : NamedSaveable() {
 
     fun setInputs(inputValues: List<Any?>) {
         setInputs(inputValues, -1)
+    }
+
+    fun clone(): Node {// not ideal, but probably good enough for now and manual graph creation
+        return TextReader.readFirst<Node>(TextWriter.toText(this))!!
     }
 
 }

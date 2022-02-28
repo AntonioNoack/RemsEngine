@@ -12,6 +12,7 @@ object Cursor {
     var drag = 0L
     val hand get() = drag
     var crossHair = 0L
+    var arrow = 0L
 
     fun init(){
         hResize = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR)
@@ -19,6 +20,7 @@ object Cursor {
         editText = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR)
         drag = glfwCreateStandardCursor(GLFW_HAND_CURSOR)
         crossHair = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR)
+        arrow = glfwCreateStandardCursor(GLFW_ARROW_CURSOR)
     }
 
     fun Long.useCursor(){

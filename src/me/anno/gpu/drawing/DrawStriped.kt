@@ -1,7 +1,7 @@
 package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
-import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.FlatShaders.flatShaderStriped
 import me.anno.gpu.shader.Shader
 import org.joml.Vector4fc
 
@@ -9,7 +9,7 @@ object DrawStriped {
 
     fun drawRectStriped(x: Int, y: Int, w: Int, h: Int, offset: Int, stride: Int, color: Vector4fc) {
         if (w == 0 || h == 0) return
-        val shader = ShaderLib.flatShaderStriped.value
+        val shader = flatShaderStriped.value
         shader.use()
         shader.v4f("color", color)
         drawRectStriped(x, y, w, h, offset, stride, shader)
@@ -17,7 +17,7 @@ object DrawStriped {
 
     fun drawRectStriped(x: Int, y: Int, w: Int, h: Int, offset: Int, stride: Int, color: Int) {
         if (w == 0 || h == 0) return
-        val shader = ShaderLib.flatShaderStriped.value
+        val shader = flatShaderStriped.value
         shader.use()
         shader.v4f("color", color)
         drawRectStriped(x, y, w, h, offset, stride, shader)

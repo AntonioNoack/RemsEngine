@@ -27,6 +27,8 @@ import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.arrays.ExpandingGenericArray
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 open class Panel(val style: Style) : PrefabSaveable() {
@@ -250,20 +252,25 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     open val canDrawOverBorders get() = hasRoundedCorners
 
-    fun drawBackground(x0: Int, y0: Int, x1: Int, y1: Int) {
+    fun drawBackground(x0: Int, y0: Int, x1: Int, y1: Int, dx: Int = 0, dy: Int = dx) {
         // if the children are overlapping, this is incorrect
         // this however, should rarely happen...
         if (backgroundColor.ushr(24) > 0) {
             if (hasRoundedCorners) {
                 drawRoundedRect(
-                    x, y, w, h, backgroundRadiusX, backgroundRadiusY, backgroundColor,
+                    x + dx, y + dy, w - 2 * dx, h - 2 * dy,
+                    backgroundRadiusX, backgroundRadiusY, backgroundColor,
                     backgroundRadiusCorners and 1 != 0,
                     backgroundRadiusCorners and 2 != 0,
                     backgroundRadiusCorners and 4 != 0,
                     backgroundRadiusCorners and 8 != 0
                 )
             } else {
-                drawRect(x0, y0, x1 - x0, y1 - y0, backgroundColor)
+                val x2 = max(x0, x + dx)
+                val y2 = max(y0, y + dy)
+                val x3 = min(x1, x + w - dx)
+                val y3 = min(y1, y + h - dy)
+                drawRect(x2, y2, x3 - x2, y3 - y2, backgroundColor)
             }
         }
     }

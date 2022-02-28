@@ -15,11 +15,11 @@ import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.shader.FlatShaders.copyShader
 import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.Renderer.Companion.idRenderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
-import me.anno.gpu.shader.ShaderLib.copyShader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
@@ -28,7 +28,6 @@ import me.anno.mesh.Point
 import me.anno.studio.StudioBase.Companion.eventTasks
 import me.anno.ui.Panel
 import me.anno.ui.Window
-import me.anno.ui.debug.FrameTimes
 import me.anno.utils.Clock
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g

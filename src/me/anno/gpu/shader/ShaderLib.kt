@@ -16,13 +16,9 @@ import kotlin.math.PI
 
 object ShaderLib {
 
-    lateinit var flatShader: BaseShader
-    lateinit var flatShaderStriped: BaseShader
-    lateinit var flatShaderGradient: BaseShader
-    lateinit var flatShaderTexture: BaseShader
-    lateinit var flatShaderCubemap: BaseShader
+    // todo they probably should be split into multiple files...
+
     lateinit var subpixelCorrectTextShader: BaseShader
-    lateinit var shader2DCircle: BaseShader
     lateinit var shader3DPolygon: BaseShader
     lateinit var shader3D: BaseShader
     lateinit var shader3DforText: BaseShader
@@ -39,9 +35,6 @@ object ShaderLib {
     lateinit var shaderAssimp: BaseShader
     lateinit var shader3DGaussianBlur: BaseShader
     lateinit var monochromeModelShader: BaseShader
-
-    // lateinit var shaderFBX: BaseShader
-    lateinit var copyShader: BaseShader
 
     /**
      * our code only uses 3, I think
@@ -323,13 +316,13 @@ object ShaderLib {
             "   float finalAlpha = color.a;\n" +
             "}"
 
-    val v3DMasked = ShaderLib.v3DBase +
-            "${OpenGLShader.attribute} vec2 attr0;\n" +
+    val v3DMasked = v3DBase +
+            "${attribute} vec2 attr0;\n" +
             "void main(){\n" +
             "   finalPosition = vec3(attr0*2.0-1.0, 0.0);\n" +
             "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
             "   uv = gl_Position.xyw;\n" +
-            ShaderLib.positionPostProcessing +
+            positionPostProcessing +
             "}"
 
     val y3DMasked = listOf(
@@ -338,169 +331,15 @@ object ShaderLib {
         Variable(GLSLType.V1F, "zDistance")
     )
 
+    // make this customizable?
+    val blacklist =   listOf(
+        "cgSlope", "cgOffset", "cgPower", "cgSaturation",
+        "forceFieldUVCount", "forceFieldColorCount"
+    )
+
     fun init() {
 
         val tick = Clock()
-
-        // make this customizable?
-
-        // color only for a rectangle
-        // (can work on more complex shapes)
-        flatShader = BaseShader(
-            "flatShader",
-            "" +
-                    "$attribute vec2 attr0;\n" +
-                    "uniform vec2 pos, size;\n" +
-                    "void main(){\n" +
-                    "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
-                    "}", emptyList(), "" +
-                    "uniform vec4 color;\n" +
-                    "void main(){\n" +
-                    "   gl_FragColor = color;\n" +
-                    "}"
-        )
-
-        flatShaderStriped = BaseShader(
-            "flatShader",
-            "" +
-                    "$attribute vec2 attr0;\n" +
-                    "uniform vec2 pos, size;\n" +
-                    "void main(){\n" +
-                    "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
-                    "}", emptyList(), "" +
-                    "uniform vec4 color;\n" +
-                    "uniform int offset, stride;\n" +
-                    "void main(){\n" +
-                    "   int x = int(gl_FragCoord.x);\n" +
-                    "   if(x % stride != offset) discard;\n" +
-                    "   gl_FragColor = color;\n" +
-                    "}"
-        )
-
-        flatShaderGradient = createShader(
-            "flatShaderGradient",
-            "" +
-                    "$attribute vec2 attr0;\n" +
-                    "uniform vec2 pos, size;\n" +
-                    "uniform vec4 uvs;\n" +
-                    yuv2rgb +
-                    "uniform vec4 lColor, rColor;\n" +
-                    "void main(){\n" +
-                    "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
-                    "   color = attr0.x < 0.5 ? lColor : rColor;\n" +
-                    "   uv = mix(uvs.xy, uvs.zw, attr0);\n" +
-                    "}", listOf(Variable(GLSLType.V2F, "uv"), Variable(GLSLType.V4F, "color")), "" +
-                    "uniform int code;\n" +
-                    "uniform sampler2D tex0,tex1;\n" +
-                    yuv2rgb +
-                    "void main(){\n" +
-                    "   vec4 texColor;\n" +
-                    "   if(uv.x >= 0.0 && uv.x <= 1.0){\n" +
-                    "       switch(code){" +
-                    "           case 0: texColor = texture(tex0, uv).gbar;break;\n" + // ARGB
-                    "           case 1: texColor = texture(tex0, uv).bgra;break;\n" + // BGRA
-                    "           case 2: \n" +
-                    "               vec3 yuv = vec3(texture(tex0, uv).r, texture(tex1, uv).xy);\n" +
-                    "               texColor = vec4(yuv2rgb(yuv), 1.0);\n" +
-                    "               break;\n" + // 420
-                    "           default: texColor = texture(tex0, uv);\n" +
-                    "       }" +
-                    "   }\n" +
-                    "   else texColor = vec4(1.0);\n" +
-                    "   gl_FragColor = color * texColor;\n" +
-                    "}", listOf("tex0", "tex1")
-        )
-
-        flatShaderTexture = BaseShader(
-            "flatShaderTexture",
-            "" +
-                    simpleVertexShader, uvList, "" +
-                    "uniform sampler2D tex;\n" +
-                    "uniform vec4 color;\n" +
-                    "uniform bool ignoreTexAlpha;\n" +
-                    "void main(){\n" +
-                    "   vec4 col = color;\n" +
-                    "   if(ignoreTexAlpha) col.rgb *= texture(tex, uv).rgb;\n" +
-                    "   else col *= texture(tex, uv);\n" +
-                    "   gl_FragColor = col;\n" +
-                    "}"
-        )
-        flatShaderTexture.ignoreUniformWarnings(
-            listOf(
-                "cgSlope", "cgOffset", "cgPower", "cgSaturation",
-                "forceFieldUVCount", "forceFieldColorCount"
-            )
-        )
-
-        shader2DCircle = BaseShader(
-            "flatShaderTexture",
-            "" +
-                    simpleVertexShader, uvList, "" +
-                    "uniform vec4 innerColor, circleColor, backgroundColor;\n" +
-                    "uniform float innerRadius, outerRadius, smoothness;\n" +
-                    "uniform vec2 degrees;\n" + // todo respect them
-                    "void main(){\n" +
-                    "   vec2 uv2 = uv*2.0-1.0;\n" +
-                    "   float radius = length(uv2), safeRadius = max(radius, 1e-16);\n" +
-                    "   float delta = smoothness * 2.0 * mix(dFdx(uv.x), -dFdy(uv.y), clamp(abs(uv2.y)/safeRadius, 0.0, 1.0));\n" +
-                    "   if(degrees.x != degrees.y){\n" +
-                    "       float angle = atan(uv2.y, uv2.x);\n" +
-                    // todo this is not good enough... somehow employ the same logic as in 3d
-                    "       float alpha0 = clamp((angle - degrees.x)/delta + .5, 0.0, 1.0);\n" +
-                    "       float alpha1 = clamp((degrees.y - angle)/delta + .5, 0.0, 1.0);\n" +
-                    "       vec4 baseColor = mix(innerColor, circleColor, clamp((radius-innerRadius)/delta+0.5, 0.0, 1.0));\n" +
-                    "       gl_FragColor = mix(backgroundColor, baseColor, (1.0 - clamp((radius-outerRadius)/delta+0.5, 0.0, 1.0)) * max(alpha0, alpha1));\n" +
-                    "   } else {\n" +
-                    "       vec4 baseColor = mix(innerColor, circleColor, clamp((radius-innerRadius)/delta+0.5, 0.0, 1.0));\n" +
-                    "       gl_FragColor = mix(baseColor, backgroundColor, clamp((radius-outerRadius)/delta+0.5, 0.0, 1.0));\n" +
-                    "   }" +
-                    "}"
-        )
-        shader2DCircle.ignoreUniformWarnings(
-            listOf(
-                "cgSlope", "cgOffset", "cgPower", "cgSaturation",
-                "forceFieldUVCount", "forceFieldColorCount"
-            )
-        )
-
-        flatShaderCubemap = BaseShader(
-            "flatShaderCubemap",
-            "" +
-                    "$attribute vec2 attr0;\n" +
-                    "uniform vec2 pos, size;\n" +
-                    "void main(){\n" +
-                    "   gl_Position = vec4((pos + attr0 * size)*2.0-1.0, 0.0, 1.0);\n" +
-                    "   uv = (attr0 - 0.5) * vec2(${Math.PI * 2},${Math.PI});\n" +
-                    "}", listOf(Variable(GLSLType.V2F, "uv")), "" +
-                    "uniform samplerCube tex;\n" +
-                    "uniform vec4 color;\n" +
-                    "uniform bool ignoreTexAlpha;\n" +
-                    // "uniform mat3 rotation;\n" +
-                    "void main(){\n" +
-                    "   vec2 sc = vec2(sin(uv.y),cos(uv.y));\n" +
-                    "   vec3 uvw = vec3(sin(uv.x),1.0,cos(uv.x)) * sc.yxy;\n" +
-                    // "   uvw = rotation * uvw;\n" +
-                    "   vec4 col = color;\n" +
-                    "   if(ignoreTexAlpha) col.rgb *= texture(tex, uvw).rgb;\n" +
-                    "   else col *= texture(tex, uvw);\n" +
-                    "   gl_FragColor = col;\n" +
-                    "}"
-        )
-        flatShaderCubemap.ignoreUniformWarnings(
-            listOf(
-                "cgSlope", "cgOffset", "cgPower", "cgSaturation",
-                "forceFieldUVCount", "forceFieldColorCount"
-            )
-        )
-
-        copyShader = createShader(
-            "copy", simplestVertexShader, listOf(Variable(GLSLType.V2F, "uv")), "" +
-                    "uniform sampler2D tex;\n" +
-                    "uniform float am1;\n" +
-                    "void main(){\n" +
-                    "   gl_FragColor = (1.0-am1) * texture(tex, uv);\n" +
-                    "}", listOf("tex")
-        )
 
         // with texture
         subpixelCorrectTextShader = BaseShader(

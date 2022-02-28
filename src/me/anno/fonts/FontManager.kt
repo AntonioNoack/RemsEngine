@@ -7,11 +7,11 @@ import me.anno.fonts.keys.FontKey
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
-import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.texture.ITexture2D
-import me.anno.utils.Clock
+import me.anno.gpu.texture.TextureLib
 import me.anno.maths.Maths.ceilDiv
+import me.anno.utils.Clock
 import me.anno.utils.hpc.Threads.threadWithName
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.isBlank2
@@ -63,13 +63,13 @@ object FontManager {
         widthLimit: Int,
         heightLimit: Int
     ): Int {
-        return if (widthLimit < 0) -1 else {
+        return if (widthLimit < 0 || font.size < 1f) -1 else {
             loadTexturesSync.push(true)
             val size0 = getSize(font, text, -1, heightLimit)
             val w = GFXx2D.getSizeX(size0)
             if (w <= widthLimit) return size0
             loadTexturesSync.pop()
-            val step = font.size.toInt()
+            val step = max(1, font.size.toInt())
             min(w, (widthLimit + step / 2) / step * step)
         }
     }
@@ -129,6 +129,19 @@ object FontManager {
         val key = TextCacheKey(text, fontName, properties, widthLimit2, lineCountLimit)
         return getSize(key)
 
+    }
+
+    fun getBaselineY(
+        font: me.anno.ui.base.Font
+    ): Float {
+        // val f = getFont(font)
+        // why ever...
+        // Consolas example:
+        // font size 40
+        // best value: 17/18
+        // ascent: 30
+        // descent: 10
+        return -font.size * 17f / 40f
     }
 
     fun getTextCacheKey(

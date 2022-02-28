@@ -5,7 +5,7 @@ import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.GFXx2D
-import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.FlatShaders.flatShader
 import me.anno.utils.Color.a
 import kotlin.math.PI
 import kotlin.math.cos
@@ -40,7 +40,7 @@ object Corner {
     val bottomLeft = corner(true, my = false)
     val bottomRight = corner(false, my = false)
 
-    fun drawRoundedRect(
+    fun drawRoundedRect(// todo use shader to round the corners
         x: Int, y: Int, w: Int, h: Int,
         radiusX: Int, radiusY: Int,
         color: Int,
@@ -86,7 +86,7 @@ object Corner {
     fun drawCorner(x: Int, y: Int, w: Int, h: Int, corner: StaticBuffer) {
         if (w == 0 || h == 0) return
         GFX.check()
-        val shader = ShaderLib.flatShader.value
+        val shader = flatShader.value
         shader.use()
         GFXx2D.posSize(shader, x, y, w, h)
         corner.draw(shader)
@@ -96,7 +96,7 @@ object Corner {
     fun drawCorner(x: Int, y: Int, w: Int, h: Int, color: Int, corner: StaticBuffer) {
         if (w == 0 || h == 0 || color.a() <= 0f) return
         GFX.check()
-        val shader = ShaderLib.flatShader.value
+        val shader = flatShader.value
         shader.use()
         GFXx2D.posSize(shader, x, y, w, h)
         shader.v4f("color", color)

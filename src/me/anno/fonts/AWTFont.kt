@@ -224,6 +224,9 @@ class AWTFont(val font: Font) {
         exampleLayout.ascent + exampleLayout.descent
     }
 
+    val ascent by lazy { exampleLayout.ascent }
+    val descent by lazy { exampleLayout.descent }
+
     fun splitParts(
         text: CharSequence,
         fontSize: Float,

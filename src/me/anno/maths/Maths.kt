@@ -55,8 +55,8 @@ object Maths {
     fun pow(base: Float, power: Float) = StrictMath.pow(base.toDouble(), power.toDouble()).toFloat()
     fun log(base: Float) = StrictMath.log(base.toDouble()).toFloat()
 
-    fun length(dx: Float, dy: Float) = sqrt(dx * dx + dy * dy)
-    fun length(dx: Double, dy: Double) = sqrt(dx * dx + dy * dy)
+    fun length(dx: Float, dy: Float) = hypot(dx, dy)
+    fun length(dx: Double, dy: Double) = hypot(dx, dy)
     fun length(dx: Float, dy: Float, dz: Float) = sqrt(dx * dx + dy * dy + dz * dz)
     fun length(dx: Double, dy: Double, dz: Double) = sqrt(dx * dx + dy * dy + dz * dz)
     fun distance(x0: Float, y0: Float, x1: Float, y1: Float) = length(x1 - x0, y1 - y0)
@@ -92,6 +92,12 @@ object Maths {
 
     fun mixRandomly(a: Int, b: Int, f: Float): Int {
         return (a * (1f - f) + b * f + Math.random()).toInt()
+    }
+
+    fun mapClamped(input: Float, inputMin: Float, inputMax: Float, outputMin: Float, outputMax: Float): Float {
+        val f0 = unmix(inputMin, inputMax, input)
+        val f1 = clamp(f0, 0f, 1f)
+        return mix(outputMin, outputMax, f1)
     }
 
     fun max(a: Int, b: Int): Int {

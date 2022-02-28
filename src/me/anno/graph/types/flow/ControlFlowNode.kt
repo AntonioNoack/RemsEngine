@@ -1,12 +1,6 @@
 package me.anno.graph.types.flow
 
-import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.style.Style
-
 abstract class ControlFlowNode : FlowGraphNode {
-
-    // may not have details
-    override fun createUI(list: PanelListY, style: Style) {}
 
     constructor(name: String) : super(name)
 

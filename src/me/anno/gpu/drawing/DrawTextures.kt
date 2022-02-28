@@ -2,6 +2,8 @@ package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.GFXx2D.defineAdvancedGraphicalFeatures
+import me.anno.gpu.shader.FlatShaders.flatShaderCubemap
+import me.anno.gpu.shader.FlatShaders.flatShaderTexture
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.*
 import me.anno.video.formats.gpu.GPUFrame
@@ -17,7 +19,7 @@ object DrawTextures {
     ) {
         if (w == 0 || h == 0) return
         GFX.check()
-        val shader = ShaderLib.flatShaderCubemap.value
+        val shader = flatShaderCubemap.value
         shader.use()
         GFXx2D.posSize(shader, x, y, w, h)
         defineAdvancedGraphicalFeatures(shader)
@@ -34,7 +36,7 @@ object DrawTextures {
     ) {
         if (w == 0 || h == 0) return
         GFX.check()
-        val shader = ShaderLib.flatShaderTexture.value
+        val shader = flatShaderTexture.value
         shader.use()
         val posX = (x - GFX.viewportX).toFloat() / GFX.viewportWidth
         val posY = (y - GFX.viewportY).toFloat() / GFX.viewportHeight
@@ -62,7 +64,7 @@ object DrawTextures {
     ) {
         if (w == 0 || h == 0) return
         GFX.check()
-        val shader = ShaderLib.flatShaderTexture.value
+        val shader = flatShaderTexture.value
         shader.use()
         GFXx2D.posSize(shader, x, y, w, h)
         defineAdvancedGraphicalFeatures(shader)

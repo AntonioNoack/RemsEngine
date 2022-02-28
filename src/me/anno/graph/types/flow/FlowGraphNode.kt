@@ -1,6 +1,7 @@
 package me.anno.graph.types.flow
 
 import me.anno.graph.Node
+import me.anno.graph.NodeConnector
 import me.anno.graph.NodeOutput
 import me.anno.graph.types.FlowGraph
 
@@ -18,6 +19,14 @@ abstract class FlowGraphNode : Node {
     }
 
     abstract fun execute(graph: FlowGraph): NodeOutput?
+
+    override fun supportsMultipleInputs(con: NodeConnector): Boolean {
+        return con.type == "Flow"
+    }
+
+    override fun supportsMultipleOutputs(con: NodeConnector): Boolean {
+        return con.type != "Flow"
+    }
 
     override val className: String = javaClass.simpleName
 

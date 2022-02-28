@@ -405,6 +405,10 @@ object Input {
         val panelWindow = dws.getPanelAndWindowAt(mouseX, mouseY)
         onClickIntoWindow(button, panelWindow)
 
+        // todo the selection order for multiselect not always makes sense (e.g. not for graph panels) ->
+        //  - sort the list or
+        //  - disable multiselect
+
         val singleSelect = isControlDown
         val multiSelect = isShiftDown
         val inFocus0 = dws.inFocus0

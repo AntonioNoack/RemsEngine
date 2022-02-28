@@ -1,8 +1,10 @@
 package me.anno.gpu.drawing
 
-import me.anno.Engine
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawRectangles.drawRect
+import me.anno.gpu.shader.FlatShaders.flatShader
+import me.anno.gpu.shader.FlatSymbols.flatShaderCircle
+import me.anno.gpu.shader.FlatSymbols.flatShaderHalfArrow
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.maths.Maths.clamp
@@ -29,7 +31,7 @@ object GFXx2D {
     }
 
     fun flatColor(color: Int) {
-        val shader = ShaderLib.flatShader.value
+        val shader = flatShader.value
         shader.use()
         shader.v4f("color", color)
     }
@@ -85,7 +87,7 @@ object GFXx2D {
         color: Vector4f
     ) {
 
-        val shader = ShaderLib.shader2DCircle.value
+        val shader = flatShaderCircle.value
         shader.use()
 
         posSize(shader, x - radiusX, y - radiusY, radiusX * 2f, radiusY * 2f)
@@ -113,10 +115,10 @@ object GFXx2D {
         innerColor: Int,
         circleColor: Int,
         backgroundColor: Int,
-        smoothness: Float = 1.5f // 1f is perfect, but I prefer 1.5f
+        smoothness: Float = 1f
     ) {
 
-        val shader = ShaderLib.shader2DCircle.value
+        val shader = flatShaderCircle.value
         shader.use()
 
         // plus padding of 1 for better border smoothness
@@ -125,13 +127,35 @@ object GFXx2D {
         val factor = radiusX / (radiusX + 2f)
         shader.v1f("outerRadius", factor)
         shader.v1f("innerRadius", innerRadius * factor)
-        shader.v4f("innerColor", if (innerRadius > 0f) backgroundColor else innerColor)
+        shader.v4f("innerColor", if (innerRadius > 0f) innerColor else circleColor)
 
         shader.v4f("tiling", 1f, 1f, 0f, 0f)
         shader.v4f("circleColor", circleColor)
         shader.v4f("backgroundColor", backgroundColor)
-        val time = Engine.gameTimeF.toFloat()
-        shader.v2f("degrees", time % 6.28f, 6f)
+        shader.v2f("degrees", 0f, 0f)
+        shader.v1f("smoothness", smoothness)
+
+        GFX.flat01.draw(shader)
+
+    }
+
+    fun drawHalfArrow(
+        x: Int, y: Int,
+        w: Int, h: Int,
+        color: Int,
+        backgroundColor: Int,
+        smoothness: Float = 1f
+    ) {
+
+        val shader = flatShaderHalfArrow.value
+        shader.use()
+
+        // plus padding of 1 for better border smoothness
+        posSize(shader, x, y, w, h)
+
+        shader.v4f("tiling", 1f, 1f, 0f, 0f)
+        shader.v4f("color", color)
+        shader.v4f("backgroundColor", backgroundColor)
         shader.v1f("smoothness", smoothness)
 
         GFX.flat01.draw(shader)

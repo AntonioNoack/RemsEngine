@@ -84,6 +84,7 @@
       <w>emissive</w>
       <w>envs</w>
       <w>equirectangular</w>
+      <w>expm</w>
       <w>fadein</w>
       <w>farneback</w>
       <w>fastdecode</w>
@@ -207,6 +208,7 @@
       <w>multisample</w>
       <w>multisampled</w>
       <w>musik</w>
+      <w>nand</w>
       <w>navajowhite</w>
       <w>ndot</w>
       <w>ness</w>
@@ -321,6 +323,7 @@
       <w>waifu</w>
       <w>whitesmoke</w>
       <w>wmav</w>
+      <w>xnor</w>
       <w>xxyy</w>
       <w>xyxy</w>
       <w>xyzi</w>

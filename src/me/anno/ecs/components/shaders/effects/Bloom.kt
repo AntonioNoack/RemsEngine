@@ -7,6 +7,7 @@ import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.shader.FlatShaders.copyShader
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
@@ -87,7 +88,7 @@ object Bloom {
     }
 
     private fun backwardPass(steps: Int): ITexture2D {
-        val shader = ShaderLib.copyShader.value
+        val shader = copyShader.value
         shader.use()
         shader.v1f("am1", 0f)
         var previous = tmpForward[steps - 1]!!
