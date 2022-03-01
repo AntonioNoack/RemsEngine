@@ -4,6 +4,8 @@ import me.anno.config.DefaultStyle
 import me.anno.gpu.Cursor
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.input.Input
 import me.anno.input.MouseButton
@@ -103,6 +105,6 @@ class ColorPicker(
     var callback: (Int) -> Unit = {}
 
     override fun getCursor() = Cursor.hand
-    override fun getTexture() = gpuData.getColor0()
+    override fun getTexture() = gpuData.getTexture0()
 
 }

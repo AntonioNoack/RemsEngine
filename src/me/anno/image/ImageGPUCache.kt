@@ -48,7 +48,7 @@ object ImageGPUCache : CacheSection("Images") {
         if (file is ImageReadable) {
             val image = file.readImage()
             if (image is GPUImage) {
-                val texture = image.texture
+                val texture = image.texture as? Texture2D ?: throw RuntimeException("TODO: Implement handling of ITexture2D")
                 return if (!texture.isDestroyed && texture.isCreated) texture else null
             }
         }

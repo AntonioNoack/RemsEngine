@@ -8,6 +8,7 @@ import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.deferred.DeferredSettingsV2.Companion.singleToVector
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
@@ -15,6 +16,7 @@ import me.anno.gpu.shader.ShaderLib.simplestVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import org.joml.Matrix4f
 
@@ -188,14 +190,25 @@ object ScreenSpaceReflections {
         }
     }
 
+    /**
+     * computes screen space reflections from metallic, roughness, normal, position and color buffers
+     * */
     fun compute(
-        buffer: Framebuffer,
+        buffer: IFramebuffer,
         illuminated: Framebuffer,
         deferred: DeferredSettingsV2,
         transform: Matrix4f,
         applyToneMapping: Boolean,
         dst: Framebuffer = FBStack["ss-reflections", buffer.w, buffer.h, 4, true, 1, false]
-    ): Texture2D {
+    ): ITexture2D? {
+        // metallic may be on r, g, b, or a
+        val metallicLayer = deferred.findLayer(DeferredLayerType.METALLIC) ?: return null
+        val metallicName = metallicLayer.mapping
+        val roughnessLayer = deferred.findLayer(DeferredLayerType.ROUGHNESS) ?: return null
+        val roughnessName = roughnessLayer.mapping
+        val normalTexture = deferred.findTexture(buffer, DeferredLayerType.NORMAL) ?: return null
+        val positionTexture = deferred.findTexture(buffer, DeferredLayerType.POSITION) ?: return null
+        val colorTexture = deferred.findTexture(buffer, DeferredLayerType.COLOR) ?: return null
         useFrame(dst, Renderer.copyRenderer) {
             val fineSteps = 10 // 10 are enough, if there are only rough surfaces
             val maxDistance = 8f
@@ -211,22 +224,17 @@ object ScreenSpaceReflections {
             shader.m4x4("transform", transform)
             val n = GPUFiltering.TRULY_LINEAR
             val c = Clamping.CLAMP
-            // metallic may be on r, g, b, or a
-            val metallicLayer = deferred.findLayer(DeferredLayerType.METALLIC)!!
-            val metallicName = metallicLayer.mapping
-            val roughnessLayer = deferred.findLayer(DeferredLayerType.ROUGHNESS)!!
-            val roughnessName = roughnessLayer.mapping
             shader.v4f("metallicMask", singleToVector[metallicName]!!)
             shader.v4f("roughnessMask", singleToVector[roughnessName]!!)
             illuminated.bindTexture0(5, n, c)
-            deferred.findTexture(buffer, roughnessLayer)!!.bind(4, n, c)
-            deferred.findTexture(buffer, metallicLayer)!!.bind(3, n, c)
-            deferred.findTexture(buffer, DeferredLayerType.NORMAL)!!.bind(2, n, c)
-            deferred.findTexture(buffer, DeferredLayerType.POSITION)!!.bind(1, n, c)
-            deferred.findTexture(buffer, DeferredLayerType.COLOR)!!.bind(0, n, c)
+            deferred.findTexture(buffer, roughnessLayer).bind(4, n, c)
+            deferred.findTexture(buffer, metallicLayer).bind(3, n, c)
+            normalTexture.bind(2, n, c)
+            positionTexture.bind(1, n, c)
+            colorTexture.bind(0, n, c)
             flat01.draw(shader)
         }
-        return dst.getColor0()
+        return dst.getTexture0()
     }
 
 }

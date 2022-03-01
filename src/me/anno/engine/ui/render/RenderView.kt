@@ -42,6 +42,7 @@ import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.clip2
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.OpenGL
 import me.anno.gpu.OpenGL.useFrame
@@ -51,6 +52,7 @@ import me.anno.gpu.deferred.DepthBasedAntiAliasing
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTextures.drawProjection
 import me.anno.gpu.drawing.DrawTextures.drawTexture
+import me.anno.gpu.drawing.DrawTextures.drawTextureAlpha
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.framebuffer.*
 import me.anno.gpu.pipeline.LightPipelineStage
@@ -65,10 +67,7 @@ import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Renderer.Companion.depthRenderer
 import me.anno.gpu.shader.Renderer.Companion.idRenderer
 import me.anno.gpu.shader.Renderer.Companion.idRendererVis
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.CubemapTexture
-import me.anno.gpu.texture.GPUFiltering
-import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.*
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Input.isKeyDown
 import me.anno.input.Input.isShiftDown
@@ -418,7 +417,7 @@ class RenderView(
                     comp.width = x1 - x0
                     comp.height = y1 - y0
                     comp.render()
-                    val texture = comp.framebuffer!!.getColor0()
+                    val texture = comp.framebuffer!!.getTexture0()
                     drawTexture(x0, y1, x1 - x0, y0 - y1, texture, -1, null)
                 }
                 false
@@ -436,7 +435,7 @@ class RenderView(
     private fun drawScene(
         x0: Int, y0: Int, x1: Int, y1: Int,
         camera: CameraComponent,
-        renderer: Renderer, buffer: Framebuffer,
+        renderer: Renderer, buffer: IFramebuffer,
         useDeferredRendering: Boolean,
         size: Int, cols: Int, rows: Int, layersSize: Int
     ) {
@@ -498,14 +497,14 @@ class RenderView(
                     val lightBuffer = lightBuffer
                     buffer.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                     drawSceneLights(camera, camera, 1f, copyRenderer, buffer, lightBuffer)
-                    drawTexture(x, y + h, w, -h, lightBuffer.getColor0(), true, -1, null)
+                    drawTexture(x, y + h, w, -h, lightBuffer.getTexture0(), true, -1, null)
                     return
                 }
                 RenderMode.LIGHT_COUNT -> {
                     val lightBuffer = lightBuffer
                     pipeline.lightPseudoStage.visualizeLightCount = true
                     drawSceneLights(camera, camera, 1f, copyRenderer, buffer, lightBuffer)
-                    drawTexture(x, y + h, w, -h, lightBuffer.getColor0(), true, -1, null)
+                    drawTexture(x, y + h, w, -h, lightBuffer.getTexture0(), true, -1, null)
                     pipeline.lightPseudoStage.visualizeLightCount = false
                     return
                 }
@@ -518,7 +517,17 @@ class RenderView(
                         buffer, deferred, cameraMatrix,
                         ssaoRadius, strength, ssaoSamples
                     )
-                    drawTexture(x, y + h, w, -h, ssao, true, -1, null)
+                    drawTexture(
+                        x, y + h, w, -h, ssao ?: buffer.getTexture0(),
+                        true, -1, null
+                    )
+                    if (ssao == null) {
+                        // write warning message
+                        DrawTexts.drawSimpleTextCharByChar(
+                            x + w / 2, y + h / 2, 2, "SSAO not supported",
+                            AxisAlignment.CENTER, AxisAlignment.CENTER
+                        )
+                    }
                     return
                 }
                 RenderMode.SS_REFLECTIONS -> {
@@ -540,7 +549,13 @@ class RenderView(
                         }
                     }
                     val result = ScreenSpaceReflections.compute(buffer, illuminated, deferred, cameraMatrix, true)
-                    drawTexture(x, y + h, w, -h, result, true, -1, null)
+                    drawTexture(x, y + h, w, -h, result ?: buffer.getTexture0(), true, -1, null)
+                    if (result == null) {
+                        DrawTexts.drawSimpleTextCharByChar(
+                            x + w / 2, y + h / 2, 2, "SSR not supported",
+                            AxisAlignment.CENTER, AxisAlignment.CENTER
+                        )
+                    }
                     return
                 }
                 RenderMode.ALL_DEFERRED_BUFFERS -> {
@@ -562,17 +577,23 @@ class RenderView(
 
                         // draw the light buffer as the last stripe
                         val texture = if (index < layersSize) {
-                            buffer.textures[index]
+                            buffer.getTextureI(index)
                         } else {
                             lightBuffer.textures[0]
                         }
 
                         // y flipped, because it would be incorrect otherwise
-                        drawTexture(x02, y12, x12 - x02, y02 - y12, texture, true, -1, null)
-                        DrawTexts.drawSimpleTextCharByChar(
-                            x02, y02, 2,
-                            texture.name
-                        )
+                        val name = if (texture is Texture2D) texture.name else texture.toString()
+                        drawTexture(x02, y12, x12 - x02, y02 - y12, texture, true)
+                        val f = 0.8f
+                        if(index < layersSize) clip2(
+                            if (y12 - y02 > x12 - x02) x02 else mix(x02, x12, f),
+                            if (y12 - y02 > x12 - x02) mix(y02, y12, f) else y02,
+                            x12, y12
+                        ) { // draw alpha on right/bottom side
+                            drawTextureAlpha(x02, y12, x12 - x02, y02 - y12, texture)
+                        }
+                        DrawTexts.drawSimpleTextCharByChar(x02, y02, 2, name)
 
                     }
                     return
@@ -590,7 +611,7 @@ class RenderView(
                         // rows x N field
                         val col = index % cols
                         val x02 = x + (x1 - x0) * (col + 0) / cols
-                        // val x12 = x + (x1 - x0) * (col + 1) / cols
+                        val x12 = x + (x1 - x0) * (col + 1) / cols
                         val row = index / cols
                         val y02 = y + (y1 - y0) * (row + 0) / rows
                         val y12 = y + (y1 - y0) * (row + 1) / rows
@@ -601,12 +622,12 @@ class RenderView(
 
                         drawScene(tw, th, camera, camera, 1f, layerRenderer, tmp, false, !useDeferredRendering)
 
-                        val texture = tmp.getColor0()
+                        val texture = tmp.getTexture0()
                         // y flipped, because it would be incorrect otherwise
                         drawTexture(x02, y12, tw, -th, texture, true, -1, null)
                         DrawTexts.drawSimpleTextCharByChar(
-                            x02, y02, 2,
-                            layer.name
+                            (x02 + x12) / 2, (y02 + y12) / 2, 2,
+                            layer.name, AxisAlignment.CENTER, AxisAlignment.CENTER
                         )
 
                     }
@@ -617,7 +638,7 @@ class RenderView(
 
                     if (renderer != DeferredRenderer) {
                         drawScene(w, h, camera, camera, 1f, renderer, buffer, true, !useDeferredRendering)
-                        drawTexture(x, y + h, w, -h, buffer.getColor0(), true, -1, null)
+                        drawTexture(x, y + h, w, -h, buffer.getTexture0(), true, -1, null)
                         return
                     }
 
@@ -631,7 +652,7 @@ class RenderView(
                     val ssao = ScreenSpaceAmbientOcclusion.compute(
                         buffer, deferred, cameraMatrix,
                         ssaoRadius, ssaoStrength, ssaoSamples
-                    )
+                    ) ?: whiteTexture
 
                     // todo calculate the colors via post processing
                     // todo this would also allow us to easier visualize all the layers
@@ -658,10 +679,11 @@ class RenderView(
                         }
 
                         // screen space reflections
+                        // todo toggle for this, maybe it's not required in every scene, and then it's just a waste
                         val ssReflections = ScreenSpaceReflections.compute(
                             buffer, illuminated, deferred, cameraMatrix,
                             false
-                        )// else illuminated.getColor0()
+                        ) ?: illuminated.getTexture0()
 
                         useFrame(w, h, true, dstBuffer0) {
 
@@ -709,10 +731,12 @@ class RenderView(
                     }
 
                     // anti-aliasing
-                    dstBuffer = FBStack["RenderView-dst", w, h, 4, false, 1, false]
-                    useFrame(w, h, true, dstBuffer) {
-                        DepthBasedAntiAliasing.render(dstBuffer0.getColor0(), buffer.depthTexture!!)
-                    }
+                    if (buffer.depthTexture != null) {
+                        dstBuffer = FBStack["RenderView-dst", w, h, 4, false, 1, false]
+                        useFrame(w, h, true, dstBuffer) {
+                            DepthBasedAntiAliasing.render(dstBuffer0.getTexture0(), buffer.depthTexture!!)
+                        }
+                    } else LOGGER.warn("Depth buffer is null! ${buffer::class}")
 
                 }
             }
@@ -727,7 +751,7 @@ class RenderView(
                 val tmp = FBStack["scene", w, h, 4, true, buffer.samples, true]
                 drawScene(w, h, camera, camera, 1f, renderer, tmp, changeSize = true, true)
                 useFrame(w, h, true, dstBuffer) {
-                    Bloom.bloom(tmp.getColor0(), bloomOffset, bloomStrength, true)
+                    Bloom.bloom(tmp.getTexture0(), bloomOffset, bloomStrength, true)
                 }
             } else {
                 drawScene(w, h, camera, camera, 1f, renderer, buffer, changeSize = true, true)
@@ -744,9 +768,9 @@ class RenderView(
             val tw = x1 - x0
             val th = y1 - y0
             val tmp = FBStack["fsr", tw, th, 4, false, 1, false]
-            useFrame(tmp) { FSR.upscale(dstBuffer.getColor0(), 0, 0, tw, th, flipY) }
+            useFrame(tmp) { FSR.upscale(dstBuffer.getTexture0(), 0, 0, tw, th, flipY) }
             // afterwards sharpen
-            FSR.sharpen(tmp.getColor0(), 0.5f, x, y, tw, th, flipY)
+            FSR.sharpen(tmp.getTexture0(), 0.5f, x, y, tw, th, flipY)
         } else {
             // we could optimize that one day, when the shader graph works
             GFX.copyNoAlpha(dstBuffer)
@@ -803,7 +827,7 @@ class RenderView(
             val useDeferredRendering = false
             prepareDrawScene(w, h, w.toFloat() / h, camera, camera, 0f, false)
             drawScene(w, h, camera, camera, 1f, renderer, buffer, true, !useDeferredRendering)
-            drawTexture(x1 - w, y1, w, -h, buffer.getColor0(), true, -1, null)
+            drawTexture(x1 - w, y1, w, -h, buffer.getTexture0(), true, -1, null)
             // prepareDrawScene needs to be reset afterwards, because we seem to have a kind-of-bug somewhere
             val camera2 = editorCamera
             prepareDrawScene(this.w, this.h, this.w.toFloat() / this.h, camera2, camera2, 0f, false)
@@ -978,7 +1002,9 @@ class RenderView(
     private fun setClearDepth() {
         stage0.depthMode = depthMode
         pipeline.lightPseudoStage.depthMode = depthMode
-        pipeline.stages.forEach { it.depthMode = depthMode }
+        for (it in pipeline.stages) {
+            it.depthMode = depthMode
+        }
     }
 
     private val depthMode get() = if (reverseDepth) DepthMode.GREATER else DepthMode.FORWARD_LESS
@@ -1025,14 +1051,14 @@ class RenderView(
         previousCamera: CameraComponent,
         blending: Float,
         renderer: Renderer,
-        dst: Framebuffer,
+        dst: IFramebuffer,
         changeSize: Boolean,
         doDrawGizmos: Boolean
     ) {
 
         GFX.check()
 
-        val isDeferred = dst.targets.size > 1
+        val isDeferred = dst.numTextures > 1
         val specialClear = isDeferred && renderer === DeferredRenderer
 
         val preDrawDepth = renderMode == RenderMode.WITH_PRE_DRAW_DEPTH
@@ -1126,8 +1152,8 @@ class RenderView(
         previousCamera: CameraComponent,
         blending: Float,
         renderer: Renderer,
-        src: Framebuffer,
-        dst: Framebuffer
+        src: IFramebuffer,
+        dst: IFramebuffer
     ) {
 
         useFrame(w, h, true, dst, renderer) {

@@ -8,7 +8,6 @@ import me.anno.engine.gui.LineShapes.drawXYPlane
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.gpu.DepthMode
-import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL
 import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.framebuffer.FBStack
@@ -185,7 +184,7 @@ class PlanarReflection : LightComponentBase() {
         }
 
         // todo tag: visible by mirror (vampires are not being reflected)
-        lastBuffer = buffer.getColor0()
+        lastBuffer = buffer.getTexture0()
 
     }
 

@@ -3,9 +3,9 @@ package me.anno.gpu.framebuffer
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL
 import me.anno.gpu.debug.DebugGPUStorage
-import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths
 import org.apache.logging.log4j.LogManager
@@ -16,7 +16,7 @@ import org.lwjgl.opengl.GL45C.glCheckNamedFramebufferStatus
 import kotlin.system.exitProcess
 
 class Framebuffer(
-    var name: String,
+    override var name: String,
     override var w: Int, override var h: Int,
     samples: Int, val targets: Array<TargetType>,
     val depthBufferType: DepthBufferType
@@ -34,6 +34,7 @@ class Framebuffer(
     )
 
     override val samples: Int = Maths.clamp(samples, 1, GFX.maxSamples)
+    override val numTextures: Int = targets.size
 
     // todo test this, does this work?
     /**
@@ -41,10 +42,16 @@ class Framebuffer(
      * this can be used to draw 3D ui without deferred-rendering,
      * but using the same depth values
      * */
-    fun attachFramebufferToDepth(targetCount: Int, fpTargets: Boolean): Framebuffer {
-        val fb = Framebuffer(name, w, h, samples, targetCount, fpTargets, DepthBufferType.ATTACHMENT)
-        fb.depthAttachment = this
-        return fb
+    override fun attachFramebufferToDepth(targetCount: Int, fpTargets: Boolean): IFramebuffer {
+        return if (targetCount <= GFX.maxColorAttachments) {
+            val buffer = Framebuffer(name, w, h, samples, targetCount, fpTargets, DepthBufferType.ATTACHMENT)
+            buffer.depthAttachment = this
+            buffer
+        } else {
+            val buffer = MultiFramebuffer(name, w, h, samples, targetCount, fpTargets, DepthBufferType.ATTACHMENT)
+            for (it in buffer.targetsI) it.depthAttachment = this
+            buffer
+        }
     }
 
     var offsetX = 0
@@ -74,7 +81,7 @@ class Framebuffer(
 
     lateinit var textures: Array<Texture2D>
 
-    fun checkSession() {
+    override fun checkSession() {
         if (pointer > 0 && session != OpenGL.session) {
             GFX.check()
             session = OpenGL.session
@@ -162,7 +169,8 @@ class Framebuffer(
             DepthBufferType.NONE -> {
             }
             DepthBufferType.ATTACHMENT -> {
-                val texPointer = depthAttachment!!.depthTexture!!.pointer
+                val texPointer = depthAttachment?.depthTexture?.pointer
+                    ?: throw IllegalStateException("Depth Attachment was not found in $name, ${depthAttachment}.${depthAttachment?.depthTexture}")
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, target, texPointer, 0)
             }
             DepthBufferType.INTERNAL -> createDepthBuffer()
@@ -270,25 +278,7 @@ class Framebuffer(
         }
     }
 
-    fun bindTexture0(shader: Shader, texName: String, nearest: GPUFiltering, clamping: Clamping) {
-        val index = shader.getTextureIndex(texName)
-        if (index >= 0) {
-            checkSession()
-            bindTextureI(0, index, nearest, clamping)
-        }
-    }
-
-    fun bindTexture0(offset: Int = 0, nearest: GPUFiltering, clamping: Clamping) {
-        checkSession()
-        bindTextureI(0, offset, nearest, clamping)
-    }
-
-    fun bindTextureI(index: Int, offset: Int) {
-        checkSession()
-        bindTextureI(index, offset, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-    }
-
-    fun bindTextureI(index: Int, offset: Int, nearest: GPUFiltering, clamping: Clamping) {
+    override fun bindTextureI(index: Int, offset: Int, nearest: GPUFiltering, clamping: Clamping) {
         checkSession()
         if (withMultisampling) {
             val msBuffer = msBuffer!!
@@ -299,14 +289,7 @@ class Framebuffer(
         }
     }
 
-    fun resolve() {
-        if (withMultisampling) {
-            resolveTo(msBuffer!!)
-            GFX.check()
-        }
-    }
-
-    fun bindTextures(offset: Int = 0, nearest: GPUFiltering, clamping: Clamping) {
+    override fun bindTextures(offset: Int, nearest: GPUFiltering, clamping: Clamping) {
         GFX.check()
         if (withMultisampling) {
             val msBuffer = msBuffer!!
@@ -319,6 +302,13 @@ class Framebuffer(
             }
         }
         GFX.check()
+    }
+
+    fun resolve() {
+        if (withMultisampling) {
+            resolveTo(msBuffer!!)
+            GFX.check()
+        }
     }
 
     fun destroyExceptTextures(deleteDepth: Boolean) {
@@ -364,11 +354,12 @@ class Framebuffer(
         }
     }
 
-    fun getColor0(): Texture2D {
+    override fun getTextureI(index: Int): ITexture2D {
+        checkSession()
         return if (samples > 1) {
-            bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-            msBuffer!!.textures.first()
-        } else textures.first()
+            bindTextureI(index, 0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+            msBuffer!!.getTextureI(index)
+        } else textures[index]
     }
 
     companion object {

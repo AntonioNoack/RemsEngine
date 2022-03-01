@@ -108,7 +108,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
             DrawTexts.drawTextCharByChar(
                 x, y, font, text, color,
                 backgroundColor, widthLimit, heightLimit,
-                AxisAlignment.MIN, true
+                AxisAlignment.MIN, AxisAlignment.MIN, true
             )
         } else {
             DrawTexts.drawText(x, y, font, text, color, backgroundColor, widthLimit, heightLimit)
@@ -122,7 +122,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
             DrawTexts.drawTextCharByChar(
                 x, y, font, text, color,
                 backgroundColor, widthLimit, heightLimit,
-                AxisAlignment.MIN, true
+                AxisAlignment.MIN, AxisAlignment.MIN, true
             )
         } else {
             DrawTexts.drawText(x, y, font, textCacheKey, color, backgroundColor)

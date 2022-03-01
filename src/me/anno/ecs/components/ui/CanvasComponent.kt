@@ -21,6 +21,7 @@ import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.GPUImage
 import me.anno.input.MouseButton
 import me.anno.io.ISaveable
@@ -192,7 +193,7 @@ class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
             useFrame(fb) {} // create textures
             lastPointer = fb.pointer
             val prefab = Prefab("Material")
-            val texture = fb.getColor0()
+            val texture = fb.getTexture0()
             val image = GPUImage(texture, 4, true, hasOwnership = false)
             val texturePath = InnerTmpFile.InnerTmpImageFile(image)
             val materialPath = InnerTmpFile.InnerTmpPrefabFile(prefab)

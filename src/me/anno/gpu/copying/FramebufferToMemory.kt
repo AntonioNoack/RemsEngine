@@ -16,13 +16,11 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.Color
 import me.anno.utils.OS
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.glClearColor
 import org.lwjgl.opengl.GL11C.*
 import org.lwjgl.opengl.GL30C
 import java.awt.image.BufferedImage
 import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import kotlin.math.min
 
 object FramebufferToMemory {
@@ -44,11 +42,11 @@ object FramebufferToMemory {
     }
 
     fun createBufferedImage(w: Int, h: Int, fb: Framebuffer, flipY: Boolean, withAlpha: Boolean): BufferedImage {
-        return createBufferedImage(w, h, fb.getColor0(), flipY, withAlpha)
+        return createBufferedImage(w, h, fb.getTexture0(), flipY, withAlpha)
     }
 
     fun createImage(w: Int, h: Int, framebuffer: Framebuffer, flipY: Boolean, withAlpha: Boolean): IntImage {
-        return createImage(w, h, framebuffer.getColor0(), flipY, withAlpha)
+        return createImage(w, h, framebuffer.getTexture0(), flipY, withAlpha)
     }
 
     fun createBufferedImage(w: Int, h: Int, texture: ITexture2D, flipY: Boolean, withAlpha: Boolean): BufferedImage {

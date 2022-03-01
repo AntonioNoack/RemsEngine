@@ -1,8 +1,7 @@
 package me.anno.gpu.deferred
 
-import me.anno.gpu.framebuffer.DepthBufferType
-import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.GFX
+import me.anno.gpu.framebuffer.*
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
 
@@ -13,13 +12,24 @@ import me.anno.gpu.shader.builder.Variable
  * */
 object DeferredBuffers {
 
-    fun getBaseBuffer(settings: DeferredSettingsV1): Framebuffer {
+    fun getBaseBuffer(settings: DeferredSettingsV1): IFramebuffer {
         val layers = settings.layers
-        return Framebuffer(
-            "DeferredBuffers-main", 1, 1, 1,
-            Array(layers.size) { layers[it].type },
-            DepthBufferType.TEXTURE
-        )
+        val name = "DeferredBuffers-main"
+        val layers1 = Array(layers.size) { layers[it].type }
+        val depthBufferType = DepthBufferType.TEXTURE
+        return if (layers.size <= GFX.maxColorAttachments) {
+            Framebuffer(
+                name, 1, 1, 1,
+                layers1,
+                depthBufferType
+            )
+        } else {
+            MultiFramebuffer(
+                name, 1, 1, 1,
+                layers1,
+                depthBufferType
+            )
+        }
     }
 
     fun getLightBuffer(settings: DeferredSettingsV1): Framebuffer {

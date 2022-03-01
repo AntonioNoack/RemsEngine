@@ -23,8 +23,10 @@ object DeferredRenderer : Renderer(
     "deferred", false,
     ShaderPlus.DrawMode.COLOR,
     DeferredSettingsV2(
-        when (GFX.maxColorAttachments) {
+        // todo while these should be matches to the program running them, the game should decide what it needs where
+        when (8 + GFX.maxColorAttachments) {
             // my Huawei H10 has 4, my RX 580 has 8
+            // we should program in such a way, that it always works
             1 -> listOf(DeferredLayerType.COLOR_EMISSIVE)
             2 -> listOf(
                 DeferredLayerType.COLOR_EMISSIVE, // 4

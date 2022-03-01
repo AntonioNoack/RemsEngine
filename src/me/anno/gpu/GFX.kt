@@ -15,6 +15,7 @@ import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.FlatShaders.copyShader
 import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.Renderer.Companion.idRenderer
@@ -38,10 +39,10 @@ import org.joml.Vector3fc
 import org.joml.Vector4fc
 import org.lwjgl.opengl.ARBImaging.GL_TABLE_TOO_LARGE
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
-import org.lwjgl.opengl.GL20
-import org.lwjgl.opengl.GL30.*
-import org.lwjgl.opengl.GL43.GL_MAX_UNIFORM_LOCATIONS
-import org.lwjgl.opengl.GL45.GL_CONTEXT_LOST
+import org.lwjgl.opengl.GL11.GL_ALPHA_TEST
+import org.lwjgl.opengl.GL30C.*
+import org.lwjgl.opengl.GL43C.GL_MAX_UNIFORM_LOCATIONS
+import org.lwjgl.opengl.GL45C.GL_CONTEXT_LOST
 import org.lwjgl.opengl.GL46
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -243,9 +244,9 @@ object GFX : GFXBase1() {
     }
 
 
-    fun copyNoAlpha(buffer: Framebuffer) {
+    fun copyNoAlpha(buffer: IFramebuffer) {
         Frame.bind()
-        buffer.bindTexture0(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+        buffer.getTexture0().bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
         copyNoAlpha()
     }
 
@@ -276,9 +277,9 @@ object GFX : GFXBase1() {
             anisotropy = min(max, DefaultConfig["gpu.filtering.anisotropic.max", 16f])
         }
         maxVertexUniformComponents = glGetInteger(GL_MAX_VERTEX_UNIFORM_COMPONENTS)
-        maxFragmentUniformComponents = glGetInteger(GL20.GL_MAX_FRAGMENT_UNIFORM_COMPONENTS)
+        maxFragmentUniformComponents = glGetInteger(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS)
         maxUniforms = glGetInteger(GL_MAX_UNIFORM_LOCATIONS)
-        maxColorAttachments = glGetInteger(GL_MAX_COLOR_ATTACHMENTS)
+        maxColorAttachments = 1 // glGetInteger(GL_MAX_COLOR_ATTACHMENTS)
         maxSamples = max(1, glGetInteger(GL_MAX_SAMPLES))
         maxTextureSize = max(256, glGetInteger(GL_MAX_TEXTURE_SIZE))
         LOGGER.info("Max Uniform Components: [Vertex: $maxVertexUniformComponents, Fragment: $maxFragmentUniformComponents]")

@@ -86,11 +86,12 @@ object FlatShaders {
                 ShaderLib.simpleVertexShader, ShaderLib.uvList, "" +
                 "uniform sampler2D tex;\n" +
                 "uniform vec4 color;\n" +
-                "uniform bool ignoreTexAlpha;\n" +
+                "uniform int alphaMode;\n" + // 0 = rgba, 1 = rgb, 2 = a
                 "void main(){\n" +
                 "   vec4 col = color;\n" +
-                "   if(ignoreTexAlpha) col.rgb *= texture(tex, uv).rgb;\n" +
-                "   else col *= texture(tex, uv);\n" +
+                "   if(alphaMode == 0) col *= texture(tex, uv);\n" +
+                "   else if(alphaMode == 1) col.rgb *= texture(tex, uv).rgb;\n" +
+                "   else col.rgb *= texture(tex, uv).a;\n" +
                 "   gl_FragColor = col;\n" +
                 "}"
     )

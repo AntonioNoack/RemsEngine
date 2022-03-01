@@ -4,8 +4,8 @@ import me.anno.gpu.GFX
 import me.anno.gpu.drawing.GFXx2D.defineAdvancedGraphicalFeatures
 import me.anno.gpu.shader.FlatShaders.flatShaderCubemap
 import me.anno.gpu.shader.FlatShaders.flatShaderTexture
-import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.*
+import me.anno.utils.types.Booleans.toInt
 import me.anno.video.formats.gpu.GPUFrame
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
@@ -46,7 +46,7 @@ object DrawTextures {
         shader.v2f("size", relW, relH)
         defineAdvancedGraphicalFeatures(shader)
         shader.v4f("color", -1)
-        shader.v1b("ignoreTexAlpha", ignoreAlpha)
+        shader.v1i("alphaMode", ignoreAlpha.toInt())
         shader.v4f("tiling", 1f, 1f, 0f, 0f)
         val tex = texture as? Texture2D
         texture.bind(
@@ -60,7 +60,7 @@ object DrawTextures {
 
     fun drawTexture(
         x: Int, y: Int, w: Int, h: Int,
-        texture: ITexture2D, ignoreAlpha: Boolean, color: Int, tiling: Vector4fc?
+        texture: ITexture2D, ignoreAlpha: Boolean, color: Int = -1, tiling: Vector4fc? = null
     ) {
         if (w == 0 || h == 0) return
         GFX.check()
@@ -69,7 +69,32 @@ object DrawTextures {
         GFXx2D.posSize(shader, x, y, w, h)
         defineAdvancedGraphicalFeatures(shader)
         shader.v4f("color", color)
-        shader.v1b("ignoreTexAlpha", ignoreAlpha)
+        shader.v1i("alphaMode", ignoreAlpha.toInt())
+        if (tiling != null) shader.v4f("tiling", tiling)
+        else shader.v4f("tiling", 1f, 1f, 0f, 0f)
+        val tex = texture as? Texture2D
+        texture.bind(
+            0,
+            tex?.filtering ?: GPUFiltering.NEAREST,
+            tex?.clamping ?: Clamping.CLAMP
+        )
+        GFX.flat01.draw(shader)
+        GFX.check()
+    }
+
+    fun drawTextureAlpha(
+        x: Int, y: Int, w: Int, h: Int,
+        texture: ITexture2D,
+        color: Int = -1, tiling: Vector4fc? = null
+    ) {
+        if (w == 0 || h == 0) return
+        GFX.check()
+        val shader = flatShaderTexture.value
+        shader.use()
+        GFXx2D.posSize(shader, x, y, w, h)
+        defineAdvancedGraphicalFeatures(shader)
+        shader.v4f("color", color)
+        shader.v1i("alphaMode",2)
         if (tiling != null) shader.v4f("tiling", tiling)
         else shader.v4f("tiling", 1f, 1f, 0f, 0f)
         val tex = texture as? Texture2D

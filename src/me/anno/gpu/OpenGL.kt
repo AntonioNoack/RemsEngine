@@ -7,6 +7,7 @@ import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.IFramebuffer
+import me.anno.gpu.framebuffer.MultiFramebuffer
 import me.anno.gpu.shader.GeoShader
 import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.Renderer
@@ -188,8 +189,19 @@ object OpenGL {
         ws[index] = w
         hs[index] = h
         changeSizes[index] = changeSize
-        renderers[index] = renderer
-        framebuffer.use(buffer, render)
+        // todo depth must be cleared only once
+        if (buffer is MultiFramebuffer) {
+            val targets = buffer.targetsI
+            for (targetIndex in targets.indices) {
+                val target = targets[targetIndex]
+                // split renderer by targets
+                renderers[index] = renderer.split(targetIndex, buffer.div)
+                framebuffer.use(target, render)
+            }
+        } else {
+            renderers[index] = renderer
+            framebuffer.use(buffer, render)
+        }
     }
 
     inline fun useFrame(renderer: Renderer, render: () -> Unit) =

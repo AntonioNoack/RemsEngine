@@ -16,6 +16,7 @@ import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.M4x3Delta.m4x3delta
 import me.anno.gpu.pipeline.M4x3Delta.m4x3x
 import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBatchSize
@@ -453,7 +454,7 @@ class LightPipelineStage(
     private val instanced = Group()
     private val nonInstanced = Group()
 
-    fun bindDraw(source: Framebuffer, cameraMatrix: Matrix4fc, cameraPosition: Vector3d, worldScale: Double) {
+    fun bindDraw(source: IFramebuffer, cameraMatrix: Matrix4fc, cameraPosition: Vector3d, worldScale: Double) {
         if (instanced.isNotEmpty() || nonInstanced.isNotEmpty()) {
             OpenGL.blendMode.use(blendMode) {
                 OpenGL.depthMode.use(depthMode) {
@@ -483,7 +484,7 @@ class LightPipelineStage(
         }
     }
 
-    fun draw(source: Framebuffer, cameraMatrix: Matrix4fc, cameraPosition: Vector3d, worldScale: Double) {
+    fun draw(source: IFramebuffer, cameraMatrix: Matrix4fc, cameraPosition: Vector3d, worldScale: Double) {
 
         val time = Engine.gameTime
 

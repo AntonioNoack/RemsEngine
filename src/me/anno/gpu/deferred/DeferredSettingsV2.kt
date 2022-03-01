@@ -1,15 +1,15 @@
 package me.anno.gpu.deferred
 
-import me.anno.gpu.shader.ShaderLib.uvList
-import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.OpenGLShader.Companion.attribute
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.ITexture2D
 import org.joml.Vector4f
 import kotlin.math.max
 
@@ -170,7 +170,6 @@ class DeferredSettingsV2(
         }
     }
 
-
     fun getLayerOutputVariables(): List<Variable> {
         return settingsV1.layers.map { type ->
             Variable(GLSLType.V4F, type.name, VariableMode.OUT)
@@ -274,13 +273,24 @@ class DeferredSettingsV2(
         return layers.firstOrNull { it.type == type }
     }
 
-    fun findTexture(buffer: Framebuffer, type: DeferredLayerType): Texture2D? {
+    fun findTexture(buffer: IFramebuffer, type: DeferredLayerType): ITexture2D? {
         val layer = layers.firstOrNull { it.type == type } ?: return null
-        return buffer.textures[layer.layerIndex]
+        return findTexture(buffer, layer)
     }
 
-    fun findTexture(buffer: Framebuffer, layer: Layer): Texture2D? {
-        return buffer.textures[layer.layerIndex]
+    fun findTexture(buffer: IFramebuffer, layer: Layer): ITexture2D {
+        return buffer.getTextureI(layer.layerIndex)
+    }
+
+    fun split(index: Int, splitSize: Int): DeferredSettingsV2 {
+        val index0 = index * splitSize
+        val index1 = index0 + splitSize
+        return DeferredSettingsV2(
+            layerTypes.filter { type ->
+                findLayer(type)!!.layerIndex in index0 until index1
+            },
+            settingsV1.fpLights
+        )
     }
 
     companion object {

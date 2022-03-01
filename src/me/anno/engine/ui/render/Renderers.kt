@@ -10,12 +10,9 @@ import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2Start
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
-import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.Renderer
-import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.*
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
 import me.anno.gpu.shader.ShaderFuncLib.reinhardToneMapping
-import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.shader.builder.Function
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -31,28 +28,24 @@ object Renderers {
     val toneMapping =
         "vec3 toneMapping(vec3 color){ return (color)/(1.0+color) - random(gl_FragCoord.xy) * ${1f / 255f}; }\n"
 
-    val overdrawRenderer = object : Renderer("overdraw", true, ShaderPlus.DrawMode.COLOR) {
-        override fun getPostProcessing(): ShaderStage {
-            return ShaderStage(
-                "overdraw", listOf(
-                    Variable(GLSLType.V3F, "finalColor", false),
-                    Variable(GLSLType.V1F, "finalAlpha", false)
-                ), "" +
-                        "finalColor = vec3(0.125);\n" +
-                        "finalAlpha = 1.0;\n"
-            )
-        }
-    }
+    val overdrawRenderer = SimpleRenderer(
+        "overdraw", true, ShaderPlus.DrawMode.COLOR, ShaderStage(
+            "overdraw", listOf(
+                Variable(GLSLType.V3F, "finalColor", false),
+                Variable(GLSLType.V1F, "finalAlpha", false)
+            ), "" +
+                    "finalColor = vec3(0.125);\n" +
+                    "finalAlpha = 1.0;\n"
+        )
+    )
 
-    val cheapRenderer = object : Renderer("cheap", false, ShaderPlus.DrawMode.COLOR) {
-        override fun getPostProcessing(): ShaderStage {
-            return ShaderStage(
-                "cheap", listOf(
-                    Variable(GLSLType.V3F, "finalColor", false)
-                ), "finalColor = vec3(0.5);"
-            )
-        }
-    }
+    val cheapRenderer = SimpleRenderer(
+        "cheap", false, ShaderPlus.DrawMode.COLOR, ShaderStage(
+            "cheap", listOf(
+                Variable(GLSLType.V3F, "finalColor", false)
+            ), "finalColor = vec3(0.5);"
+        )
+    )
 
     val pbrRenderer = object : Renderer("pbr", false, ShaderPlus.DrawMode.COLOR) {
         override fun getPostProcessing(): ShaderStage {
@@ -163,19 +156,17 @@ object Renderers {
         }
     }
 
-    val frontBackRenderer = object : Renderer("front-back", true, ShaderPlus.DrawMode.COLOR) {
-        override fun getPostProcessing(): ShaderStage {
-            return ShaderStage(
-                "front-back", listOf(
-                    Variable(GLSLType.V3F, "finalPosition"),
-                    Variable(GLSLType.V3F, "finalNormal"),
-                    Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT),
-                ), "" +
-                        "finalColor = dot(finalNormal,finalPosition)>0.0 ? vec3(1,0,0) : vec3(0,.3,1);\n" +
-                        "finalColor *= finalNormal.x * 0.4 + 0.6;\n" // some simple shading
-            )
-        }
-    }
+    val frontBackRenderer = SimpleRenderer(
+        "front-back", true, ShaderPlus.DrawMode.COLOR, ShaderStage(
+            "front-back", listOf(
+                Variable(GLSLType.V3F, "finalPosition"),
+                Variable(GLSLType.V3F, "finalNormal"),
+                Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT),
+            ), "" +
+                    "finalColor = gl_FrontFacing ? vec3(0.0,0.3,1.0) : vec3(1.0,0.0,0.0);\n" +
+                    "finalColor *= finalNormal.x * 0.4 + 0.6;\n" // some simple shading
+        )
+    )
 
     // pbr rendering with a few fake lights (which have no falloff)
     val previewRenderer = object : Renderer("preview", false, ShaderPlus.DrawMode.COLOR) {
@@ -293,38 +284,32 @@ object Renderers {
         }
     }
 
-    val attributeRenderers: Map<DeferredLayerType, Renderer> = DeferredLayerType.values()
-        .associateWith { type ->
-            object : Renderer(type.name, false, ShaderPlus.DrawMode.COLOR) {
-                override fun getPostProcessing(): ShaderStage {
-                    return ShaderStage(
-                        type.name, if (type == DeferredLayerType.COLOR) {
-                            listOf(Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT))
-                        } else {
-                            listOf(
-                                Variable(DeferredSettingsV2.glslTypes[type.dimensions - 1], type.glslName, true),
-                                Variable(GLSLType.V3F, "finalColor", false)
-                            )
-                        },
-                        if (type == DeferredLayerType.COLOR) {
-                            ""
-                        } else {
-                            "finalColor = ${
-                                when (type.dimensions) {
-                                    1 -> "vec3(${type.glslName}${type.map01})"
-                                    2 -> "vec3(${type.glslName}${type.map01},1)"
-                                    3 -> "(${type.glslName}${type.map01})"
-                                    4 -> "(${type.glslName}${type.map01}).rgb"
-                                    else -> ""
-                                }
-                            };\n" + if (type.highDynamicRange) {
-                                "finalColor = finalColor / (1+abs(finalColor));\n"
-                            } else ""
-                        }
-                    )
-                }
-            }
+    val attributeRenderers: Map<DeferredLayerType, Renderer> = DeferredLayerType.values2.associateWith { type ->
+        val variables = if (type == DeferredLayerType.COLOR) {
+            listOf(Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT))
+        } else {
+            listOf(
+                Variable(DeferredSettingsV2.glslTypes[type.dimensions - 1], type.glslName, true),
+                Variable(GLSLType.V3F, "finalColor", false)
+            )
         }
+        val shaderCode = if (type == DeferredLayerType.COLOR) "" else {
+            "finalColor = ${
+                when (type.dimensions) {
+                    1 -> "vec3(${type.glslName}${type.map01})"
+                    2 -> "vec3(${type.glslName}${type.map01},1)"
+                    3 -> "(${type.glslName}${type.map01})"
+                    4 -> "(${type.glslName}${type.map01}).rgb"
+                    else -> ""
+                }
+            };\n" + if (type.highDynamicRange) {
+                "finalColor = finalColor / (1+abs(finalColor));\n"
+            } else ""
+        }
+        val name = type.name
+        val stage = ShaderStage(name, variables, shaderCode)
+        SimpleRenderer(name, false, ShaderPlus.DrawMode.COLOR, stage)
+    }
 
     val MAX_PLANAR_LIGHTS = 8
     val MAX_CUBEMAP_LIGHTS = 8

@@ -2,6 +2,7 @@ package me.anno.ui.base
 
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.drawing.DrawTextures.drawTexture
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.ImageScale
 import me.anno.ui.Panel
@@ -28,7 +29,7 @@ abstract class ImagePanel(style: Style) : Panel(style) {
 
     override fun getVisualState(): Any? = getTexture()
 
-    abstract fun getTexture(): Texture2D?
+    abstract fun getTexture(): ITexture2D?
 
     // last image stats
     var lix = 0

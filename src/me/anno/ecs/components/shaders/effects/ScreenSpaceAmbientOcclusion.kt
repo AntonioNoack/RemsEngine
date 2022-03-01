@@ -10,10 +10,12 @@ import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
@@ -148,13 +150,18 @@ object ScreenSpaceAmbientOcclusion {
     private var lastSamples = 0
 
     private fun firstPass(
-        data: Framebuffer,
+        data: IFramebuffer,
         settingsV2: DeferredSettingsV2,
         transform: Matrix4f,
         radius: Float,
         strength: Float,
         samples: Int
-    ): Framebuffer {
+    ): Framebuffer? {
+
+        // ensure we can find the required inputs
+        val position = settingsV2.findTexture(data, DeferredLayerType.POSITION) ?: return null
+        val normal = settingsV2.findTexture(data, DeferredLayerType.NORMAL) ?: return null
+
         var random4x4 = random4x4
         random4x4?.checkSession()
         if (random4x4 == null || !random4x4.isCreated) {
@@ -169,11 +176,11 @@ object ScreenSpaceAmbientOcclusion {
             val shader = occlusionShader.value
             shader.use()
             // bind all textures
-            val position = settingsV2.findTexture(data, DeferredLayerType.POSITION)!!
-            val normal = settingsV2.findTexture(data, DeferredLayerType.NORMAL)!!
             random4x4.bind(2)
-            normal.bind(1)
-            position.bind(0)
+            val f = GPUFiltering.TRULY_NEAREST
+            val c = Clamping.CLAMP
+            normal.bind(1, f, c)
+            position.bind(0, f, c)
             if (lastSamples != samples) { // || Input.isShiftDown
                 // generate random kernel
                 sampleKernel.position(0)
@@ -212,16 +219,16 @@ object ScreenSpaceAmbientOcclusion {
     }
 
     fun compute(
-        data: Framebuffer,
+        data: IFramebuffer,
         settingsV2: DeferredSettingsV2,
         transform: Matrix4f,
         radius: Float,
         strength: Float,
         samples: Int
-    ): Texture2D {
+    ): ITexture2D? {
         if (strength <= 0f) return whiteTexture
-        val tmp = firstPass(data, settingsV2, transform, radius, strength, min(samples, MAX_SAMPLES))
-        return secondPass(tmp).getColor0()
+        val tmp = firstPass(data, settingsV2, transform, radius, strength, min(samples, MAX_SAMPLES)) ?: return null
+        return secondPass(tmp).getTexture0()
     }
 
 }

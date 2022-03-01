@@ -17,6 +17,21 @@ open class Renderer(
 
     open fun uploadDefaultUniforms(shader: Shader) {}
 
+    fun split(index: Int, spliceSize: Int): Renderer {
+        if (deferredSettings == null) return this
+        return cache!!.getOrPut(index.shl(16) + spliceSize) {
+            val settings = deferredSettings.split(index, spliceSize)
+            object : Renderer("$name/$index/$spliceSize", isFakeColor, drawMode, settings) {
+                override fun getPostProcessing(): ShaderStage? = this@Renderer.getPostProcessing()
+                override fun uploadDefaultUniforms(shader: Shader) {
+                    this@Renderer.getPostProcessing()
+                }
+            }
+        }
+    }
+
+    val cache = if (deferredSettings == null) null else HashMap<Int, Renderer>()
+
     override fun toString(): String = name
 
     companion object {

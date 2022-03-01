@@ -64,7 +64,7 @@ object Bloom {
             useFrame(bufferX, renderer) {
                 previous.bindTrulyNearest(0)
                 flat01.draw(shaderX)
-                previous = bufferX.getColor0()
+                previous = bufferX.getTexture0()
             }
 
             // y blur pass
@@ -74,7 +74,7 @@ object Bloom {
             useFrame(bufferY, renderer) {
                 previous.bindTrulyNearest(0)
                 flat01.draw(shaderY)
-                previous = bufferY.getColor0()
+                previous = bufferY.getTexture0()
             }
 
             tmpForward[i] = bufferY
@@ -102,7 +102,7 @@ object Bloom {
                 }
             }
         }
-        return previous.getColor0()
+        return previous.getTexture0()
     }
 
     private fun createForwardShader(dx: Int, dy: Int, offset: Boolean): Shader {

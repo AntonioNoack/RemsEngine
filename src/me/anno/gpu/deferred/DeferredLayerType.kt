@@ -124,4 +124,8 @@ enum class DeferredLayerType(
         return "texture(${layer.textureName}, $uv).${layer.mapping}$map10"
     }
 
+    companion object {
+        val values2 = values()
+    }
+
 }

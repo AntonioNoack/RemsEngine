@@ -4,15 +4,13 @@ import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.framebuffer.Framebuffer.Companion.bindFramebuffer
 import me.anno.gpu.shader.Renderer
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.CubemapTexture
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.*
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL30.*
 
 class CubemapFramebuffer(
-    var name: String, var size: Int,
+    override var name: String, var size: Int,
     override val samples: Int, // todo when we support multi-sampled cubemaps, also support them here
     val targets: Array<TargetType>,
     val depthBufferType: DepthBufferType
@@ -39,12 +37,19 @@ class CubemapFramebuffer(
 
     override val w: Int get() = size
     override val h: Int get() = size
+    override val numTextures: Int = targets.size
 
     lateinit var textures: Array<CubemapTexture>
 
     override fun ensure() {
         if (pointer < 0) create()
     }
+
+    override fun checkSession() {
+        TODO("Not yet implemented")
+    }
+
+    override fun getTextureI(index: Int): ITexture2D = textures[index]
 
     override fun bindDirectly() = bind()
     override fun bindDirectly(w: Int, h: Int) {
@@ -153,7 +158,7 @@ class CubemapFramebuffer(
         }
     }
 
-    fun bindTexture0(offset: Int = 0, nearest: GPUFiltering, clamping: Clamping) {
+    /*fun bindTexture0(offset: Int = 0, nearest: GPUFiltering, clamping: Clamping) {
         bindTextureI(0, offset, nearest, clamping)
     }
 
@@ -171,6 +176,16 @@ class CubemapFramebuffer(
             texture.bind(offset + index, nearest, clamping)
         }
         GFX.check()
+    }*/
+
+    override fun bindTextureI(index: Int, offset: Int, nearest: GPUFiltering, clamping: Clamping) {
+        textures[index].bind(offset, nearest, clamping)
+    }
+
+    override fun bindTextures(offset: Int, nearest: GPUFiltering, clamping: Clamping) {
+        for (textureIndex in textures.indices) {
+            textures[textureIndex].bind(offset + textureIndex, nearest, clamping)
+        }
     }
 
     override fun destroy() {
@@ -240,6 +255,14 @@ class CubemapFramebuffer(
                 render(side)
             }
         }
+    }
+
+    override fun getTexture0(): Texture2D {
+        TODO("Not yet implemented")
+    }
+
+    override fun attachFramebufferToDepth(targetCount: Int, fpTargets: Boolean): IFramebuffer {
+        TODO("Not yet implemented")
     }
 
     override fun toString(): String =

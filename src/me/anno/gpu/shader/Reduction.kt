@@ -150,7 +150,7 @@ object Reduction {
                 }
             }
 
-            srcTexture = dstFramebuffer.getColor0()
+            srcTexture = dstFramebuffer.getTexture0()
 
         }
 
