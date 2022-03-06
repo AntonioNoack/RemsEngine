@@ -1,6 +1,7 @@
 package me.anno.network
 
 import me.anno.Engine
+import me.anno.network.Server.Companion.str32
 import me.anno.network.packets.PingPacket
 import me.anno.utils.Color.argb
 import me.anno.utils.Color.hex32
@@ -32,12 +33,17 @@ open class Protocol(val bigEndianMagic: Int, val networkProtocol: NetworkProtoco
         dos.writeInt(client.randomId) // the client needs this ID for UDP messages
         dos.writeUTF(server.name)
         dos.writeUTF(server.motd)
+        dos.flush()
         client.name = dis.readUTF()
         client.uuid = dis.readUTF()
         return true
     }
 
-    open fun clientHandshake(socket: Socket, client: TCPClient) {
+    /**
+     * return true, if the handshake was fine
+     * return false to exit the connection (or throw an Exception)
+     * */
+    open fun clientHandshake(socket: Socket, client: TCPClient): Boolean {
         val dis = client.dis
         val dos = client.dos
         client.randomId = dis.readInt()
@@ -45,6 +51,8 @@ open class Protocol(val bigEndianMagic: Int, val networkProtocol: NetworkProtoco
         client.serverMotd = dis.readUTF()
         dos.writeUTF(client.name)
         dos.writeUTF(client.uuid)
+        dos.flush()
+        return true
     }
 
     open fun serverRun(server: Server, client: TCPClient, magic: Int) {
@@ -61,7 +69,7 @@ open class Protocol(val bigEndianMagic: Int, val networkProtocol: NetworkProtoco
         while (!Engine.shutdown && !shutdown() && !client.isClosed) {
             if (dis.available() > 3) {
                 val packetId = dis.readInt()
-                val packet = packets[packetId] ?: throw IOException("Unknown packet 0x${hex32(packetId)}")
+                val packet = packets[packetId] ?: throw IOException("Unknown packet ${str32(packetId)}")
                 packet.receive(server, client, dis)
             } else {// no packet available for us :/
                 val time = System.nanoTime()

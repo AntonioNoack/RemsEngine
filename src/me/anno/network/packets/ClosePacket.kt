@@ -15,7 +15,7 @@ class ClosePacket(var reason: String = "", magic: String = "CLOS") : Packet(magi
         dos.writeUTF(reason)
     }
 
-    override fun receive(server: Server?, client: TCPClient, dis: DataInputStream) {
+    override fun receiveData(server: Server?, client: TCPClient, dis: DataInputStream, size: Int) {
         reason = dis.readUTF()
         // should be shown in the UI
         client.closingReason = reason

@@ -8,15 +8,15 @@ import kotlin.random.Random
 class PerlinNoise(
     seed: Long,
     octaves: Int,
-    falloff: Double,
-    min: Double,
-    max: Double
+    falloff: Float,
+    min: Float,
+    max: Float
 ) {
 
-    private var generators: Array<OpenSimplexNoise>? = null
-    private var factors = DoubleArray(octaves)
+    private var generators: Array<FullNoise>? = null
+    private var factors = FloatArray(octaves)
 
-    private var offset = (min + max) * 0.5
+    private var offset = min
 
     var octaves: Int = octaves
         set(value) {
@@ -35,7 +35,7 @@ class PerlinNoise(
             }
         }
 
-    var min: Double = min
+    var min: Float = min
         set(value) {
             if (field != value) {
                 field = value
@@ -43,7 +43,7 @@ class PerlinNoise(
             }
         }
 
-    var max: Double = max
+    var max: Float = max
         set(value) {
             if (field != value) {
                 field = value
@@ -51,7 +51,7 @@ class PerlinNoise(
             }
         }
 
-    var falloff: Double = falloff
+    var falloff: Float = falloff
         set(value) {
             if (field != value) {
                 field = value
@@ -69,10 +69,10 @@ class PerlinNoise(
         val octaves = octaves
         var generators = generators
         if (generators == null || generators.size != octaves) {
-            generators = Array(octaves) { OpenSimplexNoise(random.nextLong()) }
+            generators = Array(octaves) { FullNoise(random.nextLong()) }
         } else {
             for (i in 0 until octaves) {
-                generators[i] = OpenSimplexNoise(random.nextLong())
+                generators[i] = FullNoise(random.nextLong())
             }
         }
         this.generators = generators
@@ -80,52 +80,52 @@ class PerlinNoise(
 
     private fun calculateFactors() {
         val octaves = octaves
-        var sum = 0.0
-        var fac = 1.0
+        var sum = 0f
+        var fac = 1f
         for (i in 0 until octaves) {
             sum += fac
             fac *= falloff
         }
         var factors = factors
         if (factors.size != octaves) {
-            factors = DoubleArray(octaves)
+            factors = FloatArray(octaves)
         }
-        fac = (max - min) * 0.5 // = delta / 2, because OpenSimplexNoise goes from -1 to +1
+        fac = max - min
         for (i in 0 until octaves) {
             factors[i] = fac / sum
             fac *= falloff
         }
-        offset = (min + max) * 0.5
+        offset = min
         this.factors = factors
     }
 
-    operator fun get(x: Double): Double {
+    operator fun get(x: Float): Float {
         var sum = offset
         val generators = generators!!
         val factors = factors
         var vx = x
         for (i in factors.indices) {
-            sum += factors[i] * generators[i].eval(vx, 0.0)
-            vx *= 2.0
+            sum += factors[i] * generators[i].getValue(vx)
+            vx *= 2f
         }
         return sum
     }
 
-    operator fun get(x: Double, y: Double): Double {
+    operator fun get(x: Float, y: Float): Float {
         var sum = offset
         val generators = generators!!
         val factors = factors
         var vx = x
         var vy = y
         for (i in factors.indices) {
-            sum += factors[i] * generators[i].eval(vx, vy)
-            vx *= 2.0
-            vy *= 2.0
+            sum += factors[i] * generators[i].getValue(vx, vy)
+            vx *= 2f
+            vy *= 2f
         }
         return sum
     }
 
-    operator fun get(x: Double, y: Double, z: Double): Double {
+    operator fun get(x: Float, y: Float, z: Float): Float {
         var sum = offset
         val generators = generators!!
         val factors = factors
@@ -133,15 +133,15 @@ class PerlinNoise(
         var vy = y
         var vz = z
         for (i in factors.indices) {
-            sum += factors[i] * generators[i].eval(vx, vy, vz)
-            vx *= 2.0
-            vy *= 2.0
-            vz *= 2.0
+            sum += factors[i] * generators[i].getValue(vx, vy, vz)
+            vx *= 2f
+            vy *= 2f
+            vz *= 2f
         }
         return sum
     }
 
-    operator fun get(x: Double, y: Double, z: Double, w: Double): Double {
+    operator fun get(x: Float, y: Float, z: Float, w: Float): Float {
         var sum = offset
         val generators = generators!!
         val factors = factors
@@ -150,11 +150,11 @@ class PerlinNoise(
         var vz = z
         var vw = w
         for (i in factors.indices) {
-            sum += factors[i] * generators[i].eval(vx, vy, vz, vw)
-            vx *= 2.0
-            vy *= 2.0
-            vz *= 2.0
-            vw *= 2.0
+            sum += factors[i] * generators[i].getValue(vx, vy, vz, vw)
+            vx *= 2f
+            vy *= 2f
+            vz *= 2f
+            vw *= 2f
         }
         return sum
     }
@@ -162,13 +162,13 @@ class PerlinNoise(
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            val gen = PerlinNoise(1234L, 8, 0.5, 0.0, 1.0)
+            val gen = PerlinNoise(1234L, 8, 0.5f, 0f, 1f)
             var avg = 0.0
             var avg2 = 0.0
             val samples = 10000
             val buckets = IntArray(10)
             for (i in 0 until samples) {
-                val g = gen[i.toDouble()]
+                val g = gen[i.toFloat()]
                 if (g !in gen.min..gen.max) {
                     throw RuntimeException("$g at $i")
                 }
@@ -178,7 +178,7 @@ class PerlinNoise(
             }
             println(buckets.joinToString())
             ImageWriter.writeImageInt(256, 256, false, "perlin.png", 16) { x, y, _ ->
-                (gen[x / 100.0, y / 100.0] * 255).toInt() * 0x10101
+                (gen[x / 100f, y / 100f] * 255).toInt() * 0x10101
             }
         }
     }

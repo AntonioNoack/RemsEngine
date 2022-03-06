@@ -66,7 +66,7 @@ class NodePanel(
         // calculate how many lines, and space we need
         // base that calculation on w maybe
 
-        backgroundRadius = w / 10
+        backgroundRadius = w / 10f
 
         val inputs = node.inputs
         if (inputs != null) for (con in inputs) {

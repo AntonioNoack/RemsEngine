@@ -5,6 +5,7 @@ import me.anno.config.DefaultStyle.black
 import me.anno.io.utils.StringMap
 import me.anno.ui.base.Font
 import me.anno.ui.base.components.Padding
+import me.anno.utils.test.files.deleteEmptyFolders
 import org.apache.logging.log4j.LogManager
 
 class Style(val prefix: String?, val suffix: String?) {
@@ -17,6 +18,28 @@ class Style(val prefix: String?, val suffix: String?) {
 
     private fun getValue(name: String, defaultValue: Int) = getValue(name, name, defaultValue)
     private fun getValue(fullName: String, name: String, defaultValue: Int): Int {
+
+        val value = values[name]
+        return if (value != null) getMaybe(fullName, value, defaultValue)
+        else {
+
+            // LOGGER.warn("Missing config/style/$name")
+
+            val index = name.indexOf('.')
+            val index2 = name.indexOf('.', index + 1)
+            if (index2 > -1) {
+                val lessSpecificName = name.substring(index + 1)
+                getValue(fullName, lessSpecificName, defaultValue)
+            } else {
+                values[name] = defaultValue
+                defaultValue
+            }
+
+        }
+    }
+
+    private fun getValue(name: String, defaultValue: Float) = getValue(name, name, defaultValue)
+    private fun getValue(fullName: String, name: String, defaultValue: Float): Float {
 
         val value = values[name]
         return if (value != null) getMaybe(fullName, value, defaultValue)
@@ -98,9 +121,23 @@ class Style(val prefix: String?, val suffix: String?) {
         }
     }
 
+    private fun getMaybe(fullName: String, value: Any, defaultValue: Float): Float {
+        return when (value) {
+            is Int -> value.toFloat()
+            is Boolean -> if (value) 1f else 0f
+            is Float -> value
+            is String -> value.toFloatOrNull() ?: defaultValue
+            else -> {
+                values[fullName] = defaultValue
+                defaultValue
+            }
+        }
+    }
+
     fun getBoolean(name: String, defaultValue: Boolean) = getValue(getFullName(name), if (defaultValue) 1 else 0) != 0
     fun getInt(name: String, defaultValue: Int): Int = getValue(getFullName(name), defaultValue)
     fun getSize(name: String, defaultValue: Int): Int = getValue(getFullName(name), defaultValue)
+    fun getSize(name: String, defaultValue: Float): Float = getValue(getFullName(name), defaultValue)
     fun getColor(name: String, defaultValue: Int): Int = getValue(getFullName(name), defaultValue)
     fun getString(name: String, defaultValue: String): String = getValue(getFullName(name), defaultValue)
     fun getFont(name: String, defaultValue: Font = DefaultConfig.defaultFont): Font {

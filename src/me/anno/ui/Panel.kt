@@ -8,6 +8,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.MouseButton
+import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths
@@ -42,7 +43,20 @@ open class Panel(val style: Style) : PrefabSaveable() {
     val depth: Int get() = 1 + (uiParent?.depth ?: 0)
 
     var alignmentX = AxisAlignment.MIN
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateLayout()
+            }
+        }
+
     var alignmentY = AxisAlignment.MIN
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateLayout()
+            }
+        }
 
     /**
      * this weight is used inside some layouts
@@ -54,15 +68,15 @@ open class Panel(val style: Style) : PrefabSaveable() {
         set(value) {
             if (value.isFinite() && field != value) {
                 field = value
-                uiParent?.invalidateLayout()
+                invalidateLayout()
             }
         }
 
     open var visibility = Visibility.VISIBLE
         set(value) {
             if (field != value) {
-                invalidateLayout()
                 field = value
+                invalidateLayout()
             }
         }
 
@@ -161,7 +175,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     var backgroundOutlineColor = 0
     var backgroundOutlineThickness = 0f
-    var backgroundRadius = style.getSize("background.radius", 0)
+    var backgroundRadius = style.getSize("background.radius", 0f)
     var backgroundRadiusCorners = style.getInt("background.radiusSides", 15)
 
     var backgroundColor = style.getColor("background", -1)
@@ -247,7 +261,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     open fun requestFocus(exclusive: Boolean = true) = windowStack.requestFocus(this, exclusive)
 
-    val hasRoundedCorners get() = backgroundRadius > 0 && backgroundRadiusCorners != 0
+    val hasRoundedCorners get() = backgroundRadius > 0f && backgroundRadiusCorners != 0
 
     val siblings get() = uiParent?.children ?: emptyList()
 
@@ -260,7 +274,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
             if (hasRoundedCorners) {
                 val uip = uiParent
                 val bg = if (uip == null) 0 else uip.backgroundColor and 0xffffff
-                val radius = backgroundRadius.toFloat()
+                val radius = backgroundRadius
                 drawRoundedRect(
                     x + dx, y + dy, w - 2 * dx, h - 2 * dy,
                     if (backgroundRadiusCorners and 1 != 0) radius else 0f,
@@ -779,6 +793,20 @@ open class Panel(val style: Style) : PrefabSaveable() {
         clone.backgroundRadius = backgroundRadius
         clone.layoutConstraints.clear()
         clone.layoutConstraints.addAll(layoutConstraints)
+    }
+
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        // todo save all children if group
+        writer.writeEnum("alignmentX", alignmentX)
+        writer.writeEnum("alignmentY", alignmentY)
+        // todo all other properties...
+        writer.writeFloat("weight", weight)
+        writer.writeInt("background", backgroundColor)
+        writer.writeFloat("backgroundRadius", backgroundRadius)
+        writer.writeInt("backgroundRadiusCorners", backgroundRadiusCorners)
+        writer.writeInt("backgroundOutline", backgroundOutlineColor)
+        writer.writeFloat("backgroundOutlineThickness", backgroundOutlineThickness)
     }
 
     override val className: String = "Panel"

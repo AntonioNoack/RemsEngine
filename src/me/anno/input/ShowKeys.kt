@@ -2,7 +2,6 @@ package me.anno.input
 
 import me.anno.Engine.deltaTime
 import me.anno.config.DefaultConfig.style
-import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL.renderDefault
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.drawText
@@ -53,7 +52,7 @@ object ShowKeys {
 
         // text
         val textColor2 = color and alphaMask
-        val bgColor2 = bgColor and rgbMask
+        val bgColor2 = bgColor and alphaMask
         val x = x0 + 10
         val y = hmy - 10 - fontSize
         drawText(x, y, font, text, textColor2, bgColor2, -1, -1)

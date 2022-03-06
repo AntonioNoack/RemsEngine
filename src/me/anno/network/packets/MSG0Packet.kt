@@ -18,8 +18,7 @@ abstract class MSG0Packet(magic: String = "MSG0") : Packet(magic) {
 
     override val constantSize: Boolean = false
 
-    override fun send(server: Server?, client: TCPClient, dos: DataOutputStream) {
-        super.send(server, client, dos)
+    override fun sendData(server: Server?, client: TCPClient, dos: DataOutputStream) {
         dos.writeLong(sender)
         dos.writeUTF(senderName)
         dos.writeLong(receiver)
@@ -27,8 +26,7 @@ abstract class MSG0Packet(magic: String = "MSG0") : Packet(magic) {
         dos.writeUTF(message)
     }
 
-    override fun receive(server: Server?, client: TCPClient, dis: DataInputStream) {
-        super.receive(server, client, dis)
+    override fun receiveData(server: Server?, client: TCPClient, dis: DataInputStream, size: Int) {
         sender = dis.readLong()
         senderName = dis.readUTF()
         receiver = dis.readLong()

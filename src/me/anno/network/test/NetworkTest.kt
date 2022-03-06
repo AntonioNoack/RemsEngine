@@ -4,7 +4,9 @@ import me.anno.network.*
 import me.anno.network.packets.POS0Packet
 import me.anno.network.packets.PingPacket
 import me.anno.utils.Sleep
-import java.net.*
+import java.net.InetAddress
+import java.net.Socket
+import java.net.SocketTimeoutException
 import kotlin.concurrent.thread
 
 fun main() {
@@ -26,18 +28,8 @@ fun main() {
     fun createClient(name: String): TCPClient {
         val address = InetAddress.getByName("localhost")
         val tcpSocket = Socket(address, server.tcpPort)
-        val client = TCPClient(tcpSocket, 0)
-        thread(name = "$name.tcp") {
-            try {
-                client.name = name
-                val tcpDos = client.dos
-                tcpDos.writeInt(tcpProtocol.bigEndianMagic)
-                tcpProtocol.clientHandshake(tcpSocket, client)
-                tcpProtocol.clientRun(tcpSocket, client) { false }
-            } catch (e: SocketException) {
-                // connection closed
-            }
-        }
+        val client = TCPClient(tcpSocket, name)
+        client.startAsync(tcpProtocol)
         thread(name = "$name.udp") {
             Thread.sleep(100)
             // when the connection is established
@@ -48,7 +40,7 @@ fun main() {
             try {
                 client1.receive(null, client, POS0Packet())
                 println("client got answer")
-            } catch (e: SocketTimeoutException){
+            } catch (e: SocketTimeoutException) {
                 println("client $name got no answer")
             }
             client1.close()

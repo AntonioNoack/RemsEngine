@@ -942,8 +942,27 @@ class Entity() : PrefabSaveable(), Inspectable {
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
+        writer.writeVector3d("position", transform.localPosition)
+        writer.writeVector3d("scale", transform.localScale)
+        writer.writeQuaterniond("rotation", transform.localRotation)
         writer.writeObjectList(this, "children", children)
         writer.writeObjectList(this, "components", components)
+    }
+
+    override fun readVector3d(name: String, value: Vector3d) {
+        when (name) {
+            "position" -> transform.localPosition = value
+            "scale" -> transform.localScale = value
+            else -> super.readVector3d(name, value)
+        }
+    }
+
+    override fun readQuaterniond(name: String, value: Quaterniond) {
+        if (name == "rotation") {
+            transform.localRotation = value
+        } else {
+            super.readQuaterniond(name, value)
+        }
     }
 
     override fun readObjectArray(name: String, values: Array<ISaveable?>) {

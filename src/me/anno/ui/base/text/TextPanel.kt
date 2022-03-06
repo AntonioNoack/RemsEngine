@@ -8,7 +8,6 @@ import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.getTextSize
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
-import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.input.MouseButton
@@ -38,22 +37,54 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
 
     var instantTextLoading = false
     var useMonospaceCharacters = false
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateLayout()
+            }
+        }
 
     var padding = style.getPadding("textPadding", 2)
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateLayout()
+            }
+        }
+
     var font = style.getFont("text")
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateLayout()
+            }
+        }
 
     var textColor = style.getColor("textColor", iconGray)
         set(value) {
             if (field != value) {
-                invalidateDrawing()
                 field = value
+                invalidateDrawing()
             }
         }
 
     var focusTextColor = style.getColor("textColorFocused", -1)
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateDrawing()
+            }
+        }
+
     val hoverColor get() = mixARGB(textColor, focusTextColor, 0.5f)
 
     var textAlignment = AxisAlignment.MIN
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateDrawing()
+            }
+        }
 
     @NotSerializedProperty
     var textCacheKey: TextCacheKey = TextCacheKey(text, font, 0, 0)
@@ -65,12 +96,17 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         set(value) {
             if (field != value) {
                 field = value
-                invalidateDrawing()
                 invalidateLayout()
             }
         }
 
     var breaksIntoMultiline = false
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateLayout()
+            }
+        }
 
     // can be disabled for parents to copy ALL lines, e.g. for a bug report :)
     var disableCopy = false
