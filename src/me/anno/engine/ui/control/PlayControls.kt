@@ -1,4 +1,4 @@
-package me.anno.engine.ui.play
+package me.anno.engine.ui.control
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.ui.UIEvent

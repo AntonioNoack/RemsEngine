@@ -74,7 +74,7 @@ open class Server : Closeable {
      * will throw IOException if TCP/UDP port is already in use
      * */
     fun start(tcpPort: Int, udpPort: Int, closeTCPIfUDPFails: Boolean = true) {
-        if (protocols.any { it.value.networkProtocol == NetworkProtocol.TCP }) {
+        if (tcpPort in 0..0xffff && protocols.any { it.value.networkProtocol == NetworkProtocol.TCP }) {
             val socket = ServerSocket(tcpPort)
             synchronized(this) {
                 tcpSocket?.close()
@@ -82,10 +82,10 @@ open class Server : Closeable {
                 this.tcpPort = tcpPort
             }
             thread(name = "Server-TCP") {
-                runTCP(socket, tcpPort)
+                runTCP(socket)
             }
         }
-        if (protocols.any { it.value.networkProtocol == NetworkProtocol.UDP }) {
+        if (udpPort in 0..0xffff && protocols.any { it.value.networkProtocol == NetworkProtocol.UDP }) {
             val socket = try {
                 DatagramSocket(udpPort)
             } catch (e: Exception) {
@@ -101,7 +101,7 @@ open class Server : Closeable {
                 this.udpPort = udpPort
             }
             thread(name = "Server-UDP") {
-                runUDP(socket, udpPort)
+                runUDP(socket)
             }
         }
     }
@@ -113,12 +113,34 @@ open class Server : Closeable {
 
     val run get() = !shutdown && !Engine.shutdown
 
-    private fun runTCP(socket: ServerSocket, port: Int) {
+    open fun createClient(clientSocket: Socket, randomId: Int): TCPClient {
+        return TCPClient(clientSocket, randomId)
+    }
+
+    var usedIds = HashSet<Int>()
+    fun createRandomId(): Int {
+        var id = 0
+        synchronized(usedIds) {
+            while (id == 0 || id in usedIds) {
+                // is supposed to be non-deterministic,
+                // so a foreign client cannot guess their randomId
+                // this would ensure that it cannot send a udp packet in their name, if it is on the same inet address
+                id = nextRandomId.nextInt() or System.nanoTime().toInt()
+            }
+            usedIds.add(id)
+        }
+        return id
+    }
+
+    fun destroyRandomId(id: Int) {
+        synchronized(usedIds) { usedIds.remove(id) }
+    }
+
+    private fun runTCP(socket: ServerSocket) {
         try {
             while (run) {
                 val clientSocket = socket.accept()
                 if (acceptsIP(clientSocket.inetAddress, clientSocket.port)) {
-                    val randomId = nextRandomId.nextInt()
                     thread(name = "Client ${clientSocket.inetAddress}:${clientSocket.port}") {
                         var tcpClient2: TCPClient? = null
                         try {
@@ -126,14 +148,20 @@ open class Server : Closeable {
                             val magic = input.readBE32()
                             val protocol = protocols[magic]
                             if (protocol != null) {
-                                val tcpClient = TCPClient(clientSocket, randomId)
-                                if (protocol.serverHandshake(this, tcpClient, magic)) {
-                                    addClient(tcpClient)
-                                    tcpClient2 = tcpClient
-                                    protocol.serverRun(this, tcpClient, magic)
-                                } else {
-                                    LOGGER.info("Handshake rejected")
-                                    clientSocket.close()
+                                val randomId = createRandomId()
+                                try {
+                                    val tcpClient = createClient(clientSocket, randomId)
+                                    if (protocol.serverHandshake(this, tcpClient, magic)) {
+                                        addClient(tcpClient)
+                                        tcpClient2 = tcpClient
+                                        tcpClient.isRunning = true
+                                        protocol.serverRun(this, tcpClient, magic)
+                                    } else {
+                                        LOGGER.info("Handshake rejected")
+                                        clientSocket.close()
+                                    }
+                                } finally {
+                                    destroyRandomId(randomId)
                                 }
                             } else {
                                 LOGGER.info("Protocol ${str32(magic)} is unknown")
@@ -145,6 +173,7 @@ open class Server : Closeable {
                             clientSocket.close()
                         }
                         if (tcpClient2 != null) {
+                            tcpClient2.isRunning = false
                             removeClient(tcpClient2)
                         }
                     }
@@ -155,7 +184,7 @@ open class Server : Closeable {
         }
     }
 
-    private fun runUDP(socket: DatagramSocket, port: Int) {
+    private fun runUDP(socket: DatagramSocket) {
         val buffer = ByteArray(NetworkProtocol.UDP.limit)
         val udpPacket = DatagramPacket(buffer, buffer.size)
         val input = ResetByteArrayInputStream(buffer)
@@ -179,14 +208,26 @@ open class Server : Closeable {
                                 "randomId: ${hex32(randomId)}"
                     )
                     val protocol = protocols[protocolMagic] ?: continue
-                    val request = protocol.packets[packetMagic] ?: continue
                     val client = findTcpClient(udpPacket.address, randomId) ?: continue
+                    val request = protocol.find(packetMagic) ?: continue
                     LOGGER.debug("got udp packet from ${client.name}")
-                    request.udpReceive(this, client, dis) { response ->
-                        dos.writeInt(response.bigEndianMagic)
-                        response.send(this, client, dos)
-                        dos.flush()
-                        socket.send(udpPacket)
+                    when (request) {
+                        is Packet -> synchronized(request) {
+                            request.receiveUdp(this, client, dis) { response ->
+                                dos.writeInt(response.bigEndianMagic)
+                                response.send(this, client, dos)
+                                dos.flush()
+                                socket.send(udpPacket)
+                            }
+                        }
+                        is ThreadLocal<*> -> {
+                            (request.get() as Packet).receiveUdp(this, client, dis) { response ->
+                                dos.writeInt(response.bigEndianMagic)
+                                response.send(this, client, dos)
+                                dos.flush()
+                                socket.send(udpPacket)
+                            }
+                        }
                     }
                 }
             }
@@ -226,7 +267,7 @@ open class Server : Closeable {
     fun broadcast(packet: Packet) {
         synchronized(clients) {
             for (client in clients) {
-                client.send(this, packet)
+                client.sendTCP(this, packet)
             }
         }
     }

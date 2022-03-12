@@ -1,7 +1,6 @@
 package me.anno.ecs
 
 import me.anno.Engine
-import me.anno.gpu.GFX
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.maths.Maths
@@ -60,7 +59,7 @@ class Transform() : Saveable() {
         }
     }
 
-    fun onChange(time: Long = Engine.gameTime) {
+    fun smoothUpdate(time: Long = Engine.gameTime) {
         val dt = time - lastUpdateTime
         if (dt > 0) {
             lastUpdateTime = time
@@ -68,9 +67,9 @@ class Transform() : Saveable() {
         }
     }
 
-    fun setStateAfterUpdate(state: State, time: Long = Engine.gameTime) {
+    fun setStateAndUpdate(state: State, time: Long = Engine.gameTime) {
         this.state = state
-        onChange(time)
+        smoothUpdate(time)
     }
 
     /*fun update(time: Long, entity: Entity, calculateMatrices: Boolean) {
@@ -187,13 +186,17 @@ class Transform() : Saveable() {
             invalidateGlobal()
         }
 
-    // mmh, really needed?
     var globalPosition
         get() = globalTransform.getTranslation(Vector3d())
         set(value) {
             globalTransform.setTranslation(value)
             state = State.VALID_GLOBAL
         }
+
+    fun setGlobalRotation(yxz: Vector3d) {
+        globalTransform.setRotationYXZ(yxz.y, yxz.x, yxz.z)
+        state = State.VALID_GLOBAL
+    }
 
     fun validate() {
         val parent = entity?.parentEntity?.transform

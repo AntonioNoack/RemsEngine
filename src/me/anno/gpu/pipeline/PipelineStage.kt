@@ -47,11 +47,13 @@ class PipelineStage(
     var blendMode: BlendMode?,
     var depthMode: DepthMode,
     var writeDepth: Boolean,
-    var cullMode: Int, // 0 = both, gl_front, gl_back
+    var cullMode: CullMode,
     var defaultShader: BaseShader
 ) : Saveable() {
 
     companion object {
+
+        var drawnTriangles = 0
 
         val lastMaterial = HashMap<Shader, Material>(64)
         private val tmp3x3 = Matrix3f()
@@ -333,6 +335,7 @@ class PipelineStage(
         var lastEntity: Entity? = null
         var lastMesh: Mesh? = null
         var lastShader: Shader? = null
+        var drawnTriangles = 0
 
         val time = Engine.gameTime
 
@@ -412,6 +415,7 @@ class PipelineStage(
             )
 
             mesh.draw(shader, materialIndex)
+            drawnTriangles += mesh.numTriangles
 
         }
 
@@ -452,14 +456,14 @@ class PipelineStage(
                         shader.v2i("randomIdData", mesh.numTriangles, 0)
                         GFX.check()
                         // draw them in batches of size <= batchSize
-                        val size = values.size
-                        for (baseIndex in 0 until size step batchSize) {
+                        val instanceCount = values.size
+                        for (baseIndex in 0 until instanceCount step batchSize) {
                             buffer.clear()
                             val nioBuffer = buffer.nioBuffer!!
                             // fill the data
                             val trs = values.transforms
                             val ids = values.clickIds
-                            for (index in baseIndex until min(size, baseIndex + batchSize)) {
+                            for (index in baseIndex until min(instanceCount, baseIndex + batchSize)) {
                                 m4x3delta(
                                     trs[index]!!.getDrawMatrix(time),
                                     cameraPosition,
@@ -473,7 +477,7 @@ class PipelineStage(
                                 // calculate the lights for each group
                                 // todo cluster them cheaply?
                                 aabb.clear()
-                                for (index in baseIndex until min(size, baseIndex + batchSize)) {
+                                for (index in baseIndex until min(instanceCount, baseIndex + batchSize)) {
                                     localAABB.transformUnion(trs[index]!!.drawTransform, aabb)
                                 }
                                 setupLights(pipeline, shader, cameraPosition, worldScale, aabb)
@@ -481,11 +485,15 @@ class PipelineStage(
                             GFX.check()
                             mesh.drawInstanced(shader, materialIndex, buffer)
                         }
+                        drawnTriangles += mesh.numTriangles * instanceCount
                     }
                 }
             }
         }
+
         lastMaterial.clear()
+
+        Companion.drawnTriangles += drawnTriangles
 
     }
 
@@ -494,6 +502,7 @@ class PipelineStage(
         var lastEntity: Entity? = null
         var lastMesh: Mesh? = null
 
+        var drawnTriangles = 0
         val time = Engine.gameTime
 
         val shader = defaultShader.value
@@ -530,6 +539,7 @@ class PipelineStage(
             shader.v1b("hasVertexColors", mesh.hasVertexColors)
 
             mesh.drawDepth(shader)
+            drawnTriangles += mesh.numTriangles
 
         }
 
@@ -548,13 +558,13 @@ class PipelineStage(
                         mesh.ensureBuffer()
                         shader2.v1b("hasAnimation", false)
                         shader2.v1b("hasVertexColors", mesh.hasVertexColors)
-                        val size = values.size
-                        for (baseIndex in 0 until size step batchSize) {
+                        val instanceCount = values.size
+                        for (baseIndex in 0 until instanceCount step batchSize) {
                             buffer.clear()
                             val nioBuffer = buffer.nioBuffer!!
                             // fill the data
                             val trs = values.transforms
-                            for (index in baseIndex until min(size, baseIndex + batchSize)) {
+                            for (index in baseIndex until min(instanceCount, baseIndex + batchSize)) {
                                 m4x3delta(
                                     trs[index]!!.getDrawMatrix(time),
                                     cameraPosition,
@@ -567,12 +577,15 @@ class PipelineStage(
                             buffer.ensureBufferWithoutResize()
                             mesh.drawInstancedDepth(shader2, buffer)
                         }
+                        drawnTriangles += mesh.numTriangles * instanceCount
                     }
                 }
             }
         }
 
         GFX.check()
+
+        Companion.drawnTriangles += drawnTriangles
 
     }
 

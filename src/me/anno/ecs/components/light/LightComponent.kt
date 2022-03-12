@@ -11,6 +11,7 @@ import me.anno.gpu.OpenGL
 import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.*
+import me.anno.gpu.pipeline.CullMode
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
@@ -224,7 +225,7 @@ abstract class LightComponent(
             val pl = Pipeline(DeferredSettingsV2(listOf(), false))
             pl.defaultStage = PipelineStage(
                 "", Sorting.NO_SORTING, 0, null, DepthMode.GREATER,
-                true, 0, pbrModelShader
+                true, CullMode.BOTH, pbrModelShader
             )
             pl
         }

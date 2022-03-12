@@ -62,6 +62,7 @@ import me.anno.image.ImageScale.scaleMax
 import me.anno.image.hdr.HDRImage
 import me.anno.image.tar.TGAImage
 import me.anno.io.ISaveable
+import me.anno.io.base.InvalidClassException
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
@@ -1125,7 +1126,7 @@ object Thumbs {
                                 }
                             } else LOGGER.warn("Could not understand unity asset $srcFile, result is InvalidRef")
                         } catch (e: Throwable) {
-                            LOGGER.warn("$e in $srcFile")
+                            LOGGER.warn("${e.message}; by $srcFile")
                             e.printStackTrace()
                         }
                     }
@@ -1135,8 +1136,10 @@ object Thumbs {
                             val data = PrefabCache.getPrefabPair(srcFile, HashSet())
                             val something = data?.prefab ?: data?.instance
                             generateSomething(something, srcFile, dstFile, size, callback)
+                        } catch (e: InvalidClassException){
+                            LOGGER.info("${e.message}; by $srcFile")
                         } catch (e: Throwable) {
-                            LOGGER.info("${e.message} in $srcFile")
+                            LOGGER.info("${e.message}; by $srcFile")
                             e.printStackTrace()
                         }
                     }
@@ -1320,8 +1323,8 @@ object Thumbs {
         ECSRegistry.initWithGFX(size)
         clock.stop("inited opengl")
         val scene = folder.getChild("Scene.json") as InnerPrefabFile
-        Thumbs.useCacheFolder = true
-        Thumbs.generateSomething(scene.prefab, src, dst, size) {}
+        useCacheFolder = true
+        generateSomething(scene.prefab, src, dst, size) {}
         clock.stop("rendered & saved image")
         Engine.requestShutdown()
     }

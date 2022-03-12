@@ -261,10 +261,6 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
         }
     }
 
-    /*private fun getPrefab(ref: FileReference?): Prefab? {
-        return loadPrefab(ref)
-    }*/
-
     override fun getSymbol(element: PrefabSaveable): String {
         return if (element.root.prefab?.isWritable == false) "\uD83D\uDD12" else "⚪"
     }

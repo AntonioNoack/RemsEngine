@@ -120,7 +120,7 @@ abstract class TreeView<V>(
             for (i in children.indices) {
                 val child = children[i]
                 if (getParent(child) != element) {
-                    LOGGER.warn("${className}.getParent($child) is incorrect")
+                    LOGGER.warn("${className}.getParent($child) is incorrect, $element")
                 }
                 index = addToTreeList(child, depth + 1, index)
             }

@@ -1,6 +1,7 @@
 package me.anno.network.packets
 
 import me.anno.Engine
+import me.anno.io.base.BaseWriter
 import me.anno.network.Packet
 import me.anno.network.Server
 import me.anno.network.TCPClient
@@ -9,22 +10,29 @@ import java.io.DataOutputStream
 
 open class PingPacket(magic: String = "PING") : Packet(magic) {
 
-    var localTimeNanos = Engine.nanoTime
+    override val size = 8
+    override val constantSize = true
 
-    override val size: Int = 8
-    override val constantSize: Boolean = true
-
-    override fun sendData(server: Server?, client: TCPClient, dos: DataOutputStream) {
-        dos.writeLong(localTimeNanos)
+    override fun writeData(server: Server?, client: TCPClient, dos: DataOutputStream) {
+        dos.writeLong(Engine.nanoTime)
     }
 
-    override fun receiveData(server: Server?, client: TCPClient, dis: DataInputStream, size: Int) {
-        localTimeNanos = dis.readLong()
+    override fun readData(server: Server?, client: TCPClient, dis: DataInputStream, size: Int) {
+        val localTimeNanos0 = dis.readLong()
+        // waste no time, and execute this immediately
         val localTimeNanos = Engine.nanoTime
-        client.localTimeOffset = this.localTimeNanos - localTimeNanos
+        client.localTimeOffset = localTimeNanos0 - localTimeNanos
+    }
+
+    override fun onReceive(server: Server?, client: TCPClient) {
         if (server != null) {// send a response
-            this.localTimeNanos = localTimeNanos
-            client.send(server, this)
+            client.sendTCP(server, this)
+        }
+    }
+
+    override fun onReceiveUDP(server: Server?, client: TCPClient, sendResponse: (packet: Packet) -> Unit) {
+        if (server != null) {// send a response
+            sendResponse(this)
         }
     }
 

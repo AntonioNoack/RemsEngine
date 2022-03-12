@@ -6,6 +6,7 @@ import me.anno.ecs.components.physics.BulletPhysics
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.engine.ui.EditorState
+import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
@@ -42,29 +43,29 @@ object ECSSceneTabs : ScrollPanelX(style) {
             }
         }
 
-    fun open(syncMaster: SyncMaster, prefab: Prefab): ECSSceneTab {
+    fun open(syncMaster: SyncMaster, prefab: Prefab, playMode: PlayMode): ECSSceneTab {
         val opened = children3.firstOrNull { it.file == prefab.source }
         return if (opened != null) {
             open(opened)
             opened
         } else {
-            val tab = ECSSceneTab(syncMaster, prefab)
+            val tab = ECSSceneTab(syncMaster, prefab, playMode)
             content += tab
             open(tab)
             tab
         }
     }
 
-    fun open(syncMaster: SyncMaster, file: FileReference, classNameIfNull: String): ECSSceneTab {
-        val tab = add(syncMaster, file, classNameIfNull)
+    fun open(syncMaster: SyncMaster, file: FileReference, classNameIfNull: String, playMode: PlayMode): ECSSceneTab {
+        val tab = add(syncMaster, file, classNameIfNull, playMode)
         open(tab)
         return tab
     }
 
-    fun add(syncMaster: SyncMaster, file: FileReference, classNameIfNull: String): ECSSceneTab {
+    fun add(syncMaster: SyncMaster, file: FileReference, classNameIfNull: String, playMode: PlayMode): ECSSceneTab {
         val opened = children3.firstOrNull { it.file == file }
         return if (opened == null) {
-            val tab = ECSSceneTab(syncMaster, file, classNameIfNull)
+            val tab = ECSSceneTab(syncMaster, file, classNameIfNull, playMode)
             content += tab
             tab
         } else opened
@@ -93,22 +94,31 @@ object ECSSceneTabs : ScrollPanelX(style) {
         }
     }
 
-    fun open(file: FileReference, classNameIfNull: String = "Entity") {
-        open(EditorState.syncMaster, file, classNameIfNull)
+    fun open(file: FileReference, classNameIfNull: String = "Entity", playMode: PlayMode) {
+        open(EditorState.syncMaster, file, classNameIfNull, playMode)
     }
 
-    fun open(sceneTab: ECSSceneTab) {
-        if (currentTab == sceneTab) return
+    fun open(tab: ECSSceneTab) {
+        // todo if such a tab already exists, use that one instead (so we don't have duplicated tabs)
+        // todo scroll to that tab (?)
+        if (currentTab == tab) return
         synchronized(this) {
-            currentTab = sceneTab
-            PrefabInspector.currentInspector = sceneTab.inspector
+            currentTab = tab
+            PrefabInspector.currentInspector = tab.inspector
             // root = sceneTab.root
-            val prefab = sceneTab.inspector.prefab
+            val prefab = tab.inspector.prefab
             val instance = prefab.getSampleInstance()
             EditorState.select(instance, null)
             updatePrefab(prefab)
-            if (sceneTab !in children3) {
-                content += sceneTab
+            if (tab !in children3) {
+                content += tab
+            }
+            for (window in windowStack) {
+                window.panel.forAllPanels {
+                    if (it is RenderView) {
+                        it.playMode = tab.playMode
+                    }
+                }
             }
             for (panel in children) panel.tickUpdate() // to assign the colors without delay
         }
@@ -179,7 +189,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
         val syncMaster = rootPanel.listOfAll.firstInstanceOrNull<RenderView>()?.library?.syncMaster
         if (syncMaster != null) {
             try {
-                open(syncMaster, files.first(), "Entity")
+                open(syncMaster, files.first(), "Entity", PlayMode.EDITING)
             } catch (e: Exception) {
                 e.printStackTrace()
             }

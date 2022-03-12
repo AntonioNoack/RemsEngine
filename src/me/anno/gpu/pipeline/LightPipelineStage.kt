@@ -364,7 +364,7 @@ class LightPipelineStage(
 
     val blendMode = BlendMode.ADD
     val writeDepth = false
-    val cullMode = GL_FRONT
+    val cullMode = CullMode.FRONT
 
     // not yet optimized
     val environmentMaps = ArrayList<EnvironmentMap>()

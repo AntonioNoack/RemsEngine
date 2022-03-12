@@ -1,11 +1,12 @@
 package me.anno.network
 
 import me.anno.Engine
+import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.network.Server.Companion.str32
 import me.anno.network.packets.PingPacket
 import me.anno.utils.Color.argb
-import me.anno.utils.Color.hex32
 import me.anno.utils.Sleep
+import me.anno.utils.hpc.ThreadLocal2
 import java.io.IOException
 import java.net.Socket
 import kotlin.math.abs
@@ -17,10 +18,43 @@ open class Protocol(val bigEndianMagic: Int, val networkProtocol: NetworkProtoco
 
     // todo user groups, and requests to those groups specifically? (e.g. friends)
 
-    val packets = HashMap<Int, Packet>()
+    private val packets = HashMap<Int, Any>()
+    var pingDelayMillis = 500
 
-    fun register(packet: Packet) {
-        packets[packet.bigEndianMagic] = packet
+    /**
+     * register a serial packet
+     * serial packets will always be read in serial
+     *
+     * use this for quickly to process, constant size packets
+     * */
+    fun register(serialPacket: Packet) {
+        packets[serialPacket.bigEndianMagic] = serialPacket
+    }
+
+    /**
+     * register a parallel packet; will create at most one instance per client plus one statically
+     * */
+    fun register(parallelPacket: () -> Packet) {
+        val sample = parallelPacket()
+        register(sample.bigEndianMagic, parallelPacket)
+    }
+
+    /**
+     * register a parallel packet; will create at most one instance per client
+     * */
+    fun register(bigEndianMagic: Int, parallelPacket: () -> Packet) {
+        packets[bigEndianMagic] = ThreadLocal2(parallelPacket)
+    }
+
+    /**
+     * register a parallel packet; will create at most one instance per client
+     * */
+    fun register(magic: String, parallelPacket: () -> Packet) {
+        register(convertMagic(magic), parallelPacket)
+    }
+
+    fun find(id: Int): Any? {
+        return packets[id]
     }
 
     /**
@@ -69,14 +103,22 @@ open class Protocol(val bigEndianMagic: Int, val networkProtocol: NetworkProtoco
         while (!Engine.shutdown && !shutdown() && !client.isClosed) {
             if (dis.available() > 3) {
                 val packetId = dis.readInt()
-                val packet = packets[packetId] ?: throw IOException("Unknown packet ${str32(packetId)}")
-                packet.receive(server, client, dis)
+                when (val packet = find(packetId)) {
+                    is Packet -> synchronized(packet) {
+                        packet.receive(server, client, dis)
+                    }
+                    is ThreadLocal<*> -> {
+                        (packet.get() as Packet)
+                            .receive(server, client, dis)
+                    }
+                    else -> throw IOException("Unknown packet ${str32(packetId)}")
+                }
             } else {// no packet available for us :/
                 val time = System.nanoTime()
                 // send a ping to detect whether the server is still alive
                 // but don't send it too often
-                if (abs(time - lastTime) > 50_000_000) { // 50 ms
-                    client.send(server, PingPacket())
+                if (pingDelayMillis >= 0 && abs(time - lastTime) >= pingDelayMillis * MILLIS_TO_NANOS) {
+                    client.sendTCP(server, PingPacket())
                     lastTime = System.nanoTime()
                 } else {
                     Sleep.sleepShortly(false)
@@ -87,8 +129,14 @@ open class Protocol(val bigEndianMagic: Int, val networkProtocol: NetworkProtoco
 
     companion object {
         fun convertMagic(string: String): Int {
-            if (string.length != 4) throw IllegalArgumentException("Magic length must be exactly 4")
-            return argb(string[0].code, string[1].code, string[2].code, string[3].code)
+            return when (string.length) {
+                0 -> 0
+                1 -> argb(string[0].code, 0, 0, 0)
+                2 -> argb(string[0].code, string[1].code, 0, 0)
+                3 -> argb(string[0].code, string[1].code, string[2].code, 0)
+                4 -> argb(string[0].code, string[1].code, string[2].code, string[3].code)
+                else -> throw IllegalArgumentException("Magic length must be <= 4")
+            }
         }
     }
 

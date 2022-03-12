@@ -204,7 +204,7 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
             transformFunction(selfGlobal, distance)
             transform.checkTransform(selfGlobal)
             transform.globalTransform.set(selfGlobal)
-            transform.setStateAfterUpdate(Transform.State.VALID_GLOBAL)
+            transform.setStateAndUpdate(Transform.State.VALID_GLOBAL)
         }
     }
 

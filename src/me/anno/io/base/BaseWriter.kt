@@ -364,7 +364,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                         is ISaveable -> writeNullableObjectArray(self, name, value as Array<ISaveable?>, forceSaving)
                         is FileReference -> writeFileArray(name, cast(value), forceSaving)
 
-                        is Array<*> -> TODO("implement reading 2d array, of string or objects")
+                        is Array<*> -> TODO("implement writing 2d array, of string or objects")
 
                         else -> throw RuntimeException("Not yet implemented: saving an array of $sample")
                     }

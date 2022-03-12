@@ -13,6 +13,7 @@ import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.framebuffer.CubemapFramebuffer
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame
+import me.anno.gpu.pipeline.CullMode
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
@@ -219,7 +220,7 @@ class EnvironmentMap : LightComponentBase() {
             // we may need a second stage for transparent stuff
             pipeline.defaultStage = PipelineStage(
                 "", Sorting.NO_SORTING, 16, null, DepthMode.GREATER,
-                true, GL_BACK, ECSShaderLib.pbrModelShader
+                true, CullMode.BACK, ECSShaderLib.pbrModelShader
             )
             pipeline.stages.add(pipeline.defaultStage)
         }

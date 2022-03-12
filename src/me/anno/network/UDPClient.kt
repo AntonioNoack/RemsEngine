@@ -39,21 +39,29 @@ class UDPClient(address: InetAddress, port: Int, timeoutMillis: Int = 10_000) : 
         socket.receive(packet)
         bis.reset()
         bis.skip(4) // skip packet id, assume it's correct
-        packet1.receiveData(server, client, dis, packet.length - 4)
+        packet1.readData(server, client, dis, packet.length - 4)
         return packet1
     }
 
     /**
-     * after sending you need to synchronize with this instance, so you read the correct data
      * reads the packet from the data
      * */
-    fun receive(server: Server?, client: TCPClient, protocol: Protocol): Packet {
+    fun receive(server: Server?, client: TCPClient, protocol: Protocol, callback: (Packet) -> Unit) {
         socket.receive(packet)
         bis.reset()
         val packetId = dis.readInt()
-        val packet = protocol.packets[packetId] ?: throw RuntimeException("Unknown packet ${str32(packetId)}")
-        packet.receiveData(server, client, dis, packet.size - 4)
-        return packet
+        when (val packet = protocol.find(packetId)) {
+            is Packet -> synchronized(packet) {
+                packet.readData(server, client, dis, packet.size - 4)
+                callback(packet)
+            }
+            is ThreadLocal<*> -> {
+                val packet2 = packet.get() as Packet
+                packet2.readData(server, client, dis, packet2.size - 4)
+                callback(packet2)
+            }
+            else -> throw RuntimeException("Unknown packet ${str32(packetId)}")
+        }
     }
 
     override fun close() {

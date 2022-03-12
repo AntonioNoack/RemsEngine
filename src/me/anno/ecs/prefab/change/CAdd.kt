@@ -5,6 +5,8 @@ import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.base.InvalidClassException
+import me.anno.io.base.UnknownClassException
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.files.LocalFile.toGlobalFile
@@ -90,16 +92,17 @@ class CAdd() : Change() {
     override fun applyChange(instance: PrefabSaveable, chain: MutableSet<FileReference>?) {
 
         // LOGGER.info("adding $clazzName/$nameId with type $type to $path; to ${instance.prefabPath}, ${path == instance.prefabPath}")
-        if (prefab != InvalidRef && chain?.add(prefab) == false) throw RuntimeException("Circular Reference on $chain: $prefab")
+        if (prefab != InvalidRef && chain?.add(prefab) == false) throw RuntimeException("Circular reference on $chain: $prefab")
 
         val loadedInstance = loadPrefab(prefab, chain)?.createInstance()
+        val clazzName = clazzName
         var newInstance = loadedInstance
         if (newInstance == null) {
             val maybe = ISaveable.createOrNull(clazzName ?: return)
             when (maybe) {
                 is PrefabSaveable -> newInstance = maybe
-                null -> throw RuntimeException("Class '$clazzName' is unknown / hasn't been registered")
-                else -> throw RuntimeException("Class '$clazzName' does not extend PrefabSaveable")
+                null -> throw UnknownClassException(clazzName)
+                else -> throw InvalidClassException("Class \"$clazzName\" does not extend PrefabSaveable")
             }
         }
 

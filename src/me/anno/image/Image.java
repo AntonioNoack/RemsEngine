@@ -2,6 +2,7 @@ package me.anno.image;
 
 import me.anno.cache.data.ICacheData;
 import me.anno.gpu.texture.Texture2D;
+import me.anno.image.raw.BIImage;
 import me.anno.image.raw.IntImage;
 import me.anno.io.files.FileReference;
 
@@ -66,6 +67,10 @@ public abstract class Image implements ICacheData {
         return image;
     }
 
+    public BIImage createBImage(int width, int height) {
+        return new BIImage(createBufferedImage(width, height));
+    }
+
     public BufferedImage createBufferedImage() {
         int width = getWidth();
         int height = getHeight();
@@ -79,6 +84,45 @@ public abstract class Image implements ICacheData {
     }
 
     public abstract int getRGB(int index);
+
+    public float getValueAt(float x, float y, int shift) {
+
+        float xf = (float) Math.floor(x);
+        float yf = (float) Math.floor(y);
+
+        int xi = (int) xf;
+        int yi = (int) yf;
+
+        float fx = x - xf, gx = 1f - fx;
+        float fy = y - yf, gy = 1f - fy;
+
+        int c00, c01, c10, c11;
+        int width = this.width;
+        if (xi >= 0 && yi >= 0 && xi < width - 1 && yi < height - 1) {
+            // safe
+            int index = xi + yi * width;
+            c00 = getRGB(index);
+            c01 = getRGB(index + width);
+            c10 = getRGB(index + 1);
+            c11 = getRGB(index + 1 + width);
+        } else {
+            // border
+            c00 = getSafeRGB(xi, yi);
+            c01 = getSafeRGB(xi, yi + 1);
+            c10 = getSafeRGB(xi + 1, yi);
+            c11 = getSafeRGB(xi + 1, yi + 1);
+        }
+
+        c00 = (c00 >> shift) & 255;
+        c01 = (c01 >> shift) & 255;
+        c10 = (c10 >> shift) & 255;
+        c11 = (c11 >> shift) & 255;
+
+        float r0 = c00 * gy + fy * c01;
+        float r1 = c10 * gy + fy * c11;
+        return r0 * gx + fx * r1;
+
+    }
 
     public int getRGB(int x, int y) {
         return getRGB(x + y * width);

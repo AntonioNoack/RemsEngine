@@ -223,7 +223,7 @@ class Entity() : PrefabSaveable(), Inspectable {
     fun moveToGlobal(position: Vector3d) {
         transform.globalTransform.setTranslation(position)
         transform.globalPosition = position
-        transform.onChange()
+        transform.smoothUpdate()
         invalidateAABBsCompletely()
         invalidatePhysics(false)
     }
@@ -485,7 +485,7 @@ class Entity() : PrefabSaveable(), Inspectable {
 
     private fun transformUpdate(keepWorldTransform: Boolean) {
         val state = if (keepWorldTransform) Transform.State.VALID_GLOBAL else Transform.State.VALID_LOCAL
-        transform.setStateAfterUpdate(state)
+        transform.setStateAndUpdate(state)
         invalidateAABBsCompletely()
     }
 

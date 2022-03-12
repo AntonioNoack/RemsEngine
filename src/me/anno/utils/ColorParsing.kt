@@ -1,6 +1,6 @@
 package me.anno.utils
 
-import me.anno.io.InvalidFormatException
+import me.anno.io.base.InvalidFormatException
 import me.anno.maths.Maths.sq
 import me.anno.ui.editor.color.ColorSpace
 import me.anno.utils.Color.b

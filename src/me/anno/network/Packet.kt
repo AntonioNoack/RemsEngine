@@ -1,13 +1,16 @@
 package me.anno.network
 
+import me.anno.io.Saveable
+import me.anno.io.base.BaseWriter
 import me.anno.network.Protocol.Companion.convertMagic
 import me.anno.utils.input.Input.readNBytes2
+import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
 
-open class Packet(val bigEndianMagic: Int) {
+open class Packet(var bigEndianMagic: Int) : Saveable() {
 
     constructor(bigEndianMagic: String) : this(convertMagic(bigEndianMagic))
 
@@ -18,13 +21,14 @@ open class Packet(val bigEndianMagic: Int) {
     open val constantSize = false
 
     open fun send(server: Server?, client: TCPClient, dos: DataOutputStream) {
+        if (debugPackets) LOGGER.info("Sending $this ${if (server == null) "s->" else "s<-"} ${client.randomId}")
         // standard serialization
         val size = size
         if (size < 0) {
             if (constantSize) throw IllegalStateException("Size must be known, if it is constant")
             val bos = ByteArrayOutputStream()
             val dos2 = DataOutputStream(bos)
-            sendData(server, client, dos2)
+            writeData(server, client, dos2)
             dos2.close()
             bos.close()
             dos.writeInt(bos.size())
@@ -32,11 +36,11 @@ open class Packet(val bigEndianMagic: Int) {
         } else {
             // size is known
             if (!constantSize) dos.writeInt(size)
-            sendData(server, client, dos)
+            writeData(server, client, dos)
         }
     }
 
-    open fun sendData(server: Server?, client: TCPClient, dos: DataOutputStream) {
+    open fun writeData(server: Server?, client: TCPClient, dos: DataOutputStream) {
         // can send the data out
     }
 
@@ -44,7 +48,7 @@ open class Packet(val bigEndianMagic: Int) {
         if (constantSize) {
             if (size < 0) throw IllegalStateException("Size must be non-negative")
             // we trust the packet reading function
-            receiveData(server, client, dis, size)
+            readData(server, client, dis, size)
         } else {
             // we don't trust the packet reading function
             val size = dis.readInt()
@@ -54,11 +58,20 @@ open class Packet(val bigEndianMagic: Int) {
             buffer.reset()
             buffer.ensureCapacity(size)
             dis.readNBytes2(size, buffer.buffer, true)
-            receiveData(server, client, client.bufferDis, size)
+            readData(server, client, client.bufferDis, size)
         }
+        if (debugPackets) LOGGER.info("Received(TCP) $this ${if (server == null) "s->" else "s<-"} ${client.randomId}")
     }
 
-    open fun udpReceive(
+    open fun onReceive(server: Server?, client: TCPClient) {
+
+    }
+
+    open fun onReceiveUDP(server: Server?, client: TCPClient, sendResponse: (packet: Packet) -> Unit) {
+        onReceive(server, client)
+    }
+
+    open fun receiveUdp(
         server: Server?,
         client: TCPClient,
         dis: DataInputStream,
@@ -70,13 +83,36 @@ open class Packet(val bigEndianMagic: Int) {
         }
         if (size < 0) throw IOException("Size must be >= 0")
         dis.mark(size) // size = is the read limit
-        receiveData(server, client, dis, size)
+        readData(server, client, dis, size)
+        onReceiveUDP(server, client, sendResponse)
         dis.reset()
         dis.skipBytes(size)
+        if (debugPackets) LOGGER.info("Received(UDP) $this ${if (server == null) "s->" else "s<-"} ${client.randomId}")
     }
 
-    open fun receiveData(server: Server?, client: TCPClient, dis: DataInputStream, size: Int) {
+    open fun readData(server: Server?, client: TCPClient, dis: DataInputStream, size: Int) {
         // can read the data in
+    }
+
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        writer.writeInt("magic", bigEndianMagic)
+    }
+
+    override fun readInt(name: String, value: Int) {
+        if (name == "magic") bigEndianMagic = value
+        else super.readInt(name, value)
+    }
+
+    override val className: String = "Packet"
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(Packet::class)
+
+        /**
+         * to debug, which packets are sent, set this value to true
+         * */
+        var debugPackets = false
     }
 
 }

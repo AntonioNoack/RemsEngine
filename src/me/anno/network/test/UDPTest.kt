@@ -1,8 +1,16 @@
 package me.anno.network.test
 
+import me.anno.Engine
+import me.anno.network.NetworkProtocol
+import me.anno.network.Protocol
+import me.anno.network.Server
+import me.anno.network.TCPClient
+import me.anno.network.packets.ClosePacket
+import me.anno.network.packets.PingPacket
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
+import java.net.Socket
 import kotlin.concurrent.thread
 
 // https://stackoverflow.com/questions/1098897/what-is-the-largest-safe-udp-packet-size-on-the-internet
@@ -11,7 +19,7 @@ import kotlin.concurrent.thread
 val port = 12345
 val limit = 256
 
-fun startClient(message: String) {
+fun startDatagramClient(message: String) {
     val socket = DatagramSocket()
     val address = InetAddress.getByName("localhost")
     val buffer = message.toByteArray()
@@ -23,7 +31,7 @@ fun startClient(message: String) {
     socket.close()
 }
 
-fun startServer() {
+fun startDatagramServer() {
     val socket = DatagramSocket(port)
     val buffer = ByteArray(limit)
     val packet = DatagramPacket(buffer, buffer.size)
@@ -37,9 +45,45 @@ fun startServer() {
     socket.close()
 }
 
+fun datagramTest() {
+    thread { startDatagramServer() }
+    startDatagramClient("hi, I am a client")
+    startDatagramClient("cool world")
+    startDatagramClient("end")
+}
+
+fun architectureUDPTest() {
+    // udp test using our server-client architecture
+    val tcpPort = 4651
+    val udpPort = 4541
+    val udpProtocol = Protocol("udp", NetworkProtocol.UDP)
+    val tcpProtocol = Protocol("tcp", NetworkProtocol.TCP)
+    val testServer = Server()
+    tcpProtocol.pingDelayMillis = -1
+    udpProtocol.register(PingPacket())
+    testServer.register(udpProtocol)
+    testServer.register(tcpProtocol)
+    testServer.start(tcpPort, udpPort)
+    fun startClient(name: String) {
+        // start tcp client
+        // then send a udp message
+        val client = TCPClient(Socket("localhost", tcpPort), name)
+        client.startClientSideAsync(tcpProtocol)
+        client.udpPort = udpPort
+        client.sendUDP(PingPacket(), udpProtocol) {
+            println("got pong packet, dt: ${client.localTimeOffset / 1e6f} ms")
+        }
+        client.close()
+    }
+    Thread.sleep(100)
+    startClient("A")
+    startClient("B")
+    startClient("C")
+    Thread.sleep(100)
+    testServer.close()
+}
+
 fun main() {
-    thread { startServer() }
-    startClient("hi, I am a client")
-    startClient("cool world")
-    startClient("end")
+    datagramTest()
+    architectureUDPTest()
 }

@@ -63,6 +63,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         val deltaS = delta / (if (isY) h else w)
         change(c1, +deltaS)
         change(c2, -deltaS)
+        invalidateLayout()
     }
 
     override fun add(child: Panel): CustomList {

@@ -279,7 +279,7 @@ object GFX : GFXBase1() {
         maxVertexUniformComponents = glGetInteger(GL_MAX_VERTEX_UNIFORM_COMPONENTS)
         maxFragmentUniformComponents = glGetInteger(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS)
         maxUniforms = glGetInteger(GL_MAX_UNIFORM_LOCATIONS)
-        maxColorAttachments = 1 // glGetInteger(GL_MAX_COLOR_ATTACHMENTS)
+        maxColorAttachments = glGetInteger(GL_MAX_COLOR_ATTACHMENTS)
         maxSamples = max(1, glGetInteger(GL_MAX_SAMPLES))
         maxTextureSize = max(256, glGetInteger(GL_MAX_TEXTURE_SIZE))
         LOGGER.info("Max Uniform Components: [Vertex: $maxVertexUniformComponents, Fragment: $maxFragmentUniformComponents]")

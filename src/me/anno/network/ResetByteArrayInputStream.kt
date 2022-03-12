@@ -23,7 +23,8 @@ class ResetByteArrayInputStream(var buffer: ByteArray) : InputStream() {
         return delta
     }
 
-    private var size = 0
+    var size = 0
+
     override fun read(): Int {
         return if (size < buffer.size) {
             buffer[size++].toInt() and 255

@@ -19,7 +19,7 @@ fun main() {
             data: ByteArray
         ) {
             var file = getReference(folder, path)
-            if (file.isDirectory) file = getReference(file, "index.html")
+            if (file.isDirectory) file = file.getChild("index.html")
             if (file.exists && !file.isDirectory) {
                 sendResponse(
                     client, 200, "OK", mapOf(

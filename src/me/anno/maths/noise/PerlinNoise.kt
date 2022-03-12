@@ -163,18 +163,10 @@ class PerlinNoise(
         @JvmStatic
         fun main(args: Array<String>) {
             val gen = PerlinNoise(1234L, 8, 0.5f, 0f, 1f)
-            var avg = 0.0
-            var avg2 = 0.0
             val samples = 10000
             val buckets = IntArray(10)
             for (i in 0 until samples) {
-                val g = gen[i.toFloat()]
-                if (g !in gen.min..gen.max) {
-                    throw RuntimeException("$g at $i")
-                }
-                avg += g
-                avg2 += g * g
-                buckets[(g * buckets.size).toInt()]++
+                buckets[(gen[i.toFloat()] * buckets.size).toInt()]++
             }
             println(buckets.joinToString())
             ImageWriter.writeImageInt(256, 256, false, "perlin.png", 16) { x, y, _ ->

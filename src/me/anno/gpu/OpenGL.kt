@@ -8,6 +8,7 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.MultiFramebuffer
+import me.anno.gpu.pipeline.CullMode
 import me.anno.gpu.shader.GeoShader
 import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.Renderer
@@ -16,7 +17,6 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.image.ImageGPUCache
 import me.anno.utils.OS
 import me.anno.utils.structures.stacks.SecureBoolStack
-import me.anno.utils.structures.stacks.SecureIntStack
 import me.anno.utils.structures.stacks.SecureStack
 import org.lwjgl.opengl.GL20.GL_LOWER_LEFT
 import org.lwjgl.opengl.GL45.*
@@ -114,12 +114,12 @@ object OpenGL {
         }
     }
 
-    val cullMode = object : SecureIntStack(0) {
-        override fun onChangeValue(newValue: Int, oldValue: Int) {
+    val cullMode = object : SecureStack<CullMode>(CullMode.BOTH) {
+        override fun onChangeValue(newValue: CullMode, oldValue: CullMode) {
             GFX.check()
-            if (newValue != 0) {
+            if (newValue != CullMode.BOTH) {
                 glEnable(GL_CULL_FACE)
-                glCullFace(newValue)
+                glCullFace(newValue.opengl)
             } else {
                 glDisable(GL_CULL_FACE)
             }

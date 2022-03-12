@@ -28,6 +28,7 @@ import me.anno.ecs.components.script.ScriptComponent
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.IProperty
+import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
@@ -71,7 +72,7 @@ object ComponentUI {
 
     val fileInputRightClickOptions = listOf(
         // todo create menu of files with same type in project, e.g. image files, meshes or sth like that
-        FileExplorerOption(NameDesc("Open Scene")) { _, it -> ECSSceneTabs.open(it) },
+        FileExplorerOption(NameDesc("Open Scene")) { _, it -> ECSSceneTabs.open(it, "Entity", PlayMode.EDITING) },
         // create mutable scene, = import
         FileExplorerOption(NameDesc("Import")) { panel, it ->
             val prefab = loadPrefab(it)

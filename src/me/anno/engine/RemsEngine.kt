@@ -8,6 +8,7 @@ import me.anno.ecs.prefab.PrefabCache.loadScenePrefab
 import me.anno.engine.ui.DefaultLayout
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.ECSShaderLib
+import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.ShaderLib
@@ -174,7 +175,7 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
                 EditorState.syncMaster = syncMaster
                 EditorState.projectFile = editScene.source
 
-                ECSSceneTabs.open(syncMaster, editScene)
+                ECSSceneTabs.open(syncMaster, editScene, PlayMode.EDITING)
 
                 val options = OptionBar(style)
 

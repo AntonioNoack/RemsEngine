@@ -201,7 +201,7 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                 val targets = selectedEntities
                 if (targets.isNotEmpty() && mode != Mode.NOTHING) {
 
-                    val prefab = targets.first().root.prefab!!
+                    val prefab = targets.first().root.prefab ?: return
                     if (!prefab.isWritable) {
                         LOGGER.warn("Prefab from '${prefab.source}' cannot be directly modified, inherit from it")
                         return

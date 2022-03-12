@@ -26,7 +26,7 @@ class FullNoise(val seed: Long) {
 
     private val invMax = 1f / 0xffff
 
-    private fun getRandom(x: Int): Float {
+    fun getValue(x: Int): Float {
         var a = x * sx
         var b = (a shl 16) or (a ushr 16)
         b *= 1911520717
@@ -35,7 +35,7 @@ class FullNoise(val seed: Long) {
         return a.shr(16).and(0xffff) * invMax
     }
 
-    private fun getRandom(x: Int, y: Int): Float {
+    fun getValue(x: Int, y: Int): Float {
         var a = x * sx
         var b = y * sy xor ((a shl 16) or (a ushr 16))
         b *= 1911520717
@@ -44,7 +44,7 @@ class FullNoise(val seed: Long) {
         return a.shr(16).and(0xffff) * invMax
     }
 
-    private fun getRandom(x: Int, y: Int, z: Int): Float {
+    fun getValue(x: Int, y: Int, z: Int): Float {
         var a = x * sx
         var b = y * sy
         val c = z * sz
@@ -57,7 +57,7 @@ class FullNoise(val seed: Long) {
         return a.shr(16).and(0xffff) * invMax
     }
 
-    private fun getRandom(x: Int, y: Int, z: Int, w: Int): Float {
+    fun getValue(x: Int, y: Int, z: Int, w: Int): Float {
         var a = x * sx
         var b = y * sy
         val c = z * sz
@@ -78,8 +78,8 @@ class FullNoise(val seed: Long) {
         val ix = xi.toInt()
         val xf = x - xi
         // 4.7-4.8ns/run -> 17 ns with actually good noise
-        val v0 = getRandom(ix)
-        val v1 = getRandom(ix + 1)
+        val v0 = getValue(ix)
+        val v1 = getValue(ix + 1)
         return v0 * (1f - xf) + v1 * xf
     }
 
@@ -91,10 +91,10 @@ class FullNoise(val seed: Long) {
         val xf = x - xi
         val yf = y - yi
         // 11ns/run -> 26 ns with actually good noise
-        val v00 = getRandom(ix, iy)
-        val v01 = getRandom(ix, iy + 1)
-        val v10 = getRandom(ix + 1, iy)
-        val v11 = getRandom(ix + 1, iy + 1)
+        val v00 = getValue(ix, iy)
+        val v01 = getValue(ix, iy + 1)
+        val v10 = getValue(ix + 1, iy)
+        val v11 = getValue(ix + 1, iy + 1)
         val yg = 1f - yf
         val v0 = v00 * yg + v01 * yf
         val v1 = v10 * yg + v11 * yf
@@ -112,14 +112,14 @@ class FullNoise(val seed: Long) {
         val yf = y - yi
         val zf = z - zi
         // 17-18ns/run -> 24 ns with actually good noise
-        val v000 = getRandom(ix, iy, iz)
-        val v001 = getRandom(ix, iy, iz + 1)
-        val v010 = getRandom(ix, iy + 1, iz)
-        val v011 = getRandom(ix, iy + 1, iz + 1)
-        val v100 = getRandom(ix + 1, iy, iz)
-        val v101 = getRandom(ix + 1, iy, iz + 1)
-        val v110 = getRandom(ix + 1, iy + 1, iz)
-        val v111 = getRandom(ix + 1, iy + 1, iz + 1)
+        val v000 = getValue(ix, iy, iz)
+        val v001 = getValue(ix, iy, iz + 1)
+        val v010 = getValue(ix, iy + 1, iz)
+        val v011 = getValue(ix, iy + 1, iz + 1)
+        val v100 = getValue(ix + 1, iy, iz)
+        val v101 = getValue(ix + 1, iy, iz + 1)
+        val v110 = getValue(ix + 1, iy + 1, iz)
+        val v111 = getValue(ix + 1, iy + 1, iz + 1)
         val zg = 1f - zf
         val v00 = v000 * zg + v001 * zf
         val v01 = v010 * zg + v011 * zf
@@ -145,22 +145,22 @@ class FullNoise(val seed: Long) {
         val zf = z - zi
         val wf = w - wi
         // 48 ns/run
-        val v0000 = getRandom(ix, iy, iz, iw)
-        val v0010 = getRandom(ix, iy, iz + 1, iw)
-        val v0100 = getRandom(ix, iy + 1, iz, iw)
-        val v0110 = getRandom(ix, iy + 1, iz + 1, iw)
-        val v1000 = getRandom(ix + 1, iy, iz, iw)
-        val v1010 = getRandom(ix + 1, iy, iz + 1, iw)
-        val v1100 = getRandom(ix + 1, iy + 1, iz, iw)
-        val v1110 = getRandom(ix + 1, iy + 1, iz + 1, iw)
-        val v0001 = getRandom(ix, iy, iz, iw + 1)
-        val v0011 = getRandom(ix, iy, iz + 1, iw + 1)
-        val v0101 = getRandom(ix, iy + 1, iz, iw + 1)
-        val v0111 = getRandom(ix, iy + 1, iz + 1, iw + 1)
-        val v1001 = getRandom(ix + 1, iy, iz, iw + 1)
-        val v1011 = getRandom(ix + 1, iy, iz + 1, iw + 1)
-        val v1101 = getRandom(ix + 1, iy + 1, iz, iw + 1)
-        val v1111 = getRandom(ix + 1, iy + 1, iz + 1, iw + 1)
+        val v0000 = getValue(ix, iy, iz, iw)
+        val v0010 = getValue(ix, iy, iz + 1, iw)
+        val v0100 = getValue(ix, iy + 1, iz, iw)
+        val v0110 = getValue(ix, iy + 1, iz + 1, iw)
+        val v1000 = getValue(ix + 1, iy, iz, iw)
+        val v1010 = getValue(ix + 1, iy, iz + 1, iw)
+        val v1100 = getValue(ix + 1, iy + 1, iz, iw)
+        val v1110 = getValue(ix + 1, iy + 1, iz + 1, iw)
+        val v0001 = getValue(ix, iy, iz, iw + 1)
+        val v0011 = getValue(ix, iy, iz + 1, iw + 1)
+        val v0101 = getValue(ix, iy + 1, iz, iw + 1)
+        val v0111 = getValue(ix, iy + 1, iz + 1, iw + 1)
+        val v1001 = getValue(ix + 1, iy, iz, iw + 1)
+        val v1011 = getValue(ix + 1, iy, iz + 1, iw + 1)
+        val v1101 = getValue(ix + 1, iy + 1, iz, iw + 1)
+        val v1111 = getValue(ix + 1, iy + 1, iz + 1, iw + 1)
         val wg = 1f - wf
         val v000 = v0000 * wg + v0001 * wf
         val v001 = v0010 * wg + v0011 * wf
@@ -197,16 +197,16 @@ class FullNoise(val seed: Long) {
         fun noiseQualityTest() {
             val noise = FullNoise(1234L)
             ImageWriter.writeImageFloat(512, 512, "n1d.png", 512, false) { x, y, _ ->
-                noise.getRandom(x + y * 512)
+                noise.getValue(x + y * 512)
             }
             ImageWriter.writeImageFloat(512, 512, "n2d.png", 512, false) { x, y, _ ->
-                noise.getRandom(x, y)
+                noise.getValue(x, y)
             }
             ImageWriter.writeImageFloat(512, 512, "n3d.png", 512, false) { x, y, _ ->
-                noise.getRandom(x, x - y, y)
+                noise.getValue(x, x - y, y)
             }
             ImageWriter.writeImageFloat(512, 512, "n4d.png", 512, false) { x, y, _ ->
-                noise.getRandom(x + y, x - y, x, y)
+                noise.getValue(x + y, x - y, x, y)
             }
         }
 

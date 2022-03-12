@@ -1,7 +1,7 @@
 package me.anno.io.text
 
 import me.anno.io.ISaveable
-import me.anno.io.InvalidFormatException
+import me.anno.io.base.InvalidFormatException
 import me.anno.io.base.BaseReader
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef

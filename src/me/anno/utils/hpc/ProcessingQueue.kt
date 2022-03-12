@@ -14,6 +14,8 @@ open class ProcessingQueue(val name: String){
     private var hasBeenStarted = false
     private var shouldStop = false
 
+    val size get() = tasks.size
+
     fun stop(){
         shouldStop = true
         hasBeenStarted = false

@@ -1,7 +1,6 @@
 package me.anno.io.base
 
 import me.anno.io.ISaveable
-import me.anno.io.InvalidFormatException
 import me.anno.io.Saveable
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager

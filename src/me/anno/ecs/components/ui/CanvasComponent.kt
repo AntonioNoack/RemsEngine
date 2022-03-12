@@ -21,7 +21,7 @@ import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.pipeline.CullMode
 import me.anno.image.raw.GPUImage
 import me.anno.input.MouseButton
 import me.anno.io.ISaveable
@@ -166,7 +166,7 @@ class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
 
     override fun onVisibleUpdate(): Boolean {
         if (space == Space.WORLD_SPACE ||
-            RenderView.currentInstance?.mode == PlayMode.EDITING
+            RenderView.currentInstance?.playMode == PlayMode.EDITING
         ) {
             defineMesh()
             render()
@@ -210,7 +210,7 @@ class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
             OpenGL.depthMode.use(DepthMode.ALWAYS) {
                 OpenGL.blendMode.use(BlendMode.DEFAULT) {
-                    OpenGL.cullMode.use(0) {
+                    OpenGL.cullMode.use(CullMode.BOTH) {
                         render(width, height, fb)
                     }
                 }
@@ -222,7 +222,7 @@ class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
     fun render(width: Int, height: Int, fb: Framebuffer?) {
         OpenGL.depthMode.use(DepthMode.ALWAYS) {
             OpenGL.blendMode.use(BlendMode.DEFAULT) {
-                OpenGL.cullMode.use(0) {
+                OpenGL.cullMode.use(CullMode.BOTH) {
                     val rv = RenderView.currentInstance!!
                     val transform = JomlPools.mat4f.create()
                     if (space == Space.WORLD_SPACE) {

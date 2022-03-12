@@ -3,6 +3,7 @@ package me.anno.ui.base.groups
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ui.Panel
 import me.anno.ui.style.Style
+import kotlin.math.max
 
 /**
  * nine tile panel, which solves all constraints, and aligns the items appropriately
@@ -29,17 +30,20 @@ open class NineTilePanel(style: Style) : PanelGroup(style) {
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
 
+        var minW = 0
+        var minH = 0
+
         // todo calculate how much space is available for the children
         for (child in children) {
             child.calculateSize(w / 3, h / 3)
             child.w = child.minW
             child.h = child.minH
+            minW = max(minW, child.w)
+            minH = max(minH, child.h)
         }
 
-        minW = w
-        minH = h
-        this.w = minW
-        this.h = minH
+        this.minW = minW
+        this.minH = minH
 
     }
 

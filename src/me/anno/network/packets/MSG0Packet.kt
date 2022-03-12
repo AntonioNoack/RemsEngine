@@ -1,12 +1,16 @@
 package me.anno.network.packets
 
+import me.anno.io.base.BaseWriter
 import me.anno.network.Packet
 import me.anno.network.Server
 import me.anno.network.TCPClient
 import java.io.DataInputStream
 import java.io.DataOutputStream
 
-abstract class MSG0Packet(magic: String = "MSG0") : Packet(magic) {
+abstract class MSG0Packet : Packet {
+
+    constructor(magic: String = "MSG0") : super(magic)
+    constructor(magic: Int) : super(magic)
 
     var sender = 0L
     var senderName = ""
@@ -18,7 +22,7 @@ abstract class MSG0Packet(magic: String = "MSG0") : Packet(magic) {
 
     override val constantSize: Boolean = false
 
-    override fun sendData(server: Server?, client: TCPClient, dos: DataOutputStream) {
+    override fun writeData(server: Server?, client: TCPClient, dos: DataOutputStream) {
         dos.writeLong(sender)
         dos.writeUTF(senderName)
         dos.writeLong(receiver)
@@ -26,15 +30,38 @@ abstract class MSG0Packet(magic: String = "MSG0") : Packet(magic) {
         dos.writeUTF(message)
     }
 
-    override fun receiveData(server: Server?, client: TCPClient, dis: DataInputStream, size: Int) {
+    override fun readData(server: Server?, client: TCPClient, dis: DataInputStream, size: Int) {
         sender = dis.readLong()
         senderName = dis.readUTF()
         receiver = dis.readLong()
         receiverName = dis.readUTF()
         message = dis.readUTF()
-        onReceive(server, client)
     }
 
-    abstract fun onReceive(server: Server?, client: TCPClient)
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        writer.writeLong("sender", sender)
+        writer.writeString("senderName", senderName)
+        writer.writeLong("receiver", receiver)
+        writer.writeString("receiverName", receiverName)
+        writer.writeString("message", message)
+    }
+
+    override fun readLong(name: String, value: Long) {
+        when (name) {
+            "sender" -> sender = value
+            "receiver" -> receiver = value
+            else -> super.readLong(name, value)
+        }
+    }
+
+    override fun readString(name: String, value: String?) {
+        when (name) {
+            "senderName" -> senderName = value ?: ""
+            "receiverName" -> receiverName = value ?: ""
+            "message" -> message = value ?: ""
+            else -> super.readString(name, value)
+        }
+    }
 
 }

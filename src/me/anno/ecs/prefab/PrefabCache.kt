@@ -7,7 +7,8 @@ import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.scene.ScenePrefab
 import me.anno.io.ISaveable
-import me.anno.io.InvalidFormatException
+import me.anno.io.base.InvalidClassException
+import me.anno.io.base.InvalidFormatException
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileWatch
 import me.anno.io.files.InvalidRef
@@ -218,6 +219,8 @@ object PrefabCache : CacheSection("Prefab") {
         adds?.forEachIndexed { index, add ->
             try {
                 add.apply(instance, HashSet(chain))
+            } catch (e: InvalidClassException) {
+                throw e
             } catch (e: Exception) {
                 LOGGER.warn("Change $index, $add failed")
                 throw e

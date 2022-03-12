@@ -6,6 +6,7 @@ import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.RemsEngine
 import me.anno.engine.scene.ScenePrefab
+import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
@@ -44,7 +45,7 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
         val prefab = loadPrefab(file)
         if (prefab != null) {
             prefab.source = file
-            ECSSceneTabs.open(syncMaster, prefab)
+            ECSSceneTabs.open(syncMaster, prefab, PlayMode.EDITING)
         } else {
             switchTo(file)
             // msg(NameDesc("Could not open prefab!"))

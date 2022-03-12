@@ -7,25 +7,27 @@ import me.anno.utils.LOGGER
  * a pool to keep a certain amount of objects to prevent frequent allocation and frees/garbage collection
  * */
 class ObjectPool<V>(
-    val create: () -> V,
-    val reset: (V) -> Unit,
-    val destroy: (V) -> Unit,
-    val free: (V) -> Unit,
+    private val createInstance: () -> V,
+    private val resetInstance: (V) -> Unit,
+    private val onDestroy: (V) -> Unit,
+    private val freeInstance: (V) -> Unit,
     checkDoubleReturns: Boolean,
     initialSize: Int = 16,
-    val maxSize: Int = 10_000,
+    private var maxSize: Int = 64,
 ) {
+
+    constructor(create: () -> V) : this(create, {}, {}, {}, false)
 
     private val map = if (checkDoubleReturns) HashSet<V>(initialSize) else null
     private val data = ArrayList<V>(initialSize)
 
     fun create(): V {
         return if (data.isEmpty()) {
-            create()
+            createInstance()
         } else synchronized(this) {
             val element = data.removeAt(data.lastIndex)
             map?.remove(element)
-            reset(element)
+            resetInstance(element)
             element
         }
     }
@@ -38,11 +40,11 @@ class ObjectPool<V>(
                 } else map.add(v)
             }
         }
-        destroy(v)
+        onDestroy(v)
         synchronized(this) {
             if (data.size >= maxSize) {
                 // we're at the limit, and can't destroy elements
-                free(v)
+                freeInstance(v)
             } else {
                 data.add(v)
             }

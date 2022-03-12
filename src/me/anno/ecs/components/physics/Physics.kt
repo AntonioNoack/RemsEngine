@@ -6,7 +6,6 @@ import me.anno.ecs.Entity
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.components.physics.constraints.Constraint
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.GFX
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.structures.sets.ParallelHashSet
@@ -266,7 +265,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(val irb
             val dstTransform = dst.globalTransform
             convertTransformMatrix(rigidbody, scale, dstTransform)
 
-            dst.setStateAfterUpdate(me.anno.ecs.Transform.State.VALID_GLOBAL)
+            dst.setStateAndUpdate(me.anno.ecs.Transform.State.VALID_GLOBAL)
 
             if (!allowedSpace.testPoint(dstTransform.m30(), dstTransform.m31(), dstTransform.m32())) {
                 // delete the entity

@@ -23,20 +23,20 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
     open fun getIndex(x: Int, y: Int, z: Int) = (x * sizeY + y) * sizeZ + z
 
     // if outside the model, must return 0
-    abstract fun getBlock(x: Int, y: Int, z: Int): Byte
+    abstract fun getBlock(x: Int, y: Int, z: Int): Int
 
     open fun fill(palette: IntArray, dst: IntArray) {
         var i = 0
         for (x in 0 until sizeX) {
             for (y in 0 until sizeY) {
                 for (z in 0 until sizeZ) {
-                    dst[i++] = palette[getBlock(x, y, z).toInt() and 255]
+                    dst[i++] = palette[getBlock(x, y, z)]
                 }
             }
         }
     }
 
-    open fun fill(dst: ByteArray) {
+    open fun fill(dst: IntArray) {
         var i = 0
         for (x in 0 until sizeX) {
             for (y in 0 until sizeY) {
@@ -49,11 +49,10 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
 
     open fun countBlocks(): Int {
         var i = 0
-        val zero = 0.toByte()
         for (x in 0 until sizeX) {
             for (y in 0 until sizeY) {
                 for (z in 0 until sizeZ) {
-                    if (getBlock(x, y, z) != zero) i++
+                    if (getBlock(x, y, z) != 0) i++
                 }
             }
         }
@@ -63,6 +62,20 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
     fun createMesh(
         palette: IntArray,
         outsideIsSolid: ((x: Int, y: Int, z: Int) -> Boolean)?,
+        mesh: Mesh = Mesh()
+    ) = createMesh(palette, outsideIsSolid, allSides, mesh)
+
+    fun createMesh(
+        palette: IntArray,
+        outsideIsSolid: ((x: Int, y: Int, z: Int) -> Boolean)?,
+        side: BlockSide,
+        mesh: Mesh = Mesh()
+    ) = createMesh(palette, outsideIsSolid, sideList[side.ordinal], mesh)
+
+    fun createMesh(
+        palette: IntArray,
+        outsideIsSolid: ((x: Int, y: Int, z: Int) -> Boolean)?,
+        sides: List<BlockSide>,
         mesh: Mesh = Mesh()
     ): Mesh {
 
@@ -86,15 +99,17 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
         // go over all six directions
         // just reuse our old code for minecraft like stuff
         var removed = 0f
-        for (side in BlockSide.values) {
+
+        for (side in sides) {
             info.setNormal(side)
             // an estimate
             removed += BakeMesh.bakeMesh(this, side, info, outsideIsSolid)
         }
-        removed = removed * 100f / 6f
-        val numberOfBlocks = countBlocks()
-        val triangleCount = vertices.size / 9
-        if (numberOfBlocks > 0) {
+
+        if (printReduction && removed > 0) {
+            val numberOfBlocks = countBlocks()
+            val triangleCount = vertices.size / 9
+            removed = removed * 100f / 6f
             LOGGER.info(
                 "" +
                         "Removed ${removed.roundToInt()}% of $numberOfBlocks blocks, " +
@@ -124,6 +139,9 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
     }
 
     companion object {
+        var printReduction = false
+        private val allSides = BlockSide.values.toList()
+        private val sideList = BlockSide.values.map { listOf(it) }
         private val LOGGER = LogManager.getLogger(VoxelModel::class)
     }
 

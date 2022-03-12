@@ -9,7 +9,7 @@ import me.anno.io.zip.InnerFolder
 import me.anno.maths.Maths.convertABGR2ARGB
 import me.anno.mesh.vox.format.VOXLayer
 import me.anno.mesh.vox.format.VOXNode
-import me.anno.mesh.vox.model.DenseVoxelModel
+import me.anno.mesh.vox.model.DenseI8VoxelModel
 import me.anno.mesh.vox.model.VoxelModel
 import me.anno.utils.OS
 import me.anno.utils.structures.tuples.Quad
@@ -167,7 +167,7 @@ class VOXReader {
                 // val useSparse = density < 0.1f && numVoxels < 32
                 // we could use an oct-tree
                 val full = ByteArray(fullVolume)
-                val model = DenseVoxelModel(size.x, size.y, size.z, full)
+                val model = DenseI8VoxelModel(size.x, size.y, size.z, full)
                 val dz = size.z - 1 // mirror z
                 for (i in 0 until numVoxels) {
                     val x = bytes.get().toInt() and 255

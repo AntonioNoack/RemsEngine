@@ -11,16 +11,19 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.EditorState
-import me.anno.engine.ui.play.PlayView
+import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
-import me.anno.ui.Window
+import me.anno.engine.ui.render.SceneView
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
+import me.anno.ui.Window
+import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
+import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.utils.hpc.SyncMaster
 import me.anno.utils.types.AABBs.avgX
 import me.anno.utils.types.AABBs.avgY
@@ -37,23 +40,22 @@ import org.joml.Vector3d
 class ECSSceneTab(
     val syncMaster: SyncMaster,
     val inspector: PrefabInspector,
-    val file: FileReference
+    val file: FileReference,
+    val playMode: PlayMode
 ) : TextPanel(inspector.reference.nameWithoutExtension, DefaultConfig.style) {
 
     constructor(
         syncMaster: SyncMaster,
         fileReference: FileReference,
-        classNameIfNull: String
-    ) : this(
-        syncMaster,
-        PrefabInspector(fileReference, classNameIfNull)
-    )
+        classNameIfNull: String,
+        playMode: PlayMode
+    ) : this(syncMaster, PrefabInspector(fileReference, classNameIfNull), playMode)
 
-    constructor(syncMaster: SyncMaster, prefab: Prefab) :
-            this(syncMaster, PrefabInspector(prefab))
+    constructor(syncMaster: SyncMaster, prefab: Prefab, playMode: PlayMode) :
+            this(syncMaster, PrefabInspector(prefab), playMode)
 
-    constructor(syncMaster: SyncMaster, inspector: PrefabInspector) :
-            this(syncMaster, inspector, inspector.reference)
+    constructor(syncMaster: SyncMaster, inspector: PrefabInspector, playMode: PlayMode) :
+            this(syncMaster, inspector, inspector.reference, playMode)
 
     init {
         LOGGER.info("Created tab with ${inspector.prefab.countTotalChanges(true)}+ changes")
@@ -156,16 +158,17 @@ class ECSSceneTab(
             button.isLeft -> ECSSceneTabs.open(this)
             button.isRight -> {
                 openMenu(windowStack, listOf(
-                    MenuOption(NameDesc("Play")) {
-                        // todo open scene in new tab in play-mode
-                        // todo play-mode-tabs probably shouldn't be saved
+                    MenuOption(NameDesc(if (playMode == PlayMode.EDITING) "Play" else "Edit")) {
+                        val tab = ECSSceneTabs.currentTab!!
+                        val playMode = if (playMode == PlayMode.EDITING) PlayMode.PLAY_TESTING else PlayMode.EDITING
+                        ECSSceneTabs.open(ECSSceneTab(tab.syncMaster, tab.inspector, tab.file, playMode))
                     },
                     MenuOption(NameDesc("Play Fullscreen")) {
                         // opens window with fullscreen attribute
-                        // todo define source file & such
-                        // todo create instance copy, so no state change is permanent
-                        // todo still show debug information
-                        val panel = PlayView(EditorState, true, style)
+                        val style = style
+                        val panel = PanelListY(style)
+                        panel.add(SceneView(EditorState, PlayMode.PLAY_TESTING, style).apply { weight = 1f })
+                        panel.add(ConsoleOutputPanel.createConsoleWithStats(true, style))
                         val window = object : Window(panel, false, windowStack) {
                             override fun destroy() {
                                 super.destroy()
@@ -179,7 +182,7 @@ class ECSSceneTab(
                         ECSSceneTabs.close(this)
                     }
                 ))
-            } // todo open menu instead
+            }
             else -> super.onMouseClicked(x, y, button, long)
         }
     }

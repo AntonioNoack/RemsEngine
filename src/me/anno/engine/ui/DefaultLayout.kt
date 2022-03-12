@@ -1,5 +1,6 @@
 package me.anno.engine.ui
 
+import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView
 import me.anno.io.files.FileReference
 import me.anno.ui.Panel
@@ -31,7 +32,7 @@ object DefaultLayout {
         val library = libraryBase.uiLibrary
 
         animationWindow.add(CustomContainer(ECSTreeView(libraryBase, isGaming, style), library, style), 1f)
-        animationWindow.add(CustomContainer(SceneView(libraryBase, style), library, style), 3f)
+        animationWindow.add(CustomContainer(SceneView(libraryBase, PlayMode.EDITING, style), library, style), 3f)
         animationWindow.add(CustomContainer(PropertyInspector({ libraryBase.selection }, style), library, style), 1f)
         animationWindow.setWeight(1f)
         customUI.add(animationWindow, 2f)

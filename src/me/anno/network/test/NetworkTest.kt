@@ -29,7 +29,7 @@ fun main() {
         val address = InetAddress.getByName("localhost")
         val tcpSocket = Socket(address, server.tcpPort)
         val client = TCPClient(tcpSocket, name)
-        client.startAsync(tcpProtocol)
+        client.startClientSideAsync(tcpProtocol)
         thread(name = "$name.udp") {
             Thread.sleep(100)
             // when the connection is established
