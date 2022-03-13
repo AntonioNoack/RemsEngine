@@ -10,6 +10,7 @@ import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
+import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.joml.Vector4f
 import kotlin.math.max
 
@@ -270,11 +271,11 @@ class DeferredSettingsV2(
     }
 
     fun findLayer(type: DeferredLayerType): Layer? {
-        return layers.firstOrNull { it.type == type }
+        return layers.firstOrNull2 { it.type == type }
     }
 
     fun findTexture(buffer: IFramebuffer, type: DeferredLayerType): ITexture2D? {
-        val layer = layers.firstOrNull { it.type == type } ?: return null
+        val layer = layers.firstOrNull2 { it.type == type } ?: return null
         return findTexture(buffer, layer)
     }
 

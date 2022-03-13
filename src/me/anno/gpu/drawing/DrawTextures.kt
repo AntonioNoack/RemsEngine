@@ -47,7 +47,7 @@ object DrawTextures {
         defineAdvancedGraphicalFeatures(shader)
         shader.v4f("color", -1)
         shader.v1i("alphaMode", ignoreAlpha.toInt())
-        shader.v4f("tiling", 1f, 1f, 0f, 0f)
+        GFXx2D.noTiling(shader)
         val tex = texture as? Texture2D
         texture.bind(
             0,
@@ -70,8 +70,7 @@ object DrawTextures {
         defineAdvancedGraphicalFeatures(shader)
         shader.v4f("color", color)
         shader.v1i("alphaMode", ignoreAlpha.toInt())
-        if (tiling != null) shader.v4f("tiling", tiling)
-        else shader.v4f("tiling", 1f, 1f, 0f, 0f)
+        GFXx2D.tiling(shader, tiling)
         val tex = texture as? Texture2D
         texture.bind(
             0,
@@ -94,9 +93,8 @@ object DrawTextures {
         GFXx2D.posSize(shader, x, y, w, h)
         defineAdvancedGraphicalFeatures(shader)
         shader.v4f("color", color)
-        shader.v1i("alphaMode",2)
-        if (tiling != null) shader.v4f("tiling", tiling)
-        else shader.v4f("tiling", 1f, 1f, 0f, 0f)
+        shader.v1i("alphaMode", 2)
+        GFXx2D.tiling(shader, tiling)
         val tex = texture as? Texture2D
         texture.bind(
             0,

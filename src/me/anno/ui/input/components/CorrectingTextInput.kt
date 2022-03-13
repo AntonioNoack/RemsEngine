@@ -3,11 +3,11 @@ package me.anno.ui.input.components
 import me.anno.config.DefaultStyle
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.loadTexturesSync
-import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.language.spellcheck.Spellchecking
 import me.anno.language.spellcheck.Suggestion
 import me.anno.ui.base.text.TextPanel
+import me.anno.ui.editor.code.CodeEditor.Companion.drawSquiggles
 import me.anno.ui.style.Style
 import kotlin.math.min
 
@@ -23,10 +23,11 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
     override fun getVisualState(): Any? = suggestions
 
     open val enableSpellcheck = true
-    private val suggestions get() =
-        if (enableSpellcheck && !isShowingPlaceholder){
-            Spellchecking.check(text, allowFirstLowercase)
-        } else null
+    private val suggestions
+        get() =
+            if (enableSpellcheck && !isShowingPlaceholder) {
+                Spellchecking.check(text, allowFirstLowercase)
+            } else null
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         loadTexturesSync.push(true)
@@ -35,18 +36,21 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
         loadTexturesSync.pop()
     }
 
-    fun drawSuggestionLines(){
+    fun drawSuggestionLines() {
         val suggestions = suggestions
         if (suggestions != null && suggestions.isNotEmpty()) {
             // display all suggestions
-            suggestions.forEach { s ->
-                // todo wavy line
+            for (si in suggestions.indices) {
+                val s = suggestions[si]
                 val startX = getX(s.start)
                 val endX = getX(s.end)
                 val theY = this.y + this.h - padding.bottom - 1
-                DrawRectangles.drawRect(startX, theY, endX - startX, 1, 0xffff00 or DefaultStyle.black)
+                // wavy line
+                val color = 0xffff00 or DefaultStyle.black
+                drawSquiggles(startX, endX, theY, 3, color)
+                // DrawRectangles.drawRect(startX, theY, endX - startX, 1, color)
             }
-            if(isHovered && !isInFocus){
+            if (isHovered && !isInFocus) {
                 requestFocus()
                 // setCursor(text.length)
             }
@@ -98,6 +102,9 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
     }
 
     private fun getX(charIndex: Int) = x + padding.left + drawingOffset + if (charIndex <= 0) -1 else
+        getTextSizeX(font, text.substring(0, min(charIndex, text.length)), -1, -1) - 1
+
+    private fun getXOffset(charIndex: Int) = if (charIndex <= 0) -1 else
         getTextSizeX(font, text.substring(0, min(charIndex, text.length)), -1, -1) - 1
 
     // todo find synonyms by clicking on stuff, I think this library can do that

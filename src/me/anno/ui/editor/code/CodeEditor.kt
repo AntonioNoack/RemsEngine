@@ -106,9 +106,7 @@ open class CodeEditor(style: Style) : Panel(style) {
     }
 
     open fun drawSquiggles(x0: Int, x1: Int, y: Int, h: Int, color: Int) {
-        for (x in x0 until x1) {
-            drawRect(x, y + wave(x, h), 1, 1, color)
-        }
+        Companion.drawSquiggles(x0, x1, y, h, color)
     }
 
     fun getText(): String {
@@ -684,6 +682,13 @@ open class CodeEditor(style: Style) : Panel(style) {
     override val className: String = "CodeEditor"
 
     companion object {
+
+        fun drawSquiggles(x0: Int, x1: Int, y: Int, h: Int, color: Int) {
+            // todo optimized shader for this instead of that many draw calls
+            for (x in x0 until x1) {
+                drawRect(x, y + wave(x, h), 1, 1, color)
+            }
+        }
 
         fun wave(x: Int, h: Int): Int {
             val period = 2 * h - 2

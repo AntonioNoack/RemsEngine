@@ -304,7 +304,9 @@ class NodePanel(
             val dx2 = gp.windowToCoordsX(wx) - node.position.x
             val dy2 = gp.windowToCoordsY(wy) - node.position.y
             if (isInFocus) {
-                for (it in windowStack.inFocus) {
+                val inFocus = windowStack.inFocus
+                for (index in inFocus.indices) {
+                    val it = inFocus[index]
                     if (it is NodePanel) {
                         it.node.position.add(dx2, dy2, 0.0)
                     }
@@ -367,7 +369,9 @@ class NodePanel(
     override fun onDeleteKey(x: Float, y: Float) {
         val graph = gp.graph
         if (isInFocus) {
-            for (panel in windowStack.inFocus) {
+            val inFocus = windowStack.inFocus
+            for (index in inFocus.indices) {
+                val panel = inFocus[index]
                 if (panel is NodePanel) panel.node.delete(graph)
             }
         } else node.delete(graph)

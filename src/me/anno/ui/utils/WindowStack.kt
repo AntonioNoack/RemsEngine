@@ -7,6 +7,7 @@ import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import java.util.*
@@ -15,8 +16,9 @@ import kotlin.math.max
 @Suppress("MemberVisibilityCanBePrivate")
 class WindowStack : Stack<Window>() {
 
-    val inFocus = HashSet<Panel>()
-    val inFocus0 get() = inFocus.firstOrNull()
+    // typically few elements, so a list
+    val inFocus = ArrayList<Panel>()
+    val inFocus0 get() = inFocus.firstOrNull2()
 
     /**
      * transforms the on-OS-window cursor position to local coordinates
@@ -44,8 +46,11 @@ class WindowStack : Stack<Window>() {
 
     fun requestFocus(panel: Panel?, exclusive: Boolean) {
         if (StudioBase.dragged != null) return
+        val inFocus = inFocus
         if (exclusive) {
-            for (p in inFocus) p.invalidateDrawing()
+            for (index in inFocus.indices) {
+                inFocus[index].invalidateDrawing()
+            }
             inFocus.clear()
         }
         if (panel != null) inFocus.add(panel)

@@ -940,8 +940,9 @@ class RenderView(
     private fun setClearDepth() {
         stage0.depthMode = depthMode
         pipeline.lightPseudoStage.depthMode = depthMode
-        for (it in pipeline.stages) {
-            it.depthMode = depthMode
+        val stages = pipeline.stages
+        for (index in stages.indices) {
+            stages[index].depthMode = depthMode
         }
     }
 

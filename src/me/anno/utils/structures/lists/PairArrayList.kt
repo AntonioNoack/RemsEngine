@@ -12,32 +12,45 @@ class PairArrayList<A, B>(capacity: Int = 16) : Iterable<MutablePair<A, B>> {
     val size get() = elementSize shr 1
 
     fun add(a: A, b: B) {
+        var elementSize = elementSize
+        var array = array
         if (elementSize + 2 >= array.size) {
             val newArray = arrayOfNulls<Any>(array.size * 2)
             System.arraycopy(array, 0, newArray, 0, elementSize)
+            this.array = newArray
             array = newArray
         }
         array[elementSize++] = a
         array[elementSize++] = b
+        this.elementSize = elementSize
     }
 
     fun byA(a: A): B? {
-        for (i in 0 until elementSize step 2) {
+        var i = 0
+        val array = array
+        val size = elementSize
+        while (i < size) {
             @Suppress("UNCHECKED_CAST")
             if (array[i] == a) return array[i + 1] as B
+            i += 2
         }
         return null
     }
 
     fun byB(b: B): A? {
-        for (i in 1 until elementSize step 2) {
+        var i = 1
+        val array = array
+        val size = elementSize
+        while (i < size) {
             @Suppress("UNCHECKED_CAST")
             if (array[i] == b) return array[i - 1] as A
+            i += 2
         }
         return null
     }
 
     fun removeAt(elementIndex: Int) {
+        val array = array
         val size = elementSize
         if (size > elementIndex + 1) {
             // we can use the last one
@@ -54,23 +67,43 @@ class PairArrayList<A, B>(capacity: Int = 16) : Iterable<MutablePair<A, B>> {
     }
 
     fun removeByA(a: A): Boolean {
+        var i = 0
+        val array = array
         val size = elementSize
-        for (i in 0 until size step 2) {
+        while (i < size) {
             if (array[i] == a) {
                 removeAt(i)
                 return true
             }
+            i += 2
+        }
+        return false
+    }
+
+    fun removeByB(b: B): Boolean {
+        var i = 1
+        val array = array
+        val size = elementSize
+        while (i < size) {
+            if (array[i] == b) {
+                removeAt(i)
+                return true
+            }
+            i += 2
         }
         return false
     }
 
     fun remove(a: A, b: B): Boolean {
-        val size = array.size
-        for (i in 0 until size step 2) {
+        var i = 0
+        val array = array
+        val size = elementSize
+        while (i < size) {
             if (array[i] == a && array[i + 1] == b) {
                 removeAt(i)
                 return true
             }
+            i += 2
         }
         return false
     }
@@ -79,11 +112,15 @@ class PairArrayList<A, B>(capacity: Int = 16) : Iterable<MutablePair<A, B>> {
      * @return whether an element was added
      * */
     fun replaceOrAddMap(a: A, b: B): Boolean {
-        for (i in 0 until elementSize step 2) {
+        var i = 0
+        val array = array
+        val size = elementSize
+        while (i < size) {
             if (array[i] == a) {
                 array[i + 1] = b
                 return false
             }
+            i += 2
         }
         add(a, b)
         return true
@@ -91,14 +128,18 @@ class PairArrayList<A, B>(capacity: Int = 16) : Iterable<MutablePair<A, B>> {
 
     fun replaceBs(run: (a: A, b: B) -> B): Int {
         var changed = 0
+        var i = 0
+        val array = array
+        val size = elementSize
         @Suppress("UNCHECKED_CAST")
-        for (i in 0 until elementSize step 2) {
+        while (i < size) {
             val oldValue = array[i + 1] as B
             val newValue = run(array[i] as A, oldValue)
             if (newValue !== oldValue) {
                 array[i + 1] = newValue
                 changed++
             }
+            i += 2
         }
         return changed
     }
@@ -130,7 +171,7 @@ class PairArrayList<A, B>(capacity: Int = 16) : Iterable<MutablePair<A, B>> {
             if (run(array[i] as A, array[i + 1] as B)) {
                 removeAt(i)
                 result++
-            } else i += 2
+            } else i += 2 // this else is correct!
         }
         return result
     }

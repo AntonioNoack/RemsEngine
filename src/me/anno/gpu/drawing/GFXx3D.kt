@@ -49,8 +49,7 @@ object GFXx3D {
 
         stack.popMatrix()
 
-        if (tiling != null) shader.v4f("tiling", tiling)
-        else shader.v4f("tiling", 1f, 1f, 0f, 0f)
+        GFXx2D.tiling(shader, tiling)
         shader.v1i("drawMode", GFX.drawMode.id)
         shader.v1i("uvProjection", uvProjection?.id ?: UVProjection.Planar.id)
 

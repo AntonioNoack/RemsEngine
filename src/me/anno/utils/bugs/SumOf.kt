@@ -3,10 +3,16 @@ package me.anno.utils.bugs
 object SumOf {
 
     // because currently Kotlin or Intellij Idea is too stupid to parse sumOf
-    fun <V> sumOf(list: Iterable<V>, mapping: (V) -> Float): Float {
+    fun <V> sumOf(iterable: Iterable<V>, mapping: (V) -> Float): Float {
         var sum = 0f
-        for(element in list){
-            sum += mapping(element)
+        if (iterable is List<V>) {
+            for (index in iterable.indices) {
+                sum += mapping(iterable[index])
+            }
+        } else {
+            for (element in iterable) {
+                sum += mapping(element)
+            }
         }
         return sum
     }

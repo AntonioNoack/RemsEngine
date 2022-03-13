@@ -2,7 +2,6 @@ package me.anno.ui.base.groups
 
 import me.anno.Engine
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.maths.Maths.clamp
@@ -16,7 +15,7 @@ import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.scrollSpeed
 import me.anno.ui.base.scrolling.ScrollableY
 import me.anno.ui.base.scrolling.ScrollbarY
 import me.anno.ui.style.Style
-import me.anno.utils.structures.tuples.Quad
+import me.anno.utils.structures.lists.Lists.count2
 import kotlin.math.max
 
 class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, style), ScrollableY {
@@ -34,30 +33,28 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
     // different modes for left/right alignment
     var childAlignmentX = AxisAlignment.CENTER
 
+    val defaultSize = 100
     var scaleChildren = false
-    var childWidth: Int
-    var childHeight: Int
 
-    init {
-        val defaultSize = 100
-        childWidth = style.getSize("childWidth", defaultSize)
-        childHeight = style.getSize("childHeight", defaultSize)
-    }
+    var childWidth: Int = style.getSize("childWidth", defaultSize)
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateLayout()
+            }
+        }
+
+    var childHeight: Int = style.getSize("childHeight", defaultSize)
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateLayout()
+            }
+        }
 
     override fun invalidateLayout() {
         window?.needsLayout?.add(this)
     }
-
-    override fun getLayoutState() =
-        Pair(
-            children.count { it.visibility == Visibility.VISIBLE },
-            Quad(
-                childWidth,
-                childHeight,
-                scrollPositionY,
-                maxScrollPositionY
-            )
-        )
 
     var rows = 1
     var columns = 1
@@ -73,6 +70,7 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
     override fun scrollY(delta: Double) {
         scrollPositionY += delta
         clampScrollPosition()
+        invalidateLayout()
     }
 
     val scrollbar = ScrollbarY(this, style)
@@ -166,7 +164,7 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
     }
 
     private fun updateCount() {
-        val childCount = children.count { it.visibility == Visibility.VISIBLE }
+        val childCount = children.count2 { it.visibility == Visibility.VISIBLE }
         columns = max(1, (w + spacing) / (childWidth + spacing))
         rows = max(1, (childCount + columns - 1) / columns)
     }

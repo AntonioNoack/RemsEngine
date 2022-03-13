@@ -1,17 +1,44 @@
 package me.anno.ui.debug
 
 import me.anno.config.DefaultConfig
+import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawRectangles.drawRect
+import me.anno.gpu.drawing.GFXx2D
+import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.ShaderLib.simpleVertexShader
+import me.anno.gpu.shader.ShaderLib.uvList
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Texture2D
 import me.anno.ui.Panel
 import me.anno.ui.base.text.TextPanel
-import me.anno.maths.Maths.mixARGB
 import me.anno.utils.OS
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import kotlin.math.max
 
 object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
 
     val width = 200 * max(DefaultConfig.style.getSize("fontSize", 12), 12) / 12
     val height = width / 4
+
+    private val texture = Texture2D("frameTimes", width, 1, 1)
+    private val floats = ByteBuffer
+        .allocateDirect(4 * width)
+        .order(ByteOrder.nativeOrder())
+        .asFloatBuffer()
+
+    private val shader = BaseShader(
+        "frameTimes", "" +
+                simpleVertexShader, uvList, "" +
+                "uniform vec4 color, background;\n" +
+                "uniform sampler2D tex;\n" +
+                "void main(){\n" +
+                "   float v = min((texture(tex, uv).x + uv.y - 1.0) * $height.0 + 0.5, 1.0);\n" +
+                "   if(v <= 0.0) discard;\n" +
+                "   gl_FragColor = mix(background, color, v);\n" +
+                "}"
+    )
 
     val colors = TextPanel("", style)
     val textColor = colors.textColor
@@ -49,6 +76,9 @@ object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
 
     val drawInts get() = OS.isAndroid
 
+    // todo use uniforms for less draw calls
+    // todo maybe draw 100 steps in one call
+
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         drawBackground(x0, y0, x1, y1)
 
@@ -63,17 +93,19 @@ object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
             val nextIndex = container.nextIndex
             val values = container.values
             val barColor = container.color
+            val width = width
             val indexOffset = nextIndex - 1 + width
 
             if (drawInts) {
 
                 var lastX = x0
                 var lastBarHeight = 0
+                val scale = height / maxValue
 
                 for (x in x0 until x1) {
                     val i = x - this.x
                     val v = values[(indexOffset + i) % width]
-                    val barHeight = (height * v / maxValue).toInt()
+                    val barHeight = (v * scale).toInt()
                     if (barHeight != lastBarHeight) {
                         drawLine(lastX, x, lastBarHeight, barColor)
                         lastX = x
@@ -85,24 +117,28 @@ object FrameTimes : Panel(DefaultConfig.style.getChild("fps")) {
 
             } else {
 
-                val yMax = y + height
-                val bgc = backgroundColor
+                val scale = 1f / maxValue
                 for (x in x0 until x1) {
                     val i = x - this.x
                     val v = values[(indexOffset + i) % width]
-                    val hf = height * v / maxValue
-                    if (hf > 0f) {
-                        val hi = hf.toInt()
-                        drawLine(x, x + 1, hi, barColor)
-                        drawRect(x, yMax - hi, 1, hi, barColor)
-                        drawRect(x, yMax - hi - 1, 1, 1, mixARGB(bgc, barColor, hf - hi))
-                    }
+                    floats.put(x - x0, max(v * scale, 0f))
                 }
 
+                texture.createMonochrome(floats, false)
+
+                GFX.check()
+                val shader = shader.value
+                shader.use()
+                GFXx2D.posSize(shader, x, y, w, h)
+                shader.v4f("color", barColor)
+                shader.v4f("background", backgroundColor)
+                GFXx2D.noTiling(shader)
+                texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+                GFX.flat01.draw(shader)
+                GFX.check()
+
             }
-
         }
-
     }
 
     // to reduce draw calls by bundling stacks of the same height

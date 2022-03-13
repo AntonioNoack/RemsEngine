@@ -176,7 +176,7 @@ object DrawTexts {
             h = sizeSecond
             val w = if (equalSpaced) charWidth else sizeFirst
             if (!txt.isBlank2()) {
-                val texture = FontManager.getString(font, txt, -1, -1)
+                val texture = FontManager.getTexture(font, txt, -1, -1)
                 if (texture != null && (texture !is Texture2D || texture.isCreated)) {
                     texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                     val x2 = fx + (w - sizeFirst) / 2
@@ -216,7 +216,7 @@ object DrawTexts {
         if (text.isEmpty()) return GFXx2D.getSize(0, font.sizeInt)
 
         GFX.check()
-        val tex0 = FontManager.getString(font, text, widthLimit, heightLimit)
+        val tex0 = FontManager.getTexture(font, text, widthLimit, heightLimit)
 
         val charByChar = (tex0 == null || tex0 !is Texture2D || !tex0.isCreated || tex0.isDestroyed) && text.length > 1
         return if (charByChar) {
@@ -278,7 +278,7 @@ object DrawTexts {
 
         GFX.check()
 
-        val tex0 = FontManager.getString(key)
+        val tex0 = FontManager.getTexture(key)
         val charByChar = tex0 == null || tex0 !is Texture2D || !tex0.isCreated
         if (charByChar) {
             return drawTextCharByChar(
@@ -307,7 +307,7 @@ object DrawTexts {
 
         GFX.check()
 
-        val tex0 = FontManager.getString(key)
+        val tex0 = FontManager.getTexture(key)
         val charByChar = tex0 == null || tex0 !is Texture2D || !tex0.isCreated
         if (charByChar) {
             return drawTextCharByChar(

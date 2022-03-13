@@ -5,6 +5,53 @@ import kotlin.math.max
 
 object Lists {
 
+    /**
+     * allocation-free any()
+     * */
+    inline fun <V> List<V>.any2(test: (V) -> Boolean): Boolean {
+        for (index in indices) {
+            if (test(this[index])) return true
+        }
+        return false
+    }
+
+    /**
+     * allocation-free count()
+     * */
+    inline fun <V> List<V>.count2(test: (V) -> Boolean): Int {
+        var sum = 0
+        for (index in indices) {
+            if (test(this[index])) sum++
+        }
+        return sum
+    }
+
+    /**
+     * allocation-free firstOrNull()
+     * */
+    inline fun <V> List<V>.firstOrNull2(test: (V) -> Boolean): V? {
+        for (index in indices) {
+            val element = this[index]
+            if (test(element)) return element
+        }
+        return null
+    }
+
+    /**
+     * allocation-free firstOrNull()
+     * */
+    fun <V> List<V>.firstOrNull2(): V? {
+        return if (isEmpty()) null else this[0]
+    }
+
+    inline fun <A, B> List<A>.mapFirstNotNull(run: (A) -> B): B? {
+        for (index in indices) {
+            val mapped = run(this[index])
+            if (mapped != null) return mapped
+        }
+        return null
+    }
+
     fun <V> List<V>.asMutableList(): MutableList<V> {
         return if (this is MutableList<V> && javaClass.name != "java.util.Collections\$SingletonList") this
         else ArrayList(this)

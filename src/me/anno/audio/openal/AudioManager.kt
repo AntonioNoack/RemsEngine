@@ -34,7 +34,7 @@ object AudioManager {
     var ctr = 0
     var runningThread: Thread? = null
 
-    var onUpdate: (time: Long) -> Unit = {}
+    var onUpdate: ((time: Long) -> Unit)? = null
 
     fun startRunning() {
         runningThread = thread(name = "AudioManager") {
@@ -49,7 +49,7 @@ object AudioManager {
                     e.printStackTrace()
                 }
                 ALBase.check()
-                onUpdate(time)
+                onUpdate?.invoke(time)
                 ALBase.check()
                 if (!shallStop) {
                     // shall be destroyed by OpenAL itself -> false

@@ -136,6 +136,10 @@ open class Server : Closeable {
         synchronized(usedIds) { usedIds.remove(id) }
     }
 
+    open fun onClientConnected(client: TCPClient) {}
+
+    open fun onClientDisconnected(client: TCPClient) {}
+
     private fun runTCP(socket: ServerSocket) {
         try {
             while (run) {
@@ -155,7 +159,12 @@ open class Server : Closeable {
                                         addClient(tcpClient)
                                         tcpClient2 = tcpClient
                                         tcpClient.isRunning = true
-                                        protocol.serverRun(this, tcpClient, magic)
+                                        onClientConnected(tcpClient)
+                                        try {
+                                            protocol.serverRun(this, tcpClient, magic)
+                                        } finally {
+                                            onClientDisconnected(tcpClient)
+                                        }
                                     } else {
                                         LOGGER.info("Handshake rejected")
                                         clientSocket.close()
@@ -195,22 +204,23 @@ open class Server : Closeable {
             while (run) {
                 // all malformed packets just are ignored
                 socket.receive(udpPacket)
-                LOGGER.debug("got udp packet of size ${udpPacket.length}, offset: ${udpPacket.offset}")
+                if (Packet.debugPackets) LOGGER.debug("Got udp packet of size ${udpPacket.length}, offset: ${udpPacket.offset}")
                 if (udpPacket.length < 12) continue // protocol + packet + random id
                 if (acceptsIP(udpPacket.address, udpPacket.port)) {
                     input.reset()
                     val protocolMagic = dis.readInt()
                     val packetMagic = dis.readInt()
                     val randomId = dis.readInt() // must match an existing TCP connection
-                    LOGGER.debug(
-                        "protocol: ${str32(protocolMagic)}, " +
+                    if (Packet.debugPackets) LOGGER.debug(
+                        "" +
+                                "protocol: ${str32(protocolMagic)}, " +
                                 "packet: ${str32(packetMagic)}, " +
                                 "randomId: ${hex32(randomId)}"
                     )
                     val protocol = protocols[protocolMagic] ?: continue
                     val client = findTcpClient(udpPacket.address, randomId) ?: continue
                     val request = protocol.find(packetMagic) ?: continue
-                    LOGGER.debug("got udp packet from ${client.name}")
+                    if (Packet.debugPackets) LOGGER.debug("Got udp packet from ${client.name}, ${client.randomIdString}")
                     when (request) {
                         is Packet -> synchronized(request) {
                             request.receiveUdp(this, client, dis) { response ->
@@ -278,29 +288,33 @@ open class Server : Closeable {
         private val allowedChars = BooleanArray(256)
 
         init {
-            for (c in 'A'.code..'Z'.code) allowedChars[c] = true
-            for (c in 'a'.code..'z'.code) allowedChars[c] = true
-            for (c in '0'.code..'9'.code) allowedChars[c] = true
-            for (c in ",.-+*/%&/()[]{}") allowedChars[c.code] = true
+            val ac = allowedChars
+            for (c in 'A'.code..'Z'.code) ac[c] = true
+            for (c in 'a'.code..'z'.code) ac[c] = true
+            for (c in '0'.code..'9'.code) ac[c] = true
+            for (c in ",.-+*/%&/()[]{}") ac[c.code] = true
         }
 
+        private fun isAllowed(i: Int, c: Int): Boolean = allowedChars[i.shr(c).and(255)]
+
         fun str32(i: Int): String {
-            return if (allowedChars[i.shr(24).and(255)] &&
-                allowedChars[i.shr(16).and(255)] &&
-                allowedChars[i.shr(8).and(255)] &&
-                allowedChars[i.and(255)]
+            return if (
+                isAllowed(i, 24) &&
+                isAllowed(i, 16) &&
+                isAllowed(i, 8) &&
+                isAllowed(i, 0)
             ) {
                 String(
                     charArrayOf(
-                        i.shr(24).and(255).toChar(),
-                        i.shr(16).and(255).toChar(),
-                        i.shr(8).and(255).toChar(),
-                        i.and(255).toChar(),
+                        ((i shr 24) and 255).toChar(),
+                        ((i shr 16) and 255).toChar(),
+                        ((i shr 8) and 255).toChar(),
+                        (i and 255).toChar(),
                     )
                 )
             } else hex32(i)
-
         }
+
     }
 
 }

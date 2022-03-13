@@ -11,6 +11,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
 import me.anno.ui.base.text.TextPanel
 import org.lwjgl.glfw.GLFW
+import java.util.function.BiConsumer
 
 object ShowKeys {
 
@@ -37,7 +38,7 @@ object ShowKeys {
         }
     }
 
-    fun drawKey(text: String, alpha: Float, x0: Int, hmy: Int): Int {
+    private fun drawKey(text: String, alpha: Float, x0: Int, hmy: Int): Int {
 
         val bgColor = colors.backgroundColor
         val textColor = colors.textColor
@@ -61,6 +62,20 @@ object ShowKeys {
 
     }
 
+    private val addKeyConsumer = BiConsumer<Int, Long> { keyCode, _ ->
+        when (keyCode) {
+            GLFW.GLFW_KEY_LEFT_CONTROL,
+            GLFW.GLFW_KEY_RIGHT_CONTROL -> addKey(GLFW.GLFW_KEY_LEFT_CONTROL, true)
+            GLFW.GLFW_KEY_LEFT_SHIFT,
+            GLFW.GLFW_KEY_RIGHT_SHIFT -> addKey(GLFW.GLFW_KEY_LEFT_SHIFT, true)
+            GLFW.GLFW_KEY_LEFT_ALT,
+            GLFW.GLFW_KEY_RIGHT_ALT -> addKey(GLFW.GLFW_KEY_LEFT_ALT, true)
+            GLFW.GLFW_KEY_LEFT_SUPER,
+            GLFW.GLFW_KEY_RIGHT_SUPER -> addKey(GLFW.GLFW_KEY_LEFT_SUPER, true)
+            else -> addKey(keyCode, false)
+        }
+    }
+
     fun draw(x: Int, y: Int, h: Int): Boolean {
 
         // draw the current keys for a tutorial...
@@ -69,43 +84,30 @@ object ShowKeys {
 
         // full strength at start is 1
 
-        for (keyCode in Input.keysDown.keys) {
-            when (keyCode) {
-                GLFW.GLFW_KEY_LEFT_CONTROL,
-                GLFW.GLFW_KEY_RIGHT_CONTROL -> addKey(GLFW.GLFW_KEY_LEFT_CONTROL, true)
-                GLFW.GLFW_KEY_LEFT_SHIFT,
-                GLFW.GLFW_KEY_RIGHT_SHIFT -> addKey(GLFW.GLFW_KEY_LEFT_SHIFT, true)
-                GLFW.GLFW_KEY_LEFT_ALT,
-                GLFW.GLFW_KEY_RIGHT_ALT -> addKey(GLFW.GLFW_KEY_LEFT_ALT, true)
-                GLFW.GLFW_KEY_LEFT_SUPER,
-                GLFW.GLFW_KEY_RIGHT_SUPER -> addKey(GLFW.GLFW_KEY_LEFT_SUPER, true)
-                else -> addKey(keyCode, false)
+        Input.keysDown.forEach(addKeyConsumer)
+
+        return if (activeKeys.isNotEmpty()) {
+            activeKeys.removeIf { key ->
+                key.time = if (key.time > 1f) 1f else key.time - deltaTime * decaySpeed
+                val becameOutdated = key.time < 0f
+                if (becameOutdated) activeKeysMap.remove(key.keyCode)
+                becameOutdated
             }
-        }
-
-        activeKeys.removeIf { key ->
-            key.time = if (key.time > 1f) 1f else key.time - deltaTime * decaySpeed
-            val becameOutdated = key.time < 0f
-            if (becameOutdated) activeKeysMap.remove(key.keyCode)
-            becameOutdated
-        }
-
-        activeKeys.sortBy { !it.isSuperKey }
-
-        if (activeKeys.isNotEmpty()) {
-            renderDefault {
-                var x0 = x
-                for (index in activeKeys.indices) {
-                    val key = activeKeys[index]
-                    val alpha = key.time
-                    val text0 = KeyCombination.keyMapping.reverse[key.keyCode]
-                    val text = text0 ?: key.keyCode.toString()
-                    x0 = drawKey(text, alpha, x0, h - y)
+            if (activeKeys.isNotEmpty()) {
+                activeKeys.sortBy { !it.isSuperKey }
+                renderDefault {
+                    var x0 = x
+                    for (index in activeKeys.indices) {
+                        val key = activeKeys[index]
+                        val alpha = key.time
+                        val text0 = KeyCombination.keyMapping.reverse[key.keyCode]
+                        val text = text0 ?: key.keyCode.toString()
+                        x0 = drawKey(text, alpha, x0, h - y)
+                    }
                 }
-            }
-        }
-
-        return activeKeys.isNotEmpty()
+                true
+            } else false
+        } else false
 
     }
 

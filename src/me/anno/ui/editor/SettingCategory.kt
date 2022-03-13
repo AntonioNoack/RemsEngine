@@ -1,6 +1,7 @@
 package me.anno.ui.editor
 
 import me.anno.Engine.gameTime
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.input.MouseButton
 import me.anno.language.translation.Dict
@@ -138,7 +139,11 @@ open class SettingCategory(
     }
 
     operator fun plusAssign(child: Panel) {
-        content += child
+        content.add(child)
+    }
+
+    override fun add(child: PrefabSaveable) {
+        content.add(child)
     }
 
 }

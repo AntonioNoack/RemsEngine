@@ -305,6 +305,11 @@ class PipelineStage(
         shader.v1b("applyToneMapping", pipeline.applyToneMapping)
     }
 
+    fun DrawRequest.distanceTo(cameraPosition: Vector3d): Double {
+        // - it.entity.transform.dotViewDir(cameraPosition, viewDir)
+        return entity.transform.distanceSquaredGlobally(cameraPosition)
+    }
+
     fun draw(pipeline: Pipeline, cameraMatrix: Matrix4fc, cameraPosition: Vector3d, worldScale: Double) {
 
         // the dotViewDir may be easier to calculate, and technically more correct, but it has one major flaw:
@@ -319,15 +324,17 @@ class PipelineStage(
             Sorting.NO_SORTING -> {
             }
             Sorting.FRONT_TO_BACK -> {
-                drawRequests.sortBy {
-                    // - it.entity.transform.dotViewDir(cameraPosition, viewDir)
-                    it.entity.transform.distanceSquaredGlobally(cameraPosition)
+                drawRequests.sortWith { a, b ->
+                    val ma = a.distanceTo(cameraPosition)
+                    val mb = b.distanceTo(cameraPosition)
+                    ma.compareTo(mb)
                 }
             }
             Sorting.BACK_TO_FRONT -> {
-                drawRequests.sortByDescending {
-                    // - it.entity.transform.dotViewDir(cameraPosition, viewDir)
-                    it.entity.transform.distanceSquaredGlobally(cameraPosition)
+                drawRequests.sortWith { a, b ->
+                    val ma = a.distanceTo(cameraPosition)
+                    val mb = b.distanceTo(cameraPosition)
+                    mb.compareTo(ma)
                 }
             }
         }

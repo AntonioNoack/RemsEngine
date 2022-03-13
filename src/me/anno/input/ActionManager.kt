@@ -4,11 +4,11 @@ import me.anno.Engine.gameTime
 import me.anno.config.DefaultConfig
 import me.anno.io.ISaveable
 import me.anno.io.utils.StringMap
-import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.defaultWindowStack
 import me.anno.ui.Panel
 import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
+import java.util.function.BiConsumer
 import kotlin.reflect.KClass
 import kotlin.reflect.full.superclasses
 
@@ -93,14 +93,10 @@ object ActionManager : StringMap() {
     }
 
     fun combine(oldValues: List<String>?, actions: List<String>, direction: Int): List<String> {
-        return if (direction == 0) {
-            actions
-        } else {
-            when {
-                oldValues == null -> actions
-                direction < 0 -> actions + oldValues
-                else -> oldValues + actions
-            }
+        return when {
+            direction == 0 || oldValues == null -> actions
+            direction < 0 -> actions + oldValues
+            else -> oldValues + actions
         }
     }
 
@@ -128,19 +124,21 @@ object ActionManager : StringMap() {
     fun onMouseIdle() = onMouseMoved(0f, 0f)
 
     fun onMouseMoved(dx: Float, dy: Float) {
-        Input.keysDown.forEach { (key, downTime) ->
+        if (Input.keysDown.isEmpty()) return
+        val mouseMoveConsumer = BiConsumer<Int, Long> { key, downTime ->
             onKeyHoldDown(dx, dy, key, false)
             val deltaTime = (gameTime - downTime) * 1e-9f
             if (deltaTime >= keyDragDelay) {
                 onKeyHoldDown(dx, dy, key, true)
             }
         }
+        Input.keysDown.forEach(mouseMoveConsumer)
     }
 
     // todo this maybe should exist on a per-windowStack basis,
     // todo so all actions are redirected through a game-window
     fun onEvent(dx: Float, dy: Float, combination: KeyCombination, isContinuous: Boolean) {
-        var panel = defaultWindowStack?.inFocus?.firstOrNull()
+        var panel = defaultWindowStack?.inFocus0
         // filter action keys, if they are typing keys and a typing field is in focus
         val isWriting = combination.isWritingKey && (panel?.isKeyInput() == true)
         // LOGGER.debug("is writing: $isWriting, combination: $combination, has value? ${combination in globalKeyCombinations}")
@@ -175,9 +173,12 @@ object ActionManager : StringMap() {
         isContinuous: Boolean,
         actions: List<String>?
     ): Boolean {
+        // println("pa ${panel::class.simpleName}/${panel.className}, ${actions?.size}")
         if (actions == null) return false
-        for (action in actions) {
+        for (actionIndex in actions.indices) {
+            val action = actions[actionIndex]
             if (panel.onGotAction(x, y, dx, dy, action, isContinuous)) {
+                // println("pa consumed action $action by ${panel::class}")
                 return true
             }
         }
@@ -187,24 +188,36 @@ object ActionManager : StringMap() {
     fun executeLocally(
         dx: Float, dy: Float, isContinuous: Boolean,
         panel: Panel, actions: List<String>?
-    ) {
-        if (actions == null) return
-        for (action in actions) {
+    ): Boolean {
+        // println("el ${panel::class.simpleName}/${panel.className}, ${actions?.size}")
+        if (actions == null) return false
+        for (actionIndex in actions.indices) {
+            val action = actions[actionIndex]
             if (panel.onGotAction(Input.mouseX, Input.mouseY, dx, dy, action, isContinuous)) {
-                break
+                // println("el consumed action $action by ${panel::class}")
+                return true
             }
         }
+        return false
     }
 
     fun executeGlobally(dx: Float, dy: Float, isContinuous: Boolean, actions: List<String>?) {
         if (actions == null) return
-        for (action in actions) {
+        for (actionIndex in actions.indices) {
+            val action = actions[actionIndex]
             if (globalActions[action]?.invoke() == true) {
+                // println("eg, consumed $action")
                 return
             }
         }
-        for (window in StudioBase.defaultWindowStack!!) {
-            window.panel.forAllPanels { panel ->
+        val ws = defaultWindowStack
+        if (ws == null) {
+            LOGGER.warn("WindowStack is null")
+            return
+        }
+        LOGGER.info("Executing $actions on all panels")
+        for (index in ws.indices) {
+            ws[index].panel.forAllPanels { panel ->
                 executeLocally(dx, dy, isContinuous, panel, actions)
             }
         }

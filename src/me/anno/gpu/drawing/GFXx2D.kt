@@ -6,11 +6,11 @@ import me.anno.gpu.shader.FlatShaders.flatShader
 import me.anno.gpu.shader.FlatSymbols.flatShaderCircle
 import me.anno.gpu.shader.FlatSymbols.flatShaderHalfArrow
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib
 import me.anno.maths.Maths.clamp
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
+import org.joml.Vector4fc
 
 object GFXx2D {
 
@@ -21,6 +21,15 @@ object GFXx2D {
     // todo if we use this, we get subpixel errors, and need to switch to other rendering techniques
 
     // val uiTransform = Matrix4f()
+
+    fun tiling(shader: Shader, tiling: Vector4fc?) {
+        if (tiling != null) shader.v4f("tiling", tiling)
+        else noTiling(shader)
+    }
+
+    fun noTiling(shader: Shader) {
+        shader.v4f("tiling", 1f, 1f, 0f, 0f)
+    }
 
     fun drawBorder(x: Int, y: Int, w: Int, h: Int, color: Int, size: Int) {
         flatColor(color)
@@ -98,7 +107,7 @@ object GFXx2D {
         } else {
             shader.v4f("innerColor", color)
         }
-        shader.v4f("tiling", 1f, 1f, 0f, 0f)
+        noTiling(shader)
         shader.v4f("circleColor", color)
         shader.v4f("backgroundColor", 0f, 0f, 0f, 0f)
         shader.v2f("degrees", startDegrees.toRadians(), endDegrees.toRadians())
@@ -107,7 +116,6 @@ object GFXx2D {
         GFX.flat01.draw(shader)
 
     }
-
 
     fun drawCircle(
         x: Int, y: Int,
@@ -129,7 +137,7 @@ object GFXx2D {
         shader.v1f("innerRadius", innerRadius * factor)
         shader.v4f("innerColor", if (innerRadius > 0f) innerColor else circleColor)
 
-        shader.v4f("tiling", 1f, 1f, 0f, 0f)
+        noTiling(shader)
         shader.v4f("circleColor", circleColor)
         shader.v4f("backgroundColor", backgroundColor)
         shader.v2f("degrees", 0f, 0f)
@@ -153,7 +161,7 @@ object GFXx2D {
         // plus padding of 1 for better border smoothness
         posSize(shader, x, y, w, h)
 
-        shader.v4f("tiling", 1f, 1f, 0f, 0f)
+        noTiling(shader)
         shader.v4f("color", color)
         shader.v4f("backgroundColor", backgroundColor)
         shader.v1f("smoothness", smoothness)

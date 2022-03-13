@@ -14,6 +14,8 @@ import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.input.Input
+import me.anno.utils.structures.lists.Lists.firstOrNull2
+import me.anno.utils.structures.lists.Lists.mapFirstNotNull
 import org.joml.Vector3d
 
 object DebugRendering {
@@ -21,13 +23,12 @@ object DebugRendering {
     fun showShadowMapDebug(view: RenderView) {
         // show the shadow map for debugging purposes
         val light = EditorState.selection
-            .filterIsInstance<Entity>()
-            .mapNotNull { e ->
-                e.getComponentsInChildren(LightComponentBase::class).firstOrNull {
-                    if (it is LightComponent) it.hasShadow else true
-                }
+            .mapFirstNotNull { e ->
+                if (e is Entity) {
+                    e.getComponentsInChildren(LightComponentBase::class)
+                        .firstOrNull2 { if (it is LightComponent) it.hasShadow else true }
+                } else null
             }
-            .firstOrNull()
         if (light != null) {
             val texture: ITexture2D? = when (light) {
                 is LightComponent -> light.shadowTextures?.firstOrNull()?.depthTexture
@@ -60,8 +61,7 @@ object DebugRendering {
     fun showCameraRendering(view: RenderView, x0: Int, y0: Int, x1: Int, y1: Int) {
         val camera = EditorState.selection
             .filterIsInstance<Entity>()
-            .mapNotNull { e -> e.getComponentsInChildren(CameraComponent::class).firstOrNull() }
-            .firstOrNull()
+            .mapFirstNotNull { e -> e.getComponentInChildren(CameraComponent::class) }
         if (camera != null && !Input.isShiftDown) {
             // calculate size of sub camera
             val w = (x1 - x0 + 1) / 3

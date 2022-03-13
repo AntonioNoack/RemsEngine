@@ -163,17 +163,17 @@ object FontManager {
 
     }
 
-    fun getString(
+    fun getTexture(
         font: me.anno.ui.base.Font,
         text: String,
         widthLimit: Int,
         heightLimit: Int
     ): ITexture2D? {
         val key = getTextCacheKey(font, text, widthLimit, heightLimit) ?: return null
-        return getString(key)
+        return getTexture(key)
     }
 
-    fun getString(
+    fun getTexture(
         cacheKey: TextCacheKey
     ): ITexture2D? {
         // must be sync:

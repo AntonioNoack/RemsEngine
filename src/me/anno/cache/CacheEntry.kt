@@ -11,7 +11,7 @@ class CacheEntry private constructor(
     var generatorThread: Thread
 ) {
 
-    constructor(timeout: Long) : this(gameTime + timeout, Thread.currentThread())
+    constructor(timeoutMillis: Long) : this(gameTime + timeoutMillis * MILLIS_TO_NANOS, Thread.currentThread())
 
     val needsGenerator get() = generatorThread == Thread.currentThread() && (!hasGenerator || hasBeenDestroyed)
 

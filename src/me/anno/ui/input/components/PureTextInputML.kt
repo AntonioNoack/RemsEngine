@@ -22,6 +22,8 @@ import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.style.Style
+import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.types.Strings.getIndexFromText
 import me.anno.utils.types.Strings.getLineWidth
 import me.anno.utils.types.Strings.joinChars
@@ -169,7 +171,7 @@ open class PureTextInputML(style: Style) :
     override fun tickUpdate() {
         super.tickUpdate()
         val blinkVisible = ((Engine.gameTime / 500_000_000L) % 2L == 0L)
-        val isInFocus = isInFocus || content.isInFocus || (content as PanelList).children.any { it.isInFocus }
+        val isInFocus = isInFocus || content.isInFocus || (content as PanelList).children.any2 { it.isInFocus }
         val oldShowBars = showBars
         showBars = isInFocus && (blinkVisible || wasJustChanged)
         if (isInFocus || showBars != oldShowBars) invalidateDrawing()
@@ -186,7 +188,7 @@ open class PureTextInputML(style: Style) :
         loadTexturesSync.push(true)
         super.onDraw(x0, y0, x1, y1)
         val children = actualChildren
-        val examplePanel = children.firstOrNull() as? TextPanel ?: return
+        val examplePanel = children.firstOrNull2() as? TextPanel ?: return
         val font = examplePanel.font
         val textSize = font.sizeInt
         val textColor = examplePanel.textColor or black

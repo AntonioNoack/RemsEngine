@@ -32,6 +32,7 @@ open class TCPClient(val socket: Socket, var randomId: Int) : Closeable {
     var maxPacketSize = 1 shl 20
 
     var udpPort = -1
+    var isClosed2 = false
 
     /**
      * client time minus own system time,
@@ -39,7 +40,8 @@ open class TCPClient(val socket: Socket, var randomId: Int) : Closeable {
      * */
     var localTimeOffset = 0L
 
-    val isClosed get() = socket.isClosed || !socket.isConnected || !socket.isBound
+    val isClosed get() = socket.isClosed || !socket.isConnected || !socket.isBound || isClosed2
+    val randomIdString get() = randomId.toUInt().toString(16)
     var isRunning = false
 
     fun sendTCP(packet: Packet) {
@@ -98,14 +100,18 @@ open class TCPClient(val socket: Socket, var randomId: Int) : Closeable {
             } catch (e: SocketException) {
                 // connection closed
                 e.printStackTrace()
+            } finally {
+                close()
             }
         }
     }
 
     override fun close() {
+        isClosed2 = true
+        isRunning = false
+        socket.close()
         dis.close()
         dos.close()
-        socket.close()
     }
 
 }

@@ -152,8 +152,8 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         defaultStage.reset()
         planarReflections.clear()
         lights.fill(null)
-        for (stage in stages) {
-            stage.reset()
+        for (stageIndex in stages.indices) {
+            stages[stageIndex].reset()
         }
     }
 

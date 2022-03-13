@@ -21,7 +21,7 @@ open class Packet(var bigEndianMagic: Int) : Saveable() {
     open val constantSize = false
 
     open fun send(server: Server?, client: TCPClient, dos: DataOutputStream) {
-        if (debugPackets) LOGGER.info("Sending $this ${if (server == null) "s->" else "s<-"} ${client.randomId}")
+        if (debugPackets) LOGGER.info("Sending(TCP) $this ${if (server == null) "${client.randomIdString} -> s" else "s -> ${client.randomIdString}"}")
         // standard serialization
         val size = size
         if (size < 0) {
@@ -60,7 +60,7 @@ open class Packet(var bigEndianMagic: Int) : Saveable() {
             dis.readNBytes2(size, buffer.buffer, true)
             readData(server, client, client.bufferDis, size)
         }
-        if (debugPackets) LOGGER.info("Received(TCP) $this ${if (server == null) "s->" else "s<-"} ${client.randomId}")
+        if (debugPackets) LOGGER.info("Received(TCP) $this ${if (server == null) "s -> ${client.randomIdString}" else "${client.randomIdString} -> s"}")
     }
 
     open fun onReceive(server: Server?, client: TCPClient) {
@@ -87,7 +87,7 @@ open class Packet(var bigEndianMagic: Int) : Saveable() {
         onReceiveUDP(server, client, sendResponse)
         dis.reset()
         dis.skipBytes(size)
-        if (debugPackets) LOGGER.info("Received(UDP) $this ${if (server == null) "s->" else "s<-"} ${client.randomId}")
+        if (debugPackets) LOGGER.info("Received(UDP) $this ${if (server == null) "s -> ${client.randomIdString}" else "${client.randomIdString} -> s"}")
     }
 
     open fun readData(server: Server?, client: TCPClient, dis: DataInputStream, size: Int) {

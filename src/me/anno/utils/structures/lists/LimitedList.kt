@@ -32,7 +32,7 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
 
     // implemented to reduce allocations
     @Suppress("unchecked_cast")
-    inline fun sumOf(run: (V) -> Int): Int {
+    inline fun sumOf(run: (V?) -> Int): Int {
         var accumulator = 0
         val data = data
         for (i in 0 until size) {

@@ -157,10 +157,10 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         return hasDualEntry(key, key.lastModified, delta)
     }
 
-    fun override(key: Any, data: ICacheData?, timeout: Long) {
+    fun override(key: Any, data: ICacheData?, timeoutMillis: Long) {
         checkKey(key)
         val oldValue = synchronized(cache) {
-            val entry = CacheEntry(timeout)
+            val entry = CacheEntry(timeoutMillis)
             entry.data = data
             cache.put(key, entry)
         }
@@ -250,7 +250,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     fun <V, W> getEntryWithCallback(
         key0: V,
         key1: W,
-        timeout: Long,
+        timeoutMillis: Long,
         asyncGenerator: Boolean,
         generator: (key0: V, key1: W) -> ICacheData?,
         ifNotGenerating: (() -> Unit)?
@@ -265,13 +265,13 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         // only the key needs to be locked, not the whole cache
 
         val entry = synchronized(dualCache) {
-            val entry = dualCache.getOrPut(key0, key1) { _, _ -> CacheEntry(timeout) }
-            if (entry.hasBeenDestroyed) entry.reset(timeout)
+            val entry = dualCache.getOrPut(key0, key1) { _, _ -> CacheEntry(timeoutMillis) }
+            if (entry.hasBeenDestroyed) entry.reset(timeoutMillis)
             entry
         }
 
         val needsGenerator = entry.needsGenerator
-        entry.update(timeout)
+        entry.update(timeoutMillis)
 
         if (needsGenerator) {
             entry.hasGenerator = true
@@ -298,7 +298,8 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     fun <V> getEntryWithCallback(
-        key: V, timeout: Long, asyncGenerator: Boolean,
+        key: V, timeoutMillis: Long,
+        asyncGenerator: Boolean,
         generator: (V) -> ICacheData?,
         ifNotGenerating: (() -> Unit)?
     ): ICacheData? {
@@ -311,13 +312,13 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         // only the key needs to be locked, not the whole cache
 
         val entry = synchronized(cache) {
-            val entry = cache.getOrPut(key) { CacheEntry(timeout) }
-            if (entry.hasBeenDestroyed) entry.reset(timeout)
+            val entry = cache.getOrPut(key) { CacheEntry(timeoutMillis) }
+            if (entry.hasBeenDestroyed) entry.reset(timeoutMillis)
             entry
         }
 
         val needsGenerator = entry.needsGenerator
-        entry.update(timeout)
+        entry.update(timeoutMillis)
 
         if (needsGenerator) {
             entry.hasGenerator = true
@@ -370,7 +371,10 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     fun <V> getEntryWithCallback(
-        key: V, timeout: Long, queue: ProcessingQueue?, generator: (V) -> ICacheData?, ifNotGenerating: (() -> Unit)?
+        key: V, timeoutMillis: Long,
+        queue: ProcessingQueue?,
+        generator: (V) -> ICacheData?,
+        ifNotGenerating: (() -> Unit)?
     ): ICacheData? {
 
         if (key == null) throw IllegalStateException("Key must not be null")
@@ -380,13 +384,13 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         // only the key needs to be locked, not the whole cache
 
         val entry = synchronized(cache) {
-            val entry = cache.getOrPut(key) { CacheEntry(timeout) }
-            if (entry.hasBeenDestroyed) entry.reset(timeout)
+            val entry = cache.getOrPut(key) { CacheEntry(timeoutMillis) }
+            if (entry.hasBeenDestroyed) entry.reset(timeoutMillis)
             entry
         }
 
         val needsGenerator = entry.needsGenerator
-        entry.update(timeout)
+        entry.update(timeoutMillis)
 
         val async = queue != null
         if (needsGenerator) {
@@ -413,22 +417,22 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
     }
 
-    fun <V> getEntry(key: V, timeout: Long, asyncGenerator: Boolean, generator: (V) -> ICacheData?): ICacheData? {
-        return getEntryWithCallback(key, timeout, asyncGenerator, generator, null)
+    fun <V> getEntry(key: V, timeoutMillis: Long, asyncGenerator: Boolean, generator: (V) -> ICacheData?): ICacheData? {
+        return getEntryWithCallback(key, timeoutMillis, asyncGenerator, generator, null)
     }
 
     fun <V, W> getEntry(
         key0: V,
         key1: W,
-        timeout: Long,
+        timeoutMillis: Long,
         asyncGenerator: Boolean,
         generator: (V, W) -> ICacheData?
     ): ICacheData? {
-        return getEntryWithCallback(key0, key1, timeout, asyncGenerator, generator, null)
+        return getEntryWithCallback(key0, key1, timeoutMillis, asyncGenerator, generator, null)
     }
 
-    fun <V> getEntry(key: V, timeout: Long, queue: ProcessingQueue?, generator: (V) -> ICacheData?): ICacheData? {
-        return getEntryWithCallback(key, timeout, queue, generator, null)
+    fun <V> getEntry(key: V, timeoutMillis: Long, queue: ProcessingQueue?, generator: (V) -> ICacheData?): ICacheData? {
+        return getEntryWithCallback(key, timeoutMillis, queue, generator, null)
     }
 
     fun update() {

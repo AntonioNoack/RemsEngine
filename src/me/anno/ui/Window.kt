@@ -118,8 +118,10 @@ open class Window(
 
         panel.updateVisibility(mouseX.toInt(), mouseY.toInt())
 
-        for (p in windowStack.inFocus) {
-            if (p.window == this) {
+        val inFocus = windowStack.inFocus
+        for (index in inFocus.indices) {
+            val p = inFocus[index]
+            if (p.window == this@Window) {
                 p.isInFocus = true
                 var pi: Panel? = p
                 while (pi != null) {
@@ -250,7 +252,9 @@ open class Window(
             if (panel0 in needsRedraw || // if the main panel is here, all needs to be redrawn anyways
                 needsRedraw.isFull() || // needs redraw is full = we didn't save everything that needs redrawing
                 // if we would need to redraw more pixels than the whole screen, just redraw it, doesn't matter
-                needsRedraw.sumOf { max((it.lx1 - it.lx0) * (it.ly1 - it.ly0), 0) } >= panel0.w * panel0.h
+                needsRedraw.sumOf {
+                    if (it != null) max((it.lx1 - it.lx0) * (it.ly1 - it.ly0), 0) else 0
+                } >= panel0.w * panel0.h
             ) {
 
                 wasRedrawn += panel0

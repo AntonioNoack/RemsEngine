@@ -156,6 +156,8 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
         } else false
     }
 
+    override val className: String = "CustomContainer"
+
     companion object {
 
         private val LOGGER = LogManager.getLogger(CustomContainer::class)

@@ -84,7 +84,7 @@ object Corner {
         val shader = roundedShader.value
         shader.use()
         posSize(shader, x, y, w, h)
-        shader.v4f("tiling", 1f, 1f, 0f, 0f)
+        GFXx2D.noTiling(shader)
         shader.v4f("centerColor", centerColor)
         shader.v4f("outlineColor", if (outlineThickness > 0f) outlineColor else centerColor)
         shader.v4f("backgroundColor", backgroundColor)

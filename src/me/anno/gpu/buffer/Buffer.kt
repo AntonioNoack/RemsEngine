@@ -136,14 +136,16 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
         bindVAO(vao)
         bindBuffer(GL_ARRAY_BUFFER, pointer)
         // first the instanced attributes, so the function can be called with super.createVAOInstanced without binding the buffer again
-        for (attr in attributes) {
-            bindAttribute(shader, attr, false)
+        val attributes = attributes
+        for (attrIndex in attributes.indices) {
+            bindAttribute(shader, attributes[attrIndex], false)
         }
 
         instanceData.ensureBuffer()
         bindBuffer(GL_ARRAY_BUFFER, instanceData.pointer)
-        for (attr in instanceData.attributes) {
-            bindAttribute(shader, attr, true)
+        val attributes2 = instanceData.attributes
+        for (attrIndex in attributes2.indices) {
+            bindAttribute(shader, attributes2[attrIndex], true)
         }
     }
 

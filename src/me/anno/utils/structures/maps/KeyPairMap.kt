@@ -102,6 +102,7 @@ class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
     }
 
     inline fun removeIf(crossinline test: (k1: KManifold, k2: KFewOnly, v: Value) -> Boolean): Int {
+        if (isEmpty()) return 0
         var removed = 0
         for ((k1, k2s) in values) {
             removed += k2s.removeIf { k2, v ->
