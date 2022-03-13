@@ -149,7 +149,7 @@ class WebRef(url: String, args: Map<Any?, Any?>) :
             val res = StringBuilder(input.length * 2)
             for (cp in input.codePoints()) {
                 if (allowedChars.get(cp)) {
-                    res.append(cp)
+                    res.append(cp.toChar())
                 } else {
                     val b = intToUTF8Bytes(cp)
                     for (j in b.indices) {

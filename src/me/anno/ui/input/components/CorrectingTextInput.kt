@@ -3,13 +3,11 @@ package me.anno.ui.input.components
 import me.anno.config.DefaultStyle
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.loadTexturesSync
-import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.language.spellcheck.Spellchecking
 import me.anno.language.spellcheck.Suggestion
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.code.CodeEditor.Companion.drawSquiggles
 import me.anno.ui.style.Style
-import kotlin.math.min
 
 abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
 
@@ -41,9 +39,10 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
         if (suggestions != null && suggestions.isNotEmpty()) {
             // display all suggestions
             for (si in suggestions.indices) {
+                val x0 = x + padding.left + drawingOffset
                 val s = suggestions[si]
-                val startX = getX(s.start)
-                val endX = getX(s.end)
+                val startX = x0 + getXOffset(s.start)
+                val endX = x0 + getXOffset(s.end)
                 val theY = this.y + this.h - padding.bottom - 1
                 // wavy line
                 val color = 0xffff00 or DefaultStyle.black
@@ -65,8 +64,9 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
         val suggestions = suggestions
         if (suggestions != null) {
             for (s in suggestions) {
-                val startX = getX(s.start)
-                val endX = getX(s.end)
+                val x0 = this.x + padding.left + drawingOffset
+                val startX = x0 + getXOffset(s.start)
+                val endX = x0 + getXOffset(s.end)
                 if (x.toInt() in startX..endX) {
                     lastSuggestion = s
                     return if (s.improvements.isEmpty()) s.clearMessage else s.clearMessage + "\n" +
@@ -100,12 +100,6 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
             onEnterKey2(x, y)
         }
     }
-
-    private fun getX(charIndex: Int) = x + padding.left + drawingOffset + if (charIndex <= 0) -1 else
-        getTextSizeX(font, text.substring(0, min(charIndex, text.length)), -1, -1) - 1
-
-    private fun getXOffset(charIndex: Int) = if (charIndex <= 0) -1 else
-        getTextSizeX(font, text.substring(0, min(charIndex, text.length)), -1, -1) - 1
 
     // todo find synonyms by clicking on stuff, I think this library can do that
     // todo automatically show hints, when the user is typing

@@ -27,6 +27,7 @@ import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.types.Strings.getIndexFromText
 import me.anno.utils.types.Strings.getLineWidth
 import me.anno.utils.types.Strings.joinChars
+import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 import kotlin.streams.toList
 
@@ -134,10 +135,6 @@ open class PureTextInputML(style: Style) :
             val panel = object : CorrectingTextInput(style) {
                 override val isShowingPlaceholder: Boolean
                     get() = this@PureTextInputML.text.isEmpty()
-
-                override fun onBackSpaceKey(x: Float, y: Float) {
-                    this@PureTextInputML.onBackSpaceKey(x, y)
-                }
 
                 override fun onCharTyped2(x: Float, y: Float, key: Int) = this@PureTextInputML.onCharTyped(x, y, key)
                 override fun onEnterKey2(x: Float, y: Float) = this@PureTextInputML.onEnterKey(x, y)
@@ -655,7 +652,7 @@ open class PureTextInputML(style: Style) :
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         when (action) {
             "DeleteAfter" -> deleteAfter()
-            "DeleteBefore" -> deleteBefore()
+            "DeleteBefore" -> likeBackspaceKey()
             "DeleteSelection" -> deleteSelection()
             "MoveLeft" -> moveLeft()
             "MoveRight" -> moveRight()
@@ -674,10 +671,17 @@ open class PureTextInputML(style: Style) :
         update(false)
     }
 
-    // done by actions
-    /*override fun onBackSpaceKey(x: Float, y: Float) {
-        deleteBefore()
-    }*/
+    override fun onBackSpaceKey(x: Float, y: Float) {
+        likeBackspaceKey()
+    }
+
+    var lastBackspace = 0L
+    fun likeBackspaceKey() {
+        if (lastBackspace != Engine.gameTime) {
+            lastBackspace = Engine.gameTime
+            deleteBefore()
+        }
+    }
 
     override fun onEnterKey(x: Float, y: Float) {
         if (lines.size + 1 < lineLimit) insert('\n'.code, true)

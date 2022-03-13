@@ -34,10 +34,7 @@ class Type(
     constructor(defaultValue: Any, components: Int) :
             this(defaultValue, components, 1f, true, true, { it!! }, { it })
 
-    val defaultValue = acceptOrNull(clamp(defaultValue).apply {
-        if (this != defaultValue)
-            throw IllegalArgumentException("Value had to be clamped from $defaultValue to $this")
-    })
+    val defaultValue = acceptOrNull(clamp(defaultValue))
         ?: throw IllegalArgumentException("Incompatible default value $defaultValue")
 
     override fun toString() = "Type[${defaultValue.javaClass.simpleName} x $components]"

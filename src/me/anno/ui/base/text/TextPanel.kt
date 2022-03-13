@@ -22,6 +22,7 @@ import me.anno.utils.input.Keys.isClickKey
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.types.Strings.isBlank2
 import kotlin.math.max
+import kotlin.math.min
 
 open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
 
@@ -56,6 +57,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         set(value) {
             if (field != value) {
                 field = value
+                xOffsets = i0
                 invalidateLayout()
             }
         }
@@ -76,6 +78,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
             }
         }
 
+    private var xOffsets = i0
     val hoverColor get() = mixARGB(textColor, focusTextColor, 0.5f)
 
     var textAlignment = AxisAlignment.MIN
@@ -96,6 +99,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         set(value) {
             if (field != value) {
                 field = value
+                xOffsets = i0
                 invalidateLayout()
             }
         }
@@ -169,6 +173,26 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         val offset = if (textAlignment == AxisAlignment.MIN) 0
         else textAlignment.getOffset(w, getMaxWidth())
         drawText(offset, 0, color)
+    }
+
+    fun getXOffset(charIndex: Int): Int {
+        if (charIndex <= 0) return -1
+        val text = text
+        val font = font
+        var xOffsets = xOffsets
+        if (charIndex >= xOffsets.size) {
+            val newOffsets = IntArray(text.length + 1) { Int.MIN_VALUE }
+            System.arraycopy(xOffsets, 0, newOffsets, 0, xOffsets.size)
+            this.xOffsets = newOffsets
+            xOffsets = newOffsets
+        }
+        val index = min(charIndex, text.length)
+        var answer = xOffsets[index]
+        if (answer == Int.MIN_VALUE) {
+            answer = getTextSizeX(font, text.substring(0, index), -1, -1) - 1
+            xOffsets[charIndex] = answer
+        }
+        return answer
     }
 
     open val widthLimit get() = if (breaksIntoMultiline) w - padding.width else -1
@@ -266,5 +290,9 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     }
 
     override val className: String = "TextPanel"
+
+    companion object {
+        val i0 = IntArray(0)
+    }
 
 }
