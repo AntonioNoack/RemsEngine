@@ -22,8 +22,11 @@ open class IntVectorInput(
     style: Style, title: String,
     visibilityKey: String,
     val type: Type,
-    component0: IntInput? = null
+    val createComponent: () -> IntInput
 ) : TitledListY(title, visibilityKey, style), InputPanel<Vector4i> {
+
+    constructor(style: Style, title: String, visibilityKey: String, type: Type) :
+            this(style, title, visibilityKey, type, { IntInput(style, "", visibilityKey, type) })
 
     constructor(style: Style) : this(style, "", "", Type.INT)
 
@@ -45,8 +48,6 @@ open class IntVectorInput(
         setValue(value, false)
     }
 
-    val component0 = component0 ?: IntInput("", visibilityKey, 0, type, style)
-
     private val components: Int = type.components
     private val valueFields = ArrayList<IntInput>(components)
 
@@ -66,7 +67,7 @@ open class IntVectorInput(
     override val lastValue: Vector4i
         get() = Vector4i(
             compX.lastValue.toInt(),
-            compY.lastValue.toInt(),
+            compY?.lastValue?.toInt() ?: 0,
             compZ?.lastValue?.toInt() ?: 0,
             compW?.lastValue?.toInt() ?: 0
         )
@@ -80,16 +81,15 @@ open class IntVectorInput(
         resetListener = listener
     }
 
-    private fun addComponent(i: Int, title: String): IntInput {
-        val pseudo = if(i == 0) component0 else component0.clone()
-        pseudo.inputPanel.tooltip = title
-        valueList += pseudo.setWeight(1f)
-        valueFields += pseudo
-        return pseudo
+    private fun addComponent(title: String): IntInput {
+        val component = createComponent()
+        component.inputPanel.tooltip = title
+        valueList += component.setWeight(1f)
+        valueFields += component
+        return component
     }
 
-    override fun onCopyRequested(x: Float, y: Float): String? =
-        "[${compX.lastValue}, ${compY.lastValue}, ${compZ?.lastValue ?: 0f}, ${compW?.lastValue ?: 0f}]"
+    override fun onCopyRequested(x: Float, y: Float): String? = "[$vx, $vy, $vz, $vw]"
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         pasteVector(data)
@@ -103,7 +103,7 @@ open class IntVectorInput(
             val values = data.substring(1, data.lastIndex).split(',').map { it.trim().toIntOrNull() }
             if (values.size in 1..4) {
                 values[0]?.apply { compX.setValue(this, true) }
-                values[1]?.apply { compY.setValue(this, true) }
+                values.getOrNull(1)?.apply { compY?.setValue(this, true) }
                 values.getOrNull(2)?.apply { compZ?.setValue(this, true) }
                 values.getOrNull(3)?.apply { compW?.setValue(this, true) }
                 Unit
@@ -128,7 +128,7 @@ open class IntVectorInput(
         val allComponents = data.toIntOrNull()
         return if (allComponents != null) {
             compX.setValue(allComponents, true)
-            compY.setValue(allComponents, true)
+            compY?.setValue(allComponents, true)
             compZ?.setValue(allComponents, true)
             compW?.setValue(allComponents, true)
             Unit
@@ -149,49 +149,56 @@ open class IntVectorInput(
         if (focused1) isSelectedListener?.invoke()
         super.onDraw(x0, y0, x1, y1)
         compX.updateValueMaybe()
-        compY.updateValueMaybe()
+        compY?.updateValueMaybe()
         compZ?.updateValueMaybe()
         compW?.updateValueMaybe()
     }
 
-    val compX = addComponent(0, "x")
-    val compY = addComponent(1, "y")
-    val compZ = if (components > 2) addComponent(2, "z") else null
-    val compW = if (components > 3) addComponent(3, "w") else null
+    val compX = addComponent("x")
+    val compY = if (components > 1) addComponent("y") else null
+    val compZ = if (components > 2) addComponent("z") else null
+    val compW = if (components > 3) addComponent("w") else null
 
-    val vx get() = compX.lastValue.toInt()
-    val vy get() = compY.lastValue.toInt()
-    val vz get() = compZ?.lastValue?.toInt() ?: 0
-    val vw get() = compW?.lastValue?.toInt() ?: 0
+    val vx get() = compX.lastValue
+    val vy get() = compY?.lastValue ?: 0L
+    val vz get() = compZ?.lastValue ?: 0L
+    val vw get() = compW?.lastValue ?: 0L
 
     fun setValue(v: Vector2ic, notify: Boolean) {
         compX.setValue(v.x(), notify)
-        compY.setValue(v.y(), notify)
+        compY?.setValue(v.y(), notify)
     }
 
     fun setValue(v: Vector3ic, notify: Boolean) {
         compX.setValue(v.x(), notify)
-        compY.setValue(v.y(), notify)
+        compY?.setValue(v.y(), notify)
         compZ?.setValue(v.z(), notify)
     }
 
     fun setValue(v: Vector4ic, notify: Boolean) {
         compX.setValue(v.x(), notify)
-        compY.setValue(v.y(), notify)
+        compY?.setValue(v.y(), notify)
         compZ?.setValue(v.z(), notify)
         compW?.setValue(v.w(), notify)
     }
 
     fun setValue(vi: IntVectorInput, notify: Boolean) {
         compX.setValue(vi.vx, notify)
-        compY.setValue(vi.vy, notify)
+        compY?.setValue(vi.vy, notify)
         compZ?.setValue(vi.vz, notify)
         compW?.setValue(vi.vw, notify)
     }
 
     fun setValue(vx: Int, vy: Int, vz: Int, vw: Int, notify: Boolean) {
         compX.setValue(vx, notify)
-        compY.setValue(vy, notify)
+        compY?.setValue(vy, notify)
+        compZ?.setValue(vz, notify)
+        compW?.setValue(vw, notify)
+    }
+
+    fun setValue(vx: Long, vy: Long, vz: Long, vw: Long, notify: Boolean) {
+        compX.setValue(vx, notify)
+        compY?.setValue(vy, notify)
         compZ?.setValue(vz, notify)
         compW?.setValue(vw, notify)
     }
@@ -250,7 +257,7 @@ open class IntVectorInput(
     fun onChange() {
         changeListener(
             compX.lastValue.toInt(),
-            compY.lastValue.toInt(),
+            compY?.lastValue?.toInt() ?: 0,
             compZ?.lastValue?.toInt() ?: 0,
             compW?.lastValue?.toInt() ?: 0
         )
@@ -268,7 +275,7 @@ open class IntVectorInput(
     override fun getCursor(): Long = Cursor.drag
 
     override fun clone(): IntVectorInput {
-        val clone = IntVectorInput(style, title, visibilityKey, type)
+        val clone = IntVectorInput(style, title, visibilityKey, type, createComponent)
         copy(clone)
         return clone
     }

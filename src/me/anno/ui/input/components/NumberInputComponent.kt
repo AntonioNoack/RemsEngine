@@ -27,6 +27,11 @@ open class NumberInputComponent(
         }
     }
 
+    override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
+        // don't call parent, as this would prevent dragging a value
+        uiParent?.onMouseMoved(x, y, dx, dy)
+    }
+
     override fun clone(): NumberInputComponent {
         val clone = NumberInputComponent(visibilityKey, style)
         copy(clone)

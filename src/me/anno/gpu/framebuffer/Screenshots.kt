@@ -9,6 +9,7 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D.Companion.packAlignment
 import me.anno.image.raw.IntImage
 import me.anno.language.translation.Dict
+import me.anno.maths.Maths.clamp
 import me.anno.ui.debug.ConsoleOutputPanel.Companion.formatFilePath
 import me.anno.utils.OS
 import me.anno.utils.hpc.Threads.threadWithName
@@ -16,28 +17,24 @@ import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.max
-import kotlin.math.min
 
 object Screenshots {
 
     fun getPixels(
         diameter: Int,
-        startX: Int, startY: Int,
-        localX: Int, localY: Int,
+        lx: Int, ly: Int,
         fb: Framebuffer,
         renderer: Renderer,
         drawScene: () -> Unit
     ): IntArray {
-        val localYOpenGL = GFX.height - localY
+        val localYOpenGL = fb.h - ly
         val buffer = IntArray(diameter * diameter)
-        OpenGL.useFrame(startX, startY, fb.w, fb.h, false, fb, renderer) {
+        OpenGL.useFrame(0,0, fb.w, fb.h, true, fb, renderer) {
             val radius = diameter shr 1
-            val x0 = max(localX - radius, 0)
-            val y0 = max(localYOpenGL - radius, 0)
-            val x1 = min(localX + radius + 1, fb.w)
-            val y1 = min(localYOpenGL + radius + 1, fb.h)
-            if (x1 < x0 || y1 < y0) throw RuntimeException("$x0..$x1,$y0..$y1 by ${fb.w} x ${fb.h}, ($localX,$localYOpenGL-$localY)")
+            val x0 = clamp(lx - radius, 0, fb.w)
+            val y0 = clamp(localYOpenGL - radius, 0, fb.h)
+            val x1 = clamp(lx + radius + 1, 0, fb.w)
+            val y1 = clamp(localYOpenGL + radius + 1, 0, fb.h)
             if (x1 > x0 && y1 > y0) {
                 Frame.bind()
                 // draw only the clicked area
@@ -48,7 +45,7 @@ object Screenshots {
                     packAlignment(4 * (x1 - x0))
                     GL11.glReadPixels(x0, y0, x1 - x0, y1 - y0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer)
                 }
-            }
+            } else LOGGER.warn("Selected region was empty: $lx,$ly in 0,0 .. ${fb.w},${fb.h} +/- $radius")
         }
         return buffer
     }

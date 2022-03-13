@@ -20,7 +20,6 @@ import me.anno.ui.style.Style
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing
 import me.anno.utils.types.AnyToDouble.getDouble
-import me.anno.utils.types.Floats.anyToDouble
 import me.anno.utils.types.Quaternions.toEulerAnglesDegrees
 import org.joml.*
 import kotlin.math.max
@@ -30,8 +29,11 @@ open class FloatVectorInput(
     visibilityKey: String,
     val type: Type,
     style: Style,
-    component0: FloatInput? = null
+    val createComponent: () -> FloatInput
 ) : TitledListY(title, visibilityKey, style), InputPanel<Vector4d>, TextStyleable {
+
+    constructor(title: String, visibilityKey: String, type: Type, style: Style) :
+            this(title, visibilityKey, type, style, { FloatInput(style, "", visibilityKey, type) })
 
     constructor(style: Style) : this("", "", Type.FLOAT, style)
 
@@ -90,8 +92,6 @@ open class FloatVectorInput(
         setValue(value, false)
     }
 
-    val component0 = component0 ?: FloatInput(style, "", visibilityKey, type)
-
     private val components: Int = type.components
     private val valueFields = ArrayList<FloatInput>(components)
 
@@ -129,7 +129,7 @@ open class FloatVectorInput(
     override val lastValue: Vector4d
         get() = Vector4d(
             compX.lastValue,
-            compY.lastValue,
+            compY?.lastValue ?: 0.0,
             compZ?.lastValue ?: 0.0,
             compW?.lastValue ?: 0.0
         )
@@ -147,9 +147,9 @@ open class FloatVectorInput(
         return this
     }
 
-    private fun addComponent(index: Int, title: String): FloatInput {
-        val component = if (index == 0) component0 else component0.clone()
-        component.inputPanel.placeholder = title
+    private fun addComponent(title: String): FloatInput {
+        val component = createComponent()
+        component.inputPanel.tooltip = title
         valueList += component.setWeight(1f)
         valueFields += component
         return component
@@ -160,7 +160,7 @@ open class FloatVectorInput(
     }
 
     override fun onCopyRequested(x: Float, y: Float) =
-        "[${compX.lastValue}, ${compY.lastValue}, ${compZ?.lastValue ?: 0f}, ${compW?.lastValue ?: 0f}]"
+        "[${compX.lastValue}, ${compY?.lastValue ?: 0f}, ${compZ?.lastValue ?: 0f}, ${compW?.lastValue ?: 0f}]"
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         pasteVector(data)
@@ -174,7 +174,7 @@ open class FloatVectorInput(
             val values = data.substring(1, data.lastIndex).split(',').map { it.trim().toDoubleOrNull() }
             if (values.size in 1..4) {
                 values[0]?.apply { compX.setValue(this, true) }
-                values[1]?.apply { compY.setValue(this, true) }
+                values.getOrNull(2)?.apply { compY?.setValue(this, true) }
                 values.getOrNull(2)?.apply { compZ?.setValue(this, true) }
                 values.getOrNull(3)?.apply { compW?.setValue(this, true) }
                 Unit
@@ -194,7 +194,7 @@ open class FloatVectorInput(
         val allComponents = data.toDoubleOrNull()
         return if (allComponents != null && allComponents.isFinite()) {
             compX.setValue(allComponents, true)
-            compY.setValue(allComponents, true)
+            compY?.setValue(allComponents, true)
             compZ?.setValue(allComponents, true)
             compW?.setValue(allComponents, true)
             Unit
@@ -215,79 +215,79 @@ open class FloatVectorInput(
         if (focused1) isSelectedListener?.invoke()
         super.onDraw(x0, y0, x1, y1)
         compX.updateValueMaybe()
-        compY.updateValueMaybe()
+        compY?.updateValueMaybe()
         compZ?.updateValueMaybe()
         compW?.updateValueMaybe()
     }
 
-    val compX = addComponent(0, "x")
-    val compY = addComponent(1, "y")
-    val compZ = if (components > 2) addComponent(2, "z") else null
-    val compW = if (components > 3) addComponent(3, "w") else null
+    val compX: FloatInput = addComponent("x")
+    val compY: FloatInput? = if (components > 1) addComponent("y") else null
+    val compZ: FloatInput? = if (components > 2) addComponent("z") else null
+    val compW: FloatInput? = if (components > 3) addComponent("w") else null
 
     val vx get() = compX.lastValue.toFloat()
-    val vy get() = compY.lastValue.toFloat()
+    val vy get() = compY?.lastValue?.toFloat() ?: 0f
     val vz get() = compZ?.lastValue?.toFloat() ?: 0f
     val vw get() = compW?.lastValue?.toFloat() ?: 0f
 
     val vxd get() = compX.lastValue
-    val vyd get() = compY.lastValue
+    val vyd get() = compY?.lastValue ?: 0.0
     val vzd get() = compZ?.lastValue ?: 0.0
     val vwd get() = compW?.lastValue ?: 0.0
 
     fun setValue(v: Vector2fc, notify: Boolean) {
         compX.setValue(v.x(), notify)
-        compY.setValue(v.y(), notify)
+        compY?.setValue(v.y(), notify)
     }
 
     fun setValue(v: Vector3fc, notify: Boolean) {
         compX.setValue(v.x(), notify)
-        compY.setValue(v.y(), notify)
+        compY?.setValue(v.y(), notify)
         compZ?.setValue(v.z(), notify)
     }
 
     fun setValue(v: Vector4fc, notify: Boolean) {
         compX.setValue(v.x(), notify)
-        compY.setValue(v.y(), notify)
+        compY?.setValue(v.y(), notify)
         compZ?.setValue(v.z(), notify)
         compW?.setValue(v.w(), notify)
     }
 
     fun setValue(v: Quaternionfc, notify: Boolean) {
         compX.setValue(v.x(), notify)
-        compY.setValue(v.y(), notify)
+        compY?.setValue(v.y(), notify)
         compZ?.setValue(v.z(), notify)
         compW?.setValue(v.w(), notify)
     }
 
     fun setValue(v: Vector2dc, notify: Boolean) {
         compX.setValue(v.x(), notify)
-        compY.setValue(v.y(), notify)
+        compY?.setValue(v.y(), notify)
     }
 
     fun setValue(v: Vector3dc, notify: Boolean) {
         compX.setValue(v.x(), notify)
-        compY.setValue(v.y(), notify)
+        compY?.setValue(v.y(), notify)
         compZ?.setValue(v.z(), notify)
     }
 
     fun setValue(v: Vector4dc, notify: Boolean) {
         compX.setValue(v.x(), notify)
-        compY.setValue(v.y(), notify)
+        compY?.setValue(v.y(), notify)
         compZ?.setValue(v.z(), notify)
         compW?.setValue(v.w(), notify)
     }
 
     fun setValue(v: Quaterniondc, notify: Boolean) {
         compX.setValue(v.x(), notify)
-        compY.setValue(v.y(), notify)
+        compY?.setValue(v.y(), notify)
         compZ?.setValue(v.z(), notify)
         compW?.setValue(v.w(), notify)
     }
 
     fun setValue(vi: FloatVectorInput, notify: Boolean) {
         compX.setValue(vi.vx, notify)
-        compY.setValue(vi.vy, notify)
+        compY?.setValue(vi.vy, notify)
         compZ?.setValue(vi.vz, notify)
         compW?.setValue(vi.vw, notify)
     }
@@ -297,10 +297,10 @@ open class FloatVectorInput(
 
     fun onChange() {
         changeListener(
-            compX.lastValue.anyToDouble(),
-            compY.lastValue.anyToDouble(),
-            compZ?.lastValue?.anyToDouble() ?: 0.0,
-            compW?.lastValue?.anyToDouble() ?: 0.0
+            compX.lastValue,
+            compY?.lastValue ?: 0.0,
+            compZ?.lastValue ?: 0.0,
+            compW?.lastValue ?: 0.0
         )
     }
 
@@ -456,7 +456,7 @@ open class FloatVectorInput(
     override fun getCursor(): Long = Cursor.drag
 
     override fun clone(): FloatVectorInput {
-        val clone = FloatVectorInput(title, visibilityKey, type, style, component0.clone())
+        val clone = FloatVectorInput(title, visibilityKey, type, style, createComponent)
         copy(clone)
         return clone
     }

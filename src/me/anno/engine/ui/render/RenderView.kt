@@ -790,13 +790,13 @@ class RenderView(
         val px2 = px.toInt() - x
         val py2 = py.toInt() - y
 
-        val ids = Screenshots.getPixels(diameter, 0, 0, px2, py2, buffer, idRenderer) {
+        val ids = Screenshots.getPixels(diameter, px2, py2, buffer, idRenderer) {
             drawScene(w, h, camera, camera, 0f, idRenderer, buffer, changeSize = false, true)
             drawGizmos(camPosition, false)
             controlScheme?.drawGizmos()
         }
 
-        val depths = Screenshots.getPixels(diameter, 0, 0, px2, py2, buffer, depthRenderer) {
+        val depths = Screenshots.getPixels(diameter, px2, py2, buffer, depthRenderer) {
             drawScene(w, h, camera, camera, 0f, depthRenderer, buffer, changeSize = false, true)
             drawGizmos(camPosition, false)
             controlScheme?.drawGizmos()

@@ -3,22 +3,22 @@ package me.anno.ui.debug
 import me.anno.Logging
 import me.anno.config.DefaultStyle
 import me.anno.engine.RemsEngine
-import me.anno.ui.Window
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
+import me.anno.maths.Maths.mixARGB
 import me.anno.ui.Panel
+import me.anno.ui.Window
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.base.text.SimpleTextPanel
-import me.anno.ui.debug.console.ConsoleOutputLine
 import me.anno.ui.debug.console.ConsoleLogFullscreen
+import me.anno.ui.debug.console.ConsoleOutputLine
 import me.anno.ui.style.Style
 import me.anno.utils.files.Files.formatFileSize
-import me.anno.maths.Maths.mixARGB
 import org.apache.logging.log4j.LogManager
 import kotlin.concurrent.thread
 import kotlin.math.max
@@ -27,10 +27,15 @@ import kotlin.math.max
 
 open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
 
+    var lastDrawn = "x"
     override fun tickUpdate() {
-        invalidateDrawing()
-        tooltip = text
-        textColor = getTextColor(text) and 0x77ffffff
+        val text = text
+        if (text != lastDrawn) {
+            lastDrawn = text
+            invalidateDrawing()
+            tooltip = text
+            textColor = getTextColor(text) and 0x77ffffff
+        }
     }
 
     fun getTextColor(msg: String): Int {

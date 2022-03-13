@@ -215,7 +215,7 @@ object ActionManager : StringMap() {
             LOGGER.warn("WindowStack is null")
             return
         }
-        LOGGER.info("Executing $actions on all panels")
+        // LOGGER.info("Executing $actions on all panels")
         for (index in ws.indices) {
             ws[index].panel.forAllPanels { panel ->
                 executeLocally(dx, dy, isContinuous, panel, actions)

@@ -36,8 +36,6 @@ object DefaultConfig : StringMap() {
         registerCustomClass(StringMap())
         registerCustomClass(SaveableArray())
 
-        this["style", "dark"]
-
         var newConfig: StringMap = this
         try {
             newConfig = ConfigBasics.loadConfig("main.config", this, true)

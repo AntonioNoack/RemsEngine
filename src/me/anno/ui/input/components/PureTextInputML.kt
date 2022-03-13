@@ -571,14 +571,12 @@ open class PureTextInputML(style: Style) :
         isDragging = !isControlDown && isLeftDown
         invalidateDrawing()
 
-        if (!isControlDown) {
-            if (isLeftDown) {
-                val localX = x - ((content as PanelList).children.first().x + padding.left)
-                val line = lines[indexY]
-                val indexX = getIndexFromText(line, localX, styleSample)
-                cursor2.set(indexX, indexY)
-                ensureCursorBounds()
-            }
+        if (!isControlDown && isLeftDown) {
+            val localX = x - ((content as PanelList).children.first().x + padding.left)
+            val line = lines[indexY]
+            val indexX = getIndexFromText(line, localX, styleSample)
+            cursor2.set(indexX, indexY)
+            ensureCursorBounds()
         }
     }
 
