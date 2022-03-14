@@ -24,7 +24,7 @@ class PIProperty(
     }
 
     override fun init(panel: Panel?) {
-        (panel as? TextStyleable)?.setBold(pi.isChanged(getPath(), name))
+        (panel as? TextStyleable)?.isBold = pi.isChanged(getPath(), name)
     }
 
     override fun getDefault(): Any? {
@@ -33,7 +33,7 @@ class PIProperty(
     }
 
     override fun set(panel: Panel?, value: Any?) {
-        (panel as? TextStyleable)?.setBold()
+        (panel as? TextStyleable)?.isBold = true
         // info("setting value of $name, ${panel is TextStyleable}")
         property[instance] = value
         pi.change(getPath(), instance, name, value)
@@ -44,7 +44,7 @@ class PIProperty(
     }
 
     override fun reset(panel: Panel?): Any? {
-        (panel as? TextStyleable)?.unsetBold()
+        (panel as? TextStyleable)?.isBold = false
         // info("reset $name")
         pi.reset(getPath(), name)
         val value = getDefault()

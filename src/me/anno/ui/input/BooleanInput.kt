@@ -60,17 +60,29 @@ class BooleanInput(
             _isEnabled = value; invalidateDrawing()
         }
 
-    override fun setTextSize(size: Float) {
-        titleView?.setTextSize(size)
-    }
+    override var textColor: Int
+        get() = titleView?.textColor ?: 0
+        set(value) {
+            titleView?.textColor = value
+        }
 
-    override fun setBold(bold: Boolean) {
-        titleView?.setBold(bold)
-    }
+    override var textSize: Float
+        get() = titleView?.textSize ?: 0f
+        set(value) {
+            titleView?.textSize = value
+        }
 
-    override fun setItalic(italic: Boolean) {
-        titleView?.setItalic(italic)
-    }
+    override var isBold: Boolean
+        get() = titleView?.isBold == true
+        set(value) {
+            titleView?.isBold = value
+        }
+
+    override var isItalic: Boolean
+        get() = titleView?.isItalic == true
+        set(value) {
+            titleView?.isItalic = value
+        }
 
     fun setChangeListener(listener: (value: Boolean) -> Unit): BooleanInput {
         checkView.setChangeListener(listener)

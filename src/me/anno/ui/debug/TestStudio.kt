@@ -34,6 +34,7 @@ class TestStudio(val createMainPanel: () -> List<Panel>) : StudioBase(true, "Tes
     }
 
     companion object {
+
         /**
          * create a very simple instance of the editor,
          * with a single panel; full gfx capabilities,
@@ -51,5 +52,6 @@ class TestStudio(val createMainPanel: () -> List<Panel>) : StudioBase(true, "Tes
         fun testUI2(createMainPanel: () -> List<Panel>) {
             TestStudio(createMainPanel).run()
         }
+
     }
 }

@@ -72,17 +72,29 @@ open class ColorInput(
         return this
     }
 
-    override fun setTextSize(size: Float) {
-        titleView.setTextSize(size)
-    }
+    override var textSize: Float
+        get() = titleView.textSize
+        set(value) {
+            titleView.textSize = value
+        }
 
-    override fun setBold(bold: Boolean) {
-        titleView.setBold(bold)
-    }
+    override var textColor: Int
+        get() = titleView.textColor
+        set(value) {
+            titleView.textColor = value
+        }
 
-    override fun setItalic(italic: Boolean) {
-        titleView.setItalic(italic)
-    }
+    override var isBold: Boolean
+        get() = titleView.isBold
+        set(value) {
+            titleView.isBold = value
+        }
+
+    override var isItalic: Boolean
+        get() = titleView.isItalic
+        set(value) {
+            titleView.isItalic = value
+        }
 
     init {
         // switched order for consistent alignment

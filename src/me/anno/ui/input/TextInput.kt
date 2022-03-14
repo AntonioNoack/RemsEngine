@@ -49,17 +49,29 @@ open class TextInput(
         return this
     }
 
-    override fun setTextSize(size: Float) {
-        base.setTextSize(size)
-    }
+    override var textSize: Float
+        get() = base.textSize
+        set(value) {
+            base.textSize = value
+        }
 
-    override fun setBold(bold: Boolean) {
-        base.setBold(bold)
-    }
+    override var textColor: Int
+        get() = base.textColor
+        set(value) {
+            base.textColor = value
+        }
 
-    override fun setItalic(italic: Boolean) {
-        base.setItalic(italic)
-    }
+    override var isBold: Boolean
+        get() = base.isBold
+        set(value) {
+            base.isBold = value
+        }
+
+    override var isItalic: Boolean
+        get() = base.isItalic
+        set(value) {
+            base.isItalic = value
+        }
 
     fun deleteKeys() = base.deleteSelection()
     fun addKey(codePoint: Int) = base.addKey(codePoint)

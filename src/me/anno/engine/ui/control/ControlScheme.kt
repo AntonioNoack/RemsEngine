@@ -4,7 +4,7 @@ import me.anno.Engine.deltaTime
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.components.camera.CameraComponent
+import me.anno.ecs.components.camera.Camera
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugPoint
 import me.anno.engine.debug.DebugShapes.debugLines
@@ -28,6 +28,7 @@ import me.anno.maths.Maths.max
 import me.anno.studio.StudioBase
 import me.anno.ui.base.groups.NineTilePanel
 import me.anno.ui.editor.PropertyInspector
+import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import me.anno.utils.types.Vectors.safeNormalize
 import org.apache.logging.log4j.LogManager
@@ -38,7 +39,7 @@ import kotlin.math.sign
 
 // todo touch controls
 
-open class ControlScheme(val camera: CameraComponent, val library: EditorState, val view: RenderView) :
+open class ControlScheme(val camera: Camera, val library: EditorState, val view: RenderView) :
     NineTilePanel(style) {
 
     constructor(view: RenderView) : this(view.editorCamera, view.library, view)
@@ -58,7 +59,7 @@ open class ControlScheme(val camera: CameraComponent, val library: EditorState, 
 
     val selectedTransforms get() = selectedEntities.map { it.transform }
 
-    val isSelected get() = uiParent!!.children.any { it.isInFocus }
+    val isSelected get() = uiParent!!.children.any2 { it.isInFocus }
 
     private val hit = RayHit()
 

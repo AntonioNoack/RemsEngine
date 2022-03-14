@@ -2,7 +2,7 @@ package me.anno.engine.ui.render
 
 import me.anno.Engine
 import me.anno.ecs.Entity
-import me.anno.ecs.components.camera.CameraComponent
+import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.light.EnvironmentMap
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.LightComponentBase
@@ -61,7 +61,7 @@ object DebugRendering {
     fun showCameraRendering(view: RenderView, x0: Int, y0: Int, x1: Int, y1: Int) {
         val camera = EditorState.selection
             .filterIsInstance<Entity>()
-            .mapFirstNotNull { e -> e.getComponentInChildren(CameraComponent::class) }
+            .mapFirstNotNull { e -> e.getComponentInChildren(Camera::class) }
         if (camera != null && !Input.isShiftDown) {
             // calculate size of sub camera
             val w = (x1 - x0 + 1) / 3

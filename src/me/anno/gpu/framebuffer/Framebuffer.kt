@@ -56,6 +56,7 @@ class Framebuffer(
 
     var offsetX = 0
     var offsetY = 0
+    var lastDraw = 0L
 
     // the source of our depth texture
     var depthAttachment: Framebuffer? = null

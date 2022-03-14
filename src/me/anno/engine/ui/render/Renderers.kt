@@ -284,7 +284,7 @@ object Renderers {
         }
     }
 
-    val attributeRenderers: Map<DeferredLayerType, Renderer> = DeferredLayerType.values2.associateWith { type ->
+    val attributeRenderers: Map<DeferredLayerType, Renderer> = DeferredLayerType.values.associateWith { type ->
         val variables = if (type == DeferredLayerType.COLOR) {
             listOf(Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT))
         } else {

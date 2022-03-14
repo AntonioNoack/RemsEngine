@@ -62,7 +62,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
             }
         }
 
-    var textColor = style.getColor("textColor", iconGray)
+    override var textColor = style.getColor("textColor", iconGray)
         set(value) {
             if (field != value) {
                 field = value
@@ -123,23 +123,32 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
 
     open var enableHoverColor = false
 
-    override fun setTextSize(size: Float) {
-        font = font.withSize(size)
-        invalidateDrawing()
-        invalidateLayout()
-    }
+    override var textSize: Float
+        get() = font.size
+        set(value) {
+            if (font.size != value) {
+                font = font.withSize(value)
+                invalidateLayout()
+            }
+        }
 
-    override fun setBold(bold: Boolean) {
-        font = font.withBold(bold)
-        invalidateDrawing()
-        invalidateLayout()
-    }
+    override var isBold: Boolean
+        get() = font.isBold
+        set(value) {
+            if (font.isBold != value) {
+                font = font.withBold(isBold)
+                invalidateLayout()
+            }
+        }
 
-    override fun setItalic(italic: Boolean) {
-        font = font.withItalic(italic)
-        invalidateDrawing()
-        invalidateLayout()
-    }
+    override var isItalic: Boolean
+        get() = font.isItalic
+        set(value) {
+            if (font.isItalic != value) {
+                font = font.withItalic(isItalic)
+                invalidateLayout()
+            }
+        }
 
     fun drawText(dx: Int, dy: Int, text: String, color: Int): Int {
         val x = this.x + dx + padding.left

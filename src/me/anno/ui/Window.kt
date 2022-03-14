@@ -294,9 +294,9 @@ open class Window(
                         )
                     }
                     wasRedrawn += panel
-                    panel.forAll {
-                        if (it is Panel)
-                            needsRedraw.remove(it)
+                    panel.forAll { child ->
+                        if (child is Panel)
+                            needsRedraw.remove(child)
                     }
                     // doesn't work somehow...
                     /*needsRedraw.removeIf { pi ->

@@ -7,8 +7,8 @@ import me.anno.maths.Maths.clamp
 
 class CameraState : Component() {
 
-    var currentCamera: CameraComponent? = null
-    var previousCamera: CameraComponent? = null
+    var currentCamera: Camera? = null
+    var previousCamera: Camera? = null
     var cameraBlendingTime = 0.0
     var cameraBlendingProgress = 0.0
 
@@ -18,8 +18,6 @@ class CameraState : Component() {
     }
 
     // todo draw: first cam 1, then cam 2, and then blend them together
-
-    override val className get() = "CameraStateComponent"
 
     override fun clone(): CameraState {
         val clone = CameraState()
@@ -36,5 +34,7 @@ class CameraState : Component() {
         clone.cameraBlendingTime = cameraBlendingTime
         clone.cameraBlendingProgress = cameraBlendingProgress
     }
+
+    override val className get() = "CameraStateComponent"
 
 }

@@ -1,7 +1,6 @@
 package me.anno.ui.input.components
 
 import me.anno.Engine
-import me.anno.config.DefaultStyle
 import me.anno.config.DefaultStyle.black
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
@@ -27,7 +26,6 @@ import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.types.Strings.getIndexFromText
 import me.anno.utils.types.Strings.getLineWidth
 import me.anno.utils.types.Strings.joinChars
-import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 import kotlin.streams.toList
 
@@ -56,9 +54,6 @@ open class PureTextInputML(style: Style) :
     var lineLimit = Int.MAX_VALUE
 
     // todo update all children, when this is overridden
-    var textColor = style.getColor("textColor", DefaultStyle.iconGray)
-
-    // todo update all children, when this is overridden
     var focusTextColor = style.getColor("textColorFocused", -1)
 
     // todo update all children, when this is overridden
@@ -81,23 +76,37 @@ open class PureTextInputML(style: Style) :
         changeListeners += listener
     }
 
-    override fun setTextSize(size: Float) {
-        for (p in actualChildren) {
-            (p as TextStyleable).setTextSize(size)
+    override var textColor
+        get() = styleSample.textColor
+        set(value) {
+            for (p in actualChildren) {
+                (p as TextStyleable).textColor = value
+            }
         }
-    }
 
-    override fun setBold(bold: Boolean) {
-        for (p in actualChildren) {
-            (p as TextStyleable).setBold(bold)
+    override var textSize: Float
+        get() = styleSample.textSize
+        set(value) {
+            for (p in actualChildren) {
+                (p as TextStyleable).textSize = value
+            }
         }
-    }
 
-    override fun setItalic(italic: Boolean) {
-        for (p in actualChildren) {
-            (p as TextStyleable).setItalic(italic)
+    override var isBold: Boolean
+        get() = styleSample.isBold
+        set(value) {
+            for (p in actualChildren) {
+                (p as TextStyleable).isBold = value
+            }
         }
-    }
+
+    override var isItalic: Boolean
+        get() = styleSample.isItalic
+        set(value) {
+            for (p in actualChildren) {
+                (p as TextStyleable).isItalic = value
+            }
+        }
 
     @NotSerializedProperty
     private var lastText = ""
@@ -675,8 +684,8 @@ open class PureTextInputML(style: Style) :
         likeBackspaceKey()
     }
 
-    var lastBackspace = 0L
-    fun likeBackspaceKey() {
+    private var lastBackspace = 0L
+    private fun likeBackspaceKey() {
         if (lastBackspace != Engine.gameTime) {
             lastBackspace = Engine.gameTime
             deleteBefore()

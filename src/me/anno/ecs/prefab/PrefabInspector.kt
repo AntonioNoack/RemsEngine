@@ -161,17 +161,17 @@ class PrefabInspector(val prefab: Prefab) {
         })
 
         list.add(TextInput("Name", "", instance.name, style).apply {
-            setBold(isChanged(getPath(), "name"))
-            addChangeListener { setBold(); change(getPath(), instance, "name", it) }
+            isBold = isChanged(getPath(), "name")
+            addChangeListener { isBold = true; change(getPath(), instance, "name", it) }
             setResetListener {
-                unsetBold(); reset(getPath(), "name")
+                isBold = false; reset(getPath(), "name")
                 instance.name = prefab?.name ?: ""; instance.name
             }
         })
         list.add(TextInput("Description", "", instance.description, style).apply {
-            addChangeListener { setBold(); change(getPath(), instance, "description", it) }
+            addChangeListener { isBold = true; change(getPath(), instance, "description", it) }
             setResetListener {
-                unsetBold(); reset(getPath(), "description")
+                isBold = false; reset(getPath(), "description")
                 instance.description = prefab?.description ?: ""; instance.description
             }
         })
@@ -258,7 +258,7 @@ class PrefabInspector(val prefab: Prefab) {
         fun applyGroupStyle(tp: TextPanel): TextPanel {
             tp.textColor = tp.textColor and 0x7fffffff
             tp.focusTextColor = tp.textColor
-            tp.setItalic()
+            tp.isItalic = true
             return tp
         }
 

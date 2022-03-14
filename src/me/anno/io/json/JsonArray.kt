@@ -1,14 +1,19 @@
 package me.anno.io.json
 
-import java.lang.RuntimeException
+import me.anno.io.json.ObjectMapper.toJsonNode
 
-class JsonArray: JsonNode(), List<Any> {
+class JsonArray : JsonNode(), List<Any> {
 
     val content = ArrayList<Any>()
+
     fun add(any: Any) = content.add(any)
+
     override fun get(key: String): JsonNode? {
-        throw RuntimeException("Not supported, this is an array node!")
+        val index = JsonValue.asInt(key, 0)
+        if (index !in content.indices) return null
+        return get(index).toJsonNode()
     }
+
     override fun toString() = content.toString()
 
     override fun get(index: Int): Any = content[index]

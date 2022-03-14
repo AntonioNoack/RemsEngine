@@ -36,19 +36,33 @@ abstract class NumberInput<BaseType>(
             titleView?.text = value
         }
 
-    override fun setTextSize(size: Float) {
-        titleView?.setTextSize(size)
-        inputPanel.setTextSize(size)
-        invalidateLayout()
-    }
+    override var textSize: Float
+        get() = inputPanel.textSize
+        set(value) {
+            titleView?.textSize = value
+            inputPanel.textSize = value
+            invalidateLayout()
+        }
 
-    override fun setBold(bold: Boolean) {
-        titleView?.setBold(bold)
-    }
+    override var textColor: Int
+        get() = inputPanel.textColor
+        set(value) {
+            titleView?.textColor = value
+            inputPanel.textColor = value
+            invalidateLayout()
+        }
 
-    override fun setItalic(italic: Boolean) {
-        titleView?.setItalic(italic)
-    }
+    override var isBold: Boolean
+        get() = titleView?.isBold == true
+        set(value) {
+            titleView?.isBold = value
+        }
+
+    override var isItalic: Boolean
+        get() = titleView?.isItalic == true
+        set(value) {
+            titleView?.isItalic = value
+        }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val focused1 = titleView?.isInFocus == true || isInFocus || inputPanel.isInFocus

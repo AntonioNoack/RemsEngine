@@ -171,17 +171,17 @@ object DrawTexts {
         for (char in text) {
             val txt = char.toString()
             val size = FontManager.getSize(font, txt, -1, -1)
-            val sizeFirst = GFXx2D.getSizeX(size)
-            val sizeSecond = GFXx2D.getSizeY(size)
-            h = sizeSecond
-            val w = if (equalSpaced) charWidth else sizeFirst
+            val sizeX = GFXx2D.getSizeX(size)
+            val sizeY = GFXx2D.getSizeY(size)
+            h = sizeY
+            val w = if (equalSpaced) charWidth else sizeX
             if (!txt.isBlank2()) {
                 val texture = FontManager.getTexture(font, txt, -1, -1)
                 if (texture != null && (texture !is Texture2D || texture.isCreated)) {
                     texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                    val x2 = fx + (w - sizeFirst) / 2
+                    val x2 = fx + (w - sizeX) / 2
                     shader.v2f("pos", (x2 - GFX.viewportX).toFloat() / GFX.viewportWidth, fy)
-                    shader.v2f("size", sizeFirst.toFloat() / GFX.viewportWidth, -h.toFloat() / GFX.viewportHeight)
+                    shader.v2f("size", sizeX.toFloat() / GFX.viewportWidth, -h.toFloat() / GFX.viewportHeight)
                     GFX.flat01.draw(shader)
                     GFX.check()
                 } else {

@@ -14,8 +14,6 @@ open class PanelStack(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
         var minH = 0
         for (child in children) {
             child.calculateSize(w, h)
-            // child.applyPlacement(w, h)
-            // child.applyConstraints()
             minW = max(minW, child.minW)
             minH = max(minH, child.minH)
         }
@@ -44,9 +42,6 @@ open class PanelStack(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
         copy(clone)
         return clone
     }
-
-    // todo if they are overlapping, and the lower one can be placed inside the upper one,
-    // todo draw only the necessary parts for it
 
     override val className: String = "PanelStack"
 

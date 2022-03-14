@@ -157,10 +157,20 @@ object ScreenSpaceAmbientOcclusion {
         strength: Float,
         samples: Int
     ): Framebuffer? {
-
         // ensure we can find the required inputs
         val position = settingsV2.findTexture(data, DeferredLayerType.POSITION) ?: return null
         val normal = settingsV2.findTexture(data, DeferredLayerType.NORMAL) ?: return null
+        return firstPass(position, normal, transform, radius, strength, samples)
+    }
+
+    private fun firstPass(
+        position: ITexture2D,
+        normal: ITexture2D,
+        transform: Matrix4f,
+        radius: Float,
+        strength: Float,
+        samples: Int
+    ): Framebuffer {
 
         var random4x4 = random4x4
         random4x4?.checkSession()
@@ -170,7 +180,7 @@ object ScreenSpaceAmbientOcclusion {
         }
         // resolution can be halved to improve performance
         val div = clamp(DefaultConfig["gpu.ssao.div10", 10], 10, 100)
-        val dst = FBStack["ssao-1st", roundDiv(data.w * 10, div), roundDiv(data.h * 10, div), 1, false, 1, false]
+        val dst = FBStack["ssao-1st", roundDiv(position.w * 10, div), roundDiv(position.h * 10, div), 1, false, 1, false]
         useFrame(dst, Renderer.copyRenderer) {
             GFX.check()
             val shader = occlusionShader.value
@@ -229,6 +239,18 @@ object ScreenSpaceAmbientOcclusion {
         if (strength <= 0f) return whiteTexture
         val tmp = firstPass(data, settingsV2, transform, radius, strength, min(samples, MAX_SAMPLES)) ?: return null
         return secondPass(tmp).getTexture0()
+    }
+
+    fun compute(
+        position: ITexture2D,
+        normal: ITexture2D,
+        transform: Matrix4f,
+        radius: Float,
+        strength: Float,
+        samples: Int
+    ): IFramebuffer {
+        val tmp = firstPass(position, normal, transform, radius, strength, min(samples, MAX_SAMPLES))
+        return secondPass(tmp)
     }
 
 }

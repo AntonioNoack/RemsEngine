@@ -1,6 +1,7 @@
 package me.anno.ecs.components.camera
 
 import me.anno.ecs.Component
+import me.anno.ecs.components.camera.effects.CameraEffect
 import me.anno.ecs.components.player.LocalPlayer.Companion.currentLocalPlayer
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.gui.LineShapes
@@ -9,7 +10,7 @@ import org.joml.Vector4f
 
 // like the studio camera,
 // a custom state, which stores all related rendering information
-class CameraComponent : Component() {
+class Camera : Component() {
 
     var isPerspective = true
 
@@ -29,9 +30,7 @@ class CameraComponent : Component() {
 
     // val pipeline = lazy { Pipeline() }
 
-    val postProcessingEffects
-        get() = components
-            .filterIsInstance<PostProcessingEffectComponent>()
+    val effects get() = components.filterIsInstance<CameraEffect>()
 
     var clearColor = Vector4f(0.1f, 0.2f, 0.3f, 1f)
 
@@ -56,8 +55,8 @@ class CameraComponent : Component() {
         }
     }
 
-    override fun clone(): CameraComponent {
-        val clone = CameraComponent()
+    override fun clone(): Camera {
+        val clone = Camera()
         copy(clone)
         return clone
     }
@@ -69,7 +68,7 @@ class CameraComponent : Component() {
 
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
-        clone as CameraComponent
+        clone as Camera
         clone.isPerspective = isPerspective
         clone.near = near
         clone.far = far
@@ -77,6 +76,6 @@ class CameraComponent : Component() {
         clone.clearColor = clearColor
     }
 
-    override val className get() = "CameraComponent"
+    override val className get() = "Camera"
 
 }

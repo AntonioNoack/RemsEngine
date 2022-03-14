@@ -532,6 +532,7 @@ abstract class OpenGLShader(
     fun v2f(loc: Int, v: Vector2fc) = v2f(loc, v.x(), v.y())
     fun v3f(loc: Int, v: Vector3fc) = v3f(loc, v.x(), v.y(), v.z())
     fun v4f(loc: Int, v: Vector4fc) = v4f(loc, v.x(), v.y(), v.z(), v.w())
+    fun v4f(loc: Int, v: Quaternionfc) = v4f(loc, v.x(), v.y(), v.z(), v.w())
 
     fun v2i(loc: Int, v: Vector2ic) = v2i(loc, v.x(), v.y())
     fun v3i(loc: Int, v: Vector3ic) = v3i(loc, v.x(), v.y(), v.z())

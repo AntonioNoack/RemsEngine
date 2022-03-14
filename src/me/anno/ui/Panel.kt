@@ -600,13 +600,12 @@ open class Panel(val style: Style) : PrefabSaveable() {
     // (the small cross, which should be part of the ui instead)
     //, so we can use the last one
     open fun getOverlayParent(): Panel? {
-        if (drawsOverlayOverChildren(lx0, ly0, lx1, ly1)) return this
-        return uiParent?.getOverlayParent()
+        return uiParent?.getOverlayParent() ?: (if (drawsOverlayOverChildren(lx0, ly0, lx1, ly1)) this else null)
     }
 
     open fun getOverlayParent(x0: Int, y0: Int, x1: Int, y1: Int): Panel? {
-        if (drawsOverlayOverChildren(x0, y0, x1, y1)) return this
-        return uiParent?.getOverlayParent(x0, y0, x1, y1)
+        return uiParent?.getOverlayParent(x0, y0, x1, y1) ?:
+            (if (drawsOverlayOverChildren(x0, y0, x1, y1)) this else null)
     }
 
     /**

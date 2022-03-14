@@ -214,13 +214,13 @@ object ObjectMapper {
             }
         } else {
             when(type.name) {
-                "java.lang.Integer" -> value.asText().toInt()
-                "java.lang.Long" -> value.asText().toLong()
-                "java.lang.Float" -> value.asText().toFloat()
-                "java.lang.Double" -> value.asText().toDouble()
+                "java.lang.Integer" -> value.asInt()
+                "java.lang.Long" -> value.asLong()
+                "java.lang.Float" -> value.asFloat()
+                "java.lang.Double" -> value.asDouble()
                 "java.lang.String" -> value.asText()
-                "java.lang.Number" -> value.asText().toDouble()
-                "java.lang.Boolean" -> value.asText().toBoolean()
+                "java.lang.Number" -> value.asDouble()
+                "java.lang.Boolean" -> value.asBool()
                 "java.util.List" -> {
                     value as JsonArray
                     val val2 = ArrayList<Any>()

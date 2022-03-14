@@ -7,7 +7,10 @@ import me.anno.ecs.Transform
 import me.anno.ecs.components.anim.BoneByBoneAnimation
 import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.anim.Skeleton
-import me.anno.ecs.components.camera.CameraComponent
+import me.anno.ecs.components.camera.Camera
+import me.anno.ecs.components.camera.effects.BloomEffect
+import me.anno.ecs.components.camera.effects.SSAOEffect
+import me.anno.ecs.components.camera.effects.SSREffect
 import me.anno.ecs.components.collider.*
 import me.anno.ecs.components.light.*
 import me.anno.ecs.components.mesh.*
@@ -82,8 +85,11 @@ object ECSRegistry {
         registerCustomClass(Entity())
         registerCustomClass(Transform())
 
-        // camera
-        registerCustomClass(CameraComponent())
+        // camera and effects
+        registerCustomClass(Camera())
+        registerCustomClass(BloomEffect())
+        registerCustomClass(SSAOEffect())
+        registerCustomClass(SSREffect())
 
         // scripting
         registerCustomClass(ScriptComponent())

@@ -5,7 +5,7 @@ import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.components.camera.CameraComponent
+import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.ecs.components.physics.BulletPhysics
@@ -69,6 +69,7 @@ import me.anno.maths.Maths.sq
 import me.anno.mesh.Shapes
 import me.anno.ui.Panel
 import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.debug.FrameTimes
 import me.anno.ui.style.Style
 import me.anno.utils.Clock
 import me.anno.utils.Tabs
@@ -152,7 +153,7 @@ class RenderView(
     // todo in the editor it becomes the prefab for a local player -> ui shall always be placed in the local player
     var localPlayer: LocalPlayer? = null
 
-    var editorCamera = CameraComponent()
+    val editorCamera = Camera()
     val editorCameraNode = Entity(editorCamera)
 
     val isFinalRendering get() = playMode != PlayMode.EDITING
@@ -415,12 +416,16 @@ class RenderView(
             }
         }
 
-        val count1 = PipelineStage.drawnTriangles
-        val deltaCount = count1 - count0
-        DrawTexts.drawSimpleTextCharByChar(
-            x, y + h - 2 - DrawTexts.monospaceFont.sizeInt,
-            2, "$deltaCount"
-        )
+        if (playMode == PlayMode.EDITING) {
+            val count1 = PipelineStage.drawnTriangles
+            val deltaCount = count1 - count0
+            DrawTexts.drawSimpleTextCharByChar(
+                x, y + h - 2 - DrawTexts.monospaceFont.sizeInt,
+                2, "$deltaCount",
+                FrameTimes.textColor,
+                FrameTimes.backgroundColor
+            )
+        }
 
         // clock.total("drawing the scene", 0.1)
 
@@ -432,7 +437,7 @@ class RenderView(
 
     private fun drawScene(
         x0: Int, y0: Int, x1: Int, y1: Int,
-        camera: CameraComponent,
+        camera: Camera,
         renderer: Renderer, buffer: IFramebuffer,
         useDeferredRendering: Boolean,
         size: Int, cols: Int, rows: Int, layersSize: Int
@@ -546,7 +551,7 @@ class RenderView(
                             flat01.draw(shader)
                         }
                     }
-                    val result = ScreenSpaceReflections.compute(buffer, illuminated, deferred, cameraMatrix, true)
+                    val result = ScreenSpaceReflections.compute(buffer, illuminated.getTexture0(), deferred, cameraMatrix, true)
                     drawTexture(x, y + h, w, -h, result ?: buffer.getTexture0(), true, -1, null)
                     if (result == null) {
                         DrawTexts.drawSimpleTextCharByChar(
@@ -679,7 +684,7 @@ class RenderView(
                         // screen space reflections
                         // todo toggle for this, maybe it's not required in every scene, and then it's just a waste
                         val ssReflections = ScreenSpaceReflections.compute(
-                            buffer, illuminated, deferred, cameraMatrix,
+                            buffer, illuminated.getTexture0(), deferred, cameraMatrix,
                             false
                         ) ?: illuminated.getTexture0()
 
@@ -826,8 +831,8 @@ class RenderView(
         width: Int,
         height: Int,
         aspectRatio: Float,
-        camera: CameraComponent,
-        previousCamera: CameraComponent,
+        camera: Camera,
+        previousCamera: Camera,
         blending: Float,
         update: Boolean
     ) {
@@ -950,7 +955,7 @@ class RenderView(
 
     private fun setClearColor(
         renderer: Renderer,
-        previousCamera: CameraComponent, camera: CameraComponent, blending: Float,
+        previousCamera: Camera, camera: Camera, blending: Float,
         doDrawGizmos: Boolean
     ) {
         val useInverseTonemappedColor: Boolean = !doDrawGizmos
@@ -986,8 +991,8 @@ class RenderView(
 
     fun drawScene(
         w: Int, h: Int,
-        camera: CameraComponent,
-        previousCamera: CameraComponent,
+        camera: Camera,
+        previousCamera: Camera,
         blending: Float,
         renderer: Renderer,
         dst: IFramebuffer,
@@ -1087,8 +1092,8 @@ class RenderView(
     }
 
     private fun drawSceneLights(
-        camera: CameraComponent,
-        previousCamera: CameraComponent,
+        camera: Camera,
+        previousCamera: Camera,
         blending: Float,
         renderer: Renderer,
         src: IFramebuffer,

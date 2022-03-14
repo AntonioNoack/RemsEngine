@@ -274,6 +274,10 @@ class DeferredSettingsV2(
         return layers.firstOrNull2 { it.type == type }
     }
 
+    fun findMapping(type: DeferredLayerType): String? {
+        return findLayer(type)?.mapping
+    }
+
     fun findTexture(buffer: IFramebuffer, type: DeferredLayerType): ITexture2D? {
         val layer = layers.firstOrNull2 { it.type == type } ?: return null
         return findTexture(buffer, layer)

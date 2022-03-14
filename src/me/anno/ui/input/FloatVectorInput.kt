@@ -134,13 +134,29 @@ open class FloatVectorInput(
             compW?.lastValue ?: 0.0
         )
 
-    override fun setBold(bold: Boolean) {
-        titleView?.setBold(bold)
-    }
+    override var textColor: Int
+        get() = titleView?.textColor ?: 0
+        set(value) {
+            titleView?.textColor = value
+        }
 
-    override fun setItalic(italic: Boolean) {
-        titleView?.setItalic(italic)
-    }
+    override var textSize: Float
+        get() = titleView?.textSize ?: 0f
+        set(value) {
+            titleView?.textSize = value
+        }
+
+    override var isBold: Boolean
+        get() = titleView?.isBold == true
+        set(value) {
+            titleView?.isBold = value
+        }
+
+    override var isItalic: Boolean
+        get() = titleView?.isItalic == true
+        set(value) {
+            titleView?.isItalic = value
+        }
 
     override fun setValue(value: Vector4d, notify: Boolean): FloatVectorInput {
         setValue(value as Vector4dc, notify)

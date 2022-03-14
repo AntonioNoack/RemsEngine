@@ -156,12 +156,11 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
 
         if (audio != null) {
             hasAudio = true
-            audioStartTime = audio.get("start_time")?.asText()?.toDouble() ?: 0.0
-            audioDuration = audio.get("duration")?.asText()?.toDouble() ?: duration
-            audioSampleRate = audio.get("sample_rate")?.asText()?.toInt() ?: 20
-            audioSampleCount =
-                audio.get("duration_ts")?.asText()?.toLong() ?: (audioSampleRate * audioDuration).toLong()
-            audioChannels = audio.get("channels")?.asText()?.toInt() ?: 1
+            audioStartTime = audio.getDouble("start_time")
+            audioDuration = audio.getDouble("duration", duration)
+            audioSampleRate = audio.getInt("sample_rate", 20)
+            audioSampleCount = audio.getLong("duration_ts", (audioSampleRate * audioDuration).toLong())
+            audioChannels = audio.getInt("channels", 1)
         }
 
         val video = streams.firstOrNull {
@@ -171,12 +170,12 @@ class FFMPEGMetadata(val file: FileReference) : ICacheData {
         if (video != null) {
 
             hasVideo = true
-            videoStartTime = video.get("start_time")?.asText()?.toDouble() ?: 0.0
-            videoDuration = video.get("duration")?.asText()?.toDouble() ?: duration
-            videoFrameCount = video.get("nb_frames")?.asText()?.toInt() ?: 0
-            videoWidth = video.get("width")?.asText()?.toInt() ?: 0
-            videoHeight = video.get("height")?.asText()?.toInt() ?: 0
-            videoFPS = video.get("r_frame_rate")?.asText()?.parseFraction() ?: 30.0
+            videoStartTime = video.getDouble("start_time", 0.0)
+            videoDuration = video.getDouble("duration", duration)
+            videoFrameCount = video.getInt("nb_frames", 0)
+            videoWidth = video.getInt("width")
+            videoHeight = video.getInt("height")
+            videoFPS = video.getText("r_frame_rate")?.parseFraction() ?: 30.0
 
             if (videoFrameCount == 0) {
                 if (videoDuration > 0.0) {

@@ -516,26 +516,26 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
         when (con.type) {
             "Double" -> {
                 if (old is FloatInput) return old
-                    .apply { setTextSize(font.size) }
+                    .apply { textSize = font.size }
                 return FloatInput(style)
                     .setValue(con.value as? Double ?: 0.0, false)
                     .setChangeListener { con.value = it }
-                    .apply { setTextSize(font.size) }
+                    .apply { textSize = font.size }
             }
             "Long" -> {
                 if (old is IntInput) return old
-                    .apply { setTextSize(font.size) }
+                    .apply { textSize = font.size }
                 return IntInput(style)
                     .setValue(con.value as? Long ?: 0L, false)
                     .setChangeListener { con.value = it }
-                    .apply { setTextSize(font.size) }
+                    .apply { textSize = font.size }
             }
             "String" -> {
                 if (old is TextInput) return old
-                    .apply { setTextSize(font.size) }
+                    .apply { textSize = font.size }
                 return TextInput("", "", con.value.toString(), style)
                     .addChangeListener { con.value = it }
-                    .apply { setTextSize(font.size) }
+                    .apply { textSize = font.size }
             }
             "Bool", "Boolean" -> {
                 if (old is Checkbox) return old

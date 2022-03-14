@@ -17,7 +17,6 @@ import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.Texture2D
 import org.joml.Matrix4f
 
 // https://lettier.github.io/3d-game-shaders-for-beginners/screen-space-reflection.html
@@ -49,6 +48,7 @@ object ScreenSpaceReflections {
                     "uniform int steps;\n" +
                     "uniform float thickness;\n" +
                     "uniform float maskSharpness;\n" +
+                    "uniform float strength;\n" +
 
                     "uniform bool applyToneMapping;\n" +
 
@@ -175,7 +175,7 @@ object ScreenSpaceReflections {
 
                     // reflected position * base color of mirror (for golden reflections)
                     "   vec3 color1 = texture(finalIlluminated, bestUV).rgb * texture(finalColor, uv).rgb;\n" +
-                    "   color0 = mix(color0, color1, visibility);\n" +
+                    "   color0 = mix(color0, color1, min(visibility * strength, 1.0));\n" +
                     "   fragColor = vec4(applyToneMapping ? toneMapping(color0) : color0, 1.0);\n" +
                     // "   fragColor = vec4(0,0,visibility,1);\n" +
                     // "   fragColor = vec4(bestUV, visibility, 1);\n" +
@@ -190,28 +190,83 @@ object ScreenSpaceReflections {
         }
     }
 
-    /**
-     * computes screen space reflections from metallic, roughness, normal, position and color buffers
-     * */
     fun compute(
         buffer: IFramebuffer,
-        illuminated: Framebuffer,
+        illuminated: ITexture2D,
         deferred: DeferredSettingsV2,
         transform: Matrix4f,
         applyToneMapping: Boolean,
         dst: Framebuffer = FBStack["ss-reflections", buffer.w, buffer.h, 4, true, 1, false]
     ): ITexture2D? {
+        return compute(
+            buffer, illuminated, deferred, transform,
+            1f, 2f, 0.2f, 10, 8f,
+            applyToneMapping, dst
+        )
+    }
+
+    /**
+     * computes screen space reflections from metallic, roughness, normal, position and color buffers
+     * */
+    fun compute(
+        buffer: IFramebuffer,
+        illuminated: ITexture2D,
+        deferred: DeferredSettingsV2,
+        transform: Matrix4f,
+        strength: Float = 1f,
+        maskSharpness: Float = 2f,
+        wallThickness: Float = 0.2f,
+        fineSteps: Int = 10, // 10 are enough, if there are only rough surfaces
+        maxDistance: Float = 8f,
+        applyToneMapping: Boolean,
+        dst: Framebuffer = FBStack["ss-reflections", buffer.w, buffer.h, 4, true, 1, false]
+    ): ITexture2D? {
         // metallic may be on r, g, b, or a
         val metallicLayer = deferred.findLayer(DeferredLayerType.METALLIC) ?: return null
-        val metallicName = metallicLayer.mapping
+        val metallicMask = metallicLayer.mapping
         val roughnessLayer = deferred.findLayer(DeferredLayerType.ROUGHNESS) ?: return null
-        val roughnessName = roughnessLayer.mapping
+        val roughnessMask = roughnessLayer.mapping
         val normalTexture = deferred.findTexture(buffer, DeferredLayerType.NORMAL) ?: return null
         val positionTexture = deferred.findTexture(buffer, DeferredLayerType.POSITION) ?: return null
         val colorTexture = deferred.findTexture(buffer, DeferredLayerType.COLOR) ?: return null
+        return compute(
+            positionTexture,
+            normalTexture,
+            colorTexture,
+            deferred.findTexture(buffer, metallicLayer),
+            metallicMask,
+            deferred.findTexture(buffer, roughnessLayer),
+            roughnessMask,
+            illuminated,
+            transform,
+            strength, maskSharpness, wallThickness, fineSteps, maxDistance,
+            applyToneMapping, dst
+        ).getTexture0()
+    }
+
+    /**
+     * computes screen space reflections from metallic, roughness, normal, position and color buffers
+     * */
+    fun compute(
+        position: ITexture2D,
+        normal: ITexture2D,
+        color: ITexture2D,
+        metallic: ITexture2D,
+        metallicMask: String,
+        roughness: ITexture2D,
+        roughnessMask: String,
+        illuminated: ITexture2D,
+        transform: Matrix4f,
+        strength: Float = 1f,
+        maskSharpness: Float = 2f,
+        wallThickness: Float = 0.2f,
+        fineSteps: Int = 10, // 10 are enough, if there are only rough surfaces
+        maxDistance: Float = 8f,
+        applyToneMapping: Boolean,
+        dst: IFramebuffer = FBStack["ss-reflections", position.w, position.h, 4, true, 1, false]
+    ): IFramebuffer {
+        // metallic may be on r, g, b, or a
         useFrame(dst, Renderer.copyRenderer) {
-            val fineSteps = 10 // 10 are enough, if there are only rough surfaces
-            val maxDistance = 8f
             val shader = shader.value
             shader.use()
             shader.v1b("applyToneMapping", applyToneMapping)
@@ -219,22 +274,23 @@ object ScreenSpaceReflections {
             shader.v1f("maxDistanceSq", maxDistance * maxDistance)
             shader.v1f("resolution", 1f / fineSteps)
             shader.v1i("steps", fineSteps)
-            shader.v1f("maskSharpness", 2f)
-            shader.v1f("thickness", 0.2f) // thickness, when we are under something
+            shader.v1f("maskSharpness", maskSharpness)
+            shader.v1f("thickness", wallThickness) // thickness, when we are under something
+            shader.v1f("strength", strength)
             shader.m4x4("transform", transform)
             val n = GPUFiltering.TRULY_LINEAR
             val c = Clamping.CLAMP
-            shader.v4f("metallicMask", singleToVector[metallicName]!!)
-            shader.v4f("roughnessMask", singleToVector[roughnessName]!!)
-            illuminated.bindTexture0(5, n, c)
-            deferred.findTexture(buffer, roughnessLayer).bind(4, n, c)
-            deferred.findTexture(buffer, metallicLayer).bind(3, n, c)
-            normalTexture.bind(2, n, c)
-            positionTexture.bind(1, n, c)
-            colorTexture.bind(0, n, c)
+            shader.v4f("metallicMask", singleToVector[metallicMask]!!)
+            shader.v4f("roughnessMask", singleToVector[roughnessMask]!!)
+            illuminated.bind(5, n, c)
+            roughness.bind(4, n, c)
+            metallic.bind(3, n, c)
+            normal.bind(2, n, c)
+            position.bind(1, n, c)
+            color.bind(0, n, c)
             flat01.draw(shader)
         }
-        return dst.getTexture0()
+        return dst
     }
 
 }

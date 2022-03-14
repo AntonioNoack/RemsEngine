@@ -180,10 +180,10 @@ object Spellchecking : CacheSection("Spellchecking") {
                                     val suggestionsJson = JsonReader(suggestionsString).readArray()
                                     val suggestionsList = suggestionsJson.map { suggestion ->
                                         suggestion as JsonObject
-                                        val start = suggestion["start"]!!.asText().toInt()
-                                        val end = suggestion["end"]!!.asText().toInt()
-                                        val message = suggestion["message"]!!.asText()
-                                        val shortMessage = suggestion["shortMessage"]!!.asText()
+                                        val start = suggestion.getInt("start")
+                                        val end = suggestion.getInt("end")
+                                        val message = suggestion.getText("message")!!
+                                        val shortMessage = suggestion.getText("shortMessage")!!
                                         val improvements = suggestion["suggestions"] as JsonArray
                                         val result = Suggestion(
                                             start, end, message, shortMessage,

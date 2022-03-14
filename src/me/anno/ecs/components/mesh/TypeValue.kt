@@ -6,6 +6,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import org.apache.logging.log4j.LogManager
 import org.joml.*
+import kotlin.reflect.KFunction
 
 class TypeValue(val type: GLSLType, val value: Any) {
 
@@ -22,16 +23,25 @@ class TypeValue(val type: GLSLType, val value: Any) {
     }
 
     fun bind(shader: Shader, location: Int) {
+        val value = value
         when (type) {
             GLSLType.BOOL -> shader.v1b(location, value as Boolean)
             GLSLType.V1I -> shader.v1i(location, value as Int)
             GLSLType.V2I -> shader.v2i(location, value as Vector2ic)
             GLSLType.V3I -> shader.v3i(location, value as Vector3ic)
             GLSLType.V4I -> shader.v4i(location, value as Vector4ic)
-            GLSLType.V1F -> shader.v1f(location, value as Float)
+            GLSLType.V1F -> when (value) {
+                is Float -> shader.v1f(location, value)
+                is () -> Any? -> shader.v1f(location, value.invoke() as Float)
+                else -> LOGGER.warn("Unknown type for V1F, ${value.javaClass.superclass}")
+            }
             GLSLType.V2F -> shader.v2f(location, value as Vector2fc)
             GLSLType.V3F -> shader.v3f(location, value as Vector3fc)
-            GLSLType.V4F -> shader.v4f(location, value as Vector4fc)
+            GLSLType.V4F -> when (value) {
+                is Quaternionfc -> shader.v4f(location, value)
+                is Vector4fc -> shader.v4f(location, value)
+                else -> LOGGER.warn("Unknown type for V4F, ${value.javaClass.superclass}")
+            }
             GLSLType.M3x3 -> shader.m3x3(location, value as Matrix3fc)
             GLSLType.M4x3 -> shader.m4x3(location, value as Matrix4x3fc)
             GLSLType.M4x4 -> shader.m4x4(location, value as Matrix4fc)

@@ -7,6 +7,8 @@ import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.IFramebuffer
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.FlatShaders.copyShader
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Shader
@@ -68,7 +70,7 @@ object Bloom {
             }
 
             // y blur pass
-            hi = max( (hi + 1) shr 1, 1)
+            hi = max((hi + 1) shr 1, 1)
             shaderY.use()
             val bufferY = FBStack["bloomY", wi, hi, 4, true, 1, false]
             useFrame(bufferY, renderer) {
@@ -193,6 +195,17 @@ object Bloom {
             val bloom = backwardPass(steps)
             addBloom(source, bloom, strength, applyToneMapping)
         }
+    }
+
+    fun bloom2(
+        source: ITexture2D, offset: Float, strength: Float, applyToneMapping: Boolean,
+        dst: IFramebuffer = FBStack["bloom", source.w, source.h,
+                if (applyToneMapping) TargetType.UByteTarget4 else TargetType.HalfFloatTarget4, 1, false]
+    ): IFramebuffer {
+        useFrame(dst) {
+            bloom(source, offset, strength, applyToneMapping)
+        }
+        return dst
     }
 
 }

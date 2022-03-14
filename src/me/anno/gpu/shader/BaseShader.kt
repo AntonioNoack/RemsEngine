@@ -71,7 +71,7 @@ open class BaseShader(
         if (postMainIndex >= 0 || !postProcessing1.isBlank2()) {
             val pmi2 = if (postMainIndex < 0) -1 else postProcessing1.indexOf('{', postMainIndex + 9)
             // define all variables with prefix "final", which are missing
-            for (type in DeferredLayerType.values()) {
+            for (type in DeferredLayerType.values) {
                 if (type.glslName in postProcessing1 && type.glslName !in fragment) {
                     type.appendDefinition(fragment)
                     fragment.append(" = ")
