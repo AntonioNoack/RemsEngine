@@ -1,12 +1,16 @@
 package me.anno.ecs.components.shaders.sdf
 
 import me.anno.ecs.components.mesh.TypeValue
-import me.anno.ecs.components.shaders.sdf.modifiers.SDFModifier
+import me.anno.ecs.components.shaders.sdf.modifiers.DistanceMapper
+import me.anno.ecs.components.shaders.sdf.modifiers.PositionMapper
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.Ptr
 import me.anno.gpu.shader.GLSLType
+import me.anno.utils.pooling.JomlPools
+import me.anno.utils.pooling.ObjectPool
 import me.anno.utils.types.AABBs.clear
 import org.joml.*
+import kotlin.math.abs
 
 open class SDFComponent : PrefabSaveable() {
 
@@ -29,9 +33,14 @@ open class SDFComponent : PrefabSaveable() {
 
     var scale = 1f
 
-    val modifiers = ArrayList<SDFModifier>()
-    fun add(m: SDFModifier) {
-        modifiers.add(m)
+    val positionMappers = ArrayList<PositionMapper>()
+    fun add(m: PositionMapper) {
+        positionMappers.add(m)
+    }
+
+    val distanceMappers = ArrayList<DistanceMapper>()
+    fun add(m: DistanceMapper) {
+        distanceMappers.add(m)
     }
 
     var dynamicPosition = false
@@ -39,48 +48,132 @@ open class SDFComponent : PrefabSaveable() {
     var dynamicScale = false
 
     open fun unionBounds(aabb: AABBd) {
+        // todo implement that everywhere
         aabb.clear()
     }
 
-    open fun createSDFShader(
+    fun buildDMShader(
+        builder: StringBuilder,
+        posIndex: Int,
+        dstName: String,
+        nextVariableId: Ptr<Int>,
+        uniforms: HashMap<String, TypeValue>,
+        functions: HashSet<String>
+    ) {
+        val mappers = distanceMappers
+        for (index in mappers.indices) {
+            val mapper = mappers[index]
+            mapper.buildShader(builder, posIndex, dstName, nextVariableId, uniforms, functions)
+        }
+    }
+
+    open fun buildShader(
         builder: StringBuilder,
         posIndex0: Int,
-        nextIndex: Ptr<Int>,
+        nextVariableId: Ptr<Int>,
         dstName: String,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ) {
     }
 
-    open fun computeSDF(pos: Vector3f): Float {
+    open fun computeSDFBase(pos: Vector4f): Float {
         throw NotImplementedError()
     }
 
-    fun applyTransform(pos: Vector3f) {
+    fun computeSDF(pos: Vector4f): Float {
+        var base = computeSDFBase(pos)
+        for (index in distanceMappers.indices) {
+            val mapper = distanceMappers[index]
+            base = mapper.calcTransform(pos, base)
+        }
+        return base
+    }
+
+    open fun raycast(
+        origin: Vector3f,
+        direction: Vector3f,
+        near: Float,
+        far: Float,
+        maxIterations: Int,
+        sdfReliability: Float = 1f,
+        maxRelativeError: Float = 0.001f
+    ): Float {
+        var distance = near
+        val pos = JomlPools.vec4f.create()
+        for (i in 0 until maxIterations) {
+            pos.x = origin.x + distance * direction.x
+            pos.y = origin.y + distance * direction.y
+            pos.z = origin.z + distance * direction.z
+            pos.w = 0f
+            val sd = computeSDF(pos)
+            if (abs(sd) <= maxRelativeError * distance) {
+                JomlPools.vec4f.sub(1)
+                return distance
+            }
+            distance += sdfReliability * sd
+            if (distance > far) break
+        }
+        JomlPools.vec4f.sub(1)
+        return Float.POSITIVE_INFINITY
+    }
+
+    open fun calcNormal(hit: Vector3f, dst: Vector3f = Vector3f(), epsilon: Float = 0.0005f): Vector3f {
+        val x = 0.5773f * epsilon
+        val y = -x
+        val pos4 = JomlPools.vec4f.create()
+        pos4.set(hit, 0f).add(x, y, y, 0f)
+        var sdf = computeSDF(pos4)
+        var nx = +sdf
+        var ny = -sdf
+        var nz = -sdf
+        pos4.set(hit, 0f).add(y, y, x, 0f)
+        sdf = computeSDF(pos4)
+        nx -= sdf
+        ny -= sdf
+        nz += sdf
+        pos4.set(hit, 0f).add(y, x, y, 0f)
+        sdf = computeSDF(pos4)
+        nx -= sdf
+        ny += sdf
+        nz -= sdf
+        pos4.set(hit, 0f).add(x, x, x, 0f)
+        sdf = computeSDF(pos4)
+        nx += sdf
+        ny += sdf
+        nz += sdf
+        JomlPools.vec4f.sub(1)
+        return dst.set(nx, ny, nz).normalize()
+    }
+
+    fun applyTransform(pos: Vector4f) {
         // same operations as in shader
-        pos.add(position)
-        pos.rotate(rotation)
+        val tmp = JomlPools.vec3f.create()
+        tmp.set(pos.x, pos.y, pos.z)
+        tmp.add(position)
+        tmp.rotate(rotation)
+        pos.set(tmp, pos.w)
         pos.mul(scale)
-        for (modifier in modifiers) {
-            modifier.applyTransform(pos)
+        for (modifier in positionMappers) {
+            modifier.calcTransform(pos)
         }
     }
 
     /**
      * returns position index and scale name
      * */
-    open fun createTransformShader(
+    open fun buildTransform(
         builder: StringBuilder,
         posIndex0: Int,
-        nextPosition: Ptr<Int>,
+        nextVariableId: Ptr<Int>,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
-    ): Pair<Int, String?> {
+    ): SDFTransform {
         var posIndex = posIndex0
         val position = position
         if (position != pos0 || dynamicPosition) {
             val prevPosition = posIndex
-            posIndex = nextPosition.value++
+            posIndex = nextVariableId.value++
             builder.append("vec3 pos")
             builder.append(posIndex)
             builder.append("=pos")
@@ -96,7 +189,7 @@ open class SDFComponent : PrefabSaveable() {
         if (rotation != rot0 || dynamicRotation) {
             functions += quatRot
             val prevPosition = posIndex
-            posIndex = nextPosition.value++
+            posIndex = nextVariableId.value++
             builder.append("vec3 pos")
             builder.append(posIndex)
             builder.append("=quatRot(pos")
@@ -120,7 +213,7 @@ open class SDFComponent : PrefabSaveable() {
         }
         val scaleName = if (scale != sca0 || dynamicScale) {
             val prevPosition = posIndex
-            posIndex = nextPosition.value++
+            posIndex = nextVariableId.value++
             builder.append("vec3 pos")
             builder.append(posIndex)
             builder.append("=pos")
@@ -138,22 +231,56 @@ open class SDFComponent : PrefabSaveable() {
                 scale.toString()
             }
         } else null
-        if (posIndex == posIndex0 && modifiers.isNotEmpty()) {
+        if (posIndex == posIndex0 && positionMappers.isNotEmpty()) {
             val prevPosition = posIndex
-            posIndex = nextPosition.value++
+            posIndex = nextVariableId.value++
             builder.append("vec3 pos")
             builder.append(posIndex)
             builder.append("=pos")
             builder.append(prevPosition)
             builder.append(";\n")
         }
-        for (modifier in modifiers) {
-            modifier.createTransform(builder, posIndex, uniforms, functions)
+        var offsetName: String? = null
+        for (modifier in positionMappers) {
+            val offsetName1 = modifier.buildShader(builder, posIndex, nextVariableId, uniforms, functions)
+            if (offsetName1 != null) {
+                if (offsetName == null) {
+                    offsetName = offsetName1
+                } else {
+                    builder.append(offsetName)
+                    builder.append("+=")
+                    builder.append(offsetName1)
+                    builder.append(";\n")
+                }
+            }
         }
-        return Pair(posIndex, scaleName)
+        return sdfTransPool.create().set(posIndex, scaleName, offsetName)
     }
 
+    override fun clone(): SDFComponent {
+        val clone = SDFComponent()
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as SDFComponent
+        clone.positionMappers.clear()
+        clone.positionMappers.addAll(clone.positionMappers.map { it.clone() as PositionMapper })
+        clone.position.set(position)
+        clone.rotation.set(rotation)
+        clone.scale = scale
+        clone.dynamicPosition = dynamicPosition
+        clone.dynamicRotation = dynamicRotation
+        clone.dynamicScale = dynamicScale
+    }
+
+    override val className: String = "SDFComponent"
+
     companion object {
+
+        val sdfTransPool = ObjectPool { SDFTransform() }
 
         fun writeVec(builder: StringBuilder, v: Vector2f) {
             builder.append("vec2(")
@@ -178,6 +305,18 @@ open class SDFComponent : PrefabSaveable() {
             } else {
                 builder.append(v.x)
             }
+            builder.append(")")
+        }
+
+        fun writeVec(builder: StringBuilder, v: Vector4f) {
+            builder.append("vec4(")
+            builder.append(v.x)
+            builder.append(",")
+            builder.append(v.y)
+            builder.append(",")
+            builder.append(v.z)
+            builder.append(",")
+            builder.append(v.w)
             builder.append(")")
         }
 
@@ -206,26 +345,5 @@ open class SDFComponent : PrefabSaveable() {
         val pos0 = Vector3f()
         const val sca0 = 1f
     }
-
-    override fun clone(): SDFComponent {
-        val clone = SDFComponent()
-        copy(clone)
-        return clone
-    }
-
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFComponent
-        clone.modifiers.clear()
-        clone.modifiers.addAll(clone.modifiers.map { it.clone() as SDFModifier })
-        clone.position.set(position)
-        clone.rotation.set(rotation)
-        clone.scale = scale
-        clone.dynamicPosition = dynamicPosition
-        clone.dynamicRotation = dynamicRotation
-        clone.dynamicScale = dynamicScale
-    }
-
-    override val className: String = "SDFComponent"
 
 }

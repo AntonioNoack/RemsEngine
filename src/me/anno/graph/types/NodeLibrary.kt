@@ -31,7 +31,7 @@ class NodeLibrary(val nodes: Set<Node>) {
             )
         )
 
-        fun register() {
+        fun init() {
             registerCustomClass(NodeInput())
             registerCustomClass(NodeOutput())
             for (node in flowNodes.nodes) {

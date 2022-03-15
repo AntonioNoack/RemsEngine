@@ -3,14 +3,16 @@ package me.anno.ecs.components.shaders.sdf.modifiers
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.shaders.sdf.SDFComponent.Companion.defineUniform
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.Ptr
 import me.anno.maths.Maths.clamp
 import org.joml.Vector3f
+import org.joml.Vector4f
 import kotlin.math.round
 
-class SDFArray : SDFModifier() {
+class SDFArray : PositionMapper() {
 
-    // todo hex grid array and triangle grid array
-    // todo better functions that allow for exactly N instances, no matter if odd or even
+    // todo triangle grid array
+    // todo better function that allows for exactly N instances, no matter if odd or even
 
     /**
      * limit repetition count to 2*repLimit+1
@@ -37,12 +39,13 @@ class SDFArray : SDFModifier() {
      * */
     var dynamicNull = false
 
-    override fun createTransform(
+    override fun buildShader(
         builder: StringBuilder,
         posIndex: Int,
+        nextVariableId: Ptr<Int>,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
-    ) {
+    ): String? {
         functions.add("vec3 mod2(vec3 p, vec3 c, vec3 l){ return p-c*clamp(round(p/c),-l,l); }\n")
         functions.add("float mod2(float p, float c, float l){ return p-c*clamp(round(p/c),-l,l); }\n")
         val rep = repetition
@@ -61,13 +64,14 @@ class SDFArray : SDFModifier() {
             if (rep.y > 0f) repeat(builder, posIndex, rep.y, lim.y, 'y')
             if (rep.z > 0f) repeat(builder, posIndex, rep.z, lim.z, 'z')
         }
+        return null
     }
 
     private fun apply(p: Float, c: Float, l: Float): Float {
         return p - c * clamp(round(p / c), -l, l)
     }
 
-    override fun applyTransform(pos: Vector3f) {
+    override fun calcTransform(pos: Vector4f) {
         val rep = repetition
         val lim = repLimit
         if (rep.x > 0f) pos.x = apply(pos.x, rep.x, lim.x)

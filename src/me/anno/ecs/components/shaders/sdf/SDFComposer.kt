@@ -17,14 +17,14 @@ object SDFComposer {
             "   vec2 res = vec2(-1.0);\n" +
             "   float tMin = distanceBounds.x, tMax = distanceBounds.y;\n" +
             "   float t = tMin;\n" +
-            "   for(int i=0; i<70 && t<tMax; i++){\n" +
+            "   for(int i=0; i<sdfMaxSteps && t<tMax; i++){\n" +
             "     vec2 h = map(ro+rd*t);\n" +
-            "     if(abs(h.x)<(0.001*t)){\n" + // allowed error grows with distance
+            "     if(abs(h.x)<(sdfMaxRelativeError*t)){\n" + // allowed error grows with distance
             "       res = vec2(t,h.y);\n" +
             "       break;\n" +
             "     }\n" +
-            // todo how reliably can we use the normal to accelerate convergence?
-            "     t += h.x;\n" +
+            // sdfReliability: sometimes, we need more steps, because the sdf is not reliable
+            "     t += sdfReliability * h.x;\n" +
             "   }\n" +
             "   return res;\n" +
             "}\n"
@@ -50,13 +50,16 @@ object SDFComposer {
         val functions = LinkedHashSet<String>()
         val uniforms = HashMap<String, TypeValue>()
         val shapeDependentShader = StringBuilder()
-        tree.createSDFShader(shapeDependentShader, 0, Ptr(1), "res", uniforms, functions)
+        tree.buildShader(shapeDependentShader, 0, Ptr(1), "res", uniforms, functions)
         return uniforms to BaseShader("raycasting", simplestVertexShader, uvList, "" +
                 uniforms.entries.joinToString("") { (k, v) -> "uniform ${v.type.glslName} $k;\n" } +
                 "uniform mat3 camMatrix;\n" +
                 "uniform vec2 camScale;\n" +
                 "uniform vec3 camPosition;\n" +
                 "uniform vec2 distanceBounds;\n" +
+                "uniform vec3 sunDir;\n" +
+                "uniform int sdfMaxSteps;\n" +
+                "uniform float sdfReliability, sdfNormalEpsilon, sdfMaxRelativeError;\n" + // [0,1.5], can be 1.0 in most cases; higher = faster convergence
                 "uniform vec3 depthParams;\n" + // near, far, reversedZ
                 "#define Infinity 1e20\n" +
                 functions.joinToString("") +
@@ -76,9 +79,9 @@ object SDFComposer {
                 "   vec2 ray = raycast(camPosition, dir);\n" +
                 "   if(ray.y < 0.0) discard;\n" +
                 "   vec3 hit = camPosition + ray.x * dir;\n" +
-                "   vec3 normal = calcNormal(hit, 0.0005);\n" +
+                "   vec3 normal = calcNormal(hit, sdfNormalEpsilon);\n" +
                 // "   gl_FragColor = vec4(normal * .5+.5, 1.0);\n" +
-                "   gl_FragColor = vec4(vec3(normal.x*.4+.8), 1.0);\n" +
+                "   gl_FragColor = vec4(vec3(dot(normal,sunDir)*.4+.8), 1.0);\n" +
                 // todo support non-reversed depth
                 "   gl_FragDepth = depthParams.x / ray.x;\n" +
                 "}")

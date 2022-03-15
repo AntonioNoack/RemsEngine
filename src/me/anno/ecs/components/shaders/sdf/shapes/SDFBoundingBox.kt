@@ -6,7 +6,7 @@ import me.anno.engine.Ptr
 import me.anno.gpu.shader.GLSLType
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.min
-import org.joml.Vector3f
+import org.joml.Vector4f
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -15,19 +15,19 @@ class SDFBoundingBox : SDFBox() {
     var dynamicThickness = false
     var thickness = 0.1f
 
-    override fun createSDFShader(
+    override fun buildShader(
         builder: StringBuilder,
         posIndex0: Int,
-        nextIndex: Ptr<Int>,
+        nextVariableId: Ptr<Int>,
         dstName: String,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ) {
-        val (posIndex, scaleName) = createTransformShader(builder, posIndex0, nextIndex, uniforms, functions)
+        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
         functions.add(boundingBoxSDF)
         smartMinBegin(builder, dstName)
         builder.append("sdBoundingBox(pos")
-        builder.append(posIndex)
+        builder.append(trans.posIndex)
         builder.append(',')
         if (dynamicSize) builder.append(defineUniform(uniforms, halfExtends))
         else writeVec(builder, halfExtends)
@@ -40,14 +40,14 @@ class SDFBoundingBox : SDFBox() {
             else builder.append(smoothness)
         }
         builder.append(')')
-        smartMinEnd(builder, scaleName)
+        smartMinEnd(builder, dstName, nextVariableId, uniforms, functions, trans)
     }
 
     private fun lineSDF(x: Float, y: Float, z: Float): Float {
         return length(max(x, 0f), max(y, 0f), max(z, 0f)) + min(max(x, max(y, z)), 0f)
     }
 
-    override fun computeSDF(pos: Vector3f): Float {
+    override fun computeSDFBase(pos: Vector4f): Float {
         applyTransform(pos)
         val thickness = thickness
         val b = halfExtends
@@ -62,7 +62,7 @@ class SDFBoundingBox : SDFBox() {
         val qx = abs(px + e) - e
         val qy = abs(py + e) - e
         val qz = abs(pz + e) - e
-        return min(lineSDF(px, qy, qz), min(lineSDF(qx, py, qz), lineSDF(qx, qy, pz))) - k
+        return min(lineSDF(px, qy, qz), min(lineSDF(qx, py, qz), lineSDF(qx, qy, pz))) - k + pos.w
     }
 
     override fun clone(): SDFBoundingBox {

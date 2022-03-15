@@ -8,6 +8,7 @@ import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import org.joml.Vector3f
+import org.joml.Vector4f
 import kotlin.math.abs
 
 open class SDFBox : SDFSmoothShape() {
@@ -17,19 +18,19 @@ open class SDFBox : SDFSmoothShape() {
             field.set(value)
         }
 
-    override fun createSDFShader(
+    override fun buildShader(
         builder: StringBuilder,
         posIndex0: Int,
-        nextIndex: Ptr<Int>,
+        nextVariableId: Ptr<Int>,
         dstName: String,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ) {
-        val (posIndex, scaleName) = createTransformShader(builder, posIndex0, nextIndex, uniforms, functions)
-        functions.add(boxSDF)
+        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
+        functions.add(sdBox)
         smartMinBegin(builder, dstName)
         builder.append("sdBox(pos")
-        builder.append(posIndex)
+        builder.append(trans.posIndex)
         builder.append(',')
         if (dynamicSize) builder.append(defineUniform(uniforms, halfExtends))
         else writeVec(builder, halfExtends)
@@ -38,10 +39,10 @@ open class SDFBox : SDFSmoothShape() {
             builder.append(defineUniform(uniforms, GLSLType.V1F, { smoothness }))
         }
         builder.append(')')
-        smartMinEnd(builder, scaleName)
+        smartMinEnd(builder, dstName, nextVariableId, uniforms, functions, trans)
     }
 
-    override fun computeSDF(pos: Vector3f): Float {
+    override fun computeSDFBase(pos: Vector4f): Float {
         applyTransform(pos)
         val r = smoothness
         val b = halfExtends
@@ -50,7 +51,7 @@ open class SDFBox : SDFSmoothShape() {
         val qz = abs(pos.z) - b.z + r
         val outer = length(max(0f, qx), max(0f, qy), max(0f, qz))
         val inner = min(max(qx, max(qy, qz)), 0f)
-        return outer + inner - r
+        return outer + inner - r + pos.w
     }
 
     override fun clone(): SDFBox {
@@ -69,7 +70,7 @@ open class SDFBox : SDFSmoothShape() {
 
     companion object {
         // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez
-        const val boxSDF = "" +
+        const val sdBox = "" +
                 "float sdBox(vec3 p, vec3 b){\n" +
                 "  vec3 d = abs(p) - b;\n" +
                 "  return min(max(d.x,max(d.y,d.z)),0.0) + length(max(d,0.0));\n" +

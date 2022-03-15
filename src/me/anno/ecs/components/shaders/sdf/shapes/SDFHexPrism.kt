@@ -8,6 +8,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
 import org.joml.Vector2f
 import org.joml.Vector3f
+import org.joml.Vector4f
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -29,19 +30,19 @@ open class SDFHexPrism : SDFSmoothShape() {
             params.y = value
         }
 
-    override fun createSDFShader(
+    override fun buildShader(
         builder: StringBuilder,
         posIndex0: Int,
-        nextIndex: Ptr<Int>,
+        nextVariableId: Ptr<Int>,
         dstName: String,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ) {
-        val (posIndex, scaleName) = createTransformShader(builder, posIndex0, nextIndex, uniforms, functions)
+        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
         functions.add(sdHexPrism)
         smartMinBegin(builder, dstName)
         builder.append("sdHexPrism(pos")
-        builder.append(posIndex)
+        builder.append(trans.posIndex)
         builder.append(',')
         if (dynamicSize) builder.append(defineUniform(uniforms, params))
         else writeVec(builder, params)
@@ -51,12 +52,11 @@ open class SDFHexPrism : SDFSmoothShape() {
             else builder.append(smoothness)
         }
         builder.append(')')
-        smartMinEnd(builder, scaleName)
+        smartMinEnd(builder, dstName, nextVariableId, uniforms, functions, trans)
     }
 
-    override fun computeSDF(pos: Vector3f): Float {
+    override fun computeSDFBase(pos: Vector4f): Float {
         applyTransform(pos)
-        // todo check if correct
         val h = params
         val magic = magic
         val k0 = smoothness * min(h.x, h.y)
@@ -73,7 +73,7 @@ open class SDFHexPrism : SDFSmoothShape() {
         val lim = magic.z * hx
         val dx = length(px - clamp(px, -lim, +lim), py - hx) * sign(py - hx)
         val dy = pz - hy
-        return min(max(dx, dy), 0f) + length(max(dx, 0f), max(dy, 0f)) - k0
+        return min(max(dx, dy), 0f) + length(max(dx, 0f), max(dy, 0f)) - k0 + pos.w
     }
 
     override fun clone(): SDFHexPrism {

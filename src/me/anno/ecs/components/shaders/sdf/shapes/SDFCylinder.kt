@@ -7,7 +7,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.min
 import org.joml.Vector2f
-import org.joml.Vector3f
+import org.joml.Vector4f
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -27,19 +27,19 @@ open class SDFCylinder : SDFSmoothShape() {
             params.y = value
         }
 
-    override fun createSDFShader(
+    override fun buildShader(
         builder: StringBuilder,
         posIndex0: Int,
-        nextIndex: Ptr<Int>,
+        nextVariableId: Ptr<Int>,
         dstName: String,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ) {
-        val (posIndex, scaleName) = createTransformShader(builder, posIndex0, nextIndex, uniforms, functions)
+        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
         functions.add(sdCylinder)
         smartMinBegin(builder, dstName)
         builder.append("sdCylinder(pos")
-        builder.append(posIndex)
+        builder.append(trans.posIndex)
         builder.append(',')
         if (dynamicSize) builder.append(defineUniform(uniforms, params))
         else writeVec(builder, params)
@@ -49,10 +49,10 @@ open class SDFCylinder : SDFSmoothShape() {
             else builder.append(smoothness)
         }
         builder.append(')')
-        smartMinEnd(builder, scaleName)
+        smartMinEnd(builder, dstName, nextVariableId, uniforms, functions, trans)
     }
 
-    override fun computeSDF(pos: Vector3f): Float {
+    override fun computeSDFBase(pos: Vector4f): Float {
         applyTransform(pos)
         val h = params
         val k = smoothness
@@ -60,7 +60,7 @@ open class SDFCylinder : SDFSmoothShape() {
         val hky = h.y - k
         val dx = abs(length(pos.x, pos.z)) - hkx
         val dy = abs(pos.y) - hky
-        return min(max(dx, dy), 0f) + length(max(dx, 0f), max(dy, 0f)) - k
+        return min(max(dx, dy), 0f) + length(max(dx, 0f), max(dy, 0f)) - k + pos.w
     }
 
     override fun clone(): SDFCylinder {

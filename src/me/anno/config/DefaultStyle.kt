@@ -1,6 +1,5 @@
 package me.anno.config
 
-import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.config.ConfigBasics
 import me.anno.io.utils.StringMap
 import me.anno.maths.Maths.mixARGB

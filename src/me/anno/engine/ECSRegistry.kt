@@ -26,6 +26,7 @@ import me.anno.ecs.components.physics.constraints.*
 import me.anno.ecs.components.script.QuickInputScriptComponent
 import me.anno.ecs.components.script.QuickScriptComponent
 import me.anno.ecs.components.script.ScriptComponent
+import me.anno.ecs.components.shaders.sdf.SDFRegistry
 import me.anno.ecs.components.test.RaycastTestComponent
 import me.anno.ecs.components.test.TestVehicleController
 import me.anno.ecs.components.test.TypeTestComponent
@@ -203,7 +204,8 @@ object ECSRegistry {
         registerCustomClass(TriTerrain())
         registerCustomClass(ManualProceduralMesh())
 
-        NodeLibrary.register()
+        SDFRegistry.init()
+        NodeLibrary.init()
 
         if (Build.isDebug) {
             // test classes

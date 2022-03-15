@@ -1,77 +1,71 @@
 package me.anno.ecs.components.shaders.sdf
 
 import me.anno.Engine
-import me.anno.ecs.components.shaders.sdf.modifiers.SDFArray
+import me.anno.config.DefaultStyle.deepDark
+import me.anno.ecs.components.shaders.sdf.modifiers.*
 import me.anno.ecs.components.shaders.sdf.shapes.*
 import me.anno.gpu.GFX
+import me.anno.image.ImageWriter
 import me.anno.input.Input
 import me.anno.ui.debug.TestDrawPanel
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Matrix3f
 import org.joml.Quaternionf
 import org.joml.Vector3f
+import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.tan
 
-fun main() {
-    // render test of shapes
-    // todo we could try to recreate some basic samples from IQ with our nodes :)
-
-    // this would ideally test our capabilities
-    val camRotation = Quaternionf()
-    val camPosition = Vector3f(0f, 0f, 5f)
-    val camMatrix = Matrix3f()
-    val fovDegrees = 90f
-
-    fun createGroup(): SDFGroup {
-        val obj0 = SDFBoundingBox()
-        obj0.thickness = 0.1f
-        obj0.dynamicThickness = true
-        obj0.smoothness = 0.1f
-        obj0.dynamicSmoothness = true
-        val obj1 = SDFBox()
-        obj1.smoothness = 0.3f
-        obj1.dynamicSmoothness = true
-        val obj2 = SDFSphere()
-        val obj3 = SDFTorus()
-        val obj4 = SDFCylinder()
-        obj4.smoothness = 0.1f
-        obj4.dynamicSmoothness = true
-        val obj5 = SDFHexPrism()
-        obj5.smoothness = 0.1f
-        obj5.dynamicSmoothness = true
-        obj5.dynamicRotation = true
-        val group = SDFGroup()
-        group.add(obj0)
-        group.add(obj1)
-        group.add(obj2)
-        group.add(obj4)
-        group.add(obj3)
-        group.add(obj5)
-        return group
+fun testCPU(finalShape: SDFComponent, camPosition: Vector3f, fovFactor: Float) {
+    // test the cpu implementation by using it to calculate a frame as well
+    val w = 96 * 6
+    val h = 64 * 6
+    val bgc = deepDark
+    val camScaleX = fovFactor * w.toFloat() / h
+    ImageWriter.writeRGBImageInt(w, h, "sdf.png", 32) { x, y, _ ->
+        val dir = JomlPools.vec3f.create()
+        dir.set(
+            +(x.toFloat() / w * 2f - 1f) * camScaleX,
+            -(y.toFloat() / h * 2f - 1f) * fovFactor, -1f
+        )
+        val distance = finalShape.raycast(camPosition, dir, 0f, 1e5f, 1200, 0.7f)
+        dir.mul(distance).add(camPosition)
+        if (distance.isFinite()) {
+            val normal = finalShape.calcNormal(dir, dir)
+            if (normal.x in -1f..1f) {
+                val color = (normal.x * 100 + 255 - 100).toInt() * 0x10101
+                JomlPools.vec3f.sub(1)
+                color
+            } else 0xff0000
+        } else {
+            JomlPools.vec3f.sub(1)
+            bgc
+        }
     }
+    /*ImageWriter.writeImageFloat(w, h, "sdf.png", 32, true) { x, y, _ ->
+        val dir = JomlPools.vec3f.create()
+        dir.set(
+            +(x.toFloat() / w * 2f - 1f) * camScaleX,
+            -(y.toFloat() / h * 2f - 1f) * fovFactor, -1f
+        )
+        val distance = finalShape.raycast(camPosition, dir, 0f, 1e3f, 30)
+        JomlPools.vec3f.sub(1)
+        distance
+    }*/
+}
 
-    val group1 = createGroup()
-    group1.position.y += 1f
-    group1.dynamicRotation = true
-    val group2 = createGroup()
-    group2.position.y -= 1f
-    group2.dynamicRotation = true
-    val megaGroup = SDFGroup()
-    megaGroup.add(group1)
-    megaGroup.add(group2)
-    // megaGroup.add(SDFSphere().apply { radius = 2.5f; position.y += 2f })
-    megaGroup.type = SDFGroup.CombinationMode.UNION
-    megaGroup.smoothness = 0.5f
-    val array = SDFArray()
-    array.repetition.set(2.7f, 0f, 2.7f)
-    array.repLimit.set(3f)
-    megaGroup.add(array)
-    val (uniforms, shaderBase) = SDFComposer.createShader(megaGroup)
+fun testGPU(finalShape: SDFComponent, camPosition: Vector3f, fovFactor: Float) {
+    val (uniforms, shaderBase) = SDFComposer.createShader(finalShape)
+    val group1 = (finalShape as? SDFGroup)?.children?.getOrNull(0)
+    val group2 = (finalShape as? SDFGroup)?.children?.getOrNull(1)
     println(shaderBase.fragmentSource)
+    val camRotation = Quaternionf()
+    val camMatrix = Matrix3f()
     TestDrawPanel.testDrawing {
         val dt = Engine.deltaTime
         val dt5 = 5f * dt
+        val time = Engine.gameTimeF.toFloat()
         camRotation.transformInverse(camPosition)
         if (Input.isKeyDown('w')) camPosition.z -= dt5
         if (Input.isKeyDown('s')) camPosition.z += dt5
@@ -83,23 +77,39 @@ fun main() {
         GFX.clip(it.x, it.y, it.w, it.h) {
             it.clear()
             val shader = shaderBase.value
-            val fovFactor = tan(fovDegrees.toRadians() * 0.5f)
             shader.use()
-            shader.v2f("camScale", (fovFactor * it.w) / it.h, fovFactor)
+            shader.v2f("camScale", fovFactor * it.w.toFloat() / it.h, fovFactor)
             shader.v3f("camPosition", camPosition)
             shader.v2f("distanceBounds", 0.01f, 1e3f)
-            group1.progress = (sin(Engine.gameTimeF.toFloat()) * .5f + .5f) * (group1.children.size - 1f)
-            group2.progress = (sin(Engine.gameTimeF.toFloat() + 1.57f) * .5f + .5f) * (group2.children.size - 1f)
-            /*group1.rotation.rotateY(Engine.deltaTime)
-            group1.rotation.rotateX(2f * Engine.deltaTime)*/
-            group2.rotation.rotateY(-dt * 3f)
-            for (child in group1.children) {
-                if (child is SDFSmoothShape && child !is SDFCylinder) {
-                    child.smoothness = sin(Engine.gameTimeF.toFloat()) * .5f + .5f
+            shader.v1i("sdfMaxSteps", 1000)
+            shader.v1f("sdfMaxRelativeError", 0.001f)
+            shader.v1f("sdfReliability", 0.4f)
+            shader.v1f("sdfNormalEpsilon", 0.005f)
+            shader.v3f("sunDir", 0.7f, 0f, 0.5f)
+            if (group1 is SDFGroup) {
+                for (mapper in group1.positionMappers) {
+                    if (mapper is SDFTwist) {
+                        // mapper.source = mapper.source.rotateX(dt)
+                        // mapper.destination = mapper.destination.rotateX(dt)
+                    }
                 }
-                if (child is SDFHexPrism) {
-                    child.rotation.rotateY(dt)
+                /*group1.distanceMappers.filterIsInstance<SDFOnion>().forEach {
+                    it.rings = ((sin(time) * .5f + .5f) * 20 + 1).toInt()
+                }*/
+                group1.progress = (sin(time) * .5f + .5f) * (group1.children.size - 1f)
+                if (group1.dynamicRotation) group1.rotation.rotateY(dt)
+                for (child in group1.children) {
+                    /*if (child is SDFSmoothShape && child !is SDFCylinder) {
+                        child.smoothness = sin(Engine.gameTimeF.toFloat()) * .5f + .5f
+                    }*/
+                    /*if (child is SDFHexPrism) {
+                        child.rotation.rotateY(-dt)
+                    }*/
                 }
+            }
+            if (group2 is SDFGroup) {
+                group2.progress = (cos(time) * .5f + .5f) * (group2.children.size - 1f)
+                if (group2.dynamicRotation) group2.rotation.rotateY(-dt * 3f)
             }
             camRotation.identity()
                 .rotateY(it.mx * 2f)
@@ -112,4 +122,76 @@ fun main() {
             GFX.flat01.draw(shader)
         }
     }
+}
+
+fun main() {
+
+    // render test of shapes
+    // todo we could try to recreate some basic samples from IQ with our nodes :)
+
+    // this would ideally test our capabilities
+    val camPosition = Vector3f(0f, 3f, 5f)
+    val fovDegrees = 90f
+
+    fun createGroup(): SDFGroup {
+        val obj0 = SDFBoundingBox()
+        obj0.thickness = 0.1f
+        obj0.dynamicThickness = true
+        obj0.smoothness = 0.1f
+        obj0.dynamicSmoothness = true
+        val obj1 = SDFBox()
+        obj1.smoothness = 0.3f
+        // obj1.dynamicSmoothness = true
+        val obj2 = SDFSphere()
+        val obj3 = SDFTorus()
+        val obj4 = SDFCylinder()
+        obj4.smoothness = 0.1f
+        obj4.dynamicSmoothness = true
+        val obj5 = SDFHexPrism()
+        obj5.smoothness = 0.1f
+        obj5.dynamicSmoothness = true
+        obj5.dynamicRotation = true
+        obj5.scale = 0.5f
+        obj5.add(SDFStretcher(0.3f, 0f, 0f))
+        val group = SDFGroup()
+        group.add(obj0)
+        group.add(SDFTwist().apply {
+            strength = 1f
+            // "cheap bend": src = x, dst = z
+            source = Vector3f(1f, 0f, 0f)
+            destination = Vector3f(0f, 0f, 1f)
+            center.set(0f, -1f, 0f)
+            // dynamicSource = true
+            // dynamicDestination = true
+        })
+        group.add(obj1)
+        group.add(obj2)
+        group.add(obj4)
+        group.add(obj3)
+        group.add(obj5)
+        group.add(SDFOnion())
+        group.add(SDFHalfSpace())
+        return group
+    }
+
+    val group1 = createGroup()
+    group1.position.y += 1f
+    // group1.dynamicRotation = true
+    val group2 = createGroup()
+    group2.position.y -= 1f
+    // group2.dynamicRotation = true
+    val finalShape = SDFGroup()
+    finalShape.add(group1)
+    finalShape.type = SDFGroup.CombinationMode.UNION
+    finalShape.smoothness = 0.5f
+    val array = SDFArray()
+    array.repetition.set(2.7f, 0f, 2.7f)
+    array.repLimit.set(3f)
+    // finalShape.add(array)
+    val hexGrid = SDFHexGrid()
+    hexGrid.cellSize = 4f
+    finalShape.add(hexGrid)
+    val fovFactor = tan(fovDegrees.toRadians() * 0.5f)
+    // testCPU(finalShape, camPosition, fovFactor)
+    testGPU(finalShape, camPosition, fovFactor)
 }

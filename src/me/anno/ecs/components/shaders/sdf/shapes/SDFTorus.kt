@@ -5,7 +5,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.Ptr
 import me.anno.maths.Maths.length
 import org.joml.Vector2f
-import org.joml.Vector3f
+import org.joml.Vector4f
 
 @Suppress("unused")
 class SDFTorus : SDFShape() {
@@ -24,32 +24,32 @@ class SDFTorus : SDFShape() {
             params.y = value
         }
 
-    override fun createSDFShader(
+    override fun buildShader(
         builder: StringBuilder,
         posIndex0: Int,
-        nextIndex: Ptr<Int>,
+        nextVariableId: Ptr<Int>,
         dstName: String,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ) {
-        val (posIndex, scaleName) = createTransformShader(builder, posIndex0, nextIndex, uniforms, functions)
+        val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
         functions.add(torusSDF)
         smartMinBegin(builder, dstName)
         builder.append("sdTorus(pos")
-        builder.append(posIndex)
+        builder.append(trans.posIndex)
         builder.append(',')
         if (dynamicSize) builder.append(defineUniform(uniforms, params))
         else writeVec(builder, params)
         builder.append(')')
-        smartMinEnd(builder, scaleName)
+        smartMinEnd(builder, dstName, nextVariableId, uniforms, functions, trans)
     }
 
-    override fun computeSDF(pos: Vector3f): Float {
+    override fun computeSDFBase(pos: Vector4f): Float {
         applyTransform(pos)
         val t0 = params
         val tx = t0.x - t0.y
         val ty = t0.y
-        return length(length(pos.x, pos.z) - tx, pos.y) - ty
+        return length(length(pos.x, pos.z) - tx, pos.y) - ty + pos.w
     }
 
     override fun clone(): SDFTorus {

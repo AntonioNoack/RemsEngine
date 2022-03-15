@@ -4,7 +4,10 @@ import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.Ptr
 import me.anno.gpu.shader.GLSLType
-import org.joml.Vector3f
+import me.anno.maths.Maths.max
+import me.anno.maths.Maths.min
+import org.joml.Vector4f
+import kotlin.math.abs
 
 class SDFGroup : SDFComponent() {
 
@@ -29,10 +32,10 @@ class SDFGroup : SDFComponent() {
         INTERPOLATION(5, "sdInt", sdInt),
     }
 
-    override fun createSDFShader(
+    override fun buildShader(
         builder: StringBuilder,
         posIndex0: Int,
-        nextIndex: Ptr<Int>,
+        nextVariableId: Ptr<Int>,
         dstName: String,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
@@ -40,13 +43,14 @@ class SDFGroup : SDFComponent() {
         val children = children
         if (children.isNotEmpty()) {
             val type = type
-            val (posIndex, scaleName) = createTransformShader(builder, posIndex0, nextIndex, uniforms, functions)
+            val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
+            val posIndex = trans.posIndex
             if (children.size == 1) {
                 // done ^^
-                children[0].createSDFShader(builder, posIndex, nextIndex, dstName, uniforms, functions)
+                children[0].buildShader(builder, posIndex, nextVariableId, dstName, uniforms, functions)
             } else {
                 val useSmoothness = dynamicSmoothness || smoothness > 0f
-                val v1 = "res${nextIndex.value++}"
+                val v1 = "res${nextVariableId.value++}"
                 builder.append("vec2 ").append(v1)
                 builder.append(";\n")
                 val p1Name = if (type == CombinationMode.INTERPOLATION) {
@@ -73,7 +77,7 @@ class SDFGroup : SDFComponent() {
                 for (childIndex in children.indices) {
                     val child = children[childIndex]
                     val vi = if (childIndex == 0) dstName else v1
-                    child.createSDFShader(builder, posIndex, nextIndex, vi, uniforms, functions)
+                    child.buildShader(builder, posIndex, nextVariableId, vi, uniforms, functions)
                     if (childIndex > 0) {
                         builder.append(dstName)
                         builder.append("=")
@@ -103,12 +107,61 @@ class SDFGroup : SDFComponent() {
                     }
                 }
             }
+            // first scale or offset? offset, because it was applied after scaling
+            val offsetName = trans.offsetName
+            val scaleName = trans.scaleName
+            if (offsetName != null) builder.append(dstName).append(".x+=").append(offsetName).append(";\n")
             if (scaleName != null) builder.append(dstName).append(".x*=").append(scaleName).append(";\n")
+            buildDMShader(builder, posIndex, dstName, nextVariableId, uniforms, functions)
+        } else {
+            builder.append(dstName).append("=vec2(1e20,-1.0);\n")
+            buildDMShader(builder, posIndex0, dstName, nextVariableId, uniforms, functions)
         }
     }
 
-    override fun computeSDF(pos: Vector3f): Float {
-        TODO("combine sdfs based on type")
+    override fun computeSDFBase(pos: Vector4f): Float {
+        return when (children.size) {
+            0 -> Float.POSITIVE_INFINITY
+            1 -> {
+                applyTransform(pos)
+                val pw = pos.w
+                pos.w = 0f
+                return (children[0].computeSDF(pos) + pw) * scale
+            }
+            else -> {
+                applyTransform(pos)
+                val pw = pos.w
+                var d0 = Float.POSITIVE_INFINITY
+                val px = pos.x
+                val py = pos.y
+                val pz = pos.z
+                val sm = smoothness
+                val progress = progress
+                val type = type
+                for (childIndex in children.indices) {
+                    val child = children[childIndex]
+                    pos.set(px, py, pz, 0f)
+                    val d1 = child.computeSDF(pos)
+                    d0 = if (childIndex == 0) d1
+                    else when (type) {
+                        CombinationMode.UNION -> sMinCubic(d0, d1, sm)
+                        CombinationMode.INTERSECTION -> sMaxCubic(d0, d1, sm)
+                        CombinationMode.DIFFERENCE1 -> sMaxCubic(+d0, -d1, sm)
+                        CombinationMode.DIFFERENCE2 -> sMaxCubic(-d0, +d1, sm)
+                        CombinationMode.DIFFERENCE_SYM -> sMinCubic(
+                            sMaxCubic(-d0, +d1, sm),
+                            sMaxCubic(+d0, -d1, sm),
+                            sm
+                        )
+                        CombinationMode.INTERPOLATION -> {
+                            if (childIndex == 1) d0 *= max(1f - abs(progress), 0f)
+                            d0 + d1 * max(1f - abs(progress - childIndex), 0f)
+                        }
+                    }
+                }
+                return (d0 + pw) * scale
+            }
+        }
     }
 
     override fun clone(): SDFGroup {
@@ -129,6 +182,21 @@ class SDFGroup : SDFComponent() {
     override val className = "SDFGroup"
 
     companion object {
+
+        fun sMinCubic(a: Float, b: Float, k: Float): Float {
+            val h = max(k - abs(a - b), 0f) / k
+            val m = h * h * h * 0.5f
+            val s = m * k / 3f
+            return min(a, b) - s
+        }
+
+        fun sMaxCubic(a: Float, b: Float, k: Float): Float {
+            val h = max(k - abs(a - b), 0f) / k
+            val m = h * h * h * 0.5f
+            val s = m * k / 3f
+            return max(a, b) + s
+        }
+
         const val smoothMinCubic = "" +
                 // todo when we have material colors, use the first one as mixing parameter
                 // inputs: sd.a, sd.b, k
