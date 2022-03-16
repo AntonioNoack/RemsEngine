@@ -26,9 +26,6 @@ class SDFHalfSpace() : DistanceMapper() {
     var smoothness = 0.1f
     var dynamicSmoothness = false
 
-    // todo add this as a position mapper, and optimization method: if the ray is not going to hit the plane, skip the following sdf
-    // todo add spheres/boxes as skippers as well
-
     private val params = Vector4f(0f, 1f, 0f, 0f)
 
     var position = Vector3f()

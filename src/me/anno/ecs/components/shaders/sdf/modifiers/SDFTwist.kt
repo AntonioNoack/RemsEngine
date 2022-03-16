@@ -11,8 +11,6 @@ import org.joml.Vector4f
 
 class SDFTwist : PositionMapper() {
 
-    // todo we could try to rotate around different positions
-
     private val sourceParams = Vector4f(0f, 1f, 0f, 0f)
 
     private fun calcSourceParams() {

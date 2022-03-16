@@ -9,7 +9,7 @@ import me.anno.engine.Ptr
 
 open class SDFShape : SDFComponent() {
 
-    // todo each shape probably should have a software implementation as well, so we can use sdf shapes for physics and accurate ray tests :)
+    // todo use raycast for physics & ray tests
 
     // todo special sdf materials? ...
     var dynamicSize = false

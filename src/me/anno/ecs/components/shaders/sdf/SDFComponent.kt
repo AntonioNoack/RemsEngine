@@ -8,18 +8,14 @@ import me.anno.engine.Ptr
 import me.anno.gpu.shader.GLSLType
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.pooling.ObjectPool
-import me.anno.utils.types.AABBs.clear
 import org.joml.*
 import kotlin.math.abs
 
+// todo soft (barrel) distortion
 open class SDFComponent : PrefabSaveable() {
 
     // input: 3d position
     // output: float distance, int material index
-
-    // todo list parameters with their types
-    // todo somehow replace them, so multiple can be used
-    // todo validity system
 
     // local transform
     var position = Vector3f()
@@ -48,9 +44,16 @@ open class SDFComponent : PrefabSaveable() {
     var dynamicRotation = false
     var dynamicScale = false
 
-    open fun unionBounds(aabb: AABBd) {
-        // todo implement that everywhere
-        aabb.clear()
+    // todo calculate bounds based on transform
+    // todo calculate bounds based on modifiers & such
+    open fun calculateBaseBounds(dst: AABBf) {
+        // accurate for most things
+        dst.union(-1f, 0f, 0f)
+        dst.union(+1f, 0f, 0f)
+        dst.union(0f, -1f, 0f)
+        dst.union(0f, +1f, 0f)
+        dst.union(0f, 0f, -1f)
+        dst.union(0f, 0f, +1f)
     }
 
     fun buildDMShader(

@@ -11,6 +11,8 @@ import kotlin.math.abs
 
 class SDFGroup : SDFComponent() {
 
+    // todo sphere/box/half-space bounds
+
     override val children = ArrayList<SDFComponent>()
     fun add(c: SDFComponent) {
         children.add(c)
@@ -74,6 +76,7 @@ class SDFGroup : SDFComponent() {
                 }
                 functions.add(type.glslCode)
                 val funcName = type.funcName
+                // todo only execute child, if weight > 0
                 for (childIndex in children.indices) {
                     val child = children[childIndex]
                     val vi = if (childIndex == 0) dstName else v1

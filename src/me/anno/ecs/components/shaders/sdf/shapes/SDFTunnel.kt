@@ -45,9 +45,9 @@ class SDFTunnel : SDF2DShape() {
         functions.add(dot2)
         functions.add(tunnelSDF)
         smartMinBegin(builder, dstName)
-        builder.append("sdTunnel(pos")
-        builder.append(trans.posIndex)
-        builder.append(".").append(axes).append(",")
+        builder.append("sdTunnel(")
+        writeFuncInput(builder, trans.posIndex)
+        builder.append(',')
         if (dynamicSize) builder.append(defineUniform(uniforms, params))
         else writeVec(builder, params)
         builder.append(')')
@@ -65,8 +65,8 @@ class SDFTunnel : SDF2DShape() {
         val d1 = sq(max(qx, 0f), qy)
         if (py <= 0f) qx = length(px, py) - w
         val d2 = sq(qx, max(qy, 0f))
-        val d = sqrt(min(d1,d2))
-        return d * sign(max(qx,qy))
+        val d = sqrt(min(d1, d2))
+        return d * sign(max(qx, qy))
     }
 
     override fun clone(): SDFTunnel {

@@ -70,6 +70,7 @@ fun testGPU(finalShape: SDFComponent, camPosition: Vector3f, fovFactor: Float) {
         val dt = Engine.deltaTime
         val dt5 = 5f * dt
         val time = Engine.gameTimeF.toFloat()
+        val progressTime = 3f * time / ((group1 ?: group2)?.children?.size ?: 1)
         camRotation.transformInverse(camPosition)
         if (Input.isKeyDown('w')) camPosition.z -= dt5
         if (Input.isKeyDown('s')) camPosition.z += dt5
@@ -101,7 +102,7 @@ fun testGPU(finalShape: SDFComponent, camPosition: Vector3f, fovFactor: Float) {
                 /*group1.distanceMappers.filterIsInstance<SDFOnion>().forEach {
                     it.rings = ((sin(time) * .5f + .5f) * 20 + 1).toInt()
                 }*/
-                group1.progress = (sin(time) * .5f + .5f) * (group1.children.size - 1f)
+                group1.progress = (sin(progressTime) * .5f + .5f) * (group1.children.size - 1f)
                 if (group1.dynamicRotation) group1.rotation.rotateY(dt)
                 for (child in group1.children) {
                     /*if (child is SDFSmoothShape && child !is SDFCylinder) {
@@ -113,7 +114,7 @@ fun testGPU(finalShape: SDFComponent, camPosition: Vector3f, fovFactor: Float) {
                 }
             }
             if (group2 is SDFGroup) {
-                group2.progress = (cos(time) * .5f + .5f) * (group2.children.size - 1f)
+                group2.progress = (cos(progressTime) * .5f + .5f) * (group2.children.size - 1f)
                 if (group2.dynamicRotation) group2.rotation.rotateY(-dt * 3f)
             }
             camRotation.identity()
@@ -174,16 +175,17 @@ fun main() {
         obj7.add(SDFOnion(0.2f, 1))
         obj7.boundZ(-0.1f, +0.1f)
         val obj8 = SDFTunnel()
-        obj8.boundZ(-0.1f, +0.1f)
+        obj8.add(SDFOnion(0.2f, 1))
+        obj8.boundZ(-3f, +3f)
         val group = SDFGroup()
-        /*group.add(obj0)*/
-        // group.add(obj1)
-        /*group.add(obj2)
-        group.add(obj4)
-        group.add(obj3)
-        group.add(obj5)*/
-        // group.add(obj6)
-        group.add(obj7)
+        /* group.add(obj0)
+         group.add(obj1)
+         group.add(obj2)
+         group.add(obj4)
+         group.add(obj3)
+         group.add(obj5)
+         group.add(obj6)
+         group.add(obj7)*/
         group.add(obj8)
         //group.add(SDFOnion())
         //group.add(SDFHalfSpace())
@@ -209,7 +211,7 @@ fun main() {
     hexGrid.lim1.set(0f)
     hexGrid.lim2.set(0f)
     hexGrid.cellSize = 4f
-    group2.add(hexGrid)
+    // group2.add(hexGrid)
     val fovFactor = tan(fovDegrees.toRadians() * 0.5f)
 
     // testCPU(finalShape, camPosition, fovFactor)

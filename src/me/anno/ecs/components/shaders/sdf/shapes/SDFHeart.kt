@@ -27,7 +27,9 @@ class SDFHeart : SDF2DShape() {
         functions.add(dot2)
         functions.add(heartSDF)
         smartMinBegin(builder, dstName)
-        builder.append("sdHeart(pos").append(trans.posIndex).append(".").append(axes).append(')')
+        builder.append("sdHeart(")
+        writeFuncInput(builder, trans.posIndex)
+        builder.append(')')
         smartMinEnd(builder, dstName, nextVariableId, uniforms, functions, trans)
     }
 

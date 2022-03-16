@@ -2,8 +2,10 @@ package me.anno.ui.debug
 
 import me.anno.config.DefaultConfig.style
 import me.anno.input.Input
+import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestStudio.Companion.testUI
+import org.lwjgl.glfw.GLFW.GLFW_KEY_V
 
 class TestDrawPanel(val draw: (p: TestDrawPanel) -> Unit) : Panel(style) {
     override fun tickUpdate() {
@@ -29,6 +31,12 @@ class TestDrawPanel(val draw: (p: TestDrawPanel) -> Unit) : Panel(style) {
             mx += dx / h
             my += dy / h
         }
+    }
+
+    override fun onKeyDown(x: Float, y: Float, key: Int) {
+        if (key == GLFW_KEY_V && Input.isControlDown) {
+            StudioBase.instance?.toggleVsync()
+        } else super.onKeyDown(x, y, key)
     }
 
     companion object {

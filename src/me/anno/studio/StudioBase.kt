@@ -244,6 +244,10 @@ abstract class StudioBase(
         DefaultConfig["debug.ui.enableVsync"] = enabled
     }
 
+    fun toggleVsync() {
+        DefaultConfig["debug.ui.enableVsync"] = !DefaultConfig["debug.ui.enableVsync", true]
+    }
+
     fun processMouseMovement() {
         if (!Input.hadMouseMovement && GFX.isInFocus) {
             // if our window doesn't have focus or the cursor is outside,
