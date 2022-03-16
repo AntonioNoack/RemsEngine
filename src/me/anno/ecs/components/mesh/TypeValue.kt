@@ -25,8 +25,16 @@ class TypeValue(val type: GLSLType, val value: Any) {
     fun bind(shader: Shader, location: Int) {
         val value = value
         when (type) {
-            GLSLType.BOOL -> shader.v1b(location, value as Boolean)
-            GLSLType.V1I -> shader.v1i(location, value as Int)
+            GLSLType.BOOL -> when(value){
+                is Boolean -> shader.v1b(location, value)
+                is () -> Any? -> shader.v1b(location, value.invoke() as Boolean)
+                else -> LOGGER.warn("Unknown type for BOOL, ${value.javaClass.superclass}")
+            }
+            GLSLType.V1I -> when(value){
+                is Int -> shader.v1i(location, value)
+                is () -> Any? -> shader.v1i(location, value.invoke() as Int)
+                else -> LOGGER.warn("Unknown type for V1I, ${value.javaClass.superclass}")
+            }
             GLSLType.V2I -> shader.v2i(location, value as Vector2ic)
             GLSLType.V3I -> shader.v3i(location, value as Vector3ic)
             GLSLType.V4I -> shader.v4i(location, value as Vector4ic)

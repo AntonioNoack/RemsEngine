@@ -191,6 +191,7 @@ class SDFGroup : SDFComponent() {
         }
 
         fun sMaxCubic(a: Float, b: Float, k: Float): Float {
+            if (k <= 0f) return max(a, b)
             val h = max(k - abs(a - b), 0f) / k
             val m = h * h * h * 0.5f
             val s = m * k / 3f

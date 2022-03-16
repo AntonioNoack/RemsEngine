@@ -6,11 +6,16 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.Ptr
 import me.anno.gpu.shader.GLSLType
 import me.anno.maths.Maths.fract
-import me.anno.maths.Maths.max
 import org.joml.Vector4f
 import kotlin.math.abs
 
-class SDFOnion : DistanceMapper() {
+@Suppress("unused")
+class SDFOnion() : DistanceMapper() {
+
+    constructor(thickness: Float, rings: Int = 1) : this() {
+        this.thickness = thickness
+        this.rings = rings
+    }
 
     var thickness = 0.1f
     var dynamicThickness = false
@@ -19,9 +24,6 @@ class SDFOnion : DistanceMapper() {
     var dynamicRings = false
 
     val slices get() = rings * 2 - 1
-
-    // todo make this into its own distance mapper
-    var visualize = false
 
     override fun buildShader(
         builder: StringBuilder,
@@ -42,16 +44,12 @@ class SDFOnion : DistanceMapper() {
             else builder.append(slices).append(".0")
         }
         builder.append(");\n")
-        if (visualize) {
-            builder.append(dstName).append(".x=")
-            builder.append("max(").append(dstName).append(".x,pos").append(posIndex).append(".y);\n")
-        }
     }
 
     override fun calcTransform(pos: Vector4f, distance: Float): Float {
         var t = thickness
         val rings = rings
-        var d2 = if (rings == 1) {
+        return if (rings == 1) {
             t *= 0.5f
             abs(distance + t) - t
         } else {
@@ -62,10 +60,6 @@ class SDFOnion : DistanceMapper() {
             val ri = distance / t
             (0.5f - abs(fract(ri) - 0.5f)) * ((ri.toInt().and(1) * 2) - 1) * t
         }
-        if (visualize) {
-            d2 = max(d2, pos.y)
-        }
-        return d2
     }
 
     override fun clone(): SDFOnion {

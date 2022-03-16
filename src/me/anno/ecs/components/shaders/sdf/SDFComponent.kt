@@ -19,6 +19,7 @@ open class SDFComponent : PrefabSaveable() {
 
     // todo list parameters with their types
     // todo somehow replace them, so multiple can be used
+    // todo validity system
 
     // local transform
     var position = Vector3f()
@@ -329,8 +330,11 @@ open class SDFComponent : PrefabSaveable() {
         fun defineUniform(uniforms: HashMap<String, TypeValue>, value: Any): String {
             val type = when (value) {
                 is Vector2fc -> GLSLType.V2F
+                is Vector2ic -> GLSLType.V2I
                 is Vector3fc -> GLSLType.V3F
+                is Vector3ic -> GLSLType.V3I
                 is Vector4fc, is Quaternionfc -> GLSLType.V4F
+                is Vector4ic -> GLSLType.V4I
                 else -> throw IllegalArgumentException("Unknown type, use defineUniforms(uniforms, type, value) instead!")
             }
             return defineUniform(uniforms, type, value)

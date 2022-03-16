@@ -8,6 +8,10 @@ import me.anno.gpu.shader.ShaderLib.uvList
 
 object SDFComposer {
 
+    const val dot2 = "" +
+            "float dot2(vec2 v){ return dot(v,v); }\n"+
+            "float dot2(vec3 v){ return dot(v,v); }\n"
+
     // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez
     private const val raycasting = "" +
             // input: vec3 ray origin, vec3 ray direction

@@ -6,26 +6,27 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.Ptr
 import me.anno.maths.Maths.clamp
 import org.joml.Vector3f
+import org.joml.Vector3i
 import org.joml.Vector4f
+import kotlin.math.floor
 import kotlin.math.round
 
+// todo triangle grid array as well
 class SDFArray : PositionMapper() {
 
-    // todo triangle grid array
-    // todo better function that allows for exactly N instances, no matter if odd or even
-
     /**
-     * limit repetition count to 2*repLimit+1
+     * repetition count
      * */
-    var repLimit = Vector3f(Float.POSITIVE_INFINITY)
+    var count = Vector3i(0)
         set(value) {
             field.set(value)
         }
 
     /**
-     * m.x > 0 ? mod(pos.x, m.x) : pos.x for all xyz
+     * how large a cell needs to be;
+     * should never be zero
      * */
-    var repetition = Vector3f()
+    var cellSize = Vector3f()
         set(value) {
             field.set(value)
         }
@@ -34,11 +35,6 @@ class SDFArray : PositionMapper() {
     var dynamicY = false
     var dynamicZ = false
 
-    /**
-     * whether dynamic components are allowed to be zero
-     * */
-    var dynamicNull = false
-
     override fun buildShader(
         builder: StringBuilder,
         posIndex: Int,
@@ -46,10 +42,9 @@ class SDFArray : PositionMapper() {
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ): String? {
-        functions.add("vec3 mod2(vec3 p, vec3 c, vec3 l){ return p-c*clamp(round(p/c),-l,l); }\n")
-        functions.add("float mod2(float p, float c, float l){ return p-c*clamp(round(p/c),-l,l); }\n")
-        val rep = repetition
-        val lim = repLimit
+        functions.add(sdArray)
+        val rep = cellSize
+        val lim = count
         if (dynamicX || dynamicY || dynamicZ) {
             val repUniform = defineUniform(uniforms, rep)
             val limUniform = defineUniform(uniforms, lim)
@@ -67,54 +62,68 @@ class SDFArray : PositionMapper() {
         return null
     }
 
-    private fun apply(p: Float, c: Float, l: Float): Float {
-        return p - c * clamp(round(p / c), -l, l)
+    private fun mod2(p: Float, s: Float, l: Float, h: Float): Float {
+        return p - s * clamp(floor(p / s + h), -l, +l)
+    }
+
+    private fun mod2(p: Float, s: Float, c: Int): Float {
+        if (c == 1 || s <= 0f) return p
+        if (c <= 0) return p - s * round(p / s)
+        return mod2(p, s, (c - 1) * 0.5f, c.and(1) * 0.5f)
     }
 
     override fun calcTransform(pos: Vector4f) {
-        val rep = repetition
-        val lim = repLimit
-        if (rep.x > 0f) pos.x = apply(pos.x, rep.x, lim.x)
-        if (rep.y > 0f) pos.y = apply(pos.y, rep.y, lim.y)
-        if (rep.z > 0f) pos.z = apply(pos.z, rep.z, lim.z)
+        val rep = cellSize
+        val lim = count
+        if (rep.x > 0f) pos.x = mod2(pos.x, rep.x, lim.x)
+        if (rep.y > 0f) pos.y = mod2(pos.y, rep.y, lim.y)
+        if (rep.z > 0f) pos.z = mod2(pos.z, rep.z, lim.z)
     }
 
     fun repeat(
         builder: StringBuilder,
         posIndex: Int,
-        value: Float,
-        limit: Float,
+        size: Float,
+        count: Int,
         component: Char,
     ) {
-        builder.append("pos").append(posIndex).append(".").append(component)
-        builder.append("=")
-        builder.append("mod2(pos").append(posIndex).append(".").append(component)
-        builder.append(",")
-        builder.append(value)
-        builder.append(",")
-        builder.append(limit)
-        builder.append(");\n")
+        when {
+            count == 1 || size <= 0f -> {} // done
+            count <= 0 -> {
+                builder.append("pos").append(posIndex).append(".").append(component)
+                builder.append("=")
+                builder.append("mod2(pos").append(posIndex).append(".").append(component)
+                builder.append(",")
+                builder.append(size)
+                builder.append(");\n")
+            }
+            else -> {
+                builder.append("pos").append(posIndex).append(".").append(component)
+                builder.append("=")
+                builder.append("mod2(pos").append(posIndex).append(".").append(component)
+                builder.append(",")
+                builder.append(size)
+                builder.append(",")// why -1?
+                builder.append((count - 1) * 0.5f)
+                builder.append(",${count.and(1) * 0.5f});\n")
+            }
+        }
     }
 
     fun repeat(
         builder: StringBuilder,
         posIndex: Int,
-        rep: String,
-        lim: String,
+        size: String,
+        count: String,
         component: Char
     ) {
-        if (dynamicNull) {
-            builder.append("if(")
-            builder.append(rep).append(".").append(component)
-            builder.append(">0.0)")
-        }
         builder.append("pos").append(posIndex).append(".").append(component)
         builder.append("=")
         builder.append("mod2(pos").append(posIndex).append(".").append(component)
         builder.append(",")
-        builder.append(rep).append(".").append(component)
+        builder.append(size).append(".").append(component)
         builder.append(",")
-        builder.append(lim).append(".").append(component)
+        builder.append(count).append(".").append(component)
         builder.append(");\n")
     }
 
@@ -127,14 +136,28 @@ class SDFArray : PositionMapper() {
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFArray
-        clone.dynamicNull = dynamicNull
         clone.dynamicX = dynamicX
         clone.dynamicY = dynamicY
         clone.dynamicZ = dynamicZ
-        clone.repLimit = repLimit
-        clone.repetition = repetition
+        clone.count = count
+        clone.cellSize = cellSize
     }
 
     override val className: String = "SDFArray"
+
+    companion object {
+        const val sdArray = "" +
+                "float mod2(float p, float s){\n" +
+                "   return p-s*round(p/s);\n" +
+                "}\n" +
+                "float mod2(float p, float s, float l, float h){\n" +
+                "   return p-s*clamp(floor(p/s+h)+.5-h,-l,l);\n" +
+                "}\n" +
+                "float mod2(float p, float s, int c){\n" +
+                "   if(c == 1 || s <= 0.0) return p;\n" +
+                "   if(c <= 0) return p-s*round(p/s);\n" + // unlimited
+                "   return mod2(p,s,float(c-1)*0.5,c&1?0.5:0.0);\n" +
+                "}\n"
+    }
 
 }
