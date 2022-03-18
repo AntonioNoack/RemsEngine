@@ -3,8 +3,8 @@ package me.anno.ecs.components.shaders.sdf.modifiers
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.shaders.sdf.SDFComponent.Companion.defineUniform
 import me.anno.ecs.components.shaders.sdf.SDFComponent.Companion.writeVec
+import me.anno.ecs.components.shaders.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.Ptr
 import me.anno.gpu.shader.GLSLType
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -33,7 +33,7 @@ class SDFHexGrid : PositionMapper() {
     override fun buildShader(
         builder: StringBuilder,
         posIndex: Int,
-        nextVariableId: Ptr<Int>,
+        nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ): String? {

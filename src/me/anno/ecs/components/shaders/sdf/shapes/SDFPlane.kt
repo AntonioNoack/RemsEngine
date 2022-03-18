@@ -1,8 +1,8 @@
 package me.anno.ecs.components.shaders.sdf.shapes
 
 import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.shaders.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.Ptr
 import org.joml.Vector3f
 import org.joml.Vector4f
 
@@ -17,7 +17,7 @@ open class SDFPlane : SDFShape() {
     override fun buildShader(
         builder: StringBuilder,
         posIndex0: Int,
-        nextVariableId: Ptr<Int>,
+        nextVariableId: VariableCounter,
         dstName: String,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>

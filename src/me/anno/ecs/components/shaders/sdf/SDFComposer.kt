@@ -54,7 +54,7 @@ object SDFComposer {
         val functions = LinkedHashSet<String>()
         val uniforms = HashMap<String, TypeValue>()
         val shapeDependentShader = StringBuilder()
-        tree.buildShader(shapeDependentShader, 0, Ptr(1), "res", uniforms, functions)
+        tree.buildShader(shapeDependentShader, 0, VariableCounter(1), "res", uniforms, functions)
         return uniforms to BaseShader("raycasting", simplestVertexShader, uvList, "" +
                 uniforms.entries.joinToString("") { (k, v) -> "uniform ${v.type.glslName} $k;\n" } +
                 "uniform mat3 camMatrix;\n" +

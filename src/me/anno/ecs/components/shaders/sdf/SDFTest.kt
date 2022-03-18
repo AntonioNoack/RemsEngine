@@ -1,6 +1,7 @@
 package me.anno.ecs.components.shaders.sdf
 
 import me.anno.Engine
+import me.anno.Engine.gameTimeF
 import me.anno.config.DefaultStyle.deepDark
 import me.anno.ecs.components.shaders.sdf.modifiers.*
 import me.anno.ecs.components.shaders.sdf.shapes.*
@@ -13,6 +14,7 @@ import me.anno.utils.types.Floats.toRadians
 import org.joml.Matrix3f
 import org.joml.Quaternionf
 import org.joml.Vector3f
+import kotlin.concurrent.thread
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.tan
@@ -132,6 +134,15 @@ fun testGPU(finalShape: SDFComponent, camPosition: Vector3f, fovFactor: Float) {
 
 fun main() {
 
+    fun dynamicThread(run: () -> Unit) {
+        thread {
+            while (!Engine.shutdown) {
+                run(run)
+                Thread.sleep(10)
+            }
+        }
+    }
+
     // render test of shapes
     // todo we could try to recreate some basic samples from IQ with our nodes :)
 
@@ -175,8 +186,14 @@ fun main() {
         obj7.add(SDFOnion(0.2f, 1))
         obj7.boundZ(-0.1f, +0.1f)
         val obj8 = SDFTunnel()
-        obj8.add(SDFOnion(0.2f, 1))
-        obj8.boundZ(-3f, +3f)
+        obj8.add(SDFMirror(Vector3f(), Vector3f(1f, 1f, 1f)).apply {
+            dynamicSmoothness = true
+            dynamicThread {
+                smoothness = sin(gameTimeF)
+            }
+        })
+        // obj8.add(SDFOnion(0.2f, 1))
+        obj8.boundZ(-1f, +1f)
         val group = SDFGroup()
         /* group.add(obj0)
          group.add(obj1)

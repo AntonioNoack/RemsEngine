@@ -18,7 +18,7 @@ import me.anno.utils.Color.rgba
 import me.anno.utils.LOGGER
 import me.anno.utils.OS.desktop
 import me.anno.utils.files.Files.use
-import me.anno.utils.hpc.HeavyProcessing.processBalanced
+import me.anno.utils.hpc.HeavyProcessing.processBalanced2d
 import org.joml.Vector2f
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
@@ -26,6 +26,8 @@ import kotlin.math.*
 
 @Suppress("unused")
 object ImageWriter {
+
+    val tileSize = 8
 
     // todo maybe we should add noise (optionally) to make the visual results even nicer
 
@@ -190,19 +192,12 @@ object ImageWriter {
         crossinline getRGB: (x: Int, y: Int, i: Int) -> Float
     ) {
         val values = FloatArray(w * h)
-        if (minPerThread < 0) {// multi-threading is forbidden
-            for (y in 0 until h) {
-                for (x in 0 until w) {
-                    val i = x + y * w
+        processBalanced2d(0, 0, w, h, tileSize, minPerThread) { x0, y0, x1, y1 ->
+            for (y in y0 until y1) {
+                var i = x0 + y * w
+                for (x in x0 until x1) {
                     values[i] = getRGB(x, y, i)
-                }
-            }
-        } else {
-            processBalanced(0, w * h, minPerThread) { i0, i1 ->
-                for (i in i0 until i1) {
-                    val x = i % w
-                    val y = i / w
-                    values[i] = getRGB(x, y, i)
+                    i++
                 }
             }
         }
@@ -236,25 +231,10 @@ object ImageWriter {
     ) {
         val samples = 8
         val values = FloatArray(w * h * samples)
-        if (minPerThread < 0) {// multi-threading is forbidden
-            for (y in 0 until h) {
-                val yf = y.toFloat()
-                for (x in 0 until w) {
-                    val k = (x + y * w) * samples
-                    val xf = x.toFloat()
-                    for (j in 0 until samples) {
-                        values[k + j] = getValue(
-                            xf + MSAAx8[j * 2],
-                            yf + MSAAx8[j * 2 + 1]
-                        )
-                    }
-                }
-            }
-        } else {
-            processBalanced(0, w * h, minPerThread) { i0, i1 ->
-                for (i in i0 until i1) {
-                    val x = i % w
-                    val y = i / w
+        processBalanced2d(0, 0, w, h, tileSize, minPerThread / (tileSize * tileSize)) { x0, y0, x1, y1 ->
+            for (y in y0 until y1) {
+                var i = x0 + y * w
+                for (x in x0 until x1) {
                     val xf = x.toFloat()
                     val yf = y.toFloat()
                     val k = i * samples
@@ -264,6 +244,7 @@ object ImageWriter {
                             yf + MSAAx8[j * 2 + 1]
                         )
                     }
+                    i++
                 }
             }
         }
@@ -296,19 +277,12 @@ object ImageWriter {
     ) {
         val img = BufferedImage(w, h, if (alpha) 2 else 1)
         val buffer = img.raster.dataBuffer
-        if (minPerThread !in 0 until w * h) {// multi-threading is forbidden
-            for (y in 0 until h) {
-                for (x in 0 until w) {
-                    val i = x + y * w
+        processBalanced2d(0, 0, w, h, tileSize, minPerThread / (tileSize * tileSize)) { x0, y0, x1, y1 ->
+            for (y in y0 until y1) {
+                var i = y * w + x0
+                for (x in x0 until x1) {
                     buffer.setElem(i, getRGB(x, y, i))
-                }
-            }
-        } else {
-            processBalanced(0, w * h, minPerThread) { i0, i1 ->
-                for (i in i0 until i1) {
-                    val x = i % w
-                    val y = i / w
-                    buffer.setElem(i, getRGB(x, y, i))
+                    i++
                 }
             }
         }
@@ -322,11 +296,8 @@ object ImageWriter {
     ) {
         val img = BufferedImage(w, h, if (alpha) 2 else 1)
         val buffer = img.raster.dataBuffer
-        for (y in 0 until h) {
-            for (x in 0 until w) {
-                val i = x + y * w
-                buffer.setElem(i, pixels[i])
-            }
+        for (i in 0 until w * h) {
+            buffer.setElem(i, pixels[i])
         }
         writeImage(name, img)
     }

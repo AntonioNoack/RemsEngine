@@ -60,7 +60,7 @@ open class SDFComponent : PrefabSaveable() {
         builder: StringBuilder,
         posIndex: Int,
         dstName: String,
-        nextVariableId: Ptr<Int>,
+        nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ) {
@@ -74,7 +74,7 @@ open class SDFComponent : PrefabSaveable() {
     open fun buildShader(
         builder: StringBuilder,
         posIndex0: Int,
-        nextVariableId: Ptr<Int>,
+        nextVariableId: VariableCounter,
         dstName: String,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
@@ -169,15 +169,16 @@ open class SDFComponent : PrefabSaveable() {
     open fun buildTransform(
         builder: StringBuilder,
         posIndex0: Int,
-        nextVariableId: Ptr<Int>,
+        nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ): SDFTransform {
+        builder.append("// starting transform for $className\n")
         var posIndex = posIndex0
         val position = position
         if (position != pos0 || dynamicPosition) {
             val prevPosition = posIndex
-            posIndex = nextVariableId.value++
+            posIndex = nextVariableId.next()
             builder.append("vec3 pos")
             builder.append(posIndex)
             builder.append("=pos")
@@ -193,7 +194,7 @@ open class SDFComponent : PrefabSaveable() {
         if (rotation != rot0 || dynamicRotation) {
             functions += quatRot
             val prevPosition = posIndex
-            posIndex = nextVariableId.value++
+            posIndex = nextVariableId.next()
             builder.append("vec3 pos")
             builder.append(posIndex)
             builder.append("=quatRot(pos")
@@ -217,7 +218,7 @@ open class SDFComponent : PrefabSaveable() {
         }
         val scaleName = if (scale != sca0 || dynamicScale) {
             val prevPosition = posIndex
-            posIndex = nextVariableId.value++
+            posIndex = nextVariableId.next()
             builder.append("vec3 pos")
             builder.append(posIndex)
             builder.append("=pos")
@@ -237,7 +238,7 @@ open class SDFComponent : PrefabSaveable() {
         } else null
         if (posIndex == posIndex0 && positionMappers.isNotEmpty()) {
             val prevPosition = posIndex
-            posIndex = nextVariableId.value++
+            posIndex = nextVariableId.next()
             builder.append("vec3 pos")
             builder.append(posIndex)
             builder.append("=pos")
@@ -246,6 +247,7 @@ open class SDFComponent : PrefabSaveable() {
         }
         var offsetName: String? = null
         for (modifier in positionMappers) {
+            builder.append("// adding modifier ${modifier.className}\n")
             val offsetName1 = modifier.buildShader(builder, posIndex, nextVariableId, uniforms, functions)
             if (offsetName1 != null) {
                 if (offsetName == null) {
@@ -258,6 +260,7 @@ open class SDFComponent : PrefabSaveable() {
                 }
             }
         }
+        builder.append("// finished transform for $className\n")
         return sdfTransPool.create().set(posIndex, scaleName, offsetName)
     }
 
@@ -324,6 +327,18 @@ open class SDFComponent : PrefabSaveable() {
             builder.append(")")
         }
 
+        fun writeVec(builder: StringBuilder, v: Planef) {
+            builder.append("vec4(")
+            builder.append(v.a)
+            builder.append(",")
+            builder.append(v.b)
+            builder.append(",")
+            builder.append(v.c)
+            builder.append(",")
+            builder.append(v.d)
+            builder.append(")")
+        }
+
         fun defineUniform(uniforms: HashMap<String, TypeValue>, type: GLSLType, value: Any): String {
             val uniformName = "u${uniforms.size}"
             uniforms[uniformName] = TypeValue(type, value)
@@ -336,7 +351,7 @@ open class SDFComponent : PrefabSaveable() {
                 is Vector2ic -> GLSLType.V2I
                 is Vector3fc -> GLSLType.V3F
                 is Vector3ic -> GLSLType.V3I
-                is Vector4fc, is Quaternionfc -> GLSLType.V4F
+                is Vector4fc, is Quaternionfc, is Planef -> GLSLType.V4F
                 is Vector4ic -> GLSLType.V4I
                 else -> throw IllegalArgumentException("Unknown type, use defineUniforms(uniforms, type, value) instead!")
             }

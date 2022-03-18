@@ -27,7 +27,10 @@ object Engine {
     var gameTime = lastTime - startTime
         private set
 
-    var gameTimeF = 0.0
+    var gameTimeF = 0f
+        private set
+
+    var gameTimeD = 0.0
         private set
 
     var frameIndex = 0
@@ -48,7 +51,8 @@ object Engine {
         lastTime = thisTime
 
         gameTime = lastTime - startTime
-        gameTimeF = gameTime * 1e-9
+        gameTimeF = gameTime * 1e-9f
+        gameTimeD = gameTime * 1e-9
 
         frameIndex++
 

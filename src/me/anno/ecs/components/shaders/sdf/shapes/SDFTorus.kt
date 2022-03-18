@@ -1,8 +1,8 @@
 package me.anno.ecs.components.shaders.sdf.shapes
 
 import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.shaders.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.Ptr
 import me.anno.maths.Maths.length
 import org.joml.Vector2f
 import org.joml.Vector4f
@@ -27,7 +27,7 @@ class SDFTorus : SDFShape() {
     override fun buildShader(
         builder: StringBuilder,
         posIndex0: Int,
-        nextVariableId: Ptr<Int>,
+        nextVariableId: VariableCounter,
         dstName: String,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>

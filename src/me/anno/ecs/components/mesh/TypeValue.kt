@@ -6,7 +6,6 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import org.apache.logging.log4j.LogManager
 import org.joml.*
-import kotlin.reflect.KFunction
 
 class TypeValue(val type: GLSLType, val value: Any) {
 
@@ -25,12 +24,12 @@ class TypeValue(val type: GLSLType, val value: Any) {
     fun bind(shader: Shader, location: Int) {
         val value = value
         when (type) {
-            GLSLType.BOOL -> when(value){
+            GLSLType.BOOL -> when (value) {
                 is Boolean -> shader.v1b(location, value)
                 is () -> Any? -> shader.v1b(location, value.invoke() as Boolean)
                 else -> LOGGER.warn("Unknown type for BOOL, ${value.javaClass.superclass}")
             }
-            GLSLType.V1I -> when(value){
+            GLSLType.V1I -> when (value) {
                 is Int -> shader.v1i(location, value)
                 is () -> Any? -> shader.v1i(location, value.invoke() as Int)
                 else -> LOGGER.warn("Unknown type for V1I, ${value.javaClass.superclass}")
@@ -48,6 +47,7 @@ class TypeValue(val type: GLSLType, val value: Any) {
             GLSLType.V4F -> when (value) {
                 is Quaternionfc -> shader.v4f(location, value)
                 is Vector4fc -> shader.v4f(location, value)
+                is Planef -> shader.v4f(location, value.a, value.b, value.c, value.d)
                 else -> LOGGER.warn("Unknown type for V4F, ${value.javaClass.superclass}")
             }
             GLSLType.M3x3 -> shader.m3x3(location, value as Matrix3fc)

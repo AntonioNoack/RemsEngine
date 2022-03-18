@@ -2,8 +2,8 @@ package me.anno.ecs.components.shaders.sdf.modifiers
 
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.shaders.sdf.SDFComponent.Companion.defineUniform
+import me.anno.ecs.components.shaders.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.Ptr
 import me.anno.gpu.shader.GLSLType
 import me.anno.maths.Maths.fract
 import org.joml.Vector4f
@@ -29,7 +29,7 @@ class SDFOnion() : DistanceMapper() {
         builder: StringBuilder,
         posIndex: Int,
         dstName: String,
-        nextVariableId: Ptr<Int>,
+        nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ) {

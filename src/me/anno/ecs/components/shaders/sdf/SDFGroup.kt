@@ -37,7 +37,7 @@ class SDFGroup : SDFComponent() {
     override fun buildShader(
         builder: StringBuilder,
         posIndex0: Int,
-        nextVariableId: Ptr<Int>,
+        nextVariableId: VariableCounter,
         dstName: String,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
@@ -52,7 +52,7 @@ class SDFGroup : SDFComponent() {
                 children[0].buildShader(builder, posIndex, nextVariableId, dstName, uniforms, functions)
             } else {
                 val useSmoothness = dynamicSmoothness || smoothness > 0f
-                val v1 = "res${nextVariableId.value++}"
+                val v1 = "res${nextVariableId.next()}"
                 builder.append("vec2 ").append(v1)
                 builder.append(";\n")
                 val p1Name = if (type == CombinationMode.INTERPOLATION) {

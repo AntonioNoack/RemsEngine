@@ -1,8 +1,8 @@
 package me.anno.ecs.components.shaders.sdf.shapes
 
 import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.shaders.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.Ptr
 import me.anno.gpu.shader.GLSLType
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
@@ -21,7 +21,7 @@ open class SDFBox : SDFSmoothShape() {
     override fun buildShader(
         builder: StringBuilder,
         posIndex0: Int,
-        nextVariableId: Ptr<Int>,
+        nextVariableId: VariableCounter,
         dstName: String,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>

@@ -166,6 +166,7 @@ open class FloatVectorInput(
     private fun addComponent(title: String): FloatInput {
         val component = createComponent()
         component.inputPanel.tooltip = title
+        component.setChangeListener { onChange() }
         valueList += component.setWeight(1f)
         valueFields += component
         return component

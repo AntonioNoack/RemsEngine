@@ -2,7 +2,7 @@ package me.anno.ecs.components.shaders.sdf.shapes
 
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.shaders.sdf.SDFComposer.dot2
-import me.anno.engine.Ptr
+import me.anno.ecs.components.shaders.sdf.VariableCounter
 import me.anno.maths.Maths.SQRT2F
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
@@ -18,7 +18,7 @@ class SDFHeart : SDF2DShape() {
     override fun buildShader(
         builder: StringBuilder,
         posIndex0: Int,
-        nextVariableId: Ptr<Int>,
+        nextVariableId: VariableCounter,
         dstName: String,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>

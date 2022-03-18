@@ -2,8 +2,8 @@ package me.anno.ecs.components.shaders.sdf.shapes
 
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.shaders.sdf.SDFComposer.dot2
+import me.anno.ecs.components.shaders.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.Ptr
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
@@ -36,12 +36,13 @@ class SDFTunnel : SDF2DShape() {
     override fun buildShader(
         builder: StringBuilder,
         posIndex0: Int,
-        nextVariableId: Ptr<Int>,
+        nextVariableId: VariableCounter,
         dstName: String,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ) {
         val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
+        builder.append("// starting tunnel\n")
         functions.add(dot2)
         functions.add(tunnelSDF)
         smartMinBegin(builder, dstName)

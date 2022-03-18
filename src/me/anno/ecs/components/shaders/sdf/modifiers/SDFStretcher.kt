@@ -3,6 +3,7 @@ package me.anno.ecs.components.shaders.sdf.modifiers
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.shaders.sdf.SDFComponent.Companion.defineUniform
 import me.anno.ecs.components.shaders.sdf.SDFComponent.Companion.writeVec
+import me.anno.ecs.components.shaders.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.Ptr
 import me.anno.maths.Maths.clamp
@@ -35,7 +36,7 @@ class SDFStretcher() : PositionMapper() {
     override fun buildShader(
         builder: StringBuilder,
         posIndex: Int,
-        nextVariableId: Ptr<Int>,
+        nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ): String? {
@@ -49,7 +50,7 @@ class SDFStretcher() : PositionMapper() {
             builder.append(",").append(uniform)
             builder.append(");\n")
             return if (accurateInsides) {
-                val name = "tmp${nextVariableId.value++}"
+                val name = "tmp${nextVariableId.next()}"
                 builder.append("float ")
                 builder.append(name)
                 builder.append("=min(0.0,max(")
@@ -66,7 +67,7 @@ class SDFStretcher() : PositionMapper() {
             writeVec(builder, h)
             builder.append(");\n")
             return if (accurateInsides) {
-                val name = "tmp${nextVariableId.value++}"
+                val name = "tmp${nextVariableId.next()}"
                 builder.append("float ")
                 builder.append(name)
                 builder.append("=")

@@ -5,52 +5,40 @@ import me.anno.ecs.components.shaders.sdf.SDFComponent.Companion.defineUniform
 import me.anno.ecs.components.shaders.sdf.SDFComponent.Companion.writeVec
 import me.anno.ecs.components.shaders.sdf.SDFGroup.Companion.sMaxCubic
 import me.anno.ecs.components.shaders.sdf.SDFGroup.Companion.smoothMinCubic
+import me.anno.ecs.components.shaders.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.Ptr
 import me.anno.gpu.shader.GLSLType
+import org.joml.Planef
 import org.joml.Vector3f
 import org.joml.Vector4f
 
 class SDFHalfSpace() : DistanceMapper() {
 
-    constructor(pos: Vector3f) : this() {
-        position = pos
-        normal = pos
-    }
+    constructor(position: Vector3f) : this(position, position)
 
-    constructor(pos: Vector3f, dir: Vector3f) : this() {
-        position = pos
-        normal = dir
+    constructor(position: Vector3f, normal: Vector3f) : this() {
+        plane.set(normal.x, normal.y, normal.z, -normal.dot(position))
+        plane.normalize()
     }
 
     var smoothness = 0.1f
     var dynamicSmoothness = false
 
-    private val params = Vector4f(0f, 1f, 0f, 0f)
 
-    var position = Vector3f()
+    @Suppress("SetterBackingFieldAssignment")
+    var plane = Planef()
         set(value) {
-            field.set(value)
-            params.w = -value.dot(normal)
-        }
-
-    var normal = Vector3f(0f, 1f, 0f)
-        set(value) {
-            field.set(value)
+            field.set(value.a, value.b, value.c, value.d)
             field.normalize()
-            params.x = field.x
-            params.y = field.y
-            params.z = field.z
-            params.w = -field.dot(position)
         }
 
-    var dynamic = false
+    var dynamicPlane = false
 
     override fun buildShader(
         builder: StringBuilder,
         posIndex: Int,
         dstName: String,
-        nextVariableId: Ptr<Int>,
+        nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ) {
@@ -60,8 +48,8 @@ class SDFHalfSpace() : DistanceMapper() {
             builder.append(".x=sMaxCubic1(").append(dstName)
             builder.append(".x,dot(vec4(pos").append(posIndex)
             builder.append(",1.0),")
-            if (dynamic) builder.append(defineUniform(uniforms, params))
-            else writeVec(builder, params)
+            if (dynamicPlane) builder.append(defineUniform(uniforms, plane))
+            else writeVec(builder, plane)
             builder.append("),")
             if (dynamicSmoothness) builder.append(defineUniform(uniforms, GLSLType.V1F, { smoothness }))
             else builder.append(smoothness)
@@ -71,14 +59,14 @@ class SDFHalfSpace() : DistanceMapper() {
             builder.append(".x=max(").append(dstName)
             builder.append(".x,dot(vec4(pos").append(posIndex)
             builder.append(",1.0),")
-            if (dynamic) builder.append(defineUniform(uniforms, params))
-            else writeVec(builder, params)
+            if (dynamicPlane) builder.append(defineUniform(uniforms, plane))
+            else writeVec(builder, plane)
             builder.append("));\n")
         }
     }
 
     override fun calcTransform(pos: Vector4f, distance: Float): Float {
-        return sMaxCubic(distance, params.dot(pos.x, pos.y, pos.z, 1f), smoothness)
+        return sMaxCubic(distance, plane.dot(pos), smoothness)
     }
 
     override fun clone(): SDFHalfSpace {
@@ -90,9 +78,22 @@ class SDFHalfSpace() : DistanceMapper() {
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFHalfSpace
+        clone.plane.set(plane.a, plane.b, plane.c, plane.d)
     }
 
     override val className: String = "SDFHalfSpace"
+
+    companion object {
+
+        fun Planef.dot(v: Vector4f): Float {
+            return v.dot(a, b, c, 0f) + d
+        }
+
+        fun Planef.dot(v: Vector3f): Float {
+            return v.dot(a, b, c) + d
+        }
+
+    }
 
 
 }

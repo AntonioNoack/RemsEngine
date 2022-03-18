@@ -4,8 +4,8 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.shaders.sdf.SDFComponent
 import me.anno.ecs.components.shaders.sdf.SDFTransform
+import me.anno.ecs.components.shaders.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.Ptr
 
 open class SDFShape : SDFComponent() {
 
@@ -50,7 +50,7 @@ open class SDFShape : SDFComponent() {
     fun smartMinEnd(
         builder: StringBuilder,
         dstName: String,
-        nextVariableId: Ptr<Int>,
+        nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>,
         trans: SDFTransform

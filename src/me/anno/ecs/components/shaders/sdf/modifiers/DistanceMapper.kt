@@ -1,8 +1,8 @@
 package me.anno.ecs.components.shaders.sdf.modifiers
 
 import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.shaders.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.Ptr
 import org.joml.Vector4f
 
 /**
@@ -14,7 +14,7 @@ abstract class DistanceMapper : PrefabSaveable() {
         builder: StringBuilder,
         posIndex: Int,
         dstName: String,
-        nextVariableId: Ptr<Int>,
+        nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     )
