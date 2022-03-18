@@ -4,13 +4,11 @@ import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.shaders.sdf.SDFComponent.Companion.defineUniform
 import me.anno.ecs.components.shaders.sdf.SDFComponent.Companion.writeVec
 import me.anno.ecs.components.shaders.sdf.VariableCounter
+import me.anno.ecs.components.shaders.sdf.modifiers.SDFHalfSpace.Companion.dot
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.shader.GLSLType
-import me.anno.maths.Maths.max
 import org.joml.Planef
 import org.joml.Vector3f
 import org.joml.Vector4f
-import kotlin.math.abs
 
 class SDFMirror() : PositionMapper() {
 
@@ -21,8 +19,9 @@ class SDFMirror() : PositionMapper() {
         plane.normalize()
     }
 
-    var smoothness = 0.1f
-    var dynamicSmoothness = false
+    // proper smoothness would require two sdf evaluations
+    // considering this effect probably would be stacked, it would get too expensive
+    // (+ our pipeline currently does not support that)
 
     @Suppress("SetterBackingFieldAssignment")
     var plane = Planef()
@@ -33,6 +32,9 @@ class SDFMirror() : PositionMapper() {
 
     var dynamicPlane = false
 
+    // idk how performance behaves, try it yourself ^^
+    var useBranch = false
+
     override fun buildShader(
         builder: StringBuilder,
         posIndex: Int,
@@ -40,7 +42,7 @@ class SDFMirror() : PositionMapper() {
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ): String? {
-        // I - 2.0 * dot(N, I) * N
+        // reflect(I,N): I - 2.0 * dot(N, I) * N
         val tmpIndex = nextVariableId.next()
         val normal = if (dynamicPlane) defineUniform(uniforms, plane) else {
             val name = "nor${nextVariableId.next()}"
@@ -54,27 +56,21 @@ class SDFMirror() : PositionMapper() {
         builder.append("pos").append(posIndex)
         builder.append(",1.0),").append(normal)
         builder.append(");\n")
-        if (dynamicSmoothness || smoothness > 0f) {
-            builder.append("pos").append(posIndex)
-            builder.append("=mix(pos").append(posIndex)
-            builder.append(",pos").append(posIndex)
-            builder.append("-2.0*tmp").append(tmpIndex)
-            builder.append("*").append(normal)
-            builder.append(".xyz,clamp(tmp").append(tmpIndex)
-            builder.append("*")
-            if (dynamicSmoothness) {
-                builder.append(defineUniform(uniforms, GLSLType.V1F, { 1f / max(abs(smoothness), 1e-10f) }))
-            } else builder.append(1f / smoothness)
-            builder.append("+0.5,0.0,1.0));\n")
-        } else {
+        if (useBranch) {
             builder.append("if(tmp").append(tmpIndex).append("<0.0) pos").append(posIndex)
             builder.append("-=2.0*tmp").append(tmpIndex).append("*").append(normal).append(".xyz;\n")
+        } else {
+            builder.append("pos").append(posIndex)
+            builder.append("-=((tmp").append(tmpIndex).append(" < 0.0 ? 2.0 : 0.0)*tmp")
+            builder.append(tmpIndex).append(")*").append(normal).append(".xyz;\n")
         }
         return null
     }
 
     override fun calcTransform(pos: Vector4f) {
-        TODO("Not yet implemented")
+        val normal = plane
+        val dot = 2f * normal.dot(pos)
+        if (dot < 0f) pos.sub(dot * normal.a, dot * normal.b, dot * normal.c, 0f)
     }
 
     override fun clone(): SDFMirror {
@@ -86,8 +82,6 @@ class SDFMirror() : PositionMapper() {
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFMirror
-        clone.smoothness = smoothness
-        clone.dynamicSmoothness = dynamicSmoothness
         clone.plane = plane
         clone.dynamicPlane = dynamicPlane
     }

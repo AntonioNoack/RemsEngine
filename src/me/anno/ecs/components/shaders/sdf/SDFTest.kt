@@ -186,14 +186,11 @@ fun main() {
         obj7.add(SDFOnion(0.2f, 1))
         obj7.boundZ(-0.1f, +0.1f)
         val obj8 = SDFTunnel()
-        obj8.add(SDFMirror(Vector3f(), Vector3f(1f, 1f, 1f)).apply {
-            dynamicSmoothness = true
-            dynamicThread {
-                smoothness = sin(gameTimeF)
-            }
-        })
+        obj8.add(SDFMirror(Vector3f(), Vector3f(1f, 0f, 1f)))
+        // obj8.add(SDFMirror(Vector3f(), Vector3f(0f, 1f, 0f)))
+        obj8.add(SDFMirror(Vector3f(), Vector3f(-1f, 0f, 1f)))
         // obj8.add(SDFOnion(0.2f, 1))
-        obj8.boundZ(-1f, +1f)
+        obj8.boundZ(+0.5f, +1f)
         val group = SDFGroup()
         /* group.add(obj0)
          group.add(obj1)

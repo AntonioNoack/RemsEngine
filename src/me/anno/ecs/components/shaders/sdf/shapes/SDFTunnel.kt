@@ -42,7 +42,6 @@ class SDFTunnel : SDF2DShape() {
         functions: HashSet<String>
     ) {
         val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
-        builder.append("// starting tunnel\n")
         functions.add(dot2)
         functions.add(tunnelSDF)
         smartMinBegin(builder, dstName)

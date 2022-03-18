@@ -173,7 +173,6 @@ open class SDFComponent : PrefabSaveable() {
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ): SDFTransform {
-        builder.append("// starting transform for $className\n")
         var posIndex = posIndex0
         val position = position
         if (position != pos0 || dynamicPosition) {
@@ -247,7 +246,6 @@ open class SDFComponent : PrefabSaveable() {
         }
         var offsetName: String? = null
         for (modifier in positionMappers) {
-            builder.append("// adding modifier ${modifier.className}\n")
             val offsetName1 = modifier.buildShader(builder, posIndex, nextVariableId, uniforms, functions)
             if (offsetName1 != null) {
                 if (offsetName == null) {
@@ -260,7 +258,6 @@ open class SDFComponent : PrefabSaveable() {
                 }
             }
         }
-        builder.append("// finished transform for $className\n")
         return sdfTransPool.create().set(posIndex, scaleName, offsetName)
     }
 
