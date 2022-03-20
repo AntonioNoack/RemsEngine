@@ -43,7 +43,7 @@ fun main() {
     }*/
 
     // second try
-    val depthTexture = CubemapTexture(w, 1)
+    val depthTexture = CubemapTexture("depth", w, 1)
     depthTexture.createDepth()
 
     for (i in 0 until 6) {

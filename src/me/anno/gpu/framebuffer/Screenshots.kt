@@ -6,7 +6,7 @@ import me.anno.gpu.copying.FramebufferToMemory.createImage
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
-import me.anno.gpu.texture.Texture2D.Companion.packAlignment
+import me.anno.gpu.texture.Texture2D.Companion.readAlignment
 import me.anno.image.raw.IntImage
 import me.anno.language.translation.Dict
 import me.anno.maths.Maths.clamp
@@ -42,7 +42,7 @@ object Screenshots {
                     GL11.glScissor(x0, y0, x1 - x0, y1 - y0)
                     drawScene()
                     GL11.glFlush(); GL11.glFinish() // wait for everything to be drawn
-                    packAlignment(4 * (x1 - x0))
+                    readAlignment(4 * (x1 - x0))
                     GL11.glReadPixels(x0, y0, x1 - x0, y1 - y0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer)
                 }
             } else LOGGER.warn("Selected region was empty: $lx,$ly in 0,0 .. ${fb.w},${fb.h} +/- $radius")

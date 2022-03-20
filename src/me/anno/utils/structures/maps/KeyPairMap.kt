@@ -38,11 +38,8 @@ class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
         v: (k1: KManifold, k2: KFewOnly) -> Value
     ): Value {
         val list = values.getOrPut(k1) { PairArrayList(8) }
-        for ((k2s, vs) in list) {
-            if (k2s == k2) {
-                return vs
-            }
-        }
+        val vs = list.iterate { k2s, vs -> if (k2s == k2) vs else null }
+        if (vs != null) return vs
         val value = v(k1, k2)
         list.add(k2, value)
         size++

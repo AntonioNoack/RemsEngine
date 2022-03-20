@@ -72,6 +72,7 @@ object Color {
     }
 
     fun Int.toVecRGBA() = Vector4f(r() / 255f, g() / 255f, b() / 255f, a() / 255f)
+    fun Int.toVecRGB() = Vector3f(r() / 255f, g() / 255f, b() / 255f)
 
     const val base36 = "0123456789abcdefghijklmnopqrstuvwxyz"
 

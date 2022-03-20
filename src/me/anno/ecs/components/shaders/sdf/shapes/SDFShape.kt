@@ -1,6 +1,5 @@
 package me.anno.ecs.components.shaders.sdf.shapes
 
-import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.shaders.sdf.SDFComponent
 import me.anno.ecs.components.shaders.sdf.SDFTransform
@@ -13,7 +12,6 @@ open class SDFShape : SDFComponent() {
 
     // todo special sdf materials? ...
     var dynamicSize = false
-    var material: Material? = null
 
     // todo mix materials somehow...
     var materialId = 0f
@@ -22,7 +20,7 @@ open class SDFShape : SDFComponent() {
         super.copy(clone)
         clone as SDFShape
         clone.dynamicSize = dynamicSize
-        clone.material = material
+        // clone.material = material
         clone.materialId = materialId
     }
 

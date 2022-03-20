@@ -10,7 +10,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.Texture2D.Companion.packAlignment
+import me.anno.gpu.texture.Texture2D.Companion.readAlignment
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.Color
@@ -144,7 +144,7 @@ object FramebufferToMemory {
 
         GFX.check()
 
-        packAlignment(width)
+        readAlignment(width)
 
         useFrame(0, 0, wi, hi, false, null, Renderer.colorRenderer) {
 

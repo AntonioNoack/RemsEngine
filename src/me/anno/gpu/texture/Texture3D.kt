@@ -3,14 +3,15 @@ package me.anno.gpu.texture
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL
-import me.anno.gpu.texture.TextureLib.invisibleTexture
 import me.anno.gpu.debug.DebugGPUStorage
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D.Companion.activeSlot
 import me.anno.gpu.texture.Texture2D.Companion.bindTexture
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
-import me.anno.gpu.texture.Texture2D.Companion.packAlignment
 import me.anno.gpu.texture.Texture2D.Companion.textureBudgetTotal
 import me.anno.gpu.texture.Texture2D.Companion.textureBudgetUsed
+import me.anno.gpu.texture.Texture2D.Companion.writeAlignment
+import me.anno.gpu.texture.TextureLib.invisibleTexture
 import me.anno.image.Image
 import me.anno.utils.hpc.Threads.threadWithName
 import org.lwjgl.opengl.GL11
@@ -20,11 +21,11 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 
-class Texture3D(val w: Int, val h: Int, val d: Int) : ICacheData {
+class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICacheData {
 
-    constructor(img: BufferedImage, depth: Int) : this(img.width / depth, img.height, depth) {
+    constructor(name: String, img: BufferedImage, depth: Int) : this(name, img.width / depth, img.height, depth) {
         create(img, true)
-        filtering(isFilteredNearest)
+        filtering(filtering)
     }
 
     var pointer = -1
@@ -32,9 +33,11 @@ class Texture3D(val w: Int, val h: Int, val d: Int) : ICacheData {
 
     var isCreated = false
     var isDestroyed = false
-    var isFilteredNearest = GPUFiltering.NEAREST
+    var filtering = GPUFiltering.NEAREST
 
-    fun ensureSession() {
+    var locallyAllocated = 0L
+
+    private fun ensureSession() {
         if (session != OpenGL.session) {
             session = OpenGL.session
             pointer = -1
@@ -43,29 +46,37 @@ class Texture3D(val w: Int, val h: Int, val d: Int) : ICacheData {
         }
     }
 
-    fun ensurePointer() {
+    private fun ensurePointer() {
+        ensureSession()
         if (pointer < 0) pointer = Texture2D.createTexture()
         if (pointer < 0) throw RuntimeException("Could not generate texture")
         DebugGPUStorage.tex3d.add(this)
         isDestroyed = false
     }
 
-    fun create() {
+    private fun beforeUpload(alignment: Int) {
         ensurePointer()
         forceBind()
-        packAlignment(1)
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, w, h, d, 0, GL11.GL_RGBA, GL_UNSIGNED_BYTE, null as ByteBuffer?)
-        filtering(isFilteredNearest)
-        isCreated = true
+        writeAlignment(alignment)
     }
 
-    fun createFP32() {
-        ensurePointer()
-        forceBind()
-        packAlignment(1)
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, w, h, d, 0, GL_RGBA, GL_FLOAT, null as ByteBuffer?)
-        filtering(isFilteredNearest)
+    private fun afterUpload(bpp: Int) {
         isCreated = true
+        locallyAllocated = allocate(locallyAllocated, w.toLong() * h.toLong() * d.toLong() * bpp)
+        filtering(filtering)
+        GFX.check()
+    }
+
+    fun createRGBA8() {
+        beforeUpload(w * 4)
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, w, h, d, 0, GL11.GL_RGBA, GL_UNSIGNED_BYTE, null as ByteBuffer?)
+        afterUpload(4)
+    }
+
+    fun createRGBAFP32() {
+        beforeUpload(w * 16)
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, w, h, d, 0, GL_RGBA, GL_FLOAT, null as ByteBuffer?)
+        afterUpload(16)
     }
 
     fun create(createImage: () -> BufferedImage) {
@@ -101,84 +112,95 @@ class Texture3D(val w: Int, val h: Int, val d: Int) : ICacheData {
                 intData[i] = rgb or a
             }
         }
-        if (sync) uploadData(intData)
+        if (sync) createRGBA8(intData)
         else GFX.addGPUTask(img.width, img.height) {
-            uploadData(intData)
+            createRGBA8(intData)
         }
     }
 
-    fun uploadData(intData: IntArray) {
-        GFX.check()
-        ensurePointer()
-        forceBind()
-        packAlignment(1)
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, intData)
-        isCreated = true
-        GFX.check()
-        filtering(isFilteredNearest)
-        GFX.check()
+    fun createRGBA8(data: IntArray) {
+        beforeUpload(w * 4)
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
+        afterUpload(4)
     }
 
     fun createMonochrome(data: ByteArray) {
         if (w * h * d != data.size) throw RuntimeException("incorrect size!")
-        ensurePointer()
-        forceBind()
-        GFX.check()
         val byteBuffer = bufferPool[data.size, false]
         byteBuffer.position(0)
         byteBuffer.put(data)
         byteBuffer.position(0)
-        packAlignment(1)
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, w, h, d, 0, GL11.GL_RED, GL_UNSIGNED_BYTE, byteBuffer)
+        createMonochrome(byteBuffer)
         bufferPool.returnBuffer(byteBuffer)
-        isCreated = true
-        filtering(isFilteredNearest)
-        GFX.check()
     }
 
-    fun create(data: FloatArray) {
-        if (w * h * d * 4 != data.size) throw RuntimeException("incorrect size!")
+    fun createMonochrome(data: ByteBuffer) {
+        if (w * h * d != data.remaining()) throw RuntimeException("incorrect size!")
+        beforeUpload(w)
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, w, h, d, 0, GL11.GL_RED, GL_UNSIGNED_BYTE, data)
+        afterUpload(1)
+    }
+
+    fun create(type: TargetType, data: ByteArray?) {
+        // might be incorrect for RGB!!
+        if (data != null && type.bytesPerPixel != 3 && w * h * d * type.bytesPerPixel != data.size)
+            throw RuntimeException("incorrect size!, got ${data.size}, expected $w * $h * $d * ${type.bytesPerPixel} bpp")
+        val byteBuffer = if (data != null) {
+            val byteBuffer = bufferPool[data.size, false]
+            byteBuffer.position(0)
+            byteBuffer.put(data)
+            byteBuffer.position(0)
+            byteBuffer
+        } else null
+        beforeUpload(w)
+        glTexImage3D(
+            GL_TEXTURE_3D, 0, type.internalFormat, w, h, d, 0,
+            type.uploadFormat, type.fillType, byteBuffer
+        )
+        bufferPool.returnBuffer(byteBuffer)
+        afterUpload(type.bytesPerPixel)
+    }
+
+    fun createRGBA(data: FloatArray) {
+        if (w * h * d * 4 != data.size) throw RuntimeException("incorrect size!, got ${data.size}, expected $w * $h * $d * 4 bpp")
         val byteBuffer = bufferPool[data.size * 4, false]
         byteBuffer.order(ByteOrder.nativeOrder())
         byteBuffer.position(0)
         val floatBuffer = byteBuffer.asFloatBuffer()
         floatBuffer.put(data)
         floatBuffer.position(0)
-        create(floatBuffer, byteBuffer)
+        createRGBA(floatBuffer, byteBuffer)
     }
 
-    fun create(floatBuffer: FloatBuffer, byteBuffer: ByteBuffer) {
-        ensurePointer()
-        forceBind()
-        GFX.check()
+    fun createRGBA(floatBuffer: FloatBuffer, byteBuffer: ByteBuffer) {
         // rgba32f as internal format is extremely important... otherwise the value is cropped
-        packAlignment(1)
+        beforeUpload(w * 16)
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, w, h, d, 0, GL_RGBA, GL_FLOAT, floatBuffer)
         bufferPool.returnBuffer(byteBuffer)
-        isCreated = true
-        filtering(isFilteredNearest)
-        GFX.check()
+        afterUpload(16)
     }
 
-    fun create(data: ByteArray) {
-        if (w * h * d * 4 != data.size) throw RuntimeException("incorrect size!")
-        ensurePointer()
-        forceBind()
-        GFX.check()
+    fun createRGBA(data: ByteArray) {
+        if (w * h * d * 4 != data.size) throw RuntimeException("incorrect size!, got ${data.size}, expected $w * $h * $d * 4 bpp")
         val byteBuffer = bufferPool[data.size, false]
         byteBuffer.position(0)
         byteBuffer.put(data)
         byteBuffer.position(0)
-        packAlignment(1)
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer)
+        beforeUpload(w * 4)
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer)
         bufferPool.returnBuffer(byteBuffer)
-        isCreated = true
-        filtering(isFilteredNearest)
-        GFX.check()
+        afterUpload(4)
+    }
+
+    fun createRGBA(data: ByteBuffer) {
+        if (w * h * d * 4 != data.remaining()) throw RuntimeException("incorrect size!, got ${data.remaining()}, expected $w * $h * $d * 4 bpp")
+        beforeUpload(w * 4)
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
+        afterUpload(4)
     }
 
     fun ensureFiltering(nearest: GPUFiltering) {
-        if (nearest != isFilteredNearest) filtering(nearest)
+        if (nearest != filtering) filtering(nearest)
     }
 
     fun filtering(nearest: GPUFiltering) {
@@ -189,7 +211,7 @@ class Texture3D(val w: Int, val h: Int, val d: Int) : ICacheData {
             glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
             glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         }
-        isFilteredNearest = nearest
+        filtering = nearest
     }
 
     fun clamping(repeat: Boolean) {
@@ -227,7 +249,16 @@ class Texture3D(val w: Int, val h: Int, val d: Int) : ICacheData {
         DebugGPUStorage.tex3d.remove(this)
         glDeleteTextures(pointer)
         Texture2D.invalidateBinding()
+        locallyAllocated = allocate(locallyAllocated, 0L)
         isDestroyed = true
+    }
+
+    companion object {
+        var allocated = 0L
+        fun allocate(oldValue: Long, newValue: Long): Long {
+            allocated += newValue - oldValue
+            return newValue
+        }
     }
 
 }

@@ -2,7 +2,9 @@ package me.anno.ui.debug
 
 import me.anno.Engine.gameTime
 import me.anno.gpu.buffer.Buffer
+import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.Texture3D
 import me.anno.language.translation.Dict
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.text.SimpleTextPanel
@@ -33,7 +35,7 @@ class RuntimeInfoPanel(style: Style) : SimpleTextPanel(style) {
     private fun getDebugText(): String {
         val runtime = Runtime.getRuntime()
         val memory = runtime.totalMemory() - runtime.freeMemory()
-        val videoMemory = Texture2D.allocated + Buffer.allocated
+        val videoMemory = Texture2D.allocated + CubemapTexture.allocated + Texture3D.allocated + Buffer.allocated
         val cMemory = ByteBufferPool.getAllocated()
         return Dict["JVM/C/VRAM: %1/%3/%2 MB", "ui.debug.ramUsage2"]
             .replace("%1", (memory.toFloat() / (1 shl 20)).f1())

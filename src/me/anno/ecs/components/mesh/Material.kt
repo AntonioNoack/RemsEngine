@@ -2,8 +2,10 @@ package me.anno.ecs.components.mesh
 
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
+import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.BaseShader
@@ -17,6 +19,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
+import me.anno.io.zip.InnerTmpFile
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
@@ -167,8 +170,10 @@ class Material : PrefabSaveable() {
             shader.v4f("finalClearCoat", 0f)
         }
 
-        for ((uniformName, valueType) in shaderOverrides) {
-            valueType.bind(shader, uniformName)
+        if (shaderOverrides.isNotEmpty()) {
+            for ((uniformName, valueType) in shaderOverrides) {
+                valueType.bind(shader, uniformName)
+            }
         }
     }
 
@@ -210,7 +215,6 @@ class Material : PrefabSaveable() {
 
         other as Material
 
-        if (shaderOverrides != other.shaderOverrides) return false
         if (pipelineStage != other.pipelineStage) return false
         if (shader != other.shader) return false
         if (diffuseBase != other.diffuseBase) return false
@@ -227,6 +231,7 @@ class Material : PrefabSaveable() {
         if (occlusionStrength != other.occlusionStrength) return false
         if (occlusionMap != other.occlusionMap) return false
         if (translucency != other.translucency) return false
+        if (shaderOverrides != other.shaderOverrides) return false
 
         return true
     }
@@ -251,7 +256,8 @@ class Material : PrefabSaveable() {
         clone.sheenNormalMap = sheenNormalMap
         clone.occlusionStrength = occlusionStrength
         clone.occlusionMap = occlusionMap
-        clone.shaderOverrides = shaderOverrides
+        clone.shaderOverrides.clear()
+        clone.shaderOverrides.putAll(shaderOverrides)
         clone.roughnessMinMax = roughnessMinMax
         clone.roughnessMap = roughnessMap
         clone.metallicMap = metallicMap
@@ -269,6 +275,19 @@ class Material : PrefabSaveable() {
     companion object {
 
         private val LOGGER = LogManager.getLogger(Material::class)
+
+        /**
+         * create a procedural material:
+         * @return material instance, and file reference (which then can be set in mesh components, meshes and such)
+         * */
+        fun create(): Material {
+            val prefab = Prefab("Material")
+            val material = prefab.getSampleInstance() as Material
+            material.prefab = prefab
+            material.prefabPath = Path.ROOT_PATH
+            prefab.source = InnerTmpFile.InnerTmpPrefabFile(prefab)
+            return material
+        }
 
         @JvmStatic
         fun main(args: Array<String>) {

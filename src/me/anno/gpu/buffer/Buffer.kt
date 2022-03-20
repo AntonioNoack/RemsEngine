@@ -7,6 +7,7 @@ import me.anno.gpu.buffer.Attribute.Companion.computeOffsets
 import me.anno.gpu.shader.Shader
 import me.anno.input.Input
 import me.anno.utils.LOGGER
+import me.anno.utils.pooling.ByteBufferPool
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL30.*
@@ -278,6 +279,7 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
         if (nioBuffer != null) {
             // todo does this still crash?
             // MemoryUtil.memFree(nioBuffer)
+            ByteBufferPool.free(nioBuffer)
         }
         nioBuffer = null
     }

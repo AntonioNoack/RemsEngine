@@ -1,15 +1,17 @@
 package me.anno.ecs.components.shaders.sdf
 
 import me.anno.ecs.components.mesh.TypeValue
-import me.anno.engine.Ptr
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.ShaderLib.simplestVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
 
+/**
+ * builds shaders for signed distance function rendering
+ * */
 object SDFComposer {
 
     const val dot2 = "" +
-            "float dot2(vec2 v){ return dot(v,v); }\n"+
+            "float dot2(vec2 v){ return dot(v,v); }\n" +
             "float dot2(vec3 v){ return dot(v,v); }\n"
 
     // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez

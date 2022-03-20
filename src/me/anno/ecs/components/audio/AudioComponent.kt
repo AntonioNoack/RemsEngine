@@ -26,4 +26,9 @@ class AudioComponent {
         GLOBAL,
     }
 
+    var isRunning = false
+    var isFinished = false
+
+    fun start() {}
+
 }

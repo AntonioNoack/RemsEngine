@@ -90,7 +90,7 @@ class CubemapFramebuffer(
         //stack.push(this)
         GFX.check()
         textures = Array(targets.size) { index ->
-            val texture = CubemapTexture(size, samples)
+            val texture = CubemapTexture("$name-$index", size, samples)
             texture.create(targets[index])
             GFX.check()
             texture
@@ -116,7 +116,7 @@ class CubemapFramebuffer(
             }
             DepthBufferType.INTERNAL -> createDepthBuffer()
             DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {
-                val depthTexture = CubemapTexture(size, samples)
+                val depthTexture = CubemapTexture("$name-depth", size, samples)
                 depthTexture.createDepth(depthBufferType == DepthBufferType.TEXTURE_16)
                 glFramebufferTexture2D(
                     GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,

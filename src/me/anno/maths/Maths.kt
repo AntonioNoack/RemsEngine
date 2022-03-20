@@ -95,6 +95,16 @@ object Maths {
         return (a * (255 - f) + b * f) / 255
     }
 
+    fun mix2(a: Int, b: Int, f: Int): Int {
+        return mix2(a, b, f / 255f)
+    }
+
+    fun mix2(a: Int, b: Int, f: Float): Int {
+        val a2 = a * a
+        val b2 = b * b
+        return sqrt(mix(a2.toFloat(), b2.toFloat(), f)).roundToInt()
+    }
+
     fun mixRandomly(a: Int, b: Int, f: Float): Int {
         return (a * (1f - f) + b * f + Math.random()).toInt()
     }
@@ -210,11 +220,19 @@ object Maths {
     fun absMax(a: Double, b: Double, c: Double, d: Double) = max(max(abs(a), abs(b)), max(abs(c), abs(d)))
 
     fun mixChannel(a: Int, b: Int, shift: Int, f: Float): Int {
-        return clamp(mix((a shr shift) and 0xff, (b shr shift) and 0xff, f), 0, 255) shl shift
+        return mix((a shr shift) and 0xff, (b shr shift) and 0xff, f) shl shift
     }
 
     fun mixChannel(a: Int, b: Int, shift: Int, f: Int): Int {
-        return clamp(mix((a shr shift) and 0xff, (b shr shift) and 0xff, f), 0, 255) shl shift
+        return mix((a shr shift) and 0xff, (b shr shift) and 0xff, f) shl shift
+    }
+
+    fun mixChannel2(a: Int, b: Int, shift: Int, f: Int): Int {
+        return mix2((a shr shift) and 0xff, (b shr shift) and 0xff, f) shl shift
+    }
+
+    fun mixChannel2(a: Int, b: Int, shift: Int, f: Float): Int {
+        return mix2((a shr shift) and 0xff, (b shr shift) and 0xff, f) shl shift
     }
 
     fun mixChannelRandomly(a: Int, b: Int, shift: Int, f: Float): Int {
@@ -252,6 +270,20 @@ object Maths {
                 mixChannel(a, b, 16, f) or
                 mixChannel(a, b, 8, f) or
                 mixChannel(a, b, 0, f)
+    }
+
+    fun mixARGB2(a: Int, b: Int, f: Float): Int {
+        return mixChannel2(a, b, 24, f) or
+                mixChannel2(a, b, 16, f) or
+                mixChannel2(a, b, 8, f) or
+                mixChannel2(a, b, 0, f)
+    }
+
+    fun mixARGB2(a: Int, b: Int, f: Int): Int {
+        return mixChannel2(a, b, 24, f) or
+                mixChannel2(a, b, 16, f) or
+                mixChannel2(a, b, 8, f) or
+                mixChannel2(a, b, 0, f)
     }
 
     fun mixARGBRandomly(a: Int, b: Int, f: Float): Int {

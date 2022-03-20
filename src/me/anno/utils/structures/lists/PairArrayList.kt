@@ -4,12 +4,48 @@ import me.anno.utils.structures.tuples.MutablePair
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 
+@Suppress("unused")
 class PairArrayList<A, B>(capacity: Int = 16) : Iterable<MutablePair<A, B>> {
 
     var array = arrayOfNulls<Any>(max(capacity * 2, 2))
     var elementSize = 0
 
     val size get() = elementSize shr 1
+
+    fun clear() {
+        elementSize = 0
+        array.fill(null)
+    }
+
+    @Suppress("unchecked_cast")
+    fun getA(index: Int) = array[index * 2] as A
+
+    @Suppress("unchecked_cast")
+    fun getB(index: Int) = array[index * 2 + 1] as B
+
+    inline fun <V> iterate(run: (a: A, b: B) -> V?): V? {
+        var index = 0
+        for (i in 0 until size) {
+            @Suppress("unchecked_cast")
+            val v = run(array[index++] as A, array[index++] as B)
+            if (v != null) return v
+        }
+        return null
+    }
+
+    @Suppress("unchecked_cast")
+    inline fun forEachA(run: (a: A) -> Unit) {
+        for (i in 0 until size) {
+            run(array[i * 2] as A)
+        }
+    }
+
+    @Suppress("unchecked_cast")
+    inline fun forEachB(run: (b: B) -> Unit) {
+        for (i in 0 until size) {
+            run(array[i * 2 + 1] as B)
+        }
+    }
 
     fun add(a: A, b: B) {
         var elementSize = elementSize
@@ -30,7 +66,7 @@ class PairArrayList<A, B>(capacity: Int = 16) : Iterable<MutablePair<A, B>> {
         val array = array
         val size = elementSize
         while (i < size) {
-            @Suppress("UNCHECKED_CAST")
+            @Suppress("unchecked_cast")
             if (array[i] == a) return array[i + 1] as B
             i += 2
         }

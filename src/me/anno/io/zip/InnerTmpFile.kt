@@ -57,6 +57,7 @@ abstract class InnerTmpFile private constructor(name: String) :
             val size = Int.MAX_VALUE.toLong()
             this.size = size
             this.compressedSize = size
+            prefab.source = this
         }
 
         val text = lazy { TextWriter.toText(prefab) }

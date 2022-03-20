@@ -7,11 +7,8 @@ import me.anno.ecs.components.cache.MaterialCache
 import me.anno.ecs.components.light.AmbientLight
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.PlanarReflection
-import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
-import me.anno.ecs.components.mesh.MeshBaseComponent
-import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.shapes.Icosahedron
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.Frustum
@@ -278,6 +275,16 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
                             }
                             clickId++
                         }
+                    }
+                    is MeshSpawner -> {
+                        component.clickId = clickId
+                        component.forEachMesh { mesh, material, transform ->
+                            mesh.ensureBuffer()
+                            val material2 = material ?: defaultMaterial
+                            val stage = material2.pipelineStage ?: defaultStage
+                            stage.addInstanced(mesh, transform, material2, clickId)
+                        }
+                        clickId++
                     }
                     is LightComponent -> {
                         addLight(component, entity, cameraPosition, worldScale)

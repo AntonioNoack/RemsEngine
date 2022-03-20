@@ -17,6 +17,7 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFX.shaderColor
 import me.anno.gpu.OpenGL
 import me.anno.gpu.blending.BlendMode
@@ -37,6 +38,7 @@ import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.AABBs.transformUnion
 import org.joml.*
 import org.lwjgl.opengl.GL15.GL_DYNAMIC_DRAW
+import org.lwjgl.opengl.GL15C.GL_STREAM_DRAW
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL21
 
@@ -70,6 +72,8 @@ class PipelineStage(
         const val instancedBatchSize = 1024 * 16
 
         val meshInstanceBuffer = StaticBuffer(meshInstancedAttributes, instancedBatchSize, GL_DYNAMIC_DRAW)
+        val mibs1 = ArrayList<StaticBuffer>()
+        val mibs2 = ArrayList<StaticBuffer>()
 
         val tmpAABBd = AABBd()
 
@@ -108,7 +112,8 @@ class PipelineStage(
 
     val size get() = nextInsertIndex + instancedSize
 
-    val instancedMeshes = KeyPairMap<Mesh, Int, InstancedStack>()
+    val instancedMeshes1 = KeyPairMap<Mesh, Int, InstancedStack>()
+    val instancedMeshes2 = KeyPairMap<Mesh, Material, InstancedStack>()
 
     fun bindDraw(pipeline: Pipeline, cameraMatrix: Matrix4fc, cameraPosition: Vector3d, worldScale: Double) {
         OpenGL.blendMode.use(blendMode) {
@@ -429,70 +434,29 @@ class PipelineStage(
         lastMaterial.clear()
 
         // draw instanced meshes
-        val batchSize = instancedBatchSize
-        val buffer = meshInstanceBuffer
-        val aabb = tmpAABBd
         OpenGL.instanced.use(true) {
-            for ((mesh, list) in instancedMeshes.values) {
+            for ((mesh, list) in instancedMeshes1.values) {
                 for ((materialIndex, values) in list) {
                     if (values.isNotEmpty()) {
-
-                        mesh.ensureBuffer()
-
-                        val localAABB = mesh.aabb
                         val material = getMaterial(mesh, materialIndex)
-
-                        val shader = getShader(material)
-                        shader.use()
-
-                        // update material and light properties
-                        val previousMaterial = lastMaterial.put(shader, material)
-                        if (previousMaterial == null) {
-                            initShader(shader, cameraMatrix, pipeline)
-                        }
-                        if (previousMaterial == null && !needsLightUpdateForEveryMesh) {
-                            aabb.clear()
-                            pipeline.frustum.union(aabb)
-                            setupLights(pipeline, shader, cameraPosition, worldScale, aabb)
-                        }
-                        material.defineShader(shader)
-                        shaderColor(shader, "tint", -1)
-                        shader.v1i("drawMode", GFX.drawMode.id)
-                        shader.v1b("hasAnimation", false)
-                        shader.v1b("hasVertexColors", mesh.hasVertexColors)
-                        shader.v2i("randomIdData", mesh.numTriangles, 0)
-                        GFX.check()
-                        // draw them in batches of size <= batchSize
-                        val instanceCount = values.size
-                        for (baseIndex in 0 until instanceCount step batchSize) {
-                            buffer.clear()
-                            val nioBuffer = buffer.nioBuffer!!
-                            // fill the data
-                            val trs = values.transforms
-                            val ids = values.clickIds
-                            for (index in baseIndex until min(instanceCount, baseIndex + batchSize)) {
-                                m4x3delta(
-                                    trs[index]!!.getDrawMatrix(time),
-                                    cameraPosition,
-                                    worldScale,
-                                    nioBuffer,
-                                    false
-                                )
-                                buffer.putInt(ids[index])
-                            }
-                            if (needsLightUpdateForEveryMesh) {
-                                // calculate the lights for each group
-                                // todo cluster them cheaply?
-                                aabb.clear()
-                                for (index in baseIndex until min(instanceCount, baseIndex + batchSize)) {
-                                    localAABB.transformUnion(trs[index]!!.drawTransform, aabb)
-                                }
-                                setupLights(pipeline, shader, cameraPosition, worldScale, aabb)
-                            }
-                            GFX.check()
-                            mesh.drawInstanced(shader, materialIndex, buffer)
-                        }
-                        drawnTriangles += mesh.numTriangles * instanceCount
+                        drawColor(
+                            mesh, material, materialIndex,
+                            pipeline, needsLightUpdateForEveryMesh,
+                            time, cameraPosition, cameraMatrix, worldScale, values
+                        )
+                        drawnTriangles += mesh.numTriangles * values.size
+                    }
+                }
+            }
+            for ((mesh, list) in instancedMeshes2.values) {
+                for ((material, values) in list) {
+                    if (values.isNotEmpty()) {
+                        drawColor(
+                            mesh, material, 0,
+                            pipeline, needsLightUpdateForEveryMesh,
+                            time, cameraPosition, cameraMatrix, worldScale, values
+                        )
+                        drawnTriangles += mesh.numTriangles * values.size
                     }
                 }
             }
@@ -502,6 +466,75 @@ class PipelineStage(
 
         Companion.drawnTriangles += drawnTriangles
 
+    }
+
+    private fun drawColor(
+        mesh: Mesh, material: Material, materialIndex: Int,
+        pipeline: Pipeline, needsLightUpdateForEveryMesh: Boolean,
+        time: Long, cameraPosition: Vector3d, cameraMatrix: Matrix4fc, worldScale: Double,
+        values: InstancedStack
+    ) {
+
+        val batchSize = instancedBatchSize
+        val aabb = tmpAABBd
+
+        mesh.ensureBuffer()
+
+        val localAABB = mesh.aabb
+
+        val shader = getShader(material)
+        shader.use()
+
+        // update material and light properties
+        val previousMaterial = lastMaterial.put(shader, material)
+        if (previousMaterial == null) {
+            initShader(shader, cameraMatrix, pipeline)
+        }
+        if (previousMaterial == null && !needsLightUpdateForEveryMesh) {
+            aabb.clear()
+            pipeline.frustum.union(aabb)
+            setupLights(pipeline, shader, cameraPosition, worldScale, aabb)
+        }
+        material.defineShader(shader)
+        shaderColor(shader, "tint", -1)
+        shader.v1i("drawMode", GFX.drawMode.id)
+        shader.v1b("hasAnimation", false)
+        shader.v1b("hasVertexColors", mesh.hasVertexColors)
+        shader.v2i("randomIdData", mesh.numTriangles, 0)
+        GFX.check()
+        // draw them in batches of size <= batchSize
+        val instanceCount = values.size
+        for (baseIndex in 0 until instanceCount step batchSize) {
+            // creating a new buffer allows the gpu some time to sort things out
+            val buffer = meshInstanceBuffer//StaticBuffer(meshInstancedAttributes, instancedBatchSize, GL_STREAM_DRAW)
+            buffer.clear()
+            val nioBuffer = buffer.nioBuffer!!
+            // fill the data
+            val trs = values.transforms
+            val ids = values.clickIds
+            for (index in baseIndex until min(instanceCount, baseIndex + batchSize)) {
+                m4x3delta(
+                    trs[index]!!.getDrawMatrix(time),
+                    cameraPosition,
+                    worldScale,
+                    nioBuffer,
+                    false
+                )
+                buffer.putInt(ids[index])
+            }
+            if (needsLightUpdateForEveryMesh) {
+                // calculate the lights for each group
+                // todo cluster them cheaply?
+                aabb.clear()
+                for (index in baseIndex until min(instanceCount, baseIndex + batchSize)) {
+                    localAABB.transformUnion(trs[index]!!.drawTransform, aabb)
+                }
+                setupLights(pipeline, shader, cameraPosition, worldScale, aabb)
+            }
+            GFX.check()
+            mesh.drawInstanced(shader, materialIndex, buffer)
+            if(buffer !== meshInstanceBuffer) addGPUTask(1) { buffer.destroy() }
+        }
     }
 
     fun drawDepth(pipeline: Pipeline, cameraMatrix: Matrix4fc, cameraPosition: Vector3d, worldScale: Double) {
@@ -553,38 +586,23 @@ class PipelineStage(
         GFX.check()
 
         // draw instanced meshes
-        val batchSize = instancedBatchSize
-        val buffer = meshInstanceBuffer
         OpenGL.instanced.use(true) {
             val shader2 = defaultShader.value
             shader2.use()
             initShader(shader2, cameraMatrix, pipeline)
-            for ((mesh, list) in instancedMeshes.values) {
+            for ((mesh, list) in instancedMeshes1.values) {
                 for ((_, values) in list) {
                     if (values.isNotEmpty()) {
-                        mesh.ensureBuffer()
-                        shader2.v1b("hasAnimation", false)
-                        shader2.v1b("hasVertexColors", mesh.hasVertexColors)
-                        val instanceCount = values.size
-                        for (baseIndex in 0 until instanceCount step batchSize) {
-                            buffer.clear()
-                            val nioBuffer = buffer.nioBuffer!!
-                            // fill the data
-                            val trs = values.transforms
-                            for (index in baseIndex until min(instanceCount, baseIndex + batchSize)) {
-                                m4x3delta(
-                                    trs[index]!!.getDrawMatrix(time),
-                                    cameraPosition,
-                                    worldScale,
-                                    nioBuffer,
-                                    false
-                                )
-                                buffer.putInt(0) // clickId
-                            }
-                            buffer.ensureBufferWithoutResize()
-                            mesh.drawInstancedDepth(shader2, buffer)
-                        }
-                        drawnTriangles += mesh.numTriangles * instanceCount
+                        drawDepth(shader2, mesh, values, time, cameraPosition, worldScale)
+                        drawnTriangles += mesh.numTriangles * values.size
+                    }
+                }
+            }
+            for ((mesh, list) in instancedMeshes2.values) {
+                for ((_, values) in list) {
+                    if (values.isNotEmpty()) {
+                        drawDepth(shader2, mesh, values, time, cameraPosition, worldScale)
+                        drawnTriangles += mesh.numTriangles * values.size
                     }
                 }
             }
@@ -594,6 +612,36 @@ class PipelineStage(
 
         Companion.drawnTriangles += drawnTriangles
 
+    }
+
+    private fun drawDepth(
+        shader: Shader, mesh: Mesh, values: InstancedStack,
+        time: Long, cameraPosition: Vector3d, worldScale: Double
+    ) {
+        mesh.ensureBuffer()
+        shader.v1b("hasAnimation", false)
+        shader.v1b("hasVertexColors", mesh.hasVertexColors)
+        val batchSize = instancedBatchSize
+        val buffer = meshInstanceBuffer
+        val instanceCount = values.size
+        for (baseIndex in 0 until instanceCount step batchSize) {
+            buffer.clear()
+            val nioBuffer = buffer.nioBuffer!!
+            // fill the data
+            val trs = values.transforms
+            for (index in baseIndex until min(instanceCount, baseIndex + batchSize)) {
+                m4x3delta(
+                    trs[index]!!.getDrawMatrix(time),
+                    cameraPosition,
+                    worldScale,
+                    nioBuffer,
+                    false
+                )
+                buffer.putInt(0) // clickId
+            }
+            buffer.ensureBufferWithoutResize()
+            mesh.drawInstancedDepth(shader, buffer)
+        }
     }
 
     private var hadTooMuchSpace = 0
@@ -608,7 +656,14 @@ class PipelineStage(
 
         nextInsertIndex = 0
         instancedSize = 0
-        for ((_, values) in instancedMeshes.values) {
+
+        for ((_, values) in instancedMeshes1.values) {
+            for ((_, value) in values) {
+                value.clear()
+            }
+        }
+
+        for ((_, values) in instancedMeshes2.values) {
             for ((_, value) in values) {
                 value.clear()
             }
@@ -632,9 +687,20 @@ class PipelineStage(
     }
 
     fun addInstanced(mesh: Mesh, entity: Entity, materialIndex: Int, clickId: Int) {
-        val stack = instancedMeshes.getOrPut(mesh, materialIndex) { _, _ -> InstancedStack() }
+        addInstanced(mesh, entity.transform, materialIndex, clickId)
+    }
+
+    fun addInstanced(mesh: Mesh, transform: Transform, materialIndex: Int, clickId: Int) {
+        val stack = instancedMeshes1.getOrPut(mesh, materialIndex) { _, _ -> InstancedStack() }
         // instanced animations not supported (entity not saved); they would need to be the same, and that's probably very rare...
-        stack.add(entity.transform, clickId)
+        stack.add(transform, clickId)
+        instancedSize++
+    }
+
+    fun addInstanced(mesh: Mesh, transform: Transform, material: Material, clickId: Int) {
+        val stack = instancedMeshes2.getOrPut(mesh, material) { _, _ -> InstancedStack() }
+        // instanced animations not supported (entity not saved); they would need to be the same, and that's probably very rare...
+        stack.add(transform, clickId)
         instancedSize++
     }
 

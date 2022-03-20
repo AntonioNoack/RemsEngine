@@ -113,7 +113,7 @@ class DeferredLayerType(
         val ROUGHNESS = DeferredLayerType("ROUGHNESS", "finalRoughness", 0x11)
 
         // from an occlusion texture, cavity; 1 = no cavities, 0 = completely hidden
-        val OCCLUSION = DeferredLayerType("OCCLUSION", "finalOcclusion", 0xff)
+        val OCCLUSION = DeferredLayerType("OCCLUSION", "finalOcclusion", -1)
 
         // transparency? is a little late... finalAlpha, needs to be handled differently
         val TRANSLUCENCY = DeferredLayerType("TRANSLUCENCY", "finalTranslucency", 0)

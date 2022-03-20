@@ -1,13 +1,10 @@
 package me.anno.utils.hpc
 
 import me.anno.Engine
-import me.anno.maths.Maths
-import me.anno.utils.Sleep.waitUntil
-import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-class ProcessingGroup(name: String, val numThreads: Int) : ProcessingQueue(name) {
+class ProcessingGroup(name: String, numThreads: Int) : ProcessingQueue(name, numThreads) {
 
     constructor(name: String, threadFraction: Float) : this(
         name,
@@ -21,68 +18,6 @@ class ProcessingGroup(name: String, val numThreads: Int) : ProcessingQueue(name)
         for (index in 0 until numThreads) {
             super.start("$name-$index", true)
         }
-    }
-
-    fun processUnbalanced(i0: Int, i1: Int, heavy: Boolean, func: (i0: Int, i1: Int) -> Unit) {
-        val minCountPerThread = if (heavy) 1 else 5
-        val count = i1 - i0
-        val threadCount = Maths.clamp(
-            count / minCountPerThread, 1,
-            numThreads + 1
-        )
-        if (threadCount == 1) {
-            // we need to wait anyways, so just use this thread
-            func(i0, i1)
-        } else {
-            val counter = AtomicInteger(threadCount + i0)
-            for (threadId in 1 until threadCount) {
-                // spawn #threads workers
-                plusAssign {
-                    val index = threadId + i0
-                    func(index, index + 1)
-                    while (true) {
-                        val nextIndex = counter.incrementAndGet()
-                        if (nextIndex >= i1) break
-                        func(nextIndex, nextIndex + 1)
-                    }
-                }
-            }
-            func(i0, i0 + 1)
-            while (true) {
-                val nextIndex = counter.incrementAndGet()
-                if (nextIndex >= i1) break
-                func(nextIndex, nextIndex + 1)
-            }
-        }
-    }
-
-    fun processBalanced(i0: Int, i1: Int, minCountPerThread: Int, func: (i0: Int, i1: Int) -> Unit) {
-        val count = i1 - i0
-        val threadCount = Maths.clamp(
-            count / minCountPerThread, 1,
-            numThreads + 1
-        )
-        if (threadCount == 1) {
-            func(i0, i1)
-        } else {
-            val doneCounter = AtomicInteger(1)
-            for (threadId in 1 until threadCount) {
-                plusAssign {
-                    val startIndex = i0 + HeavyProcessing.partition(threadId, count, threadCount)
-                    val endIndex = i0 + HeavyProcessing.partition(threadId + 1, count, threadCount)
-                    func(startIndex, endIndex)
-                    doneCounter.incrementAndGet()
-                }
-            }
-            // process first
-            val endIndex = i0 + HeavyProcessing.partition(1, count, threadCount)
-            func(i0, endIndex)
-            waitUntil(true) { doneCounter.get() >= threadCount }
-        }
-    }
-
-    fun processBalanced(i0: Int, i1: Int, heavy: Boolean, func: (i0: Int, i1: Int) -> Unit) {
-        processBalanced(i0, i1, if (heavy) 1 else 512, func)
     }
 
     companion object {

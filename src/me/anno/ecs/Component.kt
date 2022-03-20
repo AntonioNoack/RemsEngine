@@ -103,7 +103,7 @@ abstract class Component : PrefabSaveable(), Inspectable {
 
     fun callUpdate(): Boolean {
         return if (onUpdateItr > 0) {
-            if (onUpdateCtr++ >= onUpdateItr) {
+            if (onUpdateCtr >= onUpdateItr - 1) {
                 onUpdateCtr = 0
                 onUpdateItr = onUpdate()
             }

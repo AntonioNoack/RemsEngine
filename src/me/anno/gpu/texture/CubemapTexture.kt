@@ -2,8 +2,8 @@ package me.anno.gpu.texture
 
 import me.anno.cache.data.ICacheData
 import me.anno.gpu.GFX
-import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.buffer.Buffer
+import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.framebuffer.TargetType
 import org.lwjgl.opengl.ARBDepthBufferFloat.GL_DEPTH_COMPONENT32F
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
@@ -20,7 +20,9 @@ import java.nio.ByteBuffer
 // todo multi-sampled environment maps, because some gpus may handle them just fine :3
 
 class CubemapTexture(
-    var size: Int, val samples: Int
+    var name: String,
+    var size: Int,
+    val samples: Int
 ) : ICacheData, ITexture2D {
 
     var isCreated = false
@@ -137,7 +139,7 @@ class CubemapTexture(
 
     private fun afterUpload(bytesPerPixel: Int) {
         GFX.check()
-        locallyAllocated = Texture2D.allocate(locallyAllocated, size * size * bytesPerPixel.toLong())
+        locallyAllocated = allocate(locallyAllocated, size * size * bytesPerPixel.toLong())
         isCreated = true
         filtering(filtering)
         clamping()
@@ -149,7 +151,7 @@ class CubemapTexture(
         return Texture2D.boundTextures[slot] == pointer
     }
 
-    override fun bind(index: Int, nearest: GPUFiltering, clamping: Clamping): Boolean {
+    fun bind(index: Int, nearest: GPUFiltering): Boolean {
         if (pointer > 0 && isCreated) {
             if (isBoundToSlot(index)) return false
             Texture2D.activeSlot(index)
@@ -157,6 +159,10 @@ class CubemapTexture(
             ensureFilterAndClamping(nearest)
             return result
         } else throw IllegalStateException("Cannot bind non-created texture!")
+    }
+
+    override fun bind(index: Int, nearest: GPUFiltering, clamping: Clamping): Boolean {
+        return bind(index, nearest)
     }
 
     private fun clamping() {
@@ -207,8 +213,16 @@ class CubemapTexture(
     private fun destroy(pointer: Int) {
         DebugGPUStorage.texCd.remove(this)
         Texture2D.invalidateBinding()
-        locallyAllocated = Texture2D.allocate(locallyAllocated, 0L)
+        locallyAllocated = allocate(locallyAllocated, 0L)
         Texture2D.texturesToDelete.add(pointer)
+    }
+
+    companion object {
+        var allocated = 0L
+        fun allocate(oldValue: Long, newValue: Long): Long {
+            allocated += newValue - oldValue
+            return newValue
+        }
     }
 
 }

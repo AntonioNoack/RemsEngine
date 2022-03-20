@@ -54,9 +54,9 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         }
 
         // outputs
-        attributes += Variable(GLSLType.V3F, "localPosition", false)
-        attributes += Variable(GLSLType.V3F, "finalPosition", false)
-        attributes += Variable(GLSLType.V1F, "zDistance", false)
+        attributes += Variable(GLSLType.V3F, "localPosition", VariableMode.OUT)
+        attributes += Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT)
+        attributes += Variable(GLSLType.V1F, "zDistance", VariableMode.OUT)
 
         if (colors) {
             attributes += Variable(GLSLType.V2F, "uv", false)
@@ -100,6 +100,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     defines +
                     "#ifdef INSTANCED\n" +
                     "   mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2);\n" +
+                    "   localPosition = coords;\n" +
                     "   finalPosition = localTransform * vec4(coords, 1.0);\n" +
                     "   #ifdef COLORS\n" +
                     "       normal = localTransform * vec4(normals, 0.0);\n" +

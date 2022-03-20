@@ -5,7 +5,6 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.GeoShader
 import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.Shader
-import me.anno.utils.LOGGER
 import kotlin.math.max
 
 class ShaderBuilder(val name: String) {
@@ -42,17 +41,20 @@ class ShaderBuilder(val name: String) {
 
     private fun collectTextureIndices(textureIndices: MutableList<String>, uniforms: Collection<Variable>) {
         for (uniform in uniforms) {
-            if (uniform.type == GLSLType.S2D || uniform.type == GLSLType.SCube) {
-                if (uniform.arraySize > 0) {
-                    if ("${uniform.name}0" !in textureIndices) {
-                        for (i in 0 until uniform.arraySize) {
-                            // todo with brackets or without?
-                            textureIndices.add(uniform.name + i)
+            when (uniform.type) {
+                GLSLType.S2D, GLSLType.S3D, GLSLType.SCube -> {
+                    if (uniform.arraySize > 0) {
+                        if ("${uniform.name}0" !in textureIndices) {
+                            for (i in 0 until uniform.arraySize) {
+                                // todo with brackets or without?
+                                textureIndices.add(uniform.name + i)
+                            }
                         }
+                    } else if (uniform.name !in textureIndices) {
+                        textureIndices.add(uniform.name)
                     }
-                } else if (uniform.name !in textureIndices) {
-                    textureIndices.add(uniform.name)
                 }
+                else -> {}
             }
         }
     }

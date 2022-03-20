@@ -2,6 +2,7 @@ package me.anno.ecs.components.mesh
 
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Type
+import me.anno.ecs.components.cache.MaterialCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
@@ -123,6 +124,14 @@ class Mesh : PrefabSaveable() {
         set(value) {
             materials = if (value != null) listOf(value)
             else emptyList()
+        }
+
+    var materialInst: Material?
+        get() = MaterialCache[material]
+        set(value) {
+            material = if (value == defaultMaterial || value == null) null
+            else if (value.prefab != null) value.prefab!!.source
+            else throw IllegalArgumentException("Use Material.create() to create your material!")
         }
 
     /**

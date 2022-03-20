@@ -13,7 +13,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
-import me.anno.gpu.texture.Texture2D.Companion.packAlignment
+import me.anno.gpu.texture.Texture2D.Companion.readAlignment
 import me.anno.utils.types.Floats.f2
 import org.lwjgl.opengl.GL11.*
 import java.nio.ByteBuffer
@@ -125,7 +125,7 @@ fun main() {
                             flat01.draw(shader)
                         }
                         // synchronize
-                        packAlignment(4)
+                        readAlignment(4)
                         glReadPixels(0, 0, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixels)
                         GFX.check()
                         val t1 = System.nanoTime()

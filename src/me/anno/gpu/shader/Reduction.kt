@@ -12,7 +12,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.Texture2D.Companion.packAlignment
+import me.anno.gpu.texture.Texture2D.Companion.readAlignment
 import me.anno.image.ImageGPUCache
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.max
@@ -158,7 +158,7 @@ object Reduction {
 
         // read pixel
         GL11C.glFlush(); GL11C.glFinish() // wait for everything to be drawn
-        packAlignment(4)
+        readAlignment(4)
         srcTexture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
 
         val target = when (srcTexture) {

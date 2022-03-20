@@ -141,7 +141,7 @@ open class Texture2D(
                 1
             }
         }
-        unpackAlignment(w * typeSize * numChannels)
+        writeAlignment(w * typeSize * numChannels)
         unbindUnpackBuffer()
     }
 
@@ -565,7 +565,7 @@ open class Texture2D(
         beforeUpload(1, ints.size)
         val ints2 = if (checkRedundancy) checkRedundancy(ints) else ints
         switchRGB2BGR(ints2)
-        unpackAlignment(4 * w)
+        writeAlignment(4 * w)
         // uses bgra instead of rgba to save the swizzle
         texImage2D(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, ints2)
         afterUpload(false, 4)
@@ -582,7 +582,7 @@ open class Texture2D(
         // would work without swizzle, but I am not sure, that this is legal,
         // because the number of channels from the input and internal format differ
         // glTexImage2D(tex2D, 0, GL_RGB8, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, ints2)
-        unpackAlignment(4 * w)
+        writeAlignment(4 * w)
         texImage2D(GL_RGB8, GL_RGBA, GL_UNSIGNED_BYTE, ints2)
         afterUpload(false, 3)
     }
@@ -590,7 +590,7 @@ open class Texture2D(
     fun createRGB(floats: FloatArray, checkRedundancy: Boolean) {
         beforeUpload(3, floats.size)
         val floats2 = if (checkRedundancy) checkRedundancy(floats) else floats
-        unpackAlignment(12 * w)
+        writeAlignment(12 * w)
         texImage2D(GL_RGB32F, GL_RGB, GL_FLOAT, floats2)
         afterUpload(true, 12)
     }
@@ -598,7 +598,7 @@ open class Texture2D(
     fun createRGB(floats: FloatBuffer, checkRedundancy: Boolean) {
         beforeUpload(3, floats.capacity())
         if (checkRedundancy) checkRedundancy(floats)
-        unpackAlignment(12 * w)
+        writeAlignment(12 * w)
         texImage2D(GL_RGB32F, GL_RGB, GL_FLOAT, floats)
         afterUpload(true, 12)
     }
@@ -608,7 +608,7 @@ open class Texture2D(
         val data2 = if (checkRedundancy) checkRedundancy(data) else data
         val buffer = bufferPool[data2.size, false]
         buffer.put(data2).flip()
-        unpackAlignment(3 * w)
+        writeAlignment(3 * w)
         texImage2D(GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE, buffer)
         bufferPool.returnBuffer(buffer)
         afterUpload(false, 3)
@@ -618,7 +618,7 @@ open class Texture2D(
         beforeUpload(1, ints.remaining())
         if (checkRedundancy) checkRedundancy(ints)
         if (ints.order() != ByteOrder.nativeOrder()) throw RuntimeException("Byte order must be native!")
-        unpackAlignment(4 * w)
+        writeAlignment(4 * w)
         texImage2D(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, ints)
         afterUpload(false, 4)
     }
@@ -627,7 +627,7 @@ open class Texture2D(
         beforeUpload(1, ints.remaining())
         if (checkRedundancy) checkRedundancy(ints)
         if (ints.order() != ByteOrder.nativeOrder()) throw RuntimeException("Byte order must be native!")
-        unpackAlignment(4 * w)
+        writeAlignment(4 * w)
         texImage2D(GL_RGB8, GL_RGBA, GL_UNSIGNED_BYTE, ints)
         afterUpload(false, 4)
     }
@@ -665,7 +665,7 @@ open class Texture2D(
     fun createMonochrome(data: FloatBuffer, checkRedundancy: Boolean) {
         beforeUpload(1, data.remaining())
         if (checkRedundancy) checkRedundancyMonochrome(data)
-        unpackAlignment(4 * w)
+        writeAlignment(4 * w)
         texImage2D(GL_R32F, GL_RED, GL_FLOAT, data)
         afterUpload(true, 4)
     }
@@ -750,7 +750,7 @@ open class Texture2D(
         beforeUpload(3, buffer.remaining())
         if (checkRedundancy) checkRedundancy(buffer, true)
         // texImage2D(TargetType.UByteTarget3, buffer)
-        unpackAlignment(3 * w)
+        writeAlignment(3 * w)
         texImage2D(GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE, buffer)
         bufferPool.returnBuffer(buffer)
         afterUpload(false, 3)
@@ -870,7 +870,7 @@ open class Texture2D(
     }
 
     fun isBoundToSlot(slot: Int): Boolean {
-        return boundTextures[slot] == pointer
+        return slot in boundTextures.indices && boundTextures[slot] == pointer
     }
 
     companion object {
@@ -988,11 +988,11 @@ open class Texture2D(
             }
         }
 
-        fun packAlignment(w: Int) {
+        fun readAlignment(w: Int) {
             glPixelStorei(GL_PACK_ALIGNMENT, getAlignment(w))
         }
 
-        fun unpackAlignment(w: Int) {
+        fun writeAlignment(w: Int) {
             glPixelStorei(GL_UNPACK_ALIGNMENT, getAlignment(w))
         }
 

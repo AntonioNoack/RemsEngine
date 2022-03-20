@@ -4,14 +4,12 @@ import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.shaders.sdf.modifiers.DistanceMapper
 import me.anno.ecs.components.shaders.sdf.modifiers.PositionMapper
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.Ptr
 import me.anno.gpu.shader.GLSLType
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.pooling.ObjectPool
 import org.joml.*
 import kotlin.math.abs
 
-// todo soft (barrel) distortion
 open class SDFComponent : PrefabSaveable() {
 
     // input: 3d position

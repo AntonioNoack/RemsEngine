@@ -133,7 +133,7 @@ object ImageGPUCache : CacheSection("Images") {
         val file = pair.second
         val img = ImageCPUCache.getImage(file, false)!!
         val sqrt = sqrt(img.width + 0.5f).toInt()
-        val tex = Texture3D(sqrt, img.height, sqrt)
+        val tex = Texture3D("lut-${file.name}", sqrt, img.height, sqrt)
         tex.create(img, false)
         return tex
     }

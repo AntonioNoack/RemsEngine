@@ -2,7 +2,9 @@ package me.anno.ecs.components.mesh
 
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.Texture3D
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import org.apache.logging.log4j.LogManager
 import org.joml.*
@@ -15,7 +17,7 @@ class TypeValue(val type: GLSLType, val value: Any) {
 
     fun bind(shader: Shader, uniformName: String) {
         val location = when (type) {
-            GLSLType.S2D, GLSLType.SCube -> shader.getTextureIndex(uniformName)
+            GLSLType.S2D, GLSLType.S3D, GLSLType.SCube -> shader.getTextureIndex(uniformName)
             else -> shader[uniformName]
         }
         if (location >= 0) bind(shader, location)
@@ -58,6 +60,26 @@ class TypeValue(val type: GLSLType, val value: Any) {
                 if (value.isCreated) {
                     value.bind(location)
                 } else {
+                    whiteTexture.bind(location)
+                    LOGGER.warn("Texture ${value.name} has not been created")
+                }
+            }
+            GLSLType.S3D -> {
+                value as Texture3D
+                if (value.isCreated) {
+                    value.bind(location, value.filtering)
+                } else {
+                    // todo can we do that?
+                    whiteTexture.bind(location)
+                    LOGGER.warn("Texture ${value.name} has not been created")
+                }
+            }
+            GLSLType.SCube -> {
+                value as CubemapTexture
+                if (value.isCreated) {
+                    value.bind(location, value.filtering)
+                } else {
+                    // todo can we do that?
                     whiteTexture.bind(location)
                     LOGGER.warn("Texture ${value.name} has not been created")
                 }

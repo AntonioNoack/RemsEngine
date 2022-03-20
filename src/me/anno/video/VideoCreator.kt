@@ -7,7 +7,7 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.Texture2D.Companion.packAlignment
+import me.anno.gpu.texture.Texture2D.Companion.readAlignment
 import me.anno.io.files.FileReference
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.video.Codecs.videoCodecByExtension
@@ -144,7 +144,7 @@ open class VideoCreator(
         val buffer = if (frameIndex % 2 == 0L) buffer1 else buffer2
 
         buffer.position(0)
-        packAlignment(w * 3)
+        readAlignment(w * 3)
         glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, buffer)
         buffer.position(0)
 

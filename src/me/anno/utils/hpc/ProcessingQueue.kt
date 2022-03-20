@@ -7,7 +7,7 @@ import org.apache.logging.log4j.LogManager
 import java.util.concurrent.LinkedBlockingQueue
 import kotlin.concurrent.thread
 
-open class ProcessingQueue(val name: String){
+open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter(numThreads) {
 
     private val tasks = LinkedBlockingQueue<() -> Unit>()
 
@@ -16,13 +16,13 @@ open class ProcessingQueue(val name: String){
 
     val size get() = tasks.size
 
-    fun stop(){
+    fun stop() {
         shouldStop = true
         hasBeenStarted = false
     }
 
     open fun start(name: String = this.name, force: Boolean = false) {
-        if(hasBeenStarted && !force) return
+        if (hasBeenStarted && !force) return
         hasBeenStarted = true
         shouldStop = false
         LOGGER.info("Starting queue $name")
@@ -31,12 +31,12 @@ open class ProcessingQueue(val name: String){
                 try {
                     // will block, until we have new work
                     val task = tasks.poll() ?: null
-                    if(task == null){
+                    if (task == null) {
                         sleepShortly(true)
                     } else {
                         task()
                     }
-                } catch (e: ShutdownException){
+                } catch (e: ShutdownException) {
                     // nothing to worry about (probably)
                     break
                 } catch (e: Exception) {
@@ -47,8 +47,8 @@ open class ProcessingQueue(val name: String){
         }
     }
 
-    operator fun plusAssign(task: () -> Unit) {
-        if(!hasBeenStarted) start()
+    override operator fun plusAssign(task: () -> Unit) {
+        if (!hasBeenStarted) start()
         tasks += task
     }
 

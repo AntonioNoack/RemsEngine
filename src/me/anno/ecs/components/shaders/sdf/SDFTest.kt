@@ -1,7 +1,6 @@
 package me.anno.ecs.components.shaders.sdf
 
 import me.anno.Engine
-import me.anno.Engine.gameTimeF
 import me.anno.config.DefaultStyle.deepDark
 import me.anno.ecs.components.shaders.sdf.modifiers.*
 import me.anno.ecs.components.shaders.sdf.shapes.*
@@ -71,7 +70,7 @@ fun testGPU(finalShape: SDFComponent, camPosition: Vector3f, fovFactor: Float) {
     TestDrawPanel.testDrawing {
         val dt = Engine.deltaTime
         val dt5 = 5f * dt
-        val time = Engine.gameTimeF.toFloat()
+        val time = Engine.gameTimeF
         val progressTime = 3f * time / ((group1 ?: group2)?.children?.size ?: 1)
         camRotation.transformInverse(camPosition)
         if (Input.isKeyDown('w')) camPosition.z -= dt5
@@ -138,13 +137,13 @@ fun main() {
         thread {
             while (!Engine.shutdown) {
                 run(run)
-                Thread.sleep(10)
+                Thread.sleep(3)
             }
         }
     }
 
     // render test of shapes
-    // todo we could try to recreate some basic samples from IQ with our nodes :)
+    // we could try to recreate some basic samples from IQ with our nodes :)
 
     // this would ideally test our capabilities
     val camPosition = Vector3f(0f, 3f, 5f)
@@ -192,14 +191,14 @@ fun main() {
         // obj8.add(SDFOnion(0.2f, 1))
         obj8.boundZ(+0.5f, +1f)
         val group = SDFGroup()
-        /* group.add(obj0)
+         group.add(obj0)
          group.add(obj1)
          group.add(obj2)
          group.add(obj4)
          group.add(obj3)
          group.add(obj5)
          group.add(obj6)
-         group.add(obj7)*/
+         group.add(obj7)
         group.add(obj8)
         //group.add(SDFOnion())
         //group.add(SDFHalfSpace())
@@ -219,11 +218,11 @@ fun main() {
     finalShape.smoothness = 0.5f
     val array = SDFArray()
     array.cellSize.set(4f)
-    array.count.set(4, 1, 5)
-    // group1.add(array)
+    // array.count.set(4, 1, 5)
+    group2.add(array)
     val hexGrid = SDFHexGrid()
-    hexGrid.lim1.set(0f)
-    hexGrid.lim2.set(0f)
+    hexGrid.lim1.set(2f)
+    hexGrid.lim2.set(2f)
     hexGrid.cellSize = 4f
     // group2.add(hexGrid)
     val fovFactor = tan(fovDegrees.toRadians() * 0.5f)
