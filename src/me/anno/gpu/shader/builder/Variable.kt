@@ -53,11 +53,12 @@ class Variable(
         else -> 1000
     } * max(1, arraySize)
 
-    fun appendGlsl(code: StringBuilder, prefix: String) {
-        if (prefix.startsWith("uniform") && arraySize > 0 && type.glslName.startsWith("sampler")) {
+    fun declare(code: StringBuilder, prefix: String? = null) {
+        if (prefix != null && prefix.startsWith("uniform") && arraySize > 0 && type.glslName.startsWith("sampler")) {
+            // define sampler array
             for (index in 0 until arraySize) {
-                code.append(prefix)
-                code.append(' ')
+                    code.append(prefix)
+                    code.append(' ')
                 code.append(type.glslName)
                 code.append(' ')
                 code.append(name)
@@ -65,8 +66,11 @@ class Variable(
                 code.append(";\n")
             }
         } else {
-            code.append(prefix)
-            code.append(' ')
+            // define normal variable
+            if (prefix != null) {
+                code.append(prefix)
+                code.append(' ')
+            }
             code.append(type.glslName)
             code.append(' ')
             code.append(name)

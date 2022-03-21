@@ -2,11 +2,11 @@ package me.anno.gpu.shader.builder
 
 class ShaderStage(
     val callName: String,
-    val parameters: List<Variable>,
+    val variables: List<Variable>,
     val body: String
 ) {
 
-    val attributes = parameters.filter { it.inOutMode == VariableMode.ATTR }
+    val attributes = variables.filter { it.inOutMode == VariableMode.ATTR }
 
     val functions = ArrayList<Function>()
 

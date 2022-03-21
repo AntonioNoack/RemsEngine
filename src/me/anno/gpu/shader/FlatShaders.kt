@@ -96,6 +96,16 @@ object FlatShaders {
                 "}"
     )
 
+    val depthShader = BaseShader(
+        "depth", "" +
+                ShaderLib.simpleVertexShader, ShaderLib.uvList, "" +
+                "uniform sampler2D tex;\n" +
+                "void main(){\n" +
+                "   float depth1 = fract(log2(abs(texture(tex, uv).x)));\n" +
+                "   gl_FragColor = vec4(vec3(depth1), 1.0);\n" +
+                "}"
+    )
+
     val flatShaderCubemap = BaseShader(
         "flatShaderCubemap", "" +
                 "$attribute vec2 attr0;\n" +

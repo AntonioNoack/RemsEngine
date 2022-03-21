@@ -43,6 +43,7 @@ import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.deferred.DepthBasedAntiAliasing
 import me.anno.gpu.drawing.DrawTexts
+import me.anno.gpu.drawing.DrawTextures.drawDepthTexture
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.DrawTextures.drawTextureAlpha
 import me.anno.gpu.drawing.Perspective
@@ -491,8 +492,9 @@ class RenderView(
 
             when (renderMode) {
                 RenderMode.DEPTH -> {
+                    val buffer = FBStack["depth", w, h, 1, false, 1, true]
                     drawScene(w, h, camera, camera, 1f, renderer, buffer, true, !useDeferredRendering)
-                    drawTexture(x, y + h, w, -h, buffer.depthTexture!!, true, -1, null)
+                    drawDepthTexture(x, y + h, w, -h, buffer.depthTexture!!)
                     return
                 }
                 RenderMode.LIGHT_SUM -> {
@@ -551,7 +553,8 @@ class RenderView(
                             flat01.draw(shader)
                         }
                     }
-                    val result = ScreenSpaceReflections.compute(buffer, illuminated.getTexture0(), deferred, cameraMatrix, true)
+                    val result =
+                        ScreenSpaceReflections.compute(buffer, illuminated.getTexture0(), deferred, cameraMatrix, true)
                     drawTexture(x, y + h, w, -h, result ?: buffer.getTexture0(), true, -1, null)
                     if (result == null) {
                         DrawTexts.drawSimpleTextCharByChar(
@@ -983,7 +986,7 @@ class RenderView(
                     val shader = clearingPbrModelShader.value
                     shader.use()
                     shader.m4x4("transform", cameraMatrix)
-                    Shapes.cube.draw(shader, 0)
+                    Shapes.cube11Smooth.draw(shader, 0)
                 }
             }
         }

@@ -5,6 +5,7 @@ import me.anno.ecs.components.mesh.AnimRenderer
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.ui.render.RenderView.Companion.worldScale
 import me.anno.gpu.shader.Shader
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -62,6 +63,7 @@ class Skeleton : PrefabSaveable() {
         generateSkeleton(bones, bonePositions, mesh.positions!!, mesh.boneIndices)
         mesh.invalidateGeometry()
         shader.m4x3("localTransform", stack)
+        shader.v1f("worldScale", worldScale.toFloat())
 
         if (skinningMatrices != null) {
             val location = shader["jointTransforms"]

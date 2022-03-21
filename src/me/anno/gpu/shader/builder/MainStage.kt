@@ -47,7 +47,7 @@ class MainStage {
 
         uniforms.clear()
         for (stage in stages) {
-            for (variable in stage.parameters) {
+            for (variable in stage.variables) {
                 if (variable.isInput && !variable.isAttribute) {
                     if (variable !in defined) {
                         if (variable in definedByPrevious &&
@@ -64,7 +64,7 @@ class MainStage {
                     }
                 }
             }
-            for (variable in stage.parameters) {
+            for (variable in stage.variables) {
                 if (variable.isOutput) {
                     defined += variable
                     // now it's locally overridden
@@ -210,13 +210,20 @@ class MainStage {
         }
     }
 
-    fun createCode(isFragmentStage: Boolean, deferredSettingsV2: DeferredSettingsV2?): String {
+    fun createCode(
+        isFragmentStage: Boolean,
+        outputs: DeferredSettingsV2?,
+        bridgeVariables: Map<Variable, Variable>
+    ): String {
+
+        // todo where are varyings written?
 
         // set what is all defined
         defined += imported
 
         val code = StringBuilder()
 
+        // defines
         for (stage in stages) {
             for (define in stage.defines) {
                 code.append("#define ")
@@ -225,18 +232,21 @@ class MainStage {
             }
         }
 
-        for (variable in attributes.sortedBy { it.size }) {
-            variable.appendGlsl(code, OpenGLShader.attribute)
+        // attributes
+        if (!isFragmentStage) {
+            for (variable in attributes.sortedBy { it.size }) {
+                variable.declare(code, OpenGLShader.attribute)
+            }
+            if (attributes.isNotEmpty()) code.append('\n')
         }
-        if (attributes.isNotEmpty()) code.append('\n')
 
         if (isFragmentStage) {
             // fragment shader
-            if (deferredSettingsV2 == null) {
+            if (outputs == null) {
                 code.append("out vec4 glFragColor;\n")
             } else {
                 // register all of the layers
-                deferredSettingsV2.appendLayerDeclarators(code)
+                outputs.appendLayerDeclarators(code)
             }
             code.append('\n')
         }
@@ -245,9 +255,16 @@ class MainStage {
         // sorted by size, so small uniforms get a small location,
         // which in return allows them to be cached
         for (variable in uniforms.sortedBy { it.size }) {
-            variable.appendGlsl(code, "uniform")
+            variable.declare(code, "uniform")
         }
         if (uniforms.isNotEmpty()) code.append('\n')
+
+        // declare all bridge variables
+        // they are varyings, so they are done by Shader.kt
+        /*val bridgeKey = if (isFragmentStage) "in" else "out"
+        for ((_, varying) in bridgeVariables) {
+            varying.declare(code, bridgeKey)
+        }*/
 
         // define all required functions
         for ((_, func) in functions) code.append(func)
@@ -267,14 +284,27 @@ class MainStage {
         defined += imported
         defined += exported
 
+        // assign bridge variables/varyings
+        if (isFragmentStage) {
+            for ((local, varying) in bridgeVariables) {
+                local.declare(code, null)
+                code.append(local.name).append('=').append(varying.name).append(";\n")
+            }
+        } else {
+            for ((local, _) in bridgeVariables) {
+                local.declare(code, null)
+            }
+        }
+
+        // write all stages
         for (i in stages.indices) {
             val stage = stages[i]
             code.append("// start of stage ${stage.callName}\n")
-            val params = stage.parameters
+            val params = stage.variables
             // if this function defines a variable, which has been undefined before, define it
             for (param in params) {
                 if (param.isOutput && param !in defined) {
-                    param.appendGlsl(code, "")
+                    param.declare(code, null)
                     defined += param
                 }
             }
@@ -295,12 +325,18 @@ class MainStage {
             code.append(");\n")*/
         }
 
+        if (!isFragmentStage) {
+            for ((local, varying) in bridgeVariables) {
+                code.append(varying.name).append('=').append(local.name).append(";\n")
+            }
+        }
+
+        // write to outputs for fragment shader
         if (isFragmentStage) {
-            // fragment shader
-            if (deferredSettingsV2 == null) {
+            if (outputs == null) {
                 // use last layer, if defined
                 val lastLayer = stages.lastOrNull()
-                val lastOutputs = lastLayer?.parameters?.filter { it.isOutput } ?: emptyList()
+                val lastOutputs = lastLayer?.variables?.filter { it.isOutput } ?: emptyList()
                 val outputSum = lastOutputs.sumOf { it.type.components }
                 when {
                     outputSum == 0 -> {
@@ -326,7 +362,7 @@ class MainStage {
                 }
             } else {
 
-                val layerTypes = deferredSettingsV2.layerTypes
+                val layerTypes = outputs.layerTypes
                 for (type in layerTypes) {
                     // write the default values, if not already defined
                     if (type.glslName !in defined.map { it.name }) {
@@ -337,7 +373,7 @@ class MainStage {
                     }
                 }
 
-                deferredSettingsV2.appendLayerWriters(code)
+                outputs.appendLayerWriters(code)
 
             }
         }

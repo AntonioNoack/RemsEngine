@@ -101,6 +101,7 @@ object Outlines {
             shader.m4x4("transform", RenderView.cameraMatrix)
 
             shader.m4x3delta("localTransform", offsetCorrectedTransform, camPosition, worldScale, scale)
+            shader.v1f("worldScale", worldScale.toFloat())
             shader.v4f("tint", -1)
 
             meshComponent.defineVertexTransform(shader, entity, mesh)

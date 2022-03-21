@@ -9,13 +9,11 @@ import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColorEnd
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColorStart
 import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.DepthMode
-import me.anno.gpu.GFX
 import me.anno.gpu.OpenGL
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.deferred.DeferredSettingsV2
-import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.M4x3Delta.m4x3delta
 import me.anno.gpu.pipeline.M4x3Delta.m4x3x
@@ -34,7 +32,6 @@ import me.anno.utils.types.Booleans.toInt
 import org.joml.Matrix4fc
 import org.joml.Vector3d
 import org.lwjgl.opengl.GL15.GL_DYNAMIC_DRAW
-import org.lwjgl.opengl.GL15.GL_FRONT
 
 class LightPipelineStage(
     var depthMode: DepthMode,
@@ -135,7 +132,7 @@ class LightPipelineStage(
                     // if this layer is present,
                     // then define the output,
                     // and write the mapping
-                    if (layer.type.glslName in fragment.parameters.map { it.name }) {
+                    if (layer.type.glslName in fragment.variables.map { it.name }) {
                         layer.appendMapping(deferredCode, "Tmp", "uv", imported)
                     }
                 }
@@ -293,7 +290,7 @@ class LightPipelineStage(
                     // if this layer is present,
                     // then define the output,
                     // and write the mapping
-                    if (layer.type.glslName in fragment.parameters.map { it.name }) {
+                    if (layer.type.glslName in fragment.variables.map { it.name }) {
                         layer.appendMapping(deferredCode, "Tmp", "uv", imported)
                     }
                 }

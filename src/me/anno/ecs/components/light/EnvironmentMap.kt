@@ -81,7 +81,7 @@ class EnvironmentMap : LightComponentBase() {
     var samples = 1
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
-        val mesh = Shapes.cube
+        val mesh = Shapes.cube11Smooth
         mesh.ensureBuffer()
         mesh.aabb.transformUnion(globalTransform, aabb)
         return true

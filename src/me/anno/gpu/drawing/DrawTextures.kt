@@ -2,6 +2,7 @@ package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.GFXx2D.defineAdvancedGraphicalFeatures
+import me.anno.gpu.shader.FlatShaders.depthShader
 import me.anno.gpu.shader.FlatShaders.flatShaderCubemap
 import me.anno.gpu.shader.FlatShaders.flatShaderTexture
 import me.anno.gpu.texture.*
@@ -71,6 +72,27 @@ object DrawTextures {
         shader.v4f("color", color)
         shader.v1i("alphaMode", ignoreAlpha.toInt())
         GFXx2D.tiling(shader, tiling)
+        val tex = texture as? Texture2D
+        texture.bind(
+            0,
+            tex?.filtering ?: GPUFiltering.NEAREST,
+            tex?.clamping ?: Clamping.CLAMP
+        )
+        GFX.flat01.draw(shader)
+        GFX.check()
+    }
+
+    fun drawDepthTexture(
+        x: Int, y: Int, w: Int, h: Int,
+        texture: ITexture2D
+    ) {
+        if (w == 0 || h == 0) return
+        GFX.check()
+        val shader = depthShader.value
+        shader.use()
+        GFXx2D.posSize(shader, x, y, w, h)
+        defineAdvancedGraphicalFeatures(shader)
+        GFXx2D.noTiling(shader)
         val tex = texture as? Texture2D
         texture.bind(
             0,

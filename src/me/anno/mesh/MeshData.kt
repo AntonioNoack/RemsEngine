@@ -11,6 +11,7 @@ import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
+import me.anno.engine.ui.render.RenderView.Companion.worldScale
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.GFXx3D.shader3DUniforms
 import me.anno.gpu.drawing.GFXx3D.transformUniform
@@ -120,6 +121,7 @@ open class MeshData : ICacheData {
         if (entity.hasComponent(MeshBaseComponent::class)) {
 
             shader.m4x3("localTransform", stack)
+            shader.v1f("worldScale", 1f) // correct?
             GFX.shaderColor(shader, "tint", -1)
 
             if (useMaterials) {

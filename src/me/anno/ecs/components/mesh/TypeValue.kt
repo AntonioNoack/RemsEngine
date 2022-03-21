@@ -28,11 +28,17 @@ class TypeValue(val type: GLSLType, val value: Any) {
         when (type) {
             GLSLType.BOOL -> when (value) {
                 is Boolean -> shader.v1b(location, value)
+                is Int -> shader.v1b(location, value != 0)
+                is Float -> shader.v1b(location, value.isFinite() && value != 0f)
+                is Double -> shader.v1b(location, value.isFinite() && value != 0.0)
                 is () -> Any? -> shader.v1b(location, value.invoke() as Boolean)
                 else -> LOGGER.warn("Unknown type for BOOL, ${value.javaClass.superclass}")
             }
             GLSLType.V1I -> when (value) {
                 is Int -> shader.v1i(location, value)
+                is Long -> shader.v1i(location, value.toInt())
+                is Float -> shader.v1i(location, value.toInt())
+                is Double -> shader.v1i(location, value.toInt())
                 is () -> Any? -> shader.v1i(location, value.invoke() as Int)
                 else -> LOGGER.warn("Unknown type for V1I, ${value.javaClass.superclass}")
             }
@@ -40,7 +46,10 @@ class TypeValue(val type: GLSLType, val value: Any) {
             GLSLType.V3I -> shader.v3i(location, value as Vector3ic)
             GLSLType.V4I -> shader.v4i(location, value as Vector4ic)
             GLSLType.V1F -> when (value) {
+                is Int -> shader.v1f(location, value.toFloat())
+                is Long -> shader.v1f(location, value.toFloat())
                 is Float -> shader.v1f(location, value)
+                is Double -> shader.v1f(location, value.toFloat())
                 is () -> Any? -> shader.v1f(location, value.invoke() as Float)
                 else -> LOGGER.warn("Unknown type for V1F, ${value.javaClass.superclass}")
             }

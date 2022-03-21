@@ -91,6 +91,7 @@ class PipelineStage(
 
             val drawTransform = transform.getDrawMatrix(time)
             shader.m4x3delta("localTransform", drawTransform, cameraPosition, worldScale)
+            shader.v1f("worldScale", worldScale.toFloat())
 
             val invLocalUniform = shader["invLocalTransform"]
             if (invLocalUniform >= 0) {

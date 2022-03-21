@@ -5,6 +5,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.GeoShader
 import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.Shader
+import me.anno.utils.LOGGER
 import kotlin.math.max
 
 class ShaderBuilder(val name: String) {
@@ -60,14 +61,42 @@ class ShaderBuilder(val name: String) {
     }
 
     fun create(): Shader {
+
         // combine the code
         // find imports
-        val (vi, ui) = vertex.findImportsAndDefineValues(null, emptySet(), emptySet())
-        fragment.findImportsAndDefineValues(vertex, vi, ui)
+        val (vertexDefined, vertexUniforms) = vertex.findImportsAndDefineValues(null, emptySet(), emptySet())
+        fragment.findImportsAndDefineValues(vertex, vertexDefined, vertexUniforms)
+
+        LOGGER.info("Vertex-Defined: $vertexDefined, Vertex-Uniforms: $vertexUniforms")
+
+        val bridgeVariables =
+            HashMap<Variable, Variable>() // variables, that fragment imports & exports & vertex exports
+        for (variable in vertexDefined) {
+            val name = variable.name
+            if (vertex.stages.any { it.variables.any { v -> v.name == name && v.isOutput } }) {
+                for (stage in fragment.stages) {
+                    if (stage.variables.any { it.isInput && name == it.name }) {
+                        // the stage uses it -> might be relevant
+                        if (stage.variables.any { it.isOutput && name == it.name }) {
+                            // the stage also exports it ->
+                            LOGGER.info("Bridge is being created for $variable")
+                            bridgeVariables[variable] =
+                                Variable(variable.type, "bridge_${bridgeVariables.size}", variable.arraySize)
+                        }
+                    }/* else if (stage.variables.any { it.isOutput && name == it.name }) {
+                        // this stage outputs it, but does not import it -> theoretically,
+                        // we can skip the bridge here completely;
+                        // in practice, idk whether variable shadowing is allowed like that
+                    }*/
+                }
+            }
+        }
+
         // create the code
-        val vertCode = vertex.createCode(false, outputs)
-        val fragCode = fragment.createCode(true, outputs)
+        val vertCode = vertex.createCode(false, outputs, bridgeVariables)
+        val fragCode = fragment.createCode(true, outputs, bridgeVariables)
         val varying = (vertex.imported + vertex.exported).toList()
+            .filter { it !in bridgeVariables } + bridgeVariables.values
         val shader = Shader(name, geometry?.code, vertCode, varying, fragCode)
         shader.glslVersion = max(330, max(glslVersion, shader.glslVersion))
         val textureIndices = ArrayList<String>()
@@ -82,14 +111,14 @@ class ShaderBuilder(val name: String) {
     }
 
     fun ignore(shader: Shader, stage: ShaderStage) {
-        for (param in stage.parameters.filter { !it.isAttribute }) {
+        for (param in stage.variables.filter { !it.isAttribute }) {
             if (param.arraySize > 0 && param.type.glslName.startsWith("sampler")) {
                 for (i in 0 until param.arraySize) {
                     shader.ignoreUniformWarning(param.name + i)
                 }
             }
         }
-        shader.ignoreUniformWarnings(stage.parameters.filter { !it.isAttribute }.map { it.name })
+        shader.ignoreUniformWarnings(stage.variables.filter { !it.isAttribute }.map { it.name })
     }
 
     companion object {

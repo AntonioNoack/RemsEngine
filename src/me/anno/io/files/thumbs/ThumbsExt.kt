@@ -73,6 +73,7 @@ object ThumbsExt {
         shader.v1b("hasAnimation", false)
         shader.m4x4("transform", stack)
         shader.m4x3("localTransform", localStack)
+        shader.v1f("worldScale", 1f)
         GFXx3D.shader3DUniforms(shader, stack, -1)
         GFXx3D.uploadAttractors0(shader)
     }
@@ -103,7 +104,7 @@ object ThumbsExt {
 
     }
 
-    fun finishLines(cameraMatrix: Matrix4f, worldMatrix: Matrix4x3f?){
+    fun finishLines(cameraMatrix: Matrix4f, worldMatrix: Matrix4x3f?) {
         val m = JomlPools.mat4f.create().set(cameraMatrix)
         if (worldMatrix != null) m.mul(worldMatrix)
         LineBuffer.finish(m)

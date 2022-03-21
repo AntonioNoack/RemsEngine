@@ -55,7 +55,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
         pipeline.frustum.defineOrthographic(drawTransform, resolution, position, rotation)
     }
 
-    override fun getLightPrimitive(): Mesh = Shapes.cube
+    override fun getLightPrimitive(): Mesh = Shapes.cube11Smooth
 
     // v0 is not used
     override fun getShaderV1(): Float = shadowMapPower.toFloat()

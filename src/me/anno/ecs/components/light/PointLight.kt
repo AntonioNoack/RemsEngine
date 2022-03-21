@@ -128,7 +128,7 @@ class PointLight : LightComponent(LightType.POINT) {
         drawSphere(entity, 1.0)
     }
 
-    override fun getLightPrimitive(): Mesh = Shapes.cube
+    override fun getLightPrimitive(): Mesh = Shapes.cube11Smooth
 
     override val className: String = "PointLight"
 
