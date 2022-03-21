@@ -23,7 +23,7 @@ class ComputeShader(
     constructor(shaderName: String, localSize: Vector3i, source: String) :
             this(shaderName, 430, localSize, source)
 
-    override fun init() {
+    override fun compile() {
 
         val program = glCreateProgram()
         updateSession()

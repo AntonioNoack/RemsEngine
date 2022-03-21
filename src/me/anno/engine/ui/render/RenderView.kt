@@ -1079,16 +1079,14 @@ class RenderView(
         if (library.fineSelection.isEmpty() && library.selection.isEmpty()) return
         // draw scaled, inverted object (for outline), which is selected
         OpenGL.depthMode.use(depthMode) {
-            OpenGL.cullMode.use(CullMode.FRONT) { // inverse cull mode
-                for (selected in library.fineSelection) {
-                    when (selected) {
-                        is Entity -> drawOutline(selected, worldScale)
-                        is MeshBaseComponent -> {
-                            val mesh = selected.getMesh() ?: continue
-                            drawOutline(selected, mesh, worldScale)
-                        }
-                        is Component -> drawOutline(selected.entity ?: continue, worldScale)
+            for (selected in library.fineSelection) {
+                when (selected) {
+                    is Entity -> drawOutline(selected, worldScale)
+                    is MeshBaseComponent -> {
+                        val mesh = selected.getMesh() ?: continue
+                        drawOutline(selected, mesh, worldScale)
                     }
+                    is Component -> drawOutline(selected.entity ?: continue, worldScale)
                 }
             }
         }

@@ -38,7 +38,6 @@ import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.AABBs.transformUnion
 import org.joml.*
 import org.lwjgl.opengl.GL15.GL_DYNAMIC_DRAW
-import org.lwjgl.opengl.GL15C.GL_STREAM_DRAW
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL21
 

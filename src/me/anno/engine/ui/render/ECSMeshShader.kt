@@ -192,10 +192,10 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             Variable(GLSLType.V3F, "reflectionPlaneNormal"),
             Variable(GLSLType.S2D, "reflectionPlane"),
             Variable(GLSLType.V4F, "reflectionCullingPlane"),
-            /* Variable(GLSLType.V1F, "translucency"),
-             Variable(GLSLType.V1F, "sheen"),
-             Variable(GLSLType.V4F, "clearCoat"),
-             Variable(GLSLType.V2F, "clearCoatRoughMetallic"),*/
+            Variable(GLSLType.V1F, "translucency"),
+            Variable(GLSLType.V1F, "sheen"),
+            Variable(GLSLType.V4F, "clearCoat"),
+            Variable(GLSLType.V2F, "clearCoatRoughMetallic"),
         )
 
 
@@ -231,7 +231,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     // "   if(finalMetallic > 0.0) finalColor = mix(finalColor, texture(reflectionPlane,uv).rgb, finalMetallic);\n" +
                     "if(hasReflectionPlane){\n" +
                     "   float effect = dot(reflectionPlaneNormal,finalNormal) * (1.0 - finalRoughness);\n" +
-                    "   float factor = clamp((effect-.3)/.7, 0.0, 1.0);\n" +
+                    "   float factor = clamp((effect-.3)*1.4, 0.0, 1.0);\n" +
                     "   if(factor > 0.0){\n" +
                     "       vec3 newColor = vec3(0.0);\n" +
                     "       vec3 newEmissive = finalColor * texelFetch(reflectionPlane, ivec2(gl_FragCoord.xy), 0).rgb;\n" +

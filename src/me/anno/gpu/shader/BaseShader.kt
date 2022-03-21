@@ -21,7 +21,7 @@ open class BaseShader(
     val vertexSource: String,
     val varyingSource: List<Variable>,
     val fragmentSource: String
-) {
+) { // Saveable or PrefabSaveable?
 
     constructor() : this("", "", emptyList(), "")
 
@@ -118,11 +118,14 @@ open class BaseShader(
             }
             GFX.check()
             shader.use()
-            GFX.check()
-            shader.v1i("drawMode", renderer.drawMode.id)
+            bind(shader, renderer, instanced)
             GFX.check()
             return shader
         }
+
+    open fun bind(shader: Shader, renderer: Renderer, instanced: Boolean){
+        shader.v1i("drawMode", renderer.drawMode.id)
+    }
 
     fun ignoreUniformWarnings(warnings: Collection<String>) {
         ignoredUniforms += warnings

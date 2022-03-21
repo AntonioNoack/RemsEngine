@@ -41,7 +41,7 @@ open class Shader(
 
     // shader compile time doesn't really matter... -> move it to the start to preserve ram use?
     // isn't that much either...
-    override fun init() {
+    override fun compile() {
 
         // LOGGER.debug("$shaderName\nGEOMETRY:\n$geometry\nVERTEX:\n$vertex\nVARYING:\n$varying\nFRAGMENT:\n$fragment")
 

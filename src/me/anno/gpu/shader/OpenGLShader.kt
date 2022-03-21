@@ -118,7 +118,7 @@ abstract class OpenGLShader(
         // Frame.bindMaybe()
         GFX.check()
         if (program <= 0 || session != OpenGL.session) {
-            init()
+            compile()
         }
         if (program <= 0) throw IllegalStateException()
         return if (program != lastProgram) {
@@ -134,7 +134,7 @@ abstract class OpenGLShader(
     private val uniformCache = FloatArray(UniformCacheSizeX4) { Float.NaN }
     var textureNames: List<String> = emptyList()
 
-    abstract fun init()
+    abstract fun compile()
     abstract fun sourceContainsWord(word: String): Boolean
 
     fun setTextureIndicesIfExisting() {
@@ -537,6 +537,10 @@ abstract class OpenGLShader(
     fun v2i(loc: Int, v: Vector2ic) = v2i(loc, v.x(), v.y())
     fun v3i(loc: Int, v: Vector3ic) = v3i(loc, v.x(), v.y(), v.z())
     fun v4i(loc: Int, v: Vector4ic) = v4i(loc, v.x(), v.y(), v.z(), v.w())
+
+    fun v2i(loc: String, v: Vector2ic) = v2i(loc, v.x(), v.y())
+    fun v3i(loc: String, v: Vector3ic) = v3i(loc, v.x(), v.y(), v.z())
+    fun v4i(loc: String, v: Vector4ic) = v4i(loc, v.x(), v.y(), v.z(), v.w())
 
     fun v2f(name: String, all: Float) = v2f(name, all, all)
     fun v3f(name: String, all: Float) = v3f(name, all, all, all)

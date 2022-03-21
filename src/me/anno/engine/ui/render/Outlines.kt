@@ -3,9 +3,11 @@ package me.anno.engine.ui.render
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshBaseComponent
+import me.anno.gpu.OpenGL
+import me.anno.gpu.pipeline.CullMode
+import me.anno.gpu.pipeline.M4x3Delta.m4x3delta
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.gpu.pipeline.M4x3Delta.m4x3delta
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AABBs.avgX
 import me.anno.utils.types.AABBs.avgY
@@ -32,7 +34,7 @@ object Outlines {
         val components = entity.components
         for (i in components.indices) {
             val component = components[i]
-            if(component is MeshBaseComponent){
+            if (component is MeshBaseComponent) {
                 val mesh = component.getMesh() ?: continue
                 drawOutline(component, mesh, worldScale)
             }
@@ -94,22 +96,24 @@ object Outlines {
         offsetCorrectedTransform.translate(aabb.avgX() * fac, aabb.avgY() * fac, aabb.avgZ() * fac)
 
         if (scale < 1e10f) {
+            val cullMode = if (mesh.inverseOutline) CullMode.BACK else CullMode.FRONT
+            OpenGL.cullMode.use(cullMode) {
+                val baseShader = ShaderLib.monochromeModelShader
+                val shader = baseShader.value
+                shader.use()
+                shader.m4x4("transform", RenderView.cameraMatrix)
 
-            val baseShader = ShaderLib.monochromeModelShader
-            val shader = baseShader.value
-            shader.use()
-            shader.m4x4("transform", RenderView.cameraMatrix)
+                shader.m4x3delta("localTransform", offsetCorrectedTransform, camPosition, worldScale, scale)
+                shader.v1f("worldScale", worldScale.toFloat())
+                shader.v4f("tint", -1)
 
-            shader.m4x3delta("localTransform", offsetCorrectedTransform, camPosition, worldScale, scale)
-            shader.v1f("worldScale", worldScale.toFloat())
-            shader.v4f("tint", -1)
+                meshComponent.defineVertexTransform(shader, entity, mesh)
 
-            meshComponent.defineVertexTransform(shader, entity, mesh)
-
-            mesh.draw(shader, 0)
-
+                mesh.draw(shader, 0)
+            }
         }
 
     }
+
 
 }

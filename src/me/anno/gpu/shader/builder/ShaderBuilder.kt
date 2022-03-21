@@ -67,7 +67,7 @@ class ShaderBuilder(val name: String) {
         val (vertexDefined, vertexUniforms) = vertex.findImportsAndDefineValues(null, emptySet(), emptySet())
         fragment.findImportsAndDefineValues(vertex, vertexDefined, vertexUniforms)
 
-        LOGGER.info("Vertex-Defined: $vertexDefined, Vertex-Uniforms: $vertexUniforms")
+        // LOGGER.info("Vertex-Defined: $vertexDefined, Vertex-Uniforms: $vertexUniforms")
 
         val bridgeVariables =
             HashMap<Variable, Variable>() // variables, that fragment imports & exports & vertex exports

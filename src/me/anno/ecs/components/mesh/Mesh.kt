@@ -54,6 +54,8 @@ class Mesh : PrefabSaveable() {
      * */
     var proceduralLength = 0
 
+    var inverseOutline = false
+
     @HideInInspector
     var positions: FloatArray? = null
 

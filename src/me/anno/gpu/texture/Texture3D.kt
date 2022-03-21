@@ -11,7 +11,7 @@ import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.gpu.texture.Texture2D.Companion.textureBudgetTotal
 import me.anno.gpu.texture.Texture2D.Companion.textureBudgetUsed
 import me.anno.gpu.texture.Texture2D.Companion.writeAlignment
-import me.anno.gpu.texture.TextureLib.invisibleTexture
+import me.anno.gpu.texture.TextureLib.invisibleTex3d
 import me.anno.image.Image
 import me.anno.utils.hpc.Threads.threadWithName
 import org.lwjgl.opengl.GL11
@@ -21,7 +21,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 
-class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICacheData {
+open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICacheData {
 
     constructor(name: String, img: BufferedImage, depth: Int) : this(name, img.width / depth, img.height, depth) {
         create(img, true)
@@ -37,7 +37,7 @@ class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICacheDa
 
     var locallyAllocated = 0L
 
-    private fun ensureSession() {
+    fun checkSession() {
         if (session != OpenGL.session) {
             session = OpenGL.session
             pointer = -1
@@ -47,7 +47,7 @@ class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICacheDa
     }
 
     private fun ensurePointer() {
-        ensureSession()
+        checkSession()
         if (pointer < 0) pointer = Texture2D.createTexture()
         if (pointer < 0) throw RuntimeException("Could not generate texture")
         DebugGPUStorage.tex3d.add(this)
@@ -214,6 +214,7 @@ class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICacheDa
         filtering = nearest
     }
 
+    // todo full clamping support
     fun clamping(repeat: Boolean) {
         val type = if (repeat) GL_REPEAT else GL_CLAMP_TO_EDGE
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, type)
@@ -221,18 +222,22 @@ class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICacheDa
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, type)
     }
 
-    fun forceBind() {
+    private fun forceBind() {
         if (pointer == -1) throw RuntimeException()
         bindTexture(GL_TEXTURE_3D, pointer)
     }
 
-    fun bind(index: Int, nearest: GPUFiltering) {
+    fun bind(index: Int) {
+        bind(index, filtering)
+    }
+
+    open fun bind(index: Int, filtering: GPUFiltering) {
         activeSlot(index)
         if (pointer > -1 && isCreated) {
             bindTexture(GL_TEXTURE_3D, pointer)
-            ensureFiltering(nearest)
+            ensureFiltering(filtering)
         } else {
-            invisibleTexture.bind(index, GPUFiltering.LINEAR, Clamping.CLAMP)
+            invisibleTex3d.bind(index, GPUFiltering.LINEAR)
         }
     }
 
