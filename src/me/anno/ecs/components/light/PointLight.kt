@@ -158,7 +158,7 @@ class PointLight : LightComponent(LightType.POINT) {
                     // shadow maps
                     // shadows can be in every direction -> use cubemaps
                     (if (withShadows) "" +
-                            "if(shadowMapIdx0 < shadowMapIdx1){\n" +
+                            "if(shadowMapIdx0 < shadowMapIdx1 && receiveShadows){\n" +
                             "   float near = data2.a;\n" +
                             "   float maxAbsComponent = max(max(abs(dir.x),abs(dir.y)),abs(dir.z));\n" +
                             "   float depthFromShader = near/maxAbsComponent;\n" +

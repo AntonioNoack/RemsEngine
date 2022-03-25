@@ -71,8 +71,6 @@ class PipelineStage(
         const val instancedBatchSize = 1024 * 16
 
         val meshInstanceBuffer = StaticBuffer(meshInstancedAttributes, instancedBatchSize, GL_DYNAMIC_DRAW)
-        val mibs1 = ArrayList<StaticBuffer>()
-        val mibs2 = ArrayList<StaticBuffer>()
 
         val tmpAABBd = AABBd()
 
@@ -132,12 +130,12 @@ class PipelineStage(
     fun setupLights(
         pipeline: Pipeline, shader: Shader,
         cameraPosition: Vector3d, worldScale: Double,
-        request: DrawRequest
+        request: DrawRequest, receiveShadows: Boolean
     ) {
-        setupLights(pipeline, shader, cameraPosition, worldScale, request.entity.aabb)
+        setupLights(pipeline, shader, cameraPosition, worldScale, request.entity.aabb, receiveShadows)
     }
 
-    @Suppress("UNUSED_PARAMETER")
+    @Suppress("unused_parameter")
     fun setupPlanarReflection(
         pipeline: Pipeline, shader: Shader,
         cameraPosition: Vector3d, worldScale: Double,
@@ -169,7 +167,7 @@ class PipelineStage(
     fun setupLights(
         pipeline: Pipeline, shader: Shader,
         cameraPosition: Vector3d, worldScale: Double,
-        aabb: AABBd
+        aabb: AABBd, receiveShadows: Boolean
     ) {
 
         setupPlanarReflection(pipeline, shader, cameraPosition, worldScale, aabb)
@@ -181,6 +179,7 @@ class PipelineStage(
             val lights = pipeline.lights
             val numberOfLights = pipeline.getClosestRelevantNLights(aabb, maxNumberOfLights, lights)
             shader.v1i(numberOfLightsPtr, numberOfLights)
+            shader.v1b("receiveShadows", receiveShadows)
             if (numberOfLights > 0) {
                 val invLightMatrices = shader["invLightMatrices"]
                 val buffer = buffer16x256
@@ -354,7 +353,9 @@ class PipelineStage(
         // we could theoretically cluster them to need fewer uploads
         // but that would probably be quite hard to implement reliably
         val hasLights = maxNumberOfLights > 0
-        val needsLightUpdateForEveryMesh = hasLights && pipeline.lightPseudoStage.size > maxNumberOfLights
+        val needsLightUpdateForEveryMesh = hasLights &&
+                pipeline.lightPseudoStage.size > maxNumberOfLights
+        var lastReceiveShadows = false
 
         pipeline.lights.fill(null)
 
@@ -382,12 +383,15 @@ class PipelineStage(
                 initShader(shader, cameraMatrix, pipeline)
             }
 
+            val receiveShadows = if(renderer is MeshBaseComponent) renderer.receiveShadows else true
             if (hasLights) {
                 if (previousMaterialByShader == null ||
-                    needsLightUpdateForEveryMesh
+                    needsLightUpdateForEveryMesh ||
+                            receiveShadows != lastReceiveShadows
                 ) {
                     // upload all light data
-                    setupLights(pipeline, shader, cameraPosition, worldScale, request)
+                    setupLights(pipeline, shader, cameraPosition, worldScale, request, receiveShadows)
+                    lastReceiveShadows = receiveShadows
                 }
             }
 
@@ -401,7 +405,6 @@ class PipelineStage(
                 material.defineShader(shader)
                 previousMaterialInScene = material
             }
-
 
             mesh.ensureBuffer()
 
@@ -475,6 +478,7 @@ class PipelineStage(
         values: InstancedStack
     ) {
 
+        val receiveShadows = true
         val batchSize = instancedBatchSize
         val aabb = tmpAABBd
 
@@ -490,11 +494,13 @@ class PipelineStage(
         if (previousMaterial == null) {
             initShader(shader, cameraMatrix, pipeline)
         }
+
         if (previousMaterial == null && !needsLightUpdateForEveryMesh) {
             aabb.clear()
             pipeline.frustum.union(aabb)
-            setupLights(pipeline, shader, cameraPosition, worldScale, aabb)
+            setupLights(pipeline, shader, cameraPosition, worldScale, aabb, true)
         }
+
         material.defineShader(shader)
         shaderColor(shader, "tint", -1)
         shader.v1i("drawMode", GFX.drawMode.id)
@@ -529,7 +535,7 @@ class PipelineStage(
                 for (index in baseIndex until min(instanceCount, baseIndex + batchSize)) {
                     localAABB.transformUnion(trs[index]!!.drawTransform, aabb)
                 }
-                setupLights(pipeline, shader, cameraPosition, worldScale, aabb)
+                setupLights(pipeline, shader, cameraPosition, worldScale, aabb, receiveShadows)
             }
             GFX.check()
             mesh.drawInstanced(shader, materialIndex, buffer)

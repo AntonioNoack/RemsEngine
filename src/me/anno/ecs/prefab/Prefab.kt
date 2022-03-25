@@ -134,13 +134,13 @@ class Prefab : Saveable {
         sets[path, name] = value
     }
 
-    fun add(parentPath: Path, typeChar: Char, type: String, name: String, index: Int): Path {
-        return add(CAdd(parentPath, typeChar, type, name, InvalidRef)).getChildPath(index)
+    fun add(parentPath: Path, typeChar: Char, type: String, nameId: String, index: Int): Path {
+        return add(CAdd(parentPath, typeChar, type, nameId, InvalidRef)).getChildPath(index)
     }
 
-    fun add(parentPath: Path, typeChar: Char, type: String, name: String, ref: FileReference): Path {
+    fun add(parentPath: Path, typeChar: Char, type: String, nameId: String, ref: FileReference): Path {
         val index = addCounts.getAndInc(typeChar to parentPath)
-        return add(CAdd(parentPath, typeChar, type, name, ref)).getChildPath(index)
+        return add(CAdd(parentPath, typeChar, type, nameId, ref)).getChildPath(index)
     }
 
     fun add(parentPath: Path, typeChar: Char, clazzName: String): Path {

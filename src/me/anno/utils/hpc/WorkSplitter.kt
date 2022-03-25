@@ -1,6 +1,7 @@
 package me.anno.utils.hpc
 
 import me.anno.maths.Maths
+import me.anno.utils.LOGGER
 import me.anno.utils.Sleep.waitUntil
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
@@ -111,21 +112,23 @@ abstract class WorkSplitter(val numThreads: Int) {
         processBalanced(i0, i1, if (heavy) 1 else 512, func)
     }
 
-    inline fun process2d(
+    private inline fun process2d(
         x0: Int, y0: Int, x1: Int, y1: Int, tileSize: Int,
         tx0: Int, ty0: Int, tx1: Int, ty1: Int,
         func: (x0: Int, y0: Int, x1: Int, y1: Int) -> Unit
     ) {
-        for (y in ty0 until ty1) {
-            val yi = y0 + y * tileSize
-            for (x in tx0 until tx1) {
-                val xi = x0 + x * tileSize
-                func(xi, yi, Maths.min(xi + tileSize, x1), Maths.min(yi + tileSize, y1))
+        for (ty in ty0 until ty1) {
+            val yi = y0 + ty * tileSize
+            val yj = Maths.min(yi + tileSize, y1)
+            for (tx in tx0 until tx1) {
+                val xi = x0 + tx * tileSize
+                val xj = Maths.min(xi + tileSize, x1)
+                func(xi, yi, xj, yj)
             }
         }
     }
 
-    inline fun process2d(
+    private inline fun process2d(
         x0: Int, y0: Int, x1: Int, y1: Int,
         tileSize: Int, func: (x0: Int, y0: Int, x1: Int, y1: Int) -> Unit
     ) {
@@ -183,10 +186,10 @@ abstract class WorkSplitter(val numThreads: Int) {
         }
     }
 
-    inline fun processBalanced2d(
+    fun processBalanced2d(
         x0: Int, y0: Int, x1: Int, y1: Int, tileSize: Int,
         minTilesPerThread: Int,
-        crossinline func: (x0: Int, y0: Int, x1: Int, y1: Int) -> Unit
+        func: (x0: Int, y0: Int, x1: Int, y1: Int) -> Unit
     ) {
         val tilesX = Maths.ceilDiv(x1 - x0, tileSize)
         val tilesY = Maths.ceilDiv(y1 - y0, tileSize)
@@ -194,9 +197,10 @@ abstract class WorkSplitter(val numThreads: Int) {
         val threadCount = Maths.clamp(count / minTilesPerThread, 1, numThreads)
         if (threadCount == 1) {
             // tiled computation
-            process2d(x0, y0, x1, y1, tileSize, 0, tilesX, 0, tilesY, func)
+            process2d(x0, y0, x1, y1, tileSize, 0, 0, tilesX, tilesY, func)
         } else {
             val (threadCountX, threadCountY) = splitWork(tilesX, tilesY, threadCount)
+            LOGGER.info("Using $threadCountX x $threadCountY threads")
             val counter = AtomicInteger(threadCountX * threadCountY - 1)
             for (threadId in 1 until threadCountX * threadCountY) {
                 plusAssign {

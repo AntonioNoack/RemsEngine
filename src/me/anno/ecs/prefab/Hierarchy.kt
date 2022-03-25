@@ -89,21 +89,33 @@ object Hierarchy {
                 val components = instance.getChildListByType(childType)
 
                 val childIndex = pathI.index
-                instance = if (
+                if (
                     childIndex in components.indices &&
                     components[childIndex].prefabPath == pathI
                 ) {
                     // bingo, easiest way: path is matching
-                    components[childIndex]
+                    instance = components[childIndex]
                 } else {
                     val match = components.firstOrNull { it.prefabPath == pathI }
-                    if (match != null) match
+                    if (match != null) instance = match
                     else {
-                        LOGGER.warn(
-                            "Missing path $path[$pathIndex] (${path.getNames()}, ${path.getTypes()}, ${path.getIndices()}) in $instance, " +
-                                    "only ${components.size} $childType available ${components.joinToString { "'${it.name}':${it.prefabPath}" }}"
-                        )
-                        throw Path.EXIT
+                        var foundMatch = false
+                        for (type in instance.listChildTypes()) {
+                            val match2 = instance.getChildListByType(type).firstOrNull { it.prefabPath == pathI }
+                            if (match2 != null) {
+                                LOGGER.warn("Child $pathI had incorrect type '$childType', actual type was '$type'")
+                                foundMatch = true
+                                instance = match2
+                                break
+                            }
+                        }
+                        if (!foundMatch) {
+                            LOGGER.warn(
+                                "Missing path $path[$pathIndex] (${path.getNames()}, ${path.getTypes()}, ${path.getIndices()}) in $instance, " +
+                                        "only ${components.size} $childType available ${components.joinToString { "'${it.name}':${it.prefabPath}" }}"
+                            )
+                            throw Path.EXIT
+                        }
                     }
                 }
             }
@@ -165,15 +177,12 @@ object Hierarchy {
     ) {
         if (!dstPrefab.isWritable) throw ImmutablePrefabException(dstPrefab.source)
         val type = dstPath.lastType()
-        val name = child.name.ifEmpty { child.className }
-        val dstPath2 =
-            dstPrefab.add(
-                dstPath.parent ?: Path.ROOT_PATH,
-                type,
-                child.className,
-                name,
-                child.prefab?.source ?: InvalidRef
-            )
+        val nameId = dstPath.lastNameId()
+        val dstPath2 = dstPrefab.add(
+            dstPath.parent ?: Path.ROOT_PATH,
+            type, child.className, nameId,
+            child.prefab?.source ?: InvalidRef
+        )
         if (dstPath2 != dstPath) throw IllegalStateException("Could not add child at index, $dstPath vs $dstPath2")
         val sample = ISaveable.getSample(child.className)!!
         for ((pName, field) in child.getReflections().allProperties) {
@@ -237,19 +246,40 @@ object Hierarchy {
         val child = getInstanceAt(sample, path)
 
         if (child == null) {
+            fun printAvailablePaths(instance: PrefabSaveable) {
+                LOGGER.info(instance.prefabPath)
+                for (childType in instance.listChildTypes()) {
+                    for (childI in instance.getChildListByType(childType)) {
+                        printAvailablePaths(childI)
+                    }
+                }
+            }
             LOGGER.warn("Could not find path '$path' in sample!")
+            LOGGER.info(path)
+            printAvailablePaths(sample)
             return
         }
 
         val parent = child.parent!!
         val type = path.lastType()
-        val indexInParent = parent.getChildListByType(type).indexOf(child)
+        var indexInParent = parent.getChildListByType(type).indexOf(child)
         if (indexInParent < 0) {
-            LOGGER.warn("Could not find child in parent! Internal error!!")
-            return
+            for (childType in parent.listChildTypes()) {
+                if (childType != type) {
+                    indexInParent = parent.getChildListByType(childType).indexOf(child)
+                    if (indexInParent >= 0) {
+                        LOGGER.warn("Path had incorrect type '$type', found child in '$childType'")
+                        break
+                    }
+                }
+            }
+            if (indexInParent < 0) {
+                LOGGER.warn("Could not find child in parent! Internal error!!")
+                return
+            }
         }
 
-        val name = path.lastName()
+        val name = path.lastNameId()
         val lambda = { it: CAdd ->
             it.path == parentPath && it.type == type &&
                     it.clazzName == clazzName && it.nameId == name

@@ -1,6 +1,7 @@
 package me.anno.ecs
 
 import me.anno.ecs.annotations.HideInInspector
+import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.EditorState
 import me.anno.io.ISaveable
@@ -9,13 +10,10 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.studio.Inspectable
 import me.anno.ui.editor.stacked.Option
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
-import me.anno.utils.structures.lists.UpdatingList
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
-
-// todo all components should have some test scene
-// todo chunk system as well, maybe just all features
+import kotlin.reflect.KClass
 
 abstract class Component : PrefabSaveable(), Inspectable {
 
@@ -59,26 +57,6 @@ abstract class Component : PrefabSaveable(), Inspectable {
     open fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean = false
 
     abstract override fun clone(): Component
-
-    override fun addChildByType(index: Int, type: Char, child: PrefabSaveable) {
-        // may be implemented, e.g. for Materials in Mesh
-        LOGGER.warn("$className.addChildByType(index,type,instance) is not supported")
-    }
-
-    override fun add(index: Int, child: PrefabSaveable) {
-        // may be implemented, e.g. for Materials in Mesh
-        LOGGER.warn("$className.add(index,child) is not supported")
-    }
-
-    override fun add(child: PrefabSaveable) {
-        // may be implemented, e.g. for Materials in Mesh
-        LOGGER.warn("$className.add(child) is not supported")
-    }
-
-    override fun deleteChild(child: PrefabSaveable) {
-        // may be implemented, e.g. for Materials in Mesh
-        LOGGER.warn("$className.add(child) is not supported")
-    }
 
     open fun onCreate() {}
 
@@ -180,10 +158,10 @@ abstract class Component : PrefabSaveable(), Inspectable {
             )) as Component
         }
 
-        fun getComponentOptions(entity: Entity): List<Option> {
+        fun <V: PrefabSaveable> getOptionsByClass(parent: PrefabSaveable, clazz: KClass<V>): List<Option> {
             // registry over all options... / todo search the raw files + search all scripts
-            val knownComponents = ISaveable.objectTypeRegistry.filterValues { it.sampleInstance is Component }
-            return UpdatingList {
+            val knownComponents = ISaveable.getInstanceOf(clazz)
+            /*return UpdatingList {
                 knownComponents.map {
                     Option(it.key.camelCaseToTitle(), "") {
                         val comp = it.value.generator() as Component
@@ -191,7 +169,14 @@ abstract class Component : PrefabSaveable(), Inspectable {
                         comp
                     }
                 }.sortedBy { it.title }
-            }
+            }*/
+            return knownComponents.map {
+                Option(it.key.camelCaseToTitle(), "") {
+                    val comp = it.value.generator() as PrefabSaveable
+                    comp.parent = parent
+                    comp
+                }
+            }.sortedBy { it.title }
         }
 
     }

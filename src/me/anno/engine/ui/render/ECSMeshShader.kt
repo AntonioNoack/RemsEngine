@@ -222,9 +222,9 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "   finalNormal = mix(finalNormal, normalFromTex, normalStrength.x);\n" +
                     "}\n" +
                     "finalEmissive  = texture(emissiveMap, uv).rgb * emissiveBase;\n" +
-                    "finalOcclusion = 1.0 - (1.0 - texture(occlusionMap, uv).r) * occlusionStrength;\n" +
-                    "finalMetallic  = mix(metallicMinMax.x,  metallicMinMax.y,  texture(metallicMap,  uv).r);\n" +
-                    "finalRoughness = mix(roughnessMinMax.x, roughnessMinMax.y, texture(roughnessMap, uv).r);\n" +
+                    "finalOcclusion = max(1.0 - (1.0 - texture(occlusionMap, uv).r) * occlusionStrength, 0.0);\n" +
+                    "finalMetallic  = clamp(mix(metallicMinMax.x,  metallicMinMax.y,  texture(metallicMap,  uv).r), 0.0, 1.0);\n" +
+                    "finalRoughness = clamp(mix(roughnessMinMax.x, roughnessMinMax.y, texture(roughnessMap, uv).r), 0.0, 1.0);\n" +
 
                     // reflections
                     // use roughness instead?

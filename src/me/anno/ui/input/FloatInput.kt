@@ -154,8 +154,8 @@ open class FloatInput(
         if (value != lastValue || !hasValue) {
             hasValue = true
             lastValue = value
-            if (notify) changeListener(value)
             setText(stringify(value), notify)
+            if (notify) changeListener(value)
         }
         return this
     }

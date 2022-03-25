@@ -3,6 +3,7 @@ package me.anno.gpu.shader.builder
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.OpenGLShader
+import org.apache.logging.log4j.LogManager
 
 class MainStage {
 
@@ -146,8 +147,11 @@ class MainStage {
                     code.append(": ")
                 }
                 // interpolation? we would need to know the side, and switch case on that
-                code.append("d0=texture($nameIndex, uv).r;\n")
-                if (isMoreThanOne) code.append("break;\n")
+                if (isMoreThanOne) {
+                    code.append("d0=texture(").append(nameIndex).append(", uv).r; break;\n")
+                } else {
+                    code.append("d0=texture(").append(nameIndex).append(", uv).r;\n")
+                }
             }
             if (isMoreThanOne) {
                 code.append("default: return 0.0;\n")
@@ -384,7 +388,17 @@ class MainStage {
     val functions = HashMap<String, String>()
 
     private fun defineFunction(function: Function) {
-        functions[function.header] = function.body
+        val key = function.header.ifBlank { function.body }
+        val value = function.body
+        val previous = functions[key]
+        if (previous != null && previous != value) {
+            LOGGER.warn("Overriding shader function! key $key")
+        }
+        functions[key] = function.body
+    }
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(MainStage::class)
     }
 
 }

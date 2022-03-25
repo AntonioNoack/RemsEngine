@@ -15,7 +15,8 @@ class ProcessingGroup(name: String, numThreads: Int) : ProcessingQueue(name, num
     override fun start(name: String, force: Boolean) {
         if (hasBeenStarted && !force) return
         hasBeenStarted = true
-        for (index in 0 until numThreads) {
+        // thread 0 is typically working itself ^^
+        for (index in 1 until max(2, numThreads)) {
             super.start("$name-$index", true)
         }
     }

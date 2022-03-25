@@ -24,6 +24,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.Language
 import me.anno.language.translation.Dict
+import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
 import me.anno.ui.base.Tooltips
@@ -37,6 +38,7 @@ import me.anno.utils.types.Strings.addSuffix
 import me.anno.utils.types.Strings.filterAlphaNumeric
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.PriorityBlockingQueue
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -353,8 +355,19 @@ abstract class StudioBase(
 
         val defaultWindowStack get() = instance?.windowStack
 
+        /**
+         * schedules a task that will be executed on the main loop
+         * */
         fun addEvent(event: () -> Unit) {
             eventTasks += event
+        }
+
+        /**
+         * schedules a task that will be executed on the main loop;
+         * will wait at least deltaMillis before it is executed
+         * */
+        fun addEvent(deltaMillis: Long, event: () -> Unit) {
+            scheduledTasks.add(Pair(Engine.nanoTime + deltaMillis * MILLIS_TO_NANOS, event))
         }
 
         fun warn(msg: String) {
@@ -370,9 +383,32 @@ abstract class StudioBase(
             return bar
         }
 
-        val eventTasks = ConcurrentLinkedQueue<() -> Unit>()
+        private val eventTasks = ConcurrentLinkedQueue<() -> Unit>()
+        private val scheduledTasks =
+            PriorityBlockingQueue<Pair<Long, () -> Unit>>(16) { a, b -> a.first.compareTo(b.first) }
 
         val shiftSlowdown get() = if (Input.isAltDown) 5f else if (Input.isShiftDown) 0.2f else 1f
+
+        fun workEventTasks() {
+            while (scheduledTasks.isNotEmpty()) {
+                try {
+                    val time = Engine.nanoTime
+                    val peeked = scheduledTasks.peek()!!
+                    if (peeked.first <= time) {
+                        scheduledTasks.poll()!!.second.invoke()
+                    }
+                } catch (e: Throwable) {
+                    e.printStackTrace()
+                }
+            }
+            while (eventTasks.isNotEmpty()) {
+                try {
+                    eventTasks.poll()!!.invoke()
+                } catch (e: Throwable) {
+                    e.printStackTrace()
+                }
+            }
+        }
 
         init {
             System.setProperty("joml.format", "false")

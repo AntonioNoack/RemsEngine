@@ -26,7 +26,7 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.mesh.Point
-import me.anno.studio.StudioBase.Companion.eventTasks
+import me.anno.studio.StudioBase.Companion.workEventTasks
 import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.utils.Clock
@@ -339,16 +339,6 @@ object GFX : GFXBase1() {
     fun workGPUTasksUntilShutdown() {
         while (!Engine.shutdown) {
             workGPUTasks(true)
-        }
-    }
-
-    fun workEventTasks() {
-        while (eventTasks.isNotEmpty()) {
-            try {
-                eventTasks.poll()!!.invoke()
-            } catch (e: Throwable) {
-                e.printStackTrace()
-            }
         }
     }
 

@@ -8,12 +8,13 @@ import me.anno.io.config.ConfigBasics
 import me.anno.io.config.ConfigEntry
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.OS
-import me.anno.utils.hpc.ProcessingQueue
 import org.joml.Vector3f
 import java.io.File
 import java.util.*
+import kotlin.concurrent.thread
 import kotlin.math.min
 
 /**
@@ -171,7 +172,7 @@ open class StringMap(
 
     }
 
-    fun parseFile(str0: String): File {
+    private fun parseFile(str0: String): File {
         var str = str0
             .replace('\\', '/')
         if (str.startsWith("~") && OS.isWindows) {
@@ -182,7 +183,10 @@ open class StringMap(
         val str2 = str.split(":/")
         str = str2.subList(0, min(2, str2.size))
             .joinToString(":/") {
-                it.split('/').joinToString("/") { name -> name.toAllowedFilename() ?: "x" }
+                it.split('/')
+                    .joinToString("/") { name ->
+                        name.toAllowedFilename() ?: "x"
+                    }
             }
 
         return File(str)
@@ -335,13 +339,12 @@ open class StringMap(
                 if (gameTime - lastSaveTime >= saveDelay || Engine.shutdown) {// only save every 1s
                     // delay in case it needs longer
                     lastSaveTime = gameTime + 60_000_000_000L
-                    savingQueue += {
+                    thread(name = "Saving $name") {
                         save(name)
                         lastSaveTime = gameTime
                     }
                 } else {
-                    savingQueue += {
-                        Thread.sleep(10)
+                    addEvent(10) {
                         saveMaybe(name)
                     }
                 }
@@ -358,9 +361,5 @@ open class StringMap(
     }
 
     override fun isDefaultValue() = false
-
-    companion object {
-        val savingQueue = ProcessingQueue("StringMap-Saving")
-    }
 
 }

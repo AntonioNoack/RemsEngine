@@ -1,19 +1,23 @@
 package me.anno.language.spellcheck
 
+import me.anno.Engine
 import me.anno.maths.Maths.MILLIS_TO_NANOS
+import me.anno.maths.Maths.ceilDiv
 import me.anno.utils.Sleep
+import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.types.Floats.formatPercent
 import org.apache.logging.log4j.LogManager
+import kotlin.math.abs
 import kotlin.math.min
 
-val minLength = 4
+val minLength = 2
 
 fun main() {
     // with a dictionary, it could find words automatically
     // so it can just display all substrings in the field nicely,
     // which is already a great help
     // (homework of my (girl)friend)
-    findWords(
+    /*findWords(
         listOf(
             "mdyeersgdwtjgng",
             "bjrsmoedrnanrrr",
@@ -30,6 +34,25 @@ fun main() {
             "voqefgohyigknjh",
             "gjtcpndissolved",
             "psvteprdyjjolvj"
+        )
+    )*/
+    findWords(
+        listOf(
+            "cayudchiuiiweml",
+            "dhqxzntqmvabtaw",
+            "ojrqgfrqitprcbe",
+            "thplrwzavscijqz",
+            "vxljqmohuagveqx",
+            "ugrcaoqkeoinmes",
+            "vedypcywlkkqibo",
+            "chsrwovouopcenv",
+            "bzbzptnvgactahx",
+            "mdjiooelichdvwl",
+            "mqerrqkqtdttnyy",
+            "zvkhxigldbfaurs",
+            "ezchdralpxgzlzb",
+            "wlhetukdqvigsvv",
+            "jcglyrykxlhefzx"
         )
     )
 }
@@ -105,13 +128,19 @@ fun checkWord(word: String) {
 }
 
 fun waitForResults(timeoutMillis: Long = 30_000) {
+    // todo for such tasks, we could start multiple spellchecker instances
     val logger = LogManager.getLogger("FindWords")
     val done = HashSet<String>()
     var timeSinceLastResult = System.nanoTime()
     val timeoutNanos = timeoutMillis * MILLIS_TO_NANOS
-    val processed = ArrayList(processed.sortedBy { it.length })
+    val processed = ArrayList(processed)
+    processed.sortWith { a, b ->
+        (a.length.compareTo(b.length))
+            .ifSame { a.compareTo(b) }
+    }
     val totalLength = processed.size
     logger.info("Checking $totalLength 'words'")
+    var lastPrint = System.nanoTime()
     while (processed.isNotEmpty()) {
         for (word in processed) {
             val list = Spellchecking.check(word, true)
@@ -119,8 +148,14 @@ fun waitForResults(timeoutMillis: Long = 30_000) {
                 // found answer :)
                 done.add(word)
                 if (list.isEmpty()) {
-                    logger.info("$word, ${formatPercent(totalLength - processed.size, totalLength)}%")
+                    logger.info(word)
                 }
+            }
+            if (abs(lastPrint - System.nanoTime()) > 5e9) {
+                val percent = ceilDiv((totalLength - processed.size) * 100, totalLength)
+                val pct = formatPercent(totalLength - processed.size, totalLength)
+                logger.info("-".repeat(percent) + " ".repeat(100 - percent) + "| $pct%")
+                lastPrint = System.nanoTime()
             }
         }
         if (done.isEmpty()) {
@@ -136,4 +171,5 @@ fun waitForResults(timeoutMillis: Long = 30_000) {
             timeSinceLastResult = System.nanoTime()
         }
     }
+    Engine.requestShutdown()
 }

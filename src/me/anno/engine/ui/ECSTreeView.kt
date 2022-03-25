@@ -10,7 +10,6 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.text.TextReader
 import me.anno.language.translation.NameDesc
@@ -130,10 +129,10 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
         addChild(self.parent as PrefabSaveable, sibling, self.indexInParent)
     }
 
-    override fun removeChild(element: PrefabSaveable, child: PrefabSaveable) {
+    override fun removeChild(parent: PrefabSaveable, child: PrefabSaveable) {
         // todo somehow the window element cannot be removed
-        LOGGER.info("Trying to remove element")
-        Hierarchy.removePathFromPrefab(element.root.prefab!!, child)
+        LOGGER.info("Trying to remove element ${child.className} from ${parent.className}")
+        Hierarchy.removePathFromPrefab(parent.root.prefab!!, child)
     }
 
     override fun destroy(element: PrefabSaveable) {

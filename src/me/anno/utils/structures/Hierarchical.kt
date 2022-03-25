@@ -18,22 +18,21 @@ interface Hierarchical<V : Hierarchical<V>> {
 
     val children: List<V>
 
-    fun add(child: V)
-    fun add(index: Int, child: V)
+    fun addChild(index: Int, child: V)
 
     fun deleteChild(child: V)
 
     fun addBefore(sibling: V) {
         val p = parent!!
         val index = p.children.indexOf(this)
-        p.add(index, sibling)
+        p.addChild(index, sibling)
         sibling.parent = p
     }
 
     fun addAfter(sibling: V) {
         val p = parent!!
         val index = p.children.indexOf(this)
-        p.add(index + 1, sibling)
+        p.addChild(index + 1, sibling)
         sibling.parent = p
     }
 
@@ -47,12 +46,14 @@ interface Hierarchical<V : Hierarchical<V>> {
         if (child.contains(this as V)) throw RuntimeException("this cannot contain its parent!")
         child.parent?.removeChild(child)
         child.parent = this
-        add(child)
+        (children as MutableList<V>).add(child)
     }
 
     fun removeChild(child: V) {
-        child.parent = null
-        deleteChild(child)
+        if (child.parent === this) {
+            child.parent = null
+            deleteChild(child)
+        }
     }
 
     fun contains(t: V): Boolean {

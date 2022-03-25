@@ -1,8 +1,8 @@
 package me.anno.io.text
 
 import me.anno.io.ISaveable
-import me.anno.io.base.InvalidFormatException
 import me.anno.io.base.BaseReader
+import me.anno.io.base.InvalidFormatException
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.files.LocalFile.toGlobalFile
@@ -352,6 +352,42 @@ abstract class TextReaderBase : BaseReader() {
         return Vector4d(rawX, rawY, rawZ, rawW)
     }
 
+    private fun readPlanef(allowCommaAtStart: Boolean = false): Planef {
+        var c0 = skipSpace()
+        if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
+        assert(c0, '[', "Start of Vector")
+        val rawX = readFloat()
+        val sep0 = skipSpace()
+        assert(sep0, ',', "Separator of Vector")
+        val rawY = readFloat()
+        val sep1 = skipSpace()
+        assert(sep1, ',', "Separator of Vector")
+        val rawZ = readFloat()
+        val sep2 = skipSpace()
+        assert(sep2, ',', "Separator of Vector")
+        val rawW = readFloat()
+        assert(skipSpace(), ']', "End of Vector")
+        return Planef(rawX, rawY, rawZ, rawW)
+    }
+
+    private fun readPlaned(allowCommaAtStart: Boolean = false): Planed {
+        var c0 = skipSpace()
+        if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
+        assert(c0, '[', "Start of Vector")
+        val rawX = readDouble()
+        val sep0 = skipSpace()
+        assert(sep0, ',', "Separator of Vector")
+        val rawY = readDouble()
+        val sep1 = skipSpace()
+        assert(sep1, ',', "Separator of Vector")
+        val rawZ = readDouble()
+        val sep2 = skipSpace()
+        assert(sep2, ',', "Separator of Vector")
+        val rawW = readDouble()
+        assert(skipSpace(), ']', "End of Vector")
+        return Planed(rawX, rawY, rawZ, rawW)
+    }
+
     private fun readQuaterniond(): Quaterniond {
         assert(skipSpace(), '[', "Start of Vector")
         val rawX = readDouble()
@@ -578,10 +614,12 @@ abstract class TextReaderBase : BaseReader() {
             "v2" -> obj.readVector2f(name, readVector2f())
             "v3" -> obj.readVector3f(name, readVector3f())
             "v4" -> obj.readVector4f(name, readVector4f())
-            "q4" -> obj.readQuaternionf(name, readQuaternionf())
+            "q4", "q4f" -> obj.readQuaternionf(name, readQuaternionf())
             "v2d" -> obj.readVector2d(name, readVector2d())
             "v3d" -> obj.readVector3d(name, readVector3d())
             "v4d" -> obj.readVector4d(name, readVector4d())
+            "p4", "p4f" -> obj.readPlanef(name, readPlanef())
+            "p4d" -> obj.readPlaned(name, readPlaned())
             "q4d" -> obj.readQuaterniond(name, readQuaterniond())
             "v2[]" -> obj.readVector2fArray(name, readTypedArray("vector2f",
                 { Array(it) { vector2f0 } }, { readVector2f() },

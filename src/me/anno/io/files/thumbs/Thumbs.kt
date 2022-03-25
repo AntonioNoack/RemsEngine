@@ -969,8 +969,10 @@ object Thumbs {
                 val instance = asset.getSampleInstance()
                 generateSomething(instance, srcFile, dstFile, size, callback)
             }
+            null -> {}
             else -> {
-                LOGGER.warn("Unknown item from prefab: ${asset?.className}")
+                // todo can we create a json preview or sth like that?
+                LOGGER.warn("Unknown item from prefab: ${asset.className}")
             }
             // is Transform -> todo show transform for Rem's Studio
         }

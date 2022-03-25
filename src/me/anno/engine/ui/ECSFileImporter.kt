@@ -1,7 +1,6 @@
 package me.anno.engine.ui
 
 import me.anno.ecs.Entity
-import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
@@ -37,7 +36,7 @@ object ECSFileImporter : FileContentImporter<PrefabSaveable>() {
         if (prefab != null) {
 
             val instance = prefab.createInstance()
-            parent.add(instance)
+            parent.addChild(instance)
             inspector.prefab.add(path, 'e', "Entity", instance.name, file)
             callback(instance as Entity)
             if (doSelect) {

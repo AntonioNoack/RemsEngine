@@ -24,7 +24,7 @@ object LocalFile {
         val fileStr = replace('\\', '/')
         return null ?: checkIsChild(fileStr, ConfigBasics.configFolder, "\$CONFIG\$")
         ?: checkIsChild(fileStr, ConfigBasics.cacheFolder, "\$CACHE\$")
-        ?: checkIsChild(fileStr, workspace, "\$WORKSPACE\$")
+        ?: checkIsChild(fileStr, workspace, "\$WORKSPACE\$") // todo if there is a project file somewhere above this current file, use that project
         ?: checkIsChild(fileStr, OS.downloads, "\$DOWNLOADS\$")
         ?: checkIsChild(fileStr, OS.documents, "\$DOCUMENTS\$")
         ?: checkIsChild(fileStr, OS.pictures, "\$PICTURES\$")

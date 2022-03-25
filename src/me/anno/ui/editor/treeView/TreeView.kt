@@ -56,7 +56,7 @@ abstract class TreeView<V>(
 
     abstract fun addChild(element: V, child: Any)
 
-    abstract fun removeChild(element: V, child: V)
+    abstract fun removeChild(parent: V, child: V)
 
     abstract fun getSymbol(element: V): String
 

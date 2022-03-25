@@ -214,6 +214,10 @@ abstract class OpenGLShader(
         ignoredNames += names
     }
 
+    fun ignoreUniformWarnings(vararg names: String) {
+        ignoredNames += names
+    }
+
     fun ignoreUniformWarning(name: String) {
         ignoredNames += name
     }

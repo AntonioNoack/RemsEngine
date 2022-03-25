@@ -73,12 +73,12 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         return this
     }
 
-    override fun add(index: Int, child: PrefabSaveable) {
+    override fun addChild(index: Int, child: PrefabSaveable) {
         if (child is Panel) {
             if (child.weight <= 0f) child.weight = 1f
             super.add(child)
             ensureScrollbars()
-        } else super.add(index, child)
+        } else super.addChild(index, child)
     }
 
     override operator fun plusAssign(child: Panel) {

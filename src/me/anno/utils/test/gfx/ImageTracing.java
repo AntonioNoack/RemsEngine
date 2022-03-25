@@ -13,8 +13,8 @@ import java.util.BitSet;
 
 public class ImageTracing {
 
-    // todo test this with real letters
-    // todo set the test size for meshes to 120 instead of 20-ish
+    // test this with real letters
+    // to do set the test size for meshes to 120 instead of 20-ish
 
     public static void main(String[] args) throws IOException {
         Image image = ImageCPUCache.INSTANCE.getImage(OS.INSTANCE.getDocuments().getChild("test-text.png"), false);

@@ -90,10 +90,12 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
 
     // matrices, which are commonly used in game development
     // todo array types, as they could be useful for saving animations maybe
+    abstract fun writeMatrix3x2f(name: String, value: Matrix3x2fc, force: Boolean = false)
     abstract fun writeMatrix3x3f(name: String, value: Matrix3fc, force: Boolean = false)
     abstract fun writeMatrix4x3f(name: String, value: Matrix4x3fc, force: Boolean = false)
     abstract fun writeMatrix4x4f(name: String, value: Matrix4fc, force: Boolean = false)
 
+    abstract fun writeMatrix3x2d(name: String, value: Matrix3x2dc, force: Boolean = false)
     abstract fun writeMatrix3x3d(name: String, value: Matrix3dc, force: Boolean = false)
     abstract fun writeMatrix4x3d(name: String, value: Matrix4x3dc, force: Boolean = false)
     abstract fun writeMatrix4x4d(name: String, value: Matrix4dc, force: Boolean = false)
@@ -106,6 +108,9 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
 
     abstract fun writeAABBf(name: String, value: AABBf, force: Boolean = false)
     abstract fun writeAABBd(name: String, value: AABBd, force: Boolean = false)
+
+    abstract fun writePlanef(name: String, value: Planef, force: Boolean = false)
+    abstract fun writePlaned(name: String, value: Planed, force: Boolean = false)
 
     abstract fun writeFile(
         name: String, value: FileReference?, force: Boolean = false,
@@ -406,6 +411,8 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             is Matrix4dc -> writeMatrix4x4d(name, value, forceSaving)
             is Quaternionf -> writeQuaternionf(name, value, forceSaving)
             is Quaterniond -> writeQuaterniond(name, value, forceSaving)
+            is Planef -> writePlanef(name, value, forceSaving)
+            is Planed -> writePlaned(name, value, forceSaving)
             is AABBf -> writeAABBf(name, value, forceSaving)
             is AABBd -> writeAABBd(name, value, forceSaving)
             // files
@@ -448,7 +455,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
 
     // makes the code a little nicer
     fun <V> cast(input: Any): V {
-        @Suppress("UNCHECKED_CAST")
+        @Suppress("unchecked_cast")
         return input as V
     }
 

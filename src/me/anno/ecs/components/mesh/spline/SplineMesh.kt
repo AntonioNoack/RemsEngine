@@ -1,12 +1,13 @@
 package me.anno.ecs.components.mesh.spline
 
+import me.anno.Build
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.ProceduralMesh
 import me.anno.ecs.components.mesh.spline.Splines.getIntermediates
 import me.anno.ecs.components.mesh.spline.Splines.interpolate
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.EditorState
 import me.anno.image.ImageWriter.writeImageCurve
-import me.anno.Build
 import me.anno.maths.Maths.mix
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Vectors.toVector3f
@@ -141,7 +142,7 @@ class SplineMesh : ProceduralMesh() {
         mesh2.color0 = col
     }
 
-    override fun generateMesh() {
+    override fun generateMesh(mesh: Mesh) {
         val points = entity!!.children.mapNotNull { it.getComponent(SplineControlPoint::class) }
         when (points.size) {
             0, 1 -> LOGGER.warn("SplineMesh has not enough points, only ${points.size}")

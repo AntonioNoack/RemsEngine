@@ -63,8 +63,8 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
             val color = if (isHovered) 0xccffffff.toInt() else -1
             // draw the icon on/off
             drawTexture(
-                x0 + (w - size) / 2,
-                y0 + (h - size) / 2,
+                x + (w - size) / 2,
+                y + (h - size) / 2,
                 size, size,
                 getImage(isChecked) ?: whiteTexture,
                 color, null

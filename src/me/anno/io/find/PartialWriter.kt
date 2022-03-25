@@ -70,10 +70,12 @@ abstract class PartialWriter(canSkipDefaultValues: Boolean) : BaseWriter(canSkip
     override fun writeVector3dArray(name: String, values: Array<Vector3d>, force: Boolean) {}
     override fun writeVector4dArray(name: String, values: Array<Vector4d>, force: Boolean) {}
 
+    override fun writeMatrix3x2f(name: String, value: Matrix3x2fc, force: Boolean) {}
     override fun writeMatrix3x3f(name: String, value: Matrix3fc, force: Boolean) {}
     override fun writeMatrix4x3f(name: String, value: Matrix4x3fc, force: Boolean) {}
     override fun writeMatrix4x4f(name: String, value: Matrix4fc, force: Boolean) {}
 
+    override fun writeMatrix3x2d(name: String, value: Matrix3x2dc, force: Boolean) {}
     override fun writeMatrix3x3d(name: String, value: Matrix3dc, force: Boolean) {}
     override fun writeMatrix4x3d(name: String, value: Matrix4x3dc, force: Boolean) {}
     override fun writeMatrix4x4d(name: String, value: Matrix4dc, force: Boolean) {}
@@ -97,6 +99,9 @@ abstract class PartialWriter(canSkipDefaultValues: Boolean) : BaseWriter(canSkip
 
     override fun writeNull(name: String?) {}
     override fun writePointer(name: String?, className: String, ptr: Int, value: ISaveable) {}
+
+    override fun writePlanef(name: String, value: Planef, force: Boolean) {}
+    override fun writePlaned(name: String, value: Planed, force: Boolean) {}
 
     override fun writeObjectImpl(name: String?, value: ISaveable) {
         value.save(this)

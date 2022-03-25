@@ -1,8 +1,6 @@
 package me.anno.ui.editor
 
-import me.anno.Engine.gameTime
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.GFX
 import me.anno.input.MouseButton
 import me.anno.language.translation.Dict
 import me.anno.maths.Maths.mixARGB
@@ -142,8 +140,8 @@ open class SettingCategory(
         content.add(child)
     }
 
-    override fun add(child: PrefabSaveable) {
-        content.add(child)
+    override fun addChild(child: PrefabSaveable) {
+        content.addChild(child)
     }
 
 }

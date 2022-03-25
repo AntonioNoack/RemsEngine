@@ -23,10 +23,12 @@ import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.components.physics.Vehicle
 import me.anno.ecs.components.physics.VehicleWheel
 import me.anno.ecs.components.physics.constraints.*
+import me.anno.ecs.components.player.LocalPlayer
+import me.anno.ecs.components.player.RemotePlayer
 import me.anno.ecs.components.script.QuickInputScriptComponent
 import me.anno.ecs.components.script.QuickScriptComponent
 import me.anno.ecs.components.script.ScriptComponent
-import me.anno.ecs.components.shaders.sdf.SDFRegistry
+import me.anno.ecs.components.mesh.sdf.SDFRegistry
 import me.anno.ecs.components.test.RaycastTestComponent
 import me.anno.ecs.components.test.TestVehicleController
 import me.anno.ecs.components.test.TypeTestComponent
@@ -85,6 +87,8 @@ object ECSRegistry {
 
         registerCustomClass(Entity())
         registerCustomClass(Transform())
+        registerCustomClass(LocalPlayer())
+        registerCustomClass(RemotePlayer())
 
         // camera and effects
         registerCustomClass(Camera())

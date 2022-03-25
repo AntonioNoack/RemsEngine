@@ -132,7 +132,7 @@ class SpotLight() : LightComponent(LightType.SPOT) {
                     // when we are close to the edge, we blend in
                     "lightColor *= 1.0-ringFalloff;\n" +
                     (if (withShadows) "" +
-                            "if(shadowMapIdx0 < shadowMapIdx1){\n" +
+                            "if(shadowMapIdx0 < shadowMapIdx1 && receiveShadows){\n" +
                             "   #define shadowMapPower data2.b\n" +
                             "   vec2 nextDir = shadowDir * shadowMapPower;\n" +
                             "   while(abs(nextDir.x)<1.0 && abs(nextDir.y)<1.0 && shadowMapIdx0+1<shadowMapIdx1){\n" +

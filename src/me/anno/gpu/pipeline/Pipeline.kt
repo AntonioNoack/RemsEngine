@@ -341,7 +341,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         for (i in components.indices) {
             val component = components[i]
             if (component.isEnabled && component !== ignoredComponent) {
-                if (component is MeshBaseComponent) {
+                if (component is MeshBaseComponent && component.castShadows) {
                     val mesh = component.getMesh()
                     if (mesh != null) {
                         if (component.isInstanced) {

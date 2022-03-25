@@ -104,7 +104,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                     // transpose(m3x3(W->L)) * vec3(0.0,0.0,1.0)
                     "lightDirWS = normalize(vec3(WStoLightSpace[0][2],WStoLightSpace[1][2],WStoLightSpace[2][2]));\n" +
                     (if (withShadows) "" +
-                            "if(shadowMapIdx0 < shadowMapIdx1){\n" +
+                            "if(shadowMapIdx0 < shadowMapIdx1 && receiveShadows){\n" +
                             // when we are close to the edge, we blend in
                             "   float edgeFactor = min(20.0*(1.0-max(abs(dir.x),abs(dir.y))),1.0);\n" +
                             "   if(edgeFactor > 0.0){\n" +

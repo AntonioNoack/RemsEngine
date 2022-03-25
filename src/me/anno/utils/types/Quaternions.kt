@@ -8,7 +8,7 @@ object Quaternions {
     const val toDegreesFloat = toDegrees.toFloat()
 
     const val fromDegrees = Math.PI / 180.0
-    const val fromDegreesFloat = toDegrees.toFloat()
+    const val fromDegreesFloat = fromDegrees.toFloat()
 
     fun Quaterniondc.toEulerAnglesDegrees(dst: Vector3d = Vector3d()): Vector3d {
         return getEulerAnglesXYZ(dst).mul(toDegrees)

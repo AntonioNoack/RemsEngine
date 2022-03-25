@@ -209,7 +209,7 @@ abstract class TextWriterBase : BaseWriter(true) {
         }
     }
 
-    private fun appendColor(color: Int){
+    private fun appendColor(color: Int) {
         // write color in optimal hex format
         append('#')
         val c0 = color.and(0xf)
@@ -753,6 +753,14 @@ abstract class TextWriterBase : BaseWriter(true) {
 
     }
 
+    override fun writeMatrix3x2f(name: String, value: Matrix3x2fc, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeMatrix3x2d(name: String, value: Matrix3x2dc, force: Boolean) {
+        TODO("Not yet implemented")
+    }
+
     override fun writeMatrix3x3f(name: String, value: Matrix3fc, force: Boolean) {
         writeAttributeStart("m3x3", name)
         val tmp = tmp16
@@ -946,6 +954,32 @@ abstract class TextWriterBase : BaseWriter(true) {
         append(',')
         append(value.maxZ)
         append(']')
+        append(']')
+    }
+
+    override fun writePlanef(name: String, value: Planef, force: Boolean) {
+        writeAttributeStart("p4", name)
+        append('[')
+        append(value.a)
+        append(',')
+        append(value.b)
+        append(',')
+        append(value.c)
+        append(',')
+        append(value.d)
+        append(']')
+    }
+
+    override fun writePlaned(name: String, value: Planed, force: Boolean) {
+        writeAttributeStart("p4d", name)
+        append('[')
+        append(value.a)
+        append(',')
+        append(value.b)
+        append(',')
+        append(value.c)
+        append(',')
+        append(value.d)
         append(']')
     }
 

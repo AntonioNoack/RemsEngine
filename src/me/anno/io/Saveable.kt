@@ -96,9 +96,12 @@ open class Saveable : ISaveable {
     override fun readVector4iArray(name: String, values: Array<Vector4i>) = readSomething(name, values)
     override fun readVector4iArray2D(name: String, values: Array<Array<Vector4i>>) = readSomething(name, values)
 
+    override fun readMatrix3x2f(name: String, value: Matrix3x2f) = readSomething(name, value)
     override fun readMatrix3x3f(name: String, value: Matrix3f) = readSomething(name, value)
     override fun readMatrix4x3f(name: String, value: Matrix4x3f) = readSomething(name, value)
     override fun readMatrix4x4f(name: String, value: Matrix4f) = readSomething(name, value)
+
+    override fun readMatrix3x2d(name: String, value: Matrix3x2d) = readSomething(name, value)
     override fun readMatrix3x3d(name: String, value: Matrix3d) = readSomething(name, value)
     override fun readMatrix4x3d(name: String, value: Matrix4x3d) = readSomething(name, value)
     override fun readMatrix4x4d(name: String, value: Matrix4d) = readSomething(name, value)
@@ -113,6 +116,11 @@ open class Saveable : ISaveable {
 
     override fun readAABBf(name: String, value: AABBf) = readSomething(name, value)
     override fun readAABBd(name: String, value: AABBd) = readSomething(name, value)
+
+    override fun readPlanef(name: String, value: Planef) = readSomething(name, value)
+    override fun readPlaned(name: String, value: Planed) = readSomething(name, value)
+
+    override fun readMap(name: String, value: Map<Any?, Any?>) = readSomething(name, value)
 
     open fun readSomething(name: String, value: Any?) = warnMissingParam(name)
 

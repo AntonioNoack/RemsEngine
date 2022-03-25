@@ -1,6 +1,7 @@
 package me.anno.ecs.components.camera
 
 import me.anno.ecs.Component
+import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.camera.effects.CameraEffect
 import me.anno.ecs.components.player.LocalPlayer.Companion.currentLocalPlayer
 import me.anno.ecs.prefab.PrefabSaveable
@@ -32,6 +33,7 @@ class Camera : Component() {
 
     val effects get() = components.filterIsInstance<CameraEffect>()
 
+    @Type("Color4")
     var clearColor = Vector4f(0.1f, 0.2f, 0.3f, 1f)
 
     val bloomStrength = 0.5f
@@ -73,7 +75,7 @@ class Camera : Component() {
         clone.near = near
         clone.far = far
         clone.fovY = fovY
-        clone.clearColor = clearColor
+        clone.clearColor.set(clearColor)
     }
 
     override val className get() = "Camera"

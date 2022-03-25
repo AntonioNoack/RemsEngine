@@ -1,5 +1,6 @@
 package me.anno.ecs.components.mesh.spline
 
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.ProceduralMesh
 import org.joml.Vector3d
 import kotlin.math.atan2
@@ -17,7 +18,7 @@ class SplineCrossing : ProceduralMesh() {
 
     var autoSort = false
 
-    override fun generateMesh() {
+    override fun generateMesh(mesh: Mesh) {
         var streets = entity!!.children.mapNotNull { it.getComponent(SplineControlPoint::class) }
         when (streets.size) {
             0, 1 -> {

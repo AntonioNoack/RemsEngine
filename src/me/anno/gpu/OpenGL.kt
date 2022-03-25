@@ -105,6 +105,7 @@ object OpenGL {
         }
     }
 
+    @Deprecated("This is deprecated, because it's sometimes slow, and not supported on all devices")
     val geometryShader = SecureStack<GeoShader?>(null)
 
     val instanced = object : SecureBoolStack(false) {

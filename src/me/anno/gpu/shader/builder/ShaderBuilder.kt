@@ -79,7 +79,7 @@ class ShaderBuilder(val name: String) {
                         // the stage uses it -> might be relevant
                         if (stage.variables.any { it.isOutput && name == it.name }) {
                             // the stage also exports it ->
-                            LOGGER.info("Bridge is being created for $variable")
+                            // LOGGER.info("Bridge is being created for $variable")
                             bridgeVariables[variable] =
                                 Variable(variable.type, "bridge_${bridgeVariables.size}", variable.arraySize)
                         }

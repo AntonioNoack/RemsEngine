@@ -33,6 +33,10 @@ class Material : PrefabSaveable() {
 
     @SerializedProperty
     var shaderOverrides = HashMap<String, TypeValue>()
+        set(value) {
+            field.clear()
+            field.putAll(value)
+        }
 
     // or not yet...
     @NotSerializedProperty

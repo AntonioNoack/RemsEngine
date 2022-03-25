@@ -55,6 +55,7 @@ object Renderers {
                 // light data
                 Variable(GLSLType.V3F, "ambientLight"),
                 Variable(GLSLType.V1I, "numberOfLights"),
+                Variable(GLSLType.BOOL, "receiveShadows"),
                 Variable(GLSLType.M4x3, "invLightMatrices", RenderView.MAX_FORWARD_LIGHTS),
                 Variable(GLSLType.V4F, "lightData0", RenderView.MAX_FORWARD_LIGHTS),
                 Variable(GLSLType.V4F, "lightData1", RenderView.MAX_FORWARD_LIGHTS),

@@ -5,6 +5,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.CachedReflections
+import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.component1
@@ -116,10 +117,12 @@ interface ISaveable {
 
     // read matrices
     // array versions? idk...
+    fun readMatrix3x2f(name: String, value: Matrix3x2f)
     fun readMatrix3x3f(name: String, value: Matrix3f)
     fun readMatrix4x3f(name: String, value: Matrix4x3f)
     fun readMatrix4x4f(name: String, value: Matrix4f)
 
+    fun readMatrix3x2d(name: String, value: Matrix3x2d)
     fun readMatrix3x3d(name: String, value: Matrix3d)
     fun readMatrix4x3d(name: String, value: Matrix4x3d)
     fun readMatrix4x4d(name: String, value: Matrix4d)
@@ -134,6 +137,11 @@ interface ISaveable {
 
     fun readAABBf(name: String, value: AABBf)
     fun readAABBd(name: String, value: AABBd)
+
+    fun readPlanef(name: String, value: Planef)
+    fun readPlaned(name: String, value: Planed)
+
+    fun readMap(name: String, value: Map<Any?, Any?>)
 
     /**
      * can saving be ignored?, because this is default anyways?
@@ -177,11 +185,10 @@ interface ISaveable {
 
     companion object {
 
+        private val LOGGER = LogManager.getLogger(ISaveable::class)
         private val reflectionCache = ConcurrentHashMap<KClass<*>, CachedReflections>()
 
         class RegistryEntry(val sampleInstance: ISaveable, val generator: () -> ISaveable) {
-            constructor(generator: () -> ISaveable) : this(generator(), generator)
-
             fun generate() = generator()
         }
 
@@ -202,6 +209,10 @@ interface ISaveable {
 
         fun getByClass(clazz: KClass<*>): RegistryEntry? {
             return objectTypeByClass[clazz]
+        }
+
+        fun <V : ISaveable> getInstanceOf(clazz: KClass<V>): Map<String, RegistryEntry> {
+            return objectTypeRegistry.filterValues { clazz.isInstance(it.sampleInstance) }
         }
 
         val objectTypeRegistry = HashMap<String, RegistryEntry>()
@@ -268,6 +279,10 @@ interface ISaveable {
 
         private fun register(className: String, entry: RegistryEntry) {
             val clazz = entry.sampleInstance::class
+            val oldInstance = objectTypeRegistry[className]?.sampleInstance
+            if (oldInstance != null && oldInstance::class != clazz) {
+                LOGGER.warn("Overriding registered class $className from type ${oldInstance::class} with $clazz")
+            }
             objectTypeRegistry[className] = entry
             objectTypeByClass[clazz] = entry
             registerSuperClasses(clazz)

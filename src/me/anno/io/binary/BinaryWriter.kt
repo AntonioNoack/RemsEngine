@@ -544,6 +544,16 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
+    override fun writeMatrix3x2f(name: String, value: Matrix3x2fc, force: Boolean) {
+        writeAttributeStart(name, MATRIX3X2F)
+        output.writeFloat(value.m00())
+        output.writeFloat(value.m01())
+        output.writeFloat(value.m10())
+        output.writeFloat(value.m11())
+        output.writeFloat(value.m20())
+        output.writeFloat(value.m21())
+    }
+
     override fun writeMatrix3x3f(name: String, value: Matrix3fc, force: Boolean) {
         writeAttributeStart(name, MATRIX3X3F)
         output.writeFloat(value.m00())
@@ -591,6 +601,16 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         output.writeFloat(value.m31())
         output.writeFloat(value.m32())
         output.writeFloat(value.m33())
+    }
+
+    override fun writeMatrix3x2d(name: String, value: Matrix3x2dc, force: Boolean) {
+        writeAttributeStart(name, MATRIX3X2D)
+        output.writeDouble(value.m00())
+        output.writeDouble(value.m01())
+        output.writeDouble(value.m10())
+        output.writeDouble(value.m11())
+        output.writeDouble(value.m20())
+        output.writeDouble(value.m21())
     }
 
     override fun writeMatrix3x3d(name: String, value: Matrix3dc, force: Boolean) {
@@ -643,7 +663,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     }
 
     override fun writeAABBf(name: String, value: AABBf, force: Boolean) {
-        writeAttributeStart(name, AABBF)
+        writeAttributeStart(name, AABB32)
         output.writeFloat(value.minX)
         output.writeFloat(value.minY)
         output.writeFloat(value.minZ)
@@ -653,13 +673,29 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     }
 
     override fun writeAABBd(name: String, value: AABBd, force: Boolean) {
-        writeAttributeStart(name, AABBD)
+        writeAttributeStart(name, AABB64)
         output.writeDouble(value.minX)
         output.writeDouble(value.minY)
         output.writeDouble(value.minZ)
         output.writeDouble(value.maxX)
         output.writeDouble(value.maxY)
         output.writeDouble(value.maxZ)
+    }
+
+    override fun writePlanef(name: String, value: Planef, force: Boolean) {
+        writeAttributeStart(name, PLANE32)
+        output.writeFloat(value.a)
+        output.writeFloat(value.b)
+        output.writeFloat(value.c)
+        output.writeFloat(value.d)
+    }
+
+    override fun writePlaned(name: String, value: Planed, force: Boolean) {
+        writeAttributeStart(name, PLANE64)
+        output.writeDouble(value.a)
+        output.writeDouble(value.b)
+        output.writeDouble(value.c)
+        output.writeDouble(value.d)
     }
 
     override fun writeNull(name: String?) {

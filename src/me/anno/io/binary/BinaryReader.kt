@@ -192,6 +192,18 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
                     VECTOR4D_ARRAY -> obj.readVector4dArray(name, readArray { readVector4d() })
                     VECTOR4D_ARRAY_2D -> obj.readVector4dArray2D(name, readArray2D { readVector4d() })
 
+                    VECTOR2I -> obj.readVector2i(name, readVector2i())
+                    VECTOR2I_ARRAY -> obj.readVector2iArray(name, readArray { readVector2i() })
+                    VECTOR2I_ARRAY_2D -> obj.readVector2iArray2D(name, readArray2D { readVector2i() })
+
+                    VECTOR3I -> obj.readVector3i(name, readVector3i())
+                    VECTOR3I_ARRAY -> obj.readVector3iArray(name, readArray { readVector3i() })
+                    VECTOR3I_ARRAY_2D -> obj.readVector3iArray2D(name, readArray2D { readVector3i() })
+
+                    VECTOR4I -> obj.readVector4i(name, readVector4i())
+                    VECTOR4I_ARRAY -> obj.readVector4iArray(name, readArray { readVector4i() })
+                    VECTOR4I_ARRAY_2D -> obj.readVector4iArray2D(name, readArray2D { readVector4i() })
+
                     QUATERNION32 -> obj.readQuaternionf(name, readQuaternionf())
                     QUATERNION32_ARRAY -> obj.readQuaternionfArray(name, readArray { readQuaternionf() })
                     QUATERNION32_ARRAY_2D -> obj.readQuaternionfArray2D(name, readArray2D { readQuaternionf() })
@@ -199,6 +211,15 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
                     QUATERNION64 -> obj.readQuaterniond(name, readQuaterniond())
                     QUATERNION64_ARRAY -> obj.readQuaterniondArray(name, readArray { readQuaterniond() })
                     QUATERNION64_ARRAY_2D -> obj.readQuaterniondArray2D(name, readArray2D { readQuaterniond() })
+
+                    AABB32 -> obj.readAABBf(name, readAABBf())
+                    AABB64 -> obj.readAABBd(name, readAABBd())
+
+                    PLANE32 -> obj.readPlanef(name, readPlanef())
+                    PLANE64 -> obj.readPlaned(name, readPlaned())
+
+                    // todo matrices
+
 
                     else -> throw RuntimeException("Unknown type ${typeName.type}")
                 }
@@ -217,16 +238,32 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
     private fun readVector2f() = Vector2f(input.readFloat(), input.readFloat())
     private fun readVector3f() = Vector3f(input.readFloat(), input.readFloat(), input.readFloat())
     private fun readVector4f() = Vector4f(input.readFloat(), input.readFloat(), input.readFloat(), input.readFloat())
+    private fun readPlanef() = Planef(input.readFloat(), input.readFloat(), input.readFloat(), input.readFloat())
     private fun readQuaternionf() =
         Quaternionf(input.readFloat(), input.readFloat(), input.readFloat(), input.readFloat())
+
+    private fun readAABBf() = AABBf(
+        input.readFloat(), input.readFloat(), input.readFloat(),
+        input.readFloat(), input.readFloat(), input.readFloat(),
+    )
 
     private fun readVector2d() = Vector2d(input.readDouble(), input.readDouble())
     private fun readVector3d() = Vector3d(input.readDouble(), input.readDouble(), input.readDouble())
     private fun readVector4d() =
         Vector4d(input.readDouble(), input.readDouble(), input.readDouble(), input.readDouble())
 
+    private fun readPlaned() = Planed(input.readDouble(), input.readDouble(), input.readDouble(), input.readDouble())
     private fun readQuaterniond() =
         Quaterniond(input.readDouble(), input.readDouble(), input.readDouble(), input.readDouble())
+
+    private fun readAABBd() = AABBd(
+        input.readDouble(), input.readDouble(), input.readDouble(),
+        input.readDouble(), input.readDouble(), input.readDouble(),
+    )
+
+    private fun readVector2i() = Vector2i(input.readInt(), input.readInt())
+    private fun readVector3i() = Vector3i(input.readInt(), input.readInt(), input.readInt())
+    private fun readVector4i() = Vector4i(input.readInt(), input.readInt(), input.readInt(), input.readInt())
 
     override fun readAllInList() {
         val nameType = readTypeName()

@@ -18,14 +18,14 @@ class CAdd() : Change() {
         parentPath: Path,
         type: Char,
         clazzName: String,
-        name: String? = clazzName,
+        nameId: String? = clazzName,
         prefab: FileReference = InvalidRef
     ) : this() {
         this.path = parentPath
         this.type = type
         this.clazzName = clazzName
         this.prefab = prefab
-        this.nameId = name
+        this.nameId = nameId
     }
 
     constructor(

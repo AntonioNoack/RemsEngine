@@ -5,9 +5,17 @@ package me.anno.ecs.components.player
 
 open class LocalPlayer : Player() {
 
+    override fun clone(): LocalPlayer {
+        val clone = LocalPlayer()
+        copy(clone)
+        return clone
+    }
+
     companion object {
         // which player frame currently is processed; allows for simple local multiplayer <3
         var currentLocalPlayer: LocalPlayer? = null
     }
+
+    override val className: String = "LocalPlayer"
 
 }

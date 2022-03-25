@@ -22,7 +22,10 @@ import me.anno.gpu.pipeline.PipelineStage.Companion.setupLocalTransform
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.OpenGLShader.Companion.attribute
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.builder.*
+import me.anno.gpu.shader.builder.ShaderBuilder
+import me.anno.gpu.shader.builder.ShaderStage
+import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.io.Saveable
@@ -144,7 +147,11 @@ class LightPipelineStage(
                 // first the ones for the deferred data
                 // then the ones for the shadows
                 val textures = listOf("finalLight", "ambientOcclusion") + settingsV2.layers2.map { it.name }
-                shader.ignoreUniformWarnings(listOf("tint", "invLocalTransform"))
+                shader.ignoreUniformWarnings(
+                    "tint", "invLocalTransform",
+                    "defLayer0", "defLayer1", "defLayer2", "defLayer3",
+                    "defLayer4", "defLayer5", "defLayer6", "defLayer7"
+                )
                 shader.setTextureIndices(textures)
                 shader
             }
@@ -304,7 +311,10 @@ class LightPipelineStage(
                 val textures = settingsV2.layers2.map { it.name } +
                         listOf("shadowMapCubic0") +
                         Array(Renderers.MAX_PLANAR_LIGHTS) { "shadowMapPlanar$it" }
-                shader.ignoreUniformWarnings(listOf("tint", "invLocalTransform"))
+                shader.ignoreUniformWarnings(
+                    "tint", "invLocalTransform", "colors",
+                    "tangents", "uvs", "normals", "isDirectional",
+                )
                 shader.setTextureIndices(textures)
                 shader
             }

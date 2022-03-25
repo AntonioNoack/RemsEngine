@@ -1,7 +1,6 @@
 package me.anno.utils.types
 
 import me.anno.maths.Maths
-import me.anno.maths.Maths.clamp
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Triangles.linePointTFactor
 import org.joml.*
@@ -259,6 +258,45 @@ object AABBs {
         return dst
     }
 
+    /**
+     * transforms this matrix, then unions it with base, and places the result in dst
+     * */
+    fun AABBf.transformUnion(m: Matrix4x3f, base: AABBf, dst: AABBf = base): AABBf {
+        val mx = minX
+        val my = minY
+        val mz = minZ
+        val dx = this.maxX - mx
+        val dy = this.maxY - my
+        val dz = this.maxZ - mz
+        var minx = base.minX
+        var miny = base.minY
+        var minz = base.minZ
+        var maxx = base.maxX
+        var maxy = base.maxY
+        var maxz = base.maxZ
+        for (i in 0..7) {
+            val x = mx + (i and 1) * dx
+            val y = my + ((i shr 1) and 1) * dy
+            val z = mz + ((i shr 2) and 1) * dz
+            val tx = m.m00() * x + m.m10() * y + m.m20() * z + m.m30()
+            val ty = m.m01() * x + m.m11() * y + m.m21() * z + m.m31()
+            val tz = m.m02() * x + m.m12() * y + m.m22() * z + m.m32()
+            minx = Math.min(tx, minx)
+            miny = Math.min(ty, miny)
+            minz = Math.min(tz, minz)
+            maxx = Math.max(tx, maxx)
+            maxy = Math.max(ty, maxy)
+            maxz = Math.max(tz, maxz)
+        }
+        dst.minX = minx
+        dst.minY = miny
+        dst.minZ = minz
+        dst.maxX = maxx
+        dst.maxY = maxy
+        dst.maxZ = maxz
+        return dst
+    }
+
     fun AABBf.transformProject(m: Matrix4f, dst: AABBf = this): AABBf {
         val tmp = JomlPools.aabbf.borrow()
         tmp.clear()
@@ -307,9 +345,9 @@ object AABBs {
 
 
     /**
-     * transforms this matrix, then unions it with base, and places the result in dst
+     * transforms this aabb, then unions it with base, and places the result in dst
      * */
-    fun AABBf.transformUnion(m: Matrix4x3d, base: AABBd, scale: Double, dst: AABBd = base): AABBd {
+    fun AABBf.transformUnion(transform: Matrix4x3d, base: AABBd, scale: Double, dst: AABBd = base): AABBd {
         val mx = minX.toDouble() * scale
         val my = minY.toDouble() * scale
         val mz = minZ.toDouble() * scale
@@ -326,9 +364,9 @@ object AABBs {
             val x = if ((i.and(1) != 0)) xx else mx
             val y = if ((i.and(2) != 0)) xy else my
             val z = if ((i.and(4) != 0)) xz else mz
-            val tx = m.m00() * x + m.m10() * y + m.m20() * z + m.m30()
-            val ty = m.m01() * x + m.m11() * y + m.m21() * z + m.m31()
-            val tz = m.m02() * x + m.m12() * y + m.m22() * z + m.m32()
+            val tx = transform.m00() * x + transform.m10() * y + transform.m20() * z + transform.m30()
+            val ty = transform.m01() * x + transform.m11() * y + transform.m21() * z + transform.m31()
+            val tz = transform.m02() * x + transform.m12() * y + transform.m22() * z + transform.m32()
             minx = Math.min(tx, minx)
             miny = Math.min(ty, miny)
             minz = Math.min(tz, minz)

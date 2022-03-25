@@ -129,6 +129,8 @@ object ComponentUI {
             is Matrix4f, is Matrix4d,
                 // aabbs
             is AABBf, is AABBd,
+                // planes
+            is Planef, is Planed,
                 // native arrays
             is ByteArray, is ShortArray,
             is CharArray,
@@ -466,6 +468,17 @@ object ComponentUI {
                     }
                 }
             }
+            "Planef" -> {
+                val type = Type.PLANE4.withDefault(default as? Planef ?: Planef())
+                return FloatVectorInput(title, visibilityKey, value as Planef, type, style).apply {
+                    property.init(this)
+                    setResetListener { property.reset(this) }
+                    askForReset(property) { setValue(it as Planef, false) }
+                    setChangeListener { x, y, z, w ->
+                        property.set(this, Planef(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()))
+                    }
+                }
+            }
             "Vector2d" -> {
                 val type = Type.VEC2D.withDefault(default as? Vector2d ?: Vector2d())
                 return FloatVectorInput(title, visibilityKey, value as Vector2d, type, style).apply {
@@ -499,7 +512,17 @@ object ComponentUI {
                     }
                 }
             }
-
+            "Planed" -> {
+                val type = Type.PLANE4D.withDefault(default as? Planed ?: Planed())
+                return FloatVectorInput(title, visibilityKey, value as Planed, type, style).apply {
+                    property.init(this)
+                    setResetListener { property.reset(this) }
+                    askForReset(property) { setValue(it as Planed, false) }
+                    setChangeListener { x, y, z, w ->
+                        property.set(this, Planed(x, y, z, w))
+                    }
+                }
+            }
             // int vectors
             "Vector2i" -> {
                 val type = Type(default as? Vector2i ?: Vector2i(), 2)
@@ -894,7 +917,9 @@ object ComponentUI {
                                 setOnChangeListener { ce, seq ->
                                     val code = seq.toString()
                                     val func = ScriptComponent.getRawFunction(code)
-                                    ce.tooltip = if(func is LuaError){ func.toString() } else null
+                                    ce.tooltip = if (func is LuaError) {
+                                        func.toString()
+                                    } else null
                                     property.set(this, code)
                                 }
                             })

@@ -9,7 +9,7 @@ import me.anno.gpu.texture.TextureLib.whiteTexture
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 
-class TypeValue(val type: GLSLType, val value: Any) {
+open class TypeValue(val type: GLSLType, open val value: Any) {
 
     companion object {
         private val LOGGER = LogManager.getLogger(TypeValue::class)

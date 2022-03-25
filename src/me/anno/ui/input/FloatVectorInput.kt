@@ -19,6 +19,7 @@ import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AnyToDouble.getDouble
 import me.anno.utils.types.Quaternions.toEulerAnglesDegrees
 import org.joml.*
@@ -67,6 +68,20 @@ open class FloatVectorInput(
     constructor(
         title: String, visibilityKey: String, value: Vector4fc,
         type: Type = Type.VEC4, style: Style
+    ) : this(title, visibilityKey, type, style) {
+        setValue(value, false)
+    }
+
+    constructor(
+        title: String, visibilityKey: String, value: Planef,
+        type: Type = Type.PLANE4, style: Style
+    ) : this(title, visibilityKey, type, style) {
+        setValue(value, false)
+    }
+
+    constructor(
+        title: String, visibilityKey: String, value: Planed,
+        type: Type = Type.PLANE4D, style: Style
     ) : this(title, visibilityKey, type, style) {
         setValue(value, false)
     }
@@ -270,6 +285,13 @@ open class FloatVectorInput(
         compW?.setValue(v.w(), notify)
     }
 
+    fun setValue(v: Planef, notify: Boolean) {
+        compX.setValue(v.a, notify)
+        compY?.setValue(v.b, notify)
+        compZ?.setValue(v.c, notify)
+        compW?.setValue(v.d, notify)
+    }
+
     fun setValue(v: Quaternionfc, notify: Boolean) {
         compX.setValue(v.x(), notify)
         compY?.setValue(v.y(), notify)
@@ -293,6 +315,13 @@ open class FloatVectorInput(
         compY?.setValue(v.y(), notify)
         compZ?.setValue(v.z(), notify)
         compW?.setValue(v.w(), notify)
+    }
+
+    fun setValue(v: Planed, notify: Boolean) {
+        compX.setValue(v.a, notify)
+        compY?.setValue(v.b, notify)
+        compZ?.setValue(v.c, notify)
+        compW?.setValue(v.d, notify)
     }
 
     fun setValue(v: Quaterniondc, notify: Boolean) {

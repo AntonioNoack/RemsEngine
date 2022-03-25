@@ -7,6 +7,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths
+import me.anno.maths.Maths.fract
 import org.joml.Matrix4x3f
 
 // todo blend animations...
@@ -27,13 +28,13 @@ abstract class Animation : NamedSaveable {
     var skeleton: FileReference = InvalidRef
 
     fun calculateMonotonousTime(time: Float, frameCount: Int): Triple<Float, Int, Int> {
-        var timeF = (time % duration) / duration * frameCount
-        if (timeF < 0f) timeF += frameCount
+        val duration = duration
+        val timeF = fract(time / duration) * frameCount
 
         val index0 = timeF.toInt() % frameCount
         val index1 = (index0 + 1) % frameCount
 
-        val fraction = Maths.fract(timeF).toFloat()
+        val fraction = fract(timeF).toFloat()
 
         return Triple(fraction, index0, index1)
     }

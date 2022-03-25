@@ -22,7 +22,8 @@ object ECSShaderLib {
                 "finalSheen", "finalTranslucency", "metallicMinMax",
                 "emissiveBase", "normalStrength", "ambientLight",
                 "occlusionStrength", "invLocalTransform",
-                "numberOfLights", "roughnessMinMax", "finalClearCoat"
+                "numberOfLights", "roughnessMinMax", "finalClearCoat",
+                "worldScale"
             )
         )
         val textures = mutableListOf(
@@ -63,6 +64,7 @@ object ECSShaderLib {
                     "}"
         )
         shader2.glslVersion = 330
+        shader2.ignoreUniformWarnings("normals", "tint", "uvs", "colors", "drawMode", "tangents")
         clearingPbrModelShader = shader2
 
     }

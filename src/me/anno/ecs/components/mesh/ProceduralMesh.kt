@@ -47,7 +47,7 @@ abstract class ProceduralMesh : MeshBaseComponent() {
     override fun ensureBuffer() {
         if (needsUpdate) {
             needsUpdate = false
-            generateMesh()
+            generateMesh(mesh2)
             mesh2.invalidateGeometry()
             entity?.invalidateAABBsCompletely()
         }
@@ -64,7 +64,7 @@ abstract class ProceduralMesh : MeshBaseComponent() {
         return true
     }
 
-    abstract fun generateMesh()
+    abstract fun generateMesh(mesh: Mesh)
 
     abstract override fun clone(): ProceduralMesh
 

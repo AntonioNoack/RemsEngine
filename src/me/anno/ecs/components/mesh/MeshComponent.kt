@@ -57,7 +57,6 @@ open class MeshComponent() : MeshBaseComponent() {
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as MeshComponent
-        clone.isInstanced = isInstanced
         clone.mesh = mesh
     }
 

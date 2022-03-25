@@ -126,6 +126,22 @@ object Casting {
         else -> null
     }
 
+    fun castToPlanef(it: Any): Planef? = when (it) {
+        is Vector4f -> Planef(it.x, it.y, it.z, it.w)
+        is Planef -> it
+        is Vector4d -> Planef(it.x.toFloat(), it.y.toFloat(), it.z.toFloat(), it.w.toFloat())
+        is Planed -> Planef(it.a.toFloat(), it.b.toFloat(), it.c.toFloat(), it.d.toFloat())
+        else -> null
+    }
+
+    fun castToPlaned(it: Any): Planed? = when (it) {
+        is Vector4f -> Planed(it.x.toDouble(), it.y.toDouble(), it.z.toDouble(), it.w.toDouble())
+        is Planef ->  Planed(it.a.toDouble(), it.b.toDouble(), it.c.toDouble(), it.d.toDouble())
+        is Vector4d -> Planed(it.x, it.y, it.z, it.w)
+        is Planed ->it
+        else -> null
+    }
+
     fun castToVector4db(it: Any?) = castToVector4d(it ?: Unit) ?: Vector4d()
     fun castToVector4d(it: Any): Vector4d? = when (it) {
         is Int -> Vector4d(it.toDouble())

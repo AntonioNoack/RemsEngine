@@ -38,7 +38,7 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
         child.parent = this
     }
 
-    override fun add(child: PrefabSaveable) {
+    override fun addChild(child: PrefabSaveable) {
         if (child is Panel) add(child)
     }
 

@@ -8,6 +8,8 @@ import me.anno.utils.types.Casting.castToFloat2
 import me.anno.utils.types.Casting.castToInt
 import me.anno.utils.types.Casting.castToInt2
 import me.anno.utils.types.Casting.castToLong
+import me.anno.utils.types.Casting.castToPlaned
+import me.anno.utils.types.Casting.castToPlanef
 import me.anno.utils.types.Casting.castToString
 import me.anno.utils.types.Casting.castToVector2d
 import me.anno.utils.types.Casting.castToVector2f
@@ -69,6 +71,8 @@ class Type(
         val VEC2_PLUS = Type(Vector2f(), 2, 1f, true, true, ::positiveVector2f, ::castToVector2f)
         val VEC3 = Type(Vector3f(), 3, 1f, true, true, null, ::castToVector3f)
         val VEC4 = Type(Vector4f(), 4, 1f, true, true, null, ::castToVector4f)
+        val PLANE4 = Type(Planef(), 4, 1f, true, true, null, ::castToPlanef)
+        val PLANE4D = Type(Planed(), 4, 1f, true, true, null, ::castToPlaned)
         val VEC4_PLUS = Type(Vector4f(), 4, 1f, true, true, {
             when (it) {
                 is Float -> max(it, 0f)

@@ -146,11 +146,10 @@ abstract class BlockTracedMaterial(name: String) : ECSMeshShader(name) {
                     // correct depth
                     modifyDepth(instanced) +
                     "vec3 localPos = localStart - halfBounds + dir * dist;\n" +
-                    "vec3 newGlobal = localTransform * vec4(localPos, 1.0);\n" +
-                    "finalPosition = newGlobal;\n" +
+                    "finalPosition = localTransform * vec4(localPos, 1.0);\n" +
                     // must be used for correct mirror rendering
                     "if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n" +
-                    "vec4 newVertex = transform * vec4(newGlobal, 1.0);\n" +
+                    "vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
                     "gl_FragDepth = newVertex.z/newVertex.w;\n" +
                     // todo add reflections from reflection planes back in
                     // todo add other stuff back in maybe, like clear coat & stuff

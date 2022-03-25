@@ -399,7 +399,7 @@ object ShaderLib {
                     "   float finalAlpha = finalColor2.a;\n" +
                     "}", listOf()
         )
-        shader3DforText.ignoreUniformWarnings(listOf("tiling", "forceFieldUVCount"))
+        shader3DforText.ignoreUniformWarnings("tiling", "forceFieldUVCount")
 
         shaderSDFText = createShaderPlus(
             "3d-text-withOutline", v3DBase +
@@ -470,7 +470,7 @@ object ShaderLib {
                 "   uv = attr1.yx;\n" +
                 "}"
         shader3DPolygon = createShaderPlus("3d-polygon", v3DPolygon, y3D, f3D, listOf("tex"))
-        shader3DPolygon.ignoreUniformWarnings(listOf("tiling", "forceFieldUVCount"))
+        shader3DPolygon.ignoreUniformWarnings("tiling", "forceFieldUVCount")
 
         // somehow becomes dark for large |steps|-values
         shader3DBoxBlur = createShader(

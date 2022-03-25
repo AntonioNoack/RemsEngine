@@ -198,7 +198,7 @@ open class MeshData : ICacheData {
             if(mesh == null){
                 if (comp is MeshComponent) {
                     if(comp.mesh == InvalidRef){
-                        LOGGER.warn("MeshComponent '${comp.name} is missing path")
+                        LOGGER.warn("MeshComponent '${comp.name}' is missing path (${comp.mesh})")
                     } else {
                         LOGGER.warn("Mesh '${comp.name}'/'${comp.mesh}' is missing from MeshComponent")
                     }

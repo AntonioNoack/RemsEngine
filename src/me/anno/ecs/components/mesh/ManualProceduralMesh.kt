@@ -2,7 +2,7 @@ package me.anno.ecs.components.mesh
 
 class ManualProceduralMesh : ProceduralMesh() {
 
-    override fun generateMesh() {
+    override fun generateMesh(mesh: Mesh) {
         // nothing to do...
     }
 

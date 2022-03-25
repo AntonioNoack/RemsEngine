@@ -2,6 +2,7 @@ package me.anno.mesh
 
 import me.anno.ecs.components.mesh.Mesh
 import kotlin.math.abs
+import kotlin.math.sign
 
 /**
  * a library of often used meshes, so we don't have too many copies in the engine
@@ -145,5 +146,39 @@ object Shapes {
 
     // 1.226f * 1.414f = scale to cover a sphere, guesses in Blender
     val sphereCoveringTetrahedron = FBBMesh(tetrahedron, 1.226f * 1.414f)
+
+    fun createCube(
+        mesh: Mesh,
+        sizeX: Float,
+        sizeY: Float,
+        sizeZ: Float,
+        offsetX: Float,
+        offsetY: Float,
+        offsetZ: Float,
+        withNormals: Boolean,
+        front: Boolean,
+        back: Boolean,
+    ) {
+        if (!front && !back) {
+            // mmh, awkward request
+            mesh.positions = FloatArray(0)
+        } else {
+            var position = mesh.positions
+            val base = if (withNormals) flatCube else smoothCube
+            val base1 = if (front && back) base.both else if (front) base.front else base.back
+            val base2 = base1.positions!!
+            if (position == null || position.size != base2.size) {
+                position = FloatArray(base2.size)
+                mesh.positions = position
+            }
+            for (i in position.indices step 3) {
+                position[i + 0] = sign(base2[i + 0]) * sizeX + offsetX
+                position[i + 1] = sign(base2[i + 1]) * sizeY + offsetY
+                position[i + 2] = sign(base2[i + 2]) * sizeZ + offsetZ
+            }
+            mesh.indices = base1.indices
+            mesh.normals = base1.normals
+        }
+    }
 
 }

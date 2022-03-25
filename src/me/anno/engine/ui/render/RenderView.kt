@@ -850,7 +850,12 @@ class RenderView(
 
         val near = mix(previousCamera.near, camera.near, blend)
         val far = mix(previousCamera.far, camera.far, blend)
-        val fov = mix(previousCamera.fovY, camera.fovY, blending)
+        val isPerspective = camera.isPerspective
+        val fov = if (isPerspective) {
+            mix(previousCamera.fovY, camera.fovY, blending)
+        } else {
+            mix(previousCamera.fovOrthographic, camera.fovOrthographic, blending)
+        }
         val t0 = previousCamera.entity!!.transform.globalTransform
         val t1 = camera.entity!!.transform.globalTransform
         val rot0 = t0.getUnnormalizedRotation(tmpRot0)
@@ -865,8 +870,6 @@ class RenderView(
         val rotInv = rot0.slerp(rot1, blendF)
         val rot = rot1.set(rotInv).conjugate() // conjugate is quickly inverting, when already normalized
 
-        val fovYRadians = toRadians(fov)
-        Companion.fovYRadians = fovYRadians
 
         val centerX = mix(previousCamera.center.x, camera.center.x, blendF)
         val centerY = mix(previousCamera.center.x, camera.center.y, blendF)
@@ -879,14 +882,27 @@ class RenderView(
         val scaledFar = (far * worldScale)
         RenderView.scaledNear = scaledNear
         RenderView.scaledFar = scaledFar
-        Perspective.setPerspective(
-            cameraMatrix,
-            fovYRadians,
-            aspectRatio,
-            scaledNear.toFloat(),
-            scaledFar.toFloat(),
-            centerX, centerY
-        )
+        if (isPerspective) {
+            val fovYRadians = toRadians(fov)
+            Companion.fovYRadians = fovYRadians
+            Perspective.setPerspective(
+                cameraMatrix,
+                fovYRadians,
+                aspectRatio,
+                scaledNear.toFloat(),
+                scaledFar.toFloat(),
+                centerX, centerY
+            )
+        } else {
+            // todo get perspective working correctly & respect inverse depth
+            fovYRadians = 1f // not really defined
+            cameraMatrix.set(
+                height / (fov * width), 0f, 0f, 0f,
+                0f, 1f / fov, 0f, 0f,
+                0f, 0f, -1f / fov, 0f,
+                0f, 0f, 0f, 1f
+            )
+        }
         cameraMatrix.rotate(rot)
         if (!cameraMatrix.isFinite) throw RuntimeException(
             "camera matrix is NaN, " +

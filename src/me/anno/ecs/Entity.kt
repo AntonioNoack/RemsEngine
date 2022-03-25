@@ -32,6 +32,7 @@ import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Quaterniond
 import org.joml.Vector3d
+import java.lang.UnsupportedOperationException
 import kotlin.reflect.KClass
 
 // entities would be an idea to make effects more modular
@@ -132,14 +133,6 @@ class Entity() : PrefabSaveable(), Inspectable {
 
     override fun listChildTypes(): String = "ec" // entity children, components
 
-    override fun addChild(child: PrefabSaveable) {
-        when (child) {
-            is Entity -> addEntity(child)
-            is Component -> addComponent(child)
-            else -> throw UnsupportedOperationException()
-        }
-    }
-
     override fun addChildByType(index: Int, type: Char, child: PrefabSaveable) {
         when (child) {
             is Component -> addComponent(index, child)
@@ -159,7 +152,7 @@ class Entity() : PrefabSaveable(), Inspectable {
     }
 
     override fun getOptionsByType(type: Char): List<Option> {
-        return if (type == 'c') Component.getComponentOptions(this)
+        return if (type == 'c') Component.getOptionsByClass(this, Component::class)
         else entityOptionList
     }
 
@@ -489,15 +482,15 @@ class Entity() : PrefabSaveable(), Inspectable {
         invalidateAABBsCompletely()
     }
 
-    override fun add(child: PrefabSaveable) {
+    override fun addChild(child: PrefabSaveable) {
         when (child) {
             is Entity -> addEntity(child)
             is Component -> addComponent(child)
-            else -> LOGGER.warn("Cannot add ${child.className} to Entity")
+            else -> throw UnsupportedOperationException("Cannot add ${child.className} to Entity")
         }
     }
 
-    override fun add(index: Int, child: PrefabSaveable) {
+    override fun addChild(index: Int, child: PrefabSaveable) {
         throw RuntimeException("Not supported/not yet implemented")
     }
 

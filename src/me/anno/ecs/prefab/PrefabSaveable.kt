@@ -31,6 +31,8 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
 
     fun getOriginalOrDefault(): PrefabSaveable = getOriginal() ?: getSuperInstance(className)
 
+    val ref get() = prefab?.source
+
     /**
      * only defined while building the game
      * */
@@ -42,6 +44,13 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
 
     @NotSerializedProperty
     override var parent: PrefabSaveable? = null
+        set(value) {
+            val oldField = field
+            if (oldField != null && oldField !== value) {
+                oldField.removeChild(this)
+            }
+            field = value
+        }
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
@@ -86,16 +95,19 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     open fun listChildTypes(): String = ""
     open fun getChildListByType(type: Char): List<PrefabSaveable> = emptyList()
     open fun getChildListNiceName(type: Char): String = "Children"
-    open fun addChildByType(index: Int, type: Char, child: PrefabSaveable) {}
+    open fun addChildByType(index: Int, type: Char, child: PrefabSaveable) {
+        LOGGER.warn("$className.addChildByType(index,$type,${child.className}) is not supported")
+    }
+
     open fun getOptionsByType(type: Char): List<Option>? = null
 
-    override fun add(child: PrefabSaveable) {
+    override fun addChild(child: PrefabSaveable) {
         val type = getTypeOf(child)
         val length = getChildListByType(type).size
         addChildByType(length, type, child)
     }
 
-    override fun add(index: Int, child: PrefabSaveable) = addChildByType(index, getTypeOf(child), child)
+    override fun addChild(index: Int, child: PrefabSaveable) = addChildByType(index, getTypeOf(child), child)
     override fun deleteChild(child: PrefabSaveable) {
         val list = getChildListByType(getTypeOf(child))
         val index = list.indexOf(child)

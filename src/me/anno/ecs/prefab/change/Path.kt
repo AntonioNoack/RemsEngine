@@ -70,7 +70,7 @@ class Path(
 
     fun lastType() = type
     fun lastIndex() = index
-    fun lastName() = nameId
+    fun lastNameId() = nameId
 
     fun firstIndex(): Int {
         val parent = parent

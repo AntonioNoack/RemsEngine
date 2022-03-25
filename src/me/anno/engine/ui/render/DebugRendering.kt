@@ -59,9 +59,11 @@ object DebugRendering {
     }
 
     fun showCameraRendering(view: RenderView, x0: Int, y0: Int, x1: Int, y1: Int) {
-        val camera = EditorState.selection
+        val c0 = EditorState.selection
             .filterIsInstance<Entity>()
-            .mapFirstNotNull { e -> e.getComponentInChildren(Camera::class) }
+            .mapNotNull { e -> e.getComponentInChildren(Camera::class) }
+        val c1 = EditorState.selection.filterIsInstance<Camera>()
+        val camera = (c1 + c0).firstOrNull()
         if (camera != null && !Input.isShiftDown) {
             // calculate size of sub camera
             val w = (x1 - x0 + 1) / 3

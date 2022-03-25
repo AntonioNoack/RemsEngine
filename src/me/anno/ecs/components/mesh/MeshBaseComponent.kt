@@ -15,7 +15,10 @@ import org.joml.Matrix4x3d
 
 abstract class MeshBaseComponent : CollidingComponent() {
 
-    // todo respect these properties
+    /**
+     * whether a object will receive shadows from shadow-mapped lights;
+     * may be ignored for instanced meshes (to save bandwidth/computations)
+     * */
     @SerializedProperty
     var receiveShadows = true
 
