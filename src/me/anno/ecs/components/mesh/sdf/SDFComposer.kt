@@ -1,12 +1,10 @@
 package me.anno.ecs.components.mesh.sdf
 
 import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.mesh.TypeValueV2
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RenderView
-import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.ShaderLib.simplestVertexShader
-import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Function
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -54,8 +52,9 @@ object SDFComposer {
             "vec3 calcNormal(in vec3 pos, float epsilon) {\n" +
             // inspired by tdhooper and klems - a way to prevent the compiler from inlining map() 4 times
             "  vec3 n = vec3(0.0);\n" +
-            "  for(int i=ZERO; i<4; i++) {\n" +
-            "      vec3 e = 0.5773*(2.0*vec3((((i+3)>>1)&1),((i>>1)&1),(i&1))-1.0);\n" +
+            "  for(int i=ZERO;i<4;i++) {\n" +
+            // 0.5773 is just a scalar factor
+            "      vec3 e = 2.0*vec3((((i+3)>>1)&1),((i>>1)&1),(i&1))-1.0;\n" +
             "      n += e*map(pos+e*epsilon).x;\n" +
             "  }\n" +
             "  return normalize(n);\n" +
@@ -81,10 +80,10 @@ object SDFComposer {
                     return value
                 }
         }
-        uniforms["sdfReliability"] = TypeValue(GLSLType.V1F, 1f)
-        uniforms["sdfNormalEpsilon"] = TypeValue(GLSLType.V1F, 0.005f)
-        uniforms["sdfMaxRelativeError"] = TypeValue(GLSLType.V1F, 0.001f)
-        uniforms["maxSteps"] = TypeValue(GLSLType.V1I, 70)
+        uniforms["sdfReliability"] = TypeValueV2(GLSLType.V1F) { tree.reliability }
+        uniforms["sdfNormalEpsilon"] = TypeValue(GLSLType.V1F) { tree.normalEpsilon }
+        uniforms["sdfMaxRelativeError"] = TypeValueV2(GLSLType.V1F) { tree.maxRelativeError }
+        uniforms["maxSteps"] = TypeValueV2(GLSLType.V1I) { tree.maxSteps }
         uniforms["distanceBounds"] = TypeValue(GLSLType.V2F, Vector2f(0f, 1e5f))
         val shader = object : ECSMeshShader("raycasting-${tree.hashCode()}") {
             override fun createFragmentStage(instanced: Boolean): ShaderStage {
@@ -189,6 +188,11 @@ object SDFComposer {
                 return stage
             }
         }
+        shader.ignoreUniformWarnings(
+            "sheenNormalMap", "occlusionMap", "metallicMap", "roughnessMap",
+            "emissiveMap", "normalMap", "diffuseMap", "diffuseBase", "emissiveBase", "drawMode", "applyToneMapping",
+            "ambientLight"
+        )
         return uniforms to shader
     }
 

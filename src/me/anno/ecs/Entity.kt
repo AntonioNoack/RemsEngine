@@ -258,7 +258,8 @@ class Entity() : PrefabSaveable(), Inspectable {
         invalidateChildAABBs()
     }
 
-    private fun invalidateOwnAABB() {
+    @DebugAction
+    fun invalidateOwnAABB() {
         if (hasValidAABB) {
             hasValidAABB = false
             parentEntity?.invalidateOwnAABB()

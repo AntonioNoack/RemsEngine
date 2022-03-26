@@ -109,6 +109,7 @@ object ComponentUI {
 
             // native types
             is Boolean,
+            is Char,
             is Byte, is Short, is Int, is Long,
             is UByte, is UShort, is UInt, is ULong,
             is Float, is Double,
@@ -419,6 +420,19 @@ object ComponentUI {
                         property.set(this, it)
                     }
                 }
+            }
+            "Char", "Character", "char" -> {
+                return TitledListY(title, visibilityKey, style).add(
+                    TextInput(title, visibilityKey, value.toString(), style.getChild("deep")).apply {
+                        // todo limit length to 1
+                        property.init(this)
+                        setResetListener { property.reset(this).toString() }
+                        askForReset(property) { setValue(it.toString(), false) }
+                        addChangeListener {
+                            property.set(this, if (it.isNotEmpty()) it[0] else ' ')
+                        }
+                    }
+                )
             }
             "String" -> {
                 return TitledListY(title, visibilityKey, style).add(

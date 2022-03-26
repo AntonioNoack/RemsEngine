@@ -1,5 +1,6 @@
 package me.anno.ecs.components.mesh.sdf.shapes
 
+import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.SDFComposer.dot2
 import me.anno.ecs.components.mesh.sdf.VariableCounter
@@ -8,6 +9,7 @@ import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
+import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector4f
 import kotlin.math.abs
@@ -21,19 +23,36 @@ class SDFDoor : SDF2DShape() {
             field.set(value)
         }
 
-    var width
+    @Range(0.0, 1e38)
+    var halfExtendsX
         get() = params.x
         set(value) {
-            if(params.x != value && !dynamicSize) invalidateShader()
-            params.x = value
+            if (params.x != value) {
+                if (dynamicSize) invalidateBounds()
+                else invalidateShader()
+                params.x = value
+            }
         }
 
-    var height
-        get() = params.y
+    @Range(0.0, 1e38)
+    var bottomExtends
+        get() = params.y * .5f
         set(value) {
-            if(params.y != value && !dynamicSize) invalidateShader()
-            params.y = value
+            val v2 = value * 2f
+            if (params.y != v2) {
+                if (dynamicSize) invalidateBounds()
+                else invalidateShader()
+                params.y = v2
+            }
         }
+
+    override fun calculateBaseBounds(dst: AABBf) {
+        val w = halfExtendsX
+        val h = bottomExtends
+        dst.setMin(-w, -h, 0f)
+        dst.setMax(+w, +w, 0f)
+        super.calculateBaseBounds(dst)
+    }
 
     override fun buildShader(
         builder: StringBuilder,
@@ -50,7 +69,7 @@ class SDFDoor : SDF2DShape() {
         builder.append("sdDoor(")
         writeFuncInput(builder, trans.posIndex)
         builder.append(',')
-        if (dynamicSize) builder.append(defineUniform(uniforms, params))
+        if (dynamicSize) builder.appendUniform(uniforms, params)
         else writeVec(builder, params)
         builder.append(')')
         smartMinEnd(builder, dstName, nextVariableId, uniforms, functions, trans)
@@ -58,8 +77,8 @@ class SDFDoor : SDF2DShape() {
 
     override fun computeSDFBase(pos: Vector4f): Float {
         applyTransform(pos)
-        val w = width
-        val h = height
+        val w = halfExtendsX
+        val h = bottomExtends
         val px = abs(pos.x)
         val py = -pos.y
         var qx = px - w

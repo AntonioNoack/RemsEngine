@@ -40,8 +40,10 @@ enum class RenderMode(val dlt: DeferredLayerType? = null) {
     FSR_SQRT2,
     FSR_X2,
     FSR_X4,
+    FSR_MSAA_X4,
     NEAREST_X4,
-    LINES, FRONT_BACK,
+    LINES, LINES_MSAA,
+    FRONT_BACK,
 
     /** visualized the triangle structure by giving each triangle its own color */
     SHOW_TRIANGLES,

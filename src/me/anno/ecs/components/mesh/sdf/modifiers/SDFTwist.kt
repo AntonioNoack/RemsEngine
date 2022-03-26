@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh.sdf.modifiers
 
 import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.writeVec
 import me.anno.ecs.components.mesh.sdf.VariableCounter
@@ -20,13 +21,16 @@ class SDFTwist : PositionMapper() {
         sourceParams.w = w
     }
 
+    // todo apply this transform to the bounding box somehow...
+
     /**
      * source for rotation
      * 4th component: phase offset
      * */
     var source = Vector3f(0f, 1f, 0f)
         set(value) {
-            if (!dynamicSource) invalidateShader()
+            if (dynamicSource) invalidateBounds()
+            else invalidateShader()
             field.set(value)
             field.normalize()
             if (!field.x.isFinite()) {
@@ -37,7 +41,8 @@ class SDFTwist : PositionMapper() {
 
     var destination = Vector3f(0f, 1f, 0f)
         set(value) {
-            if (!dynamicDestination) invalidateShader()
+            if (dynamicDestination) invalidateBounds()
+            else invalidateShader()
             field.set(value)
             field.normalize()
             if (!field.x.isFinite()) {
@@ -48,7 +53,8 @@ class SDFTwist : PositionMapper() {
     var strength = 1f
         set(value) {
             if (field != value) {
-                if (!dynamicSource) invalidateShader()
+                if (dynamicSource) invalidateBounds()
+                else invalidateShader()
                 field = value
                 calcSourceParams()
             }
@@ -58,7 +64,8 @@ class SDFTwist : PositionMapper() {
         get() = sourceParams.w
         set(value) {
             if (sourceParams.w != value) {
-                if (!dynamicSource) invalidateShader()
+                if (dynamicSource) invalidateBounds()
+                else invalidateShader()
                 sourceParams.w = value
             }
         }
@@ -113,7 +120,7 @@ class SDFTwist : PositionMapper() {
             builder.append(',')
             writeSource(builder, posIndex, uniforms)
             builder.append(',')
-            if (dynDst) builder.append(defineUniform(uniforms, dst))
+            if (dynDst) builder.appendUniform(uniforms, dst)
             else writeVec(builder, dst)
             builder.append(");\n")
             return null
@@ -121,7 +128,7 @@ class SDFTwist : PositionMapper() {
     }
 
     private fun writeCenter(builder: StringBuilder, uniforms: HashMap<String, TypeValue>) {
-        if (dynamicCenter) builder.append(defineUniform(uniforms, center))
+        if (dynamicCenter) builder.appendUniform(uniforms, center)
         else writeVec(builder, center)
     }
 
@@ -130,7 +137,7 @@ class SDFTwist : PositionMapper() {
         val src = sourceParams
         builder.append("dot(vec4(pos").append(posIndex)
         builder.append(",1.0),")
-        if (dynamicSource) builder.append(defineUniform(uniforms, src))
+        if (dynamicSource) builder.appendUniform(uniforms, src)
         else writeVec(builder, src)
         builder.append(")")
     }
@@ -150,6 +157,13 @@ class SDFTwist : PositionMapper() {
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFTwist
+        clone.sourceParams.set(sourceParams)
+        clone.source.set(source)
+        clone.center.set(center)
+        clone.destination.set(destination)
+        clone.dynamicSource = dynamicSource
+        clone.dynamicCenter = dynamicCenter
+        clone.dynamicDestination = dynamicDestination
     }
 
     override val className: String = "SDFTwist"

@@ -7,6 +7,8 @@ import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.components.mesh.sdf.modifiers.SDFHalfSpace.Companion.dot
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.sq
+import me.anno.utils.types.AABBs.clear
+import org.joml.AABBf
 import org.joml.Planef
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -21,6 +23,32 @@ class SDFMirror() : PositionMapper() {
         plane.normalize3()
     }
 
+    override fun applyTransform(bounds: AABBf) {
+        // first: intersect bounds with plane
+        // then: mirror remaining points onto other side
+        // effectively, we just test all border points:
+        // if they are on the active side, they will get added on both sides,
+        // if they are on the inactive side, just discard them
+        val imx = bounds.minX
+        val imy = bounds.minY
+        val imz = bounds.minZ
+        val ixx = bounds.maxX
+        val ixy = bounds.maxY
+        val ixz = bounds.maxZ
+        bounds.clear()
+        val normal = plane
+        for (i in 0 until 8) {
+            val x = if (i.and(1) == 0) imx else ixx
+            val y = if (i.and(2) == 0) imy else ixy
+            val z = if (i.and(4) == 0) imz else ixz
+            val dot = 2f * (normal.a * x + normal.b * y + normal.c * z + normal.d)
+            if (dot >= 0f) {
+                bounds.union(x, y, z)
+                bounds.union(x - dot * normal.a, y - dot * normal.b, z - dot * normal.c)
+            }
+        }
+    }
+
     // proper smoothness would require two sdf evaluations
     // considering this effect probably would be stacked, it would get too expensive
     // (+ our pipeline currently does not support that)
@@ -28,7 +56,8 @@ class SDFMirror() : PositionMapper() {
     @Suppress("SetterBackingFieldAssignment")
     var plane = Planef(0f, 1f, 0f, 0f)
         set(value) {
-            if (!dynamicPlane) invalidateShader()
+            if (dynamicPlane) invalidateBounds()
+            else invalidateShader()
             field.set(value.a, value.b, value.c, value.d)
             field.normalize3()
         }
@@ -97,8 +126,9 @@ class SDFMirror() : PositionMapper() {
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFMirror
-        clone.plane = plane
+        clone.plane.set(plane.a, plane.b, plane.c, plane.d)
         clone.dynamicPlane = dynamicPlane
+        clone.useBranch = useBranch
     }
 
     override val className = "SDFMirror"

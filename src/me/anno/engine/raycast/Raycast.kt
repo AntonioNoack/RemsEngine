@@ -55,13 +55,16 @@ object Raycast {
         if (maxLength <= 0) return null
         result.distance = maxLength
         direction.normalize()
-        val end = Vector3d(direction).mul(maxLength).add(start)
-        return raycastTriangles(
+        val end = JomlPools.vec3d.create()
+            .set(direction).mul(maxLength).add(start)
+        val hit = raycastTriangles(
             entity, start, direction, end,
             radiusAtOrigin, radiusPerUnit,
             typeMask, collisionMask,
             includeDisabled, result
         )
+        JomlPools.vec3d.sub(1)
+        return hit
     }
 
     /**
@@ -286,7 +289,15 @@ object Raycast {
             val localMaxDistance = localSrt.distance(localEnd)
 
             // test whether we intersect the aabb of this mesh
-            if (testLineAABB(mesh.aabb, localSrt, localDir, localRadiusAtOrigin, localRadiusPerUnit, localMaxDistance)) {
+            if (testLineAABB(
+                    mesh.aabb,
+                    localSrt,
+                    localDir,
+                    localRadiusAtOrigin,
+                    localRadiusPerUnit,
+                    localMaxDistance
+                )
+            ) {
 
                 // test whether we intersect any triangle of this mesh
                 var localEnd2 = localMaxDistance

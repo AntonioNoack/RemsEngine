@@ -171,10 +171,13 @@ object Shapes {
                 position = FloatArray(base2.size)
                 mesh.positions = position
             }
+            val sx = sizeX * 0.5f
+            val sy = sizeY * 0.5f
+            val sz = sizeZ * 0.5f
             for (i in position.indices step 3) {
-                position[i + 0] = sign(base2[i + 0]) * sizeX + offsetX
-                position[i + 1] = sign(base2[i + 1]) * sizeY + offsetY
-                position[i + 2] = sign(base2[i + 2]) * sizeZ + offsetZ
+                position[i + 0] = sign(base2[i + 0]) * sx + offsetX
+                position[i + 1] = sign(base2[i + 1]) * sy + offsetY
+                position[i + 2] = sign(base2[i + 2]) * sz + offsetZ
             }
             mesh.indices = base1.indices
             mesh.normals = base1.normals

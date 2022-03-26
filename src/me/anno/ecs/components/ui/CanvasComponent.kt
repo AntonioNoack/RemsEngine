@@ -22,6 +22,8 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.pipeline.CullMode
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.GPUImage
 import me.anno.input.MouseButton
 import me.anno.io.ISaveable
@@ -56,7 +58,6 @@ import org.lwjgl.opengl.GL11.*
 
 class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
 
-    // todo clamp texture coordinates
     // todo this element always need glCullFace, or you see the back when it's transparent
 
     constructor(base: CanvasComponent) : this() {
@@ -191,6 +192,7 @@ class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
         if (fb == null || fb.pointer != lastPointer) {
             fb = Framebuffer("canvas", width, height, 1, 1, false, DepthBufferType.NONE)
             useFrame(fb) {} // create textures
+            (fb.getTexture0() as Texture2D).clamping = Clamping.CLAMP
             lastPointer = fb.pointer
             val prefab = Prefab("Material")
             val texture = fb.getTexture0()

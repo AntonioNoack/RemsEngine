@@ -171,7 +171,7 @@ fun createShape(): SDFComponent {
         obj0.dynamicSmoothness = true
         val obj1 = SDFBox()
         obj1.smoothness = 0.3f
-        /*obj1.add(SDFTwist().apply {
+        /*obj1.addChild(SDFTwist().apply {
             strength = 1f
             // "cheap bend": src = x, dst = z
             source = Vector3f(1f, 0f, 0f)
@@ -191,18 +191,18 @@ fun createShape(): SDFComponent {
         obj5.dynamicSmoothness = true
         obj5.dynamicRotation = true
         obj5.scale = 0.5f
-        obj5.add(SDFStretcher(0.3f, 0f, 0f))
+        obj5.addChild(SDFStretcher(0.3f, 0f, 0f))
         val obj6 = SDFStairs()
         obj6.boundZ(-1f, +1f)
-        obj6.add(SDFRoundness())
+        obj6.addChild(SDFRoundness())
         val obj7 = SDFHeart()
-        obj7.add(SDFOnion(0.2f, 1))
+        obj7.addChild(SDFOnion(0.2f, 1))
         obj7.boundZ(-0.1f, +0.1f)
         val obj8 = SDFDoor()
-        obj8.add(SDFMirror(Vector3f(), Vector3f(1f, 0f, 1f)))
-        // obj8.add(SDFMirror(Vector3f(), Vector3f(0f, 1f, 0f)))
-        obj8.add(SDFMirror(Vector3f(), Vector3f(-1f, 0f, 1f)))
-        // obj8.add(SDFOnion(0.2f, 1))
+        obj8.addChild(SDFMirror(Vector3f(), Vector3f(1f, 0f, 1f)))
+        // obj8.addChild(SDFMirror(Vector3f(), Vector3f(0f, 1f, 0f)))
+        obj8.addChild(SDFMirror(Vector3f(), Vector3f(-1f, 0f, 1f)))
+        // obj8.addChild(SDFOnion(0.2f, 1))
         obj8.boundZ(+0.5f, +1f)
         val group = SDFGroup()
         group.addChild(obj0)
@@ -214,8 +214,8 @@ fun createShape(): SDFComponent {
         group.addChild(obj6)
         group.addChild(obj7)
         group.addChild(obj8)
-        //group.add(SDFOnion())
-        //group.add(SDFHalfSpace())
+        //group.addChild(SDFOnion())
+        //group.addChild(SDFHalfSpace())
         return group
     }
 
@@ -226,19 +226,19 @@ fun createShape(): SDFComponent {
     group2.position.y -= 1f
     // group2.dynamicRotation = true
     val finalShape = SDFGroup()
-    // finalShape.add(group1)
+    // finalShape.addChild(group1)
     finalShape.addChild(group2)
     finalShape.type = SDFGroup.CombinationMode.UNION
     finalShape.smoothness = 0.5f
     val array = SDFArray()
     array.cellSize.set(4f)
     // array.count.set(4, 1, 5)
-    group2.add(array)
+    group2.addChild(array)
     val hexGrid = SDFHexGrid()
     hexGrid.lim1.set(2f)
     hexGrid.lim2.set(2f)
     hexGrid.cellSize = 4f
-    // group2.add(hexGrid)
+    // group2.addChild(hexGrid)
     return finalShape
 }
 

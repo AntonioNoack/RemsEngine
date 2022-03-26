@@ -1,15 +1,15 @@
 package me.anno.ecs.components.mesh.sdf
 
-import me.anno.ecs.annotations.DebugProperty
-import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.ProceduralMesh
-import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.annotations.*
+import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.mesh.sdf.modifiers.DistanceMapper
 import me.anno.ecs.components.mesh.sdf.modifiers.PositionMapper
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
 import me.anno.io.serialization.NotSerializedProperty
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.max
+import me.anno.maths.Maths.min
 import me.anno.mesh.Shapes
 import me.anno.ui.editor.stacked.Option
 import me.anno.utils.pooling.JomlPools
@@ -21,11 +21,15 @@ import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.AABBs.deltaX
 import me.anno.utils.types.AABBs.deltaY
 import me.anno.utils.types.AABBs.deltaZ
+import me.anno.utils.types.AABBs.set
 import me.anno.utils.types.AABBs.transformUnion
 import org.joml.*
 import kotlin.math.abs
 
+// todo visualize number of steps taken
 open class SDFComponent : ProceduralMesh() {
+
+    // todo correct raycasting: each element individually (plus all parents' transforms), and then the global minimum distance
 
     /**
      * how much larger the underlying mesh needs to be to cover this sdf mesh;
@@ -44,50 +48,147 @@ open class SDFComponent : ProceduralMesh() {
         }
 
     val material by lazy { Material.create() }
-    val materialRef get() = material.ref!!
 
     @DebugProperty
     @NotSerializedProperty
     var shaderVersion = 0
 
-    var hasValidBounds = false
+    @Docs(
+        "Operations like twisting introduce artifacts, because they warp the space non-uniformly. " +
+                "If you encounter artifacts, reduce the reliability (trustworthy-ness) for the distance field. " +
+                "Halving the reliability, halves performance."
+    )
+    @Group("Tracing")
+    @Range(0.0, 1.0)
+    @HideInInspector("isSDFChild")
+    var reliability = 1f
+
+    @Group("Tracing")
+    @Docs("How many steps the raytracer shall take at maximum")
+    @Range(0.0, 1e4)
+    @HideInInspector("isSDFChild")
+    var maxSteps = 70
+
+    @Group("Tracing")
+    @Docs("How much the ray is allowed to deviate from a perfect hit")
+    @Range(0.0, 1.0)
+    @HideInInspector("isSDFChild")
+    var maxRelativeError = 0.001f
+
+    @Group("Tracing")
+    @Docs("In local units, from which distance the normals shall be sampled")
+    @Range(0.0, 1e3)
+    @HideInInspector("isSDFChild")
+    var normalEpsilon = 0.005f
+
+    val isSDFChild get() = parent is SDFComponent
+
+    @DebugProperty
+    @NotSerializedProperty
+    var hasInvalidBounds = true
+
+    @DebugAction
     fun invalidateBounds() {
-        hasValidBounds = false
+        val parent = parent
+        if (parent is SDFComponent) {
+            parent.invalidateBounds()
+        } else hasInvalidBounds = true
     }
+
+    // input: 3d position
+    // output: float distance, int material index
+
+    // local transform
+    @Group("Transform")
+    var position = Vector3f()
+        set(value) {
+            if (dynamicPosition) invalidateBounds()
+            else invalidateShader()
+            field.set(value)
+        }
+
+    @Group("Transform")
+    var rotation = Quaternionf()
+        set(value) {
+            if (dynamicRotation) invalidateBounds()
+            else invalidateShader()
+            field.set(value)
+        }
+
+    @Group("Transform")
+    var scale = 1f
+        set(value) {
+            if (field != value) {
+                if (dynamicScale) invalidateBounds()
+                else invalidateShader()
+                field = value
+            }
+        }
+
+    @Group("Transform")
+    var dynamicPosition = false
+        set(value) {
+            if (field != value) {
+                invalidateShader()
+                field = value
+            }
+        }
+
+    @Group("Transform")
+    var dynamicRotation = false
+        set(value) {
+            if (field != value) {
+                invalidateShader()
+                field = value
+            }
+        }
+
+    @Group("Transform")
+    var dynamicScale = false
+        set(value) {
+            if (field != value) {
+                invalidateShader()
+                field = value
+            }
+        }
+
+    val positionMappers = ArrayList<PositionMapper>()
+    val distanceMappers = ArrayList<DistanceMapper>()
 
     override fun onUpdate(): Int {
         super.onUpdate()
-        if (!hasValidBounds) {
-            hasValidBounds = true
+        if (hasInvalidBounds) {
+            hasInvalidBounds = false
             // recalculate bounds & recreate mesh
             updateMesh(mesh2, false)
-            entity?.invalidateAABBsCompletely()
+            entity?.invalidateOwnAABB()
         }
         return 1
     }
 
+    @DebugAction
     fun invalidateShader() {
         val parent = parent
         if (parent is SDFComponent) {
             parent.invalidateShader()
-        } else invalidateMesh()
+        } else {
+            invalidateMesh()
+            entity?.invalidateOwnAABB()
+        }
     }
 
     // allow manual sdf?
     // todo script components for sdfs?
 
-    open fun calculateBounds(dstUnion: AABBf) {
-        val base = JomlPools.aabbf.create()
-        base.clear()
-        calculateBaseBounds(base)
-        transformBounds(base, dstUnion)
-        JomlPools.aabbf.sub(1)
+    open fun calculateBounds(dst: AABBf) {
+        dst.clear()
+        calculateBaseBounds(dst)
+        transform(dst)
     }
 
-    open fun transformBounds(base: AABBf, dstUnion: AABBf) {
-        // todo check if this matches the actual operation
-        // probably we need to inverse the computation in buildTransform
+    open fun transform(src: AABBf, dst: AABBf = src) {
         val transform = JomlPools.mat4x3f.create()
+        transform.identity()
         transform.translate(position)
         transform.rotate(rotation)
         transform.scale(scale)
@@ -97,9 +198,38 @@ open class SDFComponent : ProceduralMesh() {
             val marginScale = 1f + rms
             transform.scale(marginScale)
         }
-        // todo apply position mappers like arrays, mirrors and such
-        base.transformUnion(transform, dstUnion)
+        // which one first, reversed?
+        for (index in positionMappers.indices) {
+            clampBounds(dst)
+            positionMappers[index].applyTransform(dst)
+        }
+        for (index in distanceMappers.indices) {
+            clampBounds(dst)
+            distanceMappers[index].applyTransform(dst)
+        }
+        // make bounds reasonable, so we can actually use them in computations
+        clampBounds(dst)
+        src.transformUnion(transform, dst)
         JomlPools.mat4x3f.sub(1)
+    }
+
+    @Docs("Limit for reasonable coordinates; use this against precision issues")
+    var limit = 1e3f
+        set(value) {
+            if (field != value) {
+                invalidateBounds()
+                field = value
+            }
+        }
+
+    private fun clampBounds(src: AABBf, dst: AABBf = src) {
+        val lim = limit
+        dst.minX = max(src.minX, -lim)
+        dst.minY = max(src.minY, -lim)
+        dst.minZ = max(src.minZ, -lim)
+        dst.maxX = min(src.maxX, +lim)
+        dst.maxY = min(src.maxY, +lim)
+        dst.maxZ = min(src.maxZ, +lim)
     }
 
     override fun generateMesh(mesh: Mesh) {
@@ -107,12 +237,11 @@ open class SDFComponent : ProceduralMesh() {
     }
 
     fun updateMesh(mesh: Mesh, generateShader: Boolean) {
-        shaderVersion++
         // todo compute bounds for size...
         // todo parameters for extra size, e.g. for dynamic positions & rotations & such
         val aabb = JomlPools.aabbf.create()
         aabb.clear()
-        calculateBaseBounds(aabb)
+        calculateBounds(aabb)
         // for testing only
         Shapes.createCube(
             mesh,
@@ -120,32 +249,19 @@ open class SDFComponent : ProceduralMesh() {
             aabb.avgX(), aabb.avgY(), aabb.avgZ(),
             withNormals = false, front = false, back = true,
         )
+        mesh.aabb.set(aabb)
         if (generateShader) {
+            shaderVersion++
             val (overrides, shader) = SDFComposer.createECSShader(this)
             material.shader = shader
             material.shaderOverrides.clear()
             material.shaderOverrides.putAll(overrides)
-            mesh.material = materialRef
-            mesh.inverseOutline = true
+            mesh.material = material.ref
         }
+        mesh.inverseOutline = true
+        mesh.invalidateGeometry()
         JomlPools.aabbf.sub(1)
     }
-
-    // input: 3d position
-    // output: float distance, int material index
-
-    // local transform
-    var position = Vector3f()
-        set(value) {
-            if (!dynamicPosition) invalidateShader()
-            field.set(value)
-        }
-
-    var rotation = Quaternionf()
-        set(value) {
-            if (!dynamicRotation) invalidateShader()
-            field.set(value)
-        }
 
     override fun getOptionsByType(type: Char): List<Option>? {
         return if (type == 'p') getOptionsByClass(this, PositionMapper::class)
@@ -160,12 +276,12 @@ open class SDFComponent : ProceduralMesh() {
     override fun addChildByType(index: Int, type: Char, child: PrefabSaveable) {
         when (child) {
             is PositionMapper -> {
-                positionMappers.add(index, child)
+                positionMappers.add(clamp(index, 0, positionMappers.size), child)
                 child.parent = this
                 invalidateShader()
             }
             is DistanceMapper -> {
-                distanceMappers.add(index, child)
+                distanceMappers.add(clamp(index, 0, distanceMappers.size), child)
                 child.parent = this
                 invalidateShader()
             }
@@ -187,64 +303,10 @@ open class SDFComponent : ProceduralMesh() {
         super.removeChild(child)
     }
 
-    var scale = 1f
-        set(value) {
-            if (field != value) {
-                if (!dynamicScale) invalidateShader()
-                field = value
-            }
-        }
-
-    val positionMappers = ArrayList<PositionMapper>()
-    fun add(m: PositionMapper) {
-        positionMappers.add(m)
-        val parent = m.parent
-        if (parent != null && parent !== this) parent.removeChild(m)
-        m.parent = this
-    }
-
-    val distanceMappers = ArrayList<DistanceMapper>()
-    fun add(m: DistanceMapper) {
-        distanceMappers.add(m)
-        val parent = m.parent
-        if (parent != null && parent !== this) parent.removeChild(m)
-        m.parent = this
-    }
-
-    var dynamicPosition = false
-        set(value) {
-            if (field != value) {
-                invalidateShader()
-                field = value
-            }
-        }
-
-    var dynamicRotation = false
-        set(value) {
-            if (field != value) {
-                invalidateShader()
-                field = value
-            }
-        }
-
-    var dynamicScale = false
-        set(value) {
-            if (field != value) {
-                invalidateShader()
-                field = value
-            }
-        }
-
-    // todo calculate bounds based on transform
-    // todo calculate bounds based on modifiers & such
     open fun calculateBaseBounds(dst: AABBf) {
-        // accurate for most things
-        dst.union(-1f, 0f, 0f)
-        dst.union(+1f, 0f, 0f)
-        dst.union(0f, -1f, 0f)
-        dst.union(0f, +1f, 0f)
-        dst.union(0f, 0f, -1f)
-        dst.union(0f, 0f, +1f)
+        // ok for most things
+        dst.setMin(-1f, -1f, -1f)
+        dst.setMax(1f, 1f, 1f)
     }
 
     fun buildDMShader(
@@ -415,7 +477,7 @@ open class SDFComponent : ProceduralMesh() {
             builder.append("=pos")
             builder.append(prevPosition)
             if (dynamicScale) {
-                val uniform = defineUniform(uniforms, GLSLType.V1F, { scale })
+                val uniform = defineUniform(uniforms, GLSLType.V1F) { scale }
                 builder.append("/")
                 builder.append(uniform)
                 builder.append(";\n")
@@ -463,13 +525,28 @@ open class SDFComponent : ProceduralMesh() {
         super.copy(clone)
         clone as SDFComponent
         clone.positionMappers.clear()
-        clone.positionMappers.addAll(clone.positionMappers.map { it.clone() as PositionMapper })
+        clone.positionMappers.addAll(clone.positionMappers.map {
+            val mapper = it.clone() as PositionMapper
+            mapper.parent = clone
+            mapper
+        })
+        clone.distanceMappers.clear()
+        clone.distanceMappers.addAll(clone.distanceMappers.map {
+            val mapper = it.clone() as DistanceMapper
+            mapper.parent = clone
+            mapper
+        })
         clone.position.set(position)
         clone.rotation.set(rotation)
         clone.scale = scale
         clone.dynamicPosition = dynamicPosition
         clone.dynamicRotation = dynamicRotation
         clone.dynamicScale = dynamicScale
+        clone.reliability = reliability
+        clone.normalEpsilon = normalEpsilon
+        clone.maxSteps = maxSteps
+        clone.maxRelativeError = maxRelativeError
+        clone.relativeMeshMargin = relativeMeshMargin
     }
 
     override val className: String = "SDFComponent"
@@ -526,6 +603,24 @@ open class SDFComponent : ProceduralMesh() {
             builder.append(",")
             builder.append(v.d)
             builder.append(")")
+        }
+
+        fun StringBuilder.appendUniform(uniforms: HashMap<String, TypeValue>, value: Any) {
+            append(defineUniform(uniforms, value))
+        }
+
+        fun StringBuilder.appendUniform(uniforms: HashMap<String, TypeValue>, type: GLSLType, value: Any) {
+            append(defineUniform(uniforms, type, value))
+        }
+
+        fun StringBuilder.appendUniform(uniforms: HashMap<String, TypeValue>, type: GLSLType, value: () -> Any) {
+            append(defineUniform(uniforms, type, value))
+        }
+
+        fun defineUniform(uniforms: HashMap<String, TypeValue>, type: GLSLType, value: () -> Any): String {
+            val uniformName = "u${uniforms.size}"
+            uniforms[uniformName] = TypeValueV2(type, value)
+            return uniformName
         }
 
         fun defineUniform(uniforms: HashMap<String, TypeValue>, type: GLSLType, value: Any): String {

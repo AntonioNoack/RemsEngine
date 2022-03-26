@@ -15,9 +15,11 @@ object SDFRegistry {
         registerCustomClass(SDFHeart())
         registerCustomClass(SDFHexPrism())
         registerCustomClass(SDFPlane())
+        registerCustomClass(SDFPyramid())
         registerCustomClass(SDFSphere())
         registerCustomClass(SDFStairs())
         registerCustomClass(SDFTorus())
+        registerCustomClass(SDFTriangle())
         // groups
         registerCustomClass(SDFGroup())
         // modifiers

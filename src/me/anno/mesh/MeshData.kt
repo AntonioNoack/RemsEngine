@@ -11,6 +11,8 @@ import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
+import me.anno.engine.ui.render.RenderMode
+import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.worldScale
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.GFXx3D.shader3DUniforms
@@ -42,6 +44,8 @@ open class MeshData : ICacheData {
         normalizeScale: Boolean,
         drawSkeletons: Boolean
     ) {
+
+        RenderView.currentInstance = null
 
         val baseShader = if (useECSShader) pbrModelShader else shaderAssimp
         val shader = baseShader.value

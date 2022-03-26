@@ -204,8 +204,12 @@ object Hierarchy {
 
     fun removePathFromPrefab(
         prefab: Prefab,
-        element: PrefabSaveable
-    ) = removePathFromPrefab(prefab, element.prefabPath!!, element.className)
+        saveable: PrefabSaveable
+    ) = removePathFromPrefab(
+        prefab,
+        saveable.prefabPath ?: throw RuntimeException("Saveable is missing prefab path"),
+        saveable.className
+    )
 
     fun removePathFromPrefab(
         prefab: Prefab,

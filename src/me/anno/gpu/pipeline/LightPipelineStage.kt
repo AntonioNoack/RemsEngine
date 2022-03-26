@@ -314,6 +314,7 @@ class LightPipelineStage(
                 shader.ignoreUniformWarnings(
                     "tint", "invLocalTransform", "colors",
                     "tangents", "uvs", "normals", "isDirectional",
+                    "defLayer0", "defLayer1", "defLayer2", "defLayer3", "defLayer4"
                 )
                 shader.setTextureIndices(textures)
                 shader

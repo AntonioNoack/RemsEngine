@@ -2,6 +2,7 @@ package me.anno.ecs.components.mesh.sdf.modifiers
 
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
@@ -21,8 +22,11 @@ class SDFOnion() : DistanceMapper() {
     @Range(0.0, 1e38)
     var thickness = 0.1f
         set(value) {
-            if (field != value && !dynamicThickness) invalidateShader()
-            field = value
+            if (field != value) {
+                if (dynamicThickness) invalidateBounds()
+                else invalidateShader()
+                field = value
+            }
         }
 
     var dynamicThickness = false
@@ -36,8 +40,11 @@ class SDFOnion() : DistanceMapper() {
     @Range(1.0, 2e9)
     var rings = 1
         set(value) {
-            if (field != value && !dynamicRings) invalidateShader()
-            field = value
+            if (field != value) {
+                if (dynamicRings) invalidateBounds()
+                else invalidateShader()
+                field = value
+            }
         }
 
     var dynamicRings = false
@@ -61,11 +68,11 @@ class SDFOnion() : DistanceMapper() {
         functions.add(sdRings)
         builder.append(dstName).append(".x=sdRings(")
         builder.append(dstName).append(".x,")
-        if (dynamicThickness) builder.append(defineUniform(uniforms, GLSLType.V1F, { thickness }))
+        if (dynamicThickness) builder.appendUniform(uniforms, GLSLType.V1F) { thickness }
         else builder.append(thickness)
         if (dynamicRings || rings != 1) {
             builder.append(',')
-            if (dynamicRings) builder.append(defineUniform(uniforms, GLSLType.V1F, { slices.toFloat() }))
+            if (dynamicRings) builder.appendUniform(uniforms, GLSLType.V1F) { slices.toFloat() }
             else builder.append(slices).append(".0")
         }
         builder.append(");\n")

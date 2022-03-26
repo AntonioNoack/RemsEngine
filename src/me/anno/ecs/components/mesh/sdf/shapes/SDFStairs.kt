@@ -18,7 +18,8 @@ class SDFStairs : SDF2DShape() {
 
     var stepSizeCount = Vector3f(0.2f, 0.2f, 5f)
         set(value) {
-            if (!dynamicSize) invalidateShader()
+            if (dynamicSize) invalidateBounds()
+            else invalidateShader()
             field.set(value)
         }
 
@@ -37,7 +38,7 @@ class SDFStairs : SDF2DShape() {
         builder.append("sdStairs(pos")
         builder.append(trans.posIndex)
         builder.append(".").append(axes).append(",")
-        if (dynamicSize) builder.append(defineUniform(uniforms, stepSizeCount))
+        if (dynamicSize) builder.appendUniform(uniforms, stepSizeCount)
         else writeVec(builder, stepSizeCount)
         builder.append(')')
         smartMinEnd(builder, dstName, nextVariableId, uniforms, functions, trans)

@@ -1,6 +1,5 @@
 package me.anno.engine.ui.render
 
-import me.anno.Build
 import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Component
@@ -50,8 +49,6 @@ import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.framebuffer.*
 import me.anno.gpu.pipeline.*
 import me.anno.gpu.pipeline.M4x3Delta.mul4x3delta
-import me.anno.gpu.shader.BaseShader.Companion.cullFaceColoringGeometry
-import me.anno.gpu.shader.BaseShader.Companion.lineGeometry
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Renderer.Companion.depthRenderer
@@ -301,12 +298,13 @@ class RenderView(
             RenderMode.DEFAULT,
             RenderMode.CLICK_IDS,
             RenderMode.DEPTH,
-            RenderMode.FSR_X4, RenderMode.FSR_SQRT2,
-            RenderMode.FSR_X2, RenderMode.NEAREST_X4,
+            RenderMode.FSR_X4, RenderMode.FSR_MSAA_X4,
+            RenderMode.FSR_SQRT2, RenderMode.FSR_X2, RenderMode.NEAREST_X4,
             RenderMode.GHOSTING_DEBUG,
             RenderMode.INVERSE_DEPTH,
             RenderMode.WITHOUT_POST_PROCESSING,
-            RenderMode.LINES, RenderMode.FRONT_BACK,
+            RenderMode.LINES, RenderMode.LINES_MSAA,
+            RenderMode.FRONT_BACK,
             RenderMode.SHOW_TRIANGLES,
             RenderMode.MSAA_X8 -> false
             else -> true
@@ -352,7 +350,10 @@ class RenderView(
                 useDeferredRendering = true
                 DeferredRenderer
             }
-            RenderMode.FORCE_NON_DEFERRED, RenderMode.MSAA_X8, RenderMode.LINES -> {
+            RenderMode.FORCE_NON_DEFERRED,
+            RenderMode.MSAA_X8,
+            RenderMode.FSR_MSAA_X4,
+            RenderMode.LINES, RenderMode.LINES_MSAA -> {
                 useDeferredRendering = false
                 pbrRenderer
             }
@@ -374,8 +375,10 @@ class RenderView(
         }
 
         val buffer = when {
+            renderMode == RenderMode.MSAA_X8 ||
+                    renderMode == RenderMode.LINES_MSAA ||
+                    renderMode == RenderMode.FSR_MSAA_X4 -> FBStack["", w, h, 4, false, 8, true]
             renderer == DeferredRenderer -> baseNBuffer
-            renderMode == RenderMode.MSAA_X8 -> FBStack["", w, h, 4, false, 8, true]
             else -> base1Buffer
         }
 
@@ -457,7 +460,9 @@ class RenderView(
                 w = (w + 1) / 2
                 h = (h + 1) / 2
             }
-            RenderMode.FSR_X4, RenderMode.NEAREST_X4 -> {
+            RenderMode.FSR_X4,
+            RenderMode.FSR_MSAA_X4,
+            RenderMode.NEAREST_X4 -> {
                 w = (w + 2) / 4
                 h = (h + 2) / 4
             }
@@ -492,9 +497,9 @@ class RenderView(
 
             when (renderMode) {
                 RenderMode.DEPTH -> {
-                    val buffer = FBStack["depth", w, h, 1, false, 1, true]
-                    drawScene(w, h, camera, camera, 1f, renderer, buffer, true, !useDeferredRendering)
-                    drawDepthTexture(x, y + h, w, -h, buffer.depthTexture!!)
+                    val depth = FBStack["depth", w, h, 1, false, 1, true]
+                    drawScene(w, h, camera, camera, 1f, renderer, depth, true, !useDeferredRendering)
+                    drawDepthTexture(x, y + h, w, -h, depth.depthTexture!!)
                     return
                 }
                 RenderMode.LIGHT_SUM -> {
@@ -765,7 +770,8 @@ class RenderView(
         }
 
         val useFSR = when (renderMode) {
-            RenderMode.FSR_X2, RenderMode.FSR_SQRT2, RenderMode.FSR_X4 -> true
+            RenderMode.FSR_X2, RenderMode.FSR_SQRT2,
+            RenderMode.FSR_X4, RenderMode.FSR_MSAA_X4 -> true
             else -> false
         }
 
@@ -1072,18 +1078,19 @@ class RenderView(
                 }
             }
 
-            val canRenderDebug = Build.isDebug
-            val renderNormals = canRenderDebug && renderMode == RenderMode.FRONT_BACK
-            val renderLines = canRenderDebug && renderMode == RenderMode.LINES
+            // val canRenderDebug = Build.isDebug
+            // val renderNormals = canRenderDebug && renderMode == RenderMode.FRONT_BACK
+            // val renderLines = canRenderDebug && renderMode == RenderMode.LINES
 
             GFX.check()
 
-            if (renderNormals || renderLines) {
+            /*if (renderNormals || renderLines) {
                 val shader = if (renderLines) lineGeometry else cullFaceColoringGeometry
                 OpenGL.geometryShader.use(shader) {
                     pipeline.draw(cameraMatrix, camPosition, worldScale)
                 }
-            } else pipeline.draw(cameraMatrix, camPosition, worldScale)
+            } else */
+            pipeline.draw(cameraMatrix, camPosition, worldScale)
 
             GFX.check()
 

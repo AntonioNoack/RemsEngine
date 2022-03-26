@@ -22,8 +22,11 @@ class SDFBoundingBox : SDFBox() {
 
     var thickness = 0.1f
         set(value) {
-            if (field != value && !dynamicThickness) invalidateShader()
-            field = value
+            if (field != value) {
+                if (dynamicThickness) invalidateBounds()
+                else invalidateShader()
+                field = value
+            }
         }
 
     override fun buildShader(
@@ -40,14 +43,14 @@ class SDFBoundingBox : SDFBox() {
         builder.append("sdBoundingBox(pos")
         builder.append(trans.posIndex)
         builder.append(',')
-        if (dynamicSize) builder.append(defineUniform(uniforms, halfExtends))
+        if (dynamicSize) builder.appendUniform(uniforms, halfExtends)
         else writeVec(builder, halfExtends)
         builder.append(',')
-        if (dynamicThickness) builder.append(defineUniform(uniforms, GLSLType.V1F, { thickness }))
+        if (dynamicThickness) builder.appendUniform(uniforms, GLSLType.V1F) { thickness }
         else builder.append(thickness)
         if (dynamicSmoothness || smoothness > 0f) {
             builder.append(',')
-            if (dynamicSmoothness) builder.append(defineUniform(uniforms, GLSLType.V1F, { smoothness }))
+            if (dynamicSmoothness) builder.appendUniform(uniforms, GLSLType.V1F) { smoothness }
             else builder.append(smoothness)
         }
         builder.append(')')

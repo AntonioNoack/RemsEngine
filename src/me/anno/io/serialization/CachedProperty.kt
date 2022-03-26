@@ -3,6 +3,7 @@ package me.anno.io.serialization
 import me.anno.ecs.annotations.*
 import me.anno.ui.input.EnumInput
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
+import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
@@ -21,7 +22,7 @@ class CachedProperty(
 ) {
 
     val range = annotations.firstInstanceOrNull<Range>()
-    val hideInInspector = annotations.any { it is HideInInspector }
+    val hideInInspector = annotations.mapNotNull { if (it is HideInInspector) hide(it, name, clazz) else null }
     val description = annotations.filterIsInstance<Docs>().joinToString("\n") { it.description }
     val order = annotations.firstInstanceOrNull<Order>()?.index ?: 0
     val group = annotations.firstInstanceOrNull<Group>()?.name
@@ -88,6 +89,18 @@ class CachedProperty(
 
     companion object {
         private val LOGGER = LogManager.getLogger(CachedProperty::class)
+        private fun hide(it: HideInInspector, name: String, clazz: KClass<*>): (Any) -> Boolean {
+            if (it.hideIfVariableIsTrue.isBlank2()) return { _ -> true }
+            else {
+                val getter1 = clazz.memberProperties
+                    .firstOrNull { p -> p.name == it.hideIfVariableIsTrue } as? KProperty1<Any, Boolean>
+                if (getter1 != null) return { instance -> getter1.invoke(instance) }
+                else {
+                    LOGGER.warn("Property ${it.hideIfVariableIsTrue} was not found to hide variable $name of $clazz")
+                    return { _: Any -> true }
+                }
+            }
+        }
     }
 
 }

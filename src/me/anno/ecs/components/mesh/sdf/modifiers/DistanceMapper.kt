@@ -5,6 +5,7 @@ import me.anno.ecs.components.mesh.sdf.SDFComponent
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import org.apache.logging.log4j.LogManager
+import org.joml.AABBf
 import org.joml.Vector4f
 
 /**
@@ -18,6 +19,15 @@ abstract class DistanceMapper : PrefabSaveable() {
             else -> LOGGER.warn("Incorrect parent: ${parent?.className}")
         }
     }
+
+    fun invalidateBounds() {
+        when (val parent = parent) {
+            is SDFComponent -> parent.invalidateBounds()
+            else -> LOGGER.warn("Incorrect parent: ${parent?.className}")
+        }
+    }
+
+    open fun applyTransform(bounds: AABBf) {}
 
     abstract fun buildShader(
         builder: StringBuilder,

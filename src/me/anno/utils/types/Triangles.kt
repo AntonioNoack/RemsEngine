@@ -89,7 +89,9 @@ object Triangles {
         dstPosition: Vector3d,
         dstNormal: Vector3d,
     ): Double {
+        // compute triangle normal
         val n = subCross(a, b, c, dstNormal) // to keep the magnitude of the calculations under control
+        // compute distance
         val d = n.dot(a)
         val cx = (a.x() + b.x() + c.x()) * thirdD
         val cy = (a.y() + b.y() + c.y()) * thirdD

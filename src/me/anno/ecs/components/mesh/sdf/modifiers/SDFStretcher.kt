@@ -31,7 +31,8 @@ class SDFStretcher() : PositionMapper() {
 
     var halfExtends = Vector3f()
         set(value) {
-            if(!dynamicExtends) invalidateShader()
+            if(dynamicExtends) invalidateBounds()
+            else invalidateShader()
             field.set(value)
             field.x = max(field.x, 0f)
             field.y = max(field.y, 0f)
@@ -117,6 +118,7 @@ class SDFStretcher() : PositionMapper() {
         clone as SDFStretcher
         clone.dynamicExtends = dynamicExtends
         clone.halfExtends.set(halfExtends)
+        clone.accurateInsides = accurateInsides
     }
 
     override val className: String = "SDFStretcher"

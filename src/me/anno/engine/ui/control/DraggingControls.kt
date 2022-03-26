@@ -2,6 +2,7 @@ package me.anno.engine.ui.control
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
@@ -327,6 +328,17 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         super.onPaste(x, y, data, type)
         LOGGER.info("pasted $data/$type")
+    }
+
+    override fun onDeleteKey(x: Float, y: Float) {
+        for (child in EditorState.fineSelection) {
+            if (child is PrefabSaveable) {
+                val parent = child.parent
+                if (parent != null) {
+                    Hierarchy.removePathFromPrefab(parent.root.prefab!!, child)
+                }
+            }
+        }
     }
 
     override val className: String = "SceneView"

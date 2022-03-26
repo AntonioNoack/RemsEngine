@@ -31,16 +31,15 @@ import me.anno.utils.types.AABBs.avgZ
 import me.anno.utils.types.Matrices.distanceSquared
 import org.joml.*
 
-// todo idea: the scene rarely changes -> we can reuse it, and just update the uniforms
-// and the graph may be deep, however meshes may be only in parts of the tree
+/**
+ * collects meshes for sorting (transparency, overdraw), and for instanced rendering
+ * */
 class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
 
     // todo pipelines, that we need:
     //  - 3d world,
     //  - 2d ui,
     //  - ...
-    // todo every local player needs its own pipeline to avoid too much sorting
-
     // todo we can sort by material and shaders...
     // todo or by distance...
 
@@ -268,7 +267,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
                         val mesh = component.getMesh()
                         if (mesh != null) {
                             component.clickId = clickId
-                            if (component.isInstanced) {
+                            if (component.isInstanced && mesh.proceduralLength <= 0) {
                                 addMeshInstanced(mesh, component, entity, clickId)
                             } else {
                                 addMesh(mesh, component, entity, clickId)
@@ -280,9 +279,18 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
                         component.clickId = clickId
                         component.forEachMesh { mesh, material, transform ->
                             mesh.ensureBuffer()
-                            val material2 = material ?: defaultMaterial
-                            val stage = material2.pipelineStage ?: defaultStage
-                            stage.addInstanced(mesh, transform, material2, clickId)
+                            if (mesh.proceduralLength <= 0) {
+                                val material2 = material ?: defaultMaterial
+                                val stage = material2.pipelineStage ?: defaultStage
+                                stage.addInstanced(mesh, transform, material2, clickId)
+                            } else {
+                                if (mesh.numMaterials > 1) {
+                                    LOGGER.warn("Procedural meshes in MeshSpawner cannot support multiple materials")
+                                }
+                                val material2 = material ?: defaultMaterial
+                                val stage = material2.pipelineStage ?: defaultStage
+                                stage.add(component, mesh, entity, 0, clickId)
+                            }
                         }
                         clickId++
                     }

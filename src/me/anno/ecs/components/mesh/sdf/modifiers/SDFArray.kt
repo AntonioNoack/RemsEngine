@@ -22,7 +22,7 @@ class SDFArray : PositionMapper() {
         set(value) {
             if ((!dynamicX && value.x > 0) || (!dynamicY && value.y > 0) || (!dynamicZ && value.z > 0)) {
                 invalidateShader()
-            }
+            } else invalidateBounds()
             field.set(value)
         }
 
@@ -34,7 +34,7 @@ class SDFArray : PositionMapper() {
         set(value) {
             if ((!dynamicX && value.x > 0) || (!dynamicY && value.y > 0) || (!dynamicZ && value.z > 0)) {
                 invalidateShader()
-            }
+            } else invalidateBounds()
             field.set(value)
         }
 

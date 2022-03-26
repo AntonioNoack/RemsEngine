@@ -30,7 +30,7 @@ class RayHit {
     // var uv: Vector2f? = null
 
     val positionWS = Vector3d()
-    val normalWS: Vector3d = Vector3d()
+    val normalWS = Vector3d()
 
     fun setFromLocal(
         globalTransform: Matrix4x3d,

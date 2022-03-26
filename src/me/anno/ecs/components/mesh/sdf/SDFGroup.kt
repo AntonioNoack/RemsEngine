@@ -7,13 +7,23 @@ import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.ui.editor.stacked.Option
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.AABBs.all
+import me.anno.utils.types.AABBs.clear
+import me.anno.utils.types.AABBs.intersect
 import org.joml.AABBf
 import org.joml.Vector4f
 import kotlin.math.abs
 
 class SDFGroup : SDFComponent() {
 
-    // todo sphere/box/half-space bounds
+    enum class CombinationMode(val id: Int, val funcName: String, val glslCode: String) {
+        UNION(0, "sdMin", sdMin), // A or B
+        INTERSECTION(1, "sdMax", sdMax), // A and B
+        DIFFERENCE1(2, "sdDiff1", sdDiff1), // A \ B
+        DIFFERENCE2(3, "sdDiff2", sdDiff2), // B \ A
+        DIFFERENCE_SYM(4, "sdDiff3", sdDiff), // A xor B
+        INTERPOLATION(5, "sdInt", sdInt),
+    }
 
     override val children = ArrayList<SDFComponent>()
 
@@ -54,8 +64,14 @@ class SDFGroup : SDFComponent() {
             field = value
         }
 
-    // currently this is always dynamic -> no check needed
+    // currently this is always dynamic -> no shader check needed
     var progress = 0.5f
+        set(value) {
+            if (field != value) {
+                invalidateBounds()
+                field = value
+            }
+        }
 
     var type = CombinationMode.INTERPOLATION
         set(value) {
@@ -65,25 +81,36 @@ class SDFGroup : SDFComponent() {
             }
         }
 
-    enum class CombinationMode(val id: Int, val funcName: String, val glslCode: String) {
-        UNION(0, "sdMin", sdMin), // A or B
-        INTERSECTION(1, "sdMax", sdMax), // A and B
-        DIFFERENCE1(2, "sdDiff1", sdDiff1), // A \ B
-        DIFFERENCE2(3, "sdDiff2", sdDiff2), // B \ A
-        DIFFERENCE_SYM(4, "sdDiff3", sdDiff), // A xor B
-        INTERPOLATION(5, "sdInt", sdInt),
-    }
-
     override fun calculateBaseBounds(dst: AABBf) {
-        val base = JomlPools.aabbf.create()
-        // todo depends on mode... & dynamic/not
+        val tmp = JomlPools.aabbf.create()
         // for now, just use the worst case
-        for (childIndex in children.indices) {
-            val child = children[childIndex]
-            child.calculateBounds(base)
+        when (type) {
+            CombinationMode.UNION,
+                // todo for interpolation only use meshes with weight > 0f
+            CombinationMode.INTERPOLATION,
+                // todo correct union for these other types
+            CombinationMode.DIFFERENCE1, CombinationMode.DIFFERENCE2,
+            CombinationMode.DIFFERENCE_SYM -> {
+                dst.clear()
+                for (childIndex in children.indices) {
+                    tmp.clear()
+                    val child = children[childIndex]
+                    child.calculateBounds(tmp)
+                    dst.union(tmp)
+                }
+            }
+            CombinationMode.INTERSECTION -> {
+                dst.all()
+                for (childIndex in children.indices) {
+                    tmp.clear()
+                    val child = children[childIndex]
+                    child.calculateBounds(tmp)
+                    dst.intersect(tmp)
+                }
+            }
         }
         // transform bounds & union
-        transformBounds(base, dst)
+        transform(dst)
         JomlPools.aabbf.sub(1)
     }
 
@@ -233,6 +260,12 @@ class SDFGroup : SDFComponent() {
         clone.progress = progress
         clone.type = type
         clone.dynamicSmoothness = dynamicSmoothness
+        clone.children.clear()
+        clone.children.addAll(children.map {
+            val child = it.clone()
+            child.parent = clone
+            child
+        })
     }
 
     override val className = "SDFGroup"
@@ -240,6 +273,7 @@ class SDFGroup : SDFComponent() {
     companion object {
 
         fun sMinCubic(a: Float, b: Float, k: Float): Float {
+            if (k <= 0f) return min(a, b)
             val h = max(k - abs(a - b), 0f) / k
             val m = h * h * h * 0.5f
             val s = m * k / 3f
@@ -273,24 +307,26 @@ class SDFGroup : SDFComponent() {
                 // inputs: sd.a, sd.b, k
                 // outputs: sd.mix
                 "float sMinCubic1(float a, float b, float k){\n" +
-                "    float h = max(k-abs(a-b), 0.0)/k;\n" +
-                "    float m = h*h*h*0.5;\n" +
-                "    float s = m*k*(1.0/3.0); \n" +
-                "    return min(a,b)-s;\n" +
+                "   if(k <= 0.0) return min(a,b);\n" +
+                "   float h = max(k-abs(a-b), 0.0)/k;\n" +
+                "   float m = h*h*h*0.5;\n" +
+                "   float s = m*k*(1.0/3.0); \n" +
+                "   return min(a,b)-s;\n" +
                 "}\n" +
                 "float sMaxCubic1(float a, float b, float k){\n" +
-                "    float h = max(k-abs(a-b), 0.0)/k;\n" +
-                "    float m = h*h*h*0.5;\n" +
-                "    float s = m*k*(1.0/3.0); \n" +
-                "    return max(a,b)+s;\n" +
+                "   if(k <= 0.0) return max(a,b);\n" +
+                "   float h = max(k-abs(a-b), 0.0)/k;\n" +
+                "   float m = h*h*h*0.5;\n" +
+                "   float s = m*k*(1.0/3.0); \n" +
+                "   return max(a,b)+s;\n" +
                 "}\n" +
                 // inputs: sd/m1, sd/m2, k
                 // outputs: sd/m-mix
                 "vec2 sMinCubic2(vec2 a, vec2 b, float k){\n" +
-                "    float h = max(k-abs(a.x-b.x), 0.0)/k;\n" +
-                "    float m = h*h*h*0.5;\n" +
-                "    float s = m*k*(1.0/3.0); \n" +
-                "    return (a.x<b.x) ? vec2(a.x-s,a.y) : vec2(b.x-s,b.y);\n" +
+                "   float h = max(k-abs(a.x-b.x), 0.0)/k;\n" +
+                "   float m = h*h*h*0.5;\n" +
+                "   float s = m*k*(1.0/3.0); \n" +
+                "   return (a.x<b.x) ? vec2(a.x-s,a.y) : vec2(b.x-s,b.y);\n" +
                 "}\n" +
                 "vec2 sMaxCubic2(vec2 a, vec2 b, float k){\n" +
                 "    float h = max(k-abs(a.x-b.x), 0.0)/k;\n" +

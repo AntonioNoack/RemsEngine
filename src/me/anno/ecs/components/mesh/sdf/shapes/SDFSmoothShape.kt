@@ -1,5 +1,6 @@
 package me.anno.ecs.components.mesh.sdf.shapes
 
+import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
 
 abstract class SDFSmoothShape : SDFShape() {
@@ -12,10 +13,14 @@ abstract class SDFSmoothShape : SDFShape() {
             }
         }
 
+    @Range(0.0, 1e38)
     var smoothness = 0f
         set(value) {
-            if (field != value && !dynamicSmoothness) invalidateShader()
-            field = value
+            if (field != value) {
+                if (!dynamicSmoothness) invalidateShader()
+                // bounds are not influenced by smoothness (in 99% of cases)
+                field = value
+            }
         }
 
     override fun copy(clone: PrefabSaveable) {

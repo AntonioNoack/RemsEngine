@@ -41,6 +41,10 @@ class Mesh : PrefabSaveable() {
     @NotSerializedProperty
     private var needsMeshUpdate = true
 
+    /**
+     * call this function, when you have changed the geometry;
+     * on the next frame, the new mesh data will be uploaded to the GPU
+     * */
     fun invalidateGeometry() {
         needsMeshUpdate = true
     }
@@ -108,6 +112,8 @@ class Mesh : PrefabSaveable() {
     // todo find lines, and display them
     // triangle (a,b,c), where (a==b||b==c||c==a) && (a!=b||b!=c||c!=a)
     @HideInInspector
+    var debugLineIndices: IntArray? = null
+
     var lineIndices: IntArray? = null
 
     // todo sort them by material/shader, and create multiple buffers (or sub-buffers) for them
@@ -290,6 +296,12 @@ class Mesh : PrefabSaveable() {
 
     @NotSerializedProperty
     private var lineBuffer: IndexBuffer? = null
+
+    @NotSerializedProperty
+    private var debugLineBuffer: IndexBuffer? = null
+
+    @NotSerializedProperty
+    private var invalidDebugLines = true
 
     fun forEachPoint(onlyFaces: Boolean, callback: (x: Float, y: Float, z: Float) -> Unit) {
         val positions = positions ?: return
@@ -627,10 +639,23 @@ class Mesh : PrefabSaveable() {
 
         // LOGGER.info("Flags($name): size: ${buffer.vertexCount}, colors? $hasColors, uvs? $hasUVs, bones? $hasBones")
 
+        // find regular lines
         lineIndices = lineIndices ?: FindLines.findLines(indices, positions)
         lineBuffer = replaceBuffer(buffer, lineIndices, lineBuffer)
         lineBuffer?.drawMode = GL_LINES
 
+        invalidDebugLines = true
+
+    }
+
+    fun ensureDebugLines() {
+        val buffer = buffer
+        if (invalidDebugLines && buffer != null) {
+            invalidDebugLines = false
+            debugLineIndices = FindLines.getAllLines(indices, positions, debugLineIndices)
+            debugLineBuffer = replaceBuffer(buffer, debugLineIndices, debugLineBuffer)
+            debugLineBuffer?.drawMode = GL_LINES
+        }
     }
 
     private fun createHelperMeshes(materialIndices: IntArray) {
@@ -698,9 +723,10 @@ class Mesh : PrefabSaveable() {
         buffer?.destroy()
         triBuffer?.destroy()
         lineBuffer?.destroy()
+        debugLineBuffer?.destroy()
         buffer = null
         triBuffer = null
-        lineBuffer = null
+        debugLineBuffer = null
     }
 
     /**
@@ -716,9 +742,8 @@ class Mesh : PrefabSaveable() {
     fun hasBuffer() = !needsMeshUpdate
 
     fun draw(shader: Shader, materialIndex: Int) {
-        if (proceduralLength > 0) {
-            StaticBuffer.drawArraysNull(shader, drawMode, proceduralLength)
-        } else {
+        val proceduralLength = proceduralLength
+        if (proceduralLength <= 0) {
             ensureBuffer()
             // respect the material index: only draw what belongs to the material
             val helperMeshes = helperMeshes
@@ -729,35 +754,34 @@ class Mesh : PrefabSaveable() {
                         ?.draw(shader, 0)
                 }
                 materialIndex == 0 -> {
-                    if (drawLines) {
-                        lineBuffer?.draw(shader)
+                    if (drawDebugLines) {
+                        ensureDebugLines()
+                        debugLineBuffer?.draw(shader)
                     } else {
                         (triBuffer ?: buffer)?.draw(shader)
+                        lineBuffer?.draw(shader)
                     }
                 }
             }
-        }
+        } else StaticBuffer.drawArraysNull(shader, drawMode, proceduralLength)
     }
 
     fun drawDepth(shader: Shader) {
         // all materials are assumed to behave the same
         // when we have vertex shaders by material, this will become wrong...
-        if (proceduralLength > 0) {
-            StaticBuffer.drawArraysNull(shader, drawMode, proceduralLength)
-        } else {
+        val proceduralLength = proceduralLength
+        if (proceduralLength <= 0) {
             ensureBuffer()
-            if (drawLines) {
-                lineBuffer?.draw(shader)
+            if (drawDebugLines) {
+                debugLineBuffer?.draw(shader)
             } else {
                 (triBuffer ?: buffer)?.draw(shader)
             }
-        }
+        } else StaticBuffer.drawArraysNull(shader, drawMode, proceduralLength)
     }
 
     fun drawInstanced(shader: Shader, materialIndex: Int, instanceData: Buffer) {
-        if (proceduralLength > 0) {
-            LOGGER.warn("Instanced rendering not yet implemented")
-        } else {
+        if (proceduralLength <= 0) {
             GFX.check()
             ensureBuffer()
             // respect the material index: only draw what belongs to the material
@@ -767,30 +791,30 @@ class Mesh : PrefabSaveable() {
                     .getOrNull(materialIndex)
                     ?.drawInstanced(shader, 0, instanceData)
             } else if (materialIndex == 0) {
-                if (drawLines) {
-                    lineBuffer?.drawInstanced(shader, instanceData)
+                if (drawDebugLines) {
+                    ensureDebugLines()
+                    debugLineBuffer?.drawInstanced(shader, instanceData)
                 } else {
                     (triBuffer ?: buffer)?.drawInstanced(shader, instanceData)
+                    lineBuffer?.drawInstanced(shader, instanceData)
                 }
             }
             GFX.check()
-        }
+        } else LOGGER.warn("Instanced rendering of procedural meshes is not supported!")
     }
 
     fun drawInstancedDepth(shader: Shader, instanceData: Buffer) {
         if (proceduralLength > 0) {
-            LOGGER.warn("Instanced rendering not yet implemented")
-        } else {
             // draw all materials
             GFX.check()
             ensureBuffer()
-            if (drawLines) {
-                lineBuffer?.drawInstanced(shader, instanceData)
+            if (drawDebugLines) {
+                debugLineBuffer?.drawInstanced(shader, instanceData)
             } else {
                 (triBuffer ?: buffer)?.drawInstanced(shader, instanceData)
             }
             GFX.check()
-        }
+        } else LOGGER.warn("Instanced rendering of procedural meshes is not supported!")
     }
 
     /**
@@ -811,7 +835,7 @@ class Mesh : PrefabSaveable() {
 
     companion object {
 
-        val drawLines get() = RenderView.currentInstance?.renderMode == RenderMode.LINES
+        val drawDebugLines get() = RenderView.currentInstance?.renderMode.run { this == RenderMode.LINES || this == RenderMode.LINES_MSAA }
 
         val defaultMaterial = Material()
         private val defaultMaterials = emptyList<FileReference>()

@@ -41,6 +41,30 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
 
     @NotSerializedProperty
     var prefabPath: Path? = null
+        get() {
+            if (field != null) return field
+            val parent = parent
+            if (parent != null) {
+                val pp = parent.prefabPath
+                if (pp != null) {
+                    // find which type we are
+                    for (childType in parent.listChildTypes()) {
+                        val children = parent.getChildListByType(childType)
+                        val index = children.indexOf(this)
+                        if (index >= 0) {
+                            // find nameId
+                            val nameId = Path.generateRandomId()
+                            val newPath = Path(pp, nameId, index, childType)
+                            LOGGER.warn("Was missing prefab path, so generated new path $newPath")
+                            field = newPath
+                            return newPath
+                        }
+                    }
+                    // if we are here, parent must be misconfigured
+                }
+            }
+            return null
+        }
 
     @NotSerializedProperty
     override var parent: PrefabSaveable? = null

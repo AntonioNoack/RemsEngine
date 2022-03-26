@@ -1,10 +1,11 @@
 package me.anno.ecs.components.mesh.sdf.modifiers
 
 import me.anno.ecs.components.mesh.TypeValue
-import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
+import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
+import org.joml.AABBf
 import org.joml.Vector4f
 
 /**
@@ -14,8 +15,11 @@ class SDFRoundness : DistanceMapper() {
 
     var roundness = 0.1f
         set(value) {
-            if (field != value && !dynamic) invalidateShader()
-            field = value
+            if (field != value && !dynamic) {
+                if (dynamic) invalidateBounds()
+                else invalidateShader()
+                field = value
+            }
         }
 
     var dynamic = false
@@ -26,6 +30,19 @@ class SDFRoundness : DistanceMapper() {
             }
         }
 
+    override fun applyTransform(bounds: AABBf) {
+        // expand by roundness
+        val r = roundness
+        if (r > 0f) {
+            bounds.minX -= r
+            bounds.minY -= r
+            bounds.minZ -= r
+            bounds.maxX += r
+            bounds.maxY += r
+            bounds.maxZ += r
+        }
+    }
+
     override fun buildShader(
         builder: StringBuilder,
         posIndex: Int,
@@ -35,7 +52,7 @@ class SDFRoundness : DistanceMapper() {
         functions: HashSet<String>
     ) {
         builder.append(dstName).append(".x-=")
-        if (dynamic) builder.append(defineUniform(uniforms, GLSLType.V1F, { roundness }))
+        if (dynamic) builder.appendUniform(uniforms, GLSLType.V1F) { roundness }
         else builder.append(roundness)
         builder.append(";\n")
     }

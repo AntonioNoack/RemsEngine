@@ -6,6 +6,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
+import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -23,16 +24,30 @@ open class SDFHexPrism : SDFSmoothShape() {
     var radius
         get() = params.x
         set(value) {
-            if (params.x != value && !dynamicSize) invalidateShader()
-            params.x = value
+            if (params.x != value) {
+                if (dynamicSize) invalidateBounds()
+                else invalidateShader()
+                params.x = value
+            }
         }
 
-    var prismHeight
+    var halfHeight
         get() = params.y
         set(value) {
-            if (params.y != value && !dynamicSize) invalidateShader()
-            params.y = value
+            if (params.y != value) {
+                if (dynamicSize) invalidateBounds()
+                else invalidateShader()
+                params.y = value
+            }
         }
+
+    override fun calculateBaseBounds(dst: AABBf) {
+        val h = halfHeight
+        val rz = radius
+        val rx = rz * 1.12f // todo why is it slightly larger???
+        dst.setMin(-rx, -h, -rz)
+        dst.setMax(+rx, +h, +rz)
+    }
 
     override fun buildShader(
         builder: StringBuilder,
@@ -48,11 +63,11 @@ open class SDFHexPrism : SDFSmoothShape() {
         builder.append("sdHexPrism(pos")
         builder.append(trans.posIndex)
         builder.append(',')
-        if (dynamicSize) builder.append(defineUniform(uniforms, params))
+        if (dynamicSize) builder.appendUniform(uniforms, params)
         else writeVec(builder, params)
         if (dynamicSmoothness || smoothness > 0f) {
             builder.append(',')
-            if (dynamicSmoothness) builder.append(defineUniform(uniforms, GLSLType.V1F, { smoothness }))
+            if (dynamicSmoothness) builder.appendUniform(uniforms, GLSLType.V1F) { smoothness }
             else builder.append(smoothness)
         }
         builder.append(')')
@@ -69,8 +84,8 @@ open class SDFHexPrism : SDFSmoothShape() {
         val kx = magic.x
         val ky = magic.y
         var px = abs(pos.x)
-        var py = abs(pos.z)
-        val pz = abs(pos.y)
+        var py = abs(pos.y)
+        val pz = abs(pos.z)
         val fx = 2f * min(kx * px + ky * py, 0f)
         px -= fx * kx
         py -= fx * ky
@@ -101,13 +116,13 @@ open class SDFHexPrism : SDFSmoothShape() {
                 "float sdHexPrism(vec3 p, vec2 h){\n" +
                 "   const vec3 k = vec3(-0.8660254, 0.5, 0.57735);\n" +
                 "   p = abs(p);\n" +
-                "   p.xy -= 2.0*min(dot(k.xy, p.xy), 0.0)*k.xy;\n" +
-                "   vec2 d = vec2(length(p.xy - vec2(clamp(p.x, -k.z*h.x, k.z*h.x), h.x))*sign(p.y - h.x), p.z-h.y);\n" +
+                "   p.xz -= 2.0*min(dot(k.xy, p.xz), 0.0)*k.xy;\n" +
+                "   vec2 d = vec2(length(p.xz - vec2(clamp(p.x, -k.z*h.x, k.z*h.x), h.x))*sign(p.z - h.x), p.y-h.y);\n" +
                 "   return min(max(d.x,d.y),0.0) + length(max(d,0.0));" +
                 "}\n" +
                 "float sdHexPrism(vec3 p, vec2 h, float k){\n" +
                 "   k *= min(h.x,h.y);\n" +
-                "   return sdHexPrism(p.xzy,h-k)-k;\n" +
+                "   return sdHexPrism(p,h-k)-k;\n" +
                 "}\n"
     }
 

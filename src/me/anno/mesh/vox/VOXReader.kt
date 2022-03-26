@@ -233,7 +233,7 @@ class VOXReader {
             nTRN -> {
                 // transform
                 // _t = space separated coordinates
-                // _r = some rotation in degrees
+                // _r = rotation enum (an integer)
 
                 val nodeId = bytes.int
                 val node = getNode(nodeId)

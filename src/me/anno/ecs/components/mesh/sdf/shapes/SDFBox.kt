@@ -7,6 +7,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
+import org.joml.AABBf
 import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.abs
@@ -15,9 +16,16 @@ open class SDFBox : SDFSmoothShape() {
 
     var halfExtends = Vector3f(1f)
         set(value) {
-            if(!dynamicSize) invalidateShader()
+            if (dynamicSize) invalidateBounds()
+            else invalidateShader()
             field.set(value)
         }
+
+    override fun calculateBaseBounds(dst: AABBf) {
+        val h = halfExtends
+        dst.setMin(-h.x, -h.y, -h.z)
+        dst.setMax(+h.x, +h.y, +h.z)
+    }
 
     override fun buildShader(
         builder: StringBuilder,
@@ -33,11 +41,11 @@ open class SDFBox : SDFSmoothShape() {
         builder.append("sdBox(pos")
         builder.append(trans.posIndex)
         builder.append(',')
-        if (dynamicSize) builder.append(defineUniform(uniforms, halfExtends))
+        if (dynamicSize) builder.appendUniform(uniforms, halfExtends)
         else writeVec(builder, halfExtends)
         if (dynamicSmoothness || smoothness > 0f) {
             builder.append(',')
-            builder.append(defineUniform(uniforms, GLSLType.V1F, { smoothness }))
+            builder.appendUniform(uniforms, GLSLType.V1F) { smoothness }
         }
         builder.append(')')
         smartMinEnd(builder, dstName, nextVariableId, uniforms, functions, trans)

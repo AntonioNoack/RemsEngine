@@ -34,19 +34,24 @@ class SDFHexGrid : PositionMapper() {
 
     var cellSize = 1f
         set(value) {
-            if (field != value && !dynamicSize) invalidateShader()
-            field = value
+            if (field != value) {
+                if (dynamicSize) invalidateBounds()
+                else invalidateShader()
+                field = value
+            }
         }
 
     var lim1 = Vector3f(2.2f)
         set(value) {
-            if (!dynamicLimits) invalidateShader()
+            if (dynamicLimits) invalidateBounds()
+            else invalidateShader()
             field.set(value)
         }
 
     var lim2 = Vector3f(2.2f)
         set(value) {
-            if (!dynamicLimits) invalidateShader()
+            if (dynamicLimits) invalidateBounds()
+            else invalidateShader()
             field.set(value)
         }
 
@@ -189,6 +194,10 @@ class SDFHexGrid : PositionMapper() {
         super.copy(clone)
         clone as SDFHexGrid
         clone.cellSize = cellSize
+        clone.lim1.set(lim1)
+        clone.lim2.set(lim2)
+        clone.dynamicLimits = dynamicLimits
+        clone.dynamicSize = dynamicSize
     }
 
     override val className = "SDFHexGrid"

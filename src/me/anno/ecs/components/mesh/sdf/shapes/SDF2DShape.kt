@@ -1,6 +1,8 @@
 package me.anno.ecs.components.mesh.sdf.shapes
 
+import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.components.mesh.sdf.modifiers.SDFHalfSpace
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.max
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBf
@@ -49,11 +51,20 @@ open class SDF2DShape : SDFShape() {
         }
     }
 
+    @DebugAction
+    fun bound11() {
+        when {
+            'x' !in axes -> bound(-1f, +1f, 0)
+            'y' !in axes -> bound(-1f, +1f, 1)
+            else -> bound(-1f, +1f, 2)
+        }
+    }
+
     fun bound(min: Vector3f, max: Vector3f) {
         val dir1 = JomlPools.vec3f.create().set(min).sub(max)
-        add(SDFHalfSpace(min, dir1))
+        addChild(SDFHalfSpace(min, dir1))
         dir1.mul(-1f)
-        add(SDFHalfSpace(max, dir1))
+        addChild(SDFHalfSpace(max, dir1))
         JomlPools.vec3f.sub(1)
     }
 
@@ -107,6 +118,13 @@ open class SDF2DShape : SDFShape() {
                 }
             }
         }
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as SDF2DShape
+        clone.axes = axes
+        clone.rotary = rotary
     }
 
 }

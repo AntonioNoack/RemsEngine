@@ -6,6 +6,7 @@ import me.anno.utils.types.Triangles.linePointTFactor
 import org.joml.*
 import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.min
 
 object AABBs {
 
@@ -85,6 +86,26 @@ object AABBs {
         maxY = Double.NEGATIVE_INFINITY
         maxZ = Double.NEGATIVE_INFINITY
         return this
+    }
+
+    fun AABBf.all(): AABBf {
+        minX = Float.NEGATIVE_INFINITY
+        minY = Float.NEGATIVE_INFINITY
+        minZ = Float.NEGATIVE_INFINITY
+        maxX = Float.POSITIVE_INFINITY
+        maxY = Float.POSITIVE_INFINITY
+        maxZ = Float.POSITIVE_INFINITY
+        return this
+    }
+
+    fun AABBf.intersect(other: AABBf, dst: AABBf = this): AABBf {
+        dst.minX = max(minX, other.minX)
+        dst.minY = max(minY, other.minY)
+        dst.minZ = max(minZ, other.minZ)
+        dst.maxX = min(maxX, other.maxX)
+        dst.maxY = min(maxY, other.maxY)
+        dst.maxZ = min(maxZ, other.maxZ)
+        return dst
     }
 
     fun AABBd.all(): AABBd {
@@ -395,7 +416,7 @@ object AABBs {
         var ox = (aabb.minX + aabb.maxX) * 0.5
         var oy = (aabb.minY + aabb.maxY) * 0.5
         var oz = (aabb.minZ + aabb.maxZ) * 0.5
-        if (ox.isNaN()) ox = 0.0
+        if (ox.isNaN()) ox = 0.0 // can happen if aabb is -Inf..Inf
         if (oy.isNaN()) oy = 0.0
         if (oz.isNaN()) oz = 0.0
         val c = linePointTFactor(start, dir, ox, oy, oz)

@@ -6,6 +6,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.min
+import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector4f
 import kotlin.math.abs
@@ -18,16 +19,29 @@ open class SDFCylinder : SDFSmoothShape() {
     var radius
         get() = params.x
         set(value) {
-            if(params.x != value && !dynamicSize) invalidateShader()
-            params.x = value
+            if (params.x != value) {
+                if (dynamicSize) invalidateBounds()
+                else invalidateShader()
+                params.x = value
+            }
         }
 
     var halfHeight
         get() = params.y
         set(value) {
-            if(params.y != value && !dynamicSize) invalidateShader()
-            params.y = value
+            if (params.y != value) {
+                if (dynamicSize) invalidateBounds()
+                else invalidateShader()
+                params.y = value
+            }
         }
+
+    override fun calculateBaseBounds(dst: AABBf) {
+        val h = halfHeight
+        val r = radius
+        dst.setMin(-r, -h, -r)
+        dst.setMax(+r, -h, +r)
+    }
 
     override fun buildShader(
         builder: StringBuilder,
@@ -43,11 +57,11 @@ open class SDFCylinder : SDFSmoothShape() {
         builder.append("sdCylinder(pos")
         builder.append(trans.posIndex)
         builder.append(',')
-        if (dynamicSize) builder.append(defineUniform(uniforms, params))
+        if (dynamicSize) builder.appendUniform(uniforms, params)
         else writeVec(builder, params)
         if (dynamicSmoothness || smoothness > 0f) {
             builder.append(',')
-            if (dynamicSmoothness) builder.append(defineUniform(uniforms, GLSLType.V1F, { smoothness }))
+            if (dynamicSmoothness) builder.appendUniform(uniforms, GLSLType.V1F) { smoothness }
             else builder.append(smoothness)
         }
         builder.append(')')

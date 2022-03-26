@@ -120,7 +120,7 @@ class PrefabInspector(val prefab: Prefab) {
 
     fun change(path: Path?, instance: PrefabSaveable, name: String, value: Any?) {
         instance[name] = value
-        path?:return
+        path ?: return
         prefab.set(path, name, value)
         onChange()
     }
@@ -282,7 +282,7 @@ class PrefabInspector(val prefab: Prefab) {
                 }) {
 
                 val property = allProperties[name]!!
-                if (property.hideInInspector || !property.serialize) continue
+                if (property.hideInInspector.any { it(instance) } || !property.serialize) continue
 
                 val group = property.group ?: ""
                 if (group != lastGroup) {

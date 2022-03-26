@@ -1,19 +1,55 @@
 package me.anno.ecs.components.mesh.sdf.shapes
 
+import me.anno.ecs.annotations.Docs
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
-import org.joml.Vector3f
+import org.joml.AABBf
 import org.joml.Vector4f
 
+/**
+ * plane in x/y/z-direction, can be rotated ofc
+ * */
 open class SDFPlane : SDFShape() {
 
-    var direction = Vector3f(0f, 1f, 0f)
+    @Docs("Allowed values: x/y/z")
+    var axis = 'y'
         set(value) {
-            invalidateShader()
-            field.set(value)
-            field.normalize()
+            if (field != value && value in "xyz") {
+                invalidateShader()
+                field = value
+            }
         }
+
+    override fun calculateBaseBounds(dst: AABBf) {
+        when (axis) {// I hope this infinity causes no issues...
+            'x' -> {
+                dst.minX = Float.NEGATIVE_INFINITY
+                dst.maxX = 0f
+                dst.minY = Float.NEGATIVE_INFINITY
+                dst.maxY = Float.POSITIVE_INFINITY
+                dst.minZ = Float.NEGATIVE_INFINITY
+                dst.maxZ = Float.POSITIVE_INFINITY
+            }
+            'y' -> {
+                dst.minX = Float.NEGATIVE_INFINITY
+                dst.maxX = Float.POSITIVE_INFINITY
+                dst.minY = Float.NEGATIVE_INFINITY
+                dst.maxY = 0f
+                dst.minZ = Float.NEGATIVE_INFINITY
+                dst.maxZ = Float.POSITIVE_INFINITY
+            }
+            'z' -> {
+                dst.minX = Float.NEGATIVE_INFINITY
+                dst.maxX = Float.POSITIVE_INFINITY
+                dst.minY = Float.NEGATIVE_INFINITY
+                dst.maxY = Float.POSITIVE_INFINITY
+                dst.minZ = Float.NEGATIVE_INFINITY
+                dst.maxZ = 0f
+            }
+        }
+
+    }
 
     override fun buildShader(
         builder: StringBuilder,
@@ -25,19 +61,15 @@ open class SDFPlane : SDFShape() {
     ) {
         val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
         smartMinBegin(builder, dstName)
-        builder.append("dot(pos")
+        builder.append("pos")
         builder.append(trans.posIndex)
-        builder.append(',')
-        if (dynamicSize) builder.append(defineUniform(uniforms, direction))
-        else writeVec(builder, direction)
-        builder.append(')')
+        builder.append('.').append(axis)
         smartMinEnd(builder, dstName, nextVariableId, uniforms, functions, trans)
     }
 
     override fun computeSDFBase(pos: Vector4f): Float {
         applyTransform(pos)
-        val dir = direction
-        return pos.dot(dir.x, dir.y, dir.z, 1f)
+        return pos.y
     }
 
     override fun clone(): SDFPlane {
@@ -49,7 +81,7 @@ open class SDFPlane : SDFShape() {
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFPlane
-        clone.direction.set(direction)
+        clone.axis = axis
     }
 
     override val className = "SDFPlane"
