@@ -8,6 +8,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.utils.files.LocalFile.toGlobalFile
 import org.apache.logging.log4j.LogManager
 import org.joml.*
+import java.io.EOFException
 
 /**
  * reads a JSON-similar format from a text file
@@ -15,6 +16,20 @@ import org.joml.*
 abstract class TextReaderBase : BaseReader() {
 
     var tmpChar = -1
+    var lineNumber = 1
+    var lineIndex = 0 // index within line
+
+    fun readNext(char: Char) {
+        readNext(char.code)
+    }
+
+    fun readNext(char: Int) {
+        if (char == '\n'.code) {
+            lineNumber++
+            lineIndex = 0
+        } else lineIndex++
+    }
+
     private val tmpString = StringBuilder(32)
 
     private fun getUnusedPointer(): Int {
@@ -845,6 +860,34 @@ abstract class TextReaderBase : BaseReader() {
         val type = typeName.substring(0, index)
         val name = typeName.substring(index + 1)
         return type to name
+    }
+
+    override fun assert(b: Boolean) {
+        if (!b) throw InvalidFormatException("Assertion failed, line $lineNumber:$lineIndex")
+    }
+
+    override fun assert(b: Boolean, msg: String) {
+        if (!b) throw InvalidFormatException("$msg, line $lineNumber:$lineIndex")
+    }
+
+    override fun assert(isValue: String, shallValue: String) {
+        if (!isValue.equals(shallValue, true)) {
+            throw InvalidFormatException("Expected $shallValue but got $isValue, line $lineNumber:$lineIndex")
+        }
+    }
+
+    override fun assert(isValue: Char, shallValue: Char) {
+        if (isValue == (-1).toChar()) throw EOFException()
+        if (isValue != shallValue.lowercaseChar() && isValue != shallValue.uppercaseChar()) {
+            throw InvalidFormatException("Expected $shallValue but got $isValue, ${isValue.code}, line $lineNumber:$lineIndex")
+        }
+    }
+
+    override fun assert(isValue: Char, shallValue: Char, context: String) {
+        if (isValue == (-1).toChar()) throw EOFException()
+        if (isValue != shallValue.lowercaseChar() && isValue != shallValue.uppercaseChar()) {
+            throw InvalidFormatException("Expected $shallValue but got $isValue for $context, line $lineNumber:$lineIndex")
+        }
     }
 
     companion object {

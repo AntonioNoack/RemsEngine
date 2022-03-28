@@ -17,9 +17,10 @@ class TextStreamReader(data: InputStream) : TextReaderBase() {
             tmpChar = -1
             return v.toChar()
         }
-        val x = reader.read()
-        if (x < 0) throw EOFException()
-        return x.toChar()
+        val char = reader.read()
+        if (char < 0) throw EOFException()
+        readNext(char)
+        return char.toChar()
     }
 
     override fun skipSpace(): Char {
@@ -27,14 +28,16 @@ class TextStreamReader(data: InputStream) : TextReaderBase() {
             val v = tmpChar.toChar()
             tmpChar = -1
             when (v) {
-                '\r', '\n', '\t', ' ' -> {
+                '\n', '\r', '\t', ' ' -> {
                 }
                 else -> return v
             }
         }
         while (true) {
-            when (val next = reader.read()) {
-                '\r'.code, '\n'.code, '\t'.code, ' '.code -> {
+            val next = reader.read()
+            readNext(next)
+            when (next) {
+                '\n'.code, '\r'.code, '\t'.code, ' '.code -> {
                 }
                 -1 -> throw EOFException()
                 else -> return next.toChar()

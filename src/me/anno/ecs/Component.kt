@@ -1,8 +1,8 @@
 package me.anno.ecs
 
 import me.anno.ecs.annotations.HideInInspector
-import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.raycast.RayHit
 import me.anno.engine.ui.EditorState
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -13,6 +13,7 @@ import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
+import org.joml.Vector3d
 import kotlin.reflect.KClass
 
 abstract class Component : PrefabSaveable(), Inspectable {
@@ -110,8 +111,6 @@ abstract class Component : PrefabSaveable(), Inspectable {
 
     open fun onDrawGUI() {}
 
-    open fun onClick() {}
-
     open fun onChangeProperty(name: String, value: Any?) {}
 
     fun invalidateRigidbody() {
@@ -158,7 +157,7 @@ abstract class Component : PrefabSaveable(), Inspectable {
             )) as Component
         }
 
-        fun <V: PrefabSaveable> getOptionsByClass(parent: PrefabSaveable, clazz: KClass<V>): List<Option> {
+        fun <V : PrefabSaveable> getOptionsByClass(parent: PrefabSaveable, clazz: KClass<V>): List<Option> {
             // registry over all options... / todo search the raw files + search all scripts
             val knownComponents = ISaveable.getInstanceOf(clazz)
             /*return UpdatingList {

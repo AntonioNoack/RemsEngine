@@ -53,6 +53,7 @@ open class SDF2DShape : SDFShape() {
 
     @DebugAction
     fun bound11() {
+        // todo bounds need to be added to prefab
         when {
             'x' !in axes -> bound(-1f, +1f, 0)
             'y' !in axes -> bound(-1f, +1f, 1)

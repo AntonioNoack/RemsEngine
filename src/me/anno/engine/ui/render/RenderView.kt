@@ -255,6 +255,7 @@ class RenderView(
         clock.start()
 
         // to see ghosting, if there is any
+        val renderMode = renderMode
         if (renderMode == RenderMode.GHOSTING_DEBUG) Thread.sleep(250)
 
         updateEditorCameraTransform()
@@ -369,9 +370,10 @@ class RenderView(
                 DeferredRenderer else pbrRenderer
         }
 
-        if (renderMode.dlt != null) {
+        val dlt = renderMode.dlt
+        if (dlt != null) {
             useDeferredRendering = true
-            renderer = attributeRenderers[renderMode.dlt!!]!!
+            renderer = attributeRenderers[dlt]!!
         }
 
         val buffer = when {
@@ -948,11 +950,19 @@ class RenderView(
         }
 
         pipeline.reset()
-        pipeline.frustum.definePerspective(
-            near, far, fovYRadians.toDouble(),
-            width, height, aspectRatio.toDouble(),
-            camPosition, camRotation,
-        )
+        if (isPerspective) {
+            pipeline.frustum.definePerspective(
+                near, far, fovYRadians.toDouble(),
+                width, height, aspectRatio.toDouble(),
+                camPosition, camRotation,
+            )
+        } else {
+            pipeline.frustum.defineOrthographic(
+                fov.toDouble(), aspectRatio.toDouble(),
+                near, far, width,
+                camPosition, camRotation
+            )
+        }
         pipeline.disableReflectionCullingPlane()
         pipeline.ignoredEntity = null
         pipeline.fill(world, camPosition, worldScale)
@@ -1073,7 +1083,7 @@ class RenderView(
                         drawGizmos(camPosition, true)
                         drawSelected()
                     }
-                } else if (renderer == idRenderer) {
+                } else if (renderer == idRenderer || renderer == idRendererVis) {
                     drawGizmos(camPosition, false)
                 }
             }

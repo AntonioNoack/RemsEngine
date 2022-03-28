@@ -110,7 +110,7 @@ class PipelineStage(
 
     val size get() = nextInsertIndex + instancedSize
 
-    val instancedMeshes1 = KeyPairMap<Mesh, Int, InstancedStack>()
+    val instancedMeshes1 = KeyPairMap<Mesh, Pair<Material, Int>, InstancedStack>()
     val instancedMeshes2 = KeyPairMap<Mesh, Material, InstancedStack>()
 
     fun bindDraw(pipeline: Pipeline, cameraMatrix: Matrix4fc, cameraPosition: Vector3d, worldScale: Double) {
@@ -371,23 +371,23 @@ class PipelineStage(
 
             val transform = entity.transform
 
+            val renderer = request.component
             val materialIndex = request.materialIndex
-            val material = getMaterial(mesh, materialIndex)
+            val material = getMaterial(renderer, mesh, materialIndex)
             val shader = getShader(material)
             shader.use()
 
-            val renderer = request.component
 
             val previousMaterialByShader = lastMaterial.put(shader, material)
             if (previousMaterialByShader == null) {
                 initShader(shader, cameraMatrix, pipeline)
             }
 
-            val receiveShadows = if(renderer is MeshBaseComponent) renderer.receiveShadows else true
+            val receiveShadows = if (renderer is MeshBaseComponent) renderer.receiveShadows else true
             if (hasLights) {
                 if (previousMaterialByShader == null ||
                     needsLightUpdateForEveryMesh ||
-                            receiveShadows != lastReceiveShadows
+                    receiveShadows != lastReceiveShadows
                 ) {
                     // upload all light data
                     setupLights(pipeline, shader, cameraPosition, worldScale, request, receiveShadows)
@@ -439,9 +439,9 @@ class PipelineStage(
         // draw instanced meshes
         OpenGL.instanced.use(true) {
             for ((mesh, list) in instancedMeshes1.values) {
-                for ((materialIndex, values) in list) {
+                for ((mi, values) in list) {
+                    val (material, materialIndex) = mi
                     if (values.isNotEmpty()) {
-                        val material = getMaterial(mesh, materialIndex)
                         drawColor(
                             mesh, material, materialIndex,
                             pipeline, needsLightUpdateForEveryMesh,
@@ -539,7 +539,7 @@ class PipelineStage(
             }
             GFX.check()
             mesh.drawInstanced(shader, materialIndex, buffer)
-            if(buffer !== meshInstanceBuffer) addGPUTask(1) { buffer.destroy() }
+            if (buffer !== meshInstanceBuffer) addGPUTask(1) { buffer.destroy() }
         }
     }
 
@@ -692,12 +692,12 @@ class PipelineStage(
         nextInsertIndex++
     }
 
-    fun addInstanced(mesh: Mesh, entity: Entity, materialIndex: Int, clickId: Int) {
-        addInstanced(mesh, entity.transform, materialIndex, clickId)
+    fun addInstanced(mesh: Mesh, entity: Entity, material: Material, materialIndex: Int, clickId: Int) {
+        addInstanced(mesh, entity.transform, material, materialIndex, clickId)
     }
 
-    fun addInstanced(mesh: Mesh, transform: Transform, materialIndex: Int, clickId: Int) {
-        val stack = instancedMeshes1.getOrPut(mesh, materialIndex) { _, _ -> InstancedStack() }
+    fun addInstanced(mesh: Mesh, transform: Transform, material: Material, materialIndex: Int, clickId: Int) {
+        val stack = instancedMeshes1.getOrPut(mesh, Pair(material, materialIndex)) { _, _ -> InstancedStack() }
         // instanced animations not supported (entity not saved); they would need to be the same, and that's probably very rare...
         stack.add(transform, clickId)
         instancedSize++
@@ -712,6 +712,12 @@ class PipelineStage(
 
     fun getMaterial(mesh: Mesh, index: Int): Material {
         return MaterialCache[mesh.materials.getOrNull(index), defaultMaterial]
+    }
+
+    fun getMaterial(renderer: Component, mesh: Mesh, index: Int): Material {
+        var material = if (renderer is MeshBaseComponent) renderer.materials.getOrNull(index) else null
+        material = material ?: mesh.materials.getOrNull(index)
+        return MaterialCache[material, defaultMaterial]
     }
 
     fun getShader(material: Material): Shader {

@@ -1,10 +1,13 @@
 package me.anno.ecs.components.mesh.sdf
 
+import me.anno.ecs.Entity
 import me.anno.ecs.annotations.*
 import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.mesh.sdf.modifiers.DistanceMapper
 import me.anno.ecs.components.mesh.sdf.modifiers.PositionMapper
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.raycast.RayHit
+import me.anno.engine.raycast.Raycast
 import me.anno.gpu.shader.GLSLType
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
@@ -14,6 +17,7 @@ import me.anno.mesh.Shapes
 import me.anno.ui.editor.stacked.Option
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.pooling.ObjectPool
+import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.AABBs.avgX
 import me.anno.utils.types.AABBs.avgY
 import me.anno.utils.types.AABBs.avgZ
@@ -22,14 +26,24 @@ import me.anno.utils.types.AABBs.deltaX
 import me.anno.utils.types.AABBs.deltaY
 import me.anno.utils.types.AABBs.deltaZ
 import me.anno.utils.types.AABBs.set
-import me.anno.utils.types.AABBs.transformUnion
+import me.anno.utils.types.AABBs.transformReplace
+import me.anno.utils.types.Matrices.set2
 import org.joml.*
 import kotlin.math.abs
 
 // todo visualize number of steps taken
 open class SDFComponent : ProceduralMesh() {
 
-    // todo correct raycasting: each element individually (plus all parents' transforms), and then the global minimum distance
+    override var isEnabled: Boolean
+        get() = super.isEnabled
+        set(value) {
+            if (super.isEnabled != value) {
+                invalidateShader()
+                super.isEnabled = value
+            }
+        }
+
+    // todo draw outline around selected sdf component
 
     /**
      * how much larger the underlying mesh needs to be to cover this sdf mesh;
@@ -59,9 +73,20 @@ open class SDFComponent : ProceduralMesh() {
                 "Halving the reliability, halves performance."
     )
     @Group("Tracing")
-    @Range(0.0, 1.0)
+    @Range(0.0, 2.0)
     @HideInInspector("isSDFChild")
-    var reliability = 1f
+    var globalReliability = 1f
+
+    @Group("Tracing")
+    @Range(0.0, 2.0)
+    var localReliability = 1f
+        set(value) {
+            if ((field == 1f) != (value == 1f)) {
+                // activating/deactivating dynamic values automatically
+                invalidateShader()
+            }
+            field = value
+        }
 
     @Group("Tracing")
     @Docs("How many steps the raytracer shall take at maximum")
@@ -93,6 +118,18 @@ open class SDFComponent : ProceduralMesh() {
         if (parent is SDFComponent) {
             parent.invalidateBounds()
         } else hasInvalidBounds = true
+    }
+
+    fun computeGlobalTransform(dst: Matrix4x3f): Matrix4x3f {
+        when (val parent = parent) {
+            is Entity -> dst.set2(parent.transform.globalTransform)
+            is SDFGroup -> parent.computeGlobalTransform(dst)
+            // else idk
+        }
+        dst.translate(position)
+        dst.rotate(rotation)
+        dst.scale(scale)
+        return dst
     }
 
     // input: 3d position
@@ -166,6 +203,65 @@ open class SDFComponent : ProceduralMesh() {
         return 1
     }
 
+    override fun hasRaycastType(typeMask: Int): Boolean {
+        return typeMask.and(Raycast.TRIANGLES) != 0 || typeMask.and(Raycast.SDFS) != 0
+    }
+
+    // todo for click id, we probably should use the findClosestComponent-logic
+    override fun raycast(
+        entity: Entity,
+        start: Vector3d,
+        direction: Vector3d,
+        end: Vector3d,
+        radiusAtOrigin: Double,
+        radiusPerUnit: Double,
+        typeMask: Int,
+        includeDisabled: Boolean,
+        result: RayHit
+    ) {
+        // todo move components correctly in editor
+        if (typeMask.and(Raycast.SDFS) == 0) {
+            // approximately only
+            super.raycast(
+                entity, start, direction, end,
+                radiusAtOrigin, radiusPerUnit,
+                typeMask, includeDisabled, result
+            )
+        } else {
+            // raycast
+            // todo raycast subcomponents separately
+            val globalTransform = entity.transform.globalTransform // local -> global
+            val globalInv = JomlPools.mat4x3d.create().set(globalTransform).invert()
+            val localStart = JomlPools.vec3f.create()
+            val localDir = JomlPools.vec3f.create()
+            val localEnd = JomlPools.vec3f.create()
+            localStart.set(globalInv.transformPosition(start, JomlPools.vec3d.create()))
+            localDir.set(globalInv.transformDirection(direction, JomlPools.vec3d.create()))
+            val near = 0f
+            // todo also try to stay within reasonable bounds :)
+            localEnd.set(globalInv.transformPosition(end, JomlPools.vec3d.create()))
+            val far = localStart.distance(localEnd)
+            val maxSteps = max(maxSteps, 250)
+            // we could use different parameters for higher accuracy...
+            val localDistance = raycast(localStart, localStart, near, far, maxSteps)
+            if (localDistance.isFinite()) {
+                val localHit = JomlPools.vec3f.create().set(localDir).mul(localDistance).add(localStart)
+                val localNormal = calcNormal(localHit, JomlPools.vec3f.create(), normalEpsilon)
+                val bestHit = findClosestComponent(JomlPools.vec4f.borrow().set(localHit, 0f))
+                result.setFromLocal(
+                    globalTransform,
+                    localStart, localDir, localDistance, localNormal,
+                    start, direction, end
+                )
+                result.component = bestHit
+                JomlPools.vec3f.sub(2)
+            }
+            JomlPools.vec3f.sub(3)
+            JomlPools.vec3d.sub(3)
+            JomlPools.mat4x3d.sub(1)
+        }
+    }
+
     @DebugAction
     fun invalidateShader() {
         val parent = parent
@@ -183,7 +279,11 @@ open class SDFComponent : ProceduralMesh() {
     open fun calculateBounds(dst: AABBf) {
         dst.clear()
         calculateBaseBounds(dst)
+        if (parent !is Entity) localAABB.set(dst)
+        // transform bounds using position, rotation, scale, mappers
         transform(dst)
+        // not truly the global one; rather the one inside our parent
+        if (parent !is Entity) globalAABB.set(dst)
     }
 
     open fun transform(src: AABBf, dst: AABBf = src) {
@@ -200,16 +300,22 @@ open class SDFComponent : ProceduralMesh() {
         }
         // which one first, reversed?
         for (index in positionMappers.indices) {
-            clampBounds(dst)
-            positionMappers[index].applyTransform(dst)
+            val mapper = positionMappers[index]
+            if (mapper.isEnabled) {
+                clampBounds(dst)
+                mapper.applyTransform(dst)
+            }
         }
         for (index in distanceMappers.indices) {
-            clampBounds(dst)
-            distanceMappers[index].applyTransform(dst)
+            val mapper = distanceMappers[index]
+            if (mapper.isEnabled) {
+                clampBounds(dst)
+                mapper.applyTransform(dst)
+            }
         }
         // make bounds reasonable, so we can actually use them in computations
         clampBounds(dst)
-        src.transformUnion(transform, dst)
+        src.transformReplace(transform, dst)
         JomlPools.mat4x3f.sub(1)
     }
 
@@ -320,7 +426,9 @@ open class SDFComponent : ProceduralMesh() {
         val mappers = distanceMappers
         for (index in mappers.indices) {
             val mapper = mappers[index]
-            mapper.buildShader(builder, posIndex, dstName, nextVariableId, uniforms, functions)
+            if (mapper.isEnabled) {
+                mapper.buildShader(builder, posIndex, dstName, nextVariableId, uniforms, functions)
+            }
         }
     }
 
@@ -342,9 +450,15 @@ open class SDFComponent : ProceduralMesh() {
         var base = computeSDFBase(pos)
         for (index in distanceMappers.indices) {
             val mapper = distanceMappers[index]
-            base = mapper.calcTransform(pos, base)
+            if (mapper.isEnabled) {
+                base = mapper.calcTransform(pos, base)
+            }
         }
         return base
+    }
+
+    open fun findClosestComponent(pos: Vector4f): SDFComponent {
+        return this
     }
 
     open fun raycast(
@@ -352,13 +466,13 @@ open class SDFComponent : ProceduralMesh() {
         direction: Vector3f,
         near: Float,
         far: Float,
-        maxIterations: Int,
-        sdfReliability: Float = 1f,
-        maxRelativeError: Float = 0.001f
+        maxSteps: Int = this.maxSteps,
+        sdfReliability: Float = this.globalReliability,
+        maxRelativeError: Float = this.maxRelativeError
     ): Float {
         var distance = near
         val pos = JomlPools.vec4f.create()
-        for (i in 0 until maxIterations) {
+        for (i in 0 until maxSteps) {
             pos.x = origin.x + distance * direction.x
             pos.y = origin.y + distance * direction.y
             pos.z = origin.z + distance * direction.z
@@ -405,15 +519,19 @@ open class SDFComponent : ProceduralMesh() {
 
     fun applyTransform(pos: Vector4f) {
         // same operations as in shader
-        val tmp = JomlPools.vec3f.create()
+        val tmp = JomlPools.vec3f.borrow()
         tmp.set(pos.x, pos.y, pos.z)
         tmp.sub(position)
         val tmp2 = JomlPools.quat4f.borrow()
         tmp.rotate(tmp2.set(-rotation.x, -rotation.y, -rotation.z, rotation.w))
         pos.set(tmp, pos.w)
         pos.mul(scale)
-        for (modifier in positionMappers) {
-            modifier.calcTransform(pos)
+        val mappers = positionMappers
+        for (index in mappers.indices) {
+            val mapper = mappers[index]
+            if (mapper.isEnabled) {
+                mapper.calcTransform(pos)
+            }
         }
     }
 
@@ -489,7 +607,8 @@ open class SDFComponent : ProceduralMesh() {
                 scale.toString()
             }
         } else null
-        if (posIndex == posIndex0 && positionMappers.isNotEmpty()) {
+        val mappers = positionMappers
+        if (posIndex == posIndex0 && mappers.any2 { it.isEnabled }) {
             val prevPosition = posIndex
             posIndex = nextVariableId.next()
             builder.append("vec3 pos")
@@ -499,16 +618,19 @@ open class SDFComponent : ProceduralMesh() {
             builder.append(";\n")
         }
         var offsetName: String? = null
-        for (modifier in positionMappers) {
-            val offsetName1 = modifier.buildShader(builder, posIndex, nextVariableId, uniforms, functions)
-            if (offsetName1 != null) {
-                if (offsetName == null) {
-                    offsetName = offsetName1
-                } else {
-                    builder.append(offsetName)
-                    builder.append("+=")
-                    builder.append(offsetName1)
-                    builder.append(";\n")
+        for (index in mappers.indices) {
+            val mapper = mappers[index]
+            if (mapper.isEnabled) {
+                val offsetName1 = mapper.buildShader(builder, posIndex, nextVariableId, uniforms, functions)
+                if (offsetName1 != null) {
+                    if (offsetName == null) {
+                        offsetName = offsetName1
+                    } else {
+                        builder.append(offsetName)
+                        builder.append("+=")
+                        builder.append(offsetName1)
+                        builder.append(";\n")
+                    }
                 }
             }
         }
@@ -542,7 +664,7 @@ open class SDFComponent : ProceduralMesh() {
         clone.dynamicPosition = dynamicPosition
         clone.dynamicRotation = dynamicRotation
         clone.dynamicScale = dynamicScale
-        clone.reliability = reliability
+        clone.globalReliability = globalReliability
         clone.normalEpsilon = normalEpsilon
         clone.maxSteps = maxSteps
         clone.maxRelativeError = maxRelativeError
@@ -605,16 +727,27 @@ open class SDFComponent : ProceduralMesh() {
             builder.append(")")
         }
 
-        fun StringBuilder.appendUniform(uniforms: HashMap<String, TypeValue>, value: Any) {
+        fun StringBuilder.appendUniform(uniforms: HashMap<String, TypeValue>, value: Any): StringBuilder {
             append(defineUniform(uniforms, value))
+            return this
         }
 
-        fun StringBuilder.appendUniform(uniforms: HashMap<String, TypeValue>, type: GLSLType, value: Any) {
+        fun StringBuilder.appendUniform(
+            uniforms: HashMap<String, TypeValue>,
+            type: GLSLType,
+            value: Any
+        ): StringBuilder {
             append(defineUniform(uniforms, type, value))
+            return this
         }
 
-        fun StringBuilder.appendUniform(uniforms: HashMap<String, TypeValue>, type: GLSLType, value: () -> Any) {
+        fun StringBuilder.appendUniform(
+            uniforms: HashMap<String, TypeValue>,
+            type: GLSLType,
+            value: () -> Any
+        ): StringBuilder {
             append(defineUniform(uniforms, type, value))
+            return this
         }
 
         fun defineUniform(uniforms: HashMap<String, TypeValue>, type: GLSLType, value: () -> Any): String {

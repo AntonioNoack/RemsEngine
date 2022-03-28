@@ -7,10 +7,10 @@ import me.anno.fonts.mesh.Triangulation
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.zip.InnerFolder
-import me.anno.mesh.Point
-import me.anno.utils.files.Files.findNextFileName
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
+import me.anno.mesh.Point
+import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import org.apache.logging.log4j.LogManager
@@ -28,8 +28,8 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
     constructor(file: FileReference) : this(file.inputStream(), file)
 
     val folder = InnerFolder(file)
-    val materialsFolder = lazy { InnerFolder(folder, "materials") }
-    val meshesFolder = lazy { InnerFolder(folder, "meshes") }
+    val materialsFolder by lazy { InnerFolder(folder, "materials") }
+    val meshesFolder by lazy { InnerFolder(folder, "meshes") }
 
     val scenePrefab = Prefab("Entity")
 
@@ -95,15 +95,20 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
         }
     }
 
-    private fun putLinePoint(vertex: Int) {
-        facePositions += positions[vertex]
-        facePositions += positions[vertex + 1]
-        facePositions += positions[vertex + 2]
-        faceNormals += 0f
-        faceNormals += 0f
-        faceNormals += 0f
-        faceUVs += 0f
-        faceUVs += 0f
+    private fun putLinePoint(index: Int) {
+        val vertex = index * 3
+        try {
+            facePositions += positions[vertex]
+            facePositions += positions[vertex + 1]
+            facePositions += positions[vertex + 2]
+            faceNormals += 0f
+            faceNormals += 0f
+            faceNormals += 0f
+            faceUVs += 0f
+            faceUVs += 0f
+        } catch (e: ArrayIndexOutOfBoundsException) {
+            e.printStackTrace()
+        }
     }
 
     private var lastObjectName = ""
@@ -144,7 +149,7 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
             mesh.setProperty("positions", facePositions.toFloatArray())
             mesh.setProperty("normals", faceNormals.toFloatArray())
             mesh.setProperty("uvs", faceUVs.toFloatArray())
-            val meshesFolder = meshesFolder.value
+            val meshesFolder = meshesFolder
             // find good new name for mesh
             if (meshesFolder.getChild(name) != InvalidRef) {
                 name = "$lastObjectName-${lastMaterial.name}"
@@ -234,8 +239,8 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
             val file2 = readFile(file)
             if (file2.exists && !file2.isDirectory) {
                 try {
-                    val folder = MTLReader2.readAsFolder(file2, materialsFolder.value)
-                    val subMaterials = folder.listChildren()!!
+                    val folder = MTLReader2.readAsFolder(file2, materialsFolder)
+                    val subMaterials = folder.listChildren()
                     materials.putAll(subMaterials.map {
                         it.nameWithoutExtension to it
                     })

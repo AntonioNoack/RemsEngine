@@ -1,20 +1,15 @@
 package me.anno.mesh.blender
 
-import me.anno.Engine
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path
-import me.anno.engine.ECSRegistry
 import me.anno.fonts.mesh.Triangulation
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.zip.InnerFolder
-import me.anno.io.zip.InnerPrefabFile
 import me.anno.mesh.blender.impl.*
 import me.anno.utils.Clock
-import me.anno.utils.OS.desktop
 import me.anno.utils.OS.documents
-import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.types.Matrices.getScale2
@@ -22,8 +17,6 @@ import me.anno.utils.types.Matrices.getTranslation2
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.nio.ByteBuffer
-import kotlin.math.max
-
 
 // extract the relevant information from a blender file:
 // done meshes
@@ -151,10 +144,8 @@ object BlenderReader {
                     addTriangle(
                         positions, positions2,
                         normals, normals2,
-                        uvs2,
-                        v0, v1, v2,
-                        uvs,
-                        uv0, uv1, uv2
+                        uvs2, v0, v1, v2,
+                        uvs, uv0, uv1, uv2
                     )
                     materialIndices?.set(matIndex++, materialIndex)
                 }
@@ -170,18 +161,14 @@ object BlenderReader {
                     addTriangle(
                         positions, positions2,
                         normals, normals2,
-                        uvs2,
-                        v0, v1, v2,
-                        uvs,
-                        uv0, uv1, uv2
+                        uvs2, v0, v1, v2,
+                        uvs, uv0, uv1, uv2
                     )
                     addTriangle(
                         positions, positions2,
                         normals, normals2,
-                        uvs2,
-                        v2, v3, v0,
-                        uvs,
-                        uv2, uv3, uv0
+                        uvs2, v2, v3, v0,
+                        uvs, uv2, uv3, uv0
                     )
                     if (materialIndices != null) {
                         materialIndices[matIndex++] = materialIndex
@@ -524,13 +511,13 @@ object BlenderReader {
         val parentMatrix = obj.parent?.finalWSMatrix ?: Matrix4f()
         val localMatrix = Matrix4f(parentMatrix).invert().mul(obj.finalWSMatrix)
         // if(path == Path.ROOT_PATH) localMatrix.rotateX(-Math.PI.toFloat() * 0.5f)
-        val translation = localMatrix.getTranslation2().switchYZ()
+        val translation = localMatrix.getTranslation2()
         if (translation.x != 0.0 || translation.y != 0.0 || translation.z != 0.0)
             prefab.setUnsafe(path, "position", translation)
-        val rotation = localMatrix.getUnnormalizedRotation(Quaterniond()).switchYZ()
+        val rotation = localMatrix.getUnnormalizedRotation(Quaterniond())
         if (rotation.w != 1.0)
             prefab.setUnsafe(path, "rotation", rotation)
-        val scale = localMatrix.getScale2().switchYZ()
+        val scale = localMatrix.getScale2()
         if (scale.x != 1.0 || scale.y != 1.0 || scale.z != 1.0)
             prefab.setUnsafe(path, "scale", scale)
         // todo get names...
@@ -578,14 +565,6 @@ object BlenderReader {
                 // nothing to do
             }
         }
-    }
-
-    fun Vector3d.switchYZ(): Vector3d {
-        return set(x, +z, -y)
-    }
-
-    fun Quaterniond.switchYZ(): Quaterniond {
-        return set(x, +z, -y, w)
     }
 
     @JvmStatic

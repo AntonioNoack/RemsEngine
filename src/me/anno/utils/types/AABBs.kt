@@ -318,6 +318,45 @@ object AABBs {
         return dst
     }
 
+    /**
+     * transforms this matrix, then unions it with base, and places the result in dst
+     * */
+    fun AABBf.transformReplace(m: Matrix4x3f, base: AABBf, dst: AABBf = base): AABBf {
+        val mx = minX
+        val my = minY
+        val mz = minZ
+        val dx = this.maxX - mx
+        val dy = this.maxY - my
+        val dz = this.maxZ - mz
+        var minx = Float.POSITIVE_INFINITY
+        var miny = Float.POSITIVE_INFINITY
+        var minz = Float.POSITIVE_INFINITY
+        var maxx = Float.NEGATIVE_INFINITY
+        var maxy = Float.NEGATIVE_INFINITY
+        var maxz = Float.NEGATIVE_INFINITY
+        for (i in 0..7) {
+            val x = mx + (i and 1) * dx
+            val y = my + ((i shr 1) and 1) * dy
+            val z = mz + ((i shr 2) and 1) * dz
+            val tx = m.m00() * x + m.m10() * y + m.m20() * z + m.m30()
+            val ty = m.m01() * x + m.m11() * y + m.m21() * z + m.m31()
+            val tz = m.m02() * x + m.m12() * y + m.m22() * z + m.m32()
+            minx = Math.min(tx, minx)
+            miny = Math.min(ty, miny)
+            minz = Math.min(tz, minz)
+            maxx = Math.max(tx, maxx)
+            maxy = Math.max(ty, maxy)
+            maxz = Math.max(tz, maxz)
+        }
+        dst.minX = minx
+        dst.minY = miny
+        dst.minZ = minz
+        dst.maxX = maxx
+        dst.maxY = maxy
+        dst.maxZ = maxz
+        return dst
+    }
+
     fun AABBf.transformProject(m: Matrix4f, dst: AABBf = this): AABBf {
         val tmp = JomlPools.aabbf.borrow()
         tmp.clear()

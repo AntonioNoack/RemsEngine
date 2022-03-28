@@ -89,8 +89,22 @@ object Matrices {
         return getScale(JomlPools.vec3d.borrow()).lengthSquared()
     }
 
+    fun Matrix4x3f.getScaleLength(): Float {
+        return getScale(JomlPools.vec3f.borrow()).length()
+    }
+
     fun Matrix4x3d.getScaleLength(): Double {
         return getScale(JomlPools.vec3d.borrow()).length()
+    }
+
+    fun Matrix4x3f.set2(src: Matrix4x3d): Matrix4x3f {
+        set(
+            src.m00().toFloat(), src.m01().toFloat(), src.m02().toFloat(),
+            src.m10().toFloat(), src.m11().toFloat(), src.m12().toFloat(),
+            src.m20().toFloat(), src.m21().toFloat(), src.m22().toFloat(),
+            src.m30().toFloat(), src.m31().toFloat(), src.m32().toFloat()
+        )
+        return this
     }
 
     fun Matrix4x3f.getScale2(dst: Vector3d): Vector3d {
@@ -168,7 +182,15 @@ object Matrices {
         return sq(m30() - other.m30(), m31() - other.m31(), m32() - other.m32())
     }
 
+    fun Matrix4x3d.distanceSquared(other: Matrix4x3f): Double {
+        return sq(m30() - other.m30(), m31() - other.m31(), m32() - other.m32())
+    }
+
     fun Matrix4x3d.distance(other: Matrix4x3d): Double {
+        return sqrt(distanceSquared(other))
+    }
+
+    fun Matrix4x3d.distance(other: Matrix4x3f): Double {
         return sqrt(distanceSquared(other))
     }
 

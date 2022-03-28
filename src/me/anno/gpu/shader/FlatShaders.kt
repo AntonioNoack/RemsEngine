@@ -101,8 +101,9 @@ object FlatShaders {
                 ShaderLib.simpleVertexShader, ShaderLib.uvList, "" +
                 "uniform sampler2D tex;\n" +
                 "void main(){\n" +
-                "   float depth1 = fract(log2(abs(texture(tex, uv).x)));\n" +
-                "   gl_FragColor = vec4(vec3(depth1), 1.0);\n" +
+                "   float depth0 = texture(tex, uv).x;\n" +
+                "   float depth1 = 0.1 + 0.9 * fract(log2(abs(depth0)));\n" +
+                "   gl_FragColor = vec4(depth0 > 0.0 ? vec3(depth1) : vec3(depth1, 0.0, 0.0), 1.0);\n" +
                 "}"
     )
 

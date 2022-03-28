@@ -298,7 +298,7 @@ class Transform() : Saveable() {
 
     private fun setCachedPosRotSca() {
         val localTransform = localTransform
-        pos.set(localTransform.m30(), localTransform.m31(), localTransform.m32())
+        localTransform.getTranslation(pos)
         localTransform.getUnnormalizedRotation(rot)
         localTransform.getScale(sca)
         invalidateGlobal()

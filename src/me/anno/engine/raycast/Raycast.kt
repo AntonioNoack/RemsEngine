@@ -4,7 +4,6 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.CollidingComponent
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.maths.Maths.SQRT3
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AABBs.clear
@@ -27,11 +26,9 @@ object Raycast {
 
     // todo flag for mesh-backsides: ignore or respect
 
-    enum class TypeMask {
-        TRIANGLES,
-        COLLIDERS,
-        BOTH
-    }
+    val TRIANGLES = 1
+    val COLLIDERS = 2
+    val SDFS = 4
 
     // todo function for raycast collider (faster but less accurate for meshes)
 
@@ -47,7 +44,7 @@ object Raycast {
         radiusAtOrigin: Double,
         radiusPerUnit: Double,
         maxLength: Double,
-        typeMask: TypeMask,
+        typeMask: Int,
         collisionMask: Int = -1,
         includeDisabled: Boolean = false,
         result: RayHit = RayHit()
@@ -57,7 +54,7 @@ object Raycast {
         direction.normalize()
         val end = JomlPools.vec3d.create()
             .set(direction).mul(maxLength).add(start)
-        val hit = raycastTriangles(
+        val hit = raycast(
             entity, start, direction, end,
             radiusAtOrigin, radiusPerUnit,
             typeMask, collisionMask,
@@ -71,14 +68,14 @@ object Raycast {
      * finds the minimum distance triangle;
      * returns whether something was hit
      * */
-    fun raycastTriangles(
+    fun raycast(
         entity: Entity,
         start: Vector3d,
         direction: Vector3d,
         end: Vector3d,
         radiusAtOrigin: Double,
         radiusPerUnit: Double,
-        typeMask: TypeMask,
+        typeMask: Int,
         collisionMask: Int = -1,
         includeDisabled: Boolean = false,
         result: RayHit = RayHit()
@@ -86,34 +83,13 @@ object Raycast {
         if (result.distance <= 0) return null
         val originalDistance = result.distance
         val components = entity.components
-        val triangles = typeMask != TypeMask.COLLIDERS
-        val colliders = typeMask != TypeMask.TRIANGLES
         for (i in components.indices) {
             val component = components[i]
             if (includeDisabled || component.isEnabled) {
-                if (component is CollidingComponent && component.canCollide(collisionMask)) {
-                    if (triangles && component is MeshBaseComponent) {
-                        val mesh = component.getMesh()
-                        if (mesh != null && raycastTriangleMesh(
-                                entity, mesh, start, direction, end,
-                                radiusAtOrigin, radiusPerUnit, result
-                            )
-                        ) {
-                            result.mesh = mesh
-                            result.component = component
-                        }
-                    }
-                    if (colliders && component is Collider) {
-                        if (raycastCollider(
-                                entity, component, start, direction, end,
-                                radiusAtOrigin, radiusPerUnit, result
-                            )
-                        ) {
-                            result.collider = component
-                        }
-                    }
-                }
-
+                if (component is CollidingComponent &&
+                    component.hasRaycastType(typeMask) &&
+                    component.canCollide(collisionMask)
+                ) component.raycast(entity, start, direction, end, radiusAtOrigin, radiusPerUnit, typeMask)
             }
         }
         val children = entity.children
@@ -121,7 +97,7 @@ object Raycast {
             val child = children[i]
             if ((includeDisabled || child.isEnabled) && child.canCollide(collisionMask)) {
                 if (testLineAABB(child.aabb, start, direction, result.distance)) {
-                    raycastTriangles(
+                    raycast(
                         child, start, direction, end,
                         radiusAtOrigin, radiusPerUnit,
                         typeMask, collisionMask, includeDisabled, result

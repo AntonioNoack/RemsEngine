@@ -159,24 +159,10 @@ class ECSSceneTab(
             button.isRight -> {
                 openMenu(windowStack, listOf(
                     MenuOption(NameDesc(if (playMode == PlayMode.EDITING) "Play" else "Edit")) {
-                        val tab = ECSSceneTabs.currentTab!!
-                        val playMode = if (playMode == PlayMode.EDITING) PlayMode.PLAY_TESTING else PlayMode.EDITING
-                        ECSSceneTabs.open(ECSSceneTab(tab.syncMaster, tab.inspector, tab.file, playMode))
+                        play()
                     },
                     MenuOption(NameDesc("Play Fullscreen")) {
-                        // opens window with fullscreen attribute
-                        val style = style
-                        val panel = PanelListY(style)
-                        panel.add(SceneView(EditorState, PlayMode.PLAY_TESTING, style).apply { weight = 1f })
-                        panel.add(ConsoleOutputPanel.createConsoleWithStats(true, style))
-                        val window = object : Window(panel, false, windowStack) {
-                            override fun destroy() {
-                                super.destroy()
-                                // reset state
-                                inspector.prefab.invalidateInstance()
-                            }
-                        }
-                        windowStack.push(window)
+                       playFullscreen()
                     },
                     MenuOption(NameDesc("Close")) {
                         ECSSceneTabs.close(this)
@@ -185,6 +171,28 @@ class ECSSceneTab(
             }
             else -> super.onMouseClicked(x, y, button, long)
         }
+    }
+
+    fun play(){
+        val tab = ECSSceneTabs.currentTab!!
+        val playMode = if (playMode == PlayMode.EDITING) PlayMode.PLAY_TESTING else PlayMode.EDITING
+        ECSSceneTabs.open(ECSSceneTab(tab.syncMaster, tab.inspector, tab.file, playMode))
+    }
+
+    fun playFullscreen(){
+        // opens window with fullscreen attribute
+        val style = style
+        val panel = PanelListY(style)
+        panel.add(SceneView(EditorState, PlayMode.PLAY_TESTING, style).apply { weight = 1f })
+        panel.add(ConsoleOutputPanel.createConsoleWithStats(true, style))
+        val window = object : Window(panel, false, windowStack) {
+            override fun destroy() {
+                super.destroy()
+                // reset state
+                inspector.prefab.invalidateInstance()
+            }
+        }
+        windowStack.push(window)
     }
 
     override fun tickUpdate() {

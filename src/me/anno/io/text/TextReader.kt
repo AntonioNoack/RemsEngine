@@ -23,7 +23,9 @@ class TextReader(val data: CharSequence) : TextReaderBase() {
         }
         val data = data
         if (index >= data.length) throw EOFException()
-        return data[index++]
+        val char = data[index++]
+        readNext(char)
+        return char
     }
 
     override fun skipSpace(): Char {
@@ -40,8 +42,10 @@ class TextReader(val data: CharSequence) : TextReaderBase() {
         var index = index
         val data = data
         while (index < length) {
-            when (val next = data[index++]) {
-                '\r', '\n', '\t', ' ' -> {
+            val next = data[index++]
+            readNext(next)
+            when (next) {
+                '\n', '\r', '\t', ' ' -> {
                 }
                 else -> {
                     this.index = index

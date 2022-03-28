@@ -11,6 +11,7 @@ import me.anno.config.DefaultConfig;
 import me.anno.ecs.prefab.Prefab;
 import me.anno.ecs.prefab.change.Path;
 import me.anno.input.Input;
+import me.anno.io.ResourceHelper;
 import me.anno.io.files.FileReference;
 import me.anno.io.files.InvalidRef;
 import me.anno.io.zip.InnerFolder;
@@ -22,7 +23,6 @@ import me.anno.ui.Panel;
 import me.anno.ui.base.menu.Menu;
 import me.anno.ui.utils.WindowStack;
 import me.anno.utils.Clock;
-import me.anno.io.ResourceHelper;
 import me.anno.utils.structures.maps.KeyPairMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -513,28 +513,26 @@ public class GFXBase0 {
         try {
             InputStream stream = ResourceHelper.INSTANCE.loadResource("icon.obj");
             OBJReader2 reader = new OBJReader2(stream, InvalidRef.INSTANCE);
-            if (reader.getMeshesFolder().isInitialized()) {
-                InnerFolder file = reader.getMeshesFolder().getValue();
-                for (FileReference child : file.listChildren()) {
-                    // we could use the name as color... probably a nice idea :)
-                    Prefab prefab = ((InnerPrefabFile) child).getPrefab();
-                    KeyPairMap<Path, String, Object> sets = prefab.getSets();
-                    float[] positions = (float[]) sets.get(Path.Companion.getROOT_PATH(), "positions");
-                    int[] indices = (int[]) sets.get(Path.Companion.getROOT_PATH(), "indices");
-                    if (positions != null) {
-                        glBegin(GL_TRIANGLES);
-                        if (indices == null) {
-                            for (int i = 0; i < positions.length; i += 3) {
-                                glVertex2f(positions[i], positions[i + 1]);
-                            }
-                        } else {
-                            for (int index : indices) {
-                                int j = index * 3;
-                                glVertex2f(positions[j], positions[j + 1]);
-                            }
+            InnerFolder file = reader.getMeshesFolder();
+            for (FileReference child : file.listChildren()) {
+                // we could use the name as color... probably a nice idea :)
+                Prefab prefab = ((InnerPrefabFile) child).getPrefab();
+                KeyPairMap<Path, String, Object> sets = prefab.getSets();
+                float[] positions = (float[]) sets.get(Path.Companion.getROOT_PATH(), "positions");
+                int[] indices = (int[]) sets.get(Path.Companion.getROOT_PATH(), "indices");
+                if (positions != null) {
+                    glBegin(GL_TRIANGLES);
+                    if (indices == null) {
+                        for (int i = 0; i < positions.length; i += 3) {
+                            glVertex2f(positions[i], positions[i + 1]);
                         }
-                        glEnd();
+                    } else {
+                        for (int index : indices) {
+                            int j = index * 3;
+                            glVertex2f(positions[j], positions[j + 1]);
+                        }
                     }
+                    glEnd();
                 }
             }
         } catch (IOException e) {

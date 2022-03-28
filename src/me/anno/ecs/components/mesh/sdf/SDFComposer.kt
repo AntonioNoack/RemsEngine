@@ -5,6 +5,7 @@ import me.anno.ecs.components.mesh.TypeValueV2
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.ShaderPlus
 import me.anno.gpu.shader.builder.Function
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -61,9 +62,9 @@ object SDFComposer {
             "}\n"
 
     fun createECSShader(tree: SDFComponent): Pair<HashMap<String, TypeValue>, ECSMeshShader> {
-        // todo compute approximate bounds on cpu, so we can save computations
-        // todo traverse with larger step size on normals? :)
-        // todo traverse over tree to assign material ids
+        // done compute approximate bounds on cpu, so we can save computations
+        // done traverse with larger step size on normals? normals don't use traversal
+        // done traverse over tree to assign material ids? no, the programmer does that to reduce cases
         val functions = LinkedHashSet<String>()
         val uniforms = HashMap<String, TypeValue>()
         val shapeDependentShader = StringBuilder()
@@ -80,7 +81,7 @@ object SDFComposer {
                     return value
                 }
         }
-        uniforms["sdfReliability"] = TypeValueV2(GLSLType.V1F) { tree.reliability }
+        uniforms["sdfReliability"] = TypeValueV2(GLSLType.V1F) { tree.globalReliability }
         uniforms["sdfNormalEpsilon"] = TypeValue(GLSLType.V1F) { tree.normalEpsilon }
         uniforms["sdfMaxRelativeError"] = TypeValueV2(GLSLType.V1F) { tree.maxRelativeError }
         uniforms["maxSteps"] = TypeValueV2(GLSLType.V1I) { tree.maxSteps }
@@ -130,6 +131,9 @@ object SDFComposer {
                     Variable(GLSLType.V1F, "sheen"),
                     Variable(GLSLType.V4F, "clearCoat"),
                     Variable(GLSLType.V2F, "clearCoatRoughMetallic"),
+                    Variable(GLSLType.V1I, "drawMode"),
+                    // todo support bridges for uniform -> fragment1 -> fragment2 (inout)
+                    Variable(GLSLType.V4F, "tint", VariableMode.OUT),
                 ) + uniforms.map { (k, v) -> Variable(v.type, k) }
 
                 val stage = ShaderStage(
@@ -166,6 +170,12 @@ object SDFComposer {
                             "finalOcclusion = 1.0;\n" +
                             "finalMetallic  = 0.0;\n" +
                             "finalRoughness = 0.7;\n" +
+
+                            // click ids of parts
+                            "if(drawMode == ${ShaderPlus.DrawMode.ID.id} || drawMode == ${ShaderPlus.DrawMode.ID_VIS.id}){\n" +
+                            "   int intId = int(ray.y);\n" +
+                            "   tint = vec4(vec3(float(intId&255), float((intId>>8)&255), float((intId>>16)&255))/255.0, 1.0);\n" +
+                            "}\n" +
                             ""
 
                 )

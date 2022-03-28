@@ -44,14 +44,15 @@ interface Hierarchical<V : Hierarchical<V>> {
         ) throw RuntimeException("Called from wrong thread!")*/
         @Suppress("unchecked_cast")
         if (child.contains(this as V)) throw RuntimeException("this cannot contain its parent!")
-        child.parent?.removeChild(child)
+        // child.parent?.removeChild(child)
         child.parent = this
         (children as MutableList<V>).add(child)
     }
 
     fun removeChild(child: V) {
         if (child.parent === this) {
-            child.parent = null
+            // called by .parent = ...
+            // child.parent = null
             deleteChild(child)
         }
     }

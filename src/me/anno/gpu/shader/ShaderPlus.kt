@@ -92,7 +92,9 @@ object ShaderPlus {
                 "       break;\n" +
                 "   case ${DrawMode.ID_VIS.id}:\n" +
                 "       if(finalAlpha < 0.01) discard;\n" +
-                "       fragColor = vec4(GET_RANDOM(tint.rg), GET_RANDOM(tint.gb), GET_RANDOM(100.0 - tint.br), 1.0);\n" +
+                "       float flRandomId2 = dot(vec4(256.0*65536.0, 65536.0, 256.0, 1.0), tint);\n" +
+                "       vec2 seed2 = vec2(sin(flRandomId2), cos(flRandomId2));\n" +
+                "       fragColor = vec4(GET_RANDOM(seed2.xy), GET_RANDOM(seed2.yx), GET_RANDOM(100.0 - seed2.yx), 1.0);\n" +
                 "       break;\n" +
                 "   case ${DrawMode.DEPTH_LOG2_01.id}:\n" +
                 "       if(finalAlpha < 0.01) discard;\n" +

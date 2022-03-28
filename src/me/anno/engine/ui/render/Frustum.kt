@@ -6,6 +6,7 @@ import me.anno.utils.types.AABBs.isEmpty
 import org.joml.*
 import kotlin.math.*
 
+@Suppress("unused")
 class Frustum {
 
     // this class might be replaceable with org.joml.FrustumIntersection,
@@ -44,6 +45,53 @@ class Frustum {
         isPerspective = false
 
         sizeThreshold = 0.0
+
+        this.cameraPosition.set(cameraPosition)
+        this.cameraRotation.identity()
+            .rotate(cameraRotation)
+
+    }
+
+    fun defineOrthographic(
+        sizeY: Double,
+        aspectRatio: Double,
+        near: Double,
+        far: Double,
+        resolution: Int,
+        cameraPosition: Vector3d,
+        cameraRotation: Quaterniond
+    ) {
+
+        val sizeX = sizeY * aspectRatio
+
+        val objectSizeThreshold = minObjectSizePixels * sizeX / resolution
+        sizeThreshold = /* detailFactor * */ sq(objectSizeThreshold)
+
+        positions[0].set(+sizeX, 0.0, 0.0)
+        normals[0].set(+1.0, 0.0, 0.0)
+        positions[1].set(-sizeX, 0.0, 0.0)
+        normals[1].set(-1.0, 0.0, 0.0)
+
+        positions[2].set(0.0, +sizeY, 0.0)
+        normals[2].set(0.0, +1.0, 0.0)
+        positions[3].set(0.0, -sizeY, 0.0)
+        normals[3].set(0.0, -1.0, 0.0)
+
+        positions[4].set(0.0, 0.0, -near)
+        normals[4].set(0.0, 0.0, +1.0)
+        positions[5].set(0.0, 0.0, -far)
+        normals[5].set(0.0, 0.0, -1.0)
+
+        for (i in 0 until 6) {
+            cameraRotation.transform(normals[i])
+            val position = positions[i]
+            position.add(cameraPosition)
+            val normal = normals[i]
+            val distance = position.dot(normal)
+            planes[i].set(normal, -distance)
+        }
+
+        isPerspective = false
 
         this.cameraPosition.set(cameraPosition)
         this.cameraRotation.identity()
@@ -333,9 +381,9 @@ class Frustum {
         // https://www.gamedev.net/forums/topic/512123-fast--and-correct-frustum---aabb-intersection/
         for (i in 0 until 6) {
             val plane = planes[i]
-            val minX = if (plane.x > 0) aabb.minX else aabb.maxX
-            val minY = if (plane.y > 0) aabb.minY else aabb.maxY
-            val minZ = if (plane.z > 0) aabb.minZ else aabb.maxZ
+            val minX = if (plane.x > 0.0) aabb.minX else aabb.maxX
+            val minY = if (plane.y > 0.0) aabb.minY else aabb.maxY
+            val minZ = if (plane.z > 0.0) aabb.minZ else aabb.maxZ
             // outside
             val dot0 = plane.dot(minX, minY, minZ, 1.0)
             if (dot0 >= 0.0) return false

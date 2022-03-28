@@ -2,6 +2,9 @@ package me.anno.engine.ui.control
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.sdf.SDFComponent
+import me.anno.ecs.components.mesh.sdf.modifiers.DistanceMapper
+import me.anno.ecs.components.mesh.sdf.modifiers.PositionMapper
 import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.PrefabCache.loadPrefab
 import me.anno.ecs.prefab.PrefabInspector
@@ -10,12 +13,14 @@ import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.camDirection
+import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX.clip2
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.input.Input
 import me.anno.input.Touch
 import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths.SQRT3
 import me.anno.maths.Maths.pow
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListX
@@ -24,6 +29,8 @@ import me.anno.ui.input.EnumInput
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Matrices.distance
+import me.anno.utils.types.Matrices.getScaleLength
+import me.anno.utils.types.Matrices.set2
 import org.apache.logging.log4j.LogManager
 import org.joml.Math
 import org.joml.Vector3d
@@ -64,10 +71,8 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
         })
         topLeft.add(TextButton("Play", "Start the game", false, style)
             .addLeftClickListener {
-                // todo change RenderView mode to play
-                // todo also copy everything
+                ECSSceneTabs.currentTab?.play()
                 // todo also set this instance text to "Back"
-                // todo like Unity, open a second tab(?)
             })
         add(topLeft)
     }
@@ -185,6 +190,7 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
         if (EditorState.editMode?.onEditMove(x, y, dx, dy) == true) return
         if (Touch.touches.size > 1) return // handled separately
         // super.onMouseMoved(x, y, dx, dy)
+        val mode = mode
         when {
             isSelected && Input.isRightDown -> {
                 rotateCamera(dx, dy)
@@ -198,37 +204,38 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                 val offset = globalCamTransform.transformDirection(Vector3d(dx * speed, -dy * speed, 0.0))
                 view.position.sub(offset)
             }
-            isSelected && Input.isLeftDown -> {
+            isSelected && Input.isLeftDown && mode != Mode.NOTHING -> {
+
+                val selection = library.selection
+                if (selection.isEmpty()) return
+                val prefab = selection.firstInstanceOrNull<PrefabSaveable>()?.root?.prefab ?: return
+                if (!prefab.isWritable) {
+                    LOGGER.warn("Prefab from '${prefab.source}' cannot be directly modified, inherit from it")
+                    return
+                }
+
+                // drag the selected object
+                // for that transform dx,dy into global space,
+                // and then update the local space
+                val fovYRadians = view.editorCamera.fovY
+                val speed = Math.tan(fovYRadians * 0.5) / h
+                val camTransform = camera.transform!!.globalTransform
+                val offset = JomlPools.vec3d.create()
+                offset.set(dx * speed, -dy * speed, 0.0)
+                camTransform.transformDirection(offset)
+
+                // rotate around the direction
+                // we could use the average mouse position as center; this probably would be easier
+                val dir = camDirection
+                val rx = (x - (this.x + this.w * 0.5)) / h
+                val ry = (y - (this.y + this.h * 0.5)) / h // [-.5,+.5]
+                val rotationAngle = rx * dy - ry * dx
+
                 val targets = selectedEntities
-                if (targets.isNotEmpty() && mode != Mode.NOTHING) {
-
-                    val prefab = targets.first().root.prefab ?: return
-                    if (!prefab.isWritable) {
-                        LOGGER.warn("Prefab from '${prefab.source}' cannot be directly modified, inherit from it")
-                        return
-                    }
-
-                    // drag the selected object
-                    // for that transform dx,dy into global space,
-                    // and then update the local space
-                    val fovYRadians = view.editorCamera.fovY
-                    val speed = Math.tan(fovYRadians * 0.5) / h
-                    val camTransform = camera.transform!!.globalTransform
-                    val offset = camTransform.transformDirection(Vector3d(dx * speed, -dy * speed, 0.0))
+                if (targets.isNotEmpty()) {
                     val sorted = targets.sortedBy { it.depthInHierarchy }
-                    val mode = mode
-
-                    // rotate around the direction
-                    // we could use the average mouse position as center; this probably would be easier
-                    val dir = camDirection
-                    val rx = (x - (this.x + this.w * 0.5)) / h
-                    val ry = (y - (this.y + this.h * 0.5)) / h // [-.5,+.5]
-                    val rotationAngle = rx * dy - ry * dx
-
-                    val tmpQ = JomlPools.quat4d.borrow()
-
-                    for (entity in sorted) {// for correct transformation when parent and child are selected together
-                        val transform = entity.transform
+                    for (inst in sorted) {// for correct transformation when parent and child are selected together
+                        val transform = inst.transform
                         val global = transform.globalTransform
                         when (mode) {
                             Mode.TRANSLATING -> {
@@ -242,6 +249,7 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                                 }
                             }
                             Mode.ROTATING -> {
+                                val tmpQ = JomlPools.quat4d.borrow()
                                 tmpQ.identity()
                                     .fromAxisAngleDeg(dir.x, dir.y, dir.z, rotationAngle)
                                 global.rotate(tmpQ)// correct
@@ -262,21 +270,114 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                         transform.validate()
                         onChangeTransform(entity)
                     }
+                    JomlPools.vec3d.sub(1)
+                }
+                val targets2 = selectedSDFs
+                if (targets2.isNotEmpty()) {
+                    val sorted = targets2.sortedBy { it.depthInHierarchy }
+                        .map { Pair(it, it.computeGlobalTransform(JomlPools.mat4x3f.create().identity())) }
+                    for ((_, global) in sorted) {
+                        when (mode) {
+                            Mode.TRANSLATING -> {
+                                val distance = camTransform.distance(global)
+                                if (distance > 0.0) {
+                                    global.translateLocal(// correct
+                                        (offset.x * distance).toFloat(),
+                                        (offset.y * distance).toFloat(),
+                                        (offset.z * distance).toFloat()
+                                    )
+                                }
+                            }
+                            Mode.ROTATING -> {
+                                val tmpQ = JomlPools.quat4f.borrow()
+                                tmpQ.identity()
+                                    .fromAxisAngleDeg(
+                                        dir.x.toFloat(),
+                                        dir.y.toFloat(),
+                                        dir.z.toFloat(),
+                                        rotationAngle.toFloat()
+                                    )
+                                global.rotate(tmpQ)// correct
+                            }
+                            Mode.SCALING -> {
+                                val scale = pow(2f, (dx - dy) / h)
+                                global.scale(scale, scale, scale) // correct
+                            }
+                            Mode.NOTHING -> {
+                            }
+                        }
+                    }
+                    // just like for Entities
+                    for ((inst, globalTransform) in sorted) {
+                        // = Transform.invalidateLocal() + update()
+                        val localTransform = JomlPools.mat4x3f.create()
+                        val parentGlobalTransform = when (val parent = inst.parent) {
+                            is Entity -> JomlPools.mat4x3f.create().set2(parent.transform.globalTransform)
+                            is SDFComponent -> parent.computeGlobalTransform(JomlPools.mat4x3f.create())
+                            else -> null
+                        }
+                        if (parentGlobalTransform == null) {
+                            localTransform.set(globalTransform)
+                        } else {
+                            localTransform.set(parentGlobalTransform)
+                                .invert()
+                                .mul(globalTransform)
+                        }
+                        // we have no better / other choice
+                        if (!localTransform.isFinite) {
+                            localTransform.identity()
+                        }
+                        localTransform.getTranslation(inst.position)
+                        localTransform.getUnnormalizedRotation(inst.rotation)
+                        inst.scale = localTransform.getScaleLength() / SQRT3.toFloat()
+                        // trigger recompilation, if needed
+                        inst.position = inst.position
+                        inst.rotation = inst.rotation
+                        // return matrix to pool
+                        if (parentGlobalTransform != null) JomlPools.mat4x3f.sub(1)
+                        onChangeTransform(inst)
+                    }
+                    JomlPools.mat4x3f.sub(sorted.size)
                 }
             }
         }
     }
+
+    val selectedSDFs
+        get() = library.selection.mapNotNull {
+            when (it) {
+                is SDFComponent -> it
+                is PositionMapper -> it.parent as? SDFComponent
+                is DistanceMapper -> it.parent as? SDFComponent
+                else -> null
+            }
+        }
 
     private fun onChangeTransform(entity: Entity) {
         // save changes to file
         val root = entity.getRoot(Entity::class)
         val prefab = root.prefab
         val path = entity.prefabPath
-        val transform = entity.transform
         if (prefab != null && path != null) {
+            val transform = entity.transform
             prefab.set(path, "position", transform.localPosition)
             prefab.set(path, "rotation", transform.localRotation)
             prefab.set(path, "scale", transform.localScale)
+        }
+        // entity.invalidateAABBsCompletely()
+        // entity.invalidateChildTransforms()
+        invalidateInspector()
+    }
+
+    private fun onChangeTransform(entity: SDFComponent) {
+        // save changes to file
+        val root = entity.root
+        val prefab = root.prefab
+        val path = entity.prefabPath
+        if (prefab != null && path != null) {
+            prefab.set(path, "position", entity.position)
+            prefab.set(path, "rotation", entity.rotation)
+            prefab.set(path, "scale", entity.scale)
         }
         // entity.invalidateAABBsCompletely()
         // entity.invalidateChildTransforms()

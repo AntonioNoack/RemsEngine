@@ -5,6 +5,8 @@ import me.anno.ecs.annotations.DebugTitle
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.CollidingComponent
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.raycast.RayHit
+import me.anno.engine.raycast.Raycast
 import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
@@ -12,6 +14,7 @@ import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.types.AABBs.transformUnion
 import org.joml.AABBd
 import org.joml.Matrix4x3d
+import org.joml.Vector3d
 
 abstract class MeshBaseComponent : CollidingComponent() {
 
@@ -38,6 +41,32 @@ abstract class MeshBaseComponent : CollidingComponent() {
     open fun ensureBuffer() {}
 
     abstract fun getMesh(): Mesh?
+
+    override fun hasRaycastType(typeMask: Int): Boolean {
+        return typeMask.and(Raycast.TRIANGLES) != 0
+    }
+
+    override fun raycast(
+        entity: Entity,
+        start: Vector3d,
+        direction: Vector3d,
+        end: Vector3d,
+        radiusAtOrigin: Double,
+        radiusPerUnit: Double,
+        typeMask: Int,
+        includeDisabled: Boolean,
+        result: RayHit
+    ) {
+        val mesh = getMesh()
+        if (mesh != null && Raycast.raycastTriangleMesh(
+                entity, mesh, start, direction, end,
+                radiusAtOrigin, radiusPerUnit, result
+            )
+        ) {
+            result.mesh = mesh
+            result.component = this
+        }
+    }
 
     override fun onChangeStructure(entity: Entity) {
         super.onChangeStructure(entity)

@@ -29,12 +29,11 @@ import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
 
-// todo bug: VRAM/C/... flickering (because drawsOverlaysOverChildren returns false for children, but if it was to return true, events would get lost)
-// todo bug: vector inputs only showing text of first component
+// todo file explorer sometimes switches from files to folders ... why?
+
 // todo bug: tooltip texts of properties are not being displayed
 
-// todo runtime-components/hierarchy: must be displayed
-// todo must have warning
+// todo runtime-components must have warning
 // todo must be editable -> no CSet/CAdd, just instance changes
 
 

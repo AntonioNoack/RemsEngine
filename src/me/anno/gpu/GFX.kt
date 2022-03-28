@@ -19,6 +19,7 @@ import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.FlatShaders.copyShader
 import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.Renderer.Companion.idRenderer
+import me.anno.gpu.shader.Renderer.Companion.idRendererVis
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Clamping
@@ -190,24 +191,24 @@ object GFX : GFXBase1() {
 
     fun shaderColor(shader: Shader, name: String, color: Int) {
         when (currentRenderer) {
-            idRenderer -> shaderId(shader, name)
+            idRenderer, idRendererVis -> shaderId(shader, name)
             else -> shader.v4f(name, color)
         }
     }
 
     fun shaderColor(shader: Shader, name: String, color: Vector4fc?) {
-        when {
-            currentRenderer == idRenderer -> shaderId(shader, name)
-            color != null -> shader.v4f(name, color)
-            else -> shader.v4f(name, 1f)
+        when (currentRenderer) {
+            idRenderer, idRendererVis -> shaderId(shader, name)
+            else -> if (color != null) shader.v4f(name, color)
+            else shader.v4f(name, 1f)
         }
     }
 
     fun shaderColor(shader: Shader, name: String, color: Vector3fc?) {
-        when {
-            currentRenderer == idRenderer -> shaderId(shader, name)
-            color != null -> shader.v4f(name, color, 1f)
-            else -> shader.v4f(name, 1f)
+        when (currentRenderer) {
+            idRenderer, idRendererVis -> shaderId(shader, name)
+            else -> if (color != null) shader.v4f(name, color, 1f)
+            else shader.v4f(name, 1f)
         }
     }
 

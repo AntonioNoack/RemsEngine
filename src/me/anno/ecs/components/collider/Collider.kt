@@ -7,6 +7,8 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.CollidingComponent
 import me.anno.ecs.components.physics.BulletPhysics.Companion.convertMatrix
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.raycast.RayHit
+import me.anno.engine.raycast.Raycast
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths
 import me.anno.maths.Maths.SQRT1_2
@@ -33,6 +35,30 @@ abstract class Collider : CollidingComponent() {
     var roundness = 0.0
 
     open val isConvex: Boolean = true
+
+    override fun hasRaycastType(typeMask: Int): Boolean {
+        return typeMask.and(Raycast.COLLIDERS) != 0
+    }
+
+    override fun raycast(
+        entity: Entity,
+        start: Vector3d,
+        direction: Vector3d,
+        end: Vector3d,
+        radiusAtOrigin: Double,
+        radiusPerUnit: Double,
+        typeMask: Int,
+        includeDisabled: Boolean,
+        result: RayHit
+    ) {
+        if (Raycast.raycastCollider(
+                entity, this, start, direction, end,
+                radiusAtOrigin, radiusPerUnit, result
+            )
+        ) {
+            result.collider = this
+        }
+    }
 
     override fun onChangeStructure(entity: Entity) {
         super.onChangeStructure(entity)

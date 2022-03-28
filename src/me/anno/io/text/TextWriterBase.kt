@@ -211,6 +211,7 @@ abstract class TextWriterBase : BaseWriter(true) {
 
     private fun appendColor(color: Int) {
         // write color in optimal hex format
+        append('"') // be JSON compatible
         append('#')
         val c0 = color.and(0xf)
         val c1 = color.shr(4).and(0xf)
@@ -259,6 +260,7 @@ abstract class TextWriterBase : BaseWriter(true) {
                 append(hex[c0])
             }
         }
+        append('"')
     }
 
     override fun writeColor(name: String, value: Int, force: Boolean) {

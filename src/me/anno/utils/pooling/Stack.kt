@@ -58,7 +58,7 @@ class Stack<V : Any>(
 
     fun reset() {
         val instance = storage.get()
-        if (instance.index > 0) LOGGER.warn("Missed to return ${instance.index}x ${instance.tmp[0]!!.javaClass}")
+        if (instance.index > 0) LOGGER.warn("Missed to return ${instance.index}x ${instance.tmp[0]!!.javaClass.name}")
         instance.index = 0
     }
 

@@ -29,6 +29,8 @@ import org.apache.logging.log4j.LogManager
 
 object PrefabCache : CacheSection("Prefab") {
 
+    var printJsonErrors = false
+
     private val prefabTimeout = 60_000L
     private val LOGGER = LogManager.getLogger(PrefabCache::class)
 
@@ -143,6 +145,7 @@ object PrefabCache : CacheSection("Prefab") {
             val prefab = TextReader.read(file, false).firstOrNull()
             if (prefab != null) return prefab
         } catch (e: InvalidFormatException) {
+            if(printJsonErrors) LOGGER.warn("$e by $file", e)
             // don't care
         } catch (e: Exception) {
             // might be interesting

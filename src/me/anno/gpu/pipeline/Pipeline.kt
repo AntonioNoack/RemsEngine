@@ -9,6 +9,8 @@ import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.PlanarReflection
 import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
+import me.anno.ecs.components.mesh.sdf.SDFComponent
+import me.anno.ecs.components.mesh.sdf.SDFGroup
 import me.anno.ecs.components.mesh.shapes.Icosahedron
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.Frustum
@@ -107,12 +109,12 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
             val m1 = m0 ?: materials.getOrNull(index)
             val material = MaterialCache[m1, defaultMaterial]
             val stage = material.pipelineStage ?: defaultStage
-            stage.addInstanced(mesh, entity, index, clickId)
+            stage.addInstanced(mesh, entity, material, index, clickId)
         }
     }
 
-    private fun addMeshInstancedDepth(mesh: Mesh, entity: Entity) {
-        defaultStage.addInstanced(mesh, entity, 0, 0)
+    private fun addMeshInstancedDepth(mesh: Mesh, entity: Entity, material: Material, materialIndex: Int) {
+        defaultStage.addInstanced(mesh, entity, material, materialIndex, 0)
     }
 
     private fun addLight(light: LightComponent, entity: Entity, cameraPosition: Vector3d, worldScale: Double) {
@@ -255,6 +257,21 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
         }
     }
 
+    private fun assignClickIds(sdf: SDFGroup, clickId0: Int): Int {
+        var clickId = clickId0
+        val children = sdf.children
+        for (i in children.indices) {
+            val child = children[i]
+            if (child.isEnabled) {
+                child.clickId = clickId++
+                if (child is SDFGroup) {
+                    clickId = assignClickIds(sdf, clickId)
+                }
+            }
+        }
+        return clickId
+    }
+
     private fun subFill(entity: Entity, clickId0: Int, cameraPosition: Vector3d, worldScale: Double): Int {
         entity.hasBeenVisible = true
         var clickId = clickId0
@@ -263,6 +280,19 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
             val component = components[i]
             if (component.isEnabled && component !== ignoredComponent) {
                 when (component) {
+                    is SDFComponent -> {
+                        val mesh = component.getMesh()
+                        component.clickId = clickId
+                        if (component.isInstanced && mesh.proceduralLength <= 0) {
+                            addMeshInstanced(mesh, component, entity, clickId)
+                        } else {
+                            addMesh(mesh, component, entity, clickId)
+                        }
+                        clickId++
+                        if (component is SDFGroup) {
+                            clickId = assignClickIds(component, clickId)
+                        }
+                    }
                     is MeshBaseComponent -> {
                         val mesh = component.getMesh()
                         if (mesh != null) {
@@ -353,7 +383,11 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
                     val mesh = component.getMesh()
                     if (mesh != null) {
                         if (component.isInstanced) {
-                            addMeshInstancedDepth(mesh, entity)
+                            for (materialIndex in 0 until mesh.numMaterials) {
+                                val material = MaterialCache[component.materials.getOrNull(materialIndex)
+                                    ?: mesh.materials.getOrNull(materialIndex), defaultMaterial]
+                                addMeshInstancedDepth(mesh, entity, material, materialIndex)
+                            }
                         } else {
                             addMeshDepth(mesh, component, entity)
                         }
@@ -371,12 +405,22 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
     }
 
     fun findDrawnSubject(searchedId: Int, entity: Entity): Any? {
+        // LOGGER.debug("[E] ${entity.clickId.toString(16)} vs ${searchedId.toString(16)}")
         if (entity.clickId == searchedId) return entity
         val components = entity.components
         for (i in components.indices) {
             val c = components[i]
-            if (c.isEnabled && c is MeshBaseComponent) {
-                if (c.clickId == searchedId) return c
+            if (c.isEnabled) {
+                // this probably should be more generic...
+                if (c is MeshBaseComponent || c is SDFComponent) {
+                    // LOGGER.debug("[C] ${c.clickId.toString(16)} vs ${searchedId.toString(16)}")
+                    if (c.clickId == searchedId) return c
+                }
+                if (c is SDFGroup) {
+                    // also visit all children
+                    val found = findDrawnSubject(searchedId, c)
+                    if (found != null) return found
+                }
             }
         }
         val children = entity.children
@@ -386,6 +430,22 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
                 val aabb = child.aabb
                 val needsDrawing = frustum.isVisible(aabb)
                 if (needsDrawing) {
+                    val found = findDrawnSubject(searchedId, child)
+                    if (found != null) return found
+                }
+            }
+        }
+        return null
+    }
+
+    fun findDrawnSubject(searchedId: Int, group: SDFGroup): Any? {
+        val children = group.children
+        for (i in children.indices) {
+            val child = children[i]
+            if (child.isEnabled) {
+                // LOGGER.debug("[S] ${child.clickId.toString(16)} vs ${searchedId.toString(16)}")
+                if (child.clickId == searchedId) return child
+                if (child is SDFGroup) {
                     val found = findDrawnSubject(searchedId, child)
                     if (found != null) return found
                 }

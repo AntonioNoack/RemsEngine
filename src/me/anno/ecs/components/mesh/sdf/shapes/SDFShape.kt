@@ -5,6 +5,9 @@ import me.anno.ecs.components.mesh.sdf.SDFComponent
 import me.anno.ecs.components.mesh.sdf.SDFTransform
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.gpu.OpenGL.currentRenderer
+import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.Renderer
 
 open class SDFShape : SDFComponent() {
 
@@ -35,7 +38,12 @@ open class SDFShape : SDFComponent() {
         builder.append("=vec2(((")
     }
 
-    fun smartMinEnd(builder: StringBuilder, scaleName: String?, offsetName: String?) {
+    fun smartMinEnd(
+        builder: StringBuilder,
+        uniforms: HashMap<String, TypeValue>,
+        scaleName: String?,
+        offsetName: String?
+    ) {
         builder.append(")")
         if (offsetName != null) {
             builder.append("+")
@@ -46,8 +54,16 @@ open class SDFShape : SDFComponent() {
             builder.append('*')
             builder.append(scaleName)
         }
+        if (localReliability != 1f) {
+            builder.append('*')
+            builder.appendUniform(uniforms, GLSLType.V1F) { localReliability }
+        }
         builder.append(",")
-        builder.append(materialId)
+        builder.appendUniform(uniforms, GLSLType.V1F) {
+            val currentRenderer = currentRenderer
+            if (currentRenderer == Renderer.idRenderer || currentRenderer == Renderer.idRendererVis) clickId.toFloat()
+            else materialId
+        }
         builder.append(");\n")
     }
 
@@ -59,7 +75,7 @@ open class SDFShape : SDFComponent() {
         functions: HashSet<String>,
         trans: SDFTransform
     ) {
-        smartMinEnd(builder, trans.scaleName, trans.offsetName)
+        smartMinEnd(builder, uniforms, trans.scaleName, trans.offsetName)
         buildDMShader(builder, trans.posIndex, dstName, nextVariableId, uniforms, functions)
         sdfTransPool.destroy(trans)
     }

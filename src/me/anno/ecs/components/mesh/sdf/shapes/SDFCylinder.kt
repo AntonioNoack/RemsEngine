@@ -40,7 +40,7 @@ open class SDFCylinder : SDFSmoothShape() {
         val h = halfHeight
         val r = radius
         dst.setMin(-r, -h, -r)
-        dst.setMax(+r, -h, +r)
+        dst.setMax(+r, +h, +r)
     }
 
     override fun buildShader(
