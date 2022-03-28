@@ -3,16 +3,13 @@ package me.anno.engine.raycast
 import me.anno.ecs.Component
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Mesh
-import org.joml.AABBd
-import org.joml.Matrix4x3d
-import org.joml.Vector3d
-import org.joml.Vector3f
+import org.joml.*
 
 class RayHit {
 
     var hitIfInside = false
 
-    var distance = 0.0
+    var distance = Double.POSITIVE_INFINITY
 
     var collider: Collider? = null
     var mesh: Mesh? = null
@@ -22,6 +19,9 @@ class RayHit {
     // this pre-allocates the maximum, it will require
     val tmpVector3fs = Array(10) { Vector3f() }
     val tmpVector3ds = Array(10) { Vector3d() }
+    val tmpVector4fs = Array(3) { Vector4f() }
+    val tmpVector4ds = Array(3) { Vector4d() }
+    val tmpMat4x3d = Matrix4x3d()
     val tmpAABBd = AABBd()
 
     // mesh data, that we could calculate

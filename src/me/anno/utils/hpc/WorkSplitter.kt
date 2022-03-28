@@ -6,6 +6,7 @@ import me.anno.utils.Sleep.waitUntil
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 import kotlin.math.ceil
+import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
@@ -59,7 +60,7 @@ abstract class WorkSplitter(val numThreads: Int) {
         crossinline func: (i0: Int, i1: Int) -> Unit
     ) {
         val count = i1 - i0
-        val threadCount = Maths.clamp(count / minCountPerThread, 1, numThreads)
+        val threadCount = Maths.clamp(count / max(1, minCountPerThread), 1, numThreads)
         if (threadCount <= 1) {
             // we need to wait anyways, so just use this thread
             func(i0, i1)
@@ -88,7 +89,7 @@ abstract class WorkSplitter(val numThreads: Int) {
 
     inline fun processBalanced(i0: Int, i1: Int, minCountPerThread: Int, crossinline func: (i0: Int, i1: Int) -> Unit) {
         val count = i1 - i0
-        val threadCount = Maths.clamp(count / minCountPerThread, 1, numThreads)
+        val threadCount = Maths.clamp(count / max(1, minCountPerThread), 1, numThreads)
         if (threadCount <= 1) {
             func(i0, i1)
         } else {
@@ -194,7 +195,7 @@ abstract class WorkSplitter(val numThreads: Int) {
         val tilesX = Maths.ceilDiv(x1 - x0, tileSize)
         val tilesY = Maths.ceilDiv(y1 - y0, tileSize)
         val count = tilesX * tilesY
-        val threadCount = Maths.clamp(count / minTilesPerThread, 1, numThreads)
+        val threadCount = Maths.clamp(count / max(1, minTilesPerThread), 1, numThreads)
         if (threadCount == 1) {
             // tiled computation
             process2d(x0, y0, x1, y1, tileSize, 0, 0, tilesX, tilesY, func)

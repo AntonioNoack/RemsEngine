@@ -220,7 +220,7 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
         // .add(camDirection.x * 20, camDirection.y * 20, camDirection.z * 20)
         // .add(Math.random()*20-10,Math.random()*20-10, Math.random()*20-10)
         val hit = Raycast.raycast(
-            world, cam, mouseDir, 0.0, 1.0 / max(h, 1),
+            world, cam, mouseDir, 0.0, 0.0, // 1.0 / max(h, 1)
             view.radius * 1e3, -1, -1, false, hit
         )
         if (hit == null) {

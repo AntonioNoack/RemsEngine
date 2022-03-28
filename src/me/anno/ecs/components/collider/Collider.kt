@@ -50,14 +50,15 @@ abstract class Collider : CollidingComponent() {
         typeMask: Int,
         includeDisabled: Boolean,
         result: RayHit
-    ) {
-        if (Raycast.raycastCollider(
+    ): Boolean {
+        return if (Raycast.raycastCollider(
                 entity, this, start, direction, end,
                 radiusAtOrigin, radiusPerUnit, result
             )
         ) {
             result.collider = this
-        }
+            true
+        } else false
     }
 
     override fun onChangeStructure(entity: Entity) {

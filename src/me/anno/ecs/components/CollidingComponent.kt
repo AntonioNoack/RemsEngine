@@ -31,11 +31,9 @@ abstract class CollidingComponent : Component() {
         radiusAtOrigin: Double,
         radiusPerUnit: Double,
         typeMask: Int,
-        includeDisabled: Boolean = false,
-        result: RayHit = RayHit()
-    ) {
-
-    }
+        includeDisabled: Boolean,
+        result: RayHit
+    ): Boolean = false
 
     abstract override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean
 

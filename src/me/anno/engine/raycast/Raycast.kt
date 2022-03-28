@@ -4,6 +4,9 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.CollidingComponent
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshBaseComponent
+import me.anno.engine.raycast.Projection.projectRayToAABBBack
+import me.anno.engine.raycast.Projection.projectRayToAABBFront
 import me.anno.maths.Maths.SQRT3
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.AABBs.clear
@@ -30,8 +33,6 @@ object Raycast {
     val COLLIDERS = 2
     val SDFS = 4
 
-    // todo function for raycast collider (faster but less accurate for meshes)
-
     /**
      * returns whether something was hit,
      * more information is saved in the result
@@ -43,17 +44,17 @@ object Raycast {
         direction: Vector3d,
         radiusAtOrigin: Double,
         radiusPerUnit: Double,
-        maxLength: Double,
+        maxDistance: Double,
         typeMask: Int,
         collisionMask: Int = -1,
         includeDisabled: Boolean = false,
         result: RayHit = RayHit()
     ): RayHit? {
-        if (maxLength <= 0) return null
-        result.distance = maxLength
+        if (maxDistance <= 0.0) return null
+        result.distance = maxDistance
         direction.normalize()
         val end = JomlPools.vec3d.create()
-            .set(direction).mul(maxLength).add(start)
+            .set(direction).mul(maxDistance).add(start)
         val hit = raycast(
             entity, start, direction, end,
             radiusAtOrigin, radiusPerUnit,
@@ -80,7 +81,7 @@ object Raycast {
         includeDisabled: Boolean = false,
         result: RayHit = RayHit()
     ): RayHit? {
-        if (result.distance <= 0) return null
+        if (result.distance <= 0.0) return null
         val originalDistance = result.distance
         val components = entity.components
         for (i in components.indices) {
@@ -89,7 +90,13 @@ object Raycast {
                 if (component is CollidingComponent &&
                     component.hasRaycastType(typeMask) &&
                     component.canCollide(collisionMask)
-                ) component.raycast(entity, start, direction, end, radiusAtOrigin, radiusPerUnit, typeMask)
+                ) {
+                    if (component.raycast(
+                            entity, start, direction, end, radiusAtOrigin, radiusPerUnit, typeMask,
+                            includeDisabled, result
+                        ) && result.distance <= 0.0
+                    ) return result
+                }
             }
         }
         val children = entity.children
@@ -97,11 +104,12 @@ object Raycast {
             val child = children[i]
             if ((includeDisabled || child.isEnabled) && child.canCollide(collisionMask)) {
                 if (testLineAABB(child.aabb, start, direction, result.distance)) {
-                    raycast(
-                        child, start, direction, end,
-                        radiusAtOrigin, radiusPerUnit,
-                        typeMask, collisionMask, includeDisabled, result
-                    )
+                    if (raycast(
+                            child, start, direction, end,
+                            radiusAtOrigin, radiusPerUnit,
+                            typeMask, collisionMask, includeDisabled, result
+                        ) != null && result.distance <= 0.0
+                    ) return result
                 }
             }
         }
@@ -218,13 +226,14 @@ object Raycast {
     }*/
 
     fun raycastTriangleMesh(
-        entity: Entity?, mesh: Mesh,
+        entity: Entity?, component: MeshBaseComponent, mesh: Mesh,
         start: Vector3d, direction: Vector3d, end: Vector3d,
         radiusAtOrigin: Double, radiusPerUnit: Double,
         result: RayHit,
     ): Boolean {
 
         val original = result.distance
+        if (original <= 0.0) return false
 
         // todo it would be great if we would/could project the start+end onto the global aabb,
         // todo if they lay outside, so more often we can use the faster method more often
@@ -240,18 +249,25 @@ object Raycast {
         val tmp0 = result.tmpVector3fs
         val tmp1 = result.tmpVector3ds
 
-        val localSrt = tmp0[0].set(inverse.transformPosition(tmp1[0].set(start)))
-        val localEnd = tmp0[1].set(inverse.transformPosition(tmp1[1].set(end)))
-        val localDir = tmp0[2].set(localEnd).sub(localSrt).normalize()
+        val localSrt0 = inverse.transformPosition(tmp1[0].set(start))
+        val localEnd0 = inverse.transformPosition(tmp1[1].set(end))
+        val localDir0 = tmp1[2].set(tmp1[1]).sub(tmp1[0]).normalize()
+
+        // todo reprojection doesn't work yet correctly (test: monkey ears)
+        // project points onto front/back of box
+        val extraDistance = 0.0 // projectRayToAABBFront(localSrt0, localDir0, mesh.aabb, dst = localSrt0)
+        // projectRayToAABBBack(localEnd0, localDir0, mesh.aabb, dst = localEnd0)
+
+        val localSrt = tmp0[0].set(localSrt0)
+        val localEnd = tmp0[1].set(localEnd0)
+        val localDir = tmp0[2].set(localDir0)
 
         // if any coordinates of start or end are invalid, work in global coordinates
-        val hasValidCoordinates =
-            localSrt.x.isFinite() && localSrt.y.isFinite() && localSrt.z.isFinite() &&
-                    localDir.x.isFinite() && localDir.y.isFinite() && localDir.z.isFinite()
+        val hasValidCoordinates = localSrt.isFinite && localDir.isFinite
 
         // the fast method only works, if the numbers have roughly the same order of magnitude
-        val relativePositionsSquared = (localSrt.lengthSquared() + 1e-7f) / (localEnd.lengthSquared() + 1e-7f)
-        val orderOfMagnitudeIsFine = relativePositionsSquared in 1e-3f..1e3f
+        val relativePositionsSquared = localSrt.lengthSquared() / localEnd.lengthSquared()
+        val orderOfMagnitudeIsFine = relativePositionsSquared in 1e-6f..1e6f
 
         // todo if it is animated, we should ignore the aabb (or extend it), and must apply the appropriate bone transforms
         if (hasValidCoordinates && orderOfMagnitudeIsFine) {
@@ -273,14 +289,15 @@ object Raycast {
                     localRadiusPerUnit,
                     localMaxDistance
                 )
+                // localSrt0.dot(localDir0) <= localEnd0.dot(localDir0)
             ) {
 
                 // test whether we intersect any triangle of this mesh
-                var localEnd2 = localMaxDistance
-                val originalLocalEnd = localEnd2
-                val tmpPos = tmp0[3]
-                val tmpNor = tmp0[4]
-                val localPosition = tmp0[5]
+                val localMaxDistance2 = localMaxDistance + extraDistance
+                var bestLocalDistance = localMaxDistance
+                val localHitTmp = tmp0[3]
+                val localNormalTmp = tmp0[4]
+                val localHit = tmp0[5]
                 val localNormal = tmp0[6]
 
                 mesh.forEachTriangle(tmp0[7], tmp0[8], tmp0[9]) { a, b, c ->
@@ -288,17 +305,17 @@ object Raycast {
                     val localDistance = rayTriangleIntersection(
                         localSrt, localDir, a, b, c,
                         localRadiusAtOrigin, localRadiusPerUnit,
-                        localEnd2, tmpPos, tmpNor
+                        bestLocalDistance, localHitTmp, localNormalTmp
                     )
-                    if (localDistance < localEnd2) {
-                        localEnd2 = localDistance
-                        localPosition.set(tmpPos)
-                        localNormal.set(tmpNor)
+                    if (localDistance < bestLocalDistance) {
+                        bestLocalDistance = localDistance
+                        localHit.set(localHitTmp)
+                        localNormal.set(localNormalTmp)
                     }
                 }
 
-                if (localEnd2 < originalLocalEnd) {
-                    result.setFromLocal(globalTransform, localPosition, localNormal, start, direction, end)
+                if (bestLocalDistance < localMaxDistance2) {
+                    result.setFromLocal(globalTransform, localHit, localNormal, start, direction, end)
                 }
 
             }
@@ -339,7 +356,7 @@ object Raycast {
         JomlPools.mat4x3d.sub(2)
 
         if (result.distance < original) {
-            direction.mulAdd(result.distance, start, end) // end = start + distance * end, needed for colliders
+            direction.mulAdd(result.distance, start, end) // end = start + distance * dir, needed for colliders
             // LOGGER.info("Hit ${mesh.prefab!!.source.nameWithoutExtension.withLength(5)} @ ${result.distance.f3()} from ${original.f3()}")
         }
 

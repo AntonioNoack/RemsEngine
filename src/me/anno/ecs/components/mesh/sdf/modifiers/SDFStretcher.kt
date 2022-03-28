@@ -31,7 +31,7 @@ class SDFStretcher() : PositionMapper() {
 
     var halfExtends = Vector3f()
         set(value) {
-            if(dynamicExtends) invalidateBounds()
+            if (dynamicExtends) invalidateBounds()
             else invalidateShader()
             field.set(value)
             field.x = max(field.x, 0f)
@@ -101,10 +101,12 @@ class SDFStretcher() : PositionMapper() {
         pos.y = pos.y - clamp(pos.y, -ey, ey)
         pos.z = pos.z - clamp(pos.z, -ez, ez)
         // correction for inside
-        pos.w += min(max(pos.x, max(pos.y, pos.z)), 0f)
-        pos.x = max(pos.x, 0f)
-        pos.y = max(pos.y, 0f)
-        pos.z = max(pos.z, 0f)
+        if (accurateInsides) {
+            pos.w += min(max(ex, max(ey, ez)), 0f)
+            /*pos.x = max(pos.x, 0f)
+            pos.y = max(pos.y, 0f)
+            pos.z = max(pos.z, 0f)*/
+        }
     }
 
     override fun clone(): SDFStretcher {

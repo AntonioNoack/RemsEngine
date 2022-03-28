@@ -11,19 +11,18 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.image.ImageWriter
 import me.anno.input.Input
 import me.anno.ui.debug.TestDrawPanel
+import me.anno.utils.Color.rgba
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Matrix3f
 import org.joml.Quaternionf
 import org.joml.Vector3f
-import kotlin.concurrent.thread
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.tan
 
 // todo sdf fractals
 // todo sdf material properties
-// todo sdf ecs integration & bounds
 
 fun testCPU(finalShape: SDFComponent, camPosition: Vector3f, fovFactor: Float) {
     // test the cpu implementation by using it to calculate a frame as well
@@ -40,11 +39,12 @@ fun testCPU(finalShape: SDFComponent, camPosition: Vector3f, fovFactor: Float) {
         val distance = finalShape.raycast(camPosition, dir, 0.1f, 100f, 200, 0.5f)
         dir.mul(distance).add(camPosition)
         if (distance.isFinite()) {
-            val normal = finalShape.calcNormal(dir, dir)
+            val normal = finalShape.calcNormal(dir, dir).mul(0.5f).add(0.5f,0.5f,0.5f)
             if (normal.x in -1f..1f) {
-                val color = ((normal.x * 100f).toInt() + 155) * 0x10101
+                rgba(normal.x, normal.y, normal.z, 1f)
+                /*val color = ((normal.x * 100f).toInt() + 155) * 0x10101
                 JomlPools.vec3f.sub(1)
-                color
+                color*/
             } else 0xff0000
         } else {
             JomlPools.vec3f.sub(1)
@@ -86,7 +86,8 @@ fun createTestShader(tree: SDFComponent): Pair<HashMap<String, TypeValue>, BaseS
             "   if(ray.y < 0.0) discard;\n" +
             "   vec3 hit = camPosition + ray.x * dir;\n" +
             "   vec3 normal = calcNormal(hit, sdfNormalEpsilon);\n" +
-            "   gl_FragColor = vec4(vec3(dot(normal,sunDir)*.4+.8), 1.0);\n" +
+            // "   gl_FragColor = vec4(vec3(dot(normal,sunDir)*.4+.8), 1.0);\n" +
+            "   gl_FragColor = vec4(normal*.5+.5, 1.0);\n" +
             "}")
 }
 
@@ -186,12 +187,14 @@ fun createShape(): SDFComponent {
         val obj4 = SDFCylinder()
         obj4.smoothness = 0.1f
         obj4.dynamicSmoothness = true
+        // todo hexagon is slightly broken on cpu side
         val obj5 = SDFHexPrism()
         obj5.smoothness = 0.1f
         obj5.dynamicSmoothness = true
         obj5.dynamicRotation = true
         obj5.scale = 0.5f
         obj5.addChild(SDFStretcher(0.3f, 0f, 0f))
+        // todo stairs are broken on cpu side
         val obj6 = SDFStairs()
         obj6.boundZ(-1f, +1f)
         obj6.addChild(SDFRoundness())
@@ -205,15 +208,15 @@ fun createShape(): SDFComponent {
         // obj8.addChild(SDFOnion(0.2f, 1))
         obj8.boundZ(+0.5f, +1f)
         val group = SDFGroup()
-        group.addChild(obj0)
-        group.addChild(obj1)
-        group.addChild(obj2)
-        group.addChild(obj4)
+        //group.addChild(obj0)
+        //group.addChild(obj1)
+        //group.addChild(obj2)
         group.addChild(obj3)
-        group.addChild(obj5)
-        group.addChild(obj6)
-        group.addChild(obj7)
-        group.addChild(obj8)
+        //group.addChild(obj4)
+        // group.addChild(obj5)
+        // group.addChild(obj6)
+        /*group.addChild(obj7)
+        group.addChild(obj8)*/
         //group.addChild(SDFOnion())
         //group.addChild(SDFHalfSpace())
         return group
@@ -233,7 +236,7 @@ fun createShape(): SDFComponent {
     val array = SDFArray()
     array.cellSize.set(4f)
     // array.count.set(4, 1, 5)
-    group2.addChild(array)
+    // group2.addChild(array)
     val hexGrid = SDFHexGrid()
     hexGrid.lim1.set(2f)
     hexGrid.lim2.set(2f)
@@ -244,24 +247,16 @@ fun createShape(): SDFComponent {
 
 fun main() {
 
-    fun dynamicThread(run: () -> Unit) {
-        thread {
-            while (!Engine.shutdown) {
-                run(run)
-                Thread.sleep(3)
-            }
-        }
-    }
-
     // render test of shapes
     // we could try to recreate some basic samples from IQ with our nodes :)
 
     // this would ideally test our capabilities
-    val camPosition = Vector3f(0f, 3f, 5f)
+    val camPosition = Vector3f(0f, 0f, 4f)
     val fovDegrees = 90f
 
     val finalShape = createShape()
     val fovFactor = tan(fovDegrees.toRadians() * 0.5f)
-    // testCPU(finalShape, camPosition, fovFactor)
+    testCPU(finalShape, camPosition, fovFactor)
     testGPU(finalShape, camPosition, fovFactor)
+
 }

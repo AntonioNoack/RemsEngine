@@ -191,11 +191,11 @@ object Triangles {
     }
 
     fun linePointTFactor(start: Vector3fc, dir: Vector3fc, px: Float, py: Float, pz: Float): Float {
-        return dir.dot(px, py, pz) - dir.dot(start)
+        return max(dir.dot(px, py, pz) - dir.dot(start), 0f)
     }
 
     fun linePointTFactor(start: Vector3dc, dir: Vector3dc, px: Double, py: Double, pz: Double): Double {
-        return dir.dot(px, py, pz) - dir.dot(start)
+        return max(dir.dot(px, py, pz) - dir.dot(start), 0.0)
     }
 
     /**

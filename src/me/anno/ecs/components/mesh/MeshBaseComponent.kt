@@ -56,16 +56,17 @@ abstract class MeshBaseComponent : CollidingComponent() {
         typeMask: Int,
         includeDisabled: Boolean,
         result: RayHit
-    ) {
+    ): Boolean {
         val mesh = getMesh()
-        if (mesh != null && Raycast.raycastTriangleMesh(
-                entity, mesh, start, direction, end,
+        return if (mesh != null && Raycast.raycastTriangleMesh(
+                entity, this, mesh, start, direction, end,
                 radiusAtOrigin, radiusPerUnit, result
             )
         ) {
             result.mesh = mesh
             result.component = this
-        }
+            true
+        } else false
     }
 
     override fun onChangeStructure(entity: Entity) {

@@ -7,6 +7,7 @@ import me.anno.maths.Maths.SQRT2F
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
+import org.joml.AABBf
 import org.joml.Vector4f
 import kotlin.math.abs
 import kotlin.math.sign
@@ -14,6 +15,12 @@ import kotlin.math.sqrt
 
 @Suppress("unused")
 class SDFHeart : SDF2DShape() {
+
+    override fun calculateBaseBounds(dst: AABBf) {
+        dst.setMin(-0.60f, -0.55f, Float.NEGATIVE_INFINITY)
+        dst.setMax(+0.60f, +0.55f, Float.POSITIVE_INFINITY)
+        super.calculateBaseBounds(dst)
+    }
 
     override fun buildShader(
         builder: StringBuilder,
@@ -36,7 +43,7 @@ class SDFHeart : SDF2DShape() {
     override fun computeSDFBase(pos: Vector4f): Float {
         applyTransform(pos)
         val px = abs(pos.x)
-        val py = pos.y
+        val py = pos.y + 0.55f
         return if (px + py > 1f) sqrt(sq(px - 0.25f, py - 0.75f)) - SQRT2F * 0.25f
         else {
             val di = 0.5f * max(px + py, 0f)
@@ -56,11 +63,12 @@ class SDFHeart : SDF2DShape() {
         // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez
         private const val heartSDF = "" +
                 "float sdHeart(vec2 p){\n" +
-                "    p.x = abs(p.x);\n" +
-                "    if(p.y+p.x>1.0)\n" +
-                "        return sqrt(dot2(p-vec2(0.25,0.75))) - sqrt(2.0)/4.0;\n" +
-                "    return sqrt(min(dot2(p-vec2(0.00,1.00)),\n" +
-                "                    dot2(p-0.5*max(p.x+p.y,0.0)))) * sign(p.x-p.y);\n" +
+                "   p.y += 0.55;\n" + // centering
+                "   p.x = abs(p.x);\n" +
+                "   if(p.y+p.x>1.0)\n" +
+                "       return sqrt(dot2(p-vec2(0.25,0.75))) - sqrt(2.0)/4.0;\n" +
+                "   return sqrt(min(dot2(p-vec2(0.00,1.00)),\n" +
+                "                   dot2(p-0.5*max(p.x+p.y,0.0)))) * sign(p.x-p.y);\n" +
                 "}\n"
     }
 

@@ -277,7 +277,7 @@ object ImageWriter {
     ) {
         val img = BufferedImage(w, h, if (alpha) 2 else 1)
         val buffer = img.raster.dataBuffer
-        processBalanced2d(0, 0, w, h, tileSize, minPerThread / (tileSize * tileSize)) { x0, y0, x1, y1 ->
+        processBalanced2d(0, 0, w, h, tileSize, max(minPerThread / (tileSize * tileSize), 1)) { x0, y0, x1, y1 ->
             for (y in y0 until y1) {
                 var i = y * w + x0
                 for (x in x0 until x1) {

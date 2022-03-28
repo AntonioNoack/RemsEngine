@@ -59,8 +59,8 @@ class SDFStairs : SDF2DShape() {
             sq(px1 - bax, py1 - clamp(py1, 0f, bay))
         )
         var s = sign(max(-py1, px1 - bax))
+        ///////////////////////////////////////////////////////////////
         val dia = sq(w, h)
-        // todo check if this is correct (sign-wise)
         // rotate
         val px2 = +px1 * w + py1 * h
         val py2 = -px1 * h + py1 * w
@@ -69,6 +69,7 @@ class SDFStairs : SDF2DShape() {
         // rotate other way around
         var px4 = +px3 * w - py2 * h
         var py4 = +px3 * h + py2 * w
+        ///////////////////////////////////////////////////////////////
         val hh = h * 0.5f
         py4 -= hh
         if (py4 > hh * sign(px4)) s = 1f
@@ -78,6 +79,7 @@ class SDFStairs : SDF2DShape() {
         }
         d = min(d, sq(px4, py4 - clamp(py4, -hh, hh)))
         d = min(d, sq(px4 - clamp(px4, 0f, w), py4 - hh))
+        ///////////////////////////////////////////////////////////////
         return sqrt(d) * s
     }
 
@@ -105,20 +107,23 @@ class SDFStairs : SDF2DShape() {
                 "   float d = min(dot2(p-vec2(clamp(p.x,0.0,ba.x),0.0)), \n" +
                 "                 dot2(p-vec2(ba.x,clamp(p.y,0.0,ba.y))));\n" +
                 "   float s = sign(max(-p.y,p.x-ba.x) );\n" +
-                "\n" +
-                "    float dia = dot2(wh);\n" +
-                "    p = mat2(wh.x,-wh.y,wh.y,wh.x)*p;\n" +
-                "    float id = clamp(round(p.x/dia),0.0,n-1.0);\n" +
-                "    p.x = p.x - id*dia;\n" +
-                "    p = mat2(wh.x,wh.y,-wh.y,wh.x)*p/dia;\n" +
-                "\n" +
+
+                "   float dia = dot2(wh);\n" +
+                "   p = mat2(wh.x,-wh.y,wh.y,wh.x)*p;\n" +
+                // here is p.x and p.y correct
+                "   float id = clamp(round(p.x/dia),0.0,n-1.0);\n" +
+                "   p.x = p.x - id*dia;\n" +
+                "   p = mat2(wh.x,wh.y,-wh.y,wh.x)*p/dia;\n" +
+                // todo here all shapes seem to be approx. correct
                 "   float hh = wh.y/2.0;\n" +
                 "   p.y -= hh;\n" +
                 "   if(p.y>hh*sign(p.x)) s=1.0;\n" +
                 "   p = (id<0.5 || p.x>0.0) ? p : -p;\n" +
+                // todo here everything goes wrong...
+                // steps
                 "   d = min( d, dot2(p-vec2(0.0,clamp(p.y,-hh,hh))) );\n" +
                 "   d = min( d, dot2(p-vec2(clamp(p.x,0.0,wh.x),hh)) );\n" +
-                "\n" +
+
                 "   return sqrt(d)*s;" +
                 "}\n"
     }

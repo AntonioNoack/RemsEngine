@@ -6,6 +6,8 @@ import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.mesh.sdf.modifiers.DistanceMapper
 import me.anno.ecs.components.mesh.sdf.modifiers.PositionMapper
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.raycast.Projection.projectRayToAABBBack
+import me.anno.engine.raycast.Projection.projectRayToAABBFront
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.Raycast
 import me.anno.gpu.shader.GLSLType
@@ -13,6 +15,7 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
+import me.anno.maths.Maths.sq
 import me.anno.mesh.Shapes
 import me.anno.ui.editor.stacked.Option
 import me.anno.utils.pooling.JomlPools
@@ -28,6 +31,7 @@ import me.anno.utils.types.AABBs.deltaZ
 import me.anno.utils.types.AABBs.set
 import me.anno.utils.types.AABBs.transformReplace
 import me.anno.utils.types.Matrices.set2
+import org.apache.logging.log4j.LogManager
 import org.joml.*
 import kotlin.math.abs
 
@@ -207,7 +211,6 @@ open class SDFComponent : ProceduralMesh() {
         return typeMask.and(Raycast.TRIANGLES) != 0 || typeMask.and(Raycast.SDFS) != 0
     }
 
-    // todo for click id, we probably should use the findClosestComponent-logic
     override fun raycast(
         entity: Entity,
         start: Vector3d,
@@ -218,9 +221,8 @@ open class SDFComponent : ProceduralMesh() {
         typeMask: Int,
         includeDisabled: Boolean,
         result: RayHit
-    ) {
-        // todo move components correctly in editor
-        if (typeMask.and(Raycast.SDFS) == 0) {
+    ): Boolean {
+        return if (typeMask.and(Raycast.SDFS) == 0) {
             // approximately only
             super.raycast(
                 entity, start, direction, end,
@@ -229,36 +231,41 @@ open class SDFComponent : ProceduralMesh() {
             )
         } else {
             // raycast
-            // todo raycast subcomponents separately
             val globalTransform = entity.transform.globalTransform // local -> global
-            val globalInv = JomlPools.mat4x3d.create().set(globalTransform).invert()
-            val localStart = JomlPools.vec3f.create()
-            val localDir = JomlPools.vec3f.create()
-            val localEnd = JomlPools.vec3f.create()
-            localStart.set(globalInv.transformPosition(start, JomlPools.vec3d.create()))
-            localDir.set(globalInv.transformDirection(direction, JomlPools.vec3d.create()))
+            val globalInv = result.tmpMat4x3d.set(globalTransform).invert()
+            val vec3f = result.tmpVector3fs
+            val vec3d = result.tmpVector3ds
+            val vec4f = result.tmpVector4fs
+            // compute ray positions in the wild
+            val localSrt0 = globalInv.transformPosition(start, vec3d[0])
+            val localDir0 = globalInv.transformDirection(direction, vec3d[1]).normalize()
+            val localEnd0 = globalInv.transformPosition(end, vec3d[2])
+            // project start & end onto aabb for better results in single precision
+            val maxLocalDistanceSq0 = localSrt0.distanceSquared(localEnd0)
+            val startOffset = projectRayToAABBFront(localSrt0, localDir0, localAABB, dst = localSrt0)
+            projectRayToAABBBack(localEnd0, localDir0, localAABB, dst = localEnd0)
+            val localSrt = vec3f[0].set(localSrt0)
+            val localDir = vec3f[1].set(localDir0)
+            val localEnd = vec3f[2].set(localEnd0)
             val near = 0f
-            // todo also try to stay within reasonable bounds :)
-            localEnd.set(globalInv.transformPosition(end, JomlPools.vec3d.create()))
-            val far = localStart.distance(localEnd)
+            val far = localSrt.distance(localEnd)
             val maxSteps = max(maxSteps, 250)
+            // todo if already inside body, return it?
             // we could use different parameters for higher accuracy...
-            val localDistance = raycast(localStart, localStart, near, far, maxSteps)
-            if (localDistance.isFinite()) {
-                val localHit = JomlPools.vec3f.create().set(localDir).mul(localDistance).add(localStart)
-                val localNormal = calcNormal(localHit, JomlPools.vec3f.create(), normalEpsilon)
-                val bestHit = findClosestComponent(JomlPools.vec4f.borrow().set(localHit, 0f))
+            val localDistance = raycast(localSrt, localDir, near, far, maxSteps)
+            val localDistance0 = localDistance + startOffset
+            if (sq(localDistance0) < maxLocalDistanceSq0) {
+                val localHit = vec3f[3].set(localDir).mul(localDistance).add(localSrt)
+                val localNormal = calcNormal(localHit, vec3f[4], normalEpsilon)
+                val bestHit = findClosestComponent(vec4f[0].set(localHit, 0f))
                 result.setFromLocal(
                     globalTransform,
-                    localStart, localDir, localDistance, localNormal,
+                    localHit, localNormal,
                     start, direction, end
                 )
                 result.component = bestHit
-                JomlPools.vec3f.sub(2)
-            }
-            JomlPools.vec3f.sub(3)
-            JomlPools.vec3d.sub(3)
-            JomlPools.mat4x3d.sub(1)
+                true
+            } else false
         }
     }
 
@@ -473,10 +480,11 @@ open class SDFComponent : ProceduralMesh() {
         var distance = near
         val pos = JomlPools.vec4f.create()
         for (i in 0 until maxSteps) {
-            pos.x = origin.x + distance * direction.x
-            pos.y = origin.y + distance * direction.y
-            pos.z = origin.z + distance * direction.z
-            pos.w = 0f
+            pos.set(
+                origin.x + distance * direction.x,
+                origin.y + distance * direction.y,
+                origin.z + distance * direction.z, 0f
+            )
             val sd = computeSDF(pos)
             if (abs(sd) <= maxRelativeError * distance) {
                 JomlPools.vec4f.sub(1)
@@ -674,6 +682,8 @@ open class SDFComponent : ProceduralMesh() {
     override val className: String = "SDFComponent"
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(SDFComponent::class)
 
         val sdfTransPool = ObjectPool { SDFTransform() }
 

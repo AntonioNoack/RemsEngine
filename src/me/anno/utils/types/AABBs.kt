@@ -452,16 +452,19 @@ object AABBs {
     fun testLineAABB(aabb: AABBd, start: Vector3d, dir: Vector3d, length: Double): Boolean {
         if (aabb.isEmpty()) return false
         // bring the line towards the aabb center, so the JOML check actually works correctly for huge numbers
-        var ox = (aabb.minX + aabb.maxX) * 0.5
+        // -> no, that's incorrect!!!
+        // to do at maximum, project the point to the front of the bbx
+        /*var ox = (aabb.minX + aabb.maxX) * 0.5
         var oy = (aabb.minY + aabb.maxY) * 0.5
         var oz = (aabb.minZ + aabb.maxZ) * 0.5
-        if (ox.isNaN()) ox = 0.0 // can happen if aabb is -Inf..Inf
-        if (oy.isNaN()) oy = 0.0
-        if (oz.isNaN()) oz = 0.0
-        val c = linePointTFactor(start, dir, ox, oy, oz)
+        if (ox.isNaN()) ox = start.x // can happen if aabb is -Inf..Inf
+        if (oy.isNaN()) oy = start.y
+        if (oz.isNaN()) oz = start.z*/
+        val c = 0.0 // linePointTFactor(start, dir, ox, oy, oz)
         val sx = start.x + c * dir.x
         val sy = start.y + c * dir.y
         val sz = start.z + c * dir.z
+        // println("$sx $sy $sz from $start, $dir X $aabb -> ${aabb.testRay(sx,sy,sz,dir.x,dir.y,dir.z)} && ${distanceSquared(aabb, start)} <= ${dir.lengthSquared()} * $length² = ${dir.lengthSquared() * length * length}")
         return aabb.testRay(sx, sy, sz, dir.x, dir.y, dir.z) &&
                 distanceSquared(aabb, start) <= dir.lengthSquared() * length * length
     }
@@ -474,14 +477,15 @@ object AABBs {
      * */
     fun testLineAABB(aabb: AABBf, start: Vector3f, dir: Vector3f, length: Double): Boolean {
         if (aabb.isEmpty()) return false
+        // no!!!, see double version
         // bring the line towards the aabb center, so the JOML check actually works correctly for huge numbers
-        var ox = (aabb.minX + aabb.maxX) * 0.5f
+        /*var ox = (aabb.minX + aabb.maxX) * 0.5f
         var oy = (aabb.minY + aabb.maxY) * 0.5f
         var oz = (aabb.minZ + aabb.maxZ) * 0.5f
-        if (ox.isNaN()) ox = 0f
-        if (oy.isNaN()) oy = 0f
-        if (oz.isNaN()) oz = 0f
-        val c = linePointTFactor(start, dir, ox, oy, oz)
+        if (ox.isNaN()) ox = start.x
+        if (oy.isNaN()) oy = start.y
+        if (oz.isNaN()) oz = start.z*/
+        val c = 0f // linePointTFactor(start, dir, ox, oy, oz)
         val sx = start.x + c * dir.x
         val sy = start.y + c * dir.y
         val sz = start.z + c * dir.z
