@@ -61,7 +61,6 @@ class SDFTorus : SDFShape() {
     }
 
     override fun computeSDFBase(pos: Vector4f): Float {
-        applyTransform(pos)
         val t0 = params
         val tx = t0.x - t0.y
         val ty = t0.y

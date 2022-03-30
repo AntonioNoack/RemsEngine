@@ -143,7 +143,8 @@ class SplineMesh : ProceduralMesh() {
     }
 
     override fun generateMesh(mesh: Mesh) {
-        val points = entity!!.children.mapNotNull { it.getComponent(SplineControlPoint::class) }
+        val entity = entity ?: return
+        val points = entity.children.mapNotNull { it.getComponent(SplineControlPoint::class) }
         when (points.size) {
             0, 1 -> LOGGER.warn("SplineMesh has not enough points, only ${points.size}")
             2 -> set(generateLineMesh(points[0], points[1]))

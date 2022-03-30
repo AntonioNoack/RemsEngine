@@ -540,6 +540,10 @@ abstract class TextReaderBase : BaseReader() {
         { BooleanArray(it) }, { readBool() },
         { array, index, value -> array[index] = value })
 
+    fun readCharArray() = readTypedArray("char",
+        { CharArray(it) }, { readChar() },
+        { array, index, value -> array[index] = value })
+
     fun readByteArray() = readTypedArray("byte",
         { ByteArray(it) }, { readByte() },
         { array, index, value -> array[index] = value })
@@ -596,6 +600,12 @@ abstract class TextReaderBase : BaseReader() {
                 { Array(it) { boolArray0 } }, { readBoolArray() },
                 { array, index, value -> array[index] = value }
             ))
+            "c[]" -> obj.readCharArray(name, readCharArray())
+            "c[][]" -> obj.readCharArray2D(
+                name, readTypedArray("char[]",
+                    { Array(it) { charArray0 } }, { readCharArray() },
+                    { array, index, value -> array[index] = value })
+            )
             "i8[]", "B[]" -> obj.readByteArray(name, readByteArray())
             "i8[][]", "B[][]" -> obj.readByteArray2D(name, readTypedArray("byte[]",
                 { Array(it) { byteArray0 } }, { readByteArray() },
@@ -892,6 +902,7 @@ abstract class TextReaderBase : BaseReader() {
 
     companion object {
         private val boolArray0 = BooleanArray(0)
+        private val charArray0 = CharArray(0)
         private val shortArray0 = ShortArray(0)
         private val byteArray0 = ByteArray(0)
         private val intArray0 = IntArray(0)

@@ -61,7 +61,7 @@ class SoundBuffer() : ICacheData {
     fun loadWAV(waveData: WaveData) {
         ensurePointer()
         data = waveData.data.asShortBuffer()
-        alBufferData(pointer, waveData.format, waveData.data, waveData.samplerate)
+        alBufferData(pointer, waveData.format, waveData.data, waveData.sampleRate)
         waveData.dispose() // probably not required...
         ALBase.check()
     }
@@ -80,7 +80,7 @@ class SoundBuffer() : ICacheData {
         val name = file.name
         when (val ending = name.split('.').last().lowercase(Locale.getDefault())) {
             "ogg" -> loadOGG(file)
-            "wav" -> loadWAV(WaveData.create(file.inputStream()))
+            "wav" -> loadWAV(WaveData.create(file.inputStream())!!)
             else -> throw RuntimeException("Unknown audio format $ending!")
         }
     }

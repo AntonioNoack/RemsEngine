@@ -1,9 +1,11 @@
 package me.anno.language.spellcheck
 
 import me.anno.Engine
+import me.anno.language.Language
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.ceilDiv
 import me.anno.utils.Sleep
+import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.types.Floats.formatPercent
 import org.apache.logging.log4j.LogManager
@@ -16,7 +18,7 @@ fun main() {
     // with a dictionary, it could find words automatically
     // so it can just display all substrings in the field nicely,
     // which is already a great help
-    // (homework of my (girl)friend)
+    // homework of my (ex-girl)friend
     /*findWords(
         listOf(
             "mdyeersgdwtjgng",
@@ -36,7 +38,8 @@ fun main() {
             "psvteprdyjjolvj"
         )
     )*/
-    findWords(
+    // Instagram riddle
+    /*findWords(
         listOf(
             "cayudchiuiiweml",
             "dhqxzntqmvabtaw",
@@ -53,6 +56,22 @@ fun main() {
             "ezchdralpxgzlzb",
             "wlhetukdqvigsvv",
             "jcglyrykxlhefzx"
+        )
+    )*/
+    // for my brother
+    Spellchecking.defaultLanguage = Language.French
+    findWords(
+        listOf(
+            "surveillant",
+            "imémsorgioc",
+            "cocatfiamfi",
+            "lsruliprirn",
+            "aiécoleçraq",
+            "sxaidluotnu",
+            "sitxueinaçi",
+            "eèiélèvehaè",
+            "amodicourim",
+            "rentréebase"
         )
     )
 }
@@ -110,7 +129,7 @@ fun checkSubWords(total: String) {
     if (total.length == minLength) checkWord(total)
     else if (total.length > minLength) {
         for (startIndex in 0 until total.length - minLength) {
-            for (endIndex in startIndex + minLength until total.length) {
+            for (endIndex in startIndex + minLength .. total.length) {
                 val word = total.substring(startIndex, endIndex)
                 if (word.length < minLength) throw RuntimeException()
                 checkWord(word)

@@ -7,6 +7,7 @@ import me.anno.maths.Maths.max
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBf
 import org.joml.Vector3f
+import org.joml.Vector4f
 
 // todo more 2d shapes
 // https://www.iquilezles.org/www/articles/distfunctions2d/distfunctions2d.htm
@@ -33,6 +34,18 @@ open class SDF2DShape : SDFShape() {
                 field = value
             }
         }
+
+    override fun applyTransform(pos: Vector4f) {
+        super.applyTransform(pos)
+        when (axes) {
+            "xy" -> pos.z = 0f
+            "yx" -> pos.set(pos.y, pos.x, 0f)
+            "xz" -> pos.set(pos.x, pos.z, 0f)
+            "zx" -> pos.set(pos.z, pos.x, 0f)
+            "yz" -> pos.set(pos.y, pos.z, 0f)
+            "zy" -> pos.set(pos.z, pos.y, 0f)
+        }
+    }
 
     fun writeFuncInput(builder: StringBuilder, posIndex: Int) {
         val axes = axes

@@ -5,15 +5,13 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.cache.MaterialCache
 import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.ecs.components.collider.Collider
-import me.anno.ecs.components.mesh.AnimRenderer
+import me.anno.ecs.components.anim.AnimRenderer
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
-import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
-import me.anno.engine.ui.render.RenderView.Companion.worldScale
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.GFXx3D.shader3DUniforms
 import me.anno.gpu.drawing.GFXx3D.transformUniform

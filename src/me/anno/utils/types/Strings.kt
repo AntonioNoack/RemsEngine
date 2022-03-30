@@ -104,14 +104,13 @@ object Strings {
     }
 
     fun Double.formatTime(fractions: Int = 0): String {
-        if (fractions > 0) {
-            val fractionString = "%.${fractions}f".format(Locale.ENGLISH, fract(this))
-            return formatTime(0) + fractionString.substring(1)
-        }
+        val fractionString = if (fractions > 0) {
+            "%.${fractions}f".format(Locale.ENGLISH, fract(this)).substring(1)
+        } else ""
         val seconds = toLong()
-        if (seconds < 60) return "${seconds}s"
-        if (seconds < 3600) return "${seconds / 60}m ${seconds % 60}s"
-        return "${seconds / 3600}h ${(seconds / 60) % 60}m ${seconds % 60}s"
+        if (seconds < 60) return "${seconds}${fractionString}s"
+        if (seconds < 3600) return "${seconds / 60}m ${seconds % 60}${fractionString}s"
+        return "${seconds / 3600}h ${(seconds / 60) % 60}m ${seconds % 60}${fractionString}s"
     }
 
     fun Double?.formatTime2(fractions: Int): String {

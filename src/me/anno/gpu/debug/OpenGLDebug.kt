@@ -1,63 +1,46 @@
-package me.anno.gpu.debug;
+package me.anno.gpu.debug
 
-import static org.lwjgl.opengl.KHRDebug.*;
+import org.lwjgl.opengl.KHRDebug
 
-public class OpenGLDebug {
+object OpenGLDebug {
 
-    public static String getDebugSourceName(int source) {
-        switch (source) {
-            case GL_DEBUG_SOURCE_API:
-                return "API";
-            case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
-                return "WINDOW_SYSTEM";
-            case GL_DEBUG_SOURCE_SHADER_COMPILER:
-                return "SHADER_COMPILER";
-            case GL_DEBUG_SOURCE_THIRD_PARTY:
-                return "THIRD_PARTY";
-            case GL_DEBUG_SOURCE_APPLICATION:
-                return "APPLICATION";
-            case GL_DEBUG_SOURCE_OTHER:
-                return "OTHER";
+    @JvmStatic
+    fun getDebugSourceName(source: Int): String {
+        return when (source) {
+            KHRDebug.GL_DEBUG_SOURCE_API -> "API"
+            KHRDebug.GL_DEBUG_SOURCE_WINDOW_SYSTEM -> "WINDOW_SYSTEM"
+            KHRDebug.GL_DEBUG_SOURCE_SHADER_COMPILER -> "SHADER_COMPILER"
+            KHRDebug.GL_DEBUG_SOURCE_THIRD_PARTY -> "THIRD_PARTY"
+            KHRDebug.GL_DEBUG_SOURCE_APPLICATION -> "APPLICATION"
+            KHRDebug.GL_DEBUG_SOURCE_OTHER -> "OTHER"
+            else -> source.toString()
         }
-        return Integer.toString(source);
     }
 
-    public static String getDebugTypeName(int type) {
-        switch (type) {
-            case GL_DEBUG_TYPE_ERROR:
-                return "ERROR";
-            case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
-                return "DEPRECATED_BEHAVIOR";
-            case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
-                return "UNDEFINED_BEHAVIOR";
-            case GL_DEBUG_TYPE_PORTABILITY:
-                return "PORTABILITY";
-            case GL_DEBUG_TYPE_PERFORMANCE:
-                return "PERFORMANCE";
-            case GL_DEBUG_TYPE_MARKER:
-                return "MARKER";
-            case GL_DEBUG_TYPE_PUSH_GROUP:
-                return "PUSH_GROUP";
-            case GL_DEBUG_TYPE_POP_GROUP:
-                return "POP_GROUP";
-            case GL_DEBUG_TYPE_OTHER:
-                return "OTHER";
+    @JvmStatic
+    fun getDebugTypeName(type: Int): String {
+        return when (type) {
+            KHRDebug.GL_DEBUG_TYPE_ERROR -> "ERROR"
+            KHRDebug.GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR -> "DEPRECATED_BEHAVIOR"
+            KHRDebug.GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR -> "UNDEFINED_BEHAVIOR"
+            KHRDebug.GL_DEBUG_TYPE_PORTABILITY -> "PORTABILITY"
+            KHRDebug.GL_DEBUG_TYPE_PERFORMANCE -> "PERFORMANCE"
+            KHRDebug.GL_DEBUG_TYPE_MARKER -> "MARKER"
+            KHRDebug.GL_DEBUG_TYPE_PUSH_GROUP -> "PUSH_GROUP"
+            KHRDebug.GL_DEBUG_TYPE_POP_GROUP -> "POP_GROUP"
+            KHRDebug.GL_DEBUG_TYPE_OTHER -> "OTHER"
+            else -> type.toString()
         }
-        return Integer.toString(type);
     }
 
-    public static String getDebugSeverityName(int type) {
-        switch (type) {
-            case GL_DEBUG_SEVERITY_HIGH:
-                return "HIGH";
-            case GL_DEBUG_SEVERITY_MEDIUM:
-                return "MEDIUM";
-            case GL_DEBUG_SEVERITY_LOW:
-                return "LOW";
-            case GL_DEBUG_SEVERITY_NOTIFICATION:
-                return "NOTIFICATION";
+    @JvmStatic
+    fun getDebugSeverityName(type: Int): String {
+        return when (type) {
+            KHRDebug.GL_DEBUG_SEVERITY_HIGH -> "HIGH"
+            KHRDebug.GL_DEBUG_SEVERITY_MEDIUM -> "MEDIUM"
+            KHRDebug.GL_DEBUG_SEVERITY_LOW -> "LOW"
+            KHRDebug.GL_DEBUG_SEVERITY_NOTIFICATION -> "NOTIFICATION"
+            else -> type.toString()
         }
-        return Integer.toString(type);
     }
-
 }

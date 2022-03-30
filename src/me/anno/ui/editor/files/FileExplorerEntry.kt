@@ -36,6 +36,7 @@ import me.anno.io.trash.TrashManager.moveToTrash
 import me.anno.io.zip.InnerLinkFile
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.mixARGB
+import me.anno.maths.Maths.roundDiv
 import me.anno.maths.Maths.sq
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
@@ -62,10 +63,7 @@ import me.anno.video.formats.gpu.GPUFrame
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
-import kotlin.math.ceil
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.roundToInt
+import kotlin.math.*
 
 // todo when dragging files over the edge of the border, mark them as copied, or somehow make them draggable...
 
@@ -458,25 +456,34 @@ class FileExplorerEntry(
                     }
                     else -> {
                         val meta = getMeta(path, true)
-                        var ttt = "${file.name}\n${file.length().formatFileSize()}"
+                        val ttt = StringBuilder()
+                        ttt.append(file.name).append('\n')
+                        ttt.append(file.length().formatFileSize())
                         if (meta != null) {
                             if (meta.hasVideo) {
-                                ttt += "\n${meta.videoWidth} x ${meta.videoHeight}"
-                                if (meta.videoFrameCount > 1) ttt += " @" + meta.videoFPS.f1() + " fps"
+                                ttt.append('\n').append(meta.videoWidth).append(" x ").append(meta.videoHeight)
+                                if (meta.videoFrameCount > 1) ttt.append(" @").append(meta.videoFPS.f1()).append(" fps")
                             } else {
                                 val image = ImageCPUCache.getImageWithoutGenerator(file)
                                 if (image != null) {
-                                    ttt += "\n${image.width} x ${image.height}"
+                                    ttt.append('\n').append(image.width).append(" x ").append(image.height)
                                 }
                             }
                             if (meta.hasAudio) {
-                                ttt += "\n${meta.audioSampleRate / 1000} kHz"
+                                ttt.append('\n').append(roundDiv(meta.audioSampleRate, 1000)).append(" kHz")
+                                when (meta.audioChannels) {
+                                    1 -> ttt.append(" Mono")
+                                    2 -> ttt.append(" Stereo")
+                                    else -> ttt.append(" ").append(meta.audioChannels).append(" Ch")
+                                }
                             }
                             if (meta.duration > 0 && (meta.hasAudio || (meta.hasVideo && meta.videoFrameCount > 1))) {
-                                ttt += "\n${meta.duration.formatTime()}"
+                                val duration = meta.duration
+                                val digits = if (duration < 60) max((1.5 - log10(duration)).roundToInt(), 0) else 0
+                                ttt.append('\n').append(meta.duration.formatTime(digits))
                             }
                         }
-                        ttt
+                        ttt.toString()
                     }
                 }
             }

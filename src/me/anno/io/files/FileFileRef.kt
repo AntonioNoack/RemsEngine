@@ -86,7 +86,7 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
         } else null) ?: super.listChildren()
     }
 
-    override fun getParent() = getReference(file.parentFile)
+    override fun getParent() = getReference(file.parentFile).nullIfUndefined() ?: FileRootRef
 
     override fun renameTo(newName: FileReference) = file.renameTo(File(newName.absolutePath))
 

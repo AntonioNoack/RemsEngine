@@ -2,7 +2,80 @@ package me.anno.io.binary
 
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseReader
-import me.anno.io.binary.BinaryTypes.*
+import me.anno.io.binary.BinaryTypes.AABB32
+import me.anno.io.binary.BinaryTypes.AABB64
+import me.anno.io.binary.BinaryTypes.BOOL
+import me.anno.io.binary.BinaryTypes.BOOL_ARRAY
+import me.anno.io.binary.BinaryTypes.BOOL_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.BYTE
+import me.anno.io.binary.BinaryTypes.BYTE_ARRAY
+import me.anno.io.binary.BinaryTypes.BYTE_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.CHAR
+import me.anno.io.binary.BinaryTypes.CHAR_ARRAY
+import me.anno.io.binary.BinaryTypes.CHAR_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.DOUBLE
+import me.anno.io.binary.BinaryTypes.DOUBLE_ARRAY
+import me.anno.io.binary.BinaryTypes.DOUBLE_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.FILE
+import me.anno.io.binary.BinaryTypes.FILE_ARRAY
+import me.anno.io.binary.BinaryTypes.FILE_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.FLOAT
+import me.anno.io.binary.BinaryTypes.FLOAT_ARRAY
+import me.anno.io.binary.BinaryTypes.FLOAT_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.INT
+import me.anno.io.binary.BinaryTypes.INT_ARRAY
+import me.anno.io.binary.BinaryTypes.INT_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.LONG
+import me.anno.io.binary.BinaryTypes.LONG_ARRAY
+import me.anno.io.binary.BinaryTypes.LONG_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.OBJECTS_HOMOGENOUS_ARRAY
+import me.anno.io.binary.BinaryTypes.OBJECT_ARRAY
+import me.anno.io.binary.BinaryTypes.OBJECT_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.OBJECT_IMPL
+import me.anno.io.binary.BinaryTypes.OBJECT_LIST_UNKNOWN_LENGTH
+import me.anno.io.binary.BinaryTypes.OBJECT_NULL
+import me.anno.io.binary.BinaryTypes.OBJECT_PTR
+import me.anno.io.binary.BinaryTypes.PLANE32
+import me.anno.io.binary.BinaryTypes.PLANE64
+import me.anno.io.binary.BinaryTypes.QUATERNION32
+import me.anno.io.binary.BinaryTypes.QUATERNION32_ARRAY
+import me.anno.io.binary.BinaryTypes.QUATERNION32_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.QUATERNION64
+import me.anno.io.binary.BinaryTypes.QUATERNION64_ARRAY
+import me.anno.io.binary.BinaryTypes.QUATERNION64_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.SHORT
+import me.anno.io.binary.BinaryTypes.SHORT_ARRAY
+import me.anno.io.binary.BinaryTypes.SHORT_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.STRING
+import me.anno.io.binary.BinaryTypes.STRING_ARRAY
+import me.anno.io.binary.BinaryTypes.STRING_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.VECTOR2D
+import me.anno.io.binary.BinaryTypes.VECTOR2D_ARRAY
+import me.anno.io.binary.BinaryTypes.VECTOR2D_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.VECTOR2F
+import me.anno.io.binary.BinaryTypes.VECTOR2F_ARRAY
+import me.anno.io.binary.BinaryTypes.VECTOR2F_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.VECTOR2I
+import me.anno.io.binary.BinaryTypes.VECTOR2I_ARRAY
+import me.anno.io.binary.BinaryTypes.VECTOR2I_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.VECTOR3D
+import me.anno.io.binary.BinaryTypes.VECTOR3D_ARRAY
+import me.anno.io.binary.BinaryTypes.VECTOR3D_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.VECTOR3F
+import me.anno.io.binary.BinaryTypes.VECTOR3F_ARRAY
+import me.anno.io.binary.BinaryTypes.VECTOR3F_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.VECTOR3I
+import me.anno.io.binary.BinaryTypes.VECTOR3I_ARRAY
+import me.anno.io.binary.BinaryTypes.VECTOR3I_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.VECTOR4D
+import me.anno.io.binary.BinaryTypes.VECTOR4D_ARRAY
+import me.anno.io.binary.BinaryTypes.VECTOR4D_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.VECTOR4F
+import me.anno.io.binary.BinaryTypes.VECTOR4F_ARRAY
+import me.anno.io.binary.BinaryTypes.VECTOR4F_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.VECTOR4I
+import me.anno.io.binary.BinaryTypes.VECTOR4I_ARRAY
+import me.anno.io.binary.BinaryTypes.VECTOR4I_ARRAY_2D
 import me.anno.io.files.InvalidRef
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.input.Input.readNBytes2
@@ -75,6 +148,7 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
     }
 
     private fun readBooleanArray() = BooleanArray(input.readInt()) { input.readBoolean() }
+    private fun readCharArray() = CharArray(input.readInt()) { input.readChar() }
     private fun readByteArray() = ByteArray(input.readInt()) { input.readByte() }
     private fun readShortArray() = ShortArray(input.readInt()) { input.readShort() }
     private fun readIntArray() = IntArray(input.readInt()) { input.readInt() }
@@ -84,7 +158,7 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
     private fun readStringArray() = Array(input.readInt()) { readEfficientString()!! }
 
     private fun readObjectOrNull(): ISaveable? {
-        return when (val subType = input.read().toChar()) {
+        return when (val subType = input.read()) {
             OBJECT_IMPL -> readObject()
             OBJECT_PTR -> getByPointer(input.readInt(), true)
             OBJECT_NULL -> null
@@ -94,7 +168,7 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
 
     private fun readHomogeneousObjectArray(type: String): Array<ISaveable?> {
         return readArray {
-            when (val subType = input.read().toChar()) {
+            when (val subType = input.read()) {
                 OBJECT_IMPL -> readObject(type)
                 OBJECT_PTR -> getByPointer(input.readInt(), true)
                 OBJECT_NULL -> null
@@ -113,11 +187,15 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
                 if (typeId < -1) break
                 val typeName = readTypeName(typeId)
                 val name = typeName.name
-                when (typeName.type) {
+                when (typeName.type.code) {
 
                     BOOL -> obj.readBoolean(name, input.readBoolean())
                     BOOL_ARRAY -> obj.readBooleanArray(name, readBooleanArray())
                     BOOL_ARRAY_2D -> obj.readBooleanArray2D(name, Array(input.readInt()) { readBooleanArray() })
+
+                    CHAR -> obj.readChar(name, input.readChar())
+                    CHAR_ARRAY -> obj.readCharArray(name, readCharArray())
+                    CHAR_ARRAY_2D -> obj.readCharArray2D(name, Array(input.readInt()) { readCharArray() })
 
                     BYTE -> obj.readByte(name, input.readByte())
                     BYTE_ARRAY -> obj.readByteArray(name, readByteArray())
@@ -268,9 +346,9 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
     override fun readAllInList() {
         val nameType = readTypeName()
         assert(nameType.name == "", "Expected object without a name")
-        assert(nameType.type == OBJECT_LIST_UNKNOWN_LENGTH, "Expected list of unknown length")
+        assert(nameType.type.code == OBJECT_LIST_UNKNOWN_LENGTH, "Expected list of unknown length")
         loop@ while (true) {
-            val type = input.read().toChar()
+            val type = input.read()
             if (type != OBJECT_IMPL) throw RuntimeException("Type must be OBJECT_IMPL, but got $type != $OBJECT_IMPL")
             readObject()
             when (val code = input.read()) {

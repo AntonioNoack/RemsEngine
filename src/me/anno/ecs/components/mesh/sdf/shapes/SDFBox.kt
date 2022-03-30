@@ -52,7 +52,6 @@ open class SDFBox : SDFSmoothShape() {
     }
 
     override fun computeSDFBase(pos: Vector4f): Float {
-        applyTransform(pos)
         val r = smoothness
         val b = halfExtends
         val qx = abs(pos.x) - b.x + r

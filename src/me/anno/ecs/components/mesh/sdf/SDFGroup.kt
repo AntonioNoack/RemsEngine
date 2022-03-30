@@ -258,13 +258,11 @@ class SDFGroup : SDFComponent() {
         return when (numActiveChildren) {
             0 -> Float.POSITIVE_INFINITY
             1 -> {
-                applyTransform(pos)
                 val pw = pos.w
                 pos.w = 0f
                 return (children.first { it.isEnabled }.computeSDF(pos) + pw) * scale
             }
             else -> {
-                applyTransform(pos)
                 val pw = pos.w
                 var d0 = Float.POSITIVE_INFINITY
                 val px = pos.x

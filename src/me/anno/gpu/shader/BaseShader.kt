@@ -123,20 +123,20 @@ open class BaseShader(
             return shader
         }
 
-    open fun bind(shader: Shader, renderer: Renderer, instanced: Boolean){
+    open fun bind(shader: Shader, renderer: Renderer, instanced: Boolean) {
         shader.v1i("drawMode", renderer.drawMode.id)
     }
 
     fun ignoreUniformWarnings(names: Collection<String>) {
-        ignoredUniforms+= names
+        ignoredUniforms += names
     }
 
     fun ignoreUniformWarnings(vararg names: String) {
-        ignoredUniforms+= names
+        ignoredUniforms += names
     }
 
     fun ignoreUniformWarning(name: String) {
-        ignoredUniforms+= name
+        ignoredUniforms += name
     }
 
     fun setTextureIndices(textures: List<String>?) {

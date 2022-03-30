@@ -4,31 +4,37 @@ import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.SDFComposer.dot2
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.sq
+import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Triangles.subCross
 import org.joml.AABBf
 import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sign
+import kotlin.math.sqrt
 
 open class SDFTriangle : SDFShape() {
 
     var a = Vector3f(1f, 0f, 0f)
         set(value) {
-            if(dynamicSize) invalidateBounds()
+            if (dynamicSize) invalidateBounds()
             else invalidateShader()
             field.set(value)
         }
 
     var b = Vector3f(0f, 1f, 0f)
         set(value) {
-            if(dynamicSize) invalidateBounds()
+            if (dynamicSize) invalidateBounds()
             else invalidateShader()
             field.set(value)
         }
 
     var c = Vector3f(0f, 0f, 1f)
         set(value) {
-            if(dynamicSize) invalidateBounds()
+            if (dynamicSize) invalidateBounds()
             else invalidateShader()
             field.set(value)
         }
@@ -74,9 +80,64 @@ open class SDFTriangle : SDFShape() {
         smartMinEnd(builder, dstName, nextVariableId, uniforms, functions, trans)
     }
 
+    // dot2(ba*clamp(dot(ba,pa)/dot2(ba),0.0,1.0)-pa)
+    private fun dot2Clamp(a: Vector3f, b: Vector3f, p: Vector4f): Float {
+        val dot2ba = b.lengthSquared()
+        val bax = b.x - a.x
+        val bay = b.y - a.y
+        val baz = b.z - a.z
+        val pax = p.x - a.x
+        val pay = p.y - a.y
+        val paz = p.z - a.z
+        val clamp = clamp((bax * pax + bay * pay + baz * paz) / dot2ba)
+        val fx = bax * clamp - pax
+        val fy = bay * clamp - pay
+        val fz = baz * clamp - paz
+        return sq(fx, fy, fz)
+    }
+
+    // dot(cross(ba,nor),pa)
+    private fun subCrossDot(a: Vector3f, b: Vector3f, n: Vector3f, p: Vector4f): Float {
+        val bax = b.x - a.x
+        val bay = b.y - a.y
+        val baz = b.z - a.z
+        val pax = p.x - a.x
+        val pay = p.y - a.y
+        val paz = p.z - a.z
+        val nx = n.x
+        val ny = n.y
+        val nz = n.z
+        // 23 32 = yz zy
+        // 31 13 = zx xz
+        // 12 21 = xy yx
+        val cx = bay * nz - baz * ny
+        val cy = baz * nx - bax * nz
+        val cz = bax * ny - bay * nx
+        return pax * cx + pay * cy + paz * cz
+    }
+
     override fun computeSDFBase(pos: Vector4f): Float {
-        applyTransform(pos)
-        return pos.y
+        // this is kind of working, but still incorrect :/
+        // (raycast is working fine, but normal is incorrect)
+        val a = a
+        val b = b
+        val c = c
+        val n = JomlPools.vec3f.create()
+        subCross(a, b, c, n)
+        n.mul(-1f)
+        val term = if (
+            sign(subCrossDot(a, b, n, pos)) +
+            sign(subCrossDot(a, b, n, pos)) +
+            sign(subCrossDot(a, b, n, pos)) < 2f
+        ) min(
+            min(
+                dot2Clamp(a, b, pos),
+                dot2Clamp(b, c, pos)
+            ),
+            dot2Clamp(c, a, pos)
+        ) else sq(n.dot(pos.x - a.x, pos.y - a.y, pos.z - a.z)) / n.lengthSquared()
+        JomlPools.vec3f.sub(1)
+        return sqrt(term) + pos.w
     }
 
     override fun clone(): SDFTriangle {

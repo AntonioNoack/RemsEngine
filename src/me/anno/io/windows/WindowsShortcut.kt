@@ -1,20 +1,20 @@
-package me.anno.io.windows;
+package me.anno.io.windows
 
-import me.anno.io.files.FileReference;
-
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
+import me.anno.io.files.FileReference
+import me.anno.utils.input.Input.readNBytes2
+import java.io.*
+import java.nio.charset.StandardCharsets
+import java.text.ParseException
 
 /**
  * Represents a Windows shortcut (typically visible to Java only as a '.lnk' file).
- * <p>
+ *
  * Retrieved 2011-09-23 from http://stackoverflow.com/questions/309495/windows-shortcut-lnk-parser-in-java/672775#672775
  * Originally called LnkParser
- * <p>
+ *
  * Additional information on the format can be found at
  * https://web.archive.org/web/20190625054252/http://www.i2s-lab.com/Papers/The_Windows_Shortcut_File_Format.pdf
- * <p>
+ *
  * Written by: (the stack overflow users, obviously!)
  * Dword fix for offsets within file location structure  by file extension by JS Lair https://stackoverflow.com/users/10297367/js-lair https://github.com/JSLair
  * Filtering potential links by file extension by JS Lair https://stackoverflow.com/users/10297367/js-lair https://github.com/JSLair
@@ -24,269 +24,212 @@ import java.text.ParseException;
  * Network file support added by Stefan Cordes http://stackoverflow.com/users/81330/stefan-cordes
  * Adapted by Sam Brightman http://stackoverflow.com/users/2492/sam-brightman
  * Support for additional strings (description, relative_path, working_directory, command_line_arguments) added by Max Vollmer https://stackoverflow.com/users/9199167/max-vollmer
- * Based on information in 'The Windows Shortcut File Format' by Jesse Hager &lt;jessehager@iname.com&gt;
- * And somewhat based on code from the book 'Swing Hacks: Tips and Tools for Killer GUIs'
- * by Joshua Marinacci and Chris Adamson
+ * Based on information in 'The Windows Shortcut File Format' by Jesse Hager <jessehager@iname.com>
+ * And somewhat based on code from the book 'Swing Hacks: Tips and Tools for Killer GUIs' by Joshua Marinacci and Chris Adamson
  * ISBN: 0-596-00907-0
  * http://www.oreilly.com/catalog/swinghks/
  */
-public class WindowsShortcut {
-
-    private boolean isDirectory;
-    private boolean isLocal;
-    private String real_file;
-    private String description;
-    private String relative_path;
-    private String working_directory;
-    private String command_line_arguments;
+class WindowsShortcut {
 
     /**
-     * Provides a quick test to see if this could be a valid link
-     * If you try to instantiate a new WindowShortcut and the link is not valid,
-     * Exceptions may be thrown and Exceptions are extremely slow to generate,
-     * therefore any code needing to loop through several files should first check this.
-     *
-     * @param file the potential link
-     * @return true if may be a link, false otherwise
-     * @throws IOException if an IOException is thrown while reading from the file
+     * Tests if the shortcut points to a directory.
+     * @return true if the 'directory' bit is set in this shortcut, false otherwise
      */
-    public static boolean isPotentialValidLink(final FileReference file) throws IOException {
-        final int minimum_length = 0x64;
-        if (!file.getLcExtension().equals("lnk") || file.isDirectory() || file.length() < minimum_length)
-            return false;
-        try (InputStream fis = file.inputStream()) {
-            return isMagicPresent(getBytes(fis, 32));
-        }
-    }
+    var isDirectory = false
+        private set
 
-    public WindowsShortcut(final File file) throws IOException, ParseException {
-        try (InputStream in = new FileInputStream(file)) {
-            parseLink(getBytes(in));
-        }
-    }
-
-    public WindowsShortcut(final FileReference file) throws IOException, ParseException {
-        try (InputStream in = file.inputStream()) {
-            parseLink(getBytes(in));
-        }
-    }
+    /**
+     * Tests if the shortcut points to a local resource.
+     * @return true if the 'local' bit is set in this shortcut, false otherwise
+     */
+    var isLocal = false
+        private set
 
     /**
      * @return the name of the filesystem object pointed to by this shortcut
      */
-    public String getAbsolutePath() {
-        return real_file;
-    }
+    var absolutePath: String? = null
+        private set
 
     /**
      * @return a description for this shortcut, or null if no description is set
      */
-    public String getDescription() {
-        return description;
-    }
+    var description: String? = null
+        private set
 
     /**
      * @return the relative path for the filesystem object pointed to by this shortcut, or null if no relative path is set
      */
-    public String getRelativePath() {
-        return relative_path;
-    }
+    var relativePath: String? = null
+        private set
 
     /**
      * @return the working directory in which the filesystem object pointed to by this shortcut should be executed, or null if no working directory is set
      */
-    public String getWorkingDirectory() {
-        return working_directory;
-    }
+    var workingDirectory: String? = null
+        private set
 
     /**
      * @return the command line arguments that should be used when executing the filesystem object pointed to by this shortcut, or null if no command line arguments are present
      */
-    public String getCommandLineArguments() {
-        return command_line_arguments;
+    var commandLineArguments: String? = null
+        private set
+
+    constructor(file: File) {
+        FileInputStream(file).use { input -> parseLink(input.readNBytes2(maxLength, false)) }
     }
 
-    /**
-     * Tests if the shortcut points to a local resource.
-     *
-     * @return true if the 'local' bit is set in this shortcut, false otherwise
-     */
-    public boolean isLocal() {
-        return isLocal;
+    constructor(file: FileReference) {
+        file.inputStream().use { input -> parseLink(input.readNBytes2(maxLength, false)) }
     }
 
-    /**
-     * Tests if the shortcut points to a directory.
-     *
-     * @return true if the 'directory' bit is set in this shortcut, false otherwise
-     */
-    public boolean isDirectory() {
-        return isDirectory;
-    }
-
-    /**
-     * Gets all the bytes from an InputStream
-     *
-     * @param in the InputStream from which to read bytes
-     * @return array of all the bytes contained in 'in'
-     * @throws IOException if an IOException is encountered while reading the data from the InputStream
-     */
-    private static byte[] getBytes(final InputStream in) throws IOException {
-        return getBytes(in, null);
-    }
-
-    /**
-     * Gets up to max bytes from an InputStream
-     *
-     * @param in  the InputStream from which to read bytes
-     * @param max maximum number of bytes to read
-     * @return array of all the bytes contained in 'in'
-     * @throws IOException if an IOException is encountered while reading the data from the InputStream
-     */
-    private static byte[] getBytes(final InputStream in, Integer max) throws IOException {
-        // read the entire file into a byte buffer
-        final ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        final byte[] buff = new byte[256];
-        while (max == null || max > 0) {
-            final int n = in.read(buff);
-            if (n == -1) {
-                break;
-            }
-            bout.write(buff, 0, n);
-            if (max != null)
-                max -= n;
-        }
-        in.close();
-        return bout.toByteArray();
-    }
-
-    private static boolean isMagicPresent(final byte[] link) {
-        final int magic = 0x0000004C;
-        final int magic_offset = 0x00;
-        return link.length >= 32 && bytesToDword(link, magic_offset) == magic;
-    }
+    // todo make this use InputStreams instead of buffers
 
     /**
      * Gobbles up link data by parsing it and storing info in member fields
      *
      * @param link all the bytes from the .lnk file
      */
-    private void parseLink(final byte[] link) throws ParseException {
+    @Throws(ParseException::class)
+    private fun parseLink(link: ByteArray) {
         try {
-
-            if (!isMagicPresent(link))
-                throw new ParseException("Invalid shortcut; magic is missing", 0);
+            if (!isMagicPresent(link)) throw ParseException("Invalid shortcut; magic is missing", 0)
 
             // get the flags byte
-            final byte flags = link[0x14];
+            val flags = link[0x14].toInt()
 
             // get the file attributes byte
-            final int file_atts_offset = 0x18;
-            final byte file_atts = link[file_atts_offset];
-            final byte is_dir_mask = (byte) 0x10;
-
-            isDirectory = (file_atts & is_dir_mask) > 0;
+            val fileAttributesOffset = 0x18
+            val fileAttributes = link[fileAttributesOffset].toInt()
+            val isDirMask = 0x10
+            isDirectory = fileAttributes and isDirMask > 0
 
             // if the shell settings are present, skip them
-            final int shell_offset = 0x4c;
-            final byte has_shell_mask = (byte) 0x01;
-            int shell_len = 0;
-            if ((flags & has_shell_mask) > 0) {
+            val shellOffset = 0x4c
+            val hasShellMask = 0x01
+            var shellLen = 0
+            if (flags and hasShellMask > 0) {
                 // the plus 2 accounts for the length marker itself
-                shell_len = bytesToWord(link, shell_offset) + 2;
+                shellLen = readLE16(link, shellOffset) + 2
             }
 
             // get to the file settings
-            final int file_start = 0x4c + shell_len;
-
-            final int file_location_info_flag_offset_offset = 0x08;
-            final int file_location_info_flag = link[file_start + file_location_info_flag_offset_offset];
-            isLocal = (file_location_info_flag & 1) == 1;
+            val fileStart = 0x4c + shellLen
+            val fileLocationInfoFlagOffsetOffset = 0x08
+            val fileLocationInfoFlag = link[fileStart + fileLocationInfoFlagOffsetOffset].toInt()
+            isLocal = fileLocationInfoFlag and 1 == 1
             // get the local volume and local system values
             //final int localVolumeTable_offset_offset = 0x0C;
-            final int basename_offset_offset = 0x10;
-            final int networkVolumeTable_offset_offset = 0x14;
-            final int finalName_offset_offset = 0x18;
-            final int finalName_offset = bytesToDword(link, file_start + finalName_offset_offset) + file_start;
-            final String finalName = getNullDelimitedString(link, finalName_offset);
-            if (isLocal) {
-                final int basename_offset = bytesToDword(link, file_start + basename_offset_offset) + file_start;
-                final String basename = getNullDelimitedString(link, basename_offset);
-                real_file = basename + finalName;
+            val basenameOffsetOffset = 0x10
+            val networkVolumeTableOffsetOffset = 0x14
+            val finalNameOffsetOffset = 0x18
+            val finalNameOffset = readLE32(link, fileStart + finalNameOffsetOffset) + fileStart
+            val finalName = getNullDelimitedString(link, finalNameOffset)
+            absolutePath = if (isLocal) {
+                val basenameOffset = readLE32(link, fileStart + basenameOffsetOffset) + fileStart
+                val basename = getNullDelimitedString(link, basenameOffset)
+                basename + finalName
             } else {
-                final int networkVolumeTable_offset = link[file_start + networkVolumeTable_offset_offset] + file_start;
-                final int shareName_offset_offset = 0x08;
-                final int shareName_offset = link[networkVolumeTable_offset + shareName_offset_offset]
-                        + networkVolumeTable_offset;
-                final String shareName = getNullDelimitedString(link, shareName_offset);
-                real_file = shareName + "/" + finalName;
+                val networkVolumeTableOffset = link[fileStart + networkVolumeTableOffsetOffset] + fileStart
+                val shareNameOffsetOffset = 0x08
+                val shareNameOffset = link[networkVolumeTableOffset + shareNameOffsetOffset] + networkVolumeTableOffset
+                val shareName = getNullDelimitedString(link, shareNameOffset)
+                "$shareName/$finalName"
             }
 
             // parse additional strings coming after file location
-            final int file_location_size = bytesToDword(link, file_start);
-            int next_string_start = file_start + file_location_size;
-
-            final byte has_description = (byte) 0b00000100;
-            final byte has_relative_path = (byte) 0b00001000;
-            final byte has_working_directory = (byte) 0b00010000;
-            final byte has_command_line_arguments = (byte) 0b00100000;
+            val fileLocationSize = readLE32(link, fileStart)
+            var nextStringStart = fileStart + fileLocationSize
+            val hasDescription = 4
+            val hasRelativePath = 8
+            val hasWorkingDirectory = 16
+            val hasCommandLineArguments = 32
 
             // if description is present, parse it
-            if ((flags & has_description) > 0) {
-                final int string_len = bytesToWord(link, next_string_start) * 2; // times 2 because UTF-16
-                description = getUTF16String(link, next_string_start + 2, string_len);
-                next_string_start = next_string_start + string_len + 2;
+            if (flags and hasDescription > 0) {
+                val stringLen = readLE16(link, nextStringStart) * 2 // times 2 because UTF-16
+                description = readUTF16LE(link, nextStringStart + 2, stringLen)
+                nextStringStart += stringLen + 2
             }
 
             // if relative path is present, parse it
-            if ((flags & has_relative_path) > 0) {
-                final int string_len = bytesToWord(link, next_string_start) * 2; // times 2 because UTF-16
-                relative_path = getUTF16String(link, next_string_start + 2, string_len);
-                next_string_start = next_string_start + string_len + 2;
+            if (flags and hasRelativePath > 0) {
+                val stringLen = readLE16(link, nextStringStart) * 2 // times 2 because UTF-16
+                relativePath = readUTF16LE(link, nextStringStart + 2, stringLen)
+                nextStringStart += stringLen + 2
             }
 
             // if working directory is present, parse it
-            if ((flags & has_working_directory) > 0) {
-                final int string_len = bytesToWord(link, next_string_start) * 2; // times 2 because UTF-16
-                working_directory = getUTF16String(link, next_string_start + 2, string_len);
-                next_string_start = next_string_start + string_len + 2;
+            if (flags and hasWorkingDirectory > 0) {
+                val stringLen = readLE16(link, nextStringStart) * 2 // times 2 because UTF-16
+                workingDirectory = readUTF16LE(link, nextStringStart + 2, stringLen)
+                nextStringStart += stringLen + 2
             }
 
             // if command line arguments are present, parse them
-            if ((flags & has_command_line_arguments) > 0) {
-                final int string_len = bytesToWord(link, next_string_start) * 2; // times 2 because UTF-16
-                command_line_arguments = getUTF16String(link, next_string_start + 2, string_len);
+            if (flags and hasCommandLineArguments > 0) {
+                val stringLen = readLE16(link, nextStringStart) * 2 // times 2 because UTF-16
+                commandLineArguments = readUTF16LE(link, nextStringStart + 2, stringLen)
                 // next_string_start = next_string_start + string_len + 2;
             }
-
-        } catch (final ArrayIndexOutOfBoundsException e) {
-            throw new ParseException("Could not be parsed, probably not a valid WindowsShortcut", 0);
+        } catch (e: ArrayIndexOutOfBoundsException) {
+            throw ParseException("Could not be parsed, probably not a valid WindowsShortcut", 0)
         }
     }
 
-    private static String getNullDelimitedString(final byte[] bytes, final int off) {
-        int len = 0;
-        // count bytes until the null character (0)
-        while (bytes[off + len] != 0) {
-            len++;
+    companion object {
+
+        /**
+         * an arbitrary limit, that hopefully never is passed;
+         * prevents loading gigabytes for corrupted link files
+         * */
+        private const val maxLength = 1 shl 16
+
+        /**
+         * Provides a quick test to see if this could be a valid link
+         * If you try to instantiate a new WindowShortcut and the link is not valid,
+         * Exceptions may be thrown and Exceptions are extremely slow to generate,
+         * therefore any code needing to loop through several files should first check this.
+         *
+         * @param file the potential link
+         * @return true if may be a link, false otherwise
+         * @throws IOException if an IOException is thrown while reading from the file
+         */
+        @Throws(IOException::class)
+        fun isPotentialValidLink(file: FileReference): Boolean {
+            val minimumLength = 0x64
+            if (file.lcExtension != "lnk" || file.isDirectory || file.length() < minimumLength) return false
+            file.inputStream().use { fis -> return isMagicPresent(fis.readNBytes2(32, false)) }
         }
-        return new String(bytes, off, len);
-    }
 
-    private static String getUTF16String(final byte[] bytes, final int off, final int len) {
-        return new String(bytes, off, len, StandardCharsets.UTF_16LE);
-    }
+        private fun isMagicPresent(link: ByteArray): Boolean {
+            val magic = 0x0000004C
+            val magicOffset = 0x00
+            return link.size >= 32 && readLE32(link, magicOffset) == magic
+        }
 
-    /*
-     * convert two bytes into a short note, this is little endian because it's
-     * for an Intel only OS.
-     */
-    private static int bytesToWord(final byte[] bytes, final int off) {
-        return ((bytes[off + 1] & 0xff) << 8) | (bytes[off] & 0xff);
-    }
+        private fun getNullDelimitedString(bytes: ByteArray, off: Int): String {
+            // count bytes until the null character (0)
+            var index = off
+            while (index < bytes.size && bytes[index] != 0.toByte()) {
+                index++
+            }
+            return String(bytes, off, off - index)
+        }
 
-    private static int bytesToDword(final byte[] bytes, final int off) {
-        return (bytesToWord(bytes, off + 2) << 16) | bytesToWord(bytes, off);
-    }
+        private fun readUTF16LE(bytes: ByteArray, off: Int, len: Int): String {
+            return String(bytes, off, len, StandardCharsets.UTF_16LE)
+        }
 
+        /**
+         * convert two bytes into a short note, this is little endian because it's for an Intel only OS.
+         */
+        private fun readLE16(bytes: ByteArray, off: Int): Int {
+            return ((bytes[off + 1].toInt() and 0xff) shl 8) or (bytes[off].toInt() and 0xff)
+        }
+
+        private fun readLE32(bytes: ByteArray, off: Int): Int {
+            return readLE16(bytes, off + 2) shl 16 or readLE16(bytes, off)
+        }
+    }
 }

@@ -757,7 +757,7 @@ object UnityReader {
     }
 
     fun testRendering(file: FileReference, size: Int = 512) {
-        val prefab = PrefabCache.loadPrefab(file)!!
+        val prefab = PrefabCache.getPrefab(file)!!
         println(JsonFormatter.format(prefab.toString()))
         val sample = prefab.createInstance()
         println(sample)

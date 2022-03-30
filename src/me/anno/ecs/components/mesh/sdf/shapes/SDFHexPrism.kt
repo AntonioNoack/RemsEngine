@@ -75,7 +75,6 @@ open class SDFHexPrism : SDFSmoothShape() {
     }
 
     override fun computeSDFBase(pos: Vector4f): Float {
-        applyTransform(pos)
         // todo looks slightly off
         val h = params
         val magic = magic

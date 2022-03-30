@@ -26,7 +26,6 @@ class SDFSphere : SDFShape() {
     }
 
     override fun computeSDFBase(pos: Vector4f): Float {
-        applyTransform(pos)
         return length(pos.x, pos.y, pos.z) - 1f + pos.w
     }
 

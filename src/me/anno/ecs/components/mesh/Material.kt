@@ -3,7 +3,7 @@ package me.anno.ecs.components.mesh
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.Prefab
-import me.anno.ecs.prefab.PrefabCache.loadPrefab
+import me.anno.ecs.prefab.PrefabCache.getPrefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
@@ -31,11 +31,14 @@ class Material : PrefabSaveable() {
     // todo most properties here should be defined by the shader, not this class
     // todo we then somehow must display them dynamically
 
+    @Type("Map<String,TypeValue>")
     @SerializedProperty
     var shaderOverrides = HashMap<String, TypeValue>()
         set(value) {
-            field.clear()
-            field.putAll(value)
+            if (field !== value) {
+                field.clear()
+                field.putAll(value)
+            }
         }
 
     // or not yet...
@@ -66,7 +69,7 @@ class Material : PrefabSaveable() {
     // base * map
     @Range(0.0, 100.0)
     @Type("Color3HDR")
-    var emissiveBase = Vector3f(1f)
+    var emissiveBase = Vector3f(0f)
     var emissiveMap: FileReference = InvalidRef
 
     // mix(min,max,value(uv)) or 1 if undefined)
@@ -148,7 +151,7 @@ class Material : PrefabSaveable() {
         bindTexture(shader, "occlusionMap", occlusionMap, white)
         bindTexture(shader, "metallicMap", metallicMap, white)
         bindTexture(shader, "roughnessMap", roughnessMap, white)
-        bindTexture(shader, "emissiveMap", emissiveMap, black)
+        bindTexture(shader, "emissiveMap", emissiveMap, white)
         val normalTex =
             bindTexture(shader, "normalMap", normalMap, n001)
         bindTexture(shader, "diffuseMap", diffuseMap, white)
@@ -296,7 +299,7 @@ class Material : PrefabSaveable() {
         @JvmStatic
         fun main(args: Array<String>) {
             ECSRegistry.initNoGFX()
-            val prefab = loadPrefab(OS.documents.getChild("cube bricks.glb"))!!
+            val prefab = getPrefab(OS.documents.getChild("cube bricks.glb"))!!
             for (change in prefab.adds) {
                 LOGGER.info(change)
             }

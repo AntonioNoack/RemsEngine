@@ -42,11 +42,13 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
     }
 
     override fun remove(element: V): Boolean {
+        var size = size
         for (index in 0 until size) {
             if (element == data[index]) {
                 size--
                 data[index] = data[size]
                 data[size] = null
+                this.size = size
                 return true
             }
         }

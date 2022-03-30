@@ -34,6 +34,7 @@ import me.anno.utils.types.Matrices.set2
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import kotlin.math.abs
+import kotlin.math.floor
 
 // todo visualize number of steps taken
 open class SDFComponent : ProceduralMesh() {
@@ -454,6 +455,7 @@ open class SDFComponent : ProceduralMesh() {
     }
 
     fun computeSDF(pos: Vector4f): Float {
+        applyTransform(pos)
         var base = computeSDFBase(pos)
         for (index in distanceMappers.indices) {
             val mapper = distanceMappers[index]
@@ -461,7 +463,7 @@ open class SDFComponent : ProceduralMesh() {
                 base = mapper.calcTransform(pos, base)
             }
         }
-        return base
+        return base * localReliability * scale
     }
 
     open fun findClosestComponent(pos: Vector4f): SDFComponent {
@@ -525,7 +527,7 @@ open class SDFComponent : ProceduralMesh() {
         return dst.set(nx, ny, nz).normalize()
     }
 
-    fun applyTransform(pos: Vector4f) {
+    open fun applyTransform(pos: Vector4f) {
         // same operations as in shader
         val tmp = JomlPools.vec3f.borrow()
         tmp.set(pos.x, pos.y, pos.z)
@@ -533,7 +535,7 @@ open class SDFComponent : ProceduralMesh() {
         val tmp2 = JomlPools.quat4f.borrow()
         tmp.rotate(tmp2.set(-rotation.x, -rotation.y, -rotation.z, rotation.w))
         pos.set(tmp, pos.w)
-        pos.mul(scale)
+        pos.div(scale)
         val mappers = positionMappers
         for (index in mappers.indices) {
             val mapper = mappers[index]
@@ -686,6 +688,10 @@ open class SDFComponent : ProceduralMesh() {
         private val LOGGER = LogManager.getLogger(SDFComponent::class)
 
         val sdfTransPool = ObjectPool { SDFTransform() }
+
+        fun mod(x: Float, y: Float): Float {
+            return x - y * floor(x / y)
+        }
 
         fun writeVec(builder: StringBuilder, v: Vector2f) {
             builder.append("vec2(")

@@ -530,7 +530,8 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         val link = windowsLnk.value ?: return null
         // if the file is not a directory, then list the parent?
         // todo mark this child somehow?...
-        val str = link.absolutePath.replace('\\', '/')
+        val abs = link.absolutePath ?: return null
+        val str = abs.replace('\\', '/')
         val ref = getReferenceOrTimeout(str)
         return listOf(
             if (link.isDirectory) {

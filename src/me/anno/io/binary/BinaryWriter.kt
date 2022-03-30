@@ -2,7 +2,75 @@ package me.anno.io.binary
 
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.io.binary.BinaryTypes.*
+import me.anno.io.binary.BinaryTypes.AABB32
+import me.anno.io.binary.BinaryTypes.AABB64
+import me.anno.io.binary.BinaryTypes.BOOL
+import me.anno.io.binary.BinaryTypes.BOOL_ARRAY
+import me.anno.io.binary.BinaryTypes.BOOL_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.BYTE
+import me.anno.io.binary.BinaryTypes.BYTE_ARRAY
+import me.anno.io.binary.BinaryTypes.BYTE_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.CHAR
+import me.anno.io.binary.BinaryTypes.CHAR_ARRAY
+import me.anno.io.binary.BinaryTypes.CHAR_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.DOUBLE
+import me.anno.io.binary.BinaryTypes.DOUBLE_ARRAY
+import me.anno.io.binary.BinaryTypes.DOUBLE_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.FILE
+import me.anno.io.binary.BinaryTypes.FILE_ARRAY
+import me.anno.io.binary.BinaryTypes.FLOAT
+import me.anno.io.binary.BinaryTypes.FLOAT_ARRAY
+import me.anno.io.binary.BinaryTypes.FLOAT_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.INT
+import me.anno.io.binary.BinaryTypes.INT_ARRAY
+import me.anno.io.binary.BinaryTypes.INT_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.LONG
+import me.anno.io.binary.BinaryTypes.LONG_ARRAY
+import me.anno.io.binary.BinaryTypes.LONG_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.MATRIX3X2D
+import me.anno.io.binary.BinaryTypes.MATRIX3X2F
+import me.anno.io.binary.BinaryTypes.MATRIX3X3D
+import me.anno.io.binary.BinaryTypes.MATRIX3X3F
+import me.anno.io.binary.BinaryTypes.MATRIX4X3D
+import me.anno.io.binary.BinaryTypes.MATRIX4X3F
+import me.anno.io.binary.BinaryTypes.MATRIX4X4D
+import me.anno.io.binary.BinaryTypes.MATRIX4X4F
+import me.anno.io.binary.BinaryTypes.OBJECTS_HOMOGENOUS_ARRAY
+import me.anno.io.binary.BinaryTypes.OBJECT_ARRAY
+import me.anno.io.binary.BinaryTypes.OBJECT_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.OBJECT_IMPL
+import me.anno.io.binary.BinaryTypes.OBJECT_LIST_UNKNOWN_LENGTH
+import me.anno.io.binary.BinaryTypes.OBJECT_NULL
+import me.anno.io.binary.BinaryTypes.OBJECT_PTR
+import me.anno.io.binary.BinaryTypes.PLANE32
+import me.anno.io.binary.BinaryTypes.PLANE64
+import me.anno.io.binary.BinaryTypes.QUATERNION32
+import me.anno.io.binary.BinaryTypes.QUATERNION32_ARRAY
+import me.anno.io.binary.BinaryTypes.QUATERNION32_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.QUATERNION64
+import me.anno.io.binary.BinaryTypes.SHORT_ARRAY
+import me.anno.io.binary.BinaryTypes.SHORT_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.STRING
+import me.anno.io.binary.BinaryTypes.STRING_ARRAY
+import me.anno.io.binary.BinaryTypes.STRING_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.VECTOR2D
+import me.anno.io.binary.BinaryTypes.VECTOR2D_ARRAY
+import me.anno.io.binary.BinaryTypes.VECTOR2F
+import me.anno.io.binary.BinaryTypes.VECTOR2F_ARRAY
+import me.anno.io.binary.BinaryTypes.VECTOR2I
+import me.anno.io.binary.BinaryTypes.VECTOR2I_ARRAY
+import me.anno.io.binary.BinaryTypes.VECTOR3D
+import me.anno.io.binary.BinaryTypes.VECTOR3D_ARRAY
+import me.anno.io.binary.BinaryTypes.VECTOR3F
+import me.anno.io.binary.BinaryTypes.VECTOR3F_ARRAY
+import me.anno.io.binary.BinaryTypes.VECTOR3I
+import me.anno.io.binary.BinaryTypes.VECTOR3I_ARRAY
+import me.anno.io.binary.BinaryTypes.VECTOR4D
+import me.anno.io.binary.BinaryTypes.VECTOR4D_ARRAY
+import me.anno.io.binary.BinaryTypes.VECTOR4F
+import me.anno.io.binary.BinaryTypes.VECTOR4F_ARRAY
+import me.anno.io.binary.BinaryTypes.VECTOR4I
+import me.anno.io.binary.BinaryTypes.VECTOR4I_ARRAY
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.types.Booleans.toInt
@@ -52,8 +120,8 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         writeEfficientString(value)
     }
 
-    private fun writeAttributeStart(name: String, type: Char) {
-        val nameType = NameType(name, type)
+    private fun writeAttributeStart(name: String, type: Int) {
+        val nameType = NameType(name, type.toChar())
         val id = currentNameTypes.getOrDefault(nameType, -1)
         if (id >= 0) {
             // known -> short cut
@@ -64,8 +132,12 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
             val newId = currentNameTypes.size
             currentNameTypes[nameType] = newId
             writeTypeString(name)
-            output.writeByte(type.code)
+            output.writeByte(type)
         }
+    }
+
+    private fun writeAttributeStart(name: String, type: Char) {
+        writeAttributeStart(name, type.code)
     }
 
     override fun writeBoolean(name: String, value: Boolean, force: Boolean) {
@@ -700,12 +772,12 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
 
     override fun writeNull(name: String?) {
         if (name != null) writeAttributeStart(name, OBJECT_NULL)
-        else output.write(OBJECT_NULL.code)
+        else output.write(OBJECT_NULL)
     }
 
     override fun writePointer(name: String?, className: String, ptr: Int, value: ISaveable) {
         if (name != null) writeAttributeStart(name, OBJECT_PTR)
-        else output.write(OBJECT_PTR.code)
+        else output.write(OBJECT_PTR)
         output.writeInt(ptr)
     }
 
@@ -715,7 +787,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
 
     override fun writeObjectImpl(name: String?, value: ISaveable) {
         if (name != null) writeAttributeStart(name, OBJECT_IMPL)
-        else output.write(OBJECT_IMPL.code)
+        else output.write(OBJECT_IMPL)
         usingType(value.className) {
             writeTypeString(currentClass)
             output.writeInt(getPointer(value)!!)
@@ -728,7 +800,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         name: String,
         elements: Array<V>,
         force: Boolean,
-        type: Char,
+        type: Int,
         writeInstance: (V) -> Unit
     ) {
         if (force || elements.isNotEmpty()) {

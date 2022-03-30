@@ -16,7 +16,7 @@ fun main() {
     ECSRegistry.init()
 
     val file = getReference(downloads, "San_Miguel/san-miguel.obj")
-    val obj = PrefabCache.loadPrefab(file)
+    val obj = PrefabCache.getPrefab(file)
     val entity = obj!!.getSampleInstance(hashSetOf()) as Entity
     var sum = 0L
     entity.findFirstInAll {

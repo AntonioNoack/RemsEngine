@@ -1,115 +1,82 @@
-package net.sf.image4j.io;
+package net.sf.image4j.io
+
+import me.anno.io.xml.XMLReader.skipN
+import java.io.EOFException
+import java.io.IOException
+import java.io.InputStream
 
 /**
  * Provides utility methods for endian conversions [big-endian to little-endian; little-endian to big-endian].
  *
  * @author Ian McDonagh
  */
-public class EndianUtils {
+object Utils {
 
-    /**
-     * Reverses the byte order of the source <tt>short</tt> value
-     *
-     * @param value
-     *            the source value
-     * @return the converted value
-     */
-    public static short swapShort(short value) {
-        return (short) (((value & 0xFF00) >> 8) | ((value & 0x00FF) << 8));
+    @Throws(IOException::class)
+    fun skip(input: InputStream, count: Int, strict: Boolean): Int {
+        var skipped = 0
+        while (skipped < count) {
+            val b = input.read()
+            if (b == -1) {
+                break
+            }
+            skipped++
+        }
+        if (skipped < count && strict) {
+            throw EOFException("Failed to skip $count bytes in input")
+        }
+        return skipped
     }
 
     /**
      * Reverses the byte order of the source <tt>int</tt> value
      *
      * @param value
-     *            the source value
+     * the source value
      * @return the converted value
      */
-    public static int swapInteger(int value) {
-        return ((value & 0xFF000000) >> 24) | ((value & 0x00FF0000) >> 8)
-                | ((value & 0x0000FF00) << 8) | ((value & 0x000000FF) << 24);
+    private fun swapInteger(value: Int): Int {
+        return (value and -0x1000000 shr 24 or (value and 0x00FF0000 shr 8)
+                or (value and 0x0000FF00 shl 8) or (value and 0x000000FF shl 24))
     }
 
-    /**
-     * Reverses the byte order of the source <tt>long</tt> value
-     *
-     * @param value
-     *            the source value
-     * @return the converted value
-     */
-    public static long swapLong(long value) {
-        return ((value & 0xFF00000000000000L) >> 56)
-                | ((value & 0x00FF000000000000L) >> 40)
-                | ((value & 0x0000FF0000000000L) >> 24)
-                | ((value & 0x000000FF00000000L) >> 8)
-                | ((value & 0x00000000FF000000L) << 8)
-                | ((value & 0x0000000000FF0000L) << 24)
-                | ((value & 0x000000000000FF00L) << 40)
-                | ((value & 0x00000000000000FFL) << 56);
-    }
-
-    /**
-     * Reverses the byte order of the source <tt>float</tt> value
-     *
-     * @param value
-     *            the source value
-     * @return the converted value
-     */
-    public static float swapFloat(float value) {
-        int i = Float.floatToIntBits(value);
-        i = swapInteger(i);
-        return Float.intBitsToFloat(i);
-    }
-
-    /**
-     * Reverses the byte order of the source <tt>double</tt> value
-     *
-     * @param value
-     *            the source value
-     * @return the converted value
-     */
-    public static double swapDouble(double value) {
-        long l = Double.doubleToLongBits(value);
-        l = swapLong(l);
-        return Double.longBitsToDouble(l);
-    }
-
-    public static String toHexString(int i, boolean littleEndian, int bytes) {
+    private fun toHexString(i0: Int, littleEndian: Boolean): String {
+        var i = i0
         if (littleEndian) {
-            i = swapInteger(i);
+            i = swapInteger(i)
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append(Integer.toHexString(i));
-        if (sb.length() % 2 != 0) {
-            sb.insert(0, '0');
+        val sb = StringBuilder()
+        sb.append(Integer.toHexString(i))
+        if (sb.length % 2 != 0) {
+            sb.insert(0, '0')
         }
-        while (sb.length() < bytes * 2) {
-            sb.insert(0, "00");
+        while (sb.length < 8) {
+            sb.insert(0, "00")
         }
-        return sb.toString();
+        return sb.toString()
     }
 
-    public static void toCharString(StringBuilder sb, int i, int bytes, char def) {
-        int shift = 24;
-        for (int j = 0; j < bytes; j++) {
-            int b = (i >> shift) & 0xFF;
-            char c = b < 32 ? def : (char) b;
-            sb.append(c);
-            shift -= 8;
+    private fun toCharString(sb: StringBuilder, i: Int) {
+        var shift = 24
+        for (j in 0 until 4) {
+            val b = i shr shift and 0xFF
+            val c = if (b < 32) '.' else b.toChar()
+            sb.append(c)
+            shift -= 8
         }
     }
 
-    public static String toInfoString(int info) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Decimal: ").append(info);
-        sb.append(", Hex BE: ").append(toHexString(info, false, 4));
-        sb.append(", Hex LE: ").append(toHexString(info, true, 4));
-        sb.append(", String BE: [");
-        toCharString(sb, info, 4, '.');
-        sb.append(']');
-        sb.append(", String LE: [");
-        toCharString(sb, swapInteger(info), 4, '.');
-        sb.append(']');
-        return sb.toString();
+    fun toInfoString(info: Int): String {
+        val sb = StringBuilder()
+        sb.append("Decimal: ").append(info)
+        sb.append(", Hex BE: ").append(toHexString(info, false))
+        sb.append(", Hex LE: ").append(toHexString(info, true))
+        sb.append(", String BE: [")
+        toCharString(sb, info)
+        sb.append(']')
+        sb.append(", String LE: [")
+        toCharString(sb, swapInteger(info))
+        sb.append(']')
+        return sb.toString()
     }
 }

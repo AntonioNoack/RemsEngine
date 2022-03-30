@@ -27,6 +27,8 @@ open class Saveable : ISaveable {
     override fun readByteArray2D(name: String, values: Array<ByteArray>) = readSomething(name, values)
 
     override fun readChar(name: String, value: Char) = readSomething(name, value)
+    override fun readCharArray(name: String, values: CharArray) = readSomething(name, values)
+    override fun readCharArray2D(name: String, values: Array<CharArray>) = readSomething(name, values)
 
     override fun readShort(name: String, value: Short) = readSomething(name, value)
     override fun readShortArray(name: String, values: ShortArray) = readSomething(name, values)

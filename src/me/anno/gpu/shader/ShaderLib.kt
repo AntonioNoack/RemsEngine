@@ -14,14 +14,13 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.math.PI
 
+@Suppress("MemberVisibilityCanBePrivate", "unused")
 object ShaderLib {
-
-    // todo they probably should be split into multiple files...
 
     lateinit var subpixelCorrectTextShader: BaseShader
     lateinit var shader3DPolygon: BaseShader
     lateinit var shader3D: BaseShader
-    lateinit var shader3DforText: BaseShader
+    lateinit var shader3DText: BaseShader
     lateinit var shaderSDFText: BaseShader
     lateinit var shader3DRGBA: BaseShader
     lateinit var shader3DYUV: BaseShader
@@ -268,20 +267,20 @@ object ShaderLib {
             "}\n"
 
 
-    val positionPostProcessing = "" +
+    const val positionPostProcessing = "" +
             "   zDistance = gl_Position.w;\n"
 
-    // this mapping only works with well tesselated geometry
+    // this mapping only works with well tessellated geometry
     // or we need to add it to the fragment shader instead
     //"   const float far = 1000;\n" +
     //"   const float near = 0.001;\n" +
     //"   gl_Position.z = 2.0*log(gl_Position.w*near + 1)/log(far*near + 1) - 1;\n" +
     //"   gl_Position.z *= gl_Position.w;"
 
-    val v3DBase = "" +
+    const val v3DBase = "" +
             "uniform mat4 transform;\n"
 
-    val flatNormal = "" +
+    const val flatNormal = "" +
             "   normal = vec3(0.0, 0.0, 1.0);\n"
 
     val v3D = v3DBase +
@@ -317,7 +316,7 @@ object ShaderLib {
             "}"
 
     val v3DMasked = v3DBase +
-            "${attribute} vec2 attr0;\n" +
+            "$attribute vec2 attr0;\n" +
             "void main(){\n" +
             "   finalPosition = vec3(attr0*2.0-1.0, 0.0);\n" +
             "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
@@ -375,7 +374,7 @@ object ShaderLib {
         subpixelCorrectTextShader.setTextureIndices(listOf("tex"))
 
         shader3D = createShaderPlus("3d", v3D, y3D, f3D, listOf("tex"))
-        shader3DforText = createShaderPlus(
+        shader3DText = createShaderPlus(
             "3d-text", v3DBase +
                     "$attribute vec3 attr0;\n" +
                     "$attribute vec2 attr1;\n" +
@@ -399,7 +398,7 @@ object ShaderLib {
                     "   float finalAlpha = finalColor2.a;\n" +
                     "}", listOf()
         )
-        shader3DforText.ignoreUniformWarnings("tiling", "forceFieldUVCount")
+        shader3DText.ignoreUniformWarnings("tiling", "forceFieldUVCount")
 
         shaderSDFText = createShaderPlus(
             "3d-text-withOutline", v3DBase +
@@ -438,8 +437,7 @@ object ShaderLib {
                     "       color = mix(color, colorHere, mixingFactor);\n" +
                     "   }\n" +
                     "   if(depth != 0.0) gl_FragDepth = gl_FragCoord.z * (1.0 + distance * depth);\n" +
-                    // todo re-enable alpha
-                    // "   if(color.a <= 0.001) discard;\n" +
+                    "   if(color.a <= 0.001) discard;\n" +
                     "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                     "   vec3 finalColor = color.rgb;\n" +
                     "   float finalAlpha = 1.0;//color.a;\n" +
@@ -722,6 +720,7 @@ object ShaderLib {
                     "}", listOf("tex")
         )
         monochromeModelShader.glslVersion = 330
+        monochromeModelShader.ignoreUniformWarnings("worldScale")
 
         // create the fbx shader
         // shaderFBX = FBXShader.getShader(v3DBase, positionPostProcessing, y3D, getTextureLib)
@@ -753,7 +752,7 @@ object ShaderLib {
 
         fun createSwizzleShader(swizzle: String): BaseShader {
             return createShaderPlus(
-                "3d-${if (swizzle.isEmpty()) "rgba" else swizzle}",
+                "3d-${swizzle.ifEmpty { "rgba" }}",
                 v3D, y3D, "" +
                         "uniform sampler2D tex;\n" +
                         getTextureLib +
@@ -794,7 +793,7 @@ object ShaderLib {
                 "uniform vec2 stepSize;\n" +
                 "uniform float steps;\n" +
                 "uniform float threshold;\n" +
-                ShaderLib.brightness +
+                brightness +
                 "void main(){\n" +
                 "   vec2 uv2 = uv.xy/uv.z * 0.5 + 0.5;\n" +
                 "   vec4 color;\n" +

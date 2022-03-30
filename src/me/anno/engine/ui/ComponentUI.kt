@@ -25,9 +25,12 @@ import me.anno.ecs.annotations.Range.Companion.minUInt
 import me.anno.ecs.annotations.Range.Companion.minULong
 import me.anno.ecs.annotations.Range.Companion.minUShort
 import me.anno.ecs.components.script.ScriptComponent
-import me.anno.ecs.prefab.PrefabCache.loadPrefab
+import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.PrefabCache
+import me.anno.ecs.prefab.PrefabCache.getPrefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.IProperty
+import me.anno.engine.RemsEngine
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.ISaveable
@@ -38,7 +41,9 @@ import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
+import me.anno.maths.Maths.clamp
 import me.anno.studio.Inspectable
+import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.defaultWindowStack
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelListY
@@ -50,6 +55,7 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.code.CodeEditor
 import me.anno.ui.editor.files.FileExplorerOption
+import me.anno.ui.editor.stacked.Option
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
 import me.anno.utils.Color.rgba
@@ -65,6 +71,10 @@ import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.luaj.vm2.LuaError
 import java.io.Serializable
+import kotlin.math.ln
+import kotlin.math.pow
+import kotlin.reflect.KClass
+import kotlin.reflect.full.superclasses
 
 object ComponentUI {
 
@@ -75,7 +85,7 @@ object ComponentUI {
         FileExplorerOption(NameDesc("Open Scene")) { _, it -> ECSSceneTabs.open(it, "Entity", PlayMode.EDITING) },
         // create mutable scene, = import
         FileExplorerOption(NameDesc("Import")) { panel, it ->
-            val prefab = loadPrefab(it)
+            val prefab = getPrefab(it)
             if (prefab == null) msg(
                 panel.windowStack,
                 NameDesc("Cannot import ${it.name}", "Because it cannot be loaded as a scene", "")
@@ -344,7 +354,7 @@ object ComponentUI {
                     }
                 } else {
                     val type = Type(default as Int,
-                        { Maths.clamp(it.toLong(), range.minInt().toLong(), range.maxInt().toLong()).toInt() }, { it })
+                        { clamp(it.toLong(), range.minInt().toLong(), range.maxInt().toLong()).toInt() }, { it })
                     return IntInput(style, title, visibilityKey, type).apply {
                         property.init(this)
                         setValue(value as Int, false)
@@ -358,7 +368,7 @@ object ComponentUI {
             }
             "UInt" -> {
                 val type = Type(default as UInt,
-                    { Maths.clamp(it.toLong(), range.minUInt().toLong(), range.maxUInt().toLong()).toUInt() }, { it })
+                    { clamp(it.toLong(), range.minUInt().toLong(), range.maxUInt().toLong()).toUInt() }, { it })
                 return IntInput(style, title, visibilityKey, type).apply {
                     property.init(this)
                     setValue((value as UInt).toLong(), false)
@@ -371,7 +381,7 @@ object ComponentUI {
             }
             "Long" -> {
                 val type = Type(default as? Long ?: throw RuntimeException("$title is not long"),
-                    { Maths.clamp(it.toLong(), range.minLong(), range.maxLong()) }, { it })
+                    { clamp(it.toLong(), range.minLong(), range.maxLong()) }, { it })
                 return IntInput(style, title, visibilityKey, type).apply {
                     property.init(this)
                     setValue(value as Long, false)
@@ -384,7 +394,7 @@ object ComponentUI {
             }
             "ULong" -> {// not fully supported
                 val type = Type(default as ULong,
-                    { Maths.clamp(it.toULong2(), range.minULong(), range.maxULong()) }, { it })
+                    { clamp(it.toULong2(), range.minULong(), range.maxULong()) }, { it })
                 return IntInput(style, title, visibilityKey, type).apply {
                     property.init(this)
                     setValue((value as ULong).toLong(), false)
@@ -397,7 +407,7 @@ object ComponentUI {
             }
             "Float" -> {
                 val type = Type(default as? Float ?: throw RuntimeException("$title is not float"),
-                    { Maths.clamp(it as Float, range.minFloat(), range.maxFloat()) }, { it })
+                    { clamp(it as Float, range.minFloat(), range.maxFloat()) }, { it })
                 return FloatInput(style, title, visibilityKey, type).apply {
                     property.init(this)
                     setValue(value as Float, false)
@@ -410,7 +420,7 @@ object ComponentUI {
             }
             "Double" -> {
                 val type = Type(default as? Double ?: throw RuntimeException("$title is not double"),
-                    { Maths.clamp(it as Double, range.minDouble(), range.maxDouble()) }, { it })
+                    { clamp(it as Double, range.minDouble(), range.maxDouble()) }, { it })
                 return FloatInput(style, title, visibilityKey, type).apply {
                     property.init(this)
                     setValue(value as Double, false)
@@ -603,15 +613,29 @@ object ComponentUI {
             // colors, e.g. for materials
             "Color3", "Color3HDR" -> {
                 value as Vector3f
-                // todo hdr colors per color amplitude
-                return ColorInput(style, title, visibilityKey, Vector4f(value, 1f), false)
+                val maxPower = 1e3f
+
+                // logarithmic brightness scale
+                fun b2l(b: Vector3f): Vector4f {
+                    var length = b.length()
+                    if (length == 0f) length = 1f
+                    val power = clamp(ln(length) / ln(maxPower) * 0.5f + 0.5f, 0f, 1f)
+                    return Vector4f(b.x, b.y, b.z, power)
+                }
+
+                fun l2b(l: Vector4f): Vector3f {
+                    val power = maxPower.pow(l.w * 2f - 1f)
+                    return Vector3f(l.x, l.y, l.z).mul(power)
+                }
+                return ColorInput(style, title, visibilityKey, b2l(value), type0 == "Color3HDR")
                     .apply {
                         property.init(this)
                         // todo reset listener for color inputs
+                        // todo brightness should have different background than alpha
                         // setResetListener { property.reset(this) }
-                        askForReset(property) { setValue(Vector4f(it as Vector3f, 1f), false) }
-                        setChangeListener { r, g, b, _ ->
-                            property.set(this, Vector3f(r, g, b))
+                        askForReset(property) { setValue(b2l(it as Vector3f), false) }
+                        setChangeListener { r, g, b, a ->
+                            property.set(this, l2b(Vector4f(r, g, b, a)))
                         }
                     }
             }
@@ -891,7 +915,7 @@ object ComponentUI {
                         // todo index all files of this type in the current project (plus customizable extra directories)
                         // todo and show them here, with their nice icons
                         val value0 = value as? FileReference ?: InvalidRef
-                        return FileInput(title, style, value0, fileInputRightClickOptions).apply {
+                        val fi = FileInput(title, style, value0, fileInputRightClickOptions).apply {
                             property.init(this)
                             setResetListener {
                                 property.reset(this) as? FileReference
@@ -903,6 +927,48 @@ object ComponentUI {
                                 property.set(this, it)
                             }
                         }
+
+                        fun instanceOf(clazz: KClass<*>, clazzName: String): Boolean {
+                            if (clazz.simpleName == clazzName || clazz.qualifiedName == clazzName) return true
+                            if (clazz.superclasses.any { instanceOf(it, clazzName) }) return true
+                            return false
+                        }
+
+                        fun instanceOf(sample: Any, clazzName: String): Boolean {
+                            return instanceOf(sample::class, clazzName)
+                        }
+
+                        val clazzName = type0.substring(0, type0.lastIndexOf('/'))
+                        val project = (StudioBase.instance as? RemsEngine)?.currentProject
+                        val options = ArrayList<Prefab?>()
+                        options.add(null)
+                        // dangerous & slow at the moment :/
+                        /*project?.forAllPrefabs { _, prefab ->
+                            val sample = ISaveable.getSample(prefab.clazzName)
+                            if (sample != null && instanceOf(sample, clazzName)){
+                                options.add(prefab)
+                            }
+                        }*/
+                        val prefab0 = getPrefab(value as? FileReference)
+                        if(prefab0 != null) options.add(prefab0)
+                        if(options.size > 1){
+                            // todo show fileExplorer-like previews
+                            val ei = EnumInput(
+                                title, false, prefab0?.source?.absolutePath ?: "null",
+                                options.map { NameDesc(it?.source?.absolutePath ?: "null") }, style
+                            ).apply {
+                                property.init(this)
+                                // todo reset listener for EnumInput
+                                // setResetListener {}
+                                setChangeListener { _, index, _ ->
+                                    property.set(this, options[index]?.source ?: InvalidRef)
+                                }
+                            }
+                            val list = PanelListY(style)
+                            list.add(fi)
+                            list.add(ei)
+                            return list
+                        } else return fi
                     }
                     // actual instance, needs to be local, linked via path
                     // e.g. for physics constraints, events, or things like that

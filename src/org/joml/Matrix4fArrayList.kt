@@ -1,56 +1,44 @@
-package org.joml;
+package org.joml
 
-import kotlin.jvm.functions.Function0;
-
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.util.ArrayList;
+import java.io.IOException
+import java.io.ObjectInput
+import java.io.ObjectOutput
 
 /**
- * A stack of many {@link Matrix4f} instances. This resembles the matrix stack known from legacy OpenGL.
- * <p>
- * This {@link Matrix4fArrayList} class inherits from {@link Matrix4f}, so the current/top matrix is always the {@link Matrix4fArrayList}/{@link Matrix4f} itself. This
- * affects all operations in {@link Matrix4f} that take another {@link Matrix4f} as parameter. If a {@link Matrix4fArrayList} is used as argument to those methods,
- * the effective argument will always be the <i>current</i> matrix of the matrix stack.
+ * A stack of many [Matrix4f] instances. This resembles the matrix stack known from legacy OpenGL.
+ *
+ *
+ * This [Matrix4fArrayList] class inherits from [Matrix4f], so the current/top matrix is always the [Matrix4fArrayList]/[Matrix4f] itself. This
+ * affects all operations in [Matrix4f] that take another [Matrix4f] as parameter. If a [Matrix4fArrayList] is used as argument to those methods,
+ * the effective argument will always be the *current* matrix of the matrix stack.
  *
  * @author Kai Burjack, modified by Antonio Noack to be infinite, yet not allocation free
  * users of RemsStudio shouldn't have to worry about tree depth, if their machine is strong enough to handle it
  */
-public class Matrix4fArrayList extends Matrix4f {
-
-    private static final long serialVersionUID = 1L;
+class Matrix4fArrayList : Matrix4f() {
 
     /**
      * The matrix stack
      */
-    private ArrayList<Matrix4f> matrices = new ArrayList<>();
+    private var matrices = ArrayList<Matrix4f>()
 
     /**
-     * The index of the "current" matrix within {@link #matrices}.
+     * The index of the "current" matrix within [.matrices].
      */
-    private int currentIndex;
+    var currentIndex = 0
+        private set
 
-    public Matrix4fArrayList() {
-    }
-
-    public int getSize() {
-        return matrices.size();
-    }
-
-    public int getCurrentIndex() {
-        return currentIndex;
-    }
+    val size: Int get() = matrices.size
 
     /**
-     * Set the stack pointer to zero and set the current/bottom matrix to {@link #identity() identity}.
+     * Set the stack pointer to zero and set the current/bottom matrix to [identity][.identity].
      *
      * @return this
      */
-    public Matrix4fArrayList clear() {
-        currentIndex = 0;
-        identity();
-        return this;
+    fun clear(): Matrix4fArrayList {
+        currentIndex = 0
+        identity()
+        return this
     }
 
     /**
@@ -58,37 +46,38 @@ public class Matrix4fArrayList extends Matrix4f {
      *
      * @return this
      */
-    public Matrix4fArrayList pushMatrix() {
-        if (currentIndex == matrices.size()) {
-            matrices.add(new Matrix4f());
+    fun pushMatrix(): Matrix4fArrayList {
+        if (currentIndex == matrices.size) {
+            matrices.add(Matrix4f())
         }
-        matrices.get(currentIndex++).set(this);
-        return this;
+        matrices[currentIndex++].set(this)
+        return this
     }
 
     /**
      * Decrement the stack pointer by one.
-     * <p>
+     *
+     *
      * This will effectively dispose of the current matrix.
      *
      * @return this
      */
-    public Matrix4fArrayList popMatrix() {
-        if (currentIndex == 0) {
-            throw new IllegalStateException("already at the buttom of the stack"); //$NON-NLS-1$
+    fun popMatrix(): Matrix4fArrayList {
+        check(currentIndex != 0) {
+            "already at the buttom of the stack" //$NON-NLS-1$
         }
-        set(matrices.get(--currentIndex));
-        return this;
+        set(matrices[--currentIndex])
+        return this
     }
 
-    public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + currentIndex;
-        for (int i = 0; i < currentIndex; i++) {
-            result = prime * result + matrices.get(i).hashCode();
+    override fun hashCode(): Int {
+        val prime = 31
+        var result = super.hashCode()
+        result = prime * result + currentIndex
+        for (i in 0 until currentIndex) {
+            result = prime * result + matrices[i].hashCode()
         }
-        return result;
+        return result
     }
 
     /*
@@ -102,58 +91,58 @@ public class Matrix4fArrayList extends Matrix4f {
      * (non-Javadoc)
      * @see org.joml.Matrix4f#equals(java.lang.Object)
      */
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (!super.equals(obj))
-            return false;
-        if (obj instanceof Matrix4fArrayList) {
-            Matrix4fArrayList other = (Matrix4fArrayList) obj;
-            if (currentIndex != other.currentIndex)
-                return false;
-            for (int i = 0; i < currentIndex; i++) {
-                if (!matrices.get(i).equals(other.matrices.get(i)))
-                    return false;
+    override fun equals(obj: Any?): Boolean {
+        if (this === obj) return true
+        if (!super.equals(obj)) return false
+        if (obj is Matrix4fArrayList) {
+            val other = obj
+            if (currentIndex != other.currentIndex) return false
+            for (i in 0 until currentIndex) {
+                if (matrices[i] != other.matrices[i]) return false
             }
         }
-        return true;
+        return true
     }
 
-    public void writeExternal(ObjectOutput out) throws IOException {
-        super.writeExternal(out);
-        out.writeInt(currentIndex);
-        for (int i = 0; i < currentIndex; i++) {
-            out.writeObject(matrices.get(i));
+    @Throws(IOException::class)
+    override fun writeExternal(out: ObjectOutput) {
+        super.writeExternal(out)
+        out.writeInt(currentIndex)
+        for (i in 0 until currentIndex) {
+            out.writeObject(matrices[i])
         }
     }
 
-    public void readExternal(ObjectInput in) throws IOException {
-        super.readExternal(in);
-        currentIndex = in.readInt();
-        matrices = new ArrayList<>(currentIndex);
-        for (int i = 0; i < currentIndex; i++) {
-            Matrix4f m = new Matrix4f();
-            m.readExternal(in);
-            matrices.set(i, m);
+    @Throws(IOException::class)
+    override fun readExternal(`in`: ObjectInput) {
+        super.readExternal(`in`)
+        currentIndex = `in`.readInt()
+        matrices = ArrayList(currentIndex)
+        for (i in 0 until currentIndex) {
+            val m = Matrix4f()
+            m.readExternal(`in`)
+            matrices[i] = m
         }
     }
-
 
     /**
      * + reduces errors, because neither push nor pop can be forgotten, even if errors happen
      * - allocated a lambda
      */
-    public <V> V next(Function0<V> run) {
-        pushMatrix();
-        V result;
+    fun <V> next(run: Function0<V>): V {
+        pushMatrix()
+        val result: V
         try {
-            result = run.invoke();
-            popMatrix();
-        } catch (Throwable e) {
-            popMatrix();
-            throw e;
+            result = run.invoke()
+            popMatrix()
+        } catch (e: Throwable) {
+            popMatrix()
+            throw e
         }
-        return result;
+        return result
     }
 
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

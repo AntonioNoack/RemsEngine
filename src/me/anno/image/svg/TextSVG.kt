@@ -30,6 +30,6 @@ fun testSVG(text: String) {
 }
 
 fun testXML(text: String) {
-    val logger = LogManager.getLogger()
+    val logger = LogManager.getLogger("TestXML")
     logger.info(XMLReader.parse(ByteArrayInputStream(text.toByteArray())))
 }

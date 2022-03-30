@@ -62,7 +62,6 @@ class SDFBoundingBox : SDFBox() {
     }
 
     override fun computeSDFBase(pos: Vector4f): Float {
-        applyTransform(pos)
         val thickness = thickness
         val b = halfExtends
         val k = smoothness * thickness

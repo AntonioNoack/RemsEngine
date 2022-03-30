@@ -203,12 +203,8 @@ class Transform() : Saveable() {
         when (state) {
             // really update by time? idk... this is not the time when it was changed...
             // it kind of is, when we call updateTransform() every frame
-            State.VALID_LOCAL -> {
-                calculateGlobalTransform(parent)
-            }
-            State.VALID_GLOBAL -> {
-                calculateLocalTransform(parent)
-            }
+            State.VALID_LOCAL -> calculateGlobalTransform(parent)
+            State.VALID_GLOBAL -> calculateLocalTransform(parent)
             else -> {
             }
         }

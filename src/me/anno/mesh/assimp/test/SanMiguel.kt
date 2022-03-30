@@ -63,7 +63,7 @@ fun main() {
 
     clock.start()
     Sleep.waitUntilDefined(true) {
-        PrefabCache.loadPrefab(file)
+        PrefabCache.getPrefab(file)
         // loadAssimpStatic(srcFile, null)
     }
     clock.stop("custom")

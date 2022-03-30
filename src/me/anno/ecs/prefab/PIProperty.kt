@@ -5,6 +5,7 @@ import me.anno.engine.IProperty
 import me.anno.io.serialization.CachedProperty
 import me.anno.ui.Panel
 import me.anno.ui.base.text.TextStyleable
+import me.anno.utils.LOGGER
 
 class PIProperty(
     val pi: PrefabInspector,
@@ -33,10 +34,12 @@ class PIProperty(
     }
 
     override fun set(panel: Panel?, value: Any?) {
-        (panel as? TextStyleable)?.isBold = true
-        // info("setting value of $name, ${panel is TextStyleable}")
-        property[instance] = value
-        pi.change(getPath(), instance, name, value)
+        if(pi.prefab.isWritable){
+            (panel as? TextStyleable)?.isBold = true
+            // info("setting value of $name, ${panel is TextStyleable}")
+            property[instance] = value
+            pi.change(getPath(), instance, name, value)
+        } else LOGGER.warn("Cannot modify ${pi.prefab.source}")
     }
 
     override fun get(): Any? {

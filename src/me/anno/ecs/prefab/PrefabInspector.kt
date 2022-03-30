@@ -5,7 +5,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.annotations.DebugTitle
 import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.interfaces.CustomEditMode
-import me.anno.ecs.prefab.PrefabCache.loadPrefab
+import me.anno.ecs.prefab.PrefabCache.getPrefab
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ui.ComponentUI
@@ -52,7 +52,7 @@ class PrefabInspector(val prefab: Prefab) {
     val reference get() = prefab.source
 
     constructor(reference: FileReference, classNameIfNull: String) :
-            this(loadPrefab(reference) ?: Prefab(classNameIfNull))
+            this(getPrefab(reference) ?: Prefab(classNameIfNull))
 
     init {
         prefab.ensureMutableLists()

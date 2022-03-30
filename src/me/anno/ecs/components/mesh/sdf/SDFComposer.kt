@@ -149,23 +149,44 @@ object SDFComposer {
                             "vec3 globalDir = normalize(finalPosition);\n" +
                             "vec3 localDir = normalize(invLocalTransform * finalPosition);\n" +
                             "vec3 localPos = localStart;\n" +
-                            "vec2 ray = raycast(localPos, localDir);\n" +
-                            // "if(ray.y < 0.0) discard;\n" +
-                            "vec3 localHit = localPos + ray.x * localDir;\n" +
-                            "vec3 localNormal = calcNormal(localHit, sdfNormalEpsilon);\n" +
+                            "vec2 ray = map(localPos);\n" +
+                            "if(ray.x >= 0.0){\n" + // not inside an object
+                            "   ray = raycast(localPos, localDir);\n" +
+                            "   if(ray.y < 0.0) discard;\n" + // sky
+                            "   vec3 localHit = localPos + ray.x * localDir;\n" +
+                            "   vec3 localNormal = calcNormal(localHit, sdfNormalEpsilon);\n" +
                             // convert localHit to global hit
-                            "finalPosition = localTransform * vec4(localHit, 1.0);\n" +
-                            "finalNormal = normalize(localTransform * vec4(localNormal, 0.0));\n" +
+                            "   finalPosition = localTransform * vec4(localHit, 1.0);\n" +
+                            "   finalNormal = normalize(localTransform * vec4(localNormal, 0.0));\n" +
 
                             // respect reflection plane
-                            "if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n" +
+                            "   if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n" +
                             // calculate depth
-                            "vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
-                            "gl_FragDepth = newVertex.z/newVertex.w;\n" +
+                            "   vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
+                            "   gl_FragDepth = newVertex.z/newVertex.w;\n" +
 
                             // step by step define all material properties
-                            "finalColor = vec3(1.0);\n" +
-                            "finalAlpha = 1.0;\n" +
+                            "   finalColor = vec3(1.0);\n" +
+                            "   finalAlpha = 1.0;\n" +
+
+                            "} else {\n" +
+
+                            "   finalColor = vec3(0.5);\n" +
+                            "   finalAlpha = 0.5;\n" +
+
+                            // distance must be set to slightly above 0, so we have valid z values
+                            "   finalPosition = localTransform * vec4(localPos + localDir * 0.001, 1.0);\n" +
+                            "   finalNormal = vec3(0.0);\n" +
+
+                            // respect reflection plane
+                            "   if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n" +
+
+                            // calculate depth
+                            "   vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
+                            "   gl_FragDepth = newVertex.z/newVertex.w;\n" +
+
+                            "}\n" +
+
                             "finalEmissive  = vec3(0.0);\n" +
                             "finalOcclusion = 1.0;\n" +
                             "finalMetallic  = 0.0;\n" +
@@ -198,6 +219,7 @@ object SDFComposer {
                 return stage
             }
         }
+        // why are those not ignored?
         shader.ignoreUniformWarnings(
             "sheenNormalMap", "occlusionMap", "metallicMap", "roughnessMap",
             "emissiveMap", "normalMap", "diffuseMap", "diffuseBase", "emissiveBase", "drawMode", "applyToneMapping",

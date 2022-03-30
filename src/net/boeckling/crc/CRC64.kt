@@ -1,60 +1,180 @@
-package net.boeckling.crc;
+package net.boeckling.crc
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.zip.Checksum;
+import java.io.File
+import java.io.FileInputStream
+import java.io.IOException
+import java.io.InputStream
+import java.util.zip.Checksum
 
 /**
  * CRC-64 implementation with ability to combine checksums calculated over
  * different blocks of data.
- * <p>
+ *
  * This is a faster version of the original implementation by R. Nikitchenko,
- * incorporating the nested lookup table design by Mark Adler (see <a
- * href="http://stackoverflow.com/a/20579405/58962">Stackoverflow</a>).
- * <p>
+ * incorporating the nested lookup table design by Mark Adler (see [Stackoverflow](http://stackoverflow.com/a/20579405/58962)).
+ *
  * Throughput rose from 375 MB/s to 1150 MB/s on a 2,3 GHz i7, which is 3.06
  * times faster.
  *
  * @author Roman Nikitchenko (roman@nikitchenko.dp.ua)
  * @author Michael Böckling
  */
-public class CRC64 implements Checksum {
-
-    private final static long POLY = 0xc96c5795d7870f42L; // ECMA-182
-
-    /* CRC64 calculation table. */
-    private final static long[][] table;
+class CRC64 : Checksum {
 
     /* Current CRC value. */
-    private long value;
+    private var value: Long
 
-    static {
-        /*
-         * Nested tables as described by Mark Adler:
-         * http://stackoverflow.com/a/20579405/58962
+    companion object {
+
+        private const val POLY = -0x3693a86a2878f0beL // ECMA-182
+
+        /* CRC64 calculation table. */
+        private val table = Array(8) { LongArray(256) }
+
+        /**
+         * Construct new CRC64 instance from byte array.
          */
-        table = new long[8][256];
-
-        for (int n = 0; n < 256; n++) {
-            long crc = n;
-            for (int k = 0; k < 8; k++) {
-                if ((crc & 1) == 1) {
-                    crc = (crc >>> 1) ^ POLY;
-                } else {
-                    crc = (crc >>> 1);
-                }
+        private fun fromBytes(b: ByteArray): CRC64 {
+            var l: Long = 0
+            for (i in 0..3) {
+                l = l shl 8
+                l = l xor (b[i].toLong() and 0xFF)
             }
-            table[0][n] = crc;
+            return CRC64(l)
         }
 
-        /* generate nested CRC table for future slice-by-8 lookup */
-        for (int n = 0; n < 256; n++) {
-            long crc = table[0][n];
-            for (int k = 1; k < 8; k++) {
-                crc = table[0][(int) (crc & 0xff)] ^ (crc >>> 8);
-                table[k][n] = crc;
+        /**
+         * Calculate the CRC64 of the given file's content.
+         *
+         * @param f
+         * @return new [CRC64] instance initialized to the file's CRC value
+         * @throws IOException in case the [FileInputStream.read] method fails
+         */
+        @Throws(IOException::class)
+        fun fromFile(f: File): CRC64 {
+            return fromInputStream(FileInputStream(f))
+        }
+
+        /**
+         * Calculate the CRC64 of the given [InputStream] until the end of the
+         * stream has been reached.
+         *
+         * @param `in` the stream will be closed automatically
+         * @return new [CRC64] instance initialized to the [InputStream]'s CRC value
+         * @throws IOException in case the [InputStream.read] method fails
+         */
+        @Throws(IOException::class)
+        fun fromInputStream(input: InputStream): CRC64 {
+            return input.use {
+                val crc = CRC64()
+                val b = ByteArray(65536)
+                while (true) {
+                    val l = input.read()
+                    if (l == -1) break
+                    crc.update(b, l)
+                }
+                crc
+            }
+        }
+
+        // dimension of GF(2) vectors (length of CRC)
+        private const val GF2_DIM = 64
+        private fun gf2MatrixTimes(mat: LongArray, vec: Long): Long {
+            var vec = vec
+            var sum = 0L
+            var idx = 0
+            while (vec != 0L) {
+                if (vec and 1 == 1L) sum = sum xor mat[idx]
+                vec = vec ushr 1
+                idx++
+            }
+            return sum
+        }
+
+        private fun gf2MatrixSquare(square: LongArray, mat: LongArray) {
+            for (n in 0 until GF2_DIM) square[n] = gf2MatrixTimes(mat, mat[n])
+        }
+
+        /*
+     * Return the CRC-64 of two sequential blocks, where summ1 is the CRC-64 of
+     * the first block, summ2 is the CRC-64 of the second block, and len2 is the
+     * length of the second block.
+     */
+        fun combine(summ1: CRC64, summ2: CRC64, len2x: Long): CRC64 {
+            // degenerate case.
+            var len2 = len2x
+            if (len2 == 0L) return CRC64(summ1.getValue())
+            var row: Long
+            val even = LongArray(GF2_DIM) // even-power-of-two zeros operator
+            val odd = LongArray(GF2_DIM) // odd-power-of-two zeros operator
+
+            // put operator for one zero bit in odd
+            odd[0] = POLY // CRC-64 polynomial
+            row = 1
+            var n = 1
+            while (n < GF2_DIM) {
+                odd[n] = row
+                row = row shl 1
+                n++
+            }
+
+            // put operator for two zero bits in even
+            gf2MatrixSquare(even, odd)
+
+            // put operator for four zero bits in odd
+            gf2MatrixSquare(odd, even)
+
+            // apply len2 zeros to crc1 (first square will put the operator for one
+            // zero byte, eight zero bits, in even)
+            var crc1 = summ1.getValue()
+            val crc2 = summ2.getValue()
+            do {
+                // apply zeros operator for this bit of len2
+                gf2MatrixSquare(even, odd)
+                if (len2 and 1 == 1L) crc1 = gf2MatrixTimes(even, crc1)
+                len2 = len2 ushr 1
+
+                // if no more bits set, then done
+                if (len2 == 0L) break
+
+                // another iteration of the loop with odd and even swapped
+                gf2MatrixSquare(odd, even)
+                if (len2 and 1 == 1L) crc1 = gf2MatrixTimes(odd, crc1)
+                len2 = len2 ushr 1
+
+                // if no more bits set, then done
+            } while (len2 != 0L)
+
+            // return combined crc.
+            crc1 = crc1 xor crc2
+            return CRC64(crc1)
+        }
+
+        init {
+            /*
+             * Nested tables as described by Mark Adler:
+             * http://stackoverflow.com/a/20579405/58962
+             */
+            for (n in 0..255) {
+                var crc = n.toLong()
+                for (k in 0..7) {
+                    crc = if (crc and 1 == 1L) {
+                        crc ushr 1 xor POLY
+                    } else {
+                        crc ushr 1
+                    }
+                }
+                table[0][n] = crc
+            }
+
+            /* generate nested CRC table for future slice-by-8 lookup */
+            for (n in 0..255) {
+                var crc = table[0][n]
+                for (k in 1..7) {
+                    crc =
+                        table[0][(crc and 0xff).toInt()] xor (crc ushr 8)
+                    table[k][n] = crc
+                }
             }
         }
     }
@@ -62,8 +182,8 @@ public class CRC64 implements Checksum {
     /**
      * Initialize with a value of zero.
      */
-    public CRC64() {
-        this.value = 0;
+    constructor() {
+        value = 0
     }
 
     /**
@@ -71,8 +191,8 @@ public class CRC64 implements Checksum {
      *
      * @param value
      */
-    public CRC64(long value) {
-        this.value = value;
+    constructor(value: Long) {
+        this.value = value
     }
 
     /**
@@ -81,9 +201,9 @@ public class CRC64 implements Checksum {
      * @param b   block of bytes
      * @param len number of bytes to process
      */
-    public CRC64(byte[] b, int len) {
-        this.value = 0;
-        update(b, len);
+    constructor(b: ByteArray, len: Int) {
+        value = 0
+        update(b, len)
     }
 
     /**
@@ -93,205 +213,76 @@ public class CRC64 implements Checksum {
      * @param off starting offset of the byte block
      * @param len number of bytes to process
      */
-    public CRC64(byte[] b, int off, int len) {
-        this.value = 0;
-        update(b, off, len);
-    }
-
-    /**
-     * Construct new CRC64 instance from byte array.
-     */
-    private static CRC64 fromBytes(byte[] b) {
-        long l = 0;
-        for (int i = 0; i < 4; i++) {
-            l <<= 8;
-            l ^= (long) b[i] & 0xFF;
-        }
-        return new CRC64(l);
-    }
-
-    /**
-     * Calculate the CRC64 of the given file's content.
-     *
-     * @param f
-     * @return new {@link CRC64} instance initialized to the file's CRC value
-     * @throws IOException in case the {@link FileInputStream#read(byte[])} method fails
-     */
-    public static CRC64 fromFile(File f) throws IOException {
-        return fromInputStream(new FileInputStream(f));
-    }
-
-    /**
-     * Calculate the CRC64 of the given {@link InputStream} until the end of the
-     * stream has been reached.
-     *
-     * @param in the stream will be closed automatically
-     * @return new {@link CRC64} instance initialized to the {@link InputStream}'s CRC value
-     * @throws IOException in case the {@link InputStream#read(byte[])} method fails
-     */
-    public static CRC64 fromInputStream(InputStream in) throws IOException {
-        try {
-            CRC64 crc = new CRC64();
-            byte[] b = new byte[65536];
-            int l = 0;
-
-            while ((l = in.read(b)) != -1) {
-                crc.update(b, l);
-            }
-
-            return crc;
-
-        } finally {
-            in.close();
-        }
+    constructor(b: ByteArray, off: Int, len: Int) {
+        value = 0
+        update(b, off, len)
     }
 
     /**
      * Get 8 byte representation of current CRC64 value.
      */
-    public byte[] getBytes() {
-        byte[] b = new byte[8];
-        for (int i = 0; i < 8; i++) {
-            b[7 - i] = (byte) (this.value >>> (i * 8));
+    val bytes: ByteArray
+        get() {
+            val b = ByteArray(8)
+            for (i in 0..7) {
+                b[7 - i] = (value ushr i * 8).toByte()
+            }
+            return b
         }
-        return b;
-    }
 
     /**
      * Get long representation of current CRC64 value.
      */
-    public long getValue() {
-        return this.value;
+    override fun getValue(): Long {
+        return value
     }
 
     /**
      * Update CRC64 with new byte block.
      */
-    public void update(byte[] b, int len) {
-        this.update(b, 0, len);
+    fun update(b: ByteArray, len: Int) {
+        this.update(b, 0, len)
     }
 
     /**
      * Update CRC64 with new byte block.
      */
-    public void update(byte[] b, int off, int len) {
-        this.value = ~this.value;
+    override fun update(b: ByteArray, off: Int, len0: Int) {
+        var len = len0
+        value = value.inv()
 
         /* fast middle processing, 8 bytes (aligned!) per loop */
-
-        int idx = off;
+        var idx = off
         while (len >= 8) {
-            value = table[7][(int) (value & 0xff ^ (b[idx] & 0xff))]
-                    ^ table[6][(int) ((value >>> 8) & 0xff ^ (b[idx + 1] & 0xff))]
-                    ^ table[5][(int) ((value >>> 16) & 0xff ^ (b[idx + 2] & 0xff))]
-                    ^ table[4][(int) ((value >>> 24) & 0xff ^ (b[idx + 3] & 0xff))]
-                    ^ table[3][(int) ((value >>> 32) & 0xff ^ (b[idx + 4] & 0xff))]
-                    ^ table[2][(int) ((value >>> 40) & 0xff ^ (b[idx + 5] & 0xff))]
-                    ^ table[1][(int) ((value >>> 48) & 0xff ^ (b[idx + 6] & 0xff))]
-                    ^ table[0][(int) ((value >>> 56) ^ b[idx + 7] & 0xff)];
-            idx += 8;
-            len -= 8;
+            value = (table[7][(value and 0xff xor (b[idx].toLong() and 0xff)).toInt()]
+                    xor table[6][(value ushr 8 and 0xff xor (b[idx + 1].toLong() and 0xff)).toInt()]
+                    xor table[5][(value ushr 16 and 0xff xor (b[idx + 2].toLong() and 0xff)).toInt()]
+                    xor table[4][(value ushr 24 and 0xff xor (b[idx + 3].toLong() and 0xff)).toInt()]
+                    xor table[3][(value ushr 32 and 0xff xor (b[idx + 4].toLong() and 0xff)).toInt()]
+                    xor table[2][(value ushr 40 and 0xff xor (b[idx + 5].toLong() and 0xff)).toInt()]
+                    xor table[1][(value ushr 48 and 0xff xor (b[idx + 6].toLong() and 0xff)).toInt()]
+                    xor table[0][(value ushr 56 xor b[idx + 7].toLong() and 0xff).toInt()])
+            idx += 8
+            len -= 8
         }
 
-        /* process remaining bytes (can't be larger than 8) */
-        while (len > 0) {
-            value = table[0][(int) ((this.value ^ b[idx]) & 0xff)] ^ (this.value >>> 8);
-            idx++;
-            len--;
+        /* process remaining bytes (can't be larger than 8) */while (len > 0) {
+            value = table[0][(value xor b[idx].toLong() and 0xff).toInt()] xor (value ushr 8)
+            idx++
+            len--
         }
-
-        this.value = ~this.value;
+        value = value.inv()
     }
 
-    public void update(int b) {
-        this.update(new byte[]{(byte) b}, 0, 1);
+    override fun update(b: Int) {
+        this.update(byteArrayOf(b.toByte()), 0, 1)
     }
 
-    public void reset() {
-        this.value = 0;
+    override fun reset() {
+        value = 0
     }
 
-    // dimension of GF(2) vectors (length of CRC)
-    private static final int GF2_DIM = 64;
-
-    private static long gf2MatrixTimes(long[] mat, long vec) {
-        long sum = 0;
-        int idx = 0;
-        while (vec != 0) {
-            if ((vec & 1) == 1)
-                sum ^= mat[idx];
-            vec >>>= 1;
-            idx++;
-        }
-        return sum;
-    }
-
-    private static void gf2MatrixSquare(long[] square, long[] mat) {
-        for (int n = 0; n < GF2_DIM; n++)
-            square[n] = gf2MatrixTimes(mat, mat[n]);
-    }
-
-    /*
-     * Return the CRC-64 of two sequential blocks, where summ1 is the CRC-64 of
-     * the first block, summ2 is the CRC-64 of the second block, and len2 is the
-     * length of the second block.
-     */
-    static public CRC64 combine(CRC64 summ1, CRC64 summ2, long len2) {
-        // degenerate case.
-        if (len2 == 0)
-            return new CRC64(summ1.getValue());
-
-        int n;
-        long row;
-        long[] even = new long[GF2_DIM]; // even-power-of-two zeros operator
-        long[] odd = new long[GF2_DIM]; // odd-power-of-two zeros operator
-
-        // put operator for one zero bit in odd
-        odd[0] = POLY; // CRC-64 polynomial
-
-        row = 1;
-        for (n = 1; n < GF2_DIM; n++) {
-            odd[n] = row;
-            row <<= 1;
-        }
-
-        // put operator for two zero bits in even
-        gf2MatrixSquare(even, odd);
-
-        // put operator for four zero bits in odd
-        gf2MatrixSquare(odd, even);
-
-        // apply len2 zeros to crc1 (first square will put the operator for one
-        // zero byte, eight zero bits, in even)
-        long crc1 = summ1.getValue();
-        long crc2 = summ2.getValue();
-        do {
-            // apply zeros operator for this bit of len2
-            gf2MatrixSquare(even, odd);
-            if ((len2 & 1) == 1)
-                crc1 = gf2MatrixTimes(even, crc1);
-            len2 >>>= 1;
-
-            // if no more bits set, then done
-            if (len2 == 0)
-                break;
-
-            // another iteration of the loop with odd and even swapped
-            gf2MatrixSquare(odd, even);
-            if ((len2 & 1) == 1)
-                crc1 = gf2MatrixTimes(odd, crc1);
-            len2 >>>= 1;
-
-            // if no more bits set, then done
-        } while (len2 != 0);
-
-        // return combined crc.
-        crc1 ^= crc2;
-        return new CRC64(crc1);
-    }
-
-    @Override
-    public String toString() {
-        return "CRC64{value=" + Long.toUnsignedString(value, 16) + '}';
+    override fun toString(): String {
+        return "CRC64{value=" + value.toULong().toString(16) + '}'
     }
 }

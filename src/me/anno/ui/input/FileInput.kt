@@ -28,9 +28,13 @@ import java.io.File
 class FileInput(
     title: String, style: Style,
     f0: FileReference,
-    val extraRightClickOptions: List<FileExplorerOption>,
-    val isDirectory: Boolean = false
+    var extraRightClickOptions: List<FileExplorerOption>,
+    var isDirectory: Boolean = false
 ) : PanelListX(style), InputPanel<FileReference> {
+
+    // todo file preview, if available
+    // todo property inspector, if is mutable prefab
+    // (e.g. would be really nice for quick changes to materials)
 
     val button = TextButton(DefaultConfig["ui.symbol.folder", "\uD83D\uDCC1"], true, style)
     val base = TextInput(title, "", false, f0.toString2(), style)
@@ -50,23 +54,21 @@ class FileInput(
         }
         button.apply {
             addLeftClickListener {
-                threadWithName("SelectFile/Folder") {
-                    var file2 = file
-                    while (file2 != InvalidRef && !file2.exists) {
-                        val file3 = file2.getParent() ?: InvalidRef
-                        if (file3 == InvalidRef || file3 == file2 || file3.exists) {
-                            file2 = file3
-                            break
-                        } else {
-                            file2 = file3
-                        }
+                var file2 = file
+                while (file2 != InvalidRef && !file2.exists) {
+                    val file3 = file2.getParent() ?: InvalidRef
+                    if (file3 == InvalidRef || file3 == file2 || file3.exists) {
+                        file2 = file3
+                        break
+                    } else {
+                        file2 = file3
                     }
-                    val file3 = if (file2 == InvalidRef) null else (file2 as? FileFileRef)?.file
-                    // todo select the file using our own explorer (?), because ours may be better
-                    FileExplorerSelectWrapper.selectFileOrFolder(file3, isDirectory) { file ->
-                        if (file != null) {
-                            setValue(file)
-                        }
+                }
+                val file3 = if (file2 == InvalidRef) null else (file2 as? FileFileRef)?.file
+                // todo select the file using our own explorer (?), because ours may be better
+                FileExplorerSelectWrapper.selectFileOrFolder(file3, isDirectory) { file ->
+                    if (file != null) {
+                        setValue(file)
                     }
                 }
             }

@@ -1,5 +1,7 @@
 package me.anno.engine
 
+import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.PrefabCache
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
@@ -44,6 +46,34 @@ class GameEngineProject() : NamedSaveable() {
 
     var location: FileReference = InvalidRef // a folder
     var lastScene: FileReference = InvalidRef
+
+    fun forAllPrefabs(run: (FileReference, Prefab) -> Unit) {
+        forAllFiles { file ->
+            val prefab = PrefabCache.getPrefab(file)
+            if (prefab != null) run(file, prefab)
+        }
+    }
+
+    fun forAllFiles(run: (FileReference) -> Unit) {
+        forAllFiles(location, 10, run)
+    }
+
+    fun forAllFiles(folder: FileReference, maxDepth: Int, run: (FileReference) -> Unit) {
+        try {
+            // to do go into things as well???
+            for (child in folder.listChildren() ?: return) {
+                if (child.isDirectory) {
+                    if (maxDepth > 0) {
+                        forAllFiles(child, maxDepth - 1, run)
+                    }
+                } else {
+                    run(child)
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
 
     fun init() {
         StudioBase.workspace = location

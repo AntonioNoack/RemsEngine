@@ -60,7 +60,7 @@ fun main() {
 }
 
 fun testConfig() {
-    val logger = LogManager.getLogger()
+    val logger = LogManager.getLogger("TestConfig")
     val configDefaults = StringMap()
     configDefaults["key.a"] = 17
     configDefaults["key.float"] = 11f / 3f

@@ -11,8 +11,10 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
+import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.structures.Hierarchical
 import org.apache.logging.log4j.LogManager
+import kotlin.reflect.KClass
 
 abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, Inspectable, Cloneable {
 
@@ -201,10 +203,23 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     }
 
     companion object {
+
         private val LOGGER = LogManager.getLogger(PrefabSaveable::class)
         private fun getSuperInstance(className: String): PrefabSaveable {
             return ISaveable.getSample(className) as? PrefabSaveable
                 ?: throw RuntimeException("No super instance was found for class '$className'")
+        }
+
+        fun <V : PrefabSaveable> getOptionsByClass(parent: PrefabSaveable?, clazz: KClass<V>): List<Option> {
+            // registry over all options... / todo search the raw files + search all scripts
+            val knownComponents = ISaveable.getInstanceOf(clazz)
+            return knownComponents.map {
+                Option(it.key.camelCaseToTitle(), "") {
+                    val comp = it.value.generator() as PrefabSaveable
+                    comp.parent = parent
+                    comp
+                }
+            }.sortedBy { it.title }
         }
     }
 

@@ -1,53 +1,47 @@
-package org.apache.logging.log4j;
+package org.apache.logging.log4j
 
-import kotlin.reflect.KClass;
-
-import java.util.HashMap;
-import java.util.HashSet;
+import kotlin.reflect.KClass
 
 /**
  * the main logging manager, which should be used
  */
-public class LogManager {
+object LogManager {
 
-    private static final HashSet<String> disabled = new HashSet<>();
-
-    public static boolean isEnabled(LoggerImpl logger) {
-        return !disabled.contains(logger.getPrefix());
+    private val disabled = HashSet<String?>()
+    fun isEnabled(logger: LoggerImpl): Boolean {
+        return !disabled.contains(logger.prefix)
     }
 
-    public static void disableLogger(String logger) {
-        disabled.add(logger);
+    fun disableLogger(logger: String?) {
+        disabled.add(logger)
     }
 
-    public static void enableLogger(String logger) {
-        disabled.remove(logger);
+    fun enableLogger(logger: String?) {
+        disabled.remove(logger)
     }
 
-    private static final LoggerImpl logger = new LoggerImpl(null);
-    private static final HashMap<String, LoggerImpl> loggers = new HashMap<>();
+    private val logger = LoggerImpl(null)
+    private val loggers = HashMap<String, LoggerImpl>()
 
-    public static LoggerImpl getLogger() {
-        return logger;
+    @JvmStatic
+    fun getLogger(clazz: Class<*>): LoggerImpl {
+        return getLogger(clazz.simpleName)
     }
 
-    public static LoggerImpl getLogger(Class<?> clazz) {
-        return getLogger(clazz.getSimpleName());
-    }
-
-    public static LoggerImpl getLogger(KClass<?> clazz) {
+    @JvmStatic
+    fun getLogger(clazz: KClass<*>): LoggerImpl {
         // System.out.println("Inited " + clazz.getSimpleName());
-        return getLogger(clazz.getSimpleName());
+        return getLogger(clazz.simpleName)
     }
 
-    public static LoggerImpl getLogger(String name) {
-        if (name == null) return logger;
-        LoggerImpl logger = loggers.get(name);
+    @JvmStatic
+    fun getLogger(name: String?): LoggerImpl {
+        if (name == null) return logger
+        var logger = loggers[name]
         if (logger == null) {
-            logger = new LoggerImpl(name);
-            loggers.put(name, logger);
+            logger = LoggerImpl(name)
+            loggers[name] = logger
         }
-        return logger;
+        return logger
     }
-
 }

@@ -69,7 +69,6 @@ open class SDFCylinder : SDFSmoothShape() {
     }
 
     override fun computeSDFBase(pos: Vector4f): Float {
-        applyTransform(pos)
         val h = params
         val k = smoothness
         val hkx = h.x - k

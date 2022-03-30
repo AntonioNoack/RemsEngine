@@ -6,7 +6,7 @@ import me.anno.ecs.components.mesh.sdf.SDFComponent
 import me.anno.ecs.components.mesh.sdf.modifiers.DistanceMapper
 import me.anno.ecs.components.mesh.sdf.modifiers.PositionMapper
 import me.anno.ecs.prefab.Hierarchy
-import me.anno.ecs.prefab.PrefabCache.loadPrefab
+import me.anno.ecs.prefab.PrefabCache.getPrefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.EditorState
@@ -97,7 +97,7 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
             if (selected is Entity) {
                 val scale = view.radius * 0.1
                 val transform = selected.transform.globalTransform
-                val pos = transform.getTranslation(JomlPools.vec3d.create())//.sub(RenderView.camPosition)
+                val pos = transform.getTranslation(JomlPools.vec3d.create())
                 when (mode) {
                     Mode.TRANSLATING -> {
                         Gizmos.drawTranslateGizmos(
@@ -267,7 +267,6 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                         val transform = entity.transform
                         transform.invalidateLocal()
                         transform.teleportUpdate()
-                        transform.validate()
                         onChangeTransform(entity)
                     }
                     JomlPools.vec3d.sub(1)
@@ -360,12 +359,12 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
         val path = entity.prefabPath
         if (prefab != null && path != null) {
             val transform = entity.transform
-            prefab.set(path, "position", transform.localPosition)
-            prefab.set(path, "rotation", transform.localRotation)
-            prefab.set(path, "scale", transform.localScale)
+            prefab.setUnsafe(path, "position", transform.localPosition)
+            prefab.setUnsafe(path, "rotation", transform.localRotation)
+            prefab.setUnsafe(path, "scale", transform.localScale)
         }
         // entity.invalidateAABBsCompletely()
-        // entity.invalidateChildTransforms()
+        entity.invalidateChildTransforms()
         invalidateInspector()
     }
 
@@ -385,18 +384,30 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
     }
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
-        val hovered = lazy { // get hovered element
+        val hovered by lazy { // get hovered element
             view.resolveClick(x, y).second
         }
         for (file in files) {
             // todo load as prefab (?)
             // todo when a material, assign it to the hovered mesh-component
-            val prefab = loadPrefab(file) ?: continue
+            val prefab = getPrefab(file) ?: continue
             when (prefab.clazzName) {
                 "Material" -> {
-                    val mesh = hovered.value as? MeshComponent
-
-                    // todo set this material in the prefab
+                    println("pasted material for $hovered")
+                    val meshComponent = hovered as? MeshComponent
+                    if (meshComponent != null) {
+                        val mesh = meshComponent.getMesh()
+                        val numMaterials = mesh?.numMaterials ?: 1
+                        if (numMaterials < 2 || true) {
+                            // assign material
+                            meshComponent.materials = listOf(file)
+                            meshComponent.prefab?.set(meshComponent, "materials", meshComponent.materials)
+                        } else {
+                            // todo ask for slot to place material
+                            // todo what if there are multiple materials being dragged? :)
+                            // todo set this material in the prefab
+                        }
+                    }
                     // todo if the prefab is not writable, create a prefab for that mesh, and replace the mesh...
                     /*if (mesh != null) {
                         mesh.materials = listOf(file)

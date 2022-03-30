@@ -68,7 +68,6 @@ open class SDFPlane : SDFShape() {
     }
 
     override fun computeSDFBase(pos: Vector4f): Float {
-        applyTransform(pos)
         return pos.y
     }
 

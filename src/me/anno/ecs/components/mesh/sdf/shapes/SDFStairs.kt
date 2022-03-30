@@ -45,7 +45,6 @@ class SDFStairs : SDF2DShape() {
     }
 
     override fun computeSDFBase(pos: Vector4f): Float {
-        applyTransform(pos)
         val whn = stepSizeCount
         val w = whn.x
         val h = whn.y

@@ -1,8 +1,13 @@
-package org.apache.logging.log4j;
+package org.apache.logging.log4j
 
-public class MarkerManager {
-    static Marker marker = new Marker();
-    public static Marker getMarker(String name){
-        return marker;
+/** for other libraries; whatever this does ^^ */
+object MarkerManager {
+
+    private val marker = Marker()
+
+    @JvmStatic
+    fun getMarker(name: String?): Marker {
+        return marker
     }
+
 }

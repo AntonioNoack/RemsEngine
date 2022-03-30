@@ -68,7 +68,7 @@ class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
     override fun listChildTypes(): String = "p"
     override fun getChildListNiceName(type: Char): String = "Panel"
     override fun getChildListByType(type: Char) = windowStack.map { it.panel }
-    override fun getOptionsByType(type: Char) = PanelGroup.getPanelOptions()
+    override fun getOptionsByType(type: Char) = PanelGroup.getPanelOptions(null)
     override fun addChildByType(index: Int, type: Char, child: PrefabSaveable) {
         addChild(child)
     }

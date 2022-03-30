@@ -22,7 +22,7 @@ fun toBytes(data: FloatBuffer): ByteArray {
 
 fun main() {
 
-    val logger = LogManager.getLogger()
+    val logger = LogManager.getLogger("SDFBenchmark")
 
     val roundEdges = false
     val font = FontManager.getFont("Verdana", 8f, false, false).font

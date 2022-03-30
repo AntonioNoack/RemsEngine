@@ -140,7 +140,7 @@ object PDFCache : CacheSection("PDFCache") {
             val renderer = PDFRenderer(doc)
             val clampedPage = Maths.clamp(pageNumber, 0, numberOfPages - 1)
             val mediaBox = doc.getPage(clampedPage).mediaBox
-            val scale = size.toFloat() / max(mediaBox.width, mediaBox.height)
+            val scale = size.toFloat() / max(1f, max(mediaBox.width, mediaBox.height))
             val image = renderer.renderImage(clampedPage, scale, ImageType.RGB)
             image
         }

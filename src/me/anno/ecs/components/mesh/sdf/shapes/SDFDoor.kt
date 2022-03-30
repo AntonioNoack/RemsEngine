@@ -76,7 +76,6 @@ class SDFDoor : SDF2DShape() {
     }
 
     override fun computeSDFBase(pos: Vector4f): Float {
-        applyTransform(pos)
         val params = params
         val w = params.x
         val h = params.y

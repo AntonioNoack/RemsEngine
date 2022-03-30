@@ -1,7 +1,7 @@
 package me.anno.ecs.prefab.change
 
 import me.anno.Build
-import me.anno.ecs.prefab.PrefabCache.loadPrefab
+import me.anno.ecs.prefab.PrefabCache.getPrefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -94,7 +94,7 @@ class CAdd() : Change() {
         // LOGGER.info("adding $clazzName/$nameId with type $type to $path; to ${instance.prefabPath}, ${path == instance.prefabPath}")
         if (prefab != InvalidRef && chain?.add(prefab) == false) throw RuntimeException("Circular reference on $chain: $prefab")
 
-        val loadedInstance = loadPrefab(prefab, chain)?.createInstance()
+        val loadedInstance = getPrefab(prefab, chain)?.createInstance()
         val clazzName = clazzName
         var newInstance = loadedInstance
         if (newInstance == null) {

@@ -1,6 +1,6 @@
 package me.anno.ecs.prefab
 
-import me.anno.ecs.prefab.PrefabCache.loadPrefab
+import me.anno.ecs.prefab.PrefabCache.getPrefab
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Change
@@ -60,8 +60,8 @@ class Prefab : Saveable {
 
     fun invalidateInstance() {
         synchronized(this) {
-            sampleInstance?.destroy()
-            sampleInstance = null
+            _sampleInstance?.destroy()
+            _sampleInstance = null
             isValid = false
         }
         // todo all child prefab instances would need to be invalidated as well
@@ -90,13 +90,13 @@ class Prefab : Saveable {
         var sum = adds.size + sets.size
         if (depth > 0) {
             if (prefab != InvalidRef) {
-                val prefab = loadPrefab(prefab, HashSet(), async)
+                val prefab = getPrefab(prefab, HashSet(), async)
                 if (prefab != null) sum += prefab.countTotalChanges(async, depth - 1)
             }
             for (change in adds) {
                 val childPrefab = change.prefab
                 if (childPrefab != InvalidRef) {
-                    val prefab = loadPrefab(childPrefab, HashSet(), async)
+                    val prefab = getPrefab(childPrefab, HashSet(), async)
                     if (prefab != null) sum += prefab.countTotalChanges(async, depth - 1)
                 }
             }
@@ -106,6 +106,13 @@ class Prefab : Saveable {
 
     fun add(change: CAdd, index: Int): Path {
         return add(change).getChildPath(index)
+    }
+
+    fun set(instance: PrefabSaveable, key: String, value: Any?) {
+        val pp = instance.prefabPath
+        if (pp != null) {
+            set(pp, key, value)
+        }
     }
 
     fun set(path: Path, name: String, value: Any?) {
@@ -131,6 +138,7 @@ class Prefab : Saveable {
     fun setUnsafe(path: Path, name: String, value: Any?) {
         /*ensureMutableLists()
         (sets as MutableList).add(CSet(path, name, value))*/
+        if (!isWritable) throw ImmutablePrefabException(source)
         sets[path, name] = value
     }
 
@@ -185,14 +193,14 @@ class Prefab : Saveable {
     }
 
     private fun updateSample(change: CSet) {
-        val sampleInstance = sampleInstance
+        val sampleInstance = _sampleInstance
         if (sampleInstance != null && isValid) {
             change.apply(sampleInstance, null)
         }
     }
 
     private fun updateSample(path: Path, name: String, value: Any?) {
-        val sampleInstance = sampleInstance
+        val sampleInstance = _sampleInstance
         if (sampleInstance != null && isValid) {
             CSet.apply(sampleInstance, path, name, value)
         }
@@ -210,7 +218,7 @@ class Prefab : Saveable {
         return sets[ROOT_PATH, name]
     }
 
-    private var sampleInstance: PrefabSaveable? = null
+    var _sampleInstance: PrefabSaveable? = null
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
@@ -285,18 +293,18 @@ class Prefab : Saveable {
                     }
                 }
                 // assign super instance? we should really cache that...
-                sampleInstance = instance
+                _sampleInstance = instance
                 isValid = true
             }
         }
-        return sampleInstance!!
+        return _sampleInstance!!
     }
 
     fun createInstance(chain: MutableSet<FileReference>? = HashSet()): PrefabSaveable {
         val clone = getSampleInstance(chain).clone()
         clone.forAll {
             if (it.prefab !== this)
-                throw IllegalStateException("Incorrectly created prefab!")
+                throw IllegalStateException("Incorrectly created prefab! $source")
         }
         return clone
     }

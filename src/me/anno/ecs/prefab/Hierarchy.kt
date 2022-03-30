@@ -408,7 +408,7 @@ object Hierarchy {
 
     private fun testJsonFormatter() {
         val ref = getReference(documents, "RemsEngine/SampleProject/Scene.json")
-        val prefab = PrefabCache.loadPrefab(ref)
+        val prefab = PrefabCache.getPrefab(ref)
         println(JsonFormatter.format(prefab.toString()))
     }
 

@@ -1,144 +1,140 @@
-package me.anno.graph.knn;
+package me.anno.graph.knn
 
-import me.anno.utils.structures.lists.Lists;
+import me.anno.utils.structures.lists.Lists.smallestKElements
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-
-public class Heap {
+object Heap {
 
     // https://www.geeksforgeeks.org/building-heap-from-array/
-
     // To heapify a subtree rooted with node i which is
     // an index in arr[].Nn is size of heap
-    static <V> void maxHeapify(ArrayList<V> arr, int i, Comparator<V> comparator) {
-        int largest = i; // Initialize largest as root
-        int l = 2 * i + 1; // left = 2*i + 1
-        int r = 2 * i + 2; // right = 2*i + 2
-
-        int n = arr.size();
+    fun <V> maxHeapify(arr: ArrayList<V>, i: Int, comparator: Comparator<V>) {
+        var largest = i // Initialize largest as root
+        val l = 2 * i + 1 // left = 2*i + 1
+        val r = 2 * i + 2 // right = 2*i + 2
+        val n = arr.size
         // If left child is larger than root
-        if (l < n && comparator.compare(arr.get(l), arr.get(largest)) > 0)
-            largest = l;
+        if (l < n && comparator.compare(arr[l], arr[largest]) > 0) largest = l
 
         // If right child is larger than largest so far
-        if (r < n && comparator.compare(arr.get(r), arr.get(largest)) > 0)
-            largest = r;
+        if (r < n && comparator.compare(arr[r], arr[largest]) > 0) largest = r
 
         // If largest is not root
         if (largest != i) {
-            V swap = arr.get(i);
-            arr.set(i, arr.get(largest));
-            arr.set(largest, swap);
+            val swap = arr[i]
+            arr[i] = arr[largest]
+            arr[largest] = swap
 
             // Recursively heapify the affected sub-tree
-            maxHeapify(arr, largest, comparator);
+            maxHeapify(arr, largest, comparator)
         }
     }
 
     // To heapify a subtree rooted with node i which is
     // an index in arr[].Nn is size of heap
-    static <V> void minHeapify(ArrayList<V> arr, int i, Comparator<V> comparator) {
-        int largest = i; // Initialize largest as root
-        int l = 2 * i + 1; // left = 2*i + 1
-        int r = 2 * i + 2; // right = 2*i + 2
-
-        int n = arr.size();
+    fun <V> minHeapify(arr: ArrayList<V>, i: Int, comparator: Comparator<V>) {
+        var largest = i // Initialize largest as root
+        val l = 2 * i + 1 // left = 2*i + 1
+        val r = 2 * i + 2 // right = 2*i + 2
+        val n = arr.size
         // If left child is larger than root
-        if (l < n && comparator.compare(arr.get(l), arr.get(largest)) < 0)
-            largest = l;
+        if (l < n && comparator.compare(arr[l], arr[largest]) < 0) largest = l
 
         // If right child is larger than largest so far
-        if (r < n && comparator.compare(arr.get(r), arr.get(largest)) < 0)
-            largest = r;
+        if (r < n && comparator.compare(arr[r], arr[largest]) < 0) largest = r
 
         // If largest is not root
         if (largest != i) {
-            V swap = arr.get(i);
-            arr.set(i, arr.get(largest));
-            arr.set(largest, swap);
+            val swap = arr[i]
+            arr[i] = arr[largest]
+            arr[largest] = swap
 
             // Recursively heapify the affected sub-tree
-            minHeapify(arr, largest, comparator);
+            minHeapify(arr, largest, comparator)
         }
     }
 
-    public static <V> V extractMax(ArrayList<V> arr, Comparator<V> comparator) {
-        V value = arr.get(0);
-        if (arr.size() > 1) {
-            arr.set(0, arr.remove(arr.size() - 1));
-            maxHeapify(arr, 0, comparator);
+    fun <V> extractMax(arr: ArrayList<V>, comparator: Comparator<V>): V {
+        val value = arr[0]
+        if (arr.size > 1) {
+            arr[0] = arr.removeAt(arr.size - 1)
+            maxHeapify(arr, 0, comparator)
         } else {
-            arr.clear();
+            arr.clear()
         }
-        return value;
+        return value
     }
 
-    public static <V> V extractMin(ArrayList<V> arr, Comparator<V> comparator) {
-        V value = arr.get(0);
-        if (arr.size() > 1) {
-            arr.set(0, arr.remove(arr.size() - 1));
-            minHeapify(arr, 0, comparator);
+    fun <V> extractMin(arr: ArrayList<V>, comparator: Comparator<V>): V {
+        val value = arr[0]
+        if (arr.size > 1) {
+            arr[0] = arr.removeAt(arr.size - 1)
+            minHeapify(arr, 0, comparator)
         } else {
-            arr.clear();
+            arr.clear()
         }
-        return value;
+        return value
     }
 
     // Function to build a Max-Heap from the Array
-    public static <V> void buildMaxHeap(ArrayList<V> arr, Comparator<V> comparator) {
+    fun <V> buildMaxHeap(arr: ArrayList<V>, comparator: Comparator<V>) {
         // Index of last non-leaf node
-        int startIdx = (arr.size() / 2) - 1;
+        val startIdx = arr.size / 2 - 1
 
         // Perform reverse level order traversal
         // from last non-leaf node and heapify
         // each node
-        for (int i = startIdx; i >= 0; i--) {
-            maxHeapify(arr, i, comparator);
+        for (i in startIdx downTo 0) {
+            maxHeapify(arr, i, comparator)
         }
     }
 
     // Function to build a Min-Heap from the Array
-    public static <V> void buildMinHeap(ArrayList<V> arr, Comparator<V> comparator) {
+    fun <V> buildMinHeap(arr: ArrayList<V>, comparator: Comparator<V>) {
         // Index of last non-leaf node
-        int startIdx = (arr.size() / 2) - 1;
+        val startIdx = arr.size / 2 - 1
 
         // Perform reverse level order traversal
         // from last non-leaf node and heapify
         // each node
-        for (int i = startIdx; i >= 0; i--) {
-            minHeapify(arr, i, comparator);
+        for (i in startIdx downTo 0) {
+            minHeapify(arr, i, comparator)
         }
     }
 
     // A utility function to print the array
     // representation of Heap
-    static <V> void printHeap(List<V> arr) {
-        System.out.println("Array representation of Heap is:");
-        System.out.println(arr);
+    fun <V> printHeap(arr: List<V>?) {
+        println("Array representation of Heap is:")
+        println(arr)
     }
 
-    static <V> void printSortedMax(ArrayList<V> arr, Comparator<V> comparator) {
-        System.out.println("Sorted elements are:");
-        for (int i = 0, l = arr.size(); i < l; i++) {
-            V value = extractMax(arr, comparator);
-            System.out.print(value + " ");
+    fun <V> printSortedMax(arr: ArrayList<V>, comparator: Comparator<V>) {
+        println("Sorted elements are:")
+        var i = 0
+        val l = arr.size
+        while (i < l) {
+            val value = extractMax(arr, comparator)
+            print(value.toString() + " ")
+            i++
         }
-        System.out.println();
+        println()
     }
 
-    static <V> void printSortedMin(ArrayList<V> arr, Comparator<V> comparator) {
-        System.out.println("Sorted elements are:");
-        for (int i = 0, l = arr.size(); i < l; i++) {
-            V value = extractMin(arr, comparator);
-            System.out.print(value + " ");
+    fun <V> printSortedMin(arr: ArrayList<V>, comparator: Comparator<V>) {
+        println("Sorted elements are:")
+        var i = 0
+        val l = arr.size
+        while (i < l) {
+            val value = extractMin(arr, comparator)
+            print(value.toString() + " ")
+            i++
         }
-        System.out.println();
+        println()
     }
 
     // Driver Code
-    public static void main(String[] args) {
+    @JvmStatic
+    fun main(args: Array<String>) {
         // Binary Tree Representation
         // of input array
         //              1
@@ -148,15 +144,16 @@ public class Heap {
         //     4      6   13  10
         //    / \    / \
         //   9   8  15 17
-        int[] arr0 = {1, 3, 5, 4, 6, 13, 10, 9, 8, 15, 17};
-
-        ArrayList<Integer> arr = new ArrayList<>();
-        for (int value : arr0) arr.add(value);
-        System.out.println(Lists.INSTANCE.smallestKElements(arr, 10, Integer::compareTo));
-
-        buildMaxHeap(arr, Integer::compareTo);
-        printHeap(arr);
-        printSortedMax(arr, Integer::compareTo);
-
+        val arr0 = intArrayOf(1, 3, 5, 4, 6, 13, 10, 9, 8, 15, 17)
+        val arr = ArrayList<Int>()
+        for (value in arr0) arr.add(value)
+        println(arr.smallestKElements(10, Comparator { obj: Int, integer: Int? ->
+            obj.compareTo(
+                integer!!
+            )
+        }))
+        buildMaxHeap(arr) { obj: Int, integer: Int? -> obj.compareTo(integer!!) }
+        printHeap(arr)
+        printSortedMax(arr) { obj: Int, integer: Int? -> obj.compareTo(integer!!) }
     }
 }

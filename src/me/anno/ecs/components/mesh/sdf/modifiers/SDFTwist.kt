@@ -2,10 +2,10 @@ package me.anno.ecs.components.mesh.sdf.modifiers
 
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
-import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.writeVec
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.maths.Maths
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -14,10 +14,12 @@ class SDFTwist : PositionMapper() {
 
     private val sourceParams = Vector4f(0f, 1f, 0f, 0f)
 
+    fun Vector4f.length3() = Maths.length(x, y, z)
+
     private fun calcSourceParams() {
         val w = sourceParams.w
         sourceParams.set(source, 0f)
-        sourceParams.mul(strength / sourceParams.length())
+        sourceParams.mul(strength / sourceParams.length3())
         sourceParams.w = w
     }
 
@@ -102,7 +104,7 @@ class SDFTwist : PositionMapper() {
         }
         if (!dynDst && axis != '?') {
             val sign = if (dst.x + dst.y + dst.z > 0f) '+' else '-'
-            LOGGER.info("Using optimization $sign$axis")
+            // LOGGER.info("Using optimization $sign$axis")
             builder.append("pos").append(posIndex)
             builder.append("=twist").append(axis)
             builder.append("(pos").append(posIndex)

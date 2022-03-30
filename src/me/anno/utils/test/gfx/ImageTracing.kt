@@ -1,196 +1,206 @@
-package me.anno.utils.test.gfx;
+package me.anno.utils.test.gfx
 
-import me.anno.image.Image;
-import me.anno.image.ImageCPUCache;
-import me.anno.image.raw.IntImage;
-import me.anno.maths.Maths;
-import me.anno.utils.OS;
-import me.anno.utils.structures.arrays.FloatArrayList;
-import me.anno.utils.structures.arrays.IntArrayList;
+import me.anno.image.ImageCPUCache.getImage
+import me.anno.image.raw.IntImage
+import me.anno.maths.Maths.mix
+import me.anno.utils.OS.desktop
+import me.anno.utils.OS.documents
+import me.anno.utils.structures.arrays.FloatArrayList
+import me.anno.utils.structures.arrays.IntArrayList
+import java.io.IOException
+import java.util.*
 
-import java.io.IOException;
-import java.util.BitSet;
-
-public class ImageTracing {
+object ImageTracing {
 
     // test this with real letters
     // to do set the test size for meshes to 120 instead of 20-ish
-
-    public static void main(String[] args) throws IOException {
-        Image image = ImageCPUCache.INSTANCE.getImage(OS.INSTANCE.getDocuments().getChild("test-text.png"), false);
-        assert image != null;
-        int[] pixels = ((IntImage) image).getData();
-        int black = 0xff000000;
-        for (int i = 0, l = pixels.length; i < l; i++) {
-            pixels[i] = pixels[i] & black;
+    @Throws(IOException::class)
+    @JvmStatic
+    fun main(args: Array<String>) {
+        val image = getImage(documents.getChild("test-text.png"), false)!!
+        val pixels = (image as IntImage).data
+        val black = -0x1000000
+        var i = 0
+        val l = pixels.size
+        while (i < l) {
+            pixels[i] = pixels[i] and black
+            i++
         }
-        computeOutline(image.width, image.height, pixels);
+        computeOutline(image.width, image.height, pixels)
     }
 
-    public static void computeOutline(int w, int h, int[] pixels) throws IOException {
-
-        for (int i = 0, l = pixels.length; i < l; i++) {
-            pixels[i] = (pixels[i] >>> 24) - 128;
+    @Throws(IOException::class)
+    fun computeOutline(w: Int, h: Int, pixels: IntArray) {
+        run {
+            var i = 0
+            val l = pixels.size
+            while (i < l) {
+                pixels[i] = (pixels[i] ushr 24) - 128
+                i++
+            }
         }
-
-        IntArrayList ops = new IntArrayList(64);
-        FloatArrayList data = new FloatArrayList(256, 0f);
-        IntArrayList edge = new IntArrayList(64);
-        float[] p = new float[2], p2 = new float[2];
-        BitSet done = new BitSet(w * h * 2);
-
-        int s = 16;
-
-        IntImage ii = new IntImage(w * s, h * s, false);
-        IntImage ij = new IntImage(w, h, false);
-
-        int ctr = 0;
-
-        for (int y = 0, i = 0; y < h; y++) {
-            for (int x = 0; x < w; x++, i++) {
+        val ops = IntArrayList(64)
+        val data = FloatArrayList(256, 0f)
+        val edge = IntArrayList(64)
+        val p = FloatArray(2)
+        val p2 = FloatArray(2)
+        val done = BitSet(w * h * 2)
+        val s = 16
+        val ii = IntImage(w * s, h * s, false)
+        val ij = IntImage(w, h, false)
+        var ctr = 0
+        var y = 0
+        var i = 0
+        while (y < h) {
+            var x = 0
+            while (x < w) {
                 if (isEdge(x, y, w, pixels, true) &&
-                        !done.get(x + y * w) && !done.get(x + y * w + 1)) {
-
-                    traceEdge(x, y, w, h, pixels, done, edge);
-
-                    if (edge.size() <= 2) continue;
+                    !done[x + y * w] && !done[x + y * w + 1]
+                ) {
+                    traceEdge(x, y, w, h, pixels, done, edge)
+                    if (edge.size <= 2) {
+                        x++
+                        i++
+                        continue
+                    }
 
                     // a full curve was found -> turn into points & lines
-                    edgeToPoint(edge.getValue(0), w, pixels, p);
-                    moveTo(p[0], p[1], ops, data);
-                    for (int k = 1, l = edge.size(); k < l; k++) {
-                        edgeToPoint(edge.getValue(k), w, pixels, p);
-                        lineTo(p[0], p[1], ops, data);
-                    }
-                    close(ops);
-
-                    for (int k = 0; k < pixels.length; k++)
-                        ii.setRGB(k % w, k / w, 0);
-
-                    for (int k = 0, l = edge.size() - 1; k < l; k++) {
-                        edgeToPoint(edge.getValue(k), w, pixels, p);
-                        edgeToPoint(edge.getValue(k + 1), w, pixels, p2);
-                        for (int m = 0; m < s * 2; m++) {
-                            float f = m / (s * 2 - 1f);
-                            int px = (int) (Maths.INSTANCE.mix(p[0], p2[0], f) * s);
-                            int py = (int) (Maths.INSTANCE.mix(p[1], p2[1], f) * s);
-                            ii.setRGB(px, py, -1);
+                    edgeToPoint(edge.getValue(0), w, pixels, p)
+                    moveTo(p[0], p[1], ops, data)
+                    run {
+                        var k = 1
+                        val l = edge.size
+                        while (k < l) {
+                            edgeToPoint(edge.getValue(k), w, pixels, p)
+                            lineTo(p[0], p[1], ops, data)
+                            k++
                         }
                     }
-                    ii.write(OS.INSTANCE.getDesktop().getChild("it/lines-" + (ctr++) + ".png"));
-
+                    close(ops)
+                    for (k in pixels.indices) ii.setRGB(k % w, k / w, 0)
+                    var k = 0
+                    val l = edge.size - 1
+                    while (k < l) {
+                        edgeToPoint(edge.getValue(k), w, pixels, p)
+                        edgeToPoint(edge.getValue(k + 1), w, pixels, p2)
+                        for (m in 0 until s * 2) {
+                            val f = m / (s * 2 - 1f)
+                            val px = (mix(p[0], p2[0], f) * s).toInt()
+                            val py = (mix(p[1], p2[1], f) * s).toInt()
+                            ii.setRGB(px, py, -1)
+                        }
+                        k++
+                    }
+                    ii.write(desktop.getChild("it/lines-" + ctr++ + ".png"))
                 }
+                x++
+                i++
             }
-            i++;
+            i++
+            y++
         }
-
-        for (int k = 0; k < w * h; k++)
-            ij.setRGB(k % w, k / w, done.get(k * 2) || done.get(k * 2 + 1) ? 0 : -1);
-        ij.write(OS.INSTANCE.getDesktop().getChild("it/done.png"));
-
+        for (k in 0 until w * h) ij.setRGB(k % w, k / w, if (done[k * 2] || done[k * 2 + 1]) 0 else -1)
+        ij.write(desktop.getChild("it/done.png"))
     }
 
-    private static void edgeToPoint(int edge, int w, int[] pixels, float[] dst) {
-        int i = edge >> 1;
-        int x = i % w;
-        int y = i / w;
-        dst[0] = x + 0.5f;
-        dst[1] = y + 0.5f;
+    private fun edgeToPoint(edge: Int, w: Int, pixels: IntArray, dst: FloatArray) {
+        val i = edge shr 1
+        val x = i % w
+        val y = i / w
+        dst[0] = x + 0.5f
+        dst[1] = y + 0.5f
         if (isVEdge(edge)) {
-            dst[0] += cut(pixels[i], pixels[i + 1]);
+            dst[0] += cut(pixels[i], pixels[i + 1])
         } else {
-            dst[1] += cut(pixels[i], pixels[i + w]);
+            dst[1] += cut(pixels[i], pixels[i + w])
         }
     }
 
-    private static void traceEdge(int x0, int y0, int w, int h, int[] pixels, BitSet done, IntArrayList dst) {
-
-        dst.clear();
-
-        int x = x0;
-        int y = y0;
+    private fun traceEdge(x0: Int, y0: Int, w: Int, h: Int, pixels: IntArray, done: BitSet, dst: IntArrayList) {
+        dst.clear()
+        var x = x0
+        var y = y0
         // our direction
         // 0: ->
         // 1: V
         // 2: <-
         // 3: A
-        int edge;
-        int dir = 1;
+        var edge: Int
+        var dir = 1
         while (true) {
-
-            int i3 = dir * 3, i;
-            boolean vEdge = (dir & 1) == 1;
-            for (i = 0; i < 3; i++) {
-                int x2 = x + dx[i3];
-                int y2 = y + dy[i3++];
+            var i3 = dir * 3
+            var i: Int
+            var vEdge = dir and 1 == 1
+            i = 0
+            while (i < 3) {
+                val x2 = x + dx[i3]
+                val y2 = y + dy[i3++]
                 if (isEdge(x2, y2, w, pixels, vEdge)) {
                     // go right
-                    x = x2;
-                    y = y2;
-                    dir = (dir + nextDir[i]) & 3;
-                    break;
+                    x = x2
+                    y = y2
+                    dir = dir + nextDir[i] and 3
+                    break
                 }
-                vEdge = (dir & 1) == 0;
+                vEdge = dir and 1 == 0
+                i++
             }
-            if (i >= 3) return;
-
-            edge = (x + y * w) * 2 + (dir & 1);
-            dst.plusAssign(edge);
-
-            if (done.get(edge)) return;
-            done.set(edge, true);
-
+            if (i >= 3) return
+            edge = (x + y * w) * 2 + (dir and 1)
+            dst.plusAssign(edge)
+            if (done[edge]) return
+            done[edge] = true
         }
     }
 
-    private static boolean isVEdge(int edge) {
-        return (edge & 1) == 1;
+    private fun isVEdge(edge: Int): Boolean {
+        return edge and 1 == 1
     }
 
-    private final static int[] dx = new int[]{
-            +1, +0, +0,
-            +0, +0, +1,
-            -1, -1, -1,
-            +0, +1, +0
-    };
-    private final static int[] dy = new int[]{
-            +0, +1, +0,
-            +1, +0, +0,
-            +0, +0, +1,
-            -1, -1, -1
-    };
-    private final static int[] nextDir = new int[]{0, 1, 3};
-
-    private static boolean isEdge(int x, int y, int w, int[] pixels, boolean vEdge) {
-        int i0 = x + y * w, i1;
-        if (i0 < 0 || x >= w || i0 >= pixels.length) return false;
+    private val dx = intArrayOf(
+        +1, +0, +0,
+        +0, +0, +1,
+        -1, -1, -1,
+        +0, +1, +0
+    )
+    private val dy = intArrayOf(
+        +0, +1, +0,
+        +1, +0, +0,
+        +0, +0, +1,
+        -1, -1, -1
+    )
+    private val nextDir = intArrayOf(0, 1, 3)
+    private fun isEdge(x: Int, y: Int, w: Int, pixels: IntArray, vEdge: Boolean): Boolean {
+        val i0 = x + y * w
+        val i1: Int
+        if (i0 < 0 || x >= w || i0 >= pixels.size) return false
         if (vEdge) {
-            if (x + 1 >= w) return false;
-            i1 = i0 + 1;
+            if (x + 1 >= w) return false
+            i1 = i0 + 1
         } else {
-            i1 = i0 + w;
-            if (i1 >= pixels.length) return false;
+            i1 = i0 + w
+            if (i1 >= pixels.size) return false
         }
-        return (pixels[i0] > 0) != (pixels[i1] > 0);
+        return pixels[i0] > 0 != pixels[i1] > 0
     }
 
-    private static float cut(int a, int b) {
-        if ((a < 0) == (b < 0)) return 0.5f;
-        if (a > b) a++;
-        else b++;
-        return a / (float) (a - b);
+    private fun cut(ai: Int, bi: Int): Float {
+        var a = ai
+        var b = bi
+        if (a < 0 == b < 0) return 0.5f
+        if (a > b) a++ else b++
+        return a / (a - b).toFloat()
     }
 
-    private static void close(IntArrayList ops) {
-        System.out.println("close");
+    private fun close(ops: IntArrayList) {
+        println("close")
     }
 
-    private static void moveTo(float x, float y, IntArrayList ops, FloatArrayList data) {
-        System.out.println("move to " + x + ", " + y);
+    private fun moveTo(x: Float, y: Float, ops: IntArrayList, data: FloatArrayList) {
+        println("move to $x, $y")
     }
 
-    private static void lineTo(float x, float y, IntArrayList ops, FloatArrayList data) {
-        System.out.println("line to " + x + ", " + y);
+    private fun lineTo(x: Float, y: Float, ops: IntArrayList, data: FloatArrayList) {
+        println("line to $x, $y")
     }
-
 }

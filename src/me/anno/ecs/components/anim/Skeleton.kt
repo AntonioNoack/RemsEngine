@@ -1,20 +1,17 @@
 package me.anno.ecs.components.anim
 
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.components.mesh.AnimRenderer
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderView.Companion.worldScale
 import me.anno.gpu.shader.Shader
-import me.anno.io.ISaveable
-import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
-import me.anno.mesh.assimp.Bone
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.min
+import me.anno.mesh.assimp.Bone
 import me.anno.utils.types.AABBs.deltaX
 import me.anno.utils.types.AABBs.deltaY
 import me.anno.utils.types.AABBs.deltaZ
@@ -27,23 +24,23 @@ import org.joml.Vector3f
 class Skeleton : PrefabSaveable() {
 
     @SerializedProperty
-    var bones: List<Bone> = emptyList()
+    var bones = ArrayList<Bone>()
 
     @Type("Map<String, Animation/Reference>")
     @SerializedProperty
-    var animations: Map<String, FileReference> = emptyMap()
+    var animations = HashMap<String, FileReference>()
 
     @NotSerializedProperty
-    private var mesh: Mesh? = null
+    private var previewMesh: Mesh? = null
 
     @NotSerializedProperty
     private var bonePositions: Array<Vector3f>? = null
 
     fun draw(shader: Shader, stack: Matrix4x3f, skinningMatrices: Array<Matrix4x3f>?) {
 
-        if (mesh == null) {
+        if (previewMesh == null) {
             val mesh = Mesh()
-            this.mesh = mesh
+            this.previewMesh = mesh
             val size = bones.size * boneMeshVertices.size
             mesh.positions = FloatArray(size)
             mesh.boneWeights = FloatArray(size / 3 * 4) { if (it and 3 == 0) 1f else 0f }
@@ -51,8 +48,7 @@ class Skeleton : PrefabSaveable() {
             bonePositions = Array(bones.size) { Vector3f() }
         }
 
-
-        val mesh = mesh!!
+        val mesh = previewMesh!!
         val bonePositions = bonePositions!!
         for (i in bones.indices) bonePositions[i].set(bones[i].bindPosition)
         /*if (skinningMatrices != null) {
@@ -80,21 +76,6 @@ class Skeleton : PrefabSaveable() {
         mesh.draw(shader, 0)
     }
 
-    override fun readObjectArray(name: String, values: Array<ISaveable?>) {
-        when (name) {
-            "bones" -> bones = values.filterIsInstance<Bone>()
-            else -> super.readObjectArray(name, values)
-        }
-    }
-
-    override fun save(writer: BaseWriter) {
-        super.save(writer)
-        val bones = bones
-        if (bones.isNotEmpty()) {
-            writer.writeObjectList(this, "bones", bones)
-        }
-    }
-
     override fun clone(): PrefabSaveable {
         val clone = Skeleton()
         copy(clone)
@@ -103,8 +84,10 @@ class Skeleton : PrefabSaveable() {
 
     override fun copy(clone: PrefabSaveable) {
         clone as Skeleton
-        clone.animations = animations
-        clone.bones = bones
+        clone.animations.clear()
+        clone.animations.putAll(animations)
+        clone.bones.clear()
+        clone.bones.addAll(bones)
     }
 
     override val className: String = "Skeleton"

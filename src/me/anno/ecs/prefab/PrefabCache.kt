@@ -34,8 +34,8 @@ object PrefabCache : CacheSection("Prefab") {
     private val prefabTimeout = 60_000L
     private val LOGGER = LogManager.getLogger(PrefabCache::class)
 
-    fun getPrefab(file: FileReference, chain: MutableSet<FileReference>? = null): Prefab? {
-        return getPrefabPair(file, chain)?.prefab
+    fun getPrefab(resource: FileReference?, chain: MutableSet<FileReference>? = null, async: Boolean = false): Prefab? {
+        return getPrefabPair(resource, chain, async)?.prefab
     }
 
     private fun loadAssimpModel(resource: FileReference): Prefab? {
@@ -141,19 +141,19 @@ object PrefabCache : CacheSection("Prefab") {
 
     private fun loadPrefab3(file: FileReference): ISaveable? {
         if (file is PrefabReadable) return file.readPrefab()
-        try {
-            val prefab = TextReader.read(file, false).firstOrNull()
-            if (prefab != null) return prefab
-        } catch (e: InvalidFormatException) {
-            if(printJsonErrors) LOGGER.warn("$e by $file", e)
-            // don't care
-        } catch (e: Exception) {
-            // might be interesting
-            e.printStackTrace()
-        }
-        val signature = Signature.findName(file)
-        if (signature == "yaml") {
-            try {
+        when (Signature.findName(file)) {
+            "json" ->
+                try {
+                    val prefab = TextReader.read(file, false).firstOrNull()
+                    if (prefab != null) return prefab
+                } catch (e: InvalidFormatException) {
+                    if (printJsonErrors) LOGGER.warn("$e by $file", e)
+                    // don't care
+                } catch (e: Exception) {
+                    // might be interesting
+                    e.printStackTrace()
+                }
+            "yaml" -> try {
                 val prefab = loadUnityFile(file)
                 if (prefab != null) return prefab
             } catch (e: Exception) {
@@ -167,7 +167,16 @@ object PrefabCache : CacheSection("Prefab") {
         return scene2.readPrefab()
     }
 
-    fun getPrefabPair(
+    fun getPrefabInstance(
+        resource: FileReference?,
+        chain: MutableSet<FileReference>?,
+        async: Boolean = false
+    ): ISaveable? {
+        val pair = getPrefabPair(resource, chain, async) ?: return null
+        return pair.instance ?: pair.prefab?.getSampleInstance(chain)
+    }
+
+    private fun getPrefabPair(
         resource: FileReference?,
         chain: MutableSet<FileReference>?,
         async: Boolean = false
@@ -183,11 +192,7 @@ object PrefabCache : CacheSection("Prefab") {
                     // if (loaded is Prefab) LOGGER.info(loaded)
                     if (loaded != null) {
                         FileWatch.addWatchDog(file)
-                        FileReadPrefabData(
-                            loaded as? Prefab,
-                            if (loaded is Prefab) loaded.getSampleInstance(chain ?: HashSet())
-                            else loaded, file
-                        )
+                        FileReadPrefabData(loaded as? Prefab, if (loaded is Prefab) null else loaded, file)
                     } else CacheData(null)
                 }
                 if (entry is CacheData<*> && entry.value == null)
@@ -196,14 +201,6 @@ object PrefabCache : CacheSection("Prefab") {
             }
             else -> null
         }
-    }
-
-    fun loadPrefab(
-        resource: FileReference?,
-        chain: MutableSet<FileReference>? = null,
-        async: Boolean = false
-    ): Prefab? {
-        return getPrefabPair(resource, chain, async)?.prefab
     }
 
     fun createInstance(
@@ -221,7 +218,7 @@ object PrefabCache : CacheSection("Prefab") {
         // LOGGER.info("  creating entity instance from ${changes0?.size ?: 0} changes, $changes2")
         adds?.forEachIndexed { index, add ->
             try {
-                add.apply(instance, HashSet(chain))
+                add.apply(instance, if (chain == null) HashSet() else HashSet(chain))
             } catch (e: InvalidClassException) {
                 throw e
             } catch (e: Exception) {
@@ -292,11 +289,11 @@ object PrefabCache : CacheSection("Prefab") {
             }
         }*/
         // LOGGER.info("chain: $chain")
-        return loadPrefab(prefab, chain)?.createInstance(chain) ?: ISaveable.create(clazz) as PrefabSaveable
+        return getPrefab(prefab, chain)?.createInstance(chain) ?: ISaveable.create(clazz) as PrefabSaveable
     }
 
     fun loadScenePrefab(file: FileReference): Prefab {
-        val prefab = loadPrefab(file, HashSet()) ?: Prefab("Entity").apply { this.prefab = ScenePrefab }
+        val prefab = getPrefab(file, HashSet()) ?: Prefab("Entity").apply { this.prefab = ScenePrefab }
         prefab.source = file
         if (!file.exists) file.writeText(TextWriter.toText(prefab))
         return prefab

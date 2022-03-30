@@ -9,6 +9,7 @@ import me.anno.io.utils.StringMap
 import me.anno.studio.StudioBase
 import me.anno.ui.utils.WindowStack.Companion.printLayout
 
+@Suppress("MemberVisibilityCanBePrivate")
 object EngineActions {
 
     fun register() {

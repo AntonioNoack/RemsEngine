@@ -9,13 +9,22 @@ open class OpaqueImage(
     val src: Image
 ) : Image(src.width, src.height, min(3, src.numChannels), false) {
 
-    override fun getWidth(): Int = src.getWidth()
-    override fun getHeight(): Int = src.getHeight()
+    override var width: Int
+        get() = src.width
+        set(value) {
+            src.width = value
+        }
+
+    override var height: Int
+        get() = src.height
+        set(value) {
+            src.height = value
+        }
 
     override fun getRGB(index: Int): Int = src.getRGB(index) or black
 
     override fun createTexture(texture: Texture2D, checkRedundancy: Boolean) {
-        if (!src.hasAlphaChannel()) {
+        if (!src.hasAlphaChannel) {
             src.createTexture(texture, checkRedundancy)
         } else {
             when (src) {

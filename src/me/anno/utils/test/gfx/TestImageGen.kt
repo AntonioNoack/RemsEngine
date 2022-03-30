@@ -7,7 +7,7 @@ import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.anim.Skeleton
 import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.cache.SkeletonCache
-import me.anno.ecs.components.mesh.AnimRenderer
+import me.anno.ecs.components.anim.AnimRenderer
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
@@ -62,7 +62,7 @@ fun testAssimpMeshFrame(file: FileReference) {
 fun testEntityMeshFrame(file: FileReference) {
     init()
     if (!file.exists) throw FileNotFoundException("$file does not exist")
-    val entity = PrefabCache.getPrefabPair(file, null)!!.instance as Entity
+    val entity = PrefabCache.getPrefabInstance(file, null) as Entity
     generateEntityFrame(file, file.dst(), size, entity) {}
 }
 

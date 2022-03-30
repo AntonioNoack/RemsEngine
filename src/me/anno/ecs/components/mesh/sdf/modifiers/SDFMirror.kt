@@ -16,6 +16,9 @@ import kotlin.math.sqrt
 
 class SDFMirror() : PositionMapper() {
 
+    // todo edit planes using gizmos
+    // todo also mark vectors as potential positions
+
     constructor(position: Vector3f) : this(position, position)
 
     constructor(position: Vector3f, normal: Vector3f) : this() {

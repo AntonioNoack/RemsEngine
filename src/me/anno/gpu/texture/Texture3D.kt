@@ -90,8 +90,7 @@ open class Texture3D(var name: String, var w: Int, var h: Int, var d: Int) : ICa
     }
 
     fun create(img: Image, sync: Boolean) {
-        val bi = img.createBufferedImage()
-        create(bi, sync)
+        create(img.createBufferedImage(), sync)
     }
 
     fun create(img: BufferedImage, sync: Boolean) {

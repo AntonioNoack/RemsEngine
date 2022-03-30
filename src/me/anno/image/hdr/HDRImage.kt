@@ -1,118 +1,106 @@
-package me.anno.image.hdr;
+package me.anno.image.hdr
 
-import me.anno.gpu.texture.Texture2D;
-import me.anno.image.Image;
-import me.anno.image.raw.IntImage;
-import me.anno.io.files.FileReference;
+import me.anno.gpu.texture.Texture2D
+import me.anno.image.Image
+import me.anno.image.raw.IntImage
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.maths.Maths.clamp
+import java.io.*
+import kotlin.math.*
 
-import java.io.*;
+/**
+ * src/author: https://github.com/aicp7/HDR_file_readin;
+ * modified for our needs
+ * This class is used to convert a HDR format image
+ * into a three-dimensional float array representing the RGB channels of the original image.
+ * */
+class HDRImage : Image {
 
-// src/author: https://github.com/aicp7/HDR_file_readin
-// modified for our needs
-// This class is used to convert a HDR format image
-// into a three-dimensional float array representing the RGB channels of the original image.
-public class HDRImage extends Image {
+    private lateinit var pixels: FloatArray
 
-    private float[] pixels;
-
-    public HDRImage(int width, int height, int numChannels) {
-        super(0, 0, numChannels, numChannels > 3);
-        this.width = width;
-        this.height = height;
-        this.pixels = new float[width * height * numChannels];
+    constructor(width: Int, height: Int, numChannels: Int) : super(0, 0, numChannels, numChannels > 3) {
+        this.width = width
+        this.height = height
+        pixels = FloatArray(width * height * numChannels)
     }
 
-    public HDRImage(InputStream input) throws IOException {
-        super(0, 0, 3, false);
-        try (InputStream in = optimizeStream(input)) {
-            read(in);
-        }
+    constructor(input: InputStream) : super(0, 0, 3, false) {
+        optimizeStream(input).use { input1 -> read(input1) }
     }
 
-    public HDRImage(FileReference file) throws IOException {
-        super(0, 0, 3, false);
-        try (InputStream in = optimizeStream(file.inputStream())) {
-            read(in);
-        }
+    constructor(file: FileReference) : super(0, 0, 3, false) {
+        optimizeStream(file.inputStream()).use { input -> read(input) }
     }
 
-    public HDRImage(File file) throws IOException {
-        super(0, 0, 3, false);
-        try (InputStream in = optimizeStream(new FileInputStream(file))) {
-            read(in);
-        }
+    constructor(file: File) : super(0, 0, 3, false) {
+        optimizeStream(FileInputStream(file)).use { input -> read(input) }
     }
 
-    public InputStream optimizeStream(InputStream input) {
-        return input instanceof BufferedInputStream ||
-                input instanceof ByteArrayInputStream ? input : new BufferedInputStream(input);
+    fun optimizeStream(input: InputStream): InputStream {
+        return if (input is BufferedInputStream ||
+            input is ByteArrayInputStream
+        ) input else BufferedInputStream(input)
     }
 
-    @Override
-    public boolean hasAlphaChannel() {
-        return false;
+    fun hasAlphaChannel(): Boolean {
+        return false
     }
 
-    private static int rgb(int r, int g, int b) {
-        return 0xff000000 | (r << 16) | (g << 8) | b;
-    }
-
-    @Override
-    public int getRGB(int index) {
-        int i0 = index * getNumChannels();
-        float delta = typicalBrightness;
-        float r = pixels[i0] * delta;
-        float g = pixels[i0 + 1] * delta;
-        float b = pixels[i0 + 2] * delta;
+    override fun getRGB(index: Int): Int {
+        val i0 = index * numChannels
+        val delta = typicalBrightness
+        var r = pixels[i0] * delta
+        var g = pixels[i0 + 1] * delta
+        var b = pixels[i0 + 2] * delta
         // reinhard tonemapping
-        r = r / (r + 1f) * 255f;
-        g = g / (g + 1f) * 255f;
-        b = b / (b + 1f) * 255f;
-        return rgb((int) r, (int) g, (int) b);
+        r = r / (r + 1f) * 255f
+        g = g / (g + 1f) * 255f
+        b = b / (b + 1f) * 255f
+        return rgb(r.toInt(), g.toInt(), b.toInt())
     }
 
-    public IntImage createIntImage() {
+    override fun createIntImage(): IntImage {
         // accelerated version without that many function calls
         // and member calls
-        int width = getWidth();
-        int height = getHeight();
-        int size = width * height;
-        int[] data = new int[size];
-        float[] pixels = this.pixels;
-        float delta = typicalBrightness;
-        int pixelStride = getNumChannels() - 2;
-        for (int i = 0, i0 = 0; i < size; i++) {
-            float r = pixels[i0++] * delta;
-            float g = pixels[i0++] * delta;
-            float b = pixels[i0] * delta;
-            r = r / (r + 1f) * 255f;
-            g = g / (g + 1f) * 255f;
-            b = b / (b + 1f) * 255f;
-            data[i] = rgb((int) r, (int) g, (int) b);
-            i0 += pixelStride;
+        val width = width
+        val height = height
+        val size = width * height
+        val data = IntArray(size)
+        val pixels = pixels
+        val delta = typicalBrightness
+        val pixelStride = numChannels - 2
+        var i = 0
+        var i0 = 0
+        while (i < size) {
+            var r = pixels[i0++] * delta
+            var g = pixels[i0++] * delta
+            var b = pixels[i0] * delta
+            r = r / (r + 1f) * 255f
+            g = g / (g + 1f) * 255f
+            b = b / (b + 1f) * 255f
+            data[i] = rgb(r.toInt(), g.toInt(), b.toInt())
+            i0 += pixelStride
+            i++
         }
-        return new IntImage(width, height, data, hasAlphaChannel);
+        return IntImage(width, height, data, hasAlphaChannel)
     }
 
-    // with the reinhard tonemapping, the average brightness of pixels is expected to be
-    // more than just 1, and more like 5
-    public static float typicalBrightness = 5f;
-
-    @Override
-    public void createTexture(Texture2D texture, boolean checkRedundancy) {
-        texture.createRGB(pixels, checkRedundancy);
+    override fun createTexture(texture: Texture2D, checkRedundancy: Boolean) {
+        texture.createRGB(pixels, checkRedundancy)
     }
 
     // Construction method if the input is a InputStream.
     // Parse the HDR file by its format. HDR format encode can be seen in Radiance HDR(.pic,.hdr) file format
-    private void read(InputStream in) throws IOException {
+    @Throws(IOException::class)
+    private fun read(`in`: InputStream) {
         // Parse HDR file's header line
         // readLine(InputStream in) method will be introduced later.
 
         // The first line of the HDR file. If it is a HDR file, the first line should be "#?RADIANCE"
         // If not, we will throw a IllegalArgumentException.
-        String isHDR = readLine(in);
-        if (!isHDR.equals(HDR_MAGIC)) throw new IllegalArgumentException("Unrecognized format: " + isHDR);
+        val isHDR = readLine(`in`)
+        require(isHDR == HDR_MAGIC) { "Unrecognized format: $isHDR" }
 
         // Besides the first line, there are serval lines describe the different information of this HDR file.
         // Maybe it will have the exposure time, format(Must be either"32-bit_rle_rgbe" or "32-bit_rle_xyze")
@@ -121,53 +109,47 @@ public class HDRImage extends Image {
         // The above information is not so important for us.
         // The only important information for us is the Resolution which shows the size of the HDR image
         // The resolution information's format is fixed. Usually, it will be -Y 1024 +X 2048 something like this.
-        String inform = readLine(in);
-        while (!inform.equals("")) {
-            inform = readLine(in);
+        var inform = readLine(`in`)
+        while (inform != "") {
+            inform = readLine(`in`)
         }
-
-        inform = readLine(in);
-        String[] tokens = inform.split(" ", 4);
-        if (tokens[0].charAt(1) == 'Y') {
-            width = Integer.parseInt(tokens[3]);
-            height = Integer.parseInt(tokens[1]);
+        inform = readLine(`in`)
+        val tokens = inform.split(" ".toRegex(), 4).toTypedArray()
+        if (tokens[0][1] == 'Y') {
+            width = tokens[3].toInt()
+            height = tokens[1].toInt()
         } else {
-            width = Integer.parseInt(tokens[1]);
-            height = Integer.parseInt(tokens[3]);
+            width = tokens[1].toInt()
+            height = tokens[3].toInt()
         }
-
-        if (width <= 0) throw new IllegalArgumentException("HDR Width must be positive");
-        if (height <= 0) throw new IllegalArgumentException("HDR Height must be positive");
+        require(width > 0) { "HDR Width must be positive" }
+        require(height > 0) { "HDR Height must be positive" }
 
         // In the above, the basic information has been collected. Now, we will deal with the pixel data.
         // According to the HDR format document, each pixel is stored as 4 bytes, one bytes mantissa for each r,g,b and a shared one byte exponent.
         // The pixel data may be stored uncompressed or using a straightforward run length encoding scheme.
-
-        DataInput din = new DataInputStream(in);
-
-        pixels = new float[height * width * 3];
+        val din: DataInput = DataInputStream(`in`)
+        pixels = FloatArray(height * width * 3)
 
         // optimized from the original; it does not need to be full image size; one row is enough
         // besides it only needs 8 bits of space per component, not 32
         // effectively this halves the required RAM for this program part
-        byte[] lineBuffer = new byte[width * 4];
-        int index = 0;
+        val lineBuffer = ByteArray(width * 4)
+        var index = 0
 
         // We read the information row by row. In each row, the first four bytes store the column number information.
         // The first and second bytes store "2". And the third byte stores the higher 8 bits of col num, the fourth byte stores the lower 8 bits of col num.
         // After these four bytes, these are the real pixel data.
-        for (int y = 0; y < height; y++) {
+        for (y in 0 until height) {
             // The following code patch is checking whether the hdr file is compressed by run length encode(RLE).
             // For every line of the data part, the first and second byte should be 2(DEC).
             // The third*2^8+the fourth should equals to the width. They combined the width information.
             // For every line, we need check this kind of informatioin. And the starting four nums of every line is the same
-            int a = din.readUnsignedByte();
-            int b = din.readUnsignedByte();
-            if (a != 2 || b != 2)
-                throw new IllegalArgumentException("Only HDRs with run length encoding are supported.");
-            int checksum = din.readUnsignedShort();
-            if (checksum != width)
-                throw new IllegalArgumentException("Width-Checksum is incorrect. Is this file a true HDR?");
+            val a = din.readUnsignedByte()
+            val b = din.readUnsignedByte()
+            require(!(a != 2 || b != 2)) { "Only HDRs with run length encoding are supported." }
+            val checksum = din.readUnsignedShort()
+            require(checksum == width) { "Width-Checksum is incorrect. Is this file a true HDR?" }
 
             // This inner loop is for the four channels. The way they compressed the data is in this way:
             // Firstly, they compressed a row.
@@ -175,179 +157,200 @@ public class HDRImage extends Image {
             // First data shows the numbers of duplicates(which should minus 128), and the following data is the duplicate one.
             // If there is no duplicate, they will store the information in order.
             // And the first data is the number of how many induplicate items, and the following data stream is their associated data.
-            for (int channel = 0; channel < 4; channel++) { // This loop controls the four channel. R,G,B and Exp.
-                int x4 = channel;
-                int w4 = width * 4 + channel;
-                while (x4 < w4) {// alternative for x
-                    int sequenceLength = din.readUnsignedByte();
-                    if (sequenceLength > 128) {// copy-paste data; always the same
-                        sequenceLength -= 128;
-                        byte value = (byte) din.readUnsignedByte();
+            for (channel in 0..3) { // This loop controls the four channel. R,G,B and Exp.
+                var x4 = channel
+                val w4 = width * 4 + channel
+                while (x4 < w4) { // alternative for x
+                    var sequenceLength = din.readUnsignedByte()
+                    if (sequenceLength > 128) { // copy-paste data; always the same
+                        sequenceLength -= 128
+                        val value = din.readUnsignedByte().toByte()
                         while (sequenceLength-- > 0) {
-                            lineBuffer[x4] = value;
-                            x4 += 4;
+                            lineBuffer[x4] = value
+                            x4 += 4
                         }
-                    } else {// unique data for sequence length positions
+                    } else { // unique data for sequence length positions
                         while (sequenceLength-- > 0) {
-                            lineBuffer[x4] = (byte) din.readUnsignedByte();
-                            x4 += 4;
+                            lineBuffer[x4] = din.readUnsignedByte().toByte()
+                            x4 += 4
                         }
                     }
                 }
             }
-
-            for (int x = 0; x < width; x++) {
-                int i2 = x * 4;
-                int exp = lineBuffer[i2 + 3] & 255;
+            for (x in 0 until width) {
+                val i2 = x * 4
+                val exp: Int = lineBuffer[i2 + 3].toInt() and 255
                 if (exp == 0) {
-                    index += 3;// 0 is default
+                    index += 3 // 0 is default
                 } else {
-                    float exponent = (float) Math.pow(2, exp - 128 - 8);
-                    pixels[index++] = (lineBuffer[i2] & 255) * exponent;
-                    pixels[index++] = (lineBuffer[i2 + 1] & 255) * exponent;
-                    pixels[index++] = (lineBuffer[i2 + 2] & 255) * exponent;
+                    val exponent = Math.pow(2.0, (exp - 128 - 8).toDouble()).toFloat()
+                    pixels[index++] = (lineBuffer[i2].toInt() and 255) * exponent
+                    pixels[index++] = (lineBuffer[i2 + 1].toInt() and 255) * exponent
+                    pixels[index++] = (lineBuffer[i2 + 2].toInt() and 255) * exponent
                 }
             }
         }
     }
 
-    private String readLine(InputStream in) throws IOException {
-        ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        for (int i = 0; ; i++) {
-            int b = in.read();
-            if (b == '\n' || b == -1) {
-                break;
-            } else if (i == 500) {// 100 seems short and unsure ;)
-                throw new IllegalArgumentException("Line too long");
-            } else if (b != '\r') {
-                bout.write(b);
+    @Throws(IOException::class)
+    private fun readLine(`in`: InputStream): String {
+        val bout = ByteArrayOutputStream()
+        var i = 0
+        while (true) {
+            val b = `in`.read()
+            if (b == '\n'.toInt() || b == -1) {
+                break
+            } else require(i != 500) {  // 100 seems short and unsure ;)
+                "Line too long"
+            }
+            if (b != '\r'.toInt()) {
+                bout.write(b)
+            }
+            i++
+        }
+        return bout.toString()
+    }
+
+    @Throws(IOException::class)
+    override fun write(dst: FileReference) {
+        if ("hdr" == dst.lcExtension) {
+            throw RuntimeException("Exporting HDR as HDR isn't yet implemented")
+        } else super.write(dst)
+    }
+
+    companion object {
+
+        private fun rgb(r: Int, g: Int, b: Int): Int {
+            return -0x1000000 or (r shl 16) or (g shl 8) or b
+        }
+
+        // with the reinhard tonemapping, the average brightness of pixels is expected to be
+        // more than just 1, and more like 5
+        var typicalBrightness = 5f
+        private fun bytesToFloats(r: Byte, g: Byte, b: Byte, a: Byte, pixels: FloatArray, index: Int) {
+            val exp: Int = a.toInt() and 255
+            if (exp > 0) {
+                val exponent = 2f.pow(exp - 128 - 8)
+                pixels[index] = (r.toInt() and 255) * exponent
+                pixels[index + 1] = (g.toInt() and 255) * exponent
+                pixels[index + 2] = (b.toInt() and 255) * exponent
             }
         }
-        return bout.toString();
-    }
 
-    @Override
-    public void write(FileReference dst) throws IOException {
-        if ("hdr".equals(dst.getLcExtension())) {
-            throw new RuntimeException("Exporting HDR as HDR isn't yet implemented");
-        } else super.write(dst);
-    }
-
-    private static void bytesToFloats(byte r, byte g, byte b, byte a, float[] pixels, int index) {
-        int exp = a & 255;
-        if (exp > 0) {
-            float exponent = (float) Math.pow(2, exp - 128 - 8);
-            pixels[index] = (r & 255) * exponent;
-            pixels[index + 1] = (g & 255) * exponent;
-            pixels[index + 2] = (b & 255) * exponent;
-        }
-    }
-
-    public static void writeHDR(int w, int h, float[] pixels, OutputStream out0) throws IOException {
-        DataOutputStream out = new DataOutputStream(out0);
-        out.writeBytes(HDR_MAGIC);
-        // meta data, which seems to be required
-        out.writeBytes("\nFORMAT=32-bit_rle_rgbe\n\n");
-        out.writeBytes("-Y ");
-        out.writeBytes(Integer.toString(h));
-        out.writeBytes(" +X ");
-        out.writeBytes(Integer.toString(w));
-        out.writeByte('\n');
-        byte[] rowBytes = new byte[4 * (w + 2)];// +2 for seamless testing
-        for (int y = 0; y < h; y++) {
-            // bytes for RLE
-            out.writeByte(2);
-            out.writeByte(2);
-            // "checksum"
-            out.writeShort(w);
-            // collect bytes
-            // convert floats into bytes
-            for (int x = 0, i = 0, j = y * w * 3; x < w; x++) {
-                float r0 = pixels[j++];
-                float g0 = pixels[j++];
-                float b0 = pixels[j++];
-                float max = Math.max(Math.max(r0, g0), b0);
-                if (max > 0) {
-                    // Math.pow(2, exp - 128 - 8)
-                    double exp0 = Math.ceil(Math.log(max * 256.0 / 255.0) / Math.log(2));// +128
-                    if (exp0 < -128) exp0 = -128;
-                    if (exp0 > +127) exp0 = +127;
-                    float invPow = (float) Math.pow(2.0, -exp0 + 8);
-                    int r = Math.round(r0 * invPow);
-                    int g = Math.round(g0 * invPow);
-                    int b = Math.round(b0 * invPow);
-                    rowBytes[i++] = (byte) Math.max(0, Math.min(r, 255));
-                    rowBytes[i++] = (byte) Math.max(0, Math.min(g, 255));
-                    rowBytes[i++] = (byte) Math.max(0, Math.min(b, 255));
-                    rowBytes[i++] = (byte) (exp0 + 128);
-                } else {
-                    // just zeros; exponent could be the same as the old value,
-                    // but zero is rare probably anyways
-                    i += 4;
-                }
-            }
-            // compress byte stream with RLE
-            for (int channel = 0; channel < 4; channel++) {
-                // check how long the next run is, up to 128
-                // if the run is short (1 or 2), then find how long the run of different heterogeneous data is
-                for (int x = 0; x < w; ) {
-                    int i0 = channel + (x << 2);
-                    byte firstValue = rowBytes[i0];
-                    int length = 1;
-                    if (rowBytes[i0 + 4] == firstValue && rowBytes[i0 + 8] == firstValue) {// at least 3 bytes have the same value
-                        // find length of the same value
-                        int j0 = i0 + 4;
-                        while (length < 127 && x + length < w && rowBytes[j0] == firstValue) {
-                            length++;
-                            j0 += 4;
-                        }
-                        out.writeByte(length + 128);
-                        out.writeByte(firstValue);
+        @Throws(IOException::class)
+        fun writeHDR(w: Int, h: Int, pixels: FloatArray, out0: OutputStream?) {
+            val out = DataOutputStream(out0)
+            out.writeBytes(HDR_MAGIC)
+            // meta data, which seems to be required
+            out.writeBytes("\nFORMAT=32-bit_rle_rgbe\n\n")
+            out.writeBytes("-Y ")
+            out.writeBytes(h.toString())
+            out.writeBytes(" +X ")
+            out.writeBytes(w.toString())
+            out.writeByte('\n'.code)
+            val rowBytes = ByteArray(4 * (w + 2)) // +2 for seamless testing
+            for (y in 0 until h) {
+                // bytes for RLE
+                out.writeByte(2)
+                out.writeByte(2)
+                // "checksum"
+                out.writeShort(w)
+                // collect bytes
+                // convert floats into bytes
+                var x = 0
+                var i = 0
+                var j = y * w * 3
+                while (x < w) {
+                    val r0 = pixels[j++]
+                    val g0 = pixels[j++]
+                    val b0 = pixels[j++]
+                    val max = max(max(r0, g0), b0)
+                    if (max > 0) {
+                        // Math.pow(2, exp - 128 - 8)
+                        var exp0 = ceil(ln(max * 256f / 255f) / ln(2f)) // +128
+                        if (exp0 < -128) exp0 = -128f
+                        if (exp0 > +127) exp0 = +127f
+                        val invPow = 2f.pow(-exp0 + 8)
+                        val r = (r0 * invPow).roundToInt()
+                        val g = (g0 * invPow).roundToInt()
+                        val b = (b0 * invPow).roundToInt()
+                        rowBytes[i++] = clamp(r, 0, 255).toByte()
+                        rowBytes[i++] = clamp(g, 0, 255).toByte()
+                        rowBytes[i++] = clamp(b, 0, 255).toByte()
+                        rowBytes[i++] = (exp0 + 128).toInt().toByte()
                     } else {
-                        // find length until there is a repeating value
-                        int indexI = i0 + 4;
-                        while (length < 128 && x + length < w) {
-                            byte valueI = rowBytes[indexI];
-                            if (rowBytes[indexI + 4] == valueI && rowBytes[indexI + 8] == valueI) {
-                                break;// found repeating strip
-                            } else {
-                                length++;
-                                indexI += 4;
+                        // just zeros; exponent could be the same as the old value,
+                        // but zero is rare probably anyways
+                        i += 4
+                    }
+                    x++
+                }
+                // compress byte stream with RLE
+                for (channel in 0..3) {
+                    // check how long the next run is, up to 128
+                    // if the run is short (1 or 2), then find how long the run of different heterogeneous data is
+                    var xi = 0
+                    while (xi < w) {
+                        var i0 = channel + (xi shl 2)
+                        val firstValue = rowBytes[i0]
+                        var length = 1
+                        if (rowBytes[i0 + 4] == firstValue && rowBytes[i0 + 8] == firstValue) { // at least 3 bytes have the same value
+                            // find length of the same value
+                            var j0 = i0 + 4
+                            while (length < 127 && xi + length < w && rowBytes[j0] == firstValue) {
+                                length++
+                                j0 += 4
+                            }
+                            out.writeByte(length + 128)
+                            out.writeByte(firstValue.toInt())
+                        } else {
+                            // find length until there is a repeating value
+                            var indexI = i0 + 4
+                            while (length < 128 && xi + length < w) {
+                                val valueI = rowBytes[indexI]
+                                indexI += if (rowBytes[indexI + 4] == valueI && rowBytes[indexI + 8] == valueI) {
+                                    break // found repeating strip
+                                } else {
+                                    length++
+                                    4
+                                }
+                            }
+                            out.writeByte(length)
+                            val endIndex = i0 + 4 * length
+                            while (i0 < endIndex) {
+                                out.writeByte(rowBytes[i0].toInt())
+                                i0 += 4
                             }
                         }
-                        out.writeByte(length);
-                        int endIndex = i0 + 4 * length;
-                        for (; i0 < endIndex; i0 += 4) {
-                            out.writeByte(rowBytes[i0]);
-                        }
+                        xi += length
                     }
-                    x += length;
                 }
             }
+            out.close()
         }
-        out.close();
-    }
 
-    private static final String HDR_MAGIC = "#?RADIANCE";
+        private const val HDR_MAGIC = "#?RADIANCE"
 
-    public static void main(String[] args) throws IOException {
-        // test HDR writer using the working HDR reader
-        FileReference ref = FileReference.Companion.getReference("C:/XAMPP/htdocs/DigitalCampus/images/environment/kloofendal_38d_partly_cloudy_2k.hdr");
-        HDRImage correctInput = new HDRImage(ref);
-        ByteArrayOutputStream createdStream = new ByteArrayOutputStream(correctInput.width * correctInput.height * 4);
-        writeHDR(correctInput.width, correctInput.height, correctInput.pixels, createdStream);
-        byte[] createdBytes = createdStream.toByteArray();
-        ByteArrayInputStream testedInputStream = new ByteArrayInputStream(createdBytes);
-        HDRImage testedInput = new HDRImage(testedInputStream);
-        float[] correctPixels = correctInput.pixels;
-        float[] testedPixels = testedInput.pixels;
-        if (correctPixels.length != testedPixels.length) throw new RuntimeException("Size doesn't match!");
-        for (int i = 0; i < correctPixels.length; i++) {
-            if (correctPixels[i] != testedPixels[i]) {
-                throw new RuntimeException("Pixels don't match! " + correctPixels[i] + " vs " + testedPixels[i] + " at index " + i);
+        @Throws(IOException::class)
+        @JvmStatic
+        fun main(args: Array<String>) {
+            // test HDR writer using the working HDR reader
+            val ref = getReference("C:/XAMPP/htdocs/DigitalCampus/images/environment/kloofendal_38d_partly_cloudy_2k.hdr")
+            val correctInput = HDRImage(ref)
+            val createdStream = ByteArrayOutputStream(correctInput.width * correctInput.height * 4)
+            writeHDR(correctInput.width, correctInput.height, correctInput.pixels, createdStream)
+            val createdBytes = createdStream.toByteArray()
+            val testedInputStream = ByteArrayInputStream(createdBytes)
+            val testedInput = HDRImage(testedInputStream)
+            val correctPixels = correctInput.pixels
+            val testedPixels = testedInput.pixels
+            if (correctPixels.size != testedPixels.size) throw RuntimeException("Size doesn't match!")
+            for (i in correctPixels.indices) {
+                if (correctPixels[i] != testedPixels[i]) {
+                    throw RuntimeException("Pixels don't match! " + correctPixels[i] + " vs " + testedPixels[i] + " at index " + i)
+                }
             }
+            println("Test passed")
         }
-        System.out.println("Test passed");
     }
-
 }

@@ -41,7 +41,6 @@ class SDFHeart : SDF2DShape() {
     }
 
     override fun computeSDFBase(pos: Vector4f): Float {
-        applyTransform(pos)
         val px = abs(pos.x)
         val py = pos.y + 0.55f
         return if (px + py > 1f) sqrt(sq(px - 0.25f, py - 0.75f)) - SQRT2F * 0.25f

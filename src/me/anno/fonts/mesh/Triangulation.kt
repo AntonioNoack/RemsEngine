@@ -10,7 +10,7 @@ import org.the3deers.util.EarCut
 object Triangulation {
 
     fun ringToTriangles2f(points: FloatArray): FloatArray {
-        val indices = EarCut.earcut(points, intArrayOf(), 2)
+        val indices = EarCut.earcut(points, 2) ?: return FloatArray(0)
         val result = FloatArray(indices.size * 2)
         for (i in indices.indices) {
             val index = indices[i] * 2
@@ -26,7 +26,7 @@ object Triangulation {
             joint[index * 2] = vector2d.x
             joint[index * 2 + 1] = vector2d.y
         }
-        val indices = EarCut.earcut(joint, intArrayOf(), 2)
+        val indices = EarCut.earcut(joint, 2) ?: return emptyList()
         return indices.map { index -> points[index] }
     }
 
@@ -36,7 +36,7 @@ object Triangulation {
             joint[index * 2] = vector2d.x().toFloat()
             joint[index * 2 + 1] = vector2d.y().toFloat()
         }
-        val indices = EarCut.earcut(joint, intArrayOf(), 2)
+        val indices = EarCut.earcut(joint, 2) ?: return emptyList()
         return indices.map { index -> points[index] }
     }
 

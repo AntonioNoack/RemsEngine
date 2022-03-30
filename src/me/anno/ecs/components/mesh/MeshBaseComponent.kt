@@ -2,6 +2,7 @@ package me.anno.ecs.components.mesh
 
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.DebugTitle
+import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.CollidingComponent
 import me.anno.ecs.prefab.PrefabSaveable
@@ -9,6 +10,7 @@ import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.Raycast
 import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.types.AABBs.transformUnion
@@ -28,19 +30,23 @@ abstract class MeshBaseComponent : CollidingComponent() {
     @SerializedProperty
     var castShadows = true
 
+    @SerializedProperty
     var isInstanced = false
 
+    @Docs("Abstract function for you to define your mesh")
+    abstract fun getMesh(): Mesh?
+
+    @Docs("Overrides the mesh materials")
     @Type("List<Material/Reference>")
-    @DebugTitle("Overrides the original materials")
     @SerializedProperty
     var materials: List<FileReference> = emptyList()
 
+    @Docs("For displaying random triangle colors")
     @NotSerializedProperty
     val randomTriangleId = (Math.random() * 1e9).toInt()
 
+    @Docs("Ensure the mesh was loaded")
     open fun ensureBuffer() {}
-
-    abstract fun getMesh(): Mesh?
 
     override fun hasRaycastType(typeMask: Int): Boolean {
         return typeMask.and(Raycast.TRIANGLES) != 0

@@ -2,7 +2,7 @@ package me.anno.engine.ui
 
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.ecs.prefab.Prefab
-import me.anno.ecs.prefab.PrefabCache.loadPrefab
+import me.anno.ecs.prefab.PrefabCache.getPrefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.RemsEngine
 import me.anno.engine.scene.ScenePrefab
@@ -42,7 +42,7 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
 
     override fun onDoubleClick(file: FileReference) {
         // open the file
-        val prefab = loadPrefab(file)
+        val prefab = getPrefab(file)
         if (prefab != null) {
             prefab.source = file
             ECSSceneTabs.open(syncMaster, prefab, PlayMode.EDITING)
@@ -125,7 +125,7 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
     fun replaceReferences(prefabs: HashMap<FileReference, Prefab>) {
         // replace all local references, so we can change the properties of everything:
         for ((_, prefab) in prefabs) {
-            val original = loadPrefab(prefab.prefab)!!
+            val original = getPrefab(prefab.prefab)!!
             original.sets.forEach { k1, k2, v ->
                 when {
                     v is FileReference && v != InvalidRef -> {
@@ -164,7 +164,12 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
                 // if content is identical, we could merge them
 
                 // it may not be necessarily a prefab, it could be a saveable
-                val prefab = loadPrefab(srcFile)
+                val prefab = try {
+                    getPrefab(srcFile)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    null
+                }
                 if (prefab != null) {
                     /*val possibleNames = ArrayList<String>(8)
                     val name0 = srcFile.nameWithoutExtension.toAllowedFilename()

@@ -157,27 +157,6 @@ abstract class Component : PrefabSaveable(), Inspectable {
             )) as Component
         }
 
-        fun <V : PrefabSaveable> getOptionsByClass(parent: PrefabSaveable, clazz: KClass<V>): List<Option> {
-            // registry over all options... / todo search the raw files + search all scripts
-            val knownComponents = ISaveable.getInstanceOf(clazz)
-            /*return UpdatingList {
-                knownComponents.map {
-                    Option(it.key.camelCaseToTitle(), "") {
-                        val comp = it.value.generator() as Component
-                        comp.entity = entity
-                        comp
-                    }
-                }.sortedBy { it.title }
-            }*/
-            return knownComponents.map {
-                Option(it.key.camelCaseToTitle(), "") {
-                    val comp = it.value.generator() as PrefabSaveable
-                    comp.parent = parent
-                    comp
-                }
-            }.sortedBy { it.title }
-        }
-
     }
 
 }

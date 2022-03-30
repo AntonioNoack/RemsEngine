@@ -1,6 +1,8 @@
 package me.anno.ui.base.text
 
+import me.anno.config.DefaultStyle.deepDark
 import me.anno.config.DefaultStyle.iconGray
+import me.anno.config.DefaultStyle.reallyDark
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.Cursor
@@ -73,8 +75,16 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     var focusTextColor = style.getColor("textColorFocused", -1)
         set(value) {
             if (field != value) {
+                if (isInFocus) invalidateDrawing()
                 field = value
-                invalidateDrawing()
+            }
+        }
+
+    var focusBackground = style.getColor("textBackgroundFocused", deepDark)
+        set(value) {
+            if (field != value) {
+                if (isInFocus) invalidateDrawing()
+                field = value
             }
         }
 
@@ -247,8 +257,11 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         val inst = instantTextLoading
         if (inst) loadTexturesSync.push(true)
-        super.onDraw(x0, y0, x1, y1)
+        val bg = backgroundColor
+        backgroundColor = if (isInFocus) focusBackground else backgroundColor
+        drawBackground(x0, y0, x1, y1)
         drawText(effectiveTextColor)
+        backgroundColor = bg
         if (inst) loadTexturesSync.pop()
     }
 

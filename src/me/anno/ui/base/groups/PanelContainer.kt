@@ -30,10 +30,10 @@ open class PanelContainer(
             }
         }
 
-    override val children: List<Panel> = UpdatingSingletonList { child }
+    override val children = arrayListOf(child)
 
     override fun remove(child: Panel) {
-        this.child = Panel(style)
+        children.remove(child)
     }
 
     override fun calculateSize(w: Int, h: Int) {

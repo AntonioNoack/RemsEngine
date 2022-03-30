@@ -24,7 +24,6 @@ import me.anno.input.MouseButton
 import me.anno.input.Touch
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.max
 import me.anno.studio.StudioBase
 import me.anno.ui.base.groups.NineTilePanel
 import me.anno.ui.editor.PropertyInspector
@@ -228,7 +227,9 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
             debugPoints.add(DebugPoint(Vector3d(mouseDir).mul(20.0).add(cam), 0xff0000))
         } else {
             val pos = Vector3d(hit.positionWS)
-            val normal = Vector3d(hit.normalWS).normalize()
+            val normal = Vector3d(hit.normalWS).normalize(
+                0.1f * hit.positionWS.distance(camPosition)
+            )
             // draw collision point
             debugPoints.add(DebugPoint(pos, -1))
             // draw collision normal

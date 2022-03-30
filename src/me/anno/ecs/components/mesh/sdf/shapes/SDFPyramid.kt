@@ -69,7 +69,6 @@ open class SDFPyramid : SDFShape() {
     }
 
     override fun computeSDFBase(pos: Vector4f): Float {
-        applyTransform(pos)
         val px = max(abs(pos.x), abs(pos.z))
         val params = params
         val qx = params.x

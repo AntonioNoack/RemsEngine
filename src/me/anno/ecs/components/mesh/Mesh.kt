@@ -1,5 +1,6 @@
 package me.anno.ecs.components.mesh
 
+import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.cache.MaterialCache
@@ -114,6 +115,8 @@ class Mesh : PrefabSaveable() {
     @HideInInspector
     var debugLineIndices: IntArray? = null
 
+    @Docs("Automatically found lines (for rendering); can be set manually")
+    @NotSerializedProperty
     var lineIndices: IntArray? = null
 
     // todo sort them by material/shader, and create multiple buffers (or sub-buffers) for them
@@ -134,6 +137,7 @@ class Mesh : PrefabSaveable() {
             else emptyList()
         }
 
+    @NotSerializedProperty
     var materialInst: Material?
         get() = MaterialCache[material]
         set(value) {

@@ -77,7 +77,8 @@ class CSet() : Change() {
 
         fun applyChange(instance: PrefabSaveable, path: Path, name: String, value0: Any?) {
             var value = value0
-            if (value is Path) {// it's a prefab saveable; yes, saving paths therefore is no longer supported
+            if (value is Path) {
+                // it's a prefab saveable; yes, saving paths therefore is no longer supported
                 // they just are internal to the change package
                 value = Hierarchy.getInstanceAt(instance.root, value)
                 LOGGER.debug("Changed path $value0 to instance $value")

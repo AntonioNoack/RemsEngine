@@ -1,265 +1,221 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by FernFlower decompiler)
-//
+package org.joml
 
-package org.joml;
+/**
+ * Ray Intersections using Doubles
+ */
+class RayAabIntersection2 {
+    private var originX = 0.0
+    private var originY = 0.0
+    private var originZ = 0.0
+    private var dirX = 0.0
+    private var dirY = 0.0
+    private var dirZ = 0.0
+    private var c_xy = 0.0
+    private var c_yx = 0.0
+    private var c_zy = 0.0
+    private var c_yz = 0.0
+    private var c_xz = 0.0
+    private var c_zx = 0.0
+    private var s_xy = 0.0
+    private var s_yx = 0.0
+    private var s_zy = 0.0
+    private var s_yz = 0.0
+    private var s_xz = 0.0
+    private var s_zx = 0.0
+    private var classification: Byte = 0
 
-public class RayAabIntersection2 {
-    private double originX;
-    private double originY;
-    private double originZ;
-    private double dirX;
-    private double dirY;
-    private double dirZ;
-    private double c_xy;
-    private double c_yx;
-    private double c_zy;
-    private double c_yz;
-    private double c_xz;
-    private double c_zx;
-    private double s_xy;
-    private double s_yx;
-    private double s_zy;
-    private double s_yz;
-    private double s_xz;
-    private double s_zx;
-    private byte classification;
-
-    public RayAabIntersection2() {
+    constructor() {}
+    constructor(originX: Double, originY: Double, originZ: Double, dirX: Double, dirY: Double, dirZ: Double) {
+        this[originX, originY, originZ, dirX, dirY] = dirZ
     }
 
-    public RayAabIntersection2(double originX, double originY, double originZ, double dirX, double dirY, double dirZ) {
-        this.set(originX, originY, originZ, dirX, dirY, dirZ);
+    operator fun set(originX: Double, originY: Double, originZ: Double, dirX: Double, dirY: Double, dirZ: Double) {
+        this.originX = originX
+        this.originY = originY
+        this.originZ = originZ
+        this.dirX = dirX
+        this.dirY = dirY
+        this.dirZ = dirZ
+        precomputeSlope()
     }
 
-    public void set(double originX, double originY, double originZ, double dirX, double dirY, double dirZ) {
-        this.originX = originX;
-        this.originY = originY;
-        this.originZ = originZ;
-        this.dirX = dirX;
-        this.dirY = dirY;
-        this.dirZ = dirZ;
-        this.precomputeSlope();
+    private fun precomputeSlope() {
+        val invDirX = 1.0f / dirX
+        val invDirY = 1.0f / dirY
+        val invDirZ = 1.0f / dirZ
+        s_yx = dirX * invDirY
+        s_xy = dirY * invDirX
+        s_zy = dirY * invDirZ
+        s_yz = dirZ * invDirY
+        s_xz = dirZ * invDirX
+        s_zx = dirX * invDirZ
+        c_xy = originY - s_xy * originX
+        c_yx = originX - s_yx * originY
+        c_zy = originY - s_zy * originZ
+        c_yz = originZ - s_yz * originY
+        c_xz = originZ - s_xz * originX
+        c_zx = originX - s_zx * originZ
+        val sgnX = sign(dirX)
+        val sgnY = sign(dirY)
+        val sgnZ = sign(dirZ)
+        classification = (sgnZ + 1 shl 4 or (sgnY + 1 shl 2) or sgnX + 1).toByte()
     }
 
-    private static int sign(double f) {
-        return f != 0.0F && !Double.isNaN(f) ? (int) (1 - Double.doubleToLongBits(f) >>> 63 << 1) - 1 : 0;
+    fun test(aabb: AABBd): Boolean {
+        return test(
+            aabb.minX, aabb.minY, aabb.minZ,
+            aabb.maxX, aabb.maxY, aabb.maxZ
+        )
     }
 
-    private void precomputeSlope() {
-        double invDirX = 1.0F / this.dirX;
-        double invDirY = 1.0F / this.dirY;
-        double invDirZ = 1.0F / this.dirZ;
-        this.s_yx = this.dirX * invDirY;
-        this.s_xy = this.dirY * invDirX;
-        this.s_zy = this.dirY * invDirZ;
-        this.s_yz = this.dirZ * invDirY;
-        this.s_xz = this.dirZ * invDirX;
-        this.s_zx = this.dirX * invDirZ;
-        this.c_xy = this.originY - this.s_xy * this.originX;
-        this.c_yx = this.originX - this.s_yx * this.originY;
-        this.c_zy = this.originY - this.s_zy * this.originZ;
-        this.c_yz = this.originZ - this.s_yz * this.originY;
-        this.c_xz = this.originZ - this.s_xz * this.originX;
-        this.c_zx = this.originX - this.s_zx * this.originZ;
-        int sgnX = sign(this.dirX);
-        int sgnY = sign(this.dirY);
-        int sgnZ = sign(this.dirZ);
-        this.classification = (byte) ((sgnZ + 1) << 4 | (sgnY + 1) << 2 | (sgnX + 1));
-    }
-
-    public boolean test(AABBd aabb) {
-        return test(aabb.minX, aabb.minY, aabb.minZ,
-                aabb.maxX, aabb.maxY, aabb.maxZ);
-    }
-
-    public boolean test(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        switch (this.classification) {
-            case 0:
-                return this.MMM(minX, minY, minZ, maxX, maxY, maxZ);
-            case 1:
-                return this.OMM(minX, minY, minZ, maxX, maxY, maxZ);
-            case 2:
-                return this.PMM(minX, minY, minZ, maxX, maxY, maxZ);
-            case 3:
-                return false;
-            case 4:
-                return this.MOM(minX, minY, minZ, maxX, maxY, maxZ);
-            case 5:
-                return this.OOM(minX, minY, minZ, maxX, maxY);
-            case 6:
-                return this.POM(minX, minY, minZ, maxX, maxY, maxZ);
-            case 7:
-                return false;
-            case 8:
-                return this.MPM(minX, minY, minZ, maxX, maxY, maxZ);
-            case 9:
-                return this.OPM(minX, minY, minZ, maxX, maxY, maxZ);
-            case 10:
-                return this.PPM(minX, minY, minZ, maxX, maxY, maxZ);
-            case 11:
-            case 12:
-            case 13:
-            case 14:
-            case 15:
-                return false;
-            case 16:
-                return this.MMO(minX, minY, minZ, maxX, maxY, maxZ);
-            case 17:
-                return this.OMO(minX, minY, minZ, maxX, maxZ);
-            case 18:
-                return this.PMO(minX, minY, minZ, maxX, maxY, maxZ);
-            case 19:
-                return false;
-            case 20:
-                return this.MOO(minX, minY, minZ, maxY, maxZ);
-            case 21:
-                return false;
-            case 22:
-                return this.POO(minY, minZ, maxX, maxY, maxZ);
-            case 23:
-                return false;
-            case 24:
-                return this.MPO(minX, minY, minZ, maxX, maxY, maxZ);
-            case 25:
-                return this.OPO(minX, minZ, maxX, maxY, maxZ);
-            case 26:
-                return this.PPO(minX, minY, minZ, maxX, maxY, maxZ);
-            case 27:
-            case 28:
-            case 29:
-            case 30:
-            case 31:
-                return false;
-            case 32:
-                return this.MMP(minX, minY, minZ, maxX, maxY, maxZ);
-            case 33:
-                return this.OMP(minX, minY, minZ, maxX, maxY, maxZ);
-            case 34:
-                return this.PMP(minX, minY, minZ, maxX, maxY, maxZ);
-            case 35:
-                return false;
-            case 36:
-                return this.MOP(minX, minY, minZ, maxX, maxY, maxZ);
-            case 37:
-                return this.OOP(minX, minY, maxX, maxY, maxZ);
-            case 38:
-                return this.POP(minX, minY, minZ, maxX, maxY, maxZ);
-            case 39:
-                return false;
-            case 40:
-                return this.MPP(minX, minY, minZ, maxX, maxY, maxZ);
-            case 41:
-                return this.OPP(minX, minY, minZ, maxX, maxY, maxZ);
-            case 42:
-                return this.PPP(minX, minY, minZ, maxX, maxY, maxZ);
-            default:
-                return false;
+    fun test(minX: Double, minY: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double): Boolean {
+        return when (classification.toInt()) {
+            0 -> MMM(minX, minY, minZ, maxX, maxY, maxZ)
+            1 -> OMM(minX, minY, minZ, maxX, maxY, maxZ)
+            2 -> PMM(minX, minY, minZ, maxX, maxY, maxZ)
+            3 -> false
+            4 -> MOM(minX, minY, minZ, maxX, maxY, maxZ)
+            5 -> OOM(minX, minY, minZ, maxX, maxY)
+            6 -> POM(minX, minY, minZ, maxX, maxY, maxZ)
+            7 -> false
+            8 -> MPM(minX, minY, minZ, maxX, maxY, maxZ)
+            9 -> OPM(minX, minY, minZ, maxX, maxY, maxZ)
+            10 -> PPM(minX, minY, minZ, maxX, maxY, maxZ)
+            11, 12, 13, 14, 15 -> false
+            16 -> MMO(minX, minY, minZ, maxX, maxY, maxZ)
+            17 -> OMO(minX, minY, minZ, maxX, maxZ)
+            18 -> PMO(minX, minY, minZ, maxX, maxY, maxZ)
+            19 -> false
+            20 -> MOO(minX, minY, minZ, maxY, maxZ)
+            21 -> false
+            22 -> POO(minY, minZ, maxX, maxY, maxZ)
+            23 -> false
+            24 -> MPO(minX, minY, minZ, maxX, maxY, maxZ)
+            25 -> OPO(minX, minZ, maxX, maxY, maxZ)
+            26 -> PPO(minX, minY, minZ, maxX, maxY, maxZ)
+            27, 28, 29, 30, 31 -> false
+            32 -> MMP(minX, minY, minZ, maxX, maxY, maxZ)
+            33 -> OMP(minX, minY, minZ, maxX, maxY, maxZ)
+            34 -> PMP(minX, minY, minZ, maxX, maxY, maxZ)
+            35 -> false
+            36 -> MOP(minX, minY, minZ, maxX, maxY, maxZ)
+            37 -> OOP(minX, minY, maxX, maxY, maxZ)
+            38 -> POP(minX, minY, minZ, maxX, maxY, maxZ)
+            39 -> false
+            40 -> MPP(minX, minY, minZ, maxX, maxY, maxZ)
+            41 -> OPP(minX, minY, minZ, maxX, maxY, maxZ)
+            42 -> PPP(minX, minY, minZ, maxX, maxY, maxZ)
+            else -> false
         }
     }
 
-    private boolean MMM(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        return this.originX >= minX && this.originY >= minY && this.originZ >= minZ && this.s_xy * minX - maxY + this.c_xy <= 0.0F && this.s_yx * minY - maxX + this.c_yx <= 0.0F && this.s_zy * minZ - maxY + this.c_zy <= 0.0F && this.s_yz * minY - maxZ + this.c_yz <= 0.0F && this.s_xz * minX - maxZ + this.c_xz <= 0.0F && this.s_zx * minZ - maxX + this.c_zx <= 0.0F;
+    private fun MMM(minX: Double, minY: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double): Boolean {
+        return originX >= minX && originY >= minY && originZ >= minZ && s_xy * minX - maxY + c_xy <= 0.0f && s_yx * minY - maxX + c_yx <= 0.0f && s_zy * minZ - maxY + c_zy <= 0.0f && s_yz * minY - maxZ + c_yz <= 0.0f && s_xz * minX - maxZ + c_xz <= 0.0f && s_zx * minZ - maxX + c_zx <= 0.0f
     }
 
-    private boolean OMM(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        return this.originX >= minX && this.originX <= maxX && this.originY >= minY && this.originZ >= minZ && this.s_zy * minZ - maxY + this.c_zy <= 0.0F && this.s_yz * minY - maxZ + this.c_yz <= 0.0F;
+    private fun OMM(minX: Double, minY: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double): Boolean {
+        return originX in minX..maxX && originY >= minY && originZ >= minZ && s_zy * minZ - maxY + c_zy <= 0.0f && s_yz * minY - maxZ + c_yz <= 0.0f
     }
 
-    private boolean PMM(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        return this.originX <= maxX && this.originY >= minY && this.originZ >= minZ && this.s_xy * maxX - maxY + this.c_xy <= 0.0F && this.s_yx * minY - minX + this.c_yx >= 0.0F && this.s_zy * minZ - maxY + this.c_zy <= 0.0F && this.s_yz * minY - maxZ + this.c_yz <= 0.0F && this.s_xz * maxX - maxZ + this.c_xz <= 0.0F && this.s_zx * minZ - minX + this.c_zx >= 0.0F;
+    private fun PMM(minX: Double, minY: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double): Boolean {
+        return originX <= maxX && originY >= minY && originZ >= minZ && s_xy * maxX - maxY + c_xy <= 0.0f && s_yx * minY - minX + c_yx >= 0.0f && s_zy * minZ - maxY + c_zy <= 0.0f && s_yz * minY - maxZ + c_yz <= 0.0f && s_xz * maxX - maxZ + c_xz <= 0.0f && s_zx * minZ - minX + c_zx >= 0.0f
     }
 
-    private boolean MOM(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        return this.originY >= minY && this.originY <= maxY && this.originX >= minX && this.originZ >= minZ && this.s_xz * minX - maxZ + this.c_xz <= 0.0F && this.s_zx * minZ - maxX + this.c_zx <= 0.0F;
+    private fun MOM(minX: Double, minY: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double): Boolean {
+        return originY in minY..maxY && originX >= minX && originZ >= minZ && s_xz * minX - maxZ + c_xz <= 0.0f && s_zx * minZ - maxX + c_zx <= 0.0f
     }
 
-    private boolean OOM(double minX, double minY, double minZ, double maxX, double maxY) {
-        return this.originZ >= minZ && this.originX >= minX && this.originX <= maxX && this.originY >= minY && this.originY <= maxY;
+    private fun OOM(minX: Double, minY: Double, minZ: Double, maxX: Double, maxY: Double): Boolean {
+        return originZ >= minZ && originX >= minX && originX <= maxX && originY >= minY && originY <= maxY
     }
 
-    private boolean POM(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        return this.originY >= minY && this.originY <= maxY && this.originX <= maxX && this.originZ >= minZ && this.s_xz * maxX - maxZ + this.c_xz <= 0.0F && this.s_zx * minZ - minX + this.c_zx >= 0.0F;
+    private fun POM(minX: Double, minY: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double): Boolean {
+        return originY in minY..maxY && originX <= maxX && originZ >= minZ && s_xz * maxX - maxZ + c_xz <= 0.0f && s_zx * minZ - minX + c_zx >= 0.0f
     }
 
-    private boolean MPM(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        return this.originX >= minX && this.originY <= maxY && this.originZ >= minZ && this.s_xy * minX - minY + this.c_xy >= 0.0F && this.s_yx * maxY - maxX + this.c_yx <= 0.0F && this.s_zy * minZ - minY + this.c_zy >= 0.0F && this.s_yz * maxY - maxZ + this.c_yz <= 0.0F && this.s_xz * minX - maxZ + this.c_xz <= 0.0F && this.s_zx * minZ - maxX + this.c_zx <= 0.0F;
+    private fun MPM(minX: Double, minY: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double): Boolean {
+        return originX >= minX && originY <= maxY && originZ >= minZ && s_xy * minX - minY + c_xy >= 0.0f && s_yx * maxY - maxX + c_yx <= 0.0f && s_zy * minZ - minY + c_zy >= 0.0f && s_yz * maxY - maxZ + c_yz <= 0.0f && s_xz * minX - maxZ + c_xz <= 0.0f && s_zx * minZ - maxX + c_zx <= 0.0f
     }
 
-    private boolean OPM(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        return this.originX >= minX && this.originX <= maxX && this.originY <= maxY && this.originZ >= minZ && this.s_zy * minZ - minY + this.c_zy >= 0.0F && this.s_yz * maxY - maxZ + this.c_yz <= 0.0F;
+    private fun OPM(minX: Double, minY: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double): Boolean {
+        return originX in minX..maxX && originY <= maxY && originZ >= minZ && s_zy * minZ - minY + c_zy >= 0.0f && s_yz * maxY - maxZ + c_yz <= 0.0f
     }
 
-    private boolean PPM(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        return this.originX <= maxX && this.originY <= maxY && this.originZ >= minZ && this.s_xy * maxX - minY + this.c_xy >= 0.0F && this.s_yx * maxY - minX + this.c_yx >= 0.0F && this.s_zy * minZ - minY + this.c_zy >= 0.0F && this.s_yz * maxY - maxZ + this.c_yz <= 0.0F && this.s_xz * maxX - maxZ + this.c_xz <= 0.0F && this.s_zx * minZ - minX + this.c_zx >= 0.0F;
+    private fun PPM(minX: Double, minY: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double): Boolean {
+        return originX <= maxX && originY <= maxY && originZ >= minZ && s_xy * maxX - minY + c_xy >= 0.0f && s_yx * maxY - minX + c_yx >= 0.0f && s_zy * minZ - minY + c_zy >= 0.0f && s_yz * maxY - maxZ + c_yz <= 0.0f && s_xz * maxX - maxZ + c_xz <= 0.0f && s_zx * minZ - minX + c_zx >= 0.0f
     }
 
-    private boolean MMO(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        return this.originZ >= minZ && this.originZ <= maxZ && this.originX >= minX && this.originY >= minY && this.s_xy * minX - maxY + this.c_xy <= 0.0F && this.s_yx * minY - maxX + this.c_yx <= 0.0F;
+    private fun MMO(minX: Double, minY: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double): Boolean {
+        return originZ in minZ..maxZ && originX >= minX && originY >= minY && s_xy * minX - maxY + c_xy <= 0.0f && s_yx * minY - maxX + c_yx <= 0.0f
     }
 
-    private boolean OMO(double minX, double minY, double minZ, double maxX, double maxZ) {
-        return this.originY >= minY && this.originX >= minX && this.originX <= maxX && this.originZ >= minZ && this.originZ <= maxZ;
+    private fun OMO(minX: Double, minY: Double, minZ: Double, maxX: Double, maxZ: Double): Boolean {
+        return originY >= minY && originX >= minX && originX <= maxX && originZ >= minZ && originZ <= maxZ
     }
 
-    private boolean PMO(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        return this.originZ >= minZ && this.originZ <= maxZ && this.originX <= maxX && this.originY >= minY && this.s_xy * maxX - maxY + this.c_xy <= 0.0F && this.s_yx * minY - minX + this.c_yx >= 0.0F;
+    private fun PMO(minX: Double, minY: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double): Boolean {
+        return originZ in minZ..maxZ && originX <= maxX && originY >= minY && s_xy * maxX - maxY + c_xy <= 0.0f && s_yx * minY - minX + c_yx >= 0.0f
     }
 
-    private boolean MOO(double minX, double minY, double minZ, double maxY, double maxZ) {
-        return this.originX >= minX && this.originY >= minY && this.originY <= maxY && this.originZ >= minZ && this.originZ <= maxZ;
+    private fun MOO(minX: Double, minY: Double, minZ: Double, maxY: Double, maxZ: Double): Boolean {
+        return originX >= minX && originY >= minY && originY <= maxY && originZ >= minZ && originZ <= maxZ
     }
 
-    private boolean POO(double minY, double minZ, double maxX, double maxY, double maxZ) {
-        return this.originX <= maxX && this.originY >= minY && this.originY <= maxY && this.originZ >= minZ && this.originZ <= maxZ;
+    private fun POO(minY: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double): Boolean {
+        return originX <= maxX && originY >= minY && originY <= maxY && originZ >= minZ && originZ <= maxZ
     }
 
-    private boolean MPO(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        return this.originZ >= minZ && this.originZ <= maxZ && this.originX >= minX && this.originY <= maxY && this.s_xy * minX - minY + this.c_xy >= 0.0F && this.s_yx * maxY - maxX + this.c_yx <= 0.0F;
+    private fun MPO(minX: Double, minY: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double): Boolean {
+        return originZ in minZ..maxZ && originX >= minX && originY <= maxY && s_xy * minX - minY + c_xy >= 0.0f && s_yx * maxY - maxX + c_yx <= 0.0f
     }
 
-    private boolean OPO(double minX, double minZ, double maxX, double maxY, double maxZ) {
-        return this.originY <= maxY && this.originX >= minX && this.originX <= maxX && this.originZ >= minZ && this.originZ <= maxZ;
+    private fun OPO(minX: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double): Boolean {
+        return originY <= maxY && originX >= minX && originX <= maxX && originZ >= minZ && originZ <= maxZ
     }
 
-    private boolean PPO(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        return this.originZ >= minZ && this.originZ <= maxZ && this.originX <= maxX && this.originY <= maxY && this.s_xy * maxX - minY + this.c_xy >= 0.0F && this.s_yx * maxY - minX + this.c_yx >= 0.0F;
+    private fun PPO(minX: Double, minY: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double): Boolean {
+        return originZ in minZ..maxZ && originX <= maxX && originY <= maxY && s_xy * maxX - minY + c_xy >= 0.0f && s_yx * maxY - minX + c_yx >= 0.0f
     }
 
-    private boolean MMP(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        return this.originX >= minX && this.originY >= minY && this.originZ <= maxZ && this.s_xy * minX - maxY + this.c_xy <= 0.0F && this.s_yx * minY - maxX + this.c_yx <= 0.0F && this.s_zy * maxZ - maxY + this.c_zy <= 0.0F && this.s_yz * minY - minZ + this.c_yz >= 0.0F && this.s_xz * minX - minZ + this.c_xz >= 0.0F && this.s_zx * maxZ - maxX + this.c_zx <= 0.0F;
+    private fun MMP(minX: Double, minY: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double): Boolean {
+        return originX >= minX && originY >= minY && originZ <= maxZ && s_xy * minX - maxY + c_xy <= 0.0f && s_yx * minY - maxX + c_yx <= 0.0f && s_zy * maxZ - maxY + c_zy <= 0.0f && s_yz * minY - minZ + c_yz >= 0.0f && s_xz * minX - minZ + c_xz >= 0.0f && s_zx * maxZ - maxX + c_zx <= 0.0f
     }
 
-    private boolean OMP(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        return this.originX >= minX && this.originX <= maxX && this.originY >= minY && this.originZ <= maxZ && this.s_zy * maxZ - maxY + this.c_zy <= 0.0F && this.s_yz * minY - minZ + this.c_yz >= 0.0F;
+    private fun OMP(minX: Double, minY: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double): Boolean {
+        return originX in minX..maxX && originY >= minY && originZ <= maxZ && s_zy * maxZ - maxY + c_zy <= 0.0f && s_yz * minY - minZ + c_yz >= 0.0f
     }
 
-    private boolean PMP(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        return this.originX <= maxX && this.originY >= minY && this.originZ <= maxZ && this.s_xy * maxX - maxY + this.c_xy <= 0.0F && this.s_yx * minY - minX + this.c_yx >= 0.0F && this.s_zy * maxZ - maxY + this.c_zy <= 0.0F && this.s_yz * minY - minZ + this.c_yz >= 0.0F && this.s_xz * maxX - minZ + this.c_xz >= 0.0F && this.s_zx * maxZ - minX + this.c_zx >= 0.0F;
+    private fun PMP(minX: Double, minY: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double): Boolean {
+        return originX <= maxX && originY >= minY && originZ <= maxZ && s_xy * maxX - maxY + c_xy <= 0.0f && s_yx * minY - minX + c_yx >= 0.0f && s_zy * maxZ - maxY + c_zy <= 0.0f && s_yz * minY - minZ + c_yz >= 0.0f && s_xz * maxX - minZ + c_xz >= 0.0f && s_zx * maxZ - minX + c_zx >= 0.0f
     }
 
-    private boolean MOP(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        return this.originY >= minY && this.originY <= maxY && this.originX >= minX && this.originZ <= maxZ && this.s_xz * minX - minZ + this.c_xz >= 0.0F && this.s_zx * maxZ - maxX + this.c_zx <= 0.0F;
+    private fun MOP(minX: Double, minY: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double): Boolean {
+        return originY in minY..maxY && originX >= minX && originZ <= maxZ && s_xz * minX - minZ + c_xz >= 0.0f && s_zx * maxZ - maxX + c_zx <= 0.0f
     }
 
-    private boolean OOP(double minX, double minY, double maxX, double maxY, double maxZ) {
-        return this.originZ <= maxZ && this.originX >= minX && this.originX <= maxX && this.originY >= minY && this.originY <= maxY;
+    private fun OOP(minX: Double, minY: Double, maxX: Double, maxY: Double, maxZ: Double): Boolean {
+        return originZ <= maxZ && originX >= minX && originX <= maxX && originY >= minY && originY <= maxY
     }
 
-    private boolean POP(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        return this.originY >= minY && this.originY <= maxY && this.originX <= maxX && this.originZ <= maxZ && this.s_xz * maxX - minZ + this.c_xz >= 0.0F && this.s_zx * maxZ - minX + this.c_zx <= 0.0F;
+    private fun POP(minX: Double, minY: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double): Boolean {
+        return originY in minY..maxY && originX <= maxX && originZ <= maxZ && s_xz * maxX - minZ + c_xz >= 0.0f && s_zx * maxZ - minX + c_zx <= 0.0f
     }
 
-    private boolean MPP(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        return this.originX >= minX && this.originY <= maxY && this.originZ <= maxZ && this.s_xy * minX - minY + this.c_xy >= 0.0F && this.s_yx * maxY - maxX + this.c_yx <= 0.0F && this.s_zy * maxZ - minY + this.c_zy >= 0.0F && this.s_yz * maxY - minZ + this.c_yz >= 0.0F && this.s_xz * minX - minZ + this.c_xz >= 0.0F && this.s_zx * maxZ - maxX + this.c_zx <= 0.0F;
+    private fun MPP(minX: Double, minY: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double): Boolean {
+        return originX >= minX && originY <= maxY && originZ <= maxZ && s_xy * minX - minY + c_xy >= 0.0f && s_yx * maxY - maxX + c_yx <= 0.0f && s_zy * maxZ - minY + c_zy >= 0.0f && s_yz * maxY - minZ + c_yz >= 0.0f && s_xz * minX - minZ + c_xz >= 0.0f && s_zx * maxZ - maxX + c_zx <= 0.0f
     }
 
-    private boolean OPP(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        return this.originX >= minX && this.originX <= maxX && this.originY <= maxY && this.originZ <= maxZ && this.s_zy * maxZ - minY + this.c_zy <= 0.0F && this.s_yz * maxY - minZ + this.c_yz <= 0.0F;
+    private fun OPP(minX: Double, minY: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double): Boolean {
+        return originX in minX..maxX && originY <= maxY && originZ <= maxZ && s_zy * maxZ - minY + c_zy <= 0.0f && s_yz * maxY - minZ + c_yz <= 0.0f
     }
 
-    private boolean PPP(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        return this.originX <= maxX && this.originY <= maxY && this.originZ <= maxZ && this.s_xy * maxX - minY + this.c_xy >= 0.0F && this.s_yx * maxY - minX + this.c_yx >= 0.0F && this.s_zy * maxZ - minY + this.c_zy >= 0.0F && this.s_yz * maxY - minZ + this.c_yz >= 0.0F && this.s_xz * maxX - minZ + this.c_xz >= 0.0F && this.s_zx * maxZ - minX + this.c_zx >= 0.0F;
+    private fun PPP(minX: Double, minY: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double): Boolean {
+        return originX <= maxX && originY <= maxY && originZ <= maxZ && s_xy * maxX - minY + c_xy >= 0.0f && s_yx * maxY - minX + c_yx >= 0.0f && s_zy * maxZ - minY + c_zy >= 0.0f && s_yz * maxY - minZ + c_yz >= 0.0f && s_xz * maxX - minZ + c_xz >= 0.0f && s_zx * maxZ - minX + c_zx >= 0.0f
+    }
+
+    companion object {
+        private fun sign(f: Double): Int {
+            return if (f != 0.0 && !java.lang.Double.isNaN(f)) (1 - java.lang.Double.doubleToLongBits(f) ushr 63 shl 1).toInt() - 1 else 0
+        }
     }
 }

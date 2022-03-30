@@ -45,6 +45,8 @@ interface ISaveable {
     fun readByteArray2D(name: String, values: Array<ByteArray>)
 
     fun readChar(name: String, value: Char)
+    fun readCharArray(name: String, values: CharArray)
+    fun readCharArray2D(name: String, values: Array<CharArray>)
 
     fun readShort(name: String, value: Short)
     fun readShortArray(name: String, values: ShortArray)

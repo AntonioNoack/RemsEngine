@@ -107,7 +107,7 @@ object GFXx3D {
         offset: Vector3fc,
         stack: Matrix4fArrayList, buffer: StaticBuffer, color: Vector4fc
     ) {
-        val shader = ShaderLib.shader3DforText.value
+        val shader = ShaderLib.shader3DText.value
         shader.use()
         shader3DUniforms(shader, stack, color)
         shader.v3f("offset", offset)
@@ -120,7 +120,7 @@ object GFXx3D {
         buffer: StaticBuffer,
         offset: Vector3fc
     ) {
-        val shader = ShaderLib.shader3DforText.value
+        val shader = ShaderLib.shader3DText.value
         shader.use()
         shader.v3f("offset", offset)
         buffer.draw(shader)

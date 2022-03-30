@@ -152,7 +152,7 @@ class Entity() : PrefabSaveable(), Inspectable {
     }
 
     override fun getOptionsByType(type: Char): List<Option> {
-        return if (type == 'c') Component.getOptionsByClass(this, Component::class)
+        return if (type == 'c') getOptionsByClass(this, Component::class)
         else entityOptionList
     }
 

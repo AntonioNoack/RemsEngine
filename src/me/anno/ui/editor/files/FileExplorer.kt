@@ -18,6 +18,7 @@ import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
+import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelList2D
@@ -41,6 +42,7 @@ import me.anno.utils.OS.music
 import me.anno.utils.OS.pictures
 import me.anno.utils.OS.videos
 import me.anno.utils.ShutdownException
+import me.anno.utils.files.FileExplorerSelectWrapper
 import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.files.Files.listFiles2
 import me.anno.utils.files.LocalFile.toGlobalFile
@@ -59,8 +61,6 @@ import kotlin.math.roundToInt
 // issue: then the size is no longer constant
 // solution: can we get the image size quickly? using ffmpeg maybe, or implemented ourselves
 
-// todo list of standard folders
-
 // done the text size is quite small on my x360 -> get the font size for the ui from the OS :)
 // todo double click is not working in touch mode?
 // done make file path clickable to quickly move to a grandparent folder :)
@@ -73,9 +73,6 @@ import kotlin.math.roundToInt
 // todo search in meta data for audio and video
 
 // todo list view
-
-// done a stack or history to know where we were
-// todo left list of relevant places? todo drag stuff in there
 
 abstract class FileExplorer(
     initialLocation: FileReference?,
@@ -135,6 +132,26 @@ abstract class FileExplorer(
     var lastSearch = true
 
     val favourites = PanelListY(style)
+
+    init {
+        fun addFavourite(folder: FileReference) {
+            favourites.add(FileExplorerEntry(this, false, folder, style))
+        }
+        addFavourite(home)
+        addFavourite(downloads)
+        addFavourite(documents)
+        addFavourite(workspace)
+        addFavourite(pictures)
+        addFavourite(videos)
+        addFavourite(music)
+        addFavourite(FileRootRef)
+        // todo custom favourites
+        /*favourites.add(TextButton("+", false, style)
+            .addLeftClickListener {
+                FileExplorerSelectWrapper.selectFolder(null) { file ->
+                }
+            })*/
+    }
 
     val title = PathPanel(folder, style)
 
@@ -574,6 +591,7 @@ abstract class FileExplorer(
             )
             val esi = entrySize.toInt()
             content.childWidth = esi
+            favourites.invalidateLayout()
             // define the aspect ratio by 2 lines of space for the name
             val sample = content.firstOfAll { it is TextPanel } as? TextPanel
             val sampleFont = sample?.font ?: style.getFont("text")

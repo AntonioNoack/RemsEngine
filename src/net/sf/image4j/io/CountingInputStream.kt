@@ -1,34 +1,29 @@
-package net.sf.image4j.io;
+package net.sf.image4j.io
 
-import java.io.*;
+import java.io.FilterInputStream
+import java.io.IOException
+import java.io.InputStream
 
-public class CountingInputStream extends FilterInputStream {
+class CountingInputStream(src: InputStream) : FilterInputStream(src) {
 
-	private int count;
-	
-	public CountingInputStream(InputStream src) {
-		super(src);
-	}
-	
-	public int getCount() {
-		return count;
-	}
-	
-	@Override
-	public int read() throws IOException {
-		int b = super.read();
-		if (b != -1) {
-			count++;
-		}
-		return b;
-	}
-	
-	@Override
-	public int read(byte[] b, int off, int len) throws IOException {
-		int r = super.read(b, off, len);
-		if (r > 0) {
-			count += r;
-		}
-		return r;
-	}
+    var count = 0
+        private set
+
+    @Throws(IOException::class)
+    override fun read(): Int {
+        val b = super.read()
+        if (b != -1) {
+            count++
+        }
+        return b
+    }
+
+    @Throws(IOException::class)
+    override fun read(b: ByteArray, off: Int, len: Int): Int {
+        val r = super.read(b, off, len)
+        if (r > 0) {
+            count += r
+        }
+        return r
+    }
 }

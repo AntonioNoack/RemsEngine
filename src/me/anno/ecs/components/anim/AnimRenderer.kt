@@ -1,11 +1,14 @@
-package me.anno.ecs.components.mesh
+package me.anno.ecs.components.anim
 
 import me.anno.Engine
+import me.anno.animation.LoopingState
 import me.anno.ecs.Entity
+import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.components.anim.Retargeting
 import me.anno.ecs.components.cache.AnimationCache
 import me.anno.ecs.components.cache.SkeletonCache
+import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.gpu.shader.Shader
@@ -15,18 +18,41 @@ import me.anno.io.serialization.SerializedProperty
 import me.anno.mesh.assimp.AnimGameItem
 import org.joml.Matrix4x3f
 import org.lwjgl.opengl.GL21
+import kotlin.math.max
 import kotlin.math.min
 
-class AnimRenderer : MeshComponent() {
+open class AnimRenderer : MeshComponent() {
 
+    @Docs("Maps bone indices to names & hierarchy")
     @Type("Skeleton/Reference")
     @SerializedProperty
     var skeleton: FileReference = InvalidRef
 
     // maybe not the most efficient way, but it should work :)
-    @Type("Map<Animation/Reference,Float>")
+    @Docs("Maps time & bone index onto local transform")
+    @Type("List<AnimationState>")
     @SerializedProperty
-    var animationWeights = HashMap<FileReference, Float>()
+    var animations = ArrayList<AnimationState>()
+
+    open fun onAnimFinished(anim: AnimationState) {
+        val instance = AnimationCache[anim.source]
+        if (instance != null) {
+            val duration = instance.duration
+            anim.progress = anim.repeat[anim.progress.toDouble(), duration].toFloat()
+        }
+    }
+
+    override fun onUpdate(): Int {
+        // update all weights
+        val dt = Engine.deltaTime
+        var anyIsRunning = false
+        for (index in animations.indices) {
+            val anim = animations[index]
+            anim.update(this, dt, true)
+            if (anim.speed != 0f) anyIsRunning = true
+        }
+        return if (anyIsRunning) 1 else 10
+    }
 
     override fun defineVertexTransform(shader: Shader, entity: Entity, mesh: Mesh) {
 
@@ -40,22 +66,17 @@ class AnimRenderer : MeshComponent() {
 
         val location = shader["jointTransforms"]
 
-        // the programmer must be careful.. or does he? idk...
-        animationWeights.values.removeIf { it <= 0f }
-        // animationWeights.removeIf { it.second <= 0f }
-
         // todo remove that; just for debugging
-        if (animationWeights.isEmpty() && skeleton.animations.isNotEmpty()) {
+        if (animations.isEmpty() && skeleton.animations.isNotEmpty()) {
             val sample = skeleton.animations.entries.first().value
-            animationWeights[sample] = 1f
+            animations.add(AnimationState(sample, 0f, 0f, 0f, LoopingState.PLAY_LOOP))
         }
 
-        if (animationWeights.isEmpty() || location <= 0) {
+        if (animations.isEmpty() || location <= 0) {
             shader.v1b("hasAnimation", false)
             return
         }
 
-        val time = Engine.gameTime / 1e9f
         // todo find retargeting from the skeleton to the new skeleton...
         // todo if not found, generate it automatically, and try our best to do it perfectly
         // todo retargeting probably needs to include a max/min-angle and angle multiplier and change of base matrices
@@ -64,23 +85,25 @@ class AnimRenderer : MeshComponent() {
 
         // what if the weight is less than 1? change to T-pose? no, the programmer can define that himself with an animation
         // val weightNormalization = 1f / max(1e-7f, animationWeights.values.sum())
-        val keys = animationWeights.keys.iterator()
-        val values = animationWeights.values.iterator()
-        val key0 = keys.next()
-        val animation0 = AnimationCache[key0]!!
-        val matrices = animation0.getMappedMatricesSafely(entity, time, dst0, retargeting)
-        var sumWeight = values.next()
-        while (keys.hasNext()) {
-            val weightAnim = keys.next()
-            val weight = values.next()
+        val animations = animations
+        lateinit var matrices: Array<Matrix4x3f>
+        var sumWeight = 0f
+        for (index in animations.indices) {
+            val anim = animations[index]
+            val weightAnim = anim.source
+            val weight = anim.weight
             val relativeWeight = weight / (sumWeight + weight)
-            // todo the second animation may have a different time value -> we need to manage that...
+            val time = anim.progress
             val animationI = AnimationCache[weightAnim] ?: continue
-            val secondMatrices = animationI.getMappedMatricesSafely(entity, time, dst1, retargeting)
-            for (j in matrices.indices) {
-                matrices[j].lerp(secondMatrices[j], relativeWeight)
+            if (index == 0) {
+                matrices = animationI.getMappedMatricesSafely(entity, time, dst0, retargeting)
+            } else if (relativeWeight > 0f) {
+                val matrix = animationI.getMappedMatricesSafely(entity, time, dst1, retargeting)
+                for (j in matrices.indices) {
+                    matrices[j].lerp(matrix[j], relativeWeight)
+                }
             }
-            sumWeight += weight
+            sumWeight += max(0f, weight)
         }
 
         shader.v1b("hasAnimation", true)
@@ -113,7 +136,7 @@ class AnimRenderer : MeshComponent() {
         super.copy(clone)
         clone as AnimRenderer
         clone.skeleton = skeleton
-        clone.animationWeights = animationWeights
+        clone.animations = animations
     }
 
     override fun onDrawGUI() {

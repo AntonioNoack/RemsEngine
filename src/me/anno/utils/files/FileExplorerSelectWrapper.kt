@@ -2,7 +2,9 @@ package me.anno.utils.files
 
 import org.apache.logging.log4j.LogManager
 import java.io.File
+import java.lang.reflect.Method
 import javax.swing.JFileChooser
+import kotlin.concurrent.thread
 
 object FileExplorerSelectWrapper {
 
@@ -11,10 +13,10 @@ object FileExplorerSelectWrapper {
         return null
     }
 
-    private val method by lazy {
-        try {
+    private fun getMethod(name: String): Method? {
+        return try {
             val clazz = javaClass.classLoader.loadClass("me.anno.utils.FileExplorerSelect")
-            clazz?.getMethod("selectFileOrFolder", File::class.java, Boolean::class.java, Function1::class.java)
+            clazz?.getMethod(name, File::class.java, Function1::class.java)
         } catch (e: NoClassDefFoundError) {
             notAvailable(e)
         } catch (e: ClassNotFoundException) {
@@ -28,6 +30,10 @@ object FileExplorerSelectWrapper {
         }
     }
 
+    // private val fileOrFolder by lazy { getMethod("selectFileOrFolder") }
+    private val file by lazy { getMethod("selectFile") }
+    private val folder by lazy { getMethod("selectFolder") }
+
     fun selectFile(lastFile: File?, callback: (File?) -> Unit) {
         selectFileOrFolder(lastFile, false, callback)
     }
@@ -37,22 +43,24 @@ object FileExplorerSelectWrapper {
     }
 
     fun selectFileOrFolder(lastFile: File?, isDirectory: Boolean, callback: (File?) -> Unit) {
-        val method = method
-        if (method != null) {
-            method.invoke(null, lastFile, true, callback)
-        } else {
-            // use JFileChooser
-            // or via OpenFileDialog...
-            val jfc = if (lastFile != null) JFileChooser(lastFile) else JFileChooser()
-            jfc.fileSelectionMode = if (isDirectory) JFileChooser.DIRECTORIES_ONLY else JFileChooser.FILES_ONLY
-            val retCode = jfc.showOpenDialog(null)
-            if (retCode == JFileChooser.APPROVE_OPTION) {
-                val sf = jfc.selectedFile
-                if (sf.isDirectory == isDirectory) {
-                    callback(sf)
-                } else callback(null) // mmh
-            } else callback(null)
-            LOGGER.info("JavaFX is not available")
+        thread(name = "Select File/Folder") {
+            val method = if (isDirectory) folder else file
+            if (method != null) {
+                method.invoke(null, lastFile, callback)
+            } else {
+                // use JFileChooser
+                // or via OpenFileDialog...
+                val jfc = if (lastFile != null) JFileChooser(lastFile) else JFileChooser()
+                jfc.fileSelectionMode = if (isDirectory) JFileChooser.DIRECTORIES_ONLY else JFileChooser.FILES_ONLY
+                val retCode = jfc.showOpenDialog(null)
+                if (retCode == JFileChooser.APPROVE_OPTION) {
+                    val sf = jfc.selectedFile
+                    if (sf.isDirectory == isDirectory) {
+                        callback(sf)
+                    } else callback(null) // mmh
+                } else callback(null)
+                LOGGER.info("JavaFX is not available")
+            }
         }
     }
 

@@ -1,5 +1,6 @@
 package me.anno.ui.base.groups
 
+import me.anno.ecs.Component
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.io.ISaveable
@@ -19,7 +20,7 @@ abstract class PanelGroup(style: Style) : Panel(style) {
 
     override fun listChildTypes(): String = "p"
     override fun getChildListByType(type: Char) = children
-    override fun getOptionsByType(type: Char) = getPanelOptions()
+    override fun getOptionsByType(type: Char) = getPanelOptions(this)
     override fun addChildByType(index: Int, type: Char, child: PrefabSaveable) {
         val children = children
         if (child is Panel && children is MutableList) children.add(index, child)
@@ -107,11 +108,7 @@ abstract class PanelGroup(style: Style) : Panel(style) {
     }
 
     companion object {
-        fun getPanelOptions() = ISaveable.objectTypeRegistry
-            .filterValues { it.sampleInstance is Panel }
-            .map { (key, value) ->
-                Option(key.camelCaseToTitle(), "") { value.generator() as Panel }
-            }
+        fun getPanelOptions(self: Panel?) = getOptionsByClass(self, Panel::class)
     }
 
 }

@@ -10,7 +10,6 @@ import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.gpu.GFX
 import me.anno.gpu.shader.ShaderLib
 import me.anno.input.ActionManager
 import me.anno.io.files.FileReference
@@ -29,8 +28,6 @@ import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
 
-// todo file explorer sometimes switches from files to folders ... why?
-
 // todo bug: tooltip texts of properties are not being displayed
 
 // todo runtime-components must have warning
@@ -38,11 +35,6 @@ import org.apache.logging.log4j.LogManager
 
 
 // todo color input sometimes janky... why?
-
-// todo panel: console output of multiple lines, with filters
-
-// todo also the main object randomly just shrinks down (pool & truck)
-
 
 // todo to reduce the size of the engine, physics engines could be turned into mods
 // todo libraries like jpeg2000, pdf and such should become mods as well
@@ -78,13 +70,6 @@ import org.apache.logging.log4j.LogManager
 //  - Sims like game, just low-poly style
 //          simlish should be easy ^^
 
-// stuff, which originated from Rem's Studio:
-// todo split the rendering in two parts:
-// todo - without blending (no alpha, video or polygons)
-// todo - with blending
-// todo enqueue all objects for rendering
-// todo sort blended objects by depth, if rendering with depth
-
 class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
     lateinit var currentProject: GameEngineProject
@@ -114,6 +99,8 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         LogManager.disableLogger("ScratchFileBuffer")
         LogManager.disableLogger("FontFileFinder")
         LogManager.disableLogger("PDFObjectStreamParser")
+        LogManager.disableLogger("TriangleBasedShadingContext")
+        LogManager.disableLogger("Type4ShadingContext")
         startClock.stop("Disable some loggers")
 
     }
@@ -215,7 +202,6 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         ECSShaderLib.init()
 
         // todo different editing modes like Blender?, e.g. animating stuff, scripting, ...
-        // todo and always be capable to change stuff
 
         ECSSceneTabs.window = windowStack.firstElement()
         EngineActions.register()

@@ -6,9 +6,9 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import org.joml.Vector4f
 
-fun main(){
+fun main() {
 
-    val logger = LogManager.getLogger()
+    val logger = LogManager.getLogger("ZBufferTest")
 
     val m = Matrix4f().perspective2(1f, 1f, 0.5f, 10f, 0f, 0f)
 

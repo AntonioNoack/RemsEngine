@@ -606,11 +606,10 @@ object Thumbs {
         // statically loading is easier, but we may load things twice ->
         // only load them once, use our cache
         val data = waitUntilDefined(true) {
-            PrefabCache.loadPrefab(srcFile)
+            PrefabCache.getPrefab(srcFile)
             // loadAssimpStatic(srcFile, null)
-        }.getSampleInstance() as Entity
-        // generateFrame(dstFile, data, size, previewRenderer, true, callback)
-        generateEntityFrame(srcFile, dstFile, size, data, callback)
+        }.getSampleInstance()
+        generateSomething(data, srcFile, dstFile, size, callback)
     }
 
     fun generateVOXMeshFrame(
@@ -620,7 +619,7 @@ object Thumbs {
         callback: (Texture2D) -> Unit
     ) {
         val data = waitUntilDefined(true) {
-            PrefabCache.loadPrefab(srcFile)
+            PrefabCache.getPrefab(srcFile)
             // loadVOX(srcFile, null)
         }.getSampleInstance() as Entity
         // generateFrame(dstFile, data, size, previewRenderer, true, callback)
@@ -1076,7 +1075,7 @@ object Thumbs {
             }
             "png", "jpg", "bmp", "ico", "psd" -> generateImage(srcFile, dstFile, size, callback)
             "blend" -> generateSomething(
-                PrefabCache.getPrefabPair(srcFile, null)?.instance,
+                PrefabCache.getPrefabInstance(srcFile, null),
                 srcFile,
                 dstFile,
                 size,
@@ -1135,8 +1134,7 @@ object Thumbs {
                     "json" -> {
                         try {
                             // try to read the file as an asset
-                            val data = PrefabCache.getPrefabPair(srcFile, HashSet())
-                            val something = data?.prefab ?: data?.instance
+                            val something = PrefabCache.getPrefabInstance(srcFile, HashSet())
                             generateSomething(something, srcFile, dstFile, size, callback)
                         } catch (e: InvalidClassException){
                             LOGGER.info("${e.message}; by $srcFile")

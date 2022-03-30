@@ -4,9 +4,7 @@ import me.anno.Build
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
-import me.anno.ecs.components.anim.BoneByBoneAnimation
-import me.anno.ecs.components.anim.ImportedAnimation
-import me.anno.ecs.components.anim.Skeleton
+import me.anno.ecs.components.anim.*
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.camera.effects.BloomEffect
 import me.anno.ecs.components.camera.effects.SSAOEffect
@@ -150,6 +148,7 @@ object ECSRegistry {
         registerCustomClass(Material())
         registerCustomClass(MeshComponent())
         registerCustomClass(AnimRenderer())
+        registerCustomClass(AnimationState())
         registerCustomClass(SplineMesh())
         registerCustomClass(SplineControlPoint())
         registerCustomClass(PathProfile())
