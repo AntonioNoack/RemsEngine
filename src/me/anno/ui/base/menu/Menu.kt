@@ -62,8 +62,8 @@ object Menu {
         getColor: (String) -> Int,
         callback: (String) -> Unit
     ) {
-        GFX.updateMousePosition()
-        windowStack.updateMousePosition()
+        // GFX.updateMousePosition()
+        // windowStack.updateMousePosition()
         askName(
             windowStack,
             windowStack.mouseXi - paddingX,
@@ -175,8 +175,8 @@ object Menu {
     }
 
     fun openMenuByPanels(windowStack: WindowStack, title: NameDesc, panels: List<Panel>): Window? {
-        GFX.updateMousePosition()
-        windowStack.updateMousePosition()
+        // GFX.updateMousePosition()
+        // windowStack.updateMousePosition(window)
         return openMenuByPanels(
             windowStack,
             windowStack.mouseXi - paddingX,
@@ -280,15 +280,15 @@ object Menu {
             list += panel
         }
 
-        val maxWidth = max(300, GFX.width)
-        val maxHeight = max(300, GFX.height)
+        val maxWidth = max(300, windowStack.width)
+        val maxHeight = max(300, windowStack.height)
 
         // could we do the calculation on another thread?
         container.calculateSize(maxWidth, maxHeight)
         container.setSize(min(container.minW, maxWidth), min(container.minH, maxHeight))
 
-        window.x = Maths.clamp(x, 0, max(GFX.width - container.w, 0))
-        window.y = Maths.clamp(y, 0, max(GFX.height - container.h, 0))
+        window.x = Maths.clamp(x, 0, max(windowStack.width - container.w, 0))
+        window.y = Maths.clamp(y, 0, max(windowStack.height - container.h, 0))
 
         container.forAllPanels { it.window = window }
 
@@ -311,8 +311,8 @@ object Menu {
         openMenu(windowStack, NameDesc(), options)
 
     fun openMenu(windowStack: WindowStack, title: NameDesc, options: List<MenuOption>): Window? {
-        GFX.updateMousePosition() // just in case; this method should only be called from the GFX thread
-        windowStack.updateMousePosition()
+        // GFX.updateMousePosition() // just in case; this method should only be called from the GFX thread
+        // windowStack.updateMousePosition()
         return openMenu(windowStack, windowStack.mouseX - paddingX, windowStack.mouseY - paddingY, title, options)
     }
 

@@ -77,7 +77,8 @@ open class FloatInput(
 
     override fun changeValue(dx: Float, dy: Float) {
         val scale = 20f * shiftSlowdown
-        val size = scale / max(GFX.width, GFX.height)
+        val ws = windowStack
+        val size = scale / max(ws.width, ws.height)
         val dx0 = dx * size
         val dy0 = dy * size
         val delta = dx0 - dy0

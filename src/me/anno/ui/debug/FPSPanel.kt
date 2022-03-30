@@ -2,6 +2,7 @@ package me.anno.ui.debug
 
 import me.anno.Engine
 import me.anno.gpu.GFX
+import me.anno.gpu.WindowX
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -14,10 +15,10 @@ object FPSPanel {
         FrameTimes.putValue(nanos * 1e-9f, color)
     }
 
-    fun showFPS() {
+    fun showFPS(window: WindowX) {
 
-        val x0 = max(0, GFX.width - FrameTimes.width)
-        val y0 = max(0, GFX.height - FrameTimes.height)
+        val x0 = max(0, window.width - FrameTimes.width)
+        val y0 = max(0, window.height - FrameTimes.height)
 
         FrameTimes.setPosSize(x0, y0, FrameTimes.width, FrameTimes.height)
         FrameTimes.draw()

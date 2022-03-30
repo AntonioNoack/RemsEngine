@@ -1,7 +1,6 @@
 package me.anno.maths.noise
 
 import me.anno.image.ImageWriter
-import org.kdotjpg.OpenSimplexNoise
 import kotlin.random.Random
 
 @Suppress("MemberVisibilityCanBePrivate")

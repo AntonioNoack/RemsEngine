@@ -44,7 +44,6 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.studio.Inspectable
 import me.anno.studio.StudioBase
-import me.anno.studio.StudioBase.Companion.defaultWindowStack
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.groups.TitledListY
@@ -55,7 +54,6 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.code.CodeEditor
 import me.anno.ui.editor.files.FileExplorerOption
-import me.anno.ui.editor.stacked.Option
 import me.anno.ui.input.*
 import me.anno.ui.style.Style
 import me.anno.utils.Color.rgba
@@ -1073,7 +1071,7 @@ object ComponentUI {
         addOnClickListener { _, _, button, _ ->
             if (button.isRight) {
                 // todo option to edit the parent... how will that work?
-                Menu.openMenu(defaultWindowStack!!, listOf(MenuOption(NameDesc("Reset")) {
+                Menu.openMenu(windowStack, listOf(MenuOption(NameDesc("Reset")) {
                     callback(property.reset(this))
                 }))
                 true

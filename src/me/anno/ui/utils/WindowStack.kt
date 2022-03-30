@@ -1,6 +1,8 @@
 package me.anno.ui.utils
 
 import me.anno.config.DefaultConfig
+import me.anno.gpu.GFX
+import me.anno.gpu.WindowX
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.input.Input
 import me.anno.studio.StudioBase
@@ -43,6 +45,9 @@ class WindowStack : Stack<Window>() {
 
     var mouseDownX = 0f
     var mouseDownY = 0f
+
+    val width get() = w1
+    val height get() = h1
 
     fun requestFocus(panel: Panel?, exclusive: Boolean) {
         if (StudioBase.dragged != null) return
@@ -98,12 +103,12 @@ class WindowStack : Stack<Window>() {
     private var w1 = 0
     private var h1 = 0
 
-    fun updateTransform(w: Int, h: Int) {
+    fun updateTransform(window: WindowX, w: Int, h: Int) {
 
         viewTransform.identity()
 
-        mouseX = Input.mouseX
-        mouseY = Input.mouseY
+        mouseX = window.mouseX
+        mouseY = window.mouseY
         mouseDownX = Input.mouseDownX
         mouseDownY = Input.mouseDownY
 
@@ -118,7 +123,7 @@ class WindowStack : Stack<Window>() {
 
     }
 
-    fun updateTransform(transform: Matrix4f, x0: Int, y0: Int, w0: Int, h0: Int, x1: Int, y1: Int, w1: Int, h1: Int) {
+    fun updateTransform(window: WindowX, transform: Matrix4f, x0: Int, y0: Int, w0: Int, h0: Int, x1: Int, y1: Int, w1: Int, h1: Int) {
 
         viewTransform.set(transform)
 
@@ -131,17 +136,17 @@ class WindowStack : Stack<Window>() {
         this.w1 = w1
         this.h1 = h1
 
-        updateMousePosition()
+        updateMousePosition(window)
 
     }
 
-    fun updateMousePosition() {
+    fun updateMousePosition(window: WindowX) {
 
         val tmp = JomlPools.vec3f.create()
 
         viewTransform.transformProject(
-            (Input.mouseX - x0) / w0 * 2f - 1f,
-            (Input.mouseY - y0) / h0 * 2f - 1f,
+            (window.mouseX - x0) / w0 * 2f - 1f,
+            (window.mouseY - y0) / h0 * 2f - 1f,
             0f, tmp
         )
         mouseX = x1 + (tmp.x * .5f + .5f) * w1
@@ -184,16 +189,17 @@ class WindowStack : Stack<Window>() {
          * */
         fun printLayout() {
             LOGGER.info("Layout:")
-            for (window1 in StudioBase.instance!!.windowStack) {
+            for (window1 in GFX.focussedWindow?.windowStack ?: return) {
                 window1.panel.printLayout(1)
             }
         }
 
         fun createReloadWindow(panel: Panel, fullscreen: Boolean, reload: () -> Unit): Window {
+            val window = GFX.someWindow
             return object : Window(
-                panel, fullscreen, StudioBase.instance!!.windowStack,
-                if (fullscreen) 0 else Input.mouseX.toInt(),
-                if (fullscreen) 0 else Input.mouseY.toInt()
+                panel, fullscreen, window.windowStack,
+                if (fullscreen) 0 else window.mouseX.toInt(),
+                if (fullscreen) 0 else window.mouseY.toInt()
             ) {
                 override fun destroy() {
                     reload()

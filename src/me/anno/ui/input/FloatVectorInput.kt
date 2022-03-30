@@ -370,7 +370,8 @@ open class FloatVectorInput(
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         super.onMouseMoved(x, y, dx, dy)
         if (mouseIsDown) {
-            val size = 20f * shiftSlowdown / max(GFX.width, GFX.height)
+            val ws = windowStack
+            val size = 20f * shiftSlowdown / max(ws.width, ws.height)
             val dx0 = dx * size
             val dy0 = dy * size
             val delta = dx0 - dy0

@@ -130,7 +130,7 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
 
     fun rotateCamera(dx: Float, dy: Float) {
         // right mouse key down -> move the camera
-        val speed = -500f / Maths.max(GFX.height, h)
+        val speed = -500f / Maths.max(windowStack.height, h)
         rotateCamera(dy * speed, dx * speed, 0f)
     }
 
@@ -308,7 +308,7 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
                 } // handled like a mouse
                 2 -> {
 
-                    val speed = -120f * StudioBase.shiftSlowdown / GFX.height
+                    val speed = -120f * StudioBase.shiftSlowdown / windowStack.height
                     // this gesture started on this view -> this is our gesture
                     // rotating is the hardest on a touchpad, because we need to click right
                     // -> rotation
@@ -326,7 +326,7 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
                 else -> {
 
                     // move the camera around
-                    val speed = -3f * view.radius / GFX.height
+                    val speed = -3f * view.radius / windowStack.height
 
                     val dx = Touch.avgDeltaX() * speed
                     val dy = Touch.avgDeltaY() * speed

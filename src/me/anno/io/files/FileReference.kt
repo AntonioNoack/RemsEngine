@@ -5,12 +5,12 @@ import me.anno.cache.CacheSection
 import me.anno.cache.data.ICacheData
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.ecs.prefab.PrefabCache
+import me.anno.gpu.GFX
 import me.anno.io.unity.UnityReader
 import me.anno.io.windows.WindowsShortcut
 import me.anno.io.zip.ZipCache
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.studio.StudioBase
-import me.anno.studio.StudioBase.Companion.defaultWindowStack
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.openInExplorer
@@ -94,13 +94,15 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             val parent = getReferenceOrTimeout(absolutePath).getParent()
             if (parent != null && parent != InvalidRef) {
                 // todo we should invalidate ALL windowStacks
-                for (window in defaultWindowStack ?: emptyList()) {
-                    window.panel.forAll {
-                        if (it is FileExplorer && it.folder
-                                .absolutePath
-                                .startsWith(parent.absolutePath)
-                        ) {
-                            it.invalidate()
+                for (window0 in GFX.windows) {
+                    for (window in window0.windowStack) {
+                        window.panel.forAll {
+                            if (it is FileExplorer && it.folder
+                                    .absolutePath
+                                    .startsWith(parent.absolutePath)
+                            ) {
+                                it.invalidate()
+                            }
                         }
                     }
                 }

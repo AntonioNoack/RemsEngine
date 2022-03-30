@@ -133,8 +133,9 @@ object FramebufferToMemory {
 
         GFX.check()
 
-        val wi = GFX.width
-        val hi = GFX.height
+        val window = GFX.activeWindow!!
+        val wi = window.width
+        val hi = window.height
 
         val buffer = Texture2D.bufferPool[wi * hi * 4, false]
 

@@ -1,10 +1,10 @@
 package me.anno.studio.history
 
+import me.anno.gpu.GFX
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
-import me.anno.studio.StudioBase.Companion.defaultWindowStack
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import org.apache.logging.log4j.LogManager
@@ -69,7 +69,7 @@ abstract class History<V> : Saveable() {
 
     fun display() {
         openMenu(
-            defaultWindowStack!!,
+            GFX.someWindow.windowStack,
             NameDesc("Inspect History", "", "ui.inspectHistory"),
             states.mapIndexed { index, change ->
                 val title0 = getTitle(change)

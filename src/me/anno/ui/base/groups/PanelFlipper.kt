@@ -130,8 +130,9 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         if ((Input.isLeftDown && useLeftMouseButton) || (Input.isRightDown && useRightMouseButton)) {
             val type = transitionType
-            val dt = (if (type.swipeXAxis) dx / min(w, GFX.width) else 0f) +
-                    (if (type.swipeYAxis) dy / min(h, GFX.height) else 0f)
+            val ws = windowStack
+            val dt = (if (type.swipeXAxis) dx / min(w, ws.width) else 0f) +
+                    (if (type.swipeYAxis) dy / min(h, ws.height) else 0f)
             swipe(dt)
             if (!type.swipeXAxis || !type.swipeYAxis) {
                 super.onMouseMoved(x, y, if (type.swipeXAxis) 0f else dx, if (type.swipeYAxis) 0f else dy)

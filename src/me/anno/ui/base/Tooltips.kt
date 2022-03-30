@@ -3,9 +3,8 @@ package me.anno.ui.base
 import me.anno.Engine
 import me.anno.Engine.deltaTime
 import me.anno.config.DefaultConfig
-import me.anno.gpu.GFX
 import me.anno.gpu.GFX.hoveredPanel
-import me.anno.input.Input
+import me.anno.gpu.WindowX
 import me.anno.maths.Maths.length
 import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
@@ -37,15 +36,15 @@ object Tooltips {
 
     var lastPanel: Panel? = null
 
-    fun draw(sourcePanel: Panel, panel: Panel) {
-        val w = GFX.width
-        val h = GFX.height
+    fun draw(window: WindowX, sourcePanel: Panel, panel: Panel) {
+        val w = window.width
+        val h = window.height
         val fontSize = textPanel.font.sizeInt
         val availableW = min(w, fontSize * 20)
         panel.calculateSize(availableW, h)
-        val window = panel.window
-        val mouseX = window?.mouseX ?: Input.mouseX
-        val mouseY = window?.mouseY ?: Input.mouseY
+        val window1 = panel.window
+        val mouseX = window1?.mouseX ?: window.mouseX
+        val mouseY = window1?.mouseY ?: window.mouseY
         // container.applyConstraints()
         val x = min(mouseX.toInt() + fontSize, w - panel.minW)
         val y = if (sourcePanel.y < fontSize) {
@@ -60,12 +59,12 @@ object Tooltips {
         panel.draw(panel.x, panel.y, panel.x + panel.w, panel.y + panel.h)
     }
 
-    fun draw(): Boolean {
+    fun draw(window: WindowX): Boolean {
 
         if (tooltipReactionTime < 0) return false
 
-        val mouseX = Input.mouseX
-        val mouseY = Input.mouseY
+        val mouseX = window.mouseX
+        val mouseY = window.mouseY
 
         val dx = oldX - mouseX
         val dy = oldY - mouseY
@@ -90,13 +89,13 @@ object Tooltips {
 
                 if (panel != null) {
                     panel.window = hovered.window
-                    draw(hovered, panel)
+                    draw(window, hovered, panel)
                     return true
                 } else {
                     val tooltipText = hovered.getTooltipText(mouseX, mouseY)
                     if (tooltipText != null && !tooltipText.isBlank2()) {
                         textPanel.text = tooltipText
-                        draw(hovered, container)
+                        draw(window, hovered, container)
                         return true
                     }
                 }

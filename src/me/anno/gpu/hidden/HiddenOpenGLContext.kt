@@ -2,6 +2,7 @@ package me.anno.gpu.hidden
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXBase0
+import me.anno.gpu.WindowX
 import me.anno.utils.Clock
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.Version
@@ -16,9 +17,9 @@ import org.lwjgl.system.MemoryUtil
  * */
 object HiddenOpenGLContext {
 
-    private var window = 0L
-    private val width get() = GFX.width
-    private val height get() = GFX.height
+    private val window = WindowX(HiddenOpenGLContext::class.simpleName.toString())
+    private val width get() = window.width
+    private val height get() = window.height
 
     private var errorCallback: GLFWErrorCallback? = null
 
@@ -27,8 +28,8 @@ object HiddenOpenGLContext {
     var capabilities: GLCapabilities? = null
 
     fun setSize(w: Int, h: Int = w) {
-        GFX.width = w
-        GFX.height = h
+        window.width = w
+        window.height = h
     }
 
     fun createOpenGL(w: Int, h: Int = w) {
@@ -57,12 +58,14 @@ object HiddenOpenGLContext {
         // glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_OSMESA_CONTEXT_API)
 
         // removes scaling options -> how could we replace them?
-        window = glfwCreateWindow(width, height, GFXBase0.projectName, MemoryUtil.NULL, MemoryUtil.NULL)
-        if (window == MemoryUtil.NULL) throw RuntimeException("Failed to create the GLFW window")
+        window.pointer = glfwCreateWindow(width, height, GFXBase0.projectName, MemoryUtil.NULL, MemoryUtil.NULL)
+        if (window.pointer == MemoryUtil.NULL) throw RuntimeException("Failed to create the GLFW window")
+        GFX.windows.add(window)
+        GFX.activeWindow = window
 
         tick.stop("Create window")
 
-        glfwMakeContextCurrent(window)
+        glfwMakeContextCurrent(window.pointer)
         glfwSwapInterval(1)
         capabilities = GL.createCapabilities()
 

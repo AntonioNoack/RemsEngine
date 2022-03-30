@@ -1,9 +1,6 @@
 package me.anno.maths.noise
 
 import me.anno.image.ImageWriter
-import me.anno.utils.types.Floats.f1
-import me.anno.utils.types.Floats.f3
-import org.kdotjpg.OpenSimplexNoise
 import kotlin.math.floor
 import kotlin.random.Random
 
@@ -188,13 +185,13 @@ class FullNoise(val seed: Long) {
         @JvmStatic
         fun main(args: Array<String>) {
             noiseQualityTest()
-            test1D() // 17 ns vs 31 ns (1 ns less for OpenSimplexNoise because of less prediction errors, I'd guess)
-            test2D() // 26 ns vs 32 ns
-            test3D() // 23 ns vs 92 ns
-            test4D() // 48 ns vs 3470 ns (no joke, OpenSimplexNoise in 4d is awful)
+            // test1D() // 17 ns vs 31 ns (1 ns less for OpenSimplexNoise because of less prediction errors, I'd guess)
+            // test2D() // 26 ns vs 32 ns
+            // test3D() // 23 ns vs 92 ns
+            // test4D() // 48 ns vs 3470 ns (no joke, OpenSimplexNoise in 4d is awful)
         }
 
-        fun noiseQualityTest() {
+        private fun noiseQualityTest() {
             val noise = FullNoise(1234L)
             ImageWriter.writeImageFloat(512, 512, "n1d.png", 512, false) { x, y, _ ->
                 noise.getValue(x + y * 512)
@@ -208,192 +205,6 @@ class FullNoise(val seed: Long) {
             ImageWriter.writeImageFloat(512, 512, "n4d.png", 512, false) { x, y, _ ->
                 noise.getValue(x + y, x - y, x, y)
             }
-        }
-
-        fun test1D() {
-            val rounds = 64 * 64 * 200
-            val warmup = 64 * 64 * 4
-            val seedsX = FloatArray(64) { it * 0.1f }
-            var sum = 0f
-            val noise0 = FullNoise(1234L)
-            for (j in 0 until warmup) {
-                for (i in 0 until 64) {
-                    val sx = seedsX[i]
-                    sum += noise0.getValue(sx)
-                }
-            }
-            val t0 = System.nanoTime()
-            for (j in 0 until rounds) {
-                for (i in 0 until 64) {
-                    val sx = seedsX[i]
-                    sum += noise0.getValue(sx)
-                }
-            }
-            val t1 = System.nanoTime()
-            println("fn1 ${((t1 - t0) * 1e-9).f3()}, ${((t1 - t0) / (rounds * 64f)).f1()}ns/run")
-            val noise1 = OpenSimplexNoise(1234L)
-            for (j in 0 until warmup) {
-                for (i in 0 until 64) {
-                    val sx = seedsX[i]
-                    sum += noise1.eval(sx)
-                }
-            }
-            val t2 = System.nanoTime()
-            for (j in 0 until rounds) {
-                for (i in 0 until 64) {
-                    val sx = seedsX[i]
-                    sum += noise1.eval(sx)
-                }
-            }
-            val t3 = System.nanoTime()
-            println("osn ${((t3 - t2) * 1e-9).f3()}, ${((t3 - t2) / (rounds * 64f)).f1()}ns/run")
-        }
-
-        fun test2D() {
-            val rounds = 64 * 200
-            val warmup = 64 * 4
-            val seedsX = FloatArray(64) { it * 0.1f }
-            val seedsY = FloatArray(64) { it * 0.2f }
-            var sum = 0f
-            val noise0 = FullNoise(1234L)
-            for (j in 0 until warmup) {
-                for (i in 0 until 64 * 64) {
-                    val sx = seedsX[i.and(63)]
-                    val sy = seedsY[i.shr(6).and(63)]
-                    sum += noise0.getValue(sx, sy)
-                }
-            }
-            val t0 = System.nanoTime()
-            for (j in 0 until rounds) {
-                for (i in 0 until 64 * 64) {
-                    val sx = seedsX[i.and(63)]
-                    val sy = seedsY[i.shr(6).and(63)]
-                    sum += noise0.getValue(sx, sy)
-                }
-            }
-            val t1 = System.nanoTime()
-            println("fn2 ${((t1 - t0) * 1e-9).f3()}, ${((t1 - t0) / (rounds * 64 * 64f)).f1()}ns/run")
-            val noise1 = OpenSimplexNoise(1234L)
-            for (j in 0 until warmup) {
-                for (i in 0 until 64 * 64) {
-                    val sx = seedsX[i.and(63)]
-                    val sy = seedsY[i.shr(6).and(63)]
-                    sum += noise1.eval(sx, sy)
-                }
-            }
-            val t2 = System.nanoTime()
-            for (j in 0 until rounds) {
-                for (i in 0 until 64 * 64) {
-                    val sx = seedsX[i.and(63)]
-                    val sy = seedsY[i.shr(6).and(63)]
-                    sum += noise1.eval(sx, sy)
-                }
-            }
-            val t3 = System.nanoTime()
-            println("osn ${((t3 - t2) * 1e-9).f3()}, ${((t3 - t2) / (rounds * 64 * 64f)).f1()}ns/run")
-        }
-
-        fun test3D() {
-            val rounds = 200
-            val warmup = 4
-            val seedsX = FloatArray(64) { it * 0.1f }
-            val seedsY = FloatArray(64) { it * 0.2f }
-            val seedsZ = FloatArray(64) { it * 0.3f }
-            var sum = 0f
-            val noise0 = FullNoise(1234L)
-            for (j in 0 until warmup) {
-                for (i in 0 until 64 * 64 * 64) {
-                    val sx = seedsX[i.and(63)]
-                    val sy = seedsY[i.shr(6).and(63)]
-                    val sz = seedsZ[i.shr(12).and(63)]
-                    sum += noise0.getValue(sx, sy, sz)
-                }
-            }
-            val t0 = System.nanoTime()
-            for (j in 0 until rounds) {
-                for (i in 0 until 64 * 64 * 64) {
-                    val sx = seedsX[i.and(63)]
-                    val sy = seedsY[i.shr(6).and(63)]
-                    val sz = seedsZ[i.shr(12).and(63)]
-                    sum += noise0.getValue(sx, sy, sz)
-                }
-            }
-            val t1 = System.nanoTime()
-            println("fn3 ${((t1 - t0) * 1e-9).f3()}, ${((t1 - t0) / (rounds * 64 * 64 * 64f)).f1()}ns/run")
-            val noise1 = OpenSimplexNoise(1234L)
-            for (j in 0 until warmup) {
-                for (i in 0 until 64 * 64 * 64) {
-                    val sx = seedsX[i.and(63)]
-                    val sy = seedsY[i.shr(6).and(63)]
-                    val sz = seedsZ[i.shr(12).and(63)]
-                    sum += noise1.eval(sx, sy, sz)
-                }
-            }
-            val t2 = System.nanoTime()
-            for (j in 0 until rounds) {
-                for (i in 0 until 64 * 64 * 64) {
-                    val sx = seedsX[i.and(63)]
-                    val sy = seedsY[i.shr(6).and(63)]
-                    val sz = seedsZ[i.shr(12).and(63)]
-                    sum += noise1.eval(sx, sy, sz)
-                }
-            }
-            val t3 = System.nanoTime()
-            println("osn ${((t3 - t2) * 1e-9).f3()}, ${((t3 - t2) / (rounds * 64 * 64 * 64f)).f1()}ns/run")
-        }
-
-        fun test4D() {
-            val rounds = 4
-            val warmup = 1
-            val seedsX = FloatArray(64) { it * 0.1f }
-            val seedsY = FloatArray(64) { it * 0.2f }
-            val seedsZ = FloatArray(64) { it * 0.3f }
-            val seedsW = FloatArray(64) { it * 0.4f }
-            var sum = 0f
-            val noise0 = FullNoise(1234L)
-            for (j in 0 until warmup) {
-                for (i in 0 until 64 * 64 * 64 * 64) {
-                    val sx = seedsX[i.and(63)]
-                    val sy = seedsY[i.shr(6).and(63)]
-                    val sz = seedsZ[i.shr(12).and(63)]
-                    val sw = seedsW[i.shr(18).and(63)]
-                    sum += noise0.getValue(sx, sy, sz, sw)
-                }
-            }
-            val t0 = System.nanoTime()
-            for (j in 0 until rounds) {
-                for (i in 0 until 64 * 64 * 64 * 64) {
-                    val sx = seedsX[i.and(63)]
-                    val sy = seedsY[i.shr(6).and(63)]
-                    val sz = seedsZ[i.shr(12).and(63)]
-                    val sw = seedsW[i.shr(18).and(63)]
-                    sum += noise0.getValue(sx, sy, sz, sw)
-                }
-            }
-            val t1 = System.nanoTime()
-            println("fn4 ${((t1 - t0) * 1e-9).f3()}, ${((t1 - t0) / (rounds * 64 * 64 * 64 * 64f)).f1()}ns/run")
-            val noise1 = OpenSimplexNoise(1234L)
-            for (j in 0 until warmup) {
-                for (i in 0 until 64 * 64 * 64 * 64) {
-                    val sx = seedsX[i.and(63)].toDouble()
-                    val sy = seedsY[i.shr(6).and(63)].toDouble()
-                    val sz = seedsZ[i.shr(12).and(63)].toDouble()
-                    val sw = seedsW[i.shr(18).and(63)].toDouble()
-                    sum += noise1.eval(sx, sy, sz, sw).toFloat()
-                }
-            }
-            val t2 = System.nanoTime()
-            for (j in 0 until rounds) {
-                for (i in 0 until 64 * 64 * 64 * 64) {
-                    val sx = seedsX[i.and(63)].toDouble()
-                    val sy = seedsY[i.shr(6).and(63)].toDouble()
-                    val sz = seedsZ[i.shr(12).and(63)].toDouble()
-                    val sw = seedsW[i.shr(18).and(63)].toDouble()
-                    sum += noise1.eval(sx, sy, sz, sw).toFloat()
-                }
-            }
-            val t3 = System.nanoTime()
-            println("osn ${((t3 - t2) * 1e-9).f3()}, ${((t3 - t2) / (rounds * 64 * 64 * 64 * 64f)).f1()}ns/run")
         }
 
     }

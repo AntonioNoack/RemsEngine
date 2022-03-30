@@ -11,9 +11,7 @@ import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
 import me.anno.image.ImageScale.scaleMaxPreview
-import me.anno.input.Input
 import me.anno.language.translation.NameDesc
-import me.anno.studio.StudioBase.Companion.defaultWindowStack
 import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.groups.PanelList
@@ -48,7 +46,8 @@ object DebugGPUStorage {
 
         override fun calculateSize(w: Int, h: Int) {
             super.calculateSize(w, h)
-            val (sw, sh) = scaleMaxPreview(getTexW(), getTexH(), min(w, GFX.width), min(h, GFX.height) - fontSize)
+            val ws = windowStack
+            val (sw, sh) = scaleMaxPreview(getTexW(), getTexH(), min(w, ws.width), min(h, ws.height) - fontSize)
             minW = sw
             minH = sh + fontSize
         }
@@ -95,7 +94,8 @@ object DebugGPUStorage {
     }
 
     fun openMenu() {
-        Menu.openMenu(defaultWindowStack!!, listOf(
+        val window = GFX.someWindow
+        Menu.openMenu(window.windowStack, listOf(
             MenuOption(NameDesc("Texture2Ds")) {
                 createListOfPanels("Texture2Ds") { list ->
                     for (tex in tex2d) {
@@ -139,10 +139,11 @@ object DebugGPUStorage {
         list.childWidth *= 2
         list.childHeight *= 2
         fillList(list)
+        val window = GFX.someWindow
         Menu.openMenuByPanels(
-            defaultWindowStack!!,
-            Input.mouseX.toInt(),
-            Input.mouseY.toInt(),
+            window.windowStack,
+            window.mouseX.toInt(),
+            window.mouseY.toInt(),
             NameDesc(title),
             listOf(list)
         )

@@ -4,7 +4,7 @@ import me.anno.cache.CacheSection
 import me.anno.cache.data.ICacheData
 import me.anno.cache.data.ImageData
 import me.anno.cache.data.LateinitTexture
-import me.anno.gpu.GFXBase1
+import me.anno.gpu.GFXBase0
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
@@ -81,7 +81,7 @@ object ImageGPUCache : CacheSection("Images") {
     fun getInternalTexture(name: String, asyncGenerator: Boolean, timeout: Long = 60_000): Texture2D? {
         val texture = getEntry(name, timeout, asyncGenerator) { name1 ->
             try {
-                val img = GFXBase1.loadAssetsImage(name1)
+                val img = GFXBase0.loadAssetsImage(name1)
                 val texture = Texture2D("internal-'$name1'", img.width, img.height, 1)
                 texture.create(img, sync = false, checkRedundancy = true)
                 texture

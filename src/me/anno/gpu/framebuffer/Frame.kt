@@ -52,13 +52,14 @@ object Frame {
         // made more ugly, but trying to avoid allocations as much as possible :)
         var w = w0
         var h = h0
+        val window = GFX.activeWindow!!
         if (w0 < 0 || h0 < 0) {// auto
             if (buffer != null) {
                 w = buffer.w
                 h = buffer.h
             } else {
-                w = GFX.width
-                h = GFX.height
+                w = window.width
+                h = window.height
             }
         }
 
@@ -84,8 +85,8 @@ object Frame {
             val x1 = x - offsetX
             val y1 = y - offsetY
 
-            var availableWidth = GFX.width
-            var availableHeight = GFX.height
+            var availableWidth = window.width
+            var availableHeight = window.height
             if (buffer != null) {
                 availableWidth = buffer.w
                 availableHeight = buffer.h

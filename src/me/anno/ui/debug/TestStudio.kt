@@ -3,6 +3,8 @@ package me.anno.ui.debug
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.EngineActions
+import me.anno.gpu.GFX
+import me.anno.gpu.WindowX
 import me.anno.input.ActionManager
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
@@ -19,6 +21,7 @@ class TestStudio(val createMainPanel: () -> List<Panel>) : StudioBase(true, "Tes
             ui.add(panel)
         }
         ui.setWeight(1f)
+        val windowStack = GFX.someWindow.windowStack
         windowStack.add(Window(ui, false, windowStack))
     }
 
@@ -28,9 +31,9 @@ class TestStudio(val createMainPanel: () -> List<Panel>) : StudioBase(true, "Tes
         ActionManager.init()
     }
 
-    override fun onGameLoop(w: Int, h: Int) {
+    override fun onGameLoop(window: WindowX, w: Int, h: Int) {
         DefaultConfig.saveMaybe("main.config")
-        super.onGameLoop(w, h)
+        super.onGameLoop(window, w, h)
     }
 
     companion object {

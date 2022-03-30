@@ -244,8 +244,8 @@ open class Window(
         val x0 = max(panel0.x, 0)
         val y0 = max(panel0.y, 0)
         // we don't need to draw more than is visible
-        val x1 = min(panel0.x + panel0.w, GFX.width)
-        val y1 = min(panel0.y + panel0.h, GFX.height)
+        val x1 = min(panel0.x + panel0.w, windowStack.width)
+        val y1 = min(panel0.y + panel0.h, windowStack.height)
 
         if (x1 > x0 && y1 > y0) {
 

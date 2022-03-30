@@ -102,7 +102,7 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, 
     fun scrollTo(itemIndex: Int, fractionY: Float) {
         val child = children.getOrNull(itemIndex) ?: return
         val currentY = child.y + fractionY * child.h
-        val targetY = Input.mouseY
+        val targetY = windowStack.mouseY
         val newScrollPosition = scrollPositionY + (currentY - targetY)
         smoothlyScrollTo(newScrollPosition, 0.25f)
     }

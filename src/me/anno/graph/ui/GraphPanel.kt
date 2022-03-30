@@ -82,8 +82,8 @@ open class GraphPanel(var graph: Graph? = null, style: Style) :
 
     var gridColor = 0x10ffffff
 
-    var lineThickness = max(1, sqrt(GFX.height / 120f).roundToInt())
-    var lineThicknessBold = max(1, sqrt(GFX.height / 50f).roundToInt())
+    var lineThickness = max(1, sqrt(windowStack.height / 120f).roundToInt())
+    var lineThicknessBold = max(1, sqrt(windowStack.height / 50f).roundToInt())
 
     var library = NodeLibrary.flowNodes
 

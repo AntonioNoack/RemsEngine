@@ -12,9 +12,9 @@ import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.Cursor
 import me.anno.gpu.Cursor.useCursor
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.isMinimized
 import me.anno.gpu.GFXBase0
 import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.WindowX
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.Renderer
 import me.anno.input.ActionManager
@@ -31,7 +31,6 @@ import me.anno.ui.base.Tooltips
 import me.anno.ui.base.progress.ProgressBar
 import me.anno.ui.debug.FPSPanel
 import me.anno.ui.dragging.IDraggable
-import me.anno.ui.utils.WindowStack
 import me.anno.utils.Clock
 import me.anno.utils.OS
 import me.anno.utils.types.Strings.addSuffix
@@ -105,8 +104,6 @@ abstract class StudioBase(
     val showTutorialKeys get() = DefaultConfig["ui.tutorial.showKeys", true]
     val showFPS get() = DefaultConfig["debug.ui.showFPS", Build.isDebug]
 
-    val windowStack = WindowStack()
-
     var gfxSettings = GFXSettings.LOW
         set(value) {
             field = value
@@ -140,7 +137,7 @@ abstract class StudioBase(
     var didNothingCounter = 0
 
     open fun setupNames() {
-        GFX.title = title
+        GFX.windows.firstOrNull()?.title = title
         GFXBase0.projectName = configName
     }
 
@@ -156,8 +153,8 @@ abstract class StudioBase(
 
         tick("logging")
 
-        GFX.gameInit = this::gameInit
-        GFX.gameLoop = this::onGameLoop
+        GFX.onInit = this::gameInit
+        GFX.onLoop = this::onGameLoop
         GFX.onShutdown = this::onShutdown
 
         loadConfig()
@@ -170,8 +167,8 @@ abstract class StudioBase(
 
     fun shallDraw(didSomething: Boolean) = didSomething || didNothingCounter < 3
 
-    private var lastMouseX = Input.mouseX
-    private var lastMouseY = Input.mouseY
+    private var lastMouseX = 0f
+    private var lastMouseY = 0f
 
     open fun onShutdown() {
         shallStop = true
@@ -181,7 +178,7 @@ abstract class StudioBase(
         onGameClose()
     }
 
-    open fun onGameLoop(w: Int, h: Int) {
+    open fun onGameLoop(window: WindowX, w: Int, h: Int) {
 
         check()
 
@@ -191,28 +188,28 @@ abstract class StudioBase(
 
         if (Math.random() < 0.1) FileReference.updateCache()
 
-        updateVSync()
-        updateHoveredAndCursor()
-        processMouseMovement()
+        updateVSync(window)
+        updateHoveredAndCursor(window)
+        processMouseMovement(window)
 
         if (isFirstFrame) tick("Before window drawing")
 
         // be sure that always something is drawn
-        var didSomething = GFX.needsRefresh || Input.needsLayoutUpdate()
-        GFX.needsRefresh = false
+        var didSomething = window.needsRefresh || Input.needsLayoutUpdate()
+        window.needsRefresh = false
 
         // when the frame is minimized, nothing needs to be drawn
-        if (!isMinimized) {
+        if (!window.isMinimized) {
 
-            windowStack.updateTransform(w, h)
-            didSomething = windowStack.draw(w, h, didSomething, shallDraw(didSomething), null)
+            window.windowStack.updateTransform(window, w, h)
+            didSomething = window.windowStack.draw(w, h, didSomething, shallDraw(didSomething), null)
 
             Input.framesSinceLastInteraction++
 
             if (isFirstFrame) tick("Window drawing")
 
             useFrame(0, 0, w, h, false, null, Renderer.colorRenderer) {
-                if (drawUIOverlay(w, h)) didSomething = true
+                if (drawUIOverlay(window, w, h)) didSomething = true
             }
 
         }
@@ -235,10 +232,10 @@ abstract class StudioBase(
 
     }
 
-    fun updateVSync() {
+    fun updateVSync(window: WindowX) {
         val vsync = DefaultConfig["debug.ui.enableVsync", Build.isDebug]
-        if (vsync != GFXBase0.enableVsync) {
-            GFXBase0.setVsyncEnabled(vsync)
+        if (vsync != window.enableVsync) {
+            window.setVsyncEnabled(vsync)
         }
     }
 
@@ -250,46 +247,46 @@ abstract class StudioBase(
         DefaultConfig["debug.ui.enableVsync"] = !DefaultConfig["debug.ui.enableVsync", true]
     }
 
-    fun processMouseMovement() {
-        if (!Input.hadMouseMovement && GFX.isInFocus) {
+    fun processMouseMovement(window: WindowX) {
+        if (!Input.hadMouseMovement && window.isInFocus) {
             // if our window doesn't have focus or the cursor is outside,
             // we need to ask for updates manually
-            GFX.updateMousePosition()
+            window.updateMousePosition()
             if (!Input.hadMouseMovement) {
-                ActionManager.onMouseIdle()
+                ActionManager.onMouseIdle(window)
             }
         }
-        lastMouseX = Input.mouseX
-        lastMouseY = Input.mouseY
+        lastMouseX = window.mouseX
+        lastMouseY = window.mouseY
         Input.hadMouseMovement = false
     }
 
-    fun updateHoveredAndCursor() {
-        val hovered = windowStack.getPanelAndWindowAt(Input.mouseX, Input.mouseY)
+    fun updateHoveredAndCursor(window: WindowX) {
+        val hovered = window.windowStack.getPanelAndWindowAt(window.mouseX, window.mouseY)
         GFX.hoveredPanel = hovered?.first
         GFX.hoveredWindow = hovered?.second
-        updateCursor(hovered?.first)
+        updateCursor(window, hovered?.first)
     }
 
-    fun updateCursor(hoveredPanel: Panel?) {
-        hoveredPanel?.getCursor()?.useCursor()
+    fun updateCursor(window: WindowX, hoveredPanel: Panel?) {
+        hoveredPanel?.getCursor()?.useCursor(window)
     }
 
-    open fun drawUIOverlay(w: Int, h: Int): Boolean {
+    open fun drawUIOverlay(window: WindowX, w: Int, h: Int): Boolean {
 
         var didSomething = false
 
         if (showFPS) {
-            FPSPanel.showFPS()
+            FPSPanel.showFPS(window)
         }
 
         if (showTutorialKeys) {
-            if (ShowKeys.draw(0, 0, GFX.height)) {
+            if (ShowKeys.draw(0, 0, h)) {
                 didSomething = true
             }
         }
 
-        if (Tooltips.draw()) {
+        if (Tooltips.draw(window)) {
             didSomething = true
         }
 
@@ -311,8 +308,8 @@ abstract class StudioBase(
         val dragged = dragged
         if (dragged != null) {
             val (rw, rh) = dragged.getSize(w / 5, h / 5)
-            var x = Input.mouseX.roundToInt() - rw / 2
-            var y = Input.mouseY.roundToInt() - rh / 2
+            var x = lastMouseX.roundToInt() - rw / 2
+            var y = lastMouseY.roundToInt() - rh / 2
             x = clamp(x, 0, w - rw)
             y = clamp(y, 0, h - rh)
             GFX.clip(x, y, min(rw, w), min(rh, h)) {
@@ -353,7 +350,7 @@ abstract class StudioBase(
 
         var dragged: IDraggable? = null
 
-        val defaultWindowStack get() = instance?.windowStack
+        // val defaultWindowStack get() = instance?.windowStack
 
         /**
          * schedules a task that will be executed on the main loop

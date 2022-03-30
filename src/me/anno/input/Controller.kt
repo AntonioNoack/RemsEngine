@@ -3,6 +3,7 @@ package me.anno.input
 import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.WindowX
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.text.TextReader
@@ -10,6 +11,7 @@ import me.anno.io.text.TextWriter
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
+import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWGamepadState
@@ -105,14 +107,16 @@ class Controller(val id: Int) {
     }
 
     private fun isMouseInWindow(): Boolean {
-        return mousePosX in 0f..GFX.width - 1f && mousePosY in 0f..GFX.height - 1f
+        return GFX.windows.any {
+            mousePosX in 0f..it.width - 1f && mousePosY in 0f..it.height - 1f
+        }
     }
 
-    private fun mouseButtonDown(key: Int) {
-        if (isMouseInWindow() && GFX.isInFocus) {
-            Input.onMousePress(key)
+    private fun mouseButtonDown(window: WindowX, key: Int) {
+        if (isMouseInWindow() && GFX.windows.any2 { it.isInFocus }) {
+            Input.onMousePress(window, key)
         } else {
-            GFX.robot.mousePress(
+            GFX.robot?.mousePress(
                 when (key) {
                     0 -> InputEvent.BUTTON1_MASK
                     1 -> InputEvent.BUTTON2_MASK
@@ -122,11 +126,11 @@ class Controller(val id: Int) {
         }
     }
 
-    private fun mouseButtonUp(key: Int) {
-        if (isMouseInWindow() && GFX.isInFocus) {
-            Input.onMouseRelease(key)
+    private fun mouseButtonUp(window: WindowX, key: Int) {
+        if (isMouseInWindow() && GFX.windows.any2 { it.isInFocus }) {
+            Input.onMouseRelease(window, key)
         } else {
-            GFX.robot.mouseRelease(
+            GFX.robot?.mouseRelease(
                 when (key) {
                     0 -> InputEvent.BUTTON1_MASK
                     1 -> InputEvent.BUTTON2_MASK
@@ -136,38 +140,38 @@ class Controller(val id: Int) {
         }
     }
 
-    private fun buttonDown(key: Int) {
+    private fun buttonDown(window: WindowX, key: Int) {
         if (isFirst) {
             when (key) {
-                DefaultConfig["ui.controller.leftMouseButton", 0] -> mouseButtonDown(0)
-                DefaultConfig["ui.controller.rightMouseButton", 1] -> mouseButtonDown(1)
+                DefaultConfig["ui.controller.leftMouseButton", 0] -> mouseButtonDown(window, 0)
+                DefaultConfig["ui.controller.rightMouseButton", 1] -> mouseButtonDown(window, 1)
                 // 9 = click on right wheel
-                DefaultConfig["ui.controller.middleMouseButton", 9] -> mouseButtonDown(2)
+                DefaultConfig["ui.controller.middleMouseButton", 9] -> mouseButtonDown(window, 2)
             }
         }
-        ActionManager.onKeyDown(baseKey + key)
+        ActionManager.onKeyDown(window, baseKey + key)
         isActiveMaybe = 1f
     }
 
-    private fun buttonType(key: Int) {
-        ActionManager.onKeyTyped(baseKey + key)
+    private fun buttonType(window: WindowX, key: Int) {
+        ActionManager.onKeyTyped(window, baseKey + key)
         isActiveMaybe = 1f
     }
 
-    private fun buttonUp(key: Int) {
+    private fun buttonUp(window: WindowX, key: Int) {
         if (isFirst) {
             when (key) {
-                DefaultConfig["ui.controller.leftMouseButton", 0] -> mouseButtonUp(0)
-                DefaultConfig["ui.controller.rightMouseButton", 1] -> mouseButtonUp(1)
+                DefaultConfig["ui.controller.leftMouseButton", 0] -> mouseButtonUp(window, 0)
+                DefaultConfig["ui.controller.rightMouseButton", 1] -> mouseButtonUp(window, 1)
                 // 9 = click on right wheel
-                DefaultConfig["ui.controller.middleMouseButton", 9] -> mouseButtonUp(2)
+                DefaultConfig["ui.controller.middleMouseButton", 9] -> mouseButtonUp(window, 2)
             }
         }
-        ActionManager.onKeyTyped(baseKey + key)
+        ActionManager.onKeyTyped(window, baseKey + key)
         isActiveMaybe = 1f
     }
 
-    fun pollEvents(isFirst: Boolean): Boolean {
+    fun pollEvents(window: WindowX, isFirst: Boolean): Boolean {
 
         val time = Engine.gameTime
         val dt = clamp((time - lastTime) * 1e-9f, 1e-3f, 0.2f)
@@ -193,13 +197,13 @@ class Controller(val id: Int) {
 
                 // update other axes as well? mmh
                 glfwGetGamepadState(glfwId, gamepadState)
-                updateButtons(gamepadButtons)
-                updateAxes(dt, gamepadAxes)
+                updateButtons(window, gamepadButtons)
+                updateAxes(window, dt, gamepadAxes)
 
             } else {
 
-                updateButtons()
-                updateAxes(dt)
+                updateButtons(window)
+                updateAxes(window, dt)
 
             }
         }
@@ -208,7 +212,7 @@ class Controller(val id: Int) {
 
     }
 
-    private fun updateButtons(buttons: ByteBuffer? = glfwGetJoystickButtons(glfwId)) {
+    private fun updateButtons(window: WindowX, buttons: ByteBuffer? = glfwGetJoystickButtons(glfwId)) {
         if (buttons != null) {
             val time = Engine.gameTime
             numButtons = min(buttons.remaining(), MAX_NUM_BUTTONS)
@@ -218,8 +222,8 @@ class Controller(val id: Int) {
                 if (state == GLFW_PRESS) {
                     if (buttonDownTime[buttonId] == 0L) {
                         buttonDownTime[buttonId] = time
-                        buttonDown(buttonId)
-                        buttonType(buttonId)
+                        buttonDown(window, buttonId)
+                        buttonType(window, buttonId)
                     }
                     val timeSinceDown = time - buttonDownTime[buttonId]
                     if (timeSinceDown > initialTypeDelayNanos) {
@@ -228,19 +232,19 @@ class Controller(val id: Int) {
                             time - initialTypeDelayNanos - typeDelayNanos * 2 // & we must not collect too many,
                             // when the window is not active
                         )
-                        buttonType(buttonId)
+                        buttonType(window, buttonId)
                     }
                 } else {
                     if (buttonDownTime[buttonId] != 0L) {
                         buttonDownTime[buttonId] = 0L
-                        buttonUp(buttonId)
+                        buttonUp(window, buttonId)
                     }
                 }
             }
         }
     }
 
-    private fun updateAxes(dt: Float, axes: FloatBuffer? = glfwGetJoystickAxes(glfwId)) {
+    private fun updateAxes(window: WindowX, dt: Float, axes: FloatBuffer? = glfwGetJoystickAxes(glfwId)) {
         if (axes != null) {
 
             val time = Engine.gameTime
@@ -263,17 +267,17 @@ class Controller(val id: Int) {
                 if (isDown != wasDown) {
                     isActiveMaybe = 1f
                     if (isDown) {
-                        ActionManager.onKeyDown(baseAxis + axisId * 2)
+                        ActionManager.onKeyDown(window, baseAxis + axisId * 2)
                     } else {
-                        ActionManager.onKeyUp(baseAxis + axisId * 2)
+                        ActionManager.onKeyUp(window, baseAxis + axisId * 2)
                     }
                 }
                 if (isUp != wasUp) {
                     isActiveMaybe = 1f
                     if (isUp) {
-                        ActionManager.onKeyDown(baseAxis + axisId * 2 + 1)
+                        ActionManager.onKeyDown(window, baseAxis + axisId * 2 + 1)
                     } else {
-                        ActionManager.onKeyUp(baseAxis + axisId * 2 + 1)
+                        ActionManager.onKeyUp(window, baseAxis + axisId * 2 + 1)
                     }
                 }
 
@@ -301,7 +305,7 @@ class Controller(val id: Int) {
                     dx *= speed
                     dy *= speed
 
-                    ActionManager.onMouseMoved(dx, dy)
+                    ActionManager.onMouseMoved(window, dx, dy)
                     if (!GFX.isMouseTrapped) {
                         // only works well, if we have a single player
                         // it we have a mouse user and a controller user, the controller user will win here ...
@@ -309,14 +313,15 @@ class Controller(val id: Int) {
                         // reset the mouse position, if we used the original mouse again
                         // todo update mouseX/Y outside the main window, and then remove this condition
                         // don't reset, if we're outside the window, because Input.mouseX/Y is not updated outside
+                        val mainWindow = GFX.windows.first()
                         if (abs(time - lastMousePos) > 1e9 && isMouseInWindow()) {// 1s delay to switch back to mouse
-                            mousePosX = Input.mouseX
-                            mousePosY = Input.mouseY
+                            mousePosX = mainWindow.mouseX
+                            mousePosY = mainWindow.mouseY
                         }
                         lastMousePos = time
                         mousePosX += dx
                         mousePosY += dy
-                        GFX.moveMouseTo(mousePosX, mousePosY)
+                        mainWindow.moveMouseTo(mousePosX, mousePosY)
                     }
                 }
 
@@ -340,19 +345,19 @@ class Controller(val id: Int) {
                     dx *= speed
                     dy *= speed
 
-                    if (GFX.isInFocus && isMouseInWindow()) {
+                    if (GFX.windows.any2 { it.isInFocus } && isMouseInWindow()) {
                         // why -y? mmh...
                         if (DefaultConfig["ui.controller.mouseWheelIsSingleAxis", false]) {
-                            Input.onMouseWheel(0f, -dy, true)
+                            Input.onMouseWheel(window, 0f, -dy, true)
                         } else {
-                            Input.onMouseWheel(dx, -dy, false)
+                            Input.onMouseWheel(window, dx, -dy, false)
                         }
                         mouseWheelFract = 0f
                     } else {
                         mouseWheelFract += dy
                         val mwf = mouseWheelFract.toInt() // round towards zero
                         if (mwf != 0) {
-                            GFX.robot.mouseWheel(+mwf)
+                            GFX.robot?.mouseWheel(+mwf)
                             mouseWheelFract -= mwf
                         }
                     }

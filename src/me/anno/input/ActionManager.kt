@@ -2,9 +2,9 @@ package me.anno.input
 
 import me.anno.Engine.gameTime
 import me.anno.config.DefaultConfig
+import me.anno.gpu.WindowX
 import me.anno.io.ISaveable
 import me.anno.io.utils.StringMap
-import me.anno.studio.StudioBase.Companion.defaultWindowStack
 import me.anno.ui.Panel
 import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
@@ -100,36 +100,36 @@ object ActionManager : StringMap() {
         }
     }
 
-    fun onKeyTyped(key: Int) {
-        onEvent(0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.TYPED), false)
+    fun onKeyTyped(window: WindowX, key: Int) {
+        onEvent(window, 0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.TYPED), false)
     }
 
-    fun onKeyUp(key: Int) {
-        onEvent(0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.UP), false)
+    fun onKeyUp(window: WindowX, key: Int) {
+        onEvent(window, 0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.UP), false)
     }
 
-    fun onKeyDown(key: Int) {
-        onEvent(0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.DOWN), false)
+    fun onKeyDown(window: WindowX, key: Int) {
+        onEvent(window, 0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.DOWN), false)
     }
 
-    fun onKeyDoubleClick(key: Int) {
-        onEvent(0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.DOUBLE), false)
+    fun onKeyDoubleClick(window: WindowX, key: Int) {
+        onEvent(window, 0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.DOUBLE), false)
     }
 
-    fun onKeyHoldDown(dx: Float, dy: Float, key: Int, save: Boolean) {
+    fun onKeyHoldDown(window: WindowX, dx: Float, dy: Float, key: Int, save: Boolean) {
         val type = if (save) KeyCombination.Type.PRESS else KeyCombination.Type.PRESS_UNSAFE
-        onEvent(dx, dy, KeyCombination(key, Input.keyModState, type), true)
+        onEvent(window, dx, dy, KeyCombination(key, Input.keyModState, type), true)
     }
 
-    fun onMouseIdle() = onMouseMoved(0f, 0f)
+    fun onMouseIdle(window: WindowX) = onMouseMoved(window, 0f, 0f)
 
-    fun onMouseMoved(dx: Float, dy: Float) {
+    fun onMouseMoved(window: WindowX, dx: Float, dy: Float) {
         if (Input.keysDown.isEmpty()) return
         val mouseMoveConsumer = BiConsumer<Int, Long> { key, downTime ->
-            onKeyHoldDown(dx, dy, key, false)
+            onKeyHoldDown(window, dx, dy, key, false)
             val deltaTime = (gameTime - downTime) * 1e-9f
             if (deltaTime >= keyDragDelay) {
-                onKeyHoldDown(dx, dy, key, true)
+                onKeyHoldDown(window, dx, dy, key, true)
             }
         }
         Input.keysDown.forEach(mouseMoveConsumer)
@@ -137,16 +137,16 @@ object ActionManager : StringMap() {
 
     // todo this maybe should exist on a per-windowStack basis,
     // todo so all actions are redirected through a game-window
-    fun onEvent(dx: Float, dy: Float, combination: KeyCombination, isContinuous: Boolean) {
-        var panel = defaultWindowStack?.inFocus0
+    fun onEvent(window: WindowX, dx: Float, dy: Float, combination: KeyCombination, isContinuous: Boolean) {
+        var panel = window.windowStack.inFocus0
         // filter action keys, if they are typing keys and a typing field is in focus
         val isWriting = combination.isWritingKey && (panel?.isKeyInput() == true)
         // LOGGER.debug("is writing: $isWriting, combination: $combination, has value? ${combination in globalKeyCombinations}")
         if (!isWriting) {
-            executeGlobally(0f, 0f, false, globalKeyCombinations[combination])
+            executeGlobally(window, 0f, 0f, false, globalKeyCombinations[combination])
         }
-        val x = Input.mouseX
-        val y = Input.mouseY
+        val x = window.mouseX
+        val y = window.mouseY
         val la = localActions
         val universally = la["*", combination]
         targetSearch@ while (panel != null) {
@@ -186,6 +186,7 @@ object ActionManager : StringMap() {
     }
 
     fun executeLocally(
+        window: WindowX,
         dx: Float, dy: Float, isContinuous: Boolean,
         panel: Panel, actions: List<String>?
     ): Boolean {
@@ -193,7 +194,7 @@ object ActionManager : StringMap() {
         if (actions == null) return false
         for (actionIndex in actions.indices) {
             val action = actions[actionIndex]
-            if (panel.onGotAction(Input.mouseX, Input.mouseY, dx, dy, action, isContinuous)) {
+            if (panel.onGotAction(window.mouseX, window.mouseY, dx, dy, action, isContinuous)) {
                 // println("el consumed action $action by ${panel::class}")
                 return true
             }
@@ -201,7 +202,7 @@ object ActionManager : StringMap() {
         return false
     }
 
-    fun executeGlobally(dx: Float, dy: Float, isContinuous: Boolean, actions: List<String>?) {
+    fun executeGlobally(window: WindowX, dx: Float, dy: Float, isContinuous: Boolean, actions: List<String>?) {
         if (actions == null) return
         for (actionIndex in actions.indices) {
             val action = actions[actionIndex]
@@ -210,15 +211,11 @@ object ActionManager : StringMap() {
                 return
             }
         }
-        val ws = defaultWindowStack
-        if (ws == null) {
-            LOGGER.warn("WindowStack is null")
-            return
-        }
+        val ws = window.windowStack
         // LOGGER.info("Executing $actions on all panels")
         for (index in ws.indices) {
             ws[index].panel.forAllPanels { panel ->
-                executeLocally(dx, dy, isContinuous, panel, actions)
+                executeLocally(window, dx, dy, isContinuous, panel, actions)
             }
         }
     }

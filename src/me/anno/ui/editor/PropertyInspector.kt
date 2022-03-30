@@ -1,8 +1,8 @@
 package me.anno.ui.editor
 
+import me.anno.gpu.GFX
 import me.anno.language.translation.Dict
 import me.anno.studio.Inspectable
-import me.anno.studio.StudioBase.Companion.defaultWindowStack
 import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.components.Padding
@@ -160,7 +160,7 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
             }
         }
 
-        fun invalidateUI(windowStack: WindowStack = defaultWindowStack!!) {
+        fun invalidateUI(windowStack: WindowStack = GFX.someWindow.windowStack) {
             for (window in windowStack) {
                 for (panel in window.panel.listOfVisible) {
                     panel.onPropertiesChanged()

@@ -1,6 +1,6 @@
 package me.anno.io.config
 
-import me.anno.gpu.GFXBase0.projectName
+import me.anno.gpu.GFXBase0.Companion.projectName
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
@@ -18,7 +18,7 @@ import java.io.IOException
  * */
 object ConfigBasics {
 
-    val LOGGER = LogManager.getLogger(ConfigBasics::class)!!
+    val LOGGER = LogManager.getLogger(ConfigBasics::class)
 
     val configFolder get() = getReference(OS.home, ".config/$projectName")
     val cacheFolder get() = getReference(OS.home, ".cache/$projectName")
@@ -48,7 +48,7 @@ object ConfigBasics {
                 null
             }
         } else null
-        return if (value == null){
+        return if (value == null) {
             val default = getDefault()
             if (saveIfMissing) save(file, default)
             else default

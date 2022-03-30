@@ -10,6 +10,8 @@ import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
+import me.anno.gpu.GFX
+import me.anno.gpu.WindowX
 import me.anno.gpu.shader.ShaderLib
 import me.anno.input.ActionManager
 import me.anno.io.files.FileReference
@@ -117,9 +119,9 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
                 EditorState.fineSelection.contains(obj)
     }
 
-    override fun onGameLoop(w: Int, h: Int) {
+    override fun onGameLoop(window: WindowX, w: Int, h: Int) {
         DefaultConfig.saveMaybe("main.config")
-        super.onGameLoop(w, h)
+        super.onGameLoop(window, w, h)
     }
 
     override fun save() {
@@ -150,6 +152,8 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
         object : WelcomeUI() {
             override fun createProjectUI() {
+
+                val windowStack = GFX.windows.first().windowStack
 
                 val editScene = loadSafely(currentProject.lastScene)
 
@@ -203,6 +207,7 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
 
         // todo different editing modes like Blender?, e.g. animating stuff, scripting, ...
 
+        val windowStack = GFX.windows.first().windowStack
         ECSSceneTabs.window = windowStack.firstElement()
         EngineActions.register()
         ActionManager.init()

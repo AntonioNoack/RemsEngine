@@ -1,7 +1,7 @@
 package me.anno.parser
 
 import me.anno.maths.Maths.clamp
-import org.kdotjpg.OpenSimplexNoise
+import me.anno.maths.noise.FullNoise
 import java.lang.StrictMath.cbrt
 import java.util.*
 import kotlin.math.*
@@ -261,10 +261,26 @@ object Functions {
 
         // random
         functions1["rand"] = { seed -> Random(seed.toLong()).nextDouble() }
-        functions2["rand"] = { seed, x -> OpenSimplexNoise(seed.toLong()).eval(x, 0.0) }
-        functions3["rand"] = { seed, x, y -> OpenSimplexNoise(seed.toLong()).eval(x, y) }
-        functions4["rand"] = { seed, x, y, z -> OpenSimplexNoise(seed.toLong()).eval(x, y, z) }
-        functions5["rand"] = { seed, x, y, z, w -> OpenSimplexNoise(seed.toLong()).eval(x, y, z, w) }
+        functions2["rand"] = { seed, x ->
+            FullNoise(seed.toLong()).getValue(
+                x.toFloat()
+            ).toDouble()
+        }
+        functions3["rand"] = { seed, x, y ->
+            FullNoise(seed.toLong()).getValue(
+                x.toFloat(), y.toFloat()
+            ).toDouble()
+        }
+        functions4["rand"] = { seed, x, y, z ->
+            FullNoise(seed.toLong()).getValue(
+                x.toFloat(), y.toFloat(), z.toFloat()
+            ).toDouble()
+        }
+        functions5["rand"] = { seed, x, y, z, w ->
+            FullNoise(seed.toLong()).getValue(
+                x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()
+            ).toDouble()
+        }
 
         // todo function, which takes double and vector...
         /*functions2["harmonics"] = { time, harmonics ->

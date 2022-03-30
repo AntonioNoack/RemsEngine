@@ -232,7 +232,8 @@ class CanvasComponent() : MeshBaseComponent(), ControlReceiver {
                         transform.set(Matrix4d(RenderView.cameraMatrix).mul(entity!!.transform.globalTransform))
                         transform.invert()
                     }
-                    windowStack.updateTransform(transform, rv.x, rv.y, rv.w, rv.h, 0, 0, width, height)
+                    val window = GFX.activeWindow!!
+                    windowStack.updateTransform(window, transform, rv.x, rv.y, rv.w, rv.h, 0, 0, width, height)
                     windowStack.draw(width, height, true, forceRedraw = true, fb)
                     JomlPools.mat4f.sub(1)
                 }

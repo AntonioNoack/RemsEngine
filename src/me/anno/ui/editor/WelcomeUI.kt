@@ -3,7 +3,7 @@ package me.anno.ui.editor
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle
 import me.anno.config.DefaultStyle.black
-import me.anno.gpu.GFXBase0
+import me.anno.gpu.GFX
 import me.anno.ui.Window
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
@@ -47,7 +47,8 @@ abstract class WelcomeUI {
 
     fun create(studio: StudioBase) {
 
-        val windowStack = studio.windowStack
+        val window = GFX.someWindow
+        val windowStack = window.windowStack
 
         // manage and load recent projects
         // load recently opened parts / scenes / default scene
@@ -98,10 +99,10 @@ abstract class WelcomeUI {
         quickSettings += BooleanInput(
             "Enable Vsync",
             "Recommended; false for debugging", "ui.settings.vSync",
-            GFXBase0.enableVsync, true, style
+            window.enableVsync, true, style
         ).setChangeListener {
             DefaultConfig["debug.ui.enableVsync"] = it
-            GFXBase0.setVsyncEnabled(it)
+            window.setVsyncEnabled(it)
         }
 
         quickSettings += BooleanInput(
@@ -138,6 +139,7 @@ abstract class WelcomeUI {
 
     fun createRecentProjectsUI(studio: StudioBase, style: Style, recent: List<ProjectHeader>): Panel {
 
+        val window = GFX.someWindow
         val recentProjects =
             SettingCategory(
                 "Recent Projects",
@@ -168,14 +170,14 @@ abstract class WelcomeUI {
                 if (project.file.exists && project.file.isDirectory) {
                     openProject(studio, project.name, project.file)
                 } else Menu.msg(
-                    studio.windowStack,
+                    window.windowStack,
                     NameDesc("File not found!", "", "ui.recentProjects.fileNotFound")
                 )
             }
 
             tp.addLeftClickListener { open() }
             tp.addRightClickListener {
-                Menu.openMenu(studio.windowStack, listOf(
+                Menu.openMenu(window.windowStack, listOf(
                     MenuOption(
                         NameDesc(
                             "Open",
@@ -199,7 +201,7 @@ abstract class WelcomeUI {
                             "Removes the project from your drive!", "ui.recentProjects.delete"
                         )
                     ) {
-                        Menu.ask(studio.windowStack, NameDesc("Are you sure?", "", "")) {
+                        Menu.ask(window.windowStack, NameDesc("Are you sure?", "", "")) {
                             Projects.removeFromRecentProjects(project.file)
                             project.file.deleteRecursively()
                             tp.visibility = Visibility.GONE
@@ -224,7 +226,7 @@ abstract class WelcomeUI {
         thread(name = "UILayouts::openProject()") {
             val p = loadProject(name.trim(), folder)
             StudioBase.addEvent {
-                studio.windowStack.clear()
+                GFX.someWindow.windowStack.clear()
                 createProjectUI()
             }
             Projects.addToRecentProjects(p.first, p.second)
@@ -249,7 +251,7 @@ abstract class WelcomeUI {
             openProject(studio, nameInput.lastValue, file)
         } else {
             Menu.msg(
-                studio.windowStack, NameDesc(
+                GFX.someWindow.windowStack, NameDesc(
                     "Please choose a ${dirNameEn}!",
                     "", "ui.newProject.pleaseChooseDir"
                 )

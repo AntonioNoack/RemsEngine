@@ -799,7 +799,8 @@ class RenderView(
 
         // pipeline should already be filled
         val camera = editorCamera
-        val buffer = FBStack["click", GFX.width, GFX.height, 4, false, 1, true]
+        val ws = windowStack
+        val buffer = FBStack["click", ws.width, ws.height, 4, false, 1, true]
 
         val diameter = 5
 

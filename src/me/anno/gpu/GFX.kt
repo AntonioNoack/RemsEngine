@@ -54,9 +54,9 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.staticProperties
 import kotlin.reflect.full.superclasses
 
-object GFX : GFXBase1() {
+object GFX : GFXBase0() {
 
-    private val LOGGER = LogManager.getLogger(GFX::class)!!
+    private val LOGGER = LogManager.getLogger(GFX::class)
 
     // for final rendering we need to use the GPU anyways;
     // so just use a static variable
@@ -80,9 +80,9 @@ object GFX : GFXBase1() {
     val gpuTasks = ConcurrentLinkedQueue<Task>()
     val lowPriorityGPUTasks = ConcurrentLinkedQueue<Task>()
 
-    lateinit var gameInit: () -> Unit
-    lateinit var gameLoop: (w: Int, h: Int) -> Unit
-    lateinit var onShutdown: () -> Unit
+    var onInit: (() -> Unit)? = null
+    var onLoop: ((window: WindowX, w: Int, h: Int) -> Unit)? = null
+    var onShutdown: (() -> Unit)? = null
 
     val loadTexturesSync = Stack<Boolean>()
         .apply { push(false) }
@@ -184,9 +184,9 @@ object GFX : GFXBase1() {
         }
     }
 
-    override fun addCallbacks() {
-        super.addCallbacks()
-        Input.initForGLFW()
+    override fun addCallbacks(window: WindowX) {
+        super.addCallbacks(window)
+        Input.initForGLFW(window)
     }
 
     fun shaderColor(shader: Shader, name: String, color: Int) {
@@ -271,7 +271,7 @@ object GFX : GFXBase1() {
         LOGGER.info("OpenGL Version " + glGetString(GL_VERSION))
         LOGGER.info("GLSL Version " + glGetString(GL_SHADING_LANGUAGE_VERSION))
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1) // OpenGL is evil ;), for optimizations, we might set it back
-        supportsAnisotropicFiltering = capabilities.GL_EXT_texture_filter_anisotropic
+        supportsAnisotropicFiltering = capabilities?.GL_EXT_texture_filter_anisotropic ?: false
         LOGGER.info("OpenGL supports Anisotropic Filtering? $supportsAnisotropicFiltering")
         if (supportsAnisotropicFiltering) {
             val max = glGetFloat(EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
@@ -343,18 +343,18 @@ object GFX : GFXBase1() {
         }
     }
 
-    fun setFrameNullSize() {
+    fun setFrameNullSize(window: WindowX) {
         OpenGL.apply {
             // this should be the state for the default framebuffer
             xs[0] = 0
             ys[0] = 0
-            ws[0] = GFX.width
-            hs[0] = GFX.height
+            ws[0] = window.width
+            hs[0] = window.height
             changeSizes[0] = false
         }
     }
 
-    override fun renderStep() {
+    override fun renderStep(window: WindowX) {
 
         OpenGLShader.invalidateBinding()
         Texture2D.destroyTextures()
@@ -364,7 +364,7 @@ object GFX : GFXBase1() {
         Texture2D.bufferPool.freeUnusedEntries()
         AudioStream.bufferPool.freeUnusedEntries()
 
-        setFrameNullSize()
+        setFrameNullSize(window)
 
         JomlPools.reset()
         Point.stack.reset()
@@ -381,11 +381,14 @@ object GFX : GFXBase1() {
 
         Input.resetFrameSpecificKeyStates()
 
-        Input.pollControllers()
+        if (window == GFX.someWindow) {
+            // only once per frame
+            Input.pollControllers(window)
+        }
 
         workEventTasks()
 
-        setFrameNullSize()
+        setFrameNullSize(window)
 
         Texture2D.resetBudget()
 
@@ -403,7 +406,7 @@ object GFX : GFXBase1() {
         resetFBStack()
 
         try {
-            gameLoop(width, height)
+            onLoop?.invoke(window, window.width, window.height)
         } catch (e: Exception) {
             e.printStackTrace()
         }

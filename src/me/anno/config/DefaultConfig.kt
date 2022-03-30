@@ -1,7 +1,7 @@
 package me.anno.config
 
 import me.anno.config.DefaultStyle.baseTheme
-import me.anno.gpu.GFXBase0.projectName
+import me.anno.gpu.GFXBase0.Companion.projectName
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.SaveableArray
 import me.anno.io.config.ConfigBasics
@@ -10,7 +10,6 @@ import me.anno.io.utils.StringMap
 import me.anno.ui.base.Font
 import me.anno.ui.style.Style
 import me.anno.utils.Clock
-import org.apache.logging.log4j.LogManager
 
 object DefaultConfig : StringMap() {
 

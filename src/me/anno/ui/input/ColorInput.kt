@@ -110,7 +110,7 @@ open class ColorInput(
         val window = window!!
         Menu.openMenuByPanels(
             window.windowStack, window.mouseXi, window.mouseYi, NameDesc(title), listOf(
-                SizeLimitingContainer(contentView, GFX.width / 5, -1, style)
+                SizeLimitingContainer(contentView, windowStack.width / 5, -1, style)
             )
         )
     }
@@ -122,9 +122,10 @@ open class ColorInput(
                 else super.onMouseClicked(x, y, button, long)
             }
             button.isRight -> {
+                val window = GFX.activeWindow!!
                 Menu.openMenu(windowStack, listOf(
-                    MenuOption(NameDesc("Copy")) { Input.copy(contentView) },
-                    MenuOption(NameDesc("Paste")) { Input.paste(contentView) },
+                    MenuOption(NameDesc("Copy")) { Input.copy(window, contentView) },
+                    MenuOption(NameDesc("Paste")) { Input.paste(window, contentView) },
                     MenuOption(NameDesc("Pick Color")) { pickColor() },
                     MenuOption(NameDesc("Reset")) { setValue(contentView.resetListener(), true) }
                 ))
@@ -141,7 +142,8 @@ open class ColorInput(
         // - add controls on the bottom, or somewhere..., with a preview of the color
         // - select on click, or when dragging + enter then
         GFX.addGPUTask(1) {// delay, so the original menu can disappear
-            val fb = Framebuffer("colorPicker", GFX.width, GFX.height, 1, 1, false, DepthBufferType.INTERNAL)
+            val ws = windowStack
+            val fb = Framebuffer("colorPicker", ws.width, ws.height, 1, 1, false, DepthBufferType.INTERNAL)
             fb.ensure()
             windowStack.draw(fb.w, fb.h, true, true, fb)
             val imageData = FramebufferToMemory.createImage(fb, true, withAlpha = false)
@@ -175,7 +177,8 @@ open class ColorInput(
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         super.onMouseMoved(x, y, dx, dy)
         if (mouseIsDown && dragged == null) {
-            val speed = 20f * shiftSlowdown / max(GFX.width, GFX.height)
+            val ws = windowStack
+            val speed = 20f * shiftSlowdown / max(ws.width, ws.height)
             val delta = (dx - dy) * speed
             val scaleFactor = 1.10f
             val scale = pow(scaleFactor, delta)

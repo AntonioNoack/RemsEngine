@@ -4,7 +4,6 @@ import org.lwjgl.glfw.GLFW.*
 
 object Cursor {
 
-    var lastCursor = 0L
     // const val default = 0L
     var hResize = 0L
     var vResize = 0L
@@ -14,7 +13,7 @@ object Cursor {
     var crossHair = 0L
     var arrow = 0L
 
-    fun init(){
+    fun init() {
         hResize = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR)
         vResize = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR)
         editText = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR)
@@ -23,16 +22,16 @@ object Cursor {
         arrow = glfwCreateStandardCursor(GLFW_ARROW_CURSOR)
     }
 
-    fun Long.useCursor(){
+    fun Long.useCursor(window: WindowX) {
         // the cursor is only updating when moving the mouse???
         // bug in the api maybe, how to fix that? -> we can't really fix that
         // -> don't use it as an important feature
-        if(this == lastCursor) return
-        glfwSetCursor(GFX.window, this)
-        lastCursor = this
+        if (this == window.lastCursor) return
+        glfwSetCursor(window.pointer, this)
+        window.lastCursor = this
     }
 
-    fun destroy(){
+    fun destroy() {
         // crashes
         /*0L.useCursor()
         for(cursor in listOf(

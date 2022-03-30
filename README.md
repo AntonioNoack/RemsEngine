@@ -135,8 +135,6 @@ videos on Android using https://stackoverflow.com/questions/9375598/android-how-
 * [Image4j](https://github.com/imcdonagh/image4j) (Reading ICO images)
 * [Bullet](http://jbullet.advel.cz/) (3d Physics, adjusted to be FP64 instead of FP32)
 * [Box2d](https://github.com/jbox2d/jbox2d) (2d Physics, still FP32)
-<!-- removed because it is slow, because of too many branches 
-* [OpenSimplexNoise](https://gist.github.com/KdotJPG/b1270127455a94ac5d19) (Noise Generator) -->
 
 
 ## Build
