@@ -6,6 +6,8 @@ import kotlin.math.*
 @Suppress("unused")
 object Maths {
 
+    const val PIf = Math.PI.toFloat()
+
     const val MILLIS_TO_NANOS = 1_000_000L
     const val SECONDS_TO_NANOS = 1_000_000_000L
 

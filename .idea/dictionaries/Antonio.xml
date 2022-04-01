@@ -85,6 +85,7 @@
       <w>envs</w>
       <w>equirectangular</w>
       <w>expm</w>
+      <w>exponentials</w>
       <w>fadein</w>
       <w>farneback</w>
       <w>fastdecode</w>
@@ -128,6 +129,8 @@
       <w>indianred</w>
       <w>infos</w>
       <w>inited</w>
+      <w>inscattered</w>
+      <w>inscattering</w>
       <w>inspectable</w>
       <w>inspectables</w>
       <w>invalidations</w>

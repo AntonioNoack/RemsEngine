@@ -12,7 +12,7 @@ import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.Cursor
 import me.anno.gpu.Cursor.useCursor
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXBase0
+import me.anno.gpu.GFXBase
 import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.WindowX
 import me.anno.gpu.framebuffer.FBStack
@@ -138,7 +138,7 @@ abstract class StudioBase(
 
     open fun setupNames() {
         GFX.windows.firstOrNull()?.title = title
-        GFXBase0.projectName = configName
+        GFXBase.projectName = configName
     }
 
     open fun run() {

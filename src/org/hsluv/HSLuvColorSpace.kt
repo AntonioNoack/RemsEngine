@@ -3,6 +3,7 @@ package org.hsluv
 import me.anno.utils.hpc.ThreadLocal2
 import org.joml.Vector2d
 import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.*
 
 /**
@@ -16,6 +17,12 @@ object HSLuvColorSpace {
         3.240969941904521, -1.537383177570093, -0.498610760293,
         -0.96924363628087, 1.87596750150772, 0.041555057407175,
         0.055630079696993, -0.20397695888897, 1.056971514242878,
+    )
+
+    private val xyz2rgb2 = floatArrayOf(
+        3.240969941904521f, -1.537383177570093f, -0.498610760293f,
+        -0.96924363628087f, 1.87596750150772f, 0.041555057407175f,
+        0.055630079696993f, -0.20397695888897f, 1.056971514242878f,
     )
 
     private val rgb2xyz = doubleArrayOf(
@@ -112,11 +119,23 @@ object HSLuvColorSpace {
         return b.dot(a[aOffset], a[aOffset + 1], a[aOffset + 2])
     }
 
+    private fun dotProduct(a: FloatArray, aOffset: Int, b: Vector3f): Float {
+        return b.dot(a[aOffset], a[aOffset + 1], a[aOffset + 2])
+    }
+
     fun fromLinear(c: Double): Double {
         return if (c <= 0.0031308) {
             12.92 * c
         } else {
             1.055 * c.pow(1.0 / 2.4) - 0.055
+        }
+    }
+
+    fun fromLinear(c: Float): Float {
+        return if (c <= 0.0031308f) {
+            12.92f * c
+        } else {
+            1.055f * c.pow(1f / 2.4f) - 0.055f
         }
     }
 
@@ -133,6 +152,14 @@ object HSLuvColorSpace {
             fromLinear(dotProduct(xyz2rgb, 0, src)),
             fromLinear(dotProduct(xyz2rgb, 3, src)),
             fromLinear(dotProduct(xyz2rgb, 6, src)),
+        )
+    }
+
+    fun xyzToRgb(src: Vector3f, dst: Vector3f = src): Vector3f {
+        return dst.set(
+            fromLinear(dotProduct(xyz2rgb2, 0, src)),
+            fromLinear(dotProduct(xyz2rgb2, 3, src)),
+            fromLinear(dotProduct(xyz2rgb2, 6, src)),
         )
     }
 

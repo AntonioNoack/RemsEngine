@@ -9,7 +9,7 @@ import java.nio.FloatBuffer
 
 class FloatImage(
     width: Int, height: Int, channels: Int,
-    val data: FloatArray,
+    val data: FloatArray = FloatArray(width * height * channels),
     map: ColorMap = LinearColorMap.default
 ) : IFloatImage(width, height, channels, map) {
 

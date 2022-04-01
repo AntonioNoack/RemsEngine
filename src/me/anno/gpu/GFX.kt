@@ -54,7 +54,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.staticProperties
 import kotlin.reflect.full.superclasses
 
-object GFX : GFXBase0() {
+object GFX : GFXBase() {
 
     private val LOGGER = LogManager.getLogger(GFX::class)
 
@@ -501,23 +501,5 @@ object GFX : GFXBase0() {
                 .firstOrNull() ?: break
         }
     }
-
-    //override fun cleanUp() {
-    // destroy all used meshes, shaders, ...
-    // not that dearly needed, as the memory
-    // is freed anyways, when the process is killed
-    // Cache.clear()
-    // workGPUTasks(true)
-    /*SimpleBuffer.destroy()
-    CameraModel.destroy()
-    ArrowModel.destroy()
-    CubemapModel.destroy()
-    SpeakerModel.destroy()
-    SphereAxesModel.destroy()
-    SphereModel.destroy()
-    TextureLib.destroy()
-    GL.setCapabilities(null)*/
-    /*    super.cleanUp()
-    }*/
 
 }

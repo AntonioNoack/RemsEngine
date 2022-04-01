@@ -27,6 +27,7 @@ import me.anno.ecs.components.script.QuickInputScriptComponent
 import me.anno.ecs.components.script.QuickScriptComponent
 import me.anno.ecs.components.script.ScriptComponent
 import me.anno.ecs.components.mesh.sdf.SDFRegistry
+import me.anno.ecs.components.shaders.SkyBox
 import me.anno.ecs.components.test.RaycastTestComponent
 import me.anno.ecs.components.test.TestVehicleController
 import me.anno.ecs.components.test.TypeTestComponent
@@ -160,6 +161,8 @@ object ECSRegistry {
         registerCustomClass(AmbientLight())
         registerCustomClass(EnvironmentMap())
         registerCustomClass(PlanarReflection())
+
+        registerCustomClass(SkyBox())
 
         // colliders
         registerCustomClass(BoxCollider())

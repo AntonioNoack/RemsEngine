@@ -9,13 +9,13 @@ import org.lwjgl.opengl.GL11
 import java.io.IOException
 
 // can be set by the application
-var frame0BackgroundColor = 0
-var frame0IconColor = 0x172040
+var logoBackgroundColor = 0
+var logoIconColor = 0x172040
 
 fun drawLogo(window: WindowX){
 
     // load icon.obj as file, and draw it using OpenGL 1.0
-    var c = frame0BackgroundColor
+    var c = logoBackgroundColor
     GL11.glClearColor((c shr 16 and 255) / 255f, (c shr 8 and 255) / 255f, (c and 255) / 255f, 1f)
     GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
     GL11.glMatrixMode(GL11.GL_PROJECTION)
@@ -32,7 +32,7 @@ fun drawLogo(window: WindowX){
         GL11.glOrtho(-1.0, +1.0, -dy.toDouble(), dy.toDouble(), -1.0, +1.0)
     }
 
-    c = frame0IconColor
+    c = logoIconColor
     GL11.glColor3f((c shr 16 and 255) / 255f, (c shr 8 and 255) / 255f, (c and 255) / 255f)
     try {
         val stream = ResourceHelper.loadResource("icon.obj")

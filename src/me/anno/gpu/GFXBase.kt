@@ -22,6 +22,7 @@ import me.anno.io.ResourceHelper.loadResource
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.base.menu.Menu.ask
+import me.anno.ui.base.text.TextPanel
 import me.anno.utils.Clock
 import org.apache.logging.log4j.LogManager.getLogger
 import org.apache.logging.log4j.Logger
@@ -39,6 +40,7 @@ import java.awt.Robot
 import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
+import kotlin.concurrent.thread
 import kotlin.math.abs
 
 /**
@@ -56,7 +58,7 @@ import kotlin.math.abs
  * todo rebuild and recompile the glfw driver, which handles the touch input, so the input can be assigned to the window
  * (e.g. add 1 to the pointer)
  */
-open class GFXBase0 {
+open class GFXBase {
 
     private var debugProc: Callback? = null
     private var errorCallback: GLFWErrorCallback? = null
@@ -82,9 +84,10 @@ open class GFXBase0 {
     val openglLock = Any()
     var destroyed = false
 
-    // todo depends on window
     var capabilities: GLCapabilities? = null
     var robot: Robot? = null
+
+    val idleFPS get() = DefaultConfig["ui.window.idleFPS", 10]
 
     fun getWindow(window: Long) = windows.first { it.pointer == window }
 
@@ -294,8 +297,6 @@ open class GFXBase0 {
         GFX.onShutdown?.invoke()
     }
 
-    var idleFPS = 10
-
     open fun setupDebugging() {
         debugProc = GLUtil.setupDebugMessageCallback(LWJGLDebugCallback)
     }
@@ -441,8 +442,8 @@ open class GFXBase0 {
 
     companion object {
 
-        private val LOGGER: Logger = getLogger(GFXBase0::class.java)
-        var projectName = "X"
+        private val LOGGER: Logger = getLogger(GFXBase::class.java)
+        var projectName = "Rem's Engine"
 
         fun setIcon(window: Long) {
             try {
@@ -476,11 +477,6 @@ open class GFXBase0 {
 
         fun loadAssetsImage(name: String): BufferedImage {
             return ImageIO.read(loadResource(name).buffered())
-        }
-
-        @JvmStatic
-        fun main(args: Array<String>) {
-            GFXBase0().run()
         }
 
     }

@@ -1,7 +1,7 @@
 package me.anno.gpu.hidden
 
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXBase0
+import me.anno.gpu.GFXBase
 import me.anno.gpu.WindowX
 import me.anno.utils.Clock
 import org.apache.logging.log4j.LogManager
@@ -58,7 +58,7 @@ object HiddenOpenGLContext {
         // glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_OSMESA_CONTEXT_API)
 
         // removes scaling options -> how could we replace them?
-        window.pointer = glfwCreateWindow(width, height, GFXBase0.projectName, MemoryUtil.NULL, MemoryUtil.NULL)
+        window.pointer = glfwCreateWindow(width, height, GFXBase.projectName, MemoryUtil.NULL, MemoryUtil.NULL)
         if (window.pointer == MemoryUtil.NULL) throw RuntimeException("Failed to create the GLFW window")
         GFX.windows.add(window)
         GFX.activeWindow = window
