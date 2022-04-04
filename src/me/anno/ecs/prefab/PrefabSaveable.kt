@@ -24,6 +24,9 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     @NotSerializedProperty // ideally, this would have the default value "depth>3" or root.numChildrenAtDepth(depth)>100
     override var isCollapsed = true
 
+    @NotSerializedProperty
+    var lastWarning: String? = null
+
     // @NotSerializedProperty
     // var prefab: PrefabSaveable? = null
     fun getOriginal(): PrefabSaveable? {
@@ -211,7 +214,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         }
 
         fun <V : PrefabSaveable> getOptionsByClass(parent: PrefabSaveable?, clazz: KClass<V>): List<Option> {
-            // registry over all options... / todo search the raw files + search all scripts
+            // registry over all options... / search the raw files + search all scripts? a bit much... maybe in the local folder?
             val knownComponents = ISaveable.getInstanceOf(clazz)
             return knownComponents.map {
                 Option(it.key.camelCaseToTitle(), "") {

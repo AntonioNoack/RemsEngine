@@ -19,6 +19,8 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.Constraint
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelGroup
+import me.anno.ui.base.scrolling.ScrollableX
+import me.anno.ui.base.scrolling.ScrollableY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.files.Search
 import me.anno.ui.style.Style
@@ -604,8 +606,13 @@ open class Panel(val style: Style) : PrefabSaveable() {
     }
 
     open fun getOverlayParent(x0: Int, y0: Int, x1: Int, y1: Int): Panel? {
-        return uiParent?.getOverlayParent(x0, y0, x1, y1) ?:
-            (if (drawsOverlayOverChildren(x0, y0, x1, y1)) this else null)
+        return uiParent?.getOverlayParent(x0, y0, x1, y1) ?: (if (drawsOverlayOverChildren(
+                x0,
+                y0,
+                x1,
+                y1
+            )
+        ) this else null)
     }
 
     /**
@@ -614,6 +621,33 @@ open class Panel(val style: Style) : PrefabSaveable() {
      * */
     open fun isKeyInput() = false
     open fun acceptsChar(char: Int) = true
+
+    open fun scrollTo(x: Int, y: Int) {
+        // find parent scroll lists, such that after scrolling, this panel has it's center there
+        var dx = (this.x + this.w / 2) - x
+        var dy = (this.y + this.h / 2) - y
+        var par = uiParent
+        while (par != null && (dx != 0 || dy != 0)) {
+            if (dx != 0 && par is ScrollableX) {
+                par.scrollX(dx)
+                par.invalidateLayout()
+                dx = 0
+            }
+            if (dy != 0 && par is ScrollableY) {
+                par.scrollY(dy)
+                par.invalidateLayout()
+                dy = 0
+            }
+            par = par.uiParent
+        }
+    }
+
+    open fun scrollTo() {
+        val window = window
+        if (window == null) {
+            LOGGER.warn("Window of $this is null")
+        } else scrollTo(window.mouseXi, window.mouseYi)
+    }
 
     fun listOfPanelHierarchy(callback: (Panel) -> Unit) {
         uiParent?.listOfPanelHierarchy(callback)
@@ -791,20 +825,54 @@ open class Panel(val style: Style) : PrefabSaveable() {
         clone.backgroundRadiusCorners = backgroundRadiusCorners
         clone.backgroundRadius = backgroundRadius
         clone.layoutConstraints.clear()
-        clone.layoutConstraints.addAll(layoutConstraints)
+        clone.layoutConstraints.addAll(layoutConstraints.map { it.clone() })
+    }
+
+    override fun readInt(name: String, value: Int) {
+        when (name) {
+            "x" -> x = value
+            "y" -> y = value
+            "w" -> w = value
+            "h" -> h = value
+            "minW" -> minW = value
+            "minH" -> minH = value
+            "visibility" -> visibility = Visibility[value != 0]
+            "alignmentX" -> alignmentX = AxisAlignment.find(value) ?: alignmentX
+            "alignmentY" -> alignmentY = AxisAlignment.find(value) ?: alignmentY
+            "background" -> backgroundColor = value
+            "backgroundOutline" -> backgroundOutlineColor = value
+            else -> super.readInt(name, value)
+        }
+    }
+
+    override fun readFloat(name: String, value: Float) {
+        when (name) {
+            "weight" -> weight = value
+            "backgroundRadius" -> backgroundRadius = value
+            "backgroundOutlineThickness" -> backgroundOutlineThickness = value
+            else -> super.readFloat(name, value)
+        }
     }
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        // todo save all children if group
+        writer.writeInt("x", x)
+        writer.writeInt("y", y)
+        writer.writeInt("w", w)
+        writer.writeInt("h", h)
+        writer.writeInt("minW", minW)
+        writer.writeInt("minH", minH)
         writer.writeEnum("alignmentX", alignmentX)
         writer.writeEnum("alignmentY", alignmentY)
+        // maybe...
+        // writer.writeObjectList(this, "layoutConstraints", layoutConstraints)
         // todo all other properties...
         writer.writeFloat("weight", weight)
-        writer.writeInt("background", backgroundColor)
-        writer.writeFloat("backgroundRadius", backgroundRadius)
+        writer.writeEnum("visibility", visibility)
+        writer.writeColor("background", backgroundColor)
         writer.writeInt("backgroundRadiusCorners", backgroundRadiusCorners)
-        writer.writeInt("backgroundOutline", backgroundOutlineColor)
+        writer.writeColor("backgroundOutline", backgroundOutlineColor)
+        writer.writeFloat("backgroundRadius", backgroundRadius)
         writer.writeFloat("backgroundOutlineThickness", backgroundOutlineThickness)
     }
 

@@ -1,6 +1,7 @@
 package me.anno.utils.bench
 
 import me.anno.io.Saveable
+import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.utils.Clock
@@ -17,7 +18,7 @@ fun main() {
     // just being one byte too large causes an increase of 4ns/element
     for (tries in 0 until 10) {
 
-        val writer = TextWriter(4854397)
+        val writer = TextWriter(4854397, InvalidRef)
 
         val clock = Clock()
         clock.start()
@@ -40,10 +41,11 @@ fun main() {
         clock.start()
 
         lateinit var asInts: IntArray
-        TextReader(asText).readProperty(object : Saveable() {
+        TextReader(asText, InvalidRef).readProperty(object : Saveable() {
             override fun readIntArray(name: String, values: IntArray) {
                 asInts = values
             }
+
             override fun isDefaultValue(): Boolean = false
             override val approxSize: Int = 0
             override val className: String = ""

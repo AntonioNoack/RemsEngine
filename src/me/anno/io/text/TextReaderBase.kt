@@ -13,7 +13,7 @@ import java.io.EOFException
 /**
  * reads a JSON-similar format from a text file
  * */
-abstract class TextReaderBase : BaseReader() {
+abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
 
     var tmpChar = -1
     var lineNumber = 1
@@ -94,7 +94,7 @@ abstract class TextReaderBase : BaseReader() {
     }
 
     private fun readFile(): FileReference {
-        return readStringValueOrNull()?.toGlobalFile() ?: InvalidRef
+        return readStringValueOrNull()?.toGlobalFile(workspace) ?: InvalidRef
     }
 
     private fun readStringValue(): String {
@@ -202,15 +202,16 @@ abstract class TextReaderBase : BaseReader() {
         }
     }
 
-    fun <ArrayType, InstanceType> readTypedArray(
+    fun <ArrayType, InstanceType> readArray(
         typeName: String,
         createArray: (arraySize: Int) -> ArrayType,
         readValue: () -> InstanceType,
         putValue: (array: ArrayType, index: Int, value: InstanceType) -> Unit
     ): ArrayType {
         assert(skipSpace(), '[')
-        val rawLength = readNumber()
-        val length = rawLength.toIntOrNull() ?: error("Invalid $typeName[] length '$rawLength'")
+        val rawLength = readLong()
+        if (rawLength > Int.MAX_VALUE || rawLength < 0) error("Invalid $typeName[] length '$rawLength'")
+        val length = rawLength.toInt()
         // mistakes of the past: ofc, there may be arrays with just zeros...
         /*if (length < (data.length - index) / 2) {
         } else error("Broken file :/, $typeName[].length > data.length ($rawLength)")*/
@@ -225,11 +226,32 @@ abstract class TextReaderBase : BaseReader() {
                     }// else skip
                 }
                 ']' -> break@content
-                else -> error("unknown character $next in $typeName[]")
+                else -> error("unknown character $next in $typeName[] in $lineNumber:$lineIndex")
             }
         }
         if (i > length) LOGGER.warn("$typeName[] contained too many elements!")
         return values
+    }
+
+    inline fun <reified Type> readArray(
+        typeName: String, a0: Type,
+        crossinline readValue: () -> Type,
+    ): Array<Type> {
+        return readArray(typeName,
+            { Array(it) { a0 } }, { readValue() },
+            { array, index, value -> array[index] = value }
+        )
+    }
+
+    inline fun <reified Type> readArray2(
+        typeName: String, a0: Array<Type>,
+        crossinline readValue: () -> Type,
+    ): Array<Array<Type>> {
+        @Suppress("unchecked_cast")
+        return readArray(typeName,
+            { Array(it) { a0 } }, { readArray(typeName, a0, readValue) },
+            { array, index, value -> array[index] = value as Array<Type> }
+        )
     }
 
     private fun readBool(): Boolean {
@@ -419,6 +441,127 @@ abstract class TextReaderBase : BaseReader() {
         return Quaterniond(rawX, rawY, rawZ, rawW)
     }
 
+    private fun readVector2i(allowCommaAtStart: Boolean = false): Vector2i {
+        var c0 = skipSpace()
+        if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
+        assert(c0, '[', "Start of Vector")
+        val rawX = readInt()
+        val sep0 = skipSpace()
+        if (sep0 == ']') return Vector2i(rawX)
+        assert(sep0, ',', "Separator of Vector")
+        val rawY = readInt()
+        assert(skipSpace(), ']', "End of Vector")
+        return Vector2i(rawX, rawY)
+    }
+
+    private fun readVector3i(allowCommaAtStart: Boolean = false): Vector3i {
+        var c0 = skipSpace()
+        if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
+        assert(c0, '[', "Start of Vector")
+        val rawX = readInt()
+        val sep0 = skipSpace()
+        if (sep0 == ']') return Vector3i(rawX) // monotone / grayscale
+        assert(sep0, ',', "Separator of Vector")
+        val rawY = readInt()
+        assert(skipSpace(), ',', "Separator of Vector")
+        val rawZ = readInt()
+        assert(skipSpace(), ']', "End of Vector")
+        return Vector3i(rawX, rawY, rawZ)
+    }
+
+    private fun readVector4i(allowCommaAtStart: Boolean = false): Vector4i {
+        var c0 = skipSpace()
+        if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
+        assert(c0, '[', "Start of Vector")
+        val rawX = readInt()
+        val sep0 = skipSpace()
+        if (sep0 == ']') return Vector4i(rawX) // monotone
+        assert(sep0, ',', "Separator of Vector")
+        val rawY = readInt()
+        val sep1 = skipSpace()
+        if (sep1 == ']') return Vector4i(rawX, rawX, rawX, rawY) // white with alpha
+        assert(sep1, ',', "Separator of Vector")
+        val rawZ = readInt()
+        val sep2 = skipSpace()
+        if (sep2 == ']') return Vector4i(rawX, rawY, rawZ, 255) // opaque color
+        assert(sep2, ',', "Separator of Vector")
+        val rawW = readInt()
+        assert(skipSpace(), ']', "End of Vector")
+        return Vector4i(rawX, rawY, rawZ, rawW)
+    }
+
+
+    private fun readMatrix3x3(): Matrix3f {
+        assert(skipSpace(), '[', "Start of m3x3")
+        val m = Matrix3f(
+            readVector3f(),
+            readVector3f(true),
+            readVector3f(true)
+        )
+        assert(skipSpace(), ']', "End of m3x3")
+        return m
+    }
+
+    private fun readMatrix3x3d(): Matrix3d {
+        assert(skipSpace(), '[', "Start of m3x3d")
+        val m = Matrix3d(
+            readVector3d(),
+            readVector3d(true),
+            readVector3d(true)
+        )
+        assert(skipSpace(), ']', "End of m3x3d")
+        return m
+    }
+
+    private fun readMatrix4x3(): Matrix4x3f {
+        assert(skipSpace(), '[', "Start of m4x3")
+        val m = Matrix4x3f(
+            readVector3f(),
+            readVector3f(true),
+            readVector3f(true),
+            readVector3f(true)
+        )
+        assert(skipSpace(), ']', "End of m4x3")
+        return m
+    }
+
+    private fun readMatrix4x3d(): Matrix4x3d {
+        assert(skipSpace(), '[', "Start of m4x3d")
+        val m = Matrix4x3d() // constructor is missing somehow...
+        m.set(
+            readVector3d(),
+            readVector3d(true),
+            readVector3d(true),
+            readVector3d(true)
+        )
+        assert(skipSpace(), ']', "End of m4x3d")
+        return m
+    }
+
+    private fun readMatrix4x4(): Matrix4f {
+        assert(skipSpace(), '[', "Start of m4x4")
+        val m = Matrix4f(
+            readVector4f(),
+            readVector4f(true),
+            readVector4f(true),
+            readVector4f(true)
+        )
+        assert(skipSpace(), ']', "End of m4x4")
+        return m
+    }
+
+    private fun readMatrix4x4d(): Matrix4d {
+        assert(skipSpace(), '[', "Start of m4x4d")
+        val m = Matrix4d(
+            readVector4d(),
+            readVector4d(true),
+            readVector4d(true),
+            readVector4d(true)
+        )
+        assert(skipSpace(), ']', "End of m4x4d")
+        return m
+    }
+
     fun readProperty(obj: ISaveable) {
         assert(skipSpace(), '"')
         val typeName = readString()
@@ -447,30 +590,42 @@ abstract class TextReaderBase : BaseReader() {
     private fun readInt(): Int = readLong().toInt()
 
     private fun readLong(): Long {
-        // 3x as fast as readNumber().toLong()
+        // originally 3x as fast as readNumber().toLong()
         var isFirst = true
         var isNegative = false
         var isColor = false
-        // todo support hex and oct
-        var isHex = false
-        var isOct = false
         var number = 0L
         var numDigits = 0
         var base = 10
         loop@ while (true) {
             when (val next = if (isFirst) skipSpace() else next()) {
-                in '0'..'9' -> {
+                '0' -> {
+                    if (isFirst) base = 8 // oct mode activated; continue with x for hex
+                    number *= base
+                    numDigits++
+                }
+                // 156
+                in '1'..'9' -> {
                     number = base * number + (next.code - 48)
                     numDigits++
                 }
-                in 'A'..'F' -> if (isColor) {
+                // 0b011101
+                'b', 'B' -> {
+                    if (base == 8 && numDigits == 1) base = 2
+                    else {
+                        number = base * number + 11
+                        numDigits++
+                    }
+                }
+                // 0x1dffa
+                in 'A'..'F' -> if (isColor || base > 10) {
                     number = base * number + (next.code - 55)
                     numDigits++
                 } else {
                     tmpChar = next.code
                     break@loop
                 }
-                in 'a'..'f' -> if (isColor) {
+                in 'a'..'f' -> if (isColor || base > 10) {
                     number = base * number + (next.code - 87)
                     numDigits++
                 } else {
@@ -490,10 +645,13 @@ abstract class TextReaderBase : BaseReader() {
                     tmpChar = next.code
                     break@loop
                 }
+                'x', 'X' -> {
+                    base = 16
+                }
                 '_' -> { // allowed for better readability of large numbers
                 }
                 '"', '\'' -> {
-                    if (number == 0L) {
+                    if (isFirst) {
                         number = readLong()
                         assert(next(), next)
                         break@loop
@@ -536,44 +694,39 @@ abstract class TextReaderBase : BaseReader() {
         toDouble()// ?: error("Invalid double", this)
     }
 
-    fun readBoolArray() = readTypedArray("boolean",
+    fun readBoolArray() = readArray("boolean",
         { BooleanArray(it) }, { readBool() },
         { array, index, value -> array[index] = value })
 
-    fun readCharArray() = readTypedArray("char",
+    fun readCharArray() = readArray("char",
         { CharArray(it) }, { readChar() },
         { array, index, value -> array[index] = value })
 
-    fun readByteArray() = readTypedArray("byte",
+    fun readByteArray() = readArray("byte",
         { ByteArray(it) }, { readByte() },
         { array, index, value -> array[index] = value })
 
-    fun readShortArray() = readTypedArray("short",
+    fun readShortArray() = readArray("short",
         { ShortArray(it) }, { readShort() },
         { array, index, value -> array[index] = value })
 
-    fun readIntArray() = readTypedArray("int",
+    fun readIntArray() = readArray("int",
         { IntArray(it) }, { readInt() },
         { array, index, value -> array[index] = value })
 
-    fun readLongArray() = readTypedArray("long",
+    fun readLongArray() = readArray("long",
         { LongArray(it) }, { readLong() },
         { array, index, value -> array[index] = value })
 
-    fun readFloatArray() = readTypedArray(
+    fun readFloatArray() = readArray(
         "float",
         { FloatArray(it) }, { readFloat() },
         { array, index, value -> array[index] = value }
     )
 
-    private fun readDoubleArray() = readTypedArray(
+    private fun readDoubleArray() = readArray(
         "double",
         { DoubleArray(it) }, { readDouble() },
-        { array, index, value -> array[index] = value }
-    )
-
-    private fun readStringArray() = readTypedArray("String",
-        { Array(it) { "" } }, { readStringValue() },
         { array, index, value -> array[index] = value }
     )
 
@@ -586,6 +739,7 @@ abstract class TextReaderBase : BaseReader() {
             else getNewClassInstance(clazz)
         }
         var (type, name) = splitTypeName(typeName)
+        @Suppress("UNCHECKED_CAST")
         when (type) {
             "i1", "b" -> obj.readBoolean(name, readBool())
             "c" -> obj.readChar(name, readChar())
@@ -596,46 +750,22 @@ abstract class TextReaderBase : BaseReader() {
             "f32", "f" -> obj.readFloat(name, readFloat())
             "f64", "d" -> obj.readDouble(name, readDouble())
             "i1[]", "b[]" -> obj.readBooleanArray(name, readBoolArray())
-            "i1[][]", "b[][]" -> obj.readBooleanArray2D(name, readTypedArray("bool[]",
-                { Array(it) { boolArray0 } }, { readBoolArray() },
-                { array, index, value -> array[index] = value }
-            ))
+            "i1[][]", "b[][]" -> obj.readBooleanArray2D(name, readArray("bool[]", boolArray0) { readBoolArray() })
             "c[]" -> obj.readCharArray(name, readCharArray())
-            "c[][]" -> obj.readCharArray2D(
-                name, readTypedArray("char[]",
-                    { Array(it) { charArray0 } }, { readCharArray() },
-                    { array, index, value -> array[index] = value })
-            )
+            "c[][]" -> obj.readCharArray2D(name, readArray("char[]", charArray0) { readCharArray() })
             "i8[]", "B[]" -> obj.readByteArray(name, readByteArray())
-            "i8[][]", "B[][]" -> obj.readByteArray2D(name, readTypedArray("byte[]",
-                { Array(it) { byteArray0 } }, { readByteArray() },
-                { array, index, value -> array[index] = value }
-            ))
+            "i8[][]", "B[][]" -> obj.readByteArray2D(name, readArray("byte[]", byteArray0) { readByteArray() })
             "i16[]", "s[]" -> obj.readShortArray(name, readShortArray())
-            "i16[][]", "s[][]" -> obj.readShortArray2D(name, readTypedArray("short[]",
-                { Array(it) { shortArray0 } }, { readShortArray() },
-                { array, index, value -> array[index] = value })
-            )
+            "i16[][]", "s[][]" -> obj.readShortArray2D(name, readArray("short[]", shortArray0) { readShortArray() })
             "i32[]", "i[]", "col[]" -> obj.readIntArray(name, readIntArray())
-            "i32[][]", "i[][]", "col[][]" -> obj.readIntArray2D(name, readTypedArray("int[]",
-                { Array(it) { intArray0 } }, { readIntArray() },
-                { array, index, value -> array[index] = value }
-            ))
+            "i32[][]", "i[][]", "col[][]" -> obj.readIntArray2D(name, readArray("int[]", intArray0) { readIntArray() })
             "i64[]", "u64[]", "l[]" -> obj.readLongArray(name, readLongArray())
-            "i64[][]", "u64[][]", "l[][]" -> obj.readLongArray2D(name, readTypedArray("long[]",
-                { Array(it) { longArray0 } }, { readLongArray() },
-                { array, index, value -> array[index] = value }
-            ))
+            "i64[][]", "u64[][]", "l[][]" ->
+                obj.readLongArray2D(name, readArray("long[]", longArray0) { readLongArray() })
             "f32[]", "f[]" -> obj.readFloatArray(name, readFloatArray())
-            "f32[][]", "f[][]" -> obj.readFloatArray2D(name, readTypedArray("float[]",
-                { Array(it) { floatArray0 } }, { readFloatArray() },
-                { array, index, value -> array[index] = value }
-            ))
+            "f32[][]", "f[][]" -> obj.readFloatArray2D(name, readArray("float[]", floatArray0) { readFloatArray() })
             "d[]" -> obj.readDoubleArray(name, readDoubleArray())
-            "d[][]" -> obj.readDoubleArray2D(name, readTypedArray("double[]",
-                { Array(it) { doubleArray0 } }, { readDoubleArray() },
-                { array, index, value -> array[index] = value }
-            ))
+            "d[][]" -> obj.readDoubleArray2D(name, readArray("double[]", doubleArray0) { readDoubleArray() })
             "v2" -> obj.readVector2f(name, readVector2f())
             "v3" -> obj.readVector3f(name, readVector3f())
             "v4" -> obj.readVector4f(name, readVector4f())
@@ -646,70 +776,33 @@ abstract class TextReaderBase : BaseReader() {
             "p4", "p4f" -> obj.readPlanef(name, readPlanef())
             "p4d" -> obj.readPlaned(name, readPlaned())
             "q4d" -> obj.readQuaterniond(name, readQuaterniond())
-            "v2[]" -> obj.readVector2fArray(name, readTypedArray("vector2f",
-                { Array(it) { vector2f0 } }, { readVector2f() },
-                { array, index, value -> array[index] = value })
-            )
-            "v3[]" -> obj.readVector3fArray(name, readTypedArray("vector3f",
-                { Array(it) { vector3f0 } }, { readVector3f() },
-                { array, index, value -> array[index] = value })
-            )
-            "v4[]" -> obj.readVector4fArray(name, readTypedArray("vector4f",
-                { Array(it) { vector4f0 } }, { readVector4f() },
-                { array, index, value -> array[index] = value })
-            )
-            "v2d[]" -> obj.readVector2dArray(name, readTypedArray("vector2d",
-                { Array(it) { vector2d0 } }, { readVector2d() },
-                { array, index, value -> array[index] = value })
-            )
-            "v3d[]" -> obj.readVector3dArray(name, readTypedArray("vector3d",
-                { Array(it) { vector3d0 } }, { readVector3d() },
-                { array, index, value -> array[index] = value })
-            )
-            "v4d[]" -> obj.readVector4dArray(name, readTypedArray("vector4d",
-                { Array(it) { vector4d0 } }, { readVector4d() },
-                { array, index, value -> array[index] = value })
-            )
-            "m3x3" -> {
-                assert(skipSpace(), '[', "Start of m3x3")
-                obj.readMatrix3x3f(
-                    name, Matrix3f(
-                        readVector3f(),
-                        readVector3f(true),
-                        readVector3f(true)
-                    )
-                )
-                assert(skipSpace(), ']', "End of m3x3")
-            }
-            "m4x3" -> readWithBrackets(type) {
-                obj.readMatrix4x3f(
-                    name, Matrix4x3f(
-                        readVector3f(),
-                        readVector3f(true),
-                        readVector3f(true),
-                        readVector3f(true)
-                    )
-                )
-            }
-            "m4x4" -> readWithBrackets(type) {
-                obj.readMatrix4x4f(name, Matrix4f(readVector4f(), readVector4f(), readVector4f(), readVector4f()))
-            }
-            "m3x3d" -> readWithBrackets(type) {
-                obj.readMatrix3x3d(name, Matrix3d(readVector3d(), readVector3d(), readVector3d()))
-            }
-            "m4x3d" -> readWithBrackets(type) {
-                obj.readMatrix4x3d(
-                    name, Matrix4x3d(
-                        readDouble(), readDouble(), readDouble(),
-                        readDouble(), readDouble(), readDouble(),
-                        readDouble(), readDouble(), readDouble(),
-                        readDouble(), readDouble(), readDouble()
-                    )
-                )
-            }
-            "m4x4d" -> readWithBrackets(type) {
-                obj.readMatrix4x4d(name, Matrix4d(readVector4d(), readVector4d(), readVector4d(), readVector4d()))
-            }
+            "v2i" -> obj.readVector2i(name, readVector2i())
+            "v3i" -> obj.readVector3i(name, readVector3i())
+            "v4i" -> obj.readVector4i(name, readVector4i())
+            "v2[]" -> obj.readVector2fArray(name, readArray("vector2f", vector2f0) { readVector2f() })
+            "v3[]" -> obj.readVector3fArray(name, readArray("vector3f", vector3f0) { readVector3f() })
+            "v4[]" -> obj.readVector4fArray(name, readArray("vector4f", vector4f0) { readVector4f() })
+            "v2d[]" -> obj.readVector2dArray(name, readArray("vector2d", vector2d0) { readVector2d() })
+            "v3d[]" -> obj.readVector3dArray(name, readArray("vector3d", vector3d0) { readVector3d() })
+            "v4d[]" -> obj.readVector4dArray(name, readArray("vector4d", vector4d0) { readVector4d() })
+            "v2i[]" -> obj.readVector2iArray(name, readArray("vector2i", vector2i0) { readVector2i() })
+            "v3i[]" -> obj.readVector3iArray(name, readArray("vector3i", vector3i0) { readVector3i() })
+            "v4i[]" -> obj.readVector4iArray(name, readArray("vector4i", vector4i0) { readVector4i() })
+            "v2[][]" -> obj.readVector2fArray2D(name, readArray2("vector2f[]", vector2f0a) { readVector2f() })
+            "v3[][]" -> obj.readVector3fArray2D(name, readArray2("vector3f[]", vector3f0a) { readVector3f() })
+            "v4[][]" -> obj.readVector4fArray2D(name, readArray2("vector4f[]", vector4f0a) { readVector4f() })
+            "v2d[][]" -> obj.readVector2dArray2D(name, readArray2("vector2d[]", vector2d0a) { readVector2d() })
+            "v3d[][]" -> obj.readVector3dArray2D(name, readArray2("vector3d[]", vector3d0a) { readVector3d() })
+            "v4d[][]" -> obj.readVector4dArray2D(name, readArray2("vector4d[]", vector4d0a) { readVector4d() })
+            "v2i[][]" -> obj.readVector2iArray2D(name, readArray2("vector2i[]", vector2i0a) { readVector2i() })
+            "v3i[][]" -> obj.readVector3iArray2D(name, readArray2("vector3i[]", vector3i0a) { readVector3i() })
+            "v4i[][]" -> obj.readVector4iArray2D(name, readArray2("vector4i[]", vector4i0a) { readVector4i() })
+            "m3x3" -> obj.readMatrix3x3f(name, readMatrix3x3())
+            "m4x3" -> obj.readMatrix4x3f(name, readMatrix4x3())
+            "m4x4" -> obj.readMatrix4x4f(name, readMatrix4x4())
+            "m3x3d" -> obj.readMatrix3x3d(name, readMatrix3x3d())
+            "m4x3d" -> obj.readMatrix4x3d(name, readMatrix4x3d())
+            "m4x4d" -> obj.readMatrix4x4d(name, readMatrix4x4d())
             "AABBf" -> readWithBrackets(type) {
                 obj.readAABBf(
                     name, AABBf()
@@ -725,39 +818,18 @@ abstract class TextReaderBase : BaseReader() {
                 )
             }
             "S" -> obj.readString(name, readStringValue())
-            "S[]" -> obj.readStringArray(name, readStringArray())
-            "S[][]" -> {
-                val a0 = Array(0) { "" }
-                obj.readStringArray2D(name, readTypedArray("String[]",
-                    { Array(it) { a0 } }, { readStringArray() },
-                    { array, index, value -> array[index] = value })
-                )
-            }
+            "S[]" -> obj.readStringArray(name, readArray("String", "") { readStringValue() })
+            "S[][]" -> obj.readStringArray2D(name, readArray2("String[]", emptyArray()) { readStringValue() })
             "R" -> obj.readFile(name, readFile())
-            "R[]" -> obj.readFileArray(
-                name, readTypedArray("FileRef",
-                    { Array(it) { InvalidRef } }, { readFile() },
-                    { array, index, value -> array[index] = value })
-            )
-            "R[][]" -> {
-                val a0 = Array<FileReference>(0) { InvalidRef }
-                obj.readFileArray2D(
-                    name, readTypedArray("FileRef",
-                        { Array(it) { a0 } }, {
-                            readTypedArray("FileRef[]",
-                                { Array<FileReference>(it) { InvalidRef } }, { readFile() },
-                                { array, index, value -> array[index] = value })
-                        },
-                        { array, index, value -> array[index] = value })
-                )
-            }
+            "R[]" -> obj.readFileArray(name, readArray("FileRef", InvalidRef) { readFile() })
+            "R[][]" -> obj.readFileArray2D(name, readArray2("FileRef", file0a) { readFile() })
             "*[]", "[]" -> {// array of mixed types
-                val elements = readTypedArray("Any", { arrayOfNulls<ISaveable?>(it) }, {
+                val elements = readArray("Any", { arrayOfNulls<ISaveable?>(it) }, {
                     when (val next = skipSpace()) {
                         'n' -> readNull()
                         '{' -> readObject()
                         in '0'..'9' -> readPtr(next, true)
-                        else -> error("Missing { or ptr or null after starting object[], got '$next'")
+                        else -> error("Missing { or ptr or null after starting object[], got '$next' in $lineNumber:$lineIndex")
                     }
                 }, { array, index, value -> array[index] = value })
                 obj.readObjectArray(name, elements)
@@ -765,12 +837,12 @@ abstract class TextReaderBase : BaseReader() {
             else -> {
                 if (type.endsWith("[]")) {// array, but all elements have the same type
                     type = type.substring(0, type.length - 2)
-                    val elements = readTypedArray(type, { arrayOfNulls<ISaveable?>(it) }, {
+                    val elements = readArray(type, { arrayOfNulls<ISaveable?>(it) }, {
                         when (val next = skipSpace()) {
                             'n' -> readNull()
                             '{' -> readObjectAndRegister(type)
                             in '0'..'9' -> readPtr(next, true)
-                            else -> error("Missing { or ptr or null after starting object[], got '$next'")
+                            else -> error("Missing { or ptr or null after starting object[], got '$next' in $lineNumber:$lineIndex")
                         }
                     }, { array, index, value -> array[index] = value })
                     obj.readObjectArray(name, elements)
@@ -781,7 +853,8 @@ abstract class TextReaderBase : BaseReader() {
                         in '0'..'9' -> {
                             tmpChar = next.code
                             val rawPtr = readNumber()
-                            val ptr = rawPtr.toIntOrNull() ?: error("Invalid pointer: $rawPtr")
+                            val ptr =
+                                rawPtr.toIntOrNull() ?: error("Invalid pointer: $rawPtr in $lineNumber:$lineIndex")
                             if (ptr > 0) {
                                 val child = getByPointer(ptr, false)
                                 if (child == null) {
@@ -791,7 +864,7 @@ abstract class TextReaderBase : BaseReader() {
                                 }
                             }
                         }
-                        else -> error("Missing { or ptr or null after starting object of class $type, got '$next'")
+                        else -> error("Missing { or ptr or null after starting object of class $type, got '$next' in $lineNumber:$lineIndex")
                     }
                 }
             }
@@ -866,7 +939,7 @@ abstract class TextReaderBase : BaseReader() {
 
     private fun splitTypeName(typeName: String): Pair<String, String> {
         val index = typeName.indexOf(':')
-        if (index < 0) error("Invalid Type:Name '$typeName'")
+        if (index < 0) error("Invalid Type:Name '$typeName' in $lineNumber:$lineIndex")
         val type = typeName.substring(0, index)
         val name = typeName.substring(index + 1)
         return type to name
@@ -915,20 +988,26 @@ abstract class TextReaderBase : BaseReader() {
         private val vector2d0 = Vector2d()
         private val vector3d0 = Vector3d()
         private val vector4d0 = Vector4d()
+        private val vector2i0 = Vector2i()
+        private val vector3i0 = Vector3i()
+        private val vector4i0 = Vector4i()
+        private val vector2f0a = emptyArray<Vector2f>()
+        private val vector3f0a = emptyArray<Vector3f>()
+        private val vector4f0a = emptyArray<Vector4f>()
+        private val vector2d0a = emptyArray<Vector2d>()
+        private val vector3d0a = emptyArray<Vector3d>()
+        private val vector4d0a = emptyArray<Vector4d>()
+        private val vector2i0a = emptyArray<Vector2i>()
+        private val vector3i0a = emptyArray<Vector3i>()
+        private val vector4i0a = emptyArray<Vector4i>()
+        private val file0a = emptyArray<FileReference>()
         private const val black = 255.shl(24).toLong()
         private val LOGGER = LogManager.getLogger(TextReaderBase::class)
     }
 
 }
 
-/*fun main() { // a test, because I had a bug
-    val readTest = OS.desktop.getChild("fbx.yaml")
-    val fakeString = TextReader.InputStreamCharSequence(readTest.inputStream(), readTest.length().toInt())
-    var i = 0
-    while (i < fakeString.length) {
-        val char = fakeString[i++]
-        print(char)
-    }
-    logger.info()
-    logger.info("characters: $i")
-}*/
+fun main() {// testing the number parser
+    val tr = TextReader("[4,0xff,077,#a,0110]", InvalidRef)
+    println(tr.readLongArray().joinToString { it.toUInt().toString(16) })
+}

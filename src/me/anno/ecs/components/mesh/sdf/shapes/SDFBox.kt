@@ -42,7 +42,7 @@ open class SDFBox : SDFSmoothShape() {
         builder.append(trans.posIndex)
         builder.append(',')
         if (dynamicSize) builder.appendUniform(uniforms, halfExtends)
-        else writeVec(builder, halfExtends)
+        else builder.appendVec(halfExtends)
         if (dynamicSmoothness || smoothness > 0f) {
             builder.append(',')
             builder.appendUniform(uniforms, GLSLType.V1F) { smoothness }

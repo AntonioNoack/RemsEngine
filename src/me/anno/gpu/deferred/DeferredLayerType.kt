@@ -112,8 +112,9 @@ class DeferredLayerType(
         // roughness = 1-reflectivity
         val ROUGHNESS = DeferredLayerType("ROUGHNESS", "finalRoughness", 0x11)
 
-        // from an occlusion texture, cavity; 1 = no cavities, 0 = completely hidden
-        val OCCLUSION = DeferredLayerType("OCCLUSION", "finalOcclusion", -1)
+        // from an occlusion texture, cavity; 0 = no cavities, 1 = completely hidden
+        // textures in materials are typically inverted, so they can be inverted here as well
+        val OCCLUSION = DeferredLayerType("OCCLUSION", "finalOcclusion", 0)
 
         // transparency? is a little late... finalAlpha, needs to be handled differently
         val TRANSLUCENCY = DeferredLayerType("TRANSLUCENCY", "finalTranslucency", 0)
@@ -186,6 +187,9 @@ class DeferredLayerType(
             COLOR_EMISSIVE,
             DEPTH
         )
+
+        val byName = values.associateBy { it.glslName }
+
     }
 
 }

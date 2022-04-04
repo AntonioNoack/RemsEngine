@@ -90,36 +90,40 @@ object ScreenSpaceAmbientOcclusion {
                     "uniform mat4 transform;\n" +
                     "uniform vec3[$MAX_SAMPLES] sampleKernel;\n" +
                     "uniform sampler2D finalPosition, finalNormal, random4x4;\n" +
+                    "float dot2(vec3 p){ return dot(p,p); }\n" +
                     "void main(){\n" +
                     "   vec3 origin = texture(finalPosition, uv).xyz;\n" +
+                    "   if(dot2(origin) > 1e20){\n" + // sky and such can be skipped automatically
+                    "       glFragColor = 1.0;\n" +
+                    "   } else {;\n" +
                     // "  float originDepth = length(origin);\n" +
-                    "   vec3 normal = texture(finalNormal, uv).xyz * 2.0 - 1.0;\n" +
+                    "       vec3 normal = texture(finalNormal, uv).xyz * 2.0 - 1.0;\n" +
                     // reverse back sides, e.g. for plants
                     // could be done by the material as well...
-                    "   if(dot(origin,normal) > 0.0) normal = -normal;\n" +
-                    "   vec3 randomVector = texelFetch(random4x4, ivec2(gl_FragCoord.xy) & 3, 0).xyz * 2.0 - 1.0;\n" +
-                    "   vec3 tangent = normalize(randomVector - normal * dot(normal, randomVector));\n" +
-                    "   vec3 bitangent = cross(normal, tangent);\n" +
-                    "   mat3 tbn = mat3(tangent, bitangent, normal);\n" +
-                    "   float occlusion = 0.0;\n" +
-                    "   for(int i=0;i<numSamples;i++){\n" +
+                    "       if(dot(origin,normal) > 0.0) normal = -normal;\n" +
+                    "       vec3 randomVector = texelFetch(random4x4, ivec2(gl_FragCoord.xy) & 3, 0).xyz * 2.0 - 1.0;\n" +
+                    "       vec3 tangent = normalize(randomVector - normal * dot(normal, randomVector));\n" +
+                    "       vec3 bitangent = cross(normal, tangent);\n" +
+                    "       mat3 tbn = mat3(tangent, bitangent, normal);\n" +
+                    "       float occlusion = 0.0;\n" +
+                    "       for(int i=0;i<numSamples;i++){\n" +
                     // "sample" seems to be a reserved keyword for the emulator
-                    "      vec3 position = tbn * sampleKernel[i] * radius + origin;\n" +
-                    "      float sampleTheoDepth = length(position);\n" +
+                    "          vec3 position = tbn * sampleKernel[i] * radius + origin;\n" +
+                    "          float sampleTheoDepth = dot2(position);\n" +
                     // project sample position... mmmh...
-                    "       vec4 offset = transform * vec4(position, 1.0);\n" +
-                    "       offset.xy /= offset.w;\n" +
-                    "       offset.xy = offset.xy * 0.5 + 0.5;\n" +
-                    "       bool isInside = offset.x >= 0.0 && offset.x <= 1.0 && offset.y >= 0.0 && offset.y <= 1.0;\n" +
-                    "       if(!isInside) continue;\n" +
-                    "       float sampleDepth = length(texture(finalPosition, offset.xy));\n" +
+                    "           vec4 offset = transform * vec4(position, 1.0);\n" +
+                    "           offset.xy /= offset.w;\n" +
+                    "           offset.xy = offset.xy * 0.5 + 0.5;\n" +
+                    "           bool isInside = offset.x >= 0.0 && offset.x <= 1.0 && offset.y >= 0.0 && offset.y <= 1.0;\n" +
+                    "           float sampleDepth = dot2(texture(finalPosition, offset.xy).xyz);\n" +
                     // theoretically, the tutorial also contained this condition, but somehow it
                     // introduces a radius (when radius = 1), where occlusion appears exclusively
                     // && abs(originDepth - sampleDepth) < radius
                     // without it, the result looks approx. the same :)
-                    "       occlusion += isInside ? sampleDepth < sampleTheoDepth ? 1.0 : 0.0 : 0.5;\n" +
-                    "   }\n" +
-                    "   glFragColor = clamp(1.0 - strength * occlusion/float(numSamples), 0.0, 1.0);\n" +
+                    "           occlusion += isInside ? sampleDepth < sampleTheoDepth ? 1.0 : 0.0 : 0.5;\n" +
+                    "       }\n" +
+                    "       glFragColor = clamp(1.0 - strength * occlusion/float(numSamples), 0.0, 1.0);\n" +
+                    "   }" +
                     "}"
         ).apply {
             glslVersion = 330

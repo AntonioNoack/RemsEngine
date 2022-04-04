@@ -68,7 +68,7 @@ class FileInput(
                 // todo select the file using our own explorer (?), because ours may be better
                 FileExplorerSelectWrapper.selectFileOrFolder(file3, isDirectory) { file ->
                     if (file != null) {
-                        setValue(file)
+                        setValue(file, true)
                     }
                 }
             }
@@ -83,7 +83,7 @@ class FileInput(
         this += base//ScrollPanelX(base, Padding(), style, AxisAlignment.MIN)
     }
 
-    fun setValue(file: File, notify: Boolean = false): FileInput {
+    fun setValue(file: File, notify: Boolean): FileInput {
         base.setValue(file.toString2(), false)
         if(notify) changeListener(getReference(file))
         return this

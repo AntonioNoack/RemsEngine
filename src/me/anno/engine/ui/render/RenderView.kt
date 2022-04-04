@@ -143,7 +143,7 @@ class RenderView(
 
     private val ssaoRadius = 0.2f // 0.1 of world size looks pretty good :)
     private val ssaoSamples get() = max(1, DefaultConfig["gpu.ssao.samples", 128])
-    private val ssaoStrength get() = max(1e-3f, DefaultConfig["gpu.ssao.strength", 1f])
+    private val ssaoStrength get() = DefaultConfig["gpu.ssao.strength", 1f]
 
     var controlScheme: ControlScheme? = null
 
@@ -159,9 +159,6 @@ class RenderView(
     var renderMode = RenderMode.DEFAULT
 
     var radius = 50.0
-        set(value) {
-            field = clamp(value, 1e-10, 1e10)
-        }
 
     val worldScale get() = if (renderMode == RenderMode.MONO_WORLD_SCALE) 1.0 else 1.0 / radius
     var position = Vector3d()
@@ -269,7 +266,7 @@ class RenderView(
         }
 
         if (isKeyDown(GLFW.GLFW_KEY_PAUSE)) {
-            getWorld().simpleTraversal(false) {
+            world?.simpleTraversal(false) {
                 if (it is Entity && it.hasComponentInChildren(MeshBaseComponent::class)) {
                     val transform = it.transform
                     println("${Tabs.spaces(2 * it.depthInHierarchy)}'${it.name}':\n${transform.localTransform}\n${transform.globalTransform}")
@@ -389,6 +386,13 @@ class RenderView(
             buffer, useDeferredRendering,
             size, cols, rows, layers.size
         )
+
+        if (world == null) {
+            DrawTexts.drawSimpleTextCharByChar(
+                x + w / 2, y + h / 2, 4, "World Not Found!",
+                AxisAlignment.CENTER, AxisAlignment.CENTER
+            )
+        }
 
         if (showSpecialBuffer) {
             DrawTexts.drawSimpleTextCharByChar(
@@ -662,10 +666,11 @@ class RenderView(
                     buffer.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
                     drawSceneLights(camera, camera, 1f, copyRenderer, buffer, lightBuffer)
 
-                    val ssao = ScreenSpaceAmbientOcclusion.compute(
+                    val ssaoStrength = ssaoStrength
+                    val ssao = if (ssaoStrength > 0f) ScreenSpaceAmbientOcclusion.compute(
                         buffer, deferred, cameraMatrix,
                         ssaoRadius, ssaoStrength, ssaoSamples
-                    ) ?: whiteTexture
+                    ) ?: whiteTexture else whiteTexture
 
                     // todo calculate the colors via post processing
                     // todo this would also allow us to easier visualize all the layers
@@ -831,8 +836,8 @@ class RenderView(
 
     }
 
-    fun getWorld(): PrefabSaveable {
-        return library.world
+    fun getWorld(): PrefabSaveable? {
+        return library.prefab?.getSampleInstance() ?: library.world
     }
 
     private val tmp4f = Vector4f()
@@ -966,7 +971,7 @@ class RenderView(
         }
         pipeline.disableReflectionCullingPlane()
         pipeline.ignoredEntity = null
-        pipeline.fill(world, camPosition, worldScale)
+        if (world != null) pipeline.fill(world, camPosition, worldScale)
         if (pipeline.lightPseudoStage.size <= 0 && pipeline.ambient.dot(1f, 1f, 1f) <= 0f) {
             // define lights, so we can see something
             pipeline.ambient.set(0.5f)
@@ -1176,7 +1181,7 @@ class RenderView(
                 val world = getWorld()
 
                 // much faster than depthTraversal, because we only need visible elements anyways
-                pipeline.traverse(world) { entity ->
+                if (world != null) pipeline.traverse(world) { entity ->
 
                     val transform = entity.transform
                     val globalTransform = transform.globalTransform
@@ -1304,7 +1309,7 @@ class RenderView(
 
         val scaledMin = Vector4d()
         val scaledMax = Vector4d()
-        val tmpVec4f = Vector4d()
+        val tmpVec4d = Vector4d()
 
         var currentInstance: RenderView? = null
 

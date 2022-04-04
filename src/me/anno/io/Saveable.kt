@@ -3,6 +3,7 @@ package me.anno.io
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.text.TextWriter
+import me.anno.studio.StudioBase
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 
@@ -55,8 +56,8 @@ open class Saveable : ISaveable {
     override fun readStringArray2D(name: String, values: Array<Array<String>>) = readSomething(name, values)
 
     override fun readFile(name: String, value: FileReference) = readSomething(name, value)
-    override fun readFileArray(name: String, value: Array<FileReference>) = readSomething(name, value)
-    override fun readFileArray2D(name: String, value: Array<Array<FileReference>>) = readSomething(name, value)
+    override fun readFileArray(name: String, values: Array<FileReference>) = readSomething(name, values)
+    override fun readFileArray2D(name: String, values: Array<Array<FileReference>>) = readSomething(name, values)
 
     override fun readObject(name: String, value: ISaveable?) = readSomething(name, value)
     override fun readObjectArray(name: String, values: Array<ISaveable?>) = readSomething(name, values)
@@ -130,6 +131,6 @@ open class Saveable : ISaveable {
     override val approxSize: Int = 100
     override val className: String = javaClass.simpleName
 
-    override fun toString(): String = TextWriter.toText(this)// + "@${super.toString()}"
+    override fun toString(): String = TextWriter.toText(this, StudioBase.workspace)// + "@${super.toString()}"
 
 }

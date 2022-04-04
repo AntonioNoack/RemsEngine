@@ -58,7 +58,7 @@ open class SDFCylinder : SDFSmoothShape() {
         builder.append(trans.posIndex)
         builder.append(',')
         if (dynamicSize) builder.appendUniform(uniforms, params)
-        else writeVec(builder, params)
+        else builder.appendVec(params)
         if (dynamicSmoothness || smoothness > 0f) {
             builder.append(',')
             if (dynamicSmoothness) builder.appendUniform(uniforms, GLSLType.V1F) { smoothness }

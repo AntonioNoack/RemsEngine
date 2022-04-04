@@ -163,6 +163,7 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
         if (isSelected) {
             val factor = Maths.pow(0.5f, dy / 16f)
             view.radius *= factor
+            camera.fovOrthographic = view.radius.toFloat()
             view.updateEditorCameraTransform()
             invalidateDrawing()
         }

@@ -6,6 +6,7 @@ import me.anno.cache.CacheSection
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.InvalidRef
 import me.anno.io.utils.StringMap
 import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.files.Files.formatFileSize
@@ -37,7 +38,7 @@ object VideoProxyCreator : CacheSection("VideoProxies") {
     fun init() {
         if (isInitialized) return
         isInitialized = true
-        info = ConfigBasics.loadConfig(configName, StringMap(), false)
+        info = ConfigBasics.loadConfig(configName, InvalidRef, StringMap(), false)
         proxyFolder = ConfigBasics.cacheFolder.getChild("proxies").apply { tryMkdirs() }
         deleteOldProxies()
     }

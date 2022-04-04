@@ -3,7 +3,7 @@ package me.anno.ecs.components.mesh.sdf.modifiers
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
-import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.writeVec
+import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendVec
 import me.anno.ecs.components.mesh.sdf.SDFGroup.Companion.sMaxCubic
 import me.anno.ecs.components.mesh.sdf.SDFGroup.Companion.smoothMinCubic
 import me.anno.ecs.components.mesh.sdf.VariableCounter
@@ -75,7 +75,7 @@ class SDFHalfSpace() : DistanceMapper() {
             builder.append(".x,dot(vec4(pos").append(posIndex)
             builder.append(",1.0),")
             if (dynamicPlane) builder.appendUniform(uniforms, plane)
-            else writeVec(builder, plane)
+            else builder.appendVec(plane)
             builder.append("),")
             if (dynamicSmoothness) builder.appendUniform(uniforms, GLSLType.V1F) { smoothness }
             else builder.append(smoothness)
@@ -86,7 +86,7 @@ class SDFHalfSpace() : DistanceMapper() {
             builder.append(".x,dot(vec4(pos").append(posIndex)
             builder.append(",1.0),")
             if (dynamicPlane) builder.appendUniform(uniforms, plane)
-            else writeVec(builder, plane)
+            else builder.appendVec(plane)
             builder.append("));\n")
         }
     }

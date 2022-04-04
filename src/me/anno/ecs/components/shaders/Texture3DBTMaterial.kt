@@ -55,7 +55,6 @@ class Texture3DBTMaterial : BlockTracedMaterial("3dTex-rt") {
                 "finalAlpha = 1.0;\n" +
                 "finalEmissive = vec3(0.0);\n" +
                 "finalMetallic = 0.0;\n" +
-                "finalRoughness = 0.5;\n" +
-                "finalOcclusion = 1.0;\n"
+                "finalRoughness = 0.5;\n"
     }
 }

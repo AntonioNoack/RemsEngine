@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh.spline
 
 import me.anno.Build
+import me.anno.Engine
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.ProceduralMesh
 import me.anno.ecs.components.mesh.spline.Splines.getIntermediates
@@ -28,6 +29,7 @@ class SplineMesh : ProceduralMesh() {
                 invalidateMesh()
             }
         }
+
 
     // todo respect width and height
 
@@ -143,12 +145,20 @@ class SplineMesh : ProceduralMesh() {
     }
 
     override fun generateMesh(mesh: Mesh) {
-        val entity = entity ?: return
+        println("generating spline mesh")
+        val entity = entity
+        if (entity == null) {
+            lastWarning = "Missing entity, $parent, ${Engine.gameTime}"
+            return
+        }
         val points = entity.children.mapNotNull { it.getComponent(SplineControlPoint::class) }
+        LOGGER.debug("Found ${points.size} children")
         when (points.size) {
-            0, 1 -> LOGGER.warn("SplineMesh has not enough points, only ${points.size}")
+            0 -> lastWarning = "SplineMesh has no points"
+            1 -> lastWarning = "SplineMesh has not enough points, only one"
             2 -> set(generateLineMesh(points[0], points[1]))
             else -> {
+                lastWarning = null
                 if (piecewiseLinear) {
                     val list = ArrayList<SplineTmpMesh>()
                     for (i in 1 until points.size) {
@@ -229,11 +239,11 @@ class SplineMesh : ProceduralMesh() {
 
                 // 012 230
                 add(pos, nor, col, k++, p0, p1, pro0, n0, c, dirY0)
+                add(pos, nor, col, k++, p2, p3, pro1, n1, c, dirY1)
                 add(pos, nor, col, k++, p2, p3, pro0, n0, c, dirY1)
-                add(pos, nor, col, k++, p2, p3, pro1, n1, c, dirY1)
 
-                add(pos, nor, col, k++, p2, p3, pro1, n1, c, dirY1)
                 add(pos, nor, col, k++, p0, p1, pro1, n1, c, dirY0)
+                add(pos, nor, col, k++, p2, p3, pro1, n1, c, dirY1)
                 add(pos, nor, col, k++, p0, p1, pro0, n0, c, dirY0)
 
             }

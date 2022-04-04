@@ -1,6 +1,7 @@
 package me.anno.io.text
 
 import me.anno.engine.ECSRegistry
+import me.anno.io.files.InvalidRef
 import me.anno.io.json.JsonFormatter
 import me.anno.utils.LOGGER
 
@@ -57,8 +58,8 @@ fun main() {
 
     ECSRegistry.initNoGFX()
 
-    val asObject = TextReader.read(raw, false).first()
-    val asString = TextWriter.toText(asObject)
+    val asObject = TextReader.read(raw, InvalidRef, false).first()
+    val asString = TextWriter.toText(asObject, InvalidRef)
 
     LOGGER.info(JsonFormatter.format(asString))
 

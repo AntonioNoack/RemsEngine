@@ -15,6 +15,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.json.JsonFormatter
 import me.anno.io.text.TextWriter
 import me.anno.io.zip.InnerTmpFile
+import me.anno.studio.StudioBase
 import me.anno.utils.OS.documents
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
@@ -76,7 +77,7 @@ object Hierarchy {
     }
 
     fun stringify(element: PrefabSaveable): String {
-        return TextWriter.toText(extractPrefab(element, false))
+        return TextWriter.toText(extractPrefab(element, false), StudioBase.workspace)
     }
 
     fun getInstanceAt(instance0: PrefabSaveable, path: Path): PrefabSaveable? {

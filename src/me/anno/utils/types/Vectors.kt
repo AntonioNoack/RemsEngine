@@ -195,7 +195,7 @@ object Vectors {
         if (subCrossDot(a, b, q, n) < 0.0) sum++
         if (subCrossDot(b, c, q, n) < 0.0) sum++
         if (subCrossDot(c, a, q, n) < 0.0) sum++
-        return if(sum == 0 || (allowBackside && sum == 3)) q to t else null
+        return if (sum == 0 || (allowBackside && sum == 3)) q to t else null
     }
 
     fun rayTriangleIntersect(
@@ -477,6 +477,17 @@ object Vectors {
     fun Vector3d.findSystem(dstY: Vector3d = Vector3d(), dstZ: Vector3d = Vector3d()) {
         findSecondAxis(dstY)
         cross(dstY, dstZ).normalize()
+    }
+
+    fun Vector3f.addScaled(other: Vector3f, scale: Float): Vector3f {
+        other.mulAdd(scale, this, this)
+        return this
+    }
+
+    fun Vector3f.addSmoothly(other: Vector3f, scale: Float): Vector3f {
+        mul(1f - scale)
+        other.mulAdd(scale, this, this)
+        return this
     }
 
 }

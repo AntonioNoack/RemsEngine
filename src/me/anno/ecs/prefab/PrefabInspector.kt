@@ -17,6 +17,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextWriter
 import me.anno.studio.Inspectable
+import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListX
@@ -28,6 +29,7 @@ import me.anno.ui.editor.stacked.Option
 import me.anno.ui.editor.stacked.StackPanel
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
+import me.anno.utils.Color.mulARGB
 import me.anno.utils.process.DelayedTask
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.strings.StringHelper.shorten2Way
@@ -52,13 +54,15 @@ class PrefabInspector(val prefab: Prefab) {
     val reference get() = prefab.source
 
     constructor(reference: FileReference, classNameIfNull: String) :
-            this(getPrefab(reference) ?: Prefab(classNameIfNull))
+            this(getPrefab(reference) ?: Prefab(classNameIfNull, reference).apply {
+                LOGGER.warn("Had to create Prefab for $reference, could not load prefab")
+            })
 
     init {
         prefab.ensureMutableLists()
     }
 
-    val history: ChangeHistory = prefab.history ?: ChangeHistory()
+    val history = prefab.history ?: ChangeHistory()
     val adds get() = prefab.adds as MutableList
     val sets get() = prefab.sets // as MutableList
 
@@ -76,7 +80,10 @@ class PrefabInspector(val prefab: Prefab) {
     val root get() = prefab.getSampleInstance()
 
     private val savingTask = DelayedTask {
-        addEvent { history.put(TextWriter.toText(adds + sets.map { k1, k2, v -> CSet(k1, k2, v) })) }
+        addEvent {
+            history.put(TextWriter.toText(adds + sets.map { k1, k2, v -> CSet(k1, k2, v) }, StudioBase.workspace))
+            println("pushed new version to history")
+        }
     }
 
     fun onChange() {
@@ -159,6 +166,10 @@ class PrefabInspector(val prefab: Prefab) {
         list.add(TextButton("Select Parent", false, style).addLeftClickListener {
             EditorState.select(instance.parent)
         })
+
+        val warningPanel = UpdatingTextPanel(500, style) { instance.lastWarning }
+        warningPanel.textColor = warningPanel.textColor.mulARGB(0xffff3333.toInt())
+        list += warningPanel
 
         list.add(TextInput("Name", "", instance.name, style).apply {
             isBold = isChanged(getPath(), "name")
@@ -372,11 +383,11 @@ class PrefabInspector(val prefab: Prefab) {
     }
 
     fun save() {
-        if (reference == InvalidRef) LOGGER.warn("Prefab doesn't have source!!")
-        TextWriter.save(prefab, reference)
+        if (reference == InvalidRef) throw IllegalStateException("Prefab doesn't have source!!")
+        TextWriter.save(prefab, reference, StudioBase.workspace)
     }
 
-    override fun toString(): String = TextWriter.toText(prefab)
+    override fun toString(): String = TextWriter.toText(prefab, StudioBase.workspace)
 
     companion object {
 

@@ -73,8 +73,8 @@ interface ISaveable {
     fun readStringArray2D(name: String, values: Array<Array<String>>)
 
     fun readFile(name: String, value: FileReference)
-    fun readFileArray(name: String, value: Array<FileReference>)
-    fun readFileArray2D(name: String, value: Array<Array<FileReference>>)
+    fun readFileArray(name: String, values: Array<FileReference>)
+    fun readFileArray2D(name: String, values: Array<Array<FileReference>>)
 
     fun readObject(name: String, value: ISaveable?)
     fun readObjectArray(name: String, values: Array<ISaveable?>)

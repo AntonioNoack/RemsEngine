@@ -84,6 +84,9 @@ open class IntVectorInput(
     private fun addComponent(title: String): IntInput {
         val component = createComponent()
         component.inputPanel.tooltip = title
+        component.setChangeListener {
+            onChange()
+        }
         valueList += component.setWeight(1f)
         valueFields += component
         return component
@@ -203,11 +206,10 @@ open class IntVectorInput(
         compW?.setValue(vw, notify)
     }
 
-    var changeListener: (x: Int, y: Int, z: Int, w: Int) -> Unit = { _, _, _, _ ->
-    }
+    val changeListeners = ArrayList<(x: Long, y: Long, z: Long, w: Long) -> Unit>()
 
-    fun setChangeListener(listener: (x: Int, y: Int, z: Int, w: Int) -> Unit): IntVectorInput {
-        changeListener = listener
+    fun addChangeListener(listener: (x: Long, y: Long, z: Long, w: Long) -> Unit): IntVectorInput {
+        changeListeners += listener
         return this
     }
 
@@ -255,12 +257,9 @@ open class IntVectorInput(
     }
 
     fun onChange() {
-        changeListener(
-            compX.lastValue.toInt(),
-            compY?.lastValue?.toInt() ?: 0,
-            compZ?.lastValue?.toInt() ?: 0,
-            compW?.lastValue?.toInt() ?: 0
-        )
+        for (changeListener in changeListeners) {
+            changeListener(vx, vy, vz, vw)
+        }
     }
 
     fun onEmpty2(defaultValue: Any) {
@@ -284,7 +283,8 @@ open class IntVectorInput(
         super.copy(clone)
         clone as IntVectorInput
         // only works if there are no hard references
-        clone.changeListener = changeListener
+        clone.changeListeners.clear()
+        clone.changeListeners.addAll(changeListeners)
         clone.resetListener = resetListener
         clone.setValue(vx, vy, vz, vw, false)
     }

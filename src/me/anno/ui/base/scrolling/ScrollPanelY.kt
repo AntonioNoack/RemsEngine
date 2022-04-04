@@ -136,6 +136,7 @@ open class ScrollPanelY(
         } else {
             scrollPositionY += delta
             clampScrollPosition()
+            invalidateLayout()
             // we consumed dy
             if (dx != 0f) {
                 super.onMouseWheel(x, y, dx, 0f, byMouse)
@@ -162,6 +163,7 @@ open class ScrollPanelY(
             if (dy != 0f) {
                 scrollbar.onMouseMoved(x, y, 0f, dy)
                 clampScrollPosition()
+                invalidateLayout()
             }
             // y was consumed
             if (dx != 0f) super.onMouseMoved(x, y, dx, 0f)

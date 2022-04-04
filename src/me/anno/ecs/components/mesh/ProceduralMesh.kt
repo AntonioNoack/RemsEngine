@@ -2,11 +2,8 @@ package me.anno.ecs.components.mesh
 
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
-import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
-import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.types.AABBs.clear
 import me.anno.utils.types.AABBs.set
 import me.anno.utils.types.AABBs.transformUnion
@@ -49,7 +46,7 @@ abstract class ProceduralMesh : MeshBaseComponent() {
             needsUpdate = false
             generateMesh(mesh2)
             mesh2.invalidateGeometry()
-            entity?.invalidateOwnAABB()
+            invalidateAABB()
         }
     }
 

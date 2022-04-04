@@ -391,9 +391,9 @@ abstract class StudioBase(
                 try {
                     val time = Engine.nanoTime
                     val peeked = scheduledTasks.peek()!!
-                    if (peeked.first <= time) {
+                    if (time >= peeked.first) {
                         scheduledTasks.poll()!!.second.invoke()
-                    }
+                    } else break
                 } catch (e: Throwable) {
                     e.printStackTrace()
                 }

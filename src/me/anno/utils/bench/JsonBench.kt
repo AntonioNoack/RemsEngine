@@ -1,6 +1,7 @@
 package me.anno.utils.bench
 
 // import com.fasterxml.jackson.databind.ObjectMapper
+import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextReader
 import me.anno.utils.Clock
 import me.anno.utils.OS
@@ -24,9 +25,9 @@ fun main() {
     // ObjectMapper().readTree(text)
     timer.start()
 
-   /* for (i in 0 until tries) {
-        ObjectMapper().readTree(text)
-    }*/
+    /* for (i in 0 until tries) {
+         ObjectMapper().readTree(text)
+     }*/
 
     timer.stop("jackson")
 
@@ -42,11 +43,11 @@ fun main() {
     // I would have expected the FileFileRef allocations to take time, but it looks like, they don't...
 
     // warm-up
-    TextReader.read(text, false)
+    TextReader.read(text, InvalidRef, false)
     timer.start()
 
     for (i in 0 until tries) {
-        TextReader.read(text, false)
+        TextReader.read(text, InvalidRef, false)
     }
 
     timer.stop("custom")

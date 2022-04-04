@@ -1,8 +1,8 @@
 package me.anno.ecs.components.mesh.sdf.modifiers
 
 import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendVec
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
-import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.writeVec
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.clamp
@@ -76,9 +76,9 @@ class SDFStretcher() : PositionMapper() {
         } else {
             val h = halfExtends
             builder.append("-")
-            writeVec(builder, h)
+            builder.appendVec(h)
             builder.append(",")
-            writeVec(builder, h)
+            builder.appendVec(h)
             builder.append(");\n")
             return if (accurateInsides) {
                 val name = "tmp${nextVariableId.next()}"

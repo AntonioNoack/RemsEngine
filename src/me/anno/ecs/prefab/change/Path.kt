@@ -2,13 +2,14 @@ package me.anno.ecs.prefab.change
 
 import me.anno.ecs.prefab.Prefab
 import me.anno.engine.ECSRegistry
+import me.anno.io.Base64.encodeBase64
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.InvalidRef
 import me.anno.io.json.JsonFormatter
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
-import me.anno.io.Base64.encodeBase64
 import org.apache.logging.log4j.LogManager
 import java.text.ParseException
 import kotlin.random.Random
@@ -331,7 +332,7 @@ class Path(
 
             ECSRegistry.initNoGFX()
             LOGGER.info(p123)
-            val cloned = TextReader.read(TextWriter.toText(p123), false).first()
+            val cloned = TextReader.read(TextWriter.toText(p123, InvalidRef), InvalidRef, false).first()
             LOGGER.info(cloned)
             LOGGER.info(cloned == p123)
 
@@ -345,9 +346,9 @@ class Path(
             val adds = prefab.adds
 
             for (i in adds.indices) {
-                val x0 = TextWriter.toText(adds[i])
-                val x1 = TextReader.read(x0, false)[0] as CAdd
-                val x2 = TextWriter.toText(x1)
+                val x0 = TextWriter.toText(adds[i], InvalidRef)
+                val x1 = TextReader.read(x0, InvalidRef, false)[0] as CAdd
+                val x2 = TextWriter.toText(x1, InvalidRef)
                 if (x0 != x2) {
                     println(JsonFormatter.format(x0))
                     println(JsonFormatter.format(x2))
@@ -355,15 +356,15 @@ class Path(
                 }
             }
 
-            val json = TextWriter.toText(prefab)
-            val prefabClone = TextReader.read(json, false)[0] as Prefab
+            val json = TextWriter.toText(prefab, InvalidRef)
+            val prefabClone = TextReader.read(json, InvalidRef, false)[0] as Prefab
 
             println(prefab.adds)
 
             println(JsonFormatter.format(json))
 
             println(prefabClone.adds)
-            val json2 = TextWriter.toText(prefabClone)
+            val json2 = TextWriter.toText(prefabClone, InvalidRef)
             println(JsonFormatter.format(json2))
             if (json != json2) throw RuntimeException()
 

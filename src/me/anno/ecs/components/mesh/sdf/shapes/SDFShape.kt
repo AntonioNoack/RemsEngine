@@ -23,7 +23,7 @@ open class SDFShape : SDFComponent() {
         }
 
     // todo mix materials somehow...
-    var materialId = 0f
+    var materialId = 0
 
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
@@ -62,7 +62,7 @@ open class SDFShape : SDFComponent() {
         builder.appendUniform(uniforms, GLSLType.V1F) {
             val currentRenderer = currentRenderer
             if (currentRenderer == Renderer.idRenderer || currentRenderer == Renderer.idRendererVis) clickId.toFloat()
-            else materialId
+            else materialId.toFloat()
         }
         builder.append(");\n")
     }

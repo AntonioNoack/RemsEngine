@@ -3,10 +3,11 @@ package me.anno.io.text
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 
-class TextWriter(initialCapacity: Int) : TextWriterBase() {
+class TextWriter(initialCapacity: Int, workspace: FileReference) : TextWriterBase(workspace) {
 
-    constructor() : this(32)
+    constructor(workspace: FileReference) : this(32, workspace)
 
     private val data = StringBuilder(initialCapacity)
 
@@ -39,38 +40,38 @@ class TextWriter(initialCapacity: Int) : TextWriterBase() {
 
     companion object {
 
-        fun toText(data: Collection<ISaveable>): String {
-            val writer = TextWriter()
+        fun toText(data: Collection<ISaveable>, workspace: FileReference): String {
+            val writer = TextWriter(workspace)
             for (entry in data) writer.add(entry)
             writer.writeAllInList()
             return writer.toString()
         }
 
-        fun toText(entry: ISaveable): String {
-            val writer = TextWriter()
+        fun toText(entry: ISaveable, workspace: FileReference): String {
+            val writer = TextWriter(workspace)
             writer.add(entry)
             writer.writeAllInList()
             return writer.toString()
         }
 
-        fun save(entry: ISaveable, file: FileReference) {
+        fun save(entry: ISaveable, file: FileReference, workspace: FileReference) {
             file.outputStream().useBuffered().use {
-                val writer = TextStreamWriter(it)
+                val writer = TextStreamWriter(it, workspace)
                 writer.add(entry)
                 writer.writeAllInList()
             }
         }
 
-        fun save(data: Collection<ISaveable>, file: FileReference) {
+        fun save(data: Collection<ISaveable>, file: FileReference, workspace: FileReference) {
             file.outputStream().useBuffered().use {
-                val writer = TextStreamWriter(it)
+                val writer = TextStreamWriter(it, workspace)
                 for (entry in data) writer.add(entry)
                 writer.writeAllInList()
             }
         }
 
-        fun toBuilder(data: ISaveable): StringBuilder {
-            val writer = TextWriter()
+        fun toBuilder(data: ISaveable, workspace: FileReference): StringBuilder {
+            val writer = TextWriter(workspace)
             writer.add(data)
             writer.writeAllInList()
             return writer.data

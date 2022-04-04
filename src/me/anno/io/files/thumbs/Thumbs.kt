@@ -79,6 +79,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.mesh.MeshData
 import me.anno.mesh.MeshData.Companion.warnMissingMesh
 import me.anno.mesh.assimp.AnimGameItem
+import me.anno.studio.StudioBase
 import me.anno.ui.base.Font
 import me.anno.utils.Clock
 import me.anno.utils.Color.hex4
@@ -1120,7 +1121,8 @@ object Thumbs {
                                         generateSomething(decoded.readPrefab(), srcFile, dstFile, size, callback)
                                     decoded.length() > 0 -> {
                                         // try to read the file as an asset
-                                        val sth = TextReader.read(decoded, true).firstOrNull()
+                                        // not sure about using the workspace here...
+                                        val sth = TextReader.read(decoded, StudioBase.workspace, true).firstOrNull()
                                         generateSomething(sth, srcFile, dstFile, size, callback)
                                     }
                                     else -> LOGGER.warn("File $decoded is empty")
@@ -1136,7 +1138,7 @@ object Thumbs {
                             // try to read the file as an asset
                             val something = PrefabCache.getPrefabInstance(srcFile, HashSet())
                             generateSomething(something, srcFile, dstFile, size, callback)
-                        } catch (e: InvalidClassException){
+                        } catch (e: InvalidClassException) {
                             LOGGER.info("${e.message}; by $srcFile")
                         } catch (e: Throwable) {
                             LOGGER.info("${e.message}; by $srcFile")

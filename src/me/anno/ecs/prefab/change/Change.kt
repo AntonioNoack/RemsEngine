@@ -8,6 +8,7 @@ import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import org.apache.logging.log4j.LogManager
@@ -72,7 +73,7 @@ abstract class Change : Saveable(), Cloneable {
                 CAdd(path, 'x', "Entity")
             )) {
                 LOGGER.info(sample)
-                val clone = TextReader.read(TextWriter.toText(sample), true).first()
+                val clone = TextReader.read(TextWriter.toText(sample, InvalidRef), InvalidRef, true).first()
                 LOGGER.info(clone)
             }
         }

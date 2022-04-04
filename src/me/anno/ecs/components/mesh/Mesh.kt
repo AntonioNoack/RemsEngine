@@ -67,52 +67,66 @@ class Mesh : PrefabSaveable() {
     @Type("List<MorphTarget>")
     var morphTargets: List<MorphTarget> = emptyList()
 
+    @Docs("Normals in local space, will be generated automatically if missing")
+    @Type("FloatArray?")
     @HideInInspector
     var normals: FloatArray? = null
 
+    @Type("FloatArray?")
     @HideInInspector
     var tangents: FloatArray? = null
 
+    @Type("FloatArray?")
     @HideInInspector
     var uvs: FloatArray? = null
 
     // colors, rgba,
     // the default shader only supports the first color
     // other colors still can be loaded for ... idk... maybe terrain information or sth like that
+    @Type("IntArray?")
     @HideInInspector
     var color0: IntArray? = null
 
+    @Type("IntArray?")
     @HideInInspector
     var color1: IntArray? = null
 
+    @Type("IntArray?")
     @HideInInspector
     var color2: IntArray? = null
 
+    @Type("IntArray?")
     @HideInInspector
     var color3: IntArray? = null
 
+    @Type("IntArray?")
     @HideInInspector
     var color4: IntArray? = null
 
+    @Type("IntArray?")
     @HideInInspector
     var color5: IntArray? = null
 
+    @Type("IntArray?")
     @HideInInspector
     var color6: IntArray? = null
 
+    @Type("IntArray?")
     @HideInInspector
     var color7: IntArray? = null
 
-
+    @Type("FloatArray?")
     @HideInInspector
     var boneWeights: FloatArray? = null
 
+    @Type("ByteArray?")
     @HideInInspector
     var boneIndices: ByteArray? = null
 
     // todo find lines, and display them
     // triangle (a,b,c), where (a==b||b==c||c==a) && (a!=b||b!=c||c!=a)
     @HideInInspector
+    @NotSerializedProperty
     var debugLineIndices: IntArray? = null
 
     @Docs("Automatically found lines (for rendering); can be set manually")
@@ -130,6 +144,7 @@ class Mesh : PrefabSaveable() {
     var materials: List<FileReference> = defaultMaterials
 
     @HideInInspector
+    @NotSerializedProperty
     var material: FileReference?
         get() = materials.getOrNull(0)
         set(value) {
@@ -137,6 +152,7 @@ class Mesh : PrefabSaveable() {
             else emptyList()
         }
 
+    @HideInInspector
     @NotSerializedProperty
     var materialInst: Material?
         get() = MaterialCache[material]
@@ -149,6 +165,7 @@ class Mesh : PrefabSaveable() {
     /**
      * one index per triangle
      * */
+    @Type("IntArray?")
     @HideInInspector
     var materialIndices: IntArray? = null
 

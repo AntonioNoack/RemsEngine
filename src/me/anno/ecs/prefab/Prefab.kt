@@ -34,7 +34,7 @@ class Prefab : Saveable {
         this.prefab = prefab.source
     }
 
-    var clazzName: String = ""
+    var clazzName = ""
 
     val addCounts = CountMap<Pair<Char, Path>>()
     var adds: List<CAdd> = emptyList()

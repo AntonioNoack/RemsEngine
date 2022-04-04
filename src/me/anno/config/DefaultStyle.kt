@@ -1,6 +1,7 @@
 package me.anno.config
 
 import me.anno.io.config.ConfigBasics
+import me.anno.io.files.InvalidRef
 import me.anno.io.utils.StringMap
 import me.anno.maths.Maths.mixARGB
 import me.anno.ui.style.Style
@@ -94,7 +95,7 @@ object DefaultStyle {
     }
 
     fun loadStyle(path: String): StringMap {
-        return ConfigBasics.loadConfig(path, baseTheme.values, true)
+        return ConfigBasics.loadConfig(path, InvalidRef, baseTheme.values, true)
     }
 
 }

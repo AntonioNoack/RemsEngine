@@ -1,11 +1,13 @@
 package me.anno.ecs.components.mesh.spline
 
+import me.anno.image.ImageWriter
 import me.anno.maths.Maths
+import me.anno.maths.Maths.mix
 import me.anno.utils.types.Vectors
+import org.joml.Vector2f
 import org.joml.Vector3d
-import kotlin.math.asin
-import kotlin.math.roundToInt
-import kotlin.math.sqrt
+import org.joml.Vector3f
+import kotlin.math.*
 
 object Splines {
 
@@ -148,6 +150,79 @@ object Splines {
     fun getIntermediates(p0: Vector3d, n0: Vector3d, p1: Vector3d, n1: Vector3d, dst0: Vector3d, dst1: Vector3d) {
         // calculate the intermediate point(s)
         Vectors.intersectSafely(p0, n0, p1, n1, SplineMesh.curveFactor, dst0, dst1)
+    }
+
+    /**
+     * given two lines, it will compute a triangulated surface between them,
+     * such that they are ideally distributed in most cases
+     * */
+    fun generateSurface(l0: List<Vector3f>, l1: List<Vector3f>): IntArray {
+        val offset = l0.size
+        val result = IntArray((l0.size + l1.size - 2) * 3)
+        var out = 0
+        var i0 = 1
+        var i1 = 1
+        while (i0 < l0.size && i1 < l1.size) {
+            val n00 = l0[i0 - 1]
+            val n10 = l1[i1 - 1]
+            val n01 = l0[i0]
+            val n11 = l1[i1]
+            result[out++] = i0 - 1
+            result[out++] = i1 - 1 + offset
+            // compute the general direction
+            val dx = (n01.x + n11.x) - (n00.x + n10.x)
+            val dy = (n01.y + n11.y) - (n00.y + n10.y)
+            val dz = (n01.z + n11.z) - (n00.z + n10.z)
+            // compute which point comes first
+            result[out++] = if (
+                n00.dot(dx, dy, dz) + n01.dot(dx, dy, dz) <
+                n10.dot(dx, dy, dz) + n11.dot(dx, dy, dz)
+            ) {
+                i0++
+            } else {
+                i1++ + offset
+            }
+        }
+        if (i0 < l0.size) {
+            while (i0 < l0.size) {
+                result[out++] = i0 - 1
+                result[out++] = i1 - 1 + offset
+                result[out++] = i0++
+            }
+        } else {
+            while (i1 < l1.size) {
+                result[out++] = i0 - 1
+                result[out++] = i1 - 1 + offset
+                result[out++] = i1++ + offset
+            }
+        }
+        return result
+    }
+
+    fun generateCurve(a0: Float, a1: Float, n: Int): Array<Vector2f> {
+        return when {
+            n < 0 -> throw IllegalArgumentException("n must be >= 0, got $n")
+            n == 0 -> emptyArray()
+            n == 1 -> {
+                val angle = (a0 + a1) * 0.5f
+                arrayOf(Vector2f(cos(angle), sin(angle)))
+            }
+            else -> {
+                val div = 1f / (n - 1f)
+                Array(n) {
+                    val angle = mix(a0, a1, it * div)
+                    Vector2f(cos(angle), sin(angle))
+                }
+            }
+        }
+    }
+
+    @JvmStatic
+    fun main(args: Array<String>) {
+        val c0 = generateCurve(0f, 1.57f, 15).map { Vector3f(it.x, 0f, it.y) }
+        val c1 = generateCurve(0f, 1.57f, 5).map { Vector3f(it.x, 0f, it.y).mul(0.5f) }
+        val surf = generateSurface(c0, c1)
+        ImageWriter.writeTriangles(512, "surface.png", (c0 + c1).map { Vector2f(it.x, it.z) }, surf)
     }
 
 

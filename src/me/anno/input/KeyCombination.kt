@@ -33,7 +33,7 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type) {
                 other.type == type
     }
 
-    override fun toString() = "$key:$modifiers:$type"
+    override fun toString() = "${get(key) ?: key}:${if (isControl) "c" else ""}${if (isShift) "s" else ""}${if (isAlt) "a" else ""}:$type"
 
     companion object {
 
@@ -132,7 +132,7 @@ class KeyCombination(val key: Int, val modifiers: Int, val type: Type) {
                 else -> return null
             }
             var mods = 0
-            if(modifiers != null) for (c in modifiers) {
+            if (modifiers != null) for (c in modifiers) {
                 when (c.lowercaseChar()) {
                     'c' -> mods = mods or GLFW_MOD_CONTROL
                     's' -> mods = mods or GLFW_MOD_SHIFT

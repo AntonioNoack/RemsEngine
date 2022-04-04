@@ -2,6 +2,7 @@ package me.anno.ecs.prefab
 
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
+import me.anno.io.files.InvalidRef
 import me.anno.io.json.JsonFormatter
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
@@ -58,10 +59,10 @@ fun test1() {
 
     println(prefab.getSampleInstance()) // shall have two mesh components
 
-    val text = TextWriter.toText(prefab)
+    val text = TextWriter.toText(prefab, InvalidRef)
     println(text)
 
-    val copied = TextReader.read(text, true).first() as Prefab
+    val copied = TextReader.read(text, InvalidRef, true).first() as Prefab
     println(copied.getSampleInstance())
 }
 
@@ -75,10 +76,10 @@ fun test2() {
     prefab.set(rigid, "overrideGravity", true)
     prefab.set(rigid, "gravity", Vector3d())
 
-    val text = TextWriter.toText(prefab)
+    val text = TextWriter.toText(prefab, InvalidRef)
     println(JsonFormatter.format(text))
 
-    val copied = TextReader.read(text, false).first() as Prefab
+    val copied = TextReader.read(text, InvalidRef, false).first() as Prefab
     println(copied.getSampleInstance())
 
 }

@@ -39,7 +39,7 @@ class SDFStairs : SDF2DShape() {
         builder.append(trans.posIndex)
         builder.append(".").append(axes).append(",")
         if (dynamicSize) builder.appendUniform(uniforms, stepSizeCount)
-        else writeVec(builder, stepSizeCount)
+        else builder.appendVec(stepSizeCount)
         builder.append(')')
         smartMinEnd(builder, dstName, nextVariableId, uniforms, functions, trans)
     }

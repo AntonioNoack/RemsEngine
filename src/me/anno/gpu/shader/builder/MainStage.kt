@@ -1,5 +1,6 @@
 package me.anno.gpu.shader.builder
 
+import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.OpenGLShader
@@ -220,8 +221,6 @@ class MainStage {
         bridgeVariables: Map<Variable, Variable>
     ): String {
 
-        // todo where are varyings written?
-
         // set what is all defined
         defined += imported
 
@@ -309,6 +308,14 @@ class MainStage {
             for (param in params) {
                 if (param.isOutput && param !in defined) {
                     param.declare(code, null)
+                    // write default value if name matches deferred layer
+                    // if the shader works properly, it is overridden anyways
+                    val dlt = DeferredLayerType.byName[param.name]
+                    if (dlt != null && dlt.dimensions == param.type.components) {
+                        code.append(param.name).append("=")
+                        dlt.appendDefaultValue(code)
+                        code.append(";\n")
+                    }
                     defined += param
                 }
             }

@@ -1,9 +1,10 @@
 package me.anno.io.text
 
+import me.anno.io.files.FileReference
 import java.io.OutputStream
 import java.io.OutputStreamWriter
 
-class TextStreamWriter(val data: OutputStream) : TextWriterBase() {
+class TextStreamWriter(val data: OutputStream, workspace: FileReference) : TextWriterBase(workspace) {
 
     private val writer = OutputStreamWriter(data)
     private val c = CharArray(1)

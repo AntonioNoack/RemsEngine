@@ -16,14 +16,14 @@ abstract class DistanceMapper : PrefabSaveable() {
     fun invalidateShader() {
         when (val parent = parent) {
             is SDFComponent -> parent.invalidateShader()
-            else -> LOGGER.warn("Incorrect parent: ${parent?.className}")
+            // else -> LOGGER.warn("Incorrect parent: ${parent?.className}")
         }
     }
 
     fun invalidateBounds() {
         when (val parent = parent) {
             is SDFComponent -> parent.invalidateBounds()
-            else -> LOGGER.warn("Incorrect parent: ${parent?.className}")
+            // else -> LOGGER.warn("Incorrect parent: ${parent?.className}")
         }
     }
 
@@ -45,8 +45,8 @@ abstract class DistanceMapper : PrefabSaveable() {
      * */
     abstract fun calcTransform(pos: Vector4f, distance: Float): Float
 
-    companion object {
+    /*companion object {
         private val LOGGER = LogManager.getLogger(DistanceMapper::class)
-    }
+    }*/
 
 }

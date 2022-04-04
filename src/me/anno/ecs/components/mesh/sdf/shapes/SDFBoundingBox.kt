@@ -44,7 +44,7 @@ class SDFBoundingBox : SDFBox() {
         builder.append(trans.posIndex)
         builder.append(',')
         if (dynamicSize) builder.appendUniform(uniforms, halfExtends)
-        else writeVec(builder, halfExtends)
+        else builder.appendVec(halfExtends)
         builder.append(',')
         if (dynamicThickness) builder.appendUniform(uniforms, GLSLType.V1F) { thickness }
         else builder.append(thickness)

@@ -2,6 +2,7 @@ package me.anno.io
 
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.InvalidRef
 import me.anno.io.utils.StringMap
 import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
@@ -68,6 +69,6 @@ fun testConfig() {
     configDefaults["key.string"] = "yes!"
     configDefaults["key.config"] = StringMap()
     logger.info("default: $configDefaults")
-    val config = ConfigBasics.loadConfig("test.config", configDefaults, true)
+    val config = ConfigBasics.loadConfig("test.config", InvalidRef, configDefaults, true)
     logger.info("loaded: $config")
 }

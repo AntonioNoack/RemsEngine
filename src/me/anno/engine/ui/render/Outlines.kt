@@ -13,6 +13,7 @@ import me.anno.utils.types.AABBs.avgX
 import me.anno.utils.types.AABBs.avgY
 import me.anno.utils.types.AABBs.avgZ
 import org.apache.logging.log4j.LogManager
+import org.joml.AABBf
 import org.joml.Matrix4d
 
 object Outlines {
@@ -63,7 +64,7 @@ object Outlines {
         val aabb = mesh.aabb
         val scaledMin = RenderView.scaledMin.set(+1.0)
         val scaledMax = RenderView.scaledMax.set(-1.0)
-        val v = RenderView.tmpVec4f
+        val v = RenderView.tmpVec4d
         for (i in 0 until 8) {
             v.set(
                 (if ((i and 1) != 0) aabb.minX else aabb.maxX).toDouble(),

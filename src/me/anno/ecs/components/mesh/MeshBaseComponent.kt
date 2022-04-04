@@ -1,7 +1,6 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.ecs.Entity
-import me.anno.ecs.annotations.DebugTitle
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.CollidingComponent
@@ -10,7 +9,6 @@ import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.Raycast
 import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
-import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.types.AABBs.transformUnion
@@ -46,7 +44,8 @@ abstract class MeshBaseComponent : CollidingComponent() {
     val randomTriangleId = (Math.random() * 1e9).toInt()
 
     @Docs("Ensure the mesh was loaded")
-    open fun ensureBuffer() {}
+    open fun ensureBuffer() {
+    }
 
     override fun hasRaycastType(typeMask: Int): Boolean {
         return typeMask.and(Raycast.TRIANGLES) != 0
@@ -85,11 +84,15 @@ abstract class MeshBaseComponent : CollidingComponent() {
         ensureBuffer()
         val mesh = getMesh()
         if (mesh != null) {
-            // add aabb of that mesh with the transform
-            mesh.ensureBuffer()
-            mesh.aabb.transformUnion(globalTransform, aabb)
+            fillSpace(mesh, globalTransform, aabb)
         }
         return true
+    }
+
+    fun fillSpace(mesh: Mesh, globalTransform: Matrix4x3d, aabb: AABBd) {
+        // add aabb of that mesh with the transform
+        mesh.ensureBuffer()
+        mesh.aabb.transformUnion(globalTransform, aabb)
     }
 
     open fun defineVertexTransform(shader: Shader, entity: Entity, mesh: Mesh) {

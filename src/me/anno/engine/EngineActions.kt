@@ -1,5 +1,6 @@
 package me.anno.engine
 
+import me.anno.ecs.prefab.PrefabInspector
 import me.anno.gpu.GFX
 import me.anno.input.ActionManager
 import me.anno.input.Modifiers
@@ -45,14 +46,8 @@ object EngineActions {
                 StudioBase.instance?.clearAll()
                 true
             },
-            "Redo" to {
-                // RemsStudio.history?.redo()
-                true
-            },
-            "Undo" to {
-                // RemsStudio.history?.undo()
-                true
-            },
+            "Redo" to { PrefabInspector.currentInspector?.history?.redo() ?: false },
+            "Undo" to { PrefabInspector.currentInspector?.history?.undo() ?: false },
             "ShowAllObjects" to {
                 /*if (RemsStudio.root.listOfAll.any { it.visibility == TransformVisibility.VIDEO_ONLY }) {
                     RemsStudio.largeChange("Show all objects") {
@@ -101,18 +96,18 @@ object EngineActions {
         register["global.f11.down", "ToggleFullscreen"]
         register["global.print.down", "PrintLayout"]
         register["global.left.up", "DragEnd"]
-        register["global.f5.down.${Modifiers[true, false]}", "ClearCache"]
+        register["global.f5.down.${Modifiers.control}", "ClearCache"]
         register["global.arrowLeft.t", "PreviousStep"]
         register["global.arrowRight.t", "NextStep"]
         register["global.arrowLeft.down.c", "Jump2Start"]
         register["global.arrowRight.down.c", "Jump2End"]
         register["global.comma.t", "PreviousFrame"]
         register["global.dot.t", "NextFrame"]
-        register["global.z.t.${Modifiers[true, false]}", "Undo"]
+        register["global.z.t.${Modifiers.control}", "Undo"]
         register["global.z.t.${Modifiers[true, true]}", "Redo"]
-        register["global.y.t.${Modifiers[true, false]}", "Undo"]
+        register["global.y.t.${Modifiers.control}", "Undo"]
         register["global.y.t.${Modifiers[true, true]}", "Redo"]
-        register["global.h.t.${Modifiers[false, false, true]}", "ShowAllObjects"]
+        register["global.h.t.${Modifiers.alt}", "ShowAllObjects"]
         register["global.h.t", "ToggleHideObject"]
 
         // press instead of down for the delay

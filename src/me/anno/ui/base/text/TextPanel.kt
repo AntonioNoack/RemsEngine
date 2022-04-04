@@ -2,7 +2,6 @@ package me.anno.ui.base.text
 
 import me.anno.config.DefaultStyle.deepDark
 import me.anno.config.DefaultStyle.iconGray
-import me.anno.config.DefaultStyle.reallyDark
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.Cursor
@@ -227,11 +226,13 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         if (inst) loadTexturesSync.push(true)
         val widthLimit = if (breaksIntoMultiline) w - padding.width else -1
         val heightLimit = -1
-        if (widthLimit != textCacheKey.widthLimit || heightLimit != textCacheKey.heightLimit ||
+        if (widthLimit != textCacheKey.widthLimit ||
+            heightLimit != textCacheKey.heightLimit ||
             text != textCacheKey.text ||
             font.name != textCacheKey.fontName ||
             font.isBold != textCacheKey.isBold() ||
-            font.isItalic != textCacheKey.isItalic()
+            font.isItalic != textCacheKey.isItalic() ||
+            font.sizeIndex != textCacheKey.fontSizeIndex()
         ) {
             textCacheKey = TextCacheKey(text, font, widthLimit, heightLimit)
         }

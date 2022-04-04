@@ -19,6 +19,7 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.studio.Inspectable
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
@@ -32,7 +33,6 @@ import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Quaterniond
 import org.joml.Vector3d
-import java.lang.UnsupportedOperationException
 import kotlin.reflect.KClass
 
 // entities would be an idea to make effects more modular
@@ -553,13 +553,8 @@ class Entity() : PrefabSaveable(), Inspectable {
                 if (parentRigidbody != null) {
                     // invalidate it
                     physics.invalidate(parentRigidbody)
-                } else {
-                    // if has collider without rigidbody, add it for click-tests
-                    if (hasComponent(Collider::class, false)) {
-                        // todo add it for click tests
-                    }
                 }
-            }// else println("physics is null, $name, list of hierarchy: ${listOfHierarchy.joinToString { it.name }}")
+            }
         }
     }
 
@@ -926,11 +921,14 @@ class Entity() : PrefabSaveable(), Inspectable {
         style: Style,
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
+        // all tests can be removed
         // interpolation tests
         /*list += UpdatingTextPanel(50, style) {
             val t = transform
             "1x/${(t.lastUpdateDt * 1e-9).f3()}s, ${((Engine.gameTime - t.lastUpdateTime) * 1e-9).f3()}s ago"
         }*/
+        // reloading tests for history
+        list += TextPanel(System.identityHashCode(this).toString(), style)
         PrefabInspector.currentInspector!!.inspect(this, list, style)
     }
 

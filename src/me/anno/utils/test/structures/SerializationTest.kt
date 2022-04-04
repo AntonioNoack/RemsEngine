@@ -3,6 +3,7 @@ package me.anno.utils.test.structures
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.io.text.TextReader
@@ -53,7 +54,7 @@ fun main() {
     logger.info(text)
 
     ISaveable.registerCustomClass("Test") { TestClass() }
-    val copiedInstance = TextReader.read(text, false)
+    val copiedInstance = TextReader.read(text, InvalidRef, false)
     logger.info(copiedInstance)
 
 }

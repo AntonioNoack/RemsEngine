@@ -20,11 +20,11 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextWriter
 import me.anno.maths.Maths.length
+import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.StudioBase.Companion.instance
 import me.anno.ui.Panel
 import me.anno.ui.Window
-import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.treeView.TreeViewPanel
 import me.anno.utils.files.FileExplorerSelectWrapper
 import me.anno.utils.files.Files.findNextFile
@@ -223,9 +223,9 @@ object Input {
         ActionManager.onKeyTyped(window, key)
 
         // just related to the top window-stack
-        val dws = window.windowStack
-        val inFocus = dws.inFocus
-        val inFocus0 = dws.inFocus0
+        val ws = window.windowStack
+        val inFocus = ws.inFocus
+        val inFocus0 = ws.inFocus0
         val mouseX = window.mouseX
         val mouseY = window.mouseY
 
@@ -280,7 +280,6 @@ object Input {
                 }
             }
             GLFW.GLFW_KEY_ESCAPE -> {
-                val ws = window.windowStack
                 if (ws.size > 1) {
                     val window2 = ws.peek()
                     if (window2.canBeClosedByUser) {
@@ -312,9 +311,7 @@ object Input {
                         }
                     }
                 }
-                // LOGGER.info("typed by $action")
                 inFocus0?.onKeyTyped(mouseX, mouseY, key)
-                // inFocus?.onCharTyped(mx,my,key)
             }
         }
     }
@@ -568,7 +565,7 @@ object Input {
                                 array.add(panel.onCopyRequested(mouseX, mouseY) as? ISaveable ?: continue)
                             }
                         }
-                        setClipboardContent(TextWriter.toText(listOf(array)))
+                        setClipboardContent(TextWriter.toText(listOf(array), InvalidRef))
                         // todo where necessary, support pasting an array of elements
                     }
                     is FileReference -> {

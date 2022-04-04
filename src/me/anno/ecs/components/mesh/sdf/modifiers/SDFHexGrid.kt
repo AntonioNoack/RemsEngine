@@ -1,8 +1,8 @@
 package me.anno.ecs.components.mesh.sdf.modifiers
 
 import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendVec
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
-import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.writeVec
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
@@ -100,9 +100,9 @@ class SDFHexGrid : PositionMapper() {
                 builder.append(u2)
             } else {
                 builder.append(',')
-                writeVec(builder, lim1)
+                builder.appendVec(lim1)
                 builder.append(',')
-                writeVec(builder, lim2)
+                builder.appendVec(lim2)
             }
         } // else no limits
     }

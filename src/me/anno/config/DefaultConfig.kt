@@ -5,6 +5,7 @@ import me.anno.gpu.GFXBase.Companion.projectName
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.SaveableArray
 import me.anno.io.config.ConfigBasics
+import me.anno.io.files.InvalidRef
 import me.anno.io.unity.UnityReader
 import me.anno.io.utils.StringMap
 import me.anno.ui.base.Font
@@ -37,7 +38,7 @@ object DefaultConfig : StringMap() {
 
         var newConfig: StringMap = this
         try {
-            newConfig = ConfigBasics.loadConfig("main.config", this, true)
+            newConfig = ConfigBasics.loadConfig("main.config", InvalidRef, this, true)
             putAll(newConfig)
         } catch (e: Exception) {
             e.printStackTrace()

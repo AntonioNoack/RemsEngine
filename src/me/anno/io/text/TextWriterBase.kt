@@ -11,7 +11,7 @@ import me.anno.utils.types.Strings.isBlank2
 import org.joml.*
 import kotlin.math.abs
 
-abstract class TextWriterBase : BaseWriter(true) {
+abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
 
     private var hasObject = false
     private var usedPointers: HashSet<ISaveable>? = null
@@ -387,13 +387,13 @@ abstract class TextWriterBase : BaseWriter(true) {
         if (force || (value != null && value != InvalidRef)) {
             writeAttributeStart("R", name)
             if (value == null || value == InvalidRef) append("null")
-            else writeString(value.toLocalPath(workspace))
+            else writeString(value.toLocalPath(workspace ?: this.workspace))
         }
     }
 
     override fun writeFileArray(name: String, values: Array<FileReference>, force: Boolean, workspace: FileReference?) {
         writeArray(name, values, force, "R[]") {
-            writeString(it.toLocalPath(workspace))
+            writeString(it.toLocalPath(workspace ?: this.workspace))
         }
     }
 
@@ -617,7 +617,7 @@ abstract class TextWriterBase : BaseWriter(true) {
 
     override fun writeVector2i(name: String, value: Vector2ic, force: Boolean) {
         if (force || value.x() != 0 || value.y() != 0) {
-            writeAttributeStart(name, "v2i")
+            writeAttributeStart("v2i", name)
             writeVector2i(value)
         }
     }
@@ -628,7 +628,7 @@ abstract class TextWriterBase : BaseWriter(true) {
 
     override fun writeVector3i(name: String, value: Vector3ic, force: Boolean) {
         if (force || value.x() != 0 || value.y() != 0 || value.z() != 0) {
-            writeAttributeStart(name, "v3i")
+            writeAttributeStart("v3i", name)
             writeVector3i(value)
         }
     }
@@ -639,7 +639,7 @@ abstract class TextWriterBase : BaseWriter(true) {
 
     override fun writeVector4i(name: String, value: Vector4ic, force: Boolean) {
         if (force || value.x() != 0 || value.y() != 0) {
-            writeAttributeStart(name, "v3i")
+            writeAttributeStart("v4i", name)
             writeVector4i(value)
         }
     }

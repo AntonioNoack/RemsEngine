@@ -185,7 +185,7 @@ class TreeViewPanel<V>(
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         try {
-            val child0 = TextReader.read(data, true).firstOrNull()
+            val child0 = TextReader.read(data, StudioBase.workspace, true).firstOrNull()
 
             @Suppress("unchecked_cast")
             val child = child0 as? V ?: return super.onPaste(x, y, data, type)

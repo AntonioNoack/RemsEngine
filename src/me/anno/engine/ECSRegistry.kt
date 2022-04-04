@@ -6,12 +6,16 @@ import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.anim.*
 import me.anno.ecs.components.camera.Camera
+import me.anno.ecs.components.camera.control.FirstPersonController
+import me.anno.ecs.components.camera.control.OrbitControls
+import me.anno.ecs.components.camera.control.ThirdPersonController
 import me.anno.ecs.components.camera.effects.BloomEffect
 import me.anno.ecs.components.camera.effects.SSAOEffect
 import me.anno.ecs.components.camera.effects.SSREffect
 import me.anno.ecs.components.collider.*
 import me.anno.ecs.components.light.*
 import me.anno.ecs.components.mesh.*
+import me.anno.ecs.components.mesh.sdf.SDFRegistry
 import me.anno.ecs.components.mesh.spline.PathProfile
 import me.anno.ecs.components.mesh.spline.SplineControlPoint
 import me.anno.ecs.components.mesh.spline.SplineMesh
@@ -26,7 +30,6 @@ import me.anno.ecs.components.player.RemotePlayer
 import me.anno.ecs.components.script.QuickInputScriptComponent
 import me.anno.ecs.components.script.QuickScriptComponent
 import me.anno.ecs.components.script.ScriptComponent
-import me.anno.ecs.components.mesh.sdf.SDFRegistry
 import me.anno.ecs.components.shaders.SkyBox
 import me.anno.ecs.components.test.RaycastTestComponent
 import me.anno.ecs.components.test.TestVehicleController
@@ -58,6 +61,8 @@ import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.ImageButton
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.Padding
+import me.anno.ui.base.constraints.AspectRatioConstraint
+import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.*
 import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.base.scrolling.ScrollPanelXY
@@ -91,6 +96,9 @@ object ECSRegistry {
 
         // camera and effects
         registerCustomClass(Camera())
+        registerCustomClass(OrbitControls())
+        registerCustomClass(FirstPersonController())
+        registerCustomClass(ThirdPersonController())
         registerCustomClass(BloomEffect())
         registerCustomClass(SSAOEffect())
         registerCustomClass(SSREffect())
@@ -107,6 +115,8 @@ object ECSRegistry {
         val style = DefaultConfig.style
         registerCustomClass(Font())
         registerCustomClass(Padding())
+        registerCustomClass(WrapAlign())
+        registerCustomClass(AspectRatioConstraint())
         registerCustomClass { Panel(style) }
         registerCustomClass { PanelListX(style) }
         registerCustomClass { PanelListY(style) }
@@ -150,6 +160,7 @@ object ECSRegistry {
         registerCustomClass(MeshComponent())
         registerCustomClass(AnimRenderer())
         registerCustomClass(AnimationState())
+        registerCustomClass(LODMeshComponent())
         registerCustomClass(SplineMesh())
         registerCustomClass(SplineControlPoint())
         registerCustomClass(PathProfile())

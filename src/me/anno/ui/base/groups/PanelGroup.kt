@@ -1,15 +1,13 @@
 package me.anno.ui.base.groups
 
-import me.anno.ecs.Component
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.io.ISaveable
+import me.anno.io.base.BaseWriter
 import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
-import me.anno.ui.editor.stacked.Option
 import me.anno.ui.style.Style
 import me.anno.utils.Tabs
-import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import kotlin.math.max
 import kotlin.math.min
 
@@ -105,6 +103,24 @@ abstract class PanelGroup(style: Style) : Panel(style) {
             }
             this
         } else null
+    }
+
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        writer.writeObjectList(null, "children", children)
+    }
+
+    override fun readObjectArray(name: String, values: Array<ISaveable?>) {
+        when (name) {
+            "children" -> {
+                val children = children
+                if (children is MutableList) {
+                    children.clear()
+                    children.addAll(values.filterIsInstance<Panel>())
+                }
+            }
+            else -> super.readObjectArray(name, values)
+        }
     }
 
     companion object {

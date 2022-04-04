@@ -716,7 +716,6 @@ object ShaderLib {
                     "   vec3 finalEmissive = tint.rgb;\n" +
                     "   float finalRoughness = 1.0;" +
                     "   float finalMetallic = 0.0;\n" +
-                    "   float finalOcclusion = 1.0;\n" +
                     "}", listOf("tex")
         )
         monochromeModelShader.glslVersion = 330

@@ -165,7 +165,7 @@ abstract class TreeView<V>(
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-        if (button.isRight) {
+        if (button.isRight && sources.isNotEmpty()) {
             // correct? maybe 😄
             openAddMenu(sources.last())
         } else super.onMouseClicked(x, y, button, long)

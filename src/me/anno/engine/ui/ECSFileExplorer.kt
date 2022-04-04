@@ -15,6 +15,7 @@ import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.io.zip.ZipCache
 import me.anno.language.translation.NameDesc
+import me.anno.studio.StudioBase
 import me.anno.ui.base.menu.Menu.msg
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
@@ -141,7 +142,7 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
                     }
                 }
             }
-            prefab.source.writeText(TextWriter.toText(prefab))
+            prefab.source.writeText(TextWriter.toText(prefab, StudioBase.workspace))
         }
     }
 
@@ -194,7 +195,7 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
                         dstFile = findNextFile(dstFolder, name, "json", 3, '-', 1)
                     }
                     dstFile.getParent()?.tryMkdirs()
-                    dstFile.writeText(TextWriter.toText(newPrefab))
+                    dstFile.writeText(TextWriter.toText(newPrefab, StudioBase.workspace))
                     newPrefab.source = dstFile
                     result[srcFile] = newPrefab
 
@@ -205,7 +206,7 @@ class ECSFileExplorer(file0: FileReference?, val syncMaster: SyncMaster, style: 
 
     fun pastePrefab(data: String): Boolean {
         try {
-            val read = TextReader.read(data, true)
+            val read = TextReader.read(data, StudioBase.workspace, true)
             val saveable = read.getOrNull(0) ?: return false
             when (saveable) {
                 is Prefab -> {

@@ -3,6 +3,7 @@ package me.anno.engine.ui
 import me.anno.config.DefaultConfig
 import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.interfaces.CustomEditMode
+import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView
@@ -21,7 +22,8 @@ object EditorState {
     lateinit var syncMaster: SyncMaster
     var isGaming = false
 
-    lateinit var world: PrefabSaveable
+    var prefab: Prefab? = null
+    var world: PrefabSaveable? = null
 
     // todo box selecting with shift
 

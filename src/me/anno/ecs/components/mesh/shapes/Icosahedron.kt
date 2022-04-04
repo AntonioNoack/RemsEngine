@@ -17,8 +17,6 @@ object Icosahedron {
 
         mesh.positions = FloatArray(3 * vertexCount)
         mesh.uvs = FloatArray(2 * vertexCount)
-        val p = mesh.positions!!
-        val uv = mesh.uvs!!
 
         // precalculate the angles? mmh...
         val cu = FloatArray(us)
@@ -39,22 +37,24 @@ object Icosahedron {
 
         var k = 0
         var l = 0
+        val positions = mesh.positions!!
+        val uvs = mesh.uvs!!
         for (v in 0..vs) {
             for (u in 0 until us) {
                 // calculate position
-                p[k++] = cv[v] * cu[u]
-                p[k++] = sv[v]
-                p[k++] = cv[v] * su[u]
+                positions[k++] = cv[v] * cu[u]
+                positions[k++] = sv[v]
+                positions[k++] = cv[v] * su[u]
                 // good like this?
-                uv[l++] = 1f - u.toFloat() / us // mirrored as well...
-                uv[l++] = v.toFloat() / vs // mirrored
+                uvs[l++] = 1f - u.toFloat() / us // mirrored as well...
+                uvs[l++] = v.toFloat() / vs // mirrored
             }
         }
 
         // ok? to just copy the values
         mesh.normals = mesh.positions
-        mesh.indices = IntArray(indexCount)
-        val i = mesh.indices!!
+        val indices = IntArray(indexCount)
+        mesh.indices = indices
 
         k = 0
         for (v in 0 until vs) {
@@ -64,12 +64,12 @@ object Icosahedron {
                 val v1 = getIndex(u + 1, v + 1, us)
                 val v2 = getIndex(u + 1, v, us)
                 val v3 = getIndex(u, v, us)
-                i[k++] = v0
-                i[k++] = v1
-                i[k++] = v2
-                i[k++] = v0
-                i[k++] = v2
-                i[k++] = v3
+                indices[k++] = v0
+                indices[k++] = v1
+                indices[k++] = v2
+                indices[k++] = v0
+                indices[k++] = v2
+                indices[k++] = v3
             }
         }
 

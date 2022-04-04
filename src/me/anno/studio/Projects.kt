@@ -31,7 +31,7 @@ object Projects {
                             val configFile = FileReference.getReference(folder, "config.json")
                             if (configFile.exists) {
                                 try {
-                                    val config = TextReader.read(configFile, true).firstOrNull() as? StringMap
+                                    val config = TextReader.read(configFile, folder, true).firstOrNull() as? StringMap
                                     if (config != null) {
                                         projects += ProjectHeader(config["general.name", folder.name], folder)
                                         usedFiles += folder

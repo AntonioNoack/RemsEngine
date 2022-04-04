@@ -11,6 +11,7 @@ import me.anno.io.text.TextWriter
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
+import me.anno.studio.StudioBase
 import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW.*
@@ -392,7 +393,7 @@ class Controller(val id: Int) {
         fun loadCalibration(guid: String): ControllerCalibration? {
             val file = getReference(ConfigBasics.configFolder, "controller/${formatGuid(guid)}.json")
             if (!file.exists || file.isDirectory) return null
-            return TextReader.readFirstOrNull<ControllerCalibration>(file)
+            return TextReader.readFirstOrNull<ControllerCalibration>(file, StudioBase.workspace)
         }
 
         fun saveCalibration(guid: String, calibration: ControllerCalibration) {
@@ -402,7 +403,7 @@ class Controller(val id: Int) {
             )
             val file = getReference(ConfigBasics.configFolder, "controller/${formatGuid(guid)}.json")
             file.getParent()?.tryMkdirs()
-            TextWriter.save(calibration, file)
+            TextWriter.save(calibration, file, StudioBase.workspace)
         }
 
         // first controller: 1000,1200;

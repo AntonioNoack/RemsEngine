@@ -23,13 +23,14 @@ import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.mesh.blender.BlenderReader
 import me.anno.mesh.obj.OBJReader2
 import me.anno.mesh.vox.VOXReader
+import me.anno.studio.StudioBase
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
 
 object PrefabCache : CacheSection("Prefab") {
 
-    var printJsonErrors = false
+    var printJsonErrors = true
 
     private val prefabTimeout = 60_000L
     private val LOGGER = LogManager.getLogger(PrefabCache::class)
@@ -84,7 +85,7 @@ object PrefabCache : CacheSection("Prefab") {
             is PrefabReadable -> resource.readPrefab()
             else -> {
                 try {
-                    val read = TextReader.read(resource, true)
+                    val read = TextReader.read(resource, StudioBase.workspace, true)
                     val prefab = read.firstOrNull()
                     if (prefab == null) LOGGER.warn("No Prefab found in $resource:${resource::class.simpleName}! $read")
                     // else LOGGER.info("Read ${prefab.changes?.size} changes from $resource")
@@ -144,7 +145,8 @@ object PrefabCache : CacheSection("Prefab") {
         when (Signature.findName(file)) {
             "json" ->
                 try {
-                    val prefab = TextReader.read(file, false).firstOrNull()
+                    val prefab = TextReader.read(file, StudioBase.workspace, false).firstOrNull()
+                    if (prefab is Prefab) prefab.source = file
                     if (prefab != null) return prefab
                 } catch (e: InvalidFormatException) {
                     if (printJsonErrors) LOGGER.warn("$e by $file", e)
@@ -155,6 +157,7 @@ object PrefabCache : CacheSection("Prefab") {
                 }
             "yaml" -> try {
                 val prefab = loadUnityFile(file)
+                if (prefab is Prefab) prefab.source = file
                 if (prefab != null) return prefab
             } catch (e: Exception) {
                 LOGGER.warn("$file is yaml, but not from Unity")
@@ -164,7 +167,9 @@ object PrefabCache : CacheSection("Prefab") {
         val folder = ZipCache.unzip(file, false) ?: return null
         val scene = folder.getChild("Scene.json") as? PrefabReadable
         val scene2 = scene ?: folder.listChildren()?.firstInstanceOrNull<PrefabReadable>() ?: return null
-        return scene2.readPrefab()
+        val prefab = scene2.readPrefab()
+        prefab.source = file
+        return prefab
     }
 
     fun getPrefabInstance(
@@ -211,7 +216,7 @@ object PrefabCache : CacheSection("Prefab") {
         chain: MutableSet<FileReference>?,
         clazz: String
     ): PrefabSaveable {
-        // LOGGER.info("creating instance from $superPrefab")
+        LOGGER.info("creating instance from ${prefab?.source} from $superPrefab")
         val instance = createSuperInstance(superPrefab, chain, clazz)
         instance.changePaths(prefab, Path.ROOT_PATH)
         // val changes2 = (changes0 ?: emptyList()).groupBy { it.className }.map { "${it.value.size}x ${it.key}" }
@@ -295,7 +300,7 @@ object PrefabCache : CacheSection("Prefab") {
     fun loadScenePrefab(file: FileReference): Prefab {
         val prefab = getPrefab(file, HashSet()) ?: Prefab("Entity").apply { this.prefab = ScenePrefab }
         prefab.source = file
-        if (!file.exists) file.writeText(TextWriter.toText(prefab))
+        if (!file.exists) file.writeText(TextWriter.toText(prefab, StudioBase.workspace))
         return prefab
     }
 

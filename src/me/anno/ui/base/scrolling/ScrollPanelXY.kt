@@ -187,6 +187,10 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
             consumedY = true
         }
 
+        if (consumedX || consumedY) {
+            invalidateLayout()
+        }
+
         if (!consumedX || !consumedY) {
             val dx2 = if (consumedX) 0f else dx
             val dy2 = if (consumedY) 0f else dy
@@ -220,12 +224,14 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         if (isDownOnScrollbarX && rx != 0f) {
             scrollbarX.onMouseMoved(x, y, rx, 0f)
             clampScrollPosition()
+            invalidateLayout()
             // consume rx
             rx = 0f
         }
         if (isDownOnScrollbarY && ry != 0f) {
             scrollbarY.onMouseMoved(x, y, 0f, ry)
             clampScrollPosition()
+            invalidateLayout()
             // consume ry
             ry = 0f
         }

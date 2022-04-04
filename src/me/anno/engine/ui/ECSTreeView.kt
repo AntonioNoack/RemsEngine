@@ -15,6 +15,7 @@ import me.anno.io.text.TextReader
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mixARGB
+import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
@@ -49,7 +50,10 @@ import org.apache.logging.log4j.LogManager
 
 class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
     TreeView<PrefabSaveable>(
-        UpdatingList { listOf(library.world) },
+        UpdatingList {
+            val world = library.prefab?.getSampleInstance() ?: library.world
+            if (world != null) listOf(world) else emptyList()
+        },
         ECSFileImporter as FileContentImporter<PrefabSaveable>,
         true,
         style
@@ -132,6 +136,9 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
     override fun removeChild(parent: PrefabSaveable, child: PrefabSaveable) {
         // todo somehow the window element cannot be removed
         LOGGER.info("Trying to remove element ${child.className} from ${parent.className}")
+        // todo also remove all children of it
+        EditorState.selection = EditorState.selection.filter { it != child }
+        EditorState.fineSelection = EditorState.fineSelection.filter { it != child }
         Hierarchy.removePathFromPrefab(parent.root.prefab!!, child)
     }
 
@@ -355,9 +362,9 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
      * returns true on success
      * */
     private fun tryPaste(data: String): Boolean {
-        return when (val element = TextReader.read(data, true).firstOrNull()) {
+        return when (val element = TextReader.read(data, StudioBase.workspace, true).firstOrNull()) {
             is Prefab -> {
-                val root = library.world
+                val root = library.world ?: return false
                 Hierarchy.add(root.prefab!!, Path.ROOT_PATH, element, Path.ROOT_PATH, root)
                 true
             }

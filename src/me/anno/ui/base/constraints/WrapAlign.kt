@@ -1,14 +1,17 @@
 package me.anno.ui.base.constraints
 
+import me.anno.io.base.BaseWriter
 import me.anno.ui.Panel
 import kotlin.math.max
 import kotlin.math.min
 
 class WrapAlign(
-    val alignX: AxisAlignment?,
-    val alignY: AxisAlignment?
-): Constraint(10){
-    
+    var alignX: AxisAlignment?,
+    var alignY: AxisAlignment?
+) : Constraint(10) {
+
+    constructor(): this(null,null)
+
     override fun apply(panel: Panel) {
         alignX?.apply {
             // delta is the movement to the right;
@@ -28,6 +31,22 @@ class WrapAlign(
 
     override fun toString() = "Wrap($alignX $alignY)"
 
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        writer.writeInt("alignX", alignX?.id ?: -1)
+        writer.writeInt("alignY", alignY?.id ?: -1)
+    }
+
+    override fun readInt(name: String, value: Int) {
+        when (name) {
+            "alignX" -> alignX = AxisAlignment.find(value)
+            "alignY" -> alignY = AxisAlignment.find(value)
+            else -> super.readInt(name, value)
+        }
+    }
+
+    override val className = "WrapAlign"
+
     companion object {
 
         val CenterX = WrapAlign(AxisAlignment.CENTER, null)
@@ -44,8 +63,6 @@ class WrapAlign(
 
         val TopFill = WrapAlign(null, AxisAlignment.MIN)
         val BottomFill = WrapAlign(null, AxisAlignment.MAX)
-
-
 
     }
 

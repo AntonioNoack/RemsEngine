@@ -3,6 +3,7 @@ package me.anno.io.text
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import org.apache.logging.log4j.LogManager
 import java.io.EOFException
@@ -11,7 +12,7 @@ import java.io.InputStream
 /**
  * reads a JSON-similar format from a text file
  * */
-class TextReader(val data: CharSequence) : TextReaderBase() {
+class TextReader(val data: CharSequence, workspace: FileReference) : TextReaderBase(workspace) {
 
     private var index = 0
 
@@ -65,8 +66,8 @@ class TextReader(val data: CharSequence) : TextReaderBase() {
          * @param safely return current results on failure, else throws Exception
          * */
         @Throws(EOFException::class)
-        fun read(data: CharSequence, safely: Boolean): List<ISaveable> {
-            return read(data, "", safely)
+        fun read(data: CharSequence, workspace: FileReference, safely: Boolean): List<ISaveable> {
+            return read(data, workspace, "", safely)
         }
 
         /**
@@ -74,14 +75,14 @@ class TextReader(val data: CharSequence) : TextReaderBase() {
          * @param safely return current results on failure, else throws Exception
          * */
         @Throws(EOFException::class)
-        fun read(data: CharSequence, sourceName: String, safely: Boolean): List<ISaveable> {
-            val reader = TextReader(data)
+        fun read(data: CharSequence, workspace: FileReference, sourceName: String, safely: Boolean): List<ISaveable> {
+            val reader = TextReader(data, workspace)
             reader.sourceName = sourceName
             if (safely) {
                 try {
                     reader.readAllInList()
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    LOGGER.warn("Error in $sourceName", e)
                 }
             } else {
                 reader.readAllInList()
@@ -91,19 +92,19 @@ class TextReader(val data: CharSequence) : TextReaderBase() {
         }
 
         @Throws(EOFException::class)
-        fun read(file: FileReference, safely: Boolean): List<ISaveable> {
+        fun read(file: FileReference, workspace: FileReference, safely: Boolean): List<ISaveable> {
             // buffered is very important and delivers an improvement of 5x
-            return file.inputStream().useBuffered().use { read(it, file.absolutePath, safely) }
+            return file.inputStream().useBuffered().use { read(it, workspace, file.absolutePath, safely) }
         }
 
         @Throws(EOFException::class)
-        fun read(data: InputStream, safely: Boolean): List<ISaveable> {
-            return read(data, "", safely)
+        fun read(data: InputStream, workspace: FileReference, safely: Boolean): List<ISaveable> {
+            return read(data, workspace, "", safely)
         }
 
         @Throws(EOFException::class)
-        fun read(data: InputStream, sourceName: String, safely: Boolean): List<ISaveable> {
-            val reader = TextStreamReader(data)
+        fun read(data: InputStream, workspace: FileReference, sourceName: String, safely: Boolean): List<ISaveable> {
+            val reader = TextStreamReader(data, workspace)
             reader.sourceName = sourceName
             if (safely) {
                 try {
@@ -116,20 +117,28 @@ class TextReader(val data: CharSequence) : TextReaderBase() {
             return reader.sortedContent
         }
 
-        inline fun <reified Type> readFirstOrNull(data: FileReference, safely: Boolean = true): Type? {
-            return read(data, safely).firstInstanceOrNull<Type>()
+        inline fun <reified Type> readFirstOrNull(
+            data: FileReference,
+            workspace: FileReference,
+            safely: Boolean = true
+        ): Type? {
+            return read(data, workspace, safely).firstInstanceOrNull<Type>()
         }
 
-        inline fun <reified Type> readFirstOrNull(data: String, safely: Boolean = true): Type? {
-            return read(data, safely).firstInstanceOrNull<Type>()
+        inline fun <reified Type> readFirstOrNull(
+            data: String,
+            workspace: FileReference,
+            safely: Boolean = true
+        ): Type? {
+            return read(data, workspace, safely).firstInstanceOrNull<Type>()
         }
 
-        inline fun <reified Type> readFirst(data: String, safely: Boolean = true): Type? {
-            return read(data, safely).firstInstanceOrNull<Type>()!!
+        inline fun <reified Type> readFirst(data: String, workspace: FileReference, safely: Boolean = true): Type {
+            return read(data, workspace, safely).firstInstanceOrNull<Type>()!!
         }
 
         fun <V : ISaveable> clone(element: V): V? {
-            val clone = read(TextWriter.toText(element), true).getOrNull(0)
+            val clone = read(TextWriter.toText(element, InvalidRef), InvalidRef, true).getOrNull(0)
             @Suppress("unchecked_cast")
             return clone as? V
         }

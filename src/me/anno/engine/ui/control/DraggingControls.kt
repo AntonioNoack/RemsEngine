@@ -1,6 +1,8 @@
 package me.anno.engine.ui.control
 
+import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.sdf.SDFComponent
 import me.anno.ecs.components.mesh.sdf.modifiers.DistanceMapper
@@ -10,6 +12,7 @@ import me.anno.ecs.prefab.PrefabCache.getPrefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.EditorState
+import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.camDirection
@@ -40,6 +43,7 @@ import org.joml.Vector3f
 // done show the scene
 // done drag stuff
 // todo translate, rotate, scale with gizmos
+// todo gizmos & movement for properties with @PositionAnnotation
 
 // todo gui depth doesn't match scene depth.. why?
 
@@ -57,9 +61,6 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
 
     var mode = Mode.TRANSLATING
 
-    // todo start button
-    // todo stop button
-
     init {
         // todo debugging view selection
         val topLeft = PanelListX(style)
@@ -74,6 +75,17 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                 ECSSceneTabs.currentTab?.play()
                 // todo also set this instance text to "Back"
             })
+        if (view.playMode == PlayMode.PLAY_TESTING) {
+            topLeft.add(TextButton("Pause", "", false, style)
+                .addLeftClickListener {
+                    // todo pause/unpause
+                    // todo change text accordingly,
+                })
+            topLeft.add(TextButton("Restart", "", false, style)
+                .addLeftClickListener {
+                    view.getWorld()?.prefab?.invalidateInstance()
+                })
+        }
         add(topLeft)
     }
 
@@ -138,11 +150,14 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                 view.rotation.set(0.0)
                 view.position.set(0.0)
                 view.radius = 50.0
+                camera.fovOrthographic = 50f
+                camera.fovY = 90f
+                camera.isPerspective = true
                 view.updateEditorCameraTransform()
             }
             "Cam5" -> {// switch between orthographic and perspective
-                // todo switch between ortho and perspective
-                // camera.putValue(camera.orthographicness, 1f - camera.orthographicness[cameraTime], true)
+                // switch between ortho and perspective
+                camera.isPerspective = !camera.isPerspective
             }
             // todo control + numpad does not work
             "Cam1" -> rotateCameraTo(Vector3f(0f, if (Input.isControlDown) 180f else 0f, 0f))// default view
@@ -177,8 +192,9 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
             "TurnRight" -> turn(1f, 0f)
             "TurnUp" -> turn(0f, -1f)
             "TurnDown" -> turn(0f, 1f)*/
+            else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
-        return super.onGotAction(x, y, dx, dy, action, isContinuous)
+        return true
     }
 
     fun turn(dx: Float, dy: Float) {
@@ -385,16 +401,17 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         val hovered by lazy { // get hovered element
-            view.resolveClick(x, y).second
+            view.resolveClick(x, y)
         }
+        val hovEntity = hovered.first
+        val hovComponent = hovered.second
         for (file in files) {
             // todo load as prefab (?)
             // todo when a material, assign it to the hovered mesh-component
             val prefab = getPrefab(file) ?: continue
-            when (prefab.clazzName) {
-                "Material" -> {
-                    println("pasted material for $hovered")
-                    val meshComponent = hovered as? MeshComponent
+            when (prefab.getSampleInstance()) {
+                is Material -> {
+                    val meshComponent = hovComponent as? MeshComponent
                     if (meshComponent != null) {
                         val mesh = meshComponent.getMesh()
                         val numMaterials = mesh?.numMaterials ?: 1
@@ -421,11 +438,21 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                         }
                     }*/
                 }
-                "Entity" -> {
+                is Entity -> {
                     // add this to the scene
                     // where? selected / root
+                    // todo while dragging this, show preview
+                    // todo place it where the preview was drawn
                     val root = library.selection.firstInstanceOrNull<PrefabSaveable>() ?: library.world
                     if (root is Entity) PrefabInspector.currentInspector!!.addEntityChild(root, prefab)
+                }
+                /*is SDFComponent -> {
+                    // todo add this...
+                }*/
+                is Component -> {
+                    if (hovEntity != null) {
+                        PrefabInspector.currentInspector!!.addEntityChild(hovEntity, prefab)
+                    }
                 }
                 // todo general listener in the components, which listens for drag events? they could be useful for custom stuff...
                 else -> {

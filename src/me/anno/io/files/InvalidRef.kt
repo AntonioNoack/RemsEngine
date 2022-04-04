@@ -1,5 +1,6 @@
 package me.anno.io.files
 
+import org.apache.logging.log4j.LogManager
 import java.io.FileNotFoundException
 import java.io.InputStream
 import java.io.OutputStream
@@ -7,29 +8,34 @@ import java.net.URI
 
 object InvalidRef : FileReference("") {
 
+    private val LOGGER = LogManager.getLogger(InvalidRef::class)
+
     override fun inputStream(): InputStream {
-        throw FileNotFoundException()
+        throw FileNotFoundException("InvalidRef is no valid source")
     }
 
     override fun outputStream(): OutputStream {
-        throw FileNotFoundException()
+        throw FileNotFoundException("InvalidRef is no valid source")
     }
 
-    override fun length(): Long = 0
+    override fun length() = 0L
 
     override fun deleteRecursively(): Boolean {
+        LOGGER.warn("Cannot delete InvalidRef")
         return false
     }
 
     override fun deleteOnExit() {
-
+        LOGGER.warn("Will not delete InvalidRef on exit, as it does not exist")
     }
 
     override fun delete(): Boolean {
+        LOGGER.warn("Cannot delete InvalidRef")
         return false
     }
 
     override fun mkdirs(): Boolean {
+        LOGGER.warn("Cannot make InvalidRef to folders")
         return false
     }
 
@@ -37,6 +43,7 @@ object InvalidRef : FileReference("") {
 
     override fun getParent(): FileReference? = null
     override fun renameTo(newName: FileReference): Boolean {
+        LOGGER.warn("Cannot rename InvalidRef")
         return false
     }
 
@@ -54,9 +61,7 @@ object InvalidRef : FileReference("") {
         return URI("file:/invalid")
     }
 
-    override fun toString(): String {
-        return ""
-    }
+    override fun toString() = ""
 
     override fun nullIfUndefined(): FileReference? = null
 

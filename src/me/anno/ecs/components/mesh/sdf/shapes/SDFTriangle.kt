@@ -70,11 +70,11 @@ open class SDFTriangle : SDFShape() {
             builder.append(',')
             builder.appendUniform(uniforms, c)
         } else {
-            writeVec(builder, a)
+            builder.appendVec(a)
             builder.append(',')
-            writeVec(builder, b)
+            builder.appendVec(b)
             builder.append(',')
-            writeVec(builder, c)
+            builder.appendVec(c)
         }
         builder.append(')')
         smartMinEnd(builder, dstName, nextVariableId, uniforms, functions, trans)

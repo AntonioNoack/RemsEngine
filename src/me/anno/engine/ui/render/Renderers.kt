@@ -146,7 +146,7 @@ object Renderers {
                     specularBRDFv2NoDivInlined2End +
                     "   }\n" +
                     "   finalColor = diffuseColor * diffuseLight + specularLight;\n" +
-                    "   finalColor = finalColor * finalOcclusion + finalEmissive;\n" +
+                    "   finalColor = finalColor * (1.0 - finalOcclusion) + finalEmissive;\n" +
                     "   if(applyToneMapping){\n" +
                     "       finalColor = toneMapping(finalColor);\n" +
                     "   }\n"
@@ -256,7 +256,7 @@ object Renderers {
                         "}\n" +
                         specularBRDFv2NoDivInlined2End +
                         "finalColor = diffuseColor * diffuseLight + specularLight;\n" +
-                        "finalColor = finalColor * finalOcclusion + finalEmissive;\n" +
+                        "finalColor = finalColor * (1.0 - finalOcclusion) + finalEmissive;\n" +
                         "finalColor = finalColor/(1.0+finalColor);\n" +
                         // a preview probably doesn't need anti-banding
                         // "finalColor -= random(uv) * ${1.0 / 255.0};\n" +

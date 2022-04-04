@@ -5,10 +5,10 @@ import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache.loadScenePrefab
+import me.anno.ecs.prefab.PrefabInspector
 import me.anno.engine.ui.DefaultLayout
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.ECSShaderLib
-import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX
 import me.anno.gpu.WindowX
@@ -29,6 +29,8 @@ import me.anno.utils.OS
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.hpc.SyncMaster
 import org.apache.logging.log4j.LogManager
+
+// todo: undo-redo
 
 // todo bug: tooltip texts of properties are not being displayed
 
@@ -150,25 +152,16 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         workspace = OS.documents.getChild("RemsEngine")
         workspace.tryMkdirs()
 
+        EditorState.syncMaster = syncMaster
+
         object : WelcomeUI() {
             override fun createProjectUI() {
 
                 val windowStack = GFX.windows.first().windowStack
-
-                val editScene = loadSafely(currentProject.lastScene)
-
                 val style = style
-
                 val list = PanelListY(style)
-
                 val isGaming = false
-                EditorState.syncMaster = syncMaster
-                EditorState.projectFile = editScene.source
-
-                ECSSceneTabs.open(syncMaster, editScene, PlayMode.EDITING)
-
                 val options = OptionBar(style)
-
                 val configTitle = Dict["Config", "ui.top.config"]
                 options.addAction(configTitle, Dict["Settings", "ui.top.config.settings"]) {
                     val panel = ConfigPanel(DefaultConfig, false, style)
@@ -224,6 +217,10 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
     override fun run() {
         instance2 = this
         super.run()
+    }
+
+    override fun openHistory() {
+        PrefabInspector.currentInspector?.history?.display()
     }
 
     companion object {

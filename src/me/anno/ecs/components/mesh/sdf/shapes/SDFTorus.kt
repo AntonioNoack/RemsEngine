@@ -55,7 +55,7 @@ class SDFTorus : SDFShape() {
         builder.append(trans.posIndex)
         builder.append(',')
         if (dynamicSize) builder.appendUniform(uniforms, params)
-        else writeVec(builder, params)
+        else builder.appendVec(params)
         builder.append(')')
         smartMinEnd(builder, dstName, nextVariableId, uniforms, functions, trans)
     }

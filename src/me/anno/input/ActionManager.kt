@@ -40,8 +40,9 @@ object ActionManager : StringMap() {
     }
 
     fun parseConfig(config: StringMap) {
-        for ((key, value) in config.entries) {
-            register(key, value.toString())
+        for ((key, value) in config) {
+            value as? String ?: continue
+            register(key, value)
         }
     }
 
@@ -204,10 +205,10 @@ object ActionManager : StringMap() {
 
     fun executeGlobally(window: WindowX, dx: Float, dy: Float, isContinuous: Boolean, actions: List<String>?) {
         if (actions == null) return
-        for (actionIndex in actions.indices) {
-            val action = actions[actionIndex]
+        for (index in actions.indices) {
+            val action = actions[index]
             if (globalActions[action]?.invoke() == true) {
-                // println("eg, consumed $action")
+                LOGGER.debug("Consumed Global Event $action")
                 return
             }
         }

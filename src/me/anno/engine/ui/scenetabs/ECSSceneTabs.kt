@@ -5,12 +5,14 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.physics.BulletPhysics
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
+import me.anno.engine.RemsEngine
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
+import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
@@ -98,18 +100,37 @@ object ECSSceneTabs : ScrollPanelX(style) {
         open(EditorState.syncMaster, file, classNameIfNull, playMode)
     }
 
+    val project get() = (StudioBase.instance as? RemsEngine)?.currentProject
+
     fun open(tab: ECSSceneTab) {
-        // todo if such a tab already exists, use that one instead (so we don't have duplicated tabs)
-        // todo scroll to that tab (?)
+
+        if (tab.file.nullIfUndefined() == null) {
+            throw RuntimeException("Cannot open InvalidRef as tab on prefab ${System.identityHashCode(tab.prefab)}")
+        }
+
+        // add tab to project
+        val project = project
+        if (project != null) {
+            if (project.openTabs.add(tab.file) || project.lastScene != tab.file) {
+                project.lastScene = tab.file
+                project.invalidate()
+            }
+        }
+
+        if (tab.parent == null) tab.parent = this
+        if (!tab.isHovered) tab.scrollTo()
+
+        val prefab = tab.inspector.prefab
+        updatePrefab(prefab)
+
         if (currentTab == tab) return
+
         synchronized(this) {
             currentTab = tab
             PrefabInspector.currentInspector = tab.inspector
             // root = sceneTab.root
-            val prefab = tab.inspector.prefab
             val instance = prefab.getSampleInstance()
             EditorState.select(instance, null)
-            updatePrefab(prefab)
             if (tab !in children3) {
                 content += tab
             }
@@ -120,14 +141,16 @@ object ECSSceneTabs : ScrollPanelX(style) {
                     }
                 }
             }
-            for (panel in children) panel.tickUpdate() // to assign the colors without delay
         }
+
+        (uiParent ?: this).invalidateDrawing()
+
     }
 
     fun updatePrefab(prefab: Prefab) {
         val prefabInstance = prefab.getSampleInstance()
         // val world = createWorld(prefabInstance, prefab.source)
-        EditorState.world = prefabInstance
+        EditorState.prefab = prefab
         (prefabInstance as? Entity)?.apply {
             create()
             val physics = prefabInstance.getComponent(BulletPhysics::class, false)
@@ -166,16 +189,18 @@ object ECSSceneTabs : ScrollPanelX(style) {
         if (currentTab === sceneTab) {
             if (children2.size == 1) {
                 LOGGER.warn(Dict["Cannot close last element", "ui.sceneTabs.cannotCloseLast"])
+                return
             } else {
                 val index = sceneTab.indexInParent
                 sceneTab.removeFromParent()
                 open(children2.getOrPrevious(index) as ECSSceneTab)
             }
         } else sceneTab.removeFromParent()
-    }
-
-    fun closeAll() {
-        children2.clear()
+        val project = project
+        if (project != null) {
+            project.openTabs.remove(sceneTab.file)
+            project.invalidate()
+        }
     }
 
     override fun save(writer: BaseWriter) {

@@ -89,7 +89,7 @@ class LightPipelineStage(
                 * vec3 diffuseColor  = finalColor * (1.0 - finalMetallic);
                 * vec3 specularColor = finalColor * finalMetallic;
                 * finalColor = diffuseColor * diffuseLight + specularLight; // specular already contains the color
-                * finalColor = finalColor * finalOcclusion + finalEmissive; // color, happens in post-processing
+                * finalColor = finalColor * (1.0 - finalOcclusion) + finalEmissive; // color, happens in post-processing
                 * finalColor = finalColor/(1.0+finalColor); // tone mapping
                 * */
                 val builder = ShaderBuilder("post")
@@ -118,7 +118,7 @@ class LightPipelineStage(
                             "   vec3 color3;\n" +
                             "   if(length(finalPosition) < 1e34){\n" +
                             "       vec3 light = texture(finalLight, uv).rgb + ambientLight;\n" +
-                            "       float occlusion = finalOcclusion * texture(ambientOcclusion, uv).r;\n" +
+                            "       float occlusion = (1.0 - finalOcclusion) * texture(ambientOcclusion, uv).r;\n" +
                             "       color3 = finalColor * light * occlusion + finalEmissive;\n" +
                             "   } else color3 = finalColor + finalEmissive;\n" + // sky
                             "   if(applyToneMapping) color3 = color3/(1.0+color3);\n" +

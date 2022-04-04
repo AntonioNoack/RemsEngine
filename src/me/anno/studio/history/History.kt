@@ -45,21 +45,29 @@ abstract class History<V> : Saveable() {
         }
     }
 
-    fun redo() {
-        synchronized(states) {
+    fun redo(): Boolean {
+        return synchronized(states) {
             if (nextInsertIndex < states.size) {
                 apply(states[nextInsertIndex])
                 nextInsertIndex++
-            } else LOGGER.info("Nothing left to redo!")
+                true
+            } else {
+                LOGGER.info("Nothing left to redo!")
+                false
+            }
         }
     }
 
-    fun undo() {
-        synchronized(states) {
+    fun undo(): Boolean {
+        return synchronized(states) {
             if (nextInsertIndex > 1) {
                 nextInsertIndex--
                 apply(states[nextInsertIndex - 1])
-            } else LOGGER.info("Nothing left to undo!")
+                true
+            } else {
+                LOGGER.info("Nothing left to undo!")
+                false
+            }
         }
     }
 

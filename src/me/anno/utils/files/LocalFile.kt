@@ -3,6 +3,7 @@ package me.anno.utils.files
 import me.anno.io.files.FileReference
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.InvalidRef
 import me.anno.studio.StudioBase
 import me.anno.utils.OS
 import java.io.File
@@ -42,9 +43,8 @@ object LocalFile {
         return toString().toLocalPath(workspace)
     }
 
-
     fun checkIsChild2(fileStr: String, parent: FileReference?, pathName: String): FileReference? {
-        parent ?: return null
+        if(parent == null || parent == InvalidRef) return null
         val start = "$pathName/"
         return if (fileStr.startsWith(start, true)) {
             getReference(parent, fileStr.substring(start.length))

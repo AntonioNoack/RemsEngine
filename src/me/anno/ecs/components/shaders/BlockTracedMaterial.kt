@@ -56,8 +56,7 @@ abstract class BlockTracedMaterial(name: String) : ECSMeshShader(name) {
                 "finalAlpha = 1.0;\n" +
                 "finalEmissive = vec3(0.0);\n" +
                 "finalMetallic = 0.0;\n" +
-                "finalRoughness = 0.5;\n" +
-                "finalOcclusion = 1.0;\n"
+                "finalRoughness = 0.5;\n"
     }
 
     open fun createFragmentVariables(instanced: Boolean): List<Variable> {
@@ -79,7 +78,6 @@ abstract class BlockTracedMaterial(name: String) : ECSMeshShader(name) {
             Variable(GLSLType.V3F, "finalEmissive", VariableMode.OUT),
             Variable(GLSLType.V1F, "finalMetallic", VariableMode.OUT),
             Variable(GLSLType.V1F, "finalRoughness", VariableMode.OUT),
-            Variable(GLSLType.V1F, "finalOcclusion", VariableMode.OUT),
             // for reflections
             Variable(GLSLType.BOOL, "hasReflectionPlane"),
             Variable(GLSLType.V3F, "reflectionPlaneNormal"),

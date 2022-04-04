@@ -3,6 +3,7 @@ package me.anno.graph
 import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.ui.base.groups.PanelListY
@@ -148,7 +149,7 @@ abstract class Node() : NamedSaveable() {
     }
 
     fun clone(): Node {// not ideal, but probably good enough for now and manual graph creation
-        return TextReader.readFirst<Node>(TextWriter.toText(this))!!
+        return TextReader.readFirst<Node>(TextWriter.toText(this, InvalidRef), InvalidRef)!!
     }
 
 }

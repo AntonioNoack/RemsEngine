@@ -58,33 +58,39 @@ object ConfigBasics {
     inline fun load(localFileName: String, saveIfMissing: Boolean, getDefault: () -> String) =
         load(getConfigFile(localFileName), saveIfMissing, getDefault)
 
-    fun loadConfig(file: FileReference, defaultValue: StringMap, saveIfMissing: Boolean): StringMap {
+    fun loadConfig(
+        file: FileReference,
+        workspace: FileReference,
+        defaultValue: StringMap,
+        saveIfMissing: Boolean
+    ): StringMap {
         ISaveable.registerCustomClass(StringMap())
         val read = load(file, saveIfMissing) {
             LOGGER.info("Didn't find $file, using default values")
-            TextWriter.toText(defaultValue)
+            TextWriter.toText(defaultValue, workspace)
         }
-        val readData = TextReader.read(read, file.absolutePath, true)
+        val readData = TextReader.read(read, workspace, file.absolutePath, true)
         val map = readData.firstOrNull { it is StringMap } as? StringMap
         return if (map == null) {
             LOGGER.info("Config was corrupted, didn't find a config, in $file, got $readData")
-            save(file, TextWriter.toText(defaultValue))
+            save(file, TextWriter.toText(defaultValue, workspace))
             defaultValue
         } else map
     }
 
-    fun loadConfig(localFileName: String, defaultValue: StringMap, saveIfMissing: Boolean) =
-        loadConfig(getConfigFile(localFileName), defaultValue, saveIfMissing)
+    fun loadConfig(localFileName: String, workspace: FileReference, defaultValue: StringMap, saveIfMissing: Boolean) =
+        loadConfig(getConfigFile(localFileName), workspace, defaultValue, saveIfMissing)
 
     fun loadJsonArray(
         localFileName: String,
+        workspace: FileReference,
         defaultValue: List<ConfigEntry>,
         saveIfMissing: Boolean
     ): List<ConfigEntry> {
 
-        val data = load(localFileName, saveIfMissing) { TextWriter.toText(defaultValue) }
+        val data = load(localFileName, saveIfMissing) { TextWriter.toText(defaultValue, workspace) }
 
-        val loaded = TextReader.read(data, localFileName, true)
+        val loaded = TextReader.read(data, workspace, localFileName, true)
         val newestEntries = HashMap<String, ConfigEntry>(loaded.size + 10)
 
         fun addIfNewest(entry: ConfigEntry): Boolean {
@@ -119,7 +125,7 @@ object ConfigBasics {
         val result = newestEntries.values.toList()
 
         if (wasAugmentedByDefault) {
-            save(localFileName, TextWriter.toText(result))
+            save(localFileName, TextWriter.toText(result, workspace))
         }
 
         return result

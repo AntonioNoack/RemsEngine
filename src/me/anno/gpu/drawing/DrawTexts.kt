@@ -99,8 +99,8 @@ object DrawTexts {
         val size = text.length
         val width = charWidth * size
         val height = font.sampleHeight
-        val dx = getOffset(width, alignX)
-        val dy = getOffset(height, alignY)
+        val dx = getOffset(width, alignX) - padding
+        val dy = getOffset(height, alignY) - padding
         DrawRectangles.drawRect(
             x + dx, y + dy,
             charWidth * text.length + 2 * padding, font.sizeInt + 2 * padding,

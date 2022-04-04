@@ -1,5 +1,6 @@
 package org.the3deers.util
 
+import me.anno.image.ImageWriter
 import me.anno.image.raw.BIImage
 import me.anno.maths.Maths.mix
 import me.anno.utils.OS.desktop
@@ -34,29 +35,7 @@ fun main() {
     }
 
     val triangles = EarCut.earcut(data, 2)!!
+    ImageWriter.writeTriangles(size, "triangulation.png", points.toList(), triangles.toIntArray())
 
-    val bi = BufferedImage(size, size, 1)
-    val gi = bi.graphics as Graphics2D
-    gi.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-    for (triIndex in 0 until triangles.size / 3) {
-
-        gi.color = Color(0x777777 or random.nextInt() or (255 shl 24))
-
-        val i = triIndex * 3
-        fun drawLine(a: Vector2f, b: Vector2f) {
-            gi.drawLine(a.x.toInt(), a.y.toInt(), b.x.toInt(), b.y.toInt())
-        }
-
-        fun drawLine(a: Int, b: Int) {
-            drawLine(points[triangles[a]], points[triangles[b]])
-        }
-
-        drawLine(i, i + 1)
-        drawLine(i + 1, i + 2)
-        drawLine(i + 2, i)
-
-    }
-
-    BIImage(bi).write(desktop.getChild("triangulation.png"))
 
 }

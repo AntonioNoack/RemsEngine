@@ -22,7 +22,6 @@ import me.anno.io.ResourceHelper.loadResource
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.base.menu.Menu.ask
-import me.anno.ui.base.text.TextPanel
 import me.anno.utils.Clock
 import org.apache.logging.log4j.LogManager.getLogger
 import org.apache.logging.log4j.Logger
@@ -40,7 +39,6 @@ import java.awt.Robot
 import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
-import kotlin.concurrent.thread
 import kotlin.math.abs
 
 /**
@@ -100,7 +98,8 @@ open class GFXBase {
     }
 
     fun forceLoadRenderDoc(renderDocPath: String?) {
-        val path = renderDocPath ?: DefaultConfig["debug.renderdoc.path", "C:/Program Files/RenderDoc/renderdoc.dll"]
+        // todo I broke RenderDoc probably accessing OpenGL somewhere before this is executed
+        /*val path = renderDocPath ?: DefaultConfig["debug.renderdoc.path", "C:/Program Files/RenderDoc/renderdoc.dll"]
         try {
             // if renderdoc is install on linux, or given in the path, we could use it as well with loadLibrary()
             // at least this is the default location for RenderDoc
@@ -111,7 +110,7 @@ open class GFXBase {
         } catch (e: Exception) {
             LOGGER.warn("Could not initialize RenderDoc")
             e.printStackTrace()
-        }
+        }*/
     }
 
     open fun run() {
@@ -135,7 +134,11 @@ open class GFXBase {
             synchronized(glfwLock) {
                 synchronized(openglLock) {
                     destroyed = true
-                    LOGGER.info("Closing ${windows.size} remaining windows")
+                    when (windows.size) {
+                        0 -> {}
+                        1 -> LOGGER.info("Closing one remaining window")
+                        else -> LOGGER.info("Closing ${windows.size} remaining windows")
+                    }
                     for (index in 0 until windows.size) {
                         close(windows.getOrNull(index) ?: break)
                     }

@@ -2,7 +2,7 @@ package me.anno.ecs.components.mesh.sdf.modifiers
 
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
-import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.writeVec
+import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendVec
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.components.mesh.sdf.modifiers.SDFHalfSpace.Companion.dot
 import me.anno.ecs.prefab.PrefabSaveable
@@ -95,7 +95,7 @@ class SDFMirror() : PositionMapper() {
             val name = "nor${nextVariableId.next()}"
             builder.append("vec4 ").append(name)
             builder.append("=")
-            writeVec(builder, plane)
+            builder.appendVec(plane)
             builder.append(";\n")
             name
         }

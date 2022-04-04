@@ -2,19 +2,14 @@ package me.anno.ecs
 
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.raycast.RayHit
 import me.anno.engine.ui.EditorState
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.studio.Inspectable
-import me.anno.ui.editor.stacked.Option
-import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
-import org.joml.Vector3d
-import kotlin.reflect.KClass
 
 abstract class Component : PrefabSaveable(), Inspectable {
 
@@ -39,7 +34,7 @@ abstract class Component : PrefabSaveable(), Inspectable {
     val transform
         get() = entity?.transform
 
-    val isSelectedIndirectly get() = entity!!.anyInHierarchy { it == EditorState.lastSelection }
+    val isSelectedIndirectly get() = entity?.anyInHierarchy { it == EditorState.lastSelection } == true
 
     // can be overridden, e.g. for materials
     override fun listChildTypes(): String = ""
@@ -56,6 +51,10 @@ abstract class Component : PrefabSaveable(), Inspectable {
      * if so, it fills the global transform with its bounds
      * */
     open fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean = false
+
+    open fun invalidateAABB() {
+        entity?.invalidateOwnAABB()
+    }
 
     abstract override fun clone(): Component
 
@@ -77,14 +76,12 @@ abstract class Component : PrefabSaveable(), Inspectable {
      *      that you will be called exactly then, because this would allow us to reduce events, when the fps are low
      * */
     open fun onUpdate(): Int = 0
-    private var onUpdateItr = 1
-    private var onUpdateCtr = 0
+    private var nextUpdateItr = 1
 
     fun callUpdate(): Boolean {
-        return if (onUpdateItr > 0) {
-            if (onUpdateCtr >= onUpdateItr - 1) {
-                onUpdateCtr = 0
-                onUpdateItr = onUpdate()
+        return if (nextUpdateItr > 0) {
+            if (--nextUpdateItr <= 0) {
+                nextUpdateItr = onUpdate()
             }
             true
         } else false
@@ -93,7 +90,7 @@ abstract class Component : PrefabSaveable(), Inspectable {
     /**
      * whether onUpdate() needs to be called
      * */
-    fun needsUpdate() = onUpdateItr > 0
+    fun needsUpdate() = nextUpdateItr > 0
 
     /**
      * is called every frame, when the entity was visible

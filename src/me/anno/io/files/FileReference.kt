@@ -96,13 +96,19 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
                 // todo we should invalidate ALL windowStacks
                 for (window0 in GFX.windows) {
                     for (window in window0.windowStack) {
-                        window.panel.forAll {
-                            if (it is FileExplorer && it.folder
-                                    .absolutePath
-                                    .startsWith(parent.absolutePath)
-                            ) {
-                                it.invalidate()
+                        try {
+                            window.panel.forAll {
+                                if (it is FileExplorer && it.folder
+                                        .absolutePath
+                                        .startsWith(parent.absolutePath)
+                                ) {
+                                    it.invalidate()
+                                }
                             }
+                        } catch (e: Exception) {
+                            // this is not on the UI thread, so the UI may change, and cause
+                            // index out of bounds exceptions
+                            e.printStackTrace()
                         }
                     }
                 }

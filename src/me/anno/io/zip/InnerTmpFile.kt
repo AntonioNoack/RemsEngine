@@ -2,7 +2,6 @@ package me.anno.io.zip
 
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabReadable
-import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.image.ImageReadable
 import me.anno.io.files.FileReference
@@ -15,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger
 abstract class InnerTmpFile private constructor(name: String) :
     InnerFile(name, name, false, InvalidRef) {
 
-    constructor(): this("tmp://${id.incrementAndGet()}")
+    constructor() : this("tmp://${id.incrementAndGet()}")
 
     class InnerTmpByteFile(bytes: ByteArray) : InnerTmpFile() {
 
@@ -60,17 +59,17 @@ abstract class InnerTmpFile private constructor(name: String) :
             prefab.source = this
         }
 
-        val text = lazy { TextWriter.toText(prefab) }
-        val bytes = lazy { text.value.toByteArray() }
+        val text by lazy { TextWriter.toText(prefab, InvalidRef) }
+        val bytes by lazy { text.toByteArray() }
 
         override fun isSerializedFolder(): Boolean = false
         override fun listChildren(): List<FileReference>? = null
 
-        override fun readText() = text.value
-        override fun readBytes() = bytes.value
+        override fun readText() = text
+        override fun readBytes() = bytes
 
         override fun getInputStream(): InputStream {
-            return text.value.byteInputStream()
+            return text.byteInputStream()
         }
 
         override fun readPrefab(): Prefab {

@@ -222,7 +222,7 @@ abstract class WelcomeUI {
 
     abstract fun createProjectUI()
 
-    fun openProject(studio: StudioBase, name: String, folder: FileReference) {
+    open fun openProject(studio: StudioBase, name: String, folder: FileReference) {
         thread(name = "UILayouts::openProject()") {
             val p = loadProject(name.trim(), folder)
             StudioBase.addEvent {

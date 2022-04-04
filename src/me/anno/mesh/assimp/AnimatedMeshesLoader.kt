@@ -8,7 +8,6 @@ import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.mesh.Mesh.Companion.MAX_WEIGHTS
 import me.anno.ecs.components.mesh.MorphTarget
 import me.anno.ecs.prefab.Prefab
-import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.Path
 import me.anno.io.NamedSaveable
 import me.anno.io.Saveable
@@ -23,6 +22,7 @@ import me.anno.mesh.assimp.AnimationLoader.loadAnimationFrame
 import me.anno.mesh.assimp.AssimpTree.convert
 import me.anno.mesh.assimp.MissingBones.compareBoneWithNodeNames
 import me.anno.mesh.assimp.SkeletonAnimAndBones.loadSkeletonFromAnimationsAndBones
+import me.anno.studio.StudioBase
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.types.Matrices.isIdentity
 import org.apache.logging.log4j.LogManager
@@ -82,7 +82,8 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         val animations = asFolder.first.getChild("animations")
             .listChildren()?.associate {
                 val text = it.readText()
-                val animation = TextReader.read(text, true).first() as Animation
+                // not sure about the workspace... probably should be the next project above file
+                val animation = TextReader.read(text, StudioBase.workspace, true).first() as Animation
                 it.nameWithoutExtension to animation
             } ?: emptyMap()
         return AnimGameItem(instance, animations)
@@ -151,7 +152,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
 
             // create a animation node to show the first animation
             if (meshes.isEmpty() && animMap.isNotEmpty()) {
-                val animPath =  hierarchy.add(Path.ROOT_PATH, 'c', "AnimRenderer", 0)
+                val animPath = hierarchy.add(Path.ROOT_PATH, 'c', "AnimRenderer", 0)
                 hierarchy.setUnsafe(animPath, "skeleton", skeletonPath)
                 hierarchy.setUnsafe(animPath, "animationWeights", hashMapOf(animMap.values.first() to 1f))
             }
@@ -278,7 +279,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                     val name = (instance as? NamedSaveable)?.name ?: ""
                     val nameOrIndex = name.ifEmpty { "$index" }
                     val fileName = findNextFileName(meshFolder, nameOrIndex, "json", 3, '-')
-                    meshFolder.createTextChild(fileName, TextWriter.toText(instance))
+                    meshFolder.createTextChild(fileName, TextWriter.toText(instance, InvalidRef))
                 }
                 references += reference
             }

@@ -1,5 +1,6 @@
 package me.anno.ecs.components.mesh
 
+import me.anno.Engine
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.Prefab
@@ -42,10 +43,13 @@ class Material : PrefabSaveable() {
         }
 
     // or not yet...
+    // todo this needs to be easy to change for transparency/non-transparent objects
+    @Type("PipelineStage?")
     @NotSerializedProperty
     var pipelineStage: PipelineStage? = null
 
     // or not yet...
+    @Type("BaseShader?")
     @NotSerializedProperty
     var shader: BaseShader? = null
 
@@ -70,23 +74,28 @@ class Material : PrefabSaveable() {
     @Range(0.0, 100.0)
     @Type("Color3HDR")
     var emissiveBase = Vector3f(0f)
+    @Type("Texture/Reference")
     var emissiveMap: FileReference = InvalidRef
 
     // mix(min,max,value(uv)) or 1 if undefined)
     @Range(0.0, 1.0)
     var roughnessMinMax = Vector2f(0f, 1f)
+    @Type("Texture/Reference")
     var roughnessMap: FileReference = InvalidRef
 
     // mix(min,max,map(uv)) or 1 if undefined)
     @Range(0.0, 1.0)
     var metallicMinMax = Vector2f(0f, 0f)
+    @Type("Texture/Reference")
     var metallicMap: FileReference = InvalidRef
 
+    @Type("Texture/Reference")
     var displacementMap: FileReference = InvalidRef
 
     // light *= 1-(1-map(uv)) * strength
     @Range(0.0, 100.0)
     var occlusionStrength = 1f
+    @Type("Texture/Reference")
     var occlusionMap: FileReference = InvalidRef
 
     // the last component is the strength
@@ -111,6 +120,7 @@ class Material : PrefabSaveable() {
     var sheen = 0f
 
     // e.g. for patterns, e.g. stroking over some clothes leaves patterns
+    @Type("Texture/Reference")
     var sheenNormalMap: FileReference = InvalidRef
 
     operator fun set(name: String, type: GLSLType, value: Any) {
@@ -121,39 +131,19 @@ class Material : PrefabSaveable() {
         shaderOverrides[name] = value
     }
 
-    val timeout = 1000L
-    fun getTex(image: FileReference) = ImageGPUCache.getImage(image, timeout, true)
-
-    fun bindTexture(shader: Shader, name: String, file: FileReference, default: Texture2D): Texture2D? {
-        val index = shader.getTextureIndex(name)
-        return if (index >= 0) {
-            val tex = getTex(file)
-            (tex ?: default).bind(index)
-            tex
-        } else {
-            LOGGER.warn("Didn't find texture $name in ${shader.name}")
-            null
-        }
-    }
-
     fun defineShader(shader: Shader) {
-        // todo there will be shadow maps: find the correct texture indices!
+
         // all the data, the shader needs to know from the material
 
-        // todo allow swizzling for alpha, roughness, metallic and such
-
         val white = TextureLib.whiteTexture
-        val black = TextureLib.blackTexture
         val n001 = TextureLib.normalTexture
 
-        val sheenNormalTex =
-            bindTexture(shader, "sheenNormalMap", sheenNormalMap, white)
         bindTexture(shader, "occlusionMap", occlusionMap, white)
         bindTexture(shader, "metallicMap", metallicMap, white)
         bindTexture(shader, "roughnessMap", roughnessMap, white)
         bindTexture(shader, "emissiveMap", emissiveMap, white)
-        val normalTex =
-            bindTexture(shader, "normalMap", normalMap, n001)
+        val sheenNormalTex = bindTexture(shader, "sheenNormalMap", sheenNormalMap, white)
+        val normalTex = bindTexture(shader, "normalMap", normalMap, n001)
         bindTexture(shader, "diffuseMap", diffuseMap, white)
 
         shader.v4f("diffuseBase", diffuseBase)
@@ -244,7 +234,6 @@ class Material : PrefabSaveable() {
     }
 
     override fun clone(): Material {
-        // todo fast copy option
         val material = Material()
         copy(material)
         return material
@@ -274,6 +263,7 @@ class Material : PrefabSaveable() {
         clone.clearCoatMetallic = clearCoatMetallic
         clone.shader = shader
         clone.pipelineStage = pipelineStage
+        clone.isDoubleSided = isDoubleSided
         // todo other stuff, that we missed
     }
 
@@ -281,7 +271,22 @@ class Material : PrefabSaveable() {
 
     companion object {
 
+        val timeout = 1000L
         private val LOGGER = LogManager.getLogger(Material::class)
+
+        fun getTex(image: FileReference) = ImageGPUCache.getImage(image, timeout, true)
+
+        fun bindTexture(shader: Shader, name: String, file: FileReference, default: Texture2D): Texture2D? {
+            val index = shader.getTextureIndex(name)
+            return if (index >= 0) {
+                val tex = getTex(file)
+                (tex ?: default).bind(index)
+                tex
+            } else {
+                LOGGER.warn("Didn't find texture $name in ${shader.name}")
+                null
+            }
+        }
 
         /**
          * create a procedural material:
@@ -308,6 +313,7 @@ class Material : PrefabSaveable() {
             }
             val instance = prefab.createInstance()
             LOGGER.info(instance)
+            Engine.requestShutdown()
         }
 
     }

@@ -2,7 +2,7 @@ package me.anno.ecs.components.mesh.sdf.modifiers
 
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
-import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.writeVec
+import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendVec
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths
@@ -123,7 +123,7 @@ class SDFTwist : PositionMapper() {
             writeSource(builder, posIndex, uniforms)
             builder.append(',')
             if (dynDst) builder.appendUniform(uniforms, dst)
-            else writeVec(builder, dst)
+            else builder.appendVec(dst)
             builder.append(");\n")
             return null
         }
@@ -131,7 +131,7 @@ class SDFTwist : PositionMapper() {
 
     private fun writeCenter(builder: StringBuilder, uniforms: HashMap<String, TypeValue>) {
         if (dynamicCenter) builder.appendUniform(uniforms, center)
-        else writeVec(builder, center)
+        else builder.appendVec(center)
     }
 
     private fun writeSource(builder: StringBuilder, posIndex: Int, uniforms: HashMap<String, TypeValue>) {
@@ -140,7 +140,7 @@ class SDFTwist : PositionMapper() {
         builder.append("dot(vec4(pos").append(posIndex)
         builder.append(",1.0),")
         if (dynamicSource) builder.appendUniform(uniforms, src)
-        else writeVec(builder, src)
+        else builder.appendVec(src)
         builder.append(")")
     }
 

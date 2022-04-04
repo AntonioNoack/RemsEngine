@@ -16,6 +16,7 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
 import me.anno.ui.Window
@@ -42,14 +43,14 @@ class ECSSceneTab(
     val inspector: PrefabInspector,
     val file: FileReference,
     val playMode: PlayMode
-) : TextPanel(inspector.reference.nameWithoutExtension, DefaultConfig.style) {
+) : TextPanel(file.nameWithoutExtension, DefaultConfig.style) {
 
     constructor(
         syncMaster: SyncMaster,
         fileReference: FileReference,
         classNameIfNull: String,
         playMode: PlayMode
-    ) : this(syncMaster, PrefabInspector(fileReference, classNameIfNull), playMode)
+    ) : this(syncMaster, PrefabInspector(fileReference, classNameIfNull), fileReference, playMode)
 
     constructor(syncMaster: SyncMaster, prefab: Prefab, playMode: PlayMode) :
             this(syncMaster, PrefabInspector(prefab), playMode)

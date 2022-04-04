@@ -1,5 +1,6 @@
 package me.anno.io.text
 
+import me.anno.io.files.FileReference
 import java.io.EOFException
 import java.io.InputStream
 import java.io.InputStreamReader
@@ -7,7 +8,7 @@ import java.io.InputStreamReader
 /**
  * reads a JSON-similar format from a text file
  * */
-class TextStreamReader(data: InputStream) : TextReaderBase() {
+class TextStreamReader(data: InputStream, workspace: FileReference) : TextReaderBase(workspace) {
 
     private val reader = InputStreamReader(data)
 

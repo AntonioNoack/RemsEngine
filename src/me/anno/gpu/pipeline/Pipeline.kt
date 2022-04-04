@@ -3,6 +3,7 @@ package me.anno.gpu.pipeline
 import me.anno.Engine
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.cache.MaterialCache
 import me.anno.ecs.components.light.AmbientLight
 import me.anno.ecs.components.light.LightComponent
@@ -22,6 +23,7 @@ import me.anno.gpu.pipeline.M4x3Delta.set4x3delta
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.LOGGER
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.sorting.MergeSort.mergeSort
@@ -48,6 +50,8 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
     var ignoredEntity: Entity? = null // e.g. for environment maps
     var ignoredComponent: Component? = null
 
+    @Type("List<PipelineStage>")
+    @SerializedProperty
     val stages = ArrayList<PipelineStage>()
 
     // depth doesn't matter for lights
@@ -265,7 +269,7 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
             if (child.isEnabled) {
                 child.clickId = clickId++
                 if (child is SDFGroup) {
-                    clickId = assignClickIds(sdf, clickId)
+                    clickId = assignClickIds(child, clickId)
                 }
             }
         }
@@ -456,7 +460,15 @@ class Pipeline(val deferred: DeferredSettingsV2) : Saveable() {
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
+        writer.writeBoolean("applyToneMapping", applyToneMapping)
         writer.writeObjectList(this, "stages", stages)
+    }
+
+    override fun readBoolean(name: String, value: Boolean) {
+        when (name) {
+            "applyToneMapping" -> applyToneMapping = value
+            else -> super.readBoolean(name, value)
+        }
     }
 
     override fun readObject(name: String, value: ISaveable?) {

@@ -9,11 +9,11 @@ class DelayedTask(
 
     constructor(function: () -> Unit) : this(function, 500)
 
-    var isSaving = false
+    var isWorking = false
     fun update() {
         synchronized(this) {
-            if (isSaving) return
-            isSaving = true
+            if (isWorking) return
+            isWorking = true
         }
         thread(name = "DelayedTask") {
             try {
@@ -28,7 +28,7 @@ class DelayedTask(
                 // something went wrong;
                 // we need to unlock it anyways
             }
-            isSaving = false
+            isWorking = false
         }
     }
 

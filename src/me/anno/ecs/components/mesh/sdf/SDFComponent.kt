@@ -11,7 +11,9 @@ import me.anno.engine.raycast.Projection.projectRayToAABBFront
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.Raycast
 import me.anno.gpu.shader.GLSLType
+import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
+import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
@@ -67,6 +69,15 @@ open class SDFComponent : ProceduralMesh() {
         }
 
     val material by lazy { Material.create() }
+
+    @Type("List<Material/Reference>")
+    @SerializedProperty
+    @HideInInspector("isSDFChild")
+    var sdfMaterials = emptyList<FileReference>()
+        set(value) {
+            field = value
+            invalidateShader()
+        }
 
     @DebugProperty
     @NotSerializedProperty
@@ -203,7 +214,7 @@ open class SDFComponent : ProceduralMesh() {
             hasInvalidBounds = false
             // recalculate bounds & recreate mesh
             updateMesh(mesh2, false)
-            entity?.invalidateOwnAABB()
+            invalidateAABB()
         }
         return 1
     }
@@ -277,7 +288,7 @@ open class SDFComponent : ProceduralMesh() {
             parent.invalidateShader()
         } else {
             invalidateMesh()
-            entity?.invalidateOwnAABB()
+            invalidateAABB()
         }
     }
 
@@ -568,7 +579,7 @@ open class SDFComponent : ProceduralMesh() {
             if (dynamicPosition) {
                 val uniform = defineUniform(uniforms, position)
                 builder.append(uniform)
-            } else writeVec(builder, position)
+            } else builder.appendVec(position)
             builder.append(";\n")
         }
         val rotation = rotation
@@ -693,54 +704,73 @@ open class SDFComponent : ProceduralMesh() {
             return x - y * floor(x / y)
         }
 
-        fun writeVec(builder: StringBuilder, v: Vector2f) {
-            builder.append("vec2(")
+        fun StringBuilder.appendVec(v: Vector2f): StringBuilder {
+            append("vec2(")
             if (v.x != v.y) {
-                builder.append(v.x)
-                builder.append(",")
-                builder.append(v.y)
+                append(v.x)
+                append(",")
+                append(v.y)
             } else {
-                builder.append(v.x)
+                append(v.x)
             }
-            builder.append(")")
+            append(")")
+            return this
         }
 
-        fun writeVec(builder: StringBuilder, v: Vector3f) {
-            builder.append("vec3(")
+        fun StringBuilder.appendVec(v: Vector3f): StringBuilder {
+            append("vec3(")
             if (v.x != v.y || v.y != v.z || v.x != v.z) {
-                builder.append(v.x)
-                builder.append(",")
-                builder.append(v.y)
-                builder.append(",")
-                builder.append(v.z)
+                append(v.x)
+                append(",")
+                append(v.y)
+                append(",")
+                append(v.z)
             } else {
-                builder.append(v.x)
+                append(v.x)
             }
-            builder.append(")")
+            append(")")
+            return this
         }
 
-        fun writeVec(builder: StringBuilder, v: Vector4f) {
-            builder.append("vec4(")
-            builder.append(v.x)
-            builder.append(",")
-            builder.append(v.y)
-            builder.append(",")
-            builder.append(v.z)
-            builder.append(",")
-            builder.append(v.w)
-            builder.append(")")
+        fun StringBuilder.appendVec3(v: Vector4f): StringBuilder {
+            append("vec3(")
+            if (v.x != v.y || v.y != v.z || v.x != v.z) {
+                append(v.x)
+                append(",")
+                append(v.y)
+                append(",")
+                append(v.z)
+            } else {
+                append(v.x)
+            }
+            append(")")
+            return this
         }
 
-        fun writeVec(builder: StringBuilder, v: Planef) {
-            builder.append("vec4(")
-            builder.append(v.a)
-            builder.append(",")
-            builder.append(v.b)
-            builder.append(",")
-            builder.append(v.c)
-            builder.append(",")
-            builder.append(v.d)
-            builder.append(")")
+        fun StringBuilder.appendVec(v: Vector4f): StringBuilder {
+            append("vec4(")
+            append(v.x)
+            append(",")
+            append(v.y)
+            append(",")
+            append(v.z)
+            append(",")
+            append(v.w)
+            append(")")
+            return this
+        }
+
+        fun StringBuilder.appendVec(v: Planef): StringBuilder {
+            append("vec4(")
+            append(v.a)
+            append(",")
+            append(v.b)
+            append(",")
+            append(v.c)
+            append(",")
+            append(v.d)
+            append(")")
+            return this
         }
 
         fun StringBuilder.appendUniform(uniforms: HashMap<String, TypeValue>, value: Any): StringBuilder {

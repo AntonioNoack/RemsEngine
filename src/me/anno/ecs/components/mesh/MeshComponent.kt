@@ -7,7 +7,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.SerializedProperty
-import org.apache.logging.log4j.LogManager
 
 // todo light beams: when inside the cone, from that view, then add a little brightness
 
@@ -33,6 +32,12 @@ open class MeshComponent() : MeshBaseComponent() {
     @SerializedProperty
     @Type("Mesh/Reference")
     var mesh: FileReference = InvalidRef
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateAABB()
+            }
+        }
 
     override fun getMesh(): Mesh? = MeshCache[mesh]
 

@@ -5,6 +5,7 @@ import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.clamp
+import org.joml.AABBf
 import org.joml.Vector3f
 import org.joml.Vector3i
 import org.joml.Vector4f
@@ -14,11 +15,13 @@ import kotlin.math.round
 // todo triangle grid array as well
 class SDFArray : PositionMapper() {
 
+    // we could beautify the result when the shapes are overlapping by repeatedly calling the child...
+    // would be pretty expensive...
+
     /**
      * repetition count
-     * todo is not overridden by UI, why?
      * */
-    var count = Vector3i(0)
+    var count = Vector3i(3)
         set(value) {
             if ((!dynamicX && value.x > 0) || (!dynamicY && value.y > 0) || (!dynamicZ && value.z > 0)) {
                 invalidateShader()
@@ -30,7 +33,7 @@ class SDFArray : PositionMapper() {
      * how large a cell needs to be;
      * should never be zero
      * */
-    var cellSize = Vector3f()
+    var cellSize = Vector3f(1f)
         set(value) {
             if ((!dynamicX && value.x > 0) || (!dynamicY && value.y > 0) || (!dynamicZ && value.z > 0)) {
                 invalidateShader()
@@ -99,6 +102,35 @@ class SDFArray : PositionMapper() {
         if (rep.x > 0f) pos.x = mod2(pos.x, rep.x, lim.x)
         if (rep.y > 0f) pos.y = mod2(pos.y, rep.y, lim.y)
         if (rep.z > 0f) pos.z = mod2(pos.z, rep.z, lim.z)
+    }
+
+    override fun applyTransform(bounds: AABBf) {
+        val rep = cellSize
+        val lim = count
+        if (rep.x > 0f) {
+            bounds.minX = minMod2(bounds.minX, rep.x, lim.x)
+            bounds.maxX = maxMod2(bounds.maxX, rep.x, lim.x)
+        }
+        if (rep.y > 0f) {
+            bounds.minY = minMod2(bounds.minY, rep.y, lim.y)
+            bounds.maxY = maxMod2(bounds.maxY, rep.y, lim.y)
+        }
+        if (rep.z > 0f) {
+            bounds.minZ = minMod2(bounds.minZ, rep.z, lim.z)
+            bounds.maxZ = maxMod2(bounds.maxZ, rep.z, lim.z)
+        }
+    }
+
+    fun minMod2(x: Float, s: Float, c: Int): Float {
+        if (c == 1 && s <= 0f) return x
+        if (c <= 0) return Float.NEGATIVE_INFINITY
+        // -1, because 1 is included by default
+        // *0.5f, because it's half only (min or max)
+        return x - s * (c - 1f) * 0.5f
+    }
+
+    fun maxMod2(x: Float, s: Float, c: Int): Float {
+        return -minMod2(-x, s, c)
     }
 
     fun repeat(

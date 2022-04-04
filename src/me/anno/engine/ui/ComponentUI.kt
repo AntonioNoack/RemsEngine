@@ -26,7 +26,6 @@ import me.anno.ecs.annotations.Range.Companion.minULong
 import me.anno.ecs.annotations.Range.Companion.minUShort
 import me.anno.ecs.components.script.ScriptComponent
 import me.anno.ecs.prefab.Prefab
-import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabCache.getPrefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.IProperty
@@ -208,7 +207,7 @@ object ComponentUI {
                 if (value is ISaveable) {
                     // todo serialize saveables, they may be simple
                     // a first variant for editing may be a json editor
-                    val value0 = JsonFormatter.format(TextWriter.toText(value))
+                    val value0 = JsonFormatter.format(TextWriter.toText(value, StudioBase.workspace))
                     val input = TextInputML(title, value0, style)
                     val textColor = input.base.textColor
                     input.addChangeListener {
@@ -216,7 +215,7 @@ object ComponentUI {
                             property.set(input, null)
                         } else {
                             try {
-                                val value2 = TextReader.read(it, false).firstOrNull()
+                                val value2 = TextReader.read(it, StudioBase.workspace, false).firstOrNull()
                                 if (value2 != null) {
                                     property.set(input, value2)
                                     input.base.textColor = textColor
@@ -552,8 +551,8 @@ object ComponentUI {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector2i, false) }
-                    setChangeListener { x, y, _, _ ->
-                        property.set(this, Vector2i(x, y))
+                    addChangeListener { x, y, _, _ ->
+                        property.set(this, Vector2i(x.toInt(), y.toInt()))
                     }
                 }
             }
@@ -563,8 +562,8 @@ object ComponentUI {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector3i, false) }
-                    setChangeListener { x, y, z, _ ->
-                        property.set(this, Vector3i(x, y, z))
+                    addChangeListener { x, y, z, _ ->
+                        property.set(this, Vector3i(x.toInt(), y.toInt(), z.toInt()))
                     }
                 }
             }
@@ -574,8 +573,8 @@ object ComponentUI {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector4i, false) }
-                    setChangeListener { x, y, z, w ->
-                        property.set(this, Vector4i(x, y, z, w))
+                    addChangeListener { x, y, z, w ->
+                        property.set(this, Vector4i(x.toInt(), y.toInt(), z.toInt(), w.toInt()))
                     }
                 }
             }
@@ -948,8 +947,8 @@ object ComponentUI {
                             }
                         }*/
                         val prefab0 = getPrefab(value as? FileReference)
-                        if(prefab0 != null) options.add(prefab0)
-                        if(options.size > 1){
+                        if (prefab0 != null) options.add(prefab0)
+                        if (options.size > 1) {
                             // todo show fileExplorer-like previews
                             val ei = EnumInput(
                                 title, false, prefab0?.source?.absolutePath ?: "null",

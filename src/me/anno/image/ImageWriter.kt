@@ -3,6 +3,7 @@ package me.anno.image
 import me.anno.image.BoxBlur.gaussianBlur
 import me.anno.image.colormap.ColorMap
 import me.anno.image.colormap.LinearColorMap
+import me.anno.image.raw.BIImage
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.clamp
@@ -19,8 +20,18 @@ import me.anno.utils.LOGGER
 import me.anno.utils.OS.desktop
 import me.anno.utils.files.Files.use
 import me.anno.utils.hpc.HeavyProcessing.processBalanced2d
+import me.anno.utils.types.AABBs.avgX
+import me.anno.utils.types.AABBs.avgY
+import me.anno.utils.types.AABBs.deltaX
+import me.anno.utils.types.AABBs.deltaY
+import org.joml.AABBf
 import org.joml.Vector2f
+import java.awt.Color
+import java.awt.Graphics2D
+import java.awt.Polygon
+import java.awt.RenderingHints
 import java.awt.image.BufferedImage
+import java.util.*
 import javax.imageio.ImageIO
 import kotlin.math.*
 
@@ -423,6 +434,63 @@ object ImageWriter {
             }
         }
         writeImageInt(w2, h2, alpha, name, pixels)
+    }
+
+    fun writeTriangles(size: Int, name: String, points: List<Vector2f>, indices: IntArray) {
+
+        val bounds = AABBf()
+        for (p in points) {
+            bounds.union(p.x, p.y, 0f)
+        }
+
+        val s = size / max(bounds.deltaX(), bounds.deltaY())
+
+        val ox = bounds.avgX() - (size / 2f) / s
+        val oy = bounds.avgY() - (size / 2f) / s
+
+        val bi = BufferedImage(size, size, 1)
+        val gfx = bi.graphics as Graphics2D
+        val random = Random(1234L)
+        gfx.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+        // draw all points
+        for (p in points) {
+            gfx.color = Color(0x777777 or random.nextInt() or (255 shl 24))
+            val ax = ((p.x - ox) * s).toInt()
+            val ay = ((p.y - oy) * s).toInt()
+            gfx.drawOval(ax, ay, 1, 1)
+        }
+        // draw all triangles
+        for (triIndex in 0 until indices.size / 3) {
+
+            gfx.color = Color(0x777777 or random.nextInt() or (255 shl 24))
+
+            val i = triIndex * 3
+
+            val a = points[indices[i]]
+            val b = points[indices[i + 1]]
+            val c = points[indices[i + 2]]
+
+            val ax = ((a.x - ox) * s).toInt()
+            val ay = ((a.y - oy) * s).toInt()
+            val bx = ((b.x - ox) * s).toInt()
+            val by = ((b.y - oy) * s).toInt()
+            val cx = ((c.x - ox) * s).toInt()
+            val cy = ((c.y - oy) * s).toInt()
+
+            gfx.drawLine(ax, ay, bx, by)
+            gfx.drawLine(bx, by, cx, cy)
+            gfx.drawLine(cx, cy, ax, ay)
+
+            gfx.color = Color(gfx.color.rgb and 0x77ffffff, true)
+            gfx.fill(Polygon(intArrayOf(ax, bx, cx), intArrayOf(ay, by, cy), 3))
+
+            val px = (ax + bx + cx) / 3
+            val py = (ay + by + cy) / 3
+
+            gfx.fillOval(px - 2, py - 2, 5, 5)
+
+        }
+        BIImage(bi).write(desktop.getChild(name))
     }
 
 }

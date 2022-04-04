@@ -1,7 +1,11 @@
 package me.anno.ecs.components.mesh.sdf
 
+import me.anno.ecs.components.cache.MaterialCache
+import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.TypeValueV2
+import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
+import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.shader.GLSLType
@@ -15,6 +19,7 @@ import org.joml.Vector3f
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
+import kotlin.math.max
 
 /**
  * builds shaders for signed distance function rendering
@@ -70,7 +75,7 @@ object SDFComposer {
         val shapeDependentShader = StringBuilder()
         tree.buildShader(shapeDependentShader, 0, VariableCounter(1), "res", uniforms, functions)
         uniforms["localStart"] = object : TypeValue(GLSLType.V3F, Vector3f()) {
-            override val value: Any
+            override var value: Any
                 get() {
                     val value = super.value as Vector3f
                     val dt = tree.transform?.drawTransform
@@ -80,12 +85,37 @@ object SDFComposer {
                     } else value.set(0f)
                     return value
                 }
+                set(_) = throw RuntimeException()
         }
         uniforms["sdfReliability"] = TypeValueV2(GLSLType.V1F) { tree.globalReliability }
         uniforms["sdfNormalEpsilon"] = TypeValue(GLSLType.V1F) { tree.normalEpsilon }
         uniforms["sdfMaxRelativeError"] = TypeValueV2(GLSLType.V1F) { tree.maxRelativeError }
         uniforms["maxSteps"] = TypeValueV2(GLSLType.V1I) { tree.maxSteps }
         uniforms["distanceBounds"] = TypeValue(GLSLType.V2F, Vector2f(0f, 1e5f))
+
+        val materials = tree.sdfMaterials.map { MaterialCache[it] }
+        val builder = StringBuilder()
+
+        val needsSwitch = materials.size > 1
+        if (needsSwitch) builder
+            .append("switch(clamp(int(ray.y),0,")
+            .append(materials.lastIndex)
+            .append(")){\n")
+        for (index in 0 until max(materials.size, 1)) {
+            if (needsSwitch) builder.append("case ").append(index).append(":\n")
+            val material = materials.getOrNull(index) ?: defaultMaterial
+            // todo support shading functions and material interpolation
+            // define all properties as uniforms, so they can be changed without recompilation
+            val color = defineUniform(uniforms, material.diffuseBase)
+            builder.append("finalColor = ").append(color).append(".xyz;\n")
+            builder.append("finalAlpha = ").append(color).append(".w;\n")
+            builder.append("finalMetallic = ").appendUniform(uniforms, material.metallicMinMax).append(".y;\n")
+            builder.append("finalRoughness = ").appendUniform(uniforms, material.roughnessMinMax).append(".y;\n")
+            builder.append("finalEmissive = ").appendUniform(uniforms, material.emissiveBase).append(";\n")
+            if (needsSwitch) builder.append("break;\n")
+        }
+        if (needsSwitch) builder.append("}\n")
+
         val shader = object : ECSMeshShader("raycasting-${tree.hashCode()}") {
             override fun createFragmentStage(instanced: Boolean): ShaderStage {
                 // instancing is not supported
@@ -114,8 +144,9 @@ object SDFComposer {
                     Variable(GLSLType.V3F, "finalEmissive", VariableMode.OUT),
                     Variable(GLSLType.V1F, "finalMetallic", VariableMode.OUT),
                     Variable(GLSLType.V1F, "finalRoughness", VariableMode.OUT),
-                    // todo we could compute that :3
-                    Variable(GLSLType.V1F, "finalOcclusion", VariableMode.OUT),
+                    // we could compute occlusion
+                    // disadvantage: we cannot prevent duplicate occlusion currently,
+                    // and it would be applied twice... (here + ssao)
                     Variable(GLSLType.V1F, "finalSheen", VariableMode.OUT),
                     // just passed from uniforms
                     Variable(GLSLType.V1F, "finalTranslucency", VariableMode.INOUT),
@@ -141,7 +172,7 @@ object SDFComposer {
 
                             // compute ray position & direction in local coordinates
                             // trace ray
-                            // todo materials...
+                            // done materials
                             // convert tracing distance from local to global
                             // convert normals into global normals
                             // compute global depth
@@ -166,13 +197,15 @@ object SDFComposer {
                             "   gl_FragDepth = newVertex.z/newVertex.w;\n" +
 
                             // step by step define all material properties
-                            "   finalColor = vec3(1.0);\n" +
-                            "   finalAlpha = 1.0;\n" +
+                            builder.toString() +
 
-                            "} else {\n" +
+                            "} else {\n" +// inside an object
 
                             "   finalColor = vec3(0.5);\n" +
                             "   finalAlpha = 0.5;\n" +
+                            "   finalEmissive  = vec3(0.0);\n" +
+                            "   finalMetallic  = 0.0;\n" +
+                            "   finalRoughness = 1.0;\n" +
 
                             // distance must be set to slightly above 0, so we have valid z values
                             "   finalPosition = localTransform * vec4(localPos + localDir * 0.001, 1.0);\n" +
@@ -186,11 +219,6 @@ object SDFComposer {
                             "   gl_FragDepth = newVertex.z/newVertex.w;\n" +
 
                             "}\n" +
-
-                            "finalEmissive  = vec3(0.0);\n" +
-                            "finalOcclusion = 1.0;\n" +
-                            "finalMetallic  = 0.0;\n" +
-                            "finalRoughness = 0.7;\n" +
 
                             // click ids of parts
                             "if(drawMode == ${ShaderPlus.DrawMode.ID.id} || drawMode == ${ShaderPlus.DrawMode.ID_VIS.id}){\n" +
