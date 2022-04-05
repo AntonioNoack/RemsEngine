@@ -20,21 +20,21 @@ open class SDFTriangle : SDFShape() {
 
     var a = Vector3f(1f, 0f, 0f)
         set(value) {
-            if (dynamicSize) invalidateBounds()
+            if (dynamicSize || globalDynamic) invalidateBounds()
             else invalidateShader()
             field.set(value)
         }
 
     var b = Vector3f(0f, 1f, 0f)
         set(value) {
-            if (dynamicSize) invalidateBounds()
+            if (dynamicSize || globalDynamic) invalidateBounds()
             else invalidateShader()
             field.set(value)
         }
 
     var c = Vector3f(0f, 0f, 1f)
         set(value) {
-            if (dynamicSize) invalidateBounds()
+            if (dynamicSize || globalDynamic) invalidateBounds()
             else invalidateShader()
             field.set(value)
         }
@@ -63,6 +63,7 @@ open class SDFTriangle : SDFShape() {
         builder.append("udTriangle(pos")
         builder.append(trans.posIndex)
         builder.append(',')
+        val dynamicSize = dynamicSize || globalDynamic
         if (dynamicSize) {
             builder.appendUniform(uniforms, a)
             builder.append(',')

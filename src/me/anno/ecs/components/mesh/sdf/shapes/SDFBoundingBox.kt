@@ -16,14 +16,14 @@ class SDFBoundingBox : SDFBox() {
         set(value) {
             if (field != value) {
                 field = value
-                invalidateShader()
+                if (!globalDynamic) invalidateShader()
             }
         }
 
     var thickness = 0.1f
         set(value) {
             if (field != value) {
-                if (dynamicThickness) invalidateBounds()
+                if (dynamicThickness || globalDynamic) invalidateBounds()
                 else invalidateShader()
                 field = value
             }
@@ -43,11 +43,14 @@ class SDFBoundingBox : SDFBox() {
         builder.append("sdBoundingBox(pos")
         builder.append(trans.posIndex)
         builder.append(',')
+        val dynamicSize = dynamicSize || globalDynamic
         if (dynamicSize) builder.appendUniform(uniforms, halfExtends)
         else builder.appendVec(halfExtends)
         builder.append(',')
+        val dynamicThickness = dynamicThickness || globalDynamic
         if (dynamicThickness) builder.appendUniform(uniforms, GLSLType.V1F) { thickness }
         else builder.append(thickness)
+        val dynamicSmoothness = dynamicSmoothness || globalDynamic
         if (dynamicSmoothness || smoothness > 0f) {
             builder.append(',')
             if (dynamicSmoothness) builder.appendUniform(uniforms, GLSLType.V1F) { smoothness }

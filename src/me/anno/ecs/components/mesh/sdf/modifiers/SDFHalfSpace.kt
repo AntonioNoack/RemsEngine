@@ -4,6 +4,7 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendVec
+import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.ecs.components.mesh.sdf.SDFGroup.Companion.sMaxCubic
 import me.anno.ecs.components.mesh.sdf.SDFGroup.Companion.smoothMinCubic
 import me.anno.ecs.components.mesh.sdf.VariableCounter
@@ -29,7 +30,7 @@ class SDFHalfSpace() : DistanceMapper() {
     var smoothness = 0.1f
         set(value) {
             if (field != value) {
-                if (dynamicSmoothness) invalidateBounds()
+                if (dynamicSmoothness || globalDynamic) invalidateBounds()
                 else invalidateShader()
                 field = value
             }
@@ -38,7 +39,7 @@ class SDFHalfSpace() : DistanceMapper() {
     var dynamicSmoothness = false
         set(value) {
             if (field != value) {
-                invalidateShader()
+                if(!globalDynamic) invalidateShader()
                 field = value
             }
         }
@@ -46,7 +47,7 @@ class SDFHalfSpace() : DistanceMapper() {
     @Suppress("SetterBackingFieldAssignment")
     var plane = Planef(0f, 1f, 0f, 0f)
         set(value) {
-            if (dynamicPlane) invalidateBounds()
+            if (dynamicPlane || globalDynamic) invalidateBounds()
             else invalidateShader()
             field.set(value.a, value.b, value.c, value.d)
             field.normalize3()
@@ -55,7 +56,7 @@ class SDFHalfSpace() : DistanceMapper() {
     var dynamicPlane = false
         set(value) {
             if (field != value) {
-                invalidateShader()
+                if (!globalDynamic) invalidateShader()
                 field = value
             }
         }
@@ -68,6 +69,8 @@ class SDFHalfSpace() : DistanceMapper() {
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ) {
+        val dynamicPlane = dynamicPlane || globalDynamic
+        val dynamicSmoothness = dynamicSmoothness || globalDynamic
         if (dynamicSmoothness || smoothness > 0f) {
             functions.add(smoothMinCubic)
             builder.append(dstName)
@@ -128,7 +131,7 @@ class SDFHalfSpace() : DistanceMapper() {
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFHalfSpace
-        clone.plane.set(plane.a, plane.b, plane.c, plane.d)
+        clone.plane = plane
     }
 
     override val className: String = "SDFHalfSpace"

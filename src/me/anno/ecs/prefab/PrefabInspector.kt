@@ -82,7 +82,7 @@ class PrefabInspector(val prefab: Prefab) {
     private val savingTask = DelayedTask {
         addEvent {
             history.put(TextWriter.toText(adds + sets.map { k1, k2, v -> CSet(k1, k2, v) }, StudioBase.workspace))
-            println("pushed new version to history")
+            LOGGER.debug("pushed new version to history")
         }
     }
 

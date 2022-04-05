@@ -1,5 +1,6 @@
 package me.anno.ecs.components.mesh.sdf
 
+import me.anno.Build
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.*
 import me.anno.ecs.components.mesh.*
@@ -102,6 +103,12 @@ open class SDFComponent : ProceduralMesh() {
                 invalidateShader()
             }
             field = value
+        }
+
+    var globalDynamic
+        get() = Companion.globalDynamic
+        set(value) {
+            Companion.globalDynamic = value
         }
 
     @Group("Tracing")
@@ -697,6 +704,8 @@ open class SDFComponent : ProceduralMesh() {
     companion object {
 
         private val LOGGER = LogManager.getLogger(SDFComponent::class)
+
+        var globalDynamic = Build.isDebug
 
         val sdfTransPool = ObjectPool { SDFTransform() }
 

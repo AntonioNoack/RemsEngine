@@ -20,7 +20,7 @@ class SDFPolygon : SDF2DShape() {
     var points = 5
         set(value) {
             if (field != value) {
-                if (!dynamicSize) invalidateShader()
+                if (!(dynamicSize || globalDynamic)) invalidateShader()
                 field = value
             }
         }
@@ -39,6 +39,7 @@ class SDFPolygon : SDF2DShape() {
         builder.append("sdPolygon(")
         writeFuncInput(builder, trans.posIndex)
         builder.append(',')
+        val dynamicSize = dynamicSize || globalDynamic
         if (dynamicSize) builder.appendUniform(uniforms, GLSLType.V1F) { points.toFloat() }
         else {
             // precompute the parameters for better performance

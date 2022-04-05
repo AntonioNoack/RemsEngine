@@ -1,13 +1,16 @@
 package me.anno.ecs.components.mesh.sdf.modifiers
 
+import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendVec
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
+import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
+import org.joml.AABBf
 import org.joml.Vector3f
 import org.joml.Vector4f
 
@@ -25,13 +28,14 @@ class SDFStretcher() : PositionMapper() {
         set(value) {
             if (field != value) {
                 field = value
-                invalidateShader()
+                if (!globalDynamic) invalidateShader()
             }
         }
 
+    @Range(0.0, 1e300)
     var halfExtends = Vector3f()
         set(value) {
-            if (dynamicExtends) invalidateBounds()
+            if (dynamicExtends || globalDynamic) invalidateBounds()
             else invalidateShader()
             field.set(value)
             field.x = max(field.x, 0f)
@@ -58,6 +62,7 @@ class SDFStretcher() : PositionMapper() {
         builder.append("pos").append(posIndex)
         builder.append("-=clamp(pos").append(posIndex)
         builder.append(",")
+        val dynamicExtends = dynamicExtends || globalDynamic
         if (dynamicExtends) {
             val uniform = defineUniform(uniforms, halfExtends)
             builder.append("-").append(uniform)
@@ -109,6 +114,32 @@ class SDFStretcher() : PositionMapper() {
         }
     }
 
+    override fun applyTransform(bounds: AABBf) {
+        val x0 = bounds.minX
+        val x1 = bounds.maxX
+        val y0 = bounds.minY
+        val y1 = bounds.maxY
+        val z0 = bounds.minZ
+        val z1 = bounds.maxZ
+        val e = halfExtends
+        val ex = e.x
+        val ey = e.y
+        val ez = e.z
+        // ex may be negative, so the sides might flip
+        val x2 = x0 - ex
+        val x3 = x1 + ex
+        bounds.minX = min(x2, x3)
+        bounds.maxX = max(x2, x3)
+        val y2 = y0 - ey
+        val y3 = y1 + ey
+        bounds.minY = min(y2, y3)
+        bounds.maxY = max(y2, y3)
+        val z2 = z0 - ez
+        val z3 = z1 + ez
+        bounds.minZ = min(z2, z3)
+        bounds.maxZ = max(z2, z3)
+    }
+
     override fun clone(): SDFStretcher {
         val clone = SDFStretcher()
         copy(clone)
@@ -119,7 +150,7 @@ class SDFStretcher() : PositionMapper() {
         super.copy(clone)
         clone as SDFStretcher
         clone.dynamicExtends = dynamicExtends
-        clone.halfExtends.set(halfExtends)
+        clone.halfExtends = halfExtends
         clone.accurateInsides = accurateInsides
     }
 

@@ -94,7 +94,7 @@ object SDFComposer {
         uniforms["distanceBounds"] = TypeValue(GLSLType.V2F, Vector2f(0f, 1e5f))
 
         val materials = tree.sdfMaterials.map { MaterialCache[it] }
-        val builder = StringBuilder()
+        val builder = StringBuilder(max(1, materials.size) * 128)
 
         val needsSwitch = materials.size > 1
         if (needsSwitch) builder
@@ -104,7 +104,7 @@ object SDFComposer {
         for (index in 0 until max(materials.size, 1)) {
             if (needsSwitch) builder.append("case ").append(index).append(":\n")
             val material = materials.getOrNull(index) ?: defaultMaterial
-            // todo support shading functions and material interpolation
+            // todo support shading functions, textures and material interpolation
             // define all properties as uniforms, so they can be changed without recompilation
             val color = defineUniform(uniforms, material.diffuseBase)
             builder.append("finalColor = ").append(color).append(".xyz;\n")
@@ -229,21 +229,16 @@ object SDFComposer {
 
                 )
                 stage.functions.ensureCapacity(stage.functions.size + functions.size + 1)
-                stage.functions.add(
-                    Function(
-                        "" +
-                                "#define Infinity 1e20\n" +
-                                functions.joinToString("") +
-                                "vec2 map(in vec3 pos0){\n" +
-                                "   vec2 res = vec2(1e20,-1.0);\n" +
-                                // here comes the shape dependant shader
-                                shapeDependentShader.toString() +
-                                "   return res;\n" +
-                                "}\n" +
-                                raycasting +
-                                normal
-                    )
-                )
+                val builder2 = StringBuilder(100 + functions.sumOf { it.length } + shapeDependentShader.length + raycasting.length + normal.length)
+                builder2.append("#define Infinity 1e20\n")
+                for (func in functions) builder2.append(func)
+                builder2.append("vec2 map(in vec3 pos0){\n")
+                builder2.append("   vec2 res = vec2(1e20,-1.0);\n")
+                builder2.append(shapeDependentShader)
+                builder2.append("   return res;\n}\n")
+                builder2.append(raycasting)
+                builder2.append(normal)
+                stage.functions.add(Function(builder2.toString()))
                 return stage
             }
         }

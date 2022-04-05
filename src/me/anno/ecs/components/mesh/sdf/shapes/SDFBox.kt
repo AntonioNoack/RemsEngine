@@ -16,7 +16,7 @@ open class SDFBox : SDFSmoothShape() {
 
     var halfExtends = Vector3f(1f)
         set(value) {
-            if (dynamicSize) invalidateBounds()
+            if (dynamicSize || globalDynamic) invalidateBounds()
             else invalidateShader()
             field.set(value)
         }
@@ -41,9 +41,9 @@ open class SDFBox : SDFSmoothShape() {
         builder.append("sdBox(pos")
         builder.append(trans.posIndex)
         builder.append(',')
-        if (dynamicSize) builder.appendUniform(uniforms, halfExtends)
+        if (dynamicSize || globalDynamic) builder.appendUniform(uniforms, halfExtends)
         else builder.appendVec(halfExtends)
-        if (dynamicSmoothness || smoothness > 0f) {
+        if (dynamicSmoothness || globalDynamic || smoothness > 0f) {
             builder.append(',')
             builder.appendUniform(uniforms, GLSLType.V1F) { smoothness }
         }

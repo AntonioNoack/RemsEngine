@@ -23,7 +23,7 @@ open class SDFPyramid : SDFShape() {
         get() = params.y
         set(value) {
             if (params.y != value) {
-                if (dynamicSize) invalidateBounds()
+                if (dynamicSize || globalDynamic) invalidateBounds()
                 else invalidateShader()
                 params.y = value
             }
@@ -35,7 +35,7 @@ open class SDFPyramid : SDFShape() {
         set(value) {
             val v2 = value * 0.5f
             if (params.x != v2) {
-                if (dynamicSize) invalidateBounds()
+                if (dynamicSize || globalDynamic) invalidateBounds()
                 else invalidateShader()
                 params.x = v2
             }
@@ -62,6 +62,7 @@ open class SDFPyramid : SDFShape() {
         builder.append("sdPyramid(pos")
         builder.append(trans.posIndex)
         builder.append(',')
+        val dynamicSize = dynamicSize || globalDynamic
         if (dynamicSize) builder.appendUniform(uniforms, params)
         else builder.appendVec(params)
         builder.append(')')

@@ -3,7 +3,7 @@ package me.anno.ecs.components.mesh.sdf.modifiers
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
-import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
+import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
@@ -23,7 +23,7 @@ class SDFOnion() : DistanceMapper() {
     var thickness = 0.1f
         set(value) {
             if (field != value) {
-                if (dynamicThickness) invalidateBounds()
+                if (dynamicThickness || globalDynamic) invalidateBounds()
                 else invalidateShader()
                 field = value
             }
@@ -33,7 +33,7 @@ class SDFOnion() : DistanceMapper() {
         set(value) {
             if (field != value) {
                 field = value
-                invalidateShader()
+                if (!globalDynamic) invalidateShader()
             }
         }
 
@@ -41,7 +41,7 @@ class SDFOnion() : DistanceMapper() {
     var rings = 1
         set(value) {
             if (field != value) {
-                if (dynamicRings) invalidateBounds()
+                if (dynamicRings || globalDynamic) invalidateBounds()
                 else invalidateShader()
                 field = value
             }
@@ -51,7 +51,7 @@ class SDFOnion() : DistanceMapper() {
         set(value) {
             if (field != value) {
                 field = value
-                invalidateShader()
+                if (!globalDynamic) invalidateShader()
             }
         }
 
@@ -68,8 +68,10 @@ class SDFOnion() : DistanceMapper() {
         functions.add(sdRings)
         builder.append(dstName).append(".x=sdRings(")
         builder.append(dstName).append(".x,")
+        val dynamicThickness = dynamicThickness || globalDynamic
         if (dynamicThickness) builder.appendUniform(uniforms, GLSLType.V1F) { thickness }
         else builder.append(thickness)
+        val dynamicRings = dynamicRings || globalDynamic
         if (dynamicRings || rings != 1) {
             builder.append(',')
             if (dynamicRings) builder.appendUniform(uniforms, GLSLType.V1F) { slices.toFloat() }
@@ -104,6 +106,7 @@ class SDFOnion() : DistanceMapper() {
         super.copy(clone)
         clone as SDFOnion
         clone.rings = rings
+        clone.dynamicRings = dynamicRings
         clone.thickness = thickness
         clone.dynamicThickness = dynamicThickness
     }

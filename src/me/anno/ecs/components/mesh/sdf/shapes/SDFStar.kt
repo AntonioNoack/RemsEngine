@@ -25,7 +25,7 @@ class SDFStar : SDF2DShape() {
         set(value) {
             val v = value.toFloat()
             if (v != params.x) {
-                if (!dynamicSize) invalidateShader()
+                if (!(dynamicSize || globalDynamic)) invalidateShader()
                 params.x = v
             }
         }
@@ -35,7 +35,7 @@ class SDFStar : SDF2DShape() {
         get() = params.y
         set(value) {
             if (params.y != value) {
-                if (!dynamicSize) invalidateShader()
+                if (!(dynamicSize || globalDynamic)) invalidateShader()
                 params.y = value
             }
         }
@@ -54,6 +54,7 @@ class SDFStar : SDF2DShape() {
         builder.append("sdStar(")
         writeFuncInput(builder, trans.posIndex)
         builder.append(',')
+        val dynamicSize = dynamicSize || globalDynamic
         if (dynamicSize) builder.appendUniform(uniforms, params)
         else {
             // precompute the parameters for better performance

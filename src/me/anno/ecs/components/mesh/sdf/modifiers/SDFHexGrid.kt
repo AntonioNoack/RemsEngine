@@ -3,6 +3,7 @@ package me.anno.ecs.components.mesh.sdf.modifiers
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendVec
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
+import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
@@ -20,7 +21,7 @@ class SDFHexGrid : PositionMapper() {
         set(value) {
             if (field != value) {
                 field = value
-                invalidateShader()
+                if(!globalDynamic) invalidateShader()
             }
         }
 
@@ -28,14 +29,14 @@ class SDFHexGrid : PositionMapper() {
         set(value) {
             if (field != value) {
                 field = value
-                invalidateShader()
+                if(!globalDynamic) invalidateShader()
             }
         }
 
     var cellSize = 1f
         set(value) {
             if (field != value) {
-                if (dynamicSize) invalidateBounds()
+                if (dynamicSize || globalDynamic) invalidateBounds()
                 else invalidateShader()
                 field = value
             }
@@ -43,14 +44,14 @@ class SDFHexGrid : PositionMapper() {
 
     var lim1 = Vector3f(2.2f)
         set(value) {
-            if (dynamicLimits) invalidateBounds()
+            if (dynamicLimits || globalDynamic) invalidateBounds()
             else invalidateShader()
             field.set(value)
         }
 
     var lim2 = Vector3f(2.2f)
         set(value) {
-            if (dynamicLimits) invalidateBounds()
+            if (dynamicLimits || globalDynamic) invalidateBounds()
             else invalidateShader()
             field.set(value)
         }
@@ -66,9 +67,10 @@ class SDFHexGrid : PositionMapper() {
         builder.append("pos").append(posIndex).append(".xz")
         builder.append("=hexGrid(")
         builder.append("pos").append(posIndex).append(".xz")
+        val dynamicSize = dynamicSize || globalDynamic
         if (cellSize != 1f || dynamicSize) {
             if (dynamicSize) {
-                val uniform = defineUniform(uniforms, GLSLType.V1F, { cellSize })
+                val uniform = defineUniform(uniforms, GLSLType.V1F) { cellSize }
                 builder.append("/")
                 builder.append(uniform)
                 buildLimParams(builder, uniforms)
@@ -90,6 +92,7 @@ class SDFHexGrid : PositionMapper() {
     }
 
     private fun buildLimParams(builder: StringBuilder, uniforms: HashMap<String, TypeValue>) {
+        val dynamicLimits = dynamicLimits || globalDynamic
         if (dynamicLimits || (lim1.x > 0 && lim1.y > 0 && lim1.z > 0 && lim2.x > 0 && lim2.y > 0 && lim2.z > 0)) {
             if (dynamicLimits) {
                 val u1 = defineUniform(uniforms, lim1)

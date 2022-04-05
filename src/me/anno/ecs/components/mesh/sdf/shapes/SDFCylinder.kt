@@ -20,7 +20,7 @@ open class SDFCylinder : SDFSmoothShape() {
         get() = params.x
         set(value) {
             if (params.x != value) {
-                if (dynamicSize) invalidateBounds()
+                if (dynamicSize || globalDynamic) invalidateBounds()
                 else invalidateShader()
                 params.x = value
             }
@@ -30,7 +30,7 @@ open class SDFCylinder : SDFSmoothShape() {
         get() = params.y
         set(value) {
             if (params.y != value) {
-                if (dynamicSize) invalidateBounds()
+                if (dynamicSize || globalDynamic) invalidateBounds()
                 else invalidateShader()
                 params.y = value
             }
@@ -57,8 +57,10 @@ open class SDFCylinder : SDFSmoothShape() {
         builder.append("sdCylinder(pos")
         builder.append(trans.posIndex)
         builder.append(',')
+        val dynamicSize = dynamicSize || globalDynamic
         if (dynamicSize) builder.appendUniform(uniforms, params)
         else builder.appendVec(params)
+        val dynamicSmoothness = dynamicSmoothness || globalDynamic
         if (dynamicSmoothness || smoothness > 0f) {
             builder.append(',')
             if (dynamicSmoothness) builder.appendUniform(uniforms, GLSLType.V1F) { smoothness }

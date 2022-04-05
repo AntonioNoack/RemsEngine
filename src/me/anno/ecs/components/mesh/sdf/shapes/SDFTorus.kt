@@ -17,7 +17,7 @@ class SDFTorus : SDFShape() {
         get() = params.x
         set(value) {
             if (params.x != value) {
-                if (dynamicSize) invalidateBounds()
+                if (dynamicSize || globalDynamic) invalidateBounds()
                 else invalidateShader()
                 params.x = value
             }
@@ -27,7 +27,7 @@ class SDFTorus : SDFShape() {
         get() = params.y
         set(value) {
             if (params.y != value) {
-                if (dynamicSize) invalidateBounds()
+                if (dynamicSize || globalDynamic) invalidateBounds()
                 else invalidateShader()
                 params.y = value
             }
@@ -54,6 +54,7 @@ class SDFTorus : SDFShape() {
         builder.append("sdTorus(pos")
         builder.append(trans.posIndex)
         builder.append(',')
+        val dynamicSize = dynamicSize || globalDynamic
         if (dynamicSize) builder.appendUniform(uniforms, params)
         else builder.appendVec(params)
         builder.append(')')

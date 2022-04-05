@@ -28,7 +28,7 @@ class SDFDoor : SDF2DShape() {
         get() = params.x
         set(value) {
             if (params.x != value) {
-                if (dynamicSize) invalidateBounds()
+                if (dynamicSize || globalDynamic) invalidateBounds()
                 else invalidateShader()
                 params.x = value
             }
@@ -40,7 +40,7 @@ class SDFDoor : SDF2DShape() {
         set(value) {
             val v2 = value * 2f
             if (params.y != v2) {
-                if (dynamicSize) invalidateBounds()
+                if (dynamicSize || globalDynamic) invalidateBounds()
                 else invalidateShader()
                 params.y = v2
             }
@@ -69,6 +69,7 @@ class SDFDoor : SDF2DShape() {
         builder.append("sdDoor(")
         writeFuncInput(builder, trans.posIndex)
         builder.append(',')
+        val dynamicSize = dynamicSize || globalDynamic
         if (dynamicSize) builder.appendUniform(uniforms, params)
         else builder.appendVec(params)
         builder.append(')')

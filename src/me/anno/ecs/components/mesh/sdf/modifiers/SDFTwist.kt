@@ -3,6 +3,7 @@ package me.anno.ecs.components.mesh.sdf.modifiers
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendVec
+import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths
@@ -14,15 +15,6 @@ class SDFTwist : PositionMapper() {
 
     private val sourceParams = Vector4f(0f, 1f, 0f, 0f)
 
-    fun Vector4f.length3() = Maths.length(x, y, z)
-
-    private fun calcSourceParams() {
-        val w = sourceParams.w
-        sourceParams.set(source, 0f)
-        sourceParams.mul(strength / sourceParams.length3())
-        sourceParams.w = w
-    }
-
     // todo apply this transform to the bounding box somehow...
 
     /**
@@ -31,7 +23,7 @@ class SDFTwist : PositionMapper() {
      * */
     var source = Vector3f(0f, 1f, 0f)
         set(value) {
-            if (dynamicSource) invalidateBounds()
+            if (dynamicSource || globalDynamic) invalidateBounds()
             else invalidateShader()
             field.set(value)
             field.normalize()
@@ -43,7 +35,7 @@ class SDFTwist : PositionMapper() {
 
     var destination = Vector3f(0f, 1f, 0f)
         set(value) {
-            if (dynamicDestination) invalidateBounds()
+            if (dynamicDestination || globalDynamic) invalidateBounds()
             else invalidateShader()
             field.set(value)
             field.normalize()
@@ -55,7 +47,7 @@ class SDFTwist : PositionMapper() {
     var strength = 1f
         set(value) {
             if (field != value) {
-                if (dynamicSource) invalidateBounds()
+                if (dynamicSource || globalDynamic) invalidateBounds()
                 else invalidateShader()
                 field = value
                 calcSourceParams()
@@ -66,7 +58,7 @@ class SDFTwist : PositionMapper() {
         get() = sourceParams.w
         set(value) {
             if (sourceParams.w != value) {
-                if (dynamicSource) invalidateBounds()
+                if (dynamicSource || globalDynamic) invalidateBounds()
                 else invalidateShader()
                 sourceParams.w = value
             }
@@ -77,13 +69,21 @@ class SDFTwist : PositionMapper() {
      * */
     var center = Vector3f()
         set(value) {
-            if (!dynamicCenter) invalidateShader()
+            if (dynamicCenter || globalDynamic) invalidateBounds()
+            else invalidateShader()
             field.set(value)
         }
 
     var dynamicCenter = false
     var dynamicSource = false
     var dynamicDestination = false
+
+    private fun calcSourceParams() {
+        val w = sourceParams.w
+        sourceParams.set(source, 0f)
+        sourceParams.mul(strength / sourceParams.length3())
+        sourceParams.w = w
+    }
 
     override fun buildShader(
         builder: StringBuilder,
@@ -94,7 +94,7 @@ class SDFTwist : PositionMapper() {
     ): String? {
         functions.add(twistFunc)
         val dst = destination
-        val dynDst = dynamicDestination
+        val dynDst = dynamicDestination || globalDynamic
         // optimize for special cases dst=x/y/z
         val axis = when {
             absEqualsOne(dst.x) -> 'X'
@@ -130,16 +130,15 @@ class SDFTwist : PositionMapper() {
     }
 
     private fun writeCenter(builder: StringBuilder, uniforms: HashMap<String, TypeValue>) {
-        if (dynamicCenter) builder.appendUniform(uniforms, center)
+        if (dynamicCenter || globalDynamic) builder.appendUniform(uniforms, center)
         else builder.appendVec(center)
     }
 
     private fun writeSource(builder: StringBuilder, posIndex: Int, uniforms: HashMap<String, TypeValue>) {
         // optimize angle for special cases like source=x/y/z? not really needed
         val src = sourceParams
-        builder.append("dot(vec4(pos").append(posIndex)
-        builder.append(",1.0),")
-        if (dynamicSource) builder.appendUniform(uniforms, src)
+        builder.append("dot(vec4(pos").append(posIndex).append(",1.0),")
+        if (dynamicSource || globalDynamic) builder.appendUniform(uniforms, src)
         else builder.appendVec(src)
         builder.append(")")
     }
@@ -171,6 +170,8 @@ class SDFTwist : PositionMapper() {
     override val className: String = "SDFTwist"
 
     companion object {
+
+        fun Vector4f.length3() = Maths.length(x, y, z)
 
         private val LOGGER = LogManager.getLogger(SDFTwist::class)
 

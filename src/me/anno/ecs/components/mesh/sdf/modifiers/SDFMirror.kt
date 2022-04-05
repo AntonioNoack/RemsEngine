@@ -1,8 +1,9 @@
 package me.anno.ecs.components.mesh.sdf.modifiers
 
 import me.anno.ecs.components.mesh.TypeValue
-import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendVec
+import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
+import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.components.mesh.sdf.modifiers.SDFHalfSpace.Companion.dot
 import me.anno.ecs.prefab.PrefabSaveable
@@ -25,6 +26,36 @@ class SDFMirror() : PositionMapper() {
         plane.set(normal.x, normal.y, normal.z, -normal.dot(position))
         plane.normalize3()
     }
+
+    // proper smoothness would require two sdf evaluations
+    // considering this effect probably would be stacked, it would get too expensive
+    // (+ our pipeline currently does not support that)
+
+    @Suppress("SetterBackingFieldAssignment")
+    var plane = Planef(0f, 1f, 0f, 0f)
+        set(value) {
+            if (dynamicPlane || globalDynamic) invalidateBounds()
+            else invalidateShader()
+            field.set(value.a, value.b, value.c, value.d)
+            field.normalize3()
+        }
+
+    var dynamicPlane = false
+        set(value) {
+            if (field != value) {
+                field = value
+                if (!globalDynamic) invalidateShader()
+            }
+        }
+
+    // idk how performance behaves, try it yourself ^^
+    var useBranch = false
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateShader()
+            }
+        }
 
     override fun applyTransform(bounds: AABBf) {
         // first: intersect bounds with plane
@@ -52,36 +83,6 @@ class SDFMirror() : PositionMapper() {
         }
     }
 
-    // proper smoothness would require two sdf evaluations
-    // considering this effect probably would be stacked, it would get too expensive
-    // (+ our pipeline currently does not support that)
-
-    @Suppress("SetterBackingFieldAssignment")
-    var plane = Planef(0f, 1f, 0f, 0f)
-        set(value) {
-            if (dynamicPlane) invalidateBounds()
-            else invalidateShader()
-            field.set(value.a, value.b, value.c, value.d)
-            field.normalize3()
-        }
-
-    var dynamicPlane = false
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidateShader()
-            }
-        }
-
-    // idk how performance behaves, try it yourself ^^
-    var useBranch = false
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidateShader()
-            }
-        }
-
     override fun buildShader(
         builder: StringBuilder,
         posIndex: Int,
@@ -91,6 +92,7 @@ class SDFMirror() : PositionMapper() {
     ): String? {
         // reflect(I,N): I - 2.0 * dot(N, I) * N
         val tmpIndex = nextVariableId.next()
+        val dynamicPlane = dynamicPlane || globalDynamic
         val normal = if (dynamicPlane) defineUniform(uniforms, plane) else {
             val name = "nor${nextVariableId.next()}"
             builder.append("vec4 ").append(name)
@@ -129,7 +131,7 @@ class SDFMirror() : PositionMapper() {
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFMirror
-        clone.plane.set(plane.a, plane.b, plane.c, plane.d)
+        clone.plane = plane
         clone.dynamicPlane = dynamicPlane
         clone.useBranch = useBranch
     }

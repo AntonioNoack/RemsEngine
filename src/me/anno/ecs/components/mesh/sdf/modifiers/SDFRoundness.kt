@@ -2,6 +2,7 @@ package me.anno.ecs.components.mesh.sdf.modifiers
 
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
+import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
@@ -15,8 +16,8 @@ class SDFRoundness : DistanceMapper() {
 
     var roundness = 0.1f
         set(value) {
-            if (field != value && !dynamic) {
-                if (dynamic) invalidateBounds()
+            if (field != value) {
+                if (dynamic || globalDynamic) invalidateBounds()
                 else invalidateShader()
                 field = value
             }
@@ -26,7 +27,7 @@ class SDFRoundness : DistanceMapper() {
         set(value) {
             if (field != value) {
                 field = value
-                invalidateShader()
+                if(!globalDynamic) invalidateShader()
             }
         }
 
@@ -52,6 +53,7 @@ class SDFRoundness : DistanceMapper() {
         functions: HashSet<String>
     ) {
         builder.append(dstName).append(".x-=")
+        val dynamic = dynamic || globalDynamic
         if (dynamic) builder.appendUniform(uniforms, GLSLType.V1F) { roundness }
         else builder.append(roundness)
         builder.append(";\n")
