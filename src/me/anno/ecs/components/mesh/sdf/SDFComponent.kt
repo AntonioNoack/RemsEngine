@@ -34,7 +34,6 @@ import me.anno.utils.types.AABBs.deltaZ
 import me.anno.utils.types.AABBs.set
 import me.anno.utils.types.AABBs.transformReplace
 import me.anno.utils.types.Matrices.set2
-import org.apache.logging.log4j.LogManager
 import org.joml.*
 import kotlin.math.abs
 import kotlin.math.floor
@@ -162,7 +161,7 @@ open class SDFComponent : ProceduralMesh() {
     @Group("Transform")
     var position = Vector3f()
         set(value) {
-            if (dynamicPosition) invalidateBounds()
+            if (dynamicPosition || globalDynamic) invalidateBounds()
             else invalidateShader()
             field.set(value)
         }
@@ -170,7 +169,7 @@ open class SDFComponent : ProceduralMesh() {
     @Group("Transform")
     var rotation = Quaternionf()
         set(value) {
-            if (dynamicRotation) invalidateBounds()
+            if (dynamicRotation || globalDynamic) invalidateBounds()
             else invalidateShader()
             field.set(value)
         }
@@ -179,7 +178,7 @@ open class SDFComponent : ProceduralMesh() {
     var scale = 1f
         set(value) {
             if (field != value) {
-                if (dynamicScale) invalidateBounds()
+                if (dynamicScale || globalDynamic) invalidateBounds()
                 else invalidateShader()
                 field = value
             }
@@ -189,7 +188,7 @@ open class SDFComponent : ProceduralMesh() {
     var dynamicPosition = false
         set(value) {
             if (field != value) {
-                invalidateShader()
+                if (!globalDynamic) invalidateShader()
                 field = value
             }
         }
@@ -198,7 +197,7 @@ open class SDFComponent : ProceduralMesh() {
     var dynamicRotation = false
         set(value) {
             if (field != value) {
-                invalidateShader()
+                if (!globalDynamic) invalidateShader()
                 field = value
             }
         }
@@ -207,7 +206,7 @@ open class SDFComponent : ProceduralMesh() {
     var dynamicScale = false
         set(value) {
             if (field != value) {
-                invalidateShader()
+                if (!globalDynamic) invalidateShader()
                 field = value
             }
         }
@@ -438,7 +437,7 @@ open class SDFComponent : ProceduralMesh() {
     open fun calculateBaseBounds(dst: AABBf) {
         // ok for most things
         dst.setMin(-1f, -1f, -1f)
-        dst.setMax(1f, 1f, 1f)
+        dst.setMax(+1f, +1f, +1f)
     }
 
     fun buildDMShader(
@@ -575,6 +574,9 @@ open class SDFComponent : ProceduralMesh() {
     ): SDFTransform {
         var posIndex = posIndex0
         val position = position
+        val dynamicPosition = dynamicRotation || globalDynamic
+        val dynamicRotation = dynamicRotation || globalDynamic
+        val dynamicScale = dynamicScale || globalDynamic
         if (position != pos0 || dynamicPosition) {
             val prevPosition = posIndex
             posIndex = nextVariableId.next()
@@ -703,7 +705,7 @@ open class SDFComponent : ProceduralMesh() {
 
     companion object {
 
-        private val LOGGER = LogManager.getLogger(SDFComponent::class)
+        // private val LOGGER = LogManager.getLogger(SDFComponent::class)
 
         var globalDynamic = Build.isDebug
 
@@ -711,6 +713,15 @@ open class SDFComponent : ProceduralMesh() {
 
         fun mod(x: Float, y: Float): Float {
             return x - y * floor(x / y)
+        }
+
+        fun AABBf.widen(r: Float) {
+            minX -= r
+            minY -= r
+            minZ -= r
+            maxX += r
+            maxY += r
+            maxZ += r
         }
 
         fun StringBuilder.appendVec(v: Vector2f): StringBuilder {
@@ -727,21 +738,6 @@ open class SDFComponent : ProceduralMesh() {
         }
 
         fun StringBuilder.appendVec(v: Vector3f): StringBuilder {
-            append("vec3(")
-            if (v.x != v.y || v.y != v.z || v.x != v.z) {
-                append(v.x)
-                append(",")
-                append(v.y)
-                append(",")
-                append(v.z)
-            } else {
-                append(v.x)
-            }
-            append(")")
-            return this
-        }
-
-        fun StringBuilder.appendVec3(v: Vector4f): StringBuilder {
             append("vec3(")
             if (v.x != v.y || v.y != v.z || v.x != v.z) {
                 append(v.x)
@@ -802,6 +798,14 @@ open class SDFComponent : ProceduralMesh() {
             value: () -> Any
         ): StringBuilder {
             append(defineUniform(uniforms, type, value))
+            return this
+        }
+
+        fun StringBuilder.appendMinus(
+            uniform: String
+        ): StringBuilder {
+            append("vec2(-").append(uniform).append(".x,")
+            append(uniform).append(".y)")
             return this
         }
 

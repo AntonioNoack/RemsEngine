@@ -115,7 +115,7 @@ class Prefab : Saveable {
         }
     }
 
-    fun set(path: Path, name: String, value: Any?) {
+    operator fun set(path: Path, name: String, value: Any?) {
         // add(CSet(path, name, value))
         if (!isWritable) throw ImmutablePrefabException(source)
         sets[path, name] = value

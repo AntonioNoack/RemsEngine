@@ -159,6 +159,9 @@ class RenderView(
     var renderMode = RenderMode.DEFAULT
 
     var radius = 50.0
+        set(value) {
+            field = clamp(value, 1e-130, 1e130)
+        }
 
     val worldScale get() = if (renderMode == RenderMode.MONO_WORLD_SCALE) 1.0 else 1.0 / radius
     var position = Vector3d()
@@ -914,13 +917,12 @@ class RenderView(
                 height / (fov * width), 0f, 0f, 0f,
                 0f, 1f / fov, 0f, 0f,
                 0f, 0f, -1f / fov, 0f,
-                0f, 0f, 0f, 1f
+                0f, 0f, 0.5f, 1f
             )
         }
         cameraMatrix.rotate(rot)
         if (!cameraMatrix.isFinite) throw RuntimeException(
-            "camera matrix is NaN, " +
-                    "by setPerspective, $fovYRadians, $aspectRatio, $near, $far, $worldScale, $rot"
+            "camera matrix is NaN, by setPerspective, $fovYRadians, $aspectRatio, $near, $far, $worldScale, $rot"
         )
 
         // lerp the world transforms

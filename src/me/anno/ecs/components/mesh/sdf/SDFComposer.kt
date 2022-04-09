@@ -53,8 +53,6 @@ object SDFComposer {
 
     // http://iquilezles.org/www/articles/normalsSDF/normalsSDF.htm
     const val normal = "" +
-            "uniform int iFrame;\n" +
-            "#define ZERO (min(iFrame,0))\n" +
             "vec3 calcNormal(in vec3 pos, float epsilon) {\n" +
             // inspired by tdhooper and klems - a way to prevent the compiler from inlining map() 4 times
             "  vec3 n = vec3(0.0);\n" +
@@ -92,6 +90,7 @@ object SDFComposer {
         uniforms["sdfMaxRelativeError"] = TypeValueV2(GLSLType.V1F) { tree.maxRelativeError }
         uniforms["maxSteps"] = TypeValueV2(GLSLType.V1I) { tree.maxSteps }
         uniforms["distanceBounds"] = TypeValue(GLSLType.V2F, Vector2f(0f, 1e5f))
+        uniforms["perspectiveCamera"] = TypeValue(GLSLType.BOOL) { RenderView.camInverse.m33() == 0.0 }
 
         val materials = tree.sdfMaterials.map { MaterialCache[it] }
         val builder = StringBuilder(max(1, materials.size) * 128)
@@ -126,9 +125,12 @@ object SDFComposer {
                     Variable(GLSLType.V1I, "maxSteps"),
                     Variable(GLSLType.V2F, "distanceBounds"), // todo compute them...
                     Variable(GLSLType.V3F, "localStart"),
+                    Variable(GLSLType.BOOL, "perspectiveCamera"),
                     Variable(GLSLType.V1F, "sdfReliability"),
                     Variable(GLSLType.V1F, "sdfNormalEpsilon"),
                     Variable(GLSLType.V1F, "sdfMaxRelativeError"),
+                    // is used to prevent inlining of huge functions
+                    Variable(GLSLType.V1I, "ZERO"),
                     // input varyings
                     Variable(GLSLType.V3F, "finalPosition"),
                     Variable(GLSLType.V2F, "roughnessMinMax"),
@@ -177,9 +179,16 @@ object SDFComposer {
                             // convert normals into global normals
                             // compute global depth
 
-                            "vec3 globalDir = normalize(finalPosition);\n" +
-                            "vec3 localDir = normalize(invLocalTransform * finalPosition);\n" +
-                            "vec3 localPos = localStart;\n" +
+                            "vec3 localDir, localPos;\n" +
+                            "if(perspectiveCamera){\n" +
+                            "   localDir = normalize(invLocalTransform * finalPosition);\n" +
+                            "   localPos = localStart;\n" +
+                            "} else {\n" +
+                            // todo correct ortho transform:
+                            // same dir, different start pos
+                            "   localDir = normalize(invLocalTransform * finalPosition);\n" +
+                            "   localPos = localStart;\n" +
+                            "}\n" +
                             "vec2 ray = map(localPos);\n" +
                             "if(ray.x >= 0.0){\n" + // not inside an object
                             "   ray = raycast(localPos, localDir);\n" +
@@ -229,8 +238,15 @@ object SDFComposer {
 
                 )
                 stage.functions.ensureCapacity(stage.functions.size + functions.size + 1)
-                val builder2 = StringBuilder(100 + functions.sumOf { it.length } + shapeDependentShader.length + raycasting.length + normal.length)
-                builder2.append("#define Infinity 1e20\n")
+                val builder2 =
+                    StringBuilder(100 + functions.sumOf { it.length } + shapeDependentShader.length + raycasting.length + normal.length)
+                builder2.append(
+                    "" +
+                            "#define Infinity 1e20\n" +
+                            "#define PI 3.141592653589793\n" +
+                            "#define TAU 6.283185307179586\n" +
+                            "#define PHI 1.618033988749895\n"
+                )
                 for (func in functions) builder2.append(func)
                 builder2.append("vec2 map(in vec3 pos0){\n")
                 builder2.append("   vec2 res = vec2(1e20,-1.0);\n")

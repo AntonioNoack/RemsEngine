@@ -1,9 +1,7 @@
 package me.anno.engine.scene
 
-import me.anno.ecs.prefab.change.CAdd
-import me.anno.ecs.prefab.change.CSet
-import me.anno.ecs.prefab.change.Path
 import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.change.Path
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 
@@ -25,7 +23,7 @@ object PrefabHelper {
     }
 
     fun setX(prefab: Prefab, path: Path, name: String, value: Any?) {
-        prefab.set(path, name, value)
+        prefab[path, name] = value
     }
 
 }

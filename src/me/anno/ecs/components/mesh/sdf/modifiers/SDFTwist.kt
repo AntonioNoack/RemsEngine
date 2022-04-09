@@ -171,6 +171,10 @@ class SDFTwist : PositionMapper() {
 
     companion object {
 
+        // todo calc rotation
+        // todo round it
+        // todo subtract it = rotate by that amount backwards
+
         fun Vector4f.length3() = Maths.length(x, y, z)
 
         private val LOGGER = LogManager.getLogger(SDFTwist::class)
@@ -200,7 +204,7 @@ class SDFTwist : PositionMapper() {
                 "   return p;\n" +
                 "}\n" +
                 // twist p around the axis dst by dot(p,src.xyz)+src.w
-                "vec3 twist(vec3 p, vec3 o, float angle, vec3 axis){\n" +
+                "vec3 twist(vec3 p, float angle, vec3 axis){\n" +
                 "   float ha = angle * 0.5;\n" + // half angle
                 "   float sinAngle = sin(ha);\n" +
                 "   vec4 q = vec4(axis * sinAngle, cos(ha));\n" +
@@ -211,12 +215,14 @@ class SDFTwist : PositionMapper() {
                 "   float yw = q.y * q.w;\n" +
                 "   float yz = q.y * q.z;\n" +
                 "   float xw = q.x * q.w;\n" +
-                "   p -= o;\n" +
-                "   return o + vec3(\n" +
+                "   return vec3(\n" +
                 "     (q2.w + q2.x - q2.z - q2.y) * p.x + (xy - zw - zw + xy)         * p.y + (yw + xz + xz + yw)         * p.z,\n" +
                 "     (xy + zw + zw + xy)         * p.x + (q2.y - q2.z + q2.w - q2.x) * p.y + (yz + yz - xw - xw)         * p.z,\n" +
                 "     (xz - yw + xz - yw)         * p.x + (yz + yz + xw + xw)         * p.y + (q2.z - q2.y - q2.x + q2.w) * p.z\n" +
                 "   );\n" +
+                "}\n" +
+                "vec3 twist(vec3 p, vec3 o, float angle, vec3 axis){\n" +
+                "   return twist(p-o,angle,axis)+o;\n" +
                 "}\n"
     }
 

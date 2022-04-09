@@ -1,5 +1,6 @@
 package me.anno.ecs.components.mesh.sdf.shapes
 
+import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
@@ -20,6 +21,7 @@ class SDFBoundingBox : SDFBox() {
             }
         }
 
+    @Range(0.0, 1e300)
     var thickness = 0.1f
         set(value) {
             if (field != value) {

@@ -6,12 +6,15 @@ but they always had much in common, so I decided to write my own engine.
 - direct Java/Kotlin support
 - usable in my favourite IDE: Intellij Idea
 - completely Open Source
-- no fees
+- no fees (until 1M/y ^^)
 - hopefully in the future fewer annoyances with skeletons than Unreal Engine
 - support for all kinds of formats
 - working/loading from inside compressed folders
-- hopefully fewer files than Unity, with their one-meta-for-every-file-strategy
 - I get to learn even more about game engines <3
+<!--
+no longer really is true:
+- hopefully fewer files than Unity, with their one-meta-for-every-file-strategy
+-->
 
 This engine does not have the target to offer the best graphics, or be the best performant. Its goal is to be nice and
 quick to develop in, like a tool box.
@@ -61,22 +64,24 @@ graph TB
 - supports loading all kinds of formats
 - can load files from compressed folders
 - pbr workflow
-- Bullet as physics engine
-    - running on a separate thread for uninterrupted graphics
+- Bullet as 3d physics engine
+    - running on a separate thread for uninterrupted graphics (currently disabled)
     - running with 64 bit floating precision for accuracy / universe simulations
+- Box2d as 2d physics engine
+    - currently a prototype
 - mods / plugins from the start: your game is a mod for the engine
 - event based
 - auto switch between forward- and deferred rendering
     - for beautiful MSAA with a few lights,
     - or thousands of lights without performance hit
-    - forward rendering does not support ss reflections and ssao
+    - forward rendering does not support ssr nor ssao
 - depth-edge-detection based anti-aliasing (like FXAA)
 - shadows with cascades (directional, spot, point)
 - planar reflections
-- screen space reflections
-- screen space ambient occlusion
-- static meshes
-- animated meshes
+- screen space reflections (ssr)
+- screen space ambient occlusion (ssao)
+- static, animated and procedural meshes
+- SDF "meshes"
 - aabb optimized scene hierarchy
 - bloom to convey brightness
 - AMD FSR: dynamic upscaling and sharpening
@@ -86,6 +91,7 @@ graph TB
     - you can even use your controller in other programs as a mouse, while Rem's Engine/Studio is running :3
 - bare-bones support for .blend files from Blender, so you don't have to export manually
 - automatic file reload, on file change
+- UI with integrated spellchecking
 
 ## Planned Features
 - nice UI system
@@ -96,6 +102,9 @@ graph TB
 - shader graphs
 - transparent meshes
 - export to Windows/Linux
+- Lua scripting
+- usable Gizmos 🙈
+- usable Multiplayer, local and tcp/udp
 
 ## Maybe Later Features
 - export to Web
@@ -106,13 +115,18 @@ videos on Android using https://stackoverflow.com/questions/9375598/android-how-
 - trees for much stuff: animations, shaders
 - visual coding?
 - path finding algorithms
-- block based library?
-- save files
-- multiplayer system?
 - support separate mice / keyboards for local multiplayer?
-- support controller + mouse/keyboard for one more local player
 - when we have no videos, we could ship without ffmpeg
-- additional 2d physics engine
+
+## Projects using Rem's Engine
+- [Rem's Studio](https://github.com/AntonioNoack/RemsStudio)
+- [Cellular Automata](https://github.com/AntonioNoack/CellularAutomata)
+- [Tsunami Simulation](https://github.com/AntonioNoack/RemsTsunamis)
+- [Voxel World](https://github.com/AntonioNoack/RemsEngine-VoxelWorld)
+- a few more, non published (yet?)
+
+## Ports
+- [Android](https://github.com/AntonioNoack/RemsEngine-Android)
 
 ## Used libraries
 
@@ -135,7 +149,7 @@ videos on Android using https://stackoverflow.com/questions/9375598/android-how-
 * [Image4j](https://github.com/imcdonagh/image4j) (Reading ICO images)
 * [Bullet](http://jbullet.advel.cz/) (3d Physics, adjusted to be FP64 instead of FP32)
 * [Box2d](https://github.com/jbox2d/jbox2d) (2d Physics, still FP32)
-
+* [LuaJ](https://github.com/luaj/luaj) (Lua scripting)
 
 ## Build
 
@@ -145,3 +159,4 @@ All listed libraries need to be added to the project in some way.
 ## Wiki
 
 Since both projects originate from the same base, the Wiki currently is located at Rem's Studio's repository.
+If you have any indept questions, just ask me on YouTube/MeWe/GitHub/Email/Discord.

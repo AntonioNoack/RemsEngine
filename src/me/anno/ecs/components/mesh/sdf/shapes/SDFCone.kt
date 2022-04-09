@@ -3,16 +3,18 @@ package me.anno.ecs.components.mesh.sdf.shapes
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.shader.GLSLType
+import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
+import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector4f
-import kotlin.math.abs
-import kotlin.math.max
+import kotlin.math.sign
+import kotlin.math.sqrt
 
-open class SDFCylinder : SDFSmoothShape() {
+// center it, and the pyramid as well?
+open class SDFCone : SDFShape() {
 
     private val params = Vector2f(1f)
 
@@ -26,7 +28,7 @@ open class SDFCylinder : SDFSmoothShape() {
             }
         }
 
-    var halfHeight
+    var height
         get() = params.y
         set(value) {
             if (params.y != value) {
@@ -37,9 +39,9 @@ open class SDFCylinder : SDFSmoothShape() {
         }
 
     override fun calculateBaseBounds(dst: AABBf) {
-        val h = halfHeight
+        val h = height
         val r = radius
-        dst.setMin(-r, -h, -r)
+        dst.setMin(-r, 0f, -r)
         dst.setMax(+r, +h, +r)
     }
 
@@ -52,56 +54,60 @@ open class SDFCylinder : SDFSmoothShape() {
         functions: HashSet<String>
     ) {
         val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
-        functions.add(sdCylinder)
+        functions.add(sdCone)
         smartMinBegin(builder, dstName)
-        builder.append("sdCylinder(pos").append(trans.posIndex).append(',')
+        builder.append("sdCone(pos").append(trans.posIndex).append(',')
         val dynamicSize = dynamicSize || globalDynamic
         if (dynamicSize) builder.appendUniform(uniforms, params)
         else builder.appendVec(params)
-        val dynamicSmoothness = dynamicSmoothness || globalDynamic
-        if (dynamicSmoothness || smoothness > 0f) {
-            builder.append(',')
-            if (dynamicSmoothness) builder.appendUniform(uniforms, GLSLType.V1F) { smoothness }
-            else builder.append(smoothness)
-        }
         builder.append(')')
         smartMinEnd(builder, dstName, nextVariableId, uniforms, functions, trans)
     }
 
     override fun computeSDFBase(pos: Vector4f): Float {
-        val h = params
-        val k = smoothness
-        val hkx = h.x - k
-        val hky = h.y - k
-        val dx = abs(length(pos.x, pos.z)) - hkx
-        val dy = abs(pos.y) - hky
-        return min(max(dx, dy), 0f) + length(max(dx, 0f), max(dy, 0f)) - k + pos.w
+        val q = params
+        val qx = q.x
+        val qy = q.y
+        val wx = length(pos.x, pos.z)
+        val wy = qy - pos.y
+        val af = clamp((wx * q.x + wy * q.y) / q.lengthSquared())
+        val ax = wx - qx * af
+        val ay = wy - qy * af
+        val bx = wx - qx * clamp(wx / qx)
+        val by = wy - qy
+        val k = sign(qy)
+        val d = min(ax * ax + ay * ay, bx * bx + by * by)
+        val s = max(k * (wx * qy - wy * qx), k * (wy - qy))
+        return sqrt(d) * sign(s)
     }
 
-    override fun clone(): SDFCylinder {
-        val clone = SDFCylinder()
+    override fun clone(): SDFCone {
+        val clone = SDFCone()
         copy(clone)
         return clone
     }
 
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
-        clone as SDFCylinder
+        clone as SDFCone
         clone.params.set(params)
     }
 
-    override val className = "SDFCylinder"
+    override val className = "SDFCone"
 
     companion object {
-        // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez
-        const val sdCylinder = "" +
-                "float sdCylinder(vec3 p, vec2 h){\n" +
-                "   vec2 d = vec2(length(p.xz),abs(p.y)) - h;\n" +
-                "   return min(max(d.x,d.y),0.0) + length(max(d,0.0));\n" +
-                "}\n" +
-                "float sdCylinder(vec3 p, vec2 h, float k){\n" +
-                "   return sdCylinder(p,h-k)-k;\n" +
-                "}\n"
+        // from https://iquilezles.org/www/articles/distfunctions/distfunctions.htm, Inigo Quilez
+        const val sdCone = "" +
+                "float sdCone(vec3 p, vec2 q) {\n" +
+                "  vec2 w = vec2(length(p.xz), -p.y+q.y);\n" +
+                "  vec2 a = w - q*clamp(dot(w,q)/dot(q,q), 0.0, 1.0);\n" +
+                "  vec2 b = w - q*vec2(clamp(w.x/q.x, 0.0, 1.0), 1.0);\n" +
+                "  float k = sign(q.y);\n" +
+                "  float d = min(dot(a,a),dot(b,b));\n" +
+                "  float s = max(k*(w.x*q.y-w.y*q.x),k*(w.y-q.y));\n" +
+                "  return sqrt(d)*sign(s);\n" +
+                "}"
+
     }
 
 }

@@ -6,8 +6,8 @@ import me.anno.gpu.OpenGL
 import me.anno.gpu.buffer.Attribute.Companion.computeOffsets
 import me.anno.gpu.shader.Shader
 import me.anno.input.Input
-import me.anno.utils.LOGGER
 import me.anno.utils.pooling.ByteBufferPool
+import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL30.*
@@ -285,6 +285,8 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
     }
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(Buffer::class)
 
         // monkey & stuff is invisible with vaos
         // because VAOs need default values (probably)

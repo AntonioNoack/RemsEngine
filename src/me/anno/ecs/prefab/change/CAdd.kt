@@ -40,6 +40,7 @@ class CAdd() : Change() {
     }
 
     fun getChildPath(index: Int): Path {
+        // LOGGER.debug("$path += ($nameId, $index, $type) -> $result")
         return path.added(nameId!!, index, type)
     }
 

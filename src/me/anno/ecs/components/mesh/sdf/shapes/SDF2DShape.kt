@@ -1,11 +1,14 @@
 package me.anno.ecs.components.mesh.sdf.shapes
 
 import me.anno.ecs.annotations.DebugAction
-import me.anno.ecs.components.mesh.sdf.modifiers.SDFHalfSpace
+import me.anno.ecs.prefab.Hierarchy
+import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.prefab.change.Path
 import me.anno.maths.Maths.max
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBf
+import org.joml.Planef
 import org.joml.Vector3f
 import org.joml.Vector4f
 
@@ -67,19 +70,28 @@ open class SDF2DShape : SDFShape() {
     @DebugAction
     fun bound11() {
         // todo bounds need to be added to prefab
+        val s = 0.1f
         when {
-            'x' !in axes -> bound(-1f, +1f, 0)
-            'y' !in axes -> bound(-1f, +1f, 1)
-            else -> bound(-1f, +1f, 2)
+            'x' !in axes -> bound(-s, +s, 0)
+            'y' !in axes -> bound(-s, +s, 1)
+            else -> bound(-s, +s, 2)
         }
     }
 
     fun bound(min: Vector3f, max: Vector3f) {
-        val dir1 = JomlPools.vec3f.create().set(min).sub(max)
-        addChild(SDFHalfSpace(min, dir1))
-        dir1.mul(-1f)
-        addChild(SDFHalfSpace(max, dir1))
+        val dir1 = JomlPools.vec3f.create()
+        dir1.set(min).sub(max)
+        bound2(min, dir1)
+        dir1.negate()
+        bound2(max, dir1)
         JomlPools.vec3f.sub(1)
+    }
+
+    fun bound2(pos: Vector3f, dir: Vector3f) {
+        val prefab = Prefab("SDFHalfSpace")
+        prefab[Path.ROOT_PATH, "plane"] = Planef(pos, dir)
+        // addChild(SDFHalfSpace(max, dir1))
+        Hierarchy.add(prefab, Path.ROOT_PATH, this)
     }
 
     fun boundX(min: Float, max: Float) = bound(min, max, 0)

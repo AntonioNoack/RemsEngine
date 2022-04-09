@@ -3,6 +3,8 @@ package me.anno.ecs.prefab
 import me.anno.Engine
 import me.anno.ecs.Entity
 import me.anno.ecs.components.light.PointLight
+import me.anno.ecs.components.mesh.sdf.modifiers.SDFHalfSpace
+import me.anno.ecs.components.mesh.sdf.shapes.SDFBox
 import me.anno.ecs.prefab.PrefabCache.getPrefab
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.Path
@@ -18,6 +20,7 @@ import me.anno.io.zip.InnerTmpFile
 import me.anno.studio.StudioBase
 import me.anno.utils.OS.documents
 import org.apache.logging.log4j.LogManager
+import org.joml.Planef
 import org.joml.Vector3d
 
 object Hierarchy {
@@ -127,6 +130,9 @@ object Hierarchy {
         return instance
     }
 
+    fun add(srcPrefab: Prefab, srcPath: Path, dst: PrefabSaveable) =
+        add(srcPrefab, srcPath, dst.root.prefab!!, dst.prefabPath!!, dst)
+
     fun add(
         srcPrefab: Prefab,
         srcPath: Path,
@@ -137,33 +143,36 @@ object Hierarchy {
         if (!dstPrefab.isWritable) throw ImmutablePrefabException(dstPrefab.source)
         LOGGER.debug("Trying to add ${srcPrefab.source}/$srcPath to ${dstPrefab.source}/$dstParentPath")
         if (srcPrefab == dstPrefab || (srcPrefab.source == dstPrefab.source && srcPrefab.source != InvalidRef)) {
+            LOGGER.debug("src == dst, so trying extraction")
             val element = srcPrefab.getSampleInstance()
             return add(extractPrefab(element, true), Path.ROOT_PATH, dstPrefab, dstParentPath, dstParentInstance)
         } else {
             // find all necessary changes
             if (srcPath.isEmpty()) {
+                LOGGER.debug("Path is empty")
                 // find correct type and insert index
                 val srcSample = getInstanceAt(srcPrefab.getSampleInstance(), srcPath)!!
                 val type = dstParentInstance.getTypeOf(srcSample)
-                val index = dstParentInstance.getChildListByType(type).size
-                val name = srcSample.name
+                val name = Path.generateRandomId()
                 val clazz = srcPrefab.clazzName
-                val prefab0 = srcSample.prefab?.prefab ?: InvalidRef
-                val add0 = CAdd(dstParentPath, type, clazz, name, prefab0)
-                val dstPath = dstPrefab.add(add0, index)
-                LOGGER.debug("Adding element to path $dstPath")
+                val srcPrefabSource = srcSample.prefab?.prefab ?: InvalidRef
+                if (type == ' ') LOGGER.warn("Adding type '$type' (${dstParentInstance.className} += $clazz), might not be supported")
+                val dstPath = dstPrefab.add(dstParentPath, type, clazz, name, srcPrefabSource)
+                LOGGER.debug("Adding element '$name' of class $clazz, type '$type' to path '$dstPath'")
                 val adds = srcPrefab.adds
-                if (adds === dstPrefab.adds) throw IllegalStateException()
-                for (change in adds) {
+                assert(adds !== dstPrefab.adds)
+                for (index1 in adds.indices) {
+                    val change = adds[index1]
                     dstPrefab.add(change.withPath(Path(dstPath, change.path)))
                 }
                 val sets = srcPrefab.sets
                 sets.forEach { k1, k2, v ->
-                    dstPrefab.set(Path(dstPath, k1), k2, v)
+                    dstPrefab[Path(dstPath, k1), k2] = v
                 }
                 ECSSceneTabs.updatePrefab(dstPrefab)
                 return dstPath
             } else {
+                LOGGER.debug("Extraction")
                 val element = getInstanceAt(srcPrefab.getSampleInstance(), srcPath) ?: return null
                 return add(extractPrefab(element, false), Path.ROOT_PATH, dstPrefab, dstParentPath, dstParentInstance)
             }
@@ -418,7 +427,7 @@ object Hierarchy {
         val sample1 = prefab.getSampleInstance()
         assert(sample1 is Entity)
         val child = prefab.add(Path.ROOT_PATH, 'c', "PointLight")
-        prefab.set(child, "lightSize", Math.PI)
+        prefab[child, "lightSize"] = Math.PI
         val sample2 = prefab.getSampleInstance()
         assert(sample2 is Entity)
         sample2 as Entity
@@ -429,14 +438,39 @@ object Hierarchy {
         assert((light1 as PointLight).lightSize == Math.PI)
     }
 
+    fun testMultiAdd() {
+        val prefab = Prefab("SDFBox")
+        val count = 3
+        for (i in 0 until count) {
+            val child = Prefab("SDFHalfSpace")
+            child[Path.ROOT_PATH, "plane"] = Planef(0f, 1f, 0f, i.toFloat())
+            add(child, Path.ROOT_PATH, prefab, Path.ROOT_PATH)
+        }
+        println(prefab.adds)
+        println(prefab.sets)
+        val inst = prefab.getSampleInstance() as SDFBox
+        for (i in 0 until count) {
+            val dist = inst.distanceMappers[i] as SDFHalfSpace
+            assert(dist.plane.d, i.toFloat())
+        }
+    }
+
     @JvmStatic
     fun main(args: Array<String>) {
         ECSRegistry.initNoGFX()
+        println("----------------------")
+        testMultiAdd()
+        println("----------------------")
         testPrefab()
+        println("----------------------")
         testRemoval2()
+        println("----------------------")
         testAdd()
+        println("----------------------")
         testRenumberRemove()
+        println("----------------------")
         // testJsonFormatter()
+        println("----------------------")
         Engine.requestShutdown()
     }
 

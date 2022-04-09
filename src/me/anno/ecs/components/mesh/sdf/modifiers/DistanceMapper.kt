@@ -13,6 +13,15 @@ import org.joml.Vector4f
  * */
 abstract class DistanceMapper : PrefabSaveable() {
 
+    override var isEnabled: Boolean
+        get() = super.isEnabled
+        set(value) {
+            if (super.isEnabled != value) {
+                invalidateShader()
+                super.isEnabled = value
+            }
+        }
+
     fun invalidateShader() {
         when (val parent = parent) {
             is SDFComponent -> parent.invalidateShader()

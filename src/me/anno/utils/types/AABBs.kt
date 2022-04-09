@@ -98,6 +98,24 @@ object AABBs {
         return this
     }
 
+    fun AABBf.allX(): AABBf {
+        minX = Float.NEGATIVE_INFINITY
+        maxX = Float.POSITIVE_INFINITY
+        return this
+    }
+
+    fun AABBf.allY(): AABBf {
+        minY = Float.NEGATIVE_INFINITY
+        maxY = Float.POSITIVE_INFINITY
+        return this
+    }
+
+    fun AABBf.allZ(): AABBf {
+        minZ = Float.NEGATIVE_INFINITY
+        maxZ = Float.POSITIVE_INFINITY
+        return this
+    }
+
     fun AABBf.intersect(other: AABBf, dst: AABBf = this): AABBf {
         dst.minX = max(minX, other.minX)
         dst.minY = max(minY, other.minY)

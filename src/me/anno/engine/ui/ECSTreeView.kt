@@ -88,22 +88,17 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
     }
 
     fun addChild(element: PrefabSaveable, child: Any, index: Int) {
+        val dstPath = element.prefabPath!!
         when (child) {
             is Prefab -> {
-                val elementRoot = element.root
-                val dstPath = element.prefabPath!!
                 Hierarchy.add(
                     child,
                     Path.ROOT_PATH,
-                    elementRoot.prefab!!,
-                    dstPath,
                     element
                 )
             }
             is PrefabSaveable -> {
                 val childRoot = child.root
-                val elementRoot = element.root
-                val dstPath = element.prefabPath!!
                 // dstPath.setLast(child.name, index, element.getTypeOf(child))
                 // name must never change,
                 // type must never change
@@ -112,14 +107,10 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
                 Hierarchy.add(
                     childRoot.prefab!!,
                     child.prefabPath!!,
-                    elementRoot.prefab!!,
-                    dstPath,
                     element
                 )
             }
-            else -> {
-                LOGGER.warn("Unknown type $child")
-            }
+            else -> LOGGER.warn("Unknown type $child")
         }
     }
 

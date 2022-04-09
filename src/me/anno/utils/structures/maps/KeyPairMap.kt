@@ -1,7 +1,6 @@
 package me.anno.utils.structures.maps
 
 import me.anno.utils.structures.lists.PairArrayList
-import org.apache.logging.log4j.LogManager
 
 class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
     Iterable<PairArrayList<KFewOnly, Value>> {
@@ -143,11 +142,27 @@ class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
     fun isNotEmpty() = size > 0
 
     override fun toString(): String {
-        return values.toString()
-    }
-
-    companion object {
-        private val LOGGER = LogManager.getLogger(KeyPairMap::class)
+        val sb = StringBuilder(4 + size)
+        sb.append("{")
+        for ((i0, k1i) in values.entries.withIndex()) {
+            val (k1, k2s) = k1i
+            val s0 = sb.length
+            sb.append(k1)
+            if (sb.length == s0) sb.append("\"\"")
+            sb.append(": { ")
+            for ((i1, k2i) in k2s.withIndex()) {
+                val (k2, v) = k2i
+                val s1 = sb.length
+                sb.append(k2)
+                if (sb.length == s1) sb.append("\"\"")
+                sb.append(": ")
+                sb.append(v)
+                sb.append(if (i1 == k2s.size - 1) " " else ", ")
+            }
+            sb.append(if (i0 == values.size - 1) "} " else "}, ")
+        }
+        sb.append("}")
+        return sb.toString()
     }
 
 }

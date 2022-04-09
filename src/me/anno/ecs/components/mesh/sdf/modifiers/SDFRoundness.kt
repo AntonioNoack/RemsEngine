@@ -3,6 +3,7 @@ package me.anno.ecs.components.mesh.sdf.modifiers
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.globalDynamic
+import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.widen
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
@@ -27,21 +28,13 @@ class SDFRoundness : DistanceMapper() {
         set(value) {
             if (field != value) {
                 field = value
-                if(!globalDynamic) invalidateShader()
+                if (!globalDynamic) invalidateShader()
             }
         }
 
     override fun applyTransform(bounds: AABBf) {
         // expand by roundness
-        val r = roundness
-        if (r > 0f) {
-            bounds.minX -= r
-            bounds.minY -= r
-            bounds.minZ -= r
-            bounds.maxX += r
-            bounds.maxY += r
-            bounds.maxZ += r
-        }
+        bounds.widen(roundness)
     }
 
     override fun buildShader(
