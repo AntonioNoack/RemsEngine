@@ -4,6 +4,7 @@ import me.anno.ecs.components.cache.MaterialCache
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.TypeValueV2
+import me.anno.ecs.components.mesh.TypeValueV3
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
 import me.anno.engine.ui.render.ECSMeshShader
@@ -14,6 +15,10 @@ import me.anno.gpu.shader.builder.Function
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.maths.Maths
+import me.anno.utils.types.AABBs.deltaX
+import me.anno.utils.types.AABBs.deltaY
+import me.anno.utils.types.AABBs.deltaZ
 import org.joml.Vector2f
 import org.joml.Vector3f
 import kotlin.collections.component1
@@ -34,12 +39,12 @@ object SDFComposer {
     const val raycasting = "" +
             // input: vec3 ray origin, vec3 ray direction
             // output: vec2(distance, materialId)
-            "vec2 raycast(in vec3 ro, in vec3 rd){\n" +
+            "vec2 raycast(in vec3 ro, in vec3 rd, out int i){\n" +
             // ray marching
             "   vec2 res = vec2(-1.0);\n" +
             "   float tMin = distanceBounds.x, tMax = distanceBounds.y;\n" +
             "   float t = tMin;\n" +
-            "   for(int i=0; i<maxSteps && t<tMax; i++){\n" +
+            "   for(i=0; i<maxSteps && t<tMax; i++){\n" +
             "     vec2 h = map(ro+rd*t);\n" +
             "     if(abs(h.x)<(sdfMaxRelativeError*t)){\n" + // allowed error grows with distance
             "       res = vec2(t,h.y);\n" +
@@ -71,26 +76,30 @@ object SDFComposer {
         val functions = LinkedHashSet<String>()
         val uniforms = HashMap<String, TypeValue>()
         val shapeDependentShader = StringBuilder()
-        tree.buildShader(shapeDependentShader, 0, VariableCounter(1), "res", uniforms, functions)
-        uniforms["localStart"] = object : TypeValue(GLSLType.V3F, Vector3f()) {
-            override var value: Any
-                get() {
-                    val value = super.value as Vector3f
-                    val dt = tree.transform?.drawTransform
-                    if (dt != null) {
-                        val cp = RenderView.camPosition
-                        value.set(cp.x - dt.m30(), cp.y - dt.m31(), cp.z - dt.m32())
-                    } else value.set(0f)
-                    return value
-                }
-                set(_) = throw RuntimeException()
+        tree.buildShader(shapeDependentShader, 0, VariableCounter(1), 0, uniforms, functions)
+        uniforms["localStart"] = TypeValueV3(GLSLType.V3F, Vector3f()) { localStart ->
+            val dt = tree.transform?.drawTransform
+            if (dt != null) {
+                val cp = RenderView.camPosition
+                localStart.set(cp.x - dt.m30(), cp.y - dt.m31(), cp.z - dt.m32())
+            }
         }
         uniforms["sdfReliability"] = TypeValueV2(GLSLType.V1F) { tree.globalReliability }
         uniforms["sdfNormalEpsilon"] = TypeValue(GLSLType.V1F) { tree.normalEpsilon }
         uniforms["sdfMaxRelativeError"] = TypeValueV2(GLSLType.V1F) { tree.maxRelativeError }
         uniforms["maxSteps"] = TypeValueV2(GLSLType.V1I) { tree.maxSteps }
-        uniforms["distanceBounds"] = TypeValue(GLSLType.V2F, Vector2f(0f, 1e5f))
+        uniforms["distanceBounds"] = TypeValueV3(GLSLType.V2F, Vector2f()) {
+            // find maximum in local space from current point to bounding box
+            // best within frustum
+            val dt = tree.transform?.drawTransform
+            if (dt != null) {
+                // a guess
+                val bounds = tree.localAABB
+                it.set(0f, Maths.max(bounds.deltaX(), bounds.deltaY(), bounds.deltaZ()).toFloat())
+            }
+        }
         uniforms["perspectiveCamera"] = TypeValue(GLSLType.BOOL) { RenderView.camInverse.m33() == 0.0 }
+        uniforms["debugMode"] = TypeValue(GLSLType.V1I) { tree.debugMode.id }
 
         val materials = tree.sdfMaterials.map { MaterialCache[it] }
         val builder = StringBuilder(max(1, materials.size) * 128)
@@ -124,6 +133,7 @@ object SDFComposer {
                     Variable(GLSLType.M3x3, "invLocalTransform"),
                     Variable(GLSLType.V1I, "maxSteps"),
                     Variable(GLSLType.V2F, "distanceBounds"), // todo compute them...
+                    Variable(GLSLType.V1I, "debugMode"), // 0 = default, 1 = #steps, 2 = sdf planes
                     Variable(GLSLType.V3F, "localStart"),
                     Variable(GLSLType.BOOL, "perspectiveCamera"),
                     Variable(GLSLType.V1F, "sdfReliability"),
@@ -190,23 +200,66 @@ object SDFComposer {
                             "   localPos = localStart;\n" +
                             "}\n" +
                             "vec2 ray = map(localPos);\n" +
+                            "int steps;\n" +
                             "if(ray.x >= 0.0){\n" + // not inside an object
-                            "   ray = raycast(localPos, localDir);\n" +
-                            "   if(ray.y < 0.0) discard;\n" + // sky
-                            "   vec3 localHit = localPos + ray.x * localDir;\n" +
-                            "   vec3 localNormal = calcNormal(localHit, sdfNormalEpsilon);\n" +
+                            "   ray = raycast(localPos, localDir, steps);\n" +
+                            "   if(debugMode != ${DebugMode.NUM_STEPS.id}){\n" +
+                            "       if(ray.y < 0.0 || (debugMode == ${DebugMode.SDF_ON_Y.id} && (localPos.y+ray.x*localDir.y)*sign(localDir.y) > 0.0)){\n" + // hit nothing -> sky or similar
+                            "           if(debugMode == ${DebugMode.SDF_ON_Y.id}){\n" +
+                            // check if & where ray hits y == 0
+                            "               float distance = -localPos.y / localDir.y;\n" +
+                            "               if(distance > 0.0){\n" +
+                            "                   vec3 localHit = localPos + distance * localDir;\n" +
+                            "                   localHit.y = 0.0;\n" + // correct numerical issues
+                            "                   finalPosition = localTransform * vec4(localHit, 1.0);\n" +
+                            // "                   if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n" +
+                            "                   finalNormal = vec3(0.0, -sign(localDir.y), 0.0);\n" +
+                            "                   vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
+                            "                   gl_FragDepth = newVertex.z/newVertex.w;\n" +
+                            "                   distance = map(localHit).x;\n" + // < 0.0 removed, because we show the shape there
+                            // waves like in Inigo Quilez demos, e.g. https://www.shadertoy.com/view/tt3yz7
+                            // show the inside as well? mmh...
+                            "                   vec3 col = vec3(0.9,0.6,0.3) * (1.0 - exp(-2.0*distance));\n" +
+                            // less amplitude, when filtering issues occur
+                            "                   float delta = 5.0 * length(vec2(dFdx(distance),dFdy(distance)));\n" +
+                            "                   col *= 0.8 + 0.2*cos(20.0*distance)*max(1.0-delta,0.0);\n" +
+                            "                   finalColor = col;\n" +
+                            "                   finalAlpha = 1.0;\n" +
+                            "               } else discard;\n" +
+                            "           } else discard;\n" +
+                            "       } else {\n" +
+                            "           vec3 localHit = localPos + ray.x * localDir;\n" +
+                            "           vec3 localNormal = calcNormal(localHit, sdfNormalEpsilon);\n" +
                             // convert localHit to global hit
-                            "   finalPosition = localTransform * vec4(localHit, 1.0);\n" +
-                            "   finalNormal = normalize(localTransform * vec4(localNormal, 0.0));\n" +
-
+                            "           finalPosition = localTransform * vec4(localHit, 1.0);\n" +
+                            "           finalNormal = normalize(localTransform * vec4(localNormal, 0.0));\n" +
                             // respect reflection plane
-                            "   if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n" +
+                            "           if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n" +
                             // calculate depth
-                            "   vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
-                            "   gl_FragDepth = newVertex.z/newVertex.w;\n" +
+                            "           vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
+                            "           gl_FragDepth = newVertex.z/newVertex.w;\n" +
 
                             // step by step define all material properties
                             builder.toString() +
+                            "       }\n" +
+                            "   } else {\n" + // show number of steps
+                            "       if(ray.y < 0.0) ray.x = dot(distanceBounds,vec2(0.5));\n" + // avg as a guess
+                            "       vec3 localHit = localPos + ray.x * localDir;\n" +
+                            "       finalPosition = localTransform * vec4(localHit, 1.0);\n" +
+                            // "                   if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n" +
+                            "       finalNormal = vec3(0.0);\n" +
+                            "       vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
+                            "       gl_FragDepth = newVertex.z/newVertex.w;\n" +
+                            // shading from https://www.shadertoy.com/view/WdVyDW
+                            "       const vec3 a = vec3(97, 130, 234) / vec3(255.0);\n" +
+                            "       const vec3 b = vec3(220, 94, 75) / vec3(255.0);\n" +
+                            "       const vec3 c = vec3(221, 220, 219) / vec3(255.0);\n" +
+                            "       float t = float(steps)/float(maxSteps);\n" +
+                            "       finalColor = vec3(0.0);\n" +
+                            "       finalEmissive = t < 0.5 ? mix(a, c, 2.0 * t) : mix(c, b, 2.0 * t - 1.0);\n" +
+                            "       finalEmissive *= 2.0;\n" + // only correct with current tonemapping...
+                            "       finalAlpha = 1.0;\n" +
+                            "   }\n" +
 
                             "} else {\n" +// inside an object
 
@@ -249,9 +302,9 @@ object SDFComposer {
                 )
                 for (func in functions) builder2.append(func)
                 builder2.append("vec2 map(in vec3 pos0){\n")
-                builder2.append("   vec2 res = vec2(1e20,-1.0);\n")
+                builder2.append("   vec2 res0;\n")
                 builder2.append(shapeDependentShader)
-                builder2.append("   return res;\n}\n")
+                builder2.append("   return res0;\n}\n")
                 builder2.append(raycasting)
                 builder2.append(normal)
                 stage.functions.add(Function(builder2.toString()))

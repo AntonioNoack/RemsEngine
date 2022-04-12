@@ -41,7 +41,7 @@ abstract class DistanceMapper : PrefabSaveable() {
     abstract fun buildShader(
         builder: StringBuilder,
         posIndex: Int,
-        dstName: String,
+        dstIndex: Int,
         nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>

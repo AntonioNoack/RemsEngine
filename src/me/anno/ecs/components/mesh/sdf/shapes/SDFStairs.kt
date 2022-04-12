@@ -27,14 +27,14 @@ class SDFStairs : SDF2DShape() {
         builder: StringBuilder,
         posIndex0: Int,
         nextVariableId: VariableCounter,
-        dstName: String,
+        dstIndex: Int,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ) {
         val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
         functions.add(dot2)
         functions.add(stairsSDF)
-        smartMinBegin(builder, dstName)
+        smartMinBegin(builder, dstIndex)
         builder.append("sdStairs(pos")
         builder.append(trans.posIndex)
         builder.append(".").append(axes).append(",")
@@ -42,7 +42,7 @@ class SDFStairs : SDF2DShape() {
         if (dynamicSize) builder.appendUniform(uniforms, stepSizeCount)
         else builder.appendVec(stepSizeCount)
         builder.append(')')
-        smartMinEnd(builder, dstName, nextVariableId, uniforms, functions, trans)
+        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, trans)
     }
 
     override fun computeSDFBase(pos: Vector4f): Float {

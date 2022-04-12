@@ -38,8 +38,10 @@ import org.joml.*
 import kotlin.math.abs
 import kotlin.math.floor
 
-// todo visualize number of steps taken
+// todo draw outline around selected sdf component
 open class SDFComponent : ProceduralMesh() {
+
+    // todo color maps like https://iquilezles.org/www/articles/palettes/palettes.htm
 
     override var isEnabled: Boolean
         get() = super.isEnabled
@@ -49,8 +51,6 @@ open class SDFComponent : ProceduralMesh() {
                 super.isEnabled = value
             }
         }
-
-    // todo draw outline around selected sdf component
 
     /**
      * how much larger the underlying mesh needs to be to cover this sdf mesh;
@@ -67,6 +67,9 @@ open class SDFComponent : ProceduralMesh() {
                 field = value
             }
         }
+
+    @HideInInspector("isSDFChild")
+    var debugMode = DebugMode.DEFAULT
 
     val material by lazy { Material.create() }
 
@@ -368,8 +371,6 @@ open class SDFComponent : ProceduralMesh() {
     }
 
     fun updateMesh(mesh: Mesh, generateShader: Boolean) {
-        // todo compute bounds for size...
-        // todo parameters for extra size, e.g. for dynamic positions & rotations & such
         val aabb = JomlPools.aabbf.create()
         aabb.clear()
         calculateBounds(aabb)
@@ -443,7 +444,7 @@ open class SDFComponent : ProceduralMesh() {
     fun buildDMShader(
         builder: StringBuilder,
         posIndex: Int,
-        dstName: String,
+        dstIndex: Int,
         nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
@@ -452,7 +453,7 @@ open class SDFComponent : ProceduralMesh() {
         for (index in mappers.indices) {
             val mapper = mappers[index]
             if (mapper.isEnabled) {
-                mapper.buildShader(builder, posIndex, dstName, nextVariableId, uniforms, functions)
+                mapper.buildShader(builder, posIndex, dstIndex, nextVariableId, uniforms, functions)
             }
         }
     }
@@ -461,7 +462,7 @@ open class SDFComponent : ProceduralMesh() {
         builder: StringBuilder,
         posIndex0: Int,
         nextVariableId: VariableCounter,
-        dstName: String,
+        dstIndex: Int,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ) {
@@ -728,12 +729,12 @@ open class SDFComponent : ProceduralMesh() {
             append("vec2(")
             if (v.x != v.y) {
                 append(v.x)
-                append(",")
+                append(',')
                 append(v.y)
             } else {
                 append(v.x)
             }
-            append(")")
+            append(')')
             return this
         }
 
@@ -741,40 +742,40 @@ open class SDFComponent : ProceduralMesh() {
             append("vec3(")
             if (v.x != v.y || v.y != v.z || v.x != v.z) {
                 append(v.x)
-                append(",")
+                append(',')
                 append(v.y)
-                append(",")
+                append(',')
                 append(v.z)
             } else {
                 append(v.x)
             }
-            append(")")
+            append(')')
             return this
         }
 
         fun StringBuilder.appendVec(v: Vector4f): StringBuilder {
             append("vec4(")
             append(v.x)
-            append(",")
+            append(',')
             append(v.y)
-            append(",")
+            append(',')
             append(v.z)
-            append(",")
+            append(',')
             append(v.w)
-            append(")")
+            append(')')
             return this
         }
 
         fun StringBuilder.appendVec(v: Planef): StringBuilder {
             append("vec4(")
             append(v.a)
-            append(",")
+            append(',')
             append(v.b)
-            append(",")
+            append(',')
             append(v.c)
-            append(",")
+            append(',')
             append(v.d)
-            append(")")
+            append(')')
             return this
         }
 
@@ -804,8 +805,14 @@ open class SDFComponent : ProceduralMesh() {
         fun StringBuilder.appendMinus(
             uniform: String
         ): StringBuilder {
-            append("vec2(-").append(uniform).append(".x,")
-            append(uniform).append(".y)")
+            append("vec2(-").append(uniform).append(".x,").append(uniform).append(".y)")
+            return this
+        }
+
+        fun StringBuilder.appendMinus(
+            uniform: Int
+        ): StringBuilder {
+            append("vec2(-res").append(uniform).append(".x,res").append(uniform).append(".y)")
             return this
         }
 

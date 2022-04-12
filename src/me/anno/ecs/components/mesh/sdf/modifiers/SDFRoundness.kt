@@ -40,12 +40,12 @@ class SDFRoundness : DistanceMapper() {
     override fun buildShader(
         builder: StringBuilder,
         posIndex: Int,
-        dstName: String,
+        dstIndex: Int,
         nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ) {
-        builder.append(dstName).append(".x-=")
+        builder.append("res").append(dstIndex).append(".x-=")
         val dynamic = dynamic || globalDynamic
         if (dynamic) builder.appendUniform(uniforms, GLSLType.V1F) { roundness }
         else builder.append(roundness)

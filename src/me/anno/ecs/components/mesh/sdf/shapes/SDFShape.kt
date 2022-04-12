@@ -33,8 +33,8 @@ open class SDFShape : SDFComponent() {
         clone.materialId = materialId
     }
 
-    fun smartMinBegin(builder: StringBuilder, dstName: String) {
-        builder.append(dstName)
+    fun smartMinBegin(builder: StringBuilder, dstIndex: Int) {
+        builder.append("res").append(dstIndex)
         builder.append("=vec2(((")
     }
 
@@ -69,14 +69,14 @@ open class SDFShape : SDFComponent() {
 
     fun smartMinEnd(
         builder: StringBuilder,
-        dstName: String,
+        dstIndex: Int,
         nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>,
         trans: SDFTransform
     ) {
         smartMinEnd(builder, uniforms, trans.scaleName, trans.offsetName)
-        buildDMShader(builder, trans.posIndex, dstName, nextVariableId, uniforms, functions)
+        buildDMShader(builder, trans.posIndex, dstIndex, nextVariableId, uniforms, functions)
         sdfTransPool.destroy(trans)
     }
 

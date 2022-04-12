@@ -242,8 +242,6 @@ object Menu {
             list += SpacerPanel(0, 1, style)
         }
 
-        // todo automatically enter the search field, when this menu shows up
-
         // search panel
         if (panels.size >= DefaultConfig["ui.search.minItems", 5]) {
             val startIndex = list.children.size + 1

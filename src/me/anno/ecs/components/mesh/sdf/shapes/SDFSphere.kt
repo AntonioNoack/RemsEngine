@@ -12,17 +12,17 @@ class SDFSphere : SDFShape() {
         builder: StringBuilder,
         posIndex0: Int,
         nextVariableId: VariableCounter,
-        dstName: String,
+        dstIndex: Int,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ) {
         val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
         functions.add(sdSphere)
-        smartMinBegin(builder, dstName)
+        smartMinBegin(builder, dstIndex)
         builder.append("sdSphere(pos")
         builder.append(trans.posIndex)
         builder.append(",1.0)")
-        smartMinEnd(builder, dstName, nextVariableId, uniforms, functions, trans)
+        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, trans)
     }
 
     override fun computeSDFBase(pos: Vector4f): Float {

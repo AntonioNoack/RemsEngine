@@ -133,10 +133,6 @@ object Maths {
         return if (a > b) a else b
     }
 
-    fun max(a: Double, b: Double): Double {
-        return if (a > b) a else b
-    }
-
     fun max(a: Float, b: Float, c: Float): Float {
         var value = if (a > b) a else b
         value = if (value > c) value else c
@@ -159,6 +155,40 @@ object Maths {
     }
 
     fun max(a: Float, b: Float, c: Float, d: Float, e: Float, f: Float): Float {
+        var value = if (a > b) a else b
+        value = if (value > c) value else c
+        value = if (value > d) value else d
+        value = if (value > e) value else e
+        value = if (value > f) value else f
+        return value
+    }
+
+    fun max(a: Double, b: Double): Double {
+        return if (a > b) a else b
+    }
+
+    fun max(a: Double, b: Double, c: Double): Double {
+        var value = if (a > b) a else b
+        value = if (value > c) value else c
+        return value
+    }
+
+    fun max(a: Double, b: Double, c: Double, d: Double): Double {
+        var value = if (a > b) a else b
+        value = if (value > c) value else c
+        value = if (value > d) value else d
+        return value
+    }
+
+    fun max(a: Double, b: Double, c: Double, d: Double, e: Double): Double {
+        var value = if (a > b) a else b
+        value = if (value > c) value else c
+        value = if (value > d) value else d
+        value = if (value > e) value else e
+        return value
+    }
+
+    fun max(a: Double, b: Double, c: Double, d: Double, e: Double, f: Double): Double {
         var value = if (a > b) a else b
         value = if (value > c) value else c
         value = if (value > d) value else d

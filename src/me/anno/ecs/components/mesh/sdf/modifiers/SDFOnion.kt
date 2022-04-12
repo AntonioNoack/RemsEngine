@@ -60,14 +60,14 @@ class SDFOnion() : DistanceMapper() {
     override fun buildShader(
         builder: StringBuilder,
         posIndex: Int,
-        dstName: String,
+        dstIndex: Int,
         nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ) {
         functions.add(sdRings)
-        builder.append(dstName).append(".x=sdRings(")
-        builder.append(dstName).append(".x,")
+        builder.append("res").append(dstIndex).append(".x=sdRings(")
+        builder.append("res").append(dstIndex).append(".x,")
         val dynamicThickness = dynamicThickness || globalDynamic
         if (dynamicThickness) builder.appendUniform(uniforms, GLSLType.V1F) { thickness }
         else builder.append(thickness)

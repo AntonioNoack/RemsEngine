@@ -57,7 +57,7 @@ fun createTestShader(tree: SDFComponent): Pair<HashMap<String, TypeValue>, BaseS
     val functions = LinkedHashSet<String>()
     val uniforms = HashMap<String, TypeValue>()
     val shapeDependentShader = StringBuilder()
-    tree.buildShader(shapeDependentShader, 0, VariableCounter(1), "res", uniforms, functions)
+    tree.buildShader(shapeDependentShader, 0, VariableCounter(1), 0, uniforms, functions)
     return uniforms to BaseShader("raycasting", ShaderLib.simplestVertexShader, ShaderLib.uvList, "" +
             uniforms.entries.joinToString("") { (k, v) -> "uniform ${v.type.glslName} $k;\n" } +
             "uniform mat3 camMatrix;\n" +
@@ -71,10 +71,10 @@ fun createTestShader(tree: SDFComponent): Pair<HashMap<String, TypeValue>, BaseS
             "#define Infinity 1e20\n" +
             functions.joinToString("") +
             "vec2 map(in vec3 pos0){\n" +
-            "   vec2 res = vec2(1e20,-1.0);\n" +
+            "   vec2 res0;\n" +
             // here comes the shape dependant shader
             shapeDependentShader.toString() +
-            "   return res;\n" +
+            "   return res0;\n" +
             "}\n" +
             SDFComposer.raycasting +
             SDFComposer.normal +

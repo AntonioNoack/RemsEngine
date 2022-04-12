@@ -12,6 +12,7 @@ import org.joml.Vector4f
  * */
 open class SDFPlane : SDFShape() {
 
+    // todo should be an enum
     @Docs("Allowed values: x/y/z")
     var axis = 'y'
         set(value) {
@@ -55,16 +56,16 @@ open class SDFPlane : SDFShape() {
         builder: StringBuilder,
         posIndex0: Int,
         nextVariableId: VariableCounter,
-        dstName: String,
+        dstIndex: Int,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ) {
         val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
-        smartMinBegin(builder, dstName)
+        smartMinBegin(builder, dstIndex)
         builder.append("pos")
         builder.append(trans.posIndex)
         builder.append('.').append(axis)
-        smartMinEnd(builder, dstName, nextVariableId, uniforms, functions, trans)
+        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, trans)
     }
 
     override fun computeSDFBase(pos: Vector4f): Float {

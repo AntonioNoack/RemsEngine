@@ -35,13 +35,13 @@ class SDFBoundingBox : SDFBox() {
         builder: StringBuilder,
         posIndex0: Int,
         nextVariableId: VariableCounter,
-        dstName: String,
+        dstIndex: Int,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ) {
         val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
         functions.add(boundingBoxSDF)
-        smartMinBegin(builder, dstName)
+        smartMinBegin(builder, dstIndex)
         builder.append("sdBoundingBox(pos")
         builder.append(trans.posIndex)
         builder.append(',')
@@ -59,7 +59,7 @@ class SDFBoundingBox : SDFBox() {
             else builder.append(smoothness)
         }
         builder.append(')')
-        smartMinEnd(builder, dstName, nextVariableId, uniforms, functions, trans)
+        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, trans)
     }
 
     private fun lineSDF(x: Float, y: Float, z: Float): Float {

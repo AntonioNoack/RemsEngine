@@ -6,7 +6,6 @@ import me.anno.io.ISaveable.Companion.registerCustomClass
 
 object SDFRegistry {
 
-    // todo option to display sdf values on x/y/z axis for debugging shapes
     // like on http://mercury.sexy/hg_sdf/
 
     fun init() {

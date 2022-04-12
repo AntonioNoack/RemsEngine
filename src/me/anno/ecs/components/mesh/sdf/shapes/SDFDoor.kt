@@ -58,14 +58,14 @@ class SDFDoor : SDF2DShape() {
         builder: StringBuilder,
         posIndex0: Int,
         nextVariableId: VariableCounter,
-        dstName: String,
+        dstIndex: Int,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ) {
         val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
         functions.add(dot2)
         functions.add(doorSDF)
-        smartMinBegin(builder, dstName)
+        smartMinBegin(builder, dstIndex)
         builder.append("sdDoor(")
         writeFuncInput(builder, trans.posIndex)
         builder.append(',')
@@ -73,7 +73,7 @@ class SDFDoor : SDF2DShape() {
         if (dynamicSize) builder.appendUniform(uniforms, params)
         else builder.appendVec(params)
         builder.append(')')
-        smartMinEnd(builder, dstName, nextVariableId, uniforms, functions, trans)
+        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, trans)
     }
 
     override fun computeSDFBase(pos: Vector4f): Float {

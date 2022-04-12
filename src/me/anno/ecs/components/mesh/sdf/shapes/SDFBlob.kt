@@ -5,6 +5,7 @@ import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.maths.Maths.PHIf
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.length
+import me.anno.utils.types.Vectors.dot2
 import org.joml.AABBf
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -17,17 +18,17 @@ class SDFBlob : SDFShape() {
         builder: StringBuilder,
         posIndex0: Int,
         nextVariableId: VariableCounter,
-        dstName: String,
+        dstIndex: Int,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ) {
         val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
         functions.add(sdBlob)
-        smartMinBegin(builder, dstName)
+        smartMinBegin(builder, dstIndex)
         builder.append("sdBlob(pos")
         builder.append(trans.posIndex)
         builder.append(")")
-        smartMinEnd(builder, dstName, nextVariableId, uniforms, functions, trans)
+        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, trans)
     }
 
     override fun calculateBaseBounds(dst: AABBf) {
@@ -53,8 +54,8 @@ class SDFBlob : SDFShape() {
             pz = t
         }
         val b = max(
-            max(v0.dot(px, py, pz), v1.dot(px, pz)),
-            max(v2.dot(py, px), v2.dot(px, pz)),
+            max(v0.dot(px, py, pz), v1.dot2(px, pz)),
+            max(v2.dot2(py, px), v2.dot2(px, pz)),
         )
         val l = length(px, py, pz)
         return l - 1.5f - vx * cos(min(sqrt(1.01f - b / l) * (PIf * 4f), PIf))
@@ -69,8 +70,6 @@ class SDFBlob : SDFShape() {
     override val className = "SDFBlob"
 
     companion object {
-
-        fun Vector2f.dot(x: Float, y: Float) = this.x * x + this.y * y
 
         private val v0 = Vector3f(1f).normalize()
         private val v1 = Vector2f(PHIf + 1f, 1f).normalize()

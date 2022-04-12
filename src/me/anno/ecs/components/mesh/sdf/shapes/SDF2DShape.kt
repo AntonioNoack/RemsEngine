@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh.sdf.shapes
 
 import me.anno.ecs.annotations.DebugAction
+import me.anno.ecs.components.mesh.sdf.TwoDims
 import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
@@ -16,15 +17,15 @@ import org.joml.Vector4f
 // https://www.iquilezles.org/www/articles/distfunctions2d/distfunctions2d.htm
 // https://www.shadertoy.com/playlist/MXdSRf&from=36&num=12
 
-// todo more 3d shapes
+// to do more 3d shapes
 // https://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
 
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 open class SDF2DShape : SDFShape() {
 
-    var axes = "xy"
+    var axes = TwoDims.XY
         set(value) {
-            // check whether the new value is valid
-            if (value.length == 2 && value.count { it in "xyz" } == 2 && value[0] != value[1]) {
+            if (field != value) {
                 invalidateShader()
                 field = value
             }
@@ -41,44 +42,43 @@ open class SDF2DShape : SDFShape() {
     override fun applyTransform(pos: Vector4f) {
         super.applyTransform(pos)
         when (axes) {
-            "xy" -> pos.z = 0f
-            "yx" -> pos.set(pos.y, pos.x, 0f)
-            "xz" -> pos.set(pos.x, pos.z, 0f)
-            "zx" -> pos.set(pos.z, pos.x, 0f)
-            "yz" -> pos.set(pos.y, pos.z, 0f)
-            "zy" -> pos.set(pos.z, pos.y, 0f)
+            TwoDims.XY -> pos.z = 0f
+            TwoDims.YX -> pos.set(pos.y, pos.x, 0f)
+            TwoDims.XZ -> pos.set(pos.x, pos.z, 0f)
+            TwoDims.ZX -> pos.set(pos.z, pos.x, 0f)
+            TwoDims.YZ -> pos.set(pos.y, pos.z, 0f)
+            TwoDims.ZY -> pos.set(pos.z, pos.y, 0f)
         }
     }
 
     fun writeFuncInput(builder: StringBuilder, posIndex: Int) {
         val axes = axes
         if (rotary) {
-            builder.append("vec2(length(pos").append(posIndex).append(".").append(axes)
-            builder.append("),pos").append(posIndex).append(".").append(
+            builder.append("vec2(length(pos").append(posIndex).append('.').append(axes.glslName)
+            builder.append("),pos").append(posIndex).append('.').append(
                 when (axes) {
-                    "yz", "zy" -> 'x'
-                    "xz", "zx" -> 'y'
+                    TwoDims.YZ, TwoDims.ZY -> 'x'
+                    TwoDims.XZ, TwoDims.ZX -> 'y'
                     else -> 'z'
                 }
             )
             builder.append(')')
         } else {
-            builder.append("pos").append(posIndex).append(".").append(axes)
+            builder.append("pos").append(posIndex).append('.').append(axes.glslName)
         }
     }
 
     @DebugAction
     fun bound11() {
-        // todo bounds need to be added to prefab
         val s = 0.1f
-        when {
-            'x' !in axes -> bound(-s, +s, 0)
-            'y' !in axes -> bound(-s, +s, 1)
-            else -> bound(-s, +s, 2)
+        when (axes) {
+            TwoDims.YZ, TwoDims.ZY -> bound1(-s, +s, 0)
+            TwoDims.XZ, TwoDims.ZX -> bound1(-s, +s, 1)
+            else -> bound1(-s, +s, 2)
         }
     }
 
-    fun bound(min: Vector3f, max: Vector3f) {
+    fun bound1(min: Vector3f, max: Vector3f) {
         val dir1 = JomlPools.vec3f.create()
         dir1.set(min).sub(max)
         bound2(min, dir1)
@@ -90,19 +90,18 @@ open class SDF2DShape : SDFShape() {
     fun bound2(pos: Vector3f, dir: Vector3f) {
         val prefab = Prefab("SDFHalfSpace")
         prefab[Path.ROOT_PATH, "plane"] = Planef(pos, dir)
-        // addChild(SDFHalfSpace(max, dir1))
         Hierarchy.add(prefab, Path.ROOT_PATH, this)
     }
 
-    fun boundX(min: Float, max: Float) = bound(min, max, 0)
-    fun boundY(min: Float, max: Float) = bound(min, max, 1)
-    fun boundZ(min: Float, max: Float) = bound(min, max, 2)
-    fun bound(min: Float, max: Float, axis: Int) {
+    fun boundX(min: Float, max: Float) = bound1(min, max, 0)
+    fun boundY(min: Float, max: Float) = bound1(min, max, 1)
+    fun boundZ(min: Float, max: Float) = bound1(min, max, 2)
+    fun bound1(min: Float, max: Float, axis: Int) {
         val mv = JomlPools.vec3f.create().set(0f)
         val xv = JomlPools.vec3f.create().set(0f)
         mv.setComponent(axis, min)
         xv.setComponent(axis, max)
-        bound(mv, xv)
+        bound1(mv, xv)
         JomlPools.vec3f.sub(2)
     }
 
@@ -114,11 +113,11 @@ open class SDF2DShape : SDFShape() {
             val minXY = 0f
             val maxXY = max(-dst.minX, dst.maxX) // rotary, so that should be right
             when (axes) {
-                "yz", "zy" -> {// other: x
+                TwoDims.YZ, TwoDims.ZY -> {// other: x
                     dst.setMin(minZ, minXY, minXY)
                     dst.setMax(maxZ, maxXY, maxXY)
                 }
-                "xz", "zx" -> {// other: y
+                TwoDims.XZ, TwoDims.ZX -> {// other: y
                     dst.setMin(minXY, minZ, minXY)
                     dst.setMax(maxXY, maxZ, maxXY)
                 }
@@ -130,11 +129,11 @@ open class SDF2DShape : SDFShape() {
         } else {
             // x stays x, y stays y, z is unbounded
             when (axes) {
-                "yz", "zy" -> {// other: x
+                TwoDims.YZ, TwoDims.ZY -> {// other: x
                     dst.minX = Float.NEGATIVE_INFINITY
                     dst.maxX = Float.POSITIVE_INFINITY
                 }
-                "xz", "zx" -> {// other: y
+                TwoDims.XZ, TwoDims.ZX -> {// other: y
                     dst.minY = Float.NEGATIVE_INFINITY
                     dst.maxY = Float.POSITIVE_INFINITY
                 }

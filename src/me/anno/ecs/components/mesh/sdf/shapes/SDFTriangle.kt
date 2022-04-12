@@ -52,14 +52,14 @@ open class SDFTriangle : SDFShape() {
         builder: StringBuilder,
         posIndex0: Int,
         nextVariableId: VariableCounter,
-        dstName: String,
+        dstIndex: Int,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ) {
         functions.add(dot2)
         functions.add(udTriangle)
         val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
-        smartMinBegin(builder, dstName)
+        smartMinBegin(builder, dstIndex)
         builder.append("udTriangle(pos")
         builder.append(trans.posIndex)
         builder.append(',')
@@ -78,7 +78,7 @@ open class SDFTriangle : SDFShape() {
             builder.appendVec(c)
         }
         builder.append(')')
-        smartMinEnd(builder, dstName, nextVariableId, uniforms, functions, trans)
+        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, trans)
     }
 
     // dot2(ba*clamp(dot(ba,pa)/dot2(ba),0.0,1.0)-pa)

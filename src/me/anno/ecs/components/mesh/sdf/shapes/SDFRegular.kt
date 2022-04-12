@@ -3,8 +3,14 @@ package me.anno.ecs.components.mesh.sdf.shapes
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.gpu.shader.GLSLType
+import me.anno.maths.Maths.PHI
+import me.anno.maths.Maths.PHIf
+import me.anno.maths.Maths.max
+import me.anno.maths.Maths.pow
 import org.joml.AABBf
+import org.joml.Vector3f
 import org.joml.Vector4f
+import kotlin.math.abs
 
 class SDFRegular : SDFSmoothShape() {
 
@@ -36,13 +42,13 @@ class SDFRegular : SDFSmoothShape() {
         builder: StringBuilder,
         posIndex0: Int,
         nextVariableId: VariableCounter,
-        dstName: String,
+        dstIndex: Int,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ) {
         val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
         functions.add(sdRegular)
-        smartMinBegin(builder, dstName)
+        smartMinBegin(builder, dstIndex)
         builder.append("sdRegular(pos")
         builder.append(trans.posIndex).append(',')
         val dynamic = dynamicSmoothness || globalDynamic
@@ -53,11 +59,23 @@ class SDFRegular : SDFSmoothShape() {
         }
         builder.append(type.start).append(',')
         builder.append(type.end).append(')')
-        smartMinEnd(builder, dstName, nextVariableId, uniforms, functions, trans)
+        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, trans)
     }
 
     override fun computeSDFBase(pos: Vector4f): Float {
-        TODO()
+        var d = 0f
+        val smoothness = smoothness
+        if (smoothness > 0f) {
+            for (i in type.start until type.end) {
+                d += pow(abs(pos.dot(constants[i])), smoothness)
+            }
+            d = pow(d, 1f / smoothness)
+        } else {
+            for (i in type.start until type.end) {
+                d = max(d, abs(pos.dot(constants[i])))
+            }
+        }
+        return d - 1f
     }
 
     override fun clone(): SDFRegular {
@@ -69,6 +87,40 @@ class SDFRegular : SDFSmoothShape() {
     override val className = "SDFRegular"
 
     companion object {
+
+        private fun Vector4f.dot(o: Vector3f): Float {
+            return o.dot(x, y, z)
+        }
+
+        private val constants = arrayOf(
+            normalize(1f, 0f, 0f),
+            normalize(0f, 1f, 0f),
+            normalize(0f, 0f, 1f),
+
+            normalize(+1f, 1f, 1f),
+            normalize(-1f, 1f, 1f),
+            normalize(1f, -1f, +1f),
+            normalize(1f, +1f, -1f),
+
+            normalize(0f, +1f, PHIf + 1f),
+            normalize(0f, -1f, PHIf + 1f),
+            normalize(+PHIf + 1f, 0f, 1f),
+            normalize(-PHIf - 1f, 0f, 1f),
+            normalize(+1f, PHIf + 1f, 0f),
+            normalize(-1f, PHIf + 1f, 0f),
+
+            normalize(0f, +PHIf, 1f),
+            normalize(0f, -PHIf, 1f),
+            normalize(+1f, 0f, PHIf),
+            normalize(-1f, 0f, PHIf),
+            normalize(+PHIf, 1f, 0f),
+            normalize(-PHIf, 1f, 0f)
+        )
+
+        fun normalize(a: Float, b: Float, c: Float): Vector3f {
+            return Vector3f(a, b, c).normalize()
+        }
+
         // from https://mercury.sexy/hg_sdf
         const val sdRegular = "" +
                 "const vec3 GDFVectors[19] = vec3[](\n" +

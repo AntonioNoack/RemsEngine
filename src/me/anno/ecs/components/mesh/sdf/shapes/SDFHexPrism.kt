@@ -1,5 +1,6 @@
 package me.anno.ecs.components.mesh.sdf.shapes
 
+import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
@@ -21,6 +22,7 @@ open class SDFHexPrism : SDFSmoothShape() {
 
     private val params = Vector2f(1f, 0.1f)
 
+    @Range(0.0, 1e38)
     var radius
         get() = params.x
         set(value) {
@@ -31,6 +33,7 @@ open class SDFHexPrism : SDFSmoothShape() {
             }
         }
 
+    @Range(0.0, 1e38)
     var halfHeight
         get() = params.y
         set(value) {
@@ -44,7 +47,7 @@ open class SDFHexPrism : SDFSmoothShape() {
     override fun calculateBaseBounds(dst: AABBf) {
         val h = halfHeight
         val rz = radius
-        val rx = rz * 1.12f // todo why is it slightly larger???
+        val rx = rz * 1.12f //  why is it slightly larger???
         dst.setMin(-rx, -h, -rz)
         dst.setMax(+rx, +h, +rz)
     }
@@ -53,13 +56,13 @@ open class SDFHexPrism : SDFSmoothShape() {
         builder: StringBuilder,
         posIndex0: Int,
         nextVariableId: VariableCounter,
-        dstName: String,
+        dstIndex: Int,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ) {
         val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
         functions.add(sdHexPrism)
-        smartMinBegin(builder, dstName)
+        smartMinBegin(builder, dstIndex)
         builder.append("sdHexPrism(pos")
         builder.append(trans.posIndex)
         builder.append(',')
@@ -73,7 +76,7 @@ open class SDFHexPrism : SDFSmoothShape() {
             else builder.append(smoothness)
         }
         builder.append(')')
-        smartMinEnd(builder, dstName, nextVariableId, uniforms, functions, trans)
+        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, trans)
     }
 
     override fun computeSDFBase(pos: Vector4f): Float {

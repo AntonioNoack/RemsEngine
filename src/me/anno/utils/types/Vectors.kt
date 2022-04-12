@@ -490,4 +490,6 @@ object Vectors {
         return this
     }
 
+    fun Vector2f.dot2(x: Float, y: Float) = this.x * x + this.y * y
+
 }

@@ -171,13 +171,7 @@ class SDFTwist : PositionMapper() {
 
     companion object {
 
-        // todo calc rotation
-        // todo round it
-        // todo subtract it = rotate by that amount backwards
-
         fun Vector4f.length3() = Maths.length(x, y, z)
-
-        private val LOGGER = LogManager.getLogger(SDFTwist::class)
 
         private fun absEqualsOne(r: Float): Boolean {
             return r.toRawBits().and(0x7fffffff) == 0x3f800000

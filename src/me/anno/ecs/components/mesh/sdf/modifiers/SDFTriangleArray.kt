@@ -4,6 +4,7 @@ import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendVec
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.globalDynamic
+import me.anno.ecs.components.mesh.sdf.TwoDims
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import org.joml.AABBf
@@ -33,6 +34,14 @@ class SDFTriangleArray : PositionMapper() {
             field = value
         }
 
+    var dims: TwoDims = TwoDims.XY
+        set(value) {
+            if (field != value) {
+                invalidateShader()
+                field = value
+            }
+        }
+
     override fun buildShader(
         builder: StringBuilder,
         posIndex: Int,
@@ -43,7 +52,8 @@ class SDFTriangleArray : PositionMapper() {
         functions.add(sdTriangleArray)
         val cellSize = cellSize
         val dynamic = dynamicSize || globalDynamic
-        builder.append("pos").append(posIndex).append(".xz=sdTriArray(pos").append(posIndex).append(".xz")
+        builder.append("pos").append(posIndex).append('.').append(dims.glslName)
+        builder.append("=sdTriArray(pos").append(posIndex).append('.').append(dims.glslName)
         if (dynamic) {
             val uniform = defineUniform(uniforms, cellSize)
             builder.append('/')

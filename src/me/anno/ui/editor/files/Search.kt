@@ -1,5 +1,7 @@
 package me.anno.ui.editor.files
 
+import kotlin.math.max
+
 class Search(val terms: String) {
 
     private val expression = ArrayList<Any>()
@@ -93,6 +95,18 @@ class Search(val terms: String) {
     fun isEmpty() = expression.isEmpty()
     fun matchesAll() = isEmpty()
 
+    private fun String.containsPieces(part: String, ignoreCase: Boolean): Boolean {
+        // search: sdfelioid, target: sdf ellipsoid, -> return true
+        var index = 0
+        for (partIndex in part.indices) {
+            val letter = part[partIndex]
+            val nextIndex = indexOf(letter, index, ignoreCase)
+            if (nextIndex < 0) return false
+            index = max(index + 1, nextIndex)
+        }
+        return true
+    }
+
     fun matches(name: String?): Boolean {
         if (name == null) return false
         if (expression.isEmpty()) return true
@@ -100,7 +114,7 @@ class Search(val terms: String) {
         // replace all things
         for (i in expr.indices) {
             val term = expr[i] as? String ?: continue
-            val value = name.contains(term, true)
+            val value = name.containsPieces(term, true)
             expr[i] = value
         }
         val result = matches(expr)

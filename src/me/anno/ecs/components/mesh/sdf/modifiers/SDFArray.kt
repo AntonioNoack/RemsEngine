@@ -19,6 +19,8 @@ import kotlin.math.round
 class SDFArray : PositionMapper() {
 
     // todo all arrays should have the option to evaluate the neighbors for correct sdfs without gaps
+    // todo arrays and over multipliers could be sources for randomness :3
+    // todo how would we implement it? ...
 
     // we could beautify the result when the shapes are overlapping by repeatedly calling the child...
     // would be pretty expensive...
@@ -264,6 +266,15 @@ class SDFArray : PositionMapper() {
 
         const val sdArray = "" +
                 "float mirror(float f){\n" +
+                "   return 1.0-2.0*mod(f,2.0);\n" +
+                "}\n" +
+                "vec2 mirror(vec2 f){\n" +
+                "   return 1.0-2.0*mod(f,2.0);\n" +
+                "}\n" +
+                "vec3 mirror(vec3 f){\n" +
+                "   return 1.0-2.0*mod(f,2.0);\n" +
+                "}\n" +
+                "vec4 mirror(vec4 f){\n" +
                 "   return 1.0-2.0*mod(f,2.0);\n" +
                 "}\n" +
                 "float mod2M(float p, float s){\n" +

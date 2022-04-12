@@ -64,7 +64,7 @@ class SDFHalfSpace() : DistanceMapper() {
     override fun buildShader(
         builder: StringBuilder,
         posIndex: Int,
-        dstName: String,
+        dstIndex: Int,
         nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
@@ -73,8 +73,8 @@ class SDFHalfSpace() : DistanceMapper() {
         val dynamicSmoothness = dynamicSmoothness || globalDynamic
         if (dynamicSmoothness || smoothness > 0f) {
             functions.add(smoothMinCubic)
-            builder.append(dstName)
-            builder.append(".x=sMaxCubic1(").append(dstName)
+            builder.append("res").append(dstIndex)
+            builder.append(".x=sMaxCubic1(res").append(dstIndex)
             builder.append(".x,dot(vec4(pos").append(posIndex)
             builder.append(",1.0),")
             if (dynamicPlane) builder.appendUniform(uniforms, plane)
@@ -84,8 +84,8 @@ class SDFHalfSpace() : DistanceMapper() {
             else builder.append(smoothness)
             builder.append(");\n")
         } else {
-            builder.append(dstName)
-            builder.append(".x=max(").append(dstName)
+            builder.append("res").append(dstIndex)
+            builder.append(".x=max(res").append(dstIndex)
             builder.append(".x,dot(vec4(pos").append(posIndex)
             builder.append(",1.0),")
             if (dynamicPlane) builder.appendUniform(uniforms, plane)

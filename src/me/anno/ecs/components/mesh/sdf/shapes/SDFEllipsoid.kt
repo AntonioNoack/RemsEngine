@@ -27,19 +27,19 @@ open class SDFEllipsoid : SDFShape() {
         builder: StringBuilder,
         posIndex0: Int,
         nextVariableId: VariableCounter,
-        dstName: String,
+        dstIndex: Int,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ) {
         val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
         functions.add(sdEllipsoid)
-        smartMinBegin(builder, dstName)
+        smartMinBegin(builder, dstIndex)
         builder.append("sdEllipsoid(pos").append(trans.posIndex).append(',')
         val dynamicSize = dynamicSize || globalDynamic
         if (dynamicSize) builder.appendUniform(uniforms, halfAxes)
         else builder.appendVec(halfAxes)
         builder.append(')')
-        smartMinEnd(builder, dstName, nextVariableId, uniforms, functions, trans)
+        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, trans)
     }
 
     override fun computeSDFBase(pos: Vector4f): Float {

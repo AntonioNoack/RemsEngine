@@ -29,13 +29,13 @@ class SDFPolygon : SDF2DShape() {
         builder: StringBuilder,
         posIndex0: Int,
         nextVariableId: VariableCounter,
-        dstName: String,
+        dstIndex: Int,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ) {
         val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions)
         functions.add(sdPolygon)
-        smartMinBegin(builder, dstName)
+        smartMinBegin(builder, dstIndex)
         builder.append("sdPolygon(")
         writeFuncInput(builder, trans.posIndex)
         builder.append(',')
@@ -48,7 +48,7 @@ class SDFPolygon : SDF2DShape() {
             builder.append("vec2(").append(cos(an)).append(',').append(sin(an)).append(')')
         }
         builder.append(')')
-        smartMinEnd(builder, dstName, nextVariableId, uniforms, functions, trans)
+        smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, trans)
     }
 
     override fun computeSDFBase(pos: Vector4f): Float {

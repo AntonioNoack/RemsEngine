@@ -88,7 +88,7 @@ open class TypeValue(val type: GLSLType, open var value: Any) {
                 if (value.isCreated) {
                     value.bind(location, value.filtering)
                 } else {
-                    // todo can we do that?
+                    // todo are we allowed to do that?
                     whiteTexture.bind(location)
                     LOGGER.warn("Texture ${value.name} has not been created")
                 }

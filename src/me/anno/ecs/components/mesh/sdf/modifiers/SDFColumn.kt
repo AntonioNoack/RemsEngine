@@ -79,13 +79,13 @@ class SDFColumn : DistanceMapper() {
     override fun buildShader(
         builder: StringBuilder,
         posIndex: Int,
-        dstName: String,
+        dstIndex: Int,
         nextVariableId: VariableCounter,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>
     ) {
         functions.add(sdColumn)
-        builder.append(dstName).append(".x-=")
+        builder.append("res").append(dstIndex).append(".x-=")
         if (rotary && fixDiscontinuity) {
             builder.append("min(1.0,length(pos").append(posIndex)
             builder.append(".xz))*")
