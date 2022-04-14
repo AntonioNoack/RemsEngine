@@ -1,12 +1,11 @@
 package me.anno.utils.files
 
-import me.anno.io.files.FileReference
 import me.anno.io.config.ConfigBasics
+import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.studio.StudioBase
 import me.anno.utils.OS
-import java.io.File
 
 object LocalFile {
 
@@ -25,7 +24,11 @@ object LocalFile {
         val fileStr = replace('\\', '/')
         return null ?: checkIsChild(fileStr, ConfigBasics.configFolder, "\$CONFIG\$")
         ?: checkIsChild(fileStr, ConfigBasics.cacheFolder, "\$CACHE\$")
-        ?: checkIsChild(fileStr, workspace, "\$WORKSPACE\$") // todo if there is a project file somewhere above this current file, use that project
+        ?: checkIsChild(
+            fileStr,
+            workspace,
+            "\$WORKSPACE\$"
+        ) // todo if there is a project file somewhere above this current file, use that project
         ?: checkIsChild(fileStr, OS.downloads, "\$DOWNLOADS\$")
         ?: checkIsChild(fileStr, OS.documents, "\$DOCUMENTS\$")
         ?: checkIsChild(fileStr, OS.pictures, "\$PICTURES\$")
@@ -35,16 +38,8 @@ object LocalFile {
         ?: fileStr
     }
 
-    /*fun FileReference.toLocalPath(workspace: FileReference? = StudioBase.workspace): String {
-        return absolutePath.toLocalPath(workspace)
-    }*/
-
-    fun File.toLocalPath(workspace: FileReference? = StudioBase.workspace): String {
-        return toString().toLocalPath(workspace)
-    }
-
     fun checkIsChild2(fileStr: String, parent: FileReference?, pathName: String): FileReference? {
-        if(parent == null || parent == InvalidRef) return null
+        if (parent == null || parent == InvalidRef) return null
         val start = "$pathName/"
         return if (fileStr.startsWith(start, true)) {
             getReference(parent, fileStr.substring(start.length))

@@ -11,14 +11,13 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.Signature
 import me.anno.io.zip.SignatureFile
-import me.anno.utils.Sleep
 import me.anno.maths.Maths.min
+import me.anno.utils.Sleep
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import me.anno.video.ffmpeg.FFMPEGStream
 import net.sf.image4j.codec.ico.ICODecoder
 import org.apache.commons.imaging.Imaging
 import org.apache.logging.log4j.LogManager
-import java.io.File
 import java.io.InputStream
 import javax.imageio.ImageIO
 
@@ -115,7 +114,7 @@ object ImageCPUCache : CacheSection("BufferedImages") {
             sequence.frames.first()
         } else {
             // todo when we have native ffmpeg, don't copy the file
-            val tmp = File.createTempFile("4ffmpeg", file.extension)
+            val tmp = FileFileRef.createTempFile("4ffmpeg", file.extension)
             tmp.writeBytes(file.readBytes())
             val image = tryFFMPEG(getReference(tmp))
             tmp.delete()

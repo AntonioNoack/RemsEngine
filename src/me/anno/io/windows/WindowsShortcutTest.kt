@@ -1,9 +1,9 @@
 package me.anno.io.windows
 
-import java.io.File
+import me.anno.io.files.FileReference.Companion.getReference
 
 fun main() {
-    val filenames = arrayOf( /* "src/test/fixtures/Local file.lnk",
+    val names = arrayOf( /* "src/test/fixtures/Local file.lnk",
                 "src/test/fixtures/Local folder.lnk",
                 "src/test/fixtures/Remote folder.lnk",
                 "src/test/fixtures/Remote folder (mapped to X-drive).lnk",
@@ -13,10 +13,10 @@ fun main() {
                 "src/test/fixtures/test.pdf - Shortcut.lnk",*/
         "C:/Users/Antonio/Desktop/Eclipse.lnk"
     )
-    for (filename in filenames) {
-        val file = File(filename)
+    for (name in names) {
+        val file = getReference(name)
         val link = WindowsShortcut(file)
-        System.out.printf("-------%s------ \n", filename)
+        System.out.printf("-------%s------ \n", name)
         System.out.printf("getRealFilename: %s \n", link.absolutePath)
         System.out.printf("getDescription: %s \n", link.description)
         System.out.printf("getRelativePath: %s \n", link.relativePath)

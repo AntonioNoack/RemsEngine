@@ -3,8 +3,8 @@ package me.anno.ecs.components.light
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.gui.LineShapes.drawArrowZ
-import me.anno.engine.gui.LineShapes.drawBox
+import me.anno.engine.ui.LineShapes.drawArrowZ
+import me.anno.engine.ui.LineShapes.drawBox
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.mesh.Shapes
 import me.anno.utils.types.AABBs.all

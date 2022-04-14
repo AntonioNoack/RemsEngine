@@ -3,7 +3,7 @@ package me.anno.ecs.components.collider
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.SphereShape
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.gui.LineShapes.drawSphere
+import me.anno.engine.ui.LineShapes.drawSphere
 import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.types.Floats.step
 import org.joml.AABBd

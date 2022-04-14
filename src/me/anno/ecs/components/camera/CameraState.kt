@@ -9,15 +9,15 @@ class CameraState : Component() {
 
     var currentCamera: Camera? = null
     var previousCamera: Camera? = null
-    var cameraBlendingTime = 0.0
-    var cameraBlendingProgress = 0.0
+    var cameraBlendingTime = 0f
+    var cameraBlendingProgress = 0f
 
     override fun onUpdate(): Int {
-        cameraBlendingProgress += Engine.deltaTime / clamp(cameraBlendingTime, 1e-6, 1e3)
+        cameraBlendingProgress += Engine.deltaTime / clamp(cameraBlendingTime, 1e-6f, 1e3f)
         return 1
     }
 
-    // todo draw: first cam 1, then cam 2, and then blend them together
+    // todo method to draw first cam 1, then cam 2, and then blend them together
 
     override fun clone(): CameraState {
         val clone = CameraState()

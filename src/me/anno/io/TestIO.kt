@@ -4,6 +4,7 @@ import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.utils.StringMap
+import me.anno.utils.OS
 import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
 import org.apache.logging.log4j.LogManager
@@ -40,7 +41,7 @@ fun main() {
     logger.info("when text is compressed: ${bos2.toByteArray().size}")*/
 
     // a special file, which does not work as a stream using the default ZipInputStream (only DEFLATED entries can have EXT descriptor)
-    val ref = getReference("C:/Users/Antonio/Downloads/Stone_Wall_uljlcdwew_4K_surface_ms.zip")
+    val ref = getReference(OS.downloads, "Stone_Wall_uljlcdwew_4K_surface_ms.zip")
     logger.info(ref.isSomeKindOfDirectory)
 
     val zis2 = ZipFile(SeekableInMemoryByteChannel(ref.inputStream().readBytes()))

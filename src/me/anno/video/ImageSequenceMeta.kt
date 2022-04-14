@@ -3,8 +3,8 @@ package me.anno.video
 import me.anno.config.DefaultConfig
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
-import java.io.File
 import kotlin.math.min
 
 class ImageSequenceMeta(file: FileReference) {
@@ -65,8 +65,8 @@ class ImageSequenceMeta(file: FileReference) {
 
         @JvmStatic
         fun main(args: Array<String>) {
-            val file = File("C:\\Users\\Antonio\\Documents\\Blender\\Image Sequence\\%.jpg")
-            val meta = ImageSequenceMeta(getReference(file))
+            val file = getReference(OS.documents, "Blender\\Image Sequence\\%.jpg")
+            val meta = ImageSequenceMeta(file)
             LOGGER.info(meta.toString())
             /*meta.matches.forEach { (file, _) ->
                 val src = ImageIO.read(file)

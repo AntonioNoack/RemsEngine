@@ -4,9 +4,8 @@ import me.anno.config.DefaultConfig
 import me.anno.config.DefaultStyle
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
-import me.anno.ui.Window
-import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
+import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
@@ -16,6 +15,7 @@ import me.anno.studio.ProjectHeader
 import me.anno.studio.Projects
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
+import me.anno.ui.Window
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.Visibility
 import me.anno.ui.base.buttons.TextButton
@@ -36,7 +36,6 @@ import me.anno.ui.input.FileInput
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.utils.types.Strings.isBlank2
-import java.io.File
 import kotlin.concurrent.thread
 
 abstract class WelcomeUI {
@@ -271,17 +270,14 @@ abstract class WelcomeUI {
 
             var invalidName = ""
 
-            fun fileNameIsOk(file: File): Boolean {
-                if (file.name.isEmpty() && file.parentFile == null) return true // root drive
+            fun fileNameIsOk(file: FileReference): Boolean {
+                val parent = file.getParent()
+                if (file.name.isEmpty() && (parent == null || parent == FileRootRef)) return true // root drive
                 if (file.name.toAllowedFilename() != file.name) {
                     invalidName = file.name
                     return false
                 }
-                return fileNameIsOk(file.parentFile ?: return true)
-            }
-
-            fun fileNameIsOk(file: FileReference): Boolean {
-                return file is FileFileRef && fileNameIsOk(file.file)
+                return fileNameIsOk(parent ?: return true)
             }
 
             // todo check if all file name parts are valid...

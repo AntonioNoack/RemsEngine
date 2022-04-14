@@ -13,7 +13,6 @@ import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.formats.cpu.CPUFrameReader
 import me.anno.video.formats.gpu.GPUFrameReader
 import org.apache.logging.log4j.LogManager
-import java.io.File
 import java.io.InputStream
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -34,17 +33,12 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         private val LOGGER = LogManager.getLogger(FFMPEGStream::class)
         val frameCountByFile = HashMap<FileReference, Int>()
         val waitingQueue = ProcessingQueue("WaitingQueue")
-        fun getInfo(input: File) = (FFMPEGMeta(null).run(
-            listOf(
-                "-i", input.absolutePath
-            )
-        ) as FFMPEGMeta).stringData
 
-        fun getSupportedFormats() = (FFMPEGMeta(null).run(
-            listOf(
-                "-formats"
-            )
-        ) as FFMPEGMeta).stringData
+        fun getInfo(input: FileReference) = (FFMPEGMeta(null)
+            .run(listOf("-i", input.absolutePath)) as FFMPEGMeta).stringData
+
+        fun getSupportedFormats() = (FFMPEGMeta(null)
+            .run(listOf("-formats")) as FFMPEGMeta).stringData
 
         fun getImageSequence(
             input: FileReference, w: Int, h: Int, startFrame: Int, frameCount: Int, fps: Double

@@ -145,14 +145,12 @@ class SplineMesh : ProceduralMesh() {
     }
 
     override fun generateMesh(mesh: Mesh) {
-        println("generating spline mesh")
         val entity = entity
         if (entity == null) {
             lastWarning = "Missing entity, $parent, ${Engine.gameTime}"
             return
         }
         val points = entity.children.mapNotNull { it.getComponent(SplineControlPoint::class) }
-        LOGGER.debug("Found ${points.size} children")
         when (points.size) {
             0 -> lastWarning = "SplineMesh has no points"
             1 -> lastWarning = "SplineMesh has not enough points, only one"

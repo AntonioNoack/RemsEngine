@@ -75,10 +75,6 @@ class WindowsShortcut {
     var commandLineArguments: String? = null
         private set
 
-    constructor(file: File) {
-        FileInputStream(file).use { input -> parseLink(input.readNBytes2(maxLength, false)) }
-    }
-
     constructor(file: FileReference) {
         file.inputStream().use { input -> parseLink(input.readNBytes2(maxLength, false)) }
     }

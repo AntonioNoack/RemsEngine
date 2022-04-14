@@ -3,8 +3,8 @@ package me.anno.ecs.components.light
 import me.anno.Engine
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.gui.LineShapes.drawArrowZ
-import me.anno.engine.gui.LineShapes.drawXYPlane
+import me.anno.engine.ui.LineShapes.drawArrowZ
+import me.anno.engine.ui.LineShapes.drawXYPlane
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.gpu.DepthMode

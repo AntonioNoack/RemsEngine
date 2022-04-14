@@ -17,7 +17,8 @@ import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.camDirection
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.gpu.GFX.clip2
+import me.anno.gpu.DepthMode
+import me.anno.gpu.OpenGL
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.input.Input
 import me.anno.input.Touch
@@ -100,40 +101,33 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                 else -> "X"
             }
         )
-        clip2(x0, y0, x1, y1, ::drawGizmos)
     }
 
     override fun drawGizmos() {
-        // todo also render this in the RenderView for click detection
-        for (selected in EditorState.selection) {
+        OpenGL.depthMode.use(DepthMode.ALWAYS) {
+            OpenGL.depthMask.use(RenderView.currentInstance?.renderMode == RenderMode.DEPTH) {
+                drawGizmos2()
+            }
+        }
+    }
+
+    private fun drawGizmos2(){
+        for (selected0 in EditorState.selection) {
+            var selected: PrefabSaveable? = selected0 as? PrefabSaveable
+            while (selected != null && selected !is Entity) {
+                selected = selected.parent
+            }
+            // todo gizmos for sdf components
             if (selected is Entity) {
                 val scale = view.radius * 0.1
                 val transform = selected.transform.globalTransform
                 val pos = transform.getTranslation(JomlPools.vec3d.create())
+                val cam = RenderView.cameraMatrix
                 when (mode) {
-                    Mode.TRANSLATING -> {
-                        Gizmos.drawTranslateGizmos(
-                            RenderView.cameraMatrix,
-                            pos,// mul world scale?
-                            scale, -12
-                        )
-                    }
-                    Mode.ROTATING -> {
-                        Gizmos.drawRotateGizmos(
-                            RenderView.cameraMatrix,
-                            pos,// mul world scale?
-                            scale, -12
-                        )
-                    }
-                    Mode.SCALING -> {
-                        Gizmos.drawScaleGizmos(
-                            RenderView.cameraMatrix,
-                            pos,// mul world scale?
-                            scale, -12
-                        )
-                    }
-                    else -> {
-                    }
+                    Mode.TRANSLATING -> Gizmos.drawTranslateGizmos(cam, pos, scale, -12)
+                    Mode.ROTATING -> Gizmos.drawRotateGizmos(cam, pos, scale, -12)
+                    Mode.SCALING -> Gizmos.drawScaleGizmos(cam, pos, scale, -12)
+                    Mode.NOTHING -> {}
                 }
                 JomlPools.vec3d.sub(1)
             }

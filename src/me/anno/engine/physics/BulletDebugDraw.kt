@@ -1,7 +1,7 @@
 package me.anno.engine.physics
 
 import com.bulletphysics.linearmath.IDebugDraw
-import me.anno.engine.gui.LineShapes
+import me.anno.engine.ui.LineShapes
 import me.anno.gpu.buffer.LineBuffer.putRelativeLine
 import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager

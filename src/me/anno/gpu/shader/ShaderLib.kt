@@ -436,7 +436,7 @@ object ShaderLib {
                     "       float mixingFactor = clamp(mixingFactor0, 0.0, 1.0);\n" +
                     "       color = mix(color, colorHere, mixingFactor);\n" +
                     "   }\n" +
-                    "   if(depth != 0.0) gl_FragDepth = gl_FragCoord.z * (1.0 + distance * depth);\n" +
+                    "   gl_FragDepth = gl_FragCoord.z * (1.0 + distance * depth);\n" +
                     "   if(color.a <= 0.001) discard;\n" +
                     "   if($hasForceFieldColor) color *= getForceFieldColor();\n" +
                     "   vec3 finalColor = color.rgb;\n" +

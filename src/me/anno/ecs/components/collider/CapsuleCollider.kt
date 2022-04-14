@@ -4,7 +4,7 @@ import com.bulletphysics.collision.shapes.CapsuleShape
 import com.bulletphysics.collision.shapes.CollisionShape
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.gui.LineShapes
+import me.anno.engine.ui.LineShapes
 import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.types.Vectors.setAxis
 import org.joml.AABBd

@@ -10,7 +10,7 @@ import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.physics.BulletPhysics.Companion.castB
 import me.anno.ecs.components.physics.Rigidbody
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.gui.LineShapes
+import me.anno.engine.ui.LineShapes
 import me.anno.io.serialization.NotSerializedProperty
 import org.joml.Quaterniond
 import org.joml.Vector3d

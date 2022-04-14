@@ -1,6 +1,6 @@
 package me.anno.engine.ui.render
 
-import me.anno.engine.gui.LineShapes
+import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.render.GridColors.colorX
 import me.anno.engine.ui.render.GridColors.colorY
 import me.anno.engine.ui.render.GridColors.colorZ
@@ -25,6 +25,7 @@ object MovingGrid {
         // done move the grid
         // done fix the scaling issues of the grid:
         // when we are out of 1e30, or 1e-30, we should still draw it
+        // todo only use modes, if compatible
         OpenGL.blendMode.use(BlendMode.ADD) {
             // draw grid
             // scale it based on the radius (movement speed)

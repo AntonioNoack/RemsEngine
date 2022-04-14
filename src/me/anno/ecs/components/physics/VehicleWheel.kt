@@ -6,8 +6,7 @@ import com.bulletphysics.dynamics.vehicle.WheelInfo
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.gui.LineShapes
-import me.anno.engine.ui.render.RenderView
+import me.anno.engine.ui.LineShapes
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import javax.vecmath.Vector3d

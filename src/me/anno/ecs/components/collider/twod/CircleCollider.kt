@@ -1,12 +1,11 @@
 package me.anno.ecs.components.collider.twod
 
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.gui.LineShapes.drawCircle
+import me.anno.engine.ui.LineShapes.drawCircle
 import me.anno.io.serialization.SerializedProperty
 import org.jbox2d.collision.shapes.CircleShape
 import org.jbox2d.collision.shapes.Shape
 import org.joml.Vector2f
-import org.joml.Vector3d
 import kotlin.math.abs
 
 class CircleCollider : Collider2d() {

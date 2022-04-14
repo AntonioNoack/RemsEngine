@@ -334,6 +334,11 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return ByteBuffer.wrap(readBytes())
     }
 
+    // todo read as sequence? :)
+    fun readLines(): Iterable<String> = readText()
+        .replace("\r", "")
+        .split('\n')
+
     fun writeFile(file: FileReference, deltaProgress: (Long) -> Unit) {
         use(outputStream()) { output ->
             use(file.inputStream()) { input ->

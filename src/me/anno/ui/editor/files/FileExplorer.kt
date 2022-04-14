@@ -5,6 +5,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.input.Input
 import me.anno.input.Input.setClipboardContent
+import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReferenceOrTimeout
 import me.anno.io.files.FileRootRef
@@ -18,7 +19,6 @@ import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.ui.Panel
 import me.anno.ui.base.Visibility
-import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelList2D
@@ -42,7 +42,6 @@ import me.anno.utils.OS.music
 import me.anno.utils.OS.pictures
 import me.anno.utils.OS.videos
 import me.anno.utils.ShutdownException
-import me.anno.utils.files.FileExplorerSelectWrapper
 import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.files.Files.listFiles2
 import me.anno.utils.files.LocalFile.toGlobalFile
@@ -50,7 +49,6 @@ import me.anno.utils.hpc.UpdatingTask
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.structures.History
 import org.apache.logging.log4j.LogManager
-import java.io.File
 import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -407,13 +405,12 @@ abstract class FileExplorer(
         // done progress bar
         // todo cancellable
         val progress = StudioBase.addProgressBar("Files", files.size.toDouble())
-        var tmp: File? = null
+        var tmp: FileReference? = null
         loop@ for (file in files) {
             when {
                 OS.isWindows -> {
                     val newFile = findNextFile(folder, file, "lnk", 1, '-', 1)
-                    if (tmp == null) tmp = File.createTempFile("create-link", ".ps1")
-                    tmp!!
+                    if (tmp == null) tmp = FileFileRef.createTempFile("create-link", ".ps1")
                     tmp.writeText(
                         "" + // param ( [string]$SourceExe, [string]$DestinationPath )
                                 "\$WshShell = New-Object -comObject WScript.Shell\n" +

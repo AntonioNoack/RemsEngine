@@ -266,6 +266,7 @@ class Framebuffer(
             Frame.invalidate()
             Frame.bind()
 
+
         } catch (e: Exception) {
             e.printStackTrace()
             exitProcess(1)

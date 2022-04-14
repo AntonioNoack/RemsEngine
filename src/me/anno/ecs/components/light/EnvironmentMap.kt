@@ -2,8 +2,8 @@ package me.anno.ecs.components.light
 
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Range
-import me.anno.engine.gui.LineShapes.drawBox
-import me.anno.engine.gui.LineShapes.drawCross
+import me.anno.engine.ui.LineShapes.drawBox
+import me.anno.engine.ui.LineShapes.drawCross
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.gpu.DepthMode

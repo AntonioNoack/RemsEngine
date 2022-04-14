@@ -15,10 +15,9 @@ import me.anno.gpu.shader.builder.Function
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.maths.Maths
-import me.anno.utils.types.AABBs.deltaX
-import me.anno.utils.types.AABBs.deltaY
-import me.anno.utils.types.AABBs.deltaZ
+import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.AABBs.collideBack
+import me.anno.utils.types.AABBs.collideFront
 import org.joml.Vector2f
 import org.joml.Vector3f
 import kotlin.collections.component1
@@ -80,8 +79,8 @@ object SDFComposer {
         uniforms["localStart"] = TypeValueV3(GLSLType.V3F, Vector3f()) { localStart ->
             val dt = tree.transform?.drawTransform
             if (dt != null) {
-                val cp = RenderView.camPosition
-                localStart.set(cp.x - dt.m30(), cp.y - dt.m31(), cp.z - dt.m32())
+                val pos = RenderView.camPosition
+                localStart.set(pos.x - dt.m30(), pos.y - dt.m31(), pos.z - dt.m32())
             }
         }
         uniforms["sdfReliability"] = TypeValueV2(GLSLType.V1F) { tree.globalReliability }
@@ -93,9 +92,16 @@ object SDFComposer {
             // best within frustum
             val dt = tree.transform?.drawTransform
             if (dt != null) {
-                // a guess
+                // compute first and second intersection with aabb
+                // todo theoretically, we should transform the ray from global space into local space;
+                // for local start as well
+                val pos = JomlPools.vec3d.create().set(RenderView.camPosition)
+                    .sub(dt.m30(), dt.m31(), dt.m32())
+                val dir = RenderView.camDirection
                 val bounds = tree.localAABB
-                it.set(0f, Maths.max(bounds.deltaX(), bounds.deltaY(), bounds.deltaZ()).toFloat())
+                val min = bounds.collideFront(pos, dir).toFloat()
+                val max = bounds.collideBack(pos, dir).toFloat()
+                it.set(max(0f, min), max)
             }
         }
         uniforms["perspectiveCamera"] = TypeValue(GLSLType.BOOL) { RenderView.camInverse.m33() == 0.0 }

@@ -136,9 +136,7 @@ object EngineActions {
         register["HSVBoxMain.left.press-unsafe", "SelectColor"]
 
         for (i in 0 until 10) {
-            // keyMap["SceneView.$i.down", "Cam$i"]
             register["SceneView.numpad$i.down", "Cam$i"]
-            // keyMap["SceneView.$i.down.${Modifiers[true, false]}", "Cam$i"]
             register["SceneView.numpad$i.down.${Modifiers[true, false]}", "Cam$i"]
         }
 
@@ -163,6 +161,10 @@ object EngineActions {
         register["FileExplorer.f5.typed", "Refresh"]
 
         register["ECSTreeView.delete.typed", "Delete"]
+        register["SceneView.r.typed"] = "SetMode(MOVE)"
+        register["SceneView.t.typed"] = "SetMode(ROTATE)"
+        register["SceneView.y.typed"] = "SetMode(SCALE)"
+        register["SceneView.z.typed"] = "SetMode(SCALE)"
 
     }
 

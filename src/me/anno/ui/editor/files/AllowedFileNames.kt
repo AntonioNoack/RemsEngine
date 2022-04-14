@@ -1,8 +1,5 @@
 package me.anno.ui.editor.files
 
-import me.anno.utils.types.Strings.isBlank2
-import java.io.File
-
 // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
 // could be disabled for Linux only users
 fun String.toAllowedFilename(): String? {
@@ -25,5 +22,3 @@ fun String.toAllowedFilename(): String? {
     if (name.isEmpty()) return null
     return name
 }
-
-fun File?.hasValidName() = this != null && !toString().isBlank2()

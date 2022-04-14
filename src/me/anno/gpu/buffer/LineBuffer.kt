@@ -55,6 +55,7 @@ object LineBuffer {
     // whenever this is updated, nioBuffer in buffer needs to be updated as well
 
     private val buffer = StaticBuffer(attributes, 1024, GL_STREAM_DRAW)
+    val lineSize = 2 * (3 * 4 + 4)
 
     init {
         buffer.drawMode = GL_LINES
@@ -85,11 +86,20 @@ object LineBuffer {
         }
     }
 
-    fun doubleToByte(d: Double): Byte {
+    fun vToByte(d: Double): Byte {
         // a function, that must not/does not crash
         return when {
             d < 0.0 -> 0
             d < 1.0 -> (d * 255.0).toInt().toByte()
+            else -> -1 // = 255
+        }
+    }
+
+    fun vToByte(d: Float): Byte {
+        // a function, that must not/does not crash
+        return when {
+            d < 0f -> 0
+            d < 1f -> (d * 255f).toInt().toByte()
             else -> -1 // = 255
         }
     }
@@ -103,7 +113,7 @@ object LineBuffer {
         // and this is the only one that makes sense
         GFX.checkIsGFXThread()
         // ensure that there is enough space in bytes
-        ensureSize(2 * (3 * 4 + 4))
+        ensureSize(lineSize)
         // write two data points
         val bytes = bytes
         bytes.putFloat(x0)
@@ -130,9 +140,37 @@ object LineBuffer {
         addLine(
             x0, y0, z0,
             x1, y1, z1,
-            doubleToByte(r),
-            doubleToByte(g),
-            doubleToByte(b)
+            vToByte(r),
+            vToByte(g),
+            vToByte(b)
+        )
+    }
+
+    fun addLine(
+        x0: Float, y0: Float, z0: Float,
+        x1: Float, y1: Float, z1: Float,
+        r: Float, g: Float, b: Float
+    ) {
+        addLine(
+            x0, y0, z0,
+            x1, y1, z1,
+            vToByte(r),
+            vToByte(g),
+            vToByte(b)
+        )
+    }
+
+    fun addLine(
+        x0: Float, y0: Float, z0: Float,
+        x1: Float, y1: Float, z1: Float,
+        color: Int
+    ) {
+        addLine(
+            x0, y0, z0,
+            x1, y1, z1,
+            color.r().toByte(),
+            color.g().toByte(),
+            color.b().toByte()
         )
     }
 
@@ -143,9 +181,35 @@ object LineBuffer {
         addLine(
             v0.x, v0.y, v0.z,
             v1.x, v1.y, v1.z,
-            doubleToByte(r),
-            doubleToByte(g),
-            doubleToByte(b)
+            vToByte(r),
+            vToByte(g),
+            vToByte(b)
+        )
+    }
+
+    fun addLine(
+        v0: Vector3f, v1: Vector3f,
+        r: Float, g: Float, b: Float
+    ) {
+        addLine(
+            v0.x, v0.y, v0.z,
+            v1.x, v1.y, v1.z,
+            vToByte(r),
+            vToByte(g),
+            vToByte(b)
+        )
+    }
+
+    fun addLine(
+        v0: Vector3f, v1: Vector3f,
+        color: Int
+    ) {
+        addLine(
+            v0.x, v0.y, v0.z,
+            v1.x, v1.y, v1.z,
+            color.r().toByte(),
+            color.g().toByte(),
+            color.b().toByte()
         )
     }
 
@@ -155,7 +219,7 @@ object LineBuffer {
         cam: org.joml.Vector3d,
         r: Byte, g: Byte, b: Byte
     ) {
-        ensureSize(2 * (3 * 4 + 4))
+        ensureSize(lineSize)
         val bytes = bytes
         bytes.putFloat((x0 - cam.x).toFloat())
         bytes.putFloat((y0 - cam.y).toFloat())
@@ -197,9 +261,9 @@ object LineBuffer {
             v0.x, v0.y, v0.z,
             v1.x, v1.y, v1.z,
             cam, worldScale,
-            doubleToByte(r),
-            doubleToByte(g),
-            doubleToByte(b)
+            vToByte(r),
+            vToByte(g),
+            vToByte(b)
         )
     }
 
@@ -210,7 +274,7 @@ object LineBuffer {
         worldScale: Double,
         r: Byte, g: Byte, b: Byte
     ) {
-        ensureSize(2 * (3 * 4 + 4))
+        ensureSize(lineSize)
         val bytes = bytes
         bytes.putFloat(((x0 - cam.x) * worldScale).toFloat())
         bytes.putFloat(((y0 - cam.y) * worldScale).toFloat())
@@ -307,9 +371,9 @@ object LineBuffer {
             v0.x, v0.y, v0.z,
             v1.x, v1.y, v1.z,
             cam, worldScale,
-            doubleToByte(r),
-            doubleToByte(g),
-            doubleToByte(b)
+            vToByte(r),
+            vToByte(g),
+            vToByte(b)
         )
     }
 

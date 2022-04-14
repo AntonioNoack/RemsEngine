@@ -388,7 +388,7 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
                 DrawAABB.drawLine(
                     cp.positionWorldOnB,
                     Vector3d(cp.positionWorldOnB).apply { add(cp.normalWorldOnB) },
-                    view.worldScale, 0.5, 0.5, 0.5
+                    view.worldScale, 0x777777
                 )
             }
         }
@@ -403,18 +403,17 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
         val collisionObjects = world.collisionObjectArray
 
         val worldScale = view.worldScale
-        val color = Vector3d()
 
         for (i in 0 until collisionObjects.size) {
 
             val colObj = collisionObjects.getQuick(i) ?: break
-            when (colObj.activationState) {
-                CollisionObject.ACTIVE_TAG -> color.set(1.0, 1.0, 1.0)
-                CollisionObject.ISLAND_SLEEPING -> color.set(0.0, 1.0, 0.0)
-                CollisionObject.WANTS_DEACTIVATION -> color.set(0.0, 1.0, 1.0)
-                CollisionObject.DISABLE_DEACTIVATION -> color.set(1.0, 0.0, 0.0)
-                CollisionObject.DISABLE_SIMULATION -> color.set(1.0, 1.0, 0.0)
-                else -> color.set(1.0, 0.0, 0.0)
+            val color = when (colObj.activationState) {
+                CollisionObject.ACTIVE_TAG -> -1
+                CollisionObject.ISLAND_SLEEPING -> 0x00ff00
+                CollisionObject.WANTS_DEACTIVATION -> 0x00ffff
+                CollisionObject.DISABLE_DEACTIVATION -> 0xff0000
+                CollisionObject.DISABLE_SIMULATION -> 0xffff00
+                else -> 0xff0000
             }
 
             // todo draw the local coordinate arrows
@@ -427,7 +426,7 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
                     .setMin(minAabb.x, minAabb.y, minAabb.z)
                     .setMax(maxAabb.x, maxAabb.y, maxAabb.z),
                 worldScale,
-                color.x, color.y, color.z
+                color
             )
         }
 
@@ -435,7 +434,6 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
 
     private fun drawVehicles(view: RenderView) {
 
-        val wheelColor = Vector3d()
         val wheelPosWS = Vector3d()
         val axle = Vector3d()
         val tmp = Stack.newVec()
@@ -447,10 +445,10 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
             val vehicle = vehicles.getQuick(i) ?: break
             for (v in 0 until vehicle.numWheels) {
 
-                if (vehicle.getWheelInfo(v).raycastInfo.isInContact) {
-                    wheelColor.set(0.0, 0.0, 1.0)
+                val wheelColor = if (vehicle.getWheelInfo(v).raycastInfo.isInContact) {
+                    0x0000ff
                 } else {
-                    wheelColor.set(1.0, 0.0, 0.0)
+                    0xff0000
                 }
 
                 wheelPosWS.set(vehicle.getWheelInfo(v).worldTransform.origin)
@@ -461,10 +459,10 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
                 )
 
                 tmp.add(wheelPosWS, axle)
-                DrawAABB.drawLine(wheelPosWS, tmp, worldScale, wheelColor.x, wheelColor.y, wheelColor.z)
+                DrawAABB.drawLine(wheelPosWS, tmp, worldScale, wheelColor)
                 DrawAABB.drawLine(
                     wheelPosWS, vehicle.getWheelInfo(v).raycastInfo.contactPointWS,
-                    worldScale, wheelColor.x, wheelColor.y, wheelColor.z
+                    worldScale, wheelColor
                 )
 
             }

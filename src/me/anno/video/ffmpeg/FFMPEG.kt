@@ -4,7 +4,6 @@ import me.anno.config.DefaultConfig
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS
-import java.io.File
 
 object FFMPEG {
 
@@ -17,7 +16,7 @@ object FFMPEG {
         DefaultConfig["ffmpeg.probe.path", getReference(ffmpegPath.getParent(), "ffprobe.exe")]
 
     var ffmpegPathString = if (isInstalled) "ffmpeg" else
-        File(DefaultConfig["ffmpeg.path", "lib/ffmpeg/ffmpeg.exe"])
+        getReference(DefaultConfig["ffmpeg.path", "lib/ffmpeg/ffmpeg.exe"])
             .absolutePath.replace('\\', '/')
     var ffprobePathString = if (isInstalled) "ffprobe" else
         DefaultConfig["ffmpeg.probe.path", getReference(ffmpegPath.getParent(), "ffprobe.exe")]

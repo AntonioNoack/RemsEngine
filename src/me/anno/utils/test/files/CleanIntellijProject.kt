@@ -1,17 +1,18 @@
 package me.anno.utils.test.files
 
+import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.LOGGER
-import java.io.File
 
-fun main(){
+fun main() {
 
-    val folder = File("E:\\Projects\\Android")
-    for(file in folder.listFiles()!!){
+    val folder = getReference("E:\\Projects\\Android")
+    for (file in folder.listChildren()!!) {
         cleanIntellijProject(file)
     }
 
-    val folder2 = File("E:\\Projects\\Java")
-    for(file in folder2.listFiles()!!){
+    val folder2 = getReference("E:\\Projects\\Java")
+    for (file in folder2.listChildren()!!) {
         cleanEclipseProject(file)
         cleanIntellijProject(file)
         deleteClassFiles(file)
@@ -20,48 +21,48 @@ fun main(){
 
 }
 
-fun deleteClassFiles(file: File){
-    if(file.isDirectory){
-        for(f in file.listFiles()!!){
+fun deleteClassFiles(file: FileReference) {
+    if (file.isDirectory) {
+        for (f in file.listChildren()!!) {
             deleteClassFiles(f)
         }
     } else {
-        if(file.extension.equals("class", true)){
+        if (file.extension.equals("class", true)) {
             file.delete()
         }
     }
 }
 
-fun cleanEclipseProject(file: File){
+fun cleanEclipseProject(file: FileReference) {
 
-    if(!File(file,".classpath").exists()){
+    if (!getReference(file, ".classpath").exists) {
         LOGGER.info("not a project: $file")
         return
     }
 
-    File(file,"bin").deleteRecursively()
+    getReference(file, "bin").deleteRecursively()
 
 }
 
-fun cleanIntellijProject(file: File){
+fun cleanIntellijProject(file: FileReference) {
 
-    if(!file.isDirectory) return
+    if (!file.isDirectory) return
 
-    if(file.listFiles()!!.none { it.extension == "iml" }){
+    if (file.listChildren()!!.none { it.extension == "iml" }) {
         return
     }
 
     LOGGER.info(file.name)
 
-    val files = listOf(".gradle","gradle","out","build","app/build","captures", "app/.externalNativeBuild")
+    val files = listOf(".gradle", "gradle", "out", "build", "app/build", "captures", "app/.externalNativeBuild")
 
-    for(f in files){
-        File(file, f).deleteRecursively()
+    for (f in files) {
+        getReference(file, f).deleteRecursively()
     }
 
-    val release = File(file,"app/release")
-    if(release.exists()){
-        if(release.listFiles()!!.size > 2){
+    val release = getReference(file, "app/release")
+    if (release.exists) {
+        if (release.listChildren()!!.size > 2) {
             LOGGER.info("Problematic: $file")
         } else {
             release.deleteRecursively()
@@ -72,15 +73,15 @@ fun cleanIntellijProject(file: File){
 
 }
 
-fun deleteEmptyFolders(file: File){
+fun deleteEmptyFolders(file: FileReference) {
 
-    if(!file.isDirectory) return
+    if (!file.isDirectory) return
 
-    for(f in file.listFiles()!!){
+    for (f in file.listChildren()!!) {
         deleteEmptyFolders(f)
     }
 
-    if(file.listFiles()!!.isEmpty()){
+    if (file.listChildren()!!.isEmpty()) {
         LOGGER.info("deleting $file")
         file.deleteRecursively()
     }

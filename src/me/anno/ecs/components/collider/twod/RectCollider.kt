@@ -1,7 +1,7 @@
 package me.anno.ecs.components.collider.twod
 
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.gui.LineShapes.drawLine
+import me.anno.engine.ui.LineShapes.drawLine
 import org.jbox2d.collision.shapes.PolygonShape
 import org.jbox2d.collision.shapes.Shape
 import org.joml.Vector2f

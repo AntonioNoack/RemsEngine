@@ -4,8 +4,8 @@ import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.gui.LineShapes.drawArrowZ
-import me.anno.engine.gui.LineShapes.drawCone
+import me.anno.engine.ui.LineShapes.drawArrowZ
+import me.anno.engine.ui.LineShapes.drawCone
 import me.anno.gpu.drawing.Perspective.setPerspective2
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.io.serialization.NotSerializedProperty

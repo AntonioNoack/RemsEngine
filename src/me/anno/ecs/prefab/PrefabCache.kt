@@ -216,7 +216,7 @@ object PrefabCache : CacheSection("Prefab") {
         chain: MutableSet<FileReference>?,
         clazz: String
     ): PrefabSaveable {
-        LOGGER.info("creating instance from ${prefab?.source} from $superPrefab")
+        LOGGER.debug("Creating instance from ${prefab?.source} from $superPrefab")
         val instance = createSuperInstance(superPrefab, chain, clazz)
         instance.changePaths(prefab, Path.ROOT_PATH)
         // val changes2 = (changes0 ?: emptyList()).groupBy { it.className }.map { "${it.value.size}x ${it.key}" }

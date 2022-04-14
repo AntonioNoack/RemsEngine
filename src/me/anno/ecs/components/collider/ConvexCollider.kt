@@ -4,8 +4,7 @@ import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.ConvexHullShape
 import com.bulletphysics.util.ObjectArrayList
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.gui.LineShapes
-import me.anno.engine.ui.render.RenderView
+import me.anno.engine.ui.LineShapes
 import me.anno.io.serialization.SerializedProperty
 import org.joml.AABBd
 import org.joml.Matrix4x3d

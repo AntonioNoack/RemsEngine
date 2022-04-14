@@ -10,7 +10,7 @@ import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.physics.BulletPhysics.Companion.castB
 import me.anno.ecs.components.physics.constraints.Constraint
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.gui.LineShapes
+import me.anno.engine.ui.LineShapes
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import org.joml.Vector3d

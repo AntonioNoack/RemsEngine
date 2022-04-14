@@ -6,8 +6,8 @@ import com.bulletphysics.collision.shapes.ConeShapeX
 import com.bulletphysics.collision.shapes.ConeShapeZ
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.gui.LineShapes
-import me.anno.engine.gui.LineShapes.drawCone
+import me.anno.engine.ui.LineShapes
+import me.anno.engine.ui.LineShapes.drawCone
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length

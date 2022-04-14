@@ -1,67 +1,117 @@
 package me.anno.gpu
 
-import me.anno.ecs.prefab.change.Path
+import me.anno.ecs.components.mesh.Mesh
+import me.anno.gpu.OpenGL.renderPurely
+import me.anno.gpu.OpenGL.useFrame
+import me.anno.gpu.framebuffer.DepthBufferType
+import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.shader.OpenGLShader.Companion.attribute
+import me.anno.gpu.shader.Shader
+import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.ResourceHelper
 import me.anno.io.files.InvalidRef
 import me.anno.io.zip.InnerPrefabFile
 import me.anno.mesh.obj.OBJReader2
-import org.lwjgl.opengl.GL11
+import me.anno.utils.Color.toVecRGB
+import org.apache.logging.log4j.LogManager
+import org.lwjgl.opengl.GL11C.*
+import org.lwjgl.opengl.GL30C
 import java.io.IOException
+import kotlin.math.max
+import kotlin.math.min
 
 // can be set by the application
 var logoBackgroundColor = 0
-var logoIconColor = 0x172040
+var logoIconColor = 0x212256
 
-fun drawLogo(window: WindowX){
+fun drawLogo(window: WindowX) {
 
-    // load icon.obj as file, and draw it using OpenGL 1.0
-    var c = logoBackgroundColor
-    GL11.glClearColor((c shr 16 and 255) / 255f, (c shr 8 and 255) / 255f, (c and 255) / 255f, 1f)
-    GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
-    GL11.glMatrixMode(GL11.GL_PROJECTION)
-    GL11.glLoadIdentity()
+    GFX.check()
+
+    val logger = LogManager.getLogger("Logo")
+    logger.info("Showing Engine Logo")
 
     // extend space left+right/top+bottom (zooming out a little)
     val width = window.width
     val height = window.height
+    val sw: Float
+    val sh: Float
     if (width > height) {
-        val dx = width.toFloat() / height
-        GL11.glOrtho(-dx.toDouble(), dx.toDouble(), -1.0, +1.0, -1.0, +1.0)
+        sw = height.toFloat() / width
+        sh = 1f
     } else {
-        val dy = height.toFloat() / width
-        GL11.glOrtho(-1.0, +1.0, -dy.toDouble(), dy.toDouble(), -1.0, +1.0)
+        sw = 1f
+        sh = width.toFloat() / height
     }
 
-    c = logoIconColor
-    GL11.glColor3f((c shr 16 and 255) / 255f, (c shr 8 and 255) / 255f, (c and 255) / 255f)
-    try {
-        val stream = ResourceHelper.loadResource("icon.obj")
-        val reader = OBJReader2(stream, InvalidRef)
-        val file = reader.meshesFolder
-        for (child in file.listChildren()) {
-            // we could use the name as color... probably a nice idea :)
-            val prefab = (child as InnerPrefabFile).prefab
-            val sets = prefab.sets
-            val positions = sets[Path.ROOT_PATH, "positions"] as FloatArray?
-            val indices = sets[Path.ROOT_PATH, "indices"] as IntArray?
-            if (positions != null) {
-                GL11.glBegin(GL11.GL_TRIANGLES)
-                if (indices == null) {
-                    var i = 0
-                    while (i < positions.size) {
-                        GL11.glVertex2f(positions[i], positions[i + 1])
-                        i += 3
-                    }
-                } else {
-                    for (index in indices) {
-                        val j = index * 3
-                        GL11.glVertex2f(positions[j], positions[j + 1])
-                    }
-                }
-                GL11.glEnd()
-            }
+    val shader = Shader(
+        "logo", "" +
+                "$attribute vec3 coords;\n" +
+                "void main(){\n" +
+                "   gl_Position = vec4(coords * vec3($sw, $sh, 0.0), 1.0);\n" +
+                "}", emptyList(), "" +
+                "void main(){\n" + // color uniform didn't want to work :/, why?
+                "   gl_FragColor = vec4(${logoIconColor.toVecRGB().run { "$x, $y, $z" }}, 1.0);\n" +
+                "}"
+    )
+
+    shader.use()
+
+    GFX.check()
+
+    GFX.maxSamples = max(1, glGetInteger(GL30C.GL_MAX_SAMPLES))
+    val frame = if (GFX.maxSamples > 1) Framebuffer(
+        "logo", width, height, min(8, GFX.maxSamples),
+        1, false, DepthBufferType.NONE
+    ) else null
+
+    if (frame != null) {
+        GFX.setFrameNullSize(window)
+        useFrame(frame) {
+            drawLogo(shader)
         }
-    } catch (e: IOException) {
-        e.printStackTrace()
+        GFX.copy(frame)
+        frame.destroy()
+    } else drawLogo(shader)
+
+    shader.destroy()
+
+    GFX.check()
+
+}
+
+fun drawLogo(shader: Shader) {
+
+    // load icon.obj as file, and draw it
+    val c = logoBackgroundColor
+    glClearColor((c shr 16 and 255) / 255f, (c shr 8 and 255) / 255f, (c and 255) / 255f, 1f)
+    glClear(GL_COLOR_BUFFER_BIT)
+
+    renderPurely {
+        try {
+            // ensure mesh is a known class
+            registerCustomClass(Mesh())
+            // you can override this file, if you want to change the logo
+            // but please show Rem's Engine somewhere in there!
+            val stream = ResourceHelper.loadResource("icon.obj")
+            val reader = OBJReader2(stream, InvalidRef)
+            val file = reader.meshesFolder
+            for (child in file.listChildren()) {
+
+                // we could use the name as color... probably a nice idea :)
+                val prefab = (child as InnerPrefabFile).prefab
+                val mesh = prefab.getSampleInstance() as? Mesh ?: continue
+
+                mesh.ensureBuffer()
+                for (i in 0 until mesh.numMaterials) {
+                    mesh.draw(shader, i)
+                }
+                mesh.destroy()
+
+            }
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
     }
+
 }

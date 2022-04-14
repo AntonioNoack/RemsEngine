@@ -9,7 +9,6 @@ import java.awt.Graphics2D
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
 import java.awt.image.BufferedImage
-import java.io.File
 import javax.imageio.ImageIO
 
 fun main() {
@@ -61,7 +60,7 @@ fun main() {
     gfx.translate(0, fs.toInt())
 
     gfx.dispose()
-    use(OS.desktop.getChild("font2.png").outputStream()){
+    use(OS.desktop.getChild("font2.png").outputStream()) {
         ImageIO.write(img, "png", it)
     }
 

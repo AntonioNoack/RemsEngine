@@ -106,7 +106,6 @@ import org.joml.Matrix4x3f
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL11.*
 import java.awt.image.BufferedImage
-import java.io.File
 import javax.imageio.ImageIO
 import javax.swing.ImageIcon
 import javax.swing.filechooser.FileSystemView
@@ -199,7 +198,7 @@ object Thumbs {
             val reader = inputStream().buffered()
             val bytes = reader.readNBytes2(hashReadLimit, false)
             reader.close()
-            hash = hash xor CRC64.fromInputStream(bytes.inputStream()).value
+            hash = hash xor CRC64.fromInputStream(bytes.inputStream())
         }
         val dstFormat = destinationFormat
         val str1 = CharArray(16 + 1 + dstFormat.length) { '0' }
@@ -1291,7 +1290,7 @@ object Thumbs {
         val icon = srcFile.toFile {
             try {
                 val shellFolder = javaClass.classLoader.loadClass("sun.awt.shell.ShellFolder")
-                val shellMethod = shellFolder.getMethod("getShellFolder", File::class.java)
+                val shellMethod = shellFolder.getMethod("getShellFolder", java.io.File::class.java)
                 // val sf = ShellFolder.getShellFolder(it)
                 val sf = shellMethod.invoke(null, it)
                 val iconMethod = shellFolder.getMethod("getIcon", Boolean::class.java)

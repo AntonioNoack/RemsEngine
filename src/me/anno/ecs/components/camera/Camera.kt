@@ -5,7 +5,7 @@ import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.camera.effects.CameraEffect
 import me.anno.ecs.components.player.LocalPlayer.Companion.currentLocalPlayer
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.gui.LineShapes
+import me.anno.engine.ui.LineShapes
 import org.joml.Vector2f
 import org.joml.Vector4f
 
@@ -45,13 +45,13 @@ class Camera : Component() {
     var center = Vector2f()
 
     // function to blend to the next one
-    fun use(blendingTime: Double) {
+    fun use(blendingTime: Float) {
         val player = currentLocalPlayer!!
         val state = player.camera
         // only if not already set as target
         if (state.currentCamera != this) {
             state.cameraBlendingTime = blendingTime
-            state.cameraBlendingProgress = 0.0
+            state.cameraBlendingProgress = 0f
             state.previousCamera = state.currentCamera
             state.currentCamera = this
         }

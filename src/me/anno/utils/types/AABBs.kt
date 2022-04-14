@@ -2,7 +2,6 @@ package me.anno.utils.types
 
 import me.anno.maths.Maths
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.Triangles.linePointTFactor
 import org.joml.*
 import kotlin.math.abs
 import kotlin.math.max
@@ -587,6 +586,34 @@ object AABBs {
         val sz = start.z + c * dir.z*/
         return aabb.testRay(start.x, start.y, start.z, dir.x, dir.y, dir.z) &&
                 distanceSquared(aabb, start) <= maxDistance * maxDistance
+    }
+
+    fun AABBf.collideFront(pos: Vector3f, dir: Vector3f): Float {
+        val dx = (if (dir.x < 0f) maxX else minX) - pos.x
+        val dy = (if (dir.y < 0f) maxY else minY) - pos.y
+        val dz = (if (dir.z < 0f) maxZ else minZ) - pos.z
+        return max(max(dx / dir.x, dy / dir.y), dz / dir.z)
+    }
+
+    fun AABBf.collideBack(pos: Vector3f, dir: Vector3f): Float {
+        val dx = (if (dir.x > 0f) maxX else minX) - pos.x
+        val dy = (if (dir.y > 0f) maxY else minY) - pos.y
+        val dz = (if (dir.z > 0f) maxZ else minZ) - pos.z
+        return min(min(dx / dir.x, dy / dir.y), dz / dir.z)
+    }
+
+    fun AABBd.collideFront(pos: Vector3d, dir: Vector3d): Double {
+        val dx = (if (dir.x < 0.0) maxX else minX) - pos.x
+        val dy = (if (dir.y < 0.0) maxY else minY) - pos.y
+        val dz = (if (dir.z < 0.0) maxZ else minZ) - pos.z
+        return max(max(dx / dir.x, dy / dir.y), dz / dir.z)
+    }
+
+    fun AABBd.collideBack(pos: Vector3d, dir: Vector3d): Double {
+        val dx = (if (dir.x > 0.0) maxX else minX) - pos.x
+        val dy = (if (dir.y > 0.0) maxY else minY) - pos.y
+        val dz = (if (dir.z > 0.0) maxZ else minZ) - pos.z
+        return min(min(dx / dir.x, dy / dir.y), dz / dir.z)
     }
 
 

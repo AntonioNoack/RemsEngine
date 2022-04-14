@@ -6,8 +6,8 @@ import com.bulletphysics.collision.shapes.CylinderShapeX
 import com.bulletphysics.collision.shapes.CylinderShapeZ
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.gui.LineShapes
-import me.anno.engine.gui.LineShapes.drawCircle
+import me.anno.engine.ui.LineShapes
+import me.anno.engine.ui.LineShapes.drawCircle
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.length
 import org.joml.AABBd

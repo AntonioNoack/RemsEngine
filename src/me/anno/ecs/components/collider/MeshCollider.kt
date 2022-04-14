@@ -12,7 +12,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ECSRegistry
-import me.anno.engine.gui.LineShapes
+import me.anno.engine.ui.LineShapes
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty

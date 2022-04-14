@@ -2,6 +2,7 @@ package me.anno.mesh.sims
 
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.Signature
+import me.anno.utils.OS
 import me.anno.utils.OS.desktop
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
@@ -24,7 +25,7 @@ object Sims3Reader {
         // .world = world
         // .dbc = collection of archives in single file
 
-        val folder = getReference("C:/Users/Antonio/Documents/Electronic Arts/Die Sims 3")
+        val folder = getReference(OS.documents, "Electronic Arts/Die Sims 3")
         // val ref = getReference(folder,"Thumbnails/ObjectThumbnails.package")
         // val ref = getReference(folder, "Saves/Fiora.sims3/France_0x0859db50.nhd")
         val ref = getReference(folder, "Saves/Fiora.sims3/France_0x0859db50ExportDB.package")
@@ -89,7 +90,7 @@ object Sims3Reader {
                 ref2.writeBytes(outputBuffer)
 
                 // http://simswiki.info/wiki.php?title=Sims_3:PackedFileTypes
-                val type = when(entry.resourceType){
+                val type = when (entry.resourceType) {
                     0x00AE6C67 -> "bone"
                     0x00B2D882 -> "dds"
                     0x00B552EA -> "speed tree resource"
@@ -133,7 +134,6 @@ object Sims3Reader {
         }
 
     }
-
 
 
     /**

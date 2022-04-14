@@ -20,7 +20,6 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextWriter
 import me.anno.maths.Maths.length
-import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.StudioBase.Companion.instance
 import me.anno.ui.Panel
@@ -675,7 +674,7 @@ object Input {
 
     fun copyFiles(files: List<FileReference>) {
         // we need this folder, when we have temporary copies,
-        // because just File.createTempFile() changes the name,
+        // because just FileFileRef.createTempFile() changes the name,
         // and we need the original file name
         val tmpFolder = lazy { Files.createTempDirectory("tmp").toFile() }
         val tmpFiles = files.map {

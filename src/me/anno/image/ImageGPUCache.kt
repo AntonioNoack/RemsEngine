@@ -11,13 +11,10 @@ import me.anno.gpu.texture.Texture3D
 import me.anno.gpu.texture.TextureLib
 import me.anno.image.raw.GPUImage
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.zip.InnerFile
-import me.anno.studio.StudioBase.Companion.warn
 import me.anno.utils.Sleep.waitForGFXThread
 import org.apache.logging.log4j.LogManager
-import java.io.File
 import java.io.FileNotFoundException
 import kotlin.math.sqrt
 
@@ -71,10 +68,10 @@ object ImageGPUCache : CacheSection("Images") {
         return if (texture.isCreated) texture else null
     }
 
-    fun getImage(file: File, timeout: Long, asyncGenerator: Boolean): Texture2D? {
+    /*fun getImage(file: File, timeout: Long, asyncGenerator: Boolean): Texture2D? {
         warn("Use FileReference, please; because it is faster when hashing")
         return getImage(getReference(file), timeout, asyncGenerator)
-    }
+    }*/
 
     private fun generateImageData(file: FileReference) = ImageData(file)
 

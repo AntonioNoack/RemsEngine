@@ -12,7 +12,6 @@ import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.FileExplorer.Companion.editInStandardProgramDesc
 import me.anno.ui.editor.files.FileExplorer.Companion.openInExplorerDesc
 import me.anno.ui.editor.files.FileExplorer.Companion.openInStandardProgramDesc
@@ -20,10 +19,7 @@ import me.anno.ui.editor.files.FileExplorerOption
 import me.anno.ui.style.Style
 import me.anno.utils.files.FileExplorerSelectWrapper
 import me.anno.utils.files.LocalFile.toGlobalFile
-import me.anno.utils.files.LocalFile.toLocalPath
-import me.anno.utils.hpc.Threads.threadWithName
 import org.apache.logging.log4j.LogManager
-import java.io.File
 
 class FileInput(
     title: String, style: Style,
@@ -68,7 +64,7 @@ class FileInput(
                 // todo select the file using our own explorer (?), because ours may be better
                 FileExplorerSelectWrapper.selectFileOrFolder(file3, isDirectory) { file ->
                     if (file != null) {
-                        setValue(file, true)
+                        setValue(getReference(file), true)
                     }
                 }
             }
@@ -83,19 +79,19 @@ class FileInput(
         this += base//ScrollPanelX(base, Padding(), style, AxisAlignment.MIN)
     }
 
-    fun setValue(file: File, notify: Boolean): FileInput {
+    /*fun setValue(file: FileReference, notify: Boolean): FileInput {
         base.setValue(file.toString2(), false)
-        if(notify) changeListener(getReference(file))
+        if (notify) changeListener(getReference(file))
         return this
-    }
+    }*/
 
     override fun setValue(value: FileReference, notify: Boolean): FileInput {
         base.setValue(value.toString2(), false)
-        if(notify) changeListener(value)
+        if (notify) changeListener(value)
         return this
     }
 
-    private fun File.toString2() = toLocalPath()
+    // private fun File.toString2() = toLocalPath()
     private fun FileReference.toString2() = toLocalPath()
     // toString().replace('\\', '/') // / is easier to type
 

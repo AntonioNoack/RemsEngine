@@ -4,8 +4,8 @@ import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.gui.LineShapes.drawBox
-import me.anno.engine.gui.LineShapes.drawSphere
+import me.anno.engine.ui.LineShapes.drawBox
+import me.anno.engine.ui.LineShapes.drawSphere
 import me.anno.gpu.DepthMode
 import me.anno.gpu.OpenGL
 import me.anno.gpu.drawing.Perspective.setPerspective

@@ -10,6 +10,10 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
 
     companion object {
 
+        fun createTempFile(name: String, extension: String): FileReference {
+            return getReference(File.createTempFile(name, extension))
+        }
+
         fun beautifyPath(path: String): String {
             var p = path.replace('\\', '/')
             while (p.endsWith('/')) p = p.substring(0, p.length - 1)

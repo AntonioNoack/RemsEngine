@@ -91,7 +91,7 @@ class TextWriter(initialCapacity: Int, workspace: FileReference) : TextWriterBas
             val asText = TextReader.read(asString).first() as Text
             println("Decoded text: ${asText.text[0.0]}, ${asText.text[0.0].length}")
             // this works so far...
-            val tmp = File.createTempFile("smiley", ".tmp")
+            val tmp = FileFileRef.createTempFile("smiley", ".tmp")
             val ref = getReference(tmp.absolutePath)
             ref.writeText(asString)
             println(ref.readText())

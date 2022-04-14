@@ -9,7 +9,6 @@ import me.anno.utils.structures.maps.BiMap
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.io.ByteArrayOutputStream
-import java.io.File
 import java.io.ObjectOutputStream
 import java.io.Serializable
 import kotlin.reflect.full.memberProperties
@@ -130,7 +129,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
         }
     }*/
 
-    fun writeFile(
+    /*fun writeFile(
         name: String,
         value: File?,
         force: Boolean = false,
@@ -142,7 +141,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
         } else if (force) {
             writeString(name, null)
         }
-    }
+    }*/
 
     fun writeObject(self: ISaveable?, name: String?, value: ISaveable?, force: Boolean = false) {
         when {
@@ -416,7 +415,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             is AABBf -> writeAABBf(name, value, forceSaving)
             is AABBd -> writeAABBd(name, value, forceSaving)
             // files
-            is File -> writeFile(name, FileReference.getReference(value), forceSaving)
+            is java.io.File -> writeFile(name, FileReference.getReference(value), forceSaving)
             is FileReference -> writeFile(name, value, forceSaving)
             // null
             null -> writeObject(self, name, null, forceSaving)

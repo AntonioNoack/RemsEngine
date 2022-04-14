@@ -17,8 +17,10 @@ import me.anno.gpu.debug.LWJGLDebugCallback
 import me.anno.gpu.debug.OpenGLDebug.getDebugSeverityName
 import me.anno.gpu.debug.OpenGLDebug.getDebugSourceName
 import me.anno.gpu.debug.OpenGLDebug.getDebugTypeName
+import me.anno.gpu.drawing.DrawRectangles
 import me.anno.input.Input.invalidateLayout
 import me.anno.io.ResourceHelper.loadResource
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.base.menu.Menu.ask
@@ -37,7 +39,6 @@ import org.lwjgl.system.MemoryUtil
 import java.awt.AWTException
 import java.awt.Robot
 import java.awt.image.BufferedImage
-import java.io.File
 import javax.imageio.ImageIO
 import kotlin.math.abs
 
@@ -99,18 +100,19 @@ open class GFXBase {
 
     fun forceLoadRenderDoc(renderDocPath: String?) {
         // todo I broke RenderDoc probably accessing OpenGL somewhere before this is executed
-        /*val path = renderDocPath ?: DefaultConfig["debug.renderdoc.path", "C:/Program Files/RenderDoc/renderdoc.dll"]
+        LOGGER.info("Loading RenderDoc")
+        val path = renderDocPath ?: DefaultConfig["debug.renderdoc.path", "C:/Program Files/RenderDoc/renderdoc.dll"]
         try {
             // if renderdoc is install on linux, or given in the path, we could use it as well with loadLibrary()
             // at least this is the default location for RenderDoc
-            if (File(path).exists()) {
+            if (getReference(path).exists) {
                 LOGGER.info("Loading RenderDoc")
                 System.load(path)
             } else LOGGER.warn("Did not find RenderDoc, searched '$path'")
         } catch (e: Exception) {
             LOGGER.warn("Could not initialize RenderDoc")
             e.printStackTrace()
-        }*/
+        }
     }
 
     open fun run() {
@@ -242,6 +244,7 @@ open class GFXBase {
 
     private var lastCurrent = 0L
     open fun runRenderLoop(window0: WindowX) {
+        LOGGER.info("Running RenderLoop")
         val tick = Clock()
         makeCurrent(window0)
         window0.forceUpdateVsync()
@@ -328,21 +331,10 @@ open class GFXBase {
 
     open fun renderStep(window: WindowX) {
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
-        val elapsed = Engine.deltaTime
         val width = window.width
         val height = window.height
-        val aspect = width.toFloat() / height
-        GL11.glMatrixMode(GL11.GL_PROJECTION)
-        GL11.glLoadIdentity()
-        GL11.glOrtho(-aspect.toDouble(), aspect.toDouble(), -1.0, +1.0, -1.0, +1.0)
-        GL11.glMatrixMode(GL11.GL_MODELVIEW)
-        GL11.glRotatef(elapsed * 10f, 0f, 0f, 1f)
-        GL11.glBegin(GL11.GL_QUADS)
-        GL11.glVertex2f(-0.5f, -0.5f)
-        GL11.glVertex2f(+0.5f, -0.5f)
-        GL11.glVertex2f(+0.5f, +0.5f)
-        GL11.glVertex2f(-0.5f, +0.5f)
-        GL11.glEnd()
+        GFX.setFrameNullSize(window)
+        DrawRectangles.drawRect(10, 10, width - 20, height - 20, -1)
     }
 
     var trapMouseWindow: WindowX? = null

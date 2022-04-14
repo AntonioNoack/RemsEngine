@@ -3,8 +3,7 @@ package me.anno.ecs.components.collider
 import com.bulletphysics.collision.shapes.BoxShape
 import com.bulletphysics.collision.shapes.CollisionShape
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.gui.LineShapes.drawBox
-import me.anno.image.ImageWriter
+import me.anno.engine.ui.LineShapes.drawBox
 import me.anno.io.serialization.SerializedProperty
 import org.joml.*
 import kotlin.math.abs

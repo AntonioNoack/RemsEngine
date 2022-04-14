@@ -1,4 +1,4 @@
-package me.anno.engine.gui
+package me.anno.engine.ui
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh

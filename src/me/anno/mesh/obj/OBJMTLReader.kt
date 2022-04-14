@@ -6,7 +6,6 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
 import java.io.EOFException
-import java.io.File
 import java.io.InputStream
 import kotlin.math.pow
 
@@ -22,7 +21,7 @@ open class OBJMTLReader(val reader: InputStream) {
                 ' '.code, '\t'.code, '\r'.code -> {
                 }
                 '\n'.code -> {
-                    if(!skipNewLine){
+                    if (!skipNewLine) {
                         putBack(next)
                         return
                     }
@@ -186,15 +185,6 @@ open class OBJMTLReader(val reader: InputStream) {
         val z = readFloat()
         skipLine()
         return Vector3f(x, y, z)
-    }
-
-    fun readFile(parent: File): File {
-        skipSpaces()
-        val path = readUntilSpace()
-        skipLine()
-        val file = File(parent.parentFile, path)
-        if (!file.exists()) LOGGER.warn("Missing file $file")
-        return file
     }
 
     fun readFile(parent: FileReference): FileReference {

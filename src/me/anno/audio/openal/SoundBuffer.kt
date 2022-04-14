@@ -3,6 +3,7 @@ package me.anno.audio.openal
 import me.anno.audio.openal.AudioManager.openALSession
 import me.anno.audio.streams.AudioStream.Companion.bufferPool
 import me.anno.cache.data.ICacheData
+import me.anno.io.files.FileReference
 import me.anno.utils.pooling.ByteBufferPool
 import org.lwjgl.openal.AL10.*
 import org.lwjgl.stb.STBVorbis.*
@@ -10,7 +11,6 @@ import org.lwjgl.stb.STBVorbisInfo
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil.NULL
 import org.newdawn.slick.openal.WaveData
-import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ShortBuffer
 import java.util.*
@@ -44,7 +44,7 @@ class SoundBuffer() : ICacheData {
         this.data = null
     }
 
-    constructor(file: File) : this() {
+    constructor(file: FileReference) : this() {
         load(file)
     }
 
@@ -66,7 +66,7 @@ class SoundBuffer() : ICacheData {
         ALBase.check()
     }
 
-    fun loadOGG(file: File) {
+    fun loadOGG(file: FileReference) {
         STBVorbisInfo.malloc().use { info ->
             val pcm = readVorbis(file, info)
             val format = if (info.channels() == 1) AL_FORMAT_MONO16 else AL_FORMAT_STEREO16
@@ -76,7 +76,7 @@ class SoundBuffer() : ICacheData {
         }
     }
 
-    fun load(file: File) {
+    fun load(file: FileReference) {
         val name = file.name
         when (val ending = name.split('.').last().lowercase(Locale.getDefault())) {
             "ogg" -> loadOGG(file)
@@ -85,7 +85,7 @@ class SoundBuffer() : ICacheData {
         }
     }
 
-    private fun readVorbis(file: File, info: STBVorbisInfo): ShortBuffer {
+    private fun readVorbis(file: FileReference, info: STBVorbisInfo): ShortBuffer {
         MemoryStack.stackPush().use { stack ->
             val rawBytes = ioResourceToByteBuffer(file)
             val error = stack.mallocInt(1)
@@ -107,7 +107,7 @@ class SoundBuffer() : ICacheData {
         }
     }
 
-    private fun ioResourceToByteBuffer(file: File): ByteBuffer {
+    private fun ioResourceToByteBuffer(file: FileReference): ByteBuffer {
         val bytes = file.readBytes()
         val buffer = ByteBufferPool
             .allocateDirect(bytes.size)
