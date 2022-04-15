@@ -118,16 +118,27 @@ interface ISaveable {
 
 
     // read matrices
-    // array versions? idk...
+    fun readMatrix2x2f(name: String, value: Matrix2f)
     fun readMatrix3x2f(name: String, value: Matrix3x2f)
     fun readMatrix3x3f(name: String, value: Matrix3f)
     fun readMatrix4x3f(name: String, value: Matrix4x3f)
     fun readMatrix4x4f(name: String, value: Matrix4f)
+    fun readMatrix2x2fArray(name: String, values: Array<Matrix2f>)
+    fun readMatrix3x2fArray(name: String, values: Array<Matrix3x2f>)
+    fun readMatrix3x3fArray(name: String, values: Array<Matrix3f>)
+    fun readMatrix4x3fArray(name: String, values: Array<Matrix4x3f>)
+    fun readMatrix4x4fArray(name: String, values: Array<Matrix4f>)
 
+    fun readMatrix2x2d(name: String, value: Matrix2d)
     fun readMatrix3x2d(name: String, value: Matrix3x2d)
     fun readMatrix3x3d(name: String, value: Matrix3d)
     fun readMatrix4x3d(name: String, value: Matrix4x3d)
     fun readMatrix4x4d(name: String, value: Matrix4d)
+    fun readMatrix2x2dArray(name: String, values: Array<Matrix2d>)
+    fun readMatrix3x2dArray(name: String, values: Array<Matrix3x2d>)
+    fun readMatrix3x3dArray(name: String, values: Array<Matrix3d>)
+    fun readMatrix4x3dArray(name: String, values: Array<Matrix4x3d>)
+    fun readMatrix4x4dArray(name: String, values: Array<Matrix4d>)
 
     fun readQuaternionf(name: String, value: Quaternionf)
     fun readQuaternionfArray(name: String, values: Array<Quaternionf>)

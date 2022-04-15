@@ -136,8 +136,6 @@ object ActionManager : StringMap() {
         Input.keysDown.forEach(mouseMoveConsumer)
     }
 
-    // todo this maybe should exist on a per-windowStack basis,
-    // todo so all actions are redirected through a game-window
     fun onEvent(window: WindowX, dx: Float, dy: Float, combination: KeyCombination, isContinuous: Boolean) {
         var panel = window.windowStack.inFocus0
         // filter action keys, if they are typing keys and a typing field is in focus

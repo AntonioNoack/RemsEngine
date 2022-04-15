@@ -42,7 +42,7 @@ object Hierarchy {
         // collect changes from this element going upwards
         var someParent = element
         val collDepth = element.depthInHierarchy
-        prefab.set(Path.ROOT_PATH, "name", element.name)
+        prefab[Path.ROOT_PATH, "name"] = element.name
         // setters.add(CSet(Path.ROOT_PATH, "name", element.name))
         // todo why can it's parent be null?
         if (!copyPasteRoot && someParent.parent != null) someParent = someParent.parent!!
@@ -231,7 +231,7 @@ object Hierarchy {
 
         if (path.isEmpty()) {
             LOGGER.warn("Cannot remove root!")
-            prefab.set(path, "isEnabled", false)
+            prefab[path, "isEnabled"] = false
             return
         }
 
@@ -302,7 +302,7 @@ object Hierarchy {
         when (matches.size) {
             0 -> {
                 LOGGER.info("did not find add @$parentPath, prefab: ${prefab.source}:${prefab.prefab}, ${prefab.adds}, ${prefab.sets}")
-                prefab.set(path, "isEnabled", false)
+                prefab[path, "isEnabled"] = false
             }
             else -> {
                 if (matches.size == 1) {
@@ -355,7 +355,7 @@ object Hierarchy {
         val elementA = prefab.add(Path.ROOT_PATH, 'e', "Entity", "A")
         val elementB = prefab.add(Path.ROOT_PATH, 'e', "Entity", "B")
         val elementC = prefab.add(elementB, 'e', "Entity", "C")
-        prefab.set(elementC, "position", Vector3d())
+        prefab[elementC, "position"] = Vector3d()
         // Root
         // - A
         // - B
@@ -422,7 +422,7 @@ object Hierarchy {
         println(JsonFormatter.format(prefab.toString()))
     }
 
-    fun testPrefab() {
+    private fun testPrefab() {
         val prefab = Prefab("Entity")
         val sample1 = prefab.getSampleInstance()
         assert(sample1 is Entity)
@@ -438,7 +438,7 @@ object Hierarchy {
         assert((light1 as PointLight).lightSize == Math.PI)
     }
 
-    fun testMultiAdd() {
+    private fun testMultiAdd() {
         val prefab = Prefab("SDFBox")
         val count = 3
         for (i in 0 until count) {

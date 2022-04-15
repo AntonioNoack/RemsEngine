@@ -27,14 +27,26 @@ import me.anno.io.binary.BinaryTypes.INT_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.LONG
 import me.anno.io.binary.BinaryTypes.LONG_ARRAY
 import me.anno.io.binary.BinaryTypes.LONG_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.MATRIX2X2D
+import me.anno.io.binary.BinaryTypes.MATRIX2X2D_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX2X2F
+import me.anno.io.binary.BinaryTypes.MATRIX2X2F_ARRAY
 import me.anno.io.binary.BinaryTypes.MATRIX3X2D
+import me.anno.io.binary.BinaryTypes.MATRIX3X2D_ARRAY
 import me.anno.io.binary.BinaryTypes.MATRIX3X2F
+import me.anno.io.binary.BinaryTypes.MATRIX3X2F_ARRAY
 import me.anno.io.binary.BinaryTypes.MATRIX3X3D
+import me.anno.io.binary.BinaryTypes.MATRIX3X3D_ARRAY
 import me.anno.io.binary.BinaryTypes.MATRIX3X3F
+import me.anno.io.binary.BinaryTypes.MATRIX3X3F_ARRAY
 import me.anno.io.binary.BinaryTypes.MATRIX4X3D
+import me.anno.io.binary.BinaryTypes.MATRIX4X3D_ARRAY
 import me.anno.io.binary.BinaryTypes.MATRIX4X3F
+import me.anno.io.binary.BinaryTypes.MATRIX4X3F_ARRAY
 import me.anno.io.binary.BinaryTypes.MATRIX4X4D
+import me.anno.io.binary.BinaryTypes.MATRIX4X4D_ARRAY
 import me.anno.io.binary.BinaryTypes.MATRIX4X4F
+import me.anno.io.binary.BinaryTypes.MATRIX4X4F_ARRAY
 import me.anno.io.binary.BinaryTypes.OBJECTS_HOMOGENOUS_ARRAY
 import me.anno.io.binary.BinaryTypes.OBJECT_ARRAY
 import me.anno.io.binary.BinaryTypes.OBJECT_ARRAY_2D
@@ -431,10 +443,10 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     }
 
     override fun writeVector3fArray(name: String, values: Array<Vector3f>, force: Boolean) {
-        writeGenericArray(name, values, force, VECTOR3F_ARRAY) { v ->
-            output.writeFloat(v.x())
-            output.writeFloat(v.y())
-            output.writeFloat(v.z())
+        writeGenericArray(name, values, force, VECTOR3F_ARRAY) {
+            output.writeFloat(it.x())
+            output.writeFloat(it.y())
+            output.writeFloat(it.z())
         }
     }
 
@@ -449,11 +461,11 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     }
 
     override fun writeVector4fArray(name: String, values: Array<Vector4f>, force: Boolean) {
-        writeGenericArray(name, values, force, VECTOR4F_ARRAY) { v ->
-            output.writeFloat(v.x())
-            output.writeFloat(v.y())
-            output.writeFloat(v.z())
-            output.writeFloat(v.w())
+        writeGenericArray(name, values, force, VECTOR4F_ARRAY) {
+            output.writeFloat(it.x())
+            output.writeFloat(it.y())
+            output.writeFloat(it.z())
+            output.writeFloat(it.w())
         }
     }
 
@@ -535,47 +547,35 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector2iArray(name: String, values: Array<Vector2i>, force: Boolean) {
-        writeAttributeStart(name, VECTOR2I_ARRAY)
-        output.writeInt(values.size)
-        for (i in values.indices) {
-            val value = values[i]
-            output.writeInt(value.x())
-            output.writeInt(value.y())
+    override fun writeVector2iArray(name: String, values: Array<Vector2i>, force: Boolean) =
+        writeGenericArray(name, values, force, VECTOR2I_ARRAY) {
+            output.writeInt(it.x())
+            output.writeInt(it.y())
         }
-    }
 
-    override fun writeVector3iArray(name: String, values: Array<Vector3i>, force: Boolean) {
-        writeAttributeStart(name, VECTOR3I_ARRAY)
-        output.writeInt(values.size)
-        for (i in values.indices) {
-            val value = values[i]
-            output.writeInt(value.x())
-            output.writeInt(value.y())
-            output.writeInt(value.z())
+    override fun writeVector3iArray(name: String, values: Array<Vector3i>, force: Boolean) =
+        writeGenericArray(name, values, force, VECTOR3I_ARRAY) {
+            output.writeInt(it.x())
+            output.writeInt(it.y())
+            output.writeInt(it.z())
         }
-    }
 
-    override fun writeVector4iArray(name: String, values: Array<Vector4i>, force: Boolean) {
-        writeAttributeStart(name, VECTOR4I_ARRAY)
-        output.writeInt(values.size)
-        for (i in values.indices) {
-            val value = values[i]
-            output.writeInt(value.x())
-            output.writeInt(value.y())
-            output.writeInt(value.z())
-            output.writeInt(value.w())
+    override fun writeVector4iArray(name: String, values: Array<Vector4i>, force: Boolean) =
+        writeGenericArray(name, values, force, VECTOR4I_ARRAY) {
+            output.writeInt(it.x())
+            output.writeInt(it.y())
+            output.writeInt(it.z())
+            output.writeInt(it.w())
         }
-    }
 
-    fun writeQuaternion(value: Quaternionf) {
+    private fun writeQuaternion(value: Quaternionf) {
         output.writeFloat(value.x())
         output.writeFloat(value.y())
         output.writeFloat(value.z())
         output.writeFloat(value.w())
     }
 
-    fun writeQuaternion(value: Quaterniond) {
+    private fun writeQuaternion(value: Quaterniond) {
         output.writeDouble(value.x())
         output.writeDouble(value.y())
         output.writeDouble(value.z())
@@ -596,13 +596,8 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun writeQuaternionfArray(name: String, values: Array<Quaternionf>, force: Boolean) {
-        writeAttributeStart(name, QUATERNION32_ARRAY)
-        output.writeInt(values.size)
-        for (i in values.indices) {
-            writeQuaternion(values[i])
-        }
-    }
+    override fun writeQuaternionfArray(name: String, values: Array<Quaternionf>, force: Boolean) =
+        writeGenericArray(name, values, force, QUATERNION32_ARRAY) { writeQuaternion(it) }
 
     override fun writeQuaternionfArray2D(name: String, values: Array<Array<Quaternionf>>, force: Boolean) {
         writeAttributeStart(name, QUATERNION32_ARRAY_2D)
@@ -616,8 +611,14 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun writeMatrix3x2f(name: String, value: Matrix3x2fc, force: Boolean) {
-        writeAttributeStart(name, MATRIX3X2F)
+    private fun writeMatrix(value: Matrix2fc) {
+        output.writeFloat(value.m00())
+        output.writeFloat(value.m01())
+        output.writeFloat(value.m10())
+        output.writeFloat(value.m11())
+    }
+
+    private fun writeMatrix(value: Matrix3x2fc) {
         output.writeFloat(value.m00())
         output.writeFloat(value.m01())
         output.writeFloat(value.m10())
@@ -626,8 +627,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         output.writeFloat(value.m21())
     }
 
-    override fun writeMatrix3x3f(name: String, value: Matrix3fc, force: Boolean) {
-        writeAttributeStart(name, MATRIX3X3F)
+    private fun writeMatrix(value: Matrix3fc) {
         output.writeFloat(value.m00())
         output.writeFloat(value.m01())
         output.writeFloat(value.m02())
@@ -639,8 +639,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         output.writeFloat(value.m22())
     }
 
-    override fun writeMatrix4x3f(name: String, value: Matrix4x3fc, force: Boolean) {
-        writeAttributeStart(name, MATRIX4X3F)
+    private fun writeMatrix(value: Matrix4x3fc) {
         output.writeFloat(value.m00())
         output.writeFloat(value.m01())
         output.writeFloat(value.m02())
@@ -655,8 +654,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         output.writeFloat(value.m32())
     }
 
-    override fun writeMatrix4x4f(name: String, value: Matrix4fc, force: Boolean) {
-        writeAttributeStart(name, MATRIX4X4F)
+    private fun writeMatrix(value: Matrix4fc) {
         output.writeFloat(value.m00())
         output.writeFloat(value.m01())
         output.writeFloat(value.m02())
@@ -675,8 +673,54 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         output.writeFloat(value.m33())
     }
 
-    override fun writeMatrix3x2d(name: String, value: Matrix3x2dc, force: Boolean) {
-        writeAttributeStart(name, MATRIX3X2D)
+    override fun writeMatrix2x2f(name: String, value: Matrix2fc, force: Boolean) {
+        writeAttributeStart(name, MATRIX2X2F)
+        writeMatrix(value)
+    }
+
+    override fun writeMatrix3x2f(name: String, value: Matrix3x2fc, force: Boolean) {
+        writeAttributeStart(name, MATRIX3X2F)
+        writeMatrix(value)
+    }
+
+    override fun writeMatrix3x3f(name: String, value: Matrix3fc, force: Boolean) {
+        writeAttributeStart(name, MATRIX3X3F)
+        writeMatrix(value)
+    }
+
+    override fun writeMatrix4x3f(name: String, value: Matrix4x3fc, force: Boolean) {
+        writeAttributeStart(name, MATRIX4X3F)
+        writeMatrix(value)
+    }
+
+    override fun writeMatrix4x4f(name: String, value: Matrix4fc, force: Boolean) {
+        writeAttributeStart(name, MATRIX4X4F)
+        writeMatrix(value)
+    }
+
+    override fun writeMatrix2x2fArray(name: String, values: Array<Matrix2fc>, force: Boolean) =
+        writeGenericArray(name, values, force, MATRIX2X2F_ARRAY) { writeMatrix(it) }
+
+    override fun writeMatrix3x2fArray(name: String, values: Array<Matrix3x2fc>, force: Boolean) =
+        writeGenericArray(name, values, force, MATRIX3X2F_ARRAY) { writeMatrix(it) }
+
+    override fun writeMatrix3x3fArray(name: String, values: Array<Matrix3fc>, force: Boolean) =
+        writeGenericArray(name, values, force, MATRIX3X3F_ARRAY) { writeMatrix(it) }
+
+    override fun writeMatrix4x3fArray(name: String, values: Array<Matrix4x3fc>, force: Boolean) =
+        writeGenericArray(name, values, force, MATRIX4X3F_ARRAY) { writeMatrix(it) }
+
+    override fun writeMatrix4x4fArray(name: String, values: Array<Matrix4fc>, force: Boolean) =
+        writeGenericArray(name, values, force, MATRIX4X4F_ARRAY) { writeMatrix(it) }
+
+    private fun writeMatrix(value: Matrix2dc) {
+        output.writeDouble(value.m00())
+        output.writeDouble(value.m01())
+        output.writeDouble(value.m10())
+        output.writeDouble(value.m11())
+    }
+
+    private fun writeMatrix(value: Matrix3x2dc) {
         output.writeDouble(value.m00())
         output.writeDouble(value.m01())
         output.writeDouble(value.m10())
@@ -685,8 +729,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         output.writeDouble(value.m21())
     }
 
-    override fun writeMatrix3x3d(name: String, value: Matrix3dc, force: Boolean) {
-        writeAttributeStart(name, MATRIX3X3D)
+    private fun writeMatrix(value: Matrix3dc) {
         output.writeDouble(value.m00())
         output.writeDouble(value.m01())
         output.writeDouble(value.m02())
@@ -698,8 +741,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         output.writeDouble(value.m22())
     }
 
-    override fun writeMatrix4x3d(name: String, value: Matrix4x3dc, force: Boolean) {
-        writeAttributeStart(name, MATRIX4X3D)
+    private fun writeMatrix(value: Matrix4x3dc) {
         output.writeDouble(value.m00())
         output.writeDouble(value.m01())
         output.writeDouble(value.m02())
@@ -714,8 +756,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         output.writeDouble(value.m32())
     }
 
-    override fun writeMatrix4x4d(name: String, value: Matrix4dc, force: Boolean) {
-        writeAttributeStart(name, MATRIX4X4D)
+    private fun writeMatrix(value: Matrix4dc) {
         output.writeDouble(value.m00())
         output.writeDouble(value.m01())
         output.writeDouble(value.m02())
@@ -733,6 +774,46 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         output.writeDouble(value.m32())
         output.writeDouble(value.m33())
     }
+
+    override fun writeMatrix2x2d(name: String, value: Matrix2dc, force: Boolean) {
+        writeAttributeStart(name, MATRIX2X2D)
+        writeMatrix(value)
+    }
+
+    override fun writeMatrix3x2d(name: String, value: Matrix3x2dc, force: Boolean) {
+        writeAttributeStart(name, MATRIX3X2D)
+        writeMatrix(value)
+    }
+
+    override fun writeMatrix3x3d(name: String, value: Matrix3dc, force: Boolean) {
+        writeAttributeStart(name, MATRIX3X3D)
+        writeMatrix(value)
+    }
+
+    override fun writeMatrix4x3d(name: String, value: Matrix4x3dc, force: Boolean) {
+        writeAttributeStart(name, MATRIX4X3D)
+        writeMatrix(value)
+    }
+
+    override fun writeMatrix4x4d(name: String, value: Matrix4dc, force: Boolean) {
+        writeAttributeStart(name, MATRIX4X4D)
+        writeMatrix(value)
+    }
+
+    override fun writeMatrix2x2dArray(name: String, values: Array<Matrix2dc>, force: Boolean) =
+        writeGenericArray(name, values, force, MATRIX2X2D_ARRAY) { writeMatrix(it) }
+
+    override fun writeMatrix3x2dArray(name: String, values: Array<Matrix3x2dc>, force: Boolean) =
+        writeGenericArray(name, values, force, MATRIX3X2D_ARRAY) { writeMatrix(it) }
+
+    override fun writeMatrix3x3dArray(name: String, values: Array<Matrix3dc>, force: Boolean) =
+        writeGenericArray(name, values, force, MATRIX3X3D_ARRAY) { writeMatrix(it) }
+
+    override fun writeMatrix4x3dArray(name: String, values: Array<Matrix4x3dc>, force: Boolean) =
+        writeGenericArray(name, values, force, MATRIX4X3D_ARRAY) { writeMatrix(it) }
+
+    override fun writeMatrix4x4dArray(name: String, values: Array<Matrix4dc>, force: Boolean) =
+        writeGenericArray(name, values, force, MATRIX4X4D_ARRAY) { writeMatrix(it) }
 
     override fun writeAABBf(name: String, value: AABBf, force: Boolean) {
         writeAttributeStart(name, AABB32)
@@ -806,8 +887,8 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         if (force || elements.isNotEmpty()) {
             writeAttributeStart(name, type)
             output.writeInt(elements.size)
-            elements.forEach { element ->
-                writeInstance(element)
+            for (index in elements.indices) {
+                writeInstance(elements[index])
             }
         }
     }

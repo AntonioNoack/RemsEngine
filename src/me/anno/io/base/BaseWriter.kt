@@ -88,16 +88,28 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     abstract fun writeVector4iArray(name: String, values: Array<Vector4i>, force: Boolean = false)
 
     // matrices, which are commonly used in game development
-    // todo array types, as they could be useful for saving animations maybe
+    // 2d array types?
+    abstract fun writeMatrix2x2f(name: String, value: Matrix2fc, force: Boolean = false)
     abstract fun writeMatrix3x2f(name: String, value: Matrix3x2fc, force: Boolean = false)
     abstract fun writeMatrix3x3f(name: String, value: Matrix3fc, force: Boolean = false)
     abstract fun writeMatrix4x3f(name: String, value: Matrix4x3fc, force: Boolean = false)
     abstract fun writeMatrix4x4f(name: String, value: Matrix4fc, force: Boolean = false)
+    abstract fun writeMatrix2x2fArray(name: String, values: Array<Matrix2fc>, force: Boolean = false)
+    abstract fun writeMatrix3x2fArray(name: String, values: Array<Matrix3x2fc>, force: Boolean = false)
+    abstract fun writeMatrix3x3fArray(name: String, values: Array<Matrix3fc>, force: Boolean = false)
+    abstract fun writeMatrix4x3fArray(name: String, values: Array<Matrix4x3fc>, force: Boolean = false)
+    abstract fun writeMatrix4x4fArray(name: String, values: Array<Matrix4fc>, force: Boolean = false)
 
+    abstract fun writeMatrix2x2d(name: String, value: Matrix2dc, force: Boolean = false)
     abstract fun writeMatrix3x2d(name: String, value: Matrix3x2dc, force: Boolean = false)
     abstract fun writeMatrix3x3d(name: String, value: Matrix3dc, force: Boolean = false)
     abstract fun writeMatrix4x3d(name: String, value: Matrix4x3dc, force: Boolean = false)
     abstract fun writeMatrix4x4d(name: String, value: Matrix4dc, force: Boolean = false)
+    abstract fun writeMatrix2x2dArray(name: String, values: Array<Matrix2dc>, force: Boolean = false)
+    abstract fun writeMatrix3x2dArray(name: String, values: Array<Matrix3x2dc>, force: Boolean = false)
+    abstract fun writeMatrix3x3dArray(name: String, values: Array<Matrix3dc>, force: Boolean = false)
+    abstract fun writeMatrix4x3dArray(name: String, values: Array<Matrix4x3dc>, force: Boolean = false)
+    abstract fun writeMatrix4x4dArray(name: String, values: Array<Matrix4dc>, force: Boolean = false)
 
     abstract fun writeQuaternionf(name: String, value: Quaternionf, force: Boolean = false)
     abstract fun writeQuaterniond(name: String, value: Quaterniond, force: Boolean = false)

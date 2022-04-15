@@ -28,6 +28,26 @@ import me.anno.io.binary.BinaryTypes.INT_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.LONG
 import me.anno.io.binary.BinaryTypes.LONG_ARRAY
 import me.anno.io.binary.BinaryTypes.LONG_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.MATRIX2X2D
+import me.anno.io.binary.BinaryTypes.MATRIX2X2D_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX2X2F
+import me.anno.io.binary.BinaryTypes.MATRIX2X2F_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX3X2D
+import me.anno.io.binary.BinaryTypes.MATRIX3X2D_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX3X2F
+import me.anno.io.binary.BinaryTypes.MATRIX3X2F_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX3X3D
+import me.anno.io.binary.BinaryTypes.MATRIX3X3D_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX3X3F
+import me.anno.io.binary.BinaryTypes.MATRIX3X3F_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX4X3D
+import me.anno.io.binary.BinaryTypes.MATRIX4X3D_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX4X3F
+import me.anno.io.binary.BinaryTypes.MATRIX4X3F_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX4X4D
+import me.anno.io.binary.BinaryTypes.MATRIX4X4D_ARRAY
+import me.anno.io.binary.BinaryTypes.MATRIX4X4F
+import me.anno.io.binary.BinaryTypes.MATRIX4X4F_ARRAY
 import me.anno.io.binary.BinaryTypes.OBJECTS_HOMOGENOUS_ARRAY
 import me.anno.io.binary.BinaryTypes.OBJECT_ARRAY
 import me.anno.io.binary.BinaryTypes.OBJECT_ARRAY_2D
@@ -296,8 +316,27 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
                     PLANE32 -> obj.readPlanef(name, readPlanef())
                     PLANE64 -> obj.readPlaned(name, readPlaned())
 
-                    // todo matrices
+                    MATRIX2X2F -> obj.readMatrix2x2f(name, readMatrix2x2f())
+                    MATRIX3X2F -> obj.readMatrix3x2f(name, readMatrix3x2f())
+                    MATRIX3X3F -> obj.readMatrix3x3f(name, readMatrix3x3f())
+                    MATRIX4X3F -> obj.readMatrix4x3f(name, readMatrix4x3f())
+                    MATRIX4X4F -> obj.readMatrix4x4f(name, readMatrix4x4f())
+                    MATRIX2X2F_ARRAY -> obj.readMatrix2x2fArray(name, readArray { readMatrix2x2f() })
+                    MATRIX3X2F_ARRAY -> obj.readMatrix3x2fArray(name, readArray { readMatrix3x2f() })
+                    MATRIX3X3F_ARRAY -> obj.readMatrix3x3fArray(name, readArray { readMatrix3x3f() })
+                    MATRIX4X3F_ARRAY -> obj.readMatrix4x3fArray(name, readArray { readMatrix4x3f() })
+                    MATRIX4X4F_ARRAY -> obj.readMatrix4x4fArray(name, readArray { readMatrix4x4f() })
 
+                    MATRIX2X2D -> obj.readMatrix2x2d(name, readMatrix2x2d())
+                    MATRIX3X2D -> obj.readMatrix3x2d(name, readMatrix3x2d())
+                    MATRIX3X3D -> obj.readMatrix3x3d(name, readMatrix3x3d())
+                    MATRIX4X3D -> obj.readMatrix4x3d(name, readMatrix4x3d())
+                    MATRIX4X4D -> obj.readMatrix4x4d(name, readMatrix4x4d())
+                    MATRIX2X2D_ARRAY -> obj.readMatrix2x2dArray(name, readArray { readMatrix2x2d() })
+                    MATRIX3X2D_ARRAY -> obj.readMatrix3x2dArray(name, readArray { readMatrix3x2d() })
+                    MATRIX3X3D_ARRAY -> obj.readMatrix3x3dArray(name, readArray { readMatrix3x3d() })
+                    MATRIX4X3D_ARRAY -> obj.readMatrix4x3dArray(name, readArray { readMatrix4x3d() })
+                    MATRIX4X4D_ARRAY -> obj.readMatrix4x4dArray(name, readArray { readMatrix4x4d() })
 
                     else -> throw RuntimeException("Unknown type ${typeName.type}")
                 }
@@ -342,6 +381,68 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
     private fun readVector2i() = Vector2i(input.readInt(), input.readInt())
     private fun readVector3i() = Vector3i(input.readInt(), input.readInt(), input.readInt())
     private fun readVector4i() = Vector4i(input.readInt(), input.readInt(), input.readInt(), input.readInt())
+
+    private fun readMatrix2x2f() = Matrix2f(
+        input.readFloat(), input.readFloat(),
+        input.readFloat(), input.readFloat()
+    )
+
+    private fun readMatrix3x2f() = Matrix3x2f(
+        input.readFloat(), input.readFloat(),
+        input.readFloat(), input.readFloat(),
+        input.readFloat(), input.readFloat()
+    )
+
+    private fun readMatrix3x3f() = Matrix3f(
+        input.readFloat(), input.readFloat(), input.readFloat(),
+        input.readFloat(), input.readFloat(), input.readFloat(),
+        input.readFloat(), input.readFloat(), input.readFloat()
+    )
+
+    private fun readMatrix4x3f() = Matrix4x3f(
+        input.readFloat(), input.readFloat(), input.readFloat(),
+        input.readFloat(), input.readFloat(), input.readFloat(),
+        input.readFloat(), input.readFloat(), input.readFloat(),
+        input.readFloat(), input.readFloat(), input.readFloat()
+    )
+
+    private fun readMatrix4x4f() = Matrix4f(
+        input.readFloat(), input.readFloat(), input.readFloat(), input.readFloat(),
+        input.readFloat(), input.readFloat(), input.readFloat(), input.readFloat(),
+        input.readFloat(), input.readFloat(), input.readFloat(), input.readFloat(),
+        input.readFloat(), input.readFloat(), input.readFloat(), input.readFloat()
+    )
+
+    private fun readMatrix2x2d() = Matrix2d(
+        input.readDouble(), input.readDouble(),
+        input.readDouble(), input.readDouble()
+    )
+
+    private fun readMatrix3x2d() = Matrix3x2d(
+        input.readDouble(), input.readDouble(),
+        input.readDouble(), input.readDouble(),
+        input.readDouble(), input.readDouble()
+    )
+
+    private fun readMatrix3x3d() = Matrix3d(
+        input.readDouble(), input.readDouble(), input.readDouble(),
+        input.readDouble(), input.readDouble(), input.readDouble(),
+        input.readDouble(), input.readDouble(), input.readDouble()
+    )
+
+    private fun readMatrix4x3d() = Matrix4x3d(
+        input.readDouble(), input.readDouble(), input.readDouble(),
+        input.readDouble(), input.readDouble(), input.readDouble(),
+        input.readDouble(), input.readDouble(), input.readDouble(),
+        input.readDouble(), input.readDouble(), input.readDouble()
+    )
+
+    private fun readMatrix4x4d() = Matrix4d(
+        input.readDouble(), input.readDouble(), input.readDouble(), input.readDouble(),
+        input.readDouble(), input.readDouble(), input.readDouble(), input.readDouble(),
+        input.readDouble(), input.readDouble(), input.readDouble(), input.readDouble(),
+        input.readDouble(), input.readDouble(), input.readDouble(), input.readDouble()
+    )
 
     override fun readAllInList() {
         val nameType = readTypeName()

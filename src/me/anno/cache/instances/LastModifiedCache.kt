@@ -52,7 +52,7 @@ object LastModifiedCache {
         }
     }
 
-    operator fun get(file: File, absolutePath: String): Result {
+    fun update(){
         val time = gameTime
         // todo partial reload only, like a cache section, just that the entries decay
         // todo randomness in decay time
@@ -60,18 +60,15 @@ object LastModifiedCache {
             lastChecked = time
             values.clear()
         }
+    }
+
+    operator fun get(file: File, absolutePath: String): Result {
+        update()
         return values.getOrPut(absolutePath) { Result(file) }
     }
 
     operator fun get(absolutePath: String): Result {
-        val time = gameTime
-        // todo partial reload only, like a cache section, just that the entries decay
-        // todo randomness in decay time
-        if (abs(time - lastChecked) > timeoutNanos) {
-            lastChecked = time
-            // if (values.isNotEmpty()) LOGGER.warn("Cleared file cache \n${values.keys.joinToString("\n")}")
-            values.clear()
-        }
+        update()
         return values.getOrPut(absolutePath) { Result(File(absolutePath)) }
     }
 
@@ -102,6 +99,6 @@ object LastModifiedCache {
     }
 
     private const val timeoutNanos = 20_000L * MILLIS_TO_NANOS
-    private val LOGGER = LogManager.getLogger(LastModifiedCache::class)
+    // private val LOGGER = LogManager.getLogger(LastModifiedCache::class)
 
 }

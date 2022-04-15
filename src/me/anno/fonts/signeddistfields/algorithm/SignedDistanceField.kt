@@ -12,10 +12,8 @@ import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
-import me.anno.image.raw.FloatBufferImage
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
-import me.anno.utils.OS.desktop
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.AABBs.clear
 import org.joml.AABBf
@@ -262,9 +260,6 @@ object SignedDistanceField {
             tex.createMonochrome(buffer, true)
             ByteBufferPool.free(buffer)
         }
-
-        FloatBufferImage(w, h, 1, buffer)
-            .write(desktop.getChild("${System.nanoTime()}.png"))
 
         // the center, because we draw the pieces from the center
         val ox = (maxX + minX) * +sdfResolution / w

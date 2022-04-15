@@ -516,7 +516,7 @@ class AWTFont(val font: Font) {
 
         var ctr = 0
 
-        val LOGGER = LogManager.getLogger(AWTFont::class)!!
+        val LOGGER = LogManager.getLogger(AWTFont::class)
 
         // val staticGfx = BufferedImage(1,1, BufferedImage.TYPE_INT_ARGB).graphics as Graphics2D
         // val staticMetrics = staticGfx.fontMetrics

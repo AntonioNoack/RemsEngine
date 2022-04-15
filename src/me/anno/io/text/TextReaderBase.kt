@@ -490,6 +490,53 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
         return Vector4i(rawX, rawY, rawZ, rawW)
     }
 
+    private fun readMatrix2x2(): Matrix2f {
+        assert(skipSpace(), '[', "Start of m2x2")
+        val m = Matrix2f(
+            readVector2f(),
+            readVector2f(true),
+        )
+        assert(skipSpace(), ']', "End of m2x2")
+        return m
+    }
+
+    private fun readMatrix2x2d(): Matrix2d {
+        assert(skipSpace(), '[', "Start of m2x2d")
+        val m = Matrix2d(
+            readVector2d(),
+            readVector2d(true),
+        )
+        assert(skipSpace(), ']', "End of m2x2d")
+        return m
+    }
+
+    private fun readMatrix3x2(): Matrix3x2f {
+        assert(skipSpace(), '[', "Start of m3x2")
+        val a = readVector2f()
+        val b = readVector2f(true)
+        val c = readVector2f(true)
+        val m = Matrix3x2f(
+            a.x, a.y,
+            b.x, b.y,
+            c.x, c.y
+        )
+        assert(skipSpace(), ']', "End of m3x2")
+        return m
+    }
+
+    private fun readMatrix3x2d(): Matrix3x2d {
+        assert(skipSpace(), '[', "Start of m3x2d")
+        val a = readVector2d()
+        val b = readVector2d(true)
+        val c = readVector2d(true)
+        val m = Matrix3x2d(
+            a.x, a.y,
+            b.x, b.y,
+            c.x, c.y
+        )
+        assert(skipSpace(), ']', "End of m3x2d")
+        return m
+    }
 
     private fun readMatrix3x3(): Matrix3f {
         assert(skipSpace(), '[', "Start of m3x3")
@@ -797,12 +844,26 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
             "v2i[][]" -> obj.readVector2iArray2D(name, readArray2("vector2i[]", vector2i0a) { readVector2i() })
             "v3i[][]" -> obj.readVector3iArray2D(name, readArray2("vector3i[]", vector3i0a) { readVector3i() })
             "v4i[][]" -> obj.readVector4iArray2D(name, readArray2("vector4i[]", vector4i0a) { readVector4i() })
+            "m2x2" -> obj.readMatrix2x2f(name, readMatrix2x2())
+            "m3x2" -> obj.readMatrix3x2f(name, readMatrix3x2())
             "m3x3" -> obj.readMatrix3x3f(name, readMatrix3x3())
             "m4x3" -> obj.readMatrix4x3f(name, readMatrix4x3())
             "m4x4" -> obj.readMatrix4x4f(name, readMatrix4x4())
+            "m2x2[]" -> obj.readMatrix2x2fArray(name, readArray("m2x2", matrix2x2) { readMatrix2x2() })
+            "m3x2[]" -> obj.readMatrix3x2fArray(name, readArray("m3x2", matrix3x2) { readMatrix3x2() })
+            "m3x3[]" -> obj.readMatrix3x3fArray(name, readArray("m3x3", matrix3x3) { readMatrix3x3() })
+            "m4x3[]" -> obj.readMatrix4x3fArray(name, readArray("m4x3", matrix4x3) { readMatrix4x3() })
+            "m4x4[]" -> obj.readMatrix4x4fArray(name, readArray("m4x4", matrix4x4) { readMatrix4x4() })
+            "m2x2d" -> obj.readMatrix2x2d(name, readMatrix2x2d())
+            "m3x2d" -> obj.readMatrix3x2d(name, readMatrix3x2d())
             "m3x3d" -> obj.readMatrix3x3d(name, readMatrix3x3d())
             "m4x3d" -> obj.readMatrix4x3d(name, readMatrix4x3d())
             "m4x4d" -> obj.readMatrix4x4d(name, readMatrix4x4d())
+            "m2x2d[]" -> obj.readMatrix2x2dArray(name, readArray("m2x2d", matrix2x2d) { readMatrix2x2d() })
+            "m3x2d[]" -> obj.readMatrix3x2dArray(name, readArray("m3x2d", matrix3x2d) { readMatrix3x2d() })
+            "m3x3d[]" -> obj.readMatrix3x3dArray(name, readArray("m3x3d", matrix3x3d) { readMatrix3x3d() })
+            "m4x3d[]" -> obj.readMatrix4x3dArray(name, readArray("m4x3d", matrix4x3d) { readMatrix4x3d() })
+            "m4x4d[]" -> obj.readMatrix4x4dArray(name, readArray("m4x4d", matrix4x4d) { readMatrix4x4d() })
             "AABBf" -> readWithBrackets(type) {
                 obj.readAABBf(
                     name, AABBf()
@@ -931,7 +992,7 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
         return instance
     }
 
-    inline fun readWithBrackets(name: String, run: () -> Unit) {
+    private inline fun readWithBrackets(name: String, run: () -> Unit) {
         assert(skipSpace(), '[', name)
         run()
         assert(skipSpace(), ']', name)
@@ -991,6 +1052,16 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
         private val vector2i0 = Vector2i()
         private val vector3i0 = Vector3i()
         private val vector4i0 = Vector4i()
+        private val matrix2x2 = Matrix2f()
+        private val matrix3x2 = Matrix3x2f()
+        private val matrix3x3 = Matrix3f()
+        private val matrix4x3 = Matrix4x3f()
+        private val matrix4x4 = Matrix4f()
+        private val matrix2x2d = Matrix2d()
+        private val matrix3x2d = Matrix3x2d()
+        private val matrix3x3d = Matrix3d()
+        private val matrix4x3d = Matrix4x3d()
+        private val matrix4x4d = Matrix4d()
         private val vector2f0a = emptyArray<Vector2f>()
         private val vector3f0a = emptyArray<Vector3f>()
         private val vector4f0a = emptyArray<Vector4f>()
@@ -1007,7 +1078,7 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
 
 }
 
-fun main() {// testing the number parser
+/*fun main() {// testing the number parser
     val tr = TextReader("[4,0xff,077,#a,0110]", InvalidRef)
     println(tr.readLongArray().joinToString { it.toUInt().toString(16) })
-}
+}*/

@@ -16,7 +16,7 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
     private var hasObject = false
     private var usedPointers: HashSet<ISaveable>? = null
 
-    private val tmp16 = FloatArray(16)
+    private val tmp16f = FloatArray(16)
     private val tmp16d = DoubleArray(16)
 
     abstract fun append(v: Char)
@@ -755,17 +755,8 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
 
     }
 
-    override fun writeMatrix3x2f(name: String, value: Matrix3x2fc, force: Boolean) {
-        TODO("Not yet implemented")
-    }
-
-    override fun writeMatrix3x2d(name: String, value: Matrix3x2dc, force: Boolean) {
-        TODO("Not yet implemented")
-    }
-
-    override fun writeMatrix3x3f(name: String, value: Matrix3fc, force: Boolean) {
-        writeAttributeStart("m3x3", name)
-        val tmp = tmp16
+    private fun writeMatrix(value: Matrix3fc) {
+        val tmp = tmp16f
         value.get(tmp)
         append('[')
         clamp3x3Relative(tmp)
@@ -776,9 +767,8 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         append(']')
     }
 
-    override fun writeMatrix4x3f(name: String, value: Matrix4x3fc, force: Boolean) {
-        writeAttributeStart("m4x3", name)
-        val tmp = tmp16
+    private fun writeMatrix(value: Matrix4x3fc) {
+        val tmp = tmp16f
         value.get(tmp) // col major
         clamp4x3Relative(tmp)
         append('[')
@@ -789,8 +779,220 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         append(']')
     }
 
+    private fun writeMatrix(value: Matrix4fc) {
+        val tmp = tmp16f
+        value.get(tmp) // col major
+        clamp4x4Relative(tmp)
+        append('[')
+        for (i in 0 until 16 step 4) {
+            if (i > 0) append(',')
+            writeVector4f(tmp[i], tmp[i + 1], tmp[i + 2], tmp[i + 3])
+        }
+        append(']')
+    }
+
+    private fun writeMatrix(value: Matrix2fc) {
+        val tmp = tmp16f
+        value.get(tmp)
+        append('[')
+        clamp2x2Relative(tmp)
+        for (i in 0 until 4 step 2) {
+            if (i > 0) append(',')
+            writeVector2f(tmp[i], tmp[i + 1])
+        }
+        append(']')
+    }
+
+    private fun writeMatrix(value: Matrix3x2fc) {
+        val tmp = tmp16f
+        value.get(tmp)
+        append('[')
+        clamp3x2Relative(tmp)
+        for (i in 0 until 6 step 2) {
+            if (i > 0) append(',')
+            writeVector2f(tmp[i], tmp[i + 1])
+        }
+        append(']')
+    }
+
+    override fun writeMatrix2x2f(name: String, value: Matrix2fc, force: Boolean) {
+        writeAttributeStart("m2x2", name)
+        writeMatrix(value)
+    }
+
+    override fun writeMatrix3x2f(name: String, value: Matrix3x2fc, force: Boolean) {
+        writeAttributeStart("m3x2", name)
+        writeMatrix(value)
+    }
+
+    override fun writeMatrix3x3f(name: String, value: Matrix3fc, force: Boolean) {
+        writeAttributeStart("m3x3", name)
+        writeMatrix(value)
+    }
+
+    override fun writeMatrix4x3f(name: String, value: Matrix4x3fc, force: Boolean) {
+        writeAttributeStart("m4x3", name)
+        writeMatrix(value)
+    }
+
+    override fun writeMatrix2x2fArray(name: String, values: Array<Matrix2fc>, force: Boolean) =
+        writeArray(name, values, force, "m2x2[]") { writeMatrix(it) }
+
+    override fun writeMatrix3x2fArray(name: String, values: Array<Matrix3x2fc>, force: Boolean) =
+        writeArray(name, values, force, "m3x2[]") { writeMatrix(it) }
+
+    override fun writeMatrix3x3fArray(name: String, values: Array<Matrix3fc>, force: Boolean) =
+        writeArray(name, values, force, "m3x3[]") { writeMatrix(it) }
+
+    override fun writeMatrix4x3fArray(name: String, values: Array<Matrix4x3fc>, force: Boolean) =
+        writeArray(name, values, force, "m4x3[]") { writeMatrix(it) }
+
+    override fun writeMatrix4x4fArray(name: String, values: Array<Matrix4fc>, force: Boolean) =
+        writeArray(name, values, force, "m4x4[]") { writeMatrix(it) }
+
+    override fun writeMatrix4x4f(name: String, value: Matrix4fc, force: Boolean) {
+        writeAttributeStart("m4x4", name)
+        writeMatrix(value)
+    }
+
+    private fun writeMatrix(value: Matrix2dc) {
+        val tmp = tmp16d
+        value.get(tmp)
+        append('[')
+        clamp2x2Relative(tmp)
+        for (i in 0 until 4 step 2) {
+            if (i > 0) append(',')
+            writeVector3d(tmp[i], tmp[i + 1], tmp[i + 2])
+        }
+        append(']')
+    }
+
+    private fun writeMatrix(value: Matrix3x2dc) {
+        val tmp = tmp16d
+        value.get(tmp)
+        append('[')
+        clamp3x2Relative(tmp)
+        for (i in 0 until 6 step 2) {
+            if (i > 0) append(',')
+            writeVector3d(tmp[i], tmp[i + 1], tmp[i + 2])
+        }
+        append(']')
+    }
+
+    private fun writeMatrix(value: Matrix3dc) {
+        val tmp = tmp16d
+        value.get(tmp)
+        append('[')
+        clamp3x3Relative(tmp)
+        for (i in 0 until 9 step 3) {
+            if (i > 0) append(',')
+            writeVector3d(tmp[i], tmp[i + 1], tmp[i + 2])
+        }
+        append(']')
+    }
+
+    private fun writeMatrix(value: Matrix4x3dc) {
+        val tmp = tmp16d
+        value.get(tmp) // col major
+        clamp4x3Relative(tmp)
+        append('[')
+        for (i in 0 until 12 step 3) {
+            if (i > 0) append(',')
+            writeVector3d(tmp[i], tmp[i + 1], tmp[i + 2])
+        }
+        append(']')
+    }
+
+    private fun writeMatrix(value: Matrix4dc) {
+        val tmp = tmp16d
+        value.get(tmp) // col major
+        clamp4x4Relative(tmp)
+        append('[')
+        for (i in 0 until 16 step 4) {
+            if (i > 0) append(',')
+            writeVector4d(tmp[i], tmp[i + 1], tmp[i + 2], tmp[i + 3])
+        }
+        append(']')
+    }
+
+    override fun writeMatrix2x2d(name: String, value: Matrix2dc, force: Boolean) {
+        writeAttributeStart("m2x2d", name)
+        writeMatrix(value)
+    }
+
+    override fun writeMatrix3x2d(name: String, value: Matrix3x2dc, force: Boolean) {
+        writeAttributeStart("m3x2d", name)
+        writeMatrix(value)
+    }
+
+    override fun writeMatrix3x3d(name: String, value: Matrix3dc, force: Boolean) {
+        writeAttributeStart("m3x3d", name)
+        writeMatrix(value)
+    }
+
+    override fun writeMatrix4x3d(name: String, value: Matrix4x3dc, force: Boolean) {
+        writeAttributeStart("m4x3d", name)
+        writeMatrix(value)
+    }
+
+    override fun writeMatrix4x4d(name: String, value: Matrix4dc, force: Boolean) {
+        writeAttributeStart("m4x4d", name)
+        writeMatrix(value)
+    }
+
+    override fun writeMatrix2x2dArray(name: String, values: Array<Matrix2dc>, force: Boolean) =
+        writeArray(name, values, force, "m2x2d[]") { writeMatrix(it) }
+
+    override fun writeMatrix3x2dArray(name: String, values: Array<Matrix3x2dc>, force: Boolean) =
+        writeArray(name, values, force, "m3x2d[]") { writeMatrix(it) }
+
+    override fun writeMatrix3x3dArray(name: String, values: Array<Matrix3dc>, force: Boolean) =
+        writeArray(name, values, force, "m3x3d[]") { writeMatrix(it) }
+
+    override fun writeMatrix4x3dArray(name: String, values: Array<Matrix4x3dc>, force: Boolean) =
+        writeArray(name, values, force, "m4x3d[]") { writeMatrix(it) }
+
+    override fun writeMatrix4x4dArray(name: String, values: Array<Matrix4dc>, force: Boolean) =
+        writeArray(name, values, force, "m4x4d[]") { writeMatrix(it) }
+
+    // clamp values, which are 1e-7 below the scale -> won't impact anything, and saves space
+    private fun clamp2x2Relative(tmp: FloatArray, scale: Float = 1e-7f) {
+        val sx = absMax(tmp[0], tmp[2]) * scale
+        val sy = absMax(tmp[1], tmp[3]) * scale
+        for (i in 0 until 4 step 2) {
+            if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0f
+            if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0f
+        }
+    }
+
+    private fun clamp3x2Relative(tmp: FloatArray, scale: Float = 1e-7f) {
+        val sx = absMax(tmp[0], tmp[2]) * scale
+        val sy = absMax(tmp[1], tmp[3]) * scale
+        for (i in 0 until 6 step 2) {
+            if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0f
+            if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0f
+        }
+    }
+
+    private fun clamp2x2Relative(tmp: DoubleArray, scale: Double = 1e-7) {
+        val sx = absMax(tmp[0], tmp[2]) * scale
+        val sy = absMax(tmp[1], tmp[3]) * scale
+        for (i in 0 until 4 step 2) {
+            if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0.0
+            if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0.0
+        }
+    }
+
+    private fun clamp3x2Relative(tmp: DoubleArray, scale: Double = 1e-7) {
+        val sx = absMax(tmp[0], tmp[2]) * scale
+        val sy = absMax(tmp[1], tmp[3]) * scale
+        for (i in 0 until 6 step 2) {
+            if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0.0
+            if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0.0
+        }
+    }
+
     private fun clamp3x3Relative(tmp: FloatArray, scale: Float = 1e-7f) {
-        // clamp values, which are 1e-7 below the scale -> won't impact anything, and saves space
         val sx = absMax(tmp[0], tmp[3], tmp[6]) * scale
         val sy = absMax(tmp[1], tmp[4], tmp[7]) * scale
         val sz = absMax(tmp[2], tmp[5], tmp[8]) * scale
@@ -802,7 +1004,6 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     private fun clamp3x3Relative(tmp: DoubleArray, scale: Double = 1e-7) {
-        // clamp values, which are 1e-7 below the scale -> won't impact anything, and saves space
         val sx = absMax(tmp[0], tmp[3], tmp[6]) * scale
         val sy = absMax(tmp[1], tmp[4], tmp[7]) * scale
         val sz = absMax(tmp[2], tmp[5], tmp[8]) * scale
@@ -814,7 +1015,6 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     private fun clamp4x3Relative(tmp: FloatArray, scale: Float = 1e-7f) {
-        // clamp values, which are 1e-7 below the scale -> won't impact anything, and saves space
         val sx = absMax(tmp[0], tmp[3], tmp[6], tmp[9]) * scale
         val sy = absMax(tmp[1], tmp[4], tmp[7], tmp[10]) * scale
         val sz = absMax(tmp[2], tmp[5], tmp[8], tmp[11]) * scale
@@ -826,7 +1026,6 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     private fun clamp4x3Relative(tmp: DoubleArray, scale: Double = 1e-7) {
-        // clamp values, which are 1e-7 below the scale -> won't impact anything, and saves space
         val sx = absMax(tmp[0], tmp[3], tmp[6], tmp[9]) * scale
         val sy = absMax(tmp[1], tmp[4], tmp[7], tmp[10]) * scale
         val sz = absMax(tmp[2], tmp[5], tmp[8], tmp[11]) * scale
@@ -838,7 +1037,6 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     private fun clamp4x4Relative(tmp: FloatArray, scale: Float = 1e-7f) {
-        // clamp values, which are 1e-7 below the scale -> won't impact anything, and saves space
         val sx = absMax(tmp[0], tmp[4], tmp[8], tmp[12]) * scale
         val sy = absMax(tmp[1], tmp[5], tmp[9], tmp[13]) * scale
         val sz = absMax(tmp[2], tmp[6], tmp[10], tmp[14]) * scale
@@ -852,7 +1050,6 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     private fun clamp4x4Relative(tmp: DoubleArray, scale: Double = 1e-7) {
-        // clamp values, which are 1e-7 below the scale -> won't impact anything, and saves space
         val sx = absMax(tmp[0], tmp[4], tmp[8], tmp[12]) * scale
         val sy = absMax(tmp[1], tmp[5], tmp[9], tmp[13]) * scale
         val sz = absMax(tmp[2], tmp[6], tmp[10], tmp[14]) * scale
@@ -863,58 +1060,6 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
             if (abs(tmp[i + 2]) < sz) tmp[i + 2] = 0.0
             if (abs(tmp[i + 3]) < sw) tmp[i + 3] = 0.0
         }
-    }
-
-    override fun writeMatrix4x4f(name: String, value: Matrix4fc, force: Boolean) {
-        writeAttributeStart("m4x4", name)
-        val tmp = tmp16
-        value.get(tmp) // col major
-        clamp4x4Relative(tmp)
-        append('[')
-        for (i in 0 until 16 step 4) {
-            if (i > 0) append(',')
-            writeVector4f(tmp[i], tmp[i + 1], tmp[i + 2], tmp[i + 3])
-        }
-        append(']')
-    }
-
-    override fun writeMatrix3x3d(name: String, value: Matrix3dc, force: Boolean) {
-        writeAttributeStart("m3x3d", name)
-        val tmp = tmp16d
-        value.get(tmp)
-        append('[')
-        clamp3x3Relative(tmp)
-        for (i in 0 until 9 step 3) {
-            if (i > 0) append(',')
-            writeVector3d(tmp[i], tmp[i + 1], tmp[i + 2])
-        }
-        append(']')
-    }
-
-    override fun writeMatrix4x3d(name: String, value: Matrix4x3dc, force: Boolean) {
-        writeAttributeStart("m4x3d", name)
-        val tmp = tmp16d
-        value.get(tmp) // col major
-        clamp4x3Relative(tmp)
-        append('[')
-        for (i in 0 until 12 step 3) {
-            if (i > 0) append(',')
-            writeVector3d(tmp[i], tmp[i + 1], tmp[i + 2])
-        }
-        append(']')
-    }
-
-    override fun writeMatrix4x4d(name: String, value: Matrix4dc, force: Boolean) {
-        writeAttributeStart("m4x4d", name)
-        val tmp = tmp16d
-        value.get(tmp) // col major
-        clamp4x4Relative(tmp)
-        append('[')
-        for (i in 0 until 16 step 4) {
-            if (i > 0) append(',')
-            writeVector4d(tmp[i], tmp[i + 1], tmp[i + 2], tmp[i + 3])
-        }
-        append(']')
     }
 
     override fun writeAABBf(name: String, value: AABBf, force: Boolean) {

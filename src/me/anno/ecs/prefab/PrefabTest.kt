@@ -54,8 +54,8 @@ fun test1() {
 
     val child = prefab.add(Path.ROOT_PATH, 'e', "Entity", "SomeChild", basePrefabFile)
     val rigidbody = prefab.add(child, 'c', "Rigidbody")
-    prefab.set(rigidbody, "overrideGravity", true)
-    prefab.set(rigidbody, "gravity", Vector3d())
+    prefab[rigidbody, "overrideGravity"] = true
+    prefab[rigidbody, "gravity"] = Vector3d()
 
     println(prefab.getSampleInstance()) // shall have two mesh components
 
@@ -73,8 +73,8 @@ fun test2() {
     val prefab = Prefab("Entity")
     val child = prefab.add(Path.ROOT_PATH, 'e', "Entity")
     val rigid = prefab.add(child, 'c', "Rigidbody")
-    prefab.set(rigid, "overrideGravity", true)
-    prefab.set(rigid, "gravity", Vector3d())
+    prefab[rigid, "overrideGravity"] = true
+    prefab[rigid, "gravity"] = Vector3d()
 
     val text = TextWriter.toText(prefab, InvalidRef)
     println(JsonFormatter.format(text))
