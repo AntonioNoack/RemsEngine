@@ -111,6 +111,30 @@ class SimpleBuffer(val vertices: Array<Vector2f>, name: String) : StaticBuffer(
             return idx
         }
 
+        val flat11x3 = StaticBuffer(
+            splitVertices(3, -1f, +1f),
+            splitIndices(3),
+            listOf(Attribute("attr0", 2))
+        )
+
+        val flat11x6 = StaticBuffer(
+            splitVertices(6, -1f, +1f),
+            splitIndices(6),
+            listOf(Attribute("attr0", 2))
+        )
+
+        val flat11x12 = StaticBuffer(
+            splitVertices(12, -1f, +1f),
+            splitIndices(12),
+            listOf(Attribute("attr0", 2))
+        )
+
+        val flat11x25 = StaticBuffer(
+            splitVertices(25, -1f, +1f),
+            splitIndices(25),
+            listOf(Attribute("attr0", 2))
+        )
+
         val flat11x50 = StaticBuffer(
             splitVertices(50, -1f, +1f),
             splitIndices(50),

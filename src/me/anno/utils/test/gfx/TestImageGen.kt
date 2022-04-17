@@ -62,7 +62,7 @@ fun testAssimpMeshFrame(file: FileReference) {
 fun testEntityMeshFrame(file: FileReference) {
     init()
     if (!file.exists) throw FileNotFoundException("$file does not exist")
-    val entity = PrefabCache.getPrefabInstance(file, null) as Entity
+    val entity = PrefabCache.getPrefabInstance(file) as Entity
     generateEntityFrame(file, file.dst(), size, entity) {}
 }
 

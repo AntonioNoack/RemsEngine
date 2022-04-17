@@ -119,7 +119,8 @@ class WebRef(url: String, args: Map<Any?, Any?>) :
 
         fun formatAccessURL(url: String, args: Map<Any?, Any?>): String {
             if ('#' in url) return formatAccessURL(url.substring(0, url.indexOf('#')), args)
-            return url + (if ('?' in url) "&" else "?") + args.entries.joinToString("&") { entry ->
+            return if (args.isEmpty()) url
+            else url + (if ('?' in url) "&" else "?") + args.entries.joinToString("&") { entry ->
                 val (key, value) = entry
                 val key2 = encodeURIComponent(key.toString())
                 val val2 = encodeURIComponent(value.toString())

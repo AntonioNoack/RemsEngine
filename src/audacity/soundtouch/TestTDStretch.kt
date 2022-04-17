@@ -1,5 +1,6 @@
 package audacity.soundtouch
 
+import me.anno.maths.Maths.PIf
 import org.apache.logging.log4j.LogManager
 import kotlin.math.cos
 
@@ -17,7 +18,7 @@ fun main() {
 
     val size = 9000
     val input = FloatArray(size) {
-        cos(it * 0.1f * 3.1416f)
+        cos(it * 0.1f * PIf)
     }
 
     val backend = stretch.outputBuffer.backend

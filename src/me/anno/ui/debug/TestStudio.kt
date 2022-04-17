@@ -15,7 +15,6 @@ class TestStudio(val createMainPanel: () -> List<Panel>) : StudioBase(true, "Tes
 
     override fun createUI() {
         val ui = PanelListY(style)
-        // todo somehow missing in layout for UnityReader
         ui.add(ConsoleOutputPanel.createConsoleWithStats(false, style))
         for (panel in createMainPanel()) {
             ui.add(panel)

@@ -209,7 +209,7 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
     }
 
     private fun testHits() {
-        val world = library.world
+        val world = view.getWorld()
         if (world !is Entity) return
         world.validateMasks()
         world.validateAABBs()

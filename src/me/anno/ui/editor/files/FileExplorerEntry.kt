@@ -671,9 +671,9 @@ class FileExplorerEntry(
 
     override fun onCopyRequested(x: Float, y: Float): String? {
         val files = if (isInFocus) {// multiple files maybe
-            siblings.filterIsInstance<FileExplorerEntry>().map {
-                getReferenceOrTimeout(it.path)
-            }
+            siblings.filterIsInstance<FileExplorerEntry>()
+                .filter { it.isInFocus }
+                .map { getReferenceOrTimeout(it.path) }
         } else listOf(getReferenceOrTimeout(path))
         Input.copyFiles(files)
         return null

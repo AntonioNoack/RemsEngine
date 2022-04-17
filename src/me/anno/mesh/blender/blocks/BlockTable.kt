@@ -1,17 +1,15 @@
 package me.anno.mesh.blender.blocks
 
 import me.anno.mesh.blender.BlenderFile
-import org.apache.logging.log4j.LogManager
 import java.io.IOException
 
 class BlockTable(val file: BlenderFile, val blocks: Array<Block>?, offHeapStructs: IntArray?) {
 
+    constructor(file: BlenderFile) : this(file, null, null)
+
     companion object {
-        private val LOGGER = LogManager.getLogger(BlockTable::class)
         private const val HEAPBASE = 4096L
     }
-
-    constructor(file: BlenderFile) : this(file, null, null)
 
     val sorted = blocks?.sortedBy { it.header.address }?.toMutableList() ?: ArrayList()
     val blockList = blocks?.toMutableList() ?: ArrayList()
@@ -43,24 +41,6 @@ class BlockTable(val file: BlenderFile, val blocks: Array<Block>?, offHeapStruct
         if (sorted.isNotEmpty()) {
             val first = sorted.first()
             if (first.header.address <= HEAPBASE) throw IllegalStateException()
-        }
-    }
-
-    fun checkBlockOverlaps() {
-        // O(n)
-        for (i in 0 until sorted.size) {
-            val bi = this.sorted[i]
-            val endAddress = bi.header.address + bi.header.size
-            for (j in i + 1 until sorted.size) {
-                val bj = this.sorted[j]
-                if (bj.header.address < endAddress) {
-                    LOGGER.warn(
-                        "Blocks $i and $j are overlapping: " +
-                                "${bi.header.address} += ${bi.header.size} and ${bj.header.address} += ${bj.header.size}, " +
-                                "type 0: ${bi.getTypeName(file)}, type 1: ${bj.getTypeName(file)}"
-                    )
-                } else break
-            }
         }
     }
 

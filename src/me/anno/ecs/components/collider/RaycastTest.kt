@@ -2,6 +2,7 @@ package me.anno.ecs.components.collider
 
 import me.anno.image.ImageWriter
 import me.anno.utils.LOGGER
+import me.anno.utils.types.Floats.toRadians
 import org.joml.Quaternionf
 import org.joml.Vector3f
 
@@ -27,10 +28,10 @@ fun renderCollider(b: Collider, name: String = b.name.ifBlank { b.className }) {
     LOGGER.info("Rendering $name")
     val heavy = name == "Monkey"
     val dir = Quaternionf()
-        .rotateY(30 * 3.14f / 180)
+        .rotateY(30f.toRadians())
     val w = if (heavy) 256 else 1024
     val h = if (heavy) 256 else 1024
-    val fov = 90 * 3.14f / 180
+    val fov = 90f.toRadians()
     val fovY = fov / h
     val start = Vector3f(0f, 0f, 1f)
         .rotate(dir)

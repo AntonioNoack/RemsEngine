@@ -32,6 +32,7 @@ object Menu {
     var paddingY = 10
 
     const val menuSeparator = "-----"
+    // used in Rem's Studio, maybe should be moved there
     val menuSeparator1 = MenuOption(NameDesc(menuSeparator, "", "")) {}
 
     fun msg(windowStack: WindowStack, title: NameDesc) {

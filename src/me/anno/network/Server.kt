@@ -2,9 +2,11 @@ package me.anno.network
 
 import me.anno.Engine
 import me.anno.utils.Color.hex32
+import me.anno.utils.structures.lists.UnsafeArrayList
 import org.apache.logging.log4j.LogManager
 import java.io.*
 import java.net.*
+import javax.net.ssl.SSLServerSocketFactory
 import kotlin.concurrent.thread
 import kotlin.random.Random
 
@@ -16,6 +18,9 @@ import kotlin.random.Random
 // done support TCP and UDP packets
 
 // todo there should be lobbies, where players are assigned to other servers, with seamless transfers...
+// todo ssl encryption
+// todo be safe against malicious attacks
+// done: e.g. players might block data transfer by not reading
 
 /**
  * This is a server-client architecture for many use-cases.
@@ -28,6 +33,8 @@ open class Server : Closeable {
     var name = ""
     var motd = ""
 
+    var timeoutMillis = 3000
+
     var tcpPort = -1
     var udpPort = -1
 
@@ -35,9 +42,9 @@ open class Server : Closeable {
 
     val nextRandomId = Random(System.nanoTime() xor System.currentTimeMillis())
 
-    val clients = HashSet<TCPClient>(1024)
+    val clients = UnsafeArrayList<TCPClient>(1024)
 
-    val clients2 = Array<ArrayList<TCPClient>>(512) { ArrayList() }
+    val hashedClients = Array<ArrayList<TCPClient>>(512) { ArrayList() }
 
     val protocols = HashMap<Int, Protocol>()
 
@@ -57,12 +64,13 @@ open class Server : Closeable {
             udpSocket = null
         }
         synchronized(clients) {
-            for (client in clients) {
+            for (index in clients.indices) {
+                val client = clients[index]
                 client.close()
             }
             clients.clear()
         }
-        for (list in clients2) {
+        for (list in hashedClients) {
             synchronized(list) {
                 for (c in list) c.close()
                 list.clear()
@@ -74,8 +82,13 @@ open class Server : Closeable {
      * will throw IOException if TCP/UDP port is already in use
      * */
     fun start(tcpPort: Int, udpPort: Int, closeTCPIfUDPFails: Boolean = true) {
-        if (tcpPort in 0..0xffff && protocols.any { it.value.networkProtocol == NetworkProtocol.TCP }) {
-            val socket = ServerSocket(tcpPort)
+        if (tcpPort in 0..0xffff && protocols.any {
+                val v = it.value.networkProtocol
+                v == NetworkProtocol.TCP || v == NetworkProtocol.TCP_SSL
+            }) {
+            val socket = if (protocols.any { it.value.networkProtocol == NetworkProtocol.TCP_SSL })
+                SSLServerSocketFactory.getDefault().createServerSocket(tcpPort) else ServerSocket(tcpPort)
+            socket.soTimeout = timeoutMillis
             synchronized(this) {
                 tcpSocket?.close()
                 tcpSocket = socket
@@ -113,8 +126,8 @@ open class Server : Closeable {
 
     val run get() = !shutdown && !Engine.shutdown
 
-    open fun createClient(clientSocket: Socket, randomId: Int): TCPClient {
-        return TCPClient(clientSocket, randomId)
+    open fun createClient(clientSocket: Socket, protocol: Protocol, randomId: Int): TCPClient {
+        return TCPClient(clientSocket, protocol, randomId)
     }
 
     var usedIds = HashSet<Int>()
@@ -143,7 +156,11 @@ open class Server : Closeable {
     private fun runTCP(socket: ServerSocket) {
         try {
             while (run) {
-                val clientSocket = socket.accept()
+                val clientSocket = try {
+                    socket.accept()
+                } catch (e: SocketTimeoutException) {
+                    continue
+                }
                 if (acceptsIP(clientSocket.inetAddress, clientSocket.port)) {
                     thread(name = "Client ${clientSocket.inetAddress}:${clientSocket.port}") {
                         var tcpClient2: TCPClient? = null
@@ -154,7 +171,7 @@ open class Server : Closeable {
                             if (protocol != null) {
                                 val randomId = createRandomId()
                                 try {
-                                    val tcpClient = createClient(clientSocket, randomId)
+                                    val tcpClient = createClient(clientSocket, protocol, randomId)
                                     if (protocol.serverHandshake(this, tcpClient, magic)) {
                                         addClient(tcpClient)
                                         tcpClient2 = tcpClient
@@ -246,14 +263,17 @@ open class Server : Closeable {
         }
     }
 
+    fun hash(client: TCPClient): Int = client.randomId and (hashedClients.size - 1)
+    fun hash(randomId: Int): Int = randomId and (hashedClients.size - 1)
+
     fun addClient(client: TCPClient) {
-        val cl = clients2[client.randomId and (clients2.size - 1)]
+        val cl = hashedClients[hash(client)]
         synchronized(cl) { cl.add(client) }
         synchronized(clients) { clients.add(client) }
     }
 
     fun removeClient(client: TCPClient) {
-        val cl = clients2[client.randomId and (clients2.size - 1)]
+        val cl = hashedClients[hash(client)]
         synchronized(cl) { cl.remove(client) }
         synchronized(clients) { clients.remove(client) }
     }
@@ -263,7 +283,7 @@ open class Server : Closeable {
     }
 
     private fun findTcpClient(address: InetAddress, randomId: Int): TCPClient? {
-        val clients = clients2[randomId and (clients2.size - 1)]
+        val clients = hashedClients[hash(randomId)]
         synchronized(clients) {
             for (c in clients) {
                 if (c.socket.inetAddress == address) {
@@ -274,11 +294,36 @@ open class Server : Closeable {
         return null
     }
 
-    fun broadcast(packet: Packet) {
-        synchronized(clients) {
-            for (client in clients) {
-                client.sendTCP(this, packet)
+    inline fun forAllClients(run: (TCPClient) -> Unit) {
+        val clients = clients
+        var size = clients.size
+        var index = 0
+        while (index < size) {
+            val client = clients.getSafe(index)
+            if (client != null) {
+                try {
+                    run(client)
+                } catch (e: IOException) {
+                    removeClient(client)
+                    client.close()
+                    index--
+                    size--
+                }
             }
+            index++
+        }
+    }
+
+    inline fun forAllClientsSync(run: (TCPClient) -> Unit) {
+        val clients = clients
+        synchronized(clients) {
+            forAllClients(run)
+        }
+    }
+
+    fun broadcast(packet: Packet) {
+        forAllClients {
+            it.sendTCP(packet)
         }
     }
 

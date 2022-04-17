@@ -1004,7 +1004,7 @@ object ComponentUI {
                     }
                 }
 
-                LOGGER.warn("Missing knowledge to edit $type0, $title")
+                LOGGER.warn("Missing knowledge to edit $type0, '$title'")
 
                 return TextPanel("?? $title : ${value?.javaClass?.simpleName}, type $type0", style)
             }

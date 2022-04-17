@@ -9,16 +9,18 @@ import me.anno.utils.types.Vectors.findSystem
 import me.anno.utils.types.Vectors.setAxis
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.cos
 import kotlin.math.sin
 
 object LineShapes {
 
-    private val guiPositionsTmp = Array(16) { Vector3d() }
+    private val tmpVec3f = Array(16) { Vector3f() }
+    private val tmpVec3d = Array(16) { Vector3d() }
 
-    val zToX = Matrix4x3d()
+    val zToX: Matrix4x3d = Matrix4x3d()
         .rotateY(Math.PI / 2)
-    val zToY = Matrix4x3d()
+    val zToY: Matrix4x3d = Matrix4x3d()
         .rotateX(Math.PI / 2)
 
     fun drawCone(
@@ -33,7 +35,7 @@ object LineShapes {
 
         // from +z to -z
 
-        val positions = guiPositionsTmp
+        val positions = tmpVec3d
         positions[0].set(+widthX, +widthY, tipZ)
         positions[1].set(+widthX, -widthY, tipZ)
         positions[2].set(-widthX, -widthY, tipZ)
@@ -60,7 +62,7 @@ object LineShapes {
 
     fun drawArrowZ(from: Vector3d, to: Vector3d, color: Int = Collider.guiLineColor) {
 
-        val positions = guiPositionsTmp
+        val positions = tmpVec3d
         positions[0].set(from)
         positions[1].set(to)
 
@@ -101,7 +103,7 @@ object LineShapes {
         val x = (z1 - z0) * 0.15
         val z = 2.0 * x + z1
 
-        val positions = guiPositionsTmp
+        val positions = tmpVec3d
         positions[0].set(0.0, 0.0, z0)
         positions[1].set(0.0, 0.0, z1)
         positions[2].set(+x, +x, z)
@@ -134,7 +136,7 @@ object LineShapes {
         // iterate over all lines:
         // all bits that can flip
         val transform = getDrawMatrix(entity)
-        val positions = guiPositionsTmp
+        val positions = tmpVec3d
         positions[0].set(-1.0, 0.0, 0.0)
         positions[1].set(+1.0, 0.0, 0.0)
         positions[2].set(0.0, -1.0, 0.0)
@@ -163,7 +165,7 @@ object LineShapes {
         // iterate over all lines:
         // all bits that can flip
         val transform = getDrawMatrix(entity)
-        val positions = guiPositionsTmp
+        val positions = tmpVec3d
         for (i in 0 until 8) {
             val position = positions[i]
             position.set(
@@ -191,7 +193,7 @@ object LineShapes {
         // iterate over all lines:
         // all bits that can flip
         val transform = getDrawMatrix(entity)
-        val positions = guiPositionsTmp
+        val positions = tmpVec3d
         for (i in 0 until 4) {
             val position = positions[i]
             position.set(
@@ -213,7 +215,7 @@ object LineShapes {
         // iterate over all lines:
         // all bits that can flip
         val transform = getDrawMatrix(entity)
-        val positions = guiPositionsTmp
+        val positions = tmpVec3d
         positions[0].set(-1.0, 0.0, 0.0)
         positions[1].set(+1.0, 0.0, 0.0)
         positions[2].set(0.0, -1.0, 0.0)
@@ -241,7 +243,7 @@ object LineShapes {
         color: Int = Collider.guiLineColor
     ) {
         val transform = getDrawMatrix(entity)
-        val positions = guiPositionsTmp
+        val positions = tmpVec3d
         val p0 = positions[0]
         val p1 = positions[1]
         p0.set(x0, y0, z0)
@@ -265,13 +267,37 @@ object LineShapes {
     }
 
     fun drawLine(
+        x0: Float, y0: Float, z0: Float,
+        x1: Float, y1: Float, z1: Float,
+        color: Int = Collider.guiLineColor
+    ) {
+        val positions = tmpVec3f
+        val p0 = positions[0]
+        val p1 = positions[1]
+        p0.set(x0, y0, z0)
+        p1.set(x1, y1, z1)
+        val pi = positions[2]
+        val pj = positions[3]
+        pi.set(p0)
+        // split the line in pieces for less flickering
+        // alternatively, we could apply the transform with doubles, and clip in view-space on the cpu side
+        // the most important thing with splitting is that the number is even, so the center is on the true center
+        val pieces = 16
+        for (i in 0 until pieces) {
+            p0.lerp(p1, (i + 1f) / pieces, pj)
+            putRelativeLine(pi, pj, color)
+            pi.set(pj)
+        }
+    }
+
+    fun drawLine(
         entity: Entity?,
         p0: javax.vecmath.Vector3d,
         p1: javax.vecmath.Vector3d,
         color: Int = Collider.guiLineColor
     ) {
         val transform = getDrawMatrix(entity)
-        val positions = guiPositionsTmp
+        val positions = tmpVec3d
         positions[0].set(p0.x, p0.y, p0.z)
         positions[1].set(p1.x, p1.y, p1.z)
         if (transform != null) {
@@ -304,9 +330,9 @@ object LineShapes {
     ) {
         val segments = 11
         val transform = getDrawMatrix(entity)
-        val positions = guiPositionsTmp
+        val positions = tmpVec3d
         for (i in 0 until segments) {
-            val angle = i * 6.2830 / segments
+            val angle = i * Math.PI * 2.0 / segments
             val position = positions[i]
             position.set(otherAxis)
             position.setAxis(cosAxis, cos(angle) * radius)

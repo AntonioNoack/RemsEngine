@@ -4,10 +4,12 @@ import me.anno.config.DefaultConfig
 import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.interfaces.CustomEditMode
 import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.language.translation.Dict
 import me.anno.studio.Inspectable
 import me.anno.ui.Panel
@@ -22,8 +24,8 @@ object EditorState {
     lateinit var syncMaster: SyncMaster
     var isGaming = false
 
-    var prefab: Prefab? = null
-    var world: PrefabSaveable? = null
+    var prefabSource: FileReference = InvalidRef
+    val prefab get() = PrefabCache.getPrefab(prefabSource)
 
     // todo box selecting with shift
 

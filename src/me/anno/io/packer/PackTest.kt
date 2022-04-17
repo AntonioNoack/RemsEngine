@@ -1,28 +1,31 @@
 package me.anno.io.packer
 
-import me.anno.utils.LOGGER
+import me.anno.io.files.FileReference
 import me.anno.utils.OS
+import org.apache.logging.log4j.LogManager
 
 fun main() {
 
-    LOGGER.info("Start")
+    val logger = LogManager.getLogger("PackTest")
+
+    logger.info("Start")
 
     val resources = listOf(
-        OS.downloads.getChild("warning.png"),
+        OS.pictures.getChild("fav128.png"),
         OS.documents.getChild("sphere.obj"),
-        OS.downloads.getChild("vampire.zip/dancing_vampire.dae"),
-        // todo test online (http/https) resources, when we support them
+        OS.downloads.getChild("3d/vampire.zip/dancing_vampire.dae"),
+        FileReference.getReference("http://phychi.com/img/fav16.png")
         // todo ftp/sftp resources?
     )
 
     val dst = OS.downloads.getChild("packingTest.zip")
     val map = Packer.packWithReporting(resources, true, dst, true, 500)
     for ((key, value) in map) {
-        LOGGER.info("$value: $key")
+        logger.info("$value: $key")
     }
 
-    LOGGER.info(dst.listChildren())
+    logger.info(dst.listChildren())
 
-    LOGGER.info("End")
+    logger.info("End")
 
 }

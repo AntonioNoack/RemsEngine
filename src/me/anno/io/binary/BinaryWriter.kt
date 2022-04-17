@@ -60,6 +60,9 @@ import me.anno.io.binary.BinaryTypes.QUATERNION32
 import me.anno.io.binary.BinaryTypes.QUATERNION32_ARRAY
 import me.anno.io.binary.BinaryTypes.QUATERNION32_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.QUATERNION64
+import me.anno.io.binary.BinaryTypes.QUATERNION64_ARRAY
+import me.anno.io.binary.BinaryTypes.QUATERNION64_ARRAY_2D
+import me.anno.io.binary.BinaryTypes.SHORT
 import me.anno.io.binary.BinaryTypes.SHORT_ARRAY
 import me.anno.io.binary.BinaryTypes.SHORT_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.STRING
@@ -148,10 +151,6 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    private fun writeAttributeStart(name: String, type: Char) {
-        writeAttributeStart(name, type.code)
-    }
-
     override fun writeBoolean(name: String, value: Boolean, force: Boolean) {
         if (force || value) {
             writeAttributeStart(name, BOOL)
@@ -233,7 +232,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
 
     override fun writeShort(name: String, value: Short, force: Boolean) {
         if (force || value != 0.toShort()) {
-            writeAttributeStart(name, 's')
+            writeAttributeStart(name, SHORT)
             output.writeShort(value.toInt())
         }
     }
@@ -601,6 +600,21 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
 
     override fun writeQuaternionfArray2D(name: String, values: Array<Array<Quaternionf>>, force: Boolean) {
         writeAttributeStart(name, QUATERNION32_ARRAY_2D)
+        output.writeInt(values.size)
+        for (i in values.indices) {
+            val values2 = values[i]
+            output.writeInt(values2.size)
+            for (j in values2.indices) {
+                writeQuaternion(values2[j])
+            }
+        }
+    }
+
+    override fun writeQuaterniondArray(name: String, values: Array<Quaterniond>, force: Boolean) =
+        writeGenericArray(name, values, force, QUATERNION64_ARRAY) { writeQuaternion(it) }
+
+    override fun writeQuaterniondArray2D(name: String, values: Array<Array<Quaterniond>>, force: Boolean) {
+        writeAttributeStart(name, QUATERNION64_ARRAY_2D)
         output.writeInt(values.size)
         for (i in values.indices) {
             val values2 = values[i]

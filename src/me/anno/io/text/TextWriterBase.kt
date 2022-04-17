@@ -525,6 +525,18 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
+    override fun writeQuaterniondArray(name: String, values: Array<Quaterniond>, force: Boolean) {
+        writeArray(name, values, force, "q4d[]") { writeQuaternion(it) }
+    }
+
+    override fun writeQuaterniondArray2D(name: String, values: Array<Array<Quaterniond>>, force: Boolean) {
+        writeArray(name, values, force, "q4d[][]") { qs ->
+            writeArray(qs.size, qs.size) {
+                writeQuaternion(qs[it])
+            }
+        }
+    }
+
     private fun writeVector2d(value: Vector2dc) {
         writeVector2d(value.x(), value.y())
     }

@@ -48,11 +48,20 @@ object Floats {
         put(v.w())
     }
 
-    private val piF180 = (PI / 180).toFloat()
-    private val x180fPi = (180 / PI).toFloat()
+    private const val piF180 = (PI / 180).toFloat()
+    private const val x180fPi = (180 / PI).toFloat()
+
+    private const val piF180v2 = PI / 180.0
+    private const val x180fPiv2 = 180.0 / PI
+
+    fun Int.toDegrees() = this * x180fPi
+    fun Int.toRadians() = this * piF180
 
     fun Float.toDegrees() = this * x180fPi
     fun Float.toRadians() = this * piF180
+
+    fun Double.toDegrees() = this * x180fPiv2
+    fun Double.toRadians() = this * piF180v2
 
     fun Float.f6() = "%.6f".format(Locale.ENGLISH, this)
     fun Float.f5() = "%.5f".format(Locale.ENGLISH, this)

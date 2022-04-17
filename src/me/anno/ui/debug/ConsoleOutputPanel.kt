@@ -60,7 +60,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             }
             val lcl = Logging.lastConsoleLines
             for (i in lcl.lastIndex downTo 0) {
-                val msg = lcl[i]
+                val msg = lcl.getOrNull(i) ?: continue
                 val panel = ConsoleOutputLine(list, msg, style)
                 val color = getTextColor(msg)
                 // todo if line contains file, then add a section for that

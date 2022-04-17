@@ -4,13 +4,10 @@ import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.builder.ShaderStage
 
 open class Renderer(
-
     val name: String,
     val isFakeColor: Boolean,
     val drawMode: ShaderPlus.DrawMode,
-    // null, if not deferred
-    val deferredSettings: DeferredSettingsV2? = null
-
+    val deferredSettings: DeferredSettingsV2? = null // null, if not deferred
 ) {
 
     open fun getPostProcessing(): ShaderStage? = null
@@ -35,15 +32,27 @@ open class Renderer(
     override fun toString(): String = name
 
     companion object {
+
         val colorRenderer = Renderer("color", false, ShaderPlus.DrawMode.COLOR, null)
         val colorSqRenderer = Renderer("colorSq", false, ShaderPlus.DrawMode.COLOR_SQUARED, null)
         val idRenderer = Renderer("id", true, ShaderPlus.DrawMode.ID, null)
+        // todo implement as post-processing to decrease extra shader complexity
         val idRendererVis = Renderer("idVis", true, ShaderPlus.DrawMode.ID_VIS, null)
+        // todo implement as post-processing to decrease extra shader complexity
         val depthRenderer01 = Renderer("depth01", true, ShaderPlus.DrawMode.DEPTH_LOG2_01, null)
+        // todo implement as post-processing to decrease extra shader complexity
         val depthRenderer = Renderer("depth", true, ShaderPlus.DrawMode.DEPTH_LOG2, null)
         val copyRenderer = Renderer("copy", false, ShaderPlus.DrawMode.COPY, null)
+        // todo implement as post-processing to decrease extra shader complexity
         val depthOnlyRenderer = Renderer("depthOnly", true, ShaderPlus.DrawMode.DEPTH_LOG2, null)
         val randomIdRenderer = Renderer("randomId", true, ShaderPlus.DrawMode.RANDOM_ID, null)
+
+        // color deficiency renderers
+        /*val grayscaleRenderer = Renderer("grayscale", true, ShaderPlus.DrawMode.COLOR, null)
+        val protanopiaRenderer = Renderer("protanopia", true, ShaderPlus.DrawMode.COLOR, null)
+        val deuteranopiaRenderer = Renderer("deuteranopia", true, ShaderPlus.DrawMode.COLOR, null)
+        val tritanopiaRenderer = Renderer("tritanopia", true, ShaderPlus.DrawMode.COLOR, null)*/
+
     }
 
 }

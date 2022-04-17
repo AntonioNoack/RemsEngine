@@ -12,10 +12,10 @@ import me.anno.gpu.drawing.GFXx3D.uploadAttractors0
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.shader3D
 import me.anno.gpu.texture.TextureLib.bindWhite
+import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.distance
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.pow
-import me.anno.maths.Maths.sq
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.types.Vectors.avg
 import me.anno.utils.types.Vectors.minus
@@ -51,21 +51,21 @@ object Grid {
 
         val x = sphereBuffer.vertexCount / 6
         for (i in 0 until x) {
-            val a0 = i * 6.2830f / x
+            val a0 = i * TAUf / x
             sphereBuffer.put(0f, cos(a0), sin(a0))
-            val a1 = (i + 1) * 6.2830f / x
+            val a1 = (i + 1) * TAUf / x
             sphereBuffer.put(0f, cos(a1), sin(a1))
         }
         for (i in 0 until x) {
-            val a0 = i * 6.2830f / x
+            val a0 = i * TAUf / x
             sphereBuffer.put(cos(a0), 0f, sin(a0))
-            val a1 = (i + 1) * 6.2830f / x
+            val a1 = (i + 1) * TAUf / x
             sphereBuffer.put(cos(a1), 0f, sin(a1))
         }
         for (i in 0 until x) {
-            val a0 = i * 6.2830f / x
+            val a0 = i * TAUf / x
             sphereBuffer.put(cos(a0), sin(a0), 0f)
-            val a1 = (i + 1) * 6.2830f / x
+            val a1 = (i + 1) * TAUf / x
             sphereBuffer.put(cos(a1), sin(a1), 0f)
         }
         sphereBuffer.drawMode = GL_LINES

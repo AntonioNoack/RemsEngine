@@ -9,6 +9,7 @@ import me.anno.utils.Sleep
 import me.anno.utils.hpc.ThreadLocal2
 import java.io.IOException
 import java.net.Socket
+import kotlin.concurrent.thread
 import kotlin.math.abs
 
 open class Protocol(val bigEndianMagic: Int, val networkProtocol: NetworkProtocol) {
@@ -98,6 +99,10 @@ open class Protocol(val bigEndianMagic: Int, val networkProtocol: NetworkProtoco
     }
 
     private fun defaultRun(server: Server?, client: TCPClient, shutdown: () -> Boolean) {
+        // start writing queue
+        thread(name = if (server == null) "[${client.name}]" else "S[${server.name}][${client.name}]") {
+            client.workPacketTasks(server)
+        }
         val dis = client.dis
         var lastTime = System.nanoTime()
         while (!Engine.shutdown && !shutdown() && !client.isClosed) {
@@ -118,7 +123,7 @@ open class Protocol(val bigEndianMagic: Int, val networkProtocol: NetworkProtoco
                 // send a ping to detect whether the server is still alive
                 // but don't send it too often
                 if (pingDelayMillis >= 0 && abs(time - lastTime) >= pingDelayMillis * MILLIS_TO_NANOS) {
-                    client.sendTCP(server, PingPacket())
+                    client.sendTCP(PingPacket())
                     lastTime = System.nanoTime()
                 } else {
                     Sleep.sleepShortly(false)

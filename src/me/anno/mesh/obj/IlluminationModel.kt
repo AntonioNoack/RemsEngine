@@ -4,7 +4,6 @@ package me.anno.mesh.obj
  * TR = transparency,
  * FR = fresnel, RT = ray tracing (not supported)
  * RF = refraction, GS = glass
- *
 
     0. Color on and Ambient off
     1. Color on and Ambient on
@@ -18,7 +17,6 @@ package me.anno.mesh.obj
     9. Transparency: Glass on, Reflection: Ray trace off
     10. Casts shadows onto invisible surfaces
 
- *
  * */
 enum class IlluminationModel(val id: Int){
     COLOR(0),

@@ -1,8 +1,10 @@
 package me.anno.engine.ui.render
 
+import me.anno.ecs.components.camera.effects.CameraEffect
+import me.anno.ecs.components.camera.effects.ColorBlindnessEffect
 import me.anno.gpu.deferred.DeferredLayerType
 
-enum class RenderMode(val dlt: DeferredLayerType? = null) {
+enum class RenderMode(val dlt: DeferredLayerType? = null, val effect: CameraEffect? = null) {
 
     DEFAULT,
     WITHOUT_POST_PROCESSING,
@@ -51,6 +53,16 @@ enum class RenderMode(val dlt: DeferredLayerType? = null) {
     SHOW_AABB,
     PHYSICS,
 
+    // color blindness modes
+    GRAYSCALE(ColorBlindnessEffect(ColorBlindnessEffect.Mode.GRAYSCALE)),
+    PROTANOPIA(ColorBlindnessEffect(ColorBlindnessEffect.Mode.PROTANOPIA)),
+    DEUTERANOPIA(ColorBlindnessEffect(ColorBlindnessEffect.Mode.DEUTERANOPIA)),
+    TRITANOPIA(ColorBlindnessEffect(ColorBlindnessEffect.Mode.TRITANOPIA)),
+
     RAY_TEST,
+
+    ;
+
+    constructor(effect: CameraEffect) : this(null, effect)
 
 }

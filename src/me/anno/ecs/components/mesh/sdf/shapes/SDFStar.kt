@@ -123,8 +123,8 @@ class SDFStar : SDF2DShape() {
                 "float sdStar(vec2 p, float n, float inner) {\n" +
                 // these 4 lines can be precomputed for a given shape
                 "   float m = mix(2.0, n, inner);\n" +
-                "   float an = 3.141593/n;\n" +
-                "   float en = 3.141593/m;\n" +
+                "   float an = PI/n;\n" +
+                "   float en = PI/m;\n" +
                 "   vec2  acs = vec2(cos(an),sin(an));\n" +
                 // ecs=vec2(0,1) and simplify, for regular polygon
                 "   vec2  ecs = vec2(cos(en),sin(en));\n" +

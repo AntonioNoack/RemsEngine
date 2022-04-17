@@ -36,8 +36,9 @@ abstract class InnerFile(
         }
     }
 
-    override var lastModified = _parent.lastModified
-    override var lastAccessed = _parent.lastAccessed
+    // assigned typically anyways
+    override var lastModified = 0L // _parent.lastModified
+    override var lastAccessed = 0L // _parent.lastAccessed
 
     var compressedSize = 0L
     var size = 0L

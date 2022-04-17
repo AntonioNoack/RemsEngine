@@ -94,7 +94,7 @@ class SDFPolygon : SDF2DShape() {
                 "   return length(p)*sign(p.x);\n" +
                 "}\n" +
                 "float sdPolygon(vec2 p, float n) {\n" +
-                "   float an = 3.141593/n;\n" +
+                "   float an = PI/n;\n" +
                 "   return sdPolygon(p,an,vec2(cos(an),sin(an)));\n" +
                 "}\n"
 

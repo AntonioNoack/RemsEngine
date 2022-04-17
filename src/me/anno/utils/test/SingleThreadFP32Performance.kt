@@ -1,5 +1,6 @@
 package me.anno.utils.test
 
+import me.anno.maths.Maths.PIf
 import me.anno.utils.LOGGER
 
 fun main() {
@@ -14,7 +15,7 @@ fun main() {
 
     val start = System.nanoTime()
 
-    val a = 3.1416f
+    val a = PIf
     for (i in 0 until runs) {
         for (j in 0 until length) {
             y[j] = a * x[j] + y[j]

@@ -17,7 +17,7 @@ fun main() {
 
     val file = getReference(downloads, "San_Miguel/san-miguel.obj")
     val obj = PrefabCache.getPrefab(file)
-    val entity = obj!!.getSampleInstance(hashSetOf()) as Entity
+    val entity = obj!!.getSampleInstance() as Entity
     var sum = 0L
     entity.findFirstInAll {
         if (it is Entity) {

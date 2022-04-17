@@ -3,6 +3,7 @@ package me.anno.gpu.drawing
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.SimpleBuffer
+import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.OpenGLShader
@@ -74,7 +75,8 @@ object DrawCurves {
 
     val quadraticBezierShader = parametricShader("quadraticBezier", "return (s*s)*p0+(2.0*s*t)*p1+(t*t)*p2", 3)
     val cubicBezierShader = parametricShader("cubicBezier", "return (s*s*s)*p0+(3.0*s*t)*(p1*s+p2*t)+(t*t*t)*p3", 4)
-    val quartBezierShader = parametricShader("quartBezier", "return (s*s*s*s)*p0+(4.0*s*t)*(p1*s*s+p3*t*t)+6.0*s*s*t*t*p2+(t*t*t*t)*p4", 5)
+    val quartBezierShader =
+        parametricShader("quartBezier", "return (s*s*s*s)*p0+(4.0*s*t)*(p1*s*s+p3*t*t)+6.0*s*s*t*t*p2+(t*t*t*t)*p4", 5)
 
     fun drawLine(
         x0: Float, y0: Float,
@@ -130,13 +132,24 @@ object DrawCurves {
         shader.v2f("p2", x2, y2)
         // the correct extrusion depends on the curviness and number of mesh subdivisions
         shader.v1f("extrusion", 1.2f * (thickness + smoothness))
+        val curveLength = curveLength(x0, y0, x1, y1, x2, y2)
         shader.v1f(
             "tScale", if (flatEnds) 1f else
-                1f + (thickness + smoothness) * 2f / curveLength(x0, y0, x1, y1, x2, y2)
+                1f + (thickness + smoothness) * 2f / curveLength
         )
-        // todo if the segment is short or straight, use less steps
-        SimpleBuffer.flat11x50.draw(shader)
+        getBezierBuffer(curveLength).draw(shader)
         GFX.check()
+    }
+
+    private fun getBezierBuffer(length: Float): StaticBuffer {
+        // if the segment is short or straight, use less steps
+        return when {
+            length < 6f -> SimpleBuffer.flat11x3
+            length < 12f -> SimpleBuffer.flat11x6
+            length < 24f -> SimpleBuffer.flat11x12
+            length < 50f -> SimpleBuffer.flat11x25
+            else -> SimpleBuffer.flat11x50
+        }
     }
 
     fun drawCubicBezier(
@@ -185,12 +198,12 @@ object DrawCurves {
         shader.v2f("p3", x3, y3)
         // the correct extrusion depends on the curviness and number of mesh subdivisions
         shader.v1f("extrusion", 1.2f * (thickness + smoothness))
+        val curveLength = curveLength(x0, y0, x1, y1, x2, y2, x3, y3)
         shader.v1f(
             "tScale", if (flatEnds) 1f else
-                1f + (thickness + smoothness) * 2f / curveLength(x0, y0, x1, y1, x2, y2, x3, y3)
+                1f + (thickness + smoothness) * 2f / curveLength
         )
-        // todo if the segment is short or straight, use less steps
-        SimpleBuffer.flat11x50.draw(shader)
+        getBezierBuffer(curveLength).draw(shader)
         GFX.check()
     }
 
@@ -224,12 +237,12 @@ object DrawCurves {
         shader.v2f("p4", x4, y4)
         // the correct extrusion depends on the curviness and number of mesh subdivisions
         shader.v1f("extrusion", 1.2f * (thickness + smoothness))
+        val curveLength = curveLength(x0, y0, x1, y1, x2, y2, x3, y3, x4, y4)
         shader.v1f(
             "tScale", if (flatEnds) 1f else
-                1f + (thickness + smoothness) * 2f / curveLength(x0, y0, x1, y1, x2, y2, x3, y3, x4, y4)
+                1f + (thickness + smoothness) * 2f / curveLength
         )
-        // todo if the segment is short or straight, use less steps
-        SimpleBuffer.flat11x50.draw(shader)
+        getBezierBuffer(curveLength).draw(shader)
         GFX.check()
     }
 
@@ -314,6 +327,7 @@ object DrawCurves {
     @JvmStatic
     fun main(args: Array<String>) {
         testDrawing {
+            it.drawBackground(it.x, it.y, it.x + it.w, it.y + it.h)
             val s = 300f
             val dx = (it.w - s) / 2f
             val dy = (it.h - s) / 2f

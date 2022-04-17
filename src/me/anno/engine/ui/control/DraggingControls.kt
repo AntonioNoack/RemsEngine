@@ -437,7 +437,7 @@ class DraggingControls(view: RenderView) : ControlScheme(view) {
                     // where? selected / root
                     // todo while dragging this, show preview
                     // todo place it where the preview was drawn
-                    val root = library.selection.firstInstanceOrNull<PrefabSaveable>() ?: library.world
+                    val root = library.selection.firstInstanceOrNull<PrefabSaveable>() ?: view.getWorld()
                     if (root is Entity) PrefabInspector.currentInspector!!.addEntityChild(root, prefab)
                 }
                 /*is SDFComponent -> {

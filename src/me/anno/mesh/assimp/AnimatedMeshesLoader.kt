@@ -1,14 +1,15 @@
 package me.anno.mesh.assimp
 
+import me.anno.animation.LoopingState
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.anim.Animation
-import me.anno.ecs.components.anim.BoneByBoneAnimation
-import me.anno.ecs.components.anim.ImportedAnimation
+import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.components.mesh.Mesh.Companion.MAX_WEIGHTS
 import me.anno.ecs.components.mesh.MorphTarget
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path
+import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.io.NamedSaveable
 import me.anno.io.Saveable
 import me.anno.io.files.FileReference
@@ -140,28 +141,41 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
             compareBoneWithNodeNames(rootNode, boneMap)
             loadSkeletonFromAnimationsAndBones(aiScene, rootNode, boneList, boneMap)
             fixBoneOrder(boneList, meshList)
-
             skeleton.setProperty("bones", boneList.toTypedArray())
 
             val skeletonPath = root.createPrefabChild("Skeleton.json", skeleton)
-            addSkeleton(hierarchy, skeleton, skeletonPath)
 
             val nodeCache = createNodeCache(rootNode)
             val animMap = loadAnimations(name, aiScene, nodeCache, boneMap)
-            for (animation in animMap.values) animation.skeleton = skeletonPath
+            if (animMap.isNotEmpty()) {
+                val animations = root.createChild("animations", null) as InnerFolder
+                for ((animName, animation) in animMap) {
+                    animation[ROOT_PATH, "skeleton"] = skeletonPath
+                    animations.createPrefabChild(animName, animation)
+                }
+            }
+
+            val sampleAnimations = if (animMap.isNotEmpty()) {
+                arrayListOf(
+                    AnimationState(
+                        animMap.values.first().source, 1f,
+                        0f, 1f, LoopingState.PLAY_LOOP
+                    )
+                )
+            } else emptyList()
+            addSkeleton(hierarchy, skeleton, skeletonPath, sampleAnimations)
 
             // create a animation node to show the first animation
             if (meshes.isEmpty() && animMap.isNotEmpty()) {
-                val animPath = hierarchy.add(Path.ROOT_PATH, 'c', "AnimRenderer", 0)
+                val animPath = hierarchy.add(ROOT_PATH, 'c', "AnimRenderer", 0)
                 hierarchy.setUnsafe(animPath, "skeleton", skeletonPath)
-                hierarchy.setUnsafe(animPath, "animationWeights", hashMapOf(animMap.values.first() to 1f))
+                hierarchy.setUnsafe(animPath, "animations", sampleAnimations)
             }
 
             correctBonePositions(name, rootNode, boneList, boneMap)
 
-            val animList = animMap.values.toList()
-            val animRefs = createReferences(root, "animations", animList)
-            skeleton.setUnsafe(Path.ROOT_PATH, "animations", animRefs.associateBy { it.nameWithoutExtension })
+            val animRefs = animMap.values.map { it.source }
+            skeleton.setUnsafe(ROOT_PATH, "animations", animRefs.associateBy { it.nameWithoutExtension })
             animRefs
 
         } else emptyList()
@@ -185,9 +199,9 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         // - then write it back
 
         val transform0 = Transform()
-        val localPosition = prefab.sets[Path.ROOT_PATH, "position"] as? Vector3d
-        val localRotation = prefab.sets[Path.ROOT_PATH, "rotation"] as? Quaterniond
-        val localScale = prefab.sets[Path.ROOT_PATH, "scale"] as? Vector3d
+        val localPosition = prefab.sets[ROOT_PATH, "position"] as? Vector3d
+        val localRotation = prefab.sets[ROOT_PATH, "rotation"] as? Quaterniond
+        val localScale = prefab.sets[ROOT_PATH, "scale"] as? Vector3d
 
         if (localPosition != null) transform0.localPosition = localPosition
         if (localRotation != null) transform0.localRotation = localRotation
@@ -287,15 +301,21 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         } else emptyList()
     }
 
-    private fun addSkeleton(hierarchyPrefab: Prefab, skeleton: Prefab, skeletonPath: FileReference): Prefab {
+    private fun addSkeleton(
+        hierarchyPrefab: Prefab,
+        skeleton: Prefab,
+        skeletonPath: FileReference,
+        sampleAnimations: List<AnimationState>
+    ): Prefab {
         val adds = hierarchyPrefab.adds
         for (change in adds) {
             if (change.clazzName == "AnimRenderer") {
                 val indexInEntity = adds
                     .filter { it.path == change.path }
                     .indexOfFirst { it === change }
-                val name = "skeleton"
-                hierarchyPrefab.setUnsafe(change.path.added(name, indexInEntity, 'c'), name, skeletonPath)
+                val path = change.path.added(change.nameId!!, indexInEntity, 'c')
+                hierarchyPrefab.setUnsafe(path, "skeleton", skeletonPath)
+                hierarchyPrefab.setUnsafe(path, "animations", sampleAnimations)
             }
         }
         return skeleton
@@ -425,7 +445,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         aiScene: AIScene,
         nodeCache: Map<String, AINode>,
         boneMap: HashMap<String, Bone>
-    ): Map<String, Animation> {
+    ): Map<String, Prefab> {
 
         val rootNode = aiScene.mRootNode()!!
 
@@ -436,7 +456,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
 
         // Process all animations
         val numAnimations = aiScene.mNumAnimations()
-        val animations = HashMap<String, Animation>(numAnimations)
+        val animations = HashMap<String, Prefab>(numAnimations)
         if (numAnimations > 0) {
             val aiAnimations = aiScene.mAnimations()!!
             // LOGGER.info("Loading animations: $numAnimations")
@@ -474,24 +494,28 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         aiScene: AIScene, rootNode: AINode,
         boneMap: HashMap<String, Bone>, animName: String, duration: Double, maxFramesV2: Int, timeScale: Double,
         animNodeCache: Map<String, NodeAnim>, globalTransform: Matrix4x3f?, globalInverseTransform: Matrix4x3f?
-    ): ImportedAnimation {
+    ): Prefab {
         val frames = Array(maxFramesV2) { frameIndex ->
             val animatedFrame = AnimationFrame(boneMap.size)
             loadAnimationFrame(
                 aiScene, rootNode, frameIndex * timeScale,
-                animatedFrame.skinningMatrices, globalTransform, globalInverseTransform,
+                animatedFrame, globalTransform, globalInverseTransform,
                 boneMap, animNodeCache
             )
             animatedFrame
         }
-        return ImportedAnimation(animName, duration, frames)
+        val prefab = Prefab("ImportedAnimation")
+        prefab[ROOT_PATH, "name"] = animName
+        prefab[ROOT_PATH, "duration"] = duration
+        prefab[ROOT_PATH, "frames"] = frames
+        return prefab
     }
 
     fun createBoneByBone(
         aiScene: AIScene, rootNode: AINode,
         boneMap: HashMap<String, Bone>, animName: String, duration: Double, maxFramesV2: Int, timeScale: Double,
         animNodeCache: Map<String, NodeAnim>, globalTransform: Matrix4x3f?, globalInverseTransform: Matrix4x3f?
-    ): BoneByBoneAnimation {
+    ): Prefab {
         val rootMotion = FloatArray(maxFramesV2 * 3)
         val rotations = FloatArray(maxFramesV2 * boneMap.size * 4)
         for (frameIndex in 0 until maxFramesV2) {
@@ -500,10 +524,22 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                 rootMotion, rotations, boneMap, animNodeCache
             )
         }
-        return BoneByBoneAnimation(
+        val prefab = Prefab("BoneByBoneAnimation")
+        prefab[ROOT_PATH, "name"] = animName
+        prefab[ROOT_PATH, "duration"] = duration
+        prefab[ROOT_PATH, "frameCount"] = maxFramesV2
+        prefab[ROOT_PATH, "boneCount"] = boneMap.size
+        prefab[ROOT_PATH, "rootMotion"] = rootMotion
+        prefab[ROOT_PATH, "rotations"] = rotations
+        if (globalTransform != null)
+            prefab[ROOT_PATH, "globalTransform"] = globalTransform
+        if (globalInverseTransform != null)
+            prefab[ROOT_PATH, "globalInvTransform"] = globalInverseTransform
+        /*return BoneByBoneAnimation(
             animName, duration, maxFramesV2, boneMap.size, rootMotion, rotations,
             globalTransform, globalInverseTransform
-        )
+        )*/
+        return prefab
     }
 
     /*fun buildFrameMatrices(

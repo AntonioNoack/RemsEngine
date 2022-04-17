@@ -90,13 +90,13 @@ class Prefab : Saveable {
         var sum = adds.size + sets.size
         if (depth > 0) {
             if (prefab != InvalidRef) {
-                val prefab = getPrefab(prefab, HashSet(), async)
+                val prefab = getPrefab(prefab, maxPrefabDepth, async)
                 if (prefab != null) sum += prefab.countTotalChanges(async, depth - 1)
             }
             for (change in adds) {
                 val childPrefab = change.prefab
                 if (childPrefab != InvalidRef) {
-                    val prefab = getPrefab(childPrefab, HashSet(), async)
+                    val prefab = getPrefab(childPrefab, maxPrefabDepth, async)
                     if (prefab != null) sum += prefab.countTotalChanges(async, depth - 1)
                 }
             }
@@ -195,7 +195,7 @@ class Prefab : Saveable {
     private fun updateSample(change: CSet) {
         val sampleInstance = _sampleInstance
         if (sampleInstance != null && isValid) {
-            change.apply(sampleInstance, null)
+            change.apply(sampleInstance, maxPrefabDepth)
         }
     }
 
@@ -283,10 +283,10 @@ class Prefab : Saveable {
         }
     }
 
-    fun getSampleInstance(chain: MutableSet<FileReference>? = HashSet()): PrefabSaveable {
-        if (!isValid) synchronized(this) {
-            if (!isValid) {
-                val instance = PrefabCache.createInstance(this, prefab, adds, sets, chain, clazzName)
+    fun getSampleInstance(depth: Int = maxPrefabDepth): PrefabSaveable {
+        synchronized(this) {
+            return if (!isValid) {
+                val instance = PrefabCache.createInstance(this, prefab, adds, sets, depth, clazzName)
                 instance.forAll {
                     if (it.prefab !== this) {
                         throw IllegalStateException("Incorrectly created prefab!")
@@ -295,13 +295,13 @@ class Prefab : Saveable {
                 // assign super instance? we should really cache that...
                 _sampleInstance = instance
                 isValid = true
-            }
+                instance
+            } else _sampleInstance!!
         }
-        return _sampleInstance!!
     }
 
-    fun createInstance(chain: MutableSet<FileReference>? = HashSet()): PrefabSaveable {
-        val clone = getSampleInstance(chain).clone()
+    fun createInstance(depth: Int = maxPrefabDepth): PrefabSaveable {
+        val clone = getSampleInstance(depth).clone()
         clone.forAll {
             if (it.prefab !== this)
                 throw IllegalStateException("Incorrectly created prefab! $source")
@@ -316,6 +316,7 @@ class Prefab : Saveable {
         adds.isEmpty() && sets.isEmpty() && prefab == InvalidRef && history == null
 
     companion object {
+        var maxPrefabDepth = 25
         private val LOGGER = LogManager.getLogger(Prefab::class)
     }
 

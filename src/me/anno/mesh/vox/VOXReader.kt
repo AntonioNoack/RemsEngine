@@ -2,6 +2,7 @@ package me.anno.mesh.vox
 
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.PrefabReadable
 import me.anno.ecs.prefab.change.Path
 import me.anno.io.files.FileReference
 import me.anno.io.files.thumbs.Thumbs
@@ -15,6 +16,7 @@ import me.anno.utils.OS
 import me.anno.utils.structures.tuples.Quad
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
+import org.joml.Vector2f
 import org.joml.Vector3i
 import java.io.IOException
 import java.io.InputStream
@@ -121,7 +123,7 @@ class VOXReader {
     val models = ArrayList<VoxelModel>()
 
     var palette = defaultPalette
-    val materials = ArrayList<Material>()
+    val materials = ArrayList<FileReference>()
 
     // why ever this exists...
     var indexMap: ByteArray? = null
@@ -194,41 +196,28 @@ class VOXReader {
                 val weight = bytes.float
                 val properties = bytes.int
                 val hasPlastic = (properties and 1) != 0
-                val plastic = if (hasPlastic) {
-                    bytes.float
-                } else 0f
+                val plastic = if (hasPlastic) bytes.float else 0f
                 val hasRoughness = (properties and 2) != 0
-                val roughness = if (hasRoughness) {
-                    bytes.float
-                } else 0.5f
+                val roughness = if (hasRoughness) bytes.float else 0.5f
                 val hasSpecular = (properties and 4) != 0
-                val specular = if (hasSpecular) {
-                    bytes.float
-                } else 0.5f
+                val specular = if (hasSpecular) bytes.float else 0.5f
                 val hasIOR = (properties and 8) != 0
-                val ior = if (hasIOR) {
-                    bytes.float
-                } else 1.333f // water
+                val ior = if (hasIOR) bytes.float else 1.333f // water
                 val hasAttenuation = (properties and 16) != 0
-                val attenuation = if (hasAttenuation) {
-                    bytes.float
-                } else 0f //??
+                val attenuation = if (hasAttenuation) bytes.float else 0f //??
                 val hasPower = (properties and 32) != 0
-                val power = if (hasPower) {
-                    bytes.float
-                } else 0f // ?
+                val power = if (hasPower) bytes.float else 0f // ?
                 val hasGlow = (properties and 64) != 0
-                val glow = if (hasGlow) {
-                    bytes.float
-                } else 0f // ?
+                val glow = if (hasGlow) bytes.float else 0f // ?
                 val isTotalPower = (properties and 128) != 0
                 while (matIndex > materials.size) {
-                    materials.add(Material())
+                    materials.add(Material.create().ref!!)
                 }
-                materials[matIndex].apply {
-                    // todo set all relevant properties
-                    // todo we should set the correct shader here as well :)
-                }
+                val material = (materials[matIndex] as PrefabReadable).readPrefab()
+                material[Path.ROOT_PATH, "roughnessMinMax"] = Vector2f(0f, roughness)
+                if (type == 1) material[Path.ROOT_PATH, "metallicMinMax"] = Vector2f(0f, weight)
+                // todo set all relevant properties
+                // todo we should set the correct shader here as well :)
             }
             nTRN -> {
                 // transform

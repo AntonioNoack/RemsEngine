@@ -117,6 +117,9 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     abstract fun writeQuaternionfArray(name: String, values: Array<Quaternionf>, force: Boolean = false)
     abstract fun writeQuaternionfArray2D(name: String, values: Array<Array<Quaternionf>>, force: Boolean = false)
 
+    abstract fun writeQuaterniondArray(name: String, values: Array<Quaterniond>, force: Boolean = false)
+    abstract fun writeQuaterniondArray2D(name: String, values: Array<Array<Quaterniond>>, force: Boolean = false)
+
     abstract fun writeAABBf(name: String, value: AABBf, force: Boolean = false)
     abstract fun writeAABBd(name: String, value: AABBd, force: Boolean = false)
 
@@ -331,13 +334,54 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                 // try to save the list
                 if (value.isNotEmpty()) {
                     when (val sample = value[0]) {
+
+                        // todo all types
+
+                        is Boolean -> writeBooleanArray(name, BooleanArray(value.size) { value[it] as Boolean }, forceSaving)
+                        is Char -> writeCharArray(name, CharArray(value.size) { value[it] as Char }, forceSaving)
+                        is Byte -> writeByteArray(name, ByteArray(value.size) { value[it] as Byte }, forceSaving)
+                        is Short -> writeShortArray(name, ShortArray(value.size) { value[it] as Short }, forceSaving)
+                        is Int -> writeIntArray(name, IntArray(value.size) { value[it] as Int }, forceSaving)
+                        is Long -> writeLongArray(name, LongArray(value.size) { value[it] as Long }, forceSaving)
+                        is Float -> writeFloatArray(name, FloatArray(value.size) { value[it] as Float }, forceSaving)
+                        is Double -> writeDoubleArray(name, DoubleArray(value.size) { value[it] as Double }, forceSaving)
+
+                        is BooleanArray -> writeBooleanArray2D(name, toArray(value), forceSaving)
+                        is CharArray -> writeCharArray2D(name, toArray(value), forceSaving)
+                        is ByteArray -> writeByteArray2D(name, toArray(value), forceSaving)
+                        is ShortArray -> writeCharArray2D(name, toArray(value), forceSaving)
+                        is IntArray -> writeIntArray2D(name, toArray(value), forceSaving)
+                        is LongArray -> writeLongArray2D(name, toArray(value), forceSaving)
+                        is FloatArray -> writeFloatArray2D(name, toArray(value), forceSaving)
+                        is DoubleArray -> writeDoubleArray2D(name, toArray(value), forceSaving)
+
                         is String -> writeStringArray(name, toArray(value), forceSaving)
-                        is Vector2f -> writeVector2fArray(name, toArray(value), forceSaving)
-                        is Vector3f -> writeVector3fArray(name, toArray(value), forceSaving)
-                        is Vector4f -> writeVector4fArray(name, toArray(value), forceSaving)
-                        is Vector2d -> writeVector2dArray(name, toArray(value), forceSaving)
-                        is Vector3d -> writeVector3dArray(name, toArray(value), forceSaving)
-                        is Vector4d -> writeVector4dArray(name, toArray(value), forceSaving)
+
+                        is Vector2fc -> writeVector2fArray(name, toArray(value), forceSaving)
+                        is Vector3fc -> writeVector3fArray(name, toArray(value), forceSaving)
+                        is Vector4fc -> writeVector4fArray(name, toArray(value), forceSaving)
+                        is Vector2dc -> writeVector2dArray(name, toArray(value), forceSaving)
+                        is Vector3dc -> writeVector3dArray(name, toArray(value), forceSaving)
+                        is Vector4dc -> writeVector4dArray(name, toArray(value), forceSaving)
+                        is Vector2ic -> writeVector2iArray(name, toArray(value), forceSaving)
+                        is Vector3ic -> writeVector3iArray(name, toArray(value), forceSaving)
+                        is Vector4ic -> writeVector4iArray(name, toArray(value), forceSaving)
+
+                        is Matrix2fc -> writeMatrix2x2fArray(name, toArray(value), forceSaving)
+                        is Matrix3x2fc -> writeMatrix3x2fArray(name, toArray(value), forceSaving)
+                        is Matrix3fc -> writeMatrix3x3fArray(name, toArray(value), forceSaving)
+                        is Matrix4x3fc -> writeMatrix4x3fArray(name, toArray(value), forceSaving)
+                        is Matrix4fc -> writeMatrix4x4fArray(name, toArray(value), forceSaving)
+
+                        is Matrix2dc -> writeMatrix2x2dArray(name, toArray(value), forceSaving)
+                        is Matrix3x2dc -> writeMatrix3x2dArray(name, toArray(value), forceSaving)
+                        is Matrix3dc -> writeMatrix3x3dArray(name, toArray(value), forceSaving)
+                        is Matrix4x3dc -> writeMatrix4x3dArray(name, toArray(value), forceSaving)
+                        is Matrix4dc -> writeMatrix4x4dArray(name, toArray(value), forceSaving)
+
+                        is Quaternionfc -> writeQuaternionfArray(name, toArray(value), forceSaving)
+                        is Quaterniondc -> writeQuaterniondArray(name, toArray(value), forceSaving)
+
                         // is PrefabSaveable -> writeObjectArray(self, name, toArray(value), forceSaving)
                         is ISaveable -> writeObjectArray(self, name, toArray(value), forceSaving)
                         is FileReference -> writeFileArray(name, toArray(value), forceSaving)
@@ -355,12 +399,27 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                         is Vector2fc -> writeVector2fArray(name, cast(value), forceSaving)
                         is Vector3fc -> writeVector3fArray(name, cast(value), forceSaving)
                         is Vector4fc -> writeVector4fArray(name, cast(value), forceSaving)
-                        is Vector2d -> writeVector2dArray(name, cast(value), forceSaving)
-                        is Vector3d -> writeVector3dArray(name, cast(value), forceSaving)
-                        is Vector4d -> writeVector4dArray(name, cast(value), forceSaving)
-                        is Vector2i -> writeVector2iArray(name, cast(value), forceSaving)
-                        is Vector3i -> writeVector3iArray(name, cast(value), forceSaving)
-                        is Vector4i -> writeVector4iArray(name, cast(value), forceSaving)
+                        is Vector2dc -> writeVector2dArray(name, cast(value), forceSaving)
+                        is Vector3dc -> writeVector3dArray(name, cast(value), forceSaving)
+                        is Vector4dc -> writeVector4dArray(name, cast(value), forceSaving)
+                        is Vector2ic -> writeVector2iArray(name, cast(value), forceSaving)
+                        is Vector3ic -> writeVector3iArray(name, cast(value), forceSaving)
+                        is Vector4ic -> writeVector4iArray(name, cast(value), forceSaving)
+
+                        is Matrix2fc -> writeMatrix2x2fArray(name, cast(value), forceSaving)
+                        is Matrix3x2fc -> writeMatrix3x2fArray(name, cast(value), forceSaving)
+                        is Matrix3fc -> writeMatrix3x3fArray(name, cast(value), forceSaving)
+                        is Matrix4x3fc -> writeMatrix4x3fArray(name, cast(value), forceSaving)
+                        is Matrix4fc -> writeMatrix4x4fArray(name, cast(value), forceSaving)
+
+                        is Matrix2dc -> writeMatrix2x2dArray(name, cast(value), forceSaving)
+                        is Matrix3x2dc -> writeMatrix3x2dArray(name, cast(value), forceSaving)
+                        is Matrix3dc -> writeMatrix3x3dArray(name, cast(value), forceSaving)
+                        is Matrix4x3dc -> writeMatrix4x3dArray(name, cast(value), forceSaving)
+                        is Matrix4dc -> writeMatrix4x4dArray(name, cast(value), forceSaving)
+
+                        is Quaternionfc -> writeQuaternionfArray(name, cast(value), forceSaving)
+                        is Quaterniondc -> writeQuaterniondArray(name, cast(value), forceSaving)
 
                         is BooleanArray -> writeBooleanArray2D(name, cast(value), forceSaving)
                         is CharArray -> writeCharArray2D(name, cast(value), forceSaving)

@@ -22,7 +22,6 @@ object FindLines {
     }
 
     fun getAllLines(indices: IntArray?, positions: FloatArray?, old: IntArray? = null): IntArray? {
-        // todo remove duplicate lines? (from neighbor triangles)
         var lineCount = 0
         if (indices == null) {
             // compare vertices
@@ -100,6 +99,69 @@ object FindLines {
                 lineIndices
             } else null
         }
+    }
+
+    fun getAllUniqueLines(indices: IntArray?, positions: FloatArray?, old: IntArray? = null): IntArray? {
+
+        if (indices == null) {
+            // we would need to actually compare positions
+            return getAllLines(indices, positions, old)
+        }
+
+        val lines = HashSet<Long>()
+        var lineCount = 0
+        fun getKey(a: Int, b: Int): Long {
+            return if (a < b) a.toLong().shl(32) or b.toLong()
+            else b.toLong().shl(32) or a.toLong()
+        }
+
+        // compare indices
+        for (i in indices.indices step 3) {
+            val a = indices[i]
+            val b = indices[i + 1]
+            val c = indices[i + 2]
+            lineCount += if (isLine(a, b, c)) 1 else 3
+        }
+
+        if (lineCount <= 0) return null
+
+        val indexCount = lineCount * 2
+        val lineIndices = if (old != null && old.size == indexCount) old else IntArray(indexCount)
+        var j = 0
+        for (i in indices.indices step 3) {
+            val a = indices[i]
+            val b = indices[i + 1]
+            val c = indices[i + 2]
+            if (isLine(a, b, c)) {
+                val k = if (a == b) c else b
+                val key = getKey(a, k)
+                if (lines.add(key)) {
+                    lineIndices[j++] = a
+                    lineIndices[j++] = k
+                }
+            } else {
+                if (lines.add(getKey(a, b))) {
+                    lineIndices[j++] = a
+                    lineIndices[j++] = b
+                }
+                if (lines.add(getKey(b, c))) {
+                    lineIndices[j++] = b
+                    lineIndices[j++] = c
+                }
+                if (lines.add(getKey(c, a))) {
+                    lineIndices[j++] = c
+                    lineIndices[j++] = a
+                }
+            }
+        }
+
+        return if (j != lineIndices.size) {
+            // there we duplicates
+            val lineIndices2 = if (old?.size == j) old else IntArray(j)
+            System.arraycopy(lineIndices, 0, lineIndices2, 0, j)
+            lineIndices2
+        } else lineIndices
+
     }
 
     fun findLines(indices: IntArray?, positions: FloatArray?): IntArray? {

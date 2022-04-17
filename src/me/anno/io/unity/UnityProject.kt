@@ -86,7 +86,7 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
                         // todo use this data to create a prefab, which then links to the original file
                         val meta = getMeta(content)
                         val fileId = getMainId(meta)
-                        LOGGER.info("fileId from $meta: $fileId, created link")
+                        // LOGGER.info("[89] fileId from $meta: $fileId, created link")
                         InnerLinkFile(folder, fileId ?: content.name, content)
                     }
                 }
@@ -143,7 +143,6 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
         )
         when {
             file.isDirectory -> {
-                println("found directory $file")
                 if (maxDepth <= 0) return
                 for (child in file.listChildren() ?: return) {
                     register(child, maxDepth - 1)
@@ -156,7 +155,7 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
                             val yaml = parseYAML(file.readText(), true)
                             val guid = yaml["Guid"]?.value
                             if (guid != null) {
-                                LOGGER.info("Registered guid $file")
+                                // LOGGER.info("Registered guid $file")
                                 val content = file.getSibling(file.nameWithoutExtension)
                                 registry[guid] = GuidObject(yaml, file, content)
                             } else LOGGER.warn("Didn't find guid in $file")

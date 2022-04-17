@@ -90,12 +90,12 @@ class CAdd() : Change() {
         }
     }
 
-    override fun applyChange(instance: PrefabSaveable, chain: MutableSet<FileReference>?) {
+    override fun applyChange(instance: PrefabSaveable, depth: Int) {
 
         // LOGGER.info("adding $clazzName/$nameId with type $type to $path; to ${instance.prefabPath}, ${path == instance.prefabPath}")
-        if (prefab != InvalidRef && chain?.add(prefab) == false) throw RuntimeException("Circular reference on $chain: $prefab")
+        if (prefab != InvalidRef && depth < 0) throw RuntimeException("Circular reference on $prefab")
 
-        val loadedInstance = getPrefab(prefab, chain)?.createInstance()
+        val loadedInstance = getPrefab(prefab, depth)?.createInstance()
         val clazzName = clazzName
         var newInstance = loadedInstance
         if (newInstance == null) {
@@ -133,9 +133,5 @@ class CAdd() : Change() {
     override val className: String = "CAdd"
     override val approxSize: Int = 10
     override fun isDefaultValue(): Boolean = false
-
-    companion object {
-        private val LOGGER = LogManager.getLogger(CAdd::class)
-    }
 
 }

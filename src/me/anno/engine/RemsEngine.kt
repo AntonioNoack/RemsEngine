@@ -3,9 +3,12 @@ package me.anno.engine
 import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
+import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache.loadScenePrefab
 import me.anno.ecs.prefab.PrefabInspector
+import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ui.DefaultLayout
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.ECSShaderLib
@@ -16,12 +19,14 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.input.ActionManager
 import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
+import me.anno.studio.Inspectable
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.debug.FrameTimes
 import me.anno.ui.editor.OptionBar
+import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.WelcomeUI
 import me.anno.ui.editor.config.ConfigPanel
 import me.anno.ui.utils.WindowStack.Companion.createReloadWindow
@@ -145,6 +150,25 @@ class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
             prefab.source = file
             return prefab
         }
+    }
+
+    override fun clearAll() {
+        val selection = EditorState.selection.map { (it as? PrefabSaveable)?.prefabPath ?: it }
+        val fineSelection = EditorState.fineSelection.map { (it as? PrefabSaveable)?.prefabPath ?: it }
+        super.clearAll()
+        // restore the current selection
+        // reloaded prefab; must not be accessed before clearAll
+        val prefab = EditorState.prefab
+        val sample = prefab?.getSampleInstance()
+        if (prefab != null && sample != null) {
+            EditorState.selection = selection
+                .mapNotNull { if (it is Path) Hierarchy.getInstanceAt(sample, it) else it }
+                .filterIsInstance<Inspectable>()
+            EditorState.fineSelection = fineSelection
+                    .mapNotNull { if (it is Path) Hierarchy.getInstanceAt(sample, it) else it }
+                    .filterIsInstance<Inspectable>()
+        }
+        PropertyInspector.invalidateUI()
     }
 
     override fun createUI() {

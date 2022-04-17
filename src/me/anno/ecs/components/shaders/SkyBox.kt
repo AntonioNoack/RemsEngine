@@ -149,7 +149,7 @@ class SkyBox : MeshBaseComponent() {
 
                             // Atmospheric Scattering
                             "float mu = dot(finalNormal, sunDir);\n" +
-                            "float rayleigh = 3.0 / (8.0 * 3.14) * (1.0 + mu * mu);\n" +
+                            "float rayleigh = 3.0 / (8.0 * 3.1416) * (1.0 + mu * mu);\n" +
                             "vec3 mie = (Kr + Km * (1.0 - g * g) / (2.0 + g * g) / pow(1.0 + g * g - 2.0 * g * mu, 1.5)) / (Br + Bm);\n" +
 
                             "vec3 day_extinction = exp(-exp(-((pos.y + sunDir.y * 4.0) * (exp(-pos.y * 16.0) + 0.1) / 80.0) / Br)" +
@@ -166,7 +166,7 @@ class SkyBox : MeshBaseComponent() {
                             "for (int i = 0; i < 3; i++){\n" +
                             "  float density = smoothstep(1.0 - cumulus, 1.0, fbm((0.7 + float(i) * 0.01) * pos.xyz / pos.y + cloudTime * 0.3));\n" +
                             "  color.rgb = mix(color.rgb, extinction * density * 5.0, min(density, 1.0) * max(pos.y, 0.0));\n" +
-                            "}" +
+                            "}\n" +
 
                             "finalColor = vec3(0.0);\n" +
                             "finalAlpha = 1.0;\n" +

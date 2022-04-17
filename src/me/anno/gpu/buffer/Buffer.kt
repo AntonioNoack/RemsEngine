@@ -277,8 +277,6 @@ abstract class Buffer(val attributes: List<Attribute>, val usage: Int) :
         this.pointer = -1
         this.vao = -1
         if (nioBuffer != null) {
-            // todo does this still crash?
-            // MemoryUtil.memFree(nioBuffer)
             ByteBufferPool.free(nioBuffer)
         }
         nioBuffer = null

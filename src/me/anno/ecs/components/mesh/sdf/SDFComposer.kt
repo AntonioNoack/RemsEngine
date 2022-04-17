@@ -95,13 +95,15 @@ object SDFComposer {
                 // compute first and second intersection with aabb
                 // todo theoretically, we should transform the ray from global space into local space;
                 // for local start as well
-                val pos = JomlPools.vec3d.create().set(RenderView.camPosition)
+                val pos = JomlPools.vec3d.create()
+                    .set(RenderView.camPosition)
                     .sub(dt.m30(), dt.m31(), dt.m32())
                 val dir = RenderView.camDirection
                 val bounds = tree.localAABB
                 val min = bounds.collideFront(pos, dir).toFloat()
                 val max = bounds.collideBack(pos, dir).toFloat()
                 it.set(max(0f, min), max)
+                JomlPools.vec3d.sub(1)
             }
         }
         uniforms["perspectiveCamera"] = TypeValue(GLSLType.BOOL) { RenderView.camInverse.m33() == 0.0 }

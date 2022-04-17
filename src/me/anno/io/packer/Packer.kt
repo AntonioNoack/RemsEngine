@@ -1,5 +1,6 @@
 package me.anno.io.packer
 
+import me.anno.cache.instances.LastModifiedCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.createZipFile
 import me.anno.io.zip.InnerImageFile
@@ -106,6 +107,7 @@ object Packer {
                 }
             }
         }
+        LastModifiedCache.invalidate(dst) // just in case dst was cached again in the mean-time
         val size = resources.sumOf { it.length() }
         val compressedSize = dst.length()
         val endTime = System.nanoTime()
@@ -191,7 +193,7 @@ object Packer {
                 e.printStackTrace()
             }
             zos.closeEntry()
-            if (createMap) map!![resource] = InnerZipFile("$absolute/$name", dst, getStream, name, dst)
+            map?.put(resource, InnerZipFile("$absolute/$name", dst, getStream, name, dst))
         }
         zos.close()
         return map ?: emptyMap()

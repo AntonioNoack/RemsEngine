@@ -56,6 +56,10 @@ class CubemapTexture(
         }
     }
 
+    fun checkSession() {
+        TODO()
+    }
+
     private fun bindBeforeUpload() {
         if (pointer == -1) throw RuntimeException("Pointer must be defined")
         Texture2D.bindTexture(target, pointer)

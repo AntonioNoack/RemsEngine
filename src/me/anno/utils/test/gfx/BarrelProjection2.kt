@@ -2,8 +2,7 @@ package me.anno.utils.test.gfx
 
 import me.anno.image.Image
 import me.anno.image.ImageCPUCache
-import me.anno.image.ImageWriter
-import me.anno.maths.Maths.length
+import me.anno.maths.Maths
 import me.anno.maths.Optimization.simplexAlgorithm
 import me.anno.utils.OS.desktop
 import kotlin.math.cos
@@ -12,7 +11,7 @@ import kotlin.math.sin
 fun findParams(image: Image, channel: Int, i: Int, n: Int): Pair<Int, Polynomial> {
 
     val s = 0.025f
-    val angle = 2f * cos((i + 0.33f) * 6.283f / n)
+    val angle = 2f * cos((i + 0.33f) * Maths.TAUf / n)
     val radius = 32f * s * i / n
     val startX = radius * sin(angle)
     val startY = radius * cos(angle)

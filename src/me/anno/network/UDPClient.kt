@@ -14,21 +14,22 @@ class UDPClient(address: InetAddress, port: Int, timeoutMillis: Int = 10_000) : 
         .apply { soTimeout = timeoutMillis }
 
     val buffer = ByteArray(NetworkProtocol.UDP.limit)
-    val packet = DatagramPacket(buffer, buffer.size, address, port)
+    val datagramPacket = DatagramPacket(buffer, buffer.size, address, port)
     val bos = ResetByteArrayOutputStream(buffer)
     val dos = DataOutputStream(bos)
     val bis = ResetByteArrayInputStream(buffer)
     val dis = DataInputStream(bis)
 
-    fun send(server: Server?, client: TCPClient, protocol: Protocol, packet1: Packet) {
+    fun send(server: Server?, client: TCPClient, protocol: Protocol, packet: Packet) {
+        if (protocol.find(packet.bigEndianMagic) == null) throw UnregisteredPacketException(packet)
         synchronized(this) {
             dos.writeInt(protocol.bigEndianMagic)
-            dos.writeInt(packet1.bigEndianMagic)
+            dos.writeInt(packet.bigEndianMagic)
             dos.writeInt(client.randomId)
-            packet1.send(server, client, dos)
+            packet.send(server, client, dos)
             dos.flush()
-            packet.length = bos.size
-            socket.send(packet)
+            datagramPacket.length = bos.size
+            socket.send(datagramPacket)
         }
     }
 
@@ -36,10 +37,10 @@ class UDPClient(address: InetAddress, port: Int, timeoutMillis: Int = 10_000) : 
      * after sending you need to synchronize with this instance, so you read the correct data
      * */
     fun receive(server: Server?, client: TCPClient, packet1: Packet): Packet {
-        socket.receive(packet)
+        socket.receive(datagramPacket)
         bis.reset()
         bis.skip(4) // skip packet id, assume it's correct
-        packet1.readData(server, client, dis, packet.length - 4)
+        packet1.readData(server, client, dis, datagramPacket.length - 4)
         return packet1
     }
 
@@ -47,7 +48,7 @@ class UDPClient(address: InetAddress, port: Int, timeoutMillis: Int = 10_000) : 
      * reads the packet from the data
      * */
     fun receive(server: Server?, client: TCPClient, protocol: Protocol, callback: (Packet) -> Unit) {
-        socket.receive(packet)
+        socket.receive(datagramPacket)
         bis.reset()
         val packetId = dis.readInt()
         when (val packet = protocol.find(packetId)) {

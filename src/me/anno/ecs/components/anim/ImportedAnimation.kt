@@ -1,28 +1,19 @@
 package me.anno.ecs.components.anim
 
 import me.anno.ecs.Entity
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.serialization.NotSerializedProperty
 import me.anno.mesh.assimp.AnimationFrame
 import me.anno.maths.Maths.min
 import org.joml.Matrix4f
 import org.joml.Matrix4x3f
 
-class ImportedAnimation() : Animation() {
+class ImportedAnimation : Animation() {
 
-    constructor(name: String, duration: Double) : this() {
-        this.name = name
-        this.duration = duration
-    }
-
-    constructor(name: String, duration: Double, frames: Array<AnimationFrame>) : this(name, duration) {
-        this.frames = frames.map { it.skinningMatrices }
-    }
-
-    constructor(name: String, duration: Double, frames: List<AnimationFrame>) : this(name, duration) {
-        this.frames = frames.map { it.skinningMatrices }
-    }
-
-    var frames: List<Array<Matrix4x3f>> = emptyList()
+    // manually serialized
+    @NotSerializedProperty
+    var frames: Array<Array<Matrix4x3f>> = emptyArray()
 
     override fun getMatrices(entity: Entity?, time: Float, dst: Array<Matrix4x3f>): Array<Matrix4x3f> {
 
@@ -42,7 +33,17 @@ class ImportedAnimation() : Animation() {
 
     }
 
-    override val className: String = "ImportedAnimation"
+    override fun clone(): ImportedAnimation {
+        val clone = ImportedAnimation()
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as ImportedAnimation
+        clone.frames = frames // deep copy?
+    }
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
@@ -51,10 +52,12 @@ class ImportedAnimation() : Animation() {
 
     override fun readFloatArray2D(name: String, values: Array<FloatArray>) {
         when (name) {
-            "frames" -> frames = values.map { splitValues(it) }
+            "frames" -> frames = values.map { splitValues(it) }.toTypedArray()
             else -> super.readFloatArray2D(name, values)
         }
     }
+
+    override val className: String = "ImportedAnimation"
 
     companion object {
 

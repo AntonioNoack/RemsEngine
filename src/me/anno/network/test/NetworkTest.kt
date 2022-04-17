@@ -1,11 +1,11 @@
 package me.anno.network.test
 
+import me.anno.Engine
 import me.anno.network.*
 import me.anno.network.packets.POS0Packet
 import me.anno.network.packets.PingPacket
 import me.anno.utils.Sleep
 import java.net.InetAddress
-import java.net.Socket
 import java.net.SocketTimeoutException
 import kotlin.concurrent.thread
 
@@ -17,6 +17,8 @@ fun main() {
 
     // then register packets
     tcpProtocol.register(PingPacket())
+    udpProtocol.register(PingPacket())
+    tcpProtocol.register(POS0Packet())
     udpProtocol.register(POS0Packet())
 
     // then create server & clients
@@ -27,18 +29,18 @@ fun main() {
 
     fun createClient(name: String): TCPClient {
         val address = InetAddress.getByName("localhost")
-        val tcpSocket = Socket(address, server.tcpPort)
-        val client = TCPClient(tcpSocket, name)
-        client.startClientSideAsync(tcpProtocol)
+        val tcpSocket = TCPClient.createSocket(address, server.tcpPort, tcpProtocol)
+        val client = TCPClient(tcpSocket, tcpProtocol, name)
+        client.startClientSideAsync()
         thread(name = "$name.udp") {
             Thread.sleep(100)
             // when the connection is established
             val client1 = UDPClient(address, server.udpPort)
-            client1.send(null, client, udpProtocol, POS0Packet())
+            client1.send(null, client, udpProtocol, PingPacket())
             println("sent udp packet")
             // receive the answer
             try {
-                client1.receive(null, client, POS0Packet())
+                client1.receive(null, client, PingPacket())
                 println("client got answer")
             } catch (e: SocketTimeoutException) {
                 println("client $name got no answer")
@@ -59,5 +61,7 @@ fun main() {
     println("closing server")
 
     server.close()
+
+    Engine.requestShutdown()
 
 }

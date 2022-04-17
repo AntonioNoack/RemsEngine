@@ -3,6 +3,7 @@ package me.anno.io.unity
 import me.anno.Engine
 import me.anno.cache.CacheData
 import me.anno.config.DefaultConfig.style
+import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
@@ -61,7 +62,7 @@ object UnityReader {
                 val data = UnityProjectCache.getEntry(file, unityProjectTimeout, async) {
                     val root = file.getParent()!!
                     if (root is UnityPackageFolder) {
-                        LOGGER.info("Fastest indexing ever <3")
+                        // LOGGER.info("Fastest indexing ever <3")
                         // fastest indexing ever <3
                         CacheData(root.project)
                     } else {
@@ -133,10 +134,20 @@ object UnityReader {
 
     private fun FileReference.getChildByNameOrFirst(name: String): FileReference? {
         if (name.isBlank2()) return this
-        val byName = getChild(name)
-        if (byName != InvalidRef) return byName
-        LOGGER.warn("$name is missing from $this, only found ${listChildren()?.map { it.name }}")
-        return if (isSomeKindOfDirectory) listChildren()?.firstOrNull() else null
+        val child = getChild(name)
+        if (child != InvalidRef) return child
+        val children = if (isSomeKindOfDirectory) listChildren() else emptyList()
+        val newChild = if (children != null && children.isNotEmpty()) {
+            getChildOrNull("100100000.json") ?: getChildOrNull("Scene.json") ?: children.first()
+        } else null
+        if (name != "4300000.json" && name != "2800000.json" && name != "0.json") {
+            // 4300000 is a magic for meshes,
+            // 2800000 for textures,
+            // 0 idk...
+            // our logic is fine: Scene.json is being extracted here
+            LOGGER.warn("$name is missing from $this, chose ${newChild?.name}, only found ${children?.map { it.name }}")
+        }
+        return newChild
     }
 
     private fun readMaterial(node: YAMLNode, guid: String, prefab: Prefab, project: UnityProject) {
@@ -527,7 +538,7 @@ object UnityReader {
                     val rootGameObject = node["RootGameObject"]
                     if (rootGameObject != null) {
                         val link = decodePath(guid, rootGameObject, project)
-                        // LOGGER.info("set root object of $fileId to $link")
+                        LOGGER.info("[540, Prefab.RootGameObject] Set root object of $fileId to $link")
                         prefab.prefab = link
                     }
                 }
@@ -557,7 +568,8 @@ object UnityReader {
                     val prefab2 = node["PrefabParentObject"]
                     val prefabPath = decodePath(guid, prefab2, project)
                     if (prefabPath != InvalidRef) {
-                        prefab.prefab = prefabPath
+                        LOGGER.info("[570, GameObject.PrefabParentObject] Set $fileId.prefab to $prefabPath")
+                        // prefab.prefab = prefabPath
                     }
                     // find transform, which belongs to this GameObject
                     val key = decodePath(guid, fileId, project)
@@ -664,7 +676,8 @@ object UnityReader {
     private fun forAllUnityObjects(node: YAMLNode, callback: (fileId: String, node: YAMLNode) -> Unit) {
         val children = node.children ?: return
         if (!children[0].key.startsWith("%YAML")) {
-            throw IllegalArgumentException("Not a unity yaml file")
+            LOGGER.warn("Not a unity yaml file")
+            return
         }
         var index = -1
         while (++index < children.size) {
@@ -850,6 +863,8 @@ Transform:
     @JvmStatic
     fun main(args: Array<String>) {
 
+        Prefab.maxPrefabDepth = 7
+
         // todo analyse triplanar scene & recreate complete tree structure from it
 
         /*sceneRenderTest()
@@ -857,17 +872,20 @@ Transform:
 
         val projectPath = getReference(downloads, "up/PolygonSciFiCity_Unity_Project_2017_4.unitypackage")
 
-        val file =
+        /*
+        return*/
+
+        /*val file =
             getReference("E:/Assets/POLYGON_Pirates_Pack_Unity_5_6_0.zip/PolygonPirates/Assets/PolygonPirates/Materials")
         println("file exists? ${file.exists}, children: ${file.listChildren()}")
         val projectPath2 = findUnityProject(file)
-        println("project from file? $projectPath2")
+        println("project from file? $projectPath2")*/
 
-        val file2 = file.getParent()!!.getChild("Prefabs/Vehicles/SM_Flag_British_01.prefab")
+        /*val file2 = file.getParent()!!.getChild("Prefabs/Vehicles/SM_Flag_British_01.prefab")
         println("file2 exists? ${file2.exists}")
-        println(PrefabCache.getPrefab(file2))
+        println(PrefabCache.getPrefab(file2))*/
 
-        return
+        // return
 
         /*val colliderComponent = getReference(projectPath, "f9a80be48a6254344b5f885cfff4bbb0/64472554668277586.json")
         val meshComponent = getReference(projectPath, "f9a80be48a6254344b5f885cfff4bbb0/33053279949580010.json")
@@ -879,6 +897,21 @@ Transform:
         ECSShaderLib.init()
 
         ECSRegistry.init()
+
+        val circularDependencies = listOf(
+            "6e7e49849c96318418dbd28b88bc6d06/100100000.json",
+            "cae9881699f289945baf66e9c9958a45/100100000.json",
+            "9baabcdff9f934e4f93321577d7858e5/1637145686889916.json",
+            "6924b6055d3b89c49be5c9d309e8e14c/100100000.json",
+            "32713ca9df7701740ab3e8677019c63a/1656211306410468.json",
+            "32713ca9df7701740ab3e8677019c63a/1656211306410468.json"
+        )
+        for(sample in circularDependencies){
+            val prefab = PrefabCache.getPrefab(getReference(projectPath, sample))
+            LOGGER.info(sample)
+            LOGGER.info(JsonFormatter.format(prefab.toString()))
+            LOGGER.info(prefab!!.getSampleInstance())
+        }
 
         /*Thumbs.useCacheFolder = true
         for (file in listOf(meshComponent, colliderComponent, entityOfComponent)) {
@@ -916,18 +949,18 @@ Transform:
         //parseYAML(getReference(main, "Materials/Alternates/PolygonScifi_03_B.mat").readText())
         //parseYAML(getReference(main, "Scenes/Demo.unity"))
 
-        val project = findUnityProject(assets)!!
-        val path = decodePath("", "{fileID: 2800000, guid: fff3796fd3630f64890b09296fcb8f85, type: 3}", project)
-        LOGGER.info("Path: $path")
+        // val project = findUnityProject(assets)!!
+        // val path = decodePath("", "{fileID: 2800000, guid: fff3796fd3630f64890b09296fcb8f85, type: 3}", project)
+        // LOGGER.info("Path: $path")
         // correct solution: main, Textures/PolygonSciFiCity_Texture_Normal.png
 
-        parseYAML(getReference(downloads, "up/SM_Prop_DiningTable_01.fbx.meta"))
+        // parseYAML(getReference(downloads, "up/SM_Prop_DiningTable_01.fbx.meta"))
 
 
         // val meshMeta = getReference(main, "Models/Flame_Mesh.fbx")
-        val material = getReference(main, "Materials/PolygonSciFi_01_A.mat")
+        // val material = getReference(main, "Materials/PolygonSciFi_01_A.mat")
         // val scene = getReference(main, "Scenes/Demo.unity")
-        LOGGER.info(readAsAsset(material).readText())
+        // LOGGER.info(readAsAsset(material).readText())
 
         // val sampleMaterial = getReference(downloads, "up/mat/PolygonScifi_03_A.mat")
         // LOGGER.info(readAsAsset(sampleMaterial).readText())

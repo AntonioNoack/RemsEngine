@@ -1,11 +1,9 @@
 package me.anno.network.test
 
-import me.anno.Engine
 import me.anno.network.NetworkProtocol
 import me.anno.network.Protocol
 import me.anno.network.Server
 import me.anno.network.TCPClient
-import me.anno.network.packets.ClosePacket
 import me.anno.network.packets.PingPacket
 import java.net.DatagramPacket
 import java.net.DatagramSocket
@@ -67,8 +65,8 @@ fun architectureUDPTest() {
     fun startClient(name: String) {
         // start tcp client
         // then send a udp message
-        val client = TCPClient(Socket("localhost", tcpPort), name)
-        client.startClientSideAsync(tcpProtocol)
+        val client = TCPClient(Socket("localhost", tcpPort), tcpProtocol, name)
+        client.startClientSideAsync()
         client.udpPort = udpPort
         client.sendUDP(PingPacket(), udpProtocol) {
             println("got pong packet, dt: ${client.localTimeOffset / 1e6f} ms")

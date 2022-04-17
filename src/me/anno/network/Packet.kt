@@ -20,6 +20,9 @@ open class Packet(var bigEndianMagic: Int) : Saveable() {
     /** whether this packet will always have the same size; no matter the version, edition, or sth else */
     open val constantSize = false
 
+    /** whether this packet may be skipped, if there is lots of traffic or the client is malicious and doesn't read to cause server-side out-of-memory */
+    open val canDropPacket = true
+
     open fun send(server: Server?, client: TCPClient, dos: DataOutputStream) {
         if (debugPackets) LOGGER.info("Sending(TCP) $this ${if (server == null) "${client.randomIdString} -> s" else "s -> ${client.randomIdString}"}")
         // standard serialization
@@ -60,6 +63,7 @@ open class Packet(var bigEndianMagic: Int) : Saveable() {
             dis.readNBytes2(size, buffer.buffer, true)
             readData(server, client, client.bufferDis, size)
         }
+        onReceive(server, client)
         if (debugPackets) LOGGER.info("Received(TCP) $this ${if (server == null) "s -> ${client.randomIdString}" else "${client.randomIdString} -> s"}")
     }
 

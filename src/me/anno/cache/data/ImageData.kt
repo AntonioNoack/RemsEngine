@@ -17,13 +17,13 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.image.ImageCPUCache
 import me.anno.image.ImageReadable
+import me.anno.image.RotateJPEG
 import me.anno.image.hdr.HDRImage
 import me.anno.image.raw.BIImage
 import me.anno.image.tar.TGAImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
-import me.anno.image.RotateJPEG
 import me.anno.utils.Nullable.tryOrException
 import me.anno.utils.Nullable.tryOrNull
 import me.anno.utils.Sleep.waitUntilDefined
@@ -189,13 +189,13 @@ class ImageData(file: FileReference) : ICacheData {
 
     private fun tryGetImage(file: FileReference): Image? {
         if (file is ImageReadable) return file.readImage()
-        return tryGetImage(file.inputStream())
+        return tryGetImage(file, file.inputStream())
     }
 
-    private fun tryGetImage(file: InputStream): Image? {
-        if (file is ImageReadable) return file.readImage()
+    private fun tryGetImage(file: FileReference, stream: InputStream): Image? {
+        if (stream is ImageReadable) return stream.readImage()
         // try ImageIO first, then Imaging, then give up (we could try FFMPEG, but idk, whether it supports sth useful)
-        val image = tryOrNull { ImageIO.read(file) } ?: tryOrException { Imaging.getBufferedImage(file) }
+        val image = tryOrNull { ImageIO.read(stream) } ?: tryOrException { Imaging.getBufferedImage(stream) }
         if (image is Exception) LOGGER.warn("Cannot read image from input $file: ${image.message}")
         if (image !is BufferedImage) return null
         return BIImage(image)

@@ -1,7 +1,6 @@
 package me.anno.network.packets
 
 import me.anno.Engine
-import me.anno.io.base.BaseWriter
 import me.anno.network.Packet
 import me.anno.network.Server
 import me.anno.network.TCPClient
@@ -26,7 +25,7 @@ open class PingPacket(magic: String = "PING") : Packet(magic) {
 
     override fun onReceive(server: Server?, client: TCPClient) {
         if (server != null) {// send a response
-            client.sendTCP(server, this)
+            client.sendTCP(this)
         }
     }
 

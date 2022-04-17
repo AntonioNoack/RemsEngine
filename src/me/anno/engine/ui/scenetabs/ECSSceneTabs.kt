@@ -150,7 +150,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
     fun updatePrefab(prefab: Prefab) {
         val prefabInstance = prefab.getSampleInstance()
         // val world = createWorld(prefabInstance, prefab.source)
-        EditorState.prefab = prefab
+        EditorState.prefabSource = prefab.source
         (prefabInstance as? Entity)?.apply {
             create()
             val physics = prefabInstance.getComponent(BulletPhysics::class, false)

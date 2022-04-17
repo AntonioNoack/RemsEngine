@@ -2,7 +2,9 @@ package me.anno.io.files
 
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.io.Streams.copy
+import java.io.BufferedOutputStream
 import java.io.File
+import java.io.OutputStream
 import java.net.URI
 import java.nio.charset.Charset
 
@@ -37,7 +39,12 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
 
     override fun inputStream() = file.inputStream().buffered()
 
-    override fun outputStream() = file.outputStream().buffered()
+    override fun outputStream(): OutputStream {
+        val ret = file.outputStream().buffered()
+        // when writing is finished, this should be called again
+        LastModifiedCache.invalidate(file)
+        return ret
+    }
 
     override fun writeText(text: String) {
         file.writeText(text)
@@ -115,6 +122,6 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
     }
 
     override val isDirectory: Boolean
-        get() = LastModifiedCache[file].isDirectory
+        get() = LastModifiedCache[file, absolutePath].isDirectory
 
 }

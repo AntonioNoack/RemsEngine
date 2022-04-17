@@ -8,6 +8,8 @@ import me.anno.engine.scene.PrefabHelper.addE
 import me.anno.engine.ui.render.RenderView
 import me.anno.io.files.FileRootRef
 import me.anno.io.zip.InnerPrefabFile
+import me.anno.maths.Maths
+import me.anno.maths.Maths.TAU
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.utils.Clock
 import me.anno.utils.OS
@@ -146,7 +148,7 @@ object ScenePrefab : InnerPrefabFile(
                     val radius = getRadius(j)
                     val ringLightCount = getLightCount(radius)
                     for (i in 0 until ringLightCount) {
-                        val angle = 6.2830 * i.toDouble() / ringLightCount
+                        val angle = TAU * i.toDouble() / ringLightCount
                         val light = addE(this, superRing, instanceNames[i])
                         val position = Vector3d(radius * cos(angle), elementSize * 0.5, radius * sin(angle))
                         set(light, "position", position)
@@ -266,9 +268,9 @@ object ScenePrefab : InnerPrefabFile(
                 for (i in 0 until l) {
                     for (j in 0 until 2) {
                         val cube = addE(this, normalTesting, "Cube[$i]", cubePathNormals)
-                        val angle = (i + (j.and(1) * 0.5)) * 6.2830 / l
+                        val angle = (i + (j.and(1) * 0.5)) * TAU / l
                         set(cube, "position", Vector3d(cos(angle) * l / 2, 1.0 + 2 * j, sin(angle) * l / 2))
-                        set(cube, "rotation", Quaterniond().rotateY(-angle).rotateX(j * 6.2830 / 8))
+                        set(cube, "rotation", Quaterniond().rotateY(-angle).rotateX(j * TAU / 8))
                     }
                 }
             }

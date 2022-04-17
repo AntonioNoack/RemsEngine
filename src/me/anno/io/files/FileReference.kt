@@ -301,6 +301,9 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     abstract fun getChild(name: String): FileReference
 
+    fun getChildOrNull(name: String): FileReference? =
+        getChild(name).nullIfUndefined()
+
     open fun hasChildren(): Boolean = listChildren()?.isNotEmpty() == true
 
     open fun invalidate() {

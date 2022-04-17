@@ -8,6 +8,7 @@ import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.widen
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.maths.Maths
 import me.anno.maths.Maths.TAUf
 import org.joml.AABBf
 import org.joml.Vector4f
@@ -47,7 +48,7 @@ class SDFColumn : DistanceMapper() {
             }
         }
 
-    @Range(0.0, 6.2830)
+    @Range(0.0, Maths.TAU)
     var phaseOffset
         get() = params.z
         set(value) {

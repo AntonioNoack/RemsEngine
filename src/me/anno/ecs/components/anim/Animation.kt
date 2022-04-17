@@ -2,17 +2,16 @@ package me.anno.ecs.components.anim
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.cache.SkeletonCache
-import me.anno.io.NamedSaveable
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.maths.Maths
 import me.anno.maths.Maths.fract
 import org.joml.Matrix4x3f
 
 // todo blend animations...
 // todo allow procedural animations; for that we'd need more knowledge about the model...
-abstract class Animation : NamedSaveable {
+abstract class Animation : PrefabSaveable {
 
     constructor() : super()
 
@@ -92,6 +91,13 @@ abstract class Animation : NamedSaveable {
             "skeleton" -> skeleton = value
             else -> super.readFile(name, value)
         }
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as Animation
+        clone.skeleton = skeleton
+        clone.duration = duration
     }
 
     override val approxSize: Int = 100

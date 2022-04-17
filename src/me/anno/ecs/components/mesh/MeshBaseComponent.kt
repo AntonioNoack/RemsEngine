@@ -31,6 +31,11 @@ abstract class MeshBaseComponent : CollidingComponent() {
     @SerializedProperty
     var isInstanced = false
 
+    // todo respect this property
+    // (useful for Synty meshes, which sometimes have awkward vertex colors)
+    @SerializedProperty
+    var enableVertexColors = true
+
     @Docs("Abstract function for you to define your mesh")
     abstract fun getMesh(): Mesh?
 

@@ -20,14 +20,14 @@ abstract class Change : Saveable(), Cloneable {
 
     abstract fun withPath(path: Path): Change
 
-    fun apply(instance0: PrefabSaveable, chain: MutableSet<FileReference>?) {
+    fun apply(instance0: PrefabSaveable, depth: Int) {
         if (instance0.prefabPath != ROOT_PATH) throw RuntimeException("Root instance must have root path, got ${instance0.prefabPath}")
         val instance = Hierarchy.getInstanceAt(instance0, path) ?: return
         if (instance.prefabPath != path) throw RuntimeException("Path does not match! ${instance.prefabPath} != $path")
-        applyChange(instance, chain)
+        applyChange(instance, depth)
     }
 
-    abstract fun applyChange(instance: PrefabSaveable, chain: MutableSet<FileReference>?)
+    abstract fun applyChange(instance: PrefabSaveable, depth: Int)
 
     /**
      * shallow copy

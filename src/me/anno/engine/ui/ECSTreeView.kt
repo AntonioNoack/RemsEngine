@@ -51,7 +51,7 @@ import org.apache.logging.log4j.LogManager
 class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
     TreeView<PrefabSaveable>(
         UpdatingList {
-            val world = library.prefab?.getSampleInstance() ?: library.world
+            val world = library.prefab?.getSampleInstance()// ?: library.world
             if (world != null) listOf(world) else emptyList()
         },
         ECSFileImporter as FileContentImporter<PrefabSaveable>,
@@ -355,8 +355,9 @@ class ECSTreeView(val library: EditorState, isGaming: Boolean, style: Style) :
     private fun tryPaste(data: String): Boolean {
         return when (val element = TextReader.read(data, StudioBase.workspace, true).firstOrNull()) {
             is Prefab -> {
-                val root = library.world ?: return false
-                Hierarchy.add(root.prefab!!, Path.ROOT_PATH, element, Path.ROOT_PATH, root)
+                val prefab = library.prefab
+                val root = prefab?.getSampleInstance() ?: return false
+                Hierarchy.add(prefab, Path.ROOT_PATH, element, Path.ROOT_PATH, root)
                 true
             }
             is PrefabSaveable -> TODO("paste prefab saveable somehow")

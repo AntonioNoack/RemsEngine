@@ -74,6 +74,7 @@
       <w>defs</w>
       <w>desaturate</w>
       <w>desktophints</w>
+      <w>deuteranopia</w>
       <w>dimgray</w>
       <w>dimgrey</w>
       <w>doctype</w>
@@ -204,6 +205,7 @@
       <w>mintcream</w>
       <w>mistyrose</w>
       <w>mmmh</w>
+      <w>motd</w>
       <w>movflags</w>
       <w>mpeg</w>
       <w>msaa</w>
@@ -242,6 +244,7 @@
       <w>pred</w>
       <w>premade</w>
       <w>premultiplied</w>
+      <w>protanopia</w>
       <w>quat</w>
       <w>quaterniond</w>
       <w>quaternionf</w>
@@ -305,6 +308,7 @@
       <w>tonemapping</w>
       <w>treemiddle</w>
       <w>triangulator</w>
+      <w>tritanopia</w>
       <w>uchimura</w>
       <w>ultrafast</w>
       <w>unifont</w>

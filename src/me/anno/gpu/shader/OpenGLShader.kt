@@ -199,6 +199,10 @@ abstract class OpenGLShader(
         return str
     }
 
+    fun setTextureIndices(vararg textures: String) {
+        setTextureIndices(textures.toList())
+    }
+
     fun setTextureIndices(textures: List<String>?) {
         use()
         if (textures == null) return

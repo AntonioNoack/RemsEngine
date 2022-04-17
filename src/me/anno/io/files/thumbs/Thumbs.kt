@@ -1075,7 +1075,7 @@ object Thumbs {
             }
             "png", "jpg", "bmp", "ico", "psd" -> generateImage(srcFile, dstFile, size, callback)
             "blend" -> generateSomething(
-                PrefabCache.getPrefabInstance(srcFile, null),
+                PrefabCache.getPrefabInstance(srcFile),
                 srcFile,
                 dstFile,
                 size,
@@ -1135,7 +1135,7 @@ object Thumbs {
                     "json" -> {
                         try {
                             // try to read the file as an asset
-                            val something = PrefabCache.getPrefabInstance(srcFile, HashSet())
+                            val something = PrefabCache.getPrefabInstance(srcFile)
                             generateSomething(something, srcFile, dstFile, size, callback)
                         } catch (e: InvalidClassException) {
                             LOGGER.info("${e.message}; by $srcFile")

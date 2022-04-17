@@ -111,7 +111,7 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
         }
     }
 
-    private var lastObjectName = ""
+    private var lastObjectName = "Mesh0"
     private var lastGroupName = ""
 
     private var lastGroupPath: Path = Path.ROOT_PATH
@@ -144,26 +144,26 @@ class OBJReader2(input: InputStream, val file: FileReference) : OBJMTLReader(inp
         if (facePositions.size > 0) {
             if (lastObjectPath.isEmpty()) newObject()
             val mesh = Prefab("Mesh")
-            var name = "$lastObjectName.json"
+            val name = lastObjectName
+            var fileName = "$name.json"
             mesh.setProperty("material", lastMaterial)
             mesh.setProperty("positions", facePositions.toFloatArray())
             mesh.setProperty("normals", faceNormals.toFloatArray())
             mesh.setProperty("uvs", faceUVs.toFloatArray())
             val meshesFolder = meshesFolder
             // find good new name for mesh
-            if (meshesFolder.getChild(name) != InvalidRef) {
-                name = "$lastObjectName-${lastMaterial.name}"
-                val fileI = meshesFolder.getChild(name)
+            if (meshesFolder.getChild(fileName) != InvalidRef) {
+                fileName = "$lastObjectName-${lastMaterial.name}"
+                val fileI = meshesFolder.getChild(fileName)
                 if (fileI != InvalidRef) {
-                    name = findNextFileName(fileI, 1, '-', 1)
+                    fileName = findNextFileName(fileI, 1, '-', 1)
                 }
             }
             // add mesh component to last object
-            val meshRef = meshesFolder.createPrefabChild(name, mesh)
+            val meshRef = meshesFolder.createPrefabChild(fileName, mesh)
             mesh.source = meshRef
-            val add =
-                scenePrefab.add(lastObjectPath, 'c', "MeshComponent", meshRef.nameWithoutExtension, meshCountInObject++)
-            scenePrefab.set(add, "mesh", meshRef)
+            val add = scenePrefab.add(lastObjectPath, 'c', "MeshComponent", name, meshCountInObject++)
+            scenePrefab[add, "mesh"] = meshRef
             // LOGGER.debug("Clearing at ${facePositions.size / 3}")
             facePositions.clear()
             faceNormals.clear()

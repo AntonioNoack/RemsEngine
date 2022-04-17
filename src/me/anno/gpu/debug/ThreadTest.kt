@@ -1,5 +1,6 @@
 package me.anno.gpu.debug
 
+import me.anno.maths.Maths.PIf
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.system.MemoryUtil
@@ -80,7 +81,7 @@ object ThreadTest {
             GLFW.glfwSwapInterval(1)
             var ctr = 0
             while (run) {
-                val v = abs(sin(ctr++ * 3.1416f / 100f))
+                val v = abs(sin(ctr++ * PIf / 100f))
                 GL11C.glClearColor(r * v, g * v, b * v, 0f)
                 GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT)
                 GLFW.glfwSwapBuffers(window)

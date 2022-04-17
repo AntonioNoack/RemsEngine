@@ -2,6 +2,7 @@ package me.anno.ecs.components.anim
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.cache.SkeletonCache
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.maths.Maths.mix
 import me.anno.utils.pooling.JomlPools
@@ -13,34 +14,13 @@ import org.joml.Vector3f
  * a basic animation for characters, where animated translation only exists at the root node
  * this can be easier retargeted and customized than ImportedAnimation
  * */
-class BoneByBoneAnimation() : Animation() {
+class BoneByBoneAnimation : Animation() {
 
     val globalTransform = Matrix4x3f()
     val globalInvTransform = Matrix4x3f()
 
     var boneCount = 0
     var frameCount = 0
-
-    constructor(name: String, duration: Double) : this() {
-        this.name = name
-        this.duration = duration
-    }
-
-    constructor(
-        name: String, duration: Double,
-        frameCount: Int, boneCount: Int, rootMotion: FloatArray, rotations: FloatArray,
-        globalTransform: Matrix4x3f?,
-        globalInvTransform: Matrix4x3f?
-    ) : this(name, duration) {
-        this.frameCount = frameCount
-        this.boneCount = boneCount
-        this.rootMotion = rootMotion
-        this.rotations = rotations
-        if (globalTransform != null) {
-            this.globalTransform.set(globalTransform)
-            this.globalInvTransform.set(globalInvTransform)
-        }
-    }
 
     var rootMotion: FloatArray? = null // Array(frameCount) { Vector3f() }
     var rotations: FloatArray? = null // Array(frameCount * boneCount) { Quaternionf() }
@@ -163,6 +143,23 @@ class BoneByBoneAnimation() : Animation() {
             //.mul(globalTransform)
         }
         return dst
+    }
+
+    override fun clone(): BoneByBoneAnimation {
+        val clone = BoneByBoneAnimation()
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as BoneByBoneAnimation
+        clone.boneCount = boneCount
+        clone.frameCount = frameCount
+        clone.rootMotion = rootMotion
+        clone.rotations = rotations
+        clone.globalTransform.set(globalTransform)
+        clone.globalInvTransform.set(globalInvTransform)
     }
 
     override val className: String = "BoneByBoneAnimation"

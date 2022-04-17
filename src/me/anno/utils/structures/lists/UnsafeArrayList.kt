@@ -29,8 +29,13 @@ class UnsafeArrayList<V>(capacity0: Int = 16) : MutableList<V> {
     }
 
     override fun get(index: Int): V {
-        @Suppress("UNCHECKED_CAST")
+        @Suppress("unchecked_cast")
         return backend[index] as V
+    }
+
+    fun getSafe(index: Int): V? {
+        @Suppress("unchecked_cast")
+        return backend[index] as V?
     }
 
     override fun indexOf(element: V): Int {
@@ -83,7 +88,7 @@ class UnsafeArrayList<V>(capacity0: Int = 16) : MutableList<V> {
 
     override fun clear() {
         size = 0
-        backend = arrayOfNulls(1024)
+        backend.fill(null)
     }
 
     override fun listIterator(): MutableListIterator<V> {

@@ -3,6 +3,7 @@ package me.anno.ecs.components.camera.effects
 import me.anno.Engine
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.Range
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.Framebuffer
@@ -12,7 +13,7 @@ import me.anno.gpu.framebuffer.IFramebuffer
 abstract class CameraEffect : Component() {
 
     @Range(0.0, 1e10)
-    var strength = 0f
+    var strength = 1f
 
     // todo integrate this into RenderView
     // todo integrate all useful effects from Three.js
@@ -30,6 +31,12 @@ abstract class CameraEffect : Component() {
     fun write(layers: HashMap<DeferredLayerType, IFramebuffer>, type: DeferredLayerType, fb: IFramebuffer) {
         (fb as? Framebuffer)?.lastDraw = Engine.nanoTime
         layers[type] = fb
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as CameraEffect
+        clone.strength = strength
     }
 
 }

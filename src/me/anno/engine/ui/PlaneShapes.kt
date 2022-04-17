@@ -7,6 +7,7 @@ import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
 import me.anno.gpu.pipeline.PipelineStage
+import me.anno.maths.Maths.TAUf
 import org.joml.Matrix4x3d
 import kotlin.math.cos
 import kotlin.math.sin
@@ -26,7 +27,7 @@ object PlaneShapes {
         val f = 0.5f
         for (i in 0 until slices) {
 
-            val angle = i * 6.2830f / slices
+            val angle = i * TAUf / slices
             val x = cos(angle)
             val z = sin(angle)
 

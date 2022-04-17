@@ -40,8 +40,6 @@ object ImageWriter {
 
     val tileSize = 8
 
-    // todo maybe we should add noise (optionally) to make the visual results even nicer
-
     fun getFile(name: String): FileReference {
         val name2 = if (name.endsWith("png") || name.endsWith("jpg")) name else "$name.png"
         val file = desktop.getChild(name2)

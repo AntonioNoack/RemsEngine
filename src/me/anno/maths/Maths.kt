@@ -6,6 +6,8 @@ import kotlin.math.*
 @Suppress("unused")
 object Maths {
 
+    const val TAU = Math.PI * 2.0
+
     const val PIf = Math.PI.toFloat()
     const val TAUf = (Math.PI * 2.0).toFloat()
 

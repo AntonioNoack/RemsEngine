@@ -1,6 +1,7 @@
 package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
+import me.anno.gpu.OpenGL
 import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.framebuffer.Framebuffer.Companion.bindFramebuffer
 import me.anno.gpu.shader.Renderer
@@ -8,6 +9,7 @@ import me.anno.gpu.texture.*
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL30.*
+import org.lwjgl.opengl.GL30C
 
 class CubemapFramebuffer(
     override var name: String, var size: Int,
@@ -32,8 +34,10 @@ class CubemapFramebuffer(
     // use glBindFragDataLocation instead
 
     override var pointer = -1
+    var session = 0
     var depthRenderBuffer = -1
     override var depthTexture: CubemapTexture? = null
+    var depthAttachment: CubemapFramebuffer? = null
 
     override val w: Int get() = size
     override val h: Int get() = size
@@ -46,7 +50,20 @@ class CubemapFramebuffer(
     }
 
     override fun checkSession() {
-        TODO("Not yet implemented")
+        if (pointer > 0 && session != OpenGL.session) {
+            GFX.check()
+            session = OpenGL.session
+            pointer = -1
+            // needsBlit = true
+            // msBuffer?.checkSession()
+            depthTexture?.checkSession()
+            for (texture in textures) {
+                texture.checkSession()
+            }
+            GFX.check()
+            // validate it
+            create()
+        }
     }
 
     override fun getTextureI(index: Int): ITexture2D = textures[index]
@@ -125,7 +142,11 @@ class CubemapFramebuffer(
                 this.depthTexture = depthTexture
             }
             DepthBufferType.ATTACHMENT -> {
-                throw IllegalArgumentException("attachment depth not yet supported for cubemaps")
+                val target = GL_TEXTURE_CUBE_MAP_POSITIVE_X
+                val texPointer = depthAttachment?.depthTexture?.pointer
+                    ?: throw IllegalStateException("Depth Attachment was not found in $name, ${depthAttachment}.${depthAttachment?.depthTexture}")
+                GL30C.glFramebufferTexture2D(GL30C.GL_FRAMEBUFFER, GL30C.GL_DEPTH_ATTACHMENT, target, texPointer, 0)
+                // throw IllegalArgumentException("attachment depth not yet supported for cubemaps")
             }
         }
         GFX.check()
@@ -179,10 +200,12 @@ class CubemapFramebuffer(
     }*/
 
     override fun bindTextureI(index: Int, offset: Int, nearest: GPUFiltering, clamping: Clamping) {
+        checkSession()
         textures[index].bind(offset, nearest, clamping)
     }
 
     override fun bindTextures(offset: Int, nearest: GPUFiltering, clamping: Clamping) {
+        checkSession()
         for (textureIndex in textures.indices) {
             textures[textureIndex].bind(offset + textureIndex, nearest, clamping)
         }
@@ -257,12 +280,17 @@ class CubemapFramebuffer(
         }
     }
 
-    override fun getTexture0(): Texture2D {
-        TODO("Not yet implemented")
-    }
-
     override fun attachFramebufferToDepth(targetCount: Int, fpTargets: Boolean): IFramebuffer {
-        TODO("Not yet implemented")
+        return if (targetCount <= GFX.maxColorAttachments) {
+            val buffer = CubemapFramebuffer(name, size, samples, targetCount, fpTargets, DepthBufferType.ATTACHMENT)
+            buffer.depthAttachment = this
+            buffer
+        } else {
+            TODO("Cubemaps with attachment depth not yet implemented for $targetCount > ${GFX.maxColorAttachments}")
+            /*val buffer = MultiFramebuffer(name, size, samples, targetCount, fpTargets, DepthBufferType.ATTACHMENT)
+            for (it in buffer.targetsI) it.depthAttachment = this
+            buffer*/
+        }
     }
 
     override fun toString(): String =

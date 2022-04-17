@@ -4,7 +4,6 @@ import me.anno.Engine.gameTime
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.MILLIS_TO_NANOS
-import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
@@ -39,20 +38,22 @@ object LastModifiedCache {
     var values = ConcurrentHashMap<String, Result>()
 
     fun invalidate(absolutePath: String) {
-        values.remove(absolutePath)
+        // we store both variants
+        values.remove(absolutePath.replace('/', '\\'))
+        values.remove(absolutePath.replace('\\', '/'))
     }
 
     fun invalidate(file: File) {
-        values.remove(file.absolutePath)
+        invalidate(file.absolutePath)
     }
 
     fun invalidate(file: FileReference) {
         if (file is FileFileRef) {
-            invalidate(file.file)
+            invalidate(file.file.absolutePath)
         }
     }
 
-    fun update(){
+    fun update() {
         val time = gameTime
         // todo partial reload only, like a cache section, just that the entries decay
         // todo randomness in decay time
@@ -64,30 +65,38 @@ object LastModifiedCache {
 
     operator fun get(file: File, absolutePath: String): Result {
         update()
-        return values.getOrPut(absolutePath) { Result(file) }
+        return values.getOrPut(absolutePath) {
+            val r = Result(file)
+            values[absolutePath.replace('/', '\\')] = r
+            values[absolutePath.replace('\\', '/')] = r
+            r
+        }
     }
 
     operator fun get(absolutePath: String): Result {
         update()
-        return values.getOrPut(absolutePath) { Result(File(absolutePath)) }
+        return values.getOrPut(absolutePath) {
+            val r = Result(File(absolutePath))
+            values[absolutePath.replace('/', '\\')] = r
+            values[absolutePath.replace('\\', '/')] = r
+            r
+        }
     }
 
-    operator fun get(file: File): Result = get(
-        file, file.absolutePath.replace('\\', '/')
-    )
+    operator fun get(file: File): Result = get(file, file.absolutePath)
 
     fun isDirectory(ref: FileReference): Boolean {
-        return if (ref is FileFileRef) this[ref.absolutePath].exists
+        return if (ref is FileFileRef) this[ref.file.absolutePath].exists
         else ref.isDirectory
     }
 
     fun exists(ref: FileReference): Boolean {
-        return if (ref is FileFileRef) this[ref.absolutePath].exists
+        return if (ref is FileFileRef) this[ref.file.absolutePath].exists
         else ref.exists
     }
 
     fun exists(file: File): Boolean {
-        return this[file].exists
+        return this[file, file.absolutePath].exists
     }
 
     fun exists(absolutePath: String): Boolean {

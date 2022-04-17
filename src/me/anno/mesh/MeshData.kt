@@ -83,10 +83,6 @@ open class MeshData : ICacheData {
             drawSkeletons
         )
 
-        // todo line mode: draw every mesh as lines
-        // todo draw non-indexed as lines: use an index buffer
-        // todo draw indexed as lines: use a geometry shader, which converts 3 vertices into 3 lines
-
     }
 
     fun vec3(v: Vector3d): Vector3f = Vector3f(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())

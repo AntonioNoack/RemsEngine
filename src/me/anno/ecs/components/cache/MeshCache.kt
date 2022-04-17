@@ -4,6 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshBaseComponent
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.ecs.prefab.PrefabByFileCache
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.io.files.FileReference
@@ -16,7 +17,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
 
     override operator fun get(ref: FileReference?, async: Boolean): Mesh? {
         if (ref == null || ref == InvalidRef) return null
-        val instance = PrefabCache.getPrefabInstance(ref, null, async) ?: return null
+        val instance = PrefabCache.getPrefabInstance(ref, maxPrefabDepth, async) ?: return null
         return when (instance) {
             is Mesh -> instance
             is MeshComponent -> getMesh(instance, ref, async)

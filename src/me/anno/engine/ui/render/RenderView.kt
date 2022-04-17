@@ -40,6 +40,8 @@ import me.anno.gpu.OpenGL
 import me.anno.gpu.OpenGL.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.LineBuffer
+import me.anno.gpu.deferred.DeferredLayerType
+import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.deferred.DepthBasedAntiAliasing
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTextures.drawDepthTexture
@@ -91,7 +93,7 @@ import kotlin.math.tan
 
 // todo create the different pipeline stages: opaque, transparent, post-processing, ...
 
-// todo render the grid slightly off position, so we don't get flickering, always closer to the camera, proportional to radius
+// to do render the grid slightly off position, so we don't get flickering, always closer to the camera, proportional to radius
 // (because meshes at 0 are very common and to be expected)
 
 // done shadows
@@ -112,7 +114,7 @@ import kotlin.math.tan
 // done render in different modes: overdraw, color blindness, normals, color, before-post-process, with-post-process
 // done nice ui for that: drop down menus at top or bottom
 
-// todo blend between multiple cameras, only allow 2? yes :)
+// to do blend between multiple cameras, only allow 2? yes :)
 
 
 // todo easily allow for multiple players in the same instance, with just player key mapping
@@ -792,17 +794,26 @@ class RenderView(
             else -> false
         }
 
-        if (useFSR) {
-            val flipY = isShiftDown // works without difference, so maybe it could be removed...
-            val tw = x1 - x0
-            val th = y1 - y0
-            val tmp = FBStack["fsr", tw, th, 4, false, 1, false]
-            useFrame(tmp) { FSR.upscale(dstBuffer.getTexture0(), 0, 0, tw, th, flipY) }
-            // afterwards sharpen
-            FSR.sharpen(tmp.getTexture0(), 0.5f, x, y, tw, th, flipY)
-        } else {
-            // we could optimize that one day, when the shader graph works
-            GFX.copyNoAlpha(dstBuffer)
+        val effect = renderMode.effect
+        when {
+            useFSR -> {
+                val flipY = isShiftDown // works without difference, so maybe it could be removed...
+                val tw = x1 - x0
+                val th = y1 - y0
+                val tmp = FBStack["fsr", tw, th, 4, false, 1, false]
+                useFrame(tmp) { FSR.upscale(dstBuffer.getTexture0(), 0, 0, tw, th, flipY) }
+                // afterwards sharpen
+                FSR.sharpen(tmp.getTexture0(), 0.5f, x, y, tw, th, flipY)
+            }
+            effect != null -> {
+                val map = hashMapOf(DeferredLayerType.SDR_RESULT to dstBuffer)
+                effect.render(dstBuffer, DeferredSettingsV2(listOf(DeferredLayerType.SDR_RESULT), false), map)
+                GFX.copyNoAlpha(map[DeferredLayerType.SDR_RESULT]!!)
+            }
+            else -> {
+                // we could optimize that one day, when the shader graph works
+                GFX.copyNoAlpha(dstBuffer)
+            }
         }
 
     }
@@ -845,7 +856,7 @@ class RenderView(
     }
 
     fun getWorld(): PrefabSaveable? {
-        return library.prefab?.getSampleInstance() ?: library.world
+        return library.prefab?.getSampleInstance()// ?: library.world
     }
 
     private val tmp4f = Vector4f()

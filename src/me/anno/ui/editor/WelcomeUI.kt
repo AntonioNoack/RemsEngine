@@ -5,6 +5,7 @@ import me.anno.config.DefaultStyle
 import me.anno.config.DefaultStyle.black
 import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
 import me.anno.language.translation.Dict
@@ -272,7 +273,11 @@ abstract class WelcomeUI {
 
             fun fileNameIsOk(file: FileReference): Boolean {
                 val parent = file.getParent()
-                if (file.name.isEmpty() && (parent == null || parent == FileRootRef)) return true // root drive
+                val parentIsRoot = parent == null || parent == FileRootRef
+                if (parentIsRoot) {
+                    if (file.name.isEmpty()) return true // root drive
+                    if (file.name.length == 2 && file.name[0].isLetter() && file.name[1] == ':') return true // windows drive letter
+                }
                 if (file.name.toAllowedFilename() != file.name) {
                     invalidName = file.name
                     return false
@@ -280,7 +285,6 @@ abstract class WelcomeUI {
                 return fileNameIsOk(parent ?: return true)
             }
 
-            // todo check if all file name parts are valid...
             // todo check if we have write and read access
             val file = fileInput.file
             var state = "ok"
@@ -304,26 +308,27 @@ abstract class WelcomeUI {
                 }
             }
             fileInput.tooltip = msg
+            fileInput.uiParent?.tooltip = msg
             val base = fileInput.base2
             base.textColor = when (state) {
                 "warning" -> 0xffff00
                 "error" -> 0xff0000
                 else -> 0x00ff00
-            } or DefaultStyle.black
+            } or black
             usableFile = if (state == "error") {
                 null
             } else file
             base.focusTextColor = base.textColor
         }
 
-        // todo translate
         nameInput = TextInput("Project Name", "", Dict["New Project", "ui.newProject.defaultName"], style)
         nameInput.setEnterListener { loadNewProject(studio, usableFile, nameInput) }
 
         var lastName = nameInput.lastValue
         fileInput = FileInput(
             Dict["Project Location", "ui.newProject.location"], style,
-            FileReference.getReference(StudioBase.workspace, lastName), emptyList()
+            getReference(StudioBase.workspace, lastName), emptyList(),
+            true
         )
 
         updateFileInputColor()
@@ -331,7 +336,7 @@ abstract class WelcomeUI {
         nameInput.addChangeListener {
             val newName = if (it.isBlank2()) "-" else it.trim()
             if (lastName == fileInput.file.name) {
-                fileInput.setText(FileReference.getReference(fileInput.file.getParent(), newName).toString(), false)
+                fileInput.setText(getReference(fileInput.file.getParent(), newName).toString(), false)
                 updateFileInputColor()
             }
             lastName = newName

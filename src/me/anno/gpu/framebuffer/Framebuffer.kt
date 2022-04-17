@@ -36,13 +36,13 @@ class Framebuffer(
     override val samples: Int = Maths.clamp(samples, 1, GFX.maxSamples)
     override val numTextures: Int = targets.size
 
-    // todo test this, does this work?
     /**
      * attach another framebuffer, which shares the depth buffer
      * this can be used to draw 3D ui without deferred-rendering,
      * but using the same depth values
      * */
     override fun attachFramebufferToDepth(targetCount: Int, fpTargets: Boolean): IFramebuffer {
+        // todo test this
         return if (targetCount <= GFX.maxColorAttachments) {
             val buffer = Framebuffer(name, w, h, samples, targetCount, fpTargets, DepthBufferType.ATTACHMENT)
             buffer.depthAttachment = this
